@@ -48,10 +48,13 @@ pkgdatadir="@datadir@/@PACKAGE@"
 guileversion="@GUILE_EFFECTIVE_VERSION@"
 default_scriptsdir=$pkgdatadir/$guileversion/scripts
 
+top_srcdir="@top_srcdir_absolute@"
+top_builddir="@top_builddir_absolute@"
+
 # pre-install invocation frob
-mydir=`dirname $0`
-if [ -d "$mydir/scripts" -a -f "$mydir/scripts/Makefile.am" ] ; then
-    default_scriptsdir=`(cd $mydir/scripts ; pwd)`
+mydir=$(cd $(dirname $0) && pwd)
+if [ "$mydir" = "$top_builddir" ] ; then
+    default_scriptsdir=$top_srcdir/scripts
 fi
 
 # option processing -- basically, you can override either the script dir

@@ -85,7 +85,7 @@ c-tokenize.$(OBJEXT): c-tokenize.c
 	if [ "$(cross_compiling)" = "yes" ]; then \
 		$(CC_FOR_BUILD) $(DEFS) $(AM_CPPFLAGS) -c -o $@ $<; \
 	else \
-		$(COMPILE) -c -o $@ $<; \
+		$(filter-out -Werror,$(COMPILE)) -c -o $@ $<; \
 	fi
 
 ## Override default rule; this should run on BUILD host.
@@ -121,6 +121,9 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     throw.c values.c variable.c vectors.c version.c vports.c weaks.c	\
     ramap.c unif.c
 
+# vm-related sources
+libguile_la_SOURCES += frames.c instructions.c objcodes.c programs.c vm.c
+
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_SOURCES = i18n.c
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_CFLAGS =	\
    $(libguile_la_CFLAGS)
@@ -144,6 +147,9 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     strports.x struct.x symbols.x threads.x throw.x values.x		\
     variable.x vectors.x version.x vports.x weaks.x ramap.x unif.x
 
+# vm-related snarfs
+DOT_X_FILES += frames.x instructions.x objcodes.x programs.x vm.x
+
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
 DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
@@ -166,9 +172,14 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
+DOT_I_FILES = vm-i-system.i vm-i-scheme.i vm-i-loader.i
+
+.c.i:
+	grep '^VM_DEFINE' $< > $@
+
 BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     version.h scmconfig.h \
-    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
+    $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
     inet_aton.c memmove.c putenv.c strerror.c	\
@@ -195,6 +206,9 @@ noinst_HEADERS = convert.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
 	         private-gc.h private-options.h
+
+# vm instructions
+noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library)
@@ -223,6 +237,9 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
     strorder.h strports.h struct.h symbols.h tags.h threads.h		\
     pthread-threads.h null-threads.h throw.h unif.h values.h		\
     variable.h vectors.h vports.h weaks.h
+
+modinclude_HEADERS += vm-bootstrap.h frames.h instructions.h objcodes.h	\
+    programs.h vm.h vm-engine.h vm-expand.h
 
 nodist_modinclude_HEADERS = version.h scmconfig.h
 

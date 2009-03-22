@@ -13,3 +13,4 @@ guile_filter_doc_snarfage
 libpath.h
 scmconfig.h
 version.h
+vm-i-*.i

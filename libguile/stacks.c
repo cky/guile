@@ -32,6 +32,8 @@
 #include "libguile/modules.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/vm.h" /* to capture vm stacks */
+#include "libguile/frames.h" /* vm frames */
 
 #include "libguile/validate.h"
 #include "libguile/stacks.h"
@@ -123,19 +125,17 @@
 #define RELOC_FRAME(ptr, offset) \
   ((scm_t_debug_frame *) ((SCM_STACKITEM *) (ptr) + (offset)))
 
-
 /* Count number of debug info frames on a stack, beginning with
  * DFRAME.  OFFSET is used for relocation of pointers when the stack
  * is read from a continuation.
  */
-static scm_t_bits
-stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
-	     SCM *id, int *maxp)
+static long
+stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
+	     SCM *id)
 {
   long n;
-  long max_depth = SCM_BACKTRACE_MAXDEPTH;
   for (n = 0;
-       dframe && !SCM_VOIDFRAMEP (*dframe) && n < max_depth;
+       dframe && !SCM_VOIDFRAMEP (*dframe);
        dframe = RELOC_FRAME (dframe->prev, offset))
     {
       if (SCM_EVALFRAMEP (*dframe))
@@ -148,15 +148,39 @@ stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 	  if ((((info - vect) & 1) == 0)
 	      && SCM_OVERFLOWP (*dframe)
 	      && !SCM_UNBNDP (info[1].a.proc))
-	    ++n;
+            ++n;
 	}
+      else if (SCM_APPLYFRAMEP (*dframe))
+        {
+          scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
+          if (SCM_PROGRAM_P (vect[0].a.proc))
+            {
+              if (!SCM_PROGRAM_IS_BOOT (vect[0].a.proc))
+                /* Programs can end up in the debug stack via deval; but we just
+                   ignore those, because we know that the debugging VM engine
+                   pushes one dframe per invocation, with the boot program as
+                   the proc, so we only count those. */
+                continue;
+              /* count vmframe back to previous boot frame */
+              for (; scm_is_true (vmframe); vmframe = scm_c_vm_frame_prev (vmframe))
+                {
+                  if (!SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+                    ++n;
+                  else
+                    { /* skip boot frame, cut out of the vm backtrace */
+                      vmframe = scm_c_vm_frame_prev (vmframe);
+                      break;
+                    }
+                }
+            }
+          else
+            ++n; /* increment for non-program apply frame */
+        }
       else
 	++n;
     }
   if (dframe && SCM_VOIDFRAMEP (*dframe))
     *id = RELOC_INFO(dframe->vect, offset)[0].id;
-  else if (dframe)
-    *maxp = 1;
   return n;
 }
 
@@ -234,7 +258,7 @@ do { \
 
 static scm_t_bits
 read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
-	     long n, scm_t_info_frame *iframes)
+	     SCM vmframe, long n, scm_t_info_frame *iframes)
 {
   scm_t_info_frame *iframe = iframes;
   scm_t_debug_info *info, *vect;
@@ -293,10 +317,39 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 	      NEXT_FRAME (iframe, n, quit);
 	    }
 	}
+      else if (SCM_PROGRAM_P (iframe->proc))
+        {
+          if (!SCM_PROGRAM_IS_BOOT (iframe->proc))
+            /* Programs can end up in the debug stack via deval; but we just
+               ignore those, because we know that the debugging VM engine
+               pushes one dframe per invocation, with the boot program as
+               the proc, so we only count those. */
+            continue;
+          for (; scm_is_true (vmframe);
+               vmframe = scm_c_vm_frame_prev (vmframe))
+            {
+              if (SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+                { /* skip boot frame, back to interpreted frames */
+                  vmframe = scm_c_vm_frame_prev (vmframe);
+                  break;
+                }
+              else 
+                {
+                  /* Oh dear, oh dear, oh dear. */
+                  iframe->flags = SCM_UNPACK (SCM_INUM0) | SCM_FRAMEF_PROC;
+                  iframe->source = scm_vm_frame_source (vmframe);
+                  iframe->proc = scm_vm_frame_program (vmframe);
+                  iframe->args = scm_vm_frame_arguments (vmframe);
+                  ++iframe;
+                  if (--n == 0)
+                    goto quit;
+                }
+            }
+        }
       else
-	{
-	  NEXT_FRAME (iframe, n, quit);
-	}
+        {
+          NEXT_FRAME (iframe, n, quit);
+        }
     quit:
       if (iframe > iframes)
 	(iframe - 1) -> flags |= SCM_FRAMEF_REAL;
@@ -428,6 +481,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   int maxp;
   scm_t_debug_frame *dframe;
   scm_t_info_frame *iframe;
+  SCM vmframe;
   long offset = 0;
   SCM stack, id;
   SCM inner_cut, outer_cut;
@@ -436,17 +490,37 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
      scm_make_stack was given.  */
   if (scm_is_eq (obj, SCM_BOOL_T))
     {
+      struct scm_vm *vp = SCM_VM_DATA (scm_the_vm ());
       dframe = scm_i_last_debug_frame ();
+      vmframe = scm_c_make_vm_frame (scm_the_vm (), vp->fp, vp->sp, vp->ip, 0);
     }
   else if (SCM_DEBUGOBJP (obj))
     {
       dframe = SCM_DEBUGOBJ_FRAME (obj);
+      vmframe = SCM_BOOL_F;
+    }
+  else if (SCM_VM_FRAME_P (obj))
+    {
+      dframe = NULL;
+      vmframe = obj;
     }
   else if (SCM_CONTINUATIONP (obj))
     {
       scm_t_contregs *cont = SCM_CONTREGS (obj);
       offset = cont->offset;
       dframe = RELOC_FRAME (cont->dframe, offset);
+      if (!scm_is_null (cont->vm_conts))
+        { SCM vm_cont;
+          struct scm_vm_cont *data;
+          vm_cont = scm_cdr (scm_car (cont->vm_conts));
+          data = SCM_VM_CONT_DATA (vm_cont);
+          vmframe = scm_c_make_vm_frame (vm_cont,
+                                         data->fp + data->reloc,
+                                         data->sp + data->reloc,
+                                         data->ip,
+                                         data->reloc);
+        } else 
+          vmframe = SCM_BOOL_F;
     }
   else
     {
@@ -459,7 +533,8 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
      (SCM_BACKTRACE_MAXDEPTH). */
   id = SCM_BOOL_F;
   maxp = 0;
-  n = stack_depth (dframe, offset, &id, &maxp);
+  n = stack_depth (dframe, offset, vmframe, &id);
+  /* FIXME: redo maxp? */
   size = n * SCM_FRAME_N_SLOTS;
 
   /* Make the stack object. */
@@ -467,10 +542,15 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   SCM_STACK (stack) -> id = id;
   iframe = &SCM_STACK (stack) -> tail[0];
   SCM_STACK (stack) -> frames = iframe;
+  SCM_STACK (stack) -> length = n;
 
   /* Translate the current chain of stack frames into debugging information. */
-  n = read_frames (dframe, offset, n, iframe);
-  SCM_STACK (stack) -> length = n;
+  n = read_frames (dframe, offset, vmframe, n, iframe);
+  if (n != SCM_STACK (stack)->length)
+    {
+      scm_puts ("warning: stack count incorrect!\n", scm_current_error_port ());
+      SCM_STACK (stack)->length = n;
+    }
 
   /* Narrow the stack according to the arguments given to scm_make_stack. */
   SCM_VALIDATE_REST_ARGUMENT (args);
@@ -497,12 +577,11 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       n = SCM_STACK (stack) -> length;
     }
   
+  if (n > 0 && maxp)
+    iframe[n - 1].flags |= SCM_FRAMEF_OVERFLOW;
+
   if (n > 0)
-    {
-      if (maxp)
-	iframe[n - 1].flags |= SCM_FRAMEF_OVERFLOW;
-      return stack;
-    }
+    return stack;
   else
     return SCM_BOOL_F;
 }

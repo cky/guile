@@ -499,6 +499,7 @@ guilify_self_2 (SCM parent)
 
   t->continuation_root = scm_cons (t->handle, SCM_EOL);
   t->continuation_base = t->base;
+  t->vm = SCM_BOOL_F;
 
   if (scm_is_true (parent))
     t->dynamic_state = scm_make_dynamic_state (parent);

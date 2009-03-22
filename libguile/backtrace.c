@@ -467,8 +467,21 @@ static void
 display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
 {
   SCM source = SCM_FRAME_SOURCE (frame);
-  *file = SCM_MEMOIZEDP (source) ? scm_source_property (source, scm_sym_filename) : SCM_BOOL_F;
-  *line = (SCM_MEMOIZEDP (source)) ? scm_source_property (source, scm_sym_line) : SCM_BOOL_F;
+  *file = *line = SCM_BOOL_F;
+  if (SCM_MEMOIZEDP (source))
+    {
+      *file = scm_source_property (source, scm_sym_filename);
+      *line = scm_source_property (source, scm_sym_line);
+    }
+  else if (scm_is_pair (source)
+           && scm_is_pair (scm_cdr (source))
+           && scm_is_pair (scm_cddr (source))
+           && !scm_is_pair (scm_cdddr (source)))
+    {
+      /* (addr . (filename . (line . column))), from vm compilation */
+      *file = scm_cadr (source);
+      *line = scm_caddr (source);
+    }
 }
 
 static void

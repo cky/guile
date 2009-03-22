@@ -732,7 +732,7 @@ dispatch:
 
 
 	case (ISYMNUM (SCM_IM_DELAY)):
-	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
+	  RETURN (scm_make_promise (scm_closure (SCM_CDR (x), env)));
 
 #if 0
 	  /* See futures.h for a comment why futures are not enabled.
@@ -855,9 +855,12 @@ dispatch:
 		      args = SCM_CDR (args);
 		      z = SCM_CDR (z);
 		    }
-		  /* Fewer arguments than specifiers => CAR != ENV */
-		  if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
-		    goto apply_cmethod;
+		  /* Fewer arguments than specifiers => CAR != CLASS */
+                  if (!scm_is_pair (z))
+                    goto apply_vm_cmethod;
+                  else if (!SCM_CLASSP (SCM_CAR (z))
+                           && !scm_is_symbol (SCM_CAR (z)))
+                    goto apply_memoized_cmethod;
 		next_method:
 		  hash_value = (hash_value + 1) & mask;
 		} while (hash_value != cache_end_pos);
@@ -865,13 +868,21 @@ dispatch:
 	      /* No appropriate method was found in the cache.  */
 	      z = scm_memoize_method (x, arg1);
 
-	    apply_cmethod: /* inputs: z, arg1 */
-	      {
-		SCM formals = SCM_CMETHOD_FORMALS (z);
-		env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
-		x = SCM_CMETHOD_BODY (z);
-		goto nontoplevel_begin;
-	      }
+              if (scm_is_pair (z))
+                goto apply_memoized_cmethod;
+              
+            apply_vm_cmethod:
+              proc = z;
+              PREP_APPLY (proc, arg1);
+              goto apply_proc;
+
+	    apply_memoized_cmethod: /* inputs: z, arg1 */
+              {
+                SCM formals = SCM_CMETHOD_FORMALS (z);
+                env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
+                x = SCM_CMETHOD_BODY (z);
+                goto nontoplevel_begin;
+              }
 	    }
 	  }
 

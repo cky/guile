@@ -39,6 +39,8 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/programs.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/objects.h"
@@ -138,8 +140,9 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	    z = SCM_CDR (z);
 	  }
 	while (j-- && !scm_is_null (ls));
-      /* Fewer arguments than specifiers => CAR != ENV */
-      if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
+      /* Fewer arguments than specifiers => CAR != CLASS or `no-method' */
+      if (!scm_is_pair (z)
+          || (!SCM_CLASSP (SCM_CAR (z)) && !scm_is_symbol (SCM_CAR (z))))
 	return z;
     next_method:
       i = (i + 1) & mask;
@@ -161,10 +164,15 @@ SCM
 scm_apply_generic (SCM gf, SCM args)
 {
   SCM cmethod = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (gf), args);
-  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-					args,
-					SCM_CMETHOD_ENV (cmethod)));
+  if (SCM_PROGRAM_P (cmethod))
+    return scm_vm_apply (scm_the_vm (), cmethod, args);
+  else if (scm_is_pair (cmethod))
+    return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+                          SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+                                          args,
+                                          SCM_CMETHOD_ENV (cmethod)));
+  else
+    return scm_apply (cmethod, args, SCM_EOL);
 }
 
 SCM

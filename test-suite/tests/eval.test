@@ -214,7 +214,11 @@
 ;;
 (define foo-closure (lambda () "hello"))
 (define bar-closure foo-closure)
-(define foo-pws (make-procedure-with-setter car set-car!))
+;; make sure that make-procedure-with-setter returns an anonymous
+;; procedure-with-setter by passing it an anonymous getter.
+(define foo-pws (make-procedure-with-setter
+                 (lambda (x) (car x))
+                 (lambda (x y) (set-car! x y))))
 (define bar-pws foo-pws)
 
 (with-test-prefix "define set procedure-name"
@@ -223,7 +227,7 @@
     (eq? 'foo-closure (procedure-name bar-closure)))
 
   (pass-if "procedure-with-setter"
-    (eq? 'foo-pws (pk (procedure-name bar-pws)))))
+    (eq? 'foo-pws (procedure-name bar-pws))))
 
 (if old-procnames-flag
     (debug-enable 'procnames)

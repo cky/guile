@@ -345,6 +345,8 @@ resolve_duplicate_binding (SCM module, SCM sym,
   return result;
 }
 
+SCM scm_pre_modules_obarray;
+
 /* Lookup SYM as an imported variable of MODULE.  */
 static inline SCM
 module_imported_variable (SCM module, SCM sym)
@@ -470,6 +472,9 @@ SCM_DEFINE (scm_module_variable, "module-variable", 2, 0, 0,
     SCM_VALIDATE_MODULE (1, module);
 
   SCM_VALIDATE_SYMBOL (2, sym);
+
+  if (scm_is_false (module))
+    return scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_UNDEFINED);
 
   /* 1. Check module obarray */
   var = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
@@ -624,6 +629,25 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_SYMBOL (sym_sys_module_public_interface, "%module-public-interface");
+
+SCM_DEFINE (scm_module_public_interface, "module-public-interface", 1, 0, 0,
+	    (SCM module),
+	    "Return the public interface of @var{module}.\n\n"
+            "If @var{module} has no public interface, @code{#f} is returned.")
+#define FUNC_NAME s_scm_module_public_interface
+{
+  SCM var;
+
+  SCM_VALIDATE_MODULE (1, module);
+  var = scm_module_local_variable (module, sym_sys_module_public_interface);
+  if (scm_is_true (var))
+    return SCM_VARIABLE_REF (var);
+  else
+    return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 /* scm_sym2var
  *
  * looks up the variable bound to SYM according to PROC.  PROC should be
@@ -636,8 +660,6 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
  * When PROC is `#f', it is ignored and the binding is searched for in
  * the scm_pre_modules_obarray (a `eq' hash table).
  */
-
-SCM scm_pre_modules_obarray;
 
 SCM 
 scm_sym2var (SCM sym, SCM proc, SCM definep)

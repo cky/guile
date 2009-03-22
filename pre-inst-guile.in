@@ -19,13 +19,6 @@
 #   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 #   Floor, Boston, MA 02110-1301 USA
 
-# NOTE: at some point we might consider invoking this under
-# pre-inst-guile-env.  If this will work, then most of the code below
-# can be removed.
-
-# NOTE: If you update this file, please update pre-inst-guile-env.in
-# as well, if appropriate.
-
 # Commentary:
 
 # Usage: pre-inst-guile [ARGS]
@@ -42,56 +35,15 @@
 
 # Code:
 
-# config
-subdirs_with_ltlibs="srfi guile-readline libguile" # maintain me
-
 # env (set by configure)
-top_srcdir="@top_srcdir_absolute@"
 top_builddir="@top_builddir_absolute@"
-
-[ x"$top_srcdir"   = x -o ! -d "$top_srcdir" -o \
-  x"$top_builddir" = x -o ! -d "$top_builddir" ] && {
-    echo $0: bad environment
-    echo top_srcdir=$top_srcdir
-    echo top_builddir=$top_builddir
-    exit 1
-}
-
-# handle GUILE_LOAD_PATH (no clobber)
-if [ x"$GUILE_LOAD_PATH" = x ]
-then
-    GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}"
-else
-  for d in "${top_srcdir}" "${top_srcdir}/guile-readline"
-  do
-    # This hair prevents double inclusion.
-    # The ":" prevents prefix aliasing.
-    case x"$GUILE_LOAD_PATH" in
-      x*${d}:*) ;;
-      *) GUILE_LOAD_PATH="${d}:$GUILE_LOAD_PATH" ;;
-    esac
-  done
-fi
-export GUILE_LOAD_PATH
-
-# handle LTDL_LIBRARY_PATH (no clobber)
-ltdl_prefix=""
-dyld_prefix=""
-for dir in $subdirs_with_ltlibs ; do
-    ltdl_prefix="${top_builddir}/${dir}:${ltdl_prefix}"
-    dyld_prefix="${top_builddir}/${dir}/.libs:${dyld_prefix}"
-done
-LTDL_LIBRARY_PATH="${ltdl_prefix}$LTDL_LIBRARY_PATH"
-export LTDL_LIBRARY_PATH
-DYLD_LIBRARY_PATH="${dyld_prefix}${top_builddir}/libguile/.libs:$DYLD_LIBRARY_PATH"
-export DYLD_LIBRARY_PATH
 
 # set GUILE (clobber)
 GUILE=${top_builddir}/libguile/guile
 export GUILE
 
 # do it
-exec $GUILE "$@"
+exec ${top_builddir}/pre-inst-guile-env $GUILE "$@"
 
 # never reached
 exit 1

@@ -191,7 +191,15 @@
                 (and (struct? x)
                      (eq? (struct-ref x 0) 'hello)
                      (eq? (struct-ref x 1) 'world)))
-             (current-module)))))
+             (current-module)))
+
+     (pass-if "with accessors"
+              (eval '(define-class <qux> ()
+                       (x #:accessor x #:init-value 123)
+                       (z #:accessor z #:init-value 789))
+                    (current-module))
+              (eval '(equal? (x (make <qux>)) 123) (current-module)))))
+     
 
 (with-test-prefix "defining generics"
 

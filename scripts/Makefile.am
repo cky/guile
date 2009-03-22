@@ -25,6 +25,8 @@ AUTOMAKE_OPTIONS = gnu
 scripts_sources =				\
 	PROGRAM					\
 	autofrisk				\
+	compile					\
+	disassemble				\
 	display-commentary			\
 	doc-snarf				\
 	frisk					\

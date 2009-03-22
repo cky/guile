@@ -68,6 +68,9 @@ guile_TEXINFOS = preface.texi			\
 		 autoconf.texi			\
 		 autoconf-macros.texi		\
 		 tools.texi			\
+		 history.texi			\
+		 vm.texi			\
+		 compiler.texi			\
 		 fdl.texi			\
 		 libguile-concepts.texi		\
 		 libguile-smobs.texi		\

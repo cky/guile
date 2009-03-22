@@ -1,0 +1,13 @@
+# -*- makefile -*-
+GOBJECTS = $(SOURCES:%.scm=%.go)
+
+moddir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/$(modpath)
+nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES) $(GOBJECTS)
+EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+
+CLEANFILES = $(GOBJECTS)
+
+SUFFIXES = .scm .go
+.scm.go:
+	$(MKDIR_P) `dirname $@`
+	$(top_builddir)/pre-inst-guile-env $(top_builddir)/guile-tools compile -o "$@" "$<"

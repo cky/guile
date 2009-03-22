@@ -52,6 +52,7 @@
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/procprop.h"
+#include "libguile/programs.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/srcprop.h"
@@ -62,6 +63,7 @@
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/vectors.h"
+#include "libguile/vm.h"
 
 #include "libguile/eval.h"
 #include "libguile/private-options.h"
@@ -2966,7 +2968,7 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
 
-  { SCM_OPTION_INTEGER, "stack", 20000, "Stack size limit (measured in words; 0 = no check)." },
+  { SCM_OPTION_INTEGER, "stack", 40000, "Stack size limit (measured in words; 0 = no check)." },
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T,
     "Show file names and line numbers "
     "in backtraces when not `#f'.  A value of `base' "
@@ -3050,32 +3052,56 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 SCM
 scm_call_0 (SCM proc)
 {
-  return scm_apply (proc, SCM_EOL, SCM_EOL);
+  if (SCM_PROGRAM_P (proc))
+    return scm_c_vm_run (scm_the_vm (), proc, NULL, 0);
+  else
+    return scm_apply (proc, SCM_EOL, SCM_EOL);
 }
 
 SCM
 scm_call_1 (SCM proc, SCM arg1)
 {
-  return scm_apply (proc, arg1, scm_listofnull);
+  if (SCM_PROGRAM_P (proc))
+    return scm_c_vm_run (scm_the_vm (), proc, &arg1, 1);
+  else
+    return scm_apply (proc, arg1, scm_listofnull);
 }
 
 SCM
 scm_call_2 (SCM proc, SCM arg1, SCM arg2)
 {
-  return scm_apply (proc, arg1, scm_cons (arg2, scm_listofnull));
+  if (SCM_PROGRAM_P (proc))
+    {
+      SCM args[] = { arg1, arg2 };
+      return scm_c_vm_run (scm_the_vm (), proc, args, 2);
+    }
+  else
+    return scm_apply (proc, arg1, scm_cons (arg2, scm_listofnull));
 }
 
 SCM
 scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3)
 {
-  return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
+  if (SCM_PROGRAM_P (proc))
+    {
+      SCM args[] = { arg1, arg2, arg3 };
+      return scm_c_vm_run (scm_the_vm (), proc, args, 3);
+    }
+  else
+    return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
 }
 
 SCM
 scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4)
 {
-  return scm_apply (proc, arg1, scm_cons2 (arg2, arg3,
-					   scm_cons (arg4, scm_listofnull)));
+  if (SCM_PROGRAM_P (proc))
+    {
+      SCM args[] = { arg1, arg2, arg3, arg4 };
+      return scm_c_vm_run (scm_the_vm (), proc, args, 4);
+    }
+  else
+    return scm_apply (proc, arg1, scm_cons2 (arg2, arg3,
+                                             scm_cons (arg4, scm_listofnull)));
 }
 
 /* Simple procedure applies
@@ -3663,13 +3689,23 @@ scm_closure (SCM code, SCM env)
 
 scm_t_bits scm_tc16_promise;
 
-SCM 
-scm_makprom (SCM code)
+SCM_DEFINE (scm_make_promise, "make-promise", 1, 0, 0, 
+	    (SCM thunk),
+	    "Create a new promise object.\n\n"
+            "@code{make-promise} is a procedural form of @code{delay}.\n"
+            "These two expressions are equivalent:\n"
+            "@lisp\n"
+	    "(delay @var{exp})\n"
+	    "(make-promise (lambda () @var{exp}))\n"
+            "@end lisp\n")
+#define FUNC_NAME s_scm_make_promise
 {
+  SCM_VALIDATE_THUNK (1, thunk);
   SCM_RETURN_NEWSMOB2 (scm_tc16_promise,
-		       SCM_UNPACK (code),
+		       SCM_UNPACK (thunk),
 		       scm_make_recursive_mutex ());
 }
+#undef FUNC_NAME
 
 
 static int 

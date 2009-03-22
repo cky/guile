@@ -35,6 +35,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/values.h"
 #include "libguile/eval.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/continuations.h"
@@ -91,6 +92,7 @@ scm_make_continuation (int *first)
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
+  continuation->vm_conts = scm_vm_capture_continuations ();
 
   *first = !setjmp (continuation->jmpbuf);
   if (*first)
@@ -169,6 +171,7 @@ copy_stack (void *data)
   copy_stack_data *d = (copy_stack_data *)data;
   memcpy (d->dst, d->continuation->stack,
 	  sizeof (SCM_STACKITEM) * d->continuation->num_stack_items);
+  scm_vm_reinstate_continuations (d->continuation->vm_conts);
 #ifdef __ia64__
   SCM_I_CURRENT_THREAD->pending_rbs_continuation = d->continuation;
 #endif

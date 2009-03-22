@@ -44,6 +44,8 @@
 #include "libguile/load.h"
 #include "libguile/fluids.h"
 
+#include "libguile/vm.h" /* for load-compiled/vm */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -172,6 +174,9 @@ static SCM *scm_loc_load_path;
 /* List of extensions we try adding to the filenames.  */
 static SCM *scm_loc_load_extensions;
 
+/* Like %load-extensions, but for compiled files.  */
+static SCM *scm_loc_load_compiled_extensions;
+
 
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
@@ -206,9 +211,17 @@ scm_init_load_path ()
   SCM path = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
-  path = scm_list_3 (scm_from_locale_string (SCM_SITE_DIR),
-		     scm_from_locale_string (SCM_LIBRARY_DIR),
-		     scm_from_locale_string (SCM_PKGDATA_DIR));
+  env = getenv ("GUILE_SYSTEM_PATH");
+  if (env && strcmp (env, "") == 0)
+    /* special-case interpret system-path=="" as meaning no system path instead
+       of '("") */
+    ; 
+  else if (env)
+    path = scm_parse_path (scm_from_locale_string (env), path);
+  else
+    path = scm_list_3 (scm_from_locale_string (SCM_SITE_DIR),
+                       scm_from_locale_string (SCM_LIBRARY_DIR),
+                       scm_from_locale_string (SCM_PKGDATA_DIR));
 #endif /* SCM_LIBRARY_DIR */
 
   env = getenv ("GUILE_LOAD_PATH");
@@ -291,14 +304,33 @@ stringbuf_cat (struct stringbuf *buf, char *str)
 }
 
   
+static int
+scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
+{
+  for (; !scm_is_null (extensions); extensions = SCM_CDR (extensions))
+    {
+      char *ext;
+      size_t extlen;
+      int match;
+      ext = scm_to_locale_string (SCM_CAR (extensions));
+      extlen = strlen (ext);
+      match = (len > extlen && str[len - extlen - 1] == '.'
+               && strncmp (str + (len - extlen), ext, extlen) == 0);
+      free (ext);
+      if (match)
+        return 1;
+    }
+  return 0;
+}
+
 /* Search PATH for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
    If we find one, return its full filename; otherwise, return #f.
    If FILENAME is absolute, return it unchanged.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
-SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
-           (SCM path, SCM filename, SCM extensions),
+SCM_DEFINE (scm_search_path, "search-path", 2, 2, 0,
+            (SCM path, SCM filename, SCM extensions, SCM require_exts),
 	    "Search @var{path} for a directory containing a file named\n"
 	    "@var{filename}. The file must be readable, and not a directory.\n"
 	    "If we find one, return its full filename; otherwise, return\n"
@@ -315,6 +347,9 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
 
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
+
+  if (SCM_UNBNDP (require_exts))
+    require_exts = SCM_BOOL_F;
 
   scm_dynwind_begin (0);
 
@@ -334,8 +369,14 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
   if (filename_len >= 1 && filename_chars[0] == '/')
 #endif
     {
+      SCM res = filename;
+      if (scm_is_true (require_exts) &&
+          !scm_c_string_has_an_ext (filename_chars, filename_len,
+                                    extensions))
+        res = SCM_BOOL_F;
+
       scm_dynwind_end ();
-      return filename;
+      return res;
     }
 
   /* If FILENAME has an extension, don't try to add EXTENSIONS to it.  */
@@ -348,6 +389,15 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 1, 0,
       {
 	if (*endp == '.')
 	  {
+            if (scm_is_true (require_exts) &&
+                !scm_c_string_has_an_ext (filename_chars, filename_len,
+                                          extensions))
+              {
+                /* This filename has an extension, but not one of the right
+                   ones... */
+                scm_dynwind_end ();
+                return SCM_BOOL_F;
+              }
 	    /* This filename already has an extension, so cancel the
                list of extensions.  */
 	    extensions = SCM_EOL;
@@ -453,7 +503,7 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
     SCM_MISC_ERROR ("%load-path is not a proper list", SCM_EOL);
   if (scm_ilength (exts) < 0)
     SCM_MISC_ERROR ("%load-extension list is not a proper list", SCM_EOL);
-  return scm_search_path (path, filename, exts);
+  return scm_search_path (path, filename, exts, SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -466,15 +516,51 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 	    "an error is signalled.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
-  SCM full_filename;
+  SCM full_filename, compiled_filename;
 
   full_filename = scm_sys_search_load_path (filename);
+  compiled_filename = scm_search_path (*scm_loc_load_path,
+                                       filename,
+                                       *scm_loc_load_compiled_extensions,
+                                       SCM_BOOL_T);
 
-  if (scm_is_false (full_filename))
+  if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
     SCM_MISC_ERROR ("Unable to find file ~S in load path",
 		    scm_list_1 (filename));
 
-  return scm_primitive_load (full_filename);
+  if (scm_is_false (compiled_filename))
+    return scm_primitive_load (full_filename);
+
+  if (scm_is_false (full_filename))
+    return scm_load_compiled_with_vm (compiled_filename);
+
+  {
+    char *source, *compiled;
+    struct stat stat_source, stat_compiled;
+
+    source = scm_to_locale_string (full_filename);
+    compiled = scm_to_locale_string (compiled_filename);
+    
+    if (stat (source, &stat_source) == 0
+        && stat (compiled, &stat_compiled) == 0
+        && stat_source.st_mtime <= stat_compiled.st_mtime) 
+      {
+        free (source);
+        free (compiled);
+        return scm_load_compiled_with_vm (compiled_filename);
+      }
+    else
+      {
+        scm_puts (";;; note: source file ", scm_current_error_port ());
+        scm_puts (source, scm_current_error_port ());
+        scm_puts (" newer than compiled ", scm_current_error_port ());
+        scm_puts (compiled, scm_current_error_port ());
+        scm_puts ("\n", scm_current_error_port ());
+        free (source);
+        free (compiled);
+        return scm_primitive_load (full_filename);
+      }
+  }
 }
 #undef FUNC_NAME
 
@@ -514,6 +600,9 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
 				      scm_list_2 (scm_from_locale_string (".scm"),
 						  scm_nullstr)));
+  scm_loc_load_compiled_extensions
+    = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-extensions",
+				      scm_list_1 (scm_from_locale_string (".go"))));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
 
   the_reader = scm_make_fluid ();

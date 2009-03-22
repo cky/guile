@@ -31,6 +31,7 @@
 #include "libguile/deprecation.h"
 
 #include "libguile/validate.h"
+#include "libguile/programs.h"
 #include "libguile/macros.h"
 
 #include "libguile/private-options.h"
@@ -47,7 +48,7 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
       || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
 					macro, port, pstate)))
     {
-      if (!SCM_CLOSUREP (code))
+      if (!SCM_CLOSUREP (code) && !SCM_PROGRAM_P (code))
 	scm_puts ("#<primitive-", port);
       else
 	scm_puts ("#<", port);
@@ -223,9 +224,15 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
 	    "Return the transformer of the macro @var{m}.")
 #define FUNC_NAME s_scm_macro_transformer
 {
+  SCM data;
+
   SCM_VALIDATE_SMOB (1, m, macro);
-  return ((SCM_CLOSUREP (SCM_PACK (SCM_SMOB_DATA (m)))) ?
-	  SCM_PACK(SCM_SMOB_DATA (m)) : SCM_BOOL_F);
+  data = SCM_PACK (SCM_SMOB_DATA (m));
+  
+  if (SCM_CLOSUREP (data) || SCM_PROGRAM_P (data))
+    return data;
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

@@ -2797,11 +2797,11 @@ structure.
 @example
 (make-vtable "prpw"
              (lambda (struct port)
-               (display "#<")
-               (display (struct-ref 0))
-               (display " and ")
-               (display (struct-ref 1))
-               (display ">")))
+               (display "#<" port)
+               (display (struct-ref struct 0) port)
+               (display " and " port)
+               (display (struct-ref struct 1) port)
+               (display ">" port)))
 @end example
 @end deffn
 

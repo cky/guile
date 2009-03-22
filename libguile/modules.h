@@ -100,6 +100,7 @@ SCM_API void scm_c_export (const char *name, ...);
 
 SCM_API SCM scm_sym2var (SCM sym, SCM thunk, SCM definep);
 
+SCM_API SCM scm_module_public_interface (SCM module);
 SCM_API SCM scm_module_import_interface (SCM module, SCM sym);
 SCM_API SCM scm_module_lookup_closure (SCM module);
 SCM_API SCM scm_module_transformer (SCM module);

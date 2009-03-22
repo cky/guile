@@ -5,20 +5,22 @@
 @c See the file guile.texi for copying conditions.
 
 @page
-@node Read/Load/Eval
+@node Read/Load/Eval/Compile
 @section Reading and Evaluating Scheme Code
 
 This chapter describes Guile functions that are concerned with reading,
-loading and evaluating Scheme code at run time.
+loading, evaluating, and compiling Scheme code at run time.
 
 @menu
 * Scheme Syntax::               Standard and extended Scheme syntax.
 * Scheme Read::                 Reading Scheme code.
 * Fly Evaluation::              Procedures for on the fly evaluation.
+* Compilation::                 How to compile Scheme files and procedures.
 * Loading::                     Loading Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 * Local Evaluation::            Evaluation in a local environment.
 * Evaluator Behaviour::         Modifying Guile's evaluator.
+* VM Behaviour::                Modifying Guile's virtual machine.
 @end menu
 
 
@@ -411,6 +413,69 @@ the current module.
 @end deffn
 
 
+@node Compilation
+@subsection Compiling Scheme Code
+
+The @code{eval} procedure directly interprets the S-expression
+representation of Scheme. An alternate strategy for evaluation is to
+determine ahead of time what computations will be necessary to
+evaluate the expression, and then use that recipe to produce the
+desired results. This is known as @dfn{compilation}.
+
+While it is possible to compile simple Scheme expressions such as
+@code{(+ 2 2)} or even @code{"Hello world!"}, compilation is most
+interesting in the context of procedures. Compiling a lambda expression
+produces a compiled procedure, which is just like a normal procedure
+except typically much faster, because it can bypass the generic
+interpreter.
+
+Functions from system modules in a Guile installation are normally
+compiled already, so they load and run quickly.
+
+Note that well-written Scheme programs will not typically call the
+procedures in this section, for the same reason that it is often bad
+taste to use @code{eval}. The normal interface to the compiler is the
+command-line file compiler, which can be invoked from the shell as
+@code{guile-tools compile @var{foo.scm}}. This interface needs more
+documentation.
+
+(Why are calls to @code{eval} and @code{compile} usually in bad taste?
+Because they are limited, in that they can only really make sense for
+top-level expressions. Also, most needs for ``compile-time''
+computation are fulfilled by macros and closures. Of course one good
+counterexample is the REPL itself, or any code that reads expressions
+from a port.)
+
+For more information on the compiler itself, see @ref{Compiling to the
+Virtual Machine}. For information on the virtual machine, see @ref{A
+Virtual Machine for Guile}.
+
+@deffn {Scheme Procedure} compile exp [env=#f] [from=(current-language)] [to=value] [opts=()]
+Compile the expression @var{exp} in the environment @var{env}. If
+@var{exp} is a procedure, the result will be a compiled procedure;
+otherwise @code{compile} is mostly equivalent to @code{eval}.
+
+For a discussion of languages and compiler options, @xref{Compiling to
+the Virtual Machine}.
+@end deffn
+
+@deffn {Scheme Procedure} compile-file file [to=objcode] [opts='()]
+Compile the file named @var{file}.
+
+Output will be written to a file in the current directory whose name
+is computed as @code{(compiled-file-name @var{file})}.
+@end deffn
+
+@deffn {Scheme Procedure} compiled-file-name file
+Compute an appropriate name for a compiled version of a Scheme file
+named @var{file}.
+
+Usually, the result will be the original file name with the
+@code{.scm} suffix replaced with @code{.go}, but the exact behavior
+depends on the contents of the @code{%load-extensions} and
+@code{%load-compiled-extensions} lists.
+@end deffn
+
 @node Loading
 @subsection Loading Scheme Code from File
 
@@ -435,9 +500,19 @@ procedure that will be called before any code is loaded.  See
 documentation for @code{%load-hook} later in this section.
 @end deffn
 
+@deffn {Scheme Procedure} load-compiled filename
+Load the compiled file named @var{filename}. The load paths are not
+searched.
+
+Compiling a source file (@pxref{Read/Load/Eval/Compile}) and then
+calling @code{load-compiled} on the resulting file is equivalent to
+calling @code{load} on the source file.
+@end deffn
+
 @deffn {Scheme Procedure} load-from-path filename
 Similar to @code{load}, but searches for @var{filename} in the load
-paths.
+paths. Preferentially loads a compiled version of the file, if it is
+available and up-to-date.
 @end deffn
 
 @deffn {Scheme Procedure} primitive-load filename
@@ -461,7 +536,8 @@ documentation for @code{%load-hook} later in this section.
 Search @code{%load-path} for the file named @var{filename} and
 load it into the top-level environment.  If @var{filename} is a
 relative pathname and is not found in the list of search paths,
-an error is signalled.
+an error is signalled. Preferentially loads a compiled version of the
+file, if it is available and up-to-date.
 @end deffn
 
 @deffn {Scheme Procedure} %search-load-path filename
@@ -639,6 +715,30 @@ trap handlers.
 Option interface for the evaluator trap options.
 @end deffn
 
+@node VM Behaviour
+@subsection VM Behaviour
+
+Like the procedures from the previous section that operate on the
+evaluator, there are also procedures to modify the behavior of a
+virtual machine.
+
+The most useful thing that a user can do is to add to one of the
+virtual machine's predefined hooks:
+
+@deffn {Scheme Procedure} vm-next-hook vm
+@deffnx {Scheme Procedure} vm-apply-hook vm
+@deffnx {Scheme Procedure} vm-boot-hook vm
+@deffnx {Scheme Procedure} vm-return-hook vm
+@deffnx {Scheme Procedure} vm-break-hook vm
+@deffnx {Scheme Procedure} vm-exit-hook vm
+@deffnx {Scheme Procedure} vm-halt-hook vm
+@deffnx {Scheme Procedure} vm-enter-hook vm
+Accessors to a virtual machine's hooks. Usually you pass
+@code{(the-vm)} as the @var{vm}.
+@end deffn
+
+@xref{A Virtual Machine for Guile}, for more information on Guile's
+virtual machine.
 
 @c Local Variables:
 @c TeX-master: "guile.texi"

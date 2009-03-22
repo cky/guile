@@ -51,6 +51,7 @@ typedef struct
 #endif /* __ia64__ */
   size_t num_stack_items;   /* size of the saved stack.  */
   SCM root;                 /* continuation root identifier.  */
+  SCM vm_conts;             /* vm continuations (they use separate stacks) */
 
   /* The offset from the live stack location to this copy.  This is
      used to adjust pointers from within the copied stack to the stack

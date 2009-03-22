@@ -31,7 +31,7 @@
 # Example: ../../pre-inst-guile-env ./guile-test-foo
 
 # config
-subdirs_with_ltlibs="srfi guile-readline"       # maintain me
+subdirs_with_ltlibs="srfi guile-readline libguile"       # maintain me
 
 # env (set by configure)
 top_srcdir="@top_srcdir_absolute@"
@@ -47,9 +47,14 @@ top_builddir="@top_builddir_absolute@"
 
 if [ x"$GUILE_LOAD_PATH" = x ]
 then
-    GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}"
+    if test "${top_srcdir}" != "${top_builddir}"; then
+        GUILE_LOAD_PATH="${top_builddir}/guile-readline:${top_srcdir}/guile-readline:${top_builddir}:${top_srcdir}:${top_builddir}/module:${top_srcdir}/module"
+    else
+        GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}:${top_srcdir}/module:${top_srcdir}/module"
+    fi
 else
-  for d in "${top_srcdir}" "${top_srcdir}/guile-readline"
+  for d in "${top_srcdir}" "${top_srcdir}/guile-readline" \
+           "${top_srcdir}/module" "${top_builddir}/module"
   do
     # This hair prevents double inclusion.
     # The ":" prevents prefix aliasing.
@@ -60,6 +65,11 @@ else
   done
 fi
 export GUILE_LOAD_PATH
+
+# Don't look in installed dirs for guile modules
+if ( env | grep -v -q -E '^GUILE_SYSTEM_PATH=' ); then
+  export GUILE_SYSTEM_PATH=
+fi
 
 # handle LTDL_LIBRARY_PATH (no clobber)
 ltdl_prefix=""

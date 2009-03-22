@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006, 2007, 2008 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -118,6 +118,14 @@ test_scm_c_read_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-scm-c-read
 TESTS += test-scm-c-read
 
+# test-scm-take-locale-symbol
+test_scm_take_locale_symbol_SOURCES = test-scm-take-locale-symbol.c
+test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
+test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-take-locale-symbol
+TESTS += test-scm-take-locale-symbol
+
+
 if BUILD_PTHREAD_SUPPORT
 
 # test-with-guile-module
@@ -136,8 +144,5 @@ else
 EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
 
 endif
-
-all-local:
-	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
 EXTRA_DIST += ${check_SCRIPTS}

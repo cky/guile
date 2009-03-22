@@ -9,3 +9,4 @@
 /test-scm-with-guile
 /test-scm-c-read
 /test-fast-slot-ref
+/test-scm-take-locale-symbol

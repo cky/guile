@@ -42,6 +42,7 @@
 #include "libguile/root.h"
 #include "libguile/fluids.h"
 #include "libguile/objects.h"
+#include "libguile/programs.h"
 
 #include "libguile/validate.h"
 #include "libguile/debug.h"
@@ -72,7 +73,9 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
       SCM_OUT_OF_RANGE (1, setting);
     }
   SCM_RESET_DEBUG_MODE;
+#ifdef STACK_CHECKING
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
+#endif
   scm_debug_eframe_size = 2 * SCM_N_FRAMES;
 
   scm_dynwind_end ();
@@ -312,6 +315,8 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 #endif
       if (scm_is_false (name) && SCM_CLOSUREP (proc))
 	name = scm_reverse_lookup (SCM_ENV (proc), proc);
+      if (scm_is_false (name) && SCM_PROGRAM_P (proc))
+        name = scm_program_name (proc);
       return name;
     }
   }
@@ -440,8 +445,10 @@ scm_reverse_lookup (SCM env, SCM data)
   return SCM_BOOL_F;
 }
 
-SCM
-scm_start_stack (SCM id, SCM exp, SCM env)
+SCM_DEFINE (scm_sys_start_stack, "%start-stack", 2, 0, 0,
+            (SCM id, SCM thunk),
+	    "Call @var{thunk} on an evaluator stack tagged with @var{id}.")
+#define FUNC_NAME s_scm_sys_start_stack
 {
   SCM answer;
   scm_t_debug_frame vframe;
@@ -451,26 +458,11 @@ scm_start_stack (SCM id, SCM exp, SCM env)
   vframe.vect = &vframe_vect_body;
   vframe.vect[0].id = id;
   scm_i_set_last_debug_frame (&vframe);
-  answer = scm_i_eval (exp, env);
+  answer = scm_call_0 (thunk);
   scm_i_set_last_debug_frame (vframe.prev);
   return answer;
 }
-
-SCM_SYNTAX(s_start_stack, "start-stack", scm_makacro, scm_m_start_stack);
-
-static SCM
-scm_m_start_stack (SCM exp, SCM env)
-#define FUNC_NAME s_start_stack
-{
-  exp = SCM_CDR (exp);
-  if (!scm_is_pair (exp) 
-      || !scm_is_pair (SCM_CDR (exp))
-      || !scm_is_null (SCM_CDDR (exp)))
-    SCM_WRONG_NUM_ARGS ();
-  return scm_start_stack (scm_eval_car (exp, env), SCM_CADR (exp), env);
-}
 #undef FUNC_NAME
-
 
 /* {Debug Objects}
  *

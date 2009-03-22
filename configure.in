@@ -288,6 +288,8 @@ AC_CHECK_LIB(uca, __uc_get_ar_bsp)
 
 AC_C_BIGENDIAN
 
+AC_C_LABELS_AS_VALUES
+
 AC_CHECK_SIZEOF(char)
 AC_CHECK_SIZEOF(unsigned char)
 AC_CHECK_SIZEOF(short)
@@ -1557,17 +1559,20 @@ AC_CONFIG_FILES([
   examples/safe/Makefile
   examples/scripts/Makefile
   guile-config/Makefile
-  ice-9/Makefile
-  ice-9/debugger/Makefile
-  ice-9/debugging/Makefile
   lang/Makefile
   libguile/Makefile
-  oop/Makefile
-  oop/goops/Makefile
   scripts/Makefile
   srfi/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
+  module/Makefile
+  module/ice-9/Makefile
+  module/ice-9/debugger/Makefile
+  module/ice-9/debugging/Makefile
+  module/srfi/Makefile
+  module/oop/Makefile
+  module/oop/goops/Makefile
+  testsuite/Makefile
 ])
 
 AC_CONFIG_FILES([guile-1.8.pc])
@@ -1576,6 +1581,7 @@ AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
 AC_CONFIG_FILES([guile-tools], [chmod +x guile-tools])
 AC_CONFIG_FILES([pre-inst-guile], [chmod +x pre-inst-guile])
 AC_CONFIG_FILES([pre-inst-guile-env], [chmod +x pre-inst-guile-env])
+AC_CONFIG_FILES([gdb-pre-inst-guile], [chmod +x gdb-pre-inst-guile])
 AC_CONFIG_FILES([libguile/guile-snarf],
                 [chmod +x libguile/guile-snarf])
 AC_CONFIG_FILES([libguile/guile-doc-snarf],

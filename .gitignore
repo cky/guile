@@ -37,7 +37,7 @@ autom4te.cache
 benchmark-guile
 check-guile
 check-guile.log
-compile
+build-aux/compile
 confdefs.h
 config.build-subdirs
 config.cache
@@ -68,8 +68,10 @@ guile-procedures.txt
 guile-config/guile-config
 guile-readline/guile-readline-config.h
 guile-readline/guile-readline-config.h.in
+*.go
 TAGS
 guile-1.8.pc
+gdb-pre-inst-guile
 libguile/stack-limit-calibration.scm
 cscope.out
 cscope.files

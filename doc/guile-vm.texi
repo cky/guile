@@ -1,0 +1,1042 @@
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename guile-vm.info
+@settitle Guile VM Specification
+@footnotestyle end
+@setchapternewpage odd
+@c %**end of header
+
+@set EDITION 0.6
+@set VERSION 0.6
+@set UPDATED 2005-04-26
+
+@c Macro for instruction definitions.
+@macro insn{}
+Instruction
+@end macro
+
+@c For Scheme procedure definitions.
+@macro scmproc{}
+Scheme Procedure
+@end macro
+
+@c Scheme records.
+@macro scmrec{}
+Record
+@end macro
+
+@ifinfo
+@dircategory Scheme Programming
+@direntry
+* Guile VM: (guile-vm).         Guile's Virtual Machine.
+@end direntry
+
+This file documents Guile VM.
+
+Copyright @copyright{} 2000 Keisuke Nishida
+Copyright @copyright{} 2005 Ludovic Court`es
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries a copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+@end ifinfo
+
+@titlepage
+@title Guile VM Specification
+@subtitle for Guile VM @value{VERSION}
+@author Keisuke Nishida
+
+@page
+@vskip 0pt plus 1filll
+Edition @value{EDITION} @*
+Updated for Guile VM @value{VERSION} @*
+@value{UPDATED} @*
+
+Copyright @copyright{} 2000 Keisuke Nishida
+Copyright @copyright{} 2005 Ludovic Court`es
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation
+approved by the Free Software Foundation.
+@end titlepage
+
+@contents
+
+@c *********************************************************************
+@node Top, Introduction, (dir), (dir)
+@top Guile VM Specification
+
+This document would like to correspond to Guile VM @value{VERSION}.
+However, be warned that important parts still correspond to version
+0.0 and are not valid anymore.
+
+@menu
+* Introduction::                
+* Variable Management::         
+* Instruction Set::             
+* The Compiler::                
+* Concept Index::               
+* Function and Instruction Index::  
+* Command and Variable Index::  
+
+@detailmenu
+ --- The Detailed Node Listing ---
+
+Instruction Set
+
+* Environment Control Instructions::  
+* Branch Instructions::         
+* Subprogram Control Instructions::  
+* Data Control Instructions::   
+
+The Compiler
+
+* Overview::                    
+* The Language Front-Ends::     
+* GHIL::                        
+* Compiling Scheme Code::       
+* GLIL::                        
+* The Assembler::               
+
+@end detailmenu
+@end menu
+
+@c *********************************************************************
+@node Introduction, Variable Management, Top, Top
+@chapter What is Guile VM?
+
+A Guile VM has a set of registers and its own stack memory.  Guile may
+have more than one VM's.  Each VM may execute at most one program at a
+time.  Guile VM is a CISC system so designed as to execute Scheme and
+other languages efficiently.
+
+@unnumberedsubsec Registers
+
+@itemize
+@item pc - Program counter    ;; ip (instruction poiner) is better?
+@item sp - Stack pointer
+@item bp - Base pointer
+@item ac - Accumulator
+@end itemize
+
+@unnumberedsubsec Engine
+
+A VM may have one of three engines: reckless, regular, or debugging.
+Reckless engine is fastest but dangerous.  Regular engine is normally
+fail-safe and reasonably fast.  Debugging engine is safest and
+functional but very slow.
+
+@unnumberedsubsec Memory
+
+Stack is the only memory that each VM owns.  The other memory is shared
+memory that is shared among every VM and other part of Guile.
+
+@unnumberedsubsec Program
+
+A VM program consists of a bytecode that is executed and an environment
+in which execution is done.  Each program is allocated in the shared
+memory and may be executed by any VM.  A program may call other programs
+within a VM.
+
+@unnumberedsubsec Instruction
+
+Guile VM has dozens of system instructions and (possibly) hundreds of
+functional instructions.  Some Scheme procedures such as cons and car
+are implemented as VM's builtin functions, which are very efficient.
+Other procedures defined outside of the VM are also considered as VM's
+functional features, since they do not change the state of VM.
+Procedures defined within the VM are called subprograms.
+
+Most instructions deal with the accumulator (ac).  The VM stores all
+results from functions in ac, instead of pushing them into the stack.
+I'm not sure whether this is a good thing or not.
+
+@node Variable Management, Instruction Set, Introduction, Top
+@chapter Variable Management
+
+FIXME:  This chapter needs to be reviewed so that it matches reality.
+A more up-to-date description of the mechanisms described in this
+section is given in @ref{Instruction Set}.
+
+A program may have access to local variables, external variables, and
+top-level variables.
+
+@section Local/external variables
+
+A stack is logically divided into several blocks during execution.  A
+"block" is such a unit that maintains local variables and dynamic chain.
+A "frame" is an upper level unit that maintains subprogram calls.
+
+@example
+             Stack
+  dynamic |          |  |        |
+    chain +==========+  -        =
+        | |local vars|  |        |
+        `-|block data|  | block  |
+         /|frame data|  |        |
+        | +----------+  -        |
+        | |local vars|  |        | frame
+        `-|block data|  |        |
+         /+----------+  -        |
+        | |local vars|  |        |
+        `-|block data|  |        |
+         /+==========+  -        =
+        | |local vars|  |        |
+        `-|block data|  |        |
+         /|frame data|  |        |
+        | +----------+  -        |
+        | |          |  |        |
+@end example
+
+The first block of each frame may look like this:
+
+@example
+       Address  Data
+       -------  ----
+       xxx0028  Local variable 2
+       xxx0024  Local variable 1
+  bp ->xxx0020  Local variable 0
+       xxx001c  Local link       (block data)
+       xxx0018  External link    (block data)
+       xxx0014  Stack pointer    (block data)
+       xxx0010  Return address   (frame data)
+       xxx000c  Parent program   (frame data)
+@end example
+
+The base pointer (bp) always points to the lowest address of local
+variables of the recent block.  Local variables are referred as "bp[n]".
+The local link field has a pointer to the dynamic parent of the block.
+The parent's variables are referred as "bp[-1][n]", and grandparent's
+are "bp[-1][-1][n]".  Thus, any local variable is represented by its
+depth and offset from the current bp.
+
+A variable may be "external", which is allocated in the shared memory.
+The external link field of a block has a pointer to such a variable set,
+which I call "fragment" (what should I call?).  A fragment has a set of
+variables and its own chain.
+
+@example
+    local                    external
+    chain|     |              chain
+       | +-----+     .--------, |
+       `-|block|--+->|external|-'
+        /+-----+  |  `--------'\,
+       `-|block|--'             |
+        /+-----+     .--------, |
+       `-|block|---->|external|-'
+         +-----+     `--------'
+         |     |
+@end example
+
+An external variable is referred as "bp[-2]->variables[n]" or
+"bp[-2]->link->...->variables[n]".  This is also represented by a pair
+of depth and offset.  At any point of execution, the value of bp
+determines the current local link and external link, and thus the
+current environment of a program.
+
+Other data fields are described later.
+
+@section Top-level variables
+
+Guile VM uses the same top-level variables as the regular Guile.  A
+program may have direct access to vcells.  Currently this is done by
+calling scm_intern0, but a program is possible to have any top-level
+environment defined by the current module.
+
+@section Scheme and VM variable
+
+Let's think about the following Scheme code as an example:
+
+@example
+  (define (foo a)
+    (lambda (b) (list foo a b)))
+@end example
+
+In the lambda expression, "foo" is a top-level variable, "a" is an
+external variable, and "b" is a local variable.
+
+When a VM executes foo, it allocates a block for "a".  Since "a" may be
+externally referred from the closure, the VM creates a fragment with a
+copy of "a" in it.  When the VM evaluates the lambda expression, it
+creates a subprogram (closure), associating the fragment with the
+subprogram as its external environment.  When the closure is executed,
+its environment will look like this:
+
+@example
+      block          Top-level: foo
+  +-------------+
+  |local var: b |       fragment
+  +-------------+     .-----------,
+  |external link|---->|variable: a|
+  +-------------+     `-----------'
+@end example
+
+The fragment remains as long as the closure exists.
+
+@section Addressing mode
+
+Guile VM has five addressing modes:
+
+@itemize
+@item Real address
+@item Local position
+@item External position
+@item Top-level location
+@item Constant object
+@end itemize
+
+Real address points to the address in the real program and is only used
+with the program counter (pc).
+
+Local position and external position are represented as a pair of depth
+and offset from bp, as described above.  These are base relative
+addresses, and the real address may vary during execution.
+
+Top-level location is represented as a Guile's vcell.  This location is
+determined at loading time, so the use of this address is efficient.
+
+Constant object is not an address but gives an instruction an Scheme
+object directly.
+
+[ We'll also need dynamic scope addressing to support Emacs Lisp? ]
+
+
+Overall procedure:
+
+@enumerate
+@item A source program is compiled into a bytecode.
+@item A bytecode is given an environment and becomes a program.
+@item A VM starts execution, creating a frame for it.
+@item Whenever a program calls a subprogram, a new frame is created for it.
+@item When a program finishes execution, it returns a value, and the VM
+      continues execution of the parent program.
+@item When all programs terminated, the VM returns the final value and stops.
+@end enumerate
+
+
+@node Instruction Set, The Compiler, Variable Management, Top
+@chapter Instruction Set
+
+The Guile VM instruction set is roughly divided two groups: system
+instructions and functional instructions.  System instructions control
+the execution of programs, while functional instructions provide many
+useful calculations.
+
+@menu
+* Environment Control Instructions::  
+* Branch Instructions::         
+* Subprogram Control Instructions::  
+* Data Control Instructions::   
+@end menu
+
+@node Environment Control Instructions, Branch Instructions, Instruction Set, Instruction Set
+@section Environment Control Instructions
+
+@deffn @insn{} link binding-name
+Look up @var{binding-name} (a string) in the current environment and
+push the corresponding variable object onto the stack.  If
+@var{binding-name} is not bound yet, then create a new binding and
+push its variable object.
+@end deffn
+
+@deffn @insn{} variable-ref
+Dereference the variable object which is on top of the stack and
+replace it by the value of the variable it represents.
+@end deffn
+
+@deffn @insn{} variable-set
+Set the value of the variable on top of the stack (at @code{sp[0]}) to
+the object located immediately before (at @code{sp[-1]}).
+@end deffn
+
+As an example, let us look at what a simple function call looks like:
+
+@example
+(+ 2 3)
+@end example
+
+This call yields the following sequence of instructions:
+
+@example
+(link "+")      ;; lookup binding "+"
+(variable-ref)  ;; dereference it
+(make-int8 2)   ;; push immediate value `2'
+(make-int8 3)   ;; push immediate value `3'
+(tail-call 2)   ;; call the proc at sp[-3] with two args
+@end example
+
+@deffn @insn{} local-ref offset
+Push onto the stack the value of the local variable located at
+@var{offset} within the current stack frame.
+@end deffn
+
+@deffn @insn{} local-set offset
+Pop the Scheme object located on top of the stack and make it the new
+value of the local variable located at @var{offset} within the current
+stack frame.
+@end deffn
+
+@deffn @insn{} external-ref offset
+Push the value of the closure variable located at position
+@var{offset} within the program's list of external variables.
+@end deffn
+
+@deffn @insn{} external-set offset
+Pop the Scheme object located on top of the stack and make it the new
+value of the closure variable located at @var{offset} within the
+program's list of external variables.
+@end deffn
+
+@deffn @insn{} make-closure
+Pop the program object from the stack and assign it the current
+closure variable list as its closure.  Push the result program
+object.
+@end deffn
+
+Let's illustrate this:
+
+@example
+(let ((x 2))
+  (lambda ()
+    (let ((x++ (+ 1 x)))
+      (set! x x++)
+      x++)))
+@end example
+
+The resulting program has one external (closure) variable, i.e. its
+@var{nexts} is set to 1 (@pxref{Subprogram Control Instructions}).
+This yields the following code:
+
+@example
+   ;; the traditional program prologue with NLOCS = 0 and NEXTS = 1
+
+   0    (make-int8 2)
+   2    (external-set 0)
+   4    (make-int8 4)
+   6    (link "+")     ;; lookup `+'
+   9    (vector 1)     ;; create the external variable vector for
+                       ;; later use by `object-ref' and `object-set'
+        ...
+  40    (load-program ##34#)
+  59    (make-closure) ;; assign the current closure to the program
+                       ;; just pushed by `load-program'
+  60    (return)
+@end example
+
+The program loaded here by @var{load-program} contains the following
+sequence of instructions:
+
+@example
+   0    (object-ref 0)     ;; push the variable for `+'
+   2    (variable-ref)     ;; dereference `+'
+   3    (make-int8:1)      ;; push 1
+   4    (external-ref 0)   ;; push the value of `x'
+   6    (call 2)           ;; call `+' and push the result
+   8    (local-set 0)      ;; make it the new value of `x++'
+  10    (local-ref 0)      ;; push the value of `x++'
+  12    (external-set 0)   ;; make it the new value of `x'
+  14    (local-ref 0)      ;; push the value of `x++'
+  16    (return)           ;; return it
+@end example
+
+At this point, you should know pretty much everything about the three
+types of variables a program may need to access.
+
+
+@node Branch Instructions, Subprogram Control Instructions, Environment Control Instructions, Instruction Set
+@section Branch Instructions
+
+All the conditional branch instructions described below work in the
+same way:
+
+@itemize
+@item They take the Scheme object located on the stack and use it as
+the branch condition;
+@item If the condition if false, then program execution continues with
+the next instruction;
+@item If the condition is true, then the instruction pointer is
+increased by the offset passed as an argument to the branch
+instruction;
+@item Finally, when the instruction finished, the condition object is
+removed from the stack.
+@end itemize
+
+Note that the offset passed to the instruction is encoded on two 8-bit
+integers which are then combined by the VM as one 16-bit integer.
+
+@deffn @insn{} br offset
+Jump to @var{offset}.
+@end deffn
+
+@deffn @insn{} br-if offset
+Jump to @var{offset} if the condition on the stack is not false.
+@end deffn
+
+@deffn @insn{} br-if-not offset
+Jump to @var{offset} if the condition on the stack is false.
+@end deffn
+
+@deffn @insn{} br-if-eq offset
+Jump to @var{offset} if the two objects located on the stack are
+equal in the sense of @var{eq?}.  Note that, for this instruction, the
+stack pointer is decremented by two Scheme objects instead of only
+one.
+@end deffn
+
+@deffn @insn{} br-if-not-eq offset
+Same as @var{br-if-eq} for non-equal objects.
+@end deffn
+
+@deffn @insn{} br-if-null offset
+Jump to @var{offset} if the object on the stack is @code{'()}.
+@end deffn
+
+@deffn @insn{} br-if-not-null offset
+Jump to @var{offset} if the object on the stack is not @code{'()}.
+@end deffn
+
+
+@node Subprogram Control Instructions, Data Control Instructions, Branch Instructions, Instruction Set
+@section Subprogram Control Instructions
+
+Programs (read: ``compiled procedure'') may refer to external
+bindings, like variables or functions defined outside the program
+itself, in the environment in which it will evaluate at run-time.  In
+a sense, a program's environment and its bindings are an implicit
+parameter of every program.
+
+@cindex object table
+In order to handle such bindings, each program has an @dfn{object
+table} associated to it.  This table (actually a Scheme vector)
+contains all constant objects referenced by the program.  The object
+table of a program is initialized right before a program is loaded
+with @var{load-program}.
+
+Variable objects are one such type of constant object: when a global
+binding is defined, a variable object is associated to it and that
+object will remain constant over time, even if the value bound to it
+changes.  Therefore, external bindings only need to be looked up once
+when the program is loaded.  References to the corresponding external
+variables from within the program are then performed via the
+@var{object-ref} instruction and are almost as fast as local variable
+references.
+
+Let us consider the following program (procedure) which references
+external bindings @code{frob} and @var{%magic}:
+
+@example
+(lambda (x)
+  (frob x %magic))
+@end example
+
+This yields the following assembly code:
+
+@example
+(make-int8 64)   ;; number of args, vars, etc. (see below)
+(link "frob")
+(link "%magic")
+(vector 2)       ;; object table (external bindings)
+...
+(load-program #u8(20 0 23 21 0 20 1 23 36 2))
+(return)
+@end example
+
+All the instructions occurring before @var{load-program} (some were
+omitted for simplicity) form a @dfn{prologue} which, among other
+things, pushed an object table (a vector) that contains the variable
+objects for the variables bound to @var{frob} and @var{%magic}.  This
+vector and other data pushed onto the stack are then popped by the
+@var{load-program} instruction.
+
+Besides, the @var{load-program} instruction takes one explicit
+argument which is the bytecode of the program itself.  Disassembled,
+this bytecode looks like:
+
+@example
+(object-ref 0)  ;; push the variable object of `frob'
+(variable-ref)  ;; dereference it
+(local-ref 0)   ;; push the value of `x'
+(object-ref 1)  ;; push the variable object of `%magic'
+(variable-ref)  ;; dereference it
+(tail-call 2)   ;; call `frob' with two parameters
+@end example
+
+This clearly shows that there is little difference between references
+to local variables and references to externally bound variables since
+lookup of externally bound variables if performed only once before the
+program is run.
+
+@deffn @insn{} load-program bytecode
+Load the program whose bytecode is @var{bytecode} (a u8vector), pop
+its meta-information from the stack, and push a corresponding program
+object onto the stack.  The program's meta-information may consist of
+(in the order in which it should be pushed onto the stack):
+
+@itemize
+@item optionally, a pair representing meta-data (see the
+@var{program-meta} procedure); [FIXME: explain their meaning]
+@item optionally, a vector which is the program's object table (a
+program that does not reference external bindings does not need an
+object table);
+@item either one immediate integer or four immediate integers
+representing respectively the number of arguments taken by the
+function (@var{nargs}), the number of @dfn{rest arguments}
+(@var{nrest}, 0 or 1), the number of local variables (@var{nlocs}) and
+the number of external variables (@var{nexts}) (@pxref{Environment
+Control Instructions}).
+@end itemize
+
+@end deffn
+
+@deffn @insn{} object-ref offset
+Push the variable object for the external variable located at
+@var{offset} within the program's object table.
+@end deffn
+
+@deffn @insn{} return
+Free the program's frame.
+@end deffn
+
+@deffn @insn{} call nargs
+Call the procedure, continuation or program located at
+@code{sp[-nargs]} with the @var{nargs} arguments located from
+@code{sp[0]} to @code{sp[-nargs + 1]}.  The
+procedure/continuation/program and its arguments are dropped from the
+stack and the result is pushed.  When calling a program, the
+@code{call} instruction reserves room for its local variables on the
+stack, and initializes its list of closure variables and its vector of
+externally bound variables.
+@end deffn
+
+@deffn @insn{} tail-call nargs
+Same as @code{call} except that, for tail-recursive calls to a
+program, the current stack frame is re-used, as required by RnRS.
+This instruction is otherwise similar to @code{call}.
+@end deffn
+
+
+@node Data Control Instructions,  , Subprogram Control Instructions, Instruction Set
+@section Data Control Instructions
+
+@deffn @insn{} make-int8 value
+Push @var{value}, an 8-bit integer, onto the stack.
+@end deffn
+
+@deffn @insn{} make-int8:0
+Push the immediate value @code{0} onto the stack.
+@end deffn
+
+@deffn @insn{} make-int8:1
+Push the immediate value @code{1} onto the stack.
+@end deffn
+
+@deffn @insn{} make-false
+Push @code{#f} onto the stack.
+@end deffn
+
+@deffn @insn{} make-true
+Push @code{#t} onto the stack.
+@end deffn
+
+@itemize
+@item %push
+@item %pushi
+@item %pushl, %pushl:0:0, %pushl:0:1, %pushl:0:2, %pushl:0:3
+@item %pushe, %pushe:0:0, %pushe:0:1, %pushe:0:2, %pushe:0:3
+@item %pusht
+@end itemize
+
+@itemize
+@item %loadi
+@item %loadl, %loadl:0:0, %loadl:0:1, %loadl:0:2, %loadl:0:3
+@item %loade, %loade:0:0, %loade:0:1, %loade:0:2, %loade:0:3
+@item %loadt
+@end itemize
+
+@itemize
+@item %savei
+@item %savel, %savel:0:0, %savel:0:1, %savel:0:2, %savel:0:3
+@item %savee, %savee:0:0, %savee:0:1, %savee:0:2, %savee:0:3
+@item %savet
+@end itemize
+
+@section Flow control instructions
+
+@itemize
+@item %br-if
+@item %br-if-not
+@item %jump
+@end itemize
+
+@section Function call instructions
+
+@itemize
+@item %func, %func0, %func1, %func2
+@end itemize
+
+@section Scheme built-in functions
+
+@itemize
+@item cons
+@item car
+@item cdr
+@end itemize
+
+@section Mathematical buitin functions
+
+@itemize
+@item 1+
+@item 1-
+@item add, add2
+@item sub, sub2, minus
+@item mul2
+@item div2
+@item lt2
+@item gt2
+@item le2
+@item ge2
+@item num-eq2
+@end itemize
+
+
+
+@node The Compiler, Concept Index, Instruction Set, Top
+@chapter The Compiler
+
+This section describes Guile-VM's compiler and the compilation process
+to produce bytecode executable by the VM itself (@pxref{Instruction
+Set}).
+
+@menu
+* Overview::                    
+* The Language Front-Ends::     
+* GHIL::                        
+* Compiling Scheme Code::       
+* GLIL::                        
+* The Assembler::               
+@end menu
+
+@node Overview, The Language Front-Ends, The Compiler, The Compiler
+@section Overview
+
+Compilation in Guile-VM is a three-stage process:
+
+@cindex intermediate language
+@cindex assembler
+@cindex compiler
+@cindex GHIL
+@cindex GLIL
+@cindex bytecode
+
+@enumerate
+@item the source programming language (e.g. R5RS Scheme) is read and
+translated into GHIL, @dfn{Guile's High-Level Intermediate Language};
+@item GHIL code is then translated into a lower-level intermediate
+language call GLIL, @dfn{Guile's Low-Level Intermediate Language};
+@item finally, GLIL is @dfn{assembled} into the VM's assembly language
+(@pxref{Instruction Set}) and bytecode.
+@end enumerate
+
+The use of two separate intermediate languages eases the
+implementation of front-ends since the gap between high-level
+languages like Scheme and GHIL is relatively small.
+
+@vindex guilec
+From an end-user viewpoint, compiling a Guile program into bytecode
+can be done either by using the @command{guilec} command-line tool, or
+by using the @code{compile-file} procedure exported by the
+@code{(system base compile)} module.
+
+@deffn @scmproc{} compile-file file . opts
+Compile Scheme source code from file @var{file} using compilation
+options @var{opts}.  The resulting file, a Guile object file, will be
+name according the application of the @code{compiled-file-name}
+procedure to @var{file}.  The possible values for @var{opts} are the
+same as for the @code{compile-in} procedure (see below, @pxref{The Language
+Front-Ends}).
+@end deffn
+
+@deffn @scmproc{} compiled-file-name file
+Given source file name @var{file} (a string), return a string that
+denotes the name of the Guile object file corresponding to
+@var{file}.  By default, the file name returned is @var{file} minus
+its extension and plus the @code{.go} file extension.
+@end deffn
+
+@cindex self-hosting
+It is worth noting, as you might have already guessed, that Guile-VM's
+compiler is written in Guile Scheme and is @dfn{self-hosted}: it can
+compile itself.
+
+@node The Language Front-Ends, GHIL, Overview, The Compiler
+@section The Language Front-Ends
+
+Guile-VM comes with a number of @dfn{language front-ends}, that is,
+code that can read a given high-level programming language like R5RS
+Scheme, and translate it into a lower-level representation suitable to
+the compiler.
+
+Each language front-end provides a @dfn{specification} and a
+@dfn{translator} to GHIL.  Both of them come in the @code{language}
+module hierarchy.  As an example, the front-end for Scheme is located
+in the @code{(language scheme spec)} and @code{(language scheme
+translate)} modules.  Language front-ends can then be retrieved using
+the @code{lookup-language} procedure of the @code{(system base
+language)} module.
+
+@deftp @scmrec{} <language> name title version reader printer read-file expander translator evaluator environment
+Denotes a language front-end specification a various methods used by
+the compiler to handle source written in that language.  Of particular
+interest is the @code{translator} slot (@pxref{GHIL}).
+@end deftp
+
+@deffn @scmproc{} lookup-language lang
+Look for a language front-end named @var{lang}, a symbol (e.g,
+@code{scheme}), and return the @code{<language>} record describing it
+if found.  If @var{lang} does not denote a language front-end, an
+error is raised.  Note that this procedure assumes that language
+@var{lang} exists if there exist a @code{(language @var{lang} spec)}
+module.
+@end deffn
+
+The @code{(system base compile)} module defines a procedure similar to
+@code{compile-file} but that is not limited to the Scheme language:
+
+@deffn @scmproc{} compile-in expr env lang . opts
+Compile expression @var{expr}, which is written in language @var{lang}
+(a @code{<language>} object), using compilation options @var{opts},
+and return bytecode as produced by the assembler (@pxref{The
+Assembler}).
+
+Options @var{opts} may contain the following keywords:
+
+@table @code
+@item :e
+compilation will stop after the code expansion phase.
+@item :t
+compilation will stop after the code translation phase, i.e. after
+code in the source language @var{lang} has been translated into GHIL
+(@pxref{GHIL}).
+@item :c
+compilation will stop after the compilation phase and before the
+assembly phase, i.e. once GHIL has been translated into GLIL
+(@pxref{GLIL}).
+@end table
+
+Additionally, @var{opts} may contain any option understood by the
+GHIL-to-GLIL compiler described in @xref{GLIL}.
+@end deffn
+
+
+@node GHIL, Compiling Scheme Code, The Language Front-Ends, The Compiler
+@section Guile's High-Level Intermediate Language
+
+GHIL has constructs almost equivalent to those found in Scheme.
+However, unlike Scheme, it is meant to be read only by the compiler
+itself.  Therefore, a sequence of GHIL code is only a sequence of GHIL
+@emph{objects} (records), as opposed to symbols, each of which
+represents a particular language feature.  These records are all
+defined in the @code{(system il ghil)} module and are named
+@code{<ghil-*>}.
+
+Each GHIL record has at least two fields: one containing the
+environment (Guile module) in which it is considered, and one
+containing its location [FIXME: currently seems to be unused].  Below
+is a list of the main GHIL object types and their fields:
+
+@example
+;; Objects
+(<ghil-void> env loc)
+(<ghil-quote> env loc obj)
+(<ghil-quasiquote> env loc exp)
+(<ghil-unquote> env loc exp)
+(<ghil-unquote-splicing> env loc exp)
+;; Variables
+(<ghil-ref> env loc var)
+(<ghil-set> env loc var val)
+(<ghil-define> env loc var val)
+;; Controls
+(<ghil-if> env loc test then else)
+(<ghil-and> env loc exps)
+(<ghil-or> env loc exps)
+(<ghil-begin> env loc exps)
+(<ghil-bind> env loc vars vals body)
+(<ghil-lambda> env loc vars rest body)
+(<ghil-call> env loc proc args)
+(<ghil-inline> env loc inline args)
+@end example
+
+As can be seen from this examples, the constructs in GHIL are pretty
+close to the fundamental primitives of Scheme.
+
+It is the role of front-end language translators (@pxref{The Language
+Front-Ends}) to produce a sequence of GHIL objects from the
+human-readable, source programming language.  The next section
+describes the translator for the Scheme language.
+
+@node Compiling Scheme Code, GLIL, GHIL, The Compiler
+@section Compiling Scheme Code
+
+The language object for Scheme, as returned by @code{(lookup-language
+'scheme)} (@pxref{The Language Front-Ends}), defines a translator
+procedure that returns a sequence of GHIL objects given Scheme code.
+Before actually performing this operation, the Scheme translator
+expands macros in the original source code.
+
+The macros that may be expanded can come from different sources:
+
+@itemize
+@item core Guile macros, such as @code{false-if-exception};
+@item macros defined in modules used by the module being compiled,
+e.g., @code{receive} in @code{(ice-9 receive)};
+@item macros defined within the module being compiled.
+@end itemize
+
+@cindex macro
+@cindex syntax transformer
+@findex define-macro
+@findex defmacro
+The main complexity in handling macros at compilation time is that
+Guile's macros are first-class objects.  For instance, when using
+@code{define-macro}, one actually defines a @emph{procedure} that
+returns code; of course, unlike a ``regular'' procedure, it is
+executed when an S-exp is @dfn{memoized} by the evaluator, i.e.,
+before the actual evaluation takes place.  Worse, it is possible to
+turn a procedure into a macro, or @dfn{syntax transformer}, thus
+removing, to some extent, the boundary between the macro expansion and
+evaluation phases, @inforef{Internal Macros, , guile}.
+
+[FIXME: explain limitations, etc.]
+
+
+@node GLIL, The Assembler, Compiling Scheme Code, The Compiler
+@section Guile's Low-Level Intermediate Language
+
+A GHIL instruction sequence can be compiled into GLIL using the
+@code{compile} procedure exported by the @code{(system il compile)}
+module.  During this translation process, various optimizations may
+also be performed.
+
+The module @code{(system il glil)} defines record types representing
+various low-level abstractions.  Compared to GHIL, the flow control
+primitives in GLIL are much more low-level:  only @code{<glil-label>},
+@code{<glil-branch>} and @code{<glil-call>} are available, no
+@code{lambda}, @code{if}, etc.
+
+
+@deffn @scmproc{} compile ghil environment . opts
+Compile @var{ghil}, a GHIL instruction sequence, within
+environment/module @var{environment}, and return the resulting GLIL
+instruction sequence.  The option list @var{opts} may be either the
+empty list or a list containing the @code{:O} keyword in which case
+@code{compile} will first go through an optimization stage of
+@var{ghil}.
+
+Note that the @code{:O} option may be passed at a higher-level to the
+@code{compile-file} and @code{compile-in} procedures (@pxref{The
+Language Front-Ends}).
+@end deffn
+
+@deffn @scmproc{} pprint-glil glil . port
+Print @var{glil}, a GLIL sequence instructions, in a human-readable
+form.  If @var{port} is passed, it will be used as the output port.
+@end deffn
+
+
+Let's consider the following Scheme expression:
+
+@example
+(lambda (x) (+ x 1))
+@end example
+
+The corresponding (unoptimized) GLIL code, as shown by
+@code{pprint-glil}, looks like this:
+
+@example
+(@@asm (0 0 0 0)
+  (@@asm (1 0 0 0)           ;; expect one arg.
+    (@@bind (x argument 0))  ;; debugging info
+    (module-ref #f +)       ;; lookup `+'
+    (argument-ref 0)        ;; push the argument onto
+                            ;; the stack
+    (const 1)               ;; push `1'
+    (tail-call 2)           ;; call `+', with 2 args,
+                            ;; using the same stack frame
+    (@@source 15 33))        ;; additional debugging info
+  (return 0))
+@end example
+
+This is not unlike the VM's assembly language described in
+@ref{Instruction Set}.
+
+@node The Assembler,  , GLIL, The Compiler
+@section The Assembler
+
+@findex code->bytes
+
+The final compilation step consists in converting the GLIL instruction
+sequence into VM bytecode.  This is what the @code{assemble} procedure
+defined in the @code{(system vm assemble)} module is for.  It relies
+on the @code{code->bytes} procedure of the @code{(system vm conv)}
+module to convert instructions (represented as lists whose @code{car}
+is a symbol naming the instruction, e.g. @code{object-ref},
+@pxref{Instruction Set}) into binary code, or @dfn{bytecode}.
+Bytecode itself is represented using SRFI-4 byte vectors,
+@inforef{SRFI-4, SRFI-4 homogeneous numeric vectors, guile}.
+
+
+@deffn @scmproc{} assemble glil environment . opts
+Return a binary representation of @var{glil} (bytecode), either in the
+form of an SRFI-4 @code{u8vector} or a @code{<bytespec>} object.
+[FIXME:  Why is that?]
+@end deffn
+
+
+
+@c *********************************************************************
+@node Concept Index, Function and Instruction Index, The Compiler, Top
+@unnumbered Concept Index
+@printindex cp
+
+@node Function and Instruction Index, Command and Variable Index, Concept Index, Top
+@unnumbered Function and Instruction Index
+@printindex fn
+
+@node Command and Variable Index,  , Function and Instruction Index, Top
+@unnumbered Command and Variable Index
+@printindex vr
+
+@bye
+
+@c Local Variables:
+@c ispell-local-dictionary: "american";
+@c End:
+
+@c  LocalWords:  bytecode

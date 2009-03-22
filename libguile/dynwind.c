@@ -315,7 +315,7 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
 		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
 		}
-	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+	      else if (scm_is_true (scm_thunk_p (wind_key)))
 		scm_call_0 (wind_key);
 	    }
 	}
@@ -351,7 +351,7 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
 		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
 		}
-	      else if (SCM_TYP3 (wind_key) == scm_tc3_closure)
+	      else if (scm_is_true (scm_thunk_p (wind_key)))
 		scm_call_0 (SCM_CDR (wind_elt));
 	    }
 	}

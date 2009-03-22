@@ -1,0 +1,117 @@
+This is an attempt to revive the Guile-VM project by Keisuke Nishida
+written back in the years 2000 and 2001.  Below are a few pointers to
+relevant threads on Guile's development mailing list.
+
+Enjoy!
+
+Ludovic Courtès <ludovic.courtes@laas.fr>, Apr. 2005.
+
+
+Pointers
+--------
+
+Status of the last release, 0.5
+  http://lists.gnu.org/archive/html/guile-devel/2001-04/msg00266.html
+
+The very first release, 0.0
+  http://sources.redhat.com/ml/guile/2000-07/msg00418.html
+
+Simple benchmark
+  http://sources.redhat.com/ml/guile/2000-07/msg00425.html
+
+Performance, portability, GNU Lightning
+  http://lists.gnu.org/archive/html/guile-devel/2001-03/msg00132.html
+
+Playing with GNU Lightning
+  http://lists.gnu.org/archive/html/guile-devel/2001-03/msg00185.html
+
+On things left to be done
+  http://lists.gnu.org/archive/html/guile-devel/2001-03/msg00146.html
+
+
+---8<---  Original README below.  -----------------------------------------
+
+Installation
+------------
+
+1. Install the latest Guile from CVS.
+
+2. Install Guile VM:
+
+  % configure
+  % make install
+  % ln -s module/{guile,system,language} /usr/local/share/guile/
+
+3. Add the following lines to your ~/.guile:
+
+  (use-modules (system vm core)
+
+  (cond ((string=? (car (command-line)) "guile-vm")
+	 (use-modules (system repl repl))
+	 (start-repl 'scheme)
+	 (quit)))
+
+Example Session
+---------------
+
+  % guile-vm
+  Guile Scheme interpreter 0.5 on Guile 1.4.1
+  Copyright (C) 2001 Free Software Foundation, Inc.
+
+  Enter `,help' for help.
+  scheme@guile-user> (+ 1 2)
+  3
+  scheme@guile-user> ,c -c (+ 1 2)	;; Compile into GLIL
+  (@asm (0 1 0 0)
+    (module-ref #f +)
+    (const 1)
+    (const 2)
+    (tail-call 2))
+  scheme@guile-user> ,c (+ 1 2)		;; Compile into object code
+  Disassembly of #<objcode 403c5fb0>:
+
+  nlocs = 0  nexts = 0
+
+     0    link "+"                        ;; (+ . ???)
+     3    variable-ref
+     4    make-int8:1                     ;; 1
+     5    make-int8 2                     ;; 2
+     7    tail-call 2
+
+  scheme@guile-user> (define (add x y) (+ x y))
+  scheme@guile-user> (add 1 2)
+  3
+  scheme@guile-user> ,x add		;; Disassemble
+  Disassembly of #<program add>:
+
+  nargs = 2  nrest = 0  nlocs = 0  nexts = 0
+
+  Bytecode:
+
+     0    object-ref 0                    ;; (+ . #<primitive-procedure +>)
+     2    variable-ref
+     3    local-ref 0
+     5    local-ref 1
+     7    tail-call 2
+
+  Objects:
+
+     0    (+ . #<primitive-procedure +>)
+
+  scheme@guile-user> 
+
+Compile Modules
+---------------
+
+Use `guilec' to compile your modules:
+
+  % cat fib.scm
+  (define-module (fib) :export (fib))
+  (define (fib n) (if (< n 2) 1 (+ (fib (- n 1)) (fib (- n 2)))))
+
+  % guilec fib.scm
+  Wrote fib.go
+  % guile
+  guile> (use-modules (fib))
+  guile> (fib 8)
+  34
