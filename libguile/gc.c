@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -106,13 +106,6 @@ int scm_i_cell_validation_already_running ;
 void
 scm_i_expensive_validation_check (SCM cell)
 {
-  if (!scm_in_heap_p (cell))
-    {
-      fprintf (stderr, "scm_assert_cell_valid: this object does not live in the heap: %lux\n",
-	       (unsigned long) SCM_UNPACK (cell));
-      abort ();
-    }
-
   /* If desired, perform additional garbage collections after a user
    * defined number of cell accesses.
    */
