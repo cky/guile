@@ -84,62 +84,6 @@
 
 scm_t_bits scm_tc16_vm_cont;
 
-static void
-vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
-{
-  SCM *sp, *upper, *lower;
-  sp = base + size - 1;
-
-  while (sp > base && fp) 
-    {
-      upper = SCM_FRAME_UPPER_ADDRESS (fp);
-      lower = SCM_FRAME_LOWER_ADDRESS (fp);
-
-      for (; sp >= upper; sp--)
-        if (SCM_NIMP (*sp)) 
-          {
-            if (scm_in_heap_p (*sp))
-              scm_gc_mark (*sp);
-            else
-              fprintf (stderr, "BADNESS: crap on the stack: %p\n", *sp);
-          }
-      
-
-      /* skip ra, mvra */
-      sp -= 2;
-
-      /* update fp from the dynamic link */
-      fp = (SCM*)*sp-- + reloc;
-
-      /* mark from the el down to the lower address */
-      for (; sp >= lower; sp--)
-        if (*sp && SCM_NIMP (*sp))
-          scm_gc_mark (*sp);
-    }
-}
-
-static SCM
-vm_cont_mark (SCM obj)
-{
-  struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
-
-  if (p->stack_size)
-    vm_mark_stack (p->stack_base, p->stack_size, p->fp + p->reloc, p->reloc);
-
-  return SCM_BOOL_F;
-}
-
-static scm_sizet
-vm_cont_free (SCM obj)
-{
-  struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
-
-  scm_gc_free (p->stack_base, p->stack_size * sizeof (SCM), "stack-base");
-  scm_gc_free (p, sizeof (struct scm_vm), "vm");
-
-  return 0;
-}
-
 static SCM
 capture_vm_cont (struct scm_vm *vp)
 {
@@ -343,42 +287,6 @@ make_vm (void)
   SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
 }
 #undef FUNC_NAME
-
-static SCM
-vm_mark (SCM obj)
-{
-  int i;
-  struct scm_vm *vp = SCM_VM_DATA (obj);
-
-#ifdef VM_ENABLE_STACK_NULLING
-  if (vp->sp >= vp->stack_base)
-    if (!vp->sp[0] || vp->sp[1])
-      abort ();
-#endif
-
-  /* mark the stack, precisely */
-  vm_mark_stack (vp->stack_base, vp->sp + 1 - vp->stack_base, vp->fp, 0);
-
-  /* mark other objects  */
-  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
-    scm_gc_mark (vp->hooks[i]);
-
-  scm_gc_mark (vp->trace_frame);
-
-  return vp->options;
-}
-
-static scm_sizet
-vm_free (SCM obj)
-{
-  struct scm_vm *vp = SCM_VM_DATA (obj);
-
-  scm_gc_free (vp->stack_base, vp->stack_size * sizeof (SCM),
-	       "stack-base");
-  scm_gc_free (vp, sizeof (struct scm_vm), "vm");
-
-  return 0;
-}
 
 SCM
 scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
@@ -646,12 +554,8 @@ scm_bootstrap_vm (void)
   scm_bootstrap_programs ();
 
   scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
-  scm_set_smob_mark (scm_tc16_vm_cont, vm_cont_mark);
-  scm_set_smob_free (scm_tc16_vm_cont, vm_cont_free);
 
   scm_tc16_vm = scm_make_smob_type ("vm", 0);
-  scm_set_smob_mark (scm_tc16_vm, vm_mark);
-  scm_set_smob_free (scm_tc16_vm, vm_free);
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
 
   scm_c_define ("load-compiled",

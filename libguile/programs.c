@@ -83,16 +83,6 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
 #undef FUNC_NAME
 
 static SCM
-program_mark (SCM obj)
-{
-  if (scm_is_true (SCM_PROGRAM_OBJTABLE (obj)))
-    scm_gc_mark (SCM_PROGRAM_OBJTABLE (obj));
-  if (!scm_is_null (SCM_PROGRAM_EXTERNALS (obj)))
-    scm_gc_mark (SCM_PROGRAM_EXTERNALS (obj));
-  return SCM_PROGRAM_OBJCODE (obj);
-}
-
-static SCM
 program_apply (SCM program, SCM args)
 {
   return scm_vm_apply (scm_the_vm (), program, args);
@@ -362,7 +352,6 @@ void
 scm_bootstrap_programs (void)
 {
   scm_tc16_program = scm_make_smob_type ("program", 0);
-  scm_set_smob_mark (scm_tc16_program, program_mark);
   scm_set_smob_apply (scm_tc16_program, program_apply, 0, 0, 1);
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_0 = program_apply_0;
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_1 = program_apply_1;

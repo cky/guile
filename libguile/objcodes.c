@@ -136,12 +136,6 @@ scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
 }
 #undef FUNC_NAME
 
-static SCM
-objcode_mark (SCM obj)
-{
-  return SCM_SMOB_OBJECT_2 (obj);
-}
-
 
 /*
  * Scheme interface
@@ -265,7 +259,6 @@ void
 scm_bootstrap_objcodes (void)
 {
   scm_tc16_objcode = scm_make_smob_type ("objcode", 0);
-  scm_set_smob_mark (scm_tc16_objcode, objcode_mark);
 }
 
 /* Before, we used __BYTE_ORDER, but that is not defined on all

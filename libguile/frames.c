@@ -79,20 +79,7 @@ vm_frame_print (SCM frame, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static SCM
-vm_frame_mark (SCM obj)
-{
-  return SCM_VM_FRAME_STACK_HOLDER (obj);
-}
-
-static scm_sizet
-vm_frame_free (SCM obj)
-{
-  struct scm_vm_frame *p = SCM_VM_FRAME_DATA (obj);
-  scm_gc_free (p, sizeof(struct scm_vm_frame), "vmframe");
-  return 0;
-}
-
+
 /* Scheme interface */
 
 SCM_DEFINE (scm_vm_frame_p, "vm-frame?", 1, 0, 0,
@@ -294,8 +281,6 @@ void
 scm_bootstrap_frames (void)
 {
   scm_tc16_vm_frame = scm_make_smob_type ("vm-frame", 0);
-  scm_set_smob_mark (scm_tc16_vm_frame, vm_frame_mark);
-  scm_set_smob_free (scm_tc16_vm_frame, vm_frame_free);
   scm_set_smob_print (scm_tc16_vm_frame, vm_frame_print);
 }
 
