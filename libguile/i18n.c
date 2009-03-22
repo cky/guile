@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -228,26 +228,6 @@ SCM_SMOB_FREE (scm_tc16_locale_smob_type, smob_locale_free, locale)
 
   return 0;
 }
-
-#ifndef USE_GNU_LOCALE_API
-static SCM
-smob_locale_mark (SCM locale)
-{
-  register SCM dependency;
-
-  if (!scm_is_eq (locale, SCM_VARIABLE_REF (scm_global_locale)))
-    {
-      scm_t_locale c_locale;
-
-      c_locale = (scm_t_locale) SCM_SMOB_DATA (locale);
-      dependency = (c_locale->base_locale);
-    }
-  else
-    dependency = SCM_BOOL_F;
-
-  return dependency;
-}
-#endif
 
 
 static void inline scm_locale_error (const char *, int) SCM_NORETURN;
@@ -1720,10 +1700,6 @@ scm_init_i18n ()
 #endif
 
 #include "libguile/i18n.x"
-
-#ifndef USE_GNU_LOCALE_API
-  scm_set_smob_mark (scm_tc16_locale_smob_type, smob_locale_mark);
-#endif
 
   /* Initialize the global locale object with a special `locale' SMOB.  */
   SCM_NEWSMOB (global_locale_smob, scm_tc16_locale_smob_type, NULL);
