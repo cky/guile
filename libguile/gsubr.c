@@ -20,6 +20,8 @@
 # include <config.h>
 #endif
 
+#include <alloca.h>
+
 #include <stdio.h>
 #include <stdarg.h>
 
