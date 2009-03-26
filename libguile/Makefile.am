@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -351,28 +351,24 @@ guile-procedures.txt: guile-procedures.texi
 
 endif
 
-# Stack limit calibration for `make check'.  (For why we do this, see
+# Stack limit calibration to allow the compiler to run when creating
+# the initial `.go' files and for `make check'.  (For why we do this, see
 # the comments in measure-hwm.scm.)  We're relying here on a couple of
 # bits of Automake magic.
 #
-# 1. The fact that "libguile" comes before "test-suite" in SUBDIRS in
-# our toplevel Makefile.am.  This ensures that the
-# stack-limit-calibration.scm "test" will be run before any of the
-# tests under test-suite.
+# 1. The fact that "libguile" comes before "module" and "test-suite"
+# in SUBDIRS in our toplevel Makefile.am.  This ensures that the
+# stack-limit-calibration.scm program will be run before we compile
+# files or run tests.
 #
-# 2. The fact that each test is invoked as $TESTS_ENVIRONMENT $test.
-# This allows us to ensure that the test will be considered to have
-# passed, by using `true' as TESTS_ENVIRONMENT.
-#
-# Why don't we care about the test "actually passing"?  Because the
+# 2. Why don't we care about the test "actually passing"?  Because the
 # important thing about stack-limit-calibration.scm is just that it is
 # generated in the first place, so that other tests under test-suite
 # can use it.
-TESTS = stack-limit-calibration.scm
-TESTS_ENVIRONMENT = true
+BUILT_SOURCES += stack-limit-calibration.scm
 
 stack-limit-calibration.scm: measure-hwm.scm guile$(EXEEXT)
-	$(preinstguile) -s $(srcdir)/measure-hwm.scm > $@
+	-$(preinstguile) -s $(srcdir)/measure-hwm.scm > $@
 
 c-tokenize.c: c-tokenize.lex
 	flex -t $(srcdir)/c-tokenize.lex > $@ || { rm $@; false; }
