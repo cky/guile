@@ -64,6 +64,8 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include <unistd.h>
 #endif
 
+int scm_i_marking = 0;
+
 /*
   Entry point for this file.
  */

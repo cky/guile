@@ -1,7 +1,7 @@
 /*
  * private-gc.h - private declarations for garbage collection.
  * 
- * Copyright (C) 2002, 03, 04, 05, 06, 07, 08 Free Software Foundation, Inc.
+ * Copyright (C) 2002, 03, 04, 05, 06, 07, 08, 09 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -164,11 +164,10 @@ scm_i_gc_heap_size_delta (scm_t_cell_type_statistics * freelist);
   gc-mark
  */
 
-/* this can be used to ensure that set/clear gc marks only happen when
-   allowed. */
-int scm_i_marking;
+/* Non-zero while in the mark phase.  */
+SCM_INTERNAL int scm_i_marking;
 
-void scm_mark_all (void);
+SCM_INTERNAL void scm_mark_all (void);
 
 /*
 gc-segment:
