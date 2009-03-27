@@ -72,7 +72,6 @@ guile-readline/guile-readline-config.h.in
 TAGS
 guile-1.8.pc
 gdb-pre-inst-guile
-libguile/stack-limit-calibration.scm
 cscope.out
 cscope.files
 *.log
