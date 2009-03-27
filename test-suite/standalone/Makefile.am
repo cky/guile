@@ -28,7 +28,7 @@ check_SCRIPTS =
 BUILT_SOURCES =
 EXTRA_DIST =
 
-TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
+TESTS_ENVIRONMENT = "${top_builddir}/meta/uninstalled-env"
 
 test_cflags =					\
   -I$(top_srcdir)/test-suite/standalone		\

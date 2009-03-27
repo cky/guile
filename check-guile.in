@@ -1,6 +1,6 @@
 #! /bin/sh
 # Usage: check-guile [-i GUILE-INTERPRETER] [GUILE-TEST-ARGS]
-# If `-i GUILE-INTERPRETER' is omitted, use ${top_builddir}/pre-inst-guile.
+# If `-i GUILE-INTERPRETER' is omitted, use ${top_builddir}/meta/guile.
 # See ${top_srcdir}/test-suite/guile-test for documentation on GUILE-TEST-ARGS.
 #
 # Example invocations:
@@ -21,7 +21,7 @@ if [ x"$1" = x-i ] ; then
     shift
     shift
 else
-    guile=${top_builddir}/pre-inst-guile
+    guile=${top_builddir}/meta/guile
 fi
 
 GUILE_LOAD_PATH=$TEST_SUITE_DIR

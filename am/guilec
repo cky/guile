@@ -10,6 +10,6 @@ CLEANFILES = $(GOBJECTS)
 SUFFIXES = .scm .go
 .scm.go:
 	$(MKDIR_P) `dirname $@`
-	$(top_builddir)/pre-inst-guile					\
+	$(top_builddir)/meta/guile 					\
 	  -l $(top_builddir)/libguile/stack-limit-calibration.scm	\
 	  $(top_srcdir)/scripts/compile -o "$@" "$<"

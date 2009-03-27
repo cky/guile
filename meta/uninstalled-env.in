@@ -18,17 +18,17 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# NOTE: If you update this file, please update pre-inst-guile.in as
+# NOTE: If you update this file, please update uninstalled.in as
 # well, if appropriate.
 
-# Usage: pre-inst-guile-env [ARGS]
+# Usage: uninstalled-env [ARGS]
 
 # This script arranges for the environment to support running Guile
 # from the build tree.  The following env vars are modified (but not
 # clobbered): GUILE_LOAD_PATH, LTDL_LIBRARY_PATH, and PATH.
 
-# Example: pre-inst-guile-env guile -c '(display "hello\n")'
-# Example: ../../pre-inst-guile-env ./guile-test-foo
+# Example: uninstalled-env guile -c '(display "hello\n")'
+# Example: ../../uninstalled-env ./guile-test-foo
 
 # config
 subdirs_with_ltlibs="srfi guile-readline libguile"       # maintain me
@@ -83,9 +83,18 @@ export LTDL_LIBRARY_PATH
 DYLD_LIBRARY_PATH="${dyld_prefix}${top_builddir}/libguile/.libs:$DYLD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH
 
+if [ x"$PKG_CONFIG_PATH" = x ]
+then
+    PKG_CONFIG_PATH="${top_builddir}"
+else
+    PKG_CONFIG_PATH="${top_builddir}:$PKG_CONFIG_PATH"
+fi
+export PKG_CONFIG_PATH
+
 # handle PATH (no clobber)
 PATH="${top_builddir}/guile-config:${PATH}"
 PATH="${top_builddir}/libguile:${PATH}"
+PATH="${top_builddir}/meta:${PATH}"
 export PATH
 
 exec "$@"

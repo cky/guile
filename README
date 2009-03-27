@@ -223,9 +223,23 @@ GUILE_FOR_BUILD variable, it defaults to just "guile".
 
 Using Guile Without Installing It =========================================
 
-The top directory of the Guile sources contains a script called
-"pre-inst-guile" that can be used to run the Guile that has just been
-built.
+The "meta/" subdirectory of the Guile sources contains a script called
+"guile" that can be used to run the Guile that has just been built. Note
+that this is not the same "guile" as the one that is installed; this
+"guile" is a wrapper script that sets up the environment appropriately,
+then invokes the Guile binary.
+
+You may also build against an uninstalled Guile build tree. The
+"uninstalled-env" script in the "meta/" subdirectory will set up an
+environment with a path including "meta/", a modified dynamic linker
+path, a modified PKG_CONFIG_PATH, etc.
+
+For example, you can enter this environment via invoking
+
+    meta/uninstalled-env bash
+
+Within that shell, other packages should be able to build against
+uninstalled Guile.
 
 
 Installing SLIB ===========================================================
