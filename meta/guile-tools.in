@@ -53,7 +53,7 @@ top_builddir="@top_builddir_absolute@"
 
 # pre-install invocation frob
 mydir=$(cd $(dirname $0) && pwd)
-if [ "$mydir" = "$top_builddir" ] ; then
+if [ "$mydir" = "$top_builddir/meta" ] ; then
     default_scriptsdir=$top_srcdir/scripts
 fi
 
