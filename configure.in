@@ -883,6 +883,8 @@ if test -n "$have_sys_un_h" ; then
     [Define if the system supports Unix-domain (file-domain) sockets.])
 fi
 
+AC_CHECK_FUNCS(getrlimit setrlimit)
+
 AC_CHECK_FUNCS(socketpair getgroups setgroups setpwent pause tzset)
 
 AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl

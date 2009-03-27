@@ -229,10 +229,10 @@ that this is not the same "guile" as the one that is installed; this
 "guile" is a wrapper script that sets up the environment appropriately,
 then invokes the Guile binary.
 
-You may also build against an uninstalled Guile build tree. The
-"uninstalled-env" script in the "meta/" subdirectory will set up an
-environment with a path including "meta/", a modified dynamic linker
-path, a modified PKG_CONFIG_PATH, etc.
+You may also build external packages against an uninstalled Guile build
+tree. The "uninstalled-env" script in the "meta/" subdirectory will set
+up an environment with a path including "meta/", a modified dynamic
+linker path, a modified PKG_CONFIG_PATH, etc.
 
 For example, you can enter this environment via invoking
 

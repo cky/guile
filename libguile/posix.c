@@ -33,6 +33,7 @@
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-14.h"
 #include "libguile/vectors.h"
+#include "libguile/values.h"
 #include "libguile/lang.h"
 
 #include "libguile/validate.h"
@@ -461,6 +462,179 @@ SCM_DEFINE (scm_setgrent, "setgr", 0, 1, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETGRENT */
+
+
+#ifdef HAVE_GETRLIMIT
+#ifdef RLIMIT_AS
+SCM_SYMBOL (sym_as, "as");
+#endif
+#ifdef RLIMIT_CORE
+SCM_SYMBOL (sym_core, "core");
+#endif
+#ifdef RLIMIT_CPU
+SCM_SYMBOL (sym_cpu, "cpu");
+#endif
+#ifdef RLIMIT_DATA
+SCM_SYMBOL (sym_data, "data");
+#endif
+#ifdef RLIMIT_FSIZE
+SCM_SYMBOL (sym_fsize, "fsize");
+#endif
+#ifdef RLIMIT_MEMLOCK
+SCM_SYMBOL (sym_memlock, "memlock");
+#endif
+#ifdef RLIMIT_MSGQUEUE
+SCM_SYMBOL (sym_msgqueue, "msgqueue");
+#endif
+#ifdef RLIMIT_NICE
+SCM_SYMBOL (sym_nice, "nice");
+#endif
+#ifdef RLIMIT_NOFILE
+SCM_SYMBOL (sym_nofile, "nofile");
+#endif
+#ifdef RLIMIT_NPROC
+SCM_SYMBOL (sym_nproc, "nproc");
+#endif
+#ifdef RLIMIT_RSS
+SCM_SYMBOL (sym_rss, "rss");
+#endif
+#ifdef RLIMIT_RTPRIO
+SCM_SYMBOL (sym_rtprio, "rtprio");
+#endif
+#ifdef RLIMIT_RTPRIO
+SCM_SYMBOL (sym_rttime, "rttime");
+#endif
+#ifdef RLIMIT_SIGPENDING
+SCM_SYMBOL (sym_sigpending, "sigpending");
+#endif
+#ifdef RLIMIT_STACK
+SCM_SYMBOL (sym_stack, "stack");
+#endif
+
+static int
+scm_to_resource (SCM s, const char *func, int pos)
+{
+  if (scm_is_number (s))
+    return scm_to_int (s);
+  
+  SCM_ASSERT_TYPE (scm_is_symbol (s), s, pos, func, "symbol");
+
+#ifdef RLIMIT_AS
+  if (s == sym_as)
+    return RLIMIT_AS;
+#endif
+#ifdef RLIMIT_CORE
+  if (s == sym_core)
+    return RLIMIT_CORE;
+#endif
+#ifdef RLIMIT_CPU
+  if (s == sym_cpu)
+    return RLIMIT_CPU;
+#endif
+#ifdef RLIMIT_DATA
+  if (s == sym_data)
+    return RLIMIT_DATA;
+#endif
+#ifdef RLIMIT_FSIZE
+  if (s == sym_fsize)
+    return RLIMIT_FSIZE;
+#endif
+#ifdef RLIMIT_MEMLOCK
+  if (s == sym_memlock)
+    return RLIMIT_MEMLOCK;
+#endif
+#ifdef RLIMIT_MSGQUEUE
+  if (s == sym_msgqueue)
+    return RLIMIT_MSGQUEUE;
+#endif
+#ifdef RLIMIT_NICE
+  if (s == sym_nice)
+    return RLIMIT_NICE;
+#endif
+#ifdef RLIMIT_NOFILE
+  if (s == sym_nofile)
+    return RLIMIT_NOFILE;
+#endif
+#ifdef RLIMIT_NPROC
+  if (s == sym_nproc)
+    return RLIMIT_NPROC;
+#endif
+#ifdef RLIMIT_RSS
+  if (s == sym_rss)
+    return RLIMIT_RSS;
+#endif
+#ifdef RLIMIT_RTPRIO
+  if (s == sym_rtprio)
+    return RLIMIT_RTPRIO;
+#endif
+#ifdef RLIMIT_RTPRIO
+  if (s == sym_rttime)
+    return RLIMIT_RTPRIO;
+#endif
+#ifdef RLIMIT_SIGPENDING
+  if (s == sym_sigpending)
+    return RLIMIT_SIGPENDING;
+#endif
+#ifdef RLIMIT_STACK
+  if (s == sym_stack)
+    return RLIMIT_STACK;
+#endif
+
+  scm_misc_error (func, "invalid rlimit resource ~A", scm_list_1 (s));
+  return 0;
+}
+  
+SCM_DEFINE (scm_getrlimit, "getrlimit", 1, 0, 0,
+            (SCM resource),
+	    "Get a resource limit for this process. @var{resource} identifies the resource,\n"
+            "either as an integer or as a symbol. For example, @code{(getrlimit 'stack)}\n"
+            "gets the limits associated with @code{RLIMIT_STACK}.\n\n"
+	    "@code{getrlimit} returns two values, the soft and the hard limit. If no\n"
+            "limit is set for the resource in question, the returned limit will be @code{#f}.")
+#define FUNC_NAME s_scm_getrlimit
+{
+  int iresource;
+  struct rlimit lim = { 0, 0 };
+  
+  iresource = scm_to_resource (resource, FUNC_NAME, 1);
+  
+  if (getrlimit (iresource, &lim) != 0)
+    scm_syserror (FUNC_NAME);
+
+  return scm_values (scm_list_2 ((lim.rlim_cur == RLIM_INFINITY) ? SCM_BOOL_F
+                                 : scm_from_long (lim.rlim_cur),
+                                 (lim.rlim_max == RLIM_INFINITY) ? SCM_BOOL_F
+                                 : scm_from_long (lim.rlim_max)));
+}
+#undef FUNC_NAME
+
+
+#ifdef HAVE_SETRLIMIT
+SCM_DEFINE (scm_setrlimit, "setrlimit", 3, 0, 0,
+            (SCM resource, SCM soft, SCM hard),
+	    "Set a resource limit for this process. @var{resource} identifies the resource,\n"
+            "either as an integer or as a symbol. @var{soft} and @var{hard} should be integers,\n"
+            "or @code{#f} to indicate no limit (i.e., @code{RLIM_INFINITY}).\n\n"
+            "For example, @code{(setrlimit 'stack 150000 300000)} sets the @code{RLIMIT_STACK}\n"
+            "limit to 150 kilobytes, with a hard limit of 300 kB.")
+#define FUNC_NAME s_scm_setrlimit
+{
+  int iresource;
+  struct rlimit lim = { 0, 0 };
+  
+  iresource = scm_to_resource (resource, FUNC_NAME, 1);
+  
+  lim.rlim_cur = (soft == SCM_BOOL_F) ? RLIM_INFINITY : scm_to_long (soft);
+  lim.rlim_max = (hard == SCM_BOOL_F) ? RLIM_INFINITY : scm_to_long (hard);
+
+  if (setrlimit (iresource, &lim) != 0)
+    scm_syserror (FUNC_NAME);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_SETRLIMIT */
+#endif /* HAVE_GETRLIMIT */
 
 
 SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
