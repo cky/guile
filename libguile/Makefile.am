@@ -353,18 +353,17 @@ endif
 
 # Stack limit calibration to allow the compiler to run when creating
 # the initial `.go' files and for `make check'.  (For why we do this, see
-# the comments in measure-hwm.scm.)  We're relying here on a couple of
-# bits of Automake magic.
+# the comments in measure-hwm.scm.)
 #
-# 1. The fact that "libguile" comes before "module" and "test-suite"
-# in SUBDIRS in our toplevel Makefile.am.  This ensures that the
+# The fact that "libguile" comes before "module" and "test-suite"
+# in SUBDIRS in our toplevel Makefile.am ensures that the
 # stack-limit-calibration.scm program will be run before we compile
 # files or run tests.
 #
-# 2. Why don't we care about the test "actually passing"?  Because the
+# We don't care about the exit code of `measure-hwm.scm' because the
 # important thing about stack-limit-calibration.scm is just that it is
-# generated in the first place, so that other tests under test-suite
-# can use it.
+# generated in the first place, so that it can be loaded in `am/guilec'
+# and by the test suite.
 BUILT_SOURCES += stack-limit-calibration.scm
 
 stack-limit-calibration.scm: measure-hwm.scm guile$(EXEEXT)
