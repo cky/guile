@@ -1,5 +1,6 @@
-#!@bindir@/guile \
--e main -s
+#!/bin/sh
+bindir=`dirname $0`
+exec $bindir/guile -e main -s $0 "$@"
 !#
 ;;;; guile-config --- utility for linking programs with Guile
 ;;;; Jim Blandy <jim@red-bean.com> --- September 1997
