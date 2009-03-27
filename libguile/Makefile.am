@@ -407,6 +407,7 @@ MOSTLYCLEANFILES = \
 	version.h version.h.tmp \
 	scmconfig.h scmconfig.h.tmp
 
-CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi
+CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi \
+	vm-i-*.i
 
 MAINTAINERCLEANFILES = c-tokenize.c
