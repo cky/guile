@@ -36,7 +36,7 @@
             program-objcode program? program-objects
             program-module program-base program-external))
 
-(dynamic-call "scm_init_programs" (dynamic-link "libguile"))
+(load-extension "libguile" "scm_init_programs")
 
 (define arity:nargs car)
 (define arity:nrest cadr)

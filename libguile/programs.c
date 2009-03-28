@@ -368,6 +368,8 @@ scm_bootstrap_programs (void)
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_1 = program_apply_1;
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_2 = program_apply_2;
   scm_set_smob_print (scm_tc16_program, program_print);
+  scm_c_register_extension ("libguile", "scm_init_programs",
+                            (scm_t_extension_init_func)scm_init_programs, NULL);
 }
 
 void

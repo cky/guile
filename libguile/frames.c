@@ -297,6 +297,8 @@ scm_bootstrap_frames (void)
   scm_set_smob_mark (scm_tc16_vm_frame, vm_frame_mark);
   scm_set_smob_free (scm_tc16_vm_frame, vm_frame_free);
   scm_set_smob_print (scm_tc16_vm_frame, vm_frame_print);
+  scm_c_register_extension ("libguile", "scm_init_frames",
+                            (scm_t_extension_init_func)scm_init_frames, NULL);
 }
 
 void

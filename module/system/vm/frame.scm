@@ -42,8 +42,7 @@
            frame-return-address frame-program
            frame-dynamic-link heap-frame?))
 
-;; fixme: avoid the dynamic-call?
-(dynamic-call "scm_init_frames" (dynamic-link "libguile"))
+(load-extension "libguile" "scm_init_frames")
 
 ;;;
 ;;; Frame chain
