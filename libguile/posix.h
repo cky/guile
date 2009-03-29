@@ -41,6 +41,8 @@ SCM_API SCM scm_getpwuid (SCM user);
 SCM_API SCM scm_setpwent (SCM arg);
 SCM_API SCM scm_getgrgid (SCM name);
 SCM_API SCM scm_setgrent (SCM arg);
+SCM_API SCM scm_getrlimit (SCM resource);
+SCM_API SCM scm_setrlimit (SCM resource, SCM soft, SCM hard);
 SCM_API SCM scm_kill (SCM pid, SCM sig);
 SCM_API SCM scm_waitpid (SCM pid, SCM options);
 SCM_API SCM scm_status_exit_val (SCM status);

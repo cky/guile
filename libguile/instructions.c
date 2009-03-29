@@ -215,6 +215,9 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 void
 scm_bootstrap_instructions (void)
 {
+  scm_c_register_extension ("libguile", "scm_init_instructions",
+                            (scm_t_extension_init_func)scm_init_instructions,
+                            NULL);
 }
 
 void

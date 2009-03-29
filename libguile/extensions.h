@@ -26,6 +26,8 @@
 
 
 
+typedef void (*scm_t_extension_init_func)(void*);
+
 SCM_API void scm_c_register_extension (const char *lib, const char *init,
 				       void (*func) (void *), void *data);
 

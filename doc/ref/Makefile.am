@@ -89,8 +89,8 @@ include $(top_srcdir)/am/pre-inst-guile
 # Automated snarfing
 
 autoconf.texi: autoconf-macros.texi
-autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	$(preinstguiletool)/snarf-guile-m4-docs $(top_srcdir)/guile-config/guile.m4 \
+autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
+	$(preinstguiletool)/snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
 	  > $(srcdir)/$@
 
 lib-version.texi: $(top_srcdir)/GUILE-VERSION

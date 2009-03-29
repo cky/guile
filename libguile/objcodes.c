@@ -266,6 +266,8 @@ scm_bootstrap_objcodes (void)
 {
   scm_tc16_objcode = scm_make_smob_type ("objcode", 0);
   scm_set_smob_mark (scm_tc16_objcode, objcode_mark);
+  scm_c_register_extension ("libguile", "scm_init_objcodes",
+                            (scm_t_extension_init_func)scm_init_objcodes, NULL);
 }
 
 /* Before, we used __BYTE_ORDER, but that is not defined on all

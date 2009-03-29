@@ -883,6 +883,8 @@ if test -n "$have_sys_un_h" ; then
     [Define if the system supports Unix-domain (file-domain) sockets.])
 fi
 
+AC_CHECK_FUNCS(getrlimit setrlimit)
+
 AC_CHECK_FUNCS(socketpair getgroups setgroups setpwent pause tzset)
 
 AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
@@ -1532,13 +1534,13 @@ AC_CONFIG_FILES([
   doc/tutorial/Makefile
   emacs/Makefile
   examples/Makefile
-  guile-config/Makefile
   lang/Makefile
   libguile/Makefile
   scripts/Makefile
   srfi/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
+  meta/Makefile
   module/Makefile
   module/ice-9/Makefile
   module/ice-9/debugger/Makefile
@@ -1549,13 +1551,15 @@ AC_CONFIG_FILES([
   testsuite/Makefile
 ])
 
-AC_CONFIG_FILES([guile-1.8.pc])
+AC_CONFIG_FILES([meta/guile-1.8.pc])
+AC_CONFIG_FILES([meta/guile-1.8-uninstalled.pc])
 AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
 AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
-AC_CONFIG_FILES([guile-tools], [chmod +x guile-tools])
-AC_CONFIG_FILES([pre-inst-guile], [chmod +x pre-inst-guile])
-AC_CONFIG_FILES([pre-inst-guile-env], [chmod +x pre-inst-guile-env])
-AC_CONFIG_FILES([gdb-pre-inst-guile], [chmod +x gdb-pre-inst-guile])
+AC_CONFIG_FILES([meta/guile-config], [chmod +x meta/guile-config])
+AC_CONFIG_FILES([meta/guile-tools], [chmod +x meta/guile-tools])
+AC_CONFIG_FILES([meta/guile], [chmod +x meta/guile])
+AC_CONFIG_FILES([meta/uninstalled-env], [chmod +x meta/uninstalled-env])
+AC_CONFIG_FILES([meta/gdb-uninstalled-guile], [chmod +x meta/gdb-uninstalled-guile])
 AC_CONFIG_FILES([libguile/guile-snarf],
                 [chmod +x libguile/guile-snarf])
 AC_CONFIG_FILES([libguile/guile-doc-snarf],

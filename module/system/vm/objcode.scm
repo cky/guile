@@ -25,4 +25,4 @@
             load-objcode write-objcode
             word-size byte-order))
 
-(dynamic-call "scm_init_objcodes" (dynamic-link "libguile"))
+(load-extension "libguile" "scm_init_objcodes")

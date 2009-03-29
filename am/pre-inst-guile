@@ -28,7 +28,7 @@
 
 ## Code:
 
-preinstguile     = $(top_builddir_absolute)/pre-inst-guile
+preinstguile     = $(top_builddir_absolute)/meta/guile
 preinstguiletool = GUILE="$(preinstguile)" $(top_srcdir)/scripts
 
 ## am/pre-inst-guile ends here

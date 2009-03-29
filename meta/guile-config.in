@@ -1,5 +1,6 @@
-#!@-bindir-@/guile \
--e main -s
+#!/bin/sh
+bindir=`dirname $0`
+exec $bindir/guile -e main -s $0 "$@"
 !#
 ;;;; guile-config --- utility for linking programs with Guile
 ;;;; Jim Blandy <jim@red-bean.com> --- September 1997
@@ -47,7 +48,7 @@
 
 (define program-name #f)
 (define subcommand-name #f)
-(define program-version "@-GUILE_VERSION-@")
+(define program-version "@GUILE_VERSION@")
 
 ;;; Given an executable path PATH, set program-name to something
 ;;; appropriate f or use in error messages (i.e., with leading

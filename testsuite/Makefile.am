@@ -1,5 +1,5 @@
 TESTS_ENVIRONMENT = \
-	$(top_builddir)/pre-inst-guile \
+	$(top_builddir)/meta/guile \
 	-l $(srcdir)/run-vm-tests.scm -e run-vm-tests
 
 TESTS =						\

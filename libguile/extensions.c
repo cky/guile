@@ -76,6 +76,7 @@ load_extension (SCM lib, SCM init)
     {
       extension_t *ext;
       char *clib, *cinit;
+      int found = 0;
 
       scm_dynwind_begin (0);
 
@@ -89,10 +90,14 @@ load_extension (SCM lib, SCM init)
 	    && !strcmp (ext->init, cinit))
 	  {
 	    ext->func (ext->data);
+            found = 1;
 	    break;
 	  }
 
       scm_dynwind_end ();
+
+      if (found)
+        return;
     }
 
   /* Dynamically link the library. */

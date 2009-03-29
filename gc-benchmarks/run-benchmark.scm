@@ -233,7 +233,7 @@ Report bugs to <bug-guile@gnu.org>.~%"))
            (ref-env   (assoc-ref args 'reference-environment))
            (bdwgc-env (or (assoc-ref args 'bdwgc-environment)
                           (string-append "GUILE=" bench-dir
-                                         "/../pre-inst-guile")))
+                                         "/../meta/guile")))
            (prof-opts (assoc-ref args 'profile-options)))
       (for-each (lambda (benchmark)
                   (let ((ref   (parse-result (run-reference-guile ref-env

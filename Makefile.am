@@ -24,16 +24,14 @@
 #
 AUTOMAKE_OPTIONS = 1.10
 
-SUBDIRS = lib libguile guile-config guile-readline emacs \
+SUBDIRS = lib meta libguile guile-readline emacs \
 	  scripts srfi doc examples test-suite benchmark-suite lang am \
 	  module testsuite
-
-bin_SCRIPTS = guile-tools
 
 include_HEADERS = libguile.h
 
 EXTRA_DIST = LICENSE HACKING GUILE-VERSION		\
-	     m4/ChangeLog-2008 FAQ guile-1.8.pc.in	\
+	     m4/ChangeLog-2008 FAQ \
 	     m4/autobuild.m4 ChangeLog-2008
 
 TESTS = check-guile
@@ -41,8 +39,5 @@ TESTS = check-guile
 ACLOCAL_AMFLAGS = -I m4
 
 DISTCLEANFILES = check-guile.log
-
-pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = guile-1.8.pc
 
 # Makefile.am ends here

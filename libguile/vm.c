@@ -662,6 +662,9 @@ scm_bootstrap_vm (void)
   sym_vm_error = scm_permanent_object (scm_from_locale_symbol ("vm-error"));
   sym_debug = scm_permanent_object (scm_from_locale_symbol ("debug"));
 
+  scm_c_register_extension ("libguile", "scm_init_vm",
+                            (scm_t_extension_init_func)scm_init_vm, NULL);
+
   strappage = 1;
 }
 
