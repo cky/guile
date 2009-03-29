@@ -17,10 +17,11 @@
 
 
 (define-module (ice-9 syncase)
+  :use-module (ice-9 expand-support)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
   :export-syntax (sc-macro define-syntax define-syntax-public 
-                  eval-when fluid-let-syntax
+                  fluid-let-syntax
 		  identifier-syntax let-syntax
 		  letrec-syntax syntax syntax-case  syntax-rules
 		  with-syntax
@@ -30,7 +31,7 @@
 	   datum->syntax-object free-identifier=?
 	   generate-temporaries identifier? syntax-object->datum
 	   void syncase)
-  :replace (eval))
+  :replace (eval eval-when))
 
 
 
@@ -48,7 +49,7 @@
   (procedure->memoizing-macro
     (lambda (exp env)
       (with-fluids ((expansion-eval-closure (env->eval-closure env)))
-        (sc-expand exp)))))
+        (strip-expansion-structures (sc-expand exp))))))
 
 ;;; Exported variables
 
@@ -147,7 +148,7 @@
 		      e
 		      ;; perform Guile macro transform
 		      (let ((e ((macro-transformer m)
-				e
+				(strip-expansion-structures e)
 				(append r (list eval-closure)))))
 			(if (variable? e)
 			    e
@@ -224,8 +225,8 @@
 (define (eval x environment)
   (internal-eval (if (and (pair? x)
 			  (equal? (car x) "noexpand"))
-		     (cadr x)
-		     (sc-expand x))
+		     (strip-expansion-structures (cadr x))
+		     (strip-expansion-structures (sc-expand x)))
 		 environment))
 
 ;;; Hack to make syncase macros work in the slib module
@@ -238,7 +239,7 @@
 (define (syncase exp)
   (with-fluids ((expansion-eval-closure
 		 (module-eval-closure (current-module))))
-    (sc-expand exp)))
+    (strip-expansion-structures (sc-expand exp))))
 
 (set-module-transformer! the-syncase-module syncase)
 

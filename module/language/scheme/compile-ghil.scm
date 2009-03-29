@@ -27,6 +27,7 @@
   #:use-module (system vm objcode)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 optargs)
+  #:use-module (ice-9 expand-support)
   #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (compile-ghil translate-1
@@ -119,7 +120,8 @@
         (lambda (env loc exp)
           (retrans
            (with-fluids ((eec (module-eval-closure mod)))
-             (sc-expand3 exp 'c '(compile load eval)))))))
+             (strip-expansion-structures
+              (sc-expand3 exp 'c '(compile load eval))))))))
 
      ((primitive-macro? val)
       (syntax-error #f "unhandled primitive macro" head))

@@ -20,7 +20,9 @@
 	    (close-port out)
 	    (close-port in))
 	  (begin
-	    (write (sc-expand3 x 'c '(compile load eval)) out)
+	    (write (strip-expansion-structures
+                    (sc-expand3 x 'c '(compile load eval)))
+                   out)
 	    (newline out)
 	    (loop (read in)))))))
 

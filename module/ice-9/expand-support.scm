@@ -16,11 +16,19 @@
 ;;;; 
 
 
-(define-module (ice-9 annotate)
+(define-module (ice-9 expand-support)
   :export (<annotation> annotation? annotate deannotate make-annotation
            annotation-expression annotation-source annotation-stripped
            set-annotation-stripped!
-           deannotate/source-properties))
+           deannotate/source-properties
+
+           <module-ref> make-module-ref
+           module-ref-symbol module-ref-modname module-ref-public?
+
+           <lexical> make-lexical
+           lexical-name lexical-gensym
+
+           strip-expansion-structures))
 
 (define <annotation>          
   (make-vtable "prprpw"
@@ -78,3 +86,77 @@
                (set-source-properties! e source))
            e))
         (else e)))
+
+
+
+(define <module-ref>          
+  (make-vtable "prprpr"
+               (lambda (struct port)
+                 (display "#<" port)
+                 (display (if (module-ref-public? struct) "@ " "@@ ") port)
+                 (display (module-ref-modname struct) port)
+                 (display " " port)
+                 (display (module-ref-symbol struct) port)
+                 (display ">" port))))
+
+(define (module-ref? x)
+  (and (struct? x) (eq? (struct-vtable x) <module-ref>)))
+
+(define (make-module-ref modname symbol public?)
+  (make-struct <module-ref> 0 modname symbol public?))
+
+(define (module-ref-modname a)
+  (struct-ref a 0))
+(define (module-ref-symbol a)
+  (struct-ref a 1))
+(define (module-ref-public? a)
+  (struct-ref a 2))
+
+
+
+(define <lexical>          
+  (make-vtable "prpr"
+               (lambda (struct port)
+                 (display "#<lexical " port)
+                 (display (lexical-name struct) port)
+                 (display "/" port)
+                 (display (lexical-gensym struct) port)
+                 (display ">" port))))
+
+(define (lexical? x)
+  (and (struct? x) (eq? (struct-vtable x) <lexical>)))
+
+(define (make-lexical name gensym)
+  (make-struct <lexical> 0 name gensym))
+
+(define (lexical-name a)
+  (struct-ref a 0))
+(define (lexical-gensym a)
+  (struct-ref a 1))
+
+
+
+(define (strip-expansion-structures e)
+  (cond ((list? e)
+         (map strip-expansion-structures e))
+        ((pair? e)
+         (cons (strip-expansion-structures (car e))
+               (strip-expansion-structures (cdr e))))
+        ((annotation? e)
+         (let ((e (strip-expansion-structures (annotation-expression e)))
+               (source (annotation-source e)))
+           (if (pair? e)
+               (set-source-properties! e source))
+           e))
+        ((module-ref? e)
+         (if (module-ref-modname e)
+             `(,(if (module-ref-public? e) '@ '@@)
+               ,(module-ref-modname e)
+               ,(module-ref-symbol e))
+             (module-ref-symbol e)))
+        ((lexical? e)
+         (lexical-gensym e))
+        ((record? e)
+         (error "unexpected record in expansion" e))
+        (else e)))
+

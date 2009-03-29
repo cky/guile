@@ -373,12 +373,12 @@
 (define-syntax build-global-reference
   (syntax-rules ()
     ((_ source var)
-     (build-annotated source var))))
+     (build-annotated source (make-module-ref #f var #f)))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp)
-     (build-annotated source `(set! ,var ,exp)))))
+     (build-annotated source `(set! ,(make-module-ref #f var #f) ,exp)))))
 
 (define-syntax build-global-definition
   (syntax-rules ()
