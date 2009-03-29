@@ -432,7 +432,26 @@
   (syntax-rules ()
     ((_ src id) (build-annotated src (gensym (symbol->string id))))))
 
-(define-structure (syntax-object expression wrap))
+;; (define-structure (syntax-object expression wrap module))
+
+(define (make-syntax-object exp wrap . mod)
+  (vector 'syntax-object exp wrap (if (null? mod) #f (car mod))))
+
+(define (syntax-object? x)
+  (and (vector? x) (> (vector-length x) 0) (eq? (vector-ref x 0) 'syntax-object)))
+
+(define (syntax-object-expression x)
+  (vector-ref x 1))
+(define (syntax-object-wrap x)
+  (vector-ref x 2))
+(define (syntax-object-module x)
+  (vector-ref x 3))
+(define (set-syntax-object-expression! x y)
+  (vector-set! x 1 y))
+(define (set-syntax-object-wrap! x y)
+  (vector-set! x 2 y))
+(define (set-syntax-object-module! x y)
+  (vector-set! x 3 y))
 
 (define-syntax unannotate
   (syntax-rules ()
