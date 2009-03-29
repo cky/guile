@@ -95,24 +95,26 @@
       (set! *callers-db* #f)))
 
 (define (ensure-callers-db)
-  (let ((visited '())
+  (let ((visited #f)
         (db #f))
     (define (visit-variable var)
       (if (variable-bound? var)
           (let ((x (variable-ref var)))
             (cond
+             ((hashq-ref visited x))
              ((procedure? x)
+              (hashq-set! visited x #t)
               (for-each
                (lambda (callee)
                  (if (variable-bound? callee)
                      (hashq-set! db callee
                                  (cons x (hashq-ref db callee '())))))
                (procedure-callee-rev-vars x)))
-             ((and (module? x) (not (memq x visited)))
+             ((module? x)
               (visit-module x))))))
 
     (define (visit-module mod)
-      (set! visited (cons mod visited))
+      (hashq-set! visited mod #t)
       (if (not (memq on-module-modified (module-observers mod)))
           (module-observe mod on-module-modified))
       (module-for-each (lambda (sym var)
@@ -121,7 +123,8 @@
 
     (if (not *callers-db*)
         (begin
-          (set! db (make-hash-table))
+          (set! db (make-hash-table 1000))
+          (set! visited (make-hash-table 1000))
           (visit-module the-root-module)
           (set! *callers-db* db)))))
 
