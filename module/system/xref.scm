@@ -20,11 +20,14 @@
   #:use-module (system base pmatch)
   #:use-module (system base compile)
   #:use-module (system vm program)
+  #:use-module (srfi srfi-1)
   #:export (*xref-ignored-modules*
             procedure-callees
             procedure-callers))
 
 (define (program-callee-rev-vars prog)
+  (define (cons-uniq x y)
+    (if (memq x y) y (cons x y)))
   (cond
    ((program-objects prog)
     => (lambda (objects)
@@ -44,19 +47,19 @@
                ((= i n) out)
                ((program? (vector-ref objects i))
                 (lp (1+ i)
-                    (append (program-callee-rev-vars (vector-ref objects i))
-                            out)))
+                    (fold cons-uniq out
+                          (program-callee-rev-vars (vector-ref objects i)))))
                ((vector-ref progv i)
                 (let ((obj (vector-ref objects i)))
                   (if (variable? obj)
-                      (lp (1+ i) (cons obj out))
+                      (lp (1+ i) (cons-uniq obj out))
                       ;; otherwise it's an unmemoized binding
                       (pmatch obj
                         (,sym (guard (symbol? sym))
                          (let ((v (module-variable (or (program-module prog)
                                                        the-root-module)
                                                    sym)))
-                           (lp (1+ i) (if v (cons v out) out))))
+                           (lp (1+ i) (if v (cons-uniq v out) out))))
                         ((,mod ,sym ,public?)
                          ;; hm, hacky.
                          (let* ((m (nested-ref the-root-module
@@ -68,7 +71,7 @@
                                              m)
                                          sym))))
                            (lp (1+ i)
-                               (if v (cons v out) out))))))))
+                               (if v (cons-uniq v out) out))))))))
                (else (lp (1+ i) out)))))))
    (else '())))
 
@@ -102,8 +105,8 @@
               (for-each
                (lambda (callee)
                  (if (variable-bound? callee)
-                     (let ((y (variable-ref callee)))
-                       (hashq-set! db callee (cons x (hashq-ref db callee '()))))))
+                     (hashq-set! db callee
+                                 (cons x (hashq-ref db callee '())))))
                (procedure-callee-rev-vars x)))
              ((and (module? x) (not (memq x visited)))
               (visit-module x))))))
@@ -130,6 +133,6 @@
                     ((,modname . ,sym)
                      (module-variable (resolve-module modname) sym))
                     (else
-                     (error "expected a variable, symbol, or (modname sym)" var)))))))
+                     (error "expected a variable, symbol, or (modname . sym)" var)))))))
     (ensure-callers-db)
     (hashq-ref *callers-db* v '())))
