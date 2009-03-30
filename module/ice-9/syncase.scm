@@ -136,7 +136,7 @@
 
 (define guile-macro
   (cons 'external-macro
-	(lambda (e r w s)
+	(lambda (e r w s mod)
 	  (let ((e (syntax-object->datum e)))
 	    (if (symbol? e)
 		;; pass the expression through
@@ -154,7 +154,7 @@
 			    e
 			    (if (null? r)
 				(sc-expand e)
-				(sc-chi e r w)))))))))))
+				(sc-chi e r w mod)))))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
@@ -208,8 +208,8 @@
 		  (set! old-debug (debug-options))
 		  (set! old-read (read-options)))
 		(lambda ()
-		  (debug-disable 'debug 'procnames)
-		  (read-disable 'positions)
+                  (debug-disable 'debug 'procnames)
+                  (read-disable 'positions)
 		  (load-from-path "ice-9/psyntax-pp"))
 		(lambda ()
 		  (debug-options old-debug)

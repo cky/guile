@@ -140,6 +140,7 @@ SCM_API SCM scm_local_eval (SCM exp, SCM env);
 SCM_API SCM scm_reverse_lookup (SCM env, SCM data);
 SCM_API SCM scm_sys_start_stack (SCM info_id, SCM thunk);
 SCM_API SCM scm_procedure_environment (SCM proc);
+SCM_API SCM scm_procedure_module (SCM proc);
 SCM_API SCM scm_procedure_source (SCM proc);
 SCM_API SCM scm_procedure_name (SCM proc);
 SCM_API SCM scm_memoized_environment (SCM m);
