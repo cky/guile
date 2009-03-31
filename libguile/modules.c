@@ -544,6 +544,21 @@ SCM_DEFINE (scm_standard_interface_eval_closure,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_eval_closure_module,
+	    "eval-closure-module", 1, 0, 0,
+	    (SCM eval_closure),
+	    "Return the module associated with this eval closure.")
+/* the idea is that eval closures are really not the way to do things, they're
+   superfluous given our module system. this function lets mmacros migrate away
+   from eval closures. */
+#define FUNC_NAME s_scm_eval_closure_module
+{
+  SCM_MAKE_VALIDATE_MSG (SCM_ARG1, eval_closure, EVAL_CLOSURE_P,
+                         "eval-closure");
+  return SCM_SMOB_OBJECT (eval_closure);
+}
+#undef FUNC_NAME
+
 SCM
 scm_module_lookup_closure (SCM module)
 {
