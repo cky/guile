@@ -320,11 +320,13 @@
 
 (define top-level-eval-hook
   (lambda (x mod)
-    (eval `(,noexpand ,x) (or mod (interaction-environment)))))
+    (eval `(,noexpand ,x) (if mod (resolve-module mod)
+                              (interaction-environment)))))
 
 (define local-eval-hook
   (lambda (x mod)
-    (eval `(,noexpand ,x) (or mod (interaction-environment)))))
+    (eval `(,noexpand ,x) (if mod (resolve-module mod)
+                              (interaction-environment)))))
 
 (define error-hook
   (lambda (who why what)
@@ -336,7 +338,9 @@
 
 (define put-global-definition-hook
   (lambda (symbol binding module)
-    (let* ((module (or module (warn "wha" symbol (current-module))))
+    (let* ((module (if module
+                       (resolve-module module)
+                       (warn "wha" symbol (current-module))))
            (v (or (module-variable module symbol)
                   (let ((v (make-variable sc-macro)))
                     (module-add! module symbol v)
@@ -351,7 +355,9 @@
 
 (define get-global-definition-hook
   (lambda (symbol module)
-    (let* ((module (or module (warn "wha" symbol (current-module))))
+    (let* ((module (if module
+                       (resolve-module module)
+                       (warn "wha" symbol (current-module))))
            (v (module-variable module symbol)))
       (and v
            (or (object-property v '*sc-expander*)
@@ -392,14 +398,13 @@
   (syntax-rules ()
     ((_ source var mod)
      (build-annotated source
-      (make-module-ref (and mod (module-name mod)) var #f)))))
+      (make-module-ref mod var #f)))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp mod)
      (build-annotated source
-       `(set! ,(make-module-ref (and mod (module-name mod)) var #f)
-              ,exp)))))
+       `(set! ,(make-module-ref mod var #f) ,exp)))))
 
 (define-syntax build-global-definition
   (syntax-rules ()
@@ -588,7 +593,7 @@
 (define global-extend
   (lambda (type sym val)
     (put-global-definition-hook sym (make-binding type val)
-                                (current-module))))
+                                (module-name (current-module)))))
 
 
 ;;; Conceptually, identifiers are always syntax objects.  Internally,
@@ -1128,7 +1133,10 @@
          e r w s mod))
       ((global-call)
        (chi-application
-         (build-global-reference (source-annotation (car e)) value mod)
+         (build-global-reference (source-annotation (car e)) value
+                                 (if (syntax-object? (car e))
+                                     (syntax-object-module (car e))
+                                     mod))
          e r w s mod))
       ((constant) (build-data s (strip (source-wrap e w s mod) empty-wrap)))
       ((global) (build-global-reference s value mod))
@@ -1185,7 +1193,7 @@
                                    (if rib
                                        (cons rib (cons 'shift s))
                                        (cons 'shift s)))
-                        (procedure-module p)))))) ;; hither the hygiene
+                        (module-name (procedure-module p))))))) ;; hither the hygiene
               ((vector? x)
                (let* ((n (vector-length x)) (v (make-vector n)))
                  (do ((i 0 (fx+ i 1)))
@@ -1920,7 +1928,8 @@
     (lambda (x)
       (if (and (pair? x) (equal? (car x) noexpand))
           (cadr x)
-          (chi-top x null-env top-wrap m esew (current-module))))))
+          (chi-top x null-env top-wrap m esew
+                   (module-name (current-module)))))))
 
 (set! sc-expand3
   (let ((m 'e) (esew '(eval)))
@@ -1934,7 +1943,7 @@
 		   (if (or (null? rest) (null? (cdr rest)))
 		       esew
 		       (cadr rest))
-                   (current-module))))))
+                   (module-name (current-module)))))))
 
 (set! identifier?
   (lambda (x)
@@ -2006,34 +2015,36 @@
 (let ()
 
 (define match-each
-  (lambda (e p w)
+  (lambda (e p w mod)
     (cond
       ((annotation? e)
-       (match-each (annotation-expression e) p w))
+       (match-each (annotation-expression e) p w mod))
       ((pair? e)
-       (let ((first (match (car e) p w '())))
+       (let ((first (match (car e) p w '() mod)))
          (and first
-              (let ((rest (match-each (cdr e) p w)))
+              (let ((rest (match-each (cdr e) p w mod)))
                  (and rest (cons first rest))))))
       ((null? e) '())
       ((syntax-object? e)
        (match-each (syntax-object-expression e)
                    p
-                   (join-wraps w (syntax-object-wrap e))))
+                   (join-wraps w (syntax-object-wrap e))
+                   (syntax-object-module e)))
       (else #f))))
 
 (define match-each-any
-  (lambda (e w)
+  (lambda (e w mod)
     (cond
       ((annotation? e)
-       (match-each-any (annotation-expression e) w))
+       (match-each-any (annotation-expression e) w mod))
       ((pair? e)
-       (let ((l (match-each-any (cdr e) w)))
-         (and l (cons (wrap (car e) w #f) l))))
+       (let ((l (match-each-any (cdr e) w mod)))
+         (and l (cons (wrap (car e) w mod) l))))
       ((null? e) '())
       ((syntax-object? e)
        (match-each-any (syntax-object-expression e)
-                       (join-wraps w (syntax-object-wrap e))))
+                       (join-wraps w (syntax-object-wrap e))
+                       mod))
       (else #f))))
 
 (define match-empty
@@ -2050,43 +2061,45 @@
          ((vector) (match-empty (vector-ref p 1) r)))))))
 
 (define match*
-  (lambda (e p w r)
+  (lambda (e p w r mod)
     (cond
       ((null? p) (and (null? e) r))
       ((pair? p)
        (and (pair? e) (match (car e) (car p) w
-                        (match (cdr e) (cdr p) w r))))
+                        (match (cdr e) (cdr p) w r mod)
+                        mod)))
       ((eq? p 'each-any)
-       (let ((l (match-each-any e w))) (and l (cons l r))))
+       (let ((l (match-each-any e w mod))) (and l (cons l r))))
       (else
        (case (vector-ref p 0)
          ((each)
           (if (null? e)
               (match-empty (vector-ref p 1) r)
-              (let ((l (match-each e (vector-ref p 1) w)))
+              (let ((l (match-each e (vector-ref p 1) w mod)))
                 (and l
                      (let collect ((l l))
                        (if (null? (car l))
                            r
                            (cons (map car l) (collect (map cdr l)))))))))
-         ((free-id) (and (id? e) (free-id=? (wrap e w #f) (vector-ref p 1)) r))
+         ((free-id) (and (id? e) (free-id=? (wrap e w mod) (vector-ref p 1)) r))
          ((atom) (and (equal? (vector-ref p 1) (strip e w)) r))
          ((vector)
           (and (vector? e)
-               (match (vector->list e) (vector-ref p 1) w r))))))))
+               (match (vector->list e) (vector-ref p 1) w r mod))))))))
 
 (define match
-  (lambda (e p w r)
+  (lambda (e p w r mod)
     (cond
       ((not r) #f)
-      ((eq? p 'any) (cons (wrap e w #f) r))
+      ((eq? p 'any) (cons (wrap e w mod) r))
       ((syntax-object? e)
        (match*
          (unannotate (syntax-object-expression e))
          p
          (join-wraps w (syntax-object-wrap e))
-         r))
-      (else (match* (unannotate e) p w r)))))
+         r
+         (syntax-object-module e)))
+      (else (match* (unannotate e) p w r mod)))))
 
 (set! syntax-dispatch
   (lambda (e p)
@@ -2094,8 +2107,8 @@
       ((eq? p 'any) (list e))
       ((syntax-object? e)
        (match* (unannotate (syntax-object-expression e))
-         p (syntax-object-wrap e) '()))
-      (else (match* (unannotate e) p empty-wrap '())))))
+         p (syntax-object-wrap e) '() (syntax-object-module e)))
+      (else (match* (unannotate e) p empty-wrap '() #f)))))
 
 (set! sc-chi chi)
 ))

@@ -108,7 +108,8 @@
 	    (if (symbol? e)
 		;; pass the expression through
 		e
-		(let ((m (module-ref mod (car e))))
+		(let* ((mod (resolve-module mod))
+                       (m (module-ref mod (car e))))
 		  (if (eq? (macro-type m) 'syntax)
 		      ;; pass the expression through
 		      e
@@ -120,7 +121,7 @@
 			    e
 			    (if (null? r)
 				(sc-expand e)
-				(sc-chi e r w mod)))))))))))
+				(sc-chi e r w (module-name mod))))))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
