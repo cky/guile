@@ -149,7 +149,10 @@
                (set-source-properties! e source))
            e))
         ((module-ref? e)
-         (if (module-ref-modname e)
+         (if (and (module-ref-modname e)
+                  (not (eq? (module-ref-modname e)
+                            (module-name (current-module))))
+                  #f)
              `(,(if (module-ref-public? e) '@ '@@)
                ,(module-ref-modname e)
                ,(module-ref-symbol e))
@@ -159,4 +162,3 @@
         ((record? e)
          (error "unexpected record in expansion" e))
         (else e)))
-

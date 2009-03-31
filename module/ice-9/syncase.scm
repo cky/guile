@@ -35,21 +35,15 @@
 
 
 
-(define expansion-eval-closure (make-fluid))
-(define (current-eval-closure)
-  (or (fluid-ref expansion-eval-closure)
-      (module-eval-closure (current-module))))
-
-(define (env->eval-closure env)
-  (and env (car (last-pair env))))
-
 (define (annotation? x) #f)
 
 (define sc-macro
   (procedure->memoizing-macro
     (lambda (exp env)
-      (with-fluids ((expansion-eval-closure (env->eval-closure env)))
-        (strip-expansion-structures (sc-expand exp))))))
+      (save-module-excursion
+       (lambda ()
+         (set-current-module (eval-closure-module (car (last-pair env))))
+         (strip-expansion-structures (sc-expand exp)))))))
 
 ;;; Exported variables
 
@@ -106,33 +100,6 @@
 			  '())))
 
 (define the-syncase-module (current-module))
-(define the-syncase-eval-closure (module-eval-closure the-syncase-module))
-
-(fluid-set! expansion-eval-closure the-syncase-eval-closure)
-
-(define (putprop symbol key binding)
-  (let* ((eval-closure (current-eval-closure))
-	 ;; Why not simply do (eval-closure symbol #t)?
-	 ;; Answer: That would overwrite imported bindings
-	 (v (or (eval-closure symbol #f) ;lookup
-		(eval-closure symbol #t) ;create it locally
-		)))
-    ;; Don't destroy Guile macros corresponding to
-    ;; primitive syntax when syncase boots.
-    (if (not (and (symbol-property symbol 'primitive-syntax)
-		  (eq? eval-closure the-syncase-eval-closure)))
-	(variable-set! v sc-macro))
-    ;; Properties are tied to variable objects
-    (set-object-property! v key binding)))
-
-(define (getprop symbol key)
-  (let* ((v ((current-eval-closure) symbol #f)))
-    (and v
-	 (or (object-property v key)
-	     (and (variable-bound? v)
-		  (macro? (variable-ref v))
-		  (macro-transformer (variable-ref v)) ;non-primitive
-		  guile-macro)))))
 
 (define guile-macro
   (cons 'external-macro
@@ -141,15 +108,14 @@
 	    (if (symbol? e)
 		;; pass the expression through
 		e
-		(let* ((eval-closure (current-eval-closure))
-		       (m (variable-ref (eval-closure (car e) #f))))
+		(let ((m (module-ref mod (car e))))
 		  (if (eq? (macro-type m) 'syntax)
 		      ;; pass the expression through
 		      e
 		      ;; perform Guile macro transform
 		      (let ((e ((macro-transformer m)
 				(strip-expansion-structures e)
-				(append r (list eval-closure)))))
+				(append r (list (module-eval-closure mod))))))
 			(if (variable? e)
 			    e
 			    (if (null? r)
@@ -208,17 +174,12 @@
 		  (set! old-debug (debug-options))
 		  (set! old-read (read-options)))
 		(lambda ()
-                  (debug-disable 'debug 'procnames)
-                  (read-disable 'positions)
+                  ;(debug-disable 'debug 'procnames)
+                  ;(read-disable 'positions)
 		  (load-from-path "ice-9/psyntax-pp"))
 		(lambda ()
 		  (debug-options old-debug)
 		  (read-options old-read))))
-
-
-;;; The following lines are necessary only if we start making changes
-;; (use-syntax sc-expand)
-;; (load-from-path "ice-9/psyntax")
 
 (define internal-eval (nested-ref the-scm-module '(%app modules guile eval)))
 
@@ -237,9 +198,7 @@
 			    '(define))))
 
 (define (syncase exp)
-  (with-fluids ((expansion-eval-closure
-		 (module-eval-closure (current-module))))
-    (strip-expansion-structures (sc-expand exp))))
+  (strip-expansion-structures (sc-expand exp)))
 
 (set-module-transformer! the-syncase-module syncase)
 
@@ -249,5 +208,3 @@
      (begin
        ;(eval-case ((load-toplevel) (export-syntax name)))
        (define-syntax name rules ...)))))
-
-(fluid-set! expansion-eval-closure #f)

@@ -334,14 +334,31 @@
   (syntax-rules ()
     ((_) (gensym))))
 
-;; wingo: FIXME: use modules natively?
 (define put-global-definition-hook
-  (lambda (symbol binding)
-     (putprop symbol '*sc-expander* binding)))
+  (lambda (symbol binding module)
+    (let* ((module (or module (warn "wha" symbol (current-module))))
+           (v (or (module-variable module symbol)
+                  (let ((v (make-variable sc-macro)))
+                    (module-add! module symbol v)
+                    v))))
+      ;; Don't destroy Guile macros corresponding to primitive syntax
+      ;; when syncase boots.
+      (if (not (and (symbol-property symbol 'primitive-syntax)
+                    (eq? module the-syncase-module)))
+          (variable-set! v sc-macro))
+      ;; Properties are tied to variable objects
+      (set-object-property! v '*sc-expander* binding))))
 
 (define get-global-definition-hook
-  (lambda (symbol)
-     (getprop symbol '*sc-expander*)))
+  (lambda (symbol module)
+    (let* ((module (or module (warn "wha" symbol (current-module))))
+           (v (module-variable module symbol)))
+      (and v
+           (or (object-property v '*sc-expander*)
+               (and (variable-bound? v)
+                    (macro? (variable-ref v))
+                    (macro-transformer (variable-ref v)) ;non-primitive
+                    guile-macro))))))
 )
 
 
@@ -374,12 +391,15 @@
 (define-syntax build-global-reference
   (syntax-rules ()
     ((_ source var mod)
-     (build-annotated source (make-module-ref #f var mod)))))
+     (build-annotated source
+      (make-module-ref (and mod (module-name mod)) var #f)))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp mod)
-     (build-annotated source `(set! ,(make-module-ref #f var mod) ,exp)))))
+     (build-annotated source
+       `(set! ,(make-module-ref (and mod (module-name mod)) var #f)
+              ,exp)))))
 
 (define-syntax build-global-definition
   (syntax-rules ()
@@ -558,16 +578,17 @@
   ; although symbols are usually global, we check the environment first
   ; anyway because a temporary binding may have been established by
   ; fluid-let-syntax
-  (lambda (x r)
+  (lambda (x r mod)
     (cond
       ((assq x r) => cdr)
       ((symbol? x)
-       (or (get-global-definition-hook x) (make-binding 'global)))
+       (or (get-global-definition-hook x mod) (make-binding 'global)))
       (else (make-binding 'displaced-lexical)))))
 
 (define global-extend
   (lambda (type sym val)
-    (put-global-definition-hook sym (make-binding type val))))
+    (put-global-definition-hook sym (make-binding type val)
+                                (current-module))))
 
 
 ;;; Conceptually, identifiers are always syntax objects.  Internally,
@@ -933,10 +954,10 @@
     (cond
       ((symbol? e)
        (let* ((n (id-var-name e w))
-              (b (lookup n r))
+              (b (lookup n r mod))
               (type (binding-type b)))
          (case type
-           ((lexical) (values type (binding-value b) e w s #f))
+           ((lexical) (values type (binding-value b) e w s mod))
            ((global) (values type n e w s mod))
            ((macro)
             (syntax-type (chi-macro (binding-value b) e r w rib mod)
@@ -946,7 +967,7 @@
        (let ((first (car e)))
          (if (id? first)
              (let* ((n (id-var-name first w))
-                    (b (lookup n r))
+                    (b (lookup n r mod))
                     (type (binding-type b)))
                (case type
                  ((lexical)
@@ -973,12 +994,12 @@
                      (and (id? (syntax name))
                           (valid-bound-ids? (lambda-var-list (syntax args))))
                      ; need lambda here...
-                     (values 'define-form (wrap (syntax name) w #f)
+                     (values 'define-form (wrap (syntax name) w mod)
                        (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
                        empty-wrap s mod))
                     ((_ name)
                      (id? (syntax name))
-                     (values 'define-form (wrap (syntax name) w #f)
+                     (values 'define-form (wrap (syntax name) w mod)
                        (syntax (void))
                        empty-wrap s mod))))
                  ((define-syntax)
@@ -995,7 +1016,7 @@
        (syntax-type (syntax-object-expression e)
                     r
                     (join-wraps w (syntax-object-wrap e))
-                    no-source rib (syntax-object-module e)))
+                    no-source rib (or (syntax-object-module e) mod)))
       ((annotation? e)
        (syntax-type (annotation-expression e) r w (annotation-source e) rib mod))
       ((self-evaluating? e) (values 'constant #f e w s mod))
@@ -1069,20 +1090,20 @@
                 (chi-void)))))
           ((define-form)
            (let* ((n (id-var-name value w))
-		  (type (binding-type (lookup n r))))
+		  (type (binding-type (lookup n r mod))))
              (case type
                ((global)
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w mod) mod)
                   mod))
                ((displaced-lexical)
-                (syntax-error (wrap value w #f) "identifier out of context"))
+                (syntax-error (wrap value w mod) "identifier out of context"))
                (else
 		(if (eq? type 'external-macro)
 		    (eval-if-c&e m
                       (build-global-definition s n (chi e r w mod) mod)
                       mod)
-		    (syntax-error (wrap value w #f)
+		    (syntax-error (wrap value w mod)
 				  "cannot define keyword at top level"))))))
           (else (eval-if-c&e m (chi-expr type value e r w s mod) mod)))))))
 
@@ -1125,7 +1146,7 @@
                 (chi-sequence (syntax (e1 e2 ...)) r w s mod)
                 (chi-void))))))
       ((define-form define-syntax-form)
-       (syntax-error (wrap value w #f) "invalid context for definition of"))
+       (syntax-error (wrap value w mod) "invalid context for definition of"))
       ((syntax)
        (syntax-error (source-wrap e w s mod)
          "reference to pattern variable outside syntax form"))
@@ -1466,7 +1487,7 @@
        (let ((names (map (lambda (x) (id-var-name x w)) (syntax (var ...)))))
          (for-each
            (lambda (id n)
-             (case (binding-type (lookup n r))
+             (case (binding-type (lookup n r mod))
                ((displaced-lexical)
                 (syntax-error (source-wrap id w s mod)
                   "identifier out of context"))))
@@ -1497,10 +1518,10 @@
 (global-extend 'core 'syntax
   (let ()
     (define gen-syntax
-      (lambda (src e r maps ellipsis?)
+      (lambda (src e r maps ellipsis? mod)
         (if (id? e)
             (let ((label (id-var-name e empty-wrap)))
-              (let ((b (lookup label r)))
+              (let ((b (lookup label r mod)))
                 (if (eq? (binding-type b) 'syntax)
                     (call-with-values
                       (lambda ()
@@ -1513,7 +1534,7 @@
             (syntax-case e ()
               ((dots e)
                (ellipsis? (syntax dots))
-               (gen-syntax src (syntax e) r maps (lambda (x) #f)))
+               (gen-syntax src (syntax e) r maps (lambda (x) #f) mod))
               ((x dots . y)
                ; this could be about a dozen lines of code, except that we
                ; choose to handle (syntax (x ... ...)) forms
@@ -1523,7 +1544,7 @@
                             (call-with-values
                               (lambda ()
                                 (gen-syntax src (syntax x) r
-                                  (cons '() maps) ellipsis?))
+                                  (cons '() maps) ellipsis? mod))
                               (lambda (x maps)
                                 (if (null? (car maps))
                                     (syntax-error src
@@ -1544,7 +1565,7 @@
                                  (values (gen-mappend x (car maps))
                                          (cdr maps))))))))
                    (_ (call-with-values
-                        (lambda () (gen-syntax src y r maps ellipsis?))
+                        (lambda () (gen-syntax src y r maps ellipsis? mod))
                         (lambda (y maps)
                           (call-with-values
                             (lambda () (k maps))
@@ -1552,15 +1573,15 @@
                               (values (gen-append x y) maps)))))))))
               ((x . y)
                (call-with-values
-                 (lambda () (gen-syntax src (syntax x) r maps ellipsis?))
+                 (lambda () (gen-syntax src (syntax x) r maps ellipsis? mod))
                  (lambda (x maps)
                    (call-with-values
-                     (lambda () (gen-syntax src (syntax y) r maps ellipsis?))
+                     (lambda () (gen-syntax src (syntax y) r maps ellipsis? mod))
                      (lambda (y maps) (values (gen-cons x y) maps))))))
               (#(e1 e2 ...)
                (call-with-values
                  (lambda ()
-                   (gen-syntax src (syntax (e1 e2 ...)) r maps ellipsis?))
+                   (gen-syntax src (syntax (e1 e2 ...)) r maps ellipsis? mod))
                  (lambda (e maps) (values (gen-vector e) maps))))
               (_ (values `(quote ,e) maps))))))
 
@@ -1655,9 +1676,7 @@
         (syntax-case e ()
           ((_ x)
            (call-with-values
-             (lambda () (gen-syntax e (syntax x) r '() ellipsis?))
-             ;; It doesn't seem we need `mod' here as `syntax' only
-             ;; references lexical vars and primitives.
+             (lambda () (gen-syntax e (syntax x) r '() ellipsis? mod))
              (lambda (e maps) (regen e))))
           (_ (syntax-error e)))))))
 
@@ -1728,13 +1747,13 @@
        (id? (syntax id))
        (let ((val (chi (syntax val) r w mod))
              (n (id-var-name (syntax id) w)))
-         (let ((b (lookup n r)))
+         (let ((b (lookup n r mod)))
            (case (binding-type b)
              ((lexical)
               (build-lexical-assignment s (binding-value b) val))
              ((global) (build-global-assignment s n val mod))
              ((displaced-lexical)
-              (syntax-error (wrap (syntax id) w #f)
+              (syntax-error (wrap (syntax id) w mod)
                 "identifier out of context"))
              (else (syntax-error (source-wrap e w s mod)))))))
       ((_ (getter arg ...) val)
@@ -2253,4 +2272,3 @@
               (syntax e))
              ((_ x (... ...))
               (syntax (e x (... ...)))))))))))
-

@@ -115,13 +115,11 @@
 
      ((eq? val sc-macro)
       ;; syncase!
-      (let* ((eec (@@ (ice-9 syncase) expansion-eval-closure))
-             (sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
+      (let ((sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
         (lambda (env loc exp)
           (retrans
-           (with-fluids ((eec (module-eval-closure mod)))
-             (strip-expansion-structures
-              (sc-expand3 exp 'c '(compile load eval))))))))
+           (strip-expansion-structures
+            (sc-expand3 exp 'c '(compile load eval)))))))
 
      ((primitive-macro? val)
       (syntax-error #f "unhandled primitive macro" head))
