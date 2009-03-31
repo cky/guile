@@ -34,5 +34,5 @@
 set -e
 # env (set by configure)
 top_builddir="@top_builddir_absolute@"
-exec ${top_builddir}/uninstalled-env libtool --mode=execute \
+exec ${top_builddir}/meta/uninstalled-env libtool --mode=execute \
     gdb --args ${top_builddir}/libguile/guile "$@"

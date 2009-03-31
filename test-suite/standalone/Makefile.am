@@ -125,6 +125,15 @@ test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-scm-take-locale-symbol
 TESTS += test-scm-take-locale-symbol
 
+# test-extensions
+noinst_LTLIBRARIES += libtest-extensions.la
+libtest_extensions_la_SOURCES = test-extensions-lib.c
+libtest_extensions_la_CFLAGS = ${test_cflags}
+libtest_extensions_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
+libtest_extensions_la_LIBADD = ${top_builddir}/libguile/libguile.la
+check_SCRIPTS += test-extensions
+TESTS += test-extensions
+
 
 if BUILD_PTHREAD_SUPPORT
 
