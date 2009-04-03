@@ -525,24 +525,14 @@ init_stack_limit (void)
   struct rlimit lim;
   if (getrlimit (RLIMIT_STACK, &lim) == 0)
       {
-        int bytes = lim.rlim_cur, words;
+        rlim_t bytes = lim.rlim_cur;
 
-        /* set our internal stack limit to 1 MB or 80% of the rlimit, whichever
-           is lower. */
+        /* set our internal stack limit to 80% of the rlimit. */
         if (bytes == RLIM_INFINITY)
           bytes = lim.rlim_max;
 
-        if (bytes == RLIM_INFINITY)
-          words = 1024 * 1024 / sizeof (scm_t_bits);
-        else
-          {
-            bytes = bytes * 8 / 10;
-            if (bytes > 1024 * 1024)
-              bytes = 1024 * 1024;
-            words = bytes / sizeof (scm_t_bits);
-          }
-
-        SCM_STACK_LIMIT = words;
+        if (bytes != RLIM_INFINITY)
+          SCM_STACK_LIMIT = bytes * 8 / 10 / sizeof (scm_t_bits);
       }
   errno = 0;
 #endif
