@@ -446,12 +446,14 @@ VM_DEFINE_INSTRUCTION (33, br_if_not, "br-if-not", 2, 0, 0)
 
 VM_DEFINE_INSTRUCTION (34, br_if_eq, "br-if-eq", 2, 0, 0)
 {
-  BR (SCM_EQ_P (sp[0], sp--[1]));
+  sp--; /* underflow? */
+  BR (SCM_EQ_P (sp[0], sp[1]));
 }
 
 VM_DEFINE_INSTRUCTION (35, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
 {
-  BR (!SCM_EQ_P (sp[0], sp--[1]));
+  sp--; /* underflow? */
+  BR (!SCM_EQ_P (sp[0], sp[1]));
 }
 
 VM_DEFINE_INSTRUCTION (36, br_if_null, "br-if-null", 2, 0, 0)
