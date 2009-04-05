@@ -94,17 +94,25 @@
 ;;
 ;; FIXME shadowing lexicals?
 (define (lookup-transformer head retrans)
+  (define (module-ref/safe mod sym)
+    (and mod
+         (and=> (module-variable mod sym) 
+                (lambda (var)
+                  ;; unbound vars can happen if the module
+                  ;; definition forward-declared them
+                  (and (variable-bound? var) (variable-ref var))))))
   (let* ((mod (current-module))
          (val (cond
-               ((symbol? head)
-                (and=> (module-variable mod head) 
-                       (lambda (var)
-                         ;; unbound vars can happen if the module
-                         ;; definition forward-declared them
-                         (and (variable-bound? var) (variable-ref var)))))
+               ((symbol? head) (module-ref/safe mod head))
                ;; allow macros to be unquoted into the output of a macro
                ;; expansion
                ((macro? head) head)
+               ((pmatch head
+                  ((@ ,modname ,sym)
+                   (module-ref/safe (resolve-interface modname) sym))
+                  ((@@ ,modname ,sym)
+                   (module-ref/safe (resolve-module modname) sym))
+                  (else #f)))
                (else #f))))
     (cond
      ((hashq-ref *translate-table* val))
