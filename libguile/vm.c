@@ -43,6 +43,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <alloca.h>
 #include <string.h>
 #include "vm-bootstrap.h"
@@ -129,7 +130,7 @@ vm_cont_mark (SCM obj)
   return SCM_BOOL_F;
 }
 
-static scm_sizet
+static size_t
 vm_cont_free (SCM obj)
 {
   struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
@@ -368,7 +369,7 @@ vm_mark (SCM obj)
   return vp->options;
 }
 
-static scm_sizet
+static size_t
 vm_free (SCM obj)
 {
   struct scm_vm *vp = SCM_VM_DATA (obj);

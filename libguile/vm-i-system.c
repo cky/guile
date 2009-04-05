@@ -253,7 +253,7 @@ VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
 
   if (!VARIABLE_BOUNDP (x))
     {
-      finish_args = SCM_LIST1 (x);
+      finish_args = scm_list_1 (x);
       /* Was: finish_args = SCM_LIST1 (SCM_CAR (x)); */
       goto vm_error_unbound;
     }
@@ -298,7 +298,7 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
             mod = scm_module_public_interface (mod);
           if (SCM_FALSEP (mod))
             {
-              finish_args = SCM_LIST1 (mod);
+              finish_args = scm_list_1 (mod);
               goto vm_error_no_such_module;
             }
           /* might longjmp */
@@ -307,7 +307,7 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
           
       if (!VARIABLE_BOUNDP (what))
         {
-          finish_args = SCM_LIST1 (what);
+          finish_args = scm_list_1 (what);
           goto vm_error_unbound;
         }
 
@@ -381,7 +381,7 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
             mod = scm_module_public_interface (mod);
           if (SCM_FALSEP (mod))
             {
-              finish_args = SCM_LIST1 (what);
+              finish_args = scm_list_1 (what);
               goto vm_error_no_such_module;
             }
           /* might longjmp */

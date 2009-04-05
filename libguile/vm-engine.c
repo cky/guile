@@ -175,7 +175,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   vm_error_bad_instruction:
     err_msg  = scm_from_locale_string ("VM: Bad instruction: ~A");
-    finish_args = SCM_LIST1 (scm_from_uchar (ip[-1]));
+    finish_args = scm_list_1 (scm_from_uchar (ip[-1]));
     goto vm_error;
 
   vm_error_unbound:
@@ -189,7 +189,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   vm_error_too_many_args:
     err_msg  = scm_from_locale_string ("VM: Too many arguments");
-    finish_args = SCM_LIST1 (scm_from_int (nargs));
+    finish_args = scm_list_1 (scm_from_int (nargs));
     goto vm_error;
 
   vm_error_wrong_num_args:
@@ -202,8 +202,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   vm_error_wrong_type_apply:
     err_msg  = scm_from_locale_string ("VM: Wrong type to apply: ~S "
 				       "[IP offset: ~a]");
-    finish_args = SCM_LIST2 (program,
-			  SCM_I_MAKINUM (ip - bp->base));
+    finish_args = scm_list_2 (program,
+			      SCM_I_MAKINUM (ip - bp->base));
     goto vm_error;
 
   vm_error_stack_overflow:
@@ -264,7 +264,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   vm_error:
     SYNC_ALL ();
 
-    scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, finish_args), 1);
+    scm_ithrow (sym_vm_error, scm_list_3 (sym_vm_run, err_msg, finish_args),
+		1);
   }
 
   abort (); /* never reached */

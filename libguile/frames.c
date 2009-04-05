@@ -43,6 +43,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 #include "vm-bootstrap.h"
 #include "frames.h"
@@ -85,7 +86,7 @@ vm_frame_mark (SCM obj)
   return SCM_VM_FRAME_STACK_HOLDER (obj);
 }
 
-static scm_sizet
+static size_t
 vm_frame_free (SCM obj)
 {
   struct scm_vm_frame *p = SCM_VM_FRAME_DATA (obj);

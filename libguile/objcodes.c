@@ -81,7 +81,7 @@ make_objcode_by_mmap (int fd)
 
   if (st.st_size <= sizeof (struct scm_objcode) + strlen (OBJCODE_COOKIE))
     scm_misc_error (FUNC_NAME, "object file too small (~a bytes)",
-		    SCM_LIST1 (SCM_I_MAKINUM (st.st_size)));
+		    scm_list_1 (SCM_I_MAKINUM (st.st_size)));
 
   addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
@@ -94,8 +94,8 @@ make_objcode_by_mmap (int fd)
 
   if (data->len + data->metalen != (st.st_size - sizeof (*data) - strlen (OBJCODE_COOKIE)))
     scm_misc_error (FUNC_NAME, "bad length header (~a, ~a)",
-		    SCM_LIST2 (scm_from_size_t (st.st_size),
-                               scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
+		    scm_list_2 (scm_from_size_t (st.st_size),
+				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
 
   SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (OBJCODE_COOKIE),
                 SCM_PACK (SCM_BOOL_F), fd);
@@ -121,10 +121,10 @@ scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
       || ptr >= (parent_data->base + parent_data->len + parent_data->metalen
                  - sizeof (struct scm_objcode)))
     scm_misc_error (FUNC_NAME, "offset out of bounds (~a vs ~a + ~a + ~a)",
-		    SCM_LIST4 (scm_from_ulong ((unsigned long)ptr),
-                               scm_from_ulong ((unsigned long)parent_data->base),
-                               scm_from_uint32 (parent_data->len),
-                               scm_from_uint32 (parent_data->metalen)));
+		    scm_list_4 (scm_from_ulong ((unsigned long)ptr),
+				scm_from_ulong ((unsigned long)parent_data->base),
+				scm_from_uint32 (parent_data->len),
+				scm_from_uint32 (parent_data->metalen)));
 
   data = (struct scm_objcode*)ptr;
   if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)
@@ -194,8 +194,8 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
   SCM_ASSERT_RANGE (0, bytecode, size >= sizeof(struct scm_objcode));
   if (data->len + data->metalen != (size - sizeof (*data)))
     scm_misc_error (FUNC_NAME, "bad u8vector size (~a != ~a)",
-		    SCM_LIST2 (scm_from_size_t (size),
-                               scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
+		    scm_list_2 (scm_from_size_t (size),
+				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
   assert (increment == 1);
   SCM_SET_SMOB_FLAGS (objcode, SCM_F_OBJCODE_IS_U8VECTOR);
   
