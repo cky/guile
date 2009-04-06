@@ -85,14 +85,13 @@ export DYLD_LIBRARY_PATH
 
 if [ x"$PKG_CONFIG_PATH" = x ]
 then
-    PKG_CONFIG_PATH="${top_builddir}"
+    PKG_CONFIG_PATH="${top_builddir}/meta"
 else
-    PKG_CONFIG_PATH="${top_builddir}:$PKG_CONFIG_PATH"
+    PKG_CONFIG_PATH="${top_builddir}/meta:$PKG_CONFIG_PATH"
 fi
 export PKG_CONFIG_PATH
 
 # handle PATH (no clobber)
-PATH="${top_builddir}/guile-config:${PATH}"
 PATH="${top_builddir}/libguile:${PATH}"
 PATH="${top_builddir}/meta:${PATH}"
 export PATH

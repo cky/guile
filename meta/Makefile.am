@@ -21,7 +21,7 @@
 ##   Floor, Boston, MA 02110-1301 USA
 
 bin_SCRIPTS=guile-config guile-tools
-EXTRA_DIST=guile-config.in guile-tools.in guile.m4 ChangeLog-2008 \
+EXTRA_DIST=guile-tools.in guile.m4 ChangeLog-2008 \
 	guile-1.8.pc.in guile-1.8-uninstalled.pc.in
 
 pkgconfigdir = $(libdir)/pkgconfig

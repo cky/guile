@@ -1,6 +1,5 @@
 #!/bin/sh
-bindir=`dirname $0`
-exec $bindir/guile -e main -s $0 "$@"
+exec guile -e main -s $0 "$@"
 !#
 ;;;; guile-config --- utility for linking programs with Guile
 ;;;; Jim Blandy <jim@red-bean.com> --- September 1997
@@ -21,13 +20,10 @@ exec $bindir/guile -e main -s $0 "$@"
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; TODO:
-;;; * Add some plausible structure for returning the right exit status,
-;;;   just something that encourages people to do the correct thing.
-;;; * Implement the static library support.  This requires that
-;;;   some portion of the module system be done.
+;;; This script has been deprecated. Just use pkg-config.
 
-(use-modules (ice-9 string-fun))
+(use-modules (ice-9 popen)
+             (ice-9 rdelim))
 
 
 ;;;; main function, command-line processing
@@ -48,7 +44,6 @@ exec $bindir/guile -e main -s $0 "$@"
 
 (define program-name #f)
 (define subcommand-name #f)
-(define program-version "@GUILE_VERSION@")
 
 ;;; Given an executable path PATH, set program-name to something
 ;;; appropriate f or use in error messages (i.e., with leading
@@ -75,8 +70,20 @@ exec $bindir/guile -e main -s $0 "$@"
     (dle "  " p " --help      - show usage info (this message)")
     (dle "  " p " --help SUBCOMMAND - show help for SUBCOMMAND")))
 
+(define guile-module "guile-1.8")
+
+(define (pkg-config . args)
+  (let* ((real-args (cons "pkg-config" args))
+         (pipe (apply open-pipe* OPEN_READ real-args))
+         (output (read-delimited "" pipe))
+         (ret (close-pipe pipe)))
+    (case (status:exit-val ret)
+      ((0) (if (eof-object? output) "" output))
+      (else (error "error calling pkg-config: ~A" output)))))
+
 (define (show-version args)
-  (display-line-error program-name " - Guile version " program-version))
+  (format (current-error-port) "~A - Guile version ~A"
+          program-name (pkg-config "--modversion" guile-module)))
 
 (define (help-version)
   (let ((dle display-line-error))
@@ -99,69 +106,7 @@ exec $bindir/guile -e main -s $0 "$@"
 ;;; now, we're just going to reach into Guile's configuration info and
 ;;; hack it out.
 (define (build-link args)
-
-  ;; If PATH has the form FOO/libBAR.a, return the substring
-  ;; BAR, otherwise return #f.
-  (define (match-lib path)
-    (let* ((base (basename path))
-	   (len (string-length base)))
-      (if (and (> len 5)
-	       (string=? (substring base 0 3) "lib")
-	       (string=? (substring base (- len 2)) ".a"))
-	  (substring base 3 (- len 2))
-	  #f)))
-
-  (if (> (length args) 0)
-      (error
-       (string-append program-name
-		      " link: arguments to subcommand not yet implemented")))
-
-  (let ((libdir (get-build-info 'libdir))
-        (other-flags
-         (let loop ((libs
-                     ;; Get the string of linker flags we used to build
-                     ;; Guile, and break it up into a list.
-                     (separate-fields-discarding-char #\space
-                                                      (get-build-info 'LIBS)
-                                                      list)))
-            
-           (cond
-            ((null? libs) '())
-            
-            ;; Turn any "FOO/libBAR.a" elements into "-lBAR".
-            ((match-lib (car libs))
-             => (lambda (bar)
-                  (cons (string-append "-l" bar)
-                        (loop (cdr libs)))))
-            
-            ;; Remove any empty strings that may have seeped in there.
-            ((string=? (car libs) "") (loop (cdr libs)))
-            
-            (else (cons (car libs) (loop (cdr libs))))))))
-    
-    ;; Include libguile itself in the list, along with the directory
-    ;; it was installed in, but do *not* add /usr/lib since that may
-    ;; prevent other programs from specifying non-/usr/lib versions
-    ;; via their foo-config scripts.  If *any* app puts -L/usr/lib in
-    ;; the output of its foo-config script then it may prevent the use
-    ;; a non-/usr/lib install of anything that also has a /usr/lib
-    ;; install. For now we hard-code /usr/lib, but later maybe we can
-    ;; do something more dynamic (i.e. what do we need.
-    
-    ;; Display the flags, separated by spaces.
-    (display (string-join
-	      (list
-	       (get-build-info 'CFLAGS)
-               (if (or (string=? libdir "/usr/lib")
-                       (string=? libdir "/usr/lib/"))
-		   ""
-		   (string-append "-L" (get-build-info 'libdir)))
-               "-lguile -lltdl"
-	       (string-join other-flags)
-
-	       )))
-    (newline)))
-
+  (display (apply pkg-config "--libs" guile-module args)))
 
 (define (help-link)
   (let ((dle display-line-error))
@@ -179,23 +124,7 @@ exec $bindir/guile -e main -s $0 "$@"
 ;;;; The "compile" subcommand
 
 (define (build-compile args)
-  (if (> (length args) 0)
-      (error
-       (string-append program-name
-		      " compile: no arguments expected")))
-
-  ;; See gcc manual wrt fixincludes.  Search for "Use of
-  ;; `-I/usr/include' may cause trouble."  For now we hard-code this.
-  ;; Later maybe we can do something more dynamic.
-  (display
-   (string-append
-    (if (not (string=? (get-build-info 'includedir) "/usr/include"))
-	 (string-append "-I" (get-build-info 'includedir) " ")
-	 " ")
-    
-    (get-build-info 'CFLAGS)
-    "\n"
-    )))
+  (display (apply pkg-config "--cflags" guile-module args)))
 
 (define (help-compile)
   (let ((dle display-line-error))
@@ -212,43 +141,32 @@ exec $bindir/guile -e main -s $0 "$@"
 
 (define (build-info args)
   (cond
-   ((null? args) (show-all-vars))
-   ((null? (cdr args)) (show-var (car args)))
-   (else (display-line-error "Usage: " program-name " info [VAR]")
+   ((null? args)
+    (display-line-error "guile-config info with no args has been removed")
+    (quit 2))
+   ((null? (cdr args))
+    (cond
+     ((string=? (car args) "guileversion")
+      (display (pkg-config "--modversion" guile-module)))
+     (else
+      (display (pkg-config (format #f (car args) guile-module))))))
+   (else (display-line-error "Usage: " program-name " info VAR")
 	 (quit 2))))
-
-(define (show-all-vars)
-  (for-each (lambda (binding)
-	      (display-line (car binding) " = " (cdr binding)))
-	    %guile-build-info))
-
-(define (show-var var)
-  (display (get-build-info (string->symbol var)))
-  (newline))
 
 (define (help-info)
   (let ((d display-line-error))
-    (d "Usage: " program-name " info [VAR]")
-    (d "Display the value of the Makefile variable VAR used when Guile")
-    (d "was built.  If VAR is omitted, display all Makefile variables.")
+    (d "Usage: " program-name " info VAR")
+    (d "Display the value of the pkg-config variable VAR used when Guile")
+    (d "was built.\n")
     (d "Use this command to find out where Guile was installed,")
     (d "where it will look for Scheme code at run-time, and so on.")))
 
 (define (usage-info)
   (display-line-error
-   "  " program-name " info [VAR]  - print Guile build directories"))
+   "  " program-name " info VAR    - print Guile build directories"))
 
 
 ;;;; trivial utilities
-
-(define (get-build-info name)
-  (let ((val (assq name %guile-build-info)))
-    (if (not (pair? val))
-	(begin
-	  (display-line-error
-	   program-name " " subcommand-name ": no such build-info: " name)
-	  (quit 2)))
-    (cdr val)))
 
 (define (display-line . args)
   (apply display-line-port (current-output-port) args))
