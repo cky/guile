@@ -42,6 +42,8 @@
     (lambda (exp env)
       (save-module-excursion
        (lambda ()
+         ;; Because memoization happens lazily, env's module isn't
+         ;; necessarily the current module.
          (set-current-module (eval-closure-module (car (last-pair env))))
          (strip-expansion-structures (sc-expand exp)))))))
 

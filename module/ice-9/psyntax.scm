@@ -972,7 +972,9 @@
        (let ((first (car e)))
          (if (id? first)
              (let* ((n (id-var-name first w))
-                    (b (lookup n r mod))
+                    (b (lookup n r (or (and (syntax-object? first)
+                                            (syntax-object-module first))
+                                       mod)))
                     (type (binding-type b)))
                (case type
                  ((lexical)
