@@ -1988,6 +1988,7 @@ scm_m_at (SCM expr, SCM env SCM_UNUSED)
   SCM mod, var;
   ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_is_symbol (scm_caddr (expr)), s_bad_expression, expr);
 
   mod = scm_resolve_module (scm_cadr (expr));
   if (scm_is_false (mod))
@@ -2008,6 +2009,7 @@ scm_m_atat (SCM expr, SCM env SCM_UNUSED)
   SCM mod, var;
   ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_is_symbol (scm_caddr (expr)), s_bad_expression, expr);
 
   mod = scm_resolve_module (scm_cadr (expr));
   if (scm_is_false (mod))
