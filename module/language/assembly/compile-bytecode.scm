@@ -40,7 +40,7 @@
               (get-addr (lambda () i)))
        (write-bytecode assembly write-byte get-addr '())
        (if (= i (u8vector-length v))
-           (values v env)
+           (values v env env)
            (error "incorrect length in assembly" i (u8vector-length v)))))
     (else (error "bad assembly" assembly))))
 

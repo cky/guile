@@ -157,7 +157,7 @@
 (define (compile-fold passes exp env opts)
   (if (null? passes)
       exp
-      (receive (exp env) ((car passes) exp env opts)
+      (receive (exp env cenv) ((car passes) exp env opts)
         (compile-fold (cdr passes) exp env opts))))
 
 (define (compile-time-environment)

@@ -41,6 +41,7 @@
          (-> (lambda vars #f '()
                      (-> (begin (list (@impl js-init '())
                                       (comp exp e)))))))))
+   env
    env))
 
 (define (location x)

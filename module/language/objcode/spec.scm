@@ -40,8 +40,8 @@
         (save-module-excursion
          (lambda ()
            (set-current-module (objcode-env-module e))
-           (values (thunk) #f)))
-        (values (thunk) #f))))
+           (values (thunk) #f e)))
+        (values (thunk) #f e))))
 
 ;; since locals are allocated on the stack and can have limited scope,
 ;; in many cases we use one local for more than one lexical variable. so

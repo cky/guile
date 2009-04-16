@@ -25,7 +25,7 @@
   #:export (bytecode))
 
 (define (compile-objcode x e opts)
-  (values (bytecode->objcode x) e))
+  (values (bytecode->objcode x) e e))
 
 (define (decompile-objcode x e opts)
   (values (objcode->bytecode x) e))

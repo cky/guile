@@ -29,7 +29,8 @@
 (define (compile-glil x e opts)
   (if (memq #:O opts) (set! x (optimize x)))
   (values (codegen x)
-          (and e (cons (car e) (cddr e)))))
+          (and e (cons (car e) (cddr e)))
+          e))
 
 
 ;;;

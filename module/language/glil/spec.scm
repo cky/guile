@@ -30,7 +30,7 @@
   (apply write (unparse-glil exp) port))
 
 (define (compile-asm x e opts)
-  (values (compile-assembly x) e))
+  (values (compile-assembly x) e e))
 
 (define-language glil
   #:title	"Guile Lowlevel Intermediate Language (GLIL)"

@@ -56,6 +56,8 @@
         ((pair? env) (cddr env))
         (else (error "bad environment" env))))
 
+(define (make-cenv module lexicals externals)
+  (cons module (cons lexicals externals)))
 
 
 
@@ -65,11 +67,14 @@
      (and=> (cenv-module e) set-current-module)
      (call-with-ghil-environment (cenv-ghil-env e) '()
        (lambda (env vars)
-         (values (make-ghil-lambda env #f vars #f '() (translate-1 env #f x))
-                 (and e
-                      (cons* (cenv-module e)
-                             (ghil-env-parent env)
-                             (cenv-externals e)))))))))
+         (let ((x (make-ghil-lambda env #f vars #f '()
+                                    (translate-1 env #f x))))
+           (values x
+                   (and e
+                        (cons* (cenv-module e)
+                               (ghil-env-parent env)
+                               (cenv-externals e)))
+                   (make-cenv (current-module) '() '()))))))))
 
 
 ;;;
