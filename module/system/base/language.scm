@@ -25,6 +25,7 @@
             language-name language-title language-version language-reader
             language-printer language-parser language-read-file
             language-compilers language-decompilers language-evaluator
+            language-joiner
 
             lookup-compilation-order lookup-decompilation-order
             invalidate-compilation-cache!))
@@ -44,7 +45,8 @@
   (read-file #f)
   (compilers '())
   (decompilers '())
-  (evaluator #f))
+  (evaluator #f)
+  (joiner #f))
 
 (define-macro (define-language name . spec)
   `(begin

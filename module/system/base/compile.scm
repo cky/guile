@@ -92,33 +92,24 @@
       x
       (lookup-language x)))
 
-(define* (compile-file file #:optional output-file
-		            #:key (to 'objcode) (opts '()))
+(define* (compile-file file #:key
+                       (output-file #f)
+                       (env #f)
+                       (from (current-language))
+                       (to 'objcode)
+                       (opts '()))
   (let ((comp (or output-file (compiled-file-name file)))
-        (lang (ensure-language (current-language)))
-        (to (ensure-language to)))
-    (catch 'nothing-at-all
-      (lambda ()
-	(call-with-compile-error-catch
-	 (lambda ()
-	   (call-with-output-file/atomic comp
-	     (lambda (port)
-               (let ((print (language-printer to)))
-                 (print (compile (read-file-in file lang)
-                                 #:from lang #:to to #:opts opts)
-                        port))))
-	   (format #t "wrote `~A'\n" comp))))
-      (lambda (key . args)
-	(format #t "ERROR: during compilation of ~A:\n" file)
-	(display "ERROR: ")
-	(apply format #t (cadr args) (caddr args))
-	(newline)
-	(format #t "ERROR: ~A ~A ~A\n" key (car args) (cadddr args))
-	(delete-file comp)))))
+        (in (open-input-file file)))
+    (call-with-output-file/atomic comp
+      (lambda (port)
+        ((language-printer (ensure-language to))
+         (read-and-compile in #:env env #:from from #:to to #:opts opts)
+         port)))
+    comp))
 
 (define* (compile-and-load file #:key (to 'value) (opts '()))
-  (let ((lang (ensure-language (current-language))))
-    (compile (read-file-in file lang) #:to 'value #:opts opts)))
+  (read-and-compile (open-input-port file)
+                    #:from lang #:to to #:opts opts))
 
 (define (compiled-file-name file)
   (let ((base (basename file))
@@ -155,10 +146,11 @@
            (error "no way to compile" from "to" to))))
 
 (define (compile-fold passes exp env opts)
-  (if (null? passes)
-      exp
-      (receive (exp env cenv) ((car passes) exp env opts)
-        (compile-fold (cdr passes) exp env opts))))
+  (let lp ((passes passes) (x exp) (e env) (cenv env) (first? #t))
+    (if (null? passes)
+        (values x e cenv)
+        (receive (x e new-cenv) ((car passes) x e opts)
+          (lp (cdr passes) x e (if first? new-cenv cenv) #f)))))
 
 (define (compile-time-environment)
   "A special function known to the compiler that, when compiled, will
@@ -167,15 +159,46 @@ time. Useful for supporting some forms of dynamic compilation. Returns
 #f if called from the interpreter."
   #f)
 
+(define (find-language-joint from to)
+  (let lp ((in (reverse (or (lookup-compilation-order from to)
+                            (error "no way to compile" from "to" to))))
+           (lang to))
+    (cond ((null? in)
+           (error "don't know how to join expressions" from to))
+          ((language-joiner lang) lang)
+          (else
+           (lp (cdr in) (caar in))))))
+
+(define* (read-and-compile port #:key
+                           (env #f)
+                           (from (current-language))
+                           (to 'objcode)
+                           (opts '()))
+  (let ((from (ensure-language from))
+        (to (ensure-language to)))
+    (let ((joint (find-language-joint from to)))
+      (with-fluids ((*current-language* from))
+        (let lp ((exps '()) (env #f) (cenv env))
+          (let ((x ((language-reader (current-language)) port)))
+            (cond
+             ((eof-object? x)
+              (compile ((language-joiner joint) (reverse exps) env)
+                       #:from joint #:to to #:env env #:opts opts))
+             (else
+              ;; compile-fold instead of compile so we get the env too
+              (receive (jexp jenv jcenv)
+                  (compile-fold (compile-passes (current-language) joint opts)
+                                x cenv opts)
+                (lp (cons jexp exps) jenv jcenv))))))))))
+
 (define* (compile x #:key
                   (env #f)
                   (from (current-language))
                   (to 'value)
                   (opts '()))
-  (compile-fold (compile-passes from to opts)
-                x
-                env
-                opts))
+  (receive (exp env cenv)
+      (compile-fold (compile-passes from to opts) x env opts)
+    exp))
 
 
 ;;;

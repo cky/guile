@@ -34,11 +34,30 @@
     (lambda (env vars)
       (make-ghil-lambda env #f vars #f '() (parse-ghil env x)))))
 
+(define (join exps env)
+  (if (or-map (lambda (x)
+                (or (not (ghil-lambda? x))
+                    (ghil-lambda-rest x)
+                    (memq 'argument
+                          (map ghil-var-kind
+                               (ghil-env-variables (ghil-lambda-env x))))))
+              exps)
+      (error "GHIL expressions to join must be thunks"))
+
+  (let ((env (make-ghil-env env '()
+                            (apply append
+                                   (map ghil-env-variables
+                                        (map ghil-lambda-env exps))))))
+    (make-ghil-lambda env #f '() #f '()
+                      (make-ghil-begin env #f
+                                       (map ghil-lambda-body exps)))))
+
 (define-language ghil
   #:title	"Guile High Intermediate Language (GHIL)"
   #:version	"0.3"
   #:reader	read
   #:printer	write-ghil
   #:parser      parse
+  #:joiner      join
   #:compilers   `((glil . ,compile-glil))
   )

@@ -28,9 +28,7 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
 
 ;; Usage: compile [ARGS]
 ;;
-;; PROGRAM does something.
-;;
-;; TODO: Write it!
+;; A command-line interface to the Guile compiler.
 
 ;;; Code:
 
@@ -67,15 +65,16 @@ exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
 	(option '(#\O "optimize") #f #f
 		(lambda (opt name arg result)
 		  (alist-cons 'optimize? #t result)))
-	(option '(#\e "expand-only") #f #f
+	(option '(#\f "from") #t #f
 		(lambda (opt name arg result)
-		  (alist-cons 'expand-only? #t result)))
-	(option '(#\t "translate-only") #f #f
+                  (if (assoc-ref result 'from)
+                      (fail "`--from' option cannot be specified more than once")
+                      (alist-cons 'from (string->symbol arg) result))))
+	(option '(#\t "to") #t #f
 		(lambda (opt name arg result)
-		  (alist-cons 'translate-only? #t result)))
-	(option '(#\c "compile-only") #f #f
-		(lambda (opt name arg result)
-		  (alist-cons 'compile-only? #t result)))))
+                  (if (assoc-ref result 'to)
+                      (fail "`--to' option cannot be specified more than once")
+                      (alist-cons 'to (string->symbol arg) result))))))
 
 (define (parse-args args)
   "Parse argument list @var{args} and return an alist with all the relevant
@@ -97,46 +96,44 @@ options."
 (define (compile args)
   (let* ((options         (parse-args (cdr args)))
          (help?           (assoc-ref options 'help?))
-         (optimize?       (assoc-ref options 'optimize?))
-         (expand-only?    (assoc-ref options 'expand-only?))
-         (translate-only? (assoc-ref options 'translate-only?))
-         (compile-only?   (assoc-ref options 'compile-only?))
+         (compile-opts    (if (assoc-ref options 'optimize?) '(#:O) '()))
+         (from            (or (assoc-ref options 'from) 'scheme))
+         (to              (or (assoc-ref options 'to) 'objcode))
 	 (input-files     (assoc-ref options 'input-files))
 	 (output-file     (assoc-ref options 'output-file))
 	 (load-path       (assoc-ref options 'load-path)))
     (if (or help? (null? input-files))
         (begin
           (format #t "Usage: compile [OPTION] FILE...
-Compile each Guile Scheme source file FILE into a Guile object.
+Compile each Guile source file FILE into a Guile object.
 
   -h, --help           print this help message
 
   -L, --load-path=DIR  add DIR to the front of the module load path
   -o, --output=OFILE   write output to OFILE
 
-  -O, --optimize       turn on optimizations
-  -e, --expand-only    only go through the code expansion stage
-  -t, --translate-only stop after the translation to GHIL
-  -c, --compile-only   stop after the compilation to GLIL
+  -f, --from=LANG      specify a source language other than `scheme'
+  -t, --to=LANG        specify a target language other than `objcode'
 
 Report bugs to <guile-user@gnu.org>.~%")
           (exit 0)))
 
     (set! %load-path (append load-path %load-path))
 
-    (let ((compile-opts (append (if optimize? '(#:O) '())
-                                (if expand-only? '(#:e) '())
-                                (if translate-only? '(#:t) '())
-                                (if compile-only? '(#:c) '()))))
-      (if output-file
-	  (if (and (not (null? input-files))
-		   (null? (cdr input-files)))
-	      (compile-file (car input-files) output-file)
-	      (fail "`-o' option can only be specified "
-		    "when compiling a single file"))
-	  (for-each (lambda (file)
-		      (apply compile-file file compile-opts))
-		    input-files)))))
+    (if (and output-file
+             (or (null? input-files)
+                 (not (null? (cdr input-files)))))
+        (fail "`-o' option can only be specified "
+              "when compiling a single file"))
+
+    (for-each (lambda (file)
+                (format #t "wrote `~A'\n"
+                        (compile-file file
+                                      #:output-file output-file
+                                      #:from from
+                                      #:to to
+                                      #:opts compile-opts)))
+              input-files)))
 
 ;;; Local Variables:
 ;;; coding: latin-1

@@ -36,7 +36,7 @@
 ;;; environment := #f
 ;;;                | MODULE
 ;;;                | COMPILE-ENV
-;;; compile-env := (MODULE LEXICALS . EXTERNALS)
+;;; compile-env := (MODULE LEXICALS|GHIL-ENV . EXTERNALS)
 (define (cenv-module env)
   (cond ((not env) #f)
         ((module? env) env)
@@ -47,7 +47,9 @@
   (cond ((not env) (make-ghil-toplevel-env))
         ((module? env) (make-ghil-toplevel-env))
         ((pair? env)
-         (ghil-env-dereify (cadr env)))
+         (if (struct? (cadr env))
+             (cadr env)
+             (ghil-env-dereify (cadr env))))
         (else (error "bad environment" env))))
 
 (define (cenv-externals env)
@@ -68,13 +70,11 @@
      (call-with-ghil-environment (cenv-ghil-env e) '()
        (lambda (env vars)
          (let ((x (make-ghil-lambda env #f vars #f '()
-                                    (translate-1 env #f x))))
-           (values x
-                   (and e
-                        (cons* (cenv-module e)
-                               (ghil-env-parent env)
-                               (cenv-externals e)))
-                   (make-cenv (current-module) '() '()))))))))
+                                    (translate-1 env #f x)))
+               (cenv (make-cenv (current-module)
+                                (ghil-env-parent env)
+                                (if e (cenv-externals e) '()))))
+           (values x cenv cenv)))))))
 
 
 ;;;
