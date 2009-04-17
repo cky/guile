@@ -121,14 +121,14 @@ scm_make_continuation (int *first)
   continuation->root = thread->continuation_root;
   continuation->dframe = scm_i_last_debug_frame ();
   src = thread->continuation_base;
-  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
-
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
   continuation->vm_conts = scm_vm_capture_continuations ();
+
+  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
 
   *first = !setjmp (continuation->jmpbuf);
   if (*first)

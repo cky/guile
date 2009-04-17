@@ -136,7 +136,7 @@ vm_cont_free (SCM obj)
   struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
 
   scm_gc_free (p->stack_base, p->stack_size * sizeof (SCM), "stack-base");
-  scm_gc_free (p, sizeof (struct scm_vm), "vm");
+  scm_gc_free (p, sizeof (*p), "vm-cont");
 
   return 0;
 }
