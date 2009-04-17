@@ -45,14 +45,18 @@ SCM
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
+  SCM sname;
   SCM *meta_info;
 
   meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
-  meta_info[0] = scm_from_locale_symbol (name);
+  sname = scm_from_locale_symbol (name);
+  meta_info[0] = sname;
   meta_info[1] = SCM_EOL;  /* properties */
 
   z = scm_double_cell ((scm_t_bits) type, (scm_t_bits) fcn,
 		       0 /* generic */, (scm_t_bits) meta_info);
+
+  scm_remember_upto_here_1 (sname);
 
   return z;
 }
