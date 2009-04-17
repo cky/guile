@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts scan-api)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; scan-api --- Scan and group interpreter and libguile interface elements
 
 ;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.

@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main="(module-ref (resolve-module '(scripts snarf-check-and-output-texi)) 'main)"
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; snarf-check-and-output-texi --- called by the doc snarfer.
 
 ;; 	Copyright (C) 2001, 2002, 2006 Free Software Foundation, Inc.

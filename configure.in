@@ -1537,7 +1537,6 @@ AC_CONFIG_FILES([
   examples/Makefile
   lang/Makefile
   libguile/Makefile
-  scripts/Makefile
   srfi/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
@@ -1556,7 +1555,6 @@ AC_CONFIG_FILES([meta/guile-1.8.pc])
 AC_CONFIG_FILES([meta/guile-1.8-uninstalled.pc])
 AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
 AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
-AC_CONFIG_FILES([meta/guile-tools], [chmod +x meta/guile-tools])
 AC_CONFIG_FILES([meta/guile], [chmod +x meta/guile])
 AC_CONFIG_FILES([meta/uninstalled-env], [chmod +x meta/uninstalled-env])
 AC_CONFIG_FILES([meta/gdb-uninstalled-guile], [chmod +x meta/gdb-uninstalled-guile])

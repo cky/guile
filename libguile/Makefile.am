@@ -329,7 +329,7 @@ load.x: libpath.h
 include $(top_srcdir)/am/pre-inst-guile
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-snarf2checkedtexi = GUILE="$(GUILE_FOR_BUILD)" $(top_srcdir)/scripts/snarf-check-and-output-texi
+snarf2checkedtexi = $(top_builddir)/meta/uninstalled-env guile-tools snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
 guile.texi: $(alldotdocfiles) guile$(EXEEXT)

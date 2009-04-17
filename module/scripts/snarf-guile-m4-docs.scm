@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts snarf-guile-m4-docs)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; snarf-guile-m4-docs --- Parse guile.m4 comments for texi documentation
 
 ;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.

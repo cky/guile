@@ -1,7 +1,3 @@
-#!/bin/sh
-# -*- scheme -*-
-exec ${GUILE-guile} -e '(@ (scripts compile) compile)' -s $0 "$@"
-!#
 ;;; Compile --- Command-line Guile Scheme compiler
 
 ;; Copyright 2005,2008,2009 Free Software Foundation, Inc.
@@ -134,6 +130,8 @@ Report bugs to <guile-user@gnu.org>.~%")
                                       #:to to
                                       #:opts compile-opts)))
               input-files)))
+
+(define main compile)
 
 ;;; Local Variables:
 ;;; coding: latin-1

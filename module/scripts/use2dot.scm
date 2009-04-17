@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts use2dot)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; use2dot --- Display module dependencies as a DOT specification
 
 ;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.

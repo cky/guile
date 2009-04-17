@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts read-scheme-source)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; read-scheme-source --- Read a file, recognizing scheme forms and comments
 
 ;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.

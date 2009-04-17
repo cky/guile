@@ -23,6 +23,8 @@
 # when building the rest.
 SUBDIRS = . ice-9 srfi oop
 
+include $(top_srcdir)/am/guilec
+
 # We're at the root of the module hierarchy.
 modpath =
 
@@ -44,7 +46,9 @@ SOURCES =								\
   $(SCHEME_LANG_SOURCES) $(ECMASCRIPT_LANG_SOURCES)			\
   $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
-  $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)
+  $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
+									\
+  $(SCRIPTS_SOURCES)
 
 SCHEME_LANG_SOURCES =						\
   language/scheme/amatch.scm language/scheme/expand.scm 	\
@@ -84,7 +88,29 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/array.scm			\
   language/ecmascript/compile-ghil.scm
 
+SCRIPTS_SOURCES =				\
+  scripts/PROGRAM.scm				\
+  scripts/autofrisk.scm				\
+  scripts/compile.scm				\
+  scripts/disassemble.scm			\
+  scripts/display-commentary.scm		\
+  scripts/doc-snarf.scm				\
+  scripts/frisk.scm				\
+  scripts/generate-autoload.scm			\
+  scripts/lint.scm				\
+  scripts/punify.scm				\
+  scripts/read-scheme-source.scm		\
+  scripts/read-text-outline.scm			\
+  scripts/use2dot.scm				\
+  scripts/snarf-check-and-output-texi.scm	\
+  scripts/summarize-guile-TODO.scm		\
+  scripts/scan-api.scm				\
+  scripts/api-diff.scm				\
+  scripts/read-rfc822.scm			\
+  scripts/snarf-guile-m4-docs.scm
+
+EXTRA_DIST += scripts/ChangeLog-2008
+EXTRA_DIST += scripts/README
+
 NOCOMP_SOURCES =				\
   system/repl/describe.scm
-
-include $(top_srcdir)/am/guilec

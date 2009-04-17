@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts read-text-outline)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; read-text-outline --- Read a text outline and display it as a sexp
 
 ;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.

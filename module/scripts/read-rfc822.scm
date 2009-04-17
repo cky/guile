@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts read-rfc822)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; read-rfc822 --- Validate RFC822 file by displaying it to stdout
 
 ;; 	Copyright (C) 2002, 2004, 2006 Free Software Foundation, Inc.

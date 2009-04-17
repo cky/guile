@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts autofrisk)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; autofrisk --- Generate module checks for use with auto* tools
 
 ;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.

@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts doc-snarf)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; doc-snarf --- Extract documentation from source files
 
 ;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.

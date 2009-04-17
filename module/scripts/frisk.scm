@@ -1,8 +1,3 @@
-#!/bin/sh
-# aside from this initial boilerplate, this is actually -*- scheme -*- code
-main='(module-ref (resolve-module '\''(scripts frisk)) '\'main')'
-exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-!#
 ;;; frisk --- Grok the module interfaces of a body of files
 
 ;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.

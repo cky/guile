@@ -1,7 +1,3 @@
-#!/bin/sh
-# -*- scheme -*-
-exec ${GUILE-guile} -e '(@ (scripts disassemble) disassemble)' -s $0 "$@"
-!#
 ;;; Disassemble --- Disassemble .go files into something human-readable
 
 ;; Copyright 2005,2008 Free Software Foundation, Inc.
@@ -39,3 +35,5 @@ exec ${GUILE-guile} -e '(@ (scripts disassemble) disassemble)' -s $0 "$@"
   (for-each (lambda (file)
               (disassemble (load-objcode file)))
             (cdr args)))
+
+(define main disassemble)
