@@ -30,7 +30,7 @@ modpath = ice-9
 # and forth between interpreted and compiled code, we end up using more
 # of the C stack than the interpreter would have; so avoid that by
 # putting these core modules first.
-SOURCES = psyntax-pp.scm annotate.scm boot-9.scm \
+SOURCES = psyntax-pp.scm expand-support.scm boot-9.scm \
 	and-let-star.scm calling.scm common-list.scm			\
 	debug.scm debugger.scm documentation.scm emacs.scm expect.scm	\
 	format.scm getopt-long.scm hcons.scm i18n.scm			\

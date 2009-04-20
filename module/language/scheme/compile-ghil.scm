@@ -27,6 +27,7 @@
   #:use-module (system vm objcode)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 optargs)
+  #:use-module (ice-9 expand-support)
   #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (compile-ghil translate-1
@@ -93,17 +94,25 @@
 ;;
 ;; FIXME shadowing lexicals?
 (define (lookup-transformer head retrans)
+  (define (module-ref/safe mod sym)
+    (and mod
+         (and=> (module-variable mod sym) 
+                (lambda (var)
+                  ;; unbound vars can happen if the module
+                  ;; definition forward-declared them
+                  (and (variable-bound? var) (variable-ref var))))))
   (let* ((mod (current-module))
          (val (cond
-               ((symbol? head)
-                (and=> (module-variable mod head) 
-                       (lambda (var)
-                         ;; unbound vars can happen if the module
-                         ;; definition forward-declared them
-                         (and (variable-bound? var) (variable-ref var)))))
+               ((symbol? head) (module-ref/safe mod head))
                ;; allow macros to be unquoted into the output of a macro
                ;; expansion
                ((macro? head) head)
+               ((pmatch head
+                  ((@ ,modname ,sym)
+                   (module-ref/safe (resolve-interface modname) sym))
+                  ((@@ ,modname ,sym)
+                   (module-ref/safe (resolve-module modname) sym))
+                  (else #f)))
                (else #f))))
     (cond
      ((hashq-ref *translate-table* val))
@@ -114,12 +123,11 @@
 
      ((eq? val sc-macro)
       ;; syncase!
-      (let* ((eec (@@ (ice-9 syncase) expansion-eval-closure))
-             (sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
+      (let ((sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
         (lambda (env loc exp)
           (retrans
-           (with-fluids ((eec (module-eval-closure mod)))
-             (sc-expand3 exp 'c '(compile load eval)))))))
+           (strip-expansion-structures
+            (sc-expand3 exp 'c '(compile load eval)))))))
 
      ((primitive-macro? val)
       (syntax-error #f "unhandled primitive macro" head))

@@ -17,10 +17,11 @@
 
 
 (define-module (ice-9 syncase)
+  :use-module (ice-9 expand-support)
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
   :export-syntax (sc-macro define-syntax define-syntax-public 
-                  eval-when fluid-let-syntax
+                  fluid-let-syntax
 		  identifier-syntax let-syntax
 		  letrec-syntax syntax syntax-case  syntax-rules
 		  with-syntax
@@ -30,25 +31,21 @@
 	   datum->syntax-object free-identifier=?
 	   generate-temporaries identifier? syntax-object->datum
 	   void syncase)
-  :replace (eval))
+  :replace (eval eval-when))
 
 
-
-(define expansion-eval-closure (make-fluid))
-(define (current-eval-closure)
-  (or (fluid-ref expansion-eval-closure)
-      (module-eval-closure (current-module))))
-
-(define (env->eval-closure env)
-  (and env (car (last-pair env))))
 
 (define (annotation? x) #f)
 
 (define sc-macro
   (procedure->memoizing-macro
     (lambda (exp env)
-      (with-fluids ((expansion-eval-closure (env->eval-closure env)))
-        (sc-expand exp)))))
+      (save-module-excursion
+       (lambda ()
+         ;; Because memoization happens lazily, env's module isn't
+         ;; necessarily the current module.
+         (set-current-module (eval-closure-module (car (last-pair env))))
+         (strip-expansion-structures (sc-expand exp)))))))
 
 ;;; Exported variables
 
@@ -105,55 +102,28 @@
 			  '())))
 
 (define the-syncase-module (current-module))
-(define the-syncase-eval-closure (module-eval-closure the-syncase-module))
-
-(fluid-set! expansion-eval-closure the-syncase-eval-closure)
-
-(define (putprop symbol key binding)
-  (let* ((eval-closure (current-eval-closure))
-	 ;; Why not simply do (eval-closure symbol #t)?
-	 ;; Answer: That would overwrite imported bindings
-	 (v (or (eval-closure symbol #f) ;lookup
-		(eval-closure symbol #t) ;create it locally
-		)))
-    ;; Don't destroy Guile macros corresponding to
-    ;; primitive syntax when syncase boots.
-    (if (not (and (symbol-property symbol 'primitive-syntax)
-		  (eq? eval-closure the-syncase-eval-closure)))
-	(variable-set! v sc-macro))
-    ;; Properties are tied to variable objects
-    (set-object-property! v key binding)))
-
-(define (getprop symbol key)
-  (let* ((v ((current-eval-closure) symbol #f)))
-    (and v
-	 (or (object-property v key)
-	     (and (variable-bound? v)
-		  (macro? (variable-ref v))
-		  (macro-transformer (variable-ref v)) ;non-primitive
-		  guile-macro)))))
 
 (define guile-macro
   (cons 'external-macro
-	(lambda (e r w s)
+	(lambda (e r w s mod)
 	  (let ((e (syntax-object->datum e)))
 	    (if (symbol? e)
 		;; pass the expression through
 		e
-		(let* ((eval-closure (current-eval-closure))
-		       (m (variable-ref (eval-closure (car e) #f))))
+		(let* ((mod (resolve-module mod))
+                       (m (module-ref mod (car e))))
 		  (if (eq? (macro-type m) 'syntax)
 		      ;; pass the expression through
 		      e
 		      ;; perform Guile macro transform
 		      (let ((e ((macro-transformer m)
-				e
-				(append r (list eval-closure)))))
+				(strip-expansion-structures e)
+				(append r (list (module-eval-closure mod))))))
 			(if (variable? e)
 			    e
 			    (if (null? r)
 				(sc-expand e)
-				(sc-chi e r w)))))))))))
+				(sc-chi e r w (module-name mod))))))))))))
 
 (define generated-symbols (make-weak-key-hash-table 1019))
 
@@ -207,25 +177,20 @@
 		  (set! old-debug (debug-options))
 		  (set! old-read (read-options)))
 		(lambda ()
-		  (debug-disable 'debug 'procnames)
-		  (read-disable 'positions)
+                  (debug-disable 'debug 'procnames)
+                  (read-disable 'positions)
 		  (load-from-path "ice-9/psyntax-pp"))
 		(lambda ()
 		  (debug-options old-debug)
 		  (read-options old-read))))
-
-
-;;; The following lines are necessary only if we start making changes
-;; (use-syntax sc-expand)
-;; (load-from-path "ice-9/psyntax")
 
 (define internal-eval (nested-ref the-scm-module '(%app modules guile eval)))
 
 (define (eval x environment)
   (internal-eval (if (and (pair? x)
 			  (equal? (car x) "noexpand"))
-		     (cadr x)
-		     (sc-expand x))
+		     (strip-expansion-structures (cadr x))
+		     (strip-expansion-structures (sc-expand x)))
 		 environment))
 
 ;;; Hack to make syncase macros work in the slib module
@@ -236,9 +201,7 @@
 			    '(define))))
 
 (define (syncase exp)
-  (with-fluids ((expansion-eval-closure
-		 (module-eval-closure (current-module))))
-    (sc-expand exp)))
+  (strip-expansion-structures (sc-expand exp)))
 
 (set-module-transformer! the-syncase-module syncase)
 
@@ -248,5 +211,3 @@
      (begin
        ;(eval-case ((load-toplevel) (export-syntax name)))
        (define-syntax name rules ...)))))
-
-(fluid-set! expansion-eval-closure #f)

@@ -400,6 +400,21 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_procedure_module, "procedure-module", 1, 0, 0, 
+           (SCM proc),
+	    "Return the module that was current when @var{proc} was defined.")
+#define FUNC_NAME s_scm_procedure_module
+{
+  SCM_VALIDATE_PROC (SCM_ARG1, proc);
+
+  if (scm_is_true (scm_program_p (proc)))
+    return scm_program_module (proc);
+  else
+    return scm_env_module (scm_procedure_environment (proc));
+}
+#undef FUNC_NAME
+
+
 
 
 /* Eval in a local environment.  We would like to have the ability to
