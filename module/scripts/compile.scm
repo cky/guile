@@ -89,8 +89,8 @@ options."
 	       (load-path))))
 
 
-(define (compile args)
-  (let* ((options         (parse-args (cdr args)))
+(define (compile . args)
+  (let* ((options         (parse-args args))
          (help?           (assoc-ref options 'help?))
          (compile-opts    (if (assoc-ref options 'optimize?) '(#:O) '()))
          (from            (or (assoc-ref options 'from) 'scheme))

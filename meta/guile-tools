@@ -64,13 +64,17 @@ PROGRAM is run with ARGS.
              (string-suffix? ext path)
              (substring path 0
                         (- (string-length path) (string-length ext)))))
-          (append %load-extensions %load-compiled-extensions)))
+          (append %load-compiled-extensions %load-extensions)))
 
 (define (unique l)
   (cond ((null? l) l)
         ((null? (cdr l)) l)
         ((equal? (car l) (cadr l)) (unique (cdr l)))
         (else (cons (car l) (unique (cdr l))))))
+
+;; for want of srfi-1
+(define (append-map f l)
+  (apply append (map f l)))
 
 (define (find-submodules head)
   (let ((shead (map symbol->string head)))
@@ -102,4 +106,4 @@ PROGRAM is run with ARGS.
           (equal? (cdr args) '("list")))
       (list-scripts)
       (let ((mod (find-script (cadr args))))
-        (exit ((module-ref mod 'main) (cdr args))))))
+        (exit (apply (module-ref mod 'main) (cddr args))))))
