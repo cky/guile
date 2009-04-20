@@ -4,6 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 datarootdir=@datarootdir@
 datadir=@datadir@
+pkgdatadir=@datadir@/guile
 
 sitedir=@sitedir@
 libguileinterface=@LIBGUILE_INTERFACE@

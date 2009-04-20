@@ -149,7 +149,8 @@ exec guile -e main -s $0 "$@"
      ((string=? (car args) "guileversion")
       (display (pkg-config "--modversion" guile-module)))
      (else
-      (display (pkg-config (format #f (car args) guile-module))))))
+      (display (pkg-config (format #f "--variable=~A" (car args))
+                           guile-module)))))
    (else (display-line-error "Usage: " program-name " info VAR")
 	 (quit 2))))
 
