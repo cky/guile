@@ -80,7 +80,7 @@ for dir in $subdirs_with_ltlibs ; do
 done
 LTDL_LIBRARY_PATH="${ltdl_prefix}$LTDL_LIBRARY_PATH"
 export LTDL_LIBRARY_PATH
-DYLD_LIBRARY_PATH="${dyld_prefix}${top_builddir}/libguile/.libs:$DYLD_LIBRARY_PATH"
+DYLD_LIBRARY_PATH="${dyld_prefix}$DYLD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH
 
 if [ x"$PKG_CONFIG_PATH" = x ]

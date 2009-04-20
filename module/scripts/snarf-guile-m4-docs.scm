@@ -63,7 +63,7 @@
                       (else (car line)))
                     acc)))))
 
-(define (snarf-guile-m4-docs . args)
+(define (snarf-guile-m4-docs args)
   (let* ((p (open-file (car args) "r"))
          (next (lambda () (read-line p))))
     (let loop ((line (next)) (acc #f))
