@@ -38,8 +38,8 @@ EXTRA_DIST = README ChangeLog-2008 check.test				\
 									\
  safe/README safe/safe safe/untrusted.scm safe/evil.scm
 
-AM_CFLAGS = `$(bindir)/guile-config compile`
-AM_LIBS   = `$(bindir)/guile-config link`
+AM_CFLAGS = `PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config compile`
+AM_LIBS   = `PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config link`
 
 
 box/box: box/box.o

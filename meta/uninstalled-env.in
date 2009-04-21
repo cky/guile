@@ -93,7 +93,7 @@ export PKG_CONFIG_PATH
 
 # handle PATH (no clobber)
 PATH="${top_builddir}/libguile:${PATH}"
-PATH="${top_builddir}/meta:${PATH}"
+PATH="${top_srcdir}/meta:${PATH}"
 export PATH
 
 exec "$@"

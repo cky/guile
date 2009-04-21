@@ -79,7 +79,11 @@ exec guile -e main -s $0 "$@"
          (ret (close-pipe pipe)))
     (case (status:exit-val ret)
       ((0) (if (eof-object? output) "" output))
-      (else (error "error calling pkg-config: ~A" output)))))
+      (else (display-line-error
+             (format #f "error: ~s exited with non-zero error code ~A"
+                     (cons "pkg-config" args) (status:exit-val ret)))
+            ;; assume pkg-config sent diagnostics to stdout
+            (exit (status:exit-val ret))))))
 
 (define (show-version args)
   (format (current-error-port) "~A - Guile version ~A"
