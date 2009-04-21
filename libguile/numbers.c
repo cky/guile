@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -5352,7 +5352,12 @@ SCM
 scm_c_make_polar (double mag, double ang)
 {
   double s, c;
-#if HAVE_SINCOS
+
+  /* The sincos(3) function is undocumented an broken on Tru64.  Thus we only
+     use it on Glibc-based systems that have it (it's a GNU extension).  See
+     http://lists.gnu.org/archive/html/guile-user/2009-04/msg00033.html for
+     details.  */
+#if (defined HAVE_SINCOS) && (defined __GLIBC__) && (defined _GNU_SOURCE)
   sincos (ang, &s, &c);
 #else
   s = sin (ang);
