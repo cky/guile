@@ -1132,7 +1132,7 @@
        ;; apply transformer
        (value e r w s mod))
       ((module-ref)
-       (call-with-values (lambda () (value e r w s mod))
+       (call-with-values (lambda () (value e))
          ;; we could add a public? arg here
          (lambda (id mod) (build-global-reference s id mod))))
       ((lexical-call)
@@ -1772,15 +1772,24 @@
               (syntax-error (wrap (syntax id) w mod)
                 "identifier out of context"))
              (else (syntax-error (source-wrap e w s mod)))))))
-      ((_ (getter arg ...) val)
-       (build-application s
-			  (chi (syntax (setter getter)) r w mod)
-			  (map (lambda (e) (chi e r w mod))
-			       (syntax (arg ... val)))))
+      ((_ (head tail ...) val)
+       (call-with-values
+           (lambda () (syntax-type (syntax head) r empty-wrap no-source #f mod))
+         (lambda (type value ee ww ss modmod)
+           (case type
+             ((module-ref)
+              (call-with-values (lambda () (value (syntax (head tail ...))))
+                (lambda (id mod)
+                  (build-global-assignment s id (syntax val) mod))))
+             (else
+              (build-application s
+                                 (chi (syntax (setter head)) r w mod)
+                                 (map (lambda (e) (chi e r w mod))
+                                      (syntax (tail ... val)))))))))
       (_ (syntax-error (source-wrap e w s mod))))))
 
 (global-extend 'module-ref '@
-   (lambda (e r w s mod)
+   (lambda (e)
      (syntax-case e (%module-public-interface)
         ((_ (mod ...) id)
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
@@ -1789,7 +1798,7 @@
                   (syntax (mod ... %module-public-interface))))))))
 
 (global-extend 'module-ref '@@
-   (lambda (e r w s mod)
+   (lambda (e)
      (syntax-case e ()
         ((_ (mod ...) id)
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
