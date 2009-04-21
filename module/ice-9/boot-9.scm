@@ -93,6 +93,11 @@
 
 
 
+;; Before the module system boots, there are no module names. But
+;; psyntax does want a module-name definition, so give it one.
+(define (module-name x)
+  #f)
+
 ;; (eval-when (situation...) form...)
 ;;
 ;; Evaluate certain code based on the situation that eval-when is used
