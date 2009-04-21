@@ -508,6 +508,7 @@
 ;;; <binding> ::= (macro . <procedure>)           macros
 ;;;               (core . <procedure>)            core forms
 ;;;               (external-macro . <procedure>)  external-macro
+;;;               (module-ref . <procedure>)      @ or @@
 ;;;               (begin)                         begin
 ;;;               (define)                        define
 ;;;               (define-syntax)                 define-syntax
@@ -926,6 +927,7 @@
 ;;;    -------------------------------------------------------------------
 ;;;    core                   procedure     core form (including singleton)
 ;;;    external-macro         procedure     external macro
+;;;    module-ref             procedure     @ or @@ form
 ;;;    lexical                name          lexical variable reference
 ;;;    global                 name          global variable reference
 ;;;    begin                  none          begin keyword
@@ -984,7 +986,7 @@
                  ((macro)
                   (syntax-type (chi-macro (binding-value b) e r w rib mod)
                     r empty-wrap s rib mod))
-                 ((core external-macro)
+                 ((core external-macro module-ref)
                   (values type (binding-value b) e w s mod))
                  ((local-syntax)
                   (values 'local-syntax-form (binding-value b) e w s mod))
@@ -1129,6 +1131,10 @@
       ((core external-macro)
        ;; apply transformer
        (value e r w s mod))
+      ((module-ref)
+       (call-with-values (lambda () (value e r w s mod))
+         ;; we could add a public? arg here
+         (lambda (id mod) (build-global-reference s id mod))))
       ((lexical-call)
        (chi-application
          (build-lexical-reference 'fun (source-annotation (car e)) value)
@@ -1772,6 +1778,24 @@
 			  (map (lambda (e) (chi e r w mod))
 			       (syntax (arg ... val)))))
       (_ (syntax-error (source-wrap e w s mod))))))
+
+(global-extend 'module-ref '@
+   (lambda (e r w s mod)
+     (syntax-case e (%module-public-interface)
+        ((_ (mod ...) id)
+         (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
+         (values (syntax-object->datum (syntax id))
+                 (syntax-object->datum
+                  (syntax (mod ... %module-public-interface))))))))
+
+(global-extend 'module-ref '@@
+   (lambda (e r w s mod)
+     (syntax-case e ()
+        ((_ (mod ...) id)
+         (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
+         (values (syntax-object->datum (syntax id))
+                 (syntax-object->datum
+                  (syntax (mod ...))))))))
 
 (global-extend 'begin 'begin '())
 

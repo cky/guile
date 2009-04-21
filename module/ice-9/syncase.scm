@@ -65,7 +65,7 @@
 
 (define primitive-syntax '(quote lambda letrec if set! begin define or
 			   and let let* cond do quasiquote unquote
-			   unquote-splicing case))
+			   unquote-splicing case @ @@))
 
 (for-each (lambda (symbol)
 	    (set-symbol-property! symbol 'primitive-syntax #t))
