@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system repl common)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
   #:use-module (system base compile)
   #:use-module (system base language)
   #:use-module (system vm vm)

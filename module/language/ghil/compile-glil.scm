@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (language ghil compile-glil)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
   #:use-module (language glil)
   #:use-module (language ghil)
   #:use-module (ice-9 common-list)

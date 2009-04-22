@@ -20,7 +20,7 @@
 ;;; Code:
 
 (define-module (system repl command)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
   #:use-module (system base pmatch)
   #:use-module (system base compile)
   #:use-module (system repl common)
