@@ -129,6 +129,8 @@
 ;; psyntax does want a module-name definition, so give it one.
 (define (module-name x)
   #f)
+(define (module-add! module sym var)
+  (hashq-set! (%get-pre-modules-obarray) sym var))
 
 ;; (eval-when (situation...) form...)
 ;;

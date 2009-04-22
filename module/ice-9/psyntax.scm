@@ -337,12 +337,12 @@
     ((_) (gensym))))
 
 (define put-global-definition-hook
-  (lambda (symbol binding module)
-    (let* ((module (if module
-                       (resolve-module module)
-                       (warn "wha" symbol (current-module))))
+  (lambda (symbol binding modname)
+    (let* ((module (if modname
+                       (resolve-module modname)
+                       (current-module)))
            (v (or (module-variable module symbol)
-                  (let ((v (make-variable sc-macro)))
+                  (let ((v (make-variable 'sc-macro)))
                     (module-add! module symbol v)
                     v))))
       ;; Don't destroy Guile macros corresponding to primitive syntax
