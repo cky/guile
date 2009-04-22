@@ -40,6 +40,38 @@
 
 
 
+;;; {Simple Debugging Tools}
+;;;
+
+;; peek takes any number of arguments, writes them to the
+;; current ouput port, and returns the last argument.
+;; It is handy to wrap around an expression to look at
+;; a value each time is evaluated, e.g.:
+;;
+;;	(+ 10 (troublesome-fn))
+;;	=> (+ 10 (pk 'troublesome-fn-returned (troublesome-fn)))
+;;
+
+(define (peek . stuff)
+  (newline)
+  (display ";;; ")
+  (write stuff)
+  (newline)
+  (car (last-pair stuff)))
+
+(define pk peek)
+
+(define (warn . stuff)
+  (with-output-to-port (current-error-port)
+    (lambda ()
+      (newline)
+      (display ";;; WARNING ")
+      (display stuff)
+      (newline)
+      (car (last-pair stuff)))))
+
+
+
 ;;; {Features}
 ;;;
 
@@ -198,38 +230,6 @@
   (if (include-deprecated-features)
       `(begin ,@forms)
       `(begin)))
-
-
-
-;;; {Simple Debugging Tools}
-;;;
-
-;; peek takes any number of arguments, writes them to the
-;; current ouput port, and returns the last argument.
-;; It is handy to wrap around an expression to look at
-;; a value each time is evaluated, e.g.:
-;;
-;;	(+ 10 (troublesome-fn))
-;;	=> (+ 10 (pk 'troublesome-fn-returned (troublesome-fn)))
-;;
-
-(define (peek . stuff)
-  (newline)
-  (display ";;; ")
-  (write stuff)
-  (newline)
-  (car (last-pair stuff)))
-
-(define pk peek)
-
-(define (warn . stuff)
-  (with-output-to-port (current-error-port)
-    (lambda ()
-      (newline)
-      (display ";;; WARNING ")
-      (display stuff)
-      (newline)
-      (car (last-pair stuff)))))
 
 
 
@@ -2120,11 +2120,6 @@ module '(ice-9 q) '(make-q q-length))}."
                                                           name bindings))
              (loop (cddr args)))))))
 
-
-;;; {Compiled module}
-
-(if (not (defined? 'load-compiled))
-    (define load-compiled #f))
 
 
 
