@@ -1,5 +1,5 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006 Free Software Foundation, Inc.
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -62,6 +62,12 @@
 #if !defined (HAVE_H_ERRNO) && !defined (__MINGW32__) && !defined (__CYGWIN__)
 /* h_errno not found in netdb.h, maybe this will help.  */
 extern int h_errno;
+#endif
+
+#if defined HAVE_HSTRERROR && !HAVE_DECL_HSTRERROR	\
+  && !defined __MINGW32__ && !defined __CYGWIN__
+/* Some OSes, such as Tru64 5.1b, lack a declaration for hstrerror(3).  */
+extern const char *hstrerror (int);
 #endif
 
 
