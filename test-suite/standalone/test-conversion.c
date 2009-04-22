@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2003,2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2003,2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -680,31 +680,31 @@ test_8u (const char *str, scm_t_uintmax (*func) (SCM), const char *func_name,
 #define DEFSTST(f) static scm_t_intmax  tst_##f (SCM x) { return f(x); }
 #define DEFUTST(f) static scm_t_uintmax tst_##f (SCM x) { return f(x); }
 
-DEFSTST (scm_to_schar);
-DEFUTST (scm_to_uchar);
-DEFSTST (scm_to_char);
-DEFSTST (scm_to_short);
-DEFUTST (scm_to_ushort);
-DEFSTST (scm_to_int);
-DEFUTST (scm_to_uint);
-DEFSTST (scm_to_long);
-DEFUTST (scm_to_ulong);
+DEFSTST (scm_to_schar)
+DEFUTST (scm_to_uchar)
+DEFSTST (scm_to_char)
+DEFSTST (scm_to_short)
+DEFUTST (scm_to_ushort)
+DEFSTST (scm_to_int)
+DEFUTST (scm_to_uint)
+DEFSTST (scm_to_long)
+DEFUTST (scm_to_ulong)
 #if SCM_SIZEOF_LONG_LONG != 0
-DEFSTST (scm_to_long_long);
-DEFUTST (scm_to_ulong_long);
+DEFSTST (scm_to_long_long)
+DEFUTST (scm_to_ulong_long)
 #endif
-DEFSTST (scm_to_ssize_t);
-DEFUTST (scm_to_size_t);
+DEFSTST (scm_to_ssize_t)
+DEFUTST (scm_to_size_t)
 
-DEFSTST (scm_to_int8);
-DEFUTST (scm_to_uint8);
-DEFSTST (scm_to_int16);
-DEFUTST (scm_to_uint16);
-DEFSTST (scm_to_int32);
-DEFUTST (scm_to_uint32);
+DEFSTST (scm_to_int8)
+DEFUTST (scm_to_uint8)
+DEFSTST (scm_to_int16)
+DEFUTST (scm_to_uint16)
+DEFSTST (scm_to_int32)
+DEFUTST (scm_to_uint32)
 #ifdef SCM_HAVE_T_INT64
-DEFSTST (scm_to_int64);
-DEFUTST (scm_to_uint64);
+DEFSTST (scm_to_int64)
+DEFUTST (scm_to_uint64)
 #endif
 
 #define TEST_8S(v,f,r,re,te) test_8s (v, tst_##f, #f, r, re, te)
