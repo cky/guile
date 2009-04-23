@@ -1,4 +1,4 @@
-/* Copyright (C) 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,6 +25,9 @@
 
 #if HAVE_FENV_H
 #include <fenv.h>
+#elif defined HAVE_MACHINE_FPU_H
+/* On Tru64 5.1b, the declaration of fesetround(3) is here.  */
+# include <machine/fpu.h>
 #endif
 
 #include <libguile.h>
