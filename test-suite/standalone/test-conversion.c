@@ -818,15 +818,60 @@ test_9 (double val, const char *result)
     }
 }
 
+/* The `infinity' and `not-a-number' values.  */
+static double guile_Inf, guile_NaN;
+
+/* Initialize GUILE_INF and GUILE_NAN.  Taken from `guile_ieee_init ()' in
+   `libguile/numbers.c'.  */
+static void
+ieee_init (void)
+{
+#ifdef INFINITY
+  /* C99 INFINITY, when available.
+     FIXME: The standard allows for INFINITY to be something that overflows
+     at compile time.  We ought to have a configure test to check for that
+     before trying to use it.  (But in practice we believe this is not a
+     problem on any system guile is likely to target.)  */
+  guile_Inf = INFINITY;
+#elif HAVE_DINFINITY
+  /* OSF */
+  extern unsigned int DINFINITY[2];
+  guile_Inf = (*((double *) (DINFINITY)));
+#else
+  double tmp = 1e+10;
+  guile_Inf = tmp;
+  for (;;)
+    {
+      guile_Inf *= 1e+10;
+      if (guile_Inf == tmp)
+	break;
+      tmp = guile_Inf;
+    }
+#endif
+
+#ifdef NAN
+  /* C99 NAN, when available */
+  guile_NaN = NAN;
+#elif HAVE_DQNAN
+  {
+    /* OSF */
+    extern unsigned int DQNAN[2];
+    guile_NaN = (*((double *)(DQNAN)));
+  }
+#else
+  guile_NaN = guile_Inf / guile_Inf;
+#endif
+}
+
 static void
 test_from_double ()
 {
   test_9 (12, "12.0");
   test_9 (0.25, "0.25");
   test_9 (0.1, "0.1");
-  test_9 (1.0/0.0, "+inf.0");
-  test_9 (-1.0/0.0, "-inf.0");
-  test_9 (0.0/0.0, "+nan.0");
+  test_9 (guile_Inf, "+inf.0");
+  test_9 (-guile_Inf, "-inf.0");
+  test_9 (guile_NaN, "+nan.0");
 }
 
 typedef struct {
@@ -880,8 +925,8 @@ test_to_double ()
   test_10 ("12",         12.0,  0);
   test_10 ("0.25",       0.25,  0);
   test_10 ("1/4",        0.25,  0);
-  test_10 ("+inf.0",  1.0/0.0,  0);
-  test_10 ("-inf.0", -1.0/0.0,  0);
+  test_10 ("+inf.0", guile_Inf, 0);
+  test_10 ("-inf.0",-guile_Inf, 0);
   test_10 ("+1i",         0.0,  1);
 }
 
@@ -1056,6 +1101,7 @@ tests (void *data, int argc, char **argv)
 int
 main (int argc, char *argv[])
 {
+  ieee_init ();
   scm_boot_guile (argc, argv, tests, NULL);
   return 0;
 }
