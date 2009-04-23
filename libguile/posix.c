@@ -1869,6 +1869,11 @@ SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0,
 #endif /* HAVE_GETLOGIN */
 
 #if HAVE_CUSERID
+
+# if !HAVE_DECL_CUSERID
+extern char *cuserid (char *);
+# endif
+
 SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0, 
             (void),
 	    "Return a string containing a user name associated with the\n"
