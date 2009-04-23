@@ -350,6 +350,16 @@
       ;; Properties are tied to variable objects
       (set-object-property! v '*sc-expander* binding))))
 
+(define remove-global-definition-hook
+  (lambda (symbol modname)
+    (let* ((module (if modname
+                       (resolve-module modname)
+                       (current-module)))
+           (v (module-local-variable module symbol)))
+      (if v
+          (let ((p (assq '*sc-expander* (object-properties v))))
+            (set-object-properties! v (delq p (object-properties v))))))))
+
 (define get-global-definition-hook
   (lambda (symbol module)
     (let* ((module (if module
@@ -1104,13 +1114,14 @@
                   mod))
                ((displaced-lexical)
                 (syntax-error (wrap value w mod) "identifier out of context"))
+               ((core macro module-ref)
+                (remove-global-definition-hook n mod)
+                (eval-if-c&e m
+                  (build-global-definition s n (chi e r w mod) mod)
+                  mod))
                (else
-		(if (eq? type 'external-macro)
-		    (eval-if-c&e m
-                      (build-global-definition s n (chi e r w mod) mod)
-                      mod)
-		    (syntax-error (wrap value w mod)
-				  "cannot define keyword at top level"))))))
+                (syntax-error (wrap value w mod)
+                              "cannot define keyword at top level")))))
           (else (eval-if-c&e m (chi-expr type value e r w s mod) mod)))))))
 
 (define chi
