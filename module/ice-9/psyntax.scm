@@ -342,7 +342,7 @@
                        (resolve-module modname)
                        (current-module)))
            (v (or (module-variable module symbol)
-                  (let ((v (make-variable 'sc-macro)))
+                  (let ((v (make-variable (gensym))))
                     (module-add! module symbol v)
                     v))))
       (if (not (variable-bound? v))
@@ -364,7 +364,9 @@
   (lambda (symbol module)
     (let* ((module (if module
                        (resolve-module module)
-                       (warn "wha" symbol (current-module))))
+                       (let ((mod (current-module)))
+                         (if mod (warn "wha" symbol))
+                         mod)))
            (v (module-variable module symbol)))
       (and v
            (or (object-property v '*sc-expander*)
@@ -1786,9 +1788,10 @@
          (lambda (type value ee ww ss modmod)
            (case type
              ((module-ref)
-              (call-with-values (lambda () (value (syntax (head tail ...))))
-                (lambda (id mod)
-                  (build-global-assignment s id (syntax val) mod))))
+              (let ((val (chi (syntax val) r w mod)))
+                (call-with-values (lambda () (value (syntax (head tail ...))))
+                  (lambda (id mod)
+                    (build-global-assignment s id val mod)))))
              (else
               (build-application s
                                  (chi (syntax (setter head)) r w mod)

@@ -131,7 +131,7 @@
     ((toplevel ,op ,name) (make-glil-toplevel op name))
     ((module public ,op ,mod ,name) (make-glil-module op mod name #t))
     ((module private ,op ,mod ,name) (make-glil-module op mod name #f))
-    ((label ,label) (make-label ,label))
+    ((label ,label) (make-label label))
     ((branch ,inst ,label) (make-glil-branch inst label))
     ((call ,inst ,nargs) (make-glil-call inst nargs))
     ((mv-call ,nargs ,ra) (make-glil-mv-call nargs ra))

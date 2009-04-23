@@ -187,7 +187,7 @@
 ;; Until the module system is booted, this will be the current expander.
 (primitive-load-path "ice-9/psyntax-pp")
 
-(define %pre-modules-transformer (lambda args (pk 'in args 'out (apply sc-expand args))))
+(define %pre-modules-transformer sc-expand)
 
 
 
@@ -1860,7 +1860,6 @@
                 already)
                (autoload
                 ;; Try to autoload the module, and recurse.
-                (pk name)
                 (try-load-module name)
                 (resolve-module name #f))
                (else
@@ -1894,9 +1893,7 @@
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
 (define (try-load-module name)
-  (or (begin-deprecated (try-module-linked name))
-      (try-module-autoload name)
-      (begin-deprecated (try-module-dynamic-link name))))
+  (try-module-autoload name))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
@@ -2182,7 +2179,6 @@ module '(ice-9 q) '(make-q q-length))}."
     (and (not (autoload-done-or-in-progress? dir-hint name))
 	 (let ((didit #f))
 	   (define (load-file proc file)
-             (pk 'loading proc file)
 	     (save-module-excursion (lambda () (proc file)))
 	     (set! didit #t))
 	   (dynamic-wind
