@@ -1,5 +1,4 @@
 (define-module (system base pmatch)
-  #:use-module (ice-9 syncase)
   #:export (pmatch))
 ;; FIXME: shouldn't have to export ppat...
 

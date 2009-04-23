@@ -23,7 +23,6 @@
   #:use-module (language scheme amatch)
   #:use-module (ice-9 expand-support)
   #:use-module (ice-9 optargs)
-  #:use-module ((ice-9 syncase) #:select (sc-macro))
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (expand *expand-table* define-scheme-expander))
 

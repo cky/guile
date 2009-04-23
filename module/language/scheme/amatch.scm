@@ -1,7 +1,5 @@
 (define-module (language scheme amatch)
-  #:use-module (ice-9 syncase)
-  #:export (amatch apat))
-;; FIXME: shouldn't have to export apat...
+  #:export (amatch))
 
 ;; This is exactly the same as pmatch except that it unpacks annotations
 ;; as needed.

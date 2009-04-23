@@ -17,7 +17,6 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (ice-9 occam-channel)
-  #:use-syntax (ice-9 syncase)
   #:use-module (oop goops)
   #:use-module (ice-9 threads)
   #:export-syntax (alt
