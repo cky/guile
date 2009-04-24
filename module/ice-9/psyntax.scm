@@ -1206,7 +1206,14 @@
                                    (if rib
                                        (cons rib (cons 'shift s))
                                        (cons 'shift s)))
-                        (cons 'hygiene (module-name (procedure-module p)))))))) ;; hither the hygiene
+                        (let ((pmod (procedure-module p)))
+                          (if pmod
+                              ;; hither the hygiene
+                              (cons 'hygiene (module-name pmod))
+                              ;; but it's possible for the proc to have
+                              ;; no mod, if it was made before modules
+                              ;; were booted
+                              '(hygiene guile))))))))
               ((vector? x)
                (let* ((n (vector-length x)) (v (make-vector n)))
                  (do ((i 0 (fx+ i 1)))
