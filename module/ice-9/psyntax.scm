@@ -357,19 +357,13 @@
 (define get-global-definition-hook
   (lambda (symbol module)
     (let* ((module (if module
-                       (resolve-module (if (memq (car module) '(#f hygiene public private bare))
-                                           (cdr module)
-                                           module))
+                       (resolve-module (cdr module))
                        (let ((mod (current-module)))
                          (if mod (warn "wha" symbol))
                          mod)))
            (v (module-variable module symbol)))
-      (and v
-           (or (object-property v '*sc-expander*)
-               (and (variable-bound? v)
-                    (macro? (variable-ref v))
-                    (macro-transformer (variable-ref v)) ;non-primitive
-                    guile-macro))))))
+      (and v (object-property v '*sc-expander*)))))
+
 )
 
 
@@ -404,19 +398,17 @@
     ((_ source var mod)
      (build-annotated
       source
-      (cond ((not mod) (make-module-ref mod var 'bare))
-            ((not (car mod)) (make-module-ref (cdr mod) var 'public))
-            ((memq (car mod) '(bare public private hygiene)) (make-module-ref (cdr mod) var (car mod)))
-            (else (make-module-ref mod var 'private)))))))
+      (if mod
+          (make-module-ref (cdr mod) var (car mod))
+          (make-module-ref mod var 'bare))))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp mod)
      (build-annotated source
-       `(set! ,(cond ((not mod) (make-module-ref mod var 'bare))
-                     ((not (car mod)) (make-module-ref (cdr mod) var 'public))
-                     ((memq (car mod) '(bare public private hygiene)) (make-module-ref (cdr mod) var (car mod)))
-                     (else (make-module-ref mod var 'private)))
+       `(set! ,(if mod
+                   (make-module-ref (cdr mod) var (car mod))
+                   (make-module-ref mod var 'bare))
               ,exp)))))
 
 (define-syntax build-global-definition

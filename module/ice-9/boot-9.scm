@@ -134,8 +134,8 @@
 (define sc-macro 'sc-macro)
 (define (make-module-ref mod var kind)
   (case kind
-    ((public #t) (if mod `(@ ,mod ,var) var))
-    ((private #f) (if (and mod (not (equal? mod (module-name (current-module)))))
+    ((public) (if mod `(@ ,mod ,var) var))
+    ((private) (if (and mod (not (equal? mod (module-name (current-module)))))
                    `(@@ ,mod ,var)
                    var))
     ((bare) var)
