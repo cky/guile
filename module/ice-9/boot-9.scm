@@ -2162,6 +2162,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (and (not (autoload-done-or-in-progress? dir-hint name))
 	 (let ((didit #f))
 	   (define (load-file proc file)
+             (pk 'loading proc file)
 	     (save-module-excursion (lambda () (proc file)))
 	     (set! didit #t))
 	   (dynamic-wind
