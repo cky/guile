@@ -1,11 +1,9 @@
-(use-modules (ice-9 syncase))
-
-;; XXX - We need to be inside (ice-9 syncase) since psyntax.ss calls
+;; XXX - We need to be inside (guile) since psyntax.ss calls
 ;; `eval' int he `interaction-environment' aka the current module and
 ;; it expects to have `andmap' there.  The reason for this escapes me
 ;; at the moment.
 ;;
-(define-module (ice-9 syncase))
+(define-module (guile))
 
 (define source (list-ref (command-line) 1))
 (define target (list-ref (command-line) 2))
@@ -18,8 +16,7 @@
           (close-port out)
           (close-port in))
         (begin
-          (write (strip-expansion-structures
-                  (sc-expand3 x 'c '(compile load eval)))
+          (write (sc-expand3 x 'c '(compile load eval))
                  out)
           (newline out)
           (loop (read in))))))
