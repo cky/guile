@@ -114,9 +114,6 @@
     (cond
      ((hashq-ref *translate-table* val))
 
-     ((primitive-macro? val)
-      (syntax-error #f "unhandled primitive macro" head))
-
      ((macro? val)
       (syntax-error #f "unknown kind of macro" head))
 

@@ -135,7 +135,7 @@
 (define (make-module-ref mod var public?)
   (cond
    ((or (not mod)
-        (eq? mod (module-name (current-module)))
+        (equal? mod (module-name (current-module)))
         (and (not public?)
              (not (module-variable (resolve-module mod) var))))
     var)

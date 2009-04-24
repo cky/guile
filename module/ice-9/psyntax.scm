@@ -406,14 +406,20 @@
 (define-syntax build-global-reference
   (syntax-rules ()
     ((_ source var mod)
-     (build-annotated source
-      (make-module-ref mod var #f)))))
+     (cond
+      ((and mod (not (car mod)))
+       (build-annotated source (make-module-ref (cdr mod) var #t)))
+      (else
+       (build-annotated source (make-module-ref mod var #f)))))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp mod)
      (build-annotated source
-       `(set! ,(make-module-ref mod var #f) ,exp)))))
+       `(set! ,(cond
+                ((and mod (not (car mod))) (make-module-ref (cdr mod) var #t))
+                (else (make-module-ref mod var #f)))
+              ,exp)))))
 
 (define-syntax build-global-definition
   (syntax-rules ()
@@ -1801,12 +1807,12 @@
 
 (global-extend 'module-ref '@
    (lambda (e)
-     (syntax-case e (%module-public-interface)
+     (syntax-case e ()
         ((_ (mod ...) id)
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
          (values (syntax-object->datum (syntax id))
                  (syntax-object->datum
-                  (syntax (mod ... %module-public-interface))))))))
+                  (syntax (#f mod ...))))))))
 
 (global-extend 'module-ref '@@
    (lambda (e)
