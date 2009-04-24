@@ -132,15 +132,19 @@
 (define (module-add! module sym var)
   (hashq-set! (%get-pre-modules-obarray) sym var))
 (define sc-macro 'sc-macro)
-(define (make-module-ref mod var public?)
-  (cond
-   ((or (not mod)
-        (equal? mod (module-name (current-module)))
-        (and (not public?)
-             (not (module-variable (resolve-module mod) var))))
-    var)
-   (else
-    (list (if public? '@ '@@) mod var))))
+(define (make-module-ref mod var kind)
+  (case kind
+    ((public #t) (if mod `(@ ,mod ,var) var))
+    ((private #f) (if (and mod (not (equal? mod (module-name (current-module)))))
+                   `(@@ ,mod ,var)
+                   var))
+    ((bare) var)
+    ((hygiene) (if (and mod
+                        (not (equal? mod (module-name (current-module))))
+                        (module-variable (resolve-module mod) var))
+                   `(@@ ,mod ,var)
+                   var))
+    (else (error "foo" mod var kind))))
 (define (resolve-module . args)
   #f)
 

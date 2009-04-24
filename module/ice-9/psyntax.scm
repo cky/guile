@@ -320,13 +320,11 @@
 
 (define top-level-eval-hook
   (lambda (x mod)
-    (eval `(,noexpand ,x) (if mod (resolve-module mod)
-                              (interaction-environment)))))
+    (primitive-eval `(,noexpand ,x))))
 
 (define local-eval-hook
   (lambda (x mod)
-    (eval `(,noexpand ,x) (if mod (resolve-module mod)
-                              (interaction-environment)))))
+    (primitive-eval `(,noexpand ,x))))
 
 (define error-hook
   (lambda (who why what)
@@ -337,10 +335,8 @@
     ((_) (gensym))))
 
 (define put-global-definition-hook
-  (lambda (symbol binding modname)
-    (let* ((module (if modname
-                       (resolve-module modname)
-                       (current-module)))
+  (lambda (symbol binding)
+    (let* ((module (current-module))
            (v (or (module-variable module symbol)
                   (let ((v (make-variable (gensym))))
                     (module-add! module symbol v)
@@ -351,10 +347,8 @@
       (set-object-property! v '*sc-expander* binding))))
 
 (define remove-global-definition-hook
-  (lambda (symbol modname)
-    (let* ((module (if modname
-                       (resolve-module modname)
-                       (current-module)))
+  (lambda (symbol)
+    (let* ((module (current-module))
            (v (module-local-variable module symbol)))
       (if v
           (let ((p (assq '*sc-expander* (object-properties v))))
@@ -363,7 +357,9 @@
 (define get-global-definition-hook
   (lambda (symbol module)
     (let* ((module (if module
-                       (resolve-module module)
+                       (resolve-module (if (memq (car module) '(#f hygiene public private bare))
+                                           (cdr module)
+                                           module))
                        (let ((mod (current-module)))
                          (if mod (warn "wha" symbol))
                          mod)))
@@ -406,19 +402,21 @@
 (define-syntax build-global-reference
   (syntax-rules ()
     ((_ source var mod)
-     (cond
-      ((and mod (not (car mod)))
-       (build-annotated source (make-module-ref (cdr mod) var #t)))
-      (else
-       (build-annotated source (make-module-ref mod var #f)))))))
+     (build-annotated
+      source
+      (cond ((not mod) (make-module-ref mod var 'bare))
+            ((not (car mod)) (make-module-ref (cdr mod) var 'public))
+            ((memq (car mod) '(bare public private hygiene)) (make-module-ref (cdr mod) var (car mod)))
+            (else (make-module-ref mod var 'private)))))))
 
 (define-syntax build-global-assignment
   (syntax-rules ()
     ((_ source var exp mod)
      (build-annotated source
-       `(set! ,(cond
-                ((and mod (not (car mod))) (make-module-ref (cdr mod) var #t))
-                (else (make-module-ref mod var #f)))
+       `(set! ,(cond ((not mod) (make-module-ref mod var 'bare))
+                     ((not (car mod)) (make-module-ref (cdr mod) var 'public))
+                     ((memq (car mod) '(bare public private hygiene)) (make-module-ref (cdr mod) var (car mod)))
+                     (else (make-module-ref mod var 'private)))
               ,exp)))))
 
 (define-syntax build-global-definition
@@ -608,8 +606,7 @@
 
 (define global-extend
   (lambda (type sym val)
-    (put-global-definition-hook sym (make-binding type val)
-                                (module-name (current-module)))))
+    (put-global-definition-hook sym (make-binding type val))))
 
 
 ;;; Conceptually, identifiers are always syntax objects.  Internally,
@@ -1123,7 +1120,7 @@
                ((displaced-lexical)
                 (syntax-error (wrap value w mod) "identifier out of context"))
                ((core macro module-ref)
-                (remove-global-definition-hook n mod)
+                (remove-global-definition-hook n)
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w mod) mod)
                   mod))
@@ -1217,7 +1214,7 @@
                                    (if rib
                                        (cons rib (cons 'shift s))
                                        (cons 'shift s)))
-                        (module-name (procedure-module p))))))) ;; hither the hygiene
+                        (cons 'hygiene (module-name (procedure-module p)))))))) ;; hither the hygiene
               ((vector? x)
                (let* ((n (vector-length x)) (v (make-vector n)))
                  (do ((i 0 (fx+ i 1)))
@@ -1812,7 +1809,7 @@
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
          (values (syntax-object->datum (syntax id))
                  (syntax-object->datum
-                  (syntax (#f mod ...))))))))
+                  (syntax (public mod ...))))))))
 
 (global-extend 'module-ref '@@
    (lambda (e)
@@ -1821,7 +1818,7 @@
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
          (values (syntax-object->datum (syntax id))
                  (syntax-object->datum
-                  (syntax (mod ...))))))))
+                  (syntax (private mod ...))))))))
 
 (global-extend 'begin 'begin '())
 
@@ -1981,7 +1978,7 @@
       (if (and (pair? x) (equal? (car x) noexpand))
           (cadr x)
           (chi-top x null-env top-wrap m esew
-                   (module-name (current-module)))))))
+                   (cons 'hygiene (module-name (current-module))))))))
 
 (set! sc-expand3
   (let ((m 'e) (esew '(eval)))
@@ -1995,7 +1992,7 @@
 		   (if (or (null? rest) (null? (cdr rest)))
 		       esew
 		       (cadr rest))
-                   (module-name (current-module)))))))
+                   (cons 'hygiene (module-name (current-module))))))))
 
 (set! identifier?
   (lambda (x)
