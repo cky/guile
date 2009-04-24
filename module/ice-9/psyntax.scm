@@ -421,6 +421,9 @@
 
 (define-syntax build-lambda
   (syntax-rules ()
+    ((_ src vars docstring exp)
+     (build-annotated src `(lambda ,vars ,@(if docstring (list docstring) '())
+                                   ,exp)))
     ((_ src vars exp)
      (build-annotated src `(lambda ,vars ,exp)))))
 
@@ -1353,8 +1356,11 @@
                                           (cdr body)))))))))))))))))
 
 (define chi-lambda-clause
-  (lambda (e c r w mod k)
+  (lambda (e docstring c r w mod k)
     (syntax-case c ()
+      ((args doc e1 e2 ...)
+       (and (string? (syntax-object->datum (syntax doc))) (not docstring))
+       (chi-lambda-clause e (syntax doc) (syntax (args e1 e2 ...)) r w mod k))
       (((id ...) e1 e2 ...)
        (let ((ids (syntax (id ...))))
          (if (not (valid-bound-ids? ids))
@@ -1362,6 +1368,7 @@
              (let ((labels (gen-labels ids))
                    (new-vars (map gen-var ids)))
                (k new-vars
+                  docstring
                   (chi-body (syntax (e1 e2 ...))
                             e
                             (extend-var-env labels new-vars r)
@@ -1377,6 +1384,7 @@
                     (if (null? ls1)
                         ls2
                         (f (cdr ls1) (cons (car ls1) ls2))))
+                  docstring
                   (chi-body (syntax (e1 e2 ...))
                             e
                             (extend-var-env labels new-vars r)
@@ -1716,8 +1724,8 @@
    (lambda (e r w s mod)
       (syntax-case e ()
          ((_ . c)
-          (chi-lambda-clause (source-wrap e w s mod) (syntax c) r w mod
-            (lambda (vars body) (build-lambda s vars body)))))))
+          (chi-lambda-clause (source-wrap e w s mod) #f (syntax c) r w mod
+            (lambda (vars docstring body) (build-lambda s vars docstring body)))))))
 
 
 (global-extend 'core 'let

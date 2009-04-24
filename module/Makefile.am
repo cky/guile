@@ -62,7 +62,7 @@ ice-9/psyntax-pp.scm: ice-9/psyntax.scm
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 SCHEME_LANG_SOURCES =						\
-  language/scheme/amatch.scm language/scheme/expand.scm 	\
+  language/scheme/amatch.scm \
   language/scheme/compile-ghil.scm language/scheme/spec.scm	\
   language/scheme/inline.scm
 
