@@ -128,7 +128,7 @@
 ;; Before the module system boots, there are no module names. But
 ;; psyntax does want a module-name definition, so give it one.
 (define (module-name x)
-  #f)
+  '(guile))
 (define (module-add! module sym var)
   (hashq-set! (%get-pre-modules-obarray) sym var))
 
@@ -1221,7 +1221,7 @@
 
 (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
-(define module-name (record-accessor module-type 'name))
+;; (define module-name (record-accessor module-type 'name)) wait until mods are booted
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
 (define set-module-kind! (record-modifier module-type 'kind))
@@ -1864,6 +1864,8 @@
 ;; must have been defined by now.
 ;;
 (set-current-module the-root-module)
+;; definition deferred for syncase's benefit
+(define module-name (record-accessor module-type 'name))
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 

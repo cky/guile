@@ -345,11 +345,8 @@
                   (let ((v (make-variable 'sc-macro)))
                     (module-add! module symbol v)
                     v))))
-      ;; Don't destroy Guile macros corresponding to primitive syntax
-      ;; when syncase boots.
-      (if (not (and (symbol-property symbol 'primitive-syntax)
-                    (eq? module the-syncase-module)))
-          (variable-set! v sc-macro))
+      (if (not (variable-bound? v))
+          (variable-set! v (gensym)))
       ;; Properties are tied to variable objects
       (set-object-property! v '*sc-expander* binding))))
 
