@@ -35,15 +35,6 @@ SOURCES =								\
   system/base/pmatch.scm system/base/syntax.scm				\
   system/base/compile.scm system/base/language.scm			\
 									\
-  system/vm/debug.scm system/vm/frame.scm system/vm/instruction.scm	\
-  system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
-  system/vm/trace.scm system/vm/vm.scm					\
-									\
-  system/xref.scm							\
-									\
-  system/repl/repl.scm system/repl/common.scm				\
-  system/repl/command.scm						\
-									\
   language/ghil.scm language/glil.scm language/assembly.scm		\
 									\
   $(SCHEME_LANG_SOURCES) $(ECMASCRIPT_LANG_SOURCES)			\
@@ -54,7 +45,7 @@ SOURCES =								\
   $(ICE_9_SOURCES)							\
   $(SRFI_SOURCES)							\
   $(OOP_SOURCES)							\
-									\
+  $(SYSTEM_SOURCES)                                                     \
   $(SCRIPTS_SOURCES)
 
 ## test.scm is not currently installed.
@@ -225,6 +216,16 @@ OOP_SOURCES = \
   oop/goops/util.scm \
   oop/goops/accessors.scm \
   oop/goops/simple.scm
+
+SYSTEM_SOURCES = \
+  system/vm/debug.scm system/vm/frame.scm system/vm/instruction.scm	\
+  system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
+  system/vm/trace.scm system/vm/vm.scm					\
+									\
+  system/xref.scm							\
+									\
+  system/repl/repl.scm system/repl/common.scm				\
+  system/repl/command.scm
 
 EXTRA_DIST += oop/ChangeLog-2008
 

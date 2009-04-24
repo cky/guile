@@ -256,6 +256,9 @@
 
 
 
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
+
 (let ()
 (define-syntax define-structure
   (lambda (x)

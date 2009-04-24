@@ -33,6 +33,15 @@
 
 
 
+(define (void) (if #f #f))
+
+;; Before compiling, make sure any symbols are resolved in the (guile)
+;; module, the primary location of those symbols, rather than in
+;; (guile-user), the default module that we compile in.
+
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
+
 ;;; {R4RS compliance}
 ;;;
 
@@ -163,8 +172,6 @@
 (define identifier? #f)
 (define syntax-object->datum #f)
 
-(define (void) (if #f #f))
-
 (define andmap
   (lambda (f first . rest)
     (or (null? first)
@@ -194,13 +201,6 @@
 (define %pre-modules-transformer sc-expand)
 
 
-
-;; Before compiling, make sure any symbols are resolved in the (guile)
-;; module, the primary location of those symbols, rather than in
-;; (guile-user), the default module that we compile in.
-
-(eval-when (compile)
-  (set-current-module (resolve-module '(guile))))
 
 ;;; {Defmacros}
 ;;;

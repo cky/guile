@@ -2140,6 +2140,25 @@ unmemoize_at_call_with_values (const SCM expr, const SCM env)
                      unmemoize_exprs (SCM_CDR (expr), env));
 }
 
+SCM_SYNTAX (s_eval_when, "eval-when", scm_makmmacro, scm_m_eval_when);
+SCM_GLOBAL_SYMBOL (scm_sym_eval_when, s_eval_when);
+SCM_SYMBOL (sym_eval, "eval");
+SCM_SYMBOL (sym_load, "load");
+
+
+SCM 
+scm_m_eval_when (SCM expr, SCM env SCM_UNUSED)
+{
+  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+
+  if (scm_is_true (scm_memq (sym_eval, scm_cadr (expr)))
+      || scm_is_true (scm_memq (sym_load, scm_cadr (expr))))
+    return scm_caddr (expr);
+  
+  return scm_list_1 (SCM_IM_BEGIN);
+}
+
 #if 0
 
 /* See futures.h for a comment why futures are not enabled.

@@ -1,24 +1,18 @@
-;; XXX - We need to be inside (guile) since psyntax.ss calls
-;; `eval' int he `interaction-environment' aka the current module and
-;; it expects to have `andmap' there.  The reason for this escapes me
-;; at the moment.
-;;
-(define-module (guile))
-
-(define source (list-ref (command-line) 1))
-(define target (list-ref (command-line) 2))
-
-(let ((in (open-input-file source))
-      (out (open-output-file (string-append target ".tmp"))))
-  (let loop ((x (read in)))
-    (if (eof-object? x)
-        (begin
-          (close-port out)
-          (close-port in))
-        (begin
-          (write (sc-expand3 x 'c '(compile load eval))
-                 out)
-          (newline out)
-          (loop (read in))))))
-
-(system (format #f "mv -f ~s.tmp ~s" target target))
+(let ((source (list-ref (command-line) 1))
+      (target (list-ref (command-line) 2)))
+  (let ((in (open-input-file source))
+        (out (open-output-file (string-append target ".tmp"))))
+    (write '(eval-when (compile) (set-current-module (resolve-module '(guile))))
+           out)
+    (newline out)
+    (let loop ((x (read in)))
+      (if (eof-object? x)
+          (begin
+            (close-port out)
+            (close-port in))
+          (begin
+            (write (sc-expand3 x 'c '(compile load eval))
+                   out)
+            (newline out)
+            (loop (read in))))))
+  (system (format #f "mv -f ~s.tmp ~s" target target)))
