@@ -216,8 +216,10 @@
        (syntax
         (define-syntax macro
           (lambda (y)
-            (let ((v (syntax-object->datum y)))
-              (datum->syntax-object y (apply transformer (cdr v)))))))))))
+            (syntax-case y ()
+              ((_ . args)
+               (let ((v (syntax-object->datum (syntax args))))
+                 (datum->syntax-object y (apply transformer v))))))))))))
 
 (define-syntax defmacro
   (lambda (x)

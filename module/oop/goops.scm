@@ -204,7 +204,9 @@
                              (class ,supers ,@slots #:name ',name))
          (define ,name (class ,supers ,@slots #:name ',name)))))
 
-(define standard-define-class define-class)
+(define-syntax standard-define-class
+  (syntax-rules ()
+    ((_ arg ...) (define-class arg ...))))
 
 ;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
 ;;;
@@ -363,13 +365,13 @@
 	  (else (make <generic> #:name name)))))
 
 ;; same semantics as <generic>
-(define-macro (define-accessor name)
-  (if (not (symbol? name))
-      (goops-error "bad accessor name: ~S" name))
-  `(define ,name
-     (if (and (defined? ',name) (is-a? ,name <accessor>))
-         (make <accessor> #:name ',name)
-         (ensure-accessor (if (defined? ',name) ,name #f) ',name))))
+(define-syntax define-accessor
+  (syntax-rules ()
+    ((_ name)
+     (define name
+       (cond ((not (defined? 'name))  (ensure-accessor #f 'name))
+             ((is-a? name <accessor>) (make <accessor> #:name 'name))
+             (else                    (ensure-accessor name 'name)))))))
 
 (define (make-setter-name name)
   (string->symbol (string-append "setter:" (symbol->string name))))
@@ -424,42 +426,30 @@
 ;;; {Methods}
 ;;;
 
-(define-macro (define-method head . body)
-  (if (not (pair? head))
-      (goops-error "bad method head: ~S" head))
-  (let ((gf (car head)))
-    (cond ((and (pair? gf)
-                (eq? (car gf) 'setter)
-                (pair? (cdr gf))
-                (symbol? (cadr gf))
-                (null? (cddr gf)))
-           ;; named setter method
-           (let ((name (cadr gf)))
-             (cond ((not (symbol? name))
-                    `(add-method! (setter ,name)
-                                  (method ,(cdr head) ,@body)))
-                   (else
-                    `(begin
-                       (if (or (not (defined? ',name))
-                               (not (is-a? ,name <accessor>)))
-                           (define-accessor ,name))
-                       (add-method! (setter ,name)
-                                    (method ,(cdr head) ,@body)))))))
-          ((not (symbol? gf))
-           `(add-method! ,gf (method ,(cdr head) ,@body)))
-          (else
-           `(begin
-              ;; FIXME: this code is how it always was, but it's quite
-              ;; cracky: it will only define the generic function if it
-              ;; was undefined before (ok), or *was defined to #f*. The
-              ;; latter is crack. But there are bootstrap issues about
-              ;; fixing this -- change it to (is-a? ,gf <generic>) and
-              ;; see.
-              (if (or (not (defined? ',gf))
-                      (not ,gf))
-                  (define-generic ,gf))
-              (add-method! ,gf
-                           (method ,(cdr head) ,@body)))))))
+(define (toplevel-define! name val)
+  (module-define! (current-module) name val))
+
+(define-syntax define-method
+  (syntax-rules (setter)
+    ((_ ((setter name) . args) body ...)
+     (begin
+       (if (or (not (defined? 'name))
+               (not (is-a? name <accessor>)))
+           (toplevel-define! 'name
+                             (ensure-accessor
+                              (if (defined? 'name) name #f) 'name)))
+       (add-method! (setter name) (method args body ...))))
+    ((_ (name . args) body ...)
+     (begin
+       ;; FIXME: this code is how it always was, but it's quite cracky:
+       ;; it will only define the generic function if it was undefined
+       ;; before (ok), or *was defined to #f*. The latter is crack. But
+       ;; there are bootstrap issues about fixing this -- change it to
+       ;; (is-a? name <generic>) and see.
+       (if (or (not (defined? 'name))
+               (not name))
+           (toplevel-define! 'name (make <generic> #:name 'name)))
+       (add-method! name (method args body ...))))))
 
 (define-macro (method args . body)
   (letrec ((specializers
