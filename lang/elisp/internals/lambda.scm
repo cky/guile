@@ -1,4 +1,5 @@
 (define-module (lang elisp internals lambda)
+  #:use-syntax (lang elisp expand)
   #:use-module (lang elisp internals fset)
   #:use-module (lang elisp transform)
   #:export (parse-formals
