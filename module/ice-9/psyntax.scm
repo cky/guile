@@ -338,16 +338,17 @@
     ((_) (gensym))))
 
 (define put-global-definition-hook
-  (lambda (symbol binding)
+  (lambda (symbol type val)
     (let* ((module (current-module))
            (v (or (module-variable module symbol)
-                  (let ((v (make-variable (gensym))))
+                  (let ((v (make-variable val)))
                     (module-add! module symbol v)
                     v))))
       (if (not (variable-bound? v))
-          (variable-set! v (gensym)))
+          (variable-set! v val))
       ;; Properties are tied to variable objects
-      (set-object-property! v '*sc-expander* binding))))
+      (set-object-property! v '*sc-expander*
+                            (make-binding type val)))))
 
 (define remove-global-definition-hook
   (lambda (symbol)
@@ -604,7 +605,7 @@
 
 (define global-extend
   (lambda (type sym val)
-    (put-global-definition-hook sym (make-binding type val))))
+    (put-global-definition-hook sym type val)))
 
 
 ;;; Conceptually, identifiers are always syntax objects.  Internally,
