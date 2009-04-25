@@ -552,12 +552,21 @@ scm_read_mixed_case_symbol (int chr, SCM port)
 
   if (scm_is_pair (str))
     {
+      size_t len;
+
       str = scm_string_concatenate (scm_reverse_x (str, SCM_EOL));
-      result = scm_string_to_symbol (str);
+      len = scm_c_string_length (str);
 
       /* Per SRFI-88, `:' alone is an identifier, not a keyword.  */
-      if (postfix && ends_with_colon && (scm_c_string_length (result) > 1))
-	result = scm_symbol_to_keyword (result);
+      if (postfix && ends_with_colon && (len > 1))
+	{
+	  /* Strip off colon.  */
+	  str = scm_c_substring (str, 0, len-1);
+	  result = scm_string_to_symbol (str);
+	  result = scm_symbol_to_keyword (result);
+	}
+      else
+	result = scm_string_to_symbol (str);
     }
   else
     {
