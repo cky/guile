@@ -154,17 +154,6 @@
 ;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
 ;;;   OPTION ::= KEYWORD VALUE
 ;;;
-(define (define-class-pre-definition kw val)
-  (case kw
-    ((#:getter #:setter)
-     `(if (or (not (defined? ',val))
-              (not (is-a? ,val <generic>)))
-          (define-generic ,val)))
-    ((#:accessor)
-     `(if (or (not (defined? ',val))
-              (not (is-a? ,val <accessor>)))
-          (define-accessor ,val)))
-    (else #f)))
 
 (define (kw-do-map mapper f kwargs)
   (define (keywords l)
@@ -179,71 +168,6 @@
   (let* ((k (keywords kwargs))
          (a (args kwargs)))
     (mapper f k a)))
-
-;;; This code should be implemented in C.
-;;;
-(define-macro (define-class name supers . slots)
-  ;; Some slot options require extra definitions to be made. In
-  ;; particular, we want to make sure that the generic function objects
-  ;; which represent accessors exist before `make-class' tries to add
-  ;; methods to them.
-  ;;
-  ;; Postpone some error handling to class macro.
-  ;;
-  `(begin
-     ;; define accessors
-     ,@(append-map (lambda (slot)
-                     (kw-do-map filter-map
-                                define-class-pre-definition 
-                                (if (pair? slot) (cdr slot) '())))
-                   (take-while (lambda (x) (not (keyword? x))) slots))
-     (if (and (defined? ',name)
-              (is-a? ,name <class>)
-              (memq <object> (class-precedence-list ,name)))
-         (class-redefinition ,name
-                             (class ,supers ,@slots #:name ',name))
-         (define ,name (class ,supers ,@slots #:name ',name)))))
-
-(define-syntax standard-define-class
-  (syntax-rules ()
-    ((_ arg ...) (define-class arg ...))))
-
-;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
-;;;
-;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
-;;;   OPTION ::= KEYWORD VALUE
-;;;
-(define-macro (class supers . slots)
-  (define (make-slot-definition-forms slots)
-    (map
-     (lambda (def)
-       (cond
-        ((pair? def)
-         `(list ',(car def)
-                ,@(kw-do-map append-map
-                             (lambda (kw arg)
-                               (case kw
-                                 ((#:init-form)
-                                  `(#:init-form ',arg
-                                    #:init-thunk (lambda () ,arg)))
-                                 (else (list kw arg))))
-                             (cdr def))))
-        (else
-         `(list ',def))))
-     slots))
-    
-  (if (not (list? supers))
-      (goops-error "malformed superclass list: ~S" supers))
-  (let ((slot-defs (cons #f '()))
-        (slots (take-while (lambda (x) (not (keyword? x))) slots))
-        (options (or (find-tail keyword? slots) '())))
-    `(make-class
-      ;; evaluate super class variables
-      (list ,@supers)
-      ;; evaluate slot definitions, except the slot name!
-      (list ,@(make-slot-definition-forms slots))
-      ;; evaluate class options
-      ,@options)))
 
 (define (make-class supers slots . options)
   (let ((env (or (get-keyword #:environment options #f)
@@ -276,6 +200,108 @@
 	     #:name name
 	     #:environment env
 	     options))))
+
+;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
+;;;
+;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
+;;;   OPTION ::= KEYWORD VALUE
+;;;
+(define-macro (class supers . slots)
+  (define (make-slot-definition-forms slots)
+    (map
+     (lambda (def)
+       (cond
+        ((pair? def)
+         `(list ',(car def)
+                ,@(kw-do-map append-map
+                             (lambda (kw arg)
+                               (case kw
+                                 ((#:init-form)
+                                  `(#:init-form ',arg
+                                    #:init-thunk (lambda () ,arg)))
+                                 (else (list kw arg))))
+                             (cdr def))))
+        (else
+         `(list ',def))))
+     slots))
+  (if (not (list? supers))
+      (goops-error "malformed superclass list: ~S" supers))
+  (let ((slot-defs (cons #f '()))
+        (slots (take-while (lambda (x) (not (keyword? x))) slots))
+        (options (or (find-tail keyword? slots) '())))
+    `(make-class
+      ;; evaluate super class variables
+      (list ,@supers)
+      ;; evaluate slot definitions, except the slot name!
+      (list ,@(make-slot-definition-forms slots))
+      ;; evaluate class options
+      ,@options)))
+
+(define-syntax define-class-pre-definition
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (k arg rest ...) out ...)
+       (keyword? (syntax-object->datum (syntax k)))
+       (case (syntax-object->datum (syntax k))
+         ((#:getter #:setter)
+          (syntax
+           (define-class-pre-definition (rest ...)
+             out ...
+             (if (or (not (defined? 'arg))
+                     (not (is-a? arg <generic>)))
+                 (toplevel-define!
+                  'arg
+                  (ensure-generic (if (defined? 'arg) arg #f) 'arg))))))
+         ((#:accessor)
+          (syntax
+           (define-class-pre-definition (rest ...)
+             out ...
+             (if (or (not (defined? 'arg))
+                     (not (is-a? arg <accessor>)))
+                 (toplevel-define!
+                  'arg
+                  (ensure-accessor (if (defined? 'arg) arg #f) 'arg))))))
+         (else
+          (syntax
+           (define-class-pre-definition (rest ...) out ...)))))
+      ((_ () out ...)
+       (syntax (begin out ...))))))
+       
+;; Some slot options require extra definitions to be made. In
+;; particular, we want to make sure that the generic function objects
+;; which represent accessors exist before `make-class' tries to add
+;; methods to them.
+(define-syntax define-class-pre-definitions
+  (lambda (x)
+    (syntax-case x ()
+      ((_ () out ...)
+       (syntax (begin out ...)))
+      ((_ (slot rest ...) out ...)
+       (keyword? (syntax-object->datum (syntax slot)))
+       (syntax (begin out ...)))
+      ((_ (slot rest ...) out ...)
+       (identifier? (syntax slot))
+       (syntax (define-class-pre-definitions (rest ...)
+                 out ...)))
+      ((_ ((slotname slotopt ...) rest ...) out ...)
+       (syntax (define-class-pre-definitions (rest ...) 
+                 out ... (define-class-pre-definition (slotopt ...))))))))
+
+(define-syntax define-class
+  (syntax-rules ()
+    ((_ name supers slot ...)
+     (begin
+       (define-class-pre-definitions (slot ...))
+       (if (and (defined? 'name)
+                (is-a? name <class>)
+                (memq <object> (class-precedence-list name)))
+           (class-redefinition name
+                               (class supers slot ... #:name 'name))
+           (toplevel-define! 'name (class supers slot ... #:name 'name)))))))
+       
+(define-syntax standard-define-class
+  (syntax-rules ()
+    ((_ arg ...) (define-class arg ...))))
 
 ;;;
 ;;; {Generic functions and accessors}
@@ -1035,11 +1061,14 @@
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
+;; separate expression so that we affect the expansion of the subsequent
+;; expression
 (eval-when (compile)
   (use-modules ((language scheme compile-ghil) :select (define-scheme-translator))
                ((language ghil) :select (make-ghil-inline make-ghil-call))
-               (system base pmatch))
+               (system base pmatch)))
 
+(eval-when (compile)
   ;; unfortunately, can't use define-inline because these are primitive
   ;; syntaxen.
   (define-scheme-translator @slot-ref
