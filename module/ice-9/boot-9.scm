@@ -183,7 +183,7 @@
 (define sc-expand #f)
 (define sc-expand3 #f)
 (define install-global-transformer #f)
-(define syntax-dispatch #f)
+(define $sc-dispatch #f)
 (define syntax-violation #f)
 (define (annotation? x) #f)
 

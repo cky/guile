@@ -83,7 +83,7 @@
 ;;;      used to report errors found during expansion
 ;;;   (install-global-transformer symbol value)
 ;;;      used by expanded code to install top-level syntactic abstractions
-;;;   (syntax-dispatch e p)
+;;;   ($sc-dispatch e p)
 ;;;      used by expanded code to handle syntax-case matching
 
 ;;; The following nonstandard procedures must be provided by the
@@ -1839,7 +1839,7 @@
   (let ()
     (define convert-pattern
       ; accepts pattern & keys
-      ; returns syntax-dispatch pattern & ids
+      ; returns $sc-dispatch pattern & ids
       (lambda (pattern keys)
         (let cvt ((p pattern) (n 0) (ids '()))
           (if (id? p)
@@ -1918,7 +1918,7 @@
                                (build-primref no-source 'list)
                                (list x))
                              (build-application no-source
-                               (build-primref no-source 'syntax-dispatch)
+                               (build-primref no-source '$sc-dispatch)
                                (list x (build-data no-source p)))))))))))))
 
     (define gen-syntax-case
@@ -2053,7 +2053,7 @@
     (arg-check procedure? v 'define-syntax)
     (global-extend 'macro sym v)))
 
-;;; syntax-dispatch expects an expression and a pattern.  If the expression
+;;; $sc-dispatch expects an expression and a pattern.  If the expression
 ;;; matches the pattern a list of the matching expressions for each
 ;;; "any" is returned.  Otherwise, #f is returned.  (This use of #f will
 ;;; not work on r4rs implementations that violate the ieee requirement
@@ -2164,7 +2164,7 @@
          (syntax-object-module e)))
       (else (match* (unannotate e) p w r mod)))))
 
-(set! syntax-dispatch
+(set! $sc-dispatch
   (lambda (e p)
     (cond
       ((eq? p 'any) (list e))
