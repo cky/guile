@@ -156,9 +156,32 @@
 (define (resolve-module . args)
   #f)
 
+;;; Here we use "keyword" in the sense that R6RS uses it, as in "a
+;;; definition may be a keyword definition or a variable definition".
+;;; Keywords are syntactic bindings; variables are value bindings.
+(define (module-define-keyword! mod sym type val)
+  (let ((v (or (module-local-variable mod sym)
+               (let ((v (make-variable val)))
+                 (module-add! mod sym v)
+                 v))))
+    (if (or (not (variable-bound? v))
+            (not (macro? (variable-ref v))))
+        (variable-set! v val))
+    (set-object-property! v '*sc-expander* (cons type val))))
+
+(define (module-lookup-keyword mod sym)
+  (let ((v (module-variable mod sym)))
+    (and v (object-property v '*sc-expander*))))
+
+(define (module-undefine-keyword! mod sym)
+  (let ((v (module-local-variable mod sym)))
+    (if v
+        (let ((p (assq '*sc-expander* (object-properties v))))
+          ;; probably should unbind the variable too
+          (set-object-properties! v (delq p (object-properties v)))))))
+
 (define sc-expand #f)
 (define sc-expand3 #f)
-(define sc-chi #f)
 (define install-global-transformer #f)
 (define syntax-dispatch #f)
 (define syntax-error #f)

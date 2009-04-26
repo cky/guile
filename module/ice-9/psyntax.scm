@@ -339,34 +339,19 @@
 
 (define put-global-definition-hook
   (lambda (symbol type val)
-    (let* ((module (current-module))
-           (v (or (module-variable module symbol)
-                  (let ((v (make-variable val)))
-                    (module-add! module symbol v)
-                    v))))
-      (if (not (variable-bound? v))
-          (variable-set! v val))
-      ;; Properties are tied to variable objects
-      (set-object-property! v '*sc-expander*
-                            (make-binding type val)))))
+    (module-define-keyword! (current-module) symbol type val)))
 
 (define remove-global-definition-hook
   (lambda (symbol)
-    (let* ((module (current-module))
-           (v (module-local-variable module symbol)))
-      (if v
-          (let ((p (assq '*sc-expander* (object-properties v))))
-            (set-object-properties! v (delq p (object-properties v))))))))
+    (module-undefine-keyword! (current-module) symbol)))
 
 (define get-global-definition-hook
   (lambda (symbol module)
-    (let* ((module (if module
-                       (resolve-module (cdr module))
-                       (let ((mod (current-module)))
-                         (if mod (warn "wha" symbol))
-                         mod)))
-           (v (module-variable module symbol)))
-      (and v (object-property v '*sc-expander*)))))
+    (if (and (not module) (current-module))
+        (warn "module system is booted, we should have a module" symbol))
+    (module-lookup-keyword (if module (resolve-module (cdr module))
+                               (current-module))
+                           symbol)))
 
 )
 
@@ -2170,7 +2155,6 @@
          p (syntax-object-wrap e) '() (syntax-object-module e)))
       (else (match* (unannotate e) p empty-wrap '() #f)))))
 
-(set! sc-chi chi)
 ))
 )
 
