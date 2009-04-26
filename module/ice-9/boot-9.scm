@@ -140,7 +140,6 @@
   '(guile))
 (define (module-add! module sym var)
   (hashq-set! (%get-pre-modules-obarray) sym var))
-(define sc-macro 'sc-macro)
 (define (make-module-ref mod var kind)
   (case kind
     ((public) (if mod `(@ ,mod ,var) var))
