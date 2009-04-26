@@ -37,7 +37,7 @@ SOURCES =								\
 									\
   language/ghil.scm language/glil.scm language/assembly.scm		\
 									\
-  $(SCHEME_LANG_SOURCES) $(ECMASCRIPT_LANG_SOURCES)			\
+  $(SCHEME_LANG_SOURCES) 						\
   $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
@@ -46,6 +46,7 @@ SOURCES =								\
   $(SRFI_SOURCES)							\
   $(OOP_SOURCES)							\
   $(SYSTEM_SOURCES)                                                     \
+  $(ECMASCRIPT_LANG_SOURCES)						\
   $(SCRIPTS_SOURCES)
 
 ## test.scm is not currently installed.
