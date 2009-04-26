@@ -189,6 +189,7 @@ SRFI_SOURCES = \
   srfi/srfi-14.scm \
   srfi/srfi-16.scm \
   srfi/srfi-17.scm \
+  srfi/srfi-18.scm \
   srfi/srfi-19.scm \
   srfi/srfi-26.scm \
   srfi/srfi-31.scm \
@@ -243,5 +244,4 @@ NOCOMP_SOURCES =				\
   ice-9/debugging/steps.scm \
   ice-9/debugging/trace.scm \
   ice-9/debugging/traps.scm \
-  ice-9/debugging/trc.scm \
-  srfi/srfi-18.scm
+  ice-9/debugging/trc.scm

@@ -1405,7 +1405,9 @@
 ;; or its uses?
 ;;
 (define (module-bound? m v)
-  (module-search module-locally-bound? m v))
+  (let ((var (module-variable m v)))
+    (and var
+	 (variable-bound? var))))
 
 ;;; {Is a symbol interned in a module?}
 ;;;
