@@ -184,7 +184,7 @@
 (define sc-expand3 #f)
 (define install-global-transformer #f)
 (define syntax-dispatch #f)
-(define syntax-error #f)
+(define syntax-violation #f)
 (define (annotation? x) #f)
 
 (define bound-identifier=? #f)

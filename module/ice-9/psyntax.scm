@@ -79,7 +79,7 @@
 ;;;      conditionally evaluates expr ... at compile-time or run-time
 ;;;      depending upon situations (see the Chez Scheme System Manual,
 ;;;      Revision 3, for a complete description)
-;;;   (syntax-error object message)
+;;;   (syntax-violation who message form [subform])
 ;;;      used to report errors found during expansion
 ;;;   (install-global-transformer symbol value)
 ;;;      used by expanded code to install top-level syntactic abstractions
@@ -912,8 +912,9 @@
                        ((free-id=? x (syntax compile)) 'compile)
                        ((free-id=? x (syntax load)) 'load)
                        ((free-id=? x (syntax eval)) 'eval)
-                       (else (syntax-error (wrap x w #f)
-                               "invalid eval-when situation"))))
+                       (else (syntax-violation 'eval-when
+                                               "invalid situation"
+                                               e (wrap x w #f)))))
                    situations))))))
 
 ;;; syntax-type returns six values: type, value, e, w, s, and mod. The
@@ -1102,15 +1103,16 @@
                   (build-global-definition s n (chi e r w mod) mod)
                   mod))
                ((displaced-lexical)
-                (syntax-error (wrap value w mod) "identifier out of context"))
+                (syntax-violation #f "identifier out of context"
+                                  e (wrap value w mod)))
                ((core macro module-ref)
                 (remove-global-definition-hook n)
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w mod) mod)
                   mod))
                (else
-                (syntax-error (wrap value w mod)
-                              "cannot define keyword at top level")))))
+                (syntax-violation #f "cannot define keyword at top level"
+                                  e (wrap value w mod))))))
           (else (eval-if-c&e m (chi-expr type value e r w s mod) mod)))))))
 
 (define chi
@@ -1159,14 +1161,16 @@
                 (chi-sequence (syntax (e1 e2 ...)) r w s mod)
                 (chi-void))))))
       ((define-form define-syntax-form)
-       (syntax-error (wrap value w mod) "invalid context for definition of"))
+       (syntax-violation #f "definition in expression context"
+                         e (wrap value w mod)))
       ((syntax)
-       (syntax-error (source-wrap e w s mod)
-         "reference to pattern variable outside syntax form"))
+       (syntax-violation #f "reference to pattern variable outside syntax form"
+                         (source-wrap e w s mod)))
       ((displaced-lexical)
-       (syntax-error (source-wrap e w s mod)
+       (syntax-violation #f (source-wrap e w s mod)
          "reference to identifier outside its scope"))
-      (else (syntax-error (source-wrap e w s mod))))))
+      (else (syntax-violation #f "unexpected syntax"
+                              (source-wrap e w s mod))))))
 
 (define chi-application
   (lambda (x e r w s mod)
@@ -1213,7 +1217,8 @@
                      (vector-set! v i
                        (rebuild-macro-output (vector-ref x i) m)))))
               ((symbol? x)
-               (syntax-error x "encountered raw symbol in macro output"))
+               (syntax-violation #f "encountered raw symbol in macro output"
+                                 (source-wrap e w s mod) x))
               (else x))))
     (rebuild-macro-output (p (wrap e (anti-mark w) mod)) (new-mark))))
 
@@ -1263,7 +1268,7 @@
       (let parse ((body (map (lambda (x) (cons r (wrap x w mod))) body))
                   (ids '()) (labels '()) (vars '()) (vals '()) (bindings '()))
         (if (null? body)
-            (syntax-error outer-form "no expressions in body")
+            (syntax-violation #f "no expressions in body" outer-form)
             (let ((e (cdar body)) (er (caar body)))
               (call-with-values
                 (lambda () (syntax-type e er empty-wrap no-source ribcage mod))
@@ -1312,8 +1317,9 @@
                                       (cdr body))))
                          (begin
                            (if (not (valid-bound-ids? ids))
-                               (syntax-error outer-form
-                                 "invalid or duplicate identifier in definition"))
+                               (syntax-violation
+                                #f "invalid or duplicate identifier in definition"
+                                outer-form))
                            (let loop ((bs bindings) (er-cache #f) (r-cache #f))
                              (if (not (null? bs))
                                  (let* ((b (car bs)))
@@ -1350,7 +1356,7 @@
       (((id ...) e1 e2 ...)
        (let ((ids (syntax (id ...))))
          (if (not (valid-bound-ids? ids))
-             (syntax-error e "invalid parameter list in")
+             (syntax-violation 'lambda "invalid parameter list" e)
              (let ((labels (gen-labels ids))
                    (new-vars (map gen-var ids)))
                (k new-vars
@@ -1363,7 +1369,7 @@
       ((ids e1 e2 ...)
        (let ((old-ids (lambda-var-list (syntax ids))))
          (if (not (valid-bound-ids? old-ids))
-             (syntax-error e "invalid parameter list in")
+             (syntax-violation 'lambda "invalid parameter list" e)
              (let ((labels (gen-labels old-ids))
                    (new-vars (map gen-var old-ids)))
                (k (let f ((ls1 (cdr new-vars)) (ls2 (car new-vars)))
@@ -1376,7 +1382,7 @@
                             (extend-var-env labels new-vars r)
                             (make-binding-wrap old-ids labels w)
                             mod))))))
-      (_ (syntax-error e)))))
+      (_ (syntax-violation 'lambda "bad lambda" e)))))
 
 (define chi-local-syntax
   (lambda (rec? e r w s mod k)
@@ -1384,7 +1390,7 @@
       ((_ ((id val) ...) e1 e2 ...)
        (let ((ids (syntax (id ...))))
          (if (not (valid-bound-ids? ids))
-             (syntax-error e "duplicate bound keyword in")
+             (syntax-violation #f "duplicate bound keyword" e)
              (let ((labels (gen-labels ids)))
                (let ((new-w (make-binding-wrap ids labels w)))
                  (k (syntax (e1 e2 ...))
@@ -1402,14 +1408,15 @@
                     new-w
                     s
                     mod))))))
-      (_ (syntax-error (source-wrap e w s mod))))))
+      (_ (syntax-violation #f "bad local syntax definition"
+                           (source-wrap e w s mod))))))
 
 (define eval-local-transformer
   (lambda (expanded mod)
     (let ((p (local-eval-hook expanded mod)))
       (if (procedure? p)
           p
-          (syntax-error p "nonprocedure transformer")))))
+          (syntax-violation #f "nonprocedure transformer" p)))))
 
 (define chi-void
   (lambda ()
@@ -1514,8 +1521,10 @@
            (lambda (id n)
              (case (binding-type (lookup n r mod))
                ((displaced-lexical)
-                (syntax-error (source-wrap id w s mod)
-                  "identifier out of context"))))
+                (syntax-violation 'fluid-let-syntax
+                                  "identifier out of context"
+                                  e
+                                  (source-wrap id w s mod)))))
            (syntax (var ...))
            names)
          (chi-body
@@ -1532,13 +1541,15 @@
              r)
            w
            mod)))
-      (_ (syntax-error (source-wrap e w s mod))))))
+      (_ (syntax-violation 'fluid-let-syntax "bad syntax"
+                           (source-wrap e w s mod))))))
 
 (global-extend 'core 'quote
    (lambda (e r w s mod)
       (syntax-case e ()
          ((_ e) (build-data s (strip (syntax e) w)))
-         (_ (syntax-error (source-wrap e w s mod))))))
+         (_ (syntax-violation 'quote "bad syntax"
+                              (source-wrap e w s mod))))))
 
 (global-extend 'core 'syntax
   (let ()
@@ -1554,7 +1565,7 @@
                           (gen-ref src (car var.lev) (cdr var.lev) maps)))
                       (lambda (var maps) (values `(ref ,var) maps)))
                     (if (ellipsis? e)
-                        (syntax-error src "misplaced ellipsis in syntax form")
+                        (syntax-violation 'syntax "misplaced ellipsis" src)
                         (values `(quote ,e) maps)))))
             (syntax-case e ()
               ((dots e)
@@ -1572,8 +1583,8 @@
                                   (cons '() maps) ellipsis? mod))
                               (lambda (x maps)
                                 (if (null? (car maps))
-                                    (syntax-error src
-                                      "extra ellipsis in syntax form")
+                                    (syntax-violation 'syntax "extra ellipsis"
+                                                      src)
                                     (values (gen-map x (car maps))
                                             (cdr maps))))))))
                  (syntax-case y ()
@@ -1585,8 +1596,7 @@
                            (lambda () (k (cons '() maps)))
                            (lambda (x maps)
                              (if (null? (car maps))
-                                 (syntax-error src
-                                   "extra ellipsis in syntax form")
+                                 (syntax-violation 'syntax "extra ellipsis" src)
                                  (values (gen-mappend x (car maps))
                                          (cdr maps))))))))
                    (_ (call-with-values
@@ -1615,7 +1625,7 @@
         (if (fx= level 0)
             (values var maps)
             (if (null? maps)
-                (syntax-error src "missing ellipsis in syntax form")
+                (syntax-violation 'syntax "missing ellipsis" src)
                 (call-with-values
                   (lambda () (gen-ref src var (fx- level 1) (cdr maps)))
                   (lambda (outer-var outer-maps)
@@ -1703,7 +1713,7 @@
            (call-with-values
              (lambda () (gen-syntax e (syntax x) r '() ellipsis? mod))
              (lambda (e maps) (regen e))))
-          (_ (syntax-error e)))))))
+          (_ (syntax-violation 'syntax "bad `syntax' form" e)))))))
 
 
 (global-extend 'core 'lambda
@@ -1718,7 +1728,7 @@
   (let ()
     (define (chi-let e r w s mod constructor ids vals exps)
       (if (not (valid-bound-ids? ids))
-	  (syntax-error e "duplicate bound variable in")
+	  (syntax-violation 'let "duplicate bound variable" e)
 	  (let ((labels (gen-labels ids))
 		(new-vars (map gen-var ids)))
 	    (let ((nw (make-binding-wrap ids labels w))
@@ -1743,7 +1753,7 @@
 		  (syntax (f id ...))
 		  (syntax (val ...))
 		  (syntax (e1 e2 ...))))
-	(_ (syntax-error (source-wrap e w s mod)))))))
+	(_ (syntax-violation 'let "bad let" (source-wrap e w s mod)))))))
 
 
 (global-extend 'core 'letrec
@@ -1752,7 +1762,7 @@
       ((_ ((id val) ...) e1 e2 ...)
        (let ((ids (syntax (id ...))))
          (if (not (valid-bound-ids? ids))
-             (syntax-error e "duplicate bound variable in")
+             (syntax-violation 'letrec "duplicate bound variable" e)
              (let ((labels (gen-labels ids))
                    (new-vars (map gen-var ids)))
                (let ((w (make-binding-wrap ids labels w))
@@ -1762,7 +1772,7 @@
                    (map (lambda (x) (chi x r w mod)) (syntax (val ...)))
                    (chi-body (syntax (e1 e2 ...)) 
                              (source-wrap e w s mod) r w mod)))))))
-      (_ (syntax-error (source-wrap e w s mod))))))
+      (_ (syntax-violation 'letrec "bad letrec" (source-wrap e w s mod))))))
 
 
 (global-extend 'core 'set!
@@ -1778,9 +1788,10 @@
               (build-lexical-assignment s (binding-value b) val))
              ((global) (build-global-assignment s n val mod))
              ((displaced-lexical)
-              (syntax-error (wrap (syntax id) w mod)
-                "identifier out of context"))
-             (else (syntax-error (source-wrap e w s mod)))))))
+              (syntax-violation 'set! "identifier out of context"
+                                (wrap (syntax id) w mod)))
+             (else (syntax-violation 'set! "bad set!"
+                                     (source-wrap e w s mod)))))))
       ((_ (head tail ...) val)
        (call-with-values
            (lambda () (syntax-type (syntax head) r empty-wrap no-source #f mod))
@@ -1796,7 +1807,7 @@
                                  (chi (syntax (setter head)) r w mod)
                                  (map (lambda (e) (chi e r w mod))
                                       (syntax (tail ... val)))))))))
-      (_ (syntax-error (source-wrap e w s mod))))))
+      (_ (syntax-violation 'set! "bad set!" (source-wrap e w s mod))))))
 
 (global-extend 'module-ref '@
    (lambda (e)
@@ -1884,11 +1895,9 @@
           (lambda (p pvars)
             (cond
               ((not (distinct-bound-ids? (map car pvars)))
-               (syntax-error pat
-                 "duplicate pattern variable in syntax-case pattern"))
+               (syntax-violation 'syntax-case "duplicate pattern variable" pat))
               ((not (andmap (lambda (x) (not (ellipsis? (car x)))) pvars))
-               (syntax-error pat
-                 "misplaced ellipsis in syntax-case pattern"))
+               (syntax-violation 'syntax-case "misplaced ellipsis" pat))
               (else
                (let ((y (gen-var 'tmp)))
                  ; fat finger binding and references to temp variable y
@@ -1916,8 +1925,8 @@
       (lambda (x keys clauses r mod)
         (if (null? clauses)
             (build-application no-source
-              (build-primref no-source 'syntax-error)
-              (list x))
+              (build-primref no-source 'syntax-violation)
+              (list #f "source expression failed to match any pattern" x))
             (syntax-case (car clauses) ()
               ((pat exp)
                (if (and (id? (syntax pat))
@@ -1940,7 +1949,8 @@
               ((pat fender exp)
                (gen-clause x keys (cdr clauses) r
                  (syntax pat) (syntax fender) (syntax exp) mod))
-              (_ (syntax-error (car clauses) "invalid syntax-case clause"))))))
+              (_ (syntax-violation 'syntax-case "invalid clause"
+                                   (car clauses)))))))
 
     (lambda (e r w s mod)
       (let ((e (source-wrap e w s mod)))
@@ -1957,7 +1967,7 @@
                        r
                        mod))
                    (list (chi (syntax val) r empty-wrap mod))))
-               (syntax-error e "invalid literals list in"))))))))
+               (syntax-violation 'syntax-case "invalid literals list" e))))))))
 
 ;;; The portable sc-expand seeds chi-top's mode m with 'e (for
 ;;; evaluating) and esew (which stands for "eval syntax expanders
@@ -2021,13 +2031,21 @@
       (arg-check nonsymbol-id? y 'bound-identifier=?)
       (bound-id=? x y)))
 
-(set! syntax-error
-  (lambda (object . messages)
-    (for-each (lambda (x) (arg-check string? x 'syntax-error)) messages)
-    (let ((message (if (null? messages)
-                       "invalid syntax"
-                       (apply string-append messages))))
-      (error-hook #f message (strip object empty-wrap)))))
+(set! syntax-violation
+  (lambda (who message form . subform)
+    (arg-check (lambda (x) (or (not x) (string? x) (symbol? x)))
+               who 'syntax-violation)
+    (arg-check string? message 'syntax-violation)
+    (scm-error 'syntax-error 'sc-expand
+               (string-append
+                (if who "~a: " "")
+                "~a "
+                (if (null? subform) "in ~a" "in subform `~s' of `~s'"))
+               (let ((tail (cons message
+                                 (map (lambda (x) (strip x empty-wrap))
+                                      (append subform (list form))))))
+                 (if who (cons who tail) tail))
+               #f)))
 
 (set! install-global-transformer
   (lambda (sym v)
@@ -2199,7 +2217,9 @@
                                  (syntax-case s ()
                                     (() v)
                                     ((e) (syntax e))
-                                    (_ (syntax-error orig-x))))
+                                    (_ (syntax-violation
+                                        'do "bad step expression" 
+                                        orig-x s))))
                               (syntax (var ...))
                               (syntax (step ...)))))
              (syntax-case (syntax (e1 ...)) ()
@@ -2307,14 +2327,15 @@
                         ((else e1 e2 ...) (syntax (begin e1 e2 ...)))
                         (((k ...) e1 e2 ...)
                          (syntax (if (memv t '(k ...)) (begin e1 e2 ...))))
-                        (_ (syntax-error x)))
+                        (_ (syntax-violation 'case "bad clause" x clause)))
                       (with-syntax ((rest (f (car clauses) (cdr clauses))))
                         (syntax-case clause (else)
                           (((k ...) e1 e2 ...)
                            (syntax (if (memv t '(k ...))
                                        (begin e1 e2 ...)
                                        rest)))
-                          (_ (syntax-error x))))))))
+                          (_ (syntax-violation 'case "bad clause" x
+                                               clause))))))))
          (syntax (let ((t e)) body)))))))
 
 (define-syntax identifier-syntax
