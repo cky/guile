@@ -49,7 +49,7 @@
 ;;; also documented in the R4RS and draft R5RS.
 ;;;
 ;;;   bound-identifier=?
-;;;   datum->syntax-object
+;;;   datum->syntax
 ;;;   define-syntax
 ;;;   fluid-let-syntax
 ;;;   free-identifier=?
@@ -60,7 +60,7 @@
 ;;;   letrec-syntax
 ;;;   syntax
 ;;;   syntax-case
-;;;   syntax-object->datum
+;;;   syntax->datum
 ;;;   syntax-rules
 ;;;   with-syntax
 ;;;
@@ -209,7 +209,7 @@
 
 ;;; Objects with no standard print syntax, including objects containing
 ;;; cycles and syntax object, are allowed in quoted data as long as they
-;;; are contained within a syntax form or produced by datum->syntax-object.
+;;; are contained within a syntax form or produced by datum->syntax.
 ;;; Such objects are never copied.
 
 ;;; All identifiers that don't have macro definitions and are not bound
@@ -264,14 +264,14 @@
   (lambda (x)
     (define construct-name
       (lambda (template-identifier . args)
-        (datum->syntax-object
+        (datum->syntax
           template-identifier
           (string->symbol
             (apply string-append
                    (map (lambda (x)
                           (if (string? x)
                               x
-                              (symbol->string (syntax-object->datum x))))
+                              (symbol->string (syntax->datum x))))
                         args))))))
     (syntax-case x ()
       ((_ (name id1 ...))
@@ -1351,7 +1351,7 @@
   (lambda (e docstring c r w mod k)
     (syntax-case c ()
       ((args doc e1 e2 ...)
-       (and (string? (syntax-object->datum (syntax doc))) (not docstring))
+       (and (string? (syntax->datum (syntax doc))) (not docstring))
        (chi-lambda-clause e (syntax doc) (syntax (args e1 e2 ...)) r w mod k))
       (((id ...) e1 e2 ...)
        (let ((ids (syntax (id ...))))
@@ -1814,8 +1814,8 @@
      (syntax-case e ()
         ((_ (mod ...) id)
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
-         (values (syntax-object->datum (syntax id))
-                 (syntax-object->datum
+         (values (syntax->datum (syntax id))
+                 (syntax->datum
                   (syntax (public mod ...))))))))
 
 (global-extend 'module-ref '@@
@@ -1823,8 +1823,8 @@
      (syntax-case e ()
         ((_ (mod ...) id)
          (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
-         (values (syntax-object->datum (syntax id))
-                 (syntax-object->datum
+         (values (syntax->datum (syntax id))
+                 (syntax->datum
                   (syntax (private mod ...))))))))
 
 (global-extend 'begin 'begin '())
@@ -2004,11 +2004,11 @@
   (lambda (x)
     (nonsymbol-id? x)))
 
-(set! datum->syntax-object
+(set! datum->syntax
   (lambda (id datum)
     (make-syntax-object datum (syntax-object-wrap id) #f)))
 
-(set! syntax-object->datum
+(set! syntax->datum
   ; accepts any object, since syntax objects may consist partially
   ; or entirely of unwrapped, nonsymbolic data
   (lambda (x)
@@ -2292,11 +2292,11 @@
           (let f ((x (read p)))
             (if (eof-object? x)
                 (begin (close-input-port p) '())
-                (cons (datum->syntax-object k x)
+                (cons (datum->syntax k x)
                       (f (read p))))))))
     (syntax-case x ()
       ((k filename)
-       (let ((fn (syntax-object->datum (syntax filename))))
+       (let ((fn (syntax->datum (syntax filename))))
          (with-syntax (((exp ...) (read-file fn (syntax k))))
            (syntax (begin exp ...))))))))
 
@@ -2306,7 +2306,7 @@
          ((_ e)
           (error 'unquote
 		 "expression ,~s not valid outside of quasiquote"
-		 (syntax-object->datum (syntax e)))))))
+		 (syntax->datum (syntax e)))))))
 
 (define-syntax unquote-splicing
    (lambda (x)
@@ -2314,7 +2314,7 @@
          ((_ e)
           (error 'unquote-splicing
 		 "expression ,@~s not valid outside of quasiquote"
-		 (syntax-object->datum (syntax e)))))))
+		 (syntax->datum (syntax e)))))))
 
 (define-syntax case
   (lambda (x)

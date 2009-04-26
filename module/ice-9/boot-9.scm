@@ -187,12 +187,13 @@
 (define syntax-violation #f)
 (define (annotation? x) #f)
 
-(define bound-identifier=? #f)
-(define datum->syntax-object #f)
-(define free-identifier=? #f)
-(define generate-temporaries #f)
+(define datum->syntax #f)
+(define syntax->datum #f)
+
 (define identifier? #f)
-(define syntax-object->datum #f)
+(define generate-temporaries #f)
+(define bound-identifier=? #f)
+(define free-identifier=? #f)
 
 (define andmap
   (lambda (f first . rest)
@@ -234,28 +235,28 @@
     "Define a defmacro."
     (syntax-case x ()
       ((_ (macro . args) doc body1 body ...)
-       (string? (syntax-object->datum (syntax doc)))
+       (string? (syntax->datum (syntax doc)))
        (syntax (define-macro macro doc (lambda args body1 body ...))))
       ((_ (macro . args) body ...)
        (syntax (define-macro macro #f (lambda args body ...))))
       ((_ macro doc transformer)
-       (or (string? (syntax-object->datum (syntax doc)))
-           (not (syntax-object->datum (syntax doc))))
+       (or (string? (syntax->datum (syntax doc)))
+           (not (syntax->datum (syntax doc))))
        (syntax
         (define-syntax macro
           (lambda (y)
             doc
             (syntax-case y ()
               ((_ . args)
-               (let ((v (syntax-object->datum (syntax args))))
-                 (datum->syntax-object y (apply transformer v))))))))))))
+               (let ((v (syntax->datum (syntax args))))
+                 (datum->syntax y (apply transformer v))))))))))))
 
 (define-syntax defmacro
   (lambda (x)
     "Define a defmacro, with the old lispy defun syntax."
     (syntax-case x ()
       ((_ macro args doc body1 body ...)
-       (string? (syntax-object->datum (syntax doc)))
+       (string? (syntax->datum (syntax doc)))
        (syntax (define-macro macro doc (lambda args body1 body ...))))
       ((_ macro args body ...)
        (syntax (define-macro macro #f (lambda args body ...)))))))
