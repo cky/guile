@@ -48,10 +48,13 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
       || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
 					macro, port, pstate)))
     {
+      scm_puts ("#<", port);
+
+      if (SCM_MACRO_TYPE (macro) < 4 && SCM_MACRO_IS_EXTENDED (macro))
+	scm_puts ("extended-", port);
+
       if (!SCM_CLOSUREP (code) && !SCM_PROGRAM_P (code))
-	scm_puts ("#<primitive-", port);
-      else
-	scm_puts ("#<", port);
+	scm_puts ("primitive-", port);
 
       if (SCM_MACRO_TYPE (macro) == 0)
 	scm_puts ("syntax", port);
@@ -63,6 +66,8 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 	scm_puts ("macro!", port);
       if (SCM_MACRO_TYPE (macro) == 3)
 	scm_puts ("builtin-macro!", port);
+      if (SCM_MACRO_TYPE (macro) == 4)
+	scm_puts ("syncase-macro", port);
 
       scm_putc (' ', port);
       scm_iprin1 (scm_macro_name (macro), port, pstate);
@@ -77,10 +82,28 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
 	  scm_iprin1 (src, port, pstate);
 	}
 
+      if (SCM_MACRO_IS_EXTENDED (macro))
+        {
+          scm_putc (' ', port);
+          scm_write (SCM_SMOB_OBJECT_2 (macro), port);
+          scm_putc (' ', port);
+          scm_write (SCM_SMOB_OBJECT_3 (macro), port);
+        }
+
       scm_putc ('>', port);
     }
 
   return 1;
+}
+
+static SCM
+macro_mark (SCM macro)
+{
+  if (SCM_MACRO_IS_EXTENDED (macro))
+    { scm_gc_mark (SCM_SMOB_OBJECT_2 (macro));
+      scm_gc_mark (SCM_SMOB_OBJECT_3 (macro));
+    }
+  return SCM_SMOB_OBJECT (macro);
 }
 
 static SCM
@@ -164,6 +187,40 @@ SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0,
 
 #endif
 
+SCM_DEFINE (scm_make_syncase_macro, "make-syncase-macro", 2, 0, 0,
+            (SCM type, SCM binding),
+	    "Return a @dfn{macro} that requires expansion by syntax-case.\n"
+            "While users should not call this function, it is useful to know\n"
+            "that syntax-case macros are represented as Guile primitive macros.")
+#define FUNC_NAME s_scm_make_syncase_macro
+{
+  SCM z;
+  SCM_VALIDATE_SYMBOL (1, type);
+
+  SCM_NEWSMOB3 (z, scm_tc16_macro, SCM_UNPACK (binding), SCM_UNPACK (type),
+                SCM_UNPACK (binding));
+  SCM_SET_SMOB_FLAGS (z, 4 | SCM_F_MACRO_EXTENDED);
+  return z;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_make_extended_syncase_macro, "make-extended-syncase-macro", 3, 0, 0,
+            (SCM m, SCM type, SCM binding),
+	    "Extend a core macro @var{m} with a syntax-case binding.")
+#define FUNC_NAME s_scm_make_extended_syncase_macro
+{
+  SCM z;
+  SCM_VALIDATE_SMOB (1, m, macro);
+  SCM_VALIDATE_SYMBOL (2, type);
+
+  SCM_NEWSMOB3 (z, scm_tc16_macro, SCM_SMOB_DATA (m), SCM_UNPACK (type),
+                SCM_UNPACK (binding));
+  SCM_SET_SMOB_FLAGS (z, SCM_SMOB_FLAGS (m) | SCM_F_MACRO_EXTENDED);
+  return z;
+}
+#undef FUNC_NAME
+
+
 
 SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0, 
             (SCM obj),
@@ -182,14 +239,15 @@ SCM_SYMBOL (scm_sym_macro, "macro");
 #endif
 SCM_SYMBOL (scm_sym_mmacro, "macro!");
 SCM_SYMBOL (scm_sym_bimacro, "builtin-macro!");
+SCM_SYMBOL (scm_sym_syncase_macro, "syncase-macro");
 
 SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0, 
             (SCM m),
-	    "Return one of the symbols @code{syntax}, @code{macro} or\n"
-	    "@code{macro!}, depending on whether @var{m} is a syntax\n"
-	    "transformer, a regular macro, or a memoizing macro,\n"
-	    "respectively.  If @var{m} is not a macro, @code{#f} is\n"
-	    "returned.")
+	    "Return one of the symbols @code{syntax}, @code{macro},\n"
+	    "@code{macro!}, or @code{syntax-case}, depending on whether\n"
+            "@var{m} is a syntax transformer, a regular macro, a memoizing\n"
+            "macro, or a syntax-case macro, respectively.  If @var{m} is\n"
+            "not a macro, @code{#f} is returned.")
 #define FUNC_NAME s_scm_macro_type
 {
   if (!SCM_SMOB_PREDICATE (scm_tc16_macro, m))
@@ -202,6 +260,7 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
 #endif
     case 2: return scm_sym_mmacro;
     case 3: return scm_sym_bimacro;
+    case 4: return scm_sym_syncase_macro;
     default: scm_wrong_type_arg (FUNC_NAME, 1, m);
     }
 }
@@ -214,7 +273,9 @@ SCM_DEFINE (scm_macro_name, "macro-name", 1, 0, 0,
 #define FUNC_NAME s_scm_macro_name
 {
   SCM_VALIDATE_SMOB (1, m, macro);
-  return scm_procedure_name (SCM_PACK (SCM_SMOB_DATA (m)));
+  if (scm_is_true (scm_procedure_p (SCM_SMOB_OBJECT (m))))
+    return scm_procedure_name (SCM_SMOB_OBJECT (m));
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -236,6 +297,34 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_syncase_macro_type, "syncase-macro-type", 1, 0, 0, 
+            (SCM m),
+	    "Return the type of the macro @var{m}.")
+#define FUNC_NAME s_scm_syncase_macro_type
+{
+  SCM_VALIDATE_SMOB (1, m, macro);
+
+  if (SCM_MACRO_IS_EXTENDED (m))
+    return SCM_SMOB_OBJECT_2 (m);
+  else
+    return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_syncase_macro_binding, "syncase-macro-binding", 1, 0, 0, 
+            (SCM m),
+	    "Return the binding of the macro @var{m}.")
+#define FUNC_NAME s_scm_syncase_macro_binding
+{
+  SCM_VALIDATE_SMOB (1, m, macro);
+
+  if (SCM_MACRO_IS_EXTENDED (m))
+    return SCM_SMOB_OBJECT_3 (m);
+  else
+    return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 SCM
 scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
 {
@@ -249,7 +338,7 @@ void
 scm_init_macros ()
 {
   scm_tc16_macro = scm_make_smob_type ("macro", 0);
-  scm_set_smob_mark (scm_tc16_macro, scm_markcdr);
+  scm_set_smob_mark (scm_tc16_macro, macro_mark);
   scm_set_smob_print (scm_tc16_macro, macro_print);
 #include "libguile/macros.x"
 }

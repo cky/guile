@@ -161,12 +161,13 @@
 ;;; Keywords are syntactic bindings; variables are value bindings.
 (define (module-define-keyword! mod sym type val)
   (let ((v (or (module-local-variable mod sym)
-               (let ((v (make-variable val)))
+               (let ((v (make-undefined-variable)))
                  (module-add! mod sym v)
                  v))))
-    (if (or (not (variable-bound? v))
-            (not (macro? (variable-ref v))))
-        (variable-set! v val))
+    (variable-set! v
+                   (if (and (variable-bound? v) (macro? (variable-ref v)))
+                       (make-extended-syncase-macro (variable-ref v) type val)
+                       (make-syncase-macro type val)))
     (set-object-property! v '*sc-expander* (cons type val))))
 
 (define (module-lookup-keyword mod sym)
@@ -180,20 +181,25 @@
           ;; probably should unbind the variable too
           (set-object-properties! v (delq p (object-properties v)))))))
 
-(define sc-expand #f)
-(define sc-expand3 #f)
-(define install-global-transformer #f)
-(define $sc-dispatch #f)
+;;; API provided by psyntax
 (define syntax-violation #f)
-(define (annotation? x) #f)
-
 (define datum->syntax #f)
 (define syntax->datum #f)
-
 (define identifier? #f)
 (define generate-temporaries #f)
 (define bound-identifier=? #f)
 (define free-identifier=? #f)
+(define sc-expand #f)
+(define sc-expand3 #f)
+
+;;; Implementation detail of psyntax -- the thing that does expand-time
+;;; dispatch for syntax-case macros
+(define $sc-dispatch #f)
+
+;;; Useless crap I'd like to get rid of
+(define install-global-transformer #f)
+(define (annotation? x) #f)
+
 
 (define andmap
   (lambda (f first . rest)
@@ -213,14 +219,9 @@
                     (apply f (cons x xr))
                     (and (apply f (cons x xr)) (andmap first rest)))))))))
 
-(define (syncase-error who format-string why what)
-  (%start-stack 'syncase-stack
-                (lambda ()
-                  (scm-error 'misc-error who "~A ~S" (list why what) '()))))
-
-;; Until the module system is booted, this will be the current expander.
 (primitive-load-path "ice-9/psyntax-pp")
 
+;; Until the module system is booted, this will be the current expander.
 (define %pre-modules-transformer sc-expand)
 
 

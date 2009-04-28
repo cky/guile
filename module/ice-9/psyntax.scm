@@ -1167,8 +1167,8 @@
        (syntax-violation #f "reference to pattern variable outside syntax form"
                          (source-wrap e w s mod)))
       ((displaced-lexical)
-       (syntax-violation #f (source-wrap e w s mod)
-         "reference to identifier outside its scope"))
+       (syntax-violation #f "reference to identifier outside its scope"
+                          (source-wrap e w s mod)))
       (else (syntax-violation #f "unexpected syntax"
                               (source-wrap e w s mod))))))
 
