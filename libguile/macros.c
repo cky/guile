@@ -224,8 +224,8 @@ SCM_DEFINE (scm_make_extended_syncase_macro, "make-extended-syncase-macro", 3, 0
 
 SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0, 
             (SCM obj),
-	    "Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a\n"
-	    "syntax transformer.")
+	    "Return @code{#t} if @var{obj} is a regular macro, a memoizing macro, a\n"
+	    "syntax transformer, or a syntax-case macro.")
 #define FUNC_NAME s_scm_macro_p
 {
   return scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_macro, obj));

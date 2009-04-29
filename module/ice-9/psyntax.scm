@@ -339,19 +339,31 @@
 
 (define put-global-definition-hook
   (lambda (symbol type val)
-    (module-define-keyword! (current-module) symbol type val)))
-
-(define remove-global-definition-hook
-  (lambda (symbol)
-    (module-undefine-keyword! (current-module) symbol)))
+    (let ((existing (let ((v (module-variable (current-module) symbol)))
+                      (and v (variable-bound? v)
+                           (let ((val (variable-ref v)))
+                             (and (macro? val)
+                                  (not (syncase-macro-type val))
+                                  val))))))
+      (module-define! (current-module)
+                      symbol
+                      (if existing
+                          (make-extended-syncase-macro existing type val)
+                          (make-syncase-macro type val))))))
 
 (define get-global-definition-hook
   (lambda (symbol module)
     (if (and (not module) (current-module))
         (warn "module system is booted, we should have a module" symbol))
-    (module-lookup-keyword (if module (resolve-module (cdr module))
-                               (current-module))
-                           symbol)))
+    (let ((v (module-variable (if module
+                                  (resolve-module (cdr module))
+                                  (current-module))
+                              symbol)))
+      (and v (variable-bound? v)
+           (let ((val (variable-ref v)))
+             (and (macro? val) (syncase-macro-type val)
+                  (cons (syncase-macro-type val)
+                        (syncase-macro-binding val))))))))
 
 )
 
@@ -897,8 +909,25 @@
 (define chi-install-global
   (lambda (name e)
     (build-application no-source
-      (build-primref no-source 'install-global-transformer)
-      (list (build-data no-source name) e))))
+      (build-primref no-source 'define)
+      (list
+       name
+       ;; FIXME: seems nasty to call current-module here
+       (if (let ((v (module-variable (current-module) name)))
+             ;; FIXME use primitive-macro?
+             (and v (variable-bound? v) (macro? (variable-ref v))
+                  (not (eq? (macro-type (variable-ref v)) 'syncase-macro))))
+           (build-application no-source
+                              (build-primref no-source 'make-extended-syncase-macro)
+                              (list (build-application no-source
+                                                       (build-primref no-source 'module-ref)
+                                                       (list (build-application no-source 'current-module '())
+                                                             (build-data no-source name)))
+                                    (build-data no-source 'macro)
+                                    e))
+           (build-application no-source
+                              (build-primref no-source 'make-syncase-macro)
+                              (list (build-data no-source 'macro) e)))))))
 
 (define chi-when-list
   (lambda (e when-list w)
@@ -1098,18 +1127,13 @@
            (let* ((n (id-var-name value w))
 		  (type (binding-type (lookup n r mod))))
              (case type
-               ((global)
+               ((global core macro module-ref)
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w mod) mod)
                   mod))
                ((displaced-lexical)
                 (syntax-violation #f "identifier out of context"
                                   e (wrap value w mod)))
-               ((core macro module-ref)
-                (remove-global-definition-hook n)
-                (eval-if-c&e m
-                  (build-global-definition s n (chi e r w mod) mod)
-                  mod))
                (else
                 (syntax-violation #f "cannot define keyword at top level"
                                   e (wrap value w mod))))))

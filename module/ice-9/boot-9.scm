@@ -140,6 +140,16 @@
   '(guile))
 (define (module-add! module sym var)
   (hashq-set! (%get-pre-modules-obarray) sym var))
+(define (module-define! module sym val)
+  (let ((v (hashq-ref (%get-pre-modules-obarray) sym)))
+    (if v
+        (variable-set! v val)
+        (hashq-set! (%get-pre-modules-obarray) sym
+                    (make-variable val)))))
+(define (module-ref module sym)
+  (let ((v (module-variable module sym)))
+    (if v (variable-ref v) (error "badness!" (pk module) (pk sym)))))
+
 (define (make-module-ref mod var kind)
   (case kind
     ((public) (if mod `(@ ,mod ,var) var))
@@ -155,31 +165,6 @@
     (else (error "foo" mod var kind))))
 (define (resolve-module . args)
   #f)
-
-;;; Here we use "keyword" in the sense that R6RS uses it, as in "a
-;;; definition may be a keyword definition or a variable definition".
-;;; Keywords are syntactic bindings; variables are value bindings.
-(define (module-define-keyword! mod sym type val)
-  (let ((v (or (module-local-variable mod sym)
-               (let ((v (make-undefined-variable)))
-                 (module-add! mod sym v)
-                 v))))
-    (variable-set! v
-                   (if (and (variable-bound? v) (macro? (variable-ref v)))
-                       (make-extended-syncase-macro (variable-ref v) type val)
-                       (make-syncase-macro type val)))
-    (set-object-property! v '*sc-expander* (cons type val))))
-
-(define (module-lookup-keyword mod sym)
-  (let ((v (module-variable mod sym)))
-    (and v (object-property v '*sc-expander*))))
-
-(define (module-undefine-keyword! mod sym)
-  (let ((v (module-local-variable mod sym)))
-    (if v
-        (let ((p (assq '*sc-expander* (object-properties v))))
-          ;; probably should unbind the variable too
-          (set-object-properties! v (delq p (object-properties v)))))))
 
 ;;; API provided by psyntax
 (define syntax-violation #f)
