@@ -33,8 +33,6 @@
 
 
 
-(define (void) (if #f #f))
-
 ;; Before compiling, make sure any symbols are resolved in the (guile)
 ;; module, the primary location of those symbols, rather than in
 ;; (guile-user), the default module that we compile in.

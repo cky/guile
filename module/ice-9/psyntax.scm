@@ -22,6 +22,9 @@
 ;;; Extracted from Chez Scheme Version 5.9f
 ;;; Authors: R. Kent Dybvig, Oscar Waddell, Bob Hieb, Carl Bruggeman
 
+;;; Modified by Andy Wingo <wingo@pobox.com> according to the Git
+;;; revision control logs corresponding to this file: 2009.
+
 ;;; Modified by Mikael Djurfeldt <djurfeldt@nada.kth.se> according
 ;;; to the ChangeLog distributed in the same directory as this file:
 ;;; 1997-08-19, 1997-09-03, 1997-09-10, 2000-08-13, 2000-08-24,
@@ -85,15 +88,8 @@
 ;;;      used by expanded code to handle syntax-case matching
 
 ;;; The following nonstandard procedures must be provided by the
-;;; implementation for this code to run.
-;;;
-;;; (void)
-;;; returns the implementation's cannonical "unspecified value".  This
-;;; usually works: (define void (lambda () (if #f #f))).
-;;;
-;;; The following nonstandard procedures must also be provided by the
 ;;; implementation for this code to run using the standard portable
-;;; hooks and output constructors.  They are not used by expanded code,
+;;; hooks and output constructors. They are not used by expanded code,
 ;;; and so need be present only at expansion time.
 ;;;
 ;;; (eval x)
@@ -111,12 +107,6 @@
 ;;;
 ;;; (gensym)
 ;;; returns a unique symbol each time it's called
-;;;
-;;; (putprop symbol key value)
-;;; (getprop symbol key)
-;;; key is always the symbol *sc-expander*; value may be any object.
-;;; putprop should associate the given value with the given symbol in
-;;; some way that it can be retrieved later with getprop.
 
 ;;; When porting to a new Scheme implementation, you should define the
 ;;; procedures listed above, load the expanded version of psyntax.ss
@@ -262,8 +252,6 @@
                         args))))))
     (syntax-case x ()
       ((_ (name id1 ...))
-       ;; But here we use and-map, because andmap isn't yet in scope for
-       ;; syntax.
        (and-map identifier? (syntax (name id1 ...)))
        (with-syntax
          ((constructor (construct-name (syntax name) "make-" (syntax name)))
@@ -1020,7 +1008,7 @@
                     ((_ name)
                      (id? (syntax name))
                      (values 'define-form (wrap (syntax name) w mod)
-                       (syntax (void))
+                       (syntax (if #f #f))
                        empty-wrap s mod))))
                  ((define-syntax)
                   (syntax-case e ()
@@ -1429,7 +1417,7 @@
 
 (define chi-void
   (lambda ()
-    (build-application no-source (build-primref no-source 'void) '())))
+    (build-application no-source (build-primref no-source 'if) '(#f #f))))
 
 (define ellipsis?
   (lambda (x)
