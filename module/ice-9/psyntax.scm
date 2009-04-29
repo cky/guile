@@ -109,13 +109,6 @@
 ;;; by eval, and eval accepts one argument, nothing special must be done
 ;;; to support the "noexpand" flag, since it is handled by sc-expand.
 ;;;
-;;; (error who format-string why what)
-;;; where who is either a symbol or #f, format-string is always "~a ~s",
-;;; why is always a string, and what may be any object.  error should
-;;; signal an error with a message something like
-;;;
-;;;    "error in <who>: <why> <what>"
-;;;
 ;;; (gensym)
 ;;; returns a unique symbol each time it's called
 ;;;
@@ -325,10 +318,6 @@
   (lambda (x mod)
     (primitive-eval `(,noexpand ,x))))
 
-(define error-hook
-  (lambda (who why what)
-    (error who "~a ~s" why what)))
-
 (define-syntax gensym-hook
   (syntax-rules ()
     ((_) (gensym))))
@@ -488,7 +477,7 @@
   (syntax-rules ()
     ((_ pred? e who)
      (let ((x e))
-       (if (not (pred? x)) (error-hook who "invalid argument" x))))))
+       (if (not (pred? x)) (syntax-violation who "invalid argument" x))))))
 
 ;;; compile-time environments
 
@@ -808,7 +797,7 @@
       ((annotation? id)
        (let ((id (unannotate id)))
          (or (first (search id (wrap-subst w) (wrap-marks w))) id)))
-      (else (error-hook 'id-var-name "invalid id" id)))))
+      (else (syntax-violation 'id-var-name "invalid id" id)))))
 
 ;;; free-id=? must be passed fully wrapped ids since (free-id=? x y)
 ;;; may be true even if (free-id=? (wrap x w) (wrap y w)) is not.
@@ -2315,20 +2304,20 @@
            (syntax (begin exp ...))))))))
 
 (define-syntax unquote
-   (lambda (x)
-      (syntax-case x ()
-         ((_ e)
-          (error 'unquote
-		 "expression ,~s not valid outside of quasiquote"
-		 (syntax->datum (syntax e)))))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ e)
+       (syntax-violation 'unquote
+                         "expression not valid outside of quasiquote"
+                         x)))))
 
 (define-syntax unquote-splicing
-   (lambda (x)
-      (syntax-case x ()
-         ((_ e)
-          (error 'unquote-splicing
-		 "expression ,@~s not valid outside of quasiquote"
-		 (syntax->datum (syntax e)))))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ e)
+       (syntax-violation 'unquote-splicing
+                         "expression not valid outside of quasiquote"
+                         x)))))
 
 (define-syntax case
   (lambda (x)

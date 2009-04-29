@@ -186,6 +186,9 @@
 (define (resolve-module . args)
   #f)
 
+;; Output hook for syncase. It's here because we want to be able to
+;; replace its definition, for compiling; but that isn't implemented
+;; yet.
 (define (make-module-ref mod var kind)
   (case kind
     ((public) (if mod `(@ ,mod ,var) var))
@@ -200,7 +203,12 @@
                    var))
     (else (error "foo" mod var kind))))
 
-;;; API provided by psyntax
+;; Input hook to syncase -- so that we might be able to pass annotated
+;; expressions in. Currently disabled. Maybe we should just use
+;; source-properties directly.
+(define (annotation? x) #f)
+
+;; API provided by psyntax
 (define syntax-violation #f)
 (define datum->syntax #f)
 (define syntax->datum #f)
@@ -211,23 +219,20 @@
 (define sc-expand #f)
 (define sc-expand3 #f)
 
-;;; Implementation detail of psyntax -- the thing that does expand-time
-;;; dispatch for syntax-case macros
+;; $sc-expand is an implementation detail of psyntax. It is used by
+;; expanded macros, to dispatch an input against a set of patterns.
 (define $sc-dispatch #f)
 
-;;; Useless crap I'd like to get rid of
-(define (annotation? x) #f)
-
+;; Load it up!
 (primitive-load-path "ice-9/psyntax-pp")
 
-;; Until the module system is booted, this will be the current expander.
+;; %pre-modules-transformer is the Scheme expander from now until the
+;; module system has booted up.
 (define %pre-modules-transformer sc-expand)
 
 
 
 ;;; {Defmacros}
-;;;
-;;; Depends on: features, eval-case
 ;;;
 
 (define-syntax define-macro
