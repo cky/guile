@@ -81,8 +81,6 @@
 ;;;      Revision 3, for a complete description)
 ;;;   (syntax-violation who message form [subform])
 ;;;      used to report errors found during expansion
-;;;   (install-global-transformer symbol value)
-;;;      used by expanded code to install top-level syntactic abstractions
 ;;;   ($sc-dispatch e p)
 ;;;      used by expanded code to handle syntax-case matching
 
@@ -2070,12 +2068,6 @@
                                       (append subform (list form))))))
                  (if who (cons who tail) tail))
                #f)))
-
-(set! install-global-transformer
-  (lambda (sym v)
-    (arg-check symbol? sym 'define-syntax)
-    (arg-check procedure? v 'define-syntax)
-    (global-extend 'macro sym v)))
 
 ;;; $sc-dispatch expects an expression and a pattern.  If the expression
 ;;; matches the pattern a list of the matching expressions for each

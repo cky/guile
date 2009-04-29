@@ -134,12 +134,10 @@
 
 
 
-;; Before the module system boots, there are no module names. But
-;; psyntax does want a module-name definition, so give it one.
+;; Define a minimal stub of the module API for psyntax, before modules
+;; have booted.
 (define (module-name x)
   '(guile))
-(define (module-add! module sym var)
-  (hashq-set! (%get-pre-modules-obarray) sym var))
 (define (module-define! module sym val)
   (let ((v (hashq-ref (%get-pre-modules-obarray) sym)))
     (if v
@@ -149,6 +147,8 @@
 (define (module-ref module sym)
   (let ((v (module-variable module sym)))
     (if v (variable-ref v) (error "badness!" (pk module) (pk sym)))))
+(define (resolve-module . args)
+  #f)
 
 (define (make-module-ref mod var kind)
   (case kind
@@ -163,8 +163,6 @@
                    `(@@ ,mod ,var)
                    var))
     (else (error "foo" mod var kind))))
-(define (resolve-module . args)
-  #f)
 
 ;;; API provided by psyntax
 (define syntax-violation #f)
@@ -182,7 +180,6 @@
 (define $sc-dispatch #f)
 
 ;;; Useless crap I'd like to get rid of
-(define install-global-transformer #f)
 (define (annotation? x) #f)
 
 
