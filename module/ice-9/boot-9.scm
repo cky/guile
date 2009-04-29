@@ -95,6 +95,42 @@
 (define (provided? feature)
   (and (memq feature *features*) #t))
 
+
+
+;;; {and-map and or-map}
+;;;
+;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
+;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
+;;;
+
+;; and-map f l
+;;
+;; Apply f to successive elements of l until exhaustion or f returns #f.
+;; If returning early, return #f.  Otherwise, return the last value returned
+;; by f.  If f has never been called because l is empty, return #t.
+;;
+(define (and-map f lst)
+  (let loop ((result #t)
+	     (l lst))
+    (and result
+	 (or (and (null? l)
+		  result)
+	     (loop (f (car l)) (cdr l))))))
+
+;; or-map f l
+;;
+;; Apply f to successive elements of l until exhaustion or while f returns #f.
+;; If returning early, return the return value of f.
+;;
+(define (or-map f lst)
+  (let loop ((result #f)
+	     (l lst))
+    (or result
+	(and (not (null? l))
+	     (loop (f (car l)) (cdr l))))))
+
+
+
 ;; let format alias simple-format until the more complete version is loaded
 
 (define format simple-format)
@@ -181,25 +217,6 @@
 
 ;;; Useless crap I'd like to get rid of
 (define (annotation? x) #f)
-
-
-(define andmap
-  (lambda (f first . rest)
-    (or (null? first)
-        (if (null? rest)
-            (let andmap ((first first))
-              (let ((x (car first)) (first (cdr first)))
-                (if (null? first)
-                    (f x)
-                    (and (f x) (andmap first)))))
-            (let andmap ((first first) (rest rest))
-              (let ((x (car first))
-                    (xr (map car rest))
-                    (first (cdr first))
-                    (rest (map cdr rest)))
-                (if (null? first)
-                    (apply f (cons x xr))
-                    (and (apply f (cons x xr)) (andmap first rest)))))))))
 
 (primitive-load-path "ice-9/psyntax-pp")
 
@@ -501,40 +518,6 @@
 	 (if (eq? (car l) k)
 	     n
 	     (loop (+ n 1) (cdr l))))))
-
-
-
-;;; {and-map and or-map}
-;;;
-;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
-;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
-;;;
-
-;; and-map f l
-;;
-;; Apply f to successive elements of l until exhaustion or f returns #f.
-;; If returning early, return #f.  Otherwise, return the last value returned
-;; by f.  If f has never been called because l is empty, return #t.
-;;
-(define (and-map f lst)
-  (let loop ((result #t)
-	     (l lst))
-    (and result
-	 (or (and (null? l)
-		  result)
-	     (loop (f (car l)) (cdr l))))))
-
-;; or-map f l
-;;
-;; Apply f to successive elements of l until exhaustion or while f returns #f.
-;; If returning early, return the return value of f.
-;;
-(define (or-map f lst)
-  (let loop ((result #f)
-	     (l lst))
-    (or result
-	(and (not (null? l))
-	     (loop (f (car l)) (cdr l))))))
 
 
 

@@ -91,29 +91,6 @@
 ;;; returns the implementation's cannonical "unspecified value".  This
 ;;; usually works: (define void (lambda () (if #f #f))).
 ;;;
-;;; (andmap proc list1 list2 ...)
-;;; returns true if proc returns true when applied to each element of list1
-;;; along with the corresponding elements of list2 ....
-;;; The following definition works but does no error checking:
-;;;
-;;; (define andmap
-;;;   (lambda (f first . rest)
-;;;     (or (null? first)
-;;;         (if (null? rest)
-;;;             (let andmap ((first first))
-;;;               (let ((x (car first)) (first (cdr first)))
-;;;                 (if (null? first)
-;;;                     (f x)
-;;;                     (and (f x) (andmap first)))))
-;;;             (let andmap ((first first) (rest rest))
-;;;               (let ((x (car first))
-;;;                     (xr (map car rest))
-;;;                     (first (cdr first))
-;;;                     (rest (map cdr rest)))
-;;;                 (if (null? first)
-;;;                     (apply f (cons x xr))
-;;;                     (and (apply f (cons x xr)) (andmap first rest)))))))))
-;;;
 ;;; The following nonstandard procedures must also be provided by the
 ;;; implementation for this code to run using the standard portable
 ;;; hooks and output constructors.  They are not used by expanded code,
@@ -258,6 +235,25 @@
   (set-current-module (resolve-module '(guile))))
 
 (let ()
+;;; Private version of and-map that handles multiple lists.
+(define and-map*
+  (lambda (f first . rest)
+    (or (null? first)
+        (if (null? rest)
+            (let andmap ((first first))
+              (let ((x (car first)) (first (cdr first)))
+                (if (null? first)
+                    (f x)
+                    (and (f x) (andmap first)))))
+            (let andmap ((first first) (rest rest))
+              (let ((x (car first))
+                    (xr (map car rest))
+                    (first (cdr first))
+                    (rest (map cdr rest)))
+                (if (null? first)
+                    (apply f (cons x xr))
+                    (and (apply f (cons x xr)) (andmap first rest)))))))))
+
 (define-syntax define-structure
   (lambda (x)
     (define construct-name
@@ -273,7 +269,9 @@
                         args))))))
     (syntax-case x ()
       ((_ (name id1 ...))
-       (andmap identifier? (syntax (name id1 ...)))
+       ;; But here we use and-map, because andmap isn't yet in scope for
+       ;; syntax.
+       (and-map identifier? (syntax (name id1 ...)))
        (with-syntax
          ((constructor (construct-name (syntax name) "make-" (syntax name)))
           (predicate (construct-name (syntax name) (syntax name) "?"))
@@ -1499,7 +1497,7 @@
             ((vector? x)
              (let ((old (vector->list x)))
                 (let ((new (map f old)))
-                   (if (andmap eq? old new) x (list->vector new)))))
+                   (if (and-map* eq? old new) x (list->vector new)))))
             (else x))))))
 
 ;;; lexical variables
@@ -1673,7 +1671,7 @@
              ; identity map equivalence:
              ; (map (lambda (x) x) y) == y
              (car actuals))
-            ((andmap
+            ((and-map
                 (lambda (x) (and (eq? (car x) 'ref) (memq (cadr x) formals)))
                 (cdr e))
              ; eta map equivalence:
@@ -1835,7 +1833,7 @@
    (lambda (e)
      (syntax-case e ()
         ((_ (mod ...) id)
-         (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
+         (and (and-map id? (syntax (mod ...))) (id? (syntax id)))
          (values (syntax->datum (syntax id))
                  (syntax->datum
                   (syntax (public mod ...))))))))
@@ -1844,7 +1842,7 @@
    (lambda (e)
      (syntax-case e ()
         ((_ (mod ...) id)
-         (and (andmap id? (syntax (mod ...))) (id? (syntax id)))
+         (and (and-map id? (syntax (mod ...))) (id? (syntax id)))
          (values (syntax->datum (syntax id))
                  (syntax->datum
                   (syntax (private mod ...))))))))
@@ -1918,7 +1916,7 @@
             (cond
               ((not (distinct-bound-ids? (map car pvars)))
                (syntax-violation 'syntax-case "duplicate pattern variable" pat))
-              ((not (andmap (lambda (x) (not (ellipsis? (car x)))) pvars))
+              ((not (and-map (lambda (x) (not (ellipsis? (car x)))) pvars))
                (syntax-violation 'syntax-case "misplaced ellipsis" pat))
               (else
                (let ((y (gen-var 'tmp)))
@@ -1952,8 +1950,8 @@
             (syntax-case (car clauses) ()
               ((pat exp)
                (if (and (id? (syntax pat))
-                        (andmap (lambda (x) (not (free-id=? (syntax pat) x)))
-                          (cons (syntax (... ...)) keys)))
+                        (and-map (lambda (x) (not (free-id=? (syntax pat) x)))
+                                 (cons (syntax (... ...)) keys)))
                    (let ((labels (list (gen-label)))
                          (var (gen-var (syntax pat))))
                      (build-application no-source
@@ -1978,8 +1976,8 @@
       (let ((e (source-wrap e w s mod)))
         (syntax-case e ()
           ((_ val (key ...) m ...)
-           (if (andmap (lambda (x) (and (id? x) (not (ellipsis? x))))
-                       (syntax (key ...)))
+           (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x))))
+                        (syntax (key ...)))
                (let ((x (gen-var 'tmp)))
                  ; fat finger binding and references to temp variable x
                  (build-application s
@@ -2216,7 +2214,7 @@
   (lambda (x)
     (syntax-case x ()
       ((let* ((x v) ...) e1 e2 ...)
-       (andmap identifier? (syntax (x ...)))
+       (and-map identifier? (syntax (x ...)))
        (let f ((bindings (syntax ((x v)  ...))))
          (if (null? bindings)
              (syntax (let () e1 e2 ...))
