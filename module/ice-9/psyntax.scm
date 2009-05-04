@@ -366,15 +366,20 @@
     ((_ source test-exp then-exp else-exp)
      (build-annotated source `(if ,test-exp ,then-exp ,else-exp)))))
 
-(define-syntax build-lexical-reference
-  (syntax-rules ()
-    ((_ type source var)
-     (build-annotated source var))))
+(define build-lexical-reference
+  (lambda (type source name var)
+    (build-annotated
+     source 
+     (case (fluid-ref *mode*)
+       ((c) ((@ (ice-9 expand-support) make-lexical) name var))
+       (else var)))))
 
-(define-syntax build-lexical-assignment
-  (syntax-rules ()
-    ((_ source var exp)
-     (build-annotated source `(set! ,var ,exp)))))
+(define build-lexical-assignment
+  (lambda (source name var exp)
+    (build-annotated
+     source
+     `(set! ,(build-lexical-reference 'set no-source name var)
+            ,exp))))
 
 ;; Before modules are booted, we can't expand into data structures from
 ;; (ice-9 expand-support) -- we need to give the evaluator the
@@ -1154,7 +1159,7 @@
   (lambda (type value e r w s mod)
     (case type
       ((lexical)
-       (build-lexical-reference 'value s value))
+       (build-lexical-reference 'value s e value))
       ((core external-macro)
        ;; apply transformer
        (value e r w s mod))
@@ -1164,7 +1169,8 @@
          (lambda (id mod) (build-global-reference s id mod))))
       ((lexical-call)
        (chi-application
-         (build-lexical-reference 'fun (source-annotation (car e)) value)
+         (build-lexical-reference 'fun (source-annotation (car e))
+                                  (car e) value)
          e r w s mod))
       ((global-call)
        (chi-application
@@ -1719,7 +1725,7 @@
     (define regen
       (lambda (x)
         (case (car x)
-          ((ref) (build-lexical-reference 'value no-source (cadr x)))
+          ((ref) (build-lexical-reference 'value no-source (cadr x) (cadr x)))
           ((primitive) (build-primref no-source (cadr x)))
           ((quote) (build-data no-source (cadr x)))
           ((lambda) (build-lambda no-source (cadr x) (regen (caddr x))))
@@ -1813,7 +1819,10 @@
          (let ((b (lookup n r mod)))
            (case (binding-type b)
              ((lexical)
-              (build-lexical-assignment s (binding-value b) val))
+              (build-lexical-assignment s
+                                        (syntax->datum (syntax id))
+                                        (binding-value b)
+                                        val))
              ((global) (build-global-assignment s n val mod))
              ((displaced-lexical)
               (syntax-violation 'set! "identifier out of context"
@@ -1931,7 +1940,8 @@
                  ; fat finger binding and references to temp variable y
                  (build-application no-source
                    (build-lambda no-source (list y)
-                     (let ((y (build-lexical-reference 'value no-source y)))
+                     (let ((y (build-lexical-reference 'value no-source
+                                                       'tmp y)))
                        (build-conditional no-source
                          (syntax-case fender ()
                            (#t y)
@@ -1990,7 +2000,8 @@
                  ; fat finger binding and references to temp variable x
                  (build-application s
                    (build-lambda no-source (list x)
-                     (gen-syntax-case (build-lexical-reference 'value no-source x)
+                     (gen-syntax-case (build-lexical-reference 'value no-source
+                                                               'tmp x)
                        (syntax (key ...)) (syntax (m ...))
                        r
                        mod))
