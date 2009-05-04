@@ -215,7 +215,6 @@
 (define bound-identifier=? #f)
 (define free-identifier=? #f)
 (define sc-expand #f)
-(define sc-expand3 #f)
 
 ;; $sc-expand is an implementation detail of psyntax. It is used by
 ;; expanded macros, to dispatch an input against a set of patterns.

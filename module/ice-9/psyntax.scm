@@ -1977,14 +1977,6 @@
 ;;; the object file if we are compiling a file.
 (set! sc-expand
   (let ((m 'e) (esew '(eval)))
-    (lambda (x)
-      (if (and (pair? x) (equal? (car x) noexpand))
-          (cadr x)
-          (chi-top x null-env top-wrap m esew
-                   (cons 'hygiene (module-name (current-module))))))))
-
-(set! sc-expand3
-  (let ((m 'e) (esew '(eval)))
     (lambda (x . rest)
       (if (and (pair? x) (equal? (car x) noexpand))
           (cadr x)

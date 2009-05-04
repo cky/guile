@@ -69,7 +69,7 @@
      (and=> (cenv-module e) set-current-module)
      (call-with-ghil-environment (cenv-ghil-env e) '()
        (lambda (env vars)
-         (let ((x (sc-expand3 x 'c '(compile load eval))))
+         (let ((x (sc-expand x 'c '(compile load eval))))
            (let ((x (make-ghil-lambda env #f vars #f '()
                                       (translate-1 env #f x)))
                  (cenv (make-cenv (current-module)

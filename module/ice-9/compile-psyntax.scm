@@ -11,7 +11,7 @@
             (close-port out)
             (close-port in))
           (begin
-            (write (sc-expand3 x 'c '(compile load eval))
+            (write (sc-expand x 'c '(compile load eval))
                    out)
             (newline out)
             (loop (read in))))))
