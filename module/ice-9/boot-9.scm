@@ -184,23 +184,6 @@
 (define (resolve-module . args)
   #f)
 
-;; Output hook for syncase. It's here because we want to be able to
-;; replace its definition, for compiling; but that isn't implemented
-;; yet.
-(define (make-module-ref mod var kind)
-  (case kind
-    ((public) (if mod `(@ ,mod ,var) var))
-    ((private) (if (and mod (not (equal? mod (module-name (current-module)))))
-                   `(@@ ,mod ,var)
-                   var))
-    ((bare) var)
-    ((hygiene) (if (and mod
-                        (not (equal? mod (module-name (current-module))))
-                        (module-variable (resolve-module mod) var))
-                   `(@@ ,mod ,var)
-                   var))
-    (else (error "foo" mod var kind))))
-
 ;; Input hook to syncase -- so that we might be able to pass annotated
 ;; expressions in. Currently disabled. Maybe we should just use
 ;; source-properties directly.

@@ -290,6 +290,7 @@
 
 (let ()
 (define noexpand "noexpand")
+(define *mode* (make-fluid))
 
 ;;; hooks to nonportable run-time helpers
 (begin
@@ -300,11 +301,19 @@
 
 (define top-level-eval-hook
   (lambda (x mod)
-    (primitive-eval `(,noexpand ,x))))
+    (primitive-eval
+     `(,noexpand
+       ,(case (fluid-ref *mode*)
+          ((c) ((@ (ice-9 expand-support) strip-expansion-structures) x))
+          (else x))))))
 
 (define local-eval-hook
   (lambda (x mod)
-    (primitive-eval `(,noexpand ,x))))
+    (primitive-eval
+     `(,noexpand
+       ,(case (fluid-ref *mode*)
+          ((c) ((@ (ice-9 expand-support) strip-expansion-structures) x))
+          (else x))))))
 
 (define-syntax gensym-hook
   (syntax-rules ()
@@ -367,23 +376,45 @@
     ((_ source var exp)
      (build-annotated source `(set! ,var ,exp)))))
 
-(define-syntax build-global-reference
-  (syntax-rules ()
-    ((_ source var mod)
-     (build-annotated
-      source
-      (if mod
-          (make-module-ref (cdr mod) var (car mod))
-          (make-module-ref mod var 'bare))))))
+;; Before modules are booted, we can't expand into data structures from
+;; (ice-9 expand-support) -- we need to give the evaluator the
+;; s-expressions that it understands natively. Actually the real truth
+;; of the matter is that the evaluator doesn't understand expand-support
+;; structures at all. So until we fix the evaluator, if ever, the
+;; conflation that we should use expand-support iff we are compiling
+;; holds true.
+;;
+(define build-global-reference
+  (lambda (source var mod)
+    (build-annotated
+     source
+     (if (not mod)
+         var
+         (let ((make-module-ref
+                (case (fluid-ref *mode*)
+                  ((c) (@ (ice-9 expand-support) make-module-ref))
+                  (else (lambda (mod var public?)
+                          (list (if public? '@ '@@) mod var)))))
+               (kind (car mod))
+               (mod (cdr mod)))
+           (case kind
+             ((public) (make-module-ref mod var #t))
+             ((private) (if (not (equal? mod (module-name (current-module))))
+                            (make-module-ref mod var #f)
+                            var))
+             ((bare) var)
+             ((hygiene) (if (and (not (equal? mod (module-name (current-module))))
+                                 (module-variable (resolve-module mod) var))
+                            (make-module-ref mod var #f)
+                            var))
+             (else (syntax-violation #f "bad module kind" var mod))))))))
 
-(define-syntax build-global-assignment
-  (syntax-rules ()
-    ((_ source var exp mod)
-     (build-annotated source
-       `(set! ,(if mod
-                   (make-module-ref (cdr mod) var (car mod))
-                   (make-module-ref mod var 'bare))
-              ,exp)))))
+(define build-global-assignment
+  (lambda (source var exp mod)
+    (let ((ref (build-global-reference source var mod)))
+      (build-annotated
+       source
+       `(set! ,ref ,exp)))))
 
 (define-syntax build-global-definition
   (syntax-rules ()
@@ -1976,18 +2007,17 @@
 ;;; expanded, and the expanded definitions are also residualized into
 ;;; the object file if we are compiling a file.
 (set! sc-expand
-  (let ((m 'e) (esew '(eval)))
-    (lambda (x . rest)
-      (if (and (pair? x) (equal? (car x) noexpand))
-          (cadr x)
-          (chi-top x
-		   null-env
-		   top-wrap
-		   (if (null? rest) m (car rest))
-		   (if (or (null? rest) (null? (cdr rest)))
-		       esew
-		       (cadr rest))
-                   (cons 'hygiene (module-name (current-module))))))))
+      (lambda (x . rest)
+        (if (and (pair? x) (equal? (car x) noexpand))
+            (cadr x)
+            (let ((m (if (null? rest) 'e (car rest)))
+                  (esew (if (or (null? rest) (null? (cdr rest)))
+                            '(eval)
+                            (cadr rest))))
+              (with-fluid* *mode* m
+                (lambda ()
+                  (chi-top x null-env top-wrap m esew
+                           (cons 'hygiene (module-name (current-module))))))))))
 
 (set! identifier?
   (lambda (x)

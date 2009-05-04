@@ -149,19 +149,9 @@
                (set-source-properties! e source))
            e))
         ((module-ref? e)
-         (cond
-          ((or (not (module-ref-modname e))
-               (eq? (module-ref-modname e)
-                    (module-name (current-module)))
-               (and (not (module-ref-public? e))
-                    (not (module-variable
-                          (resolve-module (module-ref-modname e))
-                          (module-ref-symbol e)))))
-           (module-ref-symbol e))
-          (else
-           `(,(if (module-ref-public? e) '@ '@@)
-             ,(module-ref-modname e)
-             ,(module-ref-symbol e)))))
+         `(,(if (module-ref-public? e) '@ '@@)
+           ,(module-ref-modname e)
+           ,(module-ref-symbol e)))
         ((lexical? e)
          (lexical-gensym e))
         ((record? e)

@@ -1,3 +1,4 @@
+(use-modules (ice-9 expand-support))
 (let ((source (list-ref (command-line) 1))
       (target (list-ref (command-line) 2)))
   (let ((in (open-input-file source))
@@ -11,7 +12,8 @@
             (close-port out)
             (close-port in))
           (begin
-            (write (sc-expand x 'c '(compile load eval))
+            (write (strip-expansion-structures
+                    (sc-expand x 'c '(compile load eval)))
                    out)
             (newline out)
             (loop (read in))))))
