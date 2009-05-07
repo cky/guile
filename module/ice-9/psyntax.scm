@@ -379,7 +379,7 @@
 ;; Before modules are booted, we can't expand into data structures from
 ;; (language tree-il) -- we need to give the evaluator the
 ;; s-expressions that it understands natively. Actually the real truth
-;; of the matter is that the evaluator doesn't understand expand-support
+;; of the matter is that the evaluator doesn't understand tree-il
 ;; structures at all. So until we fix the evaluator, if ever, the
 ;; conflation that we should use tree-il iff we are compiling
 ;; holds true.

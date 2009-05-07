@@ -137,7 +137,6 @@ ICE_9_SOURCES = \
   ice-9/debugger.scm \
   ice-9/documentation.scm \
   ice-9/emacs.scm \
-  ice-9/expand-support.scm \
   ice-9/expect.scm \
   ice-9/format.scm \
   ice-9/getopt-long.scm \
