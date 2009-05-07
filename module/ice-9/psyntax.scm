@@ -371,7 +371,7 @@
     (build-annotated
      source 
      (case (fluid-ref *mode*)
-       ((c) ((@ (ice-9 expand-support) make-lexical) name var))
+       ((c) ((@ (ice-9 expand-support) make-lexical) source name var))
        (else var)))))
 
 (define build-lexical-assignment
@@ -398,19 +398,19 @@
          (let ((make-module-ref
                 (case (fluid-ref *mode*)
                   ((c) (@ (ice-9 expand-support) make-module-ref))
-                  (else (lambda (mod var public?)
+                  (else (lambda (source mod var public?)
                           (list (if public? '@ '@@) mod var)))))
                (kind (car mod))
                (mod (cdr mod)))
            (case kind
-             ((public) (make-module-ref mod var #t))
+             ((public) (make-module-ref #f mod var #t))
              ((private) (if (not (equal? mod (module-name (current-module))))
-                            (make-module-ref mod var #f)
+                            (make-module-ref #f mod var #f)
                             var))
              ((bare) var)
              ((hygiene) (if (and (not (equal? mod (module-name (current-module))))
                                  (module-variable (resolve-module mod) var))
-                            (make-module-ref mod var #f)
+                            (make-module-ref #f mod var #f)
                             var))
              (else (syntax-violation #f "bad module kind" var mod))))))))
 

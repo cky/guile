@@ -102,7 +102,7 @@
 (define (module-ref? x)
   (and (struct? x) (eq? (struct-vtable x) <module-ref>)))
 
-(define (make-module-ref modname symbol public?)
+(define (make-module-ref source modname symbol public?)
   (make-struct <module-ref> 0 modname symbol public?))
 
 (define (module-ref-modname a)
@@ -126,7 +126,7 @@
 (define (lexical? x)
   (and (struct? x) (eq? (struct-vtable x) <lexical>)))
 
-(define (make-lexical name gensym)
+(define (make-lexical source name gensym)
   (make-struct <lexical> 0 name gensym))
 
 (define (lexical-name a)
