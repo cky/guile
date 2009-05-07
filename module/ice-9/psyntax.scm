@@ -304,7 +304,7 @@
     (primitive-eval
      `(,noexpand
        ,(case (fluid-ref *mode*)
-          ((c) ((@ (ice-9 expand-support) strip-expansion-structures) x))
+          ((c) ((@ (language tree-il) tree-il->scheme) x))
           (else x))))))
 
 (define local-eval-hook
@@ -312,7 +312,7 @@
     (primitive-eval
      `(,noexpand
        ,(case (fluid-ref *mode*)
-          ((c) ((@ (ice-9 expand-support) strip-expansion-structures) x))
+          ((c) ((@ (language tree-il) tree-il->scheme) x))
           (else x))))))
 
 (define-syntax gensym-hook
@@ -351,132 +351,150 @@
 
 
 ;;; output constructors
-(define (build-annotated src exp)
-  (if (and src (not (annotation? exp)))
-      (make-annotation exp src #t)
-      exp))
+(define build-application
+  (lambda (source fun-exp arg-exps)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-application) source fun-exp arg-exps))
+      (else `(,fun-exp . ,arg-exps)))))
 
-(define-syntax build-application
-  (syntax-rules ()
-    ((_ source fun-exp arg-exps)
-     (build-annotated source `(,fun-exp . ,arg-exps)))))
-
-(define-syntax build-conditional
-  (syntax-rules ()
-    ((_ source test-exp then-exp else-exp)
-     (build-annotated source `(if ,test-exp ,then-exp ,else-exp)))))
+(define build-conditional
+  (lambda (source test-exp then-exp else-exp)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-conditional)
+            source test-exp then-exp else-exp))
+      (else `(if ,test-exp ,then-exp ,else-exp)))))
 
 (define build-lexical-reference
   (lambda (type source name var)
-    (build-annotated
-     source 
-     (case (fluid-ref *mode*)
-       ((c) ((@ (ice-9 expand-support) make-lexical) source name var))
-       (else var)))))
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-lexical-ref) source name var))
+      (else var))))
 
 (define build-lexical-assignment
   (lambda (source name var exp)
-    (build-annotated
-     source
-     `(set! ,(build-lexical-reference 'set no-source name var)
-            ,exp))))
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-lexical-set) source name var exp))
+      (else `(set! ,var ,exp)))))
 
 ;; Before modules are booted, we can't expand into data structures from
-;; (ice-9 expand-support) -- we need to give the evaluator the
+;; (language tree-il) -- we need to give the evaluator the
 ;; s-expressions that it understands natively. Actually the real truth
 ;; of the matter is that the evaluator doesn't understand expand-support
 ;; structures at all. So until we fix the evaluator, if ever, the
-;; conflation that we should use expand-support iff we are compiling
+;; conflation that we should use tree-il iff we are compiling
 ;; holds true.
 ;;
+(define (analyze-variable mod var modref-cont bare-cont)
+  (if (not mod)
+      (bare-cont var)
+      (let ((kind (car mod))
+            (mod (cdr mod)))
+        (case kind
+          ((public) (modref-cont mod var #t))
+          ((private) (if (not (equal? mod (module-name (current-module))))
+                         (modref-cont mod var #f)
+                         (bare-cont var)))
+          ((bare) (bare-cont var))
+          ((hygiene) (if (and (not (equal? mod (module-name (current-module))))
+                              (module-variable (resolve-module mod) var))
+                         (modref-cont mod var #f)
+                         (bare-cont var)))
+          (else (syntax-violation #f "bad module kind" var mod))))))
+
 (define build-global-reference
   (lambda (source var mod)
-    (build-annotated
-     source
-     (if (not mod)
-         var
-         (let ((make-module-ref
-                (case (fluid-ref *mode*)
-                  ((c) (@ (ice-9 expand-support) make-module-ref))
-                  (else (lambda (source mod var public?)
-                          (list (if public? '@ '@@) mod var)))))
-               (kind (car mod))
-               (mod (cdr mod)))
-           (case kind
-             ((public) (make-module-ref #f mod var #t))
-             ((private) (if (not (equal? mod (module-name (current-module))))
-                            (make-module-ref #f mod var #f)
-                            var))
-             ((bare) var)
-             ((hygiene) (if (and (not (equal? mod (module-name (current-module))))
-                                 (module-variable (resolve-module mod) var))
-                            (make-module-ref #f mod var #f)
-                            var))
-             (else (syntax-violation #f "bad module kind" var mod))))))))
+    (analyze-variable
+     mod var
+     (lambda (mod var public?) 
+       (case (fluid-ref *mode*)
+         ((c) ((@ (language tree-il) make-module-ref) source mod var public?))
+         (else (list (if public? '@ '@@) mod var))))
+     (lambda (var)
+       (case (fluid-ref *mode*)
+         ((c) ((@ (language tree-il) make-toplevel-ref) source var))
+         (else var))))))
 
 (define build-global-assignment
   (lambda (source var exp mod)
-    (let ((ref (build-global-reference source var mod)))
-      (build-annotated
-       source
-       `(set! ,ref ,exp)))))
+    (analyze-variable
+     mod var
+     (lambda (mod var public?) 
+       (case (fluid-ref *mode*)
+         ((c) ((@ (language tree-il) make-module-set) source mod var public? exp))
+         (else `(set! ,(list (if public? '@ '@@) mod var) ,exp))))
+     (lambda (var)
+       (case (fluid-ref *mode*)
+         ((c) ((@ (language tree-il) make-toplevel-set) source var exp))
+         (else `(set! ,var ,exp)))))))
 
-(define-syntax build-global-definition
-  (syntax-rules ()
-    ((_ source var exp)
-     (build-annotated source `(define ,var ,exp)))))
+(define build-global-definition
+  (lambda (source var exp)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-toplevel-define) source var exp))
+      (else `(define ,var ,exp)))))
 
-(define-syntax build-lambda
-  (syntax-rules ()
-    ((_ src vars docstring exp)
-     (build-annotated src `(lambda ,vars ,@(if docstring (list docstring) '())
-                                   ,exp)))
-    ((_ src vars exp)
-     (build-annotated src `(lambda ,vars ,exp)))))
+(define build-lambda
+  (lambda (src vars docstring exp)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-lambda) src vars
+            (if docstring `((documentation . ,docstring)) '())
+            exp))
+      (else `(lambda ,vars ,@(if docstring (list docstring) '())
+                     ,exp)))))
 
-;; FIXME: wingo: add modules here somehow?
-(define-syntax build-primref
-  (syntax-rules ()
-    ((_ src name) (build-annotated src name))
-    ((_ src level name) (build-annotated src name))))
+(define build-primref
+  (lambda (src name)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-primitive-ref) src name))
+      ;; hygiene guile is a hack
+      (else (build-global-reference src name '(hygiene guile))))))
 
 (define (build-data src exp)
-  (if (and (self-evaluating? exp)
-	   (not (vector? exp)))
-      (build-annotated src exp)
-      (build-annotated src (list 'quote exp))))
+  (case (fluid-ref *mode*)
+    ((c) ((@ (language tree-il) make-const) src exp))
+    (else (if (and (self-evaluating? exp) (not (vector? exp)))
+              exp
+              (list 'quote exp)))))
 
 (define build-sequence
   (lambda (src exps)
     (if (null? (cdr exps))
-        (build-annotated src (car exps))
-        (build-annotated src `(begin ,@exps)))))
+        (car exps)
+        (case (fluid-ref *mode*)
+          ((c) ((@ (language tree-il) make-sequence) src exps))
+          (else `(begin ,@exps))))))
 
 (define build-let
   (lambda (src vars val-exps body-exp)
     (if (null? vars)
-	(build-annotated src body-exp)
-	(build-annotated src `(let ,(map list vars val-exps) ,body-exp)))))
+	body-exp
+        (case (fluid-ref *mode*)
+          ((c) ((@ (language tree-il) make-let) src vars val-exps body-exp))
+          (else `(let ,(map list vars val-exps) ,body-exp))))))
 
 (define build-named-let
   (lambda (src vars val-exps body-exp)
-    (if (null? vars)
-	(build-annotated src body-exp)
-	(build-annotated src
-                         `(let ,(car vars)
-                            ,(map list (cdr vars) val-exps) ,body-exp)))))
+    (let ((f (car vars))
+          (vars (cdr vars)))
+      (case (fluid-ref *mode*)
+        ((c) ((@ (language tree-il) make-letrec) src
+              (list f) (list (build-lambda src vars #f body-exp))
+              (build-application src (build-lexical-reference 'fun src f f)
+                                 val-exps)))
+        (else `(let ,f ,(map list vars val-exps) ,body-exp))))))
 
 (define build-letrec
   (lambda (src vars val-exps body-exp)
     (if (null? vars)
-        (build-annotated src body-exp)
-        (build-annotated src
-                         `(letrec ,(map list vars val-exps) ,body-exp)))))
+        body-exp
+        (case (fluid-ref *mode*)
+          ((c) ((@ (language tree-il) make-letrec) src vars val-exps body-exp))
+          (else `(letrec ,(map list vars val-exps) ,body-exp))))))
 
-;; FIXME: wingo: use make-lexical
+;; FIXME: wingo: use make-lexical ?
 (define-syntax build-lexical-var
   (syntax-rules ()
-    ((_ src id) (build-annotated src (gensym (symbol->string id))))))
+    ((_ src id) (gensym (symbol->string id)))))
 
 (define-structure (syntax-object expression wrap module))
 
@@ -1729,13 +1747,12 @@
           ((ref) (build-lexical-reference 'value no-source (cadr x) (cadr x)))
           ((primitive) (build-primref no-source (cadr x)))
           ((quote) (build-data no-source (cadr x)))
-          ((lambda) (build-lambda no-source (cadr x) (regen (caddr x))))
+          ((lambda) (build-lambda no-source (cadr x) #f (regen (caddr x))))
           ((map) (let ((ls (map regen (cdr x))))
                    (build-application no-source
-                     (if (fx= (length ls) 2)
-                         (build-primref no-source 'map)
-                        ; really need to do our own checking here
-                         (build-primref no-source 2 'map)) ; require error check
+                     ;; this check used to be here, not sure what for:
+                     ;; (if (fx= (length ls) 2)
+                     (build-primref no-source 'map)
                      ls)))
           (else (build-application no-source
                   (build-primref no-source (car x))
@@ -1913,7 +1930,7 @@
           (let ((labels (gen-labels ids)) (new-vars (map gen-var ids)))
             (build-application no-source
               (build-primref no-source 'apply)
-              (list (build-lambda no-source new-vars
+              (list (build-lambda no-source new-vars #f
                       (chi exp
                            (extend-env
                             labels
@@ -1940,7 +1957,7 @@
                (let ((y (gen-var 'tmp)))
                  ; fat finger binding and references to temp variable y
                  (build-application no-source
-                   (build-lambda no-source (list y)
+                   (build-lambda no-source (list y) #f
                      (let ((y (build-lexical-reference 'value no-source
                                                        'tmp y)))
                        (build-conditional no-source
@@ -1974,7 +1991,7 @@
                    (let ((labels (list (gen-label)))
                          (var (gen-var (syntax pat))))
                      (build-application no-source
-                       (build-lambda no-source (list var)
+                       (build-lambda no-source (list var) #f
                          (chi (syntax exp)
                               (extend-env labels
                                 (list (make-binding 'syntax `(,var . 0)))
@@ -2000,7 +2017,7 @@
                (let ((x (gen-var 'tmp)))
                  ; fat finger binding and references to temp variable x
                  (build-application s
-                   (build-lambda no-source (list x)
+                   (build-lambda no-source (list x) #f
                      (gen-syntax-case (build-lexical-reference 'value no-source
                                                                'tmp x)
                        (syntax (key ...)) (syntax (m ...))

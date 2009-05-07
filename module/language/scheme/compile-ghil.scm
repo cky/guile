@@ -27,7 +27,7 @@
   #:use-module (system vm objcode)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 optargs)
-  #:use-module (ice-9 expand-support)
+  #:use-module (language tree-il)
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (compile-ghil translate-1
             *translate-table* define-scheme-translator))
@@ -70,7 +70,7 @@
      (and=> (cenv-module e) set-current-module)
      (call-with-ghil-environment (cenv-ghil-env e) '()
        (lambda (env vars)
-         (let ((x (strip-expansion-structures
+         (let ((x (tree-il->scheme
                    (sc-expand x 'c '(compile load eval)))))
            (let ((x (make-ghil-lambda env #f vars #f '()
                                       (translate-1 env #f x)))

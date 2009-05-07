@@ -1,4 +1,4 @@
-(use-modules (ice-9 expand-support))
+(use-modules (language tree-il))
 (let ((source (list-ref (command-line) 1))
       (target (list-ref (command-line) 2)))
   (let ((in (open-input-file source))
@@ -12,7 +12,7 @@
             (close-port out)
             (close-port in))
           (begin
-            (write (strip-expansion-structures
+            (write (tree-il->scheme
                     (sc-expand x 'c '(compile load eval)))
                    out)
             (newline out)

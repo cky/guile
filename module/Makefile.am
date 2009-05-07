@@ -31,13 +31,15 @@ modpath =
 # putting these core modules first.
 
 SOURCES =								\
-  ice-9/psyntax-pp.scm \
+  ice-9/psyntax-pp.scm 							\
   system/base/pmatch.scm system/base/syntax.scm				\
   system/base/compile.scm system/base/language.scm			\
 									\
+  language/tree-il.scm							\
   language/ghil.scm language/glil.scm language/assembly.scm		\
 									\
   $(SCHEME_LANG_SOURCES) 						\
+  $(TREE_IL_LANG_SOURCES)						\
   $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
@@ -66,6 +68,9 @@ SCHEME_LANG_SOURCES =						\
   language/scheme/amatch.scm \
   language/scheme/compile-ghil.scm language/scheme/spec.scm	\
   language/scheme/inline.scm
+
+TREE_IL_LANG_SOURCES =	\
+  language/tree-il/spec.scm language/tree-il/compile-glil.scm
 
 GHIL_LANG_SOURCES =					\
   language/ghil/spec.scm language/ghil/compile-glil.scm
