@@ -1,6 +1,6 @@
-;;; Tree Intermediate Language
+;;; Guile VM code converters
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,25 +19,9 @@
 
 ;;; Code:
 
-(define-module (language tree-il spec)
-  #:use-module (system base language)
-  #:use-module (language glil)
+(define-module (language scheme decompile-tree-il)
   #:use-module (language tree-il)
-  #:use-module (language tree-il compile-glil)
-  #:export (tree-il))
+  #:export (decompile-tree-il))
 
-(define (write-tree-il exp . port)
-  (apply write (unparse-tree-il exp) port))
-
-(define (join exps env)
-  (make-sequence #f exps))
-
-(define-language tree-il
-  #:title	"Tree Intermediate Language"
-  #:version	"1.0"
-  #:reader	read
-  #:printer	write-tree-il
-  #:parser      parse-tree-il
-  #:joiner      join
-  #:compilers   `((glil . ,compile-glil))
-  )
+(define (decompile-tree-il x env opts)
+  (values (tree-il->scheme x) env))

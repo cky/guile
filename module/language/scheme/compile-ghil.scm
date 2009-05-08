@@ -32,8 +32,6 @@
   #:export (compile-ghil translate-1
             *translate-table* define-scheme-translator))
 
-(module-ref (current-module) 'receive)
-
 ;;; environment := #f
 ;;;                | MODULE
 ;;;                | COMPILE-ENV

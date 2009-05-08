@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -45,6 +45,18 @@
                 (set! (ghil-var-env v) parent-env)
                 (ghil-env-add! parent-env v))
               (ghil-env-variables env))))
+
+;; Possible optimizations:
+;; * compile primitives specially
+;; * turn global-refs into primitive-refs
+;; * constant folding, propagation
+;; * procedure inlining
+;;   * always when single call site
+;;   * always for "trivial" procs
+;;   * otherwise who knows
+;; * dead code elimination
+;; * degenerate case optimizations
+
 
 ;; The premise of this, unused, approach to optimization is that you can
 ;; determine the environment of a variable lexically, because they have
