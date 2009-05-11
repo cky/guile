@@ -1,0 +1,143 @@
+;;; Tree-il optimizer
+
+;; Copyright (C) 2009 Free Software Foundation, Inc.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;; 
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;; 
+;; You should have received a copy of the GNU General Public License
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
+
+(define-module (language tree-il optimize)
+  #:use-module (system base syntax)
+  #:use-module (language tree-il)
+  #:export (resolve-primitives!))
+
+;; Possible optimizations:
+;; * constant folding, propagation
+;; * procedure inlining
+;;   * always when single call site
+;;   * always for "trivial" procs
+;;   * otherwise who knows
+;; * dead code elimination
+;; * degenerate case optimizations
+;; * "fixing letrec"
+
+(define (post-order! f x)
+  (let lp ((x x))
+    (record-case x
+      ((<application> proc args)
+       (set! (application-proc x) (lp proc))
+       (set! (application-args x) (map lp args))
+       (or (f x) x))
+
+      ((<conditional> test then else)
+       (set! (conditional-test x) (lp test))
+       (set! (conditional-then x) (lp then))
+       (set! (conditional-else x) (lp else))
+       (or (f x) x))
+
+      ((<primitive-ref> name)
+       (or (f x) x))
+             
+      ((<lexical-ref> name gensym)
+       (or (f x) x))
+             
+      ((<lexical-set> name gensym exp)
+       (set! (lexical-set-exp x) (lp exp))
+       (or (f x) x))
+             
+      ((<module-ref> mod name public?)
+       (or (f x) x))
+             
+      ((<module-set> mod name public? exp)
+       (set! (module-set-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<toplevel-ref> name)
+       (or (f x) x))
+
+      ((<toplevel-set> name exp)
+       (set! (toplevel-set-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<toplevel-define> name exp)
+       (set! (toplevel-define-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<lambda> vars meta body)
+       (set! (lambda-body x) (lp body))
+       (or (f x) x))
+
+      ((<const> exp)
+       (or (f x) x))
+
+      ((<sequence> exps)
+       (set! (sequence-exps x) (map lp exps))
+       (or (f x) x))
+
+      ((<let> vars vals exp)
+       (set! (let-vals x) (map lp vals))
+       (set! (let-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<letrec> vars vals exp)
+       (set! (letrec-vals x) (map lp vals))
+       (set! (letrec-exp x) (lp exp))
+       (or (f x) x)))))
+
+(define *interesting-primitive-names* 
+  '(apply @apply
+    call-with-values @call-with-values
+    call-with-current-continuation @call-with-current-continuation
+    values
+    ;; compile-time-environment
+    eq? eqv? equal?
+    = < > <= >= zero?
+    + * - / 1- 1+ quotient remainder modulo
+    not
+    pair? null? list? acons cons cons*
+
+    car cdr
+    set-car! set-cdr!
+
+    caar cadr cdar cddr
+
+    caaar caadr cadar caddr cdaar cdadr cddar cdddr
+
+    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr))
+
+(define *interesting-primitive-vars*
+  (let ((h (make-hash-table)))
+    (for-each (lambda (x)
+                (hashq-set! h (module-variable the-root-module x) x))
+              *interesting-primitive-names*)
+    h))
+
+(define (resolve-primitives! x mod)
+  (post-order!
+   (lambda (x)
+     (record-case x
+       ((<toplevel-ref> src name)
+        (and (hashq-ref *interesting-primitive-vars*
+                        (module-variable mod name))
+             (make-primitive-ref src name)))
+       ((<module-ref> mod name public?)
+        (let ((m (if public? (resolve-interface mod) (resolve-module mod))))
+          (and m (hashq-ref *interesting-primitive-vars*
+                            (module-variable m name))
+               (make-primitive-ref src name))))
+       (else #f)))
+   x))

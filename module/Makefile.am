@@ -71,8 +71,10 @@ SCHEME_LANG_SOURCES =						\
   language/scheme/decompile-tree-il.scm				\
   language/scheme/inline.scm
 
-TREE_IL_LANG_SOURCES =	\
-  language/tree-il/spec.scm language/tree-il/compile-glil.scm
+TREE_IL_LANG_SOURCES =						\
+  language/tree-il/spec.scm 					\
+  language/tree-il/compile-glil.scm 				\
+  language/tree-il/optimize.scm
 
 GHIL_LANG_SOURCES =					\
   language/ghil/spec.scm language/ghil/compile-glil.scm

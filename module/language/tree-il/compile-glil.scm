@@ -27,168 +27,11 @@
   #:export (compile-glil))
 
 (define (compile-glil x e opts)
-  (if (memq #:O opts) (set! x (optimize x)))
   (values (codegen x)
           (and e (cons (car e) (cddr e)))
           e))
 
 
-;;;
-;;; Stage 2: Optimization
-;;;
-
-(define (lift-variables! env)
-  (let ((parent-env (ghil-env-parent env)))
-    (for-each (lambda (v)
-                (case (ghil-var-kind v)
-                  ((argument) (set! (ghil-var-kind v) 'local)))
-                (set! (ghil-var-env v) parent-env)
-                (ghil-env-add! parent-env v))
-              (ghil-env-variables env))))
-
-;; Possible optimizations:
-;; * compile primitives specially
-;; * turn global-refs into primitive-refs
-;; * constant folding, propagation
-;; * procedure inlining
-;;   * always when single call site
-;;   * always for "trivial" procs
-;;   * otherwise who knows
-;; * dead code elimination
-;; * degenerate case optimizations
-
-
-;; The premise of this, unused, approach to optimization is that you can
-;; determine the environment of a variable lexically, because they have
-;; been alpha-renamed. It makes the transformations *much* easier.
-;; Unfortunately it doesn't work yet.
-(define (optimize* x)
-  (transform-record (<ghil> env loc) x
-    ((quasiquote exp)
-     (define (optimize-qq x)
-       (cond ((list? x) (map optimize-qq x))
-             ((pair? x) (cons (optimize-qq (car x)) (optimize-qq (cdr x))))
-             ((record? x) (optimize x))
-             (else x)))
-     (-> (quasiquote (optimize-qq x))))
-
-    ((unquote exp)
-     (-> (unquote (optimize exp))))
-
-    ((unquote-splicing exp)
-     (-> (unquote-splicing (optimize exp))))
-
-    ((set var val)
-     (-> (set var (optimize val))))
-
-    ((define var val)
-     (-> (define var (optimize val))))
-
-    ((if test then else)
-     (-> (if (optimize test) (optimize then) (optimize else))))
-
-    ((and exps)
-     (-> (and (map optimize exps))))
-
-    ((or exps)
-     (-> (or (map optimize exps))))
-
-    ((begin exps)
-     (-> (begin (map optimize exps))))
-
-    ((bind vars vals body)
-     (-> (bind vars (map optimize vals) (optimize body))))
-
-    ((mv-bind producer vars rest body)
-     (-> (mv-bind (optimize producer) vars rest (optimize body))))
-
-    ((inline inst args)
-     (-> (inline inst (map optimize args))))
-
-    ((call (proc (lambda vars (rest #f) meta body)) args)
-     (-> (bind vars (optimize args) (optimize body))))
-
-    ((call proc args)
-     (-> (call (optimize proc) (map optimize args))))
-
-    ((lambda vars rest meta body)
-     (-> (lambda vars rest meta (optimize body))))
-
-    ((mv-call producer (consumer (lambda vars rest meta body)))
-     (-> (mv-bind (optimize producer) vars rest (optimize body))))
-
-    ((mv-call producer consumer)
-     (-> (mv-call (optimize producer) (optimize consumer))))
-
-    ((values values)
-     (-> (values (map optimize values))))
-
-    ((values* values)
-     (-> (values* (map optimize values))))
-
-    (else
-     (error "unrecognized GHIL" x))))
-
-(define (optimize x)
-  (record-case x
-    ((<ghil-set> env loc var val)
-     (make-ghil-set env var (optimize val)))
-
-    ((<ghil-define> env loc var val)
-     (make-ghil-define env var (optimize val)))
-
-    ((<ghil-if> env loc test then else)
-     (make-ghil-if env loc (optimize test) (optimize then) (optimize else)))
-
-    ((<ghil-and> env loc exps)
-     (make-ghil-and env loc (map optimize exps)))
-
-    ((<ghil-or> env loc exps)
-     (make-ghil-or env loc (map optimize exps)))
-
-    ((<ghil-begin> env loc exps)
-     (make-ghil-begin env loc (map optimize exps)))
-
-    ((<ghil-bind> env loc vars vals body)
-     (make-ghil-bind env loc vars (map optimize vals) (optimize body)))
-
-    ((<ghil-lambda> env loc vars rest meta body)
-     (make-ghil-lambda env loc vars rest meta (optimize body)))
-
-    ((<ghil-inline> env loc instruction args)
-     (make-ghil-inline env loc instruction (map optimize args)))
-
-    ((<ghil-call> env loc proc args)
-     (let ((parent-env env))
-       (record-case proc
-         ;; ((@lambda (VAR...) BODY...) ARG...) =>
-         ;;   (@let ((VAR ARG) ...) BODY...)
-         ((<ghil-lambda> env loc vars rest meta body)
-          (cond
-           ((not rest)
-            (lift-variables! env)
-            (make-ghil-bind parent-env loc (map optimize args)))
-           (else
-            (make-ghil-call parent-env loc (optimize proc) (map optimize args)))))
-         (else
-          (make-ghil-call parent-env loc (optimize proc) (map optimize args))))))
-
-    ((<ghil-mv-call> env loc producer consumer)
-     (record-case consumer
-      ;; (mv-call PRODUCER (lambda ARGS BODY...)) =>
-      ;;   (mv-let PRODUCER ARGS BODY...)
-      ((<ghil-lambda> env loc vars rest meta body)
-       (lift-variables! env)
-       (make-ghil-mv-bind producer vars rest body))
-      (else
-       (make-ghil-mv-call env loc (optimize producer) (optimize consumer)))))
-
-    (else x)))
-
-
-;;;
-;;; Stage 3: Code generation
-;;;
 
 (define *ia-void* (make-glil-void))
 (define *ia-drop* (make-glil-call 'drop 1))
@@ -214,33 +57,24 @@
                        (eq? (ghil-var-kind var) 'public)))
     (else (error "Unknown kind of variable:" var))))
 
-(define (constant? x)
-  (cond ((or (number? x) (string? x) (symbol? x) (keyword? x) (boolean? x)) #t)
-        ((pair? x) (and (constant? (car x))
-                        (constant? (cdr x))))
-        ((vector? x) (let lp ((i (vector-length x)))
-                       (or (zero? i)
-                           (and (constant? (vector-ref x (1- i)))
-                                (lp (1- i))))))))
-
 (define (codegen ghil)
   (let ((stack '()))
-    (define (push-code! loc code)
+    (define (push-code! src code)
       (set! stack (cons code stack))
-      (if loc (set! stack (cons (make-glil-source loc) stack))))
+      (if src (set! stack (cons (make-glil-source src) stack))))
     (define (var->binding var)
       (list (ghil-var-name var) (ghil-var-kind var) (ghil-var-index var)))
-    (define (push-bindings! loc vars)
+    (define (push-bindings! src vars)
       (if (not (null? vars))
-          (push-code! loc (make-glil-bind (map var->binding vars)))))
+          (push-code! src (make-glil-bind (map var->binding vars)))))
     (define (comp tree tail drop)
       (define (push-label! label)
 	(push-code! #f (make-glil-label label)))
-      (define (push-branch! loc inst label)
-	(push-code! loc (make-glil-branch inst label)))
-      (define (push-call! loc inst args)
+      (define (push-branch! src inst label)
+	(push-code! src (make-glil-branch inst label)))
+      (define (push-call! src inst args)
 	(for-each comp-push args)
-	(push-code! loc (make-glil-call inst (length args))))
+	(push-code! src (make-glil-call inst (length args))))
       ;; possible tail position
       (define (comp-tail tree) (comp tree tail drop))
       ;; push the result
@@ -254,72 +88,38 @@
       (define (maybe-return)
 	(if tail (push-code! #f *ia-return*)))
       ;; return this code if necessary
-      (define (return-code! loc code)
-	(if (not drop) (push-code! loc code))
+      (define (return-code! src code)
+	(if (not drop) (push-code! src code))
 	(maybe-return))
       ;; return void if necessary
       (define (return-void!)
 	(return-code! #f *ia-void*))
       ;; return object if necessary
-      (define (return-object! loc obj)
-	(return-code! loc (make-glil-const obj)))
+      (define (return-object! src obj)
+	(return-code! src (make-glil-const obj)))
       ;;
       ;; dispatch
       (record-case tree
 	((<ghil-void>)
 	 (return-void!))
 
-	((<ghil-quote> env loc obj)
-	 (return-object! loc obj))
+	((<ghil-quote> env src obj)
+	 (return-object! src obj))
 
-	((<ghil-quasiquote> env loc exp)
-	 (let loop ((x exp) (in-car? #f))
-           (cond
-            ((list? x)
-             (push-call! #f 'mark '())
-             (for-each (lambda (x) (loop x #t)) x)
-             (push-call! #f 'list-mark '()))
-            ((pair? x)
-             (push-call! #f 'mark '())
-             (loop (car x) #t)
-             (loop (cdr x) #f)
-             (push-call! #f 'cons-mark '()))
-            ((record? x)
-             (record-case x
-              ((<ghil-unquote> env loc exp)
-               (comp-push exp))
-              ((<ghil-unquote-splicing> env loc exp)
-               (if (not in-car?)
-                   (error "unquote-splicing in the cdr of a pair" exp))
-               (comp-push exp)
-               (push-call! #f 'list-break '()))))
-            ((constant? x)
-             (push-code! #f (make-glil-const x)))
-            (else
-             (error "element of quasiquote can't be compiled" x))))
-	 (maybe-drop)
-	 (maybe-return))
+	((<ghil-ref> env src var)
+	 (return-code! src (make-glil-var 'ref env var)))
 
-	((<ghil-unquote> env loc exp)
-         (error "unquote outside of quasiquote" exp))
-
-	((<ghil-unquote-splicing> env loc exp)
-         (error "unquote-splicing outside of quasiquote" exp))
-
-	((<ghil-ref> env loc var)
-	 (return-code! loc (make-glil-var 'ref env var)))
-
-	((<ghil-set> env loc var val)
+	((<ghil-set> env src var val)
 	 (comp-push val)
-	 (push-code! loc (make-glil-var 'set env var))
+	 (push-code! src (make-glil-var 'set env var))
 	 (return-void!))
 
-	((<ghil-define> env loc var val)
-	 (comp-push val)
-	 (push-code! loc (make-glil-var 'define env var))
+	((<toplevel-define> src name exp)
+	 (comp-push exp)
+	 (push-code! src (make-glil-var 'define env var))
 	 (return-void!))
 
-	((<ghil-if> env loc test then else)
+	((<conditional> src test then else)
 	 ;;     TEST
 	 ;;     (br-if-not L1)
 	 ;;     THEN
@@ -328,65 +128,14 @@
 	 ;; L2:
 	 (let ((L1 (make-label)) (L2 (make-label)))
 	   (comp-push test)
-	   (push-branch! loc 'br-if-not L1)
+	   (push-branch! src 'br-if-not L1)
 	   (comp-tail then)
 	   (if (not tail) (push-branch! #f 'br L2))
 	   (push-label! L1)
 	   (comp-tail else)
 	   (if (not tail) (push-label! L2))))
 
-	((<ghil-and> env loc exps)
-	 ;;     EXP
-	 ;;     (br-if-not L1)
-	 ;;     ...
-	 ;;     TAIL
-	 ;;     (br L2)
-	 ;; L1: (const #f)
-	 ;; L2:
-         (cond ((null? exps) (return-object! loc #t))
-               ((null? (cdr exps)) (comp-tail (car exps)))
-               (else
-                (let ((L1 (make-label)) (L2 (make-label)))
-                  (let lp ((exps exps))
-                    (cond ((null? (cdr exps))
-                           (comp-tail (car exps))
-                           (push-branch! #f 'br L2)
-                           (push-label! L1)
-                           (return-object! #f #f)
-                           (push-label! L2)
-                           (maybe-return))
-                          (else
-                           (comp-push (car exps))
-                           (push-branch! #f 'br-if-not L1)
-                           (lp (cdr exps)))))))))
-
-	((<ghil-or> env loc exps)
-	 ;;     EXP
-	 ;;     (dup)
-	 ;;     (br-if L1)
-	 ;;     (drop)
-	 ;;     ...
-	 ;;     TAIL
-	 ;; L1:
-         (cond ((null? exps) (return-object! loc #f))
-               ((null? (cdr exps)) (comp-tail (car exps)))
-               (else
-                (let ((L1 (make-label)))
-                  (let lp ((exps exps))
-                    (cond ((null? (cdr exps))
-                           (comp-tail (car exps))
-                           (push-label! L1)
-                           (maybe-return))
-                          (else
-                           (comp-push (car exps))
-                           (if (not drop)
-                               (push-call! #f 'dup '()))
-                           (push-branch! #f 'br-if L1)
-                           (if (not drop)
-                               (push-code! loc (make-glil-call 'drop 1)))
-                           (lp (cdr exps)))))))))
-
-	((<ghil-begin> env loc exps)
+	((<sequence> src exps)
 	 ;; EXPS...
 	 ;; TAIL
 	 (if (null? exps)
@@ -396,24 +145,24 @@
 		  (comp-tail (car exps)))
 	       (comp-drop (car exps)))))
 
-	((<ghil-bind> env loc vars vals body)
+	((<let> src vars vals body)
 	 ;; VALS...
 	 ;; (set VARS)...
 	 ;; BODY
 	 (for-each comp-push vals)
-         (push-bindings! loc vars)
+         (push-bindings! src vars)
 	 (for-each (lambda (var) (push-code! #f (make-glil-var 'set env var)))
 		   (reverse vars))
 	 (comp-tail body)
 	 (push-code! #f (make-glil-unbind)))
 
-	((<ghil-mv-bind> env loc producer vars rest body)
+	((<ghil-mv-bind> env src producer vars rest body)
 	 ;; VALS...
 	 ;; (set VARS)...
 	 ;; BODY
          (let ((MV (make-label)))
            (comp-push producer)
-           (push-code! loc (make-glil-mv-call 0 MV))
+           (push-code! src (make-glil-mv-call 0 MV))
            (push-code! #f (make-glil-const 1))
            (push-label! MV)
            (push-code! #f (make-glil-mv-bind (map var->binding vars) rest))
@@ -422,10 +171,10 @@
          (comp-tail body)
          (push-code! #f (make-glil-unbind)))
 
-	((<ghil-lambda> env loc vars rest meta body)
-	 (return-code! loc (codegen tree)))
+	((<ghil-lambda> env src vars rest meta body)
+	 (return-code! src (codegen tree)))
 
-	((<ghil-inline> env loc inline args)
+	((<ghil-inline> env src inline args)
 	 ;; ARGS...
 	 ;; (INST NARGS)
          (let ((tail-table '((call . goto/args)
@@ -433,50 +182,50 @@
                              (call/cc . goto/cc))))
            (cond ((and tail (assq-ref tail-table inline))
                   => (lambda (tail-inst)
-                       (push-call! loc tail-inst args)))
+                       (push-call! src tail-inst args)))
                  (else
-                  (push-call! loc inline args)
+                  (push-call! src inline args)
                   (maybe-drop)
                   (maybe-return)))))
 
-        ((<ghil-values> env loc values)
+        ((<ghil-values> env src values)
          (cond (tail ;; (lambda () (values 1 2))
-                (push-call! loc 'return/values values))
+                (push-call! src 'return/values values))
                (drop ;; (lambda () (values 1 2) 3)
                 (for-each comp-drop values))
                (else ;; (lambda () (list (values 10 12) 1))
                 (push-code! #f (make-glil-const 'values))
                 (push-code! #f (make-glil-call 'link-now 1))
                 (push-code! #f (make-glil-call 'variable-ref 0))
-                (push-call! loc 'call values))))
+                (push-call! src 'call values))))
                 
-        ((<ghil-values*> env loc values)
+        ((<ghil-values*> env src values)
          (cond (tail ;; (lambda () (apply values '(1 2)))
-                (push-call! loc 'return/values* values))
+                (push-call! src 'return/values* values))
                (drop ;; (lambda () (apply values '(1 2)) 3)
                 (for-each comp-drop values))
                (else ;; (lambda () (list (apply values '(10 12)) 1))
                 (push-code! #f (make-glil-const 'values))
                 (push-code! #f (make-glil-call 'link-now 1))
                 (push-code! #f (make-glil-call 'variable-ref 0))
-                (push-call! loc 'apply values))))
+                (push-call! src 'apply values))))
                 
-	((<ghil-call> env loc proc args)
+	((<ghil-call> env src proc args)
 	 ;; PROC
 	 ;; ARGS...
 	 ;; ([tail-]call NARGS)
 	 (comp-push proc)
          (let ((nargs (length args)))
            (cond ((< nargs 255)
-                  (push-call! loc (if tail 'goto/args 'call) args))
+                  (push-call! src (if tail 'goto/args 'call) args))
                  (else
-                  (push-call! loc 'mark '())
+                  (push-call! src 'mark '())
                   (for-each comp-push args)
-                  (push-call! loc 'list-mark '())
-                  (push-code! loc (make-glil-call (if tail 'goto/apply 'apply) 2)))))
+                  (push-call! src 'list-mark '())
+                  (push-code! src (make-glil-call (if tail 'goto/apply 'apply) 2)))))
 	 (maybe-drop))
 
-	((<ghil-mv-call> env loc producer consumer)
+	((<ghil-mv-call> env src producer consumer)
 	 ;; CONSUMER
          ;; PRODUCER
          ;; (mv-call MV)
@@ -487,25 +236,25 @@
          (let ((MV (make-label)) (POST (make-label)))
            (comp-push consumer)
            (comp-push producer)
-           (push-code! loc (make-glil-mv-call 0 MV))
-           (push-code! loc (make-glil-call (if tail 'goto/args 'call) 1))
+           (push-code! src (make-glil-mv-call 0 MV))
+           (push-code! src (make-glil-call (if tail 'goto/args 'call) 1))
            (cond ((not tail)
                   (push-branch! #f 'br POST)))
            (push-label! MV)
-           (push-code! loc (make-glil-call (if tail 'goto/nargs 'call/nargs) 0))
+           (push-code! src (make-glil-call (if tail 'goto/nargs 'call/nargs) 0))
            (cond ((not tail)
                   (push-label! POST)
                   (maybe-drop)))))
 
-        ((<ghil-reified-env> env loc)
-         (return-object! loc (ghil-env-reify env)))))
+        ((<ghil-reified-env> env src)
+         (return-object! src (ghil-env-reify env)))))
 
     ;;
     ;; main
     (record-case ghil
-      ((<ghil-lambda> env loc vars rest meta body)
+      ((<ghil-lambda> env src vars rest meta body)
        (let* ((evars (ghil-env-variables env))
-	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) evars))
+	      (srcs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) evars))
 	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) evars))
               (nargs (allocate-indices-linearly! vars))
               (nlocs (allocate-locals! locs body))
@@ -513,7 +262,7 @@
 	 ;; meta bindings
          (push-bindings! #f vars)
          ;; push on definition source location
-         (if loc (set! stack (cons (make-glil-source loc) stack)))
+         (if src (set! stack (cons (make-glil-source src) stack)))
 	 ;; copy args to the heap if they're marked as external
 	 (do ((n 0 (1+ n))
 	      (l vars (cdr l)))
