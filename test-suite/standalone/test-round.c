@@ -26,7 +26,11 @@
 #if HAVE_FENV_H
 #include <fenv.h>
 #elif defined HAVE_MACHINE_FPU_H
-/* On Tru64 5.1b, the declaration of fesetround(3) is here.  */
+/* On Tru64 5.1b, the declaration of fesetround(3) is in <machine/fpu.h>.
+   On NetBSD, this header has to be included along with <sys/types.h>.  */
+# ifdef HAVE_SYS_TYPES_H
+#  include <sys/types.h>
+# endif
 # include <machine/fpu.h>
 #endif
 
