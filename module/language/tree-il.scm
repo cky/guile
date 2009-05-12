@@ -24,25 +24,28 @@
             <lexical> make-lexical
             lexical-name lexical-gensym
 
-            <application> make-application application-src application-proc application-args
-            <conditional> make-conditional conditional-src conditional-test conditional-then conditional-else
-            <primitive-ref> make-primitive-ref primitive-ref-src primitive-ref-name
-            <lexical-ref> make-lexical-ref lexical-ref-src lexical-ref-name lexical-ref-gensym
-            <lexical-set> make-lexical-set lexical-set-src lexical-set-name lexical-set-gensym lexical-set-exp
-            <module-ref> make-module-ref module-ref-src module-ref-mod module-ref-name module-ref-public?
-            <module-set> make-module-set module-set-src module-set-mod module-set-name module-set-public? module-set-exp
-            <toplevel-ref> make-toplevel-ref toplevel-ref-src toplevel-ref-name
-            <toplevel-set> make-toplevel-set toplevel-set-src toplevel-set-name toplevel-set-exp
-            <toplevel-define> make-toplevel-define toplevel-define-src toplevel-define-name toplevel-define-exp
-            <lambda> make-lambda lambda-src lambda-vars lambda-meta lambda-body
-            <const> make-const const-src const-exp
-            <sequence> make-sequence sequence-src sequence-exps
-            <let> make-let let-src let-vars let-vals let-exp
-            <letrec> make-letrec letrec-src letrec-vars letrec-vals letrec-exp
+            <application> application? make-application application-src application-proc application-args
+            <conditional> conditional? make-conditional conditional-src conditional-test conditional-then conditional-else
+            <primitive-ref> primitive-ref? make-primitive-ref primitive-ref-src primitive-ref-name
+            <lexical-ref> lexical-ref? make-lexical-ref lexical-ref-src lexical-ref-name lexical-ref-gensym
+            <lexical-set> lexical-set? make-lexical-set lexical-set-src lexical-set-name lexical-set-gensym lexical-set-exp
+            <module-ref> module-ref? make-module-ref module-ref-src module-ref-mod module-ref-name module-ref-public?
+            <module-set> module-set? make-module-set module-set-src module-set-mod module-set-name module-set-public? module-set-exp
+            <toplevel-ref> toplevel-ref? make-toplevel-ref toplevel-ref-src toplevel-ref-name
+            <toplevel-set> toplevel-set? make-toplevel-set toplevel-set-src toplevel-set-name toplevel-set-exp
+            <toplevel-define> toplevel-define? make-toplevel-define toplevel-define-src toplevel-define-name toplevel-define-exp
+            <lambda> lambda? make-lambda lambda-src lambda-vars lambda-meta lambda-body
+            <const> const? make-const const-src const-exp
+            <sequence> sequence? make-sequence sequence-src sequence-exps
+            <let> let? make-let let-src let-vars let-vals let-exp
+            <letrec> letrec? make-letrec letrec-src letrec-vars letrec-vals letrec-exp
 
             parse-tree-il
             unparse-tree-il
-            tree-il->scheme))
+            tree-il->scheme
+
+            post-order!
+            pre-order!))
 
 (define-type (<tree-il> #:common-slots (src))
   (<application> proc args)
@@ -246,3 +249,108 @@
            ((<letrec> vars vals exp)
             `(letrec ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme exp)))))
         (else e)))
+
+(define (post-order! f x)
+  (let lp ((x x))
+    (record-case x
+      ((<application> proc args)
+       (set! (application-proc x) (lp proc))
+       (set! (application-args x) (map lp args))
+       (or (f x) x))
+
+      ((<conditional> test then else)
+       (set! (conditional-test x) (lp test))
+       (set! (conditional-then x) (lp then))
+       (set! (conditional-else x) (lp else))
+       (or (f x) x))
+
+      ((<primitive-ref> name)
+       (or (f x) x))
+             
+      ((<lexical-ref> name gensym)
+       (or (f x) x))
+             
+      ((<lexical-set> name gensym exp)
+       (set! (lexical-set-exp x) (lp exp))
+       (or (f x) x))
+             
+      ((<module-ref> mod name public?)
+       (or (f x) x))
+             
+      ((<module-set> mod name public? exp)
+       (set! (module-set-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<toplevel-ref> name)
+       (or (f x) x))
+
+      ((<toplevel-set> name exp)
+       (set! (toplevel-set-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<toplevel-define> name exp)
+       (set! (toplevel-define-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<lambda> vars meta body)
+       (set! (lambda-body x) (lp body))
+       (or (f x) x))
+
+      ((<const> exp)
+       (or (f x) x))
+
+      ((<sequence> exps)
+       (set! (sequence-exps x) (map lp exps))
+       (or (f x) x))
+
+      ((<let> vars vals exp)
+       (set! (let-vals x) (map lp vals))
+       (set! (let-exp x) (lp exp))
+       (or (f x) x))
+
+      ((<letrec> vars vals exp)
+       (set! (letrec-vals x) (map lp vals))
+       (set! (letrec-exp x) (lp exp))
+       (or (f x) x)))))
+
+(define (pre-order! f x)
+  (let lp ((x x))
+    (let ((x (or (f x) x)))
+      (record-case x
+        ((<application> proc args)
+         (set! (application-proc x) (lp proc))
+         (set! (application-args x) (map lp args)))
+
+        ((<conditional> test then else)
+         (set! (conditional-test x) (lp test))
+         (set! (conditional-then x) (lp then))
+         (set! (conditional-else x) (lp else)))
+
+        ((<lexical-set> name gensym exp)
+         (set! (lexical-set-exp x) (lp exp)))
+               
+        ((<module-set> mod name public? exp)
+         (set! (module-set-exp x) (lp exp)))
+
+        ((<toplevel-set> name exp)
+         (set! (toplevel-set-exp x) (lp exp)))
+
+        ((<toplevel-define> name exp)
+         (set! (toplevel-define-exp x) (lp exp)))
+
+        ((<lambda> vars meta body)
+         (set! (lambda-body x) (lp body)))
+
+        ((<sequence> exps)
+         (set! (sequence-exps x) (map lp exps)))
+
+        ((<let> vars vals exp)
+         (set! (let-vals x) (map lp vals))
+         (set! (let-exp x) (lp exp)))
+
+        ((<letrec> vars vals exp)
+         (set! (letrec-vals x) (map lp vals))
+         (set! (letrec-exp x) (lp exp)))
+
+        (else #f))
+      x)))

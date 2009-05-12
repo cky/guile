@@ -34,69 +34,6 @@
 ;; * degenerate case optimizations
 ;; * "fixing letrec"
 
-(define (post-order! f x)
-  (let lp ((x x))
-    (record-case x
-      ((<application> proc args)
-       (set! (application-proc x) (lp proc))
-       (set! (application-args x) (map lp args))
-       (or (f x) x))
-
-      ((<conditional> test then else)
-       (set! (conditional-test x) (lp test))
-       (set! (conditional-then x) (lp then))
-       (set! (conditional-else x) (lp else))
-       (or (f x) x))
-
-      ((<primitive-ref> name)
-       (or (f x) x))
-             
-      ((<lexical-ref> name gensym)
-       (or (f x) x))
-             
-      ((<lexical-set> name gensym exp)
-       (set! (lexical-set-exp x) (lp exp))
-       (or (f x) x))
-             
-      ((<module-ref> mod name public?)
-       (or (f x) x))
-             
-      ((<module-set> mod name public? exp)
-       (set! (module-set-exp x) (lp exp))
-       (or (f x) x))
-
-      ((<toplevel-ref> name)
-       (or (f x) x))
-
-      ((<toplevel-set> name exp)
-       (set! (toplevel-set-exp x) (lp exp))
-       (or (f x) x))
-
-      ((<toplevel-define> name exp)
-       (set! (toplevel-define-exp x) (lp exp))
-       (or (f x) x))
-
-      ((<lambda> vars meta body)
-       (set! (lambda-body x) (lp body))
-       (or (f x) x))
-
-      ((<const> exp)
-       (or (f x) x))
-
-      ((<sequence> exps)
-       (set! (sequence-exps x) (map lp exps))
-       (or (f x) x))
-
-      ((<let> vars vals exp)
-       (set! (let-vals x) (map lp vals))
-       (set! (let-exp x) (lp exp))
-       (or (f x) x))
-
-      ((<letrec> vars vals exp)
-       (set! (letrec-vals x) (map lp vals))
-       (set! (letrec-exp x) (lp exp))
-       (or (f x) x)))))
-
 (define *interesting-primitive-names* 
   '(apply @apply
     call-with-values @call-with-values
