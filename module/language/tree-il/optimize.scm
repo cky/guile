@@ -22,7 +22,14 @@
 (define-module (language tree-il optimize)
   #:use-module (system base syntax)
   #:use-module (language tree-il)
-  #:export (resolve-primitives!))
+  #:use-module (language tree-il inline)
+  #:export (optimize!))
+
+(define (env-module e)
+  (if e (car e) (current-module)))
+
+(define (optimize! x env opts)
+  (expand-primitives! (resolve-primitives! x (env-module env))))
 
 ;; Possible optimizations:
 ;; * constant folding, propagation
