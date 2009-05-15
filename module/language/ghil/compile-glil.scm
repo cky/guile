@@ -187,7 +187,7 @@
 (define (make-glil-var op env var)
   (case (ghil-var-kind var)
     ((argument)
-     (make-glil-argument op (ghil-var-index var)))
+     (make-glil-local op (ghil-var-index var)))
     ((local)
      (make-glil-local op (ghil-var-index var)))
     ((external)
@@ -217,7 +217,9 @@
       (set! stack (cons code stack))
       (if loc (set! stack (cons (make-glil-source loc) stack))))
     (define (var->binding var)
-      (list (ghil-var-name var) (ghil-var-kind var) (ghil-var-index var)))
+      (list (ghil-var-name var) (let ((kind (ghil-var-kind var)))
+                                  (case kind ((argument) 'local) (else kind)))
+            (ghil-var-index var)))
     (define (push-bindings! loc vars)
       (if (not (null? vars))
           (push-code! loc (make-glil-bind (map var->binding vars)))))
@@ -496,7 +498,7 @@
 	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) evars))
 	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) evars))
               (nargs (allocate-indices-linearly! vars))
-              (nlocs (allocate-locals! locs body))
+              (nlocs (allocate-locals! locs body nargs))
               (nexts (allocate-indices-linearly! exts)))
 	 ;; meta bindings
          (push-bindings! #f vars)
@@ -509,7 +511,7 @@
 	   (let ((v (car l)))
 	     (case (ghil-var-kind v)
                ((external)
-                (push-code! #f (make-glil-argument 'ref n))
+                (push-code! #f (make-glil-local 'ref n))
                 (push-code! #f (make-glil-external 'set 0 (ghil-var-index v)))))))
 	 ;; compile body
 	 (comp body #t #f)
@@ -523,8 +525,8 @@
       ((null? l) n)
     (let ((v (car l))) (set! (ghil-var-index v) n))))
 
-(define (allocate-locals! vars body)
-  (let ((free '()) (nlocs 0))
+(define (allocate-locals! vars body nargs)
+  (let ((free '()) (nlocs nargs))
     (define (allocate! var)
       (cond
        ((pair? free)

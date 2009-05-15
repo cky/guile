@@ -24,6 +24,7 @@
             <lexical> make-lexical
             lexical-name lexical-gensym
 
+            <void> void? make-void void-src
             <application> application? make-application application-src application-proc application-args
             <conditional> conditional? make-conditional conditional-src conditional-test conditional-then conditional-else
             <primitive-ref> primitive-ref? make-primitive-ref primitive-ref-src primitive-ref-name
@@ -48,6 +49,7 @@
             pre-order!))
 
 (define-type (<tree-il> #:common-slots (src))
+  (<void>)
   (<application> proc args)
   (<conditional> test then else)
   (<primitive-ref> name)
@@ -85,6 +87,9 @@
   (let ((loc (location exp))
         (retrans (lambda (x) (parse-ghil env x))))
     (pmatch exp
+     ((void)
+      (make-void loc))
+
      ((apply ,proc ,args)
       (make-application loc (retrans proc) (retrans args)))
 
@@ -147,6 +152,9 @@
 
 (define (unparse-tree-il tree-il)
   (record-case tree-il
+    ((<void>)
+     '(void))
+
     ((<application> proc args)
      `(apply ,(unparse-tree-il proc) ,(map unparse-tree-il args)))
 
@@ -200,6 +208,9 @@
                (tree-il->scheme (cdr e))))
         ((record? e)
          (record-case e
+           ((<void>)
+            '(if #f #f))
+
            ((<application> proc args)
             `(,(tree-il->scheme proc) ,@(map tree-il->scheme args)))
 
@@ -253,6 +264,9 @@
 (define (post-order! f x)
   (let lp ((x x))
     (record-case x
+      ((<void>)
+       (or (f x) x))
+
       ((<application> proc args)
        (set! (application-proc x) (lp proc))
        (set! (application-args x) (map lp args))

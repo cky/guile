@@ -44,9 +44,6 @@
    <glil-const> make-glil-const glil-const?
    glil-const-obj
 
-   <glil-argument> make-glil-argument glil-argument?
-   glil-argument-op glil-argument-index
-
    <glil-local> make-glil-local glil-local?
    glil-local-op glil-local-index
 
@@ -87,7 +84,6 @@
   (<glil-void>)
   (<glil-const> obj)
   ;; Variables
-  (<glil-argument> op index)
   (<glil-local> op index)
   (<glil-external> op depth index)
   (<glil-toplevel> op name)
@@ -125,7 +121,6 @@
     ((source ,props) (make-glil-source props))
     ((void) (make-glil-void))
     ((const ,obj) (make-glil-const obj))
-    ((argument ,op ,index) (make-glil-argument op index))
     ((local ,op ,index) (make-glil-local op index))
     ((external ,op ,depth ,index) (make-glil-external op depth index))
     ((toplevel ,op ,name) (make-glil-toplevel op name))
@@ -150,8 +145,6 @@
     ((<glil-void>) `(void))
     ((<glil-const> obj) `(const ,obj))
     ;; variables
-    ((<glil-argument> op index)
-     `(argument ,op ,index))
     ((<glil-local> op index)
      `(local ,op ,index))
     ((<glil-external> op depth index)
