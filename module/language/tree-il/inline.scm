@@ -135,5 +135,16 @@
   (x y) (cons x y)
   (x y . rest) (cons x (cons* y . rest)))
 
-(define-primitive-expander acons
-  (x y z) (cons (cons x y) z))
+(define-primitive-expander acons (x y z)
+  (cons (cons x y) z))
+
+(define-primitive-expander apply (f . args)
+  (@apply f . args))
+
+(define-primitive-expander call-with-values (producer consumer)
+  (@call-with-values producer consumer))
+
+(define-primitive-expander call-with-current-continuation (proc)
+  (@call-with-current-continuation proc))
+
+(define-primitive-expander values (x) x)

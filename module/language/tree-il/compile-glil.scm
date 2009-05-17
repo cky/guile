@@ -30,10 +30,6 @@
 
 ;;; TODO:
 ;;
-;; * ([@]apply f args) -> goto/apply or similar
-;; * ([@]apply values args) -> goto/values or similar
-;; * ([@]call-with-values prod cons) ...
-;; * ([@]call-with-current-continuation prod cons) ...
 ;; call-with-values -> mv-bind
 ;; compile-time-environment
 ;; GOOPS' @slot-ref, @slot-set
@@ -178,7 +174,71 @@
                (lp (cdr exps))))))
 
       ((<application> src proc args)
+       ;; FIXME: need a better pattern-matcher here
        (cond
+        ((and (primitive-ref? proc)
+              (eq? (primitive-ref-name proc) '@apply)
+              (>= (length args) 2))
+         (let ((proc (car args))
+               (args (cdr args)))
+           (cond
+            ((and (primitive-ref? proc) (eq? (primitive-ref-name proc) 'values)
+                  (not (eq? context 'push)))
+             ;; tail: (lambda () (apply values '(1 2)))
+             ;; drop: (lambda () (apply values '(1 2)) 3)
+             ;; push: (lambda () (list (apply values '(10 12)) 1))
+             (case context
+               ((drop) (for-each comp-drop args))
+               ((tail)
+                (for-each comp-push args)
+                (emit-code src (make-glil-call 'return/values* (length args))))))
+
+            (else
+             (comp-push proc)
+             (for-each comp-push args)
+             (case context
+               ((drop) (emit-code src (make-glil-call 'apply (length args)))
+                       (emit-code src (make-glil-call 'drop 1)))
+               ((tail) (emit-code src (make-glil-call 'goto/apply (length args))))
+               ((push) (emit-code src (make-glil-call 'apply (length args)))))))))
+
+        ((and (primitive-ref? proc)
+              (eq? (primitive-ref-name proc) '@call-with-values)
+              (= (length args) 2))
+	 ;; CONSUMER
+         ;; PRODUCER
+         ;; (mv-call MV)
+         ;; ([tail]-call 1)
+         ;; goto POST
+         ;; MV: [tail-]call/nargs
+         ;; POST: (maybe-drop)
+         (let ((MV (make-label)) (POST (make-label))
+               (producer (car args)) (consumer (cadr args)))
+           (comp-push consumer)
+           (comp-push producer)
+           (emit-code src (make-glil-mv-call 0 MV))
+           (case context
+             ((tail) (emit-code src (make-glil-call 'goto/args 1)))
+             (else   (emit-code src (make-glil-call 'call 1))
+                     (emit-branch #f 'br POST)))
+           (emit-label MV)
+           (case context
+             ((tail) (emit-code src (make-glil-call 'goto/nargs 0)))
+             (else   (emit-code src (make-glil-call 'call/nargs 0))
+                     (emit-label POST)
+                     (if (eq? context 'drop)
+                         (emit-code #f (make-glil-call 'drop 1)))))))
+
+        ((and (primitive-ref? proc)
+              (eq? (primitive-ref-name proc) '@call-with-current-continuation)
+              (= (length args 1)))
+         (comp-push (car args))
+         (case context
+           ((tail) (emit-code src (make-glil-call 'goto/cc 1)))
+           ((push) (emit-code src (make-glil-call 'call/cc 1)))
+           ((drop) (emit-code src (make-glil-call 'call/cc 1))
+                   (emit-code src (make-glil-call 'drop 1)))))
+
         ((and (primitive-ref? proc)
               (hash-ref *primcall-ops*
                         (cons (primitive-ref-name proc) (length args))))
@@ -191,10 +251,12 @@
         (else
          (comp-push proc)
          (for-each comp-push args)
-         (emit-code src (make-glil-call (case context
-                                          ((tail) 'goto/args)
-                                          (else 'call))
-                                        (length args))))))
+         (let ((len (length args)))
+           (case context
+             ((tail) (emit-code src (make-glil-call 'goto/args len)))
+             ((push) (emit-code src (make-glil-call 'call len)))
+             ((drop) (emit-code src (make-glil-call 'call len))
+                     (emit-code src (make-glil-call 'drop 1))))))))
 
       ((<conditional> src test then else)
        ;;     TEST
