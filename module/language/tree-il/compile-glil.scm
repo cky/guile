@@ -33,7 +33,7 @@
 ;;  lambda -> (nlocs . nexts)
 
 (define (compile-glil x e opts)
-  (let* ((x (make-lambda (tree-il-src x) '() '() x))
+  (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
     (values (flatten-lambda x -1 allocation)

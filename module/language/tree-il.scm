@@ -35,11 +35,11 @@
             <toplevel-ref> toplevel-ref? make-toplevel-ref toplevel-ref-src toplevel-ref-name
             <toplevel-set> toplevel-set? make-toplevel-set toplevel-set-src toplevel-set-name toplevel-set-exp
             <toplevel-define> toplevel-define? make-toplevel-define toplevel-define-src toplevel-define-name toplevel-define-exp
-            <lambda> lambda? make-lambda lambda-src lambda-vars lambda-meta lambda-body
+            <lambda> lambda? make-lambda lambda-src lambda-names lambda-vars lambda-meta lambda-body
             <const> const? make-const const-src const-exp
             <sequence> sequence? make-sequence sequence-src sequence-exps
-            <let> let? make-let let-src let-vars let-vals let-exp
-            <letrec> letrec? make-letrec letrec-src letrec-vars letrec-vals letrec-exp
+            <let> let? make-let let-src let-names let-vars let-vals let-exp
+            <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-exp
 
             parse-tree-il
             unparse-tree-il
@@ -60,11 +60,11 @@
   (<toplevel-ref> name)
   (<toplevel-set> name exp)
   (<toplevel-define> name exp)
-  (<lambda> vars meta body)
+  (<lambda> names vars meta body)
   (<const> exp)
   (<sequence> exps)
-  (<let> vars vals exp)
-  (<letrec> vars vals exp))
+  (<let> names vars vals exp)
+  (<letrec> names vars vals exp))
   
 (define <lexical> <lexical-ref>)
 (define lexical? lexical-ref?)
@@ -129,11 +129,11 @@
      ((define ,name exp) (guard (symbol? name))
       (make-toplevel-define loc name (retrans exp)))
 
-     ((lambda ,vars ,exp)
-      (make-lambda loc vars '() (retrans exp)))
+     ((lambda ,names ,vars ,exp)
+      (make-lambda loc names vars '() (retrans exp)))
 
-     ((lambda ,vars ,meta ,exp)
-      (make-lambda loc vars meta (retrans exp)))
+     ((lambda ,names ,vars ,meta ,exp)
+      (make-lambda loc names vars meta (retrans exp)))
 
      ((const ,exp)
       (make-const loc exp))
@@ -141,11 +141,11 @@
      ((begin . ,exps)
       (make-sequence loc (map retrans exps)))
 
-     ((let ,vars ,vals ,exp)
-      (make-let loc vars vals (retrans exp)))
+     ((let ,names ,vars ,vals ,exp)
+      (make-let loc names vars vals (retrans exp)))
 
-     ((letrec ,vars ,vals ,exp)
-      (make-letrec loc vars vals (retrans exp)))
+     ((letrec ,names ,vars ,vals ,exp)
+      (make-letrec loc names vars vals (retrans exp)))
 
      (else
       (error "unrecognized tree-il" exp)))))
@@ -185,8 +185,8 @@
     ((<toplevel-define> name exp)
      `(define ,name ,(unparse-tree-il exp)))
 
-    ((<lambda> vars meta body)
-     `(lambda ,vars ,meta ,(unparse-tree-il body)))
+    ((<lambda> names vars meta body)
+     `(lambda ,names ,vars ,meta ,(unparse-tree-il body)))
 
     ((<const> exp)
      `(const ,exp))
@@ -194,11 +194,11 @@
     ((<sequence> exps)
      `(begin ,@(map unparse-tree-il exps)))
 
-    ((<let> vars vals exp)
-     `(let ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il exp)))
+    ((<let> names vars vals exp)
+     `(let ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il exp)))
 
-    ((<letrec> vars vals exp)
-     `(letrec ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il exp)))))
+    ((<letrec> names vars vals exp)
+     `(letrec ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il exp)))))
 
 (define (tree-il->scheme e)
   (cond ((list? e)

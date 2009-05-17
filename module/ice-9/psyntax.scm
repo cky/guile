@@ -436,7 +436,7 @@
 (define build-lambda
   (lambda (src ids vars docstring exp)
     (case (fluid-ref *mode*)
-      ((c) ((@ (language tree-il) make-lambda) src vars
+      ((c) ((@ (language tree-il) make-lambda) src ids vars
             (if docstring `((documentation . ,docstring)) '())
             exp))
       (else `(lambda ,vars ,@(if docstring (list docstring) '())
@@ -469,7 +469,7 @@
     (if (null? vars)
 	body-exp
         (case (fluid-ref *mode*)
-          ((c) ((@ (language tree-il) make-let) src vars val-exps body-exp))
+          ((c) ((@ (language tree-il) make-let) src ids vars val-exps body-exp))
           (else `(let ,(map list vars val-exps) ,body-exp))))))
 
 (define build-named-let
@@ -480,7 +480,7 @@
           (ids (cdr ids)))
       (case (fluid-ref *mode*)
         ((c) ((@ (language tree-il) make-letrec) src
-                                        ; (list f-name)
+              (list f-name)
               (list f)
               (list (build-lambda src ids vars #f body-exp))
               (build-application src (build-lexical-reference 'fun src f-name f)
@@ -492,7 +492,7 @@
     (if (null? vars)
         body-exp
         (case (fluid-ref *mode*)
-          ((c) ((@ (language tree-il) make-letrec) src vars val-exps body-exp))
+          ((c) ((@ (language tree-il) make-letrec) src ids vars val-exps body-exp))
           (else `(letrec ,(map list vars val-exps) ,body-exp))))))
 
 ;; FIXME: wingo: use make-lexical ?
