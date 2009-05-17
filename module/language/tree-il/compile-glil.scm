@@ -44,18 +44,20 @@
 
 (define (make-label) (gensym ":L"))
 
-(define (vars->bind-list vars allocation)
-  (map (lambda (v)
+(define (vars->bind-list ids vars allocation)
+  (map (lambda (id v)
          (let ((loc (hashq-ref allocation v)))
            (case (car loc)
-             ((stack) (list v 'local (cdr loc)))
-             ((heap)  (list v 'external (cddr loc)))
-             (else (error "badness" v loc)))))
+             ((stack) (list id 'local (cdr loc)))
+             ((heap)  (list id 'external (cddr loc)))
+             (else (error "badness" id v loc)))))
+       ids
        vars))
 
-(define (emit-bindings src vars allocation emit-code)
+(define (emit-bindings src ids vars allocation emit-code)
   (if (pair? vars)
-      (emit-code src (make-glil-bind (vars->bind-list vars allocation)))))
+      (emit-code src (make-glil-bind
+                      (vars->bind-list ids vars allocation)))))
 
 (define (with-output-to-code proc)
   (let ((out '()))
@@ -67,11 +69,16 @@
     (reverse out)))
 
 (define (flatten-lambda x level allocation)
-  (receive (vars nargs nrest)
-      (let lp ((vars (lambda-vars x)) (out '()) (n 0))
-          (cond ((null? vars) (values (reverse out) n 0))
-                ((pair? vars) (lp (cdr vars) (cons (car vars) out) (1+ n)))
-                (else (values (reverse (cons vars out)) (1+ n) 1))))
+  (receive (ids vars nargs nrest)
+      (let lp ((ids (lambda-names x)) (vars (lambda-vars x))
+               (oids '()) (ovars '()) (n 0))
+          (cond ((null? vars) (values (reverse oids) (reverse ovars) n 0))
+                ((pair? vars) (lp (cdr ids) (cdr vars)
+                                  (cons (car ids) oids) (cons (car vars) ovars)
+                                  (1+ n)))
+                (else (values (reverse (cons ids oids))
+                              (reverse (cons vars ovars))
+                              (1+ n) 1))))
     (let ((nlocs (car (hashq-ref allocation x)))
           (nexts (cdr (hashq-ref allocation x))))
       (make-glil-program
@@ -79,7 +86,7 @@
        (with-output-to-code
         (lambda (emit-code)
           ;; write bindings and source debugging info
-          (emit-bindings #f vars allocation emit-code)
+          (emit-bindings #f ids vars allocation emit-code)
           (if (lambda-src x)
               (emit-code (make-glil-src (lambda-src x))))
 
@@ -246,9 +253,9 @@
           (emit-code #f (flatten-lambda x level allocation))
           (emit-code #f (make-glil-call 'return 1)))))
 
-      ((<let> src vars vals exp)
+      ((<let> src names vars vals exp)
        (for-each comp-push vals)
-       (emit-bindings src vars allocation emit-code)
+       (emit-bindings src names vars allocation emit-code)
        (for-each (lambda (v)
                    (let ((loc (hashq-ref allocation v)))
                      (case (car loc)
@@ -261,9 +268,9 @@
        (comp-tail exp)
        (emit-code #f (make-glil-unbind)))
 
-      ((<letrec> src vars vals exp)
+      ((<letrec> src names vars vals exp)
        (for-each comp-push vals)
-       (emit-bindings src vars allocation emit-code)
+       (emit-bindings src names vars allocation emit-code)
        (for-each (lambda (v)
                    (let ((loc (hashq-ref allocation v)))
                      (case (car loc)
