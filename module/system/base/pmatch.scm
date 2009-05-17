@@ -16,15 +16,15 @@
      (let ((v (op arg ...)))
        (pmatch v cs ...)))
     ((_ v) (if #f #f))
-    ((_ v (else e0 e ...)) (begin e0 e ...))
+    ((_ v (else e0 e ...)) (let () e0 e ...))
     ((_ v (pat (guard g ...) e0 e ...) cs ...)
      (let ((fk (lambda () (pmatch v cs ...))))
        (ppat v pat
-             (if (and g ...) (begin e0 e ...) (fk))
+             (if (and g ...) (let () e0 e ...) (fk))
              (fk))))
     ((_ v (pat e0 e ...) cs ...)
      (let ((fk (lambda () (pmatch v cs ...))))
-       (ppat v pat (begin e0 e ...) (fk))))))
+       (ppat v pat (let () e0 e ...) (fk))))))
 
 (define-syntax ppat
   (syntax-rules (_ quote unquote)

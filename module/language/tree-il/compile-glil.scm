@@ -30,7 +30,6 @@
 
 ;;; TODO:
 ;;
-;; * (delay x) -> (make-promise (lambda () x))
 ;; * ([@]apply f args) -> goto/apply or similar
 ;; * ([@]apply values args) -> goto/values or similar
 ;; * ([@]call-with-values prod cons) ...
@@ -39,7 +38,6 @@
 ;; compile-time-environment
 ;; GOOPS' @slot-ref, @slot-set
 ;; basic degenerate-case reduction
-;; vm op "inlining"
 
 ;; allocation:
 ;;  sym -> (local . index) | (heap level . index)
@@ -54,6 +52,34 @@
             e)))
 
 
+
+(define *primcall-ops* (make-hash-table))
+(for-each
+ (lambda (x) (hash-set! *primcall-ops* (car x) (cdr x)))
+ '(((eq? . 2) . eq?)
+   ((eqv? . 2) . eqv?)
+   ((equal? . 2) . equal?)
+   ((= . 2) . ee?)
+   ((< . 2) . lt?)
+   ((> . 2) . gt?)
+   ((<= . 2) . le?)
+   ((>= . 2) . ge?)
+   ((+ . 2) . add)
+   ((- . 2) . sub)
+   ((* . 2) . mul)
+   ((/ . 2) . div)
+   ((quotient . 2) . quo)
+   ((remainder . 2) . rem)
+   ((modulo . 2) . mod)
+   ((not . 1) . not)
+   ((pair? . 1) . pair?)
+   ((cons . 2) . cons)
+   ((car . 1) . car)
+   ((cdr . 1) . cdr)
+   ((set-car! . 2) . set-car!)
+   ((set-cdr! . 2) . set-cdr!)
+   ((null? . 1) . null?)
+   ((list? . 1) . list?)))
 
 (define (make-label) (gensym ":L"))
 
@@ -152,12 +178,23 @@
                (lp (cdr exps))))))
 
       ((<application> src proc args)
-       (comp-push proc)
-       (for-each comp-push args)
-       (emit-code src (make-glil-call (case context
-                                        ((tail) 'goto/args)
-                                        (else 'call))
-                                      (length args))))
+       (cond
+        ((and (primitive-ref? proc)
+              (hash-ref *primcall-ops*
+                        (cons (primitive-ref-name proc) (length args))))
+         => (lambda (op)
+              (for-each comp-push args)
+              (emit-code src (make-glil-call op (length args)))
+              (case context
+                ((tail) (emit-code #f (make-glil-call 'return 1)))
+                ((drop) (emit-code #f (make-glil-call 'drop 1))))))
+        (else
+         (comp-push proc)
+         (for-each comp-push args)
+         (emit-code src (make-glil-call (case context
+                                          ((tail) 'goto/args)
+                                          (else 'call))
+                                        (length args))))))
 
       ((<conditional> src test then else)
        ;;     TEST
