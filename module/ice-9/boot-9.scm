@@ -210,6 +210,10 @@
 ;; module system has booted up.
 (define %pre-modules-transformer sc-expand)
 
+(define-syntax delay
+  (syntax-rules ()
+    ((_ exp) (make-promise (lambda () exp)))))
+
 
 
 ;;; {Defmacros}

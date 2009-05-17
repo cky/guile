@@ -28,6 +28,19 @@
   #:use-module (language tree-il analyze)
   #:export (compile-glil))
 
+;;; TODO:
+;;
+;; * (delay x) -> (make-promise (lambda () x))
+;; * ([@]apply f args) -> goto/apply or similar
+;; * ([@]apply values args) -> goto/values or similar
+;; * ([@]call-with-values prod cons) ...
+;; * ([@]call-with-current-continuation prod cons) ...
+;; call-with-values -> mv-bind
+;; compile-time-environment
+;; GOOPS' @slot-ref, @slot-set
+;; basic degenerate-case reduction
+;; vm op "inlining"
+
 ;; allocation:
 ;;  sym -> (local . index) | (heap level . index)
 ;;  lambda -> (nlocs . nexts)
