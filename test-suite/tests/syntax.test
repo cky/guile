@@ -112,8 +112,7 @@
 (with-test-prefix "begin"
 
   (pass-if "legal (begin)"
-    (begin)
-    #t)
+    (eval '(begin (begin) #t) (interaction-environment)))
 
   (with-test-prefix "unmemoization"
 
@@ -137,8 +136,7 @@
 
   (expect-fail-exception "illegal (begin)"
     exception:bad-body
-    (if #t (begin))
-    #t))
+    (eval '(begin (if #t (begin)) #t) (interaction-environment))))
 
 (with-test-prefix "lambda"
 
@@ -1010,9 +1008,21 @@
     (do ((n 0 (1+ n)))
 	((> n 5))
       (pass-if n
-	(let ((cond (make-iterations-cond n)))
-	  (while (cond)))
-	#t)))
+	(eval `(letrec ((make-iterations-cond
+                         (lambda (n)
+                           (lambda ()
+                             (cond ((not n)
+                                    (error "oops, condition re-tested after giving false"))
+                                   ((= 0 n)
+                                    (set! n #f)
+                                    #f)
+                                   (else
+                                    (set! n (1- n))
+                                    #t))))))
+                 (let ((cond (make-iterations-cond ,n)))
+                   (while (cond))
+                   #t))
+              (interaction-environment)))))
   
   (pass-if "initially false"
     (while #f

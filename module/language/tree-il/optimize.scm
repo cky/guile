@@ -79,7 +79,9 @@
                         (module-variable mod name))
              (make-primitive-ref src name)))
        ((<module-ref> mod name public?)
-        (let ((m (if public? (resolve-interface mod) (resolve-module mod))))
+        ;; for the moment, we're disabling primitive resolution for
+        ;; public refs because resolve-interface can raise errors.
+        (let ((m (and (not public?) (resolve-module mod))))
           (and m (hashq-ref *interesting-primitive-vars*
                             (module-variable m name))
                (make-primitive-ref src name))))

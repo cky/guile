@@ -83,15 +83,15 @@
                       (assq-ref props 'column)
                       (assq-ref props 'filename))))))
 
-(define (parse-tree-il env exp)
+(define (parse-tree-il exp)
   (let ((loc (location exp))
-        (retrans (lambda (x) (parse-ghil env x))))
+        (retrans (lambda (x) (parse-tree-il x))))
     (pmatch exp
      ((void)
       (make-void loc))
 
-     ((apply ,proc ,args)
-      (make-application loc (retrans proc) (retrans args)))
+     ((apply ,proc . ,args)
+      (make-application loc (retrans proc) (map retrans args)))
 
      ((if ,test ,then ,else)
       (make-conditional loc (retrans test) (retrans then) (retrans else)))
@@ -117,16 +117,16 @@
      ((@@ ,mod ,name) (guard (and-map symbol? mod) (symbol? name))
       (make-module-ref loc mod name #f))
 
-     ((set! (@ ,mod ,name) ,exp) (guard (and-map symbol? mod) (symbol? name))
+     ((set! (@@ ,mod ,name) ,exp) (guard (and-map symbol? mod) (symbol? name))
       (make-module-set loc mod name #f (retrans exp)))
 
      ((toplevel ,name) (guard (symbol? name))
       (make-toplevel-ref loc name))
 
-     ((set! (toplevel ,name) exp) (guard (symbol? name))
+     ((set! (toplevel ,name) ,exp) (guard (symbol? name))
       (make-toplevel-set loc name (retrans exp)))
 
-     ((define ,name exp) (guard (symbol? name))
+     ((define ,name ,exp) (guard (symbol? name))
       (make-toplevel-define loc name (retrans exp)))
 
      ((lambda ,names ,vars ,exp)
@@ -142,10 +142,10 @@
       (make-sequence loc (map retrans exps)))
 
      ((let ,names ,vars ,vals ,exp)
-      (make-let loc names vars vals (retrans exp)))
+      (make-let loc names vars (map retrans vals) (retrans exp)))
 
      ((letrec ,names ,vars ,vals ,exp)
-      (make-letrec loc names vars vals (retrans exp)))
+      (make-letrec loc names vars (map retrans vals) (retrans exp)))
 
      (else
       (error "unrecognized tree-il" exp)))))
@@ -156,7 +156,7 @@
      '(void))
 
     ((<application> proc args)
-     `(apply ,(unparse-tree-il proc) ,(map unparse-tree-il args)))
+     `(apply ,(unparse-tree-il proc) ,@(map unparse-tree-il args)))
 
     ((<conditional> test then else)
      `(if ,(unparse-tree-il test) ,(unparse-tree-il then) ,(unparse-tree-il else)))

@@ -167,8 +167,8 @@
                       allocation v
                       (if binder
                           (cons* 'heap level (allocate-heap! binder))
-                          (cons 'stack n))))
-                   (lp (cdr vars) (1+ n)))))))
+                          (cons 'stack n)))
+                     (lp (cdr vars) (if binder n (1+ n)))))))))
         
         ((<letrec> vars vals exp)
          (let lp ((vars vars) (n n))
@@ -184,8 +184,8 @@
                     allocation v
                     (if binder
                         (cons* 'heap level (allocate-heap! binder))
-                        (cons 'stack n))))
-                 (lp (cdr vars) (1+ n))))))
+                        (cons 'stack n)))
+                   (lp (cdr vars) (if binder n (1+ n))))))))
 
         (else n)))
 
