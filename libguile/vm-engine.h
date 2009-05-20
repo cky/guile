@@ -147,8 +147,12 @@
 #ifdef VM_ENABLE_PARANOID_ASSERTIONS
 #define CHECK_IP() \
   do { if (ip < bp->base || ip - bp->base > bp->len) abort (); } while (0)
+#define ASSERT_BOUND(x) \
+  do { if ((x) == SCM_UNDEFINED) { SYNC_REGISTER (); abort(); } \
+  } while (0)
 #else
 #define CHECK_IP()
+#define ASSERT_BOUND(x)
 #endif
 
 /* Get a local copy of the program's "object table" (i.e. the vector of

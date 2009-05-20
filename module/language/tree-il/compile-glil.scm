@@ -39,13 +39,17 @@
 ;;  sym -> (local . index) | (heap level . index)
 ;;  lambda -> (nlocs . nexts)
 
+(define *comp-module* (make-fluid))
+
 (define (compile-glil x e opts)
   (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
-    (values (flatten-lambda x -1 allocation)
-            (and e (cons (car e) (cddr e)))
-            e)))
+    (with-fluid* *comp-module* (or (and e (car e)) (current-module))
+      (lambda ()
+        (values (flatten-lambda x -1 allocation)
+                (and e (cons (car e) (cddr e)))
+                e)))))
 
 
 
@@ -128,11 +132,11 @@
           ;; copy args to the heap if necessary
           (let lp ((in vars) (n 0))
             (if (not (null? in))
-                (let ((loc (hashq-ref allocation (car vars))))
+                (let ((loc (hashq-ref allocation (car in))))
                   (case (car loc)
                     ((heap)
-                     (emit-code (make-glil-argument 'ref n))
-                     (emit-code (make-glil-external 'set 0 (cddr loc)))))
+                     (emit-code #f (make-glil-local 'ref n))
+                     (emit-code #f (make-glil-external 'set 0 (cddr loc)))))
                   (lp (cdr in) (1+ n)))))
 
           ;; and here, here, dear reader: we compile.
@@ -197,11 +201,21 @@
              (comp-push proc)
              (for-each comp-push args)
              (case context
-               ((drop) (emit-code src (make-glil-call 'apply (length args)))
+               ((drop) (emit-code src (make-glil-call 'apply (1+ (length args))))
                        (emit-code src (make-glil-call 'drop 1)))
-               ((tail) (emit-code src (make-glil-call 'goto/apply (length args))))
-               ((push) (emit-code src (make-glil-call 'apply (length args)))))))))
+               ((tail) (emit-code src (make-glil-call 'goto/apply (1+ (length args)))))
+               ((push) (emit-code src (make-glil-call 'apply (1+ (length args))))))))))
 
+        ((and (primitive-ref? proc) (eq? (primitive-ref-name proc) 'values)
+              (not (eq? context 'push)))
+         ;; tail: (lambda () (values '(1 2)))
+         ;; drop: (lambda () (values '(1 2)) 3)
+         ;; push: (lambda () (list (values '(10 12)) 1))
+         (case context
+           ((drop) (for-each comp-drop args))
+           ((tail)
+            (for-each comp-push args)
+            (emit-code src (make-glil-call 'return/values (length args))))))
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@call-with-values)
               (= (length args) 2))
@@ -277,12 +291,23 @@
              (emit-label L2))))
 
       ((<primitive-ref> src name)
-       (case context
-         ((push)
-          (emit-code src (make-glil-module 'ref '(guile) name #f)))
-         ((tail)
-          (emit-code src (make-glil-module 'ref '(guile) name #f))
-          (emit-code #f (make-glil-call 'return 1)))))
+       (cond
+        ((eq? (module-variable (fluid-ref *comp-module*) name)
+              (module-variable the-root-module name))
+         (case context
+           ((push)
+            (emit-code src (make-glil-toplevel 'ref name)))
+           ((tail)
+            (emit-code src (make-glil-toplevel 'ref name))
+            (emit-code #f (make-glil-call 'return 1)))))
+        (else
+         (pk 'ew-the-badness x (current-module) (fluid-ref *comp-module*))
+         (case context
+           ((push)
+            (emit-code src (make-glil-module 'ref '(guile) name #f)))
+           ((tail)
+            (emit-code src (make-glil-module 'ref '(guile) name #f))
+            (emit-code #f (make-glil-call 'return 1)))))))
 
       ((<lexical-ref> src name gensym)
        (case context

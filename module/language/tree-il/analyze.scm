@@ -144,7 +144,7 @@
          (let lp ((vars vars) (n 0))
            (if (null? vars)
                (hashq-set! allocation x
-                           (let ((nlocs (allocate! body (1+ level) n)))
+                           (let ((nlocs (- (allocate! body (1+ level) n) n)))
                              (cons nlocs (1+ (hashq-ref heap-indexes x -1)))))
                (let ((v (if (pair? vars) (car vars) vars)))
                  (let ((binder (hashq-ref heaps v)))

@@ -351,6 +351,12 @@
 
 
 ;;; output constructors
+(define build-void
+  (lambda (source)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-void) source))
+      (else '(if #f #f)))))
+
 (define build-application
   (lambda (source fun-exp arg-exps)
     (case (fluid-ref *mode*)
@@ -444,10 +450,13 @@
 
 (define build-primref
   (lambda (src name)
-    (case (fluid-ref *mode*)
-      ((c) ((@ (language tree-il) make-primitive-ref) src name))
-      ;; hygiene guile is a hack
-      (else (build-global-reference src name '(hygiene guile))))))
+    (if (equal? (module-name (current-module)) '(guile))
+        (case (fluid-ref *mode*)
+          ((c) ((@ (language tree-il) make-toplevel-ref) src name))
+          (else name))
+        (case (fluid-ref *mode*)
+          ((c) ((@ (language tree-il) make-module-ref) src '(guile) name #f))
+          (else `(@@ (guile) ,name))))))
 
 (define (build-data src exp)
   (case (fluid-ref *mode*)
@@ -1483,7 +1492,7 @@
 
 (define chi-void
   (lambda ()
-    (build-application no-source (build-primref no-source 'if) '(#f #f))))
+    (build-void no-source)))
 
 (define ellipsis?
   (lambda (x)
@@ -1894,6 +1903,22 @@
          (values (syntax->datum (syntax id))
                  (syntax->datum
                   (syntax (private mod ...))))))))
+
+(global-extend 'core 'if
+  (lambda (e r w s mod)
+    (syntax-case e ()
+      ((_ test then)
+       (build-conditional
+        s
+        (chi (syntax test) r w mod)
+        (chi (syntax then) r w mod)
+        (build-void no-source)))
+      ((_ test then else)
+       (build-conditional
+        s
+        (chi (syntax test) r w mod)
+        (chi (syntax then) r w mod)
+        (chi (syntax else) r w mod))))))
 
 (global-extend 'begin 'begin '())
 

@@ -58,7 +58,7 @@
   (save-module-excursion
    (lambda ()
      (and=> (cenv-module e) set-current-module)
-     (let ((x (sc-expand x 'c '(compile load eval)))
-           (cenv (make-cenv (current-module)
-                            (cenv-lexicals e) (cenv-externals e))))
+     (let* ((x (sc-expand x 'c '(compile load eval)))
+            (cenv (make-cenv (current-module)
+                             (cenv-lexicals e) (cenv-externals e))))
        (values x cenv cenv)))))

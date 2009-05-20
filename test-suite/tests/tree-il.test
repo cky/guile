@@ -102,7 +102,7 @@
 (with-test-prefix "primitive-ref"
   (assert-tree-il->glil
    (primitive +)
-   (program 0 0 0 0 () (module private ref (guile) +) (call return 1)))
+   (program 0 0 0 0 () (toplevel ref +) (call return 1)))
 
   (assert-tree-il->glil
    (begin (primitive +) (const #f))
@@ -110,7 +110,7 @@
 
   (assert-tree-il->glil
    (apply (primitive null?) (primitive +))
-   (program 0 0 0 0 () (module private ref (guile) +) (call null? 1)
+   (program 0 0 0 0 () (toplevel ref +) (call null? 1)
             (call return 1))))
 
 (with-test-prefix "lexical refs"
@@ -309,7 +309,7 @@
   (assert-tree-il->glil
    (lambda (x) (y) () (const 2))
    (program 0 0 0 0 ()
-            (program 1 0 1 0 ()
+            (program 1 0 0 0 ()
                      (bind (x local 0))
                      (const 2) (call return 1))
             (call return 1)))
@@ -317,7 +317,7 @@
   (assert-tree-il->glil
    (lambda (x x1) (y y1) () (const 2))
    (program 0 0 0 0 ()
-            (program 2 0 2 0 ()
+            (program 2 0 0 0 ()
                      (bind (x local 0) (x1 local 1))
                      (const 2) (call return 1))
             (call return 1)))
@@ -325,7 +325,7 @@
   (assert-tree-il->glil
    (lambda x y () (const 2))
    (program 0 0 0 0 ()
-            (program 1 1 1 0 ()
+            (program 1 1 0 0 ()
                      (bind (x local 0))
                      (const 2) (call return 1))
             (call return 1)))
@@ -333,7 +333,7 @@
   (assert-tree-il->glil
    (lambda (x . x1) (y . y1) () (const 2))
    (program 0 0 0 0 ()
-            (program 2 1 2 0 ()
+            (program 2 1 0 0 ()
                      (bind (x local 0) (x1 local 1))
                      (const 2) (call return 1))
             (call return 1)))
@@ -341,7 +341,7 @@
   (assert-tree-il->glil
    (lambda (x . x1) (y . y1) () (lexical x y))
    (program 0 0 0 0 ()
-            (program 2 1 2 0 ()
+            (program 2 1 0 0 ()
                      (bind (x local 0) (x1 local 1))
                      (local ref 0) (call return 1))
             (call return 1)))
@@ -349,9 +349,21 @@
   (assert-tree-il->glil
    (lambda (x . x1) (y . y1) () (lexical x1 y1))
    (program 0 0 0 0 ()
-            (program 2 1 2 0 ()
+            (program 2 1 0 0 ()
                      (bind (x local 0) (x1 local 1))
                      (local ref 1) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda (x) (x1) () (lambda (y) (y1) () (lexical x x1)))
+   (program 0 0 0 0 ()
+            (program 1 0 0 1 ()
+                     (bind (x external 0))
+                     (local ref 0) (external set 0 0)
+                     (program 1 0 0 0 ()
+                              (bind (y local 0))
+                              (external ref 1 0) (call return 1))
+                     (call return 1))
             (call return 1))))
 
 (with-test-prefix "sequence"
