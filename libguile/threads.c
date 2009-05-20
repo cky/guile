@@ -1161,6 +1161,16 @@ SCM_DEFINE (scm_join_thread_timed, "join-thread", 1, 2, 0,
 	  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
+
+	  /* Check for exit again, since we just released and
+	     reacquired the admin mutex, before the next block_self
+	     call (which would block forever if t has already
+	     exited). */
+	  if (t->exited)
+	    {
+	      res = t->result;
+	      break;
+	    }
 	}
     }
 

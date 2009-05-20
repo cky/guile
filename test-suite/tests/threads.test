@@ -265,7 +265,31 @@
 	(pass-if "asyncs are still working 1"
 	  (asyncs-still-working?))
 
-	)
+	;; scm_join_thread_timed has a SCM_TICK in the middle of it,
+	;; to allow asyncs to run (including signal delivery).  We
+	;; used to have a bug whereby if the joined thread terminated
+	;; at the same time as the joining thread is in this SCM_TICK,
+	;; scm_join_thread_timed would not notice and would hang
+	;; forever.  So in this test we are setting up the following
+	;; sequence of events.
+        ;;   T=0  other thread is created and starts running
+	;;   T=2  main thread sets up an async that will sleep for 10 seconds
+        ;;   T=2  main thread calls join-thread, which will...
+        ;;   T=2  ...call the async, which starts sleeping
+        ;;   T=5  other thread finishes its work and terminates
+        ;;   T=7  async completes, main thread continues inside join-thread.
+	(pass-if "don't hang when joined thread terminates in SCM_TICK"
+	  (let ((other-thread (make-thread sleep 5)))
+	    (letrec ((delay-count 10)
+		     (aproc (lambda ()
+			      (set! delay-count (- delay-count 1))
+			      (if (zero? delay-count)
+				  (sleep 5)
+				  (system-async-mark aproc)))))
+	      (sleep 2)
+	      (system-async-mark aproc)
+	      (join-thread other-thread)))
+	  #t))
 
       ;;
       ;; thread cancellation
