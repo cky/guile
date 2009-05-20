@@ -1431,7 +1431,7 @@
                    (new-vars (map gen-var ids)))
                (k (map syntax->datum ids)
                   new-vars
-                  docstring
+                  (and docstring (syntax->datum docstring))
                   (chi-body (syntax (e1 e2 ...))
                             e
                             (extend-var-env labels new-vars r)
@@ -1451,7 +1451,7 @@
                     (if (null? ls1)
                         ls2
                         (f (cdr ls1) (cons (car ls1) ls2))))
-                  docstring
+                  (and docstring (syntax->datum docstring))
                   (chi-body (syntax (e1 e2 ...))
                             e
                             (extend-var-env labels new-vars r)

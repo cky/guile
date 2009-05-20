@@ -24,6 +24,9 @@
 (define exception:bad-expression
   (cons 'syntax-error "Bad expression"))
 
+(define exception:failed-match
+  (cons 'syntax-error "failed to match any pattern"))
+
 
 ;;;
 ;;; miscellaneous
@@ -85,17 +88,19 @@
     ;; Macros are accepted as function parameters.
     ;; Functions that 'apply' macros are rewritten!!!
 
-    (expect-fail-exception "macro as argument"
-      exception:wrong-type-arg
-      (let ((f (lambda (p a b) (p a b))))
-	(f and #t #t)))
+    (pass-if-exception "macro as argument"
+      exception:failed-match
+      (primitive-eval
+       '(let ((f (lambda (p a b) (p a b))))
+          (f and #t #t))))
 
-    (expect-fail-exception "passing macro as parameter"
-      exception:wrong-type-arg
-      (let* ((f (lambda (p a b) (p a b)))
-	     (foo (procedure-source f)))
-	(f and #t #t)
-	(equal? (procedure-source f) foo)))
+    (pass-if-exception "passing macro as parameter"
+      exception:failed-match
+      (primitive-eval
+       '(let* ((f (lambda (p a b) (p a b)))
+               (foo (procedure-source f)))
+          (f and #t #t)
+          (equal? (procedure-source f) foo))))
 
     ))
 
