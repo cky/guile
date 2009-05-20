@@ -27,6 +27,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AC_PROG_RANLIB])
   AB_INIT
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
+  AC_REQUIRE([gl_FP_IEEE])
 ])
 
 # This macro should be invoked from ./configure.in, in the section
@@ -44,23 +45,34 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   gl_FUNC_ALLOCA
   gl_COUNT_ONE_BITS
+  gl_FUNC_FLOCK
+  gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
   gl_INLINE
   gl_LOCALCHARSET
   LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(top_builddir)/$gl_source_base\""
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
+  gl_FUNC_MALLOC_POSIX
+  gl_STDLIB_MODULE_INDICATOR([malloc-posix])
   gl_FUNC_MBRLEN
   gl_WCHAR_MODULE_INDICATOR([mbrlen])
   gl_FUNC_MBRTOWC
   gl_WCHAR_MODULE_INDICATOR([mbrtowc])
   gl_FUNC_MBSINIT
   gl_WCHAR_MODULE_INDICATOR([mbsinit])
+  gl_MULTIARCH
+  gl_FUNC_PUTENV
+  gl_STDLIB_MODULE_INDICATOR([putenv])
   gl_SAFE_READ
   gl_SAFE_WRITE
   gt_TYPE_SSIZE_T
   AM_STDBOOL_H
+  gl_STDINT_H
+  gl_STDLIB_H
   gl_STRCASE
   gl_FUNC_GNU_STRFTIME
   gl_HEADER_STRINGS_H
+  gl_HEADER_SYS_FILE_H
+  AC_PROG_MKDIR_P
   gl_HEADER_TIME_H
   gl_TIME_R
   gl_UNISTD_H
@@ -199,15 +211,18 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/alloca.in.h
   lib/config.charset
   lib/count-one-bits.h
+  lib/flock.c
   lib/full-read.c
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
   lib/localcharset.c
   lib/localcharset.h
+  lib/malloc.c
   lib/mbrlen.c
   lib/mbrtowc.c
   lib/mbsinit.c
+  lib/putenv.c
   lib/ref-add.sin
   lib/ref-del.sin
   lib/safe-read.c
@@ -215,23 +230,29 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.c
   lib/safe-write.h
   lib/stdbool.in.h
+  lib/stdint.in.h
+  lib/stdlib.in.h
   lib/strcasecmp.c
   lib/streq.h
   lib/strftime.c
   lib/strftime.h
   lib/strings.in.h
   lib/strncasecmp.c
+  lib/sys_file.in.h
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
   lib/verify.h
   lib/wchar.in.h
   lib/write.c
+  m4/00gnulib.m4
   m4/alloca.m4
   m4/autobuild.m4
   m4/codeset.m4
   m4/count-one-bits.m4
   m4/extensions.m4
+  m4/flock.m4
+  m4/fpieee.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
   m4/include_next.m4
@@ -240,17 +261,24 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/locale-fr.m4
   m4/locale-ja.m4
   m4/locale-zh.m4
+  m4/longlong.m4
+  m4/malloc.m4
   m4/mbrlen.m4
   m4/mbrtowc.m4
   m4/mbsinit.m4
   m4/mbstate_t.m4
+  m4/multiarch.m4
+  m4/putenv.m4
   m4/safe-read.m4
   m4/safe-write.m4
   m4/ssize_t.m4
   m4/stdbool.m4
+  m4/stdint.m4
+  m4/stdlib_h.m4
   m4/strcase.m4
   m4/strftime.m4
   m4/strings_h.m4
+  m4/sys_file_h.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4
