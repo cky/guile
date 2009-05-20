@@ -47,10 +47,8 @@
   #:version	"0.5"
   #:reader	read
   #:read-file	read-file
-  #:compilers   `(
-                  (tree-il . ,compile-tree-il)
-                  (ghil . ,compile-ghil)
-                  )
+  #:compilers   `((tree-il . ,compile-tree-il)
+                  (ghil . ,compile-ghil))
   #:decompilers `((tree-il . ,decompile-tree-il))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write

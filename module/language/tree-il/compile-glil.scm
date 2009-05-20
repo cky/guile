@@ -245,7 +245,7 @@
 
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@call-with-current-continuation)
-              (= (length args 1)))
+              (= (length args) 1))
          (comp-push (car args))
          (case context
            ((tail) (emit-code src (make-glil-call 'goto/cc 1)))

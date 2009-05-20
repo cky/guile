@@ -961,7 +961,10 @@
           (list (build-application
                  no-source
                  (build-primref no-source 'module-ref)
-                 (list (build-application no-source 'current-module '())
+                 (list (build-application 
+                        no-source
+                        (build-primref no-source 'current-module)
+                        '())
                        (build-data no-source name)))
                 (build-data no-source 'macro)
                 e))
@@ -2020,7 +2023,10 @@
         (if (null? clauses)
             (build-application no-source
               (build-primref no-source 'syntax-violation)
-              (list #f "source expression failed to match any pattern" x))
+              (list (build-data no-source #f)
+                    (build-data no-source
+                                "source expression failed to match any pattern")
+                    x))
             (syntax-case (car clauses) ()
               ((pat exp)
                (if (and (id? (syntax pat))
