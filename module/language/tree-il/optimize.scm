@@ -53,6 +53,8 @@
     not
     pair? null? list? acons cons cons*
 
+    list vector
+
     car cdr
     set-car! set-cdr!
 

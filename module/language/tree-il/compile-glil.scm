@@ -79,7 +79,9 @@
    ((set-car! . 2) . set-car!)
    ((set-cdr! . 2) . set-cdr!)
    ((null? . 1) . null?)
-   ((list? . 1) . list?)))
+   ((list? . 1) . list?)
+   (list . list)
+   (vector . vector)))
 
 (define (make-label) (gensym ":L"))
 
@@ -254,8 +256,9 @@
                    (emit-code src (make-glil-call 'drop 1)))))
 
         ((and (primitive-ref? proc)
-              (hash-ref *primcall-ops*
-                        (cons (primitive-ref-name proc) (length args))))
+              (or (hash-ref *primcall-ops*
+                            (cons (primitive-ref-name proc) (length args)))
+                  (hash-ref *primcall-ops* (primitive-ref-name proc))))
          => (lambda (op)
               (for-each comp-push args)
               (emit-code src (make-glil-call op (length args)))

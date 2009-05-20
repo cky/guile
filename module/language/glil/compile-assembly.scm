@@ -312,7 +312,12 @@
          (error "Unknown instruction:" inst))
      (let ((pops (instruction-pops inst)))
        (cond ((< pops 0)
-              (emit-code `((,inst ,nargs))))
+              (case (instruction-length inst)
+                ((1) (emit-code `((,inst ,nargs))))
+                ((2) (emit-code `((,inst ,(quotient nargs 256)
+                                         ,(modulo nargs 256)))))
+                (else (error "Unknown length for variable-arg instruction:"
+                             inst (instruction-length inst)))))
              ((= pops nargs)
               (emit-code `((,inst))))
              (else
