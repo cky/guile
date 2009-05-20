@@ -179,7 +179,7 @@ scm_async_click ()
 SCM_DEFINE (scm_system_async, "system-async", 1, 0, 0,
             (SCM thunk),
 	    "This function is deprecated.  You can use @var{thunk} directly\n"
-            "instead of explicitely creating an async object.\n")
+            "instead of explicitly creating an async object.\n")
 #define FUNC_NAME s_scm_system_async
 {
   scm_c_issue_deprecation_warning 

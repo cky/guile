@@ -331,7 +331,7 @@ integers.
 
 The motivation for this behavior is that the inexactness of a number
 should not be lost silently.  If you want to allow inexact integers,
-you can explicitely insert a call to @code{inexact->exact} or to its C
+you can explicitly insert a call to @code{inexact->exact} or to its C
 equivalent @code{scm_inexact_to_exact}.  (Only inexact integers will
 be converted by this call into exact integers; inexact non-integers
 will become exact fractions.)

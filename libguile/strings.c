@@ -1069,7 +1069,7 @@ scm_i_deprecated_string_chars (SCM str)
 		    "SCM_STRING_CHARS does not work with shared substrings.",
 		    SCM_EOL);
 
-  /* We explicitely test for read-only strings to produce a better
+  /* We explicitly test for read-only strings to produce a better
      error message.
   */
 

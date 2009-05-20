@@ -21,7 +21,7 @@
 (define substring-move-right! substring-move!)
 
 ;; This method of dynamically linking Guile Extensions is deprecated.
-;; Use `load-extension' explicitely from Scheme code instead.
+;; Use `load-extension' explicitly from Scheme code instead.
 
 (define (split-c-module-name str)
   (let loop ((rev '())

@@ -30,7 +30,7 @@ The NEWS file is quite long.  Here are the most interesting entries:
     from threads that have not been created by Guile.
 
   * Mutexes and condition variables are now always fair.  A recursive
-    mutex must be requested explicitely.
+    mutex must be requested explicitly.
 
   * The low-level thread API has been removed.
 
