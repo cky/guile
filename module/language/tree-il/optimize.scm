@@ -23,7 +23,7 @@
   #:use-module (system base syntax)
   #:use-module (language tree-il)
   #:use-module (language tree-il inline)
-  #:export (optimize!))
+  #:export (optimize! add-interesting-primitive!))
 
 (define (env-module e)
   (if e (car e) (current-module)))
@@ -65,12 +65,13 @@
     caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr))
 
-(define *interesting-primitive-vars*
-  (let ((h (make-hash-table)))
-    (for-each (lambda (x)
-                (hashq-set! h (module-variable the-root-module x) x))
-              *interesting-primitive-names*)
-    h))
+(define (add-interesting-primitive! name)
+  (hashq-set! *interesting-primitive-vars*
+              (module-variable (current-module) name) name))
+
+(define *interesting-primitive-vars* (make-hash-table))
+
+(for-each add-interesting-primitive! *interesting-primitive-names*)
 
 (define (resolve-primitives! x mod)
   (post-order!

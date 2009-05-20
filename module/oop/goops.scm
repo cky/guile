@@ -1061,31 +1061,10 @@
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
-;; separate expression so that we affect the expansion of the subsequent
-;; expression
 (eval-when (compile)
-  (use-modules ((language scheme compile-ghil) :select (define-scheme-translator))
-               ((language ghil) :select (make-ghil-inline make-ghil-call))
-               (system base pmatch)))
-
-(eval-when (compile)
-  ;; unfortunately, can't use define-inline because these are primitive
-  ;; syntaxen.
-  (define-scheme-translator @slot-ref
-    ((,obj ,index) (guard (integer? index)
-                          (>= index 0) (< index max-fixnum))
-     (make-ghil-inline #f #f 'slot-ref
-                       (list (retrans obj) (retrans index))))
-    (else
-     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp)))))
-
-  (define-scheme-translator @slot-set!
-    ((,obj ,index ,val) (guard (integer? index)
-                               (>= index 0) (< index max-fixnum))
-     (make-ghil-inline #f #f 'slot-set
-                       (list (retrans obj) (retrans index) (retrans val))))
-    (else
-     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp))))))
+  (use-modules ((language tree-il optimize) :select (add-interesting-primitive!)))
+  (add-interesting-primitive! '@slot-ref)
+  (add-interesting-primitive! '@slot-set!))
 
 (eval-when (eval load compile)
   (define num-standard-pre-cache 20))

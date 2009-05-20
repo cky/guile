@@ -32,7 +32,6 @@
 ;;
 ;; call-with-values -> mv-bind
 ;; compile-time-environment
-;; GOOPS' @slot-ref, @slot-set
 ;; basic degenerate-case reduction
 
 ;; allocation:
@@ -81,7 +80,9 @@
    ((null? . 1) . null?)
    ((list? . 1) . list?)
    (list . list)
-   (vector . vector)))
+   (vector . vector)
+   ((@slot-ref . 2) . slot-ref)
+   ((@slot-set! . 3) . slot-set)))
 
 (define (make-label) (gensym ":L"))
 
