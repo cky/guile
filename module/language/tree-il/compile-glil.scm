@@ -31,7 +31,6 @@
 ;;; TODO:
 ;;
 ;; call-with-values -> mv-bind
-;; compile-time-environment
 ;; basic degenerate-case reduction
 
 ;; allocation:

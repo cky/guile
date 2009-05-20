@@ -3009,19 +3009,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
-;;; {Compiler interface}
-;;;
-;;; The full compiler interface can be found in (system). Here we put a
-;;; few useful procedures into the global namespace.
-
-(module-autoload! the-scm-module
-                  '(system base compile)
-                  '(compile
-                    compile-time-environment))
-
-
-
-
 ;;; {Parameters}
 ;;;
 
@@ -3448,6 +3435,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; 		 (module-eval-closure (current-module))))
 ;;     (deannotate/source-properties (sc-expand (annotate exp)))))
 
-(define-module (guile-user))
+(define-module (guile-user)
+  #:autoload (system base compile) (compile))
 
 ;;; boot-9.scm ends here

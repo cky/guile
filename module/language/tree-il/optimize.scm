@@ -46,7 +46,6 @@
     call-with-values @call-with-values
     call-with-current-continuation @call-with-current-continuation
     values
-    ;; compile-time-environment
     eq? eqv? equal?
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo

@@ -29,7 +29,7 @@
   #:export (syntax-error 
             *current-language*
             compiled-file-name compile-file compile-and-load
-            compile compile-time-environment
+            compile
             decompile)
   #:export-syntax (call-with-compile-error-catch))
 
@@ -151,13 +151,6 @@
         (values x e cenv)
         (receive (x e new-cenv) ((car passes) x e opts)
           (lp (cdr passes) x e (if first? new-cenv cenv) #f)))))
-
-(define (compile-time-environment)
-  "A special function known to the compiler that, when compiled, will
-return a representation of the lexical environment in place at compile
-time. Useful for supporting some forms of dynamic compilation. Returns
-#f if called from the interpreter."
-  #f)
 
 (define (find-language-joint from to)
   (let lp ((in (reverse (or (lookup-compilation-order from to)

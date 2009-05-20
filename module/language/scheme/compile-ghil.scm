@@ -414,16 +414,6 @@
   (,args
    (-> (values (map retrans args)))))
 
-(define-scheme-translator compile-time-environment
-  ;; (compile-time-environment)
-  ;; => (MODULE LEXICALS . EXTERNALS)
-  (()
-   (-> (inline 'cons
-               (list (retrans '(current-module))
-                     (-> (inline 'cons
-                                 (list (-> (reified-env))
-                                       (-> (inline 'externals '()))))))))))
-
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)
          (lambda (e l args)
