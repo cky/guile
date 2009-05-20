@@ -376,3 +376,40 @@
    (apply (primitive null?) (begin (const #f) (const 2)))
    (program 0 0 0 0 ()
             (const 2) (call null? 1) (call return 1))))
+
+;; FIXME: binding info for or-hacked locals might bork the disassembler,
+;; and could be tightened in any case
+(with-test-prefix "the or hack"
+  (assert-tree-il->glil/pmatch
+   (let (x) (y) ((const 1))
+        (if (lexical x y)
+            (lexical x y)
+            (let (a) (b) ((const 2))
+                 (lexical a b))))
+   (program 0 0 1 0 ()
+            (const 1) (bind (x local 0)) (local set 0)
+            (local ref 0) (branch br-if-not ,l1)
+            (local ref 0) (call return 1)
+            (label ,l2)
+            (const 2) (bind (a local 0)) (local set 0)
+            (local ref 0) (call return 1)
+            (unbind)
+            (unbind))
+   (eq? l1 l2))
+
+  (assert-tree-il->glil/pmatch
+   (let (x) (y) ((const 1))
+        (if (lexical x y)
+            (lexical x y)
+            (let (a) (b) ((const 2))
+                 (lexical x y))))
+   (program 0 0 2 0 ()
+            (const 1) (bind (x local 0)) (local set 0)
+            (local ref 0) (branch br-if-not ,l1)
+            (local ref 0) (call return 1)
+            (label ,l2)
+            (const 2) (bind (a local 1)) (local set 1)
+            (local ref 0) (call return 1)
+            (unbind)
+            (unbind))
+   (eq? l1 l2)))

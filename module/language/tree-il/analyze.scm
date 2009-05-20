@@ -34,6 +34,21 @@
 ;;   (let (2 3 4) ...))
 ;; etc.
 ;;
+;; This algorithm has the problem that variables are only allocated
+;; indices at the end of the binding path. If variables bound early in
+;; the path are not used in later portions of the path, their indices
+;; will not be recycled. This problem is particularly egregious in the
+;; expansion of `or':
+;;
+;;  (or x y z)
+;;    -> (let ((a x)) (if a a (let ((b y)) (if b b z))))
+;;
+;; As you can see, the `a' binding is only used in the ephemeral `then'
+;; clause of the first `if', but its index would be reserved for the
+;; whole of the `or' expansion. So we have a hack for this specific
+;; case. A proper solution would be some sort of liveness analysis, and
+;; not our linear allocation algorithm.
+;;
 ;; allocation:
 ;;  sym -> (local . index) | (heap level . index)
 ;;  lambda -> (nlocs . nexts)
@@ -48,6 +63,8 @@
   ;;  when looking for closed-over vars.
   ;; heaps: sym -> lambda
   ;;  allows us to heapify vars in an O(1) fashion
+  ;; refcounts: sym -> count
+  ;;  allows us to detect the or-expansion an O(1) time
 
   (define (find-heap sym parent)
     ;; fixme: check displaced lexicals here?
@@ -66,6 +83,7 @@
        (step test) (step then) (step else))
 
       ((<lexical-ref> name gensym)
+       (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
        (if (and (not (memq gensym (hashq-ref bindings parent)))
                 (not (hashq-ref heaps gensym)))
            (hashq-set! heaps gensym (find-heap gensym parent))))
@@ -158,17 +176,32 @@
 
         ((<let> vars vals exp)
          (let ((nmax (apply max (map recur vals))))
-           (let lp ((vars vars) (n n))
-             (if (null? vars)
-                 (max nmax (allocate! exp level n))
-                 (let ((v (car vars)))
-                   (let ((binder (hashq-ref heaps v)))
-                     (hashq-set!
-                      allocation v
-                      (if binder
-                          (cons* 'heap level (allocate-heap! binder))
-                          (cons 'stack n)))
-                     (lp (cdr vars) (if binder n (1+ n)))))))))
+           (cond
+            ;; the `or' hack
+            ((and (conditional? exp)
+                  (= (length vars) 1)
+                  (let ((v (car vars)))
+                    (and (not (hashq-ref heaps v))
+                         (= (hashq-ref refcounts v 0) 2)
+                         (lexical-ref? (conditional-test exp))
+                         (eq? (lexical-ref-gensym (conditional-test exp)) v)
+                         (lexical-ref? (conditional-then exp))
+                         (eq? (lexical-ref-gensym (conditional-then exp)) v))))
+             (hashq-set! allocation (car vars) (cons 'stack n))
+             ;; the 1+ for this var
+             (max nmax (1+ n) (allocate! (conditional-else exp) level n)))
+            (else
+             (let lp ((vars vars) (n n))
+               (if (null? vars)
+                   (max nmax (allocate! exp level n))
+                   (let ((v (car vars)))
+                     (let ((binder (hashq-ref heaps v)))
+                       (hashq-set!
+                        allocation v
+                        (if binder
+                            (cons* 'heap level (allocate-heap! binder))
+                            (cons 'stack n)))
+                       (lp (cdr vars) (if binder n (1+ n)))))))))))
         
         ((<letrec> vars vals exp)
          (let lp ((vars vars) (n n))
@@ -192,6 +225,7 @@
   (define parents (make-hash-table))
   (define bindings (make-hash-table))
   (define heaps (make-hash-table))
+  (define refcounts (make-hash-table))
   (define allocation (make-hash-table))
   (define heap-indexes (make-hash-table))
 
