@@ -477,41 +477,105 @@
            (toplevel-define! 'name (make <generic> #:name 'name)))
        (add-method! name (method args body ...))))))
 
-(define-macro (method args . body)
-  (letrec ((specializers
-	    (lambda (ls)
-	      (cond ((null? ls) (list (list 'quote '())))
-		    ((pair? ls) (cons (if (pair? (car ls))
-					  (cadar ls)
-					  '<top>)
-				      (specializers (cdr ls))))
-		    (else '(<top>)))))
-	   (formals
-	    (lambda (ls)
-	      (if (pair? ls)
-		  (cons (if (pair? (car ls)) (caar ls) (car ls))
-			(formals (cdr ls)))
-		  ls))))
-    (let ((make-proc (compile-make-procedure (formals args)
-                                             (specializers args)
-                                             body)))
-      `(make <method>
-         #:specializers (cons* ,@(specializers args))
-         #:formals ',(formals args)
-         #:body ',body
-         #:make-procedure ,make-proc
-         #:procedure ,(and (not make-proc)
-                           ;; that is to say: we set #:procedure if
-                           ;; `compile-make-procedure' returned `#f',
-                           ;; which is the case if `body' does not
-                           ;; contain a call to `next-method'
-                          `(lambda ,(formals args)
-                             ,@(if (null? body)
-                                   ;; This used to be '((begin)), but
-                                   ;; guile's memoizer doesn't like
-                                   ;; (lambda args (begin)).
-                                   '((if #f #f))
-                                   body)))))))
+(define-syntax method
+  (lambda (x)
+    (define (compute-formals args)
+      (let lp ((ls args) (out '()))
+        (syntax-case ls ()
+          (((f s) . rest)  (lp (syntax rest) (cons (syntax f) out)))
+          ((f . rest)      (identifier? (syntax f))
+                           (lp (syntax rest) (cons (syntax f) out)))
+          (()              (reverse out))
+          (tail            (identifier? (syntax tail))
+                           (append (reverse out) (syntax tail))))))
+
+    (define (compute-specializers args)
+      (let lp ((ls args) (out '()))
+        (syntax-case ls ()
+          (((f s) . rest)  (lp (syntax rest) (cons (syntax s) out)))
+          ((f . rest)      (lp (syntax rest) (cons (syntax <top>) out)))
+          (()              (reverse (cons (syntax '()) out)))
+          (tail            (reverse (cons (syntax <top>) out))))))
+
+    (define (find-free-id exp referent)
+      (syntax-case exp ()
+        ((x . y)
+         (or (find-free-id (syntax x) referent)
+             (find-free-id (syntax y) referent)))
+        (x
+         (identifier? (syntax x))
+         (let ((id (datum->syntax (syntax x) referent)))
+           (and (free-identifier=? (syntax x) id) id)))
+        (_ #f)))
+
+    (define (compute-procedure formals body)
+      (syntax-case body ()
+        ((body0 ...)
+         (with-syntax ((formals formals))
+           (syntax (lambda formals body0 ...))))))
+
+    (define (->proper args)
+      (let lp ((ls args) (out '()))
+        (syntax-case ls ()
+          ((x . xs)        (lp (syntax xs) (cons (syntax x) out)))
+          (()              (reverse out))
+          (tail            (reverse (cons (syntax tail) out))))))
+
+    (define (compute-make-procedure formals body next-method)
+      (syntax-case body ()
+        ((body ...)
+         (with-syntax ((next-method next-method))
+           (syntax-case formals ()
+             ((formal ...)
+              (syntax
+               (lambda (real-next-method)
+                 (lambda (formal ...)
+                   (let ((next-method (lambda args
+                                        (if (null? args)
+                                            (real-next-method formal ...)
+                                            (apply real-next-method args)))))
+                     body ...)))))
+             (formals
+              (with-syntax (((formal ...) (->proper (syntax formals))))
+                (syntax
+                 (lambda (real-next-method)
+                   (lambda formals
+                     (let ((next-method (lambda args
+                                          (if (null? args)
+                                              (apply real-next-method formal ...)
+                                              (apply real-next-method args)))))
+                       body ...)))))))))))
+
+    (define (compute-procedures formals body)
+      ;; So, our use of this is broken, because it operates on the
+      ;; pre-expansion source code. It's equivalent to just searching
+      ;; for referent in the datums. Ah well.
+      (let ((id (find-free-id body 'next-method)))
+        (if id
+            ;; return a make-procedure
+            (values (syntax #f)
+                    (compute-make-procedure formals body id))
+            (values (compute-procedure formals body)
+                    (syntax #f)))))
+
+    (syntax-case x ()
+      ((_ args) (syntax (method args (if #f #f))))
+      ((_ args body0 body1 ...)
+       (with-syntax ((formals (compute-formals (syntax args)))
+                     ((specializer ...) (compute-specializers (syntax args))))
+         (call-with-values
+             (lambda ()
+               (compute-procedures (syntax formals) (syntax (body0 body1 ...))))
+           (lambda (procedure make-procedure)
+             (with-syntax ((procedure procedure)
+                           (make-procedure make-procedure))
+               (syntax
+                (make <method>
+                  #:specializers (cons* specializer ...)
+                  #:formals 'formals
+                  #:body '(body0 body1 ...)
+                  #:make-procedure make-procedure
+                  #:procedure procedure))))))))))
 
 ;;;
 ;;; {add-method!}
