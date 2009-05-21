@@ -184,7 +184,7 @@
        (cond
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@apply)
-              (>= (length args) 2))
+              (>= (length args) 1))
          (let ((proc (car args))
                (args (cdr args)))
            (cond
@@ -200,13 +200,23 @@
                 (emit-code src (make-glil-call 'return/values* (length args))))))
 
             (else
-             (comp-push proc)
-             (for-each comp-push args)
              (case context
-               ((drop) (emit-code src (make-glil-call 'apply (1+ (length args))))
-                       (emit-code src (make-glil-call 'drop 1)))
-               ((tail) (emit-code src (make-glil-call 'goto/apply (1+ (length args)))))
-               ((push) (emit-code src (make-glil-call 'apply (1+ (length args))))))))))
+               ((tail)
+                (comp-push proc)
+                (for-each comp-push args)
+                (emit-code src (make-glil-call 'goto/apply (1+ (length args)))))
+               ((push)
+                (comp-push proc)
+                (for-each comp-push args)
+                (emit-code src (make-glil-call 'apply (1+ (length args)))))
+               ((drop)
+                ;; Well, shit. The proc might return any number of
+                ;; values (including 0), since it's in a drop context,
+                ;; yet apply does not create a MV continuation. So we
+                ;; mv-call out to our trampoline instead.
+                (comp-drop
+                 (make-application src (make-primitive-ref #f 'apply)
+                                   (cons proc args)))))))))
 
         ((and (primitive-ref? proc) (eq? (primitive-ref-name proc) 'values)
               (not (eq? context 'push)))
@@ -248,12 +258,19 @@
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@call-with-current-continuation)
               (= (length args) 1))
-         (comp-push (car args))
          (case context
-           ((tail) (emit-code src (make-glil-call 'goto/cc 1)))
-           ((push) (emit-code src (make-glil-call 'call/cc 1)))
-           ((drop) (emit-code src (make-glil-call 'call/cc 1))
-                   (emit-code src (make-glil-call 'drop 1)))))
+           ((tail)
+            (comp-push (car args))
+            (emit-code src (make-glil-call 'goto/cc 1)))
+           ((push)
+            (comp-push (car args))
+            (emit-code src (make-glil-call 'call/cc 1)))
+           ((drop)
+            ;; Crap. Just like `apply' in drop context.
+            (comp-drop
+             (make-application
+              src (make-primitive-ref #f 'call-with-current-continuation)
+              args)))))
 
         ((and (primitive-ref? proc)
               (or (hash-ref *primcall-ops*
@@ -273,12 +290,14 @@
              ((tail) (emit-code src (make-glil-call 'goto/args len)))
              ((push) (emit-code src (make-glil-call 'call len)))
              ((drop)
-              (let ((MV (make-label)))
+              (let ((MV (make-label)) (POST (make-label)))
                 (emit-code src (make-glil-mv-call len MV))
-                (emit-code #f (make-glil-const 1))
+                (emit-code #f (make-glil-call 'drop 1))
+                (emit-branch #f 'br POST)
                 (emit-label MV)
                 (emit-code #f (make-glil-mv-bind '() #f))
-                (emit-code #f (make-glil-unbind)))))))))
+                (emit-code #f (make-glil-unbind))
+                (emit-label POST))))))))
 
       ((<conditional> src test then else)
        ;;     TEST

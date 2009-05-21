@@ -45,6 +45,7 @@
   '(apply @apply
     call-with-values @call-with-values
     call-with-current-continuation @call-with-current-continuation
+    call/cc
     values
     eq? eqv? equal?
     = < > <= >= zero?

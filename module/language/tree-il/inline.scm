@@ -147,4 +147,7 @@
 (define-primitive-expander call-with-current-continuation (proc)
   (@call-with-current-continuation proc))
 
+(define-primitive-expander call/cc (proc)
+  (@call-with-current-continuation proc))
+
 (define-primitive-expander values (x) x)
