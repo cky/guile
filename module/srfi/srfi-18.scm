@@ -151,8 +151,10 @@
                    (hashq-set! thread-exception-handlers ct hl) 
                    (handler obj))
                  (lambda () 
-                   (let ((r (thunk)))
-                     (hashq-set! thread-exception-handlers ct hl) r))))))
+                   (call-with-values thunk
+                     (lambda res
+                       (hashq-set! thread-exception-handlers ct hl)
+                       (apply values res))))))))
 
 (define (current-exception-handler)
   (car (current-handler-stack)))
