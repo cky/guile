@@ -22,7 +22,7 @@
 
 
 (define exception:generic-syncase-error
-  (cons 'syntax-error "Source expression failed to match"))
+  (cons 'syntax-error "source expression failed to match"))
 (define exception:unexpected-syntax
   (cons 'syntax-error "unexpected syntax"))
 
@@ -111,8 +111,9 @@
   (with-test-prefix "unquote-splicing"
 
     (pass-if-exception "extra arguments"
-      exception:missing/extra-expr
-      (quasiquote ((unquote-splicing (list 1 2) (list 3 4)))))))
+      '(syntax-error . "unquote-splicing takes exactly one argument")
+      (eval '(quasiquote ((unquote-splicing (list 1 2) (list 3 4))))
+            (interaction-environment)))))
 
 (with-test-prefix "begin"
 
@@ -121,17 +122,21 @@
 
   (with-test-prefix "unmemoization"
 
+    ;; FIXME. I have no idea why, but the expander is filling in (if #f
+    ;; #f) as the second arm of the if, if the second arm is missing. I
+    ;; thought I made it not do that. But in the meantime, let's adapt,
+    ;; since that's not what we're testing.
+
     (pass-if "normal begin"
-      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (+ 2))))))
-        (foo) ; make sure, memoization has been performed
+      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (+ 2)) #f))))
         (equal? (procedure-source foo)
-                '(lambda () (if (= 1 1) (begin (+ 1) (+ 2)))))))
+                '(lambda () (if (= 1 1) (begin (+ 1) (+ 2)) #f)))))
 
     (pass-if "redundant nested begin"
-      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3)))))))
+      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3))) #f))))
         (foo) ; make sure, memoization has been performed
         (equal? (procedure-source foo)
-                '(lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3))))))))
+                '(lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3))) #f)))))
 
     (pass-if "redundant begin at start of body"
       (let ((foo (lambda () (begin (+ 1) (+ 2))))) ; should be optimized
@@ -139,9 +144,20 @@
         (equal? (procedure-source foo)
                 '(lambda () (begin (+ 1) (+ 2)))))))
 
-  (expect-fail-exception "illegal (begin)"
-    exception:bad-body
+  (pass-if-exception "illegal (begin)"
+    exception:generic-syncase-error
     (eval '(begin (if #t (begin)) #t) (interaction-environment))))
+
+(define-syntax matches?
+  (syntax-rules (_)
+    ((_ (op arg ...) pat)   (let ((x (op arg ...)))
+                              (matches? x pat)))
+    ((_ x ())               (null? x))
+    ((_ x (a . b))          (and (pair? x)
+                                 (matches? (car x) a)
+                                 (matches? (cdr x) b)))
+    ((_ x _)                #t) 
+    ((_ x pat)              (equal? x 'pat))))
 
 (with-test-prefix "lambda"
 
@@ -149,15 +165,13 @@
 
     (pass-if "normal lambda"
       (let ((foo (lambda () (lambda (x y) (+ x y)))))
-        ((foo) 1 2) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (lambda (x y) (+ x y))))))
+        (matches? (procedure-source foo)
+                  (lambda () (lambda (_ _) (+ _ _))))))
 
     (pass-if "lambda with documentation"
       (let ((foo (lambda () (lambda (x y) "docstring" (+ x y)))))
-        ((foo) 1 2) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (lambda (x y) "docstring" (+ x y)))))))
+        (matches? (procedure-source foo)
+                  (lambda () (lambda (_ _) "docstring" (+ _ _)))))))
 
   (with-test-prefix "bad formals"
 

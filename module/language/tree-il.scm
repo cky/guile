@@ -215,7 +215,9 @@
             `(,(tree-il->scheme proc) ,@(map tree-il->scheme args)))
 
            ((<conditional> test then else)
-            `(if ,(tree-il->scheme test) ,(tree-il->scheme then) ,(tree-il->scheme else)))
+            (if (void? else)
+                `(if ,(tree-il->scheme test) ,(tree-il->scheme then))
+                `(if ,(tree-il->scheme test) ,(tree-il->scheme then) ,(tree-il->scheme else))))
 
            ((<primitive-ref> name)
             name)

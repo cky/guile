@@ -368,7 +368,9 @@
     (case (fluid-ref *mode*)
       ((c) ((@ (language tree-il) make-conditional)
             source test-exp then-exp else-exp))
-      (else `(if ,test-exp ,then-exp ,else-exp)))))
+      (else (if (equal? else-exp '(if #f #f))
+                `(if ,test-exp ,then-exp)
+                `(if ,test-exp ,then-exp ,else-exp))))))
 
 (define build-lexical-reference
   (lambda (type source name var)
