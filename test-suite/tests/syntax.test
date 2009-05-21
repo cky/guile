@@ -21,6 +21,11 @@
   :use-module (test-suite lib))
 
 
+(define exception:generic-syncase-error
+  (cons 'syntax-error "Source expression failed to match"))
+(define exception:unexpected-syntax
+  (cons 'syntax-error "unexpected syntax"))
+
 (define exception:bad-expression
   (cons 'syntax-error "Bad expression"))
 
@@ -67,13 +72,13 @@
   (with-test-prefix "Bad argument list"
 
     (pass-if-exception "improper argument list of length 1"
-      exception:wrong-num-args
+      exception:generic-syncase-error
       (eval '(let ((foo (lambda (x y) #t)))
 	       (foo . 1))
 	    (interaction-environment)))
 
     (pass-if-exception "improper argument list of length 2"
-      exception:wrong-num-args
+      exception:generic-syncase-error
       (eval '(let ((foo (lambda (x y) #t)))
 	       (foo 1 . 2))
 	    (interaction-environment))))
@@ -88,7 +93,7 @@
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "empty parentheses \"()\""
-      exception:illegal-empty-combination
+      exception:unexpected-syntax
       (eval '()
 	    (interaction-environment)))))
 

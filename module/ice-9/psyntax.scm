@@ -2355,12 +2355,22 @@
                    (syntax p)
                    (quasicons (syntax (quote unquote))
                               (quasi (syntax (p)) (- lev 1)))))
+              ((unquote . args)
+               (= lev 0)
+               (syntax-violation 'unquote
+                                 "unquote takes exactly one argument"
+                                 p (syntax (unquote . args))))
               (((unquote-splicing p) . q)
                (if (= lev 0)
                    (quasiappend (syntax p) (quasi (syntax q) lev))
                    (quasicons (quasicons (syntax (quote unquote-splicing))
                                          (quasi (syntax (p)) (- lev 1)))
                               (quasi (syntax q) lev))))
+              (((unquote-splicing . args) . q)
+               (= lev 0)
+               (syntax-violation 'unquote-splicing
+                                 "unquote-splicing takes exactly one argument"
+                                 p (syntax (unquote-splicing . args))))
               ((quasiquote p)
                (quasicons (syntax (quote quasiquote))
                           (quasi (syntax (p)) (+ lev 1))))
