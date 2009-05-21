@@ -249,8 +249,8 @@
 (define (wrap thunk)
   (lambda (continuation)
     (with-exception-handler (lambda (obj)
-			      (apply (current-exception-handler) (list obj))
-			      (apply continuation (list)))
+			      ((current-exception-handler) obj)
+			      (continuation))
 			    thunk)))
 
 ;; A pass-thru to cancel-thread that first installs a handler that throws

@@ -68,10 +68,12 @@
   (assert-tree-il->glil
    (apply (toplevel foo) (const 1))
    (program 0 0 0 0 () (toplevel ref foo) (const 1) (call goto/args 1)))
-  (assert-tree-il->glil
+  (assert-tree-il->glil/pmatch
    (begin (apply (toplevel foo) (const 1)) (void))
-   (program 0 0 0 0 () (toplevel ref foo) (const 1) (call call 1)
-            (call drop 1) (void) (call return 1)))
+   (program 0 0 0 0 () (toplevel ref foo) (const 1) (mv-call 1 ,l1)
+            (const 1) (label ,l2) (mv-bind () #f) (unbind)
+            (void) (call return 1))
+   (eq? l1 l2))
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel bar)))
    (program 0 0 0 0 () (toplevel ref foo) (toplevel ref bar) (call call 0)

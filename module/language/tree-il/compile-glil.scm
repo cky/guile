@@ -272,8 +272,13 @@
            (case context
              ((tail) (emit-code src (make-glil-call 'goto/args len)))
              ((push) (emit-code src (make-glil-call 'call len)))
-             ((drop) (emit-code src (make-glil-call 'call len))
-                     (emit-code src (make-glil-call 'drop 1))))))))
+             ((drop)
+              (let ((MV (make-label)))
+                (emit-code src (make-glil-mv-call len MV))
+                (emit-code #f (make-glil-const 1))
+                (emit-label MV)
+                (emit-code #f (make-glil-mv-bind '() #f))
+                (emit-code #f (make-glil-unbind)))))))))
 
       ((<conditional> src test then else)
        ;;     TEST
