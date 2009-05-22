@@ -1128,7 +1128,7 @@
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
 (eval-when (compile)
-  (use-modules ((language tree-il optimize) :select (add-interesting-primitive!)))
+  (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
   (add-interesting-primitive! '@slot-ref)
   (add-interesting-primitive! '@slot-set!))
 
