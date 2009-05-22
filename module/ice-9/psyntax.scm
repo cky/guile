@@ -526,7 +526,10 @@
      (cond
       ((syntax-object? x)
        (source-annotation (syntax-object-expression x)))
-      ((pair? x) (source-properties x))
+      ((pair? x) (let ((props (source-properties x)))
+                   (if (pair? props)
+                       props
+                       #f)))
       (else #f))))
 
 (define-syntax arg-check
@@ -922,15 +925,9 @@
 
 (define source-wrap
   (lambda (x w s defmod)
-    (wrap (if s
-              (begin
-                (if (not (pair? x))
-                    (error "bad source-wrap!!!" x s))
-                (set-source-properties! x s)
-                x)
-              x)
-          w
-          defmod)))
+    (if (and s (pair? x))
+        (set-source-properties! x s))
+    (wrap x w defmod)))
 
 ;;; expanding
 
@@ -1098,11 +1095,10 @@
                   (values 'call #f e w s mod))))
              (values 'call #f e w s mod))))
       ((syntax-object? e)
-       ;; s can't be valid source if we've unwrapped
        (syntax-type (syntax-object-expression e)
                     r
                     (join-wraps w (syntax-object-wrap e))
-                    no-source rib (or (syntax-object-module e) mod)))
+                    s rib (or (syntax-object-module e) mod)))
       ((self-evaluating? e) (values 'constant #f e w s mod))
       (else (values 'other #f e w s mod)))))
 
@@ -1346,7 +1342,7 @@
             (syntax-violation #f "no expressions in body" outer-form)
             (let ((e (cdar body)) (er (caar body)))
               (call-with-values
-                (lambda () (syntax-type e er empty-wrap (source-annotation e) ribcage mod))
+                (lambda () (syntax-type e er empty-wrap (source-annotation er) ribcage mod))
                 (lambda (type value e w s mod)
                   (case type
                     ((define-form)
@@ -1747,12 +1743,6 @@
           ((primitive) (build-primref no-source (cadr x)))
           ((quote) (build-data no-source (cadr x)))
           ((lambda) (build-lambda no-source (cadr x) (cadr x) #f (regen (caddr x))))
-          ((map) (let ((ls (map regen (cdr x))))
-                   (build-application no-source
-                     ;; this check used to be here, not sure what for:
-                     ;; (if (fx= (length ls) 2)
-                     (build-primref no-source 'map)
-                     ls)))
           (else (build-application no-source
                   (build-primref no-source (car x))
                   (map regen (cdr x)))))))
