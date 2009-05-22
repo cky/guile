@@ -24,10 +24,19 @@
   #:use-module (language tree-il)
   #:use-module (language glil))
 
+;; Of course, the GLIL that is emitted depends on the source info of the
+;; input. Here we're not concerned about that, so we strip source
+;; information from the incoming tree-il.
+
+(define (strip-source x)
+  (post-order! (lambda (x) (set! (tree-il-src x) #f))
+               x))
+
 (define-syntax assert-scheme->glil
   (syntax-rules ()
     ((_ in out)
-     (let ((tree-il (compile 'in #:from 'scheme #:to 'tree-il)))
+     (let ((tree-il (strip-source
+                     (compile 'in #:from 'scheme #:to 'tree-il))))
        (pass-if 'in
                 (equal? (unparse-glil (compile tree-il #:from 'tree-il #:to 'glil))
                         'out))))))
@@ -36,7 +45,7 @@
   (syntax-rules ()
     ((_ in out)
      (pass-if 'in
-              (let ((tree-il (parse-tree-il 'in)))
+              (let ((tree-il (strip-source (parse-tree-il 'in))))
                 (equal? (unparse-glil (compile tree-il #:from 'tree-il #:to 'glil))
                         'out))))))
 
@@ -46,12 +55,11 @@
      (let ((exp 'in))
        (pass-if 'in
          (let ((glil (unparse-glil
-                      (compile (parse-tree-il exp)
+                      (compile (strip-source (parse-tree-il exp))
                                #:from 'tree-il #:to 'glil))))
            (pmatch glil
              (pat (guard test ...) #t)
              (else #f))))))))
-
 
 (with-test-prefix "void"
   (assert-tree-il->glil
