@@ -129,7 +129,7 @@
           ;; write bindings and source debugging info
           (emit-bindings #f ids vars allocation emit-code)
           (if (lambda-src x)
-              (emit-code (make-glil-src (lambda-src x))))
+              (emit-code (make-glil-source (lambda-src x))))
 
           ;; copy args to the heap if necessary
           (let lp ((in vars) (n 0))
