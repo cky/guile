@@ -435,10 +435,23 @@
          ((c) ((@ (language tree-il) make-toplevel-set) source var exp))
          (else `(set! ,var ,exp)))))))
 
+;; FIXME: there is a bug that prevents (set! ((@ (foo) bar) baz) quz)
+;; from working. Hack around it.
+(define (maybe-name-value! name val)
+  (cond
+   (((@ (language tree-il) lambda?) val)
+    (let ((meta ((@ (language tree-il) lambda-meta) val)))
+      (if (not (assq 'name meta))
+          ((setter (@ (language tree-il) lambda-meta))
+           val
+           (acons 'name name meta)))))))
+
 (define build-global-definition
   (lambda (source var exp)
     (case (fluid-ref *mode*)
-      ((c) ((@ (language tree-il) make-toplevel-define) source var exp))
+      ((c)
+       (maybe-name-value! var exp)
+       ((@ (language tree-il) make-toplevel-define) source var exp))
       (else `(define ,var ,exp)))))
 
 (define build-lambda
@@ -480,7 +493,9 @@
     (if (null? vars)
 	body-exp
         (case (fluid-ref *mode*)
-          ((c) ((@ (language tree-il) make-let) src ids vars val-exps body-exp))
+          ((c)
+           (for-each maybe-name-value! ids val-exps)
+           ((@ (language tree-il) make-let) src ids vars val-exps body-exp))
           (else `(let ,(map list vars val-exps) ,body-exp))))))
 
 (define build-named-let
@@ -490,12 +505,14 @@
           (vars (cdr vars))
           (ids (cdr ids)))
       (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-letrec) src
-              (list f-name)
-              (list f)
-              (list (build-lambda src ids vars #f body-exp))
-              (build-application src (build-lexical-reference 'fun src f-name f)
-                                 val-exps)))
+        ((c)
+         (let ((proc (build-lambda src ids vars #f body-exp)))
+           (maybe-name-value! f-name proc)
+           (for-each maybe-name-value! ids val-exps)
+           ((@ (language tree-il) make-letrec) src
+            (list f-name) (list f) (list proc)
+            (build-application src (build-lexical-reference 'fun src f-name f)
+                               val-exps))))
         (else `(let ,f ,(map list vars val-exps) ,body-exp))))))
 
 (define build-letrec
@@ -503,7 +520,9 @@
     (if (null? vars)
         body-exp
         (case (fluid-ref *mode*)
-          ((c) ((@ (language tree-il) make-letrec) src ids vars val-exps body-exp))
+          ((c)
+           (for-each maybe-name-value! ids val-exps)
+           ((@ (language tree-il) make-letrec) src ids vars val-exps body-exp))
           (else `(letrec ,(map list vars val-exps) ,body-exp))))))
 
 ;; FIXME: wingo: use make-lexical ?
@@ -1819,13 +1838,14 @@
     (lambda (e r w s mod)
       (syntax-case e ()
 	((_ ((id val) ...) e1 e2 ...)
+         (and-map id? (syntax (id ...)))
 	 (chi-let e r w s mod
 		  build-let
 		  (syntax (id ...))
 		  (syntax (val ...))
 		  (syntax (e1 e2 ...))))
 	((_ f ((id val) ...) e1 e2 ...)
-	 (id? (syntax f))
+	 (and (id? (syntax f)) (and-map id? (syntax (id ...))))
 	 (chi-let e r w s mod
 		  build-named-let
 		  (syntax (f id ...))
@@ -1838,6 +1858,7 @@
   (lambda (e r w s mod)
     (syntax-case e ()
       ((_ ((id val) ...) e1 e2 ...)
+       (and-map id? (syntax (id ...)))
        (let ((ids (syntax (id ...))))
          (if (not (valid-bound-ids? ids))
              (syntax-violation 'letrec "duplicate bound variable" e)

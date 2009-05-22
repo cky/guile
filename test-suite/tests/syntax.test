@@ -40,16 +40,22 @@
 (define exception:illegal-empty-combination
   (cons 'syntax-error "Illegal empty combination"))
 
+(define exception:bad-lambda
+  '(syntax-error . "bad lambda"))
+(define exception:bad-let
+  '(syntax-error . "bad let "))
+(define exception:bad-letrec
+  '(syntax-error . "bad letrec "))
 (define exception:bad-bindings
   (cons 'syntax-error "Bad bindings"))
 (define exception:bad-binding
   (cons 'syntax-error "Bad binding"))
 (define exception:duplicate-binding
-  (cons 'syntax-error "Duplicate binding"))
+  (cons 'syntax-error "duplicate bound variable"))
 (define exception:bad-body
   (cons 'misc-error "^bad body"))
 (define exception:bad-formals
-  (cons 'syntax-error "Bad formals"))
+  '(syntax-error . "invalid parameter list"))
 (define exception:bad-formal
   (cons 'syntax-error "Bad formal"))
 (define exception:duplicate-formal
@@ -176,17 +182,17 @@
   (with-test-prefix "bad formals"
 
     (pass-if-exception "(lambda)"
-      exception:missing-expr
+      exception:bad-lambda
       (eval '(lambda)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda . \"foo\")"
-      exception:bad-expression
+      exception:bad-lambda
       (eval '(lambda . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda \"foo\")"
-      exception:missing-expr
+      exception:bad-lambda
       (eval '(lambda "foo")
 	    (interaction-environment)))
 
@@ -196,22 +202,22 @@
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (x 1) 2)"
-      exception:bad-formal
+      exception:bad-formals
       (eval '(lambda (x 1) 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (1 x) 2)"
-      exception:bad-formal
+      exception:bad-formals
       (eval '(lambda (1 x) 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (x \"a\") 2)"
-      exception:bad-formal
+      exception:bad-formals
       (eval '(lambda (x "a") 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(lambda (\"a\" x) 2)"
-      exception:bad-formal
+      exception:bad-formals
       (eval '(lambda ("a" x) 2)
 	    (interaction-environment))))
 
@@ -219,20 +225,20 @@
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x) 1)"
-      exception:duplicate-formal
+      exception:bad-formals
       (eval '(lambda (x x) 1)
 	    (interaction-environment)))
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x x) 1)"
-      exception:duplicate-formal
+      exception:bad-formals
       (eval '(lambda (x x x) 1)
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(lambda ())"
-      exception:missing-expr
+      exception:bad-lambda
       (eval '(lambda ())
 	    (interaction-environment)))))
 
@@ -242,9 +248,8 @@
 
     (pass-if "normal let"
       (let ((foo (lambda () (let ((i 1) (j 2)) (+ i j)))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (let ((i 1) (j 2)) (+ i j)))))))
+        (matches? (procedure-source foo)
+                  (lambda () (let ((_ 1) (_ 2)) (+ _ _)))))))
 
   (with-test-prefix "bindings"
 
@@ -255,42 +260,42 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(let)"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let)
 	    (interaction-environment)))
 
     (pass-if-exception "(let 1)"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let (x))"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let (x))
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x)))"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let ((x)))
 	    (interaction-environment)))
 
     (pass-if-exception "(let (x) 1)"
-      exception:bad-binding
+      exception:bad-let
       (eval '(let (x) 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x)) 3)"
-      exception:bad-binding
+      exception:bad-let
       (eval '(let ((x)) 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x 1) y) x)"
-      exception:bad-binding
+      exception:bad-let
       (eval '(let ((x 1) y) x)
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((1 2)) 3)"
-      exception:bad-variable
+      exception:bad-let
       (eval '(let ((1 2)) 3)
 	    (interaction-environment))))
 
@@ -304,12 +309,12 @@
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let ())"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let ((x 1)))"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let ((x 1)))
 	    (interaction-environment)))))
 
@@ -324,19 +329,19 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(let x (y))"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let x (y))
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let x ())"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let x ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let x ((y 1)))"
-      exception:missing-expr
+      exception:bad-let
       (eval '(let x ((y 1)))
 	    (interaction-environment)))))
 
@@ -346,19 +351,16 @@
 
     (pass-if "normal let*"
       (let ((foo (lambda () (let* ((x 1) (y 2)) (+ x y)))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (let* ((x 1) (y 2)) (+ x y))))))
+        (matches? (procedure-source foo)
+                  (lambda () (let ((_ 1)) (let ((_ 2)) (+ _ _)))))))
 
     (pass-if "let* without bindings"
       (let ((foo (lambda () (let ((x 1) (y 2))
                               (let* ()
                                 (and (= x 1) (= y 2)))))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (let ((x 1) (y 2))
-                              (let* ()
-                                (and (= x 1) (= y 2)))))))))
+        (matches? (procedure-source foo)
+                  (lambda () (let ((_ 1) (_ 2))
+                               (if (= _ 1) (= _ 2) #f)))))))
 
   (with-test-prefix "bindings"
 
@@ -378,59 +380,59 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(let*)"
-      exception:missing-expr
+      exception:generic-syncase-error
       (eval '(let*)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* 1)"
-      exception:missing-expr
+      exception:generic-syncase-error
       (eval '(let* 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* (x))"
-      exception:missing-expr
+      exception:generic-syncase-error
       (eval '(let* (x))
 	    (interaction-environment)))
 
     (pass-if-exception "(let* (x) 1)"
-      exception:bad-binding
+      exception:generic-syncase-error
       (eval '(let* (x) 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x)) 3)"
-      exception:bad-binding
+      exception:generic-syncase-error
       (eval '(let* ((x)) 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x 1) y) x)"
-      exception:bad-binding
+      exception:generic-syncase-error
       (eval '(let* ((x 1) y) x)
 	    (interaction-environment)))
 
     (pass-if-exception "(let* x ())"
-      exception:bad-bindings
+      exception:generic-syncase-error
       (eval '(let* x ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let* x (y))"
-      exception:bad-bindings
+      exception:generic-syncase-error
       (eval '(let* x (y))
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((1 2)) 3)"
-      exception:bad-variable
+      exception:generic-syncase-error
       (eval '(let* ((1 2)) 3)
 	    (interaction-environment))))
 
   (with-test-prefix "bad body"
 
     (pass-if-exception "(let* ())"
-      exception:missing-expr
+      exception:generic-syncase-error
       (eval '(let* ())
 	    (interaction-environment)))
 
     (pass-if-exception "(let* ((x 1)))"
-      exception:missing-expr
+      exception:generic-syncase-error
       (eval '(let* ((x 1)))
 	    (interaction-environment)))))
 
@@ -440,9 +442,8 @@
 
     (pass-if "normal letrec"
       (let ((foo (lambda () (letrec ((i 1) (j 2)) (+ i j)))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (letrec ((i 1) (j 2)) (+ i j)))))))
+        (matches? (procedure-source foo)
+                  (lambda () (letrec ((_ 1) (_ 2)) (+ _ _)))))))
 
   (with-test-prefix "bindings"
 
@@ -454,47 +455,47 @@
   (with-test-prefix "bad bindings"
 
     (pass-if-exception "(letrec)"
-      exception:missing-expr
+      exception:bad-letrec
       (eval '(letrec)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec 1)"
-      exception:missing-expr
+      exception:bad-letrec
       (eval '(letrec 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec (x))"
-      exception:missing-expr
+      exception:bad-letrec
       (eval '(letrec (x))
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec (x) 1)"
-      exception:bad-binding
+      exception:bad-letrec
       (eval '(letrec (x) 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x)) 3)"
-      exception:bad-binding
+      exception:bad-letrec
       (eval '(letrec ((x)) 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x 1) y) x)"
-      exception:bad-binding
+      exception:bad-letrec
       (eval '(letrec ((x 1) y) x)
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec x ())"
-      exception:bad-bindings
+      exception:bad-letrec
       (eval '(letrec x ())
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec x (y))"
-      exception:bad-bindings
+      exception:bad-letrec
       (eval '(letrec x (y))
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((1 2)) 3)"
-      exception:bad-variable
+      exception:bad-letrec
       (eval '(letrec ((1 2)) 3)
 	    (interaction-environment))))
 
@@ -508,12 +509,12 @@
   (with-test-prefix "bad body"
 
     (pass-if-exception "(letrec ())"
-      exception:missing-expr
+      exception:bad-letrec
       (eval '(letrec ())
 	    (interaction-environment)))
 
     (pass-if-exception "(letrec ((x 1)))"
-      exception:missing-expr
+      exception:bad-letrec
       (eval '(letrec ((x 1)))
 	    (interaction-environment)))))
 
@@ -525,17 +526,17 @@
       (let ((foo (lambda (x) (if x (+ 1) (+ 2)))))
         (foo #t) ; make sure, memoization has been performed
         (foo #f) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda (x) (if x (+ 1) (+ 2))))))
+        (matches? (procedure-source foo)
+                  (lambda (_) (if _ (+ 1) (+ 2))))))
 
-    (pass-if "if without else"
+    (expect-fail "if without else"
       (let ((foo (lambda (x) (if x (+ 1)))))
         (foo #t) ; make sure, memoization has been performed
         (foo #f) ; make sure, memoization has been performed
         (equal? (procedure-source foo)
                 '(lambda (x) (if x (+ 1))))))
 
-    (pass-if "if #f without else"
+    (expect-fail "if #f without else"
       (let ((foo (lambda () (if #f #f))))
         (foo) ; make sure, memoization has been performed
         (equal? (procedure-source foo)
@@ -544,12 +545,12 @@
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(if)"
-      exception:missing/extra-expr
+      exception:generic-syncase-error
       (eval '(if)
 	    (interaction-environment)))
 
     (pass-if-exception "(if 1 2 3 4)"
-      exception:missing/extra-expr
+      exception:generic-syncase-error
       (eval '(if 1 2 3 4)
 	    (interaction-environment)))))
 
@@ -611,78 +612,77 @@
 	(eq? 'ok (cond (#t identity =>) (else #f)))))
 
     (pass-if-exception "missing recipient"
-      '(syntax-error . "Missing recipient")
+      '(syntax-error . "cond: wrong number of receiver expressions")
       (cond (#t identity =>)))
 
     (pass-if-exception "extra recipient"
-      '(syntax-error . "Extra expression")
+      '(syntax-error . "cond: wrong number of receiver expressions")
       (cond (#t identity => identity identity))))
 
   (with-test-prefix "unmemoization"
 
+    ;; FIXME: the (if #f #f) is a hack!
     (pass-if "normal clauses"
-      (let ((foo (lambda (x) (cond ((= x 1) 'bar) ((= x 2) 'baz)))))
-        (foo 1) ; make sure, memoization has been performed
-        (foo 2) ; make sure, memoization has been performed
+      (let ((foo (lambda () (cond ((= x 1) 'bar) ((= x 2) 'baz)))))
         (equal? (procedure-source foo)
-                '(lambda (x) (cond ((= x 1) 'bar) ((= x 2) 'baz))))))
+                '(lambda () (if (= x 1) 'bar (if (= x 2) 'baz (if #f #f)))))))
 
     (pass-if "else"
       (let ((foo (lambda () (cond (else 'bar)))))
-        (foo) ; make sure, memoization has been performed
         (equal? (procedure-source foo)
-                '(lambda () (cond (else 'bar))))))
+                '(lambda () 'bar))))
 
+    ;; FIXME: the (if #f #f) is a hack!
     (pass-if "=>"
       (let ((foo (lambda () (cond (#t => identity)))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (cond (#t => identity)))))))
+        (matches? (procedure-source foo)
+                  (lambda () (let ((_ #t))
+                               (if _ (identity _) (if #f #f))))))))
 
   (with-test-prefix "bad or missing clauses"
 
     (pass-if-exception "(cond)"
-      exception:missing-clauses
+      exception:generic-syncase-error
       (eval '(cond)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond #t)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond #t)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond 1 2)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2 3)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond 1 2 3)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond 1 2 3 4)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond 1 2 3 4)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond ())"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond ())
 	    (interaction-environment)))
 
     (pass-if-exception "(cond () 1)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond () 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(cond (1) 1)"
-      exception:bad-cond-clause
+      exception:generic-syncase-error
       (eval '(cond (1) 1)
 	    (interaction-environment))))
 
@@ -700,7 +700,7 @@
   (with-test-prefix "case is hygienic"
 
     (pass-if-exception "bound 'else is handled correctly"
-      exception:bad-case-labels
+      exception:generic-syncase-error
       (eval '(let ((else #f)) (case 1 (else #f)))
             (interaction-environment))))
 
@@ -708,79 +708,83 @@
 
     (pass-if "normal clauses"
       (let ((foo (lambda (x) (case x ((1) 'bar) ((2) 'baz) (else 'foobar)))))
-        (foo 1) ; make sure, memoization has been performed
-        (foo 2) ; make sure, memoization has been performed
-        (foo 3) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda (x) (case x ((1) 'bar) ((2) 'baz) (else 'foobar))))))
+        (matches? (procedure-source foo)
+                  (lambda (_)
+                    (if ((@@ (guile) memv) _ '(1))
+                        'bar
+                        (if ((@@ (guile) memv) _ '(2))
+                            'baz
+                            'foobar))))))
 
     (pass-if "empty labels"
       (let ((foo (lambda (x) (case x ((1) 'bar) (() 'baz) (else 'foobar)))))
-        (foo 1) ; make sure, memoization has been performed
-        (foo 2) ; make sure, memoization has been performed
-        (foo 3) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda (x) (case x ((1) 'bar) (() 'baz) (else 'foobar)))))))
+        (matches? (procedure-source foo)
+                  (lambda (_)
+                    (if ((@@ (guile) memv) _ '(1))
+                        'bar
+                        (if ((@@ (guile) memv) _ '())
+                            'baz
+                            'foobar)))))))
 
   (with-test-prefix "bad or missing clauses"
 
     (pass-if-exception "(case)"
-      exception:missing-clauses
+      exception:generic-syncase-error
       (eval '(case)
 	    (interaction-environment)))
 
     (pass-if-exception "(case . \"foo\")"
-      exception:bad-expression
+      exception:generic-syncase-error
       (eval '(case . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1)"
-      exception:missing-clauses
+      exception:generic-syncase-error
       (eval '(case 1)
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 . \"foo\")"
-      exception:bad-expression
+      exception:generic-syncase-error
       (eval '(case 1 . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 \"foo\")"
-      exception:bad-case-clause
+      exception:generic-syncase-error
       (eval '(case 1 "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 ())"
-      exception:bad-case-clause
+      exception:generic-syncase-error
       (eval '(case 1 ())
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (\"foo\"))"
-      exception:bad-case-clause
+      exception:generic-syncase-error
       (eval '(case 1 ("foo"))
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (\"foo\" \"bar\"))"
-      exception:bad-case-labels
+      exception:generic-syncase-error
       (eval '(case 1 ("foo" "bar"))
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 ((2) \"bar\") . \"foo\")"
-      exception:bad-expression
+      exception:generic-syncase-error
       (eval '(case 1 ((2) "bar") . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 ((2) \"bar\") (else))"
-      exception:bad-case-clause
+      exception:generic-syncase-error
       (eval '(case 1 ((2) "bar") (else))
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) . \"foo\")"
-      exception:bad-expression
+      exception:generic-syncase-error
       (eval '(case 1 (else #f) . "foo")
 	    (interaction-environment)))
 
     (pass-if-exception "(case 1 (else #f) ((1) #t))"
-      exception:misplaced-else-clause
+      exception:generic-syncase-error
       (eval '(case 1 (else #f) ((1) #t))
 	    (interaction-environment)))))
 

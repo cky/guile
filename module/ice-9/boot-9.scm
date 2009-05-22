@@ -222,31 +222,44 @@
     ((_ x) x)
     ((_ x y ...) (let ((t x)) (if t t (or y ...))))))
 
+;; The "maybe-more" bits are something of a hack, so that we can support
+;; SRFI-61. Rewrites into a standalone syntax-case macro would be
+;; appreciated.
 (define-syntax cond
-  (syntax-rules (else =>)
-    ((cond (else result1 result2 ...))
-     (begin result1 result2 ...))
-    ((cond (test => result))
-     (let ((temp test))
-       (if temp (result temp))))
-    ((cond (test => result) clause1 clause2 ...)
-     (let ((temp test))
-       (if temp
-           (result temp)
-           (cond clause1 clause2 ...))))
-    ((cond (test)) test)
-    ((cond (test) clause1 clause2 ...)
-     (let ((temp test))
-       (if temp
-           temp
-           (cond clause1 clause2 ...))))
-    ((cond (test result1 result2 ...))
-     (if test (begin result1 result2 ...)))
-    ((cond (test result1 result2 ...)
-           clause1 clause2 ...)
-     (if test
-         (begin result1 result2 ...)
-         (cond clause1 clause2 ...)))))
+  (syntax-rules (=> else)
+    ((_ "maybe-more" test consequent)
+     (if test consequent))
+
+    ((_ "maybe-more" test consequent clause ...)
+     (if test consequent (cond clause ...)))
+
+    ((_ (else else1 else2 ...))
+     (begin else1 else2 ...))
+
+    ((_ (test => receiver) more-clause ...)
+     (let ((t test))
+       (cond "maybe-more" t (receiver t) more-clause ...)))
+
+    ((_ (generator guard => receiver) more-clause ...)
+     (call-with-values (lambda () generator)
+       (lambda t
+         (cond "maybe-more"
+               (apply guard t) (apply receiver t) more-clause ...))))
+
+    ((_ (test => receiver ...) more-clause ...)
+     (syntax-violation 'cond "wrong number of receiver expressions"
+                       '(test => receiver ...)))
+    ((_ (generator guard => receiver ...) more-clause ...)
+     (syntax-violation 'cond "wrong number of receiver expressions"
+                       '(generator guard => receiver ...)))
+    
+    ((_ (test) more-clause ...)
+     (let ((t test))
+       (cond "maybe-more" t t more-clause ...)))
+
+    ((_ (test body1 body2 ...) more-clause ...)
+     (cond "maybe-more"
+           test (begin body1 body2 ...) more-clause ...))))
 
 (define-syntax case
   (syntax-rules (else)
@@ -1233,11 +1246,8 @@
 (define (%print-module mod port)  ; unused args: depth length style table)
   (display "#<" port)
   (display (or (module-kind mod) "module") port)
-  (let ((name (module-name mod)))
-    (if name
-	(begin
-	  (display " " port)
-	  (display name port))))
+  (display " " port)
+  (display (module-name mod) port)
   (display " " port)
   (display (number->string (object-address mod) 16) port)
   (display ">" port))
@@ -1902,7 +1912,7 @@
              val
              (let ((m (make-module 31)))
                (set-module-kind! m 'directory)
-               (set-module-name! m (append (or (module-name module) '())
+               (set-module-name! m (append (module-name module)
                                            (list (car name))))
                (module-define! module (car name) m)
                m)))
@@ -1956,17 +1966,26 @@
 (define default-duplicate-binding-procedures #f)
 
 (define %app (make-module 31))
+(set-module-name! %app '(%app))
 (define app %app) ;; for backwards compatability
 
-(local-define '(%app modules) (make-module 31))
+(let ((m (make-module 31)))
+  (set-module-name! m '())
+  (local-define '(%app modules) m))
 (local-define '(%app modules guile) the-root-module)
 
 ;; This boots the module system.  All bindings needed by modules.c
 ;; must have been defined by now.
 ;;
 (set-current-module the-root-module)
-;; definition deferred for syncase's benefit
-(define module-name (record-accessor module-type 'name))
+;; definition deferred for syncase's benefit.
+(define module-name
+  (let ((accessor (record-accessor module-type 'name)))
+    (lambda (mod)
+      (or (accessor mod)
+          (begin
+            (set-module-name! mod (list (gensym)))
+            (accessor mod))))))
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
