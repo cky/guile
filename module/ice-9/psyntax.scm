@@ -1356,7 +1356,8 @@
            (ribcage (make-empty-ribcage))
            (w (make-wrap (wrap-marks w) (cons ribcage (wrap-subst w)))))
       (let parse ((body (map (lambda (x) (cons r (wrap x w mod))) body))
-                  (ids '()) (labels '()) (vars '()) (vals '()) (bindings '()))
+                  (ids '()) (labels '())
+                  (var-ids '()) (vars '()) (vals '()) (bindings '()))
         (if (null? body)
             (syntax-violation #f "no expressions in body" outer-form)
             (let ((e (cdar body)) (er (caar body)))
@@ -1370,6 +1371,7 @@
                          (extend-ribcage! ribcage id label)
                          (parse (cdr body)
                            (cons id ids) (cons label labels)
+                           (cons id var-ids)
                            (cons var vars) (cons (cons er (wrap e w mod)) vals)
                            (cons (make-binding 'lexical var) bindings)))))
                     ((define-syntax-form)
@@ -1377,7 +1379,7 @@
                        (extend-ribcage! ribcage id label)
                        (parse (cdr body)
                          (cons id ids) (cons label labels)
-                         vars vals
+                         var-ids vars vals
                          (cons (make-binding 'macro (cons er (wrap e w mod)))
                                bindings))))
                     ((begin-form)
@@ -1388,7 +1390,7 @@
                                      (cdr body)
                                      (cons (cons er (wrap (car forms) w mod))
                                            (f (cdr forms)))))
-                          ids labels vars vals bindings))))
+                          ids labels var-ids vars vals bindings))))
                     ((local-syntax-form)
                      (chi-local-syntax value e er w s mod
                        (lambda (forms er w s mod)
@@ -1397,7 +1399,7 @@
                                       (cdr body)
                                       (cons (cons er (wrap (car forms) w mod))
                                             (f (cdr forms)))))
-                           ids labels vars vals bindings))))
+                           ids labels var-ids vars vals bindings))))
                     (else ; found a non-definition
                      (if (null? ids)
                          (build-sequence no-source
@@ -1427,7 +1429,7 @@
                                        (loop (cdr bs) er-cache r-cache)))))
                            (set-cdr! r (extend-env labels bindings (cdr r)))
                            (build-letrec no-source
-                             (map syntax->datum ids)
+                             (map syntax->datum var-ids)
                              vars
                              (map (lambda (x)
                                     (chi (cdr x) (car x) empty-wrap mod))
