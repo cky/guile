@@ -20,10 +20,9 @@
 ;;; Code:
 
 (define-module (language tree-il optimize)
-  #:use-module (system base syntax)
   #:use-module (language tree-il)
-  #:use-module (language tree-il inline)
-  #:export (optimize! add-interesting-primitive!))
+  #:use-module (language tree-il primitives)
+  #:export (optimize!))
 
 (define (env-module e)
   (if e (car e) (current-module)))
@@ -41,52 +40,3 @@
 ;; * degenerate case optimizations
 ;; * "fixing letrec"
 
-(define *interesting-primitive-names* 
-  '(apply @apply
-    call-with-values @call-with-values
-    call-with-current-continuation @call-with-current-continuation
-    call/cc
-    values
-    eq? eqv? equal?
-    = < > <= >= zero?
-    + * - / 1- 1+ quotient remainder modulo
-    not
-    pair? null? list? acons cons cons*
-
-    list vector
-
-    car cdr
-    set-car! set-cdr!
-
-    caar cadr cdar cddr
-
-    caaar caadr cadar caddr cdaar cdadr cddar cdddr
-
-    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
-    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr))
-
-(define (add-interesting-primitive! name)
-  (hashq-set! *interesting-primitive-vars*
-              (module-variable (current-module) name) name))
-
-(define *interesting-primitive-vars* (make-hash-table))
-
-(for-each add-interesting-primitive! *interesting-primitive-names*)
-
-(define (resolve-primitives! x mod)
-  (post-order!
-   (lambda (x)
-     (record-case x
-       ((<toplevel-ref> src name)
-        (and (hashq-ref *interesting-primitive-vars*
-                        (module-variable mod name))
-             (make-primitive-ref src name)))
-       ((<module-ref> src mod name public?)
-        ;; for the moment, we're disabling primitive resolution for
-        ;; public refs because resolve-interface can raise errors.
-        (let ((m (and (not public?) (resolve-module mod))))
-          (and m (hashq-ref *interesting-primitive-vars*
-                            (module-variable m name))
-               (make-primitive-ref src name))))
-       (else #f)))
-   x))
