@@ -191,19 +191,6 @@
 ;;; The implementation of generate-temporaries assumes that it is possible
 ;;; to generate globally unique symbols (gensyms).
 
-;;; The input to sc-expand may contain "annotations" describing, e.g., the
-;;; source file and character position from where each object was read if
-;;; it was read from a file.  These annotations are handled properly by
-;;; sc-expand only if the annotation? hook (see hooks below) is implemented
-;;; properly and the operators make-annotation, annotation-expression,
-;;; annotation-source, annotation-stripped, and set-annotation-stripped!
-;;; are supplied.  If annotations are supplied, the proper annotation
-;;; source is passed to the various output constructors, allowing
-;;; implementations to accurately correlate source and expanded code.
-;;; Contact one of the authors for details if you wish to make use of
-;;; this feature.
-
-
 
 ;;; Bootstrapping:
 
@@ -532,22 +519,15 @@
 
 (define-structure (syntax-object expression wrap module))
 
-(define-syntax unannotate
-  (syntax-rules ()
-    ((_ x)
-     (let ((e x))
-       (if (annotation? e)
-           (annotation-expression e)
-           e)))))
-
 (define-syntax no-source (identifier-syntax #f))
 
 (define source-annotation
   (lambda (x)
      (cond
-       ((annotation? x) (annotation-source x))
-       ((syntax-object? x) (source-annotation (syntax-object-expression x)))
-       (else no-source))))
+      ((syntax-object? x)
+       (source-annotation (syntax-object-expression x)))
+      ((pair? x) (source-properties x))
+      (else #f))))
 
 (define-syntax arg-check
   (syntax-rules ()
@@ -674,29 +654,30 @@
 (define nonsymbol-id?
   (lambda (x)
     (and (syntax-object? x)
-         (symbol? (unannotate (syntax-object-expression x))))))
+         (symbol? (syntax-object-expression x)))))
 
 (define id?
   (lambda (x)
     (cond
       ((symbol? x) #t)
-      ((syntax-object? x) (symbol? (unannotate (syntax-object-expression x))))
-      ((annotation? x) (symbol? (annotation-expression x)))
+      ((syntax-object? x) (symbol? (syntax-object-expression x)))
       (else #f))))
 
 (define-syntax id-sym-name
   (syntax-rules ()
     ((_ e)
      (let ((x e))
-       (unannotate (if (syntax-object? x) (syntax-object-expression x) x))))))
+       (if (syntax-object? x)
+           (syntax-object-expression x)
+           x)))))
 
 (define id-sym-name&marks
   (lambda (x w)
     (if (syntax-object? x)
         (values
-          (unannotate (syntax-object-expression x))
-          (join-marks (wrap-marks w) (wrap-marks (syntax-object-wrap x))))
-        (values (unannotate x) (wrap-marks w)))))
+         (syntax-object-expression x)
+         (join-marks (wrap-marks w) (wrap-marks (syntax-object-wrap x))))
+        (values x (wrap-marks w)))))
 
 ;;; syntax object wraps
 
@@ -762,7 +743,7 @@
   ; must receive ids with complete wraps
   (lambda (ribcage id label)
     (set-ribcage-symnames! ribcage
-      (cons (unannotate (syntax-object-expression id))
+      (cons (syntax-object-expression id)
             (ribcage-symnames ribcage)))
     (set-ribcage-marks! ribcage
       (cons (wrap-marks (syntax-object-wrap id))
@@ -862,7 +843,7 @@
       ((symbol? id)
        (or (first (search id (wrap-subst w) (wrap-marks w))) id))
       ((syntax-object? id)
-        (let ((id (unannotate (syntax-object-expression id)))
+        (let ((id (syntax-object-expression id))
               (w1 (syntax-object-wrap id)))
           (let ((marks (join-marks (wrap-marks w) (wrap-marks w1))))
             (call-with-values (lambda () (search id (wrap-subst w) marks))
@@ -870,9 +851,6 @@
                 (or new-id
                     (first (search id (wrap-subst w1) marks))
                     id))))))
-      ((annotation? id)
-       (let ((id (unannotate id)))
-         (or (first (search id (wrap-subst w) (wrap-marks w))) id)))
       (else (syntax-violation 'id-var-name "invalid id" id)))))
 
 ;;; free-id=? must be passed fully wrapped ids since (free-id=? x y)
@@ -890,11 +868,11 @@
 (define bound-id=?
   (lambda (i j)
     (if (and (syntax-object? i) (syntax-object? j))
-        (and (eq? (unannotate (syntax-object-expression i))
-                  (unannotate (syntax-object-expression j)))
+        (and (eq? (syntax-object-expression i)
+                  (syntax-object-expression j))
              (same-marks? (wrap-marks (syntax-object-wrap i))
                   (wrap-marks (syntax-object-wrap j))))
-        (eq? (unannotate i) (unannotate j)))))
+        (eq? i j))))
 
 ;;; "valid-bound-ids?" returns #t if it receives a list of distinct ids.
 ;;; valid-bound-ids? may be passed unwrapped (or partially wrapped) ids
@@ -944,7 +922,15 @@
 
 (define source-wrap
   (lambda (x w s defmod)
-    (wrap (if s (make-annotation x s #f) x) w defmod)))
+    (wrap (if s
+              (begin
+                (if (not (pair? x))
+                    (error "bad source-wrap!!!" x s))
+                (set-source-properties! x s)
+                x)
+              x)
+          w
+          defmod)))
 
 ;;; expanding
 
@@ -1117,8 +1103,6 @@
                     r
                     (join-wraps w (syntax-object-wrap e))
                     no-source rib (or (syntax-object-module e) mod)))
-      ((annotation? e)
-       (syntax-type (annotation-expression e) r w (annotation-source e) rib mod))
       ((self-evaluating? e) (values 'constant #f e w s mod))
       (else (values 'other #f e w s mod)))))
 
@@ -1131,7 +1115,7 @@
            (if (eq? m 'c&e) (top-level-eval-hook x mod))
            x))))
     (call-with-values
-      (lambda () (syntax-type e r w no-source #f mod))
+      (lambda () (syntax-type e r w (source-annotation e) #f mod))
       (lambda (type value e w s mod)
         (case type
           ((begin-form)
@@ -1207,7 +1191,7 @@
 (define chi
   (lambda (e r w mod)
     (call-with-values
-      (lambda () (syntax-type e r w no-source #f mod))
+      (lambda () (syntax-type e r w (source-annotation e) #f mod))
       (lambda (type value e w s mod)
         (chi-expr type value e r w s mod)))))
 
@@ -1362,7 +1346,7 @@
             (syntax-violation #f "no expressions in body" outer-form)
             (let ((e (cdar body)) (er (caar body)))
               (call-with-values
-                (lambda () (syntax-type e er empty-wrap no-source ribcage mod))
+                (lambda () (syntax-type e er empty-wrap (source-annotation e) ribcage mod))
                 (lambda (type value e w s mod)
                   (case type
                     ((define-form)
@@ -1527,32 +1511,8 @@
 
 ;;; data
 
-;;; strips all annotations from potentially circular reader output
-
-(define strip-annotation
-  (lambda (x parent)
-    (cond
-      ((pair? x)
-       (let ((new (cons #f #f)))
-         (if parent (set-annotation-stripped! parent new))
-         (set-car! new (strip-annotation (car x) #f))
-         (set-cdr! new (strip-annotation (cdr x) #f))
-         new))
-      ((annotation? x)
-       (or (annotation-stripped x)
-           (strip-annotation (annotation-expression x) x)))
-      ((vector? x)
-       (let ((new (make-vector (vector-length x))))
-         (if parent (set-annotation-stripped! parent new))
-         (let loop ((i (- (vector-length x) 1)))
-           (unless (fx< i 0)
-             (vector-set! new i (strip-annotation (vector-ref x i) #f))
-             (loop (fx- i 1))))
-         new))
-      (else x))))
-
-;;; strips syntax-objects down to top-wrap; if top-wrap is layered directly
-;;; on an annotation, strips the annotation as well.
+;;; strips syntax-objects down to top-wrap
+;;;
 ;;; since only the head of a list is annotated by the reader, not each pair
 ;;; in the spine, we also check for pairs whose cars are annotated in case
 ;;; we've been passed the cdr of an annotated list
@@ -1560,32 +1520,28 @@
 (define strip
   (lambda (x w)
     (if (top-marked? w)
-        (if (or (annotation? x) (and (pair? x) (annotation? (car x))))
-            (strip-annotation x #f)
-            x)
+        x
         (let f ((x x))
           (cond
-            ((syntax-object? x)
-             (strip (syntax-object-expression x) (syntax-object-wrap x)))
-            ((pair? x)
-             (let ((a (f (car x))) (d (f (cdr x))))
-               (if (and (eq? a (car x)) (eq? d (cdr x)))
-                   x
-                   (cons a d))))
-            ((vector? x)
-             (let ((old (vector->list x)))
-                (let ((new (map f old)))
-                   (if (and-map* eq? old new) x (list->vector new)))))
-            (else x))))))
+           ((syntax-object? x)
+            (strip (syntax-object-expression x) (syntax-object-wrap x)))
+           ((pair? x)
+            (let ((a (f (car x))) (d (f (cdr x))))
+              (if (and (eq? a (car x)) (eq? d (cdr x)))
+                  x
+                  (cons a d))))
+           ((vector? x)
+            (let ((old (vector->list x)))
+              (let ((new (map f old)))
+                (if (and-map* eq? old new) x (list->vector new)))))
+           (else x))))))
 
 ;;; lexical variables
 
 (define gen-var
   (lambda (id)
     (let ((id (if (syntax-object? id) (syntax-object-expression id) id)))
-      (if (annotation? id)
-          (build-lexical-var (annotation-source id) (annotation-expression id))
-          (build-lexical-var no-source id)))))
+      (build-lexical-var no-source id))))
 
 (define lambda-var-list
   (lambda (vars)
@@ -1598,8 +1554,6 @@
           (lvl (syntax-object-expression vars)
                ls
                (join-wraps w (syntax-object-wrap vars))))
-         ((annotation? vars)
-          (lvl (annotation-expression vars) ls w))
        ; include anything else to be caught by subsequent error
        ; checking
          (else (cons vars ls))))))
@@ -2193,35 +2147,31 @@
 (define match-each
   (lambda (e p w mod)
     (cond
-      ((annotation? e)
-       (match-each (annotation-expression e) p w mod))
-      ((pair? e)
-       (let ((first (match (car e) p w '() mod)))
-         (and first
-              (let ((rest (match-each (cdr e) p w mod)))
-                 (and rest (cons first rest))))))
-      ((null? e) '())
-      ((syntax-object? e)
-       (match-each (syntax-object-expression e)
-                   p
-                   (join-wraps w (syntax-object-wrap e))
-                   (syntax-object-module e)))
-      (else #f))))
+     ((pair? e)
+      (let ((first (match (car e) p w '() mod)))
+        (and first
+             (let ((rest (match-each (cdr e) p w mod)))
+               (and rest (cons first rest))))))
+     ((null? e) '())
+     ((syntax-object? e)
+      (match-each (syntax-object-expression e)
+                  p
+                  (join-wraps w (syntax-object-wrap e))
+                  (syntax-object-module e)))
+     (else #f))))
 
 (define match-each-any
   (lambda (e w mod)
     (cond
-      ((annotation? e)
-       (match-each-any (annotation-expression e) w mod))
-      ((pair? e)
-       (let ((l (match-each-any (cdr e) w mod)))
-         (and l (cons (wrap (car e) w mod) l))))
-      ((null? e) '())
-      ((syntax-object? e)
-       (match-each-any (syntax-object-expression e)
-                       (join-wraps w (syntax-object-wrap e))
-                       mod))
-      (else #f))))
+     ((pair? e)
+      (let ((l (match-each-any (cdr e) w mod)))
+        (and l (cons (wrap (car e) w mod) l))))
+     ((null? e) '())
+     ((syntax-object? e)
+      (match-each-any (syntax-object-expression e)
+                      (join-wraps w (syntax-object-wrap e))
+                      mod))
+     (else #f))))
 
 (define match-empty
   (lambda (p r)
@@ -2270,21 +2220,21 @@
       ((eq? p 'any) (cons (wrap e w mod) r))
       ((syntax-object? e)
        (match*
-         (unannotate (syntax-object-expression e))
-         p
-         (join-wraps w (syntax-object-wrap e))
-         r
-         (syntax-object-module e)))
-      (else (match* (unannotate e) p w r mod)))))
+        (syntax-object-expression e)
+        p
+        (join-wraps w (syntax-object-wrap e))
+        r
+        (syntax-object-module e)))
+      (else (match* e p w r mod)))))
 
 (set! $sc-dispatch
   (lambda (e p)
     (cond
       ((eq? p 'any) (list e))
       ((syntax-object? e)
-       (match* (unannotate (syntax-object-expression e))
-         p (syntax-object-wrap e) '() (syntax-object-module e)))
-      (else (match* (unannotate e) p empty-wrap '() #f)))))
+       (match* (syntax-object-expression e)
+               p (syntax-object-wrap e) '() (syntax-object-module e)))
+      (else (match* e p empty-wrap '() #f)))))
 
 ))
 )
