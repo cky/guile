@@ -41,6 +41,7 @@ SOURCES =								\
   $(SCHEME_LANG_SOURCES) 						\
   $(TREE_IL_LANG_SOURCES)						\
   $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
+  $(BRAINFUCK_LANG_SOURCES)						\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
 									\
@@ -111,6 +112,11 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/array.scm			\
   language/ecmascript/compile-ghil.scm		\
   language/ecmascript/spec.scm
+
+BRAINFUCK_LANG_SOURCES =			\
+  language/brainfuck/spec.scm			\
+  language/brainfuck/parse.scm			\
+  language/brainfuck/compile-scheme.scm
 
 SCRIPTS_SOURCES =				\
   scripts/PROGRAM.scm				\
