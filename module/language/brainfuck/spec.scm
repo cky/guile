@@ -25,10 +25,18 @@
   #:use-module (system base language)
   #:export (brainfuck))
 
+
+; The new language is integrated into Guile via this (define-language)
+; specification in the special module (language [lang] spec).
+; Provided is a parser-routine in #:reader, a output routine in #:printer
+; and one or more compiler routines (as target-language - routine pairs)
+; in #:compilers.  This is the basic set of fields needed to specify a new
+; language.
+
 (define-language brainfuck
   #:title	"Guile Brainfuck"
   #:version	"1.0"
   #:reader	(lambda () (read-brainfuck (current-input-port)))
-  #:compilers   `((scheme . ,compile-scheme))
-  #:printer     write
+  #:compilers	`((scheme . ,compile-scheme))
+  #:printer	write
   )
