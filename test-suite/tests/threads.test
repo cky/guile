@@ -21,6 +21,20 @@
   :use-module (ice-9 threads)
   :use-module (test-suite lib))
 
+(define (asyncs-still-working?)
+  (let ((a #f))
+    (system-async-mark (lambda ()
+			 (set! a #t)))
+    ;; The point of the following (equal? ...) is to go through
+    ;; primitive code (scm_equal_p) that includes a SCM_TICK call and
+    ;; hence gives system asyncs a chance to run.  Of course the
+    ;; evaluator (eval.i.c) also calls SCM_TICK regularly, but in the
+    ;; near future we may be using the VM instead of the traditional
+    ;; compiler, and then we will still want asyncs-still-working? to
+    ;; work.  (The VM should probably have SCM_TICK calls too, but
+    ;; let's not rely on that here.)
+    (equal? '(a b c) '(a b c))
+    a))
 
 (if (provided? 'threads)
     (begin
@@ -101,6 +115,9 @@
 
       (with-test-prefix "n-for-each-par-map"
 
+	(pass-if "asyncs are still working 2"
+	  (asyncs-still-working?))
+
 	(pass-if "0 in limit 10"
 	  (n-for-each-par-map 10 noop noop '())
 	  #t)
@@ -143,11 +160,17 @@
 
       (with-test-prefix "lock-mutex"
 
+	(pass-if "asyncs are still working 3"
+	  (asyncs-still-working?))
+
 	(pass-if "timed locking fails if timeout exceeded"
 	  (let ((m (make-mutex)))
 	    (lock-mutex m)
 	    (let ((t (begin-thread (lock-mutex m (+ (current-time) 1)))))
 	      (not (join-thread t)))))
+
+	(pass-if "asyncs are still working 6"
+	  (asyncs-still-working?))
 
         (pass-if "timed locking succeeds if mutex unlocked within timeout"
 	  (let* ((m (make-mutex))
@@ -164,7 +187,12 @@
 	      (unlock-mutex cm)
 	      (sleep 1)
 	      (unlock-mutex m)
-	      (join-thread t)))))
+	      (join-thread t))))
+
+	(pass-if "asyncs are still working 7"
+	  (asyncs-still-working?))
+
+	)
 
       ;;
       ;; timed mutex unlocking
@@ -172,11 +200,17 @@
 
       (with-test-prefix "unlock-mutex"
 
+	(pass-if "asyncs are still working 5"
+	  (asyncs-still-working?))
+
         (pass-if "timed unlocking returns #f if timeout exceeded"
           (let ((m (make-mutex))
 		(c (make-condition-variable)))
 	    (lock-mutex m)
 	    (not (unlock-mutex m c (current-time)))))
+
+	(pass-if "asyncs are still working 4"
+	  (asyncs-still-working?))
 
         (pass-if "timed unlocking returns #t if condition signaled"
 	  (let ((m1 (make-mutex))
@@ -226,7 +260,12 @@
 
 	(pass-if "timed joining succeeds if thread exits within timeout"
           (let ((t (begin-thread (begin (sleep 1) #t))))
-	    (join-thread t (+ (current-time) 2)))))
+	    (join-thread t (+ (current-time) 2))))
+
+	(pass-if "asyncs are still working 1"
+	  (asyncs-still-working?))
+
+	)
 
       ;;
       ;; thread cancellation

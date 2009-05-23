@@ -1491,6 +1491,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	    {
 	      if (relock)
 		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, owner);
+	      t->block_asyncs--;
 	      break;
 	    }
 
