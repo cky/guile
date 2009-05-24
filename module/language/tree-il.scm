@@ -21,12 +21,8 @@
   #:use-module (system base syntax)
   #:export (tree-il-src
 
-            <lexical> make-lexical
-            lexical-name lexical-gensym
-
             <void> void? make-void void-src
-            <application> application? make-application application-src application-proc application-args
-            <conditional> conditional? make-conditional conditional-src conditional-test conditional-then conditional-else
+            <const> const? make-const const-src const-exp
             <primitive-ref> primitive-ref? make-primitive-ref primitive-ref-src primitive-ref-name
             <lexical-ref> lexical-ref? make-lexical-ref lexical-ref-src lexical-ref-name lexical-ref-gensym
             <lexical-set> lexical-set? make-lexical-set lexical-set-src lexical-set-name lexical-set-gensym lexical-set-exp
@@ -35,9 +31,10 @@
             <toplevel-ref> toplevel-ref? make-toplevel-ref toplevel-ref-src toplevel-ref-name
             <toplevel-set> toplevel-set? make-toplevel-set toplevel-set-src toplevel-set-name toplevel-set-exp
             <toplevel-define> toplevel-define? make-toplevel-define toplevel-define-src toplevel-define-name toplevel-define-exp
-            <lambda> lambda? make-lambda lambda-src lambda-names lambda-vars lambda-meta lambda-body
-            <const> const? make-const const-src const-exp
+            <conditional> conditional? make-conditional conditional-src conditional-test conditional-then conditional-else
+            <application> application? make-application application-src application-proc application-args
             <sequence> sequence? make-sequence sequence-src sequence-exps
+            <lambda> lambda? make-lambda lambda-src lambda-names lambda-vars lambda-meta lambda-body
             <let> let? make-let let-src let-names let-vars let-vals let-exp
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-exp
 
@@ -50,8 +47,7 @@
 
 (define-type (<tree-il> #:common-slots (src))
   (<void>)
-  (<application> proc args)
-  (<conditional> test then else)
+  (<const> exp)
   (<primitive-ref> name)
   (<lexical-ref> name gensym)
   (<lexical-set> name gensym exp)
@@ -60,28 +56,19 @@
   (<toplevel-ref> name)
   (<toplevel-set> name exp)
   (<toplevel-define> name exp)
-  (<lambda> names vars meta body)
-  (<const> exp)
+  (<conditional> test then else)
+  (<application> proc args)
   (<sequence> exps)
+  (<lambda> names vars meta body)
   (<let> names vars vals exp)
   (<letrec> names vars vals exp))
   
-(define <lexical> <lexical-ref>)
-(define lexical? lexical-ref?)
-(define make-lexical make-lexical-ref)
-(define lexical-name lexical-ref-name)
-(define lexical-gensym lexical-ref-gensym)
-
 
 
-;; FIXME: use this in psyntax
 (define (location x)
   (and (pair? x)
        (let ((props (source-properties x)))
-	 (and (not (null? props))
-	      (vector (assq-ref props 'line)
-                      (assq-ref props 'column)
-                      (assq-ref props 'filename))))))
+	 (and (pair? props) props))))
 
 (define (parse-tree-il exp)
   (let ((loc (location exp))

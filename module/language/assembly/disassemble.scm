@@ -82,7 +82,7 @@
               (if (program? x)
                   (begin (display "----------------------------------------\n")
                          (disassemble x))))
-            (cddr (vector->list objs))))))
+            (cdr (vector->list objs))))))
     (else
      (error "bad load-program form" asm))))
 

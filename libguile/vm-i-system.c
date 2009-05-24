@@ -410,12 +410,6 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (30, externals, "externals", 0, 0, 1)
-{
-  PUSH (external);
-  NEXT;
-}
-
 
 /*
  * branch and jump

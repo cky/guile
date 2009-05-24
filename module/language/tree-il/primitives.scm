@@ -152,7 +152,7 @@
 
 (define-primitive-expander /
   (x) (/ 1 x)
-  (x y z . rest) (div x (* y z . rest)))
+  (x y z . rest) (/ x (* y z . rest)))
   
 (define-primitive-expander caar (x) (car (car x)))
 (define-primitive-expander cadr (x) (car (cdr x)))

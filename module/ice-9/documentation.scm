@@ -198,6 +198,8 @@ OBJECT can be a procedure, macro or any object that has its
       (object-property object 'documentation)
       (and (program? object)
            (program-documentation object))
+      (and (macro? object)
+           (object-documentation (macro-transformer object)))
       (and (procedure? object)
 	   (not (closure? object))
 	   (procedure-name object)

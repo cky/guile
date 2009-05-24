@@ -135,11 +135,6 @@
 ;;; Compiler interface
 ;;;
 
-(define (read-file-in file lang)
-  (call-with-input-file file
-    (or (language-read-file lang)
-        (error "language has no #:read-file" lang))))
-
 (define (compile-passes from to opts)
   (map cdr
        (or (lookup-compilation-order from to)

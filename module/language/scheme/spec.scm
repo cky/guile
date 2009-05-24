@@ -32,12 +32,6 @@
 
 (read-enable 'positions)
 
-(define (read-file port)
-  (do ((x (read port) (read port))
-       (l '() (cons x l)))
-      ((eof-object? x)
-       (cons 'begin (reverse! l)))))
-
 ;;;
 ;;; Language definition
 ;;;
@@ -46,7 +40,6 @@
   #:title	"Guile Scheme"
   #:version	"0.5"
   #:reader	read
-  #:read-file	read-file
   #:compilers   `((tree-il . ,compile-tree-il)
                   (ghil . ,compile-ghil))
   #:decompilers `((tree-il . ,decompile-tree-il))

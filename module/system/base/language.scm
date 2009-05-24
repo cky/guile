@@ -23,7 +23,7 @@
   #:use-module (system base syntax)
   #:export (define-language language? lookup-language make-language
             language-name language-title language-version language-reader
-            language-printer language-parser language-read-file
+            language-printer language-parser 
             language-compilers language-decompilers language-evaluator
             language-joiner
 
@@ -42,7 +42,6 @@
   reader
   printer
   (parser #f)
-  (read-file #f)
   (compilers '())
   (decompilers '())
   (evaluator #f)

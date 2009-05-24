@@ -33,7 +33,6 @@
   #:title	"Guile ECMAScript"
   #:version	"3.0"
   #:reader	(lambda () (read-ecmascript/1 (current-input-port)))
-  #:read-file	read-ecmascript
   #:compilers   `((ghil . ,compile-ghil))
   ;; a pretty-printer would be interesting.
   #:printer	write
