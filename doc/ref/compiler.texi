@@ -25,8 +25,7 @@ know how to compile your .scm file.
 * Tree-IL::                 
 * GLIL::                
 * Assembly::                   
-* Bytecode::                   
-* Object Code::                   
+* Bytecode and Objcode::                   
 * Extending the Compiler::
 @end menu
 
@@ -132,13 +131,13 @@ The normal tower of languages when compiling Scheme goes like this:
 @item Guile Low Intermediate Language (GLIL)
 @item Assembly
 @item Bytecode
-@item Object code
+@item Objcode
 @end itemize
 
 Object code may be serialized to disk directly, though it has a cookie
-and version prepended to the front. But when compiling Scheme at
-run time, you want a Scheme value, e.g. a compiled procedure. For this
-reason, so as not to break the abstraction, Guile defines a fake
+and version prepended to the front. But when compiling Scheme at run
+time, you want a Scheme value: for example, a compiled procedure. For
+this reason, so as not to break the abstraction, Guile defines a fake
 language at the bottom of the tower:
 
 @itemize
@@ -421,8 +420,8 @@ A unit of code that at run-time will correspond to a compiled
 procedure. @var{nargs} @var{nrest} @var{nlocs}, and @var{nexts}
 collectively define the program's arity; see @ref{Compiled
 Procedures}, for more information. @var{meta} should be an alist of
-properties, as in @code{<ghil-lambda>}. @var{body} is a list of GLIL
-expressions.
+properties, as in Tree IL's @code{<lambda>}. @var{body} is a list of
+GLIL expressions.
 @end deftp
 @deftp {Scheme Variable} <glil-bind> . vars
 An advisory expression that notes a liveness extent for a set of
@@ -456,18 +455,20 @@ offset within a VM program.
 @end deftp
 @deftp {Scheme Variable} <glil-source> loc
 Records source information for the preceding expression. @var{loc}
-should be a vector, @code{#(@var{line} @var{column} @var{filename})}.
+should be an association list of containing @code{line} @code{column},
+and @code{filename} keys, e.g. as returned by
+@code{source-properties}.
 @end deftp
 @deftp {Scheme Variable} <glil-void>
 Pushes the unspecified value on the stack.
 @end deftp
 @deftp {Scheme Variable} <glil-const> obj
 Pushes a constant value onto the stack. @var{obj} must be a number,
-string, symbol, keyword, boolean, character, or a pair or vector or
-list thereof, or the empty list.
+string, symbol, keyword, boolean, character, the empty list, or a pair
+or vector of constants.
 @end deftp
 @deftp {Scheme Variable} <glil-local> op index
-Accesses a lexically variable from the stack. If @var{op} is
+Accesses a lexically bound variable from the stack. If @var{op} is
 @code{ref}, the value is pushed onto the stack; if it is @code{set},
 the variable is set from the top value on the stack, which is popped
 off. @xref{Stack Layout}, for more information.
@@ -482,8 +483,8 @@ Accesses a toplevel variable. @var{op} may be @code{ref}, @code{set},
 or @code{define}.
 @end deftp
 @deftp {Scheme Variable} <glil-module> op mod name public?
-Accesses a variable within a specific module. See
-@code{ghil-var-at-module!}, for more information.
+Accesses a variable within a specific module. See Tree-IL's
+@code{<module-ref>}, for more information.
 @end deftp
 @deftp {Scheme Variable} <glil-label> label
 Creates a new label. @var{label} can be any Scheme value, and should
@@ -529,26 +530,140 @@ the object code.
 @node Assembly
 @subsection Assembly
 
-@node Bytecode
-@subsection Bytecode
+Assembly is an S-expression-based, human-readable representation of
+the actual bytecodes that will be emitted for the VM. As such, it is a
+useful intermediate language both for compilation and for
+decompilation.
 
-@node Object Code
-@subsection Object Code
+Besides the fact that it is not a record-based language, assembly
+differs from GLIL in four main ways:
 
-Object code is the serialization of the raw instruction stream of a
-program, ready for interpretation by the VM. Procedures related to
-object code are defined in the @code{(system vm objcode)} module.
+@itemize
+@item Labels have been resolved to byte offsets in the program.
+@item Constants inside procedures have either been expressed as inline
+instructions, and possibly cached in object arrays.
+@item Procedures with metadata (source location information, liveness
+extents, procedure names, generic properties, etc) have had their
+metadata serialized out to thunks.
+@item All expressions correspond directly to VM instructions -- i.e.,
+there is no @code{<glil-local>} which can be a ref or a set.
+@end itemize
+
+Assembly is isomorphic to the bytecode that it compiles to. You can
+compile to bytecode, then decompile back to assembly, and you have the
+same assembly code.
+
+The general form of assembly instructions is the following:
+
+@lisp
+(@var{inst} @var{arg} ...)
+@end lisp
+
+The @var{inst} names a VM instruction, and its @var{arg}s will be
+embedded in the instruction stream. The easiest way to see assembly is
+to play around with it at the REPL, as can be seen in this annotated
+example:
+
+@example
+scheme@@(guile-user)> (compile '(lambda (x) (+ x x)) #:to 'assembly)
+(load-program 0 0 0 0
+  () ; Labels
+  60 ; Length
+  #f ; Metadata
+  (make-false) ; object table for the returned lambda
+  (nop)
+  (nop) ; Alignment. Since assembly has already resolved its labels
+  (nop) ; to offsets, and programs must be 8-byte aligned since their
+  (nop) ; object code is mmap'd directly to structures, assembly
+  (nop) ; has to have the alignment embedded in it.
+  (nop) 
+  (load-program 1 0 0 0 
+    ()
+    6
+    ; This is the metadata thunk for the returned procedure.
+    (load-program 0 0 0 0 () 21 #f
+      (load-symbol "x")  ; Name and liveness extent for @code{x}.
+      (make-false)
+      (make-int8:0) ; Some instruction+arg combinations
+      (make-int8:0) ; have abbreviations.
+      (make-int8 6)
+      (list 0 5)
+      (list 0 1)
+      (make-eol)
+      (list 0 2)
+      (return))
+    ; And here, the actual code.
+    (local-ref 0)
+    (local-ref 0)
+    (add)
+    (return))
+  ; Return our new procedure.
+  (return))
+@end example
+
+Of course you can switch the REPL to assembly and enter in assembly
+S-expressions directly, like with other languages, though it is more
+difficult, given that the length fields have to be correct.
+
+@node Bytecode and Objcode
+@subsection Bytecode and Objcode
+
+Finally, the raw bytes. There are actually two different ``languages''
+here, corresponding to two different ways to represent the bytes.
+
+``Bytecode'' represents code as uniform byte vectors, useful for
+structuring and destructuring code on the Scheme level. Bytecode is
+the next step down from assembly:
+
+@example
+scheme@@(guile-user)> (compile '(+ 32 10) #:to 'assembly)
+@result{} (load-program 0 0 0 0 () 6 #f
+       (make-int8 32) (make-int8 10) (add) (return))
+scheme@@(guile-user)> (compile '(+ 32 10) #:to 'bytecode)
+@result{} #u8(0 0 0 0 6 0 0 0 0 0 0 0 10 32 10 10 100 48)
+@end example
+
+``Objcode'' is bytecode, but mapped directly to a C structure,
+@code{struct scm_objcode}:
+
+@example
+struct scm_objcode @{
+  scm_t_uint8 nargs;
+  scm_t_uint8 nrest;
+  scm_t_uint8 nlocs;
+  scm_t_uint8 nexts;
+  scm_t_uint32 len;
+  scm_t_uint32 metalen;
+  scm_t_uint8 base[0];
+@};
+@end example
+
+As one might imagine, objcode imposes a minimum length on the
+bytecode. Also, the multibyte fields are in native endianness, which
+makes objcode (and bytecode) system-dependent. Indeed, in the short
+example above, all but the last 5 bytes were the program's header.
+
+Objcode also has a couple of important efficiency hacks. First,
+objcode may be mapped directly from disk, allowing compiled code to be
+loaded quickly, often from the system's disk cache, and shared among
+multiple processes. Secondly, objcode may be embedded in other
+objcode, allowing procedures to have the text of other procedures
+inlined into their bodies, without the need for separate allocation of
+the code. Of course, the objcode object itself does need to be
+allocated.
+
+Procedures related to objcode are defined in the @code{(system vm
+objcode)} module.
 
 @deffn {Scheme Procedure} objcode? obj
 @deffnx {C Function} scm_objcode_p (obj)
 Returns @code{#f} iff @var{obj} is object code, @code{#f} otherwise.
 @end deffn
 
-@deffn {Scheme Procedure} bytecode->objcode bytecode nlocs nexts
-@deffnx {C Function} scm_bytecode_to_objcode (bytecode, nlocs, nexts)
+@deffn {Scheme Procedure} bytecode->objcode bytecode
+@deffnx {C Function} scm_bytecode_to_objcode (bytecode,)
 Makes a bytecode object from @var{bytecode}, which should be a
-@code{u8vector}. @var{nlocs} and @var{nexts} denote the number of
-stack and heap variables to reserve when this objcode is executed.
+@code{u8vector}.
 @end deffn
 
 @deffn {Scheme Variable} load-objcode file
@@ -556,21 +671,28 @@ stack and heap variables to reserve when this objcode is executed.
 Load object code from a file named @var{file}. The file will be mapped
 into memory via @code{mmap}, so this is a very fast operation.
 
-On disk, object code has an eight-byte cookie prepended to it, so that
-we will not execute arbitrary garbage. In addition, two more bytes are
-reserved for @var{nlocs} and @var{nexts}.
+On disk, object code has an eight-byte cookie prepended to it, to
+prevent accidental loading of arbitrary garbage.
+@end deffn
+
+@deffn {Scheme Variable} write-objcode objcode file
+@deffnx {C Function} scm_write_objcode (objcode)
+Write object code out to a file, prepending the eight-byte cookie.
 @end deffn
 
 @deffn {Scheme Variable} objcode->u8vector objcode
 @deffnx {C Function} scm_objcode_to_u8vector (objcode)
-Copy object code out to a @code{u8vector} for analysis by Scheme. The
-ten-byte header is included.
+Copy object code out to a @code{u8vector} for analysis by Scheme.
 @end deffn
 
-@deffn {Scheme Variable} objcode->program objcode [external='()]
-@deffnx {C Function} scm_objcode_to_program (objcode, external)
+The following procedure is actually in @code{(system vm program)}, but
+we'll mention it here:
+
+@deffn {Scheme Variable} make-program objcode objtable [external='()]
+@deffnx {C Function} scm_make_program (objcode, objtable, external)
 Load up object code into a Scheme program. The resulting program will
-be a thunk that captures closure variables from @var{external}.
+have @var{objtable} as its object table, which should be a vector or
+@code{#f}, and will capture the closure variables from @var{external}.
 @end deffn
 
 Object code from a file may be disassembled at the REPL via the
@@ -614,7 +736,7 @@ fruit, running programs of interest under a system-level profiler and
 determining which improvements would give the most bang for the buck.
 There are many well-known efficiency hacks in the literature: Dybvig's
 letrec optimization, individual boxing of heap-allocated values (and
-then store the boxes on the stack directory), optimized case-lambda
+then store the boxes on the stack directly), optimized case-lambda
 expressions, stack underflow and overflow handlers, etc. Highly
 recommended papers: Dybvig's HOCS, Ghuloum's compiler paper.
 

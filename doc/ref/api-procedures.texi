@@ -164,8 +164,8 @@ Returns @code{#t} iff @var{obj} is a compiled procedure.
 
 @deffn {Scheme Procedure} program-objcode program
 @deffnx {C Function} scm_program_objcode (program)
-Returns the object code associated with this program. @xref{Object
-Code}, for more information.
+Returns the object code associated with this program. @xref{Bytecode
+and Objcode}, for more information.
 @end deffn
 
 @deffn {Scheme Procedure} program-objects program

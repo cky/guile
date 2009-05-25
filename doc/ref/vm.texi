@@ -574,8 +574,8 @@ does not use @code{object-ref} does not need an object table.
 
 This instruction is unlike the rest of the loading instructions,
 because instead of parsing its data, it directly maps the instruction
-stream onto a C structure, @code{struct scm_objcode}. @xref{Object
-Code}, for more information.
+stream onto a C structure, @code{struct scm_objcode}. @xref{Bytecode
+and Objcode}, for more information.
 
 The resulting compiled procedure will not have any ``external''
 variables captured, so it may be loaded only once but used many times
