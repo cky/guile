@@ -48,6 +48,7 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
   gl_INLINE
+  gl_VISIBILITY
   gl_LOCALCHARSET
   LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(top_builddir)/$gl_source_base\""
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
@@ -283,6 +284,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/time_r.m4
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
+  m4/visibility.m4
   m4/wchar.m4
   m4/wint_t.m4
   m4/write.m4
