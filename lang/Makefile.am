@@ -28,6 +28,7 @@ elisp_sources =					\
 	elisp/example.el			\
 	elisp/interface.scm			\
 	elisp/transform.scm			\
+	elisp/expand.scm			\
 	elisp/variables.scm			\
 						\
 	elisp/primitives/buffers.scm		\

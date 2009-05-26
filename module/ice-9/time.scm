@@ -53,6 +53,6 @@
     result))
 
 (define-macro (time exp)
-  `(,time-proc (lambda () ,exp)))
+  `((@@ (ice-9 time) time-proc) (lambda () ,exp)))
 
 ;;; time.scm ends here
