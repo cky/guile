@@ -32,10 +32,10 @@ DEFAULT_INCLUDES =
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)		\
+AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
-AM_CFLAGS = $(GCC_CFLAGS)
+AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
 
 ## The Gnulib Libtool archive.
 gnulib_library = $(top_builddir)/lib/libgnu.la
