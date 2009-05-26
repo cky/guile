@@ -101,8 +101,6 @@ extern char *ttyname();
 
 #include <signal.h>
 
-extern char ** environ;
-
 #ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
@@ -139,10 +137,6 @@ extern char ** environ;
 #endif
 
 #include <sys/file.h>     /* from Gnulib */
-
-#if HAVE_CRT_EXTERNS_H
-#include <crt_externs.h>  /* for Darwin _NSGetEnviron */
-#endif
 
 /* Some Unix systems don't define these.  CPP hair is dangerous, but
    this seems safe enough... */
@@ -195,13 +189,6 @@ int sethostname (char *name, size_t namelen);
 
 
 
-
-/* On Apple Darwin in a shared library there's no "environ" to access
-   directly, instead the address of that variable must be obtained with
-   _NSGetEnviron().  */
-#if HAVE__NSGETENVIRON && defined (PIC)
-#define environ (*_NSGetEnviron())
-#endif
 
 
 

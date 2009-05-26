@@ -45,6 +45,8 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   gl_FUNC_ALLOCA
   gl_COUNT_ONE_BITS
+  gl_ENVIRON
+  gl_UNISTD_MODULE_INDICATOR([environ])
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
   gl_INLINE
@@ -251,6 +253,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/autobuild.m4
   m4/codeset.m4
   m4/count-one-bits.m4
+  m4/environ.m4
   m4/extensions.m4
   m4/flock.m4
   m4/fpieee.m4
