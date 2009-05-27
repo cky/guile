@@ -31,7 +31,7 @@ modpath =
 # putting these core modules first.
 
 SOURCES =								\
-  ice-9/psyntax-pp.scm \
+  ice-9/psyntax-pp.scm							\
   system/base/pmatch.scm system/base/syntax.scm				\
   system/base/compile.scm system/base/language.scm			\
 									\
@@ -53,6 +53,7 @@ SOURCES =								\
 									\
   $(ICE_9_SOURCES)							\
   $(SRFI_SOURCES)							\
+  $(RNRS_SOURCES)							\
   $(OOP_SOURCES)							\
 									\
   $(SCRIPTS_SOURCES)
@@ -208,6 +209,10 @@ SRFI_SOURCES = \
   srfi/srfi-60.scm \
   srfi/srfi-69.scm \
   srfi/srfi-88.scm
+
+RNRS_SOURCES =					\
+  rnrs/bytevector.scm				\
+  rnrs/io/ports.scm
 
 EXTRA_DIST += scripts/ChangeLog-2008
 EXTRA_DIST += scripts/README
