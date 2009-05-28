@@ -212,3 +212,15 @@
     exception:eof
     (with-input-from-string "#;(" read)))
 
+(with-test-prefix "#'"
+  (for-each
+   (lambda (pair)
+     (pass-if (car pair)
+       (equal? (with-input-from-string (car pair) read) (cdr pair))))
+
+   '(("#'foo". (syntax foo))
+     ("#`foo" . (quasisyntax foo))
+     ("#,foo" . (unsyntax foo))
+     ("#,@foo" . (unsyntax-splicing foo)))))
+
+
