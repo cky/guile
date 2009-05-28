@@ -182,6 +182,7 @@ static SCM *scm_read_hash_procedures;
 
 /* Read an SCSH block comment.  */
 static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
+static SCM scm_read_commented_expression (int chr, SCM port);
 
 /* Read from PORT until a delimiter (e.g., a whitespace) is read.  Return
    zero if the whole token fits in BUF, non-zero otherwise.  */
@@ -256,6 +257,9 @@ flush_ws (SCM port, const char *eoferr)
 	    goto goteof;
 	  case '!':
 	    scm_read_scsh_block_comment (c, port);
+	    break;
+	  case ';':
+	    scm_read_commented_expression (c, port);
 	    break;
 	  default:
 	    scm_ungetc (c, port);
@@ -691,6 +695,65 @@ scm_read_quote (int chr, SCM port)
   return p;
 }
 
+SCM_SYMBOL (sym_syntax, "syntax");
+SCM_SYMBOL (sym_quasisyntax, "quasisyntax");
+SCM_SYMBOL (sym_unsyntax, "unsyntax");
+SCM_SYMBOL (sym_unsyntax_splicing, "unsyntax-splicing");
+
+static SCM
+scm_read_syntax (int chr, SCM port)
+{
+  SCM p;
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
+
+  switch (chr)
+    {
+    case '`':
+      p = sym_quasisyntax;
+      break;
+
+    case '\'':
+      p = sym_syntax;
+      break;
+
+    case ',':
+      {
+	int c;
+
+	c = scm_getc (port);
+	if ('@' == c)
+	  p = sym_unsyntax_splicing;
+	else
+	  {
+	    scm_ungetc (c, port);
+	    p = sym_unsyntax;
+	  }
+	break;
+      }
+
+    default:
+      fprintf (stderr, "%s: unhandled syntax character (%i)\n",
+	       "scm_read_syntax", chr);
+      abort ();
+    }
+
+  p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
+  if (SCM_RECORD_POSITIONS_P)
+    scm_whash_insert (scm_source_whash, p,
+		      scm_make_srcprops (line, column,
+					 SCM_FILENAME (port),
+					 SCM_COPY_SOURCE_P
+					 ? (scm_cons2 (SCM_CAR (p),
+						       SCM_CAR (SCM_CDR (p)),
+						       SCM_EOL))
+					 : SCM_UNDEFINED,
+					 SCM_EOL));
+
+
+  return p;
+}
+
 static inline SCM
 scm_read_semicolon_comment (int chr, SCM port)
 {
@@ -850,6 +913,20 @@ scm_read_scsh_block_comment (int chr, SCM port)
 	bang_seen = 0;
     }
 
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+scm_read_commented_expression (int chr, SCM port)
+{
+  int c;
+  
+  c = flush_ws (port, (char *) NULL);
+  if (EOF == c)
+    scm_i_input_error ("read_commented_expression", port,
+                       "no expression after #; comment", SCM_EOL);
+  scm_ungetc (c, port);
+  scm_read_expression (port);
   return SCM_UNSPECIFIED;
 }
 
@@ -1014,6 +1091,12 @@ scm_read_sharp (int chr, SCM port)
       return (scm_read_extended_symbol (chr, port));
     case '!':
       return (scm_read_scsh_block_comment (chr, port));
+    case ';':
+      return (scm_read_commented_expression (chr, port));
+    case '`':
+    case '\'':
+    case ',':
+      return (scm_read_syntax (chr, port));
     default:
       result = scm_read_sharp_extension (chr, port);
       if (scm_is_eq (result, SCM_UNSPECIFIED))

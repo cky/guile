@@ -961,9 +961,6 @@
 ;;; Reader code for various "#c" forms.
 ;;;
 
-(read-hash-extend #\' (lambda (c port)
-			(read port)))
-
 (define read-eval? (make-fluid))
 (fluid-set! read-eval? #f)
 (read-hash-extend #\.

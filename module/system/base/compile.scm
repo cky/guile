@@ -107,9 +107,9 @@
          port)))
     comp))
 
-(define* (compile-and-load file #:key (to 'value) (opts '()))
-  (read-and-compile (open-input-port file)
-                    #:from lang #:to to #:opts opts))
+(define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
+  (read-and-compile (open-input-file file)
+                    #:from from #:to to #:opts opts))
 
 (define (compiled-file-name file)
   (let ((base (basename file))
