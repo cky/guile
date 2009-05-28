@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1404,6 +1404,12 @@ Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
 C}), but returns a pointer to the elements of a uniform numeric vector
 of the indicated kind.
 @end deftypefn
+
+Uniform numeric vectors can be written to and read from input/output
+ports using the procedures listed below.  However, bytevectors may often
+be more convenient for binary input/output since they provide more
+flexibility in the interpretation of raw byte sequences
+(@pxref{Bytevectors}).
 
 @deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
 @deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
