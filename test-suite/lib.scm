@@ -317,20 +317,24 @@
   (set! run-test local-run-test))
 
 ;;; A short form for tests that are expected to pass, taken from Greg.
-(defmacro pass-if (name . rest)
-  (if (and (null? rest) (pair? name))
-      ;; presume this is a simple test, i.e. (pass-if (even? 2))
-      ;; where the body should also be the name.
-      `(run-test ',name #t (lambda () ,name))
-      `(run-test ,name #t (lambda () ,@rest))))
+(define-syntax pass-if
+  (syntax-rules ()
+    ((_ name)
+     ;; presume this is a simple test, i.e. (pass-if (even? 2))
+     ;; where the body should also be the name.
+     (run-test 'name #t (lambda () name)))
+    ((_ name rest ...)
+     (run-test name #t (lambda () rest ...)))))
 
 ;;; A short form for tests that are expected to fail, taken from Greg.
-(defmacro expect-fail (name . rest)
-  (if (and (null? rest) (pair? name))
-      ;; presume this is a simple test, i.e. (expect-fail (even? 2))
-      ;; where the body should also be the name.
-      `(run-test ',name #f (lambda () ,name))
-      `(run-test ,name #f (lambda () ,@rest))))
+(define-syntax expect-fail
+  (syntax-rules ()
+    ((_ name)
+     ;; presume this is a simple test, i.e. (expect-fail (even? 2))
+     ;; where the body should also be the name.
+     (run-test 'name #f (lambda () name)))
+    ((_ name rest ...)
+     (run-test name #f (lambda () rest ...)))))
 
 ;;; A helper function to implement the macros that test for exceptions.
 (define (run-test-exception name exception expect-pass thunk)
@@ -362,12 +366,16 @@
             (apply throw key proc message rest))))))))
 
 ;;; A short form for tests that expect a certain exception to be thrown.
-(defmacro pass-if-exception (name exception body . rest)
-  `(,run-test-exception ,name ,exception #t (lambda () ,body ,@rest)))
+(define-syntax pass-if-exception
+  (syntax-rules ()
+    ((_ name exception body rest ...)
+     (run-test-exception name exception #t (lambda () body rest ...)))))
 
 ;;; A short form for tests expected to fail to throw a certain exception.
-(defmacro expect-fail-exception (name exception body . rest)
-  `(,run-test-exception ,name ,exception #f (lambda () ,body ,@rest)))
+(define-syntax expect-fail-exception
+  (syntax-rules ()
+    ((_ name exception body rest ...)
+     (run-test-exception name exception #f (lambda () body rest ...)))))
 
 
 ;;;; TEST NAMES

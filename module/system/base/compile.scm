@@ -29,7 +29,7 @@
   #:export (syntax-error 
             *current-language*
             compiled-file-name compile-file compile-and-load
-            compile compile-time-environment
+            compile
             decompile)
   #:export-syntax (call-with-compile-error-catch))
 
@@ -107,9 +107,9 @@
          port)))
     comp))
 
-(define* (compile-and-load file #:key (to 'value) (opts '()))
-  (read-and-compile (open-input-port file)
-                    #:from lang #:to to #:opts opts))
+(define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
+  (read-and-compile (open-input-file file)
+                    #:from from #:to to #:opts opts))
 
 (define (compiled-file-name file)
   (let ((base (basename file))
@@ -135,11 +135,6 @@
 ;;; Compiler interface
 ;;;
 
-(define (read-file-in file lang)
-  (call-with-input-file file
-    (or (language-read-file lang)
-        (error "language has no #:read-file" lang))))
-
 (define (compile-passes from to opts)
   (map cdr
        (or (lookup-compilation-order from to)
@@ -151,13 +146,6 @@
         (values x e cenv)
         (receive (x e new-cenv) ((car passes) x e opts)
           (lp (cdr passes) x e (if first? new-cenv cenv) #f)))))
-
-(define (compile-time-environment)
-  "A special function known to the compiler that, when compiled, will
-return a representation of the lexical environment in place at compile
-time. Useful for supporting some forms of dynamic compilation. Returns
-#f if called from the interpreter."
-  #f)
 
 (define (find-language-joint from to)
   (let lp ((in (reverse (or (lookup-compilation-order from to)

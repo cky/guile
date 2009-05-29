@@ -83,16 +83,15 @@
 (define (make-closed-binding open-binding start end)
   (make-binding (car open-binding) (cadr open-binding)
                 (caddr open-binding) start end))
-(define (open-binding bindings vars nargs start)
+(define (open-binding bindings vars start)
   (cons
    (acons start
           (map
            (lambda (v)
              (pmatch v
-               ((,name argument ,i) (make-open-binding name #f i))
-               ((,name local ,i) (make-open-binding name #f (+ nargs i)))
+               ((,name local ,i) (make-open-binding name #f i))
                ((,name external ,i) (make-open-binding name #t i))
-               (else (error "unknown binding type" name type))))
+               (else (error "unknown binding type" v))))
            vars)
           (car bindings))
    (cdr bindings)))
@@ -129,13 +128,13 @@
 
 (define (compile-assembly glil)
   (receive (code . _)
-      (glil->assembly glil 0 '() '(()) '() '() #f -1)
+      (glil->assembly glil '() '(()) '() '() #f -1)
     (car code)))
 (define (make-object-table objects)
   (and (not (null? objects))
        (list->vector (cons #f objects))))
 
-(define (glil->assembly glil nargs nexts-stack bindings
+(define (glil->assembly glil nexts-stack bindings
                         source-alist label-alist object-alist addr)
   (define (emit-code x)
     (values (map assembly-pack x) bindings source-alist label-alist object-alist))
@@ -159,7 +158,7 @@
                        addr))
               (else
                (receive (subcode bindings source-alist label-alist object-alist)
-                   (glil->assembly (car body) nargs nexts-stack bindings
+                   (glil->assembly (car body) nexts-stack bindings
                                    source-alist label-alist object-alist addr)
                  (lp (cdr body) (append (reverse subcode) code)
                      bindings source-alist label-alist object-alist
@@ -196,14 +195,14 @@
     
     ((<glil-bind> vars)
      (values '()
-             (open-binding bindings vars nargs addr)
+             (open-binding bindings vars addr)
              source-alist
              label-alist
              object-alist))
 
     ((<glil-mv-bind> vars rest)
      (values `((truncate-values ,(length vars) ,(if rest 1 0)))
-             (open-binding bindings vars nargs addr)
+             (open-binding bindings vars addr)
              source-alist
              label-alist
              object-alist))
@@ -238,15 +237,10 @@
          (emit-code/object `((object-ref ,i))
                            object-alist)))))
 
-    ((<glil-argument> op index)
+    ((<glil-local> op index)
      (emit-code (if (eq? op 'ref)
                     `((local-ref ,index))
                     `((local-set ,index)))))
-
-    ((<glil-local> op index)
-     (emit-code (if (eq? op 'ref)
-                    `((local-ref ,(+ nargs index)))
-                    `((local-set ,(+ nargs index))))))
 
     ((<glil-external> op depth index)
      (emit-code (let lp ((d depth) (n 0) (stack nexts-stack))
@@ -318,7 +312,12 @@
          (error "Unknown instruction:" inst))
      (let ((pops (instruction-pops inst)))
        (cond ((< pops 0)
-              (emit-code `((,inst ,nargs))))
+              (case (instruction-length inst)
+                ((1) (emit-code `((,inst ,nargs))))
+                ((2) (emit-code `((,inst ,(quotient nargs 256)
+                                         ,(modulo nargs 256)))))
+                (else (error "Unknown length for variable-arg instruction:"
+                             inst (instruction-length inst)))))
              ((= pops nargs)
               (emit-code `((,inst))))
              (else

@@ -95,6 +95,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/syntax.test			\
 	    tests/threads.test			\
 	    tests/time.test			\
+	    tests/tree-il.test			\
 	    tests/unif.test			\
 	    tests/version.test			\
 	    tests/weaks.test

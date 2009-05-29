@@ -169,24 +169,22 @@
 (define-public (set-readline-read-hook! h)
   (set! read-hook h))
 
-(if (provided? 'regex)
-    (begin
-      (define-public apropos-completion-function
-	(let ((completions '()))
-	  (lambda (text cont?)
-	    (if (not cont?)
-		(set! completions
-		      (map symbol->string
-			   (apropos-internal
-			    (string-append "^" (regexp-quote text))))))
-	    (if (null? completions)
-		#f
-		(let ((retval (car completions)))
-		  (begin (set! completions (cdr completions))
-			 retval))))))
+(define-public apropos-completion-function
+  (let ((completions '()))
+    (lambda (text cont?)
+      (if (not cont?)
+          (set! completions
+                (map symbol->string
+                     (apropos-internal
+                      (string-append "^" (regexp-quote text))))))
+      (if (null? completions)
+          #f
+          (let ((retval (car completions)))
+            (begin (set! completions (cdr completions))
+                   retval))))))
 
-      (set! *readline-completion-function* apropos-completion-function)
-      ))
+(if (provided? 'regex)
+    (set! *readline-completion-function* apropos-completion-function))
 
 (define-public (with-readline-completion-function completer thunk)
   "With @var{completer} as readline completion function, call @var{thunk}."

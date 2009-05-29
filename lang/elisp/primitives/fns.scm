@@ -26,7 +26,8 @@
 
 (fset 'symbol-function fref/error-if-void)
 
-(fset 'macroexpand macroexpand)
+;; FIXME -- lost in the syncase conversion
+;; (fset 'macroexpand macroexpand)
 
 (fset 'subrp
       (lambda (obj)

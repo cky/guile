@@ -1,4 +1,4 @@
-;;; ECMAScript specification for Guile
+;;; Tree-il optimizer
 
 ;; Copyright (C) 2009 Free Software Foundation, Inc.
 
@@ -19,21 +19,24 @@
 
 ;;; Code:
 
-(define-module (language ecmascript spec)
-  #:use-module (system base language)
-  #:use-module (language ecmascript parse)
-  #:use-module (language ecmascript compile-ghil)
-  #:export (ecmascript))
+(define-module (language tree-il optimize)
+  #:use-module (language tree-il)
+  #:use-module (language tree-il primitives)
+  #:export (optimize!))
 
-;;;
-;;; Language definition
-;;;
+(define (env-module e)
+  (if e (car e) (current-module)))
 
-(define-language ecmascript
-  #:title	"Guile ECMAScript"
-  #:version	"3.0"
-  #:reader	(lambda () (read-ecmascript/1 (current-input-port)))
-  #:compilers   `((ghil . ,compile-ghil))
-  ;; a pretty-printer would be interesting.
-  #:printer	write
-  )
+(define (optimize! x env opts)
+  (expand-primitives! (resolve-primitives! x (env-module env))))
+
+;; Possible optimizations:
+;; * constant folding, propagation
+;; * procedure inlining
+;;   * always when single call site
+;;   * always for "trivial" procs
+;;   * otherwise who knows
+;; * dead code elimination
+;; * degenerate case optimizations
+;; * "fixing letrec"
+

@@ -1,6 +1,6 @@
-;;; ECMAScript specification for Guile
+;;; Guile VM code converters
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,21 +19,9 @@
 
 ;;; Code:
 
-(define-module (language ecmascript spec)
-  #:use-module (system base language)
-  #:use-module (language ecmascript parse)
-  #:use-module (language ecmascript compile-ghil)
-  #:export (ecmascript))
+(define-module (language scheme decompile-tree-il)
+  #:use-module (language tree-il)
+  #:export (decompile-tree-il))
 
-;;;
-;;; Language definition
-;;;
-
-(define-language ecmascript
-  #:title	"Guile ECMAScript"
-  #:version	"3.0"
-  #:reader	(lambda () (read-ecmascript/1 (current-input-port)))
-  #:compilers   `((ghil . ,compile-ghil))
-  ;; a pretty-printer would be interesting.
-  #:printer	write
-  )
+(define (decompile-tree-il x env opts)
+  (values (tree-il->scheme x) env))

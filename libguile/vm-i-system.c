@@ -230,6 +230,7 @@ VM_DEFINE_INSTRUCTION (21, object_ref, "object-ref", 1, 0, 1)
 VM_DEFINE_INSTRUCTION (22, local_ref, "local-ref", 1, 0, 1)
 {
   PUSH (LOCAL_REF (FETCH ()));
+  ASSERT_BOUND (*sp);
   NEXT;
 }
 
@@ -244,6 +245,7 @@ VM_DEFINE_INSTRUCTION (23, external_ref, "external-ref", 1, 0, 1)
     }
   CHECK_EXTERNAL(e);
   PUSH (SCM_CAR (e));
+  ASSERT_BOUND (*sp);
   NEXT;
 }
 
@@ -405,12 +407,6 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
 
   VARIABLE_SET (what, *sp);
   DROP ();
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (30, externals, "externals", 0, 0, 1)
-{
-  PUSH (external);
   NEXT;
 }
 

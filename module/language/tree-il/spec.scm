@@ -1,4 +1,4 @@
-;;; ECMAScript specification for Guile
+;;; Tree Intermediate Language
 
 ;; Copyright (C) 2009 Free Software Foundation, Inc.
 
@@ -19,21 +19,25 @@
 
 ;;; Code:
 
-(define-module (language ecmascript spec)
+(define-module (language tree-il spec)
   #:use-module (system base language)
-  #:use-module (language ecmascript parse)
-  #:use-module (language ecmascript compile-ghil)
-  #:export (ecmascript))
+  #:use-module (language glil)
+  #:use-module (language tree-il)
+  #:use-module (language tree-il compile-glil)
+  #:export (tree-il))
 
-;;;
-;;; Language definition
-;;;
+(define (write-tree-il exp . port)
+  (apply write (unparse-tree-il exp) port))
 
-(define-language ecmascript
-  #:title	"Guile ECMAScript"
-  #:version	"3.0"
-  #:reader	(lambda () (read-ecmascript/1 (current-input-port)))
-  #:compilers   `((ghil . ,compile-ghil))
-  ;; a pretty-printer would be interesting.
-  #:printer	write
+(define (join exps env)
+  (make-sequence #f exps))
+
+(define-language tree-il
+  #:title	"Tree Intermediate Language"
+  #:version	"1.0"
+  #:reader	read
+  #:printer	write-tree-il
+  #:parser      parse-tree-il
+  #:joiner      join
+  #:compilers   `((glil . ,compile-glil))
   )

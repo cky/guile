@@ -17,6 +17,9 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
+
 
 ;;;; apply and call-with-current-continuation
 
@@ -186,28 +189,3 @@ procedures, their behavior is implementation dependent."
    (lambda (p) (with-error-to-port p thunk))))
 
 (define the-eof-object (call-with-input-string "" (lambda (p) (read-char p))))
-
-
-;;;; Loading
-
-(if (not (defined? '%load-verbosely))
-    (define %load-verbosely #f))
-(define (assert-load-verbosity v) (set! %load-verbosely v))
-
-(define (%load-announce file)
-  (if %load-verbosely
-      (with-output-to-port (current-error-port)
-	(lambda ()
-	  (display ";;; ")
-	  (display "loading ")
-	  (display file)
-	  (newline)
-	  (force-output)))))
-
-(set! %load-hook %load-announce)
-
-(define (load name . reader)
-  (with-fluid* current-reader (and (pair? reader) (car reader))
-    (lambda ()
-      (start-stack 'load-stack
-		   (primitive-load name)))))

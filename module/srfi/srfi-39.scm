@@ -35,7 +35,6 @@
 ;;; Code:
 
 (define-module (srfi srfi-39)
-  #:use-module (ice-9 syncase)
   #:use-module (srfi srfi-16)
 
   #:export (make-parameter)

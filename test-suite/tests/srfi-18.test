@@ -21,8 +21,13 @@
 (define-module (test-suite test-srfi-18)
   #:use-module (test-suite lib))
 
-(and (provided? 'threads)
-     (use-modules (srfi srfi-18))
+;; two expressions so that the srfi-18 import is in effect for expansion
+;; of the rest
+(if (provided? 'threads)
+    (use-modules (srfi srfi-18)))
+
+(and
+ (provided? 'threads)
 
 (with-test-prefix "current-thread"
 

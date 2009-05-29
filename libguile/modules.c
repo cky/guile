@@ -412,13 +412,13 @@ SCM_DEFINE (scm_module_local_variable, "module-local-variable", 2, 0, 0,
 
   register SCM b;
 
-  /* SCM_MODULE_TAG is not initialized yet when `boot-9.scm' is being
-     evaluated.  */
   if (scm_module_system_booted_p)
     SCM_VALIDATE_MODULE (1, module);
 
   SCM_VALIDATE_SYMBOL (2, sym);
 
+  if (scm_is_false (module))
+    return scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_UNDEFINED);
 
   /* 1. Check module obarray */
   b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);

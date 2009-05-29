@@ -32,20 +32,70 @@
 ;;; Code:
 
 (define-module (ice-9 threads)
-  :export (par-map
+  :export (begin-thread
+           parallel
+           letpar
+           make-thread
+           with-mutex
+           monitor
+
+           par-map
 	   par-for-each
 	   n-par-map
 	   n-par-for-each
 	   n-for-each-par-map
-	   %thread-handler)
-  :export-syntax (begin-thread
-		  parallel
-		  letpar
-		  make-thread
-		  with-mutex
-		  monitor))
+	   %thread-handler))
 
 
+
+;;; Macros first, so that the procedures expand correctly.
+
+(define-syntax begin-thread
+  (syntax-rules ()
+    ((_ e0 e1 ...)
+     (call-with-new-thread
+      (lambda () e0 e1 ...)
+      %thread-handler))))
+
+(define-syntax parallel
+  (lambda (x)
+    (syntax-case x ()
+      ((_ e0 ...)
+       (with-syntax (((tmp0 ...) (generate-temporaries (syntax (e0 ...)))))
+         (syntax
+          (let ((tmp0 (begin-thread e0))
+                ...)
+            (values (join-thread tmp0) ...))))))))
+
+(define-syntax letpar
+  (syntax-rules ()
+    ((_ ((v e) ...) b0 b1 ...)
+     (call-with-values
+         (lambda () (parallel e ...))
+       (lambda (v ...)
+         b0 b1 ...)))))
+
+(define-syntax make-thread
+  (syntax-rules ()
+    ((_ proc arg ...)
+     (call-with-new-thread
+      (lambda () (proc arg ...))
+      %thread-handler))))
+
+(define-syntax with-mutex
+  (syntax-rules ()
+    ((_ m e0 e1 ...)
+     (let ((x m))
+       (dynamic-wind
+         (lambda () (lock-mutex x))
+         (lambda () (begin e0 e1 ...))
+         (lambda () (unlock-mutex x)))))))
+
+(define-syntax monitor
+  (syntax-rules ()
+    ((_ first rest ...)
+     (with-mutex (make-mutex)
+       first rest ...))))
 
 (define (par-mapper mapper)
   (lambda (proc . arglists)
@@ -170,53 +220,5 @@ of applying P-PROC on ARGLISTS."
 
 ;;; Set system thread handler
 (define %thread-handler thread-handler)
-
-; --- MACROS -------------------------------------------------------
-
-(define-macro (begin-thread . forms)
-  (if (null? forms)
-      '(begin)
-      `(call-with-new-thread
-	(lambda ()
-	  ,@forms)
-	%thread-handler)))
-
-(define-macro (parallel . forms)
-  (cond ((null? forms) '(values))
-	((null? (cdr forms)) (car forms))
-	(else
-	 (let ((vars (map (lambda (f)
-			    (make-symbol "f"))
-			  forms)))
-	   `((lambda ,vars
-	       (values ,@(map (lambda (v) `(join-thread ,v)) vars)))
-	     ,@(map (lambda (form) `(begin-thread ,form)) forms))))))
-
-(define-macro (letpar bindings . body)
-  (cond ((or (null? bindings) (null? (cdr bindings)))
-	 `(let ,bindings ,@body))
-	(else
-	 (let ((vars (map car bindings)))
-	   `((lambda ,vars
-	       ((lambda ,vars ,@body)
-		,@(map (lambda (v) `(join-thread ,v)) vars)))
-	     ,@(map (lambda (b) `(begin-thread ,(cadr b))) bindings))))))
-
-(define-macro (make-thread proc . args)
-  `(call-with-new-thread
-    (lambda ()
-      (,proc ,@args))
-    %thread-handler))
-
-(define-macro (with-mutex m . body)
-  `(dynamic-wind
-       (lambda () (lock-mutex ,m))
-       (lambda () (begin ,@body))
-       (lambda () (unlock-mutex ,m))))
-
-(define-macro (monitor first . rest)
-  `(with-mutex ,(make-mutex)
-     (begin
-       ,first ,@rest)))
 
 ;;; threads.scm ends here

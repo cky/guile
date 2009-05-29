@@ -209,9 +209,8 @@
 ;;;
 
 ;; Backward compatibility
-(if (not (defined? 'lookup-create-cmethod))
-    (define (lookup-create-cmethod gf args)
-      (no-applicable-method (car args) (cadr args))))
+(define (lookup-create-cmethod gf args)
+  (no-applicable-method (car args) (cadr args)))
 
 (define (memoize-method! gf args exp)
   (if (not (slot-ref gf 'used-by))

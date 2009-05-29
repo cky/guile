@@ -22,6 +22,8 @@
 (define-module (language scheme spec)
   #:use-module (system base language)
   #:use-module (language scheme compile-ghil)
+  #:use-module (language scheme compile-tree-il)
+  #:use-module (language scheme decompile-tree-il)
   #:export (scheme))
 
 ;;;
@@ -29,12 +31,6 @@
 ;;;
 
 (read-enable 'positions)
-
-(define (read-file port)
-  (do ((x (read port) (read port))
-       (l '() (cons x l)))
-      ((eof-object? x)
-       (cons 'begin (reverse! l)))))
 
 ;;;
 ;;; Language definition
@@ -44,8 +40,9 @@
   #:title	"Guile Scheme"
   #:version	"0.5"
   #:reader	read
-  #:read-file	read-file
-  #:compilers   `((ghil . ,compile-ghil))
+  #:compilers   `((tree-il . ,compile-tree-il)
+                  (ghil . ,compile-ghil))
+  #:decompilers `((tree-il . ,decompile-tree-il))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write
   )

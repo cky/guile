@@ -110,9 +110,7 @@
 ;;; Readables
 ;;;
 
-(if (or (not (defined? 'readables))
-	(not readables))
-    (define readables (make-weak-key-hash-table 61)))
+(define readables (make-weak-key-hash-table 61))
 
 (define-macro (readable exp)
   `(make-readable ,exp ',(copy-tree exp)))
