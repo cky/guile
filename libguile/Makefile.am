@@ -286,6 +286,8 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '#define SCM_PKGDATA_DIR "$(pkgdatadir)"' >> libpath.tmp
 	@echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)"'>>libpath.tmp
 	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
+	@echo '#define SCM_CCACHE_DIR "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache"' >> libpath.tmp
+	@echo '#define SCM_EFFECTIVE_VERSION "$(GUILE_EFFECTIVE_VERSION)"' >> libpath.tmp
 	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
 	@echo '	{ "srcdir", "'"`cd @srcdir@; pwd`"'" }, \' >> libpath.tmp
 	@echo ' { "top_srcdir",    "@top_srcdir_absolute@" }, \' >> libpath.tmp
@@ -299,12 +301,13 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '	{ "sharedstatedir", "@sharedstatedir@" }, \' >> libpath.tmp
 	@echo '	{ "localstatedir", "@localstatedir@" }, \' >> libpath.tmp
 	@echo '	{ "libdir",	   "@libdir@" }, \' >> libpath.tmp
+	@echo '	{ "ccachedir",	   SCM_CCACHE_DIR }, \' >> libpath.tmp
 	@echo '	{ "infodir",	   "@infodir@" }, \' >> libpath.tmp
 	@echo '	{ "mandir",	   "@mandir@" }, \' >> libpath.tmp
 	@echo '	{ "includedir",	   "@includedir@" }, \' >> libpath.tmp
-	@echo '	{ "pkgdatadir",	   "$(datadir)/@PACKAGE@" }, \' >> libpath.tmp
-	@echo '	{ "pkglibdir",	   "$(libdir)/@PACKAGE@" }, \' >> libpath.tmp
-	@echo '	{ "pkgincludedir", "$(includedir)/@PACKAGE@" }, \' \
+	@echo '	{ "pkgdatadir",	   "@pkgdatadir@" }, \' >> libpath.tmp
+	@echo '	{ "pkglibdir",	   "@pkglibdir@" }, \' >> libpath.tmp
+	@echo '	{ "pkgincludedir", "@pkgincludedir@" }, \' \
 		>> libpath.tmp
 	@echo '	{ "guileversion", "@GUILE_VERSION@" }, \' >> libpath.tmp
 	@echo '	{ "libguileinterface", "@LIBGUILE_INTERFACE@" }, \' \

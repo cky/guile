@@ -53,6 +53,10 @@
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
 
+#ifdef HAVE_PWD_H
+#include <pwd.h>
+#endif /* HAVE_PWD_H */
+
 #ifndef R_OK
 #define R_OK 4
 #endif
@@ -174,7 +178,8 @@ static SCM *scm_loc_load_path;
 /* List of extensions we try adding to the filenames.  */
 static SCM *scm_loc_load_extensions;
 
-/* Like %load-extensions, but for compiled files.  */
+/* Like %load-path and %load-extensions, but for compiled files. */
+static SCM *scm_loc_load_compiled_path;
 static SCM *scm_loc_load_compiled_extensions;
 
 
@@ -209,6 +214,7 @@ scm_init_load_path ()
 {
   char *env;
   SCM path = SCM_EOL;
+  SCM cpath = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
   env = getenv ("GUILE_SYSTEM_PATH");
@@ -222,13 +228,48 @@ scm_init_load_path ()
     path = scm_list_3 (scm_from_locale_string (SCM_SITE_DIR),
                        scm_from_locale_string (SCM_LIBRARY_DIR),
                        scm_from_locale_string (SCM_PKGDATA_DIR));
+
+  env = getenv ("GUILE_SYSTEM_COMPILED_PATH");
+  if (env && strcmp (env, "") == 0)
+    /* like above */
+    ; 
+  else if (env)
+    cpath = scm_parse_path (scm_from_locale_string (env), cpath);
+  else
+    {
+      char *home;
+
+      home = getenv ("HOME");
+#ifdef HAVE_GETPWENT
+      if (!home)
+        {
+          struct passwd *pwd;
+          pwd = getpwuid (getuid ());
+          if (pwd)
+            home = pwd->pw_dir;
+        }
+#endif /* HAVE_GETPWENT */
+      if (home)
+        { char buf[1024];
+          snprintf (buf, sizeof(buf),
+                    "%s/.guile-ccache/" SCM_EFFECTIVE_VERSION, home);
+          cpath = scm_cons (scm_from_locale_string (buf), cpath);
+        }
+      
+      cpath = scm_cons (scm_from_locale_string (SCM_CCACHE_DIR), cpath);
+    }
 #endif /* SCM_LIBRARY_DIR */
 
   env = getenv ("GUILE_LOAD_PATH");
   if (env)
     path = scm_parse_path (scm_from_locale_string (env), path);
 
+  env = getenv ("GUILE_LOAD_COMPILED_PATH");
+  if (env)
+    cpath = scm_parse_path (scm_from_locale_string (env), cpath);
+
   *scm_loc_load_path = path;
+  *scm_loc_load_compiled_path = cpath;
 }
 
 SCM scm_listofnullstr;
@@ -519,7 +560,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
   SCM full_filename, compiled_filename;
 
   full_filename = scm_sys_search_load_path (filename);
-  compiled_filename = scm_search_path (*scm_loc_load_path,
+  compiled_filename = scm_search_path (*scm_loc_load_compiled_path,
                                        filename,
                                        *scm_loc_load_compiled_extensions,
                                        SCM_BOOL_T);
@@ -529,6 +570,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 		    scm_list_1 (filename));
 
   if (scm_is_false (compiled_filename))
+    /* FIXME: autocompile here */
     return scm_primitive_load (full_filename);
 
   if (scm_is_false (full_filename))
@@ -600,6 +642,8 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
 				      scm_list_2 (scm_from_locale_string (".scm"),
 						  scm_nullstr)));
+  scm_loc_load_compiled_path
+    = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-path", SCM_EOL));
   scm_loc_load_compiled_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-extensions",
 				      scm_list_1 (scm_from_locale_string (".go"))));
