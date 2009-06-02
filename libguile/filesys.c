@@ -580,17 +580,23 @@ static int fstat_Win32 (int fdes, struct stat *buf)
 }
 #endif /* __MINGW32__ */
 
-SCM_DEFINE (scm_stat, "stat", 1, 0, 0, 
-            (SCM object),
+SCM_DEFINE (scm_stat, "stat", 1, 1, 0, 
+            (SCM object, SCM exception_on_error),
 	    "Return an object containing various information about the file\n"
 	    "determined by @var{obj}.  @var{obj} can be a string containing\n"
 	    "a file name or a port or integer file descriptor which is open\n"
 	    "on a file (in which case @code{fstat} is used as the underlying\n"
 	    "system call).\n"
 	    "\n"
-	    "The object returned by @code{stat} can be passed as a single\n"
-	    "parameter to the following procedures, all of which return\n"
-	    "integers:\n"
+            "If the optional @var{exception_on_error} argument is true, which\n"
+            "is the default, an exception will be raised if the underlying\n"
+            "system call returns an error, for example if the file is not\n"
+            "found or is not readable. Otherwise, an error will cause\n"
+            "@code{stat} to return @code{#f}."
+	    "\n"
+	    "The object returned by a successful call to @code{stat} can be\n"
+            "passed as a single parameter to the following procedures, all of\n"
+            "which return integers:\n"
 	    "\n"
 	    "@table @code\n"
 	    "@item stat:dev\n"
@@ -678,12 +684,16 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 
   if (rv == -1)
     {
-      int en = errno;
-
-      SCM_SYSERROR_MSG ("~A: ~S",
-			scm_list_2 (scm_strerror (scm_from_int (en)),
-				    object),
-			en);
+      if (SCM_UNBNDP (exception_on_error) || scm_is_true (exception_on_error))
+        {
+          int en = errno;
+          SCM_SYSERROR_MSG ("~A: ~S",
+                            scm_list_2 (scm_strerror (scm_from_int (en)),
+                                        object),
+                            en);
+        }
+      else
+        return SCM_BOOL_F;
     }
   return scm_stat2scm (&stat_temp);
 }

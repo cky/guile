@@ -42,7 +42,7 @@ SCM_API SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
 SCM_API SCM scm_open (SCM path, SCM flags, SCM mode);
 SCM_API SCM scm_close (SCM fd_or_port);
 SCM_API SCM scm_close_fdes (SCM fd);
-SCM_API SCM scm_stat (SCM object);
+SCM_API SCM scm_stat (SCM object, SCM exception_on_error);
 SCM_API SCM scm_link (SCM oldpath, SCM newpath);
 SCM_API SCM scm_rename (SCM oldname, SCM newname);
 SCM_API SCM scm_delete_file (SCM str);
