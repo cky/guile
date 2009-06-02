@@ -611,12 +611,10 @@
     (primitive-load-path "ice-9/networking"))
 
 ;; For reference, Emacs file-exists-p uses stat in this same way.
-;; ENHANCE-ME: Catching an exception from stat is a bit wasteful, do this in
-;; C where all that's needed is to inspect the return from stat().
 (define file-exists?
   (if (provided? 'posix)
       (lambda (str)
-	(->bool (false-if-exception (stat str))))
+	(->bool (stat str #f)))
       (lambda (str)
 	(let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
 			   (lambda args #f))))
@@ -2278,21 +2276,10 @@ module '(ice-9 q) '(make-q q-length))}."
 	   (dynamic-wind
 	    (lambda () (autoload-in-progress! dir-hint name))
 	    (lambda ()
-	      (let ((file (in-vicinity dir-hint name)))
-                (let ((compiled (and load-compiled
-                                     (%search-load-path
-                                      (string-append file ".go"))))
-                      (source (%search-load-path file)))
-                  (cond ((and source
-                              (or (not compiled)
-                                  (< (stat:mtime (stat compiled))
-                                     (stat:mtime (stat source)))))
-                         (if compiled
-                             (warn "source file" source "newer than" compiled))
-                         (with-fluid* current-reader #f
-                           (lambda () (load-file primitive-load source))))
-                        (compiled
-                         (load-file load-compiled compiled))))))
+	      (with-fluid* current-reader #f
+                (lambda ()
+                  (load-file primitive-load-path
+                             (in-vicinity dir-hint name)))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 
