@@ -18,7 +18,6 @@
 ;;;; The null environment - only syntactic bindings
 
 (define-module (ice-9 null)
-  :use-module (ice-9 syncase)
   :re-export-syntax (define quote lambda if set!
 	
 		     cond case and or

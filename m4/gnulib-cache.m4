@@ -15,23 +15,30 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl --libtool --macro-prefix=gl --no-vc-files alloca-opt autobuild count-one-bits extensions flock fpieee full-read full-write putenv stdlib strcase strftime
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl --libtool --macro-prefix=gl --no-vc-files alloca-opt autobuild byteswap count-one-bits environ extensions flock fpieee full-read full-write iconv_open-utf lib-symbol-visibility libunistring putenv stdlib strcase strftime striconveh string
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
 gl_MODULES([
   alloca-opt
   autobuild
+  byteswap
   count-one-bits
+  environ
   extensions
   flock
   fpieee
   full-read
   full-write
+  iconv_open-utf
+  lib-symbol-visibility
+  libunistring
   putenv
   stdlib
   strcase
   strftime
+  striconveh
+  string
 ])
 gl_AVOID([])
 gl_SOURCE_BASE([lib])

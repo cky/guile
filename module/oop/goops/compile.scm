@@ -24,7 +24,7 @@
 (define-module (oop goops compile)
   :use-module (oop goops)
   :use-module (oop goops util)
-  :export (compute-cmethod compile-make-procedure)
+  :export (compute-cmethod)
   :no-backtrace
   )
 
@@ -60,9 +60,7 @@
 ;;; So, for the reader: there basic idea is that, given that the
 ;;; semantics of `next-method' depend on the concrete types being
 ;;; dispatched, why not compile a specific procedure to handle each type
-;;; combination that we see at runtime. There are two compilation
-;;; strategies implemented: one for the memoizer, and one for the VM
-;;; compiler.
+;;; combination that we see at runtime.
 ;;;
 ;;; In theory we can do much better than a bytecode compilation, because
 ;;; we know the *exact* types of the arguments. It's ideal for native
@@ -70,32 +68,6 @@
 ;;;
 ;;; I think this whole generic application mess would benefit from a
 ;;; strict MOP.
-
-;;; Temporary solution---return #f if x doesn't refer to `next-method'.
-(define (next-method? x)
-  (and (pair? x)
-       (or (eq? (car x) 'next-method)
-	   (next-method? (car x))
-	   (next-method? (cdr x)))))
-
-;; Called by the `method' macro in goops.scm.
-(define (compile-make-procedure formals specializers body)
-  (and (next-method? body)
-       (let ((next-method-sym (gensym " next-method"))
-             (args-sym (gensym)))
-         `(lambda (,next-method-sym)
-            (lambda ,formals
-              (let ((next-method (lambda ,args-sym
-                                   (if (null? ,args-sym)
-                                       ,(if (list? formals)
-                                            `(,next-method-sym ,@formals)
-                                            `(apply
-                                              ,next-method-sym
-                                              ,@(improper->proper formals)))
-                                       (apply ,next-method-sym ,args-sym)))))
-                ,@(if (null? body)
-                      '((begin))
-                      body)))))))
 
 (define (compile-method methods types)
   (let ((make-procedure (slot-ref (car methods) 'make-procedure)))

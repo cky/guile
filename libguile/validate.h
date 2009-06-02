@@ -3,7 +3,7 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -149,6 +149,9 @@
     SCM_ASSERT (scm_is_bool (flag), flag, pos, FUNC_NAME); \
     cvar = scm_to_bool (flag); \
   } while (0)
+
+#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)		\
+  SCM_VALIDATE_SMOB ((_pos), (_obj), bytevector)
 
 #define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
 

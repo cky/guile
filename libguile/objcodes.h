@@ -1,43 +1,19 @@
 /* Copyright (C) 2001 Free Software Foundation, Inc.
+ * * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
- * 
- * This program is distributed in the hope that it will be useful,
+ * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
- *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 
 #ifndef _SCM_OBJCODES_H_
 #define _SCM_OBJCODES_H_
@@ -60,7 +36,7 @@ struct scm_objcode {
 #define SCM_F_OBJCODE_IS_U8VECTOR (1<<1)
 #define SCM_F_OBJCODE_IS_SLICE    (1<<2)
 
-extern scm_t_bits scm_tc16_objcode;
+SCM_API scm_t_bits scm_tc16_objcode;
 
 #define SCM_OBJCODE_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_objcode, x))
 #define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_SMOB_DATA (x))
@@ -80,15 +56,15 @@ extern scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_IS_SLICE(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_SLICE)
 
 SCM scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr);
-extern SCM scm_load_objcode (SCM file);
-extern SCM scm_objcode_p (SCM obj);
-extern SCM scm_objcode_meta (SCM objcode);
-extern SCM scm_bytecode_to_objcode (SCM bytecode);
-extern SCM scm_objcode_to_bytecode (SCM objcode);
-extern SCM scm_write_objcode (SCM objcode, SCM port);
+SCM_API SCM scm_load_objcode (SCM file);
+SCM_API SCM scm_objcode_p (SCM obj);
+SCM_API SCM scm_objcode_meta (SCM objcode);
+SCM_API SCM scm_bytecode_to_objcode (SCM bytecode);
+SCM_API SCM scm_objcode_to_bytecode (SCM objcode);
+SCM_API SCM scm_write_objcode (SCM objcode, SCM port);
 
-extern void scm_bootstrap_objcodes (void);
-extern void scm_init_objcodes (void);
+SCM_INTERNAL void scm_bootstrap_objcodes (void);
+SCM_INTERNAL void scm_init_objcodes (void);
 
 #endif /* _SCM_OBJCODES_H_ */
 

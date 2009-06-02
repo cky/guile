@@ -31,30 +31,25 @@ modpath =
 # putting these core modules first.
 
 SOURCES =								\
-  ice-9/psyntax-pp.scm \
+  ice-9/psyntax-pp.scm 							\
   system/base/pmatch.scm system/base/syntax.scm				\
   system/base/compile.scm system/base/language.scm			\
 									\
-  system/vm/debug.scm system/vm/frame.scm system/vm/instruction.scm	\
-  system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
-  system/vm/trace.scm system/vm/vm.scm					\
-									\
-  system/xref.scm							\
-									\
-  system/repl/repl.scm system/repl/common.scm				\
-  system/repl/command.scm						\
-									\
+  language/tree-il.scm							\
   language/ghil.scm language/glil.scm language/assembly.scm		\
 									\
-  $(SCHEME_LANG_SOURCES) $(ECMASCRIPT_LANG_SOURCES)			\
+  $(SCHEME_LANG_SOURCES) 						\
+  $(TREE_IL_LANG_SOURCES)						\
   $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
 									\
   $(ICE_9_SOURCES)							\
   $(SRFI_SOURCES)							\
+  $(RNRS_SOURCES)							\
   $(OOP_SOURCES)							\
-									\
+  $(SYSTEM_SOURCES)                                                     \
+  $(ECMASCRIPT_LANG_SOURCES)						\
   $(SCRIPTS_SOURCES)
 
 ## test.scm is not currently installed.
@@ -71,9 +66,18 @@ ice-9/psyntax-pp.scm: ice-9/psyntax.scm
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 SCHEME_LANG_SOURCES =						\
-  language/scheme/amatch.scm language/scheme/expand.scm 	\
-  language/scheme/compile-ghil.scm language/scheme/spec.scm	\
+  language/scheme/compile-ghil.scm 				\
+  language/scheme/spec.scm					\
+  language/scheme/compile-tree-il.scm				\
+  language/scheme/decompile-tree-il.scm				\
   language/scheme/inline.scm
+
+TREE_IL_LANG_SOURCES =						\
+  language/tree-il/primitives.scm				\
+  language/tree-il/optimize.scm                                 \
+  language/tree-il/analyze.scm					\
+  language/tree-il/compile-glil.scm 				\
+  language/tree-il/spec.scm
 
 GHIL_LANG_SOURCES =					\
   language/ghil/spec.scm language/ghil/compile-glil.scm
@@ -140,7 +144,6 @@ ICE_9_SOURCES = \
   ice-9/debugger.scm \
   ice-9/documentation.scm \
   ice-9/emacs.scm \
-  ice-9/expand-support.scm \
   ice-9/expect.scm \
   ice-9/format.scm \
   ice-9/getopt-long.scm \
@@ -198,6 +201,7 @@ SRFI_SOURCES = \
   srfi/srfi-14.scm \
   srfi/srfi-16.scm \
   srfi/srfi-17.scm \
+  srfi/srfi-18.scm \
   srfi/srfi-19.scm \
   srfi/srfi-26.scm \
   srfi/srfi-31.scm \
@@ -208,6 +212,10 @@ SRFI_SOURCES = \
   srfi/srfi-60.scm \
   srfi/srfi-69.scm \
   srfi/srfi-88.scm
+
+RNRS_SOURCES =					\
+  rnrs/bytevector.scm				\
+  rnrs/io/ports.scm
 
 EXTRA_DIST += scripts/ChangeLog-2008
 EXTRA_DIST += scripts/README
@@ -226,6 +234,16 @@ OOP_SOURCES = \
   oop/goops/accessors.scm \
   oop/goops/simple.scm
 
+SYSTEM_SOURCES = \
+  system/vm/debug.scm system/vm/frame.scm system/vm/instruction.scm	\
+  system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
+  system/vm/trace.scm system/vm/vm.scm					\
+									\
+  system/xref.scm							\
+									\
+  system/repl/repl.scm system/repl/common.scm				\
+  system/repl/command.scm
+
 EXTRA_DIST += oop/ChangeLog-2008
 
 NOCOMP_SOURCES =				\
@@ -242,5 +260,4 @@ NOCOMP_SOURCES =				\
   ice-9/debugging/steps.scm \
   ice-9/debugging/trace.scm \
   ice-9/debugging/traps.scm \
-  ice-9/debugging/trc.scm \
-  srfi/srfi-18.scm
+  ice-9/debugging/trc.scm

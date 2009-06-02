@@ -25,6 +25,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LIBOBJS$])dnl a variable
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([AC_PROG_RANLIB])
+  AC_REQUIRE([AM_PROG_CC_C_O])
   AB_INIT
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([gl_FP_IEEE])
@@ -44,10 +45,19 @@ AC_DEFUN([gl_INIT],
   gl_COMMON
   gl_source_base='lib'
   gl_FUNC_ALLOCA
+  gl_BYTESWAP
   gl_COUNT_ONE_BITS
+  gl_ENVIRON
+  gl_UNISTD_MODULE_INDICATOR([environ])
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
+  AM_ICONV
+  gl_ICONV_H
+  gl_FUNC_ICONV_OPEN
+  gl_FUNC_ICONV_OPEN_UTF
   gl_INLINE
+  gl_VISIBILITY
+  gl_LIBUNISTRING
   gl_LOCALCHARSET
   LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(top_builddir)/$gl_source_base\""
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
@@ -70,12 +80,21 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_H
   gl_STRCASE
   gl_FUNC_GNU_STRFTIME
+  if test $gl_cond_libtool = false; then
+    gl_ltlibdeps="$gl_ltlibdeps $LTLIBICONV"
+    gl_libdeps="$gl_libdeps $LIBICONV"
+  fi
+  gl_HEADER_STRING_H
   gl_HEADER_STRINGS_H
   gl_HEADER_SYS_FILE_H
   AC_PROG_MKDIR_P
   gl_HEADER_TIME_H
   gl_TIME_R
   gl_UNISTD_H
+  gl_MODULE_INDICATOR([unistr/u8-mbtouc])
+  gl_MODULE_INDICATOR([unistr/u8-mbtouc-unsafe])
+  gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
+  gl_MODULE_INDICATOR([unistr/u8-uctomb])
   gl_WCHAR_H
   gl_FUNC_WRITE
   gl_UNISTD_MODULE_INDICATOR([write])
@@ -207,8 +226,16 @@ AC_DEFUN([gltests_LIBSOURCES], [
 # This macro records the list of files which have been installed by
 # gnulib-tool and may be removed by future gnulib-tool invocations.
 AC_DEFUN([gl_FILE_LIST], [
+  build-aux/config.rpath
   build-aux/link-warning.h
   lib/alloca.in.h
+  lib/byteswap.in.h
+  lib/c-ctype.c
+  lib/c-ctype.h
+  lib/c-strcase.h
+  lib/c-strcasecmp.c
+  lib/c-strcaseeq.h
+  lib/c-strncasecmp.c
   lib/config.charset
   lib/count-one-bits.h
   lib/flock.c
@@ -216,6 +243,15 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
+  lib/iconv.c
+  lib/iconv.in.h
+  lib/iconv_close.c
+  lib/iconv_open-aix.gperf
+  lib/iconv_open-hpux.gperf
+  lib/iconv_open-irix.gperf
+  lib/iconv_open-osf.gperf
+  lib/iconv_open.c
+  lib/iconveh.h
   lib/localcharset.c
   lib/localcharset.h
   lib/malloc.c
@@ -236,27 +272,49 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/streq.h
   lib/strftime.c
   lib/strftime.h
+  lib/striconveh.c
+  lib/striconveh.h
+  lib/string.in.h
   lib/strings.in.h
   lib/strncasecmp.c
   lib/sys_file.in.h
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
+  lib/unistr.h
+  lib/unistr/u8-mbtouc-aux.c
+  lib/unistr/u8-mbtouc-unsafe-aux.c
+  lib/unistr/u8-mbtouc-unsafe.c
+  lib/unistr/u8-mbtouc.c
+  lib/unistr/u8-mbtoucr.c
+  lib/unistr/u8-prev.c
+  lib/unistr/u8-uctomb-aux.c
+  lib/unistr/u8-uctomb.c
+  lib/unitypes.h
   lib/verify.h
   lib/wchar.in.h
   lib/write.c
   m4/00gnulib.m4
   m4/alloca.m4
   m4/autobuild.m4
+  m4/byteswap.m4
   m4/codeset.m4
   m4/count-one-bits.m4
+  m4/environ.m4
   m4/extensions.m4
   m4/flock.m4
   m4/fpieee.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
+  m4/iconv.m4
+  m4/iconv_h.m4
+  m4/iconv_open.m4
   m4/include_next.m4
   m4/inline.m4
+  m4/lib-ld.m4
+  m4/lib-link.m4
+  m4/lib-prefix.m4
+  m4/libunistring.m4
   m4/localcharset.m4
   m4/locale-fr.m4
   m4/locale-ja.m4
@@ -277,12 +335,14 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdlib_h.m4
   m4/strcase.m4
   m4/strftime.m4
+  m4/string_h.m4
   m4/strings_h.m4
   m4/sys_file_h.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
+  m4/visibility.m4
   m4/wchar.m4
   m4/wint_t.m4
   m4/write.m4

@@ -27,12 +27,10 @@
   #:use-module (system vm objcode)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 optargs)
-  #:use-module (ice-9 expand-support)
-  #:use-module ((ice-9 syncase) #:select (sc-macro))
+  #:use-module (language tree-il)
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (compile-ghil translate-1
             *translate-table* define-scheme-translator))
-
 
 ;;; environment := #f
 ;;;                | MODULE
@@ -70,12 +68,14 @@
      (and=> (cenv-module e) set-current-module)
      (call-with-ghil-environment (cenv-ghil-env e) '()
        (lambda (env vars)
-         (let ((x (make-ghil-lambda env #f vars #f '()
-                                    (translate-1 env #f x)))
-               (cenv (make-cenv (current-module)
-                                (ghil-env-parent env)
-                                (if e (cenv-externals e) '()))))
-           (values x cenv cenv)))))))
+         (let ((x (tree-il->scheme
+                   (sc-expand x 'c '(compile load eval)))))
+           (let ((x (make-ghil-lambda env #f vars #f '()
+                                      (translate-1 env #f x)))
+                 (cenv (make-cenv (current-module)
+                                  (ghil-env-parent env)
+                                  (if e (cenv-externals e) '()))))
+             (values x cenv cenv))))))))
 
 
 ;;;
@@ -104,9 +104,6 @@
   (let* ((mod (current-module))
          (val (cond
                ((symbol? head) (module-ref/safe mod head))
-               ;; allow macros to be unquoted into the output of a macro
-               ;; expansion
-               ((macro? head) head)
                ((pmatch head
                   ((@ ,modname ,sym)
                    (module-ref/safe (resolve-interface modname) sym))
@@ -116,21 +113,6 @@
                (else #f))))
     (cond
      ((hashq-ref *translate-table* val))
-
-     ((defmacro? val)
-      (lambda (env loc exp)
-        (retrans (apply (defmacro-transformer val) (cdr exp)))))
-
-     ((eq? val sc-macro)
-      ;; syncase!
-      (let ((sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
-        (lambda (env loc exp)
-          (retrans
-           (strip-expansion-structures
-            (sc-expand3 exp 'c '(compile load eval)))))))
-
-     ((primitive-macro? val)
-      (syntax-error #f "unhandled primitive macro" head))
 
      ((macro? val)
       (syntax-error #f "unknown kind of macro" head))
@@ -180,7 +162,7 @@
 
 (define-macro (define-scheme-translator sym . clauses)
   `(hashq-set! (@ (language scheme compile-ghil) *translate-table*)
-               ,sym
+               (module-ref (current-module) ',sym)
                (lambda (e l exp)
                  (define (retrans x)
                    ((@ (language scheme compile-ghil) translate-1)
@@ -431,16 +413,6 @@
   ((,x) (retrans x))
   (,args
    (-> (values (map retrans args)))))
-
-(define-scheme-translator compile-time-environment
-  ;; (compile-time-environment)
-  ;; => (MODULE LEXICALS . EXTERNALS)
-  (()
-   (-> (inline 'cons
-               (list (retrans '(current-module))
-                     (-> (inline 'cons
-                                 (list (-> (reified-env))
-                                       (-> (inline 'externals '()))))))))))
 
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)

@@ -50,6 +50,9 @@
 
 (define %some-variable #f)
 
+(define exception:bad-quote
+  '(syntax-error . "quote: bad syntax"))
+
 (with-test-prefix "set!"
 
   (with-test-prefix "target is not procedure with setter"
@@ -59,7 +62,7 @@
       (set! (symbol->string 'x) 1))
 
     (pass-if-exception "(set! '#f 1)"
-      exception:bad-variable
+      exception:bad-quote
       (eval '(set! '#f 1) (interaction-environment))))
 
   (with-test-prefix "target uses macro"
@@ -72,7 +75,7 @@
     ;; The `(quote x)' below used to be memoized as an infinite list before
     ;; Guile 1.8.3.
     (pass-if-exception "(set! 'x 1)"
-      exception:bad-variable
+      exception:bad-quote
       (eval '(set! 'x 1) (interaction-environment)))))
 
 ;;

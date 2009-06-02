@@ -33,6 +33,13 @@
 
 
 
+;; Before compiling, make sure any symbols are resolved in the (guile)
+;; module, the primary location of those symbols, rather than in
+;; (guile-user), the default module that we compile in.
+
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
+
 ;;; {R4RS compliance}
 ;;;
 
@@ -86,6 +93,42 @@
 (define (provided? feature)
   (and (memq feature *features*) #t))
 
+
+
+;;; {and-map and or-map}
+;;;
+;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
+;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
+;;;
+
+;; and-map f l
+;;
+;; Apply f to successive elements of l until exhaustion or f returns #f.
+;; If returning early, return #f.  Otherwise, return the last value returned
+;; by f.  If f has never been called because l is empty, return #t.
+;;
+(define (and-map f lst)
+  (let loop ((result #t)
+	     (l lst))
+    (and result
+	 (or (and (null? l)
+		  result)
+	     (loop (f (car l)) (cdr l))))))
+
+;; or-map f l
+;;
+;; Apply f to successive elements of l until exhaustion or while f returns #f.
+;; If returning early, return the return value of f.
+;;
+(define (or-map f lst)
+  (let loop ((result #f)
+	     (l lst))
+    (or result
+	(and (not (null? l))
+	     (loop (f (car l)) (cdr l))))))
+
+
+
 ;; let format alias simple-format until the more complete version is loaded
 
 (define format simple-format)
@@ -125,97 +168,181 @@
 
 
 
-;; Before the module system boots, there are no module names. But
-;; psyntax does want a module-name definition, so give it one.
+;; Define a minimal stub of the module API for psyntax, before modules
+;; have booted.
 (define (module-name x)
+  '(guile))
+(define (module-define! module sym val)
+  (let ((v (hashq-ref (%get-pre-modules-obarray) sym)))
+    (if v
+        (variable-set! v val)
+        (hashq-set! (%get-pre-modules-obarray) sym
+                    (make-variable val)))))
+(define (module-ref module sym)
+  (let ((v (module-variable module sym)))
+    (if v (variable-ref v) (error "badness!" (pk module) (pk sym)))))
+(define (resolve-module . args)
   #f)
 
-;; (eval-when (situation...) form...)
-;;
-;; Evaluate certain code based on the situation that eval-when is used
-;; in. There are three situations defined.
-;;
-;; `load' triggers when a file is loaded via `load', or when a compiled
-;; file is loaded.
-;;
-;; `compile' triggers when an expression is compiled.
-;;
-;; `eval' triggers when code is evaluated interactively, as at the REPL
-;; or via the `compile' or `eval' procedures.
+;; Input hook to syncase -- so that we might be able to pass annotated
+;; expressions in. Currently disabled. Maybe we should just use
+;; source-properties directly.
+(define (annotation? x) #f)
 
-;; NB: this macro is only ever expanded by the interpreter. The compiler
-;; notices it and interprets the situations differently.
-(define eval-when
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (let ((situations (cadr exp))
-           (body (cddr exp)))
-       (if (or (memq 'load situations)
-               (memq 'eval situations))
-           `(begin . ,body))))))
+;; API provided by psyntax
+(define syntax-violation #f)
+(define datum->syntax #f)
+(define syntax->datum #f)
+(define identifier? #f)
+(define generate-temporaries #f)
+(define bound-identifier=? #f)
+(define free-identifier=? #f)
+(define sc-expand #f)
+
+;; $sc-expand is an implementation detail of psyntax. It is used by
+;; expanded macros, to dispatch an input against a set of patterns.
+(define $sc-dispatch #f)
+
+;; Load it up!
+(primitive-load-path "ice-9/psyntax-pp")
+
+;; %pre-modules-transformer is the Scheme expander from now until the
+;; module system has booted up.
+(define %pre-modules-transformer sc-expand)
+
+(define-syntax and
+  (syntax-rules ()
+    ((_) #t)
+    ((_ x) x)
+    ((_ x y ...) (if x (and y ...) #f))))
+
+(define-syntax or
+  (syntax-rules ()
+    ((_) #f)
+    ((_ x) x)
+    ((_ x y ...) (let ((t x)) (if t t (or y ...))))))
+
+;; The "maybe-more" bits are something of a hack, so that we can support
+;; SRFI-61. Rewrites into a standalone syntax-case macro would be
+;; appreciated.
+(define-syntax cond
+  (syntax-rules (=> else)
+    ((_ "maybe-more" test consequent)
+     (if test consequent))
+
+    ((_ "maybe-more" test consequent clause ...)
+     (if test consequent (cond clause ...)))
+
+    ((_ (else else1 else2 ...))
+     (begin else1 else2 ...))
+
+    ((_ (test => receiver) more-clause ...)
+     (let ((t test))
+       (cond "maybe-more" t (receiver t) more-clause ...)))
+
+    ((_ (generator guard => receiver) more-clause ...)
+     (call-with-values (lambda () generator)
+       (lambda t
+         (cond "maybe-more"
+               (apply guard t) (apply receiver t) more-clause ...))))
+
+    ((_ (test => receiver ...) more-clause ...)
+     (syntax-violation 'cond "wrong number of receiver expressions"
+                       '(test => receiver ...)))
+    ((_ (generator guard => receiver ...) more-clause ...)
+     (syntax-violation 'cond "wrong number of receiver expressions"
+                       '(generator guard => receiver ...)))
+    
+    ((_ (test) more-clause ...)
+     (let ((t test))
+       (cond "maybe-more" t t more-clause ...)))
+
+    ((_ (test body1 body2 ...) more-clause ...)
+     (cond "maybe-more"
+           test (begin body1 body2 ...) more-clause ...))))
+
+(define-syntax case
+  (syntax-rules (else)
+    ((case (key ...)
+       clauses ...)
+     (let ((atom-key (key ...)))
+       (case atom-key clauses ...)))
+    ((case key
+       (else result1 result2 ...))
+     (begin result1 result2 ...))
+    ((case key
+       ((atoms ...) result1 result2 ...))
+     (if (memv key '(atoms ...))
+         (begin result1 result2 ...)))
+    ((case key
+       ((atoms ...) result1 result2 ...)
+       clause clauses ...)
+     (if (memv key '(atoms ...))
+         (begin result1 result2 ...)
+         (case key clause clauses ...)))))
+
+(define-syntax do
+  (syntax-rules ()
+    ((do ((var init step ...) ...)
+         (test expr ...)
+         command ...)
+     (letrec
+       ((loop
+         (lambda (var ...)
+           (if test
+               (begin
+                 (if #f #f)
+                 expr ...)
+               (begin
+                 command
+                 ...
+                 (loop (do "step" var step ...)
+                       ...))))))
+       (loop init ...)))
+    ((do "step" x)
+     x)
+    ((do "step" x y)
+     y)))
+
+(define-syntax delay
+  (syntax-rules ()
+    ((_ exp) (make-promise (lambda () exp)))))
 
 
 
-;; Before compiling, make sure any symbols are resolved in the (guile)
-;; module, the primary location of those symbols, rather than in
-;; (guile-user), the default module that we compile in.
-
-(eval-when (compile)
-  (set-current-module (resolve-module '(guile))))
-
 ;;; {Defmacros}
 ;;;
-;;; Depends on: features, eval-case
-;;;
 
-(define macro-table (make-weak-key-hash-table 61))
-(define xformer-table (make-weak-key-hash-table 61))
+(define-syntax define-macro
+  (lambda (x)
+    "Define a defmacro."
+    (syntax-case x ()
+      ((_ (macro . args) doc body1 body ...)
+       (string? (syntax->datum (syntax doc)))
+       (syntax (define-macro macro doc (lambda args body1 body ...))))
+      ((_ (macro . args) body ...)
+       (syntax (define-macro macro #f (lambda args body ...))))
+      ((_ macro doc transformer)
+       (or (string? (syntax->datum (syntax doc)))
+           (not (syntax->datum (syntax doc))))
+       (syntax
+        (define-syntax macro
+          (lambda (y)
+            doc
+            (syntax-case y ()
+              ((_ . args)
+               (let ((v (syntax->datum (syntax args))))
+                 (datum->syntax y (apply transformer v))))))))))))
 
-(define (defmacro? m)  (hashq-ref macro-table m))
-(define (assert-defmacro?! m) (hashq-set! macro-table m #t))
-(define (defmacro-transformer m) (hashq-ref xformer-table m))
-(define (set-defmacro-transformer! m t) (hashq-set! xformer-table m t))
-
-(define defmacro:transformer
-  (lambda (f)
-    (let* ((xform (lambda (exp env)
-		    (copy-tree (apply f (cdr exp)))))
-	   (a (procedure->memoizing-macro xform)))
-      (assert-defmacro?! a)
-      (set-defmacro-transformer! a f)
-      a)))
-
-
-(define defmacro
-  (let ((defmacro-transformer
-	  (lambda (name parms . body)
-	    (let ((transformer `(lambda ,parms ,@body)))
-	      `(eval-when
-                (eval load compile)
-                (define ,name (defmacro:transformer ,transformer)))))))
-    (defmacro:transformer defmacro-transformer)))
-
-
-;; XXX - should the definition of the car really be looked up in the
-;; current module?
-
-(define (macroexpand-1 e)
-  (cond
-   ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (local-ref (list a)))))
-		(if (defmacro? val)
-		    (apply (defmacro-transformer val) (cdr e))
-		    e)))
-   (#t e)))
-
-(define (macroexpand e)
-  (cond
-   ((pair? e) (let* ((a (car e))
-		     (val (and (symbol? a) (local-ref (list a)))))
-		(if (defmacro? val)
-		    (macroexpand (apply (defmacro-transformer val) (cdr e)))
-		    e)))
-   (#t e)))
+(define-syntax defmacro
+  (lambda (x)
+    "Define a defmacro, with the old lispy defun syntax."
+    (syntax-case x ()
+      ((_ macro args doc body1 body ...)
+       (string? (syntax->datum (syntax doc)))
+       (syntax (define-macro macro doc (lambda args body1 body ...))))
+      ((_ macro args body ...)
+       (syntax (define-macro macro #f (lambda args body ...)))))))
 
 (provide 'defmacro)
 
@@ -477,40 +604,6 @@
 
 
 
-;;; {and-map and or-map}
-;;;
-;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
-;;; (or-map fn lst) is like (or (fn (car lst)) (fn (cadr lst)) (fn...) ...)
-;;;
-
-;; and-map f l
-;;
-;; Apply f to successive elements of l until exhaustion or f returns #f.
-;; If returning early, return #f.  Otherwise, return the last value returned
-;; by f.  If f has never been called because l is empty, return #t.
-;;
-(define (and-map f lst)
-  (let loop ((result #t)
-	     (l lst))
-    (and result
-	 (or (and (null? l)
-		  result)
-	     (loop (f (car l)) (cdr l))))))
-
-;; or-map f l
-;;
-;; Apply f to successive elements of l until exhaustion or while f returns #f.
-;; If returning early, return the return value of f.
-;;
-(define (or-map f lst)
-  (let loop ((result #f)
-	     (l lst))
-    (or result
-	(and (not (null? l))
-	     (loop (f (car l)) (cdr l))))))
-
-
-
 (if (provided? 'posix)
     (primitive-load-path "ice-9/posix"))
 
@@ -757,6 +850,26 @@
   (start-stack 'load-stack
 	       (primitive-load-path name)))
 
+(define %load-verbosely #f)
+(define (assert-load-verbosity v) (set! %load-verbosely v))
+
+(define (%load-announce file)
+  (if %load-verbosely
+      (with-output-to-port (current-error-port)
+	(lambda ()
+	  (display ";;; ")
+	  (display "loading ")
+	  (display file)
+	  (newline)
+	  (force-output)))))
+
+(set! %load-hook %load-announce)
+
+(define (load name . reader)
+  (with-fluid* current-reader (and (pair? reader) (car reader))
+    (lambda ()
+      (start-stack 'load-stack
+		   (primitive-load name)))))
 
 
 
@@ -847,9 +960,6 @@
 ;;;
 ;;; Reader code for various "#c" forms.
 ;;;
-
-(read-hash-extend #\' (lambda (c port)
-			(read port)))
 
 (define read-eval? (make-fluid))
 (fluid-set! read-eval? #f)
@@ -1133,11 +1243,8 @@
 (define (%print-module mod port)  ; unused args: depth length style table)
   (display "#<" port)
   (display (or (module-kind mod) "module") port)
-  (let ((name (module-name mod)))
-    (if name
-	(begin
-	  (display " " port)
-	  (display name port))))
+  (display " " port)
+  (display (module-name mod) port)
   (display " " port)
   (display (number->string (object-address mod) 16) port)
   (display ">" port))
@@ -1194,7 +1301,8 @@
 	     "Lazy-binder expected to be a procedure or #f." binder))
 
 	(let ((module (module-constructor (make-hash-table size)
-					  uses binder #f #f #f #f #f
+					  uses binder #f %pre-modules-transformer
+                                          #f #f #f
 					  (make-hash-table %default-import-size)
 					  '()
 					  (make-weak-key-hash-table 31))))
@@ -1219,7 +1327,7 @@
 
 (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
-(define module-name (record-accessor module-type 'name))
+;; (define module-name (record-accessor module-type 'name)) wait until mods are booted
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
 (define set-module-kind! (record-modifier module-type 'kind))
@@ -1363,7 +1471,9 @@
 ;; or its uses?
 ;;
 (define (module-bound? m v)
-  (module-search module-locally-bound? m v))
+  (let ((var (module-variable m v)))
+    (and var
+	 (variable-bound? var))))
 
 ;;; {Is a symbol interned in a module?}
 ;;;
@@ -1799,7 +1909,7 @@
              val
              (let ((m (make-module 31)))
                (set-module-kind! m 'directory)
-               (set-module-name! m (append (or (module-name module) '())
+               (set-module-name! m (append (module-name module)
                                            (list (car name))))
                (module-define! module (car name) m)
                m)))
@@ -1853,22 +1963,31 @@
 (define default-duplicate-binding-procedures #f)
 
 (define %app (make-module 31))
+(set-module-name! %app '(%app))
 (define app %app) ;; for backwards compatability
 
-(local-define '(%app modules) (make-module 31))
+(let ((m (make-module 31)))
+  (set-module-name! m '())
+  (local-define '(%app modules) m))
 (local-define '(%app modules guile) the-root-module)
 
 ;; This boots the module system.  All bindings needed by modules.c
 ;; must have been defined by now.
 ;;
 (set-current-module the-root-module)
+;; definition deferred for syncase's benefit.
+(define module-name
+  (let ((accessor (record-accessor module-type 'name)))
+    (lambda (mod)
+      (or (accessor mod)
+          (begin
+            (set-module-name! mod (list (gensym)))
+            (accessor mod))))))
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
 (define (try-load-module name)
-  (or (begin-deprecated (try-module-linked name))
-      (try-module-autoload name)
-      (begin-deprecated (try-module-dynamic-link name))))
+  (try-module-autoload name))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
@@ -2002,23 +2121,34 @@
             ((#:use-module #:use-syntax)
              (or (pair? (cdr kws))
                  (unrecognized kws))
-             (let* ((interface-args (cadr kws))
-                    (interface (apply resolve-interface interface-args)))
-               (and (eq? (car kws) #:use-syntax)
-                    (or (symbol? (caar interface-args))
-                        (error "invalid module name for use-syntax"
-                               (car interface-args)))
-                    (set-module-transformer!
-                     module
-                     (module-ref interface
-                                 (car (last-pair (car interface-args)))
-                                 #f)))
+             (cond
+              ((equal? (caadr kws) '(ice-9 syncase))
+               (issue-deprecation-warning
+                "(ice-9 syncase) is deprecated. Support for syntax-case is now in Guile core.")
                (loop (cddr kws)
-                     (cons interface reversed-interfaces)
+                     reversed-interfaces
                      exports
                      re-exports
                      replacements
-                     autoloads)))
+                     autoloads))
+              (else
+               (let* ((interface-args (cadr kws))
+                      (interface (apply resolve-interface interface-args)))
+                 (and (eq? (car kws) #:use-syntax)
+                      (or (symbol? (caar interface-args))
+                          (error "invalid module name for use-syntax"
+                                 (car interface-args)))
+                      (set-module-transformer!
+                       module
+                       (module-ref interface
+                                   (car (last-pair (car interface-args)))
+                                   #f)))
+                 (loop (cddr kws)
+                       (cons interface reversed-interfaces)
+                       exports
+                       re-exports
+                       replacements
+                       autoloads)))))
             ((#:autoload)
              (or (and (pair? (cdr kws)) (pair? (cddr kws)))
                  (unrecognized kws))
@@ -2310,11 +2440,12 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (set-repl-prompt! v) (set! scm-repl-prompt v))
 
 (define (default-pre-unwind-handler key . args)
-  (save-stack pre-unwind-handler-dispatch)
+  (save-stack 1)
   (apply throw key args))
 
-(define (pre-unwind-handler-dispatch key . args)
-  (apply default-pre-unwind-handler key args))
+(begin-deprecated
+ (define (pre-unwind-handler-dispatch key . args)
+   (apply default-pre-unwind-handler key args)))
 
 (define abort-hook (make-hook))
 
@@ -2391,15 +2522,7 @@ module '(ice-9 q) '(make-q q-length))}."
 				 (else
 				  (apply bad-throw key args)))))))
 
-		    ;; Note that having just `pre-unwind-handler-dispatch'
-		    ;; here is connected with the mechanism that
-		    ;; produces a nice backtrace upon error.  If, for
-		    ;; example, this is replaced with (lambda args
-		    ;; (apply pre-unwind-handler-dispatch args)), the stack
-		    ;; cutting (in save-stack) goes wrong and ends up
-		    ;; saving no stack at all, so there is no
-		    ;; backtrace.
-		    pre-unwind-handler-dispatch)))
+                    default-pre-unwind-handler)))
 
 	(if next (loop next) status)))
     (set! set-batch-mode?! (lambda (arg)
@@ -2674,32 +2797,6 @@ module '(ice-9 q) '(make-q q-length))}."
 	`(with-fluids* (list ,@fluids) (list ,@values)
 		       (lambda () ,@body)))))
 
-
-
-;;; {Macros}
-;;;
-
-;; actually....hobbit might be able to hack these with a little
-;; coaxing
-;;
-
-(define (primitive-macro? m)
-  (and (macro? m)
-       (not (macro-transformer m))))
-
-(defmacro define-macro (first . rest)
-  (let ((name (if (symbol? first) first (car first)))
-	(transformer
-	 (if (symbol? first)
-	     (car rest)
-	     `(lambda ,(cdr first) ,@rest))))
-    `(eval-when
-      (eval load compile)
-      (define ,name (defmacro:transformer ,transformer)))))
-
-
-
-
 ;;; {While}
 ;;;
 ;;; with `continue' and `break'.
@@ -2839,50 +2936,33 @@ module '(ice-9 q) '(make-q q-length))}."
 (defmacro use-syntax (spec)
   `(eval-when
     (eval load compile)
-     ,@(if (pair? spec)
-	   `((process-use-modules (list
-				   (list ,@(compile-interface-spec spec))))
-	     (set-module-transformer! (current-module)
-				      ,(car (last-pair spec))))
-	   `((set-module-transformer! (current-module) ,spec)))
-     *unspecified*))
+    (issue-deprecation-warning
+     "`use-syntax' is deprecated. Please contact guile-devel for more info.")
+    (process-use-modules (list (list ,@(compile-interface-spec spec))))
+    *unspecified*))
 
 ;; Dirk:FIXME:: This incorrect (according to R5RS) syntax needs to be changed
 ;; as soon as guile supports hygienic macros.
-(define define-private define)
+(define-syntax define-private
+  (syntax-rules ()
+    ((_ foo bar)
+     (define foo bar))))
 
-(defmacro define-public args
-  (define (syntax)
-    (error "bad syntax" (list 'define-public args)))
-  (define (defined-name n)
-    (cond
-     ((symbol? n) n)
-     ((pair? n) (defined-name (car n)))
-     (else (syntax))))
-  (cond
-   ((null? args)
-    (syntax))
-   (#t
-    (let ((name (defined-name (car args))))
-      `(begin
-	 (define-private ,@args)
-	 (export ,name))))))
+(define-syntax define-public
+  (syntax-rules ()
+    ((_ (name . args) . body)
+     (define-public name (lambda args . body)))
+    ((_ name val)
+     (begin
+       (define name val)
+       (export name)))))
 
-(defmacro defmacro-public args
-  (define (syntax)
-    (error "bad syntax" (list 'defmacro-public args)))
-  (define (defined-name n)
-    (cond
-     ((symbol? n) n)
-     (else (syntax))))
-  (cond
-   ((null? args)
-    (syntax))
-   (#t
-    (let ((name (defined-name (car args))))
-      `(begin
-	 (export-syntax ,name)
-	 (defmacro ,@args))))))
+(define-syntax defmacro-public
+  (syntax-rules ()
+    ((_ name args . body)
+     (begin
+       (defmacro name args . body)
+       (export-syntax name)))))
 
 ;; Export a local variable
 
@@ -2935,19 +3015,6 @@ module '(ice-9 q) '(make-q q-length))}."
   `(re-export ,@names))
 
 (define load load-module)
-
-
-
-;;; {Compiler interface}
-;;;
-;;; The full compiler interface can be found in (system). Here we put a
-;;; few useful procedures into the global namespace.
-
-(module-autoload! the-scm-module
-                  '(system base compile)
-                  '(compile
-                    compile-time-environment))
-
 
 
 
@@ -3371,6 +3438,13 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; Place the user in the guile-user module.
 ;;;
 
-(define-module (guile-user))
+;;; FIXME: annotate ?
+;; (define (syncase exp)
+;;   (with-fluids ((expansion-eval-closure
+;; 		 (module-eval-closure (current-module))))
+;;     (deannotate/source-properties (sc-expand (annotate exp)))))
+
+(define-module (guile-user)
+  #:autoload (system base compile) (compile))
 
 ;;; boot-9.scm ends here

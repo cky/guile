@@ -37,7 +37,6 @@
 ;;; Code:
 
 (define-module (srfi srfi-11)
-  :use-module (ice-9 syncase)
   :export-syntax (let-values let*-values))
 
 (cond-expand-provide (current-module) '(srfi-11))

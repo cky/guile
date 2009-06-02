@@ -17,6 +17,9 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ;;;; 
 
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
+
 (define (stat:dev f) (vector-ref f 0))
 (define (stat:ino f) (vector-ref f 1))
 (define (stat:mode f) (vector-ref f 2))

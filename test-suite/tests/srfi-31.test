@@ -23,7 +23,7 @@
 (with-test-prefix "rec special form"
 
   (pass-if-exception "bogus variable" '(misc-error . ".*")
-    (rec #:foo))
+    (sc-expand '(rec #:foo)))
 
   (pass-if "rec expressions"
     (let ((ones-list (rec ones (cons 1 (delay ones)))))

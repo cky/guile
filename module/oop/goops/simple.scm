@@ -23,6 +23,9 @@
   :export (define-class)
   :no-backtrace)
 
-(define define-class define-class-with-accessors-keywords)
+(define-syntax define-class
+  (syntax-rules ()
+    ((_ arg ...)
+     (define-class-with-accessors-keywords arg ...))))
 
 (module-use! %module-public-interface (resolve-interface '(oop goops)))

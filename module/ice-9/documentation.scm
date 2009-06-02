@@ -195,15 +195,11 @@ OBJECT can be a procedure, macro or any object that has its
 `documentation' property set."
   (or (and (procedure? object)
 	   (proc-doc object))
-      (and (defmacro? object)
-	   (proc-doc (defmacro-transformer object)))
-      (and (macro? object)
-	   (let ((transformer (macro-transformer object)))
-	     (and transformer
-		  (proc-doc transformer))))
       (object-property object 'documentation)
       (and (program? object)
            (program-documentation object))
+      (and (macro? object)
+           (object-documentation (macro-transformer object)))
       (and (procedure? object)
 	   (not (closure? object))
 	   (procedure-name object)

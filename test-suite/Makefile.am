@@ -26,6 +26,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/arbiters.test			\
 	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
+	    tests/bytevectors.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\
 	    tests/common-list.test		\
@@ -62,6 +63,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/q.test			\
 	    tests/r4rs.test			\
 	    tests/r5rs_pitfall.test		\
+	    tests/r6rs-ports.test		\
 	    tests/ramap.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
@@ -93,6 +95,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/syntax.test			\
 	    tests/threads.test			\
 	    tests/time.test			\
+	    tests/tree-il.test			\
 	    tests/unif.test			\
 	    tests/version.test			\
 	    tests/weaks.test

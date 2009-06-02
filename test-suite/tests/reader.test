@@ -35,6 +35,8 @@
   (cons 'read-error "end of file in string constant$"))
 (define exception:illegal-escape
   (cons 'read-error "illegal character in escape sequence: .*$"))
+(define exception:missing-expression
+  (cons 'read-error "no expression after #;"))
 
 
 (define (read-string s)
@@ -193,4 +195,37 @@
                     (read-string "'abcde")))))
       (and (equal? (source-property sexp 'line) 0)
            (equal? (source-property sexp 'column) 0)))))
+
+(with-test-prefix "#;"
+  (for-each
+   (lambda (pair)
+     (pass-if (car pair)
+       (equal? (with-input-from-string (car pair) read) (cdr pair))))
+
+   '(("#;foo 10". 10)
+     ("#;(10 20 30) foo" . foo)
+     ("#;   (10 20 30) foo" . foo)
+     ("#;\n10\n20" . 20)))
+  
+  (pass-if "#;foo"
+    (eof-object? (with-input-from-string "#;foo" read)))
+  
+  (pass-if-exception "#;"
+    exception:missing-expression
+    (with-input-from-string "#;" read))
+  (pass-if-exception "#;("
+    exception:eof
+    (with-input-from-string "#;(" read)))
+
+(with-test-prefix "#'"
+  (for-each
+   (lambda (pair)
+     (pass-if (car pair)
+       (equal? (with-input-from-string (car pair) read) (cdr pair))))
+
+   '(("#'foo". (syntax foo))
+     ("#`foo" . (quasisyntax foo))
+     ("#,foo" . (unsyntax foo))
+     ("#,@foo" . (unsyntax-splicing foo)))))
+
 
