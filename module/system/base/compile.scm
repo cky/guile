@@ -29,7 +29,6 @@
   #:export (syntax-error 
             *current-language*
             compiled-file-name compile-file compile-and-load
-            load-ensuring-compiled
             compile
             decompile)
   #:export-syntax (call-with-compile-error-catch))
@@ -93,11 +92,64 @@
       x
       (lookup-language x)))
 
-(define (ensure-directory dir)
-  (or (file-exists? dir)
+;; Throws an exception if `dir' is not writable. The double-stat is OK,
+;; as this is only used during compilation.
+(define (ensure-writable-dir dir)
+  (if (file-exists? dir)
+      (if (access? dir W_OK)
+          #t
+          (error "directory not writable" dir))
       (begin
-        (ensure-directory (dirname dir))
+        (ensure-writable-dir (dirname dir))
         (mkdir dir))))
+
+(define (dsu-sort list key less)
+  (map cdr
+       (stable-sort (map (lambda (x) (cons (key x) x)) list)
+                    (lambda (x y) (less (car x) (car y))))))
+
+(define (compiled-file-name file)
+  (let ((cext (cond ((or (null? %load-compiled-extensions)
+                         (string-null? (car %load-compiled-extensions)))
+                     (warn "invalid %load-compiled-extensions"
+                           %load-compiled-extensions)
+                     ".go")
+                    (else (car %load-compiled-extensions)))))
+    (define (strip-source-extension path)
+      (let lp ((exts %load-extensions))
+        (cond ((null? exts) file)
+              ((string-null? (car exts)) (lp (cdr exts)))
+              ((string-suffix? (car exts) path)
+               (substring path 0
+                          (- (string-length path)
+                             (string-length (car exts)))))
+              (else (lp (cdr exts))))))
+    ;; there is some trickery here. if no %load-compiled-path is a
+    ;; prefix of `file', the stability of the sort makes us end up
+    ;; trying to write first to last dir in the path, which is usually
+    ;; the $HOME ccache dir.
+    (let lp ((paths (dsu-sort (reverse %load-compiled-path)
+                              (lambda (x)
+                                (if (string-prefix? x file)
+                                    (string-length x)
+                                    0))
+                              >)))
+      (if (null? paths)
+          (error "no writable path when compiling" file)
+          (let ((rpath (in-vicinity
+                        (car paths)
+                        (string-append
+                         (strip-source-extension
+                          (if (string-prefix? (car paths) file)
+                              (substring file (1+ (string-length (car paths))))
+                              (substring file 1)))
+                         cext))))
+            (if (and (false-if-exception
+                      (ensure-writable-dir (dirname rpath)))
+                     (or (not (file-exists? rpath))
+                         (access? rpath W_OK)))
+                rpath
+                (lp (cdr paths))))))))
 
 (define* (compile-file file #:key
                        (output-file #f)
@@ -107,7 +159,7 @@
                        (opts '()))
   (let ((comp (or output-file (compiled-file-name file)))
         (in (open-input-file file)))
-    (ensure-directory (dirname comp))
+    (ensure-writable-dir (dirname comp))
     (call-with-output-file/atomic comp
       (lambda (port)
         ((language-printer (ensure-language to))
@@ -118,99 +170,6 @@
 (define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
   (read-and-compile (open-input-file file)
                     #:from from #:to to #:opts opts))
-
-(define* (load-ensuring-compiled source #:key (from 'scheme)
-                                           (to 'value) (opts '()))
-  (let ((compiled (compiled-file-name source #:readable #t)))
-    (load-compiled
-     (if (and compiled
-              (>= (stat:mtime (stat compiled)) (stat:mtime (stat source))))
-         compiled
-         (let ((to-compile (compiled-file-name source #:writable #t)))
-           (if compiled
-               (warn "source file" source "newer than" compiled))
-           (if (and compiled
-                    (not (string-equal? compiled to-compile))
-                    (file-exists? to-compile)
-                    (>= (stat:mtime (stat to-compile))
-                        (stat:mtime (stat compiled))))
-               (warn "using local compiled copy" to-compile)
-               (begin
-                 (format (current-error-port) ";;; Compiling ~s\n" source)
-                 (compile-file source #:output-file to-compile)
-                 (format (current-error-port) ";;; Success: ~s\n" to-compile)))
-           to-compile)))))
-
-(define (ensure-fallback-path)
-  (let ((home (or (getenv "HOME")
-                          (false-if-exception
-                           (passwd:dir (getpwuid (getuid)))))))
-    (and home
-         (let ((cache (in-vicinity home ".guile-ccache")))
-           (cond
-            ((and (access? cache (logior W_OK X_OK))
-                  (file-is-directory? cache))
-             cache)
-            ((not (file-exists? cache))
-             (and (false-if-exception (mkdir cache))
-                  cache))
-            (else #f))))))
-
-(define load-compiled-path
-  (let ((fallback-path #f))
-    (lambda ()
-      (if (not fallback-path)
-          (let ((cache-path (ensure-fallback-path)))
-            (set! fallback-path
-                  (if cache-path
-                      (list cache-path)
-                      '()))))
-      (append %load-path fallback-path))))
-
-(define* (compiled-file-name file #:key (writable #f) (readable #f))
-  (let ((base (basename file))
-        (cext (cond ((or (null? %load-compiled-extensions)
-                         (string-null? (car %load-compiled-extensions)))
-                     (warn "invalid %load-compiled-extensions"
-                           %load-compiled-extensions)
-                     ".go")
-                    (else (car %load-compiled-extensions)))))
-    (define (strip-source-extension base)
-      (let lp ((exts %load-extensions))
-        (cond ((null? exts) (string-append file cext))
-              ((string-null? (car exts)) (lp (cdr exts)))
-              ((string-suffix? (car exts) base)
-               (substring source 0
-                          (- (string-length source)
-                             (string-length (car exts)))))
-              (else (lp (cdr exts))))))
-    (define (strip-path file paths)
-      (let lp ((paths paths))
-        (cond ((null? paths) file)
-              ((string-prefix? (car paths) file)
-               (substring file (1+ (string-length (car paths)))))
-              (else (lp (cdr paths))))))
-    (let ((sibling (string-append (strip-source-extension file) cext)))
-      (cond
-       (writable
-        ;; either put it right beside the original file, or in our
-        ;; ccache. other things wind up not making sense.
-        (cond
-         ((or (not (file-exists? sibling)) (access? sibling W_OK))
-          sibling)
-         ((ensure-fallback-path)
-          => (lambda (p)
-               (string-append p "/" (strip-path sibling))))
-         (else #f)))
-       (readable
-        (if (access? sibling R_OK)
-            sibling
-            (search-path (load-compiled-path)
-                         (strip-path (strip-source-extension file))
-                         %load-compiled-extensions #t)))
-       (else
-        sibling)))))
-
 
 
 ;;;
