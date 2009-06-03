@@ -2270,16 +2270,15 @@ module '(ice-9 q) '(make-q q-length))}."
     (resolve-module dir-hint-module-name #f)
     (and (not (autoload-done-or-in-progress? dir-hint name))
 	 (let ((didit #f))
-	   (define (load-file proc file)
-	     (save-module-excursion (lambda () (proc file)))
-	     (set! didit #t))
 	   (dynamic-wind
 	    (lambda () (autoload-in-progress! dir-hint name))
 	    (lambda ()
 	      (with-fluid* current-reader #f
                 (lambda ()
-                  (load-file primitive-load-path
-                             (in-vicinity dir-hint name)))))
+                  (save-module-excursion
+                   (lambda () 
+                     (primitive-load-path (in-vicinity dir-hint name) #f)
+                     (set! didit #t))))))
 	    (lambda () (set-autoloaded! dir-hint name didit)))
 	   didit))))
 

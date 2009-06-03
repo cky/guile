@@ -33,7 +33,7 @@ SCM_API SCM scm_sys_library_dir (void);
 SCM_API SCM scm_sys_site_dir (void);
 SCM_API SCM scm_search_path (SCM path, SCM filename, SCM exts, SCM require_exts);
 SCM_API SCM scm_sys_search_load_path (SCM filename);
-SCM_API SCM scm_primitive_load_path (SCM filename);
+SCM_API SCM scm_primitive_load_path (SCM filename, SCM exception_on_not_found);
 SCM_API SCM scm_c_primitive_load_path (const char *filename);
 SCM_INTERNAL void scm_init_load_path (void);
 SCM_INTERNAL void scm_init_load (void);

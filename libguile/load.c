@@ -586,15 +586,20 @@ scm_try_autocompile (SCM source)
   return SCM_BOOL_F;
 }
 
-SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
-	    (SCM filename),
+SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0, 
+	    (SCM filename, SCM exception_on_not_found),
 	    "Search @var{%load-path} for the file named @var{filename} and\n"
 	    "load it into the top-level environment.  If @var{filename} is a\n"
 	    "relative pathname and is not found in the list of search paths,\n"
-	    "an error is signalled.")
+	    "an error is signalled, unless the optional argument\n"
+            "@var{exception_on_not_found} is @code{#f}, in which case\n"
+            "@code{#f} is returned instead.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
   SCM full_filename, compiled_filename;
+
+  if (SCM_UNBNDP (exception_on_not_found))
+    exception_on_not_found = SCM_BOOL_T;
 
   full_filename = scm_sys_search_load_path (filename);
   compiled_filename = scm_search_path (*scm_loc_load_compiled_path,
@@ -603,8 +608,13 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
                                        SCM_BOOL_T);
 
   if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
-    SCM_MISC_ERROR ("Unable to find file ~S in load path",
-		    scm_list_1 (filename));
+    {
+      if (scm_is_true (exception_on_not_found))
+        SCM_MISC_ERROR ("Unable to find file ~S in load path",
+                        scm_list_1 (filename));
+      else
+        return SCM_BOOL_F;
+    }
 
   if (scm_is_false (full_filename)
       || (scm_is_true (compiled_filename)
@@ -622,7 +632,8 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
 SCM
 scm_c_primitive_load_path (const char *filename)
 {
-  return scm_primitive_load_path (scm_from_locale_string (filename));
+  return scm_primitive_load_path (scm_from_locale_string (filename),
+                                  SCM_BOOL_T);
 }
 
 
