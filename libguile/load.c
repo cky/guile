@@ -182,6 +182,8 @@ static SCM *scm_loc_load_extensions;
 static SCM *scm_loc_load_compiled_path;
 static SCM *scm_loc_load_compiled_extensions;
 
+/* Whether we should try to auto-compile. */
+static SCM *scm_loc_load_should_autocompile;
 
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
@@ -581,9 +583,64 @@ compiled_is_newer (SCM full_filename, SCM compiled_filename)
 }
 
 static SCM
+do_try_autocompile (void *data)
+{
+  SCM source = PTR2SCM (data);
+  SCM comp_mod, compile_file, res;
+
+  scm_puts (";;; compiling ", scm_current_error_port ());
+  scm_display (source, scm_current_error_port ());
+  scm_newline (scm_current_error_port ());
+
+  comp_mod = scm_c_resolve_module ("system base compile");
+  compile_file = scm_c_module_lookup (comp_mod, "compile-file");
+  res = scm_call_1 (scm_variable_ref (compile_file), source);
+
+  scm_puts (";;; compiled ", scm_current_error_port ());
+  scm_display (res, scm_current_error_port ());
+  scm_newline (scm_current_error_port ());
+
+  return res;
+}
+
+static SCM
+autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
+{
+  SCM source = PTR2SCM (data);
+  scm_puts (";;; WARNING: compilation of ", scm_current_error_port ());
+  scm_display (source, scm_current_error_port ());
+  scm_puts (" failed\n", scm_current_error_port ());
+  scm_puts (";;; key ", scm_current_error_port ());
+  scm_write (tag, scm_current_error_port ());
+  scm_puts (", throw args ", scm_current_error_port ());
+  scm_write (throw_args, scm_current_error_port ());
+  scm_newline (scm_current_error_port ());
+  return SCM_BOOL_F;
+}
+
+static SCM
 scm_try_autocompile (SCM source)
 {
-  return SCM_BOOL_F;
+  static int message_shown = 0;
+  
+  if (scm_is_false (*scm_loc_load_should_autocompile))
+    return SCM_BOOL_F;
+
+  if (!message_shown)
+    {
+      scm_puts (";;; note: autocompilation is enabled, set GUILE_AUTO_COMPILE=0\n"
+                ";;;       or pass the --no-autocompile argument to disable\n",
+                scm_current_error_port ());
+      message_shown = 1;
+    }
+
+  /* fixme: wrap in a `catch' */
+  return scm_c_catch (SCM_BOOL_T,
+                      do_try_autocompile,
+                      SCM2PTR (source),
+                      autocompile_catch_handler,
+                      SCM2PTR (source),
+                      NULL, NULL);
 }
 
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0, 
@@ -672,6 +729,9 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-extensions",
 				      scm_list_1 (scm_from_locale_string (".go"))));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
+
+  scm_loc_load_should_autocompile
+    = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", SCM_BOOL_F));
 
   the_reader = scm_make_fluid ();
   the_reader_fluid_num = SCM_FLUID_NUM (the_reader);
