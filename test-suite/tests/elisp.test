@@ -23,6 +23,9 @@
 (if *old-stack-level*
     (debug-set! stack (* 2 *old-stack-level*)))
 
+(define *old-%load-should-autocompile* %load-should-autocompile)
+(set! %load-should-autocompile #f)
+
 ;;;
 ;;; elisp
 ;;;
@@ -350,6 +353,7 @@
 
       ))
 
+(set! %load-should-autocompile *old-%load-should-autocompile*)
 (debug-set! stack *old-stack-level*)
 
 ;;; elisp.test ends here

@@ -641,7 +641,19 @@ scm_try_autocompile (SCM source, SCM stale_compiled)
     }
 
   comp_mod = scm_c_resolve_module ("system base compile");
-  compiled_file_name = scm_c_module_lookup (comp_mod, "compiled-file-name");
+  compiled_file_name =
+    scm_module_variable (comp_mod,
+                         scm_from_locale_symbol ("compiled-file-name"));
+
+  if (scm_is_false (compiled_file_name))
+    {
+      scm_puts (";;; it seems ", scm_current_error_port ());
+      scm_display (source, scm_current_error_port ());
+      scm_puts ("\n;;; is part of the compiler; skipping autocompilation\n",
+                scm_current_error_port ());
+      return SCM_BOOL_F;
+    }
+  
   new_compiled = scm_call_1 (scm_variable_ref (compiled_file_name), source);
 
   if (scm_is_false (new_compiled))
