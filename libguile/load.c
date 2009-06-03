@@ -571,7 +571,7 @@ compiled_is_newer (SCM full_filename, SCM compiled_filename)
     {
       scm_puts (";;; note: source file ", scm_current_error_port ());
       scm_puts (source, scm_current_error_port ());
-      scm_puts (" newer than compiled ", scm_current_error_port ());
+      scm_puts ("\n;;;       newer than compiled ", scm_current_error_port ());
       scm_puts (compiled, scm_current_error_port ());
       scm_puts ("\n", scm_current_error_port ());
       res = 0;
@@ -582,19 +582,22 @@ compiled_is_newer (SCM full_filename, SCM compiled_filename)
   return res;
 }
 
+SCM_KEYWORD (k_output_file, "output-file");
+
 static SCM
 do_try_autocompile (void *data)
 {
-  SCM source = PTR2SCM (data);
+  SCM pair = PTR2SCM (data);
   SCM comp_mod, compile_file, res;
 
   scm_puts (";;; compiling ", scm_current_error_port ());
-  scm_display (source, scm_current_error_port ());
+  scm_display (scm_car (pair), scm_current_error_port ());
   scm_newline (scm_current_error_port ());
 
   comp_mod = scm_c_resolve_module ("system base compile");
   compile_file = scm_c_module_lookup (comp_mod, "compile-file");
-  res = scm_call_1 (scm_variable_ref (compile_file), source);
+  res = scm_call_3 (scm_variable_ref (compile_file), scm_car (pair),
+                    k_output_file, scm_cdr (pair));
 
   scm_puts (";;; compiled ", scm_current_error_port ());
   scm_display (res, scm_current_error_port ());
@@ -606,10 +609,12 @@ do_try_autocompile (void *data)
 static SCM
 autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 {
-  SCM source = PTR2SCM (data);
+  SCM pair = PTR2SCM (data);
   scm_puts (";;; WARNING: compilation of ", scm_current_error_port ());
-  scm_display (source, scm_current_error_port ());
-  scm_puts (" failed\n", scm_current_error_port ());
+  scm_display (scm_car (pair), scm_current_error_port ());
+  scm_puts ("\n;;; to ", scm_current_error_port ());
+  scm_display (scm_cdr (pair), scm_current_error_port ());
+  scm_puts (" failed:\n", scm_current_error_port ());
   scm_puts (";;; key ", scm_current_error_port ());
   scm_write (tag, scm_current_error_port ());
   scm_puts (", throw args ", scm_current_error_port ());
@@ -619,9 +624,10 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 }
 
 static SCM
-scm_try_autocompile (SCM source)
+scm_try_autocompile (SCM source, SCM stale_compiled)
 {
   static int message_shown = 0;
+  SCM comp_mod, compiled_file_name, new_compiled, pair;
   
   if (scm_is_false (*scm_loc_load_should_autocompile))
     return SCM_BOOL_F;
@@ -629,17 +635,34 @@ scm_try_autocompile (SCM source)
   if (!message_shown)
     {
       scm_puts (";;; note: autocompilation is enabled, set GUILE_AUTO_COMPILE=0\n"
-                ";;;       or pass the --no-autocompile argument to disable\n",
+                ";;;       or pass the --no-autocompile argument to disable.\n",
                 scm_current_error_port ());
       message_shown = 1;
     }
 
-  /* fixme: wrap in a `catch' */
+  comp_mod = scm_c_resolve_module ("system base compile");
+  compiled_file_name = scm_c_module_lookup (comp_mod, "compiled-file-name");
+  new_compiled = scm_call_1 (scm_variable_ref (compiled_file_name), source);
+
+  if (scm_is_false (new_compiled))
+    return SCM_BOOL_F;
+  else if (!scm_is_true (scm_equal_p (new_compiled, stale_compiled))
+           && scm_is_true (scm_stat (new_compiled, SCM_BOOL_F))
+           && compiled_is_newer (source, new_compiled))
+    {
+      scm_puts (";;; found compiled file elsewhere: ",
+                scm_current_error_port ());
+      scm_display (new_compiled, scm_current_error_port ());
+      scm_newline (scm_current_error_port ());
+      return new_compiled;
+    }
+  
+  pair = scm_cons (source, new_compiled);
   return scm_c_catch (SCM_BOOL_T,
                       do_try_autocompile,
-                      SCM2PTR (source),
+                      SCM2PTR (pair),
                       autocompile_catch_handler,
-                      SCM2PTR (source),
+                      SCM2PTR (pair),
                       NULL, NULL);
 }
 
@@ -678,7 +701,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
           && compiled_is_newer (full_filename, compiled_filename)))
     return scm_load_compiled_with_vm (compiled_filename);
 
-  compiled_filename = scm_try_autocompile (full_filename);
+  compiled_filename = scm_try_autocompile (full_filename, compiled_filename);
   if (scm_is_true (compiled_filename))
     return scm_load_compiled_with_vm (compiled_filename);
   else
