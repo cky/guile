@@ -549,6 +549,43 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 #undef FUNC_NAME
 
 
+static int
+compiled_is_newer (SCM full_filename, SCM compiled_filename)
+{
+  char *source, *compiled;
+  struct stat stat_source, stat_compiled;
+  int res;
+
+  source = scm_to_locale_string (full_filename);
+  compiled = scm_to_locale_string (compiled_filename);
+    
+  if (stat (source, &stat_source) == 0
+      && stat (compiled, &stat_compiled) == 0
+      && stat_source.st_mtime <= stat_compiled.st_mtime) 
+    {
+      res = 1;
+    }
+  else
+    {
+      scm_puts (";;; note: source file ", scm_current_error_port ());
+      scm_puts (source, scm_current_error_port ());
+      scm_puts (" newer than compiled ", scm_current_error_port ());
+      scm_puts (compiled, scm_current_error_port ());
+      scm_puts ("\n", scm_current_error_port ());
+      res = 0;
+        
+    }
+  free (source);
+  free (compiled);
+  return res;
+}
+
+static SCM
+scm_try_autocompile (SCM source)
+{
+  return SCM_BOOL_F;
+}
+
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0, 
 	    (SCM filename),
 	    "Search @var{%load-path} for the file named @var{filename} and\n"
@@ -569,40 +606,16 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 0, 0,
     SCM_MISC_ERROR ("Unable to find file ~S in load path",
 		    scm_list_1 (filename));
 
-  if (scm_is_false (compiled_filename))
-    /* FIXME: autocompile here */
-    return scm_primitive_load (full_filename);
-
-  if (scm_is_false (full_filename))
+  if (scm_is_false (full_filename)
+      || (scm_is_true (compiled_filename)
+          && compiled_is_newer (full_filename, compiled_filename)))
     return scm_load_compiled_with_vm (compiled_filename);
 
-  {
-    char *source, *compiled;
-    struct stat stat_source, stat_compiled;
-
-    source = scm_to_locale_string (full_filename);
-    compiled = scm_to_locale_string (compiled_filename);
-    
-    if (stat (source, &stat_source) == 0
-        && stat (compiled, &stat_compiled) == 0
-        && stat_source.st_mtime <= stat_compiled.st_mtime) 
-      {
-        free (source);
-        free (compiled);
-        return scm_load_compiled_with_vm (compiled_filename);
-      }
-    else
-      {
-        scm_puts (";;; note: source file ", scm_current_error_port ());
-        scm_puts (source, scm_current_error_port ());
-        scm_puts (" newer than compiled ", scm_current_error_port ());
-        scm_puts (compiled, scm_current_error_port ());
-        scm_puts ("\n", scm_current_error_port ());
-        free (source);
-        free (compiled);
-        return scm_primitive_load (full_filename);
-      }
-  }
+  compiled_filename = scm_try_autocompile (full_filename);
+  if (scm_is_true (compiled_filename))
+    return scm_load_compiled_with_vm (compiled_filename);
+  else
+    return scm_primitive_load (full_filename);
 }
 #undef FUNC_NAME
 
