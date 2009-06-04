@@ -9,6 +9,25 @@ EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 
 CLEANFILES = $(GOBJECTS)
 
+# Well, shit. We can't have install changing timestamps, can we? But
+# install_sh doesn't know how to preserve timestamps. Soooo, fondle
+# automake to make things happen.
+install-data-hook:
+	@$(am__vpath_adj_setup) \
+	list='$(nobase_mod_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  $(am__vpath_adj) \
+	  echo " touch -r '$$d$$p' '$(DESTDIR)$(moddir)/$$f'"; \
+	  touch -r "$$d$$p" "$(DESTDIR)$(moddir)/$$f"; \
+	done
+	@$(am__vpath_adj_setup) \
+	list='$(nobase_ccache_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  $(am__vpath_adj) \
+	  echo " touch -r '$$d$$p' '$(DESTDIR)$(ccachedir)/$$f'"; \
+	  touch -r "$$d$$p" "$(DESTDIR)$(ccachedir)/$$f"; \
+	done
+
 SUFFIXES = .scm .go
 .scm.go:
 	GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guile-tools compile -o "$@" "$<"
