@@ -185,6 +185,9 @@ static SCM *scm_loc_load_compiled_extensions;
 /* Whether we should try to auto-compile. */
 static SCM *scm_loc_load_should_autocompile;
 
+/* The fallback path for autocompilation */
+static SCM *scm_loc_compile_fallback_path;
+
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
 	    "Parse @var{path}, which is expected to be a colon-separated\n"
@@ -239,6 +242,10 @@ scm_init_load_path ()
     cpath = scm_parse_path (scm_from_locale_string (env), cpath);
   else
     {
+      /* the idea: if GUILE_SYSTEM_COMPILED_PATH is set, then it seems we're working
+         against an uninstalled Guile, in which case we shouldn't be autocompiling,
+         otherwise offer up the user's home directory as penance for not having
+         up-to-date .go files. */
       char *home;
 
       home = getenv ("HOME");
@@ -255,9 +262,9 @@ scm_init_load_path ()
         { char buf[1024];
           snprintf (buf, sizeof(buf),
                     "%s/.guile-ccache/" SCM_EFFECTIVE_VERSION, home);
-          cpath = scm_cons (scm_from_locale_string (buf), cpath);
+          *scm_loc_compile_fallback_path = scm_from_locale_string (buf);
         }
-      
+
       cpath = scm_cons (scm_from_locale_string (SCM_CCACHE_DIR), cpath);
     }
 #endif /* SCM_LIBRARY_DIR */
@@ -624,10 +631,10 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 }
 
 static SCM
-scm_try_autocompile (SCM source, SCM stale_compiled)
+scm_try_autocompile (SCM source, SCM compiled)
 {
   static int message_shown = 0;
-  SCM comp_mod, compiled_file_name, new_compiled, pair;
+  SCM pair;
   
   if (scm_is_false (*scm_loc_load_should_autocompile))
     return SCM_BOOL_F;
@@ -640,36 +647,7 @@ scm_try_autocompile (SCM source, SCM stale_compiled)
       message_shown = 1;
     }
 
-  comp_mod = scm_c_resolve_module ("system base compile");
-  compiled_file_name =
-    scm_module_variable (comp_mod,
-                         scm_from_locale_symbol ("compiled-file-name"));
-
-  if (scm_is_false (compiled_file_name))
-    {
-      scm_puts (";;; it seems ", scm_current_error_port ());
-      scm_display (source, scm_current_error_port ());
-      scm_puts ("\n;;; is part of the compiler; skipping autocompilation\n",
-                scm_current_error_port ());
-      return SCM_BOOL_F;
-    }
-  
-  new_compiled = scm_call_1 (scm_variable_ref (compiled_file_name), source);
-
-  if (scm_is_false (new_compiled))
-    return SCM_BOOL_F;
-  else if (!scm_is_true (scm_equal_p (new_compiled, stale_compiled))
-           && scm_is_true (scm_stat (new_compiled, SCM_BOOL_F))
-           && compiled_is_newer (source, new_compiled))
-    {
-      scm_puts (";;; found compiled file elsewhere: ",
-                scm_current_error_port ());
-      scm_display (new_compiled, scm_current_error_port ());
-      scm_newline (scm_current_error_port ());
-      return new_compiled;
-    }
-  
-  pair = scm_cons (source, new_compiled);
+  pair = scm_cons (source, compiled);
   return scm_c_catch (SCM_BOOL_T,
                       do_try_autocompile,
                       SCM2PTR (pair),
@@ -699,6 +677,31 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
                                        *scm_loc_load_compiled_extensions,
                                        SCM_BOOL_T);
 
+  if (scm_is_false (compiled_filename)
+      && scm_is_true (full_filename)
+      && scm_is_true (*scm_loc_compile_fallback_path))
+    {
+      SCM comp_mod, compiled_file_name;
+
+      comp_mod = scm_c_resolve_module ("system base compile");
+      compiled_file_name =
+        scm_module_variable (comp_mod,
+                             scm_from_locale_symbol ("compiled-file-name"));
+
+      if (scm_is_false (compiled_file_name))
+        {
+          scm_puts (";;; it seems ", scm_current_error_port ());
+          scm_display (full_filename, scm_current_error_port ());
+          scm_puts ("\n;;; is part of the compiler; skipping autocompilation\n",
+                    scm_current_error_port ());
+          return SCM_BOOL_F;
+        }
+
+      /* very confusing var names ... */
+      compiled_filename = scm_call_1 (scm_variable_ref (compiled_file_name),
+                                      full_filename);
+    }
+  
   if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
     {
       if (scm_is_true (exception_on_not_found))
@@ -713,7 +716,9 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
           && compiled_is_newer (full_filename, compiled_filename)))
     return scm_load_compiled_with_vm (compiled_filename);
 
-  compiled_filename = scm_try_autocompile (full_filename, compiled_filename);
+  if (scm_is_true (compiled_filename))
+    compiled_filename = scm_try_autocompile (full_filename, compiled_filename);
+
   if (scm_is_true (compiled_filename))
     return scm_load_compiled_with_vm (compiled_filename);
   else
@@ -764,6 +769,9 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%load-compiled-extensions",
 				      scm_list_1 (scm_from_locale_string (".go"))));
   scm_loc_load_hook = SCM_VARIABLE_LOC (scm_c_define ("%load-hook", SCM_BOOL_F));
+
+  scm_loc_compile_fallback_path
+    = SCM_VARIABLE_LOC (scm_c_define ("%compile-fallback-path", SCM_BOOL_F));
 
   scm_loc_load_should_autocompile
     = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", SCM_BOOL_F));
