@@ -337,10 +337,8 @@ error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-include $(top_srcdir)/am/pre-inst-guile
-
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-snarf2checkedtexi = $(top_builddir)/meta/uninstalled-env guile-tools snarf-check-and-output-texi
+snarf2checkedtexi = GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guile-tools snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
 guile.texi: $(alldotdocfiles) guile$(EXEEXT)
