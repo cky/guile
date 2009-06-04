@@ -4,7 +4,7 @@ GOBJECTS = $(SOURCES:%.scm=%.go)
 moddir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/$(modpath)
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 ccachedir = $(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache/$(modpath)
-ccache_DATA = $(GOBJECTS)
+nobase_ccache_DATA = $(GOBJECTS)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
 
 CLEANFILES = $(GOBJECTS)
