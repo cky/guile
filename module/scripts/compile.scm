@@ -111,10 +111,13 @@ Compile each Guile source file FILE into a Guile object.
   -f, --from=LANG      specify a source language other than `scheme'
   -t, --to=LANG        specify a target language other than `objcode'
 
+Note that autocompilation will be turned off.
+
 Report bugs to <guile-user@gnu.org>.~%")
           (exit 0)))
 
     (set! %load-path (append load-path %load-path))
+    (set! %load-should-autocompile #f)
 
     (if (and output-file
              (or (null? input-files)
