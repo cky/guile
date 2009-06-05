@@ -560,7 +560,6 @@
 
 ;;; <binding> ::= (macro . <procedure>)           macros
 ;;;               (core . <procedure>)            core forms
-;;;               (external-macro . <procedure>)  external-macro
 ;;;               (module-ref . <procedure>)      @ or @@
 ;;;               (begin)                         begin
 ;;;               (define)                        define
@@ -999,9 +998,9 @@
 ;;;
 ;;;    type                   value         explanation
 ;;;    -------------------------------------------------------------------
-;;;    core                   procedure     core form (including singleton)
-;;;    external-macro         procedure     external macro
-;;;    module-ref             procedure     @ or @@ form
+;;;    core                   procedure     core singleton
+;;;    core-form              procedure     core form
+;;;    module-ref             procedure     @ or @@ singleton
 ;;;    lexical                name          lexical variable reference
 ;;;    global                 name          global variable reference
 ;;;    begin                  none          begin keyword
@@ -1031,7 +1030,7 @@
 ;;; forms, although perhaps this should be done by the consumer.
 
 (define syntax-type
-  (lambda (e r w s rib mod)
+  (lambda (e r w s rib mod for-car?)
     (cond
       ((symbol? e)
        (let* ((n (id-var-name e w))
@@ -1041,64 +1040,70 @@
            ((lexical) (values type (binding-value b) e w s mod))
            ((global) (values type n e w s mod))
            ((macro)
-            (syntax-type (chi-macro (binding-value b) e r w rib mod)
-                         r empty-wrap s rib mod))
+            (if for-car?
+                (values type (binding-value b) e w s mod)
+                (syntax-type (chi-macro (binding-value b) e r w rib mod)
+                             r empty-wrap s rib mod #f)))
            (else (values type (binding-value b) e w s mod)))))
       ((pair? e)
        (let ((first (car e)))
-         (if (id? first)
-             (let* ((n (id-var-name first w))
-                    (b (lookup n r (or (and (syntax-object? first)
-                                            (syntax-object-module first))
-                                       mod)))
-                    (type (binding-type b)))
-               (case type
-                 ((lexical)
-                  (values 'lexical-call (binding-value b) e w s mod))
-                 ((global)
-                  (values 'global-call n e w s mod))
-                 ((macro)
-                  (syntax-type (chi-macro (binding-value b) e r w rib mod)
-                    r empty-wrap s rib mod))
-                 ((core external-macro module-ref)
-                  (values type (binding-value b) e w s mod))
-                 ((local-syntax)
-                  (values 'local-syntax-form (binding-value b) e w s mod))
-                 ((begin)
-                  (values 'begin-form #f e w s mod))
-                 ((eval-when)
-                  (values 'eval-when-form #f e w s mod))
-                 ((define)
-                  (syntax-case e ()
-                    ((_ name val)
-                     (id? (syntax name))
-                     (values 'define-form (syntax name) (syntax val) w s mod))
-                    ((_ (name . args) e1 e2 ...)
-                     (and (id? (syntax name))
-                          (valid-bound-ids? (lambda-var-list (syntax args))))
-                     ; need lambda here...
-                     (values 'define-form (wrap (syntax name) w mod)
-                       (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
-                       empty-wrap s mod))
-                    ((_ name)
-                     (id? (syntax name))
-                     (values 'define-form (wrap (syntax name) w mod)
-                       (syntax (if #f #f))
-                       empty-wrap s mod))))
-                 ((define-syntax)
-                  (syntax-case e ()
-                    ((_ name val)
-                     (id? (syntax name))
-                     (values 'define-syntax-form (syntax name)
-                       (syntax val) w s mod))))
-                 (else
-                  (values 'call #f e w s mod))))
-             (values 'call #f e w s mod))))
+         (call-with-values
+             (lambda () (syntax-type first r w s rib mod #t))
+           (lambda (ftype fval fe fw fs fmod)
+             (case ftype
+               ((lexical)
+                (values 'lexical-call fval e w s mod))
+               ((global)
+                ;; If we got here via an (@@ ...) expansion, we need to
+                ;; make sure the fmod information is propagated back
+                ;; correctly -- hence this consing.
+                (values 'global-call (make-syntax-object fval w fmod)
+                        e w s mod))
+               ((macro)
+                (syntax-type (chi-macro fval e r w rib mod)
+                             r empty-wrap s rib mod for-car?))
+               ((module-ref)
+                (call-with-values (lambda () (fval e))
+                  (lambda (sym mod)
+                    (syntax-type sym r w s rib mod for-car?))))
+               ((core)
+                (values 'core-form fval e w s mod))
+               ((local-syntax)
+                (values 'local-syntax-form fval e w s mod))
+               ((begin)
+                (values 'begin-form #f e w s mod))
+               ((eval-when)
+                (values 'eval-when-form #f e w s mod))
+               ((define)
+                (syntax-case e ()
+                  ((_ name val)
+                   (id? (syntax name))
+                   (values 'define-form (syntax name) (syntax val) w s mod))
+                  ((_ (name . args) e1 e2 ...)
+                   (and (id? (syntax name))
+                        (valid-bound-ids? (lambda-var-list (syntax args))))
+                                        ; need lambda here...
+                   (values 'define-form (wrap (syntax name) w mod)
+                           (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
+                           empty-wrap s mod))
+                  ((_ name)
+                   (id? (syntax name))
+                   (values 'define-form (wrap (syntax name) w mod)
+                           (syntax (if #f #f))
+                           empty-wrap s mod))))
+               ((define-syntax)
+                (syntax-case e ()
+                  ((_ name val)
+                   (id? (syntax name))
+                   (values 'define-syntax-form (syntax name)
+                           (syntax val) w s mod))))
+               (else
+                (values 'call #f e w s mod)))))))
       ((syntax-object? e)
        (syntax-type (syntax-object-expression e)
                     r
                     (join-wraps w (syntax-object-wrap e))
-                    s rib (or (syntax-object-module e) mod)))
+                    s rib (or (syntax-object-module e) mod) for-car?))
       ((self-evaluating? e) (values 'constant #f e w s mod))
       (else (values 'other #f e w s mod)))))
 
@@ -1111,7 +1116,7 @@
            (if (eq? m 'c&e) (top-level-eval-hook x mod))
            x))))
     (call-with-values
-      (lambda () (syntax-type e r w (source-annotation e) #f mod))
+      (lambda () (syntax-type e r w (source-annotation e) #f mod #f))
       (lambda (type value e w s mod)
         (case type
           ((begin-form)
@@ -1187,7 +1192,7 @@
 (define chi
   (lambda (e r w mod)
     (call-with-values
-      (lambda () (syntax-type e r w (source-annotation e) #f mod))
+      (lambda () (syntax-type e r w (source-annotation e) #f mod #f))
       (lambda (type value e w s mod)
         (chi-expr type value e r w s mod)))))
 
@@ -1196,7 +1201,7 @@
     (case type
       ((lexical)
        (build-lexical-reference 'value s e value))
-      ((core external-macro)
+      ((core core-form)
        ;; apply transformer
        (value e r w s mod))
       ((module-ref)
@@ -1210,9 +1215,12 @@
          e r w s mod))
       ((global-call)
        (chi-application
-         (build-global-reference (source-annotation (car e)) value
-                                 (if (syntax-object? (car e))
-                                     (syntax-object-module (car e))
+         (build-global-reference (source-annotation (car e))
+                                 (if (syntax-object? value)
+                                     (syntax-object-expression value)
+                                     value)
+                                 (if (syntax-object? value)
+                                     (syntax-object-module value)
                                      mod))
          e r w s mod))
       ((constant) (build-data s (strip (source-wrap e w s mod) empty-wrap)))
@@ -1342,7 +1350,7 @@
             (syntax-violation #f "no expressions in body" outer-form)
             (let ((e (cdar body)) (er (caar body)))
               (call-with-values
-                (lambda () (syntax-type e er empty-wrap (source-annotation er) ribcage mod))
+                (lambda () (syntax-type e er empty-wrap (source-annotation er) ribcage mod #f))
                 (lambda (type value e w s mod)
                   (case type
                     ((define-form)
@@ -1843,7 +1851,7 @@
                                      (source-wrap e w s mod)))))))
       ((_ (head tail ...) val)
        (call-with-values
-           (lambda () (syntax-type (syntax head) r empty-wrap no-source #f mod))
+           (lambda () (syntax-type (syntax head) r empty-wrap no-source #f mod #t))
          (lambda (type value ee ww ss modmod)
            (case type
              ((module-ref)
