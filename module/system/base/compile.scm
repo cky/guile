@@ -114,21 +114,11 @@
 ;;; After turning this around a number of times, it seems that the the
 ;;; desired behavior is that .go files should exist in a path, for
 ;;; searching. That is orthogonal to this function. For writing .go
-;;; files, either you know where they should go, in which case you pass
-;;; the path directly, assuming they will end up in the path, as in the
-;;; srcdir != builddir case; or you don't know, in which case this
-;;; function is called, and we just put them in your own ccache dir in
-;;; ~/.guile-ccache.
+;;; files, either you know where they should go, in which case you tell
+;;; compile-file explicitly, as in the srcdir != builddir case; or you
+;;; don't know, in which case this function is called, and we just put
+;;; them in your own ccache dir in ~/.guile-ccache.
 (define (compiled-file-name file)
-  (define (strip-source-extension path)
-    (let lp ((exts %load-extensions))
-      (cond ((null? exts) file)
-            ((string-null? (car exts)) (lp (cdr exts)))
-            ((string-suffix? (car exts) path)
-             (substring path 0
-                        (- (string-length path)
-                           (string-length (car exts)))))
-            (else (lp (cdr exts))))))
   (define (compiled-extension)
     (cond ((or (null? %load-compiled-extensions)
                (string-null? (car %load-compiled-extensions)))
@@ -137,9 +127,8 @@
            ".go")
           (else (car %load-compiled-extensions))))
   (and %compile-fallback-path
-       (let ((f (string-append %compile-fallback-path "/"
-                               (strip-source-extension file)
-                               (compiled-extension))))
+       (let ((f (string-append
+                 %compile-fallback-path "/" file (compiled-extension))))
          (and (false-if-exception (ensure-writable-dir (dirname f)))
               f))))
 

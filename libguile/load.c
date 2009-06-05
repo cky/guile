@@ -241,33 +241,30 @@ scm_init_load_path ()
   else if (env)
     cpath = scm_parse_path (scm_from_locale_string (env), cpath);
   else
-    {
-      /* the idea: if GUILE_SYSTEM_COMPILED_PATH is set, then it seems we're working
-         against an uninstalled Guile, in which case we shouldn't be autocompiling,
-         otherwise offer up the user's home directory as penance for not having
-         up-to-date .go files. */
-      char *home;
+    cpath = scm_cons (scm_from_locale_string (SCM_CCACHE_DIR), cpath);
 
-      home = getenv ("HOME");
-#ifdef HAVE_GETPWENT
-      if (!home)
-        {
-          struct passwd *pwd;
-          pwd = getpwuid (getuid ());
-          if (pwd)
-            home = pwd->pw_dir;
-        }
-#endif /* HAVE_GETPWENT */
-      if (home)
-        { char buf[1024];
-          snprintf (buf, sizeof(buf),
-                    "%s/.guile-ccache/" SCM_EFFECTIVE_VERSION, home);
-          *scm_loc_compile_fallback_path = scm_from_locale_string (buf);
-        }
-
-      cpath = scm_cons (scm_from_locale_string (SCM_CCACHE_DIR), cpath);
-    }
 #endif /* SCM_LIBRARY_DIR */
+
+  {
+    char *home;
+
+    home = getenv ("HOME");
+#ifdef HAVE_GETPWENT
+    if (!home)
+      {
+        struct passwd *pwd;
+        pwd = getpwuid (getuid ());
+        if (pwd)
+          home = pwd->pw_dir;
+      }
+#endif /* HAVE_GETPWENT */
+    if (home)
+      { char buf[1024];
+        snprintf (buf, sizeof(buf),
+                  "%s/.guile-ccache/" SCM_EFFECTIVE_VERSION, home);
+        *scm_loc_compile_fallback_path = scm_from_locale_string (buf);
+      }
+  }
 
   env = getenv ("GUILE_LOAD_PATH");
   if (env)
@@ -582,45 +579,50 @@ compiled_is_newer (SCM full_filename, SCM compiled_filename)
       scm_puts (compiled, scm_current_error_port ());
       scm_puts ("\n", scm_current_error_port ());
       res = 0;
-        
     }
+
   free (source);
   free (compiled);
   return res;
 }
 
-SCM_KEYWORD (k_output_file, "output-file");
-
 static SCM
 do_try_autocompile (void *data)
 {
-  SCM pair = PTR2SCM (data);
-  SCM comp_mod, compile_file, res;
+  SCM source = PTR2SCM (data);
+  SCM comp_mod, compile_file;
 
   scm_puts (";;; compiling ", scm_current_error_port ());
-  scm_display (scm_car (pair), scm_current_error_port ());
+  scm_display (source, scm_current_error_port ());
   scm_newline (scm_current_error_port ());
 
   comp_mod = scm_c_resolve_module ("system base compile");
   compile_file = scm_c_module_lookup (comp_mod, "compile-file");
-  res = scm_call_3 (scm_variable_ref (compile_file), scm_car (pair),
-                    k_output_file, scm_cdr (pair));
 
-  scm_puts (";;; compiled ", scm_current_error_port ());
-  scm_display (res, scm_current_error_port ());
-  scm_newline (scm_current_error_port ());
-
-  return res;
+  if (scm_is_true (compile_file))
+    {
+      SCM res = scm_call_1 (scm_variable_ref (compile_file), source);
+      scm_puts (";;; compiled ", scm_current_error_port ());
+      scm_display (res, scm_current_error_port ());
+      scm_newline (scm_current_error_port ());
+      return res;
+    }
+  else
+    {
+      scm_puts (";;; it seems ", scm_current_error_port ());
+      scm_display (source, scm_current_error_port ());
+      scm_puts ("\n;;; is part of the compiler; skipping autocompilation\n",
+                scm_current_error_port ());
+      return SCM_BOOL_F;
+    }
 }
 
 static SCM
 autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 {
-  SCM pair = PTR2SCM (data);
+  SCM source = PTR2SCM (data);
   scm_puts (";;; WARNING: compilation of ", scm_current_error_port ());
-  scm_display (scm_car (pair), scm_current_error_port ());
-  scm_puts ("\n;;; to ", scm_current_error_port ());
-  scm_display (scm_cdr (pair), scm_current_error_port ());
+  scm_display (source, scm_current_error_port ());
   scm_puts (" failed:\n", scm_current_error_port ());
   scm_puts (";;; key ", scm_current_error_port ());
   scm_write (tag, scm_current_error_port ());
@@ -631,10 +633,9 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 }
 
 static SCM
-scm_try_autocompile (SCM source, SCM compiled)
+scm_try_autocompile (SCM source)
 {
   static int message_shown = 0;
-  SCM pair;
   
   if (scm_is_false (*scm_loc_load_should_autocompile))
     return SCM_BOOL_F;
@@ -647,12 +648,11 @@ scm_try_autocompile (SCM source, SCM compiled)
       message_shown = 1;
     }
 
-  pair = scm_cons (source, compiled);
   return scm_c_catch (SCM_BOOL_T,
                       do_try_autocompile,
-                      SCM2PTR (pair),
+                      SCM2PTR (source),
                       autocompile_catch_handler,
-                      SCM2PTR (pair),
+                      SCM2PTR (source),
                       NULL, NULL);
 }
 
@@ -676,30 +676,19 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
                                        filename,
                                        *scm_loc_load_compiled_extensions,
                                        SCM_BOOL_T);
-
+  
   if (scm_is_false (compiled_filename)
       && scm_is_true (full_filename)
-      && scm_is_true (*scm_loc_compile_fallback_path))
+      && scm_is_true (*scm_loc_compile_fallback_path)
+      && scm_is_pair (*scm_loc_load_compiled_extensions)
+      && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
     {
-      SCM comp_mod, compiled_file_name;
-
-      comp_mod = scm_c_resolve_module ("system base compile");
-      compiled_file_name =
-        scm_module_variable (comp_mod,
-                             scm_from_locale_symbol ("compiled-file-name"));
-
-      if (scm_is_false (compiled_file_name))
-        {
-          scm_puts (";;; it seems ", scm_current_error_port ());
-          scm_display (full_filename, scm_current_error_port ());
-          scm_puts ("\n;;; is part of the compiler; skipping autocompilation\n",
-                    scm_current_error_port ());
-          return SCM_BOOL_F;
-        }
-
-      /* very confusing var names ... */
-      compiled_filename = scm_call_1 (scm_variable_ref (compiled_file_name),
-                                      full_filename);
+      SCM fallback = scm_string_append
+        (scm_list_3 (*scm_loc_compile_fallback_path,
+                     full_filename,
+                     scm_car (*scm_loc_load_compiled_extensions)));
+      if (scm_is_true (scm_stat (fallback, SCM_BOOL_F)))
+        compiled_filename = fallback;
     }
   
   if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
@@ -715,14 +704,15 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
       || (scm_is_true (compiled_filename)
           && compiled_is_newer (full_filename, compiled_filename)))
     return scm_load_compiled_with_vm (compiled_filename);
+  else 
+    {
+      SCM freshly_compiled = scm_try_autocompile (full_filename);
 
-  if (scm_is_true (compiled_filename))
-    compiled_filename = scm_try_autocompile (full_filename, compiled_filename);
-
-  if (scm_is_true (compiled_filename))
-    return scm_load_compiled_with_vm (compiled_filename);
-  else
-    return scm_primitive_load (full_filename);
+      if (scm_is_true (freshly_compiled))
+        return scm_load_compiled_with_vm (freshly_compiled);
+      else
+        return scm_primitive_load (full_filename);
+    }
 }
 #undef FUNC_NAME
 
