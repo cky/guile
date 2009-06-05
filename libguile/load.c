@@ -597,7 +597,8 @@ do_try_autocompile (void *data)
   scm_newline (scm_current_error_port ());
 
   comp_mod = scm_c_resolve_module ("system base compile");
-  compile_file = scm_c_module_lookup (comp_mod, "compile-file");
+  compile_file = scm_module_variable
+    (comp_mod, scm_from_locale_symbol ("compile-file"));
 
   if (scm_is_true (compile_file))
     {
@@ -667,6 +668,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
 #define FUNC_NAME s_scm_primitive_load_path
 {
   SCM full_filename, compiled_filename;
+  int compiled_is_fallback = 0;
 
   if (SCM_UNBNDP (exception_on_not_found))
     exception_on_not_found = SCM_BOOL_T;
@@ -688,7 +690,10 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
                      full_filename,
                      scm_car (*scm_loc_load_compiled_extensions)));
       if (scm_is_true (scm_stat (fallback, SCM_BOOL_F)))
-        compiled_filename = fallback;
+        {
+          compiled_filename = fallback;
+          compiled_is_fallback = 1;
+        }
     }
   
   if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
@@ -704,15 +709,38 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
       || (scm_is_true (compiled_filename)
           && compiled_is_newer (full_filename, compiled_filename)))
     return scm_load_compiled_with_vm (compiled_filename);
-  else 
-    {
-      SCM freshly_compiled = scm_try_autocompile (full_filename);
 
-      if (scm_is_true (freshly_compiled))
-        return scm_load_compiled_with_vm (freshly_compiled);
-      else
-        return scm_primitive_load (full_filename);
+  /* Perhaps there was the installed .go that was stale, but our fallback is
+     fresh. Let's try that. Duplicating code, but perhaps that's OK. */
+
+  if (!compiled_is_fallback
+      && scm_is_true (*scm_loc_compile_fallback_path)
+      && scm_is_pair (*scm_loc_load_compiled_extensions)
+      && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
+    {
+      SCM fallback = scm_string_append
+        (scm_list_3 (*scm_loc_compile_fallback_path,
+                     full_filename,
+                     scm_car (*scm_loc_load_compiled_extensions)));
+      if (scm_is_true (scm_stat (fallback, SCM_BOOL_F))
+          && compiled_is_newer (full_filename, fallback))
+        {
+          scm_puts (";;; found fresh local cache at ", scm_current_error_port ());
+          scm_display (fallback, scm_current_error_port ());
+          scm_newline (scm_current_error_port ());
+          return scm_load_compiled_with_vm (compiled_filename);
+        }
     }
+
+  /* Otherwise, we bottom out here. */
+  {
+    SCM freshly_compiled = scm_try_autocompile (full_filename);
+
+    if (scm_is_true (freshly_compiled))
+      return scm_load_compiled_with_vm (freshly_compiled);
+    else
+      return scm_primitive_load (full_filename);
+  }
 }
 #undef FUNC_NAME
 
