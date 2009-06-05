@@ -577,7 +577,7 @@ SCM_DEFINE (scm_bytevector_u8_set_x, "bytevector-u8-set!", 3, 0, 0,
 SCM_DEFINE (scm_bytevector_s8_set_x, "bytevector-s8-set!", 3, 0, 0,
 	    (SCM bv, SCM index, SCM value),
 	    "Return the octet located at @var{index} in @var{bv}.")
-#define FUNC_NAME s_scm_bytevector_u8_set_x
+#define FUNC_NAME s_scm_bytevector_s8_set_x
 {
   INTEGER_NATIVE_SET (8, signed);
 }
