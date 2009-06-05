@@ -186,7 +186,11 @@
                  (receive (i object-alist)
                      (object-index-and-alist (make-subprogram table prog)
                                              object-alist)
-                   (emit-code/object `((object-ref ,i) ,@closure)
+                   (emit-code/object `(,(if (< i 256)
+                                            `(object-ref ,i)
+                                            `(long-object-ref ,(quotient i 256)
+                                                              ,(modulo i 256)))
+                                       ,@closure)
                                      object-alist)))
                 (else
                  ;; otherwise emit a load directly
@@ -234,7 +238,10 @@
       (else
        (receive (i object-alist)
            (object-index-and-alist obj object-alist)
-         (emit-code/object `((object-ref ,i))
+         (emit-code/object (if (< i 256)
+                               `((object-ref ,i))
+                               `((long-object-ref ,(quotient i 256)
+                                                  ,(modulo i 256))))
                            object-alist)))))
 
     ((<glil-local> op index)
@@ -264,9 +271,16 @@
           (receive (i object-alist)
               (object-index-and-alist (make-variable-cache-cell name)
                                       object-alist)
-            (emit-code/object (case op
-                                ((ref) `((toplevel-ref ,i)))
-                                ((set) `((toplevel-set ,i))))
+            (emit-code/object (if (< i 256)
+                                  `((,(case op
+                                        ((ref) 'toplevel-ref)
+                                        ((set) 'toplevel-set))
+                                     ,i))
+                                  `((,(case op
+                                        ((ref) 'long-toplevel-ref)
+                                        ((set) 'long-toplevel-set))
+                                     ,(quotient i 256)
+                                     ,(modulo i 256))))
                               object-alist)))))
        ((define)
         (emit-code `((define ,(symbol->string name))

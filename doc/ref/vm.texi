@@ -417,6 +417,7 @@ external variables are all consed onto a list, which results in O(N)
 lookup time.
 
 @deffn Instruction toplevel-ref index
+@deffnx Instruction long-toplevel-ref index
 Push the value of the toplevel binding whose location is stored in at
 position @var{index} in the object table.
 
@@ -441,14 +442,19 @@ in-place mutation of the object table. This mechanism provides for
 lazy variable resolution, and an important cached fast-path once the
 variable has been successfully resolved.
 
+The ``long'' variant has a 16-bit index instead of an 8-bit index,
+with the most significant byte first.
+
 This instruction pushes the value of the variable onto the stack.
 @end deffn
 
-@deffn Instruction toplevel-ref index
+@deffn Instruction toplevel-set index
+@deffnx Instruction long-toplevel-set index
 Pop a value off the stack, and set it as the value of the toplevel
 variable stored at @var{index} in the object table. If the variable
 has not yet been looked up, we do the lookup as in
-@code{toplevel-ref}.
+@code{toplevel-ref}. The ``long'' variant has a 16-bit index instead
+of an 8-bit index.
 @end deffn
 
 @deffn Instruction link-now
@@ -471,7 +477,9 @@ the variable to the value.
 @end deffn
 
 @deffn Instruction object-ref n
-Push @var{n}th value from the current program's object vector.
+@deffnx Instruction long-object-ref n
+Push @var{n}th value from the current program's object vector. The
+``long'' variant has a 16-bit index instead of an 8-bit index.
 @end deffn
 
 @node Branch Instructions

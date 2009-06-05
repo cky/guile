@@ -1062,6 +1062,62 @@ VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (52, long_object_ref, "long-object-ref", 2, 0, 1)
+{
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  PUSH (OBJECT_REF (objnum));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (53, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
+{
+  SCM what;
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  what = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (what)) 
+    {
+      SYNC_REGISTER ();
+      what = resolve_variable (what, scm_program_module (program));
+      if (!VARIABLE_BOUNDP (what))
+        {
+          finish_args = scm_list_1 (what);
+          goto vm_error_unbound;
+        }
+      OBJECT_SET (objnum, what);
+    }
+
+  PUSH (VARIABLE_REF (what));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (54, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
+{
+  SCM what;
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  what = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (what)) 
+    {
+      SYNC_BEFORE_GC ();
+      what = resolve_variable (what, scm_program_module (program));
+      OBJECT_SET (objnum, what);
+    }
+
+  VARIABLE_SET (what, *sp);
+  DROP ();
+  NEXT;
+}
+
 /*
 (defun renumber-ops ()
   "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
