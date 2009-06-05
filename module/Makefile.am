@@ -211,7 +211,8 @@ SRFI_SOURCES = \
   srfi/srfi-39.scm \
   srfi/srfi-60.scm \
   srfi/srfi-69.scm \
-  srfi/srfi-88.scm
+  srfi/srfi-88.scm \
+  srfi/srfi-98.scm
 
 RNRS_SOURCES =					\
   rnrs/bytevector.scm				\
