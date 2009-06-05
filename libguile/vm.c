@@ -267,6 +267,43 @@ vm_make_boot_program (long nargs)
  * VM
  */
 
+static SCM
+resolve_variable (SCM what, SCM program_module)
+{
+  if (SCM_LIKELY (SCM_SYMBOLP (what))) 
+    {
+      if (SCM_LIKELY (scm_module_system_booted_p
+                      && scm_is_true (program_module)))
+        /* might longjmp */
+        return scm_module_lookup (program_module, what);
+      else
+        {
+          SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
+          if (scm_is_false (v))
+            scm_misc_error (NULL, "unbound variable: ~S", scm_list_1 (what));
+          else
+            return v;
+        }
+    }
+  else
+    {
+      SCM mod;
+      /* compilation of @ or @@
+         `what' is a three-element list: (MODNAME SYM INTERFACE?)
+         INTERFACE? is #t if we compiled @ or #f if we compiled @@
+      */
+      mod = scm_resolve_module (SCM_CAR (what));
+      if (scm_is_true (SCM_CADDR (what)))
+        mod = scm_module_public_interface (mod);
+      if (SCM_FALSEP (mod))
+        scm_misc_error (NULL, "no such module: ~S",
+                        scm_list_1 (SCM_CAR (what)));
+      /* might longjmp */
+      return scm_module_lookup (mod, SCM_CADR (what));
+    }
+}
+  
+
 #define VM_DEFAULT_STACK_SIZE	(16 * 1024)
 
 #define VM_NAME   vm_regular_engine

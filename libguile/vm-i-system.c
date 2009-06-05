@@ -278,47 +278,12 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
   if (!SCM_VARIABLEP (what)) 
     {
       SYNC_REGISTER ();
-      if (SCM_LIKELY (SCM_SYMBOLP (what))) 
-        {
-          SCM mod = SCM_EOL;
-          if (SCM_LIKELY (scm_module_system_booted_p
-                          && scm_is_true ((mod = scm_program_module (program)))))
-            /* might longjmp */
-            what = scm_module_lookup (mod, what);
-          else
-            {
-              SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
-              if (scm_is_false (v))
-                SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (what));
-              else
-                what = v;
-            }
-        }
-      else
-        {
-          SCM mod;
-          /* compilation of @ or @@
-             `what' is a three-element list: (MODNAME SYM INTERFACE?)
-             INTERFACE? is #t if we compiled @ or #f if we compiled @@
-          */
-          mod = scm_resolve_module (SCM_CAR (what));
-          if (scm_is_true (SCM_CADDR (what)))
-            mod = scm_module_public_interface (mod);
-          if (SCM_FALSEP (mod))
-            {
-              finish_args = scm_list_1 (mod);
-              goto vm_error_no_such_module;
-            }
-          /* might longjmp */
-          what = scm_module_lookup (mod, SCM_CADR (what));
-        }
-          
+      what = resolve_variable (what, scm_program_module (program));
       if (!VARIABLE_BOUNDP (what))
         {
           finish_args = scm_list_1 (what);
           goto vm_error_unbound;
         }
-
       OBJECT_SET (objnum, what);
     }
 
@@ -367,41 +332,7 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
   if (!SCM_VARIABLEP (what)) 
     {
       SYNC_BEFORE_GC ();
-      if (SCM_LIKELY (SCM_SYMBOLP (what))) 
-        {
-          SCM mod = SCM_EOL;
-          if (SCM_LIKELY (scm_module_system_booted_p
-                          && scm_is_true ((mod = scm_program_module (program)))))
-            /* might longjmp */
-            what = scm_module_lookup (mod, what);
-          else
-            {
-              SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
-              if (scm_is_false (v))
-                SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (what));
-              else
-                what = v;
-            }
-        }
-      else
-        {
-          SCM mod;
-          /* compilation of @ or @@
-             `what' is a three-element list: (MODNAME SYM INTERFACE?)
-             INTERFACE? is #t if we compiled @ or #f if we compiled @@
-          */
-          mod = scm_resolve_module (SCM_CAR (what));
-          if (scm_is_true (SCM_CADDR (what)))
-            mod = scm_module_public_interface (mod);
-          if (SCM_FALSEP (mod))
-            {
-              finish_args = scm_list_1 (what);
-              goto vm_error_no_such_module;
-            }
-          /* might longjmp */
-          what = scm_module_lookup (mod, SCM_CADR (what));
-        }
-
+      what = resolve_variable (what, scm_program_module (program));
       OBJECT_SET (objnum, what);
     }
 
