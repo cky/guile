@@ -77,7 +77,7 @@
     (let* ((p2c (pipe))
            (port (with-input-from-port (car p2c)
                    (lambda ()
-                     (open-input-pipe "read && echo $REPLY")))))
+                     (open-input-pipe "read line && echo $line")))))
       (display "hello\n" (cdr p2c))
       (force-output (cdr p2c))
       (let ((result (eq? (read port) 'hello)))
