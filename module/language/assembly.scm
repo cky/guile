@@ -20,11 +20,12 @@
 ;;; Code:
 
 (define-module (language assembly)
+  #:use-module (rnrs bytevector)
   #:use-module (system base pmatch)
   #:use-module (system vm instruction)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export (byte-length
-            addr+ align-program
+            addr+ align-program align-code
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
@@ -50,6 +51,8 @@
      (+ 1 *len-len* (string-length str)))
     ((load-keyword ,str)
      (+ 1 *len-len* (string-length str)))
+    ((load-array ,bv)
+     (+ 1 *len-len* (bytevector-length bv)))
     ((define ,str)
      (+ 1 *len-len* (string-length str)))
     ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,code)
@@ -66,13 +69,16 @@
         addr
         code))
 
-(define (align-program prog addr)
-  `(,@(make-list (modulo (- *program-alignment*
-                            (modulo (1+ addr) *program-alignment*))
-                         ;; plus the one for the load-program inst itself
-                         *program-alignment*)
+
+(define (align-code code addr alignment header-len)
+  `(,@(make-list (modulo (- alignment
+                            (modulo (+ addr header-len) alignment))
+                         alignment)
                  '(nop))
-    ,prog))
+    ,code))
+
+(define (align-program prog addr)
+  (align-code prog addr *program-alignment* 1))
 
 ;;;
 ;;; Code compress/decompression

@@ -28,6 +28,7 @@
   #:use-module ((system vm program) #:select (make-binding))
   #:use-module (ice-9 receive)
   #:use-module ((srfi srfi-1) #:select (fold))
+  #:use-module (rnrs bytevector)
   #:export (compile-assembly))
 
 ;; Variable cache cells go in the object table, and serialize as their
@@ -393,6 +394,16 @@
             (let ((code (dump-object (vector-ref x i) addr)))
               (dump-objects (1+ i) (cons code codes)
                             (addr+ addr code)))))))
+   ((and (array? x) (symbol? (array-type x)))
+    (let* ((type (dump-object (array-type x) addr))
+           (shape (dump-object (array-shape x) (addr+ addr type))))
+      `(,@type
+        ,@shape
+        ,@(align-code
+           `(load-array ,(uniform-array->bytevector x))
+           (addr+ (addr+ addr type) shape)
+           8
+           4))))
    (else
     (error "assemble: unrecognized object" x))))
 

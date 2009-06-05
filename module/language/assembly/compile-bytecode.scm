@@ -24,6 +24,7 @@
   #:use-module (language assembly)
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
+  #:use-module (rnrs bytevector)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module ((system vm objcode) #:select (byte-order))
   #:export (compile-bytecode write-bytecode))
@@ -72,6 +73,10 @@
   (define (write-loader str)
     (write-loader-len (string-length str))
     (write-string str))
+  (define (write-bytevector bv)
+    (write-loader-len (bytevector-length bv))
+    ;; Ew!
+    (for-each write-byte (bytevector->u8-list bv)))
   (define (write-break label)
     (write-uint16-be (- (assq-ref labels label) (+ (get-addr) 2))))
   
@@ -113,6 +118,7 @@
         ((load-string ,str) (write-loader str))
         ((load-symbol ,str) (write-loader str))
         ((load-keyword ,str) (write-loader str))
+        ((load-array ,bv) (write-bytevector bv))
         ((define ,str) (write-loader str))
         ((br ,l) (write-break l))
         ((br-if ,l) (write-break l))

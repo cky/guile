@@ -46,6 +46,8 @@ SCM_API SCM scm_bytevector_fill_x (SCM, SCM);
 SCM_API SCM scm_bytevector_copy_x (SCM, SCM, SCM, SCM, SCM);
 SCM_API SCM scm_bytevector_copy (SCM);
 
+SCM_API SCM scm_uniform_array_to_bytevector (SCM);
+
 SCM_API SCM scm_bytevector_to_u8_list (SCM);
 SCM_API SCM scm_u8_list_to_bytevector (SCM);
 SCM_API SCM scm_uint_list_to_bytevector (SCM, SCM, SCM);

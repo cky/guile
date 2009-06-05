@@ -770,6 +770,53 @@ SCM_DEFINE (scm_make_typed_array, "make-typed-array", 2, 0, 1,
 }
 #undef FUNC_NAME
 
+SCM
+scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
+                                 size_t byte_len)
+#define FUNC_NAME "scm_from_contiguous_typed_array"
+{
+  size_t k, rlen = 1;
+  scm_t_array_dim *s;
+  creator_proc *creator;
+  SCM ra;
+  scm_t_array_handle h;
+  void *base;
+  size_t sz;
+  
+  creator = type_to_creator (type);
+  ra = scm_i_shap2ra (bounds);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
+  s = SCM_I_ARRAY_DIMS (ra);
+  k = SCM_I_ARRAY_NDIM (ra);
+
+  while (k--)
+    {
+      s[k].inc = rlen;
+      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
+      rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
+    }
+  SCM_I_ARRAY_V (ra) = creator (scm_from_size_t (rlen), SCM_UNDEFINED);
+
+
+  scm_array_get_handle (ra, &h);
+  base = scm_array_handle_uniform_writable_elements (&h);
+  sz = scm_array_handle_uniform_element_size (&h);
+  scm_array_handle_release (&h);
+
+  if (byte_len % sz)
+    SCM_MISC_ERROR ("byte length not a multiple of the unit size", SCM_EOL);
+  if (byte_len / sz != rlen)
+    SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+
+  memcpy (base, bytes, byte_len);
+
+  if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
+    if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
+      return SCM_I_ARRAY_V (ra);
+  return ra;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_make_array, "make-array", 1, 0, 1,
 	    (SCM fill, SCM bounds),
 	    "Create and return an array.")

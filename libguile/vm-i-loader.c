@@ -15,6 +15,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+/* FIXME! Need to check that the fetch is within the current program */
 
 /* This file is included in vm_engine.c */
 
@@ -140,6 +141,19 @@ VM_DEFINE_LOADER (67, define, "define")
 
   SYNC_REGISTER ();
   PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));
+  NEXT;
+}
+
+VM_DEFINE_LOADER (68, load_array, "load-array")
+{
+  SCM type, shape;
+  size_t len;
+  FETCH_LENGTH (len);
+  POP (shape);
+  POP (type);
+  SYNC_REGISTER ();
+  PUSH (scm_from_contiguous_typed_array (type, shape, ip, len));
+  ip += len;
   NEXT;
 }
 

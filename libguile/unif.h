@@ -45,6 +45,9 @@ SCM_API SCM scm_array_p (SCM v, SCM prot);
 SCM_API SCM scm_typed_array_p (SCM v, SCM type);
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
+SCM_API SCM scm_from_contiguous_typed_array (SCM type, SCM bounds,
+                                             const void *bytes,
+                                             size_t byte_len);
 SCM_API SCM scm_array_rank (SCM ra);
 SCM_API size_t scm_c_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);
