@@ -73,7 +73,7 @@
         thunk
         (lambda () #t))))
 
-(define (call-with-output-file/atomic filename proc)
+(define* (call-with-output-file/atomic filename proc #:optional reference)
   (let* ((template (string-append filename ".XXXXXX"))
          (tmp (mkstemp! template)))
     (call-once
@@ -83,6 +83,9 @@
            (proc tmp)
            (chmod tmp (logand #o0666 (lognot (umask))))
            (close-port tmp)
+           (if reference
+               (let ((st (stat reference)))
+                 (utime template (stat:atime st) (stat:mtime st))))
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))
@@ -145,7 +148,8 @@
       (lambda (port)
         ((language-printer (ensure-language to))
          (read-and-compile in #:env env #:from from #:to to #:opts opts)
-         port)))
+         port))
+      file)
     comp))
 
 (define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))

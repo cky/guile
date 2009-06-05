@@ -556,7 +556,7 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 
 
 static int
-compiled_is_newer (SCM full_filename, SCM compiled_filename)
+compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 {
   char *source, *compiled;
   struct stat stat_source, stat_compiled;
@@ -567,7 +567,7 @@ compiled_is_newer (SCM full_filename, SCM compiled_filename)
     
   if (stat (source, &stat_source) == 0
       && stat (compiled, &stat_compiled) == 0
-      && stat_source.st_mtime <= stat_compiled.st_mtime) 
+      && stat_source.st_mtime == stat_compiled.st_mtime) 
     {
       res = 1;
     }
@@ -707,7 +707,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
 
   if (scm_is_false (full_filename)
       || (scm_is_true (compiled_filename)
-          && compiled_is_newer (full_filename, compiled_filename)))
+          && compiled_is_fresh (full_filename, compiled_filename)))
     return scm_load_compiled_with_vm (compiled_filename);
 
   /* Perhaps there was the installed .go that was stale, but our fallback is
@@ -723,7 +723,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
                      full_filename,
                      scm_car (*scm_loc_load_compiled_extensions)));
       if (scm_is_true (scm_stat (fallback, SCM_BOOL_F))
-          && compiled_is_newer (full_filename, fallback))
+          && compiled_is_fresh (full_filename, fallback))
         {
           scm_puts (";;; found fresh local cache at ", scm_current_error_port ());
           scm_display (fallback, scm_current_error_port ());
