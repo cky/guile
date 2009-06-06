@@ -197,7 +197,7 @@ VM_DEFINE_FUNCTION (99, ge, "ge?", 2)
   ARGS2 (x, y);						\
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))		\
     {							\
-      scm_t_bits n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);\
+      scm_t_int64 n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);\
       if (SCM_FIXABLE (n))				\
 	RETURN (SCM_I_MAKINUM (n));			\
     }							\
