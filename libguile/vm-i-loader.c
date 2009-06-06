@@ -24,13 +24,13 @@ VM_DEFINE_LOADER (59, load_unsigned_integer, "load-unsigned-integer")
   size_t len;
 
   FETCH_LENGTH (len);
-  if (SCM_LIKELY (len <= 4))
+  if (SCM_LIKELY (len <= 8))
     {
-      unsigned int val = 0;
+      scm_t_uint64 val = 0;
       while (len-- > 0)
 	val = (val << 8U) + FETCH ();
       SYNC_REGISTER ();
-      PUSH (scm_from_uint (val));
+      PUSH (scm_from_uint64 (val));
       NEXT;
     }
   else

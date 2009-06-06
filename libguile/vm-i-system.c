@@ -138,6 +138,36 @@ VM_DEFINE_INSTRUCTION (13, make_int16, "make-int16", 2, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (55, make_int64, "make-int64", 8, 0, 1)
+{
+  scm_t_uint64 v = 0;
+  v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  PUSH (scm_from_int64 ((scm_t_int64) v));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (56, make_uint64, "make-uint64", 8, 0, 1)
+{
+  scm_t_uint64 v = 0;
+  v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  PUSH (scm_from_uint64 (v));
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (14, make_char8, "make-char8", 1, 0, 1)
 {
   PUSH (SCM_MAKE_CHAR (FETCH ()));

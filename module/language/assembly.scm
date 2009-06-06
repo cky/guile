@@ -114,6 +114,16 @@
 	       ((and (<= -32768 x) (< x 32768))
 		(let ((n (if (< x 0) (+ x 65536) x)))
 		  `(make-int16 ,(quotient n 256) ,(modulo n 256))))
+               ((and (<= 0 x #xffffffffffffffff))
+                `(make-uint64 ,@(bytevector->u8-list
+                                 (let ((bv (make-bytevector 8)))
+                                   (bytevector-u64-set! bv 0 x (endianness big))
+                                   bv))))
+	       ((and (<= 0 (+ x #x8000000000000000) #x7fffffffffffffff))
+                `(make-int64 ,@(bytevector->u8-list
+                                (let ((bv (make-bytevector 8)))
+                                  (bytevector-s64-set! bv 0 x (endianness big))
+                                  bv))))
 	       (else #f)))
 	((char? x) `(make-char8 ,(char->integer x)))
 	(else #f)))
@@ -128,6 +138,16 @@
     ((make-int16 ,n1 ,n2)
      (let ((n (+ (* n1 256) n2)))
        (if (< n 32768) n (- n 65536))))
+    ((make-uint64 ,n1 ,n2 ,n3 ,n4 ,n5 ,n6 ,n7 ,n8)
+     (bytevector-u64-ref
+      (u8-list->bytevector (list n1 n2 n3 n4 n5 n6 n7 n8))
+      0
+      (endianness big)))
+    ((make-int64 ,n1 ,n2 ,n3 ,n4 ,n5 ,n6 ,n7 ,n8)
+     (bytevector-s64-ref
+      (u8-list->bytevector (list n1 n2 n3 n4 n5 n6 n7 n8))
+      0
+      (endianness big)))
     ((make-char8 ,n)
      (integer->char n))
     ((load-string ,s) s)

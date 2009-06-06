@@ -543,14 +543,8 @@ the instruction pointer to the next VM instruction.
 
 All of these loading instructions have a @code{length} parameter,
 indicating the size of the embedded data, in bytes. The length itself
-may be encoded in 1, 2, or 4 bytes.
+is encoded in 3 bytes.
 
-@deffn Instruction load-integer length
-@deffnx Instruction load-unsigned-integer length
-Load a 32-bit integer or unsigned integer from the instruction stream.
-The bytes of the integer are read in order of decreasing significance
-(i.e., big-endian).
-@end deffn
 @deffn Instruction load-number length
 Load an arbitrary number from the instruction stream. The number is
 embedded in the stream as a string.
@@ -741,6 +735,17 @@ Push the immediate value @code{1} onto the stack.
 
 @deffn Instruction make-int16 value
 Push @var{value}, a 16-bit integer, onto the stack.
+@end deffn
+
+@deffn Instruction make-uint64 value
+Push @var{value}, an unsigned 64-bit integer, onto the stack. The
+value is encoded in 8 bytes, most significant byte first (big-endian).
+@end deffn
+
+@deffn Instruction make-int64 value
+Push @var{value}, a signed 64-bit integer, onto the stack. The value
+is encoded in 8 bytes, most significant byte first (big-endian), in
+twos-complement arithmetic.
 @end deffn
 
 @deffn Instruction make-false
