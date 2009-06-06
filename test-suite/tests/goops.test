@@ -261,6 +261,19 @@
              (method-more-specific? m1 m2 '()))
           (current-module))))
 
+(with-test-prefix "the method cache"
+  (pass-if "defining a method with a rest arg"
+    (let ((m (current-module)))
+      (eval '(define-method (foo bar . baz)
+               (cons bar baz))
+            m)
+      (eval '(foo 1)
+            m)
+      (eval '(foo 1 2)
+            m)
+      (eval '(equal? (foo 1 2) '(1 2))
+            m))))
+
 (with-test-prefix "defining accessors"
 
   (with-test-prefix "define-accessor"

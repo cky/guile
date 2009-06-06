@@ -34,11 +34,12 @@
 
 (define code-table-lookup
   (letrec ((check-entry (lambda (entry types)
-			  (if (null? types)
-			      (and (not (struct? (car entry)))
-				   entry)
-			      (and (eq? (car entry) (car types))
-				   (check-entry (cdr entry) (cdr types)))))))
+                          (cond
+                           ((not (pair? entry)) (and (null? types) entry))
+                           ((null? types) #f)
+                           (else
+                            (and (eq? (car entry) (car types))
+                                 (check-entry (cdr entry) (cdr types))))))))
     (lambda (code-table types)
       (cond ((null? code-table) #f)
 	    ((check-entry (car code-table) types))
