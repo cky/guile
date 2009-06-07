@@ -116,17 +116,26 @@
        (recur body x)
        (hashq-set! bindings x (reverse! (hashq-ref bindings x))))
 
-      ((<let> vars vals exp)
+      ((<let> vars vals body)
        (for-each step vals)
        (hashq-set! bindings parent
                    (append (reverse vars) (hashq-ref bindings parent)))
-       (step exp))
+       (step body))
       
-      ((<letrec> vars vals exp)
+      ((<letrec> vars vals body)
        (hashq-set! bindings parent
                    (append (reverse vars) (hashq-ref bindings parent)))
        (for-each step vals)
-       (step exp))
+       (step body))
+
+      ((<let-values> vars exp body)
+       (hashq-set! bindings parent
+                   (let lp ((out (hashq-ref bindings parent)) (in vars))
+                     (if (pair? in)
+                         (lp (cons (car in) out) (cdr in))
+                         (if (null? in) out (cons in out)))))
+       (step exp)
+       (step body))
 
       (else #f)))
 
@@ -174,26 +183,26 @@
                  (lp (if (pair? vars) (cdr vars) '()) (1+ n)))))
          n)
 
-        ((<let> vars vals exp)
+        ((<let> vars vals body)
          (let ((nmax (apply max (map recur vals))))
            (cond
             ;; the `or' hack
-            ((and (conditional? exp)
+            ((and (conditional? body)
                   (= (length vars) 1)
                   (let ((v (car vars)))
                     (and (not (hashq-ref heaps v))
                          (= (hashq-ref refcounts v 0) 2)
-                         (lexical-ref? (conditional-test exp))
-                         (eq? (lexical-ref-gensym (conditional-test exp)) v)
-                         (lexical-ref? (conditional-then exp))
-                         (eq? (lexical-ref-gensym (conditional-then exp)) v))))
+                         (lexical-ref? (conditional-test body))
+                         (eq? (lexical-ref-gensym (conditional-test body)) v)
+                         (lexical-ref? (conditional-then body))
+                         (eq? (lexical-ref-gensym (conditional-then body)) v))))
              (hashq-set! allocation (car vars) (cons 'stack n))
              ;; the 1+ for this var
-             (max nmax (1+ n) (allocate! (conditional-else exp) level n)))
+             (max nmax (1+ n) (allocate! (conditional-else body) level n)))
             (else
              (let lp ((vars vars) (n n))
                (if (null? vars)
-                   (max nmax (allocate! exp level n))
+                   (max nmax (allocate! body level n))
                    (let ((v (car vars)))
                      (let ((binder (hashq-ref heaps v)))
                        (hashq-set!
@@ -203,14 +212,14 @@
                             (cons 'stack n)))
                        (lp (cdr vars) (if binder n (1+ n)))))))))))
         
-        ((<letrec> vars vals exp)
+        ((<letrec> vars vals body)
          (let lp ((vars vars) (n n))
            (if (null? vars)
                (let ((nmax (apply max
                                   (map (lambda (x)
                                          (allocate! x level n))
                                        vals))))
-                 (max nmax (allocate! exp level n)))
+                 (max nmax (allocate! body level n)))
                (let ((v (car vars)))
                  (let ((binder (hashq-ref heaps v)))
                    (hashq-set!
@@ -220,6 +229,21 @@
                         (cons 'stack n)))
                    (lp (cdr vars) (if binder n (1+ n))))))))
 
+        ((<let-values> vars exp body)
+         (let ((nmax (recur exp)))
+           (let lp ((vars vars) (n n))
+             (if (null? vars)
+                 (max nmax (allocate! body level n))
+                 (let ((v (if (pair? vars) (car vars) vars)))
+                   (let ((binder (hashq-ref heaps v)))
+                     (hashq-set!
+                      allocation v
+                      (if binder
+                          (cons* 'heap level (allocate-heap! binder))
+                          (cons 'stack n)))
+                     (lp (if (pair? vars) (cdr vars) '())
+                         (if binder n (1+ n)))))))))
+        
         (else n)))
 
   (define parents (make-hash-table))

@@ -35,9 +35,10 @@
             <application> application? make-application application-src application-proc application-args
             <sequence> sequence? make-sequence sequence-src sequence-exps
             <lambda> lambda? make-lambda lambda-src lambda-names lambda-vars lambda-meta lambda-body
-            <let> let? make-let let-src let-names let-vars let-vals let-exp
-            <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-exp
-
+            <let> let? make-let let-src let-names let-vars let-vals let-body
+            <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
+            <let-values> let-values? make-let-values let-values-src let-values-names let-values-vars let-values-exp let-values-body
+            
             parse-tree-il
             unparse-tree-il
             tree-il->scheme
@@ -60,8 +61,9 @@
   (<application> proc args)
   (<sequence> exps)
   (<lambda> names vars meta body)
-  (<let> names vars vals exp)
-  (<letrec> names vars vals exp))
+  (<let> names vars vals body)
+  (<letrec> names vars vals body)
+  (<let-values> names vars exp body))
   
 
 
@@ -128,11 +130,14 @@
      ((begin . ,exps)
       (make-sequence loc (map retrans exps)))
 
-     ((let ,names ,vars ,vals ,exp)
-      (make-let loc names vars (map retrans vals) (retrans exp)))
+     ((let ,names ,vars ,vals ,body)
+      (make-let loc names vars (map retrans vals) (retrans body)))
 
-     ((letrec ,names ,vars ,vals ,exp)
-      (make-letrec loc names vars (map retrans vals) (retrans exp)))
+     ((letrec ,names ,vars ,vals ,body)
+      (make-letrec loc names vars (map retrans vals) (retrans body)))
+
+     ((let-values ,names ,vars ,exp ,body)
+      (make-let-values loc names vars (retrans exp) (retrans body)))
 
      (else
       (error "unrecognized tree-il" exp)))))
@@ -181,140 +186,120 @@
     ((<sequence> exps)
      `(begin ,@(map unparse-tree-il exps)))
 
-    ((<let> names vars vals exp)
-     `(let ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il exp)))
+    ((<let> names vars vals body)
+     `(let ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
 
-    ((<letrec> names vars vals exp)
-     `(letrec ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il exp)))))
+    ((<letrec> names vars vals body)
+     `(letrec ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
+
+    ((<let-values> names vars exp body)
+     `(let-values ,names ,vars ,(unparse-tree-il exp) ,(unparse-tree-il body)))))
 
 (define (tree-il->scheme e)
-  (cond ((list? e)
-         (map tree-il->scheme e))
-        ((pair? e)
-         (cons (tree-il->scheme (car e))
-               (tree-il->scheme (cdr e))))
-        ((record? e)
-         (record-case e
-           ((<void>)
-            '(if #f #f))
+  (record-case e
+    ((<void>)
+     '(if #f #f))
 
-           ((<application> proc args)
-            `(,(tree-il->scheme proc) ,@(map tree-il->scheme args)))
+    ((<application> proc args)
+     `(,(tree-il->scheme proc) ,@(map tree-il->scheme args)))
 
-           ((<conditional> test then else)
-            (if (void? else)
-                `(if ,(tree-il->scheme test) ,(tree-il->scheme then))
-                `(if ,(tree-il->scheme test) ,(tree-il->scheme then) ,(tree-il->scheme else))))
+    ((<conditional> test then else)
+     (if (void? else)
+         `(if ,(tree-il->scheme test) ,(tree-il->scheme then))
+         `(if ,(tree-il->scheme test) ,(tree-il->scheme then) ,(tree-il->scheme else))))
 
-           ((<primitive-ref> name)
-            name)
-           
-           ((<lexical-ref> name gensym)
-            gensym)
-           
-           ((<lexical-set> name gensym exp)
-            `(set! ,gensym ,(tree-il->scheme exp)))
-           
-           ((<module-ref> mod name public?)
-            `(,(if public? '@ '@@) ,mod ,name))
-           
-           ((<module-set> mod name public? exp)
-            `(set! (,(if public? '@ '@@) ,mod ,name) ,(tree-il->scheme exp)))
-           
-           ((<toplevel-ref> name)
-            name)
-           
-           ((<toplevel-set> name exp)
-            `(set! ,name ,(tree-il->scheme exp)))
-           
-           ((<toplevel-define> name exp)
-            `(define ,name ,(tree-il->scheme exp)))
-           
-           ((<lambda> vars meta body)
-            `(lambda ,vars
-               ,@(cond ((assq-ref meta 'documentation) => list) (else '()))
-               ,(tree-il->scheme body)))
-           
-           ((<const> exp)
-            (if (and (self-evaluating? exp) (not (vector? exp)))
-                exp
-                (list 'quote exp)))
-           
-           ((<sequence> exps)
-            `(begin ,@(map tree-il->scheme exps)))
-           
-           ((<let> vars vals exp)
-            `(let ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme exp)))
-           
-           ((<letrec> vars vals exp)
-            `(letrec ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme exp)))))
-        (else e)))
+    ((<primitive-ref> name)
+     name)
+    
+    ((<lexical-ref> name gensym)
+     gensym)
+    
+    ((<lexical-set> name gensym exp)
+     `(set! ,gensym ,(tree-il->scheme exp)))
+    
+    ((<module-ref> mod name public?)
+     `(,(if public? '@ '@@) ,mod ,name))
+    
+    ((<module-set> mod name public? exp)
+     `(set! (,(if public? '@ '@@) ,mod ,name) ,(tree-il->scheme exp)))
+    
+    ((<toplevel-ref> name)
+     name)
+    
+    ((<toplevel-set> name exp)
+     `(set! ,name ,(tree-il->scheme exp)))
+    
+    ((<toplevel-define> name exp)
+     `(define ,name ,(tree-il->scheme exp)))
+    
+    ((<lambda> vars meta body)
+     `(lambda ,vars
+        ,@(cond ((assq-ref meta 'documentation) => list) (else '()))
+        ,(tree-il->scheme body)))
+    
+    ((<const> exp)
+     (if (and (self-evaluating? exp) (not (vector? exp)))
+         exp
+         (list 'quote exp)))
+    
+    ((<sequence> exps)
+     `(begin ,@(map tree-il->scheme exps)))
+    
+    ((<let> vars vals body)
+     `(let ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme body)))
+    
+    ((<letrec> vars vals body)
+     `(letrec ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme body)))
+
+    ((<let-values> vars exp body)
+     `(call-with-values (lambda () ,(tree-il->scheme exp))
+        (lambda ,vars ,(tree-il->scheme body))))))
 
 (define (post-order! f x)
   (let lp ((x x))
     (record-case x
-      ((<void>)
-       (or (f x) x))
-
       ((<application> proc args)
        (set! (application-proc x) (lp proc))
-       (set! (application-args x) (map lp args))
-       (or (f x) x))
+       (set! (application-args x) (map lp args)))
 
       ((<conditional> test then else)
        (set! (conditional-test x) (lp test))
        (set! (conditional-then x) (lp then))
-       (set! (conditional-else x) (lp else))
-       (or (f x) x))
-
-      ((<primitive-ref> name)
-       (or (f x) x))
-             
-      ((<lexical-ref> name gensym)
-       (or (f x) x))
-             
+       (set! (conditional-else x) (lp else)))
+      
       ((<lexical-set> name gensym exp)
-       (set! (lexical-set-exp x) (lp exp))
-       (or (f x) x))
-             
-      ((<module-ref> mod name public?)
-       (or (f x) x))
-             
+       (set! (lexical-set-exp x) (lp exp)))
+      
       ((<module-set> mod name public? exp)
-       (set! (module-set-exp x) (lp exp))
-       (or (f x) x))
-
-      ((<toplevel-ref> name)
-       (or (f x) x))
-
+       (set! (module-set-exp x) (lp exp)))
+      
       ((<toplevel-set> name exp)
-       (set! (toplevel-set-exp x) (lp exp))
-       (or (f x) x))
-
+       (set! (toplevel-set-exp x) (lp exp)))
+      
       ((<toplevel-define> name exp)
-       (set! (toplevel-define-exp x) (lp exp))
-       (or (f x) x))
-
+       (set! (toplevel-define-exp x) (lp exp)))
+      
       ((<lambda> vars meta body)
-       (set! (lambda-body x) (lp body))
-       (or (f x) x))
-
-      ((<const> exp)
-       (or (f x) x))
-
+       (set! (lambda-body x) (lp body)))
+      
       ((<sequence> exps)
-       (set! (sequence-exps x) (map lp exps))
-       (or (f x) x))
-
-      ((<let> vars vals exp)
+       (set! (sequence-exps x) (map lp exps)))
+      
+      ((<let> vars vals body)
        (set! (let-vals x) (map lp vals))
-       (set! (let-exp x) (lp exp))
-       (or (f x) x))
-
-      ((<letrec> vars vals exp)
+       (set! (let-body x) (lp body)))
+      
+      ((<letrec> vars vals body)
        (set! (letrec-vals x) (map lp vals))
-       (set! (letrec-exp x) (lp exp))
-       (or (f x) x)))))
+       (set! (letrec-body x) (lp body)))
+      
+      ((<let-values> vars exp body)
+       (set! (let-values-exp x) (lp exp))
+       (set! (let-values-body x) (lp body)))
+      
+      (else #f))
+    
+    (or (f x) x)))
 
 (define (pre-order! f x)
   (let lp ((x x))
@@ -347,13 +332,17 @@
         ((<sequence> exps)
          (set! (sequence-exps x) (map lp exps)))
 
-        ((<let> vars vals exp)
+        ((<let> vars vals body)
          (set! (let-vals x) (map lp vals))
-         (set! (let-exp x) (lp exp)))
+         (set! (let-body x) (lp body)))
 
-        ((<letrec> vars vals exp)
+        ((<letrec> vars vals body)
          (set! (letrec-vals x) (map lp vals))
-         (set! (letrec-exp x) (lp exp)))
+         (set! (letrec-body x) (lp body)))
+
+        ((<let-values> vars exp body)
+         (set! (let-values-exp x) (lp exp))
+         (set! (let-values-body x) (lp body)))
 
         (else #f))
       x)))

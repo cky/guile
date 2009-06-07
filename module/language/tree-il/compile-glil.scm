@@ -150,22 +150,24 @@
   (define (emit-branch src inst label)
     (emit-code src (make-glil-branch inst label)))
 
-  (let comp ((x x) (context 'tail))
-    (define (comp-tail tree) (comp tree context))
-    (define (comp-push tree) (comp tree 'push))
-    (define (comp-drop tree) (comp tree 'drop))
+  ;; LMVRA == "let-values MV return address"
+  (let comp ((x x) (context 'tail) (LMVRA #f))
+    (define (comp-tail tree) (comp tree context LMVRA))
+    (define (comp-push tree) (comp tree 'push #f))
+    (define (comp-drop tree) (comp tree 'drop #f))
+    (define (comp-vals tree LMVRA) (comp tree 'vals LMVRA))
 
     (record-case x
       ((<void>)
        (case context
-         ((push) (emit-code #f (make-glil-void)))
+         ((push vals) (emit-code #f (make-glil-void)))
          ((tail)
           (emit-code #f (make-glil-void))
           (emit-code #f (make-glil-call 'return 1)))))
 
       ((<const> src exp)
        (case context
-         ((push) (emit-code src (make-glil-const exp)))
+         ((push vals) (emit-code src (make-glil-const exp)))
          ((tail)
           (emit-code src (make-glil-const exp))
           (emit-code #f (make-glil-call 'return 1)))))
@@ -189,7 +191,7 @@
                (args (cdr args)))
            (cond
             ((and (primitive-ref? proc) (eq? (primitive-ref-name proc) 'values)
-                  (not (eq? context 'push)))
+                  (not (eq? context 'push)) (not (eq? context 'vals)))
              ;; tail: (lambda () (apply values '(1 2)))
              ;; drop: (lambda () (apply values '(1 2)) 3)
              ;; push: (lambda () (list (apply values '(10 12)) 1))
@@ -209,6 +211,11 @@
                 (comp-push proc)
                 (for-each comp-push args)
                 (emit-code src (make-glil-call 'apply (1+ (length args)))))
+               ((vals)
+                (comp-vals
+                 (make-application src (make-primitive-ref #f 'apply)
+                                   (cons proc args))
+                 LMVRA))
                ((drop)
                 ;; Well, shit. The proc might return any number of
                 ;; values (including 0), since it's in a drop context,
@@ -223,11 +230,17 @@
          ;; tail: (lambda () (values '(1 2)))
          ;; drop: (lambda () (values '(1 2)) 3)
          ;; push: (lambda () (list (values '(10 12)) 1))
+         ;; vals: (let-values (((a b ...) (values 1 2 ...))) ...)
          (case context
            ((drop) (for-each comp-drop args))
+           ((vals)
+            (for-each comp-push args)
+            (emit-code #f (make-glil-const (length args)))
+            (emit-branch src 'br LMVRA))
            ((tail)
             (for-each comp-push args)
             (emit-code src (make-glil-call 'return/values (length args))))))
+        
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@call-with-values)
               (= (length args) 2))
@@ -238,22 +251,30 @@
          ;; goto POST
          ;; MV: [tail-]call/nargs
          ;; POST: (maybe-drop)
-         (let ((MV (make-label)) (POST (make-label))
-               (producer (car args)) (consumer (cadr args)))
-           (comp-push consumer)
-           (comp-push producer)
-           (emit-code src (make-glil-mv-call 0 MV))
-           (case context
-             ((tail) (emit-code src (make-glil-call 'goto/args 1)))
-             (else   (emit-code src (make-glil-call 'call 1))
-                     (emit-branch #f 'br POST)))
-           (emit-label MV)
-           (case context
-             ((tail) (emit-code src (make-glil-call 'goto/nargs 0)))
-             (else   (emit-code src (make-glil-call 'call/nargs 0))
-                     (emit-label POST)
-                     (if (eq? context 'drop)
-                         (emit-code #f (make-glil-call 'drop 1)))))))
+         (case context
+           ((vals)
+            ;; Fall back.
+            (comp-vals
+             (make-application src (make-primitive-ref #f 'call-with-values)
+                               args)
+             LMVRA))
+           (else
+            (let ((MV (make-label)) (POST (make-label))
+                  (producer (car args)) (consumer (cadr args)))
+              (comp-push consumer)
+              (comp-push producer)
+              (emit-code src (make-glil-mv-call 0 MV))
+              (case context
+                ((tail) (emit-code src (make-glil-call 'goto/args 1)))
+                (else   (emit-code src (make-glil-call 'call 1))
+                        (emit-branch #f 'br POST)))
+              (emit-label MV)
+              (case context
+                ((tail) (emit-code src (make-glil-call 'goto/nargs 0)))
+                (else   (emit-code src (make-glil-call 'call/nargs 0))
+                        (emit-label POST)
+                        (if (eq? context 'drop)
+                            (emit-code #f (make-glil-call 'drop 1)))))))))
 
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@call-with-current-continuation)
@@ -262,6 +283,12 @@
            ((tail)
             (comp-push (car args))
             (emit-code src (make-glil-call 'goto/cc 1)))
+           ((vals)
+            (comp-vals
+             (make-application
+              src (make-primitive-ref #f 'call-with-current-continuation)
+              args)
+             LMVRA))
            ((push)
             (comp-push (car args))
             (emit-code src (make-glil-call 'call/cc 1)))
@@ -282,6 +309,7 @@
               (case context
                 ((tail) (emit-code #f (make-glil-call 'return 1)))
                 ((drop) (emit-code #f (make-glil-call 'drop 1))))))
+
         (else
          (comp-push proc)
          (for-each comp-push args)
@@ -289,6 +317,7 @@
            (case context
              ((tail) (emit-code src (make-glil-call 'goto/args len)))
              ((push) (emit-code src (make-glil-call 'call len)))
+             ((vals) (emit-code src (make-glil-call 'mv-call len LMVRA)))
              ((drop)
               (let ((MV (make-label)) (POST (make-label)))
                 (emit-code src (make-glil-mv-call len MV))
@@ -322,7 +351,7 @@
         ((eq? (module-variable (fluid-ref *comp-module*) name)
               (module-variable the-root-module name))
          (case context
-           ((push)
+           ((push vals)
             (emit-code src (make-glil-toplevel 'ref name)))
            ((tail)
             (emit-code src (make-glil-toplevel 'ref name))
@@ -330,7 +359,7 @@
         (else
          (pk 'ew-the-badness x (current-module) (fluid-ref *comp-module*))
          (case context
-           ((push)
+           ((push vals)
             (emit-code src (make-glil-module 'ref '(guile) name #f)))
            ((tail)
             (emit-code src (make-glil-module 'ref '(guile) name #f))
@@ -338,7 +367,7 @@
 
       ((<lexical-ref> src name gensym)
        (case context
-         ((push tail)
+         ((push vals tail)
           (let ((loc (hashq-ref allocation gensym)))
             (case (car loc)
               ((stack)
@@ -361,7 +390,7 @@
                             'set (- level (cadr loc)) (cddr loc))))
            (else (error "badness" x loc))))
        (case context
-         ((push)
+         ((push vals)
           (emit-code #f (make-glil-void)))
          ((tail) 
           (emit-code #f (make-glil-void))
@@ -377,7 +406,7 @@
        (comp-push exp)
        (emit-code src (make-glil-module 'set mod name public?))
        (case context
-         ((push)
+         ((push vals)
           (emit-code #f (make-glil-void)))
          ((tail) 
           (emit-code #f (make-glil-void))
@@ -393,7 +422,7 @@
        (comp-push exp)
        (emit-code src (make-glil-toplevel 'set name))
        (case context
-         ((push)
+         ((push vals)
           (emit-code #f (make-glil-void)))
          ((tail) 
           (emit-code #f (make-glil-void))
@@ -403,7 +432,7 @@
        (comp-push exp)
        (emit-code src (make-glil-toplevel 'define name))
        (case context
-         ((push)
+         ((push vals)
           (emit-code #f (make-glil-void)))
          ((tail) 
           (emit-code #f (make-glil-void))
@@ -411,13 +440,13 @@
 
       ((<lambda>)
        (case context
-         ((push)
+         ((push vals)
           (emit-code #f (flatten-lambda x level allocation)))
          ((tail)
           (emit-code #f (flatten-lambda x level allocation))
           (emit-code #f (make-glil-call 'return 1)))))
 
-      ((<let> src names vars vals exp)
+      ((<let> src names vars vals body)
        (for-each comp-push vals)
        (emit-bindings src names vars allocation emit-code)
        (for-each (lambda (v)
@@ -429,10 +458,10 @@
                         (emit-code src (make-glil-external 'set 0 (cddr loc))))
                        (else (error "badness" x loc)))))
                  (reverse vars))
-       (comp-tail exp)
+       (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 
-      ((<letrec> src names vars vals exp)
+      ((<letrec> src names vars vals body)
        (for-each comp-push vals)
        (emit-bindings src names vars allocation emit-code)
        (for-each (lambda (v)
@@ -444,5 +473,35 @@
                         (emit-code src (make-glil-external 'set 0 (cddr loc))))
                        (else (error "badness" x loc)))))
                  (reverse vars))
-       (comp-tail exp)
-       (emit-code #f (make-glil-unbind))))))
+       (comp-tail body)
+       (emit-code #f (make-glil-unbind)))
+
+      ((<let-values> src names vars exp body)
+       (let lp ((names '()) (vars '()) (inames names) (ivars vars) (rest? #f))
+         (cond
+          ((pair? inames)
+           (lp (cons (car inames) names) (cons (car ivars) vars)
+               (cdr inames) (cdr ivars) #f))
+          ((not (null? inames))
+           (lp (cons inames names) (cons ivars vars) '() '() #t))
+          (else
+           (let ((names (reverse! names))
+                 (vars (reverse! vars))
+                 (MV (make-label)))
+             (comp-vals exp MV)
+             (emit-code #f (make-glil-const 1))
+             (emit-label MV)
+             (emit-code src (make-glil-mv-bind
+                             (vars->bind-list names vars allocation)
+                             rest?))
+             (for-each (lambda (v)
+                         (let ((loc (hashq-ref allocation v)))
+                           (case (car loc)
+                             ((stack)
+                              (emit-code src (make-glil-local 'set (cdr loc))))
+                             ((heap)
+                              (emit-code src (make-glil-external 'set 0 (cddr loc))))
+                             (else (error "badness" x loc)))))
+                       (reverse vars))
+             (comp-tail body)
+             (emit-code #f (make-glil-unbind))))))))))
