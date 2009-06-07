@@ -62,7 +62,7 @@ EXTRA_DIST += ice-9/test.scm ice-9/compile-psyntax.scm ice-9/ChangeLog-2008
 #    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax-pp.scm
 include $(top_srcdir)/am/pre-inst-guile
 ice-9/psyntax-pp.scm: ice-9/psyntax.scm
-	$(preinstguile) -s $(srcdir)/ice-9/compile-psyntax.scm \
+	$(preinstguile) --no-autocompile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 SCHEME_LANG_SOURCES =						\

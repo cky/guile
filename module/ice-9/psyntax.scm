@@ -1178,8 +1178,9 @@
 		  (type (binding-type (lookup n r mod))))
              (case type
                ((global core macro module-ref)
-                ;; affect compile-time environment
-                (if (not (module-local-variable (current-module) n))
+                ;; affect compile-time environment (once we have booted)
+                (if (and (not (module-local-variable (current-module) n))
+                         (current-module))
                     (module-define! (current-module) n #f))
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w mod))
