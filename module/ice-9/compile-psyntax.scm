@@ -1,4 +1,4 @@
-(use-modules (language tree-il))
+(use-modules (language tree-il) (ice-9 pretty-print))
 (let ((source (list-ref (command-line) 1))
       (target (list-ref (command-line) 2)))
   (let ((in (open-input-file source))
@@ -12,9 +12,9 @@
             (close-port out)
             (close-port in))
           (begin
-            (write (tree-il->scheme
-                    (sc-expand x 'c '(compile load eval)))
-                   out)
+            (pretty-print (tree-il->scheme
+                           (sc-expand x 'c '(compile load eval)))
+                          out)
             (newline out)
             (loop (read in))))))
   (system (format #f "mv -f ~s.tmp ~s" target target)))
