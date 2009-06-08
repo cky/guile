@@ -90,7 +90,7 @@ include $(top_srcdir)/am/pre-inst-guile
 
 autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
-	$(top_builddir)/meta/uninstalled-env guile-tools \
+	GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guile-tools \
 	  snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
 	  > $(srcdir)/$@
 
