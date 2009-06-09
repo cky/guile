@@ -1,0 +1,23 @@
+Guile's Emacs Lisp compiler
+===========================
+
+This is more or less a lot of work in progress.  Here are some notes as well
+as status information.
+
+Already implemented:
+  * progn
+  * if, cond
+  * and
+  * quote
+
+Especially still missing:
+  * other progX forms, will be done in macros
+  * where, unless, will be done in macros
+  * or
+  * while, other loops using macros
+  * catch/throw, unwind-protect
+  * real elisp reader instead of Scheme's
+  * handling of variables: setq, referencing, let -- using fluids for scoping
+  * macros
+  * general primitives (+, -, *, cons, ...)
+  * functions, lambdas
