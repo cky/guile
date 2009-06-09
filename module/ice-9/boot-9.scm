@@ -2324,9 +2324,9 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;;
 
 (defmacro define-option-interface (option-group)
-  (let* ((option-name car)
-	 (option-value cadr)
-	 (option-documentation caddr)
+  (let* ((option-name 'car)
+	 (option-value 'cadr)
+	 (option-documentation 'caddr)
 
 	 ;; Below follow the macros defining the run-time option interfaces.
 
@@ -2337,15 +2337,15 @@ module '(ice-9 q) '(make-q q-length))}."
 				   (,interface (car args)) (,interface))
 				  (else (for-each
                                          (lambda (option)
-                                           (display (option-name option))
+                                           (display (,option-name option))
                                            (if (< (string-length
-                                                   (symbol->string (option-name option)))
+                                                   (symbol->string (,option-name option)))
                                                   8)
                                                (display #\tab))
                                            (display #\tab)
-                                           (display (option-value option))
+                                           (display (,option-value option))
                                            (display #\tab)
-                                           (display (option-documentation option))
+                                           (display (,option-documentation option))
                                            (newline))
                                          (,interface #t)))))))
 
