@@ -105,12 +105,12 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/parse-lalr.scm		\
   language/ecmascript/tokenize.scm		\
   language/ecmascript/parse.scm			\
-  language/ecmascript/spec.scm			\
   language/ecmascript/impl.scm			\
   language/ecmascript/base.scm			\
   language/ecmascript/function.scm		\
   language/ecmascript/array.scm			\
-  language/ecmascript/compile-ghil.scm
+  language/ecmascript/compile-ghil.scm		\
+  language/ecmascript/spec.scm
 
 SCRIPTS_SOURCES =				\
   scripts/PROGRAM.scm				\

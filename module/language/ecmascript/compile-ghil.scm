@@ -50,17 +50,6 @@
 	 (and (not (null? props))
               props))))
 
-;; The purpose, you ask? To avoid non-tail recursion when expanding a
-;; long pmatch sequence.
-(define-macro (ormatch x . clauses)
-  (let ((X (gensym)))
-    `(let ((,X ,x))
-       (or ,@(map (lambda (c)
-                    (if (eq? (car c) 'else)
-                        `(begin . ,(cdr c))
-                        `(pmatch ,X ,c (else #f))))
-                  clauses)))))
-
 (define (comp x e)
   (let ((l (location x)))
     (define (let1 what proc)
@@ -74,7 +63,7 @@
           (-> (bind vars (list what)
                     (-> (begin (list (proc (car vars))
                                      (-> (ref (car vars)))))))))))
-    (ormatch x
+    (pmatch x
       (null
        ;; FIXME, null doesn't have much relation to EOL...
        (-> (quote '())))

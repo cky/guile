@@ -382,8 +382,12 @@
 (define (apply-to-args args fn) (apply fn args))
 
 (defmacro false-if-exception (expr)
-  `(catch #t (lambda () ,expr)
-	  (lambda args #f)))
+  `(catch #t
+     (lambda ()
+       ;; avoid saving backtraces inside false-if-exception
+       (with-fluid* the-last-stack (fluid-ref the-last-stack)
+         (lambda () ,expr)))
+     (lambda args #f)))
 
 
 
