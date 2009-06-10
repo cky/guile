@@ -3028,8 +3028,19 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_INTEGER, "depth", 20, "Maximal length of printed backtrace." },
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
+  /* This default stack limit will be overridden by debug.c:init_stack_limit(),
+     if we have getrlimit() and the stack limit is not INFINITY. But it is still
+     important, as some systems have both the soft and the hard limits set to
+     INFINITY; in that case we fall back to this value.
 
-  { SCM_OPTION_INTEGER, "stack", 40000, "Stack size limit (measured in words; 0 = no check)." },
+     The situation is aggravated by certain compilers, which can consume
+     "beaucoup de stack", as they say in France.
+
+     See http://thread.gmane.org/gmane.lisp.guile.devel/8599/focus=8662 for
+     more discussion. This setting is 640 KB on 32-bit arches (should be enough
+     for anyone!) or a whoppin' 1280 KB on 64-bit arches.
+  */
+  { SCM_OPTION_INTEGER, "stack", 160000, "Stack size limit (measured in words; 0 = no check)." },
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T,
     "Show file names and line numbers "
     "in backtraces when not `#f'.  A value of `base' "
