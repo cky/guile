@@ -410,15 +410,11 @@
 ;;   (defmacro* transmorgify (a #:optional b)
 
 (defmacro defmacro* (NAME ARGLIST . BODY)
-  (defmacro*-guts 'define NAME ARGLIST BODY))
+  `(define-macro ,NAME #f (lambda* ,ARGLIST ,@BODY)))
 
 (defmacro defmacro*-public (NAME ARGLIST . BODY)
-  (defmacro*-guts 'define-public NAME ARGLIST BODY))
-
-;; The guts of defmacro* and defmacro*-public
-(define (defmacro*-guts DT NAME ARGLIST BODY)
-  `(,DT ,NAME
-	(,(lambda (transformer) (defmacro:transformer transformer))
-	 (lambda* ,ARGLIST ,@BODY))))
+  `(begin
+     (defmacro* ,NAME ,ARGLIST ,@BODY)
+     (export-syntax ,NAME)))
 
 ;;; optargs.scm ends here

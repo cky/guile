@@ -2931,8 +2931,6 @@ module '(ice-9 q) '(make-q q-length))}."
     (process-use-modules (list (list ,@(compile-interface-spec spec))))
     *unspecified*))
 
-;; Dirk:FIXME:: This incorrect (according to R5RS) syntax needs to be changed
-;; as soon as guile supports hygienic macros.
 (define-syntax define-private
   (syntax-rules ()
     ((_ foo bar)
