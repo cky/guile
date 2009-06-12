@@ -1109,7 +1109,7 @@ initialize_custom_binary_output_ports (void)
 void
 scm_init_r6rs_ports (void)
 {
-#include "r6rs-ports.x"
+#include "libguile/r6rs-ports.x"
 
   initialize_bytevector_input_ports ();
   initialize_custom_binary_input_ports ();
