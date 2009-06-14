@@ -7,7 +7,7 @@ AC_INIT(guile-readline,
 ]),
 	[bug-guile@gnu.org])
 
-AC_CONFIG_AUX_DIR([.])
+AC_CONFIG_AUX_DIR([../build-aux])
 AC_CONFIG_SRCDIR(readline.c)
 AM_CONFIG_HEADER([guile-readline-config.h])
 AM_INIT_AUTOMAKE([foreign no-define])
@@ -38,6 +38,7 @@ for termlib in ncurses curses termcap terminfo termlib ; do
                 [LIBS="-l${termlib} $LIBS"; break])
 done
 
+AC_LIB_LINKFLAGS(readline)
 AC_CHECK_LIB(readline, readline)
 if test $ac_cv_lib_readline_readline = no; then
   AC_MSG_WARN([libreadline was not found on your system.])

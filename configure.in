@@ -827,6 +827,7 @@ fi
 
 
 dnl GMP tests
+AC_LIB_LINKFLAGS(gmp)
 AC_CHECK_LIB([gmp], [__gmpz_init], ,
   [AC_MSG_ERROR([GNU MP not found, see README])])
 
