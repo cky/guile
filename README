@@ -14,7 +14,7 @@ Guile versions with an odd middle number, i.e. 1.9.* are unstable
 development versions.  Even middle numbers indicate stable versions.
 This has been the case since the 1.3.* series.
 
-The next stable release will likely be version 1.10.0.
+The next stable release will likely be version 2.0.0.
 
 Please send bug reports to bug-guile@gnu.org.
 
@@ -27,24 +27,38 @@ Generic instructions for configuring and compiling Guile can be found
 in the INSTALL file.  Guile specific information and configure options
 can be found below, including instructions for installing SLIB.
 
-Guile requires a few external packages and can optionally use a number
-of external packages such as `readline' when they are available.
-Guile expects to be able to find these packages in the default
-compiler setup, it does not try to make any special arrangements
-itself.  For example, for the `readline' package, Guile expects to be
-able to find the include file <readline/readline.h>, without passing
-any special `-I' options to the compiler.
+Guile depends on the following external libraries.
+- libgmp
+- libiconv
+- libintl
+- libltdl
+- libunistring
+It will also use the libreadline library if it is available.  For each
+of these there is a corresponding --with-XXX-prefix option that you
+can use when invoking ./configure, if you have these libraries
+installed in a location other than the standard places (/usr and
+/usr/local).
 
-If you installed an external package, and you used the --prefix
-installation option to install it somewhere else than /usr/local, you
-must arrange for your compiler to find it by default.  If that
-compiler is gcc, one convenient way of making such arrangements is to
-use the --with-local-prefix option during installation, naming the
-same directory as you used in the --prefix option of the package.  In
-particular, it is not good enough to use the same --prefix option when
-you install gcc and the package; you need to use the
---with-local-prefix option as well.  See the gcc documentation for
-more details.
+These options are provided by the Gnulib `havelib' module, and details
+of how they work are documented in `Searching for Libraries' in the
+Gnulib manual (http://www.gnu.org/software/gnulib/manual).  The extent
+to which they work on a given OS depends on whether that OS supports
+encoding full library path names in executables (aka `rpath').  Also
+note that using these options, and hence hardcoding full library path
+names (where that is supported), makes it impossible to later move the
+built executables and libraries to an installation location other than
+the one that was specified at build time.
+
+Another possible approach is to set CPPFLAGS and LDFLAGS before
+running configure, so that they include -I options for all the
+non-standard places where you have installed header files and -L
+options for all the non-standard places where you have installed
+libraries.  This will allow configure and make to find those headers
+and libraries during the build.  The locations found will not be
+hardcoded into the build executables and libraries, so with this
+approach you will probably also need to set LD_LIBRARY_PATH
+correspondingly, to allow Guile to find the necessary libraries again
+at runtime.
 
 
 Required External Packages ================================================
