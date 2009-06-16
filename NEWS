@@ -14,6 +14,12 @@ Changes in 1.9.0:
 
 * Changes to the distribution
 
+** Guile's license is now LGPLv3+
+
+In other words the GNU Lesser General Public License, version 3 or
+later (at the discretion of each person that chooses to redistribute
+part of Guile).
+
 ** Guile now uses Gnulib as a portability aid
 
 * Changes to the stand-alone interpreter

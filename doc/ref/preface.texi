@@ -159,12 +159,12 @@ person would want to do.
 @itemize @bullet
 @item
 The Guile library (libguile) and supporting files are published under
-the terms of the GNU Lesser General Public License version 2.1.  See
-the file @file{COPYING.LIB}.
+the terms of the GNU Lesser General Public License version 3 or later.
+See the files @file{COPYING.LESSER} and @file{COPYING}.
 
 @item
 The Guile readline module is published under the terms of the GNU
-General Public License version 2.  See the file @file{COPYING}.
+General Public License version 3 or later.  See the file @file{COPYING}.
 
 @item
 The manual you're now reading is published under the terms of the GNU

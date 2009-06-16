@@ -323,6 +323,7 @@ About This Distribution ==============================================
 Interesting files include:
 
 - LICENSE, which contains the exact terms of the Guile license.
+- COPYING.LESSER, which contains the terms of the GNU Lesser General Public License.
 - COPYING, which contains the terms of the GNU General Public License.
 - INSTALL, which contains general instructions for building/installing Guile.
 - NEWS, which describes user-visible changes since the last release of Guile.
