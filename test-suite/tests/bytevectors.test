@@ -530,6 +530,60 @@
                                                4)))))))
 
 
+
+(with-test-prefix "Datum Syntax"
+
+  (pass-if "empty"
+    (equal? (with-input-from-string "#vu8()" read)
+            (make-bytevector 0)))
+
+  (pass-if "simple"
+    (equal? (with-input-from-string "#vu8(1 2 3   4 5)" read)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if ">127"
+    (equal? (with-input-from-string "#vu8(0 255 127 128)" read)
+            (u8-list->bytevector '(0 255 127 128))))
+
+  (pass-if "self-evaluating"
+    (equal? (eval (with-input-from-string "#vu8(1 2 3 4 5)" read)
+                  (current-module))
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "quoted"
+    (equal? (eval (with-input-from-string "'#vu8(1 2 3 4 5)" read)
+                  (current-module))
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "literal simple"
+    (equal? #vu8(1 2 3   4 5)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "literal >127"
+    (equal? #vu8(0 255 127 128)
+            (u8-list->bytevector '(0 255 127 128))))
+
+  (pass-if "literal quoted"
+    (equal? '#vu8(1 2 3   4 5)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if-exception "incorrect prefix"
+    exception:read-error
+    (with-input-from-string "#vi8(1 2 3)" read))
+
+  (pass-if-exception "extraneous space"
+    exception:read-error
+    (with-input-from-string "#vu8 (1 2 3)" read))
+
+  (pass-if-exception "negative integers"
+    exception:wrong-type-arg
+    (with-input-from-string "#vu8(-1 -2 -3)" read))
+
+  (pass-if-exception "out-of-range integers"
+    exception:wrong-type-arg
+    (with-input-from-string "#vu8(0 256)" read)))
+
+
 ;;; Local Variables:
 ;;; coding: latin-1
 ;;; mode: scheme

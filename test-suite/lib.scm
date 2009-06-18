@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
  exception:system-error
  exception:miscellaneous-error
  exception:string-contains-nul
+ exception:read-error
 
  ;; Reporting passes and failures.
  run-test
@@ -265,6 +266,8 @@
   (cons 'system-error ".*"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
+(define exception:read-error
+  (cons 'read-error "^.*$"))
 
 ;; as per throw in scm_to_locale_stringn()
 (define exception:string-contains-nul

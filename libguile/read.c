@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -29,6 +29,7 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/unif.h"
@@ -883,6 +884,30 @@ scm_read_srfi4_vector (int chr, SCM port)
 }
 
 static SCM
+scm_read_bytevector (int chr, SCM port)
+{
+  chr = scm_getc (port);
+  if (chr != 'u')
+    goto syntax;
+
+  chr = scm_getc (port);
+  if (chr != '8')
+    goto syntax;
+
+  chr = scm_getc (port);
+  if (chr != '(')
+    goto syntax;
+
+  return scm_u8_list_to_bytevector (scm_read_sexp (chr, port));
+
+ syntax:
+  scm_i_input_error ("read_bytevector", port,
+		     "invalid bytevector prefix",
+		     SCM_MAKE_CHAR (chr));
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
 scm_read_guile_bit_vector (int chr, SCM port)
 {
   /* Read the `#*10101'-style read syntax for bit vectors in Guile.  This is
@@ -1050,6 +1075,8 @@ scm_read_sharp (int chr, SCM port)
     case 'f':
       /* This one may return either a boolean or an SRFI-4 vector.  */
       return (scm_read_srfi4_vector (chr, port));
+    case 'v':
+      return (scm_read_bytevector (chr, port));
     case '*':
       return (scm_read_guile_bit_vector (chr, port));
     case 't':
