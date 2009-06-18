@@ -1054,18 +1054,6 @@ if test $guile_cv_localtime_cache = yes; then
   AC_DEFINE(LOCALTIME_CACHE, 1, [Define if localtime caches the TZ setting.])
 fi
 
-dnl Test whether system calls are restartable by default on the
-dnl current system.  If they are not, we put a loop around every system
-dnl call to check for EINTR (see SCM_SYSCALL) and do not attempt to
-dnl change from the default behaviour.  On the other hand, if signals
-dnl are restartable then the loop is not installed and when libguile
-dnl initialises it also resets the behaviour of each signal to cause a
-dnl restart (in case a different runtime had a different default
-dnl behaviour for some reason: e.g., different versions of linux seem
-dnl to behave differently.)
-
-AC_SYS_RESTARTABLE_SYSCALLS
-
 if test "$enable_regex" = yes; then
    if test "$ac_cv_header_regex_h" = yes ||
       test "$ac_cv_header_rxposix_h" = yes ||

@@ -79,20 +79,6 @@
 #include "libguile/modules.h"
 #include "libguile/inline.h"
 
-/* SCM_SYSCALL retries system calls that have been interrupted (EINTR).
-   However this can be avoided if the operating system can restart
-   system calls automatically.  We assume this is the case if
-   sigaction is available and SA_RESTART is defined; they will be used
-   when installing signal handlers.
-   */
-
-#ifdef HAVE_RESTARTABLE_SYSCALLS
-#if ! SCM_USE_PTHREAD_THREADS /* However, don't assume SA_RESTART 
-                                 works with pthreads... */
-#define SCM_SYSCALL(line) line
-#endif
-#endif
-
 #ifndef SCM_SYSCALL
 #ifdef vms
 # ifndef __GNUC__

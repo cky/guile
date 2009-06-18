@@ -530,26 +530,6 @@ match_paren (int x, int k)
 }
 #endif /* HAVE_RL_GET_KEYMAP */
 
-#if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
-/* Readline disables SA_RESTART on SIGWINCH.
- * This code turns it back on.
- */
-static int
-sigwinch_enable_restart (void)
-{
-#ifdef HAVE_SIGINTERRUPT
-  siginterrupt (SIGWINCH, 0);
-#else
-  struct sigaction action;
-  
-  sigaction (SIGWINCH, NULL, &action);
-  action.sa_flags |= SA_RESTART;
-  sigaction (SIGWINCH, &action, NULL);
-#endif
-  return 0;
-}
-#endif
-
 #endif /* HAVE_RL_GETC_FUNCTION */
 
 void
@@ -569,9 +549,6 @@ scm_init_readline ()
 #endif
   rl_basic_word_break_characters = "\t\n\"'`;()";
   rl_readline_name = "Guile";
-#if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
-  rl_pre_input_hook = sigwinch_enable_restart;
-#endif
 
   reentry_barrier_mutex = scm_permanent_object (scm_make_mutex ());
   scm_init_opts (scm_readline_options,

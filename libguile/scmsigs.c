@@ -306,10 +306,8 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	    "a scheme procedure has been specified, that procedure will run\n"
 	    "in the given @var{thread}.   When no thread has been given, the\n"
 	    "thread that made this call to @code{sigaction} is used.\n"
-	    "Flags can "
-	    "optionally be specified for the new handler (@code{SA_RESTART} will\n"
-	    "always be added if it's available and the system is using restartable\n"
-	    "system calls.)  The return value is a pair with information about the\n"
+	    "Flags can optionally be specified for the new handler.\n"
+	    "The return value is a pair with information about the\n"
 	    "old handler as described above.\n\n"
 	    "This interface does not provide access to the \"signal blocking\"\n"
 	    "facility.  Maybe this is not needed, since the thread support may\n"
@@ -333,14 +331,7 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
   csig = scm_to_signed_integer (signum, 0, NSIG-1);
 
 #if defined(HAVE_SIGACTION)
-#if defined(SA_RESTART) && defined(HAVE_RESTARTABLE_SYSCALLS)
-  /* don't allow SA_RESTART to be omitted if HAVE_RESTARTABLE_SYSCALLS
-     is defined, since libguile would be likely to produce spurious
-     EINTR errors.  */
-  action.sa_flags = SA_RESTART;
-#else
   action.sa_flags = 0;
-#endif
   if (!SCM_UNBNDP (flags))
     action.sa_flags |= scm_to_int (flags);
   sigemptyset (&action.sa_mask);
@@ -712,29 +703,6 @@ scm_init_scmsigs ()
 
 #else
       orig_handlers[i] = SIG_ERR;
-#endif
-
-#ifdef HAVE_RESTARTABLE_SYSCALLS
-      /* If HAVE_RESTARTABLE_SYSCALLS is defined, it's important that
-	 signals really are restartable.  don't rely on the same
-	 run-time that configure got: reset the default for every signal.
-      */
-#ifdef HAVE_SIGINTERRUPT
-      siginterrupt (i, 0);
-#elif defined(SA_RESTART)
-      {
-	struct sigaction action;
-
-	sigaction (i, NULL, &action);
-	if (!(action.sa_flags & SA_RESTART))
-	  {
-	    action.sa_flags |= SA_RESTART;
-	    sigaction (i, &action, NULL);
-	  }
-      }
-#endif
-      /* if neither siginterrupt nor SA_RESTART are available we may
-	 as well assume that signals are always restartable.  */
 #endif
     }
 
