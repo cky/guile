@@ -300,6 +300,11 @@ SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
   return 1;
 }
 
+SCM_SMOB_EQUALP (scm_tc16_bytevector, bytevector_equal_p, bv1, bv2)
+{
+  return scm_bytevector_eq_p (bv1, bv2);
+}
+
 SCM_SMOB_FREE (scm_tc16_bytevector, free_bytevector, bv)
 {
 

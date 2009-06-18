@@ -123,7 +123,12 @@
       (bytevector-sint-set! b 0 -16 (endianness big) 2)
       (bytevector-sint-set! b 1 -16 (endianness little) 2)
       (equal? (bytevector->u8-list b)
-	      '(#xff #xf0 #xff)))))
+	      '(#xff #xf0 #xff))))
+
+  (pass-if "equal?"
+    (let ((bv1 (u8-list->bytevector (iota 123)))
+          (bv2 (u8-list->bytevector (iota 123))))
+      (equal? bv1 bv2))))
 
 
 (with-test-prefix "2.4 Operations on Integers of Arbitrary Size"
