@@ -5,7 +5,454 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
-Changes in 1.9.0:
+Changes in 1.9.1 (changes since the 1.8.x series):
+
+** The stack limit is now initialized from the environment.
+
+If getrlimit(2) is available and a stack limit is set, Guile will set
+its stack limit to 80% of the rlimit. Otherwise the limit is 160000
+words, a four-fold increase from the earlier default limit.
+
+** Fix bad interaction between `false-if-exception' and stack-call.
+
+Exceptions thrown by `false-if-exception' were erronously causing the
+stack to be saved, causing later errors to show the incorrectly-saved
+backtrace. This has been fixed.
+
+** Files loaded with primitive-load-path will now be compiled
+   automatically.
+
+If a compiled .go file corresponding to a .scm file is not found or is
+not fresh, the .scm file will be compiled on the fly, and the resulting
+.go file stored away. An advisory note will be printed on the console.
+
+Note that this mechanism depends on preservation of the .scm and .go
+modification times; if the .scm or .go files are moved after
+installation, care should be taken to preserve their original
+timestamps.
+
+Autocompiled files will be stored in the user's ~/.guile-ccache
+directory, which will be created if needed. This is analogous to
+ccache's behavior for C files.
+
+To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
+variable to 0, or pass --no-autocompile on the Guile command line.
+
+** New environment variables: GUILE_LOAD_COMPILED_PATH,
+   GUILE_SYSTEM_LOAD_COMPILED_PATH
+
+GUILE_LOAD_COMPILED_PATH is for compiled files what GUILE_LOAD_PATH is
+for source files. It is a different path, however, because compiled
+files are architecture-specific. GUILE_SYSTEM_LOAD_COMPILED_PATH is like
+GUILE_SYSTEM_PATH.
+
+** New global variables: %load-compiled-path, %load-compiled-extensions
+
+These are analogous to %load-path and %load-extensions.
+
+** New installation directory: $(pkglibdir)/1.9/ccache
+
+If $(libdir) is /usr/lib, for example, Guile will install its .go files
+to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
+
+** scm_primitive_load_path has additional argument, exception_on_error
+
+** scm_stat has additional argument, exception_on_error
+
+** New entry into %guile-build-info: `ccachedir'
+
+Probably should be removed?
+
+** New reader macros: #' #` #, #,@
+
+These macros translate, respectively, to `syntax', `quasisyntax',
+`unsyntax', and `unsyntax-splicing'. See the R6RS for more information.
+These reader macros may be overridden by `read-hash-extend'.
+
+** Incompatible change to #'
+
+Guile did have a #' hash-extension, by default, which just returned the
+subsequent datum: #'foo => foo. In the unlikely event that anyone
+actually used this, this behavior may be reinstated via the
+`read-hash-extend' mechanism.
+
+** Scheme expresssions may be commented out with #;
+
+#; comments out an entire expression. See the R6RS for more information.
+
+** make-stack with a tail-called procedural narrowing argument no longer
+   works (with compiled procedures)
+
+It used to be the case that a captured stack could be narrowed to select
+calls only up to or from a certain procedure, even if that procedure
+already tail-called another procedure. This was because the debug
+information from the original procedure was kept on the stack.
+
+Now with the new compiler, the stack only contains active frames from
+the current continuation. A narrow to a procedure that is not in the
+stack will result in an empty stack. To fix this, narrow to a procedure
+that is active in the current continuation, or narrow to a specific
+number of stack frames.
+
+** backtraces through compiled procedures only show procedures that are
+   active in the current continuation
+
+Similarly to the previous issue, backtraces in compiled code may be
+different from backtraces in interpreted code. There are no semantic
+differences, however. Please mail bug-guile@gnu.org if you see any
+deficiencies with Guile's backtraces.
+
+** syntax-rules and syntax-case macros now propagate source information
+   through to the expanded code
+
+This should result in better backtraces.
+
+** The currying behavior of `define' has been removed.
+
+Before, `(define ((f a) b) (* a b))' would translate to
+
+  (define f (lambda (a) (lambda (b) (* a b))))
+
+Now a syntax error is signalled, as this syntax is not supported by
+default. If there is sufficient demand, this syntax can be supported
+again by default.
+
+** All modules have names now
+
+Before, you could have anonymous modules: modules without names. Now,
+because of hygiene and macros, all modules have names. If a module was
+created without a name, the first time `module-name' is called on it, a
+fresh name will be lazily generated for it.
+
+** Many syntax errors have different texts now
+
+Syntax errors still throw to the `syntax-error' key, but the arguments
+are often different now. Perhaps in the future, Guile will switch to
+using standard srfi-35 conditions.
+
+** Returning multiple values to compiled code will silently truncate the
+   values to the expected number
+
+For example, the interpreter would raise an error evaluating the form,
+`(+ (values 1 2) (values 3 4))', because it would see the operands as
+being two compound "values" objects, to which `+' does not apply.
+
+The compiler, on the other hand, receives multiple values on the stack,
+not as a compound object. Given that it must check the number of values
+anyway, if too many values are provided for a continuation, it chooses
+to truncate those values, effectively evaluating `(+ 1 3)' instead.
+
+The idea is that the semantics that the compiler implements is more
+intuitive, and the use of the interpreter will fade out with time.
+This behavior is allowed both by the R5RS and the R6RS.
+
+** Multiple values in compiled code are not represented by compound
+   objects
+
+This change may manifest itself in the following situation:
+
+  (let ((val (foo))) (do-something) val)
+
+In the interpreter, if `foo' returns multiple values, multiple values
+are produced from the `let' expression. In the compiler, those values
+are truncated to the first value, and that first value is returned. In
+the compiler, if `foo' returns no values, an error will be raised, while
+the interpreter would proceed.
+
+Both of these behaviors are allowed by R5RS and R6RS. The compiler's
+behavior is more correct, however. If you wish to preserve a potentially
+multiply-valued return, you will need to set up a multiple-value
+continuation, using `call-with-values'.
+
+** Defmacros are now implemented in terms of syntax-case.
+
+The practical ramification of this is that the `defmacro?' predicate has
+been removed, along with `defmacro-transformer', `macro-table',
+`xformer-table', `assert-defmacro?!', `set-defmacro-transformer!' and
+`defmacro:transformer'. This is because defmacros are simply macros. If
+any of these procedures provided useful facilities to you, we encourage
+you to contact the Guile developers.
+
+** psyntax is now the default expander
+
+Scheme code is now expanded by default by the psyntax hygienic macro
+expander. Expansion is performed completely before compilation or
+interpretation.
+
+Notably, syntax errors will be signalled before interpretation begins.
+In the past, many syntax errors were only detected at runtime if the
+code in question was memoized.
+
+As part of its expansion, psyntax renames all lexically-bound
+identifiers. Original identifier names are preserved and given to the
+compiler, but the interpreter will see the renamed variables, e.g.,
+`x432' instead of `x'.
+
+Note that the psyntax that Guile uses is a fork, as Guile already had
+modules before incompatible modules were added to psyntax -- about 10
+years ago! Thus there are surely a number of bugs that have been fixed
+in psyntax since then. If you find one, please notify bug-guile@gnu.org.
+
+** syntax-rules and syntax-case are available by default.
+
+There is no longer any need to import the `(ice-9 syncase)' module
+(which is now deprecated). The expander may be invoked directly via
+`sc-expand', though it is normally searched for via the current module
+transformer.
+
+Also, the helper routines for syntax-case are available in the default
+environment as well: `syntax->datum', `datum->syntax',
+`bound-identifier=?', `free-identifier=?', `generate-temporaries',
+`identifier?', and `syntax-violation'. See the R6RS for documentation.
+
+** Lexical bindings introduced by hygienic macros may not be referenced
+   by nonhygienic macros.
+
+If a lexical binding is introduced by a hygienic macro, it may not be
+referenced by a nonhygienic macro. For example, this works:
+
+  (let ()
+    (define-macro (bind-x val body)
+      `(let ((x ,val)) ,body))
+    (define-macro (ref x)
+      x)
+    (bind-x 10 (ref x)))
+
+But this does not:
+
+  (let ()
+    (define-syntax bind-x
+      (syntax-rules ()
+        ((_ val body) (let ((x val)) body))))
+    (define-macro (ref x)
+      x)
+    (bind-x 10 (ref x)))
+
+It is not normal to run into this situation with existing code. However,
+as code is ported over from defmacros to syntax-case, it is possible to
+run into situations like this. In the future, Guile will probably port
+its `while' macro to syntax-case, which makes this issue one to know
+about.
+
+** Macros may no longer be referenced as first-class values.
+
+In the past, you could evaluate e.g. `if', and get its macro value. Now,
+expanding this form raises a syntax error.
+
+Macros still /exist/ as first-class values, but they must be
+/referenced/ via the module system, e.g. `(module-ref (current-module)
+'if)'.
+
+This decision may be revisited before the 2.0 release. Feedback welcome
+to guile-devel@gnu.org (subscription required) or bug-guile@gnu.org (no
+subscription required).
+
+** New macro type: syncase-macro
+
+XXX Need to decide whether to document this for 2.0, probably should:
+make-syncase-macro, make-extended-syncase-macro, macro-type,
+syncase-macro-type, syncase-macro-binding
+
+** `(ice-9 syncase)' has been deprecated.
+
+As syntax-case is available by default, importing `(ice-9 syncase)' has
+no effect, and will trigger a deprecation warning.
+
+** Fix bug in `module-bound?'.
+
+`module-bound?' was returning true if a module did have a local
+variable, but one that was unbound, but another imported module bound
+the variable. This was an error, and was fixed.
+
+** BUG: Automatic compilation will be attempted when it shouldn't.
+
+For example, the old (lang elisp) modules are meant to be interpreted,
+not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
+something here about module-transformer called for compile.
+
+** Defmacros may now have docstrings.
+
+Indeed, any macro may have a docstring. `object-documentation' from
+`(ice-9 documentation)' may be used to retrieve the docstring, once you
+have a macro value -- but see the above note about first-class macros.
+Docstrings are associated with the syntax transformer procedures.
+
+** `eval-case' has been deprecated, and replaced by `eval-when'.
+
+The semantics of `eval-when' are easier to understand. It is still
+missing documentation, however.
+
+** Guile is now more strict about prohibiting definitions in expression
+   contexts.
+
+Although previous versions of Guile accepted it, the following
+expression is not valid, in R5RS or R6RS:
+
+  (if test (define foo 'bar) (define foo 'baz))
+
+In this specific case, it would be better to do:
+
+  (define foo (if test 'bar 'baz))
+
+It is certainly possible to circumvent this resriction with e.g.
+`(module-define! (current-module) 'foo 'baz)'. We would appreciate
+feedback about this change (a consequence of using psyntax as the
+default expander), and may choose to revisit this situation before 2.0
+in response to user feedback.
+
+** Defmacros must now produce valid Scheme expressions.
+
+It used to be that defmacros could unquote in Scheme values, as a way of
+supporting partial evaluation, and avoiding some hygiene issues. For
+example:
+
+  (define (helper x) ...)
+  (define-macro (foo bar)
+    `(,helper ,bar))
+
+Assuming this macro is in the `(baz)' module, the direct translation of
+this code would be:
+
+  (define (helper x) ...)
+  (define-macro (foo bar)
+    `((@@ (baz) helper) ,bar))
+
+Of course, one could just use a hygienic macro instead:
+
+  (define-syntax foo
+    (syntax-rules ()
+      ((_ bar) (helper bar))))
+
+** Guile's psyntax now supports docstrings and internal definitions.
+
+The following Scheme is not strictly legal:
+
+  (define (foo)
+    "bar"
+    (define (baz) ...)
+    (baz))
+
+However its intent is fairly clear. Guile interprets "bar" to be the
+docstring of `foo', and the definition of `baz' is still in definition
+context.
+
+** Macros need to be defined before their first use.
+
+It used to be that with lazy memoization, this might work:
+
+  (define (foo x)
+    (ref x))
+  (define-macro (ref x) x)
+  (foo 1) => 1
+
+But now, the body of `foo' is interpreted to mean a call to the toplevel
+`ref' function, instead of a macro expansion. The solution is to define
+macros before code that uses them.
+
+** Functions needed by macros at expand-time need to be present at
+   expand-time.
+
+For example, this code will work at the REPL:
+
+  (define (double-helper x) (* x x))
+  (define-macro (double-literal x) (double-helper x))
+  (double-literal 2) => 4
+
+But it will not work when a file is compiled, because the definition of
+`double-helper' is not present at expand-time. The solution is to wrap
+the definition of `double-helper' in `eval-when':
+
+  (eval-when (load compile eval)
+    (define (double-helper x) (* x x)))
+  (define-macro (double-literal x) (double-helper x))
+  (double-literal 2) => 4
+
+See the (currently missing) documentation for eval-when for more
+information.
+
+** New variable, %pre-modules-transformer
+
+Need to document this one some more.
+
+** Temporarily removed functions: `macroexpand', `macroexpand-1'
+
+`macroexpand' will be added back before 2.0. It is unclear how to
+implement `macroexpand-1' with syntax-case, though PLT Scheme does prove
+that it is possible.
+
+** New module: (rnrs bytevector)
+
+See the R6RS for more information.
+
+** New dependency: GNU libunistring.
+
+
+FIXME bytevectors.
+
+FIXME unistring.
+
+more robust threading support.
+
+syncase knows about @/@@
+
+macros and hygiene and modules
+
+eval-closure-module? what?
+
+procedure-module / scm_procedure_module
+
+guile-config info sitedir change -- 922d369
+
+guile-config and pkg-config
+
+(system xref), procedure-callers, procedure-callees, can work as
+variables get redefined
+
+getrlimit and setrlimit wrappers
+
+FIXME: getrlimit crazy namespaces...
+
+add method-formals
+
+BUG? procedure-property 'arity on compiled procedures will be wrong
+
+BUG: SCM_SNAME -> SCM_SUBR_NAME
+
+(ice-9 session):
+add-value-help-handler! remove-value-help-handler!
+add-name-help-handler! remove-name-help-handler!
+export module-commentary
+procedure-arguments
+
+procedure->memoizing-macro, procedure->syntax totally superdeprecated?
+
+FIXME: update copyrights
+
+ecmascript support?
+
+new repl...
+
+guile-tools compile, guile-tools disassemble (does that work?)
+
+BUG: stack walks to see number of frames, then fills those frames.
+sometimes those numbers differ, warning to console, a test case would be
+nice.
+
+FIXME: dance disassembly bug
+
+srfi-18
+
+<method> has formals, body slots; (make-procedure & procedure ?)
+
+FIXME: rewrite while
+
+removed (the-environment)
+
+new function: scm_module_public_interface
+
+BUG: help at guile prompt
+
+new procedure, make-promise
 
 * New modules (see the manual for details)
 
@@ -19,8 +466,6 @@ Changes in 1.9.0:
 In other words the GNU Lesser General Public License, version 3 or
 later (at the discretion of each person that chooses to redistribute
 part of Guile).
-
-** Guile now uses Gnulib as a portability aid
 
 * Changes to the stand-alone interpreter
 * Changes to Scheme functions and syntax
@@ -45,13 +490,6 @@ application code.
 
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
-
-** Primitive procedures (aka. "subrs") are now stored in double cells
-This removes the subr table and simplifies the code.
-
-** Primitive procedures with more than 3 arguments (aka. "gsubrs") are
-no longer implemented using the "compiled closure" mechanism.  This
-simplifies code and reduces both the storage and run-time overhead.
 
 
 Changes in 1.8.7 (since 1.8.6)
