@@ -12,6 +12,7 @@ Changes in 1.9.0 (changes since the 1.8.x series):
 ** `(srfi srfi-18)', more sophisticated multithreading support
 ** `(ice-9 i18n)', internationalization support
 ** `(rnrs bytevector)', the R6RS bytevector API
+** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
 
 * Changes to the stand-alone interpreter
@@ -43,7 +44,7 @@ documented in the manual. This will be fixed before 2.0.
 
 ** New `guile-tools' commands: `compile', `disassemble'
 
-Pass the --help command-line option to these commands for more
+Pass the `--help' command-line option to these commands for more
 information.
 
 * Changes to Scheme functions and syntax
@@ -53,7 +54,7 @@ information.
 This procedure was part of the interpreter's execution model, and does
 not apply to the compiler.
 
-** Files loaded with primitive-load-path will now be compiled
+** Files loaded with `primitive-load-path' will now be compiled
    automatically.
 
 If a compiled .go file corresponding to a .scm file is not found or is
@@ -273,9 +274,10 @@ actually used this, this behavior may be reinstated via the
 
 ** Scheme expresssions may be commented out with #;
 
-#; comments out an entire expression. See the R6RS for more information.
+#; comments out an entire expression.  See SRFI-62 or the R6RS for more
+information.
 
-** make-stack with a tail-called procedural narrowing argument no longer
+** `make-stack' with a tail-called procedural narrowing argument no longer
    works (with compiled procedures)
 
 It used to be the case that a captured stack could be narrowed to select
@@ -308,7 +310,7 @@ Before, `(define ((f a) b) (* a b))' would translate to
 
   (define f (lambda (a) (lambda (b) (* a b))))
 
-Now a syntax error is signalled, as this syntax is not supported by
+Now a syntax error is signaled, as this syntax is not supported by
 default. If there is sufficient demand, this syntax can be supported
 again by default.
 
@@ -323,7 +325,7 @@ fresh name will be lazily generated for it.
 
 Syntax errors still throw to the `syntax-error' key, but the arguments
 are often different now. Perhaps in the future, Guile will switch to
-using standard srfi-35 conditions.
+using standard SRFI-35 conditions.
 
 ** Returning multiple values to compiled code will silently truncate the
    values to the expected number
@@ -448,13 +450,17 @@ XXX Need to decide whether to document this for 2.0, probably should:
 make-syncase-macro, make-extended-syncase-macro, macro-type,
 syncase-macro-type, syncase-macro-binding
 
-** A new 'memoize-symbol evaluator trap has been added.  This trap can
-be used for efficiently implementing a Scheme code coverage.
+** A new `memoize-symbol' evaluator trap has been added.
+
+This trap can be used for efficiently implementing a Scheme code
+coverage.
 
 ** Duplicate bindings among used modules are resolved lazily.
+
 This slightly improves program startup times.
 
 ** New thread cancellation and thread cleanup API
+
 See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
 
 ** Fix bad interaction between `false-if-exception' and stack-call.
@@ -502,7 +508,8 @@ indicating length of the `scm_t_option' array.
 
 This procedure corresponds to Scheme's `module-public-interface'.
 
-** scm_stat has additional argument, exception_on_error
+** `scm_stat' has an additional argument, `exception_on_error'
+** `scm_primitive_load_path' has an additional argument `exception_on_not_found'
 
 * Changes to the distribution
 
@@ -515,7 +522,7 @@ part of Guile).
 ** `guile-config' will be deprecated in favor of `pkg-config'
 
 `guile-config' has been rewritten to get its information from
-pkg-config, so this should be a transparent change. Note however that
+`pkg-config', so this should be a transparent change.  Note however that
 guile.m4 has yet to be modified to call pkg-config instead of
 guile-config.
 
