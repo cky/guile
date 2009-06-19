@@ -5,7 +5,21 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
-Changes in 1.9.1 (changes since the 1.8.x series):
+Changes in 1.9.0 (changes since the 1.8.x series):
+
+* New modules (see the manual for details)
+
+** `(srfi srfi-18)', more sophisticated multithreading support
+** `(ice-9 i18n)', internationalization support
+** `(rnrs bytevector)', the R6RS bytevector API
+** `(system xref)', a cross-referencing facility (FIXME undocumented)
+
+* Changes to the stand-alone interpreter
+
+** Guile now can compile Scheme to bytecode for a custom virtual machine.
+
+Compiled code loads much faster than Scheme source code, and runs around
+3 or 4 times as fast, generating much less garbage in the process.
 
 ** The stack limit is now initialized from the environment.
 
@@ -13,11 +27,31 @@ If getrlimit(2) is available and a stack limit is set, Guile will set
 its stack limit to 80% of the rlimit. Otherwise the limit is 160000
 words, a four-fold increase from the earlier default limit.
 
-** Fix bad interaction between `false-if-exception' and stack-call.
+** New environment variables: GUILE_LOAD_COMPILED_PATH,
+   GUILE_SYSTEM_LOAD_COMPILED_PATH
 
-Exceptions thrown by `false-if-exception' were erronously causing the
-stack to be saved, causing later errors to show the incorrectly-saved
-backtrace. This has been fixed.
+GUILE_LOAD_COMPILED_PATH is for compiled files what GUILE_LOAD_PATH is
+for source files. It is a different path, however, because compiled
+files are architecture-specific. GUILE_SYSTEM_LOAD_COMPILED_PATH is like
+GUILE_SYSTEM_PATH.
+
+** New read-eval-print loop (REPL) implementation
+
+Running Guile with no arguments drops the user into the new REPL. While
+it is self-documenting to an extent, the new REPL has not yet been
+documented in the manual. This will be fixed before 2.0.
+
+** New `guile-tools' commands: `compile', `disassemble'
+
+Pass the --help command-line option to these commands for more
+information.
+
+* Changes to Scheme functions and syntax
+
+** Procedure removed: `the-environment'
+
+This procedure was part of the interpreter's execution model, and does
+not apply to the compiler.
 
 ** Files loaded with primitive-load-path will now be compiled
    automatically.
@@ -38,30 +72,191 @@ ccache's behavior for C files.
 To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
 variable to 0, or pass --no-autocompile on the Guile command line.
 
-** New environment variables: GUILE_LOAD_COMPILED_PATH,
-   GUILE_SYSTEM_LOAD_COMPILED_PATH
+Note that there is currently a bug here: automatic compilation will
+sometimes be attempted when it shouldn't.
 
-GUILE_LOAD_COMPILED_PATH is for compiled files what GUILE_LOAD_PATH is
-for source files. It is a different path, however, because compiled
-files are architecture-specific. GUILE_SYSTEM_LOAD_COMPILED_PATH is like
-GUILE_SYSTEM_PATH.
+For example, the old (lang elisp) modules are meant to be interpreted,
+not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
+something here about module-transformer called for compile.
 
-** New global variables: %load-compiled-path, %load-compiled-extensions
+** New POSIX procedures: `getrlimit' and `setrlimit'
 
-These are analogous to %load-path and %load-extensions.
+Note however that the interface of these functions is likely to change
+in the next prerelease.
 
-** New installation directory: $(pkglibdir)/1.9/ccache
+** New procedure in `(oops goops)': `method-formals'
 
-If $(libdir) is /usr/lib, for example, Guile will install its .go files
-to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
+** BUG: (procedure-property func 'arity) does not work on compiled
+   procedures
 
-** scm_primitive_load_path has additional argument, exception_on_error
+This will be fixed one way or another before 2.0.
 
-** scm_stat has additional argument, exception_on_error
+** New procedures in (ice-9 session): `add-value-help-handler!',
+   `remove-value-help-handler!', `add-name-help-handler!'
+   `remove-name-help-handler!', `procedure-arguments',
 
-** New entry into %guile-build-info: `ccachedir'
+The value and name help handlers provide some minimal extensibility to
+the help interface. Guile-lib's `(texinfo reflection)' uses them, for
+example, to make stexinfo help documentation available. See those
+procedures' docstrings for more information.
 
-Probably should be removed?
+`procedure-arguments' describes the arguments that a procedure can take,
+combining arity and formals. For example:
+
+  (procedure-arguments resolve-interface)
+  => ((required . (name)) (rest . args))
+
+Additionally, `module-commentary' is now publically exported from
+`(ice-9 session).
+
+** Deprecated: `procedure->memoizing-macro', `procedure->syntax'
+
+These procedures will not work with syncase expansion, and indeed are
+not used in the normal course of Guile. They are still used by the old
+Emacs Lisp support, however.
+
+** New language: ECMAScript
+
+Guile now ships with one other high-level language supported,
+ECMAScript. The goal is to support all of version 3.1 of the standard,
+but not all of the libraries are there yet. This support is not yet
+documented; ask on the mailing list if you are interested.
+
+** Defmacros may now have docstrings.
+
+Indeed, any macro may have a docstring. `object-documentation' from
+`(ice-9 documentation)' may be used to retrieve the docstring, once you
+have a macro value -- but see the above note about first-class macros.
+Docstrings are associated with the syntax transformer procedures.
+
+** The psyntax expander now knows how to interpret the @ and @@ special
+   forms.
+
+** The psyntax expander is now hygienic with respect to modules.
+
+Free variables in a macro are scoped in the module that the macro was
+defined in, not in the module the macro is used in. For example, code
+like this works now:
+
+   (define-module (foo) #:export (bar))
+   (define (helper x) ...)
+   (define-syntax bar
+     (syntax-rules () ((_ x) (helper x))))
+
+   (define-module (baz) #:use-module (foo))
+   (bar qux)
+
+It used to be you had to export `helper' from `(foo)' as well.
+Thankfully, this has been fixed.
+
+** New function, `procedure-module'
+
+While useful on its own, `procedure-module' is used by psyntax on syntax
+transformers to determine the module in which to scope introduced
+identifiers.
+
+** `eval-case' has been deprecated, and replaced by `eval-when'.
+
+The semantics of `eval-when' are easier to understand. It is still
+missing documentation, however.
+
+** Guile is now more strict about prohibiting definitions in expression
+   contexts.
+
+Although previous versions of Guile accepted it, the following
+expression is not valid, in R5RS or R6RS:
+
+  (if test (define foo 'bar) (define foo 'baz))
+
+In this specific case, it would be better to do:
+
+  (define foo (if test 'bar 'baz))
+
+It is certainly possible to circumvent this resriction with e.g.
+`(module-define! (current-module) 'foo 'baz)'. We would appreciate
+feedback about this change (a consequence of using psyntax as the
+default expander), and may choose to revisit this situation before 2.0
+in response to user feedback.
+
+** Defmacros must now produce valid Scheme expressions.
+
+It used to be that defmacros could unquote in Scheme values, as a way of
+supporting partial evaluation, and avoiding some hygiene issues. For
+example:
+
+  (define (helper x) ...)
+  (define-macro (foo bar)
+    `(,helper ,bar))
+
+Assuming this macro is in the `(baz)' module, the direct translation of
+this code would be:
+
+  (define (helper x) ...)
+  (define-macro (foo bar)
+    `((@@ (baz) helper) ,bar))
+
+Of course, one could just use a hygienic macro instead:
+
+  (define-syntax foo
+    (syntax-rules ()
+      ((_ bar) (helper bar))))
+
+** Guile's psyntax now supports docstrings and internal definitions.
+
+The following Scheme is not strictly legal:
+
+  (define (foo)
+    "bar"
+    (define (baz) ...)
+    (baz))
+
+However its intent is fairly clear. Guile interprets "bar" to be the
+docstring of `foo', and the definition of `baz' is still in definition
+context.
+
+** Macros need to be defined before their first use.
+
+It used to be that with lazy memoization, this might work:
+
+  (define (foo x)
+    (ref x))
+  (define-macro (ref x) x)
+  (foo 1) => 1
+
+But now, the body of `foo' is interpreted to mean a call to the toplevel
+`ref' function, instead of a macro expansion. The solution is to define
+macros before code that uses them.
+
+** Functions needed by macros at expand-time need to be present at
+   expand-time.
+
+For example, this code will work at the REPL:
+
+  (define (double-helper x) (* x x))
+  (define-macro (double-literal x) (double-helper x))
+  (double-literal 2) => 4
+
+But it will not work when a file is compiled, because the definition of
+`double-helper' is not present at expand-time. The solution is to wrap
+the definition of `double-helper' in `eval-when':
+
+  (eval-when (load compile eval)
+    (define (double-helper x) (* x x)))
+  (define-macro (double-literal x) (double-helper x))
+  (double-literal 2) => 4
+
+See the (currently missing) documentation for eval-when for more
+information.
+
+** New variable, %pre-modules-transformer
+
+Need to document this one some more.
+
+** Temporarily removed functions: `macroexpand', `macroexpand-1'
+
+`macroexpand' will be added back before 2.0. It is unclear how to
+implement `macroexpand-1' with syntax-case, though PLT Scheme does prove
+that it is possible.
 
 ** New reader macros: #' #` #, #,@
 
@@ -253,223 +448,6 @@ XXX Need to decide whether to document this for 2.0, probably should:
 make-syncase-macro, make-extended-syncase-macro, macro-type,
 syncase-macro-type, syncase-macro-binding
 
-** `(ice-9 syncase)' has been deprecated.
-
-As syntax-case is available by default, importing `(ice-9 syncase)' has
-no effect, and will trigger a deprecation warning.
-
-** Fix bug in `module-bound?'.
-
-`module-bound?' was returning true if a module did have a local
-variable, but one that was unbound, but another imported module bound
-the variable. This was an error, and was fixed.
-
-** BUG: Automatic compilation will be attempted when it shouldn't.
-
-For example, the old (lang elisp) modules are meant to be interpreted,
-not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
-something here about module-transformer called for compile.
-
-** Defmacros may now have docstrings.
-
-Indeed, any macro may have a docstring. `object-documentation' from
-`(ice-9 documentation)' may be used to retrieve the docstring, once you
-have a macro value -- but see the above note about first-class macros.
-Docstrings are associated with the syntax transformer procedures.
-
-** `eval-case' has been deprecated, and replaced by `eval-when'.
-
-The semantics of `eval-when' are easier to understand. It is still
-missing documentation, however.
-
-** Guile is now more strict about prohibiting definitions in expression
-   contexts.
-
-Although previous versions of Guile accepted it, the following
-expression is not valid, in R5RS or R6RS:
-
-  (if test (define foo 'bar) (define foo 'baz))
-
-In this specific case, it would be better to do:
-
-  (define foo (if test 'bar 'baz))
-
-It is certainly possible to circumvent this resriction with e.g.
-`(module-define! (current-module) 'foo 'baz)'. We would appreciate
-feedback about this change (a consequence of using psyntax as the
-default expander), and may choose to revisit this situation before 2.0
-in response to user feedback.
-
-** Defmacros must now produce valid Scheme expressions.
-
-It used to be that defmacros could unquote in Scheme values, as a way of
-supporting partial evaluation, and avoiding some hygiene issues. For
-example:
-
-  (define (helper x) ...)
-  (define-macro (foo bar)
-    `(,helper ,bar))
-
-Assuming this macro is in the `(baz)' module, the direct translation of
-this code would be:
-
-  (define (helper x) ...)
-  (define-macro (foo bar)
-    `((@@ (baz) helper) ,bar))
-
-Of course, one could just use a hygienic macro instead:
-
-  (define-syntax foo
-    (syntax-rules ()
-      ((_ bar) (helper bar))))
-
-** Guile's psyntax now supports docstrings and internal definitions.
-
-The following Scheme is not strictly legal:
-
-  (define (foo)
-    "bar"
-    (define (baz) ...)
-    (baz))
-
-However its intent is fairly clear. Guile interprets "bar" to be the
-docstring of `foo', and the definition of `baz' is still in definition
-context.
-
-** Macros need to be defined before their first use.
-
-It used to be that with lazy memoization, this might work:
-
-  (define (foo x)
-    (ref x))
-  (define-macro (ref x) x)
-  (foo 1) => 1
-
-But now, the body of `foo' is interpreted to mean a call to the toplevel
-`ref' function, instead of a macro expansion. The solution is to define
-macros before code that uses them.
-
-** Functions needed by macros at expand-time need to be present at
-   expand-time.
-
-For example, this code will work at the REPL:
-
-  (define (double-helper x) (* x x))
-  (define-macro (double-literal x) (double-helper x))
-  (double-literal 2) => 4
-
-But it will not work when a file is compiled, because the definition of
-`double-helper' is not present at expand-time. The solution is to wrap
-the definition of `double-helper' in `eval-when':
-
-  (eval-when (load compile eval)
-    (define (double-helper x) (* x x)))
-  (define-macro (double-literal x) (double-helper x))
-  (double-literal 2) => 4
-
-See the (currently missing) documentation for eval-when for more
-information.
-
-** New variable, %pre-modules-transformer
-
-Need to document this one some more.
-
-** Temporarily removed functions: `macroexpand', `macroexpand-1'
-
-`macroexpand' will be added back before 2.0. It is unclear how to
-implement `macroexpand-1' with syntax-case, though PLT Scheme does prove
-that it is possible.
-
-** New module: (rnrs bytevector)
-
-See the R6RS for more information.
-
-** New dependency: GNU libunistring.
-
-
-FIXME bytevectors.
-
-FIXME unistring.
-
-more robust threading support.
-
-syncase knows about @/@@
-
-macros and hygiene and modules
-
-eval-closure-module? what?
-
-procedure-module / scm_procedure_module
-
-guile-config info sitedir change -- 922d369
-
-guile-config and pkg-config
-
-(system xref), procedure-callers, procedure-callees, can work as
-variables get redefined
-
-getrlimit and setrlimit wrappers
-
-FIXME: getrlimit crazy namespaces...
-
-add method-formals
-
-BUG? procedure-property 'arity on compiled procedures will be wrong
-
-BUG: SCM_SNAME -> SCM_SUBR_NAME
-
-(ice-9 session):
-add-value-help-handler! remove-value-help-handler!
-add-name-help-handler! remove-name-help-handler!
-export module-commentary
-procedure-arguments
-
-procedure->memoizing-macro, procedure->syntax totally superdeprecated?
-
-FIXME: update copyrights
-
-ecmascript support?
-
-new repl...
-
-guile-tools compile, guile-tools disassemble (does that work?)
-
-BUG: stack walks to see number of frames, then fills those frames.
-sometimes those numbers differ, warning to console, a test case would be
-nice.
-
-FIXME: dance disassembly bug
-
-srfi-18
-
-<method> has formals, body slots; (make-procedure & procedure ?)
-
-FIXME: rewrite while
-
-removed (the-environment)
-
-new function: scm_module_public_interface
-
-BUG: help at guile prompt
-
-new procedure, make-promise
-
-* New modules (see the manual for details)
-
-** `(srfi srfi-18)', multithreading support
-** The `(ice-9 i18n)' module provides internationalization support
-
-* Changes to the distribution
-
-** Guile's license is now LGPLv3+
-
-In other words the GNU Lesser General Public License, version 3 or
-later (at the discretion of each person that chooses to redistribute
-part of Guile).
-
-* Changes to the stand-alone interpreter
-* Changes to Scheme functions and syntax
-
 ** A new 'memoize-symbol evaluator trap has been added.  This trap can
 be used for efficiently implementing a Scheme code coverage.
 
@@ -478,6 +456,33 @@ This slightly improves program startup times.
 
 ** New thread cancellation and thread cleanup API
 See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
+
+** Fix bad interaction between `false-if-exception' and stack-call.
+
+Exceptions thrown by `false-if-exception' were erronously causing the
+stack to be saved, causing later errors to show the incorrectly-saved
+backtrace. This has been fixed.
+
+** New global variables: %load-compiled-path, %load-compiled-extensions
+
+These are analogous to %load-path and %load-extensions.
+
+** New procedure, `make-promise'
+
+`(make-promise (lambda () foo))' is equivalent to `(delay foo)'.
+
+** New entry into %guile-build-info: `ccachedir'
+
+** Fix bug in `module-bound?'.
+
+`module-bound?' was returning true if a module did have a local
+variable, but one that was unbound, but another imported module bound
+the variable. This was an error, and was fixed.
+
+** `(ice-9 syncase)' has been deprecated.
+
+As syntax-case is available by default, importing `(ice-9 syncase)' has
+no effect, and will trigger a deprecation warning.
 
 * Changes to the C interface
 
@@ -490,6 +495,40 @@ application code.
 
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
+
+** scm_primitive_load_path has additional argument, exception_on_error
+
+** New C function: scm_module_public_interface
+
+This procedure corresponds to Scheme's `module-public-interface'.
+
+** scm_stat has additional argument, exception_on_error
+
+* Changes to the distribution
+
+** Guile's license is now LGPLv3+
+
+In other words the GNU Lesser General Public License, version 3 or
+later (at the discretion of each person that chooses to redistribute
+part of Guile).
+
+** `guile-config' will be deprecated in favor of `pkg-config'
+
+`guile-config' has been rewritten to get its information from
+pkg-config, so this should be a transparent change. Note however that
+guile.m4 has yet to be modified to call pkg-config instead of
+guile-config.
+
+** New installation directory: $(pkglibdir)/1.9/ccache
+
+If $(libdir) is /usr/lib, for example, Guile will install its .go files
+to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
+
+** New dependency: GNU libunistring.
+
+See http://www.gnu.org/software/libunistring/. We hope to merge in
+Unicode support in the next prerelease.
+
 
 
 Changes in 1.8.7 (since 1.8.6)
