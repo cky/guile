@@ -22,6 +22,7 @@
   #:use-module (system vm instruction)
   #:use-module (system base pmatch)
   #:use-module (srfi srfi-4)
+  #:use-module (rnrs bytevector)
   #:use-module (language assembly)
   #:export (decompile-bytecode))
 
@@ -97,14 +98,24 @@
               ((eq? inst 'load-program)
                (decode-load-program pop))
               ((< (instruction-length inst) 0)
-               (let* ((len (let* ((a (pop)) (b (pop)) (c (pop)))
+               (let* ((make-sequence
+                       (if (eq? inst 'load-array)
+                           make-bytevector
+                           make-string))
+                      (sequence-set!
+                       (if (eq? inst 'load-array)
+                           bytevector-u8-set!
+                           (lambda (str pos value)
+                             (string-set! str pos (integer->char value)))))
+
+                      (len (let* ((a (pop)) (b (pop)) (c (pop)))
                              (+ (ash a 16) (ash b 8) c)))
-                      (str (make-string len)))
+                      (seq (make-sequence len)))
                  (let lp ((i 0))
                    (if (= i len)
-                       `(,inst ,str)
+                       `(,inst ,seq)
                        (begin
-                         (string-set! str i (integer->char (pop)))
+                         (sequence-set! seq i (pop))
                          (lp (1+ i)))))))
               (else
                ;; fixed length
