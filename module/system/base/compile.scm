@@ -131,7 +131,8 @@
           (else (car %load-compiled-extensions))))
   (and %compile-fallback-path
        (let ((f (string-append
-                 %compile-fallback-path "/" file (compiled-extension))))
+                 %compile-fallback-path "/" (canonicalize-path file)
+                 (compiled-extension))))
          (and (false-if-exception (ensure-writable-dir (dirname f)))
               f))))
 

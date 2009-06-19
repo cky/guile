@@ -65,6 +65,7 @@ SCM_API SCM scm_lstat (SCM str);
 SCM_API SCM scm_copy_file (SCM oldfile, SCM newfile);
 SCM_API SCM scm_dirname (SCM filename);
 SCM_API SCM scm_basename (SCM filename, SCM suffix);
+SCM_API SCM scm_canonicalize_path (SCM path);
 
 SCM_INTERNAL void scm_init_filesys (void);
 
