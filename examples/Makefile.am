@@ -81,6 +81,7 @@ installcheck: box/box box-module/box libbox.la libbox-module.la
 	  LTDL_LIBRARY_PATH="$(builddir):$$LTDL_LIBRARY_PATH"	\
 	  GUILE_LOAD_PATH="$(abs_top_srcdir):$$GUILE_LOAD_PATH"	\
 	  PATH="$(bindir):$$PATH"				\
+	  GUILE_AUTO_COMPILE=0					\
 	  srcdir="$(srcdir)"					\
 	  $(srcdir)/check.test
 
