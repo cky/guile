@@ -66,7 +66,7 @@ SCM
 scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  scm_define (SCM_SNAME (subr), subr);
+  scm_define (SCM_SUBR_NAME (subr), subr);
   return subr;
 }
 
@@ -93,7 +93,7 @@ scm_c_define_subr_with_generic (const char *name,
 				long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
-  scm_define (SCM_SNAME (subr), subr);
+  scm_define (SCM_SUBR_NAME (subr), subr);
   return subr;
 }
 
@@ -237,7 +237,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
      lookup */
   switch (SCM_TYP7 (procedure)) {
   case scm_tcs_subrs:
-    name = SCM_SNAME (procedure);
+    name = SCM_SUBR_NAME (procedure);
     break;
   default:
     name = scm_procedure_property (procedure, scm_sym_name);

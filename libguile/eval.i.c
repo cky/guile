@@ -1238,7 +1238,7 @@ dispatch:
 	      }
 	    SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
                                 SCM_ARG1,
-				scm_i_symbol_chars (SCM_SNAME (proc)));
+				scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
 	  case scm_tc7_cxr:
 	    RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
 	  case scm_tc7_rpsubr:
@@ -1765,7 +1765,7 @@ tail:
 	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	}
       SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                          SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
+                          SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
     case scm_tc7_cxr:
       if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
 	scm_wrong_num_args (proc);

@@ -3397,7 +3397,7 @@ call_dsubr_1 (SCM proc, SCM arg1)
       return (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
     }
   SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-		      SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
+		      SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
 }
 
 static SCM

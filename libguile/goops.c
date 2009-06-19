@@ -1862,7 +1862,7 @@ SCM_DEFINE (scm_enable_primitive_generic_x, "enable-primitive-generic!", 0, 0, 1
       *SCM_SUBR_GENERIC (subr)
 	= scm_make (scm_list_3 (scm_class_generic,
 				k_name,
-				SCM_SNAME (subr)));
+				SCM_SUBR_NAME (subr)));
       subrs = SCM_CDR (subrs);
     }
   return SCM_UNSPECIFIED;
@@ -1905,7 +1905,7 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
       gf = *SCM_SUBR_GENERIC (extended);
       gext = scm_call_2 (SCM_VARIABLE_REF (scm_var_make_extended_generic),
 			 gf,
-			 SCM_SNAME (extension));
+			 SCM_SUBR_NAME (extension));
       SCM_SET_SUBR_GENERIC (extension, gext);
     }
   else

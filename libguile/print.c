@@ -655,7 +655,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		    ? "#<primitive-generic "
 		    : "#<primitive-procedure ",
 		    port);
-	  scm_puts (scm_i_symbol_chars (SCM_SNAME (exp)), port);
+	  scm_puts (scm_i_symbol_chars (SCM_SUBR_NAME (exp)), port);
 	  scm_putc ('>', port);
 	  break;
 

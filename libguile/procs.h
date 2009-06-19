@@ -32,7 +32,7 @@
  */
 
 #define SCM_SUBR_META_INFO(x)  ((SCM *) SCM_CELL_WORD_3 (x))
-#define SCM_SNAME(x) (SCM_SUBR_META_INFO (x) [0])
+#define SCM_SUBR_NAME(x) (SCM_SUBR_META_INFO (x) [0])
 #define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_SET_SUBRF(x, v) (SCM_SET_CELL_WORD_1 ((x), (v)))
 #define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
