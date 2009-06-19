@@ -266,7 +266,7 @@ Generate compiled code.
   -O    Enable optimization
   -D    Add debug information"
   (let ((x (apply repl-compile repl (repl-parse repl form) opts)))
-    (cond ((objcode? x) (disassemble-objcode x))
+    (cond ((objcode? x) (guile:disassemble x))
           (else (repl-print repl x)))))
 
 (define guile:compile-file compile-file)
