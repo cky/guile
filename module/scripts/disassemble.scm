@@ -1,6 +1,6 @@
 ;;; Disassemble --- Disassemble .go files into something human-readable
 
-;; Copyright 2005,2008 Free Software Foundation, Inc.
+;; Copyright 2005, 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -17,7 +17,7 @@
 ;; not, write to the Free Software Foundation, Inc., 51 Franklin
 ;; Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludovic.courtes@laas.fr>
+;;; Author: Ludovic Courtès <ludo@gnu.org>
 ;;; Author: Andy Wingo <wingo@pobox.com>
 
 ;;; Commentary:
@@ -28,12 +28,13 @@
 
 (define-module (scripts disassemble)
   #:use-module (system vm objcode)
-  #:use-module (language assembly disassemble)
+  #:use-module ((language assembly disassemble)
+                #:renamer (symbol-prefix-proc 'asm:))
   #:export (disassemble))
 
-(define (disassemble args)
+(define (disassemble . files)
   (for-each (lambda (file)
-              (disassemble (load-objcode file)))
-            (cdr args)))
+              (asm:disassemble (load-objcode file)))
+            files))
 
 (define main disassemble)
