@@ -40,4 +40,16 @@ ACLOCAL_AMFLAGS = -I m4
 
 DISTCLEANFILES = check-guile.log
 
+dist-hook: gen-ChangeLog
+
+gen_start_rev = 61db429e251bfd2f75cb4632972e0238056eb24b
+.PHONY: gen-ChangeLog
+gen-ChangeLog:
+	if test -d .git; then						\
+	  $(top_srcdir)/build-aux/gitlog-to-changelog			\
+	    $(gen_start_rev)..HEAD > $(distdir)/cl-t;			\
+	  rm -f $(distdir)/ChangeLog;					\
+	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
+	fi
+
 # Makefile.am ends here
