@@ -66,7 +66,9 @@ make_objcode_by_mmap (int fd)
     SCM_SYSERROR;
 
   if (memcmp (addr, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE)))
-    SCM_SYSERROR;
+    scm_misc_error (FUNC_NAME, "bad header on object file: ~s",
+		    scm_list_1 (scm_from_locale_stringn
+                                (addr, strlen (OBJCODE_COOKIE))));
 
   data = (struct scm_objcode*)(addr + strlen (OBJCODE_COOKIE));
 
