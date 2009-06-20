@@ -941,9 +941,7 @@
 
 (define source-wrap
   (lambda (x w s defmod)
-    (if (and s (pair? x))
-        (set-source-properties! x s))
-    (wrap x w defmod)))
+    (wrap (decorate-source x s) w defmod)))
 
 ;;; expanding
 
@@ -1101,7 +1099,9 @@
                         (valid-bound-ids? (lambda-var-list (syntax args))))
                                         ; need lambda here...
                    (values 'define-form (wrap (syntax name) w mod)
-                           (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
+                           (decorate-source
+                            (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
+                            s)
                            empty-wrap s mod))
                   ((_ name)
                    (id? (syntax name))
