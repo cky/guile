@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -247,24 +247,28 @@ scm_init_load_path ()
 #endif /* SCM_LIBRARY_DIR */
 
   {
-    char *home;
-
-    home = getenv ("HOME");
+    char cachedir[1024];
+    char *e;
 #ifdef HAVE_GETPWENT
-    if (!home)
-      {
-        struct passwd *pwd;
-        pwd = getpwuid (getuid ());
-        if (pwd)
-          home = pwd->pw_dir;
-      }
+    struct passwd *pwd;
+#endif
+
+#define FALLBACK_DIR "guile/ccache/"SCM_EFFECTIVE_VERSION
+
+    if ((e = getenv ("XDG_CACHE_HOME")))
+      snprintf (cachedir, sizeof(cachedir), "%s" FALLBACK_DIR, e);
+    else if ((e = getenv ("HOME")))
+      snprintf (cachedir, sizeof(cachedir), "%s/.cache/" FALLBACK_DIR, e);
+#ifdef HAVE_GETPWENT
+    else if ((pwd = getpwuid (getuid ())) && pwd->pw_dir)
+      snprintf (cachedir, sizeof(cachedir), "%s/.cache/" FALLBACK_DIR,
+                pwd->pw_dir);
 #endif /* HAVE_GETPWENT */
-    if (home)
-      { char buf[1024];
-        snprintf (buf, sizeof(buf),
-                  "%s/.guile-ccache/" SCM_EFFECTIVE_VERSION, home);
-        *scm_loc_compile_fallback_path = scm_from_locale_string (buf);
-      }
+    else
+      cachedir[0] = 0;
+
+    if (cachedir[0])
+      *scm_loc_compile_fallback_path = scm_from_locale_string (cachedir);
   }
 
   env = getenv ("GUILE_LOAD_PATH");
