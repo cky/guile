@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2002, 2006, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2002, 2006, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -43,5 +43,3 @@ include $(top_srcdir)/am/maintainer-dirs
 guile-api.alist: guile-api.alist-FORCE
 	( cd $(top_builddir) ; $(mscripts)/update-guile-api.alist )
 guile-api.alist-FORCE:
-
-info_TEXINFOS = guile-vm.texi
