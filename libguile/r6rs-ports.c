@@ -211,7 +211,10 @@ static SCM
 cbp_mark (SCM port)
 {
   /* Mark the underlying method and object vector.  */
-  return (SCM_PACK (SCM_STREAM (port)));
+  if (SCM_OPENP (port))
+    return SCM_PACK (SCM_STREAM (port));
+  else
+    return SCM_BOOL_F;
 }
 
 static off_t
