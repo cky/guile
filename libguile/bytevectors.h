@@ -27,7 +27,7 @@
 /* R6RS bytevectors.  */
 
 #define SCM_BYTEVECTOR_LENGTH(_bv)		\
-  ((unsigned) SCM_SMOB_DATA (_bv))
+  ((size_t) SCM_SMOB_DATA (_bv))
 #define SCM_BYTEVECTOR_CONTENTS(_bv)		\
   (SCM_BYTEVECTOR_INLINE_P (_bv)			\
    ? (signed char *) SCM_SMOB_OBJECT_2_LOC (_bv)	\
@@ -38,7 +38,7 @@ SCM_API SCM scm_endianness_big;
 SCM_API SCM scm_endianness_little;
 
 SCM_API SCM scm_make_bytevector (SCM, SCM);
-SCM_API SCM scm_c_make_bytevector (unsigned);
+SCM_API SCM scm_c_make_bytevector (size_t);
 SCM_API SCM scm_native_endianness (void);
 SCM_API SCM scm_bytevector_p (SCM);
 SCM_API SCM scm_bytevector_length (SCM);
@@ -123,14 +123,14 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
 SCM_API void scm_init_bytevectors (void);
 
 SCM_INTERNAL scm_t_bits scm_tc16_bytevector;
-SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, unsigned);
+SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, size_t);
 
 #define scm_c_shrink_bytevector(_bv, _len)		\
   (SCM_BYTEVECTOR_INLINE_P (_bv)			\
    ? (_bv)						\
    : scm_i_shrink_bytevector ((_bv), (_len)))
 
-SCM_INTERNAL SCM scm_i_shrink_bytevector (SCM, unsigned);
+SCM_INTERNAL SCM scm_i_shrink_bytevector (SCM, size_t);
 SCM_INTERNAL SCM scm_null_bytevector;
 
 #endif /* SCM_BYTEVECTORS_H */

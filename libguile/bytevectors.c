@@ -74,7 +74,7 @@
 
 
 #define INTEGER_ACCESSOR_PROLOGUE(_len, _sign)			\
-  unsigned c_len, c_index;					\
+  size_t c_len, c_index;					\
   _sign char *c_bv;						\
 								\
   SCM_VALIDATE_BYTEVECTOR (1, bv);				\
@@ -184,14 +184,14 @@ SCM scm_null_bytevector = SCM_UNSPECIFIED;
 
 
 static inline SCM
-make_bytevector_from_buffer (unsigned len, signed char *contents)
+make_bytevector_from_buffer (size_t len, signed char *contents)
 {
   /* Assuming LEN > SCM_BYTEVECTOR_INLINE_THRESHOLD.  */
   SCM_RETURN_NEWSMOB2 (scm_tc16_bytevector, len, contents);
 }
 
 static inline SCM
-make_bytevector (unsigned len)
+make_bytevector (size_t len)
 {
   SCM bv;
 
@@ -212,7 +212,7 @@ make_bytevector (unsigned len)
 
 /* Return a new bytevector of size LEN octets.  */
 SCM
-scm_c_make_bytevector (unsigned len)
+scm_c_make_bytevector (size_t len)
 {
   return (make_bytevector (len));
 }
@@ -220,7 +220,7 @@ scm_c_make_bytevector (unsigned len)
 /* Return a bytevector of size LEN made up of CONTENTS.  The area pointed to
    by CONTENTS must have been allocated using `scm_gc_malloc ()'.  */
 SCM
-scm_c_take_bytevector (signed char *contents, unsigned len)
+scm_c_take_bytevector (signed char *contents, size_t len)
 {
   SCM bv;
 
@@ -243,11 +243,11 @@ scm_c_take_bytevector (signed char *contents, unsigned len)
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
    size) and return BV.  */
 SCM
-scm_i_shrink_bytevector (SCM bv, unsigned c_new_len)
+scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
 {
   if (!SCM_BYTEVECTOR_INLINE_P (bv))
     {
-      unsigned c_len;
+      size_t c_len;
       signed char *c_bv, *c_new_bv;
 
       c_len = SCM_BYTEVECTOR_LENGTH (bv);
