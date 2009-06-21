@@ -94,6 +94,9 @@
      ((lexical ,name ,sym) (guard (symbol? name) (symbol? sym))
       (make-lexical-ref loc name sym))
 
+     ((set! (lexical ,name) ,exp) (guard (symbol? name))
+      (make-lexical-set loc name name (retrans exp)))
+
      ((set! (lexical ,name ,sym) ,exp) (guard (symbol? name) (symbol? sym))
       (make-lexical-set loc name sym (retrans exp)))
 

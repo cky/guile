@@ -41,7 +41,6 @@ SOURCES =								\
   $(SCHEME_LANG_SOURCES) 						\
   $(TREE_IL_LANG_SOURCES)						\
   $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
-  $(BRAINFUCK_LANG_SOURCES)						\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
 									\
@@ -51,6 +50,7 @@ SOURCES =								\
   $(OOP_SOURCES)							\
   $(SYSTEM_SOURCES)                                                     \
   $(ECMASCRIPT_LANG_SOURCES)						\
+  $(BRAINFUCK_LANG_SOURCES)						\
   $(SCRIPTS_SOURCES)
 
 ## test.scm is not currently installed.
@@ -114,9 +114,10 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/spec.scm
 
 BRAINFUCK_LANG_SOURCES =			\
-  language/brainfuck/spec.scm			\
   language/brainfuck/parse.scm			\
-  language/brainfuck/compile-scheme.scm
+  language/brainfuck/compile-scheme.scm		\
+  language/brainfuck/compile-tree-il.scm	\
+  language/brainfuck/spec.scm
 
 SCRIPTS_SOURCES =				\
   scripts/PROGRAM.scm				\
