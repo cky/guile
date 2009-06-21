@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,6 +29,7 @@
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
 #include "libguile/srfi-4.h"
+#include "libguile/bytevectors.h"
 #include "libguile/error.h"
 #include "libguile/read.h"
 #include "libguile/ports.h"
@@ -609,6 +610,8 @@ scm_i_generalized_vector_type (SCM v)
     return scm_sym_b;
   else if (scm_is_uniform_vector (v))
     return scm_from_locale_symbol (uvec_tags[SCM_UVEC_TYPE(v)]);
+  else if (scm_is_bytevector (v))
+    return scm_from_locale_symbol ("vu8");
   else
     return SCM_BOOL_F;
 }
@@ -750,6 +753,8 @@ scm_array_handle_uniform_element_size (scm_t_array_handle *h)
     vec = SCM_I_ARRAY_V (vec);
   if (scm_is_uniform_vector (vec))
     return uvec_sizes[SCM_UVEC_TYPE(vec)];
+  if (scm_is_bytevector (vec))
+    return 1U;
   scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
 }
 
@@ -790,6 +795,8 @@ scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
       char *elts = SCM_UVEC_BASE (vec);
       return (void *) (elts + size*h->base);
     }
+  if (scm_is_bytevector (vec))
+    return SCM_BYTEVECTOR_CONTENTS (vec);
   scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
 }
 

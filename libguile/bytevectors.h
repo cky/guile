@@ -136,6 +136,7 @@ SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, size_t);
    : scm_i_shrink_bytevector ((_bv), (_len)))
 
 SCM_INTERNAL SCM scm_i_shrink_bytevector (SCM, size_t);
+SCM_INTERNAL void scm_i_bytevector_generalized_set_x (SCM, size_t, SCM);
 SCM_INTERNAL SCM scm_null_bytevector;
 
 #endif /* SCM_BYTEVECTORS_H */

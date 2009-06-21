@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,7 @@
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/unif.h"
+#include "libguile/bytevectors.h"
 #include "libguile/ramap.h"
 #include "libguile/srfi-4.h"
 #include "libguile/strings.h"
@@ -523,7 +524,7 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-
+
 /* Generalized vectors. */
 
 int
@@ -532,7 +533,8 @@ scm_is_generalized_vector (SCM obj)
   return (scm_is_vector (obj)
 	  || scm_is_string (obj)
 	  || scm_is_bitvector (obj)
-	  || scm_is_uniform_vector (obj));
+	  || scm_is_uniform_vector (obj)
+	  || scm_is_bytevector (obj));
 }
 
 SCM_DEFINE (scm_generalized_vector_p, "generalized-vector?", 1, 0, 0,
@@ -564,6 +566,8 @@ scm_c_generalized_vector_length (SCM v)
     return scm_c_bitvector_length (v);
   else if (scm_is_uniform_vector (v))
     return scm_c_uniform_vector_length (v);
+  else if (scm_is_bytevector (v))
+    return scm_c_bytevector_length (v);
   else
     scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
 }
@@ -588,6 +592,8 @@ scm_c_generalized_vector_ref (SCM v, size_t idx)
     return scm_c_bitvector_ref (v, idx);
   else if (scm_is_uniform_vector (v))
     return scm_c_uniform_vector_ref (v, idx);
+  else if (scm_is_bytevector (v))
+    return scm_from_uint8 (scm_c_bytevector_ref (v, idx));
   else
     scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
 }
@@ -613,6 +619,8 @@ scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
     scm_c_bitvector_set_x (v, idx, val);
   else if (scm_is_uniform_vector (v))
     scm_c_uniform_vector_set_x (v, idx, val);
+  else if (scm_is_bytevector (v))
+    scm_i_bytevector_generalized_set_x (v, idx, val);
   else
     scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
 }

@@ -1649,9 +1649,9 @@ and writing.
 @subsection Generalized Vectors
 
 Guile has a number of data types that are generally vector-like:
-strings, uniform numeric vectors, bitvectors, and of course ordinary
-vectors of arbitrary Scheme values.  These types are disjoint: a
-Scheme value belongs to at most one of the four types listed above.
+strings, uniform numeric vectors, bytevectors, bitvectors, and of course
+ordinary vectors of arbitrary Scheme values.  These types are disjoint:
+a Scheme value belongs to at most one of the four types listed above.
 
 If you want to gloss over this distinction and want to treat all four
 types with common code, you can use the procedures in this section.
@@ -1749,9 +1749,9 @@ matrix with zero columns and 3 rows is different from a matrix with 3
 columns and zero rows, which again is different from a vector of
 length zero.
 
-Generalized vectors, such as strings, uniform numeric vectors, bit
-vectors and ordinary vectors, are the special case of one dimensional
-arrays.
+Generalized vectors, such as strings, uniform numeric vectors,
+bytevectors, bit vectors and ordinary vectors, are the special case of
+one dimensional arrays.
 
 @menu
 * Array Syntax::                
@@ -1831,6 +1831,16 @@ first dimension has length zero, but the second has length 2.
 
 @item #0(12)
 is a rank-zero array with contents 12.
+
+@end table
+
+In addition, bytevectors are also arrays, but use a different syntax
+(@pxref{Bytevectors}):
+
+@table @code
+
+@item #vu8(1 2 3)
+is a 3-byte long bytevector, with contents 1, 2, 3.
 
 @end table
 

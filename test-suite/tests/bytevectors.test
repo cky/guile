@@ -583,6 +583,77 @@
     exception:wrong-type-arg
     (with-input-from-string "#vu8(0 256)" read)))
 
+
+(with-test-prefix "Generalized Vectors"
+
+  (pass-if "generalized-vector?"
+    (generalized-vector? #vu8(1 2 3)))
+
+  (pass-if "generalized-vector-length"
+    (equal? (iota 16)
+            (map generalized-vector-length
+                 (map make-bytevector (iota 16)))))
+
+  (pass-if "generalized-vector-ref"
+    (let ((bv #vu8(255 127)))
+      (and (= 255 (generalized-vector-ref bv 0))
+           (= 127 (generalized-vector-ref bv 1)))))
+
+  (pass-if-exception "generalized-vector-ref [index out-of-range]"
+    exception:out-of-range
+    (let ((bv #vu8(1 2)))
+      (generalized-vector-ref bv 2)))
+
+  (pass-if "generalized-vector-set!"
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 0 255)
+      (generalized-vector-set! bv 1 77)
+      (equal? '(255 77)
+              (bytevector->u8-list bv))))
+
+  (pass-if-exception "generalized-vector-set! [index out-of-range]"
+    exception:out-of-range
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 2 0)))
+
+  (pass-if-exception "generalized-vector-set! [value out-of-range]"
+    exception:out-of-range
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 0 256)))
+
+  (pass-if "array-type"
+    (eq? 'vu8 (array-type #vu8())))
+
+  (pass-if "array-contents"
+    (let ((bv (u8-list->bytevector (iota 10))))
+      (eq? bv (array-contents bv))))
+
+  (pass-if "array-ref"
+    (let ((bv (u8-list->bytevector (iota 10))))
+      (equal? (iota 10)
+              (map (lambda (i) (array-ref bv i))
+                   (iota 10)))))
+
+  (pass-if "array-set!"
+    (let ((bv (make-bytevector 10)))
+      (for-each (lambda (i)
+                  (array-set! bv i i))
+                (iota 10))
+      (equal? (iota 10)
+              (bytevector->u8-list bv))))
+
+  (pass-if "make-typed-array"
+    (let ((bv (make-typed-array 'vu8 77 33)))
+      (equal? bv (u8-list->bytevector (make-list 33 77)))))
+
+  (pass-if-exception "make-typed-array [out-of-range]"
+    exception:out-of-range
+    (make-typed-array 'vu8 256 77))
+
+  (pass-if "uniform-array->bytevector"
+    (let ((bv #vu8(0 1 128 255)))
+      (equal? bv (uniform-array->bytevector bv)))))
+
 
 ;;; Local Variables:
 ;;; coding: latin-1

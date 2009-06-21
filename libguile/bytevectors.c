@@ -328,6 +328,15 @@ scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
 }
 #undef FUNC_NAME
 
+/* This procedure is used by `scm_c_generalized_vector_set_x ()'.  */
+void
+scm_i_bytevector_generalized_set_x (SCM bv, size_t index, SCM value)
+#define FUNC_NAME "scm_i_bytevector_generalized_set_x"
+{
+  scm_c_bytevector_set_x (bv, index, scm_to_uint8 (value));
+}
+#undef FUNC_NAME
+
 SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
 		bv, port, pstate)
 {
