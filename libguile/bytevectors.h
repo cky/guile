@@ -37,8 +37,13 @@
 SCM_API SCM scm_endianness_big;
 SCM_API SCM scm_endianness_little;
 
-SCM_API SCM scm_make_bytevector (SCM, SCM);
 SCM_API SCM scm_c_make_bytevector (size_t);
+SCM_API int scm_is_bytevector (SCM);
+SCM_API size_t scm_c_bytevector_length (SCM);
+SCM_API scm_t_uint8 scm_c_bytevector_ref (SCM, size_t);
+SCM_API void scm_c_bytevector_set_x (SCM, size_t, scm_t_uint8);
+
+SCM_API SCM scm_make_bytevector (SCM, SCM);
 SCM_API SCM scm_native_endianness (void);
 SCM_API SCM scm_bytevector_p (SCM);
 SCM_API SCM scm_bytevector_length (SCM);

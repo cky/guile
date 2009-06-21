@@ -3833,7 +3833,7 @@ The objects denoting big (resp. little) endianness.
 @subsubsection Manipulating Bytevectors
 
 Bytevectors can be created, copied, and analyzed with the following
-procedures.
+procedures and C functions.
 
 @deffn {Scheme Procedure} make-bytevector len [fill]
 @deffnx {C Function} scm_make_bytevector (len, fill)
@@ -3848,10 +3848,18 @@ is given, fill it with @var{fill}; @var{fill} must be in the range
 Return true if @var{obj} is a bytevector.
 @end deffn
 
+@deftypefn {C Function} int scm_is_bytevector (SCM obj)
+Equivalent to @code{scm_is_true (scm_bytevector_p (obj))}.
+@end deftypefn
+
 @deffn {Scheme Procedure} bytevector-length bv
 @deffnx {C Function} scm_bytevector_length (bv)
 Return the length in bytes of bytevector @var{bv}.
 @end deffn
+
+@deftypefn {C Function} size_t scm_c_bytevector_length (SCM bv)
+Likewise, return the length in bytes of bytevector @var{bv}.
+@end deftypefn
 
 @deffn {Scheme Procedure} bytevector=? bv1 bv2
 @deffnx {C Function} scm_bytevector_eq_p (bv1, bv2)
@@ -3875,6 +3883,14 @@ and start writing at @var{target-start}.
 @deffnx {C Function} scm_bytevector_copy (bv)
 Return a newly allocated copy of @var{bv}.
 @end deffn
+
+@deftypefn {C Function} scm_t_uint8 scm_c_bytevector_ref (SCM bv, size_t index)
+Return the byte at @var{index} in bytevector @var{bv}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
+Set the byte at @var{index} in @var{bv} to @var{value}.
+@end deftypefn
 
 Low-level C macros are available.  They do not perform any
 type-checking; as such they should be used with care.

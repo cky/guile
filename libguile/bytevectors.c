@@ -274,6 +274,60 @@ scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
   return bv;
 }
 
+int
+scm_is_bytevector (SCM obj)
+{
+  return SCM_SMOB_PREDICATE (scm_tc16_bytevector, obj);
+}
+
+size_t
+scm_c_bytevector_length (SCM bv)
+#define FUNC_NAME "scm_c_bytevector_length"
+{
+  SCM_VALIDATE_BYTEVECTOR (1, bv);
+
+  return SCM_BYTEVECTOR_LENGTH (bv);
+}
+#undef FUNC_NAME
+
+scm_t_uint8
+scm_c_bytevector_ref (SCM bv, size_t index)
+#define FUNC_NAME "scm_c_bytevector_ref"
+{
+  size_t c_len;
+  const scm_t_uint8 *c_bv;
+
+  SCM_VALIDATE_BYTEVECTOR (1, bv);
+
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+
+  if (SCM_UNLIKELY (index >= c_len))
+    scm_out_of_range (FUNC_NAME, scm_from_size_t (index));
+
+  return c_bv[index];
+}
+#undef FUNC_NAME
+
+void
+scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
+#define FUNC_NAME "scm_c_bytevector_set_x"
+{
+  size_t c_len;
+  scm_t_uint8 *c_bv;
+
+  SCM_VALIDATE_BYTEVECTOR (1, bv);
+
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+
+  if (SCM_UNLIKELY (index >= c_len))
+    scm_out_of_range (FUNC_NAME, scm_from_size_t (index));
+
+  c_bv[index] = value;
+}
+#undef FUNC_NAME
+
 SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
 		bv, port, pstate)
 {
@@ -357,8 +411,7 @@ SCM_DEFINE (scm_bytevector_p, "bytevector?", 1, 0, 0,
 	    "Return true if @var{obj} is a bytevector.")
 #define FUNC_NAME s_scm_bytevector_p
 {
-  return (scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_bytevector,
-					     obj)));
+  return scm_from_bool (scm_is_bytevector (obj));
 }
 #undef FUNC_NAME
 
@@ -403,9 +456,7 @@ SCM_DEFINE (scm_bytevector_length, "bytevector-length", 1, 0, 0,
 	    "Return the length (in bytes) of @var{bv}.")
 #define FUNC_NAME s_scm_bytevector_length
 {
-  SCM_VALIDATE_BYTEVECTOR (1, bv);
-
-  return (scm_from_uint (SCM_BYTEVECTOR_LENGTH (bv)));
+  return scm_from_uint (scm_c_bytevector_length (bv));
 }
 #undef FUNC_NAME
 
