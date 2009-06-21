@@ -342,6 +342,7 @@
                                                     close!)))
 
       (close-port port)
+      (gc) ; Test for marking a closed port.
       closed?)))
 
 
