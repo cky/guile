@@ -38,6 +38,7 @@
 #include "libguile/async.h"
 #include "libguile/backtrace.h"
 #include "libguile/boolean.h"
+#include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/continuations.h"
 #include "libguile/debug.h"
@@ -573,6 +574,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rw ();
   scm_init_extensions ();
 
+  scm_bootstrap_bytevectors ();
   scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);

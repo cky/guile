@@ -26,6 +26,7 @@
 #include <gmp.h>
 
 #include "libguile/_scm.h"
+#include "libguile/extensions.h"
 #include "libguile/bytevectors.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
@@ -172,7 +173,7 @@
 
 /* Bytevector type.  */
 
-SCM_GLOBAL_SMOB (scm_tc16_bytevector, "r6rs-bytevector", 0);
+scm_t_bits scm_tc16_bytevector;
 
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)	\
   SCM_SET_SMOB_DATA ((_bv), (scm_t_bits) (_len))
@@ -337,8 +338,8 @@ scm_i_bytevector_generalized_set_x (SCM bv, size_t index, SCM value)
 }
 #undef FUNC_NAME
 
-SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
-		bv, port, pstate)
+static int
+print_bytevector (SCM bv, SCM port, scm_print_state *pstate)
 {
   unsigned c_len, i;
   unsigned char *c_bv;
@@ -363,12 +364,14 @@ SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
   return 1;
 }
 
-SCM_SMOB_EQUALP (scm_tc16_bytevector, bytevector_equal_p, bv1, bv2)
+static SCM
+bytevector_equal_p (SCM bv1, SCM bv2)
 {
   return scm_bytevector_eq_p (bv1, bv2);
 }
 
-SCM_SMOB_FREE (scm_tc16_bytevector, free_bytevector, bv)
+static size_t
+free_bytevector (SCM bv)
 {
 
   if (!SCM_BYTEVECTOR_INLINE_P (bv))
@@ -2059,6 +2062,25 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
 /* Initialization.  */
 
 void
+scm_bootstrap_bytevectors (void)
+{
+  /* The SMOB type must be instantiated here because the
+     generalized-vector API may want to access bytevectors even though
+     `(rnrs bytevector)' hasn't been loaded.  */
+  scm_tc16_bytevector = scm_make_smob_type ("bytevector", 0);
+  scm_set_smob_free (scm_tc16_bytevector, free_bytevector);
+  scm_set_smob_print (scm_tc16_bytevector, print_bytevector);
+  scm_set_smob_equalp (scm_tc16_bytevector, bytevector_equal_p);
+
+  scm_null_bytevector =
+    scm_gc_protect_object (make_bytevector_from_buffer (0, NULL));
+
+  scm_c_register_extension ("libguile", "scm_init_bytevectors",
+			    (scm_t_extension_init_func) scm_init_bytevectors,
+			    NULL);
+}
+
+void
 scm_init_bytevectors (void)
 {
 #include "libguile/bytevectors.x"
@@ -2071,7 +2093,4 @@ scm_init_bytevectors (void)
 
   scm_endianness_big = scm_sym_big;
   scm_endianness_little = scm_sym_little;
-
-  scm_null_bytevector =
-    scm_gc_protect_object (make_bytevector_from_buffer (0, NULL));
 }
