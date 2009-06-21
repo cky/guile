@@ -3839,8 +3839,8 @@ procedures.
 @deffnx {C Function} scm_make_bytevector (len, fill)
 @deffnx {C Function} scm_c_make_bytevector (unsigned len)
 Return a new bytevector of @var{len} bytes.  Optionally, if @var{fill}
-is given, fill it with @var{fill}; @var{fill} must be an 8-bit signed
-integer, i.e., in the range [-128,127].
+is given, fill it with @var{fill}; @var{fill} must be in the range
+[-128,255].
 @end deffn
 
 @deffn {Scheme Procedure} bytevector? obj
