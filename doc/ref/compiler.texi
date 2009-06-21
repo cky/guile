@@ -722,7 +722,9 @@ containing the language definition and referencing the parser,
 compiler and other routines processing it. The module hierarchy in
 @code{(language brainfuck)} defines a very basic Brainfuck
 implementation meant to serve as easy-to-understand example on how to
-do this.
+do this. See for instance @url{http://en.wikipedia.org/wiki/Brainfuck}
+for more information about the Brainfuck language itself.
+
 
 @node Extending the Compiler
 @subsection Extending the Compiler
