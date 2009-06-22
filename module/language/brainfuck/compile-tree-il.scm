@@ -49,15 +49,36 @@
 ;; This compiles a whole brainfuck program. This constructs a Tree-IL
 ;; code equivalent to Scheme code like this:
 ;;
-;; (let ((pointer 0)
-;;       (tape (make-vector tape-size 0)))
-;;   (begin
-;;     <body>
-;;     (write-char #\newline)))
+;; ((lambda ()
+;;    (let ((pointer 0)
+;;          (tape (make-vector tape-size 0)))
+;;      (begin
+;;       <body>
+;;       (write-char #\newline)))))
 ;;
 ;; So first the pointer and tape variables are set up correctly, then the
 ;; program's body is executed in this context, and finally we output an
 ;; additional newline character in case the program does not output one.
+;;
+;; The fact that we are compiling to Guile primitives gives this
+;; implementation a number of interesting characteristics. First, the
+;; values of the tape cells do not underflow or overflow. We could make
+;; them do otherwise via compiling calls to "modulo" at certain points.
+;;
+;; In addition, tape overruns or underruns will be detected, and will
+;; throw an error, whereas a number of Brainfuck compilers do not detect
+;; this.
+;;
+;; We wrap the code in a lambda so that the body has a place to cache
+;; the looked-up locations of the primitive functions: vector-ref et al.
+;; This way we can use toplevel-ref instead of link-now + variable-ref.
+;; See the VM documentation for more info on those instructions.
+;;
+;; Normally when compiling you don't have to think about this at all,
+;; because the usual pattern is a bunch of definitions, then you call
+;; those definitions -- so the real work is in the functions anyway,
+;; which can use toplevel-ref. Here we just force that pattern into
+;; effect.
 ;;
 ;; Note that we're generating the S-expression representation of
 ;; Tree-IL, then using parse-tree-il to turn it into the actual Tree-IL
@@ -65,16 +86,29 @@
 ;; but we do lose is the ability to propagate source information. Since
 ;; Brainfuck is so obtuse anyway, this shouldn't matter ;-)
 ;;
-;; TODO: Find out and explain the details about env, the three return values and
-;; how to use the options.  Implement options to set the tape-size, maybe.
+;; `compile-tree-il' takes as its input the read expression, the
+;; environment, and some compile options. It returns the compiled
+;; expression, the environment appropriate for the next pass of the
+;; compiler -- in our case, just the environment unchanged -- and the
+;; continuation environment.
+;;
+;; The normal use of a continuation environment is if compiling one
+;; expression changes the environment, and that changed environment
+;; should be passed to the next compiled expression -- for example,
+;; changing the current module. But Brainfuck is incapable of that, so
+;; for us, the continuation environment is just the same environment we
+;; got in.
+;;
+;; FIXME: perhaps use options or the env to set the tape-size?
 
 (define (compile-tree-il exp env opts)
   (values
    (parse-tree-il
-    `(let (pointer tape) (pointer tape)
-          ((const 0)
-           (apply (primitive make-vector) (const ,tape-size) (const 0)))
-       ,(compile-body exp)))
+    `(apply (lambda () ()
+              (let (pointer tape) (pointer tape)
+                   ((const 0)
+                    (apply (primitive make-vector) (const ,tape-size) (const 0)))
+                   ,(compile-body exp)))))
    env
    env))
 
@@ -137,6 +171,13 @@
         ;;         (begin
         ;;          <body>
         ;;          (iterate))))
+        ;;
+        ;; Indeed, letrec is the only way we have to loop in Tree-IL.
+        ;; Note that this does not mean that the closure must actually
+        ;; be created; later passes can compile tail-recursive letrec
+        ;; calls into inline code with gotos. Admittedly, that part of
+        ;; the compiler is not yet in place, but it will be, and in the
+        ;; meantime the code is still reasonably efficient.
         ((<bf-loop> . ,body)
          (let ((iterate (gensym)))
            (emit `(letrec (iterate) (,iterate)
