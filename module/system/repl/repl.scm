@@ -107,6 +107,9 @@
           (newline)
           (set! status '()))
          (else
+          ;; since the input port is line-buffered, consume up to the
+          ;; newline
+          (flush-to-newline)
           (with-backtrace
            (catch 'quit
                   (lambda ()
@@ -134,3 +137,14 @@
 	      ((char-whitespace? ch) (read-char) (next-char wait))
 	      (else ch)))
       #f))
+
+(define (flush-to-newline) 
+  (if (char-ready?)
+      (let ((ch (peek-char)))
+        (if (and (not (eof-object? ch)) (char-whitespace? ch))
+            (begin
+              (read-char)
+              (if (not (char=? ch #\newline))
+                  (flush-to-newline)))))))
+          
+          
