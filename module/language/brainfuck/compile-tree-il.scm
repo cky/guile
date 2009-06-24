@@ -49,12 +49,11 @@
 ;; This compiles a whole brainfuck program. This constructs a Tree-IL
 ;; code equivalent to Scheme code like this:
 ;;
-;; ((lambda ()
 ;;    (let ((pointer 0)
 ;;          (tape (make-vector tape-size 0)))
 ;;      (begin
 ;;       <body>
-;;       (write-char #\newline)))))
+;;       (write-char #\newline)))
 ;;
 ;; So first the pointer and tape variables are set up correctly, then the
 ;; program's body is executed in this context, and finally we output an
@@ -68,17 +67,6 @@
 ;; In addition, tape overruns or underruns will be detected, and will
 ;; throw an error, whereas a number of Brainfuck compilers do not detect
 ;; this.
-;;
-;; We wrap the code in a lambda so that the body has a place to cache
-;; the looked-up locations of the primitive functions: vector-ref et al.
-;; This way we can use toplevel-ref instead of link-now + variable-ref.
-;; See the VM documentation for more info on those instructions.
-;;
-;; Normally when compiling you don't have to think about this at all,
-;; because the usual pattern is a bunch of definitions, then you call
-;; those definitions -- so the real work is in the functions anyway,
-;; which can use toplevel-ref. Here we just force that pattern into
-;; effect.
 ;;
 ;; Note that we're generating the S-expression representation of
 ;; Tree-IL, then using parse-tree-il to turn it into the actual Tree-IL
@@ -104,11 +92,10 @@
 (define (compile-tree-il exp env opts)
   (values
    (parse-tree-il
-    `(apply (lambda () ()
-              (let (pointer tape) (pointer tape)
-                   ((const 0)
-                    (apply (primitive make-vector) (const ,tape-size) (const 0)))
-                   ,(compile-body exp)))))
+    `(let (pointer tape) (pointer tape)
+          ((const 0)
+           (apply (primitive make-vector) (const ,tape-size) (const 0)))
+          ,(compile-body exp)))
    env
    env))
 
