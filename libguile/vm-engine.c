@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -200,6 +200,12 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   vm_error_not_a_pair:
     SYNC_ALL ();
     scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "pair");
+    /* shouldn't get here */
+    goto vm_error;
+
+  vm_error_not_a_bytevector:
+    SYNC_ALL ();
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "bytevector");
     /* shouldn't get here */
     goto vm_error;
 

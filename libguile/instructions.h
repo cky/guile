@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -21,7 +21,7 @@
 
 #include <libguile.h>
 
-#define SCM_VM_NUM_INSTRUCTIONS (1<<7)
+#define SCM_VM_NUM_INSTRUCTIONS (1<<8)
 #define SCM_VM_INSTRUCTION_MASK (SCM_VM_NUM_INSTRUCTIONS-1)
 
 enum scm_opcode {
