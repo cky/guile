@@ -116,6 +116,8 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
    i.e., without allocating memory beside the SMOB itself (a double cell).
    This optimization is necessary since small bytevectors are expected to be
    common.  */
+#define SCM_BYTEVECTOR_P(_bv)			\
+  SCM_SMOB_PREDICATE (scm_tc16_bytevector, _bv)
 #define SCM_BYTEVECTOR_INLINE_THRESHOLD  (2 * sizeof (SCM))
 #define SCM_BYTEVECTOR_INLINEABLE_SIZE_P(_size)	\
   ((_size) <= SCM_BYTEVECTOR_INLINE_THRESHOLD)
@@ -129,6 +131,7 @@ SCM_INTERNAL void scm_bootstrap_bytevectors (void);
 SCM_INTERNAL void scm_init_bytevectors (void);
 
 SCM_INTERNAL scm_t_bits scm_tc16_bytevector;
+SCM_INTERNAL SCM scm_i_native_endianness;
 SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, size_t);
 
 #define scm_c_shrink_bytevector(_bv, _len)		\

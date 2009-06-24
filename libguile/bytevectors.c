@@ -88,22 +88,22 @@
     scm_out_of_range (FUNC_NAME, index);
 
 /* Template for fixed-size integer access (only 8, 16 or 32-bit).  */
-#define INTEGER_REF(_len, _sign)			\
-  SCM result;						\
-							\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);		\
-  SCM_VALIDATE_SYMBOL (3, endianness);			\
-							\
-  {							\
-    INT_TYPE (_len, _sign)  c_result;			\
-							\
-    memcpy (&c_result, &c_bv[c_index], (_len) / 8);	\
-    if (!scm_is_eq (endianness, native_endianness))	\
-      c_result = INT_SWAP (_len) (c_result);		\
-							\
-    result = SCM_I_MAKINUM (c_result);			\
-  }							\
-							\
+#define INTEGER_REF(_len, _sign)                                \
+  SCM result;                                                   \
+                                                                \
+  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);                      \
+  SCM_VALIDATE_SYMBOL (3, endianness);                          \
+                                                                \
+  {                                                             \
+      INT_TYPE (_len, _sign)  c_result;                         \
+                                                                \
+    memcpy (&c_result, &c_bv[c_index], (_len) / 8);             \
+    if (!scm_is_eq (endianness, scm_i_native_endianness))       \
+      c_result = INT_SWAP (_len) (c_result);                    \
+                                                                \
+    result = SCM_I_MAKINUM (c_result);                          \
+  }                                                             \
+                                                                \
   return result;
 
 /* Template for fixed-size integer access using the native endianness.  */
@@ -138,7 +138,7 @@
       scm_out_of_range (FUNC_NAME, value);			\
 								\
     c_value_short = (INT_TYPE (_len, _sign)) c_value;		\
-    if (!scm_is_eq (endianness, native_endianness))		\
+    if (!scm_is_eq (endianness, scm_i_native_endianness))       \
       c_value_short = INT_SWAP (_len) (c_value_short);		\
 								\
     memcpy (&c_bv[c_index], &c_value_short, (_len) / 8);	\
@@ -398,7 +398,7 @@ SCM_SYMBOL (scm_sym_little, "little");
 SCM scm_endianness_big, scm_endianness_little;
 
 /* Host endianness (a symbol).  */
-static SCM native_endianness = SCM_UNSPECIFIED;
+SCM scm_i_native_endianness = SCM_UNSPECIFIED;
 
 /* Byte-swapping.  */
 #ifndef bswap_24
@@ -414,7 +414,7 @@ SCM_DEFINE (scm_native_endianness, "native-endianness", 0, 0, 0,
 	    "Return a symbol denoting the machine's native endianness.")
 #define FUNC_NAME s_scm_native_endianness
 {
-  return native_endianness;
+  return scm_i_native_endianness;
 }
 #undef FUNC_NAME
 
@@ -868,7 +868,7 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
       int swap;								\
       _sign int value;							\
 									\
-      swap = !scm_is_eq (endianness, native_endianness);		\
+      swap = !scm_is_eq (endianness, scm_i_native_endianness);		\
       switch (c_size)							\
 	{								\
 	case 1:								\
@@ -943,7 +943,7 @@ bytevector_unsigned_ref (const char *c_bv, size_t c_size, SCM endianness)
 	      int swap;							\
 	      INT_TYPE (16, _sign)  c_value16;				\
 									\
-	      swap = !scm_is_eq (endianness, native_endianness);	\
+	      swap = !scm_is_eq (endianness, scm_i_native_endianness);	\
 									\
 	      if (swap)							\
 		c_value16 = (INT_TYPE (16, _sign)) bswap_16 (c_value);	\
@@ -1293,7 +1293,7 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
 #define LARGE_INTEGER_NATIVE_REF(_len, _sign)				 \
   INTEGER_ACCESSOR_PROLOGUE(_len, _sign);				 \
   return (bytevector_large_ref ((char *) c_bv + c_index, _len / 8,	 \
-				SIGNEDNESS (_sign), native_endianness));
+				SIGNEDNESS (_sign), scm_i_native_endianness));
 
 #define LARGE_INTEGER_NATIVE_SET(_len, _sign)				\
   int err;								\
@@ -1301,7 +1301,7 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
 									\
   err = bytevector_large_set ((char *) c_bv + c_index, _len / 8,	\
 			      SIGNEDNESS (_sign), value,		\
-			      native_endianness);			\
+			      scm_i_native_endianness);			\
   if (SCM_UNLIKELY (err))						\
      scm_out_of_range (FUNC_NAME, value);				\
 									\
@@ -1640,7 +1640,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
   IEEE754_ACCESSOR_PROLOGUE (_type);				\
   SCM_VALIDATE_SYMBOL (3, endianness);				\
 								\
-  if (scm_is_eq (endianness, native_endianness))		\
+  if (scm_is_eq (endianness, scm_i_native_endianness))		\
     memcpy (&c_result, &c_bv[c_index], sizeof (c_result));	\
   else								\
     {								\
@@ -1669,7 +1669,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
   SCM_VALIDATE_SYMBOL (4, endianness);				\
   c_value = IEEE754_FROM_SCM (_type) (value);			\
 								\
-  if (scm_is_eq (endianness, native_endianness))		\
+  if (scm_is_eq (endianness, scm_i_native_endianness))		\
     memcpy (&c_bv[c_index], &c_value, sizeof (c_value));	\
   else								\
     {								\
@@ -2075,6 +2075,12 @@ scm_bootstrap_bytevectors (void)
   scm_null_bytevector =
     scm_gc_protect_object (make_bytevector_from_buffer (0, NULL));
 
+#ifdef WORDS_BIGENDIAN
+  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("big"));
+#else
+  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("little"));
+#endif
+
   scm_c_register_extension ("libguile", "scm_init_bytevectors",
 			    (scm_t_extension_init_func) scm_init_bytevectors,
 			    NULL);
@@ -2084,12 +2090,6 @@ void
 scm_init_bytevectors (void)
 {
 #include "libguile/bytevectors.x"
-
-#ifdef WORDS_BIGENDIAN
-  native_endianness = scm_sym_big;
-#else
-  native_endianness = scm_sym_little;
-#endif
 
   scm_endianness_big = scm_sym_big;
   scm_endianness_little = scm_sym_little;
