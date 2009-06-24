@@ -22,6 +22,7 @@
   #:use-module (system base syntax)
   #:use-module (ice-9 receive)
   #:use-module (language glil)
+  #:use-module (system vm instruction)
   #:use-module (language tree-il)
   #:use-module (language tree-il optimize)
   #:use-module (language tree-il analyze)
@@ -305,10 +306,20 @@
          => (lambda (op)
               (for-each comp-push args)
               (emit-code src (make-glil-call op (length args)))
-              (case context
-                ((tail) (emit-code #f (make-glil-call 'return 1)))
-                ((drop) (emit-code #f (make-glil-call 'drop 1))))))
-
+              (case (instruction-pushes op)
+                ((0)
+                 (case context
+                   ((tail) (emit-code #f (make-glil-void))
+                           (emit-code #f (make-glil-call 'return 1)))
+                   ((push vals) (emit-code #f (make-glil-void)))))
+                ((1)
+                 (case context
+                   ((tail) (emit-code #f (make-glil-call 'return 1)))
+                   ((drop) (emit-code #f (make-glil-call 'drop 1)))))
+                (else
+                 (error "bad primitive op: too many pushes"
+                        op (instruction-pushes op))))))
+        
         (else
          (comp-push proc)
          (for-each comp-push args)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -34,7 +34,7 @@
 #include "objcodes.h"
 
 /* nb, the length of the header should be a multiple of 8 bytes */
-#define OBJCODE_COOKIE "GOOF-0.5"
+#define OBJCODE_COOKIE "GOOF-0.6"
 
 
 /*

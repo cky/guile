@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -131,20 +131,24 @@ VM_DEFINE_FUNCTION (92, cdr, "cdr", 1)
   RETURN (SCM_CDR (x));
 }
 
-VM_DEFINE_FUNCTION (93, set_car, "set-car!", 2)
+VM_DEFINE_INSTRUCTION (93, set_car, "set-car!", 0, 2, 0)
 {
-  ARGS2 (x, y);
+  SCM x, y;
+  POP (y);
+  POP (x);
   VM_VALIDATE_CONS (x);
   SCM_SETCAR (x, y);
-  RETURN (SCM_UNSPECIFIED);
+  NEXT;
 }
 
-VM_DEFINE_FUNCTION (94, set_cdr, "set-cdr!", 2)
+VM_DEFINE_INSTRUCTION (94, set_cdr, "set-cdr!", 0, 2, 0)
 {
-  ARGS2 (x, y);
+  SCM x, y;
+  POP (y);
+  POP (x);
   VM_VALIDATE_CONS (x);
   SCM_SETCDR (x, y);
-  RETURN (SCM_UNSPECIFIED);
+  NEXT;
 }
 
 
@@ -263,13 +267,16 @@ VM_DEFINE_FUNCTION (107, slot_ref, "slot-ref", 2)
   RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
 }
 
-VM_DEFINE_FUNCTION (108, slot_set, "slot-set", 3)
+VM_DEFINE_INSTRUCTION (108, slot_set, "slot-set", 0, 3, 0)
 {
+  SCM instance, idx, val;
   size_t slot;
-  ARGS3 (instance, idx, val);
+  POP (val);
+  POP (idx);
+  POP (instance);
   slot = SCM_I_INUM (idx);
   SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (val);
-  RETURN (SCM_UNSPECIFIED);
+  NEXT;
 }
 
 /*
