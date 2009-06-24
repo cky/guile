@@ -1651,16 +1651,16 @@ and writing.
 Guile has a number of data types that are generally vector-like:
 strings, uniform numeric vectors, bytevectors, bitvectors, and of course
 ordinary vectors of arbitrary Scheme values.  These types are disjoint:
-a Scheme value belongs to at most one of the four types listed above.
+a Scheme value belongs to at most one of the five types listed above.
 
 If you want to gloss over this distinction and want to treat all four
 types with common code, you can use the procedures in this section.
 They work with the @emph{generalized vector} type, which is the union
-of the four vector-like types.
+of the five vector-like types.
 
 @deffn {Scheme Procedure} generalized-vector? obj
 @deffnx {C Function} scm_generalized_vector_p (obj)
-Return @code{#t} if @var{obj} is a vector, string,
+Return @code{#t} if @var{obj} is a vector, bytevector, string,
 bitvector, or uniform numeric vector.
 @end deffn
 

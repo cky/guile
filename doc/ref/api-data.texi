@@ -3755,7 +3755,7 @@ stored and you probably need to try again with a larger buffer.
 
 A @dfn{bytevector} is a raw bit string.  The @code{(rnrs bytevector)}
 module provides the programming interface specified by the
-@uref{http://www.r6rs.org/, Revised Report^6 on the Algorithmic Language
+@uref{http://www.r6rs.org/, Revised^6 Report on the Algorithmic Language
 Scheme (R6RS)}.  It contains procedures to manipulate bytevectors and
 interpret their contents in a number of ways: bytevector contents can be
 accessed as signed or unsigned integer of various sizes and endianness,
@@ -3800,18 +3800,20 @@ R6RS (@pxref{R6RS I/O Ports}).
 @cindex word order
 
 Some of the following procedures take an @var{endianness} parameter.
-The @dfn{endianness} is defined is defined as the order of bytes in
-multi-byte numbers: numbers encoded in @dfn{big endian} have their most
-significant bytes written first, whereas numbers encoded in @dfn{little
-endian} have their least significant bytes first@footnote{Big and little
-endian are the most common ``endiannesses'' but others exist.  For
-instance, the GNU MP library allows @dfn{word order} to be specified
-independently of @dfn{byte order} (@pxref{Integer Import and Export,,,
-gmp, The GNU Multiple Precision Arithmetic Library Manual}).}  Little
-endian is the native endianness of the IA32 architecture and its
-derivatives, while big endian is native to SPARC and PowerPC, among
-others.  The @code{native-endianness} procedure returns the native
-endianness of the machine it runs on.
+The @dfn{endianness} is defined as the order of bytes in multi-byte
+numbers: numbers encoded in @dfn{big endian} have their most
+significant bytes written first, whereas numbers encoded in
+@dfn{little endian} have their least significant bytes
+first@footnote{Big-endian and little-endian are the most common
+``endiannesses'', but others do exist. For instance, the GNU MP
+library allows @dfn{word order} to be specified independently of
+@dfn{byte order} (@pxref{Integer Import and Export,,, gmp, The GNU
+Multiple Precision Arithmetic Library Manual}).}.
+
+Little-endian is the native endianness of the IA32 architecture and
+its derivatives, while big-endian is native to SPARC and PowerPC,
+among others. The @code{native-endianness} procedure returns the
+native endianness of the machine it runs on.
 
 @deffn {Scheme Procedure} native-endianness
 @deffnx {C Function} scm_native_endianness ()
@@ -3820,13 +3822,13 @@ Return a value denoting the native endianness of the host machine.
 
 @deffn {Scheme Macro} endianness symbol
 Return an object denoting the endianness specified by @var{symbol}.  If
-@var{symbol} is neither @code{big} nor @code{little} then a compile-time
-error is raised.
+@var{symbol} is neither @code{big} nor @code{little} then an error is
+raised at expand-time.
 @end deffn
 
 @defvr {C Variable} scm_endianness_big
 @defvrx {C Variable} scm_endianness_little
-The objects denoting big (resp. little) endianness.
+The objects denoting big- and little-endianness, respectively.
 @end defvr
 
 
