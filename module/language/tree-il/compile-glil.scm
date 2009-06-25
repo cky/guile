@@ -81,7 +81,10 @@
    (list . list)
    (vector . vector)
    ((@slot-ref . 2) . slot-ref)
-   ((@slot-set! . 3) . slot-set)))
+   ((@slot-set! . 3) . slot-set)
+   ((vector-ref . 2) . vector-ref)
+   ((vector-set! . 3) . vector-set)
+   ))
 
 (define (make-label) (gensym ":L"))
 

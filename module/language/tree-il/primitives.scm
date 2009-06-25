@@ -47,7 +47,9 @@
     caaar caadr cadar caddr cdaar cdadr cddar cdddr
 
     caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
-    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr))
+    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
+
+    vector-ref vector-set!))
 
 (define (add-interesting-primitive! name)
   (hashq-set! *interesting-primitive-vars*
