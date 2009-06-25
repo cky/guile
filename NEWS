@@ -688,13 +688,6 @@ lead to a stack overflow.
 ** Fixed shadowing of libc's <random.h> on Tru64, which broke compilation
 ** Make sure all tests honor `$TMPDIR'
 
-* Changes to the distribution
-
-** New FAQ
-
-We've started collecting Frequently Asked Questions (FAQ), and will
-distribute these (with answers!) in future Guile releases.
-
 
 Changes in 1.8.4 (since 1.8.3)
 

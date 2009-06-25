@@ -31,7 +31,7 @@ SUBDIRS = lib meta libguile guile-readline emacs \
 include_HEADERS = libguile.h
 
 EXTRA_DIST = LICENSE HACKING GUILE-VERSION		\
-	     m4/ChangeLog-2008 FAQ \
+	     m4/ChangeLog-2008 \
 	     m4/autobuild.m4 ChangeLog-2008
 
 TESTS = check-guile
