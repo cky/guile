@@ -511,6 +511,11 @@ This procedure corresponds to Scheme's `module-public-interface'.
 ** `scm_stat' has an additional argument, `exception_on_error'
 ** `scm_primitive_load_path' has an additional argument `exception_on_not_found'
 
+** `scm_set_port_seek' and `scm_set_port_truncate' use the `scm_t_off' type
+
+Previously they would use the `off_t' type, which is fragile since its
+definition depends on the application's value for `_FILE_OFFSET_BITS'.
+
 * Changes to the distribution
 
 ** Guile's license is now LGPLv3+

@@ -222,15 +222,14 @@ scm_set_port_close (scm_t_bits tc, int (*close) (SCM))
 }
 
 void
-scm_set_port_seek (scm_t_bits tc, off_t (*seek) (SCM port,
-					   off_t OFFSET,
-					   int WHENCE))
+scm_set_port_seek (scm_t_bits tc,
+		   scm_t_off (*seek) (SCM, scm_t_off, int))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].seek = seek;
 }
 
 void
-scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, off_t length))
+scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM, scm_t_off))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].truncate = truncate;
 }
@@ -1399,15 +1398,15 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
   else if (SCM_OPPORTP (fd_port))
     {
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
-      off_t off = scm_to_off_t (offset);
-      off_t rv;
+      off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
+      off_t_or_off64_t rv;
 
       if (!ptob->seek)
 	SCM_MISC_ERROR ("port is not seekable", 
                         scm_cons (fd_port, SCM_EOL));
       else
 	rv = ptob->seek (fd_port, off, how);
-      return scm_from_off_t (rv);
+      return scm_from_off_t_or_off64_t (rv);
     }
   else /* file descriptor?.  */
     {
@@ -1496,7 +1495,7 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
     }
   else if (SCM_OPOUTPORTP (object))
     {
-      off_t c_length = scm_to_off_t (length);
+      off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
       scm_t_port *pt = SCM_PTAB_ENTRY (object);
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
       

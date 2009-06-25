@@ -1531,7 +1531,7 @@ implementations take care to avoid this problem.
 
 The procedure is set using
 
-@deftypefun void scm_set_port_seek (scm_t_bits tc, off_t (*seek) (SCM port, off_t offset, int whence))
+@deftypefun void scm_set_port_seek (scm_t_bits tc, scm_t_off (*seek) (SCM port, scm_t_off offset, int whence))
 @end deftypefun
 
 @item truncate
@@ -1539,7 +1539,7 @@ Truncate the port data to be specified length.  It can be assumed that the
 current state of @code{rw_active} is @code{SCM_PORT_NEITHER}.
 Set using
 
-@deftypefun void scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, off_t length))
+@deftypefun void scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, scm_t_off length))
 @end deftypefun
 
 @end table

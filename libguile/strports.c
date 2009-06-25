@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -108,7 +108,7 @@ stfill_buffer (SCM port)
 /* change the size of a port's string to new_size.  this doesn't
    change read_buf_size.  */
 static void 
-st_resize_port (scm_t_port *pt, off_t new_size)
+st_resize_port (scm_t_port *pt, scm_t_off new_size)
 {
   SCM old_stream = SCM_PACK (pt->stream);
   const char *src = scm_i_string_chars (old_stream);
@@ -118,7 +118,7 @@ st_resize_port (scm_t_port *pt, off_t new_size)
   unsigned long int min_size = min (old_size, new_size);
   unsigned long int i;
 
-  off_t index = pt->write_pos - pt->write_buf;
+  scm_t_off index = pt->write_pos - pt->write_buf;
 
   pt->write_buf_size = new_size;
 
@@ -199,11 +199,11 @@ st_end_input (SCM port, int offset)
   pt->rw_active = SCM_PORT_NEITHER;
 }
 
-static off_t
-st_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+st_seek (SCM port, scm_t_off offset, int whence)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  off_t target;
+  scm_t_off target;
 
   if (pt->rw_active == SCM_PORT_READ && offset == 0 && whence == SEEK_CUR)
     /* special case to avoid disturbing the unread-char buffer.  */
@@ -272,7 +272,7 @@ st_seek (SCM port, off_t offset, int whence)
 }
 
 static void
-st_truncate (SCM port, off_t length)
+st_truncate (SCM port, scm_t_off length)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 

@@ -125,11 +125,11 @@ bip_fill_input (SCM port)
   return result;
 }
 
-static off_t
-bip_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+bip_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bip_seek"
 {
-  off_t c_result = 0;
+  scm_t_off c_result = 0;
   scm_t_port *c_port = SCM_PTAB_ENTRY (port);
 
   switch (whence)
@@ -217,12 +217,12 @@ cbp_mark (SCM port)
     return SCM_BOOL_F;
 }
 
-static off_t
-cbp_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+cbp_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "cbp_seek"
 {
   SCM result;
-  off_t c_result = 0;
+  scm_t_off c_result = 0;
 
   switch (whence)
     {
@@ -885,8 +885,8 @@ bop_write (SCM port, const void *data, size_t size)
   buf->len = (buf->len > buf->pos) ? buf->len : buf->pos;
 }
 
-static off_t
-bop_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+bop_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bop_seek"
 {
   scm_t_bop_buffer *buf;
@@ -895,7 +895,7 @@ bop_seek (SCM port, off_t offset, int whence)
   switch (whence)
     {
     case SEEK_CUR:
-      offset += (off_t) buf->pos;
+      offset += (scm_t_off) buf->pos;
       /* Fall through.  */
 
     case SEEK_SET:

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -671,8 +671,8 @@ fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
    fport_seek already.  */
 
 #if GUILE_USE_64_CALLS && HAVE_STAT64 && SIZEOF_OFF_T != SIZEOF_OFF64_T
-static off_t
-fport_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+fport_seek (SCM port, scm_t_off offset, int whence)
 {
   off64_t rv = fport_seek_or_seek64 (port, (off64_t) offset, whence);
   if (rv > OFF_T_MAX || rv < OFF_T_MIN)
@@ -680,7 +680,7 @@ fport_seek (SCM port, off_t offset, int whence)
       errno = EOVERFLOW;
       scm_syserror ("fport_seek");
     }
-  return (off_t) rv;
+  return (scm_t_off) rv;
 
 }
 #else
@@ -696,7 +696,7 @@ scm_i_fport_seek (SCM port, SCM offset, int how)
 }
 
 static void
-fport_truncate (SCM port, off_t length)
+fport_truncate (SCM port, scm_t_off length)
 {
   scm_t_fport *fp = SCM_FSTREAM (port);
 
@@ -748,7 +748,7 @@ fport_write (SCM port, const void *data, size_t size)
     }
 
   {
-    off_t space = pt->write_end - pt->write_pos;
+    scm_t_off space = pt->write_end - pt->write_pos;
 
     if (size <= space)
       {

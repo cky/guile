@@ -1,4 +1,4 @@
-/* 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* 	Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -207,7 +207,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
 #define FUNC_NAME s_scm_write_string_partial
 {
   const char *src;
-  long write_len;
+  scm_t_off write_len;
   int fdes;
 
   {
@@ -232,7 +232,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
       SCM port = (SCM_UNBNDP (port_or_fdes)?
 		  scm_current_output_port () : port_or_fdes);
       scm_t_port *pt;
-      off_t space;
+      scm_t_off space;
 
       SCM_VALIDATE_OPFPORT (2, port);
       SCM_VALIDATE_OUTPUT_PORT (2, port);

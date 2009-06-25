@@ -29,8 +29,6 @@
 #include "libguile/struct.h"
 #include "libguile/threads.h"
 
-/* Not sure if this is a good idea.  We need it for off_t.  */
-#include <sys/types.h>
 
 
 
@@ -70,7 +68,7 @@ typedef struct
   unsigned char *read_buf;	/* buffer start.  */
   const unsigned char *read_pos;/* the next unread char.  */
   unsigned char *read_end;      /* pointer to last buffered char + 1.  */
-  off_t read_buf_size;		/* size of the buffer.  */
+  scm_t_off read_buf_size;		/* size of the buffer.  */
 
   /* when chars are put back into the buffer, e.g., using peek-char or
      unread-string, the read-buffer pointers are switched to cbuf.
@@ -79,7 +77,7 @@ typedef struct
   unsigned char *saved_read_buf;
   const unsigned char *saved_read_pos;
   unsigned char *saved_read_end;
-  off_t saved_read_buf_size;
+  scm_t_off saved_read_buf_size;
 
   /* write requests are saved into this buffer at write_pos until it
      reaches write_buf + write_buf_size, then the ptob flush is
@@ -88,7 +86,7 @@ typedef struct
   unsigned char *write_buf;     /* buffer start.  */
   unsigned char *write_pos;     /* pointer to last buffered char + 1.  */
   unsigned char *write_end;     /* pointer to end of buffer + 1.  */
-  off_t write_buf_size;		/* size of the buffer.  */
+  scm_t_off write_buf_size;		/* size of the buffer.  */
 
   unsigned char shortbuf;       /* buffer for "unbuffered" streams.  */
 
@@ -185,8 +183,8 @@ typedef struct scm_t_ptob_descriptor
   int (*fill_input) (SCM port);
   int (*input_waiting) (SCM port);
 
-  off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
-  void (*truncate) (SCM port, off_t length);
+  scm_t_off (*seek) (SCM port, scm_t_off OFFSET, int WHENCE);
+  void (*truncate) (SCM port, scm_t_off length);
 
 } scm_t_ptob_descriptor;
 
@@ -224,12 +222,12 @@ SCM_API void scm_set_port_end_input (scm_t_bits tc,
 				     void (*end_input) (SCM port,
 							int offset));
 SCM_API void scm_set_port_seek (scm_t_bits tc,
-				off_t (*seek) (SCM port,
-					       off_t OFFSET,
-					       int WHENCE));
+				scm_t_off (*seek) (SCM port,
+						   scm_t_off OFFSET,
+						   int WHENCE));
 SCM_API void scm_set_port_truncate (scm_t_bits tc,
 				    void (*truncate) (SCM port,
-						      off_t length));
+						      scm_t_off length));
 SCM_API void scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM));
 SCM_API SCM scm_char_ready_p (SCM port);
 size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len);
