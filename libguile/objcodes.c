@@ -63,19 +63,31 @@ make_objcode_by_mmap (int fd)
 
   addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
-    SCM_SYSERROR;
+    {
+      (void) close (fd);
+      SCM_SYSERROR;
+    }
 
   if (memcmp (addr, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE)))
-    scm_misc_error (FUNC_NAME, "bad header on object file: ~s",
-		    scm_list_1 (scm_from_locale_stringn
-                                (addr, strlen (OBJCODE_COOKIE))));
+    {
+      (void) close (fd);
+      (void) munmap (addr, st.st_size);
+      scm_misc_error (FUNC_NAME, "bad header on object file: ~s",
+		      scm_list_1 (scm_from_locale_stringn
+				  (addr, strlen (OBJCODE_COOKIE))));
+    }
 
   data = (struct scm_objcode*)(addr + strlen (OBJCODE_COOKIE));
 
   if (data->len + data->metalen != (st.st_size - sizeof (*data) - strlen (OBJCODE_COOKIE)))
-    scm_misc_error (FUNC_NAME, "bad length header (~a, ~a)",
-		    scm_list_2 (scm_from_size_t (st.st_size),
-				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
+    {
+      (void) close (fd);
+      (void) munmap (addr, st.st_size);
+      scm_misc_error (FUNC_NAME, "bad length header (~a, ~a)",
+		      scm_list_2 (scm_from_size_t (st.st_size),
+				  scm_from_uint32 (sizeof (*data) + data->len
+						   + data->metalen)));
+    }
 
   SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (OBJCODE_COOKIE),
                 SCM_PACK (SCM_BOOL_F), fd);
