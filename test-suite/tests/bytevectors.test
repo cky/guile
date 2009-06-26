@@ -19,13 +19,33 @@
 
 (define-module (test-bytevector)
   :use-module (test-suite lib)
+  :use-module (system base compile)
   :use-module (rnrs bytevector))
 
 ;;; Some of the tests in here are examples taken from the R6RS Standard
 ;;; Libraries document.
 
+(define-syntax c&e
+  (syntax-rules (pass-if pass-if-exception)
+    ((_ (pass-if test-name exp))
+     (begin (pass-if (string-append test-name " (eval)")
+                     (primitive-eval 'exp))
+            (pass-if (string-append test-name " (compile)")
+                     (compile 'exp #:to 'value))))
+    ((_ (pass-if-exception test-name exc exp))
+     (begin (pass-if-exception (string-append test-name " (eval)")
+                               exc (primitive-eval 'exp))
+            (pass-if-exception (string-append test-name " (compile)")
+                               exc (compile 'exp #:to 'value))))))
+
+(define-syntax with-test-prefix/c&e
+  (syntax-rules ()
+    ((_ section-name exp ...)
+     (with-test-prefix section-name (c&e exp) ...))))
+
+
 
-(with-test-prefix "2.2 General Operations"
+(with-test-prefix/c&e "2.2 General Operations"
 
   (pass-if "native-endianness"
     (not (not (memq (native-endianness) '(big little)))))
@@ -44,7 +64,7 @@
                             (make-bytevector 20 0))))))
 
 
-(with-test-prefix "2.3 Operations on Bytes and Octets"
+(with-test-prefix/c&e "2.3 Operations on Bytes and Octets"
 
   (pass-if "bytevector-{u8,s8}-ref"
     (equal? '(-127 129 -1 255)
@@ -131,7 +151,7 @@
       (equal? bv1 bv2))))
 
 
-(with-test-prefix "2.4 Operations on Integers of Arbitrary Size"
+(with-test-prefix/c&e "2.4 Operations on Integers of Arbitrary Size"
 
   (pass-if "bytevector->sint-list"
     (let ((b (u8-list->bytevector '(1 2 3 255 1 2 1 2))))
@@ -185,7 +205,7 @@
     (uint-list->bytevector '(0 -1) (endianness big) 2)))
 
 
-(with-test-prefix "2.5 Operations on 16-Bit Integers"
+(with-test-prefix/c&e "2.5 Operations on 16-Bit Integers"
 
   (pass-if "bytevector-u16-ref"
     (let ((b (u8-list->bytevector
@@ -233,7 +253,7 @@
 	      -77))))
 
 
-(with-test-prefix "2.6 Operations on 32-bit Integers"
+(with-test-prefix/c&e "2.6 Operations on 32-bit Integers"
 
   (pass-if "bytevector-u32-ref"
     (let ((b (u8-list->bytevector
@@ -270,7 +290,7 @@
                    (- 2222222222 (expt 2 32)))))))
 
 
-(with-test-prefix "2.7 Operations on 64-bit Integers"
+(with-test-prefix/c&e "2.7 Operations on 64-bit Integers"
 
   (pass-if "bytevector-u64-ref"
     (let ((b (u8-list->bytevector
@@ -315,7 +335,7 @@
        (= 0 (bytevector-u64-ref b 0 (endianness big))))))
 
 
-(with-test-prefix "2.8 Operations on IEEE-754 Representations"
+(with-test-prefix/c&e "2.8 Operations on IEEE-754 Representations"
 
   (pass-if "bytevector-ieee-single-native-{ref,set!}"
     (let ((b (make-bytevector 4))
