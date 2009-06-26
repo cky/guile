@@ -84,7 +84,50 @@
    ((@slot-set! . 3) . slot-set)
    ((vector-ref . 2) . vector-ref)
    ((vector-set! . 3) . vector-set)
-   ))
+
+   ((bytevector-u8-ref . 2) . bv-u8-ref)
+   ((bytevector-u8-set! . 3) . bv-u8-set)
+   ((bytevector-s8-ref . 2) . bv-s8-ref)
+   ((bytevector-s8-set! . 3) . bv-s8-set)
+
+   ((bytevector-u16-ref . 3) . bv-u16-ref)
+   ((bytevector-u16-set! . 4) . bv-u16-set)
+   ((bytevector-u16-native-ref . 2) . bv-u16-native-ref)
+   ((bytevector-u16-native-set! . 3) . bv-u16-native-set)
+   ((bytevector-s16-ref . 3) . bv-s16-ref)
+   ((bytevector-s16-set! . 4) . bv-s16-set)
+   ((bytevector-s16-native-ref . 2) . bv-s16-native-ref)
+   ((bytevector-s16-native-set! . 3) . bv-s16-native-set)
+    
+   ((bytevector-u32-ref . 3) . bv-u32-ref)
+   ((bytevector-u32-set! . 4) . bv-u32-set)
+   ((bytevector-u32-native-ref . 2) . bv-u32-native-ref)
+   ((bytevector-u32-native-set! . 3) . bv-u32-native-set)
+   ((bytevector-s32-ref . 3) . bv-s32-ref)
+   ((bytevector-s32-set! . 4) . bv-s32-set)
+   ((bytevector-s32-native-ref . 2) . bv-s32-native-ref)
+   ((bytevector-s32-native-set! . 3) . bv-s32-native-set)
+    
+   ((bytevector-u64-ref . 3) . bv-u64-ref)
+   ((bytevector-u64-set! . 4) . bv-u64-set)
+   ((bytevector-u64-native-ref . 2) . bv-u64-native-ref)
+   ((bytevector-u64-native-set! . 3) . bv-u64-native-set)
+   ((bytevector-s64-ref . 3) . bv-s64-ref)
+   ((bytevector-s64-set! . 4) . bv-s64-set)
+   ((bytevector-s64-native-ref . 2) . bv-s64-native-ref)
+   ((bytevector-s64-native-set! . 3) . bv-s64-native-set)
+    
+   ((bytevector-ieee-single-ref . 3) . bv-f32-ref)
+   ((bytevector-ieee-single-set! . 4) . bv-f32-set)
+   ((bytevector-ieee-single-native-ref . 2) . bv-f32-native-ref)
+   ((bytevector-ieee-single-native-set! . 3) . bv-f32-native-set)
+   ((bytevector-ieee-double-ref . 3) . bv-f64-ref)
+   ((bytevector-ieee-double-set! . 4) . bv-f64-set)
+   ((bytevector-ieee-double-native-ref . 2) . bv-f64-native-ref)
+   ((bytevector-ieee-double-native-set! . 3) . bv-f64-native-set)))
+
+
+
 
 (define (make-label) (gensym ":L"))
 

@@ -455,14 +455,14 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 #define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)         \
 {                                                                       \
   long i, j;                                                            \
-  ARGS3 (bv, idx, val);                                                 \
+  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
                   && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
                   && (i % size == 0)                                    \
                   && (SCM_I_INUMP (val))                                \
-                  && ((j = SCM_I_INUM (val)) >= min)                      \
+                  && ((j = SCM_I_INUM (val)) >= min)                    \
                   && (j <= max)))                                       \
     *(scm_t_##type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = (scm_t_##type)j; \
   else                                                                  \
@@ -473,7 +473,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 #define BV_INT_SET(stem, type, size)                                    \
 {                                                                       \
   long i;                                                               \
-  ARGS3 (bv, idx, val);                                                 \
+  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                      \
@@ -488,7 +488,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 #define BV_FLOAT_SET(stem, fn_stem, type, size)                         \
 {                                                                       \
   long i;                                                               \
-  ARGS3 (bv, idx, val);                                                 \
+  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                      \
@@ -497,6 +497,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
     *(type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_double (val);  \
   else                                                                  \
     scm_bytevector_##fn_stem##_native_set_x (bv, idx, val);             \
+  NEXT;                                                                 \
 }
 
 VM_DEFINE_INSTRUCTION (137, bv_u8_set, "bv-u8-set", 0, 3, 0)

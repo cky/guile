@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -109,10 +109,11 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
 #define FUNC_NAME s_scm_instruction_list
 {
   SCM list = SCM_EOL;
-  struct scm_instruction *ip;
-  for (ip = fetch_instruction_table (); ip->opcode != scm_op_last; ip++)
-    if (ip->name)
-      list = scm_cons (ip->symname, list);
+  int i;
+  struct scm_instruction *ip = fetch_instruction_table ();
+  for (i = 0; i < scm_op_last; i++)
+    if (ip[i].name)
+      list = scm_cons (ip[i].symname, list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME
