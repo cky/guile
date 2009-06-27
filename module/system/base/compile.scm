@@ -131,7 +131,11 @@
           (else (car %load-compiled-extensions))))
   (and %compile-fallback-path
        (let ((f (string-append
-                 %compile-fallback-path "/" file (compiled-extension))))
+                 %compile-fallback-path
+                 ;; no need for '/' separator here, canonicalize-path
+                 ;; will give us an absolute path
+                 (canonicalize-path file)
+                 (compiled-extension))))
          (and (false-if-exception (ensure-writable-dir (dirname f)))
               f))))
 

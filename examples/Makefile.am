@@ -4,20 +4,20 @@
 ##
 ##   This file is part of GUILE.
 ##   
-##   GUILE is free software; you can redistribute it and/or modify
-##   it under the terms of the GNU General Public License as
-##   published by the Free Software Foundation; either version 2, or
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
 ##   (at your option) any later version.
-##   
+##
 ##   GUILE is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##   GNU General Public License for more details.
-##   
-##   You should have received a copy of the GNU General Public
-##   License along with GUILE; see the file COPYING.  If not, write
-##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-##   Floor, Boston, MA 02110-1301 USA
+##   GNU Lesser General Public License for more details.
+##
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 EXTRA_DIST = README ChangeLog-2008 check.test				\
 									\
@@ -38,8 +38,8 @@ EXTRA_DIST = README ChangeLog-2008 check.test				\
 									\
  safe/README safe/safe safe/untrusted.scm safe/evil.scm
 
-AM_CFLAGS = `PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config compile`
-AM_LIBS   = `PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config link`
+AM_CFLAGS = `PATH=$(bindir):$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config compile`
+AM_LIBS   = `PATH=$(bindir):$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config link`
 
 
 box/box: box/box.o
@@ -81,6 +81,7 @@ installcheck: box/box box-module/box libbox.la libbox-module.la
 	  LTDL_LIBRARY_PATH="$(builddir):$$LTDL_LIBRARY_PATH"	\
 	  GUILE_LOAD_PATH="$(abs_top_srcdir):$$GUILE_LOAD_PATH"	\
 	  PATH="$(bindir):$$PATH"				\
+	  GUILE_AUTO_COMPILE=0					\
 	  srcdir="$(srcdir)"					\
 	  $(srcdir)/check.test
 

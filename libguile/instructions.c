@@ -1,18 +1,19 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #if HAVE_CONFIG_H
@@ -108,10 +109,11 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
 #define FUNC_NAME s_scm_instruction_list
 {
   SCM list = SCM_EOL;
-  struct scm_instruction *ip;
-  for (ip = fetch_instruction_table (); ip->opcode != scm_op_last; ip++)
-    if (ip->name)
-      list = scm_cons (ip->symname, list);
+  int i;
+  struct scm_instruction *ip = fetch_instruction_table ();
+  for (i = 0; i < scm_op_last; i++)
+    if (ip[i].name)
+      list = scm_cons (ip[i].symname, list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME

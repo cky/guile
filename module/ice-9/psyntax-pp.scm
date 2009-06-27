@@ -27,64 +27,64 @@
                                       (andmap63 first68 rest69)
                                       #f))))))
                      (andmap63 first56 rest55))))))))
-  (letrec ((lambda-var-list162
-             (lambda (vars286)
-               (letrec ((lvl287
-                          (lambda (vars288 ls289 w290)
-                            (if (pair? vars288)
-                              (lvl287
-                                (cdr vars288)
-                                (cons (wrap142 (car vars288) w290 #f) ls289)
-                                w290)
-                              (if (id?114 vars288)
-                                (cons (wrap142 vars288 w290 #f) ls289)
-                                (if (null? vars288)
-                                  ls289
-                                  (if (syntax-object?98 vars288)
-                                    (lvl287
-                                      (syntax-object-expression99 vars288)
-                                      ls289
-                                      (join-wraps133
-                                        w290
-                                        (syntax-object-wrap100 vars288)))
-                                    (cons vars288 ls289))))))))
-                 (lvl287 vars286 (quote ()) (quote (()))))))
-           (gen-var161
-             (lambda (id291)
-               (let ((id292 (if (syntax-object?98 id291)
-                              (syntax-object-expression99 id291)
-                              id291)))
-                 (gensym (symbol->string id292)))))
-           (strip160
-             (lambda (x293 w294)
-               (if (memq (quote top) (wrap-marks117 w294))
-                 x293
-                 (letrec ((f295 (lambda (x296)
-                                  (if (syntax-object?98 x296)
-                                    (strip160
-                                      (syntax-object-expression99 x296)
-                                      (syntax-object-wrap100 x296))
-                                    (if (pair? x296)
-                                      (let ((a297 (f295 (car x296)))
-                                            (d298 (f295 (cdr x296))))
-                                        (if (if (eq? a297 (car x296))
-                                              (eq? d298 (cdr x296))
+  (letrec ((lambda-var-list163
+             (lambda (vars287)
+               (letrec ((lvl288
+                          (lambda (vars289 ls290 w291)
+                            (if (pair? vars289)
+                              (lvl288
+                                (cdr vars289)
+                                (cons (wrap143 (car vars289) w291 #f) ls290)
+                                w291)
+                              (if (id?115 vars289)
+                                (cons (wrap143 vars289 w291 #f) ls290)
+                                (if (null? vars289)
+                                  ls290
+                                  (if (syntax-object?99 vars289)
+                                    (lvl288
+                                      (syntax-object-expression100 vars289)
+                                      ls290
+                                      (join-wraps134
+                                        w291
+                                        (syntax-object-wrap101 vars289)))
+                                    (cons vars289 ls290))))))))
+                 (lvl288 vars287 (quote ()) (quote (()))))))
+           (gen-var162
+             (lambda (id292)
+               (let ((id293 (if (syntax-object?99 id292)
+                              (syntax-object-expression100 id292)
+                              id292)))
+                 (gensym (symbol->string id293)))))
+           (strip161
+             (lambda (x294 w295)
+               (if (memq (quote top) (wrap-marks118 w295))
+                 x294
+                 (letrec ((f296 (lambda (x297)
+                                  (if (syntax-object?99 x297)
+                                    (strip161
+                                      (syntax-object-expression100 x297)
+                                      (syntax-object-wrap101 x297))
+                                    (if (pair? x297)
+                                      (let ((a298 (f296 (car x297)))
+                                            (d299 (f296 (cdr x297))))
+                                        (if (if (eq? a298 (car x297))
+                                              (eq? d299 (cdr x297))
                                               #f)
-                                          x296
-                                          (cons a297 d298)))
-                                      (if (vector? x296)
-                                        (let ((old299 (vector->list x296)))
-                                          (let ((new300 (map f295 old299)))
-                                            (if (and-map*17 eq? old299 new300)
-                                              x296
-                                              (list->vector new300))))
-                                        x296))))))
-                   (f295 x293)))))
-           (ellipsis?159
-             (lambda (x301)
-               (if (nonsymbol-id?113 x301)
-                 (free-id=?137
-                   x301
+                                          x297
+                                          (cons a298 d299)))
+                                      (if (vector? x297)
+                                        (let ((old300 (vector->list x297)))
+                                          (let ((new301 (map f296 old300)))
+                                            (if (and-map*17 eq? old300 new301)
+                                              x297
+                                              (list->vector new301))))
+                                        x297))))))
+                   (f296 x294)))))
+           (ellipsis?160
+             (lambda (x302)
+               (if (nonsymbol-id?114 x302)
+                 (free-id=?138
+                   x302
                    '#(syntax-object
                       ...
                       ((top)
@@ -192,6 +192,7 @@
                            build-conditional
                            build-application
                            build-void
+                           decorate-source
                            get-global-definition-hook
                            put-global-definition-hook
                            gensym-hook
@@ -204,6 +205,7 @@
                            *mode*
                            noexpand)
                          ((top)
+                          (top)
                           (top)
                           (top)
                           (top)
@@ -424,6 +426,7 @@
                           "i"
                           "i"
                           "i"
+                          "i"
                           "i"))
                        #(ribcage
                          (define-structure and-map*)
@@ -431,1585 +434,1590 @@
                          ("i" "i")))
                       (hygiene guile)))
                  #f)))
-           (chi-void158 (lambda () (build-void80 #f)))
-           (eval-local-transformer157
-             (lambda (expanded302 mod303)
-               (let ((p304 (local-eval-hook77 expanded302 mod303)))
-                 (if (procedure? p304)
-                   p304
+           (chi-void159 (lambda () (build-void81 #f)))
+           (eval-local-transformer158
+             (lambda (expanded303 mod304)
+               (let ((p305 (local-eval-hook77 expanded303 mod304)))
+                 (if (procedure? p305)
+                   p305
                    (syntax-violation
                      #f
                      "nonprocedure transformer"
-                     p304)))))
-           (chi-local-syntax156
-             (lambda (rec?305 e306 r307 w308 s309 mod310 k311)
-               ((lambda (tmp312)
-                  ((lambda (tmp313)
-                     (if tmp313
-                       (apply (lambda (_314 id315 val316 e1317 e2318)
-                                (let ((ids319 id315))
-                                  (if (not (valid-bound-ids?139 ids319))
+                     p305)))))
+           (chi-local-syntax157
+             (lambda (rec?306 e307 r308 w309 s310 mod311 k312)
+               ((lambda (tmp313)
+                  ((lambda (tmp314)
+                     (if tmp314
+                       (apply (lambda (_315 id316 val317 e1318 e2319)
+                                (let ((ids320 id316))
+                                  (if (not (valid-bound-ids?140 ids320))
                                     (syntax-violation
                                       #f
                                       "duplicate bound keyword"
-                                      e306)
-                                    (let ((labels321 (gen-labels120 ids319)))
-                                      (let ((new-w322
-                                              (make-binding-wrap131
-                                                ids319
-                                                labels321
-                                                w308)))
-                                        (k311 (cons e1317 e2318)
-                                              (extend-env108
-                                                labels321
-                                                (let ((w324 (if rec?305
-                                                              new-w322
-                                                              w308))
-                                                      (trans-r325
-                                                        (macros-only-env110
-                                                          r307)))
-                                                  (map (lambda (x326)
+                                      e307)
+                                    (let ((labels322 (gen-labels121 ids320)))
+                                      (let ((new-w323
+                                              (make-binding-wrap132
+                                                ids320
+                                                labels322
+                                                w309)))
+                                        (k312 (cons e1318 e2319)
+                                              (extend-env109
+                                                labels322
+                                                (let ((w325 (if rec?306
+                                                              new-w323
+                                                              w309))
+                                                      (trans-r326
+                                                        (macros-only-env111
+                                                          r308)))
+                                                  (map (lambda (x327)
                                                          (cons 'macro
-                                                               (eval-local-transformer157
-                                                                 (chi150
-                                                                   x326
-                                                                   trans-r325
-                                                                   w324
-                                                                   mod310)
-                                                                 mod310)))
-                                                       val316))
-                                                r307)
-                                              new-w322
-                                              s309
-                                              mod310))))))
-                              tmp313)
-                       ((lambda (_328)
+                                                               (eval-local-transformer158
+                                                                 (chi151
+                                                                   x327
+                                                                   trans-r326
+                                                                   w325
+                                                                   mod311)
+                                                                 mod311)))
+                                                       val317))
+                                                r308)
+                                              new-w323
+                                              s310
+                                              mod311))))))
+                              tmp314)
+                       ((lambda (_329)
                           (syntax-violation
                             #f
                             "bad local syntax definition"
-                            (source-wrap143 e306 w308 s309 mod310)))
-                        tmp312)))
+                            (source-wrap144 e307 w309 s310 mod311)))
+                        tmp313)))
                    ($sc-dispatch
-                     tmp312
+                     tmp313
                      '(any #(each (any any)) any . each-any))))
-                e306)))
-           (chi-lambda-clause155
-             (lambda (e329 docstring330 c331 r332 w333 mod334 k335)
-               ((lambda (tmp336)
-                  ((lambda (tmp337)
-                     (if (if tmp337
-                           (apply (lambda (args338 doc339 e1340 e2341)
-                                    (if (string? (syntax->datum doc339))
-                                      (not docstring330)
+                e307)))
+           (chi-lambda-clause156
+             (lambda (e330 docstring331 c332 r333 w334 mod335 k336)
+               ((lambda (tmp337)
+                  ((lambda (tmp338)
+                     (if (if tmp338
+                           (apply (lambda (args339 doc340 e1341 e2342)
+                                    (if (string? (syntax->datum doc340))
+                                      (not docstring331)
                                       #f))
-                                  tmp337)
+                                  tmp338)
                            #f)
-                       (apply (lambda (args342 doc343 e1344 e2345)
-                                (chi-lambda-clause155
-                                  e329
-                                  doc343
-                                  (cons args342 (cons e1344 e2345))
-                                  r332
-                                  w333
-                                  mod334
-                                  k335))
-                              tmp337)
-                       ((lambda (tmp347)
-                          (if tmp347
-                            (apply (lambda (id348 e1349 e2350)
-                                     (let ((ids351 id348))
-                                       (if (not (valid-bound-ids?139 ids351))
+                       (apply (lambda (args343 doc344 e1345 e2346)
+                                (chi-lambda-clause156
+                                  e330
+                                  doc344
+                                  (cons args343 (cons e1345 e2346))
+                                  r333
+                                  w334
+                                  mod335
+                                  k336))
+                              tmp338)
+                       ((lambda (tmp348)
+                          (if tmp348
+                            (apply (lambda (id349 e1350 e2351)
+                                     (let ((ids352 id349))
+                                       (if (not (valid-bound-ids?140 ids352))
                                          (syntax-violation
                                            'lambda
                                            "invalid parameter list"
-                                           e329)
-                                         (let ((labels353
-                                                 (gen-labels120 ids351))
-                                               (new-vars354
-                                                 (map gen-var161 ids351)))
-                                           (k335 (map syntax->datum ids351)
-                                                 new-vars354
-                                                 (if docstring330
-                                                   (syntax->datum docstring330)
+                                           e330)
+                                         (let ((labels354
+                                                 (gen-labels121 ids352))
+                                               (new-vars355
+                                                 (map gen-var162 ids352)))
+                                           (k336 (map syntax->datum ids352)
+                                                 new-vars355
+                                                 (if docstring331
+                                                   (syntax->datum docstring331)
                                                    #f)
-                                                 (chi-body154
-                                                   (cons e1349 e2350)
-                                                   e329
-                                                   (extend-var-env109
-                                                     labels353
-                                                     new-vars354
-                                                     r332)
-                                                   (make-binding-wrap131
-                                                     ids351
-                                                     labels353
-                                                     w333)
-                                                   mod334))))))
-                                   tmp347)
-                            ((lambda (tmp356)
-                               (if tmp356
-                                 (apply (lambda (ids357 e1358 e2359)
-                                          (let ((old-ids360
-                                                  (lambda-var-list162 ids357)))
-                                            (if (not (valid-bound-ids?139
-                                                       old-ids360))
+                                                 (chi-body155
+                                                   (cons e1350 e2351)
+                                                   e330
+                                                   (extend-var-env110
+                                                     labels354
+                                                     new-vars355
+                                                     r333)
+                                                   (make-binding-wrap132
+                                                     ids352
+                                                     labels354
+                                                     w334)
+                                                   mod335))))))
+                                   tmp348)
+                            ((lambda (tmp357)
+                               (if tmp357
+                                 (apply (lambda (ids358 e1359 e2360)
+                                          (let ((old-ids361
+                                                  (lambda-var-list163 ids358)))
+                                            (if (not (valid-bound-ids?140
+                                                       old-ids361))
                                               (syntax-violation
                                                 'lambda
                                                 "invalid parameter list"
-                                                e329)
-                                              (let ((labels361
-                                                      (gen-labels120
-                                                        old-ids360))
-                                                    (new-vars362
-                                                      (map gen-var161
-                                                           old-ids360)))
-                                                (k335 (letrec ((f363 (lambda (ls1364
-                                                                              ls2365)
-                                                                       (if (null? ls1364)
+                                                e330)
+                                              (let ((labels362
+                                                      (gen-labels121
+                                                        old-ids361))
+                                                    (new-vars363
+                                                      (map gen-var162
+                                                           old-ids361)))
+                                                (k336 (letrec ((f364 (lambda (ls1365
+                                                                              ls2366)
+                                                                       (if (null? ls1365)
                                                                          (syntax->datum
-                                                                           ls2365)
-                                                                         (f363 (cdr ls1364)
+                                                                           ls2366)
+                                                                         (f364 (cdr ls1365)
                                                                                (cons (syntax->datum
-                                                                                       (car ls1364))
-                                                                                     ls2365))))))
-                                                        (f363 (cdr old-ids360)
-                                                              (car old-ids360)))
-                                                      (letrec ((f366 (lambda (ls1367
-                                                                              ls2368)
-                                                                       (if (null? ls1367)
-                                                                         ls2368
-                                                                         (f366 (cdr ls1367)
-                                                                               (cons (car ls1367)
-                                                                                     ls2368))))))
-                                                        (f366 (cdr new-vars362)
-                                                              (car new-vars362)))
-                                                      (if docstring330
+                                                                                       (car ls1365))
+                                                                                     ls2366))))))
+                                                        (f364 (cdr old-ids361)
+                                                              (car old-ids361)))
+                                                      (letrec ((f367 (lambda (ls1368
+                                                                              ls2369)
+                                                                       (if (null? ls1368)
+                                                                         ls2369
+                                                                         (f367 (cdr ls1368)
+                                                                               (cons (car ls1368)
+                                                                                     ls2369))))))
+                                                        (f367 (cdr new-vars363)
+                                                              (car new-vars363)))
+                                                      (if docstring331
                                                         (syntax->datum
-                                                          docstring330)
+                                                          docstring331)
                                                         #f)
-                                                      (chi-body154
-                                                        (cons e1358 e2359)
-                                                        e329
-                                                        (extend-var-env109
-                                                          labels361
-                                                          new-vars362
-                                                          r332)
-                                                        (make-binding-wrap131
-                                                          old-ids360
-                                                          labels361
-                                                          w333)
-                                                        mod334))))))
-                                        tmp356)
-                                 ((lambda (_370)
+                                                      (chi-body155
+                                                        (cons e1359 e2360)
+                                                        e330
+                                                        (extend-var-env110
+                                                          labels362
+                                                          new-vars363
+                                                          r333)
+                                                        (make-binding-wrap132
+                                                          old-ids361
+                                                          labels362
+                                                          w334)
+                                                        mod335))))))
+                                        tmp357)
+                                 ((lambda (_371)
                                     (syntax-violation
                                       'lambda
                                       "bad lambda"
-                                      e329))
-                                  tmp336)))
+                                      e330))
+                                  tmp337)))
                              ($sc-dispatch
-                               tmp336
+                               tmp337
                                '(any any . each-any)))))
                         ($sc-dispatch
-                          tmp336
+                          tmp337
                           '(each-any any . each-any)))))
                    ($sc-dispatch
-                     tmp336
+                     tmp337
                      '(any any any . each-any))))
-                c331)))
-           (chi-body154
-             (lambda (body371 outer-form372 r373 w374 mod375)
-               (let ((r376 (cons (quote ("placeholder" placeholder)) r373)))
-                 (let ((ribcage377
-                         (make-ribcage121
+                c332)))
+           (chi-body155
+             (lambda (body372 outer-form373 r374 w375 mod376)
+               (let ((r377 (cons (quote ("placeholder" placeholder)) r374)))
+                 (let ((ribcage378
+                         (make-ribcage122
                            '()
                            '()
                            '())))
-                   (let ((w378 (make-wrap116
-                                 (wrap-marks117 w374)
-                                 (cons ribcage377 (wrap-subst118 w374)))))
-                     (letrec ((parse379
-                                (lambda (body380
-                                         ids381
-                                         labels382
-                                         var-ids383
-                                         vars384
-                                         vals385
-                                         bindings386)
-                                  (if (null? body380)
+                   (let ((w379 (make-wrap117
+                                 (wrap-marks118 w375)
+                                 (cons ribcage378 (wrap-subst119 w375)))))
+                     (letrec ((parse380
+                                (lambda (body381
+                                         ids382
+                                         labels383
+                                         var-ids384
+                                         vars385
+                                         vals386
+                                         bindings387)
+                                  (if (null? body381)
                                     (syntax-violation
                                       #f
                                       "no expressions in body"
-                                      outer-form372)
-                                    (let ((e388 (cdar body380))
-                                          (er389 (caar body380)))
+                                      outer-form373)
+                                    (let ((e389 (cdar body381))
+                                          (er390 (caar body381)))
                                       (call-with-values
                                         (lambda ()
-                                          (syntax-type148
-                                            e388
-                                            er389
+                                          (syntax-type149
+                                            e389
+                                            er390
                                             '(())
-                                            (source-annotation105 er389)
-                                            ribcage377
-                                            mod375
+                                            (source-annotation106 er390)
+                                            ribcage378
+                                            mod376
                                             #f))
-                                        (lambda (type390
-                                                 value391
-                                                 e392
-                                                 w393
-                                                 s394
-                                                 mod395)
-                                          (if (memv type390
+                                        (lambda (type391
+                                                 value392
+                                                 e393
+                                                 w394
+                                                 s395
+                                                 mod396)
+                                          (if (memv type391
                                                     '(define-form))
-                                            (let ((id396 (wrap142
-                                                           value391
-                                                           w393
-                                                           mod395))
-                                                  (label397 (gen-label119)))
-                                              (let ((var398
-                                                      (gen-var161 id396)))
+                                            (let ((id397 (wrap143
+                                                           value392
+                                                           w394
+                                                           mod396))
+                                                  (label398 (gen-label120)))
+                                              (let ((var399
+                                                      (gen-var162 id397)))
                                                 (begin
-                                                  (extend-ribcage!130
-                                                    ribcage377
-                                                    id396
-                                                    label397)
-                                                  (parse379
-                                                    (cdr body380)
-                                                    (cons id396 ids381)
-                                                    (cons label397 labels382)
-                                                    (cons id396 var-ids383)
-                                                    (cons var398 vars384)
-                                                    (cons (cons er389
-                                                                (wrap142
-                                                                  e392
-                                                                  w393
-                                                                  mod395))
-                                                          vals385)
+                                                  (extend-ribcage!131
+                                                    ribcage378
+                                                    id397
+                                                    label398)
+                                                  (parse380
+                                                    (cdr body381)
+                                                    (cons id397 ids382)
+                                                    (cons label398 labels383)
+                                                    (cons id397 var-ids384)
+                                                    (cons var399 vars385)
+                                                    (cons (cons er390
+                                                                (wrap143
+                                                                  e393
+                                                                  w394
+                                                                  mod396))
+                                                          vals386)
                                                     (cons (cons 'lexical
-                                                                var398)
-                                                          bindings386)))))
-                                            (if (memv type390
+                                                                var399)
+                                                          bindings387)))))
+                                            (if (memv type391
                                                       '(define-syntax-form))
-                                              (let ((id399 (wrap142
-                                                             value391
-                                                             w393
-                                                             mod395))
-                                                    (label400 (gen-label119)))
+                                              (let ((id400 (wrap143
+                                                             value392
+                                                             w394
+                                                             mod396))
+                                                    (label401 (gen-label120)))
                                                 (begin
-                                                  (extend-ribcage!130
-                                                    ribcage377
-                                                    id399
-                                                    label400)
-                                                  (parse379
-                                                    (cdr body380)
-                                                    (cons id399 ids381)
-                                                    (cons label400 labels382)
-                                                    var-ids383
-                                                    vars384
-                                                    vals385
+                                                  (extend-ribcage!131
+                                                    ribcage378
+                                                    id400
+                                                    label401)
+                                                  (parse380
+                                                    (cdr body381)
+                                                    (cons id400 ids382)
+                                                    (cons label401 labels383)
+                                                    var-ids384
+                                                    vars385
+                                                    vals386
                                                     (cons (cons 'macro
-                                                                (cons er389
-                                                                      (wrap142
-                                                                        e392
-                                                                        w393
-                                                                        mod395)))
-                                                          bindings386))))
-                                              (if (memv type390
+                                                                (cons er390
+                                                                      (wrap143
+                                                                        e393
+                                                                        w394
+                                                                        mod396)))
+                                                          bindings387))))
+                                              (if (memv type391
                                                         '(begin-form))
-                                                ((lambda (tmp401)
-                                                   ((lambda (tmp402)
-                                                      (if tmp402
-                                                        (apply (lambda (_403
-                                                                        e1404)
-                                                                 (parse379
-                                                                   (letrec ((f405 (lambda (forms406)
-                                                                                    (if (null? forms406)
-                                                                                      (cdr body380)
-                                                                                      (cons (cons er389
-                                                                                                  (wrap142
-                                                                                                    (car forms406)
-                                                                                                    w393
-                                                                                                    mod395))
-                                                                                            (f405 (cdr forms406)))))))
-                                                                     (f405 e1404))
-                                                                   ids381
-                                                                   labels382
-                                                                   var-ids383
-                                                                   vars384
-                                                                   vals385
-                                                                   bindings386))
-                                                               tmp402)
+                                                ((lambda (tmp402)
+                                                   ((lambda (tmp403)
+                                                      (if tmp403
+                                                        (apply (lambda (_404
+                                                                        e1405)
+                                                                 (parse380
+                                                                   (letrec ((f406 (lambda (forms407)
+                                                                                    (if (null? forms407)
+                                                                                      (cdr body381)
+                                                                                      (cons (cons er390
+                                                                                                  (wrap143
+                                                                                                    (car forms407)
+                                                                                                    w394
+                                                                                                    mod396))
+                                                                                            (f406 (cdr forms407)))))))
+                                                                     (f406 e1405))
+                                                                   ids382
+                                                                   labels383
+                                                                   var-ids384
+                                                                   vars385
+                                                                   vals386
+                                                                   bindings387))
+                                                               tmp403)
                                                         (syntax-violation
                                                           #f
                                                           "source expression failed to match any pattern"
-                                                          tmp401)))
+                                                          tmp402)))
                                                     ($sc-dispatch
-                                                      tmp401
+                                                      tmp402
                                                       '(any . each-any))))
-                                                 e392)
-                                                (if (memv type390
+                                                 e393)
+                                                (if (memv type391
                                                           '(local-syntax-form))
-                                                  (chi-local-syntax156
-                                                    value391
-                                                    e392
-                                                    er389
-                                                    w393
-                                                    s394
-                                                    mod395
-                                                    (lambda (forms408
-                                                             er409
-                                                             w410
-                                                             s411
-                                                             mod412)
-                                                      (parse379
-                                                        (letrec ((f413 (lambda (forms414)
-                                                                         (if (null? forms414)
-                                                                           (cdr body380)
-                                                                           (cons (cons er409
-                                                                                       (wrap142
-                                                                                         (car forms414)
-                                                                                         w410
-                                                                                         mod412))
-                                                                                 (f413 (cdr forms414)))))))
-                                                          (f413 forms408))
-                                                        ids381
-                                                        labels382
-                                                        var-ids383
-                                                        vars384
-                                                        vals385
-                                                        bindings386)))
-                                                  (if (null? ids381)
-                                                    (build-sequence93
+                                                  (chi-local-syntax157
+                                                    value392
+                                                    e393
+                                                    er390
+                                                    w394
+                                                    s395
+                                                    mod396
+                                                    (lambda (forms409
+                                                             er410
+                                                             w411
+                                                             s412
+                                                             mod413)
+                                                      (parse380
+                                                        (letrec ((f414 (lambda (forms415)
+                                                                         (if (null? forms415)
+                                                                           (cdr body381)
+                                                                           (cons (cons er410
+                                                                                       (wrap143
+                                                                                         (car forms415)
+                                                                                         w411
+                                                                                         mod413))
+                                                                                 (f414 (cdr forms415)))))))
+                                                          (f414 forms409))
+                                                        ids382
+                                                        labels383
+                                                        var-ids384
+                                                        vars385
+                                                        vals386
+                                                        bindings387)))
+                                                  (if (null? ids382)
+                                                    (build-sequence94
                                                       #f
-                                                      (map (lambda (x415)
-                                                             (chi150
-                                                               (cdr x415)
-                                                               (car x415)
+                                                      (map (lambda (x416)
+                                                             (chi151
+                                                               (cdr x416)
+                                                               (car x416)
                                                                '(())
-                                                               mod395))
-                                                           (cons (cons er389
-                                                                       (source-wrap143
-                                                                         e392
-                                                                         w393
-                                                                         s394
-                                                                         mod395))
-                                                                 (cdr body380))))
+                                                               mod396))
+                                                           (cons (cons er390
+                                                                       (source-wrap144
+                                                                         e393
+                                                                         w394
+                                                                         s395
+                                                                         mod396))
+                                                                 (cdr body381))))
                                                     (begin
-                                                      (if (not (valid-bound-ids?139
-                                                                 ids381))
+                                                      (if (not (valid-bound-ids?140
+                                                                 ids382))
                                                         (syntax-violation
                                                           #f
                                                           "invalid or duplicate identifier in definition"
-                                                          outer-form372))
-                                                      (letrec ((loop416
-                                                                 (lambda (bs417
-                                                                          er-cache418
-                                                                          r-cache419)
-                                                                   (if (not (null? bs417))
-                                                                     (let ((b420 (car bs417)))
-                                                                       (if (eq? (car b420)
+                                                          outer-form373))
+                                                      (letrec ((loop417
+                                                                 (lambda (bs418
+                                                                          er-cache419
+                                                                          r-cache420)
+                                                                   (if (not (null? bs418))
+                                                                     (let ((b421 (car bs418)))
+                                                                       (if (eq? (car b421)
                                                                                 'macro)
-                                                                         (let ((er421 (cadr b420)))
-                                                                           (let ((r-cache422
-                                                                                   (if (eq? er421
-                                                                                            er-cache418)
-                                                                                     r-cache419
-                                                                                     (macros-only-env110
-                                                                                       er421))))
+                                                                         (let ((er422 (cadr b421)))
+                                                                           (let ((r-cache423
+                                                                                   (if (eq? er422
+                                                                                            er-cache419)
+                                                                                     r-cache420
+                                                                                     (macros-only-env111
+                                                                                       er422))))
                                                                              (begin
                                                                                (set-cdr!
-                                                                                 b420
-                                                                                 (eval-local-transformer157
-                                                                                   (chi150
-                                                                                     (cddr b420)
-                                                                                     r-cache422
+                                                                                 b421
+                                                                                 (eval-local-transformer158
+                                                                                   (chi151
+                                                                                     (cddr b421)
+                                                                                     r-cache423
                                                                                      '(())
-                                                                                     mod395)
-                                                                                   mod395))
-                                                                               (loop416
-                                                                                 (cdr bs417)
-                                                                                 er421
-                                                                                 r-cache422))))
-                                                                         (loop416
-                                                                           (cdr bs417)
-                                                                           er-cache418
-                                                                           r-cache419)))))))
-                                                        (loop416
-                                                          bindings386
+                                                                                     mod396)
+                                                                                   mod396))
+                                                                               (loop417
+                                                                                 (cdr bs418)
+                                                                                 er422
+                                                                                 r-cache423))))
+                                                                         (loop417
+                                                                           (cdr bs418)
+                                                                           er-cache419
+                                                                           r-cache420)))))))
+                                                        (loop417
+                                                          bindings387
                                                           #f
                                                           #f))
                                                       (set-cdr!
-                                                        r376
-                                                        (extend-env108
-                                                          labels382
-                                                          bindings386
-                                                          (cdr r376)))
-                                                      (build-letrec96
+                                                        r377
+                                                        (extend-env109
+                                                          labels383
+                                                          bindings387
+                                                          (cdr r377)))
+                                                      (build-letrec97
                                                         #f
                                                         (map syntax->datum
-                                                             var-ids383)
-                                                        vars384
-                                                        (map (lambda (x423)
-                                                               (chi150
-                                                                 (cdr x423)
-                                                                 (car x423)
+                                                             var-ids384)
+                                                        vars385
+                                                        (map (lambda (x424)
+                                                               (chi151
+                                                                 (cdr x424)
+                                                                 (car x424)
                                                                  '(())
-                                                                 mod395))
-                                                             vals385)
-                                                        (build-sequence93
+                                                                 mod396))
+                                                             vals386)
+                                                        (build-sequence94
                                                           #f
-                                                          (map (lambda (x424)
-                                                                 (chi150
-                                                                   (cdr x424)
-                                                                   (car x424)
+                                                          (map (lambda (x425)
+                                                                 (chi151
+                                                                   (cdr x425)
+                                                                   (car x425)
                                                                    '(())
-                                                                   mod395))
-                                                               (cons (cons er389
-                                                                           (source-wrap143
-                                                                             e392
-                                                                             w393
-                                                                             s394
-                                                                             mod395))
-                                                                     (cdr body380))))))))))))))))))
-                       (parse379
-                         (map (lambda (x387)
-                                (cons r376 (wrap142 x387 w378 mod375)))
-                              body371)
+                                                                   mod396))
+                                                               (cons (cons er390
+                                                                           (source-wrap144
+                                                                             e393
+                                                                             w394
+                                                                             s395
+                                                                             mod396))
+                                                                     (cdr body381))))))))))))))))))
+                       (parse380
+                         (map (lambda (x388)
+                                (cons r377 (wrap143 x388 w379 mod376)))
+                              body372)
                          '()
                          '()
                          '()
                          '()
                          '()
                          '())))))))
-           (chi-macro153
-             (lambda (p425 e426 r427 w428 rib429 mod430)
-               (letrec ((rebuild-macro-output431
-                          (lambda (x432 m433)
-                            (if (pair? x432)
-                              (cons (rebuild-macro-output431 (car x432) m433)
-                                    (rebuild-macro-output431 (cdr x432) m433))
-                              (if (syntax-object?98 x432)
-                                (let ((w434 (syntax-object-wrap100 x432)))
-                                  (let ((ms435 (wrap-marks117 w434))
-                                        (s436 (wrap-subst118 w434)))
-                                    (if (if (pair? ms435)
-                                          (eq? (car ms435) #f)
+           (chi-macro154
+             (lambda (p426 e427 r428 w429 rib430 mod431)
+               (letrec ((rebuild-macro-output432
+                          (lambda (x433 m434)
+                            (if (pair? x433)
+                              (cons (rebuild-macro-output432 (car x433) m434)
+                                    (rebuild-macro-output432 (cdr x433) m434))
+                              (if (syntax-object?99 x433)
+                                (let ((w435 (syntax-object-wrap101 x433)))
+                                  (let ((ms436 (wrap-marks118 w435))
+                                        (s437 (wrap-subst119 w435)))
+                                    (if (if (pair? ms436)
+                                          (eq? (car ms436) #f)
                                           #f)
-                                      (make-syntax-object97
-                                        (syntax-object-expression99 x432)
-                                        (make-wrap116
-                                          (cdr ms435)
-                                          (if rib429
-                                            (cons rib429 (cdr s436))
-                                            (cdr s436)))
-                                        (syntax-object-module101 x432))
-                                      (make-syntax-object97
-                                        (syntax-object-expression99 x432)
-                                        (make-wrap116
-                                          (cons m433 ms435)
-                                          (if rib429
-                                            (cons rib429
-                                                  (cons (quote shift) s436))
-                                            (cons (quote shift) s436)))
-                                        (let ((pmod437
-                                                (procedure-module p425)))
-                                          (if pmod437
+                                      (make-syntax-object98
+                                        (syntax-object-expression100 x433)
+                                        (make-wrap117
+                                          (cdr ms436)
+                                          (if rib430
+                                            (cons rib430 (cdr s437))
+                                            (cdr s437)))
+                                        (syntax-object-module102 x433))
+                                      (make-syntax-object98
+                                        (syntax-object-expression100 x433)
+                                        (make-wrap117
+                                          (cons m434 ms436)
+                                          (if rib430
+                                            (cons rib430
+                                                  (cons (quote shift) s437))
+                                            (cons (quote shift) s437)))
+                                        (let ((pmod438
+                                                (procedure-module p426)))
+                                          (if pmod438
                                             (cons 'hygiene
-                                                  (module-name pmod437))
+                                                  (module-name pmod438))
                                             '(hygiene guile)))))))
-                                (if (vector? x432)
-                                  (let ((n438 (vector-length x432)))
-                                    (let ((v439 (make-vector n438)))
-                                      (letrec ((loop440
-                                                 (lambda (i441)
-                                                   (if (fx=74 i441 n438)
-                                                     (begin (if #f #f) v439)
+                                (if (vector? x433)
+                                  (let ((n439 (vector-length x433)))
+                                    (let ((v440 (make-vector n439)))
+                                      (letrec ((loop441
+                                                 (lambda (i442)
+                                                   (if (fx=74 i442 n439)
+                                                     (begin (if #f #f) v440)
                                                      (begin
                                                        (vector-set!
-                                                         v439
-                                                         i441
-                                                         (rebuild-macro-output431
+                                                         v440
+                                                         i442
+                                                         (rebuild-macro-output432
                                                            (vector-ref
-                                                             x432
-                                                             i441)
-                                                           m433))
-                                                       (loop440
-                                                         (fx+72 i441 1)))))))
-                                        (loop440 0))))
-                                  (if (symbol? x432)
+                                                             x433
+                                                             i442)
+                                                           m434))
+                                                       (loop441
+                                                         (fx+72 i442 1)))))))
+                                        (loop441 0))))
+                                  (if (symbol? x433)
                                     (syntax-violation
                                       #f
                                       "encountered raw symbol in macro output"
-                                      (source-wrap143 e426 w428 s mod430)
-                                      x432)
-                                    x432)))))))
-                 (rebuild-macro-output431
-                   (p425 (wrap142 e426 (anti-mark129 w428) mod430))
+                                      (source-wrap144 e427 w429 s mod431)
+                                      x433)
+                                    x433)))))))
+                 (rebuild-macro-output432
+                   (p426 (wrap143 e427 (anti-mark130 w429) mod431))
                    (string #\m)))))
-           (chi-application152
-             (lambda (x442 e443 r444 w445 s446 mod447)
-               ((lambda (tmp448)
-                  ((lambda (tmp449)
-                     (if tmp449
-                       (apply (lambda (e0450 e1451)
-                                (build-application81
-                                  s446
-                                  x442
-                                  (map (lambda (e452)
-                                         (chi150 e452 r444 w445 mod447))
-                                       e1451)))
-                              tmp449)
+           (chi-application153
+             (lambda (x443 e444 r445 w446 s447 mod448)
+               ((lambda (tmp449)
+                  ((lambda (tmp450)
+                     (if tmp450
+                       (apply (lambda (e0451 e1452)
+                                (build-application82
+                                  s447
+                                  x443
+                                  (map (lambda (e453)
+                                         (chi151 e453 r445 w446 mod448))
+                                       e1452)))
+                              tmp450)
                        (syntax-violation
                          #f
                          "source expression failed to match any pattern"
-                         tmp448)))
-                   ($sc-dispatch tmp448 (quote (any . each-any)))))
-                e443)))
-           (chi-expr151
-             (lambda (type454 value455 e456 r457 w458 s459 mod460)
-               (if (memv type454 (quote (lexical)))
-                 (build-lexical-reference83
+                         tmp449)))
+                   ($sc-dispatch tmp449 (quote (any . each-any)))))
+                e444)))
+           (chi-expr152
+             (lambda (type455 value456 e457 r458 w459 s460 mod461)
+               (if (memv type455 (quote (lexical)))
+                 (build-lexical-reference84
                    'value
-                   s459
-                   e456
-                   value455)
-                 (if (memv type454 (quote (core core-form)))
-                   (value455 e456 r457 w458 s459 mod460)
-                   (if (memv type454 (quote (module-ref)))
+                   s460
+                   e457
+                   value456)
+                 (if (memv type455 (quote (core core-form)))
+                   (value456 e457 r458 w459 s460 mod461)
+                   (if (memv type455 (quote (module-ref)))
                      (call-with-values
-                       (lambda () (value455 e456))
-                       (lambda (id461 mod462)
-                         (build-global-reference86 s459 id461 mod462)))
-                     (if (memv type454 (quote (lexical-call)))
-                       (chi-application152
-                         (build-lexical-reference83
+                       (lambda () (value456 e457))
+                       (lambda (id462 mod463)
+                         (build-global-reference87 s460 id462 mod463)))
+                     (if (memv type455 (quote (lexical-call)))
+                       (chi-application153
+                         (build-lexical-reference84
                            'fun
-                           (source-annotation105 (car e456))
-                           (car e456)
-                           value455)
-                         e456
-                         r457
-                         w458
-                         s459
-                         mod460)
-                       (if (memv type454 (quote (global-call)))
-                         (chi-application152
-                           (build-global-reference86
-                             (source-annotation105 (car e456))
-                             (if (syntax-object?98 value455)
-                               (syntax-object-expression99 value455)
-                               value455)
-                             (if (syntax-object?98 value455)
-                               (syntax-object-module101 value455)
-                               mod460))
-                           e456
-                           r457
-                           w458
-                           s459
-                           mod460)
-                         (if (memv type454 (quote (constant)))
-                           (build-data92
-                             s459
-                             (strip160
-                               (source-wrap143 e456 w458 s459 mod460)
+                           (source-annotation106 (car e457))
+                           (car e457)
+                           value456)
+                         e457
+                         r458
+                         w459
+                         s460
+                         mod461)
+                       (if (memv type455 (quote (global-call)))
+                         (chi-application153
+                           (build-global-reference87
+                             (source-annotation106 (car e457))
+                             (if (syntax-object?99 value456)
+                               (syntax-object-expression100 value456)
+                               value456)
+                             (if (syntax-object?99 value456)
+                               (syntax-object-module102 value456)
+                               mod461))
+                           e457
+                           r458
+                           w459
+                           s460
+                           mod461)
+                         (if (memv type455 (quote (constant)))
+                           (build-data93
+                             s460
+                             (strip161
+                               (source-wrap144 e457 w459 s460 mod461)
                                '(())))
-                           (if (memv type454 (quote (global)))
-                             (build-global-reference86 s459 value455 mod460)
-                             (if (memv type454 (quote (call)))
-                               (chi-application152
-                                 (chi150 (car e456) r457 w458 mod460)
-                                 e456
-                                 r457
-                                 w458
-                                 s459
-                                 mod460)
-                               (if (memv type454 (quote (begin-form)))
-                                 ((lambda (tmp463)
-                                    ((lambda (tmp464)
-                                       (if tmp464
-                                         (apply (lambda (_465 e1466 e2467)
-                                                  (chi-sequence144
-                                                    (cons e1466 e2467)
-                                                    r457
-                                                    w458
-                                                    s459
-                                                    mod460))
-                                                tmp464)
+                           (if (memv type455 (quote (global)))
+                             (build-global-reference87 s460 value456 mod461)
+                             (if (memv type455 (quote (call)))
+                               (chi-application153
+                                 (chi151 (car e457) r458 w459 mod461)
+                                 e457
+                                 r458
+                                 w459
+                                 s460
+                                 mod461)
+                               (if (memv type455 (quote (begin-form)))
+                                 ((lambda (tmp464)
+                                    ((lambda (tmp465)
+                                       (if tmp465
+                                         (apply (lambda (_466 e1467 e2468)
+                                                  (chi-sequence145
+                                                    (cons e1467 e2468)
+                                                    r458
+                                                    w459
+                                                    s460
+                                                    mod461))
+                                                tmp465)
                                          (syntax-violation
                                            #f
                                            "source expression failed to match any pattern"
-                                           tmp463)))
+                                           tmp464)))
                                      ($sc-dispatch
-                                       tmp463
+                                       tmp464
                                        '(any any . each-any))))
-                                  e456)
-                                 (if (memv type454 (quote (local-syntax-form)))
-                                   (chi-local-syntax156
-                                     value455
-                                     e456
-                                     r457
-                                     w458
-                                     s459
-                                     mod460
-                                     chi-sequence144)
-                                   (if (memv type454 (quote (eval-when-form)))
-                                     ((lambda (tmp469)
-                                        ((lambda (tmp470)
-                                           (if tmp470
-                                             (apply (lambda (_471
-                                                             x472
-                                                             e1473
-                                                             e2474)
-                                                      (let ((when-list475
-                                                              (chi-when-list147
-                                                                e456
-                                                                x472
-                                                                w458)))
+                                  e457)
+                                 (if (memv type455 (quote (local-syntax-form)))
+                                   (chi-local-syntax157
+                                     value456
+                                     e457
+                                     r458
+                                     w459
+                                     s460
+                                     mod461
+                                     chi-sequence145)
+                                   (if (memv type455 (quote (eval-when-form)))
+                                     ((lambda (tmp470)
+                                        ((lambda (tmp471)
+                                           (if tmp471
+                                             (apply (lambda (_472
+                                                             x473
+                                                             e1474
+                                                             e2475)
+                                                      (let ((when-list476
+                                                              (chi-when-list148
+                                                                e457
+                                                                x473
+                                                                w459)))
                                                         (if (memq 'eval
-                                                                  when-list475)
-                                                          (chi-sequence144
-                                                            (cons e1473 e2474)
-                                                            r457
-                                                            w458
-                                                            s459
-                                                            mod460)
-                                                          (chi-void158))))
-                                                    tmp470)
+                                                                  when-list476)
+                                                          (chi-sequence145
+                                                            (cons e1474 e2475)
+                                                            r458
+                                                            w459
+                                                            s460
+                                                            mod461)
+                                                          (chi-void159))))
+                                                    tmp471)
                                              (syntax-violation
                                                #f
                                                "source expression failed to match any pattern"
-                                               tmp469)))
+                                               tmp470)))
                                          ($sc-dispatch
-                                           tmp469
+                                           tmp470
                                            '(any each-any any . each-any))))
-                                      e456)
-                                     (if (memv type454
+                                      e457)
+                                     (if (memv type455
                                                '(define-form
                                                   define-syntax-form))
                                        (syntax-violation
                                          #f
                                          "definition in expression context"
-                                         e456
-                                         (wrap142 value455 w458 mod460))
-                                       (if (memv type454 (quote (syntax)))
+                                         e457
+                                         (wrap143 value456 w459 mod461))
+                                       (if (memv type455 (quote (syntax)))
                                          (syntax-violation
                                            #f
                                            "reference to pattern variable outside syntax form"
-                                           (source-wrap143
-                                             e456
-                                             w458
-                                             s459
-                                             mod460))
-                                         (if (memv type454
+                                           (source-wrap144
+                                             e457
+                                             w459
+                                             s460
+                                             mod461))
+                                         (if (memv type455
                                                    '(displaced-lexical))
                                            (syntax-violation
                                              #f
                                              "reference to identifier outside its scope"
-                                             (source-wrap143
-                                               e456
-                                               w458
-                                               s459
-                                               mod460))
+                                             (source-wrap144
+                                               e457
+                                               w459
+                                               s460
+                                               mod461))
                                            (syntax-violation
                                              #f
                                              "unexpected syntax"
-                                             (source-wrap143
-                                               e456
-                                               w458
-                                               s459
-                                               mod460))))))))))))))))))
-           (chi150
-             (lambda (e478 r479 w480 mod481)
+                                             (source-wrap144
+                                               e457
+                                               w459
+                                               s460
+                                               mod461))))))))))))))))))
+           (chi151
+             (lambda (e479 r480 w481 mod482)
                (call-with-values
                  (lambda ()
-                   (syntax-type148
-                     e478
-                     r479
-                     w480
-                     (source-annotation105 e478)
+                   (syntax-type149
+                     e479
+                     r480
+                     w481
+                     (source-annotation106 e479)
                      #f
-                     mod481
+                     mod482
                      #f))
-                 (lambda (type482 value483 e484 w485 s486 mod487)
-                   (chi-expr151
-                     type482
-                     value483
-                     e484
-                     r479
-                     w485
-                     s486
-                     mod487)))))
-           (chi-top149
-             (lambda (e488 r489 w490 m491 esew492 mod493)
+                 (lambda (type483 value484 e485 w486 s487 mod488)
+                   (chi-expr152
+                     type483
+                     value484
+                     e485
+                     r480
+                     w486
+                     s487
+                     mod488)))))
+           (chi-top150
+             (lambda (e489 r490 w491 m492 esew493 mod494)
                (call-with-values
                  (lambda ()
-                   (syntax-type148
-                     e488
-                     r489
-                     w490
-                     (source-annotation105 e488)
+                   (syntax-type149
+                     e489
+                     r490
+                     w491
+                     (source-annotation106 e489)
                      #f
-                     mod493
+                     mod494
                      #f))
-                 (lambda (type501 value502 e503 w504 s505 mod506)
-                   (if (memv type501 (quote (begin-form)))
-                     ((lambda (tmp507)
-                        ((lambda (tmp508)
-                           (if tmp508
-                             (apply (lambda (_509) (chi-void158)) tmp508)
-                             ((lambda (tmp510)
-                                (if tmp510
-                                  (apply (lambda (_511 e1512 e2513)
-                                           (chi-top-sequence145
-                                             (cons e1512 e2513)
-                                             r489
-                                             w504
-                                             s505
-                                             m491
-                                             esew492
-                                             mod506))
-                                         tmp510)
+                 (lambda (type502 value503 e504 w505 s506 mod507)
+                   (if (memv type502 (quote (begin-form)))
+                     ((lambda (tmp508)
+                        ((lambda (tmp509)
+                           (if tmp509
+                             (apply (lambda (_510) (chi-void159)) tmp509)
+                             ((lambda (tmp511)
+                                (if tmp511
+                                  (apply (lambda (_512 e1513 e2514)
+                                           (chi-top-sequence146
+                                             (cons e1513 e2514)
+                                             r490
+                                             w505
+                                             s506
+                                             m492
+                                             esew493
+                                             mod507))
+                                         tmp511)
                                   (syntax-violation
                                     #f
                                     "source expression failed to match any pattern"
-                                    tmp507)))
+                                    tmp508)))
                               ($sc-dispatch
-                                tmp507
+                                tmp508
                                 '(any any . each-any)))))
-                         ($sc-dispatch tmp507 (quote (any)))))
-                      e503)
-                     (if (memv type501 (quote (local-syntax-form)))
-                       (chi-local-syntax156
-                         value502
-                         e503
-                         r489
-                         w504
-                         s505
-                         mod506
-                         (lambda (body515 r516 w517 s518 mod519)
-                           (chi-top-sequence145
-                             body515
-                             r516
-                             w517
-                             s518
-                             m491
-                             esew492
-                             mod519)))
-                       (if (memv type501 (quote (eval-when-form)))
-                         ((lambda (tmp520)
-                            ((lambda (tmp521)
-                               (if tmp521
-                                 (apply (lambda (_522 x523 e1524 e2525)
-                                          (let ((when-list526
-                                                  (chi-when-list147
-                                                    e503
-                                                    x523
-                                                    w504))
-                                                (body527 (cons e1524 e2525)))
-                                            (if (eq? m491 (quote e))
+                         ($sc-dispatch tmp508 (quote (any)))))
+                      e504)
+                     (if (memv type502 (quote (local-syntax-form)))
+                       (chi-local-syntax157
+                         value503
+                         e504
+                         r490
+                         w505
+                         s506
+                         mod507
+                         (lambda (body516 r517 w518 s519 mod520)
+                           (chi-top-sequence146
+                             body516
+                             r517
+                             w518
+                             s519
+                             m492
+                             esew493
+                             mod520)))
+                       (if (memv type502 (quote (eval-when-form)))
+                         ((lambda (tmp521)
+                            ((lambda (tmp522)
+                               (if tmp522
+                                 (apply (lambda (_523 x524 e1525 e2526)
+                                          (let ((when-list527
+                                                  (chi-when-list148
+                                                    e504
+                                                    x524
+                                                    w505))
+                                                (body528 (cons e1525 e2526)))
+                                            (if (eq? m492 (quote e))
                                               (if (memq 'eval
-                                                        when-list526)
-                                                (chi-top-sequence145
-                                                  body527
-                                                  r489
-                                                  w504
-                                                  s505
+                                                        when-list527)
+                                                (chi-top-sequence146
+                                                  body528
+                                                  r490
+                                                  w505
+                                                  s506
                                                   'e
                                                   '(eval)
-                                                  mod506)
-                                                (chi-void158))
+                                                  mod507)
+                                                (chi-void159))
                                               (if (memq 'load
-                                                        when-list526)
-                                                (if (let ((t530 (memq 'compile
-                                                                      when-list526)))
-                                                      (if t530
-                                                        t530
-                                                        (if (eq? m491
-                                                                 'c&e)
-                                                          (memq 'eval
-                                                                when-list526)
-                                                          #f)))
-                                                  (chi-top-sequence145
-                                                    body527
-                                                    r489
-                                                    w504
-                                                    s505
-                                                    'c&e
-                                                    '(compile load)
-                                                    mod506)
-                                                  (if (memq m491
-                                                            '(c c&e))
-                                                    (chi-top-sequence145
-                                                      body527
-                                                      r489
-                                                      w504
-                                                      s505
-                                                      'c
-                                                      '(load)
-                                                      mod506)
-                                                    (chi-void158)))
+                                                        when-list527)
                                                 (if (let ((t531 (memq 'compile
-                                                                      when-list526)))
+                                                                      when-list527)))
                                                       (if t531
                                                         t531
-                                                        (if (eq? m491
+                                                        (if (eq? m492
                                                                  'c&e)
                                                           (memq 'eval
-                                                                when-list526)
+                                                                when-list527)
+                                                          #f)))
+                                                  (chi-top-sequence146
+                                                    body528
+                                                    r490
+                                                    w505
+                                                    s506
+                                                    'c&e
+                                                    '(compile load)
+                                                    mod507)
+                                                  (if (memq m492
+                                                            '(c c&e))
+                                                    (chi-top-sequence146
+                                                      body528
+                                                      r490
+                                                      w505
+                                                      s506
+                                                      'c
+                                                      '(load)
+                                                      mod507)
+                                                    (chi-void159)))
+                                                (if (let ((t532 (memq 'compile
+                                                                      when-list527)))
+                                                      (if t532
+                                                        t532
+                                                        (if (eq? m492
+                                                                 'c&e)
+                                                          (memq 'eval
+                                                                when-list527)
                                                           #f)))
                                                   (begin
                                                     (top-level-eval-hook76
-                                                      (chi-top-sequence145
-                                                        body527
-                                                        r489
-                                                        w504
-                                                        s505
+                                                      (chi-top-sequence146
+                                                        body528
+                                                        r490
+                                                        w505
+                                                        s506
                                                         'e
                                                         '(eval)
-                                                        mod506)
-                                                      mod506)
-                                                    (chi-void158))
-                                                  (chi-void158))))))
-                                        tmp521)
+                                                        mod507)
+                                                      mod507)
+                                                    (chi-void159))
+                                                  (chi-void159))))))
+                                        tmp522)
                                  (syntax-violation
                                    #f
                                    "source expression failed to match any pattern"
-                                   tmp520)))
+                                   tmp521)))
                              ($sc-dispatch
-                               tmp520
+                               tmp521
                                '(any each-any any . each-any))))
-                          e503)
-                         (if (memv type501 (quote (define-syntax-form)))
-                           (let ((n532 (id-var-name136 value502 w504))
-                                 (r533 (macros-only-env110 r489)))
-                             (if (memv m491 (quote (c)))
-                               (if (memq (quote compile) esew492)
-                                 (let ((e534 (chi-install-global146
-                                               n532
-                                               (chi150
-                                                 e503
-                                                 r533
-                                                 w504
-                                                 mod506))))
+                          e504)
+                         (if (memv type502 (quote (define-syntax-form)))
+                           (let ((n533 (id-var-name137 value503 w505))
+                                 (r534 (macros-only-env111 r490)))
+                             (if (memv m492 (quote (c)))
+                               (if (memq (quote compile) esew493)
+                                 (let ((e535 (chi-install-global147
+                                               n533
+                                               (chi151
+                                                 e504
+                                                 r534
+                                                 w505
+                                                 mod507))))
                                    (begin
-                                     (top-level-eval-hook76 e534 mod506)
-                                     (if (memq (quote load) esew492)
-                                       e534
-                                       (chi-void158))))
-                                 (if (memq (quote load) esew492)
-                                   (chi-install-global146
-                                     n532
-                                     (chi150 e503 r533 w504 mod506))
-                                   (chi-void158)))
-                               (if (memv m491 (quote (c&e)))
-                                 (let ((e535 (chi-install-global146
-                                               n532
-                                               (chi150
-                                                 e503
-                                                 r533
-                                                 w504
-                                                 mod506))))
+                                     (top-level-eval-hook76 e535 mod507)
+                                     (if (memq (quote load) esew493)
+                                       e535
+                                       (chi-void159))))
+                                 (if (memq (quote load) esew493)
+                                   (chi-install-global147
+                                     n533
+                                     (chi151 e504 r534 w505 mod507))
+                                   (chi-void159)))
+                               (if (memv m492 (quote (c&e)))
+                                 (let ((e536 (chi-install-global147
+                                               n533
+                                               (chi151
+                                                 e504
+                                                 r534
+                                                 w505
+                                                 mod507))))
                                    (begin
-                                     (top-level-eval-hook76 e535 mod506)
-                                     e535))
+                                     (top-level-eval-hook76 e536 mod507)
+                                     e536))
                                  (begin
-                                   (if (memq (quote eval) esew492)
+                                   (if (memq (quote eval) esew493)
                                      (top-level-eval-hook76
-                                       (chi-install-global146
-                                         n532
-                                         (chi150 e503 r533 w504 mod506))
-                                       mod506))
-                                   (chi-void158)))))
-                           (if (memv type501 (quote (define-form)))
-                             (let ((n536 (id-var-name136 value502 w504)))
-                               (let ((type537
-                                       (binding-type106
-                                         (lookup111 n536 r489 mod506))))
-                                 (if (memv type537
+                                       (chi-install-global147
+                                         n533
+                                         (chi151 e504 r534 w505 mod507))
+                                       mod507))
+                                   (chi-void159)))))
+                           (if (memv type502 (quote (define-form)))
+                             (let ((n537 (id-var-name137 value503 w505)))
+                               (let ((type538
+                                       (binding-type107
+                                         (lookup112 n537 r490 mod507))))
+                                 (if (memv type538
                                            '(global core macro module-ref))
                                    (begin
                                      (if (if (not (module-local-variable
                                                     (current-module)
-                                                    n536))
+                                                    n537))
                                            (current-module)
                                            #f)
                                        (module-define!
                                          (current-module)
-                                         n536
+                                         n537
                                          #f))
-                                     (let ((x538 (build-global-definition89
-                                                   s505
-                                                   n536
-                                                   (chi150
-                                                     e503
-                                                     r489
-                                                     w504
-                                                     mod506))))
+                                     (let ((x539 (build-global-definition90
+                                                   s506
+                                                   n537
+                                                   (chi151
+                                                     e504
+                                                     r490
+                                                     w505
+                                                     mod507))))
                                        (begin
-                                         (if (eq? m491 (quote c&e))
-                                           (top-level-eval-hook76 x538 mod506))
-                                         x538)))
-                                   (if (memv type537
+                                         (if (eq? m492 (quote c&e))
+                                           (top-level-eval-hook76 x539 mod507))
+                                         x539)))
+                                   (if (memv type538
                                              '(displaced-lexical))
                                      (syntax-violation
                                        #f
                                        "identifier out of context"
-                                       e503
-                                       (wrap142 value502 w504 mod506))
+                                       e504
+                                       (wrap143 value503 w505 mod507))
                                      (syntax-violation
                                        #f
                                        "cannot define keyword at top level"
-                                       e503
-                                       (wrap142 value502 w504 mod506))))))
-                             (let ((x539 (chi-expr151
-                                           type501
-                                           value502
-                                           e503
-                                           r489
-                                           w504
-                                           s505
-                                           mod506)))
+                                       e504
+                                       (wrap143 value503 w505 mod507))))))
+                             (let ((x540 (chi-expr152
+                                           type502
+                                           value503
+                                           e504
+                                           r490
+                                           w505
+                                           s506
+                                           mod507)))
                                (begin
-                                 (if (eq? m491 (quote c&e))
-                                   (top-level-eval-hook76 x539 mod506))
-                                 x539)))))))))))
-           (syntax-type148
-             (lambda (e540 r541 w542 s543 rib544 mod545 for-car?546)
-               (if (symbol? e540)
-                 (let ((n547 (id-var-name136 e540 w542)))
-                   (let ((b548 (lookup111 n547 r541 mod545)))
-                     (let ((type549 (binding-type106 b548)))
-                       (if (memv type549 (quote (lexical)))
+                                 (if (eq? m492 (quote c&e))
+                                   (top-level-eval-hook76 x540 mod507))
+                                 x540)))))))))))
+           (syntax-type149
+             (lambda (e541 r542 w543 s544 rib545 mod546 for-car?547)
+               (if (symbol? e541)
+                 (let ((n548 (id-var-name137 e541 w543)))
+                   (let ((b549 (lookup112 n548 r542 mod546)))
+                     (let ((type550 (binding-type107 b549)))
+                       (if (memv type550 (quote (lexical)))
                          (values
-                           type549
-                           (binding-value107 b548)
-                           e540
-                           w542
-                           s543
-                           mod545)
-                         (if (memv type549 (quote (global)))
-                           (values type549 n547 e540 w542 s543 mod545)
-                           (if (memv type549 (quote (macro)))
-                             (if for-car?546
+                           type550
+                           (binding-value108 b549)
+                           e541
+                           w543
+                           s544
+                           mod546)
+                         (if (memv type550 (quote (global)))
+                           (values type550 n548 e541 w543 s544 mod546)
+                           (if (memv type550 (quote (macro)))
+                             (if for-car?547
                                (values
-                                 type549
-                                 (binding-value107 b548)
-                                 e540
-                                 w542
-                                 s543
-                                 mod545)
-                               (syntax-type148
-                                 (chi-macro153
-                                   (binding-value107 b548)
-                                   e540
-                                   r541
-                                   w542
-                                   rib544
-                                   mod545)
-                                 r541
+                                 type550
+                                 (binding-value108 b549)
+                                 e541
+                                 w543
+                                 s544
+                                 mod546)
+                               (syntax-type149
+                                 (chi-macro154
+                                   (binding-value108 b549)
+                                   e541
+                                   r542
+                                   w543
+                                   rib545
+                                   mod546)
+                                 r542
                                  '(())
-                                 s543
-                                 rib544
-                                 mod545
+                                 s544
+                                 rib545
+                                 mod546
                                  #f))
                              (values
-                               type549
-                               (binding-value107 b548)
-                               e540
-                               w542
-                               s543
-                               mod545)))))))
-                 (if (pair? e540)
-                   (let ((first550 (car e540)))
+                               type550
+                               (binding-value108 b549)
+                               e541
+                               w543
+                               s544
+                               mod546)))))))
+                 (if (pair? e541)
+                   (let ((first551 (car e541)))
                      (call-with-values
                        (lambda ()
-                         (syntax-type148
-                           first550
-                           r541
-                           w542
-                           s543
-                           rib544
-                           mod545
+                         (syntax-type149
+                           first551
+                           r542
+                           w543
+                           s544
+                           rib545
+                           mod546
                            #t))
-                       (lambda (ftype551 fval552 fe553 fw554 fs555 fmod556)
-                         (if (memv ftype551 (quote (lexical)))
+                       (lambda (ftype552 fval553 fe554 fw555 fs556 fmod557)
+                         (if (memv ftype552 (quote (lexical)))
                            (values
                              'lexical-call
-                             fval552
-                             e540
-                             w542
-                             s543
-                             mod545)
-                           (if (memv ftype551 (quote (global)))
+                             fval553
+                             e541
+                             w543
+                             s544
+                             mod546)
+                           (if (memv ftype552 (quote (global)))
                              (values
                                'global-call
-                               (make-syntax-object97 fval552 w542 fmod556)
-                               e540
-                               w542
-                               s543
-                               mod545)
-                             (if (memv ftype551 (quote (macro)))
-                               (syntax-type148
-                                 (chi-macro153
-                                   fval552
-                                   e540
-                                   r541
-                                   w542
-                                   rib544
-                                   mod545)
-                                 r541
+                               (make-syntax-object98 fval553 w543 fmod557)
+                               e541
+                               w543
+                               s544
+                               mod546)
+                             (if (memv ftype552 (quote (macro)))
+                               (syntax-type149
+                                 (chi-macro154
+                                   fval553
+                                   e541
+                                   r542
+                                   w543
+                                   rib545
+                                   mod546)
+                                 r542
                                  '(())
-                                 s543
-                                 rib544
-                                 mod545
-                                 for-car?546)
-                               (if (memv ftype551 (quote (module-ref)))
+                                 s544
+                                 rib545
+                                 mod546
+                                 for-car?547)
+                               (if (memv ftype552 (quote (module-ref)))
                                  (call-with-values
-                                   (lambda () (fval552 e540))
-                                   (lambda (sym557 mod558)
-                                     (syntax-type148
-                                       sym557
-                                       r541
-                                       w542
-                                       s543
-                                       rib544
-                                       mod558
-                                       for-car?546)))
-                                 (if (memv ftype551 (quote (core)))
+                                   (lambda () (fval553 e541))
+                                   (lambda (sym558 mod559)
+                                     (syntax-type149
+                                       sym558
+                                       r542
+                                       w543
+                                       s544
+                                       rib545
+                                       mod559
+                                       for-car?547)))
+                                 (if (memv ftype552 (quote (core)))
                                    (values
                                      'core-form
-                                     fval552
-                                     e540
-                                     w542
-                                     s543
-                                     mod545)
-                                   (if (memv ftype551 (quote (local-syntax)))
+                                     fval553
+                                     e541
+                                     w543
+                                     s544
+                                     mod546)
+                                   (if (memv ftype552 (quote (local-syntax)))
                                      (values
                                        'local-syntax-form
-                                       fval552
-                                       e540
-                                       w542
-                                       s543
-                                       mod545)
-                                     (if (memv ftype551 (quote (begin)))
+                                       fval553
+                                       e541
+                                       w543
+                                       s544
+                                       mod546)
+                                     (if (memv ftype552 (quote (begin)))
                                        (values
                                          'begin-form
                                          #f
-                                         e540
-                                         w542
-                                         s543
-                                         mod545)
-                                       (if (memv ftype551 (quote (eval-when)))
+                                         e541
+                                         w543
+                                         s544
+                                         mod546)
+                                       (if (memv ftype552 (quote (eval-when)))
                                          (values
                                            'eval-when-form
                                            #f
-                                           e540
-                                           w542
-                                           s543
-                                           mod545)
-                                         (if (memv ftype551 (quote (define)))
-                                           ((lambda (tmp559)
-                                              ((lambda (tmp560)
-                                                 (if (if tmp560
-                                                       (apply (lambda (_561
-                                                                       name562
-                                                                       val563)
-                                                                (id?114
-                                                                  name562))
-                                                              tmp560)
+                                           e541
+                                           w543
+                                           s544
+                                           mod546)
+                                         (if (memv ftype552 (quote (define)))
+                                           ((lambda (tmp560)
+                                              ((lambda (tmp561)
+                                                 (if (if tmp561
+                                                       (apply (lambda (_562
+                                                                       name563
+                                                                       val564)
+                                                                (id?115
+                                                                  name563))
+                                                              tmp561)
                                                        #f)
-                                                   (apply (lambda (_564
-                                                                   name565
-                                                                   val566)
+                                                   (apply (lambda (_565
+                                                                   name566
+                                                                   val567)
                                                             (values
                                                               'define-form
-                                                              name565
-                                                              val566
-                                                              w542
-                                                              s543
-                                                              mod545))
-                                                          tmp560)
-                                                   ((lambda (tmp567)
-                                                      (if (if tmp567
-                                                            (apply (lambda (_568
-                                                                            name569
-                                                                            args570
-                                                                            e1571
-                                                                            e2572)
-                                                                     (if (id?114
-                                                                           name569)
-                                                                       (valid-bound-ids?139
-                                                                         (lambda-var-list162
-                                                                           args570))
+                                                              name566
+                                                              val567
+                                                              w543
+                                                              s544
+                                                              mod546))
+                                                          tmp561)
+                                                   ((lambda (tmp568)
+                                                      (if (if tmp568
+                                                            (apply (lambda (_569
+                                                                            name570
+                                                                            args571
+                                                                            e1572
+                                                                            e2573)
+                                                                     (if (id?115
+                                                                           name570)
+                                                                       (valid-bound-ids?140
+                                                                         (lambda-var-list163
+                                                                           args571))
                                                                        #f))
-                                                                   tmp567)
+                                                                   tmp568)
                                                             #f)
-                                                        (apply (lambda (_573
-                                                                        name574
-                                                                        args575
-                                                                        e1576
-                                                                        e2577)
+                                                        (apply (lambda (_574
+                                                                        name575
+                                                                        args576
+                                                                        e1577
+                                                                        e2578)
                                                                  (values
                                                                    'define-form
-                                                                   (wrap142
-                                                                     name574
-                                                                     w542
-                                                                     mod545)
-                                                                   (cons '#(syntax-object
-                                                                            lambda
-                                                                            ((top)
-                                                                             #(ribcage
-                                                                               #(_
-                                                                                 name
-                                                                                 args
-                                                                                 e1
-                                                                                 e2)
-                                                                               #((top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top))
-                                                                               #("i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"))
-                                                                             #(ribcage
-                                                                               ()
-                                                                               ()
-                                                                               ())
-                                                                             #(ribcage
-                                                                               ()
-                                                                               ()
-                                                                               ())
-                                                                             #(ribcage
-                                                                               #(ftype
-                                                                                 fval
-                                                                                 fe
-                                                                                 fw
-                                                                                 fs
-                                                                                 fmod)
-                                                                               #((top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top))
-                                                                               #("i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"))
-                                                                             #(ribcage
-                                                                               ()
-                                                                               ()
-                                                                               ())
-                                                                             #(ribcage
-                                                                               #(first)
-                                                                               #((top))
-                                                                               #("i"))
-                                                                             #(ribcage
-                                                                               ()
-                                                                               ()
-                                                                               ())
-                                                                             #(ribcage
-                                                                               ()
-                                                                               ()
-                                                                               ())
-                                                                             #(ribcage
-                                                                               ()
-                                                                               ()
-                                                                               ())
-                                                                             #(ribcage
-                                                                               #(e
-                                                                                 r
-                                                                                 w
-                                                                                 s
-                                                                                 rib
-                                                                                 mod
-                                                                                 for-car?)
-                                                                               #((top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top)
-                                                                                 (top))
-                                                                               #("i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"
-                                                                                 "i"))
-                                                                             #(ribcage
-                                                                               (lambda-var-list
-                                                                                 gen-var
-                                                                                 strip
-                                                                                 ellipsis?
-                                                                                 chi-void
-                                                                                 eval-local-transformer
-                                                                                 chi-local-syntax
-                                                                                 chi-lambda-clause
-                                                                                 chi-body
-                                                                                 chi-macro
-                                                                                 chi-application
-                                                                                 chi-expr
-                                                                                 chi
-                                                                                 chi-top
-                                                                                 syntax-type
-                                                                                 chi-when-list
-                                                                                 chi-install-global
-                                                                                 chi-top-sequence
-                                                                                 chi-sequence
-                                                                                 source-wrap
-                                                                                 wrap
-                                                                                 bound-id-member?
-                                                                                 distinct-bound-ids?
-                                                                                 valid-bound-ids?
-                                                                                 bound-id=?
-                                                                                 free-id=?
-                                                                                 id-var-name
-                                                                                 same-marks?
-                                                                                 join-marks
-                                                                                 join-wraps
-                                                                                 smart-append
-                                                                                 make-binding-wrap
-                                                                                 extend-ribcage!
-                                                                                 make-empty-ribcage
-                                                                                 new-mark
-                                                                                 anti-mark
-                                                                                 the-anti-mark
-                                                                                 top-marked?
-                                                                                 top-wrap
-                                                                                 empty-wrap
-                                                                                 set-ribcage-labels!
-                                                                                 set-ribcage-marks!
-                                                                                 set-ribcage-symnames!
-                                                                                 ribcage-labels
-                                                                                 ribcage-marks
-                                                                                 ribcage-symnames
-                                                                                 ribcage?
-                                                                                 make-ribcage
-                                                                                 gen-labels
-                                                                                 gen-label
-                                                                                 make-rename
-                                                                                 rename-marks
-                                                                                 rename-new
-                                                                                 rename-old
-                                                                                 subst-rename?
-                                                                                 wrap-subst
-                                                                                 wrap-marks
-                                                                                 make-wrap
-                                                                                 id-sym-name&marks
-                                                                                 id-sym-name
-                                                                                 id?
-                                                                                 nonsymbol-id?
-                                                                                 global-extend
-                                                                                 lookup
-                                                                                 macros-only-env
-                                                                                 extend-var-env
-                                                                                 extend-env
-                                                                                 null-env
-                                                                                 binding-value
-                                                                                 binding-type
-                                                                                 make-binding
-                                                                                 arg-check
-                                                                                 source-annotation
-                                                                                 no-source
-                                                                                 set-syntax-object-module!
-                                                                                 set-syntax-object-wrap!
-                                                                                 set-syntax-object-expression!
-                                                                                 syntax-object-module
-                                                                                 syntax-object-wrap
-                                                                                 syntax-object-expression
-                                                                                 syntax-object?
-                                                                                 make-syntax-object
-                                                                                 build-lexical-var
-                                                                                 build-letrec
-                                                                                 build-named-let
-                                                                                 build-let
-                                                                                 build-sequence
-                                                                                 build-data
-                                                                                 build-primref
-                                                                                 build-lambda
-                                                                                 build-global-definition
-                                                                                 maybe-name-value!
-                                                                                 build-global-assignment
-                                                                                 build-global-reference
-                                                                                 analyze-variable
-                                                                                 build-lexical-assignment
-                                                                                 build-lexical-reference
-                                                                                 build-conditional
-                                                                                 build-application
-                                                                                 build-void
-                                                                                 get-global-definition-hook
-                                                                                 put-global-definition-hook
-                                                                                 gensym-hook
-                                                                                 local-eval-hook
-                                                                                 top-level-eval-hook
-                                                                                 fx<
-                                                                                 fx=
-                                                                                 fx-
-                                                                                 fx+
-                                                                                 *mode*
-                                                                                 noexpand)
-                                                                               ((top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top)
-                                                                                (top))
-                                                                               ("i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"
-                                                                                "i"))
-                                                                             #(ribcage
-                                                                               (define-structure
-                                                                                 and-map*)
-                                                                               ((top)
-                                                                                (top))
-                                                                               ("i"
-                                                                                "i")))
-                                                                            (hygiene
-                                                                              guile))
-                                                                         (wrap142
-                                                                           (cons args575
-                                                                                 (cons e1576
-                                                                                       e2577))
-                                                                           w542
-                                                                           mod545))
+                                                                   (wrap143
+                                                                     name575
+                                                                     w543
+                                                                     mod546)
+                                                                   (decorate-source80
+                                                                     (cons '#(syntax-object
+                                                                              lambda
+                                                                              ((top)
+                                                                               #(ribcage
+                                                                                 #(_
+                                                                                   name
+                                                                                   args
+                                                                                   e1
+                                                                                   e2)
+                                                                                 #((top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top))
+                                                                                 #("i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"))
+                                                                               #(ribcage
+                                                                                 ()
+                                                                                 ()
+                                                                                 ())
+                                                                               #(ribcage
+                                                                                 ()
+                                                                                 ()
+                                                                                 ())
+                                                                               #(ribcage
+                                                                                 #(ftype
+                                                                                   fval
+                                                                                   fe
+                                                                                   fw
+                                                                                   fs
+                                                                                   fmod)
+                                                                                 #((top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top))
+                                                                                 #("i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"))
+                                                                               #(ribcage
+                                                                                 ()
+                                                                                 ()
+                                                                                 ())
+                                                                               #(ribcage
+                                                                                 #(first)
+                                                                                 #((top))
+                                                                                 #("i"))
+                                                                               #(ribcage
+                                                                                 ()
+                                                                                 ()
+                                                                                 ())
+                                                                               #(ribcage
+                                                                                 ()
+                                                                                 ()
+                                                                                 ())
+                                                                               #(ribcage
+                                                                                 ()
+                                                                                 ()
+                                                                                 ())
+                                                                               #(ribcage
+                                                                                 #(e
+                                                                                   r
+                                                                                   w
+                                                                                   s
+                                                                                   rib
+                                                                                   mod
+                                                                                   for-car?)
+                                                                                 #((top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top)
+                                                                                   (top))
+                                                                                 #("i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"
+                                                                                   "i"))
+                                                                               #(ribcage
+                                                                                 (lambda-var-list
+                                                                                   gen-var
+                                                                                   strip
+                                                                                   ellipsis?
+                                                                                   chi-void
+                                                                                   eval-local-transformer
+                                                                                   chi-local-syntax
+                                                                                   chi-lambda-clause
+                                                                                   chi-body
+                                                                                   chi-macro
+                                                                                   chi-application
+                                                                                   chi-expr
+                                                                                   chi
+                                                                                   chi-top
+                                                                                   syntax-type
+                                                                                   chi-when-list
+                                                                                   chi-install-global
+                                                                                   chi-top-sequence
+                                                                                   chi-sequence
+                                                                                   source-wrap
+                                                                                   wrap
+                                                                                   bound-id-member?
+                                                                                   distinct-bound-ids?
+                                                                                   valid-bound-ids?
+                                                                                   bound-id=?
+                                                                                   free-id=?
+                                                                                   id-var-name
+                                                                                   same-marks?
+                                                                                   join-marks
+                                                                                   join-wraps
+                                                                                   smart-append
+                                                                                   make-binding-wrap
+                                                                                   extend-ribcage!
+                                                                                   make-empty-ribcage
+                                                                                   new-mark
+                                                                                   anti-mark
+                                                                                   the-anti-mark
+                                                                                   top-marked?
+                                                                                   top-wrap
+                                                                                   empty-wrap
+                                                                                   set-ribcage-labels!
+                                                                                   set-ribcage-marks!
+                                                                                   set-ribcage-symnames!
+                                                                                   ribcage-labels
+                                                                                   ribcage-marks
+                                                                                   ribcage-symnames
+                                                                                   ribcage?
+                                                                                   make-ribcage
+                                                                                   gen-labels
+                                                                                   gen-label
+                                                                                   make-rename
+                                                                                   rename-marks
+                                                                                   rename-new
+                                                                                   rename-old
+                                                                                   subst-rename?
+                                                                                   wrap-subst
+                                                                                   wrap-marks
+                                                                                   make-wrap
+                                                                                   id-sym-name&marks
+                                                                                   id-sym-name
+                                                                                   id?
+                                                                                   nonsymbol-id?
+                                                                                   global-extend
+                                                                                   lookup
+                                                                                   macros-only-env
+                                                                                   extend-var-env
+                                                                                   extend-env
+                                                                                   null-env
+                                                                                   binding-value
+                                                                                   binding-type
+                                                                                   make-binding
+                                                                                   arg-check
+                                                                                   source-annotation
+                                                                                   no-source
+                                                                                   set-syntax-object-module!
+                                                                                   set-syntax-object-wrap!
+                                                                                   set-syntax-object-expression!
+                                                                                   syntax-object-module
+                                                                                   syntax-object-wrap
+                                                                                   syntax-object-expression
+                                                                                   syntax-object?
+                                                                                   make-syntax-object
+                                                                                   build-lexical-var
+                                                                                   build-letrec
+                                                                                   build-named-let
+                                                                                   build-let
+                                                                                   build-sequence
+                                                                                   build-data
+                                                                                   build-primref
+                                                                                   build-lambda
+                                                                                   build-global-definition
+                                                                                   maybe-name-value!
+                                                                                   build-global-assignment
+                                                                                   build-global-reference
+                                                                                   analyze-variable
+                                                                                   build-lexical-assignment
+                                                                                   build-lexical-reference
+                                                                                   build-conditional
+                                                                                   build-application
+                                                                                   build-void
+                                                                                   decorate-source
+                                                                                   get-global-definition-hook
+                                                                                   put-global-definition-hook
+                                                                                   gensym-hook
+                                                                                   local-eval-hook
+                                                                                   top-level-eval-hook
+                                                                                   fx<
+                                                                                   fx=
+                                                                                   fx-
+                                                                                   fx+
+                                                                                   *mode*
+                                                                                   noexpand)
+                                                                                 ((top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top)
+                                                                                  (top))
+                                                                                 ("i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"
+                                                                                  "i"))
+                                                                               #(ribcage
+                                                                                 (define-structure
+                                                                                   and-map*)
+                                                                                 ((top)
+                                                                                  (top))
+                                                                                 ("i"
+                                                                                  "i")))
+                                                                              (hygiene
+                                                                                guile))
+                                                                           (wrap143
+                                                                             (cons args576
+                                                                                   (cons e1577
+                                                                                         e2578))
+                                                                             w543
+                                                                             mod546))
+                                                                     s544)
                                                                    '(())
-                                                                   s543
-                                                                   mod545))
-                                                               tmp567)
-                                                        ((lambda (tmp579)
-                                                           (if (if tmp579
-                                                                 (apply (lambda (_580
-                                                                                 name581)
-                                                                          (id?114
-                                                                            name581))
-                                                                        tmp579)
+                                                                   s544
+                                                                   mod546))
+                                                               tmp568)
+                                                        ((lambda (tmp580)
+                                                           (if (if tmp580
+                                                                 (apply (lambda (_581
+                                                                                 name582)
+                                                                          (id?115
+                                                                            name582))
+                                                                        tmp580)
                                                                  #f)
-                                                             (apply (lambda (_582
-                                                                             name583)
+                                                             (apply (lambda (_583
+                                                                             name584)
                                                                       (values
                                                                         'define-form
-                                                                        (wrap142
-                                                                          name583
-                                                                          w542
-                                                                          mod545)
+                                                                        (wrap143
+                                                                          name584
+                                                                          w543
+                                                                          mod546)
                                                                         '(#(syntax-object
                                                                             if
                                                                             ((top)
@@ -2190,6 +2198,7 @@
                                                                                  build-conditional
                                                                                  build-application
                                                                                  build-void
+                                                                                 decorate-source
                                                                                  get-global-definition-hook
                                                                                  put-global-definition-hook
                                                                                  gensym-hook
@@ -2311,8 +2320,10 @@
                                                                                 (top)
                                                                                 (top)
                                                                                 (top)
+                                                                                (top)
                                                                                 (top))
                                                                                ("i"
+                                                                                "i"
                                                                                 "i"
                                                                                 "i"
                                                                                 "i"
@@ -2612,6 +2623,7 @@
                                                                                  build-conditional
                                                                                  build-application
                                                                                  build-void
+                                                                                 decorate-source
                                                                                  get-global-definition-hook
                                                                                  put-global-definition-hook
                                                                                  gensym-hook
@@ -2733,8 +2745,10 @@
                                                                                 (top)
                                                                                 (top)
                                                                                 (top)
+                                                                                (top)
                                                                                 (top))
                                                                                ("i"
+                                                                                "i"
                                                                                 "i"
                                                                                 "i"
                                                                                 "i"
@@ -3034,6 +3048,7 @@
                                                                                  build-conditional
                                                                                  build-application
                                                                                  build-void
+                                                                                 decorate-source
                                                                                  get-global-definition-hook
                                                                                  put-global-definition-hook
                                                                                  gensym-hook
@@ -3155,8 +3170,10 @@
                                                                                 (top)
                                                                                 (top)
                                                                                 (top)
+                                                                                (top)
                                                                                 (top))
                                                                                ("i"
+                                                                                "i"
                                                                                 "i"
                                                                                 "i"
                                                                                 "i"
@@ -3277,92 +3294,92 @@
                                                                             (hygiene
                                                                               guile)))
                                                                         '(())
-                                                                        s543
-                                                                        mod545))
-                                                                    tmp579)
+                                                                        s544
+                                                                        mod546))
+                                                                    tmp580)
                                                              (syntax-violation
                                                                #f
                                                                "source expression failed to match any pattern"
-                                                               tmp559)))
+                                                               tmp560)))
                                                          ($sc-dispatch
-                                                           tmp559
+                                                           tmp560
                                                            '(any any)))))
                                                     ($sc-dispatch
-                                                      tmp559
+                                                      tmp560
                                                       '(any (any . any)
                                                             any
                                                             .
                                                             each-any)))))
                                                ($sc-dispatch
-                                                 tmp559
+                                                 tmp560
                                                  '(any any any))))
-                                            e540)
-                                           (if (memv ftype551
+                                            e541)
+                                           (if (memv ftype552
                                                      '(define-syntax))
-                                             ((lambda (tmp584)
-                                                ((lambda (tmp585)
-                                                   (if (if tmp585
-                                                         (apply (lambda (_586
-                                                                         name587
-                                                                         val588)
-                                                                  (id?114
-                                                                    name587))
-                                                                tmp585)
+                                             ((lambda (tmp585)
+                                                ((lambda (tmp586)
+                                                   (if (if tmp586
+                                                         (apply (lambda (_587
+                                                                         name588
+                                                                         val589)
+                                                                  (id?115
+                                                                    name588))
+                                                                tmp586)
                                                          #f)
-                                                     (apply (lambda (_589
-                                                                     name590
-                                                                     val591)
+                                                     (apply (lambda (_590
+                                                                     name591
+                                                                     val592)
                                                               (values
                                                                 'define-syntax-form
-                                                                name590
-                                                                val591
-                                                                w542
-                                                                s543
-                                                                mod545))
-                                                            tmp585)
+                                                                name591
+                                                                val592
+                                                                w543
+                                                                s544
+                                                                mod546))
+                                                            tmp586)
                                                      (syntax-violation
                                                        #f
                                                        "source expression failed to match any pattern"
-                                                       tmp584)))
+                                                       tmp585)))
                                                  ($sc-dispatch
-                                                   tmp584
+                                                   tmp585
                                                    '(any any any))))
-                                              e540)
+                                              e541)
                                              (values
                                                'call
                                                #f
-                                               e540
-                                               w542
-                                               s543
-                                               mod545))))))))))))))
-                   (if (syntax-object?98 e540)
-                     (syntax-type148
-                       (syntax-object-expression99 e540)
-                       r541
-                       (join-wraps133 w542 (syntax-object-wrap100 e540))
-                       s543
-                       rib544
-                       (let ((t592 (syntax-object-module101 e540)))
-                         (if t592 t592 mod545))
-                       for-car?546)
-                     (if (self-evaluating? e540)
+                                               e541
+                                               w543
+                                               s544
+                                               mod546))))))))))))))
+                   (if (syntax-object?99 e541)
+                     (syntax-type149
+                       (syntax-object-expression100 e541)
+                       r542
+                       (join-wraps134 w543 (syntax-object-wrap101 e541))
+                       s544
+                       rib545
+                       (let ((t593 (syntax-object-module102 e541)))
+                         (if t593 t593 mod546))
+                       for-car?547)
+                     (if (self-evaluating? e541)
                        (values
                          'constant
                          #f
-                         e540
-                         w542
-                         s543
-                         mod545)
-                       (values (quote other) #f e540 w542 s543 mod545)))))))
-           (chi-when-list147
-             (lambda (e593 when-list594 w595)
-               (letrec ((f596 (lambda (when-list597 situations598)
-                                (if (null? when-list597)
-                                  situations598
-                                  (f596 (cdr when-list597)
-                                        (cons (let ((x599 (car when-list597)))
-                                                (if (free-id=?137
-                                                      x599
+                         e541
+                         w543
+                         s544
+                         mod546)
+                       (values (quote other) #f e541 w543 s544 mod546)))))))
+           (chi-when-list148
+             (lambda (e594 when-list595 w596)
+               (letrec ((f597 (lambda (when-list598 situations599)
+                                (if (null? when-list598)
+                                  situations599
+                                  (f597 (cdr when-list598)
+                                        (cons (let ((x600 (car when-list598)))
+                                                (if (free-id=?138
+                                                      x600
                                                       '#(syntax-object
                                                          compile
                                                          ((top)
@@ -3490,6 +3507,7 @@
                                                               build-conditional
                                                               build-application
                                                               build-void
+                                                              decorate-source
                                                               get-global-definition-hook
                                                               put-global-definition-hook
                                                               gensym-hook
@@ -3502,6 +3520,7 @@
                                                               *mode*
                                                               noexpand)
                                                             ((top)
+                                                             (top)
                                                              (top)
                                                              (top)
                                                              (top)
@@ -3722,6 +3741,7 @@
                                                              "i"
                                                              "i"
                                                              "i"
+                                                             "i"
                                                              "i"))
                                                           #(ribcage
                                                             (define-structure
@@ -3730,8 +3750,8 @@
                                                             ("i" "i")))
                                                          (hygiene guile)))
                                                   'compile
-                                                  (if (free-id=?137
-                                                        x599
+                                                  (if (free-id=?138
+                                                        x600
                                                         '#(syntax-object
                                                            load
                                                            ((top)
@@ -3859,6 +3879,7 @@
                                                                 build-conditional
                                                                 build-application
                                                                 build-void
+                                                                decorate-source
                                                                 get-global-definition-hook
                                                                 put-global-definition-hook
                                                                 gensym-hook
@@ -3871,6 +3892,7 @@
                                                                 *mode*
                                                                 noexpand)
                                                               ((top)
+                                                               (top)
                                                                (top)
                                                                (top)
                                                                (top)
@@ -4091,6 +4113,7 @@
                                                                "i"
                                                                "i"
                                                                "i"
+                                                               "i"
                                                                "i"))
                                                             #(ribcage
                                                               (define-structure
@@ -4099,8 +4122,8 @@
                                                               ("i" "i")))
                                                            (hygiene guile)))
                                                     'load
-                                                    (if (free-id=?137
-                                                          x599
+                                                    (if (free-id=?138
+                                                          x600
                                                           '#(syntax-object
                                                              eval
                                                              ((top)
@@ -4245,6 +4268,7 @@
                                                                   build-conditional
                                                                   build-application
                                                                   build-void
+                                                                  decorate-source
                                                                   get-global-definition-hook
                                                                   put-global-definition-hook
                                                                   gensym-hook
@@ -4257,6 +4281,7 @@
                                                                   *mode*
                                                                   noexpand)
                                                                 ((top)
+                                                                 (top)
                                                                  (top)
                                                                  (top)
                                                                  (top)
@@ -4477,6 +4502,7 @@
                                                                  "i"
                                                                  "i"
                                                                  "i"
+                                                                 "i"
                                                                  "i"))
                                                               #(ribcage
                                                                 (define-structure
@@ -4488,857 +4514,883 @@
                                                       (syntax-violation
                                                         'eval-when
                                                         "invalid situation"
-                                                        e593
-                                                        (wrap142
-                                                          x599
-                                                          w595
+                                                        e594
+                                                        (wrap143
+                                                          x600
+                                                          w596
                                                           #f))))))
-                                              situations598))))))
-                 (f596 when-list594 (quote ())))))
-           (chi-install-global146
-             (lambda (name600 e601)
-               (build-global-definition89
+                                              situations599))))))
+                 (f597 when-list595 (quote ())))))
+           (chi-install-global147
+             (lambda (name601 e602)
+               (build-global-definition90
                  #f
-                 name600
-                 (if (let ((v602 (module-variable (current-module) name600)))
-                       (if v602
-                         (if (variable-bound? v602)
-                           (if (macro? (variable-ref v602))
-                             (not (eq? (macro-type (variable-ref v602))
+                 name601
+                 (if (let ((v603 (module-variable (current-module) name601)))
+                       (if v603
+                         (if (variable-bound? v603)
+                           (if (macro? (variable-ref v603))
+                             (not (eq? (macro-type (variable-ref v603))
                                        'syncase-macro))
                              #f)
                            #f)
                          #f))
-                   (build-application81
+                   (build-application82
                      #f
-                     (build-primref91
+                     (build-primref92
                        #f
                        'make-extended-syncase-macro)
-                     (list (build-application81
+                     (list (build-application82
                              #f
-                             (build-primref91 #f (quote module-ref))
-                             (list (build-application81
+                             (build-primref92 #f (quote module-ref))
+                             (list (build-application82
                                      #f
-                                     (build-primref91
+                                     (build-primref92
                                        #f
                                        'current-module)
                                      '())
-                                   (build-data92 #f name600)))
-                           (build-data92 #f (quote macro))
-                           e601))
-                   (build-application81
+                                   (build-data93 #f name601)))
+                           (build-data93 #f (quote macro))
+                           e602))
+                   (build-application82
                      #f
-                     (build-primref91 #f (quote make-syncase-macro))
-                     (list (build-data92 #f (quote macro)) e601))))))
-           (chi-top-sequence145
-             (lambda (body603 r604 w605 s606 m607 esew608 mod609)
-               (build-sequence93
-                 s606
-                 (letrec ((dobody610
-                            (lambda (body611 r612 w613 m614 esew615 mod616)
-                              (if (null? body611)
+                     (build-primref92 #f (quote make-syncase-macro))
+                     (list (build-data93 #f (quote macro)) e602))))))
+           (chi-top-sequence146
+             (lambda (body604 r605 w606 s607 m608 esew609 mod610)
+               (build-sequence94
+                 s607
+                 (letrec ((dobody611
+                            (lambda (body612 r613 w614 m615 esew616 mod617)
+                              (if (null? body612)
                                 '()
-                                (let ((first617
-                                        (chi-top149
-                                          (car body611)
-                                          r612
-                                          w613
-                                          m614
-                                          esew615
-                                          mod616)))
-                                  (cons first617
-                                        (dobody610
-                                          (cdr body611)
-                                          r612
-                                          w613
-                                          m614
-                                          esew615
-                                          mod616)))))))
-                   (dobody610 body603 r604 w605 m607 esew608 mod609)))))
-           (chi-sequence144
-             (lambda (body618 r619 w620 s621 mod622)
-               (build-sequence93
-                 s621
-                 (letrec ((dobody623
-                            (lambda (body624 r625 w626 mod627)
-                              (if (null? body624)
+                                (let ((first618
+                                        (chi-top150
+                                          (car body612)
+                                          r613
+                                          w614
+                                          m615
+                                          esew616
+                                          mod617)))
+                                  (cons first618
+                                        (dobody611
+                                          (cdr body612)
+                                          r613
+                                          w614
+                                          m615
+                                          esew616
+                                          mod617)))))))
+                   (dobody611 body604 r605 w606 m608 esew609 mod610)))))
+           (chi-sequence145
+             (lambda (body619 r620 w621 s622 mod623)
+               (build-sequence94
+                 s622
+                 (letrec ((dobody624
+                            (lambda (body625 r626 w627 mod628)
+                              (if (null? body625)
                                 '()
-                                (let ((first628
-                                        (chi150
-                                          (car body624)
-                                          r625
-                                          w626
-                                          mod627)))
-                                  (cons first628
-                                        (dobody623
-                                          (cdr body624)
-                                          r625
-                                          w626
-                                          mod627)))))))
-                   (dobody623 body618 r619 w620 mod622)))))
-           (source-wrap143
-             (lambda (x629 w630 s631 defmod632)
-               (begin
-                 (if (if s631 (pair? x629) #f)
-                   (set-source-properties! x629 s631))
-                 (wrap142 x629 w630 defmod632))))
-           (wrap142
-             (lambda (x633 w634 defmod635)
-               (if (if (null? (wrap-marks117 w634))
-                     (null? (wrap-subst118 w634))
+                                (let ((first629
+                                        (chi151
+                                          (car body625)
+                                          r626
+                                          w627
+                                          mod628)))
+                                  (cons first629
+                                        (dobody624
+                                          (cdr body625)
+                                          r626
+                                          w627
+                                          mod628)))))))
+                   (dobody624 body619 r620 w621 mod623)))))
+           (source-wrap144
+             (lambda (x630 w631 s632 defmod633)
+               (wrap143
+                 (decorate-source80 x630 s632)
+                 w631
+                 defmod633)))
+           (wrap143
+             (lambda (x634 w635 defmod636)
+               (if (if (null? (wrap-marks118 w635))
+                     (null? (wrap-subst119 w635))
                      #f)
-                 x633
-                 (if (syntax-object?98 x633)
-                   (make-syntax-object97
-                     (syntax-object-expression99 x633)
-                     (join-wraps133 w634 (syntax-object-wrap100 x633))
-                     (syntax-object-module101 x633))
-                   (if (null? x633)
-                     x633
-                     (make-syntax-object97 x633 w634 defmod635))))))
-           (bound-id-member?141
-             (lambda (x636 list637)
-               (if (not (null? list637))
-                 (let ((t638 (bound-id=?138 x636 (car list637))))
-                   (if t638
-                     t638
-                     (bound-id-member?141 x636 (cdr list637))))
+                 x634
+                 (if (syntax-object?99 x634)
+                   (make-syntax-object98
+                     (syntax-object-expression100 x634)
+                     (join-wraps134 w635 (syntax-object-wrap101 x634))
+                     (syntax-object-module102 x634))
+                   (if (null? x634)
+                     x634
+                     (make-syntax-object98 x634 w635 defmod636))))))
+           (bound-id-member?142
+             (lambda (x637 list638)
+               (if (not (null? list638))
+                 (let ((t639 (bound-id=?139 x637 (car list638))))
+                   (if t639
+                     t639
+                     (bound-id-member?142 x637 (cdr list638))))
                  #f)))
-           (distinct-bound-ids?140
-             (lambda (ids639)
-               (letrec ((distinct?640
-                          (lambda (ids641)
-                            (let ((t642 (null? ids641)))
-                              (if t642
-                                t642
-                                (if (not (bound-id-member?141
-                                           (car ids641)
-                                           (cdr ids641)))
-                                  (distinct?640 (cdr ids641))
+           (distinct-bound-ids?141
+             (lambda (ids640)
+               (letrec ((distinct?641
+                          (lambda (ids642)
+                            (let ((t643 (null? ids642)))
+                              (if t643
+                                t643
+                                (if (not (bound-id-member?142
+                                           (car ids642)
+                                           (cdr ids642)))
+                                  (distinct?641 (cdr ids642))
                                   #f))))))
-                 (distinct?640 ids639))))
-           (valid-bound-ids?139
-             (lambda (ids643)
-               (if (letrec ((all-ids?644
-                              (lambda (ids645)
-                                (let ((t646 (null? ids645)))
-                                  (if t646
-                                    t646
-                                    (if (id?114 (car ids645))
-                                      (all-ids?644 (cdr ids645))
+                 (distinct?641 ids640))))
+           (valid-bound-ids?140
+             (lambda (ids644)
+               (if (letrec ((all-ids?645
+                              (lambda (ids646)
+                                (let ((t647 (null? ids646)))
+                                  (if t647
+                                    t647
+                                    (if (id?115 (car ids646))
+                                      (all-ids?645 (cdr ids646))
                                       #f))))))
-                     (all-ids?644 ids643))
-                 (distinct-bound-ids?140 ids643)
+                     (all-ids?645 ids644))
+                 (distinct-bound-ids?141 ids644)
                  #f)))
-           (bound-id=?138
-             (lambda (i647 j648)
-               (if (if (syntax-object?98 i647)
-                     (syntax-object?98 j648)
+           (bound-id=?139
+             (lambda (i648 j649)
+               (if (if (syntax-object?99 i648)
+                     (syntax-object?99 j649)
                      #f)
-                 (if (eq? (syntax-object-expression99 i647)
-                          (syntax-object-expression99 j648))
-                   (same-marks?135
-                     (wrap-marks117 (syntax-object-wrap100 i647))
-                     (wrap-marks117 (syntax-object-wrap100 j648)))
+                 (if (eq? (syntax-object-expression100 i648)
+                          (syntax-object-expression100 j649))
+                   (same-marks?136
+                     (wrap-marks118 (syntax-object-wrap101 i648))
+                     (wrap-marks118 (syntax-object-wrap101 j649)))
                    #f)
-                 (eq? i647 j648))))
-           (free-id=?137
-             (lambda (i649 j650)
-               (if (eq? (let ((x651 i649))
-                          (if (syntax-object?98 x651)
-                            (syntax-object-expression99 x651)
-                            x651))
-                        (let ((x652 j650))
-                          (if (syntax-object?98 x652)
-                            (syntax-object-expression99 x652)
-                            x652)))
-                 (eq? (id-var-name136 i649 (quote (())))
-                      (id-var-name136 j650 (quote (()))))
+                 (eq? i648 j649))))
+           (free-id=?138
+             (lambda (i650 j651)
+               (if (eq? (let ((x652 i650))
+                          (if (syntax-object?99 x652)
+                            (syntax-object-expression100 x652)
+                            x652))
+                        (let ((x653 j651))
+                          (if (syntax-object?99 x653)
+                            (syntax-object-expression100 x653)
+                            x653)))
+                 (eq? (id-var-name137 i650 (quote (())))
+                      (id-var-name137 j651 (quote (()))))
                  #f)))
-           (id-var-name136
-             (lambda (id653 w654)
-               (letrec ((search-vector-rib657
-                          (lambda (sym663
-                                   subst664
-                                   marks665
-                                   symnames666
-                                   ribcage667)
-                            (let ((n668 (vector-length symnames666)))
-                              (letrec ((f669 (lambda (i670)
-                                               (if (fx=74 i670 n668)
-                                                 (search655
-                                                   sym663
-                                                   (cdr subst664)
-                                                   marks665)
+           (id-var-name137
+             (lambda (id654 w655)
+               (letrec ((search-vector-rib658
+                          (lambda (sym664
+                                   subst665
+                                   marks666
+                                   symnames667
+                                   ribcage668)
+                            (let ((n669 (vector-length symnames667)))
+                              (letrec ((f670 (lambda (i671)
+                                               (if (fx=74 i671 n669)
+                                                 (search656
+                                                   sym664
+                                                   (cdr subst665)
+                                                   marks666)
                                                  (if (if (eq? (vector-ref
-                                                                symnames666
-                                                                i670)
-                                                              sym663)
-                                                       (same-marks?135
-                                                         marks665
+                                                                symnames667
+                                                                i671)
+                                                              sym664)
+                                                       (same-marks?136
+                                                         marks666
                                                          (vector-ref
-                                                           (ribcage-marks124
-                                                             ribcage667)
-                                                           i670))
+                                                           (ribcage-marks125
+                                                             ribcage668)
+                                                           i671))
                                                        #f)
                                                    (values
                                                      (vector-ref
-                                                       (ribcage-labels125
-                                                         ribcage667)
-                                                       i670)
-                                                     marks665)
-                                                   (f669 (fx+72 i670 1)))))))
-                                (f669 0)))))
-                        (search-list-rib656
-                          (lambda (sym671
-                                   subst672
-                                   marks673
-                                   symnames674
-                                   ribcage675)
-                            (letrec ((f676 (lambda (symnames677 i678)
-                                             (if (null? symnames677)
-                                               (search655
-                                                 sym671
-                                                 (cdr subst672)
-                                                 marks673)
-                                               (if (if (eq? (car symnames677)
-                                                            sym671)
-                                                     (same-marks?135
-                                                       marks673
+                                                       (ribcage-labels126
+                                                         ribcage668)
+                                                       i671)
+                                                     marks666)
+                                                   (f670 (fx+72 i671 1)))))))
+                                (f670 0)))))
+                        (search-list-rib657
+                          (lambda (sym672
+                                   subst673
+                                   marks674
+                                   symnames675
+                                   ribcage676)
+                            (letrec ((f677 (lambda (symnames678 i679)
+                                             (if (null? symnames678)
+                                               (search656
+                                                 sym672
+                                                 (cdr subst673)
+                                                 marks674)
+                                               (if (if (eq? (car symnames678)
+                                                            sym672)
+                                                     (same-marks?136
+                                                       marks674
                                                        (list-ref
-                                                         (ribcage-marks124
-                                                           ribcage675)
-                                                         i678))
+                                                         (ribcage-marks125
+                                                           ribcage676)
+                                                         i679))
                                                      #f)
                                                  (values
                                                    (list-ref
-                                                     (ribcage-labels125
-                                                       ribcage675)
-                                                     i678)
-                                                   marks673)
-                                                 (f676 (cdr symnames677)
-                                                       (fx+72 i678 1)))))))
-                              (f676 symnames674 0))))
-                        (search655
-                          (lambda (sym679 subst680 marks681)
-                            (if (null? subst680)
-                              (values #f marks681)
-                              (let ((fst682 (car subst680)))
-                                (if (eq? fst682 (quote shift))
-                                  (search655
-                                    sym679
-                                    (cdr subst680)
-                                    (cdr marks681))
-                                  (let ((symnames683
-                                          (ribcage-symnames123 fst682)))
-                                    (if (vector? symnames683)
-                                      (search-vector-rib657
-                                        sym679
-                                        subst680
-                                        marks681
-                                        symnames683
-                                        fst682)
-                                      (search-list-rib656
-                                        sym679
-                                        subst680
-                                        marks681
-                                        symnames683
-                                        fst682)))))))))
-                 (if (symbol? id653)
-                   (let ((t684 (call-with-values
+                                                     (ribcage-labels126
+                                                       ribcage676)
+                                                     i679)
+                                                   marks674)
+                                                 (f677 (cdr symnames678)
+                                                       (fx+72 i679 1)))))))
+                              (f677 symnames675 0))))
+                        (search656
+                          (lambda (sym680 subst681 marks682)
+                            (if (null? subst681)
+                              (values #f marks682)
+                              (let ((fst683 (car subst681)))
+                                (if (eq? fst683 (quote shift))
+                                  (search656
+                                    sym680
+                                    (cdr subst681)
+                                    (cdr marks682))
+                                  (let ((symnames684
+                                          (ribcage-symnames124 fst683)))
+                                    (if (vector? symnames684)
+                                      (search-vector-rib658
+                                        sym680
+                                        subst681
+                                        marks682
+                                        symnames684
+                                        fst683)
+                                      (search-list-rib657
+                                        sym680
+                                        subst681
+                                        marks682
+                                        symnames684
+                                        fst683)))))))))
+                 (if (symbol? id654)
+                   (let ((t685 (call-with-values
                                  (lambda ()
-                                   (search655
-                                     id653
-                                     (wrap-subst118 w654)
-                                     (wrap-marks117 w654)))
-                                 (lambda (x686 . ignore685) x686))))
-                     (if t684 t684 id653))
-                   (if (syntax-object?98 id653)
-                     (let ((id687 (syntax-object-expression99 id653))
-                           (w1688 (syntax-object-wrap100 id653)))
-                       (let ((marks689
-                               (join-marks134
-                                 (wrap-marks117 w654)
-                                 (wrap-marks117 w1688))))
+                                   (search656
+                                     id654
+                                     (wrap-subst119 w655)
+                                     (wrap-marks118 w655)))
+                                 (lambda (x687 . ignore686) x687))))
+                     (if t685 t685 id654))
+                   (if (syntax-object?99 id654)
+                     (let ((id688 (syntax-object-expression100 id654))
+                           (w1689 (syntax-object-wrap101 id654)))
+                       (let ((marks690
+                               (join-marks135
+                                 (wrap-marks118 w655)
+                                 (wrap-marks118 w1689))))
                          (call-with-values
                            (lambda ()
-                             (search655 id687 (wrap-subst118 w654) marks689))
-                           (lambda (new-id690 marks691)
-                             (let ((t692 new-id690))
-                               (if t692
-                                 t692
-                                 (let ((t693 (call-with-values
+                             (search656 id688 (wrap-subst119 w655) marks690))
+                           (lambda (new-id691 marks692)
+                             (let ((t693 new-id691))
+                               (if t693
+                                 t693
+                                 (let ((t694 (call-with-values
                                                (lambda ()
-                                                 (search655
-                                                   id687
-                                                   (wrap-subst118 w1688)
-                                                   marks691))
-                                               (lambda (x695 . ignore694)
-                                                 x695))))
-                                   (if t693 t693 id687))))))))
+                                                 (search656
+                                                   id688
+                                                   (wrap-subst119 w1689)
+                                                   marks692))
+                                               (lambda (x696 . ignore695)
+                                                 x696))))
+                                   (if t694 t694 id688))))))))
                      (syntax-violation
                        'id-var-name
                        "invalid id"
-                       id653))))))
-           (same-marks?135
-             (lambda (x696 y697)
-               (let ((t698 (eq? x696 y697)))
-                 (if t698
-                   t698
-                   (if (not (null? x696))
-                     (if (not (null? y697))
-                       (if (eq? (car x696) (car y697))
-                         (same-marks?135 (cdr x696) (cdr y697))
+                       id654))))))
+           (same-marks?136
+             (lambda (x697 y698)
+               (let ((t699 (eq? x697 y698)))
+                 (if t699
+                   t699
+                   (if (not (null? x697))
+                     (if (not (null? y698))
+                       (if (eq? (car x697) (car y698))
+                         (same-marks?136 (cdr x697) (cdr y698))
                          #f)
                        #f)
                      #f)))))
-           (join-marks134
-             (lambda (m1699 m2700)
-               (smart-append132 m1699 m2700)))
-           (join-wraps133
-             (lambda (w1701 w2702)
-               (let ((m1703 (wrap-marks117 w1701))
-                     (s1704 (wrap-subst118 w1701)))
-                 (if (null? m1703)
-                   (if (null? s1704)
-                     w2702
-                     (make-wrap116
-                       (wrap-marks117 w2702)
-                       (smart-append132 s1704 (wrap-subst118 w2702))))
-                   (make-wrap116
-                     (smart-append132 m1703 (wrap-marks117 w2702))
-                     (smart-append132 s1704 (wrap-subst118 w2702)))))))
-           (smart-append132
-             (lambda (m1705 m2706)
-               (if (null? m2706) m1705 (append m1705 m2706))))
-           (make-binding-wrap131
-             (lambda (ids707 labels708 w709)
-               (if (null? ids707)
-                 w709
-                 (make-wrap116
-                   (wrap-marks117 w709)
-                   (cons (let ((labelvec710 (list->vector labels708)))
-                           (let ((n711 (vector-length labelvec710)))
-                             (let ((symnamevec712 (make-vector n711))
-                                   (marksvec713 (make-vector n711)))
+           (join-marks135
+             (lambda (m1700 m2701)
+               (smart-append133 m1700 m2701)))
+           (join-wraps134
+             (lambda (w1702 w2703)
+               (let ((m1704 (wrap-marks118 w1702))
+                     (s1705 (wrap-subst119 w1702)))
+                 (if (null? m1704)
+                   (if (null? s1705)
+                     w2703
+                     (make-wrap117
+                       (wrap-marks118 w2703)
+                       (smart-append133 s1705 (wrap-subst119 w2703))))
+                   (make-wrap117
+                     (smart-append133 m1704 (wrap-marks118 w2703))
+                     (smart-append133 s1705 (wrap-subst119 w2703)))))))
+           (smart-append133
+             (lambda (m1706 m2707)
+               (if (null? m2707) m1706 (append m1706 m2707))))
+           (make-binding-wrap132
+             (lambda (ids708 labels709 w710)
+               (if (null? ids708)
+                 w710
+                 (make-wrap117
+                   (wrap-marks118 w710)
+                   (cons (let ((labelvec711 (list->vector labels709)))
+                           (let ((n712 (vector-length labelvec711)))
+                             (let ((symnamevec713 (make-vector n712))
+                                   (marksvec714 (make-vector n712)))
                                (begin
-                                 (letrec ((f714 (lambda (ids715 i716)
-                                                  (if (not (null? ids715))
+                                 (letrec ((f715 (lambda (ids716 i717)
+                                                  (if (not (null? ids716))
                                                     (call-with-values
                                                       (lambda ()
-                                                        (id-sym-name&marks115
-                                                          (car ids715)
-                                                          w709))
-                                                      (lambda (symname717
-                                                               marks718)
+                                                        (id-sym-name&marks116
+                                                          (car ids716)
+                                                          w710))
+                                                      (lambda (symname718
+                                                               marks719)
                                                         (begin
                                                           (vector-set!
-                                                            symnamevec712
-                                                            i716
-                                                            symname717)
+                                                            symnamevec713
+                                                            i717
+                                                            symname718)
                                                           (vector-set!
-                                                            marksvec713
-                                                            i716
-                                                            marks718)
-                                                          (f714 (cdr ids715)
-                                                                (fx+72 i716
+                                                            marksvec714
+                                                            i717
+                                                            marks719)
+                                                          (f715 (cdr ids716)
+                                                                (fx+72 i717
                                                                        1)))))))))
-                                   (f714 ids707 0))
-                                 (make-ribcage121
-                                   symnamevec712
-                                   marksvec713
-                                   labelvec710)))))
-                         (wrap-subst118 w709))))))
-           (extend-ribcage!130
-             (lambda (ribcage719 id720 label721)
+                                   (f715 ids708 0))
+                                 (make-ribcage122
+                                   symnamevec713
+                                   marksvec714
+                                   labelvec711)))))
+                         (wrap-subst119 w710))))))
+           (extend-ribcage!131
+             (lambda (ribcage720 id721 label722)
                (begin
-                 (set-ribcage-symnames!126
-                   ribcage719
-                   (cons (syntax-object-expression99 id720)
-                         (ribcage-symnames123 ribcage719)))
-                 (set-ribcage-marks!127
-                   ribcage719
-                   (cons (wrap-marks117 (syntax-object-wrap100 id720))
-                         (ribcage-marks124 ribcage719)))
-                 (set-ribcage-labels!128
-                   ribcage719
-                   (cons label721 (ribcage-labels125 ribcage719))))))
-           (anti-mark129
-             (lambda (w722)
-               (make-wrap116
-                 (cons #f (wrap-marks117 w722))
-                 (cons (quote shift) (wrap-subst118 w722)))))
-           (set-ribcage-labels!128
-             (lambda (x723 update724)
-               (vector-set! x723 3 update724)))
-           (set-ribcage-marks!127
-             (lambda (x725 update726)
-               (vector-set! x725 2 update726)))
-           (set-ribcage-symnames!126
-             (lambda (x727 update728)
-               (vector-set! x727 1 update728)))
-           (ribcage-labels125
-             (lambda (x729) (vector-ref x729 3)))
-           (ribcage-marks124
-             (lambda (x730) (vector-ref x730 2)))
-           (ribcage-symnames123
-             (lambda (x731) (vector-ref x731 1)))
-           (ribcage?122
-             (lambda (x732)
-               (if (vector? x732)
-                 (if (= (vector-length x732) 4)
-                   (eq? (vector-ref x732 0) (quote ribcage))
+                 (set-ribcage-symnames!127
+                   ribcage720
+                   (cons (syntax-object-expression100 id721)
+                         (ribcage-symnames124 ribcage720)))
+                 (set-ribcage-marks!128
+                   ribcage720
+                   (cons (wrap-marks118 (syntax-object-wrap101 id721))
+                         (ribcage-marks125 ribcage720)))
+                 (set-ribcage-labels!129
+                   ribcage720
+                   (cons label722 (ribcage-labels126 ribcage720))))))
+           (anti-mark130
+             (lambda (w723)
+               (make-wrap117
+                 (cons #f (wrap-marks118 w723))
+                 (cons (quote shift) (wrap-subst119 w723)))))
+           (set-ribcage-labels!129
+             (lambda (x724 update725)
+               (vector-set! x724 3 update725)))
+           (set-ribcage-marks!128
+             (lambda (x726 update727)
+               (vector-set! x726 2 update727)))
+           (set-ribcage-symnames!127
+             (lambda (x728 update729)
+               (vector-set! x728 1 update729)))
+           (ribcage-labels126
+             (lambda (x730) (vector-ref x730 3)))
+           (ribcage-marks125
+             (lambda (x731) (vector-ref x731 2)))
+           (ribcage-symnames124
+             (lambda (x732) (vector-ref x732 1)))
+           (ribcage?123
+             (lambda (x733)
+               (if (vector? x733)
+                 (if (= (vector-length x733) 4)
+                   (eq? (vector-ref x733 0) (quote ribcage))
                    #f)
                  #f)))
-           (make-ribcage121
-             (lambda (symnames733 marks734 labels735)
+           (make-ribcage122
+             (lambda (symnames734 marks735 labels736)
                (vector
                  'ribcage
-                 symnames733
-                 marks734
-                 labels735)))
-           (gen-labels120
-             (lambda (ls736)
-               (if (null? ls736)
+                 symnames734
+                 marks735
+                 labels736)))
+           (gen-labels121
+             (lambda (ls737)
+               (if (null? ls737)
                  '()
-                 (cons (gen-label119) (gen-labels120 (cdr ls736))))))
-           (gen-label119 (lambda () (string #\i)))
-           (wrap-subst118 cdr)
-           (wrap-marks117 car)
-           (make-wrap116 cons)
-           (id-sym-name&marks115
-             (lambda (x737 w738)
-               (if (syntax-object?98 x737)
+                 (cons (gen-label120) (gen-labels121 (cdr ls737))))))
+           (gen-label120 (lambda () (string #\i)))
+           (wrap-subst119 cdr)
+           (wrap-marks118 car)
+           (make-wrap117 cons)
+           (id-sym-name&marks116
+             (lambda (x738 w739)
+               (if (syntax-object?99 x738)
                  (values
-                   (syntax-object-expression99 x737)
-                   (join-marks134
-                     (wrap-marks117 w738)
-                     (wrap-marks117 (syntax-object-wrap100 x737))))
-                 (values x737 (wrap-marks117 w738)))))
-           (id?114
-             (lambda (x739)
-               (if (symbol? x739)
-                 #t
-                 (if (syntax-object?98 x739)
-                   (symbol? (syntax-object-expression99 x739))
-                   #f))))
-           (nonsymbol-id?113
+                   (syntax-object-expression100 x738)
+                   (join-marks135
+                     (wrap-marks118 w739)
+                     (wrap-marks118 (syntax-object-wrap101 x738))))
+                 (values x738 (wrap-marks118 w739)))))
+           (id?115
              (lambda (x740)
-               (if (syntax-object?98 x740)
-                 (symbol? (syntax-object-expression99 x740))
-                 #f)))
-           (global-extend112
-             (lambda (type741 sym742 val743)
-               (put-global-definition-hook78
-                 sym742
-                 type741
-                 val743)))
-           (lookup111
-             (lambda (x744 r745 mod746)
-               (let ((t747 (assq x744 r745)))
-                 (if t747
-                   (cdr t747)
-                   (if (symbol? x744)
-                     (let ((t748 (get-global-definition-hook79 x744 mod746)))
-                       (if t748 t748 (quote (global))))
-                     '(displaced-lexical))))))
-           (macros-only-env110
-             (lambda (r749)
-               (if (null? r749)
-                 '()
-                 (let ((a750 (car r749)))
-                   (if (eq? (cadr a750) (quote macro))
-                     (cons a750 (macros-only-env110 (cdr r749)))
-                     (macros-only-env110 (cdr r749)))))))
-           (extend-var-env109
-             (lambda (labels751 vars752 r753)
-               (if (null? labels751)
-                 r753
-                 (extend-var-env109
-                   (cdr labels751)
-                   (cdr vars752)
-                   (cons (cons (car labels751)
-                               (cons (quote lexical) (car vars752)))
-                         r753)))))
-           (extend-env108
-             (lambda (labels754 bindings755 r756)
-               (if (null? labels754)
-                 r756
-                 (extend-env108
-                   (cdr labels754)
-                   (cdr bindings755)
-                   (cons (cons (car labels754) (car bindings755))
-                         r756)))))
-           (binding-value107 cdr)
-           (binding-type106 car)
-           (source-annotation105
-             (lambda (x757)
-               (if (syntax-object?98 x757)
-                 (source-annotation105
-                   (syntax-object-expression99 x757))
-                 (if (pair? x757)
-                   (let ((props758 (source-properties x757)))
-                     (if (pair? props758) props758 #f))
+               (if (symbol? x740)
+                 #t
+                 (if (syntax-object?99 x740)
+                   (symbol? (syntax-object-expression100 x740))
                    #f))))
-           (set-syntax-object-module!104
-             (lambda (x759 update760)
-               (vector-set! x759 3 update760)))
-           (set-syntax-object-wrap!103
-             (lambda (x761 update762)
-               (vector-set! x761 2 update762)))
-           (set-syntax-object-expression!102
-             (lambda (x763 update764)
-               (vector-set! x763 1 update764)))
-           (syntax-object-module101
-             (lambda (x765) (vector-ref x765 3)))
-           (syntax-object-wrap100
-             (lambda (x766) (vector-ref x766 2)))
-           (syntax-object-expression99
-             (lambda (x767) (vector-ref x767 1)))
-           (syntax-object?98
-             (lambda (x768)
-               (if (vector? x768)
-                 (if (= (vector-length x768) 4)
-                   (eq? (vector-ref x768 0) (quote syntax-object))
+           (nonsymbol-id?114
+             (lambda (x741)
+               (if (syntax-object?99 x741)
+                 (symbol? (syntax-object-expression100 x741))
+                 #f)))
+           (global-extend113
+             (lambda (type742 sym743 val744)
+               (put-global-definition-hook78
+                 sym743
+                 type742
+                 val744)))
+           (lookup112
+             (lambda (x745 r746 mod747)
+               (let ((t748 (assq x745 r746)))
+                 (if t748
+                   (cdr t748)
+                   (if (symbol? x745)
+                     (let ((t749 (get-global-definition-hook79 x745 mod747)))
+                       (if t749 t749 (quote (global))))
+                     '(displaced-lexical))))))
+           (macros-only-env111
+             (lambda (r750)
+               (if (null? r750)
+                 '()
+                 (let ((a751 (car r750)))
+                   (if (eq? (cadr a751) (quote macro))
+                     (cons a751 (macros-only-env111 (cdr r750)))
+                     (macros-only-env111 (cdr r750)))))))
+           (extend-var-env110
+             (lambda (labels752 vars753 r754)
+               (if (null? labels752)
+                 r754
+                 (extend-var-env110
+                   (cdr labels752)
+                   (cdr vars753)
+                   (cons (cons (car labels752)
+                               (cons (quote lexical) (car vars753)))
+                         r754)))))
+           (extend-env109
+             (lambda (labels755 bindings756 r757)
+               (if (null? labels755)
+                 r757
+                 (extend-env109
+                   (cdr labels755)
+                   (cdr bindings756)
+                   (cons (cons (car labels755) (car bindings756))
+                         r757)))))
+           (binding-value108 cdr)
+           (binding-type107 car)
+           (source-annotation106
+             (lambda (x758)
+               (if (syntax-object?99 x758)
+                 (source-annotation106
+                   (syntax-object-expression100 x758))
+                 (if (pair? x758)
+                   (let ((props759 (source-properties x758)))
+                     (if (pair? props759) props759 #f))
+                   #f))))
+           (set-syntax-object-module!105
+             (lambda (x760 update761)
+               (vector-set! x760 3 update761)))
+           (set-syntax-object-wrap!104
+             (lambda (x762 update763)
+               (vector-set! x762 2 update763)))
+           (set-syntax-object-expression!103
+             (lambda (x764 update765)
+               (vector-set! x764 1 update765)))
+           (syntax-object-module102
+             (lambda (x766) (vector-ref x766 3)))
+           (syntax-object-wrap101
+             (lambda (x767) (vector-ref x767 2)))
+           (syntax-object-expression100
+             (lambda (x768) (vector-ref x768 1)))
+           (syntax-object?99
+             (lambda (x769)
+               (if (vector? x769)
+                 (if (= (vector-length x769) 4)
+                   (eq? (vector-ref x769 0) (quote syntax-object))
                    #f)
                  #f)))
-           (make-syntax-object97
-             (lambda (expression769 wrap770 module771)
+           (make-syntax-object98
+             (lambda (expression770 wrap771 module772)
                (vector
                  'syntax-object
-                 expression769
-                 wrap770
-                 module771)))
-           (build-letrec96
-             (lambda (src772 ids773 vars774 val-exps775 body-exp776)
-               (if (null? vars774)
-                 body-exp776
-                 (let ((atom-key777 (fluid-ref *mode*71)))
-                   (if (memv atom-key777 (quote (c)))
+                 expression770
+                 wrap771
+                 module772)))
+           (build-letrec97
+             (lambda (src773 ids774 vars775 val-exps776 body-exp777)
+               (if (null? vars775)
+                 body-exp777
+                 (let ((atom-key778 (fluid-ref *mode*71)))
+                   (if (memv atom-key778 (quote (c)))
                      (begin
-                       (for-each maybe-name-value!88 ids773 val-exps775)
+                       (for-each maybe-name-value!89 ids774 val-exps776)
                        ((@ (language tree-il) make-letrec)
-                        src772
-                        ids773
-                        vars774
-                        val-exps775
-                        body-exp776))
-                     (list 'letrec
-                           (map list vars774 val-exps775)
-                           body-exp776))))))
-           (build-named-let95
-             (lambda (src778 ids779 vars780 val-exps781 body-exp782)
-               (let ((f783 (car vars780))
-                     (f-name784 (car ids779))
-                     (vars785 (cdr vars780))
-                     (ids786 (cdr ids779)))
-                 (let ((atom-key787 (fluid-ref *mode*71)))
-                   (if (memv atom-key787 (quote (c)))
-                     (let ((proc788
-                             (build-lambda90
-                               src778
-                               ids786
-                               vars785
+                        src773
+                        ids774
+                        vars775
+                        val-exps776
+                        body-exp777))
+                     (decorate-source80
+                       (list 'letrec
+                             (map list vars775 val-exps776)
+                             body-exp777)
+                       src773))))))
+           (build-named-let96
+             (lambda (src779 ids780 vars781 val-exps782 body-exp783)
+               (let ((f784 (car vars781))
+                     (f-name785 (car ids780))
+                     (vars786 (cdr vars781))
+                     (ids787 (cdr ids780)))
+                 (let ((atom-key788 (fluid-ref *mode*71)))
+                   (if (memv atom-key788 (quote (c)))
+                     (let ((proc789
+                             (build-lambda91
+                               src779
+                               ids787
+                               vars786
                                #f
-                               body-exp782)))
+                               body-exp783)))
                        (begin
-                         (maybe-name-value!88 f-name784 proc788)
-                         (for-each maybe-name-value!88 ids786 val-exps781)
+                         (maybe-name-value!89 f-name785 proc789)
+                         (for-each maybe-name-value!89 ids787 val-exps782)
                          ((@ (language tree-il) make-letrec)
-                          src778
-                          (list f-name784)
-                          (list f783)
-                          (list proc788)
-                          (build-application81
-                            src778
-                            (build-lexical-reference83
+                          src779
+                          (list f-name785)
+                          (list f784)
+                          (list proc789)
+                          (build-application82
+                            src779
+                            (build-lexical-reference84
                               'fun
-                              src778
-                              f-name784
-                              f783)
-                            val-exps781))))
-                     (list 'let
-                           f783
-                           (map list vars785 val-exps781)
-                           body-exp782))))))
-           (build-let94
-             (lambda (src789 ids790 vars791 val-exps792 body-exp793)
-               (if (null? vars791)
-                 body-exp793
-                 (let ((atom-key794 (fluid-ref *mode*71)))
-                   (if (memv atom-key794 (quote (c)))
+                              src779
+                              f-name785
+                              f784)
+                            val-exps782))))
+                     (decorate-source80
+                       (list 'let
+                             f784
+                             (map list vars786 val-exps782)
+                             body-exp783)
+                       src779))))))
+           (build-let95
+             (lambda (src790 ids791 vars792 val-exps793 body-exp794)
+               (if (null? vars792)
+                 body-exp794
+                 (let ((atom-key795 (fluid-ref *mode*71)))
+                   (if (memv atom-key795 (quote (c)))
                      (begin
-                       (for-each maybe-name-value!88 ids790 val-exps792)
+                       (for-each maybe-name-value!89 ids791 val-exps793)
                        ((@ (language tree-il) make-let)
-                        src789
-                        ids790
-                        vars791
-                        val-exps792
-                        body-exp793))
-                     (list 'let
-                           (map list vars791 val-exps792)
-                           body-exp793))))))
-           (build-sequence93
-             (lambda (src795 exps796)
-               (if (null? (cdr exps796))
-                 (car exps796)
-                 (let ((atom-key797 (fluid-ref *mode*71)))
-                   (if (memv atom-key797 (quote (c)))
+                        src790
+                        ids791
+                        vars792
+                        val-exps793
+                        body-exp794))
+                     (decorate-source80
+                       (list 'let
+                             (map list vars792 val-exps793)
+                             body-exp794)
+                       src790))))))
+           (build-sequence94
+             (lambda (src796 exps797)
+               (if (null? (cdr exps797))
+                 (car exps797)
+                 (let ((atom-key798 (fluid-ref *mode*71)))
+                   (if (memv atom-key798 (quote (c)))
                      ((@ (language tree-il) make-sequence)
-                      src795
-                      exps796)
-                     (cons (quote begin) exps796))))))
-           (build-data92
-             (lambda (src798 exp799)
-               (let ((atom-key800 (fluid-ref *mode*71)))
-                 (if (memv atom-key800 (quote (c)))
-                   ((@ (language tree-il) make-const) src798 exp799)
-                   (if (if (self-evaluating? exp799)
-                         (not (vector? exp799))
-                         #f)
-                     exp799
-                     (list (quote quote) exp799))))))
-           (build-primref91
-             (lambda (src801 name802)
+                      src796
+                      exps797)
+                     (decorate-source80
+                       (cons (quote begin) exps797)
+                       src796))))))
+           (build-data93
+             (lambda (src799 exp800)
+               (let ((atom-key801 (fluid-ref *mode*71)))
+                 (if (memv atom-key801 (quote (c)))
+                   ((@ (language tree-il) make-const) src799 exp800)
+                   (decorate-source80
+                     (if (if (self-evaluating? exp800)
+                           (not (vector? exp800))
+                           #f)
+                       exp800
+                       (list (quote quote) exp800))
+                     src799)))))
+           (build-primref92
+             (lambda (src802 name803)
                (if (equal?
                      (module-name (current-module))
                      '(guile))
-                 (let ((atom-key803 (fluid-ref *mode*71)))
-                   (if (memv atom-key803 (quote (c)))
-                     ((@ (language tree-il) make-toplevel-ref)
-                      src801
-                      name802)
-                     name802))
                  (let ((atom-key804 (fluid-ref *mode*71)))
                    (if (memv atom-key804 (quote (c)))
+                     ((@ (language tree-il) make-toplevel-ref)
+                      src802
+                      name803)
+                     (decorate-source80 name803 src802)))
+                 (let ((atom-key805 (fluid-ref *mode*71)))
+                   (if (memv atom-key805 (quote (c)))
                      ((@ (language tree-il) make-module-ref)
-                      src801
+                      src802
                       '(guile)
-                      name802
+                      name803
                       #f)
-                     (list (quote @@) (quote (guile)) name802))))))
-           (build-lambda90
-             (lambda (src805 ids806 vars807 docstring808 exp809)
-               (let ((atom-key810 (fluid-ref *mode*71)))
-                 (if (memv atom-key810 (quote (c)))
+                     (decorate-source80
+                       (list (quote @@) (quote (guile)) name803)
+                       src802))))))
+           (build-lambda91
+             (lambda (src806 ids807 vars808 docstring809 exp810)
+               (let ((atom-key811 (fluid-ref *mode*71)))
+                 (if (memv atom-key811 (quote (c)))
                    ((@ (language tree-il) make-lambda)
-                    src805
-                    ids806
-                    vars807
-                    (if docstring808
-                      (list (cons (quote documentation) docstring808))
+                    src806
+                    ids807
+                    vars808
+                    (if docstring809
+                      (list (cons (quote documentation) docstring809))
                       '())
-                    exp809)
-                   (cons 'lambda
-                         (cons vars807
-                               (append
-                                 (if docstring808
-                                   (list docstring808)
-                                   '())
-                                 (list exp809))))))))
-           (build-global-definition89
-             (lambda (source811 var812 exp813)
-               (let ((atom-key814 (fluid-ref *mode*71)))
-                 (if (memv atom-key814 (quote (c)))
+                    exp810)
+                   (decorate-source80
+                     (cons 'lambda
+                           (cons vars808
+                                 (append
+                                   (if docstring809
+                                     (list docstring809)
+                                     '())
+                                   (list exp810))))
+                     src806)))))
+           (build-global-definition90
+             (lambda (source812 var813 exp814)
+               (let ((atom-key815 (fluid-ref *mode*71)))
+                 (if (memv atom-key815 (quote (c)))
                    (begin
-                     (maybe-name-value!88 var812 exp813)
+                     (maybe-name-value!89 var813 exp814)
                      ((@ (language tree-il) make-toplevel-define)
-                      source811
-                      var812
-                      exp813))
-                   (list (quote define) var812 exp813)))))
-           (maybe-name-value!88
-             (lambda (name815 val816)
-               (if ((@ (language tree-il) lambda?) val816)
-                 (let ((meta817
-                         ((@ (language tree-il) lambda-meta) val816)))
-                   (if (not (assq (quote name) meta817))
+                      source812
+                      var813
+                      exp814))
+                   (decorate-source80
+                     (list (quote define) var813 exp814)
+                     source812)))))
+           (maybe-name-value!89
+             (lambda (name816 val817)
+               (if ((@ (language tree-il) lambda?) val817)
+                 (let ((meta818
+                         ((@ (language tree-il) lambda-meta) val817)))
+                   (if (not (assq (quote name) meta818))
                      ((setter (@ (language tree-il) lambda-meta))
-                      val816
-                      (acons (quote name) name815 meta817)))))))
-           (build-global-assignment87
-             (lambda (source818 var819 exp820 mod821)
-               (analyze-variable85
-                 mod821
-                 var819
-                 (lambda (mod822 var823 public?824)
-                   (let ((atom-key825 (fluid-ref *mode*71)))
-                     (if (memv atom-key825 (quote (c)))
+                      val817
+                      (acons (quote name) name816 meta818)))))))
+           (build-global-assignment88
+             (lambda (source819 var820 exp821 mod822)
+               (analyze-variable86
+                 mod822
+                 var820
+                 (lambda (mod823 var824 public?825)
+                   (let ((atom-key826 (fluid-ref *mode*71)))
+                     (if (memv atom-key826 (quote (c)))
                        ((@ (language tree-il) make-module-set)
-                        source818
-                        mod822
-                        var823
-                        public?824
-                        exp820)
-                       (list 'set!
-                             (list (if public?824 (quote @) (quote @@))
-                                   mod822
-                                   var823)
-                             exp820))))
-                 (lambda (var826)
-                   (let ((atom-key827 (fluid-ref *mode*71)))
-                     (if (memv atom-key827 (quote (c)))
+                        source819
+                        mod823
+                        var824
+                        public?825
+                        exp821)
+                       (decorate-source80
+                         (list 'set!
+                               (list (if public?825 (quote @) (quote @@))
+                                     mod823
+                                     var824)
+                               exp821)
+                         source819))))
+                 (lambda (var827)
+                   (let ((atom-key828 (fluid-ref *mode*71)))
+                     (if (memv atom-key828 (quote (c)))
                        ((@ (language tree-il) make-toplevel-set)
-                        source818
-                        var826
-                        exp820)
-                       (list (quote set!) var826 exp820)))))))
-           (build-global-reference86
-             (lambda (source828 var829 mod830)
-               (analyze-variable85
-                 mod830
-                 var829
-                 (lambda (mod831 var832 public?833)
-                   (let ((atom-key834 (fluid-ref *mode*71)))
-                     (if (memv atom-key834 (quote (c)))
+                        source819
+                        var827
+                        exp821)
+                       (decorate-source80
+                         (list (quote set!) var827 exp821)
+                         source819)))))))
+           (build-global-reference87
+             (lambda (source829 var830 mod831)
+               (analyze-variable86
+                 mod831
+                 var830
+                 (lambda (mod832 var833 public?834)
+                   (let ((atom-key835 (fluid-ref *mode*71)))
+                     (if (memv atom-key835 (quote (c)))
                        ((@ (language tree-il) make-module-ref)
-                        source828
-                        mod831
-                        var832
-                        public?833)
-                       (list (if public?833 (quote @) (quote @@))
-                             mod831
-                             var832))))
-                 (lambda (var835)
-                   (let ((atom-key836 (fluid-ref *mode*71)))
-                     (if (memv atom-key836 (quote (c)))
+                        source829
+                        mod832
+                        var833
+                        public?834)
+                       (decorate-source80
+                         (list (if public?834 (quote @) (quote @@))
+                               mod832
+                               var833)
+                         source829))))
+                 (lambda (var836)
+                   (let ((atom-key837 (fluid-ref *mode*71)))
+                     (if (memv atom-key837 (quote (c)))
                        ((@ (language tree-il) make-toplevel-ref)
-                        source828
-                        var835)
-                       var835))))))
-           (analyze-variable85
-             (lambda (mod837 var838 modref-cont839 bare-cont840)
-               (if (not mod837)
-                 (bare-cont840 var838)
-                 (let ((kind841 (car mod837)) (mod842 (cdr mod837)))
-                   (if (memv kind841 (quote (public)))
-                     (modref-cont839 mod842 var838 #t)
-                     (if (memv kind841 (quote (private)))
-                       (if (not (equal? mod842 (module-name (current-module))))
-                         (modref-cont839 mod842 var838 #f)
-                         (bare-cont840 var838))
-                       (if (memv kind841 (quote (bare)))
-                         (bare-cont840 var838)
-                         (if (memv kind841 (quote (hygiene)))
+                        source829
+                        var836)
+                       (decorate-source80 var836 source829)))))))
+           (analyze-variable86
+             (lambda (mod838 var839 modref-cont840 bare-cont841)
+               (if (not mod838)
+                 (bare-cont841 var839)
+                 (let ((kind842 (car mod838)) (mod843 (cdr mod838)))
+                   (if (memv kind842 (quote (public)))
+                     (modref-cont840 mod843 var839 #t)
+                     (if (memv kind842 (quote (private)))
+                       (if (not (equal? mod843 (module-name (current-module))))
+                         (modref-cont840 mod843 var839 #f)
+                         (bare-cont841 var839))
+                       (if (memv kind842 (quote (bare)))
+                         (bare-cont841 var839)
+                         (if (memv kind842 (quote (hygiene)))
                            (if (if (not (equal?
-                                          mod842
+                                          mod843
                                           (module-name (current-module))))
                                  (module-variable
-                                   (resolve-module mod842)
-                                   var838)
+                                   (resolve-module mod843)
+                                   var839)
                                  #f)
-                             (modref-cont839 mod842 var838 #f)
-                             (bare-cont840 var838))
+                             (modref-cont840 mod843 var839 #f)
+                             (bare-cont841 var839))
                            (syntax-violation
                              #f
                              "bad module kind"
-                             var838
-                             mod842)))))))))
-           (build-lexical-assignment84
-             (lambda (source843 name844 var845 exp846)
-               (let ((atom-key847 (fluid-ref *mode*71)))
-                 (if (memv atom-key847 (quote (c)))
+                             var839
+                             mod843)))))))))
+           (build-lexical-assignment85
+             (lambda (source844 name845 var846 exp847)
+               (let ((atom-key848 (fluid-ref *mode*71)))
+                 (if (memv atom-key848 (quote (c)))
                    ((@ (language tree-il) make-lexical-set)
-                    source843
-                    name844
-                    var845
-                    exp846)
-                   (list (quote set!) var845 exp846)))))
-           (build-lexical-reference83
-             (lambda (type848 source849 name850 var851)
-               (let ((atom-key852 (fluid-ref *mode*71)))
-                 (if (memv atom-key852 (quote (c)))
+                    source844
+                    name845
+                    var846
+                    exp847)
+                   (decorate-source80
+                     (list (quote set!) var846 exp847)
+                     source844)))))
+           (build-lexical-reference84
+             (lambda (type849 source850 name851 var852)
+               (let ((atom-key853 (fluid-ref *mode*71)))
+                 (if (memv atom-key853 (quote (c)))
                    ((@ (language tree-il) make-lexical-ref)
-                    source849
-                    name850
-                    var851)
-                   var851))))
-           (build-conditional82
-             (lambda (source853 test-exp854 then-exp855 else-exp856)
-               (let ((atom-key857 (fluid-ref *mode*71)))
-                 (if (memv atom-key857 (quote (c)))
+                    source850
+                    name851
+                    var852)
+                   (decorate-source80 var852 source850)))))
+           (build-conditional83
+             (lambda (source854 test-exp855 then-exp856 else-exp857)
+               (let ((atom-key858 (fluid-ref *mode*71)))
+                 (if (memv atom-key858 (quote (c)))
                    ((@ (language tree-il) make-conditional)
-                    source853
-                    test-exp854
-                    then-exp855
-                    else-exp856)
-                   (if (equal? else-exp856 (quote (if #f #f)))
-                     (list (quote if) test-exp854 then-exp855)
-                     (list 'if
-                           test-exp854
-                           then-exp855
-                           else-exp856))))))
-           (build-application81
-             (lambda (source858 fun-exp859 arg-exps860)
-               (let ((atom-key861 (fluid-ref *mode*71)))
-                 (if (memv atom-key861 (quote (c)))
+                    source854
+                    test-exp855
+                    then-exp856
+                    else-exp857)
+                   (decorate-source80
+                     (if (equal? else-exp857 (quote (if #f #f)))
+                       (list (quote if) test-exp855 then-exp856)
+                       (list 'if
+                             test-exp855
+                             then-exp856
+                             else-exp857))
+                     source854)))))
+           (build-application82
+             (lambda (source859 fun-exp860 arg-exps861)
+               (let ((atom-key862 (fluid-ref *mode*71)))
+                 (if (memv atom-key862 (quote (c)))
                    ((@ (language tree-il) make-application)
-                    source858
-                    fun-exp859
-                    arg-exps860)
-                   (cons fun-exp859 arg-exps860)))))
-           (build-void80
-             (lambda (source862)
-               (let ((atom-key863 (fluid-ref *mode*71)))
-                 (if (memv atom-key863 (quote (c)))
-                   ((@ (language tree-il) make-void) source862)
-                   '(if #f #f)))))
-           (get-global-definition-hook79
-             (lambda (symbol864 module865)
+                    source859
+                    fun-exp860
+                    arg-exps861)
+                   (decorate-source80
+                     (cons fun-exp860 arg-exps861)
+                     source859)))))
+           (build-void81
+             (lambda (source863)
+               (let ((atom-key864 (fluid-ref *mode*71)))
+                 (if (memv atom-key864 (quote (c)))
+                   ((@ (language tree-il) make-void) source863)
+                   (decorate-source80 (quote (if #f #f)) source863)))))
+           (decorate-source80
+             (lambda (e865 s866)
                (begin
-                 (if (if (not module865) (current-module) #f)
+                 (if (if (pair? e865) s866 #f)
+                   (set-source-properties! e865 s866))
+                 e865)))
+           (get-global-definition-hook79
+             (lambda (symbol867 module868)
+               (begin
+                 (if (if (not module868) (current-module) #f)
                    (warn "module system is booted, we should have a module"
-                         symbol864))
-                 (let ((v866 (module-variable
-                               (if module865
-                                 (resolve-module (cdr module865))
+                         symbol867))
+                 (let ((v869 (module-variable
+                               (if module868
+                                 (resolve-module (cdr module868))
                                  (current-module))
-                               symbol864)))
-                   (if v866
-                     (if (variable-bound? v866)
-                       (let ((val867 (variable-ref v866)))
-                         (if (macro? val867)
-                           (if (syncase-macro-type val867)
-                             (cons (syncase-macro-type val867)
-                                   (syncase-macro-binding val867))
+                               symbol867)))
+                   (if v869
+                     (if (variable-bound? v869)
+                       (let ((val870 (variable-ref v869)))
+                         (if (macro? val870)
+                           (if (syncase-macro-type val870)
+                             (cons (syncase-macro-type val870)
+                                   (syncase-macro-binding val870))
                              #f)
                            #f))
                        #f)
                      #f)))))
            (put-global-definition-hook78
-             (lambda (symbol868 type869 val870)
-               (let ((existing871
-                       (let ((v872 (module-variable
+             (lambda (symbol871 type872 val873)
+               (let ((existing874
+                       (let ((v875 (module-variable
                                      (current-module)
-                                     symbol868)))
-                         (if v872
-                           (if (variable-bound? v872)
-                             (let ((val873 (variable-ref v872)))
-                               (if (macro? val873)
-                                 (if (not (syncase-macro-type val873))
-                                   val873
+                                     symbol871)))
+                         (if v875
+                           (if (variable-bound? v875)
+                             (let ((val876 (variable-ref v875)))
+                               (if (macro? val876)
+                                 (if (not (syncase-macro-type val876))
+                                   val876
                                    #f)
                                  #f))
                              #f)
                            #f))))
                  (module-define!
                    (current-module)
-                   symbol868
-                   (if existing871
+                   symbol871
+                   (if existing874
                      (make-extended-syncase-macro
-                       existing871
-                       type869
-                       val870)
-                     (make-syncase-macro type869 val870))))))
+                       existing874
+                       type872
+                       val873)
+                     (make-syncase-macro type872 val873))))))
            (local-eval-hook77
-             (lambda (x874 mod875)
-               (primitive-eval
-                 (list noexpand70
-                       (let ((atom-key876 (fluid-ref *mode*71)))
-                         (if (memv atom-key876 (quote (c)))
-                           ((@ (language tree-il) tree-il->scheme) x874)
-                           x874))))))
-           (top-level-eval-hook76
              (lambda (x877 mod878)
                (primitive-eval
                  (list noexpand70
@@ -5346,6 +5398,14 @@
                          (if (memv atom-key879 (quote (c)))
                            ((@ (language tree-il) tree-il->scheme) x877)
                            x877))))))
+           (top-level-eval-hook76
+             (lambda (x880 mod881)
+               (primitive-eval
+                 (list noexpand70
+                       (let ((atom-key882 (fluid-ref *mode*71)))
+                         (if (memv atom-key882 (quote (c)))
+                           ((@ (language tree-il) tree-il->scheme) x880)
+                           x880))))))
            (fx<75 <)
            (fx=74 =)
            (fx-73 -)
@@ -5353,701 +5413,701 @@
            (*mode*71 (make-fluid))
            (noexpand70 "noexpand"))
     (begin
-      (global-extend112
+      (global-extend113
         'local-syntax
         'letrec-syntax
         #t)
-      (global-extend112
+      (global-extend113
         'local-syntax
         'let-syntax
         #f)
-      (global-extend112
+      (global-extend113
         'core
         'fluid-let-syntax
-        (lambda (e880 r881 w882 s883 mod884)
-          ((lambda (tmp885)
-             ((lambda (tmp886)
-                (if (if tmp886
-                      (apply (lambda (_887 var888 val889 e1890 e2891)
-                               (valid-bound-ids?139 var888))
-                             tmp886)
+        (lambda (e883 r884 w885 s886 mod887)
+          ((lambda (tmp888)
+             ((lambda (tmp889)
+                (if (if tmp889
+                      (apply (lambda (_890 var891 val892 e1893 e2894)
+                               (valid-bound-ids?140 var891))
+                             tmp889)
                       #f)
-                  (apply (lambda (_893 var894 val895 e1896 e2897)
-                           (let ((names898
-                                   (map (lambda (x899)
-                                          (id-var-name136 x899 w882))
-                                        var894)))
+                  (apply (lambda (_896 var897 val898 e1899 e2900)
+                           (let ((names901
+                                   (map (lambda (x902)
+                                          (id-var-name137 x902 w885))
+                                        var897)))
                              (begin
                                (for-each
-                                 (lambda (id901 n902)
-                                   (let ((atom-key903
-                                           (binding-type106
-                                             (lookup111 n902 r881 mod884))))
-                                     (if (memv atom-key903
+                                 (lambda (id904 n905)
+                                   (let ((atom-key906
+                                           (binding-type107
+                                             (lookup112 n905 r884 mod887))))
+                                     (if (memv atom-key906
                                                '(displaced-lexical))
                                        (syntax-violation
                                          'fluid-let-syntax
                                          "identifier out of context"
-                                         e880
-                                         (source-wrap143
-                                           id901
-                                           w882
-                                           s883
-                                           mod884)))))
-                                 var894
-                                 names898)
-                               (chi-body154
-                                 (cons e1896 e2897)
-                                 (source-wrap143 e880 w882 s883 mod884)
-                                 (extend-env108
-                                   names898
-                                   (let ((trans-r906
-                                           (macros-only-env110 r881)))
-                                     (map (lambda (x907)
+                                         e883
+                                         (source-wrap144
+                                           id904
+                                           w885
+                                           s886
+                                           mod887)))))
+                                 var897
+                                 names901)
+                               (chi-body155
+                                 (cons e1899 e2900)
+                                 (source-wrap144 e883 w885 s886 mod887)
+                                 (extend-env109
+                                   names901
+                                   (let ((trans-r909
+                                           (macros-only-env111 r884)))
+                                     (map (lambda (x910)
                                             (cons 'macro
-                                                  (eval-local-transformer157
-                                                    (chi150
-                                                      x907
-                                                      trans-r906
-                                                      w882
-                                                      mod884)
-                                                    mod884)))
-                                          val895))
-                                   r881)
-                                 w882
-                                 mod884))))
-                         tmp886)
-                  ((lambda (_909)
+                                                  (eval-local-transformer158
+                                                    (chi151
+                                                      x910
+                                                      trans-r909
+                                                      w885
+                                                      mod887)
+                                                    mod887)))
+                                          val898))
+                                   r884)
+                                 w885
+                                 mod887))))
+                         tmp889)
+                  ((lambda (_912)
                      (syntax-violation
                        'fluid-let-syntax
                        "bad syntax"
-                       (source-wrap143 e880 w882 s883 mod884)))
-                   tmp885)))
+                       (source-wrap144 e883 w885 s886 mod887)))
+                   tmp888)))
               ($sc-dispatch
-                tmp885
+                tmp888
                 '(any #(each (any any)) any . each-any))))
-           e880)))
-      (global-extend112
+           e883)))
+      (global-extend113
         'core
         'quote
-        (lambda (e910 r911 w912 s913 mod914)
-          ((lambda (tmp915)
-             ((lambda (tmp916)
-                (if tmp916
-                  (apply (lambda (_917 e918)
-                           (build-data92 s913 (strip160 e918 w912)))
-                         tmp916)
-                  ((lambda (_919)
+        (lambda (e913 r914 w915 s916 mod917)
+          ((lambda (tmp918)
+             ((lambda (tmp919)
+                (if tmp919
+                  (apply (lambda (_920 e921)
+                           (build-data93 s916 (strip161 e921 w915)))
+                         tmp919)
+                  ((lambda (_922)
                      (syntax-violation
                        'quote
                        "bad syntax"
-                       (source-wrap143 e910 w912 s913 mod914)))
-                   tmp915)))
-              ($sc-dispatch tmp915 (quote (any any)))))
-           e910)))
-      (global-extend112
+                       (source-wrap144 e913 w915 s916 mod917)))
+                   tmp918)))
+              ($sc-dispatch tmp918 (quote (any any)))))
+           e913)))
+      (global-extend113
         'core
         'syntax
-        (letrec ((regen927
-                   (lambda (x928)
-                     (let ((atom-key929 (car x928)))
-                       (if (memv atom-key929 (quote (ref)))
-                         (build-lexical-reference83
+        (letrec ((regen930
+                   (lambda (x931)
+                     (let ((atom-key932 (car x931)))
+                       (if (memv atom-key932 (quote (ref)))
+                         (build-lexical-reference84
                            'value
                            #f
-                           (cadr x928)
-                           (cadr x928))
-                         (if (memv atom-key929 (quote (primitive)))
-                           (build-primref91 #f (cadr x928))
-                           (if (memv atom-key929 (quote (quote)))
-                             (build-data92 #f (cadr x928))
-                             (if (memv atom-key929 (quote (lambda)))
-                               (build-lambda90
+                           (cadr x931)
+                           (cadr x931))
+                         (if (memv atom-key932 (quote (primitive)))
+                           (build-primref92 #f (cadr x931))
+                           (if (memv atom-key932 (quote (quote)))
+                             (build-data93 #f (cadr x931))
+                             (if (memv atom-key932 (quote (lambda)))
+                               (build-lambda91
                                  #f
-                                 (cadr x928)
-                                 (cadr x928)
+                                 (cadr x931)
+                                 (cadr x931)
                                  #f
-                                 (regen927 (caddr x928)))
-                               (build-application81
+                                 (regen930 (caddr x931)))
+                               (build-application82
                                  #f
-                                 (build-primref91 #f (car x928))
-                                 (map regen927 (cdr x928))))))))))
-                 (gen-vector926
-                   (lambda (x930)
-                     (if (eq? (car x930) (quote list))
-                       (cons (quote vector) (cdr x930))
-                       (if (eq? (car x930) (quote quote))
-                         (list (quote quote) (list->vector (cadr x930)))
-                         (list (quote list->vector) x930)))))
-                 (gen-append925
-                   (lambda (x931 y932)
-                     (if (equal? y932 (quote (quote ())))
-                       x931
-                       (list (quote append) x931 y932))))
-                 (gen-cons924
-                   (lambda (x933 y934)
-                     (let ((atom-key935 (car y934)))
-                       (if (memv atom-key935 (quote (quote)))
-                         (if (eq? (car x933) (quote quote))
+                                 (build-primref92 #f (car x931))
+                                 (map regen930 (cdr x931))))))))))
+                 (gen-vector929
+                   (lambda (x933)
+                     (if (eq? (car x933) (quote list))
+                       (cons (quote vector) (cdr x933))
+                       (if (eq? (car x933) (quote quote))
+                         (list (quote quote) (list->vector (cadr x933)))
+                         (list (quote list->vector) x933)))))
+                 (gen-append928
+                   (lambda (x934 y935)
+                     (if (equal? y935 (quote (quote ())))
+                       x934
+                       (list (quote append) x934 y935))))
+                 (gen-cons927
+                   (lambda (x936 y937)
+                     (let ((atom-key938 (car y937)))
+                       (if (memv atom-key938 (quote (quote)))
+                         (if (eq? (car x936) (quote quote))
                            (list 'quote
-                                 (cons (cadr x933) (cadr y934)))
-                           (if (eq? (cadr y934) (quote ()))
-                             (list (quote list) x933)
-                             (list (quote cons) x933 y934)))
-                         (if (memv atom-key935 (quote (list)))
-                           (cons (quote list) (cons x933 (cdr y934)))
-                           (list (quote cons) x933 y934))))))
-                 (gen-map923
-                   (lambda (e936 map-env937)
-                     (let ((formals938 (map cdr map-env937))
-                           (actuals939
-                             (map (lambda (x940) (list (quote ref) (car x940)))
-                                  map-env937)))
-                       (if (eq? (car e936) (quote ref))
-                         (car actuals939)
+                                 (cons (cadr x936) (cadr y937)))
+                           (if (eq? (cadr y937) (quote ()))
+                             (list (quote list) x936)
+                             (list (quote cons) x936 y937)))
+                         (if (memv atom-key938 (quote (list)))
+                           (cons (quote list) (cons x936 (cdr y937)))
+                           (list (quote cons) x936 y937))))))
+                 (gen-map926
+                   (lambda (e939 map-env940)
+                     (let ((formals941 (map cdr map-env940))
+                           (actuals942
+                             (map (lambda (x943) (list (quote ref) (car x943)))
+                                  map-env940)))
+                       (if (eq? (car e939) (quote ref))
+                         (car actuals942)
                          (if (and-map
-                               (lambda (x941)
-                                 (if (eq? (car x941) (quote ref))
-                                   (memq (cadr x941) formals938)
+                               (lambda (x944)
+                                 (if (eq? (car x944) (quote ref))
+                                   (memq (cadr x944) formals941)
                                    #f))
-                               (cdr e936))
+                               (cdr e939))
                            (cons 'map
-                                 (cons (list (quote primitive) (car e936))
-                                       (map (let ((r942 (map cons
-                                                             formals938
-                                                             actuals939)))
-                                              (lambda (x943)
-                                                (cdr (assq (cadr x943) r942))))
-                                            (cdr e936))))
+                                 (cons (list (quote primitive) (car e939))
+                                       (map (let ((r945 (map cons
+                                                             formals941
+                                                             actuals942)))
+                                              (lambda (x946)
+                                                (cdr (assq (cadr x946) r945))))
+                                            (cdr e939))))
                            (cons 'map
-                                 (cons (list (quote lambda) formals938 e936)
-                                       actuals939)))))))
-                 (gen-mappend922
-                   (lambda (e944 map-env945)
+                                 (cons (list (quote lambda) formals941 e939)
+                                       actuals942)))))))
+                 (gen-mappend925
+                   (lambda (e947 map-env948)
                      (list 'apply
                            '(primitive append)
-                           (gen-map923 e944 map-env945))))
-                 (gen-ref921
-                   (lambda (src946 var947 level948 maps949)
-                     (if (fx=74 level948 0)
-                       (values var947 maps949)
-                       (if (null? maps949)
+                           (gen-map926 e947 map-env948))))
+                 (gen-ref924
+                   (lambda (src949 var950 level951 maps952)
+                     (if (fx=74 level951 0)
+                       (values var950 maps952)
+                       (if (null? maps952)
                          (syntax-violation
                            'syntax
                            "missing ellipsis"
-                           src946)
+                           src949)
                          (call-with-values
                            (lambda ()
-                             (gen-ref921
-                               src946
-                               var947
-                               (fx-73 level948 1)
-                               (cdr maps949)))
-                           (lambda (outer-var950 outer-maps951)
-                             (let ((b952 (assq outer-var950 (car maps949))))
-                               (if b952
-                                 (values (cdr b952) maps949)
-                                 (let ((inner-var953 (gen-var161 (quote tmp))))
+                             (gen-ref924
+                               src949
+                               var950
+                               (fx-73 level951 1)
+                               (cdr maps952)))
+                           (lambda (outer-var953 outer-maps954)
+                             (let ((b955 (assq outer-var953 (car maps952))))
+                               (if b955
+                                 (values (cdr b955) maps952)
+                                 (let ((inner-var956 (gen-var162 (quote tmp))))
                                    (values
-                                     inner-var953
-                                     (cons (cons (cons outer-var950
-                                                       inner-var953)
-                                                 (car maps949))
-                                           outer-maps951)))))))))))
-                 (gen-syntax920
-                   (lambda (src954 e955 r956 maps957 ellipsis?958 mod959)
-                     (if (id?114 e955)
-                       (let ((label960 (id-var-name136 e955 (quote (())))))
-                         (let ((b961 (lookup111 label960 r956 mod959)))
-                           (if (eq? (binding-type106 b961) (quote syntax))
+                                     inner-var956
+                                     (cons (cons (cons outer-var953
+                                                       inner-var956)
+                                                 (car maps952))
+                                           outer-maps954)))))))))))
+                 (gen-syntax923
+                   (lambda (src957 e958 r959 maps960 ellipsis?961 mod962)
+                     (if (id?115 e958)
+                       (let ((label963 (id-var-name137 e958 (quote (())))))
+                         (let ((b964 (lookup112 label963 r959 mod962)))
+                           (if (eq? (binding-type107 b964) (quote syntax))
                              (call-with-values
                                (lambda ()
-                                 (let ((var.lev962 (binding-value107 b961)))
-                                   (gen-ref921
-                                     src954
-                                     (car var.lev962)
-                                     (cdr var.lev962)
-                                     maps957)))
-                               (lambda (var963 maps964)
-                                 (values (list (quote ref) var963) maps964)))
-                             (if (ellipsis?958 e955)
+                                 (let ((var.lev965 (binding-value108 b964)))
+                                   (gen-ref924
+                                     src957
+                                     (car var.lev965)
+                                     (cdr var.lev965)
+                                     maps960)))
+                               (lambda (var966 maps967)
+                                 (values (list (quote ref) var966) maps967)))
+                             (if (ellipsis?961 e958)
                                (syntax-violation
                                  'syntax
                                  "misplaced ellipsis"
-                                 src954)
-                               (values (list (quote quote) e955) maps957)))))
-                       ((lambda (tmp965)
-                          ((lambda (tmp966)
-                             (if (if tmp966
-                                   (apply (lambda (dots967 e968)
-                                            (ellipsis?958 dots967))
-                                          tmp966)
+                                 src957)
+                               (values (list (quote quote) e958) maps960)))))
+                       ((lambda (tmp968)
+                          ((lambda (tmp969)
+                             (if (if tmp969
+                                   (apply (lambda (dots970 e971)
+                                            (ellipsis?961 dots970))
+                                          tmp969)
                                    #f)
-                               (apply (lambda (dots969 e970)
-                                        (gen-syntax920
-                                          src954
-                                          e970
-                                          r956
-                                          maps957
-                                          (lambda (x971) #f)
-                                          mod959))
-                                      tmp966)
-                               ((lambda (tmp972)
-                                  (if (if tmp972
-                                        (apply (lambda (x973 dots974 y975)
-                                                 (ellipsis?958 dots974))
-                                               tmp972)
+                               (apply (lambda (dots972 e973)
+                                        (gen-syntax923
+                                          src957
+                                          e973
+                                          r959
+                                          maps960
+                                          (lambda (x974) #f)
+                                          mod962))
+                                      tmp969)
+                               ((lambda (tmp975)
+                                  (if (if tmp975
+                                        (apply (lambda (x976 dots977 y978)
+                                                 (ellipsis?961 dots977))
+                                               tmp975)
                                         #f)
-                                    (apply (lambda (x976 dots977 y978)
-                                             (letrec ((f979 (lambda (y980 k981)
-                                                              ((lambda (tmp985)
-                                                                 ((lambda (tmp986)
-                                                                    (if (if tmp986
-                                                                          (apply (lambda (dots987
-                                                                                          y988)
-                                                                                   (ellipsis?958
-                                                                                     dots987))
-                                                                                 tmp986)
+                                    (apply (lambda (x979 dots980 y981)
+                                             (letrec ((f982 (lambda (y983 k984)
+                                                              ((lambda (tmp988)
+                                                                 ((lambda (tmp989)
+                                                                    (if (if tmp989
+                                                                          (apply (lambda (dots990
+                                                                                          y991)
+                                                                                   (ellipsis?961
+                                                                                     dots990))
+                                                                                 tmp989)
                                                                           #f)
-                                                                      (apply (lambda (dots989
-                                                                                      y990)
-                                                                               (f979 y990
-                                                                                     (lambda (maps991)
+                                                                      (apply (lambda (dots992
+                                                                                      y993)
+                                                                               (f982 y993
+                                                                                     (lambda (maps994)
                                                                                        (call-with-values
                                                                                          (lambda ()
-                                                                                           (k981 (cons '()
-                                                                                                       maps991)))
-                                                                                         (lambda (x992
-                                                                                                  maps993)
-                                                                                           (if (null? (car maps993))
+                                                                                           (k984 (cons '()
+                                                                                                       maps994)))
+                                                                                         (lambda (x995
+                                                                                                  maps996)
+                                                                                           (if (null? (car maps996))
                                                                                              (syntax-violation
                                                                                                'syntax
                                                                                                "extra ellipsis"
-                                                                                               src954)
+                                                                                               src957)
                                                                                              (values
-                                                                                               (gen-mappend922
-                                                                                                 x992
-                                                                                                 (car maps993))
-                                                                                               (cdr maps993))))))))
-                                                                             tmp986)
-                                                                      ((lambda (_994)
+                                                                                               (gen-mappend925
+                                                                                                 x995
+                                                                                                 (car maps996))
+                                                                                               (cdr maps996))))))))
+                                                                             tmp989)
+                                                                      ((lambda (_997)
                                                                          (call-with-values
                                                                            (lambda ()
-                                                                             (gen-syntax920
-                                                                               src954
-                                                                               y980
-                                                                               r956
-                                                                               maps957
-                                                                               ellipsis?958
-                                                                               mod959))
-                                                                           (lambda (y995
-                                                                                    maps996)
+                                                                             (gen-syntax923
+                                                                               src957
+                                                                               y983
+                                                                               r959
+                                                                               maps960
+                                                                               ellipsis?961
+                                                                               mod962))
+                                                                           (lambda (y998
+                                                                                    maps999)
                                                                              (call-with-values
                                                                                (lambda ()
-                                                                                 (k981 maps996))
-                                                                               (lambda (x997
-                                                                                        maps998)
+                                                                                 (k984 maps999))
+                                                                               (lambda (x1000
+                                                                                        maps1001)
                                                                                  (values
-                                                                                   (gen-append925
-                                                                                     x997
-                                                                                     y995)
-                                                                                   maps998))))))
-                                                                       tmp985)))
+                                                                                   (gen-append928
+                                                                                     x1000
+                                                                                     y998)
+                                                                                   maps1001))))))
+                                                                       tmp988)))
                                                                   ($sc-dispatch
-                                                                    tmp985
+                                                                    tmp988
                                                                     '(any .
                                                                           any))))
-                                                               y980))))
-                                               (f979 y978
-                                                     (lambda (maps982)
+                                                               y983))))
+                                               (f982 y981
+                                                     (lambda (maps985)
                                                        (call-with-values
                                                          (lambda ()
-                                                           (gen-syntax920
-                                                             src954
-                                                             x976
-                                                             r956
+                                                           (gen-syntax923
+                                                             src957
+                                                             x979
+                                                             r959
                                                              (cons '()
-                                                                   maps982)
-                                                             ellipsis?958
-                                                             mod959))
-                                                         (lambda (x983 maps984)
-                                                           (if (null? (car maps984))
+                                                                   maps985)
+                                                             ellipsis?961
+                                                             mod962))
+                                                         (lambda (x986 maps987)
+                                                           (if (null? (car maps987))
                                                              (syntax-violation
                                                                'syntax
                                                                "extra ellipsis"
-                                                               src954)
+                                                               src957)
                                                              (values
-                                                               (gen-map923
-                                                                 x983
-                                                                 (car maps984))
-                                                               (cdr maps984)))))))))
-                                           tmp972)
-                                    ((lambda (tmp999)
-                                       (if tmp999
-                                         (apply (lambda (x1000 y1001)
+                                                               (gen-map926
+                                                                 x986
+                                                                 (car maps987))
+                                                               (cdr maps987)))))))))
+                                           tmp975)
+                                    ((lambda (tmp1002)
+                                       (if tmp1002
+                                         (apply (lambda (x1003 y1004)
                                                   (call-with-values
                                                     (lambda ()
-                                                      (gen-syntax920
-                                                        src954
-                                                        x1000
-                                                        r956
-                                                        maps957
-                                                        ellipsis?958
-                                                        mod959))
-                                                    (lambda (x1002 maps1003)
+                                                      (gen-syntax923
+                                                        src957
+                                                        x1003
+                                                        r959
+                                                        maps960
+                                                        ellipsis?961
+                                                        mod962))
+                                                    (lambda (x1005 maps1006)
                                                       (call-with-values
                                                         (lambda ()
-                                                          (gen-syntax920
-                                                            src954
-                                                            y1001
-                                                            r956
-                                                            maps1003
-                                                            ellipsis?958
-                                                            mod959))
-                                                        (lambda (y1004
-                                                                 maps1005)
+                                                          (gen-syntax923
+                                                            src957
+                                                            y1004
+                                                            r959
+                                                            maps1006
+                                                            ellipsis?961
+                                                            mod962))
+                                                        (lambda (y1007
+                                                                 maps1008)
                                                           (values
-                                                            (gen-cons924
-                                                              x1002
-                                                              y1004)
-                                                            maps1005))))))
-                                                tmp999)
-                                         ((lambda (tmp1006)
-                                            (if tmp1006
-                                              (apply (lambda (e11007 e21008)
+                                                            (gen-cons927
+                                                              x1005
+                                                              y1007)
+                                                            maps1008))))))
+                                                tmp1002)
+                                         ((lambda (tmp1009)
+                                            (if tmp1009
+                                              (apply (lambda (e11010 e21011)
                                                        (call-with-values
                                                          (lambda ()
-                                                           (gen-syntax920
-                                                             src954
-                                                             (cons e11007
-                                                                   e21008)
-                                                             r956
-                                                             maps957
-                                                             ellipsis?958
-                                                             mod959))
-                                                         (lambda (e1010
-                                                                  maps1011)
+                                                           (gen-syntax923
+                                                             src957
+                                                             (cons e11010
+                                                                   e21011)
+                                                             r959
+                                                             maps960
+                                                             ellipsis?961
+                                                             mod962))
+                                                         (lambda (e1013
+                                                                  maps1014)
                                                            (values
-                                                             (gen-vector926
-                                                               e1010)
-                                                             maps1011))))
-                                                     tmp1006)
-                                              ((lambda (_1012)
+                                                             (gen-vector929
+                                                               e1013)
+                                                             maps1014))))
+                                                     tmp1009)
+                                              ((lambda (_1015)
                                                  (values
-                                                   (list (quote quote) e955)
-                                                   maps957))
-                                               tmp965)))
+                                                   (list (quote quote) e958)
+                                                   maps960))
+                                               tmp968)))
                                           ($sc-dispatch
-                                            tmp965
+                                            tmp968
                                             '#(vector (any . each-any))))))
                                      ($sc-dispatch
-                                       tmp965
+                                       tmp968
                                        '(any . any)))))
                                 ($sc-dispatch
-                                  tmp965
+                                  tmp968
                                   '(any any . any)))))
-                           ($sc-dispatch tmp965 (quote (any any)))))
-                        e955)))))
-          (lambda (e1013 r1014 w1015 s1016 mod1017)
-            (let ((e1018 (source-wrap143 e1013 w1015 s1016 mod1017)))
-              ((lambda (tmp1019)
-                 ((lambda (tmp1020)
-                    (if tmp1020
-                      (apply (lambda (_1021 x1022)
+                           ($sc-dispatch tmp968 (quote (any any)))))
+                        e958)))))
+          (lambda (e1016 r1017 w1018 s1019 mod1020)
+            (let ((e1021 (source-wrap144 e1016 w1018 s1019 mod1020)))
+              ((lambda (tmp1022)
+                 ((lambda (tmp1023)
+                    (if tmp1023
+                      (apply (lambda (_1024 x1025)
                                (call-with-values
                                  (lambda ()
-                                   (gen-syntax920
-                                     e1018
-                                     x1022
-                                     r1014
+                                   (gen-syntax923
+                                     e1021
+                                     x1025
+                                     r1017
                                      '()
-                                     ellipsis?159
-                                     mod1017))
-                                 (lambda (e1023 maps1024) (regen927 e1023))))
-                             tmp1020)
-                      ((lambda (_1025)
+                                     ellipsis?160
+                                     mod1020))
+                                 (lambda (e1026 maps1027) (regen930 e1026))))
+                             tmp1023)
+                      ((lambda (_1028)
                          (syntax-violation
                            'syntax
                            "bad `syntax' form"
-                           e1018))
-                       tmp1019)))
-                  ($sc-dispatch tmp1019 (quote (any any)))))
-               e1018)))))
-      (global-extend112
+                           e1021))
+                       tmp1022)))
+                  ($sc-dispatch tmp1022 (quote (any any)))))
+               e1021)))))
+      (global-extend113
         'core
         'lambda
-        (lambda (e1026 r1027 w1028 s1029 mod1030)
-          ((lambda (tmp1031)
-             ((lambda (tmp1032)
-                (if tmp1032
-                  (apply (lambda (_1033 c1034)
-                           (chi-lambda-clause155
-                             (source-wrap143 e1026 w1028 s1029 mod1030)
+        (lambda (e1029 r1030 w1031 s1032 mod1033)
+          ((lambda (tmp1034)
+             ((lambda (tmp1035)
+                (if tmp1035
+                  (apply (lambda (_1036 c1037)
+                           (chi-lambda-clause156
+                             (source-wrap144 e1029 w1031 s1032 mod1033)
                              #f
-                             c1034
-                             r1027
-                             w1028
-                             mod1030
-                             (lambda (names1035
-                                      vars1036
-                                      docstring1037
-                                      body1038)
-                               (build-lambda90
-                                 s1029
-                                 names1035
-                                 vars1036
-                                 docstring1037
-                                 body1038))))
-                         tmp1032)
+                             c1037
+                             r1030
+                             w1031
+                             mod1033
+                             (lambda (names1038
+                                      vars1039
+                                      docstring1040
+                                      body1041)
+                               (build-lambda91
+                                 s1032
+                                 names1038
+                                 vars1039
+                                 docstring1040
+                                 body1041))))
+                         tmp1035)
                   (syntax-violation
                     #f
                     "source expression failed to match any pattern"
-                    tmp1031)))
-              ($sc-dispatch tmp1031 (quote (any . any)))))
-           e1026)))
-      (global-extend112
+                    tmp1034)))
+              ($sc-dispatch tmp1034 (quote (any . any)))))
+           e1029)))
+      (global-extend113
         'core
         'let
-        (letrec ((chi-let1039
-                   (lambda (e1040
-                            r1041
-                            w1042
-                            s1043
-                            mod1044
-                            constructor1045
-                            ids1046
-                            vals1047
-                            exps1048)
-                     (if (not (valid-bound-ids?139 ids1046))
+        (letrec ((chi-let1042
+                   (lambda (e1043
+                            r1044
+                            w1045
+                            s1046
+                            mod1047
+                            constructor1048
+                            ids1049
+                            vals1050
+                            exps1051)
+                     (if (not (valid-bound-ids?140 ids1049))
                        (syntax-violation
                          'let
                          "duplicate bound variable"
-                         e1040)
-                       (let ((labels1049 (gen-labels120 ids1046))
-                             (new-vars1050 (map gen-var161 ids1046)))
-                         (let ((nw1051
-                                 (make-binding-wrap131
-                                   ids1046
-                                   labels1049
-                                   w1042))
-                               (nr1052
-                                 (extend-var-env109
-                                   labels1049
-                                   new-vars1050
-                                   r1041)))
-                           (constructor1045
-                             s1043
-                             (map syntax->datum ids1046)
-                             new-vars1050
-                             (map (lambda (x1053)
-                                    (chi150 x1053 r1041 w1042 mod1044))
-                                  vals1047)
-                             (chi-body154
-                               exps1048
-                               (source-wrap143 e1040 nw1051 s1043 mod1044)
-                               nr1052
-                               nw1051
-                               mod1044))))))))
-          (lambda (e1054 r1055 w1056 s1057 mod1058)
-            ((lambda (tmp1059)
-               ((lambda (tmp1060)
-                  (if (if tmp1060
-                        (apply (lambda (_1061 id1062 val1063 e11064 e21065)
-                                 (and-map id?114 id1062))
-                               tmp1060)
+                         e1043)
+                       (let ((labels1052 (gen-labels121 ids1049))
+                             (new-vars1053 (map gen-var162 ids1049)))
+                         (let ((nw1054
+                                 (make-binding-wrap132
+                                   ids1049
+                                   labels1052
+                                   w1045))
+                               (nr1055
+                                 (extend-var-env110
+                                   labels1052
+                                   new-vars1053
+                                   r1044)))
+                           (constructor1048
+                             s1046
+                             (map syntax->datum ids1049)
+                             new-vars1053
+                             (map (lambda (x1056)
+                                    (chi151 x1056 r1044 w1045 mod1047))
+                                  vals1050)
+                             (chi-body155
+                               exps1051
+                               (source-wrap144 e1043 nw1054 s1046 mod1047)
+                               nr1055
+                               nw1054
+                               mod1047))))))))
+          (lambda (e1057 r1058 w1059 s1060 mod1061)
+            ((lambda (tmp1062)
+               ((lambda (tmp1063)
+                  (if (if tmp1063
+                        (apply (lambda (_1064 id1065 val1066 e11067 e21068)
+                                 (and-map id?115 id1065))
+                               tmp1063)
                         #f)
-                    (apply (lambda (_1067 id1068 val1069 e11070 e21071)
-                             (chi-let1039
-                               e1054
-                               r1055
-                               w1056
-                               s1057
-                               mod1058
-                               build-let94
-                               id1068
-                               val1069
-                               (cons e11070 e21071)))
-                           tmp1060)
-                    ((lambda (tmp1075)
-                       (if (if tmp1075
-                             (apply (lambda (_1076
-                                             f1077
-                                             id1078
-                                             val1079
-                                             e11080
-                                             e21081)
-                                      (if (id?114 f1077)
-                                        (and-map id?114 id1078)
+                    (apply (lambda (_1070 id1071 val1072 e11073 e21074)
+                             (chi-let1042
+                               e1057
+                               r1058
+                               w1059
+                               s1060
+                               mod1061
+                               build-let95
+                               id1071
+                               val1072
+                               (cons e11073 e21074)))
+                           tmp1063)
+                    ((lambda (tmp1078)
+                       (if (if tmp1078
+                             (apply (lambda (_1079
+                                             f1080
+                                             id1081
+                                             val1082
+                                             e11083
+                                             e21084)
+                                      (if (id?115 f1080)
+                                        (and-map id?115 id1081)
                                         #f))
-                                    tmp1075)
+                                    tmp1078)
                              #f)
-                         (apply (lambda (_1083
-                                         f1084
-                                         id1085
-                                         val1086
-                                         e11087
-                                         e21088)
-                                  (chi-let1039
-                                    e1054
-                                    r1055
-                                    w1056
-                                    s1057
-                                    mod1058
-                                    build-named-let95
-                                    (cons f1084 id1085)
-                                    val1086
-                                    (cons e11087 e21088)))
-                                tmp1075)
-                         ((lambda (_1092)
+                         (apply (lambda (_1086
+                                         f1087
+                                         id1088
+                                         val1089
+                                         e11090
+                                         e21091)
+                                  (chi-let1042
+                                    e1057
+                                    r1058
+                                    w1059
+                                    s1060
+                                    mod1061
+                                    build-named-let96
+                                    (cons f1087 id1088)
+                                    val1089
+                                    (cons e11090 e21091)))
+                                tmp1078)
+                         ((lambda (_1095)
                             (syntax-violation
                               'let
                               "bad let"
-                              (source-wrap143 e1054 w1056 s1057 mod1058)))
-                          tmp1059)))
+                              (source-wrap144 e1057 w1059 s1060 mod1061)))
+                          tmp1062)))
                      ($sc-dispatch
-                       tmp1059
+                       tmp1062
                        '(any any #(each (any any)) any . each-any)))))
                 ($sc-dispatch
-                  tmp1059
+                  tmp1062
                   '(any #(each (any any)) any . each-any))))
-             e1054))))
-      (global-extend112
+             e1057))))
+      (global-extend113
         'core
         'letrec
-        (lambda (e1093 r1094 w1095 s1096 mod1097)
-          ((lambda (tmp1098)
-             ((lambda (tmp1099)
-                (if (if tmp1099
-                      (apply (lambda (_1100 id1101 val1102 e11103 e21104)
-                               (and-map id?114 id1101))
-                             tmp1099)
+        (lambda (e1096 r1097 w1098 s1099 mod1100)
+          ((lambda (tmp1101)
+             ((lambda (tmp1102)
+                (if (if tmp1102
+                      (apply (lambda (_1103 id1104 val1105 e11106 e21107)
+                               (and-map id?115 id1104))
+                             tmp1102)
                       #f)
-                  (apply (lambda (_1106 id1107 val1108 e11109 e21110)
-                           (let ((ids1111 id1107))
-                             (if (not (valid-bound-ids?139 ids1111))
+                  (apply (lambda (_1109 id1110 val1111 e11112 e21113)
+                           (let ((ids1114 id1110))
+                             (if (not (valid-bound-ids?140 ids1114))
                                (syntax-violation
                                  'letrec
                                  "duplicate bound variable"
-                                 e1093)
-                               (let ((labels1113 (gen-labels120 ids1111))
-                                     (new-vars1114 (map gen-var161 ids1111)))
-                                 (let ((w1115 (make-binding-wrap131
-                                                ids1111
-                                                labels1113
-                                                w1095))
-                                       (r1116 (extend-var-env109
-                                                labels1113
-                                                new-vars1114
-                                                r1094)))
-                                   (build-letrec96
-                                     s1096
-                                     (map syntax->datum ids1111)
-                                     new-vars1114
-                                     (map (lambda (x1117)
-                                            (chi150 x1117 r1116 w1115 mod1097))
-                                          val1108)
-                                     (chi-body154
-                                       (cons e11109 e21110)
-                                       (source-wrap143
-                                         e1093
-                                         w1115
-                                         s1096
-                                         mod1097)
-                                       r1116
-                                       w1115
-                                       mod1097)))))))
-                         tmp1099)
-                  ((lambda (_1120)
+                                 e1096)
+                               (let ((labels1116 (gen-labels121 ids1114))
+                                     (new-vars1117 (map gen-var162 ids1114)))
+                                 (let ((w1118 (make-binding-wrap132
+                                                ids1114
+                                                labels1116
+                                                w1098))
+                                       (r1119 (extend-var-env110
+                                                labels1116
+                                                new-vars1117
+                                                r1097)))
+                                   (build-letrec97
+                                     s1099
+                                     (map syntax->datum ids1114)
+                                     new-vars1117
+                                     (map (lambda (x1120)
+                                            (chi151 x1120 r1119 w1118 mod1100))
+                                          val1111)
+                                     (chi-body155
+                                       (cons e11112 e21113)
+                                       (source-wrap144
+                                         e1096
+                                         w1118
+                                         s1099
+                                         mod1100)
+                                       r1119
+                                       w1118
+                                       mod1100)))))))
+                         tmp1102)
+                  ((lambda (_1123)
                      (syntax-violation
                        'letrec
                        "bad letrec"
-                       (source-wrap143 e1093 w1095 s1096 mod1097)))
-                   tmp1098)))
+                       (source-wrap144 e1096 w1098 s1099 mod1100)))
+                   tmp1101)))
               ($sc-dispatch
-                tmp1098
+                tmp1101
                 '(any #(each (any any)) any . each-any))))
-           e1093)))
-      (global-extend112
+           e1096)))
+      (global-extend113
         'core
         'set!
-        (lambda (e1121 r1122 w1123 s1124 mod1125)
-          ((lambda (tmp1126)
-             ((lambda (tmp1127)
-                (if (if tmp1127
-                      (apply (lambda (_1128 id1129 val1130) (id?114 id1129))
-                             tmp1127)
+        (lambda (e1124 r1125 w1126 s1127 mod1128)
+          ((lambda (tmp1129)
+             ((lambda (tmp1130)
+                (if (if tmp1130
+                      (apply (lambda (_1131 id1132 val1133) (id?115 id1132))
+                             tmp1130)
                       #f)
-                  (apply (lambda (_1131 id1132 val1133)
-                           (let ((val1134 (chi150 val1133 r1122 w1123 mod1125))
-                                 (n1135 (id-var-name136 id1132 w1123)))
-                             (let ((b1136 (lookup111 n1135 r1122 mod1125)))
-                               (let ((atom-key1137 (binding-type106 b1136)))
-                                 (if (memv atom-key1137 (quote (lexical)))
-                                   (build-lexical-assignment84
-                                     s1124
-                                     (syntax->datum id1132)
-                                     (binding-value107 b1136)
-                                     val1134)
-                                   (if (memv atom-key1137 (quote (global)))
-                                     (build-global-assignment87
-                                       s1124
-                                       n1135
-                                       val1134
-                                       mod1125)
-                                     (if (memv atom-key1137
+                  (apply (lambda (_1134 id1135 val1136)
+                           (let ((val1137 (chi151 val1136 r1125 w1126 mod1128))
+                                 (n1138 (id-var-name137 id1135 w1126)))
+                             (let ((b1139 (lookup112 n1138 r1125 mod1128)))
+                               (let ((atom-key1140 (binding-type107 b1139)))
+                                 (if (memv atom-key1140 (quote (lexical)))
+                                   (build-lexical-assignment85
+                                     s1127
+                                     (syntax->datum id1135)
+                                     (binding-value108 b1139)
+                                     val1137)
+                                   (if (memv atom-key1140 (quote (global)))
+                                     (build-global-assignment88
+                                       s1127
+                                       n1138
+                                       val1137
+                                       mod1128)
+                                     (if (memv atom-key1140
                                                '(displaced-lexical))
                                        (syntax-violation
                                          'set!
                                          "identifier out of context"
-                                         (wrap142 id1132 w1123 mod1125))
+                                         (wrap143 id1135 w1126 mod1128))
                                        (syntax-violation
                                          'set!
                                          "bad set!"
-                                         (source-wrap143
-                                           e1121
-                                           w1123
-                                           s1124
-                                           mod1125)))))))))
-                         tmp1127)
-                  ((lambda (tmp1138)
-                     (if tmp1138
-                       (apply (lambda (_1139 head1140 tail1141 val1142)
+                                         (source-wrap144
+                                           e1124
+                                           w1126
+                                           s1127
+                                           mod1128)))))))))
+                         tmp1130)
+                  ((lambda (tmp1141)
+                     (if tmp1141
+                       (apply (lambda (_1142 head1143 tail1144 val1145)
                                 (call-with-values
                                   (lambda ()
-                                    (syntax-type148
-                                      head1140
-                                      r1122
+                                    (syntax-type149
+                                      head1143
+                                      r1125
                                       '(())
                                       #f
                                       #f
-                                      mod1125
+                                      mod1128
                                       #t))
-                                  (lambda (type1143
-                                           value1144
-                                           ee1145
-                                           ww1146
-                                           ss1147
-                                           modmod1148)
-                                    (if (memv type1143 (quote (module-ref)))
-                                      (let ((val1149
-                                              (chi150
-                                                val1142
-                                                r1122
-                                                w1123
-                                                mod1125)))
+                                  (lambda (type1146
+                                           value1147
+                                           ee1148
+                                           ww1149
+                                           ss1150
+                                           modmod1151)
+                                    (if (memv type1146 (quote (module-ref)))
+                                      (let ((val1152
+                                              (chi151
+                                                val1145
+                                                r1125
+                                                w1126
+                                                mod1128)))
                                         (call-with-values
                                           (lambda ()
-                                            (value1144
-                                              (cons head1140 tail1141)))
-                                          (lambda (id1151 mod1152)
-                                            (build-global-assignment87
-                                              s1124
-                                              id1151
-                                              val1149
-                                              mod1152))))
-                                      (build-application81
-                                        s1124
-                                        (chi150
+                                            (value1147
+                                              (cons head1143 tail1144)))
+                                          (lambda (id1154 mod1155)
+                                            (build-global-assignment88
+                                              s1127
+                                              id1154
+                                              val1152
+                                              mod1155))))
+                                      (build-application82
+                                        s1127
+                                        (chi151
                                           (list '#(syntax-object
                                                    setter
                                                    ((top)
@@ -6189,6 +6249,7 @@
                                                         build-conditional
                                                         build-application
                                                         build-void
+                                                        decorate-source
                                                         get-global-definition-hook
                                                         put-global-definition-hook
                                                         gensym-hook
@@ -6201,6 +6262,7 @@
                                                         *mode*
                                                         noexpand)
                                                       ((top)
+                                                       (top)
                                                        (top)
                                                        (top)
                                                        (top)
@@ -6421,6 +6483,7 @@
                                                        "i"
                                                        "i"
                                                        "i"
+                                                       "i"
                                                        "i"))
                                                     #(ribcage
                                                       (define-structure
@@ -6428,47 +6491,47 @@
                                                       ((top) (top))
                                                       ("i" "i")))
                                                    (hygiene guile))
-                                                head1140)
-                                          r1122
-                                          w1123
-                                          mod1125)
-                                        (map (lambda (e1153)
-                                               (chi150
-                                                 e1153
-                                                 r1122
-                                                 w1123
-                                                 mod1125))
+                                                head1143)
+                                          r1125
+                                          w1126
+                                          mod1128)
+                                        (map (lambda (e1156)
+                                               (chi151
+                                                 e1156
+                                                 r1125
+                                                 w1126
+                                                 mod1128))
                                              (append
-                                               tail1141
-                                               (list val1142))))))))
-                              tmp1138)
-                       ((lambda (_1155)
+                                               tail1144
+                                               (list val1145))))))))
+                              tmp1141)
+                       ((lambda (_1158)
                           (syntax-violation
                             'set!
                             "bad set!"
-                            (source-wrap143 e1121 w1123 s1124 mod1125)))
-                        tmp1126)))
+                            (source-wrap144 e1124 w1126 s1127 mod1128)))
+                        tmp1129)))
                    ($sc-dispatch
-                     tmp1126
+                     tmp1129
                      '(any (any . each-any) any)))))
-              ($sc-dispatch tmp1126 (quote (any any any)))))
-           e1121)))
-      (global-extend112
+              ($sc-dispatch tmp1129 (quote (any any any)))))
+           e1124)))
+      (global-extend113
         'module-ref
         '@
-        (lambda (e1156)
-          ((lambda (tmp1157)
-             ((lambda (tmp1158)
-                (if (if tmp1158
-                      (apply (lambda (_1159 mod1160 id1161)
-                               (if (and-map id?114 mod1160)
-                                 (id?114 id1161)
+        (lambda (e1159)
+          ((lambda (tmp1160)
+             ((lambda (tmp1161)
+                (if (if tmp1161
+                      (apply (lambda (_1162 mod1163 id1164)
+                               (if (and-map id?115 mod1163)
+                                 (id?115 id1164)
                                  #f))
-                             tmp1158)
+                             tmp1161)
                       #f)
-                  (apply (lambda (_1163 mod1164 id1165)
+                  (apply (lambda (_1166 mod1167 id1168)
                            (values
-                             (syntax->datum id1165)
+                             (syntax->datum id1168)
                              (syntax->datum
                                (cons '#(syntax-object
                                         public
@@ -6580,6 +6643,7 @@
                                              build-conditional
                                              build-application
                                              build-void
+                                             decorate-source
                                              get-global-definition-hook
                                              put-global-definition-hook
                                              gensym-hook
@@ -6592,6 +6656,7 @@
                                              *mode*
                                              noexpand)
                                            ((top)
+                                            (top)
                                             (top)
                                             (top)
                                             (top)
@@ -6812,36 +6877,37 @@
                                             "i"
                                             "i"
                                             "i"
+                                            "i"
                                             "i"))
                                          #(ribcage
                                            (define-structure and-map*)
                                            ((top) (top))
                                            ("i" "i")))
                                         (hygiene guile))
-                                     mod1164))))
-                         tmp1158)
+                                     mod1167))))
+                         tmp1161)
                   (syntax-violation
                     #f
                     "source expression failed to match any pattern"
-                    tmp1157)))
-              ($sc-dispatch tmp1157 (quote (any each-any any)))))
-           e1156)))
-      (global-extend112
+                    tmp1160)))
+              ($sc-dispatch tmp1160 (quote (any each-any any)))))
+           e1159)))
+      (global-extend113
         'module-ref
         '@@
-        (lambda (e1167)
-          ((lambda (tmp1168)
-             ((lambda (tmp1169)
-                (if (if tmp1169
-                      (apply (lambda (_1170 mod1171 id1172)
-                               (if (and-map id?114 mod1171)
-                                 (id?114 id1172)
+        (lambda (e1170)
+          ((lambda (tmp1171)
+             ((lambda (tmp1172)
+                (if (if tmp1172
+                      (apply (lambda (_1173 mod1174 id1175)
+                               (if (and-map id?115 mod1174)
+                                 (id?115 id1175)
                                  #f))
-                             tmp1169)
+                             tmp1172)
                       #f)
-                  (apply (lambda (_1174 mod1175 id1176)
+                  (apply (lambda (_1177 mod1178 id1179)
                            (values
-                             (syntax->datum id1176)
+                             (syntax->datum id1179)
                              (syntax->datum
                                (cons '#(syntax-object
                                         private
@@ -6953,6 +7019,7 @@
                                              build-conditional
                                              build-application
                                              build-void
+                                             decorate-source
                                              get-global-definition-hook
                                              put-global-definition-hook
                                              gensym-hook
@@ -6965,6 +7032,7 @@
                                              *mode*
                                              noexpand)
                                            ((top)
+                                            (top)
                                             (top)
                                             (top)
                                             (top)
@@ -7185,90 +7253,91 @@
                                             "i"
                                             "i"
                                             "i"
+                                            "i"
                                             "i"))
                                          #(ribcage
                                            (define-structure and-map*)
                                            ((top) (top))
                                            ("i" "i")))
                                         (hygiene guile))
-                                     mod1175))))
-                         tmp1169)
+                                     mod1178))))
+                         tmp1172)
                   (syntax-violation
                     #f
                     "source expression failed to match any pattern"
-                    tmp1168)))
-              ($sc-dispatch tmp1168 (quote (any each-any any)))))
-           e1167)))
-      (global-extend112
+                    tmp1171)))
+              ($sc-dispatch tmp1171 (quote (any each-any any)))))
+           e1170)))
+      (global-extend113
         'core
         'if
-        (lambda (e1178 r1179 w1180 s1181 mod1182)
-          ((lambda (tmp1183)
-             ((lambda (tmp1184)
-                (if tmp1184
-                  (apply (lambda (_1185 test1186 then1187)
-                           (build-conditional82
-                             s1181
-                             (chi150 test1186 r1179 w1180 mod1182)
-                             (chi150 then1187 r1179 w1180 mod1182)
-                             (build-void80 #f)))
-                         tmp1184)
-                  ((lambda (tmp1188)
-                     (if tmp1188
-                       (apply (lambda (_1189 test1190 then1191 else1192)
-                                (build-conditional82
-                                  s1181
-                                  (chi150 test1190 r1179 w1180 mod1182)
-                                  (chi150 then1191 r1179 w1180 mod1182)
-                                  (chi150 else1192 r1179 w1180 mod1182)))
-                              tmp1188)
+        (lambda (e1181 r1182 w1183 s1184 mod1185)
+          ((lambda (tmp1186)
+             ((lambda (tmp1187)
+                (if tmp1187
+                  (apply (lambda (_1188 test1189 then1190)
+                           (build-conditional83
+                             s1184
+                             (chi151 test1189 r1182 w1183 mod1185)
+                             (chi151 then1190 r1182 w1183 mod1185)
+                             (build-void81 #f)))
+                         tmp1187)
+                  ((lambda (tmp1191)
+                     (if tmp1191
+                       (apply (lambda (_1192 test1193 then1194 else1195)
+                                (build-conditional83
+                                  s1184
+                                  (chi151 test1193 r1182 w1183 mod1185)
+                                  (chi151 then1194 r1182 w1183 mod1185)
+                                  (chi151 else1195 r1182 w1183 mod1185)))
+                              tmp1191)
                        (syntax-violation
                          #f
                          "source expression failed to match any pattern"
-                         tmp1183)))
-                   ($sc-dispatch tmp1183 (quote (any any any any))))))
-              ($sc-dispatch tmp1183 (quote (any any any)))))
-           e1178)))
-      (global-extend112
+                         tmp1186)))
+                   ($sc-dispatch tmp1186 (quote (any any any any))))))
+              ($sc-dispatch tmp1186 (quote (any any any)))))
+           e1181)))
+      (global-extend113
         'begin
         'begin
         '())
-      (global-extend112
+      (global-extend113
         'define
         'define
         '())
-      (global-extend112
+      (global-extend113
         'define-syntax
         'define-syntax
         '())
-      (global-extend112
+      (global-extend113
         'eval-when
         'eval-when
         '())
-      (global-extend112
+      (global-extend113
         'core
         'syntax-case
-        (letrec ((gen-syntax-case1196
-                   (lambda (x1197 keys1198 clauses1199 r1200 mod1201)
-                     (if (null? clauses1199)
-                       (build-application81
+        (letrec ((gen-syntax-case1199
+                   (lambda (x1200 keys1201 clauses1202 r1203 mod1204)
+                     (if (null? clauses1202)
+                       (build-application82
                          #f
-                         (build-primref91 #f (quote syntax-violation))
-                         (list (build-data92 #f #f)
-                               (build-data92
+                         (build-primref92 #f (quote syntax-violation))
+                         (list (build-data93 #f #f)
+                               (build-data93
                                  #f
                                  "source expression failed to match any pattern")
-                               x1197))
-                       ((lambda (tmp1202)
-                          ((lambda (tmp1203)
-                             (if tmp1203
-                               (apply (lambda (pat1204 exp1205)
-                                        (if (if (id?114 pat1204)
+                               x1200))
+                       ((lambda (tmp1205)
+                          ((lambda (tmp1206)
+                             (if tmp1206
+                               (apply (lambda (pat1207 exp1208)
+                                        (if (if (id?115 pat1207)
                                               (and-map
-                                                (lambda (x1206)
-                                                  (not (free-id=?137
-                                                         pat1204
-                                                         x1206)))
+                                                (lambda (x1209)
+                                                  (not (free-id=?138
+                                                         pat1207
+                                                         x1209)))
                                                 (cons '#(syntax-object
                                                          ...
                                                          ((top)
@@ -7404,6 +7473,7 @@
                                                               build-conditional
                                                               build-application
                                                               build-void
+                                                              decorate-source
                                                               get-global-definition-hook
                                                               put-global-definition-hook
                                                               gensym-hook
@@ -7416,6 +7486,7 @@
                                                               *mode*
                                                               noexpand)
                                                             ((top)
+                                                             (top)
                                                              (top)
                                                              (top)
                                                              (top)
@@ -7636,6 +7707,7 @@
                                                              "i"
                                                              "i"
                                                              "i"
+                                                             "i"
                                                              "i"))
                                                           #(ribcage
                                                             (define-structure
@@ -7643,620 +7715,620 @@
                                                             ((top) (top))
                                                             ("i" "i")))
                                                          (hygiene guile))
-                                                      keys1198))
+                                                      keys1201))
                                               #f)
-                                          (let ((labels1207
-                                                  (list (gen-label119)))
-                                                (var1208 (gen-var161 pat1204)))
-                                            (build-application81
+                                          (let ((labels1210
+                                                  (list (gen-label120)))
+                                                (var1211 (gen-var162 pat1207)))
+                                            (build-application82
                                               #f
-                                              (build-lambda90
+                                              (build-lambda91
                                                 #f
-                                                (list (syntax->datum pat1204))
-                                                (list var1208)
+                                                (list (syntax->datum pat1207))
+                                                (list var1211)
                                                 #f
-                                                (chi150
-                                                  exp1205
-                                                  (extend-env108
-                                                    labels1207
+                                                (chi151
+                                                  exp1208
+                                                  (extend-env109
+                                                    labels1210
                                                     (list (cons 'syntax
-                                                                (cons var1208
+                                                                (cons var1211
                                                                       0)))
-                                                    r1200)
-                                                  (make-binding-wrap131
-                                                    (list pat1204)
-                                                    labels1207
+                                                    r1203)
+                                                  (make-binding-wrap132
+                                                    (list pat1207)
+                                                    labels1210
                                                     '(()))
-                                                  mod1201))
-                                              (list x1197)))
-                                          (gen-clause1195
-                                            x1197
-                                            keys1198
-                                            (cdr clauses1199)
-                                            r1200
-                                            pat1204
+                                                  mod1204))
+                                              (list x1200)))
+                                          (gen-clause1198
+                                            x1200
+                                            keys1201
+                                            (cdr clauses1202)
+                                            r1203
+                                            pat1207
                                             #t
-                                            exp1205
-                                            mod1201)))
-                                      tmp1203)
-                               ((lambda (tmp1209)
-                                  (if tmp1209
-                                    (apply (lambda (pat1210 fender1211 exp1212)
-                                             (gen-clause1195
-                                               x1197
-                                               keys1198
-                                               (cdr clauses1199)
-                                               r1200
-                                               pat1210
-                                               fender1211
-                                               exp1212
-                                               mod1201))
-                                           tmp1209)
-                                    ((lambda (_1213)
+                                            exp1208
+                                            mod1204)))
+                                      tmp1206)
+                               ((lambda (tmp1212)
+                                  (if tmp1212
+                                    (apply (lambda (pat1213 fender1214 exp1215)
+                                             (gen-clause1198
+                                               x1200
+                                               keys1201
+                                               (cdr clauses1202)
+                                               r1203
+                                               pat1213
+                                               fender1214
+                                               exp1215
+                                               mod1204))
+                                           tmp1212)
+                                    ((lambda (_1216)
                                        (syntax-violation
                                          'syntax-case
                                          "invalid clause"
-                                         (car clauses1199)))
-                                     tmp1202)))
-                                ($sc-dispatch tmp1202 (quote (any any any))))))
-                           ($sc-dispatch tmp1202 (quote (any any)))))
-                        (car clauses1199)))))
-                 (gen-clause1195
-                   (lambda (x1214
-                            keys1215
-                            clauses1216
-                            r1217
-                            pat1218
-                            fender1219
-                            exp1220
-                            mod1221)
+                                         (car clauses1202)))
+                                     tmp1205)))
+                                ($sc-dispatch tmp1205 (quote (any any any))))))
+                           ($sc-dispatch tmp1205 (quote (any any)))))
+                        (car clauses1202)))))
+                 (gen-clause1198
+                   (lambda (x1217
+                            keys1218
+                            clauses1219
+                            r1220
+                            pat1221
+                            fender1222
+                            exp1223
+                            mod1224)
                      (call-with-values
                        (lambda ()
-                         (convert-pattern1193 pat1218 keys1215))
-                       (lambda (p1222 pvars1223)
-                         (if (not (distinct-bound-ids?140 (map car pvars1223)))
+                         (convert-pattern1196 pat1221 keys1218))
+                       (lambda (p1225 pvars1226)
+                         (if (not (distinct-bound-ids?141 (map car pvars1226)))
                            (syntax-violation
                              'syntax-case
                              "duplicate pattern variable"
-                             pat1218)
+                             pat1221)
                            (if (not (and-map
-                                      (lambda (x1224)
-                                        (not (ellipsis?159 (car x1224))))
-                                      pvars1223))
+                                      (lambda (x1227)
+                                        (not (ellipsis?160 (car x1227))))
+                                      pvars1226))
                              (syntax-violation
                                'syntax-case
                                "misplaced ellipsis"
-                               pat1218)
-                             (let ((y1225 (gen-var161 (quote tmp))))
-                               (build-application81
+                               pat1221)
+                             (let ((y1228 (gen-var162 (quote tmp))))
+                               (build-application82
                                  #f
-                                 (build-lambda90
+                                 (build-lambda91
                                    #f
                                    (list (quote tmp))
-                                   (list y1225)
+                                   (list y1228)
                                    #f
-                                   (let ((y1226 (build-lexical-reference83
+                                   (let ((y1229 (build-lexical-reference84
                                                   'value
                                                   #f
                                                   'tmp
-                                                  y1225)))
-                                     (build-conditional82
+                                                  y1228)))
+                                     (build-conditional83
                                        #f
-                                       ((lambda (tmp1227)
-                                          ((lambda (tmp1228)
-                                             (if tmp1228
-                                               (apply (lambda () y1226)
-                                                      tmp1228)
-                                               ((lambda (_1229)
-                                                  (build-conditional82
+                                       ((lambda (tmp1230)
+                                          ((lambda (tmp1231)
+                                             (if tmp1231
+                                               (apply (lambda () y1229)
+                                                      tmp1231)
+                                               ((lambda (_1232)
+                                                  (build-conditional83
                                                     #f
-                                                    y1226
-                                                    (build-dispatch-call1194
-                                                      pvars1223
-                                                      fender1219
-                                                      y1226
-                                                      r1217
-                                                      mod1221)
-                                                    (build-data92 #f #f)))
-                                                tmp1227)))
+                                                    y1229
+                                                    (build-dispatch-call1197
+                                                      pvars1226
+                                                      fender1222
+                                                      y1229
+                                                      r1220
+                                                      mod1224)
+                                                    (build-data93 #f #f)))
+                                                tmp1230)))
                                            ($sc-dispatch
-                                             tmp1227
+                                             tmp1230
                                              '#(atom #t))))
-                                        fender1219)
-                                       (build-dispatch-call1194
-                                         pvars1223
-                                         exp1220
-                                         y1226
-                                         r1217
-                                         mod1221)
-                                       (gen-syntax-case1196
-                                         x1214
-                                         keys1215
-                                         clauses1216
-                                         r1217
-                                         mod1221))))
-                                 (list (if (eq? p1222 (quote any))
-                                         (build-application81
+                                        fender1222)
+                                       (build-dispatch-call1197
+                                         pvars1226
+                                         exp1223
+                                         y1229
+                                         r1220
+                                         mod1224)
+                                       (gen-syntax-case1199
+                                         x1217
+                                         keys1218
+                                         clauses1219
+                                         r1220
+                                         mod1224))))
+                                 (list (if (eq? p1225 (quote any))
+                                         (build-application82
                                            #f
-                                           (build-primref91 #f (quote list))
-                                           (list x1214))
-                                         (build-application81
+                                           (build-primref92 #f (quote list))
+                                           (list x1217))
+                                         (build-application82
                                            #f
-                                           (build-primref91
+                                           (build-primref92
                                              #f
                                              '$sc-dispatch)
-                                           (list x1214
-                                                 (build-data92
+                                           (list x1217
+                                                 (build-data93
                                                    #f
-                                                   p1222)))))))))))))
-                 (build-dispatch-call1194
-                   (lambda (pvars1230 exp1231 y1232 r1233 mod1234)
-                     (let ((ids1235 (map car pvars1230))
-                           (levels1236 (map cdr pvars1230)))
-                       (let ((labels1237 (gen-labels120 ids1235))
-                             (new-vars1238 (map gen-var161 ids1235)))
-                         (build-application81
+                                                   p1225)))))))))))))
+                 (build-dispatch-call1197
+                   (lambda (pvars1233 exp1234 y1235 r1236 mod1237)
+                     (let ((ids1238 (map car pvars1233))
+                           (levels1239 (map cdr pvars1233)))
+                       (let ((labels1240 (gen-labels121 ids1238))
+                             (new-vars1241 (map gen-var162 ids1238)))
+                         (build-application82
                            #f
-                           (build-primref91 #f (quote apply))
-                           (list (build-lambda90
+                           (build-primref92 #f (quote apply))
+                           (list (build-lambda91
                                    #f
-                                   (map syntax->datum ids1235)
-                                   new-vars1238
+                                   (map syntax->datum ids1238)
+                                   new-vars1241
                                    #f
-                                   (chi150
-                                     exp1231
-                                     (extend-env108
-                                       labels1237
-                                       (map (lambda (var1239 level1240)
+                                   (chi151
+                                     exp1234
+                                     (extend-env109
+                                       labels1240
+                                       (map (lambda (var1242 level1243)
                                               (cons 'syntax
-                                                    (cons var1239 level1240)))
-                                            new-vars1238
-                                            (map cdr pvars1230))
-                                       r1233)
-                                     (make-binding-wrap131
-                                       ids1235
-                                       labels1237
+                                                    (cons var1242 level1243)))
+                                            new-vars1241
+                                            (map cdr pvars1233))
+                                       r1236)
+                                     (make-binding-wrap132
+                                       ids1238
+                                       labels1240
                                        '(()))
-                                     mod1234))
-                                 y1232))))))
-                 (convert-pattern1193
-                   (lambda (pattern1241 keys1242)
-                     (letrec ((cvt1243
-                                (lambda (p1244 n1245 ids1246)
-                                  (if (id?114 p1244)
-                                    (if (bound-id-member?141 p1244 keys1242)
+                                     mod1237))
+                                 y1235))))))
+                 (convert-pattern1196
+                   (lambda (pattern1244 keys1245)
+                     (letrec ((cvt1246
+                                (lambda (p1247 n1248 ids1249)
+                                  (if (id?115 p1247)
+                                    (if (bound-id-member?142 p1247 keys1245)
                                       (values
-                                        (vector (quote free-id) p1244)
-                                        ids1246)
+                                        (vector (quote free-id) p1247)
+                                        ids1249)
                                       (values
                                         'any
-                                        (cons (cons p1244 n1245) ids1246)))
-                                    ((lambda (tmp1247)
-                                       ((lambda (tmp1248)
-                                          (if (if tmp1248
-                                                (apply (lambda (x1249 dots1250)
-                                                         (ellipsis?159
-                                                           dots1250))
-                                                       tmp1248)
+                                        (cons (cons p1247 n1248) ids1249)))
+                                    ((lambda (tmp1250)
+                                       ((lambda (tmp1251)
+                                          (if (if tmp1251
+                                                (apply (lambda (x1252 dots1253)
+                                                         (ellipsis?160
+                                                           dots1253))
+                                                       tmp1251)
                                                 #f)
-                                            (apply (lambda (x1251 dots1252)
+                                            (apply (lambda (x1254 dots1255)
                                                      (call-with-values
                                                        (lambda ()
-                                                         (cvt1243
-                                                           x1251
-                                                           (fx+72 n1245 1)
-                                                           ids1246))
-                                                       (lambda (p1253 ids1254)
+                                                         (cvt1246
+                                                           x1254
+                                                           (fx+72 n1248 1)
+                                                           ids1249))
+                                                       (lambda (p1256 ids1257)
                                                          (values
-                                                           (if (eq? p1253
+                                                           (if (eq? p1256
                                                                     'any)
                                                              'each-any
                                                              (vector
                                                                'each
-                                                               p1253))
-                                                           ids1254))))
-                                                   tmp1248)
-                                            ((lambda (tmp1255)
-                                               (if tmp1255
-                                                 (apply (lambda (x1256 y1257)
+                                                               p1256))
+                                                           ids1257))))
+                                                   tmp1251)
+                                            ((lambda (tmp1258)
+                                               (if tmp1258
+                                                 (apply (lambda (x1259 y1260)
                                                           (call-with-values
                                                             (lambda ()
-                                                              (cvt1243
-                                                                y1257
-                                                                n1245
-                                                                ids1246))
-                                                            (lambda (y1258
-                                                                     ids1259)
+                                                              (cvt1246
+                                                                y1260
+                                                                n1248
+                                                                ids1249))
+                                                            (lambda (y1261
+                                                                     ids1262)
                                                               (call-with-values
                                                                 (lambda ()
-                                                                  (cvt1243
-                                                                    x1256
-                                                                    n1245
-                                                                    ids1259))
-                                                                (lambda (x1260
-                                                                         ids1261)
+                                                                  (cvt1246
+                                                                    x1259
+                                                                    n1248
+                                                                    ids1262))
+                                                                (lambda (x1263
+                                                                         ids1264)
                                                                   (values
-                                                                    (cons x1260
-                                                                          y1258)
-                                                                    ids1261))))))
-                                                        tmp1255)
-                                                 ((lambda (tmp1262)
-                                                    (if tmp1262
+                                                                    (cons x1263
+                                                                          y1261)
+                                                                    ids1264))))))
+                                                        tmp1258)
+                                                 ((lambda (tmp1265)
+                                                    (if tmp1265
                                                       (apply (lambda ()
                                                                (values
                                                                  '()
-                                                                 ids1246))
-                                                             tmp1262)
-                                                      ((lambda (tmp1263)
-                                                         (if tmp1263
-                                                           (apply (lambda (x1264)
+                                                                 ids1249))
+                                                             tmp1265)
+                                                      ((lambda (tmp1266)
+                                                         (if tmp1266
+                                                           (apply (lambda (x1267)
                                                                     (call-with-values
                                                                       (lambda ()
-                                                                        (cvt1243
-                                                                          x1264
-                                                                          n1245
-                                                                          ids1246))
-                                                                      (lambda (p1266
-                                                                               ids1267)
+                                                                        (cvt1246
+                                                                          x1267
+                                                                          n1248
+                                                                          ids1249))
+                                                                      (lambda (p1269
+                                                                               ids1270)
                                                                         (values
                                                                           (vector
                                                                             'vector
-                                                                            p1266)
-                                                                          ids1267))))
-                                                                  tmp1263)
-                                                           ((lambda (x1268)
+                                                                            p1269)
+                                                                          ids1270))))
+                                                                  tmp1266)
+                                                           ((lambda (x1271)
                                                               (values
                                                                 (vector
                                                                   'atom
-                                                                  (strip160
-                                                                    p1244
+                                                                  (strip161
+                                                                    p1247
                                                                     '(())))
-                                                                ids1246))
-                                                            tmp1247)))
+                                                                ids1249))
+                                                            tmp1250)))
                                                        ($sc-dispatch
-                                                         tmp1247
+                                                         tmp1250
                                                          '#(vector
                                                             each-any)))))
                                                   ($sc-dispatch
-                                                    tmp1247
+                                                    tmp1250
                                                     '()))))
                                              ($sc-dispatch
-                                               tmp1247
+                                               tmp1250
                                                '(any . any)))))
                                         ($sc-dispatch
-                                          tmp1247
+                                          tmp1250
                                           '(any any))))
-                                     p1244)))))
-                       (cvt1243 pattern1241 0 (quote ()))))))
-          (lambda (e1269 r1270 w1271 s1272 mod1273)
-            (let ((e1274 (source-wrap143 e1269 w1271 s1272 mod1273)))
-              ((lambda (tmp1275)
-                 ((lambda (tmp1276)
-                    (if tmp1276
-                      (apply (lambda (_1277 val1278 key1279 m1280)
+                                     p1247)))))
+                       (cvt1246 pattern1244 0 (quote ()))))))
+          (lambda (e1272 r1273 w1274 s1275 mod1276)
+            (let ((e1277 (source-wrap144 e1272 w1274 s1275 mod1276)))
+              ((lambda (tmp1278)
+                 ((lambda (tmp1279)
+                    (if tmp1279
+                      (apply (lambda (_1280 val1281 key1282 m1283)
                                (if (and-map
-                                     (lambda (x1281)
-                                       (if (id?114 x1281)
-                                         (not (ellipsis?159 x1281))
+                                     (lambda (x1284)
+                                       (if (id?115 x1284)
+                                         (not (ellipsis?160 x1284))
                                          #f))
-                                     key1279)
-                                 (let ((x1283 (gen-var161 (quote tmp))))
-                                   (build-application81
-                                     s1272
-                                     (build-lambda90
+                                     key1282)
+                                 (let ((x1286 (gen-var162 (quote tmp))))
+                                   (build-application82
+                                     s1275
+                                     (build-lambda91
                                        #f
                                        (list (quote tmp))
-                                       (list x1283)
+                                       (list x1286)
                                        #f
-                                       (gen-syntax-case1196
-                                         (build-lexical-reference83
+                                       (gen-syntax-case1199
+                                         (build-lexical-reference84
                                            'value
                                            #f
                                            'tmp
-                                           x1283)
-                                         key1279
-                                         m1280
-                                         r1270
-                                         mod1273))
-                                     (list (chi150
-                                             val1278
-                                             r1270
+                                           x1286)
+                                         key1282
+                                         m1283
+                                         r1273
+                                         mod1276))
+                                     (list (chi151
+                                             val1281
+                                             r1273
                                              '(())
-                                             mod1273))))
+                                             mod1276))))
                                  (syntax-violation
                                    'syntax-case
                                    "invalid literals list"
-                                   e1274)))
-                             tmp1276)
+                                   e1277)))
+                             tmp1279)
                       (syntax-violation
                         #f
                         "source expression failed to match any pattern"
-                        tmp1275)))
+                        tmp1278)))
                   ($sc-dispatch
-                    tmp1275
+                    tmp1278
                     '(any any each-any . each-any))))
-               e1274)))))
+               e1277)))))
       (set! sc-expand
-        (lambda (x1287 . rest1286)
-          (if (if (pair? x1287)
-                (equal? (car x1287) noexpand70)
+        (lambda (x1290 . rest1289)
+          (if (if (pair? x1290)
+                (equal? (car x1290) noexpand70)
                 #f)
-            (cadr x1287)
-            (let ((m1288 (if (null? rest1286) (quote e) (car rest1286)))
-                  (esew1289
-                    (if (let ((t1290 (null? rest1286)))
-                          (if t1290 t1290 (null? (cdr rest1286))))
+            (cadr x1290)
+            (let ((m1291 (if (null? rest1289) (quote e) (car rest1289)))
+                  (esew1292
+                    (if (let ((t1293 (null? rest1289)))
+                          (if t1293 t1293 (null? (cdr rest1289))))
                       '(eval)
-                      (cadr rest1286))))
+                      (cadr rest1289))))
               (with-fluid*
                 *mode*71
-                m1288
+                m1291
                 (lambda ()
-                  (chi-top149
-                    x1287
+                  (chi-top150
+                    x1290
                     '()
                     '((top))
-                    m1288
-                    esew1289
+                    m1291
+                    esew1292
                     (cons 'hygiene
                           (module-name (current-module))))))))))
       (set! identifier?
-        (lambda (x1291) (nonsymbol-id?113 x1291)))
+        (lambda (x1294) (nonsymbol-id?114 x1294)))
       (set! datum->syntax
-        (lambda (id1292 datum1293)
-          (make-syntax-object97
-            datum1293
-            (syntax-object-wrap100 id1292)
+        (lambda (id1295 datum1296)
+          (make-syntax-object98
+            datum1296
+            (syntax-object-wrap101 id1295)
             #f)))
       (set! syntax->datum
-        (lambda (x1294) (strip160 x1294 (quote (())))))
+        (lambda (x1297) (strip161 x1297 (quote (())))))
       (set! generate-temporaries
-        (lambda (ls1295)
+        (lambda (ls1298)
           (begin
-            (let ((x1296 ls1295))
-              (if (not (list? x1296))
+            (let ((x1299 ls1298))
+              (if (not (list? x1299))
                 (syntax-violation
                   'generate-temporaries
                   "invalid argument"
-                  x1296)))
-            (map (lambda (x1297)
-                   (wrap142 (gensym) (quote ((top))) #f))
-                 ls1295))))
+                  x1299)))
+            (map (lambda (x1300)
+                   (wrap143 (gensym) (quote ((top))) #f))
+                 ls1298))))
       (set! free-identifier=?
-        (lambda (x1298 y1299)
+        (lambda (x1301 y1302)
           (begin
-            (let ((x1300 x1298))
-              (if (not (nonsymbol-id?113 x1300))
+            (let ((x1303 x1301))
+              (if (not (nonsymbol-id?114 x1303))
                 (syntax-violation
                   'free-identifier=?
                   "invalid argument"
-                  x1300)))
-            (let ((x1301 y1299))
-              (if (not (nonsymbol-id?113 x1301))
+                  x1303)))
+            (let ((x1304 y1302))
+              (if (not (nonsymbol-id?114 x1304))
                 (syntax-violation
                   'free-identifier=?
-                  "invalid argument"
-                  x1301)))
-            (free-id=?137 x1298 y1299))))
-      (set! bound-identifier=?
-        (lambda (x1302 y1303)
-          (begin
-            (let ((x1304 x1302))
-              (if (not (nonsymbol-id?113 x1304))
-                (syntax-violation
-                  'bound-identifier=?
                   "invalid argument"
                   x1304)))
-            (let ((x1305 y1303))
-              (if (not (nonsymbol-id?113 x1305))
+            (free-id=?138 x1301 y1302))))
+      (set! bound-identifier=?
+        (lambda (x1305 y1306)
+          (begin
+            (let ((x1307 x1305))
+              (if (not (nonsymbol-id?114 x1307))
                 (syntax-violation
                   'bound-identifier=?
                   "invalid argument"
-                  x1305)))
-            (bound-id=?138 x1302 y1303))))
+                  x1307)))
+            (let ((x1308 y1306))
+              (if (not (nonsymbol-id?114 x1308))
+                (syntax-violation
+                  'bound-identifier=?
+                  "invalid argument"
+                  x1308)))
+            (bound-id=?139 x1305 y1306))))
       (set! syntax-violation
-        (lambda (who1309 message1308 form1307 . subform1306)
+        (lambda (who1312 message1311 form1310 . subform1309)
           (begin
-            (let ((x1310 who1309))
-              (if (not ((lambda (x1311)
-                          (let ((t1312 (not x1311)))
-                            (if t1312
-                              t1312
-                              (let ((t1313 (string? x1311)))
-                                (if t1313 t1313 (symbol? x1311))))))
-                        x1310))
+            (let ((x1313 who1312))
+              (if (not ((lambda (x1314)
+                          (let ((t1315 (not x1314)))
+                            (if t1315
+                              t1315
+                              (let ((t1316 (string? x1314)))
+                                (if t1316 t1316 (symbol? x1314))))))
+                        x1313))
                 (syntax-violation
                   'syntax-violation
                   "invalid argument"
-                  x1310)))
-            (let ((x1314 message1308))
-              (if (not (string? x1314))
+                  x1313)))
+            (let ((x1317 message1311))
+              (if (not (string? x1317))
                 (syntax-violation
                   'syntax-violation
                   "invalid argument"
-                  x1314)))
+                  x1317)))
             (scm-error
               'syntax-error
               'sc-expand
               (string-append
-                (if who1309 "~a: " "")
+                (if who1312 "~a: " "")
                 "~a "
-                (if (null? subform1306)
+                (if (null? subform1309)
                   "in ~a"
                   "in subform `~s' of `~s'"))
-              (let ((tail1315
-                      (cons message1308
-                            (map (lambda (x1316) (strip160 x1316 (quote (()))))
-                                 (append subform1306 (list form1307))))))
-                (if who1309 (cons who1309 tail1315) tail1315))
+              (let ((tail1318
+                      (cons message1311
+                            (map (lambda (x1319) (strip161 x1319 (quote (()))))
+                                 (append subform1309 (list form1310))))))
+                (if who1312 (cons who1312 tail1318) tail1318))
               #f))))
-      (letrec ((match1321
-                 (lambda (e1322 p1323 w1324 r1325 mod1326)
-                   (if (not r1325)
+      (letrec ((match1324
+                 (lambda (e1325 p1326 w1327 r1328 mod1329)
+                   (if (not r1328)
                      #f
-                     (if (eq? p1323 (quote any))
-                       (cons (wrap142 e1322 w1324 mod1326) r1325)
-                       (if (syntax-object?98 e1322)
-                         (match*1320
-                           (syntax-object-expression99 e1322)
-                           p1323
-                           (join-wraps133
-                             w1324
-                             (syntax-object-wrap100 e1322))
-                           r1325
-                           (syntax-object-module101 e1322))
-                         (match*1320 e1322 p1323 w1324 r1325 mod1326))))))
-               (match*1320
-                 (lambda (e1327 p1328 w1329 r1330 mod1331)
-                   (if (null? p1328)
-                     (if (null? e1327) r1330 #f)
-                     (if (pair? p1328)
-                       (if (pair? e1327)
-                         (match1321
-                           (car e1327)
-                           (car p1328)
-                           w1329
-                           (match1321
-                             (cdr e1327)
-                             (cdr p1328)
-                             w1329
-                             r1330
-                             mod1331)
-                           mod1331)
+                     (if (eq? p1326 (quote any))
+                       (cons (wrap143 e1325 w1327 mod1329) r1328)
+                       (if (syntax-object?99 e1325)
+                         (match*1323
+                           (syntax-object-expression100 e1325)
+                           p1326
+                           (join-wraps134
+                             w1327
+                             (syntax-object-wrap101 e1325))
+                           r1328
+                           (syntax-object-module102 e1325))
+                         (match*1323 e1325 p1326 w1327 r1328 mod1329))))))
+               (match*1323
+                 (lambda (e1330 p1331 w1332 r1333 mod1334)
+                   (if (null? p1331)
+                     (if (null? e1330) r1333 #f)
+                     (if (pair? p1331)
+                       (if (pair? e1330)
+                         (match1324
+                           (car e1330)
+                           (car p1331)
+                           w1332
+                           (match1324
+                             (cdr e1330)
+                             (cdr p1331)
+                             w1332
+                             r1333
+                             mod1334)
+                           mod1334)
                          #f)
-                       (if (eq? p1328 (quote each-any))
-                         (let ((l1332 (match-each-any1318
-                                        e1327
-                                        w1329
-                                        mod1331)))
-                           (if l1332 (cons l1332 r1330) #f))
-                         (let ((atom-key1333 (vector-ref p1328 0)))
-                           (if (memv atom-key1333 (quote (each)))
-                             (if (null? e1327)
-                               (match-empty1319 (vector-ref p1328 1) r1330)
-                               (let ((l1334 (match-each1317
-                                              e1327
-                                              (vector-ref p1328 1)
-                                              w1329
-                                              mod1331)))
-                                 (if l1334
-                                   (letrec ((collect1335
-                                              (lambda (l1336)
-                                                (if (null? (car l1336))
-                                                  r1330
-                                                  (cons (map car l1336)
-                                                        (collect1335
-                                                          (map cdr l1336)))))))
-                                     (collect1335 l1334))
+                       (if (eq? p1331 (quote each-any))
+                         (let ((l1335 (match-each-any1321
+                                        e1330
+                                        w1332
+                                        mod1334)))
+                           (if l1335 (cons l1335 r1333) #f))
+                         (let ((atom-key1336 (vector-ref p1331 0)))
+                           (if (memv atom-key1336 (quote (each)))
+                             (if (null? e1330)
+                               (match-empty1322 (vector-ref p1331 1) r1333)
+                               (let ((l1337 (match-each1320
+                                              e1330
+                                              (vector-ref p1331 1)
+                                              w1332
+                                              mod1334)))
+                                 (if l1337
+                                   (letrec ((collect1338
+                                              (lambda (l1339)
+                                                (if (null? (car l1339))
+                                                  r1333
+                                                  (cons (map car l1339)
+                                                        (collect1338
+                                                          (map cdr l1339)))))))
+                                     (collect1338 l1337))
                                    #f)))
-                             (if (memv atom-key1333 (quote (free-id)))
-                               (if (id?114 e1327)
-                                 (if (free-id=?137
-                                       (wrap142 e1327 w1329 mod1331)
-                                       (vector-ref p1328 1))
-                                   r1330
+                             (if (memv atom-key1336 (quote (free-id)))
+                               (if (id?115 e1330)
+                                 (if (free-id=?138
+                                       (wrap143 e1330 w1332 mod1334)
+                                       (vector-ref p1331 1))
+                                   r1333
                                    #f)
                                  #f)
-                               (if (memv atom-key1333 (quote (atom)))
+                               (if (memv atom-key1336 (quote (atom)))
                                  (if (equal?
-                                       (vector-ref p1328 1)
-                                       (strip160 e1327 w1329))
-                                   r1330
+                                       (vector-ref p1331 1)
+                                       (strip161 e1330 w1332))
+                                   r1333
                                    #f)
-                                 (if (memv atom-key1333 (quote (vector)))
-                                   (if (vector? e1327)
-                                     (match1321
-                                       (vector->list e1327)
-                                       (vector-ref p1328 1)
-                                       w1329
-                                       r1330
-                                       mod1331)
+                                 (if (memv atom-key1336 (quote (vector)))
+                                   (if (vector? e1330)
+                                     (match1324
+                                       (vector->list e1330)
+                                       (vector-ref p1331 1)
+                                       w1332
+                                       r1333
+                                       mod1334)
                                      #f)))))))))))
-               (match-empty1319
-                 (lambda (p1337 r1338)
-                   (if (null? p1337)
-                     r1338
-                     (if (eq? p1337 (quote any))
-                       (cons (quote ()) r1338)
-                       (if (pair? p1337)
-                         (match-empty1319
-                           (car p1337)
-                           (match-empty1319 (cdr p1337) r1338))
-                         (if (eq? p1337 (quote each-any))
-                           (cons (quote ()) r1338)
-                           (let ((atom-key1339 (vector-ref p1337 0)))
-                             (if (memv atom-key1339 (quote (each)))
-                               (match-empty1319 (vector-ref p1337 1) r1338)
-                               (if (memv atom-key1339 (quote (free-id atom)))
-                                 r1338
-                                 (if (memv atom-key1339 (quote (vector)))
-                                   (match-empty1319
-                                     (vector-ref p1337 1)
-                                     r1338)))))))))))
-               (match-each-any1318
-                 (lambda (e1340 w1341 mod1342)
-                   (if (pair? e1340)
-                     (let ((l1343 (match-each-any1318
-                                    (cdr e1340)
-                                    w1341
-                                    mod1342)))
-                       (if l1343
-                         (cons (wrap142 (car e1340) w1341 mod1342) l1343)
+               (match-empty1322
+                 (lambda (p1340 r1341)
+                   (if (null? p1340)
+                     r1341
+                     (if (eq? p1340 (quote any))
+                       (cons (quote ()) r1341)
+                       (if (pair? p1340)
+                         (match-empty1322
+                           (car p1340)
+                           (match-empty1322 (cdr p1340) r1341))
+                         (if (eq? p1340 (quote each-any))
+                           (cons (quote ()) r1341)
+                           (let ((atom-key1342 (vector-ref p1340 0)))
+                             (if (memv atom-key1342 (quote (each)))
+                               (match-empty1322 (vector-ref p1340 1) r1341)
+                               (if (memv atom-key1342 (quote (free-id atom)))
+                                 r1341
+                                 (if (memv atom-key1342 (quote (vector)))
+                                   (match-empty1322
+                                     (vector-ref p1340 1)
+                                     r1341)))))))))))
+               (match-each-any1321
+                 (lambda (e1343 w1344 mod1345)
+                   (if (pair? e1343)
+                     (let ((l1346 (match-each-any1321
+                                    (cdr e1343)
+                                    w1344
+                                    mod1345)))
+                       (if l1346
+                         (cons (wrap143 (car e1343) w1344 mod1345) l1346)
                          #f))
-                     (if (null? e1340)
+                     (if (null? e1343)
                        '()
-                       (if (syntax-object?98 e1340)
-                         (match-each-any1318
-                           (syntax-object-expression99 e1340)
-                           (join-wraps133
-                             w1341
-                             (syntax-object-wrap100 e1340))
-                           mod1342)
+                       (if (syntax-object?99 e1343)
+                         (match-each-any1321
+                           (syntax-object-expression100 e1343)
+                           (join-wraps134
+                             w1344
+                             (syntax-object-wrap101 e1343))
+                           mod1345)
                          #f)))))
-               (match-each1317
-                 (lambda (e1344 p1345 w1346 mod1347)
-                   (if (pair? e1344)
-                     (let ((first1348
-                             (match1321
-                               (car e1344)
-                               p1345
-                               w1346
+               (match-each1320
+                 (lambda (e1347 p1348 w1349 mod1350)
+                   (if (pair? e1347)
+                     (let ((first1351
+                             (match1324
+                               (car e1347)
+                               p1348
+                               w1349
                                '()
-                               mod1347)))
-                       (if first1348
-                         (let ((rest1349
-                                 (match-each1317
-                                   (cdr e1344)
-                                   p1345
-                                   w1346
-                                   mod1347)))
-                           (if rest1349 (cons first1348 rest1349) #f))
+                               mod1350)))
+                       (if first1351
+                         (let ((rest1352
+                                 (match-each1320
+                                   (cdr e1347)
+                                   p1348
+                                   w1349
+                                   mod1350)))
+                           (if rest1352 (cons first1351 rest1352) #f))
                          #f))
-                     (if (null? e1344)
+                     (if (null? e1347)
                        '()
-                       (if (syntax-object?98 e1344)
-                         (match-each1317
-                           (syntax-object-expression99 e1344)
-                           p1345
-                           (join-wraps133
-                             w1346
-                             (syntax-object-wrap100 e1344))
-                           (syntax-object-module101 e1344))
+                       (if (syntax-object?99 e1347)
+                         (match-each1320
+                           (syntax-object-expression100 e1347)
+                           p1348
+                           (join-wraps134
+                             w1349
+                             (syntax-object-wrap101 e1347))
+                           (syntax-object-module102 e1347))
                          #f))))))
         (set! $sc-dispatch
-          (lambda (e1350 p1351)
-            (if (eq? p1351 (quote any))
-              (list e1350)
-              (if (syntax-object?98 e1350)
-                (match*1320
-                  (syntax-object-expression99 e1350)
-                  p1351
-                  (syntax-object-wrap100 e1350)
+          (lambda (e1353 p1354)
+            (if (eq? p1354 (quote any))
+              (list e1353)
+              (if (syntax-object?99 e1353)
+                (match*1323
+                  (syntax-object-expression100 e1353)
+                  p1354
+                  (syntax-object-wrap101 e1353)
                   '()
-                  (syntax-object-module101 e1350))
-                (match*1320
-                  e1350
-                  p1351
+                  (syntax-object-module102 e1353))
+                (match*1323
+                  e1353
+                  p1354
                   '(())
                   '()
                   #f)))))))))
@@ -8264,11 +8336,11 @@
 (define with-syntax
   (make-syncase-macro
     'macro
-    (lambda (x1352)
-      ((lambda (tmp1353)
-         ((lambda (tmp1354)
-            (if tmp1354
-              (apply (lambda (_1355 e11356 e21357)
+    (lambda (x1355)
+      ((lambda (tmp1356)
+         ((lambda (tmp1357)
+            (if tmp1357
+              (apply (lambda (_1358 e11359 e21360)
                        (cons '#(syntax-object
                                 begin
                                 ((top)
@@ -8279,11 +8351,11 @@
                                  #(ribcage () () ())
                                  #(ribcage #(x) #((top)) #("i")))
                                 (hygiene guile))
-                             (cons e11356 e21357)))
-                     tmp1354)
-              ((lambda (tmp1359)
-                 (if tmp1359
-                   (apply (lambda (_1360 out1361 in1362 e11363 e21364)
+                             (cons e11359 e21360)))
+                     tmp1357)
+              ((lambda (tmp1362)
+                 (if tmp1362
+                   (apply (lambda (_1363 out1364 in1365 e11366 e21367)
                             (list '#(syntax-object
                                      syntax-case
                                      ((top)
@@ -8294,9 +8366,9 @@
                                       #(ribcage () () ())
                                       #(ribcage #(x) #((top)) #("i")))
                                      (hygiene guile))
-                                  in1362
+                                  in1365
                                   '()
-                                  (list out1361
+                                  (list out1364
                                         (cons '#(syntax-object
                                                  begin
                                                  ((top)
@@ -8314,11 +8386,11 @@
                                                     #((top))
                                                     #("i")))
                                                  (hygiene guile))
-                                              (cons e11363 e21364)))))
-                          tmp1359)
-                   ((lambda (tmp1366)
-                      (if tmp1366
-                        (apply (lambda (_1367 out1368 in1369 e11370 e21371)
+                                              (cons e11366 e21367)))))
+                          tmp1362)
+                   ((lambda (tmp1369)
+                      (if tmp1369
+                        (apply (lambda (_1370 out1371 in1372 e11373 e21374)
                                  (list '#(syntax-object
                                           syntax-case
                                           ((top)
@@ -8346,9 +8418,9 @@
                                                    #((top))
                                                    #("i")))
                                                 (hygiene guile))
-                                             in1369)
+                                             in1372)
                                        '()
-                                       (list out1368
+                                       (list out1371
                                              (cons '#(syntax-object
                                                       begin
                                                       ((top)
@@ -8370,35 +8442,35 @@
                                                          #((top))
                                                          #("i")))
                                                       (hygiene guile))
-                                                   (cons e11370 e21371)))))
-                               tmp1366)
+                                                   (cons e11373 e21374)))))
+                               tmp1369)
                         (syntax-violation
                           #f
                           "source expression failed to match any pattern"
-                          tmp1353)))
+                          tmp1356)))
                     ($sc-dispatch
-                      tmp1353
+                      tmp1356
                       '(any #(each (any any)) any . each-any)))))
                ($sc-dispatch
-                 tmp1353
+                 tmp1356
                  '(any ((any any)) any . each-any)))))
           ($sc-dispatch
-            tmp1353
+            tmp1356
             '(any () any . each-any))))
-       x1352))))
+       x1355))))
 
 (define syntax-rules
   (make-syncase-macro
     'macro
-    (lambda (x1375)
-      ((lambda (tmp1376)
-         ((lambda (tmp1377)
-            (if tmp1377
-              (apply (lambda (_1378
-                              k1379
-                              keyword1380
-                              pattern1381
-                              template1382)
+    (lambda (x1378)
+      ((lambda (tmp1379)
+         ((lambda (tmp1380)
+            (if tmp1380
+              (apply (lambda (_1381
+                              k1382
+                              keyword1383
+                              pattern1384
+                              template1385)
                        (list '#(syntax-object
                                 lambda
                                 ((top)
@@ -8439,8 +8511,8 @@
                                              #(ribcage () () ())
                                              #(ribcage #(x) #((top)) #("i")))
                                             (hygiene guile))
-                                         (cons k1379
-                                               (map (lambda (tmp1385 tmp1384)
+                                         (cons k1382
+                                               (map (lambda (tmp1388 tmp1387)
                                                       (list (cons '#(syntax-object
                                                                      dummy
                                                                      ((top)
@@ -8470,7 +8542,7 @@
                                                                         #("i")))
                                                                      (hygiene
                                                                        guile))
-                                                                  tmp1384)
+                                                                  tmp1387)
                                                             (list '#(syntax-object
                                                                      syntax
                                                                      ((top)
@@ -8500,34 +8572,34 @@
                                                                         #("i")))
                                                                      (hygiene
                                                                        guile))
-                                                                  tmp1385)))
-                                                    template1382
-                                                    pattern1381))))))
-                     tmp1377)
+                                                                  tmp1388)))
+                                                    template1385
+                                                    pattern1384))))))
+                     tmp1380)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1376)))
+                tmp1379)))
           ($sc-dispatch
-            tmp1376
+            tmp1379
             '(any each-any . #(each ((any . any) any))))))
-       x1375))))
+       x1378))))
 
 (define let*
   (make-extended-syncase-macro
     (module-ref (current-module) (quote let*))
     'macro
-    (lambda (x1386)
-      ((lambda (tmp1387)
-         ((lambda (tmp1388)
-            (if (if tmp1388
-                  (apply (lambda (let*1389 x1390 v1391 e11392 e21393)
-                           (and-map identifier? x1390))
-                         tmp1388)
+    (lambda (x1389)
+      ((lambda (tmp1390)
+         ((lambda (tmp1391)
+            (if (if tmp1391
+                  (apply (lambda (let*1392 x1393 v1394 e11395 e21396)
+                           (and-map identifier? x1393))
+                         tmp1391)
                   #f)
-              (apply (lambda (let*1395 x1396 v1397 e11398 e21399)
-                       (letrec ((f1400 (lambda (bindings1401)
-                                         (if (null? bindings1401)
+              (apply (lambda (let*1398 x1399 v1400 e11401 e21402)
+                       (letrec ((f1403 (lambda (bindings1404)
+                                         (if (null? bindings1404)
                                            (cons '#(syntax-object
                                                     let
                                                     ((top)
@@ -8551,12 +8623,12 @@
                                                        #("i")))
                                                     (hygiene guile))
                                                  (cons '()
-                                                       (cons e11398 e21399)))
-                                           ((lambda (tmp1405)
-                                              ((lambda (tmp1406)
-                                                 (if tmp1406
-                                                   (apply (lambda (body1407
-                                                                   binding1408)
+                                                       (cons e11401 e21402)))
+                                           ((lambda (tmp1408)
+                                              ((lambda (tmp1409)
+                                                 (if tmp1409
+                                                   (apply (lambda (body1410
+                                                                   binding1411)
                                                             (list '#(syntax-object
                                                                      let
                                                                      ((top)
@@ -8604,51 +8676,51 @@
                                                                         #("i")))
                                                                      (hygiene
                                                                        guile))
-                                                                  (list binding1408)
-                                                                  body1407))
-                                                          tmp1406)
+                                                                  (list binding1411)
+                                                                  body1410))
+                                                          tmp1409)
                                                    (syntax-violation
                                                      #f
                                                      "source expression failed to match any pattern"
-                                                     tmp1405)))
+                                                     tmp1408)))
                                                ($sc-dispatch
-                                                 tmp1405
+                                                 tmp1408
                                                  '(any any))))
-                                            (list (f1400 (cdr bindings1401))
-                                                  (car bindings1401)))))))
-                         (f1400 (map list x1396 v1397))))
-                     tmp1388)
+                                            (list (f1403 (cdr bindings1404))
+                                                  (car bindings1404)))))))
+                         (f1403 (map list x1399 v1400))))
+                     tmp1391)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1387)))
+                tmp1390)))
           ($sc-dispatch
-            tmp1387
+            tmp1390
             '(any #(each (any any)) any . each-any))))
-       x1386))))
+       x1389))))
 
 (define do
   (make-extended-syncase-macro
     (module-ref (current-module) (quote do))
     'macro
-    (lambda (orig-x1409)
-      ((lambda (tmp1410)
-         ((lambda (tmp1411)
-            (if tmp1411
-              (apply (lambda (_1412
-                              var1413
-                              init1414
-                              step1415
-                              e01416
-                              e11417
-                              c1418)
-                       ((lambda (tmp1419)
-                          ((lambda (tmp1420)
-                             (if tmp1420
-                               (apply (lambda (step1421)
-                                        ((lambda (tmp1422)
-                                           ((lambda (tmp1423)
-                                              (if tmp1423
+    (lambda (orig-x1412)
+      ((lambda (tmp1413)
+         ((lambda (tmp1414)
+            (if tmp1414
+              (apply (lambda (_1415
+                              var1416
+                              init1417
+                              step1418
+                              e01419
+                              e11420
+                              c1421)
+                       ((lambda (tmp1422)
+                          ((lambda (tmp1423)
+                             (if tmp1423
+                               (apply (lambda (step1424)
+                                        ((lambda (tmp1425)
+                                           ((lambda (tmp1426)
+                                              (if tmp1426
                                                 (apply (lambda ()
                                                          (list '#(syntax-object
                                                                   let
@@ -8729,8 +8801,8 @@
                                                                   (hygiene
                                                                     guile))
                                                                (map list
-                                                                    var1413
-                                                                    init1414)
+                                                                    var1416
+                                                                    init1417)
                                                                (list '#(syntax-object
                                                                         if
                                                                         ((top)
@@ -8809,7 +8881,7 @@
                                                                                  #("i")))
                                                                               (hygiene
                                                                                 guile))
-                                                                           e01416)
+                                                                           e01419)
                                                                      (cons '#(syntax-object
                                                                               begin
                                                                               ((top)
@@ -8850,7 +8922,7 @@
                                                                               (hygiene
                                                                                 guile))
                                                                            (append
-                                                                             c1418
+                                                                             c1421
                                                                              (list (cons '#(syntax-object
                                                                                             doloop
                                                                                             ((top)
@@ -8890,12 +8962,12 @@
                                                                                                #("i")))
                                                                                             (hygiene
                                                                                               guile))
-                                                                                         step1421)))))))
-                                                       tmp1423)
-                                                ((lambda (tmp1428)
-                                                   (if tmp1428
-                                                     (apply (lambda (e11429
-                                                                     e21430)
+                                                                                         step1424)))))))
+                                                       tmp1426)
+                                                ((lambda (tmp1431)
+                                                   (if tmp1431
+                                                     (apply (lambda (e11432
+                                                                     e21433)
                                                               (list '#(syntax-object
                                                                        let
                                                                        ((top)
@@ -8989,8 +9061,8 @@
                                                                        (hygiene
                                                                          guile))
                                                                     (map list
-                                                                         var1413
-                                                                         init1414)
+                                                                         var1416
+                                                                         init1417)
                                                                     (list '#(syntax-object
                                                                              if
                                                                              ((top)
@@ -9037,7 +9109,7 @@
                                                                                 #("i")))
                                                                              (hygiene
                                                                                guile))
-                                                                          e01416
+                                                                          e01419
                                                                           (cons '#(syntax-object
                                                                                    begin
                                                                                    ((top)
@@ -9084,8 +9156,8 @@
                                                                                       #("i")))
                                                                                    (hygiene
                                                                                      guile))
-                                                                                (cons e11429
-                                                                                      e21430))
+                                                                                (cons e11432
+                                                                                      e21433))
                                                                           (cons '#(syntax-object
                                                                                    begin
                                                                                    ((top)
@@ -9133,7 +9205,7 @@
                                                                                    (hygiene
                                                                                      guile))
                                                                                 (append
-                                                                                  c1418
+                                                                                  c1421
                                                                                   (list (cons '#(syntax-object
                                                                                                  doloop
                                                                                                  ((top)
@@ -9180,75 +9252,75 @@
                                                                                                     #("i")))
                                                                                                  (hygiene
                                                                                                    guile))
-                                                                                              step1421)))))))
-                                                            tmp1428)
+                                                                                              step1424)))))))
+                                                            tmp1431)
                                                      (syntax-violation
                                                        #f
                                                        "source expression failed to match any pattern"
-                                                       tmp1422)))
+                                                       tmp1425)))
                                                  ($sc-dispatch
-                                                   tmp1422
+                                                   tmp1425
                                                    '(any . each-any)))))
-                                            ($sc-dispatch tmp1422 (quote ()))))
-                                         e11417))
-                                      tmp1420)
+                                            ($sc-dispatch tmp1425 (quote ()))))
+                                         e11420))
+                                      tmp1423)
                                (syntax-violation
                                  #f
                                  "source expression failed to match any pattern"
-                                 tmp1419)))
-                           ($sc-dispatch tmp1419 (quote each-any))))
-                        (map (lambda (v1437 s1438)
-                               ((lambda (tmp1439)
-                                  ((lambda (tmp1440)
-                                     (if tmp1440
-                                       (apply (lambda () v1437) tmp1440)
-                                       ((lambda (tmp1441)
-                                          (if tmp1441
-                                            (apply (lambda (e1442) e1442)
-                                                   tmp1441)
-                                            ((lambda (_1443)
+                                 tmp1422)))
+                           ($sc-dispatch tmp1422 (quote each-any))))
+                        (map (lambda (v1440 s1441)
+                               ((lambda (tmp1442)
+                                  ((lambda (tmp1443)
+                                     (if tmp1443
+                                       (apply (lambda () v1440) tmp1443)
+                                       ((lambda (tmp1444)
+                                          (if tmp1444
+                                            (apply (lambda (e1445) e1445)
+                                                   tmp1444)
+                                            ((lambda (_1446)
                                                (syntax-violation
                                                  'do
                                                  "bad step expression"
-                                                 orig-x1409
-                                                 s1438))
-                                             tmp1439)))
-                                        ($sc-dispatch tmp1439 (quote (any))))))
-                                   ($sc-dispatch tmp1439 (quote ()))))
-                                s1438))
-                             var1413
-                             step1415)))
-                     tmp1411)
+                                                 orig-x1412
+                                                 s1441))
+                                             tmp1442)))
+                                        ($sc-dispatch tmp1442 (quote (any))))))
+                                   ($sc-dispatch tmp1442 (quote ()))))
+                                s1441))
+                             var1416
+                             step1418)))
+                     tmp1414)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1410)))
+                tmp1413)))
           ($sc-dispatch
-            tmp1410
+            tmp1413
             '(any #(each (any any . any))
                   (any . each-any)
                   .
                   each-any))))
-       orig-x1409))))
+       orig-x1412))))
 
 (define quasiquote
   (make-extended-syncase-macro
     (module-ref (current-module) (quote quasiquote))
     'macro
-    (letrec ((quasicons1446
-               (lambda (x1450 y1451)
-                 ((lambda (tmp1452)
-                    ((lambda (tmp1453)
-                       (if tmp1453
-                         (apply (lambda (x1454 y1455)
-                                  ((lambda (tmp1456)
-                                     ((lambda (tmp1457)
-                                        (if tmp1457
-                                          (apply (lambda (dy1458)
-                                                   ((lambda (tmp1459)
-                                                      ((lambda (tmp1460)
-                                                         (if tmp1460
-                                                           (apply (lambda (dx1461)
+    (letrec ((quasicons1449
+               (lambda (x1453 y1454)
+                 ((lambda (tmp1455)
+                    ((lambda (tmp1456)
+                       (if tmp1456
+                         (apply (lambda (x1457 y1458)
+                                  ((lambda (tmp1459)
+                                     ((lambda (tmp1460)
+                                        (if tmp1460
+                                          (apply (lambda (dy1461)
+                                                   ((lambda (tmp1462)
+                                                      ((lambda (tmp1463)
+                                                         (if tmp1463
+                                                           (apply (lambda (dx1464)
                                                                     (list '#(syntax-object
                                                                              quote
                                                                              ((top)
@@ -9297,11 +9369,11 @@
                                                                                   "i")))
                                                                              (hygiene
                                                                                guile))
-                                                                          (cons dx1461
-                                                                                dy1458)))
-                                                                  tmp1460)
-                                                           ((lambda (_1462)
-                                                              (if (null? dy1458)
+                                                                          (cons dx1464
+                                                                                dy1461)))
+                                                                  tmp1463)
+                                                           ((lambda (_1465)
+                                                              (if (null? dy1461)
                                                                 (list '#(syntax-object
                                                                          list
                                                                          ((top)
@@ -9350,7 +9422,7 @@
                                                                               "i")))
                                                                          (hygiene
                                                                            guile))
-                                                                      x1454)
+                                                                      x1457)
                                                                 (list '#(syntax-object
                                                                          cons
                                                                          ((top)
@@ -9399,11 +9471,11 @@
                                                                               "i")))
                                                                          (hygiene
                                                                            guile))
-                                                                      x1454
-                                                                      y1455)))
-                                                            tmp1459)))
+                                                                      x1457
+                                                                      y1458)))
+                                                            tmp1462)))
                                                        ($sc-dispatch
-                                                         tmp1459
+                                                         tmp1462
                                                          '(#(free-id
                                                              #(syntax-object
                                                                quote
@@ -9446,11 +9518,11 @@
                                                                (hygiene
                                                                  guile)))
                                                            any))))
-                                                    x1454))
-                                                 tmp1457)
-                                          ((lambda (tmp1463)
-                                             (if tmp1463
-                                               (apply (lambda (stuff1464)
+                                                    x1457))
+                                                 tmp1460)
+                                          ((lambda (tmp1466)
+                                             (if tmp1466
+                                               (apply (lambda (stuff1467)
                                                         (cons '#(syntax-object
                                                                  list
                                                                  ((top)
@@ -9491,10 +9563,10 @@
                                                                       "i")))
                                                                  (hygiene
                                                                    guile))
-                                                              (cons x1454
-                                                                    stuff1464)))
-                                                      tmp1463)
-                                               ((lambda (else1465)
+                                                              (cons x1457
+                                                                    stuff1467)))
+                                                      tmp1466)
+                                               ((lambda (else1468)
                                                   (list '#(syntax-object
                                                            cons
                                                            ((top)
@@ -9526,11 +9598,11 @@
                                                                 "i"
                                                                 "i")))
                                                            (hygiene guile))
-                                                        x1454
-                                                        y1455))
-                                                tmp1456)))
+                                                        x1457
+                                                        y1458))
+                                                tmp1459)))
                                            ($sc-dispatch
-                                             tmp1456
+                                             tmp1459
                                              '(#(free-id
                                                  #(syntax-object
                                                    list
@@ -9559,7 +9631,7 @@
                                                .
                                                any)))))
                                       ($sc-dispatch
-                                        tmp1456
+                                        tmp1459
                                         '(#(free-id
                                             #(syntax-object
                                               quote
@@ -9583,25 +9655,25 @@
                                                  #("i" "i" "i" "i")))
                                               (hygiene guile)))
                                           any))))
-                                   y1455))
-                                tmp1453)
+                                   y1458))
+                                tmp1456)
                          (syntax-violation
                            #f
                            "source expression failed to match any pattern"
-                           tmp1452)))
-                     ($sc-dispatch tmp1452 (quote (any any)))))
-                  (list x1450 y1451))))
-             (quasiappend1447
-               (lambda (x1466 y1467)
-                 ((lambda (tmp1468)
-                    ((lambda (tmp1469)
-                       (if tmp1469
-                         (apply (lambda (x1470 y1471)
-                                  ((lambda (tmp1472)
-                                     ((lambda (tmp1473)
-                                        (if tmp1473
-                                          (apply (lambda () x1470) tmp1473)
-                                          ((lambda (_1474)
+                           tmp1455)))
+                     ($sc-dispatch tmp1455 (quote (any any)))))
+                  (list x1453 y1454))))
+             (quasiappend1450
+               (lambda (x1469 y1470)
+                 ((lambda (tmp1471)
+                    ((lambda (tmp1472)
+                       (if tmp1472
+                         (apply (lambda (x1473 y1474)
+                                  ((lambda (tmp1475)
+                                     ((lambda (tmp1476)
+                                        (if tmp1476
+                                          (apply (lambda () x1473) tmp1476)
+                                          ((lambda (_1477)
                                              (list '#(syntax-object
                                                       append
                                                       ((top)
@@ -9630,11 +9702,11 @@
                                                            (top))
                                                          #("i" "i" "i" "i")))
                                                       (hygiene guile))
-                                                   x1470
-                                                   y1471))
-                                           tmp1472)))
+                                                   x1473
+                                                   y1474))
+                                           tmp1475)))
                                       ($sc-dispatch
-                                        tmp1472
+                                        tmp1475
                                         '(#(free-id
                                             #(syntax-object
                                               quote
@@ -9658,22 +9730,22 @@
                                                  #("i" "i" "i" "i")))
                                               (hygiene guile)))
                                           ()))))
-                                   y1471))
-                                tmp1469)
+                                   y1474))
+                                tmp1472)
                          (syntax-violation
                            #f
                            "source expression failed to match any pattern"
-                           tmp1468)))
-                     ($sc-dispatch tmp1468 (quote (any any)))))
-                  (list x1466 y1467))))
-             (quasivector1448
-               (lambda (x1475)
-                 ((lambda (tmp1476)
-                    ((lambda (x1477)
-                       ((lambda (tmp1478)
-                          ((lambda (tmp1479)
-                             (if tmp1479
-                               (apply (lambda (x1480)
+                           tmp1471)))
+                     ($sc-dispatch tmp1471 (quote (any any)))))
+                  (list x1469 y1470))))
+             (quasivector1451
+               (lambda (x1478)
+                 ((lambda (tmp1479)
+                    ((lambda (x1480)
+                       ((lambda (tmp1481)
+                          ((lambda (tmp1482)
+                             (if tmp1482
+                               (apply (lambda (x1483)
                                         (list '#(syntax-object
                                                  quote
                                                  ((top)
@@ -9699,11 +9771,11 @@
                                                     #((top) (top) (top) (top))
                                                     #("i" "i" "i" "i")))
                                                  (hygiene guile))
-                                              (list->vector x1480)))
-                                      tmp1479)
-                               ((lambda (tmp1482)
-                                  (if tmp1482
-                                    (apply (lambda (x1483)
+                                              (list->vector x1483)))
+                                      tmp1482)
+                               ((lambda (tmp1485)
+                                  (if tmp1485
+                                    (apply (lambda (x1486)
                                              (cons '#(syntax-object
                                                       vector
                                                       ((top)
@@ -9732,9 +9804,9 @@
                                                            (top))
                                                          #("i" "i" "i" "i")))
                                                       (hygiene guile))
-                                                   x1483))
-                                           tmp1482)
-                                    ((lambda (_1485)
+                                                   x1486))
+                                           tmp1485)
+                                    ((lambda (_1488)
                                        (list '#(syntax-object
                                                 list->vector
                                                 ((top)
@@ -9760,10 +9832,10 @@
                                                    #((top) (top) (top) (top))
                                                    #("i" "i" "i" "i")))
                                                 (hygiene guile))
-                                             x1477))
-                                     tmp1478)))
+                                             x1480))
+                                     tmp1481)))
                                 ($sc-dispatch
-                                  tmp1478
+                                  tmp1481
                                   '(#(free-id
                                       #(syntax-object
                                         list
@@ -9783,7 +9855,7 @@
                                     .
                                     each-any)))))
                            ($sc-dispatch
-                             tmp1478
+                             tmp1481
                              '(#(free-id
                                  #(syntax-object
                                    quote
@@ -9801,18 +9873,18 @@
                                       #("i" "i" "i" "i")))
                                    (hygiene guile)))
                                each-any))))
-                        x1477))
-                     tmp1476))
-                  x1475)))
-             (quasi1449
-               (lambda (p1486 lev1487)
-                 ((lambda (tmp1488)
-                    ((lambda (tmp1489)
-                       (if tmp1489
-                         (apply (lambda (p1490)
-                                  (if (= lev1487 0)
-                                    p1490
-                                    (quasicons1446
+                        x1480))
+                     tmp1479))
+                  x1478)))
+             (quasi1452
+               (lambda (p1489 lev1490)
+                 ((lambda (tmp1491)
+                    ((lambda (tmp1492)
+                       (if tmp1492
+                         (apply (lambda (p1493)
+                                  (if (= lev1490 0)
+                                    p1493
+                                    (quasicons1449
                                       '(#(syntax-object
                                           quote
                                           ((top)
@@ -9847,18 +9919,18 @@
                                              #((top) (top) (top) (top))
                                              #("i" "i" "i" "i")))
                                           (hygiene guile)))
-                                      (quasi1449 (list p1490) (- lev1487 1)))))
-                                tmp1489)
-                         ((lambda (tmp1491)
-                            (if (if tmp1491
-                                  (apply (lambda (args1492) (= lev1487 0))
-                                         tmp1491)
+                                      (quasi1452 (list p1493) (- lev1490 1)))))
+                                tmp1492)
+                         ((lambda (tmp1494)
+                            (if (if tmp1494
+                                  (apply (lambda (args1495) (= lev1490 0))
+                                         tmp1494)
                                   #f)
-                              (apply (lambda (args1493)
+                              (apply (lambda (args1496)
                                        (syntax-violation
                                          'unquote
                                          "unquote takes exactly one argument"
-                                         p1486
+                                         p1489
                                          (cons '#(syntax-object
                                                   unquote
                                                   ((top)
@@ -9879,17 +9951,17 @@
                                                      #((top) (top) (top) (top))
                                                      #("i" "i" "i" "i")))
                                                   (hygiene guile))
-                                               args1493)))
-                                     tmp1491)
-                              ((lambda (tmp1494)
-                                 (if tmp1494
-                                   (apply (lambda (p1495 q1496)
-                                            (if (= lev1487 0)
-                                              (quasiappend1447
-                                                p1495
-                                                (quasi1449 q1496 lev1487))
-                                              (quasicons1446
-                                                (quasicons1446
+                                               args1496)))
+                                     tmp1494)
+                              ((lambda (tmp1497)
+                                 (if tmp1497
+                                   (apply (lambda (p1498 q1499)
+                                            (if (= lev1490 0)
+                                              (quasiappend1450
+                                                p1498
+                                                (quasi1452 q1499 lev1490))
+                                              (quasicons1449
+                                                (quasicons1449
                                                   '(#(syntax-object
                                                       quote
                                                       ((top)
@@ -9936,22 +10008,22 @@
                                                            (top))
                                                          #("i" "i" "i" "i")))
                                                       (hygiene guile)))
-                                                  (quasi1449
-                                                    (list p1495)
-                                                    (- lev1487 1)))
-                                                (quasi1449 q1496 lev1487))))
-                                          tmp1494)
-                                   ((lambda (tmp1497)
-                                      (if (if tmp1497
-                                            (apply (lambda (args1498 q1499)
-                                                     (= lev1487 0))
-                                                   tmp1497)
+                                                  (quasi1452
+                                                    (list p1498)
+                                                    (- lev1490 1)))
+                                                (quasi1452 q1499 lev1490))))
+                                          tmp1497)
+                                   ((lambda (tmp1500)
+                                      (if (if tmp1500
+                                            (apply (lambda (args1501 q1502)
+                                                     (= lev1490 0))
+                                                   tmp1500)
                                             #f)
-                                        (apply (lambda (args1500 q1501)
+                                        (apply (lambda (args1503 q1504)
                                                  (syntax-violation
                                                    'unquote-splicing
                                                    "unquote-splicing takes exactly one argument"
-                                                   p1486
+                                                   p1489
                                                    (cons '#(syntax-object
                                                             unquote-splicing
                                                             ((top)
@@ -9981,12 +10053,12 @@
                                                                  "i"
                                                                  "i")))
                                                             (hygiene guile))
-                                                         args1500)))
-                                               tmp1497)
-                                        ((lambda (tmp1502)
-                                           (if tmp1502
-                                             (apply (lambda (p1503)
-                                                      (quasicons1446
+                                                         args1503)))
+                                               tmp1500)
+                                        ((lambda (tmp1505)
+                                           (if tmp1505
+                                             (apply (lambda (p1506)
+                                                      (quasicons1449
                                                         '(#(syntax-object
                                                             quote
                                                             ((top)
@@ -10045,30 +10117,30 @@
                                                                  "i"
                                                                  "i")))
                                                             (hygiene guile)))
-                                                        (quasi1449
-                                                          (list p1503)
-                                                          (+ lev1487 1))))
-                                                    tmp1502)
-                                             ((lambda (tmp1504)
-                                                (if tmp1504
-                                                  (apply (lambda (p1505 q1506)
-                                                           (quasicons1446
-                                                             (quasi1449
-                                                               p1505
-                                                               lev1487)
-                                                             (quasi1449
-                                                               q1506
-                                                               lev1487)))
-                                                         tmp1504)
-                                                  ((lambda (tmp1507)
-                                                     (if tmp1507
-                                                       (apply (lambda (x1508)
-                                                                (quasivector1448
-                                                                  (quasi1449
-                                                                    x1508
-                                                                    lev1487)))
-                                                              tmp1507)
-                                                       ((lambda (p1510)
+                                                        (quasi1452
+                                                          (list p1506)
+                                                          (+ lev1490 1))))
+                                                    tmp1505)
+                                             ((lambda (tmp1507)
+                                                (if tmp1507
+                                                  (apply (lambda (p1508 q1509)
+                                                           (quasicons1449
+                                                             (quasi1452
+                                                               p1508
+                                                               lev1490)
+                                                             (quasi1452
+                                                               q1509
+                                                               lev1490)))
+                                                         tmp1507)
+                                                  ((lambda (tmp1510)
+                                                     (if tmp1510
+                                                       (apply (lambda (x1511)
+                                                                (quasivector1451
+                                                                  (quasi1452
+                                                                    x1511
+                                                                    lev1490)))
+                                                              tmp1510)
+                                                       ((lambda (p1513)
                                                           (list '#(syntax-object
                                                                    quote
                                                                    ((top)
@@ -10101,16 +10173,16 @@
                                                                         "i")))
                                                                    (hygiene
                                                                      guile))
-                                                                p1510))
-                                                        tmp1488)))
+                                                                p1513))
+                                                        tmp1491)))
                                                    ($sc-dispatch
-                                                     tmp1488
+                                                     tmp1491
                                                      '#(vector each-any)))))
                                               ($sc-dispatch
-                                                tmp1488
+                                                tmp1491
                                                 '(any . any)))))
                                          ($sc-dispatch
-                                           tmp1488
+                                           tmp1491
                                            '(#(free-id
                                                #(syntax-object
                                                  quasiquote
@@ -10130,7 +10202,7 @@
                                                  (hygiene guile)))
                                              any)))))
                                     ($sc-dispatch
-                                      tmp1488
+                                      tmp1491
                                       '((#(free-id
                                            #(syntax-object
                                              unquote-splicing
@@ -10153,7 +10225,7 @@
                                         .
                                         any)))))
                                ($sc-dispatch
-                                 tmp1488
+                                 tmp1491
                                  '((#(free-id
                                       #(syntax-object
                                         unquote-splicing
@@ -10175,7 +10247,7 @@
                                    .
                                    any)))))
                           ($sc-dispatch
-                            tmp1488
+                            tmp1491
                             '(#(free-id
                                 #(syntax-object
                                   unquote
@@ -10193,7 +10265,7 @@
                               .
                               any)))))
                      ($sc-dispatch
-                       tmp1488
+                       tmp1491
                        '(#(free-id
                            #(syntax-object
                              unquote
@@ -10206,44 +10278,44 @@
                                 #("i" "i" "i" "i")))
                              (hygiene guile)))
                          any))))
-                  p1486))))
-      (lambda (x1511)
-        ((lambda (tmp1512)
-           ((lambda (tmp1513)
-              (if tmp1513
-                (apply (lambda (_1514 e1515) (quasi1449 e1515 0))
-                       tmp1513)
+                  p1489))))
+      (lambda (x1514)
+        ((lambda (tmp1515)
+           ((lambda (tmp1516)
+              (if tmp1516
+                (apply (lambda (_1517 e1518) (quasi1452 e1518 0))
+                       tmp1516)
                 (syntax-violation
                   #f
                   "source expression failed to match any pattern"
-                  tmp1512)))
-            ($sc-dispatch tmp1512 (quote (any any)))))
-         x1511)))))
+                  tmp1515)))
+            ($sc-dispatch tmp1515 (quote (any any)))))
+         x1514)))))
 
 (define include
   (make-syncase-macro
     'macro
-    (lambda (x1516)
-      (letrec ((read-file1517
-                 (lambda (fn1518 k1519)
-                   (let ((p1520 (open-input-file fn1518)))
-                     (letrec ((f1521 (lambda (x1522)
-                                       (if (eof-object? x1522)
+    (lambda (x1519)
+      (letrec ((read-file1520
+                 (lambda (fn1521 k1522)
+                   (let ((p1523 (open-input-file fn1521)))
+                     (letrec ((f1524 (lambda (x1525)
+                                       (if (eof-object? x1525)
                                          (begin
-                                           (close-input-port p1520)
+                                           (close-input-port p1523)
                                            '())
-                                         (cons (datum->syntax k1519 x1522)
-                                               (f1521 (read p1520)))))))
-                       (f1521 (read p1520)))))))
-        ((lambda (tmp1523)
-           ((lambda (tmp1524)
-              (if tmp1524
-                (apply (lambda (k1525 filename1526)
-                         (let ((fn1527 (syntax->datum filename1526)))
-                           ((lambda (tmp1528)
-                              ((lambda (tmp1529)
-                                 (if tmp1529
-                                   (apply (lambda (exp1530)
+                                         (cons (datum->syntax k1522 x1525)
+                                               (f1524 (read p1523)))))))
+                       (f1524 (read p1523)))))))
+        ((lambda (tmp1526)
+           ((lambda (tmp1527)
+              (if tmp1527
+                (apply (lambda (k1528 filename1529)
+                         (let ((fn1530 (syntax->datum filename1529)))
+                           ((lambda (tmp1531)
+                              ((lambda (tmp1532)
+                                 (if tmp1532
+                                   (apply (lambda (exp1533)
                                             (cons '#(syntax-object
                                                      begin
                                                      ((top)
@@ -10270,73 +10342,73 @@
                                                         #((top))
                                                         #("i")))
                                                      (hygiene guile))
-                                                  exp1530))
-                                          tmp1529)
+                                                  exp1533))
+                                          tmp1532)
                                    (syntax-violation
                                      #f
                                      "source expression failed to match any pattern"
-                                     tmp1528)))
-                               ($sc-dispatch tmp1528 (quote each-any))))
-                            (read-file1517 fn1527 k1525))))
-                       tmp1524)
+                                     tmp1531)))
+                               ($sc-dispatch tmp1531 (quote each-any))))
+                            (read-file1520 fn1530 k1528))))
+                       tmp1527)
                 (syntax-violation
                   #f
                   "source expression failed to match any pattern"
-                  tmp1523)))
-            ($sc-dispatch tmp1523 (quote (any any)))))
-         x1516)))))
+                  tmp1526)))
+            ($sc-dispatch tmp1526 (quote (any any)))))
+         x1519)))))
 
 (define unquote
   (make-syncase-macro
     'macro
-    (lambda (x1532)
-      ((lambda (tmp1533)
-         ((lambda (tmp1534)
-            (if tmp1534
-              (apply (lambda (_1535 e1536)
+    (lambda (x1535)
+      ((lambda (tmp1536)
+         ((lambda (tmp1537)
+            (if tmp1537
+              (apply (lambda (_1538 e1539)
                        (syntax-violation
                          'unquote
                          "expression not valid outside of quasiquote"
-                         x1532))
-                     tmp1534)
+                         x1535))
+                     tmp1537)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1533)))
-          ($sc-dispatch tmp1533 (quote (any any)))))
-       x1532))))
+                tmp1536)))
+          ($sc-dispatch tmp1536 (quote (any any)))))
+       x1535))))
 
 (define unquote-splicing
   (make-syncase-macro
     'macro
-    (lambda (x1537)
-      ((lambda (tmp1538)
-         ((lambda (tmp1539)
-            (if tmp1539
-              (apply (lambda (_1540 e1541)
+    (lambda (x1540)
+      ((lambda (tmp1541)
+         ((lambda (tmp1542)
+            (if tmp1542
+              (apply (lambda (_1543 e1544)
                        (syntax-violation
                          'unquote-splicing
                          "expression not valid outside of quasiquote"
-                         x1537))
-                     tmp1539)
+                         x1540))
+                     tmp1542)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1538)))
-          ($sc-dispatch tmp1538 (quote (any any)))))
-       x1537))))
+                tmp1541)))
+          ($sc-dispatch tmp1541 (quote (any any)))))
+       x1540))))
 
 (define case
   (make-extended-syncase-macro
     (module-ref (current-module) (quote case))
     'macro
-    (lambda (x1542)
-      ((lambda (tmp1543)
-         ((lambda (tmp1544)
-            (if tmp1544
-              (apply (lambda (_1545 e1546 m11547 m21548)
-                       ((lambda (tmp1549)
-                          ((lambda (body1550)
+    (lambda (x1545)
+      ((lambda (tmp1546)
+         ((lambda (tmp1547)
+            (if tmp1547
+              (apply (lambda (_1548 e1549 m11550 m21551)
+                       ((lambda (tmp1552)
+                          ((lambda (body1553)
                              (list '#(syntax-object
                                       let
                                       ((top)
@@ -10365,16 +10437,16 @@
                                                      #((top))
                                                      #("i")))
                                                   (hygiene guile))
-                                               e1546))
-                                   body1550))
-                           tmp1549))
-                        (letrec ((f1551 (lambda (clause1552 clauses1553)
-                                          (if (null? clauses1553)
-                                            ((lambda (tmp1555)
-                                               ((lambda (tmp1556)
-                                                  (if tmp1556
-                                                    (apply (lambda (e11557
-                                                                    e21558)
+                                               e1549))
+                                   body1553))
+                           tmp1552))
+                        (letrec ((f1554 (lambda (clause1555 clauses1556)
+                                          (if (null? clauses1556)
+                                            ((lambda (tmp1558)
+                                               ((lambda (tmp1559)
+                                                  (if tmp1559
+                                                    (apply (lambda (e11560
+                                                                    e21561)
                                                              (cons '#(syntax-object
                                                                       begin
                                                                       ((top)
@@ -10422,14 +10494,14 @@
                                                                          #("i")))
                                                                       (hygiene
                                                                         guile))
-                                                                   (cons e11557
-                                                                         e21558)))
-                                                           tmp1556)
-                                                    ((lambda (tmp1560)
-                                                       (if tmp1560
-                                                         (apply (lambda (k1561
-                                                                         e11562
-                                                                         e21563)
+                                                                   (cons e11560
+                                                                         e21561)))
+                                                           tmp1559)
+                                                    ((lambda (tmp1563)
+                                                       (if tmp1563
+                                                         (apply (lambda (k1564
+                                                                         e11565
+                                                                         e21566)
                                                                   (list '#(syntax-object
                                                                            if
                                                                            ((top)
@@ -10630,7 +10702,7 @@
                                                                                           #("i")))
                                                                                        (hygiene
                                                                                          guile))
-                                                                                    k1561))
+                                                                                    k1564))
                                                                         (cons '#(syntax-object
                                                                                  begin
                                                                                  ((top)
@@ -10681,24 +10753,24 @@
                                                                                     #("i")))
                                                                                  (hygiene
                                                                                    guile))
-                                                                              (cons e11562
-                                                                                    e21563))))
-                                                                tmp1560)
-                                                         ((lambda (_1566)
+                                                                              (cons e11565
+                                                                                    e21566))))
+                                                                tmp1563)
+                                                         ((lambda (_1569)
                                                             (syntax-violation
                                                               'case
                                                               "bad clause"
-                                                              x1542
-                                                              clause1552))
-                                                          tmp1555)))
+                                                              x1545
+                                                              clause1555))
+                                                          tmp1558)))
                                                      ($sc-dispatch
-                                                       tmp1555
+                                                       tmp1558
                                                        '(each-any
                                                           any
                                                           .
                                                           each-any)))))
                                                 ($sc-dispatch
-                                                  tmp1555
+                                                  tmp1558
                                                   '(#(free-id
                                                       #(syntax-object
                                                         else
@@ -10724,15 +10796,15 @@
                                                     any
                                                     .
                                                     each-any))))
-                                             clause1552)
-                                            ((lambda (tmp1567)
-                                               ((lambda (rest1568)
-                                                  ((lambda (tmp1569)
-                                                     ((lambda (tmp1570)
-                                                        (if tmp1570
-                                                          (apply (lambda (k1571
-                                                                          e11572
-                                                                          e21573)
+                                             clause1555)
+                                            ((lambda (tmp1570)
+                                               ((lambda (rest1571)
+                                                  ((lambda (tmp1572)
+                                                     ((lambda (tmp1573)
+                                                        (if tmp1573
+                                                          (apply (lambda (k1574
+                                                                          e11575
+                                                                          e21576)
                                                                    (list '#(syntax-object
                                                                             if
                                                                             ((top)
@@ -10949,7 +11021,7 @@
                                                                                            #("i")))
                                                                                         (hygiene
                                                                                           guile))
-                                                                                     k1571))
+                                                                                     k1574))
                                                                          (cons '#(syntax-object
                                                                                   begin
                                                                                   ((top)
@@ -11004,46 +11076,46 @@
                                                                                      #("i")))
                                                                                   (hygiene
                                                                                     guile))
-                                                                               (cons e11572
-                                                                                     e21573))
-                                                                         rest1568))
-                                                                 tmp1570)
-                                                          ((lambda (_1576)
+                                                                               (cons e11575
+                                                                                     e21576))
+                                                                         rest1571))
+                                                                 tmp1573)
+                                                          ((lambda (_1579)
                                                              (syntax-violation
                                                                'case
                                                                "bad clause"
-                                                               x1542
-                                                               clause1552))
-                                                           tmp1569)))
+                                                               x1545
+                                                               clause1555))
+                                                           tmp1572)))
                                                       ($sc-dispatch
-                                                        tmp1569
+                                                        tmp1572
                                                         '(each-any
                                                            any
                                                            .
                                                            each-any))))
-                                                   clause1552))
-                                                tmp1567))
-                                             (f1551 (car clauses1553)
-                                                    (cdr clauses1553)))))))
-                          (f1551 m11547 m21548))))
-                     tmp1544)
+                                                   clause1555))
+                                                tmp1570))
+                                             (f1554 (car clauses1556)
+                                                    (cdr clauses1556)))))))
+                          (f1554 m11550 m21551))))
+                     tmp1547)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1543)))
+                tmp1546)))
           ($sc-dispatch
-            tmp1543
+            tmp1546
             '(any any any . each-any))))
-       x1542))))
+       x1545))))
 
 (define identifier-syntax
   (make-syncase-macro
     'macro
-    (lambda (x1577)
-      ((lambda (tmp1578)
-         ((lambda (tmp1579)
-            (if tmp1579
-              (apply (lambda (_1580 e1581)
+    (lambda (x1580)
+      ((lambda (tmp1581)
+         ((lambda (tmp1582)
+            (if tmp1582
+              (apply (lambda (_1583 e1584)
                        (list '#(syntax-object
                                 lambda
                                 ((top)
@@ -11132,8 +11204,8 @@
                                                      #((top))
                                                      #("i")))
                                                   (hygiene guile))
-                                               e1581))
-                                   (list (cons _1580
+                                               e1584))
+                                   (list (cons _1583
                                                '(#(syntax-object
                                                    x
                                                    ((top)
@@ -11173,7 +11245,7 @@
                                                      #((top))
                                                      #("i")))
                                                   (hygiene guile))
-                                               (cons e1581
+                                               (cons e1584
                                                      '(#(syntax-object
                                                          x
                                                          ((top)
@@ -11201,11 +11273,11 @@
                                                             #("i")))
                                                          (hygiene
                                                            guile)))))))))
-                     tmp1579)
+                     tmp1582)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                tmp1578)))
-          ($sc-dispatch tmp1578 (quote (any any)))))
-       x1577))))
+                tmp1581)))
+          ($sc-dispatch tmp1581 (quote (any any)))))
+       x1580))))
 

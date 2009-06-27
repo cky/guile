@@ -4,20 +4,20 @@
 ##
 ##   This file is part of GUILE.
 ##
-##   GUILE is free software; you can redistribute it and/or modify
-##   it under the terms of the GNU General Public License as
-##   published by the Free Software Foundation; either version 2, or
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
 ##   (at your option) any later version.
 ##
 ##   GUILE is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##   GNU General Public License for more details.
+##   GNU Lesser General Public License for more details.
 ##
-##   You should have received a copy of the GNU General Public
-##   License along with GUILE; see the file COPYING.  If not, write
-##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-##   Floor, Boston, MA 02110-1301 USA
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 include $(top_srcdir)/am/guilec
 
@@ -50,6 +50,7 @@ SOURCES =								\
   $(OOP_SOURCES)							\
   $(SYSTEM_SOURCES)                                                     \
   $(ECMASCRIPT_LANG_SOURCES)						\
+  $(BRAINFUCK_LANG_SOURCES)						\
   $(SCRIPTS_SOURCES)
 
 ## test.scm is not currently installed.
@@ -105,12 +106,18 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/parse-lalr.scm		\
   language/ecmascript/tokenize.scm		\
   language/ecmascript/parse.scm			\
-  language/ecmascript/spec.scm			\
   language/ecmascript/impl.scm			\
   language/ecmascript/base.scm			\
   language/ecmascript/function.scm		\
   language/ecmascript/array.scm			\
-  language/ecmascript/compile-ghil.scm
+  language/ecmascript/compile-ghil.scm		\
+  language/ecmascript/spec.scm
+
+BRAINFUCK_LANG_SOURCES =			\
+  language/brainfuck/parse.scm			\
+  language/brainfuck/compile-scheme.scm		\
+  language/brainfuck/compile-tree-il.scm	\
+  language/brainfuck/spec.scm
 
 SCRIPTS_SOURCES =				\
   scripts/PROGRAM.scm				\

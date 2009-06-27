@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008
+@c Copyright (C)  2008, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -26,6 +26,7 @@ know how to compile your .scm file.
 * GLIL::                
 * Assembly::                   
 * Bytecode and Objcode::                   
+* Writing New High-Level Languages::
 * Extending the Compiler::
 @end menu
 
@@ -711,6 +712,19 @@ Make an object code environment. @var{module} should be a Scheme
 module, and @var{externals} should be a list of external variables.
 @code{#f} is also a valid object code environment.
 @end deffn
+
+@node Writing New High-Level Languages
+@subsection Writing New High-Level Languages
+
+In order to integrate a new language @var{lang} into Guile's compiler
+system, one has to create the module @code{(language @var{lang} spec)}
+containing the language definition and referencing the parser,
+compiler and other routines processing it. The module hierarchy in
+@code{(language brainfuck)} defines a very basic Brainfuck
+implementation meant to serve as easy-to-understand example on how to
+do this. See for instance @url{http://en.wikipedia.org/wiki/Brainfuck}
+for more information about the Brainfuck language itself.
+
 
 @node Extending the Compiler
 @subsection Extending the Compiler

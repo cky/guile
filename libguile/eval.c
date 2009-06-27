@@ -2,18 +2,19 @@
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -3028,8 +3029,19 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_INTEGER, "depth", 20, "Maximal length of printed backtrace." },
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
+  /* This default stack limit will be overridden by debug.c:init_stack_limit(),
+     if we have getrlimit() and the stack limit is not INFINITY. But it is still
+     important, as some systems have both the soft and the hard limits set to
+     INFINITY; in that case we fall back to this value.
 
-  { SCM_OPTION_INTEGER, "stack", 40000, "Stack size limit (measured in words; 0 = no check)." },
+     The situation is aggravated by certain compilers, which can consume
+     "beaucoup de stack", as they say in France.
+
+     See http://thread.gmane.org/gmane.lisp.guile.devel/8599/focus=8662 for
+     more discussion. This setting is 640 KB on 32-bit arches (should be enough
+     for anyone!) or a whoppin' 1280 KB on 64-bit arches.
+  */
+  { SCM_OPTION_INTEGER, "stack", 160000, "Stack size limit (measured in words; 0 = no check)." },
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T,
     "Show file names and line numbers "
     "in backtraces when not `#f'.  A value of `base' "
@@ -3385,7 +3397,7 @@ call_dsubr_1 (SCM proc, SCM arg1)
       return (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
     }
   SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-		      SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
+		      SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
 }
 
 static SCM

@@ -1,21 +1,21 @@
 ;;; Repl commands
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
 ;; 
-;; This program is distributed in the hope that it will be useful,
+;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
 ;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+;; 02110-1301 USA
 
 ;;; Code:
 
@@ -27,7 +27,7 @@
   #:use-module (system vm objcode)
   #:use-module (system vm program)
   #:use-module (system vm vm)
-  #:autoload (system base language) (lookup-language)
+  #:autoload (system base language) (lookup-language language-reader)
   #:autoload (system vm debug) (vm-debugger vm-backtrace)
   #:autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
   #:autoload (system vm profile) (vm-profile)
@@ -35,6 +35,7 @@
   #:use-module (ice-9 session)
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 and-let-star)
+  #:use-module (ice-9 rdelim)
   #:export (meta-command))
 
 
@@ -109,33 +110,66 @@
   (let ((abbrev (if abbrev (format #f "[,~A]" abbrev) "")))
     (format #t " ,~24A ~8@A - ~A\n" usage abbrev summary)))
 
-(define (meta-command repl line)
-  (let ((input (call-with-input-string (string-append "(" line ")") read)))
-    (if (not (null? input))
-	(do ((key (car input))
-	     (args (cdr input) (cdr args))
-	     (opts '() (cons (make-keyword-from-dash-symbol (car args)) opts)))
-	    ((or (null? args)
-		 (not (symbol? (car args)))
-		 (not (eq? (string-ref (symbol->string (car args)) 0) #\-)))
-	     (let ((c (lookup-command key)))
-	       (if c
-		   (cond ((memq #:h opts) (display-command c))
-			 (else (apply (command-procedure c)
-				      repl (append! args (reverse! opts)))))
-		   (user-error "Unknown meta command: ~A" key))))))))
+(define (read-datum repl)
+  (read))
+
+(define read-line
+  (let ((orig-read-line read-line))
+    (lambda (repl)
+      (orig-read-line))))
+
+(define (meta-command repl)
+  (let ((command (read-datum repl)))
+    (if (not (symbol? command))
+        (user-error "Meta-command not a symbol: ~s" command))
+    (let ((c (lookup-command command)))
+      (if c
+          ((command-procedure c) repl)
+          (user-error "Unknown meta command: ~A" command)))))
+
+(define-syntax define-meta-command
+  (syntax-rules ()
+    ((_ (name repl (expression0 ...) . datums) docstring b0 b1 ...)
+     (define (name repl)
+       docstring
+       (let* ((expression0
+               (with-fluid* current-reader
+                            (language-reader (repl-language repl))
+                 (lambda () (repl-reader ""))))
+              ...)
+         (apply (lambda datums b0 b1 ...)
+                (let ((port (open-input-string (read-line repl))))
+                  (let lp ((out '()))
+                    (let ((x (read port)))
+                      (if (eof-object? x)
+                          (reverse out)
+                          (lp (cons x out))))))))))
+    ((_ (name repl . datums) docstring b0 b1 ...)
+     (define-meta-command (name repl () . datums)
+       docstring b0 b1 ...))))
+
 
 
 ;;;
 ;;; Help commands
 ;;;
 
-(define (help repl . args)
-  "help [GROUP]
-List available meta commands.
-A command group name can be given as an optional argument.
+(define-meta-command (help repl . args)
+  "help 
+help GROUP
+help [-c] COMMAND
+
+Gives help on the meta-commands available at the REPL.
+
+With one argument, tries to look up the argument as a group name, giving
+help on that group if successful. Otherwise tries to look up the
+argument as a command, giving help on the command.
+
+If there is a command whose name is also a group name, use the ,help
+-c COMMAND form to give help on the command instead of the group.
+
 Without any argument, a list of help commands and command groups
-are displayed, as you have already seen ;)"
+are displayed."
   (pmatch args
     (()
      (display-group (lookup-group 'help))
@@ -154,23 +188,30 @@ are displayed, as you have already seen ;)"
      (for-each display-group *command-table*))
     ((,group) (guard (lookup-group group))
      (display-group (lookup-group group)))
+    ((,command) (guard (lookup-command command))
+     (display-command (lookup-command command)))
+    ((-c ,command) (guard (lookup-command command))
+     (display-command (lookup-command command)))
+    ((,command)
+     (user-error "Unknown command or group: ~A" command))
+    ((-c ,command)
+     (user-error "Unknown command: ~A" command))
     (else
-     (user-error "Unknown command group: ~A" (car args)))))
+     (user-error "Bad arguments: ~A" args))))
 
 (define guile:apropos apropos)
-(define (apropos repl regexp)
+(define-meta-command (apropos repl regexp)
   "apropos REGEXP
 Find bindings/modules/packages."
   (guile:apropos (->string regexp)))
 
-(define (describe repl obj)
+(define-meta-command (describe repl (form))
   "describe OBJ
 Show description/documentation."
-  (display (object-documentation
-            (repl-eval repl (repl-parse repl obj))))
+  (display (object-documentation (repl-eval repl (repl-parse repl form))))
   (newline))
 
-(define (option repl . args)
+(define-meta-command (option repl . args)
   "option [KEY VALUE]
 List/show/set options."
   (pmatch args
@@ -190,7 +231,7 @@ List/show/set options."
               (apply vm-trace-on vm val)
               (vm-trace-off vm))))))))
 
-(define (quit repl)
+(define-meta-command (quit repl)
   "quit
 Quit this session."
   (throw 'quit))
@@ -200,7 +241,7 @@ Quit this session."
 ;;; Module commands
 ;;;
 
-(define (module repl . args)
+(define-meta-command (module repl . args)
   "module [MODULE]
 Change modules / Show current module."
   (pmatch args
@@ -209,7 +250,7 @@ Change modules / Show current module."
      (set-current-module (resolve-module mod-name)))
     (,mod-name (set-current-module (resolve-module mod-name)))))
 
-(define (import repl . args)
+(define-meta-command (import repl . args)
   "import [MODULE ...]
 Import modules / List those imported."
   (let ()
@@ -222,7 +263,7 @@ Import modules / List those imported."
         (for-each puts (map module-name (module-uses (current-module))))
         (for-each use args))))
 
-(define (load repl file . opts)
+(define-meta-command (load repl file . opts)
   "load FILE
 Load a file in the current module.
 
@@ -233,7 +274,7 @@ Load a file in the current module.
 		      (apply load-file file opts))))
     (vm-load (repl-vm repl) objcode)))
 
-(define (binding repl . opts)
+(define-meta-command (binding repl)
   "binding
 List current bindings."
   (module-for-each (lambda (k v) (format #t "~23A ~A\n" k v))
@@ -244,7 +285,7 @@ List current bindings."
 ;;; Language commands
 ;;;
 
-(define (language repl name)
+(define-meta-command (language repl name)
   "language LANGUAGE
 Change languages."
   (set! (repl-language repl) (lookup-language name))
@@ -255,7 +296,7 @@ Change languages."
 ;;; Compile commands
 ;;;
 
-(define (compile repl form . opts)
+(define-meta-command (compile repl (form) . opts)
   "compile FORM
 Generate compiled code.
 
@@ -266,11 +307,11 @@ Generate compiled code.
   -O    Enable optimization
   -D    Add debug information"
   (let ((x (apply repl-compile repl (repl-parse repl form) opts)))
-    (cond ((objcode? x) (disassemble-objcode x))
+    (cond ((objcode? x) (guile:disassemble x))
           (else (repl-print repl x)))))
 
 (define guile:compile-file compile-file)
-(define (compile-file repl file . opts)
+(define-meta-command (compile-file repl file . opts)
   "compile-file FILE
 Compile a file."
   (guile:compile-file (->string file) #:opts opts))
@@ -278,12 +319,12 @@ Compile a file."
 (define (guile:disassemble x)
   ((@ (language assembly disassemble) disassemble) x))
 
-(define (disassemble repl prog)
+(define-meta-command (disassemble repl (form))
   "disassemble PROGRAM
 Disassemble a program."
-  (guile:disassemble (repl-eval repl (repl-parse repl prog))))
+  (guile:disassemble (repl-eval repl (repl-parse repl form))))
 
-(define (disassemble-file repl file)
+(define-meta-command (disassemble-file repl file)
   "disassemble-file FILE
 Disassemble a file."
   (guile:disassemble (load-objcode (->string file))))
@@ -293,7 +334,7 @@ Disassemble a file."
 ;;; Profile commands
 ;;;
 
-(define (time repl form)
+(define-meta-command (time repl (form))
   "time FORM
 Time execution."
   (let* ((vms-start (vm-stats (repl-vm repl)))
@@ -316,7 +357,7 @@ Time execution."
 	    (get identity gc-start gc-end))
     result))
 
-(define (profile repl form . opts)
+(define-meta-command (profile repl form . opts)
   "profile FORM
 Profile execution."
   (apply vm-profile
@@ -329,17 +370,17 @@ Profile execution."
 ;;; Debug commands
 ;;;
 
-(define (backtrace repl)
+(define-meta-command (backtrace repl)
   "backtrace
 Display backtrace."
   (vm-backtrace (repl-vm repl)))
 
-(define (debugger repl)
+(define-meta-command (debugger repl)
   "debugger
 Start debugger."
   (vm-debugger (repl-vm repl)))
 
-(define (trace repl form . opts)
+(define-meta-command (trace repl form . opts)
   "trace FORM
 Trace execution.
 
@@ -351,7 +392,7 @@ Trace execution.
          (repl-compile repl (repl-parse repl form))
          opts))
 
-(define (step repl)
+(define-meta-command (step repl)
   "step FORM
 Step execution."
   (display "Not implemented yet\n"))
@@ -362,12 +403,12 @@ Step execution."
 ;;;
 
 (define guile:gc gc)
-(define (gc repl)
+(define-meta-command (gc repl)
   "gc
 Garbage collection."
   (guile:gc))
 
-(define (statistics repl)
+(define-meta-command (statistics repl)
   "statistics
 Display statistics."
   (let ((this-tms (times))

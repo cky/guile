@@ -1,21 +1,21 @@
 ;;; Read-Eval-Print Loop
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
 ;; 
-;; This program is distributed in the hope that it will be useful,
+;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
 ;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+;; 02110-1301 USA
 
 ;;; Code:
 
@@ -28,7 +28,6 @@
   #:use-module (system repl command)
   #:use-module (system vm vm)
   #:use-module (system vm debug)
-  #:use-module (ice-9 rdelim)
   #:export (start-repl call-with-backtrace))
 
 (define meta-command-token (cons 'meta 'command))
@@ -103,11 +102,14 @@
         (cond
          ((eqv? exp (if #f #f))) ; read error, pass
          ((eq? exp meta-command-token)
-          (with-backtrace (meta-command repl (read-line))))
+          (with-backtrace (meta-command repl)))
          ((eof-object? exp)
           (newline)
           (set! status '()))
          (else
+          ;; since the input port is line-buffered, consume up to the
+          ;; newline
+          (flush-to-newline)
           (with-backtrace
            (catch 'quit
                   (lambda ()
@@ -135,3 +137,14 @@
 	      ((char-whitespace? ch) (read-char) (next-char wait))
 	      (else ch)))
       #f))
+
+(define (flush-to-newline) 
+  (if (char-ready?)
+      (let ((ch (peek-char)))
+        (if (and (not (eof-object? ch)) (char-whitespace? ch))
+            (begin
+              (read-char)
+              (if (not (char=? ch #\newline))
+                  (flush-to-newline)))))))
+          
+          

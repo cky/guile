@@ -6,7 +6,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -382,8 +382,12 @@
 (define (apply-to-args args fn) (apply fn args))
 
 (defmacro false-if-exception (expr)
-  `(catch #t (lambda () ,expr)
-	  (lambda args #f)))
+  `(catch #t
+     (lambda ()
+       ;; avoid saving backtraces inside false-if-exception
+       (with-fluid* the-last-stack (fluid-ref the-last-stack)
+         (lambda () ,expr)))
+     (lambda args #f)))
 
 
 
@@ -2320,9 +2324,9 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;;
 
 (defmacro define-option-interface (option-group)
-  (let* ((option-name car)
-	 (option-value cadr)
-	 (option-documentation caddr)
+  (let* ((option-name 'car)
+	 (option-value 'cadr)
+	 (option-documentation 'caddr)
 
 	 ;; Below follow the macros defining the run-time option interfaces.
 
@@ -2333,15 +2337,15 @@ module '(ice-9 q) '(make-q q-length))}."
 				   (,interface (car args)) (,interface))
 				  (else (for-each
                                          (lambda (option)
-                                           (display (option-name option))
+                                           (display (,option-name option))
                                            (if (< (string-length
-                                                   (symbol->string (option-name option)))
+                                                   (symbol->string (,option-name option)))
                                                   8)
                                                (display #\tab))
                                            (display #\tab)
-                                           (display (option-value option))
+                                           (display (,option-value option))
                                            (display #\tab)
-                                           (display (option-documentation option))
+                                           (display (,option-documentation option))
                                            (newline))
                                          (,interface #t)))))))
 
@@ -2927,8 +2931,6 @@ module '(ice-9 q) '(make-q q-length))}."
     (process-use-modules (list (list ,@(compile-interface-spec spec))))
     *unspecified*))
 
-;; Dirk:FIXME:: This incorrect (according to R5RS) syntax needs to be changed
-;; as soon as guile supports hygienic macros.
 (define-syntax define-private
   (syntax-rules ()
     ((_ foo bar)
@@ -3190,69 +3192,66 @@ module '(ice-9 q) '(make-q q-length))}."
 		     (append (hashq-ref %cond-expand-table mod '())
 			     features)))))
 
-(define cond-expand
-  (procedure->memoizing-macro
-   (lambda (exp env)
-     (let ((clauses (cdr exp))
-	   (syntax-error (lambda (cl)
-			   (error "invalid clause in `cond-expand'" cl))))
-       (letrec
-	   ((test-clause
-	     (lambda (clause)
-	       (cond
-		((symbol? clause)
-		 (or (memq clause %cond-expand-features)
-		     (let lp ((uses (module-uses (env-module env))))
-		       (if (pair? uses)
-			   (or (memq clause
-				     (hashq-ref %cond-expand-table
-						(car uses) '()))
-			       (lp (cdr uses)))
-			   #f))))
-		((pair? clause)
-		 (cond
-		  ((eq? 'and (car clause))
-		   (let lp ((l (cdr clause)))
-		     (cond ((null? l)
-			    #t)
-			   ((pair? l)
-			    (and (test-clause (car l)) (lp (cdr l))))
-			   (else
-			    (syntax-error clause)))))
-		  ((eq? 'or (car clause))
-		   (let lp ((l (cdr clause)))
-		     (cond ((null? l)
-			    #f)
-			   ((pair? l)
-			    (or (test-clause (car l)) (lp (cdr l))))
-			   (else
-			    (syntax-error clause)))))
-		  ((eq? 'not (car clause))
-		   (cond ((not (pair? (cdr clause)))
-			  (syntax-error clause))
-			 ((pair? (cddr clause))
-			  ((syntax-error clause))))
-		   (not (test-clause (cadr clause))))
-		  (else
-		   (syntax-error clause))))
-		(else
-		 (syntax-error clause))))))
-	 (let lp ((c clauses))
-	   (cond
-	    ((null? c)
-	     (error "Unfulfilled `cond-expand'"))
-	    ((not (pair? c))
-	     (syntax-error c))
-	    ((not (pair? (car c)))
-	     (syntax-error (car c)))
-	    ((test-clause (caar c))
-	     `(begin ,@(cdar c)))
-	    ((eq? (caar c) 'else)
-	     (if (pair? (cdr c))
-		 (syntax-error c))
-	     `(begin ,@(cdar c)))
-	    (else
-	     (lp (cdr c))))))))))
+(define-macro (cond-expand . clauses)
+  (let ((syntax-error (lambda (cl)
+                        (error "invalid clause in `cond-expand'" cl))))
+    (letrec
+        ((test-clause
+          (lambda (clause)
+            (cond
+             ((symbol? clause)
+              (or (memq clause %cond-expand-features)
+                  (let lp ((uses (module-uses (current-module))))
+                    (if (pair? uses)
+                        (or (memq clause
+                                  (hashq-ref %cond-expand-table
+                                             (car uses) '()))
+                            (lp (cdr uses)))
+                        #f))))
+             ((pair? clause)
+              (cond
+               ((eq? 'and (car clause))
+                (let lp ((l (cdr clause)))
+                  (cond ((null? l)
+                         #t)
+                        ((pair? l)
+                         (and (test-clause (car l)) (lp (cdr l))))
+                        (else
+                         (syntax-error clause)))))
+               ((eq? 'or (car clause))
+                (let lp ((l (cdr clause)))
+                  (cond ((null? l)
+                         #f)
+                        ((pair? l)
+                         (or (test-clause (car l)) (lp (cdr l))))
+                        (else
+                         (syntax-error clause)))))
+               ((eq? 'not (car clause))
+                (cond ((not (pair? (cdr clause)))
+                       (syntax-error clause))
+                      ((pair? (cddr clause))
+                       ((syntax-error clause))))
+                (not (test-clause (cadr clause))))
+               (else
+                (syntax-error clause))))
+             (else
+              (syntax-error clause))))))
+      (let lp ((c clauses))
+        (cond
+         ((null? c)
+          (error "Unfulfilled `cond-expand'"))
+         ((not (pair? c))
+          (syntax-error c))
+         ((not (pair? (car c)))
+          (syntax-error (car c)))
+         ((test-clause (caar c))
+          `(begin ,@(cdar c)))
+         ((eq? (caar c) 'else)
+          (if (pair? (cdr c))
+              (syntax-error c))
+          `(begin ,@(cdar c)))
+         (else
+          (lp (cdr c))))))))
 
 ;; This procedure gets called from the startup code with a list of
 ;; numbers, which are the numbers of the SRFIs to be loaded on startup.

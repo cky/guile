@@ -1,18 +1,19 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* This file is included in vm.c multiple times */
@@ -199,6 +200,12 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   vm_error_not_a_pair:
     SYNC_ALL ();
     scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "pair");
+    /* shouldn't get here */
+    goto vm_error;
+
+  vm_error_not_a_bytevector:
+    SYNC_ALL ();
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "bytevector");
     /* shouldn't get here */
     goto vm_error;
 

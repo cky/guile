@@ -1,18 +1,19 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #if HAVE_CONFIG_H
@@ -33,7 +34,7 @@
 #include "objcodes.h"
 
 /* nb, the length of the header should be a multiple of 8 bytes */
-#define OBJCODE_COOKIE "GOOF-0.5"
+#define OBJCODE_COOKIE "GOOF-0.6"
 
 
 /*
@@ -62,17 +63,31 @@ make_objcode_by_mmap (int fd)
 
   addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
   if (addr == MAP_FAILED)
-    SCM_SYSERROR;
+    {
+      (void) close (fd);
+      SCM_SYSERROR;
+    }
 
   if (memcmp (addr, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE)))
-    SCM_SYSERROR;
+    {
+      (void) close (fd);
+      (void) munmap (addr, st.st_size);
+      scm_misc_error (FUNC_NAME, "bad header on object file: ~s",
+		      scm_list_1 (scm_from_locale_stringn
+				  (addr, strlen (OBJCODE_COOKIE))));
+    }
 
   data = (struct scm_objcode*)(addr + strlen (OBJCODE_COOKIE));
 
   if (data->len + data->metalen != (st.st_size - sizeof (*data) - strlen (OBJCODE_COOKIE)))
-    scm_misc_error (FUNC_NAME, "bad length header (~a, ~a)",
-		    scm_list_2 (scm_from_size_t (st.st_size),
-				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
+    {
+      (void) close (fd);
+      (void) munmap (addr, st.st_size);
+      scm_misc_error (FUNC_NAME, "bad length header (~a, ~a)",
+		      scm_list_2 (scm_from_size_t (st.st_size),
+				  scm_from_uint32 (sizeof (*data) + data->len
+						   + data->metalen)));
+    }
 
   SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (OBJCODE_COOKIE),
                 SCM_PACK (SCM_BOOL_F), fd);

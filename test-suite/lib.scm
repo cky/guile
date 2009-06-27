@@ -1,20 +1,20 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;;
-;;;; This program is free software; you can redistribute it and/or modify
-;;;; it under the terms of the GNU General Public License as published by
-;;;; the Free Software Foundation; either version 2, or (at your option)
-;;;; any later version.
+;;;; This program is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3, or (at your option) any later version.
 ;;;;
 ;;;; This program is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;;; GNU General Public License for more details.
+;;;; GNU Lesser General Public License for more details.
 ;;;;
-;;;; You should have received a copy of the GNU General Public License
-;;;; along with this software; see the file COPYING.  If not, write to
-;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;;;; Boston, MA 02110-1301 USA
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this software; see the file COPYING.LESSER.
+;;;; If not, write to the Free Software Foundation, Inc., 51 Franklin
+;;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite lib)
   :use-module (ice-9 stack-catch)
@@ -32,6 +32,7 @@
  exception:system-error
  exception:miscellaneous-error
  exception:string-contains-nul
+ exception:read-error
 
  ;; Reporting passes and failures.
  run-test
@@ -265,6 +266,8 @@
   (cons 'system-error ".*"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
+(define exception:read-error
+  (cons 'read-error "^.*$"))
 
 ;; as per throw in scm_to_locale_stringn()
 (define exception:string-contains-nul

@@ -1,18 +1,19 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* This file is included in vm_engine.c */
@@ -130,20 +131,24 @@ VM_DEFINE_FUNCTION (92, cdr, "cdr", 1)
   RETURN (SCM_CDR (x));
 }
 
-VM_DEFINE_FUNCTION (93, set_car, "set-car!", 2)
+VM_DEFINE_INSTRUCTION (93, set_car, "set-car!", 0, 2, 0)
 {
-  ARGS2 (x, y);
+  SCM x, y;
+  POP (y);
+  POP (x);
   VM_VALIDATE_CONS (x);
   SCM_SETCAR (x, y);
-  RETURN (SCM_UNSPECIFIED);
+  NEXT;
 }
 
-VM_DEFINE_FUNCTION (94, set_cdr, "set-cdr!", 2)
+VM_DEFINE_INSTRUCTION (94, set_cdr, "set-cdr!", 0, 2, 0)
 {
-  ARGS2 (x, y);
+  SCM x, y;
+  POP (y);
+  POP (x);
   VM_VALIDATE_CONS (x);
   SCM_SETCDR (x, y);
-  RETURN (SCM_UNSPECIFIED);
+  NEXT;
 }
 
 
@@ -262,14 +267,264 @@ VM_DEFINE_FUNCTION (107, slot_ref, "slot-ref", 2)
   RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
 }
 
-VM_DEFINE_FUNCTION (108, slot_set, "slot-set", 3)
+VM_DEFINE_INSTRUCTION (108, slot_set, "slot-set", 0, 3, 0)
 {
+  SCM instance, idx, val;
   size_t slot;
-  ARGS3 (instance, idx, val);
+  POP (val);
+  POP (idx);
+  POP (instance);
   slot = SCM_I_INUM (idx);
   SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (val);
-  RETURN (SCM_UNSPECIFIED);
+  NEXT;
 }
+
+VM_DEFINE_FUNCTION (109, vector_ref, "vector-ref", 2)
+{
+  long i;
+  ARGS2 (vect, idx);
+  if (SCM_LIKELY (SCM_I_IS_VECTOR (vect)
+                  && SCM_I_INUMP (idx)
+                  && ((i = SCM_I_INUM (idx)) >= 0)
+                  && i < SCM_I_VECTOR_LENGTH (vect)))
+    RETURN (SCM_I_VECTOR_ELTS (vect)[i]);
+  else
+    RETURN (scm_vector_ref (vect, idx));
+}
+
+VM_DEFINE_INSTRUCTION (110, vector_set, "vector-set", 0, 3, 0)
+{
+  long i;
+  SCM vect, idx, val;
+  POP (val); POP (idx); POP (vect);
+  if (SCM_LIKELY (SCM_I_IS_VECTOR (vect)
+                  && SCM_I_INUMP (idx)
+                  && ((i = SCM_I_INUM (idx)) >= 0)
+                  && i < SCM_I_VECTOR_LENGTH (vect)))
+    SCM_I_VECTOR_WELTS (vect)[i] = val;
+  else
+    scm_vector_set_x (vect, idx, val);
+  NEXT;
+}
+
+#define VM_VALIDATE_BYTEVECTOR(x)               \
+  if (SCM_UNLIKELY (!SCM_BYTEVECTOR_P (x)))     \
+    { finish_args = x;                          \
+      goto vm_error_not_a_bytevector;           \
+    }
+
+#define BV_REF_WITH_ENDIANNESS(stem, fn_stem)                           \
+{                                                                       \
+  SCM endianness;                                                       \
+  POP (endianness);                                                     \
+  if (scm_is_eq (endianness, scm_i_native_endianness))                  \
+    goto VM_LABEL (bv_##stem##_native_ref);                             \
+  {                                                                     \
+    ARGS2 (bv, idx);                                                    \
+    RETURN (scm_bytevector_##fn_stem##_ref (bv, idx, endianness));      \
+  }                                                                     \
+}
+
+VM_DEFINE_FUNCTION (111, bv_u16_ref, "bv-u16-ref", 3)
+BV_REF_WITH_ENDIANNESS (u16, u16)
+VM_DEFINE_FUNCTION (112, bv_s16_ref, "bv-s16-ref", 3)
+BV_REF_WITH_ENDIANNESS (s16, s16)
+VM_DEFINE_FUNCTION (113, bv_u32_ref, "bv-u32-ref", 3)
+BV_REF_WITH_ENDIANNESS (u32, u32)
+VM_DEFINE_FUNCTION (114, bv_s32_ref, "bv-s32-ref", 3)
+BV_REF_WITH_ENDIANNESS (s32, s32)
+VM_DEFINE_FUNCTION (115, bv_u64_ref, "bv-u64-ref", 3)
+BV_REF_WITH_ENDIANNESS (u64, u64)
+VM_DEFINE_FUNCTION (116, bv_s64_ref, "bv-s64-ref", 3)
+BV_REF_WITH_ENDIANNESS (s64, s64)
+VM_DEFINE_FUNCTION (117, bv_f32_ref, "bv-f32-ref", 3)
+BV_REF_WITH_ENDIANNESS (f32, ieee_single)
+VM_DEFINE_FUNCTION (118, bv_f64_ref, "bv-f64-ref", 3)
+BV_REF_WITH_ENDIANNESS (f64, ieee_double)
+
+#undef BV_REF_WITH_ENDIANNESS
+
+#define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)                   \
+{                                                                       \
+  long i;                                                               \
+  ARGS2 (bv, idx);                                                      \
+  VM_VALIDATE_BYTEVECTOR (bv);                                          \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
+                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i % size == 0)))                                  \
+    RETURN (SCM_I_MAKINUM (*(scm_t_##type*)                             \
+                           (SCM_BYTEVECTOR_CONTENTS (bv) + i)));        \
+  else                                                                  \
+    RETURN (scm_bytevector_##fn_stem##_ref (bv, idx));                  \
+}
+
+#define BV_INT_REF(stem, type, size)                                    \
+{                                                                       \
+  long i;                                                               \
+  ARGS2 (bv, idx);                                                      \
+  VM_VALIDATE_BYTEVECTOR (bv);                                          \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
+                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i % size == 0)))                                  \
+    { scm_t_##type x = (*(scm_t_##type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)); \
+      if (SCM_FIXABLE (x))                                              \
+        RETURN (SCM_I_MAKINUM (x));                                     \
+      else                                                              \
+        RETURN (scm_from_##type (x));                                   \
+    }                                                                   \
+  else                                                                  \
+    RETURN (scm_bytevector_##stem##_native_ref (bv, idx));              \
+}
+
+#define BV_FLOAT_REF(stem, fn_stem, type, size)                         \
+{                                                                       \
+  long i;                                                               \
+  ARGS2 (bv, idx);                                                      \
+  VM_VALIDATE_BYTEVECTOR (bv);                                          \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
+                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i % size == 0)))                                  \
+    RETURN (scm_from_double ((*(type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)))); \
+  else                                                                  \
+    RETURN (scm_bytevector_##fn_stem##_native_ref (bv, idx));           \
+}
+
+VM_DEFINE_FUNCTION (119, bv_u8_ref, "bv-u8-ref", 2)
+BV_FIXABLE_INT_REF (u8, u8, uint8, 1)
+VM_DEFINE_FUNCTION (120, bv_s8_ref, "bv-s8-ref", 2)
+BV_FIXABLE_INT_REF (s8, s8, int8, 1)
+VM_DEFINE_FUNCTION (121, bv_u16_native_ref, "bv-u16-native-ref", 2)
+BV_FIXABLE_INT_REF (u16, u16_native, uint16, 2)
+VM_DEFINE_FUNCTION (122, bv_s16_native_ref, "bv-s16-native-ref", 2)
+BV_FIXABLE_INT_REF (s16, s16_native, int16, 2)
+VM_DEFINE_FUNCTION (123, bv_u32_native_ref, "bv-u32-native-ref", 2)
+/* FIXME: u32 is always a fixnum on 64-bit builds */
+BV_INT_REF (u32, uint32, 4)
+VM_DEFINE_FUNCTION (124, bv_s32_native_ref, "bv-s32-native-ref", 2)
+BV_INT_REF (s32, int32, 4)
+VM_DEFINE_FUNCTION (125, bv_u64_native_ref, "bv-u64-native-ref", 2)
+BV_INT_REF (u64, uint64, 8)
+VM_DEFINE_FUNCTION (126, bv_s64_native_ref, "bv-s64-native-ref", 2)
+BV_INT_REF (s64, int64, 8)
+VM_DEFINE_FUNCTION (127, bv_f32_native_ref, "bv-f32-native-ref", 2)
+BV_FLOAT_REF (f32, ieee_single, float, 4)
+VM_DEFINE_FUNCTION (128, bv_f64_native_ref, "bv-f64-native-ref", 2)
+BV_FLOAT_REF (f64, ieee_double, double, 8)
+
+#undef BV_FIXABLE_INT_REF
+#undef BV_INT_REF
+#undef BV_FLOAT_REF
+
+
+
+#define BV_SET_WITH_ENDIANNESS(stem, fn_stem)                           \
+{                                                                       \
+  SCM endianness;                                                       \
+  POP (endianness);                                                     \
+  if (scm_is_eq (endianness, scm_i_native_endianness))                  \
+    goto VM_LABEL (bv_##stem##_native_set);                             \
+  {                                                                     \
+    SCM bv, idx, val; POP (val); POP (idx); POP (bv);                   \
+    scm_bytevector_##fn_stem##_set_x (bv, idx, val, endianness);        \
+    NEXT;                                                               \
+  }                                                                     \
+}
+
+VM_DEFINE_INSTRUCTION (129, bv_u16_set, "bv-u16-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (u16, u16)
+VM_DEFINE_INSTRUCTION (130, bv_s16_set, "bv-s16-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (s16, s16)
+VM_DEFINE_INSTRUCTION (131, bv_u32_set, "bv-u32-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (u32, u32)
+VM_DEFINE_INSTRUCTION (132, bv_s32_set, "bv-s32-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (s32, s32)
+VM_DEFINE_INSTRUCTION (133, bv_u64_set, "bv-u64-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (u64, u64)
+VM_DEFINE_INSTRUCTION (134, bv_s64_set, "bv-s64-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (s64, s64)
+VM_DEFINE_INSTRUCTION (135, bv_f32_set, "bv-f32-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (f32, ieee_single)
+VM_DEFINE_INSTRUCTION (136, bv_f64_set, "bv-f64-set", 0, 4, 0)
+BV_SET_WITH_ENDIANNESS (f64, ieee_double)
+
+#undef BV_SET_WITH_ENDIANNESS
+
+#define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)         \
+{                                                                       \
+  long i, j;                                                            \
+  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
+  VM_VALIDATE_BYTEVECTOR (bv);                                          \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
+                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i % size == 0)                                    \
+                  && (SCM_I_INUMP (val))                                \
+                  && ((j = SCM_I_INUM (val)) >= min)                    \
+                  && (j <= max)))                                       \
+    *(scm_t_##type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = (scm_t_##type)j; \
+  else                                                                  \
+    scm_bytevector_##fn_stem##_set_x (bv, idx, val);                    \
+  NEXT;                                                                 \
+}
+
+#define BV_INT_SET(stem, type, size)                                    \
+{                                                                       \
+  long i;                                                               \
+  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
+  VM_VALIDATE_BYTEVECTOR (bv);                                          \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
+                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i % size == 0)))                                  \
+    *(scm_t_##type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_##type (val); \
+  else                                                                  \
+    scm_bytevector_##stem##_native_set_x (bv, idx, val);                \
+  NEXT;                                                                 \
+}
+
+#define BV_FLOAT_SET(stem, fn_stem, type, size)                         \
+{                                                                       \
+  long i;                                                               \
+  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
+  VM_VALIDATE_BYTEVECTOR (bv);                                          \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
+                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i % size == 0)))                                  \
+    *(type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_double (val);  \
+  else                                                                  \
+    scm_bytevector_##fn_stem##_native_set_x (bv, idx, val);             \
+  NEXT;                                                                 \
+}
+
+VM_DEFINE_INSTRUCTION (137, bv_u8_set, "bv-u8-set", 0, 3, 0)
+BV_FIXABLE_INT_SET (u8, u8, uint8, 0, SCM_T_UINT8_MAX, 1)
+VM_DEFINE_INSTRUCTION (138, bv_s8_set, "bv-s8-set", 0, 3, 0)
+BV_FIXABLE_INT_SET (s8, s8, int8, SCM_T_INT8_MIN, SCM_T_INT8_MAX, 1)
+VM_DEFINE_INSTRUCTION (139, bv_u16_native_set, "bv-u16-native-set", 0, 3, 0)
+BV_FIXABLE_INT_SET (u16, u16_native, uint16, 0, SCM_T_UINT16_MAX, 2)
+VM_DEFINE_INSTRUCTION (140, bv_s16_native_set, "bv-s16-native-set", 0, 3, 0)
+BV_FIXABLE_INT_SET (s16, s16_native, int16, SCM_T_INT16_MIN, SCM_T_INT16_MAX, 2)
+VM_DEFINE_INSTRUCTION (141, bv_u32_native_set, "bv-u32-native-set", 0, 3, 0)
+/* FIXME: u32 is always a fixnum on 64-bit builds */
+BV_INT_SET (u32, uint32, 4)
+VM_DEFINE_INSTRUCTION (142, bv_s32_native_set, "bv-s32-native-set", 0, 3, 0)
+BV_INT_SET (s32, int32, 4)
+VM_DEFINE_INSTRUCTION (143, bv_u64_native_set, "bv-u64-native-set", 0, 3, 0)
+BV_INT_SET (u64, uint64, 8)
+VM_DEFINE_INSTRUCTION (144, bv_s64_native_set, "bv-s64-native-set", 0, 3, 0)
+BV_INT_SET (s64, int64, 8)
+VM_DEFINE_INSTRUCTION (145, bv_f32_native_set, "bv-f32-native-set", 0, 3, 0)
+BV_FLOAT_SET (f32, ieee_single, float, 4)
+VM_DEFINE_INSTRUCTION (146, bv_f64_native_set, "bv-f64-native-set", 0, 3, 0)
+BV_FLOAT_SET (f64, ieee_double, double, 8)
+
+#undef BV_FIXABLE_INT_SET
+#undef BV_INT_SET
+#undef BV_FLOAT_SET
 
 /*
 (defun renumber-ops ()

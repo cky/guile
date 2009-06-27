@@ -2,20 +2,19 @@
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
@@ -23,6 +22,7 @@
   #:use-module (system vm instruction)
   #:use-module (system base pmatch)
   #:use-module (srfi srfi-4)
+  #:use-module (rnrs bytevector)
   #:use-module (language assembly)
   #:export (decompile-bytecode))
 
@@ -98,14 +98,24 @@
               ((eq? inst 'load-program)
                (decode-load-program pop))
               ((< (instruction-length inst) 0)
-               (let* ((len (let* ((a (pop)) (b (pop)) (c (pop)))
+               (let* ((make-sequence
+                       (if (eq? inst 'load-array)
+                           make-bytevector
+                           make-string))
+                      (sequence-set!
+                       (if (eq? inst 'load-array)
+                           bytevector-u8-set!
+                           (lambda (str pos value)
+                             (string-set! str pos (integer->char value)))))
+
+                      (len (let* ((a (pop)) (b (pop)) (c (pop)))
                              (+ (ash a 16) (ash b 8) c)))
-                      (str (make-string len)))
+                      (seq (make-sequence len)))
                  (let lp ((i 0))
                    (if (= i len)
-                       `(,inst ,str)
+                       `(,inst ,seq)
                        (begin
-                         (string-set! str i (integer->char (pop)))
+                         (sequence-set! seq i (pop))
                          (lp (1+ i)))))))
               (else
                ;; fixed length

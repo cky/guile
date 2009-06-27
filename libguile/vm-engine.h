@@ -1,18 +1,19 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* This file is included in vm_engine.c */
@@ -53,13 +54,9 @@
 #endif
 #endif
 #ifdef __i386__
-/* gcc on lenny actually crashes if we allocate these variables in registers.
-   hopefully this is the only one of these. */
-#if !(__GNUC__==4 && __GNUC_MINOR__==1 && __GNUC_PATCHLEVEL__==2)
-#define IP_REG asm("%esi")
-#define SP_REG asm("%edi")
-#define FP_REG
-#endif
+/* too few registers! because of register allocation errors with various gcs,
+   just punt on explicit assignments on i386, hoping that the "register"
+   declaration will be sufficient. */
 #endif
 #if defined(PPC) || defined(_POWER) || defined(_IBMR2)
 #define IP_REG asm("26")

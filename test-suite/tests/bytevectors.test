@@ -6,26 +6,46 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
-;;;;
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;;
+;;;; 
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-bytevector)
   :use-module (test-suite lib)
+  :use-module (system base compile)
   :use-module (rnrs bytevector))
 
 ;;; Some of the tests in here are examples taken from the R6RS Standard
 ;;; Libraries document.
 
+(define-syntax c&e
+  (syntax-rules (pass-if pass-if-exception)
+    ((_ (pass-if test-name exp))
+     (begin (pass-if (string-append test-name " (eval)")
+                     (primitive-eval 'exp))
+            (pass-if (string-append test-name " (compile)")
+                     (compile 'exp #:to 'value))))
+    ((_ (pass-if-exception test-name exc exp))
+     (begin (pass-if-exception (string-append test-name " (eval)")
+                               exc (primitive-eval 'exp))
+            (pass-if-exception (string-append test-name " (compile)")
+                               exc (compile 'exp #:to 'value))))))
+
+(define-syntax with-test-prefix/c&e
+  (syntax-rules ()
+    ((_ section-name exp ...)
+     (with-test-prefix section-name (c&e exp) ...))))
+
+
 
-(with-test-prefix "2.2 General Operations"
+(with-test-prefix/c&e "2.2 General Operations"
 
   (pass-if "native-endianness"
     (not (not (memq (native-endianness) '(big little)))))
@@ -44,7 +64,7 @@
                             (make-bytevector 20 0))))))
 
 
-(with-test-prefix "2.3 Operations on Bytes and Octets"
+(with-test-prefix/c&e "2.3 Operations on Bytes and Octets"
 
   (pass-if "bytevector-{u8,s8}-ref"
     (equal? '(-127 129 -1 255)
@@ -123,10 +143,15 @@
       (bytevector-sint-set! b 0 -16 (endianness big) 2)
       (bytevector-sint-set! b 1 -16 (endianness little) 2)
       (equal? (bytevector->u8-list b)
-	      '(#xff #xf0 #xff)))))
+	      '(#xff #xf0 #xff))))
+
+  (pass-if "equal?"
+    (let ((bv1 (u8-list->bytevector (iota 123)))
+          (bv2 (u8-list->bytevector (iota 123))))
+      (equal? bv1 bv2))))
 
 
-(with-test-prefix "2.4 Operations on Integers of Arbitrary Size"
+(with-test-prefix/c&e "2.4 Operations on Integers of Arbitrary Size"
 
   (pass-if "bytevector->sint-list"
     (let ((b (u8-list->bytevector '(1 2 3 255 1 2 1 2))))
@@ -180,7 +205,7 @@
     (uint-list->bytevector '(0 -1) (endianness big) 2)))
 
 
-(with-test-prefix "2.5 Operations on 16-Bit Integers"
+(with-test-prefix/c&e "2.5 Operations on 16-Bit Integers"
 
   (pass-if "bytevector-u16-ref"
     (let ((b (u8-list->bytevector
@@ -228,7 +253,7 @@
 	      -77))))
 
 
-(with-test-prefix "2.6 Operations on 32-bit Integers"
+(with-test-prefix/c&e "2.6 Operations on 32-bit Integers"
 
   (pass-if "bytevector-u32-ref"
     (let ((b (u8-list->bytevector
@@ -265,7 +290,7 @@
                    (- 2222222222 (expt 2 32)))))))
 
 
-(with-test-prefix "2.7 Operations on 64-bit Integers"
+(with-test-prefix/c&e "2.7 Operations on 64-bit Integers"
 
   (pass-if "bytevector-u64-ref"
     (let ((b (u8-list->bytevector
@@ -310,7 +335,7 @@
        (= 0 (bytevector-u64-ref b 0 (endianness big))))))
 
 
-(with-test-prefix "2.8 Operations on IEEE-754 Representations"
+(with-test-prefix/c&e "2.8 Operations on IEEE-754 Representations"
 
   (pass-if "bytevector-ieee-single-native-{ref,set!}"
     (let ((b (make-bytevector 4))
@@ -523,6 +548,131 @@
                    (map integer->char
                         (bytevector->uint-list utf32 (endianness little)
                                                4)))))))
+
+
+
+(with-test-prefix "Datum Syntax"
+
+  (pass-if "empty"
+    (equal? (with-input-from-string "#vu8()" read)
+            (make-bytevector 0)))
+
+  (pass-if "simple"
+    (equal? (with-input-from-string "#vu8(1 2 3   4 5)" read)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if ">127"
+    (equal? (with-input-from-string "#vu8(0 255 127 128)" read)
+            (u8-list->bytevector '(0 255 127 128))))
+
+  (pass-if "self-evaluating"
+    (equal? (eval (with-input-from-string "#vu8(1 2 3 4 5)" read)
+                  (current-module))
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "quoted"
+    (equal? (eval (with-input-from-string "'#vu8(1 2 3 4 5)" read)
+                  (current-module))
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "literal simple"
+    (equal? #vu8(1 2 3   4 5)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "literal >127"
+    (equal? #vu8(0 255 127 128)
+            (u8-list->bytevector '(0 255 127 128))))
+
+  (pass-if "literal quoted"
+    (equal? '#vu8(1 2 3   4 5)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if-exception "incorrect prefix"
+    exception:read-error
+    (with-input-from-string "#vi8(1 2 3)" read))
+
+  (pass-if-exception "extraneous space"
+    exception:read-error
+    (with-input-from-string "#vu8 (1 2 3)" read))
+
+  (pass-if-exception "negative integers"
+    exception:wrong-type-arg
+    (with-input-from-string "#vu8(-1 -2 -3)" read))
+
+  (pass-if-exception "out-of-range integers"
+    exception:wrong-type-arg
+    (with-input-from-string "#vu8(0 256)" read)))
+
+
+(with-test-prefix "Generalized Vectors"
+
+  (pass-if "generalized-vector?"
+    (generalized-vector? #vu8(1 2 3)))
+
+  (pass-if "generalized-vector-length"
+    (equal? (iota 16)
+            (map generalized-vector-length
+                 (map make-bytevector (iota 16)))))
+
+  (pass-if "generalized-vector-ref"
+    (let ((bv #vu8(255 127)))
+      (and (= 255 (generalized-vector-ref bv 0))
+           (= 127 (generalized-vector-ref bv 1)))))
+
+  (pass-if-exception "generalized-vector-ref [index out-of-range]"
+    exception:out-of-range
+    (let ((bv #vu8(1 2)))
+      (generalized-vector-ref bv 2)))
+
+  (pass-if "generalized-vector-set!"
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 0 255)
+      (generalized-vector-set! bv 1 77)
+      (equal? '(255 77)
+              (bytevector->u8-list bv))))
+
+  (pass-if-exception "generalized-vector-set! [index out-of-range]"
+    exception:out-of-range
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 2 0)))
+
+  (pass-if-exception "generalized-vector-set! [value out-of-range]"
+    exception:out-of-range
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 0 256)))
+
+  (pass-if "array-type"
+    (eq? 'vu8 (array-type #vu8())))
+
+  (pass-if "array-contents"
+    (let ((bv (u8-list->bytevector (iota 10))))
+      (eq? bv (array-contents bv))))
+
+  (pass-if "array-ref"
+    (let ((bv (u8-list->bytevector (iota 10))))
+      (equal? (iota 10)
+              (map (lambda (i) (array-ref bv i))
+                   (iota 10)))))
+
+  (pass-if "array-set!"
+    (let ((bv (make-bytevector 10)))
+      (for-each (lambda (i)
+                  (array-set! bv i i))
+                (iota 10))
+      (equal? (iota 10)
+              (bytevector->u8-list bv))))
+
+  (pass-if "make-typed-array"
+    (let ((bv (make-typed-array 'vu8 77 33)))
+      (equal? bv (u8-list->bytevector (make-list 33 77)))))
+
+  (pass-if-exception "make-typed-array [out-of-range]"
+    exception:out-of-range
+    (make-typed-array 'vu8 256 77))
+
+  (pass-if "uniform-array->bytevector"
+    (let ((bv #vu8(0 1 128 255)))
+      (equal? bv (uniform-array->bytevector bv)))))
 
 
 ;;; Local Variables:

@@ -400,6 +400,24 @@ main (int argc, char *argv[])
   pf ("#define SCM_HAVE_READDIR64_R 0 /* 0 or 1 */\n");
 #endif
 
+  /* Arrange so that we have a file offset type that reflects the one
+     used when compiling Guile, regardless of what the application's
+     `_FILE_OFFSET_BITS' says.  See
+     http://lists.gnu.org/archive/html/bug-guile/2009-06/msg00018.html
+     for the original bug report.
+
+     Note that we can't define `scm_t_off' in terms of `off_t' or
+     `off64_t' because they may or may not be available depending on
+     how the application that uses Guile is compiled.  */
+
+#if defined GUILE_USE_64_CALLS && defined HAVE_STAT64
+  pf ("typedef scm_t_int64 scm_t_off;\n");
+#elif SIZEOF_OFF_T == SIZEOF_INT
+  pf ("typedef int scm_t_off;\n");
+#else
+  pf ("typedef long int scm_t_off;\n");
+#endif
+
 #if USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");

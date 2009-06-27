@@ -5,7 +5,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -337,39 +337,46 @@
 )
 
 
+(define (decorate-source e s)
+  (if (and (pair? e) s)
+      (set-source-properties! e s))
+  e)
+
 ;;; output constructors
 (define build-void
   (lambda (source)
     (case (fluid-ref *mode*)
       ((c) ((@ (language tree-il) make-void) source))
-      (else '(if #f #f)))))
+      (else (decorate-source '(if #f #f) source)))))
 
 (define build-application
   (lambda (source fun-exp arg-exps)
     (case (fluid-ref *mode*)
       ((c) ((@ (language tree-il) make-application) source fun-exp arg-exps))
-      (else `(,fun-exp . ,arg-exps)))))
+      (else (decorate-source `(,fun-exp . ,arg-exps) source)))))
 
 (define build-conditional
   (lambda (source test-exp then-exp else-exp)
     (case (fluid-ref *mode*)
       ((c) ((@ (language tree-il) make-conditional)
             source test-exp then-exp else-exp))
-      (else (if (equal? else-exp '(if #f #f))
-                `(if ,test-exp ,then-exp)
-                `(if ,test-exp ,then-exp ,else-exp))))))
+      (else (decorate-source
+             (if (equal? else-exp '(if #f #f))
+                 `(if ,test-exp ,then-exp)
+                 `(if ,test-exp ,then-exp ,else-exp))
+             source)))))
 
 (define build-lexical-reference
   (lambda (type source name var)
     (case (fluid-ref *mode*)
       ((c) ((@ (language tree-il) make-lexical-ref) source name var))
-      (else var))))
+      (else (decorate-source var source)))))
 
 (define build-lexical-assignment
   (lambda (source name var exp)
     (case (fluid-ref *mode*)
       ((c) ((@ (language tree-il) make-lexical-set) source name var exp))
-      (else `(set! ,var ,exp)))))
+      (else (decorate-source `(set! ,var ,exp) source)))))
 
 ;; Before modules are booted, we can't expand into data structures from
 ;; (language tree-il) -- we need to give the evaluator the
@@ -403,11 +410,11 @@
      (lambda (mod var public?) 
        (case (fluid-ref *mode*)
          ((c) ((@ (language tree-il) make-module-ref) source mod var public?))
-         (else (list (if public? '@ '@@) mod var))))
+         (else (decorate-source (list (if public? '@ '@@) mod var) source))))
      (lambda (var)
        (case (fluid-ref *mode*)
          ((c) ((@ (language tree-il) make-toplevel-ref) source var))
-         (else var))))))
+         (else (decorate-source var source)))))))
 
 (define build-global-assignment
   (lambda (source var exp mod)
@@ -416,11 +423,11 @@
      (lambda (mod var public?) 
        (case (fluid-ref *mode*)
          ((c) ((@ (language tree-il) make-module-set) source mod var public? exp))
-         (else `(set! ,(list (if public? '@ '@@) mod var) ,exp))))
+         (else (decorate-source `(set! ,(list (if public? '@ '@@) mod var) ,exp) source))))
      (lambda (var)
        (case (fluid-ref *mode*)
          ((c) ((@ (language tree-il) make-toplevel-set) source var exp))
-         (else `(set! ,var ,exp)))))))
+         (else (decorate-source `(set! ,var ,exp) source)))))))
 
 ;; FIXME: there is a bug that prevents (set! ((@ (foo) bar) baz) quz)
 ;; from working. Hack around it.
@@ -439,7 +446,7 @@
       ((c)
        (maybe-name-value! var exp)
        ((@ (language tree-il) make-toplevel-define) source var exp))
-      (else `(define ,var ,exp)))))
+      (else (decorate-source `(define ,var ,exp) source)))))
 
 (define build-lambda
   (lambda (src ids vars docstring exp)
@@ -447,25 +454,29 @@
       ((c) ((@ (language tree-il) make-lambda) src ids vars
             (if docstring `((documentation . ,docstring)) '())
             exp))
-      (else `(lambda ,vars ,@(if docstring (list docstring) '())
-                     ,exp)))))
+      (else (decorate-source
+             `(lambda ,vars ,@(if docstring (list docstring) '())
+                      ,exp)
+             src)))))
 
 (define build-primref
   (lambda (src name)
     (if (equal? (module-name (current-module)) '(guile))
         (case (fluid-ref *mode*)
           ((c) ((@ (language tree-il) make-toplevel-ref) src name))
-          (else name))
+          (else (decorate-source name src)))
         (case (fluid-ref *mode*)
           ((c) ((@ (language tree-il) make-module-ref) src '(guile) name #f))
-          (else `(@@ (guile) ,name))))))
+          (else (decorate-source `(@@ (guile) ,name) src))))))
 
 (define (build-data src exp)
   (case (fluid-ref *mode*)
     ((c) ((@ (language tree-il) make-const) src exp))
-    (else (if (and (self-evaluating? exp) (not (vector? exp)))
-              exp
-              (list 'quote exp)))))
+    (else (decorate-source
+           (if (and (self-evaluating? exp) (not (vector? exp)))
+               exp
+               (list 'quote exp))
+           src))))
 
 (define build-sequence
   (lambda (src exps)
@@ -473,7 +484,7 @@
         (car exps)
         (case (fluid-ref *mode*)
           ((c) ((@ (language tree-il) make-sequence) src exps))
-          (else `(begin ,@exps))))))
+          (else (decorate-source `(begin ,@exps) src))))))
 
 (define build-let
   (lambda (src ids vars val-exps body-exp)
@@ -483,7 +494,9 @@
           ((c)
            (for-each maybe-name-value! ids val-exps)
            ((@ (language tree-il) make-let) src ids vars val-exps body-exp))
-          (else `(let ,(map list vars val-exps) ,body-exp))))))
+          (else (decorate-source
+                 `(let ,(map list vars val-exps) ,body-exp)
+                 src))))))
 
 (define build-named-let
   (lambda (src ids vars val-exps body-exp)
@@ -500,7 +513,9 @@
             (list f-name) (list f) (list proc)
             (build-application src (build-lexical-reference 'fun src f-name f)
                                val-exps))))
-        (else `(let ,f ,(map list vars val-exps) ,body-exp))))))
+        (else (decorate-source
+               `(let ,f ,(map list vars val-exps) ,body-exp)
+               src))))))
 
 (define build-letrec
   (lambda (src ids vars val-exps body-exp)
@@ -510,7 +525,9 @@
           ((c)
            (for-each maybe-name-value! ids val-exps)
            ((@ (language tree-il) make-letrec) src ids vars val-exps body-exp))
-          (else `(letrec ,(map list vars val-exps) ,body-exp))))))
+          (else (decorate-source
+                 `(letrec ,(map list vars val-exps) ,body-exp)
+                 src))))))
 
 ;; FIXME: wingo: use make-lexical ?
 (define-syntax build-lexical-var
@@ -924,9 +941,7 @@
 
 (define source-wrap
   (lambda (x w s defmod)
-    (if (and s (pair? x))
-        (set-source-properties! x s))
-    (wrap x w defmod)))
+    (wrap (decorate-source x s) w defmod)))
 
 ;;; expanding
 
@@ -1084,7 +1099,9 @@
                         (valid-bound-ids? (lambda-var-list (syntax args))))
                                         ; need lambda here...
                    (values 'define-form (wrap (syntax name) w mod)
-                           (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
+                           (decorate-source
+                            (cons (syntax lambda) (wrap (syntax (args e1 e2 ...)) w mod))
+                            s)
                            empty-wrap s mod))
                   ((_ name)
                    (id? (syntax name))

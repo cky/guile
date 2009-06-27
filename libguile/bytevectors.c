@@ -1,18 +1,19 @@
 /* Copyright (C) 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -25,6 +26,7 @@
 #include <gmp.h>
 
 #include "libguile/_scm.h"
+#include "libguile/extensions.h"
 #include "libguile/bytevectors.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
@@ -73,7 +75,7 @@
 
 
 #define INTEGER_ACCESSOR_PROLOGUE(_len, _sign)			\
-  unsigned c_len, c_index;					\
+  size_t c_len, c_index;					\
   _sign char *c_bv;						\
 								\
   SCM_VALIDATE_BYTEVECTOR (1, bv);				\
@@ -86,22 +88,22 @@
     scm_out_of_range (FUNC_NAME, index);
 
 /* Template for fixed-size integer access (only 8, 16 or 32-bit).  */
-#define INTEGER_REF(_len, _sign)			\
-  SCM result;						\
-							\
-  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);		\
-  SCM_VALIDATE_SYMBOL (3, endianness);			\
-							\
-  {							\
-    INT_TYPE (_len, _sign)  c_result;			\
-							\
-    memcpy (&c_result, &c_bv[c_index], (_len) / 8);	\
-    if (!scm_is_eq (endianness, native_endianness))	\
-      c_result = INT_SWAP (_len) (c_result);		\
-							\
-    result = SCM_I_MAKINUM (c_result);			\
-  }							\
-							\
+#define INTEGER_REF(_len, _sign)                                \
+  SCM result;                                                   \
+                                                                \
+  INTEGER_ACCESSOR_PROLOGUE (_len, _sign);                      \
+  SCM_VALIDATE_SYMBOL (3, endianness);                          \
+                                                                \
+  {                                                             \
+      INT_TYPE (_len, _sign)  c_result;                         \
+                                                                \
+    memcpy (&c_result, &c_bv[c_index], (_len) / 8);             \
+    if (!scm_is_eq (endianness, scm_i_native_endianness))       \
+      c_result = INT_SWAP (_len) (c_result);                    \
+                                                                \
+    result = SCM_I_MAKINUM (c_result);                          \
+  }                                                             \
+                                                                \
   return result;
 
 /* Template for fixed-size integer access using the native endianness.  */
@@ -136,7 +138,7 @@
       scm_out_of_range (FUNC_NAME, value);			\
 								\
     c_value_short = (INT_TYPE (_len, _sign)) c_value;		\
-    if (!scm_is_eq (endianness, native_endianness))		\
+    if (!scm_is_eq (endianness, scm_i_native_endianness))       \
       c_value_short = INT_SWAP (_len) (c_value_short);		\
 								\
     memcpy (&c_bv[c_index], &c_value_short, (_len) / 8);	\
@@ -171,7 +173,7 @@
 
 /* Bytevector type.  */
 
-SCM_GLOBAL_SMOB (scm_tc16_bytevector, "r6rs-bytevector", 0);
+scm_t_bits scm_tc16_bytevector;
 
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)	\
   SCM_SET_SMOB_DATA ((_bv), (scm_t_bits) (_len))
@@ -183,14 +185,14 @@ SCM scm_null_bytevector = SCM_UNSPECIFIED;
 
 
 static inline SCM
-make_bytevector_from_buffer (unsigned len, signed char *contents)
+make_bytevector_from_buffer (size_t len, signed char *contents)
 {
   /* Assuming LEN > SCM_BYTEVECTOR_INLINE_THRESHOLD.  */
   SCM_RETURN_NEWSMOB2 (scm_tc16_bytevector, len, contents);
 }
 
 static inline SCM
-make_bytevector (unsigned len)
+make_bytevector (size_t len)
 {
   SCM bv;
 
@@ -211,7 +213,7 @@ make_bytevector (unsigned len)
 
 /* Return a new bytevector of size LEN octets.  */
 SCM
-scm_c_make_bytevector (unsigned len)
+scm_c_make_bytevector (size_t len)
 {
   return (make_bytevector (len));
 }
@@ -219,7 +221,7 @@ scm_c_make_bytevector (unsigned len)
 /* Return a bytevector of size LEN made up of CONTENTS.  The area pointed to
    by CONTENTS must have been allocated using `scm_gc_malloc ()'.  */
 SCM
-scm_c_take_bytevector (signed char *contents, unsigned len)
+scm_c_take_bytevector (signed char *contents, size_t len)
 {
   SCM bv;
 
@@ -242,11 +244,11 @@ scm_c_take_bytevector (signed char *contents, unsigned len)
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
    size) and return BV.  */
 SCM
-scm_i_shrink_bytevector (SCM bv, unsigned c_new_len)
+scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
 {
   if (!SCM_BYTEVECTOR_INLINE_P (bv))
     {
-      unsigned c_len;
+      size_t c_len;
       signed char *c_bv, *c_new_bv;
 
       c_len = SCM_BYTEVECTOR_LENGTH (bv);
@@ -273,8 +275,71 @@ scm_i_shrink_bytevector (SCM bv, unsigned c_new_len)
   return bv;
 }
 
-SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
-		bv, port, pstate)
+int
+scm_is_bytevector (SCM obj)
+{
+  return SCM_SMOB_PREDICATE (scm_tc16_bytevector, obj);
+}
+
+size_t
+scm_c_bytevector_length (SCM bv)
+#define FUNC_NAME "scm_c_bytevector_length"
+{
+  SCM_VALIDATE_BYTEVECTOR (1, bv);
+
+  return SCM_BYTEVECTOR_LENGTH (bv);
+}
+#undef FUNC_NAME
+
+scm_t_uint8
+scm_c_bytevector_ref (SCM bv, size_t index)
+#define FUNC_NAME "scm_c_bytevector_ref"
+{
+  size_t c_len;
+  const scm_t_uint8 *c_bv;
+
+  SCM_VALIDATE_BYTEVECTOR (1, bv);
+
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+
+  if (SCM_UNLIKELY (index >= c_len))
+    scm_out_of_range (FUNC_NAME, scm_from_size_t (index));
+
+  return c_bv[index];
+}
+#undef FUNC_NAME
+
+void
+scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
+#define FUNC_NAME "scm_c_bytevector_set_x"
+{
+  size_t c_len;
+  scm_t_uint8 *c_bv;
+
+  SCM_VALIDATE_BYTEVECTOR (1, bv);
+
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
+
+  if (SCM_UNLIKELY (index >= c_len))
+    scm_out_of_range (FUNC_NAME, scm_from_size_t (index));
+
+  c_bv[index] = value;
+}
+#undef FUNC_NAME
+
+/* This procedure is used by `scm_c_generalized_vector_set_x ()'.  */
+void
+scm_i_bytevector_generalized_set_x (SCM bv, size_t index, SCM value)
+#define FUNC_NAME "scm_i_bytevector_generalized_set_x"
+{
+  scm_c_bytevector_set_x (bv, index, scm_to_uint8 (value));
+}
+#undef FUNC_NAME
+
+static int
+print_bytevector (SCM bv, SCM port, scm_print_state *pstate)
 {
   unsigned c_len, i;
   unsigned char *c_bv;
@@ -299,7 +364,14 @@ SCM_SMOB_PRINT (scm_tc16_bytevector, print_bytevector,
   return 1;
 }
 
-SCM_SMOB_FREE (scm_tc16_bytevector, free_bytevector, bv)
+static SCM
+bytevector_equal_p (SCM bv1, SCM bv2)
+{
+  return scm_bytevector_eq_p (bv1, bv2);
+}
+
+static size_t
+free_bytevector (SCM bv)
 {
 
   if (!SCM_BYTEVECTOR_INLINE_P (bv))
@@ -326,7 +398,7 @@ SCM_SYMBOL (scm_sym_little, "little");
 SCM scm_endianness_big, scm_endianness_little;
 
 /* Host endianness (a symbol).  */
-static SCM native_endianness = SCM_UNSPECIFIED;
+SCM scm_i_native_endianness = SCM_UNSPECIFIED;
 
 /* Byte-swapping.  */
 #ifndef bswap_24
@@ -342,7 +414,7 @@ SCM_DEFINE (scm_native_endianness, "native-endianness", 0, 0, 0,
 	    "Return a symbol denoting the machine's native endianness.")
 #define FUNC_NAME s_scm_native_endianness
 {
-  return native_endianness;
+  return scm_i_native_endianness;
 }
 #undef FUNC_NAME
 
@@ -351,8 +423,7 @@ SCM_DEFINE (scm_bytevector_p, "bytevector?", 1, 0, 0,
 	    "Return true if @var{obj} is a bytevector.")
 #define FUNC_NAME s_scm_bytevector_p
 {
-  return (scm_from_bool (SCM_SMOB_PREDICATE (scm_tc16_bytevector,
-					     obj)));
+  return scm_from_bool (scm_is_bytevector (obj));
 }
 #undef FUNC_NAME
 
@@ -397,9 +468,7 @@ SCM_DEFINE (scm_bytevector_length, "bytevector-length", 1, 0, 0,
 	    "Return the length (in bytes) of @var{bv}.")
 #define FUNC_NAME s_scm_bytevector_length
 {
-  SCM_VALIDATE_BYTEVECTOR (1, bv);
-
-  return (scm_from_uint (SCM_BYTEVECTOR_LENGTH (bv)));
+  return scm_from_uint (scm_c_bytevector_length (bv));
 }
 #undef FUNC_NAME
 
@@ -799,7 +868,7 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
       int swap;								\
       _sign int value;							\
 									\
-      swap = !scm_is_eq (endianness, native_endianness);		\
+      swap = !scm_is_eq (endianness, scm_i_native_endianness);		\
       switch (c_size)							\
 	{								\
 	case 1:								\
@@ -874,7 +943,7 @@ bytevector_unsigned_ref (const char *c_bv, size_t c_size, SCM endianness)
 	      int swap;							\
 	      INT_TYPE (16, _sign)  c_value16;				\
 									\
-	      swap = !scm_is_eq (endianness, native_endianness);	\
+	      swap = !scm_is_eq (endianness, scm_i_native_endianness);	\
 									\
 	      if (swap)							\
 		c_value16 = (INT_TYPE (16, _sign)) bswap_16 (c_value);	\
@@ -1224,7 +1293,7 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
 #define LARGE_INTEGER_NATIVE_REF(_len, _sign)				 \
   INTEGER_ACCESSOR_PROLOGUE(_len, _sign);				 \
   return (bytevector_large_ref ((char *) c_bv + c_index, _len / 8,	 \
-				SIGNEDNESS (_sign), native_endianness));
+				SIGNEDNESS (_sign), scm_i_native_endianness));
 
 #define LARGE_INTEGER_NATIVE_SET(_len, _sign)				\
   int err;								\
@@ -1232,7 +1301,7 @@ SCM_DEFINE (scm_bytevector_s16_native_set_x, "bytevector-s16-native-set!",
 									\
   err = bytevector_large_set ((char *) c_bv + c_index, _len / 8,	\
 			      SIGNEDNESS (_sign), value,		\
-			      native_endianness);			\
+			      scm_i_native_endianness);			\
   if (SCM_UNLIKELY (err))						\
      scm_out_of_range (FUNC_NAME, value);				\
 									\
@@ -1571,7 +1640,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
   IEEE754_ACCESSOR_PROLOGUE (_type);				\
   SCM_VALIDATE_SYMBOL (3, endianness);				\
 								\
-  if (scm_is_eq (endianness, native_endianness))		\
+  if (scm_is_eq (endianness, scm_i_native_endianness))		\
     memcpy (&c_result, &c_bv[c_index], sizeof (c_result));	\
   else								\
     {								\
@@ -1600,7 +1669,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
   SCM_VALIDATE_SYMBOL (4, endianness);				\
   c_value = IEEE754_FROM_SCM (_type) (value);			\
 								\
-  if (scm_is_eq (endianness, native_endianness))		\
+  if (scm_is_eq (endianness, scm_i_native_endianness))		\
     memcpy (&c_bv[c_index], &c_value, sizeof (c_value));	\
   else								\
     {								\
@@ -1993,19 +2062,35 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
 /* Initialization.  */
 
 void
+scm_bootstrap_bytevectors (void)
+{
+  /* The SMOB type must be instantiated here because the
+     generalized-vector API may want to access bytevectors even though
+     `(rnrs bytevector)' hasn't been loaded.  */
+  scm_tc16_bytevector = scm_make_smob_type ("bytevector", 0);
+  scm_set_smob_free (scm_tc16_bytevector, free_bytevector);
+  scm_set_smob_print (scm_tc16_bytevector, print_bytevector);
+  scm_set_smob_equalp (scm_tc16_bytevector, bytevector_equal_p);
+
+  scm_null_bytevector =
+    scm_gc_protect_object (make_bytevector_from_buffer (0, NULL));
+
+#ifdef WORDS_BIGENDIAN
+  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("big"));
+#else
+  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("little"));
+#endif
+
+  scm_c_register_extension ("libguile", "scm_init_bytevectors",
+			    (scm_t_extension_init_func) scm_init_bytevectors,
+			    NULL);
+}
+
+void
 scm_init_bytevectors (void)
 {
 #include "libguile/bytevectors.x"
 
-#ifdef WORDS_BIGENDIAN
-  native_endianness = scm_sym_big;
-#else
-  native_endianness = scm_sym_little;
-#endif
-
   scm_endianness_big = scm_sym_big;
   scm_endianness_little = scm_sym_little;
-
-  scm_null_bytevector =
-    scm_gc_protect_object (make_bytevector_from_buffer (0, NULL));
 }

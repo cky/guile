@@ -2,20 +2,19 @@
 
 ;; Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
@@ -23,6 +22,7 @@
   #:use-module (system base syntax)
   #:use-module (ice-9 receive)
   #:use-module (language glil)
+  #:use-module (system vm instruction)
   #:use-module (language tree-il)
   #:use-module (language tree-il optimize)
   #:use-module (language tree-il analyze)
@@ -81,7 +81,53 @@
    (list . list)
    (vector . vector)
    ((@slot-ref . 2) . slot-ref)
-   ((@slot-set! . 3) . slot-set)))
+   ((@slot-set! . 3) . slot-set)
+   ((vector-ref . 2) . vector-ref)
+   ((vector-set! . 3) . vector-set)
+
+   ((bytevector-u8-ref . 2) . bv-u8-ref)
+   ((bytevector-u8-set! . 3) . bv-u8-set)
+   ((bytevector-s8-ref . 2) . bv-s8-ref)
+   ((bytevector-s8-set! . 3) . bv-s8-set)
+
+   ((bytevector-u16-ref . 3) . bv-u16-ref)
+   ((bytevector-u16-set! . 4) . bv-u16-set)
+   ((bytevector-u16-native-ref . 2) . bv-u16-native-ref)
+   ((bytevector-u16-native-set! . 3) . bv-u16-native-set)
+   ((bytevector-s16-ref . 3) . bv-s16-ref)
+   ((bytevector-s16-set! . 4) . bv-s16-set)
+   ((bytevector-s16-native-ref . 2) . bv-s16-native-ref)
+   ((bytevector-s16-native-set! . 3) . bv-s16-native-set)
+    
+   ((bytevector-u32-ref . 3) . bv-u32-ref)
+   ((bytevector-u32-set! . 4) . bv-u32-set)
+   ((bytevector-u32-native-ref . 2) . bv-u32-native-ref)
+   ((bytevector-u32-native-set! . 3) . bv-u32-native-set)
+   ((bytevector-s32-ref . 3) . bv-s32-ref)
+   ((bytevector-s32-set! . 4) . bv-s32-set)
+   ((bytevector-s32-native-ref . 2) . bv-s32-native-ref)
+   ((bytevector-s32-native-set! . 3) . bv-s32-native-set)
+    
+   ((bytevector-u64-ref . 3) . bv-u64-ref)
+   ((bytevector-u64-set! . 4) . bv-u64-set)
+   ((bytevector-u64-native-ref . 2) . bv-u64-native-ref)
+   ((bytevector-u64-native-set! . 3) . bv-u64-native-set)
+   ((bytevector-s64-ref . 3) . bv-s64-ref)
+   ((bytevector-s64-set! . 4) . bv-s64-set)
+   ((bytevector-s64-native-ref . 2) . bv-s64-native-ref)
+   ((bytevector-s64-native-set! . 3) . bv-s64-native-set)
+    
+   ((bytevector-ieee-single-ref . 3) . bv-f32-ref)
+   ((bytevector-ieee-single-set! . 4) . bv-f32-set)
+   ((bytevector-ieee-single-native-ref . 2) . bv-f32-native-ref)
+   ((bytevector-ieee-single-native-set! . 3) . bv-f32-native-set)
+   ((bytevector-ieee-double-ref . 3) . bv-f64-ref)
+   ((bytevector-ieee-double-set! . 4) . bv-f64-set)
+   ((bytevector-ieee-double-native-ref . 2) . bv-f64-native-ref)
+   ((bytevector-ieee-double-native-set! . 3) . bv-f64-native-set)))
+
+
+
 
 (define (make-label) (gensym ":L"))
 
@@ -306,10 +352,20 @@
          => (lambda (op)
               (for-each comp-push args)
               (emit-code src (make-glil-call op (length args)))
-              (case context
-                ((tail) (emit-code #f (make-glil-call 'return 1)))
-                ((drop) (emit-code #f (make-glil-call 'drop 1))))))
-
+              (case (instruction-pushes op)
+                ((0)
+                 (case context
+                   ((tail) (emit-code #f (make-glil-void))
+                           (emit-code #f (make-glil-call 'return 1)))
+                   ((push vals) (emit-code #f (make-glil-void)))))
+                ((1)
+                 (case context
+                   ((tail) (emit-code #f (make-glil-call 'return 1)))
+                   ((drop) (emit-code #f (make-glil-call 'drop 1)))))
+                (else
+                 (error "bad primitive op: too many pushes"
+                        op (instruction-pushes op))))))
+        
         (else
          (comp-push proc)
          (for-each comp-push args)

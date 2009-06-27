@@ -46,6 +46,8 @@ AC_DEFUN([gl_INIT],
   gl_source_base='lib'
   gl_FUNC_ALLOCA
   gl_BYTESWAP
+  gl_CANONICALIZE_LGPL
+  gl_MODULE_INDICATOR([canonicalize-lgpl])
   gl_COUNT_ONE_BITS
   gl_ENVIRON
   gl_UNISTD_MODULE_INDICATOR([environ])
@@ -63,6 +65,7 @@ AC_DEFUN([gl_INIT],
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
   gl_FUNC_MALLOC_POSIX
   gl_STDLIB_MODULE_INDICATOR([malloc-posix])
+  gl_MALLOCA
   gl_FUNC_MBRLEN
   gl_WCHAR_MODULE_INDICATOR([mbrlen])
   gl_FUNC_MBRTOWC
@@ -70,8 +73,11 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_MBSINIT
   gl_WCHAR_MODULE_INDICATOR([mbsinit])
   gl_MULTIARCH
+  gl_PATHMAX
   gl_FUNC_PUTENV
   gl_STDLIB_MODULE_INDICATOR([putenv])
+  gl_FUNC_READLINK
+  gl_UNISTD_MODULE_INDICATOR([readlink])
   gl_SAFE_READ
   gl_SAFE_WRITE
   gt_TYPE_SSIZE_T
@@ -236,6 +242,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strcasecmp.c
   lib/c-strcaseeq.h
   lib/c-strncasecmp.c
+  lib/canonicalize-lgpl.c
+  lib/canonicalize.h
   lib/config.charset
   lib/count-one-bits.h
   lib/flock.c
@@ -255,10 +263,15 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/localcharset.c
   lib/localcharset.h
   lib/malloc.c
+  lib/malloca.c
+  lib/malloca.h
+  lib/malloca.valgrind
   lib/mbrlen.c
   lib/mbrtowc.c
   lib/mbsinit.c
+  lib/pathmax.h
   lib/putenv.c
+  lib/readlink.c
   lib/ref-add.sin
   lib/ref-del.sin
   lib/safe-read.c
@@ -298,8 +311,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/alloca.m4
   m4/autobuild.m4
   m4/byteswap.m4
+  m4/canonicalize-lgpl.m4
   m4/codeset.m4
   m4/count-one-bits.m4
+  m4/eealloc.m4
   m4/environ.m4
   m4/extensions.m4
   m4/flock.m4
@@ -321,12 +336,15 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/locale-zh.m4
   m4/longlong.m4
   m4/malloc.m4
+  m4/malloca.m4
   m4/mbrlen.m4
   m4/mbrtowc.m4
   m4/mbsinit.m4
   m4/mbstate_t.m4
   m4/multiarch.m4
+  m4/pathmax.m4
   m4/putenv.m4
+  m4/readlink.m4
   m4/safe-read.m4
   m4/safe-write.m4
   m4/ssize_t.m4

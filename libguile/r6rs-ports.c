@@ -1,18 +1,19 @@
 /* Copyright (C) 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #ifdef HAVE_CONFIG_H
@@ -124,11 +125,11 @@ bip_fill_input (SCM port)
   return result;
 }
 
-static off_t
-bip_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+bip_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bip_seek"
 {
-  off_t c_result = 0;
+  scm_t_off c_result = 0;
   scm_t_port *c_port = SCM_PTAB_ENTRY (port);
 
   switch (whence)
@@ -210,15 +211,18 @@ static SCM
 cbp_mark (SCM port)
 {
   /* Mark the underlying method and object vector.  */
-  return (SCM_PACK (SCM_STREAM (port)));
+  if (SCM_OPENP (port))
+    return SCM_PACK (SCM_STREAM (port));
+  else
+    return SCM_BOOL_F;
 }
 
-static off_t
-cbp_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+cbp_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "cbp_seek"
 {
   SCM result;
-  off_t c_result = 0;
+  scm_t_off c_result = 0;
 
   switch (whence)
     {
@@ -881,8 +885,8 @@ bop_write (SCM port, const void *data, size_t size)
   buf->len = (buf->len > buf->pos) ? buf->len : buf->pos;
 }
 
-static off_t
-bop_seek (SCM port, off_t offset, int whence)
+static scm_t_off
+bop_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bop_seek"
 {
   scm_t_bop_buffer *buf;
@@ -891,7 +895,7 @@ bop_seek (SCM port, off_t offset, int whence)
   switch (whence)
     {
     case SEEK_CUR:
-      offset += (off_t) buf->pos;
+      offset += (scm_t_off) buf->pos;
       /* Fall through.  */
 
     case SEEK_SET:
@@ -1109,7 +1113,7 @@ initialize_custom_binary_output_ports (void)
 void
 scm_init_r6rs_ports (void)
 {
-#include "r6rs-ports.x"
+#include "libguile/r6rs-ports.x"
 
   initialize_bytevector_input_ports ();
   initialize_custom_binary_input_ports ();
