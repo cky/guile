@@ -1390,12 +1390,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
 
-  if (SCM_OPFPORTP (fd_port))
-    {
-      /* go direct to fport code to allow 64-bit offsets */
-      return scm_i_fport_seek (fd_port, offset, how);
-    }
-  else if (SCM_OPPORTP (fd_port))
+  if (SCM_OPPORTP (fd_port))
     {
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
       off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
@@ -1487,11 +1482,6 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
       off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
       SCM_SYSCALL (rv = ftruncate_or_ftruncate64 (scm_to_int (object),
                                                   c_length));
-    }
-  else if (SCM_OPOUTFPORTP (object))
-    {
-      /* go direct to fport code to allow 64-bit offsets */
-      rv = scm_i_fport_truncate (object, length);
     }
   else if (SCM_OPOUTPORTP (object))
     {

@@ -610,8 +610,8 @@ fport_fill_input (SCM port)
     }
 }
 
-static off_t_or_off64_t
-fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
+static scm_t_off
+fport_seek (SCM port, scm_t_off offset, int whence)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
@@ -662,39 +662,6 @@ fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
   return result;
 }
 
-/* If we've got largefile and off_t isn't already off64_t then
-   fport_seek_or_seek64 needs a range checking wrapper to be fport_seek in
-   the port descriptor.
-
-   Otherwise if no largefile, or off_t is the same as off64_t (which is the
-   case on NetBSD apparently), then fport_seek_or_seek64 is right to be
-   fport_seek already.  */
-
-#if GUILE_USE_64_CALLS && HAVE_STAT64 && SIZEOF_OFF_T != SIZEOF_OFF64_T
-static scm_t_off
-fport_seek (SCM port, scm_t_off offset, int whence)
-{
-  off64_t rv = fport_seek_or_seek64 (port, (off64_t) offset, whence);
-  if (rv > OFF_T_MAX || rv < OFF_T_MIN)
-    {
-      errno = EOVERFLOW;
-      scm_syserror ("fport_seek");
-    }
-  return (scm_t_off) rv;
-
-}
-#else
-#define fport_seek   fport_seek_or_seek64
-#endif
-
-/* `how' has been validated and is one of SEEK_SET, SEEK_CUR or SEEK_END */
-SCM
-scm_i_fport_seek (SCM port, SCM offset, int how)
-{
-  return scm_from_off_t_or_off64_t
-    (fport_seek_or_seek64 (port, scm_to_off_t_or_off64_t (offset), how));
-}
-
 static void
 fport_truncate (SCM port, scm_t_off length)
 {
@@ -702,13 +669,6 @@ fport_truncate (SCM port, scm_t_off length)
 
   if (ftruncate (fp->fdes, length) == -1)
     scm_syserror ("ftruncate");
-}
-
-int
-scm_i_fport_truncate (SCM port, SCM length)
-{
-  scm_t_fport *fp = SCM_FSTREAM (port);
-  return ftruncate_or_ftruncate64 (fp->fdes, scm_to_off_t_or_off64_t (length));
 }
 
 /* helper for fport_write: try to write data, using multiple system
