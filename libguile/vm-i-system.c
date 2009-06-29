@@ -107,6 +107,12 @@ VM_DEFINE_INSTRUCTION (8, make_false, "make-false", 0, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (57, make_nil, "make-nil", 0, 0, 1)
+{
+  PUSH (SCM_ELISP_NIL);
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (9, make_eol, "make-eol", 0, 0, 1)
 {
   PUSH (SCM_EOL);

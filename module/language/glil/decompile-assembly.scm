@@ -131,6 +131,8 @@
            (lp (cdr in) stack out (1+ pos)))
           ((make-false)
            (lp (cdr in) (cons #f stack) out (1+ pos)))
+          ((make-nil)
+           (lp (cdr in) (cons %nil stack) out (1+ pos)))
           ((load-program ,a ,b ,c ,d ,labels ,sublen ,meta . ,body)
            (lp (cdr in)
                (cons (decompile-load-program a b c d (decompile-meta meta)

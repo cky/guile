@@ -756,6 +756,10 @@ Push @code{#f} onto the stack.
 Push @code{#t} onto the stack.
 @end deffn
 
+@deffn Instruction make-nil
+Push @code{%nil} onto the stack.
+@end deffn
+
 @deffn Instruction make-eol
 Push @code{'()} onto the stack.
 @end deffn

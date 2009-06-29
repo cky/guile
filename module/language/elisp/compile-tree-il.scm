@@ -35,6 +35,11 @@
               props))))
 
 
+; Value to use for Elisp's nil.
+
+(define (nil-value loc) (make-const loc %nil))
+
+
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -42,7 +47,7 @@
   (case sym
 
     ((nil)
-     (make-const loc #f))
+     (nil-value loc))
 
     ((t)
      (make-const loc #t))
@@ -63,7 +68,7 @@
     ((if ,condition ,ifclause)
      (make-conditional loc (compile-expr condition)
                            (compile-expr ifclause)
-                           (make-const loc #f)))
+                           (nil-value loc)))
     ((if ,condition ,ifclause ,elseclause)
      (make-conditional loc (compile-expr condition)
                            (compile-expr ifclause)
@@ -79,14 +84,14 @@
                                        clauses))
      (let iterate ((tail clauses))
        (if (null? tail)
-         (make-const loc #f)
+         (nil-value loc)
          (let ((cur (car tail)))
            (make-conditional loc
              (compile-expr (car cur))
              (make-sequence loc (map compile-expr (cdr cur)))
              (iterate (cdr tail)))))))
 
-    ((and) (make-const loc #t))
+    ((and) (nil-value loc))
     ((and . ,expressions)
      (let iterate ((tail expressions))
        (if (null? (cdr tail))
@@ -94,7 +99,7 @@
          (make-conditional loc
            (compile-expr (car tail))
            (iterate (cdr tail))
-           (make-const loc #f)))))
+           (nil-value loc)))))
 
     (('quote ,val)
      (make-const loc val))
