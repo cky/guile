@@ -31,7 +31,6 @@ enum scm_opcode {
 #include <libguile/vm-i-scheme.i>
 #include <libguile/vm-i-loader.i>
 #undef VM_INSTRUCTION_TO_OPCODE
-  scm_op_last = SCM_VM_NUM_INSTRUCTIONS
 };
 
 SCM_API SCM scm_instruction_list (void);
