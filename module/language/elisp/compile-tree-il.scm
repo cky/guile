@@ -37,7 +37,7 @@
 
 ; Value to use for Elisp's nil.
 
-(define (nil-value loc) (make-const loc %nil))
+(define (nil-value loc) (make-const loc #f))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -78,7 +78,10 @@
                            (compile-expr ifclause)
                            (make-sequence loc (map compile-expr elses))))
 
-    ; FIXME: Handle returning of condition value for empty clauses!
+    ; For (cond ...) forms, a special case is a (condition) clause without
+    ; body.  In this case, the value of condition itself should be returned,
+    ; and thus is saved in a local variable for testing and returning, if it
+    ; is found true.
     ((cond . ,clauses) (guard (and-map (lambda (el)
                                          (and (list? el) (not (null? el))))
                                        clauses))
@@ -86,10 +89,18 @@
        (if (null? tail)
          (nil-value loc)
          (let ((cur (car tail)))
-           (make-conditional loc
-             (compile-expr (car cur))
-             (make-sequence loc (map compile-expr (cdr cur)))
-             (iterate (cdr tail)))))))
+           (if (null? (cdr cur))
+             (let ((var (gensym)))
+               (make-let loc
+                 '(condition) `(,var) `(,(compile-expr (car cur)))
+                 (make-conditional loc
+                   (make-lexical-ref loc 'condition var)
+                   (make-lexical-ref loc 'condition var)
+                   (iterate (cdr tail)))))
+             (make-conditional loc
+               (compile-expr (car cur))
+               (make-sequence loc (map compile-expr (cdr cur)))
+               (iterate (cdr tail))))))))
 
     ((and) (nil-value loc))
     ((and . ,expressions)
