@@ -35,9 +35,10 @@
               props))))
 
 
-; Value to use for Elisp's nil.
+; Value to use for Elisp's nil and t.
 
 (define (nil-value loc) (make-const loc #f))
+(define (t-value loc) (make-const loc #t))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -46,11 +47,9 @@
 (define (compile-symbol loc sym)
   (case sym
 
-    ((nil)
-     (nil-value loc))
+    ((nil) (nil-value loc))
 
-    ((t)
-     (make-const loc #t))
+    ((t) (t-value loc))
     
     ; FIXME: Use fluids.
     (else
@@ -102,7 +101,7 @@
                (make-sequence loc (map compile-expr (cdr cur)))
                (iterate (cdr tail))))))))
 
-    ((and) (nil-value loc))
+    ((and) (t-value loc))
     ((and . ,expressions)
      (let iterate ((tail expressions))
        (if (null? (cdr tail))
@@ -111,6 +110,18 @@
            (compile-expr (car tail))
            (iterate (cdr tail))
            (nil-value loc)))))
+
+    ((or . ,expressions)
+     (let iterate ((tail expressions))
+       (if (null? tail)
+         (nil-value loc)
+         (let ((var (gensym)))
+           (make-let loc
+             '(condition) `(,var) `(,(compile-expr (car tail)))
+             (make-conditional loc
+               (make-lexical-ref loc 'condition var)
+               (make-lexical-ref loc 'condition var)
+               (iterate (cdr tail))))))))
 
     (('quote ,val)
      (make-const loc val))

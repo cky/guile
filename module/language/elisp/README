@@ -13,7 +13,6 @@ Already implemented:
 Especially still missing:
   * other progX forms, will be done in macros
   * where, unless, will be done in macros
-  * or
   * while, other loops using macros
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
