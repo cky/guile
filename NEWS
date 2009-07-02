@@ -5,7 +5,17 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
-Changes in 1.9.0 (changes since the 1.8.x series):
+(During the 1.9 series, we will keep an incremental NEWS for the latest
+prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
+
+Changes in 1.9.1 (since the 1.9.0 prerelease):
+
+** `scm_set_port_seek' and `scm_set_port_truncate' use the `scm_t_off' type
+
+Previously they would use the `off_t' type, which is fragile since its
+definition depends on the application's value for `_FILE_OFFSET_BITS'.
+
+Changes in 1.9.x (since the 1.8.x series):
 
 * New modules (see the manual for details)
 
