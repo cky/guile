@@ -41,6 +41,60 @@
 (define (t-value loc) (make-const loc #t))
 
 
+; Modules that contain the value and function slot bindings.
+
+(define runtime '(language elisp runtime))
+(define value-slot '(language elisp runtime value-slot))
+(define function-slot '(language elisp runtime function-slot))
+
+
+; Error reporting routine for syntax/compilation problems.
+
+(define (report-error loc . args)
+  (apply error args))
+
+
+; Generate code to ensure a fluid is there for further use of a given symbol.
+
+(define (ensure-fluid! loc sym module)
+  ; FIXME: Do this!
+  (make-void loc))
+
+
+; Generate code to reference a fluid saved variable.
+
+(define (reference-variable loc sym module)
+  (make-sequence loc
+    (list (ensure-fluid! loc sym module)
+          (make-application loc (make-primitive-ref loc 'fluid-ref)
+            (list (make-module-ref loc module sym #f))))))
+
+
+; Reference a variable and error if the value is void.
+
+(define (reference-with-check loc sym module)
+  (let ((var (gensym)))
+    (make-let loc '(value) `(,var) `(,(reference-variable loc sym module))
+      (make-conditional loc
+        (make-application loc (make-primitive-ref loc 'eq?)
+          (list (make-module-ref loc runtime 'void #t)
+                (make-lexical-ref loc 'value var)))
+        (make-application loc (make-primitive-ref loc 'error)
+          (list (make-const loc "variable is void:")
+                (make-const loc sym)))
+        (make-lexical-ref loc 'value var)))))
+
+
+; Generate code to set a fluid saved variable.
+
+(define (set-variable! loc sym module value)
+  (make-sequence loc
+    (list (ensure-fluid! loc sym module)
+          (make-application loc (make-primitive-ref loc 'fluid-set!)
+            (list (make-module-ref loc module sym #f)
+                  value)))))
+
+
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -51,9 +105,8 @@
 
     ((t) (t-value loc))
     
-    ; FIXME: Use fluids.
     (else
-      (make-module-ref loc '(language elisp variables) sym #f))))
+      (reference-with-check loc sym value-slot))))
 
 
 ; Compile a pair-expression (that is, any structure-like construct).
@@ -123,11 +176,29 @@
                (make-lexical-ref loc 'condition var)
                (iterate (cdr tail))))))))
 
+    ; Build a set form for possibly multiple values.  The code is not formulated
+    ; tail recursive because it is clearer this way and large lists of symbol
+    ; expression pairs are very unlikely.
+    ((setq . ,args)
+     (make-sequence loc
+       (let iterate ((tail args))
+         (if (null? tail)
+           (list (make-void loc))
+           (let ((sym (car tail))
+                 (tailtail (cdr tail)))
+             (if (not (symbol? sym))
+               (report-error loc "expected symbol in setq")
+               (if (null? tailtail)
+                 (report-error loc "missing value for symbol in setq" sym)
+                 (let* ((val (compile-expr (car tailtail)))
+                        (op (set-variable! loc sym value-slot val)))
+                   (cons op (iterate (cdr tailtail)))))))))))
+
     (('quote ,val)
      (make-const loc val))
 
     (else
-      (error "unrecognized elisp" expr))))
+      (report-error loc "unrecognized elisp" expr))))
 
 
 ; Compile a single expression to TreeIL.
