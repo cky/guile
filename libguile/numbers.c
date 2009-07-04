@@ -2733,6 +2733,10 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
   unsigned int idx = *p_idx;
   SCM result;
 
+  /* Start off believing that the number will be exact.  This changes
+     to INEXACT if we see a decimal point or a hash. */
+  enum t_exactness x = EXACT;
+
   if (idx == len)
     return SCM_BOOL_F;
 
@@ -2744,8 +2748,6 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 
   if (idx+4 < len && !strncmp (mem+idx, "nan.", 4))
     {
-      enum t_exactness x = EXACT;
-
       /* Cobble up the fractional part.  We might want to set the
 	 NaN's mantissa from it. */
       idx += 4;
@@ -2764,11 +2766,10 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	return SCM_BOOL_F;
       else
 	result = mem2decimal_from_point (SCM_I_MAKINUM (0), mem, len,
-					 p_idx, p_exactness);
+					 p_idx, &x);
     }
   else
     {
-      enum t_exactness x = EXACT;
       SCM uinteger;
 
       uinteger = mem2uinteger (mem, len, &idx, radix, &x);
@@ -2800,9 +2801,15 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	result = uinteger;
 
       *p_idx = idx;
-      if (x == INEXACT)
-	*p_exactness = x;
     }
+
+  /* Update *p_exactness if the number just read was inexact.  This is
+     important for complex numbers, so that a complex number is
+     treated as inexact overall if either its real or imaginary part
+     is inexact.
+  */
+  if (x == INEXACT)
+    *p_exactness = x;
 
   /* When returning an inexact zero, make sure it is represented as a
      floating point value so that we can change its sign. 

@@ -70,11 +70,11 @@ make_objcode_by_mmap (int fd)
 
   if (memcmp (addr, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE)))
     {
+      SCM args = scm_list_1 (scm_from_locale_stringn
+                             (addr, strlen (OBJCODE_COOKIE)));
       (void) close (fd);
       (void) munmap (addr, st.st_size);
-      scm_misc_error (FUNC_NAME, "bad header on object file: ~s",
-		      scm_list_1 (scm_from_locale_stringn
-				  (addr, strlen (OBJCODE_COOKIE))));
+      scm_misc_error (FUNC_NAME, "bad header on object file: ~s", args);
     }
 
   data = (struct scm_objcode*)(addr + strlen (OBJCODE_COOKIE));
