@@ -557,6 +557,7 @@ Changes in 1.8.7 (since 1.8.6)
 ** Fix build problem when scm_t_timespec is different from struct timespec
 ** Fix build when compiled with -Wundef -Werror
 ** More build fixes for `alphaev56-dec-osf5.1b' (Tru64)
+** Build fixes for `powerpc-ibm-aix5.3.0.0' (AIX 5.3)
 ** With GCC, always compile with `-mieee' on `alpha*' and `sh*'
 ** Better diagnose broken `(strftime "%z" ...)' in `time.test' (bug #24130)
 ** Fix parsing of SRFI-88/postfix keywords longer than 128 characters
