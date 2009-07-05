@@ -1246,11 +1246,12 @@ case "$with_threads" in
 
     build_pthread_support="yes"
 
-    ACX_PTHREAD(CC="$PTHREAD_CC"
-      LIBS="$PTHREAD_LIBS $LIBS"
-      SCM_I_GSC_USE_PTHREAD_THREADS=1
-      with_threads="pthreads",
-      with_threads="null")
+    ACX_PTHREAD([CC="$PTHREAD_CC"
+       LIBS="$PTHREAD_LIBS $LIBS"
+       SCM_I_GSC_USE_PTHREAD_THREADS=1
+       with_threads="pthreads"],
+      [with_threads="null"
+       build_pthread_support="no"])
 
     old_CFLAGS="$CFLAGS"
     CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
