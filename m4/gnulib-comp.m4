@@ -51,8 +51,12 @@ AC_DEFUN([gl_INIT],
   gl_COUNT_ONE_BITS
   gl_ENVIRON
   gl_UNISTD_MODULE_INDICATOR([environ])
+  gl_HEADER_ERRNO_H
+  gl_FLOAT_H
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
+  gl_FUNC_GETPAGESIZE
+  gl_UNISTD_MODULE_INDICATOR([getpagesize])
   AM_ICONV
   gl_ICONV_H
   gl_FUNC_ICONV_OPEN
@@ -72,6 +76,8 @@ AC_DEFUN([gl_INIT],
   gl_WCHAR_MODULE_INDICATOR([mbrtowc])
   gl_FUNC_MBSINIT
   gl_WCHAR_MODULE_INDICATOR([mbsinit])
+  gl_FUNC_MEMCHR
+  gl_STRING_MODULE_INDICATOR([memchr])
   gl_MULTIARCH
   gl_PATHMAX
   gl_FUNC_PUTENV
@@ -80,9 +86,11 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_MODULE_INDICATOR([readlink])
   gl_SAFE_READ
   gl_SAFE_WRITE
+  gl_SIZE_MAX
   gt_TYPE_SSIZE_T
   AM_STDBOOL_H
   gl_STDINT_H
+  gl_STDIO_H
   gl_STDLIB_H
   gl_STRCASE
   gl_FUNC_GNU_STRFTIME
@@ -101,9 +109,13 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([unistr/u8-mbtouc-unsafe])
   gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
   gl_MODULE_INDICATOR([unistr/u8-uctomb])
+  gl_FUNC_VASNPRINTF
+  gl_FUNC_VSNPRINTF
+  gl_STDIO_MODULE_INDICATOR([vsnprintf])
   gl_WCHAR_H
   gl_FUNC_WRITE
   gl_UNISTD_MODULE_INDICATOR([write])
+  gl_XSIZE
   m4_ifval(gl_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gl_LIBSOURCES_DIR])[ ||
       for gl_file in ]gl_LIBSOURCES_LIST[ ; do
@@ -235,6 +247,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/config.rpath
   build-aux/link-warning.h
   lib/alloca.in.h
+  lib/asnprintf.c
   lib/byteswap.in.h
   lib/c-ctype.c
   lib/c-ctype.h
@@ -246,11 +259,15 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/canonicalize.h
   lib/config.charset
   lib/count-one-bits.h
+  lib/errno.in.h
+  lib/float+.h
+  lib/float.in.h
   lib/flock.c
   lib/full-read.c
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
+  lib/getpagesize.c
   lib/iconv.c
   lib/iconv.in.h
   lib/iconv_close.c
@@ -269,7 +286,13 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mbrlen.c
   lib/mbrtowc.c
   lib/mbsinit.c
+  lib/memchr.c
+  lib/memchr.valgrind
   lib/pathmax.h
+  lib/printf-args.c
+  lib/printf-args.h
+  lib/printf-parse.c
+  lib/printf-parse.h
   lib/putenv.c
   lib/readlink.c
   lib/ref-add.sin
@@ -278,8 +301,11 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-read.h
   lib/safe-write.c
   lib/safe-write.h
+  lib/size_max.h
   lib/stdbool.in.h
   lib/stdint.in.h
+  lib/stdio-write.c
+  lib/stdio.in.h
   lib/stdlib.in.h
   lib/strcasecmp.c
   lib/streq.h
@@ -304,9 +330,13 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/unistr/u8-uctomb-aux.c
   lib/unistr/u8-uctomb.c
   lib/unitypes.h
+  lib/vasnprintf.c
+  lib/vasnprintf.h
   lib/verify.h
+  lib/vsnprintf.c
   lib/wchar.in.h
   lib/write.c
+  lib/xsize.h
   m4/00gnulib.m4
   m4/alloca.m4
   m4/autobuild.m4
@@ -316,9 +346,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/count-one-bits.m4
   m4/eealloc.m4
   m4/environ.m4
+  m4/errno_h.m4
   m4/extensions.m4
+  m4/float_h.m4
   m4/flock.m4
   m4/fpieee.m4
+  m4/getpagesize.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
   m4/iconv.m4
@@ -326,6 +359,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/iconv_open.m4
   m4/include_next.m4
   m4/inline.m4
+  m4/intmax_t.m4
+  m4/inttypes_h.m4
   m4/lib-ld.m4
   m4/lib-link.m4
   m4/lib-prefix.m4
@@ -341,15 +376,21 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mbrtowc.m4
   m4/mbsinit.m4
   m4/mbstate_t.m4
+  m4/memchr.m4
+  m4/mmap-anon.m4
   m4/multiarch.m4
   m4/pathmax.m4
+  m4/printf.m4
   m4/putenv.m4
   m4/readlink.m4
   m4/safe-read.m4
   m4/safe-write.m4
+  m4/size_max.m4
   m4/ssize_t.m4
   m4/stdbool.m4
   m4/stdint.m4
+  m4/stdint_h.m4
+  m4/stdio_h.m4
   m4/stdlib_h.m4
   m4/strcase.m4
   m4/strftime.m4
@@ -360,8 +401,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/time_r.m4
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
+  m4/vasnprintf.m4
   m4/visibility.m4
+  m4/vsnprintf.m4
   m4/wchar.m4
+  m4/wchar_t.m4
   m4/wint_t.m4
   m4/write.m4
+  m4/xsize.m4
 ])
