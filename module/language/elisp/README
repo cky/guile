@@ -11,6 +11,7 @@ Already implemented:
   * quote
   * referencing and setting (setq) variables
   * while
+  * let, let*
 
 Especially still missing:
   * other progX forms, will be done in macros
@@ -18,10 +19,11 @@ Especially still missing:
   * dolist, dotimes using macros
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
-  * let, set based on setq
+  * set based on setq
   * makunbound, boundp
   * automatic creation of fluids when needed
   * macros
   * general primitives (+, -, *, cons, ...)
   * functions, lambdas
+  * fset & friends
   * defvar, defun

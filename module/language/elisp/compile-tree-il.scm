@@ -67,7 +67,7 @@
   (make-sequence loc
     (list (ensure-fluid! loc sym module)
           (make-application loc (make-primitive-ref loc 'fluid-ref)
-            (list (make-module-ref loc module sym #f))))))
+            (list (make-module-ref loc module sym #t))))))
 
 
 ; Reference a variable and error if the value is void.
@@ -91,8 +91,24 @@
   (make-sequence loc
     (list (ensure-fluid! loc sym module)
           (make-application loc (make-primitive-ref loc 'fluid-set!)
-            (list (make-module-ref loc module sym #f)
+            (list (make-module-ref loc module sym #t)
                   value)))))
+
+
+; Process the bindings part of a let or let* expression; that is, check for
+; correctness and bring it to the form ((sym1 . val1) (sym2 . val2) ...).
+
+(define (process-let-bindings loc bindings)
+  (map (lambda (b)
+         (if (symbol? b)
+           (cons b 'nil)
+           (if (or (not (list? b))
+                   (not (= (length b) 2)))
+             (report-error loc "expected symbol or list of 2 elements in let")
+             (if (not (symbol? (car b)))
+               (report-error loc "expected symbol in let")
+               (cons (car b) (cadr b))))))
+       bindings))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -193,6 +209,41 @@
                  (let* ((val (compile-expr (car tailtail)))
                         (op (set-variable! loc sym value-slot val)))
                    (cons op (iterate (cdr tailtail)))))))))))
+
+    ; Let is done with a single call to with-fluids* binding them locally to new
+    ; values.
+    ((let ,bindings . ,body) (guard (and (list? bindings)
+                                         (list? body)
+                                         (not (null? bindings))
+                                         (not (null? body))))
+     (let ((bind (process-let-bindings loc bindings)))
+       (make-application loc (make-primitive-ref loc 'with-fluids*)
+         (list (make-application loc (make-primitive-ref loc 'list)
+                 (map (lambda (el)
+                     (make-module-ref loc value-slot (car el) #t))
+                   bind))
+               (make-application loc (make-primitive-ref loc 'list)
+                 (map (lambda (el)
+                        (compile-expr (cdr el)))
+                      bind))
+               (make-lambda loc '() '() '() 
+                 (make-sequence loc (map compile-expr body)))))))
+
+    ; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
+    ; so that each one already sees the preceding bindings.
+    ((let* ,bindings . ,body) (guard (and (list? bindings)
+                                          (list? body)
+                                          (not (null? bindings))
+                                          (not (null? body))))
+     (let ((bind (process-let-bindings loc bindings)))
+       (let iterate ((tail bind))
+         (if (null? tail)
+           (make-sequence loc (map compile-expr body))
+           (make-application loc (make-primitive-ref loc 'with-fluid*)
+             (list (make-module-ref loc value-slot (caar tail) #t)
+                   (compile-expr (cdar tail))
+                   (make-lambda loc '() '() '()
+                     (iterate (cdr tail)))))))))
 
     ; A while construct is transformed into a tail-recursive loop like this:
     ; (letrec ((iterate (lambda ()
