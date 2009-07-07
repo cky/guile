@@ -10,11 +10,12 @@ Already implemented:
   * and, or
   * quote
   * referencing and setting (setq) variables
+  * while
 
 Especially still missing:
   * other progX forms, will be done in macros
   * where, unless, will be done in macros
-  * while, other loops using macros
+  * dolist, dotimes using macros
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
   * let, set based on setq

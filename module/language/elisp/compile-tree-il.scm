@@ -194,6 +194,29 @@
                         (op (set-variable! loc sym value-slot val)))
                    (cons op (iterate (cdr tailtail)))))))))))
 
+    ; A while construct is transformed into a tail-recursive loop like this:
+    ; (letrec ((iterate (lambda ()
+    ;                     (if condition
+    ;                       (begin body
+    ;                              (iterate))
+    ;                       %nil))))
+    ;   (iterate))
+    ((while ,condition . ,body)
+     (let* ((itersym (gensym))
+            (compiled-body (map compile-expr body))
+            (iter-call (make-application loc
+                         (make-lexical-ref loc 'iterate itersym)
+                         (list)))
+            (full-body (make-sequence loc
+                         (append compiled-body (list iter-call))))
+            (lambda-body (make-conditional loc
+                           (compile-expr condition)
+                           full-body
+                           (nil-value loc)))
+            (iter-thunk (make-lambda loc '() '() '() lambda-body)))
+       (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
+         iter-call)))
+
     (('quote ,val)
      (make-const loc val))
 
