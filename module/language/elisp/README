@@ -20,9 +20,7 @@ Especially still missing:
   * dolist, dotimes using macros
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
-  * set based on setq
-  * makunbound, boundp
-  * automatic creation of fluids when needed
+  * set, makunbound, boundp functions
   * macros
   * general primitives (+, -, *, cons, ...)
   * funcall and apply

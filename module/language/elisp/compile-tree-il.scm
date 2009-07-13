@@ -71,8 +71,19 @@
 ; is a routine for convenience (needed with let, let*, lambda).
 
 (define (ensure-fluid! loc sym module)
-  ; FIXME: Do this!
-  (make-void loc))
+  (let ((resolved-module (call-primitive loc 'resolve-module
+                                         (make-const loc module))))
+    (make-conditional loc
+      (call-primitive loc 'module-defined? resolved-module (make-const loc sym))
+      (make-void loc)
+      (make-sequence loc
+        (list (call-primitive loc 'module-define!
+                resolved-module (make-const loc sym)
+                (call-primitive loc 'make-fluid))
+              (call-primitive loc 'module-export!
+                resolved-module
+                (call-primitive loc 'list (make-const loc sym))))))))
+
 
 (define (ensure-fluids-for loc syms module . body)
   (make-sequence loc
@@ -349,17 +360,18 @@
                                          (not (null? bindings))
                                          (not (null? body))))
      (let ((bind (process-let-bindings loc bindings)))
-       (call-primitive loc 'with-fluids*
-         (make-application loc (make-primitive-ref loc 'list)
-           (map (lambda (el)
-               (make-module-ref loc value-slot (car el) #t))
-             bind))
-         (make-application loc (make-primitive-ref loc 'list)
-           (map (lambda (el)
-                  (compile-expr (cdr el)))
-                bind))
-         (make-lambda loc '() '() '() 
-           (make-sequence loc (map compile-expr body))))))
+       (ensure-fluids-for loc (map car bind) value-slot
+         (call-primitive loc 'with-fluids*
+           (make-application loc (make-primitive-ref loc 'list)
+             (map (lambda (el)
+                 (make-module-ref loc value-slot (car el) #t))
+               bind))
+           (make-application loc (make-primitive-ref loc 'list)
+             (map (lambda (el)
+                    (compile-expr (cdr el)))
+                  bind))
+           (make-lambda loc '() '() '() 
+             (make-sequence loc (map compile-expr body)))))))
 
     ; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
     ; so that each one already sees the preceding bindings.
@@ -368,13 +380,14 @@
                                           (not (null? bindings))
                                           (not (null? body))))
      (let ((bind (process-let-bindings loc bindings)))
-       (let iterate ((tail bind))
-         (if (null? tail)
-           (make-sequence loc (map compile-expr body))
-           (call-primitive loc 'with-fluid*
-             (make-module-ref loc value-slot (caar tail) #t)
-             (compile-expr (cdar tail))
-             (make-lambda loc '() '() '() (iterate (cdr tail))))))))
+       (ensure-fluids-for loc (map car bind) value-slot
+         (let iterate ((tail bind))
+           (if (null? tail)
+             (make-sequence loc (map compile-expr body))
+             (call-primitive loc 'with-fluid*
+               (make-module-ref loc value-slot (caar tail) #t)
+               (compile-expr (cdar tail))
+               (make-lambda loc '() '() '() (iterate (cdr tail)))))))))
 
     ; A while construct is transformed into a tail-recursive loop like this:
     ; (letrec ((iterate (lambda ()
