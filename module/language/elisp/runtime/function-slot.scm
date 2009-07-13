@@ -19,6 +19,83 @@
 
 ;;; Code:
 
-(define-module (language elisp runtime function-slot))
+(define-module (language elisp runtime function-slot)
+  #:use-module (language elisp runtime))
 
-; This module contains the function-slots of elisp symbols.
+; This module contains the function-slots of elisp symbols.  Elisp built-in
+; functions are implemented as predefined function bindings here.
+
+
+; Number predicates.
+
+(built-in-func floatp (lambda (num)
+                        (elisp-bool (and (real? num)
+                                         (not (integer? num))))))
+
+(built-in-func integerp (lambda (num)
+                          (elisp-bool (integer? num))))
+
+(built-in-func numberp (lambda (num)
+                         (elisp-bool (real? num))))
+
+(built-in-func wholenump (lambda (num)
+                           (elisp-bool (and (integer? num)
+                                            ((@ (guile) >=) num 0)))))
+
+(built-in-func zerop (lambda (num)
+                       (elisp-bool ((@ (guile) not) ((@ (guile) =) num 0)))))
+
+
+; Number comparisons.
+
+(built-in-func = (lambda (num1 num2)
+                   (elisp-bool ((@ (guile) =) num1 num2))))
+(built-in-func /= (lambda (num1 num2)
+                    (elisp-bool ((@ (guile) not) ((@ (guile) =) num1 num2)))))
+
+(built-in-func < (lambda (num1 num2)
+                   (elisp-bool ((@ (guile) <) num1 num2))))
+(built-in-func <= (lambda (num1 num2)
+                    (elisp-bool ((@ (guile) <=) num1 num2))))
+(built-in-func > (lambda (num1 num2)
+                   (elisp-bool ((@ (guile) >) num1 num2))))
+(built-in-func >= (lambda (num1 num2)
+                    (elisp-bool ((@ (guile) >=) num1 num2))))
+
+(built-in-func max (lambda (. nums)
+                     ((@ (guile) apply) (@ (guile) max) nums)))
+(built-in-func min (lambda (. nums)
+                     ((@ (guile) apply) (@ (guile) min) nums)))
+
+(built-in-func abs (lambda (num)
+                     ((@ (guile) abs) num)))
+
+
+; Number conversion.
+
+(built-in-func float (lambda (num)
+                       (if (exact? num)
+                         (exact->inexact num)
+                         num)))
+
+; TODO: truncate, floor, ceiling, round.
+
+
+; Arithmetic functions.
+
+(built-in-func 1+ (@ (guile) 1+))
+(built-in-func 1- (@ (guile) 1-))
+(built-in-func + (@ (guile) +))
+(built-in-func - (@ (guile) -))
+(built-in-func * (@ (guile) *))
+(built-in-func % (@ (guile) modulo))
+
+; TODO: / with correct integer/real behaviour, mod (for floating-piont values).
+
+
+; Floating-point rounding operations.
+
+(built-in-func ffloor (@ (guile) floor))
+(built-in-func fceiling (@ (guile) ceiling))
+(built-in-func ftruncate (@ (guile) truncate))
+(built-in-func fround (@ (guile) round))

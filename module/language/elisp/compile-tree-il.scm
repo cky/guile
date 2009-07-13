@@ -37,6 +37,7 @@
 
 ; Value to use for Elisp's nil and t.
 
+; FIXME: Use real nil.
 (define (nil-value loc) (make-const loc #f))
 (define (t-value loc) (make-const loc #t))
 
@@ -72,9 +73,11 @@
 
 (define (ensure-fluid! loc sym module)
   (let ((resolved-module (call-primitive loc 'resolve-module
-                                         (make-const loc module))))
+                                         (make-const loc module)))
+        (resolved-intf (call-primitive loc 'resolve-interface
+                                       (make-const loc module))))
     (make-conditional loc
-      (call-primitive loc 'module-defined? resolved-module (make-const loc sym))
+      (call-primitive loc 'module-defined? resolved-intf (make-const loc sym))
       (make-void loc)
       (make-sequence loc
         (list (call-primitive loc 'module-define!
@@ -82,7 +85,10 @@
                 (call-primitive loc 'make-fluid))
               (call-primitive loc 'module-export!
                 resolved-module
-                (call-primitive loc 'list (make-const loc sym))))))))
+                (call-primitive loc 'list (make-const loc sym)))
+              (call-primitive loc 'fluid-set!
+                (make-module-ref loc module sym #t)
+                (make-module-ref loc runtime 'void #t)))))))
 
 
 (define (ensure-fluids-for loc syms module . body)
@@ -419,6 +425,9 @@
     ((function (lambda ,args . ,body)) (guard (not (null? body)))
      (compile-lambda loc args body))
 
+    (('quote ,val)
+     (make-const loc val))
+
     ; Function calls using (function args) standard notation; here, we have to
     ; take the function value of a symbol if it is one.  It seems that functions
     ; in form of uncompiled lists are not supported in this syntax, so we don't
@@ -429,9 +438,6 @@
          (reference-with-check loc func function-slot)
          (compile-expr func))
        (map compile-expr args)))
-
-    (('quote ,val)
-     (make-const loc val))
 
     (else
       (report-error loc "unrecognized elisp" expr))))

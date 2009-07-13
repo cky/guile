@@ -20,9 +20,35 @@
 ;;; Code:
 
 (define-module (language elisp runtime)
-  #:export (void ensure-fluid! set-value! get-value unbind! bound?))
+  #:export (void nil-value t-value elisp-bool)
+  #:export-syntax (built-in-func))
 
 ; This module provides runtime support for the Elisp front-end.
 
+
 ; The reserved value to mean (when eq?) void.
+
 (define void (list 42))
+
+
+; Values for t and nil.
+
+; FIXME: Use real nil.
+(define nil-value #f)
+(define t-value #t)
+
+
+; Convert a scheme boolean to Elisp.
+
+(define (elisp-bool b)
+  (if b
+    t-value
+    nil-value))
+
+
+; Define a predefined function; convenient macro for this task.
+
+(define-macro (built-in-func name value)
+  `(begin
+     (define-public ,name (make-fluid))
+     (fluid-set! ,name ,value)))
