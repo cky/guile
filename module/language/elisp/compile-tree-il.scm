@@ -66,10 +66,18 @@
 
 
 ; Generate code to ensure a fluid is there for further use of a given symbol.
+; ensure-fluids-for does the same for a list of symbols and builds a sequence
+; that executes the fluid-insurances first, followed by all body commands; this
+; is a routine for convenience (needed with let, let*, lambda).
 
 (define (ensure-fluid! loc sym module)
   ; FIXME: Do this!
   (make-void loc))
+
+(define (ensure-fluids-for loc syms module . body)
+  (make-sequence loc
+    `(,@(map (lambda (sym) (ensure-fluid! loc sym module)) syms)
+      ,@body)))
 
 
 ; Generate code to reference a fluid saved variable.
@@ -180,29 +188,29 @@
     (lambda ()
       (split-lambda-arguments loc args))
     (lambda (required optional rest)
-      ; FIXME: Ensure fluids there!
       (let ((required-sym (map (lambda (sym) (gensym)) required))
             (rest-sym (if (or rest (not (null? optional))) (gensym) '())))
-        (let ((real-args (append required-sym rest-sym)))
-        (make-lambda loc
-          real-args real-args '()
-          (call-primitive loc 'with-fluids*
-            (make-application loc (make-primitive-ref loc 'list)
-              (map (lambda (sym) (make-module-ref loc value-slot sym #t))
-                   (append (append required optional)
-                           (if rest (list rest) '()))))
-            (make-application loc (make-primitive-ref loc 'list)
-              (append (map (lambda (sym) (make-lexical-ref loc sym sym))
-                           required-sym)
-                      (map (lambda (sym) (nil-value loc))
-                           (if (null? rest-sym)
-                             optional
-                             (append optional (list rest-sym))))))
-            (make-lambda loc '() '() '()
-              (make-sequence loc
-                (cons (process-optionals loc optional rest-sym)
-                      (cons (process-rest loc rest rest-sym)
-                            (map compile-expr body))))))))))))
+        (let ((real-args (append required-sym rest-sym))
+              (locals `(,@required ,@optional ,@(if rest (list rest) '()))))
+          (make-lambda loc
+            real-args real-args '()
+            (ensure-fluids-for loc locals value-slot
+              (call-primitive loc 'with-fluids*
+                (make-application loc (make-primitive-ref loc 'list)
+                  (map (lambda (sym) (make-module-ref loc value-slot sym #t))
+                       locals))
+                (make-application loc (make-primitive-ref loc 'list)
+                  (append (map (lambda (sym) (make-lexical-ref loc sym sym))
+                               required-sym)
+                          (map (lambda (sym) (nil-value loc))
+                               (if rest
+                                 `(,@optional ,rest-sym)
+                                 optional))))
+                (make-lambda loc '() '() '()
+                  (make-sequence loc
+                    `(,(process-optionals loc optional rest-sym)
+                      ,(process-rest loc rest rest-sym)
+                      ,@(map compile-expr body))))))))))))
 
 ; Build the code to handle setting of optional arguments that are present
 ; and updating the rest list.
@@ -244,13 +252,9 @@
 
 (define (compile-symbol loc sym)
   (case sym
-
     ((nil) (nil-value loc))
-
     ((t) (t-value loc))
-    
-    (else
-      (reference-with-check loc sym value-slot))))
+    (else (reference-with-check loc sym value-slot))))
 
 
 ; Compile a pair-expression (that is, any structure-like construct).
@@ -386,7 +390,7 @@
                          (make-lexical-ref loc 'iterate itersym)
                          (list)))
             (full-body (make-sequence loc
-                         (append compiled-body (list iter-call))))
+                         `(,@compiled-body ,iter-call)))
             (lambda-body (make-conditional loc
                            (compile-expr condition)
                            full-body
@@ -401,6 +405,17 @@
      (compile-lambda loc args body))
     ((function (lambda ,args . ,body)) (guard (not (null? body)))
      (compile-lambda loc args body))
+
+    ; Function calls using (function args) standard notation; here, we have to
+    ; take the function value of a symbol if it is one.  It seems that functions
+    ; in form of uncompiled lists are not supported in this syntax, so we don't
+    ; have to care for them.
+    ((,func . ,args)
+     (make-application loc
+       (if (symbol? func)
+         (reference-with-check loc func function-slot)
+         (compile-expr func))
+       (map compile-expr args)))
 
     (('quote ,val)
      (make-const loc val))
