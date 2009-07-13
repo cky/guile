@@ -12,6 +12,7 @@ Already implemented:
   * referencing and setting (setq) variables
   * while
   * let, let*
+  * lambda expressions
 
 Especially still missing:
   * other progX forms, will be done in macros
@@ -24,6 +25,6 @@ Especially still missing:
   * automatic creation of fluids when needed
   * macros
   * general primitives (+, -, *, cons, ...)
-  * functions, lambdas
+  * function calls
   * fset & friends
   * defvar, defun

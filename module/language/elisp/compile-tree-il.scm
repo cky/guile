@@ -48,10 +48,21 @@
 (define function-slot '(language elisp runtime function-slot))
 
 
-; Error reporting routine for syntax/compilation problems.
+; Build a call to a primitive procedure nicely.
+
+(define (call-primitive loc sym . args)
+  (make-application loc (make-primitive-ref loc sym) args))
+
+
+; Error reporting routine for syntax/compilation problems or build code for
+; a runtime-error output.
 
 (define (report-error loc . args)
   (apply error args))
+
+(define (runtime-error loc msg . args)
+  (make-application loc (make-primitive-ref loc 'error)
+    (cons (make-const loc msg) args)))
 
 
 ; Generate code to ensure a fluid is there for further use of a given symbol.
@@ -66,8 +77,8 @@
 (define (reference-variable loc sym module)
   (make-sequence loc
     (list (ensure-fluid! loc sym module)
-          (make-application loc (make-primitive-ref loc 'fluid-ref)
-            (list (make-module-ref loc module sym #t))))))
+          (call-primitive loc 'fluid-ref
+                          (make-module-ref loc module sym #t)))))
 
 
 ; Reference a variable and error if the value is void.
@@ -76,12 +87,10 @@
   (let ((var (gensym)))
     (make-let loc '(value) `(,var) `(,(reference-variable loc sym module))
       (make-conditional loc
-        (make-application loc (make-primitive-ref loc 'eq?)
-          (list (make-module-ref loc runtime 'void #t)
-                (make-lexical-ref loc 'value var)))
-        (make-application loc (make-primitive-ref loc 'error)
-          (list (make-const loc "variable is void:")
-                (make-const loc sym)))
+        (call-primitive loc 'eq?
+                        (make-module-ref loc runtime 'void #t)
+                        (make-lexical-ref loc 'value var))
+        (runtime-error loc "variable is void:" (make-const loc sym))
         (make-lexical-ref loc 'value var)))))
 
 
@@ -90,9 +99,9 @@
 (define (set-variable! loc sym module value)
   (make-sequence loc
     (list (ensure-fluid! loc sym module)
-          (make-application loc (make-primitive-ref loc 'fluid-set!)
-            (list (make-module-ref loc module sym #t)
-                  value)))))
+          (call-primitive loc 'fluid-set!
+                          (make-module-ref loc module sym #t)
+                          value))))
 
 
 ; Process the bindings part of a let or let* expression; that is, check for
@@ -109,6 +118,125 @@
                (report-error loc "expected symbol in let")
                (cons (car b) (cadr b))))))
        bindings))
+
+
+; Split the argument list of a lambda expression into required, optional and
+; rest arguments and also check it is actually valid.
+
+(define (split-lambda-arguments loc args)
+  (let iterate ((tail args)
+                (mode 'required)
+                (required '())
+                (optional '()))
+    (cond
+
+      ((null? tail)
+       (values (reverse required) (reverse optional) #f))
+
+      ((and (eq? mode 'required)
+            (eq? (car tail) '&optional))
+       (iterate (cdr tail) 'optional required optional))
+
+      ((eq? (car tail) '&rest)
+       (if (or (null? (cdr tail))
+               (not (null? (cddr tail))))
+         (report-error loc "expected exactly one symbol after &rest")
+         (values (reverse required) (reverse optional) (cadr tail))))
+
+      (else
+        (if (not (symbol? (car tail)))
+          (report-error loc "expected symbol in argument list, got" (car tail))
+          (case mode
+            ((required) (iterate (cdr tail) mode
+                                 (cons (car tail) required) optional))
+            ((optional) (iterate (cdr tail) mode
+                                 required (cons (car tail) optional)))
+            ((else) (error "invalid mode in split-lambda-arguments" mode))))))))
+
+
+; Compile a lambda expression.  Things get a little complicated because TreeIL
+; does not allow optional arguments but only one rest argument, and also the
+; rest argument should be nil instead of '() for no values given.  Because of
+; this, we have to do a little preprocessing to get everything done before the
+; real body is called.
+;
+; (lambda (a &optional b &rest c) body) should become:
+; (lambda (a_ . rest_)
+;   (with-fluids* (list a b c) (list a_ nil nil)
+;     (lambda ()
+;       (if (not (null? rest_))
+;         (begin
+;           (fluid-set! b (car rest_))
+;           (set! rest_ (cdr rest_))
+;           (if (not (null? rest_))
+;             (fluid-set! c rest_))))
+;       body)))
+;
+; This is formulated quite imperatively, but I think in this case that is quite
+; clear and better than creating a lot of nested let's.
+
+(define (compile-lambda loc args body)
+  (call-with-values
+    (lambda ()
+      (split-lambda-arguments loc args))
+    (lambda (required optional rest)
+      ; FIXME: Ensure fluids there!
+      (let ((required-sym (map (lambda (sym) (gensym)) required))
+            (rest-sym (if (or rest (not (null? optional))) (gensym) '())))
+        (let ((real-args (append required-sym rest-sym)))
+        (make-lambda loc
+          real-args real-args '()
+          (call-primitive loc 'with-fluids*
+            (make-application loc (make-primitive-ref loc 'list)
+              (map (lambda (sym) (make-module-ref loc value-slot sym #t))
+                   (append (append required optional)
+                           (if rest (list rest) '()))))
+            (make-application loc (make-primitive-ref loc 'list)
+              (append (map (lambda (sym) (make-lexical-ref loc sym sym))
+                           required-sym)
+                      (map (lambda (sym) (nil-value loc))
+                           (if (null? rest-sym)
+                             optional
+                             (append optional (list rest-sym))))))
+            (make-lambda loc '() '() '()
+              (make-sequence loc
+                (cons (process-optionals loc optional rest-sym)
+                      (cons (process-rest loc rest rest-sym)
+                            (map compile-expr body))))))))))))
+
+; Build the code to handle setting of optional arguments that are present
+; and updating the rest list.
+(define (process-optionals loc optional rest-sym)
+  (let iterate ((tail optional))
+    (if (null? tail)
+      (make-void loc)
+      (make-conditional loc
+        (call-primitive loc 'null? (make-lexical-ref loc rest-sym rest-sym))
+        (make-void loc)
+        (make-sequence loc
+          (list (set-variable! loc (car tail) value-slot
+                  (call-primitive loc 'car
+                                  (make-lexical-ref loc rest-sym rest-sym)))
+                (make-lexical-set loc rest-sym rest-sym
+                  (call-primitive loc 'cdr
+                                  (make-lexical-ref loc rest-sym rest-sym)))
+                (iterate (cdr tail))))))))
+
+; This builds the code to set the rest variable to nil if it is empty.
+(define (process-rest loc rest rest-sym)
+  (let ((rest-empty (call-primitive loc 'null?
+                                    (make-lexical-ref loc rest-sym rest-sym))))
+    (cond
+      (rest
+       (make-conditional loc rest-empty
+         (make-void loc)
+         (set-variable! loc rest value-slot
+                        (make-lexical-ref loc rest-sym rest-sym))))
+      ((not (null? rest-sym))
+       (make-conditional loc rest-empty
+         (make-void loc)
+         (runtime-error loc "too many arguments and no rest argument")))
+      (else (make-void loc)))))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -217,17 +345,17 @@
                                          (not (null? bindings))
                                          (not (null? body))))
      (let ((bind (process-let-bindings loc bindings)))
-       (make-application loc (make-primitive-ref loc 'with-fluids*)
-         (list (make-application loc (make-primitive-ref loc 'list)
-                 (map (lambda (el)
-                     (make-module-ref loc value-slot (car el) #t))
-                   bind))
-               (make-application loc (make-primitive-ref loc 'list)
-                 (map (lambda (el)
-                        (compile-expr (cdr el)))
-                      bind))
-               (make-lambda loc '() '() '() 
-                 (make-sequence loc (map compile-expr body)))))))
+       (call-primitive loc 'with-fluids*
+         (make-application loc (make-primitive-ref loc 'list)
+           (map (lambda (el)
+               (make-module-ref loc value-slot (car el) #t))
+             bind))
+         (make-application loc (make-primitive-ref loc 'list)
+           (map (lambda (el)
+                  (compile-expr (cdr el)))
+                bind))
+         (make-lambda loc '() '() '() 
+           (make-sequence loc (map compile-expr body))))))
 
     ; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
     ; so that each one already sees the preceding bindings.
@@ -239,11 +367,10 @@
        (let iterate ((tail bind))
          (if (null? tail)
            (make-sequence loc (map compile-expr body))
-           (make-application loc (make-primitive-ref loc 'with-fluid*)
-             (list (make-module-ref loc value-slot (caar tail) #t)
-                   (compile-expr (cdar tail))
-                   (make-lambda loc '() '() '()
-                     (iterate (cdr tail)))))))))
+           (call-primitive loc 'with-fluid*
+             (make-module-ref loc value-slot (caar tail) #t)
+             (compile-expr (cdar tail))
+             (make-lambda loc '() '() '() (iterate (cdr tail))))))))
 
     ; A while construct is transformed into a tail-recursive loop like this:
     ; (letrec ((iterate (lambda ()
@@ -267,6 +394,13 @@
             (iter-thunk (make-lambda loc '() '() '() lambda-body)))
        (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
          iter-call)))
+
+    ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
+    ; that should be compiled.
+    ((lambda ,args . ,body) (guard (not (null? body)))
+     (compile-lambda loc args body))
+    ((function (lambda ,args . ,body)) (guard (not (null? body)))
+     (compile-lambda loc args body))
 
     (('quote ,val)
      (make-const loc val))
