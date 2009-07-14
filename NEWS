@@ -15,6 +15,65 @@ Changes in 1.9.1 (since the 1.9.0 prerelease):
 Previously they would use the `off_t' type, which is fragile since its
 definition depends on the application's value for `_FILE_OFFSET_BITS'.
 
+** Automatically compiled files will be placed in ~/.cache, not ~/.guile-ccache.
+
+Actually, they will be placed in $XDG_CACHE_HOME/guile/ccache/1.9,
+defaulting to XDG_CACHE_HOME=~/.cache. Users may remove their
+~/.guile-ccache directories.
+
+** New language: Brainfuck.
+
+Brainfuck is a toy language that closely models Turing machines. Guile's
+brainfuck compiler is meant to be an example of implementing other
+languages. See the manual for details, or
+http://en.wikipedia.org/wiki/Brainfuck for more information about the
+Brainfuck language itself.
+
+** A number of Scheme files were corrected to be LGPLv3+.
+
+Some Scheme files imported for the compiler were erroneously labeled as
+being LGPLv2+ or GPLv2+. This oversight has been fixed.
+
+** Bytevectors may now be accessed with a C-friendly API.
+
+New functions: `scm_is_bytevector ()', `scm_c_bytevector_length ()',
+`scm_c_bytevector_length ()', and `scm_c_bytevector_set_x ()'. See the
+manual for details.
+
+** Bytevectors are now accessible using the generalized-vector API.
+
+As a side effect, this change allows compilation of literal bytevectors
+(`#vu8(...)').
+
+** Meta-commands to the REPL work better with strange languages.
+
+Specifically, meta-commands that take expressions as arguments will use
+the current language's reader to read those expressions, which may span
+multiple lines, with readline integration if the user has that enabled.
+
+** The object code file format has changed.
+
+The objcode loader will complain about a "bad header cookie" if it
+happens to find an old file. The workaround for that is currently to
+find all stale .go files and remove them. This is likely to affect users
+who have checked out Guile's git repository, not those that build from
+tarballs.
+
+** Vector access has been sped up considerably.
+
+Guile's virtual machine now has vector and bytevector operations. Using
+Guile to process large amounts of data is now easier. This is because
+`vector-ref' and `vector-set!' now have fast opcodes. In addition, there
+are opcodes for `ref' and `set' operations on bytevectors for everything
+from 8-bit integers to 64-bit floating-point values.
+
+In the next release, we hope to extend this speedup to other kinds of
+uniform vectors.
+
+** And of course, the usual collection of bugfixes.
+
+Interested users should see the ChangeLog for more information.
+
 Changes in 1.9.x (since the 1.8.x series):
 
 * New modules (see the manual for details)
@@ -76,9 +135,9 @@ modification times; if the .scm or .go files are moved after
 installation, care should be taken to preserve their original
 timestamps.
 
-Autocompiled files will be stored in the user's ~/.guile-ccache
-directory, which will be created if needed. This is analogous to
-ccache's behavior for C files.
+Autocompiled files will be stored in the $XDG_CACHE_HOME/guile/ccache
+directory, where $XDG_CACHE_HOME defaults to ~/.cache. This directory
+will be created if needed.
 
 To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
 variable to 0, or pass --no-autocompile on the Guile command line.
@@ -132,6 +191,14 @@ Guile now ships with one other high-level language supported,
 ECMAScript. The goal is to support all of version 3.1 of the standard,
 but not all of the libraries are there yet. This support is not yet
 documented; ask on the mailing list if you are interested.
+
+** New language: Brainfuck
+
+Brainfuck is a toy language that closely models Turing machines. Guile's
+brainfuck compiler is meant to be an example of implementing other
+languages. See the manual for details, or
+http://en.wikipedia.org/wiki/Brainfuck for more information about the
+Brainfuck language itself.
 
 ** Defmacros may now have docstrings.
 
