@@ -28,6 +28,8 @@
 #include <sys/types.h>
 #include <assert.h>
 
+#include <verify.h>
+
 #include "_scm.h"
 #include "vm-bootstrap.h"
 #include "programs.h"
@@ -46,9 +48,13 @@
 /* The word size marker in objcode.  */
 #define OBJCODE_WORD_SIZE  OBJCODE_STRINGIFY (SIZEOF_VOID_P)
 
-/* nb, the length of the header should be a multiple of 8 bytes */
+/* The objcode magic header.  */
 #define OBJCODE_COOKIE						\
   "GOOF-0.6-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
+
+/* The length of the header must be a multiple of 8 bytes.  */
+verify ((sizeof (OBJCODE_COOKIE) & 7) != 0);
+
 
 
 /*
