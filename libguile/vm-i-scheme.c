@@ -281,7 +281,7 @@ VM_DEFINE_INSTRUCTION (108, slot_set, "slot-set", 0, 3, 0)
 
 VM_DEFINE_FUNCTION (109, vector_ref, "vector-ref", 2)
 {
-  long i;
+  long i = 0;
   ARGS2 (vect, idx);
   if (SCM_LIKELY (SCM_I_IS_VECTOR (vect)
                   && SCM_I_INUMP (idx)
@@ -294,7 +294,7 @@ VM_DEFINE_FUNCTION (109, vector_ref, "vector-ref", 2)
 
 VM_DEFINE_INSTRUCTION (110, vector_set, "vector-set", 0, 3, 0)
 {
-  long i;
+  long i = 0;
   SCM vect, idx, val;
   POP (val); POP (idx); POP (vect);
   if (SCM_LIKELY (SCM_I_IS_VECTOR (vect)
@@ -346,7 +346,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)                   \
 {                                                                       \
-  long i;                                                               \
+  long i = 0;                                                           \
   ARGS2 (bv, idx);                                                      \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
@@ -361,7 +361,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_REF(stem, type, size)                                    \
 {                                                                       \
-  long i;                                                               \
+  long i = 0;                                                           \
   ARGS2 (bv, idx);                                                      \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
@@ -380,7 +380,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_REF(stem, fn_stem, type, size)                         \
 {                                                                       \
-  long i;                                                               \
+  long i = 0;                                                           \
   ARGS2 (bv, idx);                                                      \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
@@ -454,7 +454,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)         \
 {                                                                       \
-  long i, j;                                                            \
+  long i = 0, j = 0;                                                    \
   SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
@@ -472,7 +472,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_SET(stem, type, size)                                    \
 {                                                                       \
-  long i;                                                               \
+  long i = 0;                                                           \
   SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
@@ -487,7 +487,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_SET(stem, fn_stem, type, size)                         \
 {                                                                       \
-  long i;                                                               \
+  long i = 0;                                                           \
   SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
