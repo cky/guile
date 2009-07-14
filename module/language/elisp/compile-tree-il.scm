@@ -35,11 +35,10 @@
               props))))
 
 
-; Value to use for Elisp's nil and t.
+; Values to use for Elisp's nil and t.
 
-; FIXME: Use real nil.
-(define (nil-value loc) (make-const loc #f))
-(define (t-value loc) (make-const loc #t))
+(define (nil-value loc) (make-const loc (@ (language elisp runtime) nil-value)))
+(define (t-value loc) (make-const loc (@ (language elisp runtime) t-value)))
 
 
 ; Modules that contain the value and function slot bindings.
@@ -201,6 +200,10 @@
 ; clear and better than creating a lot of nested let's.
 
 (define (compile-lambda loc args body)
+  (if (not (list? args))
+    (error "expected list for argument-list" args))
+  (if (null? body)
+    (error "function body might not be empty"))
   (call-with-values
     (lambda ()
       (split-lambda-arguments loc args))
@@ -262,6 +265,21 @@
          (make-void loc)
          (runtime-error loc "too many arguments and no rest argument")))
       (else (make-void loc)))))
+
+
+; Handle the common part of defconst and defvar, that is, checking for a correct
+; doc string and arguments as well as maybe in the future handling the docstring
+; somehow.
+
+(define (handle-var-def loc sym doc)
+  (cond
+    ((not (symbol? sym)) (report-error loc "expected symbol, got" sym))
+    ((> (length doc) 1) (report-error loc "too many arguments to defvar"))
+    ((and (not (null? doc)) (not (string? (car doc))))
+     (report-error loc "expected string as third argument of defvar, got"
+                   (car doc)))
+    ; TODO: Handle doc string if present.
+    (else #t)))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -340,6 +358,24 @@
                (make-lexical-ref loc 'condition var)
                (make-lexical-ref loc 'condition var)
                (iterate (cdr tail))))))))
+
+    ((defconst ,sym ,value . ,doc)
+     (if (handle-var-def loc sym doc)
+       (make-sequence loc
+         (list (set-variable! loc sym value-slot (compile-expr value))
+               (make-const loc sym)))))
+
+    ((defvar ,sym) (make-const loc sym))
+    ((defvar ,sym ,value . ,doc)
+     (if (handle-var-def loc sym doc)
+       (make-sequence loc
+         (list (make-conditional loc
+                 (call-primitive loc 'eq?
+                                 (make-module-ref loc runtime 'void #t)
+                                 (reference-variable loc sym value-slot))
+                 (set-variable! loc sym value-slot (compile-expr value))
+                 (make-void loc))
+               (make-const loc sym)))))
 
     ; Build a set form for possibly multiple values.  The code is not formulated
     ; tail recursive because it is clearer this way and large lists of symbol
@@ -420,10 +456,19 @@
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
-    ((lambda ,args . ,body) (guard (not (null? body)))
+    ((lambda ,args . ,body)
      (compile-lambda loc args body))
-    ((function (lambda ,args . ,body)) (guard (not (null? body)))
+    ((function (lambda ,args . ,body))
      (compile-lambda loc args body))
+
+    ; Build a lambda and also assign it to the function cell of some symbol.
+    ((defun ,name ,args . ,body)
+     (if (not (symbol? name))
+       (error "expected symbol as function name" name)
+       (make-sequence loc
+         (list (set-variable! loc name function-slot
+                              (compile-lambda loc args body))
+               (make-const loc name)))))
 
     (('quote ,val)
      (make-const loc val))

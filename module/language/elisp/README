@@ -14,6 +14,7 @@ Already implemented:
   * let, let*
   * lambda expressions, function calls using list notation
   * some built-ins (mainly numbers/arithmetic)
+  * defconst, defvar, defun
 
 Especially still missing:
   * other progX forms, will be done in macros
@@ -23,7 +24,6 @@ Especially still missing:
   * real elisp reader instead of Scheme's
   * set, makunbound, boundp functions
   * macros
-  * more built-ins
-  * funcall and apply
-  * fset & friends
-  * defvar, defun
+  * more general built-ins
+  * funcall and apply functions
+  * fset & friends, defalias functions
