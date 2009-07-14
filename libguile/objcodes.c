@@ -33,8 +33,22 @@
 #include "programs.h"
 #include "objcodes.h"
 
+/* The endianness marker in objcode.  */
+#ifdef WORDS_BIGENDIAN
+# define OBJCODE_ENDIANNESS "BE"
+#else
+# define OBJCODE_ENDIANNESS "LE"
+#endif
+
+#define _OBJCODE_STRINGIFY(x)  # x
+#define OBJCODE_STRINGIFY(x)   _OBJCODE_STRINGIFY (x)
+
+/* The word size marker in objcode.  */
+#define OBJCODE_WORD_SIZE  OBJCODE_STRINGIFY (SIZEOF_VOID_P)
+
 /* nb, the length of the header should be a multiple of 8 bytes */
-#define OBJCODE_COOKIE "GOOF-0.6"
+#define OBJCODE_COOKIE						\
+  "GOOF-0.6-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
 
 
 /*
