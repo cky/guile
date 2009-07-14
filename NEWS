@@ -70,6 +70,8 @@ from 8-bit integers to 64-bit floating-point values.
 In the next release, we hope to extend this speedup to other kinds of
 uniform vectors.
 
+** The `long_long' C type, deprecated in 1.8, has been removed.
+
 ** And of course, the usual collection of bugfixes.
 
 Interested users should see the ChangeLog for more information.
@@ -592,6 +594,8 @@ This procedure corresponds to Scheme's `module-public-interface'.
 
 Previously they would use the `off_t' type, which is fragile since its
 definition depends on the application's value for `_FILE_OFFSET_BITS'.
+
+** The `long_long' C type, deprecated in 1.8, has been removed
 
 * Changes to the distribution
 

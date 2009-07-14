@@ -279,21 +279,6 @@ main (int argc, char *argv[])
   pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
 
-  pf("\n");
-  pf("/* handling for the deprecated long_long and ulong_long types */\n");  
-  pf("/* If anything suitable is available, it'll be defined here.  */\n");  
-  pf("#if (SCM_ENABLE_DEPRECATED == 1)\n");
-  if (SIZEOF_LONG_LONG != 0)
-    pf ("typedef long long long_long;\n");
-  else if (SIZEOF___INT64 != 0)
-    pf ("typedef __int64 long_long;\n");
-  
-  if (SIZEOF_UNSIGNED_LONG_LONG != 0)
-    pf ("typedef unsigned long long ulong_long;\n");
-  else if (SIZEOF_UNSIGNED___INT64 != 0)
-    pf ("typedef unsigned __int64 ulong_long;\n");
-  pf("#endif /* SCM_ENABLE_DEPRECATED == 1 */\n");
-
   pf ("\n");
   pf ("/* These are always defined. */\n");
   pf ("typedef %s scm_t_int8;\n", SCM_I_GSC_T_INT8);
