@@ -53,7 +53,7 @@
   "GOOF-0.6-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
 
 /* The length of the header must be a multiple of 8 bytes.  */
-verify ((sizeof (OBJCODE_COOKIE) & 7) != 0);
+verify (((sizeof (OBJCODE_COOKIE) - 1) & 7) == 0);
 
 
 
