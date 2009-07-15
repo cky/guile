@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -56,7 +56,7 @@ SCM_API scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_IS_U8VECTOR(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_U8VECTOR)
 #define SCM_OBJCODE_IS_SLICE(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_SLICE)
 
-SCM scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr);
+SCM scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr);
 SCM_API SCM scm_load_objcode (SCM file);
 SCM_API SCM scm_objcode_p (SCM obj);
 SCM_API SCM scm_objcode_meta (SCM objcode);

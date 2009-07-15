@@ -120,10 +120,10 @@ make_objcode_by_mmap (int fd)
 #undef FUNC_NAME
 
 SCM
-scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
+scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 #define FUNC_NAME "make-objcode-slice"
 {
-  struct scm_objcode *data, *parent_data;
+  const struct scm_objcode *data, *parent_data;
   SCM ret;
 
   SCM_VALIDATE_OBJCODE (1, parent);
