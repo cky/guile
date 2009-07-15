@@ -8,7 +8,6 @@ Already implemented:
   * progn
   * if, cond
   * and, or
-  * quote
   * referencing and setting (setq) variables
   * while
   * let, let*
@@ -29,3 +28,4 @@ Especially still missing:
   * fset & friends, defalias functions
   * advice?
   * defsubst and inlining
+  * real quoting

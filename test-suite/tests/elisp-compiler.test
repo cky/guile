@@ -1,0 +1,208 @@
+;;;; elisp-compiler.test --- Test the compiler for Elisp.
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Daniel Kraft
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-elisp-compiler)
+  :use-module (test-suite lib)
+  :use-module (system base compile)
+  :use-module (language elisp runtime))
+
+
+; Macros to handle the compilation conveniently.
+
+(define-syntax compile-test
+  (syntax-rules (pass-if pass-if-exception)
+    ((_ (pass-if test-name exp))
+     (pass-if test-name (compile 'exp #:from 'elisp #:to 'value)))
+    ((_ (pass-if-equal test-name result exp))
+     (pass-if test-name (equal? result
+                                (compile 'exp #:from 'elisp #:to 'value))))
+    ((_ (pass-if-exception test-name exc exp))
+     (pass-if-exception test-name exc
+                        (compile 'exp #:from 'elisp #:to 'value)))))
+
+(define-syntax with-test-prefix/compile
+  (syntax-rules ()
+    ((_ section-name exp ...)
+     (with-test-prefix section-name (compile-test exp) ...))))
+
+
+; Test control structures.
+; ========================
+
+(with-test-prefix/compile "Sequencing"
+  
+  (pass-if-equal "progn" 1
+    (progn (setq a 0)
+           (setq a (1+ a))
+           a)))
+
+(with-test-prefix/compile "Conditionals"
+
+  (pass-if-equal "succeeding if" 1
+    (if t 1 2))
+  (pass-if-equal "failing if" 3
+    (if nil
+      1
+      (setq a 2)
+      (setq a (1+ a))
+      a))
+
+  (pass-if-equal "empty cond" nil-value
+    (cond))
+  (pass-if-equal "all failing cond" nil-value
+    (cond (nil) (nil)))
+  (pass-if-equal "only condition" 5
+    (cond (nil) (5)))
+  (pass-if-equal "succeeding cond value" 42
+    (cond (nil) (t 42) (t 0)))
+  (pass-if-equal "succeeding cond side-effect" 42
+    (progn (setq a 0)
+           (cond (nil) (t (setq a 42) 1) (t (setq a 0)))
+           a)))
+
+(with-test-prefix/compile "Combining Conditions"
+
+  (pass-if-equal "empty and" t-value (and))
+  (pass-if-equal "failing and" nil-value (and 1 2 nil 3))
+  (pass-if-equal "succeeding and" 3 (and 1 2 3))
+
+  (pass-if-equal "empty or" nil-value (or))
+  (pass-if-equal "failing or" nil-value (or nil nil nil))
+  (pass-if-equal "succeeding or" 1 (or nil 1 nil 2 nil 3)))
+
+(with-test-prefix/compile "Iteration"
+
+  (pass-if-equal "failing while" 0
+    (progn (setq a 0)
+           (while nil (setq a 1))
+           a))
+  (pass-if-equal "running while" 120
+    (progn (setq prod 1
+                 i 1)
+           (while (<= i 5)
+             (setq prod (* i prod))
+             (setq i (1+ i)))
+           prod)))
+
+
+; Test handling of variables.
+; ===========================
+
+(with-test-prefix/compile "Variable Setting/Referencing"
+
+  ; TODO: Check for variable-void error
+
+  (pass-if-equal "setq and reference" 6
+    (progn (setq a 1
+                 b 2
+                 c 3)
+           (+ a b c))))
+
+(with-test-prefix/compile "Let and Let*"
+
+  (pass-if-equal "let without value" nil-value
+    (let (a (b 5)) a))
+  (pass-if-equal "basic let" 0
+    (progn (setq a 0)
+           (let ((a 1)
+                 (b a))
+             b)))
+  (pass-if-equal "let*" 1
+    (progn (setq a 0)
+           (let* ((a 1)
+                  (b a))
+             b)))
+
+  (pass-if "local scope"
+    (progn (setq a 0)
+           (setq b (let (a)
+                     (setq a 1)
+                     a))
+           (and (= a 0)
+                (= b 1)))))
+
+(with-test-prefix/compile "defconst and defvar"
+
+  (pass-if-equal "defconst without docstring" 3.141
+    (progn (setq pi 3)
+           (defconst pi 3.141)
+           pi))
+  (pass-if-equal "defconst value" 'pi
+    (defconst pi 3.141 "Pi"))
+
+  (pass-if-equal "defvar without value" 42
+    (progn (setq a 42)
+           (defvar a)
+           a))
+  (pass-if-equal "defvar on already defined variable" 42
+    (progn (setq a 42)
+           (defvar a 1 "Some docstring is also ok")
+           a))
+  ; FIXME: makunbound a!
+  (pass-if-equal "defvar on undefined variable" 1
+    (progn (defvar a 1)
+           a))
+  (pass-if-equal "defvar value" 'a
+    (defvar a)))
+
+
+; Functions and lambda expressions.
+; =================================
+
+(with-test-prefix/compile "Lambda Expressions"
+
+  (pass-if-equal "required arguments" 3
+    ((lambda (a b c) c) 1 2 3))
+
+  (pass-if-equal "optional argument" 3
+    ((function (lambda (a &optional b c) c)) 1 2 3))
+  (pass-if-equal "optional missing" nil-value
+    ((lambda (&optional a) a)))
+
+  (pass-if-equal "rest argument" '(3 4 5)
+    ((lambda (a b &rest c) c) 1 2 3 4 5))
+  (pass-if-equal "rest missing" nil-value
+    ((lambda (a b &rest c) c) 1 2)))
+
+(with-test-prefix/compile "Function Definitions"
+
+  (pass-if-equal "defun" 3
+    (progn (defun test (a b) (+ a b))
+           (test 1 2)))
+  (pass-if-equal "defun value" 'test
+    (defun test (a b) (+ a b))))
+
+(with-test-prefix/compile "Calling Functions"
+
+  (pass-if-equal "recursion" 120
+    (progn (defun factorial (n prod)
+             (if (zerop n)
+               prod
+               (factorial (1- n) (* prod n))))
+           (factorial 5 1)))
+
+  (pass-if "dynamic scoping"
+    (progn (setq a 0)
+           (defun foo ()
+             (setq a (1+ a))
+             a)
+           (defun bar (a)
+             (foo))
+           (and (= 43 (bar 42))
+                (zerop a)))))
