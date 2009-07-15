@@ -138,6 +138,12 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 				scm_from_uint32 (parent_data->len),
 				scm_from_uint32 (parent_data->metalen)));
 
+#if 0
+  /* FIXME: We currently generate bytecode where the objcode-meta isn't
+     suitable aligned, which is an issue on some arches (e.g., SPARC).  */
+  assert ((((uintptr_t) ptr) & (__alignof__ (struct scm_objcode) - 1UL)) == 0);
+#endif
+
   data = (struct scm_objcode*)ptr;
   if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)
     abort ();
