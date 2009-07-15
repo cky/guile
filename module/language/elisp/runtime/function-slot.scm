@@ -43,7 +43,7 @@
                                             ((@ (guile) >=) num 0)))))
 
 (built-in-func zerop (lambda (num)
-                       (elisp-bool ((@ (guile) not) ((@ (guile) =) num 0)))))
+                       (elisp-bool ((@ (guile) =) num 0))))
 
 
 ; Number comparisons.

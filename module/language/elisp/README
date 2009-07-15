@@ -27,3 +27,5 @@ Especially still missing:
   * more general built-ins
   * funcall and apply functions
   * fset & friends, defalias functions
+  * advice?
+  * defsubst and inlining
