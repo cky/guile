@@ -84,7 +84,10 @@
 
   (pass-if-equal "empty or" nil-value (or))
   (pass-if-equal "failing or" nil-value (or nil nil nil))
-  (pass-if-equal "succeeding or" 1 (or nil 1 nil 2 nil 3)))
+  (pass-if-equal "succeeding or" 1 (or nil 1 nil 2 nil 3))
+
+  (pass-if-equal "not true" nil-value (not 1))
+  (pass-if-equal "not false" t-value (not nil)))
 
 (with-test-prefix/compile "Iteration"
 
@@ -206,3 +209,46 @@
              (foo))
            (and (= 43 (bar 42))
                 (zerop a)))))
+
+
+; Test the built-ins.
+; ===================
+
+(with-test-prefix/compile "Number Built-Ins"
+
+  (pass-if "floatp"
+    (and (floatp 1.0) (not (floatp 1)) (not (floatp 'a))))
+  (pass-if "integerp"
+    (and (integerp 42) (integerp -2) (not (integerp 1.0))))
+  (pass-if "numberp"
+    (and (numberp 1.0) (numberp -2) (not (numberp 'a))))
+  (pass-if "wholenump"
+    (and (wholenump 0) (not (wholenump -2)) (not (wholenump 1.0))))
+  (pass-if "zerop"
+    (and (zerop 0) (zerop 0.0) (not (zerop 1))))
+
+  (pass-if "comparisons"
+    (and (= 1 1.0) (/= 0 1)
+         (< 1 2) (> 2 1) (>= 1 1) (<= 1 1)
+         (not (< 1 1)) (not (<= 2 1))))
+
+  (pass-if "max and min"
+    (and (= (max -5 2 4.0 1) 4.0) (= (min -5 2 4.0 1) -5)
+         (= (max 1) 1) (= (min 1) 1)))
+  (pass-if "abs"
+    (and (= (abs 1.0) 1.0) (= (abs -5) 5)))
+
+  (pass-if "float"
+    (and (= (float 1) 1) (= (float 5.5) 5.5)
+         (floatp (float 1))))
+
+  (pass-if-equal "basic arithmetic operators" -8.5
+    (+ (1+ 0) (1- 0) (- 5.5) (* 2 -2) (- 2 1)))
+  (pass-if "modulo"
+    (= (% 5 3) 2))
+
+  (pass-if "floating point rounding"
+    (and (= (ffloor 1.7) 1.0) (= (ffloor -1.2) -2.0) (= (ffloor 1.0) 1.0)
+         (= (fceiling 1.2) 2.0) (= (fceiling -1.7) -1.0) (= (fceiling 1.0) 1.0)
+         (= (ftruncate 1.6) 1.0) (= (ftruncate -1.7) -1.0)
+         (= (fround 1.2) 1.0) (= (fround 1.7) 2.0) (= (fround -1.7) -2.0))))

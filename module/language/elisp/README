@@ -29,3 +29,4 @@ Especially still missing:
   * advice?
   * defsubst and inlining
   * real quoting
+  * need fluids for function bindings?

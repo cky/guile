@@ -30,16 +30,20 @@
 
 (built-in-func floatp (lambda (num)
                         (elisp-bool (and (real? num)
-                                         (not (integer? num))))))
+                                         (or (inexact? num)
+                                             ((@ (guile) not)
+                                               (integer? num)))))))
 
 (built-in-func integerp (lambda (num)
-                          (elisp-bool (integer? num))))
+                          (elisp-bool (and (exact? num)
+                                           (integer? num)))))
 
 (built-in-func numberp (lambda (num)
                          (elisp-bool (real? num))))
 
 (built-in-func wholenump (lambda (num)
-                           (elisp-bool (and (integer? num)
+                           (elisp-bool (and (exact? num)
+                                            (integer? num)
                                             ((@ (guile) >=) num 0)))))
 
 (built-in-func zerop (lambda (num)
@@ -99,3 +103,9 @@
 (built-in-func fceiling (@ (guile) ceiling))
 (built-in-func ftruncate (@ (guile) truncate))
 (built-in-func fround (@ (guile) round))
+
+
+; Miscellaneous.
+
+(built-in-func not (lambda (x)
+                     (if x nil-value t-value)))
