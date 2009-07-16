@@ -3,7 +3,7 @@
 #ifndef SCM_UNIF_H
 #define SCM_UNIF_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -42,7 +42,7 @@ typedef struct scm_t_array_dim
   ssize_t inc;
 } scm_t_array_dim;
 
-SCM_API SCM scm_array_p (SCM v, SCM prot);
+SCM_API SCM scm_array_p (SCM v);
 SCM_API SCM scm_typed_array_p (SCM v, SCM type);
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
@@ -169,23 +169,6 @@ SCM_API scm_t_bits scm_i_tc16_enclosed_array;
 SCM_INTERNAL SCM scm_i_make_ra (int ndim, int enclosed);
 SCM_INTERNAL SCM scm_i_cvref (SCM v, size_t p, int enclosed);
 SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
-
-/* deprecated. */
-
-#if SCM_ENABLE_DEPRECATED
-
-SCM_API SCM scm_make_uve (long k, SCM prot);
-SCM_API SCM scm_array_prototype (SCM ra);
-SCM_API SCM scm_list_to_uniform_array (SCM ndim, SCM prot, SCM lst);
-SCM_API SCM scm_dimensions_to_uniform_array (SCM dims, SCM prot, SCM fill);
-SCM_API SCM scm_make_ra (int ndim);
-SCM_API SCM scm_shap2ra (SCM args, const char *what);
-SCM_API SCM scm_cvref (SCM v, unsigned long pos, SCM last);
-SCM_API void scm_ra_set_contp (SCM ra);
-SCM_API long scm_aind (SCM ra, SCM args, const char *what);
-SCM_API int scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate);
-
-#endif
 
 SCM_INTERNAL void scm_init_unif (void);
 

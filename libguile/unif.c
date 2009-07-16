@@ -49,7 +49,6 @@
 #include "libguile/vectors.h"
 #include "libguile/bytevectors.h"
 #include "libguile/list.h"
-#include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
@@ -145,114 +144,6 @@ make_typed_vector (SCM type, size_t len)
   creator_proc *creator = type_to_creator (type);
   return creator (scm_from_size_t (len), SCM_UNDEFINED);
 }
-
-#if SCM_ENABLE_DEPRECATED
-
-SCM_SYMBOL (scm_sym_s, "s");
-SCM_SYMBOL (scm_sym_l, "l");
-
-static int
-singp (SCM obj)
-{
-  if (!SCM_REALP (obj))
-    return 0;
-  else
-    {
-      double x = SCM_REAL_VALUE (obj);
-      float fx = x;
-      return (- SCM_FLTMAX < x) && (x < SCM_FLTMAX) && (fx == x);
-    }
-}
-
-SCM_API int scm_i_inump (SCM obj);
-SCM_API scm_t_signed_bits scm_i_inum (SCM obj);
-
-static SCM
-prototype_to_type (SCM proto)
-{
-  const char *type_name;
-
-  if (scm_is_eq (proto, SCM_BOOL_T))
-    type_name = "b";
-  else if (scm_is_eq (proto, SCM_MAKE_CHAR (0)))
-    type_name = "s8";
-  else if (SCM_CHARP (proto))
-    type_name = "a";
-  else if (scm_i_inump (proto))
-    {
-      if (scm_i_inum (proto) > 0)
-	type_name = "u32";
-      else
-	type_name = "s32";
-    }
-  else if (scm_is_eq (proto, scm_sym_s))
-    type_name = "s16";
-  else if (scm_is_eq (proto, scm_sym_l))
-    type_name = "s64";
-  else if (SCM_REALP (proto)
-	   || scm_is_true (scm_eqv_p (proto,
-				      scm_divide (scm_from_int (1),
-						  scm_from_int (3)))))
-    {
-      if (singp (proto))
-	type_name = "f32";
-      else
-	type_name = "f64";
-    }
-  else if (SCM_COMPLEXP (proto))
-    type_name = "c64";
-  else if (scm_is_null (proto))
-    type_name = NULL;
-  else
-    type_name = NULL;
-
-  if (type_name)
-    return scm_from_locale_symbol (type_name);
-  else
-    return SCM_BOOL_T;
-}
-
-static SCM
-scm_i_get_old_prototype (SCM uvec)
-{
-  if (scm_is_bitvector (uvec))
-    return SCM_BOOL_T;
-  else if (scm_is_string (uvec))
-    return SCM_MAKE_CHAR ('a');
-  else if (scm_is_true (scm_s8vector_p (uvec)))
-    return SCM_MAKE_CHAR ('\0');
-  else if (scm_is_true (scm_s16vector_p (uvec)))
-    return scm_sym_s;
-  else if (scm_is_true (scm_u32vector_p (uvec)))
-    return scm_from_int (1);
-  else if (scm_is_true (scm_s32vector_p (uvec)))
-    return scm_from_int (-1);
-  else if (scm_is_true (scm_s64vector_p (uvec)))
-    return scm_sym_l;
-  else if (scm_is_true (scm_f32vector_p (uvec)))
-    return scm_from_double (1.0);
-  else if (scm_is_true (scm_f64vector_p (uvec)))
-    return scm_divide (scm_from_int (1), scm_from_int (3));
-  else if (scm_is_true (scm_c64vector_p (uvec)))
-    return scm_c_make_rectangular (0, 1);
-  else if (scm_is_vector (uvec))
-    return SCM_EOL;
-  else
-    scm_misc_error (NULL, "~a has no prototype", scm_list_1 (uvec));
-}
-
-SCM
-scm_make_uve (long k, SCM prot)
-#define FUNC_NAME "scm_make_uve"
-{
-  scm_c_issue_deprecation_warning
-    ("`scm_make_uve' is deprecated, see the manual for alternatives.");
-
-  return make_typed_vector (prototype_to_type (prot), k);
-}
-#undef FUNC_NAME
-
-#endif
 
 int
 scm_is_array (SCM obj)
@@ -523,54 +414,20 @@ scm_array_handle_writable_elements (scm_t_array_handle *h)
   scm_wrong_type_arg_msg (NULL, 0, h->array, "non-uniform array");
 }
 
-#if SCM_ENABLE_DEPRECATED
-
-SCM_DEFINE (scm_array_p, "array?", 1, 1, 0,
-           (SCM obj, SCM prot),
-	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
-	    "not.")
-#define FUNC_NAME s_scm_array_p
-{
-  if (!SCM_UNBNDP (prot))
-    {
-      scm_c_issue_deprecation_warning
-	("Using prototypes with `array?' is deprecated."
-	 "  Use `typed-array?' instead.");
-
-      return scm_typed_array_p (obj, prototype_to_type (prot));
-    }
-  else
-    return scm_from_bool (scm_is_array (obj));
-}
-#undef FUNC_NAME
-
-#else /* !SCM_ENABLE_DEPRECATED */
-
 /* We keep the old 2-argument C prototype for a while although the old
    PROT argument is always ignored now.  C code should probably use
    scm_is_array or scm_is_typed_array anyway.
 */
 
-static SCM scm_i_array_p (SCM obj);
-
-SCM_DEFINE (scm_i_array_p, "array?", 1, 0, 0,
+SCM_DEFINE (scm_array_p, "array?", 1, 0, 0,
            (SCM obj),
 	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
 	    "not.")
-#define FUNC_NAME s_scm_i_array_p
+#define FUNC_NAME s_scm_array_p
 {
   return scm_from_bool (scm_is_array (obj));
 }
 #undef FUNC_NAME
-
-SCM
-scm_array_p (SCM obj, SCM prot)
-{
-  return scm_from_bool (scm_is_array (obj));
-}
-
-#endif /* !SCM_ENABLE_DEPRECATED */
-
 
 SCM_DEFINE (scm_typed_array_p, "typed-array?", 2, 0, 0,
            (SCM obj, SCM type),
@@ -855,41 +712,6 @@ SCM_DEFINE (scm_make_array, "make-array", 1, 0, 1,
   return scm_make_typed_array (SCM_BOOL_T, fill, bounds);
 }
 #undef FUNC_NAME
-
-#if SCM_ENABLE_DEPRECATED
-
-SCM_DEFINE (scm_dimensions_to_uniform_array, "dimensions->uniform-array", 2, 1, 0,
-	    (SCM dims, SCM prot, SCM fill),
-	    "@deffnx {Scheme Procedure} make-uniform-vector length prototype [fill]\n"
-	    "Create and return a uniform array or vector of type\n"
-	    "corresponding to @var{prototype} with dimensions @var{dims} or\n"
-	    "length @var{length}.  If @var{fill} is supplied, it's used to\n"
-	    "fill the array, otherwise @var{prototype} is used.")
-#define FUNC_NAME s_scm_dimensions_to_uniform_array
-{
-  scm_c_issue_deprecation_warning
-    ("`dimensions->uniform-array' is deprecated.  "
-     "Use `make-typed-array' instead.");
-
-  if (scm_is_integer (dims))
-    dims = scm_list_1 (dims);
-
-  if (SCM_UNBNDP (fill))
-    {
-      /* Using #\nul as the prototype yields a s8 array, but numeric
-	 arrays can't store characters, so we have to special case this.
-      */
-      if (scm_is_eq (prot, SCM_MAKE_CHAR (0)))
-	fill = scm_from_int (0);
-      else
-	fill = prot;
-    }
-
-  return scm_make_typed_array (prototype_to_type (prot), fill, dims);
-}
-#undef FUNC_NAME
-
-#endif
 
 static void 
 scm_i_ra_set_contp (SCM ra)
@@ -2516,28 +2338,6 @@ l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k)
     }
 }
 
-#if SCM_ENABLE_DEPRECATED
-
-SCM_DEFINE (scm_list_to_uniform_array, "list->uniform-array", 3, 0, 0,
-           (SCM ndim, SCM prot, SCM lst),
-	    "Return a uniform array of the type indicated by prototype\n"
-	    "@var{prot} with elements the same as those of @var{lst}.\n"
-	    "Elements must be of the appropriate type, no coercions are\n"
-	    "done.\n"
-	    "\n"
-	    "The argument @var{ndim} determines the number of dimensions\n"
-	    "of the array.  It is either an exact integer, giving the\n"
-	    "number directly, or a list of exact integers, whose length\n"
-	    "specifies the number of dimensions and each element is the\n"
-	    "lower index bound of its dimension.")
-#define FUNC_NAME s_scm_list_to_uniform_array
-{
-  return scm_list_to_typed_array (prototype_to_type (prot), ndim, lst);
-}
-#undef FUNC_NAME
-
-#endif
-
 /* Print dimension DIM of ARRAY.
  */
 
@@ -2672,52 +2472,6 @@ scm_i_print_enclosed_array (SCM array, SCM port, scm_print_state *pstate)
 static SCM
 tag_to_type (const char *tag, SCM port)
 {
-#if SCM_ENABLE_DEPRECATED
-  {
-    /* Recognize the old syntax.
-     */
-    const char *instead;
-    switch (tag[0])
-      {
-      case 'u':
-	instead = "u32";
-	break;
-      case 'e':
-	instead = "s32";
-	break;
-      case 's':
-	instead = "f32";
-	break;
-      case 'i':
-	instead = "f64";
-	break;
-      case 'y':
-	instead = "s8";
-	break;
-      case 'h':
-	instead = "s16";
-	break;
-      case 'l':
-	instead = "s64";
-	break;
-      case 'c':
-	instead = "c64";
-	break;
-      default:
-	instead = NULL;
-	break;
-      }
-    
-    if (instead && tag[1] == '\0')
-      {
-	scm_c_issue_deprecation_warning_fmt
-	  ("The tag '%c' is deprecated for uniform vectors. "
-	   "Use '%s' instead.", tag[0], instead);
-	return scm_from_locale_symbol (instead);
-      }
-  }
-#endif
-  
   if (*tag == '\0')
     return SCM_BOOL_T;
   else
@@ -2897,28 +2651,6 @@ SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#if SCM_ENABLE_DEPRECATED
-
-SCM_DEFINE (scm_array_prototype, "array-prototype", 1, 0, 0, 
-           (SCM ra),
-	    "Return an object that would produce an array of the same type\n"
-	    "as @var{array}, if used as the @var{prototype} for\n"
-	    "@code{make-uniform-array}.")
-#define FUNC_NAME s_scm_array_prototype
-{
-  if (SCM_I_ARRAYP (ra))
-    return scm_i_get_old_prototype (SCM_I_ARRAY_V (ra));
-  else if (scm_is_generalized_vector (ra))
-    return scm_i_get_old_prototype (ra);
-  else if (SCM_I_ENCLOSED_ARRAYP (ra))
-    return SCM_UNSPECIFIED;
-  else
-    scm_wrong_type_arg_msg (NULL, 0, ra, "array");
-}
-#undef FUNC_NAME
-
-#endif
-
 static SCM
 array_mark (SCM ptr)
 {
@@ -2934,70 +2666,6 @@ array_free (SCM ptr)
 	       "array");
   return 0;
 }
-
-#if SCM_ENABLE_DEPRECATED
-
-SCM 
-scm_make_ra (int ndim)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_make_ra is deprecated.  Use scm_make_array or similar instead.");
-  return scm_i_make_ra (ndim, 0);
-}
-
-SCM 
-scm_shap2ra (SCM args, const char *what)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_shap2ra is deprecated.  Use scm_make_array or similar instead.");
-  return scm_i_shap2ra (args);
-}
-
-SCM
-scm_cvref (SCM v, unsigned long pos, SCM last)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_cvref is deprecated.  Use scm_c_generalized_vector_ref instead.");
-  return scm_c_generalized_vector_ref (v, pos);
-}
-
-void 
-scm_ra_set_contp (SCM ra)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_ra_set_contp is deprecated.  There should be no need for it.");
-  scm_i_ra_set_contp (ra);
-}
-
-long 
-scm_aind (SCM ra, SCM args, const char *what)
-{
-  scm_t_array_handle handle;
-  ssize_t pos;
-
-  scm_c_issue_deprecation_warning
-    ("scm_aind is deprecated.  Use scm_array_handle_pos instead.");
-
-  if (scm_is_integer (args))
-    args = scm_list_1 (args);
-  
-  scm_array_get_handle (ra, &handle);
-  pos = scm_array_handle_pos (&handle, args) + SCM_I_ARRAY_BASE (ra);
-  scm_array_handle_release (&handle);
-  return pos;
-}
-
-int 
-scm_raprin1 (SCM exp, SCM port, scm_print_state *pstate)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_raprin1 is deprecated.  Use scm_display or scm_write instead.");
-
-  scm_iprin1 (exp, port, pstate);
-  return 1;
-}
-
-#endif
 
 void
 scm_init_unif ()
