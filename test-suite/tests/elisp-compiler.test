@@ -211,6 +211,19 @@
                 (zerop a)))))
 
 
+; Macros.
+; =======
+
+(with-test-prefix/compile "Macros"
+
+  (pass-if-equal "defmacro value" 'magic-number
+    (defmacro magic-number () 42))
+
+  (pass-if-equal "macro expansion" 1
+    (progn (defmacro take-first (a b) a)
+           (take-first 1 (/ 1 0)))))
+
+
 ; Test the built-ins.
 ; ===================
 

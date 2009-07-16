@@ -22,6 +22,7 @@
 (define-module (language elisp compile-tree-il)
   #:use-module (language tree-il)
   #:use-module (system base pmatch)
+  #:use-module (system base compile)
   #:export (compile-tree-il))
 
 
@@ -46,6 +47,7 @@
 (define runtime '(language elisp runtime))
 (define value-slot '(language elisp runtime value-slot))
 (define function-slot '(language elisp runtime function-slot))
+(define macro-slot '(language elisp runtime macro-slot))
 
 
 ; Build a call to a primitive procedure nicely.
@@ -282,6 +284,23 @@
     (else #t)))
 
 
+; Handle macro bindings.
+
+(define (is-macro? sym)
+  (module-defined? (resolve-interface macro-slot) sym))
+
+(define (define-macro! loc sym definition)
+  (let ((resolved (resolve-module macro-slot)))
+    (if (is-macro? sym)
+      (report-error loc "macro is already defined" sym)
+      (begin
+        (module-define! resolved sym definition)
+        (module-export! resolved (list sym))))))
+
+(define (get-macro sym)
+  (module-ref (resolve-module macro-slot) sym))
+
+
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -470,8 +489,23 @@
                               (compile-lambda loc args body))
                (make-const loc name)))))
 
+    ; Define a macro (this is done directly at compile-time!).
+    ; FIXME: Recursive macros don't work!
+    ((defmacro ,name ,args . ,body)
+     (if (not (symbol? name))
+       (error "expected symbol as macro name" name)
+       (let* ((tree-il (compile-lambda loc args body))
+              (object (compile tree-il #:from 'tree-il #:to 'value)))
+         (define-macro! loc name object)
+         (make-const loc name))))
+
     (('quote ,val)
      (make-const loc val))
+
+    ; Macro calls are simply expanded and recursively compiled.
+    ((,macro . ,args) (guard (and (symbol? macro) (is-macro? macro)))
+     (let ((expander (get-macro macro)))
+       (compile-expr (apply expander args))))
 
     ; Function calls using (function args) standard notation; here, we have to
     ; take the function value of a symbol if it is one.  It seems that functions

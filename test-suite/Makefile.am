@@ -32,6 +32,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/common-list.test		\
 	    tests/continuations.test		\
 	    tests/elisp.test			\
+	    tests/elisp-compiler.text		\
 	    tests/environments.test		\
 	    tests/eval.test			\
 	    tests/exceptions.test		\

@@ -14,6 +14,7 @@ Already implemented:
   * lambda expressions, function calls using list notation
   * some built-ins (mainly numbers/arithmetic)
   * defconst, defvar, defun
+  * macros
 
 Especially still missing:
   * other progX forms, will be done in macros
@@ -22,7 +23,6 @@ Especially still missing:
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
   * set, makunbound, boundp functions
-  * macros
   * more general built-ins
   * funcall and apply functions
   * fset & friends, defalias functions
@@ -30,3 +30,5 @@ Especially still missing:
   * defsubst and inlining
   * real quoting
   * need fluids for function bindings?
+  * recursive macros
+  * anonymous macros
