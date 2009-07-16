@@ -31,7 +31,7 @@
 #include "libguile/strings.h"
 #include "libguile/validate.h"
 #include "libguile/ieee-754.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/srfi-4.h"
 
 #include <byteswap.h>

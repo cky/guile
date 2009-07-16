@@ -43,7 +43,7 @@
 #include "libguile/strings.h"
 #include "libguile/struct.h"
 #include "libguile/tags.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"

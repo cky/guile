@@ -38,7 +38,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
 #include "libguile/smob.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"

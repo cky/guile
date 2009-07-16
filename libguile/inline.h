@@ -3,7 +3,7 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -34,7 +34,7 @@
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/ports.h"
 #include "libguile/error.h"
 

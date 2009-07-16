@@ -33,7 +33,7 @@
 #include "libguile/procprop.h"
 #include "libguile/read.h"
 #include "libguile/weaks.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/alist.h"
 #include "libguile/struct.h"
 #include "libguile/objects.h"

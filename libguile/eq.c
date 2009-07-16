@@ -28,7 +28,7 @@
 #include "libguile/async.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/vectors.h"
 
 #include "libguile/struct.h"

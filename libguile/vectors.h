@@ -24,7 +24,7 @@
 
 
 #include "libguile/__scm.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 
 
 

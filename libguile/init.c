@@ -116,7 +116,7 @@
 #include "libguile/struct.h"
 #include "libguile/symbols.h"
 #include "libguile/throw.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
@@ -544,7 +544,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_array_handle ();
   scm_init_bitvectors ();
   scm_init_array_map ();
-  scm_init_unif ();
+  scm_init_arrays ();
   scm_init_simpos ();
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */

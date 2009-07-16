@@ -32,7 +32,7 @@
 #include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/bitvectors.h"
 #include "libguile/keywords.h"
 #include "libguile/alist.h"

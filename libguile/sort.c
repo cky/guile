@@ -39,7 +39,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/array-map.h"
 #include "libguile/feature.h"
 #include "libguile/vectors.h"

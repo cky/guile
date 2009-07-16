@@ -27,7 +27,7 @@
 #include "libguile/__scm.h"
 
 #include "libguile/array-handle.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/srfi-4.h"

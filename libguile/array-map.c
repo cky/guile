@@ -27,7 +27,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/smob.h"
 #include "libguile/chars.h"
 #include "libguile/eq.h"

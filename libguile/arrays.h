@@ -99,7 +99,7 @@ SCM_INTERNAL SCM scm_i_make_array (int ndim, int enclosed);
 SCM_INTERNAL SCM scm_i_cvref (SCM v, size_t p, int enclosed);
 SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
 
-SCM_INTERNAL void scm_init_unif (void);
+SCM_INTERNAL void scm_init_arrays (void);
 
 #endif  /* SCM_UNIF_H */
 

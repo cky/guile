@@ -110,6 +110,7 @@ libguile_la_SOURCES =				\
 	arbiters.c				\
 	array-handle.c				\
 	array-map.c				\
+	arrays.c				\
 	async.c					\
 	backtrace.c				\
 	boolean.c				\
@@ -197,7 +198,6 @@ libguile_la_SOURCES =				\
 	symbols.c				\
 	threads.c				\
 	throw.c					\
-	unif.c					\
 	values.c				\
 	variable.c				\
 	vectors.c				\
@@ -220,6 +220,7 @@ DOT_X_FILES =					\
 	arbiters.x				\
 	array-handle.x				\
 	array-map.x				\
+	arrays.x				\
 	async.x					\
 	backtrace.x				\
 	boolean.x				\
@@ -300,7 +301,6 @@ DOT_X_FILES =					\
 	symbols.x				\
 	threads.x				\
 	throw.x					\
-	unif.x					\
 	values.x				\
 	variable.x				\
 	vectors.x				\
@@ -318,6 +318,7 @@ DOT_DOC_FILES = 				\
 	arbiters.doc				\
 	array-handle.doc			\
 	array-map.doc				\
+	arrays.doc				\
 	async.doc				\
 	backtrace.doc				\
 	boolean.doc				\
@@ -398,7 +399,6 @@ DOT_DOC_FILES = 				\
 	symbols.doc				\
 	threads.doc				\
 	throw.doc				\
-	unif.doc				\
 	values.doc				\
 	variable.doc				\
 	vectors.doc				\
@@ -460,6 +460,7 @@ modinclude_HEADERS =				\
 	arbiters.h				\
 	array-handle.h				\
 	array-map.h				\
+	arrays.h				\
 	async.h					\
 	backtrace.h				\
 	boolean.h				\
@@ -553,7 +554,6 @@ modinclude_HEADERS =				\
 	tags.h					\
 	threads.h				\
 	throw.h					\
-	unif.h					\
 	validate.h				\
 	values.h				\
 	variable.h				\

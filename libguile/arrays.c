@@ -53,7 +53,7 @@
 #include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/array-map.h"
 #include "libguile/print.h"
 #include "libguile/read.h"
@@ -1605,7 +1605,7 @@ array_free (SCM ptr)
 }
 
 void
-scm_init_unif ()
+scm_init_arrays ()
 {
   scm_i_tc16_array = scm_make_smob_type ("array", 0);
   scm_set_smob_mark (scm_i_tc16_array, array_mark);
@@ -1623,7 +1623,7 @@ scm_init_unif ()
 
   init_type_creator_table ();
 
-#include "libguile/unif.x"
+#include "libguile/arrays.x"
 
 }
 
