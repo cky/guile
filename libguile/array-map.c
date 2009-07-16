@@ -17,10 +17,6 @@
  */
 
 
-/*
-  HWN:FIXME::
-  Someone should rename this to arraymap.c; that would reflect the
-  contents better.  */
 
 
 
@@ -43,7 +39,7 @@
 #include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 
 
 typedef struct
@@ -259,7 +255,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       return (SCM_UNBNDP (data) ? cproc(vra0, lvra) : cproc(vra0, data, lvra));
     case 1:
     gencase:			/* Have to loop over all dimensions. */
-    vra0 = scm_i_make_array (1, 0);
+      vra0 = scm_i_make_array (1, 0);
     if (SCM_I_ARRAYP (ra0))
       {
 	kmax = SCM_I_ARRAY_NDIM (ra0) - 1;
@@ -1222,13 +1218,13 @@ init_raprocs (ra_iproc *subra)
 
 
 void
-scm_init_ramap ()
+scm_init_array_map (void)
 {
   init_raprocs (ra_rpsubrs);
   init_raprocs (ra_asubrs);
   scm_c_define_subr (s_array_equal_p, scm_tc7_rpsubr, scm_array_equal_p);
   scm_smobs[SCM_TC2SMOBNUM (scm_i_tc16_array)].equalp = scm_raequal;
-#include "libguile/ramap.x"
+#include "libguile/array-map.x"
   scm_add_feature (s_scm_array_for_each);
 }
 

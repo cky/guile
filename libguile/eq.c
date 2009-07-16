@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,7 +22,7 @@
 #endif
 
 #include "libguile/_scm.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 #include "libguile/stackchk.h"
 #include "libguile/strorder.h"
 #include "libguile/async.h"

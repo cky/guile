@@ -53,7 +53,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/unif.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 #include "libguile/print.h"
 #include "libguile/read.h"
 

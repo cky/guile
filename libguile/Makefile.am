@@ -108,6 +108,7 @@ libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 libguile_la_SOURCES =				\
 	alist.c					\
 	arbiters.c				\
+	array-map.c				\
 	async.c					\
 	backtrace.c				\
 	boolean.c				\
@@ -170,7 +171,6 @@ libguile_la_SOURCES =				\
 	programs.c				\
 	properties.c				\
 	r6rs-ports.c				\
-	ramap.c					\
 	random.c				\
 	rdelim.c				\
 	read.c					\
@@ -216,6 +216,7 @@ libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LDFLAGS =	\
 DOT_X_FILES =					\
 	alist.x					\
 	arbiters.x				\
+	array-map.x				\
 	async.x					\
 	backtrace.x				\
 	boolean.x				\
@@ -271,7 +272,6 @@ DOT_X_FILES =					\
 	procs.x					\
 	properties.x				\
 	r6rs-ports.x				\
-	ramap.x					\
 	random.x				\
 	rdelim.x				\
 	read.x					\
@@ -312,6 +312,7 @@ EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 DOT_DOC_FILES = 				\
 	alist.doc				\
 	arbiters.doc				\
+	array-map.doc				\
 	async.doc				\
 	backtrace.doc				\
 	boolean.doc				\
@@ -367,7 +368,6 @@ DOT_DOC_FILES = 				\
 	procs.doc				\
 	properties.doc				\
 	r6rs-ports.doc				\
-	ramap.doc				\
 	random.doc				\
 	rdelim.doc				\
 	read.doc				\
@@ -452,6 +452,7 @@ modinclude_HEADERS =				\
 	__scm.h					\
 	alist.h					\
 	arbiters.h				\
+	array-map.h				\
 	async.h					\
 	backtrace.h				\
 	boolean.h				\
@@ -516,7 +517,6 @@ modinclude_HEADERS =				\
 	properties.h				\
 	pthread-threads.h			\
 	r6rs-ports.h				\
-	ramap.h					\
 	random.h				\
 	rdelim.h				\
 	read.h					\

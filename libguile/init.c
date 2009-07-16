@@ -92,7 +92,7 @@
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
 #include "libguile/properties.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 #include "libguile/random.h"
 #include "libguile/rdelim.h"
 #include "libguile/read.h"
@@ -540,7 +540,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
-  scm_init_ramap ();
+  scm_init_array_map ();
   scm_init_unif ();
   scm_init_simpos ();
   scm_init_load_path ();

@@ -32,7 +32,7 @@
 #include "libguile/vectors.h"
 #include "libguile/unif.h"
 #include "libguile/bytevectors.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 #include "libguile/srfi-4.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
