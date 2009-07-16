@@ -107,7 +107,7 @@ libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     bytevectors.c chars.c continuations.c				\
-    convert.c debug.c deprecation.c					\
+    debug.c deprecation.c					\
     deprecated.c discouraged.c dynwind.c eq.c error.c	\
     eval.c evalext.c extensions.c feature.c fluids.c fports.c		\
     futures.c gc.c gc-mark.c gc-segment.c gc-malloc.c gc-card.c		\
@@ -208,8 +208,7 @@ install-exec-hook:
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
-noinst_HEADERS = convert.i.c					\
-                 conv-integer.i.c conv-uinteger.i.c		\
+noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  eval.i.c ieee-754.h				\
                  srfi-4.i.c					\
                  quicksort.i.c                                  \
@@ -229,7 +228,7 @@ pkginclude_HEADERS =
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
-    boolean.h bytevectors.h chars.h continuations.h convert.h		\
+    boolean.h bytevectors.h chars.h continuations.h			\
     debug.h debug-malloc.h						\
     deprecation.h deprecated.h discouraged.h dynl.h dynwind.h		\
     eq.h error.h eval.h evalext.h extensions.h		\
