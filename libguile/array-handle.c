@@ -31,6 +31,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/srfi-4.h"
+#include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
 
 

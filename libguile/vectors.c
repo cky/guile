@@ -31,6 +31,7 @@
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
 #include "libguile/unif.h"
+#include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
 #include "libguile/array-map.h"
 #include "libguile/srfi-4.h"

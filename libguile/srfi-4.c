@@ -29,6 +29,7 @@
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
 #include "libguile/srfi-4.h"
+#include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
 #include "libguile/error.h"
 #include "libguile/read.h"

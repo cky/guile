@@ -35,6 +35,7 @@
 #include "libguile/feature.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
 #include "libguile/dynwind.h"
 

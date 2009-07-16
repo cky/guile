@@ -33,6 +33,7 @@
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/unif.h"
+#include "libguile/bitvectors.h"
 #include "libguile/keywords.h"
 #include "libguile/alist.h"
 #include "libguile/srcprop.h"

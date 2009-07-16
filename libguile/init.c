@@ -37,6 +37,7 @@
 #include "libguile/arbiters.h"
 #include "libguile/async.h"
 #include "libguile/backtrace.h"
+#include "libguile/bitvectors.h"
 #include "libguile/boolean.h"
 #include "libguile/bytevectors.h"
 #include "libguile/chars.h"
@@ -541,6 +542,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
   scm_init_array_handle ();
+  scm_init_bitvectors ();
   scm_init_array_map ();
   scm_init_unif ();
   scm_init_simpos ();

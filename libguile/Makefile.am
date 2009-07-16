@@ -113,6 +113,7 @@ libguile_la_SOURCES =				\
 	async.c					\
 	backtrace.c				\
 	boolean.c				\
+	bitvectors.c				\
 	bytevectors.c				\
 	chars.c					\
 	continuations.c				\
@@ -222,6 +223,7 @@ DOT_X_FILES =					\
 	async.x					\
 	backtrace.x				\
 	boolean.x				\
+	bitvectors.x				\
 	bytevectors.x				\
 	chars.x					\
 	continuations.x				\
@@ -319,6 +321,7 @@ DOT_DOC_FILES = 				\
 	async.doc				\
 	backtrace.doc				\
 	boolean.doc				\
+	bitvectors.doc				\
 	bytevectors.doc				\
 	chars.doc				\
 	continuations.doc			\
@@ -460,6 +463,7 @@ modinclude_HEADERS =				\
 	async.h					\
 	backtrace.h				\
 	boolean.h				\
+	bitvectors.h				\
 	bytevectors.h				\
 	chars.h					\
 	continuations.h				\
