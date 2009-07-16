@@ -166,7 +166,7 @@ SCM_API scm_t_bits scm_i_tc16_enclosed_array;
 #define SCM_I_ARRAY_DIMS(a) \
   ((scm_t_array_dim *)((char *) SCM_I_ARRAY_MEM (a) + sizeof (scm_i_t_array)))
 
-SCM_INTERNAL SCM scm_i_make_ra (int ndim, int enclosed);
+SCM_INTERNAL SCM scm_i_make_array (int ndim, int enclosed);
 SCM_INTERNAL SCM scm_i_cvref (SCM v, size_t p, int enclosed);
 SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
 

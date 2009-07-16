@@ -565,7 +565,7 @@ scm_array_handle_pos (scm_t_array_handle *h, SCM indices)
 }
 
 SCM 
-scm_i_make_ra (int ndim, int enclosed)
+scm_i_make_array (int ndim, int enclosed)
 {
   scm_t_bits tag = enclosed? scm_i_tc16_enclosed_array : scm_i_tc16_array;
   SCM ra;
@@ -591,7 +591,7 @@ scm_i_shap2ra (SCM args)
   if (ndim < 0)
     scm_misc_error (NULL, s_bad_spec, SCM_EOL);
 
-  ra = scm_i_make_ra (ndim, 0);
+  ra = scm_i_make_array (ndim, 0);
   SCM_I_ARRAY_BASE (ra) = 0;
   s = SCM_I_ARRAY_DIMS (ra);
   for (; !scm_is_null (args); s++, args = SCM_CDR (args))
@@ -905,7 +905,7 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 	    ndim = i;
 	}
       ndim++;
-      res = scm_i_make_ra (ndim, 0);
+      res = scm_i_make_array (ndim, 0);
       SCM_I_ARRAY_V (res) = SCM_I_ARRAY_V (ra);
       SCM_I_ARRAY_BASE (res) = SCM_I_ARRAY_BASE (ra);
       for (k = ndim; k--;)
@@ -981,7 +981,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   ninr = scm_ilength (axes);
   if (ninr < 0)
     SCM_WRONG_NUM_ARGS ();
-  ra_inr = scm_i_make_ra (ninr, 0);
+  ra_inr = scm_i_make_array (ninr, 0);
 
   if (scm_is_generalized_vector (ra))
     {
@@ -1006,7 +1006,7 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
   if (noutr < 0)
     SCM_WRONG_NUM_ARGS ();
   axv = scm_make_string (scm_from_int (ndim), SCM_MAKE_CHAR (0));
-  res = scm_i_make_ra (noutr, 1);
+  res = scm_i_make_array (noutr, 1);
   SCM_I_ARRAY_BASE (res) = SCM_I_ARRAY_BASE (ra_inr);
   SCM_I_ARRAY_V (res) = ra_inr;
   for (k = 0; k < ninr; k++, axes = SCM_CDR (axes))
@@ -1102,7 +1102,7 @@ scm_i_cvref (SCM v, size_t pos, int enclosed)
   if (enclosed)
     {
       int k = SCM_I_ARRAY_NDIM (v);
-      SCM res = scm_i_make_ra (k, 0);
+      SCM res = scm_i_make_array (k, 0);
       SCM_I_ARRAY_V (res) = SCM_I_ARRAY_V (v);
       SCM_I_ARRAY_BASE (res) = pos;
       while (k--)
@@ -1198,7 +1198,7 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
 	  return v;
       }
       
-      sra = scm_i_make_ra (1, 0);
+      sra = scm_i_make_array (1, 0);
       SCM_I_ARRAY_DIMS (sra)->lbnd = 0;
       SCM_I_ARRAY_DIMS (sra)->ubnd = len - 1;
       SCM_I_ARRAY_V (sra) = SCM_I_ARRAY_V (ra);
@@ -1232,7 +1232,7 @@ scm_ra2contig (SCM ra, int copy)
 	   0 == len % SCM_LONG_BIT))
 	return ra;
     }
-  ret = scm_i_make_ra (k, 0);
+  ret = scm_i_make_array (k, 0);
   SCM_I_ARRAY_BASE (ret) = 0;
   while (k--)
     {

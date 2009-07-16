@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -223,7 +223,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       if (!SCM_I_ARRAYP (vra0))
 	{
 	  size_t length = scm_c_generalized_vector_length (vra0);
-	  vra1 = scm_i_make_ra (1, 0);
+	  vra1 = scm_i_make_array (1, 0);
 	  SCM_I_ARRAY_BASE (vra1) = 0;
 	  SCM_I_ARRAY_DIMS (vra1)->lbnd = 0;
 	  SCM_I_ARRAY_DIMS (vra1)->ubnd = length - 1;
@@ -236,7 +236,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       for (z = lra; SCM_NIMP (z); z = SCM_CDR (z))
 	{
 	  ra1 = SCM_CAR (z);
-	  vra1 = scm_i_make_ra (1, 0);
+	  vra1 = scm_i_make_array (1, 0);
 	  SCM_I_ARRAY_DIMS (vra1)->lbnd = SCM_I_ARRAY_DIMS (vra0)->lbnd;
 	  SCM_I_ARRAY_DIMS (vra1)->ubnd = SCM_I_ARRAY_DIMS (vra0)->ubnd;
 	  if (!SCM_I_ARRAYP (ra1))
@@ -259,7 +259,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       return (SCM_UNBNDP (data) ? cproc(vra0, lvra) : cproc(vra0, data, lvra));
     case 1:
     gencase:			/* Have to loop over all dimensions. */
-    vra0 = scm_i_make_ra (1, 0);
+    vra0 = scm_i_make_array (1, 0);
     if (SCM_I_ARRAYP (ra0))
       {
 	kmax = SCM_I_ARRAY_NDIM (ra0) - 1;
@@ -294,7 +294,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
     for (z = lra; SCM_NIMP (z); z = SCM_CDR (z))
       {
 	ra1 = SCM_CAR (z);
-	vra1 = scm_i_make_ra (1, 0);
+	vra1 = scm_i_make_array (1, 0);
 	SCM_I_ARRAY_DIMS (vra1)->lbnd = SCM_I_ARRAY_DIMS (vra0)->lbnd;
 	SCM_I_ARRAY_DIMS (vra1)->ubnd = SCM_I_ARRAY_DIMS (vra0)->ubnd;
 	if (SCM_I_ARRAYP (ra1))
