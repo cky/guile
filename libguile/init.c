@@ -540,6 +540,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
+  scm_init_array_handle ();
   scm_init_array_map ();
   scm_init_unif ();
   scm_init_simpos ();
