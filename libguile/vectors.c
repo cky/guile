@@ -30,6 +30,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/arrays.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
@@ -526,136 +527,6 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 #undef FUNC_NAME
 
 
-/* Generalized vectors. */
-
-int
-scm_is_generalized_vector (SCM obj)
-{
-  return (scm_is_vector (obj)
-	  || scm_is_string (obj)
-	  || scm_is_bitvector (obj)
-	  || scm_is_uniform_vector (obj)
-	  || scm_is_bytevector (obj));
-}
-
-SCM_DEFINE (scm_generalized_vector_p, "generalized-vector?", 1, 0, 0,
-	    (SCM obj),
-	    "Return @code{#t} if @var{obj} is a vector, string,\n"
-	    "bitvector, or uniform numeric vector.")
-#define FUNC_NAME s_scm_generalized_vector_p
-{
-  return scm_from_bool (scm_is_generalized_vector (obj));
-}
-#undef FUNC_NAME
-
-void
-scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
-{
-  scm_array_get_handle (vec, h);
-  if (scm_array_handle_rank (h) != 1)
-    scm_wrong_type_arg_msg (NULL, 0, vec, "vector");
-}
-
-size_t
-scm_c_generalized_vector_length (SCM v)
-{
-  if (scm_is_vector (v))
-    return scm_c_vector_length (v);
-  else if (scm_is_string (v))
-    return scm_c_string_length (v);
-  else if (scm_is_bitvector (v))
-    return scm_c_bitvector_length (v);
-  else if (scm_is_uniform_vector (v))
-    return scm_c_uniform_vector_length (v);
-  else if (scm_is_bytevector (v))
-    return scm_c_bytevector_length (v);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-
-SCM_DEFINE (scm_generalized_vector_length, "generalized-vector-length", 1, 0, 0,
-	    (SCM v),
-	    "Return the length of the generalized vector @var{v}.")
-#define FUNC_NAME s_scm_generalized_vector_length
-{
-  return scm_from_size_t (scm_c_generalized_vector_length (v));
-}
-#undef FUNC_NAME
-
-SCM
-scm_c_generalized_vector_ref (SCM v, size_t idx)
-{
-  if (scm_is_vector (v))
-    return scm_c_vector_ref (v, idx);
-  else if (scm_is_string (v))
-    return scm_c_string_ref (v, idx);
-  else if (scm_is_bitvector (v))
-    return scm_c_bitvector_ref (v, idx);
-  else if (scm_is_uniform_vector (v))
-    return scm_c_uniform_vector_ref (v, idx);
-  else if (scm_is_bytevector (v))
-    return scm_from_uint8 (scm_c_bytevector_ref (v, idx));
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-
-SCM_DEFINE (scm_generalized_vector_ref, "generalized-vector-ref", 2, 0, 0,
-	    (SCM v, SCM idx),
-	    "Return the element at index @var{idx} of the\n"
-	    "generalized vector @var{v}.")
-#define FUNC_NAME s_scm_generalized_vector_ref
-{
-  return scm_c_generalized_vector_ref (v, scm_to_size_t (idx));
-}
-#undef FUNC_NAME
-
-void
-scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
-{
-  if (scm_is_vector (v))
-    scm_c_vector_set_x (v, idx, val);
-  else if (scm_is_string (v))
-    scm_c_string_set_x (v, idx, val);
-  else if (scm_is_bitvector (v))
-    scm_c_bitvector_set_x (v, idx, val);
-  else if (scm_is_uniform_vector (v))
-    scm_c_uniform_vector_set_x (v, idx, val);
-  else if (scm_is_bytevector (v))
-    scm_i_bytevector_generalized_set_x (v, idx, val);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-
-SCM_DEFINE (scm_generalized_vector_set_x, "generalized-vector-set!", 3, 0, 0,
-	    (SCM v, SCM idx, SCM val),
-	    "Set the element at index @var{idx} of the\n"
-	    "generalized vector @var{v} to @var{val}.")
-#define FUNC_NAME s_scm_generalized_vector_set_x
-{
-  scm_c_generalized_vector_set_x (v, scm_to_size_t (idx), val);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
-	    (SCM v),
-	    "Return a new list whose elements are the elements of the\n"
-	    "generalized vector @var{v}.")
-#define FUNC_NAME s_scm_generalized_vector_to_list
-{
-  if (scm_is_vector (v))
-    return scm_vector_to_list (v);
-  else if (scm_is_string (v))
-    return scm_string_to_list (v);
-  else if (scm_is_bitvector (v))
-    return scm_bitvector_to_list (v);
-  else if (scm_is_uniform_vector (v))
-    return scm_uniform_vector_to_list (v);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-#undef FUNC_NAME
-
 static SCM
 vector_handle_ref (scm_t_array_handle *h, size_t idx)
 {

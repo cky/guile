@@ -39,6 +39,7 @@
 #include "libguile/srfi-4.h"
 #include "libguile/dynwind.h"
 #include "libguile/generalized-arrays.h"
+#include "libguile/generalized-vectors.h"
 
 #include "libguile/validate.h"
 #include "libguile/array-map.h"

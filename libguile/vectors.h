@@ -61,21 +61,6 @@ SCM_API SCM *scm_vector_writable_elements (SCM vec,
 #define SCM_SIMPLE_VECTOR_REF(x,idx)     ((SCM_I_VECTOR_ELTS(x))[idx])
 #define SCM_SIMPLE_VECTOR_SET(x,idx,val) ((SCM_I_VECTOR_WELTS(x))[idx]=(val))
 
-/* Generalized vectors */
-
-SCM_API SCM scm_generalized_vector_p (SCM v);
-SCM_API SCM scm_generalized_vector_length (SCM v);
-SCM_API SCM scm_generalized_vector_ref (SCM v, SCM idx);
-SCM_API SCM scm_generalized_vector_set_x (SCM v, SCM idx, SCM val);
-SCM_API SCM scm_generalized_vector_to_list (SCM v);
-
-SCM_API int scm_is_generalized_vector (SCM obj);
-SCM_API size_t scm_c_generalized_vector_length (SCM v);
-SCM_API SCM scm_c_generalized_vector_ref (SCM v, size_t idx);
-SCM_API void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val);
-SCM_API void scm_generalized_vector_get_handle (SCM vec,
-						scm_t_array_handle *h);
-
 /* Internals */
 
 #define SCM_I_IS_VECTOR(x)     (!SCM_IMP(x) && (SCM_TYP7S(x)==scm_tc7_vector))

@@ -31,6 +31,7 @@
 #include "libguile/srfi-4.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/error.h"
 #include "libguile/read.h"
 #include "libguile/ports.h"

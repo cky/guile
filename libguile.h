@@ -55,6 +55,7 @@ extern "C" {
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/goops.h"
 #include "libguile/gsubr.h"
 #include "libguile/guardians.h"

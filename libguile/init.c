@@ -64,6 +64,7 @@
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/goops.h"
 #include "libguile/gsubr.h"
 #include "libguile/hash.h"
@@ -544,6 +545,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_random ();
   scm_init_array_handle ();
   scm_init_generalized_arrays ();
+  scm_init_generalized_vectors ();
   scm_init_bitvectors ();
   scm_init_array_map ();
   scm_init_arrays ();
