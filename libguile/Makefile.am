@@ -143,6 +143,7 @@ libguile_la_SOURCES =				\
 	gc_os_dep.c				\
 	gdbint.c				\
 	gettext.c				\
+	generalized-arrays.c			\
 	goops.c					\
 	gsubr.c					\
 	guardians.c				\
@@ -250,6 +251,7 @@ DOT_X_FILES =					\
 	gc-segment.x				\
 	gc.x					\
 	gettext.x				\
+	generalized-arrays.x			\
 	goops.x					\
 	gsubr.x					\
 	guardians.x				\
@@ -348,6 +350,7 @@ DOT_DOC_FILES = 				\
 	gc-segment.doc				\
 	gc.doc					\
 	gettext.doc				\
+	generalized-arrays.doc			\
 	goops.doc				\
 	gsubr.doc				\
 	guardians.doc				\
@@ -490,6 +493,7 @@ modinclude_HEADERS =				\
 	gdb_interface.h				\
 	gdbint.h				\
 	gettext.h				\
+	generalized-arrays.h			\
 	goops.h					\
 	gsubr.h					\
 	guardians.h				\

@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef SCM_UNIF_H
-#define SCM_UNIF_H
+#ifndef SCM_ARRAY_H
+#define SCM_ARRAY_H
 
 /* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
@@ -25,47 +25,33 @@
 
 #include "libguile/__scm.h"
 #include "libguile/print.h"
-#include "libguile/array-handle.h"
 
 
 
-/* This file contains the definitions for arrays and bit vectors.
-   Uniform numeric vectors are now in srfi-4.c.
-*/
+/* Multidimensional arrays. Woo hoo!
+   Also see ....
+ */
 
 
 /** Arrays */
 
-SCM_API SCM scm_array_p (SCM v);
-SCM_API SCM scm_typed_array_p (SCM v, SCM type);
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
 SCM_API SCM scm_from_contiguous_typed_array (SCM type, SCM bounds,
                                              const void *bytes,
                                              size_t byte_len);
-SCM_API SCM scm_array_rank (SCM ra);
-SCM_API size_t scm_c_array_rank (SCM ra);
-SCM_API SCM scm_array_dimensions (SCM ra);
 SCM_API SCM scm_shared_array_root (SCM ra);
 SCM_API SCM scm_shared_array_offset (SCM ra);
 SCM_API SCM scm_shared_array_increments (SCM ra);
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
-SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);
-SCM_API SCM scm_array_ref (SCM v, SCM args);
-SCM_API SCM scm_array_set_x (SCM v, SCM obj, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);
 SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
 				      SCM start, SCM end);
 SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
 				     SCM start, SCM end);
-SCM_API SCM scm_array_to_list (SCM v);
 SCM_API SCM scm_list_to_array (SCM ndim, SCM lst);
 SCM_API SCM scm_list_to_typed_array (SCM type, SCM ndim, SCM lst);
-SCM_API SCM scm_array_type (SCM ra);
-
-SCM_API int scm_is_array (SCM obj);
-SCM_API int scm_is_typed_array (SCM obj, SCM type);
 
 SCM_API SCM scm_ra2contig (SCM ra, int copy);
 
@@ -96,7 +82,7 @@ SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
 
 SCM_INTERNAL void scm_init_arrays (void);
 
-#endif  /* SCM_UNIF_H */
+#endif  /* SCM_ARRAYS_H */
 
 /*
   Local Variables:

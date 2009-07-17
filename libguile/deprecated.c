@@ -34,6 +34,7 @@
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/modules.h"
+#include "libguile/generalized-arrays.h"
 #include "libguile/eval.h"
 #include "libguile/smob.h"
 #include "libguile/procprop.h"

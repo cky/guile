@@ -17,13 +17,6 @@
  */
 
 
-/*
-  This file has code for arrays in lots of variants (double, integer,
-  unsigned etc. ). It suffers from hugely repetitive code because
-  there is similar (but different) code for every variant included. (urg.)
-
-  --hwn
-*/
 
 
 #ifdef HAVE_CONFIG_H
@@ -54,6 +47,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/arrays.h"
+#include "libguile/generalized-arrays.h"
 #include "libguile/array-map.h"
 #include "libguile/print.h"
 #include "libguile/read.h"
@@ -144,107 +138,6 @@ make_typed_vector (SCM type, size_t len)
   creator_proc *creator = type_to_creator (type);
   return creator (scm_from_size_t (len), SCM_UNDEFINED);
 }
-
-int
-scm_is_array (SCM obj)
-{
-  return (SCM_I_ARRAYP (obj)
-	  || scm_is_generalized_vector (obj));
-}
-
-int
-scm_is_typed_array (SCM obj, SCM type)
-{
-  /* Get storage vector. 
-   */
-  if (SCM_I_ARRAYP (obj))
-    obj = SCM_I_ARRAY_V (obj);
-
-  /* It must be a generalized vector (which includes vectors, strings, etc).
-   */
-  if (!scm_is_generalized_vector (obj))
-    return 0;
-
-  return scm_is_eq (type, scm_i_generalized_vector_type (obj));
-}
-
-/* We keep the old 2-argument C prototype for a while although the old
-   PROT argument is always ignored now.  C code should probably use
-   scm_is_array or scm_is_typed_array anyway.
-*/
-
-SCM_DEFINE (scm_array_p, "array?", 1, 0, 0,
-           (SCM obj),
-	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
-	    "not.")
-#define FUNC_NAME s_scm_array_p
-{
-  return scm_from_bool (scm_is_array (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_typed_array_p, "typed-array?", 2, 0, 0,
-           (SCM obj, SCM type),
-	    "Return @code{#t} if the @var{obj} is an array of type\n"
-	    "@var{type}, and @code{#f} if not.")
-#define FUNC_NAME s_scm_typed_array_p
-{
-  return scm_from_bool (scm_is_typed_array (obj, type));
-}
-#undef FUNC_NAME
-
-size_t
-scm_c_array_rank (SCM array)
-{
-  scm_t_array_handle handle;
-  size_t res;
-
-  scm_array_get_handle (array, &handle);
-  res = scm_array_handle_rank (&handle);
-  scm_array_handle_release (&handle);
-  return res;
-}
-
-SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0, 
-           (SCM array),
-	    "Return the number of dimensions of the array @var{array.}\n")
-#define FUNC_NAME s_scm_array_rank
-{
-  return scm_from_size_t (scm_c_array_rank (array));
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0, 
-           (SCM ra),
-	    "@code{array-dimensions} is similar to @code{array-shape} but replaces\n"
-	    "elements with a @code{0} minimum with one greater than the maximum. So:\n"
-	    "@lisp\n"
-	    "(array-dimensions (make-array 'foo '(-1 3) 5)) @result{} ((-1 3) 5)\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_array_dimensions
-{
-  scm_t_array_handle handle;
-  scm_t_array_dim *s;
-  SCM res = SCM_EOL;
-  size_t k;
-      
-  scm_array_get_handle (ra, &handle);
-  s = scm_array_handle_dims (&handle);
-  k = scm_array_handle_rank (&handle);
-
-  while (k--)
-    res = scm_cons (s[k].lbnd
-		    ? scm_cons2 (scm_from_ssize_t (s[k].lbnd),
-				 scm_from_ssize_t (s[k].ubnd),
-				 SCM_EOL)
-		    : scm_from_ssize_t (1 + s[k].ubnd),
-		    res);
-
-  scm_array_handle_release (&handle);
-  return res;
-}
-#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0, 
@@ -679,97 +572,6 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1, 
-           (SCM v, SCM args),
-	    "Return @code{#t} if its arguments would be acceptable to\n"
-	    "@code{array-ref}.")
-#define FUNC_NAME s_scm_array_in_bounds_p
-{
-  SCM res = SCM_BOOL_T;
-
-  SCM_VALIDATE_REST_ARGUMENT (args);
-
-  if (SCM_I_ARRAYP (v))
-    {
-      size_t k, ndim = SCM_I_ARRAY_NDIM (v);
-      scm_t_array_dim *s = SCM_I_ARRAY_DIMS (v);
-
-      for (k = 0; k < ndim; k++)
-	{
-	  long ind;
-
-	  if (!scm_is_pair (args))
-	    SCM_WRONG_NUM_ARGS ();
-	  ind = scm_to_long (SCM_CAR (args));
-	  args = SCM_CDR (args);
-
-	  if (ind < s[k].lbnd || ind > s[k].ubnd)
-	    {
-	      res = SCM_BOOL_F;
-	      /* We do not stop the checking after finding a violation
-		 since we want to validate the type-correctness and
-		 number of arguments in any case.
-	      */
-	    }
-	}
-    }
-  else if (scm_is_generalized_vector (v))
-    {
-      /* Since real arrays have been covered above, all generalized
-	 vectors are guaranteed to be zero-origin here.
-      */
-
-      long ind;
-
-      if (!scm_is_pair (args))
-	SCM_WRONG_NUM_ARGS ();
-      ind = scm_to_long (SCM_CAR (args));
-      args = SCM_CDR (args);
-      res = scm_from_bool (ind >= 0
-			   && ind < scm_c_generalized_vector_length (v));
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "array");
-
-  if (!scm_is_null (args))
-    SCM_WRONG_NUM_ARGS ();
-
-  return res;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
-           (SCM v, SCM args),
-	    "Return the element at the @code{(index1, index2)} element in\n"
-	    "@var{array}.")
-#define FUNC_NAME s_scm_array_ref
-{
-  scm_t_array_handle handle;
-  SCM res;
-
-  scm_array_get_handle (v, &handle);
-  res = scm_array_handle_ref (&handle, scm_array_handle_pos (&handle, args));
-  scm_array_handle_release (&handle);
-  return res;
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1, 
-           (SCM v, SCM obj, SCM args),
-	    "Set the element at the @code{(index1, index2)} element in @var{array} to\n"
-	    "@var{new-value}.  The value returned by array-set! is unspecified.")
-#define FUNC_NAME s_scm_array_set_x           
-{
-  scm_t_array_handle handle;
-
-  scm_array_get_handle (v, &handle);
-  scm_array_handle_set (&handle, scm_array_handle_pos (&handle, args), obj);
-  scm_array_handle_release (&handle);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
 /* attempts to unroll an array into a one-dimensional array.
    returns the unrolled array or #f if it can't be done.  */
   /* if strict is not SCM_UNDEFINED, return #f if returned array
@@ -971,46 +773,6 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
     }
   else
     scm_wrong_type_arg_msg (NULL, 0, ura, "array");
-}
-#undef FUNC_NAME
-
-
-static SCM 
-ra2l (SCM ra, unsigned long base, unsigned long k)
-{
-  SCM res = SCM_EOL;
-  long inc;
-  size_t i;
-  
-  if (k == SCM_I_ARRAY_NDIM (ra))
-    return scm_c_generalized_vector_ref (SCM_I_ARRAY_V (ra), base);
-
-  inc = SCM_I_ARRAY_DIMS (ra)[k].inc;
-  if (SCM_I_ARRAY_DIMS (ra)[k].ubnd < SCM_I_ARRAY_DIMS (ra)[k].lbnd)
-    return SCM_EOL;
-  i = base + (1 + SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd) * inc;
-  do
-    {
-      i -= inc;
-      res = scm_cons (ra2l (ra, i, k + 1), res);
-    }
-  while (i != base);
-  return res;
-}
-
-
-SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0, 
-           (SCM v),
-	    "Return a list consisting of all the elements, in order, of\n"
-	    "@var{array}.")
-#define FUNC_NAME s_scm_array_to_list
-{
-  if (scm_is_generalized_vector (v))
-    return scm_generalized_vector_to_list (v);
-  else if (SCM_I_ARRAYP (v))
-    return ra2l (v, SCM_I_ARRAY_BASE (v), 0);
-
-  scm_wrong_type_arg_msg (NULL, 0, v, "array");
 }
 #undef FUNC_NAME
 
@@ -1410,19 +1172,6 @@ scm_i_read_array (SCM port, int c)
   return scm_list_to_typed_array (tag_to_type (tag, port), shape, elements);
 }
 
-SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0, 
-           (SCM ra),
-	    "")
-#define FUNC_NAME s_scm_array_type
-{
-  if (SCM_I_ARRAYP (ra))
-    return scm_i_generalized_vector_type (SCM_I_ARRAY_V (ra));
-  else if (scm_is_generalized_vector (ra))
-    return scm_i_generalized_vector_type (ra);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, ra, "array");
-}
-#undef FUNC_NAME
 
 static SCM
 array_mark (SCM ptr)
