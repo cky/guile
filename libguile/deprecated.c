@@ -1309,7 +1309,7 @@ scm_i_arrayp (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAYP is deprecated.  Use scm_is_array instead.");
-  return SCM_I_ARRAYP(a) || SCM_I_ENCLOSED_ARRAYP(a);
+  return SCM_I_ARRAYP(a);
 }
 
 size_t

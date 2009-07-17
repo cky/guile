@@ -51,7 +51,6 @@ SCM_API SCM scm_shared_array_offset (SCM ra);
 SCM_API SCM scm_shared_array_increments (SCM ra);
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
-SCM_API SCM scm_enclose_array (SCM ra, SCM axes);
 SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);
 SCM_API SCM scm_array_ref (SCM v, SCM args);
 SCM_API SCM scm_array_set_x (SCM v, SCM obj, SCM args);
@@ -79,13 +78,10 @@ typedef struct scm_i_t_array
 } scm_i_t_array;
 
 SCM_API scm_t_bits scm_i_tc16_array;
-SCM_API scm_t_bits scm_i_tc16_enclosed_array;
 
 #define SCM_I_ARRAY_FLAG_CONTIGUOUS (1 << 16)
 
 #define SCM_I_ARRAYP(a)	    SCM_TYP16_PREDICATE (scm_i_tc16_array, a)
-#define SCM_I_ENCLOSED_ARRAYP(a) \
-                            SCM_TYP16_PREDICATE (scm_i_tc16_enclosed_array, a)
 #define SCM_I_ARRAY_NDIM(x)  ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
 #define SCM_I_ARRAY_CONTP(x) (SCM_CELL_WORD_0(x) & SCM_I_ARRAY_FLAG_CONTIGUOUS)
 
@@ -95,8 +91,7 @@ SCM_API scm_t_bits scm_i_tc16_enclosed_array;
 #define SCM_I_ARRAY_DIMS(a) \
   ((scm_t_array_dim *)((char *) SCM_I_ARRAY_MEM (a) + sizeof (scm_i_t_array)))
 
-SCM_INTERNAL SCM scm_i_make_array (int ndim, int enclosed);
-SCM_INTERNAL SCM scm_i_cvref (SCM v, size_t p, int enclosed);
+SCM_INTERNAL SCM scm_i_make_array (int ndim);
 SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
 
 SCM_INTERNAL void scm_init_arrays (void);
