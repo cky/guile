@@ -62,3 +62,15 @@
            ,@(if (= (length args) 3)
                (list (caddr args))
                '()))))))
+
+
+; Pop off the first element from a list or push one to it.
+
+(built-in-macro pop
+  (lambda (list-name)
+    `(prog1 (car ,list-name)
+            (setq ,list-name (cdr ,list-name)))))
+
+(built-in-macro push
+  (lambda (new-el list-name)
+    `(setq ,list-name (cons ,new-el ,list-name))))

@@ -20,8 +20,8 @@
 ;;; Code:
 
 (define-module (language elisp runtime)
-  #:export (void nil-value t-value elisp-bool macro-error)
-  #:export-syntax (built-in-func built-in-macro))
+  #:export (void nil-value t-value elisp-bool runtime-error macro-error)
+  #:export-syntax (built-in-func built-in-macro prim))
 
 ; This module provides runtime support for the Elisp front-end.
 
@@ -39,10 +39,12 @@
 
 
 ; Report an error during macro compilation, that means some special compilation
-; (syntax) error.
+; (syntax) error; or report a simple runtime-error from a built-in function.
 
 (define (macro-error msg . args)
   (apply error msg args))
+
+(define runtime-error macro-error)
 
 
 ; Convert a scheme boolean to Elisp.
@@ -67,3 +69,12 @@
   (syntax-rules ()
     ((_ name value)
      (define-public name value))))
+
+
+; Call a guile-primitive that may be rebound for elisp and thus needs absolute
+; addressing.
+
+(define-syntax prim
+  (syntax-rules ()
+    ((_ sym args ...)
+     ((@ (guile) sym) args ...))))

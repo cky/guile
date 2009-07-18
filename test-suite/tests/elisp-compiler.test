@@ -332,3 +332,77 @@
          (= (fceiling 1.2) 2.0) (= (fceiling -1.7) -1.0) (= (fceiling 1.0) 1.0)
          (= (ftruncate 1.6) 1.0) (= (ftruncate -1.7) -1.0)
          (= (fround 1.2) 1.0) (= (fround 1.7) 2.0) (= (fround -1.7) -2.0))))
+
+(with-test-prefix/compile "List Built-Ins"
+
+  (pass-if "consp and atomp"
+    (and (consp '(1 2 3)) (consp '(1 2 . 3)) (consp '(a . b))
+         (not (consp '())) (not (consp 1)) (not (consp "abc"))
+         (atomp 'a) (atomp '()) (atomp -1.5) (atomp "abc")
+         (not (atomp '(1 . 2))) (not (atomp '(1)))))
+  (pass-if "listp and nlistp"
+    (and (listp '(1 2 3)) (listp '(1)) (listp '()) (listp '(1 . 2))
+         (not (listp 'a)) (not (listp 42)) (nlistp 42)
+         (not (nlistp '())) (not (nlistp '(1 2 3))) (not (nlistp '(1 . 2)))))
+  (pass-if "null"
+    (and (null '()) (not (null 1)) (not (null '(1 2))) (not (null '(1 . 2)))))
+
+  (pass-if "car and cdr"
+    (and (equal (car '(1 2 3)) 1) (equal (cdr '(1 2 3)) '(2 3))
+         (equal (car '()) nil) (equal (cdr '()) nil)
+         (equal (car '(1 . 2)) 1) (equal (cdr '(1 . 2)) 2)
+         (null (cdr '(1)))))
+  (pass-if "car-safe and cdr-safe"
+    (and (equal (car-safe '(1 2)) 1) (equal (cdr-safe '(1 2)) '(2))
+         (equal (car-safe 5) nil) (equal (cdr-safe 5) nil)))
+
+  (pass-if "pop"
+    (progn (setq mylist '(a b c))
+           (setq value (pop mylist))
+           (and (equal value 'a)
+                (equal mylist '(b c)))))
+  (pass-if-equal "push" '(a b c)
+    (progn (setq mylist '(b c))
+           (push 'a mylist)))
+
+  (pass-if "nth and nthcdr"
+    (and (equal (nth -5 '(1 2 3)) 1) (equal (nth 3 '(1 2 3)) nil)
+         (equal (nth 0 '(1 2 3)) 1) (equal (nth 2 '(1 2 3)) 3)
+         (equal (nthcdr -5 '(1 2 3)) '(1 2 3))
+         (equal (nthcdr 4 '(1 2 3)) nil)
+         (equal (nthcdr 1 '(1 2 3)) '(2 3))
+         (equal (nthcdr 2 '(1 2 3)) '(3))))
+
+  (pass-if "cons, list and make-list"
+    (and (equal (cons 1 2) '(1 . 2)) (equal (cons 1 '(2 3)) '(1 2 3))
+         (equal (cons 1 '()) '(1))
+         (equal (list 'a) '(a)) (equal (list) '()) (equal (list 1 2) '(1 2))
+         (equal (make-list 3 42) '(42 42 42))
+         (equal (make-list 0 1) '())))
+  (pass-if "append"
+    (and (equal (append '(1 2) '(3 4) '(5)) '(1 2 3 4 5))
+         (equal (append '(1 2) 3) '(1 2 . 3))))
+  (pass-if "reverse"
+    (and (equal (reverse '(5 4 3 2 1)) '(1 2 3 4 5))
+         (equal (reverse '()) '())))
+  (pass-if "copy-tree"
+    (progn (setq mylist '(1 2 (3 4)))
+           (and (not (eq mylist (copy-tree mylist)))
+                (equal mylist (copy-tree mylist)))))
+
+  (pass-if "number-sequence"
+    (and (equal (number-sequence 5) '(5))
+         (equal (number-sequence 5 9) '(5 6 7 8 9))
+         (equal (number-sequence 5 9 3) '(5 8))
+         (equal (number-sequence 5 1 -2) '(5 3 1))
+         (equal (number-sequence 5 8 -1) '())
+         (equal (number-sequence 5 1) '())
+         (equal (number-sequence 5 5 0) '(5))))
+
+  (pass-if "setcar and setcdr"
+    (progn (setq pair '(1 . 2))
+           (setq copy pair)
+           (setq a (setcar copy 3))
+           (setq b (setcdr copy 4))
+           (and (= a 3) (= b 4)
+                (equal pair '(3 . 4))))))
