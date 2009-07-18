@@ -177,10 +177,15 @@
 
 scm_t_bits scm_tc16_bytevector;
 
-#define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)	\
+#define SCM_BYTEVECTOR_INLINE_THRESHOLD  (2 * sizeof (SCM))
+#define SCM_BYTEVECTOR_INLINEABLE_SIZE_P(_size)	\
+  ((_size) <= SCM_BYTEVECTOR_INLINE_THRESHOLD)
+#define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
   SCM_SET_SMOB_DATA ((_bv), (scm_t_bits) (_len))
-#define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _buf)	\
+#define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _buf)          \
   SCM_SET_SMOB_DATA_2 ((_bv), (scm_t_bits) (_buf))
+#define SCM_BYTEVECTOR_SET_INLINE(bv)                                   \
+  SCM_SET_SMOB_FLAGS (bv, SCM_SMOB_FLAGS (bv) | SCM_F_BYTEVECTOR_INLINE)
 
 /* The empty bytevector.  */
 SCM scm_null_bytevector = SCM_UNSPECIFIED;
@@ -189,28 +194,40 @@ SCM scm_null_bytevector = SCM_UNSPECIFIED;
 static inline SCM
 make_bytevector_from_buffer (size_t len, signed char *contents)
 {
-  /* Assuming LEN > SCM_BYTEVECTOR_INLINE_THRESHOLD.  */
-  SCM_RETURN_NEWSMOB2 (scm_tc16_bytevector, len, contents);
+  SCM ret;
+  if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len))
+    SCM_NEWSMOB2 (ret, scm_tc16_bytevector, len, contents);
+  else
+    {
+      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, len, NULL);
+      SCM_BYTEVECTOR_SET_INLINE (ret);
+      if (contents)
+        {
+          memcpy (SCM_BYTEVECTOR_CONTENTS (ret), contents, len);
+          scm_gc_free (contents, len, SCM_GC_BYTEVECTOR);
+        }
+    }
+  return ret;
 }
 
 static inline SCM
 make_bytevector (size_t len)
 {
-  SCM bv;
-
   if (SCM_UNLIKELY (len == 0))
-    bv = scm_null_bytevector;
+    return scm_null_bytevector;
+
+  if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len))
+    {
+      SCM ret;
+      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, len, NULL);
+      SCM_BYTEVECTOR_SET_INLINE (ret);
+      return ret;
+    }
   else
     {
-      signed char *contents = NULL;
-
-      if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len))
-	contents = (signed char *) scm_gc_malloc (len, SCM_GC_BYTEVECTOR);
-
-      bv = make_bytevector_from_buffer (len, contents);
+      void *buf = scm_gc_malloc (len, SCM_GC_BYTEVECTOR);
+      return make_bytevector_from_buffer (len, buf);
     }
-
-  return bv;
 }
 
 /* Return a new bytevector of size LEN octets.  */
@@ -225,22 +242,7 @@ scm_c_make_bytevector (size_t len)
 SCM
 scm_c_take_bytevector (signed char *contents, size_t len)
 {
-  SCM bv;
-
-  if (SCM_UNLIKELY (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len)))
-    {
-      /* Copy CONTENTS into an "in-line" buffer, then free CONTENTS.  */
-      signed char *c_bv;
-
-      bv = make_bytevector (len);
-      c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
-      memcpy (c_bv, contents, len);
-      scm_gc_free (contents, len, SCM_GC_BYTEVECTOR);
-    }
-  else
-    bv = make_bytevector_from_buffer (len, contents);
-
-  return bv;
+  return make_bytevector_from_buffer (len, contents);
 }
 
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
@@ -261,6 +263,7 @@ scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
       if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_new_len))
 	{
 	  /* Copy to the in-line buffer and free the current buffer.  */
+          SCM_BYTEVECTOR_SET_INLINE (bv);
 	  c_new_bv = SCM_BYTEVECTOR_CONTENTS (bv);
 	  memcpy (c_new_bv, c_bv, c_new_len);
 	  scm_gc_free (c_bv, c_len, SCM_GC_BYTEVECTOR);
@@ -273,6 +276,8 @@ scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
 	  SCM_BYTEVECTOR_SET_CONTENTS (bv, c_new_bv);
 	}
     }
+  else
+    SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
 
   return bv;
 }
@@ -1898,8 +1903,7 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
 		      scm_list_1 (str), err);				\
   else									\
     /* C_UTF is null-terminated.  */					\
-    utf = scm_c_take_bytevector ((signed char *) c_utf,			\
-				      c_utf_len);			\
+    utf = scm_c_take_bytevector ((signed char *) c_utf, c_utf_len);     \
 									\
   return (utf);
 
