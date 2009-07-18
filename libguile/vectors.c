@@ -30,12 +30,8 @@
 
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
+#include "libguile/arrays.h" /* Hit me with the ugly stick */
 #include "libguile/generalized-vectors.h"
-#include "libguile/arrays.h"
-#include "libguile/bitvectors.h"
-#include "libguile/bytevectors.h"
-#include "libguile/array-map.h"
-#include "libguile/srfi-4.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/dynwind.h"
