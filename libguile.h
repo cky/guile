@@ -106,6 +106,7 @@ extern "C" {
 #include "libguile/symbols.h"
 #include "libguile/tags.h"
 #include "libguile/throw.h"
+#include "libguile/uniform.h"
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"

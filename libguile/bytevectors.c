@@ -33,6 +33,7 @@
 #include "libguile/ieee-754.h"
 #include "libguile/arrays.h"
 #include "libguile/array-handle.h"
+#include "libguile/uniform.h"
 #include "libguile/srfi-4.h"
 
 #include <byteswap.h>

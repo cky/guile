@@ -200,6 +200,7 @@ libguile_la_SOURCES =				\
 	symbols.c				\
 	threads.c				\
 	throw.c					\
+	uniform.c				\
 	values.c				\
 	variable.c				\
 	vectors.c				\
@@ -305,6 +306,7 @@ DOT_X_FILES =					\
 	symbols.x				\
 	threads.x				\
 	throw.x					\
+	uniform.x				\
 	values.x				\
 	variable.x				\
 	vectors.x				\
@@ -353,7 +355,7 @@ DOT_DOC_FILES = 				\
 	gc.doc					\
 	gettext.doc				\
 	generalized-arrays.doc			\
-	generalized-vectos.doc			\
+	generalized-vectors.doc			\
 	goops.doc				\
 	gsubr.doc				\
 	guardians.doc				\
@@ -405,6 +407,7 @@ DOT_DOC_FILES = 				\
 	symbols.doc				\
 	threads.doc				\
 	throw.doc				\
+	uniform.doc				\
 	values.doc				\
 	variable.doc				\
 	vectors.doc				\
@@ -563,6 +566,7 @@ modinclude_HEADERS =				\
 	threads.h				\
 	throw.h					\
 	validate.h				\
+	uniform.h				\
 	values.h				\
 	variable.h				\
 	vectors.h				\

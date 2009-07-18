@@ -49,6 +49,7 @@
 #include "libguile/arrays.h"
 #include "libguile/generalized-arrays.h"
 #include "libguile/generalized-vectors.h"
+#include "libguile/uniform.h"
 #include "libguile/array-map.h"
 #include "libguile/print.h"
 #include "libguile/read.h"

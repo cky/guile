@@ -128,6 +128,7 @@
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
 #include "libguile/extensions.h"
+#include "libguile/uniform.h"
 #include "libguile/srfi-4.h"
 #include "libguile/discouraged.h"
 #include "libguile/deprecated.h"
@@ -546,6 +547,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_array_handle ();
   scm_init_generalized_arrays ();
   scm_init_generalized_vectors ();
+  scm_init_uniform ();
   scm_init_bitvectors ();
   scm_init_array_map ();
   scm_init_arrays ();
