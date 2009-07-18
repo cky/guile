@@ -34,6 +34,7 @@
 #include "libguile/generalized-vectors.h"
 #include "libguile/uniform.h"
 #include "libguile/error.h"
+#include "libguile/eval.h"
 #include "libguile/read.h"
 #include "libguile/ports.h"
 #include "libguile/chars.h"
@@ -573,29 +574,6 @@ list_to_uvec (int type, SCM list)
   return uvec;
 }
 
-static SCM
-coerce_to_uvec (int type, SCM obj)
-{
-  if (is_uvec (type, obj))
-    return obj;
-  else if (scm_is_pair (obj))
-    return list_to_uvec (type, obj);
-  else if (scm_is_generalized_vector (obj))
-    {
-      scm_t_array_handle handle;
-      size_t len = scm_c_generalized_vector_length (obj), i;
-      SCM uvec = alloc_uvec (type, len);
-      scm_array_get_handle (uvec, &handle);
-      for (i = 0; i < len; i++)
-	scm_array_handle_set (&handle, i,
-			      scm_c_generalized_vector_ref (obj, i));
-      scm_array_handle_release (&handle);
-      return uvec;
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, obj, "list or generalized vector");
-}
-
 SCM_SYMBOL (scm_sym_a, "a");
 SCM_SYMBOL (scm_sym_b, "b");
 
@@ -850,6 +828,36 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 #define TAG   c64
 #define CTYPE double
 #include "libguile/srfi-4.i.c"
+
+#define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                 \
+  SCM cname (SCM arg1)                                                  \
+  {                                                                     \
+    static SCM var = SCM_BOOL_F;                                        \
+    if (scm_is_false (var))                                             \
+      var = scm_c_module_lookup (scm_c_resolve_module (modname), scmname); \
+    return scm_call_1 (SCM_VARIABLE_REF (var), arg1);                   \
+  }
+
+#define DEFPROXY100(cname, scmname)               \
+  DEFINE_SCHEME_PROXY100 (cname, MOD, scmname)
+
+#define DEFINE_SRFI_4_GNU_PROXIES(tag)                              \
+  DEFPROXY100 (scm_any_to_##tag##vector, "any->" #tag "vector")
+
+#define MOD "srfi srfi-4 gnu"
+DEFINE_SRFI_4_GNU_PROXIES (u8);
+DEFINE_SRFI_4_GNU_PROXIES (s8);
+DEFINE_SRFI_4_GNU_PROXIES (u16);
+DEFINE_SRFI_4_GNU_PROXIES (s16);
+DEFINE_SRFI_4_GNU_PROXIES (u32);
+DEFINE_SRFI_4_GNU_PROXIES (s32);
+DEFINE_SRFI_4_GNU_PROXIES (u64);
+DEFINE_SRFI_4_GNU_PROXIES (s64);
+DEFINE_SRFI_4_GNU_PROXIES (f32);
+DEFINE_SRFI_4_GNU_PROXIES (f64);
+DEFINE_SRFI_4_GNU_PROXIES (c32);
+DEFINE_SRFI_4_GNU_PROXIES (c64);
+
 
 static scm_i_t_array_ref uvec_reffers[12] = {
   u8ref, s8ref,
