@@ -6,10 +6,10 @@ as status information.
 
 Already implemented:
   * progn
-  * if, cond
-  * and, or
+  * if, cond, when, unless
+  * not, and, or
   * referencing and setting (setq) variables
-  * while
+  * while, dotimes
   * let, let*
   * lambda expressions, function calls using list notation
   * some built-ins (mainly numbers/arithmetic)
@@ -19,8 +19,7 @@ Already implemented:
 
 Especially still missing:
   * other progX forms, will be done in macros
-  * where, unless, will be done in macros
-  * dolist, dotimes using macros
+  * dolist using macros
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
   * set, makunbound, boundp functions

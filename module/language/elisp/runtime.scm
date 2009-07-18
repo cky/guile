@@ -20,8 +20,8 @@
 ;;; Code:
 
 (define-module (language elisp runtime)
-  #:export (void nil-value t-value elisp-bool)
-  #:export-syntax (built-in-func))
+  #:export (void nil-value t-value elisp-bool macro-error)
+  #:export-syntax (built-in-func built-in-macro))
 
 ; This module provides runtime support for the Elisp front-end.
 
@@ -38,6 +38,13 @@
 (define t-value #t)
 
 
+; Report an error during macro compilation, that means some special compilation
+; (syntax) error.
+
+(define (macro-error msg . args)
+  (apply error msg args))
+
+
 ; Convert a scheme boolean to Elisp.
 
 (define (elisp-bool b)
@@ -46,9 +53,17 @@
     nil-value))
 
 
-; Define a predefined function; convenient macro for this task.
+; Define a predefined function or predefined macro for use in the function-slot
+; and macro-slot modules, respectively.
 
-(define-macro (built-in-func name value)
-  `(begin
-     (define-public ,name (make-fluid))
-     (fluid-set! ,name ,value)))
+(define-syntax built-in-func
+  (syntax-rules ()
+    ((_ name value)
+     (begin
+       (define-public name (make-fluid))
+       (fluid-set! name value)))))
+
+(define-syntax built-in-macro
+  (syntax-rules ()
+    ((_ name value)
+     (define-public name value))))

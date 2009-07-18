@@ -56,12 +56,24 @@
 
   (pass-if-equal "succeeding if" 1
     (if t 1 2))
-  (pass-if-equal "failing if" 3
-    (if nil
-      1
-      (setq a 2)
-      (setq a (1+ a))
-      a))
+  (pass-if "failing if"
+    (and (= (if nil
+              1
+              (setq a 2) (setq a (1+ a)) a)
+            3)
+         (equal (if nil 1) nil)))
+
+  (pass-if-equal "failing when" nil-value
+    (when nil 1 2 3))
+  (pass-if-equal "succeeding when" 42
+    (progn (setq a 0)
+           (when t (setq a 42) a)))
+
+  (pass-if-equal "failing unless" nil-value
+    (unless t 1 2 3))
+  (pass-if-equal "succeeding unless" 42
+    (progn (setq a 0)
+           (unless nil (setq a 42) a)))
 
   (pass-if-equal "empty cond" nil-value
     (cond))
@@ -101,7 +113,16 @@
            (while (<= i 5)
              (setq prod (* i prod))
              (setq i (1+ i)))
-           prod)))
+           prod))
+
+  (pass-if "dotimes"
+    (progn (setq a 0)
+           (setq count 100)
+           (setq b (dotimes (i count)
+                     (setq j (1+ i))
+                     (setq a (+ a j))))
+           (setq c (dotimes (i 10 42) nil))
+           (and (= a 5050) (equal b nil) (= c 42)))))
 
 
 ; Test handling of variables.
