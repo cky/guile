@@ -50,6 +50,26 @@
 (define macro-slot '(language elisp runtime macro-slot))
 
 
+; The backquoting works the same as quasiquotes in Scheme, but the forms are
+; named differently; to make easy adaptions, we define these predicates checking
+; for a symbol being the car of an unquote/unquote-splicing/backquote form.
+
+; FIXME: Remove the quasiquote/unquote/unquote-splicing symbols when real elisp
+; reader is there.
+
+(define (backquote? sym)
+  (and (symbol? sym) (or (eq? sym 'quasiquote)
+                         (eq? sym '\`))))
+
+(define (unquote? sym)
+  (and (symbol? sym) (or (eq? sym 'unquote)
+                         (eq? sym '\,))))
+
+(define (unquote-splicing? sym)
+  (and (symbol? sym) (or (eq? sym 'unquote-splicing)
+                         (eq? sym '\,@))))
+
+
 ; Build a call to a primitive procedure nicely.
 
 (define (call-primitive loc sym . args)
@@ -301,6 +321,51 @@
   (module-ref (resolve-module macro-slot) sym))
 
 
+; See if a (backquoted) expression contains any unquotes.
+
+(define (contains-unquotes? expr)
+  (if (pair? expr)
+    (if (or (unquote? (car expr)) (unquote-splicing? (car expr)))
+      #t
+      (or (contains-unquotes? (car expr))
+          (contains-unquotes? (cdr expr))))
+    #f))
+
+
+; Process a backquoted expression by building up the needed cons/append calls.
+; For splicing, it is assumed that the expression spliced in evaluates to a 
+; list.  The emacs manual does not really state either it has to or what to do
+; if it does not, but Scheme explicitly forbids it and this seems reasonable
+; also for elisp.
+
+(define (unquote-cell? expr)
+  (and (list? expr) (= (length expr) 2) (unquote? (car expr))))
+(define (unquote-splicing-cell? expr)
+  (and (list? expr) (= (length expr) 2) (unquote-splicing? (car expr))))
+
+(define (process-backquote loc expr)
+  (if (contains-unquotes? expr)
+    (if (pair? expr)
+      (if (or (unquote-cell? expr) (unquote-splicing-cell? expr))
+        (compile-expr (cadr expr))
+        (let* ((head (car expr))
+               (processed-tail (process-backquote loc (cdr expr)))
+               (head-is-list-2 (and (list? head) (= (length head) 2)))
+               (head-unquote (and head-is-list-2 (unquote? (car head))))
+               (head-unquote-splicing (and head-is-list-2
+                                           (unquote-splicing? (car head)))))
+          (if head-unquote-splicing
+            (call-primitive loc 'append
+              (compile-expr (cadr head)) processed-tail)
+            (call-primitive loc 'cons
+              (if head-unquote
+                (compile-expr (cadr head))
+                (process-backquote loc head))
+              processed-tail))))
+      (error "non-pair expression contains unquotes" expr))
+    (make-const loc expr)))
+
+
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -499,6 +564,10 @@
          (define-macro! loc name object)
          (make-const loc name))))
 
+    ((,backq ,val) (guard (backquote? backq))
+     (process-backquote loc val))
+
+    ; XXX: Why do we need 'quote here instead of quote?
     (('quote ,val)
      (make-const loc val))
 

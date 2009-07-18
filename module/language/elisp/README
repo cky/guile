@@ -15,6 +15,7 @@ Already implemented:
   * some built-ins (mainly numbers/arithmetic)
   * defconst, defvar, defun
   * macros
+  * quotation and backquotation with unquote/unquote-splicing
 
 Especially still missing:
   * other progX forms, will be done in macros
@@ -28,7 +29,6 @@ Especially still missing:
   * fset & friends, defalias functions
   * advice?
   * defsubst and inlining
-  * real quoting
   * need fluids for function bindings?
   * recursive macros
   * anonymous macros
