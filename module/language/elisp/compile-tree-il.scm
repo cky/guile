@@ -464,20 +464,26 @@
     ; Build a set form for possibly multiple values.  The code is not formulated
     ; tail recursive because it is clearer this way and large lists of symbol
     ; expression pairs are very unlikely.
-    ((setq . ,args)
+    ((setq . ,args) (guard (not (null? args)))
      (make-sequence loc
        (let iterate ((tail args))
-         (if (null? tail)
-           (list (make-void loc))
-           (let ((sym (car tail))
-                 (tailtail (cdr tail)))
-             (if (not (symbol? sym))
-               (report-error loc "expected symbol in setq")
-               (if (null? tailtail)
-                 (report-error loc "missing value for symbol in setq" sym)
-                 (let* ((val (compile-expr (car tailtail)))
-                        (op (set-variable! loc sym value-slot val)))
-                   (cons op (iterate (cdr tailtail)))))))))))
+         (let ((sym (car tail))
+               (tailtail (cdr tail)))
+           (if (not (symbol? sym))
+             (report-error loc "expected symbol in setq")
+             (if (null? tailtail)
+               (report-error loc "missing value for symbol in setq" sym)
+               (let* ((val (compile-expr (car tailtail)))
+                      (op (set-variable! loc sym value-slot val)))
+                 (if (null? (cdr tailtail))
+                   (let* ((temp (gensym))
+                          (ref (make-lexical-ref loc temp temp)))
+                     (list (make-let loc `(,temp) `(,temp) `(,val)
+                             (make-sequence loc
+                               (list (set-variable! loc sym value-slot ref)
+                                     ref)))))
+                   (cons (set-variable! loc sym value-slot val)
+                         (iterate (cdr tailtail)))))))))))
 
     ; Let is done with a single call to with-fluids* binding them locally to new
     ; values.

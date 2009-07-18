@@ -112,10 +112,11 @@
   ; TODO: Check for variable-void error
 
   (pass-if-equal "setq and reference" 6
-    (progn (setq a 1
-                 b 2
-                 c 3)
-           (+ a b c))))
+    (progn (setq a 1 b 2 c 3)
+           (+ a b c)))
+
+  (pass-if-equal "setq value" 2
+    (progn (setq a 1 b 2))))
 
 (with-test-prefix/compile "Let and Let*"
 
