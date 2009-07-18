@@ -227,6 +227,23 @@
 ; Test the built-ins.
 ; ===================
 
+(with-test-prefix/compile "Equivalence Predicates"
+
+  (pass-if "equal"
+    (and (equal 2 2) (not (equal 1 2))
+         (equal "abc" "abc") (not (equal "abc" "ABC"))
+         (equal 'abc 'abc) (not (equal 'abc 'def))
+         (equal '(1 2 (3 4) 5) '(1 2 (3 4) 5))
+         (not (equal '(1 2 3 4 5) '(1 2 (3 4) 5)))))
+
+  (pass-if "eq"
+    (progn (setq some-list '(1 2))
+           (setq some-string "abc")
+           (and (eq 2 2) (not (eq 1 2))
+                (eq 'abc 'abc) (not (eq 'abc 'def))
+                (eq some-string some-string) (not (eq some-string "abc"))
+                (eq some-list some-list) (not (eq some-list '(1 2)))))))
+
 (with-test-prefix/compile "Number Built-Ins"
 
   (pass-if "floatp"

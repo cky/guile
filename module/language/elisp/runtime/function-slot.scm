@@ -26,6 +26,15 @@
 ; functions are implemented as predefined function bindings here.
 
 
+; Equivalence and equalness predicates.
+
+(built-in-func eq (lambda (a b)
+                    (elisp-bool (eq? a b))))
+
+(built-in-func equal (lambda (a b)
+                       (elisp-bool (equal? a b))))
+
+
 ; Number predicates.
 
 (built-in-func floatp (lambda (num)
