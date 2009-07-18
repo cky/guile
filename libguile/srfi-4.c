@@ -920,6 +920,24 @@ scm_init_srfi_4 (void)
     scm_permanent_object (scm_c_read_string ("9223372036854775807"));
 #endif
 
+#define REGISTER(tag, TAG)                                       \
+  scm_i_register_vector_constructor                              \
+    (scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_##TAG],    \
+     scm_make_##tag##vector)
+
+  REGISTER (u8, U8); 
+  REGISTER (s8, S8); 
+  REGISTER (u16, U16);
+  REGISTER (s16, S16);
+  REGISTER (u32, U32);
+  REGISTER (s32, S32);
+  REGISTER (u64, U64);
+  REGISTER (s64, S64);
+  REGISTER (f32, F32);
+  REGISTER (f64, F64);
+  REGISTER (c32, C32);
+  REGISTER (c64, C64);
+
 #include "libguile/srfi-4.x"
 
 }

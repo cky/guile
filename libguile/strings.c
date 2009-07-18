@@ -29,6 +29,7 @@
 #include "libguile/chars.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
 #include "libguile/dynwind.h"
@@ -1124,6 +1125,7 @@ string_get_handle (SCM v, scm_t_array_handle *h)
 SCM_ARRAY_IMPLEMENTATION (scm_tc7_string, 0x7f & ~2,
                           string_handle_ref, string_handle_set,
                           string_get_handle);
+SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_CHAR, scm_make_string);
 
 void
 scm_init_strings ()

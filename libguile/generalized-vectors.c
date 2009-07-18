@@ -31,6 +31,43 @@
 #include "libguile/generalized-vectors.h"
 
 
+struct scm_t_vector_ctor
+{
+  SCM tag;
+  SCM (*ctor)(SCM, SCM);
+};
+
+#define VECTOR_CTORS_N_STATIC_ALLOC 20
+static struct scm_t_vector_ctor vector_ctors[VECTOR_CTORS_N_STATIC_ALLOC];
+static int num_vector_ctors_registered = 0;
+
+void
+scm_i_register_vector_constructor (SCM type, SCM (*ctor)(SCM, SCM))
+{
+  if (num_vector_ctors_registered >= VECTOR_CTORS_N_STATIC_ALLOC)
+    /* need to increase VECTOR_CTORS_N_STATIC_ALLOC, buster */
+    abort ();
+  else
+    { 
+      vector_ctors[num_vector_ctors_registered].tag = type;
+      vector_ctors[num_vector_ctors_registered].ctor = ctor;
+      num_vector_ctors_registered++;
+    }
+}
+
+SCM_DEFINE (scm_make_generalized_vector, "make-generalized-vector", 2, 1, 0,
+            (SCM type, SCM len, SCM fill),
+            "Make a generalized vector")
+#define FUNC_NAME s_scm_make_generalized_vector
+{
+  int i;
+  for (i = 0; i < num_vector_ctors_registered; i++)
+    if (vector_ctors[i].tag == type)
+      return vector_ctors[i].ctor(len, fill);
+  scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, type, "array type");
+}
+#undef FUNC_NAME
+
 int
 scm_is_generalized_vector (SCM obj)
 {

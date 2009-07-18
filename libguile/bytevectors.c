@@ -2117,12 +2117,16 @@ scm_bootstrap_bytevectors (void)
 
   {
     scm_t_array_implementation impl;
+    
     impl.tag = scm_tc16_bytevector;
     impl.mask = 0xffff;
     impl.vref = bv_handle_ref;
     impl.vset = bv_handle_set_x;
     impl.get_handle = bytevector_get_handle;
     scm_i_register_array_implementation (&impl);
+    scm_i_register_vector_constructor
+      (scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_VU8],
+       scm_make_bytevector);
   }
 }
 

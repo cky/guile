@@ -562,6 +562,8 @@ SCM_ARRAY_IMPLEMENTATION (scm_tc7_vector, 0x7f & ~2,
 SCM_ARRAY_IMPLEMENTATION (scm_tc7_wvect, 0x7f & ~2,
                           vector_handle_ref, vector_handle_set,
                           vector_get_handle);
+SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector);
+
 
 void
 scm_init_vectors ()

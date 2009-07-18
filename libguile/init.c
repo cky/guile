@@ -521,7 +521,19 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_sort ();
   scm_init_srcprop ();
   scm_init_stackchk ();
-  scm_init_strings ();
+
+  scm_init_array_handle ();
+  scm_init_generalized_arrays ();
+  scm_init_generalized_vectors ();
+  scm_init_vectors ();
+  scm_init_uniform ();
+  scm_init_bitvectors ();
+  scm_bootstrap_bytevectors ();
+  scm_init_srfi_4 ();
+  scm_init_arrays ();
+  scm_init_array_map ();
+
+  scm_init_strings ();  /* Requires array-handle */
   scm_init_struct ();   /* Requires strings */
   scm_init_stacks ();   /* Requires strings, struct */
   scm_init_symbols ();
@@ -535,7 +547,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_srfi_13 ();
   scm_init_srfi_14 ();
   scm_init_throw ();
-  scm_init_vectors ();
   scm_init_version ();
   scm_init_weaks ();
   scm_init_guardians ();
@@ -544,13 +555,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
-  scm_init_array_handle ();
-  scm_init_generalized_arrays ();
-  scm_init_generalized_vectors ();
-  scm_init_uniform ();
-  scm_init_bitvectors ();
-  scm_init_array_map ();
-  scm_init_arrays ();
   scm_init_simpos ();
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */
@@ -559,7 +563,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */
   scm_init_script ();
-  scm_init_srfi_4 ();
 
   scm_init_goops ();
 
@@ -583,7 +586,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rw ();
   scm_init_extensions ();
 
-  scm_bootstrap_bytevectors ();
   scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);
