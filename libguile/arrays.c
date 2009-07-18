@@ -44,102 +44,21 @@
 #include "libguile/bytevectors.h"
 #include "libguile/list.h"
 #include "libguile/dynwind.h"
+#include "libguile/read.h"
 
 #include "libguile/validate.h"
 #include "libguile/arrays.h"
-#include "libguile/generalized-arrays.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/uniform.h"
 #include "libguile/array-map.h"
-#include "libguile/print.h"
-#include "libguile/read.h"
+#include "libguile/generalized-vectors.h"
+#include "libguile/generalized-arrays.h"
+#include "libguile/uniform.h"
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
-
-
-/* The set of uniform scm_vector types is:
- *  Vector of:		 Called:   Replaced by:
- * unsigned char	string
- * char			byvect     s8 or u8, depending on signedness of 'char'
- * boolean		bvect      
- * signed long		ivect      s32
- * unsigned long	uvect      u32
- * float		fvect      f32
- * double		dvect      d32
- * complex double	cvect      c64
- * short		svect      s16
- * long long		llvect     s64
- */
 
 scm_t_bits scm_i_tc16_array;
-
 #define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
   (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) | SCM_I_ARRAY_FLAG_CONTIGUOUS))
 #define SCM_CLR_ARRAY_CONTIGUOUS_FLAG(x) \
   (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) & ~SCM_I_ARRAY_FLAG_CONTIGUOUS))
-
-typedef SCM creator_proc (SCM len, SCM fill);
-
-struct {
-  char *type_name;
-  SCM type;
-  creator_proc *creator;
-} type_creator_table[] = {
-  { "a", SCM_UNSPECIFIED, scm_make_string },
-  { "b", SCM_UNSPECIFIED, scm_make_bitvector },
-  { "u8", SCM_UNSPECIFIED, scm_make_u8vector },
-  { "s8", SCM_UNSPECIFIED, scm_make_s8vector },
-  { "u16", SCM_UNSPECIFIED, scm_make_u16vector },
-  { "s16", SCM_UNSPECIFIED, scm_make_s16vector },
-  { "u32", SCM_UNSPECIFIED, scm_make_u32vector },
-  { "s32", SCM_UNSPECIFIED, scm_make_s32vector },
-  { "u64", SCM_UNSPECIFIED, scm_make_u64vector },
-  { "s64", SCM_UNSPECIFIED, scm_make_s64vector },
-  { "f32", SCM_UNSPECIFIED, scm_make_f32vector },
-  { "f64", SCM_UNSPECIFIED, scm_make_f64vector },
-  { "c32", SCM_UNSPECIFIED, scm_make_c32vector },
-  { "c64", SCM_UNSPECIFIED, scm_make_c64vector },
-  { "vu8", SCM_UNSPECIFIED, scm_make_bytevector },
-  { NULL }
-};
-
-static void
-init_type_creator_table ()
-{
-  int i;
-  for (i = 0; type_creator_table[i].type_name; i++)
-    {
-      SCM sym = scm_from_locale_symbol (type_creator_table[i].type_name);
-      type_creator_table[i].type = scm_permanent_object (sym);
-    }
-}
-
-static creator_proc *
-type_to_creator (SCM type)
-{
-  int i;
-
-  if (scm_is_eq (type, SCM_BOOL_T))
-    return scm_make_vector;
-  for (i = 0; type_creator_table[i].type_name; i++)
-    if (scm_is_eq (type, type_creator_table[i].type))
-      return type_creator_table[i].creator;
-
-  scm_misc_error (NULL, "unknown array type: ~a", scm_list_1 (type));
-}
-
-static SCM
-make_typed_vector (SCM type, size_t len)
-{
-  creator_proc *creator = type_to_creator (type);
-  return creator (scm_from_size_t (len), SCM_UNDEFINED);
-}
 
 
 SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0, 
@@ -151,7 +70,7 @@ SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0,
     return SCM_I_ARRAY_V (ra);
   else if (scm_is_generalized_vector (ra))
     return ra;
-  scm_wrong_type_arg_msg (NULL, 0, ra, "array");
+  scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, ra, "array");
 }
 #undef FUNC_NAME
 
@@ -256,10 +175,8 @@ SCM_DEFINE (scm_make_typed_array, "make-typed-array", 2, 0, 1,
 {
   size_t k, rlen = 1;
   scm_t_array_dim *s;
-  creator_proc *creator;
   SCM ra;
   
-  creator = type_to_creator (type);
   ra = scm_i_shap2ra (bounds);
   SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
   s = SCM_I_ARRAY_DIMS (ra);
@@ -275,7 +192,8 @@ SCM_DEFINE (scm_make_typed_array, "make-typed-array", 2, 0, 1,
   if (scm_is_eq (fill, SCM_UNSPECIFIED))
     fill = SCM_UNDEFINED;
 
-  SCM_I_ARRAY_V (ra) = creator (scm_from_size_t (rlen), fill);
+  SCM_I_ARRAY_V (ra) =
+    scm_make_generalized_vector (type, scm_from_size_t (rlen), fill);
 
   if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
@@ -291,13 +209,11 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
 {
   size_t k, rlen = 1;
   scm_t_array_dim *s;
-  creator_proc *creator;
   SCM ra;
   scm_t_array_handle h;
   void *base;
   size_t sz;
   
-  creator = type_to_creator (type);
   ra = scm_i_shap2ra (bounds);
   SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
   s = SCM_I_ARRAY_DIMS (ra);
@@ -309,7 +225,8 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
       SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
       rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
     }
-  SCM_I_ARRAY_V (ra) = creator (scm_from_size_t (rlen), SCM_UNDEFINED);
+  SCM_I_ARRAY_V (ra) =
+    scm_make_generalized_vector (type, scm_from_size_t (rlen), SCM_UNDEFINED);
 
 
   scm_array_get_handle (ra, &h);
@@ -425,9 +342,12 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (s[k].ubnd < s[k].lbnd)
 	{
 	  if (1 == SCM_I_ARRAY_NDIM (ra))
-	    ra = make_typed_vector (scm_array_type (ra), 0);
+	    ra = scm_make_generalized_vector (scm_array_type (ra),
+                                              SCM_INUM0, SCM_UNDEFINED);
 	  else
-	    SCM_I_ARRAY_V (ra) = make_typed_vector (scm_array_type (ra), 0);
+	    SCM_I_ARRAY_V (ra) =
+              scm_make_generalized_vector (scm_array_type (ra),
+                                           SCM_INUM0, SCM_UNDEFINED);
 	  scm_array_handle_release (&old_handle);
 	  return ra;
 	}
@@ -467,7 +387,8 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
       if (1 == s->inc && 0 == s->lbnd && length == 1 + s->ubnd)
 	return v;
       if (s->ubnd < s->lbnd)
-	return make_typed_vector (scm_array_type (ra), 0);
+	return scm_make_generalized_vector (scm_array_type (ra), SCM_INUM0,
+                                            SCM_UNDEFINED);
     }
   scm_i_ra_set_contp (ra);
   return ra;
@@ -603,7 +524,7 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
 	return SCM_BOOL_F;
       for (k = 0; k < ndim; k++)
 	len *= SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd + 1;
-      if (!SCM_UNBNDP (strict))
+      if (!SCM_UNBNDP (strict) && scm_is_true (strict))
 	{
 	  if (ndim && (1 != SCM_I_ARRAY_DIMS (ra)[ndim - 1].inc))
 	    return SCM_BOOL_F;
@@ -664,7 +585,9 @@ scm_ra2contig (SCM ra, int copy)
       SCM_I_ARRAY_DIMS (ret)[k].inc = inc;
       inc *= SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd + 1;
     }
-  SCM_I_ARRAY_V (ret) = make_typed_vector (scm_array_type (ra), inc);
+  SCM_I_ARRAY_V (ret) = scm_make_generalized_vector (scm_array_type (ra),
+                                                     scm_from_long (inc),
+                                                     SCM_UNDEFINED);
   if (copy)
     scm_array_copy_x (ra, ret);
   return ret;
@@ -779,7 +702,36 @@ SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
 #undef FUNC_NAME
 
 
-static void l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k);
+static void
+list_to_array (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k)
+{
+  if (k == scm_array_handle_rank (handle))
+    scm_array_handle_set (handle, pos, lst);
+  else
+    {
+      scm_t_array_dim *dim = scm_array_handle_dims (handle) + k;
+      ssize_t inc = dim->inc;
+      size_t len = 1 + dim->ubnd - dim->lbnd, n;
+      char *errmsg = NULL;
+
+      n = len;
+      while (n > 0 && scm_is_pair (lst))
+	{
+	  list_to_array (SCM_CAR (lst), handle, pos, k + 1);
+	  pos += inc;
+	  lst = SCM_CDR (lst);
+	  n -= 1;
+	}
+      if (n != 0)
+	errmsg = "too few elements for array dimension ~a, need ~a";
+      if (!scm_is_null (lst))
+	errmsg = "too many elements for array dimension ~a, want ~a";
+      if (errmsg)
+	scm_misc_error (NULL, errmsg, scm_list_2 (scm_from_ulong (k),
+						  scm_from_size_t (len)));
+    }
+}
+  
 
 SCM_DEFINE (scm_list_to_typed_array, "list->typed-array", 3, 0, 0,
            (SCM type, SCM shape, SCM lst),
@@ -844,7 +796,7 @@ SCM_DEFINE (scm_list_to_typed_array, "list->typed-array", 3, 0, 0,
 			     scm_reverse_x (shape, SCM_EOL));
 
   scm_array_get_handle (ra, &handle);
-  l2ra (lst, &handle, 0, 0);
+  list_to_array (lst, &handle, 0, 0);
   scm_array_handle_release (&handle);
 
   return ra;
@@ -860,117 +812,76 @@ SCM_DEFINE (scm_list_to_array, "list->array", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-static void
-l2ra (SCM lst, scm_t_array_handle *handle, ssize_t pos, size_t k)
-{
-  if (k == scm_array_handle_rank (handle))
-    scm_array_handle_set (handle, pos, lst);
-  else
-    {
-      scm_t_array_dim *dim = scm_array_handle_dims (handle) + k;
-      ssize_t inc = dim->inc;
-      size_t len = 1 + dim->ubnd - dim->lbnd, n;
-      char *errmsg = NULL;
-
-      n = len;
-      while (n > 0 && scm_is_pair (lst))
-	{
-	  l2ra (SCM_CAR (lst), handle, pos, k + 1);
-	  pos += inc;
-	  lst = SCM_CDR (lst);
-	  n -= 1;
-	}
-      if (n != 0)
-	errmsg = "too few elements for array dimension ~a, need ~a";
-      if (!scm_is_null (lst))
-	errmsg = "too many elements for array dimension ~a, want ~a";
-      if (errmsg)
-	scm_misc_error (NULL, errmsg, scm_list_2 (scm_from_ulong (k),
-						  scm_from_size_t (len)));
-    }
-}
-
 /* Print dimension DIM of ARRAY.
  */
 
 static int
-scm_i_print_array_dimension (SCM array, int dim, int base,
+scm_i_print_array_dimension (scm_t_array_handle *h, int dim, int pos,
 			     SCM port, scm_print_state *pstate)
 {
-  scm_t_array_dim *dim_spec = SCM_I_ARRAY_DIMS (array) + dim;
-  long idx;
-
-  scm_putc ('(', port);
-
-  for (idx = dim_spec->lbnd; idx <= dim_spec->ubnd; idx++)
+  if (dim == h->ndims)
+    scm_iprin1 (scm_array_handle_ref (h, pos), port, pstate);
+  else
     {
-      if (dim < SCM_I_ARRAY_NDIM(array)-1)
-	scm_i_print_array_dimension (array, dim+1, base,
-				     port, pstate);
-      else
-	scm_iprin1 (scm_c_generalized_vector_ref (SCM_I_ARRAY_V (array), base),
-		    port, pstate);
-      if (idx < dim_spec->ubnd)
-	scm_putc (' ', port);
-      base += dim_spec->inc;
+      ssize_t i;
+      scm_putc ('(', port);
+      for (i = h->dims[dim].lbnd; i <= h->dims[dim].ubnd;
+           i++, pos += h->dims[dim].inc)
+        {
+          scm_i_print_array_dimension (h, dim+1, pos, port, pstate);
+          if (i < h->dims[dim].ubnd)
+            scm_putc (' ', port);
+        }
+      scm_putc (')', port);
     }
-
-  scm_putc (')', port);
   return 1;
 }
 
-/* Print an array.  (Only for strict arrays, not for generalized vectors.)
+/* Print an array.
 */
 
 static int
 scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
 {
-  long ndim = SCM_I_ARRAY_NDIM (array);
-  scm_t_array_dim *dim_specs = SCM_I_ARRAY_DIMS (array);
-  SCM v = SCM_I_ARRAY_V (array);
-  unsigned long base = SCM_I_ARRAY_BASE (array);
+  scm_t_array_handle h;
   long i;
   int print_lbnds = 0, zero_size = 0, print_lens = 0;
 
+  scm_array_get_handle (array, &h);
+
   scm_putc ('#', port);
-  if (ndim != 1 || dim_specs[0].lbnd != 0)
-    scm_intprint (ndim, 10, port);
-  if (scm_is_uniform_vector (v))
-    scm_puts (scm_i_uniform_vector_tag (v), port);
-  else if (scm_is_bitvector (v))
-    scm_puts ("b", port);
-  else if (scm_is_string (v))
-    scm_puts ("a", port);
-  else if (!scm_is_vector (v))
-    scm_puts ("?", port);
+  if (h.ndims != 1 || h.dims[0].lbnd != 0)
+    scm_intprint (h.ndims, 10, port);
+  if (h.element_type != SCM_ARRAY_ELEMENT_TYPE_SCM)
+    scm_write (scm_array_handle_element_type (&h), port);
   
-  for (i = 0; i < ndim; i++)
+  for (i = 0; i < h.ndims; i++)
     {
-      if (dim_specs[i].lbnd != 0)
+      if (h.dims[i].lbnd != 0)
 	print_lbnds = 1;
-      if (dim_specs[i].ubnd - dim_specs[i].lbnd + 1 == 0)
+      if (h.dims[i].ubnd - h.dims[i].lbnd + 1 == 0)
 	zero_size = 1;
       else if (zero_size)
 	print_lens = 1;
     }
 
   if (print_lbnds || print_lens)
-    for (i = 0; i < ndim; i++)
+    for (i = 0; i < h.ndims; i++)
       {
 	if (print_lbnds)
 	  {
 	    scm_putc ('@', port);
-	    scm_intprint (dim_specs[i].lbnd, 10, port);
+	    scm_intprint (h.dims[i].lbnd, 10, port);
 	  }
 	if (print_lens)
 	  {
 	    scm_putc (':', port);
-	    scm_intprint (dim_specs[i].ubnd - dim_specs[i].lbnd + 1,
+	    scm_intprint (h.dims[i].ubnd - h.dims[i].lbnd + 1,
 			  10, port);
 	  }
       }
 
-  if (ndim == 0)
+  if (h.ndims == 0)
     {
       /* Rank zero arrays, which are really just scalars, are printed
 	 specially.  The consequent way would be to print them as
@@ -993,12 +904,12 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
          can be modified with array-set!, say.
       */
       scm_putc ('(', port);
-      scm_iprin1 (scm_c_generalized_vector_ref (v, base), port, pstate);
+      scm_i_print_array_dimension (&h, 0, 0, port, pstate);
       scm_putc (')', port);
       return 1;
     }
   else
-    return scm_i_print_array_dimension (array, 0, base, port, pstate);
+    return scm_i_print_array_dimension (&h, 0, 0, port, pstate);
 }
 
 /* Read an array.  This function can also read vectors and uniform
@@ -1233,8 +1144,6 @@ scm_init_arrays ()
   scm_set_smob_equalp (scm_i_tc16_array, scm_array_equal_p);
 
   scm_add_feature ("array");
-
-  init_type_creator_table ();
 
 #include "libguile/arrays.x"
 

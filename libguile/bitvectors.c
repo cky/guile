@@ -32,9 +32,8 @@
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"
 #include "libguile/arrays.h"
-#include "libguile/vectors.h"
-#include "libguile/srfi-4.h"
 #include "libguile/generalized-vectors.h"
+#include "libguile/srfi-4.h"
 
 /* Bit vectors. Would be nice if they were implemented on top of bytevectors,
  * but alack, all we have is this crufty C.
