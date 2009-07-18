@@ -1674,6 +1674,12 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
    _c_type ## _to_foreign_endianness
 
 
+/* FIXME: SCM_VALIDATE_REAL rejects integers, etc. grrr */
+#define VALIDATE_REAL(pos, v) \
+  do { \
+    SCM_ASSERT_TYPE (scm_is_true (scm_rational_p (v)), v, pos, FUNC_NAME, "real"); \
+  } while (0)
+
 /* Templace getters and setters.  */
 
 #define IEEE754_ACCESSOR_PROLOGUE(_type)			\
@@ -1710,7 +1716,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
   _type c_value;						\
 								\
   IEEE754_ACCESSOR_PROLOGUE (_type);				\
-  SCM_VALIDATE_REAL (3, value);					\
+  VALIDATE_REAL (3, value);					\
   SCM_VALIDATE_SYMBOL (4, endianness);				\
   c_value = IEEE754_FROM_SCM (_type) (value);			\
 								\
@@ -1730,7 +1736,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
   _type c_value;					\
 							\
   IEEE754_ACCESSOR_PROLOGUE (_type);			\
-  SCM_VALIDATE_REAL (3, value);				\
+  VALIDATE_REAL (3, value);				\
   c_value = IEEE754_FROM_SCM (_type) (value);		\
 							\
   memcpy (&c_bv[c_index], &c_value, sizeof (c_value));	\
