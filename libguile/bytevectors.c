@@ -186,47 +186,75 @@ scm_t_bits scm_tc16_bytevector;
   SCM_SET_SMOB_DATA_2 ((_bv), (scm_t_bits) (_buf))
 #define SCM_BYTEVECTOR_SET_INLINE(bv)                                   \
   SCM_SET_SMOB_FLAGS (bv, SCM_SMOB_FLAGS (bv) | SCM_F_BYTEVECTOR_INLINE)
+#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)                          \
+  SCM_SET_SMOB_FLAGS (bv, (SCM_SMOB_FLAGS (bv) & 0xFF) | (hint << 8))
+#define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
+  (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)
+#define SCM_BYTEVECTOR_TYPED_LENGTH(var)                        \
+  SCM_BYTEVECTOR_LENGTH (var) / SCM_BYTEVECTOR_TYPE_SIZE (var)
 
 /* The empty bytevector.  */
 SCM scm_null_bytevector = SCM_UNSPECIFIED;
 
 
 static inline SCM
-make_bytevector_from_buffer (size_t len, signed char *contents)
+make_bytevector_from_buffer (size_t len, void *contents,
+                             scm_t_array_element_type element_type)
 {
   SCM ret;
-  if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len))
-    SCM_NEWSMOB2 (ret, scm_tc16_bytevector, len, contents);
+  size_t c_len;
+  
+  if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
+                    || scm_i_array_element_type_sizes[element_type] < 8
+                    || len >= (SCM_I_SIZE_MAX
+                               / (scm_i_array_element_type_sizes[element_type]/8))))
+    /* This would be an internal Guile programming error */
+    abort ();
+  
+  c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
+  if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
+    SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, contents);
   else
     {
-      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, len, NULL);
+      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, NULL);
       SCM_BYTEVECTOR_SET_INLINE (ret);
       if (contents)
         {
-          memcpy (SCM_BYTEVECTOR_CONTENTS (ret), contents, len);
-          scm_gc_free (contents, len, SCM_GC_BYTEVECTOR);
+          memcpy (SCM_BYTEVECTOR_CONTENTS (ret), contents, c_len);
+          scm_gc_free (contents, c_len, SCM_GC_BYTEVECTOR);
         }
     }
+  SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
   return ret;
 }
 
 static inline SCM
-make_bytevector (size_t len)
+make_bytevector (size_t len, scm_t_array_element_type element_type)
 {
-  if (SCM_UNLIKELY (len == 0))
-    return scm_null_bytevector;
+  size_t c_len;
 
-  if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len))
+  if (SCM_UNLIKELY (len == 0 && element_type == 0))
+    return scm_null_bytevector;
+  else if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
+                         || scm_i_array_element_type_sizes[element_type] < 8
+                         || len >= (SCM_I_SIZE_MAX
+                                    / (scm_i_array_element_type_sizes[element_type]/8))))
+    /* This would be an internal Guile programming error */
+    abort ();
+
+  c_len = len * (scm_i_array_element_type_sizes[element_type]/8);
+  if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
     {
       SCM ret;
-      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, len, NULL);
+      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, NULL);
       SCM_BYTEVECTOR_SET_INLINE (ret);
+      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
       return ret;
     }
   else
     {
-      void *buf = scm_gc_malloc (len, SCM_GC_BYTEVECTOR);
-      return make_bytevector_from_buffer (len, buf);
+      void *buf = scm_gc_malloc (c_len, SCM_GC_BYTEVECTOR);
+      return make_bytevector_from_buffer (len, buf, element_type);
     }
 }
 
@@ -234,7 +262,14 @@ make_bytevector (size_t len)
 SCM
 scm_c_make_bytevector (size_t len)
 {
-  return (make_bytevector (len));
+  return make_bytevector (len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+}
+
+/* Return a new bytevector of size LEN elements.  */
+SCM
+scm_i_make_typed_bytevector (size_t len, scm_t_array_element_type element_type)
+{
+  return make_bytevector (len, element_type);
 }
 
 /* Return a bytevector of size LEN made up of CONTENTS.  The area pointed to
@@ -242,7 +277,14 @@ scm_c_make_bytevector (size_t len)
 SCM
 scm_c_take_bytevector (signed char *contents, size_t len)
 {
-  return make_bytevector_from_buffer (len, contents);
+  return make_bytevector_from_buffer (len, contents, SCM_ARRAY_ELEMENT_TYPE_VU8);
+}
+
+SCM
+scm_c_take_typed_bytevector (signed char *contents, size_t len,
+                             scm_t_array_element_type element_type)
+{
+  return make_bytevector_from_buffer (len, contents, element_type);
 }
 
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
@@ -250,6 +292,10 @@ scm_c_take_bytevector (signed char *contents, size_t len)
 SCM
 scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
 {
+  if (SCM_UNLIKELY (c_new_len % SCM_BYTEVECTOR_TYPE_SIZE (bv)))
+    /* This would be an internal Guile programming error */
+    abort ();
+
   if (!SCM_BYTEVECTOR_INLINE_P (bv))
     {
       size_t c_len;
@@ -336,37 +382,29 @@ scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
 }
 #undef FUNC_NAME
 
-/* This procedure is used by `scm_c_generalized_vector_set_x ()'.  */
-void
-scm_i_bytevector_generalized_set_x (SCM bv, size_t index, SCM value)
-#define FUNC_NAME "scm_i_bytevector_generalized_set_x"
-{
-  scm_c_bytevector_set_x (bv, index, scm_to_uint8 (value));
-}
-#undef FUNC_NAME
+
+
+
 
 static int
-print_bytevector (SCM bv, SCM port, scm_print_state *pstate)
+print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  unsigned c_len, i;
-  unsigned char *c_bv;
+  ssize_t ubnd, inc, i;
+  scm_t_array_handle h;
+  
+  scm_array_get_handle (bv, &h);
 
-  c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
-
-  scm_puts ("#vu8(", port);
-  for (i = 0; i < c_len; i++)
+  scm_putc ('#', port);
+  scm_write (scm_array_handle_element_type (&h), port);
+  scm_putc ('(', port);
+  for (i = h.dims[0].lbnd, ubnd = h.dims[0].ubnd, inc = h.dims[0].inc;
+       i <= ubnd; i += inc)
     {
       if (i > 0)
 	scm_putc (' ', port);
-
-      scm_uintprint (c_bv[i], 10, port);
+      scm_write (scm_array_handle_ref (&h, i), port);
     }
-
   scm_putc (')', port);
-
-  /* Make GCC think we use it.  */
-  scm_remember_upto_here ((SCM) pstate);
 
   return 1;
 }
@@ -455,7 +493,7 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
       c_fill = (signed char) value;
     }
 
-  bv = make_bytevector (c_len);
+  bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   if (fill != SCM_UNDEFINED)
     {
       unsigned i;
@@ -581,7 +619,7 @@ SCM_DEFINE (scm_bytevector_copy, "bytevector-copy", 1, 0, 0,
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
   c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
 
-  copy = make_bytevector (c_len);
+  copy = make_bytevector (c_len, SCM_BYTEVECTOR_ELEMENT_TYPE (bv));
   c_copy = SCM_BYTEVECTOR_CONTENTS (copy);
   memcpy (c_copy, c_bv, c_len);
 
@@ -611,7 +649,7 @@ SCM_DEFINE (scm_uniform_array_to_bytevector, "uniform-array->bytevector",
   len = h.dims->inc * (h.dims->ubnd - h.dims->lbnd + 1);
   sz = scm_array_handle_uniform_element_size (&h);
 
-  ret = make_bytevector (len * sz);
+  ret = make_bytevector (len * sz, SCM_ARRAY_ELEMENT_TYPE_VU8);
   memcpy (SCM_BYTEVECTOR_CONTENTS (ret), base, len * sz);
 
   scm_array_handle_release (&h);
@@ -700,7 +738,7 @@ SCM_DEFINE (scm_u8_list_to_bytevector, "u8-list->bytevector", 1, 0, 0,
 
   SCM_VALIDATE_LIST_COPYLEN (1, lst, c_len);
 
-  bv = make_bytevector (c_len);
+  bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   c_bv = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   for (i = 0; i < c_len; lst = SCM_CDR (lst), i++)
@@ -1137,7 +1175,7 @@ SCM_DEFINE (scm_bytevector_to_uint_list, "bytevector->uint-list",
   if (SCM_UNLIKELY ((c_size == 0) || (c_size >= (ULONG_MAX >> 3L))))	\
     scm_out_of_range (FUNC_NAME, size);					\
 									\
-  bv = make_bytevector (c_len * c_size);				\
+  bv = make_bytevector (c_len * c_size, SCM_ARRAY_ELEMENT_TYPE_VU8);     \
   c_bv = (char *) SCM_BYTEVECTOR_CONTENTS (bv);				\
 									\
   for (c_bv_ptr = c_bv;							\
@@ -2067,16 +2105,109 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
 
 /* Bytevectors as generalized vectors & arrays.  */
 
+
+static SCM
+bytevector_ref_c32 (SCM bv, SCM idx)
+{ /* FIXME add some checks */
+  const float *contents = (const float*)SCM_BYTEVECTOR_CONTENTS (bv);
+  size_t i = scm_to_size_t (idx);
+  return scm_c_make_rectangular (contents[i/8], contents[i/8 + 1]);
+}
+
+static SCM
+bytevector_ref_c64 (SCM bv, SCM idx)
+{ /* FIXME add some checks */
+  const double *contents = (const double*)SCM_BYTEVECTOR_CONTENTS (bv);
+  size_t i = scm_to_size_t (idx);
+  return scm_c_make_rectangular (contents[i/16], contents[i/16 + 1]);
+}
+
+typedef SCM (*scm_t_bytevector_ref_fn)(SCM, SCM);
+
+const scm_t_bytevector_ref_fn bytevector_ref_fns[SCM_ARRAY_ELEMENT_TYPE_LAST + 1] = 
+{
+  NULL, /* SCM */
+  NULL, /* CHAR */
+  NULL, /* BIT */
+  scm_bytevector_u8_ref, /* VU8 */
+  scm_bytevector_u8_ref, /* U8 */
+  scm_bytevector_s8_ref,
+  scm_bytevector_u16_native_ref,
+  scm_bytevector_s16_native_ref,
+  scm_bytevector_u32_native_ref,
+  scm_bytevector_s32_native_ref,
+  scm_bytevector_u64_native_ref,
+  scm_bytevector_s64_native_ref,
+  scm_bytevector_ieee_single_native_ref,
+  scm_bytevector_ieee_double_native_ref,
+  bytevector_ref_c32,
+  bytevector_ref_c64
+};
+
 static SCM
 bv_handle_ref (scm_t_array_handle *h, size_t index)
 {
-  return SCM_I_MAKINUM (scm_c_bytevector_ref (h->array, index));
+  SCM byte_index;
+  scm_t_bytevector_ref_fn ref_fn;
+  
+  ref_fn = bytevector_ref_fns[h->element_type];
+  byte_index =
+    scm_from_size_t (index * scm_array_handle_uniform_element_size (h));
+  return ref_fn (h->array, byte_index);
 }
+
+static SCM
+bytevector_set_c32 (SCM bv, SCM idx, SCM val)
+{ /* checks are unnecessary here */
+  float *contents = (float*)SCM_BYTEVECTOR_CONTENTS (bv);
+  size_t i = scm_to_size_t (idx);
+  contents[i/8] = scm_c_real_part (val);
+  contents[i/8 + 1] = scm_c_imag_part (val);
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+bytevector_set_c64 (SCM bv, SCM idx, SCM val)
+{ /* checks are unnecessary here */
+  double *contents = (double*)SCM_BYTEVECTOR_CONTENTS (bv);
+  size_t i = scm_to_size_t (idx);
+  contents[i/16] = scm_c_real_part (val);
+  contents[i/16 + 1] = scm_c_imag_part (val);
+  return SCM_UNSPECIFIED;
+}
+
+typedef SCM (*scm_t_bytevector_set_fn)(SCM, SCM, SCM);
+
+const scm_t_bytevector_set_fn bytevector_set_fns[SCM_ARRAY_ELEMENT_TYPE_LAST + 1] = 
+{
+  NULL, /* SCM */
+  NULL, /* CHAR */
+  NULL, /* BIT */
+  scm_bytevector_u8_set_x, /* VU8 */
+  scm_bytevector_u8_set_x, /* U8 */
+  scm_bytevector_s8_set_x,
+  scm_bytevector_u16_native_set_x,
+  scm_bytevector_s16_native_set_x,
+  scm_bytevector_u32_native_set_x,
+  scm_bytevector_s32_native_set_x,
+  scm_bytevector_u64_native_set_x,
+  scm_bytevector_s64_native_set_x,
+  scm_bytevector_ieee_single_native_set_x,
+  scm_bytevector_ieee_double_native_set_x,
+  bytevector_set_c32,
+  bytevector_set_c64
+};
 
 static void
 bv_handle_set_x (scm_t_array_handle *h, size_t index, SCM val)
 {
-  scm_c_bytevector_set_x (h->array, index, scm_to_uint8 (val));
+  SCM byte_index;
+  scm_t_bytevector_set_fn set_fn;
+  
+  set_fn = bytevector_set_fns[h->element_type];
+  byte_index =
+    scm_from_size_t (index * scm_array_handle_uniform_element_size (h));
+  set_fn (h->array, byte_index, val);
 }
 
 static void
@@ -2086,9 +2217,9 @@ bytevector_get_handle (SCM v, scm_t_array_handle *h)
   h->ndims = 1;
   h->dims = &h->dim0;
   h->dim0.lbnd = 0;
-  h->dim0.ubnd = SCM_BYTEVECTOR_LENGTH (v) - 1;
+  h->dim0.ubnd = SCM_BYTEVECTOR_TYPED_LENGTH (v) - 1;
   h->dim0.inc = 1;
-  h->element_type = SCM_ARRAY_ELEMENT_TYPE_VU8;
+  h->element_type = SCM_BYTEVECTOR_ELEMENT_TYPE (v);
   h->elements = h->writable_elements = SCM_BYTEVECTOR_CONTENTS (v);
 }
 
@@ -2107,7 +2238,8 @@ scm_bootstrap_bytevectors (void)
   scm_set_smob_equalp (scm_tc16_bytevector, bytevector_equal_p);
 
   scm_null_bytevector =
-    scm_gc_protect_object (make_bytevector_from_buffer (0, NULL));
+    scm_gc_protect_object
+    (make_bytevector_from_buffer (0, NULL, SCM_ARRAY_ELEMENT_TYPE_VU8));
 
 #ifdef WORDS_BIGENDIAN
   scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("big"));
