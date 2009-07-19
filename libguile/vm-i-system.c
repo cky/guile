@@ -139,7 +139,7 @@ VM_DEFINE_INSTRUCTION (13, make_int16, "make-int16", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (55, make_int64, "make-int64", 8, 0, 1)
+VM_DEFINE_INSTRUCTION (14, make_int64, "make-int64", 8, 0, 1)
 {
   scm_t_uint64 v = 0;
   v += FETCH ();
@@ -154,7 +154,7 @@ VM_DEFINE_INSTRUCTION (55, make_int64, "make-int64", 8, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (56, make_uint64, "make-uint64", 8, 0, 1)
+VM_DEFINE_INSTRUCTION (15, make_uint64, "make-uint64", 8, 0, 1)
 {
   scm_t_uint64 v = 0;
   v += FETCH ();
@@ -169,13 +169,13 @@ VM_DEFINE_INSTRUCTION (56, make_uint64, "make-uint64", 8, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (14, make_char8, "make-char8", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (16, make_char8, "make-char8", 1, 0, 1)
 {
   PUSH (SCM_MAKE_CHAR (FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (15, list, "list", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (17, list, "list", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
@@ -184,7 +184,7 @@ VM_DEFINE_INSTRUCTION (15, list, "list", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (16, vector, "vector", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (18, vector, "vector", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
@@ -202,19 +202,19 @@ VM_DEFINE_INSTRUCTION (16, vector, "vector", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (17, list_mark, "list-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (19, list_mark, "list-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (18, cons_mark, "cons-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (20, cons_mark, "cons-mark", 0, 0, 0)
 {
   POP_CONS_MARK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (19, vector_mark, "vector-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (21, vector_mark, "vector-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
   SYNC_REGISTER ();
@@ -222,7 +222,7 @@ VM_DEFINE_INSTRUCTION (19, vector_mark, "vector-mark", 0, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (20, list_break, "list-break", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (22, list_break, "list-break", 0, 0, 0)
 {
   SCM l;
   POP (l);
@@ -250,7 +250,7 @@ VM_DEFINE_INSTRUCTION (20, list_break, "list-break", 0, 0, 0)
 
 /* ref */
 
-VM_DEFINE_INSTRUCTION (21, object_ref, "object-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (23, object_ref, "object-ref", 1, 0, 1)
 {
   register unsigned objnum = FETCH ();
   CHECK_OBJECT (objnum);
@@ -258,14 +258,25 @@ VM_DEFINE_INSTRUCTION (21, object_ref, "object-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (22, local_ref, "local-ref", 1, 0, 1)
+/* FIXME: necessary? elt 255 of the vector could be a vector... */
+VM_DEFINE_INSTRUCTION (24, long_object_ref, "long-object-ref", 2, 0, 1)
+{
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  PUSH (OBJECT_REF (objnum));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (25, local_ref, "local-ref", 1, 0, 1)
 {
   PUSH (LOCAL_REF (FETCH ()));
   ASSERT_BOUND (*sp);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (23, external_ref, "external-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (26, external_ref, "external-ref", 1, 0, 1)
 {
   unsigned int i;
   SCM e = external;
@@ -280,7 +291,7 @@ VM_DEFINE_INSTRUCTION (23, external_ref, "external-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (27, variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
 
@@ -299,7 +310,7 @@ VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (28, toplevel_ref, "toplevel-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -322,16 +333,41 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (29, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
+{
+  SCM what;
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  what = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (what)) 
+    {
+      SYNC_REGISTER ();
+      what = resolve_variable (what, scm_program_module (program));
+      if (!VARIABLE_BOUNDP (what))
+        {
+          finish_args = scm_list_1 (what);
+          goto vm_error_unbound;
+        }
+      OBJECT_SET (objnum, what);
+    }
+
+  PUSH (VARIABLE_REF (what));
+  NEXT;
+}
+
 /* set */
 
-VM_DEFINE_INSTRUCTION (26, local_set, "local-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (30, local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (27, external_set, "external-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (31, external_set, "external-set", 1, 1, 0)
 {
   unsigned int i;
   SCM e = external;
@@ -346,17 +382,38 @@ VM_DEFINE_INSTRUCTION (27, external_set, "external-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (28, variable_set, "variable-set", 0, 1, 0)
+VM_DEFINE_INSTRUCTION (32, variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (33, toplevel_set, "toplevel-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
   SCM what;
+  CHECK_OBJECT (objnum);
+  what = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (what)) 
+    {
+      SYNC_BEFORE_GC ();
+      what = resolve_variable (what, scm_program_module (program));
+      OBJECT_SET (objnum, what);
+    }
+
+  VARIABLE_SET (what, *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
+{
+  SCM what;
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
   CHECK_OBJECT (objnum);
   what = OBJECT_REF (objnum);
 
@@ -396,7 +453,7 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (31, br, "br", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (35, br, "br", 2, 0, 0)
 {
   int h = FETCH ();
   int l = FETCH ();
@@ -404,34 +461,34 @@ VM_DEFINE_INSTRUCTION (31, br, "br", 2, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (32, br_if, "br-if", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (36, br_if, "br-if", 2, 0, 0)
 {
   BR (!SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (33, br_if_not, "br-if-not", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (37, br_if_not, "br-if-not", 2, 0, 0)
 {
   BR (SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (34, br_if_eq, "br-if-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (38, br_if_eq, "br-if-eq", 2, 0, 0)
 {
   sp--; /* underflow? */
   BR (SCM_EQ_P (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (35, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (39, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
 {
   sp--; /* underflow? */
   BR (!SCM_EQ_P (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (36, br_if_null, "br-if-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (40, br_if_null, "br-if-null", 2, 0, 0)
 {
   BR (SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (41, br_if_not_null, "br-if-not-null", 2, 0, 0)
 {
   BR (!SCM_NULLP (*sp));
 }
@@ -441,7 +498,7 @@ VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
  * Subprogram call
  */
 
-VM_DEFINE_INSTRUCTION (38, make_closure, "make-closure", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (42, make_closure, "make-closure", 0, 1, 1)
 {
   SYNC_BEFORE_GC ();
   SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
@@ -449,7 +506,7 @@ VM_DEFINE_INSTRUCTION (38, make_closure, "make-closure", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (43, call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
@@ -570,7 +627,7 @@ VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
@@ -764,7 +821,7 @@ VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (41, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (45, goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -773,7 +830,7 @@ VM_DEFINE_INSTRUCTION (41, goto_nargs, "goto/nargs", 0, 0, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (46, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -782,7 +839,7 @@ VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
+VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 3, -1, 1)
 {
   SCM x;
   signed short offset;
@@ -843,7 +900,7 @@ VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (44, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (48, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -862,7 +919,7 @@ VM_DEFINE_INSTRUCTION (44, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (45, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (49, goto_apply, "goto/apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -881,7 +938,7 @@ VM_DEFINE_INSTRUCTION (45, goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (46, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (50, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -915,7 +972,7 @@ VM_DEFINE_INSTRUCTION (46, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (51, goto_cc, "goto/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -947,7 +1004,7 @@ VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (52, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -986,7 +1043,7 @@ VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (53, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -1047,7 +1104,7 @@ VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (54, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -1070,7 +1127,7 @@ VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (55, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -1090,62 +1147,6 @@ VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
   else
     DROPN (nvalues - nbinds);
 
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (52, long_object_ref, "long-object-ref", 2, 0, 1)
-{
-  unsigned int objnum = FETCH ();
-  objnum <<= 8;
-  objnum += FETCH ();
-  CHECK_OBJECT (objnum);
-  PUSH (OBJECT_REF (objnum));
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (53, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
-{
-  SCM what;
-  unsigned int objnum = FETCH ();
-  objnum <<= 8;
-  objnum += FETCH ();
-  CHECK_OBJECT (objnum);
-  what = OBJECT_REF (objnum);
-
-  if (!SCM_VARIABLEP (what)) 
-    {
-      SYNC_REGISTER ();
-      what = resolve_variable (what, scm_program_module (program));
-      if (!VARIABLE_BOUNDP (what))
-        {
-          finish_args = scm_list_1 (what);
-          goto vm_error_unbound;
-        }
-      OBJECT_SET (objnum, what);
-    }
-
-  PUSH (VARIABLE_REF (what));
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (54, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
-{
-  SCM what;
-  unsigned int objnum = FETCH ();
-  objnum <<= 8;
-  objnum += FETCH ();
-  CHECK_OBJECT (objnum);
-  what = OBJECT_REF (objnum);
-
-  if (!SCM_VARIABLEP (what)) 
-    {
-      SYNC_BEFORE_GC ();
-      what = resolve_variable (what, scm_program_module (program));
-      OBJECT_SET (objnum, what);
-    }
-
-  VARIABLE_SET (what, *sp);
-  DROP ();
   NEXT;
 }
 
