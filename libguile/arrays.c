@@ -306,27 +306,6 @@ SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-ssize_t
-scm_array_handle_pos (scm_t_array_handle *h, SCM indices)
-{
-  scm_t_array_dim *s = scm_array_handle_dims (h);
-  ssize_t pos = 0, i;
-  size_t k = scm_array_handle_rank (h);
-  
-  while (k > 0 && scm_is_pair (indices))
-    {
-      i = scm_to_signed_integer (SCM_CAR (indices), s->lbnd, s->ubnd);
-      pos += (i - s->lbnd) * s->inc;
-      k--;
-      s++;
-      indices = SCM_CDR (indices);
-    }
-  if (k > 0 || !scm_is_null (indices))
-    scm_misc_error (NULL, "wrong number of indices, expecting ~a",
-		    scm_list_1 (scm_from_size_t (scm_array_handle_rank (h))));
-  return pos;
-}
-
 SCM 
 scm_i_make_array (int ndim, int enclosed)
 {
@@ -1603,6 +1582,38 @@ array_free (SCM ptr)
 	       "array");
   return 0;
 }
+
+static SCM
+array_handle_ref (scm_t_array_handle *h, size_t pos)
+{
+  return scm_c_generalized_vector_ref (SCM_I_ARRAY_V (h->array), pos);
+}
+
+static void
+array_handle_set (scm_t_array_handle *h, size_t pos, SCM val)
+{
+  scm_c_generalized_vector_set_x (SCM_I_ARRAY_V (h->array), pos, val);
+}
+
+/* FIXME: should be handle for vect? maybe not, because of dims */
+static void
+array_get_handle (SCM array, scm_t_array_handle *h)
+{
+  scm_t_array_handle vh;
+  scm_array_get_handle (SCM_I_ARRAY_V (array), &vh);
+  h->element_type = vh.element_type;
+  h->elements = vh.elements;
+  h->writable_elements = vh.writable_elements;
+  scm_array_handle_release (&vh);
+
+  h->dims = SCM_I_ARRAY_DIMS (array);
+  h->ndims = SCM_I_ARRAY_NDIM (array);
+  h->base = SCM_I_ARRAY_BASE (array);
+}
+
+SCM_ARRAY_IMPLEMENTATION (scm_i_tc16_array, 0xffff,
+                          array_handle_ref, array_handle_set,
+                          array_get_handle);
 
 void
 scm_init_arrays ()

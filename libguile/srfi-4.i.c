@@ -187,13 +187,13 @@ F(scm_,TAG,vector_writable_elements) (SCM uvec,
 #endif
 
 static SCM
-F(,TAG,ref) (scm_t_array_handle *handle, ssize_t pos)
+F(,TAG,ref) (scm_t_array_handle *handle, size_t pos)
 {
   return uvec_fast_ref (TYPE, handle->elements, pos);
 }
 
 static void
-F(,TAG,set) (scm_t_array_handle *handle, ssize_t pos, SCM val)
+F(,TAG,set) (scm_t_array_handle *handle, size_t pos, SCM val)
 {
   uvec_fast_set_x (TYPE, handle->writable_elements, pos, val);
 }

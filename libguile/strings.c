@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1095,6 +1095,35 @@ scm_i_deprecated_string_length (SCM str)
 }
 
 #endif
+
+static SCM
+string_handle_ref (scm_t_array_handle *h, size_t index)
+{
+  return scm_c_string_ref (h->array, index);
+}
+
+static void
+string_handle_set (scm_t_array_handle *h, size_t index, SCM val)
+{
+  scm_c_string_set_x (h->array, index, val);
+}
+
+static void
+string_get_handle (SCM v, scm_t_array_handle *h)
+{
+  h->array = v;
+  h->ndims = 1;
+  h->dims = &h->dim0;
+  h->dim0.lbnd = 0;
+  h->dim0.ubnd = scm_c_string_length (v) - 1;
+  h->dim0.inc = 1;
+  h->element_type = SCM_ARRAY_ELEMENT_TYPE_CHAR;
+  h->elements = h->writable_elements = NULL;
+}
+
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_string, 0x7f & ~2,
+                          string_handle_ref, string_handle_set,
+                          string_get_handle);
 
 void
 scm_init_strings ()

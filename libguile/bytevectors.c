@@ -32,6 +32,7 @@
 #include "libguile/validate.h"
 #include "libguile/ieee-754.h"
 #include "libguile/arrays.h"
+#include "libguile/array-handle.h"
 #include "libguile/srfi-4.h"
 
 #include <byteswap.h>
@@ -2059,6 +2060,34 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
 
 
 
+/* Bytevectors as generalized vectors & arrays.  */
+
+static SCM
+bv_handle_ref (scm_t_array_handle *h, size_t index)
+{
+  return SCM_I_MAKINUM (scm_c_bytevector_ref (h->array, index));
+}
+
+static void
+bv_handle_set_x (scm_t_array_handle *h, size_t index, SCM val)
+{
+  scm_c_bytevector_set_x (h->array, index, scm_to_uint8 (val));
+}
+
+static void
+bytevector_get_handle (SCM v, scm_t_array_handle *h)
+{
+  h->array = v;
+  h->ndims = 1;
+  h->dims = &h->dim0;
+  h->dim0.lbnd = 0;
+  h->dim0.ubnd = SCM_BYTEVECTOR_LENGTH (v) - 1;
+  h->dim0.inc = 1;
+  h->element_type = SCM_ARRAY_ELEMENT_TYPE_VU8;
+  h->elements = h->writable_elements = SCM_BYTEVECTOR_CONTENTS (v);
+}
+
+
 /* Initialization.  */
 
 void
@@ -2084,6 +2113,16 @@ scm_bootstrap_bytevectors (void)
   scm_c_register_extension ("libguile", "scm_init_bytevectors",
 			    (scm_t_extension_init_func) scm_init_bytevectors,
 			    NULL);
+
+  {
+    scm_t_array_implementation impl;
+    impl.tag = scm_tc16_bytevector;
+    impl.mask = 0xffff;
+    impl.vref = bv_handle_ref;
+    impl.vset = bv_handle_set_x;
+    impl.get_handle = bytevector_get_handle;
+    scm_i_register_array_implementation (&impl);
+  }
 }
 
 void

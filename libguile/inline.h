@@ -34,8 +34,9 @@
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
-#include "libguile/arrays.h"
+#include "libguile/array-handle.h"
 #include "libguile/ports.h"
+#include "libguile/numbers.h"
 #include "libguile/error.h"
 
 
@@ -241,7 +242,11 @@ SCM_C_EXTERN_INLINE
 SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
 {
-  return h->ref (h, p);
+  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+    /* catch overflow */
+    scm_out_of_range (NULL, scm_from_ssize_t (p));
+  /* perhaps should catch overflow here too */
+  return h->impl->vref (h, h->base + p);
 }
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
@@ -250,7 +255,11 @@ SCM_C_EXTERN_INLINE
 void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
 {
-  h->set (h, p, v);
+  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+    /* catch overflow */
+    scm_out_of_range (NULL, scm_from_ssize_t (p));
+  /* perhaps should catch overflow here too */
+  h->impl->vset (h, h->base + p, v);
 }
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H

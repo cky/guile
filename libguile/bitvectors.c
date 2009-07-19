@@ -861,6 +861,36 @@ scm_istr2bve (SCM str)
   return res;
 }
 
+/* FIXME: h->array should be h->vector */
+static SCM
+bitvector_handle_ref (scm_t_array_handle *h, size_t pos)
+{
+  return scm_c_bitvector_ref (h->array, pos);
+}
+
+static void
+bitvector_handle_set (scm_t_array_handle *h, size_t pos, SCM val)
+{
+  scm_c_bitvector_set_x (h->array, pos, val);
+}
+
+static void
+bitvector_get_handle (SCM bv, scm_t_array_handle *h)
+{
+  h->array = bv;
+  h->ndims = 1;
+  h->dims = &h->dim0;
+  h->dim0.lbnd = 0;
+  h->dim0.ubnd = BITVECTOR_LENGTH (bv) - 1;
+  h->dim0.inc = 1;
+  h->element_type = SCM_ARRAY_ELEMENT_TYPE_BIT;
+  h->elements = h->writable_elements = BITVECTOR_BITS (bv);
+}
+
+SCM_ARRAY_IMPLEMENTATION (scm_tc16_bitvector, 0xffff,
+                          bitvector_handle_ref, bitvector_handle_set,
+                          bitvector_get_handle);
+
 void
 scm_init_bitvectors ()
 {

@@ -497,11 +497,8 @@ uvec_to_list (int type, SCM uvec)
   SCM res = SCM_EOL;
 
   elts = uvec_elements (type, uvec, &handle, &len, &inc);
-  for (i = len*inc; i > 0;)
-    {
-      i -= inc;
-      res = scm_cons (scm_array_handle_ref (&handle, i), res);
-    }
+  for (i = len - 1; i >= 0; i--)
+    res = scm_cons (scm_array_handle_ref (&handle, i*inc), res);
   scm_array_handle_release (&handle);
   return res;
 }
@@ -1086,17 +1083,34 @@ static scm_i_t_array_set uvec_setters[12] = {
   c32set, c64set
 };
 
-scm_i_t_array_ref
-scm_i_uniform_vector_ref_proc (SCM uvec)
+static SCM
+uvec_handle_ref (scm_t_array_handle *h, size_t index)
 {
-  return uvec_reffers[SCM_UVEC_TYPE(uvec)];
+  return uvec_reffers [SCM_UVEC_TYPE(h->array)] (h, index);
 }
 
-scm_i_t_array_set
-scm_i_uniform_vector_set_proc (SCM uvec)
+static void
+uvec_handle_set (scm_t_array_handle *h, size_t index, SCM val)
 {
-  return uvec_setters[SCM_UVEC_TYPE(uvec)];
+  uvec_setters [SCM_UVEC_TYPE(h->array)] (h, index, val);
 }
+
+static void
+uvec_get_handle (SCM v, scm_t_array_handle *h)
+{
+  h->array = v;
+  h->ndims = 1;
+  h->dims = &h->dim0;
+  h->dim0.lbnd = 0;
+  h->dim0.ubnd = SCM_UVEC_LENGTH (v) - 1;
+  h->dim0.inc = 1;
+  h->element_type = SCM_UVEC_TYPE (v) + SCM_ARRAY_ELEMENT_TYPE_U8;
+  h->elements = h->writable_elements = SCM_UVEC_BASE (v);
+}
+
+SCM_ARRAY_IMPLEMENTATION (scm_tc16_uvec, 0xffff,
+                          uvec_handle_ref, uvec_handle_set,
+                          uvec_get_handle);
 
 void
 scm_init_srfi_4 (void)
