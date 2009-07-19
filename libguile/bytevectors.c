@@ -1,4 +1,4 @@
-/* Copyright (C) 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2095,7 +2095,7 @@ bytevector_ref_c32 (SCM bv, SCM idx)
 { /* FIXME add some checks */
   const float *contents = (const float*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  return scm_c_make_rectangular (contents[i/8], contents[i/8 + 1]);
+  return scm_c_make_rectangular (contents[i/4], contents[i/4 + 1]);
 }
 
 static SCM
@@ -2103,7 +2103,7 @@ bytevector_ref_c64 (SCM bv, SCM idx)
 { /* FIXME add some checks */
   const double *contents = (const double*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  return scm_c_make_rectangular (contents[i/16], contents[i/16 + 1]);
+  return scm_c_make_rectangular (contents[i/8], contents[i/8 + 1]);
 }
 
 typedef SCM (*scm_t_bytevector_ref_fn)(SCM, SCM);
@@ -2140,23 +2140,22 @@ bv_handle_ref (scm_t_array_handle *h, size_t index)
   return ref_fn (h->array, byte_index);
 }
 
+/* FIXME add checks!!! */
 static SCM
 bytevector_set_c32 (SCM bv, SCM idx, SCM val)
-{ /* checks are unnecessary here */
-  float *contents = (float*)SCM_BYTEVECTOR_CONTENTS (bv);
+{ float *contents = (float*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  contents[i/8] = scm_c_real_part (val);
-  contents[i/8 + 1] = scm_c_imag_part (val);
+  contents[i/4] = scm_c_real_part (val);
+  contents[i/4 + 1] = scm_c_imag_part (val);
   return SCM_UNSPECIFIED;
 }
 
 static SCM
 bytevector_set_c64 (SCM bv, SCM idx, SCM val)
-{ /* checks are unnecessary here */
-  double *contents = (double*)SCM_BYTEVECTOR_CONTENTS (bv);
+{ double *contents = (double*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  contents[i/16] = scm_c_real_part (val);
-  contents[i/16 + 1] = scm_c_imag_part (val);
+  contents[i/8] = scm_c_real_part (val);
+  contents[i/8 + 1] = scm_c_imag_part (val);
   return SCM_UNSPECIFIED;
 }
 

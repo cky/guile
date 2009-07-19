@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006, 2009 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,795 +22,20 @@
 #  include <config.h>
 #endif
 
-#include <string.h>
-#include <errno.h>
-#include <stdio.h>
-
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
 #include "libguile/bdw-gc.h"
 #include "libguile/srfi-4.h"
-#include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
-#include "libguile/generalized-vectors.h"
-#include "libguile/uniform.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
-#include "libguile/read.h"
-#include "libguile/ports.h"
-#include "libguile/chars.h"
-#include "libguile/vectors.h"
-#include "libguile/arrays.h"
-#include "libguile/strings.h"
-#include "libguile/strports.h"
-#include "libguile/dynwind.h"
-#include "libguile/deprecation.h"
+#include "libguile/extensions.h"
+#include "libguile/uniform.h"
+#include "libguile/generalized-vectors.h"
+#include "libguile/validate.h"
 
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
 
-#ifdef HAVE_IO_H
-#include <io.h>
-#endif
-
-/* Smob type code for uniform numeric vectors.  */
-int scm_tc16_uvec = 0;
-
-#define SCM_IS_UVEC(obj) SCM_SMOB_PREDICATE (scm_tc16_uvec, (obj))
-
-/* Accessor macros for the three components of a uniform numeric
-   vector:
-   - The type tag (one of the symbolic constants below).
-   - The vector's length (counted in elements).
-   - The address of the data area (holding the elements of the
-     vector). */
-#define SCM_UVEC_TYPE(u)   (SCM_SMOB_DATA_1(u))
-#define SCM_UVEC_LENGTH(u) ((size_t)SCM_SMOB_DATA_2(u))
-#define SCM_UVEC_BASE(u)   ((void *)SCM_SMOB_DATA_3(u))
-
-
-/* Symbolic constants encoding the various types of uniform
-   numeric vectors.  */
-#define SCM_UVEC_U8  	0
-#define SCM_UVEC_S8  	1
-#define SCM_UVEC_U16 	2
-#define SCM_UVEC_S16 	3
-#define SCM_UVEC_U32 	4
-#define SCM_UVEC_S32 	5
-#define SCM_UVEC_U64 	6
-#define SCM_UVEC_S64 	7
-#define SCM_UVEC_F32 	8
-#define SCM_UVEC_F64 	9
-#define SCM_UVEC_C32   10
-#define SCM_UVEC_C64   11
-
-
-/* This array maps type tags to the size of the elements.  */
-static const int uvec_sizes[12] = {
-  1, 1,
-  2, 2,
-  4, 4,
-#if SCM_HAVE_T_INT64
-  8, 8,
-#else
-  sizeof (SCM), sizeof (SCM),
-#endif
-  sizeof(float), sizeof(double),
-  2*sizeof(float), 2*sizeof(double)
-};
-
-static const char *uvec_tags[12] = {
-  "u8", "s8",
-  "u16", "s16",
-  "u32", "s32",
-  "u64", "s64",
-  "f32", "f64",
-  "c32", "c64",
-};
-
-static const char *uvec_names[12] = {
-  "u8vector", "s8vector",
-  "u16vector", "s16vector",
-  "u32vector", "s32vector",
-  "u64vector", "s64vector",
-  "f32vector", "f64vector",
-  "c32vector", "c64vector"
-};
-
-/* ================================================================ */
-/* SMOB procedures.                                                 */
-/* ================================================================ */
-
-
-/* Smob print hook for uniform vectors.  */
-static int
-uvec_print (SCM uvec, SCM port, scm_print_state *pstate)
-{
-  union {
-    scm_t_uint8 *u8;
-    scm_t_int8 *s8;
-    scm_t_uint16 *u16;
-    scm_t_int16 *s16;
-    scm_t_uint32 *u32;
-    scm_t_int32 *s32;
-#if SCM_HAVE_T_INT64
-    scm_t_uint64 *u64;
-    scm_t_int64 *s64;
-#endif
-    float *f32;
-    double *f64;
-    SCM *fake_64;
-  } np;
-
-  size_t i = 0;
-  const size_t uvlen = SCM_UVEC_LENGTH (uvec);
-  void *uptr = SCM_UVEC_BASE (uvec);
-
-  switch (SCM_UVEC_TYPE (uvec))
-  {
-    case SCM_UVEC_U8: np.u8 = (scm_t_uint8 *) uptr; break;
-    case SCM_UVEC_S8: np.s8 = (scm_t_int8 *) uptr; break;
-    case SCM_UVEC_U16: np.u16 = (scm_t_uint16 *) uptr; break;
-    case SCM_UVEC_S16: np.s16 = (scm_t_int16 *) uptr; break;
-    case SCM_UVEC_U32: np.u32 = (scm_t_uint32 *) uptr; break;
-    case SCM_UVEC_S32: np.s32 = (scm_t_int32 *) uptr; break;
-#if SCM_HAVE_T_INT64
-    case SCM_UVEC_U64: np.u64 = (scm_t_uint64 *) uptr; break;
-    case SCM_UVEC_S64: np.s64 = (scm_t_int64 *) uptr; break;
-#else
-    case SCM_UVEC_U64:
-    case SCM_UVEC_S64: np.fake_64 = (SCM *) uptr; break;
-#endif      
-    case SCM_UVEC_F32: np.f32 = (float *) uptr; break;
-    case SCM_UVEC_F64: np.f64 = (double *) uptr; break;
-    case SCM_UVEC_C32: np.f32 = (float *) uptr; break;
-    case SCM_UVEC_C64: np.f64 = (double *) uptr; break;
-    default:
-      abort ();			/* Sanity check.  */
-      break;
-  }
-
-  scm_putc ('#', port);
-  scm_puts (uvec_tags [SCM_UVEC_TYPE (uvec)], port);
-  scm_putc ('(', port);
-
-  while (i < uvlen)
-    {
-      if (i != 0) scm_puts (" ", port);
-      switch (SCM_UVEC_TYPE (uvec))
-	{
-	case SCM_UVEC_U8: scm_uintprint (*np.u8, 10, port); np.u8++; break;
-	case SCM_UVEC_S8: scm_intprint (*np.s8, 10, port); np.s8++; break;
-	case SCM_UVEC_U16: scm_uintprint (*np.u16, 10, port); np.u16++; break;
-	case SCM_UVEC_S16: scm_intprint (*np.s16, 10, port); np.s16++; break;
-	case SCM_UVEC_U32: scm_uintprint (*np.u32, 10, port); np.u32++; break;
-	case SCM_UVEC_S32: scm_intprint (*np.s32, 10, port); np.s32++; break;
-#if SCM_HAVE_T_INT64
-	case SCM_UVEC_U64: scm_uintprint (*np.u64, 10, port); np.u64++; break;
-	case SCM_UVEC_S64: scm_intprint (*np.s64, 10, port); np.s64++; break;
-#else
-	case SCM_UVEC_U64:
-	case SCM_UVEC_S64: scm_iprin1 (*np.fake_64, port, pstate);
-	  np.fake_64++; break;
-#endif
-	case SCM_UVEC_F32: scm_i_print_double (*np.f32, port); np.f32++; break;
-	case SCM_UVEC_F64: scm_i_print_double (*np.f64, port); np.f64++; break;
-	case SCM_UVEC_C32:
-	  scm_i_print_complex (np.f32[0], np.f32[1], port);
-	  np.f32 += 2;
-	  break;
-	case SCM_UVEC_C64:
-	  scm_i_print_complex (np.f64[0], np.f64[1], port);
-	  np.f64 += 2;
-	  break;
-	default:
-	  abort ();			/* Sanity check.  */
-	  break;
-	}
-      i++;
-    }
-  scm_remember_upto_here_1 (uvec);
-  scm_puts (")", port);
-  return 1;
-}
-
-const char *
-scm_i_uniform_vector_tag (SCM uvec)
-{
-  return uvec_tags[SCM_UVEC_TYPE (uvec)];
-}
-
-static SCM
-uvec_equalp (SCM a, SCM b)
-{
-  SCM result = SCM_BOOL_T;
-  if (SCM_UVEC_TYPE (a) != SCM_UVEC_TYPE (b))
-    result = SCM_BOOL_F;
-  else if (SCM_UVEC_LENGTH (a) != SCM_UVEC_LENGTH (b))
-    result = SCM_BOOL_F;
-#if SCM_HAVE_T_INT64 == 0
-  else if (SCM_UVEC_TYPE (a) == SCM_UVEC_U64
-	   || SCM_UVEC_TYPE (a) == SCM_UVEC_S64)
-    {
-      SCM *aptr = (SCM *)SCM_UVEC_BASE (a), *bptr = (SCM *)SCM_UVEC_BASE (b);
-      size_t len = SCM_UVEC_LENGTH (a), i;
-      for (i = 0; i < len; i++)
-	if (scm_is_false (scm_num_eq_p (*aptr++, *bptr++)))
-	  {
-	    result = SCM_BOOL_F;
-	    break;
-	  }
-    }
-#endif
-  else if (memcmp (SCM_UVEC_BASE (a), SCM_UVEC_BASE (b),
-		   SCM_UVEC_LENGTH (a) * uvec_sizes[SCM_UVEC_TYPE(a)]) != 0)
-    result = SCM_BOOL_F;
-
-  scm_remember_upto_here_2 (a, b);
-  return result;
-}
-
-
-/* ================================================================ */
-/* Utility procedures.                                              */
-/* ================================================================ */
-
-static SCM_C_INLINE_KEYWORD int
-is_uvec (int type, SCM obj)
-{
-  if (SCM_IS_UVEC (obj))
-    return SCM_UVEC_TYPE (obj) == type;
-  if (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
-    {
-      SCM v = SCM_I_ARRAY_V (obj);
-      return SCM_IS_UVEC (v) && SCM_UVEC_TYPE (v) == type;
-    }
-  return 0;
-}
-
-static SCM_C_INLINE_KEYWORD SCM
-uvec_p (int type, SCM obj)
-{
-  return scm_from_bool (is_uvec (type, obj));
-}
-
-static SCM_C_INLINE_KEYWORD void
-uvec_assert (int type, SCM obj)
-{
-  if (!is_uvec (type, obj))
-    scm_wrong_type_arg_msg (NULL, 0, obj, uvec_names[type]);
-}
-
-/* Invoke free(3) on DATA, a user-provided buffer passed to one of the
-   `scm_take_' functions.  */
-static void
-free_user_data (GC_PTR data, GC_PTR unused)
-{
-  free (data);
-}
-
-static SCM
-take_uvec (int type, void *base, size_t len)
-{
-  SCM_RETURN_NEWSMOB3 (scm_tc16_uvec, type, len, (scm_t_bits) base);
-}
-  
-/* Create a new, uninitialized uniform numeric vector of type TYPE
-   with space for LEN elements.  */
-static SCM
-alloc_uvec (int type, size_t len)
-{
-  void *base;
-  if (len > SCM_I_SIZE_MAX / uvec_sizes[type])
-    scm_out_of_range (NULL, scm_from_size_t (len));
-  base = scm_gc_malloc (len * uvec_sizes[type], uvec_names[type]);
-#if SCM_HAVE_T_INT64 == 0
-  if (type == SCM_UVEC_U64 || type == SCM_UVEC_S64)
-    {
-      SCM *ptr = (SCM *)base;
-      size_t i;
-      for (i = 0; i < len; i++)
-	*ptr++ = SCM_UNSPECIFIED;
-    }
-#endif
-  return take_uvec (type, base, len);
-}
-
-/* GCC doesn't seem to want to optimize unused switch clauses away,
-   so we use a big 'if' in the next two functions.
-*/
-
-static SCM_C_INLINE_KEYWORD SCM
-uvec_fast_ref (int type, const void *base, size_t c_idx)
-{
-  if (type == SCM_UVEC_U8)
-    return scm_from_uint8 (((scm_t_uint8*)base)[c_idx]);
-  else if (type == SCM_UVEC_S8)
-    return scm_from_int8 (((scm_t_int8*)base)[c_idx]);
-  else if (type == SCM_UVEC_U16)
-    return scm_from_uint16 (((scm_t_uint16*)base)[c_idx]);
-  else if (type == SCM_UVEC_S16)
-    return scm_from_int16 (((scm_t_int16*)base)[c_idx]);
-  else if (type == SCM_UVEC_U32)
-    return scm_from_uint32 (((scm_t_uint32*)base)[c_idx]);
-  else if (type == SCM_UVEC_S32)
-    return scm_from_int32 (((scm_t_int32*)base)[c_idx]);
-#if SCM_HAVE_T_INT64
-  else if (type == SCM_UVEC_U64)
-    return scm_from_uint64 (((scm_t_uint64*)base)[c_idx]);
-  else if (type == SCM_UVEC_S64)
-    return scm_from_int64 (((scm_t_int64*)base)[c_idx]);
-#else
-  else if (type == SCM_UVEC_U64)
-    return ((SCM *)base)[c_idx];
-  else if (type == SCM_UVEC_S64)
-    return ((SCM *)base)[c_idx];
-#endif
-  else if (type == SCM_UVEC_F32)
-    return scm_from_double (((float*)base)[c_idx]);
-  else if (type == SCM_UVEC_F64)
-    return scm_from_double (((double*)base)[c_idx]);
-  else if (type == SCM_UVEC_C32)
-    return scm_c_make_rectangular (((float*)base)[2*c_idx],
-				   ((float*)base)[2*c_idx+1]);
-  else if (type == SCM_UVEC_C64)
-    return scm_c_make_rectangular (((double*)base)[2*c_idx],
-				   ((double*)base)[2*c_idx+1]);
-  else
-    return SCM_BOOL_F;
-}
-
-#if SCM_HAVE_T_INT64 == 0
-static SCM scm_uint64_min, scm_uint64_max;
-static SCM scm_int64_min, scm_int64_max;
-
-static void
-assert_exact_integer_range (SCM val, SCM min, SCM max)
-{
-  if (!scm_is_integer (val)
-      || scm_is_false (scm_exact_p (val)))
-    scm_wrong_type_arg_msg (NULL, 0, val, "exact integer");
-  if (scm_is_true (scm_less_p (val, min))
-      || scm_is_true (scm_gr_p (val, max)))
-    scm_out_of_range (NULL, val);
-}
-#endif
-
-static SCM_C_INLINE_KEYWORD void
-uvec_fast_set_x (int type, void *base, size_t c_idx, SCM val)
-{
-  if (type == SCM_UVEC_U8)
-    (((scm_t_uint8*)base)[c_idx]) = scm_to_uint8 (val);
-  else if (type == SCM_UVEC_S8)
-    (((scm_t_int8*)base)[c_idx]) = scm_to_int8 (val);
-  else if (type == SCM_UVEC_U16)
-    (((scm_t_uint16*)base)[c_idx]) = scm_to_uint16 (val);
-  else if (type == SCM_UVEC_S16)
-    (((scm_t_int16*)base)[c_idx]) = scm_to_int16 (val);
-  else if (type == SCM_UVEC_U32)
-    (((scm_t_uint32*)base)[c_idx]) = scm_to_uint32 (val);
-  else if (type == SCM_UVEC_S32)
-    (((scm_t_int32*)base)[c_idx]) = scm_to_int32 (val);
-#if SCM_HAVE_T_INT64
-  else if (type == SCM_UVEC_U64)
-    (((scm_t_uint64*)base)[c_idx]) = scm_to_uint64 (val);
-  else if (type == SCM_UVEC_S64)
-    (((scm_t_int64*)base)[c_idx]) = scm_to_int64 (val);
-#else
-  else if (type == SCM_UVEC_U64)
-    {
-      assert_exact_integer_range (val, scm_uint64_min, scm_uint64_max);
-      ((SCM *)base)[c_idx] = val;
-    }
-  else if (type == SCM_UVEC_S64)
-    {
-      assert_exact_integer_range (val, scm_int64_min, scm_int64_max);
-      ((SCM *)base)[c_idx] = val;
-    }
-#endif
-  else if (type == SCM_UVEC_F32)
-    (((float*)base)[c_idx]) = scm_to_double (val);
-  else if (type == SCM_UVEC_F64)
-    (((double*)base)[c_idx]) = scm_to_double (val);
-  else if (type == SCM_UVEC_C32)
-    {
-      (((float*)base)[2*c_idx])   = scm_c_real_part (val);
-      (((float*)base)[2*c_idx+1]) = scm_c_imag_part (val);
-    }
-  else if (type == SCM_UVEC_C64)
-    {
-      (((double*)base)[2*c_idx])   = scm_c_real_part (val);
-      (((double*)base)[2*c_idx+1]) = scm_c_imag_part (val);
-    }
-}
-
-static SCM_C_INLINE_KEYWORD SCM
-make_uvec (int type, SCM len, SCM fill)
-{
-  size_t c_len = scm_to_size_t (len);
-  SCM uvec = alloc_uvec (type, c_len);
-  if (!SCM_UNBNDP (fill))
-    {
-      size_t idx;
-      void *base = SCM_UVEC_BASE (uvec);
-      for (idx = 0; idx < c_len; idx++)
-	uvec_fast_set_x (type, base, idx, fill);
-    }
-  return uvec;
-}
-
-static SCM_C_INLINE_KEYWORD void *
-uvec_writable_elements (int type, SCM uvec, scm_t_array_handle *handle,
-			size_t *lenp, ssize_t *incp)
-{
-  if (type >= 0)
-    {
-      SCM v = uvec;
-      if (SCM_I_ARRAYP (v))
-	v = SCM_I_ARRAY_V (v);
-      uvec_assert (type, v);
-    }
-
-  return scm_uniform_vector_writable_elements (uvec, handle, lenp, incp);
-}
-
-static SCM_C_INLINE_KEYWORD const void *
-uvec_elements (int type, SCM uvec, scm_t_array_handle *handle,
-	       size_t *lenp, ssize_t *incp)
-{
-  return uvec_writable_elements (type, uvec, handle, lenp, incp);
-}
-
-static int
-uvec_type (scm_t_array_handle *h)
-{
-  SCM v = h->array;
-  if (SCM_I_ARRAYP (v))
-    v = SCM_I_ARRAY_V (v);
-  return SCM_UVEC_TYPE (v);
-}
-
-static SCM
-uvec_to_list (int type, SCM uvec)
-{
-  scm_t_array_handle handle;
-  size_t len;
-  ssize_t i, inc;
-  const void *elts;
-  SCM res = SCM_EOL;
-
-  elts = uvec_elements (type, uvec, &handle, &len, &inc);
-  for (i = len - 1; i >= 0; i--)
-    res = scm_cons (scm_array_handle_ref (&handle, i*inc), res);
-  scm_array_handle_release (&handle);
-  return res;
-}
-
-static SCM_C_INLINE_KEYWORD SCM
-uvec_length (int type, SCM uvec)
-{
-  scm_t_array_handle handle;
-  size_t len;
-  ssize_t inc;
-  uvec_elements (type, uvec, &handle, &len, &inc);
-  scm_array_handle_release (&handle);
-  return scm_from_size_t (len);
-}
-
-static SCM_C_INLINE_KEYWORD SCM
-uvec_ref (int type, SCM uvec, SCM idx)
-{
-  scm_t_array_handle handle;
-  size_t i, len;
-  ssize_t inc;
-  const void *elts;
-  SCM res;
-
-  elts = uvec_elements (type, uvec, &handle, &len, &inc);
-  if (type < 0)
-    type = uvec_type (&handle);
-  i = scm_to_unsigned_integer (idx, 0, len-1);
-  res = uvec_fast_ref (type, elts, i*inc);
-  scm_array_handle_release (&handle);
-  return res;
-}
-
-static SCM_C_INLINE_KEYWORD SCM
-uvec_set_x (int type, SCM uvec, SCM idx, SCM val)
-{
-  scm_t_array_handle handle;
-  size_t i, len;
-  ssize_t inc;
-  void *elts;
-
-  elts = uvec_writable_elements (type, uvec, &handle, &len, &inc);
-  if (type < 0)
-    type = uvec_type (&handle);
-  i = scm_to_unsigned_integer (idx, 0, len-1);
-  uvec_fast_set_x (type, elts, i*inc, val);
-  scm_array_handle_release (&handle);
-  return SCM_UNSPECIFIED;
-}
-
-static SCM_C_INLINE_KEYWORD SCM
-list_to_uvec (int type, SCM list)
-{
-  SCM uvec;
-  void *base;
-  long idx;
-  long len = scm_ilength (list);
-  if (len < 0)
-    scm_wrong_type_arg_msg (NULL, 0, list, "proper list");
-
-  uvec = alloc_uvec (type, len);
-  base = SCM_UVEC_BASE (uvec);
-  idx = 0;
-  while (scm_is_pair (list) && idx < len)
-    {
-      uvec_fast_set_x (type, base, idx, SCM_CAR (list));
-      list = SCM_CDR (list);
-      idx++;
-    }
-  return uvec;
-}
-
-SCM_SYMBOL (scm_sym_a, "a");
-SCM_SYMBOL (scm_sym_b, "b");
-
-SCM
-scm_i_generalized_vector_type (SCM v)
-{
-  if (scm_is_vector (v))
-    return SCM_BOOL_T;
-  else if (scm_is_string (v))
-    return scm_sym_a;
-  else if (scm_is_bitvector (v))
-    return scm_sym_b;
-  else if (scm_is_uniform_vector (v))
-    return scm_from_locale_symbol (uvec_tags[SCM_UVEC_TYPE(v)]);
-  else if (scm_is_bytevector (v))
-    return scm_from_locale_symbol ("vu8");
-  else
-    return SCM_BOOL_F;
-}
-
-SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
-           (SCM uvec, SCM port_or_fd, SCM start, SCM end),
-	    "Fill the elements of @var{uvec} by reading\n"
-	    "raw bytes from @var{port-or-fdes}, using host byte order.\n\n"
-	    "The optional arguments @var{start} (inclusive) and @var{end}\n"
-	    "(exclusive) allow a specified region to be read,\n"
-	    "leaving the remainder of the vector unchanged.\n\n"
-	    "When @var{port-or-fdes} is a port, all specified elements\n"
-	    "of @var{uvec} are attempted to be read, potentially blocking\n"
-	    "while waiting formore input or end-of-file.\n"
-	    "When @var{port-or-fd} is an integer, a single call to\n"
-	    "read(2) is made.\n\n"
-	    "An error is signalled when the last element has only\n"
-	    "been partially filled before reaching end-of-file or in\n"
-	    "the single call to read(2).\n\n"
-	    "@code{uniform-vector-read!} returns the number of elements\n"
-	    "read.\n\n"
-	    "@var{port-or-fdes} may be omitted, in which case it defaults\n"
-	    "to the value returned by @code{(current-input-port)}.")
-#define FUNC_NAME s_scm_uniform_vector_read_x
-{
-  scm_t_array_handle handle;
-  size_t vlen, sz, ans;
-  ssize_t inc;
-  size_t cstart, cend;
-  size_t remaining, off;
-  char *base;
-
-  if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_current_input_port ();
-  else
-    SCM_ASSERT (scm_is_integer (port_or_fd)
-		|| (SCM_OPINPORTP (port_or_fd)),
-		port_or_fd, SCM_ARG2, FUNC_NAME);
-
-  if (!scm_is_uniform_vector (uvec))
-    scm_wrong_type_arg_msg (NULL, 0, uvec, "uniform vector");
-
-  base = scm_uniform_vector_writable_elements (uvec, &handle, &vlen, &inc);
-  sz = scm_array_handle_uniform_element_size (&handle);
-
-  if (inc != 1)
-    {
-      /* XXX - we should of course support non contiguous vectors. */
-      scm_misc_error (NULL, "only contiguous vectors are supported: ~a",
-		      scm_list_1 (uvec));
-    }
-
-  cstart = 0;
-  cend = vlen;
-  if (!SCM_UNBNDP (start))
-    {
-      cstart = scm_to_unsigned_integer (start, 0, vlen);
-      if (!SCM_UNBNDP (end))
-	cend = scm_to_unsigned_integer (end, cstart, vlen);
-    }
-
-  remaining = (cend - cstart) * sz;
-  off = cstart * sz;
-
-  if (SCM_NIMP (port_or_fd))
-    {
-      ans = cend - cstart;
-      remaining -= scm_c_read (port_or_fd, base + off, remaining);
-      if (remaining % sz != 0)
-        SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
-      ans -= remaining / sz;
-    }
-  else /* file descriptor.  */
-    {
-      int fd = scm_to_int (port_or_fd);
-      int n;
-
-      SCM_SYSCALL (n = read (fd, base + off, remaining));
-      if (n == -1)
-	SCM_SYSERROR;
-      if (n % sz != 0)
-	SCM_MISC_ERROR ("unexpected EOF", SCM_EOL);
-      ans = n / sz;
-    }
-
-  scm_array_handle_release (&handle);
-
-  return scm_from_size_t (ans);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
-           (SCM uvec, SCM port_or_fd, SCM start, SCM end),
-	    "Write the elements of @var{uvec} as raw bytes to\n"
-	    "@var{port-or-fdes}, in the host byte order.\n\n"
-	    "The optional arguments @var{start} (inclusive)\n"
-	    "and @var{end} (exclusive) allow\n"
-	    "a specified region to be written.\n\n"
-	    "When @var{port-or-fdes} is a port, all specified elements\n"
-	    "of @var{uvec} are attempted to be written, potentially blocking\n"
-	    "while waiting for more room.\n"
-	    "When @var{port-or-fd} is an integer, a single call to\n"
-	    "write(2) is made.\n\n"
-	    "An error is signalled when the last element has only\n"
-	    "been partially written in the single call to write(2).\n\n"
-	    "The number of objects actually written is returned.\n"
-	    "@var{port-or-fdes} may be\n"
-	    "omitted, in which case it defaults to the value returned by\n"
-	    "@code{(current-output-port)}.")
-#define FUNC_NAME s_scm_uniform_vector_write
-{
-  scm_t_array_handle handle;
-  size_t vlen, sz, ans;
-  ssize_t inc;
-  size_t cstart, cend;
-  size_t amount, off;
-  const char *base;
-
-  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
-
-  if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_current_output_port ();
-  else
-    SCM_ASSERT (scm_is_integer (port_or_fd)
-		|| (SCM_OPOUTPORTP (port_or_fd)),
-		port_or_fd, SCM_ARG2, FUNC_NAME);
-
-  base = scm_uniform_vector_elements (uvec, &handle, &vlen, &inc);
-  sz = scm_array_handle_uniform_element_size (&handle);
-
-  if (inc != 1)
-    {
-      /* XXX - we should of course support non contiguous vectors. */
-      scm_misc_error (NULL, "only contiguous vectors are supported: ~a",
-		      scm_list_1 (uvec));
-    }
-
-  cstart = 0;
-  cend = vlen;
-  if (!SCM_UNBNDP (start))
-    {
-      cstart = scm_to_unsigned_integer (start, 0, vlen);
-      if (!SCM_UNBNDP (end))
-	cend = scm_to_unsigned_integer (end, cstart, vlen);
-    }
-
-  amount = (cend - cstart) * sz;
-  off = cstart * sz;
-
-  if (SCM_NIMP (port_or_fd))
-    {
-      scm_lfwrite (base + off, amount, port_or_fd);
-      ans = cend - cstart;
-    }
-  else /* file descriptor.  */
-    {
-      int fd = scm_to_int (port_or_fd), n;
-      SCM_SYSCALL (n = write (fd, base + off, amount));
-      if (n == -1)
-	SCM_SYSERROR;
-      if (n % sz != 0)
-	SCM_MISC_ERROR ("last element only written partially", SCM_EOL);
-      ans = n / sz;
-    }
-
-  scm_array_handle_release (&handle);
-
-  return scm_from_size_t (ans);
-}
-#undef FUNC_NAME
-
-/* ================================================================ */
-/* Exported procedures.                                             */
-/* ================================================================ */
-
-#define TYPE  SCM_UVEC_U8
-#define TAG   u8
-#define CTYPE scm_t_uint8
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_S8
-#define TAG   s8
-#define CTYPE scm_t_int8
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_U16
-#define TAG   u16
-#define CTYPE scm_t_uint16
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_S16
-#define TAG   s16
-#define CTYPE scm_t_int16
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_U32
-#define TAG   u32
-#define CTYPE scm_t_uint32
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_S32
-#define TAG   s32
-#define CTYPE scm_t_int32
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_U64
-#define TAG   u64
-#if SCM_HAVE_T_UINT64
-#define CTYPE scm_t_uint64
-#endif
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_S64
-#define TAG   s64
-#if SCM_HAVE_T_INT64
-#define CTYPE scm_t_int64
-#endif
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_F32
-#define TAG   f32
-#define CTYPE float
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_F64
-#define TAG   f64
-#define CTYPE double
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_C32
-#define TAG   c32
-#define CTYPE float
-#include "libguile/srfi-4.i.c"
-
-#define TYPE  SCM_UVEC_C64
-#define TAG   c64
-#define CTYPE double
-#include "libguile/srfi-4.i.c"
-
-#define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                 \
+#define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                   \
   SCM cname (SCM arg1)                                                  \
   {                                                                     \
     static SCM var = SCM_BOOL_F;                                        \
@@ -819,12 +44,177 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
     return scm_call_1 (SCM_VARIABLE_REF (var), arg1);                   \
   }
 
+#define DEFINE_SCHEME_PROXY001(cname, modname, scmname)                 \
+  SCM cname (SCM args)                                                  \
+  {                                                                     \
+    static SCM var = SCM_BOOL_F;                                        \
+    if (scm_is_false (var))                                             \
+      var = scm_c_module_lookup (scm_c_resolve_module (modname), scmname); \
+    return scm_apply_0 (SCM_VARIABLE_REF (var), args);                  \
+  }
+
+#define DEFINE_SCHEME_PROXY110(cname, modname, scmname)                   \
+  SCM cname (SCM arg1, SCM opt1)                                        \
+  {                                                                     \
+    static SCM var = SCM_BOOL_F;                                        \
+    if (scm_is_false (var))                                             \
+      var = scm_c_module_lookup (scm_c_resolve_module (modname), scmname); \
+    if (SCM_UNBNDP (opt1))                                              \
+      return scm_call_1 (SCM_VARIABLE_REF (var), arg1);                 \
+    else                                                                \
+      return scm_call_2 (SCM_VARIABLE_REF (var), arg1, opt1);           \
+  }
+
+#define DEFINE_SCHEME_PROXY200(cname, modname, scmname)                   \
+  SCM cname (SCM arg1, SCM arg2)                                        \
+  {                                                                     \
+    static SCM var = SCM_BOOL_F;                                        \
+    if (scm_is_false (var))                                             \
+      var = scm_c_module_lookup (scm_c_resolve_module (modname), scmname); \
+    return scm_call_2 (SCM_VARIABLE_REF (var), arg1, arg2);             \
+  }
+
+#define DEFINE_SCHEME_PROXY300(cname, modname, scmname)                   \
+  SCM cname (SCM arg1, SCM arg2, SCM arg3)                              \
+  {                                                                     \
+    static SCM var = SCM_BOOL_F;                                        \
+    if (scm_is_false (var))                                             \
+      var = scm_c_module_lookup (scm_c_resolve_module (modname), scmname); \
+    return scm_call_3 (SCM_VARIABLE_REF (var), arg1, arg2, arg3);       \
+  }
+
 #define DEFPROXY100(cname, scmname)               \
   DEFINE_SCHEME_PROXY100 (cname, MOD, scmname)
+#define DEFPROXY110(cname, scmname)               \
+  DEFINE_SCHEME_PROXY110 (cname, MOD, scmname)
+#define DEFPROXY001(cname, scmname)               \
+  DEFINE_SCHEME_PROXY001 (cname, MOD, scmname)
+#define DEFPROXY200(cname, scmname)               \
+  DEFINE_SCHEME_PROXY200 (cname, MOD, scmname)
+#define DEFPROXY300(cname, scmname)               \
+  DEFINE_SCHEME_PROXY300 (cname, MOD, scmname)
+
+#define DEFVECT(sym, str, func)\
+
+#define DEFINE_SRFI_4_PROXIES(tag)                                      \
+  DEFPROXY100 (scm_##tag##vector_p, #tag "vector?");                    \
+  DEFPROXY110 (scm_make_##tag##vector, "make-" #tag "vector");          \
+  DEFPROXY001 (scm_##tag##vector, #tag "vector");                       \
+  DEFPROXY100 (scm_##tag##vector_length, #tag "vector-length");         \
+  DEFPROXY200 (scm_##tag##vector_ref, #tag "vector-ref");               \
+  DEFPROXY300 (scm_##tag##vector_set_x, #tag "vector-set!");            \
+  DEFPROXY100 (scm_list_to_##tag##vector, "list->"#tag "vector");       \
+  DEFPROXY100 (scm_##tag##vector_to_list, #tag "vector->list");         \
+  
+  
+#define ETYPE(TAG) \
+  SCM_ARRAY_ELEMENT_TYPE_##TAG
+
+#define DEFINE_SRFI_4_C_FUNCS(TAG, tag, ctype)                          \
+  SCM scm_take_##tag##vector (ctype *data, size_t n)                    \
+  {                                                                     \
+    return scm_c_take_typed_bytevector ((scm_t_int8*)data, n, ETYPE (TAG));   \
+  }                                                                     \
+  const ctype* scm_array_handle_##tag##_elements (scm_t_array_handle *h) \
+  {                                                                     \
+    if (h->element_type != ETYPE (TAG))                                 \
+      scm_wrong_type_arg_msg (NULL, 0, h->array, #tag "vector");        \
+    return h->elements;                                                 \
+  }                                                                     \
+  ctype* scm_array_handle_##tag##_writable_elements (scm_t_array_handle *h) \
+  {                                                                     \
+    if (h->element_type != ETYPE (TAG))                                 \
+      scm_wrong_type_arg_msg (NULL, 0, h->array, #tag "vector");        \
+    return h->writable_elements;                                        \
+  }                                                                     \
+  const ctype *scm_##tag##vector_elements (SCM uvec,                    \
+                                           scm_t_array_handle *h,       \
+                                           size_t *lenp, ssize_t *incp) \
+  {                                                                     \
+    return scm_##tag##vector_writable_elements (uvec, h, lenp, incp);   \
+  }                                                                     \
+  ctype *scm_##tag##vector_writable_elements (SCM uvec,                 \
+                                              scm_t_array_handle *h,    \
+                                              size_t *lenp, ssize_t *incp) \
+  {                                                                     \
+    scm_uniform_vector_elements (uvec, h, lenp, incp);                  \
+    if (h->element_type == ETYPE (TAG))                                 \
+      return ((ctype*)h->writable_elements) + h->base;                  \
+    /* otherwise... */                                                  \
+    else                                                                \
+      {                                                                 \
+        size_t sfrom, sto, lfrom, lto;                                  \
+        if (h->dims != &h->dim0)                                        \
+          {                                                             \
+            h->dim0 = h->dims[0];                                       \
+            h->dims = &h->dim0;                                         \
+          }                                                             \
+        sfrom = scm_i_array_element_type_sizes [h->element_type];       \
+        sto = scm_i_array_element_type_sizes [ETYPE (TAG)];             \
+        lfrom = h->dim0.ubnd - h->dim0.lbnd + 1;                        \
+        lto = lfrom * sfrom / sto;                                      \
+        if (lto * sto != lfrom * sfrom)                                 \
+          {                                                             \
+            scm_array_handle_release (h);                               \
+            scm_wrong_type_arg (#tag"vector-elements", SCM_ARG1, uvec); \
+          }                                                             \
+        h->dim0.ubnd = h->dim0.lbnd + lto;                              \
+        h->base = h->base * sto / sfrom;                                \
+        h->element_type = ETYPE (TAG);                                  \
+        return ((ctype*)h->writable_elements) + h->base;                \
+      }                                                                 \
+  }
+
+
+#define MOD "srfi srfi-4"
+
+DEFINE_SRFI_4_PROXIES (u8);
+DEFINE_SRFI_4_C_FUNCS (U8, u8, scm_t_uint8);
+
+DEFINE_SRFI_4_PROXIES (s8);
+DEFINE_SRFI_4_C_FUNCS (S8, s8, scm_t_int8);
+
+DEFINE_SRFI_4_PROXIES (u16);
+DEFINE_SRFI_4_C_FUNCS (U16, u16, scm_t_uint16);
+
+DEFINE_SRFI_4_PROXIES (s16);
+DEFINE_SRFI_4_C_FUNCS (S16, s16, scm_t_int16);
+
+DEFINE_SRFI_4_PROXIES (u32);
+DEFINE_SRFI_4_C_FUNCS (U32, u32, scm_t_uint32);
+
+DEFINE_SRFI_4_PROXIES (s32);
+DEFINE_SRFI_4_C_FUNCS (S32, s32, scm_t_int32);
+
+DEFINE_SRFI_4_PROXIES (u64);
+#if SCM_HAVE_T_INT64
+DEFINE_SRFI_4_C_FUNCS (U64, u64, scm_t_uint64);
+#endif
+
+DEFINE_SRFI_4_PROXIES (s64);
+#if SCM_HAVE_T_INT64
+DEFINE_SRFI_4_C_FUNCS (S64, s64, scm_t_int64);
+#endif
+
+DEFINE_SRFI_4_PROXIES (f32);
+DEFINE_SRFI_4_C_FUNCS (F32, f32, float);
+
+DEFINE_SRFI_4_PROXIES (f64);
+DEFINE_SRFI_4_C_FUNCS (F64, f64, double);
+
+#undef MOD
+#define MOD "srfi srfi-4 gnu"
+
+DEFINE_SRFI_4_PROXIES (c32);
+DEFINE_SRFI_4_C_FUNCS (C32, c32, float);
+
+DEFINE_SRFI_4_PROXIES (c64);
+DEFINE_SRFI_4_C_FUNCS (C64, c64, double);
 
 #define DEFINE_SRFI_4_GNU_PROXIES(tag)                              \
   DEFPROXY100 (scm_any_to_##tag##vector, "any->" #tag "vector")
 
+#undef MOD
 #define MOD "srfi srfi-4 gnu"
 DEFINE_SRFI_4_GNU_PROXIES (u8);
 DEFINE_SRFI_4_GNU_PROXIES (s8);
@@ -840,68 +230,60 @@ DEFINE_SRFI_4_GNU_PROXIES (c32);
 DEFINE_SRFI_4_GNU_PROXIES (c64);
 
 
-static scm_i_t_array_ref uvec_reffers[12] = {
-  u8ref, s8ref,
-  u16ref, s16ref,
-  u32ref, s32ref,
-  u64ref, s64ref,
-  f32ref, f64ref,
-  c32ref, c64ref
-};
-
-static scm_i_t_array_set uvec_setters[12] = {
-  u8set, s8set,
-  u16set, s16set,
-  u32set, s32set,
-  u64set, s64set,
-  f32set, f64set,
-  c32set, c64set
-};
-
-static SCM
-uvec_handle_ref (scm_t_array_handle *h, size_t index)
+SCM_DEFINE (scm_make_srfi_4_vector, "make-srfi-4-vector", 2, 1, 0,
+            (SCM type, SCM len, SCM fill),
+            "Make a srfi-4 vector")
+#define FUNC_NAME s_scm_make_srfi_4_vector
 {
-  return uvec_reffers [SCM_UVEC_TYPE(h->array)] (h, index);
+  int i;
+  for (i = 0; i <= SCM_ARRAY_ELEMENT_TYPE_LAST; i++)
+    if (scm_is_eq (type, scm_i_array_element_types[i]))
+      break;
+  if (i > SCM_ARRAY_ELEMENT_TYPE_LAST)
+    scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, type, "vector type");
+  switch (i)
+    {
+    case SCM_ARRAY_ELEMENT_TYPE_U8:
+    case SCM_ARRAY_ELEMENT_TYPE_S8:
+    case SCM_ARRAY_ELEMENT_TYPE_U16:
+    case SCM_ARRAY_ELEMENT_TYPE_S16:
+    case SCM_ARRAY_ELEMENT_TYPE_U32:
+    case SCM_ARRAY_ELEMENT_TYPE_S32:
+    case SCM_ARRAY_ELEMENT_TYPE_U64:
+    case SCM_ARRAY_ELEMENT_TYPE_S64:
+    case SCM_ARRAY_ELEMENT_TYPE_F32:
+    case SCM_ARRAY_ELEMENT_TYPE_F64:
+    case SCM_ARRAY_ELEMENT_TYPE_C32:
+    case SCM_ARRAY_ELEMENT_TYPE_C64:
+      {
+        SCM ret = scm_i_make_typed_bytevector (scm_to_size_t (len), i);
+        if (SCM_UNBNDP (fill))
+          ; /* pass */
+        else if (scm_is_true (scm_zero_p (fill)))
+          memset (SCM_BYTEVECTOR_CONTENTS (ret), 0,
+                  SCM_BYTEVECTOR_LENGTH (ret));
+        else
+          {
+            scm_t_array_handle h;
+            size_t len;
+            ssize_t pos, inc;
+            scm_uniform_vector_writable_elements (ret, &h, &len, &inc);
+            for (pos = 0; pos != h.dims[0].ubnd; pos += inc)
+              scm_array_handle_set (&h, pos, fill);
+            scm_array_handle_release (&h);
+          }
+        return ret;
+      }
+    default:
+      scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, type, "uniform vector type");
+      return SCM_BOOL_F; /* not reached */
+    }
 }
-
-static void
-uvec_handle_set (scm_t_array_handle *h, size_t index, SCM val)
-{
-  uvec_setters [SCM_UVEC_TYPE(h->array)] (h, index, val);
-}
-
-static void
-uvec_get_handle (SCM v, scm_t_array_handle *h)
-{
-  h->array = v;
-  h->ndims = 1;
-  h->dims = &h->dim0;
-  h->dim0.lbnd = 0;
-  h->dim0.ubnd = SCM_UVEC_LENGTH (v) - 1;
-  h->dim0.inc = 1;
-  h->element_type = SCM_UVEC_TYPE (v) + SCM_ARRAY_ELEMENT_TYPE_U8;
-  h->elements = h->writable_elements = SCM_UVEC_BASE (v);
-}
-
-SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_uvec),
-                          SCM_SMOB_TYPE_MASK,
-                          uvec_handle_ref, uvec_handle_set,
-                          uvec_get_handle)
+#undef FUNC_NAME
 
 void
 scm_init_srfi_4 (void)
 {
-  scm_tc16_uvec = scm_make_smob_type ("uvec", 0);
-  scm_set_smob_equalp (scm_tc16_uvec, uvec_equalp);
-  scm_set_smob_print (scm_tc16_uvec, uvec_print);
-
-#if SCM_HAVE_T_INT64 == 0
-  scm_uint64_min = scm_from_int (0);
-  scm_uint64_max = scm_c_read_string ("18446744073709551615");
-  scm_int64_min = scm_c_read_string ("-9223372036854775808");
-  scm_int64_max = scm_c_read_string ("9223372036854775807");
-#endif
-
 #define REGISTER(tag, TAG)                                       \
   scm_i_register_vector_constructor                              \
     (scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_##TAG],    \
@@ -921,7 +303,6 @@ scm_init_srfi_4 (void)
   REGISTER (c64, C64);
 
 #include "libguile/srfi-4.x"
-
 }
 
 /* End of srfi-4.c.  */

@@ -24,7 +24,6 @@
  */
 
 #include "libguile/__scm.h"
-#include "libguile/arrays.h"
 #include "libguile/strings.h"
 #include "libguile/eval.h"
 
@@ -232,7 +231,6 @@ SCM_DEPRECATED SCM scm_gentemp (SCM prefix, SCM obarray);
 #define scm_srcprops_chunk scm_t_srcprops_chunk
 #define scm_array scm_t_array
 #define scm_array_dim scm_t_array_dim
-#define SCM_ARRAY_CONTIGUOUS SCM_ARRAY_FLAG_CONTIGUOUS
 #define SCM_FUNC_NAME (scm_makfrom0str (FUNC_NAME))
 
 #define SCM_WTA(pos, scm) \
@@ -484,6 +482,15 @@ SCM_DEPRECATED scm_t_array_dim *scm_i_array_dims (SCM a);
 #define SCM_ARRAY_V(a)     scm_i_array_v(a)
 #define SCM_ARRAY_BASE(a)  scm_i_array_base(a)
 #define SCM_ARRAY_DIMS(a)  scm_i_array_dims(a)
+
+SCM_API SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
+				       SCM start, SCM end);
+SCM_API SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
+				      SCM start, SCM end);
+SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
+				      SCM start, SCM end);
+SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
+				     SCM start, SCM end);
 
 /* Deprecated because they should not be lvalues and we want people to
    use the official interfaces.

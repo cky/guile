@@ -1,6 +1,6 @@
 ;;;; unif.test --- tests guile's uniform arrays     -*- scheme -*-
 ;;;;
-;;;; Copyright 2004, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,9 @@
 
 (define-module (test-suite test-unif)
   #:use-module ((system base compile) #:select (compile))
-  #:use-module (test-suite lib))
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-4)
+  #:use-module (srfi srfi-4 gnu))
 
 ;;;
 ;;; array?

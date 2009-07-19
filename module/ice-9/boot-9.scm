@@ -3562,6 +3562,9 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;               (module-eval-closure (current-module))))
 ;;     (deannotate/source-properties (sc-expand (annotate exp)))))
 
+;; FIXME:
+(module-use! the-scm-module (resolve-interface '(srfi srfi-4)))
+
 (define-module (guile-user)
   #:autoload (system base compile) (compile))
 

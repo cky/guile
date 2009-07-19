@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -172,27 +172,26 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
 #define FUNC_NAME s_scm_bytecode_to_objcode
 {
   size_t size;
-  ssize_t increment;
-  scm_t_array_handle handle;
   const scm_t_uint8 *c_bytecode;
   struct scm_objcode *data;
   SCM objcode;
 
-  if (scm_is_false (scm_u8vector_p (bytecode)))
+  if (!scm_is_bytevector (bytecode))
     scm_wrong_type_arg (FUNC_NAME, 1, bytecode);
 
-  c_bytecode = scm_u8vector_elements (bytecode, &handle, &size, &increment);
-  data = (struct scm_objcode*)c_bytecode;
-  SCM_NEWSMOB2 (objcode, scm_tc16_objcode, data, bytecode);
-  scm_array_handle_release (&handle);
-
+  size = SCM_BYTEVECTOR_LENGTH (bytecode);
+  c_bytecode = (const scm_t_uint8*)SCM_BYTEVECTOR_CONTENTS (bytecode);
+  
   SCM_ASSERT_RANGE (0, bytecode, size >= sizeof(struct scm_objcode));
+  data = (struct scm_objcode*)c_bytecode;
+
   if (data->len + data->metalen != (size - sizeof (*data)))
-    scm_misc_error (FUNC_NAME, "bad u8vector size (~a != ~a)",
+    scm_misc_error (FUNC_NAME, "bad bytevector size (~a != ~a)",
 		    scm_list_2 (scm_from_size_t (size),
 				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
-  assert (increment == 1);
-  SCM_SET_SMOB_FLAGS (objcode, SCM_F_OBJCODE_IS_U8VECTOR);
+
+  SCM_NEWSMOB2 (objcode, scm_tc16_objcode, data, bytecode);
+  SCM_SET_SMOB_FLAGS (objcode, SCM_F_OBJCODE_IS_BYTEVECTOR);
   
   /* foolishly, we assume that as long as bytecode is around, that c_bytecode
      will be of the same length; perhaps a bad assumption? */
@@ -225,17 +224,17 @@ SCM_DEFINE (scm_objcode_to_bytecode, "objcode->bytecode", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_objcode_to_bytecode
 {
-  scm_t_uint8 *u8vector;
+  scm_t_int8 *s8vector;
   scm_t_uint32 len;
 
   SCM_VALIDATE_OBJCODE (1, objcode);
 
   len = sizeof(struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
 
-  u8vector = scm_malloc (len);
-  memcpy (u8vector, SCM_OBJCODE_DATA (objcode), len);
+  s8vector = scm_malloc (len);
+  memcpy (s8vector, SCM_OBJCODE_DATA (objcode), len);
 
-  return scm_take_u8vector (u8vector, len);
+  return scm_c_take_bytevector (s8vector, len);
 }
 #undef FUNC_NAME
 

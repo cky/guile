@@ -138,9 +138,6 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* HACK*/
-#include "libguile/bytevectors.h"
-
 SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0, 
            (SCM ra),
 	    "")
@@ -148,10 +145,6 @@ SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0,
 {
   scm_t_array_handle h;
   SCM type;
-
-  /* a hack, until srfi-4 and bytevectors are reunited */
-  if (scm_is_bytevector (ra))
-    return scm_from_locale_symbol ("vu8");
 
   scm_array_get_handle (ra, &h);
   type = scm_array_handle_element_type (&h);
