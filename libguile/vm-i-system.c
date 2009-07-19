@@ -248,6 +248,8 @@ VM_DEFINE_INSTRUCTION (22, list_break, "list-break", 0, 0, 0)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
 
+#define CLOSURE_REF(i)		closure[i]
+
 /* ref */
 
 VM_DEFINE_INSTRUCTION (23, object_ref, "object-ref", 1, 0, 1)
@@ -1149,6 +1151,92 @@ VM_DEFINE_INSTRUCTION (55, truncate_values, "truncate-values", 2, -1, -1)
 
   NEXT;
 }
+
+VM_DEFINE_INSTRUCTION (56, box, "box", 1, 1, 0)
+{
+  SCM val;
+  POP (val);
+  SYNC_BEFORE_GC ();
+  LOCAL_SET (FETCH (), scm_cell (scm_tc7_variable, SCM_UNPACK (val)));
+  NEXT;
+}
+
+/* for letrec:
+   (let ((a *undef*) (b *undef*) ...)
+     (set! a (lambda () (b ...)))
+     ...)
+ */
+VM_DEFINE_INSTRUCTION (57, empty_box, "empty-box", 1, 0, 0)
+{
+  SYNC_BEFORE_GC ();
+  LOCAL_SET (FETCH (),
+             scm_cell (scm_tc7_variable, SCM_UNPACK (SCM_UNDEFINED)));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (58, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
+{
+  SCM v = LOCAL_REF (FETCH ());
+  ASSERT_BOUND_VARIABLE (v);
+  PUSH (VARIABLE_REF (v));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (59, local_boxed_set, "local-boxed-set", 1, 1, 0)
+{
+  SCM v, val;
+  v = LOCAL_REF (FETCH ());
+  POP (val);
+  ASSERT_VARIABLE (v);
+  VARIABLE_SET (v, val);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (60, closure_ref, "closure-ref", 1, 0, 1)
+{
+  scm_t_uint8 idx = FETCH ();
+  
+  CHECK_CLOSURE (idx);
+  PUSH (CLOSURE_REF (idx));
+  NEXT;
+}
+
+/* no closure-set -- if a var is assigned, it should be in a box */
+
+VM_DEFINE_INSTRUCTION (61, closure_boxed_ref, "closure-boxed-ref", 1, 0, 1)
+{
+  SCM v;
+  scm_t_uint8 idx = FETCH ();
+  CHECK_CLOSURE (idx);
+  v = CLOSURE_REF (idx);
+  ASSERT_BOUND_VARIABLE (v);
+  PUSH (VARIABLE_REF (v));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (62, closure_boxed_set, "closure-boxed-set", 1, 1, 0)
+{
+  SCM v, val;
+  scm_t_uint8 idx = FETCH ();
+  POP (val);
+  CHECK_CLOSURE (idx);
+  v = CLOSURE_REF (idx);
+  ASSERT_BOUND_VARIABLE (v);
+  VARIABLE_SET (v, val);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (63, make_closure2, "make-closure2", 0, 2, 1)
+{
+  SCM vect;
+  POP (vect);
+  SYNC_BEFORE_GC ();
+  /* fixme underflow */
+  SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
+                SCM_PROGRAM_OBJTABLE (*sp), vect);
+  NEXT;
+}
+
 
 /*
 (defun renumber-ops ()

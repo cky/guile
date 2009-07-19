@@ -117,6 +117,16 @@
   vp->fp = fp;					\
 }
 
+/* FIXME */
+#define ASSERT_VARIABLE(x)                                              \
+  do { if (!SCM_VARIABLEP (x)) { SYNC_REGISTER (); abort(); }           \
+  } while (0)
+#define ASSERT_BOUND_VARIABLE(x)                                        \
+  do { ASSERT_VARIABLE (x);                                             \
+    if (SCM_VARIABLE_REF (x) == SCM_UNDEFINED)                          \
+      { SYNC_REGISTER (); abort(); }                                    \
+  } while (0)
+
 #ifdef VM_ENABLE_PARANOID_ASSERTIONS
 #define CHECK_IP() \
   do { if (ip < bp->base || ip - bp->base > bp->len) abort (); } while (0)
@@ -144,6 +154,19 @@
       objects = NULL;                                                   \
       object_count = 0;                                                 \
     }                                                                   \
+  }                                                                     \
+  {                                                                     \
+    SCM c = SCM_PROGRAM_EXTERNALS (program);                            \
+    if (SCM_I_IS_VECTOR (c))                                            \
+      {                                                                 \
+        closure = SCM_I_VECTOR_WELTS (c);                               \
+        closure_count = SCM_I_VECTOR_LENGTH (c);                        \
+      }                                                                 \
+    else                                                                \
+      {                                                                 \
+        closure = NULL;                                                 \
+        closure_count = 0;                                              \
+      }                                                                 \
   }                                                                     \
 }
 
@@ -176,6 +199,13 @@
   do { if (SCM_UNLIKELY ((_num) >= object_count)) goto vm_error_object; } while (0)
 #else
 #define CHECK_OBJECT(_num)
+#endif
+
+#if VM_CHECK_CLOSURE
+#define CHECK_CLOSURE(_num) \
+  do { if (SCM_UNLIKELY ((_num) >= closure_count)) goto vm_error_closure; } while (0)
+#else
+#define CHECK_CLOSURE(_num)
 #endif
 
 
