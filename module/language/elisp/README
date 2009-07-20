@@ -5,11 +5,11 @@ This is more or less a lot of work in progress.  Here are some notes as well
 as status information.
 
 Already implemented:
-  * progn
+  * progn, prog1, prog2
   * if, cond, when, unless
   * not, and, or
   * referencing and setting (setq) variables
-  * while, dotimes
+  * while, dotimes, dolist
   * let, let*
   * lambda expressions, function calls using list notation
   * some built-ins (mainly numbers/arithmetic)
@@ -18,8 +18,6 @@ Already implemented:
   * quotation and backquotation with unquote/unquote-splicing
 
 Especially still missing:
-  * other progX forms, will be done in macros
-  * dolist using macros
   * catch/throw, unwind-protect
   * real elisp reader instead of Scheme's
   * set, makunbound, boundp functions
@@ -31,3 +29,10 @@ Especially still missing:
   * need fluids for function bindings?
   * recursive macros
   * anonymous macros
+
+Other ideas and things to think about:
+  * %nil vs. #f/'() handling in Guile, possibly get rid of setting empty rest
+    arguments to %nil
+  * don't ensure-fluids for variables known to be let- or argument-bound
+  * or, perhaps, get rid of ensure-fluids over all but rather scan all code for
+    variables and create all needed fluids beforehand

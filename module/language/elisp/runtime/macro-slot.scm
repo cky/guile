@@ -28,6 +28,14 @@
 ; here.
 
 
+; The prog2 construct can be directly defined in terms of prog1 and progn,
+; so this is done using a macro.
+
+(built-in-macro prog2
+  (lambda (form1 form2 . rest)
+    `(progn ,form1 (prog1 ,form2 ,@rest))))
+
+
 ; Define the conditionals when and unless as macros.
 
 (built-in-macro when
@@ -39,11 +47,15 @@
     `(if ,condition nil (progn ,@elses))))
 
 
-; Define the dotimes and dolist iteration macros.
+; Define the dotimes iteration macro.
 ; As the variable has to be bound locally for elisp, this needs to go through
 ; the dynamic scoping fluid system.  So we can't speed these forms up by
 ; implementing them directly in the compiler with just a lexical variable
 ; anyways.
+; For dolist, on the other hand, we have to bind the elisp variable to the
+; list elements but keep track of the list-tails in another one.  Therefore,
+; this can take advantage of real compilation because of circumventing the
+; fluid-system for this variable.
 
 (built-in-macro dotimes
   (lambda (args . body)

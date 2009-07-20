@@ -365,6 +365,47 @@
       (error "non-pair expression contains unquotes" expr))
     (make-const loc expr)))
 
+; Compile a dolist construct.
+; This is compiled to something along:
+; (with-fluid* iter-var %nil
+;   (lambda ()
+;     (let iterate ((tail list))
+;       (if (null? tail)
+;         result
+;         (begin
+;           (fluid-set! iter-var (car tail))
+;           body
+;           (iterate (cdr tail)))))))
+
+(define (compile-dolist loc var iter-list result body)
+  (let* ((tailvar (gensym))
+         (iterate (gensym))
+         (tailref (make-lexical-ref loc tailvar tailvar))
+         (iterate-func (make-lambda loc `(,tailvar) `(,tailvar) '()
+                         (make-conditional loc
+                           (call-primitive loc 'null? tailref)
+                           (compile-expr result)
+                           (make-sequence loc
+                             `(,(set-variable! loc var value-slot
+                                  (call-primitive loc 'car tailref))
+                               ,@(map compile-expr body)
+                               ,(make-application loc
+                                  (make-lexical-ref loc iterate iterate)
+                                  (list (call-primitive loc 'cdr
+                                          tailref)))))))))
+
+    (make-sequence loc
+      (list (ensure-fluid! loc var value-slot)
+            (call-primitive loc 'with-fluid*
+              (make-module-ref loc value-slot var #t)
+              (nil-value loc)
+              (make-lambda loc '() '() '()
+                (make-letrec loc `(,iterate) `(,iterate) `(,iterate-func)
+                  (make-application loc
+                    (make-lexical-ref loc iterate iterate)
+                    (list (compile-expr iter-list))))))))))
+
+
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
@@ -383,6 +424,16 @@
 
     ((progn . ,forms)
      (make-sequence loc (map compile-expr forms)))
+
+    ; I chose to implement prog1 directly (not with macros) so that the
+    ; temporary variable used can be a lexical one that is not backed by a fluid
+    ; for better performance.
+    ((prog1 ,form1 . ,forms)
+     (let ((temp (gensym)))
+       (make-let loc `(,temp) `(,temp) `(,(compile-expr form1))
+         (make-sequence loc
+           (append (map compile-expr forms)
+                   (list (make-lexical-ref loc temp temp)))))))
 
     ((if ,condition ,ifclause)
      (make-conditional loc (compile-expr condition)
@@ -543,6 +594,13 @@
             (iter-thunk (make-lambda loc '() '() '() lambda-body)))
        (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
          iter-call)))
+
+    ; dolist is treated here rather than as macro because it can take advantage
+    ; of a non-fluid-based variable.
+    ((dolist (,var ,iter-list) . ,body) (guard (symbol? var))
+     (compile-dolist loc var iter-list 'nil body))
+    ((dolist (,var ,iter-list ,result) . ,body) (guard (symbol? var))
+     (compile-dolist loc var iter-list result body))
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
