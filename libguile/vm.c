@@ -227,21 +227,41 @@ static SCM make_u8vector (const scm_t_uint8 *bytes, size_t len)
   return scm_take_u8vector (new_bytes, len);
 }
 
+/* Dummy structure to guarantee 32-bit alignment.  */
+struct t_32bit_aligned
+{
+  scm_t_int32 dummy;
+  scm_t_uint8 bytes[18];
+};
+
 static SCM
 really_make_boot_program (long nargs)
 {
-  scm_byte_t bytes[] = {0, 0, 0, 0,
-                        0, 0, 0, 0,
-                        0, 0, 0, 0,
-                        scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
+  SCM u8vec;
+  struct t_32bit_aligned bytes =
+    {
+      .dummy = 0,
+      .bytes = { 0, 0, 0, 0,
+		 0, 0, 0, 0,
+		 0, 0, 0, 0,
+		 scm_op_mv_call, 0, 0, 1,
+		 scm_op_make_int8_1, scm_op_halt }
+    };
+
   SCM ret;
-  ((scm_t_uint32*)bytes)[1] = 6; /* set len in current endianness, no meta */
+
+  /* Set length in current endianness, no meta.  */
+  ((scm_t_uint32 *) bytes.bytes)[1] = 6;
+
   if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
     abort ();
-  bytes[13] = (scm_byte_t)nargs;
-  ret = scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
+  bytes.bytes[13] = (scm_byte_t) nargs;
+
+  u8vec = make_u8vector (bytes.bytes, sizeof (bytes.bytes));
+  ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
                           SCM_BOOL_F, SCM_EOL);
   SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
+
   return ret;
 }
 #define NUM_BOOT_PROGS 8

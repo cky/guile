@@ -351,7 +351,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                        \
-                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
                   && (i % size == 0)))                                  \
     RETURN (SCM_I_MAKINUM (*(scm_t_##type*)                             \
                            (SCM_BYTEVECTOR_CONTENTS (bv) + i)));        \
@@ -365,8 +365,8 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
   ARGS2 (bv, idx);                                                      \
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
-                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
                   && (i % size == 0)))                                  \
     { scm_t_##type x = (*(scm_t_##type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)); \
       if (SCM_FIXABLE (x))                                              \
@@ -385,7 +385,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                        \
-                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
                   && (i % size == 0)))                                  \
     RETURN (scm_from_double ((*(type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)))); \
   else                                                                  \
@@ -459,7 +459,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
                   && (i % size == 0)                                    \
                   && (SCM_I_INUMP (val))                                \
                   && ((j = SCM_I_INUM (val)) >= min)                    \
@@ -477,7 +477,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
                   && (i % size == 0)))                                  \
     *(scm_t_##type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_##type (val); \
   else                                                                  \
@@ -492,7 +492,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   VM_VALIDATE_BYTEVECTOR (bv);                                          \
   if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
                   && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i < SCM_BYTEVECTOR_LENGTH (bv))                   \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
                   && (i % size == 0)))                                  \
     *(type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_double (val);  \
   else                                                                  \

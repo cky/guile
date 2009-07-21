@@ -53,7 +53,7 @@ fetch_instruction_table ()
 
   if (SCM_UNLIKELY (!table))
     {
-      size_t bytes = scm_op_last * sizeof(struct scm_instruction);
+      size_t bytes = SCM_VM_NUM_INSTRUCTIONS * sizeof(struct scm_instruction);
       int i;
       table = malloc (bytes);
       memset (table, 0, bytes);
@@ -63,11 +63,12 @@ fetch_instruction_table ()
 #include <libguile/vm-i-scheme.i>
 #include <libguile/vm-i-loader.i>
 #undef VM_INSTRUCTION_TO_TABLE
-      for (i = 0; i < scm_op_last; i++)
+      for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         {
           table[i].opcode = i;
           if (table[i].name)
-            table[i].symname = scm_from_locale_symbol (table[i].name);
+            table[i].symname =
+              scm_permanent_object (scm_from_locale_symbol (table[i].name));
           else
             table[i].symname = SCM_BOOL_F;
         }
@@ -85,12 +86,12 @@ scm_lookup_instruction_by_name (SCM name)
   if (SCM_UNLIKELY (SCM_FALSEP (instructions_by_name)))
     { 
       int i;
-      instructions_by_name = scm_make_hash_table (SCM_I_MAKINUM (scm_op_last));
-      for (i = 0; i < scm_op_last; i++)
+      instructions_by_name = scm_permanent_object
+        (scm_make_hash_table (SCM_I_MAKINUM (SCM_VM_NUM_INSTRUCTIONS)));
+      for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         if (scm_is_true (table[i].symname))
           scm_hashq_set_x (instructions_by_name, table[i].symname,
                            SCM_I_MAKINUM (i));
-      instructions_by_name = scm_permanent_object (instructions_by_name);
     }
   
   op = scm_hashq_ref (instructions_by_name, name, SCM_UNDEFINED);
@@ -111,7 +112,7 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
   SCM list = SCM_EOL;
   int i;
   struct scm_instruction *ip = fetch_instruction_table ();
-  for (i = 0; i < scm_op_last; i++)
+  for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
     if (ip[i].name)
       list = scm_cons (ip[i].symname, list);
   return scm_reverse_x (list, SCM_EOL);
@@ -182,7 +183,7 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
   SCM_MAKE_VALIDATE (1, op, I_INUMP);
   opcode = SCM_I_INUM (op);
 
-  if (opcode < scm_op_last)
+  if (opcode >= 0 && opcode < SCM_VM_NUM_INSTRUCTIONS)
     ret = fetch_instruction_table ()[opcode].symname;
 
   if (scm_is_false (ret))

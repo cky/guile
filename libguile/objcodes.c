@@ -28,13 +28,33 @@
 #include <sys/types.h>
 #include <assert.h>
 
+#include <verify.h>
+
 #include "_scm.h"
 #include "vm-bootstrap.h"
 #include "programs.h"
 #include "objcodes.h"
 
-/* nb, the length of the header should be a multiple of 8 bytes */
-#define OBJCODE_COOKIE "GOOF-0.6"
+/* The endianness marker in objcode.  */
+#ifdef WORDS_BIGENDIAN
+# define OBJCODE_ENDIANNESS "BE"
+#else
+# define OBJCODE_ENDIANNESS "LE"
+#endif
+
+#define _OBJCODE_STRINGIFY(x)  # x
+#define OBJCODE_STRINGIFY(x)   _OBJCODE_STRINGIFY (x)
+
+/* The word size marker in objcode.  */
+#define OBJCODE_WORD_SIZE  OBJCODE_STRINGIFY (SIZEOF_VOID_P)
+
+/* The objcode magic header.  */
+#define OBJCODE_COOKIE						\
+  "GOOF-0.6-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
+
+/* The length of the header must be a multiple of 8 bytes.  */
+verify (((sizeof (OBJCODE_COOKIE) - 1) & 7) == 0);
+
 
 
 /*
@@ -100,10 +120,10 @@ make_objcode_by_mmap (int fd)
 #undef FUNC_NAME
 
 SCM
-scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
+scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 #define FUNC_NAME "make-objcode-slice"
 {
-  struct scm_objcode *data, *parent_data;
+  const struct scm_objcode *data, *parent_data;
   SCM ret;
 
   SCM_VALIDATE_OBJCODE (1, parent);
@@ -117,6 +137,12 @@ scm_c_make_objcode_slice (SCM parent, scm_t_uint8 *ptr)
 				scm_from_ulong ((unsigned long)parent_data->base),
 				scm_from_uint32 (parent_data->len),
 				scm_from_uint32 (parent_data->metalen)));
+
+#if 0
+  /* FIXME: We currently generate bytecode where the objcode-meta isn't
+     suitable aligned, which is an issue on some arches (e.g., SPARC).  */
+  assert ((((uintptr_t) ptr) & (__alignof__ (struct scm_objcode) - 1UL)) == 0);
+#endif
 
   data = (struct scm_objcode*)ptr;
   if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)

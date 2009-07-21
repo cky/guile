@@ -1,7 +1,6 @@
 ;;; run-vm-tests.scm -- Run Guile-VM's test suite.
 ;;;
-;;; Copyright 2005  Ludovic Courtès <ludovic.courtes@laas.fr>
-;;;
+;;; Copyright 2005, 2009 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -85,9 +84,7 @@ equal in the sense of @var{equal?}."
 	 (failed (length (filter not res))))
 
     (if (= 0 failed)
-	(begin
-	  (format #t "~%All ~a tests passed~%" total)
-	  (exit 0))
+        (exit 0)
 	(begin
 	  (format #t "~%~a tests failed out of ~a~%"
 		  failed total)

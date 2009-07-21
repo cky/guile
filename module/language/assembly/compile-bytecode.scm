@@ -110,6 +110,9 @@
                                (set! i (1+ i))
                                (if (> i 0) (write-byte x))))
                       (get-addr (lambda () i)))
+               ;; FIXME: We should add padding here so that META's bytecode
+               ;; meets the alignment requirements of `scm_objcode'.  See
+               ;; `scm_c_make_objcode_slice ()'.
                (write-bytecode meta write get-addr '()))))
         ((load-unsigned-integer ,str) (write-loader str))
         ((load-integer ,str) (write-loader str))
