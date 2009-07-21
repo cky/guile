@@ -31,8 +31,5 @@ Especially still missing:
   * anonymous macros
 
 Other ideas and things to think about:
-  * %nil vs. #f/'() handling in Guile, possibly get rid of setting empty rest
-    arguments to %nil
+  * %nil vs. #f/'() handling in Guile
   * don't ensure-fluids for variables known to be let- or argument-bound
-  * or, perhaps, get rid of ensure-fluids over all but rather scan all code for
-    variables and create all needed fluids beforehand

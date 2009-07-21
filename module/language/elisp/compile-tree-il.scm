@@ -20,6 +20,7 @@
 ;;; Code:
 
 (define-module (language elisp compile-tree-il)
+  #:use-module (language elisp bindings)
   #:use-module (language tree-il)
   #:use-module (system base pmatch)
   #:use-module (system base compile)
@@ -88,11 +89,11 @@
 
 
 ; Generate code to ensure a fluid is there for further use of a given symbol.
-; ensure-fluids-for does the same for a list of symbols and builds a sequence
-; that executes the fluid-insurances first, followed by all body commands; this
-; is a routine for convenience (needed with let, let*, lambda).
+; In general during the compilation, fluids needed are only tracked with the
+; bindings data structure.  Afterwards, however, for all those needed symbols
+; the fluids are really generated with this routine.
 
-(define (ensure-fluid! loc sym module)
+(define (generate-ensure-fluid loc sym module)
   (let ((resolved-module (call-primitive loc 'resolve-module
                                          (make-const loc module)))
         (resolved-intf (call-primitive loc 'resolve-interface
@@ -112,26 +113,19 @@
                 (make-module-ref loc runtime 'void #t)))))))
 
 
-(define (ensure-fluids-for loc syms module . body)
-  (make-sequence loc
-    `(,@(map (lambda (sym) (ensure-fluid! loc sym module)) syms)
-      ,@body)))
-
-
 ; Generate code to reference a fluid saved variable.
 
-(define (reference-variable loc sym module)
-  (make-sequence loc
-    (list (ensure-fluid! loc sym module)
-          (call-primitive loc 'fluid-ref
-                          (make-module-ref loc module sym #t)))))
+(define (reference-variable loc bind sym module)
+  (mark-fluid-needed! bind sym module)
+  (call-primitive loc 'fluid-ref
+                  (make-module-ref loc module sym #t)))
 
 
 ; Reference a variable and error if the value is void.
 
-(define (reference-with-check loc sym module)
+(define (reference-with-check loc bind sym module)
   (let ((var (gensym)))
-    (make-let loc '(value) `(,var) `(,(reference-variable loc sym module))
+    (make-let loc '(value) `(,var) `(,(reference-variable loc bind sym module))
       (make-conditional loc
         (call-primitive loc 'eq?
                         (make-module-ref loc runtime 'void #t)
@@ -142,12 +136,10 @@
 
 ; Generate code to set a fluid saved variable.
 
-(define (set-variable! loc sym module value)
-  (make-sequence loc
-    (list (ensure-fluid! loc sym module)
-          (call-primitive loc 'fluid-set!
-                          (make-module-ref loc module sym #t)
-                          value))))
+(define (set-variable! loc bind sym module value)
+  (mark-fluid-needed! bind sym module)
+  (call-primitive loc 'fluid-set!
+                  (make-module-ref loc module sym #t) value))
 
 
 ; Process the bindings part of a let or let* expression; that is, check for
@@ -221,7 +213,7 @@
 ; This is formulated quite imperatively, but I think in this case that is quite
 ; clear and better than creating a lot of nested let's.
 
-(define (compile-lambda loc args body)
+(define (compile-lambda loc bind args body)
   (if (not (list? args))
     (error "expected list for argument-list" args))
   (if (null? body)
@@ -236,7 +228,10 @@
               (locals `(,@required ,@optional ,@(if rest (list rest) '()))))
           (make-lambda loc
             real-args real-args '()
-            (ensure-fluids-for loc locals value-slot
+            (begin
+              (for-each (lambda (sym)
+                          (mark-fluid-needed! bind sym value-slot))
+                        locals)
               (call-primitive loc 'with-fluids*
                 (make-application loc (make-primitive-ref loc 'list)
                   (map (lambda (sym) (make-module-ref loc value-slot sym #t))
@@ -250,13 +245,13 @@
                                  optional))))
                 (make-lambda loc '() '() '()
                   (make-sequence loc
-                    `(,(process-optionals loc optional rest-sym)
-                      ,(process-rest loc rest rest-sym)
-                      ,@(map compile-expr body))))))))))))
+                    `(,(process-optionals loc bind optional rest-sym)
+                      ,(process-rest loc bind rest rest-sym)
+                      ,@(map (compiler bind) body))))))))))))
 
 ; Build the code to handle setting of optional arguments that are present
 ; and updating the rest list.
-(define (process-optionals loc optional rest-sym)
+(define (process-optionals loc bind optional rest-sym)
   (let iterate ((tail optional))
     (if (null? tail)
       (make-void loc)
@@ -264,7 +259,7 @@
         (call-primitive loc 'null? (make-lexical-ref loc rest-sym rest-sym))
         (make-void loc)
         (make-sequence loc
-          (list (set-variable! loc (car tail) value-slot
+          (list (set-variable! loc bind (car tail) value-slot
                   (call-primitive loc 'car
                                   (make-lexical-ref loc rest-sym rest-sym)))
                 (make-lexical-set loc rest-sym rest-sym
@@ -273,14 +268,14 @@
                 (iterate (cdr tail))))))))
 
 ; This builds the code to set the rest variable to nil if it is empty.
-(define (process-rest loc rest rest-sym)
+(define (process-rest loc bind rest rest-sym)
   (let ((rest-empty (call-primitive loc 'null?
                                     (make-lexical-ref loc rest-sym rest-sym))))
     (cond
       (rest
        (make-conditional loc rest-empty
          (make-void loc)
-         (set-variable! loc rest value-slot
+         (set-variable! loc bind rest value-slot
                         (make-lexical-ref loc rest-sym rest-sym))))
       ((not (null? rest-sym))
        (make-conditional loc rest-empty
@@ -343,24 +338,24 @@
 (define (unquote-splicing-cell? expr)
   (and (list? expr) (= (length expr) 2) (unquote-splicing? (car expr))))
 
-(define (process-backquote loc expr)
+(define (process-backquote loc bind expr)
   (if (contains-unquotes? expr)
     (if (pair? expr)
       (if (or (unquote-cell? expr) (unquote-splicing-cell? expr))
-        (compile-expr (cadr expr))
+        (compile-expr bind (cadr expr))
         (let* ((head (car expr))
-               (processed-tail (process-backquote loc (cdr expr)))
+               (processed-tail (process-backquote loc bind (cdr expr)))
                (head-is-list-2 (and (list? head) (= (length head) 2)))
                (head-unquote (and head-is-list-2 (unquote? (car head))))
                (head-unquote-splicing (and head-is-list-2
                                            (unquote-splicing? (car head)))))
           (if head-unquote-splicing
             (call-primitive loc 'append
-              (compile-expr (cadr head)) processed-tail)
+              (compile-expr bind (cadr head)) processed-tail)
             (call-primitive loc 'cons
               (if head-unquote
-                (compile-expr (cadr head))
-                (process-backquote loc head))
+                (compile-expr bind (cadr head))
+                (process-backquote loc bind head))
               processed-tail))))
       (error "non-pair expression contains unquotes" expr))
     (make-const loc expr)))
@@ -377,76 +372,74 @@
 ;           body
 ;           (iterate (cdr tail)))))))
 
-(define (compile-dolist loc var iter-list result body)
+(define (compile-dolist loc bind var iter-list result body)
   (let* ((tailvar (gensym))
          (iterate (gensym))
          (tailref (make-lexical-ref loc tailvar tailvar))
          (iterate-func (make-lambda loc `(,tailvar) `(,tailvar) '()
                          (make-conditional loc
                            (call-primitive loc 'null? tailref)
-                           (compile-expr result)
+                           (compile-expr bind result)
                            (make-sequence loc
-                             `(,(set-variable! loc var value-slot
+                             `(,(set-variable! loc bind var value-slot
                                   (call-primitive loc 'car tailref))
-                               ,@(map compile-expr body)
+                               ,@(map (compiler bind) body)
                                ,(make-application loc
                                   (make-lexical-ref loc iterate iterate)
                                   (list (call-primitive loc 'cdr
                                           tailref)))))))))
-
-    (make-sequence loc
-      (list (ensure-fluid! loc var value-slot)
-            (call-primitive loc 'with-fluid*
-              (make-module-ref loc value-slot var #t)
-              (nil-value loc)
-              (make-lambda loc '() '() '()
-                (make-letrec loc `(,iterate) `(,iterate) `(,iterate-func)
-                  (make-application loc
-                    (make-lexical-ref loc iterate iterate)
-                    (list (compile-expr iter-list))))))))))
+    (mark-fluid-needed! bind var value-slot)
+    (call-primitive loc 'with-fluid*
+      (make-module-ref loc value-slot var #t)
+      (nil-value loc)
+      (make-lambda loc '() '() '()
+        (make-letrec loc `(,iterate) `(,iterate) `(,iterate-func)
+          (make-application loc
+            (make-lexical-ref loc iterate iterate)
+            (list (compile-expr bind iter-list))))))))
 
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
-(define (compile-symbol loc sym)
+(define (compile-symbol loc bind sym)
   (case sym
     ((nil) (nil-value loc))
     ((t) (t-value loc))
-    (else (reference-with-check loc sym value-slot))))
+    (else (reference-with-check loc bind sym value-slot))))
 
 
 ; Compile a pair-expression (that is, any structure-like construct).
 
-(define (compile-pair loc expr)
+(define (compile-pair loc bind expr)
   (pmatch expr
 
     ((progn . ,forms)
-     (make-sequence loc (map compile-expr forms)))
+     (make-sequence loc (map (compiler bind) forms)))
 
     ; I chose to implement prog1 directly (not with macros) so that the
     ; temporary variable used can be a lexical one that is not backed by a fluid
     ; for better performance.
     ((prog1 ,form1 . ,forms)
      (let ((temp (gensym)))
-       (make-let loc `(,temp) `(,temp) `(,(compile-expr form1))
+       (make-let loc `(,temp) `(,temp) `(,(compile-expr bind form1))
          (make-sequence loc
-           (append (map compile-expr forms)
+           (append (map (compiler bind) forms)
                    (list (make-lexical-ref loc temp temp)))))))
 
     ((if ,condition ,ifclause)
-     (make-conditional loc (compile-expr condition)
-                           (compile-expr ifclause)
+     (make-conditional loc (compile-expr bind condition)
+                           (compile-expr bind ifclause)
                            (nil-value loc)))
     ((if ,condition ,ifclause ,elseclause)
-     (make-conditional loc (compile-expr condition)
-                           (compile-expr ifclause)
-                           (compile-expr elseclause)))
+     (make-conditional loc (compile-expr bind condition)
+                           (compile-expr bind ifclause)
+                           (compile-expr bind elseclause)))
     ((if ,condition ,ifclause . ,elses)
-     (make-conditional loc (compile-expr condition)
-                           (compile-expr ifclause)
-                           (make-sequence loc (map compile-expr elses))))
+     (make-conditional loc (compile-expr bind condition)
+                           (compile-expr bind ifclause)
+                           (make-sequence loc (map (compiler bind) elses))))
 
     ; For (cond ...) forms, a special case is a (condition) clause without
     ; body.  In this case, the value of condition itself should be returned,
@@ -462,23 +455,23 @@
            (if (null? (cdr cur))
              (let ((var (gensym)))
                (make-let loc
-                 '(condition) `(,var) `(,(compile-expr (car cur)))
+                 '(condition) `(,var) `(,(compile-expr bind (car cur)))
                  (make-conditional loc
                    (make-lexical-ref loc 'condition var)
                    (make-lexical-ref loc 'condition var)
                    (iterate (cdr tail)))))
              (make-conditional loc
-               (compile-expr (car cur))
-               (make-sequence loc (map compile-expr (cdr cur)))
+               (compile-expr bind (car cur))
+               (make-sequence loc (map (compiler bind) (cdr cur)))
                (iterate (cdr tail))))))))
 
     ((and) (t-value loc))
     ((and . ,expressions)
      (let iterate ((tail expressions))
        (if (null? (cdr tail))
-         (compile-expr (car tail))
+         (compile-expr bind (car tail))
          (make-conditional loc
-           (compile-expr (car tail))
+           (compile-expr bind (car tail))
            (iterate (cdr tail))
            (nil-value loc)))))
 
@@ -488,7 +481,7 @@
          (nil-value loc)
          (let ((var (gensym)))
            (make-let loc
-             '(condition) `(,var) `(,(compile-expr (car tail)))
+             '(condition) `(,var) `(,(compile-expr bind (car tail)))
              (make-conditional loc
                (make-lexical-ref loc 'condition var)
                (make-lexical-ref loc 'condition var)
@@ -497,7 +490,7 @@
     ((defconst ,sym ,value . ,doc)
      (if (handle-var-def loc sym doc)
        (make-sequence loc
-         (list (set-variable! loc sym value-slot (compile-expr value))
+         (list (set-variable! loc bind sym value-slot (compile-expr bind value))
                (make-const loc sym)))))
 
     ((defvar ,sym) (make-const loc sym))
@@ -507,8 +500,9 @@
          (list (make-conditional loc
                  (call-primitive loc 'eq?
                                  (make-module-ref loc runtime 'void #t)
-                                 (reference-variable loc sym value-slot))
-                 (set-variable! loc sym value-slot (compile-expr value))
+                                 (reference-variable loc bind sym value-slot))
+                 (set-variable! loc bind sym value-slot
+                                (compile-expr bind value))
                  (make-void loc))
                (make-const loc sym)))))
 
@@ -524,37 +518,40 @@
              (report-error loc "expected symbol in setq")
              (if (null? tailtail)
                (report-error loc "missing value for symbol in setq" sym)
-               (let* ((val (compile-expr (car tailtail)))
-                      (op (set-variable! loc sym value-slot val)))
+               (let* ((val (compile-expr bind (car tailtail)))
+                      (op (set-variable! loc bind sym value-slot val)))
                  (if (null? (cdr tailtail))
                    (let* ((temp (gensym))
                           (ref (make-lexical-ref loc temp temp)))
                      (list (make-let loc `(,temp) `(,temp) `(,val)
                              (make-sequence loc
-                               (list (set-variable! loc sym value-slot ref)
+                               (list (set-variable! loc bind sym value-slot ref)
                                      ref)))))
-                   (cons (set-variable! loc sym value-slot val)
+                   (cons (set-variable! loc bind sym value-slot val)
                          (iterate (cdr tailtail)))))))))))
 
     ; Let is done with a single call to with-fluids* binding them locally to new
-    ; values.
+    ; values all "at once".
     ((let ,bindings . ,body) (guard (and (list? bindings)
                                          (list? body)
                                          (not (null? bindings))
                                          (not (null? body))))
-     (let ((bind (process-let-bindings loc bindings)))
-       (ensure-fluids-for loc (map car bind) value-slot
+     (let ((let-bind (process-let-bindings loc bindings)))
+       (begin
+         (for-each (lambda (sym)
+                     (mark-fluid-needed! bind sym value-slot))
+                   (map car let-bind))
          (call-primitive loc 'with-fluids*
            (make-application loc (make-primitive-ref loc 'list)
              (map (lambda (el)
-                 (make-module-ref loc value-slot (car el) #t))
-               bind))
+                    (make-module-ref loc value-slot (car el) #t))
+                  let-bind))
            (make-application loc (make-primitive-ref loc 'list)
              (map (lambda (el)
-                    (compile-expr (cdr el)))
-                  bind))
+                    (compile-expr bind (cdr el)))
+                  let-bind))
            (make-lambda loc '() '() '() 
-             (make-sequence loc (map compile-expr body)))))))
+             (make-sequence loc (map (compiler bind) body)))))))
 
     ; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
     ; so that each one already sees the preceding bindings.
@@ -562,14 +559,17 @@
                                           (list? body)
                                           (not (null? bindings))
                                           (not (null? body))))
-     (let ((bind (process-let-bindings loc bindings)))
-       (ensure-fluids-for loc (map car bind) value-slot
-         (let iterate ((tail bind))
+     (let ((let-bind (process-let-bindings loc bindings)))
+       (begin
+         (for-each (lambda (sym)
+                     (mark-fluid-needed! bind sym value-slot))
+                   (map car let-bind))
+         (let iterate ((tail let-bind))
            (if (null? tail)
-             (make-sequence loc (map compile-expr body))
+             (make-sequence loc (map (compiler bind) body))
              (call-primitive loc 'with-fluid*
                (make-module-ref loc value-slot (caar tail) #t)
-               (compile-expr (cdar tail))
+               (compile-expr bind (cdar tail))
                (make-lambda loc '() '() '() (iterate (cdr tail)))))))))
 
     ; A while construct is transformed into a tail-recursive loop like this:
@@ -581,14 +581,14 @@
     ;   (iterate))
     ((while ,condition . ,body)
      (let* ((itersym (gensym))
-            (compiled-body (map compile-expr body))
+            (compiled-body (map (compiler bind) body))
             (iter-call (make-application loc
                          (make-lexical-ref loc 'iterate itersym)
                          (list)))
             (full-body (make-sequence loc
                          `(,@compiled-body ,iter-call)))
             (lambda-body (make-conditional loc
-                           (compile-expr condition)
+                           (compile-expr bind condition)
                            full-body
                            (nil-value loc)))
             (iter-thunk (make-lambda loc '() '() '() lambda-body)))
@@ -598,24 +598,24 @@
     ; dolist is treated here rather than as macro because it can take advantage
     ; of a non-fluid-based variable.
     ((dolist (,var ,iter-list) . ,body) (guard (symbol? var))
-     (compile-dolist loc var iter-list 'nil body))
+     (compile-dolist loc bind var iter-list 'nil body))
     ((dolist (,var ,iter-list ,result) . ,body) (guard (symbol? var))
-     (compile-dolist loc var iter-list result body))
+     (compile-dolist loc bind var iter-list result body))
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
     ((lambda ,args . ,body)
-     (compile-lambda loc args body))
+     (compile-lambda loc bind args body))
     ((function (lambda ,args . ,body))
-     (compile-lambda loc args body))
+     (compile-lambda loc bind args body))
 
     ; Build a lambda and also assign it to the function cell of some symbol.
     ((defun ,name ,args . ,body)
      (if (not (symbol? name))
        (error "expected symbol as function name" name)
        (make-sequence loc
-         (list (set-variable! loc name function-slot
-                              (compile-lambda loc args body))
+         (list (set-variable! loc bind name function-slot
+                              (compile-lambda loc bind args body))
                (make-const loc name)))))
 
     ; Define a macro (this is done directly at compile-time!).
@@ -623,13 +623,13 @@
     ((defmacro ,name ,args . ,body)
      (if (not (symbol? name))
        (error "expected symbol as macro name" name)
-       (let* ((tree-il (compile-lambda loc args body))
+       (let* ((tree-il (compile-lambda loc (make-bindings) args body))
               (object (compile tree-il #:from 'tree-il #:to 'value)))
          (define-macro! loc name object)
          (make-const loc name))))
 
     ((,backq ,val) (guard (backquote? backq))
-     (process-backquote loc val))
+     (process-backquote loc bind val))
 
     ; XXX: Why do we need 'quote here instead of quote?
     (('quote ,val)
@@ -638,7 +638,7 @@
     ; Macro calls are simply expanded and recursively compiled.
     ((,macro . ,args) (guard (and (symbol? macro) (is-macro? macro)))
      (let ((expander (get-macro macro)))
-       (compile-expr (apply expander args))))
+       (compile-expr bind (apply expander args))))
 
     ; Function calls using (function args) standard notation; here, we have to
     ; take the function value of a symbol if it is one.  It seems that functions
@@ -647,9 +647,9 @@
     ((,func . ,args)
      (make-application loc
        (if (symbol? func)
-         (reference-with-check loc func function-slot)
-         (compile-expr func))
-       (map compile-expr args)))
+         (reference-with-check loc bind func function-slot)
+         (compile-expr bind func))
+       (map (compiler bind) args)))
 
     (else
       (report-error loc "unrecognized elisp" expr))))
@@ -657,20 +657,30 @@
 
 ; Compile a single expression to TreeIL.
 
-(define (compile-expr expr)
+(define (compile-expr bind expr)
   (let ((loc (location expr)))
     (cond
       ((symbol? expr)
-       (compile-symbol loc expr))
+       (compile-symbol loc bind expr))
       ((pair? expr)
-       (compile-pair loc expr))
+       (compile-pair loc bind expr))
       (else (make-const loc expr)))))
+
+(define (compiler bind)
+  (lambda (expr)
+    (compile-expr bind expr)))
 
 
 ; Entry point for compilation to TreeIL.
 
 (define (compile-tree-il expr env opts)
   (values
-    (compile-expr expr)
+    (let* ((bind (make-bindings))
+           (loc (location expr))
+           (compiled (compile-expr bind expr)))
+      (make-sequence loc
+        `(,@(map-fluids-needed bind (lambda (mod sym)
+                                      (generate-ensure-fluid loc sym mod)))
+          ,compiled)))
     env
     env))
