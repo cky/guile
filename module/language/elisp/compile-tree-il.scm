@@ -602,6 +602,41 @@
     ((dolist (,var ,iter-list ,result) . ,body) (guard (symbol? var))
      (compile-dolist loc bind var iter-list result body))
 
+    ; catch and throw can mainly be implemented directly using Guile's
+    ; primitives for exceptions, the only difficulty is that the keys used
+    ; within Guile must be symbols, while elisp allows any value and checks
+    ; for matches using eq (eq?).  We handle this by using always #t as key
+    ; for the Guile primitives and check for matches inside the handler; if
+    ; the elisp keys are not eq?, we rethrow the exception.
+
+    ((catch ,tag . ,body) (guard (not (null? body)))
+     (let* ((tag-value (gensym))
+            (tag-ref (make-lexical-ref loc tag-value tag-value)))
+       (make-let loc `(,tag-value) `(,tag-value) `(,(compile-expr bind tag))
+         (call-primitive loc 'catch
+           (make-const loc #t)
+           (make-lambda loc '() '() '()
+             (make-sequence loc (map (compiler bind) body)))
+           (let* ((dummy-key (gensym))
+                  (dummy-ref (make-lexical-ref loc dummy-key dummy-key))
+                  (elisp-key (gensym))
+                  (key-ref (make-lexical-ref loc elisp-key elisp-key))
+                  (value (gensym))
+                  (value-ref (make-lexical-ref loc value value))
+                  (arglist `(,dummy-key ,elisp-key ,value)))
+             (make-lambda loc arglist arglist '()
+               (make-conditional loc
+                 (call-primitive loc 'eq? key-ref tag-ref)
+                 value-ref
+                 (call-primitive loc 'throw
+                                 dummy-ref key-ref value-ref))))))))
+
+    ((throw ,tag ,value)
+     (call-primitive loc 'throw
+                     (make-const loc 'elisp-exception)
+                     (compile-expr bind tag)
+                     (compile-expr bind value)))
+
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
     ((lambda ,args . ,body)
@@ -655,7 +690,8 @@
       (report-error loc "unrecognized elisp" expr))))
 
 
-; Compile a single expression to TreeIL.
+; Compile a single expression to TreeIL and create a closure over a bindings
+; data structure for easy map'ing of compile-expr.
 
 (define (compile-expr bind expr)
   (let ((loc (location expr)))
@@ -672,6 +708,9 @@
 
 
 ; Entry point for compilation to TreeIL.
+; This creates the bindings data structure, and after compiling the main
+; expression we need to make sure all fluids for symbols used during the
+; compilation are created using the generate-ensure-fluid function.
 
 (define (compile-tree-il expr env opts)
   (values

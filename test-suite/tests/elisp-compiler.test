@@ -147,6 +147,28 @@
            (equal mylist '(7 2 5))
            (equal b 5)))))
 
+(with-test-prefix/compile "Exceptions"
+
+  (pass-if "catch without exception"
+    (and (setq a 0)
+         (= (catch 'foobar
+                   (setq a (1+ a))
+                   (setq a (1+ a))
+                   a)
+            2)
+         (= (catch (+ 1 2) a) 2)))
+
+  ; FIXME: Figure out how to do this...
+  ;(pass-if-exception "uncaught exception" 'elisp-exception
+  ;  (throw 'abc 1))
+
+  (pass-if "catch and throw"
+    (and (setq mylist '(1 2))
+         (= (catch 'abc (throw 'abc 2) 1) 2)
+         (= (catch 'abc (catch 'def (throw 'abc 1) 2) 3) 1)
+         (= (catch 'abc (catch 'def (throw 'def 1) 2) 3) 3)
+         (= (catch mylist (catch '(1 2) (throw mylist 1) 2) 3) 1))))
+
 
 ; Test handling of variables.
 ; ===========================

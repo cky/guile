@@ -10,6 +10,7 @@ Already implemented:
   * not, and, or
   * referencing and setting (setq) variables
   * while, dotimes, dolist
+  * catch, throw
   * let, let*
   * lambda expressions, function calls using list notation
   * some built-ins (mainly numbers/arithmetic)
@@ -18,7 +19,7 @@ Already implemented:
   * quotation and backquotation with unquote/unquote-splicing
 
 Especially still missing:
-  * catch/throw, unwind-protect
+  * unwind-protect
   * real elisp reader instead of Scheme's
   * set, makunbound, boundp functions
   * more general built-ins
@@ -32,4 +33,4 @@ Especially still missing:
 
 Other ideas and things to think about:
   * %nil vs. #f/'() handling in Guile
-  * don't ensure-fluids for variables known to be let- or argument-bound
+  * flet, lexical-let and/or optional lexical binding as extensions
