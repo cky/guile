@@ -235,6 +235,13 @@
     val))
 
 
+; Throw can be implemented as built-in function.
+
+(built-in-func throw
+  (lambda (tag value)
+    (prim throw 'elisp-exception tag value)))
+
+
 ; Miscellaneous.
 
 (built-in-func not (lambda (x)

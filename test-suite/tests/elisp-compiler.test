@@ -165,9 +165,20 @@
   (pass-if "catch and throw"
     (and (setq mylist '(1 2))
          (= (catch 'abc (throw 'abc 2) 1) 2)
-         (= (catch 'abc (catch 'def (throw 'abc 1) 2) 3) 1)
+         (= (catch 'abc (catch 'def (throw 'abc (1+ 0)) 2) 3) 1)
          (= (catch 'abc (catch 'def (throw 'def 1) 2) 3) 3)
-         (= (catch mylist (catch '(1 2) (throw mylist 1) 2) 3) 1))))
+         (= (catch mylist (catch '(1 2) (throw mylist 1) 2) 3) 1)))
+
+  (pass-if "unwind-protect"
+    (progn (setq a 0 b 1 c 1)
+           (catch 'exc
+                  (unwind-protect (progn (setq a 1)
+                                         (throw 'exc 0))
+                                  (setq a 0)
+                                  (setq b 0)))
+           (unwind-protect nil (setq c 0))
+           (and (= a 0) (= b 0) (= c 0)
+                (= (unwind-protect 42 1 2 3) 42)))))
 
 
 ; Test handling of variables.

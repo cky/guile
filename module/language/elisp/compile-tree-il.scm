@@ -572,6 +572,13 @@
                (compile-expr bind (cdar tail))
                (make-lambda loc '() '() '() (iterate (cdr tail)))))))))
 
+    ; guile-ref allows building TreeIL's module references from within
+    ; elisp as a way to access data (and primitives, for instance) within
+    ; the Guile universe.  The module and symbol referenced are static values,
+    ; just like (@ module symbol) does!
+    ((guile-ref ,module ,sym) (guard (and (list? module) (symbol? sym)))
+     (make-module-ref loc module sym #t))
+
     ; A while construct is transformed into a tail-recursive loop like this:
     ; (letrec ((iterate (lambda ()
     ;                     (if condition
@@ -608,6 +615,8 @@
     ; for matches using eq (eq?).  We handle this by using always #t as key
     ; for the Guile primitives and check for matches inside the handler; if
     ; the elisp keys are not eq?, we rethrow the exception.
+    ;
+    ; throw is implemented as built-in function.
 
     ((catch ,tag . ,body) (guard (not (null? body)))
      (let* ((tag-value (gensym))
@@ -631,11 +640,16 @@
                  (call-primitive loc 'throw
                                  dummy-ref key-ref value-ref))))))))
 
-    ((throw ,tag ,value)
-     (call-primitive loc 'throw
-                     (make-const loc 'elisp-exception)
-                     (compile-expr bind tag)
-                     (compile-expr bind value)))
+    ; unwind-protect is just some weaker construct as dynamic-wind, so 
+    ; straight-forward to implement.
+    ((unwind-protect ,body . ,clean-ups) (guard (not (null? clean-ups)))
+     (call-primitive loc 'dynamic-wind
+                     (make-lambda loc '() '() '() (make-void loc))
+                     (make-lambda loc '() '() '()
+                       (compile-expr bind body))
+                     (make-lambda loc '() '() '()
+                       (make-sequence loc
+                         (map (compiler bind) clean-ups)))))
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
