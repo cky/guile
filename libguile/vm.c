@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -259,7 +259,7 @@ really_make_boot_program (long nargs)
 
   u8vec = make_u8vector (bytes.bytes, sizeof (bytes.bytes));
   ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
-                          SCM_BOOL_F, SCM_EOL);
+                          SCM_BOOL_F, SCM_BOOL_F);
   SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
 
   return ret;
@@ -663,7 +663,7 @@ SCM_DEFINE (scm_vm_trace_frame, "vm-trace-frame", 1, 0, 0,
 SCM scm_load_compiled_with_vm (SCM file)
 {
   SCM program = scm_make_program (scm_load_objcode (file),
-                                  SCM_BOOL_F, SCM_EOL);
+                                  SCM_BOOL_F, SCM_BOOL_F);
   
   return scm_c_vm_run (scm_the_vm (), program, NULL, 0);
 }

@@ -1,6 +1,6 @@
 ;;; Guile VM program functions
 
-;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -31,16 +31,15 @@
             program-properties program-property program-documentation
             program-name program-arguments
            
-            program-arity program-external-set! program-meta
+            program-arity program-meta
             program-objcode program? program-objects
-            program-module program-base program-external))
+            program-module program-base program-free-vars))
 
 (load-extension "libguile" "scm_init_programs")
 
 (define arity:nargs car)
 (define arity:nrest cadr)
 (define arity:nlocs caddr)
-(define arity:nexts cadddr)
 
 (define (make-binding name extp index start end)
   (list name extp index start end))

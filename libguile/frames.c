@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -219,16 +219,6 @@ SCM_DEFINE (scm_vm_frame_dynamic_link, "vm-frame-dynamic-link", 1, 0, 0,
     ((unsigned long)
      RELOC (frame,
             SCM_FRAME_DYNAMIC_LINK (SCM_VM_FRAME_FP (frame))));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_frame_external_link, "vm-frame-external-link", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_vm_frame_external_link
-{
-  SCM_VALIDATE_VM_FRAME (1, frame);
-  return SCM_FRAME_EXTERNAL_LINK (SCM_VM_FRAME_FP (frame));
 }
 #undef FUNC_NAME
 

@@ -21,14 +21,12 @@
 #if (VM_ENGINE == SCM_VM_REGULAR_ENGINE)
 #define VM_USE_HOOKS		0	/* Various hooks */
 #define VM_USE_CLOCK		0	/* Bogoclock */
-#define VM_CHECK_EXTERNAL	1	/* Check external link */
 #define VM_CHECK_OBJECT         1       /* Check object table */
 #define VM_CHECK_CLOSURE        1       /* Check closure vars */
 #define VM_PUSH_DEBUG_FRAMES    0       /* Push frames onto the evaluator debug stack */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
 #define VM_USE_CLOCK		1
-#define VM_CHECK_EXTERNAL	1
 #define VM_CHECK_OBJECT         1
 #define VM_CHECK_CLOSURE        1
 #define VM_PUSH_DEBUG_FRAMES    1
@@ -49,7 +47,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   /* Cache variables */
   struct scm_objcode *bp = NULL;	/* program base pointer */
-  SCM external = SCM_EOL;		/* external environment REMOVEME */
   SCM *closure = NULL;                  /* closure variables */
   size_t closure_count = 0;             /* length of CLOSURE */
   SCM *objects = NULL;			/* constant objects */
@@ -230,13 +227,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     goto vm_error;
 #endif
 
-#if VM_CHECK_EXTERNAL
-  vm_error_external:
-    err_msg  = scm_from_locale_string ("VM: Invalid external access");
-    finish_args = SCM_EOL;
-    goto vm_error;
-#endif
-
 #if VM_CHECK_OBJECT
   vm_error_object:
     err_msg = scm_from_locale_string ("VM: Invalid object table access");
@@ -263,8 +253,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
 #undef VM_USE_HOOKS
 #undef VM_USE_CLOCK
-#undef VM_CHECK_EXTERNAL
 #undef VM_CHECK_OBJECT
+#undef VM_CHECK_CLOSURE
 #undef VM_PUSH_DEBUG_FRAMES
 
 /*

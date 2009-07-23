@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,12 +30,11 @@
 /* VM Frame Layout
    ---------------
 
-   |                  | <- fp + bp->nargs + bp->nlocs + 4
+   |                  | <- fp + bp->nargs + bp->nlocs + 3
    +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
    | Return address   |
    | MV return address|
-   | Dynamic link     |
-   | External link    | <- fp + bp->nargs + bp->nlocs
+   | Dynamic link     | <- fp + bp->nargs + bp->blocs
    | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
@@ -51,21 +50,20 @@
 #define SCM_FRAME_DATA_ADDRESS(fp)				\
   (fp + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs	\
       + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
-#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 4)
+#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 3)
 #define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
 
 #define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
 #define SCM_FRAME_RETURN_ADDRESS(fp)				\
-  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[3]))
-#define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
+#define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
+  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[1]))
 #define SCM_FRAME_DYNAMIC_LINK(fp)				\
-  (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[1]))
+  (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[0]))
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)		\
   ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = (SCM)(dl);
-#define SCM_FRAME_EXTERNAL_LINK(fp)	(SCM_FRAME_DATA_ADDRESS (fp)[0])
 #define SCM_FRAME_VARIABLE(fp,i)	fp[i]
 #define SCM_FRAME_PROGRAM(fp)		fp[-1]
 
@@ -106,7 +104,6 @@ SCM_API SCM scm_vm_frame_local_set_x (SCM frame, SCM index, SCM val);
 SCM_API SCM scm_vm_frame_return_address (SCM frame);
 SCM_API SCM scm_vm_frame_mv_return_address (SCM frame);
 SCM_API SCM scm_vm_frame_dynamic_link (SCM frame);
-SCM_API SCM scm_vm_frame_external_link (SCM frame);
 SCM_API SCM scm_vm_frame_stack (SCM frame);
 
 SCM_API SCM scm_c_vm_frame_prev (SCM frame);

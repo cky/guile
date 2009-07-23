@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@
   (if env (car env) (current-module)))
 
 (define (objcode-env-externals env)
-  (if env (cdr env) '()))
+  (and env (vector? (cdr env)) (cdr env)))
 
 (define (objcode->value x e opts)
   (let ((thunk (make-program x #f (objcode-env-externals e))))

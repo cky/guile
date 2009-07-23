@@ -278,21 +278,6 @@ VM_DEFINE_INSTRUCTION (25, local_ref, "local-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (26, external_ref, "external-ref", 1, 0, 1)
-{
-  unsigned int i;
-  SCM e = external;
-  for (i = FETCH (); i; i--)
-    {
-      CHECK_EXTERNAL(e);
-      e = SCM_CDR (e);
-    }
-  CHECK_EXTERNAL(e);
-  PUSH (SCM_CAR (e));
-  ASSERT_BOUND (*sp);
-  NEXT;
-}
-
 VM_DEFINE_INSTRUCTION (27, variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
@@ -365,21 +350,6 @@ VM_DEFINE_INSTRUCTION (29, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
 VM_DEFINE_INSTRUCTION (30, local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
-  DROP ();
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (31, external_set, "external-set", 1, 1, 0)
-{
-  unsigned int i;
-  SCM e = external;
-  for (i = FETCH (); i; i--)
-    {
-      CHECK_EXTERNAL(e);
-      e = SCM_CDR (e);
-    }
-  CHECK_EXTERNAL(e);
-  SCM_SETCAR (e, *sp);
   DROP ();
   NEXT;
 }
@@ -499,14 +469,6 @@ VM_DEFINE_INSTRUCTION (41, br_if_not_null, "br-if-not-null", 2, 0, 0)
 /*
  * Subprogram call
  */
-
-VM_DEFINE_INSTRUCTION (42, make_closure, "make-closure", 0, 1, 1)
-{
-  SYNC_BEFORE_GC ();
-  SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
-                SCM_PROGRAM_OBJTABLE (*sp), external);
-  NEXT;
-}
 
 VM_DEFINE_INSTRUCTION (43, call, "call", 1, -1, 1)
 {
@@ -656,12 +618,6 @@ VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
       sp -= 2;
       NULLSTACK (bp->nargs + 1);
 
-      /* Freshen the externals */
-      external = SCM_PROGRAM_EXTERNALS (x);
-      for (i = 0; i < bp->nexts; i++)
-        CONS (external, SCM_UNDEFINED, external);
-      SCM_FRAME_DATA_ADDRESS (fp)[0] = external;
-
       /* Init locals to valid SCM values */
       for (i = 0; i < bp->nlocs; i++)
 	LOCAL_SET (i + bp->nargs, SCM_UNDEFINED);
@@ -710,7 +666,7 @@ VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
          sure we have space for the locals now */
       data = SCM_FRAME_DATA_ADDRESS (fp);
       ip = bp->base;
-      stack_base = data + 3;
+      stack_base = data + 2;
       sp = stack_base;
       CHECK_OVERFLOW ();
 
@@ -725,17 +681,9 @@ VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
         data[-i] = SCM_UNDEFINED;
       
       /* Set frame data */
-      data[3] = (SCM)ra;
-      data[2] = (SCM)mvra;
-      data[1] = (SCM)dl;
-
-      /* Postpone initializing external vars, because if the CONS causes a GC,
-         we want the stack marker to see the data array formatted as expected. */
-      data[0] = SCM_UNDEFINED;
-      external = SCM_PROGRAM_EXTERNALS (fp[-1]);
-      for (i = 0; i < bp->nexts; i++)
-        CONS (external, SCM_UNDEFINED, external);
-      data[0] = external;
+      data[2] = (SCM)ra;
+      data[1] = (SCM)mvra;
+      data[0] = (SCM)dl;
 
       ENTER_HOOK ();
       APPLY_HOOK ();
@@ -860,7 +808,7 @@ VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 3, -1, 1)
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
-      SCM_FRAME_DATA_ADDRESS (fp)[2] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
+      SCM_FRAME_DATA_ADDRESS (fp)[1] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -1019,12 +967,12 @@ VM_DEFINE_INSTRUCTION (52, return, "return", 0, 1, 1)
 
     POP (ret);
     ASSERT (sp == stack_base);
-    ASSERT (stack_base == data + 3);
+    ASSERT (stack_base == data + 2);
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
-    ip = SCM_FRAME_BYTE_CAST (data[3]);
-    fp = SCM_FRAME_STACK_CAST (data[1]);
+    ip = SCM_FRAME_BYTE_CAST (data[2]);
+    fp = SCM_FRAME_STACK_CAST (data[0]);
     {
 #ifdef VM_ENABLE_STACK_NULLING
       int nullcount = stack_base - sp;
@@ -1040,7 +988,6 @@ VM_DEFINE_INSTRUCTION (52, return, "return", 0, 1, 1)
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
-  CACHE_EXTERNAL ();
   CHECK_IP ();
   NEXT;
 }
@@ -1057,16 +1004,16 @@ VM_DEFINE_INSTRUCTION (53, return_values, "return/values", 1, -1, -1)
   RETURN_HOOK ();
 
   data = SCM_FRAME_DATA_ADDRESS (fp);
-  ASSERT (stack_base == data + 3);
+  ASSERT (stack_base == data + 2);
 
-  /* data[2] is the mv return address */
-  if (nvalues != 1 && data[2]) 
+  /* data[1] is the mv return address */
+  if (nvalues != 1 && data[1]) 
     {
       int i;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[2]); /* multiple value ra */
-      fp = SCM_FRAME_STACK_CAST (data[1]);
+      ip = SCM_FRAME_BYTE_CAST (data[1]); /* multiple value ra */
+      fp = SCM_FRAME_STACK_CAST (data[0]);
         
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
@@ -1085,8 +1032,8 @@ VM_DEFINE_INSTRUCTION (53, return_values, "return/values", 1, -1, -1)
          continuation.) */
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[3]); /* single value ra */
-      fp = SCM_FRAME_STACK_CAST (data[1]);
+      ip = SCM_FRAME_BYTE_CAST (data[2]); /* single value ra */
+      fp = SCM_FRAME_STACK_CAST (data[0]);
         
       /* Push first value */
       *++sp = stack_base[1];
@@ -1101,7 +1048,6 @@ VM_DEFINE_INSTRUCTION (53, return_values, "return/values", 1, -1, -1)
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
-  CACHE_EXTERNAL ();
   CHECK_IP ();
   NEXT;
 }

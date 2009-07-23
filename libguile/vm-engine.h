@@ -138,11 +138,7 @@
 #define ASSERT_BOUND(x)
 #endif
 
-/* Get a local copy of the program's "object table" (i.e. the vector of
-   external bindings that are referenced by the program), initialized by
-   `load-program'.  */
-/* XXX:  We could instead use the "simple vector macros", thus not having to
-   call `scm_vector_writable_elements ()' and the likes.  */
+/* Cache the object table and free variables.  */
 #define CACHE_PROGRAM()							\
 {									\
   if (bp != SCM_PROGRAM_DATA (program)) {                               \
@@ -156,7 +152,7 @@
     }                                                                   \
   }                                                                     \
   {                                                                     \
-    SCM c = SCM_PROGRAM_EXTERNALS (program);                            \
+    SCM c = SCM_PROGRAM_FREE_VARS (program);                            \
     if (SCM_I_IS_VECTOR (c))                                            \
       {                                                                 \
         closure = SCM_I_VECTOR_WELTS (c);                               \
@@ -184,14 +180,6 @@
 /*
  * Error check
  */
-
-#undef CHECK_EXTERNAL
-#if VM_CHECK_EXTERNAL
-#define CHECK_EXTERNAL(e) \
-  do { if (SCM_UNLIKELY (!SCM_CONSP (e))) goto vm_error_external; } while (0)
-#else
-#define CHECK_EXTERNAL(e)
-#endif
 
 /* Accesses to a program's object table.  */
 #if VM_CHECK_OBJECT
@@ -406,7 +394,7 @@ do {						\
   /* New registers */                           \
   fp = sp - bp->nargs + 1;                      \
   data = SCM_FRAME_DATA_ADDRESS (fp);           \
-  sp = data + 3;                                \
+  sp = data + 2;                                \
   CHECK_OVERFLOW ();				\
   stack_base = sp;				\
   ip = bp->base;				\
@@ -416,22 +404,10 @@ do {						\
     data[-i] = SCM_UNDEFINED;                   \
 						\
   /* Set frame data */				\
-  data[3] = (SCM)ra;                            \
-  data[2] = 0x0;                                \
-  data[1] = (SCM)dl;                            \
-                                                \
-  /* Postpone initializing external vars,       \
-     because if the CONS causes a GC, we        \
-     want the stack marker to see the data      \
-     array formatted as expected. */            \
-  data[0] = SCM_UNDEFINED;                      \
-  external = SCM_PROGRAM_EXTERNALS (fp[-1]);    \
-  for (i = 0; i < bp->nexts; i++)               \
-    CONS (external, SCM_UNDEFINED, external);   \
-  data[0] = external;                           \
+  data[2] = (SCM)ra;                            \
+  data[1] = 0x0;                                \
+  data[0] = (SCM)dl;                            \
 }
-
-#define CACHE_EXTERNAL() external = fp[bp->nargs + bp->nlocs]
 
 /*
   Local Variables:
