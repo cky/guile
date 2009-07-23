@@ -72,7 +72,7 @@
   (if (and (null? bindings) (null? sources) (null? tail))
       #f
       (compile-assembly
-       (make-glil-program 0 0 0 0 '()
+       (make-glil-program 0 0 0 '()
                           (list
                            (make-glil-const `(,bindings ,sources ,@tail))
                            (make-glil-call 'return 1))))))
@@ -128,13 +128,13 @@
 
 (define (compile-assembly glil)
   (receive (code . _)
-      (glil->assembly glil '() '(()) '() '() #f -1)
+      (glil->assembly glil #t '(()) '() '() #f -1)
     (car code)))
 (define (make-object-table objects)
   (and (not (null? objects))
        (list->vector (cons #f objects))))
 
-(define (glil->assembly glil nexts-stack bindings
+(define (glil->assembly glil toplevel? bindings
                         source-alist label-alist object-alist addr)
   (define (emit-code x)
     (values (map assembly-pack x) bindings source-alist label-alist object-alist))
@@ -142,60 +142,56 @@
     (values (map assembly-pack x) bindings source-alist label-alist object-alist))
 
   (record-case glil
-    ((<glil-program> nargs nrest nlocs nexts meta body closure-level)
-     (let ((toplevel? (null? nexts-stack)))
-       (define (process-body)
-         (let ((nexts-stack (cons nexts nexts-stack)))
-           (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
-                    (label-alist '()) (object-alist (if toplevel? #f '())) (addr 0))
-             (cond
-              ((null? body)
-               (values (reverse code)
-                       (close-all-bindings bindings addr)
-                       (limn-sources (reverse! source-alist))
-                       (reverse label-alist)
-                       (and object-alist (map car (reverse object-alist)))
-                       addr))
-              (else
-               (receive (subcode bindings source-alist label-alist object-alist)
-                   (glil->assembly (car body) nexts-stack bindings
-                                   source-alist label-alist object-alist addr)
-                 (lp (cdr body) (append (reverse subcode) code)
-                     bindings source-alist label-alist object-alist
-                     (addr+ addr subcode))))))))
+    ((<glil-program> nargs nrest nlocs meta body)
+     (define (process-body)
+       (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
+                (label-alist '()) (object-alist (if toplevel? #f '())) (addr 0))
+         (cond
+          ((null? body)
+           (values (reverse code)
+                   (close-all-bindings bindings addr)
+                   (limn-sources (reverse! source-alist))
+                   (reverse label-alist)
+                   (and object-alist (map car (reverse object-alist)))
+                   addr))
+          (else
+           (receive (subcode bindings source-alist label-alist object-alist)
+               (glil->assembly (car body) #f bindings
+                               source-alist label-alist object-alist addr)
+             (lp (cdr body) (append (reverse subcode) code)
+                 bindings source-alist label-alist object-alist
+                 (addr+ addr subcode)))))))
 
-       (receive (code bindings sources labels objects len)
-           (process-body)
-         (let ((prog `(load-program ,nargs ,nrest ,nlocs ,nexts ,labels
-                                    ,len
-                                    ,(make-meta bindings sources meta)
-                                    . ,code)))
-           (cond
-            (toplevel?
-             ;; toplevel bytecode isn't loaded by the vm, no way to do
-             ;; object table or closure capture (not in the bytecode,
-             ;; anyway)
-             (emit-code (align-program prog addr)))
-            (else
-             (let ((table (dump-object (make-object-table objects) addr))
-                   (closure  '()))
-               (cond
-                (object-alist
-                 ;; if we are being compiled from something with an object
-                 ;; table, cache the program there
-                 (receive (i object-alist)
-                     (object-index-and-alist (make-subprogram table prog)
-                                             object-alist)
-                   (emit-code/object `(,(if (< i 256)
-                                            `(object-ref ,i)
-                                            `(long-object-ref ,(quotient i 256)
-                                                              ,(modulo i 256)))
-                                       ,@closure)
-                                     object-alist)))
-                (else
-                 ;; otherwise emit a load directly
-                 (emit-code `(,@table ,@(align-program prog (addr+ addr table))
-                                      ,@closure)))))))))))
+     (receive (code bindings sources labels objects len)
+         (process-body)
+       (let ((prog `(load-program ,nargs ,nrest ,nlocs ,labels
+                                  ,len
+                                  ,(make-meta bindings sources meta)
+                                  . ,code)))
+         (cond
+          (toplevel?
+           ;; toplevel bytecode isn't loaded by the vm, no way to do
+           ;; object table or closure capture (not in the bytecode,
+           ;; anyway)
+           (emit-code (align-program prog addr)))
+          (else
+           (let ((table (dump-object (make-object-table objects) addr)))
+             (cond
+              (object-alist
+               ;; if we are being compiled from something with an object
+               ;; table, cache the program there
+               (receive (i object-alist)
+                   (object-index-and-alist (make-subprogram table prog)
+                                           object-alist)
+                 (emit-code/object `(,(if (< i 256)
+                                          `(object-ref ,i)
+                                          `(long-object-ref ,(quotient i 256)
+                                                            ,(modulo i 256))))
+                                   object-alist)))
+              (else
+               ;; otherwise emit a load directly
+               (emit-code `(,@table ,@(align-program prog (addr+ addr table))))))))))))
+    
     
     ((<glil-bind> vars)
      (values '()
@@ -243,19 +239,6 @@
                                `((long-object-ref ,(quotient i 256)
                                                   ,(modulo i 256))))
                            object-alist)))))
-
-    ((<glil-local> op index)
-     (emit-code (if (eq? op 'ref)
-                    `((local-ref ,index))
-                    `((local-set ,index)))))
-
-    ((<glil-external> op depth index)
-     (emit-code (let lp ((d depth) (n 0) (stack nexts-stack))
-                  (if (> d 0)
-                      (lp (1- d) (+ n (car stack)) (cdr stack))
-                      (if (eq? op 'ref)
-                          `((external-ref ,(+ n index)))
-                          `((external-set ,(+ n index))))))))
 
     ((<glil-lexical> local? boxed? op index)
      (emit-code

@@ -89,12 +89,11 @@
           (len (instruction-length inst)))
       (write-byte opcode)
       (pmatch asm
-        ((load-program ,nargs ,nrest ,nlocs ,nexts
-                       ,labels ,length ,meta . ,code)
+        ((load-program ,nargs ,nrest ,nlocs ,labels ,length ,meta . ,code)
          (write-byte nargs)
          (write-byte nrest)
          (write-byte nlocs)
-         (write-byte nexts)
+         (write-byte 0) ;; what used to be nexts
          (write-uint32 length)
          (write-uint32 (if meta (1- (byte-length meta)) 0))
          (letrec ((i 0)

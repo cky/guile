@@ -172,7 +172,7 @@
                               (1+ n) 1))))
     (let ((nlocs (car (hashq-ref allocation x))))
       (make-glil-program
-       nargs nrest nlocs 0 (lambda-meta x)
+       nargs nrest nlocs (lambda-meta x)
        (with-output-to-code
         (lambda (emit-code)
           ;; write bindings and source debugging info

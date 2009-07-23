@@ -21,9 +21,9 @@
 (define-module (system vm program)
   #:export (make-program
 
-            arity:nargs arity:nrest arity:nlocs arity:nexts
+            arity:nargs arity:nrest arity:nlocs
 
-            make-binding binding:name binding:extp binding:index
+            make-binding binding:name binding:boxed? binding:index
             binding:start binding:end
 
             source:addr source:line source:column source:file
@@ -41,10 +41,10 @@
 (define arity:nrest cadr)
 (define arity:nlocs caddr)
 
-(define (make-binding name extp index start end)
-  (list name extp index start end))
+(define (make-binding name boxed? index start end)
+  (list name boxed? index start end))
 (define (binding:name b) (list-ref b 0))
-(define (binding:extp b) (list-ref b 1))
+(define (binding:boxed? b) (list-ref b 1))
 (define (binding:index b) (list-ref b 2))
 (define (binding:start b) (list-ref b 3))
 (define (binding:end b) (list-ref b 4))

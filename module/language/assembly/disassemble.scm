@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -35,12 +35,11 @@
 
 (define (disassemble-load-program asm env)
   (pmatch asm
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,code)
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
      (let ((objs  (and env (assq-ref env 'objects)))
+           (free-vars (and env (assq-ref env 'free-vars)))
            (meta  (and env (assq-ref env 'meta)))
-           (exts  (and env (assq-ref env 'exts)))
            (blocs (and env (assq-ref env 'blocs)))
-           (bexts (and env (assq-ref env 'bexts)))
            (srcs  (and env (assq-ref env 'sources))))
        (let lp ((pos 0) (code code) (programs '()))
          (cond
@@ -63,13 +62,13 @@
                       (acons sym asm programs))))
                (else
                 (print-info pos asm
-                            (code-annotation end asm objs nargs blocs bexts
+                            (code-annotation end asm objs nargs blocs
                                              labels)
                             (and=> (and srcs (assq end srcs)) source->string))
                 (lp (+ pos (byte-length asm)) (cdr code) programs)))))))
                  
-       (if (pair? exts)
-           (disassemble-externals exts))
+       (if (pair? free-vars)
+           (disassemble-free-vars free-vars))
        (if meta
            (disassemble-meta meta))
 
@@ -92,13 +91,12 @@
 	((= n len) (newline))
       (print-info n (vector-ref objs n) #f #f))))
 
-(define (disassemble-externals exts)
-  (display "Externals:\n\n")
-  (let ((len (length exts)))
-    (do ((n 0 (1+ n))
-	 (l exts (cdr l)))
-	((null? l) (newline))
-      (print-info n (car l) #f #f))))
+(define (disassemble-free-vars free-vars)
+  (display "Free variables:\n\n")
+  (let ((i 0))
+    (cond ((< i (vector-length free-vars))
+           (print-info i (vector-ref free-vars i) #f #f)
+           (lp (1+ i))))))
 
 (define-macro (unless test . body)
   `(if (not ,test) (begin ,@body)))
@@ -122,7 +120,7 @@
 (define (make-int16 byte1 byte2)
   (+ (* byte1 256) byte2))
 
-(define (code-annotation end-addr code objs nargs blocs bexts labels)
+(define (code-annotation end-addr code objs nargs blocs labels)
   (let* ((code (assembly-unpack code))
          (inst (car code))
          (args (cdr code)))
@@ -133,7 +131,7 @@
        (list "-> ~A" (assq-ref labels (car args))))
       ((object-ref)
        (and objs (list "~s" (vector-ref objs (car args)))))
-      ((local-ref local-set)
+      ((local-ref local-boxed-ref local-set local-boxed-set)
        (and blocs
             (let lp ((bindings (list-ref blocs (car args))))
               (and (pair? bindings)
@@ -143,13 +141,9 @@
                          (list "`~a'~@[ (arg)~]"
                                (binding:name b) (< (binding:index b) nargs))
                          (lp (cdr bindings))))))))
-      ((external-ref external-set)
-       (and bexts
-            (if (< (car args) (length bexts))
-                (let ((b (list-ref bexts (car args))))
-                  (list "`~a'~@[ (arg)~]"
-                        (binding:name b) (< (binding:index b) nargs)))
-                (list "(closure variable)"))))
+      ((free-ref free-boxed-ref free-boxed-set)
+       ;; FIXME: we can do better than this
+       (list "(closure variable)"))
       ((toplevel-ref toplevel-set)
        (and objs
             (let ((v (vector-ref objs (car args))))

@@ -85,28 +85,28 @@
                (vector 'load-keyword 0 0 3 (char->integer #\q) (char->integer #\u)
                        (char->integer #\x)))
 
-    (comp-test '(load-program 3 2 1 0 () 3 #f (make-int8 3) (return))
+    (comp-test '(load-program 3 2 1 () 3 #f (make-int8 3) (return))
                (list->vector
                 `(load-program
-                  3 2 1 0            ;; nargs, nrest, nlocs, nexts
+                  3 2 1 0            ;; nargs, nrest, nlocs, unused
                   ,@(u32->u8-list 3) ;; len
                   ,@(u32->u8-list 0) ;; metalen
                   make-int8 3
                   return)))
 
-    (comp-test '(load-program 3 2 1 0 () 3
-                              (load-program 3 2 1 0 () 3
+    (comp-test '(load-program 3 2 1 () 3
+                              (load-program 3 2 1 () 3
                                             #f
                                             (make-int8 3) (return))
                               (make-int8 3) (return))
                (list->vector
                 `(load-program
-                  3 2 1 0                   ;; nargs, nrest, nlocs, nexts
+                  3 2 1 0                   ;; nargs, nrest, nlocs, unused
                   ,@(u32->u8-list 3)        ;; len
                   ,@(u32->u8-list (+ 3 12)) ;; metalen
                   make-int8 3
                   return
-                  3 2 1 0                   ;; nargs, nrest, nlocs, nexts
+                  3 2 1 0                   ;; nargs, nrest, nlocs, unused
                   ,@(u32->u8-list 3)        ;; len
                   ,@(u32->u8-list 0)        ;; metalen
                   make-int8 3

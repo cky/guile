@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -31,8 +31,8 @@
 
 (define (decompile-toplevel x)
   (pmatch x
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,body)
-     (decompile-load-program nargs nrest nlocs nexts
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,body)
+     (decompile-load-program nargs nrest nlocs
                              (decompile-meta meta)
                              body labels #f))
     (else
@@ -56,7 +56,7 @@
           ((glil-program? (car in)) (lp (cdr in) (cons (car in) out)))
           (else (lp (cdr in) (cons (make-glil-const (car l)) out))))))
 
-(define (decompile-load-program nargs nrest nlocs nexts meta body labels
+(define (decompile-load-program nargs nrest nlocs meta body labels
                                 objects)
   (let ((glil-labels (sort (map (lambda (x)
                                   (cons (cdr x) (make-glil-label (car x))))
@@ -100,19 +100,11 @@
       (cond
        ((null? in)
         (or (null? stack) (error "leftover stack insts" stack body))
-        (make-glil-program nargs nrest nlocs nexts props (reverse out) #f))
+        (make-glil-program nargs nrest nlocs props (reverse out) #f))
        ((pop-bindings! pos)
         => (lambda (bindings)
              (lp in stack
-                 (cons (make-glil-bind
-                        (map (lambda (x)
-                               (let ((name (binding:name x))
-                                     (i (binding:index x)))
-                                 (cond
-                                  ((binding:extp x) `(,name external ,i))
-                                  ((< i nargs) `(,name argument ,i))
-                                  (else `(,name local ,(- i nargs))))))
-                             bindings))
+                 (cons (make-glil-bind bindings)
                        out)
                  pos)))
        ((pop-unbindings! pos)

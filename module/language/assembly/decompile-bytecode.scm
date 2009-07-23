@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -49,7 +49,7 @@
         (- x (ash 1 16)))))
 
 (define (decode-load-program pop)
-  (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (nexts (pop))
+  (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (unused (pop))
          (a (pop)) (b (pop)) (c (pop)) (d (pop))
          (e (pop)) (f (pop)) (g (pop)) (h (pop))
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
@@ -74,7 +74,7 @@
       (cond ((> i len)
              (error "error decoding program -- read too many bytes" out))
             ((= i len)
-             `(load-program ,nargs ,nrest ,nlocs ,nexts
+             `(load-program ,nargs ,nrest ,nlocs 
                             ,(map (lambda (x) (cons (cdr x) (car x)))
                                   (reverse labels))
                             ,len

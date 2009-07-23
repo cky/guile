@@ -1,6 +1,6 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 ;;; Copyright (C) 2005 Ludovic Courtès  <ludovic.courtes@laas.fr>
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
@@ -27,20 +27,20 @@
             vm-frame-program
             vm-frame-local-ref vm-frame-local-set!
             vm-frame-return-address vm-frame-mv-return-address
-            vm-frame-dynamic-link vm-frame-external-link
+            vm-frame-dynamic-link
             vm-frame-stack
 
 
             vm-frame-number vm-frame-address
-           make-frame-chain
-           print-frame print-frame-chain-as-backtrace
-           frame-arguments frame-local-variables frame-external-variables
-           frame-environment
-           frame-variable-exists? frame-variable-ref frame-variable-set!
-           frame-object-name
-           frame-local-ref frame-external-link frame-local-set!
-           frame-return-address frame-program
-           frame-dynamic-link heap-frame?))
+            make-frame-chain
+            print-frame print-frame-chain-as-backtrace
+            frame-arguments frame-local-variables
+            frame-environment
+            frame-variable-exists? frame-variable-ref frame-variable-set!
+            frame-object-name
+            frame-local-ref frame-local-set!
+            frame-return-address frame-program
+            frame-dynamic-link heap-frame?))
 
 (load-extension "libguile" "scm_init_frames")
 
@@ -158,24 +158,19 @@
 	 (l '() (cons (frame-local-ref frame n) l)))
 	((< n 0) l))))
 
-(define (frame-external-variables frame)
-  (frame-external-link frame))
-
-(define (frame-external-ref frame index)
-  (list-ref (frame-external-link frame) index))
-
-(define (frame-external-set! frame index val)
-  (list-set! (frame-external-link frame) index val))
-
 (define (frame-binding-ref frame binding)
-  (if (binding:extp binding)
-    (frame-external-ref frame (binding:index binding))
-    (frame-local-ref frame (binding:index binding))))
+  (let ((x (frame-local-ref frame (binding:index binding))))
+    (if (and (binding:boxed? binding) (variable? x))
+        (variable-ref x)
+        x)))
 
 (define (frame-binding-set! frame binding val)
-  (if (binding:extp binding)
-    (frame-external-set! frame (binding:index binding) val)
-    (frame-local-set! frame (binding:index binding) val)))
+  (if (binding:boxed? binding)
+      (let ((v (frame-local-ref frame binding)))
+        (if (variable? v)
+            (variable-set! v val)
+            (frame-local-set! frame binding (make-variable val))))
+      (frame-local-set! frame binding val)))
 
 ;; FIXME handle #f program-bindings return
 (define (frame-bindings frame addr)
