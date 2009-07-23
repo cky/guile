@@ -503,7 +503,7 @@
                        (else (error "what" x loc))))
                    free-locs)
                   (emit-code #f (make-glil-call 'vector (length free-locs)))
-                  (emit-code #f (make-glil-call 'make-closure2 2))))
+                  (emit-code #f (make-glil-call 'make-closure 2))))
             (if (eq? context 'tail)
                 (emit-code #f (make-glil-call 'return 1)))))))
       

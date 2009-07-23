@@ -248,7 +248,7 @@ VM_DEFINE_INSTRUCTION (22, list_break, "list-break", 0, 0, 0)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
 
-#define CLOSURE_REF(i)		closure[i]
+#define FREE_VARIABLE_REF(i)	free_vars[i]
 
 /* ref */
 
@@ -1138,41 +1138,41 @@ VM_DEFINE_INSTRUCTION (59, local_boxed_set, "local-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (60, closure_ref, "closure-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (60, free_ref, "free-ref", 1, 0, 1)
 {
   scm_t_uint8 idx = FETCH ();
   
-  CHECK_CLOSURE (idx);
-  PUSH (CLOSURE_REF (idx));
+  CHECK_FREE_VARIABLE (idx);
+  PUSH (FREE_VARIABLE_REF (idx));
   NEXT;
 }
 
-/* no closure-set -- if a var is assigned, it should be in a box */
+/* no free-set -- if a var is assigned, it should be in a box */
 
-VM_DEFINE_INSTRUCTION (61, closure_boxed_ref, "closure-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (61, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
 {
   SCM v;
   scm_t_uint8 idx = FETCH ();
-  CHECK_CLOSURE (idx);
-  v = CLOSURE_REF (idx);
+  CHECK_FREE_VARIABLE (idx);
+  v = FREE_VARIABLE_REF (idx);
   ASSERT_BOUND_VARIABLE (v);
   PUSH (VARIABLE_REF (v));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (62, closure_boxed_set, "closure-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (62, free_boxed_set, "free-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   scm_t_uint8 idx = FETCH ();
   POP (val);
-  CHECK_CLOSURE (idx);
-  v = CLOSURE_REF (idx);
+  CHECK_FREE_VARIABLE (idx);
+  v = FREE_VARIABLE_REF (idx);
   ASSERT_BOUND_VARIABLE (v);
   VARIABLE_SET (v, val);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (63, make_closure2, "make-closure2", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (63, make_closure, "make-closure", 0, 2, 1)
 {
   SCM vect;
   POP (vect);

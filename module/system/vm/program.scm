@@ -33,7 +33,7 @@
            
             program-arity program-meta
             program-objcode program? program-objects
-            program-module program-base program-free-vars))
+            program-module program-base program-free-variables))
 
 (load-extension "libguile" "scm_init_programs")
 

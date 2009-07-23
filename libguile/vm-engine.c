@@ -22,13 +22,13 @@
 #define VM_USE_HOOKS		0	/* Various hooks */
 #define VM_USE_CLOCK		0	/* Bogoclock */
 #define VM_CHECK_OBJECT         1       /* Check object table */
-#define VM_CHECK_CLOSURE        1       /* Check closure vars */
+#define VM_CHECK_FREE_VARIABLES 1       /* Check free variable access */
 #define VM_PUSH_DEBUG_FRAMES    0       /* Push frames onto the evaluator debug stack */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
 #define VM_USE_CLOCK		1
 #define VM_CHECK_OBJECT         1
-#define VM_CHECK_CLOSURE        1
+#define VM_CHECK_FREE_VARIABLES 1
 #define VM_PUSH_DEBUG_FRAMES    1
 #else
 #error unknown debug engine VM_ENGINE
@@ -47,8 +47,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   /* Cache variables */
   struct scm_objcode *bp = NULL;	/* program base pointer */
-  SCM *closure = NULL;                  /* closure variables */
-  size_t closure_count = 0;             /* length of CLOSURE */
+  SCM *free_vars = NULL;                /* free variables */
+  size_t free_vars_count = 0;           /* length of FREE_VARS */
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
   SCM *stack_base = vp->stack_base;	/* stack base address */
@@ -234,9 +234,9 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     goto vm_error;
 #endif
 
-#if VM_CHECK_CLOSURE
-  vm_error_closure:
-    err_msg = scm_from_locale_string ("VM: Invalid closure variable access");
+#if VM_CHECK_FREE_VARIABLES
+  vm_error_free_variable:
+    err_msg = scm_from_locale_string ("VM: Invalid free variable access");
     finish_args = SCM_EOL;
     goto vm_error;
 #endif
@@ -254,7 +254,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 #undef VM_USE_HOOKS
 #undef VM_USE_CLOCK
 #undef VM_CHECK_OBJECT
-#undef VM_CHECK_CLOSURE
+#undef VM_CHECK_FREE_VARIABLE
 #undef VM_PUSH_DEBUG_FRAMES
 
 /*

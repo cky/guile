@@ -178,7 +178,7 @@
              (emit-code (align-program prog addr)))
             (else
              (let ((table (dump-object (make-object-table objects) addr))
-                   (closure (if (> closure-level 0) '((make-closure)) '())))
+                   (closure  '()))
                (cond
                 (object-alist
                  ;; if we are being compiled from something with an object
@@ -267,8 +267,8 @@
                 ((empty-box) 'empty-box)
                 (else (error "what" op)))
               (case op
-                ((ref) (if boxed? 'closure-boxed-ref 'closure-ref))
-                ((set) (if boxed? 'closure-boxed-set (error "what." glil)))
+                ((ref) (if boxed? 'free-boxed-ref 'free-ref))
+                ((set) (if boxed? 'free-boxed-set (error "what." glil)))
                 (else (error "what" op))))
          ,index))))
     
