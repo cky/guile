@@ -78,8 +78,8 @@
                            (make-glil-call 'return 1))))))
 
 ;; A functional stack of names of live variables.
-(define (make-open-binding name ext? index)
-  (list name ext? index))
+(define (make-open-binding name boxed? index)
+  (list name boxed? index))
 (define (make-closed-binding open-binding start end)
   (make-binding (car open-binding) (cadr open-binding)
                 (caddr open-binding) start end))
@@ -89,8 +89,8 @@
           (map
            (lambda (v)
              (pmatch v
-               ((,name local ,i) (make-open-binding name #f i))
-               ((,name external ,i) (make-open-binding name #t i))
+               ((,name ,boxed? ,i)
+                (make-open-binding name boxed? i))
                (else (error "unknown binding type" v))))
            vars)
           (car bindings))
@@ -257,6 +257,21 @@
                           `((external-ref ,(+ n index)))
                           `((external-set ,(+ n index))))))))
 
+    ((<glil-lexical> local? boxed? op index)
+     (emit-code
+      `((,(if local?
+              (case op
+                ((ref) (if boxed? 'local-boxed-ref 'local-ref))
+                ((set) (if boxed? 'local-boxed-set 'local-set))
+                ((box) 'box)
+                ((empty-box) 'empty-box)
+                (else (error "what" op)))
+              (case op
+                ((ref) (if boxed? 'closure-boxed-ref 'closure-ref))
+                ((set) (if boxed? 'closure-boxed-set (error "what." glil)))
+                (else (error "what" op))))
+         ,index))))
+    
     ((<glil-toplevel> op name)
      (case op
        ((ref set)

@@ -1,6 +1,6 @@
 ;;; Guile Low Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -49,6 +49,9 @@
    <glil-external> make-glil-external glil-external?
    glil-external-op glil-external-depth glil-external-index
 
+   <glil-lexical> make-glil-lexical glil-lexical?
+   glil-lexical-local? glil-lexical-boxed? glil-lexical-op glil-lexical-index
+
    <glil-toplevel> make-glil-toplevel glil-toplevel?
    glil-toplevel-op glil-toplevel-name
 
@@ -85,6 +88,7 @@
   ;; Variables
   (<glil-local> op index)
   (<glil-external> op depth index)
+  (<glil-lexical> local? boxed? op index)
   (<glil-toplevel> op name)
   (<glil-module> op mod name public?)
   ;; Controls
@@ -122,6 +126,7 @@
     ((const ,obj) (make-glil-const obj))
     ((local ,op ,index) (make-glil-local op index))
     ((external ,op ,depth ,index) (make-glil-external op depth index))
+    ((lexical ,local? ,boxed? ,op ,index) (make-glil-lexical local? boxed? op index))
     ((toplevel ,op ,name) (make-glil-toplevel op name))
     ((module public ,op ,mod ,name) (make-glil-module op mod name #t))
     ((module private ,op ,mod ,name) (make-glil-module op mod name #f))
@@ -144,10 +149,10 @@
     ((<glil-void>) `(void))
     ((<glil-const> obj) `(const ,obj))
     ;; variables
-    ((<glil-local> op index)
-     `(local ,op ,index))
     ((<glil-external> op depth index)
      `(external ,op ,depth ,index))
+    ((<glil-lexical> local? boxed? op index)
+     `(lexical ,local? ,boxed? ,op ,index))
     ((<glil-toplevel> op name)
      `(toplevel ,op ,name))
     ((<glil-module> op mod name public?)
