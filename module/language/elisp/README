@@ -9,6 +9,8 @@ Already implemented:
   * if, cond, when, unless
   * not, and, or
   * referencing and setting (setq) variables
+  * set, symbol-value, makunbound, boundp functions
+  * fset, symbol-function, fmakunbound, fboundp
   * while, dotimes, dolist
   * catch, throw, unwind-protect
   * let, let*
@@ -20,10 +22,8 @@ Already implemented:
 
 Especially still missing:
   * real elisp reader instead of Scheme's
-  * set, makunbound, boundp functions
   * more general built-ins
   * funcall and apply functions
-  * fset & friends, defalias functions
   * advice?
   * defsubst and inlining
   * need fluids for function bindings?

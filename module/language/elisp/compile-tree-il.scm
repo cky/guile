@@ -46,9 +46,9 @@
 ; Modules that contain the value and function slot bindings.
 
 (define runtime '(language elisp runtime))
-(define value-slot '(language elisp runtime value-slot))
-(define function-slot '(language elisp runtime function-slot))
 (define macro-slot '(language elisp runtime macro-slot))
+(define value-slot (@ (language elisp runtime) value-slot-module))
+(define function-slot (@ (language elisp runtime) function-slot-module))
 
 
 ; The backquoting works the same as quasiquotes in Scheme, but the forms are
@@ -94,23 +94,9 @@
 ; the fluids are really generated with this routine.
 
 (define (generate-ensure-fluid loc sym module)
-  (let ((resolved-module (call-primitive loc 'resolve-module
-                                         (make-const loc module)))
-        (resolved-intf (call-primitive loc 'resolve-interface
-                                       (make-const loc module))))
-    (make-conditional loc
-      (call-primitive loc 'module-defined? resolved-intf (make-const loc sym))
-      (make-void loc)
-      (make-sequence loc
-        (list (call-primitive loc 'module-define!
-                resolved-module (make-const loc sym)
-                (call-primitive loc 'make-fluid))
-              (call-primitive loc 'module-export!
-                resolved-module
-                (call-primitive loc 'list (make-const loc sym)))
-              (call-primitive loc 'fluid-set!
-                (make-module-ref loc module sym #t)
-                (make-module-ref loc runtime 'void #t)))))))
+  (make-application loc (make-module-ref loc runtime 'ensure-fluid! #t)
+    (list (make-const loc module)
+          (make-const loc sym))))
 
 
 ; Generate code to reference a fluid saved variable.

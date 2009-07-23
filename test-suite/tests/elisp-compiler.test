@@ -191,9 +191,19 @@
   (pass-if-equal "setq and reference" 6
     (progn (setq a 1 b 2 c 3)
            (+ a b c)))
-
   (pass-if-equal "setq value" 2
-    (progn (setq a 1 b 2))))
+    (progn (setq a 1 b 2)))
+
+  (pass-if "set and symbol-value"
+    (progn (setq myvar 'a)
+           (and (= (set myvar 42) 42)
+                (= a 42)
+                (= (symbol-value myvar) 42))))
+  (pass-if "void variables"
+    (progn (setq a 1 b 2)
+           (and (eq (makunbound 'b) 'b)
+                (boundp 'a)
+                (not (boundp 'b))))))
 
 (with-test-prefix/compile "Let and Let*"
 
@@ -235,9 +245,9 @@
     (progn (setq a 42)
            (defvar a 1 "Some docstring is also ok")
            a))
-  ; FIXME: makunbound a!
   (pass-if-equal "defvar on undefined variable" 1
-    (progn (defvar a 1)
+    (progn (makunbound 'a)
+           (defvar a 1)
            a))
   (pass-if-equal "defvar value" 'a
     (defvar a)))
@@ -267,7 +277,21 @@
     (progn (defun test (a b) (+ a b))
            (test 1 2)))
   (pass-if-equal "defun value" 'test
-    (defun test (a b) (+ a b))))
+    (defun test (a b) (+ a b)))
+
+  (pass-if "fset and symbol-function"
+    (progn (setq myfunc 'x x 5)
+           (and (= (fset myfunc 42) 42)
+                (= (symbol-function myfunc) 42)
+                (= x 5))))
+  (pass-if "void function values"
+    (progn (setq a 1)
+           (defun test (a b) (+ a b))
+           (fmakunbound 'a)
+           (fset 'b 5)
+           (and (fboundp 'b) (fboundp 'test)
+                (not (fboundp 'a))
+                (= a 1)))))
 
 (with-test-prefix/compile "Calling Functions"
 

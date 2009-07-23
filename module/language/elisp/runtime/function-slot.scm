@@ -235,6 +235,41 @@
     val))
 
 
+; Accessing symbol bindings for symbols known only at runtime.
+
+(built-in-func symbol-value
+  (lambda (sym)
+    (reference-variable-with-check value-slot-module sym)))
+(built-in-func symbol-function
+  (lambda (sym)
+    (reference-variable-with-check function-slot-module sym)))
+
+(built-in-func set
+  (lambda (sym value)
+    (set-variable! value-slot-module sym value)))
+(built-in-func fset
+  (lambda (sym value)
+    (set-variable! function-slot-module sym value)))
+
+(built-in-func makunbound
+  (lambda (sym)
+    (set-variable! value-slot-module sym void)
+    sym))
+(built-in-func fmakunbound
+  (lambda (sym)
+    (set-variable! function-slot-module sym void)
+    sym))
+
+(built-in-func boundp
+  (lambda (sym)
+    (elisp-bool (prim not
+                  (eq? void (reference-variable value-slot-module sym))))))
+(built-in-func fboundp
+  (lambda (sym)
+    (elisp-bool (prim not
+                  (eq? void (reference-variable function-slot-module sym))))))
+
+
 ; Throw can be implemented as built-in function.
 
 (built-in-func throw
