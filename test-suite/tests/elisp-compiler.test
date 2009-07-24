@@ -29,6 +29,8 @@
   (syntax-rules (pass-if pass-if-exception)
     ((_ (pass-if test-name exp))
      (pass-if test-name (compile 'exp #:from 'elisp #:to 'value)))
+    ((_ (pass-if test-name exp #:opts opts))
+     (pass-if test-name (compile 'exp #:from 'elisp #:to 'value #:opts opts)))
     ((_ (pass-if-equal test-name result exp))
      (pass-if test-name (equal? result
                                 (compile 'exp #:from 'elisp #:to 'value))))
@@ -203,7 +205,14 @@
     (progn (setq a 1 b 2)
            (and (eq (makunbound 'b) 'b)
                 (boundp 'a)
-                (not (boundp 'b))))))
+                (not (boundp 'b)))))
+
+  (pass-if "disabled void check (all)"
+    (progn (makunbound 'a) a t)
+    #:opts '(#:disable-void-check all))
+  (pass-if "disabled void check (symbol list)"
+    (progn (makunbound 'a) a t)
+    #:opts '(#:disable-void-check (x y a b))))
 
 (with-test-prefix/compile "Let and Let*"
 

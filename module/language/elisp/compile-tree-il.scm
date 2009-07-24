@@ -34,7 +34,7 @@
 (define bindings-data (make-fluid))
 
 ; Store for which symbols (or all/none) void checks are disabled.
-(define disabled-void-check (make-fluid))
+(define disable-void-check (make-fluid))
 
 
 ; Find the source properties of some parsed expression if there are any
@@ -109,6 +109,15 @@
           (make-const loc sym))))
 
 
+; See if we should do a void-check for a given variable.  That means, check
+; that this check is not disabled via the compiler options for this symbol.
+
+(define (want-void-check? sym)
+  (let ((disabled (fluid-ref disable-void-check)))
+    (and (not (eq? disabled 'all))
+         (not (memq sym disabled)))))
+
+
 ; Generate code to reference a fluid saved variable.
 
 (define (reference-variable loc sym module)
@@ -120,14 +129,16 @@
 ; Reference a variable and error if the value is void.
 
 (define (reference-with-check loc sym module)
-  (let ((var (gensym)))
-    (make-let loc '(value) `(,var) `(,(reference-variable loc sym module))
-      (make-conditional loc
-        (call-primitive loc 'eq?
-                        (make-module-ref loc runtime 'void #t)
-                        (make-lexical-ref loc 'value var))
-        (runtime-error loc "variable is void:" (make-const loc sym))
-        (make-lexical-ref loc 'value var)))))
+  (if (want-void-check? sym)
+    (let ((var (gensym)))
+      (make-let loc '(value) `(,var) `(,(reference-variable loc sym module))
+        (make-conditional loc
+          (call-primitive loc 'eq?
+                          (make-module-ref loc runtime 'void #t)
+                          (make-lexical-ref loc 'value var))
+          (runtime-error loc "variable is void:" (make-const loc sym))
+          (make-lexical-ref loc 'value var))))
+    (reference-variable loc sym module)))
 
 
 ; Generate code to set a fluid saved variable.
@@ -734,6 +745,25 @@
       (else (make-const loc expr)))))
 
 
+; Process the compiler options.
+; FIXME: Why is '(()) passed as options by the REPL?
+
+(define (process-options! opt)
+  (if (and (not (null? opt))
+           (not (equal? opt '(()))))
+    (if (null? (cdr opt))
+      (error "Invalid compiler options" opt)
+      (let ((key (car opt))
+            (value (cadr opt)))
+        (case key
+          ((#:disable-void-check)
+           (if (and (not (eq? value 'all))
+                    (not (and (list? value) (and-map symbol? value))))
+             (error "Invalid value for #:disable-void-check" value)
+             (fluid-set! disable-void-check value)))
+          (else (error "Invalid compiler option" key)))))))
+
+
 ; Entry point for compilation to TreeIL.
 ; This creates the bindings data structure, and after compiling the main
 ; expression we need to make sure all fluids for symbols used during the
@@ -741,8 +771,10 @@
 
 (define (compile-tree-il expr env opts)
   (values
-    (with-fluid* bindings-data (make-bindings)
+    (with-fluids* (list bindings-data disable-void-check)
+                  (list (make-bindings) '())
       (lambda ()
+        (process-options! opts)
         (let ((loc (location expr))
               (compiled (compile-expr expr)))
           (make-sequence loc

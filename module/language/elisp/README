@@ -32,7 +32,11 @@ Especially still missing:
 Other ideas and things to think about:
   * %nil vs. #f/'() handling in Guile
   * lexical-let and/or optional lexical binding as extensions
-  * compiler options for all lexical binding, no void checks
+  * compiler options for all lexical binding
+
+Compiler options implemented:
+  * #:disable-void-check ['all / '(sym1 sym2 sym3)] to disable the check
+    for void value on access either completely or for some symbols
 
 Extensions over original elisp:
   * (guile-ref module symbol) construct to build a (@ module symbol) from elisp
