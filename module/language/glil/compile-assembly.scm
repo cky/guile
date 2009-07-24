@@ -242,18 +242,42 @@
 
     ((<glil-lexical> local? boxed? op index)
      (emit-code
-      `((,(if local?
-              (case op
-                ((ref) (if boxed? 'local-boxed-ref 'local-ref))
-                ((set) (if boxed? 'local-boxed-set 'local-set))
-                ((box) 'box)
-                ((empty-box) 'empty-box)
-                (else (error "what" op)))
-              (case op
+      (if local?
+          (if (< index 256)
+              `((,(case op
+                    ((ref) (if boxed? 'local-boxed-ref 'local-ref))
+                    ((set) (if boxed? 'local-boxed-set 'local-set))
+                    ((box) 'box)
+                    ((empty-box) 'empty-box)
+                    (else (error "what" op)))
+                 ,index))
+              (let ((a (quotient i 256))
+                    (b (modulo i 256)))
+               `((,(case op
+                     ((ref)
+                      (if boxed?
+                          `((long-local-ref ,a ,b)
+                            (variable-ref))
+                          `((long-local-ref ,a ,b))))
+                     ((set)
+                      (if boxed?
+                          `((long-local-ref ,a ,b)
+                            (variable-set))
+                          `((long-local-set ,a ,b))))
+                     ((box)
+                      `((make-variable)
+                        (variable-set)
+                        (long-local-set ,a ,b)))
+                     ((empty-box)
+                      `((make-variable)
+                        (long-local-set ,a ,b)))
+                     (else (error "what" op)))
+                  ,index))))
+          `((,(case op
                 ((ref) (if boxed? 'free-boxed-ref 'free-ref))
                 ((set) (if boxed? 'free-boxed-set (error "what." glil)))
-                (else (error "what" op))))
-         ,index))))
+                (else (error "what" op)))
+             ,index)))))
     
     ((<glil-toplevel> op name)
      (case op

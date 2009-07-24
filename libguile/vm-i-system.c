@@ -278,6 +278,16 @@ VM_DEFINE_INSTRUCTION (25, local_ref, "local-ref", 1, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (26, long_local_ref, "long-local-ref", 2, 0, 1)
+{
+  unsigned int i = FETCH ();
+  i <<= 8;
+  i += FETCH ();
+  PUSH (LOCAL_REF (i))
+  ASSERT_BOUND (*sp);
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (27, variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
@@ -350,6 +360,16 @@ VM_DEFINE_INSTRUCTION (29, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
 VM_DEFINE_INSTRUCTION (30, local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (31, long_local_set, "long-local-set", 2, 1, 0)
+{
+  unsigned int i = FETCH ();
+  i <<= 8;
+  i += FETCH ();
+  LOCAL_SET (i, *sp);
   DROP ();
   NEXT;
 }
@@ -1180,6 +1200,14 @@ VM_DEFINE_INSTRUCTION (63, make_closure, "make-closure", 0, 2, 1)
   /* fixme underflow */
   SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
                 SCM_PROGRAM_OBJTABLE (*sp), vect);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (64, make_variable, "make-variable", 0, 0, 1)
+{
+  SYNC_BEFORE_GC ();
+  /* fixme underflow */
+  PUSH (scm_cell (scm_tc7_variable, SCM_UNPACK (SCM_UNDEFINED)));
   NEXT;
 }
 
