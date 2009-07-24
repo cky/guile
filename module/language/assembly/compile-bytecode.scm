@@ -77,7 +77,10 @@
     ;; Ew!
     (for-each write-byte (bytevector->u8-list bv)))
   (define (write-break label)
-    (write-uint16-be (- (assq-ref labels label) (+ (get-addr) 2))))
+    (let ((offset (- (assq-ref labels label) (+ (get-addr) 2))))
+      (cond ((>= offset (ash 1 15)) (error "jump too big" offset))
+            ((< offset (- (ash 1 15))) (error "reverse jump too big" offset))
+            (else (write-uint16-be offset)))))
   
   (let ((inst (car asm))
         (args (cdr asm))
