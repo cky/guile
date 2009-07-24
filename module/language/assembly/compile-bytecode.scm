@@ -81,6 +81,10 @@
   
   (let ((inst (car asm))
         (args (cdr asm))
+        (write-uint16 (case byte-order
+                        ((1234) write-uint16-le)
+                        ((4321) write-uint16-be)
+                        (else (error "unknown endianness" byte-order))))
         (write-uint32 (case byte-order
                         ((1234) write-uint32-le)
                         ((4321) write-uint32-be)
@@ -92,8 +96,7 @@
         ((load-program ,nargs ,nrest ,nlocs ,labels ,length ,meta . ,code)
          (write-byte nargs)
          (write-byte nrest)
-         (write-byte nlocs)
-         (write-byte 0) ;; what used to be nexts
+         (write-uint16 nlocs)
          (write-uint32 length)
          (write-uint32 (if meta (1- (byte-length meta)) 0))
          (letrec ((i 0)

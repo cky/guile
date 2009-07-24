@@ -20,16 +20,28 @@
   #:use-module (system vm instruction)
   #:use-module (language assembly compile-bytecode))
 
+(define (->u8-list sym val)
+  (let ((entry (assq-ref `((uint16 2 ,bytevector-u16-native-set!)
+                           (uint32 4 ,bytevector-u32-native-set!))
+                         sym)))
+    (or entry (error "unknown sym" sym))
+    (let ((bv (make-bytevector (car entry))))
+      ((cadr entry) bv 0 val)
+      (bytevector->u8-list bv))))
+
 (define (munge-bytecode v)
-  (let ((newv (make-u8vector (vector-length v))))
-    (let lp ((i 0))
-      (if (= i (vector-length v))
-          newv
-          (let ((x (vector-ref v i)))
-            (u8vector-set! newv i (if (symbol? x)
-                                      (instruction->opcode x)
-                                      x))
-            (lp (1+ i)))))))
+  (let lp ((i 0) (out '()))
+    (if (= i (vector-length v))
+        (list->u8vector (reverse out))
+        (let ((x (vector-ref v i)))
+          (cond
+           ((symbol? x)
+            (lp (1+ i) (cons (instruction->opcode x) out)))
+           ((integer? x)
+            (lp (1+ i) (cons x out)))
+           ((pair? x)
+            (lp (1+ i) (append (reverse (apply ->u8-list x)) out)))
+           (else (error "bad test bytecode" x)))))))
 
 (define (comp-test x y)
   (let* ((y (munge-bytecode y))
@@ -45,13 +57,6 @@
     (run-test `(compile-equal? ,x ,y) #t
               (lambda ()
                 (equal? v y)))))
-
-(define (u32->u8-list x)
-  ;; Return a 4 uint8 list corresponding to the host's native representation
-  ;; of X, a uint32.
-  (let ((bv (make-bytevector 4)))
-    (bytevector-u32-native-set! bv 0 x)
-    (bytevector->u8-list bv)))
 
 
 (with-test-prefix "compiler"
@@ -86,28 +91,26 @@
                        (char->integer #\x)))
 
     (comp-test '(load-program 3 2 1 () 3 #f (make-int8 3) (return))
-               (list->vector
-                `(load-program
-                  3 2 1 0            ;; nargs, nrest, nlocs, unused
-                  ,@(u32->u8-list 3) ;; len
-                  ,@(u32->u8-list 0) ;; metalen
-                  make-int8 3
-                  return)))
+               #(load-program
+                 3 2 (uint16 1) ;; nargs, nrest, nlocs
+                 (uint32 3)     ;; len
+                 (uint32 0)     ;; metalen
+                 make-int8 3
+                 return))
 
     (comp-test '(load-program 3 2 1 () 3
                               (load-program 3 2 1 () 3
                                             #f
                                             (make-int8 3) (return))
                               (make-int8 3) (return))
-               (list->vector
-                `(load-program
-                  3 2 1 0                   ;; nargs, nrest, nlocs, unused
-                  ,@(u32->u8-list 3)        ;; len
-                  ,@(u32->u8-list (+ 3 12)) ;; metalen
-                  make-int8 3
-                  return
-                  3 2 1 0                   ;; nargs, nrest, nlocs, unused
-                  ,@(u32->u8-list 3)        ;; len
-                  ,@(u32->u8-list 0)        ;; metalen
-                  make-int8 3
-                  return)))))
+               #(load-program
+                 3 2 (uint16 1) ;; nargs, nrest, nlocs
+                 (uint32 3)     ;; len
+                 (uint32 15)    ;; metalen
+                 make-int8 3
+                 return
+                 3 2 (uint16 1) ;; nargs, nrest, nlocs
+                 (uint32 3)     ;; len
+                 (uint32 0)     ;; metalen
+                 make-int8 3
+                 return))))

@@ -25,8 +25,7 @@
 struct scm_objcode {
   scm_t_uint8 nargs;
   scm_t_uint8 nrest;
-  scm_t_uint8 nlocs;
-  scm_t_uint8 unused;
+  scm_t_uint16 nlocs;
   scm_t_uint32 len;             /* the maximum index of base[] */
   scm_t_uint32 metalen;         /* well, i lie. this many bytes at the end of
                                    base[] for metadata */

@@ -48,8 +48,10 @@
         x
         (- x (ash 1 16)))))
 
+;; FIXME: this is a little-endian disassembly!!!
 (define (decode-load-program pop)
-  (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (unused (pop))
+  (let* ((nargs (pop)) (nrest (pop)) (nlocs0 (pop)) (nlocs1 (pop))
+         (nlocs (+ nlocs0 (ash nlocs1 8)))
          (a (pop)) (b (pop)) (c (pop)) (d (pop))
          (e (pop)) (f (pop)) (g (pop)) (h (pop))
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
