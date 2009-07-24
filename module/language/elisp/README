@@ -26,7 +26,6 @@ Especially still missing:
   * funcall and apply functions
   * advice?
   * defsubst and inlining
-  * need fluids for function bindings?
   * recursive macros
   * anonymous macros
 
