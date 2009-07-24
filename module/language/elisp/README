@@ -32,7 +32,9 @@ Especially still missing:
 
 Other ideas and things to think about:
   * %nil vs. #f/'() handling in Guile
-  * flet, lexical-let and/or optional lexical binding as extensions
+  * lexical-let and/or optional lexical binding as extensions
+  * compiler options for all lexical binding, no void checks
 
 Extensions over original elisp:
   * (guile-ref module symbol) construct to build a (@ module symbol) from elisp
+  * flet and flet*

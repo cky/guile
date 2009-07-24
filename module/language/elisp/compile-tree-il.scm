@@ -346,6 +346,7 @@
       (error "non-pair expression contains unquotes" expr))
     (make-const loc expr)))
 
+
 ; Compile a dolist construct.
 ; This is compiled to something along:
 ; (with-fluid* iter-var %nil
@@ -384,6 +385,45 @@
             (make-lexical-ref loc iterate iterate)
             (list (compile-expr bind iter-list))))))))
 
+
+; Compile let and let* expressions.  The code here is used both for let/let*
+; and flet/flet*, just with a different bindings module.
+
+; Let is done with a single call to with-fluids* binding them locally to new
+; values all "at once".
+(define (generate-let loc bind module bindings body)
+ (let ((let-bind (process-let-bindings loc bindings)))
+   (begin
+     (for-each (lambda (sym)
+                 (mark-fluid-needed! bind sym module))
+               (map car let-bind))
+     (call-primitive loc 'with-fluids*
+       (make-application loc (make-primitive-ref loc 'list)
+         (map (lambda (el)
+                (make-module-ref loc module (car el) #t))
+              let-bind))
+       (make-application loc (make-primitive-ref loc 'list)
+         (map (lambda (el)
+                (compile-expr bind (cdr el)))
+              let-bind))
+       (make-lambda loc '() '() '() 
+         (make-sequence loc (map (compiler bind) body)))))))
+
+; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
+; so that each one already sees the preceding bindings.
+(define (generate-let* loc bind module bindings body)
+ (let ((let-bind (process-let-bindings loc bindings)))
+   (begin
+     (for-each (lambda (sym)
+                 (mark-fluid-needed! bind sym module))
+               (map car let-bind))
+     (let iterate ((tail let-bind))
+       (if (null? tail)
+         (make-sequence loc (map (compiler bind) body))
+         (call-primitive loc 'with-fluid*
+           (make-module-ref loc module (caar tail) #t)
+           (compile-expr bind (cdar tail))
+           (make-lambda loc '() '() '() (iterate (cdr tail)))))))))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -516,47 +556,26 @@
                    (cons (set-variable! loc bind sym value-slot val)
                          (iterate (cdr tailtail)))))))))))
 
-    ; Let is done with a single call to with-fluids* binding them locally to new
-    ; values all "at once".
+    ; let/let* and flet/flet* are done using the generate-let/generate-let*
+    ; methods.
+
     ((let ,bindings . ,body) (guard (and (list? bindings)
-                                         (list? body)
                                          (not (null? bindings))
                                          (not (null? body))))
-     (let ((let-bind (process-let-bindings loc bindings)))
-       (begin
-         (for-each (lambda (sym)
-                     (mark-fluid-needed! bind sym value-slot))
-                   (map car let-bind))
-         (call-primitive loc 'with-fluids*
-           (make-application loc (make-primitive-ref loc 'list)
-             (map (lambda (el)
-                    (make-module-ref loc value-slot (car el) #t))
-                  let-bind))
-           (make-application loc (make-primitive-ref loc 'list)
-             (map (lambda (el)
-                    (compile-expr bind (cdr el)))
-                  let-bind))
-           (make-lambda loc '() '() '() 
-             (make-sequence loc (map (compiler bind) body)))))))
-
-    ; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
-    ; so that each one already sees the preceding bindings.
-    ((let* ,bindings . ,body) (guard (and (list? bindings)
-                                          (list? body)
+     (generate-let loc bind value-slot bindings body))
+    ((flet ,bindings . ,body) (guard (and (list? bindings)
                                           (not (null? bindings))
                                           (not (null? body))))
-     (let ((let-bind (process-let-bindings loc bindings)))
-       (begin
-         (for-each (lambda (sym)
-                     (mark-fluid-needed! bind sym value-slot))
-                   (map car let-bind))
-         (let iterate ((tail let-bind))
-           (if (null? tail)
-             (make-sequence loc (map (compiler bind) body))
-             (call-primitive loc 'with-fluid*
-               (make-module-ref loc value-slot (caar tail) #t)
-               (compile-expr bind (cdar tail))
-               (make-lambda loc '() '() '() (iterate (cdr tail)))))))))
+     (generate-let loc bind function-slot bindings body))
+
+    ((let* ,bindings . ,body) (guard (and (list? bindings)
+                                          (not (null? bindings))
+                                          (not (null? body))))
+     (generate-let* loc bind value-slot bindings body))
+    ((flet* ,bindings . ,body) (guard (and (list? bindings)
+                                           (not (null? bindings))
+                                           (not (null? body))))
+     (generate-let* loc bind function-slot bindings body))
 
     ; guile-ref allows building TreeIL's module references from within
     ; elisp as a way to access data (and primitives, for instance) within
@@ -711,6 +730,8 @@
 ; This creates the bindings data structure, and after compiling the main
 ; expression we need to make sure all fluids for symbols used during the
 ; compilation are created using the generate-ensure-fluid function.
+
+; XXX: Maybe don't pass bind around but instead use a fluid for it?
 
 (define (compile-tree-il expr env opts)
   (values
