@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -529,10 +529,10 @@
                  `(letrec ,(map list vars val-exps) ,body-exp)
                  src))))))
 
-;; FIXME: wingo: use make-lexical ?
+;; FIXME: use a faster gensym
 (define-syntax build-lexical-var
   (syntax-rules ()
-    ((_ src id) (gensym (symbol->string id)))))
+    ((_ src id) (gensym (string-append (symbol->string id) " ")))))
 
 (define-structure (syntax-object expression wrap module))
 
