@@ -325,7 +325,7 @@ resolve_variable (SCM what, SCM program_module)
 }
   
 
-#define VM_DEFAULT_STACK_SIZE	(16 * 1024)
+#define VM_DEFAULT_STACK_SIZE	(64 * 1024)
 
 #define VM_NAME   vm_regular_engine
 #define FUNC_NAME "vm-regular-engine"
