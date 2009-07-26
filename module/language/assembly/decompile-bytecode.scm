@@ -57,6 +57,7 @@
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
          (metalen (+ e (ash f 8) (ash g 16) (ash h 24)))
          (totlen (+ len metalen))
+         (pad0 (pop)) (pad1 (pop)) (pad2 (pop)) (pad3 (pop))
          (labels '())
          (i 0))
     (define (ensure-label rel1 rel2)

@@ -102,6 +102,7 @@
          (write-uint16 nlocs)
          (write-uint32 length)
          (write-uint32 (if meta (1- (byte-length meta)) 0))
+         (write-uint32 0) ; padding
          (letrec ((i 0)
                   (write (lambda (x) (set! i (1+ i)) (write-byte x)))
                   (get-addr (lambda () i)))

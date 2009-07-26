@@ -95,22 +95,29 @@
                  3 2 (uint16 1) ;; nargs, nrest, nlocs
                  (uint32 3)     ;; len
                  (uint32 0)     ;; metalen
+                 (uint32 0)     ;; padding
                  make-int8 3
                  return))
 
-    (comp-test '(load-program 3 2 1 () 3
+    ;; the nops are to pad meta to an 8-byte alignment. not strictly
+    ;; necessary for this test, but representative of the common case.
+    (comp-test '(load-program 3 2 1 () 8
                               (load-program 3 2 1 () 3
                                             #f
                                             (make-int8 3) (return))
-                              (make-int8 3) (return))
+                              (make-int8 3) (return)
+                              (nop) (nop) (nop) (nop) (nop))
                #(load-program
                  3 2 (uint16 1) ;; nargs, nrest, nlocs
-                 (uint32 3)     ;; len
-                 (uint32 15)    ;; metalen
+                 (uint32 8)     ;; len
+                 (uint32 19)    ;; metalen
+                 (uint32 0)     ;; padding
                  make-int8 3
                  return
+                 nop nop nop nop nop
                  3 2 (uint16 1) ;; nargs, nrest, nlocs
                  (uint32 3)     ;; len
                  (uint32 0)     ;; metalen
+                 (uint32 0)     ;; padding
                  make-int8 3
                  return))))

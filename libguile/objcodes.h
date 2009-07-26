@@ -29,6 +29,7 @@ struct scm_objcode {
   scm_t_uint32 len;             /* the maximum index of base[] */
   scm_t_uint32 metalen;         /* well, i lie. this many bytes at the end of
                                    base[] for metadata */
+  scm_t_uint32 unused;          /* pad so that `base' is 8-byte aligned */
   scm_t_uint8 base[0];
 };
 

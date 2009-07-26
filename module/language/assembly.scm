@@ -28,8 +28,8 @@
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
-;; nargs, nrest, nlocs, <unused>, len, metalen
-(define *program-header-len* (+ 1 1 1 1 4 4))
+;; nargs, nrest, nlocs, len, metalen, padding
+(define *program-header-len* (+ 1 1 2 4 4 4))
 
 ;; lengths are encoded in 3 bytes
 (define *len-len* 3)
@@ -109,7 +109,7 @@
 	((null? x) `(make-eol))
 	((and (integer? x) (exact? x))
 	 (cond ((and (<= -128 x) (< x 128))
-		`(make-int8 ,(modulo x 256)))
+		(assembly-pack `(make-int8 ,(modulo x 256))))
 	       ((and (<= -32768 x) (< x 32768))
 		(let ((n (if (< x 0) (+ x 65536) x)))
 		  `(make-int16 ,(quotient n 256) ,(modulo n 256))))

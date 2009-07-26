@@ -137,9 +137,9 @@
 (define (glil->assembly glil toplevel? bindings
                         source-alist label-alist object-alist addr)
   (define (emit-code x)
-    (values (map assembly-pack x) bindings source-alist label-alist object-alist))
+    (values x bindings source-alist label-alist object-alist))
   (define (emit-code/object x object-alist)
-    (values (map assembly-pack x) bindings source-alist label-alist object-alist))
+    (values x bindings source-alist label-alist object-alist))
 
   (record-case glil
     ((<glil-program> nargs nrest nlocs meta body)
@@ -164,10 +164,15 @@
 
      (receive (code bindings sources labels objects len)
          (process-body)
-       (let ((prog `(load-program ,nargs ,nrest ,nlocs ,labels
-                                  ,len
-                                  ,(make-meta bindings sources meta)
-                                  . ,code)))
+       (let* ((meta (make-meta bindings sources meta))
+              (meta-pad (if meta (modulo (- 8 (modulo len 8)) 8) 0))
+              (prog `(load-program ,nargs ,nrest ,nlocs ,labels
+                                  ,(+ len meta-pad)
+                                  ,meta
+                                  ,@code
+                                  ,@(if meta
+                                        (make-list meta-pad '(nop))
+                                        '()))))
          (cond
           (toplevel?
            ;; toplevel bytecode isn't loaded by the vm, no way to do

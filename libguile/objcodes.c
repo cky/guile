@@ -50,7 +50,7 @@
 
 /* The objcode magic header.  */
 #define OBJCODE_COOKIE						\
-  "GOOF-0.7-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
+  "GOOF-0.8-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
 
 /* The length of the header must be a multiple of 8 bytes.  */
 verify (((sizeof (OBJCODE_COOKIE) - 1) & 7) == 0);

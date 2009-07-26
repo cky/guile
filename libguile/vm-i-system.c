@@ -283,7 +283,7 @@ VM_DEFINE_INSTRUCTION (26, long_local_ref, "long-local-ref", 2, 0, 1)
   unsigned int i = FETCH ();
   i <<= 8;
   i += FETCH ();
-  PUSH (LOCAL_REF (i))
+  PUSH (LOCAL_REF (i));
   ASSERT_BOUND (*sp);
   NEXT;
 }

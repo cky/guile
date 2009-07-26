@@ -130,11 +130,14 @@
 #ifdef VM_ENABLE_PARANOID_ASSERTIONS
 #define CHECK_IP() \
   do { if (ip < bp->base || ip - bp->base > bp->len) abort (); } while (0)
+#define ASSERT_ALIGNED_PROCEDURE() \
+  do { if ((scm_t_bits)bp % 8) abort (); } while (0)
 #define ASSERT_BOUND(x) \
   do { if ((x) == SCM_UNDEFINED) { SYNC_REGISTER (); abort(); } \
   } while (0)
 #else
 #define CHECK_IP()
+#define ASSERT_ALIGNED_PROCEDURE()
 #define ASSERT_BOUND(x)
 #endif
 
@@ -143,6 +146,7 @@
 {									\
   if (bp != SCM_PROGRAM_DATA (program)) {                               \
     bp = SCM_PROGRAM_DATA (program);					\
+    ASSERT_ALIGNED_PROCEDURE ();                                        \
     if (SCM_I_IS_VECTOR (SCM_PROGRAM_OBJTABLE (program))) {             \
       objects = SCM_I_VECTOR_WELTS (SCM_PROGRAM_OBJTABLE (program));    \
       object_count = SCM_I_VECTOR_LENGTH (SCM_PROGRAM_OBJTABLE (program)); \
