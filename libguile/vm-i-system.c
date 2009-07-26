@@ -426,7 +426,7 @@ VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
  * branch and jump
  */
 
-/* offset must be a signed short!!! */
+/* offset must be a signed 16 bit int!!! */
 #define FETCH_OFFSET(offset)                    \
 {						\
   int h = FETCH ();				\
@@ -436,10 +436,10 @@ VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
 
 #define BR(p)					\
 {						\
-  signed short offset;                          \
+  scm_t_int16 offset;                           \
   FETCH_OFFSET (offset);                        \
   if (p)					\
-    ip += offset;				\
+    ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);      \
   NULLSTACK (1);				\
   DROP ();					\
   NEXT;						\
@@ -447,9 +447,9 @@ VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
 
 VM_DEFINE_INSTRUCTION (35, br, "br", 2, 0, 0)
 {
-  int h = FETCH ();
-  int l = FETCH ();
-  ip += (signed short) (h << 8) + l;
+  scm_t_int16 offset;
+  FETCH_OFFSET (offset);
+  ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);
   NEXT;
 }
 
@@ -812,10 +812,12 @@ VM_DEFINE_INSTRUCTION (46, call_nargs, "call/nargs", 0, 0, 1)
 VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 3, -1, 1)
 {
   SCM x;
-  signed short offset;
+  scm_t_int16 offset;
+  scm_t_uint8 *mvra;
   
   nargs = FETCH ();
   FETCH_OFFSET (offset);
+  mvra = ip + ((scm_t_ptrdiff)offset) * 8 - ((unsigned long)ip) % 8;
 
   x = sp[-nargs];
 
@@ -828,7 +830,7 @@ VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 3, -1, 1)
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
-      SCM_FRAME_DATA_ADDRESS (fp)[1] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
+      SCM_FRAME_DATA_ADDRESS (fp)[1] = (SCM)mvra;
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -853,7 +855,7 @@ VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 3, -1, 1)
           len = scm_length (values);
           PUSH_LIST (values, SCM_NULLP);
           PUSH (len);
-          ip += offset;
+          ip = mvra;
         }
       NEXT;
     }

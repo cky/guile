@@ -340,11 +340,12 @@
           (error "unknown module var kind" op key)))))
 
     ((<glil-label> label)
-     (values '()
-             bindings
-             source-alist
-             (acons label addr label-alist)
-             object-alist))
+     (let ((code (align-block addr)))
+       (values code
+               bindings
+               source-alist
+               (acons label (addr+ addr code) label-alist)
+               object-alist)))
 
     ((<glil-branch> inst label)
      (emit-code `((,inst ,label))))

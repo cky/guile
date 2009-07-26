@@ -24,7 +24,7 @@
   #:use-module (system vm instruction)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export (byte-length
-            addr+ align-program align-code
+            addr+ align-program align-code align-block
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
@@ -63,17 +63,24 @@
 
 (define *program-alignment* 8)
 
+(define *block-alignment* 8)
+
 (define (addr+ addr code)
   (fold (lambda (x len) (+ (byte-length x) len))
         addr
         code))
 
+(define (code-alignment addr alignment header-len)
+  (make-list (modulo (- alignment
+                        (modulo (+ addr header-len) alignment))
+                     alignment)
+             '(nop)))
+
+(define (align-block addr)
+  (code-alignment addr *block-alignment* 0))
 
 (define (align-code code addr alignment header-len)
-  `(,@(make-list (modulo (- alignment
-                            (modulo (+ addr header-len) alignment))
-                         alignment)
-                 '(nop))
+  `(,@(code-alignment addr alignment header-len)
     ,code))
 
 (define (align-program prog addr)

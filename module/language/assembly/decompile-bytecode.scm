@@ -61,7 +61,8 @@
          (labels '())
          (i 0))
     (define (ensure-label rel1 rel2)
-      (let ((where (+ i (bytes->s16 rel1 rel2))))
+      (let ((where (+ (logand i (lognot #x7))
+                      (* (bytes->s16 rel1 rel2) 8))))
         (or (assv-ref labels where)
             (begin
               (let ((l (gensym ":L")))

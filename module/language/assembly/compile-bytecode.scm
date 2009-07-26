@@ -77,10 +77,12 @@
     ;; Ew!
     (for-each write-byte (bytevector->u8-list bv)))
   (define (write-break label)
-    (let ((offset (- (assq-ref labels label) (+ (get-addr) 2))))
-      (cond ((>= offset (ash 1 15)) (error "jump too big" offset))
-            ((< offset (- (ash 1 15))) (error "reverse jump too big" offset))
-            (else (write-uint16-be offset)))))
+    (let ((offset (- (assq-ref labels label)
+                     (logand (+ (get-addr) 2) (lognot #x7)))))
+      (cond ((not (= 0 (modulo offset 8))) (error "unaligned jump" offset))
+            ((>= offset (ash 1 18)) (error "jump too far forward" offset))
+            ((< offset (- (ash 1 18))) (error "jump too far backwards" offset))
+            (else (write-uint16-be (ash offset -3))))))
   
   (let ((inst (car asm))
         (args (cdr asm))
