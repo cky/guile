@@ -63,7 +63,7 @@
 #define SCM_FRAME_DYNAMIC_LINK(fp)				\
   (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[0]))
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)		\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = (SCM)(dl);
+  ((SCM_FRAME_DATA_ADDRESS (fp)[0])) = (SCM)(dl);
 #define SCM_FRAME_VARIABLE(fp,i)	fp[i]
 #define SCM_FRAME_PROGRAM(fp)		fp[-1]
 
