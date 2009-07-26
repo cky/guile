@@ -175,7 +175,7 @@
            ;; anyway)
            (emit-code (align-program prog addr)))
           (else
-           (let ((table (dump-object (make-object-table objects) addr)))
+           (let ((table (make-object-table objects)))
              (cond
               (object-alist
                ;; if we are being compiled from something with an object
@@ -190,8 +190,10 @@
                                    object-alist)))
               (else
                ;; otherwise emit a load directly
-               (emit-code `(,@table ,@(align-program prog (addr+ addr table))))))))))))
-    
+               (let ((table-code (dump-object table addr)))
+                 (emit-code
+                  `(,@table-code
+                    ,@(align-program prog (addr+ addr table-code)))))))))))))
     
     ((<glil-bind> vars)
      (values '()
@@ -370,9 +372,10 @@
    ((object->assembly x) => list)
    ((variable-cache-cell? x) (dump-object (variable-cache-cell-key x) addr))
    ((subprogram? x)
-    `(,@(subprogram-table x)
-      ,@(align-program (subprogram-prog x)
-                       (addr+ addr (subprogram-table x)))))
+    (let ((table-code (dump-object (subprogram-table x) addr)))
+      `(,@table-code
+        ,@(align-program (subprogram-prog x)
+                         (addr+ addr table-code)))))
    ((number? x)
     `((load-number ,(number->string x))))
    ((string? x)
