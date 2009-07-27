@@ -223,11 +223,17 @@
            (let ((a 1)
                  (b a))
              b)))
-  (pass-if-equal "let*" 1
+
+  (pass-if "let*"
     (progn (setq a 0)
-           (let* ((a 1)
-                  (b a))
-             b)))
+           (and (let* ((a 1)
+                       (b a))
+                  (= b 1))
+                (let* (a b)
+                  (setq a 1 b 2)
+                  (and (= a 1) (= b 2)))
+                (= a 0)
+                (not (boundp 'b)))))
 
   (pass-if "local scope"
     (progn (setq a 0)
