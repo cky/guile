@@ -437,16 +437,14 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
       if (SCM_CHARP (exp))
 	{
 	  long i = SCM_CHAR (exp);
+          const char *name;
 
 	  if (SCM_WRITINGP (pstate))
 	    {
 	      scm_puts ("#\\", port);
-	      if ((i >= 0) && (i <= ' ') && scm_charnames[i])
-		scm_puts (scm_charnames[i], port);
-#ifndef EBCDIC
-	      else if (i == '\177')
-		scm_puts (scm_charnames[scm_n_charnames - 1], port);
-#endif
+	      name = scm_i_charname (exp);
+	      if (name != NULL)
+		scm_puts (name, port);
 	      else if (i < 0 || i > '\177')
 		scm_intprint (i, 8, port);
 	      else

@@ -298,61 +298,108 @@ scm_c_downcase (unsigned int c)
     return c;
 }
 
+
 
-#ifdef _DCC
-# define ASCII
-#else
-# if (('\n'=='\025') && (' '=='\100') && ('a'=='\201') && ('A'=='\301'))
-#  define EBCDIC
-# endif /*  (('\n'=='\025') && (' '=='\100') && ('a'=='\201') && ('A'=='\301')) */
-# if (('\n'=='\012') && (' '=='\040') && ('a'=='\141') && ('A'=='\101'))
-#  define ASCII
-# endif /*  (('\n'=='\012') && (' '=='\040') && ('a'=='\141') && ('A'=='\101')) */
-#endif /* def _DCC */
+/* There are a few sets of character names: R5RS, Guile
+   extensions for control characters, and leftover Guile extensions.
+   They are listed in order of precedence.  */
 
+const char *const scm_r5rs_charnames[] = 
+  {
+    "space", "newline"
+  };
 
-#ifdef EBCDIC
-char *const scm_charnames[] =
+const scm_t_uint32 const scm_r5rs_charnums[] = 
+  {
+    0x20, 0x0A
+  };
+
+const int scm_n_r5rs_charnames = sizeof (scm_r5rs_charnames) / sizeof (char *);
+
+/* The abbreviated names for control characters.  */
+const char *const scm_C0_control_charnames[] = 
+  {
+    /* C0 controls */
+    "nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel",
+    "bs",  "ht",  "lf",  "vt",  "ff",  "cr",  "so",  "si",
+    "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", 
+    "can", "em",  "sub", "esc", "fs",  "gs",  "rs",  "us",
+    "sp", "del"
+  };
+
+const scm_t_uint32 const scm_C0_control_charnums[] = 
+  {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    0x20, 0x7f
+  };
+
+int scm_n_C0_control_charnames = sizeof (scm_C0_control_charnames) / sizeof (char *);
+
+const char *const scm_alt_charnames[] = 
+  {
+    "null", "backspace", "tab", "nl", "newline", "np", "page", "return",
+  };
+  
+const scm_t_uint32 const scm_alt_charnums[] = 
+  {
+    0x00, 0x08, 0x09, 0x0a, 0x0a, 0x0c, 0x0c, 0x0d
+  };
+
+const int scm_n_alt_charnames = sizeof (scm_alt_charnames) / sizeof (char *);
+
+/* Returns the string charname for a character if it exists, or NULL
+   otherwise.  */
+const char *
+scm_i_charname (SCM chr)
 {
-  "nul", "soh", "stx", "etx", "pf", "ht", "lc", "del",
-   0   , 0   , "smm", "vt", "ff", "cr", "so", "si",
-  "dle", "dc1", "dc2", "dc3", "res", "nl", "bs", "il",
-  "can", "em", "cc", 0   , "ifs", "igs", "irs", "ius",
-   "ds", "sos", "fs", 0   , "byp", "lf", "eob", "pre",
-   0   , 0   , "sm", 0   , 0   , "enq", "ack", "bel",
-   0   , 0   , "syn", 0   , "pn", "rs", "uc", "eot",
-   0   , 0   , 0   , 0   , "dc4", "nak", 0   , "sub",
-   "space", scm_s_newline, "tab", "backspace", "return", "page", "null"};
+  int c;
+  scm_t_uint32 i = SCM_CHAR (chr);
 
-const char scm_charnums[] =
-"\000\001\002\003\004\005\006\007\
-\010\011\012\013\014\015\016\017\
-\020\021\022\023\024\025\026\027\
-\030\031\032\033\034\035\036\037\
-\040\041\042\043\044\045\046\047\
-\050\051\052\053\054\055\056\057\
-\060\061\062\063\064\065\066\067\
-\070\071\072\073\074\075\076\077\
- \n\t\b\r\f\0";
-#endif /* def EBCDIC */
-#ifdef ASCII
-char *const scm_charnames[] =
+  for (c = 0; c < scm_n_r5rs_charnames; c++)
+    if (scm_r5rs_charnums[c] == i)
+      return scm_r5rs_charnames[c];
+
+  for (c = 0; c < scm_n_C0_control_charnames; c++)
+    if (scm_C0_control_charnums[c] == i)
+      return scm_C0_control_charnames[c];
+
+  for (c = 0; c < scm_n_alt_charnames; c++)
+    if (scm_alt_charnums[c] == i)
+      return scm_alt_charnames[i];
+
+  return NULL;
+}
+
+/* Return a character from a string charname.  */
+SCM
+scm_i_charname_to_char (const char *charname, size_t charname_len)
 {
-  "nul","soh","stx","etx","eot","enq","ack","bel",
-   "bs", "ht", "newline", "vt", "np", "cr", "so", "si",
-  "dle","dc1","dc2","dc3","dc4","nak","syn","etb",
-  "can", "em","sub","esc", "fs", "gs", "rs", "us",
-  "space", "sp", "nl", "tab", "backspace", "return", "page", "null", "del"};
-const char scm_charnums[] =
-"\000\001\002\003\004\005\006\007\
-\010\011\012\013\014\015\016\017\
-\020\021\022\023\024\025\026\027\
-\030\031\032\033\034\035\036\037\
-  \n\t\b\r\f\0\177";
-#endif /* def ASCII */
+  int c;
 
-int scm_n_charnames = sizeof (scm_charnames) / sizeof (char *);
+  /* The R5RS charnames.  These are supposed to be case
+     insensitive. */
+  for (c = 0; c < scm_n_r5rs_charnames; c++)
+    if ((strlen (scm_r5rs_charnames[c]) == charname_len)
+	&& (!strncasecmp (scm_r5rs_charnames[c], charname, charname_len)))
+      return SCM_MAKE_CHAR (scm_r5rs_charnums[c]);
 
+  /* Then come the controls.  These are not case sensitive.  */
+  for (c = 0; c < scm_n_C0_control_charnames; c++)
+    if ((strlen (scm_C0_control_charnames[c]) == charname_len)
+	&& (!strncasecmp (scm_C0_control_charnames[c], charname, charname_len)))
+      return SCM_MAKE_CHAR (scm_C0_control_charnums[c]);
+
+  /* Lastly are some old names carried over for compatibility.  */
+  for (c = 0; c < scm_n_alt_charnames; c++)
+    if ((strlen (scm_alt_charnames[c]) == charname_len)
+	&& (!strncasecmp (scm_alt_charnames[c], charname, charname_len)))
+      return SCM_MAKE_CHAR (scm_alt_charnums[c]);
+  
+  return SCM_BOOL_F;
+}
 
 
 

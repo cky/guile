@@ -34,12 +34,6 @@
 
 
 
-SCM_API char *const scm_charnames[];
-SCM_API int scm_n_charnames;
-SCM_API const char scm_charnums[];
-
-
-
 SCM_API SCM scm_char_p (SCM x);
 SCM_API SCM scm_char_eq_p (SCM x, SCM y);
 SCM_API SCM scm_char_less_p (SCM x, SCM y);
@@ -63,6 +57,9 @@ SCM_API SCM scm_char_upcase (SCM chr);
 SCM_API SCM scm_char_downcase (SCM chr);
 SCM_API int scm_c_upcase (unsigned int c);
 SCM_API int scm_c_downcase (unsigned int c);
+SCM_INTERNAL const char * scm_i_charname (SCM chr);
+SCM_INTERNAL SCM scm_i_charname_to_char (const char *charname, 
+                                         size_t charname_len);
 SCM_INTERNAL void scm_init_chars (void);
 
 #endif  /* SCM_CHARS_H */
