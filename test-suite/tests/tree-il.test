@@ -467,3 +467,42 @@
             (toplevel ref bar) (call call/cc 1)
             (call goto/args 1))))
 
+
+(with-test-prefix "tree-il-fold"
+
+  (pass-if "empty tree"
+    (let ((leaf? #f) (up? #f) (down? #f) (mark (list 'mark)))
+      (and (eq? mark
+                (tree-il-fold (lambda (x y) (set! leaf? #t) y)
+                              (lambda (x y) (set! down? #t) y)
+                              (lambda (x y) (set! up? #t) y)
+                              mark
+                              '()))
+           (not leaf?)
+           (not up?)
+           (not down?))))
+
+  (pass-if "lambda and application"
+    (let* ((leaves '()) (ups '()) (downs '())
+           (result (tree-il-fold (lambda (x y)
+                                   (set! leaves (cons x leaves))
+                                   (1+ y))
+                                 (lambda (x y)
+                                   (set! downs (cons x downs))
+                                   (1+ y))
+                                 (lambda (x y)
+                                   (set! ups (cons x ups))
+                                   (1+ y))
+                                 0
+                                 (parse-tree-il
+                                  '(lambda (x y) (x1 y1)
+                                     (apply (toplevel +)
+                                            (lexical x x1)
+                                            (lexical y y1)))))))
+      (and (equal? (map strip-source leaves)
+                   (list (make-lexical-ref #f 'y 'y1)
+                         (make-lexical-ref #f 'x 'x1)
+                         (make-toplevel-ref #f '+)))
+           (= (length downs) 2)
+           (equal? (reverse (map strip-source ups))
+                   (map strip-source downs))))))
