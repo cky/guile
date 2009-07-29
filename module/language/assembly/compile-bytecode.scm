@@ -122,6 +122,7 @@
                ;; meets the alignment requirements of `scm_objcode'.  See
                ;; `scm_c_make_objcode_slice ()'.
                (write-bytecode meta write get-addr '()))))
+        ((make-char32 ,x) (write-uint32-be x))
         ((load-unsigned-integer ,str) (write-loader str))
         ((load-integer ,str) (write-loader str))
         ((load-number ,str) (write-loader str))

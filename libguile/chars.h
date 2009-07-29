@@ -3,7 +3,7 @@
 #ifndef SCM_CHARS_H
 #define SCM_CHARS_H
 
-/* Copyright (C) 1995,1996,2000,2001,2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,9 +28,24 @@
 
 /* Immediate Characters
  */
+
+#ifndef SCM_WCHAR_DEFINED
+typedef scm_t_int32 scm_t_wchar;
+#define SCM_WCHAR_DEFINED
+#endif
+
 #define SCM_CHARP(x) (SCM_ITAG8(x) == scm_tc8_char)
-#define SCM_CHAR(x) ((unsigned int)SCM_ITAG8_DATA(x))
-#define SCM_MAKE_CHAR(x) SCM_MAKE_ITAG8((scm_t_bits) (unsigned char) (x), scm_tc8_char)
+#define SCM_CHAR(x) ((scm_t_wchar)SCM_ITAG8_DATA(x))
+
+#define SCM_MAKE_CHAR(x) ({scm_t_int32 _x = (x);                        \
+      _x < 0                                                            \
+        ? SCM_MAKE_ITAG8((scm_t_bits)(unsigned char)_x, scm_tc8_char)   \
+        : SCM_MAKE_ITAG8((scm_t_bits)_x, scm_tc8_char);})
+
+#define SCM_CODEPOINT_MAX (0x10ffff)
+#define SCM_IS_UNICODE_CHAR(c)                                          \
+  ((scm_t_wchar)(c)<=0xd7ff ||                                          \
+   ((scm_t_wchar)(c)>=0xe000 && (scm_t_wchar)(c)<=SCM_CODEPOINT_MAX))
 
 
 
@@ -55,9 +70,9 @@ SCM_API SCM scm_char_to_integer (SCM chr);
 SCM_API SCM scm_integer_to_char (SCM n);
 SCM_API SCM scm_char_upcase (SCM chr);
 SCM_API SCM scm_char_downcase (SCM chr);
-SCM_API int scm_c_upcase (unsigned int c);
-SCM_API int scm_c_downcase (unsigned int c);
-SCM_INTERNAL const char * scm_i_charname (SCM chr);
+SCM_API scm_t_wchar scm_c_upcase (scm_t_wchar c);
+SCM_API scm_t_wchar scm_c_downcase (scm_t_wchar c);
+SCM_INTERNAL const char *scm_i_charname (SCM chr);
 SCM_INTERNAL SCM scm_i_charname_to_char (const char *charname, 
                                          size_t charname_len);
 SCM_INTERNAL void scm_init_chars (void);

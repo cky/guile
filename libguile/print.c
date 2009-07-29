@@ -23,6 +23,7 @@
 #endif
 
 #include <errno.h>
+#include <unictype.h>
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
@@ -436,7 +437,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
     case scm_tc3_imm24:
       if (SCM_CHARP (exp))
 	{
-	  long i = SCM_CHAR (exp);
+	  scm_t_wchar i = SCM_CHAR (exp);
           const char *name;
 
 	  if (SCM_WRITINGP (pstate))
@@ -445,10 +446,30 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      name = scm_i_charname (exp);
 	      if (name != NULL)
 		scm_puts (name, port);
-	      else if (i < 0 || i > '\177')
-		scm_intprint (i, 8, port);
-	      else
-		scm_putc (i, port);
+	      else if (uc_is_general_category_withtable (i, UC_CATEGORY_MASK_L
+                                                         | UC_CATEGORY_MASK_M 
+                                                         | UC_CATEGORY_MASK_N 
+                                                         | UC_CATEGORY_MASK_P 
+                                                         | UC_CATEGORY_MASK_S))
+                /* Print the character if is graphic character.  */
+                {
+                  if (i<256)
+                    {
+                      /* Character is graphic.  Print it.  */
+                      scm_putc (i, port);
+                    }
+                  else
+                    {
+                      /* Character is graphic but unrepresentable in
+                         this port's encoding.  */
+                      scm_intprint (i, 8, port);
+                    }
+                }
+              else
+                {
+                  /* Character is a non-graphical character.  */
+                  scm_intprint (i, 8, port);
+                }
 	    }
 	  else
 	    scm_putc (i, port);

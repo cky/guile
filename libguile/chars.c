@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,8 @@
 
 #include <ctype.h>
 #include <limits.h>
+#include <unicase.h>
+
 #include "libguile/_scm.h"
 #include "libguile/validate.h"
 
@@ -55,7 +57,7 @@ SCM_DEFINE1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_less_p, "char<?", scm_tc7_rpsubr, 
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence,\n"
+	     "Return @code{#t} iff @var{x} is less than @var{y} in the Unicode sequence,\n"
 	     "else @code{#f}.")
 #define FUNC_NAME s_scm_char_less_p
 {
@@ -68,7 +70,7 @@ SCM_DEFINE1 (scm_char_less_p, "char<?", scm_tc7_rpsubr,
 SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	     "Return @code{#t} iff @var{x} is less than or equal to @var{y} in the\n"
-	     "ASCII sequence, else @code{#f}.")
+	     "Unicode sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_leq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -79,7 +81,7 @@ SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII\n"
+	     "Return @code{#t} iff @var{x} is greater than @var{y} in the Unicode\n"
 	     "sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_gr_p
 {
@@ -92,7 +94,7 @@ SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
 SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	     "Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the\n"
-	     "ASCII sequence, else @code{#f}.")
+	     "Unicode sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_geq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -104,7 +106,7 @@ SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
 SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	     "Return @code{#t} iff @var{x} is the same character as @var{y} ignoring\n"
-	     "case, else @code{#f}.")
+	     "case, else @code{#f}.  Case is locale free and not context sensitive.")
 #define FUNC_NAME s_scm_char_ci_eq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -115,8 +117,9 @@ SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} is less than @var{y} in the ASCII sequence\n"
-	     "ignoring case, else @code{#f}.")
+	     "Return @code{#t} iff the Unicode uppercase form of @var{x} is less\n"
+	     "than the Unicode uppercase form @var{y} in the Unicode sequence,\n"
+	     "else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_less_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -127,8 +130,9 @@ SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} is less than or equal to @var{y} in the\n"
-	     "ASCII sequence ignoring case, else @code{#f}.")
+	     "Return @code{#t} iff the Unicode uppercase form of @var{x} is less\n"
+	     "than or equal to the Unicode uppercase form of @var{y} in the\n"
+	     "Unicode  sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_leq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -139,8 +143,9 @@ SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} is greater than @var{y} in the ASCII\n"
-	     "sequence ignoring case, else @code{#f}.")
+	     "Return @code{#t} iff the Unicode uppercase form of @var{x} is greater\n"
+	     "than the Unicode uppercase form of @var{y} in the Unicode\n"
+	     "sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_gr_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -151,8 +156,9 @@ SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-	     "Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the\n"
-	     "ASCII sequence ignoring case, else @code{#f}.")
+	     "Return @code{#t} iff the Unicode uppercase form of @var{x} is greater\n"
+	     "than or equal to the Unicode uppercase form of @var{y} in the\n"
+	     "Unicode sequence, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_geq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -233,7 +239,7 @@ SCM_DEFINE (scm_char_to_integer, "char->integer", 1, 0, 0,
 #define FUNC_NAME s_scm_char_to_integer
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return scm_from_ulong (SCM_CHAR(chr));
+  return scm_from_uint32 (SCM_CHAR(chr));
 }
 #undef FUNC_NAME
 
@@ -244,7 +250,15 @@ SCM_DEFINE (scm_integer_to_char, "integer->char", 1, 0, 0,
 	    "Return the character at position @var{n} in the ASCII sequence.")
 #define FUNC_NAME s_scm_integer_to_char
 {
-  return SCM_MAKE_CHAR (scm_to_uchar (n));
+  scm_t_wchar cn;
+
+  cn = scm_to_wchar (n);
+
+  /* Avoid the surrogates.  */
+  if (!SCM_IS_UNICODE_CHAR (cn))
+    scm_out_of_range (FUNC_NAME, n);
+
+  return SCM_MAKE_CHAR (cn);
 }
 #undef FUNC_NAME
 
@@ -255,7 +269,7 @@ SCM_DEFINE (scm_char_upcase, "char-upcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_upcase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR (toupper (SCM_CHAR (chr)));
+  return SCM_MAKE_CHAR (scm_c_upcase (SCM_CHAR (chr)));
 }
 #undef FUNC_NAME
 
@@ -266,7 +280,7 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 #define FUNC_NAME s_scm_char_downcase
 {
   SCM_VALIDATE_CHAR (1, chr);
-  return SCM_MAKE_CHAR (tolower (SCM_CHAR(chr)));
+  return SCM_MAKE_CHAR (scm_c_downcase (SCM_CHAR(chr)));
 }
 #undef FUNC_NAME
 
@@ -279,23 +293,17 @@ TODO: change name  to scm_i_.. ? --hwn
 */
 
 
-int
-scm_c_upcase (unsigned int c)
+scm_t_wchar
+scm_c_upcase (scm_t_wchar c)
 {
-  if (c <= UCHAR_MAX)
-    return toupper (c);
-  else
-    return c;
+  return uc_toupper (c);
 }
 
 
-int
-scm_c_downcase (unsigned int c)
+scm_t_wchar
+scm_c_downcase (scm_t_wchar c)
 {
-  if (c <= UCHAR_MAX)
-    return tolower (c);
-  else
-    return c;
+  return uc_tolower (c);
 }
 
 

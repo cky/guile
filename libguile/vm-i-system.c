@@ -175,6 +175,19 @@ VM_DEFINE_INSTRUCTION (16, make_char8, "make-char8", 1, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (42, make_char32, "make-char32", 4, 0, 1)
+{
+  scm_t_wchar v = 0;
+  v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  PUSH (SCM_MAKE_CHAR (v));
+  NEXT;
+}
+
+
+
 VM_DEFINE_INSTRUCTION (17, list, "list", 2, -1, 1)
 {
   unsigned h = FETCH ();
