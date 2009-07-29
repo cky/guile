@@ -31,7 +31,6 @@ Especially still missing:
 
 Other ideas and things to think about:
   * %nil vs. #f/'() handling in Guile
-  * lexical-let and/or optional lexical binding as extensions
   * compiler options for all lexical binding
 
 Compiler options implemented:
@@ -39,5 +38,58 @@ Compiler options implemented:
     for void value on access either completely or for some symbols
 
 Extensions over original elisp:
-  * (guile-ref module symbol) construct to build a (@ module symbol) from elisp
+  * guile-ref
   * flet and flet*
+  * lexical-let and lexical-let*
+
+
+Details to the implemented extensions
+=====================================
+
+guile-ref:
+----------
+
+(guile-ref module sym) is a new special construct to access symbols from the
+Guile-world (for instance, Guile primitives directly but it also allows to
+set some variables in other modules than the elisp runtime ones).
+
+Actually, (guile-ref module sym) is the same as (@ module sym) would be in
+Scheme.  Both module and sym must be statically given and are not evaluated.
+
+flet and flet*:
+---------------
+
+These constructs behave exactly like let and let*, except that they bind the
+function slots rather than the value slots, and so make dynamic scoping
+available for functions, too.
+
+The distinction between flet and flet* is probably less useful than the one
+between let and let*, but it was easy to implement both flet and flet*
+based on the existing let and let* code, so not having both of them seemed
+a little inconsistent.
+
+lexical-let and lexical-let*:
+-----------------------------
+
+lexical-let and lexical-let* are constructs provided by the elisp package
+'cl originally, but in Guile they are natively implemented because using
+lexical instead of dynamic binding gives better performance in this case.
+
+They work just like let and let*, but bind their target symbols lexically.
+Some oberservations with the Emacs 'cl implementation that we mimic in Guile
+for compatibility:
+
+  * Ordinary let's within the lexical scope of a lexical-let still establish new
+    *lexical* bindings for symbols already lexically bound.  So once lexical,
+    always lexical (on a per-symbol basis).
+
+  * However, lambda constructs within the lexical scope of a lexical-let where
+    one of their arguments is already lexically bound still bind it dynamically
+    for their scope.
+
+  * On the other hand, symbols lexically bound that are not rebound via the
+    argument-list build lexical closures just well.
+
+  * If symbols are accessed where they are not known at compile-time (like
+    symbol-value or set primitives), this always refers to the dynamic binding
+    and never the lexical one.  That's very nice to the implementor...

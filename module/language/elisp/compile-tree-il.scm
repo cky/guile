@@ -118,12 +118,29 @@
          (not (memq sym disabled)))))
 
 
-; Generate code to reference a fluid saved variable.
+; Handle access to a variable (reference/setting) correctly depending on
+; whether it is currently lexically or dynamically bound.
+; lexical access is done only for references to the value-slot module!
+
+(define (access-variable loc sym module handle-lexical handle-dynamic)
+  (let ((lexical (get-lexical-binding (fluid-ref bindings-data) sym)))
+    (if (and lexical (equal? module value-slot))
+      (handle-lexical lexical)
+      (handle-dynamic))))
+
+
+; Generate code to reference a variable.
+; For references in the value-slot module, we may want to generate a lexical
+; reference instead if the variable has a lexical binding.
 
 (define (reference-variable loc sym module)
-  (mark-fluid-needed! (fluid-ref bindings-data) sym module)
-  (call-primitive loc 'fluid-ref
-                  (make-module-ref loc module sym #t)))
+  (access-variable loc sym module
+                   (lambda (lexical)
+                     (make-lexical-ref loc lexical lexical))
+                   (lambda ()
+                     (mark-fluid-needed! (fluid-ref bindings-data) sym module)
+                     (call-primitive loc 'fluid-ref
+                                     (make-module-ref loc module sym #t)))))
 
 
 ; Reference a variable and error if the value is void.
@@ -141,12 +158,19 @@
     (reference-variable loc sym module)))
 
 
-; Generate code to set a fluid saved variable.
+; Generate code to set a variable.
+; Just as with reference-variable, in case of a reference to value-slot,
+; we want to generate a lexical set when the variable has a lexical binding.
 
 (define (set-variable! loc sym module value)
-  (mark-fluid-needed! (fluid-ref bindings-data) sym module)
-  (call-primitive loc 'fluid-set!
-                  (make-module-ref loc module sym #t) value))
+  (access-variable loc sym module
+                   (lambda (lexical)
+                     (make-lexical-set loc lexical lexical value))
+                   (lambda ()
+                     (mark-fluid-needed! (fluid-ref bindings-data) sym module)
+                     (call-primitive loc 'fluid-set!
+                                     (make-module-ref loc module sym #t)
+                                     value))))
 
 
 ; Process the bindings part of a let or let* expression; that is, check for
@@ -163,6 +187,109 @@
                (report-error loc "expected symbol in let")
                (cons (car b) (cadr b))))))
        bindings))
+
+
+; Split the let bindings into a list to be done lexically and one dynamically.
+; A symbol will be bound lexically if and only if:
+; We're processing a lexical-let (i.e. module is 'lexical), OR
+; we're processing a value-slot binding AND
+;   the symbol is already lexically bound.
+
+(define (bind-lexically? sym module)
+  (or (eq? module 'lexical)
+      (and (equal? module value-slot)
+           (get-lexical-binding (fluid-ref bindings-data) sym))))
+
+(define (split-let-bindings bindings module)
+  (let iterate ((tail bindings)
+                (lexical '())
+                (dynamic '()))
+    (if (null? tail)
+      (values (reverse lexical) (reverse dynamic))
+      (if (bind-lexically? (caar tail) module)
+        (iterate (cdr tail) (cons (car tail) lexical) dynamic)
+        (iterate (cdr tail) lexical (cons (car tail) dynamic))))))
+
+
+; Compile let and let* expressions.  The code here is used both for let/let*
+; and flet/flet*, just with a different bindings module.
+;
+; A special module value 'lexical means that we're doing a lexical-let instead
+; and the bindings should not be safed to fluids at all but be done with the
+; lexical framework instead.
+
+; Let is done with a single call to with-fluids* binding them locally to new
+; values all "at once".  If there is at least one variable to bind lexically
+; among the bindings, we first do a let for all of them to evaluate all
+; values before any bindings take place, and then call with-fluids* for the
+; variables to bind dynamically.
+(define (generate-let loc module bindings body)
+  (let ((bind (process-let-bindings loc bindings)))
+    (call-with-values
+      (lambda ()
+        (split-let-bindings bind module))
+      (lambda (lexical dynamic)
+        (for-each (lambda (sym)
+                    (mark-fluid-needed! (fluid-ref bindings-data) sym module))
+                  (map car dynamic))
+        (let ((fluids (make-application loc (make-primitive-ref loc 'list)
+                        (map (lambda (el)
+                               (make-module-ref loc module (car el) #t))
+                             dynamic)))
+              (make-values (lambda (for)
+                             (map (lambda (el)
+                                    (compile-expr (cdr el)))
+                                  for)))
+              (make-body (lambda ()
+                           (make-sequence loc (map compile-expr body)))))
+          (if (null? lexical)
+            (call-primitive loc 'with-fluids*
+              fluids
+              (make-application loc (make-primitive-ref loc 'list)
+                (make-values dynamic))
+              (make-lambda loc '() '() '() (make-body)))
+            (let* ((lexical-syms (map (lambda (el) (gensym)) lexical))
+                   (dynamic-syms (map (lambda (el) (gensym)) dynamic))
+                   (all-syms (append lexical-syms dynamic-syms))
+                   (vals (append (make-values lexical) (make-values dynamic))))
+              (make-let loc all-syms all-syms vals
+                (with-lexical-bindings (fluid-ref bindings-data)
+                                       (map car lexical) lexical-syms
+                  (lambda ()
+                    (if (null? dynamic)
+                      (make-body)
+                      (call-primitive loc 'with-fluids*
+                        fluids
+                        (make-application loc (make-primitive-ref loc 'list)
+                          (map (lambda (sym) (make-lexical-ref loc sym sym))
+                               dynamic-syms))
+                        (make-lambda loc '() '() '() (make-body))))))))))))))
+
+
+; Let* is compiled to a cascaded set of "small lets" for each binding in turn
+; so that each one already sees the preceding bindings.
+(define (generate-let* loc module bindings body)
+  (let ((bind (process-let-bindings loc bindings)))
+    (begin
+      (for-each (lambda (sym)
+                  (if (not (bind-lexically? sym module))
+                    (mark-fluid-needed! (fluid-ref bindings-data) sym module)))
+                (map car bind))
+      (let iterate ((tail bind))
+        (if (null? tail)
+          (make-sequence loc (map compile-expr body))
+          (let ((sym (caar tail))
+                (value (compile-expr (cdar tail))))
+            (if (bind-lexically? sym module)
+              (let ((target (gensym)))
+                (make-let loc `(,target) `(,target) `(,value)
+                  (with-lexical-bindings (fluid-ref bindings-data)
+                                         `(,sym) `(,target)
+                    (lambda ()
+                      (iterate (cdr tail))))))
+              (call-primitive loc 'with-fluid*
+                (make-module-ref loc module (caar tail) #t) value
+                (make-lambda loc '() '() '() (iterate (cdr tail)))))))))))
 
 
 ; Split the argument list of a lambda expression into required, optional and
@@ -217,45 +344,51 @@
 ;             (fluid-set! c rest_))))
 ;       body)))
 ;
-; This is formulated quite imperatively, but I think in this case that is quite
+; This is formulated very imperatively, but I think in this case that is quite
 ; clear and better than creating a lot of nested let's.
+;
+; Another thing we have to be aware of is that lambda arguments are always
+; dynamically bound, even when a lexical binding is in tact for a symbol.
 
 (define (compile-lambda loc args body)
   (if (not (list? args))
     (error "expected list for argument-list" args))
   (if (null? body)
     (error "function body might not be empty"))
-  (call-with-values
+  (with-dynamic-bindings (fluid-ref bindings-data) args
     (lambda ()
-      (split-lambda-arguments loc args))
-    (lambda (required optional rest)
-      (let ((required-sym (map (lambda (sym) (gensym)) required))
-            (rest-sym (if (or rest (not (null? optional))) (gensym) '())))
-        (let ((real-args (append required-sym rest-sym))
-              (locals `(,@required ,@optional ,@(if rest (list rest) '()))))
-          (make-lambda loc
-            real-args real-args '()
-            (begin
-              (for-each (lambda (sym)
-                          (mark-fluid-needed! (fluid-ref bindings-data)
-                                              sym value-slot))
-                        locals)
-              (call-primitive loc 'with-fluids*
-                (make-application loc (make-primitive-ref loc 'list)
-                  (map (lambda (sym) (make-module-ref loc value-slot sym #t))
-                       locals))
-                (make-application loc (make-primitive-ref loc 'list)
-                  (append (map (lambda (sym) (make-lexical-ref loc sym sym))
-                               required-sym)
-                          (map (lambda (sym) (nil-value loc))
-                               (if rest
-                                 `(,@optional ,rest-sym)
-                                 optional))))
-                (make-lambda loc '() '() '()
-                  (make-sequence loc
-                    `(,(process-optionals loc optional rest-sym)
-                      ,(process-rest loc rest rest-sym)
-                      ,@(map compile-expr body))))))))))))
+      (call-with-values
+        (lambda ()
+          (split-lambda-arguments loc args))
+        (lambda (required optional rest)
+          (let ((required-sym (map (lambda (sym) (gensym)) required))
+                (rest-sym (if (or rest (not (null? optional))) (gensym) '())))
+            (let ((real-args (append required-sym rest-sym))
+                  (locals `(,@required ,@optional ,@(if rest (list rest) '()))))
+              (make-lambda loc
+                real-args real-args '()
+                (begin
+                  (for-each (lambda (sym)
+                              (mark-fluid-needed! (fluid-ref bindings-data)
+                                                  sym value-slot))
+                            locals)
+                  (call-primitive loc 'with-fluids*
+                    (make-application loc (make-primitive-ref loc 'list)
+                      (map (lambda (sym)
+                             (make-module-ref loc value-slot sym #t))
+                           locals))
+                    (make-application loc (make-primitive-ref loc 'list)
+                      (append (map (lambda (sym) (make-lexical-ref loc sym sym))
+                                   required-sym)
+                              (map (lambda (sym) (nil-value loc))
+                                   (if rest
+                                     `(,@optional ,rest-sym)
+                                     optional))))
+                    (make-lambda loc '() '() '()
+                      (make-sequence loc
+                        `(,(process-optionals loc optional rest-sym)
+                          ,(process-rest loc rest rest-sym)
+                          ,@(map compile-expr body))))))))))))))
 
 ; Build the code to handle setting of optional arguments that are present
 ; and updating the rest list.
@@ -408,46 +541,6 @@
             (list (compile-expr iter-list))))))))
 
 
-; Compile let and let* expressions.  The code here is used both for let/let*
-; and flet/flet*, just with a different bindings module.
-
-; Let is done with a single call to with-fluids* binding them locally to new
-; values all "at once".
-(define (generate-let loc module bindings body)
- (let ((bind (process-let-bindings loc bindings)))
-   (begin
-     (for-each (lambda (sym)
-                 (mark-fluid-needed! (fluid-ref bindings-data) sym module))
-               (map car bind))
-     (call-primitive loc 'with-fluids*
-       (make-application loc (make-primitive-ref loc 'list)
-         (map (lambda (el)
-                (make-module-ref loc module (car el) #t))
-              bind))
-       (make-application loc (make-primitive-ref loc 'list)
-         (map (lambda (el)
-                (compile-expr (cdr el)))
-              bind))
-       (make-lambda loc '() '() '() 
-         (make-sequence loc (map compile-expr body)))))))
-
-; Let* is compiled to a cascaded set of with-fluid* for each binding in turn
-; so that each one already sees the preceding bindings.
-(define (generate-let* loc module bindings body)
- (let ((bind (process-let-bindings loc bindings)))
-   (begin
-     (for-each (lambda (sym)
-                 (mark-fluid-needed! (fluid-ref bindings-data) sym module))
-               (map car bind))
-     (let iterate ((tail bind))
-       (if (null? tail)
-         (make-sequence loc (map compile-expr body))
-         (call-primitive loc 'with-fluid*
-           (make-module-ref loc module (caar tail) #t)
-           (compile-expr (cdar tail))
-           (make-lambda loc '() '() '() (iterate (cdr tail)))))))))
-
-
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -578,13 +671,17 @@
                    (cons (set-variable! loc sym value-slot val)
                          (iterate (cdr tailtail)))))))))))
 
-    ; let/let* and flet/flet* are done using the generate-let/generate-let*
-    ; methods.
+    ; All lets (let, flet, lexical-let and let* forms) are done using the
+    ; generate-let/generate-let* methods.
 
     ((let ,bindings . ,body) (guard (and (list? bindings)
                                          (not (null? bindings))
                                          (not (null? body))))
      (generate-let loc value-slot bindings body))
+    ((lexical-let ,bindings . ,body) (guard (and (list? bindings)
+                                                 (not (null? bindings))
+                                                 (not (null? body))))
+     (generate-let loc 'lexical bindings body))
     ((flet ,bindings . ,body) (guard (and (list? bindings)
                                           (not (null? bindings))
                                           (not (null? body))))
@@ -594,6 +691,10 @@
                                           (not (null? bindings))
                                           (not (null? body))))
      (generate-let* loc value-slot bindings body))
+    ((lexical-let* ,bindings . ,body) (guard (and (list? bindings)
+                                                  (not (null? bindings))
+                                                  (not (null? body))))
+     (generate-let* loc 'lexical bindings body))
     ((flet* ,bindings . ,body) (guard (and (list? bindings)
                                            (not (null? bindings))
                                            (not (null? body))))

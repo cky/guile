@@ -243,6 +243,75 @@
            (and (= a 0)
                 (= b 1)))))
 
+(with-test-prefix/compile "Lexical Scoping"
+
+  (pass-if "basic let semantics"
+    (and (setq a 1)
+         (lexical-let ((a 2) (b a))
+           (and (= a 2) (= b 1)))
+         (lexical-let* ((a 2) (b a))
+           (and (= a 2) (= b 2) (setq a 42) (= a 42)))
+         (= a 1)))
+
+  (pass-if "lexical scope with lexical-let's"
+    (and (setq a 1)
+         (defun dyna () a)
+         (lexical-let (a)
+           (setq a 2)
+           (and (= a 2) (= (dyna) 1)))
+         (= a 1)
+         (lexical-let* (a)
+           (setq a 2)
+           (and (= a 2) (= (dyna) 1)))
+         (= a 1)))
+
+  (pass-if "lexical scoping vs. symbol-value / set"
+    (and (setq a 1)
+         (lexical-let ((a 2))
+           (and (= a 2)
+                (= (symbol-value 'a) 1)
+                (set 'a 3)
+                (= a 2)
+                (= (symbol-value 'a) 3)))
+         (= a 3)))
+
+  (pass-if "let inside lexical-let"
+    (and (setq a 1 b 1)
+         (defun dynvals () (cons a b))
+         (lexical-let ((a 2))
+           (and (= a 2) (equal (dynvals) '(1 . 1))
+                (let ((a 3) (b a))
+                  (and (= a 3) (= b 2)
+                       (equal (dynvals) '(1 . 2))))
+                (let* ((a 4) (b a))
+                  (and (= a 4) (= b 4)
+                       (equal (dynvals) '(1 . 4))))
+                (= a 2)))
+         (= a 1)))
+
+  (pass-if "lambda args inside lexical-let"
+    (and (setq a 1)
+         (defun dyna () a)
+         (lexical-let ((a 2) (b 42))
+           (and (= a 2) (= (dyna) 1)
+                ((lambda (a) (and (= a 3) (= b 42) (= (dyna) 3))) 3)
+                (= a 2) (= (dyna) 1)))
+         (= a 1)))
+
+  (pass-if "closures"
+    (and (defun make-counter ()
+           (lexical-let ((cnt 0))
+             (lambda ()
+               (setq cnt (1+ cnt)))))
+         (setq c1 (make-counter) c2 (make-counter))
+         (= ((guile-ref (guile) apply) c1 '()) 1)
+         (= ((guile-ref (guile) apply) c1 '()) 2)
+         (= ((guile-ref (guile) apply) c1 '()) 3)
+         (= ((guile-ref (guile) apply) c2 '()) 1)
+         (= ((guile-ref (guile) apply) c2 '()) 2)
+         (= ((guile-ref (guile) apply) c1 '()) 4)
+         (= ((guile-ref (guile) apply) c2 '()) 3))))
+
 (with-test-prefix/compile "defconst and defvar"
 
   (pass-if-equal "defconst without docstring" 3.141
