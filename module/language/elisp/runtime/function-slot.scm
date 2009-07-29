@@ -20,7 +20,8 @@
 ;;; Code:
 
 (define-module (language elisp runtime function-slot)
-  #:use-module (language elisp runtime))
+  #:use-module (language elisp runtime)
+  #:use-module (system base compile))
 
 ; This module contains the function-slots of elisp symbols.  Elisp built-in
 ; functions are implemented as predefined function bindings here.
@@ -272,6 +273,29 @@
                   (eq? void (reference-variable function-slot-module sym))))))
 
 
+; Function calls.  These must take care of special cases, like using symbols
+; or raw lambda-lists as functions!
+
+(built-in-func apply
+  (lambda (func . args)
+    (let ((real-func (cond
+                       ((symbol? func)
+                        (reference-variable-with-check function-slot-module
+                                                       func))
+                       ((list? func)
+                        (if (and (prim not (null? func))
+                                 (eq? (prim car func) 'lambda))
+                          (compile func #:from 'elisp #:to 'value)
+                          (runtime-error "list is not a function" func)))
+                       (else func))))
+      (prim apply (@ (guile) apply) real-func args))))
+
+(built-in-func funcall
+  (let ((myapply (fluid-ref apply)))
+    (lambda (func . args)
+      (myapply func args))))
+
+
 ; Throw can be implemented as built-in function.
 
 (built-in-func throw
@@ -281,5 +305,10 @@
 
 ; Miscellaneous.
 
-(built-in-func not (lambda (x)
-                     (if x nil-value t-value)))
+(built-in-func not
+  (lambda (x)
+    (if x nil-value t-value)))
+
+(built-in-func eval
+  (lambda (form)
+    (compile form #:from 'elisp #:to 'value)))

@@ -11,6 +11,8 @@ Already implemented:
   * referencing and setting (setq) variables
   * set, symbol-value, makunbound, boundp functions
   * fset, symbol-function, fmakunbound, fboundp
+  * funcall, apply (also with raw lists as arguments and the like!)
+  * eval
   * while, dotimes, dolist
   * catch, throw, unwind-protect
   * let, let*
@@ -23,7 +25,6 @@ Already implemented:
 Especially still missing:
   * real elisp reader instead of Scheme's
   * more general built-ins
-  * funcall and apply functions
   * advice?
   * defsubst and inlining
   * recursive macros
