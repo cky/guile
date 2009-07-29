@@ -701,11 +701,16 @@
      (generate-let* loc function-slot bindings body))
 
     ; guile-ref allows building TreeIL's module references from within
-    ; elisp as a way to access data (and primitives, for instance) within
+    ; elisp as a way to access data within
     ; the Guile universe.  The module and symbol referenced are static values,
     ; just like (@ module symbol) does!
     ((guile-ref ,module ,sym) (guard (and (list? module) (symbol? sym)))
      (make-module-ref loc module sym #t))
+
+    ; guile-primitive allows to create primitive references, which are still
+    ; a little faster.
+    ((guile-primitive ,sym) (guard (symbol? sym))
+     (make-primitive-ref loc sym))
 
     ; A while construct is transformed into a tail-recursive loop like this:
     ; (letrec ((iterate (lambda ()

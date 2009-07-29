@@ -38,7 +38,7 @@ Compiler options implemented:
     for void value on access either completely or for some symbols
 
 Extensions over original elisp:
-  * guile-ref
+  * guile-ref, guile-primitive
   * flet and flet*
   * lexical-let and lexical-let*
 
@@ -46,15 +46,16 @@ Extensions over original elisp:
 Details to the implemented extensions
 =====================================
 
-guile-ref:
-----------
+guile-ref and guile-primitive:
+------------------------------
 
 (guile-ref module sym) is a new special construct to access symbols from the
-Guile-world (for instance, Guile primitives directly but it also allows to
-set some variables in other modules than the elisp runtime ones).
+Guile-world.  Actually, (guile-ref module sym) is the same as (@ module sym)
+would be in Scheme.  Both module and sym must be statically given and are not
+evaluated.
 
-Actually, (guile-ref module sym) is the same as (@ module sym) would be in
-Scheme.  Both module and sym must be statically given and are not evaluated.
+(guile-primitive sym) does the same to access a Guile primitive directly, which
+is slightly faster where applicable.
 
 flet and flet*:
 ---------------
