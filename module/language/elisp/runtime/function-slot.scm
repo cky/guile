@@ -179,6 +179,8 @@
           ((zero? i) tail)
           (else (iterate (prim 1- i) (prim cdr tail))))))))
 
+(built-in-func length (@ (guile) length))
+
 
 ; Building lists.
 

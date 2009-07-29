@@ -553,6 +553,11 @@
          (equal (nthcdr 1 '(1 2 3)) '(2 3))
          (equal (nthcdr 2 '(1 2 3)) '(3))))
 
+  (pass-if "length"
+    (and (= (length '()) 0)
+         (= (length '(1 2 3 4 5)) 5)
+         (= (length '(1 2 (3 4 (5)) 6)) 4)))
+
   (pass-if "cons, list and make-list"
     (and (equal (cons 1 2) '(1 . 2)) (equal (cons 1 '(2 3)) '(1 2 3))
          (equal (cons 1 '()) '(1))
