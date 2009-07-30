@@ -34,6 +34,7 @@ SOURCES =								\
   ice-9/psyntax-pp.scm 							\
   system/base/pmatch.scm system/base/syntax.scm				\
   system/base/compile.scm system/base/language.scm			\
+  system/base/message.scm						\
 									\
   language/tree-il.scm							\
   language/ghil.scm language/glil.scm language/assembly.scm		\

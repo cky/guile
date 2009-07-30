@@ -21,6 +21,7 @@
 (define-module (system base compile)
   #:use-module (system base syntax)
   #:use-module (system base language)
+  #:use-module (system base message)
   #:use-module (system vm vm) ;; FIXME: there's a reason for this, can't remember why tho
   #:use-module (ice-9 regex)
   #:use-module (ice-9 optargs)
@@ -213,6 +214,16 @@
                   (from (current-language))
                   (to 'value)
                   (opts '()))
+
+  (let ((warnings (memq #:warnings opts)))
+    (if (pair? warnings)
+        (let ((warnings (cadr warnings)))
+          ;; Sanity-check the requested warnings.
+          (for-each (lambda (w)
+                      (or (lookup-warning-type w)
+                          (warning 'unsupported-warning #f w)))
+                    warnings))))
+
   (receive (exp env cenv)
       (compile-fold (compile-passes from to opts) x env opts)
     exp))

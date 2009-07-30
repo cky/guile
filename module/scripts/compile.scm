@@ -30,9 +30,11 @@
 
 (define-module (scripts compile)
   #:use-module ((system base compile) #:select (compile-file))
+  #:use-module (system base message)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-13)
   #:use-module (srfi srfi-37)
+  #:use-module (ice-9 format)
   #:export (compile))
 
 
@@ -57,6 +59,17 @@
 		  (if (assoc-ref result 'output-file)
 		      (fail "`-o' option cannot be specified more than once")
 		      (alist-cons 'output-file arg result))))
+
+        (option '(#\W "warn") #t #f
+                (lambda (opt name arg result)
+                  (if (string=? arg "help")
+                      (begin
+                        (show-warning-help)
+                        (exit 0))
+                      (let ((warnings (assoc-ref result 'warnings)))
+                        (alist-cons 'warnings
+                                    (cons (string->symbol arg) warnings)
+                                    (alist-delete 'warnings result))))))
 
 	(option '(#\O "optimize") #f #f
 		(lambda (opt name arg result)
@@ -86,13 +99,27 @@ options."
 
 	     ;; default option values
              '((input-files)
-	       (load-path))))
+	       (load-path)
+               (warnings unsupported-warning))))
+
+(define (show-warning-help)
+  (format #t "The available warning types are:~%~%")
+  (for-each (lambda (wt)
+              (format #t "  ~22A ~A~%"
+                      (format #f "`~A'" (warning-type-name wt))
+                      (warning-type-description wt)))
+            %warning-types)
+  (format #t "~%"))
 
 
 (define (compile . args)
   (let* ((options         (parse-args args))
          (help?           (assoc-ref options 'help?))
-         (compile-opts    (if (assoc-ref options 'optimize?) '(#:O) '()))
+         (compile-opts    (let ((o `(#:warnings
+                                     ,(assoc-ref options 'warnings))))
+                            (if (assoc-ref options 'optimize?)
+                                (cons #:O o)
+                                o)))
          (from            (or (assoc-ref options 'from) 'scheme))
          (to              (or (assoc-ref options 'to) 'objcode))
 	 (input-files     (assoc-ref options 'input-files))
@@ -107,6 +134,9 @@ Compile each Guile source file FILE into a Guile object.
 
   -L, --load-path=DIR  add DIR to the front of the module load path
   -o, --output=OFILE   write output to OFILE
+
+  -W, --warn=WARNING   emit warnings of type WARNING; use `--warn=help'
+                       for a list of available warnings
 
   -f, --from=LANG      specify a source language other than `scheme'
   -t, --to=LANG        specify a target language other than `objcode'
