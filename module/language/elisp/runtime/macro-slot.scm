@@ -28,8 +28,16 @@
 ; here.
 
 
-; The prog2 construct can be directly defined in terms of prog1 and progn,
-; so this is done using a macro.
+; The prog1 and prog2 constructs can easily be defined as macros using progn
+; and some lexical-let's to save the intermediate value to return at the end.
+
+(built-in-macro prog1
+  (lambda (form1 . rest)
+    (let ((temp (gensym)))
+      `(without-void-checks (,temp)
+         (lexical-let ((,temp ,form1))
+           ,@rest
+           ,temp)))))
 
 (built-in-macro prog2
   (lambda (form1 form2 . rest)
@@ -47,21 +55,66 @@
     `(if ,condition nil (progn ,@elses))))
 
 
-; Define the dotimes iteration macro.
-; As the variable has to be bound locally for elisp, this needs to go through
-; the dynamic scoping fluid system.  So we can't speed these forms up by
-; implementing them directly in the compiler with just a lexical variable
-; anyways.
-; For dolist, on the other hand, we have to bind the elisp variable to the
-; list elements but keep track of the list-tails in another one.  Therefore,
-; this can take advantage of real compilation because of circumventing the
-; fluid-system for this variable.
+; Impement the cond form as nested if's.  A special case is a (condition)
+; subform, in which case we need to return the condition itself if it is true
+; and thus save it in a local variable before testing it.
+
+(built-in-macro cond
+  (lambda (. clauses)
+    (let iterate ((tail clauses))
+      (if (null? tail)
+        'nil
+        (let ((cur (car tail))
+              (rest (iterate (cdr tail))))
+          (prim cond
+            ((prim or (not (list? cur)) (null? cur))
+             (macro-error "invalid clause in cond" cur))
+            ((null? (cdr cur))
+             (let ((var (gensym)))
+               `(without-void-checks (,var)
+                  (lexical-let ((,var ,(car cur)))
+                    (if ,var
+                      ,var
+                      ,rest)))))
+            (else
+              `(if ,(car cur)
+                 (progn ,@(cdr cur))
+                 ,rest))))))))
+
+
+; The and and or forms can also be easily defined with macros.
+
+(built-in-macro and
+  (lambda (. args)
+    (if (null? args)
+      't
+      (let iterate ((tail args))
+        (if (null? (cdr tail))
+          (car tail)
+          `(if ,(car tail)
+             ,(iterate (cdr tail))
+             nil))))))
+
+(built-in-macro or
+  (lambda (. args)
+    (let iterate ((tail args))
+      (if (null? tail)
+        'nil
+        (let ((var (gensym)))
+          `(without-void-checks (,var)
+             (lexical-let ((,var ,(car tail)))
+               (if ,var
+                 ,var
+                 ,(iterate (cdr tail))))))))))
+
+
+; Define the dotimes and dolist iteration macros.
 
 (built-in-macro dotimes
   (lambda (args . body)
-    (if (or (not (list? args))
-            (< (length args) 2)
-            (> (length args) 3))
+    (if (prim or (not (list? args))
+                 (< (length args) 2)
+                 (> (length args) 3))
       (macro-error "invalid dotimes arguments" args)
       (let ((var (car args))
             (count (cadr args)))
@@ -74,6 +127,28 @@
            ,@(if (= (length args) 3)
                (list (caddr args))
                '()))))))
+
+(built-in-macro dolist
+  (lambda (args . body)
+    (if (prim or (not (list? args))
+                 (< (length args) 2)
+                 (> (length args) 3))
+      (macro-error "invalid dolist arguments" args)
+      (let ((var (car args))
+            (iter-list (cadr args))
+            (tailvar (gensym)))
+        (if (not (symbol? var))
+          (macro-error "expected symbol as dolist variable")
+          `(let (,var)
+             (without-void-checks (,tailvar)
+               (lexical-let ((,tailvar ,iter-list))
+                 (while (not (null ,tailvar))
+                   (setq ,var (car ,tailvar))
+                   ,@body
+                   (setq ,tailvar (cdr ,tailvar)))
+                 ,@(if (= (length args) 3)
+                     (list (caddr args))
+                     '())))))))))
 
 
 ; Pop off the first element from a list or push one to it.

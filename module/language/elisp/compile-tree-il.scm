@@ -504,45 +504,6 @@
     (make-const loc expr)))
 
 
-; Compile a dolist construct.
-; This is compiled to something along:
-; (with-fluid* iter-var %nil
-;   (lambda ()
-;     (let iterate ((tail list))
-;       (if (null? tail)
-;         result
-;         (begin
-;           (fluid-set! iter-var (car tail))
-;           body
-;           (iterate (cdr tail)))))))
-
-(define (compile-dolist loc var iter-list result body)
-  (let* ((tailvar (gensym))
-         (iterate (gensym))
-         (tailref (make-lexical-ref loc tailvar tailvar))
-         (iterate-func (make-lambda loc `(,tailvar) `(,tailvar) '()
-                         (make-conditional loc
-                           (call-primitive loc 'null? tailref)
-                           (compile-expr result)
-                           (make-sequence loc
-                             `(,(set-variable! loc var value-slot
-                                  (call-primitive loc 'car tailref))
-                               ,@(map compile-expr body)
-                               ,(make-application loc
-                                  (make-lexical-ref loc iterate iterate)
-                                  (list (call-primitive loc 'cdr
-                                          tailref)))))))))
-    (mark-fluid-needed! (fluid-ref bindings-data) var value-slot)
-    (call-primitive loc 'with-fluid*
-      (make-module-ref loc value-slot var #t)
-      (nil-value loc)
-      (make-lambda loc '() '() '()
-        (make-letrec loc `(,iterate) `(,iterate) `(,iterate-func)
-          (make-application loc
-            (make-lexical-ref loc iterate iterate)
-            (list (compile-expr iter-list))))))))
-
-
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -561,16 +522,6 @@
     ((progn . ,forms)
      (make-sequence loc (map compile-expr forms)))
 
-    ; I chose to implement prog1 directly (not with macros) so that the
-    ; temporary variable used can be a lexical one that is not backed by a fluid
-    ; for better performance.
-    ((prog1 ,form1 . ,forms)
-     (let ((temp (gensym)))
-       (make-let loc `(,temp) `(,temp) `(,(compile-expr form1))
-         (make-sequence loc
-           (append (map compile-expr forms)
-                   (list (make-lexical-ref loc temp temp)))))))
-
     ((if ,condition ,ifclause)
      (make-conditional loc (compile-expr condition)
                            (compile-expr ifclause)
@@ -584,51 +535,8 @@
                            (compile-expr ifclause)
                            (make-sequence loc (map compile-expr elses))))
 
-    ; For (cond ...) forms, a special case is a (condition) clause without
-    ; body.  In this case, the value of condition itself should be returned,
-    ; and thus is saved in a local variable for testing and returning, if it
-    ; is found true.
-    ((cond . ,clauses) (guard (and-map (lambda (el)
-                                         (and (list? el) (not (null? el))))
-                                       clauses))
-     (let iterate ((tail clauses))
-       (if (null? tail)
-         (nil-value loc)
-         (let ((cur (car tail)))
-           (if (null? (cdr cur))
-             (let ((var (gensym)))
-               (make-let loc
-                 '(condition) `(,var) `(,(compile-expr (car cur)))
-                 (make-conditional loc
-                   (make-lexical-ref loc 'condition var)
-                   (make-lexical-ref loc 'condition var)
-                   (iterate (cdr tail)))))
-             (make-conditional loc
-               (compile-expr (car cur))
-               (make-sequence loc (map compile-expr (cdr cur)))
-               (iterate (cdr tail))))))))
-
-    ((and) (t-value loc))
-    ((and . ,expressions)
-     (let iterate ((tail expressions))
-       (if (null? (cdr tail))
-         (compile-expr (car tail))
-         (make-conditional loc
-           (compile-expr (car tail))
-           (iterate (cdr tail))
-           (nil-value loc)))))
-
-    ((or . ,expressions)
-     (let iterate ((tail expressions))
-       (if (null? tail)
-         (nil-value loc)
-         (let ((var (gensym)))
-           (make-let loc
-             '(condition) `(,var) `(,(compile-expr (car tail)))
-             (make-conditional loc
-               (make-lexical-ref loc 'condition var)
-               (make-lexical-ref loc 'condition var)
-               (iterate (cdr tail))))))))
+    ; defconst and defvar are kept here in the compiler (rather than doing them
+    ; as macros) for if we may want to handle the docstring somehow.
 
     ((defconst ,sym ,value . ,doc)
      (if (handle-var-def loc sym doc)
@@ -754,19 +662,15 @@
        (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
          iter-call)))
 
-    ; dolist is treated here rather than as macro because it can take advantage
-    ; of a non-fluid-based variable.
-    ((dolist (,var ,iter-list) . ,body) (guard (symbol? var))
-     (compile-dolist loc var iter-list 'nil body))
-    ((dolist (,var ,iter-list ,result) . ,body) (guard (symbol? var))
-     (compile-dolist loc var iter-list result body))
-
     ; catch and throw can mainly be implemented directly using Guile's
     ; primitives for exceptions, the only difficulty is that the keys used
     ; within Guile must be symbols, while elisp allows any value and checks
     ; for matches using eq (eq?).  We handle this by using always #t as key
     ; for the Guile primitives and check for matches inside the handler; if
     ; the elisp keys are not eq?, we rethrow the exception.
+    ;
+    ; TODO: Implement catch with a macro once we can build the lambda with
+    ; lexical arguments.
     ;
     ; throw is implemented as built-in function.
 
@@ -794,6 +698,8 @@
 
     ; unwind-protect is just some weaker construct as dynamic-wind, so 
     ; straight-forward to implement.
+    ; TODO: This might be implemented as a macro, once lambda's without
+    ; arguments do not call with-fluids* anymore.
     ((unwind-protect ,body . ,clean-ups) (guard (not (null? clean-ups)))
      (call-primitive loc 'dynamic-wind
                      (make-lambda loc '() '() '() (make-void loc))
@@ -811,6 +717,8 @@
      (compile-lambda loc args body))
 
     ; Build a lambda and also assign it to the function cell of some symbol.
+    ; This is no macro as we might want to honour the docstring at some time;
+    ; just as with defvar/defconst.
     ((defun ,name ,args . ,body)
      (if (not (symbol? name))
        (error "expected symbol as function name" name)
@@ -831,6 +739,7 @@
          (define-macro! loc name object)
          (make-const loc name))))
 
+    ; XXX: Maybe we could implement backquotes in macros, too.
     ((,backq ,val) (guard (backquote? backq))
      (process-backquote loc val))
 
