@@ -21,8 +21,10 @@
   #:use-module (test-suite lib)
   #:use-module (system base compile)
   #:use-module (system base pmatch)
+  #:use-module (system base message)
   #:use-module (language tree-il)
-  #:use-module (language glil))
+  #:use-module (language glil)
+  #:use-module (srfi srfi-13))
 
 ;; Of course, the GLIL that is emitted depends on the source info of the
 ;; input. Here we're not concerned about that, so we strip source
@@ -506,3 +508,77 @@
            (= (length downs) 2)
            (equal? (reverse (map strip-source ups))
                    (map strip-source downs))))))
+
+
+;;;
+;;; Warnings.
+;;;
+
+;; Make sure we get English messages.
+(setlocale LC_ALL "C")
+
+(define (call-with-warnings thunk)
+  (let ((port (open-output-string)))
+    (with-fluid* *current-warning-port* port
+      thunk)
+    (let ((warnings (get-output-string port)))
+      (string-tokenize warnings
+                       (char-set-complement (char-set #\newline))))))
+
+(define %opts-w-unused
+  '(#:warnings (unused-variable)))
+
+
+(with-test-prefix "warnings"
+
+   (pass-if "unknown warning type"
+     (let ((w (call-with-warnings
+                (lambda ()
+                  (compile #t #:opts '(#:warnings (does-not-exist)))))))
+       (and (= (length w) 1)
+            (number? (string-contains (car w) "unknown warning")))))
+
+   (with-test-prefix "unused-variable"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda (x y) (+ x y))
+                           #:opts %opts-w-unused)))))
+
+     (pass-if "let/unused"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(lambda (x)
+                                (let ((y (+ x 2)))
+                                  x))
+                             #:opts %opts-w-unused)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w) "unused variable `y'")))))
+
+     (pass-if "shadowed variable"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(lambda (x)
+                                (let ((y x))
+                                  (let ((y (+ x 2)))
+                                    (+ x y))))
+                             #:opts %opts-w-unused)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w) "unused variable `y'")))))
+
+     (pass-if "letrec"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda ()
+                              (letrec ((x (lambda () (y)))
+                                       (y (lambda () (x))))
+                                y))
+                           #:opts %opts-w-unused)))))
+
+     (pass-if "unused argument"
+       ;; Unused arguments should not be reported.
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda (x y z) #t)
+                           #:opts %opts-w-unused)))))))

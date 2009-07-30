@@ -20,9 +20,12 @@
 
 (define-module (language tree-il analyze)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
   #:use-module (system base syntax)
+  #:use-module (system base message)
   #:use-module (language tree-il)
-  #:export (analyze-lexicals))
+  #:export (analyze-lexicals
+            report-unused-variables))
 
 ;; Allocation is the process of assigning storage locations for lexical
 ;; variables. A lexical variable has a distinct "address", or storage
@@ -308,3 +311,127 @@
   (allocate! x #f 0)
 
   allocation)
+
+
+;;;
+;;; Unused variable analysis.
+;;;
+
+;; <binding-info> records are used during tree traversals in
+;; `report-unused-variables'.  They contain a list of the local vars
+;; currently in scope, a list of locals vars that have been referenced, and a
+;; "location stack" (the stack of `tree-il-src' values for each parent tree).
+(define-record-type <binding-info>
+  (make-binding-info vars refs locs)
+  binding-info?
+  (vars binding-info-vars)  ;; ((GENSYM NAME LOCATION) ...)
+  (refs binding-info-refs)  ;; (GENSYM ...)
+  (locs binding-info-locs)) ;; (LOCATION ...)
+
+(define (report-unused-variables tree)
+  "Report about unused variables in TREE.  Return TREE."
+
+  (define (dotless-list lst)
+    ;; If LST is a dotted list, return a proper list equal to LST except that
+    ;; the very last element is a pair; otherwise return LST.
+    (let loop ((lst    lst)
+               (result '()))
+      (cond ((null? lst)
+             (reverse result))
+            ((pair? lst)
+             (loop (cdr lst) (cons (car lst) result)))
+            (else
+             (loop '() (cons lst result))))))
+
+  (tree-il-fold (lambda (x info)
+                  ;; X is a leaf: extend INFO's refs accordingly.
+                  (let ((refs (binding-info-refs info))
+                        (vars (binding-info-vars info))
+                        (locs (binding-info-locs info)))
+                    (record-case x
+                      ((<lexical-ref> gensym)
+                       (make-binding-info vars (cons gensym refs) locs))
+                      (else info))))
+
+                (lambda (x info)
+                  ;; Going down into X: extend INFO's variable list
+                  ;; accordingly.
+                  (let ((refs (binding-info-refs info))
+                        (vars (binding-info-vars info))
+                        (locs (binding-info-locs info))
+                        (src  (tree-il-src x)))
+                    (define (extend inner-vars inner-names)
+                      (append (map (lambda (var name)
+                                     (list var name src))
+                                   inner-vars
+                                   inner-names)
+                              vars))
+                    (record-case x
+                      ((<lexical-set> gensym)
+                       (make-binding-info vars (cons gensym refs)
+                                          (cons src locs)))
+                      ((<lambda> vars names)
+                       (let ((vars  (dotless-list vars))
+                             (names (dotless-list names)))
+                         (make-binding-info (extend vars names) refs
+                                            (cons src locs))))
+                      ((<let> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
+                      ((<letrec> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
+                      ((<let-values> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
+                      (else info))))
+
+                (lambda (x info)
+                  ;; Leaving X's scope: shrink INFO's variable list
+                  ;; accordingly and reported unused nested variables.
+                  (let ((refs (binding-info-refs info))
+                        (vars (binding-info-vars info))
+                        (locs (binding-info-locs info)))
+                    (define (shrink inner-vars refs)
+                      (for-each (lambda (var)
+                                  (let ((gensym (car var)))
+                                    ;; Don't report lambda parameters as
+                                    ;; unused.
+                                    (if (and (not (memq gensym refs))
+                                             (not (and (lambda? x)
+                                                       (memq gensym
+                                                             inner-vars))))
+                                        (let ((name (cadr var))
+                                              ;; We can get approximate
+                                              ;; source location by going up
+                                              ;; the LOCS location stack.
+                                              (loc  (or (caddr var)
+                                                        (find pair? locs))))
+                                          (warning 'unused-variable loc name)))))
+                                (filter (lambda (var)
+                                          (memq (car var) inner-vars))
+                                        vars))
+                      (fold alist-delete vars inner-vars))
+
+                    ;; For simplicity, we leave REFS untouched, i.e., with
+                    ;; names of variables that are now going out of scope.
+                    ;; It doesn't hurt as these are unique names, it just
+                    ;; makes REFS unnecessarily fat.
+                    (record-case x
+                      ((<lambda> vars)
+                       (let ((vars (dotless-list vars)))
+                         (make-binding-info (shrink vars refs) refs
+                                            (cdr locs))))
+                      ((<let> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      ((<letrec> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      ((<let-values> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      (else info))))
+                (make-binding-info '() '() '())
+                tree)
+  tree)

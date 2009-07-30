@@ -21,6 +21,7 @@
 (define-module (language tree-il compile-glil)
   #:use-module (system base syntax)
   #:use-module (system base pmatch)
+  #:use-module (system base message)
   #:use-module (ice-9 receive)
   #:use-module (language glil)
   #:use-module (system vm instruction)
@@ -44,10 +45,25 @@
 
 (define *comp-module* (make-fluid))
 
+(define %warning-passes
+  `((unused-variable . ,report-unused-variables)))
+
 (define (compile-glil x e opts)
+  (define warnings
+    (or (and=> (memq #:warnings opts) cadr)
+        '()))
+
   (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
+
+    ;; Go throught the warning passes.
+    (for-each (lambda (kind)
+                (let ((warn (assoc-ref %warning-passes kind)))
+                  (and (procedure? warn)
+                       (warn x))))
+              warnings)
+
     (with-fluid* *comp-module* (or (and e (car e)) (current-module))
       (lambda ()
         (values (flatten-lambda x allocation)
