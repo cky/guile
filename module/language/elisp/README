@@ -42,6 +42,7 @@ Extensions over original elisp:
   * guile-ref, guile-primitive
   * flet and flet*
   * lexical-let and lexical-let*
+  * without-void-checks
 
 
 Details to the implemented extensions
@@ -95,3 +96,12 @@ for compatibility:
   * If symbols are accessed where they are not known at compile-time (like
     symbol-value or set primitives), this always refers to the dynamic binding
     and never the lexical one.  That's very nice to the implementor...
+
+without-void-checks:
+--------------------
+
+Disable void checks in addition to the compiler option for all or some symbols
+in the lexical scope of this construct:
+
+(without-void-checks all body...) or
+(without-void-checks (sym1 sym2 ...) body...

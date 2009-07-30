@@ -241,7 +241,10 @@
     #:opts '(#:disable-void-check all))
   (pass-if "disabled void check (symbol list)"
     (progn (makunbound 'a) a t)
-    #:opts '(#:disable-void-check (x y a b))))
+    #:opts '(#:disable-void-check (x y a b)))
+  (pass-if "without-void-checks"
+    (progn (makunbound 'a)
+           (= (without-void-checks (a) a 5) 5))))
 
 (with-test-prefix/compile "Let and Let*"
 

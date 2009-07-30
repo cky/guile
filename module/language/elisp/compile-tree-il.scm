@@ -111,11 +111,13 @@
 
 ; See if we should do a void-check for a given variable.  That means, check
 ; that this check is not disabled via the compiler options for this symbol.
+; Disabling of void check is only done for the value-slot module!
 
-(define (want-void-check? sym)
+(define (want-void-check? sym module)
   (let ((disabled (fluid-ref disable-void-check)))
-    (and (not (eq? disabled 'all))
-         (not (memq sym disabled)))))
+    (or (not (equal? module value-slot))
+        (and (not (eq? disabled 'all))
+             (not (memq sym disabled))))))
 
 
 ; Handle access to a variable (reference/setting) correctly depending on
@@ -146,7 +148,7 @@
 ; Reference a variable and error if the value is void.
 
 (define (reference-with-check loc sym module)
-  (if (want-void-check? sym)
+  (if (want-void-check? sym module)
     (let ((var (gensym)))
       (make-let loc '(value) `(,var) `(,(reference-variable loc sym module))
         (make-conditional loc
@@ -699,6 +701,23 @@
                                            (not (null? bindings))
                                            (not (null? body))))
      (generate-let* loc function-slot bindings body))
+
+    ; Temporarily disable void checks for certain symbols within the lexical
+    ; scope of without-void-checks.
+    ((without-void-checks ,syms . ,body)
+     (guard (and (list? body) (not (null? body))
+                 (or (eq? syms 'all)
+                     (and (list? syms) (and-map symbol? syms)))))
+     (let ((disabled (fluid-ref disable-void-check))
+           (make-body (lambda ()
+                        (make-sequence loc (map compile-expr body)))))
+       (if (eq? disabled 'all)
+         (make-body)
+         (let ((new-disabled (if (eq? syms 'all)
+                               'all
+                               (append syms disabled))))
+           (with-fluid* disable-void-check new-disabled make-body)))))
+
 
     ; guile-ref allows building TreeIL's module references from within
     ; elisp as a way to access data within
