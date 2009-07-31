@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -48,17 +48,21 @@
         x
         (- x (ash 1 16)))))
 
+;; FIXME: this is a little-endian disassembly!!!
 (define (decode-load-program pop)
-  (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (nexts (pop))
+  (let* ((nargs (pop)) (nrest (pop)) (nlocs0 (pop)) (nlocs1 (pop))
+         (nlocs (+ nlocs0 (ash nlocs1 8)))
          (a (pop)) (b (pop)) (c (pop)) (d (pop))
          (e (pop)) (f (pop)) (g (pop)) (h (pop))
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
          (metalen (+ e (ash f 8) (ash g 16) (ash h 24)))
          (totlen (+ len metalen))
+         (pad0 (pop)) (pad1 (pop)) (pad2 (pop)) (pad3 (pop))
          (labels '())
          (i 0))
     (define (ensure-label rel1 rel2)
-      (let ((where (+ i (bytes->s16 rel1 rel2))))
+      (let ((where (+ (logand i (lognot #x7))
+                      (* (bytes->s16 rel1 rel2) 8))))
         (or (assv-ref labels where)
             (begin
               (let ((l (gensym ":L")))
@@ -74,7 +78,7 @@
       (cond ((> i len)
              (error "error decoding program -- read too many bytes" out))
             ((= i len)
-             `(load-program ,nargs ,nrest ,nlocs ,nexts
+             `(load-program ,nargs ,nrest ,nlocs 
                             ,(map (lambda (x) (cons (cdr x) (car x)))
                                   (reverse labels))
                             ,len

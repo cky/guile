@@ -20,6 +20,8 @@
 
 (define-module (language tree-il compile-glil)
   #:use-module (system base syntax)
+  #:use-module (system base pmatch)
+  #:use-module (system base message)
   #:use-module (ice-9 receive)
   #:use-module (language glil)
   #:use-module (system vm instruction)
@@ -34,18 +36,37 @@
 ;; basic degenerate-case reduction
 
 ;; allocation:
-;;  sym -> (local . index) | (heap level . index)
-;;  lambda -> (nlocs . nexts)
+;;  sym -> {lambda -> address}
+;;  lambda -> (nlocs . closure-vars)
+;;
+;; address := (local? boxed? . index)
+;; free-locs ::= ((sym0 . address0) (sym1 . address1) ...)
+;; free variable addresses are relative to parent proc.
 
 (define *comp-module* (make-fluid))
 
+(define %warning-passes
+  `((unused-variable . ,report-unused-variables)))
+
 (define (compile-glil x e opts)
+  (define warnings
+    (or (and=> (memq #:warnings opts) cadr)
+        '()))
+
   (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
+
+    ;; Go throught the warning passes.
+    (for-each (lambda (kind)
+                (let ((warn (assoc-ref %warning-passes kind)))
+                  (and (procedure? warn)
+                       (warn x))))
+              warnings)
+
     (with-fluid* *comp-module* (or (and e (car e)) (current-module))
       (lambda ()
-        (values (flatten-lambda x -1 allocation)
+        (values (flatten-lambda x allocation)
                 (and e (cons (car e) (cddr e)))
                 e)))))
 
@@ -131,20 +152,19 @@
 
 (define (make-label) (gensym ":L"))
 
-(define (vars->bind-list ids vars allocation)
+(define (vars->bind-list ids vars allocation proc)
   (map (lambda (id v)
-         (let ((loc (hashq-ref allocation v)))
-           (case (car loc)
-             ((stack) (list id 'local (cdr loc)))
-             ((heap)  (list id 'external (cddr loc)))
-             (else (error "badness" id v loc)))))
+         (pmatch (hashq-ref (hashq-ref allocation v) proc)
+           ((#t ,boxed? . ,n)
+            (list id boxed? n))
+           (,x (error "badness" x))))
        ids
        vars))
 
-(define (emit-bindings src ids vars allocation emit-code)
+(define (emit-bindings src ids vars allocation proc emit-code)
   (if (pair? vars)
       (emit-code src (make-glil-bind
-                      (vars->bind-list ids vars allocation)))))
+                      (vars->bind-list ids vars allocation proc)))))
 
 (define (with-output-to-code proc)
   (let ((out '()))
@@ -155,7 +175,7 @@
     (proc emit-code)
     (reverse out)))
 
-(define (flatten-lambda x level allocation)
+(define (flatten-lambda x allocation)
   (receive (ids vars nargs nrest)
       (let lp ((ids (lambda-names x)) (vars (lambda-vars x))
                (oids '()) (ovars '()) (n 0))
@@ -166,31 +186,27 @@
                 (else (values (reverse (cons ids oids))
                               (reverse (cons vars ovars))
                               (1+ n) 1))))
-    (let ((nlocs (car (hashq-ref allocation x)))
-          (nexts (cdr (hashq-ref allocation x))))
+    (let ((nlocs (car (hashq-ref allocation x))))
       (make-glil-program
-       nargs nrest nlocs nexts (lambda-meta x)
+       nargs nrest nlocs (lambda-meta x)
        (with-output-to-code
         (lambda (emit-code)
           ;; write bindings and source debugging info
-          (emit-bindings #f ids vars allocation emit-code)
+          (emit-bindings #f ids vars allocation x emit-code)
           (if (lambda-src x)
               (emit-code #f (make-glil-source (lambda-src x))))
-
-          ;; copy args to the heap if necessary
-          (let lp ((in vars) (n 0))
-            (if (not (null? in))
-                (let ((loc (hashq-ref allocation (car in))))
-                  (case (car loc)
-                    ((heap)
-                     (emit-code #f (make-glil-local 'ref n))
-                     (emit-code #f (make-glil-external 'set 0 (cddr loc)))))
-                  (lp (cdr in) (1+ n)))))
-
+          ;; box args if necessary
+          (for-each
+           (lambda (v)
+             (pmatch (hashq-ref (hashq-ref allocation v) x)
+               ((#t #t . ,n)
+                (emit-code #f (make-glil-lexical #t #f 'ref n))
+                (emit-code #f (make-glil-lexical #t #t 'box n)))))
+           vars)
           ;; and here, here, dear reader: we compile.
-          (flatten (lambda-body x) (1+ level) allocation emit-code)))))))
+          (flatten (lambda-body x) allocation x emit-code)))))))
 
-(define (flatten x level allocation emit-code)
+(define (flatten x allocation proc emit-code)
   (define (emit-label label)
     (emit-code #f (make-glil-label label)))
   (define (emit-branch src inst label)
@@ -424,27 +440,21 @@
       ((<lexical-ref> src name gensym)
        (case context
          ((push vals tail)
-          (let ((loc (hashq-ref allocation gensym)))
-            (case (car loc)
-              ((stack)
-               (emit-code src (make-glil-local 'ref (cdr loc))))
-              ((heap)
-               (emit-code src (make-glil-external
-                               'ref (- level (cadr loc)) (cddr loc))))
-              (else (error "badness" x loc)))
-            (if (eq? context 'tail)
-                (emit-code #f (make-glil-call 'return 1)))))))
-
+          (pmatch (hashq-ref (hashq-ref allocation gensym) proc)
+            ((,local? ,boxed? . ,index)
+             (emit-code src (make-glil-lexical local? boxed? 'ref index)))
+            (,loc
+             (error "badness" x loc)))))
+       (case context
+         ((tail) (emit-code #f (make-glil-call 'return 1)))))
+      
       ((<lexical-set> src name gensym exp)
        (comp-push exp)
-       (let ((loc (hashq-ref allocation gensym)))
-         (case (car loc)
-           ((stack)
-            (emit-code src (make-glil-local 'set (cdr loc))))
-           ((heap)
-            (emit-code src (make-glil-external
-                            'set (- level (cadr loc)) (cddr loc))))
-           (else (error "badness" x loc))))
+       (pmatch (hashq-ref (hashq-ref allocation gensym) proc)
+         ((,local? ,boxed? . ,index)
+          (emit-code src (make-glil-lexical local? boxed? 'set index)))
+         (,loc
+          (error "badness" x loc)))
        (case context
          ((push vals)
           (emit-code #f (make-glil-void)))
@@ -495,39 +505,52 @@
           (emit-code #f (make-glil-call 'return 1)))))
 
       ((<lambda>)
-       (case context
-         ((push vals)
-          (emit-code #f (flatten-lambda x level allocation)))
-         ((tail)
-          (emit-code #f (flatten-lambda x level allocation))
-          (emit-code #f (make-glil-call 'return 1)))))
-
+       (let ((free-locs (cdr (hashq-ref allocation x))))
+         (case context
+           ((push vals tail)
+            (emit-code #f (flatten-lambda x allocation))
+            (if (not (null? free-locs))
+                (begin
+                  (for-each
+                   (lambda (loc)
+                     (pmatch loc
+                       ((,local? ,boxed? . ,n)
+                        (emit-code #f (make-glil-lexical local? #f 'ref n)))
+                       (else (error "what" x loc))))
+                   free-locs)
+                  (emit-code #f (make-glil-call 'vector (length free-locs)))
+                  (emit-code #f (make-glil-call 'make-closure 2))))
+            (if (eq? context 'tail)
+                (emit-code #f (make-glil-call 'return 1)))))))
+      
       ((<let> src names vars vals body)
        (for-each comp-push vals)
-       (emit-bindings src names vars allocation emit-code)
+       (emit-bindings src names vars allocation proc emit-code)
        (for-each (lambda (v)
-                   (let ((loc (hashq-ref allocation v)))
-                     (case (car loc)
-                       ((stack)
-                        (emit-code src (make-glil-local 'set (cdr loc))))
-                       ((heap)
-                        (emit-code src (make-glil-external 'set 0 (cddr loc))))
-                       (else (error "badness" x loc)))))
+                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                     ((#t #f . ,n)
+                      (emit-code src (make-glil-lexical #t #f 'set n)))
+                     ((#t #t . ,n)
+                      (emit-code src (make-glil-lexical #t #t 'box n)))
+                     (,loc (error "badness" x loc))))
                  (reverse vars))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 
       ((<letrec> src names vars vals body)
-       (for-each comp-push vals)
-       (emit-bindings src names vars allocation emit-code)
        (for-each (lambda (v)
-                   (let ((loc (hashq-ref allocation v)))
-                     (case (car loc)
-                       ((stack)
-                        (emit-code src (make-glil-local 'set (cdr loc))))
-                       ((heap)
-                        (emit-code src (make-glil-external 'set 0 (cddr loc))))
-                       (else (error "badness" x loc)))))
+                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                     ((#t #t . ,n)
+                      (emit-code src (make-glil-lexical #t #t 'empty-box n)))
+                     (,loc (error "badness" x loc))))
+                 vars)
+       (for-each comp-push vals)
+       (emit-bindings src names vars allocation proc emit-code)
+       (for-each (lambda (v)
+                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                     ((#t #t . ,n)
+                      (emit-code src (make-glil-lexical #t #t 'set n)))
+                     (,loc (error "badness" x loc))))
                  (reverse vars))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
@@ -548,16 +571,15 @@
              (emit-code #f (make-glil-const 1))
              (emit-label MV)
              (emit-code src (make-glil-mv-bind
-                             (vars->bind-list names vars allocation)
+                             (vars->bind-list names vars allocation proc)
                              rest?))
              (for-each (lambda (v)
-                         (let ((loc (hashq-ref allocation v)))
-                           (case (car loc)
-                             ((stack)
-                              (emit-code src (make-glil-local 'set (cdr loc))))
-                             ((heap)
-                              (emit-code src (make-glil-external 'set 0 (cddr loc))))
-                             (else (error "badness" x loc)))))
+                         (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                           ((#t #f . ,n)
+                            (emit-code src (make-glil-lexical #t #f 'set n)))
+                           ((#t #t . ,n)
+                            (emit-code src (make-glil-lexical #t #t 'box n)))
+                           (,loc (error "badness" x loc))))
                        (reverse vars))
              (comp-tail body)
              (emit-code #f (make-glil-unbind))))))))))

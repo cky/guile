@@ -77,10 +77,19 @@
     ;; Ew!
     (for-each write-byte (bytevector->u8-list bv)))
   (define (write-break label)
-    (write-uint16-be (- (assq-ref labels label) (+ (get-addr) 2))))
+    (let ((offset (- (assq-ref labels label)
+                     (logand (+ (get-addr) 2) (lognot #x7)))))
+      (cond ((not (= 0 (modulo offset 8))) (error "unaligned jump" offset))
+            ((>= offset (ash 1 18)) (error "jump too far forward" offset))
+            ((< offset (- (ash 1 18))) (error "jump too far backwards" offset))
+            (else (write-uint16-be (ash offset -3))))))
   
   (let ((inst (car asm))
         (args (cdr asm))
+        (write-uint16 (case byte-order
+                        ((1234) write-uint16-le)
+                        ((4321) write-uint16-be)
+                        (else (error "unknown endianness" byte-order))))
         (write-uint32 (case byte-order
                         ((1234) write-uint32-le)
                         ((4321) write-uint32-be)
@@ -89,14 +98,13 @@
           (len (instruction-length inst)))
       (write-byte opcode)
       (pmatch asm
-        ((load-program ,nargs ,nrest ,nlocs ,nexts
-                       ,labels ,length ,meta . ,code)
+        ((load-program ,nargs ,nrest ,nlocs ,labels ,length ,meta . ,code)
          (write-byte nargs)
          (write-byte nrest)
-         (write-byte nlocs)
-         (write-byte nexts)
+         (write-uint16 nlocs)
          (write-uint32 length)
          (write-uint32 (if meta (1- (byte-length meta)) 0))
+         (write-uint32 0) ; padding
          (letrec ((i 0)
                   (write (lambda (x) (set! i (1+ i)) (write-byte x)))
                   (get-addr (lambda () i)))
@@ -114,6 +122,7 @@
                ;; meets the alignment requirements of `scm_objcode'.  See
                ;; `scm_c_make_objcode_slice ()'.
                (write-bytecode meta write get-addr '()))))
+        ((make-char32 ,x) (write-uint32-be x))
         ((load-unsigned-integer ,str) (write-loader str))
         ((load-integer ,str) (write-loader str))
         ((load-number ,str) (write-loader str))

@@ -145,7 +145,7 @@ VM_DEFINE_INSTRUCTION (13, make_int16, "make-int16", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (55, make_int64, "make-int64", 8, 0, 1)
+VM_DEFINE_INSTRUCTION (14, make_int64, "make-int64", 8, 0, 1)
 {
   scm_t_uint64 v = 0;
   v += FETCH ();
@@ -160,7 +160,7 @@ VM_DEFINE_INSTRUCTION (55, make_int64, "make-int64", 8, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (56, make_uint64, "make-uint64", 8, 0, 1)
+VM_DEFINE_INSTRUCTION (15, make_uint64, "make-uint64", 8, 0, 1)
 {
   scm_t_uint64 v = 0;
   v += FETCH ();
@@ -175,13 +175,26 @@ VM_DEFINE_INSTRUCTION (56, make_uint64, "make-uint64", 8, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (14, make_char8, "make-char8", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (16, make_char8, "make-char8", 1, 0, 1)
 {
   PUSH (SCM_MAKE_CHAR (FETCH ()));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (15, list, "list", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (42, make_char32, "make-char32", 4, 0, 1)
+{
+  scm_t_wchar v = 0;
+  v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  v <<= 8; v += FETCH ();
+  PUSH (SCM_MAKE_CHAR (v));
+  NEXT;
+}
+
+
+
+VM_DEFINE_INSTRUCTION (17, list, "list", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
@@ -190,7 +203,7 @@ VM_DEFINE_INSTRUCTION (15, list, "list", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (16, vector, "vector", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (18, vector, "vector", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
@@ -208,19 +221,19 @@ VM_DEFINE_INSTRUCTION (16, vector, "vector", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (17, list_mark, "list-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (19, list_mark, "list-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (18, cons_mark, "cons-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (20, cons_mark, "cons-mark", 0, 0, 0)
 {
   POP_CONS_MARK ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (19, vector_mark, "vector-mark", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (21, vector_mark, "vector-mark", 0, 0, 0)
 {
   POP_LIST_MARK ();
   SYNC_REGISTER ();
@@ -228,7 +241,7 @@ VM_DEFINE_INSTRUCTION (19, vector_mark, "vector-mark", 0, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (20, list_break, "list-break", 0, 0, 0)
+VM_DEFINE_INSTRUCTION (22, list_break, "list-break", 0, 0, 0)
 {
   SCM l;
   POP (l);
@@ -254,9 +267,11 @@ VM_DEFINE_INSTRUCTION (20, list_break, "list-break", 0, 0, 0)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
 
+#define FREE_VARIABLE_REF(i)	free_vars[i]
+
 /* ref */
 
-VM_DEFINE_INSTRUCTION (21, object_ref, "object-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (23, object_ref, "object-ref", 1, 0, 1)
 {
   register unsigned objnum = FETCH ();
   CHECK_OBJECT (objnum);
@@ -264,29 +279,35 @@ VM_DEFINE_INSTRUCTION (21, object_ref, "object-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (22, local_ref, "local-ref", 1, 0, 1)
+/* FIXME: necessary? elt 255 of the vector could be a vector... */
+VM_DEFINE_INSTRUCTION (24, long_object_ref, "long-object-ref", 2, 0, 1)
+{
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  PUSH (OBJECT_REF (objnum));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (25, local_ref, "local-ref", 1, 0, 1)
 {
   PUSH (LOCAL_REF (FETCH ()));
   ASSERT_BOUND (*sp);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (23, external_ref, "external-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (26, long_local_ref, "long-local-ref", 2, 0, 1)
 {
-  unsigned int i;
-  SCM e = external;
-  for (i = FETCH (); i; i--)
-    {
-      CHECK_EXTERNAL(e);
-      e = SCM_CDR (e);
-    }
-  CHECK_EXTERNAL(e);
-  PUSH (SCM_CAR (e));
+  unsigned int i = FETCH ();
+  i <<= 8;
+  i += FETCH ();
+  PUSH (LOCAL_REF (i));
   ASSERT_BOUND (*sp);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (27, variable_ref, "variable-ref", 0, 0, 1)
 {
   SCM x = *sp;
 
@@ -305,7 +326,7 @@ VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (28, toplevel_ref, "toplevel-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -328,41 +349,82 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (29, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
+{
+  SCM what;
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
+  CHECK_OBJECT (objnum);
+  what = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (what)) 
+    {
+      SYNC_REGISTER ();
+      what = resolve_variable (what, scm_program_module (program));
+      if (!VARIABLE_BOUNDP (what))
+        {
+          finish_args = scm_list_1 (what);
+          goto vm_error_unbound;
+        }
+      OBJECT_SET (objnum, what);
+    }
+
+  PUSH (VARIABLE_REF (what));
+  NEXT;
+}
+
 /* set */
 
-VM_DEFINE_INSTRUCTION (26, local_set, "local-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (30, local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (27, external_set, "external-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (31, long_local_set, "long-local-set", 2, 1, 0)
 {
-  unsigned int i;
-  SCM e = external;
-  for (i = FETCH (); i; i--)
-    {
-      CHECK_EXTERNAL(e);
-      e = SCM_CDR (e);
-    }
-  CHECK_EXTERNAL(e);
-  SCM_SETCAR (e, *sp);
+  unsigned int i = FETCH ();
+  i <<= 8;
+  i += FETCH ();
+  LOCAL_SET (i, *sp);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (28, variable_set, "variable-set", 0, 1, 0)
+VM_DEFINE_INSTRUCTION (32, variable_set, "variable-set", 0, 1, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (33, toplevel_set, "toplevel-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
   SCM what;
+  CHECK_OBJECT (objnum);
+  what = OBJECT_REF (objnum);
+
+  if (!SCM_VARIABLEP (what)) 
+    {
+      SYNC_BEFORE_GC ();
+      what = resolve_variable (what, scm_program_module (program));
+      OBJECT_SET (objnum, what);
+    }
+
+  VARIABLE_SET (what, *sp);
+  DROP ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
+{
+  SCM what;
+  unsigned int objnum = FETCH ();
+  objnum <<= 8;
+  objnum += FETCH ();
   CHECK_OBJECT (objnum);
   what = OBJECT_REF (objnum);
 
@@ -383,7 +445,7 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
  * branch and jump
  */
 
-/* offset must be a signed short!!! */
+/* offset must be a signed 16 bit int!!! */
 #define FETCH_OFFSET(offset)                    \
 {						\
   int h = FETCH ();				\
@@ -393,51 +455,51 @@ VM_DEFINE_INSTRUCTION (29, toplevel_set, "toplevel-set", 1, 1, 0)
 
 #define BR(p)					\
 {						\
-  signed short offset;                          \
+  scm_t_int16 offset;                           \
   FETCH_OFFSET (offset);                        \
   if (p)					\
-    ip += offset;				\
+    ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);      \
   NULLSTACK (1);				\
   DROP ();					\
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (31, br, "br", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (35, br, "br", 2, 0, 0)
 {
-  int h = FETCH ();
-  int l = FETCH ();
-  ip += (signed short) (h << 8) + l;
+  scm_t_int16 offset;
+  FETCH_OFFSET (offset);
+  ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (32, br_if, "br-if", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (36, br_if, "br-if", 2, 0, 0)
 {
   BR (!SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (33, br_if_not, "br-if-not", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (37, br_if_not, "br-if-not", 2, 0, 0)
 {
   BR (SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (34, br_if_eq, "br-if-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (38, br_if_eq, "br-if-eq", 2, 0, 0)
 {
   sp--; /* underflow? */
   BR (SCM_EQ_P (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (35, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (39, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
 {
   sp--; /* underflow? */
   BR (!SCM_EQ_P (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (36, br_if_null, "br-if-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (40, br_if_null, "br-if-null", 2, 0, 0)
 {
   BR (SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (41, br_if_not_null, "br-if-not-null", 2, 0, 0)
 {
   BR (!SCM_NULLP (*sp));
 }
@@ -447,15 +509,7 @@ VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
  * Subprogram call
  */
 
-VM_DEFINE_INSTRUCTION (38, make_closure, "make-closure", 0, 1, 1)
-{
-  SYNC_BEFORE_GC ();
-  SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
-                SCM_PROGRAM_OBJTABLE (*sp), external);
-  NEXT;
-}
-
-VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (43, call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
@@ -576,7 +630,7 @@ VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
@@ -602,12 +656,6 @@ VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
       /* Drop the first argument and the program itself.  */
       sp -= 2;
       NULLSTACK (bp->nargs + 1);
-
-      /* Freshen the externals */
-      external = SCM_PROGRAM_EXTERNALS (x);
-      for (i = 0; i < bp->nexts; i++)
-        CONS (external, SCM_UNDEFINED, external);
-      SCM_FRAME_DATA_ADDRESS (fp)[0] = external;
 
       /* Init locals to valid SCM values */
       for (i = 0; i < bp->nlocs; i++)
@@ -657,7 +705,7 @@ VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
          sure we have space for the locals now */
       data = SCM_FRAME_DATA_ADDRESS (fp);
       ip = bp->base;
-      stack_base = data + 3;
+      stack_base = data + 2;
       sp = stack_base;
       CHECK_OVERFLOW ();
 
@@ -672,17 +720,9 @@ VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
         data[-i] = SCM_UNDEFINED;
       
       /* Set frame data */
-      data[3] = (SCM)ra;
-      data[2] = (SCM)mvra;
-      data[1] = (SCM)dl;
-
-      /* Postpone initializing external vars, because if the CONS causes a GC,
-         we want the stack marker to see the data array formatted as expected. */
-      data[0] = SCM_UNDEFINED;
-      external = SCM_PROGRAM_EXTERNALS (fp[-1]);
-      for (i = 0; i < bp->nexts; i++)
-        CONS (external, SCM_UNDEFINED, external);
-      data[0] = external;
+      data[2] = (SCM)ra;
+      data[1] = (SCM)mvra;
+      data[0] = (SCM)dl;
 
       ENTER_HOOK ();
       APPLY_HOOK ();
@@ -770,7 +810,7 @@ VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (41, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (45, goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -779,7 +819,7 @@ VM_DEFINE_INSTRUCTION (41, goto_nargs, "goto/nargs", 0, 0, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (46, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -788,13 +828,15 @@ VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
+VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 3, -1, 1)
 {
   SCM x;
-  signed short offset;
+  scm_t_int16 offset;
+  scm_t_uint8 *mvra;
   
   nargs = FETCH ();
   FETCH_OFFSET (offset);
+  mvra = ip + ((scm_t_ptrdiff)offset) * 8 - ((unsigned long)ip) % 8;
 
   x = sp[-nargs];
 
@@ -807,7 +849,7 @@ VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
       CACHE_PROGRAM ();
       INIT_ARGS ();
       NEW_FRAME ();
-      SCM_FRAME_DATA_ADDRESS (fp)[2] = (SCM)(SCM_FRAME_RETURN_ADDRESS (fp) + offset);
+      SCM_FRAME_DATA_ADDRESS (fp)[1] = (SCM)mvra;
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -832,7 +874,7 @@ VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
           len = scm_length (values);
           PUSH_LIST (values, SCM_NULLP);
           PUSH (len);
-          ip += offset;
+          ip = mvra;
         }
       NEXT;
     }
@@ -849,7 +891,7 @@ VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (44, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (48, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -868,7 +910,7 @@ VM_DEFINE_INSTRUCTION (44, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (45, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (49, goto_apply, "goto/apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -887,7 +929,7 @@ VM_DEFINE_INSTRUCTION (45, goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (46, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (50, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -921,7 +963,7 @@ VM_DEFINE_INSTRUCTION (46, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (51, goto_cc, "goto/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -953,7 +995,7 @@ VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (52, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -966,12 +1008,12 @@ VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
 
     POP (ret);
     ASSERT (sp == stack_base);
-    ASSERT (stack_base == data + 3);
+    ASSERT (stack_base == data + 2);
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
-    ip = SCM_FRAME_BYTE_CAST (data[3]);
-    fp = SCM_FRAME_STACK_CAST (data[1]);
+    ip = SCM_FRAME_BYTE_CAST (data[2]);
+    fp = SCM_FRAME_STACK_CAST (data[0]);
     {
 #ifdef VM_ENABLE_STACK_NULLING
       int nullcount = stack_base - sp;
@@ -987,12 +1029,11 @@ VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
-  CACHE_EXTERNAL ();
   CHECK_IP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (53, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -1004,16 +1045,16 @@ VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
   RETURN_HOOK ();
 
   data = SCM_FRAME_DATA_ADDRESS (fp);
-  ASSERT (stack_base == data + 3);
+  ASSERT (stack_base == data + 2);
 
-  /* data[2] is the mv return address */
-  if (nvalues != 1 && data[2]) 
+  /* data[1] is the mv return address */
+  if (nvalues != 1 && data[1]) 
     {
       int i;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[2]); /* multiple value ra */
-      fp = SCM_FRAME_STACK_CAST (data[1]);
+      ip = SCM_FRAME_BYTE_CAST (data[1]); /* multiple value ra */
+      fp = SCM_FRAME_STACK_CAST (data[0]);
         
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
@@ -1032,8 +1073,8 @@ VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
          continuation.) */
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[3]); /* single value ra */
-      fp = SCM_FRAME_STACK_CAST (data[1]);
+      ip = SCM_FRAME_BYTE_CAST (data[2]); /* single value ra */
+      fp = SCM_FRAME_STACK_CAST (data[0]);
         
       /* Push first value */
       *++sp = stack_base[1];
@@ -1048,12 +1089,11 @@ VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
-  CACHE_EXTERNAL ();
   CHECK_IP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (54, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -1076,7 +1116,7 @@ VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (55, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -1099,61 +1139,99 @@ VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (52, long_object_ref, "long-object-ref", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (56, box, "box", 1, 1, 0)
 {
-  unsigned int objnum = FETCH ();
-  objnum <<= 8;
-  objnum += FETCH ();
-  CHECK_OBJECT (objnum);
-  PUSH (OBJECT_REF (objnum));
+  SCM val;
+  POP (val);
+  SYNC_BEFORE_GC ();
+  LOCAL_SET (FETCH (), scm_cell (scm_tc7_variable, SCM_UNPACK (val)));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (53, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
+/* for letrec:
+   (let ((a *undef*) (b *undef*) ...)
+     (set! a (lambda () (b ...)))
+     ...)
+ */
+VM_DEFINE_INSTRUCTION (57, empty_box, "empty-box", 1, 0, 0)
 {
-  SCM what;
-  unsigned int objnum = FETCH ();
-  objnum <<= 8;
-  objnum += FETCH ();
-  CHECK_OBJECT (objnum);
-  what = OBJECT_REF (objnum);
-
-  if (!SCM_VARIABLEP (what)) 
-    {
-      SYNC_REGISTER ();
-      what = resolve_variable (what, scm_program_module (program));
-      if (!VARIABLE_BOUNDP (what))
-        {
-          finish_args = scm_list_1 (what);
-          goto vm_error_unbound;
-        }
-      OBJECT_SET (objnum, what);
-    }
-
-  PUSH (VARIABLE_REF (what));
+  SYNC_BEFORE_GC ();
+  LOCAL_SET (FETCH (),
+             scm_cell (scm_tc7_variable, SCM_UNPACK (SCM_UNDEFINED)));
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (54, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
+VM_DEFINE_INSTRUCTION (58, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
 {
-  SCM what;
-  unsigned int objnum = FETCH ();
-  objnum <<= 8;
-  objnum += FETCH ();
-  CHECK_OBJECT (objnum);
-  what = OBJECT_REF (objnum);
-
-  if (!SCM_VARIABLEP (what)) 
-    {
-      SYNC_BEFORE_GC ();
-      what = resolve_variable (what, scm_program_module (program));
-      OBJECT_SET (objnum, what);
-    }
-
-  VARIABLE_SET (what, *sp);
-  DROP ();
+  SCM v = LOCAL_REF (FETCH ());
+  ASSERT_BOUND_VARIABLE (v);
+  PUSH (VARIABLE_REF (v));
   NEXT;
 }
+
+VM_DEFINE_INSTRUCTION (59, local_boxed_set, "local-boxed-set", 1, 1, 0)
+{
+  SCM v, val;
+  v = LOCAL_REF (FETCH ());
+  POP (val);
+  ASSERT_VARIABLE (v);
+  VARIABLE_SET (v, val);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (60, free_ref, "free-ref", 1, 0, 1)
+{
+  scm_t_uint8 idx = FETCH ();
+  
+  CHECK_FREE_VARIABLE (idx);
+  PUSH (FREE_VARIABLE_REF (idx));
+  NEXT;
+}
+
+/* no free-set -- if a var is assigned, it should be in a box */
+
+VM_DEFINE_INSTRUCTION (61, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
+{
+  SCM v;
+  scm_t_uint8 idx = FETCH ();
+  CHECK_FREE_VARIABLE (idx);
+  v = FREE_VARIABLE_REF (idx);
+  ASSERT_BOUND_VARIABLE (v);
+  PUSH (VARIABLE_REF (v));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (62, free_boxed_set, "free-boxed-set", 1, 1, 0)
+{
+  SCM v, val;
+  scm_t_uint8 idx = FETCH ();
+  POP (val);
+  CHECK_FREE_VARIABLE (idx);
+  v = FREE_VARIABLE_REF (idx);
+  ASSERT_BOUND_VARIABLE (v);
+  VARIABLE_SET (v, val);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (63, make_closure, "make-closure", 0, 2, 1)
+{
+  SCM vect;
+  POP (vect);
+  SYNC_BEFORE_GC ();
+  /* fixme underflow */
+  SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
+                SCM_PROGRAM_OBJTABLE (*sp), vect);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (64, make_variable, "make-variable", 0, 0, 1)
+{
+  SYNC_BEFORE_GC ();
+  /* fixme underflow */
+  PUSH (scm_cell (scm_tc7_variable, SCM_UNPACK (SCM_UNDEFINED)));
+  NEXT;
+}
+
 
 /*
 (defun renumber-ops ()

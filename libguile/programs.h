@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -35,12 +35,12 @@ SCM_API scm_t_bits scm_tc16_program;
 #define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
 #define SCM_PROGRAM_OBJCODE(x)	(SCM_SMOB_OBJECT (x))
 #define SCM_PROGRAM_OBJTABLE(x)	(SCM_SMOB_OBJECT_2 (x))
-#define SCM_PROGRAM_EXTERNALS(x) (SCM_SMOB_OBJECT_3 (x))
+#define SCM_PROGRAM_FREE_VARIABLES(x) (SCM_SMOB_OBJECT_3 (x))
 #define SCM_PROGRAM_DATA(x)	(SCM_OBJCODE_DATA (SCM_PROGRAM_OBJCODE (x)))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
 #define SCM_PROGRAM_IS_BOOT(x)	(SCM_SMOB_FLAGS (x) & SCM_F_PROGRAM_IS_BOOT)
 
-SCM_API SCM scm_make_program (SCM objcode, SCM objtable, SCM externals);
+SCM_API SCM scm_make_program (SCM objcode, SCM objtable, SCM free_variables);
 
 SCM_API SCM scm_program_p (SCM obj);
 SCM_API SCM scm_program_base (SCM program);
@@ -53,8 +53,7 @@ SCM_API SCM scm_program_properties (SCM program);
 SCM_API SCM scm_program_name (SCM program);
 SCM_API SCM scm_program_objects (SCM program);
 SCM_API SCM scm_program_module (SCM program);
-SCM_API SCM scm_program_external (SCM program);
-SCM_API SCM scm_program_external_set_x (SCM program, SCM external);
+SCM_API SCM scm_program_free_variables (SCM program);
 SCM_API SCM scm_program_objcode (SCM program);
 
 SCM_API SCM scm_c_program_source (SCM program, size_t ip);

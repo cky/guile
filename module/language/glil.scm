@@ -1,6 +1,6 @@
 ;;; Guile Low Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -24,9 +24,9 @@
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export
   (<glil-program> make-glil-program glil-program?
-   glil-program-nargs glil-program-nrest glil-program-nlocs glil-program-nexts
-   glil-program-meta glil-program-body glil-program-closure-level
-
+   glil-program-nargs glil-program-nrest glil-program-nlocs
+   glil-program-meta glil-program-body
+   
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
 
@@ -43,11 +43,8 @@
    <glil-const> make-glil-const glil-const?
    glil-const-obj
 
-   <glil-local> make-glil-local glil-local?
-   glil-local-op glil-local-index
-
-   <glil-external> make-glil-external glil-external?
-   glil-external-op glil-external-depth glil-external-index
+   <glil-lexical> make-glil-lexical glil-lexical?
+   glil-lexical-local? glil-lexical-boxed? glil-lexical-op glil-lexical-index
 
    <glil-toplevel> make-glil-toplevel glil-toplevel?
    glil-toplevel-op glil-toplevel-name
@@ -74,7 +71,7 @@
 
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
-  (<glil-program> nargs nrest nlocs nexts meta body (closure-level #f))
+  (<glil-program> nargs nrest nlocs meta body)
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
@@ -83,8 +80,7 @@
   (<glil-void>)
   (<glil-const> obj)
   ;; Variables
-  (<glil-local> op index)
-  (<glil-external> op depth index)
+  (<glil-lexical> local? boxed? op index)
   (<glil-toplevel> op name)
   (<glil-module> op mod name public?)
   ;; Controls
@@ -93,35 +89,19 @@
   (<glil-call> inst nargs)
   (<glil-mv-call> nargs ra))
 
-(define (compute-closure-level body)
-  (fold (lambda (x ret)
-          (record-case x
-            ((<glil-program> closure-level) (max ret closure-level))
-            ((<glil-external> depth) (max ret depth))
-            (else ret)))
-        0 body))
-
-(define %make-glil-program make-glil-program)
-(define (make-glil-program . args)
-  (let ((prog (apply %make-glil-program args)))
-    (if (not (glil-program-closure-level prog))
-        (set! (glil-program-closure-level prog)
-              (compute-closure-level (glil-program-body prog))))
-    prog))
-
 
+
 (define (parse-glil x)
   (pmatch x
-    ((program ,nargs ,nrest ,nlocs ,nexts ,meta . ,body)
-     (make-glil-program nargs nrest nlocs nexts meta (map parse-glil body)))
+    ((program ,nargs ,nrest ,nlocs ,meta . ,body)
+     (make-glil-program nargs nrest nlocs meta (map parse-glil body)))
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars ,rest) (make-glil-mv-bind vars rest))
     ((unbind) (make-glil-unbind))
     ((source ,props) (make-glil-source props))
     ((void) (make-glil-void))
     ((const ,obj) (make-glil-const obj))
-    ((local ,op ,index) (make-glil-local op index))
-    ((external ,op ,depth ,index) (make-glil-external op depth index))
+    ((lexical ,local? ,boxed? ,op ,index) (make-glil-lexical local? boxed? op index))
     ((toplevel ,op ,name) (make-glil-toplevel op name))
     ((module public ,op ,mod ,name) (make-glil-module op mod name #t))
     ((module private ,op ,mod ,name) (make-glil-module op mod name #f))
@@ -134,8 +114,8 @@
 (define (unparse-glil glil)
   (record-case glil
     ;; meta
-    ((<glil-program> nargs nrest nlocs nexts meta body)
-     `(program ,nargs ,nrest ,nlocs ,nexts ,meta ,@(map unparse-glil body)))
+    ((<glil-program> nargs nrest nlocs meta body)
+     `(program ,nargs ,nrest ,nlocs ,meta ,@(map unparse-glil body)))
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,rest))
     ((<glil-unbind>) `(unbind))
@@ -144,10 +124,8 @@
     ((<glil-void>) `(void))
     ((<glil-const> obj) `(const ,obj))
     ;; variables
-    ((<glil-local> op index)
-     `(local ,op ,index))
-    ((<glil-external> op depth index)
-     `(external ,op ,depth ,index))
+    ((<glil-lexical> local? boxed? op index)
+     `(lexical ,local? ,boxed? ,op ,index))
     ((<glil-toplevel> op name)
      `(toplevel ,op ,name))
     ((<glil-module> op mod name public?)

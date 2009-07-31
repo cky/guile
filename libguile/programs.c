@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,7 +36,7 @@ scm_t_bits scm_tc16_program;
 static SCM write_program = SCM_BOOL_F;
 
 SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
-	    (SCM objcode, SCM objtable, SCM external),
+	    (SCM objcode, SCM objtable, SCM free_variables),
 	    "")
 #define FUNC_NAME s_scm_make_program
 {
@@ -45,18 +45,12 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
     objtable = SCM_BOOL_F;
   else if (scm_is_true (objtable))
     SCM_VALIDATE_VECTOR (2, objtable);
-  if (SCM_UNLIKELY (SCM_UNBNDP (external)))
-    external = SCM_EOL;
-  else
-    /* FIXME: currently this test is quite expensive (can be 2-3% of total
-       execution time in programs that make many closures). We could remove it,
-       yes, but we'd get much better gains if we used some other method, like
-       just capturing the variables that we need instead of all heap-allocated
-       variables. Dunno. Keeping the check for now, as it's a user-callable
-       function, and inlining the op in the vm's make-closure operation. */
-    SCM_VALIDATE_LIST (3, external);
+  if (SCM_UNLIKELY (SCM_UNBNDP (free_variables)))
+    free_variables = SCM_BOOL_F;
+  else if (free_variables != SCM_BOOL_F)
+    SCM_VALIDATE_VECTOR (3, free_variables);
 
-  SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, external);
+  SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, free_variables);
 }
 #undef FUNC_NAME
 
@@ -65,8 +59,8 @@ program_mark (SCM obj)
 {
   if (scm_is_true (SCM_PROGRAM_OBJTABLE (obj)))
     scm_gc_mark (SCM_PROGRAM_OBJTABLE (obj));
-  if (!scm_is_null (SCM_PROGRAM_EXTERNALS (obj)))
-    scm_gc_mark (SCM_PROGRAM_EXTERNALS (obj));
+  if (scm_is_true (SCM_PROGRAM_FREE_VARIABLES (obj)))
+    scm_gc_mark (SCM_PROGRAM_FREE_VARIABLES (obj));
   return SCM_PROGRAM_OBJCODE (obj);
 }
 
@@ -151,10 +145,9 @@ SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
   SCM_VALIDATE_PROGRAM (1, program);
 
   p = SCM_PROGRAM_DATA (program);
-  return scm_list_4 (SCM_I_MAKINUM (p->nargs),
+  return scm_list_3 (SCM_I_MAKINUM (p->nargs),
 		     SCM_I_MAKINUM (p->nrest),
-		     SCM_I_MAKINUM (p->nlocs),
-		     SCM_I_MAKINUM (p->nexts));
+		     SCM_I_MAKINUM (p->nlocs));
 }
 #undef FUNC_NAME
 
@@ -191,7 +184,7 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 
   metaobj = scm_objcode_meta (SCM_PROGRAM_OBJCODE (program));
   if (scm_is_true (metaobj))
-    return scm_make_program (metaobj, SCM_BOOL_F, SCM_EOL);
+    return scm_make_program (metaobj, SCM_BOOL_F, SCM_BOOL_F);
   else
     return SCM_BOOL_F;
 }
@@ -300,26 +293,13 @@ scm_c_program_source (SCM program, size_t ip)
   return source; /* (addr . (filename . (line . column))) */
 }
 
-SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
+SCM_DEFINE (scm_program_free_variables, "program-free-variables", 1, 0, 0,
 	    (SCM program),
 	    "")
-#define FUNC_NAME s_scm_program_external
+#define FUNC_NAME s_scm_program_free_variables
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_EXTERNALS (program);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_external_set_x, "program-external-set!", 2, 0, 0,
-	    (SCM program, SCM external),
-	    "Modify the list of closure variables of @var{program} (for "
-	    "debugging purposes).")
-#define FUNC_NAME s_scm_program_external_set_x
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  SCM_VALIDATE_LIST (2, external);
-  SCM_PROGRAM_EXTERNALS (program) = external;
-  return SCM_UNSPECIFIED;
+  return SCM_PROGRAM_FREE_VARIABLES (program);
 }
 #undef FUNC_NAME
 

@@ -54,7 +54,8 @@
                (let ((id293 (if (syntax-object?99 id292)
                               (syntax-object-expression100 id292)
                               id292)))
-                 (gensym (symbol->string id293)))))
+                 (gensym
+                   (string-append (symbol->string id293) " ")))))
            (strip161
              (lambda (x294 w295)
                (if (memq (quote top) (wrap-marks118 w295))

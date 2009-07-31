@@ -19,14 +19,40 @@
 ;;; Code:
 
 (define-module (language tree-il analyze)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
   #:use-module (system base syntax)
+  #:use-module (system base message)
   #:use-module (language tree-il)
-  #:export (analyze-lexicals))
+  #:export (analyze-lexicals
+            report-unused-variables))
 
-;; allocation: the process of assigning a type and index to each var
-;; a var is external if it is heaps; assigning index is easy
-;; args are assigned in order
-;; locals are indexed as their linear position in the binding path
+;; Allocation is the process of assigning storage locations for lexical
+;; variables. A lexical variable has a distinct "address", or storage
+;; location, for each procedure in which it is referenced.
+;;
+;; A variable is "local", i.e., allocated on the stack, if it is
+;; referenced from within the procedure that defined it. Otherwise it is
+;; a "closure" variable. For example:
+;;
+;;    (lambda (a) a) ; a will be local
+;; `a' is local to the procedure.
+;;
+;;    (lambda (a) (lambda () a))
+;; `a' is local to the outer procedure, but a closure variable with
+;; respect to the inner procedure.
+;;
+;; If a variable is ever assigned, it needs to be heap-allocated
+;; ("boxed"). This is so that closures and continuations capture the
+;; variable's identity, not just one of the values it may have over the
+;; course of program execution. If the variable is never assigned, there
+;; is no distinction between value and identity, so closing over its
+;; identity (whether through closures or continuations) can make a copy
+;; of its value instead.
+;;
+;; Local variables are stored on the stack within a procedure's call
+;; frame. Their index into the stack is determined from their linear
+;; postion within a procedure's binding path:
 ;; (let (0 1)
 ;;   (let (2 3) ...)
 ;;   (let (2) ...))
@@ -48,49 +74,67 @@
 ;; case. A proper solution would be some sort of liveness analysis, and
 ;; not our linear allocation algorithm.
 ;;
-;; allocation:
-;;  sym -> (local . index) | (heap level . index)
-;;  lambda -> (nlocs . nexts)
+;; Closure variables are captured when a closure is created, and stored
+;; in a vector. Each closure variable has a unique index into that
+;; vector.
+;;
+;;
+;; The return value of `analyze-lexicals' is a hash table, the
+;; "allocation".
+;;
+;; The allocation maps gensyms -- recall that each lexically bound
+;; variable has a unique gensym -- to storage locations ("addresses").
+;; Since one gensym may have many storage locations, if it is referenced
+;; in many procedures, it is a two-level map.
+;;
+;; The allocation also stored information on how many local variables
+;; need to be allocated for each procedure, and information on what free
+;; variables to capture from its lexical parent procedure.
+;;
+;; That is:
+;;
+;;  sym -> {lambda -> address}
+;;  lambda -> (nlocs . free-locs)
+;;
+;; address := (local? boxed? . index)
+;; free-locs ::= ((sym0 . address0) (sym1 . address1) ...)
+;; free variable addresses are relative to parent proc.
+
+(define (make-hashq k v)
+  (let ((res (make-hash-table)))
+    (hashq-set! res k v)
+    res))
 
 (define (analyze-lexicals x)
-  ;; parents: lambda -> parent
-  ;;  useful when we see a closed-over var, so we can calculate its
-  ;;  coordinates (depth and index).
-  ;; bindings: lambda -> (sym ...)
-  ;;  useful for two reasons: one, so we know how much space to allocate
-  ;;  when we go into a lambda; and two, so that we know when to stop,
-  ;;  when looking for closed-over vars.
-  ;; heaps: sym -> lambda
-  ;;  allows us to heapify vars in an O(1) fashion
+  ;; bound-vars: lambda -> (sym ...)
+  ;;  all identifiers bound within a lambda
+  ;; free-vars: lambda -> (sym ...)
+  ;;  all identifiers referenced in a lambda, but not bound
+  ;;  NB, this includes identifiers referenced by contained lambdas
+  ;; assigned: sym -> #t
+  ;;  variables that are assigned
   ;; refcounts: sym -> count
-  ;;  allows us to detect the or-expansion an O(1) time
-
-  (define (find-heap sym parent)
-    ;; fixme: check displaced lexicals here?
-    (if (memq sym (hashq-ref bindings parent))
-        parent
-        (find-heap sym (hashq-ref parents parent))))
-
-  (define (analyze! x parent level)
-    (define (step y) (analyze! y parent level))
-    (define (recur x parent) (analyze! x parent (1+ level)))
+  ;;  allows us to detect the or-expansion in O(1) time
+  
+  ;; returns variables referenced in expr
+  (define (analyze! x proc)
+    (define (step y) (analyze! y proc))
+    (define (recur x new-proc) (analyze! x new-proc))
     (record-case x
       ((<application> proc args)
-       (step proc) (for-each step args))
+       (apply lset-union eq? (step proc) (map step args)))
 
       ((<conditional> test then else)
-       (step test) (step then) (step else))
+       (lset-union eq? (step test) (step then) (step else)))
 
       ((<lexical-ref> name gensym)
        (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
-       (if (and (not (memq gensym (hashq-ref bindings parent)))
-                (not (hashq-ref heaps gensym)))
-           (hashq-set! heaps gensym (find-heap gensym parent))))
+       (list gensym))
       
       ((<lexical-set> name gensym exp)
-       (step exp)
-       (if (not (hashq-ref heaps gensym))
-           (hashq-set! heaps gensym (find-heap gensym parent))))
+       (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
+       (hashq-set! assigned gensym #t)
+       (lset-adjoin eq? (step exp) gensym))
       
       ((<module-set> mod name public? exp)
        (step exp))
@@ -102,157 +146,292 @@
        (step exp))
       
       ((<sequence> exps)
-       (for-each step exps))
+       (apply lset-union eq? (map step exps)))
       
       ((<lambda> vars meta body)
-       (hashq-set! parents x parent)
-       (hashq-set! bindings x
-                   (let rev* ((vars vars) (out '()))
-                     (cond ((null? vars) out)
-                           ((pair? vars) (rev* (cdr vars)
-                                               (cons (car vars) out)))
-                           (else (cons vars out)))))
-       (recur body x)
-       (hashq-set! bindings x (reverse! (hashq-ref bindings x))))
-
+       (let ((locally-bound (let rev* ((vars vars) (out '()))
+                              (cond ((null? vars) out)
+                                    ((pair? vars) (rev* (cdr vars)
+                                                        (cons (car vars) out)))
+                                    (else (cons vars out))))))
+         (hashq-set! bound-vars x locally-bound)
+         (let* ((referenced (recur body x))
+                (free (lset-difference eq? referenced locally-bound))
+                (all-bound (reverse! (hashq-ref bound-vars x))))
+           (hashq-set! bound-vars x all-bound)
+           (hashq-set! free-vars x free)
+           free)))
+      
       ((<let> vars vals body)
-       (for-each step vals)
-       (hashq-set! bindings parent
-                   (append (reverse vars) (hashq-ref bindings parent)))
-       (step body))
+       (hashq-set! bound-vars proc
+                   (append (reverse vars) (hashq-ref bound-vars proc)))
+       (lset-difference eq?
+                        (apply lset-union eq? (step body) (map step vals))
+                        vars))
       
       ((<letrec> vars vals body)
-       (hashq-set! bindings parent
-                   (append (reverse vars) (hashq-ref bindings parent)))
-       (for-each step vals)
-       (step body))
-
+       (hashq-set! bound-vars proc
+                   (append (reverse vars) (hashq-ref bound-vars proc)))
+       (for-each (lambda (sym) (hashq-set! assigned sym #t)) vars)
+       (lset-difference eq?
+                        (apply lset-union eq? (step body) (map step vals))
+                        vars))
+      
       ((<let-values> vars exp body)
-       (hashq-set! bindings parent
-                   (let lp ((out (hashq-ref bindings parent)) (in vars))
+       (hashq-set! bound-vars proc
+                   (let lp ((out (hashq-ref bound-vars proc)) (in vars))
                      (if (pair? in)
                          (lp (cons (car in) out) (cdr in))
                          (if (null? in) out (cons in out)))))
-       (step exp)
-       (step body))
+       (lset-difference eq?
+                        (lset-union eq? (step exp) (step body))
+                        vars))
+      
+      (else '())))
+  
+  (define (allocate! x proc n)
+    (define (recur y) (allocate! y proc n))
+    (record-case x
+      ((<application> proc args)
+       (apply max (recur proc) (map recur args)))
 
-      (else #f)))
+      ((<conditional> test then else)
+       (max (recur test) (recur then) (recur else)))
 
-    (define (allocate-heap! binder)
-      (hashq-set! heap-indexes binder
-                  (1+ (hashq-ref heap-indexes binder -1))))
+      ((<lexical-set> name gensym exp)
+       (recur exp))
+      
+      ((<module-set> mod name public? exp)
+       (recur exp))
+      
+      ((<toplevel-set> name exp)
+       (recur exp))
+      
+      ((<toplevel-define> name exp)
+       (recur exp))
+      
+      ((<sequence> exps)
+       (apply max (map recur exps)))
+      
+      ((<lambda> vars meta body)
+       ;; allocate closure vars in order
+       (let lp ((c (hashq-ref free-vars x)) (n 0))
+         (if (pair? c)
+             (begin
+               (hashq-set! (hashq-ref allocation (car c))
+                           x
+                           `(#f ,(hashq-ref assigned (car c)) . ,n))
+               (lp (cdr c) (1+ n)))))
+      
+       (let ((nlocs
+              (let lp ((vars vars) (n 0))
+                (if (not (null? vars))
+                    ;; allocate args
+                    (let ((v (if (pair? vars) (car vars) vars)))
+                      (hashq-set! allocation v
+                                  (make-hashq
+                                   x `(#t ,(hashq-ref assigned v) . ,n)))
+                      (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
+                    ;; allocate body, return number of additional locals
+                    (- (allocate! body x n) n))))
+             (free-addresses
+              (map (lambda (v)
+                     (hashq-ref (hashq-ref allocation v) proc))
+                   (hashq-ref free-vars x))))
+         ;; set procedure allocations
+         (hashq-set! allocation x (cons nlocs free-addresses)))
+       n)
 
-    (define (allocate! x level n)
-      (define (recur y) (allocate! y level n))
-      (record-case x
-        ((<application> proc args)
-         (apply max (recur proc) (map recur args)))
-
-        ((<conditional> test then else)
-         (max (recur test) (recur then) (recur else)))
-
-        ((<lexical-set> name gensym exp)
-         (recur exp))
-        
-        ((<module-set> mod name public? exp)
-         (recur exp))
-        
-        ((<toplevel-set> name exp)
-         (recur exp))
-        
-        ((<toplevel-define> name exp)
-         (recur exp))
-        
-        ((<sequence> exps)
-         (apply max (map recur exps)))
-        
-        ((<lambda> vars meta body)
-         (let lp ((vars vars) (n 0))
-           (if (null? vars)
-               (hashq-set! allocation x
-                           (let ((nlocs (- (allocate! body (1+ level) n) n)))
-                             (cons nlocs (1+ (hashq-ref heap-indexes x -1)))))
-               (let ((v (if (pair? vars) (car vars) vars)))
-                 (let ((binder (hashq-ref heaps v)))
-                   (hashq-set!
-                    allocation v
-                    (if binder
-                        (cons* 'heap (1+ level) (allocate-heap! binder))
-                        (cons 'stack n))))
-                 (lp (if (pair? vars) (cdr vars) '()) (1+ n)))))
-         n)
-
-        ((<let> vars vals body)
-         (let ((nmax (apply max (map recur vals))))
-           (cond
-            ;; the `or' hack
-            ((and (conditional? body)
-                  (= (length vars) 1)
-                  (let ((v (car vars)))
-                    (and (not (hashq-ref heaps v))
-                         (= (hashq-ref refcounts v 0) 2)
-                         (lexical-ref? (conditional-test body))
-                         (eq? (lexical-ref-gensym (conditional-test body)) v)
-                         (lexical-ref? (conditional-then body))
-                         (eq? (lexical-ref-gensym (conditional-then body)) v))))
-             (hashq-set! allocation (car vars) (cons 'stack n))
-             ;; the 1+ for this var
-             (max nmax (1+ n) (allocate! (conditional-else body) level n)))
-            (else
-             (let lp ((vars vars) (n n))
-               (if (null? vars)
-                   (max nmax (allocate! body level n))
-                   (let ((v (car vars)))
-                     (let ((binder (hashq-ref heaps v)))
-                       (hashq-set!
-                        allocation v
-                        (if binder
-                            (cons* 'heap level (allocate-heap! binder))
-                            (cons 'stack n)))
-                       (lp (cdr vars) (if binder n (1+ n)))))))))))
-        
-        ((<letrec> vars vals body)
-         (let lp ((vars vars) (n n))
-           (if (null? vars)
-               (let ((nmax (apply max
-                                  (map (lambda (x)
-                                         (allocate! x level n))
-                                       vals))))
-                 (max nmax (allocate! body level n)))
-               (let ((v (car vars)))
-                 (let ((binder (hashq-ref heaps v)))
-                   (hashq-set!
-                    allocation v
-                    (if binder
-                        (cons* 'heap level (allocate-heap! binder))
-                        (cons 'stack n)))
-                   (lp (cdr vars) (if binder n (1+ n))))))))
-
-        ((<let-values> vars exp body)
-         (let ((nmax (recur exp)))
+      ((<let> vars vals body)
+       (let ((nmax (apply max (map recur vals))))
+         (cond
+          ;; the `or' hack
+          ((and (conditional? body)
+                (= (length vars) 1)
+                (let ((v (car vars)))
+                  (and (not (hashq-ref assigned v))
+                       (= (hashq-ref refcounts v 0) 2)
+                       (lexical-ref? (conditional-test body))
+                       (eq? (lexical-ref-gensym (conditional-test body)) v)
+                       (lexical-ref? (conditional-then body))
+                       (eq? (lexical-ref-gensym (conditional-then body)) v))))
+           (hashq-set! allocation (car vars)
+                       (make-hashq proc `(#t #f . ,n)))
+           ;; the 1+ for this var
+           (max nmax (1+ n) (allocate! (conditional-else body) proc n)))
+          (else
            (let lp ((vars vars) (n n))
              (if (null? vars)
-                 (max nmax (allocate! body level n))
-                 (let ((v (if (pair? vars) (car vars) vars)))
-                   (let ((binder (hashq-ref heaps v)))
-                     (hashq-set!
-                      allocation v
-                      (if binder
-                          (cons* 'heap level (allocate-heap! binder))
-                          (cons 'stack n)))
-                     (lp (if (pair? vars) (cdr vars) '())
-                         (if binder n (1+ n)))))))))
-        
-        (else n)))
+                 (max nmax (allocate! body proc n))
+                 (let ((v (car vars)))
+                   (hashq-set!
+                    allocation v
+                    (make-hashq proc
+                                `(#t ,(hashq-ref assigned v) . ,n)))
+                   (lp (cdr vars) (1+ n)))))))))
+      
+      ((<letrec> vars vals body)
+       (let lp ((vars vars) (n n))
+         (if (null? vars)
+             (let ((nmax (apply max
+                                (map (lambda (x)
+                                       (allocate! x proc n))
+                                     vals))))
+               (max nmax (allocate! body proc n)))
+             (let ((v (car vars)))
+               (hashq-set!
+                allocation v
+                (make-hashq proc
+                            `(#t ,(hashq-ref assigned v) . ,n)))
+               (lp (cdr vars) (1+ n))))))
 
-  (define parents (make-hash-table))
-  (define bindings (make-hash-table))
-  (define heaps (make-hash-table))
+      ((<let-values> vars exp body)
+       (let ((nmax (recur exp)))
+         (let lp ((vars vars) (n n))
+           (if (null? vars)
+               (max nmax (allocate! body proc n))
+               (let ((v (if (pair? vars) (car vars) vars)))
+                 (let ((v (car vars)))
+                   (hashq-set!
+                    allocation v
+                    (make-hashq proc
+                                `(#t ,(hashq-ref assigned v) . ,n)))
+                   (lp (cdr vars) (1+ n))))))))
+      
+      (else n)))
+
+  (define bound-vars (make-hash-table))
+  (define free-vars (make-hash-table))
+  (define assigned (make-hash-table))
   (define refcounts (make-hash-table))
+  
   (define allocation (make-hash-table))
-  (define heap-indexes (make-hash-table))
-
-  (analyze! x #f -1)
-  (allocate! x -1 0)
+  
+  (analyze! x #f)
+  (allocate! x #f 0)
 
   allocation)
+
+
+;;;
+;;; Unused variable analysis.
+;;;
+
+;; <binding-info> records are used during tree traversals in
+;; `report-unused-variables'.  They contain a list of the local vars
+;; currently in scope, a list of locals vars that have been referenced, and a
+;; "location stack" (the stack of `tree-il-src' values for each parent tree).
+(define-record-type <binding-info>
+  (make-binding-info vars refs locs)
+  binding-info?
+  (vars binding-info-vars)  ;; ((GENSYM NAME LOCATION) ...)
+  (refs binding-info-refs)  ;; (GENSYM ...)
+  (locs binding-info-locs)) ;; (LOCATION ...)
+
+(define (report-unused-variables tree)
+  "Report about unused variables in TREE.  Return TREE."
+
+  (define (dotless-list lst)
+    ;; If LST is a dotted list, return a proper list equal to LST except that
+    ;; the very last element is a pair; otherwise return LST.
+    (let loop ((lst    lst)
+               (result '()))
+      (cond ((null? lst)
+             (reverse result))
+            ((pair? lst)
+             (loop (cdr lst) (cons (car lst) result)))
+            (else
+             (loop '() (cons lst result))))))
+
+  (tree-il-fold (lambda (x info)
+                  ;; X is a leaf: extend INFO's refs accordingly.
+                  (let ((refs (binding-info-refs info))
+                        (vars (binding-info-vars info))
+                        (locs (binding-info-locs info)))
+                    (record-case x
+                      ((<lexical-ref> gensym)
+                       (make-binding-info vars (cons gensym refs) locs))
+                      (else info))))
+
+                (lambda (x info)
+                  ;; Going down into X: extend INFO's variable list
+                  ;; accordingly.
+                  (let ((refs (binding-info-refs info))
+                        (vars (binding-info-vars info))
+                        (locs (binding-info-locs info))
+                        (src  (tree-il-src x)))
+                    (define (extend inner-vars inner-names)
+                      (append (map (lambda (var name)
+                                     (list var name src))
+                                   inner-vars
+                                   inner-names)
+                              vars))
+                    (record-case x
+                      ((<lexical-set> gensym)
+                       (make-binding-info vars (cons gensym refs)
+                                          (cons src locs)))
+                      ((<lambda> vars names)
+                       (let ((vars  (dotless-list vars))
+                             (names (dotless-list names)))
+                         (make-binding-info (extend vars names) refs
+                                            (cons src locs))))
+                      ((<let> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
+                      ((<letrec> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
+                      ((<let-values> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
+                      (else info))))
+
+                (lambda (x info)
+                  ;; Leaving X's scope: shrink INFO's variable list
+                  ;; accordingly and reported unused nested variables.
+                  (let ((refs (binding-info-refs info))
+                        (vars (binding-info-vars info))
+                        (locs (binding-info-locs info)))
+                    (define (shrink inner-vars refs)
+                      (for-each (lambda (var)
+                                  (let ((gensym (car var)))
+                                    ;; Don't report lambda parameters as
+                                    ;; unused.
+                                    (if (and (not (memq gensym refs))
+                                             (not (and (lambda? x)
+                                                       (memq gensym
+                                                             inner-vars))))
+                                        (let ((name (cadr var))
+                                              ;; We can get approximate
+                                              ;; source location by going up
+                                              ;; the LOCS location stack.
+                                              (loc  (or (caddr var)
+                                                        (find pair? locs))))
+                                          (warning 'unused-variable loc name)))))
+                                (filter (lambda (var)
+                                          (memq (car var) inner-vars))
+                                        vars))
+                      (fold alist-delete vars inner-vars))
+
+                    ;; For simplicity, we leave REFS untouched, i.e., with
+                    ;; names of variables that are now going out of scope.
+                    ;; It doesn't hurt as these are unique names, it just
+                    ;; makes REFS unnecessarily fat.
+                    (record-case x
+                      ((<lambda> vars)
+                       (let ((vars (dotless-list vars)))
+                         (make-binding-info (shrink vars refs) refs
+                                            (cdr locs))))
+                      ((<let> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      ((<letrec> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      ((<let-values> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      (else info))))
+                (make-binding-info '() '() '())
+                tree)
+  tree)

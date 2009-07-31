@@ -801,7 +801,7 @@ static SCM
 scm_read_character (int chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
 {
-  unsigned c;
+  SCM ch;
   char charname[READER_CHAR_NAME_MAX_SIZE];
   size_t charname_len;
 
@@ -834,10 +834,9 @@ scm_read_character (int chr, SCM port)
 	return SCM_MAKE_CHAR (SCM_I_INUM (p));
     }
 
-  for (c = 0; c < scm_n_charnames; c++)
-    if (scm_charnames[c]
-	&& (!strncasecmp (scm_charnames[c], charname, charname_len)))
-      return SCM_MAKE_CHAR (scm_charnums[c]);
+  ch = scm_i_charname_to_char (charname, charname_len);
+  if (scm_is_true (ch))
+    return ch;
 
  char_error:
   scm_i_input_error (FUNC_NAME, port, "unknown character name ~a",

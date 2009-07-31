@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@
   (if env (car env) (current-module)))
 
 (define (objcode-env-externals env)
-  (if env (cdr env) '()))
+  (and env (vector? (cdr env)) (cdr env)))
 
 (define (objcode->value x e opts)
   (let ((thunk (make-program x #f (objcode-env-externals e))))
@@ -66,23 +66,16 @@
    ((program? x)
     (let ((objs  (program-objects x))
           (meta  (program-meta x))
-          (exts  (program-external x))
+          (free-vars  (program-free-variables x))
           (binds (program-bindings x))
           (srcs  (program-sources x))
           (nargs (arity:nargs (program-arity x))))
-      (let ((blocs (and binds
-                        (collapse-locals
-                         (append (list-head binds nargs)
-                                 (filter (lambda (x) (not (binding:extp x)))
-                                         (list-tail binds nargs))))))
-            (bexts (and binds
-                        (filter binding:extp binds))))
+      (let ((blocs (and binds (collapse-locals binds))))
         (values (program-objcode x)
                 `((objects . ,objs)
                   (meta    . ,(and meta (meta)))
-                  (exts    . ,exts)
+                  (free-vars . ,free-vars)
                   (blocs   . ,blocs)
-                  (bexts   . ,bexts)
                   (sources . ,srcs))))))
    ((objcode? x)
     (values x #f))

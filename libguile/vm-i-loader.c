@@ -20,7 +20,7 @@
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_LOADER (59, load_unsigned_integer, "load-unsigned-integer")
+VM_DEFINE_LOADER (80, load_unsigned_integer, "load-unsigned-integer")
 {
   size_t len;
 
@@ -38,7 +38,7 @@ VM_DEFINE_LOADER (59, load_unsigned_integer, "load-unsigned-integer")
     SCM_MISC_ERROR ("load-unsigned-integer: not implemented yet", SCM_EOL);
 }
 
-VM_DEFINE_LOADER (60, load_integer, "load-integer")
+VM_DEFINE_LOADER (81, load_integer, "load-integer")
 {
   size_t len;
 
@@ -56,7 +56,7 @@ VM_DEFINE_LOADER (60, load_integer, "load-integer")
     SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
 }
 
-VM_DEFINE_LOADER (61, load_number, "load-number")
+VM_DEFINE_LOADER (82, load_number, "load-number")
 {
   size_t len;
 
@@ -69,7 +69,7 @@ VM_DEFINE_LOADER (61, load_number, "load-number")
   NEXT;
 }
 
-VM_DEFINE_LOADER (62, load_string, "load-string")
+VM_DEFINE_LOADER (83, load_string, "load-string")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -80,7 +80,7 @@ VM_DEFINE_LOADER (62, load_string, "load-string")
   NEXT;
 }
 
-VM_DEFINE_LOADER (63, load_symbol, "load-symbol")
+VM_DEFINE_LOADER (84, load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -90,7 +90,7 @@ VM_DEFINE_LOADER (63, load_symbol, "load-symbol")
   NEXT;
 }
 
-VM_DEFINE_LOADER (64, load_keyword, "load-keyword")
+VM_DEFINE_LOADER (85, load_keyword, "load-keyword")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -100,7 +100,7 @@ VM_DEFINE_LOADER (64, load_keyword, "load-keyword")
   NEXT;
 }
 
-VM_DEFINE_LOADER (65, load_program, "load-program")
+VM_DEFINE_LOADER (86, load_program, "load-program")
 {
   scm_t_uint32 len;
   SCM objs, objcode;
@@ -114,14 +114,14 @@ VM_DEFINE_LOADER (65, load_program, "load-program")
   objcode = scm_c_make_objcode_slice (SCM_PROGRAM_OBJCODE (fp[-1]), ip);
   len = sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
 
-  PUSH (scm_make_program (objcode, objs, SCM_EOL));
+  PUSH (scm_make_program (objcode, objs, SCM_BOOL_F));
 
   ip += len;
 
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (66, link_now, "link-now", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (87, link_now, "link-now", 0, 1, 1)
 {
   SCM what;
   POP (what);
@@ -130,7 +130,7 @@ VM_DEFINE_INSTRUCTION (66, link_now, "link-now", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_LOADER (67, define, "define")
+VM_DEFINE_LOADER (88, define, "define")
 {
   SCM sym;
   size_t len;
@@ -145,7 +145,7 @@ VM_DEFINE_LOADER (67, define, "define")
   NEXT;
 }
 
-VM_DEFINE_LOADER (68, load_array, "load-array")
+VM_DEFINE_LOADER (89, load_array, "load-array")
 {
   SCM type, shape;
   size_t len;
@@ -163,7 +163,7 @@ VM_DEFINE_LOADER (68, load_array, "load-array")
   "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
   (interactive "")
   (save-excursion
-    (let ((counter 59)) (goto-char (point-min))
+    (let ((counter 79)) (goto-char (point-min))
       (while (re-search-forward "^VM_DEFINE_[^ ]+ (\\([^,]+\\)," (point-max) t)
         (replace-match
          (number-to-string (setq counter (1+ counter)))

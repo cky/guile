@@ -1,6 +1,6 @@
 ;;; Guile VM tracer
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -54,8 +54,7 @@
       ((null? opts) (newline))
     (case (car opts)
       ((:s) (puts (truncate! (vm-fetch-stack vm) 3)))
-      ((:l) (puts (vm-fetch-locals vm)))
-      ((:e) (puts (vm-fetch-externals vm))))))
+      ((:l) (puts (vm-fetch-locals vm))))))
 
 (define (trace-apply vm)
   (if (vm-option vm 'trace-first)

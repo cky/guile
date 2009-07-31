@@ -17,6 +17,7 @@
 
 
 (define-module (language tree-il)
+  #:use-module (srfi srfi-1)
   #:use-module (system base pmatch)
   #:use-module (system base syntax)
   #:export (tree-il-src
@@ -38,11 +39,12 @@
             <let> let? make-let let-src let-names let-vars let-vals let-body
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
             <let-values> let-values? make-let-values let-values-src let-values-names let-values-vars let-values-exp let-values-body
-            
+
             parse-tree-il
             unparse-tree-il
             tree-il->scheme
 
+            tree-il-fold
             post-order!
             pre-order!))
 
@@ -257,6 +259,51 @@
     ((<let-values> vars exp body)
      `(call-with-values (lambda () ,(tree-il->scheme exp))
         (lambda ,vars ,(tree-il->scheme body))))))
+
+
+(define (tree-il-fold leaf down up seed tree)
+  "Traverse TREE, calling LEAF on each leaf encountered, DOWN upon descent
+into a sub-tree, and UP when leaving a sub-tree.  Each of these procedures is
+invoked as `(PROC TREE SEED)', where TREE is the sub-tree or leaf considered
+and SEED is the current result, intially seeded with SEED.
+
+This is an implementation of `foldts' as described by Andy Wingo in
+``Applications of fold to XML transformation''."
+  (let loop ((tree   tree)
+             (result seed))
+    (if (or (null? tree) (pair? tree))
+        (fold loop result tree)
+        (record-case tree
+          ((<lexical-set> exp)
+           (up tree (loop exp (down tree result))))
+          ((<module-set> exp)
+           (up tree (loop exp (down tree result))))
+          ((<toplevel-set> exp)
+           (up tree (loop exp (down tree result))))
+          ((<toplevel-define> exp)
+           (up tree (loop exp (down tree result))))
+          ((<conditional> test then else)
+           (up tree (loop else
+                          (loop then
+                                (loop test (down tree result))))))
+          ((<application> proc args)
+           (up tree (loop (cons proc args) (down tree result))))
+          ((<sequence> exps)
+           (up tree (loop exps (down tree result))))
+          ((<lambda> body)
+           (up tree (loop body (down tree result))))
+          ((<let> vals body)
+           (up tree (loop body
+                          (loop vals
+                                (down tree result)))))
+          ((<letrec> vals body)
+           (up tree (loop body
+                          (loop vals
+                                (down tree result)))))
+          ((<let-values> body)
+           (up tree (loop body (down tree result))))
+          (else
+           (leaf tree result))))))
 
 (define (post-order! f x)
   (let lp ((x x))

@@ -386,7 +386,6 @@ Trace execution.
 
   -s    Display stack
   -l    Display local variables
-  -e    Display external variables
   -b    Bytecode level trace"
   (apply vm-trace (repl-vm repl)
          (repl-compile repl (repl-parse repl form))

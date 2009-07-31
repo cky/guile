@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -220,46 +220,35 @@ static SCM sym_vm_run;
 static SCM sym_vm_error;
 static SCM sym_debug;
 
-static SCM make_u8vector (const scm_t_uint8 *bytes, size_t len)
-{
-  scm_t_uint8 *new_bytes = scm_gc_malloc (len, "make-u8vector");
-  memcpy (new_bytes, bytes, len);
-  return scm_take_u8vector (new_bytes, len);
-}
-
-/* Dummy structure to guarantee 32-bit alignment.  */
-struct t_32bit_aligned
-{
-  scm_t_int32 dummy;
-  scm_t_uint8 bytes[18];
-};
-
 static SCM
 really_make_boot_program (long nargs)
 {
   SCM u8vec;
-  struct t_32bit_aligned bytes =
-    {
-      .dummy = 0,
-      .bytes = { 0, 0, 0, 0,
-		 0, 0, 0, 0,
-		 0, 0, 0, 0,
-		 scm_op_mv_call, 0, 0, 1,
-		 scm_op_make_int8_1, scm_op_halt }
-    };
-
+  /* Make sure "bytes" is 64-bit aligned.  */
+  scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 1,
+                         scm_op_make_int8_1, scm_op_nop, scm_op_nop, scm_op_nop,
+                         scm_op_halt };
+  struct scm_objcode *bp;
   SCM ret;
-
-  /* Set length in current endianness, no meta.  */
-  ((scm_t_uint32 *) bytes.bytes)[1] = 6;
 
   if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
     abort ();
-  bytes.bytes[13] = (scm_byte_t) nargs;
+  text[1] = (scm_t_uint8)nargs;
 
-  u8vec = make_u8vector (bytes.bytes, sizeof (bytes.bytes));
+  bp = scm_gc_malloc (sizeof (struct scm_objcode) + sizeof (text),
+                      "make-u8vector");
+  memcpy (bp->base, text, sizeof (text));
+  bp->nargs = 0;
+  bp->nrest = 0;
+  bp->nlocs = 0;
+  bp->len = sizeof(text);
+  bp->metalen = 0;
+  bp->unused = 0;
+
+  u8vec = scm_take_u8vector ((scm_t_uint8*)bp,
+                             sizeof (struct scm_objcode) + sizeof (text));
   ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
-                          SCM_BOOL_F, SCM_EOL);
+                          SCM_BOOL_F, SCM_BOOL_F);
   SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
 
   return ret;
@@ -325,7 +314,7 @@ resolve_variable (SCM what, SCM program_module)
 }
   
 
-#define VM_DEFAULT_STACK_SIZE	(16 * 1024)
+#define VM_DEFAULT_STACK_SIZE	(64 * 1024)
 
 #define VM_NAME   vm_regular_engine
 #define FUNC_NAME "vm-regular-engine"
@@ -663,7 +652,7 @@ SCM_DEFINE (scm_vm_trace_frame, "vm-trace-frame", 1, 0, 0,
 SCM scm_load_compiled_with_vm (SCM file)
 {
   SCM program = scm_make_program (scm_load_objcode (file),
-                                  SCM_BOOL_F, SCM_EOL);
+                                  SCM_BOOL_F, SCM_BOOL_F);
   
   return scm_c_vm_run (scm_the_vm (), program, NULL, 0);
 }

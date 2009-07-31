@@ -24,12 +24,12 @@
   #:use-module (system vm instruction)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export (byte-length
-            addr+ align-program align-code
+            addr+ align-program align-code align-block
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
-;; nargs, nrest, nlocs, nexts, len, metalen
-(define *program-header-len* (+ 1 1 1 1 4 4))
+;; nargs, nrest, nlocs, len, metalen, padding
+(define *program-header-len* (+ 1 1 2 4 4 4))
 
 ;; lengths are encoded in 3 bytes
 (define *len-len* 3)
@@ -54,7 +54,7 @@
      (+ 1 *len-len* (bytevector-length bv)))
     ((define ,str)
      (+ 1 *len-len* (string-length str)))
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,code)
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
      (+ 1 *program-header-len* len (if meta (1- (byte-length meta)) 0)))
     ((,inst . _) (guard (>= (instruction-length inst) 0))
      (+ 1 (instruction-length inst)))
@@ -63,17 +63,24 @@
 
 (define *program-alignment* 8)
 
+(define *block-alignment* 8)
+
 (define (addr+ addr code)
   (fold (lambda (x len) (+ (byte-length x) len))
         addr
         code))
 
+(define (code-alignment addr alignment header-len)
+  (make-list (modulo (- alignment
+                        (modulo (+ addr header-len) alignment))
+                     alignment)
+             '(nop)))
+
+(define (align-block addr)
+  (code-alignment addr *block-alignment* 0))
 
 (define (align-code code addr alignment header-len)
-  `(,@(make-list (modulo (- alignment
-                            (modulo (+ addr header-len) alignment))
-                         alignment)
-                 '(nop))
+  `(,@(code-alignment addr alignment header-len)
     ,code))
 
 (define (align-program prog addr)
@@ -110,7 +117,7 @@
 	((null? x) `(make-eol))
 	((and (integer? x) (exact? x))
 	 (cond ((and (<= -128 x) (< x 128))
-		`(make-int8 ,(modulo x 256)))
+		(assembly-pack `(make-int8 ,(modulo x 256))))
 	       ((and (<= -32768 x) (< x 32768))
 		(let ((n (if (< x 0) (+ x 65536) x)))
 		  `(make-int16 ,(quotient n 256) ,(modulo n 256))))
@@ -125,7 +132,11 @@
                                   (bytevector-s64-set! bv 0 x (endianness big))
                                   bv))))
 	       (else #f)))
-	((char? x) `(make-char8 ,(char->integer x)))
+	((char? x)
+         (cond ((<= (char->integer x) #xff)
+                `(make-char8 ,(char->integer x)))
+               (else
+                `(make-char32 ,(char->integer x)))))
 	(else #f)))
 
 (define (assembly->object code)
@@ -151,6 +162,11 @@
       (endianness big)))
     ((make-char8 ,n)
      (integer->char n))
+    ((make-char32 ,n1 ,n2 ,n3 ,n4)
+     (integer->char (+ (* n1 #x1000000)
+                       (* n2 #x10000)
+                       (* n3 #x100)
+                       n4)))
     ((load-string ,s) s)
     ((load-symbol ,s) (string->symbol s))
     ((load-keyword ,s) (symbol->keyword (string->symbol s)))
