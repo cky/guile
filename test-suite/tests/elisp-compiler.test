@@ -342,7 +342,29 @@
          (= (funcall c2) 1)
          (= (funcall c2) 2)
          (= (funcall c1) 4)
-         (= (funcall c2) 3))))
+         (= (funcall c2) 3)))
+
+  (pass-if "always lexical option (all)"
+    (progn (setq a 0)
+           (defun dyna () a)
+           (let ((a 1))
+             (and (= a 1) (= (dyna) 0))))
+    #:opts '(#:always-lexical all))
+  (pass-if "always lexical option (list)"
+    (progn (setq a 0 b 0)
+           (defun dyna () a)
+           (defun dynb () b)
+           (let ((a 1)
+                 (b 1))
+             (and (= a 1) (= (dyna) 0)
+                  (= b 1) (= (dynb) 1))))
+    #:opts '(#:always-lexical (a)))
+  (pass-if "with-always-lexical"
+    (progn (setq a 0)
+           (defun dyna () a)
+           (with-always-lexical (a)
+             (let ((a 1))
+               (and (= a 1) (= (dyna) 0)))))))
 
 (with-test-prefix/compile "defconst and defvar"
 

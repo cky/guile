@@ -28,13 +28,18 @@
 
 
 ; Certain common parameters (like the bindings data structure or compiler
-; options) are not always passed around but accessed using fluids.
+; options) are not always passed around but accessed using fluids to simulate
+; dynamic binding (hey, this is about elisp).
 
 ; The bindings data structure to keep track of symbol binding related data.
 (define bindings-data (make-fluid))
 
 ; Store for which symbols (or all/none) void checks are disabled.
 (define disable-void-check (make-fluid))
+
+; Store which symbols (or all/none) should always be bound lexically, even
+; with ordinary let and as lambda arguments.
+(define always-lexical (make-fluid))
 
 
 ; Find the source properties of some parsed expression if there are any
@@ -195,12 +200,15 @@
 ; A symbol will be bound lexically if and only if:
 ; We're processing a lexical-let (i.e. module is 'lexical), OR
 ; we're processing a value-slot binding AND
-;   the symbol is already lexically bound.
+;   the symbol is already lexically bound or it is always lexical.
 
 (define (bind-lexically? sym module)
   (or (eq? module 'lexical)
       (and (equal? module value-slot)
-           (get-lexical-binding (fluid-ref bindings-data) sym))))
+           (let ((always (fluid-ref always-lexical)))
+             (or (eq? always 'all)
+                 (memq sym always)
+                 (get-lexical-binding (fluid-ref bindings-data) sym))))))
 
 (define (split-let-bindings bindings module)
   (let iterate ((tail bindings)
@@ -354,9 +362,9 @@
 
 (define (compile-lambda loc args body)
   (if (not (list? args))
-    (error "expected list for argument-list" args))
+    (report-error loc "expected list for argument-list" args))
   (if (null? body)
-    (error "function body might not be empty"))
+    (report-error loc "function body might not be empty"))
   (with-dynamic-bindings (fluid-ref bindings-data) args
     (lambda ()
       (call-with-values
@@ -500,8 +508,30 @@
                 (compile-expr (cadr head))
                 (process-backquote loc head))
               processed-tail))))
-      (error "non-pair expression contains unquotes" expr))
+      (report-error loc "non-pair expression contains unquotes" expr))
     (make-const loc expr)))
+
+
+; Temporarily update a list of symbols that are handled specially (disabled
+; void check or always lexical) for compiling body.
+; We need to handle special cases for already all / set to all and the like.
+
+(define (with-added-symbols loc fluid syms body)
+  (if (null? body)
+    (report-error loc "symbol-list construct has empty body"))
+  (if (not (or (eq? syms 'all)
+               (and (list? syms) (and-map symbol? syms))))
+    (report-error loc "invalid symbol list" syms))
+  (let ((old (fluid-ref fluid))
+        (make-body (lambda ()
+                     (make-sequence loc (map compile-expr body)))))
+    (if (eq? old 'all)
+      (make-body)
+      (let ((new (if (eq? syms 'all)
+                   'all
+                   (append syms old))))
+        (with-fluids ((fluid new))
+          (make-body))))))
 
 
 ; Compile a symbol expression.  This is a variable reference or maybe some
@@ -610,22 +640,14 @@
                                            (not (null? body))))
      (generate-let* loc function-slot bindings body))
 
-    ; Temporarily disable void checks for certain symbols within the lexical
-    ; scope of without-void-checks.
-    ((without-void-checks ,syms . ,body)
-     (guard (and (list? body) (not (null? body))
-                 (or (eq? syms 'all)
-                     (and (list? syms) (and-map symbol? syms)))))
-     (let ((disabled (fluid-ref disable-void-check))
-           (make-body (lambda ()
-                        (make-sequence loc (map compile-expr body)))))
-       (if (eq? disabled 'all)
-         (make-body)
-         (let ((new-disabled (if (eq? syms 'all)
-                               'all
-                               (append syms disabled))))
-           (with-fluid* disable-void-check new-disabled make-body)))))
+    ; Temporarily disable void checks or set symbols as always lexical only
+    ; for the lexical scope of a construct.
 
+    ((without-void-checks ,syms . ,body)
+     (with-added-symbols loc disable-void-check syms body))
+
+    ((with-always-lexical ,syms . ,body)
+     (with-added-symbols loc always-lexical syms body))
 
     ; guile-ref allows building TreeIL's module references from within
     ; elisp as a way to access data within
@@ -721,7 +743,7 @@
     ; just as with defvar/defconst.
     ((defun ,name ,args . ,body)
      (if (not (symbol? name))
-       (error "expected symbol as function name" name)
+       (report-error loc "expected symbol as function name" name)
        (make-sequence loc
          (list (set-variable! loc name function-slot
                               (compile-lambda loc args body))
@@ -731,10 +753,9 @@
     ; FIXME: Recursive macros don't work!
     ((defmacro ,name ,args . ,body)
      (if (not (symbol? name))
-       (error "expected symbol as macro name" name)
-       (let* ((tree-il (with-fluid* bindings-data (make-bindings)
-                         (lambda ()
-                           (compile-lambda loc args body))))
+       (report-error loc "expected symbol as macro name" name)
+       (let* ((tree-il (with-fluids ((bindings-data (make-bindings)))
+                         (compile-lambda loc args body)))
               (object (compile tree-il #:from 'tree-il #:to 'value)))
          (define-macro! loc name object)
          (make-const loc name))))
@@ -782,20 +803,27 @@
 ; Process the compiler options.
 ; FIXME: Why is '(()) passed as options by the REPL?
 
+(define (valid-symbol-list-arg? value)
+  (or (eq? value 'all)
+      (and (list? value) (and-map symbol? value))))
+
 (define (process-options! opt)
   (if (and (not (null? opt))
            (not (equal? opt '(()))))
     (if (null? (cdr opt))
-      (error "Invalid compiler options" opt)
+      (report-error #f "Invalid compiler options" opt)
       (let ((key (car opt))
             (value (cadr opt)))
         (case key
           ((#:disable-void-check)
-           (if (and (not (eq? value 'all))
-                    (not (and (list? value) (and-map symbol? value))))
-             (error "Invalid value for #:disable-void-check" value)
-             (fluid-set! disable-void-check value)))
-          (else (error "Invalid compiler option" key)))))))
+           (if (valid-symbol-list-arg? value)
+             (fluid-set! disable-void-check value)
+             (report-error #f "Invalid value for #:disable-void-check" value)))
+          ((#:always-lexical)
+           (if (valid-symbol-list-arg? value)
+             (fluid-set! always-lexical value)
+             (report-error #f "Invalid value for #:always-lexical" value)))
+          (else (report-error #f "Invalid compiler option" key)))))))
 
 
 ; Entry point for compilation to TreeIL.
@@ -805,16 +833,16 @@
 
 (define (compile-tree-il expr env opts)
   (values
-    (with-fluids* (list bindings-data disable-void-check)
-                  (list (make-bindings) '())
-      (lambda ()
-        (process-options! opts)
-        (let ((loc (location expr))
-              (compiled (compile-expr expr)))
-          (make-sequence loc
-            `(,@(map-fluids-needed (fluid-ref bindings-data)
-                                   (lambda (mod sym)
-                                     (generate-ensure-fluid loc sym mod)))
-              ,compiled)))))
+    (with-fluids ((bindings-data (make-bindings))
+                  (disable-void-check '())
+                  (always-lexical '()))
+      (process-options! opts)
+      (let ((loc (location expr))
+            (compiled (compile-expr expr)))
+        (make-sequence loc
+          `(,@(map-fluids-needed (fluid-ref bindings-data)
+                                 (lambda (mod sym)
+                                   (generate-ensure-fluid loc sym mod)))
+            ,compiled))))
     env
     env))

@@ -32,17 +32,18 @@ Especially still missing:
 
 Other ideas and things to think about:
   * %nil vs. #f/'() handling in Guile
-  * compiler options for all lexical binding
 
 Compiler options implemented:
   * #:disable-void-check ['all / '(sym1 sym2 sym3)] to disable the check
     for void value on access either completely or for some symbols
+  * #:always-lexical (usable same as disable-void-check) to always bind
+    certain or all symbols lexically (including lambda arguments)
 
 Extensions over original elisp:
   * guile-ref, guile-primitive
   * flet and flet*
   * lexical-let and lexical-let*
-  * without-void-checks
+  * without-void-checks, with-always-lexical
 
 
 Details to the implemented extensions
@@ -105,3 +106,10 @@ in the lexical scope of this construct:
 
 (without-void-checks all body...) or
 (without-void-checks (sym1 sym2 ...) body...
+
+with-always-lexical:
+--------------------
+
+As without-void-checks but adds to list of symbols that should always be bound
+lexically.  This lexical binding includes lambda arguments (if the symbols
+match up with the list), which can not be bound lexically otherwise.
