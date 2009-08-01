@@ -24,16 +24,11 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/numbers.h"
 
 
 /* Immediate Characters
  */
-
-#ifndef SCM_WCHAR_DEFINED
-typedef scm_t_int32 scm_t_wchar;
-#define SCM_WCHAR_DEFINED
-#endif
-
 #define SCM_CHARP(x) (SCM_ITAG8(x) == scm_tc8_char)
 #define SCM_CHAR(x) ((scm_t_wchar)SCM_ITAG8_DATA(x))
 

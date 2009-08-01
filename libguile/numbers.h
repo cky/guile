@@ -174,10 +174,7 @@ typedef struct scm_t_complex
   double imag;
 } scm_t_complex;
 
-#ifndef SCM_WCHAR_DEFINED
 typedef scm_t_int32 scm_t_wchar;
-#define SCM_WCHAR_DEFINED
-#endif
 
 
 
