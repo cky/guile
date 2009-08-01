@@ -171,7 +171,13 @@ VM_DEFINE_INSTRUCTION (15, make_uint64, "make-uint64", 8, 0, 1)
 
 VM_DEFINE_INSTRUCTION (16, make_char8, "make-char8", 1, 0, 1)
 {
-  PUSH (SCM_MAKE_CHAR (FETCH ()));
+  scm_t_uint8 v = 0;
+  v = FETCH ();
+
+  PUSH (SCM_MAKE_CHAR (v));
+  /* Don't simplify this to PUSH (SCM_MAKE_CHAR (FETCH ())).  The
+     contents of SCM_MAKE_CHAR may be evaluated more than once,
+     resulting in a double fetch.  */
   NEXT;
 }
 
