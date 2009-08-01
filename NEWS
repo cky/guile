@@ -8,6 +8,21 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
+Changes in 1.9.2 (since the 1.9.1 prerelease):
+
+** Global variables `scm_charnames' and `scm_charnums' are removed.
+
+These variables contained the names of control characters and were
+used when writing characters.  While these were global, they were
+never intended to be public API.  They have been replaced with private
+functions.
+
+** EBCDIC support is removed.
+
+There was an EBCDIC compile flag that altered some of the character
+processing.  It appeared that full EBCDIC support was never completed
+and was unmaintained.
+
 Changes in 1.9.1 (since the 1.9.0 prerelease):
 
 ** `scm_set_port_seek' and `scm_set_port_truncate' use the `scm_t_off' type
