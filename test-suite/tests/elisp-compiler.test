@@ -327,6 +327,8 @@
          (lexical-let ((a 2) (b 42))
            (and (= a 2) (= (dyna) 1)
                 ((lambda (a) (and (= a 3) (= b 42) (= (dyna) 3))) 3)
+                ((lambda () (let ((a 3))
+                              (and (= a 3) (= (dyna) 1)))))
                 (= a 2) (= (dyna) 1)))
          (= a 1)))
 
@@ -364,7 +366,37 @@
            (defun dyna () a)
            (with-always-lexical (a)
              (let ((a 1))
-               (and (= a 1) (= (dyna) 0)))))))
+               (and (= a 1) (= (dyna) 0))))))
+
+  (pass-if "lexical lambda args"
+    (progn (setq a 1 b 1)
+           (defun dyna () a)
+           (defun dynb () b)
+           (with-always-lexical (a c)
+             ((lambda (a b &optional c)
+                (and (= a 3) (= (dyna) 1)
+                     (= b 2) (= (dynb) 2)
+                     (= c 1)))
+              3 2 1))))
+
+  ; Check if a lambda without dynamically bound arguments
+  ; is tail-optimized by doing a deep recursion that would otherwise overflow
+  ; the stack.
+  (pass-if "lexical lambda tail-recursion"
+    (with-always-lexical (i)
+      (setq to 1000000)
+      (defun iteration-1 (i)
+        (if (< i to)
+          (iteration-1 (1+ i))))
+      (iteration-1 0)
+      (setq x 0)
+      (defun iteration-2 ()
+        (if (< x to)
+          (setq x (1+ x))
+          (iteration-2)))
+      (iteration-2)
+      t)))
+
 
 (with-test-prefix/compile "defconst and defvar"
 

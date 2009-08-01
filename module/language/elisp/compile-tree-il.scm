@@ -1,6 +1,6 @@
-;;; Guile Emac Lisp
+;;; Guile Emacs Lisp
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
   #:use-module (language tree-il)
   #:use-module (system base pmatch)
   #:use-module (system base compile)
+  #:use-module (srfi srfi-1)
   #:export (compile-tree-il))
 
 
@@ -304,36 +305,74 @@
 
 ; Split the argument list of a lambda expression into required, optional and
 ; rest arguments and also check it is actually valid.
+; Additionally, we create a list of all "local variables" (that is, required,
+; optional and rest arguments together) and also this one split into those to
+; be bound lexically and dynamically.
+; Returned is as multiple values: required optional rest lexical dynamic
+
+(define (bind-arg-lexical? arg)
+  (let ((always (fluid-ref always-lexical)))
+    (or (eq? always 'all)
+        (memq arg always))))
 
 (define (split-lambda-arguments loc args)
   (let iterate ((tail args)
                 (mode 'required)
                 (required '())
-                (optional '()))
+                (optional '())
+                (lexical '())
+                (dynamic '()))
     (cond
 
       ((null? tail)
-       (values (reverse required) (reverse optional) #f))
+       (let ((final-required (reverse required))
+             (final-optional (reverse optional))
+             (final-lexical (reverse lexical))
+             (final-dynamic (reverse dynamic)))
+         (values final-required final-optional #f
+                 final-lexical final-dynamic)))
 
       ((and (eq? mode 'required)
             (eq? (car tail) '&optional))
-       (iterate (cdr tail) 'optional required optional))
+       (iterate (cdr tail) 'optional required optional lexical dynamic))
 
       ((eq? (car tail) '&rest)
        (if (or (null? (cdr tail))
                (not (null? (cddr tail))))
          (report-error loc "expected exactly one symbol after &rest")
-         (values (reverse required) (reverse optional) (cadr tail))))
+         (let* ((rest (cadr tail))
+                (rest-lexical (bind-arg-lexical? rest))
+                (final-required (reverse required))
+                (final-optional (reverse optional))
+                (final-lexical (reverse (if rest-lexical
+                                          (cons rest lexical)
+                                          lexical)))
+                (final-dynamic (reverse (if rest-lexical
+                                          dynamic
+                                          (cons rest dynamic)))))
+           (values final-required final-optional rest
+                   final-lexical final-dynamic))))
 
       (else
         (if (not (symbol? (car tail)))
           (report-error loc "expected symbol in argument list, got" (car tail))
-          (case mode
-            ((required) (iterate (cdr tail) mode
-                                 (cons (car tail) required) optional))
-            ((optional) (iterate (cdr tail) mode
-                                 required (cons (car tail) optional)))
-            ((else) (error "invalid mode in split-lambda-arguments" mode))))))))
+          (let* ((arg (car tail))
+                 (bind-lexical (bind-arg-lexical? arg))
+                 (new-lexical (if bind-lexical
+                                (cons arg lexical)
+                                lexical))
+                 (new-dynamic (if bind-lexical
+                                dynamic
+                                (cons arg dynamic))))
+            (case mode
+              ((required) (iterate (cdr tail) mode
+                                   (cons arg required) optional
+                                   new-lexical new-dynamic))
+              ((optional) (iterate (cdr tail) mode
+                                   required (cons arg optional)
+                                   new-lexical new-dynamic))
+              (else
+                (error "invalid mode in split-lambda-arguments" mode)))))))))
 
 
 ; Compile a lambda expression.  Things get a little complicated because TreeIL
@@ -357,77 +396,125 @@
 ; This is formulated very imperatively, but I think in this case that is quite
 ; clear and better than creating a lot of nested let's.
 ;
-; Another thing we have to be aware of is that lambda arguments are always
+; Another thing we have to be aware of is that lambda arguments are usually
 ; dynamically bound, even when a lexical binding is in tact for a symbol.
+; For symbols that are marked as 'always lexical' however, we bind them here
+; lexically, too -- and thus we get them out of the with-fluids* call and
+; register a lexical binding for them (the lexical target variable is already
+; there, namely the real lambda argument from TreeIL).
+; For optional arguments that are lexically bound we need to create the lexical
+; bindings though with an additional let, as those arguments are not part of the
+; ordinary argument list.
 
 (define (compile-lambda loc args body)
   (if (not (list? args))
     (report-error loc "expected list for argument-list" args))
   (if (null? body)
     (report-error loc "function body might not be empty"))
-  (with-dynamic-bindings (fluid-ref bindings-data) args
+  (call-with-values
     (lambda ()
-      (call-with-values
-        (lambda ()
-          (split-lambda-arguments loc args))
-        (lambda (required optional rest)
-          (let ((required-sym (map (lambda (sym) (gensym)) required))
-                (rest-sym (if (or rest (not (null? optional))) (gensym) '())))
-            (let ((real-args (append required-sym rest-sym))
-                  (locals `(,@required ,@optional ,@(if rest (list rest) '()))))
-              (make-lambda loc
-                real-args real-args '()
-                (begin
-                  (for-each (lambda (sym)
-                              (mark-fluid-needed! (fluid-ref bindings-data)
-                                                  sym value-slot))
-                            locals)
-                  (call-primitive loc 'with-fluids*
-                    (make-application loc (make-primitive-ref loc 'list)
-                      (map (lambda (sym)
-                             (make-module-ref loc value-slot sym #t))
-                           locals))
-                    (make-application loc (make-primitive-ref loc 'list)
-                      (append (map (lambda (sym) (make-lexical-ref loc sym sym))
-                                   required-sym)
-                              (map (lambda (sym) (nil-value loc))
-                                   (if rest
-                                     `(,@optional ,rest-sym)
-                                     optional))))
-                    (make-lambda loc '() '() '()
-                      (make-sequence loc
-                        `(,(process-optionals loc optional rest-sym)
-                          ,(process-rest loc rest rest-sym)
-                          ,@(map compile-expr body))))))))))))))
+      (split-lambda-arguments loc args))
+    (lambda (required optional rest lexical dynamic)
+      (let* ((make-sym (lambda (sym) (gensym)))
+             (required-sym (map make-sym required))
+             (required-pairs (map cons required required-sym))
+             (have-real-rest (or rest (not (null? optional))))
+             (rest-sym (if have-real-rest (gensym) '()))
+             (rest-name (if rest rest rest-sym))
+             (rest-lexical (and rest (memq rest lexical)))
+             (rest-dynamic (and rest (not rest-lexical)))
+             (real-args (append required-sym rest-sym))
+             (arg-names (append required rest-name))
+             (lex-optionals (lset-intersection eq? optional lexical))
+             (dyn-optionals (lset-intersection eq? optional dynamic))
+             (optional-sym (map make-sym lex-optionals))
+             (optional-lex-pairs (map cons lex-optionals optional-sym))
+             (find-required-pairs (lambda (filter)
+                                    (lset-intersection (lambda (name-sym el)
+                                                         (eq? (car name-sym)
+                                                              el))
+                                                       required-pairs filter)))
+             (required-lex-pairs (find-required-pairs lexical))
+             (rest-pair (if rest-lexical `((,rest . ,rest-sym)) '()))
+             (all-lex-pairs (append required-lex-pairs optional-lex-pairs
+                                    rest-pair)))
+        (for-each (lambda (sym)
+                    (mark-fluid-needed! (fluid-ref bindings-data)
+                                        sym value-slot))
+                  dynamic)
+        (with-dynamic-bindings (fluid-ref bindings-data) dynamic
+          (lambda ()
+            (with-lexical-bindings (fluid-ref bindings-data)
+                                   (map car all-lex-pairs)
+                                   (map cdr all-lex-pairs)
+              (lambda ()
+                (make-lambda loc
+                  arg-names real-args '()
+                  (let* ((fluids (map (lambda (sym)
+                                        (make-module-ref loc value-slot sym #t))
+                                      dynamic))
+                         (init-req (map (lambda (name-sym)
+                                          (make-lexical-ref loc (car name-sym)
+                                                                (cdr name-sym)))
+                                        (find-required-pairs dynamic)))
+                         (init-nils (map (lambda (sym) (nil-value loc))
+                                         (if rest-dynamic
+                                           `(,@dyn-optionals ,rest-sym)
+                                           dyn-optionals)))
+                         (init (append init-req init-nils))
+                         (func-body (make-sequence loc
+                                      `(,(process-optionals loc optional
+                                                            rest-name rest-sym)
+                                        ,(process-rest loc rest
+                                                       rest-name rest-sym)
+                                        ,@(map compile-expr body))))
+                         (with-fluids-call (call-primitive loc 'with-fluids*
+                                             (make-application loc
+                                               (make-primitive-ref loc 'list)
+                                               fluids)
+                                             (make-application loc
+                                               (make-primitive-ref loc 'list)
+                                               init)
+                                             (make-lambda loc '() '() '()
+                                               func-body)))
+                         (full-body (if (null? dynamic)
+                                      func-body
+                                      with-fluids-call)))
+                  (if (null? optional-sym)
+                    full-body
+                    (make-let loc
+                              optional-sym optional-sym
+                              (map (lambda (sym) (nil-value loc)) optional-sym)
+                      full-body))))))))))))
 
 ; Build the code to handle setting of optional arguments that are present
 ; and updating the rest list.
-(define (process-optionals loc optional rest-sym)
+(define (process-optionals loc optional rest-name rest-sym)
   (let iterate ((tail optional))
     (if (null? tail)
       (make-void loc)
       (make-conditional loc
-        (call-primitive loc 'null? (make-lexical-ref loc rest-sym rest-sym))
+        (call-primitive loc 'null? (make-lexical-ref loc rest-name rest-sym))
         (make-void loc)
         (make-sequence loc
           (list (set-variable! loc (car tail) value-slot
                   (call-primitive loc 'car
-                                  (make-lexical-ref loc rest-sym rest-sym)))
-                (make-lexical-set loc rest-sym rest-sym
+                                  (make-lexical-ref loc rest-name rest-sym)))
+                (make-lexical-set loc rest-name rest-sym
                   (call-primitive loc 'cdr
-                                  (make-lexical-ref loc rest-sym rest-sym)))
+                                  (make-lexical-ref loc rest-name rest-sym)))
                 (iterate (cdr tail))))))))
 
 ; This builds the code to set the rest variable to nil if it is empty.
-(define (process-rest loc rest rest-sym)
+(define (process-rest loc rest rest-name rest-sym)
   (let ((rest-empty (call-primitive loc 'null?
-                                    (make-lexical-ref loc rest-sym rest-sym))))
+                                    (make-lexical-ref loc rest-name rest-sym))))
     (cond
       (rest
        (make-conditional loc rest-empty
          (make-void loc)
          (set-variable! loc rest value-slot
-                        (make-lexical-ref loc rest-sym rest-sym))))
+                        (make-lexical-ref loc rest-name rest-sym))))
       ((not (null? rest-sym))
        (make-conditional loc rest-empty
          (make-void loc)
