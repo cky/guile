@@ -44,8 +44,8 @@ typedef scm_t_int32 scm_t_wchar;
 
 #define SCM_CODEPOINT_MAX (0x10ffff)
 #define SCM_IS_UNICODE_CHAR(c)                                          \
-  ((scm_t_wchar)(c)<=0xd7ff ||                                          \
-   ((scm_t_wchar)(c)>=0xe000 && (scm_t_wchar)(c)<=SCM_CODEPOINT_MAX))
+  ((scm_t_wchar) (c) <= 0xd7ff                                          \
+   || ((scm_t_wchar) (c) >= 0xe000 && (scm_t_wchar) (c) <= SCM_CODEPOINT_MAX))
 
 
 
