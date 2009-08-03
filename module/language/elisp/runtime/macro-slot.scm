@@ -152,6 +152,47 @@
                      '())))))))))
 
 
+; Exception handling.  unwind-protect and catch are implemented as macros (throw
+; is a built-in function).
+
+; catch and throw can mainly be implemented directly using Guile's
+; primitives for exceptions, the only difficulty is that the keys used
+; within Guile must be symbols, while elisp allows any value and checks
+; for matches using eq (eq?).  We handle this by using always #t as key
+; for the Guile primitives and check for matches inside the handler; if
+; the elisp keys are not eq?, we rethrow the exception.
+(built-in-macro catch
+  (lambda (tag . body)
+    (if (null? body)
+      (macro-error "catch with empty body"))
+    (let ((tagsym (gensym)))
+      `(lexical-let ((,tagsym ,tag))
+         ((guile-primitive catch)
+           #t
+           (lambda () ,@body)
+           ,(let* ((dummy-key (gensym))
+                   (elisp-key (gensym))
+                   (value (gensym))
+                   (arglist `(,dummy-key ,elisp-key ,value)))
+              `(with-always-lexical ,arglist
+                 (lambda ,arglist
+                   (if (eq ,elisp-key ,tagsym)
+                     ,value
+                     ((guile-primitive throw) ,dummy-key ,elisp-key
+                                              ,value))))))))))
+
+; unwind-protect is just some weaker construct as dynamic-wind, so 
+; straight-forward to implement.
+(built-in-macro unwind-protect
+  (lambda (body . clean-ups)
+    (if (null? clean-ups)
+      (macro-error "unwind-protect without cleanup code"))
+    `((guile-primitive dynamic-wind)
+       (lambda () nil)
+       (lambda () ,body)
+       (lambda () ,@clean-ups))))
+
+
 ; Pop off the first element from a list or push one to it.
 
 (built-in-macro pop

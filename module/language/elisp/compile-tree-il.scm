@@ -755,6 +755,9 @@
     ;                              (iterate))
     ;                       %nil))))
     ;   (iterate))
+    ;
+    ; As letrec is not directly accessible from elisp, while is implemented here
+    ; instead of with a macro.
     ((while ,condition . ,body)
      (let* ((itersym (gensym))
             (compiled-body (map compile-expr body))
@@ -770,53 +773,6 @@
             (iter-thunk (make-lambda loc '() '() '() lambda-body)))
        (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
          iter-call)))
-
-    ; catch and throw can mainly be implemented directly using Guile's
-    ; primitives for exceptions, the only difficulty is that the keys used
-    ; within Guile must be symbols, while elisp allows any value and checks
-    ; for matches using eq (eq?).  We handle this by using always #t as key
-    ; for the Guile primitives and check for matches inside the handler; if
-    ; the elisp keys are not eq?, we rethrow the exception.
-    ;
-    ; TODO: Implement catch with a macro once we can build the lambda with
-    ; lexical arguments.
-    ;
-    ; throw is implemented as built-in function.
-
-    ((catch ,tag . ,body) (guard (not (null? body)))
-     (let* ((tag-value (gensym))
-            (tag-ref (make-lexical-ref loc tag-value tag-value)))
-       (make-let loc `(,tag-value) `(,tag-value) `(,(compile-expr tag))
-         (call-primitive loc 'catch
-           (make-const loc #t)
-           (make-lambda loc '() '() '()
-             (make-sequence loc (map compile-expr body)))
-           (let* ((dummy-key (gensym))
-                  (dummy-ref (make-lexical-ref loc dummy-key dummy-key))
-                  (elisp-key (gensym))
-                  (key-ref (make-lexical-ref loc elisp-key elisp-key))
-                  (value (gensym))
-                  (value-ref (make-lexical-ref loc value value))
-                  (arglist `(,dummy-key ,elisp-key ,value)))
-             (make-lambda loc arglist arglist '()
-               (make-conditional loc
-                 (call-primitive loc 'eq? key-ref tag-ref)
-                 value-ref
-                 (call-primitive loc 'throw
-                                 dummy-ref key-ref value-ref))))))))
-
-    ; unwind-protect is just some weaker construct as dynamic-wind, so 
-    ; straight-forward to implement.
-    ; TODO: This might be implemented as a macro, once lambda's without
-    ; arguments do not call with-fluids* anymore.
-    ((unwind-protect ,body . ,clean-ups) (guard (not (null? clean-ups)))
-     (call-primitive loc 'dynamic-wind
-                     (make-lambda loc '() '() '() (make-void loc))
-                     (make-lambda loc '() '() '()
-                       (compile-expr body))
-                     (make-lambda loc '() '() '()
-                       (make-sequence loc
-                         (map compile-expr clean-ups)))))
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
