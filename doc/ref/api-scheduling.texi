@@ -8,10 +8,6 @@
 @node Scheduling
 @section Threads, Mutexes, Asyncs and Dynamic Roots
 
-[FIXME: This is pasted in from Tom Lord's original guile.texi chapter
-plus the Cygnus programmer's manual; it should be *very* carefully
-reviewed and largely reorganized.]
-
 @menu
 * Arbiters::                    Synchronization primitives.
 * Asyncs::                      Asynchronous procedure invocation.
@@ -47,7 +43,6 @@ process synchronization.
 
 @deffn {Scheme Procedure} try-arbiter arb
 @deffnx {C Function} scm_try_arbiter (arb)
-@deffnx {C Function} scm_try_arbiter (arb)
 If @var{arb} is unlocked, then lock it and return @code{#t}.
 If @var{arb} is already locked, then do nothing and return
 @code{#f}.
@@ -70,7 +65,7 @@ release it, but that's not required, any thread can release it.
 @cindex user asyncs
 @cindex system asyncs
 
-Asyncs are a means of deferring the excution of Scheme code until it is
+Asyncs are a means of deferring the execution of Scheme code until it is
 safe to do so.
 
 Guile provides two kinds of asyncs that share the basic concept but are
@@ -132,43 +127,42 @@ This procedure is not safe to be called from signal handlers.  Use
 signal handlers.
 @end deffn
 
-@c  FIXME: The use of @deffnx for scm_c_call_with_blocked_asyncs and
-@c  scm_c_call_with_unblocked_asyncs puts "void" into the function
-@c  index.  Would prefer to use @deftypefnx if makeinfo allowed that,
-@c  or a @deftypefn with an empty return type argument if it didn't
-@c  introduce an extra space.
-
 @deffn {Scheme Procedure} call-with-blocked-asyncs proc
 @deffnx {C Function} scm_call_with_blocked_asyncs (proc)
-@deffnx {C Function} {void *} scm_c_call_with_blocked_asyncs (void * (*proc) (void *data), void *data)
-@findex scm_c_call_with_blocked_asyncs
 Call @var{proc} and block the execution of system asyncs by one level
 for the current thread while it is running.  Return the value returned
 by @var{proc}.  For the first two variants, call @var{proc} with no
 arguments; for the third, call it with @var{data}.
 @end deffn
 
+@deftypefn {C Function} {void *} scm_c_call_with_blocked_asyncs (void * (*proc) (void *data), void *data)
+The same but with a C function @var{proc} instead of a Scheme thunk.
+@end deftypefn
+
 @deffn {Scheme Procedure} call-with-unblocked-asyncs proc
 @deffnx {C Function} scm_call_with_unblocked_asyncs (proc)
-@deffnx {C Function} {void *} scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d)
-@findex scm_c_call_with_unblocked_asyncs
 Call @var{proc} and unblock the execution of system asyncs by one
 level for the current thread while it is running.  Return the value
 returned by @var{proc}.  For the first two variants, call @var{proc}
 with no arguments; for the third, call it with @var{data}.
 @end deffn
 
+@deftypefn {C Function} {void *} scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
+The same but with a C function @var{proc} instead of a Scheme thunk.
+@end deftypefn
+
 @deftypefn {C Function} void scm_dynwind_block_asyncs ()
-This function must be used inside a pair of calls to
+During the current dynwind context, increase the blocking of asyncs by
+one level.  This function must be used inside a pair of calls to
 @code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
-Wind}).  During the dynwind context, asyncs are blocked by one level.
+Wind}).
 @end deftypefn
 
 @deftypefn {C Function} void scm_dynwind_unblock_asyncs ()
-This function must be used inside a pair of calls to
+During the current dynwind context, decrease the blocking of asyncs by
+one level.  This function must be used inside a pair of calls to
 @code{scm_dynwind_begin} and @code{scm_dynwind_end} (@pxref{Dynamic
-Wind}).  During the dynwind context, asyncs are unblocked by one
-level.
+Wind}).
 @end deftypefn
 
 @node User asyncs
