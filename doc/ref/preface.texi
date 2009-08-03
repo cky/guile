@@ -22,7 +22,7 @@ use Guile in many useful and interesting ways.
 @node Manual Layout
 @section Layout of this Manual
 
-The manual is divided into five chapters.
+The manual is divided into the following chapters.
 
 @table @strong
 @item Chapter 1: Introduction to Guile
@@ -57,6 +57,10 @@ side by side.
 Describes some important modules, distributed as part of the Guile
 distribution, that extend the functionality provided by the Guile
 Scheme core.
+
+@item Chapter 6: GOOPS
+Describes GOOPS, an object oriented extension to Guile that provides
+classes, multiple inheritance and generic functions.
 
 @end table
 
@@ -140,6 +144,9 @@ reference manual in preparation for the Guile 1.6 release, including
 filling out a lot of the documentation of Scheme data types, control
 mechanisms and procedures.  In addition, he wrote the documentation
 for Guile's SRFI modules and modules associated with the Guile REPL.
+
+The chapter on GOOPS was written by Christian Lynbech, Mikael
+Djurfeldt and Neil Jerram.
 
 @node Guile License
 @section The Guile License

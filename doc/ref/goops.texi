@@ -1,20 +1,3 @@
-\input texinfo
-@c -*-texinfo-*-
-@c %**start of header
-@setfilename goops.info
-@settitle Goops Manual
-@set goops
-@setchapternewpage odd
-@paragraphindent 0
-@c %**end of header
-
-@set VERSION 0.3
-
-@dircategory The Algorithmic Language Scheme
-@direntry
-* GOOPS: (goops).               The GOOPS reference manual.
-@end direntry
-
 @macro goops
 GOOPS
 @end macro
@@ -23,77 +6,19 @@ GOOPS
 Guile
 @end macro
 
-@ifinfo
-This file documents GOOPS, an object oriented extension for Guile.
-
-Copyright (C) 1999, 2000, 2001, 2003, 2006 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@end ifinfo
-
-@c  This title page illustrates only one of the
-@c  two methods of forming a title page.
-
-@titlepage
-@title Goops Manual
-@subtitle For use with GOOPS @value{VERSION}
-
-@c AUTHORS
-
-@c The GOOPS tutorial was written by Christian Lynbech and Mikael
-@c Djurfeldt, who also wrote GOOPS itself.  The GOOPS reference manual
-@c and MOP documentation were written by Neil Jerram and reviewed by
-@c Mikael Djurfeldt.
-
-@author Christian Lynbech
-@author @email{chl@@tbit.dk}
-@author
-@author Mikael Djurfeldt
-@author @email{djurfeldt@@nada.kth.se}
-@author
-@author Neil Jerram
-@author @email{neil@@ossau.uklinux.net}
-
-@c  The following two commands
-@c  start the copyright page.
-@page
-@vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2006 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-@end titlepage
-
-@node Top, Introduction, (dir), (dir)
+@node GOOPS
+@chapter GOOPS
 
 @menu
 * Introduction::
 * Getting Started::
 * Reference Manual::
 * MOP Specification::
-
 * Tutorial::
-
-* Concept Index::
-* Function and Variable Index::
 @end menu
 
-@iftex
-@chapter Preliminaries
-@end iftex
-
-@node Introduction, Getting Started, Top, Top
-@iftex
+@node Introduction
 @section Introduction
-@end iftex
-@ifnottex
-@chapter Introduction
-@end ifnottex
 
 @goops{} is the object oriented extension to @guile{}. Its
 implementation is derived from @w{STk-3.99.3} by Erick Gallesio and
@@ -109,13 +34,8 @@ multi-method dispatch.  Furthermore, the implementation relies on a true
 meta object protocol, in the spirit of the one defined for CLOS
 (@cite{Gregor Kiczales: A Metaobject Protocol}).
 
-@node Getting Started, Reference Manual, Introduction, Top
-@iftex
+@node Getting Started
 @section Getting Started
-@end iftex
-@ifnottex
-@chapter Getting Started
-@end ifnottex
 
 @menu
 * Running GOOPS::
@@ -130,7 +50,7 @@ See further in the GOOPS tutorial available in this distribution in
 info (goops.info) and texinfo format.
 @end menu
 
-@node Running GOOPS, Methods, Getting Started, Getting Started
+@node Running GOOPS
 @subsection Running GOOPS
 
 @enumerate
@@ -157,7 +77,7 @@ arbitrary Guile interpreter.)
 
 We're now ready to try some basic GOOPS functionality.
 
-@node Methods, User-defined types, Running GOOPS, Getting Started
+@node Methods
 @subsection Methods
 
 @smalllisp
@@ -170,7 +90,7 @@ We're now ready to try some basic GOOPS functionality.
 @end group
 @end smalllisp
 
-@node User-defined types, Asking for the type of an object, Methods, Getting Started
+@node User-defined types
 @subsection User-defined types
 
 @smalllisp
@@ -200,7 +120,7 @@ v --> <3, 4>
 @end group
 @end smalllisp
 
-@node Asking for the type of an object, , User-defined types, Getting Started
+@node Asking for the type of an object
 @subsection Types
 
 @example
@@ -212,8 +132,8 @@ v --> <3, 4>
 (is-a? v <2D-vector>) --> #t
 @end example
 
-@node Reference Manual, MOP Specification, Getting Started, Top
-@chapter Reference Manual
+@node Reference Manual
+@section Reference Manual
 
 This chapter is the GOOPS reference manual.  It aims to describe all the
 syntax, procedures, options and associated concepts that a typical
@@ -241,7 +161,7 @@ For a detailed specification of the GOOPS metaobject protocol, see
 @end menu
 
 @node Introductory Remarks
-@section Introductory Remarks
+@subsection Introductory Remarks
 
 GOOPS is an object-oriented programming system based on a ``metaobject
 protocol'' derived from the ones used in CLOS (the Common Lisp Object
@@ -261,19 +181,19 @@ GOOPS' power, by customizing the behaviour of GOOPS itself.
 
 Each of the following sections of the reference manual is arranged
 such that the most basic usage is introduced first, and then subsequent
-subsections discuss the related internal functions and metaobject
+subsubsections discuss the related internal functions and metaobject
 protocols, finishing with a description of how to customize that area of
 functionality.
 
 These introductory remarks continue with a few words about metaobjects
 and the MOP.  Readers who do not want to be bothered yet with the MOP
-and customization could safely skip this subsection on a first reading,
-and should correspondingly skip subsequent subsections that are
+and customization could safely skip this subsubsection on a first reading,
+and should correspondingly skip subsequent subsubsections that are
 concerned with internals and customization.
 
 In general, this reference manual assumes familiarity with standard
 object oriented concepts and terminology.  However, some of the terms
-used in GOOPS are less well known, so the Terminology subsection
+used in GOOPS are less well known, so the Terminology subsubsection
 provides definitions for these terms.
 
 @menu
@@ -282,7 +202,7 @@ provides definitions for these terms.
 @end menu
 
 @node Metaobjects and the Metaobject Protocol
-@subsection Metaobjects and the Metaobject Protocol
+@subsubsection Metaobjects and the Metaobject Protocol
 
 The conceptual building blocks of GOOPS are classes, slot definitions,
 instances, generic functions and methods.  A class is a grouping of
@@ -377,7 +297,7 @@ Each subsequent section of the reference manual covers a particular area
 of GOOPS functionality, and describes the generic functions that are
 relevant for customization of that area.
 
-We conclude this subsection by emphasizing a point that may seem
+We conclude this subsubsection by emphasizing a point that may seem
 obvious, but contrasts with the corresponding situation in some other
 MOP implementations, such as CLOS.  The point is simply that an
 identifier which represents a GOOPS class or generic function is a
@@ -392,7 +312,7 @@ class names), but it is worth noting that GOOPS conforms fully to this
 Schemely principle.
 
 @node Terminology
-@subsection Terminology
+@subsubsection Terminology
 
 It is assumed that the reader is already familiar with standard object
 orientation concepts such as classes, objects/instances,
@@ -403,14 +323,7 @@ This section explains some of the less well known concepts and
 terminology that GOOPS uses, which are assumed by the following sections
 of the reference manual.
 
-@menu
-* Metaclass::
-* Class Precedence List::
-* Accessor::
-@end menu
-
-@node Metaclass
-@subsubsection Metaclass
+@subsubheading Metaclass
 
 A @dfn{metaclass} is the class of an object which represents a GOOPS
 class.  Put more succinctly, a metaclass is a class's class.
@@ -517,8 +430,7 @@ The metaclass of @code{<my-metaclass>} is @code{<class>}.
 @code{<class>}.
 @end itemize
 
-@node Class Precedence List
-@subsubsection Class Precedence List
+@subsubheading Class Precedence List
 
 The @dfn{class precedence list} of a class is the list of all direct and
 indirect superclasses of that class, including the class itself.
@@ -548,8 +460,7 @@ precedence list}.
 ``Class precedence list'' is often abbreviated, in documentation and
 Scheme variable names, to @dfn{cpl}.
 
-@node Accessor
-@subsubsection Accessor
+@subsubheading Accessor
 
 An @dfn{accessor} is a generic function with both reference and setter
 methods.
@@ -583,7 +494,7 @@ be invoked using the generalized @code{set!} syntax, as in:
 @end example
 
 @node Defining New Classes
-@section Defining New Classes
+@subsection Defining New Classes
 
 [ *fixme* Somewhere in this manual there needs to be an introductory
 discussion about GOOPS classes, generic functions and methods, covering
@@ -622,7 +533,7 @@ the discussion there. ]
 @end menu
 
 @node Basic Class Definition
-@subsection Basic Class Definition
+@subsubsection Basic Class Definition
 
 New classes are defined using the @code{define-class} syntax, with
 arguments that specify the classes that the new class should inherit
@@ -651,7 +562,7 @@ keywords and corresponding values.
 @end deffn
 
 The standard GOOPS class and slot options are described in the following
-subsections: see @ref{Class Options} and @ref{Slot Options}.
+subsubsections: see @ref{Class Options} and @ref{Slot Options}.
 
 Example 1.  Define a class that combines two pre-existing classes by
 inheritance but adds no new slots.
@@ -681,13 +592,13 @@ customized via an application-defined metaclass.
 @end example
 
 @node Class Options
-@subsection Class Options
+@subsubsection Class Options
 
 @deffn {class option} #:metaclass metaclass
 The @code{#:metaclass} class option specifies the metaclass of the class
 being defined.  @var{metaclass} must be a class that inherits from
 @code{<class>}.  For an introduction to the use of metaclasses, see
-@ref{Metaobjects and the Metaobject Protocol} and @ref{Metaclass}.
+@ref{Metaobjects and the Metaobject Protocol} and @ref{Terminology}.
 
 If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
 metaclass for the new class by calling @code{ensure-metaclass}
@@ -714,7 +625,7 @@ environment defaults to the top-level environment in which the
 @end deffn
 
 @node Slot Options
-@subsection Slot Options
+@subsubsection Slot Options
 
 @deffn {slot option} #:allocation allocation
 The @code{#:allocation} option tells GOOPS how to allocate storage for
@@ -917,7 +828,7 @@ classes.
 @end deffn
 
 @node Class Definition Internals
-@subsection Class Definition Internals
+@subsubsection Class Definition Internals
 
 Implementation notes: @code{define-class} expands to an expression which
 
@@ -1030,7 +941,7 @@ class object, are described in @ref{Customizing Instance Creation},
 which covers the creation and initialization of instances in general.
 
 @node Customizing Class Definition
-@subsection Customizing Class Definition
+@subsubsection Customizing Class Definition
 
 During the initialization of a new class, GOOPS calls a number of generic
 functions with the newly allocated class instance as the first
@@ -1165,7 +1076,7 @@ typically it would perform additional class initialization steps before
 and/or after calling @code{(next-method)} for the standard behaviour.
 
 @node STKlos Compatibility
-@subsection STKlos Compatibility
+@subsubsection STKlos Compatibility
 
 If the STKlos compatibility module is loaded, @code{define-class} is
 overwritten by a STKlos-specific definition; the standard GOOPS
@@ -1178,7 +1089,7 @@ definition of @code{define-class} remains available in
 @end deffn
 
 @node Creating Instances
-@section Creating Instances
+@subsection Creating Instances
 
 @menu
 * Basic Instance Creation::
@@ -1186,7 +1097,7 @@ definition of @code{define-class} remains available in
 @end menu
 
 @node Basic Instance Creation
-@subsection Basic Instance Creation
+@subsubsection Basic Instance Creation
 
 To create a new instance of any GOOPS class, use the generic function
 @code{make} or @code{make-instance}, passing the required class and any
@@ -1223,7 +1134,7 @@ instance's class.  Any unprocessed keyword value pairs are ignored.
 @end deffn
 
 @node Customizing Instance Creation
-@subsection Customizing Instance Creation
+@subsubsection Customizing Instance Creation
 
 @code{make} itself is a generic function.  Hence the @code{make}
 invocation itself can be customized in the case where the new instance's
@@ -1290,7 +1201,7 @@ and closures in the slot definitions, it is neater to write an
 and initializes all the dependent slot values according to the results.
 
 @node Accessing Slots
-@section Accessing Slots
+@subsection Accessing Slots
 
 The definition of a slot contains at the very least a slot name, and may
 also contain various slot options, including getter, setter and/or
@@ -1298,7 +1209,7 @@ accessor functions for the slot.
 
 It is always possible to access slots by name, using the various
 ``slot-ref'' and ``slot-set!'' procedures described in the following
-subsections.  For example,
+subsubsections.  For example,
 
 @example
 (define-class <my-class> ()      ;; Define a class with slots
@@ -1354,7 +1265,7 @@ closures, see @ref{Customizing Class Definition,, compute-get-n-set}.)
 @end menu
 
 @node Instance Slots
-@subsection Instance Slots
+@subsubsection Instance Slots
 
 Any slot, regardless of its allocation, can be queried, referenced and
 set using the following four primitive procedures.
@@ -1451,7 +1362,7 @@ slot-missing}).
 @end deffn
 
 @node Class Slots
-@subsection Class Slots
+@subsubsection Class Slots
 
 Slots whose allocation is per-class rather than per-instance can be
 referenced and set without needing to specify any particular instance.
@@ -1479,7 +1390,7 @@ function with arguments @var{class} and @var{slot-name}.
 @end deffn
 
 @node Handling Slot Access Errors
-@subsection Handling Slot Access Errors
+@subsubsection Handling Slot Access Errors
 
 GOOPS calls one of the following generic functions when a ``slot-ref''
 or ``slot-set!'' call specifies a non-existent slot name, or tries to
@@ -1510,7 +1421,7 @@ message.
 @end deffn
 
 @node Creating Generic Functions
-@section Creating Generic Functions
+@subsection Creating Generic Functions
 
 A generic function is a collection of methods, with rules for
 determining which of the methods should be applied for any given
@@ -1526,7 +1437,7 @@ GOOPS represents generic functions as metaobjects of the class
 @end menu
 
 @node Basic Generic Function Creation
-@subsection Basic Generic Function Creation
+@subsubsection Basic Generic Function Creation
 
 The following forms may be used to bind a variable to a generic
 function.  Depending on that variable's pre-existing value, the generic
@@ -1636,7 +1547,7 @@ form of the @code{:duplicates} option can be used instead:
 @end smalllisp
 
 @node Generic Function Internals
-@subsection Generic Function Internals
+@subsubsection Generic Function Internals
 
 @code{define-generic} calls @code{ensure-generic} to upgrade a
 pre-existing procedure value, or @code{make} with metaclass
@@ -1705,7 +1616,7 @@ accessor, passing the setter generic function as the value of the
 @code{#:setter} keyword.
 
 @node Extending Guiles Primitives
-@subsection Extending Guile's Primitives
+@subsubsection Extending Guile's Primitives
 
 When GOOPS is loaded, many of Guile's primitive procedures can be
 extended by giving them a generic function definition that operates
@@ -1752,7 +1663,7 @@ integrated into the core of Guile.  Consequently, the
 procedures described in this section may disappear as well.
 
 @node Adding Methods to Generic Functions
-@section Adding Methods to Generic Functions
+@subsection Adding Methods to Generic Functions
 
 @menu
 * Basic Method Definition::
@@ -1760,7 +1671,7 @@ procedures described in this section may disappear as well.
 @end menu
 
 @node Basic Method Definition
-@subsection Basic Method Definition
+@subsubsection Basic Method Definition
 
 To add a method to a generic function, use the @code{define-method} form.
 
@@ -1819,7 +1730,7 @@ invocation error handling, and generic function invocation in general,
 see @ref{Invoking Generic Functions}.
 
 @node Method Definition Internals
-@subsection Method Definition Internals
+@subsubsection Method Definition Internals
 
 @code{define-method}
 
@@ -1906,7 +1817,7 @@ function.
 @end deffn
 
 @node Invoking Generic Functions
-@section Invoking Generic Functions
+@subsection Invoking Generic Functions
 
 When a variable with a generic function definition appears as the first
 element of a list that is being evaluated, the Guile evaluator tries
@@ -1928,7 +1839,7 @@ may be applied subsequently if a method that is being applied calls
 @end menu
 
 @node Determining Which Methods to Apply
-@subsection Determining Which Methods to Apply
+@subsubsection Determining Which Methods to Apply
 
 [ *fixme*  Sorry - this is the area of GOOPS that I understand least of
 all, so I'm afraid I have to pass on this section.  Would some other
@@ -1959,7 +1870,7 @@ kind person consider filling it in? ]
 @end deffn
 
 @node Handling Invocation Errors
-@subsection Handling Invocation Errors
+@subsubsection Handling Invocation Errors
 
 @deffn generic no-method
 @deffnx method no-method (gf <generic>) args
@@ -1987,7 +1898,7 @@ default method calls @code{goops-error} with an appropriate message.
 @end deffn
 
 @node Redefining a Class
-@section Redefining a Class
+@subsection Redefining a Class
 
 Suppose that a class @code{<my-class>} is defined using @code{define-class}
 (@pxref{Basic Class Definition,, define-class}), with slots that have
@@ -2002,7 +1913,7 @@ make}).  What then happens if @code{<my-class>} is redefined by calling
 @end menu
 
 @node Default Class Redefinition Behaviour
-@subsection Default Class Redefinition Behaviour
+@subsubsection Default Class Redefinition Behaviour
 
 GOOPS' default answer to this question is as follows.
 
@@ -2055,7 +1966,7 @@ Also bear in mind that, like most of GOOPS' default behaviour, it can
 be customized@dots{}
 
 @node Customizing Class Redefinition
-@subsection Customizing Class Redefinition
+@subsubsection Customizing Class Redefinition
 
 When @code{define-class} notices that a class is being redefined,
 it constructs the new class metaobject as usual, and then invokes the
@@ -2119,7 +2030,7 @@ generic functions, and so on@dots{}  The detailed protocol for all of these
 is described in @ref{MOP Specification}.
 
 @node Changing the Class of an Instance
-@section Changing the Class of an Instance
+@subsection Changing the Class of an Instance
 
 You can change the class of an existing instance by invoking the
 generic function @code{change-class} with two arguments: the instance
@@ -2158,7 +2069,7 @@ invokes the @code{change-class} generic function for each existing
 instance of the redefined class.
 
 @node Introspection
-@section Introspection
+@subsection Introspection
 
 @dfn{Introspection}, also known as @dfn{reflection}, is the name given
 to the ability to obtain information dynamically about GOOPS metaobjects.
@@ -2197,7 +2108,7 @@ GOOPS equivalents --- to be obtained dynamically, at run time.
 @end menu
 
 @node Classes
-@subsection Classes
+@subsubsection Classes
 
 @deffn {primitive procedure} class-name class
 Return the name of class @var{class}.
@@ -2257,7 +2168,7 @@ Return a list of all methods that use @var{class} or a subclass of
 @end deffn
 
 @node Slots
-@subsection Slots
+@subsubsection Slots
 
 @deffn procedure class-slot-definition class slot-name
 Return the slot definition for the slot named @var{slot-name} in class
@@ -2338,7 +2249,7 @@ see @ref{Slot Options,, init-value}.
 @end deffn
 
 @node Instances
-@subsection Instances
+@subsubsection Instances
 
 @deffn {primitive procedure} class-of value
 Return the GOOPS class of any Scheme @var{value}.
@@ -2359,7 +2270,7 @@ Implementation notes: @code{is-a?} uses @code{class-of} and
 @var{object}.
 
 @node Generic Functions
-@subsection Generic Functions
+@subsubsection Generic Functions
 
 @deffn {primitive procedure} generic-function-name gf
 Return the name of generic function @var{gf}.
@@ -2371,7 +2282,7 @@ This is the value of the @var{gf} metaobject's @code{methods} slot.
 @end deffn
 
 @node Generic Function Methods
-@subsection Generic Function Methods
+@subsubsection Generic Function Methods
 
 @deffn {primitive procedure} method-generic-function method
 Return the generic function that @var{method} belongs to.
@@ -2409,18 +2320,18 @@ Return an expression that prints to show the definition of method
 @end deffn
 
 @node Miscellaneous Functions
-@section Miscellaneous Functions
+@subsection Miscellaneous Functions
 
 @menu
 * Administrative Functions::
-* Error Handling::
+* GOOPS Error Handling::
 * Object Comparisons::
 * Cloning Objects::
 * Write and Display::
 @end menu
 
 @node Administrative Functions
-@subsection Administration Functions
+@subsubsection Administration Functions
 
 This section describes administrative, non-technical GOOPS functions.
 
@@ -2428,8 +2339,8 @@ This section describes administrative, non-technical GOOPS functions.
 Return the current GOOPS version as a string, for example ``0.2''.
 @end deffn
 
-@node Error Handling
-@subsection Error Handling
+@node GOOPS Error Handling
+@subsubsection Error Handling
 
 The procedure @code{goops-error} is called to raise an appropriate error
 by the default methods of the following generic functions:
@@ -2464,7 +2375,7 @@ as done by @code{scm-error}.
 @end deffn
 
 @node Object Comparisons
-@subsection Object Comparisons
+@subsubsection Object Comparisons
 
 @deffn generic eqv?
 @deffnx method eqv? ((x <top>) (y <top>))
@@ -2493,7 +2404,7 @@ and the Guile reference manual.
 @end deffn
 
 @node Cloning Objects
-@subsection Cloning Objects
+@subsubsection Cloning Objects
 
 @deffn generic shallow-clone
 @deffnx method shallow-clone (self <object>)
@@ -2514,7 +2425,7 @@ or by reference.
 @end deffn
 
 @node Write and Display
-@subsection Write and Display
+@subsubsection Write and Display
 
 @deffn {primitive generic} write object port
 @deffnx {primitive generic} display object port
@@ -2542,8 +2453,8 @@ methods - instances of the class @code{<method>}.
 as the Guile primitive @code{write} and @code{display} functions.
 @end deffn
 
-@node MOP Specification, Tutorial, Reference Manual, Top
-@chapter MOP Specification
+@node MOP Specification
+@section MOP Specification
 
 For an introduction to metaobjects and the metaobject protocol,
 see @ref{Metaobjects and the Metaobject Protocol}.
@@ -2598,7 +2509,7 @@ what the caller expects to get as the applied method's return value.
 @end menu
 
 @node Class Definition
-@section Class Definition
+@subsection Class Definition
 
 @code{define-class} (syntax)
 
@@ -2731,7 +2642,7 @@ or @code{#:accessor} option.
 @end itemize
 
 @node Instance Creation
-@section Instance Creation
+@subsection Instance Creation
 
 @code{make <class> . @var{initargs}} (method)
 
@@ -2752,13 +2663,13 @@ return value is ignored.
 @end itemize
 
 @node Class Redefinition
-@section Class Redefinition
+@subsection Class Redefinition
 
 The default @code{class-redefinition} method, specialized for classes
 with the default metaclass @code{<class>}, has the following internal
 protocol.
 
-@code{class-redefinition @var{(old <class>)} @var{(new <class>)}}
+@code{class-redefinition (@var{old <class>}) (@var{new <class>})}
 (method)
 
 @itemize @bullet
@@ -2797,7 +2708,7 @@ to the modified instance, and initializes new slots, as described in
 generic function invocation that can be used to customize the instance
 update algorithm.
 
-@code{change-class @var{(old-instance <object>)} @var{(new <class>)}} (method)
+@code{change-class (@var{old-instance <object>}) (@var{new <class>})} (method)
 
 @itemize @bullet
 @item
@@ -2814,7 +2725,7 @@ nothing.
 @end itemize
 
 @node Method Definition
-@section Method Definition
+@subsection Method Definition
 
 @code{define-method} (syntax)
 
@@ -2842,7 +2753,7 @@ theoretically handle adding methods to further types of target.
 @end itemize
 
 @node Generic Function Invocation
-@section Generic Function Invocation
+@subsection Generic Function Invocation
 
 [ *fixme* Description required here. ]
 
@@ -2886,20 +2797,6 @@ theoretically handle adding methods to further types of target.
 @code{no-next-method}
 @end itemize
 
-@node Tutorial, Concept Index, MOP Specification, Top
-@chapter Tutorial
+@node Tutorial
+@section Tutorial
 @include goops-tutorial.texi
-
-@node     Concept Index, Function and Variable Index, Tutorial, Top
-@unnumberedsec Concept Index
-
-@printindex cp
-
-@node Function and Variable Index,  , Concept Index, Top
-@unnumberedsec Function and Variable Index
-
-@printindex fn
-
-@summarycontents
-@contents
-@bye

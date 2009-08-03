@@ -78,7 +78,9 @@ guile_TEXINFOS = preface.texi			\
 		 libguile-linking.texi		\
 	 	 libguile-extensions.texi	\
 		 api-init.texi			\
-		 mod-getopt-long.texi
+		 mod-getopt-long.texi		\
+		 goops.texi			\
+		 goops-tutorial.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 

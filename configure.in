@@ -1532,7 +1532,6 @@ AC_CONFIG_FILES([
   lib/Makefile
   benchmark-suite/Makefile
   doc/Makefile
-  doc/goops/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile

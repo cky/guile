@@ -175,6 +175,8 @@ x
 
 * Guile Modules::
 
+* GOOPS::
+
 * Guile Implementation::
 
 * Autoconf Support::
@@ -362,6 +364,8 @@ available through both Scheme and C interfaces.
 @include expect.texi
 @include scsh.texi
 @include scheme-debugging.texi
+
+@include goops.texi
 
 @node Guile Implementation
 @chapter Guile Implementation

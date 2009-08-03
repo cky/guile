@@ -28,7 +28,7 @@ datatypes described here.)
 
 @menu
 * Describing a New Type::       
-* Creating Instances::          
+* Creating Smob Instances::          
 * Type checking::                
 * Garbage Collecting Smobs::    
 * Garbage Collecting Simple Smobs::  
@@ -132,8 +132,8 @@ init_image_type (void)
 @end example
 
 
-@node Creating Instances
-@subsection Creating Instances
+@node Creating Smob Instances
+@subsection Creating Smob Instances
 
 Normally, smobs can have one @emph{immediate} word of data.  This word
 stores either a pointer to an additional memory block that holds the
