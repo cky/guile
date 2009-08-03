@@ -22,6 +22,7 @@ flow of Scheme affects C code.
 * Error Reporting::             Procedures for signaling errors.
 * Dynamic Wind::                Dealing with non-local entrance/exit.
 * Handling Errors::             How to handle errors in C code.
+* Continuation Barriers::       Protection from non-local control flow.
 @end menu
 
 @node begin
@@ -1498,6 +1499,33 @@ Throw an error with the various keys described above.
 
 For @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
 which is the name of the procedure incorrectly invoked.
+@end deftypefn
+
+
+@node Continuation Barriers
+@subsection Continuation Barriers
+
+The non-local flow of control caused by continuations might sometimes
+not be wanted.  You can use @code{with-continuation-barrier} etc to
+errect fences that continuations can not pass.
+
+@deffn {Scheme Procedure} with-continuation-barrier proc
+@deffnx {C Function} scm_with_continuation_barrier (proc)
+Call @var{proc} and return its result.  Do not allow the invocation of
+continuations that would leave or enter the dynamic extent of the call
+to @code{with-continuation-barrier}.  Such an attempt causes an error
+to be signaled.
+
+Throws (such as errors) that are not caught from within @var{proc} are
+caught by @code{with-continuation-barrier}.  In that case, a short
+message is printed to the current error port and @code{#f} is returned.
+
+Thus, @code{with-continuation-barrier} returns exactly once.
+@end deffn
+
+@deftypefn {C Function} {void *} scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
+Like @code{scm_with_continuation_barrier} but call @var{func} on
+@var{data}.  When an error is caught, @code{NULL} is returned.
 @end deftypefn
 
 
