@@ -4,17 +4,15 @@
 @setfilename guile.info
 @settitle Guile Reference Manual
 @set guile
-@set MANUAL-EDITION 1.1
+@set MANUAL-REVISION 1
 @c %**end of header
 @include version.texi
 @include lib-version.texi
 
 @copying
-This reference manual documents Guile, GNU's Ubiquitous Intelligent
-Language for Extensions.  This is edition @value{MANUAL-EDITION}
-corresponding to Guile @value{VERSION}.
+This manual documents Guile version @value{VERSION}.
 
-Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005 Free
+Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2009 Free
 Software Foundation.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -137,7 +135,7 @@ x
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
+@subtitle Edition @value{EDITION}, revision @value{MANUAL-REVISION}, for use with Guile @value{VERSION}
 @c @subtitle $Id: guile.texi,v 1.49 2008-03-19 22:51:23 ossau Exp $
 
 @c See preface.texi for the list of authors

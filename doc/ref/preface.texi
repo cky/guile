@@ -7,12 +7,9 @@
 @node Preface
 @chapter Preface
 
-This reference manual documents Guile, GNU's Ubiquitous Intelligent
-Language for Extensions.  It describes how to use Guile in many useful
-and interesting ways.
-
-This is edition @value{MANUAL-EDITION} of the reference manual, and
-corresponds to Guile version @value{VERSION}.
+This manual documents version @value{VERSION} of Guile, GNU's
+Ubiquitous Intelligent Language for Extensions.  It describes how to
+use Guile in many useful and interesting ways.
 
 @menu
 * Manual Layout::               
