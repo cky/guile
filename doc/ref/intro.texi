@@ -80,6 +80,7 @@ To unbundle Guile use the instruction
 zcat guile-@value{VERSION}.tar.gz | tar xvf -
 @end example
 
+@noindent
 which will create a directory called @file{guile-@value{VERSION}} with
 all the sources.  You can look at the file @file{INSTALL} for detailed
 instructions on how to build and install Guile, but you should be able
@@ -93,7 +94,7 @@ make install
 @end example
 
 This will install the Guile executable @file{guile}, the Guile library
-@file{-lguile} and various associated header files and support
+@file{libguile} and various associated header files and support
 libraries. It will also install the Guile tutorial and reference
 manual.
 
@@ -101,14 +102,14 @@ manual.
 
 Since this manual frequently refers to the Scheme ``standard'', also
 known as R5RS, or the
-@iftex
+@tex
 ``Revised$^5$ Report on the Algorithmic Language Scheme'',
-@end iftex
+@end tex
 @ifnottex
 ``Revised^5 Report on the Algorithmic Language Scheme'',
 @end ifnottex
-we have included the report in the Guile distribution;
-@xref{Top, , Introduction, r5rs, Revised(5) Report on the Algorithmic
+we have included the report in the Guile distribution; see
+@ref{Top, , Introduction, r5rs, Revised(5) Report on the Algorithmic
 Language Scheme}.
 This will also be installed in your info directory.
 

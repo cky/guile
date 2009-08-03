@@ -35,7 +35,7 @@ the later parts of the manual.  This part also explains how to obtain
 and install new versions of Guile, and how to report bugs effectively.
 
 @item Chapter 2: Programming in Scheme
-This part provides an overview over programming in Scheme with Guile.
+This part provides an overview of programming in Scheme with Guile.
 It covers how to invoke the @code{guile} program from the command-line
 and how to write scripts in Scheme.  It also gives an introduction
 into the basic ideas of Scheme itself and to the various extensions
@@ -69,7 +69,7 @@ We use some conventions in this manual.
 @itemize @bullet
 
 @item
-For some procedures, notably type predicates, we use @dfn{iff} to mean
+For some procedures, notably type predicates, we use ``iff'' to mean
 ``if and only if''.  The construct is usually something like: `Return
 @var{val} iff @var{condition}', where @var{val} is usually
 ``@nicode{#t}'' or ``non-@nicode{#f}''.  This typically means that
@@ -176,7 +176,7 @@ C code linking to the Guile readline module is subject to the terms of
 that module.  Basically such code must be published on Free terms.
 
 Scheme level code written to be run by Guile (but not derived from
-Guile itself) is not resticted in any way, and may be published on any
+Guile itself) is not restricted in any way, and may be published on any
 terms.  We encourage authors to publish on Free terms.
 
 You must be aware there is no warranty whatsoever for Guile.  This is

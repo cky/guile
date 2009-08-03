@@ -17,7 +17,7 @@ Software Foundation.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with the
+any later version published by the Free Software Foundation; with
 no Invariant Sections, with the Front-Cover Texts being ``A GNU
 Manual,'' and with the Back-Cover Text ``You are free to copy and
 modify this GNU Manual.''.  A copy of the license is included in the
