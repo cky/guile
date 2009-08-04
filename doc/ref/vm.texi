@@ -297,19 +297,19 @@ scheme@@(guile-user)> (define (foo a) (lambda (b) (list foo a b)))
 scheme@@(guile-user)> ,x foo
 Disassembly of #<program foo (a)>:
 
-   0    (local-ref 0)                   ;; `a' (arg)
-   2    (external-set 0)                ;; `a' (arg)
-   4    (object-ref 1)                  ;; #<program b70d2910 at <unknown port>:0:16 (b)>
+   0    (local-ref 0)           ;; `a' (arg)
+   2    (external-set 0)        ;; `a' (arg)
+   4    (object-ref 1)          ;; #<program b70d2910 at <unknown port>:0:16 (b)>
    6    (make-closure)                  
    7    (return)                        
 
 ----------------------------------------
 Disassembly of #<program b70d2910 at <unknown port>:0:16 (b)>:
 
-   0    (toplevel-ref 1)                ;; `foo'
-   2    (external-ref 0)                ;; (closure variable)
-   4    (local-ref 0)                   ;; `b' (arg)
-   6    (list 0 3)                      ;; 3 elements         at (unknown file):0:28
+   0    (toplevel-ref 1)        ;; `foo'
+   2    (external-ref 0)        ;; (closure variable)
+   4    (local-ref 0)           ;; `b' (arg)
+   6    (list 0 3)              ;; 3 elements         at (unknown file):0:28
    9    (return)                        
 @end smallexample
 

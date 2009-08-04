@@ -472,11 +472,12 @@ You can get the version number by invoking the command
 @example
 $ guile --version
 Guile 1.9.0
-Copyright (c) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation
+Copyright (c) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
+2005, 2006, 2007, 2008, 2009 Free Software Foundation
 Guile may be distributed under the terms of the GNU Lesser General
 Public Licence.  For details, see the files `COPYING.LESSER' and
-`COPYING', which are included in the Guile distribution.  There is no
-warranty, to the extent permitted by law.
+`COPYING', which are included in the Guile distribution.  There is
+no warranty, to the extent permitted by law.
 @end example
 
 @item

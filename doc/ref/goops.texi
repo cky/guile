@@ -1041,7 +1041,8 @@ allocation to do this.
 
 (let ((batch-allocation-count 0)
       (batch-get-n-set #f))
-  (define-method (compute-get-n-set (class <batched-allocation-metaclass>) s)
+  (define-method (compute-get-n-set
+                     (class <batched-allocation-metaclass>) s)
     (case (slot-definition-allocation s)
       ((#:batched)
        ;; If we've already used the same slot storage for 10 instances,
@@ -2009,7 +2010,8 @@ is specialized for this metaclass:
 @example
 (define-class <can-be-nameless> (<class>))
 
-(define-method (class-redefinition (old <can-be-nameless>) (new <class>))
+(define-method (class-redefinition (old <can-be-nameless>)
+                                   (new <class>))
   new)
 @end example
 

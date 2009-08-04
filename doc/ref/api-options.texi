@@ -82,10 +82,11 @@ general are stored.  On Unix-like systems, this is usually
 @deffnx {C Function} scm_sys_library_dir ()
 Return the name of the directory where the Guile Scheme files that
 belong to the core Guile installation (as opposed to files from a 3rd
-party package) are installed.  On Unix-like systems, this is usually
+party package) are installed.  On Unix-like systems this is usually
 @file{/usr/local/share/guile/<GUILE_EFFECTIVE_VERSION>} or
-@file{/usr/share/guile/<GUILE_EFFECTIVE_VERSION>}, for example:
-@file{/usr/local/share/guile/1.6}.
+@file{/usr/share/guile/<GUILE_EFFECTIVE_VERSION>};
+
+@noindent for example @file{/usr/local/share/guile/1.6}.
 @end deffn
 
 @deffn {Scheme Procedure} %site-dir
@@ -680,7 +681,8 @@ the maximum stack size, use @code{debug-set!}, for example:
 @lisp
 (debug-set! stack 200000)
 @result{}
-(show-file-name #t stack 200000 debug backtrace depth 20 maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
+(show-file-name #t stack 200000 debug backtrace depth 20
+   maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
 
 (non-tail-recursive-factorial 500)
 @result{}

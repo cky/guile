@@ -48,12 +48,11 @@ checks.
 @cindex pkg-config
 @cindex autoconf
 
-GNU Guile provides a @dfn{pkg-config} description file, installed as
-@file{@var{prefix}/lib/pkgconfig/guile-1.8.pc}, which contains all the
-information necessary to compile and link C applications that use Guile.
-The @code{pkg-config} program is able to read this file and provide this
-information to application programmers; it can be obtained at
-@url{http://pkg-config.freedesktop.org/}.
+GNU Guile provides a @dfn{pkg-config} description file, which contains
+all the information necessary to compile and link C applications that
+use Guile.  The @code{pkg-config} program is able to read this file
+and provide this information to application programmers; it can be
+obtained at @url{http://pkg-config.freedesktop.org/}.
 
 The following command lines give respectively the C compilation and link
 flags needed to build Guile-using programs:

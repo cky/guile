@@ -211,7 +211,8 @@ make_image (SCM name, SCM s_width, SCM s_height)
 
   /* Step 1: Allocate the memory block.
    */
-  image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
+  image = (struct image *)
+     scm_gc_malloc (sizeof (struct image), "image");
 
   /* Step 2: Initialize it with straight code.
    */
@@ -228,7 +229,8 @@ make_image (SCM name, SCM s_width, SCM s_height)
   /* Step 4: Finish the initialization.
    */
   image->name = name;
-  image->pixels = scm_gc_malloc (width * height, "image pixels");
+  image->pixels =
+     scm_gc_malloc (width * height, "image pixels");
 
   return smob;
 @}
@@ -404,7 +406,9 @@ free_image (SCM image_smob)
 @{
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
-  scm_gc_free (image->pixels, image->width * image->height, "image pixels");
+  scm_gc_free (image->pixels,
+               image->width * image->height,
+               "image pixels");
   scm_gc_free (image, sizeof (struct image), "image");
 
   return 0;
@@ -583,7 +587,8 @@ make_image (SCM name, SCM s_width, SCM s_height)
 
   /* Step 1: Allocate the memory block.
    */
-  image = (struct image *) scm_gc_malloc (sizeof (struct image), "image");
+  image = (struct image *)
+     scm_gc_malloc (sizeof (struct image), "image");
 
   /* Step 2: Initialize it with straight code.
    */
@@ -600,7 +605,8 @@ make_image (SCM name, SCM s_width, SCM s_height)
   /* Step 4: Finish the initialization.
    */
   image->name = name;
-  image->pixels = scm_gc_malloc (width * height, "image pixels");
+  image->pixels =
+     scm_gc_malloc (width * height, "image pixels");
 
   return smob;
 @}
@@ -642,7 +648,9 @@ free_image (SCM image_smob)
 @{
   struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
 
-  scm_gc_free (image->pixels, image->width * image->height, "image pixels");
+  scm_gc_free (image->pixels,
+               image->width * image->height,
+               "image pixels");
   scm_gc_free (image, sizeof (struct image), "image");
 
   return 0;
