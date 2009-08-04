@@ -68,7 +68,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
  * car = tag
  * cbr = pos
  * ccr = copy
- * cdr = alist 
+ * cdr = alist
  */
 
 #define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
