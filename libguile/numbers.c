@@ -2657,17 +2657,26 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	case 'l': case 'L':
 	case 's': case 'S':
 	  idx++;
+          if (idx == len)
+            return SCM_BOOL_F;
+
 	  start = idx;
 	  c = mem[idx];
 	  if (c == '-')
 	    {
 	      idx++;
+              if (idx == len)
+                return SCM_BOOL_F;
+
 	      sign = -1;
 	      c = mem[idx];
 	    }
 	  else if (c == '+')
 	    {
 	      idx++;
+              if (idx == len)
+                return SCM_BOOL_F;
+
 	      sign = 1;
 	      c = mem[idx];
 	    }
@@ -2783,8 +2792,10 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	  SCM divisor;
 
 	  idx++;
+          if (idx == len)
+            return SCM_BOOL_F;
 
-	  divisor = mem2uinteger (mem, len, &idx, radix, &x);
+          divisor = mem2uinteger (mem, len, &idx, radix, &x);
 	  if (scm_is_false (divisor))
 	    return SCM_BOOL_F;
 
@@ -2905,11 +2916,15 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	      if (c == '+')
 		{
 		  idx++;
+                  if (idx == len)
+                    return SCM_BOOL_F;
 		  sign = 1;
 		}
 	      else if (c == '-')
 		{
 		  idx++;
+                  if (idx == len)
+                    return SCM_BOOL_F;
 		  sign = -1;
 		}
 	      else
