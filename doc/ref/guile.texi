@@ -8,6 +8,7 @@
 @c %**end of header
 @include version.texi
 @include lib-version.texi
+@include effective-version.texi
 
 @copying
 This manual documents Guile version @value{VERSION}.

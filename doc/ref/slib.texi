@@ -64,7 +64,7 @@ Alternatively, you can create a symlink in the Guile directory to SLIB,
 e.g.:
 
 @example
-ln -s /usr/local/lib/slib /usr/local/share/guile/1.8/slib
+ln -s /usr/local/lib/slib /usr/local/share/guile/@value{EFFECTIVE-VERSION}/slib
 @end example
 
 @item
@@ -78,7 +78,7 @@ guile> (quit)
 @end example
 
 The catalog data should now be in
-@file{/usr/local/share/guile/1.8/slibcat}.
+@file{/usr/local/share/guile/@value{EFFECTIVE-VERSION}/slibcat}.
 
 If instead you get an error such as:
 

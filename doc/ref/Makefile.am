@@ -80,7 +80,8 @@ guile_TEXINFOS = preface.texi			\
 		 api-init.texi			\
 		 mod-getopt-long.texi		\
 		 goops.texi			\
-		 goops-tutorial.texi
+		 goops-tutorial.texi		\
+		 effective-version.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 

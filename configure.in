@@ -1566,6 +1566,7 @@ AC_CONFIG_FILES([test-suite/standalone/test-use-srfi],
                 [chmod +x test-suite/standalone/test-use-srfi])
 AC_CONFIG_FILES([test-suite/standalone/test-fast-slot-ref],
                 [chmod +x test-suite/standalone/test-fast-slot-ref])
+AC_CONFIG_FILES([doc/ref/effective-version.texi])
 
 AC_OUTPUT
 

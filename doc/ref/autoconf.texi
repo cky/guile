@@ -59,8 +59,8 @@ The following command lines give respectively the C compilation and link
 flags needed to build Guile-using programs:
 
 @example
-pkg-config guile-1.8 --cflags
-pkg-config guile-1.8 --libs
+pkg-config guile-@value{EFFECTIVE-VERSION} --cflags
+pkg-config guile-@value{EFFECTIVE-VERSION} --libs
 @end example
 
 To ease use of pkg-config with Autoconf, pkg-config comes with a
@@ -71,7 +71,7 @@ accordingly, or prints an error and exits if Guile was not found:
 @findex PKG_CHECK_MODULES
 
 @example
-PKG_CHECK_MODULES([GUILE], [guile-1.8])
+PKG_CHECK_MODULES([GUILE], [guile-@value{EFFECTIVE-VERSION}])
 @end example
 
 Guile comes with additional Autoconf macros providing more information,
