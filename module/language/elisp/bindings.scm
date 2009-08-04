@@ -21,15 +21,15 @@
 
 (define-module (language elisp bindings)
   #:export (make-bindings
-            mark-fluid-needed! map-fluids-needed
+            mark-global-needed! map-globals-needed
             with-lexical-bindings with-dynamic-bindings
             get-lexical-binding))
 
 ; This module defines routines to handle analysis of symbol bindings used
 ; during elisp compilation.  This data allows to collect the symbols, for
-; which fluids need to be created, or mark certain symbols as lexically bound.
+; which globals need to be created, or mark certain symbols as lexically bound.
 
-; Needed fluids are stored in an association-list that stores a list of fluids
+; Needed globals are stored in an association-list that stores a list of symbols
 ; for each module they are needed in.
 
 ; The lexical bindings of symbols are stored in a hash-table that associates
@@ -42,7 +42,7 @@
 
 (define bindings-type
   (make-record-type 'bindings
-                    '(needed-fluids lexical-bindings)))
+                    '(needed-globals lexical-bindings)))
 
 
 ; Construct an 'empty' instance of the bindings data structure to be used
@@ -52,23 +52,23 @@
   ((record-constructor bindings-type) '() (make-hash-table)))
 
 
-; Mark that a given symbol is needed as fluid in the specified slot-module.
+; Mark that a given symbol is needed as global in the specified slot-module.
 
-(define (mark-fluid-needed! bindings sym module)
-  (let* ((old-needed ((record-accessor bindings-type 'needed-fluids) bindings))
+(define (mark-global-needed! bindings sym module)
+  (let* ((old-needed ((record-accessor bindings-type 'needed-globals) bindings))
          (old-in-module (or (assoc-ref old-needed module) '()))
          (new-in-module (if (memq sym old-in-module)
                           old-in-module
                           (cons sym old-in-module)))
          (new-needed (assoc-set! old-needed module new-in-module)))
-    ((record-modifier bindings-type 'needed-fluids) bindings new-needed)))
+    ((record-modifier bindings-type 'needed-globals) bindings new-needed)))
 
 
-; Cycle through all fluids needed in order to generate the code for their
+; Cycle through all globals needed in order to generate the code for their
 ; creation or some other analysis.
 
-(define (map-fluids-needed bindings proc)
-  (let ((needed ((record-accessor bindings-type 'needed-fluids) bindings)))
+(define (map-globals-needed bindings proc)
+  (let ((needed ((record-accessor bindings-type 'needed-globals) bindings)))
     (let iterate-modules ((mod-tail needed)
                           (mod-result '()))
       (if (null? mod-tail)
