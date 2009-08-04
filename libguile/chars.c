@@ -312,51 +312,45 @@ scm_c_downcase (scm_t_wchar c)
    extensions for control characters, and leftover Guile extensions.
    They are listed in order of precedence.  */
 
-const char *const scm_r5rs_charnames[] = 
-  {
-    "space", "newline"
-  };
+static const char *const scm_r5rs_charnames[] = {
+  "space", "newline"
+};
 
-const scm_t_uint32 const scm_r5rs_charnums[] = 
-  {
-    0x20, 0x0A
-  };
+static const scm_t_uint32 const scm_r5rs_charnums[] = {
+  0x20, 0x0A
+};
 
-const int scm_n_r5rs_charnames = sizeof (scm_r5rs_charnames) / sizeof (char *);
+#define SCM_N_R5RS_CHARNAMES (sizeof (scm_r5rs_charnames) / sizeof (char *))
 
 /* The abbreviated names for control characters.  */
-const char *const scm_C0_control_charnames[] = 
-  {
-    /* C0 controls */
-    "nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel",
-    "bs",  "ht",  "lf",  "vt",  "ff",  "cr",  "so",  "si",
-    "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", 
-    "can", "em",  "sub", "esc", "fs",  "gs",  "rs",  "us",
-    "sp", "del"
-  };
+static const char *const scm_C0_control_charnames[] = {
+  /* C0 controls */
+  "nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel",
+  "bs",  "ht",  "lf",  "vt",  "ff",  "cr",  "so",  "si",
+  "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", 
+  "can", "em",  "sub", "esc", "fs",  "gs",  "rs",  "us",
+  "sp", "del"
+};
 
-const scm_t_uint32 const scm_C0_control_charnums[] = 
-  {
-    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-    0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
-    0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
-    0x20, 0x7f
-  };
+static const scm_t_uint32 const scm_C0_control_charnums[] = {
+  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+  0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+  0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+  0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+  0x20, 0x7f
+};
 
-int scm_n_C0_control_charnames = sizeof (scm_C0_control_charnames) / sizeof (char *);
+#define SCM_N_C0_CONTROL_CHARNAMES (sizeof (scm_C0_control_charnames) / sizeof (char *))
 
-const char *const scm_alt_charnames[] = 
-  {
-    "null", "backspace", "tab", "nl", "newline", "np", "page", "return",
-  };
-  
-const scm_t_uint32 const scm_alt_charnums[] = 
-  {
-    0x00, 0x08, 0x09, 0x0a, 0x0a, 0x0c, 0x0c, 0x0d
-  };
+static const char *const scm_alt_charnames[] = {
+  "null", "backspace", "tab", "nl", "newline", "np", "page", "return",
+};
 
-const int scm_n_alt_charnames = sizeof (scm_alt_charnames) / sizeof (char *);
+static const scm_t_uint32 const scm_alt_charnums[] = {
+  0x00, 0x08, 0x09, 0x0a, 0x0a, 0x0c, 0x0c, 0x0d
+};
+
+#define SCM_N_ALT_CHARNAMES (sizeof (scm_alt_charnames) / sizeof (char *))
 
 /* Returns the string charname for a character if it exists, or NULL
    otherwise.  */
@@ -366,15 +360,15 @@ scm_i_charname (SCM chr)
   int c;
   scm_t_uint32 i = SCM_CHAR (chr);
 
-  for (c = 0; c < scm_n_r5rs_charnames; c++)
+  for (c = 0; c < SCM_N_R5RS_CHARNAMES; c++)
     if (scm_r5rs_charnums[c] == i)
       return scm_r5rs_charnames[c];
 
-  for (c = 0; c < scm_n_C0_control_charnames; c++)
+  for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if (scm_C0_control_charnums[c] == i)
       return scm_C0_control_charnames[c];
 
-  for (c = 0; c < scm_n_alt_charnames; c++)
+  for (c = 0; c < SCM_N_ALT_CHARNAMES; c++)
     if (scm_alt_charnums[c] == i)
       return scm_alt_charnames[i];
 
@@ -389,23 +383,23 @@ scm_i_charname_to_char (const char *charname, size_t charname_len)
 
   /* The R5RS charnames.  These are supposed to be case
      insensitive. */
-  for (c = 0; c < scm_n_r5rs_charnames; c++)
+  for (c = 0; c < SCM_N_R5RS_CHARNAMES; c++)
     if ((strlen (scm_r5rs_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_r5rs_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_r5rs_charnums[c]);
 
   /* Then come the controls.  These are not case sensitive.  */
-  for (c = 0; c < scm_n_C0_control_charnames; c++)
+  for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if ((strlen (scm_C0_control_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_C0_control_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_C0_control_charnums[c]);
 
   /* Lastly are some old names carried over for compatibility.  */
-  for (c = 0; c < scm_n_alt_charnames; c++)
+  for (c = 0; c < SCM_N_ALT_CHARNAMES; c++)
     if ((strlen (scm_alt_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_alt_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_alt_charnums[c]);
-  
+
   return SCM_BOOL_F;
 }
 

@@ -454,22 +454,16 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                 /* Print the character if is graphic character.  */
                 {
                   if (i<256)
-                    {
-                      /* Character is graphic.  Print it.  */
-                      scm_putc (i, port);
-                    }
+                    /* Character is graphic.  Print it.  */
+                    scm_putc (i, port);
                   else
-                    {
-                      /* Character is graphic but unrepresentable in
-                         this port's encoding.  */
-                      scm_intprint (i, 8, port);
-                    }
+                    /* Character is graphic but unrepresentable in
+                       this port's encoding.  */
+                    scm_intprint (i, 8, port);
                 }
               else
-                {
-                  /* Character is a non-graphical character.  */
-                  scm_intprint (i, 8, port);
-                }
+                /* Character is a non-graphical character.  */
+                scm_intprint (i, 8, port);
 	    }
 	  else
 	    scm_putc (i, port);
