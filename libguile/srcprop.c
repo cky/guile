@@ -208,11 +208,74 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
+  long line = 0, col = 0;
+  SCM fname = SCM_UNDEFINED, copy = SCM_UNDEFINED, breakpoint = SCM_BOOL_F;
+  SCM others = SCM_EOL;
+  SCM *others_cdrloc = &others;
+  int need_srcprops = 0;
+  SCM tail, key;
+
   SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
   else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG(1, obj);
+
+  tail = alist;
+  while (!scm_is_null (tail))
+    {
+      key = SCM_CAAR (tail);
+      if (scm_is_eq (key, scm_sym_line))
+	{
+	  line = scm_to_long (SCM_CDAR (tail));
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_column))
+	{
+	  col = scm_to_long (SCM_CDAR (tail));
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_filename))
+	{
+	  fname = SCM_CDAR (tail);
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_copy))
+	{
+	  copy = SCM_CDAR (tail);
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_breakpoint))
+	{
+	  breakpoint = SCM_CDAR (tail);
+	  need_srcprops = 1;
+	}
+      else
+	{
+	  /* Do we allocate here, or clobber the caller's alist?
+
+	     Source properties aren't supposed to be used for anything
+	     except the special properties above, so the mainline case
+	     is that we never execute this else branch, and hence it
+	     doesn't matter much.
+
+	     We choose allocation here, as that seems safer.
+	  */
+	  *others_cdrloc = scm_cons (scm_cons (key, SCM_CDAR (tail)),
+				     SCM_EOL);
+	  others_cdrloc = SCM_CDRLOC (*others_cdrloc);
+	}
+      tail = SCM_CDR (tail);
+    }
+  if (need_srcprops)
+    {
+      alist = scm_make_srcprops (line, col, fname, copy, others);
+      if (scm_is_true (breakpoint))
+	SETSRCPROPBRK (alist);
+    }
+  else
+    alist = others;
+
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, alist);
   SCM_SETCDR (handle, alist);
   return alist;
