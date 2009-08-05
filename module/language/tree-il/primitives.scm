@@ -19,6 +19,7 @@
 ;;; Code:
 
 (define-module (language tree-il primitives)
+  #:use-module (system base pmatch)
   #:use-module (rnrs bytevector)
   #:use-module (system base syntax)
   #:use-module (language tree-il)
@@ -142,8 +143,14 @@
   (define (consequent exp)
     (cond
      ((pair? exp)
-      `(make-application src (make-primitive-ref src ',(car exp))
-                         ,(inline-args (cdr exp))))
+      (pmatch exp
+        ((if ,test ,then ,else)
+         `(if ,test
+              ,(consequent then)
+              ,(consequent else)))
+        (else
+         `(make-application src (make-primitive-ref src ',(car exp))
+                            ,(inline-args (cdr exp))))))
      ((symbol? exp)
       ;; assume locally bound
       exp)
@@ -163,6 +170,15 @@
 (define-primitive-expander +
   () 0
   (x) x
+  (x y) (if (and (const? y)
+                 (let ((y (const-exp y)))
+                   (and (exact? y) (= y 1))))
+            (1+ x)
+            (if (and (const? x)
+                     (let ((x (const-exp x)))
+                       (and (exact? x) (= x 1))))
+                (1+ y)
+                (+ x y)))
   (x y z . rest) (+ x (+ y z . rest)))
   
 (define-primitive-expander *
@@ -172,11 +188,13 @@
   
 (define-primitive-expander -
   (x) (- 0 x)
+  (x y) (if (and (const? y)
+                 (let ((y (const-exp y)))
+                   (and (exact? y) (= y 1))))
+            (1- x)
+            (- x y))
   (x y z . rest) (- x (+ y z . rest)))
   
-(define-primitive-expander 1-
-  (x) (- x 1))
-
 (define-primitive-expander /
   (x) (/ 1 x)
   (x y z . rest) (/ x (* y z . rest)))

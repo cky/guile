@@ -215,9 +215,35 @@ VM_DEFINE_FUNCTION (120, add, "add", 2)
   FUNC2 (+, scm_sum);
 }
 
+VM_DEFINE_FUNCTION (167, add1, "add1", 1)
+{
+  ARGS1 (x);
+  if (SCM_I_INUMP (x))
+    {
+      scm_t_int64 n = SCM_I_INUM (x) + 1;
+      if (SCM_FIXABLE (n))
+	RETURN (SCM_I_MAKINUM (n));
+    }
+  SYNC_REGISTER ();
+  RETURN (scm_sum (x, SCM_I_MAKINUM (1)));
+}
+
 VM_DEFINE_FUNCTION (121, sub, "sub", 2)
 {
   FUNC2 (-, scm_difference);
+}
+
+VM_DEFINE_FUNCTION (168, sub1, "sub1", 1)
+{
+  ARGS1 (x);
+  if (SCM_I_INUMP (x))
+    {
+      scm_t_int64 n = SCM_I_INUM (x) - 1;
+      if (SCM_FIXABLE (n))
+	RETURN (SCM_I_MAKINUM (n));
+    }
+  SYNC_REGISTER ();
+  RETURN (scm_difference (x, SCM_I_MAKINUM (1)));
 }
 
 VM_DEFINE_FUNCTION (122, mul, "mul", 2)
