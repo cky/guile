@@ -18,6 +18,7 @@
 
 (define-module (language tree-il)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-11)
   #:use-module (system base pmatch)
   #:use-module (system base syntax)
   #:export (tree-il-src
@@ -46,6 +47,7 @@
             tree-il->scheme
 
             tree-il-fold
+            make-tree-il-folder
             post-order!
             pre-order!))
 
@@ -316,10 +318,82 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop body
                           (loop vals
                                 (down tree result)))))
-          ((<let-values> body)
-           (up tree (loop body (down tree result))))
+          ((<let-values> exp body)
+           (up tree (loop body (loop exp (down tree result)))))
           (else
            (leaf tree result))))))
+
+
+(define-syntax make-tree-il-folder
+  (syntax-rules ()
+    ((_ seed ...)
+     (lambda (tree down up leaf seed ...)
+       (define (fold-values proc exps seed ...)
+         (if (null? exps)
+             (values seed ...)
+             (let-values (((seed ...) (proc (car exps) seed ...)))
+               (fold-values proc (cdr exps) seed ...))))
+       (let foldts ((tree tree) (seed seed) ...)
+         (record-case tree
+           ((<lexical-set> exp)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts exp seed ...)))
+              (up tree seed ...)))
+           ((<module-set> exp)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts exp seed ...)))
+              (up tree seed ...)))
+           ((<toplevel-set> exp)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts exp seed ...)))
+              (up tree seed ...)))
+           ((<toplevel-define> exp)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts exp seed ...)))
+              (up tree seed ...)))
+           ((<conditional> test then else)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts test seed ...))
+                          ((seed ...) (foldts then seed ...))
+                          ((seed ...) (foldts else seed ...)))
+              (up tree seed ...)))
+           ((<application> proc args)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts proc seed ...))
+                          ((seed ...) (fold-values foldts args seed ...)))
+              (up tree seed ...)))
+           ((<sequence> exps)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (fold-values foldts exps seed ...)))
+              (up tree seed ...)))
+           ((<lambda> body)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (foldts body seed ...)))
+              (up tree seed ...)))
+           ((<let> vals body)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (fold-values foldts vals seed ...))
+                          ((seed ...) (foldts body seed ...)))
+              (up tree seed ...)))
+           ((<letrec> vals body)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (fold-values foldts vals seed ...))
+                          ((seed ...) (foldts body seed ...)))
+              (up tree seed ...)))
+
+           ((<fix> vals body)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (fold-values foldts vals seed ...))
+                          ((seed ...) (foldts body seed ...)))
+              (up tree seed ...)))
+           ((<let-values> exp body)
+            (let*-values (((seed ...) (down tree seed ...))
+                          ((seed ...) (fold-values foldts vals seed ...))
+                          ((seed ...) (foldts body seed ...)))
+              (up tree seed ...)))
+           (else
+            (leaf tree seed ...))))))))
+
 
 (define (post-order! f x)
   (let lp ((x x))

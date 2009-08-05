@@ -29,7 +29,7 @@
   (if e (car e) (current-module)))
 
 (define (optimize! x env opts)
-  (fix-letrec!
-   (inline!
+  (inline!
+   (fix-letrec!
     (expand-primitives! 
      (resolve-primitives! x (env-module env))))))
