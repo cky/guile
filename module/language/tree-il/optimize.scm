@@ -21,21 +21,14 @@
 (define-module (language tree-il optimize)
   #:use-module (language tree-il)
   #:use-module (language tree-il primitives)
+  #:use-module (language tree-il inline)
   #:export (optimize!))
 
 (define (env-module e)
   (if e (car e) (current-module)))
 
 (define (optimize! x env opts)
-  (expand-primitives! (resolve-primitives! x (env-module env))))
-
-;; Possible optimizations:
-;; * constant folding, propagation
-;; * procedure inlining
-;;   * always when single call site
-;;   * always for "trivial" procs
-;;   * otherwise who knows
-;; * dead code elimination
-;; * degenerate case optimizations
-;; * "fixing letrec"
+  (inline!
+   (expand-primitives! 
+    (resolve-primitives! x (env-module env)))))
 
