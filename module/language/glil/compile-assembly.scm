@@ -251,35 +251,41 @@
      (emit-code
       (if local?
           (if (< index 256)
-              `((,(case op
-                    ((ref) (if boxed? 'local-boxed-ref 'local-ref))
-                    ((set) (if boxed? 'local-boxed-set 'local-set))
-                    ((box) 'box)
-                    ((empty-box) 'empty-box)
-                    (else (error "what" op)))
-                 ,index))
+              (case op
+                ((ref) (if boxed?
+                           `((local-boxed-ref ,index))
+                           `((local-ref ,index))))
+                ((set) (if boxed?
+                           `((local-boxed-set ,index))
+                           `((local-set ,index))))
+                ((box) `((box ,index)))
+                ((empty-box) `((empty-box ,index)))
+                ((fix) `((fix-closure 0 ,index)))
+                (else (error "what" op)))
               (let ((a (quotient i 256))
                     (b (modulo i 256)))
-               `((,(case op
-                     ((ref)
-                      (if boxed?
-                          `((long-local-ref ,a ,b)
-                            (variable-ref))
-                          `((long-local-ref ,a ,b))))
-                     ((set)
-                      (if boxed?
-                          `((long-local-ref ,a ,b)
-                            (variable-set))
-                          `((long-local-set ,a ,b))))
-                     ((box)
-                      `((make-variable)
-                        (variable-set)
-                        (long-local-set ,a ,b)))
-                     ((empty-box)
-                      `((make-variable)
-                        (long-local-set ,a ,b)))
-                     (else (error "what" op)))
-                  ,index))))
+                `((,(case op
+                      ((ref)
+                       (if boxed?
+                           `((long-local-ref ,a ,b)
+                             (variable-ref))
+                           `((long-local-ref ,a ,b))))
+                      ((set)
+                       (if boxed?
+                           `((long-local-ref ,a ,b)
+                             (variable-set))
+                           `((long-local-set ,a ,b))))
+                      ((box)
+                       `((make-variable)
+                         (variable-set)
+                         (long-local-set ,a ,b)))
+                      ((empty-box)
+                       `((make-variable)
+                         (long-local-set ,a ,b)))
+                      ((fix)
+                       `((fix-closure ,a ,b)))
+                      (else (error "what" op)))
+                   ,index))))
           `((,(case op
                 ((ref) (if boxed? 'free-boxed-ref 'free-ref))
                 ((set) (if boxed? 'free-boxed-set (error "what." glil)))

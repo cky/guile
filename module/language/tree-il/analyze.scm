@@ -177,6 +177,13 @@
                         (apply lset-union eq? (step body) (map step vals))
                         vars))
       
+      ((<fix> vars vals body)
+       (hashq-set! bound-vars proc
+                   (append (reverse vars) (hashq-ref bound-vars proc)))
+       (lset-difference eq?
+                        (apply lset-union eq? (step body) (map step vals))
+                        vars))
+      
       ((<let-values> vars exp body)
        (hashq-set! bound-vars proc
                    (let lp ((out (hashq-ref bound-vars proc)) (in vars))
@@ -285,6 +292,20 @@
                             `(#t ,(hashq-ref assigned v) . ,n)))
                (lp (cdr vars) (1+ n))))))
 
+      ((<fix> vars vals body)
+       (let lp ((vars vars) (n n))
+         (if (null? vars)
+             (let ((nmax (apply max
+                                (map (lambda (x)
+                                       (allocate! x proc n))
+                                     vals))))
+               (max nmax (allocate! body proc n)))
+             (let ((v (car vars)))
+               (if (hashq-ref assigned v)
+                   (error "fixpoint procedures may not be assigned" x))
+               (hashq-set! allocation v (make-hashq proc `(#t #f . ,n)))
+               (lp (cdr vars) (1+ n))))))
+
       ((<let-values> vars exp body)
        (let ((nmax (recur exp)))
          (let lp ((vars vars) (n n))
@@ -381,6 +402,9 @@
                       ((<letrec> vars names)
                        (make-binding-info (extend vars names) refs
                                           (cons src locs)))
+                      ((<fix> vars names)
+                       (make-binding-info (extend vars names) refs
+                                          (cons src locs)))
                       ((<let-values> vars names)
                        (make-binding-info (extend vars names) refs
                                           (cons src locs)))
@@ -426,6 +450,9 @@
                        (make-binding-info (shrink vars refs) refs
                                           (cdr locs)))
                       ((<letrec> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
+                      ((<fix> vars)
                        (make-binding-info (shrink vars refs) refs
                                           (cdr locs)))
                       ((<let-values> vars)

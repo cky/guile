@@ -78,6 +78,7 @@ TREE_IL_LANG_SOURCES =						\
   language/tree-il/primitives.scm				\
   language/tree-il/optimize.scm                                 \
   language/tree-il/inline.scm                                   \
+  language/tree-il/fix-letrec.scm                               \
   language/tree-il/analyze.scm					\
   language/tree-il/compile-glil.scm 				\
   language/tree-il/spec.scm

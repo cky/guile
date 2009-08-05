@@ -38,6 +38,7 @@
             <lambda> lambda? make-lambda lambda-src lambda-names lambda-vars lambda-meta lambda-body
             <let> let? make-let let-src let-names let-vars let-vals let-body
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
+            <fix> fix? make-fix fix-src fix-names fix-vars fix-vals fix-body
             <let-values> let-values? make-let-values let-values-src let-values-names let-values-vars let-values-exp let-values-body
 
             parse-tree-il
@@ -65,6 +66,7 @@
   (<lambda> names vars meta body)
   (<let> names vars vals body)
   (<letrec> names vars vals body)
+  (<fix> names vars vals body)
   (<let-values> names vars exp body))
   
 
@@ -141,6 +143,9 @@
      ((letrec ,names ,vars ,vals ,body)
       (make-letrec loc names vars (map retrans vals) (retrans body)))
 
+     ((fix ,names ,vars ,vals ,body)
+      (make-fix loc names vars (map retrans vals) (retrans body)))
+
      ((let-values ,names ,vars ,exp ,body)
       (make-let-values loc names vars (retrans exp) (retrans body)))
 
@@ -196,6 +201,9 @@
 
     ((<letrec> names vars vals body)
      `(letrec ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
+
+    ((<fix> names vars vals body)
+     `(fix ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
 
     ((<let-values> names vars exp body)
      `(let-values ,names ,vars ,(unparse-tree-il exp) ,(unparse-tree-il body)))))
@@ -256,6 +264,10 @@
     ((<letrec> vars vals body)
      `(letrec ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme body)))
 
+    ((<fix> vars vals body)
+     ;; not a typo, we really do translate back to letrec
+     `(letrec ,(map list vars (map tree-il->scheme vals)) ,(tree-il->scheme body)))
+
     ((<let-values> vars exp body)
      `(call-with-values (lambda () ,(tree-il->scheme exp))
         (lambda ,vars ,(tree-il->scheme body))))))
@@ -297,6 +309,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
                           (loop vals
                                 (down tree result)))))
           ((<letrec> vals body)
+           (up tree (loop body
+                          (loop vals
+                                (down tree result)))))
+          ((<fix> vals body)
            (up tree (loop body
                           (loop vals
                                 (down tree result)))))
@@ -342,6 +358,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
       ((<letrec> vars vals body)
        (set! (letrec-vals x) (map lp vals))
        (set! (letrec-body x) (lp body)))
+      
+      ((<fix> vars vals body)
+       (set! (fix-vals x) (map lp vals))
+       (set! (fix-body x) (lp body)))
       
       ((<let-values> vars exp body)
        (set! (let-values-exp x) (lp exp))
@@ -389,6 +409,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
         ((<letrec> vars vals body)
          (set! (letrec-vals x) (map lp vals))
          (set! (letrec-body x) (lp body)))
+
+        ((<fix> vars vals body)
+         (set! (fix-vals x) (map lp vals))
+         (set! (fix-body x) (lp body)))
 
         ((<let-values> vars exp body)
          (set! (let-values-exp x) (lp exp))

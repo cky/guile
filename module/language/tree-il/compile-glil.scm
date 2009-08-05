@@ -557,6 +557,49 @@
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 
+      ((<fix> src names vars vals body)
+       ;; For fixpoint procedures, we can do some tricks to avoid
+       ;; heap-allocation. Since we know the vals are lambdas, we can
+       ;; set them to their local var slots first, then capture their
+       ;; bindings, mutating them in place.
+       (for-each (lambda (x v)
+                   (emit-code #f (flatten-lambda x allocation))
+                   (if (not (null? (cdr (hashq-ref allocation x))))
+                       ;; But we do have to make-closure them first, so
+                       ;; we are mutating fresh closures on the heap.
+                       (begin
+                         (emit-code #f (make-glil-const #f))
+                         (emit-code #f (make-glil-call 'make-closure 2))))
+                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                     ((#t #f . ,n)
+                      (emit-code src (make-glil-lexical #t #f 'set n)))
+                     (,loc (error "badness" x loc))))
+                 vals
+                 vars)
+       (emit-bindings src names vars allocation proc emit-code)
+       ;; Now go back and fix up the bindings.
+       (for-each
+        (lambda (x v)
+          (let ((free-locs (cdr (hashq-ref allocation x))))
+            (if (not (null? free-locs))
+                (begin
+                  (for-each
+                   (lambda (loc)
+                     (pmatch loc
+                       ((,local? ,boxed? . ,n)
+                        (emit-code #f (make-glil-lexical local? #f 'ref n)))
+                       (else (error "what" x loc))))
+                   free-locs)
+                  (emit-code #f (make-glil-call 'vector (length free-locs)))
+                  (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                    ((#t #f . ,n)
+                     (emit-code #f (make-glil-lexical #t #f 'fix n)))
+                    (,loc (error "badness" x loc)))))))
+        vals
+        vars)
+       (comp-tail body)
+       (emit-code #f (make-glil-unbind)))
+
       ((<let-values> src names vars exp body)
        (let lp ((names '()) (vars '()) (inames names) (ivars vars) (rest? #f))
          (cond

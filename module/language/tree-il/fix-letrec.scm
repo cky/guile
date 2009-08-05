@@ -1,4 +1,4 @@
-;;; Tree-il optimizer
+;;; transformation of letrec into simpler forms
 
 ;; Copyright (C) 2009 Free Software Foundation, Inc.
 
@@ -16,20 +16,14 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Code:
-
-(define-module (language tree-il optimize)
+(define-module (language tree-il fix-letrec)
+  #:use-module (system base syntax)
   #:use-module (language tree-il)
-  #:use-module (language tree-il primitives)
-  #:use-module (language tree-il inline)
-  #:use-module (language tree-il fix-letrec)
-  #:export (optimize!))
+  #:export (fix-letrec!))
 
-(define (env-module e)
-  (if e (car e) (current-module)))
+;; For a detailed discussion, see "Fixing Letrec: A Faithful Yet
+;; Efficient Implementation of Scheme’s Recursive Binding Construct", by
+;; Oscar Waddell, Dipanwita Sarkar, and R. Kent Dybvig.
 
-(define (optimize! x env opts)
-  (fix-letrec!
-   (inline!
-    (expand-primitives! 
-     (resolve-primitives! x (env-module env))))))
+(define (fix-letrec! x)
+  x)
