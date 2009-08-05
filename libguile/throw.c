@@ -59,7 +59,7 @@ static scm_t_bits tc16_jmpbuffer;
 #define DEACTIVATEJB(x) \
   (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) & ~(1L << 16L))))
 
-#define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
+#define JBJMPBUF(OBJ)           ((scm_i_jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (v)))
 #define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
 #define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (scm_t_bits) (v)))
@@ -81,7 +81,7 @@ make_jmpbuf (void)
 {
   SCM answer;
   SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
-  SETJBJMPBUF(answer, (jmp_buf *)0);
+  SETJBJMPBUF(answer, (scm_i_jmp_buf *)0);
   DEACTIVATEJB(answer);
   return answer;
 }
@@ -91,7 +91,7 @@ make_jmpbuf (void)
 
 struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 {
-  jmp_buf buf;			/* must be first */
+  scm_i_jmp_buf buf;		/* must be first */
   SCM throw_tag;
   SCM retval;
 };
@@ -194,7 +194,7 @@ scm_c_catch (SCM tag,
   pre_unwind.lazy_catch_p = 0;
   SCM_SETJBPREUNWIND(jmpbuf, &pre_unwind);
 
-  if (setjmp (jbr.buf))
+  if (SCM_I_SETJMP (jbr.buf))
     {
       SCM throw_tag;
       SCM throw_args;
@@ -884,7 +884,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
       jbr->throw_tag = key;
       jbr->retval = args;
       scm_i_set_last_debug_frame (SCM_JBDFRAME (jmpbuf));
-      longjmp (*JBJMPBUF (jmpbuf), 1);
+      SCM_I_LONGJMP (*JBJMPBUF (jmpbuf), 1);
     }
 
   /* Otherwise, it's some random piece of junk.  */

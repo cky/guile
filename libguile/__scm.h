@@ -423,18 +423,27 @@
     typedef struct {
       ucontext_t ctx;
       int fresh;
-    } jmp_buf;
-#   define setjmp(JB)				        \
+    } scm_i_jmp_buf;
+#   define SCM_I_SETJMP(JB)			        \
       ( (JB).fresh = 1,				        \
         getcontext (&((JB).ctx)),			\
         ((JB).fresh ? ((JB).fresh = 0, 0) : 1) )
-#   define longjmp(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
-    void scm_ia64_longjmp (jmp_buf *, int);
+#   define SCM_I_LONGJMP(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
+    void scm_ia64_longjmp (scm_i_jmp_buf *, int);
 #  else                 	/* ndef __ia64__ */
 #   include <setjmp.h>
 #  endif			/* ndef __ia64__ */
 # endif				/* ndef _CRAY1 */
 #endif				/* ndef vms */
+
+/* For any platform where SCM_I_SETJMP hasn't been defined in some
+   special way above, map SCM_I_SETJMP, SCM_I_LONGJMP and
+   scm_i_jmp_buf to setjmp, longjmp and jmp_buf. */
+#ifndef SCM_I_SETJMP
+#define scm_i_jmp_buf jmp_buf
+#define SCM_I_SETJMP setjmp
+#define SCM_I_LONGJMP longjmp
+#endif
 
 /* James Clark came up with this neat one instruction fix for
  * continuations on the SPARC.  It flushes the register windows so

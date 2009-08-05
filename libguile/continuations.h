@@ -44,7 +44,7 @@ SCM_API scm_t_bits scm_tc16_continuation;
 typedef struct 
 {
   SCM throw_value;
-  jmp_buf jmpbuf;
+  scm_i_jmp_buf jmpbuf;
   SCM dynenv;
 #ifdef __ia64__
   void *backing_store;
