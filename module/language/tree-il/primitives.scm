@@ -200,6 +200,9 @@
                             (cons `((src . ,(car in))
                                     ,(consequent (cadr in))) out)))))))
 
+(define-primitive-expander zero? (x)
+  (= x 0))
+
 (define-primitive-expander +
   () 0
   (x) x

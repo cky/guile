@@ -315,7 +315,10 @@ VM_DEFINE_FUNCTION (129, vector_ref, "vector-ref", 2)
                   && i < SCM_I_VECTOR_LENGTH (vect)))
     RETURN (SCM_I_VECTOR_ELTS (vect)[i]);
   else
-    RETURN (scm_vector_ref (vect, idx));
+    {
+      SYNC_REGISTER ();
+      RETURN (scm_vector_ref (vect, idx));
+    }
 }
 
 VM_DEFINE_INSTRUCTION (130, vector_set, "vector-set", 0, 3, 0)
@@ -329,7 +332,10 @@ VM_DEFINE_INSTRUCTION (130, vector_set, "vector-set", 0, 3, 0)
                   && i < SCM_I_VECTOR_LENGTH (vect)))
     SCM_I_VECTOR_WELTS (vect)[i] = val;
   else
-    scm_vector_set_x (vect, idx, val);
+    {
+      SYNC_REGISTER ();
+      scm_vector_set_x (vect, idx, val);
+    }
   NEXT;
 }
 

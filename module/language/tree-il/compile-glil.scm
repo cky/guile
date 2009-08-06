@@ -66,7 +66,7 @@
 
     (with-fluid* *comp-module* (or (and e (car e)) (current-module))
       (lambda ()
-        (values (flatten-lambda x allocation)
+        (values (flatten-lambda x #f allocation)
                 (and e (cons (car e) (cddr e)))
                 e)))))
 
@@ -177,7 +177,7 @@
     (proc emit-code)
     (reverse out)))
 
-(define (flatten-lambda x allocation)
+(define (flatten-lambda x self-label allocation)
   (receive (ids vars nargs nrest)
       (let lp ((ids (lambda-names x)) (vars (lambda-vars x))
                (oids '()) (ovars '()) (n 0))
@@ -193,6 +193,9 @@
        nargs nrest nlocs (lambda-meta x)
        (with-output-to-code
         (lambda (emit-code)
+          ;; emit label for self tail calls
+          (if self-label
+              (emit-code #f (make-glil-label self-label)))
           ;; write bindings and source debugging info
           (emit-bindings #f ids vars allocation x emit-code)
           (if (lambda-src x)
@@ -201,14 +204,14 @@
           (for-each
            (lambda (v)
              (pmatch (hashq-ref (hashq-ref allocation v) x)
-               ((#t #t . ,n)
-                (emit-code #f (make-glil-lexical #t #f 'ref n))
-                (emit-code #f (make-glil-lexical #t #t 'box n)))))
+                     ((#t #t . ,n)
+                      (emit-code #f (make-glil-lexical #t #f 'ref n))
+                      (emit-code #f (make-glil-lexical #t #t 'box n)))))
            vars)
           ;; and here, here, dear reader: we compile.
-          (flatten (lambda-body x) allocation x emit-code)))))))
+          (flatten (lambda-body x) allocation x self-label emit-code)))))))
 
-(define (flatten x allocation proc emit-code)
+(define (flatten x allocation self self-label emit-code)
   (define (emit-label label)
     (emit-code #f (make-glil-label label)))
   (define (emit-branch src inst label)
@@ -384,6 +387,25 @@
                  (error "bad primitive op: too many pushes"
                         op (instruction-pushes op))))))
         
+        ;; da capo al fine
+        ((and (lexical-ref? proc)
+              self-label (eq? (lexical-ref-gensym proc) self-label)
+              ;; self-call in tail position is a goto
+              (eq? context 'tail)
+              ;; make sure the arity is right
+              (list? (lambda-vars self))
+              (= (length args) (length (lambda-vars self))))
+         ;; evaluate new values
+         (for-each comp-push args)
+         ;; rename & goto
+         (for-each (lambda (sym)
+                     (pmatch (hashq-ref (hashq-ref allocation sym) self)
+                       ((#t ,boxed? . ,index)
+                        (emit-code #f (make-glil-lexical #t #f 'set index)))
+                       (,x (error "what" x))))
+                   (reverse (lambda-vars self)))
+         (emit-branch src 'br self-label))
+        
         (else
          (comp-push proc)
          (for-each comp-push args)
@@ -442,7 +464,7 @@
       ((<lexical-ref> src name gensym)
        (case context
          ((push vals tail)
-          (pmatch (hashq-ref (hashq-ref allocation gensym) proc)
+          (pmatch (hashq-ref (hashq-ref allocation gensym) self)
             ((,local? ,boxed? . ,index)
              (emit-code src (make-glil-lexical local? boxed? 'ref index)))
             (,loc
@@ -452,7 +474,7 @@
       
       ((<lexical-set> src name gensym exp)
        (comp-push exp)
-       (pmatch (hashq-ref (hashq-ref allocation gensym) proc)
+       (pmatch (hashq-ref (hashq-ref allocation gensym) self)
          ((,local? ,boxed? . ,index)
           (emit-code src (make-glil-lexical local? boxed? 'set index)))
          (,loc
@@ -510,7 +532,7 @@
        (let ((free-locs (cdr (hashq-ref allocation x))))
          (case context
            ((push vals tail)
-            (emit-code #f (flatten-lambda x allocation))
+            (emit-code #f (flatten-lambda x #f allocation))
             (if (not (null? free-locs))
                 (begin
                   (for-each
@@ -527,9 +549,9 @@
       
       ((<let> src names vars vals body)
        (for-each comp-push vals)
-       (emit-bindings src names vars allocation proc emit-code)
+       (emit-bindings src names vars allocation self emit-code)
        (for-each (lambda (v)
-                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                   (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #f . ,n)
                       (emit-code src (make-glil-lexical #t #f 'set n)))
                      ((#t #t . ,n)
@@ -541,15 +563,15 @@
 
       ((<letrec> src names vars vals body)
        (for-each (lambda (v)
-                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                   (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'empty-box n)))
                      (,loc (error "badness" x loc))))
                  vars)
        (for-each comp-push vals)
-       (emit-bindings src names vars allocation proc emit-code)
+       (emit-bindings src names vars allocation self emit-code)
        (for-each (lambda (v)
-                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                   (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'set n)))
                      (,loc (error "badness" x loc))))
@@ -563,20 +585,20 @@
        ;; set them to their local var slots first, then capture their
        ;; bindings, mutating them in place.
        (for-each (lambda (x v)
-                   (emit-code #f (flatten-lambda x allocation))
+                   (emit-code #f (flatten-lambda x v allocation))
                    (if (not (null? (cdr (hashq-ref allocation x))))
                        ;; But we do have to make-closure them first, so
                        ;; we are mutating fresh closures on the heap.
                        (begin
                          (emit-code #f (make-glil-const #f))
                          (emit-code #f (make-glil-call 'make-closure 2))))
-                   (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                   (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #f . ,n)
                       (emit-code src (make-glil-lexical #t #f 'set n)))
                      (,loc (error "badness" x loc))))
                  vals
                  vars)
-       (emit-bindings src names vars allocation proc emit-code)
+       (emit-bindings src names vars allocation self emit-code)
        ;; Now go back and fix up the bindings.
        (for-each
         (lambda (x v)
@@ -591,7 +613,7 @@
                        (else (error "what" x loc))))
                    free-locs)
                   (emit-code #f (make-glil-call 'vector (length free-locs)))
-                  (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                  (pmatch (hashq-ref (hashq-ref allocation v) self)
                     ((#t #f . ,n)
                      (emit-code #f (make-glil-lexical #t #f 'fix n)))
                     (,loc (error "badness" x loc)))))))
@@ -616,10 +638,10 @@
              (emit-code #f (make-glil-const 1))
              (emit-label MV)
              (emit-code src (make-glil-mv-bind
-                             (vars->bind-list names vars allocation proc)
+                             (vars->bind-list names vars allocation self)
                              rest?))
              (for-each (lambda (v)
-                         (pmatch (hashq-ref (hashq-ref allocation v) proc)
+                         (pmatch (hashq-ref (hashq-ref allocation v) self)
                            ((#t #f . ,n)
                             (emit-code src (make-glil-lexical #t #f 'set n)))
                            ((#t #t . ,n)
