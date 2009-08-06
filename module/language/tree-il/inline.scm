@@ -41,7 +41,8 @@
         (cond
 
          ;; ((lambda () x)) => x
-         ((and (lambda? proc) (null? args))
+         ((and (lambda? proc) (null? (lambda-vars proc))
+               (null? args))
           (lambda-body proc))
 
          ;; (call-with-values (lambda () foo) (lambda (a b . c) bar))
@@ -66,6 +67,15 @@
                              (lambda-body consumer))))
 
          (else #f)))
-
+       
+       ((<let> vars body)
+        (if (null? vars) body x))
+       
+       ((<letrec> vars body)
+        (if (null? vars) body x))
+       
+       ((<fix> vars body)
+        (if (null? vars) body x))
+       
        (else #f)))
    x))

@@ -1,6 +1,6 @@
 ;;; Guile Scheme specification
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,6 @@
 
 (define-module (language scheme spec)
   #:use-module (system base language)
-  #:use-module (language scheme compile-ghil)
   #:use-module (language scheme compile-tree-il)
   #:use-module (language scheme decompile-tree-il)
   #:export (scheme))
@@ -39,8 +38,7 @@
   #:title	"Guile Scheme"
   #:version	"0.5"
   #:reader	read
-  #:compilers   `((tree-il . ,compile-tree-il)
-                  (ghil . ,compile-ghil))
+  #:compilers   `((tree-il . ,compile-tree-il))
   #:decompilers `((tree-il . ,decompile-tree-il))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write

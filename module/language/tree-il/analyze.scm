@@ -319,13 +319,12 @@
              ;; the 1+ for this var
              (max nmax (allocate! body proc (1+ n))))
             (else               
-             (let ((v (if (pair? vars) (car vars) vars)))
-               (let ((v (car vars)))
-                 (hashq-set!
-                  allocation v
-                  (make-hashq proc
-                              `(#t ,(hashq-ref assigned v) . ,n)))
-                 (lp (cdr vars) (1+ n)))))))))
+             (let ((v (car vars)))
+               (hashq-set!
+                allocation v
+                (make-hashq proc
+                            `(#t ,(hashq-ref assigned v) . ,n)))
+               (lp (cdr vars) (1+ n))))))))
       
       (else n)))
 
