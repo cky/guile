@@ -391,7 +391,7 @@
            (case context
              ((tail) (emit-code src (make-glil-call 'goto/args len)))
              ((push) (emit-code src (make-glil-call 'call len)))
-             ((vals) (emit-code src (make-glil-call 'mv-call len LMVRA)))
+             ((vals) (emit-code src (make-glil-mv-call len LMVRA)))
              ((drop)
               (let ((MV (make-label)) (POST (make-label)))
                 (emit-code src (make-glil-mv-call len MV))

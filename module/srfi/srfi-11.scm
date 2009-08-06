@@ -67,6 +67,9 @@
 (define-syntax let-values
   (lambda (x)
     (syntax-case x ()
+      ((_ ((binds exp)) b0 b1 ...)
+       (syntax (call-with-values (lambda () exp)
+                 (lambda binds b0 b1 ...))))
       ((_ (clause ...) b0 b1 ...)
        (let lp ((clauses (syntax (clause ...)))
                 (ids '())

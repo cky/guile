@@ -37,8 +37,35 @@
   (post-order!
    (lambda (x)
      (record-case x
-       ((<application> proc args)
-        (and (lambda? proc) (null? args)
-             (lambda-body proc)))
+       ((<application> src proc args)
+        (cond
+
+         ;; ((lambda () x)) => x
+         ((and (lambda? proc) (null? args))
+          (lambda-body proc))
+
+         ;; (call-with-values (lambda () foo) (lambda (a b . c) bar))
+         ;; => (let-values (((a b . c) foo)) bar)
+         ;;
+         ;; Note that this is a singly-binding form of let-values. Also
+         ;; note that Scheme's let-values expands into call-with-values,
+         ;; then here we reduce it to tree-il's let-values.
+         ((and (primitive-ref? proc)
+               (eq? (primitive-ref-name proc) '@call-with-values)
+               (= (length args) 2)
+               (lambda? (cadr args)))
+          (let ((producer (car args))
+                (consumer (cadr args)))
+            (make-let-values src
+                             (lambda-names consumer)
+                             (lambda-vars consumer)
+                             (if (and (lambda? producer)
+                                      (null? (lambda-names producer)))
+                                 (lambda-body producer)
+                                 (make-application src producer '()))
+                             (lambda-body consumer))))
+
+         (else #f)))
+
        (else #f)))
    x))

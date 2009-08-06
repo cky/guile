@@ -185,14 +185,14 @@
                         vars))
       
       ((<let-values> vars exp body)
-       (hashq-set! bound-vars proc
-                   (let lp ((out (hashq-ref bound-vars proc)) (in vars))
-                     (if (pair? in)
-                         (lp (cons (car in) out) (cdr in))
-                         (if (null? in) out (cons in out)))))
-       (lset-difference eq?
-                        (lset-union eq? (step exp) (step body))
-                        vars))
+       (let ((bound (let lp ((out (hashq-ref bound-vars proc)) (in vars))
+                      (if (pair? in)
+                          (lp (cons (car in) out) (cdr in))
+                          (if (null? in) out (cons in out))))))
+         (hashq-set! bound-vars proc bound)
+         (lset-difference eq?
+                          (lset-union eq? (step exp) (step body))
+                          bound)))
       
       (else '())))
   
@@ -309,15 +309,23 @@
       ((<let-values> vars exp body)
        (let ((nmax (recur exp)))
          (let lp ((vars vars) (n n))
-           (if (null? vars)
-               (max nmax (allocate! body proc n))
-               (let ((v (if (pair? vars) (car vars) vars)))
-                 (let ((v (car vars)))
-                   (hashq-set!
-                    allocation v
-                    (make-hashq proc
-                                `(#t ,(hashq-ref assigned v) . ,n)))
-                   (lp (cdr vars) (1+ n))))))))
+           (cond
+            ((null? vars)
+             (max nmax (allocate! body proc n)))
+            ((not (pair? vars))
+             (hashq-set! allocation vars
+                         (make-hashq proc
+                                     `(#t ,(hashq-ref assigned vars) . ,n)))
+             ;; the 1+ for this var
+             (max nmax (allocate! body proc (1+ n))))
+            (else               
+             (let ((v (if (pair? vars) (car vars) vars)))
+               (let ((v (car vars)))
+                 (hashq-set!
+                  allocation v
+                  (make-hashq proc
+                              `(#t ,(hashq-ref assigned v) . ,n)))
+                 (lp (cdr vars) (1+ n)))))))))
       
       (else n)))
 
