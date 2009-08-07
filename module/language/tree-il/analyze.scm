@@ -135,8 +135,8 @@
   ;;  NB, this includes identifiers referenced by contained lambdas
   (define free-vars (make-hash-table))
   ;; assigned: sym -> #t
-  (define assigned (make-hash-table))
   ;;  variables that are assigned
+  (define assigned (make-hash-table))
   ;; refcounts: sym -> count
   ;;  allows us to detect the or-expansion in O(1) time
   (define refcounts (make-hash-table))
@@ -146,23 +146,35 @@
   (define labels (make-hash-table))
 
   ;; returns variables referenced in expr
-  (define (analyze! x proc)
-    (define (step y) (analyze! y proc))
-    (define (recur x new-proc) (analyze! x new-proc))
+  (define (analyze! x proc labels-in-proc tail? tail-call-args)
+    (define (step y) (analyze! y proc labels-in-proc #f #f))
+    (define (step-tail y) (analyze! y proc labels-in-proc tail? #f))
+    (define (step-tail-call y args) (analyze! y proc labels-in-proc #f
+                                              (and tail? args)))
+    (define (recur/labels x new-proc labels)
+      (analyze! x new-proc (append labels labels-in-proc) #t #f))
+    (define (recur x new-proc) (analyze! x new-proc '() tail? #f))
     (record-case x
       ((<application> proc args)
-       (apply lset-union eq? (step proc) (map step args)))
+       (apply lset-union eq? (step-tail-call proc args)
+              (map step args)))
 
       ((<conditional> test then else)
-       (lset-union eq? (step test) (step then) (step else)))
+       (lset-union eq? (step test) (step-tail then) (step-tail else)))
 
       ((<lexical-ref> name gensym)
        (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
+       (if (not (and tail-call-args
+                     (memq gensym labels-in-proc)
+                     (let ((args (hashq-ref labels gensym)))
+                       (and (list? args)
+                            (= (length args) (length tail-call-args))))))
+           (hashq-set! labels gensym #f))
        (list gensym))
       
       ((<lexical-set> name gensym exp)
-       (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
        (hashq-set! assigned gensym #t)
+       (hashq-set! labels gensym #f)
        (lset-adjoin eq? (step exp) gensym))
       
       ((<module-set> mod name public? exp)
@@ -175,7 +187,12 @@
        (step exp))
       
       ((<sequence> exps)
-       (apply lset-union eq? (map step exps)))
+       (let lp ((exps exps) (ret '()))
+         (cond ((null? exps) '())
+               ((null? (cdr exps))
+                (lset-union eq? ret (step-tail (car exps))))
+               (else
+                (lp (cdr exps) (lset-union eq? ret (step (car exps))))))))
       
       ((<lambda> vars meta body)
        (let ((locally-bound (let rev* ((vars vars) (out '()))
@@ -195,7 +212,7 @@
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
        (lset-difference eq?
-                        (apply lset-union eq? (step body) (map step vals))
+                        (apply lset-union eq? (step-tail body) (map step vals))
                         vars))
       
       ((<letrec> vars vals body)
@@ -203,15 +220,86 @@
                    (append (reverse vars) (hashq-ref bound-vars proc)))
        (for-each (lambda (sym) (hashq-set! assigned sym #t)) vars)
        (lset-difference eq?
-                        (apply lset-union eq? (step body) (map step vals))
+                        (apply lset-union eq? (step-tail body) (map step vals))
                         vars))
       
       ((<fix> vars vals body)
+       ;; Try to allocate these procedures as labels.
+       (for-each (lambda (sym val) (hashq-set! labels sym (lambda-vars val)))
+                 vars vals)
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
-       (lset-difference eq?
-                        (apply lset-union eq? (step body) (map step vals))
-                        vars))
+       ;; Step into subexpressions.
+       (let* ((var-refs
+               (map
+                ;; Since we're trying to label-allocate the lambda,
+                ;; pretend it's not a closure, and just recurse into its
+                ;; body directly. (Otherwise, recursing on a closure
+                ;; that references one of the fix's bound vars would
+                ;; prevent label allocation.)
+                (lambda (x)
+                  (record-case x
+                    ((<lambda> (lvars vars) body)
+                     (let ((locally-bound
+                            (let rev* ((lvars lvars) (out '()))
+                              (cond ((null? lvars) out)
+                                    ((pair? lvars) (rev* (cdr lvars)
+                                                         (cons (car lvars) out)))
+                                    (else (cons lvars out))))))
+                       (hashq-set! bound-vars x locally-bound)
+                       ;; recur/labels, the difference from the closure case
+                       (let* ((referenced (recur/labels body x vars))
+                              (free (lset-difference eq? referenced locally-bound))
+                              (all-bound (reverse! (hashq-ref bound-vars x))))
+                         (hashq-set! bound-vars x all-bound)
+                         (hashq-set! free-vars x free)
+                         free)))))
+                vals))
+              (vars-with-refs (map cons vars var-refs))
+              (body-refs (recur/labels body proc vars)))
+         (define (delabel-dependents! sym)
+           (let ((refs (assq-ref vars-with-refs sym)))
+             (if refs
+                 (for-each (lambda (sym)
+                             (if (hashq-ref labels sym)
+                                 (begin
+                                   (hashq-set! labels sym #f)
+                                   (delabel-dependents! sym))))
+                           refs))))
+         ;; Stepping into the lambdas and the body might have made some
+         ;; procedures not label-allocatable -- which might have
+         ;; knock-on effects. For example:
+         ;;   (fix ((a (lambda () (b)))
+         ;;         (b (lambda () a)))
+         ;;     (a))
+         ;; As far as `a' is concerned, both `a' and `b' are
+         ;; label-allocatable. But `b' references `a' not in a proc-tail
+         ;; position, which makes `a' not label-allocatable. The
+         ;; knock-on effect is that, when back-propagating this
+         ;; information to `a', `b' will also become not
+         ;; label-allocatable, as it is referenced within `a', which is
+         ;; allocated as a closure. This is a transitive relationship.
+         (for-each (lambda (sym)
+                     (if (not (hashq-ref labels sym))
+                         (delabel-dependents! sym)))
+                   vars)
+         ;; Now lift bound variables with label-allocated lambdas to the
+         ;; parent procedure.
+         (for-each
+          (lambda (sym val)
+            (if (hashq-ref labels sym)
+                ;; Remove traces of the label-bound lambda. The free
+                ;; vars will propagate up via the return val.
+                (begin
+                  (hashq-set! bound-vars proc
+                              (append (hashq-ref bound-vars val)
+                                      (hashq-ref bound-vars proc)))
+                  (hashq-remove! bound-vars val)
+                  (hashq-remove! free-vars val))))
+          vars vals)
+         (lset-difference eq?
+                          (apply lset-union eq? body-refs var-refs)
+                          vars)))
       
       ((<let-values> vars exp body)
        (let ((bound (let lp ((out (hashq-ref bound-vars proc)) (in vars))
@@ -220,7 +308,7 @@
                           (if (null? in) out (cons in out))))))
          (hashq-set! bound-vars proc bound)
          (lset-difference eq?
-                          (lset-union eq? (step exp) (step body))
+                          (lset-union eq? (step exp) (step-tail body))
                           bound)))
       
       (else '())))
@@ -330,18 +418,46 @@
                (lp (cdr vars) (1+ n))))))
 
       ((<fix> vars vals body)
-       (let lp ((vars vars) (n n))
-         (if (null? vars)
-             (let ((nmax (apply max
-                                (map (lambda (x)
-                                       (allocate! x proc n))
-                                     vals))))
-               (max nmax (allocate! body proc n)))
-             (let ((v (car vars)))
-               (if (hashq-ref assigned v)
-                   (error "fixpoint procedures may not be assigned" x))
-               (hashq-set! allocation v (make-hashq proc `(#t #f . ,n)))
-               (lp (cdr vars) (1+ n))))))
+       (let lp ((in vars) (n n))
+         (if (null? in)
+             (let lp ((vars vars) (vals vals) (nmax n))
+               (cond
+                ((null? vars)
+                 (max nmax (allocate! body proc n)))
+                ((hashq-ref labels (car vars))                 
+                 ;; allocate label bindings & body inline to proc
+                 (lp (cdr vars)
+                     (cdr vals)
+                     (record-case (car vals)
+                       ((<lambda> vars body)
+                        (let lp ((vars vars) (n n))
+                          (if (not (null? vars))
+                              ;; allocate bindings
+                              (let ((v (if (pair? vars) (car vars) vars)))
+                                (hashq-set!
+                                 allocation v
+                                 (make-hashq
+                                  proc `(#t ,(hashq-ref assigned v) . ,n)))
+                                (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
+                              ;; allocate body
+                              (max nmax (allocate! body proc n))))))))
+                (else
+                 ;; allocate closure
+                 (lp (cdr vars)
+                     (cdr vals)
+                     (max nmax (allocate! (car vals) proc n))))))
+             
+             (let ((v (car in)))
+               (cond
+                ((hashq-ref assigned v)
+                 (error "fixpoint procedures may not be assigned" x))
+                ((hashq-ref labels v)
+                 ;; no binding, it's a label
+                 (lp (cdr in) n))
+                (else
+                 ;; allocate closure binding
+                 (hashq-set! allocation v (make-hashq proc `(#t #f . ,n)))
+                 (lp (cdr in) (1+ n))))))))
 
       ((<let-values> vars exp body)
        (let ((nmax (recur exp)))
@@ -365,7 +481,7 @@
       
       (else n)))
 
-  (analyze! x #f)
+  (analyze! x #f '() #t #f)
   (allocate! x #f 0)
 
   allocation)

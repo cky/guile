@@ -165,9 +165,8 @@
 
 ;; FIXME: always emit? otherwise it's hard to pair bind with unbind
 (define (emit-bindings src ids vars allocation proc emit-code)
-  (if (pair? vars)
-      (emit-code src (make-glil-bind
-                      (vars->bind-list ids vars allocation proc)))))
+  (emit-code src (make-glil-bind
+                  (vars->bind-list ids vars allocation proc))))
 
 (define (with-output-to-code proc)
   (let ((out '()))
@@ -199,7 +198,8 @@
           (if self-label
               (emit-code #f (make-glil-label self-label)))
           ;; write bindings and source debugging info
-          (emit-bindings #f ids vars allocation x emit-code)
+          (if (not (null? ids))
+              (emit-bindings #f ids vars allocation x emit-code))
           (if (lambda-src x)
               (emit-code #f (make-glil-source (lambda-src x))))
           ;; box args if necessary
@@ -475,15 +475,15 @@
          (comp-push test)
          (emit-branch src 'br-if-not L1)
          (comp-tail then)
-         (if (not (eq? context 'tail))
-             (emit-branch #f 'br (or RA L2)))
+         ;; if there is an RA, comp-tail will cause a jump to it -- just
+         ;; have to clean up here if there is no RA.
+         (if (and (not RA) (not (eq? context 'tail)))
+             (emit-branch #f 'br L2))
          (emit-label L1)
          (comp-tail else)
-         (if (not (eq? context 'tail))
-             (if RA
-                 (emit-branch #f 'br RA)
-                 (emit-label L2)))))
-
+         (if (and (not RA) (not (eq? context 'tail)))
+             (emit-label L2))))
+      
       ((<primitive-ref> src name)
        (cond
         ((eq? (module-variable (fluid-ref *comp-module*) name)
@@ -654,7 +654,7 @@
          ;; Emit bindings metadata for closures
          (let ((binds (let lp ((out '()) (vars vars) (names names))
                         (cond ((null? vars) (reverse! out))
-                              ((memq (car vars) fix-labels)
+                              ((assq (car vars) fix-labels)
                                (lp out (cdr vars) (cdr names)))
                               (else
                                (lp (acons (car vars) (car names) out)
