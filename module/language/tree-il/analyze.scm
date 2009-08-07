@@ -78,6 +78,25 @@
 ;; in a vector. Each closure variable has a unique index into that
 ;; vector.
 ;;
+;; There is one more complication. Procedures bound by <fix> may, in
+;; some cases, be rendered inline to their parent procedure. That is to
+;; say,
+;;
+;;  (letrec ((lp (lambda () (lp)))) (lp))
+;;    => (fix ((lp (lambda () (lp)))) (lp))
+;;      => goto FIX-BODY; LP: goto LP; FIX-BODY: goto LP;
+;;         ^ jump over the loop  ^ the fixpoint lp ^ starting off the loop
+;;
+;; The upshot is that we don't have to allocate any space for the `lp'
+;; closure at all, as it can be rendered inline as a loop. So there is
+;; another kind of allocation, "label allocation", in which the
+;; procedure is simply a label, placed at the start of the lambda body.
+;; The label is the gensym under which the lambda expression is bound.
+;;
+;; The analyzer checks to see that the label is called with the correct
+;; number of arguments. Calls to labels compile to rename + goto.
+;; Lambda, the ultimate goto!
+;;
 ;;
 ;; The return value of `analyze-lexicals' is a hash table, the
 ;; "allocation".
@@ -88,15 +107,17 @@
 ;; in many procedures, it is a two-level map.
 ;;
 ;; The allocation also stored information on how many local variables
-;; need to be allocated for each procedure, and information on what free
-;; variables to capture from its lexical parent procedure.
+;; need to be allocated for each procedure, lexicals that have been
+;; translated into labels, and information on what free variables to
+;; capture from its lexical parent procedure.
 ;;
 ;; That is:
 ;;
 ;;  sym -> {lambda -> address}
-;;  lambda -> (nlocs . free-locs)
+;;  lambda -> (nlocs labels . free-locs)
 ;;
-;; address := (local? boxed? . index)
+;; address ::= (local? boxed? . index)
+;; labels ::= ((sym . lambda-vars) ...)
 ;; free-locs ::= ((sym0 . address0) (sym1 . address1) ...)
 ;; free variable addresses are relative to parent proc.
 
@@ -108,14 +129,22 @@
 (define (analyze-lexicals x)
   ;; bound-vars: lambda -> (sym ...)
   ;;  all identifiers bound within a lambda
+  (define bound-vars (make-hash-table))
   ;; free-vars: lambda -> (sym ...)
   ;;  all identifiers referenced in a lambda, but not bound
   ;;  NB, this includes identifiers referenced by contained lambdas
+  (define free-vars (make-hash-table))
   ;; assigned: sym -> #t
+  (define assigned (make-hash-table))
   ;;  variables that are assigned
   ;; refcounts: sym -> count
   ;;  allows us to detect the or-expansion in O(1) time
-  
+  (define refcounts (make-hash-table))
+  ;; labels: sym -> lambda-vars
+  ;;  for determining if fixed-point procedures can be rendered as
+  ;;  labels. lambda-vars may be an improper list.
+  (define labels (make-hash-table))
+
   ;; returns variables referenced in expr
   (define (analyze! x proc)
     (define (step y) (analyze! y proc))
@@ -196,6 +225,10 @@
       
       (else '())))
   
+  ;; allocation: sym -> {lambda -> address}
+  ;;             lambda -> (nlocs labels . free-locs)
+  (define allocation (make-hash-table))
+  
   (define (allocate! x proc n)
     (define (recur y) (allocate! y proc n))
     (record-case x
@@ -244,9 +277,13 @@
              (free-addresses
               (map (lambda (v)
                      (hashq-ref (hashq-ref allocation v) proc))
-                   (hashq-ref free-vars x))))
+                   (hashq-ref free-vars x)))
+             (labels (filter cdr
+                             (map (lambda (sym)
+                                    (cons sym (hashq-ref labels sym)))
+                                  (hashq-ref bound-vars x)))))
          ;; set procedure allocations
-         (hashq-set! allocation x (cons nlocs free-addresses)))
+         (hashq-set! allocation x (cons* nlocs labels free-addresses)))
        n)
 
       ((<let> vars vals body)
@@ -328,13 +365,6 @@
       
       (else n)))
 
-  (define bound-vars (make-hash-table))
-  (define free-vars (make-hash-table))
-  (define assigned (make-hash-table))
-  (define refcounts (make-hash-table))
-  
-  (define allocation (make-hash-table))
-  
   (analyze! x #f)
   (allocate! x #f 0)
 

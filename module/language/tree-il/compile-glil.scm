@@ -529,7 +529,7 @@
           (emit-code #f (make-glil-call 'return 1)))))
 
       ((<lambda>)
-       (let ((free-locs (cdr (hashq-ref allocation x))))
+       (let ((free-locs (cddr (hashq-ref allocation x))))
          (case context
            ((push vals tail)
             (emit-code #f (flatten-lambda x #f allocation))
@@ -586,7 +586,7 @@
        ;; bindings, mutating them in place.
        (for-each (lambda (x v)
                    (emit-code #f (flatten-lambda x v allocation))
-                   (if (not (null? (cdr (hashq-ref allocation x))))
+                   (if (not (null? (cddr (hashq-ref allocation x))))
                        ;; But we do have to make-closure them first, so
                        ;; we are mutating fresh closures on the heap.
                        (begin
@@ -602,7 +602,7 @@
        ;; Now go back and fix up the bindings.
        (for-each
         (lambda (x v)
-          (let ((free-locs (cdr (hashq-ref allocation x))))
+          (let ((free-locs (cddr (hashq-ref allocation x))))
             (if (not (null? free-locs))
                 (begin
                   (for-each
