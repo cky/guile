@@ -133,13 +133,13 @@ slots of the newly created instance. For instance, the following form
 (define c (make <my-complex>))
 @end lisp
 
+@noindent
 will create a new @code{<my-complex>} object and will bind it to the @code{c}
 Scheme variable.
 
 Accessing the slots of the new complex number can be done with the
-@code{slot-ref} and the @code{slot-set!}  primitives. @code{Slot-set!}
-primitive permits to set the value of an object slot and @code{slot-ref}
-permits to get its value.
+@code{slot-ref} and the @code{slot-set!}  primitives. @code{slot-set!}
+sets the value of an object slot and @code{slot-ref} retrieves it.
 
 @findex slot-set!
 @findex slot-ref
@@ -162,13 +162,15 @@ First load the module @code{(oop goops describe)}:
 @code{(use-modules (oop goops describe))}
 @end example
 
-The expression
+@noindent
+Then the expression
 
-@smalllisp
+@lisp
 (describe c)
-@end smalllisp
+@end lisp
 
-will now print the following information on the standard output:
+@noindent
+will print the following information on the standard output:
 
 @lisp
 #<<my-complex> 401d8638> is an instance of class <my-complex>
@@ -181,33 +183,39 @@ Slots are:
 @subsection Slot description
 @c \label{slot-description}
 
-When specifying a slot, a set of options can be given to the
-system. Each option is specified with a keyword. The list of authorized
-keywords is given below:
+When specifying a slot (in a @code{(define-class @dots{})} form),
+various options can be specified in addition to the slot's name.  Each
+option is specified by a keyword.  The list of authorized keywords is
+given below:
 
 @cindex keyword
 @itemize @bullet
 @item
-@code{#:init-value} permits to supply a default value for the slot. This
-default value is obtained by evaluating the form given after the
-@code{#:init-form} in the global environment, at class definition time.
+@code{#:init-value} permits to supply a constant default value for the
+slot.  The value is obtained by evaluating the form given after the
+@code{#:init-value} at class definition time.
 @cindex default slot value
 @findex #:init-value
-@cindex top level environment
+
+@item
+@code{#:init-form} specifies a form that, when evaluated, will return
+an initial value for the slot.  The form is evaluated each time that
+an instance of the class is created, in the lexical environment of the
+containing @code{define-class} expression.
+@cindex default slot value
+@findex #:init-form
 
 @item
 @code{#:init-thunk} permits to supply a thunk that will provide a
-default value for the slot. The value is obtained by evaluating the
-thunk a instance creation time.
-@c CHECKME: in the global environment?
+default value for the slot.  The value is obtained by invoking the
+thunk at instance creation time.
 @findex default slot value
 @findex #:init-thunk
-@cindex top level environment
 
 @item
-@code{#:init-keyword} permits to specify the keyword for initializing a
-slot. The init-keyword may be provided during instance creation (i.e. in
-the @code{make} optional parameter list). Specifying such a keyword
+@code{#:init-keyword} permits to specify a keyword for initializing the
+slot.  The init-keyword may be provided during instance creation (i.e. in
+the @code{make} optional parameter list).  Specifying such a keyword
 during instance initialization will supersede the default slot
 initialization possibly given with @code{#:init-form}.
 @findex #:init-keyword
