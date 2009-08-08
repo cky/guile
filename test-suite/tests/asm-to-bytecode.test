@@ -79,15 +79,15 @@
                        (char->integer #\1) (char->integer #\4)))
     
     (comp-test '(load-string "foo")
-               (vector 'load-string 0 0 3 (char->integer #\f) (char->integer #\o)
+               (vector 'load-string 0 0 3 1 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
     
     (comp-test '(load-symbol "foo")
-               (vector 'load-symbol 0 0 3 (char->integer #\f) (char->integer #\o)
+               (vector 'load-symbol 0 0 3 1 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
     
     (comp-test '(load-keyword "qux")
-               (vector 'load-keyword 0 0 3 (char->integer #\q) (char->integer #\u)
+               (vector 'load-keyword 0 0 3 1 (char->integer #\q) (char->integer #\u)
                        (char->integer #\x)))
 
     (comp-test '(load-program 3 2 1 () 3 #f (make-int8 3) (return))

@@ -72,31 +72,82 @@ VM_DEFINE_LOADER (82, load_number, "load-number")
 VM_DEFINE_LOADER (83, load_string, "load-string")
 {
   size_t len;
+  int width;
+  SCM str;
+
   FETCH_LENGTH (len);
+  FETCH_WIDTH (width);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_stringn ((char *)ip, len));
-  /* Was: scm_makfromstr (ip, len, 0) */
-  ip += len;
+  if (width == 1)
+    {
+      char *buf;
+      str = scm_i_make_string (len, &buf);
+      memcpy (buf, (char *) ip, len);
+    }
+  else if (width == 4)
+    {
+      scm_t_wchar *wbuf;
+      str = scm_i_make_wide_string (len, &wbuf);
+      memcpy ((char *) wbuf, (char *) ip, len * width);
+    }
+  else
+    SCM_MISC_ERROR ("load-string: invalid character width", SCM_EOL);
+  PUSH (str);
+  ip += len * width;
   NEXT;
 }
 
 VM_DEFINE_LOADER (84, load_symbol, "load-symbol")
 {
   size_t len;
+  int width;
+  SCM str;
   FETCH_LENGTH (len);
+  FETCH_WIDTH (width);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_symboln ((char *)ip, len));
-  ip += len;
+  if (width == 1)
+    {
+      char *buf;
+      str = scm_i_make_string (len, &buf);
+      memcpy (buf, (char *) ip, len);
+    }
+  else if (width == 4)
+    {
+      scm_t_wchar *wbuf;
+      str = scm_i_make_wide_string (len, &wbuf);
+      memcpy ((char *) wbuf, (char *) ip, len * width);
+    }
+  else
+    SCM_MISC_ERROR ("load-symbol: invalid character width", SCM_EOL);
+  PUSH (scm_string_to_symbol (str));
+  ip += len * width;
   NEXT;
 }
 
 VM_DEFINE_LOADER (85, load_keyword, "load-keyword")
 {
   size_t len;
+  int width;
+  SCM str;
   FETCH_LENGTH (len);
+  FETCH_WIDTH (width);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_keywordn ((char *)ip, len));
-  ip += len;
+  if (width == 1)
+    {
+      char *buf;
+      str = scm_i_make_string (len, &buf);
+      memcpy (buf, (char *) ip, len);
+    }
+  else if (width == 4)
+    {
+      scm_t_wchar *wbuf;
+      str = scm_i_make_wide_string (len, &wbuf);
+      memcpy ((char *) wbuf, (char *) ip, len * width);
+    }
+  else
+    SCM_MISC_ERROR ("load-keyword: invalid character width", SCM_EOL);
+  PUSH (scm_symbol_to_keyword (scm_string_to_symbol (str)));
+  ip += len * width;
   NEXT;
 }
 
@@ -132,13 +183,29 @@ VM_DEFINE_INSTRUCTION (87, link_now, "link-now", 0, 1, 1)
 
 VM_DEFINE_LOADER (88, define, "define")
 {
-  SCM sym;
+  SCM str, sym;
   size_t len;
 
+  int width;
   FETCH_LENGTH (len);
+  FETCH_WIDTH (width);
   SYNC_REGISTER ();
-  sym = scm_from_locale_symboln ((char *)ip, len);
-  ip += len;
+  if (width == 1)
+    {
+      char *buf;
+      str = scm_i_make_string (len, &buf);
+      memcpy (buf, (char *) ip, len);
+    }
+  else if (width == 4)
+    {
+      scm_t_wchar *wbuf;
+      str = scm_i_make_wide_string (len, &wbuf);
+      memcpy ((char *) wbuf, (char *) ip, len * width);
+    }
+  else
+    SCM_MISC_ERROR ("load define: invalid character width", SCM_EOL);
+  sym = scm_string_to_symbol (str);
+  ip += len * width;
 
   SYNC_REGISTER ();
   PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));

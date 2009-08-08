@@ -969,7 +969,35 @@ scm_fill_input (SCM port)
  * This function differs from scm_c_write; it updates port line and
  * column. */
 
-void 
+static void
+update_port_lf (scm_t_wchar c, SCM port)
+{
+  if (c == '\a')
+    {
+    }
+  else if (c == '\b')
+    {
+      SCM_DECCOL (port);
+    }
+  else if (c == '\n')
+    {
+      SCM_INCLINE (port);
+    }
+  else if (c == '\r')
+    {
+      SCM_ZEROCOL (port);
+    }
+  else if (c == '\t')
+    {
+      SCM_TABCOL (port);
+    }
+  else
+    {
+      SCM_INCCOL (port);
+    }
+}
+
+void
 scm_lfwrite (const char *ptr, size_t size, SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -980,28 +1008,52 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
 
   ptob->write (port, ptr, size);
 
-  for (; size; ptr++, size--) {
-    if (*ptr == '\a') {
-    }
-    else if (*ptr == '\b') {
-      SCM_DECCOL(port);
-    }
-    else if (*ptr == '\n') {
-      SCM_INCLINE(port);
-    }
-    else if (*ptr == '\r') {
-      SCM_ZEROCOL(port);
-    }
-    else if (*ptr == '\t') {
-      SCM_TABCOL(port);
-    }
-    else {
-      SCM_INCCOL(port);
-    }
-  }
+  for (; size; ptr++, size--)
+    update_port_lf ((scm_t_wchar) (unsigned char) *ptr, port);
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
+}
+
+/* Write a scheme string STR to PORT from START inclusive to END
+   exclusive.  */
+void
+scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
+{
+  size_t i, size = scm_i_string_length (str);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_t_wchar p;
+  char *buf;
+  size_t len;
+
+  if (pt->rw_active == SCM_PORT_READ)
+    scm_end_input (port);
+
+  if (end == -1)
+    end = size;
+  size = end - start;
+
+  buf = scm_to_stringn (scm_c_substring (str, start, end), &len,
+			NULL, iconveh_escape_sequence);
+  ptob->write (port, buf, len);
+  free (buf);
+
+  for (i = 0; i < size; i++)
+    {
+      p = scm_i_string_ref (str, i + start);
+      update_port_lf (p, port);
+    }
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
+}
+
+/* Write a scheme string STR to PORT.  */
+void
+scm_lfwrite_str (SCM str, SCM port)
+{
+  scm_lfwrite_substr (str, 0, -1, port);
 }
 
 /* scm_c_read

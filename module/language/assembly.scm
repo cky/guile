@@ -34,6 +34,10 @@
 ;; lengths are encoded in 3 bytes
 (define *len-len* 3)
 
+;; the number of bytes per string character is encoded in 1 byte
+(define *width-len* 1)
+
+
 (define (byte-length assembly)
   (pmatch assembly
     (,label (guard (not (pair? label)))
@@ -45,15 +49,15 @@
     ((load-number ,str)
      (+ 1 *len-len* (string-length str)))
     ((load-string ,str)
-     (+ 1 *len-len* (string-length str)))
+     (+ 1 *len-len* *width-len* (* (string-width str) (string-length str))))
     ((load-symbol ,str)
-     (+ 1 *len-len* (string-length str)))
+     (+ 1 *len-len* *width-len* (* (string-width str) (string-length str))))
     ((load-keyword ,str)
-     (+ 1 *len-len* (string-length str)))
+     (+ 1 *len-len* *width-len* (* (string-width str) (string-length str))))
     ((load-array ,bv)
      (+ 1 *len-len* (bytevector-length bv)))
     ((define ,str)
-     (+ 1 *len-len* (string-length str)))
+     (+ 1 *len-len* *width-len* (* (string-width str) (string-length str))))
     ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
      (+ 1 *program-header-len* len (if meta (1- (byte-length meta)) 0)))
     ((,inst . _) (guard (>= (instruction-length inst) 0))

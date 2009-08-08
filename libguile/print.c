@@ -559,55 +559,113 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
             break;
           }
 	  break;
-	case scm_tc7_string:
-	  if (SCM_WRITINGP (pstate))
-	    {
-	      size_t i, j, len;
-	      const char *data;
+        case scm_tc7_string:
+          if (SCM_WRITINGP (pstate))
+            {
+              size_t i, j, len;
+              static char const hex[] = "0123456789abcdef";
+              char buf[8];
 
-	      scm_putc ('"', port);
-	      len = scm_i_string_length (exp);
-	      data = scm_i_string_chars (exp);
-	      for (i = 0, j = 0; i < len; ++i)
-		{
-		  unsigned char ch = data[i];
-		  if ((ch < 32 && ch != '\n') || (127 <= ch && ch < 148))
-		    {
-		      static char const hex[]="0123456789abcdef";
-		      char buf[4];
 
-		      scm_lfwrite (data+j, i-j, port);
-		      buf[0] = '\\';
-		      buf[1] = 'x';
-		      buf[2] =  hex [ch / 16];
-		      buf[3] = hex [ch % 16];
-		      scm_lfwrite (buf, 4, port);
-		      data = scm_i_string_chars (exp);
-		      j = i+1;
-		    }
-		  else if (ch == '"' || ch == '\\')
-		    {
-		      scm_lfwrite (data+j, i-j, port);
-		      scm_putc ('\\', port);
-		      data = scm_i_string_chars (exp);
-		      j = i;
-		    }
-		}
-	      scm_lfwrite (data+j, i-j, port);
-	      scm_putc ('"', port);
-	      scm_remember_upto_here_1 (exp);
-	    }
-	  else
-	    scm_lfwrite (scm_i_string_chars (exp), scm_i_string_length (exp),
-			 port);
-	  scm_remember_upto_here_1 (exp);
-	  break;
+              scm_putc ('"', port);
+              len = scm_i_string_length (exp);
+              for (i = 0; i < len; ++i)
+                {
+                  scm_t_wchar ch = scm_i_string_ref (exp, i);
+                  int printed = 0;
+
+                  if (ch == ' ' || ch == '\n')
+                    {
+                      scm_putc (ch, port);
+                      printed = 1;
+                    }
+                  else if (ch == '"' || ch == '\\')
+                    {
+                      scm_putc ('\\', port);
+                      scm_charprint (ch, port);
+                      printed = 1;
+                    }
+                  else
+                    if (uc_is_general_category_withtable
+                        (ch,
+                         UC_CATEGORY_MASK_L | UC_CATEGORY_MASK_M |
+                         UC_CATEGORY_MASK_N | UC_CATEGORY_MASK_P |
+                         UC_CATEGORY_MASK_S))
+                    {
+                      /* Print the character since it is a graphic
+                         character.  */
+                      scm_t_wchar *wbuf;
+                      SCM wstr = scm_i_make_wide_string (1, &wbuf);
+                      char *buf;
+                      size_t len;
+
+                      wbuf[0] = ch;
+
+                      buf = u32_conv_to_encoding ("ISO-8859-1",
+                                                  iconveh_error,
+                                                  (scm_t_uint32 *) wbuf,
+                                                  1, NULL, NULL, &len);
+                      if (buf != NULL)
+                        {
+                          /* Character is graphic and representable in
+                             this encoding.  Print it.  */
+                          scm_lfwrite_str (wstr, port);
+                          free (buf);
+                          printed = 1;
+                        }
+                    }
+
+                  if (!printed)
+                    {
+                      /* Character is graphic but unrepresentable in
+                         this port's encoding or is not graphic.  */
+                      if (ch <= 0xFF)
+                        {
+                          buf[0] = '\\';
+                          buf[1] = 'x';
+                          buf[2] = hex[ch / 16];
+                          buf[3] = hex[ch % 16];
+                          scm_lfwrite (buf, 4, port);
+                        }
+                      else if (ch <= 0xFFFF)
+                        {
+                          buf[0] = '\\';
+                          buf[1] = 'u';
+                          buf[2] = hex[(ch & 0xF000) >> 12];
+                          buf[3] = hex[(ch & 0xF00) >> 8];
+                          buf[4] = hex[(ch & 0xF0) >> 4];
+                          buf[5] = hex[(ch & 0xF)];
+                          scm_lfwrite (buf, 6, port);
+                          j = i + 1;
+                        }
+                      else if (ch > 0xFFFF)
+                        {
+                          buf[0] = '\\';
+                          buf[1] = 'U';
+                          buf[2] = hex[(ch & 0xF00000) >> 20];
+                          buf[3] = hex[(ch & 0xF0000) >> 16];
+                          buf[4] = hex[(ch & 0xF000) >> 12];
+                          buf[5] = hex[(ch & 0xF00) >> 8];
+                          buf[6] = hex[(ch & 0xF0) >> 4];
+                          buf[7] = hex[(ch & 0xF)];
+                          scm_lfwrite (buf, 8, port);
+                          j = i + 1;
+                        }
+                    }
+                }
+              scm_putc ('"', port);
+              scm_remember_upto_here_1 (exp);
+            }
+          else
+            scm_lfwrite (scm_i_string_chars (exp), scm_i_string_length (exp),
+                         port);
+          scm_remember_upto_here_1 (exp);
+          break;
 	case scm_tc7_symbol:
 	  if (scm_i_symbol_is_interned (exp))
 	    {
 	      scm_print_symbol_name (scm_i_symbol_chars (exp),
-				     scm_i_symbol_length (exp),
-				     port);
+				     scm_i_symbol_length (exp), port);
 	      scm_remember_upto_here_1 (exp);
 	    }
 	  else
@@ -763,6 +821,17 @@ scm_prin1 (SCM exp, SCM port, int writingp)
     }
 }
 
+/* Print a character.
+ */
+void
+scm_charprint (scm_t_uint32 ch, SCM port)
+{
+  scm_t_wchar *wbuf;
+  SCM wstr = scm_i_make_wide_string (1, &wbuf);
+
+  wbuf[0] = ch;
+  scm_lfwrite_str (wstr, port);
+}
 
 /* Print an integer.
  */

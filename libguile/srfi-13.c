@@ -549,6 +549,7 @@ SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
   len = cend - cstart;
   SCM_ASSERT_RANGE (3, s, len <= scm_i_string_length (target) - ctstart);
 
+  target = scm_i_string_start_writing (target);
   ctarget = scm_i_string_writable_chars (target);
   memmove (ctarget + ctstart, cstr + cstart, len);
   scm_i_string_stop_writing ();
@@ -985,6 +986,7 @@ SCM_DEFINE (scm_substring_fill_x, "string-fill!", 2, 2, 0,
 			      4, end, cend);
   SCM_VALIDATE_CHAR_COPY (2, chr, c);
 
+  str = scm_i_string_start_writing (str);
   cstr = scm_i_string_writable_chars (str);
   for (k = cstart; k < cend; k++)
     cstr[k] = c;
@@ -2376,6 +2378,7 @@ string_upcase_x (SCM v, size_t start, size_t end)
   size_t k;
   char *dst;
 
+  v = scm_i_string_start_writing (v);
   dst = scm_i_string_writable_chars (v);
   for (k = start; k < end; ++k)
     dst[k] = scm_c_upcase (dst[k]);
@@ -2442,6 +2445,7 @@ string_downcase_x (SCM v, size_t start, size_t end)
   size_t k;
   char *dst;
 
+  v = scm_i_string_start_writing (v);
   dst = scm_i_string_writable_chars (v);
   for (k = start; k < end; ++k)
     dst[k] = scm_c_downcase (dst[k]);
@@ -2511,6 +2515,7 @@ string_titlecase_x (SCM str, size_t start, size_t end)
   size_t i;
   int in_word = 0;
 
+  str = scm_i_string_start_writing (str);
   sz = (unsigned char *) scm_i_string_writable_chars (str);
   for(i = start; i < end;  i++)
     {
@@ -2635,6 +2640,7 @@ SCM_DEFINE (scm_string_reverse, "string-reverse", 1, 2, 0,
 				   2, start, cstart,
 				   3, end, cend);
   result = scm_string_copy (str);
+  result = scm_i_string_start_writing (result);
   ctarget = scm_i_string_writable_chars (result);
   string_reverse_x (ctarget, cstart, cend);
   scm_i_string_stop_writing ();
@@ -2658,6 +2664,7 @@ SCM_DEFINE (scm_string_reverse_x, "string-reverse!", 1, 2, 0,
 			      2, start, cstart,
 			      3, end, cend);
 
+  str = scm_i_string_start_writing (str);
   cstr = scm_i_string_writable_chars (str);
   string_reverse_x (cstr, cstart, cend);
   scm_i_string_stop_writing ();
@@ -3018,19 +3025,16 @@ SCM_DEFINE (scm_string_for_each, "string-for-each", 2, 2, 0,
 	    "return value is not specified.")
 #define FUNC_NAME s_scm_string_for_each
 {
-  const char *cstr;
   size_t cstart, cend;
   scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
 
   SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
-  MY_VALIDATE_SUBSTRING_SPEC_COPY (2, s, cstr,
-				   3, start, cstart,
-				   4, end, cend);
+  MY_VALIDATE_SUBSTRING_SPEC (2, s,
+			      3, start, cstart,
+			      4, end, cend);
   while (cstart < cend)
     {
-      unsigned int c = (unsigned char) cstr[cstart];
-      proc_tramp (proc, SCM_MAKE_CHAR (c));
-      cstr = scm_i_string_chars (s);
+      proc_tramp (proc, SCM_MAKE_CHAR (scm_i_string_ref (s, cstart)));
       cstart++;
     }
 
@@ -3162,6 +3166,7 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
   SCM_ASSERT_RANGE (1, tstart,
 		    ctstart + (csto - csfrom) <= scm_i_string_length (target));
 
+  target = scm_i_string_start_writing (target);
   p = scm_i_string_writable_chars (target) + ctstart;
   cs = scm_i_string_chars (s);
   while (csfrom < csto)
@@ -3200,8 +3205,8 @@ SCM_DEFINE (scm_string_replace, "string-replace", 2, 4, 0,
   MY_VALIDATE_SUBSTRING_SPEC (2, s2,
 			      5, start2, cstart2,
 			      6, end2, cend2);
-  result = scm_i_make_string (cstart1 + (cend2 - cstart2) +
-			      scm_i_string_length (s1) - cend1, &p);
+  result = scm_i_make_string ((cstart1 + cend2 - cstart2
+                               + scm_i_string_length (s1) - cend1), &p);
   cstr1 = scm_i_string_chars (s1);
   cstr2 = scm_i_string_chars (s2);
   memmove (p, cstr1, cstart1 * sizeof (char));

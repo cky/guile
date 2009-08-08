@@ -336,6 +336,7 @@ do {						\
 
 #define FETCH()		(*ip++)
 #define FETCH_LENGTH(len) do { len=*ip++; len<<=8; len+=*ip++; len<<=8; len+=*ip++; } while (0)
+#define FETCH_WIDTH(width) do { width=*ip++; } while (0)
 
 #undef CLOCK
 #if VM_USE_CLOCK

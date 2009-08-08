@@ -23,6 +23,7 @@
 
 
 
+#include <uniconv.h>
 #include "libguile/__scm.h"
 
 
@@ -46,26 +47,37 @@
 
    Internal, low level interface to the character arrays
 
-   - Use scm_i_string_chars to get a pointer to the byte array of a
-     string for reading.  Use scm_i_string_length to get the number of
-     bytes in that array.  The array is not null-terminated.
+   - Use scm_is_narrow_string to determine is the string is narrow or
+     wide.
+
+   - Use scm_i_string_chars or scm_i_string_wide_chars to get a
+     pointer to the byte or scm_t_wchar array of a string for reading.
+     Use scm_i_string_length to get the number of characters in that
+     array.  The array is not null-terminated.
 
    - The array is valid as long as the corresponding SCM object is
      protected but only until the next SCM_TICK.  During such a 'safe
      point', strings might change their representation.
 
-   - Use scm_i_string_writable_chars to get the same pointer as with
-     scm_i_string_chars, but for reading and writing.  This is a
-     potentially costly operation since it implements the
-     copy-on-write behavior.  When done with the writing, call
-     scm_i_string_stop_writing.  You must do this before the next
-     SCM_TICK.  (This means, before calling almost any other scm_
-     function and you can't allow throws, of course.)
+   - Use scm_i_string_start_writing to get a version of the string
+     ready for reading and writing.  This is a potentially costly
+     operation since it implements the copy-on-write behavior.  When
+     done with the writing, call scm_i_string_stop_writing.  You must
+     do this before the next SCM_TICK.  (This means, before calling
+     almost any other scm_ function and you can't allow throws, of
+     course.)
 
-   - New strings can be created with scm_i_make_string.  This gives
-     access to a writable pointer that remains valid as long as nobody
-     else makes a copy-on-write substring of the string.  Do not call
-     scm_i_string_stop_writing for this pointer.
+   - New strings can be created with scm_i_make_string or
+     scm_i_make_wide_string.  This gives access to a writable pointer
+     that remains valid as long as nobody else makes a copy-on-write
+     substring of the string.  Do not call scm_i_string_stop_writing
+     for this pointer.
+
+   - Alternately, scm_i_string_ref and scm_i_string_set_x can be used
+     to read and write strings without worrying about whether the
+     string is narrow or wide.  scm_i_string_set_x still needs to be
+     bracketed by scm_i_string_start_writing and
+     scm_i_string_stop_writing.
 
    Legacy interface
 
@@ -74,13 +86,15 @@
    - SCM_STRING_CHARS uses scm_i_string_writable_chars and immediately
      calls scm_i_stop_writing, hoping for the best.  SCM_STRING_LENGTH
      is the same as scm_i_string_length.  SCM_STRING_CHARS will throw
-     an error for for strings that are not null-terminated.
+     an error for for strings that are not null-terminated.  There is
+     no wide version of this interface.
 */
 
 SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
 SCM_API SCM scm_make_string (SCM k, SCM chr);
 SCM_API SCM scm_string_length (SCM str);
+SCM_API SCM scm_string_width (SCM str);
 SCM_API SCM scm_string_ref (SCM str, SCM k);
 SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
@@ -106,6 +120,9 @@ SCM_API SCM scm_take_locale_string (char *str);
 SCM_API SCM scm_take_locale_stringn (char *str, size_t len);
 SCM_API char *scm_to_locale_string (SCM str);
 SCM_API char *scm_to_locale_stringn (SCM str, size_t *lenp);
+SCM_INTERNAL char *scm_to_stringn (SCM str, size_t *lenp, 
+                                   const char *encoding,
+                                   enum iconv_ilseq_handler handler);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
@@ -113,15 +130,20 @@ SCM_API SCM scm_makfromstrs (int argc, char **argv);
 /* internal accessor functions.  Arguments must be valid. */
 
 SCM_INTERNAL SCM scm_i_make_string (size_t len, char **datap);
+SCM_INTERNAL SCM scm_i_make_wide_string (size_t len, scm_t_wchar **datap);
 SCM_INTERNAL SCM scm_i_substring (SCM str, size_t start, size_t end);
 SCM_INTERNAL SCM scm_i_substring_read_only (SCM str, size_t start, size_t end);
 SCM_INTERNAL SCM scm_i_substring_shared (SCM str, size_t start, size_t end);
 SCM_INTERNAL SCM scm_i_substring_copy (SCM str, size_t start, size_t end);
 SCM_INTERNAL size_t scm_i_string_length (SCM str);
 SCM_API /* FIXME: not internal */ const char *scm_i_string_chars (SCM str);
+SCM_API const scm_t_wchar *scm_i_string_wide_chars (SCM str);
 SCM_API /* FIXME: not internal */ char *scm_i_string_writable_chars (SCM str);
+SCM_INTERNAL SCM scm_i_string_start_writing (SCM str);
 SCM_INTERNAL void scm_i_string_stop_writing (void);
-
+SCM_INTERNAL int scm_i_is_narrow_string (SCM str);
+SCM_INTERNAL scm_t_wchar scm_i_string_ref (SCM str, size_t x);
+SCM_INTERNAL void scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr);
 /* internal functions related to symbols. */
 
 SCM_INTERNAL SCM scm_i_make_symbol (SCM name, scm_t_bits flags,
@@ -133,8 +155,11 @@ SCM_INTERNAL SCM
 scm_i_c_take_symbol (char *name, size_t len,
 		     scm_t_bits flags, unsigned long hash, SCM props);
 SCM_INTERNAL const char *scm_i_symbol_chars (SCM sym);
+SCM_INTERNAL const scm_t_wchar *scm_i_symbol_wide_chars (SCM sym);
 SCM_INTERNAL size_t scm_i_symbol_length (SCM sym);
+SCM_INTERNAL int scm_i_is_narrow_symbol (SCM str);
 SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
+SCM_INTERNAL scm_t_wchar scm_i_symbol_ref (SCM sym, size_t x);
 
 /* internal GC functions. */
 

@@ -1438,6 +1438,7 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   fd = SCM_FPORT_FDES (sock);
 
   len =  scm_i_string_length (buf);
+  buf = scm_i_string_start_writing (buf);
   dest = scm_i_string_writable_chars (buf);
   SCM_SYSCALL (rv = recv (fd, dest, len, flg));
   scm_i_string_stop_writing ();
@@ -1482,6 +1483,7 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
   fd = SCM_FPORT_FDES (sock);
 
   len = scm_i_string_length (message);
+  message = scm_i_string_start_writing (message);
   src = scm_i_string_writable_chars (message);
   SCM_SYSCALL (rv = send (fd, src, len, flg));
   scm_i_string_stop_writing ();
@@ -1550,6 +1552,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
   /* recvfrom will not necessarily return an address.  usually nothing
      is returned for stream sockets.  */
+  str = scm_i_string_start_writing (str);
   buf = scm_i_string_writable_chars (str);
   ((struct sockaddr *) &addr)->sa_family = AF_UNSPEC;
   SCM_SYSCALL (rv = recvfrom (fd, buf + offset,

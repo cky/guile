@@ -387,110 +387,167 @@ scm_read_string (int chr, SCM port)
      object (the string returned).  */
 
   SCM str = SCM_BOOL_F;
-  char c_str[READER_STRING_BUFFER_SIZE];
   unsigned c_str_len = 0;
-  int c;
+  scm_t_wchar c;
 
+  str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
   while ('"' != (c = scm_getc (port)))
     {
       if (c == EOF)
-	str_eof: scm_i_input_error (FUNC_NAME, port,
-				    "end of file in string constant",
-				    SCM_EOL);
+        {
+        str_eof:
+          scm_i_input_error (FUNC_NAME, port,
+                             "end of file in string constant", SCM_EOL);
+        }
 
-      if (c_str_len + 1 >= sizeof (c_str))
-	{
-	  /* Flush the C buffer onto a Scheme string.  */
-	  SCM addy;
+      if (c_str_len + 1 >= scm_i_string_length (str))
+        {
+          SCM addy = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
 
-	  if (str == SCM_BOOL_F)
-	    str = scm_c_make_string (0, SCM_MAKE_CHAR ('X'));
-
-	  addy = scm_from_locale_stringn (c_str, c_str_len);
-	  str = scm_string_append_shared (scm_list_2 (str, addy));
-
-	  c_str_len = 0;
-	}
+          str = scm_string_append (scm_list_2 (str, addy));
+        }
 
       if (c == '\\')
-	switch (c = scm_getc (port))
-	  {
-	  case EOF:
-	    goto str_eof;
-	  case '"':
-	  case '\\':
-	    break;
+        {
+          switch (c = scm_getc (port))
+            {
+            case EOF:
+              goto str_eof;
+            case '"':
+            case '\\':
+              break;
 #if SCM_ENABLE_ELISP
-	  case '(':
-	  case ')':
-	    if (SCM_ESCAPED_PARENS_P)
-	      break;
-	    goto bad_escaped;
+            case '(':
+            case ')':
+              if (SCM_ESCAPED_PARENS_P)
+                break;
+              goto bad_escaped;
 #endif
-	  case '\n':
-	    continue;
-	  case '0':
-	    c = '\0';
-	    break;
-	  case 'f':
-	    c = '\f';
-	    break;
-	  case 'n':
-	    c = '\n';
-	    break;
-	  case 'r':
-	    c = '\r';
-	    break;
-	  case 't':
-	    c = '\t';
-	    break;
-	  case 'a':
-	    c = '\007';
-	    break;
-	  case 'v':
-	    c = '\v';
-	    break;
-	  case 'x':
-	    {
-	      int a, b;
-	      a = scm_getc (port);
-	      if (a == EOF) goto str_eof;
-	      b = scm_getc (port);
-	      if (b == EOF) goto str_eof;
-	      if      ('0' <= a && a <= '9') a -= '0';
-	      else if ('A' <= a && a <= 'F') a = a - 'A' + 10;
-	      else if ('a' <= a && a <= 'f') a = a - 'a' + 10;
-	      else goto bad_escaped;
-	      if      ('0' <= b && b <= '9') b -= '0';
-	      else if ('A' <= b && b <= 'F') b = b - 'A' + 10;
-	      else if ('a' <= b && b <= 'f') b = b - 'a' + 10;
-	      else goto bad_escaped;
-	      c = a * 16 + b;
-	      break;
-	    }
-	  default:
-	  bad_escaped:
-	    scm_i_input_error (FUNC_NAME, port,
-			       "illegal character in escape sequence: ~S",
-			       scm_list_1 (SCM_MAKE_CHAR (c)));
-	  }
-      c_str[c_str_len++] = c;
+            case '\n':
+              continue;
+            case '0':
+              c = '\0';
+              break;
+            case 'f':
+              c = '\f';
+              break;
+            case 'n':
+              c = '\n';
+              break;
+            case 'r':
+              c = '\r';
+              break;
+            case 't':
+              c = '\t';
+              break;
+            case 'a':
+              c = '\007';
+              break;
+            case 'v':
+              c = '\v';
+              break;
+            case 'x':
+              {
+                scm_t_wchar a, b;
+                a = scm_getc (port);
+                if (a == EOF)
+                  goto str_eof;
+                b = scm_getc (port);
+                if (b == EOF)
+                  goto str_eof;
+                if ('0' <= a && a <= '9')
+                  a -= '0';
+                else if ('A' <= a && a <= 'F')
+                  a = a - 'A' + 10;
+                else if ('a' <= a && a <= 'f')
+                  a = a - 'a' + 10;
+                else
+                  {
+                    c = a;
+                    goto bad_escaped;
+                  }
+                if ('0' <= b && b <= '9')
+                  b -= '0';
+                else if ('A' <= b && b <= 'F')
+                  b = b - 'A' + 10;
+                else if ('a' <= b && b <= 'f')
+                  b = b - 'a' + 10;
+                else
+                  {
+                    c = b;
+                    goto bad_escaped;
+                  }
+                c = a * 16 + b;
+                break;
+              }
+            case 'u':
+              {
+                scm_t_wchar a;
+                int i;
+                c = 0;
+                for (i = 0; i < 4; i++)
+                  {
+                    a = scm_getc (port);
+                    if (a == EOF)
+                      goto str_eof;
+                    if ('0' <= a && a <= '9')
+                      a -= '0';
+                    else if ('A' <= a && a <= 'F')
+                      a = a - 'A' + 10;
+                    else if ('a' <= a && a <= 'f')
+                      a = a - 'a' + 10;
+                    else
+                      {
+                        c = a;
+                        goto bad_escaped;
+                      }
+                    c = c * 16 + a;
+                  }
+                break;
+              }
+            case 'U':
+              {
+                scm_t_wchar a;
+                int i;
+                c = 0;
+                for (i = 0; i < 6; i++)
+                  {
+                    a = scm_getc (port);
+                    if (a == EOF)
+                      goto str_eof;
+                    if ('0' <= a && a <= '9')
+                      a -= '0';
+                    else if ('A' <= a && a <= 'F')
+                      a = a - 'A' + 10;
+                    else if ('a' <= a && a <= 'f')
+                      a = a - 'a' + 10;
+                    else
+                      {
+                        c = a;
+                        goto bad_escaped;
+                      }
+                    c = c * 16 + a;
+                  }
+                break;
+              }
+            default:
+            bad_escaped:
+              scm_i_input_error (FUNC_NAME, port,
+                                 "illegal character in escape sequence: ~S",
+                                 scm_list_1 (SCM_MAKE_CHAR (c)));
+            }
+        }
+      str = scm_i_string_start_writing (str);
+      scm_i_string_set_x (str, c_str_len++, c);
+      scm_i_string_stop_writing ();
     }
 
   if (c_str_len > 0)
     {
-      SCM addy;
-
-      addy = scm_from_locale_stringn (c_str, c_str_len);
-      if (str == SCM_BOOL_F)
-	str = addy;
-      else
-	str = scm_string_append_shared (scm_list_2 (str, addy));
+      return scm_i_substring_copy (str, 0, c_str_len);
     }
-  else
-    str = (str == SCM_BOOL_F) ? scm_nullstr : str;
-
-  return str;
+  
+  return scm_nullstr;
 }
 #undef FUNC_NAME
 
