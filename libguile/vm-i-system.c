@@ -1232,6 +1232,20 @@ VM_DEFINE_INSTRUCTION (64, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (65, fix_closure, "fix-closure", 2, 0, 1)
+{
+  SCM x, vect;
+  unsigned int i = FETCH ();
+  i <<= 8;
+  i += FETCH ();
+  POP (vect);
+  /* FIXME CHECK_LOCAL (i) */ 
+  x = LOCAL_REF (i);
+  /* FIXME ASSERT_PROGRAM (x); */
+  SCM_SET_CELL_WORD_3 (x, vect);
+  NEXT;
+}
+
 
 /*
 (defun renumber-ops ()

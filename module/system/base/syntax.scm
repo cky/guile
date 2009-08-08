@@ -1,6 +1,6 @@
 ;;; Guile VM specific syntaxes and utilities
 
-;; Copyright (C) 2001 Free Software Foundation, Inc
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -174,29 +174,70 @@
 ;;   5.88      0.01      0.01  list-index
 
 
-(define-macro (record-case record . clauses)
-  (let ((r (gensym))
-        (rtd (gensym)))
-    (define (process-clause clause)
-      (if (eq? (car clause) 'else)
-          clause
-          (let ((record-type (caar clause))
-                (slots (cdar clause))
-                (body (cdr clause)))
-            (let ((stem (trim-brackets record-type)))
-              `((eq? ,rtd ,record-type)
-                (let ,(map (lambda (slot)
-                             (if (pair? slot)
-                                 `(,(car slot) (,(symbol-append stem '- (cadr slot)) ,r))
-                                 `(,slot (,(symbol-append stem '- slot) ,r))))
-                           slots)
-                  ,@(if (pair? body) body '((if #f #f)))))))))
-    `(let* ((,r ,record)
-            (,rtd (struct-vtable ,r)))
-       (cond ,@(let ((clauses (map process-clause clauses)))
-                 (if (assq 'else clauses)
-                     clauses
-                     (append clauses `((else (error "unhandled record" ,r))))))))))
+;;; So ugly... but I am too ignorant to know how to make it better.
+(define-syntax record-case
+  (lambda (x)
+    (syntax-case x ()
+      ((_ record clause ...)
+       (let ((r (syntax r))
+             (rtd (syntax rtd)))
+         (define (process-clause tag fields exprs)
+           (let ((infix (trim-brackets (syntax->datum tag))))
+             (with-syntax ((tag tag)
+                           (((f . accessor) ...)
+                            (let lp ((fields fields))
+                              (syntax-case fields ()
+                                (() (syntax ()))
+                                (((v0 f0) f1 ...)
+                                 (acons (syntax v0)
+                                        (datum->syntax x 
+                                                       (symbol-append infix '- (syntax->datum
+                                                                                (syntax f0))))
+                                        (lp (syntax (f1 ...)))))
+                                ((f0 f1 ...)
+                                 (acons (syntax f0)
+                                        (datum->syntax x 
+                                                       (symbol-append infix '- (syntax->datum
+                                                                                (syntax f0))))
+                                        (lp (syntax (f1 ...))))))))
+                           ((e0 e1 ...)
+                            (syntax-case exprs ()
+                              (() (syntax (#t)))
+                              ((e0 e1 ...) (syntax (e0 e1 ...))))))
+               (syntax
+                ((eq? rtd tag)
+                 (let ((f (accessor r))
+                       ...)
+                   e0 e1 ...))))))
+         (with-syntax
+             ((r r)
+              (rtd rtd)
+              ((processed ...)
+               (let lp ((clauses (syntax (clause ...)))
+                        (out '()))
+                 (syntax-case clauses (else)
+                   (()
+                    (reverse! (cons (syntax
+                                     (else (error "unhandled record" r)))
+                                    out)))
+                   (((else e0 e1 ...))
+                    (reverse! (cons (syntax (else e0 e1 ...)) out)))
+                   (((else e0 e1 ...) . rest)
+                    (syntax-violation 'record-case
+                                      "bad else clause placement"
+                                      (syntax x)
+                                      (syntax (else e0 e1 ...))))
+                   ((((<foo> f0 ...) e0 ...) . rest)
+                    (lp (syntax rest)
+                        (cons (process-clause (syntax <foo>)
+                                              (syntax (f0 ...))
+                                              (syntax (e0 ...)))
+                              out)))))))
+           (syntax
+            (let* ((r record)
+                   (rtd (struct-vtable r)))
+              (cond processed ...)))))))))
+
 
 ;; Here we take the terrorism to another level. Nasty, but the client
 ;; code looks good.

@@ -37,11 +37,11 @@ SOURCES =								\
   system/base/message.scm						\
 									\
   language/tree-il.scm							\
-  language/ghil.scm language/glil.scm language/assembly.scm		\
+  language/glil.scm language/assembly.scm				\
 									\
   $(SCHEME_LANG_SOURCES) 						\
   $(TREE_IL_LANG_SOURCES)						\
-  $(GHIL_LANG_SOURCES) $(GLIL_LANG_SOURCES)				\
+  $(GLIL_LANG_SOURCES)							\
   $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
   $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
 									\
@@ -50,9 +50,10 @@ SOURCES =								\
   $(RNRS_SOURCES)							\
   $(OOP_SOURCES)							\
   $(SYSTEM_SOURCES)                                                     \
+  $(SCRIPTS_SOURCES)                                                    \
+  $(GHIL_LANG_SOURCES)                                                  \
   $(ECMASCRIPT_LANG_SOURCES)						\
-  $(BRAINFUCK_LANG_SOURCES)						\
-  $(SCRIPTS_SOURCES)
+  $(BRAINFUCK_LANG_SOURCES)
 
 ## test.scm is not currently installed.
 EXTRA_DIST += ice-9/test.scm ice-9/compile-psyntax.scm ice-9/ChangeLog-2008
@@ -77,12 +78,14 @@ SCHEME_LANG_SOURCES =						\
 TREE_IL_LANG_SOURCES =						\
   language/tree-il/primitives.scm				\
   language/tree-il/optimize.scm                                 \
+  language/tree-il/inline.scm                                   \
+  language/tree-il/fix-letrec.scm                               \
   language/tree-il/analyze.scm					\
   language/tree-il/compile-glil.scm 				\
   language/tree-il/spec.scm
 
-GHIL_LANG_SOURCES =					\
-  language/ghil/spec.scm language/ghil/compile-glil.scm
+GHIL_LANG_SOURCES =						\
+  language/ghil.scm language/ghil/spec.scm language/ghil/compile-glil.scm
 
 GLIL_LANG_SOURCES =						\
   language/glil/spec.scm language/glil/compile-assembly.scm 	\

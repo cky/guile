@@ -19,12 +19,13 @@
 ;;; Code:
 
 (define-module (language tree-il primitives)
+  #:use-module (system base pmatch)
   #:use-module (rnrs bytevector)
   #:use-module (system base syntax)
   #:use-module (language tree-il)
   #:use-module (srfi srfi-16)
   #:export (resolve-primitives! add-interesting-primitive!
-            expand-primitives!))
+            expand-primitives! effect-free-primitive?))
 
 (define *interesting-primitive-names* 
   '(apply @apply
@@ -84,6 +85,39 @@
 
 (for-each add-interesting-primitive! *interesting-primitive-names*)
 
+(define *effect-free-primitives*
+  '(values
+    eq? eqv? equal?
+    = < > <= >= zero?
+    + * - / 1- 1+ quotient remainder modulo
+    not
+    pair? null? list? acons cons cons*
+    list vector
+    car cdr
+    caar cadr cdar cddr
+    caaar caadr cadar caddr cdaar cdadr cddar cdddr
+    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
+    vector-ref
+    bytevector-u8-ref bytevector-s8-ref
+    bytevector-u16-ref bytevector-u16-native-ref
+    bytevector-s16-ref bytevector-s16-native-ref
+    bytevector-u32-ref bytevector-u32-native-ref
+    bytevector-s32-ref bytevector-s32-native-ref
+    bytevector-u64-ref bytevector-u64-native-ref
+    bytevector-s64-ref bytevector-s64-native-ref
+    bytevector-ieee-single-ref bytevector-ieee-single-native-ref
+    bytevector-ieee-double-ref bytevector-ieee-double-native-ref))
+
+
+(define *effect-free-primitive-table* (make-hash-table))
+
+(for-each (lambda (x) (hashq-set! *effect-free-primitive-table* x #t))
+          *effect-free-primitives*)
+
+(define (effect-free-primitive? prim)
+  (hashq-ref *effect-free-primitive-table* prim))
+
 (define (resolve-primitives! x mod)
   (post-order!
    (lambda (x)
@@ -142,8 +176,14 @@
   (define (consequent exp)
     (cond
      ((pair? exp)
-      `(make-application src (make-primitive-ref src ',(car exp))
-                         ,(inline-args (cdr exp))))
+      (pmatch exp
+        ((if ,test ,then ,else)
+         `(if ,test
+              ,(consequent then)
+              ,(consequent else)))
+        (else
+         `(make-application src (make-primitive-ref src ',(car exp))
+                            ,(inline-args (cdr exp))))))
      ((symbol? exp)
       ;; assume locally bound
       exp)
@@ -160,9 +200,21 @@
                             (cons `((src . ,(car in))
                                     ,(consequent (cadr in))) out)))))))
 
+(define-primitive-expander zero? (x)
+  (= x 0))
+
 (define-primitive-expander +
   () 0
   (x) x
+  (x y) (if (and (const? y)
+                 (let ((y (const-exp y)))
+                   (and (exact? y) (= y 1))))
+            (1+ x)
+            (if (and (const? x)
+                     (let ((x (const-exp x)))
+                       (and (exact? x) (= x 1))))
+                (1+ y)
+                (+ x y)))
   (x y z . rest) (+ x (+ y z . rest)))
   
 (define-primitive-expander *
@@ -172,11 +224,13 @@
   
 (define-primitive-expander -
   (x) (- 0 x)
+  (x y) (if (and (const? y)
+                 (let ((y (const-exp y)))
+                   (and (exact? y) (= y 1))))
+            (1- x)
+            (- x y))
   (x y z . rest) (- x (+ y z . rest)))
   
-(define-primitive-expander 1-
-  (x) (- x 1))
-
 (define-primitive-expander /
   (x) (/ 1 x)
   (x y z . rest) (/ x (* y z . rest)))

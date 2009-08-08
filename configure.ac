@@ -827,22 +827,19 @@ fi
 
 
 dnl GMP tests
-AC_LIB_LINKFLAGS(gmp)
-AC_CHECK_LIB([gmp], [__gmpz_init], ,
-  [AC_MSG_ERROR([GNU MP not found, see README])])
-
-# mpz_import is a macro so we need to include <gmp.h>
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]],
- 			        [[mpz_import (0, 0, 0, 0, 0, 0, 0); ]])],
+AC_LIB_HAVE_LINKFLAGS(gmp,
   [],
-  [AC_MSG_ERROR([At least GNU MP 4.1 is required, see README])])
+  [#include <gmp.h>],
+  [mpz_import (0, 0, 0, 0, 0, 0, 0);],
+  AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README]))
 
 dnl GNU libunistring tests.
-if test "x$LTLIBUNISTRING" != "x"; then
-   LIBS="$LTLIBUNISTRING $LIBS"
-else
-   AC_MSG_ERROR([GNU libunistring is required, please install it.])
-fi
+AC_LIB_HAVE_LINKFLAGS(unistring,
+  [],
+  [#include <unistr.h>],
+  [u8_check ("foo", 3)]
+  AC_MSG_ERROR([GNU libunistring not found, see README]))
+
 
 dnl i18n tests
 #AC_CHECK_HEADERS([libintl.h])
