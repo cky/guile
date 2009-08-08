@@ -86,40 +86,34 @@ of @code{define-class} is close to CLOS @code{defclass}:
    @var{class-option} @dots{})
 @end lisp
 
-Class options will not be discussed in this tutorial.  The list of
-@var{superclass}es specifies which classes to inherit properties from
-@var{class} (see @ref{Inheritance} for more details).  A
-@var{slot-description} gives the name of a slot and, eventually, some
-``properties'' of this slot (such as its initial value, the function
-which permit to access its value, @dots{}). Slot descriptions will be
-discussed in @ref{Slot description}.
+@var{class} is the class being defined.  The list of
+@var{superclass}es specifies which existing classes, if any, to
+inherit slots and properties from.  Each @var{slot-description} gives
+the name of a slot and optionally some ``properties'' of this slot;
+for example its initial value, the name of a function which will
+access its value, and so on.  Slot descriptions and inheritance are
+discussed more below.  For class options, see @ref{Class Options}.
 @cindex slot
 
-As an example, let us define a type for representation of complex
-numbers in terms of real numbers. This can be done with the following
-class definition:
+As an example, let us define a type for representing a complex number
+in terms of two real numbers.@footnote{Of course Guile already
+provides complex numbers, and @code{<complex>} is in fact a predefined
+class in GOOPS; but the definition here is still useful as an
+example.}  This can be done with the following class definition:
 
 @lisp
-(define-class  <complex> (<number>)
+(define-class <my-complex> (<number>)
    r i)
 @end lisp
 
-This binds the variable @code{<complex>}@footnote{@code{<complex>} is in
-fact a builtin class in GOOPS.  Because of this, GOOPS will create a new
-class.  The old class will still serve as the type for Guile's native
-complex numbers.} to a new class whose instances contain two
-slots. These slots are called @code{r} an @code{i} and we suppose here
-that they contain respectively the real part and the imaginary part of a
-complex number. Note that this class inherits from @code{<number>} which
-is a pre-defined class.  (@code{<number>} is the direct super class of
-the pre-defined class @code{<complex>} which, in turn, is the super
-class of @code{<real>} which is the super of
-@code{<integer>}.)@footnote{With the new definition of @code{<complex>},
-a @code{<real>} is not a @code{<complex>} since @code{<real>} inherits
-from @code{ <number>} rather than @code{<complex>}. In practice,
-inheritance could be modified @emph{a posteriori}, if needed. However,
-this necessitates some knowledge of the meta object protocol and it will
-not be shown in this document}.
+This binds the variable @code{<my-complex>} to a new class whose
+instances will contain two slots.  These slots are called @code{r} an
+@code{i} and will hold the real and imaginary parts of a complex
+number. Note that this class inherits from @code{<number>}, which is a
+predefined class.@footnote{@code{<number>} is the direct superclass of
+the predefined class @code{<complex>}; @code{<complex>} is the
+superclass of @code{<real>}, and @code{<real>} is the superclass of
+@code{<integer>}.}
 
 @node Inheritance
 @subsection Inheritance
@@ -197,10 +191,10 @@ slots of the newly created instance. For instance, the following form
 @findex make
 @cindex instance
 @lisp
-(define c (make <complex>))
+(define c (make <my-complex>))
 @end lisp
 
-will create a new @code{<complex>} object and will bind it to the @code{c}
+will create a new @code{<my-complex>} object and will bind it to the @code{c}
 Scheme variable.
 
 Accessing the slots of the new complex number can be done with the
@@ -238,7 +232,7 @@ The expression
 will now print the following information on the standard output:
 
 @lisp
-#<<complex> 401d8638> is an instance of class <complex>
+#<<my-complex> 401d8638> is an instance of class <my-complex>
 Slots are: 
      r = 10
      i = 3
@@ -340,11 +334,11 @@ and @code{#:slot-set!} options. See the example below.
 @end itemize
 @end itemize
 
-To illustrate slot description, we shall redefine the @code{<complex>} class 
+To illustrate slot description, we shall redefine the @code{<my-complex>} class 
 seen before. A definition could be:
 
 @lisp
-(define-class <complex> (<number>) 
+(define-class <my-complex> (<number>) 
    (r #:init-value 0 #:getter get-r #:setter set-r! #:init-keyword #:r)
    (i #:init-value 0 #:getter get-i #:setter set-i! #:init-keyword #:i))
 @end lisp
@@ -357,11 +351,11 @@ functions @code{get-r} and @code{set-r!} (resp. @code{get-i} and
 the @code{r} (resp. @code{i}) slot.
 
 @lisp
-(define c1 (make <complex> #:r 1 #:i 2))
+(define c1 (make <my-complex> #:r 1 #:i 2))
 (get-r c1) @result{} 1
 (set-r! c1 12)
 (get-r c1) @result{} 12
-(define c2 (make <complex> #:r 2))
+(define c2 (make <my-complex> #:r 2))
 (get-r c2) @result{} 2
 (get-i c2) @result{} 0
 @end lisp
@@ -369,12 +363,12 @@ the @code{r} (resp. @code{i}) slot.
 Accessors provide an uniform access for reading and writing an object
 slot.  Writing a slot is done with an extended form of @code{set!}
 which is close to the Common Lisp @code{setf} macro. So, another
-definition of the previous @code{<complex>} class, using the
+definition of the previous @code{<my-complex>} class, using the
 @code{#:accessor} option, could be:
 
 @findex set!
 @lisp
-(define-class <complex> (<number>) 
+(define-class <my-complex> (<number>) 
    (r #:init-value 0 #:accessor real-part #:init-keyword #:r)
    (i #:init-value 0 #:accessor imag-part #:init-keyword #:i))
 @end lisp
@@ -395,13 +389,13 @@ coordinates as well as with polar coordinates. One solution could be to
 have a definition of complex numbers which uses one particular
 representation and some conversion functions to pass from one
 representation to the other.  A better solution uses virtual slots. A
-complete definition of the @code{<complex>} class using virtual slots is
+complete definition of the @code{<my-complex>} class using virtual slots is
 given in Figure@ 2.
 
 @example
 @group
 @lisp
-(define-class <complex> (<number>)
+(define-class <my-complex> (<number>)
    ;; True slots use rectangular coordinates
    (r #:init-value 0 #:accessor real-part #:init-keyword #:r)
    (i #:init-value 0 #:accessor imag-part #:init-keyword #:i)
@@ -425,7 +419,7 @@ given in Figure@ 2.
                       (slot-set! o 'i (* m (sin a)))))))
 
 @end lisp
-@center @emph{Fig 2: A @code{<complex>} number class definition using virtual slots}
+@center @emph{Fig 2: A @code{<my-complex>} number class definition using virtual slots}
 @end group
 @end example
 
@@ -460,13 +454,13 @@ A more complete example is given below:
 @example
 @group
 @lisp
-(define c (make <complex> #:r 12 #:i 20))
+(define c (make <my-complex> #:r 12 #:i 20))
 (real-part c) @result{} 12
 (angle c) @result{} 1.03037682652431
 (slot-set! c 'i 10)
 (set! (real-part c) 1)
 (describe c) @result{}
-          #<<complex> 401e9b58> is an instance of class <complex>
+          #<<my-complex> 401e9b58> is an instance of class <my-complex>
           Slots are: 
                r = 1
                i = 10
@@ -482,10 +476,10 @@ Scheme primitives.
 
 @lisp
 (define make-rectangular 
-   (lambda (x y) (make <complex> #:r x #:i y)))
+   (lambda (x y) (make <my-complex> #:r x #:i y)))
 
 (define make-polar
-   (lambda (x y) (make <complex> #:magn x #:angle y)))
+   (lambda (x y) (make <my-complex> #:magn x #:angle y)))
 @end lisp
 
 @node Class precedence list
@@ -719,13 +713,13 @@ as in Scheme code in general.)
 @node Example
 @subsubsection Example
 
-In this section we shall continue to define operations on the @code{<complex>}
+In this section we shall continue to define operations on the @code{<my-complex>}
 class defined in Figure@ 2. Suppose that we want to use it to implement 
 complex numbers completely. For instance a definition for the addition of 
 two complexes could be
 
 @lisp
-(define-method (new-+ (a <complex>) (b <complex>))
+(define-method (new-+ (a <my-complex>) (b <my-complex>))
   (make-rectangular (+ (real-part a) (real-part b))
                     (+ (imag-part a) (imag-part b))))
 @end lisp
@@ -737,7 +731,7 @@ addition we can do:
 (define-generic new-+)
 
 (let ((+ +))
-  (define-method (new-+ (a <complex>) (b <complex>))
+  (define-method (new-+ (a <my-complex>) (b <my-complex>))
     (make-rectangular (+ (real-part a) (real-part b))
                       (+ (imag-part a) (imag-part b)))))
 @end lisp
@@ -757,13 +751,13 @@ Figure@ 3.
 
   (define-method (new-+ (a <real>) (b <real>)) (+ a b))
 
-  (define-method (new-+ (a <real>) (b <complex>)) 
+  (define-method (new-+ (a <real>) (b <my-complex>)) 
     (make-rectangular (+ a (real-part b)) (imag-part b)))
 
-  (define-method (new-+ (a <complex>) (b <real>))
+  (define-method (new-+ (a <my-complex>) (b <real>))
     (make-rectangular (+ (real-part a) b) (imag-part a)))
 
-  (define-method (new-+ (a <complex>) (b <complex>))
+  (define-method (new-+ (a <my-complex>) (b <my-complex>))
     (make-rectangular (+ (real-part a) (real-part b))
                       (+ (imag-part a) (imag-part b))))
 
@@ -802,7 +796,7 @@ To terminate our implementation (integration?) of  complex numbers, we can
 redefine standard Scheme predicates in the following manner:
 
 @lisp
-(define-method (complex? c <complex>) #t)
+(define-method (complex? c <my-complex>) #t)
 (define-method (complex? c)           #f)
 
 (define-method (number? n <number>) #t)
