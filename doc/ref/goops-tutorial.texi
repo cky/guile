@@ -30,19 +30,31 @@
 @c Guile
 @c @end macro
 
-This is chapter was originally written by Erick Gallesio as an appendix
-for the STk reference manual, and subsequently adapted to @goops{}.
+This tutorial introduces the @goops{} package.  It was originally
+written by Erick Gallesio as an appendix for the STk reference manual,
+and subsequently adapted to @goops{}.
+
+The procedures and syntax described in this tutorial are provided by
+Guile modules that may need to be imported before being available.
+The main @goops{} module is imported by evaluating:
+
+@lisp
+(use-modules (oop goops))
+@end lisp
+@findex (oop goops)
+@cindex main module
+@cindex loading
+@cindex preparing
 
 @menu
 * Copyright::
-* Intro::                
-* Class definition and instantiation::  
+* Class definition::  
 * Inheritance::                 
 * Generic functions::           
 @end menu
 
-@node Copyright, Intro, Tutorial, Tutorial
-@section Copyright
+@node Copyright
+@subsection Copyright
 
 Original attribution:
 
@@ -58,52 +70,13 @@ required for any of the authorized uses.
 This software is provided ``AS IS'' without express or implied
 warranty.
 
-Adapted for use in Guile with the authors permission
+Adapted for use in Guile with the author's permission
 
-@node Intro, Class definition and instantiation, Copyright, Tutorial
-@section Introduction
-
-@goops{} is the object oriented extension to @guile{}. Its
-implementation is derived from @w{STk-3.99.3} by Erick Gallesio and
-version 1.3 of the Gregor Kiczales @cite{Tiny-Clos}.  It is very close
-to CLOS, the Common Lisp Object System (@cite{CLtL2}) but is adapted for
-the Scheme language.
-
-Briefly stated, the @goops{} extension gives the user a full object
-oriented system with multiple inheritance and generic functions with
-multi-method dispatch.  Furthermore, the implementation relies on a true
-meta object protocol, in the spirit of the one defined for CLOS
-(@cite{Gregor Kiczales: A Metaobject Protocol}).
-
-The purpose of this tutorial is to introduce briefly the @goops{}
-package and in no case will it replace the @goops{} reference manual
-(which needs to be urgently written now@ @dots{}).
-
-Note that the operations described in this tutorial resides in modules
-that may need to be imported before being available.  The main module is
-imported by evaluating:
-
-@lisp
-(use-modules (oop goops))
-@end lisp
-@findex (oop goops)
-@cindex main module
-@cindex loading
-@cindex preparing
-
-@node Class definition and instantiation, Inheritance, Intro, Tutorial
-@section Class definition and instantiation
-
-@menu
-* Class definition::            
-@end menu
-
-@node Class definition,  , Class definition and instantiation, Class definition and instantiation
+@node Class definition
 @subsection Class definition
 
-A new class is defined with the @code{define-class}@footnote{Don't
-forget to import the @code{(oop goops)} module} macro. The syntax of
-@code{define-class} is close to CLOS @code{defclass}:
+A new class is defined with the @code{define-class} macro. The syntax
+of @code{define-class} is close to CLOS @code{defclass}:
 
 @findex define-class
 @cindex class
@@ -148,8 +121,8 @@ inheritance could be modified @emph{a posteriori}, if needed. However,
 this necessitates some knowledge of the meta object protocol and it will
 not be shown in this document}.
 
-@node Inheritance, Generic functions, Class definition and instantiation, Tutorial
-@section Inheritance
+@node Inheritance
+@subsection Inheritance
 @c \label{inheritance}
 
 @menu
@@ -159,8 +132,8 @@ not be shown in this document}.
 * Class precedence list::       
 @end menu
 
-@node Class hierarchy and inheritance of slots, Instance creation and slot access, Inheritance, Inheritance
-@subsection Class hierarchy and inheritance of slots
+@node Class hierarchy and inheritance of slots
+@subsubsection Class hierarchy and inheritance of slots
 Inheritance is specified upon class definition. As said in the
 introduction, @goops{} supports multiple inheritance.  Here are some
 class definitions:
@@ -211,8 +184,8 @@ primitive.  For instance,
 
 @emph{Note: } The order of slots is not significant.
 
-@node Instance creation and slot access, Slot description, Class hierarchy and inheritance of slots, Inheritance
-@subsection Instance creation and slot access
+@node Instance creation and slot access
+@subsubsection Instance creation and slot access
 
 Creation of an instance of a previously defined
 class can be done with the @code{make} procedure. This
@@ -271,8 +244,8 @@ Slots are:
      i = 3
 @end lisp
 
-@node Slot description, Class precedence list, Instance creation and slot access, Inheritance
-@subsection Slot description
+@node Slot description
+@subsubsection Slot description
 @c \label{slot-description}
 
 When specifying a slot, a set of options can be given to the
@@ -515,8 +488,8 @@ Scheme primitives.
    (lambda (x y) (make <complex> #:magn x #:angle y)))
 @end lisp
 
-@node Class precedence list,  , Slot description, Inheritance
-@subsection Class precedence list
+@node Class precedence list
+@subsubsection Class precedence list
 
 A class may have more than one superclass.  @footnote{This section is an
 adaptation of Jeff Dalton's (J.Dalton@@ed.ac.uk) @cite{Brief
@@ -593,8 +566,8 @@ However, this result is not too much readable; using the function
 (map class-name (class-precedence-list B)) @result{} (B <object> <top>) 
 @end lisp
 
-@node Generic functions,  , Inheritance, Tutorial
-@section Generic functions
+@node Generic functions
+@subsection Generic functions
 
 @menu
 * Generic functions and methods::  
@@ -602,8 +575,8 @@ However, this result is not too much readable; using the function
 * Example::                     
 @end menu
 
-@node Generic functions and methods, Next-method, Generic functions, Generic functions
-@subsection Generic functions and methods
+@node Generic functions and methods
+@subsubsection Generic functions and methods
 
 @c \label{gf-n-methods}
 Neither @goops{} nor CLOS use the message mechanism for methods as most
@@ -693,8 +666,8 @@ In this case,
 (G 'a 1)  @result{} top-number
 @end lisp
 
-@node Next-method, Example, Generic functions and methods, Generic functions
-@subsection Next-method
+@node Next-method
+@subsubsection Next-method
 
 When you call a generic function, with a particular set of arguments,
 GOOPS builds a list of all the methods that are applicable to those
@@ -743,8 +716,8 @@ Number is in range
 lead to an infinite recursion, but this consideration is just the same
 as in Scheme code in general.)
 
-@node Example,  , Next-method, Generic functions
-@subsection Example
+@node Example
+@subsubsection Example
 
 In this section we shall continue to define operations on the @code{<complex>}
 class defined in Figure@ 2. Suppose that we want to use it to implement 

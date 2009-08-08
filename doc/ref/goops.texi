@@ -31,53 +31,27 @@ meta object protocol, in the spirit of the one defined for CLOS
 
 @menu
 * Getting Started::
+* Tutorial::
 * Reference Manual::
 * MOP Specification::
-* Tutorial::
 @end menu
 
 @node Getting Started
 @section Getting Started
 
-@menu
-* Running GOOPS::
-
-Examples of some basic GOOPS functionality.
-
-* Methods::
-* User-defined types::
-* Asking for the type of an object::
-
-See further in the GOOPS tutorial available in this distribution in
-info (goops.info) and texinfo format.
-@end menu
-
-@node Running GOOPS
-@subsection Running GOOPS
-
-@enumerate
-@item
-Type
-
-@smalllisp
-guile-oops
-@end smalllisp
-
-You should now be at the Guile prompt ("guile> ").
-
-@item
-Type
+To start using GOOPS, load the @code{(oop goops)} module:
 
 @smalllisp
 (use-modules (oop goops))
 @end smalllisp
 
-to load GOOPS.  (If your system supports dynamic loading, you
-should be able to do this not only from `guile-oops' but from an
-arbitrary Guile interpreter.)
-@end enumerate
-
 We're now ready to try some basic GOOPS functionality.
+
+@menu
+* Methods::
+* User-defined types::
+* Asking for the type of an object::
+@end menu
 
 @node Methods
 @subsection Methods
@@ -133,6 +107,10 @@ v --> <3, 4>
 
 (is-a? v <2D-vector>) --> #t
 @end example
+
+@node Tutorial
+@section Tutorial
+@include goops-tutorial.texi
 
 @node Reference Manual
 @section Reference Manual
@@ -2800,7 +2778,3 @@ theoretically handle adding methods to further types of target.
 @item
 @code{no-next-method}
 @end itemize
-
-@node Tutorial
-@section Tutorial
-@include goops-tutorial.texi
