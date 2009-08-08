@@ -49,6 +49,8 @@ The main @goops{} module is imported by evaluating:
 @menu
 * Copyright::
 * Class definition::  
+* Instance creation and slot access::  
+* Slot description::            
 * Inheritance::                 
 * Generic functions::           
 @end menu
@@ -115,71 +117,8 @@ the predefined class @code{<complex>}; @code{<complex>} is the
 superclass of @code{<real>}, and @code{<real>} is the superclass of
 @code{<integer>}.}
 
-@node Inheritance
-@subsection Inheritance
-@c \label{inheritance}
-
-@menu
-* Class hierarchy and inheritance of slots::  
-* Instance creation and slot access::  
-* Slot description::            
-* Class precedence list::       
-@end menu
-
-@node Class hierarchy and inheritance of slots
-@subsubsection Class hierarchy and inheritance of slots
-Inheritance is specified upon class definition. As said in the
-introduction, @goops{} supports multiple inheritance.  Here are some
-class definitions:
-
-@lisp
-(define-class A () a)
-(define-class B () b)
-(define-class C () c)
-(define-class D (A B) d a)
-(define-class E (A C) e c)
-(define-class F (D E) f)
-@end lisp
-
-@code{A}, @code{B}, @code{C} have a null list of super classes. In this
-case, the system will replace it by the list which only contains
-@code{<object>}, the root of all the classes defined by
-@code{define-class}. @code{D}, @code{E}, @code{F} use multiple
-inheritance: each class inherits from two previously defined classes.
-Those class definitions define a hierarchy which is shown in Figure@ 1.
-In this figure, the class @code{<top>} is also shown; this class is the
-super class of all Scheme objects. In particular, @code{<top>} is the
-super class of all standard Scheme types.
-
-@example
-@group
-@image{hierarchy}
-@center @emph{Fig 1: A class hierarchy}
-@iftex
-@emph{(@code{<complex>} which is the direct subclass of @code{<number>}
-and the direct superclass of @code{<real>} has been omitted in this
-figure.)}
-@end iftex
-@end group
-@end example
-
-The set of slots of a given class is calculated by taking the union of the
-slots of all its super class. For instance, each instance of the class
-D, defined before will have three slots (@code{a}, @code{b} and
-@code{d}). The slots of a class can be obtained by the @code{class-slots}
-primitive.  For instance,
-
-@lisp
-(class-slots A) @result{} ((a))
-(class-slots E) @result{} ((a) (e) (c))
-(class-slots F) @result{} ((e) (c) (b) (d) (a) (f))
-@c used to be ((d) (a) (b) (c) (f))
-@end lisp
-
-@emph{Note: } The order of slots is not significant.
-
 @node Instance creation and slot access
-@subsubsection Instance creation and slot access
+@subsection Instance creation and slot access
 
 Creation of an instance of a previously defined
 class can be done with the @code{make} procedure. This
@@ -239,7 +178,7 @@ Slots are:
 @end lisp
 
 @node Slot description
-@subsubsection Slot description
+@subsection Slot description
 @c \label{slot-description}
 
 When specifying a slot, a set of options can be given to the
@@ -481,6 +420,67 @@ Scheme primitives.
 (define make-polar
    (lambda (x y) (make <my-complex> #:magn x #:angle y)))
 @end lisp
+
+@node Inheritance
+@subsection Inheritance
+@c \label{inheritance}
+
+@menu
+* Class hierarchy and inheritance of slots::  
+* Class precedence list::       
+@end menu
+
+@node Class hierarchy and inheritance of slots
+@subsubsection Class hierarchy and inheritance of slots
+Inheritance is specified upon class definition. As said in the
+introduction, @goops{} supports multiple inheritance.  Here are some
+class definitions:
+
+@lisp
+(define-class A () a)
+(define-class B () b)
+(define-class C () c)
+(define-class D (A B) d a)
+(define-class E (A C) e c)
+(define-class F (D E) f)
+@end lisp
+
+@code{A}, @code{B}, @code{C} have a null list of super classes. In this
+case, the system will replace it by the list which only contains
+@code{<object>}, the root of all the classes defined by
+@code{define-class}. @code{D}, @code{E}, @code{F} use multiple
+inheritance: each class inherits from two previously defined classes.
+Those class definitions define a hierarchy which is shown in Figure@ 1.
+In this figure, the class @code{<top>} is also shown; this class is the
+super class of all Scheme objects. In particular, @code{<top>} is the
+super class of all standard Scheme types.
+
+@example
+@group
+@image{hierarchy}
+@center @emph{Fig 1: A class hierarchy}
+@iftex
+@emph{(@code{<complex>} which is the direct subclass of @code{<number>}
+and the direct superclass of @code{<real>} has been omitted in this
+figure.)}
+@end iftex
+@end group
+@end example
+
+The set of slots of a given class is calculated by taking the union of the
+slots of all its super class. For instance, each instance of the class
+D, defined before will have three slots (@code{a}, @code{b} and
+@code{d}). The slots of a class can be obtained by the @code{class-slots}
+primitive.  For instance,
+
+@lisp
+(class-slots A) @result{} ((a))
+(class-slots E) @result{} ((a) (e) (c))
+(class-slots F) @result{} ((e) (c) (b) (d) (a) (f))
+@c used to be ((d) (a) (b) (c) (f))
+@end lisp
+
+@emph{Note: } The order of slots is not significant.
 
 @node Class precedence list
 @subsubsection Class precedence list
