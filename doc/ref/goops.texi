@@ -1491,17 +1491,17 @@ all generic functions sharing a common name:
 
 @lisp
 (define-module (math 2D-vectors)
-  :use-module (oop goops)
-  :export (x y ...))
+  #:use-module (oop goops)
+  #:export (x y ...))
 		  
 (define-module (math 3D-vectors)
-  :use-module (oop goops)
-  :export (x y z ...))
+  #:use-module (oop goops)
+  #:export (x y z ...))
 
 (define-module (my-module)
-  :use-module (math 2D-vectors)
-  :use-module (math 3D-vectors)
-  :duplicates merge-generics)
+  #:use-module (math 2D-vectors)
+  #:use-module (math 3D-vectors)
+  #:duplicates merge-generics)
 @end lisp
 
 The generic function @code{x} in @code{(my-module)} will now share
@@ -1532,10 +1532,10 @@ Sharing is dynamic, so that adding new methods to a descendant implies
 adding it to the ancestor.
 
 If duplicates checking is desired in the above example, the following
-form of the @code{:duplicates} option can be used instead:
+form of the @code{#:duplicates} option can be used instead:
 
 @lisp
-  :duplicates (merge-generics check)
+  #:duplicates (merge-generics check)
 @end lisp
 
 @node Generic Function Internals

@@ -364,7 +364,7 @@ of the form:
 
 @example
 (define-module (scripts PROGRAM)
-  :export (PROGRAM))
+  #:export (PROGRAM))
 @end example
 
 Feel free to export other definitions useful in the module context.

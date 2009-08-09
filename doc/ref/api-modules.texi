@@ -243,8 +243,8 @@ them to suit the current module's needs.  For example:
 @cindex binding renamer
 @lisp
 (use-modules ((ice-9 popen)
-              :select ((open-pipe . pipe-open) close-pipe)
-              :renamer (symbol-prefix-proc 'unixy:)))
+              #:select ((open-pipe . pipe-open) close-pipe)
+              #:renamer (symbol-prefix-proc 'unixy:)))
 @end lisp
 
 Here, the interface specification is more complex than before, and the
