@@ -223,6 +223,13 @@ libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBUNISTRING)
 libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
 
+if HAVE_LD_VERSION_SCRIPT
+
+libguile_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
+
+endif HAVE_LD_VERSION_SCRIPT
+
+
 # These are headers visible as <guile/mumble.h>
 pkginclude_HEADERS = 
 
@@ -264,7 +271,7 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
     c-tokenize.lex version.h.in						\
-    scmconfig.h.top libgettext.h
+    scmconfig.h.top libgettext.h libguile.map
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 

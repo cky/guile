@@ -1,0 +1,44 @@
+# Linker version script for libguile.           -*- ld-script -*-
+#
+# Copyright (C) 2009 Free Software Foundation, Inc.
+#
+# This file is part of GUILE.
+#
+# GUILE is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3, or
+# (at your option) any later version.
+#
+# GUILE is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with GUILE; see the file COPYING.LESSER.  If not,
+# write to the Free Software Foundation, Inc., 51 Franklin Street,
+# Fifth Floor, Boston, MA 02110-1301 USA
+
+GUILE_2.0
+{
+  global:
+    # Note: This includes `scm_i_' symbols declared as `SCM_API' (e.g.,
+    # symbols from `deprecated.c' or symbols used by public inline
+    # functions or macros).
+    scm_*;
+
+    # GDB interface.
+    gdb_options;
+    gdb_language;
+    gdb_result;
+    gdb_output;
+    gdb_output_length;
+    gdb_maybe_valid_type_p;
+    gdb_read;
+    gdb_eval;
+    gdb_print;
+    gdb_binding;
+
+  local:
+    *;
+};
