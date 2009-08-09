@@ -66,14 +66,14 @@ specialized for a particular set of argument types.
 (define-method (+ (x <string>) (y <string>))
   (string-append x y))
 
-(+ "abc" "de") --> "abcde"
+(+ "abc" "de") @result{} "abcde"
 @end lisp
 
 If @code{+} is used with arguments that do not match the method's
 types, Guile falls back to using the normal Scheme @code{+} procedure.
 
 @lisp
-(+ 1 2) --> 3
+(+ 1 2) @result{} 3
 @end lisp
 
 
@@ -94,7 +94,7 @@ types, Guile falls back to using the normal Scheme @code{+} procedure.
 
 (define v (make <2D-vector> #:x 3 #:y 4))
 
-v --> <3, 4>
+v @result{} <3, 4>
 @end group
 
 @group
@@ -103,7 +103,7 @@ v --> <3, 4>
         #:x (+ (x-component x) (x-component y))
         #:y (+ (y-component x) (y-component y))))
 
-(+ v v) --> <6, 8>
+(+ v v) @result{} <6, 8>
 @end group
 @end lisp
 
@@ -111,12 +111,12 @@ v --> <3, 4>
 @subsection Types
 
 @example
-(class-of v) --> #<<class> <2D-vector> 40241ac0>
-<2D-vector>  --> #<<class> <2D-vector> 40241ac0>
-(class-of 1) --> #<<class> <integer> 401b2a98>
-<integer>    --> #<<class> <integer> 401b2a98>
+(class-of v) @result{} #<<class> <2D-vector> 40241ac0>
+<2D-vector>  @result{} #<<class> <2D-vector> 40241ac0>
+(class-of 1) @result{} #<<class> <integer> 401b2a98>
+<integer>    @result{} #<<class> <integer> 401b2a98>
 
-(is-a? v <2D-vector>) --> #t
+(is-a? v <2D-vector>) @result{} #t
 @end example
 
 @node Tutorial
