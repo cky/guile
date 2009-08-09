@@ -30,9 +30,9 @@
 @c Guile
 @c @end macro
 
-This tutorial introduces the @goops{} package.  It was originally
-written by Erick Gallesio as an appendix for the STk reference manual,
-and subsequently adapted to @goops{}.
+This section introduces the @goops{} package in more detail.  It was
+originally written by Erick Gallesio as an appendix for the STk
+reference manual, and subsequently adapted to @goops{}.
 
 The procedures and syntax described in this tutorial are provided by
 Guile modules that may need to be imported before being available.
@@ -109,7 +109,7 @@ example.}  This can be done with the following class definition:
 @end lisp
 
 This binds the variable @code{<my-complex>} to a new class whose
-instances will contain two slots.  These slots are called @code{r} an
+instances will contain two slots.  These slots are called @code{r} and
 @code{i} and will hold the real and imaginary parts of a complex
 number. Note that this class inherits from @code{<number>}, which is a
 predefined class.@footnote{@code{<number>} is the direct superclass of

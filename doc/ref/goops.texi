@@ -40,7 +40,7 @@ meta object protocol, in the spirit of the one defined for CLOS
 @section Quick Start
 
 To give an immediate flavour of what GOOPS can do, here is a very
-quick introduction to its main operations.
+brief introduction to its main operations.
 
 To start using GOOPS, load the @code{(oop goops)} module:
 
@@ -89,8 +89,7 @@ types, Guile falls back to using the normal Scheme @code{+} procedure.
 (use-modules (ice-9 format))
 
 (define-method (write (obj <2D-vector>) port)
-  (display (format #f "<~S, ~S>" (x-component obj) (y-component obj))
-           port))
+  (format port "<~S, ~S>" (x-component obj) (y-component obj)))
 
 (define v (make <2D-vector> #:x 3 #:y 4))
 
