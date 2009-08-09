@@ -30,14 +30,17 @@ meta object protocol, in the spirit of the one defined for CLOS
 (@cite{Gregor Kiczales: A Metaobject Protocol}).
 
 @menu
-* Getting Started::
+* Quick Start::
 * Tutorial::
 * Reference Manual::
 * MOP Specification::
 @end menu
 
-@node Getting Started
-@section Getting Started
+@node Quick Start
+@section Quick Start
+
+To give an immediate flavour of what GOOPS can do, here is a very
+quick introduction to its main operations.
 
 To start using GOOPS, load the @code{(oop goops)} module:
 
@@ -56,20 +59,28 @@ We're now ready to try some basic GOOPS functionality.
 @node Methods
 @subsection Methods
 
-@smalllisp
-@group
+A GOOPS method is like a Scheme procedure except that it is
+specialized for a particular set of argument types.
+
+@lisp
 (define-method (+ (x <string>) (y <string>))
   (string-append x y))
 
-(+ 1 2) --> 3
 (+ "abc" "de") --> "abcde"
-@end group
-@end smalllisp
+@end lisp
+
+If @code{+} is used with arguments that do not match the method's
+types, Guile falls back to using the normal Scheme @code{+} procedure.
+
+@lisp
+(+ 1 2) --> 3
+@end lisp
+
 
 @node User-defined types
 @subsection User-defined types
 
-@smalllisp
+@lisp
 (define-class <2D-vector> ()
   (x #:init-value 0 #:accessor x-component #:init-keyword #:x)
   (y #:init-value 0 #:accessor y-component #:init-keyword #:y))
@@ -94,7 +105,7 @@ v --> <3, 4>
 
 (+ v v) --> <6, 8>
 @end group
-@end smalllisp
+@end lisp
 
 @node Asking for the type of an object
 @subsection Types
