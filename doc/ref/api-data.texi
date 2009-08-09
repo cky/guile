@@ -3477,9 +3477,9 @@ allocated string.
 @deffnx {C Function} scm_string_concatenate_reverse (ls, final_string, end)
 Without optional arguments, this procedure is equivalent to
 
-@smalllisp
+@lisp
 (string-concatenate (reverse ls))
-@end smalllisp
+@end lisp
 
 If the optional argument @var{final_string} is specified, it is
 consed onto the beginning to @var{ls} before performing the
@@ -5505,7 +5505,7 @@ the @code{read-set!} procedure documented in @ref{User level options
 interfaces} and @ref{Reader options}.  Note that the @code{prefix} and
 @code{postfix} syntax are mutually exclusive.
 
-@smalllisp
+@lisp
 (read-set! keywords 'prefix)
 
 #:type
@@ -5537,7 +5537,7 @@ type:
 ERROR: In expression :type:
 ERROR: Unbound variable: :type
 ABORT: (unbound-variable)
-@end smalllisp
+@end lisp
 
 @node Keyword Procedures
 @subsubsection Keyword Procedures

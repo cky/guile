@@ -504,9 +504,9 @@ Guile is case-sensitive by default.
 
 To make Guile case insensitive, you can type
 
-@smalllisp
+@lisp
 (read-enable 'case-insensitive)
-@end smalllisp
+@end lisp
 
 @node Printing options
 @subsubsection Printing options
@@ -718,7 +718,6 @@ Reproduces the error of displaying @code{aBc} with backtracing enabled
 backtrace.  Need to give a better example, possibly putting debugging
 option examples in a separate session.]
 @end enumerate
-
 
 @smalllisp
 guile> (define abc "hello")

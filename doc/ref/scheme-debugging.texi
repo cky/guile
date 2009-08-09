@@ -14,9 +14,9 @@ call to that procedure is reported to the user during a program run.
 The idea is that you can mark a collection of procedures for tracing,
 and Guile will subsequently print out a line of the form
 
-@smalllisp
+@lisp
 |  |  [@var{procedure} @var{args} @dots{}]
-@end smalllisp
+@end lisp
 
 whenever a marked procedure is about to be applied to its arguments.
 This can help a programmer determine whether a function is being called
@@ -27,7 +27,7 @@ how the traced applications are or are not tail recursive with respect
 to each other.  Thus, a trace of a non-tail recursive factorial
 implementation looks like this:
 
-@smalllisp
+@lisp
 [fact1 4]
 |  [fact1 3]
 |  |  [fact1 2]
@@ -38,11 +38,11 @@ implementation looks like this:
 |  |  2
 |  6
 24
-@end smalllisp
+@end lisp
 
 While a typical tail recursive implementation would look more like this:
 
-@smalllisp
+@lisp
 [fact2 4]
 [facti 1 4]
 [facti 4 3]
@@ -50,7 +50,7 @@ While a typical tail recursive implementation would look more like this:
 [facti 24 1]
 [facti 24 0]
 24
-@end smalllisp
+@end lisp
 
 @deffn {Scheme Procedure} trace procedure
 Enable tracing for @code{procedure}.  While a program is being run,

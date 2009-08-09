@@ -44,9 +44,9 @@ quick introduction to its main operations.
 
 To start using GOOPS, load the @code{(oop goops)} module:
 
-@smalllisp
+@lisp
 (use-modules (oop goops))
-@end smalllisp
+@end lisp
 
 We're now ready to try some basic GOOPS functionality.
 
@@ -1489,7 +1489,7 @@ This can be resolved automagically with the duplicates handler
 @code{merge-generics} which gives the module system license to merge
 all generic functions sharing a common name:
 
-@smalllisp
+@lisp
 (define-module (math 2D-vectors)
   :use-module (oop goops)
   :export (x y ...))
@@ -1502,7 +1502,7 @@ all generic functions sharing a common name:
   :use-module (math 2D-vectors)
   :use-module (math 3D-vectors)
   :duplicates merge-generics)
-@end smalllisp
+@end lisp
 
 The generic function @code{x} in @code{(my-module)} will now share
 methods with @code{x} in both imported modules.
@@ -1534,9 +1534,9 @@ adding it to the ancestor.
 If duplicates checking is desired in the above example, the following
 form of the @code{:duplicates} option can be used instead:
 
-@smalllisp
+@lisp
   :duplicates (merge-generics check)
-@end smalllisp
+@end lisp
 
 @node Generic Function Internals
 @subsubsection Generic Function Internals

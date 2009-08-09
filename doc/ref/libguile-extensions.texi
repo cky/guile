@@ -94,11 +94,11 @@ we are going to call the function @code{init_bessel} which will make
 @file{.so} when invoking @code{load-extension}.  The right extension for
 the host platform will be provided automatically.
 
-@smalllisp
+@lisp
 (load-extension "libguile-bessel" "init_bessel")
 (j0 2)
 @result{} 0.223890779141236
-@end smalllisp
+@end lisp
 
 For this to work, @code{load-extension} must be able to find
 @file{libguile-bessel}, of course.  It will look in the places that

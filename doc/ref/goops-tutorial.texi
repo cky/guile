@@ -172,12 +172,12 @@ Then the expression
 @noindent
 will print the following information on the standard output:
 
-@lisp
+@smalllisp
 #<<my-complex> 401d8638> is an instance of class <my-complex>
 Slots are: 
      r = 10
      i = 3
-@end lisp
+@end smalllisp
 
 @node Slot description
 @subsection Slot description
@@ -400,20 +400,21 @@ A more complete example is given below:
 
 @example
 @group
-@lisp
+@smalllisp
 (define c (make <my-complex> #:r 12 #:i 20))
 (real-part c) @result{} 12
 (angle c) @result{} 1.03037682652431
 (slot-set! c 'i 10)
 (set! (real-part c) 1)
-(describe c) @result{}
-          #<<my-complex> 401e9b58> is an instance of class <my-complex>
-          Slots are: 
-               r = 1
-               i = 10
-               m = 10.0498756211209
-               a = 1.47112767430373
-@end lisp
+(describe c)
+@print{}
+#<<my-complex> 401e9b58> is an instance of class <my-complex>
+Slots are: 
+     r = 1
+     i = 10
+     m = 10.0498756211209
+     a = 1.47112767430373
+@end smalllisp
 @end group
 @end example
 
