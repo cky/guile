@@ -155,11 +155,11 @@ SCM_INTERNAL SCM scm_i_port_weak_hash;
 #define SCM_REVEALED(x)           (SCM_PTAB_ENTRY(x)->revealed)
 #define SCM_SETREVEALED(x, s)      (SCM_PTAB_ENTRY(x)->revealed = (s))
 
-#define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
-#define SCM_ZEROCOL(port)  	{SCM_COL (port) = 0;}
-#define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
-#define SCM_DECCOL(port)  	{if (SCM_COL (port) > 0) SCM_COL (port) -= 1;}
-#define SCM_TABCOL(port)  	{SCM_COL (port) += 8 - SCM_COL (port) % 8;}
+#define SCM_INCLINE(port)  	do {SCM_LINUM (port) += 1; SCM_COL (port) = 0;} while (0)
+#define SCM_ZEROCOL(port)  	do {SCM_COL (port) = 0;} while (0)
+#define SCM_INCCOL(port)  	do {SCM_COL (port) += 1;} while (0)
+#define SCM_DECCOL(port)  	do {if (SCM_COL (port) > 0) SCM_COL (port) -= 1;} while (0)
+#define SCM_TABCOL(port)  	do {SCM_COL (port) += 8 - SCM_COL (port) % 8;} while (0)
 
 /* Maximum number of port types.  */
 #define SCM_I_MAX_PORT_TYPE_COUNT  256

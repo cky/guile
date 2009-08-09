@@ -973,28 +973,17 @@ static void
 update_port_lf (scm_t_wchar c, SCM port)
 {
   if (c == '\a')
-    {
-    }
+    ;                           /* Do nothing. */
   else if (c == '\b')
-    {
-      SCM_DECCOL (port);
-    }
+    SCM_DECCOL (port);
   else if (c == '\n')
-    {
-      SCM_INCLINE (port);
-    }
+    SCM_INCLINE (port);
   else if (c == '\r')
-    {
-      SCM_ZEROCOL (port);
-    }
+    SCM_ZEROCOL (port);
   else if (c == '\t')
-    {
-      SCM_TABCOL (port);
-    }
+    SCM_TABCOL (port);
   else
-    {
-      SCM_INCCOL (port);
-    }
+    SCM_INCCOL (port);
 }
 
 void
