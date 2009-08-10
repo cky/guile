@@ -582,7 +582,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                   else if (ch == '"' || ch == '\\')
                     {
                       scm_putc ('\\', port);
-                      scm_charprint (ch, port);
+                      scm_i_charprint (ch, port);
                       printed = 1;
                     }
                   else
@@ -824,7 +824,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
 /* Print a character.
  */
 void
-scm_charprint (scm_t_uint32 ch, SCM port)
+scm_i_charprint (scm_t_uint32 ch, SCM port)
 {
   scm_t_wchar *wbuf;
   SCM wstr = scm_i_make_wide_string (1, &wbuf);
