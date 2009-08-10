@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,7 +45,7 @@
  *
  * XXX - keeping an accurate refcount during GC seems to be quite
  * tricky, so we just keep score of whether a stringbuf might be
- * shared, not wether it definitely is.  
+ * shared, not whether it definitely is.  
  *
  * The scheme I (mvo) tried to keep an accurate reference count would
  * recount all strings that point to a stringbuf during the mark-phase
@@ -62,16 +62,24 @@
  * A stringbuf needs to know its length, but only so that it can be
  * reported when the stringbuf is freed.
  *
- * Stringbufs (and strings) are not stored very compactly: a stringbuf
- * has room for about 2*sizeof(scm_t_bits)-1 bytes additional
- * information.  As a compensation, the code below is made more
- * complicated by storing small strings inline in the double cell of a
- * stringbuf.  So we have fixstrings and bigstrings...
+ * There are 3 storage strategies for stringbufs: inline, outline, and
+ * wide.
+ *
+ * Inline strings are small 8-bit strings stored within the double
+ * cell itself.  Outline strings are larger 8-bit strings with GC
+ * allocated storage.  Wide strings are 32-bit strings with allocated
+ * storage.
+ *
+ * There was little value in making wide string inlineable, since
+ * there is only room for three inlined 32-bit characters.  Thus wide
+ * stringbufs are never inlined.
  */
 
 #define STRINGBUF_F_SHARED      0x100
 #define STRINGBUF_F_INLINE      0x200
-#define STRINGBUF_F_WIDE        0x400
+#define STRINGBUF_F_WIDE        0x400 /* If true, strings have UCS-4
+                                         encoding.  Otherwise, strings
+                                         are Latin-1.  */
 
 #define STRINGBUF_TAG           scm_tc7_stringbuf
 #define STRINGBUF_SHARED(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_SHARED)
@@ -86,6 +94,7 @@
 #define STRINGBUF_CHARS(buf)  (STRINGBUF_INLINE (buf) \
                                ? STRINGBUF_INLINE_CHARS (buf) \
                                : STRINGBUF_OUTLINE_CHARS (buf))
+
 #define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *)SCM_CELL_WORD_1(buf))
 #define STRINGBUF_LENGTH(buf) (STRINGBUF_INLINE (buf) \
                                ? STRINGBUF_INLINE_LENGTH (buf) \
@@ -100,6 +109,8 @@
 static size_t lenhist[1001];
 #endif
 
+/* Make a stringbuf with space for LEN 8-bit Latin-1-encoded
+   characters. */
 static SCM
 make_stringbuf (size_t len)
 {
@@ -131,6 +142,8 @@ make_stringbuf (size_t len)
     }
 }
 
+/* Make a stringbuf with space for LEN 32-bit UCS-4-encoded
+   characters.  */
 static SCM
 make_wide_stringbuf (size_t len)
 {
@@ -181,6 +194,8 @@ scm_i_stringbuf_free (SCM buf)
 
 }
 
+/* Convert a stringbuf containing 8-bit Latin-1-encoded characters to
+   one containing 32-bit UCS-4-encoded characters.  */
 static void
 widen_stringbuf (SCM buf)
 {
@@ -255,6 +270,9 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 #define IS_SH_STRING(str)   (SCM_CELL_TYPE(str)==SH_STRING_TAG)
 
+/* Create a scheme string with space for LEN 8-bit Latin-1-encoded
+   characters.  CHARSP, if not NULL, will be set to location of the
+   char array.  */
 SCM
 scm_i_make_string (size_t len, char **charsp)
 {
@@ -267,8 +285,11 @@ scm_i_make_string (size_t len, char **charsp)
   return res;
 }
 
+/* Create a scheme string with space for LEN 32-bit UCS-4-encoded
+   characters.  CHARSP, if not NULL, will be set to location of the
+   character array.  */
 SCM
-scm_i_make_wide_string (size_t len, scm_t_wchar ** charsp)
+scm_i_make_wide_string (size_t len, scm_t_wchar **charsp)
 {
   SCM buf = make_wide_stringbuf (len);
   SCM res;
@@ -350,7 +371,7 @@ scm_i_substring_copy (SCM str, size_t start, size_t end)
                (scm_t_uint32 *) (STRINGBUF_WIDE_CHARS (buf) + str_start 
                                  + start), len);
       /* Even though this string is wide, the substring may be narrow.
-         Consider adding code to narrow string.  */
+         Consider adding code to narrow the string.  */
     }
   scm_remember_upto_here_1 (buf);
   return scm_double_cell (STRING_TAG, SCM_UNPACK (my_buf),
@@ -420,18 +441,25 @@ scm_i_string_free (SCM str)
 /* Internal accessors
  */
 
+/* Returns the number of characters in STR.  This may be different
+   than the memory size of the string storage.  */
 size_t
 scm_i_string_length (SCM str)
 {
   return STRING_LENGTH (str);
 }
 
+/* True if the string is 'narrow', meaning it has a 8-bit Latin-1
+   encoding.  False if it is 'wide', having a 32-bit UCS-4
+   encoding.  */
 int
 scm_i_is_narrow_string (SCM str)
 {
   return !STRINGBUF_WIDE (STRING_STRINGBUF (str));
 }
 
+/* Returns a pointer to the 8-bit Latin-1 encoded character array of
+   STR.  */
 const char *
 scm_i_string_chars (SCM str)
 {
@@ -446,6 +474,8 @@ scm_i_string_chars (SCM str)
   return NULL;
 }
 
+/* Returns a pointer to the 32-bit UCS-4 encoded character array of
+   STR.  */
 const scm_t_wchar *
 scm_i_string_wide_chars (SCM str)
 {
@@ -462,7 +492,8 @@ scm_i_string_wide_chars (SCM str)
 
 /* If the buffer in ORIG_STR is shared, copy ORIG_STR's characters to
    a new string buffer, so that it can be modified without modifying
-   other strings.  */
+   other strings.  Also, lock the string mutex.  Later, one must call
+   scm_i_string_stop_writing to unlock the mutex.  */
 SCM
 scm_i_string_start_writing (SCM orig_str)
 {
@@ -509,8 +540,7 @@ scm_i_string_start_writing (SCM orig_str)
   return orig_str;
 }
 
-/* Return a pointer to the chars of a string that fits in a Latin-1
-   encoding.  */
+/* Return a pointer to the 8-bit Latin-1 chars of a string.  */
 char *
 scm_i_string_writable_chars (SCM str)
 {
@@ -526,7 +556,7 @@ scm_i_string_writable_chars (SCM str)
   return NULL;
 }
 
-/* Return a pointer to the Unicode codepoints of a string.  */
+/* Return a pointer to the UCS-4 codepoints of a string.  */
 static scm_t_wchar *
 scm_i_string_writable_wide_chars (SCM str)
 {
@@ -541,13 +571,15 @@ scm_i_string_writable_wide_chars (SCM str)
                     scm_list_1 (str));
 }
 
+/* Unlock the string mutex that was locked when
+   scm_i_string_start_writing was called.  */
 void
 scm_i_string_stop_writing (void)
 {
   scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
 }
 
-/* Return the Xth character is C.  */
+/* Return the Xth character of STR as a UCS-4 codepoint.  */
 scm_t_wchar
 scm_i_string_ref (SCM str, size_t x)
 {
@@ -557,6 +589,7 @@ scm_i_string_ref (SCM str, size_t x)
     return scm_i_string_wide_chars (str)[x];
 }
 
+/* Set the Pth character of STR to UCS-4 codepoint CHR. */
 void
 scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)
 {
@@ -652,6 +685,8 @@ scm_i_c_take_symbol (char *name, size_t len,
 			  (scm_t_bits) hash, SCM_UNPACK (props));
 }
 
+/* Returns the number of characters in SYM.  This may be different
+   from the memory size of SYM.  */
 size_t
 scm_i_symbol_length (SCM sym)
 {
@@ -668,6 +703,8 @@ scm_c_symbol_length (SCM sym)
 }
 #undef FUNC_NAME
 
+/* True if the name of SYM is stored as a Latin-1 encoded string.
+   False if it is stored as a 32-bit UCS-4-encoded string.  */
 int
 scm_i_is_narrow_symbol (SCM sym)
 {
@@ -677,6 +714,8 @@ scm_i_is_narrow_symbol (SCM sym)
   return !STRINGBUF_WIDE (buf);
 }
 
+/* Returns a pointer to the 8-bit Latin-1 encoded character array that
+   contains the name of SYM.  */
 const char *
 scm_i_symbol_chars (SCM sym)
 {
@@ -690,7 +729,8 @@ scm_i_symbol_chars (SCM sym)
                     scm_list_1 (sym));
 }
 
-/* Return a pointer to the Unicode codepoints of a symbol's name.  */
+/* Return a pointer to the 32-bit UCS-4-encoded character array of a
+   symbol's name.  */
 const scm_t_wchar *
 scm_i_symbol_wide_chars (SCM sym)
 {
@@ -727,6 +767,7 @@ scm_i_symbol_substring (SCM sym, size_t start, size_t end)
 			  (scm_t_bits)start, (scm_t_bits) end - start);
 }
 
+/* Returns the Xth character of symbol SYM as a UCS-4 codepoint.  */
 scm_t_wchar
 scm_i_symbol_ref (SCM sym, size_t x)
 {
@@ -1216,6 +1257,8 @@ scm_from_locale_string (const char *str)
   return scm_from_locale_stringn (str, -1);
 }
 
+/* Create a new scheme string from the C string STR.  The memory of
+   STR may be used directly as storage for the new string.  */
 SCM
 scm_take_locale_stringn (char *str, size_t len)
 {
