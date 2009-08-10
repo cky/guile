@@ -105,7 +105,7 @@
 #define SET_STRINGBUF_SHARED(buf) \
   (SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED))
 
-#if SCM_DEBUG
+#if SCM_STRING_LENGTH_HISTOGRAM
 static size_t lenhist[1001];
 #endif
 
@@ -121,7 +121,7 @@ make_stringbuf (size_t len)
      can be dropped.
   */
 
-#if SCM_DEBUG
+#if SCM_STRING_LENGTH_HISTOGRAM
   if (len < 1000)
     lenhist[len]++;
   else
@@ -148,7 +148,7 @@ static SCM
 make_wide_stringbuf (size_t len)
 {
   scm_t_wchar *mem;
-#if SCM_DEBUG
+#if SCM_STRING_LENGTH_HISTOGRAM
   if (len < 1000)
     lenhist[len]++;
   else
@@ -780,79 +780,195 @@ scm_i_symbol_ref (SCM sym, size_t x)
 /* Debugging
  */
 
-#if SCM_DEBUG
-
-SCM scm_sys_string_dump (SCM);
-SCM scm_sys_symbol_dump (SCM);
-SCM scm_sys_stringbuf_hist (void);
-
-SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str), "")
+SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str), 
+            "Returns an association list containing debugging information\n"
+            "for @var{str}. The association list has the following entries."
+            "@table @code\n"
+            "@item string\n"
+            "The string itself.\n"
+            "@item start\n"
+            "The start index of the string into its stringbuf\n"
+            "@item length\n"
+            "The length of the string\n"
+            "@item shared\n"
+            "If this string is a substring, it returns its parent string.\n"
+            "Otherwise, it returns @code{#f}\n"
+            "@item stringbuf\n"
+            "The string buffer that contains this string's characters\n"
+            "@item stringbuf-chars\n"
+            "A new string containing this string's stringbuf's characters\n"
+            "@item stringbuf-length\n"
+            "The number of characters in this stringbuf\n"
+            "@item stringbuf-shared\n"
+            "@code{#t} if this stringbuf is shared\n"
+            "@item stringbuf-inline\n"
+            "@code{#t} if this stringbuf's characters are stored in the\n"
+            "cell itself, or @code{#f} if they were allocated in memory\n"
+            "@item stringbuf-wide\n"
+            "@code{#t} if this stringbuf's characters are stored in a\n"
+            "32-bit buffer, or @code{#f} if they are stored in an 8-bit\n"
+            "buffer\n"
+            "@end table")
 #define FUNC_NAME s_scm_sys_string_dump
 {
+  SCM e1, e2, e3, e4, e5, e6, e7, e8, e9, e10;
+  SCM buf;
   SCM_VALIDATE_STRING (1, str);
-  fprintf (stderr, "%p:\n", str);
-  fprintf (stderr, " start: %u\n", STRING_START (str));
-  fprintf (stderr, " len:   %u\n", STRING_LENGTH (str));
-  if (scm_i_is_narrow_string (str))
-    fprintf (stderr, " format: narrow\n");
-  else
-    fprintf (stderr, " format: wide\n");
+
+  /* String info */
+  e1 = scm_cons (scm_from_locale_symbol ("string"),
+                 str);
+  e2 = scm_cons (scm_from_locale_symbol ("start"),
+                 scm_from_size_t (STRING_START (str)));
+  e3 = scm_cons (scm_from_locale_symbol ("length"),
+                 scm_from_size_t (STRING_LENGTH (str)));
+
   if (IS_SH_STRING (str))
     {
-      fprintf (stderr, " string: %p\n", SH_STRING_STRING (str));
-      fprintf (stderr, "\n");
-      scm_sys_string_dump (SH_STRING_STRING (str));
+      e4 = scm_cons (scm_from_locale_symbol ("shared"),
+                     SH_STRING_STRING (str));
+      buf = STRING_STRINGBUF (SH_STRING_STRING (str));
     }
   else
     {
-      SCM buf = STRING_STRINGBUF (str);
-      fprintf (stderr, " buf:   %p\n", buf);
-      if (scm_i_is_narrow_string (str))
-        fprintf (stderr, "  chars:  %p\n", STRINGBUF_CHARS (buf));
-      else
-        fprintf (stderr, "  chars:   %p\n", STRINGBUF_WIDE_CHARS (buf));
-      fprintf (stderr, "  length: %u\n", STRINGBUF_LENGTH (buf));
-      if (STRINGBUF_SHARED (buf))
-        fprintf (stderr, "  shared: true\n");
-      else
-        fprintf (stderr, "  shared: false\n");
-      if (STRINGBUF_INLINE (buf))
-        fprintf (stderr, "  inline: true\n");
-      else
-        fprintf (stderr, "  inline: false\n");
-
+      e4 = scm_cons (scm_from_locale_symbol ("shared"),
+                     SCM_BOOL_F);
+      buf = STRING_STRINGBUF (str);
     }
-  return SCM_UNSPECIFIED;
+
+  /* Stringbuf info */
+  e5 = scm_cons (scm_from_locale_symbol ("stringbuf"),
+                 buf);
+  
+  if (!STRINGBUF_WIDE (buf))
+    {
+      size_t len = STRINGBUF_LENGTH (buf);
+      char *cbuf;
+      SCM sbc = scm_i_make_string (len, &cbuf);
+      memcpy (cbuf, STRINGBUF_CHARS (buf), len);
+      e6 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+                     sbc);
+    }
+  else
+    {
+      size_t len = STRINGBUF_LENGTH (buf);
+      scm_t_wchar *cbuf;
+      SCM sbc = scm_i_make_wide_string (len, &cbuf);
+      u32_cpy ((scm_t_uint32 *) cbuf, 
+               (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
+      e6 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+                     sbc);
+    }
+  e7 = scm_cons (scm_from_locale_symbol ("stringbuf-length"), 
+                 scm_from_size_t (STRINGBUF_LENGTH (buf)));
+  if (STRINGBUF_SHARED (buf))
+    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+                   SCM_BOOL_T);
+  else
+    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+                   SCM_BOOL_F);
+  if (STRINGBUF_INLINE (buf))
+    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
+                   SCM_BOOL_T);
+  else
+    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
+                   SCM_BOOL_F);
+  if (STRINGBUF_WIDE (buf))
+    e10 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+                    SCM_BOOL_T);
+  else
+    e10 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+                    SCM_BOOL_F);
+
+  return scm_list_n (e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym), "")
+SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
+            "Returns an association list containing debugging information\n"
+            "for @var{sym}. The association list has the following entries."
+            "@table @code\n"
+            "@item symbol\n"
+            "The symbol itself\n"
+            "@item hash\n"
+            "Its hash value\n"
+            "@item stringbuf\n"
+            "The string buffer that contains this symbol's characters\n"
+            "@item stringbuf-chars\n"
+            "A new string containing this symbols's stringbuf's characters\n"
+            "@item stringbuf-length\n"
+            "The number of characters in this stringbuf\n"
+            "@item stringbuf-shared\n"
+            "@code{#t} if this stringbuf is shared\n"
+            "@item stringbuf-inline\n"
+            "@code{#t} if this stringbuf's characters are stored in the\n"
+            "cell itself, or @code{#f} if they were allocated in memory\n"
+            "@item stringbuf-wide\n"
+            "@code{#t} if this stringbuf's characters are stored in a\n"
+            "32-bit buffer, or @code{#f} if they are stored in an 8-bit\n"
+            "buffer\n"
+            "@end table")
 #define FUNC_NAME s_scm_sys_symbol_dump
 {
+  SCM e1, e2, e3, e4, e5, e6, e7, e8;
+  SCM buf;
   SCM_VALIDATE_SYMBOL (1, sym);
-  fprintf (stderr, "%p:\n", sym);
-  fprintf (stderr, " hash: %lu\n", scm_i_symbol_hash (sym));
-  if (scm_i_is_narrow_symbol (sym))
-    fprintf (stderr, " format: narrow\n");
+  e1 = scm_cons (scm_from_locale_symbol ("symbol"),
+                 sym);
+  e2 = scm_cons (scm_from_locale_symbol ("hash"),
+                 scm_from_ulong (scm_i_symbol_hash (sym)));
+
+  buf = SYMBOL_STRINGBUF (sym);
+
+  /* Stringbuf info */
+  e3 = scm_cons (scm_from_locale_symbol ("stringbuf"),
+                 buf);
+  
+  if (!STRINGBUF_WIDE (buf))
+    {
+      size_t len = STRINGBUF_LENGTH (buf);
+      char *cbuf;
+      SCM sbc = scm_i_make_string (len, &cbuf);
+      memcpy (cbuf, STRINGBUF_CHARS (buf), len);
+      e4 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+                     sbc);
+    }
   else
-    fprintf (stderr, " format: wide\n");
-  {
-    SCM buf = SYMBOL_STRINGBUF (sym);
-    fprintf (stderr, " buf: %p\n", buf);
-    if (scm_i_is_narrow_symbol (sym))
-      fprintf (stderr, "  chars:  %p\n", STRINGBUF_CHARS (buf));
-    else
-      fprintf (stderr, "  chars:  %p\n", STRINGBUF_WIDE_CHARS (buf));
-    fprintf (stderr, "  length: %u\n", STRINGBUF_LENGTH (buf));
-    if (STRINGBUF_SHARED (buf))
-      fprintf (stderr, "  shared: true\n");
-    else
-      fprintf (stderr, "  shared: false\n");
-      
-  }
-  return SCM_UNSPECIFIED;
+    {
+      size_t len = STRINGBUF_LENGTH (buf);
+      scm_t_wchar *cbuf;
+      SCM sbc = scm_i_make_wide_string (len, &cbuf);
+      u32_cpy ((scm_t_uint32 *) cbuf, 
+               (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
+      e4 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+                     sbc);
+    }
+  e5 = scm_cons (scm_from_locale_symbol ("stringbuf-length"), 
+                 scm_from_size_t (STRINGBUF_LENGTH (buf)));
+  if (STRINGBUF_SHARED (buf))
+    e6 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+                   SCM_BOOL_T);
+  else
+    e6 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+                   SCM_BOOL_F);
+  if (STRINGBUF_INLINE (buf))
+    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
+                   SCM_BOOL_T);
+  else
+    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
+                   SCM_BOOL_F);
+  if (STRINGBUF_WIDE (buf))
+    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+                    SCM_BOOL_T);
+  else
+    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+                    SCM_BOOL_F);
+  return scm_list_n (e1, e2, e3, e4, e5, e6, e7, e8, SCM_UNDEFINED);
+
 }
 #undef FUNC_NAME
+
+#if SCM_STRING_LENGTH_HISTOGRAM
 
 SCM_DEFINE (scm_sys_stringbuf_hist, "%stringbuf-hist", 0, 0, 0, (void), "")
 #define FUNC_NAME s_scm_sys_stringbuf_hist
