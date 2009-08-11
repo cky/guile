@@ -1,7 +1,7 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,14 +20,219 @@
 (define-module (test-strings)
   #:use-module (test-suite lib))
 
-
 (define exception:read-only-string
   (cons 'misc-error "^string is read-only"))
+(define exception:illegal-escape
+  (cons 'read-error "illegal character in escape sequence"))
 
 ;; Create a string from integer char values, eg. (string-ints 65) => "A"
 (define (string-ints . args)
   (apply string (map integer->char args)))
 
+;;
+;; string internals
+;;
+
+;; Some abbreviations
+;; BMP - Basic Multilingual Plane (codepoints below U+FFFF)
+;; SMP - Suplementary Multilingual Plane (codebpoints from U+10000 to U+1FFFF)
+
+(with-test-prefix "string internals"
+
+  (pass-if "new string starts at 1st char in stringbuf"
+    (let ((s "abc"))
+      (= 0 (assq-ref (%string-dump s) 'start))))
+
+  (pass-if "length of new string same as stringbuf"
+    (let ((s "def"))
+      (= (string-length s) (assq-ref (%string-dump s) 'stringbuf-length))))
+
+  (pass-if "contents of new string same as stringbuf"
+    (let ((s "ghi"))
+      (string=? s (assq-ref (%string-dump s) 'stringbuf-chars))))
+
+  (pass-if "writable strings are not read-only"
+    (let ((s "zyx"))
+      (not (assq-ref (%string-dump s) 'read-only))))
+
+  (pass-if "read-only strings are read-only"
+    (let ((s (substring/read-only "zyx" 0)))
+      (assq-ref (%string-dump s) 'read-only)))
+
+  (pass-if "null strings are inlined"
+    (let ((s ""))
+      (assq-ref (%string-dump s) 'stringbuf-inline)))
+
+  (pass-if "short Latin-1 encoded strings are inlined"
+    (let ((s "m"))
+      (assq-ref (%string-dump s) 'stringbuf-inline)))
+
+  (pass-if "long Latin-1 encoded strings are not inlined"
+    (let ((s "0123456789012345678901234567890123456789"))
+      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
+
+  (pass-if "short UCS-4 encoded strings are not inlined"
+    (let ((s "\u0100"))
+      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
+
+  (pass-if "long UCS-4 encoded strings are not inlined"
+    (let ((s "\u010012345678901234567890123456789"))
+      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
+
+  (pass-if "new Latin-1 encoded strings are not shared"
+    (let ((s "abc"))
+      (not (assq-ref (%string-dump s) 'stringbuf-shared))))
+
+  (pass-if "new UCS-4 encoded strings are not shared"
+    (let ((s "\u0100bc"))
+      (not (assq-ref (%string-dump s) 'stringbuf-shared))))
+
+  ;; Should this be true? It isn't currently true.
+  (pass-if "null shared substrings are shared"
+    (let* ((s1 "")
+           (s2 (substring/shared s1 0 0)))
+      (throw 'untested)
+      (eq? (assq-ref (%string-dump s2) 'shared)
+           s1)))
+
+  (pass-if "ASCII shared substrings are shared"
+    (let* ((s1 "foobar")
+           (s2 (substring/shared s1 0 3)))
+      (eq? (assq-ref (%string-dump s2) 'shared)
+           s1)))
+
+  (pass-if "BMP shared substrings are shared"
+    (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
+           (s2 (substring/shared s1 0 3)))
+      (eq? (assq-ref (%string-dump s2) 'shared)
+           s1)))
+
+  (pass-if "null substrings are not shared"
+    (let* ((s1 "")
+           (s2 (substring s1 0 0)))
+      (not (eq? (assq-ref (%string-dump s2) 'shared)
+                s1))))
+
+  (pass-if "ASCII substrings are not shared"
+    (let* ((s1 "foobar")
+           (s2 (substring s1 0 3)))
+      (not (eq? (assq-ref (%string-dump s2) 'shared)
+                s1))))
+
+  (pass-if "BMP substrings are not shared"
+    (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
+           (s2 (substring s1 0 3)))
+      (not (eq? (assq-ref (%string-dump s2) 'shared)
+                s1))))
+
+  (pass-if "ASCII substrings share stringbufs before copy-on-write"
+    (let* ((s1 "foobar")
+           (s2 (substring s1 0 3)))
+      (assq-ref (%string-dump s1) 'stringbuf-shared)))
+
+  (pass-if "BMP substrings share stringbufs before copy-on-write"
+    (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
+           (s2 (substring s1 0 3)))
+      (assq-ref (%string-dump s1) 'stringbuf-shared)))
+
+  (pass-if "ASCII substrings don't share stringbufs after copy-on-write"
+    (let* ((s1 "foobar")
+           (s2 (substring s1 0 3)))
+      (string-set! s2 0 #\F)
+      (not (assq-ref (%string-dump s2) 'stringbuf-shared))))
+
+  (pass-if "BMP substrings don't share stringbufs after copy-on-write"
+    (let* ((s1 "\u0100\u0101\u0102\u0103\u0104\u0105")
+           (s2 (substring s1 0 3)))
+      (string-set! s2 0 #\F)
+      (not (assq-ref (%string-dump s2) 'stringbuf-shared))))
+
+  (with-test-prefix "encodings"
+
+    (pass-if "null strings are Latin-1 encoded"
+      (let ((s ""))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))
+
+    (pass-if "ASCII strings are Latin-1 encoded"
+      (let ((s "jkl"))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))
+
+    (pass-if "Latin-1 strings are Latin-1 encoded"
+      (let ((s "\xC0\xC1\xC2"))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))
+
+    (pass-if "BMP strings are UCS-4 encoded"
+      (let ((s "\u0100\u0101\x0102"))
+        (assq-ref (%string-dump s) 'stringbuf-wide)))
+
+    (pass-if "SMP strings are UCS-4 encoded"
+      (let ((s "\U010300\u010301\x010302"))
+        (assq-ref (%string-dump s) 'stringbuf-wide)))
+
+    (pass-if "null list->string is Latin-1 encoded"
+      (let ((s (string-ints)))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))
+
+    (pass-if "ASCII list->string is Latin-1 encoded"
+      (let ((s (string-ints 65 66 67)))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))
+
+    (pass-if "Latin-1 list->string is Latin-1 encoded"
+      (let ((s (string-ints #xc0 #xc1 #xc2)))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))
+
+    (pass-if "BMP list->string is UCS-4 encoded"
+      (let ((s (string-ints #x0100 #x0101 #x0102)))
+        (assq-ref (%string-dump s) 'stringbuf-wide)))
+
+    (pass-if "SMP list->string is UCS-4 encoded"
+      (let ((s (string-ints #x010300 #x010301 #x010302)))
+        (assq-ref (%string-dump s) 'stringbuf-wide)))
+
+    (pass-if "encoding of string not based on escape style"
+      (let ((s "\U000040"))
+        (not (assq-ref (%string-dump s) 'stringbuf-wide))))))
+
+(with-test-prefix "hex escapes"
+
+  (pass-if-exception "non-hex char in two-digit hex-escape"
+    exception:illegal-escape                     
+    (with-input-from-string "\"\\x0g\"" read))
+
+  (pass-if-exception "non-hex char in four-digit hex-escape"
+    exception:illegal-escape                     
+    (with-input-from-string "\"\\u000g\"" read))
+
+  (pass-if-exception "non-hex char in six-digit hex-escape"
+    exception:illegal-escape                     
+    (with-input-from-string "\"\\U00000g\"" read))
+
+  (pass-if-exception "premature termination of two-digit hex-escape"
+    exception:illegal-escape                     
+    (with-input-from-string "\"\\x0\"" read))
+
+  (pass-if-exception "premature termination of four-digit hex-escape"
+    exception:illegal-escape                     
+    (with-input-from-string "\"\\u000\"" read))
+
+  (pass-if-exception "premature termination of six-digit hex-escape"
+    exception:illegal-escape                     
+    (with-input-from-string "\"\\U00000\"" read))
+
+  (pass-if "extra hex digits ignored for two-digit hex escape"
+    (eqv? (string-ref "--\xfff--" 2)
+          (integer->char #xff)))
+
+  (pass-if "extra hex digits ignored for four-digit hex escape"
+    (eqv? (string-ref "--\u0100f--" 2)
+          (integer->char #x0100)))
+
+  (pass-if "extra hex digits ignored for six-digit hex escape"
+    (eqv? (string-ref "--\U010300f--" 2)
+          (integer->char #x010300)))
+
+  (pass-if "escaped characters match non-escaped ASCII characters"
+    (string=? "ABC" "\x41\u0042\U000043")))
 
 ;;
 ;; string=?
@@ -181,8 +386,20 @@
     exception:out-of-range
     (string-ref "hello" -1))
 
-  (pass-if "regular string"
-    (char=? (string-ref "GNU Guile" 4) #\G)))
+  (pass-if "regular string, ASCII char"
+    (char=? (string-ref "GNU Guile" 4) #\G))
+
+  (pass-if "regular string, hex escaped Latin-1 char"
+    (char=? (string-ref "--\xff--" 2) 
+            (integer->char #xff)))
+
+  (pass-if "regular string, hex escaped BMP char"
+    (char=? (string-ref "--\u0100--" 2) 
+            (integer->char #x0100)))
+
+  (pass-if "regular string, hex escaped SMP char"
+    (char=? (string-ref "--\U010300--" 2) 
+            (integer->char #x010300))))
 
 ;;
 ;; string-set!
@@ -210,10 +427,25 @@
     exception:read-only-string
     (string-set! (substring/read-only "abc" 0) 1 #\space))
 
-  (pass-if "regular string"
+  (pass-if "regular string, ASCII char"
     (let ((s (string-copy "GNU guile")))
       (string-set! s 4 #\G)
-      (char=? (string-ref s 4) #\G))))
+      (char=? (string-ref s 4) #\G)))
+
+  (pass-if "regular string, Latin-1 char"
+    (let ((s (string-copy "GNU guile")))
+      (string-set! s 4 (integer->char #xfe))
+      (char=? (string-ref s 4) (integer->char #xfe))))
+
+  (pass-if "regular string, BMP char"
+    (let ((s (string-copy "GNU guile")))
+      (string-set! s 4 (integer->char #x0100))
+      (char=? (string-ref s 4) (integer->char #x0100))))
+
+  (pass-if "regular string, SMP char"
+    (let ((s (string-copy "GNU guile")))
+      (string-set! s 4 (integer->char #x010300))
+      (char=? (string-ref s 4) (integer->char #x010300)))))
 
 
 (with-test-prefix "string-split"
