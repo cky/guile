@@ -170,9 +170,21 @@
 /* The word size marker in objcode.  */
 #define SCM_OBJCODE_WORD_SIZE  SCM_CPP_STRINGIFY (SIZEOF_VOID_P)
 
+// major and minor versions must be single characters
+#define SCM_OBJCODE_MAJOR_VERSION 0
+#define SCM_OBJCODE_MINOR_VERSION A
+#define SCM_OBJCODE_MAJOR_VERSION_STRING        \
+  SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
+#define SCM_OBJCODE_MINOR_VERSION_STRING        \
+  SCM_CPP_STRINGIFY(SCM_OBJCODE_MINOR_VERSION)
+#define SCM_OBJCODE_VERSION_STRING                                      \
+  SCM_OBJCODE_MAJOR_VERSION_STRING "." SCM_OBJCODE_MINOR_VERSION_STRING
+#define SCM_OBJCODE_MACHINE_VERSION_STRING                              \
+  SCM_OBJCODE_VERSION_STRING "-" SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE
+
 /* The objcode magic header.  */
-#define SCM_OBJCODE_COOKIE						\
-  "GOOF-0.9-" SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE "---"
+#define SCM_OBJCODE_COOKIE                              \
+  "GOOF-" SCM_OBJCODE_MACHINE_VERSION_STRING "---"
 
 
 #endif  /* SCM__SCM_H */
