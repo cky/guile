@@ -3,7 +3,7 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,6 +59,7 @@
 #endif
 
 #include <errno.h>
+#include <verify.h>
 #include "libguile/__scm.h"
 
 /* Include headers for those files central to the implementation.  The
@@ -154,6 +155,24 @@
 #endif
 #define scm_to_off64_t    scm_to_int64
 #define scm_from_off64_t  scm_from_int64
+
+
+/* The endianness marker in objcode.  */
+#ifdef WORDS_BIGENDIAN
+# define SCM_OBJCODE_ENDIANNESS "BE"
+#else
+# define SCM_OBJCODE_ENDIANNESS "LE"
+#endif
+
+#define _SCM_CPP_STRINGIFY(x)  # x
+#define SCM_CPP_STRINGIFY(x)   _SCM_CPP_STRINGIFY (x)
+
+/* The word size marker in objcode.  */
+#define SCM_OBJCODE_WORD_SIZE  SCM_CPP_STRINGIFY (SIZEOF_VOID_P)
+
+/* The objcode magic header.  */
+#define SCM_OBJCODE_COOKIE						\
+  "GOOF-0.9-" SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE "---"
 
 
 #endif  /* SCM__SCM_H */

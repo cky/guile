@@ -253,7 +253,7 @@ scm_init_load_path ()
     struct passwd *pwd;
 #endif
 
-#define FALLBACK_DIR "guile/ccache/"SCM_EFFECTIVE_VERSION
+#define FALLBACK_DIR "guile/ccache/"SCM_EFFECTIVE_VERSION"/"SCM_OBJCODE_COOKIE
 
     if ((e = getenv ("XDG_CACHE_HOME")))
       snprintf (cachedir, sizeof(cachedir), "%s" FALLBACK_DIR, e);
