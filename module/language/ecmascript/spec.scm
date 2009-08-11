@@ -21,7 +21,7 @@
 (define-module (language ecmascript spec)
   #:use-module (system base language)
   #:use-module (language ecmascript parse)
-  #:use-module (language ecmascript compile-ghil)
+  #:use-module (language ecmascript compile-tree-il)
   #:export (ecmascript))
 
 ;;;
@@ -32,7 +32,7 @@
   #:title	"Guile ECMAScript"
   #:version	"3.0"
   #:reader	(lambda () (read-ecmascript/1 (current-input-port)))
-  #:compilers   `((ghil . ,compile-ghil))
+  #:compilers   `((tree-il . ,compile-tree-il))
   ;; a pretty-printer would be interesting.
   #:printer	write
   )

@@ -365,7 +365,7 @@
                                                       . ,(cdar puncs))))))
                                  (lp nodes (cdr puncs))))
                            (else
-                            (lp (cons `(,(string-ref (caar puncs) 0) #f) nodes)
+                            (lp (cons (list (string-ref (caar puncs) 0) #f) nodes)
                                 puncs))))))
     (lambda (port)
       (let lp ((c (peek-char port)) (tree punc-tree) (candidate #f))

@@ -114,7 +114,7 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/base.scm			\
   language/ecmascript/function.scm		\
   language/ecmascript/array.scm			\
-  language/ecmascript/compile-ghil.scm		\
+  language/ecmascript/compile-tree-il.scm	\
   language/ecmascript/spec.scm
 
 BRAINFUCK_LANG_SOURCES =			\
