@@ -793,8 +793,8 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
             "@item shared\n"
             "If this string is a substring, it returns its parent string.\n"
             "Otherwise, it returns @code{#f}\n"
-            "@item stringbuf\n"
-            "The string buffer that contains this string's characters\n"
+            "@item read-only\n"
+            "@code{#t} if the string is read-only\n"
             "@item stringbuf-chars\n"
             "A new string containing this string's stringbuf's characters\n"
             "@item stringbuf-length\n"
@@ -836,10 +836,14 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
       buf = STRING_STRINGBUF (str);
     }
 
+  if (IS_RO_STRING (str))
+    e5 = scm_cons (scm_from_locale_symbol ("read-only"),
+                   SCM_BOOL_T);
+  else
+    e5 = scm_cons (scm_from_locale_symbol ("read-only"),
+                   SCM_BOOL_F);
+      
   /* Stringbuf info */
-  e5 = scm_cons (scm_from_locale_symbol ("stringbuf"),
-                 buf);
-  
   if (!STRINGBUF_WIDE (buf))
     {
       size_t len = STRINGBUF_LENGTH (buf);
@@ -892,8 +896,8 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
             "The symbol itself\n"
             "@item hash\n"
             "Its hash value\n"
-            "@item stringbuf\n"
-            "The string buffer that contains this symbol's characters\n"
+            "@item interned\n"
+            "@code{#t} if it is an interned symbol\n"
             "@item stringbuf-chars\n"
             "A new string containing this symbols's stringbuf's characters\n"
             "@item stringbuf-length\n"
@@ -917,13 +921,11 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
                  sym);
   e2 = scm_cons (scm_from_locale_symbol ("hash"),
                  scm_from_ulong (scm_i_symbol_hash (sym)));
-
+  e3 = scm_cons (scm_from_locale_symbol ("interned"),
+                 scm_symbol_interned_p (sym));
   buf = SYMBOL_STRINGBUF (sym);
 
   /* Stringbuf info */
-  e3 = scm_cons (scm_from_locale_symbol ("stringbuf"),
-                 buf);
-  
   if (!STRINGBUF_WIDE (buf))
     {
       size_t len = STRINGBUF_LENGTH (buf);
