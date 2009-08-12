@@ -447,7 +447,17 @@
       (string-set! s 4 (integer->char #x010300))
       (char=? (string-ref s 4) (integer->char #x010300)))))
 
+;;
+;; list->string
+;;
+(with-test-prefix "string"
 
+  (pass-if-exception "convert circular list to string"
+     exception:wrong-type-arg
+     (let ((foo (list #\a #\b #\c)))
+       (set-cdr! (cddr foo) (cdr foo))
+       (apply string foo))))
+ 
 (with-test-prefix "string-split"
 
   ;; in guile 1.6.7 and earlier, character >=128 wasn't matched in the string

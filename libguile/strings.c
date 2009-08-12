@@ -1015,10 +1015,11 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 
   /* Verify that this is a list of chars.  */
   i = scm_ilength (chrs);
+  SCM_ASSERT (i >= 0, chrs, SCM_ARG1, FUNC_NAME);
+
   len = (size_t) i;
   rest = chrs;
 
-  SCM_ASSERT (len >= 0, chrs, SCM_ARG1, FUNC_NAME);
   while (len > 0 && scm_is_pair (rest))
     {
       SCM elt = SCM_CAR (rest);
