@@ -1297,9 +1297,12 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   size_t len = 0;
   int wide = 0;
   SCM l, s;
-  char *data;
-  scm_t_wchar *wdata;
   int i;
+  union
+  {
+    char *narrow;
+    scm_t_wchar *wide;
+  } data;
 
   SCM_VALIDATE_REST_ARGUMENT (args);
   for (l = args; !scm_is_null (l); l = SCM_CDR (l))
@@ -1310,10 +1313,11 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
       if (!scm_i_is_narrow_string (s))
         wide = 1;
     }
+  data.narrow = NULL;
   if (!wide)
-    res = scm_i_make_string (len, &data);
+    res = scm_i_make_string (len, &data.narrow);
   else
-    res = scm_i_make_wide_string (len, &wdata);
+    res = scm_i_make_wide_string (len, &data.wide);
 
   for (l = args; !scm_is_null (l); l = SCM_CDR (l))
     {
@@ -1323,20 +1327,20 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
       len = scm_i_string_length (s);
       if (!wide)
         {
-          memcpy (data, scm_i_string_chars (s), len);
-          data += len;
+          memcpy (data.narrow, scm_i_string_chars (s), len);
+          data.narrow += len;
         }
       else
         {
           if (scm_i_is_narrow_string (s))
             {
               for (i = 0; i < scm_i_string_length (s); i++)
-                wdata[i] = (unsigned char) scm_i_string_chars (s)[i];
+                data.wide[i] = (unsigned char) scm_i_string_chars (s)[i];
             }
           else
-            u32_cpy ((scm_t_uint32 *) wdata,
+            u32_cpy ((scm_t_uint32 *) data.wide,
                      (scm_t_uint32 *) scm_i_string_wide_chars (s), len);
-          wdata += len;
+          data.wide += len;
         }
       scm_remember_upto_here_1 (s);
     }
