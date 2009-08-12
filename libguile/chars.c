@@ -363,7 +363,7 @@ static const scm_t_uint32 const scm_alt_charnums[] = {
 const char *
 scm_i_charname (SCM chr)
 {
-  int c;
+  size_t c;
   scm_t_uint32 i = SCM_CHAR (chr);
 
   for (c = 0; c < SCM_N_R5RS_CHARNAMES; c++)
@@ -385,7 +385,7 @@ scm_i_charname (SCM chr)
 SCM
 scm_i_charname_to_char (const char *charname, size_t charname_len)
 {
-  int c;
+  size_t c;
 
   /* The R5RS charnames.  These are supposed to be case
      insensitive. */
