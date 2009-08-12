@@ -296,14 +296,20 @@ TODO: change name  to scm_i_.. ? --hwn
 scm_t_wchar
 scm_c_upcase (scm_t_wchar c)
 {
-  return uc_toupper (c);
+  if (c > 255)
+    return c;
+
+  return toupper ((int) c);
 }
 
 
 scm_t_wchar
 scm_c_downcase (scm_t_wchar c)
 {
-  return uc_tolower (c);
+  if (c > 255)
+    return c;
+
+  return tolower ((int) c);
 }
 
 
