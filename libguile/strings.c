@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <unistr.h>
+#include <uniconv.h>
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
@@ -1473,13 +1474,14 @@ scm_to_locale_stringn (SCM str, size_t * lenp)
   /* In the future, enc will hold the port's encoding.  */
   enc = NULL;
 
-  return scm_to_stringn (str, lenp, enc, iconveh_escape_sequence);
+  return scm_to_stringn (str, lenp, enc, 
+                         SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
 }
 
 /* Low-level scheme to C string conversion function.  */
 char *
 scm_to_stringn (SCM str, size_t * lenp, const char *encoding,
-                enum iconv_ilseq_handler handler)
+                scm_t_string_failed_conversion_handler handler)
 {
   static const char iso[11] = "ISO-8859-1";
   char *buf;
@@ -1527,14 +1529,14 @@ scm_to_stringn (SCM str, size_t * lenp, const char *encoding,
   buf = NULL;
   len = 0;
   buf = u32_conv_to_encoding (iso,
-                              handler,
+                              (enum iconv_ilseq_handler) handler,
                               (scm_t_uint32 *) scm_i_string_wide_chars (str),
                               ilen, NULL, NULL, &len);
   if (buf == NULL)
     scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"",
                     scm_list_2 (scm_from_locale_string (iso), str));
 
-  if (handler == iconveh_escape_sequence)
+  if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
     unistring_escapes_to_guile_escapes (&buf, &len);
 
   if (lenp)

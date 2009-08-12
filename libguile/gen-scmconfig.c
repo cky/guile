@@ -125,6 +125,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <uniconv.h>
 
 #define pf printf
 
@@ -423,6 +424,14 @@ main (int argc, char *argv[])
   printf ("\n");
 
   pf ("#define SCM_HAVE_ARRAYS 1 /* always true now */\n");
+
+  pf ("\n");
+  pf ("/* Constants from uniconv.h.  */\n");
+  pf ("#define SCM_ICONVEH_ERROR %d\n", (int) iconveh_error);
+  pf ("#define SCM_ICONVEH_QUESTION_MARK %d\n", 
+      (int) iconveh_question_mark);
+  pf ("#define SCM_ICONVEH_ESCAPE_SEQUENCE %d\n",
+      (int) iconveh_escape_sequence);  
 
   printf ("#endif\n");
 

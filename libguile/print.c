@@ -23,6 +23,7 @@
 #endif
 
 #include <errno.h>
+#include <uniconv.h>
 #include <unictype.h>
 
 #include "libguile/_scm.h"

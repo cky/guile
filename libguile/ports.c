@@ -1024,7 +1024,7 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
   size = end - start;
 
   buf = scm_to_stringn (scm_c_substring (str, start, end), &len,
-			NULL, iconveh_escape_sequence);
+			NULL, SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
   ptob->write (port, buf, len);
   free (buf);
 

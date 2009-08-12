@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,7 +23,6 @@
 
 
 
-#include <uniconv.h>
 #include "libguile/__scm.h"
 
 
@@ -90,6 +89,15 @@
      no wide version of this interface.
 */
 
+/* A type indicating what strategy to take when string locale
+   conversion is unsuccessful.  */
+typedef enum
+{
+  SCM_FAILED_CONVERSION_ERROR = SCM_ICONVEH_ERROR,
+  SCM_FAILED_CONVERSION_QUESTION_MARK = SCM_ICONVEH_QUESTION_MARK,
+  SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE = SCM_ICONVEH_ESCAPE_SEQUENCE
+} scm_t_string_failed_conversion_handler;
+
 SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
 SCM_API SCM scm_make_string (SCM k, SCM chr);
@@ -122,7 +130,8 @@ SCM_API char *scm_to_locale_string (SCM str);
 SCM_API char *scm_to_locale_stringn (SCM str, size_t *lenp);
 SCM_INTERNAL char *scm_to_stringn (SCM str, size_t *lenp, 
                                    const char *encoding,
-                                   enum iconv_ilseq_handler handler);
+                                   scm_t_string_failed_conversion_handler
+                                   handler);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
