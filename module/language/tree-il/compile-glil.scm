@@ -53,16 +53,16 @@
     (or (and=> (memq #:warnings opts) cadr)
         '()))
 
-  (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
-         (x (optimize! x e opts))
-         (allocation (analyze-lexicals x)))
-
-    ;; Go throught the warning passes.
-    (for-each (lambda (kind)
+  ;; Go throught the warning passes.
+  (for-each (lambda (kind)
                 (let ((warn (assoc-ref %warning-passes kind)))
                   (and (procedure? warn)
                        (warn x))))
-              warnings)
+            warnings)
+
+  (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
+         (x (optimize! x e opts))
+         (allocation (analyze-lexicals x)))
 
     (with-fluid* *comp-module* (or (and e (car e)) (current-module))
       (lambda ()

@@ -151,25 +151,33 @@
 
 (with-test-prefix "lexical sets"
   (assert-tree-il->glil
-   (let (x) (y) ((const 1)) (set! (lexical x y) (const 2)))
+   ;; unreferenced sets may be optimized away -- make sure they are ref'd
+   (let (x) (y) ((const 1))
+        (set! (lexical x y) (apply (primitive 1+) (lexical x y))))
    (program 0 0 1 ()
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
-            (const 2) (lexical #t #t set 0) (void) (call return 1)
-            (unbind)))
-
-  (assert-tree-il->glil
-   (let (x) (y) ((const 1)) (begin (set! (lexical x y) (const 2)) (const #f)))
-   (program 0 0 1 ()
-            (const 1) (bind (x #t 0)) (lexical #t #t box 0)
-            (const 2) (lexical #t #t set 0) (const #f) (call return 1)
+            (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
+            (void) (call return 1)
             (unbind)))
 
   (assert-tree-il->glil
    (let (x) (y) ((const 1))
-     (apply (primitive null?) (set! (lexical x y) (const 2))))
+        (begin (set! (lexical x y) (apply (primitive 1+) (lexical x y)))
+               (lexical x y)))
    (program 0 0 1 ()
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
-            (const 2) (lexical #t #t set 0) (void) (call null? 1) (call return 1)
+            (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
+            (lexical #t #t ref 0) (call return 1)
+            (unbind)))
+
+  (assert-tree-il->glil
+   (let (x) (y) ((const 1))
+     (apply (primitive null?)
+            (set! (lexical x y) (apply (primitive 1+) (lexical x y)))))
+   (program 0 0 1 ()
+            (const 1) (bind (x #t 0)) (lexical #t #t box 0)
+            (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0) (void)
+            (call null? 1) (call return 1)
             (unbind))))
 
 (with-test-prefix "module refs"
@@ -413,20 +421,19 @@
             (unbind))
    (eq? l1 l2))
 
+  ;; second bound var is unreferenced
   (assert-tree-il->glil/pmatch
    (let (x) (y) ((const 1))
         (if (lexical x y)
             (lexical x y)
             (let (a) (b) ((const 2))
                  (lexical x y))))
-   (program 0 0 2 ()
+   (program 0 0 1 ()
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (branch br-if-not ,l1)
             (lexical #t #f ref 0) (call return 1)
             (label ,l2)
-            (const 2) (bind (a #f 1)) (lexical #t #f set 1)
             (lexical #t #f ref 0) (call return 1)
-            (unbind)
             (unbind))
    (eq? l1 l2)))
 

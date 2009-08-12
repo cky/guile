@@ -170,7 +170,7 @@
 /* The word size marker in objcode.  */
 #define SCM_OBJCODE_WORD_SIZE  SCM_CPP_STRINGIFY (SIZEOF_VOID_P)
 
-// major and minor versions must be single characters
+/* Major and minor versions must be single characters. */
 #define SCM_OBJCODE_MAJOR_VERSION 0
 #define SCM_OBJCODE_MINOR_VERSION B
 #define SCM_OBJCODE_MAJOR_VERSION_STRING        \
