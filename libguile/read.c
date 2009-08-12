@@ -179,7 +179,7 @@ static SCM *scm_read_hash_procedures;
 
 /* An inlinable version of `scm_c_downcase ()'.  */
 #define CHAR_DOWNCASE(_chr)				\
-  (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
+  (((_chr) <= UCHAR_MAX) ? tolower ((int) (_chr)) : (_chr))
 
 
 /* Read an SCSH block comment.  */

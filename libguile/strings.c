@@ -1427,8 +1427,8 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
           /* Convert \u00NN to \xNN */
           after[j] = '\\';
           after[j + 1] = 'x';
-          after[j + 2] = tolower (before[i + 4]);
-          after[j + 3] = tolower (before[i + 5]);
+          after[j + 2] = tolower ((int) before[i + 4]);
+          after[j + 3] = tolower ((int) before[i + 5]);
           i += 6;
           j += 4;
         }
@@ -1440,12 +1440,12 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
           /* Convert \U00NNNNNN to \UNNNNNN */
           after[j] = '\\';
           after[j + 1] = 'U';
-          after[j + 2] = tolower (before[i + 4]);
-          after[j + 3] = tolower (before[i + 5]);
-          after[j + 4] = tolower (before[i + 6]);
-          after[j + 5] = tolower (before[i + 7]);
-          after[j + 6] = tolower (before[i + 8]);
-          after[j + 7] = tolower (before[i + 9]);
+          after[j + 2] = tolower ((int) before[i + 4]);
+          after[j + 3] = tolower ((int) before[i + 5]);
+          after[j + 4] = tolower ((int) before[i + 6]);
+          after[j + 5] = tolower ((int) before[i + 7]);
+          after[j + 6] = tolower ((int) before[i + 8]);
+          after[j + 7] = tolower ((int) before[i + 9]);
           i += 10;
           j += 8;
         }
