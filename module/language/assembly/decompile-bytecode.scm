@@ -96,16 +96,6 @@
                   (lp (cons exp out))))))))))
 
 (define (decode-bytecode pop)
-  (define (get1 bytes-per-char)
-    (if (= bytes-per-char 1)
-        (pop)
-        (let* ((a (pop))
-               (b (pop))
-               (c (pop))
-               (d (pop)))
-          (if (= byte-order 1234)
-              (+ (ash d 24) (ash c 16) (ash b 8) a)            
-              (+ (ash a 24) (ash b 16) (ash c 8) d)))))
   (and=> (pop)
          (lambda (opcode)
            (let ((inst (opcode->instruction opcode)))
@@ -117,29 +107,24 @@
                ;; the negative length indicates a variable length
                ;; instruction
                (let* ((make-sequence
-                       (if (eq? inst 'load-array)
+                       (if (or (memq inst '(load-array load-wide-string)))
                            make-bytevector
                            make-string))
                       (sequence-set!
-                       (if (eq? inst 'load-array)
+                       (if (or (memq inst '(load-array load-wide-string)))
                            bytevector-u8-set!
                            (lambda (str pos value)
                              (string-set! str pos (integer->char value)))))
                       (len (let* ((a (pop)) (b (pop)) (c (pop)))
                              (+ (ash a 16) (ash b 8) c)))
-                      (bytes-per-count
-                       (if (or (eq? inst 'load-string)
-                               (eq? inst 'load-symbol)
-                               (eq? inst 'load-keyword)
-                               (eq? inst 'define))
-                           (pop)
-                           1))
                       (seq (make-sequence len)))
                  (let lp ((i 0))
                    (if (= i len)
-                       `(,inst ,seq)
+                       `(,inst ,(if (eq? inst 'load-wide-string)
+                                    (utf32->string seq)
+                                    seq))
                        (begin
-                         (sequence-set! seq i (get1 bytes-per-count))
+                         (sequence-set! seq i (pop))
                          (lp (1+ i)))))))
               (else
                ;; fixed length

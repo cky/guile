@@ -1246,6 +1246,34 @@ VM_DEFINE_INSTRUCTION (65, fix_closure, "fix-closure", 2, 0, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (66, define, "define", 0, 0, 2)
+{
+  SCM sym, val;
+  POP (sym);
+  POP (val);
+  SYNC_REGISTER ();
+  VARIABLE_SET (scm_sym2var (sym, scm_current_module_lookup_closure (),
+                             SCM_BOOL_T),
+                val);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (67, make_keyword, "make-keyword", 0, 1, 1)
+{
+  CHECK_UNDERFLOW ();
+  SYNC_REGISTER ();
+  *sp = scm_symbol_to_keyword (*sp);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (68, make_symbol, "make-symbol", 0, 1, 1)
+{
+  CHECK_UNDERFLOW ();
+  SYNC_REGISTER ();
+  *sp = scm_string_to_symbol (*sp);
+  NEXT;
+}
+
 
 /*
 (defun renumber-ops ()

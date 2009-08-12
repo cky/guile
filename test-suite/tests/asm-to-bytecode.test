@@ -65,31 +65,18 @@
     (comp-test '(make-int8 3)
                #(make-int8 3))
     
-    (comp-test `(load-integer ,(string (integer->char 0)))
-               #(load-integer 0 0 1 0))
-    
-    (comp-test `(load-integer ,(string (integer->char 255)))
-               #(load-integer 0 0 1 255))
-    
-    (comp-test `(load-integer ,(string (integer->char 1) (integer->char 0)))
-               #(load-integer 0 0 2 1 0))
-    
     (comp-test '(load-number "3.14")
                (vector 'load-number 0 0 4 (char->integer #\3) (char->integer #\.)
                        (char->integer #\1) (char->integer #\4)))
     
     (comp-test '(load-string "foo")
-               (vector 'load-string 0 0 3 1 (char->integer #\f) (char->integer #\o)
+               (vector 'load-string 0 0 3 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
     
     (comp-test '(load-symbol "foo")
-               (vector 'load-symbol 0 0 3 1 (char->integer #\f) (char->integer #\o)
+               (vector 'load-symbol 0 0 3 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
     
-    (comp-test '(load-keyword "qux")
-               (vector 'load-keyword 0 0 3 1 (char->integer #\q) (char->integer #\u)
-                       (char->integer #\x)))
-
     (comp-test '(load-program 3 2 1 () 3 #f (make-int8 3) (return))
                #(load-program
                  3 2 (uint16 1) ;; nargs, nrest, nlocs

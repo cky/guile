@@ -35,7 +35,7 @@
                 (progv (make-vector (vector-length objects) #f))
                 (asm (decompile (program-objcode prog) #:to 'assembly)))
             (pmatch asm
-              ((load-program ,nargs ,nrest ,nlocs ,next ,labels ,len . ,body)
+              ((load-program ,nargs ,nrest ,nlocs ,labels ,len . ,body)
                (for-each
                 (lambda (x)
                   (pmatch x

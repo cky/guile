@@ -492,11 +492,16 @@
            ((tail push vals)
             (emit-code src (make-glil-toplevel 'ref name))))
          (maybe-emit-return))
-        (else
-         (pk 'ew-the-badness x (current-module) (fluid-ref *comp-module*))
+        ((module-variable the-root-module name)
          (case context
            ((tail push vals)
             (emit-code src (make-glil-module 'ref '(guile) name #f))))
+         (maybe-emit-return))
+        (else
+         (case context
+           ((tail push vals)
+            (emit-code src (make-glil-module
+                            'ref (module-name (fluid-ref *comp-module*)) name #f))))
          (maybe-emit-return))))
 
       ((<lexical-ref> src name gensym)
