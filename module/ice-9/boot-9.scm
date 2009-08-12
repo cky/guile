@@ -1982,8 +1982,13 @@
   (let ((accessor (record-accessor module-type 'name)))
     (lambda (mod)
       (or (accessor mod)
-          (begin
-            (set-module-name! mod (list (gensym)))
+          (let ((name (list (gensym))))
+            ;; Name MOD and bind it in THE-ROOT-MODULE so that it's visible
+            ;; to `resolve-module'.  This is important as `psyntax' stores
+            ;; module names and relies on being able to `resolve-module'
+            ;; them.
+            (set-module-name! mod name)
+            (nested-define! the-root-module `(%app modules ,@name) mod)
             (accessor mod))))))
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
