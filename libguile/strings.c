@@ -1297,7 +1297,7 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
   size_t len = 0;
   int wide = 0;
   SCM l, s;
-  int i;
+  size_t i;
   union
   {
     char *narrow;

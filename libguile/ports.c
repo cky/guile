@@ -1019,7 +1019,7 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
   if (pt->rw_active == SCM_PORT_READ)
     scm_end_input (port);
 
-  if (end == -1)
+  if (end == (size_t) (-1))
     end = size;
   size = end - start;
 
@@ -1042,7 +1042,7 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
 void
 scm_lfwrite_str (SCM str, SCM port)
 {
-  scm_lfwrite_substr (str, 0, -1, port);
+  scm_lfwrite_substr (str, 0, (size_t) (-1), port);
 }
 
 /* scm_c_read
