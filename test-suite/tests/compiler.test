@@ -25,3 +25,13 @@
 
   (pass-if "compile to value"
     (equal? (compile 1) 1)))
+
+
+(with-test-prefix "psyntax"
+
+  (pass-if "redefinition"
+    ;; In this case the locally-bound `round' must have the same value as the
+    ;; imported `round'.  See the same test in `syntax.test' for details.
+    (let ((o1 (compile '(define round round)))
+          (o2 (compile '(eq? round (@@ (guile) round)))))
+      o2)))

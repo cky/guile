@@ -1198,7 +1198,13 @@
                 ;; affect compile-time environment (once we have booted)
                 (if (and (not (module-local-variable (current-module) n))
                          (current-module))
-                    (module-define! (current-module) n #f))
+                    (let ((old (module-variable (current-module) n)))
+                      ;; use value of the same-named imported variable, if
+                      ;; any
+                      (module-define! (current-module) n
+                                      (if (variable? old)
+                                          (variable-ref old)
+                                          #f))))
                 (eval-if-c&e m
                   (build-global-definition s n (chi e r w mod))
                   mod))
