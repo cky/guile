@@ -156,15 +156,6 @@ SCM_INTERNAL void scm_init_eval (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-SCM_API SCM scm_m_undefine (SCM x, SCM env);
-
-/* Deprecated in guile 1.7.0 on 2003-11-09.  */
-SCM_API SCM scm_m_expand_body (SCM xorig, SCM env);
-
-/* Deprecated in guile 1.7.0 on 2003-11-16.  */
-SCM_API SCM scm_unmemocar (SCM form, SCM env);
-SCM_API SCM scm_macroexp (SCM x, SCM env);
-
 /* Deprecated in guile 1.7.0 on 2004-03-29.  */
 SCM_API SCM scm_ceval (SCM x, SCM env);
 SCM_API SCM scm_deval (SCM x, SCM env);

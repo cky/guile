@@ -2555,20 +2555,11 @@ scm_i_unmemocopy_body (SCM forms, SCM env)
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-/* Deprecated in guile 1.7.0 on 2003-11-09.  */
-SCM
-scm_m_expand_body (SCM exprs, SCM env)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_m_expand_body' is deprecated.");
-  m_expand_body (exprs, env);
-  return exprs;
-}
-
+static SCM scm_m_undefine (SCM expr, SCM env);
 
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
-SCM
+static SCM
 scm_m_undefine (SCM expr, SCM env)
 {
   SCM variable;
@@ -2592,55 +2583,10 @@ scm_m_undefine (SCM expr, SCM env)
   return SCM_UNSPECIFIED;
 }
 
-SCM
-scm_macroexp (SCM x, SCM env)
-{
-  scm_c_issue_deprecation_warning
-    ("`scm_macroexp' is deprecated.");
-  return macroexp (x, env);
-}
-
-#endif
+#endif /* SCM_ENABLE_DEPRECATED */
 
 
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-SCM
-scm_unmemocar (SCM form, SCM env)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_unmemocar' is deprecated.");
-
-  if (!scm_is_pair (form))
-    return form;
-  else
-    {
-      SCM c = SCM_CAR (form);
-      if (SCM_VARIABLEP (c))
-	{
-	  SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
-	  if (scm_is_false (sym))
-	    sym = sym_three_question_marks;
-	  SCM_SETCAR (form, sym);
-	}
-      else if (SCM_ILOCP (c))
-	{
-	  unsigned long int ir;
-
-	  for (ir = SCM_IFRAME (c); ir != 0; --ir)
-	    env = SCM_CDR (env);
-	  env = SCM_CAAR (env);
-	  for (ir = SCM_IDIST (c); ir != 0; --ir)
-	    env = SCM_CDR (env);
-
-	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
-	}
-      return form;
-    }
-}
-
-#endif
-
+
 /*****************************************************************************/
 /*****************************************************************************/
 /*                 The definitions for execution start here.                 */
