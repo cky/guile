@@ -3,7 +3,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -115,40 +115,6 @@ SCM_API SCM * scm_lookupcar (SCM vloc, SCM genv, int check);
 SCM_API SCM scm_eval_car (SCM pair, SCM env);
 SCM_API SCM scm_eval_body (SCM code, SCM env);
 SCM_API SCM scm_eval_args (SCM i, SCM env, SCM proc);
-SCM_API SCM scm_m_quote (SCM xorig, SCM env);
-SCM_API SCM scm_m_begin (SCM xorig, SCM env);
-SCM_API SCM scm_m_if (SCM xorig, SCM env);
-SCM_API SCM scm_m_set_x (SCM xorig, SCM env);
-SCM_API SCM scm_m_vref (SCM xorig, SCM env);
-SCM_API SCM scm_m_vset (SCM xorig, SCM env);
-SCM_API SCM scm_m_and (SCM xorig, SCM env);
-SCM_API SCM scm_m_or (SCM xorig, SCM env);
-SCM_API SCM scm_m_case (SCM xorig, SCM env);
-SCM_API SCM scm_m_cond (SCM xorig, SCM env);
-SCM_API SCM scm_m_lambda (SCM xorig, SCM env);
-SCM_API SCM scm_m_letstar (SCM xorig, SCM env);
-SCM_API SCM scm_m_do (SCM xorig, SCM env);
-SCM_API SCM scm_m_quasiquote (SCM xorig, SCM env);
-SCM_API SCM scm_m_delay (SCM xorig, SCM env);
-SCM_API SCM scm_m_generalized_set_x (SCM xorig, SCM env);
-SCM_API SCM scm_m_future (SCM xorig, SCM env);
-SCM_API SCM scm_m_define (SCM x, SCM env);
-SCM_API SCM scm_m_letrec (SCM xorig, SCM env);
-SCM_API SCM scm_m_let (SCM xorig, SCM env);
-SCM_API SCM scm_m_at (SCM xorig, SCM env);
-SCM_API SCM scm_m_atat (SCM xorig, SCM env);
-SCM_API SCM scm_m_apply (SCM xorig, SCM env);
-SCM_API SCM scm_m_cont (SCM xorig, SCM env);
-#if SCM_ENABLE_ELISP
-SCM_API SCM scm_m_nil_cond (SCM xorig, SCM env);
-SCM_API SCM scm_m_atfop (SCM xorig, SCM env);
-#endif /* SCM_ENABLE_ELISP */
-SCM_API SCM scm_m_atbind (SCM xorig, SCM env);
-SCM_API SCM scm_m_atslot_ref (SCM xorig, SCM env);
-SCM_API SCM scm_m_atslot_set_x (SCM xorig, SCM env);
-SCM_API SCM scm_m_atdispatch (SCM xorig, SCM env);
-SCM_API SCM scm_m_at_call_with_values (SCM xorig, SCM env);
-SCM_API SCM scm_m_eval_when (SCM xorig, SCM env);
 SCM_API int scm_badargsp (SCM formals, SCM args);
 SCM_API SCM scm_call_0 (SCM proc);
 SCM_API SCM scm_call_1 (SCM proc, SCM arg1);
