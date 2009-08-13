@@ -33,21 +33,23 @@
   (pass-if "redefinition"
     ;; In this case the locally-bound `round' must have the same value as the
     ;; imported `round'.  See the same test in `syntax.test' for details.
-    (let ((o1 (compile '(define round round)))
-          (o2 (compile '(eq? round (@@ (guile) round)))))
-      o2))
+    (begin
+      (compile '(define round round))
+      (compile '(eq? round (@@ (guile) round)))))
 
   (pass-if "compile in current module"
-    (let ((o1 (compile '(define-macro (foo) 'bar)))
-          (o2 (compile '(let ((bar 'ok)) (foo)))))
+    (let ((o (begin
+               (compile '(define-macro (foo) 'bar))
+               (compile '(let ((bar 'ok)) (foo))))))
       (and (module-ref (current-module) 'foo)
-           (eq? o2 'ok))))
+           (eq? o 'ok))))
 
   (pass-if "compile in fresh module"
     (let* ((m  (let ((m (make-module)))
                  (beautify-user-module! m)
                  m))
-           (o1 (compile '(define-macro (foo) 'bar) #:env m))
-           (o2 (compile '(let ((bar 'ok)) (foo)) #:env m)))
+           (o  (begin
+                 (compile '(define-macro (foo) 'bar) #:env m)
+                 (compile '(let ((bar 'ok)) (foo)) #:env m))))
       (and (module-ref m 'foo)
-           (eq? o2 'ok)))))
+           (eq? o 'ok)))))
