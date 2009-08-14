@@ -161,7 +161,8 @@
 
 (define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
   (read-and-compile (open-input-file file)
-                    #:from from #:to to #:opts opts))
+                    #:from from #:to to #:opts opts
+                    #:env (current-module)))
 
 
 ;;;
@@ -190,6 +191,23 @@
           (else
            (lp (cdr in) (caar in))))))
 
+(define (make-compilation-module)
+  "Return a fresh module to be used as the compilation environment."
+
+  ;; Ideally we'd duplicate the whole module hierarchy so that `set!',
+  ;; `fluid-set!', etc. don't have any effect in the current environment.
+
+  (let ((m (make-module)))
+    (beautify-user-module! m)
+    m))
+
+(define (language-default-environment lang)
+  "Return the default compilation environment for source language LANG."
+  (if (or (eq? lang 'scheme)
+          (eq? lang (lookup-language 'scheme)))
+      (make-compilation-module)
+      #f))
+
 (define* (read-and-compile port #:key
                            (env #f)
                            (from (current-language))
@@ -199,7 +217,8 @@
         (to (ensure-language to)))
     (let ((joint (find-language-joint from to)))
       (with-fluids ((*current-language* from))
-        (let lp ((exps '()) (env #f) (cenv env))
+        (let lp ((exps '()) (env #f)
+                 (cenv (or env (language-default-environment from))))
           (let ((x ((language-reader (current-language)) port)))
             (cond
              ((eof-object? x)
@@ -228,7 +247,8 @@
                     warnings))))
 
   (receive (exp env cenv)
-      (compile-fold (compile-passes from to opts) x env opts)
+      (let ((env (or env (language-default-environment from))))
+        (compile-fold (compile-passes from to opts) x env opts))
     exp))
 
 

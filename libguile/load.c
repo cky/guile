@@ -601,6 +601,8 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
   return res;
 }
 
+SCM_KEYWORD (kw_env, "env");
+
 static SCM
 do_try_autocompile (void *data)
 {
@@ -617,7 +619,9 @@ do_try_autocompile (void *data)
 
   if (scm_is_true (compile_file))
     {
-      SCM res = scm_call_1 (scm_variable_ref (compile_file), source);
+      /* Auto-compile in the context of the current module.  */
+      SCM res = scm_call_3 (scm_variable_ref (compile_file), source,
+			    kw_env, scm_current_module ());
       scm_puts (";;; compiled ", scm_current_error_port ());
       scm_display (res, scm_current_error_port ());
       scm_newline (scm_current_error_port ());

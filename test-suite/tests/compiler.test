@@ -30,18 +30,23 @@
 
 (with-test-prefix "psyntax"
 
-  (pass-if "redefinition"
-    ;; In this case the locally-bound `round' must have the same value as the
-    ;; imported `round'.  See the same test in `syntax.test' for details.
+  (pass-if "compile uses a fresh module by default"
     (begin
-      (compile '(define round round))
-      (compile '(eq? round (@@ (guile) round)))))
+      (compile '(define + -))
+      (eq? (compile '+) +)))
+
+  (pass-if "compile-time definitions are isolated"
+    (begin
+      (compile '(define foo-bar #t))
+      (not (module-variable (current-module) 'foo-bar))))
 
   (pass-if "compile in current module"
     (let ((o (begin
-               (compile '(define-macro (foo) 'bar))
-               (compile '(let ((bar 'ok)) (foo))))))
-      (and (module-ref (current-module) 'foo)
+               (compile '(define-macro (foo) 'bar)
+                        #:env (current-module))
+               (compile '(let ((bar 'ok)) (foo))
+                        #:env (current-module)))))
+      (and (macro? (module-ref (current-module) 'foo))
            (eq? o 'ok))))
 
   (pass-if "compile in fresh module"
@@ -52,4 +57,12 @@
                  (compile '(define-macro (foo) 'bar) #:env m)
                  (compile '(let ((bar 'ok)) (foo)) #:env m))))
       (and (module-ref m 'foo)
-           (eq? o 'ok)))))
+           (eq? o 'ok))))
+
+  (pass-if "redefinition"
+    ;; In this case the locally-bound `round' must have the same value as the
+    ;; imported `round'.  See the same test in `syntax.test' for details.
+    (let ((m (make-module)))
+      (beautify-user-module! m)
+      (compile '(define round round) #:env m)
+      (eq? round (module-ref m 'round)))))
