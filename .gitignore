@@ -109,3 +109,7 @@ INSTALL
 /lib/time.h
 /lib/unistd.h
 /lib/unistr/.dirstamp
+/GPATH
+/GRTAGS
+/GSYMS
+/GTAGS
