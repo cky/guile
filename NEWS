@@ -10,86 +10,98 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.2 (since the 1.9.1 prerelease):
 
-** Global variables `scm_charnames' and `scm_charnums' are removed.
+** VM speed improvements
+
+Closures now copy the free variables that they need into a flat vector
+instead of capturing all heap-allocated variables. This speeds up access
+to free variables, avoids unnecessary garbage retention, and allows all
+variables to be allocated on the stack.
+
+Variables which are `set!' are now allocated on the stack, but in
+"boxes". This allows a more uniform local variable allocation
+discipline, and allows faster access to these variables.
+
+The VM has new special-case operations, `add1' and `sub1'.
+
+** VM robustness improvements
+
+The maximum number of live local variables has been increased from 256
+to 65535.
+
+The default VM stack size is 64 kilo-words, up from 16 kilo-words. This
+allows more programs to execute in the default stack space. In the
+future we will probably implement extensible stacks via overflow
+handlers.
+
+Some lingering cases in which the VM could perform unaligned accesses
+have been fixed.
+
+The address range for relative jumps has been expanded from 16-bit
+addresses to 19-bit addresses via 8-byte alignment of jump targets. This
+will probably change to a 24-bit byte-addressable strategy before Guile
+2.0.
+
+** Compiler optimizations
+
+Procedures bound by `letrec' are no longer allocated on the heap,
+subject to a few constraints. In many cases, procedures bound by
+`letrec' and `let' can be rendered inline to their parent function, with
+loop detection for mutually tail-recursive procedures.
+
+Unreferenced variables are now optimized away.
+
+** Compiler robustness
+
+Guile may now warn about unused lexically-bound variables. Pass
+`-Wunused-variable' to `guile-tools compile', or `#:warnings
+(unused-variable)' within the #:opts argument to the `compile' procedure
+from `(system base compile)'.
+
+** Incomplete support for Unicode characters and strings
+
+Preliminary support for Unicode has landed. Characters may be entered in
+octal format via e.g. `#\454', or created via (integer->char 300). A hex
+external representation will probably be introduced at some point.
+
+Internally, strings are now represented either in the `latin-1'
+encoding, one byte per character, or in UTF-32, with four bytes per
+character. Strings manage their own allocation, switching if needed.
+
+Currently no locale conversion is performed. Extended characters may be
+written in a string using the hexadecimal escapes `\xXX', `\uXXXX', or
+`\UXXXXXX', for 8-bit, 16-bit, or 24-bit codepoints, respectively.
+
+This support is obviously incomplete. Many C functions have not yet been
+updated to deal with the new representations. Users are advised to wait
+for the next release for more serious use of Unicode strings.
+
+** `defined?' may accept a module as its second argument
+
+Previously it only accepted internal structures from the evaluator.
+
+** `let-values' is now implemented with a hygienic macro
+
+This could have implications discussed below in the NEWS entry titled,
+"Lexical bindings introduced by hygienic macros may not be referenced by
+nonhygienic macros".
+
+** Global variables `scm_charnames' and `scm_charnums' are removed
 
 These variables contained the names of control characters and were
 used when writing characters.  While these were global, they were
 never intended to be public API.  They have been replaced with private
 functions.
 
-** EBCDIC support is removed.
+** EBCDIC support is removed
 
 There was an EBCDIC compile flag that altered some of the character
 processing.  It appeared that full EBCDIC support was never completed
 and was unmaintained.
 
-Changes in 1.9.1 (since the 1.9.0 prerelease):
-
-** `scm_set_port_seek' and `scm_set_port_truncate' use the `scm_t_off' type
-
-Previously they would use the `off_t' type, which is fragile since its
-definition depends on the application's value for `_FILE_OFFSET_BITS'.
-
-** Automatically compiled files will be placed in ~/.cache, not ~/.guile-ccache.
-
-Actually, they will be placed in $XDG_CACHE_HOME/guile/ccache/1.9,
-defaulting to XDG_CACHE_HOME=~/.cache. Users may remove their
-~/.guile-ccache directories.
-
-** New language: Brainfuck.
-
-Brainfuck is a toy language that closely models Turing machines. Guile's
-brainfuck compiler is meant to be an example of implementing other
-languages. See the manual for details, or
-http://en.wikipedia.org/wiki/Brainfuck for more information about the
-Brainfuck language itself.
-
-** A number of Scheme files were corrected to be LGPLv3+.
-
-Some Scheme files imported for the compiler were erroneously labeled as
-being LGPLv2+ or GPLv2+. This oversight has been fixed.
-
-** Bytevectors may now be accessed with a C-friendly API.
-
-New functions: `scm_is_bytevector ()', `scm_c_bytevector_length ()',
-`scm_c_bytevector_length ()', and `scm_c_bytevector_set_x ()'. See the
-manual for details.
-
-** Bytevectors are now accessible using the generalized-vector API.
-
-As a side effect, this change allows compilation of literal bytevectors
-(`#vu8(...)').
-
-** Meta-commands to the REPL work better with strange languages.
-
-Specifically, meta-commands that take expressions as arguments will use
-the current language's reader to read those expressions, which may span
-multiple lines, with readline integration if the user has that enabled.
-
-** The object code file format has changed.
-
-The objcode loader will complain about a "bad header cookie" if it
-happens to find an old file. The workaround for that is currently to
-find all stale .go files and remove them. This is likely to affect users
-who have checked out Guile's git repository, not those that build from
-tarballs.
-
-** Vector access has been sped up considerably.
-
-Guile's virtual machine now has vector and bytevector operations. Using
-Guile to process large amounts of data is now easier. This is because
-`vector-ref' and `vector-set!' now have fast opcodes. In addition, there
-are opcodes for `ref' and `set' operations on bytevectors for everything
-from 8-bit integers to 64-bit floating-point values.
-
-In the next release, we hope to extend this speedup to other kinds of
-uniform vectors.
-
-** The `long_long' C type, deprecated in 1.8, has been removed.
-
-** And of course, the usual collection of bugfixes.
-
+** And of course, the usual collection of bugfixes
+ 
 Interested users should see the ChangeLog for more information.
+
 
 Changes in 1.9.x (since the 1.8.x series):
 
