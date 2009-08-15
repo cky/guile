@@ -48,6 +48,10 @@
   (list (option '(#\h "help") #f #f
                 (lambda (opt name arg result)
 		  (alist-cons 'help? #t result)))
+        (option '("version") #f #f
+                (lambda (opt name arg result)
+                  (show-version)
+                  (exit 0)))
 
 	(option '(#\L "load-path") #t #f
 		(lambda (opt name arg result)
@@ -90,7 +94,7 @@
 options."
   (args-fold args %options
              (lambda (opt name arg result)
-               (format (current-error-port) "~A: unrecognized option" opt)
+               (format (current-error-port) "~A: unrecognized option" name)
 	       (exit 1))
              (lambda (file result)
 	       (let ((input-files (assoc-ref result 'input-files)))
@@ -101,6 +105,13 @@ options."
              '((input-files)
 	       (load-path)
                (warnings unsupported-warning))))
+
+(define (show-version)
+  (format #t "compile (GNU Guile) ~A~%" (version))
+  (format #t "Copyright (C) 2009 Free Software Foundation, Inc.
+License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.~%"))
 
 (define (show-warning-help)
   (format #t "The available warning types are:~%~%")
@@ -143,7 +154,8 @@ Compile each Guile source file FILE into a Guile object.
 
 Note that autocompilation will be turned off.
 
-Report bugs to <guile-user@gnu.org>.~%")
+Report bugs to <~A>.~%"
+                  %guile-bug-report-address)
           (exit 0)))
 
     (set! %load-path (append load-path %load-path))

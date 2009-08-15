@@ -1546,6 +1546,7 @@ AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
 AC_CONFIG_FILES([meta/guile], [chmod +x meta/guile])
 AC_CONFIG_FILES([meta/uninstalled-env], [chmod +x meta/uninstalled-env])
 AC_CONFIG_FILES([meta/gdb-uninstalled-guile], [chmod +x meta/gdb-uninstalled-guile])
+AC_CONFIG_FILES([meta/guile-tools], [chmod +x meta/guile-tools])
 AC_CONFIG_FILES([libguile/guile-snarf],
                 [chmod +x libguile/guile-snarf])
 AC_CONFIG_FILES([libguile/guile-doc-snarf],

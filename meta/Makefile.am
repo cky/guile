@@ -20,10 +20,11 @@
 ##   write to the Free Software Foundation, Inc., 51 Franklin Street,
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
-bin_SCRIPTS=guile-config guile-tools
-EXTRA_DIST= $(bin_SCRIPTS) \
-	guile.m4 ChangeLog-2008 \
-	guile-2.0.pc.in guile-2.0-uninstalled.pc.in
+bin_SCRIPTS = guile-config
+EXTRA_DIST= $(bin_SCRIPTS)			\
+  guile.m4 ChangeLog-2008			\
+  guile-2.0.pc.in guile-2.0-uninstalled.pc.in	\
+  guile-tools.in
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = guile-2.0.pc
