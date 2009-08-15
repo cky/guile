@@ -28,7 +28,8 @@ check_SCRIPTS =
 BUILT_SOURCES =
 EXTRA_DIST =
 
-TESTS_ENVIRONMENT = "${top_builddir}/meta/uninstalled-env"
+TESTS_ENVIRONMENT =						\
+  GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
 
 test_cflags =					\
   -I$(top_srcdir)/test-suite/standalone		\
