@@ -69,7 +69,8 @@ guile-readline/guile-readline-config.h
 guile-readline/guile-readline-config.h.in
 *.go
 TAGS
-guile-1.8.pc
+/meta/guile-2.0.pc
+/meta/guile-2.0-uninstalled.pc
 gdb-pre-inst-guile
 cscope.out
 cscope.files

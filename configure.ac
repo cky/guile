@@ -1539,8 +1539,8 @@ AC_CONFIG_FILES([
   testsuite/Makefile
 ])
 
-AC_CONFIG_FILES([meta/guile-1.8.pc])
-AC_CONFIG_FILES([meta/guile-1.8-uninstalled.pc])
+AC_CONFIG_FILES([meta/guile-2.0.pc])
+AC_CONFIG_FILES([meta/guile-2.0-uninstalled.pc])
 AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
 AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
 AC_CONFIG_FILES([meta/guile], [chmod +x meta/guile])
