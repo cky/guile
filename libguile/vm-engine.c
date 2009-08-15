@@ -114,7 +114,10 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     PUSH (program);
     fp = sp + 1;
     INIT_FRAME ();
-    /* Initial arguments */
+    /* MV-call frame, function & arguments */
+    PUSH ((SCM)fp); /* dynamic link */
+    PUSH (0); /* ra */
+    PUSH (0); /* mvra */
     PUSH (prog);
     if (SCM_UNLIKELY (sp + nargs >= stack_limit))
       goto vm_error_too_many_args;

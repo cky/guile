@@ -475,7 +475,15 @@ VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
  * Subprogram call
  */
 
-VM_DEFINE_INSTRUCTION (38, call, "call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (38, new_frame, "new-frame", 0, 0, 3)
+{
+  PUSH ((SCM)fp); /* dynamic link */
+  PUSH (0);  /* mvra */
+  PUSH (0);  /* ra */
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (39, call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
@@ -491,17 +499,12 @@ VM_DEFINE_INSTRUCTION (38, call, "call", 1, -1, 1)
    */
   if (SCM_PROGRAM_P (x))
     {
-      int i;
-      /* shuffle up */
-      sp += 3;
-      CHECK_OVERFLOW ();
-      for (i = 0; i <= nargs; i++)
-        sp[-i] = sp[-(i + 3)];
       program = x;
       CACHE_PROGRAM ();
       INIT_ARGS ();
-      SCM_FRAME_SET_DYNAMIC_LINK (sp - bp->nargs + 1, fp);
       fp = sp - bp->nargs + 1;
+      ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+      ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
       INIT_FRAME ();
@@ -514,14 +517,17 @@ VM_DEFINE_INSTRUCTION (38, call, "call", 1, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
-      /* At this point, the stack contains the procedure and each one of its
-	 arguments.  */
+      SCM args;
+      /* At this point, the stack contains the frame, the procedure and each one
+	 of its arguments. */
       POP_LIST (nargs);
+      POP (args);
+      DROP (); /* drop the procedure */
+      DROP_FRAME ();
+      
       SYNC_REGISTER ();
-      /* keep args on stack so they are marked */
-      sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      PUSH (scm_apply (x, args, SCM_EOL));
       NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROP ();
       if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
         {
           /* truncate values */
@@ -539,7 +545,7 @@ VM_DEFINE_INSTRUCTION (38, call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (39, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (40, goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
@@ -591,11 +597,14 @@ VM_DEFINE_INSTRUCTION (39, goto_args, "goto/args", 1, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
+      SCM args;
       POP_LIST (nargs);
+      POP (args);
+
       SYNC_REGISTER ();
-      sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      *sp = scm_apply (x, args, SCM_EOL);
       NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROP ();
+
       if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
         {
           /* multiple values returned to continuation */
@@ -606,7 +615,8 @@ VM_DEFINE_INSTRUCTION (39, goto_args, "goto/args", 1, -1, 1)
           PUSH_LIST (values, SCM_NULLP);
           goto vm_return_values;
         }
-      goto vm_return;
+      else
+        goto vm_return;
     }
 
   program = x;
@@ -614,7 +624,7 @@ VM_DEFINE_INSTRUCTION (39, goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (40, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (41, goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -623,7 +633,7 @@ VM_DEFINE_INSTRUCTION (40, goto_nargs, "goto/nargs", 0, 0, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (41, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -632,7 +642,7 @@ VM_DEFINE_INSTRUCTION (41, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (42, mv_call, "mv-call", 3, -1, 1)
+VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
 {
   SCM x;
   scm_t_int16 offset;
@@ -649,17 +659,12 @@ VM_DEFINE_INSTRUCTION (42, mv_call, "mv-call", 3, -1, 1)
    */
   if (SCM_PROGRAM_P (x))
     {
-      int i;
-      /* shuffle up */
-      sp += 3;
-      CHECK_OVERFLOW ();
-      for (i = 0; i <= nargs; i++)
-        sp[-i] = sp[-(i + 3)];
       program = x;
       CACHE_PROGRAM ();
       INIT_ARGS ();
-      SCM_FRAME_SET_DYNAMIC_LINK (sp - bp->nargs + 1, fp);
       fp = sp - bp->nargs + 1;
+      ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+      ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
       INIT_FRAME ();
@@ -672,13 +677,17 @@ VM_DEFINE_INSTRUCTION (42, mv_call, "mv-call", 3, -1, 1)
    */
   if (!SCM_FALSEP (scm_procedure_p (x)))
     {
+      SCM args;
       /* At this point, the stack contains the procedure and each one of its
 	 arguments.  */
       POP_LIST (nargs);
+      POP (args);
+      DROP (); /* drop the procedure */
+      DROP_FRAME ();
+      
       SYNC_REGISTER ();
-      sp[-1] = scm_apply (x, sp[0], SCM_EOL);
+      PUSH (scm_apply (x, args, SCM_EOL));
       NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROP ();
       if (SCM_VALUESP (*sp))
         {
           SCM values, len;
@@ -696,7 +705,7 @@ VM_DEFINE_INSTRUCTION (42, mv_call, "mv-call", 3, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (43, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (44, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -715,7 +724,7 @@ VM_DEFINE_INSTRUCTION (43, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (44, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (45, goto_apply, "goto/apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -734,7 +743,7 @@ VM_DEFINE_INSTRUCTION (44, goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (45, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (46, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -743,6 +752,9 @@ VM_DEFINE_INSTRUCTION (45, call_cc, "call/cc", 0, 1, 1)
   cont = scm_make_continuation (&first);
   if (first) 
     {
+      PUSH ((SCM)fp); /* dynamic link */
+      PUSH (0);  /* mvra */
+      PUSH (0);  /* ra */
       PUSH (proc);
       PUSH (cont);
       nargs = 1;
@@ -768,7 +780,7 @@ VM_DEFINE_INSTRUCTION (45, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (46, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (47, goto_cc, "goto/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -800,7 +812,7 @@ VM_DEFINE_INSTRUCTION (46, goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (47, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (48, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -837,7 +849,7 @@ VM_DEFINE_INSTRUCTION (47, return, "return", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (48, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (49, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -894,7 +906,7 @@ VM_DEFINE_INSTRUCTION (48, return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (49, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (50, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -917,7 +929,7 @@ VM_DEFINE_INSTRUCTION (49, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (50, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (51, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -940,7 +952,7 @@ VM_DEFINE_INSTRUCTION (50, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (51, box, "box", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (52, box, "box", 1, 1, 0)
 {
   SCM val;
   POP (val);
@@ -954,7 +966,7 @@ VM_DEFINE_INSTRUCTION (51, box, "box", 1, 1, 0)
      (set! a (lambda () (b ...)))
      ...)
  */
-VM_DEFINE_INSTRUCTION (52, empty_box, "empty-box", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (53, empty_box, "empty-box", 1, 0, 0)
 {
   SYNC_BEFORE_GC ();
   LOCAL_SET (FETCH (),
@@ -962,7 +974,7 @@ VM_DEFINE_INSTRUCTION (52, empty_box, "empty-box", 1, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (53, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (54, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
 {
   SCM v = LOCAL_REF (FETCH ());
   ASSERT_BOUND_VARIABLE (v);
@@ -970,7 +982,7 @@ VM_DEFINE_INSTRUCTION (53, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (54, local_boxed_set, "local-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (55, local_boxed_set, "local-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   v = LOCAL_REF (FETCH ());
@@ -980,7 +992,7 @@ VM_DEFINE_INSTRUCTION (54, local_boxed_set, "local-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (55, free_ref, "free-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (56, free_ref, "free-ref", 1, 0, 1)
 {
   scm_t_uint8 idx = FETCH ();
   
@@ -991,7 +1003,7 @@ VM_DEFINE_INSTRUCTION (55, free_ref, "free-ref", 1, 0, 1)
 
 /* no free-set -- if a var is assigned, it should be in a box */
 
-VM_DEFINE_INSTRUCTION (56, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (57, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
 {
   SCM v;
   scm_t_uint8 idx = FETCH ();
@@ -1002,7 +1014,7 @@ VM_DEFINE_INSTRUCTION (56, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (57, free_boxed_set, "free-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (58, free_boxed_set, "free-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   scm_t_uint8 idx = FETCH ();
@@ -1014,7 +1026,7 @@ VM_DEFINE_INSTRUCTION (57, free_boxed_set, "free-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (58, make_closure, "make-closure", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (59, make_closure, "make-closure", 0, 2, 1)
 {
   SCM vect;
   POP (vect);
@@ -1025,7 +1037,7 @@ VM_DEFINE_INSTRUCTION (58, make_closure, "make-closure", 0, 2, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (59, make_variable, "make-variable", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (60, make_variable, "make-variable", 0, 0, 1)
 {
   SYNC_BEFORE_GC ();
   /* fixme underflow */
@@ -1033,7 +1045,7 @@ VM_DEFINE_INSTRUCTION (59, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (60, fix_closure, "fix-closure", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (61, fix_closure, "fix-closure", 2, 0, 1)
 {
   SCM x, vect;
   unsigned int i = FETCH ();
@@ -1047,7 +1059,7 @@ VM_DEFINE_INSTRUCTION (60, fix_closure, "fix-closure", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (61, define, "define", 0, 0, 2)
+VM_DEFINE_INSTRUCTION (62, define, "define", 0, 0, 2)
 {
   SCM sym, val;
   POP (sym);
@@ -1059,7 +1071,7 @@ VM_DEFINE_INSTRUCTION (61, define, "define", 0, 0, 2)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (62, make_keyword, "make-keyword", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (63, make_keyword, "make-keyword", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
@@ -1067,7 +1079,7 @@ VM_DEFINE_INSTRUCTION (62, make_keyword, "make-keyword", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (63, make_symbol, "make-symbol", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (64, make_symbol, "make-symbol", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();

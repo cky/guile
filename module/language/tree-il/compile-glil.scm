@@ -286,6 +286,7 @@
                 (for-each comp-push args)
                 (emit-code src (make-glil-call 'goto/apply (1+ (length args)))))
                ((push)
+                (emit-code src (make-glil-call 'new-frame 0))
                 (comp-push proc)
                 (for-each comp-push args)
                 (emit-code src (make-glil-call 'apply (1+ (length args))))
@@ -343,7 +344,10 @@
            (else
             (let ((MV (make-label)) (POST (make-label))
                   (producer (car args)) (consumer (cadr args)))
+              (if (not (eq? context 'tail))
+                  (emit-code src (make-glil-call 'new-frame 0)))
               (comp-push consumer)
+              (emit-code src (make-glil-call 'new-frame 0))
               (comp-push producer)
               (emit-code src (make-glil-mv-call 0 MV))
               (case context
@@ -444,6 +448,8 @@
          (emit-branch src 'br (lexical-ref-gensym proc)))
         
         (else
+         (if (not (eq? context 'tail))
+             (emit-code src (make-glil-call 'new-frame 0)))
          (comp-push proc)
          (for-each comp-push args)
          (let ((len (length args)))
