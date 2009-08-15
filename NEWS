@@ -98,6 +98,11 @@ There was an EBCDIC compile flag that altered some of the character
 processing.  It appeared that full EBCDIC support was never completed
 and was unmaintained.
 
+** Packaging changes
+
+Guile now provides `guile-2.0.pc' (used by pkg-config) instead of
+`guile-1.8.pc'.
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
@@ -638,6 +643,11 @@ part of Guile).
 `pkg-config', so this should be a transparent change.  Note however that
 guile.m4 has yet to be modified to call pkg-config instead of
 guile-config.
+
+** Guile now provides `guile-2.0.pc' instead of `guile-1.8.pc'
+
+Programs that use `pkg-config' to find Guile or one of its Autoconf
+macros should now require `guile-2.0' instead of `guile-1.8'.
 
 ** New installation directory: $(pkglibdir)/1.9/ccache
 
