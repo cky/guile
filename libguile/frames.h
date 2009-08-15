@@ -30,39 +30,46 @@
 /* VM Frame Layout
    ---------------
 
-   |                  | <- fp + bp->nargs + bp->nlocs + 3
-   +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
-   | Return address   |
-   | MV return address|
-   | Dynamic link     | <- fp + bp->nargs + bp->blocs
-   | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
+   | ...              |
+   | Intermed. val. 0 | <- fp + bp->nargs + bp->nlocs = SCM_FRAME_UPPER_ADDRESS (fp)
+   +==================+
+   | Local variable 1 |
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
    | Argument 0       | <- fp
    | Program          | <- fp - 1
-   +------------------+    = SCM_FRAME_LOWER_ADDRESS (fp)
+   +------------------+    
+   | Return address   |
+   | MV return address|
+   | Dynamic link     | <- fp - 4 = SCM_FRAME_DATA_ADDRESS (fp) = SCM_FRAME_LOWER_ADDRESS (fp)
+   +==================+
    |                  |
 
    As can be inferred from this drawing, it is assumed that
    `sizeof (SCM *) == sizeof (SCM)', since pointers (the `link' parts) are
    assumed to be as long as SCM objects.  */
 
-#define SCM_FRAME_DATA_ADDRESS(fp)				\
-  (fp + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs	\
-      + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
-#define SCM_FRAME_UPPER_ADDRESS(fp)	(SCM_FRAME_DATA_ADDRESS (fp) + 3)
-#define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 1)
+#define SCM_FRAME_DATA_ADDRESS(fp)	(fp - 4)
+#define SCM_FRAME_UPPER_ADDRESS(fp)                             \
+  (fp                                                           \
+   + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs           \
+   + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
+#define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 4)
 
 #define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
 #define SCM_FRAME_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
+#define SCM_FRAME_SET_RETURN_ADDRESS(fp, ra)			\
+  ((SCM_FRAME_DATA_ADDRESS (fp)[2])) = (SCM)(ra);
 #define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[1]))
+#define SCM_FRAME_SET_MV_RETURN_ADDRESS(fp, mvra)		\
+  ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = (SCM)(mvra);
 #define SCM_FRAME_DYNAMIC_LINK(fp)				\
   (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[0]))
-#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)		\
+#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)			\
   ((SCM_FRAME_DATA_ADDRESS (fp)[0])) = (SCM)(dl);
 #define SCM_FRAME_VARIABLE(fp,i)	fp[i]
 #define SCM_FRAME_PROGRAM(fp)		fp[-1]

@@ -491,10 +491,20 @@ VM_DEFINE_INSTRUCTION (38, call, "call", 1, -1, 1)
    */
   if (SCM_PROGRAM_P (x))
     {
+      int i;
+      /* shuffle up */
+      sp += 3;
+      CHECK_OVERFLOW ();
+      for (i = 0; i <= nargs; i++)
+        sp[-i] = sp[-(i + 3)];
       program = x;
       CACHE_PROGRAM ();
       INIT_ARGS ();
-      NEW_FRAME ();
+      SCM_FRAME_SET_DYNAMIC_LINK (sp - bp->nargs + 1, fp);
+      fp = sp - bp->nargs + 1;
+      SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+      SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
+      INIT_FRAME ();
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -540,93 +550,42 @@ VM_DEFINE_INSTRUCTION (39, goto_args, "goto/args", 1, -1, 1)
   SCM_TICK;	/* allow interrupt here */
 
   /*
-   * Tail recursive call
-   */
-  if (SCM_EQ_P (x, program))
-    {
-      int i;
-
-      /* Move arguments */
-      INIT_ARGS ();
-      sp -= bp->nargs - 1;
-      for (i = 0; i < bp->nargs; i++)
-	LOCAL_SET (i, sp[i]);
-
-      /* Drop the first argument and the program itself.  */
-      sp -= 2;
-      NULLSTACK (bp->nargs + 1);
-
-      /* Init locals to valid SCM values */
-      for (i = 0; i < bp->nlocs; i++)
-	LOCAL_SET (i + bp->nargs, SCM_UNDEFINED);
-
-      /* Call itself */
-      ip = bp->base;
-      APPLY_HOOK ();
-      NEXT;
-    }
-
-  /*
-   * Tail call, but not to self -- reuse the frame, keeping the ra and dl
+   * Tail call
    */
   if (SCM_PROGRAM_P (x))
     {
-      SCM *data, *tail_args, *dl;
       int i;
-      scm_byte_t *ra, *mvra;
 #ifdef VM_ENABLE_STACK_NULLING
       SCM *old_sp;
 #endif
 
       EXIT_HOOK ();
 
-      /* save registers */
-      tail_args = stack_base + 2;
-      ra = SCM_FRAME_RETURN_ADDRESS (fp);
-      mvra = SCM_FRAME_MV_RETURN_ADDRESS (fp);
-      dl = SCM_FRAME_DYNAMIC_LINK (fp);
-
       /* switch programs */
       program = x;
       CACHE_PROGRAM ();
       INIT_ARGS ();
-      /* delay updating the frame so that if INIT_ARGS has to cons up a rest
-         arg, going into GC, the stack still makes sense */
-      fp[-1] = program;
-      nargs = bp->nargs;
 
 #ifdef VM_ENABLE_STACK_NULLING
       old_sp = sp;
       CHECK_STACK_LEAK ();
 #endif
 
-      /* new registers -- logically this would be better later, but let's make
-         sure we have space for the locals now */
-      data = SCM_FRAME_DATA_ADDRESS (fp);
-      ip = bp->base;
-      stack_base = data + 2;
-      sp = stack_base;
-      CHECK_OVERFLOW ();
-
-      /* copy args, bottom-up */
-      for (i = 0; i < nargs; i++)
-        fp[i] = tail_args[i];
+      /* delay shuffling the new program+args down so that if INIT_ARGS had to
+         cons up a rest arg, going into GC, the stack still made sense */
+      for (i = -1, sp = sp - bp->nargs + 1; i < bp->nargs; i++)
+        fp[i] = sp[i];
+      sp = fp + i - 1;
 
       NULLSTACK (old_sp - sp);
 
-      /* init locals */
-      for (i = bp->nlocs; i; i--)
-        data[-i] = SCM_UNDEFINED;
-      
-      /* Set frame data */
-      data[2] = (SCM)ra;
-      data[1] = (SCM)mvra;
-      data[0] = (SCM)dl;
+      INIT_FRAME ();
 
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
     }
+
   /*
    * Other interpreted or compiled call
    */
@@ -690,11 +649,20 @@ VM_DEFINE_INSTRUCTION (42, mv_call, "mv-call", 3, -1, 1)
    */
   if (SCM_PROGRAM_P (x))
     {
+      int i;
+      /* shuffle up */
+      sp += 3;
+      CHECK_OVERFLOW ();
+      for (i = 0; i <= nargs; i++)
+        sp[-i] = sp[-(i + 3)];
       program = x;
       CACHE_PROGRAM ();
       INIT_ARGS ();
-      NEW_FRAME ();
-      SCM_FRAME_DATA_ADDRESS (fp)[1] = (SCM)mvra;
+      SCM_FRAME_SET_DYNAMIC_LINK (sp - bp->nargs + 1, fp);
+      fp = sp - bp->nargs + 1;
+      SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+      SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
+      INIT_FRAME ();
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -840,17 +808,16 @@ VM_DEFINE_INSTRUCTION (47, return, "return", 0, 1, 1)
   SYNC_REGISTER ();
   SCM_TICK;	/* allow interrupt here */
   {
-    SCM ret, *data;
-    data = SCM_FRAME_DATA_ADDRESS (fp);
+    SCM ret;
 
     POP (ret);
     ASSERT (sp == stack_base);
-    ASSERT (stack_base == data + 2);
+    ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
-    ip = SCM_FRAME_BYTE_CAST (data[2]);
-    fp = SCM_FRAME_STACK_CAST (data[0]);
+    ip = SCM_FRAME_RETURN_ADDRESS (fp);
+    fp = SCM_FRAME_DYNAMIC_LINK (fp);
     {
 #ifdef VM_ENABLE_STACK_NULLING
       int nullcount = stack_base - sp;
@@ -874,24 +841,21 @@ VM_DEFINE_INSTRUCTION (48, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
-  SCM *data;
-
   nvalues = FETCH ();
  vm_return_values:
   EXIT_HOOK ();
   RETURN_HOOK ();
 
-  data = SCM_FRAME_DATA_ADDRESS (fp);
-  ASSERT (stack_base == data + 2);
+  ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
 
   /* data[1] is the mv return address */
-  if (nvalues != 1 && data[1]) 
+  if (nvalues != 1 && SCM_FRAME_MV_RETURN_ADDRESS (fp)) 
     {
       int i;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[1]); /* multiple value ra */
-      fp = SCM_FRAME_STACK_CAST (data[0]);
+      ip = SCM_FRAME_MV_RETURN_ADDRESS (fp);
+      fp = SCM_FRAME_DYNAMIC_LINK (fp);
         
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
@@ -910,8 +874,8 @@ VM_DEFINE_INSTRUCTION (48, return_values, "return/values", 1, -1, -1)
          continuation.) */
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-      ip = SCM_FRAME_BYTE_CAST (data[2]); /* single value ra */
-      fp = SCM_FRAME_STACK_CAST (data[0]);
+      ip = SCM_FRAME_RETURN_ADDRESS (fp);
+      fp = SCM_FRAME_DYNAMIC_LINK (fp);
         
       /* Push first value */
       *++sp = stack_base[1];

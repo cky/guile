@@ -66,21 +66,20 @@ scm_t_bits scm_tc16_vm_cont;
 static void
 vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
 {
-  SCM *sp, *upper, *lower;
+  SCM *sp, *mark;
   sp = base + size - 1;
 
   while (sp > base && fp) 
     {
-      upper = SCM_FRAME_UPPER_ADDRESS (fp);
-      lower = SCM_FRAME_LOWER_ADDRESS (fp);
+      mark = SCM_FRAME_LOWER_ADDRESS (fp) + 3;
 
-      for (; sp >= upper; sp--)
+      for (; sp >= mark; sp--)
         if (SCM_NIMP (*sp)) 
           {
             if (scm_in_heap_p (*sp))
               scm_gc_mark (*sp);
-            else
-              fprintf (stderr, "BADNESS: crap on the stack: %p\n", *sp);
+            /* this can happen for open frames */
+            /* else fprintf (stderr, "BADNESS: crap on the stack: %p\n", *sp); */
           }
       
 
@@ -89,11 +88,6 @@ vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
 
       /* update fp from the dynamic link */
       fp = (SCM*)*sp-- + reloc;
-
-      /* mark from the el down to the lower address */
-      for (; sp >= lower; sp--)
-        if (*sp && SCM_NIMP (*sp))
-          scm_gc_mark (*sp);
     }
 }
 
@@ -224,7 +218,6 @@ static SCM
 really_make_boot_program (long nargs)
 {
   SCM u8vec;
-  /* Make sure "bytes" is 64-bit aligned.  */
   scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 1,
                          scm_op_make_int8_1, scm_op_nop, scm_op_nop, scm_op_nop,
                          scm_op_halt };

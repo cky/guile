@@ -111,12 +111,12 @@ SCM_DEFINE (scm_vm_frame_arguments, "vm-frame-arguments", 1, 0, 0,
   if (!bp->nargs)
     return SCM_EOL;
   else if (bp->nrest)
-    ret = fp[bp->nargs - 1];
+    ret = SCM_FRAME_VARIABLE (fp, bp->nargs - 1);
   else
-    ret = scm_cons (fp[bp->nargs - 1], SCM_EOL);
+    ret = scm_cons (SCM_FRAME_VARIABLE (fp, bp->nargs - 1), SCM_EOL);
   
   for (i = bp->nargs - 2; i >= 0; i--)
-    ret = scm_cons (fp[i], ret);
+    ret = scm_cons (SCM_FRAME_VARIABLE (fp, i), ret);
   
   return ret;
 }

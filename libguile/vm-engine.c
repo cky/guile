@@ -107,10 +107,13 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
     /* Initial frame */
     CACHE_REGISTER ();
+    PUSH ((SCM)fp); /* dynamic link */
+    PUSH (0); /* ra */
+    PUSH (0); /* mvra */
     CACHE_PROGRAM ();
     PUSH (program);
-    NEW_FRAME ();
-
+    fp = sp + 1;
+    INIT_FRAME ();
     /* Initial arguments */
     PUSH (prog);
     if (SCM_UNLIKELY (sp + nargs >= stack_limit))
