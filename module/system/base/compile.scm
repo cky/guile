@@ -28,6 +28,7 @@
   #:use-module (ice-9 receive)
   #:export (syntax-error 
             *current-language*
+            current-compilation-environment
             compiled-file-name compile-file compile-and-load
             compile
             decompile)
@@ -62,6 +63,12 @@
 (fluid-set! *current-language* 'scheme)
 (define (current-language)
   (fluid-ref *current-language*))
+
+(define *compilation-environment* (make-fluid))
+(define (current-compilation-environment)
+  "Return the current compilation environment (a module) or #f.  This
+function should only be called from stages in the compiler tower."
+  (fluid-ref *compilation-environment*))
 
 (define (call-once thunk)
   (let ((entered #f))
@@ -199,6 +206,12 @@
 
   (let ((m (make-module)))
     (beautify-user-module! m)
+
+    ;; Provide a separate `current-reader' fluid so that the Scheme language
+    ;; reader doesn't get to see the REPL's settings for `current-reader',
+    ;; which would lead to an infinite loop.
+    (module-define! m 'current-reader (make-fluid))
+
     m))
 
 (define (language-default-environment lang)
@@ -216,9 +229,12 @@
   (let ((from (ensure-language from))
         (to (ensure-language to)))
     (let ((joint (find-language-joint from to)))
-      (with-fluids ((*current-language* from))
+      (with-fluids ((*current-language* from)
+                    (*compilation-environment*
+                     (or env
+                         (language-default-environment from))))
         (let lp ((exps '()) (env #f)
-                 (cenv (or env (language-default-environment from))))
+                 (cenv (fluid-ref *compilation-environment*)))
           (let ((x ((language-reader (current-language)) port)))
             (cond
              ((eof-object? x)
@@ -248,7 +264,8 @@
 
   (receive (exp env cenv)
       (let ((env (or env (language-default-environment from))))
-        (compile-fold (compile-passes from to opts) x env opts))
+        (with-fluids ((*compilation-environment* env))
+          (compile-fold (compile-passes from to opts) x env opts)))
     exp))
 
 
