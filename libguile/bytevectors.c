@@ -1895,9 +1895,18 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
     scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",	\
 		      scm_list_1 (str), err);				\
   else									\
-    /* C_UTF is null-terminated.  */					\
-    utf = scm_c_take_bytevector ((signed char *) c_utf,			\
-				      c_utf_len);			\
+    {									\
+      /* C_UTF is null-terminated.  It is malloc(3)-allocated, so we cannot \
+	 use `scm_c_take_bytevector ()'.  */				\
+      scm_dynwind_begin (0);						\
+      scm_dynwind_free (c_utf);						\
+									\
+      utf = make_bytevector (c_utf_len);				\
+      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf,			\
+	      c_utf_len);						\
+									\
+      scm_dynwind_end ();						\
+    }									\
 									\
   return (utf);
 
@@ -1931,9 +1940,18 @@ SCM_DEFINE (scm_string_to_utf8, "string->utf8",
   if (SCM_UNLIKELY (c_utf == NULL))
     scm_syserror (FUNC_NAME);
   else
-    /* C_UTF is null-terminated.  */
-    utf = scm_c_take_bytevector ((signed char *) c_utf,
-				      UTF_STRLEN (8, c_utf));
+    {
+      /* C_UTF is null-terminated.  It is malloc(3)-allocated, so we cannot
+	 use `scm_c_take_bytevector ()'.  */
+      scm_dynwind_begin (0);
+      scm_dynwind_free (c_utf);
+
+      utf = make_bytevector (UTF_STRLEN (8, c_utf));
+      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf,
+	      UTF_STRLEN (8, c_utf));
+
+      scm_dynwind_end ();
+    }
 
   return (utf);
 }
