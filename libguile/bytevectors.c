@@ -370,25 +370,6 @@ bytevector_equal_p (SCM bv1, SCM bv2)
   return scm_bytevector_eq_p (bv1, bv2);
 }
 
-static size_t
-free_bytevector (SCM bv)
-{
-
-  if (!SCM_BYTEVECTOR_INLINE_P (bv))
-    {
-      unsigned c_len;
-      signed char *c_bv;
-
-      c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
-      c_len = SCM_BYTEVECTOR_LENGTH (bv);
-
-      scm_gc_free (c_bv, c_len, SCM_GC_BYTEVECTOR);
-    }
-
-  return 0;
-}
-
-
 
 /* General operations.  */
 
@@ -2086,7 +2067,6 @@ scm_bootstrap_bytevectors (void)
      generalized-vector API may want to access bytevectors even though
      `(rnrs bytevector)' hasn't been loaded.  */
   scm_tc16_bytevector = scm_make_smob_type ("bytevector", 0);
-  scm_set_smob_free (scm_tc16_bytevector, free_bytevector);
   scm_set_smob_print (scm_tc16_bytevector, print_bytevector);
   scm_set_smob_equalp (scm_tc16_bytevector, bytevector_equal_p);
 
