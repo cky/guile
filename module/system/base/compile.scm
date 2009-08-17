@@ -2,26 +2,26 @@
 
 ;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
+;;;
+;;; This library is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
 (define-module (system base compile)
   #:use-module (system base syntax)
   #:use-module (system base language)
+  #:use-module (system base message)
   #:use-module (system vm vm) ;; FIXME: there's a reason for this, can't remember why tho
   #:use-module (ice-9 regex)
   #:use-module (ice-9 optargs)
@@ -29,7 +29,7 @@
   #:export (syntax-error 
             *current-language*
             compiled-file-name compile-file compile-and-load
-            compile compile-time-environment
+            compile
             decompile)
   #:export-syntax (call-with-compile-error-catch))
 
@@ -73,7 +73,7 @@
         thunk
         (lambda () #t))))
 
-(define (call-with-output-file/atomic filename proc)
+(define* (call-with-output-file/atomic filename proc #:optional reference)
   (let* ((template (string-append filename ".XXXXXX"))
          (tmp (mkstemp! template)))
     (call-once
@@ -83,6 +83,9 @@
            (proc tmp)
            (chmod tmp (logand #o0666 (lognot (umask))))
            (close-port tmp)
+           (if reference
+               (let ((st (stat reference)))
+                 (utime template (stat:atime st) (stat:mtime st))))
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))
@@ -92,62 +95,75 @@
       x
       (lookup-language x)))
 
-(define* (compile-file file #:optional output-file
-		            #:key (to 'objcode) (opts '()))
-  (let ((comp (or output-file (compiled-file-name file)))
-        (lang (ensure-language (current-language)))
-        (to (ensure-language to)))
-    (catch 'nothing-at-all
-      (lambda ()
-	(call-with-compile-error-catch
-	 (lambda ()
-	   (call-with-output-file/atomic comp
-	     (lambda (port)
-               (let ((print (language-printer to)))
-                 (print (compile (read-file-in file lang)
-                                 #:from lang #:to to #:opts opts)
-                        port))))
-	   (format #t "wrote `~A'\n" comp))))
-      (lambda (key . args)
-	(format #t "ERROR: during compilation of ~A:\n" file)
-	(display "ERROR: ")
-	(apply format #t (cadr args) (caddr args))
-	(newline)
-	(format #t "ERROR: ~A ~A ~A\n" key (car args) (cadddr args))
-	(delete-file comp)))))
+;; Throws an exception if `dir' is not writable. The double-stat is OK,
+;; as this is only used during compilation.
+(define (ensure-writable-dir dir)
+  (if (file-exists? dir)
+      (if (access? dir W_OK)
+          #t
+          (error "directory not writable" dir))
+      (begin
+        (ensure-writable-dir (dirname dir))
+        (mkdir dir))))
 
-(define* (compile-and-load file #:key (to 'value) (opts '()))
-  (let ((lang (ensure-language (current-language))))
-    (compile (read-file-in file lang) #:to 'value #:opts opts)))
+(define (dsu-sort list key less)
+  (map cdr
+       (stable-sort (map (lambda (x) (cons (key x) x)) list)
+                    (lambda (x y) (less (car x) (car y))))))
 
+;;; This function is among the trickiest I've ever written. I tried many
+;;; variants. In the end, simple is best, of course.
+;;;
+;;; After turning this around a number of times, it seems that the the
+;;; desired behavior is that .go files should exist in a path, for
+;;; searching. That is orthogonal to this function. For writing .go
+;;; files, either you know where they should go, in which case you tell
+;;; compile-file explicitly, as in the srcdir != builddir case; or you
+;;; don't know, in which case this function is called, and we just put
+;;; them in your own ccache dir in ~/.guile-ccache.
 (define (compiled-file-name file)
-  (let ((base (basename file))
-        (cext (cond ((or (null? %load-compiled-extensions)
-                         (string-null? (car %load-compiled-extensions)))
-                     (warn "invalid %load-compiled-extensions"
-                           %load-compiled-extensions)
-                     ".go")
-                    (else (car %load-compiled-extensions)))))
-    (let lp ((exts %load-extensions))
-      (cond ((null? exts) (string-append file cext))
-            ((string-null? (car exts)) (lp (cdr exts)))
-            ((string-suffix? (car exts) base)
-             (string-append
-              (dirname file) "/"
-              (substring base 0
-                         (- (string-length base) (string-length (car exts))))
-              cext))
-            (else (lp (cdr exts)))))))
+  (define (compiled-extension)
+    (cond ((or (null? %load-compiled-extensions)
+               (string-null? (car %load-compiled-extensions)))
+           (warn "invalid %load-compiled-extensions"
+                 %load-compiled-extensions)
+           ".go")
+          (else (car %load-compiled-extensions))))
+  (and %compile-fallback-path
+       (let ((f (string-append
+                 %compile-fallback-path
+                 ;; no need for '/' separator here, canonicalize-path
+                 ;; will give us an absolute path
+                 (canonicalize-path file)
+                 (compiled-extension))))
+         (and (false-if-exception (ensure-writable-dir (dirname f)))
+              f))))
+
+(define* (compile-file file #:key
+                       (output-file #f)
+                       (env #f)
+                       (from (current-language))
+                       (to 'objcode)
+                       (opts '()))
+  (let ((comp (or output-file (compiled-file-name file)))
+        (in (open-input-file file)))
+    (ensure-writable-dir (dirname comp))
+    (call-with-output-file/atomic comp
+      (lambda (port)
+        ((language-printer (ensure-language to))
+         (read-and-compile in #:env env #:from from #:to to #:opts opts)
+         port))
+      file)
+    comp))
+
+(define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
+  (read-and-compile (open-input-file file)
+                    #:from from #:to to #:opts opts))
 
 
 ;;;
 ;;; Compiler interface
 ;;;
-
-(define (read-file-in file lang)
-  (call-with-input-file file
-    (or (language-read-file lang)
-        (error "language has no #:read-file" lang))))
 
 (define (compile-passes from to opts)
   (map cdr
@@ -155,27 +171,62 @@
            (error "no way to compile" from "to" to))))
 
 (define (compile-fold passes exp env opts)
-  (if (null? passes)
-      exp
-      (receive (exp env) ((car passes) exp env opts)
-        (compile-fold (cdr passes) exp env opts))))
+  (let lp ((passes passes) (x exp) (e env) (cenv env) (first? #t))
+    (if (null? passes)
+        (values x e cenv)
+        (receive (x e new-cenv) ((car passes) x e opts)
+          (lp (cdr passes) x e (if first? new-cenv cenv) #f)))))
 
-(define (compile-time-environment)
-  "A special function known to the compiler that, when compiled, will
-return a representation of the lexical environment in place at compile
-time. Useful for supporting some forms of dynamic compilation. Returns
-#f if called from the interpreter."
-  #f)
+(define (find-language-joint from to)
+  (let lp ((in (reverse (or (lookup-compilation-order from to)
+                            (error "no way to compile" from "to" to))))
+           (lang to))
+    (cond ((null? in)
+           (error "don't know how to join expressions" from to))
+          ((language-joiner lang) lang)
+          (else
+           (lp (cdr in) (caar in))))))
+
+(define* (read-and-compile port #:key
+                           (env #f)
+                           (from (current-language))
+                           (to 'objcode)
+                           (opts '()))
+  (let ((from (ensure-language from))
+        (to (ensure-language to)))
+    (let ((joint (find-language-joint from to)))
+      (with-fluids ((*current-language* from))
+        (let lp ((exps '()) (env #f) (cenv env))
+          (let ((x ((language-reader (current-language)) port)))
+            (cond
+             ((eof-object? x)
+              (compile ((language-joiner joint) (reverse exps) env)
+                       #:from joint #:to to #:env env #:opts opts))
+             (else
+              ;; compile-fold instead of compile so we get the env too
+              (receive (jexp jenv jcenv)
+                  (compile-fold (compile-passes (current-language) joint opts)
+                                x cenv opts)
+                (lp (cons jexp exps) jenv jcenv))))))))))
 
 (define* (compile x #:key
                   (env #f)
                   (from (current-language))
                   (to 'value)
                   (opts '()))
-  (compile-fold (compile-passes from to opts)
-                x
-                env
-                opts))
+
+  (let ((warnings (memq #:warnings opts)))
+    (if (pair? warnings)
+        (let ((warnings (cadr warnings)))
+          ;; Sanity-check the requested warnings.
+          (for-each (lambda (w)
+                      (or (lookup-warning-type w)
+                          (warning 'unsupported-warning #f w)))
+                    warnings))))
+
+  (receive (exp env cenv)
+      (compile-fold (compile-passes from to opts) x env opts)
+    exp))
 
 
 ;;;

@@ -1,21 +1,20 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
@@ -32,8 +31,8 @@
 
 (define (decompile-toplevel x)
   (pmatch x
-    ((load-program ,nargs ,nrest ,nlocs ,nexts ,labels ,len ,meta . ,body)
-     (decompile-load-program nargs nrest nlocs nexts
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,body)
+     (decompile-load-program nargs nrest nlocs
                              (decompile-meta meta)
                              body labels #f))
     (else
@@ -57,7 +56,7 @@
           ((glil-program? (car in)) (lp (cdr in) (cons (car in) out)))
           (else (lp (cdr in) (cons (make-glil-const (car l)) out))))))
 
-(define (decompile-load-program nargs nrest nlocs nexts meta body labels
+(define (decompile-load-program nargs nrest nlocs meta body labels
                                 objects)
   (let ((glil-labels (sort (map (lambda (x)
                                   (cons (cdr x) (make-glil-label (car x))))
@@ -101,19 +100,11 @@
       (cond
        ((null? in)
         (or (null? stack) (error "leftover stack insts" stack body))
-        (make-glil-program nargs nrest nlocs nexts props (reverse out) #f))
+        (make-glil-program nargs nrest nlocs props (reverse out) #f))
        ((pop-bindings! pos)
         => (lambda (bindings)
              (lp in stack
-                 (cons (make-glil-bind
-                        (map (lambda (x)
-                               (let ((name (binding:name x))
-                                     (i (binding:index x)))
-                                 (cond
-                                  ((binding:extp x) `(,name external ,i))
-                                  ((< i nargs) `(,name argument ,i))
-                                  (else `(,name local ,(- i nargs))))))
-                             bindings))
+                 (cons (make-glil-bind bindings)
                        out)
                  pos)))
        ((pop-unbindings! pos)
@@ -175,15 +166,11 @@
                (1+ pos)))
           ((local-ref ,n)
            (lp (cdr in) (cons *placeholder* stack)
-               (cons (if (< n nargs)
-                         (make-glil-argument 'ref n)
-                         (make-glil-local 'ref (- n nargs)))
+               (cons (make-glil-local 'ref n)
                      out) (+ pos 2)))
           ((local-set ,n)
            (lp (cdr in) (cdr stack)
-               (cons (if (< n nargs)
-                         (make-glil-argument 'set n)
-                         (make-glil-local 'set (- n nargs)))
+               (cons (make-glil-local 'set n)
                      (emit-constants (list-head stack 1) out))
                (+ pos 2)))
           ((br-if-not ,l)

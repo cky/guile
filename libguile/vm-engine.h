@@ -1,43 +1,20 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ */
 
 /* This file is included in vm_engine.c */
 
@@ -77,13 +54,9 @@
 #endif
 #endif
 #ifdef __i386__
-/* gcc on lenny actually crashes if we allocate these variables in registers.
-   hopefully this is the only one of these. */
-#if !(__GNUC__==4 && __GNUC_MINOR__==1 && __GNUC_PATCHLEVEL__==2)
-#define IP_REG asm("%esi")
-#define SP_REG asm("%edi")
-#define FP_REG
-#endif
+/* too few registers! because of register allocation errors with various gcs,
+   just punt on explicit assignments on i386, hoping that the "register"
+   declaration will be sufficient. */
 #endif
 #if defined(PPC) || defined(_POWER) || defined(_IBMR2)
 #define IP_REG asm("26")
@@ -144,22 +117,36 @@
   vp->fp = fp;					\
 }
 
+/* FIXME */
+#define ASSERT_VARIABLE(x)                                              \
+  do { if (!SCM_VARIABLEP (x)) { SYNC_REGISTER (); abort(); }           \
+  } while (0)
+#define ASSERT_BOUND_VARIABLE(x)                                        \
+  do { ASSERT_VARIABLE (x);                                             \
+    if (SCM_VARIABLE_REF (x) == SCM_UNDEFINED)                          \
+      { SYNC_REGISTER (); abort(); }                                    \
+  } while (0)
+
 #ifdef VM_ENABLE_PARANOID_ASSERTIONS
 #define CHECK_IP() \
   do { if (ip < bp->base || ip - bp->base > bp->len) abort (); } while (0)
+#define ASSERT_ALIGNED_PROCEDURE() \
+  do { if ((scm_t_bits)bp % 8) abort (); } while (0)
+#define ASSERT_BOUND(x) \
+  do { if ((x) == SCM_UNDEFINED) { SYNC_REGISTER (); abort(); } \
+  } while (0)
 #else
 #define CHECK_IP()
+#define ASSERT_ALIGNED_PROCEDURE()
+#define ASSERT_BOUND(x)
 #endif
 
-/* Get a local copy of the program's "object table" (i.e. the vector of
-   external bindings that are referenced by the program), initialized by
-   `load-program'.  */
-/* XXX:  We could instead use the "simple vector macros", thus not having to
-   call `scm_vector_writable_elements ()' and the likes.  */
+/* Cache the object table and free variables.  */
 #define CACHE_PROGRAM()							\
 {									\
   if (bp != SCM_PROGRAM_DATA (program)) {                               \
     bp = SCM_PROGRAM_DATA (program);					\
+    ASSERT_ALIGNED_PROCEDURE ();                                        \
     if (SCM_I_IS_VECTOR (SCM_PROGRAM_OBJTABLE (program))) {             \
       objects = SCM_I_VECTOR_WELTS (SCM_PROGRAM_OBJTABLE (program));    \
       object_count = SCM_I_VECTOR_LENGTH (SCM_PROGRAM_OBJTABLE (program)); \
@@ -167,6 +154,19 @@
       objects = NULL;                                                   \
       object_count = 0;                                                 \
     }                                                                   \
+  }                                                                     \
+  {                                                                     \
+    SCM c = SCM_PROGRAM_FREE_VARIABLES (program);                       \
+    if (SCM_I_IS_VECTOR (c))                                            \
+      {                                                                 \
+        free_vars = SCM_I_VECTOR_WELTS (c);                             \
+        free_vars_count = SCM_I_VECTOR_LENGTH (c);                      \
+      }                                                                 \
+    else                                                                \
+      {                                                                 \
+        free_vars = NULL;                                               \
+        free_vars_count = 0;                                            \
+      }                                                                 \
   }                                                                     \
 }
 
@@ -185,20 +185,19 @@
  * Error check
  */
 
-#undef CHECK_EXTERNAL
-#if VM_CHECK_EXTERNAL
-#define CHECK_EXTERNAL(e) \
-  do { if (SCM_UNLIKELY (!SCM_CONSP (e))) goto vm_error_external; } while (0)
-#else
-#define CHECK_EXTERNAL(e)
-#endif
-
 /* Accesses to a program's object table.  */
 #if VM_CHECK_OBJECT
 #define CHECK_OBJECT(_num) \
   do { if (SCM_UNLIKELY ((_num) >= object_count)) goto vm_error_object; } while (0)
 #else
 #define CHECK_OBJECT(_num)
+#endif
+
+#if VM_CHECK_FREE_VARIABLES
+#define CHECK_FREE_VARIABLE(_num) \
+  do { if (SCM_UNLIKELY ((_num) >= free_vars_count)) goto vm_error_free_variable; } while (0)
+#else
+#define CHECK_FREE_VARIABLE(_num)
 #endif
 
 
@@ -337,6 +336,7 @@ do {						\
 
 #define FETCH()		(*ip++)
 #define FETCH_LENGTH(len) do { len=*ip++; len<<=8; len+=*ip++; len<<=8; len+=*ip++; } while (0)
+#define FETCH_WIDTH(width) do { width=*ip++; } while (0)
 
 #undef CLOCK
 #if VM_USE_CLOCK
@@ -399,7 +399,7 @@ do {						\
   /* New registers */                           \
   fp = sp - bp->nargs + 1;                      \
   data = SCM_FRAME_DATA_ADDRESS (fp);           \
-  sp = data + 3;                                \
+  sp = data + 2;                                \
   CHECK_OVERFLOW ();				\
   stack_base = sp;				\
   ip = bp->base;				\
@@ -409,22 +409,10 @@ do {						\
     data[-i] = SCM_UNDEFINED;                   \
 						\
   /* Set frame data */				\
-  data[3] = (SCM)ra;                            \
-  data[2] = 0x0;                                \
-  data[1] = (SCM)dl;                            \
-                                                \
-  /* Postpone initializing external vars,       \
-     because if the CONS causes a GC, we        \
-     want the stack marker to see the data      \
-     array formatted as expected. */            \
-  data[0] = SCM_UNDEFINED;                      \
-  external = SCM_PROGRAM_EXTERNALS (fp[-1]);    \
-  for (i = 0; i < bp->nexts; i++)               \
-    CONS (external, SCM_UNDEFINED, external);   \
-  data[0] = external;                           \
+  data[2] = (SCM)ra;                            \
+  data[1] = 0x0;                                \
+  data[0] = (SCM)dl;                            \
 }
-
-#define CACHE_EXTERNAL() external = fp[bp->nargs + bp->nlocs]
 
 /*
   Local Variables:

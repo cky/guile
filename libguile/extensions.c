@@ -3,18 +3,19 @@
  * Copyright (C) 2001, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #ifdef HAVE_CONFIG_H
@@ -76,6 +77,7 @@ load_extension (SCM lib, SCM init)
     {
       extension_t *ext;
       char *clib, *cinit;
+      int found = 0;
 
       scm_dynwind_begin (0);
 
@@ -89,10 +91,14 @@ load_extension (SCM lib, SCM init)
 	    && !strcmp (ext->init, cinit))
 	  {
 	    ext->func (ext->data);
+            found = 1;
 	    break;
 	  }
 
       scm_dynwind_end ();
+
+      if (found)
+        return;
     }
 
   /* Dynamically link the library. */

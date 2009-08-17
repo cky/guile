@@ -1,18 +1,19 @@
 /* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -29,6 +30,7 @@
 #endif
 
 #include <alloca.h>
+#include <canonicalize.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -580,17 +582,23 @@ static int fstat_Win32 (int fdes, struct stat *buf)
 }
 #endif /* __MINGW32__ */
 
-SCM_DEFINE (scm_stat, "stat", 1, 0, 0, 
-            (SCM object),
+SCM_DEFINE (scm_stat, "stat", 1, 1, 0, 
+            (SCM object, SCM exception_on_error),
 	    "Return an object containing various information about the file\n"
 	    "determined by @var{obj}.  @var{obj} can be a string containing\n"
 	    "a file name or a port or integer file descriptor which is open\n"
 	    "on a file (in which case @code{fstat} is used as the underlying\n"
 	    "system call).\n"
 	    "\n"
-	    "The object returned by @code{stat} can be passed as a single\n"
-	    "parameter to the following procedures, all of which return\n"
-	    "integers:\n"
+            "If the optional @var{exception_on_error} argument is true, which\n"
+            "is the default, an exception will be raised if the underlying\n"
+            "system call returns an error, for example if the file is not\n"
+            "found or is not readable. Otherwise, an error will cause\n"
+            "@code{stat} to return @code{#f}."
+	    "\n"
+	    "The object returned by a successful call to @code{stat} can be\n"
+            "passed as a single parameter to the following procedures, all of\n"
+            "which return integers:\n"
 	    "\n"
 	    "@table @code\n"
 	    "@item stat:dev\n"
@@ -678,12 +686,16 @@ SCM_DEFINE (scm_stat, "stat", 1, 0, 0,
 
   if (rv == -1)
     {
-      int en = errno;
-
-      SCM_SYSERROR_MSG ("~A: ~S",
-			scm_list_2 (scm_strerror (scm_from_int (en)),
-				    object),
-			en);
+      if (SCM_UNBNDP (exception_on_error) || scm_is_true (exception_on_error))
+        {
+          int en = errno;
+          SCM_SYSERROR_MSG ("~A: ~S",
+                            scm_list_2 (scm_strerror (scm_from_int (en)),
+                                        object),
+                            en);
+        }
+      else
+        return SCM_BOOL_F;
     }
   return scm_stat2scm (&stat_temp);
 }
@@ -1650,6 +1662,27 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_canonicalize_path, "canonicalize-path", 1, 0, 0, 
+            (SCM path),
+	    "Return the canonical path of @var{path}. A canonical path has\n"
+            "no @code{.} or @code{..} components, nor any repeated path\n"
+            "separators (@code{/}) nor symlinks.\n\n"
+            "Raises an error if any component of @var{path} does not exist.")
+#define FUNC_NAME s_scm_canonicalize_path
+{ char *str, *canon;
+  
+  SCM_VALIDATE_STRING (1, path);
+
+  str = scm_to_locale_string (path);
+  canon = canonicalize_file_name (str);
+  free (str);
+  
+  if (canon)
+    return scm_take_locale_string (canon);
+  else
+    SCM_SYSERROR;
+}
+#undef FUNC_NAME
 
 
 

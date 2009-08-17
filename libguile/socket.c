@@ -1,18 +1,19 @@
 /* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -1437,6 +1438,7 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   fd = SCM_FPORT_FDES (sock);
 
   len =  scm_i_string_length (buf);
+  buf = scm_i_string_start_writing (buf);
   dest = scm_i_string_writable_chars (buf);
   SCM_SYSCALL (rv = recv (fd, dest, len, flg));
   scm_i_string_stop_writing ();
@@ -1481,6 +1483,7 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
   fd = SCM_FPORT_FDES (sock);
 
   len = scm_i_string_length (message);
+  message = scm_i_string_start_writing (message);
   src = scm_i_string_writable_chars (message);
   SCM_SYSCALL (rv = send (fd, src, len, flg));
   scm_i_string_stop_writing ();
@@ -1549,6 +1552,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
   /* recvfrom will not necessarily return an address.  usually nothing
      is returned for stream sockets.  */
+  str = scm_i_string_start_writing (str);
   buf = scm_i_string_writable_chars (str);
   ((struct sockaddr *) &addr)->sa_family = AF_UNSPEC;
   SCM_SYSCALL (rv = recvfrom (fd, buf + offset,

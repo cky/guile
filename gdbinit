@@ -148,11 +148,6 @@ define nextframe
   output $vmdl
   newline
   set $vmsp=$vmsp-1
-  sputs "el:\t"
-  output $vmsp
-  sputs "\t"
-  gwrite *$vmsp
-  set $vmsp=$vmsp-1
   set $vmnlocs=(int)$vmbp->nlocs
   while $vmnlocs > 0
     sputs "loc #"

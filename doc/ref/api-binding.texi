@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -271,10 +271,16 @@ with duplicate bindings.
 Guile provides a procedure for checking whether a symbol is bound in the
 top level environment.
 
-@c NJFIXME explain [env]
-@deffn {Scheme Procedure} defined? sym [env]
-@deffnx {C Function} scm_defined_p (sym, env)
-Return @code{#t} if @var{sym} is defined in the lexical environment @var{env}.  When @var{env} is not specified, look in the top-level environment as defined by the current module.
+@deffn {Scheme Procedure} defined? sym [module]
+@deffnx {C Function} scm_defined_p (sym, module)
+Return @code{#t} if @var{sym} is defined in the module @var{module} or
+the current module when @var{module} is not specified; otherwise return
+@code{#f}.
+
+Up to Guile 1.8, the second optional argument had to be @dfn{lexical
+environment} as returned by @code{the-environment}, for example.  The
+behavior of this function remains unchanged when the second argument is
+omitted.
 @end deffn
 
 

@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -37,6 +38,7 @@
 #include "libguile/async.h"
 #include "libguile/backtrace.h"
 #include "libguile/boolean.h"
+#include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/continuations.h"
 #include "libguile/debug.h"
@@ -282,7 +284,7 @@ scm_load_startup_files ()
   /* Load Ice-9.  */
   if (!scm_ice_9_already_loaded)
     {
-      scm_primitive_load_path (scm_from_locale_string ("ice-9/boot-9"));
+      scm_c_primitive_load_path ("ice-9/boot-9");
 
       /* Load the init.scm file.  */
       if (scm_is_true (init_path))
@@ -574,6 +576,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rw ();
   scm_init_extensions ();
 
+  scm_bootstrap_bytevectors ();
   scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);

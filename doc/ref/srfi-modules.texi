@@ -47,6 +47,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-61::                     A more general `cond' clause
 * SRFI-69::                     Basic hash tables.
 * SRFI-88::                     Keyword objects.
+* SRFI-98::                     Accessing environment variables.
 @end menu
 
 
@@ -3608,6 +3609,25 @@ Return the keyword object whose name is @var{str}.
 @end example
 @end deffn
 
+@node SRFI-98
+@subsection SRFI-98 Accessing environment variables.
+@cindex SRFI-98
+@cindex environment variables
+
+This is a portable wrapper around Guile's built-in support for 
+interacting with the current environment, @xref{Runtime Environment}.
+
+@deffn {Scheme Procedure} get-environment-variable name
+Returns a string containing the value of the environment variable 
+given by the string @code{name}, or @code{#f} if the named 
+environment variable is not found.  This is equivalent to 
+@code{(getenv name)}.
+@end deffn
+
+@deffn {Scheme Procedure} get-environment-variables
+Returns the names and values of all the environment variables as an
+association list in which both the keys and the values are strings.
+@end deffn
 
 @c srfi-modules.texi ends here
 

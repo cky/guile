@@ -3,7 +3,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -195,15 +195,11 @@ OBJECT can be a procedure, macro or any object that has its
 `documentation' property set."
   (or (and (procedure? object)
 	   (proc-doc object))
-      (and (defmacro? object)
-	   (proc-doc (defmacro-transformer object)))
-      (and (macro? object)
-	   (let ((transformer (macro-transformer object)))
-	     (and transformer
-		  (proc-doc transformer))))
       (object-property object 'documentation)
       (and (program? object)
            (program-documentation object))
+      (and (macro? object)
+           (object-documentation (macro-transformer object)))
       (and (procedure? object)
 	   (not (closure? object))
 	   (procedure-name object)

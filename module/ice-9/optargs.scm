@@ -5,7 +5,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -410,15 +410,11 @@
 ;;   (defmacro* transmorgify (a #:optional b)
 
 (defmacro defmacro* (NAME ARGLIST . BODY)
-  (defmacro*-guts 'define NAME ARGLIST BODY))
+  `(define-macro ,NAME #f (lambda* ,ARGLIST ,@BODY)))
 
 (defmacro defmacro*-public (NAME ARGLIST . BODY)
-  (defmacro*-guts 'define-public NAME ARGLIST BODY))
-
-;; The guts of defmacro* and defmacro*-public
-(define (defmacro*-guts DT NAME ARGLIST BODY)
-  `(,DT ,NAME
-	(,(lambda (transformer) (defmacro:transformer transformer))
-	 (lambda* ,ARGLIST ,@BODY))))
+  `(begin
+     (defmacro* ,NAME ,ARGLIST ,@BODY)
+     (export-syntax ,NAME)))
 
 ;;; optargs.scm ends here

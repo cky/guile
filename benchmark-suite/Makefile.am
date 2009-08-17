@@ -1,4 +1,5 @@
 SCM_BENCHMARKS = benchmarks/0-reference.bm		\
+		 benchmarks/bytevectors.bm		\
 	         benchmarks/continuations.bm		\
                  benchmarks/if.bm			\
                  benchmarks/logand.bm			\

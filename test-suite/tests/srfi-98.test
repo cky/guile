@@ -1,0 +1,37 @@
+;;;; srfi-98.test --- Test suite for Guile's SRFI-98 functions. -*- scheme -*-
+;;;;
+;;;; Copyright 2009 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-srfi-98)
+  #:use-module (srfi srfi-98)
+  #:use-module (test-suite lib))
+
+(with-test-prefix "get-environment-variable"
+  (pass-if "get-environment-variable retrieves binding"
+    (putenv "foo=bar")
+    (equal? (get-environment-variable "foo") "bar"))
+
+  (pass-if "get-environment-variable #f on unbound name"
+    (unsetenv "foo")
+    (not (get-environment-variable "foo"))))      
+
+(with-test-prefix "get-environment-variables"
+
+  (pass-if "get-environment-variables contains binding"
+    (putenv "foo=bar")
+    (equal? (assoc-ref (get-environment-variables) "foo") "bar")))
+

@@ -2,23 +2,29 @@
  * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
+#endif
+
+#ifdef HAVE_GETRLIMIT
+#include <sys/time.h>
+#include <sys/resource.h>
 #endif
 
 #include "libguile/_scm.h"
@@ -303,7 +309,7 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
   SCM_VALIDATE_PROC (1, proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tcs_subrs:
-    return SCM_SNAME (proc);
+    return SCM_SUBR_NAME (proc);
   default:
     {
       SCM name = scm_procedure_property (proc, scm_sym_name);
@@ -394,6 +400,21 @@ SCM_DEFINE (scm_procedure_environment, "procedure-environment", 1, 0, 0,
   }
 }
 #undef FUNC_NAME
+
+SCM_DEFINE (scm_procedure_module, "procedure-module", 1, 0, 0, 
+           (SCM proc),
+	    "Return the module that was current when @var{proc} was defined.")
+#define FUNC_NAME s_scm_procedure_module
+{
+  SCM_VALIDATE_PROC (SCM_ARG1, proc);
+
+  if (scm_is_true (scm_program_p (proc)))
+    return scm_program_module (proc);
+  else
+    return scm_env_module (scm_procedure_environment (proc));
+}
+#undef FUNC_NAME
+
 
 
 
@@ -513,11 +534,32 @@ SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
+static void
+init_stack_limit (void)
+{
+#ifdef HAVE_GETRLIMIT
+  struct rlimit lim;
+  if (getrlimit (RLIMIT_STACK, &lim) == 0)
+      {
+        rlim_t bytes = lim.rlim_cur;
+
+        /* set our internal stack limit to 80% of the rlimit. */
+        if (bytes == RLIM_INFINITY)
+          bytes = lim.rlim_max;
+
+        if (bytes != RLIM_INFINITY)
+          SCM_STACK_LIMIT = bytes * 8 / 10 / sizeof (scm_t_bits);
+      }
+  errno = 0;
+#endif
+}
+
 
 
 void
 scm_init_debug ()
 {
+  init_stack_limit ();
   scm_init_opts (scm_debug_options, scm_debug_opts);
 
   scm_tc16_memoized = scm_make_smob_type ("memoized", 0);

@@ -2,18 +2,19 @@
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -305,6 +306,9 @@ syntax_error (const char* const msg, const SCM form, const SCM expr)
 #define ASSERT_SYNTAX_2(cond, message, form, expr)	\
   { if (SCM_UNLIKELY (!(cond)))			\
       syntax_error (message, form, expr); }
+
+static void error_unbound_variable (SCM symbol) SCM_NORETURN;
+static void error_defined_variable (SCM symbol) SCM_NORETURN;
 
 
 
@@ -706,6 +710,101 @@ is_system_macro_p (const SCM syntactic_keyword, const SCM form, const SCM env)
   return 0;
 }
 
+static SCM
+macroexp (SCM x, SCM env)
+{
+  SCM res, proc, orig_sym;
+
+  /* Don't bother to produce error messages here.  We get them when we
+     eventually execute the code for real. */
+
+ macro_tail:
+  orig_sym = SCM_CAR (x);
+  if (!scm_is_symbol (orig_sym))
+    return x;
+
+  {
+    SCM *proc_ptr = scm_lookupcar1 (x, env, 0);
+    if (proc_ptr == NULL)
+      {
+	/* We have lost the race. */
+	goto macro_tail;
+      }
+    proc = *proc_ptr;
+  }
+  
+  /* Only handle memoizing macros.  `Acros' and `macros' are really
+     special forms and should not be evaluated here. */
+
+  if (!SCM_MACROP (proc)
+      || (SCM_MACRO_TYPE (proc) != 2 && !SCM_BUILTIN_MACRO_P (proc)))
+    return x;
+
+  SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
+  res = scm_call_2 (SCM_MACRO_CODE (proc), x, env);
+
+  if (scm_ilength (res) <= 0)
+    /* Result of expansion is not a list.  */
+    return (scm_list_2 (SCM_IM_BEGIN, res));
+  else
+    {
+      /* njrev: Several queries here: (1) I don't see how it can be
+	 correct that the SCM_SETCAR 2 lines below this comment needs
+	 protection, but the SCM_SETCAR 6 lines above does not, so
+	 something here is probably wrong.  (2) macroexp() is now only
+	 used in one place - scm_m_generalized_set_x - whereas all other
+	 macro expansion happens through expand_user_macros.  Therefore
+	 (2.1) perhaps macroexp() could be eliminated completely now?
+	 (2.2) Does expand_user_macros need any critical section
+	 protection? */
+
+      SCM_CRITICAL_SECTION_START;
+      SCM_SETCAR (x, SCM_CAR (res));
+      SCM_SETCDR (x, SCM_CDR (res));
+      SCM_CRITICAL_SECTION_END;
+
+      goto macro_tail;
+    }
+}
+
+
+/* Start of the memoizers for the standard R5RS builtin macros.  */
+
+static SCM scm_m_quote (SCM xorig, SCM env);
+static SCM scm_m_begin (SCM xorig, SCM env);
+static SCM scm_m_if (SCM xorig, SCM env);
+static SCM scm_m_set_x (SCM xorig, SCM env);
+static SCM scm_m_and (SCM xorig, SCM env);
+static SCM scm_m_or (SCM xorig, SCM env);
+static SCM scm_m_case (SCM xorig, SCM env);
+static SCM scm_m_cond (SCM xorig, SCM env);
+static SCM scm_m_lambda (SCM xorig, SCM env);
+static SCM scm_m_letstar (SCM xorig, SCM env);
+static SCM scm_m_do (SCM xorig, SCM env);
+static SCM scm_m_quasiquote (SCM xorig, SCM env);
+static SCM scm_m_delay (SCM xorig, SCM env);
+static SCM scm_m_generalized_set_x (SCM xorig, SCM env);
+#if 0  /* Futures are disabled, see "futures.h".  */
+static SCM scm_m_future (SCM xorig, SCM env);
+#endif
+static SCM scm_m_define (SCM x, SCM env);
+static SCM scm_m_letrec (SCM xorig, SCM env);
+static SCM scm_m_let (SCM xorig, SCM env);
+static SCM scm_m_at (SCM xorig, SCM env);
+static SCM scm_m_atat (SCM xorig, SCM env);
+static SCM scm_m_atslot_ref (SCM xorig, SCM env);
+static SCM scm_m_atslot_set_x (SCM xorig, SCM env);
+static SCM scm_m_apply (SCM xorig, SCM env);
+static SCM scm_m_cont (SCM xorig, SCM env);
+#if SCM_ENABLE_ELISP
+static SCM scm_m_nil_cond (SCM xorig, SCM env);
+static SCM scm_m_atfop (SCM xorig, SCM env);
+#endif /* SCM_ENABLE_ELISP */
+static SCM scm_m_atbind (SCM xorig, SCM env);
+static SCM scm_m_at_call_with_values (SCM xorig, SCM env);
+static SCM scm_m_eval_when (SCM xorig, SCM env);
+
+
 static void
 m_expand_body (const SCM forms, const SCM env)
 {
@@ -828,70 +927,10 @@ m_expand_body (const SCM forms, const SCM env)
     }
 }
 
-static SCM
-macroexp (SCM x, SCM env)
-{
-  SCM res, proc, orig_sym;
-
-  /* Don't bother to produce error messages here.  We get them when we
-     eventually execute the code for real. */
-
- macro_tail:
-  orig_sym = SCM_CAR (x);
-  if (!scm_is_symbol (orig_sym))
-    return x;
-
-  {
-    SCM *proc_ptr = scm_lookupcar1 (x, env, 0);
-    if (proc_ptr == NULL)
-      {
-	/* We have lost the race. */
-	goto macro_tail;
-      }
-    proc = *proc_ptr;
-  }
-  
-  /* Only handle memoizing macros.  `Acros' and `macros' are really
-     special forms and should not be evaluated here. */
-
-  if (!SCM_MACROP (proc)
-      || (SCM_MACRO_TYPE (proc) != 2 && !SCM_BUILTIN_MACRO_P (proc)))
-    return x;
-
-  SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of lookupcar */
-  res = scm_call_2 (SCM_MACRO_CODE (proc), x, env);
-
-  if (scm_ilength (res) <= 0)
-    /* Result of expansion is not a list.  */
-    return (scm_list_2 (SCM_IM_BEGIN, res));
-  else
-    {
-      /* njrev: Several queries here: (1) I don't see how it can be
-	 correct that the SCM_SETCAR 2 lines below this comment needs
-	 protection, but the SCM_SETCAR 6 lines above does not, so
-	 something here is probably wrong.  (2) macroexp() is now only
-	 used in one place - scm_m_generalized_set_x - whereas all other
-	 macro expansion happens through expand_user_macros.  Therefore
-	 (2.1) perhaps macroexp() could be eliminated completely now?
-	 (2.2) Does expand_user_macros need any critical section
-	 protection? */
-
-      SCM_CRITICAL_SECTION_START;
-      SCM_SETCAR (x, SCM_CAR (res));
-      SCM_SETCDR (x, SCM_CDR (res));
-      SCM_CRITICAL_SECTION_END;
-
-      goto macro_tail;
-    }
-}
-
-/* Start of the memoizers for the standard R5RS builtin macros.  */
-
-
 SCM_SYNTAX (s_and, "and", scm_i_makbimacro, scm_m_and);
 SCM_GLOBAL_SYMBOL (scm_sym_and, s_and);
 
-SCM
+static SCM
 scm_m_and (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -921,7 +960,7 @@ unmemoize_and (const SCM expr, const SCM env)
 SCM_SYNTAX (s_begin, "begin", scm_i_makbimacro, scm_m_begin);
 SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
 
-SCM
+static SCM
 scm_m_begin (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -945,7 +984,7 @@ SCM_SYNTAX (s_case, "case", scm_i_makbimacro, scm_m_case);
 SCM_GLOBAL_SYMBOL (scm_sym_case, s_case);
 SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 
-SCM
+static SCM
 scm_m_case (SCM expr, SCM env)
 {
   SCM clauses;
@@ -1041,7 +1080,7 @@ SCM_SYNTAX (s_cond, "cond", scm_i_makbimacro, scm_m_cond);
 SCM_GLOBAL_SYMBOL (scm_sym_cond, s_cond);
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
 
-SCM
+static SCM
 scm_m_cond (SCM expr, SCM env)
 {
   /* Check, whether 'else or '=> is a literal, i. e. not bound to a value. */
@@ -1203,7 +1242,7 @@ canonicalize_define (const SCM expr)
    operation.  However, EXPRESSION _can_ be evaluated before VARIABLE is
    bound.  This means that EXPRESSION won't necessarily be able to assign
    values to VARIABLE as in `(define foo (begin (set! foo 1) (+ foo 1)))'.  */
-SCM
+static SCM
 scm_m_define (SCM expr, SCM env)
 {
   ASSERT_SYNTAX (SCM_TOP_LEVEL (env), s_bad_define, expr);
@@ -1258,7 +1297,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
  * (delay <expression>) is transformed into (#@delay '() <expression>), where
  * the empty list represents the empty parameter list.  This representation
  * allows for easy creation of the closure during evaluation.  */
-SCM
+static SCM
 scm_m_delay (SCM expr, SCM env)
 {
   const SCM new_expr = memoize_as_thunk_prototype (expr, env);
@@ -1301,7 +1340,7 @@ SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
          (<body>)
      <step1> <step2> ... <stepn>) ;; missing steps replaced by var
  */
-SCM 
+static SCM
 scm_m_do (SCM expr, SCM env SCM_UNUSED)
 {
   SCM variables = SCM_EOL;
@@ -1399,7 +1438,7 @@ unmemoize_do (const SCM expr, const SCM env)
 SCM_SYNTAX (s_if, "if", scm_i_makbimacro, scm_m_if);
 SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
 
-SCM
+static SCM
 scm_m_if (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -1449,7 +1488,7 @@ c_improper_memq (SCM obj, SCM list)
   return scm_is_eq (list, obj);
 }
 
-SCM
+static SCM
 scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
 {
   SCM formals;
@@ -1619,7 +1658,7 @@ memoize_named_let (const SCM expr, const SCM env SCM_UNUSED)
 
 /* (let ((v1 i1) (v2 i2) ...) body) with variables v1 .. vn and initializers
  * i1 .. in is transformed to (#@let (vn ... v2 v1) (i1 i2 ...) body).  */
-SCM
+static SCM
 scm_m_let (SCM expr, SCM env)
 {
   SCM bindings;
@@ -1693,7 +1732,7 @@ unmemoize_let (const SCM expr, const SCM env)
 SCM_SYNTAX(s_letrec, "letrec", scm_i_makbimacro, scm_m_letrec);
 SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
 
-SCM 
+static SCM
 scm_m_letrec (SCM expr, SCM env)
 {
   SCM bindings;
@@ -1744,7 +1783,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
 
 /* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vn and initializers
  * i1 .. in is transformed into the form (#@let* (v1 i1 v2 i2 ...) body).  */
-SCM
+static SCM
 scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
 {
   SCM binding_idx;
@@ -1817,7 +1856,7 @@ unmemoize_letstar (const SCM expr, const SCM env)
 SCM_SYNTAX (s_or, "or", scm_i_makbimacro, scm_m_or);
 SCM_GLOBAL_SYMBOL (scm_sym_or, s_or);
 
-SCM
+static SCM
 scm_m_or (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -1901,7 +1940,7 @@ iqq (SCM form, SCM env, unsigned long int depth)
     return form;
 }
 
-SCM 
+static SCM
 scm_m_quasiquote (SCM expr, SCM env)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -1914,7 +1953,7 @@ scm_m_quasiquote (SCM expr, SCM env)
 SCM_SYNTAX (s_quote, "quote", scm_i_makbimacro, scm_m_quote);
 SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
 
-SCM
+static SCM
 scm_m_quote (SCM expr, SCM env SCM_UNUSED)
 {
   SCM quotee;
@@ -1943,7 +1982,7 @@ SCM_SYNTAX (s_set_x, "set!", scm_i_makbimacro, scm_m_set_x); */
 static const char s_set_x[] = "set!";
 SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
 
-SCM
+static SCM
 scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
 {
   SCM variable;
@@ -1973,14 +2012,57 @@ unmemoize_set_x (const SCM expr, const SCM env)
 }
 
 
+
 /* Start of the memoizers for non-R5RS builtin macros.  */
 
+
+SCM_SYNTAX (s_at, "@", scm_makmmacro, scm_m_at);
+SCM_GLOBAL_SYMBOL (scm_sym_at, s_at);
+
+static SCM
+scm_m_at (SCM expr, SCM env SCM_UNUSED)
+{
+  SCM mod, var;
+  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_is_symbol (scm_caddr (expr)), s_bad_expression, expr);
+
+  mod = scm_resolve_module (scm_cadr (expr));
+  if (scm_is_false (mod))
+    error_unbound_variable (expr);
+  var = scm_module_variable (scm_module_public_interface (mod), scm_caddr (expr));
+  if (scm_is_false (var))
+    error_unbound_variable (expr);
+  
+  return var;
+}
+
+SCM_SYNTAX (s_atat, "@@", scm_makmmacro, scm_m_atat);
+SCM_GLOBAL_SYMBOL (scm_sym_atat, s_atat);
+
+static SCM
+scm_m_atat (SCM expr, SCM env SCM_UNUSED)
+{
+  SCM mod, var;
+  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_is_symbol (scm_caddr (expr)), s_bad_expression, expr);
+
+  mod = scm_resolve_module (scm_cadr (expr));
+  if (scm_is_false (mod))
+    error_unbound_variable (expr);
+  var = scm_module_variable (mod, scm_caddr (expr));
+  if (scm_is_false (var))
+    error_unbound_variable (expr);
+  
+  return var;
+}
 
 SCM_SYNTAX (s_atapply, "@apply", scm_i_makbimacro, scm_m_apply);
 SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
 SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
 
-SCM 
+static SCM
 scm_m_apply (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -2017,7 +2099,7 @@ SCM_SYNTAX (s_atbind, "@bind", scm_i_makbimacro, scm_m_atbind);
  *
  * FIXME - also implement `@bind*'.
  */
-SCM
+static SCM
 scm_m_atbind (SCM expr, SCM env)
 {
   SCM bindings;
@@ -2056,7 +2138,7 @@ scm_m_atbind (SCM expr, SCM env)
 SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_i_makbimacro, scm_m_cont);
 SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
 
-SCM 
+static SCM
 scm_m_cont (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -2077,7 +2159,7 @@ unmemoize_atcall_cc (const SCM expr, const SCM env)
 SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_i_makbimacro, scm_m_at_call_with_values);
 SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
 
-SCM
+static SCM
 scm_m_at_call_with_values (SCM expr, SCM env SCM_UNUSED)
 {
   const SCM cdr_expr = SCM_CDR (expr);
@@ -2095,6 +2177,25 @@ unmemoize_at_call_with_values (const SCM expr, const SCM env)
                      unmemoize_exprs (SCM_CDR (expr), env));
 }
 
+SCM_SYNTAX (s_eval_when, "eval-when", scm_makmmacro, scm_m_eval_when);
+SCM_GLOBAL_SYMBOL (scm_sym_eval_when, s_eval_when);
+SCM_SYMBOL (sym_eval, "eval");
+SCM_SYMBOL (sym_load, "load");
+
+
+static SCM
+scm_m_eval_when (SCM expr, SCM env SCM_UNUSED)
+{
+  ASSERT_SYNTAX (scm_ilength (expr) >= 3, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (scm_cadr (expr)) > 0, s_bad_expression, expr);
+
+  if (scm_is_true (scm_memq (sym_eval, scm_cadr (expr)))
+      || scm_is_true (scm_memq (sym_load, scm_cadr (expr))))
+    return scm_cons (SCM_IM_BEGIN, scm_cddr (expr));
+  
+  return scm_list_1 (SCM_IM_BEGIN);
+}
+
 #if 0
 
 /* See futures.h for a comment why futures are not enabled.
@@ -2108,7 +2209,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
  * (#@future '() <expression>), where the empty list represents the
  * empty parameter list.  This representation allows for easy creation
  * of the closure during evaluation.  */
-SCM
+static SCM
 scm_m_future (SCM expr, SCM env)
 {
   const SCM new_expr = memoize_as_thunk_prototype (expr, env);
@@ -2128,7 +2229,7 @@ unmemoize_future (const SCM expr, const SCM env)
 SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
 
-SCM 
+static SCM
 scm_m_generalized_set_x (SCM expr, SCM env)
 {
   SCM target, exp_target;
@@ -2185,9 +2286,11 @@ scm_m_generalized_set_x (SCM expr, SCM env)
  * arbitrary modules during the startup phase, the code from goops.c should be
  * moved here.  */
 
+SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_i_makbimacro, scm_m_atslot_ref);
+SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_i_makbimacro, scm_m_atslot_set_x);
 SCM_SYMBOL (sym_atslot_ref, "@slot-ref");
 
-SCM
+static SCM
 scm_m_atslot_ref (SCM expr, SCM env SCM_UNUSED)
 {
   SCM slot_nr;
@@ -2220,7 +2323,7 @@ unmemoize_atslot_ref (const SCM expr, const SCM env)
 
 SCM_SYMBOL (sym_atslot_set_x, "@slot-set!");
 
-SCM
+static SCM
 scm_m_atslot_set_x (SCM expr, SCM env SCM_UNUSED)
 {
   SCM slot_nr;
@@ -2258,7 +2361,7 @@ SCM_SYNTAX (s_nil_cond, "nil-cond", scm_i_makbimacro, scm_m_nil_cond);
 
 /* nil-cond expressions have the form
  *   (nil-cond COND VAL COND VAL ... ELSEVAL)  */
-SCM
+static SCM
 scm_m_nil_cond (SCM expr, SCM env SCM_UNUSED)
 {
   const long length = scm_ilength (SCM_CDR (expr));
@@ -2281,7 +2384,7 @@ SCM_SYNTAX (s_atfop, "@fop", scm_i_makbimacro, scm_m_atfop);
  * if the value of var (across all aliasing) is not a macro, or
  *    (<un-aliased var> <expr> ...)
  * if var is a macro. */
-SCM
+static SCM
 scm_m_atfop (SCM expr, SCM env SCM_UNUSED)
 {
   SCM location;
@@ -2452,20 +2555,11 @@ scm_i_unmemocopy_body (SCM forms, SCM env)
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-/* Deprecated in guile 1.7.0 on 2003-11-09.  */
-SCM
-scm_m_expand_body (SCM exprs, SCM env)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_m_expand_body' is deprecated.");
-  m_expand_body (exprs, env);
-  return exprs;
-}
-
+static SCM scm_m_undefine (SCM expr, SCM env);
 
 SCM_SYNTAX (s_undefine, "undefine", scm_makacro, scm_m_undefine);
 
-SCM
+static SCM
 scm_m_undefine (SCM expr, SCM env)
 {
   SCM variable;
@@ -2489,55 +2583,10 @@ scm_m_undefine (SCM expr, SCM env)
   return SCM_UNSPECIFIED;
 }
 
-SCM
-scm_macroexp (SCM x, SCM env)
-{
-  scm_c_issue_deprecation_warning
-    ("`scm_macroexp' is deprecated.");
-  return macroexp (x, env);
-}
-
-#endif
+#endif /* SCM_ENABLE_DEPRECATED */
 
 
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-SCM
-scm_unmemocar (SCM form, SCM env)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_unmemocar' is deprecated.");
-
-  if (!scm_is_pair (form))
-    return form;
-  else
-    {
-      SCM c = SCM_CAR (form);
-      if (SCM_VARIABLEP (c))
-	{
-	  SCM sym = scm_module_reverse_lookup (scm_env_module (env), c);
-	  if (scm_is_false (sym))
-	    sym = sym_three_question_marks;
-	  SCM_SETCAR (form, sym);
-	}
-      else if (SCM_ILOCP (c))
-	{
-	  unsigned long int ir;
-
-	  for (ir = SCM_IFRAME (c); ir != 0; --ir)
-	    env = SCM_CDR (env);
-	  env = SCM_CAAR (env);
-	  for (ir = SCM_IDIST (c); ir != 0; --ir)
-	    env = SCM_CDR (env);
-
-	  SCM_SETCAR (form, SCM_ICDRP (c) ? env : SCM_CAR (env));
-	}
-      return form;
-    }
-}
-
-#endif
-
+
 /*****************************************************************************/
 /*****************************************************************************/
 /*                 The definitions for execution start here.                 */
@@ -2661,9 +2710,6 @@ scm_ilookup (SCM iloc, SCM env)
 
 
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
-
-static void error_unbound_variable (SCM symbol) SCM_NORETURN;
-static void error_defined_variable (SCM symbol) SCM_NORETURN;
 
 /* Call this for variables that are unfound.
  */
@@ -2967,8 +3013,19 @@ scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_INTEGER, "depth", 20, "Maximal length of printed backtrace." },
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
   { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
+  /* This default stack limit will be overridden by debug.c:init_stack_limit(),
+     if we have getrlimit() and the stack limit is not INFINITY. But it is still
+     important, as some systems have both the soft and the hard limits set to
+     INFINITY; in that case we fall back to this value.
 
-  { SCM_OPTION_INTEGER, "stack", 40000, "Stack size limit (measured in words; 0 = no check)." },
+     The situation is aggravated by certain compilers, which can consume
+     "beaucoup de stack", as they say in France.
+
+     See http://thread.gmane.org/gmane.lisp.guile.devel/8599/focus=8662 for
+     more discussion. This setting is 640 KB on 32-bit arches (should be enough
+     for anyone!) or a whoppin' 1280 KB on 64-bit arches.
+  */
+  { SCM_OPTION_INTEGER, "stack", 160000, "Stack size limit (measured in words; 0 = no check)." },
   { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T,
     "Show file names and line numbers "
     "in backtraces when not `#f'.  A value of `base' "
@@ -3324,7 +3381,7 @@ call_dsubr_1 (SCM proc, SCM arg1)
       return (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
     }
   SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-		      SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
+		      SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
 }
 
 static SCM
@@ -4056,11 +4113,12 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
   scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
   if (scm_is_dynamic_state (module_or_state))
     scm_dynwind_current_dynamic_state (module_or_state);
-  else
+  else if (scm_module_system_booted_p)
     {
       SCM_VALIDATE_MODULE (2, module_or_state);
       scm_dynwind_current_module (module_or_state);
     }
+  /* otherwise if the module system isn't booted, ignore the module arg */
 
   res = scm_primitive_eval (exp);
 

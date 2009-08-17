@@ -2,18 +2,19 @@
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -1253,10 +1254,7 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_SYNTAX (s_atslot_ref, "@slot-ref", scm_i_makbimacro, scm_m_atslot_ref);
-SCM_SYNTAX (s_atslot_set_x, "@slot-set!", scm_i_makbimacro, scm_m_atslot_set_x);
-
-
+
 /** Utilities **/
 
 /* In the future, this function will return the effective slot
@@ -1859,7 +1857,7 @@ SCM_DEFINE (scm_enable_primitive_generic_x, "enable-primitive-generic!", 0, 0, 1
       *SCM_SUBR_GENERIC (subr)
 	= scm_make (scm_list_3 (scm_class_generic,
 				k_name,
-				SCM_SNAME (subr)));
+				SCM_SUBR_NAME (subr)));
       subrs = SCM_CDR (subrs);
     }
   return SCM_UNSPECIFIED;
@@ -1907,7 +1905,7 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
       gf = *SCM_SUBR_GENERIC (extended);
       gext = scm_call_2 (SCM_VARIABLE_REF (scm_var_make_extended_generic),
 			 gf,
-			 SCM_SNAME (extension));
+			 SCM_SUBR_NAME (extension));
       SCM_SET_SUBR_GENERIC (extension, gext);
     }
   else

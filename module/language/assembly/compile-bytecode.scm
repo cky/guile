@@ -2,20 +2,19 @@
 
 ;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
@@ -24,6 +23,7 @@
   #:use-module (language assembly)
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
+  #:use-module (rnrs bytevector)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module ((system vm objcode) #:select (byte-order))
   #:export (compile-bytecode write-bytecode))
@@ -40,7 +40,7 @@
               (get-addr (lambda () i)))
        (write-bytecode assembly write-byte get-addr '())
        (if (= i (u8vector-length v))
-           (values v env)
+           (values v env env)
            (error "incorrect length in assembly" i (u8vector-length v)))))
     (else (error "bad assembly" assembly))))
 
@@ -65,6 +65,14 @@
     (write-byte (logand (ash x -8) 255))
     (write-byte (logand (ash x -16) 255))
     (write-byte (logand (ash x -24) 255)))
+  (define (write-uint32 x)
+    (case byte-order
+      ((1234) (write-uint32-le x))
+      ((4321) (write-uint32-be x))
+      (else (error "unknown endianness" byte-order))))
+  (define (write-wide-string s)
+    (write-loader-len (* 4 (string-length s)))
+    (string-for-each (lambda (c) (write-uint32 (char->integer c))) s))
   (define (write-loader-len len)
     (write-byte (ash len -16))
     (write-byte (logand (ash len -8) 255))
@@ -72,27 +80,43 @@
   (define (write-loader str)
     (write-loader-len (string-length str))
     (write-string str))
+  (define (write-sized-loader str)
+    (let ((len (string-length str))
+          (wid (string-width str)))
+      (write-loader-len len)
+      (write-byte wid)
+      (if (= wid 4)
+          (write-wide-string str)
+          (write-string str))))
+  (define (write-bytevector bv)
+    (write-loader-len (bytevector-length bv))
+    ;; Ew!
+    (for-each write-byte (bytevector->u8-list bv)))
   (define (write-break label)
-    (write-uint16-be (- (assq-ref labels label) (+ (get-addr) 2))))
+    (let ((offset (- (assq-ref labels label)
+                     (logand (+ (get-addr) 2) (lognot #x7)))))
+      (cond ((not (= 0 (modulo offset 8))) (error "unaligned jump" offset))
+            ((>= offset (ash 1 18)) (error "jump too far forward" offset))
+            ((< offset (- (ash 1 18))) (error "jump too far backwards" offset))
+            (else (write-uint16-be (ash offset -3))))))
   
   (let ((inst (car asm))
         (args (cdr asm))
-        (write-uint32 (case byte-order
-                        ((1234) write-uint32-le)
-                        ((4321) write-uint32-be)
+        (write-uint16 (case byte-order
+                        ((1234) write-uint16-le)
+                        ((4321) write-uint16-be)
                         (else (error "unknown endianness" byte-order)))))
     (let ((opcode (instruction->opcode inst))
           (len (instruction-length inst)))
       (write-byte opcode)
       (pmatch asm
-        ((load-program ,nargs ,nrest ,nlocs ,nexts
-                       ,labels ,length ,meta . ,code)
+        ((load-program ,nargs ,nrest ,nlocs ,labels ,length ,meta . ,code)
          (write-byte nargs)
          (write-byte nrest)
-         (write-byte nlocs)
-         (write-byte nexts)
+         (write-uint16 nlocs)
          (write-uint32 length)
          (write-uint32 (if meta (1- (byte-length meta)) 0))
+         (write-uint32 0) ; padding
          (letrec ((i 0)
                   (write (lambda (x) (set! i (1+ i)) (write-byte x)))
                   (get-addr (lambda () i)))
@@ -106,14 +130,16 @@
                                (set! i (1+ i))
                                (if (> i 0) (write-byte x))))
                       (get-addr (lambda () i)))
+               ;; META's bytecode meets the alignment requirements of
+               ;; `scm_objcode', thanks to the alignment computed in
+               ;; `(language assembly)'.
                (write-bytecode meta write get-addr '()))))
-        ((load-unsigned-integer ,str) (write-loader str))
-        ((load-integer ,str) (write-loader str))
+        ((make-char32 ,x) (write-uint32-be x))
         ((load-number ,str) (write-loader str))
         ((load-string ,str) (write-loader str))
+        ((load-wide-string ,str) (write-wide-string str))
         ((load-symbol ,str) (write-loader str))
-        ((load-keyword ,str) (write-loader str))
-        ((define ,str) (write-loader str))
+        ((load-array ,bv) (write-bytevector bv))
         ((br ,l) (write-break l))
         ((br-if ,l) (write-break l))
         ((br-if-not ,l) (write-break l))

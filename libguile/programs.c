@@ -1,49 +1,27 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
 #include <string.h>
+#include "_scm.h"
 #include "vm-bootstrap.h"
 #include "instructions.h"
 #include "modules.h"
@@ -58,7 +36,7 @@ scm_t_bits scm_tc16_program;
 static SCM write_program = SCM_BOOL_F;
 
 SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
-	    (SCM objcode, SCM objtable, SCM external),
+	    (SCM objcode, SCM objtable, SCM free_variables),
 	    "")
 #define FUNC_NAME s_scm_make_program
 {
@@ -67,18 +45,12 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
     objtable = SCM_BOOL_F;
   else if (scm_is_true (objtable))
     SCM_VALIDATE_VECTOR (2, objtable);
-  if (SCM_UNLIKELY (SCM_UNBNDP (external)))
-    external = SCM_EOL;
-  else
-    /* FIXME: currently this test is quite expensive (can be 2-3% of total
-       execution time in programs that make many closures). We could remove it,
-       yes, but we'd get much better gains if we used some other method, like
-       just capturing the variables that we need instead of all heap-allocated
-       variables. Dunno. Keeping the check for now, as it's a user-callable
-       function, and inlining the op in the vm's make-closure operation. */
-    SCM_VALIDATE_LIST (3, external);
+  if (SCM_UNLIKELY (SCM_UNBNDP (free_variables)))
+    free_variables = SCM_BOOL_F;
+  else if (free_variables != SCM_BOOL_F)
+    SCM_VALIDATE_VECTOR (3, free_variables);
 
-  SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, external);
+  SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, free_variables);
 }
 #undef FUNC_NAME
 
@@ -163,10 +135,9 @@ SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
   SCM_VALIDATE_PROGRAM (1, program);
 
   p = SCM_PROGRAM_DATA (program);
-  return SCM_LIST4 (SCM_I_MAKINUM (p->nargs),
-		    SCM_I_MAKINUM (p->nrest),
-		    SCM_I_MAKINUM (p->nlocs),
-		    SCM_I_MAKINUM (p->nexts));
+  return scm_list_3 (SCM_I_MAKINUM (p->nargs),
+		     SCM_I_MAKINUM (p->nrest),
+		     SCM_I_MAKINUM (p->nlocs));
 }
 #undef FUNC_NAME
 
@@ -203,7 +174,7 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 
   metaobj = scm_objcode_meta (SCM_PROGRAM_OBJCODE (program));
   if (scm_is_true (metaobj))
-    return scm_make_program (metaobj, SCM_BOOL_F, SCM_EOL);
+    return scm_make_program (metaobj, SCM_BOOL_F, SCM_BOOL_F);
   else
     return SCM_BOOL_F;
 }
@@ -312,26 +283,13 @@ scm_c_program_source (SCM program, size_t ip)
   return source; /* (addr . (filename . (line . column))) */
 }
 
-SCM_DEFINE (scm_program_external, "program-external", 1, 0, 0,
+SCM_DEFINE (scm_program_free_variables, "program-free-variables", 1, 0, 0,
 	    (SCM program),
 	    "")
-#define FUNC_NAME s_scm_program_external
+#define FUNC_NAME s_scm_program_free_variables
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_EXTERNALS (program);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_external_set_x, "program-external-set!", 2, 0, 0,
-	    (SCM program, SCM external),
-	    "Modify the list of closure variables of @var{program} (for "
-	    "debugging purposes).")
-#define FUNC_NAME s_scm_program_external_set_x
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  SCM_VALIDATE_LIST (2, external);
-  SCM_PROGRAM_EXTERNALS (program) = external;
-  return SCM_UNSPECIFIED;
+  return SCM_PROGRAM_FREE_VARIABLES (program);
 }
 #undef FUNC_NAME
 
@@ -357,6 +315,8 @@ scm_bootstrap_programs (void)
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_1 = program_apply_1;
   scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_2 = program_apply_2;
   scm_set_smob_print (scm_tc16_program, program_print);
+  scm_c_register_extension ("libguile", "scm_init_programs",
+                            (scm_t_extension_init_func)scm_init_programs, NULL);
 }
 
 void

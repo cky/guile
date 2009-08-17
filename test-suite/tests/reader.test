@@ -6,13 +6,13 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
-;;;;
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;;
+;;;; 
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -35,6 +35,8 @@
   (cons 'read-error "end of file in string constant$"))
 (define exception:illegal-escape
   (cons 'read-error "illegal character in escape sequence: .*$"))
+(define exception:missing-expression
+  (cons 'read-error "no expression after #;"))
 
 
 (define (read-string s)
@@ -165,6 +167,11 @@
          (with-read-options '(keywords postfix)
            (lambda ()
              (read-string "keyword:")))))
+  (pass-if "long postfix keywords"
+    (eq? #:keyword0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+         (with-read-options '(keywords postfix)
+           (lambda ()
+             (read-string "keyword0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789:")))))
   (pass-if "`:' is not a postfix keyword (per SRFI-88)"
     (eq? ':
          (with-read-options '(keywords postfix)
@@ -188,4 +195,37 @@
                     (read-string "'abcde")))))
       (and (equal? (source-property sexp 'line) 0)
            (equal? (source-property sexp 'column) 0)))))
+
+(with-test-prefix "#;"
+  (for-each
+   (lambda (pair)
+     (pass-if (car pair)
+       (equal? (with-input-from-string (car pair) read) (cdr pair))))
+
+   '(("#;foo 10". 10)
+     ("#;(10 20 30) foo" . foo)
+     ("#;   (10 20 30) foo" . foo)
+     ("#;\n10\n20" . 20)))
+  
+  (pass-if "#;foo"
+    (eof-object? (with-input-from-string "#;foo" read)))
+  
+  (pass-if-exception "#;"
+    exception:missing-expression
+    (with-input-from-string "#;" read))
+  (pass-if-exception "#;("
+    exception:eof
+    (with-input-from-string "#;(" read)))
+
+(with-test-prefix "#'"
+  (for-each
+   (lambda (pair)
+     (pass-if (car pair)
+       (equal? (with-input-from-string (car pair) read) (cdr pair))))
+
+   '(("#'foo". (syntax foo))
+     ("#`foo" . (quasisyntax foo))
+     ("#,foo" . (unsyntax foo))
+     ("#,@foo" . (unsyntax-splicing foo)))))
+
 

@@ -4,20 +4,20 @@
 ##
 ## This file is part of GUILE.
 ##
-## GUILE is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as
-## published by the Free Software Foundation; either version 2, or
-## (at your option) any later version.
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
+##   (at your option) any later version.
 ##
-## GUILE is distributed in the hope that it will be useful, but
-## WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
+##   GUILE is distributed in the hope that it will be useful, but
+##   WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##   GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public
-## License along with GUILE; see the file COPYING.  If not, write
-## to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-## Floor, Boston, MA 02110-1301 USA
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 
 # initializations so we can use += below.
@@ -28,7 +28,8 @@ check_SCRIPTS =
 BUILT_SOURCES =
 EXTRA_DIST =
 
-TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
+TESTS_ENVIRONMENT =						\
+  GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
 
 test_cflags =					\
   -I$(top_srcdir)/test-suite/standalone		\
@@ -124,6 +125,15 @@ test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
 test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-scm-take-locale-symbol
 TESTS += test-scm-take-locale-symbol
+
+# test-extensions
+noinst_LTLIBRARIES += libtest-extensions.la
+libtest_extensions_la_SOURCES = test-extensions-lib.c
+libtest_extensions_la_CFLAGS = ${test_cflags}
+libtest_extensions_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
+libtest_extensions_la_LIBADD = ${top_builddir}/libguile/libguile.la
+check_SCRIPTS += test-extensions
+TESTS += test-extensions
 
 
 if BUILD_PTHREAD_SUPPORT

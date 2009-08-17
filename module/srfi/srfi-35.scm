@@ -1,11 +1,11 @@
 ;;; srfi-35.scm --- Conditions
 
-;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
 ;; License as published by the Free Software Foundation; either
-;; version 2.1 of the License, or (at your option) any later version.
+;; version 3 of the License, or (at your option) any later version.
 ;;
 ;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,6 +28,7 @@
 
 (define-module (srfi srfi-35)
   #:use-module (srfi srfi-1)
+  #:use-module (ice-9 syncase)
   #:export (make-condition-type condition-type?
             make-condition condition? condition-has-type? condition-ref
             make-compound-condition extract-condition
@@ -274,37 +275,39 @@ by C."
 ;;; Syntax.
 ;;;
 
-(define-macro (define-condition-type name parent pred . field-specs)
-  `(begin
-     (define ,name
-       (make-condition-type ',name ,parent
-			    ',(map car field-specs)))
-     (define (,pred c)
-       (condition-has-type? c ,name))
-     ,@(map (lambda (field-spec)
-	      (let ((field-name (car field-spec))
-		    (accessor   (cadr field-spec)))
-		`(define (,accessor c)
-		   (condition-ref c ',field-name))))
-	    field-specs)))
+(define-syntax define-condition-type
+  (syntax-rules ()
+    ((_ name parent pred (field-name field-accessor) ...)
+     (begin
+       (define name
+         (make-condition-type 'name parent '(field-name ...)))
+       (define (pred c)
+         (condition-has-type? c name))
+       (define (field-accessor c)
+         (condition-ref c 'field-name))
+       ...))))
 
-(define-macro (condition . type-field-bindings)
-  (cond ((null? type-field-bindings)
-	 (error "`condition' syntax error" type-field-bindings))
-	(else
-	 ;; the poor man's hygienic macro
-	 (let ((mc   (gensym "mc"))
-	       (mcct (gensym "mcct")))
-	   `(let ((,mc   (@  (srfi srfi-35) make-condition))
-		  (,mcct (@@ (srfi srfi-35) make-compound-condition-type)))
-	      (,mc (,mcct 'compound (list ,@(map car type-field-bindings)))
-		   ,@(append-map (lambda (type-field-binding)
-				   (append-map (lambda (field+value)
-						 (let ((f (car field+value))
-						       (v (cadr field+value)))
-						   `(',f ,v)))
-					       (cdr type-field-binding)))
-				 type-field-bindings)))))))
+(define-syntax compound-condition
+  ;; Create a compound condition using `make-compound-condition-type'.
+  (syntax-rules ()
+    ((_ (type ...) (field ...))
+     (condition ((make-compound-condition-type '%compound `(,type ...))
+                 field ...)))))
+
+(define-syntax condition-instantiation
+  ;; Build the `(make-condition type ...)' call.
+  (syntax-rules ()
+    ((_ type (out ...))
+     (make-condition type out ...))
+    ((_ type (out ...) (field-name field-value) rest ...)
+     (condition-instantiation type (out ... 'field-name field-value) rest ...))))
+
+(define-syntax condition
+  (syntax-rules ()
+    ((_ (type field ...))
+     (condition-instantiation type () field ...))
+    ((_ (type field ...) ...)
+     (compound-condition (type ...) (field ... ...)))))
 
 
 ;;;

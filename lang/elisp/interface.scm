@@ -1,4 +1,5 @@
 (define-module (lang elisp interface)
+  #:use-syntax (lang elisp expand)
   #:use-module (lang elisp internals evaluation)
   #:use-module (lang elisp internals fset)
   #:use-module ((lang elisp internals load) #:select ((load . elisp:load)))
@@ -66,31 +67,39 @@ one of the directories of @code{load-path}."
 	    (string->symbol (string-append "imports:"
 					   (number->string counter)))))))
 
-(define-macro (use-elisp-file file-name . imports)
-  "Load Elisp code file @var{file-name} and import its definitions
+(define use-elisp-file
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     "Load Elisp code file @var{file-name} and import its definitions
 into the current Scheme module.  If any @var{imports} are specified,
 they are interpreted as selection and renaming specifiers as per
 @code{use-modules}."
-  (let ((export-module-name (export-module-name)))
-    `(begin
-       (fluid-set! ,elisp-export-module (resolve-module ',export-module-name))
-       (beautify-user-module! (resolve-module ',export-module-name))
-       (load-elisp-file ,file-name)
-       (use-modules (,export-module-name ,@imports))
-       (fluid-set! ,elisp-export-module #f))))
+     (let ((file-name (cadr exp))
+           (env (cddr exp)))
+       (let ((export-module-name (export-module-name)))
+         `(begin
+            (fluid-set! ,elisp-export-module (resolve-module ',export-module-name))
+            (beautify-user-module! (resolve-module ',export-module-name))
+            (load-elisp-file ,file-name)
+            (use-modules (,export-module-name ,@imports))
+            (fluid-set! ,elisp-export-module #f)))))))
 
-(define-macro (use-elisp-library library . imports)
-  "Load Elisp library @var{library} and import its definitions into
+(define use-elisp-library
+  (procedure->memoizing-macro
+   (lambda (exp env)
+     "Load Elisp library @var{library} and import its definitions into
 the current Scheme module.  If any @var{imports} are specified, they
 are interpreted as selection and renaming specifiers as per
 @code{use-modules}."
-  (let ((export-module-name (export-module-name)))
-    `(begin
-       (fluid-set! ,elisp-export-module (resolve-module ',export-module-name))
-       (beautify-user-module! (resolve-module ',export-module-name))
-       (load-elisp-library ,library)
-       (use-modules (,export-module-name ,@imports))
-       (fluid-set! ,elisp-export-module #f))))
+     (let ((library (cadr exp))
+           (env (cddr exp)))
+       (let ((export-module-name (export-module-name)))
+         `(begin
+            (fluid-set! ,elisp-export-module (resolve-module ',export-module-name))
+            (beautify-user-module! (resolve-module ',export-module-name))
+            (load-elisp-library ,library)
+            (use-modules (,export-module-name ,@imports))
+            (fluid-set! ,elisp-export-module #f)))))))
 
 (define (export-to-elisp . defs)
   "Export procedures and variables specified by @var{defs} to Elisp.

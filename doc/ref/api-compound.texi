@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1405,6 +1405,12 @@ C}), but returns a pointer to the elements of a uniform numeric vector
 of the indicated kind.
 @end deftypefn
 
+Uniform numeric vectors can be written to and read from input/output
+ports using the procedures listed below.  However, bytevectors may often
+be more convenient for binary input/output since they provide more
+flexibility in the interpretation of raw byte sequences
+(@pxref{Bytevectors}).
+
 @deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
 @deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
 Fill the elements of @var{uvec} by reading
@@ -1643,18 +1649,18 @@ and writing.
 @subsection Generalized Vectors
 
 Guile has a number of data types that are generally vector-like:
-strings, uniform numeric vectors, bitvectors, and of course ordinary
-vectors of arbitrary Scheme values.  These types are disjoint: a
-Scheme value belongs to at most one of the four types listed above.
+strings, uniform numeric vectors, bytevectors, bitvectors, and of course
+ordinary vectors of arbitrary Scheme values.  These types are disjoint:
+a Scheme value belongs to at most one of the five types listed above.
 
 If you want to gloss over this distinction and want to treat all four
 types with common code, you can use the procedures in this section.
 They work with the @emph{generalized vector} type, which is the union
-of the four vector-like types.
+of the five vector-like types.
 
 @deffn {Scheme Procedure} generalized-vector? obj
 @deffnx {C Function} scm_generalized_vector_p (obj)
-Return @code{#t} if @var{obj} is a vector, string,
+Return @code{#t} if @var{obj} is a vector, bytevector, string,
 bitvector, or uniform numeric vector.
 @end deffn
 
@@ -1743,9 +1749,9 @@ matrix with zero columns and 3 rows is different from a matrix with 3
 columns and zero rows, which again is different from a vector of
 length zero.
 
-Generalized vectors, such as strings, uniform numeric vectors, bit
-vectors and ordinary vectors, are the special case of one dimensional
-arrays.
+Generalized vectors, such as strings, uniform numeric vectors,
+bytevectors, bit vectors and ordinary vectors, are the special case of
+one dimensional arrays.
 
 @menu
 * Array Syntax::                
@@ -1825,6 +1831,16 @@ first dimension has length zero, but the second has length 2.
 
 @item #0(12)
 is a rank-zero array with contents 12.
+
+@end table
+
+In addition, bytevectors are also arrays, but use a different syntax
+(@pxref{Bytevectors}):
+
+@table @code
+
+@item #vu8(1 2 3)
+is a 3-byte long bytevector, with contents 1, 2, 3.
 
 @end table
 
@@ -2342,21 +2358,13 @@ the danger of a deadlock.  In a multi-threaded program, you will need
 additional synchronization to avoid modifying reserved arrays.)
 
 You must take care to always unreserve an array after reserving it,
-also in the presence of non-local exits.  To simplify this, reserving
-and unreserving work like a dynwind context (@pxref{Dynamic Wind}): a
-call to @code{scm_array_get_handle} can be thought of as beginning a
-dynwind context and @code{scm_array_handle_release} as ending it.
-When a non-local exit happens between these two calls, the array is
-implicitely unreserved.
+even in the presence of non-local exits.  If a non-local exit can
+happen between these two calls, you should install a dynwind context
+that releases the array when it is left (@pxref{Dynamic Wind}).
 
-That is, you need to properly pair reserving and unreserving in your
-code, but you don't need to worry about non-local exits.
-
-These calls and other pairs of calls that establish dynwind contexts
-need to be properly nested.  If you begin a context prior to reserving
-an array, you need to unreserve the array before ending the context.
-Likewise, when reserving two or more arrays in a certain order, you
-need to unreserve them in the opposite order.
+In addition, array reserving and unreserving must be properly
+paired.  For instance, when reserving two or more arrays in a certain
+order, you need to unreserve them in the opposite order.
 
 Once you have reserved an array and have retrieved the pointer to its
 elements, you must figure out the layout of the elements in memory.

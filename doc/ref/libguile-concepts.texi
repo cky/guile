@@ -182,7 +182,7 @@ As explained above, the @code{SCM} type can represent all Scheme values.
 Some values fit entirely into a @code{SCM} value (such as small
 integers), but other values require additional storage in the heap (such
 as strings and vectors).  This additional storage is managed
-automatically by Guile.  You don't need to explicitely deallocate it
+automatically by Guile.  You don't need to explicitly deallocate it
 when a @code{SCM} value is no longer used.
 
 Two things must be guaranteed so that Guile is able to manage the

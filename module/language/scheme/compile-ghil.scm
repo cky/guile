@@ -2,20 +2,19 @@
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
@@ -27,16 +26,15 @@
   #:use-module (system vm objcode)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 optargs)
-  #:use-module ((ice-9 syncase) #:select (sc-macro))
+  #:use-module (language tree-il)
   #:use-module ((system base compile) #:select (syntax-error))
   #:export (compile-ghil translate-1
             *translate-table* define-scheme-translator))
 
-
 ;;; environment := #f
 ;;;                | MODULE
 ;;;                | COMPILE-ENV
-;;; compile-env := (MODULE LEXICALS . EXTERNALS)
+;;; compile-env := (MODULE LEXICALS|GHIL-ENV . EXTERNALS)
 (define (cenv-module env)
   (cond ((not env) #f)
         ((module? env) env)
@@ -47,7 +45,9 @@
   (cond ((not env) (make-ghil-toplevel-env))
         ((module? env) (make-ghil-toplevel-env))
         ((pair? env)
-         (ghil-env-dereify (cadr env)))
+         (if (struct? (cadr env))
+             (cadr env)
+             (ghil-env-dereify (cadr env))))
         (else (error "bad environment" env))))
 
 (define (cenv-externals env)
@@ -56,6 +56,8 @@
         ((pair? env) (cddr env))
         (else (error "bad environment" env))))
 
+(define (make-cenv module lexicals externals)
+  (cons module (cons lexicals externals)))
 
 
 
@@ -65,11 +67,14 @@
      (and=> (cenv-module e) set-current-module)
      (call-with-ghil-environment (cenv-ghil-env e) '()
        (lambda (env vars)
-         (values (make-ghil-lambda env #f vars #f '() (translate-1 env #f x))
-                 (and e
-                      (cons* (cenv-module e)
-                             (ghil-env-parent env)
-                             (cenv-externals e)))))))))
+         (let ((x (tree-il->scheme
+                   (sc-expand x 'c '(compile load eval)))))
+           (let ((x (make-ghil-lambda env #f vars #f '()
+                                      (translate-1 env #f x)))
+                 (cenv (make-cenv (current-module)
+                                  (ghil-env-parent env)
+                                  (if e (cenv-externals e) '()))))
+             (values x cenv cenv))))))))
 
 
 ;;;
@@ -88,36 +93,25 @@
 ;;
 ;; FIXME shadowing lexicals?
 (define (lookup-transformer head retrans)
+  (define (module-ref/safe mod sym)
+    (and mod
+         (and=> (module-variable mod sym) 
+                (lambda (var)
+                  ;; unbound vars can happen if the module
+                  ;; definition forward-declared them
+                  (and (variable-bound? var) (variable-ref var))))))
   (let* ((mod (current-module))
          (val (cond
-               ((symbol? head)
-                (and=> (module-variable mod head) 
-                       (lambda (var)
-                         ;; unbound vars can happen if the module
-                         ;; definition forward-declared them
-                         (and (variable-bound? var) (variable-ref var)))))
-               ;; allow macros to be unquoted into the output of a macro
-               ;; expansion
-               ((macro? head) head)
+               ((symbol? head) (module-ref/safe mod head))
+               ((pmatch head
+                  ((@ ,modname ,sym)
+                   (module-ref/safe (resolve-interface modname) sym))
+                  ((@@ ,modname ,sym)
+                   (module-ref/safe (resolve-module modname) sym))
+                  (else #f)))
                (else #f))))
     (cond
      ((hashq-ref *translate-table* val))
-
-     ((defmacro? val)
-      (lambda (env loc exp)
-        (retrans (apply (defmacro-transformer val) (cdr exp)))))
-
-     ((eq? val sc-macro)
-      ;; syncase!
-      (let* ((eec (@@ (ice-9 syncase) expansion-eval-closure))
-             (sc-expand3 (@@ (ice-9 syncase) sc-expand3)))
-        (lambda (env loc exp)
-          (retrans
-           (with-fluids ((eec (module-eval-closure mod)))
-             (sc-expand3 exp 'c '(compile load eval)))))))
-
-     ((primitive-macro? val)
-      (syntax-error #f "unhandled primitive macro" head))
 
      ((macro? val)
       (syntax-error #f "unknown kind of macro" head))
@@ -167,7 +161,7 @@
 
 (define-macro (define-scheme-translator sym . clauses)
   `(hashq-set! (@ (language scheme compile-ghil) *translate-table*)
-               ,sym
+               (module-ref (current-module) ',sym)
                (lambda (e l exp)
                  (define (retrans x)
                    ((@ (language scheme compile-ghil) translate-1)
@@ -418,16 +412,6 @@
   ((,x) (retrans x))
   (,args
    (-> (values (map retrans args)))))
-
-(define-scheme-translator compile-time-environment
-  ;; (compile-time-environment)
-  ;; => (MODULE LEXICALS . EXTERNALS)
-  (()
-   (-> (inline 'cons
-               (list (retrans '(current-module))
-                     (-> (inline 'cons
-                                 (list (-> (reified-env))
-                                       (-> (inline 'externals '()))))))))))
 
 (define (lookup-apply-transformer proc)
   (cond ((eq? proc values)

@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -85,14 +86,14 @@ scm_make_continuation (int *first)
   continuation->root = thread->continuation_root;
   continuation->dframe = scm_i_last_debug_frame ();
   src = thread->continuation_base;
-  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
-
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
   continuation->vm_conts = scm_vm_capture_continuations ();
+
+  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
 
   *first = !setjmp (continuation->jmpbuf);
   if (*first)

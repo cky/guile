@@ -5,7 +5,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -154,17 +154,6 @@
 ;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
 ;;;   OPTION ::= KEYWORD VALUE
 ;;;
-(define (define-class-pre-definition kw val)
-  (case kw
-    ((#:getter #:setter)
-     `(if (or (not (defined? ',val))
-              (not (is-a? ,val <generic>)))
-          (define-generic ,val)))
-    ((#:accessor)
-     `(if (or (not (defined? ',val))
-              (not (is-a? ,val <accessor>)))
-          (define-accessor ,val)))
-    (else #f)))
 
 (define (kw-do-map mapper f kwargs)
   (define (keywords l)
@@ -179,69 +168,6 @@
   (let* ((k (keywords kwargs))
          (a (args kwargs)))
     (mapper f k a)))
-
-;;; This code should be implemented in C.
-;;;
-(define-macro (define-class name supers . slots)
-  ;; Some slot options require extra definitions to be made. In
-  ;; particular, we want to make sure that the generic function objects
-  ;; which represent accessors exist before `make-class' tries to add
-  ;; methods to them.
-  ;;
-  ;; Postpone some error handling to class macro.
-  ;;
-  `(begin
-     ;; define accessors
-     ,@(append-map (lambda (slot)
-                     (kw-do-map filter-map
-                                define-class-pre-definition 
-                                (if (pair? slot) (cdr slot) '())))
-                   (take-while (lambda (x) (not (keyword? x))) slots))
-     (if (and (defined? ',name)
-              (is-a? ,name <class>)
-              (memq <object> (class-precedence-list ,name)))
-         (class-redefinition ,name
-                             (class ,supers ,@slots #:name ',name))
-         (define ,name (class ,supers ,@slots #:name ',name)))))
-
-(define standard-define-class define-class)
-
-;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
-;;;
-;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
-;;;   OPTION ::= KEYWORD VALUE
-;;;
-(define-macro (class supers . slots)
-  (define (make-slot-definition-forms slots)
-    (map
-     (lambda (def)
-       (cond
-        ((pair? def)
-         `(list ',(car def)
-                ,@(kw-do-map append-map
-                             (lambda (kw arg)
-                               (case kw
-                                 ((#:init-form)
-                                  `(#:init-form ',arg
-                                    #:init-thunk (lambda () ,arg)))
-                                 (else (list kw arg))))
-                             (cdr def))))
-        (else
-         `(list ',def))))
-     slots))
-    
-  (if (not (list? supers))
-      (goops-error "malformed superclass list: ~S" supers))
-  (let ((slot-defs (cons #f '()))
-        (slots (take-while (lambda (x) (not (keyword? x))) slots))
-        (options (or (find-tail keyword? slots) '())))
-    `(make-class
-      ;; evaluate super class variables
-      (list ,@supers)
-      ;; evaluate slot definitions, except the slot name!
-      (list ,@(make-slot-definition-forms slots))
-      ;; evaluate class options
-      ,@options)))
 
 (define (make-class supers slots . options)
   (let ((env (or (get-keyword #:environment options #f)
@@ -274,6 +200,108 @@
 	     #:name name
 	     #:environment env
 	     options))))
+
+;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
+;;;
+;;;   SLOT-DEFINITION ::= SLOT-NAME | (SLOT-NAME OPTION ...)
+;;;   OPTION ::= KEYWORD VALUE
+;;;
+(define-macro (class supers . slots)
+  (define (make-slot-definition-forms slots)
+    (map
+     (lambda (def)
+       (cond
+        ((pair? def)
+         `(list ',(car def)
+                ,@(kw-do-map append-map
+                             (lambda (kw arg)
+                               (case kw
+                                 ((#:init-form)
+                                  `(#:init-form ',arg
+                                    #:init-thunk (lambda () ,arg)))
+                                 (else (list kw arg))))
+                             (cdr def))))
+        (else
+         `(list ',def))))
+     slots))
+  (if (not (list? supers))
+      (goops-error "malformed superclass list: ~S" supers))
+  (let ((slot-defs (cons #f '()))
+        (slots (take-while (lambda (x) (not (keyword? x))) slots))
+        (options (or (find-tail keyword? slots) '())))
+    `(make-class
+      ;; evaluate super class variables
+      (list ,@supers)
+      ;; evaluate slot definitions, except the slot name!
+      (list ,@(make-slot-definition-forms slots))
+      ;; evaluate class options
+      ,@options)))
+
+(define-syntax define-class-pre-definition
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (k arg rest ...) out ...)
+       (keyword? (syntax->datum (syntax k)))
+       (case (syntax->datum (syntax k))
+         ((#:getter #:setter)
+          (syntax
+           (define-class-pre-definition (rest ...)
+             out ...
+             (if (or (not (defined? 'arg))
+                     (not (is-a? arg <generic>)))
+                 (toplevel-define!
+                  'arg
+                  (ensure-generic (if (defined? 'arg) arg #f) 'arg))))))
+         ((#:accessor)
+          (syntax
+           (define-class-pre-definition (rest ...)
+             out ...
+             (if (or (not (defined? 'arg))
+                     (not (is-a? arg <accessor>)))
+                 (toplevel-define!
+                  'arg
+                  (ensure-accessor (if (defined? 'arg) arg #f) 'arg))))))
+         (else
+          (syntax
+           (define-class-pre-definition (rest ...) out ...)))))
+      ((_ () out ...)
+       (syntax (begin out ...))))))
+       
+;; Some slot options require extra definitions to be made. In
+;; particular, we want to make sure that the generic function objects
+;; which represent accessors exist before `make-class' tries to add
+;; methods to them.
+(define-syntax define-class-pre-definitions
+  (lambda (x)
+    (syntax-case x ()
+      ((_ () out ...)
+       (syntax (begin out ...)))
+      ((_ (slot rest ...) out ...)
+       (keyword? (syntax->datum (syntax slot)))
+       (syntax (begin out ...)))
+      ((_ (slot rest ...) out ...)
+       (identifier? (syntax slot))
+       (syntax (define-class-pre-definitions (rest ...)
+                 out ...)))
+      ((_ ((slotname slotopt ...) rest ...) out ...)
+       (syntax (define-class-pre-definitions (rest ...) 
+                 out ... (define-class-pre-definition (slotopt ...))))))))
+
+(define-syntax define-class
+  (syntax-rules ()
+    ((_ name supers slot ...)
+     (begin
+       (define-class-pre-definitions (slot ...))
+       (if (and (defined? 'name)
+                (is-a? name <class>)
+                (memq <object> (class-precedence-list name)))
+           (class-redefinition name
+                               (class supers slot ... #:name 'name))
+           (toplevel-define! 'name (class supers slot ... #:name 'name)))))))
+       
+(define-syntax standard-define-class
+  (syntax-rules ()
+    ((_ arg ...) (define-class arg ...))))
 
 ;;;
 ;;; {Generic functions and accessors}
@@ -363,13 +391,13 @@
 	  (else (make <generic> #:name name)))))
 
 ;; same semantics as <generic>
-(define-macro (define-accessor name)
-  (if (not (symbol? name))
-      (goops-error "bad accessor name: ~S" name))
-  `(define ,name
-     (if (and (defined? ',name) (is-a? ,name <accessor>))
-         (make <accessor> #:name ',name)
-         (ensure-accessor (if (defined? ',name) ,name #f) ',name))))
+(define-syntax define-accessor
+  (syntax-rules ()
+    ((_ name)
+     (define name
+       (cond ((not (defined? 'name))  (ensure-accessor #f 'name))
+             ((is-a? name <accessor>) (make <accessor> #:name 'name))
+             (else                    (ensure-accessor name 'name)))))))
 
 (define (make-setter-name name)
   (string->symbol (string-append "setter:" (symbol->string name))))
@@ -424,78 +452,132 @@
 ;;; {Methods}
 ;;;
 
-(define-macro (define-method head . body)
-  (if (not (pair? head))
-      (goops-error "bad method head: ~S" head))
-  (let ((gf (car head)))
-    (cond ((and (pair? gf)
-                (eq? (car gf) 'setter)
-                (pair? (cdr gf))
-                (symbol? (cadr gf))
-                (null? (cddr gf)))
-           ;; named setter method
-           (let ((name (cadr gf)))
-             (cond ((not (symbol? name))
-                    `(add-method! (setter ,name)
-                                  (method ,(cdr head) ,@body)))
-                   (else
-                    `(begin
-                       (if (or (not (defined? ',name))
-                               (not (is-a? ,name <accessor>)))
-                           (define-accessor ,name))
-                       (add-method! (setter ,name)
-                                    (method ,(cdr head) ,@body)))))))
-          ((not (symbol? gf))
-           `(add-method! ,gf (method ,(cdr head) ,@body)))
-          (else
-           `(begin
-              ;; FIXME: this code is how it always was, but it's quite
-              ;; cracky: it will only define the generic function if it
-              ;; was undefined before (ok), or *was defined to #f*. The
-              ;; latter is crack. But there are bootstrap issues about
-              ;; fixing this -- change it to (is-a? ,gf <generic>) and
-              ;; see.
-              (if (or (not (defined? ',gf))
-                      (not ,gf))
-                  (define-generic ,gf))
-              (add-method! ,gf
-                           (method ,(cdr head) ,@body)))))))
+(define (toplevel-define! name val)
+  (module-define! (current-module) name val))
 
-(define-macro (method args . body)
-  (letrec ((specializers
-	    (lambda (ls)
-	      (cond ((null? ls) (list (list 'quote '())))
-		    ((pair? ls) (cons (if (pair? (car ls))
-					  (cadar ls)
-					  '<top>)
-				      (specializers (cdr ls))))
-		    (else '(<top>)))))
-	   (formals
-	    (lambda (ls)
-	      (if (pair? ls)
-		  (cons (if (pair? (car ls)) (caar ls) (car ls))
-			(formals (cdr ls)))
-		  ls))))
-    (let ((make-proc (compile-make-procedure (formals args)
-                                             (specializers args)
-                                             body)))
-      `(make <method>
-         #:specializers (cons* ,@(specializers args))
-         #:formals ',(formals args)
-         #:body ',body
-         #:make-procedure ,make-proc
-         #:procedure ,(and (not make-proc)
-                           ;; that is to say: we set #:procedure if
-                           ;; `compile-make-procedure' returned `#f',
-                           ;; which is the case if `body' does not
-                           ;; contain a call to `next-method'
-                          `(lambda ,(formals args)
-                             ,@(if (null? body)
-                                   ;; This used to be '((begin)), but
-                                   ;; guile's memoizer doesn't like
-                                   ;; (lambda args (begin)).
-                                   '((if #f #f))
-                                   body)))))))
+(define-syntax define-method
+  (syntax-rules (setter)
+    ((_ ((setter name) . args) body ...)
+     (begin
+       (if (or (not (defined? 'name))
+               (not (is-a? name <accessor>)))
+           (toplevel-define! 'name
+                             (ensure-accessor
+                              (if (defined? 'name) name #f) 'name)))
+       (add-method! (setter name) (method args body ...))))
+    ((_ (name . args) body ...)
+     (begin
+       ;; FIXME: this code is how it always was, but it's quite cracky:
+       ;; it will only define the generic function if it was undefined
+       ;; before (ok), or *was defined to #f*. The latter is crack. But
+       ;; there are bootstrap issues about fixing this -- change it to
+       ;; (is-a? name <generic>) and see.
+       (if (or (not (defined? 'name))
+               (not name))
+           (toplevel-define! 'name (make <generic> #:name 'name)))
+       (add-method! name (method args body ...))))))
+
+(define-syntax method
+  (lambda (x)
+    (define (parse-args args)
+      (let lp ((ls args) (formals '()) (specializers '()))
+        (syntax-case ls ()
+          (((f s) . rest)
+           (and (identifier? (syntax f)) (identifier? (syntax s)))
+           (lp (syntax rest)
+               (cons (syntax f) formals)
+               (cons (syntax s) specializers)))
+          ((f . rest)
+           (identifier? (syntax f))
+           (lp (syntax rest)
+               (cons (syntax f) formals)
+               (cons (syntax <top>) specializers)))
+          (()
+           (list (reverse formals)
+                 (reverse (cons (syntax '()) specializers))))
+          (tail
+           (identifier? (syntax tail))
+           (list (append (reverse formals) (syntax tail))
+                 (reverse (cons (syntax <top>) specializers)))))))
+
+    (define (find-free-id exp referent)
+      (syntax-case exp ()
+        ((x . y)
+         (or (find-free-id (syntax x) referent)
+             (find-free-id (syntax y) referent)))
+        (x
+         (identifier? (syntax x))
+         (let ((id (datum->syntax (syntax x) referent)))
+           (and (free-identifier=? (syntax x) id) id)))
+        (_ #f)))
+
+    (define (compute-procedure formals body)
+      (syntax-case body ()
+        ((body0 ...)
+         (with-syntax ((formals formals))
+           (syntax (lambda formals body0 ...))))))
+
+    (define (->proper args)
+      (let lp ((ls args) (out '()))
+        (syntax-case ls ()
+          ((x . xs)        (lp (syntax xs) (cons (syntax x) out)))
+          (()              (reverse out))
+          (tail            (reverse (cons (syntax tail) out))))))
+
+    (define (compute-make-procedure formals body next-method)
+      (syntax-case body ()
+        ((body ...)
+         (with-syntax ((next-method next-method))
+           (syntax-case formals ()
+             ((formal ...)
+              (syntax
+               (lambda (real-next-method)
+                 (lambda (formal ...)
+                   (let ((next-method (lambda args
+                                        (if (null? args)
+                                            (real-next-method formal ...)
+                                            (apply real-next-method args)))))
+                     body ...)))))
+             (formals
+              (with-syntax (((formal ...) (->proper (syntax formals))))
+                (syntax
+                 (lambda (real-next-method)
+                   (lambda formals
+                     (let ((next-method (lambda args
+                                          (if (null? args)
+                                              (apply real-next-method formal ...)
+                                              (apply real-next-method args)))))
+                       body ...)))))))))))
+
+    (define (compute-procedures formals body)
+      ;; So, our use of this is broken, because it operates on the
+      ;; pre-expansion source code. It's equivalent to just searching
+      ;; for referent in the datums. Ah well.
+      (let ((id (find-free-id body 'next-method)))
+        (if id
+            ;; return a make-procedure
+            (values (syntax #f)
+                    (compute-make-procedure formals body id))
+            (values (compute-procedure formals body)
+                    (syntax #f)))))
+
+    (syntax-case x ()
+      ((_ args) (syntax (method args (if #f #f))))
+      ((_ args body0 body1 ...)
+       (with-syntax (((formals (specializer ...)) (parse-args (syntax args))))
+         (call-with-values
+             (lambda ()
+               (compute-procedures (syntax formals) (syntax (body0 body1 ...))))
+           (lambda (procedure make-procedure)
+             (with-syntax ((procedure procedure)
+                           (make-procedure make-procedure))
+               (syntax
+                (make <method>
+                  #:specializers (cons* specializer ...)
+                  #:formals 'formals
+                  #:body '(body0 body1 ...)
+                  #:make-procedure make-procedure
+                  #:procedure procedure))))))))))
 
 ;;;
 ;;; {add-method!}
@@ -1046,27 +1128,9 @@
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
 (eval-when (compile)
-  (use-modules ((language scheme compile-ghil) :select (define-scheme-translator))
-               ((language ghil) :select (make-ghil-inline make-ghil-call))
-               (system base pmatch))
-
-  ;; unfortunately, can't use define-inline because these are primitive
-  ;; syntaxen.
-  (define-scheme-translator @slot-ref
-    ((,obj ,index) (guard (integer? index)
-                          (>= index 0) (< index max-fixnum))
-     (make-ghil-inline #f #f 'slot-ref
-                       (list (retrans obj) (retrans index))))
-    (else
-     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp)))))
-
-  (define-scheme-translator @slot-set!
-    ((,obj ,index ,val) (guard (integer? index)
-                               (>= index 0) (< index max-fixnum))
-     (make-ghil-inline #f #f 'slot-set
-                       (list (retrans obj) (retrans index) (retrans val))))
-    (else
-     (make-ghil-call e l (retrans (car exp)) (map retrans (cdr exp))))))
+  (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
+  (add-interesting-primitive! '@slot-ref)
+  (add-interesting-primitive! '@slot-set!))
 
 (eval-when (eval load compile)
   (define num-standard-pre-cache 20))

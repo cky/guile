@@ -1,22 +1,23 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
  *
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -2656,17 +2657,26 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	case 'l': case 'L':
 	case 's': case 'S':
 	  idx++;
+          if (idx == len)
+            return SCM_BOOL_F;
+
 	  start = idx;
 	  c = mem[idx];
 	  if (c == '-')
 	    {
 	      idx++;
+              if (idx == len)
+                return SCM_BOOL_F;
+
 	      sign = -1;
 	      c = mem[idx];
 	    }
 	  else if (c == '+')
 	    {
 	      idx++;
+              if (idx == len)
+                return SCM_BOOL_F;
+
 	      sign = 1;
 	      c = mem[idx];
 	    }
@@ -2732,6 +2742,10 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
   unsigned int idx = *p_idx;
   SCM result;
 
+  /* Start off believing that the number will be exact.  This changes
+     to INEXACT if we see a decimal point or a hash. */
+  enum t_exactness x = EXACT;
+
   if (idx == len)
     return SCM_BOOL_F;
 
@@ -2743,8 +2757,6 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 
   if (idx+4 < len && !strncmp (mem+idx, "nan.", 4))
     {
-      enum t_exactness x = EXACT;
-
       /* Cobble up the fractional part.  We might want to set the
 	 NaN's mantissa from it. */
       idx += 4;
@@ -2763,11 +2775,10 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	return SCM_BOOL_F;
       else
 	result = mem2decimal_from_point (SCM_I_MAKINUM (0), mem, len,
-					 p_idx, p_exactness);
+					 p_idx, &x);
     }
   else
     {
-      enum t_exactness x = EXACT;
       SCM uinteger;
 
       uinteger = mem2uinteger (mem, len, &idx, radix, &x);
@@ -2781,8 +2792,10 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	  SCM divisor;
 
 	  idx++;
+          if (idx == len)
+            return SCM_BOOL_F;
 
-	  divisor = mem2uinteger (mem, len, &idx, radix, &x);
+          divisor = mem2uinteger (mem, len, &idx, radix, &x);
 	  if (scm_is_false (divisor))
 	    return SCM_BOOL_F;
 
@@ -2799,9 +2812,15 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	result = uinteger;
 
       *p_idx = idx;
-      if (x == INEXACT)
-	*p_exactness = x;
     }
+
+  /* Update *p_exactness if the number just read was inexact.  This is
+     important for complex numbers, so that a complex number is
+     treated as inexact overall if either its real or imaginary part
+     is inexact.
+  */
+  if (x == INEXACT)
+    *p_exactness = x;
 
   /* When returning an inexact zero, make sure it is represented as a
      floating point value so that we can change its sign. 
@@ -2897,11 +2916,15 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	      if (c == '+')
 		{
 		  idx++;
+                  if (idx == len)
+                    return SCM_BOOL_F;
 		  sign = 1;
 		}
 	      else if (c == '-')
 		{
 		  idx++;
+                  if (idx == len)
+                    return SCM_BOOL_F;
 		  sign = -1;
 		}
 	      else
@@ -5353,7 +5376,12 @@ SCM
 scm_c_make_polar (double mag, double ang)
 {
   double s, c;
-#if HAVE_SINCOS
+
+  /* The sincos(3) function is undocumented an broken on Tru64.  Thus we only
+     use it on Glibc-based systems that have it (it's a GNU extension).  See
+     http://lists.gnu.org/archive/html/guile-user/2009-04/msg00033.html for
+     details.  */
+#if (defined HAVE_SINCOS) && (defined __GLIBC__) && (defined _GNU_SOURCE)
   sincos (ang, &s, &c);
 #else
   s = sin (ang);
@@ -5850,6 +5878,14 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint32 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint32 (arg)
 #include "libguile/conv-uinteger.i.c"
+
+#define TYPE                     scm_t_wchar
+#define TYPE_MIN                 (scm_t_int32)-1
+#define TYPE_MAX                 (scm_t_int32)0x10ffff
+#define SIZEOF_TYPE              4
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_wchar (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_wchar (arg)
+#include "libguile/conv-integer.i.c"
 
 #if SCM_HAVE_T_INT64
 

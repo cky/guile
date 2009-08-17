@@ -1,23 +1,23 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
-##   GUILE is free software; you can redistribute it and/or modify
-##   it under the terms of the GNU General Public License as
-##   published by the Free Software Foundation; either version 2, or
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
 ##   (at your option) any later version.
 ##
 ##   GUILE is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##   GNU General Public License for more details.
+##   GNU Lesser General Public License for more details.
 ##
-##   You should have received a copy of the GNU General Public
-##   License along with GUILE; see the file COPYING.  If not, write
-##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-##   Floor, Boston, MA 02110-1301 USA
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 AUTOMAKE_OPTIONS = gnu
 
@@ -32,10 +32,10 @@ DEFAULT_INCLUDES =
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir)		\
+AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
-AM_CFLAGS = $(GCC_CFLAGS)
+AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
 
 ## The Gnulib Libtool archive.
 gnulib_library = $(top_builddir)/lib/libgnu.la
@@ -106,7 +106,8 @@ guile_LDFLAGS = $(GUILE_CFLAGS)
 libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
 libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
-    chars.c continuations.c convert.c debug.c deprecation.c		\
+    bytevectors.c chars.c continuations.c				\
+    convert.c debug.c deprecation.c					\
     deprecated.c discouraged.c dynwind.c eq.c error.c	\
     eval.c evalext.c extensions.c feature.c fluids.c fports.c		\
     futures.c gc.c gc-malloc.c						\
@@ -114,7 +115,8 @@ libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
     guardians.c hash.c hashtab.c hooks.c init.c inline.c		\
     ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		\
     modules.c numbers.c objects.c objprop.c options.c pairs.c ports.c	\
-    print.c procprop.c procs.c properties.c random.c rdelim.c read.c	\
+    print.c procprop.c procs.c properties.c				\
+    r6rs-ports.c random.c rdelim.c read.c				\
     root.c rw.c scmsigs.c script.c simpos.c smob.c sort.c srcprop.c	\
     stackchk.c stacks.c stime.c strings.c srfi-4.c srfi-13.c srfi-14.c	\
     strorder.c strports.c struct.c symbols.c threads.c null-threads.c	\
@@ -133,7 +135,8 @@ libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LDFLAGS =	\
    -module -L$(builddir) -lguile				\
    -version-info @LIBGUILE_I18N_INTERFACE@
 
-DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
+DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x		\
+    bytevectors.x chars.x						\
     continuations.x debug.x deprecation.x deprecated.x discouraged.x	\
     dynl.x dynwind.x environments.x eq.x error.x eval.x evalext.x	\
     extensions.x feature.x fluids.x fports.x futures.x gc.x		\
@@ -141,7 +144,8 @@ DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x chars.x	\
     hash.x hashtab.x hooks.x i18n.x init.x ioext.x keywords.x lang.x	\
     list.x load.x macros.x mallocs.x modules.x numbers.x objects.x	\
     objprop.x options.x pairs.x ports.x print.x procprop.x procs.x	\
-    properties.x random.x rdelim.x read.x root.x rw.x scmsigs.x		\
+    properties.x r6rs-ports.x random.x rdelim.x				\
+    read.x root.x rw.x scmsigs.x					\
     script.x simpos.x smob.x sort.x srcprop.x stackchk.x stacks.x	\
     stime.x strings.x srfi-4.x srfi-13.x srfi-14.x strorder.x		\
     strports.x struct.x symbols.x threads.x throw.x values.x		\
@@ -153,7 +157,8 @@ DOT_X_FILES += frames.x instructions.x objcodes.x programs.x vm.x
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
 DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
-    boolean.doc chars.doc continuations.doc debug.doc deprecation.doc	\
+    boolean.doc bytevectors.doc chars.doc				\
+    continuations.doc debug.doc deprecation.doc				\
     deprecated.doc discouraged.doc dynl.doc dynwind.doc			\
     eq.doc error.doc eval.doc evalext.doc		\
     extensions.doc feature.doc fluids.doc fports.doc futures.doc	\
@@ -162,7 +167,8 @@ DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
     hooks.doc i18n.doc init.doc ioext.doc keywords.doc lang.doc		\
     list.doc load.doc macros.doc mallocs.doc modules.doc numbers.doc	\
     objects.doc objprop.doc options.doc pairs.doc ports.doc print.doc	\
-    procprop.doc procs.doc properties.doc random.doc rdelim.doc		\
+    procprop.doc procs.doc properties.doc r6rs-ports.doc		\
+    random.doc rdelim.doc						\
     read.doc root.doc rw.doc scmsigs.doc script.doc simpos.doc		\
     smob.doc sort.doc srcprop.doc stackchk.doc stacks.doc stime.doc	\
     strings.doc srfi-4.doc srfi-13.doc srfi-14.doc strorder.doc		\
@@ -201,7 +207,7 @@ install-exec-hook:
 ## working.
 noinst_HEADERS = convert.i.c					\
                  conv-integer.i.c conv-uinteger.i.c		\
-                 eval.i.c					\
+                 eval.i.c ieee-754.h				\
                  srfi-4.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
@@ -211,8 +217,15 @@ noinst_HEADERS = convert.i.c					\
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library)
+libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBUNISTRING)
 libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
+
+if HAVE_LD_VERSION_SCRIPT
+
+libguile_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
+
+endif HAVE_LD_VERSION_SCRIPT
+
 
 # These are headers visible as <guile/mumble.h>
 pkginclude_HEADERS = 
@@ -220,7 +233,7 @@ pkginclude_HEADERS =
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
 modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
-    boehm-gc.h								\
+    boehm-gc.h bytevectors.h						\
     boolean.h chars.h continuations.h convert.h debug.h debug-malloc.h	\
     deprecation.h deprecated.h discouraged.h dynl.h dynwind.h		\
     eq.h error.h eval.h evalext.h extensions.h		\
@@ -230,7 +243,8 @@ modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
     hashtab.h hooks.h i18n.h init.h inline.h ioext.h iselect.h		\
     keywords.h lang.h list.h load.h macros.h mallocs.h modules.h	\
     net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h	\
-    posix.h regex-posix.h print.h procprop.h procs.h properties.h	\
+    posix.h r6rs-ports.h regex-posix.h print.h				\
+    procprop.h procs.h properties.h					\
     random.h ramap.h rdelim.h read.h root.h rw.h scmsigs.h validate.h	\
     script.h simpos.h smob.h snarf.h socket.h sort.h srcprop.h		\
     stackchk.h stacks.h stime.h strings.h srfi-4.h srfi-13.h srfi-14.h	\
@@ -254,7 +268,7 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
     c-tokenize.lex version.h.in						\
-    scmconfig.h.top libgettext.h measure-hwm.scm
+    scmconfig.h.top libgettext.h libguile.map
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
@@ -276,6 +290,8 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '#define SCM_PKGDATA_DIR "$(pkgdatadir)"' >> libpath.tmp
 	@echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)"'>>libpath.tmp
 	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
+	@echo '#define SCM_CCACHE_DIR "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache"' >> libpath.tmp
+	@echo '#define SCM_EFFECTIVE_VERSION "$(GUILE_EFFECTIVE_VERSION)"' >> libpath.tmp
 	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
 	@echo '	{ "srcdir", "'"`cd @srcdir@; pwd`"'" }, \' >> libpath.tmp
 	@echo ' { "top_srcdir",    "@top_srcdir_absolute@" }, \' >> libpath.tmp
@@ -289,12 +305,13 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '	{ "sharedstatedir", "@sharedstatedir@" }, \' >> libpath.tmp
 	@echo '	{ "localstatedir", "@localstatedir@" }, \' >> libpath.tmp
 	@echo '	{ "libdir",	   "@libdir@" }, \' >> libpath.tmp
+	@echo '	{ "ccachedir",	   SCM_CCACHE_DIR }, \' >> libpath.tmp
 	@echo '	{ "infodir",	   "@infodir@" }, \' >> libpath.tmp
 	@echo '	{ "mandir",	   "@mandir@" }, \' >> libpath.tmp
 	@echo '	{ "includedir",	   "@includedir@" }, \' >> libpath.tmp
-	@echo '	{ "pkgdatadir",	   "$(datadir)/@PACKAGE@" }, \' >> libpath.tmp
-	@echo '	{ "pkglibdir",	   "$(libdir)/@PACKAGE@" }, \' >> libpath.tmp
-	@echo '	{ "pkgincludedir", "$(includedir)/@PACKAGE@" }, \' \
+	@echo '	{ "pkgdatadir",	   "@pkgdatadir@" }, \' >> libpath.tmp
+	@echo '	{ "pkglibdir",	   "@pkglibdir@" }, \' >> libpath.tmp
+	@echo '	{ "pkgincludedir", "@pkgincludedir@" }, \' \
 		>> libpath.tmp
 	@echo '	{ "guileversion", "@GUILE_VERSION@" }, \' >> libpath.tmp
 	@echo '	{ "libguileinterface", "@LIBGUILE_INTERFACE@" }, \' \
@@ -324,10 +341,8 @@ error.x: cpp_err_symbols.c
 posix.x: cpp_sig_symbols.c
 load.x: libpath.h
 
-include $(top_srcdir)/am/pre-inst-guile
-
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-snarf2checkedtexi = GUILE="$(GUILE_FOR_BUILD)" $(top_srcdir)/scripts/snarf-check-and-output-texi
+snarf2checkedtexi = GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guile-tools snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
 guile.texi: $(alldotdocfiles) guile$(EXEEXT)
@@ -348,29 +363,6 @@ guile-procedures.txt: guile-procedures.texi
 	cp guile-procedures.texi $@
 
 endif
-
-# Stack limit calibration for `make check'.  (For why we do this, see
-# the comments in measure-hwm.scm.)  We're relying here on a couple of
-# bits of Automake magic.
-#
-# 1. The fact that "libguile" comes before "test-suite" in SUBDIRS in
-# our toplevel Makefile.am.  This ensures that the
-# stack-limit-calibration.scm "test" will be run before any of the
-# tests under test-suite.
-#
-# 2. The fact that each test is invoked as $TESTS_ENVIRONMENT $test.
-# This allows us to ensure that the test will be considered to have
-# passed, by using `true' as TESTS_ENVIRONMENT.
-#
-# Why don't we care about the test "actually passing"?  Because the
-# important thing about stack-limit-calibration.scm is just that it is
-# generated in the first place, so that other tests under test-suite
-# can use it.
-TESTS = stack-limit-calibration.scm
-TESTS_ENVIRONMENT = true
-
-stack-limit-calibration.scm: measure-hwm.scm guile$(EXEEXT)
-	$(preinstguile) -s $(srcdir)/measure-hwm.scm > $@
 
 c-tokenize.c: c-tokenize.lex
 	flex -t $(srcdir)/c-tokenize.lex > $@ || { rm $@; false; }
@@ -426,8 +418,9 @@ MOSTLYCLEANFILES = \
 	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
 	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new \
 	version.h version.h.tmp \
-	scmconfig.h scmconfig.h.tmp stack-limit-calibration.scm
+	scmconfig.h scmconfig.h.tmp
 
-CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi
+CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi \
+	vm-i-*.i
 
 MAINTAINERCLEANFILES = c-tokenize.c

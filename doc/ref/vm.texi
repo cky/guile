@@ -13,8 +13,8 @@ procedures can call each other as they please.
 
 The difference is that the compiler creates and interprets bytecode
 for a custom virtual machine, instead of interpreting the
-S-expressions directly. Running compiled code is faster than running
-interpreted code.
+S-expressions directly. Loading and running compiled code is faster
+than loading and running source code.
 
 The virtual machine that does the bytecode interpretation is a part of
 Guile itself. This section describes the nature of Guile's virtual
@@ -111,7 +111,7 @@ The registers that a VM has are as follows:
 In other architectures, the instruction pointer is sometimes called
 the ``program counter'' (pc). This set of registers is pretty typical
 for stack machines; their exact meanings in the context of Guile's VM
-is described in the next section.
+are described in the next section.
 
 A virtual machine executes by loading a compiled procedure, and
 executing the object code associated with that procedure. Of course,
@@ -119,19 +119,22 @@ that procedure may call other procedures, tail-call others, ad
 infinitum---indeed, within a guile whose modules have all been
 compiled to object code, one might never leave the virtual machine.
 
-@c wingo: I wish the following were true, but currently we just use
-@c the one engine. This kind of thing is possible tho.
+@c wingo: The following is true, but I don't know in what context to
+@c describe it. A documentation FIXME.
 
 @c A VM may have one of three engines: reckless, regular, or debugging.
 @c Reckless engine is fastest but dangerous.  Regular engine is normally
 @c fail-safe and reasonably fast.  Debugging engine is safest and
 @c functional but very slow.
 
+@c (Actually we have just a regular and a debugging engine; normally
+@c we use the latter, it's almost as fast as the ``regular'' engine.)
+
 @node Stack Layout
 @subsection Stack Layout
 
 While not strictly necessary to understand how to work with the VM, it
-is instructive and sometimes entertaining to consider the struture of
+is instructive and sometimes entertaining to consider the structure of
 the VM stack.
 
 Logically speaking, a VM stack is composed of ``frames''. Each frame
@@ -156,12 +159,11 @@ The structure of the fixed part of an application frame is as follows:
 
 @example
              Stack
-   |                  | <- fp + bp->nargs + bp->nlocs + 4
+   |                  | <- fp + bp->nargs + bp->nlocs + 3
    +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
    | Return address   |
    | MV return address|
-   | Dynamic link     |
-   | External link    | <- fp + bp->nargs + bp->nlocs
+   | Dynamic link     | <- fp + bp->nargs + bp->nlocs
    | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
@@ -174,7 +176,7 @@ The structure of the fixed part of an application frame is as follows:
 In the above drawing, the stack grows upward. The intermediate values
 stored in the application of this frame are stored above
 @code{SCM_FRAME_UPPER_ADDRESS (fp)}. @code{bp} refers to the
-@code{struct scm_program*} data associated with the program at
+@code{struct scm_objcode} data associated with the program at
 @code{fp - 1}. @code{nargs} and @code{nlocs} are properties of the
 compiled procedure, which will be discussed later.
 
@@ -198,25 +200,17 @@ values being returned.
 @item Dynamic link
 This is the @code{fp} in effect before this program was applied. In
 effect, this and the return address are the registers that are always
-``saved''.
-
-@item External link
-This field is a reference to the list of heap-allocated variables
-associated with this frame. For a discussion of heap versus stack
-allocation, @xref{Variables and the VM}.
+``saved''. The dynamic link links the current frame to the previous
+frame; computing a stack trace involves traversing these frames.
 
 @item Local variable @var{n}
-Lambda-local variables that are allocated on the stack are all
-allocated as part of the frame. This makes access to non-captured,
-non-mutated variables very cheap.
+Lambda-local variables that are all allocated as part of the frame.
+This makes access to variables very cheap.
 
 @item Argument @var{n}
 The calling convention of the VM requires arguments of a function
-application to be pushed on the stack, and here they are. Normally
-references to arguments dispatch to these locations on the stack.
-However if an argument has to be stored on the heap, it will be copied
-from its initial value here onto a location in the heap, and
-thereafter only referenced on the heap.
+application to be pushed on the stack, and here they are. References
+to arguments dispatch to these locations on the stack.
 
 @item Program
 This is the program being applied. For more information on how
@@ -226,40 +220,51 @@ programs are implemented, @xref{VM Programs}.
 @node Variables and the VM
 @subsection Variables and the VM
 
-Let's think about the following Scheme code as an example:
+Consider the following Scheme code as an example:
 
 @example
   (define (foo a)
     (lambda (b) (list foo a b)))
 @end example
 
-Within the lambda expression, "foo" is a top-level variable, "a" is a
-lexically captured variable, and "b" is a local variable.
+Within the lambda expression, @code{foo} is a top-level variable, @code{a} is a
+lexically captured variable, and @code{b} is a local variable.
 
-That is to say: @code{b} may safely be allocated on the stack, as
-there is no enclosed procedure that references it, nor is it ever
-mutated.
+Another way to refer to @code{a} and @code{b} is to say that @code{a}
+is a ``free'' variable, since it is not defined within the lambda, and
+@code{b} is a ``bound'' variable. These are the terms used in the
+@dfn{lambda calculus}, a mathematical notation for describing
+functions. The lambda calculus is useful because it allows one to
+prove statements about functions. It is especially good at describing
+scope relations, and it is for that reason that we mention it here.
 
-@code{a}, on the other hand, is referenced by an enclosed procedure,
-that of the lambda. Thus it must be allocated on the heap, as it may
-(and will) outlive the dynamic extent of the invocation of @code{foo}.
+Guile allocates all variables on the stack. When a lexically enclosed
+procedure with free variables---a @dfn{closure}---is created, it
+copies those variables its free variable vector. References to free
+variables are then redirected through the free variable vector.
 
-@code{foo} is a toplevel variable, as mandated by Scheme's semantics:
+If a variable is ever @code{set!}, however, it will need to be
+heap-allocated instead of stack-allocated, so that different closures
+that capture the same variable can see the same value. Also, this
+allows continuations to capture a reference to the variable, instead
+of to its value at one point in time. For these reasons, @code{set!}
+variables are allocated in ``boxes''---actually, in variable cells.
+@xref{Variables}, for more information. References to @code{set!}
+variables are indirected through the boxes.
 
-@example
-  (define proc (foo 'bar)) ; assuming prev. definition of @code{foo}
-  (define foo 42)          ; redefinition
-  (proc 'baz)
-  @result{} (42 bar baz)
-@end example
+Thus perhaps counterintuitively, what would seem ``closer to the
+metal'', viz @code{set!}, actually forces an extra memory allocation
+and indirection.
 
-Note that variables that are mutated (via @code{set!}) must be
-allocated on the heap, even if they are local variables. This is
-because any called subprocedure might capture the continuation, which
-would need to capture locations instead of values. Thus perhaps
-counterintuitively, what would seem ``closer to the metal'', viz
-@code{set!}, actually forces heap allocation instead of stack
-allocation.
+Going back to our example, @code{b} may be allocated on the stack, as
+it is never mutated.
+
+@code{a} may also be allocated on the stack, as it too is never
+mutated. Within the enclosed lambda, its value will be copied into
+(and referenced from) the free variables vector.
+
+@code{foo} is a top-level variable, because @code{foo} is not
+lexically bound in this example.
 
 @node VM Programs
 @subsection Compiled Procedures are VM Programs
@@ -276,6 +281,7 @@ You can pick apart these pieces with the accessors in @code{(system vm
 program)}. @xref{Compiled Procedures}, for a full API reference.
 
 @cindex object table
+@cindex object array
 The object array of a compiled procedure, also known as the
 @dfn{object table}, holds all Scheme objects whose values are known
 not to change across invocations of the procedure: constant strings,
@@ -293,38 +299,33 @@ instruction, which uses the object vector, and are almost as fast as
 local variable references.
 
 We can see how these concepts tie together by disassembling the
-@code{foo} function to see what is going on:
+@code{foo} function we defined earlier to see what is going on:
 
 @smallexample
 scheme@@(guile-user)> (define (foo a) (lambda (b) (list foo a b)))
 scheme@@(guile-user)> ,x foo
 Disassembly of #<program foo (a)>:
 
-Bytecode:
-
-   0    (local-ref 0)                   ;; `a' (arg)
-   2    (external-set 0)                ;; `a' (arg)
-   4    (object-ref 0)                  ;; #<program #(0 28 #f) (b)>
-   6    (make-closure)                                        at (unknown file):0:16
-   7    (return)                        
+   0    (object-ref 1)                  ;; #<program b7e478b0 at <unknown port>:0:16 (b)>
+   2    (local-ref 0)                   ;; `a' (arg)
+   4    (vector 0 1)                    ;; 1 element
+   7    (make-closure)                  
+   8    (return)                        
 
 ----------------------------------------
-Disassembly of #<program #(0 28 #f) (b)>:
+Disassembly of #<program b7e478b0 at <unknown port>:0:16 (b)>:
 
-Bytecode:
-
-   0    (toplevel-ref 0)                ;; `list'
-   2    (toplevel-ref 1)                ;; `foo'
-   4    (external-ref 0)                ;; (closure variable)
-   6    (local-ref 0)                   ;; `b' (arg)
-   8    (goto/args 3)                                         at (unknown file):0:28
+   0    (toplevel-ref 1)                ;; `foo'
+   2    (free-ref 0)                    ;; (closure variable)
+   4    (local-ref 0)                   ;; `b' (arg)
+   6    (list 0 3)                      ;; 3 elements         at (unknown file):0:28
+   9    (return)                        
 @end smallexample
 
-At @code{ip} 0 and 2, we do the copy from argument to heap for
-@code{a}. @code{Ip} 4 loads up the compiled lambda, and then at
-@code{ip} 6 we make a closure---binding code (from the compiled
-lambda) with data (the heap-allocated variables). Finally we return
-the closure.
+At @code{ip} 0, we load up the compiled lambda. @code{Ip} 2 and 4
+create the free variables vector, and @code{ip} 7 makes the
+closure---binding code (from the compiled lambda) with data (the
+free-variable vector). Finally we return the closure.
 
 The second stanza disassembles the compiled lambda. Toplevel variables
 are resolved relative to the module that was current when the
@@ -336,13 +337,14 @@ Control Instructions}, for more details.
 Then we see a reference to an external variable, corresponding to
 @code{a}. The disassembler doesn't have enough information to give a
 name to that variable, so it just marks it as being a ``closure
-variable''. Finally we see the reference to @code{b}, then a tail call
-(@code{goto/args}) with three arguments.
+variable''. Finally we see the reference to @code{b}, then the
+@code{list} opcode, an inline implementation of the @code{list} scheme
+routine.
 
 @node Instruction Set
 @subsection Instruction Set
 
-There are about 100 instructions in Guile's virtual machine. These
+There are about 150 instructions in Guile's virtual machine. These
 instructions represent atomic units of a program's execution. Ideally,
 they perform one task without conditional branches, then dispatch to
 the next instruction in the stream.
@@ -365,7 +367,8 @@ their own test-and-branch instructions:
 @end example
 
 In addition, some Scheme primitives have their own inline
-implementations, e.g. @code{cons}.
+implementations, e.g. @code{cons}, and @code{list}, as we saw in the
+previous section.
 
 So Guile's instruction set is a @emph{complete} instruction set, in
 that it provides the instructions that are suited to the problem, and
@@ -381,16 +384,22 @@ instructions. More instructions may be added over time.
 * Miscellaneous Instructions::  
 * Inlined Scheme Instructions::  
 * Inlined Mathematical Instructions::  
+* Inlined Bytevector Instructions::  
 @end menu
 
 @node Environment Control Instructions
 @subsubsection Environment Control Instructions
 
 These instructions access and mutate the environment of a compiled
-procedure---the local bindings, the ``external'' bindings, and the
+procedure---the local bindings, the free (captured) bindings, and the
 toplevel bindings.
 
+Some of these instructions have @code{long-} variants, the difference
+being that they take 16-bit arguments, encoded in big-endianness,
+instead of the normal 8-bit range.
+
 @deffn Instruction local-ref index
+@deffnx Instruction long-local-ref index
 Push onto the stack the value of the local variable located at
 @var{index} within the current stack frame.
 
@@ -400,34 +409,65 @@ arguments.
 @end deffn
 
 @deffn Instruction local-set index
+@deffnx Instruction long-local-ref index
 Pop the Scheme object located on top of the stack and make it the new
 value of the local variable located at @var{index} within the current
 stack frame.
 @end deffn
 
-@deffn Instruction external-ref index
-Push the value of the closure variable located at position
-@var{index} within the program's list of external variables.
+@deffn Instruction free-ref index
+Push the value of the captured variable located at position
+@var{index} within the program's vector of captured variables.
 @end deffn
 
-@deffn Instruction external-set index
-Pop the Scheme object located on top of the stack and make it the new
-value of the closure variable located at @var{index} within the
-program's list of external variables.
+@deffn Instruction free-boxed-ref index
+@deffnx Instruction free-boxed-set index
+Get or set a boxed free variable. Note that there is no free-set
+instruction, as variables that are @code{set!} must be boxed.
+
+These instructions assume that the value at position @var{index} in
+the free variables vector is a variable.
 @end deffn
 
-The external variable lookup algorithm should probably be made more
-efficient in the future via addressing by frame and index. Currently,
-external variables are all consed onto a list, which results in O(N)
-lookup time.
+@deffn Instruction make-closure
+Pop a vector and a program object off the stack, in that order, and
+push a new program object with the given free variables vector. The
+new program object shares state with the original program.
 
-@deffn Instruction externals
-Pushes the current list of external variables onto the stack. This
-instruction is used in the implementation of
-@code{compile-time-environment}. @xref{The Scheme Compiler}.
+At the time of this writing, the space overhead of closures is 4 words
+per closure.
+@end deffn
+
+@deffn Instruction fix-closure index
+Pop a vector off the stack, and set it as the @var{index}th local
+variable's free variable vector. The @var{index}th local variable is
+assumed to be a procedure.
+
+This instruction is part of a hack for allocating mutually recursive
+procedures. The hack is to first perform a @code{local-set} for all of
+the recursive procedures, then fix up the procedures' free variable
+bindings in place. This allows most @code{letrec}-bound procedures to
+be allocated unboxed on the stack.
+
+One could of course do a @code{local-ref}, then @code{make-closure},
+then @code{local-set}, but this macroinstruction helps to speed up the
+common case.
+@end deffn
+
+@deffn Instruction box index
+Pop a value off the stack, and set the @var{index}nth local variable
+to a box containing that value. A shortcut for @code{make-variable}
+then @code{local-set}, used when binding boxed variables.
+@end deffn
+
+@deffn Instruction empty-box index
+Set the @var{indext}h local variable to a box containing a variable
+whose value is unbound. Used when compiling some @code{letrec}
+expressions.
 @end deffn
 
 @deffn Instruction toplevel-ref index
+@deffnx Instruction long-toplevel-ref index
 Push the value of the toplevel binding whose location is stored in at
 position @var{index} in the object table.
 
@@ -440,11 +480,11 @@ created.
 Alternately, the lookup may be performed relative to a particular
 module, determined at compile-time (e.g. via @code{@@} or
 @code{@@@@}). In that case, the cell in the object table holds a list:
-@code{(@var{modname} @var{sym} @var{interface?})}. The symbol
-@var{sym} will be looked up in the module named @var{modname} (a list
-of symbols). The lookup will be performed against the module's public
-interface, unless @var{interface?} is @code{#f}, which it is for
-example when compiling @code{@@@@}.
+@code{(@var{modname} @var{sym} @var{public?})}. The symbol @var{sym}
+will be looked up in the module named @var{modname} (a list of
+symbols). The lookup will be performed against the module's public
+interface, unless @var{public?} is @code{#f}, which it is for example
+when compiling @code{@@@@}.
 
 In any case, if the symbol is unbound, an error is signalled.
 Otherwise the initial form is replaced with the looked-up variable, an
@@ -455,11 +495,18 @@ variable has been successfully resolved.
 This instruction pushes the value of the variable onto the stack.
 @end deffn
 
-@deffn Instruction toplevel-ref index
+@deffn Instruction toplevel-set index
+@deffnx Instruction long-toplevel-set index
 Pop a value off the stack, and set it as the value of the toplevel
 variable stored at @var{index} in the object table. If the variable
 has not yet been looked up, we do the lookup as in
 @code{toplevel-ref}.
+@end deffn
+
+@deffn Instruction define
+Pop a symbol and a value from the stack, in that order. Look up its
+binding in the current toplevel environment, creating the binding if
+necessary. Set the variable to the value.
 @end deffn
 
 @deffn Instruction link-now
@@ -481,8 +528,15 @@ Pop off two objects from the stack, a variable and a value, and set
 the variable to the value.
 @end deffn
 
+@deffn Instruction make-variable
+Replace the top object on the stack with a variable containing it.
+Used in some circumstances when compiling @code{letrec} expressions.
+@end deffn
+
 @deffn Instruction object-ref n
-Push @var{n}th value from the current program's object vector.
+@deffnx Instruction long-object-ref n
+Push @var{n}th value from the current program's object vector. The
+``long'' variant has a 16-bit index instead of an 8-bit index.
 @end deffn
 
 @node Branch Instructions
@@ -502,7 +556,10 @@ the one to which the instruction pointer points).
 @end itemize
 
 Note that the offset passed to the instruction is encoded on two 8-bit
-integers which are then combined by the VM as one 16-bit integer.
+integers which are then combined by the VM as one 16-bit integer. Note
+also that jump targets in Guile are aligned on 8-byte boundaries, and
+that the offset refers to the @var{n}th 8-byte boundary, effectively
+giving Guile a 19-bit relative address space.
 
 @deffn Instruction br offset
 Jump to @var{offset}.
@@ -546,81 +603,47 @@ the instruction pointer to the next VM instruction.
 
 All of these loading instructions have a @code{length} parameter,
 indicating the size of the embedded data, in bytes. The length itself
-may be encoded in 1, 2, or 4 bytes.
+is encoded in 3 bytes.
 
-@deffn Instruction load-integer length
-@deffnx Instruction load-unsigned-integer length
-Load a 32-bit integer (respectively unsigned integer) from the
-instruction stream.
-@end deffn
 @deffn Instruction load-number length
 Load an arbitrary number from the instruction stream. The number is
 embedded in the stream as a string.
 @end deffn
 @deffn Instruction load-string length
-Load a string from the instruction stream.
+Load a string from the instruction stream. The string is assumed to be
+encoded in the ``latin1'' locale.
+@end deffn
+@deffn Instruction load-wide-string length
+Load a UTF-32 string from the instruction stream. @var{length} is the
+length in bytes, not in codepoints
 @end deffn
 @deffn Instruction load-symbol length
-Load a symbol from the instruction stream.
+Load a symbol from the instruction stream. The symbol is assumed to be
+encoded in the ``latin1'' locale. Symbols backed by wide strings may
+be loaded via @code{load-wide-string} then @code{make-symbol}.
 @end deffn
-@deffn Instruction load-keyword length
-Load a keyword from the instruction stream.
-@end deffn
-
-@deffn Instruction define length
-Load a symbol from the instruction stream, and look up its binding in
-the current toplevel environment, creating the binding if necessary.
-Push the variable corresponding to the binding.
+@deffn Instruction load-array length
+Load a uniform array from the instruction stream. The shape and type
+of the array are popped off the stack, in that order.
 @end deffn
 
-@deffn Instruction load-program length
+@deffn Instruction load-program
 Load bytecode from the instruction stream, and push a compiled
-procedure. This instruction pops the following values from the stack:
+procedure.
 
-@itemize
-@item Optionally, a thunk, which when called should return metadata
-associated with this program---for example its name, the names of its
-arguments, its documentation string, debugging information, etc.
+This instruction pops one value from the stack: the program's object
+table, as a vector, or @code{#f} in the case that the program has no
+object table. A program that does not reference toplevel bindings and
+does not use @code{object-ref} does not need an object table.
 
-Normally, this thunk its itself a compiled procedure (with no
-metadata). Metadata is represented this way so that the initial load
-of a procedure is fast: the VM just mmap's the thunk and goes. The
-symbols and pairs associated with the metadata are only created if the
-user asks for them.
+This instruction is unlike the rest of the loading instructions,
+because instead of parsing its data, it directly maps the instruction
+stream onto a C structure, @code{struct scm_objcode}. @xref{Bytecode
+and Objcode}, for more information.
 
-For information on the format of the thunk's return value,
-@xref{Compiled Procedures}.
-@item Optionally, the program's object table, as a vector.
-
-A program that does not reference toplevel bindings and does not use
-@code{object-ref} does not need an object table.
-@item Finally, either one immediate integer or four immediate integers
-representing the arity of the program.
-
-In the four-fixnum case, the values are respectively the number of
-arguments taken by the function (@var{nargs}), the number of @dfn{rest
-arguments} (@var{nrest}, 0 or 1), the number of local variables
-(@var{nlocs}) and the number of external variables (@var{nexts})
-(@pxref{Environment Control Instructions}).
-
-The common single-fixnum case represents all of these values within a
-16-bit bitmask.
-@end itemize
-
-The resulting compiled procedure will not have any ``external''
-variables captured, so it will be loaded only once but may be used
-many times to create closures.
-@end deffn
-
-Finally, while this instruction is not strictly a ``loading''
-instruction, it's useful to wind up the @code{load-program} discussion
-here:
-
-@deffn Instruction make-closure
-Pop the program object from the stack, capture the current set of
-``external'' variables, and assign those external variables to a copy
-of the program. Push the new program object, which shares state with
-the original program. Also captures the current module.
+The resulting compiled procedure will not have any free variables
+captured, so it may be loaded only once but used many times to create
+closures.
 @end deffn
 
 @node Procedural Instructions
@@ -640,22 +663,24 @@ set to the returned value.
 
 @deffn Instruction call nargs
 Call the procedure located at @code{sp[-nargs]} with the @var{nargs}
-arguments located from @code{sp[0]} to @code{sp[-nargs + 1]}.
+arguments located from @code{sp[-nargs + 1]} to @code{sp[0]}.
+
+For compiled procedures, this instruction sets up a new stack frame,
+as described in @ref{Stack Layout}, and then dispatches to the first
+instruction in the called procedure, relying on the called procedure
+to return one value to the newly-created continuation. Because the new
+frame pointer will point to sp[-nargs + 1], the arguments don't have
+to be shuffled around -- they are already in place.
 
 For non-compiled procedures (continuations, primitives, and
 interpreted procedures), @code{call} will pop the procedure and
 arguments off the stack, and push the result of calling
 @code{scm_apply}.
-
-For compiled procedures, this instruction sets up a new stack frame,
-as described in @ref{Stack Layout}, and then dispatches to the first
-instruction in the called procedure, relying on the called procedure
-to return one value to the newly-created continuation.
 @end deffn
 
 @deffn Instruction goto/args nargs
 Like @code{call}, but reusing the current continuation. This
-instruction implements tail calling as required by RnRS.
+instruction implements tail calls as required by RnRS.
 
 For compiled procedures, that means that @code{goto/args} reuses the
 current frame instead of building a new one. The @code{goto/*}
@@ -726,14 +751,14 @@ values. This is an optimization for the common @code{(apply values
 
 @deffn Instruction truncate-values nbinds nrest
 Used in multiple-value continuations, this instruction takes the
-values that are on the stack (including the number-of-value marker)
+values that are on the stack (including the number-of-values marker)
 and truncates them for a binding construct.
 
 For example, a call to @code{(receive (x y . z) (foo) ...)} would,
 logically speaking, pop off the values returned from @code{(foo)} and
 push them as three values, corresponding to @code{x}, @code{y}, and
 @code{z}. In that case, @var{nbinds} would be 3, and @var{nrest} would
-be 1 (to indicate that one of the bindings was a rest arguments).
+be 1 (to indicate that one of the bindings was a rest argument).
 
 Signals an error if there is an insufficient number of values.
 @end deffn
@@ -760,6 +785,17 @@ Push the immediate value @code{1} onto the stack.
 Push @var{value}, a 16-bit integer, onto the stack.
 @end deffn
 
+@deffn Instruction make-uint64 value
+Push @var{value}, an unsigned 64-bit integer, onto the stack. The
+value is encoded in 8 bytes, most significant byte first (big-endian).
+@end deffn
+
+@deffn Instruction make-int64 value
+Push @var{value}, a signed 64-bit integer, onto the stack. The value
+is encoded in 8 bytes, most significant byte first (big-endian), in
+twos-complement arithmetic.
+@end deffn
+
 @deffn Instruction make-false
 Push @code{#f} onto the stack.
 @end deffn
@@ -776,15 +812,30 @@ Push @code{'()} onto the stack.
 Push @var{value}, an 8-bit character, onto the stack.
 @end deffn
 
+@deffn Instruction make-char32 value
+Push @var{value}, an 32-bit character, onto the stack. The value is
+encoded in big-endian order.
+@end deffn
+
+@deffn Instruction make-symbol
+Pops a string off the stack, and pushes a symbol.
+@end deffn
+
+@deffn Instruction make-keyword value
+Pops a symbol off the stack, and pushes a keyword.
+@end deffn
+
 @deffn Instruction list n
 Pops off the top @var{n} values off of the stack, consing them up into
 a list, then pushes that list on the stack. What was the topmost value
-will be the last element in the list.
+will be the last element in the list. @var{n} is a two-byte value,
+most significant byte first.
 @end deffn
 
 @deffn Instruction vector n
 Create and fill a vector with the top @var{n} values from the stack,
-popping off those values and pushing on the resulting vector.
+popping off those values and pushing on the resulting vector. @var{n}
+is a two-byte value, like in @code{vector}.
 @end deffn
 
 @deffn Instruction mark
@@ -817,7 +868,8 @@ pushes its elements on the stack.
 @subsubsection Miscellaneous Instructions
 
 @deffn Instruction nop
-Does nothing!
+Does nothing! Used for padding other instructions to certain
+alignments.
 @end deffn
 
 @deffn Instruction halt
@@ -850,9 +902,8 @@ Pushes ``the unspecified value'' onto the stack.
 @subsubsection Inlined Scheme Instructions
 
 The Scheme compiler can recognize the application of standard Scheme
-procedures, or unbound variables that look like they are bound to
-standard Scheme procedures. It tries to inline these small operations
-to avoid the overhead of creating new stack frames.
+procedures. It tries to inline these small operations to avoid the
+overhead of creating new stack frames.
 
 Since most of these operations are historically implemented as C
 primitives, not inlining them would entail constantly calling out from
@@ -876,14 +927,16 @@ stream.
 @deffnx Instruction eqv? x y
 @deffnx Instruction equal? x y
 @deffnx Instruction pair? x y
-@deffnx Instruction list? x y
+@deffnx Instruction list? x
 @deffnx Instruction set-car! pair x
 @deffnx Instruction set-cdr! pair x
 @deffnx Instruction slot-ref struct n
 @deffnx Instruction slot-set struct n x
-@deffnx Instruction cons x
+@deffnx Instruction cons x y
 @deffnx Instruction car x
 @deffnx Instruction cdr x
+@deffnx Instruction vector-ref x y
+@deffnx Instruction vector-set x n y
 Inlined implementations of their Scheme equivalents.
 @end deffn
 
@@ -904,7 +957,9 @@ As in the previous section, the definitions below show stack
 parameters instead of instruction stream parameters.
 
 @deffn Instruction add x y
+@deffnx Instruction add1 x
 @deffnx Instruction sub x y
+@deffnx Instruction sub1 x
 @deffnx Instruction mul x y
 @deffnx Instruction div x y
 @deffnx Instruction quo x y
@@ -916,4 +971,59 @@ parameters instead of instruction stream parameters.
 @deffnx Instruction le? x y
 @deffnx Instruction ge? x y
 Inlined implementations of the corresponding mathematical operations.
+@end deffn
+
+@node Inlined Bytevector Instructions
+@subsubsection Inlined Bytevector Instructions
+
+Bytevector operations correspond closely to what the current hardware
+can do, so it makes sense to inline them to VM instructions, providing
+a clear path for eventual native compilation. Without this, Scheme
+programs would need other primitives for accessing raw bytes -- but
+these primitives are as good as any.
+
+As in the previous section, the definitions below show stack
+parameters instead of instruction stream parameters.
+
+The multibyte formats (@code{u16}, @code{f64}, etc) take an extra
+endianness argument. Only aligned native accesses are currently
+fast-pathed in Guile's VM.
+
+@deffn Instruction bv-u8-ref bv n
+@deffnx Instruction bv-s8-ref bv n
+@deffnx Instruction bv-u16-native-ref bv n
+@deffnx Instruction bv-s16-native-ref bv n
+@deffnx Instruction bv-u32-native-ref bv n
+@deffnx Instruction bv-s32-native-ref bv n
+@deffnx Instruction bv-u64-native-ref bv n
+@deffnx Instruction bv-s64-native-ref bv n
+@deffnx Instruction bv-f32-native-ref bv n
+@deffnx Instruction bv-f64-native-ref bv n
+@deffnx Instruction bv-u16-ref bv n endianness
+@deffnx Instruction bv-s16-ref bv n endianness
+@deffnx Instruction bv-u32-ref bv n endianness
+@deffnx Instruction bv-s32-ref bv n endianness
+@deffnx Instruction bv-u64-ref bv n endianness
+@deffnx Instruction bv-s64-ref bv n endianness
+@deffnx Instruction bv-f32-ref bv n endianness
+@deffnx Instruction bv-f64-ref bv n endianness
+@deffnx Instruction bv-u8-set bv n val
+@deffnx Instruction bv-s8-set bv n val
+@deffnx Instruction bv-u16-native-set bv n val
+@deffnx Instruction bv-s16-native-set bv n val
+@deffnx Instruction bv-u32-native-set bv n val
+@deffnx Instruction bv-s32-native-set bv n val
+@deffnx Instruction bv-u64-native-set bv n val
+@deffnx Instruction bv-s64-native-set bv n val
+@deffnx Instruction bv-f32-native-set bv n val
+@deffnx Instruction bv-f64-native-set bv n val
+@deffnx Instruction bv-u16-set bv n val endianness
+@deffnx Instruction bv-s16-set bv n val endianness
+@deffnx Instruction bv-u32-set bv n val endianness
+@deffnx Instruction bv-s32-set bv n val endianness
+@deffnx Instruction bv-u64-set bv n val endianness
+@deffnx Instruction bv-s64-set bv n val endianness
+@deffnx Instruction bv-f32-set bv n val endianness
+@deffnx Instruction bv-f64-set bv n val endianness
+Inlined implementations of the corresponding bytevector operations.
 @end deffn

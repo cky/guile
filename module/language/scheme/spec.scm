@@ -1,27 +1,27 @@
 ;;; Guile Scheme specification
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
 (define-module (language scheme spec)
   #:use-module (system base language)
-  #:use-module (language scheme compile-ghil)
+  #:use-module (language scheme compile-tree-il)
+  #:use-module (language scheme decompile-tree-il)
   #:export (scheme))
 
 ;;;
@@ -29,12 +29,6 @@
 ;;;
 
 (read-enable 'positions)
-
-(define (read-file port)
-  (do ((x (read port) (read port))
-       (l '() (cons x l)))
-      ((eof-object? x)
-       (cons 'begin (reverse! l)))))
 
 ;;;
 ;;; Language definition
@@ -44,8 +38,8 @@
   #:title	"Guile Scheme"
   #:version	"0.5"
   #:reader	read
-  #:read-file	read-file
-  #:compilers   `((ghil . ,compile-ghil))
+  #:compilers   `((tree-il . ,compile-tree-il))
+  #:decompilers `((tree-il . ,decompile-tree-il))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write
   )

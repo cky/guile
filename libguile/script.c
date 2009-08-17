@@ -1,17 +1,18 @@
 /* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* "script.c" argv tricks for `#!' scripts.
@@ -29,6 +30,7 @@
 #include "libguile/eval.h"
 #include "libguile/feature.h"
 #include "libguile/load.h"
+#include "libguile/private-gc.h" /* scm_getenv_int */
 #include "libguile/read.h"
 #include "libguile/script.h"
 #include "libguile/strings.h"
@@ -376,6 +378,10 @@ scm_shell_usage (int fatal, char *message)
            "  --no-debug     start with normal evaluator\n"
            "                 Default is to enable debugging for interactive\n"
            "                 use, but not for `-s' and `-c'.\n"
+           "  --autocompile  compile source files automatically\n"
+           "  --no-autocompile  disable automatic source file compilation\n"
+           "                 Default is to enable autocompilation of source\n"
+           "                 files.\n"
 	   "  -q             inhibit loading of user init file\n"
            "  --emacs        enable Emacs protocol (experimental)\n"
 	   "  --use-srfi=LS  load SRFI modules for the SRFIs in LS,\n"
@@ -404,6 +410,7 @@ SCM_SYMBOL (sym_quit, "quit");
 SCM_SYMBOL (sym_use_srfis, "use-srfis");
 SCM_SYMBOL (sym_load_path, "%load-path");
 SCM_SYMBOL (sym_set_x, "set!");
+SCM_SYMBOL (sym_sys_load_should_autocompile, "%load-should-autocompile");
 SCM_SYMBOL (sym_cons, "cons");
 SCM_SYMBOL (sym_at, "@");
 SCM_SYMBOL (sym_atat, "@@");
@@ -448,6 +455,8 @@ scm_compile_shell_switches (int argc, char **argv)
   int use_emacs_interface = 0;
   int turn_on_debugging = 0;
   int dont_turn_on_debugging = 0;
+  int turn_on_autocompile = 0;
+  int dont_turn_on_autocompile = 0;
 
   int i;
   char *argv0 = guile;
@@ -584,6 +593,18 @@ scm_compile_shell_switches (int argc, char **argv)
 	  turn_on_debugging = 0;
 	}
 
+      else if (! strcmp (argv[i], "--autocompile"))
+	{
+	  turn_on_autocompile = 1;
+	  dont_turn_on_autocompile = 0;
+	}
+
+      else if (! strcmp (argv[i], "--no-autocompile"))
+	{
+	  dont_turn_on_autocompile = 1;
+	  turn_on_autocompile = 0;
+	}
+
       else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
 	use_emacs_interface = 1;
 
@@ -699,6 +720,16 @@ scm_compile_shell_switches (int argc, char **argv)
   if (interactive && !inhibit_user_init)
     {
       tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
+    }
+
+  /* If GUILE_AUTO_COMPILE is not set and no args are given, default to
+     autocompilation. */
+  if (turn_on_autocompile || (scm_getenv_int ("GUILE_AUTO_COMPILE", 1)
+                              && !dont_turn_on_autocompile))
+    {
+      tail = scm_cons (scm_list_3 (sym_set_x, sym_sys_load_should_autocompile,
+                                   SCM_BOOL_T),
+                       tail);
     }
 
   /* If debugging was requested, or we are interactive and debugging

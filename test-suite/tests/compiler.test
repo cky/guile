@@ -1,10 +1,10 @@
 ;;;; compiler.test --- tests for the compiler      -*- scheme -*-
-;;;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1999, 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,45 +18,38 @@
 (define-module (test-suite tests compiler)
   :use-module (test-suite lib)
   :use-module (test-suite guile-test)
-  :use-module (system vm program))
-  
+  :use-module (system base compile))
 
-(with-test-prefix "environments"
 
-  (pass-if "compile-time-environment in evaluator"
-    (eq? (primitive-eval '(compile-time-environment)) #f))
+
+(with-test-prefix "basic"
 
-  (pass-if "compile-time-environment in compiler"
-    (equal? (compile '(compile-time-environment))
-            (cons (current-module)
-                  (cons '() '()))))
+  (pass-if "compile to value"
+    (equal? (compile 1) 1)))
 
-  (let ((env (compile
-              '(let ((x 0)) (set! x 1) (compile-time-environment)))))
-    (pass-if "compile-time-environment in compiler, heap-allocated var"
-             (equal? env
-                     (cons (current-module)
-                           (cons '((x . 0)) '(1)))))
+
+(with-test-prefix "psyntax"
 
-    ;; fixme: compiling with #t or module
-    (pass-if "recompiling with environment"
-             (equal? ((compile '(lambda () x) #:env env))
-                     1))
+  (pass-if "redefinition"
+    ;; In this case the locally-bound `round' must have the same value as the
+    ;; imported `round'.  See the same test in `syntax.test' for details.
+    (begin
+      (compile '(define round round))
+      (compile '(eq? round (@@ (guile) round)))))
 
-    (pass-if "recompiling with environment/2"
-             (equal? ((compile '(lambda () (set! x (1+ x)) x) #:env env))
-                     2))
+  (pass-if "compile in current module"
+    (let ((o (begin
+               (compile '(define-macro (foo) 'bar))
+               (compile '(let ((bar 'ok)) (foo))))))
+      (and (module-ref (current-module) 'foo)
+           (eq? o 'ok))))
 
-    (pass-if "recompiling with environment/3"
-             (equal? ((compile '(lambda () x) #:env env))
-                     2))
-    )
-
-  (pass-if "compile environment is #f"
-           (equal? ((compile '(lambda () 10)))
-                   10))
-
-  (pass-if "compile environment is a module"
-           (equal? ((compile '(lambda () 10) #:env (current-module)))
-                   10))
-  )
+  (pass-if "compile in fresh module"
+    (let* ((m  (let ((m (make-module)))
+                 (beautify-user-module! m)
+                 m))
+           (o  (begin
+                 (compile '(define-macro (foo) 'bar) #:env m)
+                 (compile '(let ((bar 'ok)) (foo)) #:env m))))
+      (and (module-ref m 'foo)
+           (eq? o 'ok)))))

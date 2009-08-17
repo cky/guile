@@ -1,19 +1,20 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -28,6 +29,7 @@
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/unif.h"
@@ -177,11 +179,12 @@ static SCM *scm_read_hash_procedures;
 
 /* An inlinable version of `scm_c_downcase ()'.  */
 #define CHAR_DOWNCASE(_chr)				\
-  (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
+  (((_chr) <= UCHAR_MAX) ? tolower ((int) (_chr)) : (_chr))
 
 
 /* Read an SCSH block comment.  */
 static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
+static SCM scm_read_commented_expression (int chr, SCM port);
 
 /* Read from PORT until a delimiter (e.g., a whitespace) is read.  Return
    zero if the whole token fits in BUF, non-zero otherwise.  */
@@ -256,6 +259,9 @@ flush_ws (SCM port, const char *eoferr)
 	    goto goteof;
 	  case '!':
 	    scm_read_scsh_block_comment (c, port);
+	    break;
+	  case ';':
+	    scm_read_commented_expression (c, port);
 	    break;
 	  default:
 	    scm_ungetc (c, port);
@@ -381,110 +387,167 @@ scm_read_string (int chr, SCM port)
      object (the string returned).  */
 
   SCM str = SCM_BOOL_F;
-  char c_str[READER_STRING_BUFFER_SIZE];
   unsigned c_str_len = 0;
-  int c;
+  scm_t_wchar c;
 
+  str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
   while ('"' != (c = scm_getc (port)))
     {
       if (c == EOF)
-	str_eof: scm_i_input_error (FUNC_NAME, port,
-				    "end of file in string constant",
-				    SCM_EOL);
+        {
+        str_eof:
+          scm_i_input_error (FUNC_NAME, port,
+                             "end of file in string constant", SCM_EOL);
+        }
 
-      if (c_str_len + 1 >= sizeof (c_str))
-	{
-	  /* Flush the C buffer onto a Scheme string.  */
-	  SCM addy;
+      if (c_str_len + 1 >= scm_i_string_length (str))
+        {
+          SCM addy = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
 
-	  if (str == SCM_BOOL_F)
-	    str = scm_c_make_string (0, SCM_MAKE_CHAR ('X'));
-
-	  addy = scm_from_locale_stringn (c_str, c_str_len);
-	  str = scm_string_append_shared (scm_list_2 (str, addy));
-
-	  c_str_len = 0;
-	}
+          str = scm_string_append (scm_list_2 (str, addy));
+        }
 
       if (c == '\\')
-	switch (c = scm_getc (port))
-	  {
-	  case EOF:
-	    goto str_eof;
-	  case '"':
-	  case '\\':
-	    break;
+        {
+          switch (c = scm_getc (port))
+            {
+            case EOF:
+              goto str_eof;
+            case '"':
+            case '\\':
+              break;
 #if SCM_ENABLE_ELISP
-	  case '(':
-	  case ')':
-	    if (SCM_ESCAPED_PARENS_P)
-	      break;
-	    goto bad_escaped;
+            case '(':
+            case ')':
+              if (SCM_ESCAPED_PARENS_P)
+                break;
+              goto bad_escaped;
 #endif
-	  case '\n':
-	    continue;
-	  case '0':
-	    c = '\0';
-	    break;
-	  case 'f':
-	    c = '\f';
-	    break;
-	  case 'n':
-	    c = '\n';
-	    break;
-	  case 'r':
-	    c = '\r';
-	    break;
-	  case 't':
-	    c = '\t';
-	    break;
-	  case 'a':
-	    c = '\007';
-	    break;
-	  case 'v':
-	    c = '\v';
-	    break;
-	  case 'x':
-	    {
-	      int a, b;
-	      a = scm_getc (port);
-	      if (a == EOF) goto str_eof;
-	      b = scm_getc (port);
-	      if (b == EOF) goto str_eof;
-	      if      ('0' <= a && a <= '9') a -= '0';
-	      else if ('A' <= a && a <= 'F') a = a - 'A' + 10;
-	      else if ('a' <= a && a <= 'f') a = a - 'a' + 10;
-	      else goto bad_escaped;
-	      if      ('0' <= b && b <= '9') b -= '0';
-	      else if ('A' <= b && b <= 'F') b = b - 'A' + 10;
-	      else if ('a' <= b && b <= 'f') b = b - 'a' + 10;
-	      else goto bad_escaped;
-	      c = a * 16 + b;
-	      break;
-	    }
-	  default:
-	  bad_escaped:
-	    scm_i_input_error (FUNC_NAME, port,
-			       "illegal character in escape sequence: ~S",
-			       scm_list_1 (SCM_MAKE_CHAR (c)));
-	  }
-      c_str[c_str_len++] = c;
+            case '\n':
+              continue;
+            case '0':
+              c = '\0';
+              break;
+            case 'f':
+              c = '\f';
+              break;
+            case 'n':
+              c = '\n';
+              break;
+            case 'r':
+              c = '\r';
+              break;
+            case 't':
+              c = '\t';
+              break;
+            case 'a':
+              c = '\007';
+              break;
+            case 'v':
+              c = '\v';
+              break;
+            case 'x':
+              {
+                scm_t_wchar a, b;
+                a = scm_getc (port);
+                if (a == EOF)
+                  goto str_eof;
+                b = scm_getc (port);
+                if (b == EOF)
+                  goto str_eof;
+                if ('0' <= a && a <= '9')
+                  a -= '0';
+                else if ('A' <= a && a <= 'F')
+                  a = a - 'A' + 10;
+                else if ('a' <= a && a <= 'f')
+                  a = a - 'a' + 10;
+                else
+                  {
+                    c = a;
+                    goto bad_escaped;
+                  }
+                if ('0' <= b && b <= '9')
+                  b -= '0';
+                else if ('A' <= b && b <= 'F')
+                  b = b - 'A' + 10;
+                else if ('a' <= b && b <= 'f')
+                  b = b - 'a' + 10;
+                else
+                  {
+                    c = b;
+                    goto bad_escaped;
+                  }
+                c = a * 16 + b;
+                break;
+              }
+            case 'u':
+              {
+                scm_t_wchar a;
+                int i;
+                c = 0;
+                for (i = 0; i < 4; i++)
+                  {
+                    a = scm_getc (port);
+                    if (a == EOF)
+                      goto str_eof;
+                    if ('0' <= a && a <= '9')
+                      a -= '0';
+                    else if ('A' <= a && a <= 'F')
+                      a = a - 'A' + 10;
+                    else if ('a' <= a && a <= 'f')
+                      a = a - 'a' + 10;
+                    else
+                      {
+                        c = a;
+                        goto bad_escaped;
+                      }
+                    c = c * 16 + a;
+                  }
+                break;
+              }
+            case 'U':
+              {
+                scm_t_wchar a;
+                int i;
+                c = 0;
+                for (i = 0; i < 6; i++)
+                  {
+                    a = scm_getc (port);
+                    if (a == EOF)
+                      goto str_eof;
+                    if ('0' <= a && a <= '9')
+                      a -= '0';
+                    else if ('A' <= a && a <= 'F')
+                      a = a - 'A' + 10;
+                    else if ('a' <= a && a <= 'f')
+                      a = a - 'a' + 10;
+                    else
+                      {
+                        c = a;
+                        goto bad_escaped;
+                      }
+                    c = c * 16 + a;
+                  }
+                break;
+              }
+            default:
+            bad_escaped:
+              scm_i_input_error (FUNC_NAME, port,
+                                 "illegal character in escape sequence: ~S",
+                                 scm_list_1 (SCM_MAKE_CHAR (c)));
+            }
+        }
+      str = scm_i_string_start_writing (str);
+      scm_i_string_set_x (str, c_str_len++, c);
+      scm_i_string_stop_writing ();
     }
 
   if (c_str_len > 0)
     {
-      SCM addy;
-
-      addy = scm_from_locale_stringn (c_str, c_str_len);
-      if (str == SCM_BOOL_F)
-	str = addy;
-      else
-	str = scm_string_append_shared (scm_list_2 (str, addy));
+      return scm_i_substring_copy (str, 0, c_str_len);
     }
-  else
-    str = (str == SCM_BOOL_F) ? scm_nullstr : str;
-
-  return str;
+  
+  return scm_nullstr;
 }
 #undef FUNC_NAME
 
@@ -552,12 +615,21 @@ scm_read_mixed_case_symbol (int chr, SCM port)
 
   if (scm_is_pair (str))
     {
+      size_t len;
+
       str = scm_string_concatenate (scm_reverse_x (str, SCM_EOL));
-      result = scm_string_to_symbol (str);
+      len = scm_c_string_length (str);
 
       /* Per SRFI-88, `:' alone is an identifier, not a keyword.  */
-      if (postfix && ends_with_colon && (scm_c_string_length (result) > 1))
-	result = scm_symbol_to_keyword (result);
+      if (postfix && ends_with_colon && (len > 1))
+	{
+	  /* Strip off colon.  */
+	  str = scm_c_substring (str, 0, len-1);
+	  result = scm_string_to_symbol (str);
+	  result = scm_symbol_to_keyword (result);
+	}
+      else
+	result = scm_string_to_symbol (str);
     }
   else
     {
@@ -691,6 +763,65 @@ scm_read_quote (int chr, SCM port)
   return p;
 }
 
+SCM_SYMBOL (sym_syntax, "syntax");
+SCM_SYMBOL (sym_quasisyntax, "quasisyntax");
+SCM_SYMBOL (sym_unsyntax, "unsyntax");
+SCM_SYMBOL (sym_unsyntax_splicing, "unsyntax-splicing");
+
+static SCM
+scm_read_syntax (int chr, SCM port)
+{
+  SCM p;
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
+
+  switch (chr)
+    {
+    case '`':
+      p = sym_quasisyntax;
+      break;
+
+    case '\'':
+      p = sym_syntax;
+      break;
+
+    case ',':
+      {
+	int c;
+
+	c = scm_getc (port);
+	if ('@' == c)
+	  p = sym_unsyntax_splicing;
+	else
+	  {
+	    scm_ungetc (c, port);
+	    p = sym_unsyntax;
+	  }
+	break;
+      }
+
+    default:
+      fprintf (stderr, "%s: unhandled syntax character (%i)\n",
+	       "scm_read_syntax", chr);
+      abort ();
+    }
+
+  p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
+  if (SCM_RECORD_POSITIONS_P)
+    scm_whash_insert (scm_source_whash, p,
+		      scm_make_srcprops (line, column,
+					 SCM_FILENAME (port),
+					 SCM_COPY_SOURCE_P
+					 ? (scm_cons2 (SCM_CAR (p),
+						       SCM_CAR (SCM_CDR (p)),
+						       SCM_EOL))
+					 : SCM_UNDEFINED,
+					 SCM_EOL));
+
+
+  return p;
+}
+
 static inline SCM
 scm_read_semicolon_comment (int chr, SCM port)
 {
@@ -727,7 +858,7 @@ static SCM
 scm_read_character (int chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
 {
-  unsigned c;
+  SCM ch;
   char charname[READER_CHAR_NAME_MAX_SIZE];
   size_t charname_len;
 
@@ -760,10 +891,9 @@ scm_read_character (int chr, SCM port)
 	return SCM_MAKE_CHAR (SCM_I_INUM (p));
     }
 
-  for (c = 0; c < scm_n_charnames; c++)
-    if (scm_charnames[c]
-	&& (!strncasecmp (scm_charnames[c], charname, charname_len)))
-      return SCM_MAKE_CHAR (scm_charnums[c]);
+  ch = scm_i_charname_to_char (charname, charname_len);
+  if (scm_is_true (ch))
+    return ch;
 
  char_error:
   scm_i_input_error (FUNC_NAME, port, "unknown character name ~a",
@@ -810,6 +940,30 @@ scm_read_srfi4_vector (int chr, SCM port)
 }
 
 static SCM
+scm_read_bytevector (int chr, SCM port)
+{
+  chr = scm_getc (port);
+  if (chr != 'u')
+    goto syntax;
+
+  chr = scm_getc (port);
+  if (chr != '8')
+    goto syntax;
+
+  chr = scm_getc (port);
+  if (chr != '(')
+    goto syntax;
+
+  return scm_u8_list_to_bytevector (scm_read_sexp (chr, port));
+
+ syntax:
+  scm_i_input_error ("read_bytevector", port,
+		     "invalid bytevector prefix",
+		     SCM_MAKE_CHAR (chr));
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
 scm_read_guile_bit_vector (int chr, SCM port)
 {
   /* Read the `#*10101'-style read syntax for bit vectors in Guile.  This is
@@ -850,6 +1004,20 @@ scm_read_scsh_block_comment (int chr, SCM port)
 	bang_seen = 0;
     }
 
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+scm_read_commented_expression (int chr, SCM port)
+{
+  int c;
+  
+  c = flush_ws (port, (char *) NULL);
+  if (EOF == c)
+    scm_i_input_error ("read_commented_expression", port,
+                       "no expression after #; comment", SCM_EOL);
+  scm_ungetc (c, port);
+  scm_read_expression (port);
   return SCM_UNSPECIFIED;
 }
 
@@ -963,6 +1131,8 @@ scm_read_sharp (int chr, SCM port)
     case 'f':
       /* This one may return either a boolean or an SRFI-4 vector.  */
       return (scm_read_srfi4_vector (chr, port));
+    case 'v':
+      return (scm_read_bytevector (chr, port));
     case '*':
       return (scm_read_guile_bit_vector (chr, port));
     case 't':
@@ -1014,6 +1184,12 @@ scm_read_sharp (int chr, SCM port)
       return (scm_read_extended_symbol (chr, port));
     case '!':
       return (scm_read_scsh_block_comment (chr, port));
+    case ';':
+      return (scm_read_commented_expression (chr, port));
+    case '`':
+    case '\'':
+    case ',':
+      return (scm_read_syntax (chr, port));
     default:
       result = scm_read_sharp_extension (chr, port);
       if (scm_is_eq (result, SCM_UNSPECIFIED))

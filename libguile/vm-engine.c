@@ -1,57 +1,34 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ */
 
 /* This file is included in vm.c multiple times */
 
 #if (VM_ENGINE == SCM_VM_REGULAR_ENGINE)
 #define VM_USE_HOOKS		0	/* Various hooks */
 #define VM_USE_CLOCK		0	/* Bogoclock */
-#define VM_CHECK_EXTERNAL	1	/* Check external link */
 #define VM_CHECK_OBJECT         1       /* Check object table */
+#define VM_CHECK_FREE_VARIABLES 1       /* Check free variable access */
 #define VM_PUSH_DEBUG_FRAMES    0       /* Push frames onto the evaluator debug stack */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
 #define VM_USE_CLOCK		1
-#define VM_CHECK_EXTERNAL	1
 #define VM_CHECK_OBJECT         1
+#define VM_CHECK_FREE_VARIABLES 1
 #define VM_PUSH_DEBUG_FRAMES    1
 #else
 #error unknown debug engine VM_ENGINE
@@ -70,7 +47,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   /* Cache variables */
   struct scm_objcode *bp = NULL;	/* program base pointer */
-  SCM external = SCM_EOL;		/* external environment */
+  SCM *free_vars = NULL;                /* free variables */
+  size_t free_vars_count = 0;           /* length of FREE_VARS */
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
   SCM *stack_base = vp->stack_base;	/* stack base address */
@@ -175,7 +153,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   vm_error_bad_instruction:
     err_msg  = scm_from_locale_string ("VM: Bad instruction: ~A");
-    finish_args = SCM_LIST1 (scm_from_uchar (ip[-1]));
+    finish_args = scm_list_1 (scm_from_uchar (ip[-1]));
     goto vm_error;
 
   vm_error_unbound:
@@ -189,7 +167,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   vm_error_too_many_args:
     err_msg  = scm_from_locale_string ("VM: Too many arguments");
-    finish_args = SCM_LIST1 (scm_from_int (nargs));
+    finish_args = scm_list_1 (scm_from_int (nargs));
     goto vm_error;
 
   vm_error_wrong_num_args:
@@ -202,8 +180,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   vm_error_wrong_type_apply:
     err_msg  = scm_from_locale_string ("VM: Wrong type to apply: ~S "
 				       "[IP offset: ~a]");
-    finish_args = SCM_LIST2 (program,
-			  SCM_I_MAKINUM (ip - bp->base));
+    finish_args = scm_list_2 (program,
+			      SCM_I_MAKINUM (ip - bp->base));
     goto vm_error;
 
   vm_error_stack_overflow:
@@ -226,6 +204,12 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     /* shouldn't get here */
     goto vm_error;
 
+  vm_error_not_a_bytevector:
+    SYNC_ALL ();
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "bytevector");
+    /* shouldn't get here */
+    goto vm_error;
+
   vm_error_no_values:
     err_msg  = scm_from_locale_string ("VM: 0-valued return");
     finish_args = SCM_EOL;
@@ -236,20 +220,13 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     finish_args = SCM_EOL;
     goto vm_error;
 
-  vm_error_no_such_module:
-    err_msg  = scm_from_locale_string ("VM: No such module: ~A");
+  vm_error_bad_wide_string_length:
+    err_msg  = scm_from_locale_string ("VM: Bad wide string length: ~S");
     goto vm_error;
 
 #if VM_CHECK_IP
   vm_error_invalid_address:
     err_msg  = scm_from_locale_string ("VM: Invalid program address");
-    finish_args = SCM_EOL;
-    goto vm_error;
-#endif
-
-#if VM_CHECK_EXTERNAL
-  vm_error_external:
-    err_msg  = scm_from_locale_string ("VM: Invalid external access");
     finish_args = SCM_EOL;
     goto vm_error;
 #endif
@@ -261,10 +238,18 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     goto vm_error;
 #endif
 
+#if VM_CHECK_FREE_VARIABLES
+  vm_error_free_variable:
+    err_msg = scm_from_locale_string ("VM: Invalid free variable access");
+    finish_args = SCM_EOL;
+    goto vm_error;
+#endif
+
   vm_error:
     SYNC_ALL ();
 
-    scm_ithrow (sym_vm_error, SCM_LIST3 (sym_vm_run, err_msg, finish_args), 1);
+    scm_ithrow (sym_vm_error, scm_list_3 (sym_vm_run, err_msg, finish_args),
+		1);
   }
 
   abort (); /* never reached */
@@ -272,8 +257,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
 #undef VM_USE_HOOKS
 #undef VM_USE_CLOCK
-#undef VM_CHECK_EXTERNAL
 #undef VM_CHECK_OBJECT
+#undef VM_CHECK_FREE_VARIABLE
 #undef VM_PUSH_DEBUG_FRAMES
 
 /*

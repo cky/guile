@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -45,6 +46,9 @@ SCM_API SCM scm_array_p (SCM v, SCM prot);
 SCM_API SCM scm_typed_array_p (SCM v, SCM type);
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
+SCM_API SCM scm_from_contiguous_typed_array (SCM type, SCM bounds,
+                                             const void *bytes,
+                                             size_t byte_len);
 SCM_API SCM scm_array_rank (SCM ra);
 SCM_API size_t scm_c_array_rank (SCM ra);
 SCM_API SCM scm_array_dimensions (SCM ra);

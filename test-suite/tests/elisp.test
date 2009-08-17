@@ -4,7 +4,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,6 +22,9 @@
 (define *old-stack-level* (and=> (memq 'stack (debug-options)) cadr))
 (if *old-stack-level*
     (debug-set! stack (* 2 *old-stack-level*)))
+
+(define *old-%load-should-autocompile* %load-should-autocompile)
+(set! %load-should-autocompile #f)
 
 ;;;
 ;;; elisp
@@ -350,6 +353,7 @@
 
       ))
 
+(set! %load-should-autocompile *old-%load-should-autocompile*)
 (debug-set! stack *old-stack-level*)
 
 ;;; elisp.test ends here

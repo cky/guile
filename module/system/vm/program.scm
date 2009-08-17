@@ -1,30 +1,29 @@
 ;;; Guile VM program functions
 
-;;; Copyright (C) 2001 Free Software Foundation, Inc.
-;;; Copyright (C) 2005 Ludovic Courtès  <ludovic.courtes@laas.fr>
+;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 ;;;
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2 of the License, or
-;;; (at your option) any later version.
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
 ;;;
-;;; This program is distributed in the hope that it will be useful,
+;;; This library is distributed in the hope that it will be useful,
 ;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
 ;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with this program; if not, write to the Free Software
-;;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
 (define-module (system vm program)
   #:export (make-program
 
-            arity:nargs arity:nrest arity:nlocs arity:nexts
+            arity:nargs arity:nrest arity:nlocs
 
-            make-binding binding:name binding:extp binding:index
+            make-binding binding:name binding:boxed? binding:index
             binding:start binding:end
 
             source:addr source:line source:column source:file
@@ -32,21 +31,20 @@
             program-properties program-property program-documentation
             program-name program-arguments
            
-            program-arity program-external-set! program-meta
+            program-arity program-meta
             program-objcode program? program-objects
-            program-module program-base program-external))
+            program-module program-base program-free-variables))
 
-(dynamic-call "scm_init_programs" (dynamic-link "libguile"))
+(load-extension "libguile" "scm_init_programs")
 
 (define arity:nargs car)
 (define arity:nrest cadr)
 (define arity:nlocs caddr)
-(define arity:nexts cadddr)
 
-(define (make-binding name extp index start end)
-  (list name extp index start end))
+(define (make-binding name boxed? index start end)
+  (list name boxed? index start end))
 (define (binding:name b) (list-ref b 0))
-(define (binding:extp b) (list-ref b 1))
+(define (binding:boxed? b) (list-ref b 1))
 (define (binding:index b) (list-ref b 2))
 (define (binding:start b) (list-ref b 3))
 (define (binding:end b) (list-ref b 4))

@@ -1,0 +1,591 @@
+;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
+;;;; Andy Wingo <wingo@pobox.com> --- May 2009
+;;;;
+;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite tree-il)
+  #:use-module (test-suite lib)
+  #:use-module (system base compile)
+  #:use-module (system base pmatch)
+  #:use-module (system base message)
+  #:use-module (language tree-il)
+  #:use-module (language glil)
+  #:use-module (srfi srfi-13))
+
+;; Of course, the GLIL that is emitted depends on the source info of the
+;; input. Here we're not concerned about that, so we strip source
+;; information from the incoming tree-il.
+
+(define (strip-source x)
+  (post-order! (lambda (x) (set! (tree-il-src x) #f))
+               x))
+
+(define-syntax assert-scheme->glil
+  (syntax-rules ()
+    ((_ in out)
+     (let ((tree-il (strip-source
+                     (compile 'in #:from 'scheme #:to 'tree-il))))
+       (pass-if 'in
+                (equal? (unparse-glil (compile tree-il #:from 'tree-il #:to 'glil))
+                        'out))))))
+
+(define-syntax assert-tree-il->glil
+  (syntax-rules ()
+    ((_ in out)
+     (pass-if 'in
+              (let ((tree-il (strip-source (parse-tree-il 'in))))
+                (equal? (unparse-glil (compile tree-il #:from 'tree-il #:to 'glil))
+                        'out))))))
+
+(define-syntax assert-tree-il->glil/pmatch
+  (syntax-rules ()
+    ((_ in pat test ...)
+     (let ((exp 'in))
+       (pass-if 'in
+         (let ((glil (unparse-glil
+                      (compile (strip-source (parse-tree-il exp))
+                               #:from 'tree-il #:to 'glil))))
+           (pmatch glil
+             (pat (guard test ...) #t)
+             (else #f))))))))
+
+(with-test-prefix "void"
+  (assert-tree-il->glil
+   (void)
+   (program 0 0 0 () (void) (call return 1)))
+  (assert-tree-il->glil
+   (begin (void) (const 1))
+   (program 0 0 0 () (const 1) (call return 1)))
+  (assert-tree-il->glil
+   (apply (primitive +) (void) (const 1))
+   (program 0 0 0 () (void) (call add1 1) (call return 1))))
+
+(with-test-prefix "application"
+  (assert-tree-il->glil
+   (apply (toplevel foo) (const 1))
+   (program 0 0 0 () (toplevel ref foo) (const 1) (call goto/args 1)))
+  (assert-tree-il->glil/pmatch
+   (begin (apply (toplevel foo) (const 1)) (void))
+   (program 0 0 0 () (toplevel ref foo) (const 1) (mv-call 1 ,l1)
+            (call drop 1) (branch br ,l2)
+            (label ,l3) (mv-bind () #f) (unbind)
+            (label ,l4)
+            (void) (call return 1))
+   (and (eq? l1 l3) (eq? l2 l4)))
+  (assert-tree-il->glil
+   (apply (toplevel foo) (apply (toplevel bar)))
+   (program 0 0 0 () (toplevel ref foo) (toplevel ref bar) (call call 0)
+            (call goto/args 1))))
+
+(with-test-prefix "conditional"
+  (assert-tree-il->glil/pmatch
+   (if (const #t) (const 1) (const 2))
+   (program 0 0 0 () (const #t) (branch br-if-not ,l1)
+            (const 1) (call return 1)
+            (label ,l2) (const 2) (call return 1))
+   (eq? l1 l2))
+  
+  (assert-tree-il->glil/pmatch
+   (begin (if (const #t) (const 1) (const 2)) (const #f))
+   (program 0 0 0 () (const #t) (branch br-if-not ,l1) (branch br ,l2)
+            (label ,l3) (label ,l4) (const #f) (call return 1))
+   (eq? l1 l3) (eq? l2 l4))
+
+  (assert-tree-il->glil/pmatch
+   (apply (primitive null?) (if (const #t) (const 1) (const 2)))
+   (program 0 0 0 () (const #t) (branch br-if-not ,l1)
+            (const 1) (branch br ,l2)
+                    (label ,l3) (const 2) (label ,l4)
+                    (call null? 1) (call return 1))
+   (eq? l1 l3) (eq? l2 l4)))
+
+(with-test-prefix "primitive-ref"
+  (assert-tree-il->glil
+   (primitive +)
+   (program 0 0 0 () (toplevel ref +) (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (primitive +) (const #f))
+   (program 0 0 0 () (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (primitive +))
+   (program 0 0 0 () (toplevel ref +) (call null? 1)
+            (call return 1))))
+
+(with-test-prefix "lexical refs"
+  (assert-tree-il->glil
+   (let (x) (y) ((const 1)) (lexical x y))
+   (program 0 0 1 ()
+            (const 1) (bind (x #f 0)) (lexical #t #f set 0)
+            (lexical #t #f ref 0) (call return 1)
+            (unbind)))
+
+  (assert-tree-il->glil
+   (let (x) (y) ((const 1)) (begin (lexical x y) (const #f)))
+   (program 0 0 1 ()
+            (const 1) (bind (x #f 0)) (lexical #t #f set 0)
+            (const #f) (call return 1)
+            (unbind)))
+
+  (assert-tree-il->glil
+   (let (x) (y) ((const 1)) (apply (primitive null?) (lexical x y)))
+   (program 0 0 1 ()
+            (const 1) (bind (x #f 0)) (lexical #t #f set 0)
+            (lexical #t #f ref 0) (call null? 1) (call return 1)
+            (unbind))))
+
+(with-test-prefix "lexical sets"
+  (assert-tree-il->glil
+   ;; unreferenced sets may be optimized away -- make sure they are ref'd
+   (let (x) (y) ((const 1))
+        (set! (lexical x y) (apply (primitive 1+) (lexical x y))))
+   (program 0 0 1 ()
+            (const 1) (bind (x #t 0)) (lexical #t #t box 0)
+            (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
+            (void) (call return 1)
+            (unbind)))
+
+  (assert-tree-il->glil
+   (let (x) (y) ((const 1))
+        (begin (set! (lexical x y) (apply (primitive 1+) (lexical x y)))
+               (lexical x y)))
+   (program 0 0 1 ()
+            (const 1) (bind (x #t 0)) (lexical #t #t box 0)
+            (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
+            (lexical #t #t ref 0) (call return 1)
+            (unbind)))
+
+  (assert-tree-il->glil
+   (let (x) (y) ((const 1))
+     (apply (primitive null?)
+            (set! (lexical x y) (apply (primitive 1+) (lexical x y)))))
+   (program 0 0 1 ()
+            (const 1) (bind (x #t 0)) (lexical #t #t box 0)
+            (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0) (void)
+            (call null? 1) (call return 1)
+            (unbind))))
+
+(with-test-prefix "module refs"
+  (assert-tree-il->glil
+   (@ (foo) bar)
+   (program 0 0 0 ()
+            (module public ref (foo) bar)
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (@ (foo) bar) (const #f))
+   (program 0 0 0 ()
+            (module public ref (foo) bar) (call drop 1)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (@ (foo) bar))
+   (program 0 0 0 ()
+            (module public ref (foo) bar)
+            (call null? 1) (call return 1)))
+
+  (assert-tree-il->glil
+   (@@ (foo) bar)
+   (program 0 0 0 ()
+            (module private ref (foo) bar)
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (@@ (foo) bar) (const #f))
+   (program 0 0 0 ()
+            (module private ref (foo) bar) (call drop 1)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (@@ (foo) bar))
+   (program 0 0 0 ()
+            (module private ref (foo) bar)
+            (call null? 1) (call return 1))))
+
+(with-test-prefix "module sets"
+  (assert-tree-il->glil
+   (set! (@ (foo) bar) (const 2))
+   (program 0 0 0 ()
+            (const 2) (module public set (foo) bar)
+            (void) (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (set! (@ (foo) bar) (const 2)) (const #f))
+   (program 0 0 0 ()
+            (const 2) (module public set (foo) bar)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (set! (@ (foo) bar) (const 2)))
+   (program 0 0 0 ()
+            (const 2) (module public set (foo) bar)
+            (void) (call null? 1) (call return 1)))
+
+  (assert-tree-il->glil
+   (set! (@@ (foo) bar) (const 2))
+   (program 0 0 0 ()
+            (const 2) (module private set (foo) bar)
+            (void) (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (set! (@@ (foo) bar) (const 2)) (const #f))
+   (program 0 0 0 ()
+            (const 2) (module private set (foo) bar)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (set! (@@ (foo) bar) (const 2)))
+   (program 0 0 0 ()
+            (const 2) (module private set (foo) bar)
+            (void) (call null? 1) (call return 1))))
+
+(with-test-prefix "toplevel refs"
+  (assert-tree-il->glil
+   (toplevel bar)
+   (program 0 0 0 ()
+            (toplevel ref bar)
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (toplevel bar) (const #f))
+   (program 0 0 0 ()
+            (toplevel ref bar) (call drop 1)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (toplevel bar))
+   (program 0 0 0 ()
+            (toplevel ref bar)
+            (call null? 1) (call return 1))))
+
+(with-test-prefix "toplevel sets"
+  (assert-tree-il->glil
+   (set! (toplevel bar) (const 2))
+   (program 0 0 0 ()
+            (const 2) (toplevel set bar)
+            (void) (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (set! (toplevel bar) (const 2)) (const #f))
+   (program 0 0 0 ()
+            (const 2) (toplevel set bar)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (set! (toplevel bar) (const 2)))
+   (program 0 0 0 ()
+            (const 2) (toplevel set bar)
+            (void) (call null? 1) (call return 1))))
+
+(with-test-prefix "toplevel defines"
+  (assert-tree-il->glil
+   (define bar (const 2))
+   (program 0 0 0 ()
+            (const 2) (toplevel define bar)
+            (void) (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (define bar (const 2)) (const #f))
+   (program 0 0 0 ()
+            (const 2) (toplevel define bar)
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (define bar (const 2)))
+   (program 0 0 0 ()
+            (const 2) (toplevel define bar)
+            (void) (call null? 1) (call return 1))))
+
+(with-test-prefix "constants"
+  (assert-tree-il->glil
+   (const 2)
+   (program 0 0 0 ()
+            (const 2) (call return 1)))
+
+  (assert-tree-il->glil
+   (begin (const 2) (const #f))
+   (program 0 0 0 ()
+            (const #f) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (const 2))
+   (program 0 0 0 ()
+            (const 2) (call null? 1) (call return 1))))
+
+(with-test-prefix "lambda"
+  (assert-tree-il->glil
+   (lambda (x) (y) () (const 2))
+   (program 0 0 0 ()
+            (program 1 0 0 ()
+                     (bind (x #f 0))
+                     (const 2) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda (x x1) (y y1) () (const 2))
+   (program 0 0 0 ()
+            (program 2 0 0 ()
+                     (bind (x #f 0) (x1 #f 1))
+                     (const 2) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda x y () (const 2))
+   (program 0 0 0 ()
+            (program 1 1 0 ()
+                     (bind (x #f 0))
+                     (const 2) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda (x . x1) (y . y1) () (const 2))
+   (program 0 0 0 ()
+            (program 2 1 0 ()
+                     (bind (x #f 0) (x1 #f 1))
+                     (const 2) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda (x . x1) (y . y1) () (lexical x y))
+   (program 0 0 0 ()
+            (program 2 1 0 ()
+                     (bind (x #f 0) (x1 #f 1))
+                     (lexical #t #f ref 0) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda (x . x1) (y . y1) () (lexical x1 y1))
+   (program 0 0 0 ()
+            (program 2 1 0 ()
+                     (bind (x #f 0) (x1 #f 1))
+                     (lexical #t #f ref 1) (call return 1))
+            (call return 1)))
+
+  (assert-tree-il->glil
+   (lambda (x) (x1) () (lambda (y) (y1) () (lexical x x1)))
+   (program 0 0 0 ()
+            (program 1 0 0 ()
+                     (bind (x #f 0))
+                     (program 1 0 0 ()
+                              (bind (y #f 0))
+                              (lexical #f #f ref 0) (call return 1))
+                     (lexical #t #f ref 0)
+                     (call vector 1)
+                     (call make-closure 2)
+                     (call return 1))
+            (call return 1))))
+
+(with-test-prefix "sequence"
+  (assert-tree-il->glil
+   (begin (begin (const 2) (const #f)) (const #t))
+   (program 0 0 0 ()
+            (const #t) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive null?) (begin (const #f) (const 2)))
+   (program 0 0 0 ()
+            (const 2) (call null? 1) (call return 1))))
+
+;; FIXME: binding info for or-hacked locals might bork the disassembler,
+;; and could be tightened in any case
+(with-test-prefix "the or hack"
+  (assert-tree-il->glil/pmatch
+   (let (x) (y) ((const 1))
+        (if (lexical x y)
+            (lexical x y)
+            (let (a) (b) ((const 2))
+                 (lexical a b))))
+   (program 0 0 1 ()
+            (const 1) (bind (x #f 0)) (lexical #t #f set 0)
+            (lexical #t #f ref 0) (branch br-if-not ,l1)
+            (lexical #t #f ref 0) (call return 1)
+            (label ,l2)
+            (const 2) (bind (a #f 0)) (lexical #t #f set 0)
+            (lexical #t #f ref 0) (call return 1)
+            (unbind)
+            (unbind))
+   (eq? l1 l2))
+
+  ;; second bound var is unreferenced
+  (assert-tree-il->glil/pmatch
+   (let (x) (y) ((const 1))
+        (if (lexical x y)
+            (lexical x y)
+            (let (a) (b) ((const 2))
+                 (lexical x y))))
+   (program 0 0 1 ()
+            (const 1) (bind (x #f 0)) (lexical #t #f set 0)
+            (lexical #t #f ref 0) (branch br-if-not ,l1)
+            (lexical #t #f ref 0) (call return 1)
+            (label ,l2)
+            (lexical #t #f ref 0) (call return 1)
+            (unbind))
+   (eq? l1 l2)))
+
+(with-test-prefix "apply"
+  (assert-tree-il->glil
+   (apply (primitive @apply) (toplevel foo) (toplevel bar))
+   (program 0 0 0 () (toplevel ref foo) (toplevel ref bar) (call goto/apply 2)))
+  (assert-tree-il->glil/pmatch
+   (begin (apply (primitive @apply) (toplevel foo) (toplevel bar)) (void))
+   (program 0 0 0 ()
+            (toplevel ref apply) (toplevel ref foo) (toplevel ref bar) (mv-call 2 ,l1)
+            (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
+            (label ,l4)
+            (void) (call return 1))
+   (and (eq? l1 l3) (eq? l2 l4)))
+  (assert-tree-il->glil
+   (apply (toplevel foo) (apply (toplevel @apply) (toplevel bar) (toplevel baz)))
+   (program 0 0 0 ()
+            (toplevel ref foo)
+            (toplevel ref bar) (toplevel ref baz) (call apply 2)
+            (call goto/args 1))))
+
+(with-test-prefix "call/cc"
+  (assert-tree-il->glil
+   (apply (primitive @call-with-current-continuation) (toplevel foo))
+   (program 0 0 0 () (toplevel ref foo) (call goto/cc 1)))
+  (assert-tree-il->glil/pmatch
+   (begin (apply (primitive @call-with-current-continuation) (toplevel foo)) (void))
+   (program 0 0 0 ()
+            (toplevel ref call-with-current-continuation) (toplevel ref foo) (mv-call 1 ,l1)
+            (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
+            (label ,l4)
+            (void) (call return 1))
+   (and (eq? l1 l3) (eq? l2 l4)))
+  (assert-tree-il->glil
+   (apply (toplevel foo)
+          (apply (toplevel @call-with-current-continuation) (toplevel bar)))
+   (program 0 0 0 ()
+            (toplevel ref foo)
+            (toplevel ref bar) (call call/cc 1)
+            (call goto/args 1))))
+
+
+(with-test-prefix "tree-il-fold"
+
+  (pass-if "empty tree"
+    (let ((leaf? #f) (up? #f) (down? #f) (mark (list 'mark)))
+      (and (eq? mark
+                (tree-il-fold (lambda (x y) (set! leaf? #t) y)
+                              (lambda (x y) (set! down? #t) y)
+                              (lambda (x y) (set! up? #t) y)
+                              mark
+                              '()))
+           (not leaf?)
+           (not up?)
+           (not down?))))
+
+  (pass-if "lambda and application"
+    (let* ((leaves '()) (ups '()) (downs '())
+           (result (tree-il-fold (lambda (x y)
+                                   (set! leaves (cons x leaves))
+                                   (1+ y))
+                                 (lambda (x y)
+                                   (set! downs (cons x downs))
+                                   (1+ y))
+                                 (lambda (x y)
+                                   (set! ups (cons x ups))
+                                   (1+ y))
+                                 0
+                                 (parse-tree-il
+                                  '(lambda (x y) (x1 y1)
+                                     (apply (toplevel +)
+                                            (lexical x x1)
+                                            (lexical y y1)))))))
+      (and (equal? (map strip-source leaves)
+                   (list (make-lexical-ref #f 'y 'y1)
+                         (make-lexical-ref #f 'x 'x1)
+                         (make-toplevel-ref #f '+)))
+           (= (length downs) 2)
+           (equal? (reverse (map strip-source ups))
+                   (map strip-source downs))))))
+
+
+;;;
+;;; Warnings.
+;;;
+
+;; Make sure we get English messages.
+(setlocale LC_ALL "C")
+
+(define (call-with-warnings thunk)
+  (let ((port (open-output-string)))
+    (with-fluid* *current-warning-port* port
+      thunk)
+    (let ((warnings (get-output-string port)))
+      (string-tokenize warnings
+                       (char-set-complement (char-set #\newline))))))
+
+(define %opts-w-unused
+  '(#:warnings (unused-variable)))
+
+
+(with-test-prefix "warnings"
+
+   (pass-if "unknown warning type"
+     (let ((w (call-with-warnings
+                (lambda ()
+                  (compile #t #:opts '(#:warnings (does-not-exist)))))))
+       (and (= (length w) 1)
+            (number? (string-contains (car w) "unknown warning")))))
+
+   (with-test-prefix "unused-variable"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda (x y) (+ x y))
+                           #:opts %opts-w-unused)))))
+
+     (pass-if "let/unused"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(lambda (x)
+                                (let ((y (+ x 2)))
+                                  x))
+                             #:opts %opts-w-unused)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w) "unused variable `y'")))))
+
+     (pass-if "shadowed variable"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(lambda (x)
+                                (let ((y x))
+                                  (let ((y (+ x 2)))
+                                    (+ x y))))
+                             #:opts %opts-w-unused)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w) "unused variable `y'")))))
+
+     (pass-if "letrec"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda ()
+                              (letrec ((x (lambda () (y)))
+                                       (y (lambda () (x))))
+                                y))
+                           #:opts %opts-w-unused)))))
+
+     (pass-if "unused argument"
+       ;; Unused arguments should not be reported.
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda (x y z) #t)
+                           #:opts %opts-w-unused)))))))

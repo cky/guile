@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -45,14 +46,18 @@ SCM
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
+  SCM sname;
   SCM *meta_info;
 
   meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
-  meta_info[0] = scm_from_locale_symbol (name);
+  sname = scm_from_locale_symbol (name);
+  meta_info[0] = sname;
   meta_info[1] = SCM_EOL;  /* properties */
 
   z = scm_double_cell ((scm_t_bits) type, (scm_t_bits) fcn,
 		       0 /* generic */, (scm_t_bits) meta_info);
+
+  scm_remember_upto_here_1 (sname);
 
   return z;
 }
@@ -61,7 +66,7 @@ SCM
 scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  scm_define (SCM_SNAME (subr), subr);
+  scm_define (SCM_SUBR_NAME (subr), subr);
   return subr;
 }
 
@@ -79,7 +84,7 @@ scm_c_define_subr_with_generic (const char *name,
 				long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
-  scm_define (SCM_SNAME (subr), subr);
+  scm_define (SCM_SUBR_NAME (subr), subr);
   return subr;
 }
 
@@ -223,7 +228,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
      lookup */
   switch (SCM_TYP7 (procedure)) {
   case scm_tcs_subrs:
-    name = SCM_SNAME (procedure);
+    name = SCM_SUBR_NAME (procedure);
     break;
   default:
     name = scm_procedure_property (procedure, scm_sym_name);

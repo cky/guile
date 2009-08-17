@@ -3,7 +3,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -47,51 +47,30 @@
 ;;; Enable keyword support (*fixme*---currently this has global effect)
 (read-set! keywords 'prefix)
 
-(define standard-define-class-transformer
-  (macro-transformer standard-define-class))
+(define-syntax define-class
+  (syntax-rules ()
+    ((_ name supers (slot ...) rest ...)
+     (standard-define-class name supers slot ... rest ...))))
 
-(define define-class
-  ;; Syntax
-  (let ((name cadr)
-	(supers caddr)
-	(slots cadddr)
-	(rest cddddr))
-    (procedure->memoizing-macro
-      (lambda (exp env)
-	(standard-define-class-transformer
-	 `(define-class ,(name exp) ,(supers exp) ,@(slots exp)
-	    ,@(rest exp))
-	 env)))))
+(define (toplevel-define! name val)
+  (module-define! (current-module) name val))
 
-(define define-method
-  (procedure->memoizing-macro
-    (lambda (exp env)
-      (let ((name (cadr exp)))
-	(if (and (pair? name)
-		 (eq? (car name) 'setter)
-		 (pair? (cdr name))
-		 (null? (cddr name)))
-	    (let ((name (cadr name)))
-	      (cond ((not (symbol? name))
-		     (goops-error "bad method name: ~S" name))
-		    ((defined? name env)
-		     `(begin
-			(if (not (is-a? ,name <generic-with-setter>))
-			    (define-accessor ,name))
-			(add-method! (setter ,name) (method ,@(cddr exp)))))
-		    (else
-		     `(begin
-			(define-accessor ,name)
-			(add-method! (setter ,name) (method ,@(cddr exp)))))))
-	    (cond ((not (symbol? name))
-		   (goops-error "bad method name: ~S" name))
-		  ((defined? name env)
-		   `(begin
-		      (if (not (or (is-a? ,name <generic>)
-				   (is-a? ,name <primitive-generic>)))
-			  (define-generic ,name))
-		      (add-method! ,name (method ,@(cddr exp)))))
-		  (else
-		   `(begin
-		      (define-generic ,name)
-		      (add-method! ,name (method ,@(cddr exp)))))))))))
+(define-syntax define-method
+  (syntax-rules (setter)
+    ((_ (setter name) rest ...)
+     (begin
+       (if (or (not (defined? 'name))
+               (not (is-a? name <generic-with-setter>)))
+           (toplevel-define! 'name
+                             (ensure-accessor
+                              (if (defined? 'name) name #f) 'name)))
+       (add-method! (setter name) (method rest ...))))
+    ((_ name rest ...)
+     (begin
+       (if (or (not (defined? 'name))
+               (not (or (is-a? name <generic>)
+                        (is-a? name <primitive-generic>))))
+           (toplevel-define! 'name
+                             (ensure-generic
+                              (if (defined? 'name) name #f) 'name)))
+       (add-method! name (method rest ...))))))

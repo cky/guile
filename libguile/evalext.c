@@ -1,18 +1,19 @@
 /* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -30,49 +31,23 @@
 #include "libguile/evalext.h"
 
 SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
-            (SCM sym, SCM env),
-	    "Return @code{#t} if @var{sym} is defined in the lexical "
-	    "environment @var{env}.  When @var{env} is not specified, "
-	    "look in the top-level environment as defined by the "
-	    "current module.")
+            (SCM sym, SCM module),
+	    "Return @code{#t} if @var{sym} is defined in the module "
+	    "@var{module} or the current module when @var{module} is not"
+	    "specified.")
 #define FUNC_NAME s_scm_defined_p
 {
   SCM var;
 
   SCM_VALIDATE_SYMBOL (1, sym);
 
-  if (SCM_UNBNDP (env))
-    var = scm_sym2var (sym, scm_current_module_lookup_closure (),
-			 SCM_BOOL_F);
+  if (SCM_UNBNDP (module))
+    module = scm_current_module ();
   else
-    {
-      SCM frames = env;
-      register SCM b;
-      for (; SCM_NIMP (frames); frames = SCM_CDR (frames))
-	{
-	  SCM_ASSERT (scm_is_pair (frames), env, SCM_ARG2, FUNC_NAME);
-	  b = SCM_CAR (frames);
-	  if (scm_is_true (scm_procedure_p (b)))
-	    break;
-	  SCM_ASSERT (scm_is_pair (b), env, SCM_ARG2, FUNC_NAME);
-	  for (b = SCM_CAR (b); SCM_NIMP (b); b = SCM_CDR (b))
-	    {
-	      if (!scm_is_pair (b))
-		{
-		  if (scm_is_eq (b, sym))
-		    return SCM_BOOL_T;
-		  else
-		    break;
-		}
-	      if (scm_is_eq (SCM_CAR (b), sym))
-		return SCM_BOOL_T;
-	    }
-	}
-      var = scm_sym2var (sym,
-			 SCM_NIMP (frames) ? SCM_CAR (frames) : SCM_BOOL_F,
-			 SCM_BOOL_F);
-    }
-	      
+    SCM_VALIDATE_MODULE (2, module);
+
+  var = scm_module_variable (module, sym);
+
   return (scm_is_false (var) || SCM_UNBNDP (SCM_VARIABLE_REF (var))
 	  ? SCM_BOOL_F
 	  : SCM_BOOL_T);

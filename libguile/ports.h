@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -28,8 +29,6 @@
 #include "libguile/struct.h"
 #include "libguile/threads.h"
 
-/* Not sure if this is a good idea.  We need it for off_t.  */
-#include <sys/types.h>
 
 
 
@@ -69,7 +68,7 @@ typedef struct
   unsigned char *read_buf;	/* buffer start.  */
   const unsigned char *read_pos;/* the next unread char.  */
   unsigned char *read_end;      /* pointer to last buffered char + 1.  */
-  off_t read_buf_size;		/* size of the buffer.  */
+  scm_t_off read_buf_size;		/* size of the buffer.  */
 
   /* when chars are put back into the buffer, e.g., using peek-char or
      unread-string, the read-buffer pointers are switched to cbuf.
@@ -78,7 +77,7 @@ typedef struct
   unsigned char *saved_read_buf;
   const unsigned char *saved_read_pos;
   unsigned char *saved_read_end;
-  off_t saved_read_buf_size;
+  scm_t_off saved_read_buf_size;
 
   /* write requests are saved into this buffer at write_pos until it
      reaches write_buf + write_buf_size, then the ptob flush is
@@ -87,7 +86,7 @@ typedef struct
   unsigned char *write_buf;     /* buffer start.  */
   unsigned char *write_pos;     /* pointer to last buffered char + 1.  */
   unsigned char *write_end;     /* pointer to end of buffer + 1.  */
-  off_t write_buf_size;		/* size of the buffer.  */
+  scm_t_off write_buf_size;		/* size of the buffer.  */
 
   unsigned char shortbuf;       /* buffer for "unbuffered" streams.  */
 
@@ -156,11 +155,11 @@ SCM_INTERNAL SCM scm_i_port_weak_hash;
 #define SCM_REVEALED(x)           (SCM_PTAB_ENTRY(x)->revealed)
 #define SCM_SETREVEALED(x, s)      (SCM_PTAB_ENTRY(x)->revealed = (s))
 
-#define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
-#define SCM_ZEROCOL(port)  	{SCM_COL (port) = 0;}
-#define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
-#define SCM_DECCOL(port)  	{if (SCM_COL (port) > 0) SCM_COL (port) -= 1;}
-#define SCM_TABCOL(port)  	{SCM_COL (port) += 8 - SCM_COL (port) % 8;}
+#define SCM_INCLINE(port)  	do {SCM_LINUM (port) += 1; SCM_COL (port) = 0;} while (0)
+#define SCM_ZEROCOL(port)  	do {SCM_COL (port) = 0;} while (0)
+#define SCM_INCCOL(port)  	do {SCM_COL (port) += 1;} while (0)
+#define SCM_DECCOL(port)  	do {if (SCM_COL (port) > 0) SCM_COL (port) -= 1;} while (0)
+#define SCM_TABCOL(port)  	do {SCM_COL (port) += 8 - SCM_COL (port) % 8;} while (0)
 
 /* Maximum number of port types.  */
 #define SCM_I_MAX_PORT_TYPE_COUNT  256
@@ -184,8 +183,8 @@ typedef struct scm_t_ptob_descriptor
   int (*fill_input) (SCM port);
   int (*input_waiting) (SCM port);
 
-  off_t (*seek) (SCM port, off_t OFFSET, int WHENCE);
-  void (*truncate) (SCM port, off_t length);
+  scm_t_off (*seek) (SCM port, scm_t_off OFFSET, int WHENCE);
+  void (*truncate) (SCM port, scm_t_off length);
 
 } scm_t_ptob_descriptor;
 
@@ -222,12 +221,12 @@ SCM_API void scm_set_port_end_input (scm_t_bits tc,
 				     void (*end_input) (SCM port,
 							int offset));
 SCM_API void scm_set_port_seek (scm_t_bits tc,
-				off_t (*seek) (SCM port,
-					       off_t OFFSET,
-					       int WHENCE));
+				scm_t_off (*seek) (SCM port,
+						   scm_t_off OFFSET,
+						   int WHENCE));
 SCM_API void scm_set_port_truncate (scm_t_bits tc,
 				    void (*truncate) (SCM port,
-						      off_t length));
+						      scm_t_off length));
 SCM_API void scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM));
 SCM_API SCM scm_char_ready_p (SCM port);
 size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len);
@@ -269,6 +268,9 @@ SCM_API SCM scm_read_char (SCM port);
 SCM_API size_t scm_c_read (SCM port, void *buffer, size_t size);
 SCM_API void scm_c_write (SCM port, const void *buffer, size_t size);
 SCM_API void scm_lfwrite (const char *ptr, size_t size, SCM port);
+SCM_INTERNAL void scm_lfwrite_str (SCM str, SCM port);
+SCM_INTERNAL void scm_lfwrite_substr (SCM str, size_t start, size_t end,
+				      SCM port);
 SCM_API void scm_flush (SCM port);
 SCM_API void scm_end_input (SCM port);
 SCM_API int scm_fill_input (SCM port);

@@ -1,0 +1,14 @@
+#!/bin/sh
+exec guile -q -s "$0" "$@"
+!#
+
+(load-extension "libtest-extensions" "libtest_extensions_init")
+(load-extension "libtest-extensions" "libtest_extensions_init2")
+
+(or (= init2-count 1)
+    (error "init2 called more or less than one time"))
+
+
+;; Local Variables:
+;; mode: scheme
+;; End:

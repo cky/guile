@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -21,6 +22,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -33,6 +35,7 @@
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-14.h"
 #include "libguile/vectors.h"
+#include "libguile/values.h"
 #include "libguile/lang.h"
 
 #include "libguile/validate.h"
@@ -99,8 +102,6 @@ extern char *ttyname();
 
 #include <signal.h>
 
-extern char ** environ;
-
 #ifdef HAVE_GRP_H
 #include <grp.h>
 #endif
@@ -136,13 +137,7 @@ extern char ** environ;
 #  include <sys/resource.h>
 #endif
 
-#if HAVE_SYS_FILE_H
-# include <sys/file.h>
-#endif
-
-#if HAVE_CRT_EXTERNS_H
-#include <crt_externs.h>  /* for Darwin _NSGetEnviron */
-#endif
+#include <sys/file.h>     /* from Gnulib */
 
 /* Some Unix systems don't define these.  CPP hair is dangerous, but
    this seems safe enough... */
@@ -195,13 +190,6 @@ int sethostname (char *name, size_t namelen);
 
 
 
-
-/* On Apple Darwin in a shared library there's no "environ" to access
-   directly, instead the address of that variable must be obtained with
-   _NSGetEnviron().  */
-#if HAVE__NSGETENVIRON && defined (PIC)
-#define environ (*_NSGetEnviron())
-#endif
 
 
 
@@ -461,6 +449,179 @@ SCM_DEFINE (scm_setgrent, "setgr", 0, 1, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETGRENT */
+
+
+#ifdef HAVE_GETRLIMIT
+#ifdef RLIMIT_AS
+SCM_SYMBOL (sym_as, "as");
+#endif
+#ifdef RLIMIT_CORE
+SCM_SYMBOL (sym_core, "core");
+#endif
+#ifdef RLIMIT_CPU
+SCM_SYMBOL (sym_cpu, "cpu");
+#endif
+#ifdef RLIMIT_DATA
+SCM_SYMBOL (sym_data, "data");
+#endif
+#ifdef RLIMIT_FSIZE
+SCM_SYMBOL (sym_fsize, "fsize");
+#endif
+#ifdef RLIMIT_MEMLOCK
+SCM_SYMBOL (sym_memlock, "memlock");
+#endif
+#ifdef RLIMIT_MSGQUEUE
+SCM_SYMBOL (sym_msgqueue, "msgqueue");
+#endif
+#ifdef RLIMIT_NICE
+SCM_SYMBOL (sym_nice, "nice");
+#endif
+#ifdef RLIMIT_NOFILE
+SCM_SYMBOL (sym_nofile, "nofile");
+#endif
+#ifdef RLIMIT_NPROC
+SCM_SYMBOL (sym_nproc, "nproc");
+#endif
+#ifdef RLIMIT_RSS
+SCM_SYMBOL (sym_rss, "rss");
+#endif
+#ifdef RLIMIT_RTPRIO
+SCM_SYMBOL (sym_rtprio, "rtprio");
+#endif
+#ifdef RLIMIT_RTPRIO
+SCM_SYMBOL (sym_rttime, "rttime");
+#endif
+#ifdef RLIMIT_SIGPENDING
+SCM_SYMBOL (sym_sigpending, "sigpending");
+#endif
+#ifdef RLIMIT_STACK
+SCM_SYMBOL (sym_stack, "stack");
+#endif
+
+static int
+scm_to_resource (SCM s, const char *func, int pos)
+{
+  if (scm_is_number (s))
+    return scm_to_int (s);
+  
+  SCM_ASSERT_TYPE (scm_is_symbol (s), s, pos, func, "symbol");
+
+#ifdef RLIMIT_AS
+  if (s == sym_as)
+    return RLIMIT_AS;
+#endif
+#ifdef RLIMIT_CORE
+  if (s == sym_core)
+    return RLIMIT_CORE;
+#endif
+#ifdef RLIMIT_CPU
+  if (s == sym_cpu)
+    return RLIMIT_CPU;
+#endif
+#ifdef RLIMIT_DATA
+  if (s == sym_data)
+    return RLIMIT_DATA;
+#endif
+#ifdef RLIMIT_FSIZE
+  if (s == sym_fsize)
+    return RLIMIT_FSIZE;
+#endif
+#ifdef RLIMIT_MEMLOCK
+  if (s == sym_memlock)
+    return RLIMIT_MEMLOCK;
+#endif
+#ifdef RLIMIT_MSGQUEUE
+  if (s == sym_msgqueue)
+    return RLIMIT_MSGQUEUE;
+#endif
+#ifdef RLIMIT_NICE
+  if (s == sym_nice)
+    return RLIMIT_NICE;
+#endif
+#ifdef RLIMIT_NOFILE
+  if (s == sym_nofile)
+    return RLIMIT_NOFILE;
+#endif
+#ifdef RLIMIT_NPROC
+  if (s == sym_nproc)
+    return RLIMIT_NPROC;
+#endif
+#ifdef RLIMIT_RSS
+  if (s == sym_rss)
+    return RLIMIT_RSS;
+#endif
+#ifdef RLIMIT_RTPRIO
+  if (s == sym_rtprio)
+    return RLIMIT_RTPRIO;
+#endif
+#ifdef RLIMIT_RTPRIO
+  if (s == sym_rttime)
+    return RLIMIT_RTPRIO;
+#endif
+#ifdef RLIMIT_SIGPENDING
+  if (s == sym_sigpending)
+    return RLIMIT_SIGPENDING;
+#endif
+#ifdef RLIMIT_STACK
+  if (s == sym_stack)
+    return RLIMIT_STACK;
+#endif
+
+  scm_misc_error (func, "invalid rlimit resource ~A", scm_list_1 (s));
+  return 0;
+}
+  
+SCM_DEFINE (scm_getrlimit, "getrlimit", 1, 0, 0,
+            (SCM resource),
+	    "Get a resource limit for this process. @var{resource} identifies the resource,\n"
+            "either as an integer or as a symbol. For example, @code{(getrlimit 'stack)}\n"
+            "gets the limits associated with @code{RLIMIT_STACK}.\n\n"
+	    "@code{getrlimit} returns two values, the soft and the hard limit. If no\n"
+            "limit is set for the resource in question, the returned limit will be @code{#f}.")
+#define FUNC_NAME s_scm_getrlimit
+{
+  int iresource;
+  struct rlimit lim = { 0, 0 };
+  
+  iresource = scm_to_resource (resource, FUNC_NAME, 1);
+  
+  if (getrlimit (iresource, &lim) != 0)
+    scm_syserror (FUNC_NAME);
+
+  return scm_values (scm_list_2 ((lim.rlim_cur == RLIM_INFINITY) ? SCM_BOOL_F
+                                 : scm_from_long (lim.rlim_cur),
+                                 (lim.rlim_max == RLIM_INFINITY) ? SCM_BOOL_F
+                                 : scm_from_long (lim.rlim_max)));
+}
+#undef FUNC_NAME
+
+
+#ifdef HAVE_SETRLIMIT
+SCM_DEFINE (scm_setrlimit, "setrlimit", 3, 0, 0,
+            (SCM resource, SCM soft, SCM hard),
+	    "Set a resource limit for this process. @var{resource} identifies the resource,\n"
+            "either as an integer or as a symbol. @var{soft} and @var{hard} should be integers,\n"
+            "or @code{#f} to indicate no limit (i.e., @code{RLIM_INFINITY}).\n\n"
+            "For example, @code{(setrlimit 'stack 150000 300000)} sets the @code{RLIMIT_STACK}\n"
+            "limit to 150 kilobytes, with a hard limit of 300 kB.")
+#define FUNC_NAME s_scm_setrlimit
+{
+  int iresource;
+  struct rlimit lim = { 0, 0 };
+  
+  iresource = scm_to_resource (resource, FUNC_NAME, 1);
+  
+  lim.rlim_cur = (soft == SCM_BOOL_F) ? RLIM_INFINITY : scm_to_long (soft);
+  lim.rlim_max = (hard == SCM_BOOL_F) ? RLIM_INFINITY : scm_to_long (hard);
+
+  if (setrlimit (iresource, &lim) != 0)
+    scm_syserror (FUNC_NAME);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_SETRLIMIT */
+#endif /* HAVE_GETRLIMIT */
 
 
 SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
@@ -1311,98 +1472,13 @@ SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0,
   int rv;
   char *c_str = scm_to_locale_string (str);
 
-  if (strchr (c_str, '=') == NULL)
-    {
-      /* We want no "=" in the argument to mean remove the variable from the
-	 environment, but not all putenv()s understand this, for example
-	 FreeBSD 4.8 doesn't.  Getting it happening everywhere is a bit
-	 painful.  What unsetenv() exists, we use that, of course.
+  /* Leave C_STR in the environment.  */
 
-         Traditionally putenv("NAME") removes a variable, for example that's
-         what we have to do on Solaris 9 (it doesn't have an unsetenv).
+  /* Gnulib's `putenv' module honors the semantics described above.  */
+  rv = putenv (c_str);
+  if (rv < 0)
+    SCM_SYSERROR;
 
-         But on DOS and on that DOS overlay manager thing called W-whatever,
-         putenv("NAME=") must be used (it too doesn't have an unsetenv).
-
-         Supposedly on AIX a putenv("NAME") could cause a segfault, but also
-         supposedly AIX 5.3 and up has unsetenv() available so should be ok
-         with the latter there.
-
-         For the moment we hard code the DOS putenv("NAME=") style under
-         __MINGW32__ and do the traditional everywhere else.  Such
-         system-name tests are bad, of course.  It'd be possible to use a
-         configure test when doing a a native build.  For example GNU R has
-         such a test (see R_PUTENV_AS_UNSETENV in
-         https://svn.r-project.org/R/trunk/m4/R.m4).  But when cross
-         compiling there'd want to be a guess, one probably based on the
-         system name (ie. mingw or not), thus landing back in basically the
-         present hard-coded situation.  Another possibility for a cross
-         build would be to try "NAME" then "NAME=" at runtime, if that's not
-         too much like overkill.  */
-
-#if HAVE_UNSETENV
-      /* when unsetenv() exists then we use it */
-      unsetenv (c_str);
-      free (c_str);
-#elif defined (__MINGW32__)
-      /* otherwise putenv("NAME=") on DOS */
-      int e;
-      size_t len = strlen (c_str);
-      char *ptr = scm_malloc (len + 2);
-      strcpy (ptr, c_str);
-      strcpy (ptr+len, "=");
-      rv = putenv (ptr);
-      e = errno; free (ptr); free (c_str); errno = e;
-      if (rv < 0)
-	SCM_SYSERROR;
-#else
-      /* otherwise traditional putenv("NAME") */
-      rv = putenv (c_str);
-      if (rv < 0)
-	SCM_SYSERROR;
-#endif
-    }
-  else
-    {
-#ifdef __MINGW32__
-      /* If str is "FOO=", ie. attempting to set an empty string, then
-         we need to see if it's been successful.  On MINGW, "FOO="
-         means remove FOO from the environment.  As a workaround, we
-         set "FOO= ", ie. a space, and then modify the string returned
-         by getenv.  It's not enough just to modify the string we set,
-         because MINGW putenv copies it.  */
-
-      {
-        size_t len = strlen (c_str);
-        if (c_str[len-1] == '=')
-          {
-            char *ptr = scm_malloc (len+2);
-            strcpy (ptr, c_str);
-            strcpy (ptr+len, " ");
-            rv = putenv (ptr);
-            if (rv < 0)
-              {
-                int eno = errno;
-                free (c_str);
-                errno = eno;
-                SCM_SYSERROR;
-              }
-            /* truncate to just the name */
-            c_str[len-1] = '\0';
-            ptr = getenv (c_str);
-            if (ptr)
-              ptr[0] = '\0';
-            return SCM_UNSPECIFIED;
-          }
-      }
-#endif /* __MINGW32__ */
-
-      /* Leave c_str in the environment.  */
-
-      rv = putenv (c_str);
-      if (rv < 0)
-	SCM_SYSERROR;
-    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1668,6 +1744,11 @@ SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0,
 #endif /* HAVE_GETLOGIN */
 
 #if HAVE_CUSERID
+
+# if !HAVE_DECL_CUSERID
+extern char *cuserid (char *);
+# endif
+
 SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0, 
             (void),
 	    "Return a string containing a user name associated with the\n"
@@ -1777,73 +1858,6 @@ SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_GETPASS */
 
-/* Wrapper function for flock() support under M$-Windows. */
-#ifdef __MINGW32__
-# include <io.h>
-# include <sys/locking.h>
-# include <errno.h>
-# ifndef _LK_UNLCK
-   /* Current MinGW package fails to define this. *sigh* */
-#  define _LK_UNLCK 0
-# endif
-# define LOCK_EX 1
-# define LOCK_UN 2
-# define LOCK_SH 4
-# define LOCK_NB 8
-
-static int flock (int fd, int operation)
-{
-  long pos, len;
-  int ret, err;
-
-  /* Disable invalid arguments. */
-  if (((operation & (LOCK_EX | LOCK_SH)) == (LOCK_EX | LOCK_SH)) ||
-      ((operation & (LOCK_EX | LOCK_UN)) == (LOCK_EX | LOCK_UN)) ||
-      ((operation & (LOCK_SH | LOCK_UN)) == (LOCK_SH | LOCK_UN)))
-    {
-      errno = EINVAL;
-      return -1;
-    }
-
-  /* Determine mode of operation and discard unsupported ones. */
-  if (operation == (LOCK_NB | LOCK_EX))
-    operation = _LK_NBLCK;
-  else if (operation & LOCK_UN)
-    operation = _LK_UNLCK;
-  else if (operation == LOCK_EX)
-    operation = _LK_LOCK;
-  else
-    {
-      errno = EINVAL;
-      return -1;
-    }
-
-  /* Save current file pointer and seek to beginning. */
-  if ((pos = lseek (fd, 0, SEEK_CUR)) == -1 || (len = filelength (fd)) == -1)
-    return -1;
-  lseek (fd, 0L, SEEK_SET);
-
-  /* Deadlock if necessary. */
-  do
-    {
-      ret = _locking (fd, operation, len);
-    }
-  while (ret == -1 && errno == EDEADLOCK);
-
-  /* Produce meaningful error message. */
-  if (errno == EACCES && operation == _LK_NBLCK)
-    err = EDEADLOCK;
-  else
-    err = errno;
-
-  /* Return to saved file position pointer. */
-  lseek (fd, pos, SEEK_SET);
-  errno = err;
-  return ret;
-}
-#endif /* __MINGW32__ */
-
-#if HAVE_FLOCK || defined (__MINGW32__)
 SCM_DEFINE (scm_flock, "flock", 2, 0, 0, 
             (SCM file, SCM operation),
 	    "Apply or remove an advisory lock on an open file.\n"
@@ -1887,7 +1901,6 @@ SCM_DEFINE (scm_flock, "flock", 2, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-#endif /* HAVE_FLOCK */
 
 #if HAVE_SETHOSTNAME
 SCM_DEFINE (scm_sethostname, "sethostname", 1, 0, 0, 

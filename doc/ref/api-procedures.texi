@@ -162,18 +162,10 @@ appropriate module first, though:
 Returns @code{#t} iff @var{obj} is a compiled procedure.
 @end deffn
 
-@deffn {Scheme Procedure} program-bytecode program
-@deffnx {C Function} scm_program_bytecode (program)
-Returns the object code associated with this program, as a
-@code{u8vector}.
-@end deffn
-
-@deffn {Scheme Procedure} program-base program
-@deffnx {C Function} scm_program_base (program)
-Returns the address in memory corresponding to the start of
-@var{program}'s object code, as an integer. This is useful mostly when
-you map the value of an instruction pointer from the VM to actual
-instructions.
+@deffn {Scheme Procedure} program-objcode program
+@deffnx {C Function} scm_program_objcode (program)
+Returns the object code associated with this program. @xref{Bytecode
+and Objcode}, for more information.
 @end deffn
 
 @deffn {Scheme Procedure} program-objects program
@@ -184,9 +176,9 @@ vector. @xref{VM Programs}, for more information.
 
 @deffn {Scheme Procedure} program-module program
 @deffnx {C Function} scm_program_module (program)
-Returns the module that was current when this program was created.
-Free variables in this program are looked up with respect to this
-module.
+Returns the module that was current when this program was created. Can
+return @code{#f} if the compiler could determine that this information
+was unnecessary.
 @end deffn
 
 @deffn {Scheme Procedure} program-external program
@@ -250,9 +242,9 @@ REPL. The only tricky bit is that @var{extp} is a boolean, declaring
 whether the binding is heap-allocated or not. @xref{VM Concepts}, for
 more information.
 
-Note that bindings information are stored in a program as part of its
-metadata thunk, so including them in the generated object code does
-not impose a runtime performance penalty.
+Note that bindings information is stored in a program as part of its
+metadata thunk, so including it in the generated object code does not
+impose a runtime performance penalty.
 @end deffn
 
 @deffn {Scheme Procedure} program-sources program

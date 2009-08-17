@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -221,15 +222,14 @@ scm_set_port_close (scm_t_bits tc, int (*close) (SCM))
 }
 
 void
-scm_set_port_seek (scm_t_bits tc, off_t (*seek) (SCM port,
-					   off_t OFFSET,
-					   int WHENCE))
+scm_set_port_seek (scm_t_bits tc,
+		   scm_t_off (*seek) (SCM, scm_t_off, int))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].seek = seek;
 }
 
 void
-scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, off_t length))
+scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM, scm_t_off))
 {
   scm_ptobs[SCM_TC2PTOBNUM (tc)].truncate = truncate;
 }
@@ -1034,7 +1034,24 @@ scm_fill_input (SCM port)
  * This function differs from scm_c_write; it updates port line and
  * column. */
 
-void 
+static void
+update_port_lf (scm_t_wchar c, SCM port)
+{
+  if (c == '\a')
+    ;                           /* Do nothing. */
+  else if (c == '\b')
+    SCM_DECCOL (port);
+  else if (c == '\n')
+    SCM_INCLINE (port);
+  else if (c == '\r')
+    SCM_ZEROCOL (port);
+  else if (c == '\t')
+    SCM_TABCOL (port);
+  else
+    SCM_INCCOL (port);
+}
+
+void
 scm_lfwrite (const char *ptr, size_t size, SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -1045,28 +1062,52 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
 
   ptob->write (port, ptr, size);
 
-  for (; size; ptr++, size--) {
-    if (*ptr == '\a') {
-    }
-    else if (*ptr == '\b') {
-      SCM_DECCOL(port);
-    }
-    else if (*ptr == '\n') {
-      SCM_INCLINE(port);
-    }
-    else if (*ptr == '\r') {
-      SCM_ZEROCOL(port);
-    }
-    else if (*ptr == '\t') {
-      SCM_TABCOL(port);
-    }
-    else {
-      SCM_INCCOL(port);
-    }
-  }
+  for (; size; ptr++, size--)
+    update_port_lf ((scm_t_wchar) (unsigned char) *ptr, port);
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
+}
+
+/* Write a scheme string STR to PORT from START inclusive to END
+   exclusive.  */
+void
+scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
+{
+  size_t i, size = scm_i_string_length (str);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_t_wchar p;
+  char *buf;
+  size_t len;
+
+  if (pt->rw_active == SCM_PORT_READ)
+    scm_end_input (port);
+
+  if (end == (size_t) (-1))
+    end = size;
+  size = end - start;
+
+  buf = scm_to_stringn (scm_c_substring (str, start, end), &len,
+			NULL, SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
+  ptob->write (port, buf, len);
+  free (buf);
+
+  for (i = 0; i < size; i++)
+    {
+      p = scm_i_string_ref (str, i + start);
+      update_port_lf (p, port);
+    }
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
+}
+
+/* Write a scheme string STR to PORT.  */
+void
+scm_lfwrite_str (SCM str, SCM port)
+{
+  scm_lfwrite_substr (str, 0, (size_t) (-1), port);
 }
 
 /* scm_c_read
@@ -1458,23 +1499,18 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
   if (how != SEEK_SET && how != SEEK_CUR && how != SEEK_END)
     SCM_OUT_OF_RANGE (3, whence);
 
-  if (SCM_OPFPORTP (fd_port))
-    {
-      /* go direct to fport code to allow 64-bit offsets */
-      return scm_i_fport_seek (fd_port, offset, how);
-    }
-  else if (SCM_OPPORTP (fd_port))
+  if (SCM_OPPORTP (fd_port))
     {
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
-      off_t off = scm_to_off_t (offset);
-      off_t rv;
+      off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
+      off_t_or_off64_t rv;
 
       if (!ptob->seek)
 	SCM_MISC_ERROR ("port is not seekable", 
                         scm_cons (fd_port, SCM_EOL));
       else
 	rv = ptob->seek (fd_port, off, how);
-      return scm_from_off_t (rv);
+      return scm_from_off_t_or_off64_t (rv);
     }
   else /* file descriptor?.  */
     {
@@ -1556,14 +1592,9 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
       SCM_SYSCALL (rv = ftruncate_or_ftruncate64 (scm_to_int (object),
                                                   c_length));
     }
-  else if (SCM_OPOUTFPORTP (object))
-    {
-      /* go direct to fport code to allow 64-bit offsets */
-      rv = scm_i_fport_truncate (object, length);
-    }
   else if (SCM_OPOUTPORTP (object))
     {
-      off_t c_length = scm_to_off_t (length);
+      off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
       scm_t_port *pt = SCM_PTAB_ENTRY (object);
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
       

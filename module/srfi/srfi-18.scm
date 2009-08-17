@@ -5,7 +5,7 @@
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
 ;; License as published by the Free Software Foundation; either
-;; version 2.1 of the License, or (at your option) any later version.
+;; version 3 of the License, or (at your option) any later version.
 ;; 
 ;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -151,8 +151,10 @@
                    (hashq-set! thread-exception-handlers ct hl) 
                    (handler obj))
                  (lambda () 
-                   (let ((r (thunk)))
-                     (hashq-set! thread-exception-handlers ct hl) r))))))
+                   (call-with-values thunk
+                     (lambda res
+                       (hashq-set! thread-exception-handlers ct hl)
+                       (apply values res))))))))
 
 (define (current-exception-handler)
   (car (current-handler-stack)))
@@ -249,8 +251,8 @@
 (define (wrap thunk)
   (lambda (continuation)
     (with-exception-handler (lambda (obj)
-			      (apply (current-exception-handler) (list obj))
-			      (apply continuation (list)))
+			      ((current-exception-handler) obj)
+			      (continuation))
 			    thunk)))
 
 ;; A pass-thru to cancel-thread that first installs a handler that throws

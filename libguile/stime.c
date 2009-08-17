@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -77,10 +78,6 @@
 # include <sys/timeb.h>
 #endif
 
-#if HAVE_CRT_EXTERNS_H
-#include <crt_externs.h>  /* for Darwin _NSGetEnviron */
-#endif
-
 #ifndef tzname /* For SGI.  */
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #endif
@@ -96,15 +93,6 @@ extern char *strptime ();
 # define timet time_t
 #else
 # define timet long
-#endif
-
-extern char ** environ;
-
-/* On Apple Darwin in a shared library there's no "environ" to access
-   directly, instead the address of that variable must be obtained with
-   _NSGetEnviron().  */
-#if HAVE__NSGETENVIRON && defined (PIC)
-#define environ (*_NSGetEnviron())
 #endif
 
 

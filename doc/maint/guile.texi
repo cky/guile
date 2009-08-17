@@ -204,7 +204,7 @@ Execute all thunks from the asyncs of the list @var{list_of_a}.
 @deffn {Scheme Procedure} system-async thunk
 @deffnx {C Function} scm_system_async (thunk)
 This function is deprecated.  You can use @var{thunk} directly
-instead of explicitely creating an async object.
+instead of explicitly creating an async object.
 
 @end deffn
 

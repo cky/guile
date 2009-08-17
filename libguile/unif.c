@@ -1,18 +1,19 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -46,6 +47,7 @@
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-4.h"
 #include "libguile/vectors.h"
+#include "libguile/bytevectors.h"
 #include "libguile/list.h"
 #include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
@@ -108,6 +110,7 @@ struct {
   { "f64", SCM_UNSPECIFIED, scm_make_f64vector },
   { "c32", SCM_UNSPECIFIED, scm_make_c32vector },
   { "c64", SCM_UNSPECIFIED, scm_make_c64vector },
+  { "vu8", SCM_UNSPECIFIED, scm_make_bytevector },
   { NULL }
 };
 
@@ -313,6 +316,12 @@ bitvector_ref (scm_t_array_handle *h, ssize_t pos)
 }
 
 static SCM
+bytevector_ref (scm_t_array_handle *h, ssize_t pos)
+{
+  return scm_from_uint8 (((scm_t_uint8 *) h->elements)[pos]);
+}
+
+static SCM
 memoize_ref (scm_t_array_handle *h, ssize_t pos)
 {
   SCM v = h->array;
@@ -344,6 +353,11 @@ memoize_ref (scm_t_array_handle *h, ssize_t pos)
     {
       h->elements = scm_array_handle_bit_elements (h);
       h->ref = bitvector_ref;
+    }
+  else if (scm_is_bytevector (v))
+    {
+      h->elements = scm_array_handle_uniform_elements (h);
+      h->ref = bytevector_ref;
     }
   else
     scm_misc_error (NULL, "unknown array type: ~a", scm_list_1 (h->array));
@@ -386,6 +400,17 @@ bitvector_set (scm_t_array_handle *h, ssize_t pos, SCM val)
 }
 
 static void
+bytevector_set (scm_t_array_handle *h, ssize_t pos, SCM val)
+{
+  scm_t_uint8 c_value;
+  scm_t_uint8 *elements;
+
+  c_value = scm_to_uint8 (val);
+  elements = (scm_t_uint8 *) h->elements;
+  elements[pos] = (scm_t_uint8) c_value;
+}
+
+static void
 memoize_set (scm_t_array_handle *h, ssize_t pos, SCM val)
 {
   SCM v = h->array;
@@ -418,6 +443,11 @@ memoize_set (scm_t_array_handle *h, ssize_t pos, SCM val)
     {
       h->writable_elements = scm_array_handle_bit_writable_elements (h);
       h->set = bitvector_set;
+    }
+  else if (scm_is_bytevector (v))
+    {
+      h->elements = scm_array_handle_uniform_writable_elements (h);
+      h->set = bytevector_set;
     }
   else
     scm_misc_error (NULL, "unknown array type: ~a", scm_list_1 (h->array));
@@ -762,6 +792,53 @@ SCM_DEFINE (scm_make_typed_array, "make-typed-array", 2, 0, 1,
     fill = SCM_UNDEFINED;
 
   SCM_I_ARRAY_V (ra) = creator (scm_from_size_t (rlen), fill);
+
+  if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
+    if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
+      return SCM_I_ARRAY_V (ra);
+  return ra;
+}
+#undef FUNC_NAME
+
+SCM
+scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
+                                 size_t byte_len)
+#define FUNC_NAME "scm_from_contiguous_typed_array"
+{
+  size_t k, rlen = 1;
+  scm_t_array_dim *s;
+  creator_proc *creator;
+  SCM ra;
+  scm_t_array_handle h;
+  void *base;
+  size_t sz;
+  
+  creator = type_to_creator (type);
+  ra = scm_i_shap2ra (bounds);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
+  s = SCM_I_ARRAY_DIMS (ra);
+  k = SCM_I_ARRAY_NDIM (ra);
+
+  while (k--)
+    {
+      s[k].inc = rlen;
+      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
+      rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
+    }
+  SCM_I_ARRAY_V (ra) = creator (scm_from_size_t (rlen), SCM_UNDEFINED);
+
+
+  scm_array_get_handle (ra, &h);
+  base = scm_array_handle_uniform_writable_elements (&h);
+  sz = scm_array_handle_uniform_element_size (&h);
+  scm_array_handle_release (&h);
+
+  if (byte_len % sz)
+    SCM_MISC_ERROR ("byte length not a multiple of the unit size", SCM_EOL);
+  if (byte_len / sz != rlen)
+    SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+
+  memcpy (base, bytes, byte_len);
 
   if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))

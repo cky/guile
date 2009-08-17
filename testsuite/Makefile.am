@@ -1,8 +1,8 @@
 TESTS_ENVIRONMENT = \
-	$(top_builddir)/pre-inst-guile \
+	$(top_builddir)/meta/guile \
 	-l $(srcdir)/run-vm-tests.scm -e run-vm-tests
 
-check_SCRIPTS =					\
+TESTS =						\
       t-basic-contructs.scm			\
       t-global-bindings.scm			\
       t-catch.scm				\
@@ -24,6 +24,4 @@ check_SCRIPTS =					\
       t-match.scm				\
       t-mutual-toplevel-defines.scm
 
-TESTS = $(check_SCRIPTS)
-
-EXTRA_DIST = run-vm-tests.scm
+EXTRA_DIST = run-vm-tests.scm $(TESTS)

@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -98,13 +99,10 @@
 #define SCM_UNLIKELY(_expr)  SCM_EXPECT ((_expr), 0)
 
 /* The SCM_INTERNAL macro makes it possible to explicitly declare a function
- * as having "internal" linkage.  */
-#if (defined __GNUC__) && \
-  ((__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ == 3))
-# define SCM_INTERNAL  extern __attribute__ ((__visibility__ ("internal")))
-#else
-# define SCM_INTERNAL  extern
-#endif
+ * as having "internal" linkage.  However our current tack on this problem is
+ * to use GCC 4's -fvisibility=hidden, making functions internal by default,
+ * and then SCM_API marks them for export. */
+#define SCM_INTERNAL  extern
 
 
 
@@ -154,13 +152,14 @@
 
 
 /* SCM_API is a macro prepended to all function and data definitions
-   which should be exported or imported in the resulting dynamic link
-   library (DLL) in the Win32 port. */
+   which should be exported from libguile. */
 
-#if defined (SCM_IMPORT)
-# define SCM_API __declspec (dllimport) extern
-#elif defined (SCM_EXPORT) || defined (DLL_EXPORT)
-# define SCM_API __declspec (dllexport) extern
+#if BUILDING_LIBGUILE && HAVE_VISIBILITY
+# define SCM_API extern __attribute__((__visibility__("default")))
+#elif BUILDING_LIBGUILE && defined _MSC_VER
+# define SCM_API __declspec(dllexport) extern
+#elif defined _MSC_VER
+# define SCM_API __declspec(dllimport) extern
 #else
 # define SCM_API extern
 #endif

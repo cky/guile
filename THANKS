@@ -3,6 +3,7 @@ Contributors since the last release:
 	    Rob Browning
         Ludovic Courtès
          Julian Graham
+	   Mike Gran
          Stefan Jahn
            Neil Jerram
         Gregory Marton
@@ -13,6 +14,7 @@ Contributors since the last release:
 	  Kevin Ryde
 	   Bill Schottstaedt
         Richard Todd
+           Andy Wingo
 
 Sponsors since the last release:
 
@@ -23,6 +25,7 @@ For fixes or providing information which led to a fix:
           David Allouche
 	 Martin Baulig
         Fabrice Bauzac
+        Sylvain Beucler
           Carlo Bramini
             Rob Browning
          Adrian Bunk
@@ -37,6 +40,7 @@ For fixes or providing information which led to a fix:
          John W Eaton
 	Clinton Ebadi
           David Fang
+          Barry Fishman
         Charles Gagnon
           Peter Gavin
            Eric Gillespie, Jr
@@ -61,10 +65,12 @@ For fixes or providing information which led to a fix:
            René Köcher
        Matthias Köppe
            Matt Kraai
+         Daniel Kraft
        Miroslav Lichvar
            Jeff Long
 	  Marco Maggi
         Gregory Marton
+      Kjetil S. Matheussen
         Antoine Mathys
             Dan McMahill
           Roger Mc Murtrie
@@ -82,6 +88,7 @@ For fixes or providing information which led to a fix:
           David Pirotte
          Carlos Pita
             Ken Raeburn
+         Juhani Rantanen
         Andreas Rottmann
            Hugh Sasse
          Werner Scheinast
@@ -91,6 +98,7 @@ For fixes or providing information which led to a fix:
           Scott Shedden
            Alex Shinn
          Daniel Skarda
+           Dale Smith
           Cesar Strauss
          Rainer Tammer
         Richard Todd
@@ -106,6 +114,7 @@ For fixes or providing information which led to a fix:
 	Andreas Vögele
         Michael Talbot-Wilson
         Michael Tuexen
+        Mark H. Weaver
             Jon Wilson
            Andy Wingo
           Keith Wright

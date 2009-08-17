@@ -1,21 +1,20 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
@@ -23,7 +22,9 @@
   #:use-module (system vm instruction)
   #:use-module (system base pmatch)
   #:use-module (srfi srfi-4)
+  #:use-module (rnrs bytevector)
   #:use-module (language assembly)
+  #:use-module ((system vm objcode) #:select (byte-order))
   #:export (decompile-bytecode))
 
 (define (decompile-bytecode x env opts)
@@ -48,17 +49,21 @@
         x
         (- x (ash 1 16)))))
 
+;; FIXME: this is a little-endian disassembly!!!
 (define (decode-load-program pop)
-  (let* ((nargs (pop)) (nrest (pop)) (nlocs (pop)) (nexts (pop))
+  (let* ((nargs (pop)) (nrest (pop)) (nlocs0 (pop)) (nlocs1 (pop))
+         (nlocs (+ nlocs0 (ash nlocs1 8)))
          (a (pop)) (b (pop)) (c (pop)) (d (pop))
          (e (pop)) (f (pop)) (g (pop)) (h (pop))
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
          (metalen (+ e (ash f 8) (ash g 16) (ash h 24)))
          (totlen (+ len metalen))
+         (pad0 (pop)) (pad1 (pop)) (pad2 (pop)) (pad3 (pop))
          (labels '())
          (i 0))
     (define (ensure-label rel1 rel2)
-      (let ((where (+ i (bytes->s16 rel1 rel2))))
+      (let ((where (+ (logand i (lognot #x7))
+                      (* (bytes->s16 rel1 rel2) 8))))
         (or (assv-ref labels where)
             (begin
               (let ((l (gensym ":L")))
@@ -74,7 +79,7 @@
       (cond ((> i len)
              (error "error decoding program -- read too many bytes" out))
             ((= i len)
-             `(load-program ,nargs ,nrest ,nlocs ,nexts
+             `(load-program ,nargs ,nrest ,nlocs 
                             ,(map (lambda (x) (cons (cdr x) (car x)))
                                   (reverse labels))
                             ,len
@@ -97,15 +102,29 @@
              (cond
               ((eq? inst 'load-program)
                (decode-load-program pop))
+
               ((< (instruction-length inst) 0)
-               (let* ((len (let* ((a (pop)) (b (pop)) (c (pop)))
+               ;; the negative length indicates a variable length
+               ;; instruction
+               (let* ((make-sequence
+                       (if (or (memq inst '(load-array load-wide-string)))
+                           make-bytevector
+                           make-string))
+                      (sequence-set!
+                       (if (or (memq inst '(load-array load-wide-string)))
+                           bytevector-u8-set!
+                           (lambda (str pos value)
+                             (string-set! str pos (integer->char value)))))
+                      (len (let* ((a (pop)) (b (pop)) (c (pop)))
                              (+ (ash a 16) (ash b 8) c)))
-                      (str (make-string len)))
+                      (seq (make-sequence len)))
                  (let lp ((i 0))
                    (if (= i len)
-                       `(,inst ,str)
+                       `(,inst ,(if (eq? inst 'load-wide-string)
+                                    (utf32->string seq)
+                                    seq))
                        (begin
-                         (string-set! str i (integer->char (pop)))
+                         (sequence-set! seq i (pop))
                          (lp (1+ i)))))))
               (else
                ;; fixed length

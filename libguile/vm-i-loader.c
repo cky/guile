@@ -1,60 +1,26 @@
 /* Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
+/* FIXME! Need to check that the fetch is within the current program */
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_LOADER (59, load_unsigned_integer, "load-unsigned-integer")
-{
-  size_t len;
-
-  FETCH_LENGTH (len);
-  if (SCM_LIKELY (len <= 4))
-    {
-      unsigned int val = 0;
-      while (len-- > 0)
-	val = (val << 8U) + FETCH ();
-      SYNC_REGISTER ();
-      PUSH (scm_from_uint (val));
-      NEXT;
-    }
-  else
-    SCM_MISC_ERROR ("load-unsigned-integer: not implemented yet", SCM_EOL);
-}
-
-VM_DEFINE_LOADER (60, load_integer, "load-integer")
-{
-  size_t len;
-
-  FETCH_LENGTH (len);
-  if (SCM_LIKELY (len <= 4))
-    {
-      int val = 0;
-      while (len-- > 0)
-	val = (val << 8) + FETCH ();
-      SYNC_REGISTER ();
-      PUSH (scm_from_int (val));
-      NEXT;
-    }
-  else
-    SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
-}
-
-VM_DEFINE_LOADER (61, load_number, "load-number")
+VM_DEFINE_LOADER (82, load_number, "load-number")
 {
   size_t len;
 
@@ -67,38 +33,31 @@ VM_DEFINE_LOADER (61, load_number, "load-number")
   NEXT;
 }
 
-VM_DEFINE_LOADER (62, load_string, "load-string")
+VM_DEFINE_LOADER (83, load_string, "load-string")
 {
   size_t len;
+  char *buf;
+
   FETCH_LENGTH (len);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_stringn ((char *)ip, len));
-  /* Was: scm_makfromstr (ip, len, 0) */
+  PUSH (scm_i_make_string (len, &buf));
+  memcpy (buf, (char *) ip, len);
   ip += len;
   NEXT;
 }
 
-VM_DEFINE_LOADER (63, load_symbol, "load-symbol")
+VM_DEFINE_LOADER (84, load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_symboln ((char *)ip, len));
+  /* FIXME: should be scm_from_latin1_symboln */
+  PUSH (scm_from_locale_symboln ((const char*)ip, len));
   ip += len;
   NEXT;
 }
 
-VM_DEFINE_LOADER (64, load_keyword, "load-keyword")
-{
-  size_t len;
-  FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  PUSH (scm_from_locale_keywordn ((char *)ip, len));
-  ip += len;
-  NEXT;
-}
-
-VM_DEFINE_LOADER (65, load_program, "load-program")
+VM_DEFINE_LOADER (86, load_program, "load-program")
 {
   scm_t_uint32 len;
   SCM objs, objcode;
@@ -112,56 +71,50 @@ VM_DEFINE_LOADER (65, load_program, "load-program")
   objcode = scm_c_make_objcode_slice (SCM_PROGRAM_OBJCODE (fp[-1]), ip);
   len = sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
 
-  PUSH (scm_make_program (objcode, objs, SCM_EOL));
+  PUSH (scm_make_program (objcode, objs, SCM_BOOL_F));
 
   ip += len;
 
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (66, link_now, "link-now", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (87, link_now, "link-now", 0, 1, 1)
 {
   SCM what;
   POP (what);
   SYNC_REGISTER ();
-  if (SCM_LIKELY (SCM_SYMBOLP (what)))
-    {
-      PUSH (scm_lookup (what)); /* might longjmp */
-    }
-  else
-    {
-      SCM mod;
-      /* compilation of @ or @@
-         `what' is a three-element list: (MODNAME SYM INTERFACE?)
-         INTERFACE? is #t if we compiled @ or #f if we compiled @@
-      */
-      mod = scm_resolve_module (SCM_CAR (what));
-      if (scm_is_true (SCM_CADDR (what)))
-        mod = scm_module_public_interface (mod);
-      if (SCM_FALSEP (mod))
-        {
-          finish_args = SCM_LIST1 (SCM_CAR (what));
-          goto vm_error_no_such_module;
-        }
-      /* might longjmp */
-      PUSH (scm_module_lookup (mod, SCM_CADR (what)));
-    }
-      
+  PUSH (resolve_variable (what, scm_current_module ()));
   NEXT;
 }
 
-VM_DEFINE_LOADER (67, define, "define")
+VM_DEFINE_LOADER (89, load_array, "load-array")
 {
-  SCM sym;
+  SCM type, shape;
   size_t len;
+  FETCH_LENGTH (len);
+  POP (shape);
+  POP (type);
+  SYNC_REGISTER ();
+  PUSH (scm_from_contiguous_typed_array (type, shape, ip, len));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_LOADER (90, load_wide_string, "load-wide-string")
+{
+  size_t len;
+  scm_t_wchar *wbuf;
 
   FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  sym = scm_from_locale_symboln ((char *)ip, len);
-  ip += len;
+  if (SCM_UNLIKELY (len % 4))
+    { finish_args = scm_list_1 (scm_from_size_t (len));
+      goto vm_error_bad_wide_string_length;
+    }
 
   SYNC_REGISTER ();
-  PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));
+  PUSH (scm_i_make_wide_string (len / 4, &wbuf));
+  memcpy ((char *) wbuf, (char *) ip, len);
+  ip += len;
   NEXT;
 }
 
@@ -170,7 +123,7 @@ VM_DEFINE_LOADER (67, define, "define")
   "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
   (interactive "")
   (save-excursion
-    (let ((counter 59)) (goto-char (point-min))
+    (let ((counter 79)) (goto-char (point-min))
       (while (re-search-forward "^VM_DEFINE_[^ ]+ (\\([^,]+\\)," (point-max) t)
         (replace-match
          (number-to-string (setq counter (1+ counter)))

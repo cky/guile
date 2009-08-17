@@ -2,25 +2,24 @@
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;; 
-;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
 (define-module (language ghil compile-glil)
-  #:use-syntax (system base syntax)
+  #:use-module (system base syntax)
   #:use-module (language glil)
   #:use-module (language ghil)
   #:use-module (ice-9 common-list)
@@ -29,7 +28,8 @@
 (define (compile-glil x e opts)
   (if (memq #:O opts) (set! x (optimize x)))
   (values (codegen x)
-          (and e (cons (car e) (cddr e)))))
+          (and e (cons (car e) (cddr e)))
+          e))
 
 
 ;;;
@@ -186,7 +186,7 @@
 (define (make-glil-var op env var)
   (case (ghil-var-kind var)
     ((argument)
-     (make-glil-argument op (ghil-var-index var)))
+     (make-glil-local op (ghil-var-index var)))
     ((local)
      (make-glil-local op (ghil-var-index var)))
     ((external)
@@ -216,7 +216,9 @@
       (set! stack (cons code stack))
       (if loc (set! stack (cons (make-glil-source loc) stack))))
     (define (var->binding var)
-      (list (ghil-var-name var) (ghil-var-kind var) (ghil-var-index var)))
+      (list (ghil-var-name var) (let ((kind (ghil-var-kind var)))
+                                  (case kind ((argument) 'local) (else kind)))
+            (ghil-var-index var)))
     (define (push-bindings! loc vars)
       (if (not (null? vars))
           (push-code! loc (make-glil-bind (map var->binding vars)))))
@@ -495,7 +497,7 @@
 	      (locs (pick (lambda (v) (eq? (ghil-var-kind v) 'local)) evars))
 	      (exts (pick (lambda (v) (eq? (ghil-var-kind v) 'external)) evars))
               (nargs (allocate-indices-linearly! vars))
-              (nlocs (allocate-locals! locs body))
+              (nlocs (allocate-locals! locs body nargs))
               (nexts (allocate-indices-linearly! exts)))
 	 ;; meta bindings
          (push-bindings! #f vars)
@@ -508,7 +510,7 @@
 	   (let ((v (car l)))
 	     (case (ghil-var-kind v)
                ((external)
-                (push-code! #f (make-glil-argument 'ref n))
+                (push-code! #f (make-glil-local 'ref n))
                 (push-code! #f (make-glil-external 'set 0 (ghil-var-index v)))))))
 	 ;; compile body
 	 (comp body #t #f)
@@ -522,8 +524,8 @@
       ((null? l) n)
     (let ((v (car l))) (set! (ghil-var-index v) n))))
 
-(define (allocate-locals! vars body)
-  (let ((free '()) (nlocs 0))
+(define (allocate-locals! vars body nargs)
+  (let ((free '()) (nlocs nargs))
     (define (allocate! var)
       (cond
        ((pair? free)

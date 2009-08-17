@@ -1,50 +1,29 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <alloca.h>
 #include <string.h>
+#include "_scm.h"
 #include "vm-bootstrap.h"
 #include "frames.h"
 #include "instructions.h"
@@ -185,28 +164,37 @@ static SCM sym_vm_run;
 static SCM sym_vm_error;
 static SCM sym_debug;
 
-static SCM make_u8vector (const scm_t_uint8 *bytes, size_t len)
-{
-  scm_t_uint8 *new_bytes = scm_gc_malloc (len, "make-u8vector");
-  memcpy (new_bytes, bytes, len);
-  return scm_take_u8vector (new_bytes, len);
-}
-
 static SCM
 really_make_boot_program (long nargs)
 {
-  scm_byte_t bytes[] = {0, 0, 0, 0,
-                        0, 0, 0, 0,
-                        0, 0, 0, 0,
-                        scm_op_mv_call, 0, 0, 1, scm_op_make_int8_1, scm_op_halt};
+  SCM u8vec;
+  /* Make sure "bytes" is 64-bit aligned.  */
+  scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 1,
+                         scm_op_make_int8_1, scm_op_nop, scm_op_nop, scm_op_nop,
+                         scm_op_halt };
+  struct scm_objcode *bp;
   SCM ret;
-  ((scm_t_uint32*)bytes)[1] = 6; /* set len in current endianness, no meta */
+
   if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
     abort ();
-  bytes[13] = (scm_byte_t)nargs;
-  ret = scm_make_program (scm_bytecode_to_objcode (make_u8vector (bytes, sizeof(bytes))),
-                          SCM_BOOL_F, SCM_EOL);
+  text[1] = (scm_t_uint8)nargs;
+
+  bp = scm_gc_malloc (sizeof (struct scm_objcode) + sizeof (text),
+                      "make-u8vector");
+  memcpy (bp->base, text, sizeof (text));
+  bp->nargs = 0;
+  bp->nrest = 0;
+  bp->nlocs = 0;
+  bp->len = sizeof(text);
+  bp->metalen = 0;
+  bp->unused = 0;
+
+  u8vec = scm_take_u8vector ((scm_t_uint8*)bp,
+                             sizeof (struct scm_objcode) + sizeof (text));
+  ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
+                          SCM_BOOL_F, SCM_BOOL_F);
   SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
+
   return ret;
 }
 #define NUM_BOOT_PROGS 8
@@ -233,7 +221,44 @@ vm_make_boot_program (long nargs)
  * VM
  */
 
-#define VM_DEFAULT_STACK_SIZE	(16 * 1024)
+static SCM
+resolve_variable (SCM what, SCM program_module)
+{
+  if (SCM_LIKELY (SCM_SYMBOLP (what))) 
+    {
+      if (SCM_LIKELY (scm_module_system_booted_p
+                      && scm_is_true (program_module)))
+        /* might longjmp */
+        return scm_module_lookup (program_module, what);
+      else
+        {
+          SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
+          if (scm_is_false (v))
+            scm_misc_error (NULL, "unbound variable: ~S", scm_list_1 (what));
+          else
+            return v;
+        }
+    }
+  else
+    {
+      SCM mod;
+      /* compilation of @ or @@
+         `what' is a three-element list: (MODNAME SYM INTERFACE?)
+         INTERFACE? is #t if we compiled @ or #f if we compiled @@
+      */
+      mod = scm_resolve_module (SCM_CAR (what));
+      if (scm_is_true (SCM_CADDR (what)))
+        mod = scm_module_public_interface (mod);
+      if (SCM_FALSEP (mod))
+        scm_misc_error (NULL, "no such module: ~S",
+                        scm_list_1 (SCM_CAR (what)));
+      /* might longjmp */
+      return scm_module_lookup (mod, SCM_CADR (what));
+    }
+}
+  
+
+#define VM_DEFAULT_STACK_SIZE	(64 * 1024)
 
 #define VM_NAME   vm_regular_engine
 #define FUNC_NAME "vm-regular-engine"
@@ -535,7 +560,7 @@ SCM_DEFINE (scm_vm_trace_frame, "vm-trace-frame", 1, 0, 0,
 SCM scm_load_compiled_with_vm (SCM file)
 {
   SCM program = scm_make_program (scm_load_objcode (file),
-                                  SCM_BOOL_F, SCM_EOL);
+                                  SCM_BOOL_F, SCM_BOOL_F);
   
   return scm_c_vm_run (scm_the_vm (), program, NULL, 0);
 }
@@ -565,6 +590,9 @@ scm_bootstrap_vm (void)
   sym_vm_run = scm_permanent_object (scm_from_locale_symbol ("vm-run"));
   sym_vm_error = scm_permanent_object (scm_from_locale_symbol ("vm-error"));
   sym_debug = scm_permanent_object (scm_from_locale_symbol ("debug"));
+
+  scm_c_register_extension ("libguile", "scm_init_vm",
+                            (scm_t_extension_init_func)scm_init_vm, NULL);
 
   strappage = 1;
 }

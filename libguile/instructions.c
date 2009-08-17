@@ -1,49 +1,28 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
- * any later version.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, MA 02111-1307 USA
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * As a special exception, the Free Software Foundation gives permission
- * for additional uses of the text contained in its release of GUILE.
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  *
- * The exception is that, if you link the GUILE library with other files
- * to produce an executable, this does not by itself cause the
- * resulting executable to be covered by the GNU General Public License.
- * Your use of that executable is in no way restricted on account of
- * linking the GUILE library code into it.
- *
- * This exception does not however invalidate any other reasons why
- * the executable file might be covered by the GNU General Public License.
- *
- * This exception applies only to the code released by the
- * Free Software Foundation under the name GUILE.  If you copy
- * code from other Free Software Foundation releases into a copy of
- * GUILE, as the General Public License permits, the exception does
- * not apply to the code that you add in this way.  To avoid misleading
- * anyone as to the status of such modified files, you must delete
- * this exception notice from them.
- *
- * If you write modifications of your own for GUILE, it is your choice
- * whether to permit this exception to apply to your modifications.
- * If you do not wish that, delete this exception notice.  */
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
+ */
 
 #if HAVE_CONFIG_H
 #  include <config.h>
 #endif
 
 #include <string.h>
+
+#include "_scm.h"
 #include "vm-bootstrap.h"
 #include "instructions.h"
 
@@ -74,7 +53,7 @@ fetch_instruction_table ()
 
   if (SCM_UNLIKELY (!table))
     {
-      size_t bytes = scm_op_last * sizeof(struct scm_instruction);
+      size_t bytes = SCM_VM_NUM_INSTRUCTIONS * sizeof(struct scm_instruction);
       int i;
       table = malloc (bytes);
       memset (table, 0, bytes);
@@ -84,11 +63,12 @@ fetch_instruction_table ()
 #include <libguile/vm-i-scheme.i>
 #include <libguile/vm-i-loader.i>
 #undef VM_INSTRUCTION_TO_TABLE
-      for (i = 0; i < scm_op_last; i++)
+      for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         {
           table[i].opcode = i;
           if (table[i].name)
-            table[i].symname = scm_from_locale_symbol (table[i].name);
+            table[i].symname =
+              scm_permanent_object (scm_from_locale_symbol (table[i].name));
           else
             table[i].symname = SCM_BOOL_F;
         }
@@ -106,12 +86,12 @@ scm_lookup_instruction_by_name (SCM name)
   if (SCM_UNLIKELY (SCM_FALSEP (instructions_by_name)))
     { 
       int i;
-      instructions_by_name = scm_make_hash_table (SCM_I_MAKINUM (scm_op_last));
-      for (i = 0; i < scm_op_last; i++)
+      instructions_by_name = scm_permanent_object
+        (scm_make_hash_table (SCM_I_MAKINUM (SCM_VM_NUM_INSTRUCTIONS)));
+      for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         if (scm_is_true (table[i].symname))
           scm_hashq_set_x (instructions_by_name, table[i].symname,
                            SCM_I_MAKINUM (i));
-      instructions_by_name = scm_permanent_object (instructions_by_name);
     }
   
   op = scm_hashq_ref (instructions_by_name, name, SCM_UNDEFINED);
@@ -130,10 +110,11 @@ SCM_DEFINE (scm_instruction_list, "instruction-list", 0, 0, 0,
 #define FUNC_NAME s_scm_instruction_list
 {
   SCM list = SCM_EOL;
-  struct scm_instruction *ip;
-  for (ip = fetch_instruction_table (); ip->opcode != scm_op_last; ip++)
-    if (ip->name)
-      list = scm_cons (ip->symname, list);
+  int i;
+  struct scm_instruction *ip = fetch_instruction_table ();
+  for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
+    if (ip[i].name)
+      list = scm_cons (ip[i].symname, list);
   return scm_reverse_x (list, SCM_EOL);
 }
 #undef FUNC_NAME
@@ -202,7 +183,7 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
   SCM_MAKE_VALIDATE (1, op, I_INUMP);
   opcode = SCM_I_INUM (op);
 
-  if (opcode < scm_op_last)
+  if (opcode >= 0 && opcode < SCM_VM_NUM_INSTRUCTIONS)
     ret = fetch_instruction_table ()[opcode].symname;
 
   if (scm_is_false (ret))
@@ -215,6 +196,9 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 void
 scm_bootstrap_instructions (void)
 {
+  scm_c_register_extension ("libguile", "scm_init_instructions",
+                            (scm_t_extension_init_func)scm_init_instructions,
+                            NULL);
 }
 
 void

@@ -6,7 +6,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,6 +16,9 @@
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(eval-when (compile)
+  (set-current-module (resolve-module '(guile))))
 
 
 ;;;; apply and call-with-current-continuation
@@ -186,28 +189,3 @@ procedures, their behavior is implementation dependent."
    (lambda (p) (with-error-to-port p thunk))))
 
 (define the-eof-object (call-with-input-string "" (lambda (p) (read-char p))))
-
-
-;;;; Loading
-
-(if (not (defined? '%load-verbosely))
-    (define %load-verbosely #f))
-(define (assert-load-verbosity v) (set! %load-verbosely v))
-
-(define (%load-announce file)
-  (if %load-verbosely
-      (with-output-to-port (current-error-port)
-	(lambda ()
-	  (display ";;; ")
-	  (display "loading ")
-	  (display file)
-	  (newline)
-	  (force-output)))))
-
-(set! %load-hook %load-announce)
-
-(define (load name . reader)
-  (with-fluid* current-reader (and (pair? reader) (car reader))
-    (lambda ()
-      (start-stack 'load-stack
-		   (primitive-load name)))))
