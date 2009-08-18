@@ -20,7 +20,7 @@
 
 
 (define-module (ice-9 lineio)
-  :use-module (ice-9 readline)
+  :use-module (ice-9 rdelim)
   :export (unread-string read-string lineio-port?
 	   make-line-buffering-input-port))
 
