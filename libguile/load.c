@@ -639,14 +639,11 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
   return SCM_BOOL_F;
 }
 
-static SCM
-scm_try_autocompile (SCM source)
+SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled", 0, 0, 0,
+	    (void), "")
 {
   static int message_shown = 0;
   
-  if (scm_is_false (*scm_loc_load_should_autocompile))
-    return SCM_BOOL_F;
-
   if (!message_shown)
     {
       scm_puts (";;; note: autocompilation is enabled, set GUILE_AUTO_COMPILE=0\n"
@@ -655,6 +652,17 @@ scm_try_autocompile (SCM source)
       message_shown = 1;
     }
 
+  return SCM_UNSPECIFIED;
+}
+
+  
+static SCM
+scm_try_autocompile (SCM source)
+{
+  if (scm_is_false (*scm_loc_load_should_autocompile))
+    return SCM_BOOL_F;
+
+  scm_sys_warn_autocompilation_enabled ();
   return scm_c_catch (SCM_BOOL_T,
                       do_try_autocompile,
                       SCM2PTR (source),
