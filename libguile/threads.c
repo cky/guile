@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2067,6 +2067,49 @@ scm_init_thread_procs ()
 {
 #include "libguile/threads.x"
 }
+
+
+/* IA64-specific things.  */
+
+#ifdef __ia64__
+# ifdef __hpux
+#  include <sys/param.h>
+#  include <sys/pstat.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  struct pst_vm_status vm_status;
+  int i = 0;
+  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
+    if (vm_status.pst_type == PS_RSESTACK)
+      return (void *) vm_status.pst_vaddr;
+  abort ();
+}
+void *
+scm_ia64_ar_bsp (const void *ctx)
+{
+  uint64_t bsp;
+  __uc_get_ar_bsp (ctx, &bsp);
+  return (void *) bsp;
+}
+# endif /* hpux */
+# ifdef linux
+#  include <ucontext.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  extern void *__libc_ia64_register_backing_store_base;
+  return __libc_ia64_register_backing_store_base;
+}
+void *
+scm_ia64_ar_bsp (const void *opaque)
+{
+  const ucontext_t *ctx = opaque;
+  return (void *) ctx->uc_mcontext.sc_ar_bsp;
+}
+# endif /* linux */
+#endif /* __ia64__ */
+
 
 /*
   Local Variables:
