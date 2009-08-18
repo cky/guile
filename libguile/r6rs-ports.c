@@ -562,7 +562,7 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
   c_len = 4096;
-  c_bv = (char *) scm_gc_malloc (c_len, SCM_GC_BYTEVECTOR);
+  c_bv = (char *) scm_gc_malloc_pointerless (c_len, SCM_GC_BYTEVECTOR);
   c_total = 0;
 
   do
@@ -626,7 +626,7 @@ SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
   c_len = c_count = 4096;
-  c_bv = (char *) scm_gc_malloc (c_len, SCM_GC_BYTEVECTOR);
+  c_bv = (char *) scm_gc_malloc_pointerless (c_len, SCM_GC_BYTEVECTOR);
   c_total = c_read = 0;
 
   do
@@ -798,7 +798,7 @@ bop_buffer_grow (scm_t_bop_buffer *buf, size_t min_size)
     new_buf = scm_gc_realloc ((void *) buf->buffer, buf->total_len,
 			      new_size, SCM_GC_BOP);
   else
-    new_buf = scm_gc_malloc (new_size, SCM_GC_BOP);
+    new_buf = scm_gc_malloc_pointerless (new_size, SCM_GC_BOP);
 
   buf->buffer = new_buf;
   buf->total_len = new_size;

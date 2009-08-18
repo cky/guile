@@ -203,7 +203,8 @@ make_bytevector (size_t len)
       signed char *contents = NULL;
 
       if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (len))
-	contents = (signed char *) scm_gc_malloc (len, SCM_GC_BYTEVECTOR);
+	contents = (signed char *)
+	  scm_gc_malloc_pointerless (len, SCM_GC_BYTEVECTOR);
 
       bv = make_bytevector_from_buffer (len, contents);
     }
