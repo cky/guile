@@ -298,7 +298,7 @@ make_vm (void)
 #ifdef VM_ENABLE_STACK_NULLING
   memset (vp->stack_base, 0, vp->stack_size * sizeof (SCM));
 #endif
-  vp->stack_limit = vp->stack_base + vp->stack_size - 3;
+  vp->stack_limit = vp->stack_base + vp->stack_size;
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;

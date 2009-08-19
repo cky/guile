@@ -252,7 +252,7 @@
 #endif
 
 #define CHECK_OVERFLOW()			\
-  if (sp > stack_limit)				\
+  if (sp >= stack_limit)			\
     goto vm_error_stack_overflow
 
 #define CHECK_UNDERFLOW()                       \
