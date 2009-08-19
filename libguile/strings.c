@@ -87,16 +87,16 @@
 #define STRINGBUF_INLINE(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_INLINE)
 #define STRINGBUF_WIDE(buf)     (SCM_CELL_WORD_0(buf) & STRINGBUF_F_WIDE)
 
-#define STRINGBUF_OUTLINE_CHARS(buf)   ((char *)SCM_CELL_WORD_1(buf))
+#define STRINGBUF_OUTLINE_CHARS(buf)   ((unsigned char *) SCM_CELL_WORD_1(buf))
 #define STRINGBUF_OUTLINE_LENGTH(buf)  (SCM_CELL_WORD_2(buf))
-#define STRINGBUF_INLINE_CHARS(buf)    ((char *)SCM_CELL_OBJECT_LOC(buf,1))
+#define STRINGBUF_INLINE_CHARS(buf)    ((unsigned char *) SCM_CELL_OBJECT_LOC(buf,1))
 #define STRINGBUF_INLINE_LENGTH(buf)   (((size_t)SCM_CELL_WORD_0(buf))>>16)
 
 #define STRINGBUF_CHARS(buf)  (STRINGBUF_INLINE (buf) \
                                ? STRINGBUF_INLINE_CHARS (buf) \
                                : STRINGBUF_OUTLINE_CHARS (buf))
 
-#define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *)SCM_CELL_WORD_1(buf))
+#define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *) SCM_CELL_WORD_1(buf))
 #define STRINGBUF_LENGTH(buf) (STRINGBUF_INLINE (buf) \
                                ? STRINGBUF_INLINE_LENGTH (buf) \
                                : STRINGBUF_OUTLINE_LENGTH (buf))
@@ -213,7 +213,7 @@ widen_stringbuf (SCM buf)
       mem = scm_gc_malloc (sizeof (scm_t_wchar) * (len + 1), "string");
       for (i = 0; i < len; i++)
         mem[i] =
-          (scm_t_wchar) (unsigned char) STRINGBUF_INLINE_CHARS (buf)[i];
+          (scm_t_wchar) STRINGBUF_INLINE_CHARS (buf)[i];
       mem[len] = 0;
 
       SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) ^ STRINGBUF_F_INLINE);
@@ -228,7 +228,7 @@ widen_stringbuf (SCM buf)
       mem = scm_gc_malloc (sizeof (scm_t_wchar) * (len + 1), "string");
       for (i = 0; i < len; i++)
         mem[i] =
-          (scm_t_wchar) (unsigned char) STRINGBUF_OUTLINE_CHARS (buf)[i];
+          (scm_t_wchar) STRINGBUF_OUTLINE_CHARS (buf)[i];
       mem[len] = 0;
 
       scm_gc_free (STRINGBUF_OUTLINE_CHARS (buf), len + 1, "string");
@@ -280,7 +280,7 @@ scm_i_make_string (size_t len, char **charsp)
   SCM buf = make_stringbuf (len);
   SCM res;
   if (charsp)
-    *charsp = STRINGBUF_CHARS (buf);
+    *charsp = (char *) STRINGBUF_CHARS (buf);
   res = scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
 			 (scm_t_bits)0, (scm_t_bits) len);
   return res;
@@ -468,7 +468,7 @@ scm_i_string_chars (SCM str)
   size_t start;
   get_str_buf_start (&str, &buf, &start);
   if (scm_i_is_narrow_string (str))
-    return STRINGBUF_CHARS (buf) + start;
+    return (const char *) STRINGBUF_CHARS (buf) + start;
   else
     scm_misc_error (NULL, "Invalid read access of chars of wide string: ~s",
                     scm_list_1 (str));
@@ -485,7 +485,7 @@ scm_i_string_wide_chars (SCM str)
 
   get_str_buf_start (&str, &buf, &start);
   if (!scm_i_is_narrow_string (str))
-    return STRINGBUF_WIDE_CHARS (buf) + start;
+    return (const scm_t_wchar *) STRINGBUF_WIDE_CHARS (buf) + start;
   else
     scm_misc_error (NULL, "Invalid read access of chars of narrow string: ~s",
                     scm_list_1 (str));
@@ -550,7 +550,7 @@ scm_i_string_writable_chars (SCM str)
 
   get_str_buf_start (&str, &buf, &start);
   if (scm_i_is_narrow_string (str))
-    return STRINGBUF_CHARS (buf) + start;
+    return (char *) STRINGBUF_CHARS (buf) + start;
   else
     scm_misc_error (NULL, "Invalid write access of chars of wide string: ~s",
                     scm_list_1 (str));
@@ -724,7 +724,7 @@ scm_i_symbol_chars (SCM sym)
 
   buf = SYMBOL_STRINGBUF (sym);
   if (!STRINGBUF_WIDE (buf))
-    return STRINGBUF_CHARS (buf);
+    return (const char *) STRINGBUF_CHARS (buf);
   else
     scm_misc_error (NULL, "Invalid access of chars of a wide symbol ~S",
                     scm_list_1 (sym));
@@ -739,7 +739,7 @@ scm_i_symbol_wide_chars (SCM sym)
 
   buf = SYMBOL_STRINGBUF (sym);
   if (STRINGBUF_WIDE (buf))
-    return STRINGBUF_WIDE_CHARS (buf);
+    return (const scm_t_wchar *) STRINGBUF_WIDE_CHARS (buf);
   else
     scm_misc_error (NULL, "Invalid access of chars of a narrow symbol ~S",
                     scm_list_1 (sym));
