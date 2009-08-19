@@ -179,6 +179,8 @@ scm_subr_p (SCM obj)
   return 0;
 }
 
+SCM_SYMBOL (sym_documentation, "documentation");
+
 SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
            (SCM proc),
 	    "Return the documentation string associated with @code{proc}.  By\n"
@@ -190,6 +192,8 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
   SCM code;
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
+  if (SCM_PROGRAM_P (proc))
+    return scm_assq_ref (scm_program_properties (proc), sym_documentation);
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:
