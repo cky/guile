@@ -658,8 +658,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
               scm_remember_upto_here_1 (exp);
             }
           else
-            scm_lfwrite (scm_i_string_chars (exp), scm_i_string_length (exp),
-                         port);
+            scm_lfwrite_str (exp, port);
           scm_remember_upto_here_1 (exp);
           break;
 	case scm_tc7_symbol:
