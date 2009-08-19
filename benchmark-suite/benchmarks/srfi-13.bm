@@ -1,0 +1,291 @@
+;;; -*- mode: scheme; coding: latin-1; -*-
+;;; srfi-13.bm
+;;;
+;;; Copyright (C) 2009  Free Software Foundation, Inc.
+;;;
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public License
+;;; as published by the Free Software Foundation; either version 3, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this software; see the file COPYING.LESSER.  If
+;;; not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (benchmarks strings)
+  :use-module (benchmark-suite lib))
+
+(seed->random-state 1)
+
+(define short-string "Hi")
+(define medium-string 
+"ARMA virumque cano, Troiae qui primus ab oris
+Italiam, fato profugus, Laviniaque venit")
+(define long-string
+  (string-tabulate 
+   (lambda (n) (integer->char (+ 32 (random 90)))) 
+   1000))
+
+(define short-chlist (string->list short-string))
+(define medium-chlist (string->list medium-string))
+(define long-chlist (string->list long-string))
+
+(define str1 (string-copy short-string))
+(define str2 (string-copy medium-string))
+(define str3 (string-copy long-string))
+
+
+(with-benchmark-prefix "strings"
+
+  (with-benchmark-prefix "predicates"
+
+    (benchmark "string?" 250000
+      (string? short-string)
+      (string? medium-string)
+      (string? long-string))
+
+    (benchmark "null?" 390000
+      (string-null? short-string)
+      (string-null? medium-string)
+      (string-null? long-string))
+    
+    (benchmark "any" 22000
+      (string-any #\a short-string)
+      (string-any #\a medium-string)
+      (string-any #\a long-string))
+
+    (benchmark "every" 22000
+      (string-every #\a short-string)
+      (string-every #\a medium-string)
+      (string-every #\a long-string)))
+
+  (with-benchmark-prefix "constructors"
+
+    (benchmark "string" 2000
+      (apply string short-chlist)         
+      (apply string medium-chlist)
+      (apply string long-chlist))
+
+    (benchmark "list->" 2500
+      (list->string short-chlist)
+      (list->string medium-chlist)
+      (list->string long-chlist))
+
+    (benchmark "reverse-list->" 2000
+      (reverse-list->string short-chlist)
+      (reverse-list->string medium-chlist)
+      (reverse-list->string long-chlist))
+
+    (benchmark "make" 20000
+      (make-string 250 #\x))
+
+    (benchmark "tabulate" 16000
+      (string-tabulate integer->char 250))
+
+    (benchmark "join" 5000
+      (string-join (list short-string medium-string long-string) "|" 'suffix)))
+
+  (with-benchmark-prefix "list/string"
+    (benchmark "->list" 3300
+      (string->list short-string)
+      (string->list medium-string)
+      (string->list long-string))
+
+    (benchmark "split" 20000
+      (string-split short-string #\a)
+      (string-split medium-string #\a)
+      (string-split long-string #\a)))
+
+  (with-benchmark-prefix "selection"
+
+    (benchmark "ref" 300
+      (let loop ((k 0))
+        (if (< k (string-length short-string))
+            (begin
+              (string-ref short-string k)
+              (loop (+ k 1)))))
+      (let loop ((k 0))
+        (if (< k (string-length medium-string))
+            (begin
+              (string-ref medium-string k)
+              (loop (+ k 1)))))
+      (let loop ((k 0))
+        (if (< k (string-length long-string))
+            (begin
+              (string-ref long-string k)
+              (loop (+ k 1))))))
+
+    (benchmark "copy" 20000
+      (string-copy short-string)
+      (string-copy medium-string)
+      (string-copy long-string)
+      (substring/copy short-string 0 1)
+      (substring/copy medium-string 10 20)
+      (substring/copy long-string 100 200))
+
+    (benchmark "pad" 20000
+      (string-pad short-string 100)
+      (string-pad medium-string 100)
+      (string-pad long-string 100))
+
+    (benchmark "trim trim-right trim-both" 20000
+      (string-trim short-string char-alphabetic?)
+      (string-trim medium-string char-alphabetic?)
+      (string-trim long-string char-alphabetic?)
+      (string-trim-right short-string char-alphabetic?)
+      (string-trim-right medium-string char-alphabetic?)
+      (string-trim-right long-string char-alphabetic?)
+      (string-trim-both short-string char-alphabetic?)
+      (string-trim-both medium-string char-alphabetic?)
+      (string-trim-both long-string char-alphabetic?)))
+
+  (with-benchmark-prefix "modification"
+
+    (set! str1 (string-copy short-string))                         
+    (set! str2 (string-copy medium-string))   
+    (set! str3 (string-copy long-string))
+
+    (benchmark "set!" 300
+      (let loop ((k 1))
+        (if (< k (string-length short-string))
+            (begin
+              (string-set! str1 k #\x)
+              (loop (+ k 1)))))
+      (let loop ((k 20))
+        (if (< k (string-length medium-string))
+            (begin
+              (string-set! str2 k #\x)
+              (loop (+ k 1)))))
+      (let loop ((k 900))
+        (if (< k (string-length long-string))
+            (begin
+              (string-set! str3 k #\x)
+              (loop (+ k 1))))))
+
+    (set! str1 (string-copy short-string))                         
+    (set! str2 (string-copy medium-string))   
+    (set! str3 (string-copy long-string))
+
+    (benchmark "sub-move!" 20000
+      (substring-move! short-string 0 2 str2 10)
+      (substring-move! medium-string 10 20 str3 20))
+
+    (set! str1 (string-copy short-string))                         
+    (set! str2 (string-copy medium-string))   
+    (set! str3 (string-copy long-string))
+
+    (benchmark "fill!" 20000
+      (string-fill! str1 #\y 0 1)
+      (string-fill! str2 #\y 10 20)
+      (string-fill! str3 #\y 20 30))
+
+  (with-benchmark-prefix "comparison"
+
+    (benchmark "compare compare-ci" 20000
+      (string-compare short-string medium-string string<? string=? string>?)  
+      (string-compare long-string medium-string string<? string=? string>?)
+      (string-compare short-string medium-string string<? string=? string>?)  
+      (string-compare long-string medium-string string<? string=? string>?))
+  
+    (benchmark "hash hash-ci" 20000
+      (string-hash short-string)
+      (string-hash medium-string)
+      (string-hash long-string)
+      (string-hash short-string)
+      (string-hash medium-string)
+      (string-hash long-string))))
+  
+  (with-benchmark-prefix "searching" 20000
+
+    (benchmark "prefix-length suffix-length" 1000
+      (string-prefix-length short-string 
+                            (string-append short-string medium-string))
+      (string-prefix-length long-string 
+                            (string-append long-string medium-string))
+      (string-suffix-length short-string
+                            (string-append long-string medium-string))
+      (string-suffix-length long-string
+                            (string-append long-string medium-string))
+      (string-prefix-length-ci short-string 
+                            (string-append short-string medium-string))
+      (string-prefix-length-ci long-string 
+                            (string-append long-string medium-string))
+      (string-suffix-length-ci short-string
+                            (string-append long-string medium-string))
+      (string-suffix-length-ci long-string
+                            (string-append long-string medium-string)))
+
+    (benchmark "prefix? suffix?" 1000
+      (string-prefix? short-string 
+                            (string-append short-string medium-string))
+      (string-prefix? long-string 
+                            (string-append long-string medium-string))
+      (string-suffix? short-string
+                            (string-append long-string medium-string))
+      (string-suffix? long-string
+                            (string-append long-string medium-string))
+      (string-prefix? short-string 
+                            (string-append short-string medium-string))
+      (string-prefix? long-string 
+                            (string-append long-string medium-string))
+      (string-suffix? short-string
+                            (string-append long-string medium-string))
+      (string-suffix? long-string
+                            (string-append long-string medium-string)))
+
+    (benchmark "index index-right rindex" 10000
+      (string-index short-string #\T)
+      (string-index medium-string #\T)
+      (string-index long-string #\T)
+      (string-index-right short-string #\T)
+      (string-index-right medium-string #\T)
+      (string-index-right long-string #\T)
+      (string-rindex short-string #\T)
+      (string-rindex medium-string #\T)
+      (string-rindex long-string #\T))
+
+    (benchmark "skip skip-right?" 10000
+      (string-skip short-string char-alphabetic?)
+      (string-skip medium-string char-alphabetic?)
+      (string-skip long-string char-alphabetic?)
+      (string-skip-right short-string char-alphabetic?)
+      (string-skip-right medium-string char-alphabetic?)
+      (string-skip-right long-string char-alphabetic?))
+
+    (benchmark "count" 3000
+      (string-count short-string char-alphabetic?)
+      (string-count medium-string char-alphabetic?)
+      (string-count long-string char-alphabetic?))
+    
+    (benchmark "contains contains-ci" 10000
+      (string-contains short-string short-string)
+      (string-contains medium-string (substring medium-string 10 15))
+      (string-contains long-string (substring long-string 100 130))
+      (string-contains-ci short-string short-string)
+      (string-contains-ci medium-string (substring medium-string 10 15))
+      (string-contains-ci long-string (substring long-string 100 130)))
+
+    (set! str1 (string-copy short-string))                         
+    (set! str2 (string-copy medium-string))   
+    (set! str3 (string-copy long-string))
+
+    (benchmark "upcase downcase upcase! downcase!" 500
+      (string-upcase short-string)
+      (string-upcase medium-string)
+      (string-upcase long-string)
+      (string-downcase short-string)
+      (string-downcase medium-string)
+      (string-downcase long-string)
+      (string-upcase! str1 0 1)
+      (string-upcase! str2 10 20)
+      (string-upcase! str3 100 130)
+      (string-downcase! str1 0 1)
+      (string-downcase! str2 10 20)
+      (string-downcase! str3 100 130))))
