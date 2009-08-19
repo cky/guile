@@ -496,10 +496,8 @@ free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 /* Marking SMOBs using user-supplied mark procedures.  */
 
 
-/* The freelist and GC kind used for SMOB types that provide a custom mark
-   procedure.  */
-static void **smob_freelist = NULL;
-static int    smob_gc_kind = 0;
+/* The GC kind used for SMOB types that provide a custom mark procedure.  */
+static int smob_gc_kind;
 
 
 /* The generic SMOB mark procedure that gets called for SMOBs allocated with
@@ -636,8 +634,7 @@ scm_smob_prehistory ()
   long i;
   scm_t_bits tc;
 
-  smob_freelist = GC_new_free_list ();
-  smob_gc_kind = GC_new_kind ((void **)smob_freelist,
+  smob_gc_kind = GC_new_kind (GC_new_free_list (),
 			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
 			      0,
 			      /* Clear new objects.  As of version 7.1, libgc
