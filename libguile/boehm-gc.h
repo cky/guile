@@ -1,7 +1,7 @@
 #ifndef SCM_BOEHM_GC_H
 #define SCM_BOEHM_GC_H
 
-/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,9 +20,9 @@
 
 /* Correct header inclusion.  */
 
-#include "libguile/gen-scmconfig.h"
+#include "libguile/scmconfig.h"
 
-#ifdef SCM_I_GSC_USE_PTHREAD_THREADS
+#ifdef SCM_USE_PTHREAD_THREADS
 
 /* When pthreads are used, let `libgc' know about it and redirect allocation
    calls such as `GC_MALLOC ()' to (contention-free, faster) thread-local
