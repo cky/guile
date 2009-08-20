@@ -227,8 +227,8 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
   proc_tramp = scm_trampoline_1 (proc);
   SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
 
+  SCM_ASSERT_RANGE (2, len, scm_to_int (len) >= 0);
   clen = scm_to_size_t (len);
-  SCM_ASSERT_RANGE (2, len, clen >= 0);
 
   {
     /* This function is more complicated than necessary for the sake
