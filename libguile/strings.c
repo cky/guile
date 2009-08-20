@@ -1008,11 +1008,12 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 	    "@var{chrs}.")
 #define FUNC_NAME s_scm_string
 {
-  SCM result;
+  SCM result = SCM_BOOL_F;
   SCM rest;
   size_t len;
   size_t p = 0;
   long i;
+  int wide = 0;
 
   /* Verify that this is a list of chars.  */
   i = scm_ilength (chrs);
@@ -1025,6 +1026,8 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     {
       SCM elt = SCM_CAR (rest);
       SCM_VALIDATE_CHAR (SCM_ARGn, elt);
+      if (SCM_CHAR (elt) > 0xFF)
+        wide = 1;
       rest = SCM_CDR (rest);
       len--;
       scm_remember_upto_here_1 (elt);
@@ -1034,16 +1037,35 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
   len = (size_t) i;
   rest = chrs;
 
-  result = scm_i_make_string (len, NULL);
-  result = scm_i_string_start_writing (result);
-  while (len > 0 && scm_is_pair (rest))
+  if (wide == 0)
     {
-      SCM elt = SCM_CAR (rest);
-      scm_i_string_set_x (result, p, SCM_CHAR (elt));
-      p++;
-      rest = SCM_CDR (rest);
-      len--;
-      scm_remember_upto_here_1 (elt);
+      result = scm_i_make_string (len, NULL);
+      result = scm_i_string_start_writing (result);
+      char *buf = scm_i_string_writable_chars (result);
+      while (len > 0 && scm_is_pair (rest))
+        {
+          SCM elt = SCM_CAR (rest);
+          buf[p] = (unsigned char) SCM_CHAR (elt);
+          p++;
+          rest = SCM_CDR (rest);
+          len--;
+          scm_remember_upto_here_1 (elt);
+        }
+    }
+  else
+    {
+      result = scm_i_make_wide_string (len, NULL);
+      result = scm_i_string_start_writing (result);
+      scm_t_wchar *buf = scm_i_string_writable_wide_chars (result);
+      while (len > 0 && scm_is_pair (rest))
+        {
+          SCM elt = SCM_CAR (rest);
+          buf[p] = SCM_CHAR (elt);
+          p++;
+          rest = SCM_CDR (rest);
+          len--;
+          scm_remember_upto_here_1 (elt);
+        }
     }
   scm_i_string_stop_writing ();
 
