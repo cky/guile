@@ -257,7 +257,7 @@ scm_init_load_path ()
     "guile/ccache/" SCM_EFFECTIVE_VERSION "-" SCM_OBJCODE_MACHINE_VERSION_STRING
 
     if ((e = getenv ("XDG_CACHE_HOME")))
-      snprintf (cachedir, sizeof(cachedir), "%s" FALLBACK_DIR, e);
+      snprintf (cachedir, sizeof(cachedir), "%s/" FALLBACK_DIR, e);
     else if ((e = getenv ("HOME")))
       snprintf (cachedir, sizeof(cachedir), "%s/.cache/" FALLBACK_DIR, e);
 #ifdef HAVE_GETPWENT

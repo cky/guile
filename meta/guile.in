@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#	Copyright (C) 2002, 2006, 2008 Free Software Foundation
+#	Copyright (C) 2002, 2006, 2008, 2009 Free Software Foundation
 #
 #   This file is part of GUILE.
 #
@@ -41,6 +41,8 @@ top_builddir="@top_builddir_absolute@"
 # set GUILE (clobber)
 GUILE=${top_builddir}/libguile/guile
 export GUILE
+XDG_CACHE_HOME=${top_builddir}/cache
+export XDG_CACHE_HOME
 
 # do it
 exec ${top_builddir}/meta/uninstalled-env $GUILE "$@"
