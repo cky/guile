@@ -12,7 +12,6 @@ config.guess
 config.status
 config.log
 config.h
-guile-readline-config.h
 *.doc
 *.x
 *.lo
@@ -65,8 +64,6 @@ pre-inst-guile-env
 stamp-h1
 guile-procedures.txt
 guile-config/guile-config
-guile-readline/guile-readline-config.h
-guile-readline/guile-readline-config.h.in
 *.go
 TAGS
 /meta/guile-2.0.pc

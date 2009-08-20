@@ -1,3 +1,5 @@
+dnl -*- Autoconf -*-
+
 dnl  On the NeXT, #including <utime.h> doesn't give you a definition for
 dnl  struct utime, unless you #define _POSIX_SOURCE.
 
@@ -308,3 +310,70 @@ else
 fi
 AC_LANG_RESTORE
 ])dnl ACX_PTHREAD
+
+dnl GUILE_READLINE
+dnl
+dnl Check all the things needed by `guile-readline', the Readline
+dnl bindings.
+AC_DEFUN([GUILE_READLINE], [
+  for termlib in ncurses curses termcap terminfo termlib ; do
+     AC_CHECK_LIB(${termlib}, [tgoto],
+       [READLINE_LIBS="-l${termlib} $READLINE_LIBS"; break])
+  done
+
+  AC_LIB_LINKFLAGS([readline])
+
+  if test "x$LTLIBREADLINE" = "x"; then
+    AC_MSG_WARN([GNU Readline was not found on your system.])
+  else
+    rl_save_LIBS="$LIBS"
+    LIBS="$LIBREADLINE $READLINE_LIBS $LIBS"
+
+    AC_CHECK_FUNCS([siginterrupt rl_clear_signals rl_cleanup_after_signal])
+
+    dnl Check for modern readline naming
+    AC_CHECK_FUNCS([rl_filename_completion_function])
+
+    dnl Check for rl_get_keymap.  We only use this for deciding whether to
+    dnl install paren matching on the Guile command line (when using
+    dnl readline for input), so it's completely optional.
+    AC_CHECK_FUNCS([rl_get_keymap])
+
+    AC_CACHE_CHECK([for rl_getc_function pointer in readline],
+		     ac_cv_var_rl_getc_function,
+		     [AC_TRY_LINK([
+    #include <stdio.h>
+    #include <readline/readline.h>],
+				  [printf ("%ld", (long) rl_getc_function)],
+				  [ac_cv_var_rl_getc_function=yes],
+				  [ac_cv_var_rl_getc_function=no])])
+    if test "${ac_cv_var_rl_getc_function}" = "yes"; then
+      AC_DEFINE([HAVE_RL_GETC_FUNCTION], 1,
+	[Define if your readline library has the rl_getc_function variable.])
+    fi
+
+    if test $ac_cv_var_rl_getc_function = no; then
+      AC_MSG_WARN([*** GNU Readline is too old on your system.])
+      AC_MSG_WARN([*** You need readline version 2.1 or later.])
+      LTLIBREADLINE=""
+      LIBREADLINE=""
+    fi
+
+    LIBS="$rl_save_LIBS"
+
+    READLINE_LIBS="$LTLIBREADLINE $READLINELIBS"
+  fi
+
+  AM_CONDITIONAL([HAVE_READLINE], [test "x$LTLIBREADLINE" != "x"])
+
+  AC_CHECK_FUNCS([strdup])
+
+  AC_SUBST([READLINE_LIBS])
+
+  . $srcdir/guile-readline/LIBGUILEREADLINE-VERSION
+  AC_SUBST(LIBGUILEREADLINE_MAJOR)
+  AC_SUBST(LIBGUILEREADLINE_INTERFACE_CURRENT)
+  AC_SUBST(LIBGUILEREADLINE_INTERFACE_REVISION)
+  AC_SUBST(LIBGUILEREADLINE_INTERFACE_AGE)
+  AC_SUBST(LIBGUILEREADLINE_INTERFACE)
+])

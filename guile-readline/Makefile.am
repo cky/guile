@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of guile-readline.
 ##
@@ -21,13 +21,17 @@
 
 SUBDIRS = ice-9
 
+if HAVE_READLINE
+
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@ @EXTRA_DEFS@
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
-INCLUDES = -I. -I.. -I$(srcdir)/..			\
-	   -I$(top_srcdir)/lib -I$(top_builddir)/lib
+AM_CPPFLAGS = -I. -I.. -I$(srcdir)/..			\
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
+
+AM_CFLAGS = $(GCC_CFLAGS)
 
 GUILE_SNARF = ../libguile/guile-snarf
 
@@ -35,24 +39,30 @@ lib_LTLIBRARIES = libguilereadline-v-@LIBGUILEREADLINE_MAJOR@.la
 
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES = readline.c
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LIBADD =	\
-   ../libguile/libguile.la ../lib/libgnu.la
-libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS = -version-info @LIBGUILEREADLINE_INTERFACE@ -export-dynamic -no-undefined
+  $(READLINE_LIBS)					\
+  ../libguile/libguile.la ../lib/libgnu.la
+
+libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS =	\
+  -version-info @LIBGUILEREADLINE_INTERFACE@ -export-dynamic	\
+  -no-undefined
 
 
 BUILT_SOURCES = readline.x
 
 pkginclude_HEADERS = readline.h
 
-snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 EXTRA_DIST = LIBGUILEREADLINE-VERSION ChangeLog-2008
 
-MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 CLEANFILES = *.x
+
+endif HAVE_READLINE
 
 dist-hook:
 	(temp="/tmp/mangle-deps.$$$$"; \
