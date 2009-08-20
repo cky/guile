@@ -568,7 +568,7 @@ scm_i_string_writable_wide_chars (SCM str)
   if (!scm_i_is_narrow_string (str))
     return STRINGBUF_WIDE_CHARS (buf) + start;
   else
-    scm_misc_error (NULL, "Invalid read access of chars of narrow string: ~s",
+    scm_misc_error (NULL, "Invalid write access of chars of narrow string: ~s",
                     scm_list_1 (str));
 }
 
