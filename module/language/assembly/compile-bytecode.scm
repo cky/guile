@@ -82,7 +82,7 @@
     (write-string str))
   (define (write-sized-loader str)
     (let ((len (string-length str))
-          (wid (string-width str)))
+          (wid (string-bytes-per-char str)))
       (write-loader-len len)
       (write-byte wid)
       (if (= wid 4)

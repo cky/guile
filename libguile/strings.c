@@ -1098,11 +1098,11 @@ SCM_DEFINE (scm_string_length, "string-length", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_string_width, "string-width", 1, 0, 0,
+SCM_DEFINE (scm_string_bytes_per_char, "string-bytes-per-char", 1, 0, 0,
             (SCM string),
             "Return the bytes used to represent a character in @var{string}."
             "This will return 1 or 4.")
-#define FUNC_NAME s_scm_string_width
+#define FUNC_NAME s_scm_string_bytes_per_char
 {
   SCM_VALIDATE_STRING (1, string);
   if (!scm_i_is_narrow_string (string))

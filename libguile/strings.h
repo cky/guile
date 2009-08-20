@@ -102,7 +102,7 @@ SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
 SCM_API SCM scm_make_string (SCM k, SCM chr);
 SCM_API SCM scm_string_length (SCM str);
-SCM_API SCM scm_string_width (SCM str);
+SCM_API SCM scm_string_bytes_per_char (SCM str);
 SCM_API SCM scm_string_ref (SCM str, SCM k);
 SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
