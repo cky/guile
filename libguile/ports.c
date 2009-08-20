@@ -1023,6 +1023,9 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
     end = size;
   size = end - start;
 
+  /* Note that making a substring will likely take the
+     stringbuf_write_mutex.  So, one shouldn't use scm_lfwrite_substr
+     if the stringbuf write mutex may still be held elsewhere.  */
   buf = scm_to_stringn (scm_c_substring (str, start, end), &len,
 			NULL, SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
   ptob->write (port, buf, len);
@@ -1042,7 +1045,29 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
 void
 scm_lfwrite_str (SCM str, SCM port)
 {
-  scm_lfwrite_substr (str, 0, (size_t) (-1), port);
+  size_t i, size = scm_i_string_length (str);
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
+  scm_t_wchar p;
+  char *buf;
+  size_t len;
+
+  if (pt->rw_active == SCM_PORT_READ)
+    scm_end_input (port);
+
+  buf = scm_to_stringn (str, &len,
+			NULL, SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
+  ptob->write (port, buf, len);
+  free (buf);
+
+  for (i = 0; i < size; i++)
+    {
+      p = scm_i_string_ref (str, i);
+      update_port_lf (p, port);
+    }
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_WRITE;
 }
 
 /* scm_c_read
