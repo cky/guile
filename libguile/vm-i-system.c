@@ -1032,8 +1032,8 @@ VM_DEFINE_INSTRUCTION (59, make_closure, "make-closure", 0, 2, 1)
   POP (vect);
   SYNC_BEFORE_GC ();
   /* fixme underflow */
-  SCM_NEWSMOB3 (*sp, scm_tc16_program, SCM_PROGRAM_OBJCODE (*sp),
-                SCM_PROGRAM_OBJTABLE (*sp), vect);
+  *sp = scm_double_cell (scm_tc7_program, (scm_t_bits)SCM_PROGRAM_OBJCODE (*sp),
+                         (scm_t_bits)SCM_PROGRAM_OBJTABLE (*sp), (scm_t_bits)vect);
   NEXT;
 }
 

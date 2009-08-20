@@ -41,7 +41,7 @@ static SCM
 VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 {
   /* VM registers */
-  register scm_byte_t *ip IP_REG;	/* instruction pointer */
+  register scm_t_uint8 *ip IP_REG;	/* instruction pointer */
   register SCM *sp SP_REG;		/* stack pointer */
   register SCM *fp FP_REG;		/* frame pointer */
 

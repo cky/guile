@@ -35,6 +35,7 @@
 #include "libguile/procprop.h"
 #include "libguile/read.h"
 #include "libguile/weaks.h"
+#include "libguile/programs.h"
 #include "libguile/unif.h"
 #include "libguile/alist.h"
 #include "libguile/struct.h"
@@ -681,6 +682,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 	case scm_tc7_variable:
 	  scm_i_variable_print (exp, port, pstate);
+	  break;
+	case scm_tc7_program:
+	  scm_i_program_print (exp, port, pstate);
 	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);

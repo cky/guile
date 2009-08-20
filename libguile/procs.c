@@ -112,6 +112,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
       case scm_tcs_closures:
       case scm_tcs_subrs:
       case scm_tc7_pws:
+      case scm_tc7_program:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
 	return scm_from_bool (SCM_SMOB_DESCRIPTOR (obj).apply);
@@ -151,6 +152,10 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	  return SCM_BOOL_T;
 	case scm_tc7_gsubr:
 	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
+	case scm_tc7_program:
+	  return scm_from_bool (SCM_PROGRAM_DATA (obj)->nargs == 0
+                                || (SCM_PROGRAM_DATA (obj)->nargs == 1
+                                    && SCM_PROGRAM_DATA (obj)->nrest));
 	case scm_tc7_pws:
 	  obj = SCM_PROCEDURE (obj);
 	  goto again;

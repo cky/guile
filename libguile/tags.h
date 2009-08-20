@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -453,11 +453,11 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_unused_6	55
 #define scm_tc7_unused_7	71
 #define scm_tc7_unused_8	77
-#define scm_tc7_unused_9	79
 
 #define scm_tc7_dsubr		61
 #define scm_tc7_gsubr		63
 #define scm_tc7_rpsubr		69
+#define scm_tc7_program		79
 #define scm_tc7_subr_0		85
 #define scm_tc7_subr_1		87
 #define scm_tc7_cxr		93

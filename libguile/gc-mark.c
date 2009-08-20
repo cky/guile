@@ -40,6 +40,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/smob.h"
 #include "libguile/unif.h"
 #include "libguile/async.h"
+#include "libguile/programs.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
@@ -284,6 +285,13 @@ scm_gc_mark_dependencies (SCM p)
 	}
       scm_gc_mark (SCM_CLOSCAR (ptr));
       ptr = SCM_ENV (ptr);
+      goto gc_mark_nimp;
+    case scm_tc7_program:
+      if (SCM_PROGRAM_FREE_VARIABLES (ptr) != SCM_BOOL_F)
+        scm_gc_mark (SCM_PROGRAM_FREE_VARIABLES (ptr));
+      if (SCM_PROGRAM_OBJTABLE (ptr) != SCM_BOOL_F)
+        scm_gc_mark (SCM_PROGRAM_OBJTABLE (ptr));
+      ptr = SCM_PROGRAM_OBJCODE (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
       i = SCM_SIMPLE_VECTOR_LENGTH (ptr);

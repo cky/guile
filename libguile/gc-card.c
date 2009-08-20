@@ -162,6 +162,8 @@ scm_i_sweep_card (scm_t_cell *card, SCM *free_list, scm_t_heap_segment *seg)
 	  break;
 	case scm_tc7_variable:
 	  break;
+	case scm_tc7_program:
+	  break;
 	case scm_tcs_subrs:
 	  /* the various "subrs" (primitives) are never freed */
 	  continue;
@@ -386,6 +388,8 @@ scm_i_tag_name (scm_t_bits tag)
       return "closures";
     case scm_tc7_pws:
       return "pws";
+    case scm_tc7_program:
+      return "program";
     case scm_tc7_wvect:
       return "weak vector";
     case scm_tc7_vector:

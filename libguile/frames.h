@@ -56,7 +56,7 @@
    + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
 #define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 4)
 
-#define SCM_FRAME_BYTE_CAST(x)		((scm_byte_t *) SCM_UNPACK (x))
+#define SCM_FRAME_BYTE_CAST(x)		((scm_t_uint8 *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
 #define SCM_FRAME_RETURN_ADDRESS(fp)				\
@@ -86,7 +86,7 @@ struct scm_vm_frame
   SCM stack_holder;
   SCM *fp;
   SCM *sp;
-  scm_byte_t *ip;
+  scm_t_uint8 *ip;
   scm_t_ptrdiff offset;
 };
 
@@ -99,9 +99,8 @@ struct scm_vm_frame
 #define SCM_VM_FRAME_OFFSET(f)	SCM_VM_FRAME_DATA(f)->offset
 #define SCM_VALIDATE_VM_FRAME(p,x)	SCM_MAKE_VALIDATE (p, x, VM_FRAME_P)
 
-/* FIXME rename scm_byte_t */
 SCM_API SCM scm_c_make_vm_frame (SCM stack_holder, SCM *fp, SCM *sp,
-                                scm_byte_t *ip, scm_t_ptrdiff offset);
+                                 scm_t_uint8 *ip, scm_t_ptrdiff offset);
 SCM_API SCM scm_vm_frame_p (SCM obj);
 SCM_API SCM scm_vm_frame_program (SCM frame);
 SCM_API SCM scm_vm_frame_arguments (SCM frame);

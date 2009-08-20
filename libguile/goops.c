@@ -241,6 +241,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  else
 	    return scm_class_procedure;
 	case scm_tc7_gsubr:
+	case scm_tc7_program:
 	  return scm_class_procedure;
 	case scm_tc7_pws:
 	  return scm_class_procedure_with_setter;

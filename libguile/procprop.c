@@ -33,6 +33,7 @@
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/hashtab.h"
+#include "libguile/programs.h"
 
 #include "libguile/validate.h"
 #include "libguile/procprop.h"
@@ -71,6 +72,11 @@ scm_i_procedure_arity (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_lsubr:
       r = 1;
+      break;
+    case scm_tc7_program:
+      a += SCM_PROGRAM_DATA (proc)->nargs;
+      r = SCM_PROGRAM_DATA (proc)->nrest;
+      a -= r;
       break;
     case scm_tc7_lsubr_2:
       a += 2;

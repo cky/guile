@@ -3328,6 +3328,7 @@ scm_trampoline_0 (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_gsubr:
     case scm_tc7_pws:
+    case scm_tc7_program:
       trampoline = scm_call_0;
       break;
     default:
@@ -3454,6 +3455,7 @@ scm_trampoline_1 (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_gsubr:
     case scm_tc7_pws:
+    case scm_tc7_program:
       trampoline = scm_call_1;
       break;
     default:
@@ -3548,6 +3550,7 @@ scm_trampoline_2 (SCM proc)
       break;
     case scm_tc7_gsubr:
     case scm_tc7_pws:
+    case scm_tc7_program:
       trampoline = scm_call_2;
       break;
     default:
