@@ -3492,6 +3492,14 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
+;;; Replace the C evaluator with the compiler.
+;;;
+
+(define (eval x env)
+  ((@ (system base compile) compile) x #:from 'scheme #:to 'value #:env env))
+
+
+
 ;;; Place the user in the guile-user module.
 ;;;
 
