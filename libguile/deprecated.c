@@ -749,16 +749,12 @@ scm_sym2ovcell (SCM sym, SCM obarray)
    return (SYMBOL . SCM_UNDEFINED).  */
 
 
-SCM 
-scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int softness)
+static SCM 
+intern_obarray_soft (SCM symbol, SCM obarray, unsigned int softness)
 {
-  SCM symbol = scm_from_locale_symboln (name, len);
   size_t raw_hash = scm_i_symbol_hash (symbol);
   size_t hash;
   SCM lsym;
-
-  scm_c_issue_deprecation_warning ("`scm_intern_obarray_soft' is deprecated. "
-				   "Use hashtables instead.");
 
   if (scm_is_false (obarray))
     {
@@ -795,6 +791,18 @@ scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int so
 }
 
 
+SCM 
+scm_intern_obarray_soft (const char *name, size_t len, SCM obarray,
+                         unsigned int softness)
+{
+  SCM symbol = scm_from_locale_symboln (name, len);
+
+  scm_c_issue_deprecation_warning ("`scm_intern_obarray_soft' is deprecated. "
+				   "Use hashtables instead.");
+
+  return intern_obarray_soft (symbol, obarray, softness);
+}
+  
 SCM
 scm_intern_obarray (const char *name,size_t len,SCM obarray)
 {
@@ -850,10 +858,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   else if (scm_is_eq (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
-  vcell = scm_intern_obarray_soft (scm_i_string_chars (s),
-				   scm_i_string_length (s),
-				   o,
-				   softness);
+  vcell = intern_obarray_soft (scm_string_to_symbol (s), o, softness);
   if (scm_is_false (vcell))
     return vcell;
   answer = SCM_CAR (vcell);
@@ -1084,9 +1089,8 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
     {
       SCM_VALIDATE_STRING (1, prefix);
       len = scm_i_string_length (prefix);
-      if (len > MAX_PREFIX_LENGTH)
-	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, scm_i_string_chars (prefix), len);
+      name = scm_to_locale_stringn (prefix, (size_t *)(&len));
+      name = scm_realloc (name, len + SCM_INTBUFLEN);
     }
 
   if (SCM_UNBNDP (obarray))
@@ -1108,7 +1112,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 					 obarray,
 					 0);
     if (name != buf)
-      scm_must_free (name);
+      free (name);
     return SCM_CAR (vcell);
   }
 }
