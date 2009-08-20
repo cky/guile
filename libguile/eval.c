@@ -19,9 +19,6 @@
 
 
 
-/* SECTION: This code is compiled once.
- */
-
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -2580,42 +2577,42 @@ scm_badargsp (SCM formals, SCM args)
 /* The evaluator contains a plethora of EVAL symbols.  
  *
  *
- *   SCM_I_EVALIM is used when it is known that the expression is an
+ *   EVALIM is used when it is known that the expression is an
  *   immediate.  (This macro never calls an evaluator.)
  *
- *   SCM_I_XEVAL evaluates an expression that is expected to have its symbols already
+ *   EVAL evaluates an expression that is expected to have its symbols already
  *   memoized.  Expressions that are not of the form '(<form> <form> ...)' are
  *   evaluated inline without calling an evaluator.
  *
- *   SCM_I_XEVALCAR evaluates the car of an expression 'X:(Y:<form> <form> ...)',
+ *   EVALCAR evaluates the car of an expression 'X:(Y:<form> <form> ...)',
  *   potentially replacing a symbol at the position Y:<form> by its memoized
  *   variable.  If Y:<form> is not of the form '(<form> <form> ...)', the
  *   evaluation is performed inline without calling an evaluator.
  *  
  */
 
-#define SCM_I_EVALIM2(x) \
+#define EVALIM2(x) \
   ((scm_is_eq ((x), SCM_EOL) \
     ? syntax_error (s_empty_combination, (x), SCM_UNDEFINED), 0 \
     : 0), \
    (x))
 
-#define SCM_I_EVALIM(x, env) (SCM_ILOCP (x) \
+#define EVALIM(x, env) (SCM_ILOCP (x) \
                             ? *scm_ilookup ((x), (env)) \
-			    : SCM_I_EVALIM2(x))
+			    : EVALIM2(x))
 
-#define SCM_I_XEVAL(x, env)			\
+#define EVAL(x, env)			\
   (SCM_IMP (x) \
-   ? SCM_I_EVALIM2 (x) \
+   ? EVALIM2 (x) \
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
       : (scm_is_pair (x) \
          ? eval ((x), (env))                   \
          : (x))))
 
-#define SCM_I_XEVALCAR(x, env)			\
+#define EVALCAR(x, env)			\
   (SCM_IMP (SCM_CAR (x)) \
-   ? SCM_I_EVALIM (SCM_CAR (x), (env)) \
+   ? EVALIM (SCM_CAR (x), (env)) \
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
       : (scm_is_pair (SCM_CAR (x)) \
@@ -2881,7 +2878,7 @@ lazy_memoize_variable (const SCM symbol, const SCM environment)
 SCM
 scm_eval_car (SCM pair, SCM env)
 {
-  return SCM_I_XEVALCAR (pair, env);
+  return EVALCAR (pair, env);
 }
 
 
@@ -2908,11 +2905,11 @@ scm_eval_body (SCM code, SCM env)
 	    }
 	}
       else
-	SCM_I_XEVAL (SCM_CAR (code), env);
+	EVAL (SCM_CAR (code), env);
       code = next;
       next = SCM_CDR (code);
     }
-  return SCM_I_XEVALCAR (code, env);
+  return EVALCAR (code, env);
 }
 
 
@@ -3181,9 +3178,6 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 #undef FUNC_NAME
 
 
-
-/* SECTION: The rest of this file is only read once.
- */
 
 /* Trampolines
  *  
@@ -3688,7 +3682,7 @@ scm_i_eval_x (SCM exp, SCM env)
   if (scm_is_symbol (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
-    return SCM_I_XEVAL (exp, env);
+    return EVAL (exp, env);
 }
 
 SCM 
@@ -3698,7 +3692,7 @@ scm_i_eval (SCM exp, SCM env)
   if (scm_is_symbol (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
-    return SCM_I_XEVAL (exp, env);
+    return EVAL (exp, env);
 }
 
 SCM
@@ -3798,7 +3792,7 @@ ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
 	  ceval_letrec_inits (env, init_forms, init_values_eol);
 	  break;
 	}
-      argv[i++] = SCM_I_XEVALCAR (init_forms, env);
+      argv[i++] = EVALCAR (init_forms, env);
       init_forms = SCM_CDR (init_forms);
     }
  
@@ -3809,7 +3803,1445 @@ ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
     }
 }
 
-#include "eval.i.c"
+#define PREP_APPLY(p, l)						\
+{ ++debug.info; debug.info->a.proc = p; debug.info->a.args = l; }
+
+#define ENTER_APPLY \
+do { \
+  SCM_SET_ARGSREADY (debug);\
+  if (scm_check_apply_p && SCM_TRAPS_P)\
+    if (SCM_APPLY_FRAME_P || (SCM_TRACE_P && SCM_PROCTRACEP (proc)))\
+      {\
+	SCM tmp, tail = scm_from_bool(SCM_TRACED_FRAME_P (debug)); \
+	SCM_SET_TRACED_FRAME (debug); \
+	SCM_TRAPS_P = 0;\
+        tmp = scm_make_debugobj (&debug);\
+	scm_call_3 (SCM_APPLY_FRAME_HDLR, scm_sym_apply_frame, tmp, tail);\
+	SCM_TRAPS_P = 1;\
+      }\
+} while (0)
+
+#define RETURN(e) do { proc = (e); goto exit; } while (0)
+
+#ifdef STACK_CHECKING
+# ifndef EVAL_STACK_CHECKING
+# define EVAL_STACK_CHECKING
+# endif /* EVAL_STACK_CHECKING */
+#endif /* STACK_CHECKING */
+
+
+
+
+static SCM
+eval_args (SCM l, SCM env, SCM proc, SCM *lloc)
+{
+  SCM *results = lloc;
+  while (scm_is_pair (l))
+    {
+      const SCM res = EVALCAR (l, env);
+
+      *lloc = scm_list_1 (res);
+      lloc = SCM_CDRLOC (*lloc);
+      l = SCM_CDR (l);
+    }
+  if (!scm_is_null (l))
+    scm_wrong_num_args (proc);
+  return *results;
+}
+
+
+
+
+/* Update the toplevel environment frame ENV so that it refers to the
+ * current module.  */
+#define UPDATE_TOPLEVEL_ENV(env) \
+  do { \
+    SCM p = scm_current_module_lookup_closure (); \
+    if (p != SCM_CAR (env)) \
+      env = scm_top_level_env (p); \
+  } while (0)
+
+
+#define SCM_VALIDATE_NON_EMPTY_COMBINATION(x) \
+  ASSERT_SYNTAX (!scm_is_eq ((x), SCM_EOL), s_empty_combination, x)
+
+
+/* This is the evaluator.
+ *
+ * eval takes two input parameters, x and env: x is a single expression to be
+ * evalutated. env is the environment in which bindings are searched.
+ *
+ * x is known to be a pair.  Since x is a single expression, it is necessarily
+ * in a tail position.  If x is just a call to another function like in the
+ * expression (foo exp1 exp2 ...), the realization of that call therefore
+ * _must_not_ increase stack usage (the evaluation of exp1, exp2 etc.,
+ * however, may do so).  This is realized by making extensive use of 'goto'
+ * statements within the evaluator: The gotos replace recursive calls to
+ * `eval', thus re-using the same stack frame that `eval' was already using.
+ * If, however, x represents some form that requires to evaluate a sequence of
+ * expressions like (begin exp1 exp2 ...), then recursive calls to `eval' are
+ * performed for all but the last expression of that sequence.  */
+
+static SCM
+eval (SCM x, SCM env)
+{
+  SCM proc, arg1;
+  scm_t_debug_frame debug;
+  scm_t_debug_info *debug_info_end;
+  debug.prev = scm_i_last_debug_frame ();
+  debug.status = 0;
+  /*
+   * The debug.vect contains twice as much scm_t_debug_info frames as the
+   * user has specified with (debug-set! frames <n>).
+   *
+   * Even frames are eval frames, odd frames are apply frames.
+   */
+  debug.vect = alloca (scm_debug_eframe_size * sizeof (scm_t_debug_info));
+  debug.info = debug.vect;
+  debug_info_end = debug.vect + scm_debug_eframe_size;
+  scm_i_set_last_debug_frame (&debug);
+#ifdef EVAL_STACK_CHECKING
+  if (scm_stack_checking_enabled_p && SCM_STACK_OVERFLOW_P (&proc))
+    {
+      debug.info->e.exp = x;
+      debug.info->e.env = env;
+      scm_report_stack_overflow ();
+    }
+#endif
+
+  goto start;
+
+loop:
+  SCM_CLEAR_ARGSREADY (debug);
+  if (SCM_OVERFLOWP (debug))
+    --debug.info;
+  /*
+   * In theory, this should be the only place where it is necessary to
+   * check for space in debug.vect since both eval frames and
+   * available space are even.
+   *
+   * For this to be the case, however, it is necessary that primitive
+   * special forms which jump back to `loop', `begin' or some similar
+   * label call PREP_APPLY.
+   */
+  else if (++debug.info >= debug_info_end)
+    {
+      SCM_SET_OVERFLOW (debug);
+      debug.info -= 2;
+    }
+
+start:
+  debug.info->e.exp = x;
+  debug.info->e.env = env;
+  if (scm_check_entry_p && SCM_TRAPS_P)
+    {
+      if (SCM_ENTER_FRAME_P
+	  || (SCM_BREAKPOINTS_P && scm_c_source_property_breakpoint_p (x)))
+	{
+	  SCM stackrep;
+	  SCM tail = scm_from_bool (SCM_TAILRECP (debug));
+	  SCM_SET_TAILREC (debug);
+	  stackrep = scm_make_debugobj (&debug);
+	  SCM_TRAPS_P = 0;
+	  stackrep = scm_call_4 (SCM_ENTER_FRAME_HDLR,
+				 scm_sym_enter_frame,
+				 stackrep,
+				 tail,
+				 unmemoize_expression (x, env));
+	  SCM_TRAPS_P = 1;
+	  if (scm_is_pair (stackrep) &&
+	      scm_is_eq (SCM_CAR (stackrep), sym_instead))
+	    {
+	      /* This gives the possibility for the debugger to modify
+		 the source expression before evaluation. */
+	      x = SCM_CDR (stackrep);
+	      if (SCM_IMP (x))
+		RETURN (x);
+	    }
+	}
+    }
+dispatch:
+  SCM_TICK;
+  if (SCM_ISYMP (SCM_CAR (x)))
+    {
+      switch (ISYMNUM (SCM_CAR (x)))
+        {
+        case (ISYMNUM (SCM_IM_AND)):
+          x = SCM_CDR (x);
+          while (!scm_is_null (SCM_CDR (x)))
+            {
+              SCM test_result = EVALCAR (x, env);
+              if (scm_is_false_or_nil (test_result))
+                RETURN (SCM_BOOL_F);
+              else
+                x = SCM_CDR (x);
+            }
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto carloop;
+
+        case (ISYMNUM (SCM_IM_BEGIN)):
+          x = SCM_CDR (x);
+          if (scm_is_null (x))
+            RETURN (SCM_UNSPECIFIED);
+
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+
+        begin:
+          /* If we are on toplevel with a lookup closure, we need to sync
+             with the current module. */
+          if (scm_is_pair (env) && !scm_is_pair (SCM_CAR (env)))
+            {
+              UPDATE_TOPLEVEL_ENV (env);
+              while (!scm_is_null (SCM_CDR (x)))
+                {
+                  EVALCAR (x, env);
+                  UPDATE_TOPLEVEL_ENV (env);
+                  x = SCM_CDR (x);
+                }
+              goto carloop;
+            }
+          else
+            goto nontoplevel_begin;
+
+        nontoplevel_begin:
+          while (!scm_is_null (SCM_CDR (x)))
+            {
+              const SCM form = SCM_CAR (x);
+              if (SCM_IMP (form))
+                {
+                  if (SCM_ISYMP (form))
+                    {
+		      scm_dynwind_begin (0);
+		      scm_i_dynwind_pthread_mutex_lock (&source_mutex);
+                      /* check for race condition */
+                      if (SCM_ISYMP (SCM_CAR (x)))
+                        m_expand_body (x, env);
+		      scm_dynwind_end ();
+                      goto nontoplevel_begin;
+                    }
+                  else
+                    SCM_VALIDATE_NON_EMPTY_COMBINATION (form);
+                }
+              else
+                (void) EVAL (form, env);
+              x = SCM_CDR (x);
+            }
+
+        carloop:
+          {
+            /* scm_eval last form in list */
+            const SCM last_form = SCM_CAR (x);
+
+            if (scm_is_pair (last_form))
+              {
+                /* This is by far the most frequent case. */
+                x = last_form;
+                goto loop;		/* tail recurse */
+              }
+            else if (SCM_IMP (last_form))
+              RETURN (EVALIM (last_form, env));
+            else if (SCM_VARIABLEP (last_form))
+              RETURN (SCM_VARIABLE_REF (last_form));
+            else if (scm_is_symbol (last_form))
+	      RETURN (*scm_lookupcar (x, env, 1));
+            else
+              RETURN (last_form);
+          }
+
+
+        case (ISYMNUM (SCM_IM_CASE)):
+          x = SCM_CDR (x);
+          {
+            const SCM key = EVALCAR (x, env);
+            x = SCM_CDR (x);
+            while (!scm_is_null (x))
+              {
+                const SCM clause = SCM_CAR (x);
+                SCM labels = SCM_CAR (clause);
+                if (scm_is_eq (labels, SCM_IM_ELSE))
+                  {
+                    x = SCM_CDR (clause);
+                    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+                    goto begin;
+                  }
+                while (!scm_is_null (labels))
+                  {
+                    const SCM label = SCM_CAR (labels);
+                    if (scm_is_eq (label, key)
+                        || scm_is_true (scm_eqv_p (label, key)))
+                      {
+                        x = SCM_CDR (clause);
+                        PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+                        goto begin;
+                      }
+                    labels = SCM_CDR (labels);
+                  }
+                x = SCM_CDR (x);
+              }
+          }
+          RETURN (SCM_UNSPECIFIED);
+
+
+        case (ISYMNUM (SCM_IM_COND)):
+          x = SCM_CDR (x);
+          while (!scm_is_null (x))
+            {
+              const SCM clause = SCM_CAR (x);
+              if (scm_is_eq (SCM_CAR (clause), SCM_IM_ELSE))
+                {
+                  x = SCM_CDR (clause);
+                  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+                  goto begin;
+                }
+              else
+                {
+                  arg1 = EVALCAR (clause, env);
+		  /* SRFI 61 extended cond */
+		  if (!scm_is_null (SCM_CDR (clause))
+		      && !scm_is_null (SCM_CDDR (clause))
+		      && scm_is_eq (SCM_CADDR (clause), SCM_IM_ARROW))
+		    {
+		      SCM xx, guard_result;
+		      if (SCM_VALUESP (arg1))
+			arg1 = scm_struct_ref (arg1, SCM_INUM0);
+		      else
+			arg1 = scm_list_1 (arg1);
+		      xx = SCM_CDR (clause);
+		      proc = EVALCAR (xx, env);
+		      guard_result = scm_apply (proc, arg1, SCM_EOL);
+		      if (scm_is_true_and_not_nil (guard_result))
+			{
+			  proc = SCM_CDDR (xx);
+			  proc = EVALCAR (proc, env);
+			  PREP_APPLY (proc, arg1);
+			  goto apply_proc;
+			}
+		    }
+                  else if (scm_is_true_and_not_nil (arg1))
+                    {
+                      x = SCM_CDR (clause);
+                      if (scm_is_null (x))
+                        RETURN (arg1);
+                      else if (!scm_is_eq (SCM_CAR (x), SCM_IM_ARROW))
+                        {
+                          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+                          goto begin;
+                        }
+                      else
+                        {
+                          proc = SCM_CDR (x);
+                          proc = EVALCAR (proc, env);
+                          PREP_APPLY (proc, scm_list_1 (arg1));
+                          ENTER_APPLY;
+                          goto evap1;
+                        }
+                    }
+                  x = SCM_CDR (x);
+                }
+            }
+          RETURN (SCM_UNSPECIFIED);
+
+
+        case (ISYMNUM (SCM_IM_DO)):
+          x = SCM_CDR (x);
+          {
+            /* Compute the initialization values and the initial environment.  */
+            SCM init_forms = SCM_CAR (x);
+            SCM init_values = SCM_EOL;
+            while (!scm_is_null (init_forms))
+              {
+                init_values = scm_cons (EVALCAR (init_forms, env), init_values);
+                init_forms = SCM_CDR (init_forms);
+              }
+            x = SCM_CDR (x);
+            env = SCM_EXTEND_ENV (SCM_CAR (x), init_values, env);
+          }
+          x = SCM_CDR (x);
+          {
+            SCM test_form = SCM_CAR (x);
+            SCM body_forms = SCM_CADR (x);
+            SCM step_forms = SCM_CDDR (x);
+
+            SCM test_result = EVALCAR (test_form, env);
+
+            while (scm_is_false_or_nil (test_result))
+              {
+                {
+                  /* Evaluate body forms.  */
+                  SCM temp_forms;
+                  for (temp_forms = body_forms;
+                       !scm_is_null (temp_forms);
+                       temp_forms = SCM_CDR (temp_forms))
+                    {
+                      SCM form = SCM_CAR (temp_forms);
+                      /* Dirk:FIXME: We only need to eval forms that may have
+                       * a side effect here.  This is only true for forms that
+                       * start with a pair.  All others are just constants.
+                       * Since with the current memoizer 'form' may hold a
+                       * constant, we call EVAL here to handle the constant
+                       * cases.  In the long run it would make sense to have
+                       * the macro transformer of 'do' eliminate all forms
+                       * that have no sideeffect.  Then instead of EVAL we
+                       * could call CEVAL directly here.  */
+                      (void) EVAL (form, env);
+                    }
+                }
+
+                {
+                  /* Evaluate the step expressions.  */
+                  SCM temp_forms;
+                  SCM step_values = SCM_EOL;
+                  for (temp_forms = step_forms;
+                       !scm_is_null (temp_forms);
+                       temp_forms = SCM_CDR (temp_forms))
+                    {
+                      const SCM value = EVALCAR (temp_forms, env);
+                      step_values = scm_cons (value, step_values);
+                    }
+                  env = SCM_EXTEND_ENV (SCM_CAAR (env),
+                                        step_values,
+                                        SCM_CDR (env));
+                }
+
+                test_result = EVALCAR (test_form, env);
+              }
+          }
+          x = SCM_CDAR (x);
+          if (scm_is_null (x))
+            RETURN (SCM_UNSPECIFIED);
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto nontoplevel_begin;
+
+
+        case (ISYMNUM (SCM_IM_IF)):
+          x = SCM_CDR (x);
+          {
+            SCM test_result = EVALCAR (x, env);
+            x = SCM_CDR (x);  /* then expression */
+            if (scm_is_false_or_nil (test_result))
+              {
+                x = SCM_CDR (x);  /* else expression */
+                if (scm_is_null (x))
+                  RETURN (SCM_UNSPECIFIED);
+              }
+          }
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto carloop;
+
+
+        case (ISYMNUM (SCM_IM_LET)):
+          x = SCM_CDR (x);
+          {
+            SCM init_forms = SCM_CADR (x);
+            SCM init_values = SCM_EOL;
+            do
+              {
+                init_values = scm_cons (EVALCAR (init_forms, env), init_values);
+                init_forms = SCM_CDR (init_forms);
+              }
+            while (!scm_is_null (init_forms));
+            env = SCM_EXTEND_ENV (SCM_CAR (x), init_values, env);
+          }
+          x = SCM_CDDR (x);
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto nontoplevel_begin;
+
+
+        case (ISYMNUM (SCM_IM_LETREC)):
+          x = SCM_CDR (x);
+          env = SCM_EXTEND_ENV (SCM_CAR (x), undefineds, env);
+          x = SCM_CDR (x);
+          {
+            SCM init_forms = SCM_CAR (x);
+	    SCM init_values = scm_list_1 (SCM_BOOL_T);
+	    SCM *init_values_eol = SCM_CDRLOC (init_values);
+	    ceval_letrec_inits (env, init_forms, &init_values_eol);
+            SCM_SETCDR (SCM_CAR (env), SCM_CDR (init_values));
+          }
+          x = SCM_CDR (x);
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto nontoplevel_begin;
+
+
+        case (ISYMNUM (SCM_IM_LETSTAR)):
+          x = SCM_CDR (x);
+          {
+            SCM bindings = SCM_CAR (x);
+            if (!scm_is_null (bindings))
+              {
+                do
+                  {
+                    SCM name = SCM_CAR (bindings);
+                    SCM init = SCM_CDR (bindings);
+                    env = SCM_EXTEND_ENV (name, EVALCAR (init, env), env);
+                    bindings = SCM_CDR (init);
+                  }
+                while (!scm_is_null (bindings));
+              }
+          }
+          x = SCM_CDR (x);
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto nontoplevel_begin;
+
+
+        case (ISYMNUM (SCM_IM_OR)):
+          x = SCM_CDR (x);
+          while (!scm_is_null (SCM_CDR (x)))
+            {
+              SCM val = EVALCAR (x, env);
+              if (scm_is_true_and_not_nil (val))
+                RETURN (val);
+              else
+                x = SCM_CDR (x);
+            }
+          PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+          goto carloop;
+
+
+        case (ISYMNUM (SCM_IM_LAMBDA)):
+          RETURN (scm_closure (SCM_CDR (x), env));
+
+
+        case (ISYMNUM (SCM_IM_QUOTE)):
+          RETURN (SCM_CDR (x));
+
+
+        case (ISYMNUM (SCM_IM_SET_X)):
+          x = SCM_CDR (x);
+          {
+            SCM *location;
+            SCM variable = SCM_CAR (x);
+            if (SCM_ILOCP (variable))
+              location = scm_ilookup (variable, env);
+            else if (SCM_VARIABLEP (variable))
+              location = SCM_VARIABLE_LOC (variable);
+            else
+              {
+                /* (scm_is_symbol (variable)) is known to be true */
+                variable = lazy_memoize_variable (variable, env);
+                SCM_SETCAR (x, variable);
+                location = SCM_VARIABLE_LOC (variable);
+              }
+            x = SCM_CDR (x);
+            *location = EVALCAR (x, env);
+          }
+          RETURN (SCM_UNSPECIFIED);
+
+
+	case (ISYMNUM (SCM_IM_APPLY)):
+          /* Evaluate the procedure to be applied.  */
+	  x = SCM_CDR (x);
+	  proc = EVALCAR (x, env);
+          PREP_APPLY (proc, SCM_EOL);
+
+          /* Evaluate the argument holding the list of arguments */
+          x = SCM_CDR (x);
+          arg1 = EVALCAR (x, env);
+
+        apply_proc:
+          /* Go here to tail-apply a procedure.  PROC is the procedure and
+           * ARG1 is the list of arguments. PREP_APPLY must have been called
+           * before jumping to apply_proc.  */
+	  if (SCM_CLOSUREP (proc))
+	    {
+              SCM formals = SCM_CLOSURE_FORMALS (proc);
+              debug.info->a.args = arg1;
+              if (SCM_UNLIKELY (scm_badargsp (formals, arg1)))
+                scm_wrong_num_args (proc);
+              ENTER_APPLY;
+              /* Copy argument list */
+              if (SCM_NULL_OR_NIL_P (arg1))
+                env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+              else
+                {
+                  SCM args = scm_list_1 (SCM_CAR (arg1));
+                  SCM tail = args;
+                  arg1 = SCM_CDR (arg1);
+                  while (!SCM_NULL_OR_NIL_P (arg1))
+                    {
+                      SCM new_tail = scm_list_1 (SCM_CAR (arg1));
+                      SCM_SETCDR (tail, new_tail);
+                      tail = new_tail;
+                      arg1 = SCM_CDR (arg1);
+                    }
+                  env = SCM_EXTEND_ENV (formals, args, SCM_ENV (proc));
+                }
+
+              x = SCM_CLOSURE_BODY (proc);
+              goto nontoplevel_begin;
+	    }
+	  else
+	    {
+              ENTER_APPLY;
+              RETURN (scm_apply (proc, arg1, SCM_EOL));
+	    }
+
+
+	case (ISYMNUM (SCM_IM_CONT)):
+	  {
+	    int first;
+	    SCM val = scm_make_continuation (&first);
+
+	    if (!first)
+	      RETURN (val);
+	    else
+	      {
+		arg1 = val;
+		proc = SCM_CDR (x);
+		proc = EVALCAR (proc, env);
+		PREP_APPLY (proc, scm_list_1 (arg1));
+		ENTER_APPLY;
+		goto evap1;
+	      }
+	  }
+
+
+	case (ISYMNUM (SCM_IM_DELAY)):
+	  RETURN (scm_make_promise (scm_closure (SCM_CDR (x), env)));
+
+	case (ISYMNUM (SCM_IM_SLOT_REF)):
+	  x = SCM_CDR (x);
+	  {
+	    SCM instance = EVALCAR (x, env);
+	    unsigned long int slot = SCM_I_INUM (SCM_CDR (x));
+	    RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
+	  }
+
+
+	case (ISYMNUM (SCM_IM_SLOT_SET_X)):
+	  x = SCM_CDR (x);
+	  {
+	    SCM instance = EVALCAR (x, env);
+	    unsigned long int slot = SCM_I_INUM (SCM_CADR (x));
+	    SCM value = EVALCAR (SCM_CDDR (x), env);
+	    SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (value);
+	    RETURN (SCM_UNSPECIFIED);
+	  }
+
+
+#if SCM_ENABLE_ELISP
+	  
+	case (ISYMNUM (SCM_IM_NIL_COND)):
+	  {
+	    SCM test_form = SCM_CDR (x);
+	    x = SCM_CDR (test_form);
+	    while (!SCM_NULL_OR_NIL_P (x))
+	      {
+		SCM test_result = EVALCAR (test_form, env);
+		if (!(scm_is_false (test_result)
+		      || SCM_NULL_OR_NIL_P (test_result)))
+		  {
+		    if (scm_is_eq (SCM_CAR (x), SCM_UNSPECIFIED))
+		      RETURN (test_result);
+		    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		    goto carloop;
+		  }
+		else
+		  {
+		    test_form = SCM_CDR (x);
+		    x = SCM_CDR (test_form);
+		  }
+	      }
+	    x = test_form;
+	    PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+	    goto carloop;
+	  }
+
+#endif /* SCM_ENABLE_ELISP */
+
+	case (ISYMNUM (SCM_IM_BIND)):
+	  {
+	    SCM vars, exps, vals;
+
+	    x = SCM_CDR (x);
+	    vars = SCM_CAAR (x);
+	    exps = SCM_CDAR (x);
+	    vals = SCM_EOL;
+	    while (!scm_is_null (exps))
+	      {
+		vals = scm_cons (EVALCAR (exps, env), vals);
+		exps = SCM_CDR (exps);
+	      }
+	    
+	    scm_swap_bindings (vars, vals);
+	    scm_i_set_dynwinds (scm_acons (vars, vals, scm_i_dynwinds ()));
+
+	    /* Ignore all but the last evaluation result.  */
+	    for (x = SCM_CDR (x); !scm_is_null (SCM_CDR (x)); x = SCM_CDR (x))
+	      {
+		if (scm_is_pair (SCM_CAR (x)))
+		  eval (SCM_CAR (x), env);
+	      }
+	    proc = EVALCAR (x, env);
+	  
+	    scm_i_set_dynwinds (SCM_CDR (scm_i_dynwinds ()));
+	    scm_swap_bindings (vars, vals);
+
+	    RETURN (proc);
+	  }
+
+
+	case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
+	  {
+            SCM producer;
+
+	    x = SCM_CDR (x);
+	    producer = EVALCAR (x, env);
+	    x = SCM_CDR (x);
+	    proc = EVALCAR (x, env);  /* proc is the consumer. */
+	    arg1 = scm_apply (producer, SCM_EOL, SCM_EOL);
+	    if (SCM_VALUESP (arg1))
+              {
+                /* The list of arguments is not copied.  Rather, it is assumed
+                 * that this has been done by the 'values' procedure.  */
+                arg1 = scm_struct_ref (arg1, SCM_INUM0);
+              }
+	    else
+              {
+                arg1 = scm_list_1 (arg1);
+              }
+            PREP_APPLY (proc, arg1);
+            goto apply_proc;
+	  }
+
+
+	default:
+	  break;
+	}
+    }
+  else
+    {
+      if (SCM_VARIABLEP (SCM_CAR (x)))
+        proc = SCM_VARIABLE_REF (SCM_CAR (x));
+      else if (SCM_ILOCP (SCM_CAR (x)))
+        proc = *scm_ilookup (SCM_CAR (x), env);
+      else if (scm_is_pair (SCM_CAR (x)))
+	proc = eval (SCM_CAR (x), env);
+      else if (scm_is_symbol (SCM_CAR (x)))
+	{
+	  SCM orig_sym = SCM_CAR (x);
+	  {
+	    SCM *location = scm_lookupcar1 (x, env, 1);
+	    if (location == NULL)
+	      {
+		/* we have lost the race, start again. */
+		goto dispatch;
+	      }
+	    proc = *location;
+	    if (scm_check_memoize_p && SCM_TRAPS_P)
+	      {
+		SCM arg1, retval;
+
+		SCM_CLEAR_TRACED_FRAME (debug);
+		arg1 = scm_make_debugobj (&debug);
+		retval = SCM_BOOL_T;
+		SCM_TRAPS_P = 0;
+		retval = scm_call_4 (SCM_MEMOIZE_HDLR,
+				     scm_sym_memoize_symbol,
+				     arg1, x, env);
+
+		/*
+		  do something with retval? 
+		 */
+		SCM_TRAPS_P = 1;
+	      }
+	  }
+
+	  if (SCM_MACROP (proc))
+	    {
+	      SCM_SETCAR (x, orig_sym);  /* Undo memoizing effect of
+					    lookupcar */
+	    handle_a_macro: /* inputs: x, env, proc */
+	      /* Set a flag during macro expansion so that macro
+		 application frames can be deleted from the backtrace. */
+	      SCM_SET_MACROEXP (debug);
+	      arg1 = scm_apply (SCM_MACRO_CODE (proc), x,
+                                scm_cons (env, scm_listofnull));
+	      SCM_CLEAR_MACROEXP (debug);
+	      switch (SCM_MACRO_TYPE (proc))
+		{
+		case 3:
+		case 2:
+		  if (!scm_is_pair (arg1))
+		    arg1 = scm_list_2 (SCM_IM_BEGIN, arg1);
+
+                  assert (!scm_is_eq (x, SCM_CAR (arg1))
+                          && !scm_is_eq (x, SCM_CDR (arg1)));
+
+		  if (!SCM_CLOSUREP (SCM_MACRO_CODE (proc)))
+		    {
+		      SCM_CRITICAL_SECTION_START;
+		      SCM_SETCAR (x, SCM_CAR (arg1));
+		      SCM_SETCDR (x, SCM_CDR (arg1));
+		      SCM_CRITICAL_SECTION_END;
+		      goto dispatch;
+		    }
+		  /* Prevent memoizing of debug info expression. */
+		  debug.info->e.exp = scm_cons_source (debug.info->e.exp,
+						       SCM_CAR (x),
+						       SCM_CDR (x));
+		  SCM_CRITICAL_SECTION_START;
+		  SCM_SETCAR (x, SCM_CAR (arg1));
+		  SCM_SETCDR (x, SCM_CDR (arg1));
+		  SCM_CRITICAL_SECTION_END;
+		  PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		  goto loop;
+#if SCM_ENABLE_DEPRECATED == 1
+		case 1:
+		  x = arg1;
+		  if (SCM_NIMP (x))
+		    {
+		      PREP_APPLY (SCM_UNDEFINED, SCM_EOL);
+		      goto loop;
+		    }
+		  else
+		    RETURN (arg1);
+#endif
+		case 0:
+		  RETURN (arg1);
+		}
+	    }
+	}
+      else
+	proc = SCM_CAR (x);
+
+      if (SCM_MACROP (proc))
+	goto handle_a_macro;
+    }
+
+
+  /* When reaching this part of the code, the following is granted: Variable x
+   * holds the first pair of an expression of the form (<function> arg ...).
+   * Variable proc holds the object that resulted from the evaluation of
+   * <function>.  In the following, the arguments (if any) will be evaluated,
+   * and proc will be applied to them.  If proc does not really hold a
+   * function object, this will be signalled as an error on the scheme
+   * level.  If the number of arguments does not match the number of arguments
+   * that are allowed to be passed to proc, also an error on the scheme level
+   * will be signalled.  */
+
+  PREP_APPLY (proc, SCM_EOL);
+  if (scm_is_null (SCM_CDR (x))) {
+    ENTER_APPLY;
+  evap0:
+    SCM_ASRTGO (!SCM_IMP (proc), badfun);
+    switch (SCM_TYP7 (proc))
+      {				/* no arguments given */
+      case scm_tc7_subr_0:
+	RETURN (SCM_SUBRF (proc) ());
+      case scm_tc7_subr_1o:
+	RETURN (SCM_SUBRF (proc) (SCM_UNDEFINED));
+      case scm_tc7_lsubr:
+	RETURN (SCM_SUBRF (proc) (SCM_EOL));
+      case scm_tc7_rpsubr:
+	RETURN (SCM_BOOL_T);
+      case scm_tc7_asubr:
+	RETURN (SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED));
+      case scm_tc7_program:
+        RETURN (scm_c_vm_run (scm_the_vm (), proc, NULL, 0));
+      case scm_tc7_smob:
+	if (!SCM_SMOB_APPLICABLE_P (proc))
+	  goto badfun;
+	RETURN (SCM_SMOB_APPLY_0 (proc));
+      case scm_tc7_gsubr:
+	debug.info->a.proc = proc;
+	debug.info->a.args = SCM_EOL;
+	RETURN (scm_i_gsubr_apply (proc, SCM_UNDEFINED));
+      case scm_tc7_pws:
+	proc = SCM_PROCEDURE (proc);
+	debug.info->a.proc = proc;
+	if (!SCM_CLOSUREP (proc))
+	  goto evap0;
+        /* fallthrough */
+      case scm_tcs_closures:
+        {
+          const SCM formals = SCM_CLOSURE_FORMALS (proc);
+          if (SCM_UNLIKELY (scm_is_pair (formals)))
+            goto wrongnumargs;
+          x = SCM_CLOSURE_BODY (proc);
+          env = SCM_EXTEND_ENV (formals, SCM_EOL, SCM_ENV (proc));
+          goto nontoplevel_begin;
+        }
+      case scm_tcs_struct:
+	if (SCM_STRUCT_APPLICABLE_P (proc))
+          {
+            proc = SCM_STRUCT_PROCEDURE (proc);
+            debug.info->a.proc = proc;
+            goto evap0;
+	  }
+        else
+          goto badfun;
+      case scm_tc7_subr_1:
+      case scm_tc7_subr_2:
+      case scm_tc7_subr_2o:
+      case scm_tc7_dsubr:
+      case scm_tc7_cxr:
+      case scm_tc7_subr_3:
+      case scm_tc7_lsubr_2:
+      wrongnumargs:
+	scm_wrong_num_args (proc);
+      default:
+      badfun:
+        scm_misc_error (NULL, "Wrong type to apply: ~S", scm_list_1 (proc));
+      }
+  }
+
+  /* must handle macros by here */
+  x = SCM_CDR (x);
+  if (SCM_LIKELY (scm_is_pair (x)))
+    arg1 = EVALCAR (x, env);
+  else
+    scm_wrong_num_args (proc);
+  debug.info->a.args = scm_list_1 (arg1);
+  x = SCM_CDR (x);
+  {
+    SCM arg2;
+    if (scm_is_null (x))
+      {
+	ENTER_APPLY;
+      evap1: /* inputs: proc, arg1 */
+        SCM_ASRTGO (!SCM_IMP (proc), badfun);
+	switch (SCM_TYP7 (proc))
+	  {				/* have one argument in arg1 */
+	  case scm_tc7_subr_2o:
+	    RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
+	  case scm_tc7_subr_1:
+	  case scm_tc7_subr_1o:
+	    RETURN (SCM_SUBRF (proc) (arg1));
+	  case scm_tc7_dsubr:
+            if (SCM_I_INUMP (arg1))
+              {
+                RETURN (scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
+              }
+            else if (SCM_REALP (arg1))
+              {
+                RETURN (scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+              }
+            else if (SCM_BIGP (arg1))
+              {
+                RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+              }
+	    else if (SCM_FRACTIONP (arg1))
+	      {
+                RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
+	      }
+	    SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
+	  case scm_tc7_cxr:
+	    RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
+	  case scm_tc7_rpsubr:
+	    RETURN (SCM_BOOL_T);
+          case scm_tc7_program:
+            RETURN (scm_c_vm_run (scm_the_vm (), proc, &arg1, 1));
+	  case scm_tc7_asubr:
+	    RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
+	  case scm_tc7_lsubr:
+	    RETURN (SCM_SUBRF (proc) (debug.info->a.args));
+	  case scm_tc7_smob:
+	    if (!SCM_SMOB_APPLICABLE_P (proc))
+	      goto badfun;
+	    RETURN (SCM_SMOB_APPLY_1 (proc, arg1));
+	  case scm_tc7_gsubr:
+	    debug.info->a.args = debug.info->a.args;
+	    debug.info->a.proc = proc;
+	    RETURN (scm_i_gsubr_apply (proc, arg1, SCM_UNDEFINED));
+	  case scm_tc7_pws:
+	    proc = SCM_PROCEDURE (proc);
+	    debug.info->a.proc = proc;
+	    if (!SCM_CLOSUREP (proc))
+	      goto evap1;
+            /* fallthrough */
+	  case scm_tcs_closures:
+            {
+              /* clos1: */
+              const SCM formals = SCM_CLOSURE_FORMALS (proc);
+              if (scm_is_null (formals)
+                  || (scm_is_pair (formals) && scm_is_pair (SCM_CDR (formals))))
+                goto wrongnumargs;
+              x = SCM_CLOSURE_BODY (proc);
+              env = SCM_EXTEND_ENV (formals,
+                                    debug.info->a.args,
+                                    SCM_ENV (proc));
+              goto nontoplevel_begin;
+            }
+	  case scm_tcs_struct:
+	    if (SCM_STRUCT_APPLICABLE_P (proc))
+	      {
+		proc = SCM_STRUCT_PROCEDURE (proc);
+		debug.info->a.proc = proc;
+                goto evap1;
+	      }
+            else
+              goto badfun;
+	  case scm_tc7_subr_2:
+	  case scm_tc7_subr_0:
+	  case scm_tc7_subr_3:
+	  case scm_tc7_lsubr_2:
+	    scm_wrong_num_args (proc);
+	  default:
+	    goto badfun;
+	  }
+      }
+    if (SCM_LIKELY (scm_is_pair (x)))
+      arg2 = EVALCAR (x, env);
+    else
+      scm_wrong_num_args (proc);
+
+    {				/* have two or more arguments */
+      debug.info->a.args = scm_list_2 (arg1, arg2);
+      x = SCM_CDR (x);
+      if (scm_is_null (x)) {
+	ENTER_APPLY;
+      evap2:
+        SCM_ASRTGO (!SCM_IMP (proc), badfun);
+	switch (SCM_TYP7 (proc))
+	  {			/* have two arguments */
+	  case scm_tc7_subr_2:
+	  case scm_tc7_subr_2o:
+	    RETURN (SCM_SUBRF (proc) (arg1, arg2));
+	  case scm_tc7_lsubr:
+	    RETURN (SCM_SUBRF (proc) (debug.info->a.args));
+	  case scm_tc7_lsubr_2:
+	    RETURN (SCM_SUBRF (proc) (arg1, arg2, SCM_EOL));
+	  case scm_tc7_rpsubr:
+	  case scm_tc7_asubr:
+	    RETURN (SCM_SUBRF (proc) (arg1, arg2));
+          case scm_tc7_program:
+            { SCM args[2];
+              args[0] = arg1;
+              args[1] = arg2;
+              RETURN (scm_c_vm_run (scm_the_vm (), proc, args, 2));
+            }
+	  case scm_tc7_smob:
+	    if (!SCM_SMOB_APPLICABLE_P (proc))
+	      goto badfun;
+	    RETURN (SCM_SMOB_APPLY_2 (proc, arg1, arg2));
+	  case scm_tc7_gsubr:
+	    RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
+	  case scm_tcs_struct:
+	    if (SCM_STRUCT_APPLICABLE_P (proc))
+	      {
+	      operatorn:
+		RETURN (scm_apply (SCM_STRUCT_PROCEDURE (proc),
+                                   debug.info->a.args,
+                                   SCM_EOL));
+	      }
+            else
+              goto badfun;
+	  case scm_tc7_subr_0:
+	  case scm_tc7_dsubr:
+	  case scm_tc7_cxr:
+	  case scm_tc7_subr_1o:
+	  case scm_tc7_subr_1:
+	  case scm_tc7_subr_3:
+	    scm_wrong_num_args (proc);
+	  default:
+	    goto badfun;
+	  case scm_tc7_pws:
+	    proc = SCM_PROCEDURE (proc);
+	    debug.info->a.proc = proc;
+	    if (!SCM_CLOSUREP (proc))
+	      goto evap2;
+            /* fallthrough */
+	  case scm_tcs_closures:
+            {
+              /* clos2: */
+              const SCM formals = SCM_CLOSURE_FORMALS (proc);
+              if (scm_is_null (formals)
+                  || (scm_is_pair (formals)
+                      && (scm_is_null (SCM_CDR (formals))
+                          || (scm_is_pair (SCM_CDR (formals))
+                              && scm_is_pair (SCM_CDDR (formals))))))
+                goto wrongnumargs;
+              env = SCM_EXTEND_ENV (formals,
+                                    debug.info->a.args,
+                                    SCM_ENV (proc));
+              x = SCM_CLOSURE_BODY (proc);
+              goto nontoplevel_begin;
+            }
+	  }
+      }
+      if (SCM_UNLIKELY (!scm_is_pair (x)))
+	scm_wrong_num_args (proc);
+      debug.info->a.args = scm_cons2 (arg1, arg2,
+				      eval_args (x, env, proc,
+                                                 SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
+      ENTER_APPLY;
+    evap3:
+      SCM_ASRTGO (!SCM_IMP (proc), badfun);
+      switch (SCM_TYP7 (proc))
+	{			/* have 3 or more arguments */
+	case scm_tc7_subr_3:
+	  if (!scm_is_null (SCM_CDR (x)))
+	    scm_wrong_num_args (proc);
+	  else
+	    RETURN (SCM_SUBRF (proc) (arg1, arg2,
+				      SCM_CADDR (debug.info->a.args)));
+	case scm_tc7_asubr:
+	  arg1 = SCM_SUBRF(proc)(arg1, arg2);
+	  arg2 = SCM_CDDR (debug.info->a.args);
+	  do
+	    {
+	      arg1 = SCM_SUBRF(proc)(arg1, SCM_CAR (arg2));
+	      arg2 = SCM_CDR (arg2);
+	    }
+	  while (SCM_NIMP (arg2));
+	  RETURN (arg1);
+	case scm_tc7_rpsubr:
+	  if (scm_is_false (SCM_SUBRF (proc) (arg1, arg2)))
+	    RETURN (SCM_BOOL_F);
+	  arg1 = SCM_CDDR (debug.info->a.args);
+	  do
+	    {
+	      if (scm_is_false (SCM_SUBRF (proc) (arg2, SCM_CAR (arg1))))
+		RETURN (SCM_BOOL_F);
+	      arg2 = SCM_CAR (arg1);
+	      arg1 = SCM_CDR (arg1);
+	    }
+	  while (SCM_NIMP (arg1));
+	  RETURN (SCM_BOOL_T);
+	case scm_tc7_lsubr_2:
+	  RETURN (SCM_SUBRF (proc) (arg1, arg2,
+				    SCM_CDDR (debug.info->a.args)));
+	case scm_tc7_lsubr:
+	  RETURN (SCM_SUBRF (proc) (debug.info->a.args));
+	case scm_tc7_smob:
+	  if (!SCM_SMOB_APPLICABLE_P (proc))
+	    goto badfun;
+	  RETURN (SCM_SMOB_APPLY_3 (proc, arg1, arg2,
+				    SCM_CDDR (debug.info->a.args)));
+	case scm_tc7_gsubr:
+	  RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
+        case scm_tc7_program:
+          RETURN (scm_vm_apply (scm_the_vm (), proc, debug.info->a.args));
+	case scm_tc7_pws:
+	  proc = SCM_PROCEDURE (proc);
+	  debug.info->a.proc = proc;
+	  if (!SCM_CLOSUREP (proc))
+	    goto evap3;
+          /* fallthrough */
+	case scm_tcs_closures:
+          {
+            const SCM formals = SCM_CLOSURE_FORMALS (proc);
+            if (scm_is_null (formals)
+                || (scm_is_pair (formals)
+                    && (scm_is_null (SCM_CDR (formals))
+                        || (scm_is_pair (SCM_CDR (formals))
+                            && scm_badargsp (SCM_CDDR (formals), x)))))
+              goto wrongnumargs;
+            SCM_SET_ARGSREADY (debug);
+            env = SCM_EXTEND_ENV (formals,
+                                  debug.info->a.args,
+                                  SCM_ENV (proc));
+            x = SCM_CLOSURE_BODY (proc);
+            goto nontoplevel_begin;
+          }
+	case scm_tcs_struct:
+	  if (SCM_STRUCT_APPLICABLE_P (proc))
+	    goto operatorn;
+	  else
+	    goto badfun;
+	case scm_tc7_subr_2:
+	case scm_tc7_subr_1o:
+	case scm_tc7_subr_2o:
+	case scm_tc7_subr_0:
+	case scm_tc7_dsubr:
+	case scm_tc7_cxr:
+	case scm_tc7_subr_1:
+	  scm_wrong_num_args (proc);
+	default:
+	  goto badfun;
+	}
+    }
+  }
+exit:
+  if (scm_check_exit_p && SCM_TRAPS_P)
+    if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
+      {
+	SCM_CLEAR_TRACED_FRAME (debug);
+	arg1 = scm_make_debugobj (&debug);
+	SCM_TRAPS_P = 0;
+	arg1 = scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
+	SCM_TRAPS_P = 1;
+	if (scm_is_pair (arg1) && scm_is_eq (SCM_CAR (arg1), sym_instead))
+	  proc = SCM_CDR (arg1);
+      }
+  scm_i_set_last_debug_frame (debug.prev);
+  return proc;
+}
+
+
+
+
+/* Apply a function to a list of arguments.
+
+   This function is exported to the Scheme level as taking two
+   required arguments and a tail argument, as if it were:
+	(lambda (proc arg1 . args) ...)
+   Thus, if you just have a list of arguments to pass to a procedure,
+   pass the list as ARG1, and '() for ARGS.  If you have some fixed
+   args, pass the first as ARG1, then cons any remaining fixed args
+   onto the front of your argument list, and pass that as ARGS.  */
+
+SCM 
+scm_apply (SCM proc, SCM arg1, SCM args)
+{
+  scm_t_debug_frame debug;
+  scm_t_debug_info debug_vect_body;
+  debug.prev = scm_i_last_debug_frame ();
+  debug.status = SCM_APPLYFRAME;
+  debug.vect = &debug_vect_body;
+  debug.vect[0].a.proc = proc;
+  debug.vect[0].a.args = SCM_EOL;
+  scm_i_set_last_debug_frame (&debug);
+
+  SCM_ASRTGO (SCM_NIMP (proc), badproc);
+
+  /* If ARGS is the empty list, then we're calling apply with only two
+     arguments --- ARG1 is the list of arguments for PROC.  Whatever
+     the case, futz with things so that ARG1 is the first argument to
+     give to PROC (or SCM_UNDEFINED if no args), and ARGS contains the
+     rest.
+
+     Setting the debug apply frame args this way is pretty messy.
+     Perhaps we should store arg1 and args directly in the frame as
+     received, and let scm_frame_arguments unpack them, because that's
+     a relatively rare operation.  This works for now; if the Guile
+     developer archives are still around, see Mikael's post of
+     11-Apr-97.  */
+  if (scm_is_null (args))
+    {
+      if (scm_is_null (arg1))
+	{
+	  arg1 = SCM_UNDEFINED;
+	  debug.vect[0].a.args = SCM_EOL;
+	}
+      else
+	{
+	  debug.vect[0].a.args = arg1;
+	  args = SCM_CDR (arg1);
+	  arg1 = SCM_CAR (arg1);
+	}
+    }
+  else
+    {
+      args = scm_nconc2last (args);
+      debug.vect[0].a.args = scm_cons (arg1, args);
+    }
+  if (SCM_ENTER_FRAME_P && SCM_TRAPS_P)
+    {
+      SCM tmp = scm_make_debugobj (&debug);
+      SCM_TRAPS_P = 0;
+      scm_call_2 (SCM_ENTER_FRAME_HDLR, scm_sym_enter_frame, tmp);
+      SCM_TRAPS_P = 1;
+    }
+  ENTER_APPLY;
+tail:
+  switch (SCM_TYP7 (proc))
+    {
+    case scm_tc7_subr_2o:
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1)))
+	scm_wrong_num_args (proc);
+      if (scm_is_null (args))
+        args = SCM_UNDEFINED;
+      else
+        {
+          if (SCM_UNLIKELY (! scm_is_null (SCM_CDR (args))))
+            scm_wrong_num_args (proc);
+          args = SCM_CAR (args);
+        }
+      RETURN (SCM_SUBRF (proc) (arg1, args));
+    case scm_tc7_subr_2:
+      if (SCM_UNLIKELY (scm_is_null (args) ||
+			    !scm_is_null (SCM_CDR (args))))
+	scm_wrong_num_args (proc);
+      args = SCM_CAR (args);
+      RETURN (SCM_SUBRF (proc) (arg1, args));
+    case scm_tc7_subr_0:
+      if (SCM_UNLIKELY (!SCM_UNBNDP (arg1)))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) ());
+    case scm_tc7_subr_1:
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1)))
+	scm_wrong_num_args (proc);
+    case scm_tc7_subr_1o:
+      if (SCM_UNLIKELY (!scm_is_null (args)))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) (arg1));
+    case scm_tc7_dsubr:
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
+	scm_wrong_num_args (proc);
+      if (SCM_I_INUMP (arg1))
+        {
+          RETURN (scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1))));
+        }
+      else if (SCM_REALP (arg1))
+        {
+          RETURN (scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1))));
+        }
+      else if (SCM_BIGP (arg1))
+	{
+	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1))));
+	}
+      else if (SCM_FRACTIONP (arg1))
+	{
+	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
+	}
+      SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
+    case scm_tc7_cxr:
+      if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
+	scm_wrong_num_args (proc);
+      RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
+    case scm_tc7_subr_3:
+      if (SCM_UNLIKELY (scm_is_null (args)
+			    || scm_is_null (SCM_CDR (args))
+			    || !scm_is_null (SCM_CDDR (args))))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CADR (args)));
+    case scm_tc7_lsubr:
+      RETURN (SCM_SUBRF (proc) (SCM_UNBNDP (arg1) ? SCM_EOL : debug.vect[0].a.args));
+    case scm_tc7_lsubr_2:
+      if (SCM_UNLIKELY (!scm_is_pair (args)))
+	scm_wrong_num_args (proc);
+      else
+	RETURN (SCM_SUBRF (proc) (arg1, SCM_CAR (args), SCM_CDR (args)));
+    case scm_tc7_asubr:
+      if (scm_is_null (args))
+	RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
+      while (SCM_NIMP (args))
+	{
+	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, "apply");
+	  arg1 = SCM_SUBRF (proc) (arg1, SCM_CAR (args));
+	  args = SCM_CDR (args);
+	}
+      RETURN (arg1);
+    case scm_tc7_program:
+      if (SCM_UNBNDP (arg1))
+        RETURN (scm_c_vm_run (scm_the_vm (), proc, NULL, 0));
+      else
+        RETURN (scm_vm_apply (scm_the_vm (), proc, scm_cons (arg1, args)));
+    case scm_tc7_rpsubr:
+      if (scm_is_null (args))
+	RETURN (SCM_BOOL_T);
+      while (SCM_NIMP (args))
+	{
+	  SCM_ASSERT (scm_is_pair (args), args, SCM_ARG2, "apply");
+	  if (scm_is_false (SCM_SUBRF (proc) (arg1, SCM_CAR (args))))
+	    RETURN (SCM_BOOL_F);
+	  arg1 = SCM_CAR (args);
+	  args = SCM_CDR (args);
+	}
+      RETURN (SCM_BOOL_T);
+    case scm_tcs_closures:
+      arg1 = (SCM_UNBNDP (arg1) ? SCM_EOL : debug.vect[0].a.args);
+      if (SCM_UNLIKELY (scm_badargsp (SCM_CLOSURE_FORMALS (proc), arg1)))
+	scm_wrong_num_args (proc);
+      
+      /* Copy argument list */
+      if (SCM_IMP (arg1))
+	args = arg1;
+      else
+	{
+	  SCM tl = args = scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED);
+	  for (arg1 = SCM_CDR (arg1); scm_is_pair (arg1); arg1 = SCM_CDR (arg1))
+	    {
+	      SCM_SETCDR (tl, scm_cons (SCM_CAR (arg1), SCM_UNSPECIFIED));
+	      tl = SCM_CDR (tl);
+	    }
+	  SCM_SETCDR (tl, arg1);
+	}
+      
+      args = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (proc),
+                             args,
+                             SCM_ENV (proc));
+      proc = SCM_CLOSURE_BODY (proc);
+    again:
+      arg1 = SCM_CDR (proc);
+      while (!scm_is_null (arg1))
+	{
+	  if (SCM_IMP (SCM_CAR (proc)))
+	    {
+	      if (SCM_ISYMP (SCM_CAR (proc)))
+		{
+		  scm_dynwind_begin (0);
+		  scm_i_dynwind_pthread_mutex_lock (&source_mutex);
+		  /* check for race condition */
+		  if (SCM_ISYMP (SCM_CAR (proc)))
+		    m_expand_body (proc, args);
+		  scm_dynwind_end ();
+		  goto again;
+		}
+	      else
+		SCM_VALIDATE_NON_EMPTY_COMBINATION (SCM_CAR (proc));
+	    }
+	  else
+	    (void) EVAL (SCM_CAR (proc), args);
+	  proc = arg1;
+          arg1 = SCM_CDR (proc);
+	}
+      RETURN (EVALCAR (proc, args));
+    case scm_tc7_smob:
+      if (!SCM_SMOB_APPLICABLE_P (proc))
+	goto badproc;
+      if (SCM_UNBNDP (arg1))
+	RETURN (SCM_SMOB_APPLY_0 (proc));
+      else if (scm_is_null (args))
+	RETURN (SCM_SMOB_APPLY_1 (proc, arg1));
+      else if (scm_is_null (SCM_CDR (args)))
+	RETURN (SCM_SMOB_APPLY_2 (proc, arg1, SCM_CAR (args)));
+      else
+	RETURN (SCM_SMOB_APPLY_3 (proc, arg1, SCM_CAR (args), SCM_CDR (args)));
+    case scm_tc7_gsubr:
+      args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
+      debug.vect[0].a.proc = proc;
+      debug.vect[0].a.args = args;
+      RETURN (scm_i_gsubr_apply_list (proc, args));
+    case scm_tc7_pws:
+      proc = SCM_PROCEDURE (proc);
+      debug.vect[0].a.proc = proc;
+      goto tail;
+    case scm_tcs_struct:
+      if (SCM_STRUCT_APPLICABLE_P (proc))
+	{
+          proc = SCM_STRUCT_PROCEDURE (proc);
+          debug.vect[0].a.proc = proc;
+	  if (SCM_NIMP (proc))
+	    goto tail;
+	  else
+	    goto badproc;
+	}
+      else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	{
+	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
+	  RETURN (scm_apply_generic (proc, args));
+	}
+      else
+        goto badproc;
+    default:
+    badproc:
+      scm_wrong_type_arg ("apply", SCM_ARG1, proc);
+    }
+exit:
+  if (scm_check_exit_p && SCM_TRAPS_P)
+    if (SCM_EXIT_FRAME_P || (SCM_TRACE_P && SCM_TRACED_FRAME_P (debug)))
+      {
+	SCM_CLEAR_TRACED_FRAME (debug);
+	arg1 = scm_make_debugobj (&debug);
+	SCM_TRAPS_P = 0;
+	arg1 = scm_call_3 (SCM_EXIT_FRAME_HDLR, scm_sym_exit_frame, arg1, proc);
+	SCM_TRAPS_P = 1;
+	if (scm_is_pair (arg1) && scm_is_eq (SCM_CAR (arg1), sym_instead))
+	  proc = SCM_CDR (arg1);
+      }
+  scm_i_set_last_debug_frame (debug.prev);
+  return proc;
+}
+
+#undef RETURN
+#undef ENTER_APPLY
+#undef PREP_APPLY
 
 
 void 
