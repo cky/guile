@@ -74,8 +74,6 @@ static SCM unmemoize_exprs (SCM expr, SCM env);
 static SCM canonicalize_define (SCM expr);
 static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
 static SCM unmemoize_builtin_macro (SCM expr, SCM env);
-static void ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol);
-static SCM ceval (SCM x, SCM env);
 static SCM deval (SCM x, SCM env);
 
 
@@ -2589,15 +2587,11 @@ scm_badargsp (SCM formals, SCM args)
  *   memoized.  Expressions that are not of the form '(<form> <form> ...)' are
  *   evaluated inline without calling an evaluator.
  *
- *   This macro uses ceval or deval depending on its 3rd argument.
- *
  *   SCM_I_XEVALCAR evaluates the car of an expression 'X:(Y:<form> <form> ...)',
  *   potentially replacing a symbol at the position Y:<form> by its memoized
  *   variable.  If Y:<form> is not of the form '(<form> <form> ...)', the
  *   evaluation is performed inline without calling an evaluator.
  *  
- *   This macro uses ceval or deval depending on its 3rd argument.
- *
  */
 
 #define SCM_I_EVALIM2(x) \
@@ -2610,26 +2604,22 @@ scm_badargsp (SCM formals, SCM args)
                             ? *scm_ilookup ((x), (env)) \
 			    : SCM_I_EVALIM2(x))
 
-#define SCM_I_XEVAL(x, env, debug_p)			\
+#define SCM_I_XEVAL(x, env)			\
   (SCM_IMP (x) \
    ? SCM_I_EVALIM2 (x) \
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
       : (scm_is_pair (x) \
-         ? (debug_p \
-            ? deval ((x), (env)) \
-            : ceval ((x), (env))) \
+         ? deval ((x), (env))                   \
          : (x))))
 
-#define SCM_I_XEVALCAR(x, env, debug_p)			\
+#define SCM_I_XEVALCAR(x, env)			\
   (SCM_IMP (SCM_CAR (x)) \
    ? SCM_I_EVALIM (SCM_CAR (x), (env)) \
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
       : (scm_is_pair (SCM_CAR (x)) \
-         ? (debug_p \
-            ? deval (SCM_CAR (x), (env)) \
-            : ceval (SCM_CAR (x), (env))) \
+         ? deval (SCM_CAR (x), (env))         \
          : (!scm_is_symbol (SCM_CAR (x)) \
             ? SCM_CAR (x) \
             : *scm_lookupcar ((x), (env), 1)))))
@@ -2891,7 +2881,7 @@ lazy_memoize_variable (const SCM symbol, const SCM environment)
 SCM
 scm_eval_car (SCM pair, SCM env)
 {
-  return SCM_I_XEVALCAR (pair, env, scm_debug_mode_p);
+  return SCM_I_XEVALCAR (pair, env);
 }
 
 
@@ -2918,11 +2908,11 @@ scm_eval_body (SCM code, SCM env)
 	    }
 	}
       else
-	SCM_I_XEVAL (SCM_CAR (code), env, scm_debug_mode_p);
+	SCM_I_XEVAL (SCM_CAR (code), env);
       code = next;
       next = SCM_CDR (code);
     }
-  return SCM_I_XEVALCAR (code, env, scm_debug_mode_p);
+  return SCM_I_XEVALCAR (code, env);
 }
 
 
@@ -3698,7 +3688,7 @@ scm_i_eval_x (SCM exp, SCM env)
   if (scm_is_symbol (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
-    return SCM_I_XEVAL (exp, env, scm_debug_mode_p);
+    return SCM_I_XEVAL (exp, env);
 }
 
 SCM 
@@ -3708,7 +3698,7 @@ scm_i_eval (SCM exp, SCM env)
   if (scm_is_symbol (exp))
     return *scm_lookupcar (scm_cons (exp, SCM_UNDEFINED), env, 1);
   else
-    return SCM_I_XEVAL (exp, env, scm_debug_mode_p);
+    return SCM_I_XEVAL (exp, env);
 }
 
 SCM
@@ -3795,10 +3785,33 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 /* At this point, deval and scm_dapply are generated.
  */
 
+static void
+ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
+{
+  SCM argv[10];
+  int i = 0, imax = sizeof (argv) / sizeof (SCM);
+
+  while (!scm_is_null (init_forms))
+    {
+      if (imax == i)
+	{
+	  ceval_letrec_inits (env, init_forms, init_values_eol);
+	  break;
+	}
+      argv[i++] = SCM_I_XEVALCAR (init_forms, env);
+      init_forms = SCM_CDR (init_forms);
+    }
+ 
+  for (i--; i >= 0; i--)
+    {
+      **init_values_eol = scm_list_1 (argv[i]);
+      *init_values_eol = SCM_CDRLOC (**init_values_eol);
+    }
+}
+
 #define DEVAL
 #include "eval.i.c"
 #undef DEVAL
-#include "eval.i.c"
 
 
 void 

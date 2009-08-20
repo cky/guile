@@ -35,7 +35,7 @@
 
 #define EVAL_DEBUGGING_P 1
 #define CEVAL deval	/* Substitute all uses of ceval */
-#define SCM_APPLY scm_dapply
+#define SCM_APPLY scm_apply
 #define PREP_APPLY(p, l)						\
 { ++debug.info; debug.info->a.proc = p; debug.info->a.args = l; }
 
@@ -71,7 +71,7 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
   SCM *results = lloc;
   while (scm_is_pair (l))
     {
-      const SCM res = SCM_I_XEVALCAR (l, env, 1);
+      const SCM res = SCM_I_XEVALCAR (l, env);
 
       *lloc = scm_list_1 (res);
       lloc = SCM_CDRLOC (*lloc);
@@ -106,30 +106,6 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 
 
 
-static void
-ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
-{
-  SCM argv[10];
-  int i = 0, imax = sizeof (argv) / sizeof (SCM);
-
-  while (!scm_is_null (init_forms))
-    {
-      if (imax == i)
-	{
-	  ceval_letrec_inits (env, init_forms, init_values_eol);
-	  break;
-	}
-      argv[i++] = SCM_I_XEVALCAR (init_forms, env, 0);
-      init_forms = SCM_CDR (init_forms);
-    }
- 
-  for (i--; i >= 0; i--)
-    {
-      **init_values_eol = scm_list_1 (argv[i]);
-      *init_values_eol = SCM_CDRLOC (**init_values_eol);
-    }
-}
-
 static SCM 
 scm_ceval_args (SCM l, SCM env, SCM proc)
 {
@@ -161,8 +137,8 @@ scm_eval_args (SCM l, SCM env, SCM proc)
 
 
 
-#define EVAL(x, env) SCM_I_XEVAL(x, env, EVAL_DEBUGGING_P)
-#define EVALCAR(x, env) SCM_I_XEVALCAR(x, env, EVAL_DEBUGGING_P)
+#define EVAL(x, env) SCM_I_XEVAL(x, env)
+#define EVALCAR(x, env) SCM_I_XEVALCAR(x, env)
 
 
 
