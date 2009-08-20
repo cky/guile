@@ -46,66 +46,66 @@ Italiam, fato profugus, Laviniaque venit")
 
   (with-benchmark-prefix "predicates"
 
-    (benchmark "string?" 250000
+    (benchmark "string?" 1190000
       (string? short-string)
       (string? medium-string)
       (string? long-string))
 
-    (benchmark "null?" 390000
+    (benchmark "null?" 969000
       (string-null? short-string)
       (string-null? medium-string)
       (string-null? long-string))
     
-    (benchmark "any" 22000
+    (benchmark "any" 94000
       (string-any #\a short-string)
       (string-any #\a medium-string)
       (string-any #\a long-string))
 
-    (benchmark "every" 22000
+    (benchmark "every" 94000
       (string-every #\a short-string)
       (string-every #\a medium-string)
       (string-every #\a long-string)))
 
   (with-benchmark-prefix "constructors"
 
-    (benchmark "string" 2000
+    (benchmark "string" 5000
       (apply string short-chlist)         
       (apply string medium-chlist)
       (apply string long-chlist))
 
-    (benchmark "list->" 2500
+    (benchmark "list->" 4500
       (list->string short-chlist)
       (list->string medium-chlist)
       (list->string long-chlist))
 
-    (benchmark "reverse-list->" 2000
+    (benchmark "reverse-list->" 5000
       (reverse-list->string short-chlist)
       (reverse-list->string medium-chlist)
       (reverse-list->string long-chlist))
 
-    (benchmark "make" 20000
+    (benchmark "make" 22000
       (make-string 250 #\x))
 
-    (benchmark "tabulate" 16000
+    (benchmark "tabulate" 17000
       (string-tabulate integer->char 250))
 
-    (benchmark "join" 5000
+    (benchmark "join" 5500
       (string-join (list short-string medium-string long-string) "|" 'suffix)))
 
   (with-benchmark-prefix "list/string"
-    (benchmark "->list" 3300
+    (benchmark "->list" 7300
       (string->list short-string)
       (string->list medium-string)
       (string->list long-string))
 
-    (benchmark "split" 20000
+    (benchmark "split" 60000
       (string-split short-string #\a)
       (string-split medium-string #\a)
       (string-split long-string #\a)))
 
   (with-benchmark-prefix "selection"
 
-    (benchmark "ref" 300
+    (benchmark "ref" 660
       (let loop ((k 0))
         (if (< k (string-length short-string))
             (begin
@@ -122,7 +122,7 @@ Italiam, fato profugus, Laviniaque venit")
               (string-ref long-string k)
               (loop (+ k 1))))))
 
-    (benchmark "copy" 20000
+    (benchmark "copy" 1100
       (string-copy short-string)
       (string-copy medium-string)
       (string-copy long-string)
@@ -130,12 +130,12 @@ Italiam, fato profugus, Laviniaque venit")
       (substring/copy medium-string 10 20)
       (substring/copy long-string 100 200))
 
-    (benchmark "pad" 20000
+    (benchmark "pad" 6800
       (string-pad short-string 100)
       (string-pad medium-string 100)
       (string-pad long-string 100))
 
-    (benchmark "trim trim-right trim-both" 20000
+    (benchmark "trim trim-right trim-both" 60000
       (string-trim short-string char-alphabetic?)
       (string-trim medium-string char-alphabetic?)
       (string-trim long-string char-alphabetic?)
@@ -152,7 +152,7 @@ Italiam, fato profugus, Laviniaque venit")
     (set! str2 (string-copy medium-string))   
     (set! str3 (string-copy long-string))
 
-    (benchmark "set!" 300
+    (benchmark "set!" 3000
       (let loop ((k 1))
         (if (< k (string-length short-string))
             (begin
@@ -173,7 +173,7 @@ Italiam, fato profugus, Laviniaque venit")
     (set! str2 (string-copy medium-string))   
     (set! str3 (string-copy long-string))
 
-    (benchmark "sub-move!" 20000
+    (benchmark "sub-move!" 230000
       (substring-move! short-string 0 2 str2 10)
       (substring-move! medium-string 10 20 str3 20))
 
@@ -181,66 +181,66 @@ Italiam, fato profugus, Laviniaque venit")
     (set! str2 (string-copy medium-string))   
     (set! str3 (string-copy long-string))
 
-    (benchmark "fill!" 20000
+    (benchmark "fill!" 230000
       (string-fill! str1 #\y 0 1)
       (string-fill! str2 #\y 10 20)
       (string-fill! str3 #\y 20 30))
 
   (with-benchmark-prefix "comparison"
 
-    (benchmark "compare compare-ci" 20000
+    (benchmark "compare compare-ci" 140000
       (string-compare short-string medium-string string<? string=? string>?)  
       (string-compare long-string medium-string string<? string=? string>?)
-      (string-compare short-string medium-string string<? string=? string>?)  
-      (string-compare long-string medium-string string<? string=? string>?))
+      (string-compare-ci short-string medium-string string<? string=? string>?)  
+      (string-compare-ci long-string medium-string string<? string=? string>?))
   
-    (benchmark "hash hash-ci" 20000
+    (benchmark "hash hash-ci" 1000
       (string-hash short-string)
       (string-hash medium-string)
       (string-hash long-string)
-      (string-hash short-string)
-      (string-hash medium-string)
-      (string-hash long-string))))
+      (string-hash-ci short-string)
+      (string-hash-ci medium-string)
+      (string-hash-ci long-string))))
   
   (with-benchmark-prefix "searching" 20000
 
-    (benchmark "prefix-length suffix-length" 1000
+    (benchmark "prefix-length suffix-length" 270
       (string-prefix-length short-string 
                             (string-append short-string medium-string))
       (string-prefix-length long-string 
                             (string-append long-string medium-string))
       (string-suffix-length short-string
-                            (string-append long-string medium-string))
+                            (string-append medium-string short-string))
       (string-suffix-length long-string
-                            (string-append long-string medium-string))
+                            (string-append medium-string long-string))
       (string-prefix-length-ci short-string 
                             (string-append short-string medium-string))
       (string-prefix-length-ci long-string 
                             (string-append long-string medium-string))
       (string-suffix-length-ci short-string
-                            (string-append long-string medium-string))
+                            (string-append medium-string short-string))
       (string-suffix-length-ci long-string
-                            (string-append long-string medium-string)))
+                            (string-append medium-string long-string)))
 
-    (benchmark "prefix? suffix?" 1000
+    (benchmark "prefix? suffix?" 270
       (string-prefix? short-string 
                             (string-append short-string medium-string))
       (string-prefix? long-string 
                             (string-append long-string medium-string))
       (string-suffix? short-string
-                            (string-append long-string medium-string))
+                            (string-append medium-string short-string))
       (string-suffix? long-string
-                            (string-append long-string medium-string))
-      (string-prefix? short-string 
+                            (string-append medium-string long-string))
+      (string-prefix-ci? short-string 
                             (string-append short-string medium-string))
-      (string-prefix? long-string 
+      (string-prefix-ci? long-string 
                             (string-append long-string medium-string))
-      (string-suffix? short-string
-                            (string-append long-string medium-string))
-      (string-suffix? long-string
-                            (string-append long-string medium-string)))
+      (string-suffix-ci? short-string
+                            (string-append medium-string short-string))
+      (string-suffix-ci? long-string
+                            (string-append medium-string long-string)))
 
-    (benchmark "index index-right rindex" 10000
+    (benchmark "index index-right rindex" 100000
       (string-index short-string #\T)
       (string-index medium-string #\T)
       (string-index long-string #\T)
@@ -251,7 +251,7 @@ Italiam, fato profugus, Laviniaque venit")
       (string-rindex medium-string #\T)
       (string-rindex long-string #\T))
 
-    (benchmark "skip skip-right?" 10000
+    (benchmark "skip skip-right?" 100000
       (string-skip short-string char-alphabetic?)
       (string-skip medium-string char-alphabetic?)
       (string-skip long-string char-alphabetic?)
@@ -259,12 +259,12 @@ Italiam, fato profugus, Laviniaque venit")
       (string-skip-right medium-string char-alphabetic?)
       (string-skip-right long-string char-alphabetic?))
 
-    (benchmark "count" 3000
+    (benchmark "count" 10000
       (string-count short-string char-alphabetic?)
       (string-count medium-string char-alphabetic?)
       (string-count long-string char-alphabetic?))
     
-    (benchmark "contains contains-ci" 10000
+    (benchmark "contains contains-ci" 34000
       (string-contains short-string short-string)
       (string-contains medium-string (substring medium-string 10 15))
       (string-contains long-string (substring long-string 100 130))
@@ -276,7 +276,7 @@ Italiam, fato profugus, Laviniaque venit")
     (set! str2 (string-copy medium-string))   
     (set! str3 (string-copy long-string))
 
-    (benchmark "upcase downcase upcase! downcase!" 500
+    (benchmark "upcase downcase upcase! downcase!" 600
       (string-upcase short-string)
       (string-upcase medium-string)
       (string-upcase long-string)
@@ -288,4 +288,23 @@ Italiam, fato profugus, Laviniaque venit")
       (string-upcase! str3 100 130)
       (string-downcase! str1 0 1)
       (string-downcase! str2 10 20)
-      (string-downcase! str3 100 130))))
+      (string-downcase! str3 100 130)))
+
+  (with-benchmark-prefix "readers"
+
+    (benchmark "read token, method 1" 1200
+      (let ((buf (make-string 512)))
+        (let loop ((i 0))
+          (if (< i 512)
+              (begin 
+                (string-set! buf i #\x)
+                (loop (+ i 1)))
+              buf))))
+
+    (benchmark "read token, method 2" 1200
+      (let ((lst '()))   
+        (let loop ((i 0))
+          (set! lst (append! lst (list #\x)))
+          (if (< i 512)
+              (loop (+ i 1))
+              (list->string lst)))))))
