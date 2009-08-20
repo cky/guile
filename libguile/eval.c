@@ -3780,7 +3780,7 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
  */
 
 static void
-ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
+eval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
 {
   SCM argv[10];
   int i = 0, imax = sizeof (argv) / sizeof (SCM);
@@ -3789,7 +3789,7 @@ ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
     {
       if (imax == i)
 	{
-	  ceval_letrec_inits (env, init_forms, init_values_eol);
+	  eval_letrec_inits (env, init_forms, init_values_eol);
 	  break;
 	}
       argv[i++] = EVALCAR (init_forms, env);
@@ -4255,7 +4255,7 @@ dispatch:
             SCM init_forms = SCM_CAR (x);
 	    SCM init_values = scm_list_1 (SCM_BOOL_T);
 	    SCM *init_values_eol = SCM_CDRLOC (init_values);
-	    ceval_letrec_inits (env, init_forms, &init_values_eol);
+	    eval_letrec_inits (env, init_forms, &init_values_eol);
             SCM_SETCDR (SCM_CAR (env), SCM_CDR (init_values));
           }
           x = SCM_CDR (x);
