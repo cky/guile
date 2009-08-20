@@ -467,7 +467,6 @@
                   ,@(if docstring (list docstring) '())
                   ,exp)
                src)))))
-
   (define build-case-lambda
     (lambda (src docstring body)
       (case (fluid-ref *mode*)
@@ -584,7 +583,8 @@
               (build-application src (build-lexical-reference 'fun src f-name f)
                                  val-exps))))
           (else (decorate-source
-                 `(let ,f ,(map list vars val-exps) ,body-exp)
+                 `(letrec ((,f (lambda ,vars ,body-exp)))
+                    (,f ,@val-exps))
                  src))))))
 
   (define build-letrec
