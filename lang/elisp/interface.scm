@@ -20,7 +20,10 @@
 
 (define (eval-elisp x)
   "Evaluate the Elisp expression @var{x}."
-  (eval x the-elisp-module))
+  (save-module-excursion 
+   (lambda ()
+     (set-current-module the-elisp-module)
+     (primitive-eval x))))
 
 (define (translate-elisp x)
   "Translate the Elisp expression @var{x} to equivalent Scheme code."
