@@ -19,21 +19,10 @@
  * 02110-1301 USA
  */
 
-#undef RETURN
-#undef ENTER_APPLY
-#undef PREP_APPLY
-#undef CEVAL
-#undef SCM_APPLY
-#undef EVAL_DEBUGGING_P
-
-
 /*
   This code is specific for the debugging support.
  */
 
-#define EVAL_DEBUGGING_P 1
-#define CEVAL deval	/* Substitute all uses of ceval */
-#define SCM_APPLY scm_apply
 #define PREP_APPLY(p, l)						\
 { ++debug.info; debug.info->a.proc = p; debug.info->a.args = l; }
 
@@ -64,7 +53,7 @@ do { \
 
 
 static SCM
-deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
+eval_args (SCM l, SCM env, SCM proc, SCM *lloc)
 {
   SCM *results = lloc;
   while (scm_is_pair (l))
@@ -102,20 +91,10 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
   ASSERT_SYNTAX (!scm_is_eq ((x), SCM_EOL), s_empty_combination, x)
 
 
-/* This is the evaluator.  Like any real monster, it has three heads:
+/* This is the evaluator.
  *
- * ceval is the non-debugging evaluator, deval is the debugging version.  Both
- * are implemented using a common code base, using the following mechanism:
- * CEVAL is a macro, which is either defined to ceval or deval.  Thus, there
- * is no function CEVAL, but the code for CEVAL actually compiles to either
- * ceval or deval.  When CEVAL is defined to ceval, it is known that the macro
- * DEVAL is not defined.  When CEVAL is defined to deval, then the macro DEVAL
- * is known to be defined.  Thus, in CEVAL parts for the debugging evaluator
- * are enclosed within #ifdef DEVAL ... #endif.
- *
- * All three (ceval, deval and their common implementation CEVAL) take two
- * input parameters, x and env: x is a single expression to be evalutated.
- * env is the environment in which bindings are searched.
+ * eval takes two input parameters, x and env: x is a single expression to be
+ * evalutated. env is the environment in which bindings are searched.
  *
  * x is known to be a pair.  Since x is a single expression, it is necessarily
  * in a tail position.  If x is just a call to another function like in the
@@ -123,13 +102,13 @@ deval_args (SCM l, SCM env, SCM proc, SCM *lloc)
  * _must_not_ increase stack usage (the evaluation of exp1, exp2 etc.,
  * however, may do so).  This is realized by making extensive use of 'goto'
  * statements within the evaluator: The gotos replace recursive calls to
- * CEVAL, thus re-using the same stack frame that CEVAL was already using.
+ * `eval', thus re-using the same stack frame that `eval' was already using.
  * If, however, x represents some form that requires to evaluate a sequence of
- * expressions like (begin exp1 exp2 ...), then recursive calls to CEVAL are
+ * expressions like (begin exp1 exp2 ...), then recursive calls to `eval' are
  * performed for all but the last expression of that sequence.  */
 
 static SCM
-CEVAL (SCM x, SCM env)
+eval (SCM x, SCM env)
 {
   SCM proc, arg1;
   scm_t_debug_frame debug;
@@ -354,7 +333,7 @@ dispatch:
 			arg1 = scm_list_1 (arg1);
 		      xx = SCM_CDR (clause);
 		      proc = EVALCAR (xx, env);
-		      guard_result = SCM_APPLY (proc, arg1, SCM_EOL);
+		      guard_result = scm_apply (proc, arg1, SCM_EOL);
 		      if (scm_is_true_and_not_nil (guard_result))
 			{
 			  proc = SCM_CDDR (xx);
@@ -619,7 +598,7 @@ dispatch:
 	  else
 	    {
               ENTER_APPLY;
-              RETURN (SCM_APPLY (proc, arg1, SCM_EOL));
+              RETURN (scm_apply (proc, arg1, SCM_EOL));
 	    }
 
 
@@ -716,7 +695,7 @@ dispatch:
 	    for (x = SCM_CDR (x); !scm_is_null (SCM_CDR (x)); x = SCM_CDR (x))
 	      {
 		if (scm_is_pair (SCM_CAR (x)))
-		  CEVAL (SCM_CAR (x), env);
+		  eval (SCM_CAR (x), env);
 	      }
 	    proc = EVALCAR (x, env);
 	  
@@ -735,7 +714,7 @@ dispatch:
 	    producer = EVALCAR (x, env);
 	    x = SCM_CDR (x);
 	    proc = EVALCAR (x, env);  /* proc is the consumer. */
-	    arg1 = SCM_APPLY (producer, SCM_EOL, SCM_EOL);
+	    arg1 = scm_apply (producer, SCM_EOL, SCM_EOL);
 	    if (SCM_VALUESP (arg1))
               {
                 /* The list of arguments is not copied.  Rather, it is assumed
@@ -762,7 +741,7 @@ dispatch:
       else if (SCM_ILOCP (SCM_CAR (x)))
         proc = *scm_ilookup (SCM_CAR (x), env);
       else if (scm_is_pair (SCM_CAR (x)))
-	proc = CEVAL (SCM_CAR (x), env);
+	proc = eval (SCM_CAR (x), env);
       else if (scm_is_symbol (SCM_CAR (x)))
 	{
 	  SCM orig_sym = SCM_CAR (x);
@@ -801,7 +780,7 @@ dispatch:
 	      /* Set a flag during macro expansion so that macro
 		 application frames can be deleted from the backtrace. */
 	      SCM_SET_MACROEXP (debug);
-	      arg1 = SCM_APPLY (SCM_MACRO_CODE (proc), x,
+	      arg1 = scm_apply (SCM_MACRO_CODE (proc), x,
                                 scm_cons (env, scm_listofnull));
 	      SCM_CLEAR_MACROEXP (debug);
 	      switch (SCM_MACRO_TYPE (proc))
@@ -1067,7 +1046,7 @@ dispatch:
 	    if (SCM_STRUCT_APPLICABLE_P (proc))
 	      {
 	      operatorn:
-		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
+		RETURN (scm_apply (SCM_STRUCT_PROCEDURE (proc),
 				   debug.info->a.args,
 				   SCM_EOL));
 	      }
@@ -1109,8 +1088,8 @@ dispatch:
       if (SCM_UNLIKELY (!scm_is_pair (x)))
 	scm_wrong_num_args (proc);
       debug.info->a.args = scm_cons2 (arg1, arg2,
-				      deval_args (x, env, proc,
-						  SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
+				      eval_args (x, env, proc,
+                                                 SCM_CDRLOC (SCM_CDR (debug.info->a.args))));
       ENTER_APPLY;
     evap3:
       SCM_ASRTGO (!SCM_IMP (proc), badfun);
@@ -1229,7 +1208,7 @@ exit:
    onto the front of your argument list, and pass that as ARGS.  */
 
 SCM 
-SCM_APPLY (SCM proc, SCM arg1, SCM args)
+scm_apply (SCM proc, SCM arg1, SCM args)
 {
   scm_t_debug_frame debug;
   scm_t_debug_info debug_vect_body;
@@ -1485,3 +1464,6 @@ exit:
   return proc;
 }
 
+#undef RETURN
+#undef ENTER_APPLY
+#undef PREP_APPLY

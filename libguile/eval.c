@@ -74,7 +74,7 @@ static SCM unmemoize_exprs (SCM expr, SCM env);
 static SCM canonicalize_define (SCM expr);
 static SCM *scm_lookupcar1 (SCM vloc, SCM genv, int check);
 static SCM unmemoize_builtin_macro (SCM expr, SCM env);
-static SCM deval (SCM x, SCM env);
+static SCM eval (SCM x, SCM env);
 
 
 
@@ -2610,7 +2610,7 @@ scm_badargsp (SCM formals, SCM args)
    : (SCM_VARIABLEP (x) \
       ? SCM_VARIABLE_REF (x) \
       : (scm_is_pair (x) \
-         ? deval ((x), (env))                   \
+         ? eval ((x), (env))                   \
          : (x))))
 
 #define SCM_I_XEVALCAR(x, env)			\
@@ -2619,7 +2619,7 @@ scm_badargsp (SCM formals, SCM args)
    : (SCM_VARIABLEP (SCM_CAR (x)) \
       ? SCM_VARIABLE_REF (SCM_CAR (x)) \
       : (scm_is_pair (SCM_CAR (x)) \
-         ? deval (SCM_CAR (x), (env))         \
+         ? eval (SCM_CAR (x), (env))         \
          : (!scm_is_symbol (SCM_CAR (x)) \
             ? SCM_CAR (x) \
             : *scm_lookupcar ((x), (env), 1)))))
@@ -3782,7 +3782,7 @@ SCM_DEFINE (scm_eval, "eval", 2, 0, 0,
 #undef FUNC_NAME
 
 
-/* At this point, deval and scm_dapply are generated.
+/* At this point, eval and scm_apply are generated.
  */
 
 static void
@@ -3809,9 +3809,7 @@ ceval_letrec_inits (SCM env, SCM init_forms, SCM **init_values_eol)
     }
 }
 
-#define DEVAL
 #include "eval.i.c"
-#undef DEVAL
 
 
 void 
