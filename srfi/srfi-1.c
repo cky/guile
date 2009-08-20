@@ -1,6 +1,6 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006, 2008
+ * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006, 2008, 2009
  *   	Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -1330,6 +1330,7 @@ SCM_DEFINE (scm_srfi1_lset_difference_x, "lset-difference!", 2, 0, 1,
   int argnum;
 
   SCM_ASSERT (equal_tramp, equal, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, equal);
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   ret = SCM_EOL;
