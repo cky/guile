@@ -19,12 +19,17 @@
 ##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ##   Floor, Boston, MA 02110-1301 USA
 
-SUBDIRS = ice-9
+## Prevent automake from adding extra -I options
+DEFS = @DEFS@ @EXTRA_DEFS@
 
 if HAVE_READLINE
 
-## Prevent automake from adding extra -I options
-DEFS = @DEFS@ @EXTRA_DEFS@
+# `ice-9' subdirectory.
+ice9dir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
+nobase_ice9_DATA = ice-9/readline.scm
+EXTRA_DIST = $(nobase_ice9_DATA)
+
+
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
@@ -56,9 +61,11 @@ SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
-EXTRA_DIST = LIBGUILEREADLINE-VERSION ChangeLog-2008
+EXTRA_DIST += LIBGUILEREADLINE-VERSION ChangeLog-2008
 
-MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
+ETAGS_ARGS =							\
+  $(nobase_ice9_DATA)						\
+  $(libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES)
 
 CLEANFILES = *.x
 

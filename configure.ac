@@ -1528,7 +1528,6 @@ AC_CONFIG_FILES([
   libguile/Makefile
   srfi/Makefile
   guile-readline/Makefile
-  guile-readline/ice-9/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
   meta/Makefile
