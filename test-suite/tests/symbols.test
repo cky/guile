@@ -61,15 +61,13 @@
     (let ((s 'x0123456789012345678901234567890123456789))
       (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
 
-  ;; symbol->string isn't ready for UCS-4 yet
+  (pass-if "short UCS-4-encoded symbols are not inlined"
+    (let ((s (string->symbol "\u0100")))
+      (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
 
-  ;;(pass-if "short UCS-4-encoded symbols are not inlined"
-  ;;  (let ((s (string->symbol "\u0100")))
-  ;;    (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
-
-  ;;(pass-if "long UCS-4-encoded symbols are not inlined"
-  ;;  (let ((s (string->symbol "\u010012345678901234567890123456789")))
-  ;;    (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
+  (pass-if "long UCS-4-encoded symbols are not inlined"
+    (let ((s (string->symbol "\u010012345678901234567890123456789")))
+      (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
 
   (with-test-prefix "hashes"
   
@@ -99,16 +97,13 @@
       (let ((s (string->symbol "\xC0\xC1\xC2")))
         (not (assq-ref (%symbol-dump s) 'stringbuf-wide))))
 
-    ;; symbol->string isn't ready for UCS-4 yet
+    (pass-if "BMP symbols are UCS-4 encoded"
+      (let ((s (string->symbol "\u0100\u0101\x0102")))
+        (assq-ref (%symbol-dump s) 'stringbuf-wide)))
 
-    ;;(pass-if "BMP symbols are UCS-4 encoded"
-    ;;  (let ((s (string->symbol "\u0100\u0101\x0102")))
-    ;;    (assq-ref (%symbol-dump s) 'stringbuf-wide)))
-
-    ;;(pass-if "SMP symbols are UCS-4 encoded"
-    ;;  (let ((s (string->symbol "\U010300\u010301\x010302")))
-    ;;    (assq-ref (%symbol-dump s) 'stringbuf-wide)))
-    ))
+    (pass-if "SMP symbols are UCS-4 encoded"
+      (let ((s (string->symbol "\U010300\u010301\x010302")))
+        (assq-ref (%symbol-dump s) 'stringbuf-wide)))))
 
 ;;;
 ;;; symbol?
@@ -125,6 +120,16 @@
   (pass-if "symbol"
     (symbol? 'foo)))
 
+;;;
+;;; wide symbols
+;;;
+
+(with-test-prefix "BMP symbols"
+
+  (pass-if "BMP symbol's string"
+    (and (= 4 (string-length "abc\u0100"))
+         (string=? "abc\u0100" 
+                   (symbol->string (string->symbol "abc\u0100"))))))
 
 ;;;
 ;;; symbol->string

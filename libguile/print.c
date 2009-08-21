@@ -295,13 +295,12 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
 /* Print the name of a symbol. */
 
 static int
-quote_keywordish_symbol (const char *str, size_t len)
+quote_keywordish_symbol (SCM symbol)
 {
   SCM option;
 
-  /* LEN is guaranteed to be > 0.
-   */
-  if (str[0] != ':' && str[len-1] != ':')
+  if (scm_i_symbol_ref (symbol, 0) != ':'
+      && scm_i_symbol_ref (symbol, scm_i_symbol_length (symbol) - 1) !=  ':')
     return 0;
 
   option = SCM_PRINT_KEYWORD_STYLE;
@@ -313,7 +312,7 @@ quote_keywordish_symbol (const char *str, size_t len)
 }
 
 void
-scm_print_symbol_name (const char *str, size_t len, SCM port)
+scm_i_print_symbol_name (SCM str, SCM port)
 {
   /* This points to the first character that has not yet been written to the
    * port. */
@@ -334,18 +333,20 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
    * simpler and faster. */
   int maybe_weird = 0;
   size_t mw_pos = 0;
+  size_t len = scm_i_symbol_length (str);
+  scm_t_wchar str0 = scm_i_symbol_ref (str, 0);
 
-  if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ','
-      || quote_keywordish_symbol (str, len)
-      || (str[0] == '.' && len == 1)
-      || scm_is_true (scm_c_locale_stringn_to_number (str, len, 10)))
+  if (len == 0 || str0 == '\'' || str0 == '`' || str0 == ','
+      || quote_keywordish_symbol (str) 
+      || (str0 == '.' && len == 1)
+      || scm_is_true (scm_i_string_to_number (scm_symbol_to_string (str), 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
     }
 
   for (end = pos; end < len; ++end)
-    switch (str[end])
+    switch (scm_i_symbol_ref (str, end))
       {
 #ifdef BRACKETS_AS_PARENS
       case '[':
@@ -370,11 +371,11 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	    weird = 1;
 	  }
 	if (pos < end)
-	  scm_lfwrite (str + pos, end - pos, port);
+	  scm_lfwrite_substr (scm_symbol_to_string (str), pos, end, port);
 	{
 	  char buf[2];
 	  buf[0] = '\\';
-	  buf[1] = str[end];
+	  buf[1] = (char) (unsigned char) scm_i_symbol_ref (str, end);
 	  scm_lfwrite (buf, 2, port);
 	}
 	pos = end + 1;
@@ -392,9 +393,16 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	break;
       }
   if (pos < end)
-    scm_lfwrite (str + pos, end - pos, port);
+    scm_lfwrite_substr (scm_symbol_to_string (str), pos, end, port);
   if (weird)
     scm_lfwrite ("}#", 2, port);
+}
+
+void
+scm_print_symbol_name (const char *str, size_t len, SCM port)
+{
+  SCM symbol = scm_from_locale_symboln (str, len);
+  return scm_i_print_symbol_name (symbol, port);
 }
 
 /* Print generally.  Handles both write and display according to PSTATE.
@@ -665,16 +673,13 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_symbol:
 	  if (scm_i_symbol_is_interned (exp))
 	    {
-	      scm_print_symbol_name (scm_i_symbol_chars (exp),
-				     scm_i_symbol_length (exp), port);
+	      scm_i_print_symbol_name (exp, port);
 	      scm_remember_upto_here_1 (exp);
 	    }
 	  else
 	    {
 	      scm_puts ("#<uninterned-symbol ", port);
-	      scm_print_symbol_name (scm_i_symbol_chars (exp),
-				     scm_i_symbol_length (exp),
-				     port);
+	      scm_i_print_symbol_name (exp, port);
 	      scm_putc (' ', port);
 	      scm_uintprint (SCM_UNPACK (exp), 16, port);
 	      scm_putc ('>', port);
@@ -726,14 +731,16 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  EXIT_NESTED_DATA (pstate);
 	  break;
 	case scm_tcs_subrs:
-	  scm_puts (SCM_SUBR_GENERIC (exp)
-		    ? "#<primitive-generic "
-		    : "#<primitive-procedure ",
-		    port);
-	  scm_puts (scm_i_symbol_chars (SCM_SUBR_NAME (exp)), port);
-	  scm_putc ('>', port);
-	  break;
-
+	  {
+	    SCM name = scm_symbol_to_string (SCM_SUBR_NAME (exp));
+	    scm_puts (SCM_SUBR_GENERIC (exp)
+		      ? "#<primitive-generic "
+		      : "#<primitive-procedure ",
+		      port);
+	    scm_lfwrite_str (name, port);
+	    scm_putc ('>', port);
+	    break;
+	  }
 	case scm_tc7_pws:
 	  scm_puts ("#<procedure-with-setter", port);
 	  {

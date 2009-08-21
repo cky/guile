@@ -28,6 +28,7 @@
 
 
 SCM_API unsigned long scm_string_hash (const unsigned char *str, size_t len);
+SCM_INTERNAL unsigned long scm_i_string_hash (SCM str);
 SCM_API unsigned long scm_hasher (SCM obj, unsigned long n, size_t d);
 SCM_API unsigned long scm_ihashq (SCM obj, unsigned long n);
 SCM_API SCM scm_hashq (SCM obj, SCM n);
