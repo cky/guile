@@ -2488,7 +2488,7 @@ enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
 #define XDIGIT2UINT(d)                                                  \
   (uc_is_property_decimal_digit ((int) (unsigned char) d)               \
    ? (d) - '0'                                                          \
-   : tolower ((int) (unsigned char) d) - 'a' + 10)
+   : uc_tolower ((int) (unsigned char) d) - 'a' + 10)
 
 static SCM
 mem2uinteger (SCM mem, unsigned int *p_idx,
