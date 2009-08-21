@@ -233,6 +233,19 @@ scm_wrong_type_arg (const char *subr, int pos, SCM bad_value)
 }
 
 void
+scm_i_wrong_type_arg_symbol (SCM symbol, int pos, SCM bad_value)
+{
+  scm_error_scm (scm_arg_type_key,
+		 scm_symbol_to_string (symbol),
+		 (pos == 0) ? scm_from_locale_string ("Wrong type: ~S")
+		 : scm_from_locale_string ("Wrong type argument in position ~A: ~S"),
+		 (pos == 0) ? scm_list_1 (bad_value)
+		 : scm_list_2 (scm_from_int (pos), bad_value),
+		 scm_list_1 (bad_value));
+  scm_remember_upto_here_2 (symbol, bad_value);
+}
+
+void
 scm_wrong_type_arg_msg (const char *subr, int pos, SCM bad_value, const char *szMessage)
 {
   SCM msg = scm_from_locale_string (szMessage);

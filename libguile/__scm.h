@@ -556,6 +556,13 @@ SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_1 ((gf), (a1))			\
 	  : (scm_wrong_type_arg ((subr), (pos), (a1)), SCM_UNSPECIFIED))
+
+/* This form is for dispatching a subroutine.  */
+#define SCM_WTA_DISPATCH_1_SUBR(subr, a1, pos)				\
+  return (SCM_UNPACK ((*SCM_SUBR_GENERIC (subr)))			\
+	  ? scm_call_generic_1 ((*SCM_SUBR_GENERIC (subr)), (a1))	\
+	  : (scm_i_wrong_type_arg_symbol (SCM_SUBR_NAME (subr), (pos), (a1)), SCM_UNSPECIFIED))
+
 #define SCM_GASSERT1(cond, gf, a1, pos, subr)		\
   if (SCM_UNLIKELY (!(cond)))			\
     SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))
