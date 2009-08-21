@@ -590,6 +590,29 @@ scm_i_string_ref (SCM str, size_t x)
     return scm_i_string_wide_chars (str)[x];
 }
 
+int 
+scm_i_string_strcmp (SCM sstr, size_t start_x, const char *cstr)
+{
+  if (scm_i_is_narrow_string (sstr))
+    {
+      const char *a = scm_i_string_chars (sstr) + start_x;
+      const char *b = cstr;
+      return strncmp (a, b, strlen(b));
+    }
+  else
+    {
+      size_t i;
+      const scm_t_wchar *a = scm_i_string_wide_chars (sstr) + start_x;
+      const char *b = cstr;
+      for (i = 0; i < strlen (b); i++)
+        {
+          if (a[i] != (unsigned char) b[i])
+            return 1;
+        }
+    }
+  return 0;
+}
+
 /* Set the Pth character of STR to UCS-4 codepoint CHR. */
 void
 scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)

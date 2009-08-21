@@ -152,6 +152,7 @@ SCM_INTERNAL SCM scm_i_string_start_writing (SCM str);
 SCM_INTERNAL void scm_i_string_stop_writing (void);
 SCM_INTERNAL int scm_i_is_narrow_string (SCM str);
 SCM_INTERNAL scm_t_wchar scm_i_string_ref (SCM str, size_t x);
+SCM_INTERNAL int scm_i_string_strcmp (SCM sstr, size_t start_x, const char *cstr);
 SCM_INTERNAL void scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr);
 /* internal functions related to symbols. */
 
