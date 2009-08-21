@@ -248,7 +248,6 @@ scm_gc_mark_dependencies (SCM p)
 	scm_t_bits * vtable_data = (scm_t_bits *) word0;
 	SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
 	long len = scm_i_symbol_length (layout);
-	const char *fields_desc = scm_i_symbol_chars (layout);
 	scm_t_bits *struct_data = (scm_t_bits *) SCM_STRUCT_DATA (ptr);
 
 	if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
@@ -261,11 +260,12 @@ scm_gc_mark_dependencies (SCM p)
 	    long x;
 
 	    for (x = 0; x < len - 2; x += 2, ++struct_data)
-	      if (fields_desc[x] == 'p')
+	      if (scm_i_symbol_ref (layout, x) ==  'p')
 		scm_gc_mark (SCM_PACK (*struct_data));
-	    if (fields_desc[x] == 'p')
+	    if (scm_i_symbol_ref (layout, x) == 'p')
 	      {
-		if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
+		scm_t_wchar ch = scm_i_symbol_ref (layout, x+1);
+		if (SCM_LAYOUT_TAILP (ch))
 		  for (x = *struct_data++; x; --x, ++struct_data)
 		    scm_gc_mark (SCM_PACK (*struct_data));
 		else
