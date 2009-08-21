@@ -666,6 +666,7 @@ Changes in 1.8.8 (since 1.8.7)
 * Bugs fixed
 
 ** Fix possible buffer overruns when parsing numbers
+** Avoid clash with system setjmp/longjmp on IA64
 
 
 Changes in 1.8.7 (since 1.8.6)
