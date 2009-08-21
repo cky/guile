@@ -8,10 +8,6 @@ The documentation consists of the following manuals.
 - The Guile Reference Manual (guile.texi) contains (or is intended to
   contain) reference documentation on all aspects of Guile.
 
-- The GOOPS Manual (goops.texi) contains both tutorial-style and
-  reference documentation for using GOOPS, Guile's Object Oriented
-  Programming System.
-
 - The Revised^5 Report on the Algorithmic Language Scheme (r5rs.texi).
 
 Please be aware that this is all very much work in progress (apart

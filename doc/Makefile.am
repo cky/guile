@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = ref tutorial goops r5rs
+SUBDIRS = ref tutorial r5rs
 
 dist_man1_MANS = guile.1
 

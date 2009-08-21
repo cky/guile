@@ -1518,7 +1518,6 @@ AC_CONFIG_FILES([
   lib/Makefile
   benchmark-suite/Makefile
   doc/Makefile
-  doc/goops/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile
@@ -1555,6 +1554,7 @@ AC_CONFIG_FILES([test-suite/standalone/test-use-srfi],
                 [chmod +x test-suite/standalone/test-use-srfi])
 AC_CONFIG_FILES([test-suite/standalone/test-fast-slot-ref],
                 [chmod +x test-suite/standalone/test-fast-slot-ref])
+AC_CONFIG_FILES([doc/ref/effective-version.texi])
 
 AC_OUTPUT
 

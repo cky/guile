@@ -1732,16 +1732,16 @@ Frame 2 at matrix.scm:8:3
         [mkmatrix]
 debug> next
 Frame 3 at matrix.scm:4:3
-        (let ((x 1)) (quote this-is-a-matric))
+        (let ((x 1)) (quote hi!))
 debug> info frame
 Stack frame: 3
 This frame is an evaluation.
 The expression being evaluated is:
 matrix.scm:4:3:
-  (let ((x 1)) (quote this-is-a-matric))
+  (let ((x 1)) (quote hi!))
 debug> next
 Frame 3 at matrix.scm:5:21
-        (quote this-is-a-matric)
+        (quote hi!)
 debug> bt
 In unknown file:
    ?: 0* [primitive-eval (do-main 4)]
@@ -1750,9 +1750,9 @@ In standard input:
 In matrix.scm:
    8: 2  [mkmatrix]
    ...
-   5: 3  (quote this-is-a-matric)
+   5: 3  (quote hi!)
 debug> quit
-this-is-a-matric
+hi!
 guile> 
 @end lisp
 
@@ -1813,7 +1813,7 @@ guile> (do-main 4)
 |  5: (memq sym bindings)
 |  5: [memq let (debug)]
 |  5: =>#f
-|  2: (letrec ((yy 23)) (let ((x 1)) (quote this-is-a-matric)))
+|  2: (letrec ((yy 23)) (let ((x 1)) (quote hi!)))
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  4: (and (memq sym bindings) (let ...))
@@ -1832,7 +1832,7 @@ guile> (do-main 4)
 |  5: (memq sym bindings)
 |  5: [memq let (debug)]
 |  5: =>#f
-|  2: (let ((x 1)) (quote this-is-a-matric))
+|  2: (let ((x 1)) (quote hi!))
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  4: (and (memq sym bindings) (let ...))
@@ -1841,15 +1841,15 @@ guile> (do-main 4)
 |  5: =>#f
 |  2: [let (let # #) (# # #)]
 |  2: [let (let # #) (# # #)]
-|  2: =>(#@@let* (x 1) #@@let (quote this-is-a-matric))
-this-is-a-matric
+|  2: =>(#@@let* (x 1) #@@let (quote hi!))
+hi!
 guile> (do-main 4)
 |  2: [mkmatrix]
-|  2: (letrec ((yy 23)) (let* ((x 1)) (quote this-is-a-matric)))
-|  2: (let* ((x 1)) (quote this-is-a-matric))
-|  2: (quote this-is-a-matric)
-|  2: =>this-is-a-matric
-this-is-a-matric
+|  2: (letrec ((yy 23)) (let* ((x 1)) (quote hi!)))
+|  2: (let* ((x 1)) (quote hi!))
+|  2: (quote hi!)
+|  2: =>hi!
+hi!
 guile> 
 @end lisp
 
@@ -1881,11 +1881,11 @@ each trace line instead of the stack depth.
 guile> (set-trace-layout "|~16@@a: ~a\n" trace/source trace/info)
 guile> (do-main 4)
 |  matrix.scm:7:2: [mkmatrix]
-|                : (letrec ((yy 23)) (let* ((x 1)) (quote this-is-a-matric)))
-|  matrix.scm:3:2: (let* ((x 1)) (quote this-is-a-matric))
-|  matrix.scm:4:4: (quote this-is-a-matric)
-|  matrix.scm:4:4: =>this-is-a-matric
-this-is-a-matric
+|                : (letrec ((yy 23)) (let* ((x 1)) (quote hi!)))
+|  matrix.scm:3:2: (let* ((x 1)) (quote hi!))
+|  matrix.scm:4:4: (quote hi!)
+|  matrix.scm:4:4: =>hi!
+hi!
 guile> 
 @end lisp
 
