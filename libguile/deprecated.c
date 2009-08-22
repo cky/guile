@@ -1075,7 +1075,8 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 {
   char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
   char *name = buf;
-  int len, n_digits;
+  int n_digits;
+  size_t len;
 
   scm_c_issue_deprecation_warning ("`gentemp' is deprecated. "
 				   "Use `gensym' instead.");
@@ -1089,7 +1090,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
     {
       SCM_VALIDATE_STRING (1, prefix);
       len = scm_i_string_length (prefix);
-      name = scm_to_locale_stringn (prefix, (size_t *)(&len));
+      name = scm_to_locale_stringn (prefix, &len);
       name = scm_realloc (name, len + SCM_INTBUFLEN);
     }
 
