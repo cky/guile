@@ -1149,7 +1149,6 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
 #define FUNC_NAME s_scm_enclose_array
 {
   SCM axv, res, ra_inr;
-  const char *c_axv;
   scm_t_array_dim vdim, *s = &vdim;
   int ndim, j, k, ninr, noutr;
 
@@ -1197,10 +1196,9 @@ SCM_DEFINE (scm_enclose_array, "enclose-array", 1, 0, 1,
       SCM_I_ARRAY_DIMS (ra_inr)[k].inc = s[j].inc;
       scm_c_string_set_x (axv, j, SCM_MAKE_CHAR (1));
     }
-  c_axv = scm_i_string_chars (axv);
   for (j = 0, k = 0; k < noutr; k++, j++)
     {
-      while (c_axv[j])
+      while (!scm_i_string_ref (axv, j) == '\0')
 	j++;
       SCM_I_ARRAY_DIMS (res)[k].lbnd = s[j].lbnd;
       SCM_I_ARRAY_DIMS (res)[k].ubnd = s[j].ubnd;
@@ -2329,13 +2327,12 @@ scm_istr2bve (SCM str)
   SCM res = vec;
 
   scm_t_uint32 mask;
-  size_t k, j;
-  const char *c_str;
+  size_t k, j, p;
   scm_t_uint32 *data;
 
   data = scm_bitvector_writable_elements (vec, &handle, NULL, NULL, NULL);
-  c_str = scm_i_string_chars (str);
 
+  p = 0;
   for (k = 0; k < (len + 31) / 32; k++)
     {
       data[k] = 0L;
@@ -2343,7 +2340,7 @@ scm_istr2bve (SCM str)
       if (j > 32)
 	j = 32;
       for (mask = 1L; j--; mask <<= 1)
-	switch (*c_str++)
+	switch (scm_i_string_ref (str, p++))
 	  {
 	  case '0':
 	    break;

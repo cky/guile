@@ -23,6 +23,7 @@
 #endif
 
 #include <stdio.h>
+#include <unistdio.h>
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/smob.h"
@@ -744,8 +745,12 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
        */
       fprintf (stderr, "throw from within critical section.\n");
       if (scm_is_symbol (key))
-	fprintf (stderr, "error key: %s\n", scm_i_symbol_chars (key));
-
+	{
+	  if (scm_i_is_narrow_symbol (key))
+	    fprintf (stderr, "error key: %s\n", scm_i_symbol_chars (key));
+	  else
+	    ulc_fprintf (stderr, "error key: %llU\n", scm_i_symbol_wide_chars (key));
+	}
       
       for (; scm_is_pair (s); s = scm_cdr (s), i++)
 	{
