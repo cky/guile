@@ -176,6 +176,8 @@ static SCM scm_unbound_p (SCM obj);
 static SCM scm_assert_bound (SCM value, SCM obj);
 static SCM scm_at_assert_bound_ref (SCM obj, SCM index);
 static SCM scm_sys_goops_loaded (void);
+static SCM scm_make_extended_class_from_symbol (SCM type_name_sym, 
+						int applicablep);
 
 /* This function is used for efficient type dispatch.  */
 SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
@@ -281,9 +283,9 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	      else
 		{
 		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
-		  SCM class = scm_make_extended_class (scm_is_true (name)
-						       ? scm_i_symbol_chars (name)
-						       : 0,
+		  SCM class = scm_make_extended_class_from_symbol (scm_is_true (name)
+						       ? name
+						       : scm_nullstr,
 						       SCM_I_OPERATORP (x));
 		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
 		  return class;
@@ -1526,11 +1528,11 @@ wrap_init (SCM class, SCM *m, long n)
 {
   long i;
   scm_t_bits slayout = SCM_STRUCT_DATA (class)[scm_vtable_index_layout];
-  const char *layout = scm_i_symbol_chars (SCM_PACK (slayout));
+  SCM layout = SCM_PACK (slayout);
 
   /* Set all SCM-holding slots to unbound */
   for (i = 0; i < n; i++)
-    if (layout[i*2] == 'p')
+    if (scm_i_symbol_ref (layout, i*2) == 'p')
       m[i] = SCM_GOOPS_UNBOUND;
     else
       m[i] = 0;
@@ -2680,6 +2682,34 @@ make_class_from_template (char const *template, char const *type_name, SCM super
   return class;
 }
 
+static SCM
+make_class_from_symbol (SCM type_name_sym, SCM supers, int applicablep)
+{
+  SCM class, name;
+  if (type_name_sym != SCM_BOOL_F)
+    {
+      name = scm_string_append (scm_list_3 (scm_from_locale_string ("<"),
+					    scm_symbol_to_string (type_name_sym),
+					    scm_from_locale_string (">")));
+      name = scm_string_to_symbol (name);
+    }
+  else
+    name = SCM_GOOPS_UNBOUND;
+
+  class = scm_permanent_object (scm_basic_make_class (applicablep
+						      ? scm_class_procedure_class
+						      : scm_class_class,
+						      name,
+						      supers,
+						      SCM_EOL));
+
+  /* Only define name if doesn't already exist. */
+  if (!SCM_GOOPS_UNBOUNDP (name)
+      && scm_is_false (scm_module_variable (scm_module_goops, name)))
+    DEFVAR (name, class);
+  return class;
+}
+
 SCM
 scm_make_extended_class (char const *type_name, int applicablep)
 {
@@ -2689,6 +2719,16 @@ scm_make_extended_class (char const *type_name, int applicablep)
 					       ? scm_class_applicable
 					       : scm_class_top),
 				   applicablep);
+}
+
+static SCM
+scm_make_extended_class_from_symbol (SCM type_name_sym, int applicablep)
+{
+  return make_class_from_symbol (type_name_sym,
+				 scm_list_1 (applicablep
+					     ? scm_class_applicable
+					     : scm_class_top),
+				 applicablep);
 }
 
 void
@@ -2783,11 +2823,16 @@ static SCM
 make_struct_class (void *closure SCM_UNUSED,
 		   SCM vtable, SCM data, SCM prev SCM_UNUSED)
 {
-  if (scm_is_true (SCM_STRUCT_TABLE_NAME (data)))
-    SCM_SET_STRUCT_TABLE_CLASS (data,
-				scm_make_extended_class
-				(scm_i_symbol_chars (SCM_STRUCT_TABLE_NAME (data)),
-				 SCM_CLASS_FLAGS (vtable) & SCM_CLASSF_OPERATOR));
+  SCM sym = SCM_STRUCT_TABLE_NAME (data);
+  if (scm_is_true (sym))
+    {
+      int applicablep = SCM_CLASS_FLAGS (vtable) & SCM_CLASSF_OPERATOR;
+
+      SCM_SET_STRUCT_TABLE_CLASS (data, 
+				  scm_make_extended_class_from_symbol (sym, applicablep));
+    }
+
+  scm_remember_upto_here_2 (data, vtable);
   return SCM_UNSPECIFIED;
 }
 
