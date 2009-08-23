@@ -239,6 +239,36 @@ widen_stringbuf (SCM buf)
     }
 }
 
+/* Convert a stringbuf of 32-bit UCS-4-encoded characters to one
+   containing 8-bit Latin-1-encoded characters, if possible.  */
+static void
+narrow_stringbuf (SCM buf)
+{
+  size_t i, len;
+  scm_t_wchar *wmem;
+  char *mem;
+
+  if (!STRINGBUF_WIDE (buf))
+    return;
+
+  len = STRINGBUF_OUTLINE_LENGTH (buf);
+  i = 0;
+  wmem = STRINGBUF_WIDE_CHARS (buf);
+  while (i < len)
+    if (wmem[i++] > 0xFF)
+      return;
+
+  mem = scm_gc_malloc (sizeof (char) * (len + 1), "string");
+  for (i = 0; i < len; i++)
+    mem[i] = (unsigned char) wmem[i];
+
+  scm_gc_free (wmem, sizeof (scm_t_wchar) * (len + 1), "string");
+
+  SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) ^ STRINGBUF_F_WIDE);
+  SCM_SET_CELL_WORD_1 (buf, mem);
+  SCM_SET_CELL_WORD_2 (buf, len);
+}
+
 scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* Copy-on-write strings.
@@ -459,6 +489,18 @@ scm_i_is_narrow_string (SCM str)
   return !STRINGBUF_WIDE (STRING_STRINGBUF (str));
 }
 
+/* Try to coerce a string to be narrow.  It if is narrow already, do
+   nothing.  If it is wide, shrink it to narrow if none of its
+   characters are above 0xFF.  Return true if the string is narrow or
+   was made to be narrow.  */
+int
+scm_i_try_narrow_string (SCM str)
+{
+  narrow_stringbuf (STRING_STRINGBUF (str));
+
+  return scm_i_is_narrow_string (str);
+}
+
 /* Returns a pointer to the 8-bit Latin-1 encoded character array of
    STR.  */
 const char *
@@ -623,7 +665,7 @@ scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)
   if (scm_i_is_narrow_string (str))
     {
       char *dst = scm_i_string_writable_chars (str);
-      dst[p] = (char) (unsigned char) chr;
+      dst[p] = chr;
     }
   else
     {
@@ -633,7 +675,7 @@ scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)
 }
 
 /* Symbols.
- 
+
    Basic symbol creation and accessing is done here, the rest is in
    symbols.[hc].  This has been done to keep stringbufs and the
    internals of strings and string-like objects confined to this file.
@@ -866,7 +908,7 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
   else
     e5 = scm_cons (scm_from_locale_symbol ("read-only"),
                    SCM_BOOL_F);
-      
+
   /* Stringbuf info */
   if (!STRINGBUF_WIDE (buf))
     {
@@ -1426,6 +1468,80 @@ scm_from_locale_string (const char *str)
   return scm_from_locale_stringn (str, -1);
 }
 
+static SCM
+scm_from_stringn (const char *str, size_t len, const char *encoding,
+                  scm_t_string_failed_conversion_handler handler)
+{
+  size_t u32len, i;
+  scm_t_wchar *u32;
+  int wide = 0;
+  SCM res;
+
+  u32len = 0;
+  u32 = (scm_t_wchar *) u32_conv_from_encoding (encoding,
+                                                (enum iconv_ilseq_handler)
+                                                handler,
+                                                str, len,
+                                                NULL,
+                                                NULL, &u32len);
+
+  if (u32 == NULL)
+    {
+      if (errno == ENOMEM)
+        scm_memory_error ("locale string conversion");
+      else
+        {
+          /* There are invalid sequences in the input string.  Since
+             it is partially nonsense, what is the best strategy for
+             printing it in the error message?  */
+          SCM errstr;
+          char *dst;
+          /* We'll just print it unconverted and hope for the best.  */
+          errstr = scm_i_make_string (len, &dst);
+          memcpy (dst, str, len);
+          scm_misc_error (NULL, "input locale conversion error from ~s: ~s",
+                          scm_list_2 (scm_from_locale_string (encoding),
+                                      errstr));
+          scm_remember_upto_here_1 (errstr);
+        }
+    }
+
+  i = 0;
+  while (i < u32len)
+    if (u32[i++] > 0xFF)
+      {
+        wide = 1;
+        break;
+      }
+
+  if (!wide)
+    {
+      char *dst;
+      res = scm_i_make_string (u32len, &dst);
+      for (i = 0; i < u32len; i ++)
+        dst[i] = (unsigned char) u32[i];
+      dst[u32len] = '\0';
+    }
+  else
+    {
+      scm_t_wchar *wdst;
+      res = scm_i_make_wide_string (u32len, &wdst);
+      u32_cpy ((scm_t_uint32 *) wdst, (scm_t_uint32 *) u32, u32len);
+      wdst[u32len] = 0;
+    }
+
+  free (u32);
+  return res;
+}
+
+SCM
+scm_i_from_utf8_string (const scm_t_uint8 *str)
+{
+  return scm_from_stringn ((const char *) str,
+                           strlen ((char *) str), "UTF-8",
+                           SCM_FAILED_CONVERSION_ERROR);
+}
+
 /* Create a new scheme string from the C string STR.  The memory of
    STR may be used directly as storage for the new string.  */
 SCM
@@ -1519,16 +1635,15 @@ scm_to_locale_stringn (SCM str, size_t * lenp)
   /* In the future, enc will hold the port's encoding.  */
   enc = NULL;
 
-  return scm_to_stringn (str, lenp, enc, 
+  return scm_to_stringn (str, lenp, enc,
                          SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
 }
 
 /* Low-level scheme to C string conversion function.  */
 char *
-scm_to_stringn (SCM str, size_t * lenp, const char *encoding,
+scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                 scm_t_string_failed_conversion_handler handler)
 {
-  static const char iso[11] = "ISO-8859-1";
   char *buf;
   size_t ilen, len, i;
 
@@ -1544,7 +1659,7 @@ scm_to_stringn (SCM str, size_t * lenp, const char *encoding,
         *lenp = 0;
       return buf;
     }
-	
+
   if (lenp == NULL)
     for (i = 0; i < ilen; i++)
       if (scm_i_string_ref (str, i) == '\0')
@@ -1570,16 +1685,16 @@ scm_to_stringn (SCM str, size_t * lenp, const char *encoding,
         }
     }
 
-  
+
   buf = NULL;
   len = 0;
-  buf = u32_conv_to_encoding (iso,
+  buf = u32_conv_to_encoding (encoding ? encoding : "ISO-8859-1",
                               (enum iconv_ilseq_handler) handler,
                               (scm_t_uint32 *) scm_i_string_wide_chars (str),
                               ilen, NULL, NULL, &len);
   if (buf == NULL)
     scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"",
-                    scm_list_2 (scm_from_locale_string (iso), str));
+                    scm_list_2 (scm_from_locale_string (encoding), str));
 
   if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
     unistring_escapes_to_guile_escapes (&buf, &len);
@@ -1600,6 +1715,14 @@ char *
 scm_to_locale_string (SCM str)
 {
   return scm_to_locale_stringn (str, NULL);
+}
+
+scm_t_uint8 *
+scm_i_to_utf8_string (SCM str)
+{
+  char *u8str;
+  u8str = scm_to_stringn (str, NULL, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
+  return (scm_t_uint8 *) u8str;
 }
 
 size_t
