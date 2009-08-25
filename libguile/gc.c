@@ -763,15 +763,10 @@ scm_i_tag_name (scm_t_bits tag)
 {
   if (tag >= 255)
     {
-      if (tag == scm_tc_free_cell)
-	return "free cell";
-
-      {
-	int k = 0xff & (tag >> 8);
-	return (scm_smobs[k].name);
-      }
+      int k = 0xff & (tag >> 8);
+      return (scm_smobs[k].name);
     }
-  
+
   switch (tag) /* 7 bits */
     {
     case scm_tcs_struct:

@@ -116,15 +116,6 @@ typedef struct scm_t_cell
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 ((x), (t))
 
-/* Freelists consist of linked cells where the type entry holds the value
- * scm_tc_free_cell and the second entry holds a pointer to the next cell of
- * the freelist.  Due to this structure, freelist cells are not cons cells
- * and thus may not be accessed using SCM_CAR and SCM_CDR.  */
-
-#define SCM_FREE_CELL_CDR(x) \
-  (SCM_GC_CELL_OBJECT ((x), 1))
-#define SCM_SET_FREE_CELL_CDR(x, v) \
-  (SCM_GC_SET_CELL_OBJECT ((x), 1, (v)))
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 /* Set this to != 0 if every cell that is accessed shall be checked:

@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -338,7 +338,7 @@ struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
   scm_t_struct_free free_struct_data
     = ((scm_t_struct_free) vtable_data[scm_struct_i_free]);
 
-  SCM_SET_CELL_TYPE (obj, scm_tc_free_cell);
+  SCM_SET_CELL_TYPE (obj, scm_tc3_struct);
 
 #if 0
   /* A sanity check.  However, this check can fail if the free function

@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -117,8 +117,8 @@ SCM_API SCM scm_unprotect_object (SCM obj);
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
 #define SCM_SETOR_CDR(x, y)\
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
-#define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
-#define SCM_NFREEP(x) (!SCM_FREE_CELL_P (x))
+#define SCM_FREEP(x) (0)
+#define SCM_NFREEP(x) (1)
 #define SCM_GC8MARKP(x) SCM_GC_MARK_P (x)
 #define SCM_SETGC8MARK(x) SCM_SET_GC_MARK (x)
 #define SCM_CLRGC8MARK(x) SCM_CLEAR_GC_MARK (x)

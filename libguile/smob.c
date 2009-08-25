@@ -471,26 +471,6 @@ scm_make_smob (scm_t_bits tc)
   SCM_RETURN_NEWSMOB (tc, data);
 }
 
-
-/* {Initialization for the type of free cells}
- */
-
-static int
-free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
-{
-  char buf[100];
-  sprintf (buf, "#<freed cell %p; GC missed a reference>",
-	   (void *) SCM_UNPACK (exp));
-  scm_puts (buf, port);
-  
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_debug_cell_accesses_p)
-    abort();
-#endif
-  
-
-  return 1;
-}
 
 
 /* Marking SMOBs using user-supplied mark procedures.  */
@@ -632,7 +612,6 @@ void
 scm_smob_prehistory ()
 {
   long i;
-  scm_t_bits tc;
 
   smob_gc_kind = GC_new_kind (GC_new_free_list (),
 			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
@@ -657,10 +636,6 @@ scm_smob_prehistory ()
       scm_smobs[i].apply_3    = 0;
       scm_smobs[i].gsubr_type = 0;
     }
-
-  /* WARNING: This scm_make_smob_type call must be done first.  */
-  tc = scm_make_smob_type ("free", 0);
-  scm_set_smob_print (tc, free_print);
 }
 
 /*

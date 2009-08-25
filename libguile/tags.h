@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -374,10 +374,6 @@ typedef unsigned long scm_t_bits;
  * tc16 (for tc7==scm_tc7_smob):
  *   The largest part of the space of smob types is not subdivided in a
  *   predefined way, since smobs can be added arbitrarily by user C code.
- *   However, while Guile also defines a number of smob types throughout,
- *   there is one smob type, namely scm_tc_free_cell, for which Guile assumes
- *   that it is declared first and thus gets a known-in-advance tc16-code.
- *   The reason of requiring a fixed tc16-code for this type is performance.
  */
 
 
@@ -483,12 +479,6 @@ typedef unsigned long scm_t_bits;
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
 #define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
 
-
-/* Here is the first smob subtype.  */
-
-/* scm_tc_free_cell is the 0th smob type.  We place this in free cells to tell
- * the conservative marker not to trace it.  */
-#define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
 
 
 
