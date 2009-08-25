@@ -86,7 +86,7 @@ SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
 SCM_API int scm_is_pair (SCM x);
 
-SCM_API int scm_getc (SCM port);
+SCM_API int scm_get_byte_or_eof (SCM port);
 SCM_API void scm_putc (char c, SCM port);
 SCM_API void scm_puts (const char *str_data, SCM port);
 
@@ -290,7 +290,7 @@ scm_is_pair (SCM x)
 SCM_C_EXTERN_INLINE
 #endif
 int
-scm_getc (SCM port)
+scm_get_byte_or_eof (SCM port)
 {
   int c;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -309,27 +309,6 @@ scm_getc (SCM port)
     }
 
   c = *(pt->read_pos++);
-
-  switch (c)
-    {
-      case '\a':
-        break;
-      case '\b':
-        SCM_DECCOL (port);
-        break;
-      case '\n':
-        SCM_INCLINE (port);
-        break;
-      case '\r':
-        SCM_ZEROCOL (port);
-        break;
-      case '\t':
-        SCM_TABCOL (port);
-        break;
-      default:
-        SCM_INCCOL (port);
-        break;
-    }
 
   return c;
 }

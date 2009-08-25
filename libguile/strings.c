@@ -28,6 +28,8 @@
 #include <unistr.h>
 #include <uniconv.h>
 
+#include "striconveh.h"
+
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
 #include "libguile/root.h"
@@ -630,6 +632,37 @@ scm_i_string_ref (SCM str, size_t x)
     return (scm_t_wchar) (unsigned char) (scm_i_string_chars (str)[x]);
   else
     return scm_i_string_wide_chars (str)[x];
+}
+
+/* Returns index+1 of the first char in STR that matches C, or
+   0 if the char is not found.  */
+int
+scm_i_string_contains_char (SCM str, char ch)
+{
+  size_t i;
+  size_t len = scm_i_string_length (str);
+
+  i = 0;
+  if (scm_i_is_narrow_string (str))
+    {
+      while (i < len)
+        {
+          if (scm_i_string_chars (str)[i] == ch)
+            return i+1;
+          i++;
+        }
+    }
+  else
+    {
+      while (i < len)
+        {
+          if (scm_i_string_wide_chars (str)[i] 
+              == (unsigned char) ch)
+            return i+1;
+          i++;
+        }
+    }
+  return 0;
 }
 
 int 
@@ -1443,31 +1476,6 @@ scm_is_string (SCM obj)
   return IS_STRING (obj);
 }
 
-SCM
-scm_from_locale_stringn (const char *str, size_t len)
-{
-  SCM res;
-  char *dst;
-
-  if (len == (size_t) -1)
-    len = strlen (str);
-  if (len == 0)
-    return scm_nullstr;
-
-  res = scm_i_make_string (len, &dst);
-  memcpy (dst, str, len);
-  return res;
-}
-
-SCM
-scm_from_locale_string (const char *str)
-{
-  if (str == NULL)
-    return scm_nullstr;
-
-  return scm_from_locale_stringn (str, -1);
-}
-
 static SCM
 scm_from_stringn (const char *str, size_t len, const char *encoding,
                   scm_t_string_failed_conversion_handler handler)
@@ -1476,6 +1484,15 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   scm_t_wchar *u32;
   int wide = 0;
   SCM res;
+
+  if (encoding == NULL)
+    {
+      /* If encoding is null, use Latin-1.  */
+      char *buf;
+      res = scm_i_make_string (len, &buf);
+      memcpy (buf, str, len);
+      return res;
+    }
 
   u32len = 0;
   u32 = (scm_t_wchar *) u32_conv_from_encoding (encoding,
@@ -1491,12 +1508,9 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
         scm_memory_error ("locale string conversion");
       else
         {
-          /* There are invalid sequences in the input string.  Since
-             it is partially nonsense, what is the best strategy for
-             printing it in the error message?  */
+          /* There are invalid sequences in the input string.  */
           SCM errstr;
           char *dst;
-          /* We'll just print it unconverted and hope for the best.  */
           errstr = scm_i_make_string (len, &dst);
           memcpy (dst, str, len);
           scm_misc_error (NULL, "input locale conversion error from ~s: ~s",
@@ -1532,6 +1546,44 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
 
   free (u32);
   return res;
+}
+
+SCM
+scm_from_locale_stringn (const char *str, size_t len)
+{
+  const char *enc;
+  scm_t_string_failed_conversion_handler hndl;
+  SCM inport;
+  scm_t_port *pt;
+
+  if (len == (size_t) -1)
+    len = strlen (str);
+  if (len == 0)
+    return scm_nullstr;
+
+  inport = scm_current_input_port ();
+  if (!SCM_UNBNDP (inport) && SCM_OPINPORTP (inport))
+    {
+      pt = SCM_PTAB_ENTRY (inport);
+      enc = pt->encoding;
+      hndl = pt->ilseq_handler;
+    }
+  else
+    {
+      enc = NULL;
+      hndl = SCM_FAILED_CONVERSION_ERROR;
+    }
+
+  return scm_from_stringn (str, len, enc, hndl);
+}
+
+SCM
+scm_from_locale_string (const char *str)
+{
+  if (str == NULL)
+    return scm_nullstr;
+
+  return scm_from_locale_stringn (str, -1);
 }
 
 SCM
@@ -1630,13 +1682,22 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
 char *
 scm_to_locale_stringn (SCM str, size_t * lenp)
 {
+  SCM outport;
+  scm_t_port *pt;
   const char *enc;
 
-  /* In the future, enc will hold the port's encoding.  */
-  enc = NULL;
+  outport = scm_current_output_port ();
+  if (!SCM_UNBNDP (outport) && SCM_OPOUTPORTP (outport))
+    {
+      pt = SCM_PTAB_ENTRY (outport);
+      enc = pt->encoding;
+    }
+  else
+    enc = NULL;
 
-  return scm_to_stringn (str, lenp, enc,
-                         SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
+  return scm_to_stringn (str, lenp, 
+                         enc,
+                         scm_i_get_conversion_strategy (SCM_BOOL_F));
 }
 
 /* Low-level scheme to C string conversion function.  */
@@ -1646,6 +1707,8 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 {
   char *buf;
   size_t ilen, len, i;
+  int ret;
+  const char *enc;
 
   if (!scm_is_string (str))
     scm_wrong_type_arg_msg (NULL, 0, str, "string");
@@ -1667,8 +1730,10 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                         "string contains #\\nul character: ~S",
                         scm_list_1 (str));
 
-  if (scm_i_is_narrow_string (str))
+  if (scm_i_is_narrow_string (str) && (encoding == NULL))
     {
+      /* If using native Latin-1 encoding, just copy the string
+         contents.  */
       if (lenp)
         {
           buf = scm_malloc (ilen);
@@ -1688,17 +1753,41 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 
   buf = NULL;
   len = 0;
-  buf = u32_conv_to_encoding (encoding ? encoding : "ISO-8859-1",
-                              (enum iconv_ilseq_handler) handler,
-                              (scm_t_uint32 *) scm_i_string_wide_chars (str),
-                              ilen, NULL, NULL, &len);
-  if (buf == NULL)
-    scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"",
-                    scm_list_2 (scm_from_locale_string (encoding), str));
+  enc = encoding;
+  if (enc == NULL)
+    enc = "ISO-8859-1";
+  if (scm_i_is_narrow_string (str))
+    {
+      ret = mem_iconveh (scm_i_string_chars (str), ilen,
+                         "ISO-8859-1", enc,
+                         (enum iconv_ilseq_handler) handler, NULL,
+                         &buf, &len);
 
-  if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
-    unistring_escapes_to_guile_escapes (&buf, &len);
+      if (ret == 0 && handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+        unistring_escapes_to_guile_escapes (&buf, &len);
 
+      if (ret != 0)
+        {
+          scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"", 
+                          scm_list_2 (scm_from_locale_string (enc),
+                                      str));
+        }
+    }
+  else
+    {
+      buf = u32_conv_to_encoding (enc, 
+                                  (enum iconv_ilseq_handler) handler,
+                                  (scm_t_uint32 *) scm_i_string_wide_chars (str), 
+                                  ilen,
+                                  NULL,
+                                  NULL, &len);
+      if (buf == NULL)
+        {
+          scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"", 
+                          scm_list_2 (scm_from_locale_string (enc),
+                                      str));
+        }
+    }
   if (lenp)
     *lenp = len;
   else

@@ -56,6 +56,8 @@ SCM_API SCM scm_read_options (SCM setting);
 SCM_API SCM scm_read (SCM port);
 SCM_API size_t scm_read_token (int ic, SCM * tok_buf, SCM port, int weird);
 SCM_API SCM scm_read_hash_extend (SCM chr, SCM proc);
+SCM_INTERNAL char *scm_scan_for_encoding (SCM port);
+SCM_API SCM scm_file_encoding (SCM port);
 
 SCM_INTERNAL void scm_i_input_error (const char *func, SCM port,
 				     const char *message, SCM arg)

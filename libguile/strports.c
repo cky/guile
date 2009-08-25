@@ -39,6 +39,7 @@
 #include "libguile/modules.h"
 #include "libguile/validate.h"
 #include "libguile/deprecation.h"
+#include "libguile/srfi-4.h"
 
 #include "libguile/strports.h"
 
@@ -289,42 +290,33 @@ st_truncate (SCM port, scm_t_off length)
 }
 
 SCM 
-scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
+scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, const char *caller)
 {
-  SCM z;
+  SCM z, str;
   scm_t_port *pt;
-  size_t str_len, c_pos;
+  size_t c_pos;
+  char *buf;
 
-  SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
+  /* Because ports are inherently 8-bit, strings need to be converted
+     to a locale representation for storage.  But, since string ports
+     rely on string functionality for their memory management, we need
+     to create a new string that has the 8-bit locale representation
+     of the underlying string.  This violates the guideline that the
+     internal encoding of characters in strings is in unicode
+     codepoints. */
+  str = scm_i_make_string (str_len, &buf);
+  memcpy (buf, locale_str, str_len);
 
-  str_len = scm_i_string_length (str);
   c_pos = scm_to_unsigned_integer (pos, 0, str_len);
 
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
     scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
-
-  /* XXX
- 
-     Make a new string to isolate us from changes to the original.
-     This is done so that we can rely on scm_i_string_chars to stay in
-     place even across SCM_TICKs.
-
-     Additionally, when we are going to write to the string, we make a
-     copy so that we can write to it without having to use
-     scm_i_string_writable_chars.
-  */
-
-  if (modes & SCM_WRTNG)
-    str = scm_c_substring_copy (str, 0, str_len);
-  else
-    str = scm_c_substring (str, 0, str_len);
 
   scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   z = scm_new_port_table_entry (scm_tc16_strport);
   pt = SCM_PTAB_ENTRY(z);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
   SCM_SET_CELL_TYPE(z, scm_tc16_strport|modes);
-  /* see above why we can use scm_i_string_chars here. */
   pt->write_buf = pt->read_buf = (unsigned char *) scm_i_string_chars (str);
   pt->read_pos = pt->write_pos = pt->read_buf + c_pos;
   pt->write_buf_size = pt->read_buf_size = str_len;
@@ -340,20 +332,58 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   return z;
 }
 
+SCM 
+scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
+{
+  SCM z;
+  size_t str_len;
+  char *buf;
+
+  SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
+
+  /* Because ports are inherently 8-bit, strings need to be converted
+     to a locale representation for storage.  But, since string ports
+     rely on string functionality for their memory management, we need
+     to create a new string that has the 8-bit locale representation
+     of the underlying string.  This violates the guideline that the
+     internal encoding of characters in strings is in unicode
+     codepoints. */
+  buf = scm_to_locale_stringn (str, &str_len);
+  z = scm_i_mkstrport (pos, buf, str_len, modes, caller);
+  free (buf);
+  return z;
+}
+
 /* create a new string from a string port's buffer.  */
 SCM scm_strport_to_string (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   SCM str;
-  char *dst;
   
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
 
-  str = scm_i_make_string (pt->read_buf_size, &dst);
-  memcpy (dst, (char *) pt->read_buf, pt->read_buf_size);
+  str = scm_from_locale_stringn ((char *)pt->read_buf, pt->read_buf_size);
   scm_remember_upto_here_1 (port);
   return str;
+}
+
+/* Create a vector containing the locale representation of the string in the
+   port's buffer.  */
+SCM scm_strport_to_locale_u8vector (SCM port)
+{
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  SCM vec;
+  char *buf;
+  
+  if (pt->rw_active == SCM_PORT_WRITE)
+    st_flush (port);
+
+  buf = scm_malloc (pt->read_buf_size);
+  memcpy (buf, pt->read_buf, pt->read_buf_size);
+  vec = scm_take_u8vector ((unsigned char *) buf, pt->read_buf_size);
+  scm_remember_upto_here_1 (port);
+  return vec;
 }
 
 SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
@@ -377,6 +407,25 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
     scm_call_2 (printer, obj, port);
 
   return scm_strport_to_string (port);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_call_with_output_locale_u8vector, "call-with-output-locale-u8vector", 1, 0, 0, 
+           (SCM proc),
+	    "Calls the one-argument procedure @var{proc} with a newly created output\n"
+	    "port.  When the function returns, a vector containing the bytes of a\n"
+	    "locale representation of the characters written into the port is returned\n")
+#define FUNC_NAME s_scm_call_with_output_locale_u8vector
+{
+  SCM p;
+
+  p = scm_mkstrport (SCM_INUM0, 
+		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+		     SCM_OPN | SCM_WRTNG,
+                     FUNC_NAME);
+  scm_call_1 (proc, p);
+
+  return scm_get_output_locale_u8vector (p);
 }
 #undef FUNC_NAME
 
@@ -424,6 +473,27 @@ SCM_DEFINE (scm_open_input_string, "open-input-string", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_open_input_locale_u8vector, "open-input-locale-u8vector", 1, 0, 0,
+	    (SCM vec),
+	    "Take a u8vector containing the bytes of a string encoded in the\n"
+	    "current locale and return an input port that delivers characters\n"
+	    "from the string. The port can be closed by\n"
+	    "@code{close-input-port}, though its storage will be reclaimed\n"
+	    "by the garbage collector if it becomes inaccessible.")
+#define FUNC_NAME s_scm_open_input_locale_u8vector
+{
+  scm_t_array_handle hnd;
+  ssize_t inc;
+  size_t len;
+  const scm_t_uint8 *buf;
+
+  buf = scm_u8vector_elements (vec, &hnd, &len, &inc);
+  SCM p = scm_i_mkstrport(SCM_INUM0, (const char *) buf, len, SCM_OPN | SCM_RDNG, FUNC_NAME);
+  scm_array_handle_release (&hnd);
+  return p;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0, 
 	    (void),
 	    "Return an output port that will accumulate characters for\n"
@@ -456,11 +526,26 @@ SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_get_output_locale_u8vector, "get-output-locale-u8vector", 1, 0, 0, 
+	    (SCM port),
+	    "Given an output port created by @code{open-output-string},\n"
+	    "return a u8 vector containing the characters of the string\n"
+	    "encoded in the current locale.")
+#define FUNC_NAME s_scm_get_output_locale_u8vector
+{
+  SCM_VALIDATE_OPOUTSTRPORT (1, port);
+  return scm_strport_to_locale_u8vector (port);
+}
+#undef FUNC_NAME
+
+
 /* Given a null-terminated string EXPR containing a Scheme expression
    read it, and return it as an SCM value. */
 SCM
 scm_c_read_string (const char *expr)
 {
+  /* FIXME: the c string gets packed into a string, only to get
+     immediately unpacked in scm_mkstrport.  */
   SCM port = scm_mkstrport (SCM_INUM0,
 			    scm_from_locale_string (expr),
 			    SCM_OPN | SCM_RDNG,

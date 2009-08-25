@@ -27,6 +27,9 @@
 ;;; All these tests assume Guile 1.8's port system, where characters are
 ;;; treated as octets.
 
+;;; Set the default encoding of future ports to be binary
+(setbinary)
+
 
 (with-test-prefix "7.2.5 End-of-File Object"
 

@@ -59,12 +59,10 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
   size_t j;
   size_t cstart;
   size_t cend;
-  int c;
-  const char *cdelims;
+  scm_t_wchar c;
   size_t num_delims;
 
   SCM_VALIDATE_STRING (1, delims);
-  cdelims = scm_i_string_chars (delims);
   num_delims = scm_i_string_length (delims);
 
   SCM_VALIDATE_STRING (2, str);
@@ -83,7 +81,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
       c = scm_getc (port);
       for (k = 0; k < num_delims; k++)
 	{
-	  if (cdelims[k] == c)
+	  if (scm_i_string_ref (delims, k) == c)
 	    {
 	      if (scm_is_false (gobble))
 		scm_ungetc (c, port);
