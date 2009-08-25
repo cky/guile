@@ -29,13 +29,17 @@
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
 #include "libguile/srfi-4.h"
+#include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
+#include "libguile/generalized-vectors.h"
+#include "libguile/uniform.h"
 #include "libguile/error.h"
+#include "libguile/eval.h"
 #include "libguile/read.h"
 #include "libguile/ports.h"
 #include "libguile/chars.h"
 #include "libguile/vectors.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/dynwind.h"
@@ -496,11 +500,8 @@ uvec_to_list (int type, SCM uvec)
   SCM res = SCM_EOL;
 
   elts = uvec_elements (type, uvec, &handle, &len, &inc);
-  for (i = len*inc; i > 0;)
-    {
-      i -= inc;
-      res = scm_cons (scm_array_handle_ref (&handle, i), res);
-    }
+  for (i = len - 1; i >= 0; i--)
+    res = scm_cons (scm_array_handle_ref (&handle, i*inc), res);
   scm_array_handle_release (&handle);
   return res;
 }
@@ -573,29 +574,6 @@ list_to_uvec (int type, SCM list)
   return uvec;
 }
 
-static SCM
-coerce_to_uvec (int type, SCM obj)
-{
-  if (is_uvec (type, obj))
-    return obj;
-  else if (scm_is_pair (obj))
-    return list_to_uvec (type, obj);
-  else if (scm_is_generalized_vector (obj))
-    {
-      scm_t_array_handle handle;
-      size_t len = scm_c_generalized_vector_length (obj), i;
-      SCM uvec = alloc_uvec (type, len);
-      scm_array_get_handle (uvec, &handle);
-      for (i = 0; i < len; i++)
-	scm_array_handle_set (&handle, i,
-			      scm_c_generalized_vector_ref (obj, i));
-      scm_array_handle_release (&handle);
-      return uvec;
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, obj, "list or generalized vector");
-}
-
 SCM_SYMBOL (scm_sym_a, "a");
 SCM_SYMBOL (scm_sym_b, "b");
 
@@ -615,222 +593,6 @@ scm_i_generalized_vector_type (SCM v)
   else
     return SCM_BOOL_F;
 }
-
-int
-scm_is_uniform_vector (SCM obj)
-{
-  if (SCM_IS_UVEC (obj))
-    return 1;
-  if (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
-    {
-      SCM v = SCM_I_ARRAY_V (obj);
-      return SCM_IS_UVEC (v);
-    }
-  return 0;
-}
-
-size_t
-scm_c_uniform_vector_length (SCM uvec)
-{
-  /* scm_generalized_vector_get_handle will ultimately call us to get
-     the length of uniform vectors, so we can't use uvec_elements for
-     naked vectors.
-  */
-
-  if (SCM_IS_UVEC (uvec))
-    return SCM_UVEC_LENGTH (uvec);
-  else
-    {
-      scm_t_array_handle handle;
-      size_t len;
-      ssize_t inc;
-      uvec_elements (-1, uvec, &handle, &len, &inc);
-      scm_array_handle_release (&handle);
-      return len;
-    }
-}
-
-SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,
-	    (SCM obj),
-	    "Return @code{#t} if @var{obj} is a uniform vector.")
-#define FUNC_NAME s_scm_uniform_vector_p
-{
-  return scm_from_bool (scm_is_uniform_vector (obj));
-}
-#undef FUNC_NAME
-
-SCM
-scm_c_uniform_vector_ref (SCM v, size_t idx)
-{
-  scm_t_array_handle handle;
-  size_t len;
-  ssize_t inc;
-  SCM res;
-
-  uvec_elements (-1, v, &handle, &len, &inc);
-  if (idx >= len)
-    scm_out_of_range (NULL, scm_from_size_t (idx));
-  res = scm_array_handle_ref (&handle, idx*inc);
-  scm_array_handle_release (&handle);
-  return res;
-}
-
-SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
-	    (SCM v, SCM idx),
-	    "Return the element at index @var{idx} of the\n"
-	    "homogenous numeric vector @var{v}.")
-#define FUNC_NAME s_scm_uniform_vector_ref
-{
-#if SCM_ENABLE_DEPRECATED
-  /* Support old argument convention.
-   */
-  if (scm_is_pair (idx))
-    {
-      scm_c_issue_deprecation_warning
-	("Using a list as the index to uniform-vector-ref is deprecated.");
-      if (!scm_is_null (SCM_CDR (idx)))
-	scm_wrong_num_args (NULL);
-      idx = SCM_CAR (idx);
-    }
-#endif
-
-  return scm_c_uniform_vector_ref (v, scm_to_size_t (idx));
-}
-#undef FUNC_NAME
-
-void
-scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
-{
-  scm_t_array_handle handle;
-  size_t len;
-  ssize_t inc;
-
-  uvec_writable_elements (-1, v, &handle, &len, &inc);
-  if (idx >= len)
-    scm_out_of_range (NULL, scm_from_size_t (idx));
-  scm_array_handle_set (&handle, idx*inc, val);
-  scm_array_handle_release (&handle);
-}
-
-SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
-	    (SCM v, SCM idx, SCM val),
-	    "Set the element at index @var{idx} of the\n"
-	    "homogenous numeric vector @var{v} to @var{val}.")
-#define FUNC_NAME s_scm_uniform_vector_set_x
-{
-#if SCM_ENABLE_DEPRECATED
-  /* Support old argument convention.
-   */
-  if (scm_is_pair (idx))
-    {
-      scm_c_issue_deprecation_warning
-	("Using a list as the index to uniform-vector-set! is deprecated.");
-      if (!scm_is_null (SCM_CDR (idx)))
-	scm_wrong_num_args (NULL);
-      idx = SCM_CAR (idx);
-    }
-#endif
-
-  scm_c_uniform_vector_set_x (v, scm_to_size_t (idx), val);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
-            (SCM uvec),
-	    "Convert the uniform numeric vector @var{uvec} to a list.")
-#define FUNC_NAME s_scm_uniform_vector_to_list
-{
-  return uvec_to_list (-1, uvec);
-}
-#undef FUNC_NAME
-
-size_t
-scm_array_handle_uniform_element_size (scm_t_array_handle *h)
-{
-  SCM vec = h->array;
-  if (SCM_I_ARRAYP (vec))
-    vec = SCM_I_ARRAY_V (vec);
-  if (scm_is_uniform_vector (vec))
-    return uvec_sizes[SCM_UVEC_TYPE(vec)];
-  if (scm_is_bytevector (vec))
-    return 1U;
-  scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
-}
-
-#if SCM_ENABLE_DEPRECATED
- 
-/* return the size of an element in a uniform array or 0 if type not
-   found.  */
-size_t
-scm_uniform_element_size (SCM obj)
-{
-  scm_c_issue_deprecation_warning 
-    ("scm_uniform_element_size is deprecated.  "
-     "Use scm_array_handle_uniform_element_size instead.");
-
-  if (SCM_IS_UVEC (obj))
-    return uvec_sizes[SCM_UVEC_TYPE(obj)];
-  else
-    return 0;
-}
-
-#endif
-
-const void *
-scm_array_handle_uniform_elements (scm_t_array_handle *h)
-{
-  return scm_array_handle_uniform_writable_elements (h);
-}
-
-void *
-scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
-{
-  SCM vec = h->array;
-  if (SCM_I_ARRAYP (vec))
-    vec = SCM_I_ARRAY_V (vec);
-  if (SCM_IS_UVEC (vec))
-    {
-      size_t size = uvec_sizes[SCM_UVEC_TYPE(vec)];
-      char *elts = SCM_UVEC_BASE (vec);
-      return (void *) (elts + size*h->base);
-    }
-  if (scm_is_bytevector (vec))
-    return SCM_BYTEVECTOR_CONTENTS (vec);
-  scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
-}
-
-const void *
-scm_uniform_vector_elements (SCM uvec, 
-			     scm_t_array_handle *h,
-			     size_t *lenp, ssize_t *incp)
-{
-  return scm_uniform_vector_writable_elements (uvec, h, lenp, incp);
-}
-
-void *
-scm_uniform_vector_writable_elements (SCM uvec, 
-				      scm_t_array_handle *h,
-				      size_t *lenp, ssize_t *incp)
-{
-  scm_generalized_vector_get_handle (uvec, h);
-  if (lenp)
-    {
-      scm_t_array_dim *dim = scm_array_handle_dims (h);
-      *lenp = dim->ubnd - dim->lbnd + 1;
-      *incp = dim->inc;
-    }
-  return scm_array_handle_uniform_writable_elements (h);
-}
-
-SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0, 
-	    (SCM v),
-	    "Return the number of elements in the uniform vector @var{v}.")
-#define FUNC_NAME s_scm_uniform_vector_length
-{
-  return uvec_length (-1, v);
-}
-#undef FUNC_NAME
 
 SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
            (SCM uvec, SCM port_or_fd, SCM start, SCM end),
@@ -1067,6 +829,36 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 #define CTYPE double
 #include "libguile/srfi-4.i.c"
 
+#define DEFINE_SCHEME_PROXY100(cname, modname, scmname)                 \
+  SCM cname (SCM arg1)                                                  \
+  {                                                                     \
+    static SCM var = SCM_BOOL_F;                                        \
+    if (scm_is_false (var))                                             \
+      var = scm_c_module_lookup (scm_c_resolve_module (modname), scmname); \
+    return scm_call_1 (SCM_VARIABLE_REF (var), arg1);                   \
+  }
+
+#define DEFPROXY100(cname, scmname)               \
+  DEFINE_SCHEME_PROXY100 (cname, MOD, scmname)
+
+#define DEFINE_SRFI_4_GNU_PROXIES(tag)                              \
+  DEFPROXY100 (scm_any_to_##tag##vector, "any->" #tag "vector")
+
+#define MOD "srfi srfi-4 gnu"
+DEFINE_SRFI_4_GNU_PROXIES (u8);
+DEFINE_SRFI_4_GNU_PROXIES (s8);
+DEFINE_SRFI_4_GNU_PROXIES (u16);
+DEFINE_SRFI_4_GNU_PROXIES (s16);
+DEFINE_SRFI_4_GNU_PROXIES (u32);
+DEFINE_SRFI_4_GNU_PROXIES (s32);
+DEFINE_SRFI_4_GNU_PROXIES (u64);
+DEFINE_SRFI_4_GNU_PROXIES (s64);
+DEFINE_SRFI_4_GNU_PROXIES (f32);
+DEFINE_SRFI_4_GNU_PROXIES (f64);
+DEFINE_SRFI_4_GNU_PROXIES (c32);
+DEFINE_SRFI_4_GNU_PROXIES (c64);
+
+
 static scm_i_t_array_ref uvec_reffers[12] = {
   u8ref, s8ref,
   u16ref, s16ref,
@@ -1085,17 +877,34 @@ static scm_i_t_array_set uvec_setters[12] = {
   c32set, c64set
 };
 
-scm_i_t_array_ref
-scm_i_uniform_vector_ref_proc (SCM uvec)
+static SCM
+uvec_handle_ref (scm_t_array_handle *h, size_t index)
 {
-  return uvec_reffers[SCM_UVEC_TYPE(uvec)];
+  return uvec_reffers [SCM_UVEC_TYPE(h->array)] (h, index);
 }
 
-scm_i_t_array_set
-scm_i_uniform_vector_set_proc (SCM uvec)
+static void
+uvec_handle_set (scm_t_array_handle *h, size_t index, SCM val)
 {
-  return uvec_setters[SCM_UVEC_TYPE(uvec)];
+  uvec_setters [SCM_UVEC_TYPE(h->array)] (h, index, val);
 }
+
+static void
+uvec_get_handle (SCM v, scm_t_array_handle *h)
+{
+  h->array = v;
+  h->ndims = 1;
+  h->dims = &h->dim0;
+  h->dim0.lbnd = 0;
+  h->dim0.ubnd = SCM_UVEC_LENGTH (v) - 1;
+  h->dim0.inc = 1;
+  h->element_type = SCM_UVEC_TYPE (v) + SCM_ARRAY_ELEMENT_TYPE_U8;
+  h->elements = h->writable_elements = SCM_UVEC_BASE (v);
+}
+
+SCM_ARRAY_IMPLEMENTATION (scm_tc16_uvec, 0xffff,
+                          uvec_handle_ref, uvec_handle_set,
+                          uvec_get_handle);
 
 void
 scm_init_srfi_4 (void)
@@ -1118,6 +927,24 @@ scm_init_srfi_4 (void)
   scm_int64_max =
     scm_permanent_object (scm_c_read_string ("9223372036854775807"));
 #endif
+
+#define REGISTER(tag, TAG)                                       \
+  scm_i_register_vector_constructor                              \
+    (scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_##TAG],    \
+     scm_make_##tag##vector)
+
+  REGISTER (u8, U8); 
+  REGISTER (s8, S8); 
+  REGISTER (u16, U16);
+  REGISTER (s16, S16);
+  REGISTER (u32, U32);
+  REGISTER (s32, S32);
+  REGISTER (u64, U64);
+  REGISTER (s64, S64);
+  REGISTER (f32, F32);
+  REGISTER (f64, F64);
+  REGISTER (c32, C32);
+  REGISTER (c64, C64);
 
 #include "libguile/srfi-4.x"
 

@@ -30,7 +30,7 @@
 #include <unistd.h>
 #endif
 
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/read.h"

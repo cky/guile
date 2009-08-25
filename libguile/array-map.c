@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -17,10 +17,6 @@
  */
 
 
-/*
-  HWN:FIXME::
-  Someone should rename this to arraymap.c; that would reflect the
-  contents better.  */
 
 
 
@@ -31,7 +27,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/strings.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/smob.h"
 #include "libguile/chars.h"
 #include "libguile/eq.h"
@@ -39,11 +35,14 @@
 #include "libguile/feature.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+#include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
 #include "libguile/dynwind.h"
+#include "libguile/generalized-arrays.h"
+#include "libguile/generalized-vectors.h"
 
 #include "libguile/validate.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 
 
 typedef struct
@@ -223,7 +222,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       if (!SCM_I_ARRAYP (vra0))
 	{
 	  size_t length = scm_c_generalized_vector_length (vra0);
-	  vra1 = scm_i_make_ra (1, 0);
+	  vra1 = scm_i_make_array (1);
 	  SCM_I_ARRAY_BASE (vra1) = 0;
 	  SCM_I_ARRAY_DIMS (vra1)->lbnd = 0;
 	  SCM_I_ARRAY_DIMS (vra1)->ubnd = length - 1;
@@ -236,7 +235,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       for (z = lra; SCM_NIMP (z); z = SCM_CDR (z))
 	{
 	  ra1 = SCM_CAR (z);
-	  vra1 = scm_i_make_ra (1, 0);
+	  vra1 = scm_i_make_array (1);
 	  SCM_I_ARRAY_DIMS (vra1)->lbnd = SCM_I_ARRAY_DIMS (vra0)->lbnd;
 	  SCM_I_ARRAY_DIMS (vra1)->ubnd = SCM_I_ARRAY_DIMS (vra0)->ubnd;
 	  if (!SCM_I_ARRAYP (ra1))
@@ -259,7 +258,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       return (SCM_UNBNDP (data) ? cproc(vra0, lvra) : cproc(vra0, data, lvra));
     case 1:
     gencase:			/* Have to loop over all dimensions. */
-    vra0 = scm_i_make_ra (1, 0);
+      vra0 = scm_i_make_array (1);
     if (SCM_I_ARRAYP (ra0))
       {
 	kmax = SCM_I_ARRAY_NDIM (ra0) - 1;
@@ -294,7 +293,7 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
     for (z = lra; SCM_NIMP (z); z = SCM_CDR (z))
       {
 	ra1 = SCM_CAR (z);
-	vra1 = scm_i_make_ra (1, 0);
+	vra1 = scm_i_make_array (1);
 	SCM_I_ARRAY_DIMS (vra1)->lbnd = SCM_I_ARRAY_DIMS (vra0)->lbnd;
 	SCM_I_ARRAY_DIMS (vra1)->ubnd = SCM_I_ARRAY_DIMS (vra0)->ubnd;
 	if (SCM_I_ARRAYP (ra1))
@@ -1222,13 +1221,13 @@ init_raprocs (ra_iproc *subra)
 
 
 void
-scm_init_ramap ()
+scm_init_array_map (void)
 {
   init_raprocs (ra_rpsubrs);
   init_raprocs (ra_asubrs);
   scm_c_define_subr (s_array_equal_p, scm_tc7_rpsubr, scm_array_equal_p);
   scm_smobs[SCM_TC2SMOBNUM (scm_i_tc16_array)].equalp = scm_raequal;
-#include "libguile/ramap.x"
+#include "libguile/array-map.x"
   scm_add_feature (s_scm_array_for_each);
 }
 

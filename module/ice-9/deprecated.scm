@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2003, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -168,16 +168,6 @@
 
 ;; The strange prototype system for uniform arrays has been
 ;; deprecated.
-
-(define uniform-vector-fill! array-fill!)
-
-(define make-uniform-vector dimensions->uniform-array)
-
-(define (make-uniform-array prot . bounds)
-  (dimensions->uniform-array bounds prot))
- 
-(define (list->uniform-vector prot lst)
-  (list->uniform-array 1 prot lst))
 
 (define-macro (eval-case . clauses)
   (issue-deprecation-warning

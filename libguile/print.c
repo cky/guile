@@ -36,7 +36,6 @@
 #include "libguile/read.h"
 #include "libguile/weaks.h"
 #include "libguile/programs.h"
-#include "libguile/unif.h"
 #include "libguile/alist.h"
 #include "libguile/struct.h"
 #include "libguile/objects.h"

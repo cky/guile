@@ -121,17 +121,6 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
-	    (SCM obj),
-	    "Convert @var{obj}, which can be a list, vector, or\n"
-	    "uniform vector, to a numeric uniform vector of\n"
-	    "type " S(TAG)".")
-#define FUNC_NAME s_F(scm_any_to_,TAG,vector)
-{
-  return coerce_to_uvec (TYPE, obj);
-}
-#undef FUNC_NAME
-
 #ifdef CTYPE
 
 SCM
@@ -187,13 +176,13 @@ F(scm_,TAG,vector_writable_elements) (SCM uvec,
 #endif
 
 static SCM
-F(,TAG,ref) (scm_t_array_handle *handle, ssize_t pos)
+F(,TAG,ref) (scm_t_array_handle *handle, size_t pos)
 {
   return uvec_fast_ref (TYPE, handle->elements, pos);
 }
 
 static void
-F(,TAG,set) (scm_t_array_handle *handle, ssize_t pos, SCM val)
+F(,TAG,set) (scm_t_array_handle *handle, size_t pos, SCM val)
 {
   uvec_fast_set_x (TYPE, handle->writable_elements, pos, val);
 }

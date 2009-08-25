@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2002, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2002, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -39,8 +39,8 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
-#include "libguile/unif.h"
-#include "libguile/ramap.h"
+#include "libguile/arrays.h"
+#include "libguile/array-map.h"
 #include "libguile/feature.h"
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
