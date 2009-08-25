@@ -85,6 +85,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
+  char *encoding;
   SCM_VALIDATE_STRING (1, filename);
   if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
     SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
@@ -97,7 +98,15 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
-
+    encoding = scm_scan_for_encoding (port);
+    if (encoding)
+      {
+	scm_i_set_port_encoding_x (port, encoding);
+	free (encoding);
+      }
+    else
+      /* The file has no encoding declaraed.  We'll presume Latin-1.  */
+      scm_i_set_port_encoding_x (port, NULL);
     while (1)
       {
 	SCM reader, form;

@@ -28,6 +28,11 @@
 #include "libguile/__scm.h"
 #include "libguile/print.h"
 
+#ifndef SCM_T_WCHAR_DEFINED
+typedef scm_t_int32 scm_t_wchar;
+#define SCM_T_WCHAR_DEFINED
+#endif /* SCM_T_WCHAR_DEFINED */
+
 #if SCM_HAVE_FLOATINGPOINT_H
 # include <floatingpoint.h>
 #endif
@@ -174,7 +179,6 @@ typedef struct scm_t_complex
   double imag;
 } scm_t_complex;
 
-typedef scm_t_int32 scm_t_wchar;
 
 
 

@@ -24,7 +24,11 @@
 
 
 #include "libguile/__scm.h"
-#include "libguile/numbers.h"
+
+#ifndef SCM_T_WCHAR_DEFINED
+typedef scm_t_int32 scm_t_wchar;
+#define SCM_T_WCHAR_DEFINED
+#endif /* SCM_T_WCHAR_DEFINED */
 
 
 /* Immediate Characters

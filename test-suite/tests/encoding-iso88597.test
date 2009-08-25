@@ -1,0 +1,136 @@
+;;;; strings.test --- test suite for Guile's string functions    -*- mode: scheme; coding: iso-8859-7 -*-
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;;;; Boston, MA 02110-1301 USA
+
+(define-module (test-strings)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1))
+
+(define exception:conversion
+  (cons 'misc-error "^cannot convert to output locale"))
+
+;; Create a string from integer char values, eg. (string-ints 65) => "A"
+(define (string-ints . args)
+  (apply string (map integer->char args)))
+
+(setlocale LC_ALL "")
+
+(define s1 "Περί")
+(define s2 "της")
+(define s3 "κριτικής")
+(define s4 "και")
+
+(with-test-prefix "string length"
+
+  (pass-if "s1"
+	   (eq? (string-length s1) 4))
+  
+  (pass-if "s2"
+	   (eq? (string-length s2) 3))
+  
+  (pass-if "s3"
+	   (eq? (string-length s3) 8))
+  
+  (pass-if "s4" 
+	   (eq? (string-length s4) 3)))
+
+(with-test-prefix "internal encoding"
+
+  (pass-if "s1"
+	   (string=? s1 (string-ints #x03a0 #x03b5 #x03c1 #x03af)))
+  
+  (pass-if "s2"
+	   (string=? s2 (string-ints #x03c4 #x03b7 #x03c2)))
+  
+  (pass-if "s3"
+	   (string=? s3 (string-ints #x03ba #x03c1 #x03b9 #x03c4 #x03b9 #x03ba #x03ae #x03c2)))
+  
+  (pass-if "s4"
+	   (string=? s4 (string-ints #x03ba #x03b1 #x03b9))))
+
+(with-test-prefix "chars"
+ 
+  (pass-if "s1"
+	   (list= eqv? (string->list s1)
+		  (list #\Π #\ε #\ρ #\ί)))
+  
+  (pass-if "s2"
+	   (list= eqv? (string->list s2)
+		  (list #\τ #\η #\ς)))
+  
+  (pass-if "s3"
+	   (list= eqv? (string->list s3)
+		  (list #\κ #\ρ #\ι #\τ #\ι #\κ #\ή #\ς)))
+  
+  (pass-if "s4"
+	   (list= eqv? (string->list s4)
+		  (list #\κ #\α #\ι))))
+
+;; Testing that the display of the string is output in the ISO-8859-7
+;; encoding
+(with-test-prefix "display"
+ 
+  (pass-if "s1"
+	   (let ((pt (open-output-string)))
+	     (set-port-encoding! pt "ISO-8859-7")
+	     (display s1 pt)
+	     (list= eqv? 
+		    (list #xd0 #xe5 #xf1 #xdf)
+		    (u8vector->list 
+		     (get-output-locale-u8vector pt)))))
+  (pass-if "s2"
+	   (let ((pt (open-output-string)))
+	     (set-port-encoding! pt "ISO-8859-7")
+	     (display s2 pt)
+	     (list= eqv? 
+		    (list #xf4 #xe7 #xf2)
+		    (u8vector->list 
+		     (get-output-locale-u8vector pt))))))
+
+(with-test-prefix "symbols == strings"
+
+  (pass-if "Περί"
+	   (eq? (string->symbol s1) 'Περί))
+
+  (pass-if "της"
+	   (eq? (string->symbol s2) 'της))
+  
+  (pass-if "κριτικής"
+	   (eq? (string->symbol s3) 'κριτικής))
+  
+  (pass-if "και"
+	   (eq? (string->symbol s4) 'και)))
+
+(with-test-prefix "non-ascii variable names"
+
+  (pass-if "1"
+	   (let ((α 1)
+		 (ρ 2))
+	     (eq? (+ α ρ) 3))))
+
+(with-test-prefix "output errors"
+
+  (pass-if-exception "char #x0400"
+		     exception:conversion
+		     (let ((pt (open-output-string)))
+		       (set-port-encoding! pt "ISO-8859-7")
+		       (set-port-conversion-strategy! pt 'error)
+		       (display (string-ints #x0400) pt))))
+
+;; Reset locale
+(setlocale LC_ALL "C")
