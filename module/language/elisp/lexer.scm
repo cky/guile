@@ -316,7 +316,19 @@
                 (get-symbol-or-number port))
               (lambda (type str)
                 (case type
-                  ((symbol) (return 'symbol (string->symbol str)))
+                  ((symbol)
+                   ; str could be empty if the first character is already
+                   ; something not allowed in a symbol (and not escaped)!
+                   ; Take care about that, it is an error because that character
+                   ; should have been handled elsewhere or is invalid in the
+                   ; input.
+                   (if (zero? (string-length str))
+                     (begin
+                       ; Take it out so the REPL might not get into an
+                       ; infinite loop with further reading attempts.
+                       (read-char port)
+                       (error "invalid character in input" c))
+                     (return 'symbol (string->symbol str))))
                   ((integer)
                    ; In elisp, something like "1." is an integer, while
                    ; string->number returns an inexact real.  Thus we
