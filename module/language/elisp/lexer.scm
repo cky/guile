@@ -297,7 +297,14 @@
           ((#\]) (return 'square-close #f))
           ((#\') (return 'quote #f))
           ((#\`) (return 'backquote #f))
-          ((#\,) (return 'unquote #f))
+
+          ; Unquote and unquote-splicing.
+          ((#\,)
+           (if (is-char? (peek-char port) #\@)
+             (if (not (char=? (read-char port) #\@))
+               (error "expected @ in unquote-splicing")
+               (return 'unquote-splicing #f))
+             (return 'unquote #f)))
 
           ; Remaining are numbers and symbols.  Process input until next
           ; whitespace is found, and see if it looks like a number
@@ -338,6 +345,8 @@
 
 ; Build a special lexer that will only read enough for one expression and then
 ; always return end-of-input.
+; If we find one of the quotation stuff, one more expression is needed in any
+; case.
 
 (define (get-lexer/1 port)
   (let ((lex (get-lexer port))
@@ -346,12 +355,15 @@
     (lambda ()
       (if finished
         '*eoi*
-        (let ((next (lex)))
+        (let ((next (lex))
+              (quotation #f))
           (case (car next)
             ((paren-open square-open)
              (set! paren-level (1+ paren-level)))
             ((paren-close square-close)
-             (set! paren-level (1- paren-level))))
-          (if (<= paren-level 0)
+             (set! paren-level (1- paren-level)))
+            ((quote backquote unquote unquote-splicing)
+             (set! quotation #t)))
+          (if (and (not quotation) (<= paren-level 0))
             (set! finished #t))
           next)))))

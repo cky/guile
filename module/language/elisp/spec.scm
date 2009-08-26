@@ -20,13 +20,13 @@
 
 (define-module (language elisp spec)
   #:use-module (language elisp compile-tree-il)
+  #:use-module (language elisp parser)
   #:use-module (system base language)
   #:export (elisp))
 
 (define-language elisp
   #:title	"Emacs Lisp"
   #:version	"0.0"
-  #:reader	read
+  #:reader	(lambda () (read-elisp (current-input-port)))
   #:printer	write
-  #:compilers	`((tree-il . ,compile-tree-il))
-  )
+  #:compilers	`((tree-il . ,compile-tree-il)))

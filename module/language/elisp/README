@@ -21,9 +21,9 @@ Already implemented:
   * defconst, defvar, defun
   * macros
   * quotation and backquotation with unquote/unquote-splicing
+  * specific elisp reader
 
 Especially still missing:
-  * real elisp reader instead of Scheme's
   * more general built-ins
   * advice?
   * defsubst and inlining

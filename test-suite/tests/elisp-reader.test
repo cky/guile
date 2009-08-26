@@ -19,7 +19,8 @@
 
 (define-module (test-elisp-reader)
   :use-module (test-suite lib)
-  :use-module (language elisp lexer))
+  :use-module (language elisp lexer)
+  :use-module (language elisp parser))
 
 
 ; ==============================================================================
@@ -50,10 +51,11 @@
            (eq? (lexer) '*eoi*))))
 
   (pass-if "single character tokens"
-    (equal? (lex-string "()[]'`, . ")
+    (equal? (lex-string "()[]'`,,@ . ")
       '((paren-open . #f) (paren-close . #f)
         (square-open . #f) (square-close . #f)
-        (quote . #f) (backquote . #f) (unquote . #f) (dot . #f))))
+        (quote . #f) (backquote . #f)
+        (unquote . #f) (unquote-splicing . #f) (dot . #f))))
 
   (pass-if "whitespace and comments"
     (equal? (lex-string "   (\n\t) ; this is a comment\n.   ; until eof")
@@ -117,10 +119,44 @@ test\"ab\"\\ abcd
               ,(- (char->integer #\X) (char->integer #\@))
               ,(+ (expt 2 22) (expt 2 23) (expt 2 24) 32))))
 
-  (let* ((lex1-string "((1 2) [2 [3]] 5)")
+  (let* ((lex1-string "'((1 2) [2 [3]] 5)")
          (lexer (call-with-input-string (string-append lex1-string " 1 2")
                                         get-lexer/1)))
     (pass-if "lexer/1"
       (and (equal? (lex-all lexer) (lex-string lex1-string))
            (eq? (lexer) '*eoi*)
            (eq? (lexer) '*eoi*)))))
+
+
+; ==============================================================================
+; Test the parser.
+
+(define (parse-str str)
+  (call-with-input-string str read-elisp))
+
+(with-test-prefix "Parser"
+
+  (pass-if "only next expression"
+    (equal? (parse-str "1 2 3") 1))
+
+  (pass-if "constants"
+    (and (equal? (parse-str "-12") -12)
+         (equal? (parse-str ".123") 0.123)
+         (equal? (parse-str "foobar") 'foobar)
+         (equal? (parse-str "\"abc\"") "abc")
+         (equal? (parse-str "?A") 65)
+         (equal? (parse-str "?\\C-@") 0)))
+
+  (pass-if "quotation"
+    (and (equal? (parse-str "'(1 2 3 '4)")
+                 '(quote (1 2 3 (quote 4))))
+         (equal? (parse-str "`(1 2 ,3 ,@a)")
+                 '(\` (1 2 (\, 3) (\,@ a))))))
+
+  (pass-if "lists"
+    (equal? (parse-str "(1 2 (3) () 4 (. 5) (1 2 . (3 4)) (1 . 2) . 42)")
+            '(1 2 (3) () 4 5 (1 2 3 4) (1 . 2) . 42)))
+
+  (pass-if "vectors"
+    (equal? (parse-str "[1 2 [] (3 4) \"abc\" d]")
+            #(1 2 #() (3 4) "abc" d))))
