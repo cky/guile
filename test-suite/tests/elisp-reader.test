@@ -1,0 +1,87 @@
+;;;; elisp-reader.test --- Test the reader used by the Elisp compiler.
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Daniel Kraft
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-elisp-reader)
+  :use-module (test-suite lib)
+  :use-module (language elisp lexer))
+
+
+; ==============================================================================
+; Test the lexer.
+
+; This is of course somewhat redundant with the full parser checks, but probably
+; can't hurt and is useful in developing the lexer itself.
+
+(define (get-string-lexer str)
+  (call-with-input-string str get-lexer))
+
+(define (lex-string str)
+  (let ((lexer (get-string-lexer str)))
+    (let iterate ((result '()))
+      (let ((token (lexer)))
+        (if (eq? token '*eoi*)
+          (reverse result)
+          (iterate (cons token result)))))))
+
+(with-test-prefix "Lexer"
+
+  (let ((lexer (get-string-lexer "")))
+    (pass-if "end-of-input"
+      (and (eq? (lexer) '*eoi*)
+           (eq? (lexer) '*eoi*)
+           (eq? (lexer) '*eoi*))))
+
+  (pass-if "single character tokens"
+    (equal? (lex-string "()[]'`, . ")
+      '((paren-open . #f) (paren-close . #f)
+        (square-open . #f) (square-close . #f)
+        (quote . #f) (backquote . #f) (unquote . #f) (dot . #f))))
+
+  (pass-if "whitespace and comments"
+    (equal? (lex-string "   (\n\t) ; this is a comment\n.   ; until eof")
+      '((paren-open . #f) (paren-close . #f) (dot . #f))))
+
+  (pass-if "source properties"
+    (let ((x (car (lex-string "\n\n  \n  .  \n"))))
+      (and (= (source-property x 'line) 4)
+           (= (source-property x 'column) 3))))
+
+  (pass-if "symbols"
+    (equal? (lex-string "foo FOO char-to-string 1+ \\+1
+                         \\(*\\ 1\\ 2\\)
+                         +-*/_~!@$%^&=:<>{}
+                         abc(def)ghi .e5")
+            `((symbol . foo) (symbol . FOO) (symbol . char-to-string)
+              (symbol . 1+) (symbol . ,(string->symbol "+1"))
+              (symbol . ,(string->symbol "(* 1 2)"))
+              (symbol . +-*/_~!@$%^&=:<>{})
+              (symbol . abc) (paren-open . #f) (symbol . def)
+              (paren-close . #f) (symbol . ghi) (symbol . .e5))))
+
+  ; Here we make use of the property that exact/inexact numbers are not equal?
+  ; even when they have the same numeric value!
+  (pass-if "integers"
+    (equal? (lex-string "-1 1 1. +1 01234")
+            '((integer . -1) (integer . 1) (integer . 1) (integer . 1)
+              (integer . 1234))))
+  (pass-if "floats"
+    (equal? (lex-string "1500.0 15e2 15.e2 1.5e3 .15e4 -.345e-2")
+            '((float . 1500.0) (float . 1500.0) (float . 1500.0)
+              (float . 1500.0) (float . 1500.0)
+              (float . -0.00345)))))
