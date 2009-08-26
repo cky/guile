@@ -1826,10 +1826,15 @@ scm_std_select (int nfds,
 int
 scm_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
-  int res = scm_i_pthread_mutex_lock (mutex);
-  scm_enter_guile (t);
-  return res;
+  if (scm_i_pthread_mutex_trylock (mutex) == 0)
+    return 0;
+  else
+    {
+      scm_t_guile_ticket t = scm_leave_guile ();
+      int res = scm_i_pthread_mutex_lock (mutex);
+      scm_enter_guile (t);
+      return res;
+    }
 }
 
 static void
