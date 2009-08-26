@@ -27,6 +27,155 @@
 ; instead of using some generator because I think that's most viable in this
 ; case and easy enough.
 
+; Characters are handled internally as integers representing their
+; code value.  This is necessary because elisp allows a lot of fancy modifiers
+; that set certain high-range bits and the resulting values would not fit
+; into a real Scheme character range.  Additionally, elisp wants characters
+; as integers, so we just do the right thing...
+
+; TODO: Circular syntax markers like #1= or #1#
+; TODO: #@count comments
+
+
+; Report an error from the lexer (that is, invalid input given).
+
+(define (lexer-error port msg . args)
+  (apply error msg args))
+
+
+; In a character, set a given bit.  This is just some bit-wise or'ing on the
+; characters integer code and converting back to character.
+
+(define (set-char-bit chr bit)
+  (logior chr (ash 1 bit)))
+
+
+; Check if a character equals some other.  This is just like char=? except that
+; the tested one could be EOF in which case it simply isn't equal.
+
+(define (is-char? tested should-be)
+  (and (not (eof-object? tested))
+       (char=? tested should-be)))
+
+
+; For a character (as integer code), find the real character it represents or
+; #\nul if out of range.  This is used to work with Scheme character functions
+; like char-numeric?.
+
+(define (real-character chr)
+  (if (< chr 256)
+    (integer->char chr)
+    #\nul))
+
+
+; Return the control modified version of a character.  This is not just setting
+; a modifier bit, because ASCII conrol characters must be handled as such, and
+; in elisp C-? is the delete character for historical reasons.
+; Otherwise, we set bit 26.
+
+(define (add-control chr)
+  (let ((real (real-character chr)))
+    (if (char-alphabetic? real)
+      (- (char->integer (char-upcase real)) (char->integer #\@))
+      (case real
+        ((#\?) 127)
+        ((#\@) 0)
+        (else (set-char-bit chr 26))))))
+
+
+; Parse a charcode given in some base, basically octal or hexadecimal are
+; needed.  A requested number of digits can be given (#f means it does
+; not matter and arbitrary many are allowed), and additionally early
+; return allowed (if fewer valid digits are found).
+; These options are all we need to handle the \u, \U, \x and \ddd (octal digits)
+; escape sequences.
+
+(define (charcode-escape port base digits early-return)
+  (let iterate ((result 0)
+                (procdigs 0))
+    (if (and digits (>= procdigs digits))
+      result
+      (let* ((cur (read-char port))
+             (value (cond
+                      ((char-numeric? cur)
+                       (- (char->integer cur) (char->integer #\0)))
+                      ((char-alphabetic? cur)
+                       (let ((code (- (char->integer (char-upcase cur))
+                                      (char->integer #\A))))
+                         (if (< code 0)
+                           #f
+                           (+ code 10))))
+                      (else #f)))
+             (valid (and value (< value base))))
+        (if (not valid)
+          (if (or (not digits) early-return)
+            (begin
+              (unread-char cur port)
+              result)
+            (lexer-error port "invalid digit in escape-code" base cur))
+          (iterate (+ (* result base) value) (1+ procdigs)))))))
+
+
+; Read a character and process escape-sequences when necessary.  The special
+; in-string argument defines if this character is part of a string literal or
+; a single character literal, the difference being that in strings the
+; meta modifier sets bit 7, while it is bit 27 for characters.
+
+(define basic-escape-codes
+  '((#\a . 7) (#\b . 8) (#\t . 9)
+    (#\n . 10) (#\v . 11) (#\f . 12) (#\r . 13)
+    (#\e . 27) (#\s . 32) (#\d . 127)))
+
+(define (get-character port in-string)
+  (let ((meta-bits `((#\A . 22) (#\s . 23) (#\H . 24)
+                     (#\S . 25) (#\M . ,(if in-string 7 27))))
+        (cur (read-char port)))
+    (if (char=? cur #\\)
+
+      ; Handle an escape-sequence.
+      (let* ((escaped (read-char port))
+             (esc-code (assq-ref basic-escape-codes escaped))
+             (meta (assq-ref meta-bits escaped)))
+        (cond
+
+          ; Meta-check must be before esc-code check because \s- must be
+          ; recognized as the super-meta modifier if a - follows.
+          ; If not, it will be caught as \s -> space escape code.
+          ((and meta (is-char? (peek-char port) #\-))
+           (if (not (char=? (read-char port) #\-))
+             (error "expected - after control sequence"))
+           (set-char-bit (get-character port in-string) meta))
+
+          ; One of the basic control character escape names?
+          (esc-code esc-code)
+
+          ; Handle \ddd octal code if it is one.
+          ((and (char>=? escaped #\0) (char<? escaped #\8))
+           (begin
+             (unread-char escaped port)
+             (charcode-escape port 8 3 #t)))
+
+          ; Check for some escape-codes directly or otherwise
+          ; use the escaped character literally.
+          (else
+            (case escaped
+              ((#\^) (add-control (get-character port in-string)))
+              ((#\C)
+               (if (is-char? (peek-char port) #\-)
+                 (begin
+                   (if (not (char=? (read-char port) #\-))
+                     (error "expected - after control sequence"))
+                   (add-control (get-character port in-string)))
+                 escaped))
+              ((#\x) (charcode-escape port 16 #f #t))
+              ((#\u) (charcode-escape port 16 4 #f))
+              ((#\U) (charcode-escape port 16 8 #f))
+              (else (char->integer escaped))))))
+
+      ; No escape-sequence, just the literal character.
+      ; But remember to get the code instead!
+      (char->integer cur))))
+
 
 ; Read a symbol or number from a port until something follows that marks the
 ; start of a new token (like whitespace or parentheses).  The data read is
@@ -103,7 +252,6 @@
             (char-whitespace? (peek-char port)))
        (return 'dot #f))
 
-
       ; Continue checking for literal character values.
       (else
         (case c
@@ -115,6 +263,32 @@
                (if (or (eof-object? cur) (char=? cur #\newline))
                  (lex port)
                  (iterate)))))
+
+          ; A character literal.
+          ((#\?)
+           (return 'character (get-character port #f)))
+
+          ; A literal string.  This is mainly a sequence of characters just
+          ; as in the character literals, the only difference is that escaped
+          ; newline and space are to be completely ignored and that meta-escapes
+          ; set bit 7 rather than bit 27.
+          ((#\")
+           (let iterate ((result-chars '()))
+             (let ((cur (read-char port)))
+               (case cur
+                 ((#\")
+                  (return 'string (list->string (reverse result-chars))))
+                 ((#\\)
+                  (let ((escaped (read-char port)))
+                    (case escaped
+                      ((#\newline #\space)
+                       (iterate result-chars))
+                      (else
+                        (unread-char escaped port)
+                        (unread-char cur port)
+                        (iterate (cons (integer->char (get-character port #t))
+                                       result-chars))))))
+                 (else (iterate (cons cur result-chars)))))))
 
           ; Parentheses and other special-meaning single characters.
           ((#\() (return 'paren-open #f))
@@ -144,14 +318,14 @@
                    (return 'integer
                            (let ((num (inexact->exact (string->number str))))
                              (if (not (integer? num))
-                               (error "Expected integer" str num))
+                               (error "expected integer" str num))
                              num)))
                   ((float)
                    (return 'float (let ((num (string->number str)))
                                     (if (exact? num)
-                                      (error "Expected inexact float" str num))
+                                      (error "expected inexact float" str num))
                                     num)))
-                  (else (error "Wrong number/symbol type" type)))))))))))
+                  (else (error "wrong number/symbol type" type)))))))))))
 
 
 ; Build a lexer thunk for a port.  This is the exported routine which can be

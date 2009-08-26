@@ -84,4 +84,33 @@
     (equal? (lex-string "1500.0 15e2 15.e2 1.5e3 .15e4 -.345e-2")
             '((float . 1500.0) (float . 1500.0) (float . 1500.0)
               (float . 1500.0) (float . 1500.0)
-              (float . -0.00345)))))
+              (float . -0.00345))))
+
+  ; Check string lexing, this also checks basic character escape sequences
+  ; that are then (hopefully) also correct for character literals.
+  (pass-if "strings"
+    (equal? (lex-string "\"foo\\nbar
+test\\
+\\\"ab\\\"\\\\ ab\\ cd
+\\418\\0415\\u0041\\U0000000A\\Xab\\x0000000000000004fG.\"  ")
+            '((string . "foo\nbar
+test\"ab\"\\ abcd
+!8!5A\nXabOG."))))
+  (pass-if "ASCII control characters and meta in strings"
+    (equal? (lex-string "\"\\^?\\C-a\\C-A\\^z\\M-B\\M-\\^@\\M-\\C-a\"")
+            '((string . "\x7F\x01\x01\x1A\xC2\x80\x81"))))
+
+  ; Character literals, taking into account that some escape sequences were
+  ; already checked in the strings.
+  (pass-if "characters"
+    (equal? (lex-string "?A?\\z ? ?\\x21 ?\\^j ?\\\\?\\n?\\\n")
+            `((character . 65) (character . ,(char->integer #\z))
+              (character . 32) (character . ,(char->integer #\!))
+              (character . 10) (character . ,(char->integer #\\))
+              (character . 10) (character . 10))))
+  (pass-if "meta characters"
+    (equal? (map cdr (lex-string "?\\C-[?\\M-\\S-Z?\\^X?\\A-\\s-\\H-\\s"))
+            `(,(+ (expt 2 26) (char->integer #\[))
+              ,(+ (expt 2 27) (expt 2 25) (char->integer #\Z))
+              ,(- (char->integer #\X) (char->integer #\@))
+              ,(+ (expt 2 22) (expt 2 23) (expt 2 24) 32)))))
