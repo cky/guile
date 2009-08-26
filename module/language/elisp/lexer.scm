@@ -21,11 +21,11 @@
 
 (define-module (language elisp lexer)
   #:use-module (ice-9 regex)
-  #:export (get-lexer))
+  #:export (get-lexer get-lexer/1))
 
 ; This is the lexical analyzer for the elisp reader.  It is hand-written
-; instead of using some generator because I think that's most viable in this
-; case and easy enough.
+; instead of using some generator.  I think this is the best solution
+; because of all that fancy escape sequence handling and the like.
 
 ; Characters are handled internally as integers representing their
 ; code value.  This is necessary because elisp allows a lot of fancy modifiers
@@ -334,3 +334,24 @@
 (define (get-lexer port)
   (lambda ()
     (lex port)))
+
+
+; Build a special lexer that will only read enough for one expression and then
+; always return end-of-input.
+
+(define (get-lexer/1 port)
+  (let ((lex (get-lexer port))
+        (finished #f)
+        (paren-level 0))
+    (lambda ()
+      (if finished
+        '*eoi*
+        (let ((next (lex)))
+          (case (car next)
+            ((paren-open square-open)
+             (set! paren-level (1+ paren-level)))
+            ((paren-close square-close)
+             (set! paren-level (1- paren-level))))
+          (if (<= paren-level 0)
+            (set! finished #t))
+          next)))))

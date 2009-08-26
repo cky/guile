@@ -31,13 +31,15 @@
 (define (get-string-lexer str)
   (call-with-input-string str get-lexer))
 
+(define (lex-all lexer)
+  (let iterate ((result '()))
+    (let ((token (lexer)))
+      (if (eq? token '*eoi*)
+        (reverse result)
+        (iterate (cons token result))))))
+
 (define (lex-string str)
-  (let ((lexer (get-string-lexer str)))
-    (let iterate ((result '()))
-      (let ((token (lexer)))
-        (if (eq? token '*eoi*)
-          (reverse result)
-          (iterate (cons token result)))))))
+  (lex-all (get-string-lexer str)))
 
 (with-test-prefix "Lexer"
 
@@ -113,4 +115,12 @@ test\"ab\"\\ abcd
             `(,(+ (expt 2 26) (char->integer #\[))
               ,(+ (expt 2 27) (expt 2 25) (char->integer #\Z))
               ,(- (char->integer #\X) (char->integer #\@))
-              ,(+ (expt 2 22) (expt 2 23) (expt 2 24) 32)))))
+              ,(+ (expt 2 22) (expt 2 23) (expt 2 24) 32))))
+
+  (let* ((lex1-string "((1 2) [2 [3]] 5)")
+         (lexer (call-with-input-string (string-append lex1-string " 1 2")
+                                        get-lexer/1)))
+    (pass-if "lexer/1"
+      (and (equal? (lex-all lexer) (lex-string lex1-string))
+           (eq? (lexer) '*eoi*)
+           (eq? (lexer) '*eoi*)))))
