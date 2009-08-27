@@ -1,6 +1,6 @@
 ;;; Guile Emac Lisp
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -21,56 +21,112 @@
 
 (define-module (language elisp parser)
   #:use-module (language elisp lexer)
-  #:use-module (language ecmascript parse-lalr)
   #:export (read-elisp))
 
-; The parser (reader) for elisp expressions.  It is implemented using the
-; (text parse-lalr) parser generator and uses my hand-written lexer as
-; the tokenizer.
+; The parser (reader) for elisp expressions.
+; Is is hand-written (just as the lexer is) instead of using some parser
+; generator because this allows easier transfer of source properties from the
+; lexer, makes the circular syntax parsing easier (as it would be with
+; (text parse-lalr) and is easy enough anyways.
 
 
-; Build the parser itself using parse-lalr.
+; Report a parse error.  The first argument is some current lexer token
+; where source information is available should it be useful.
 
-(define elisp-parser
-  (lalr-parser (integer float symbol character string
-                paren-open paren-close square-open square-close
-                dot quote backquote unquote unquote-splicing)
-
-    ; Expressions are our main interest.
-    ; It seems the symbol we're interested for return from the parser must
-    ; come very first, so here it is.
-    (expression (integer) -> $1
-                (float) -> $1
-                (symbol) -> $1
-                (character) -> $1
-                (string) -> $1
-                (list) -> $1
-                (quotation) -> $1
-                (vector) -> $1)
-
-    ; Pairs, lists and dotted lists.
-    (partial-list (expression) -> (list $1)
-                  (expression dot expression) -> (cons $1 $3)
-                  (expression partial-list) -> (cons $1 $2))
-    (list (paren-open paren-close) -> '()
-          (paren-open dot expression paren-close) -> $3
-          (paren-open partial-list paren-close) -> $2)
-
-    ; Quotation and unquotation expressions.
-    (quotation (quote expression) -> `(quote ,$2)
-               (backquote expression) -> `(\` ,$2)
-               (unquote expression) -> `(\, ,$2)
-               (unquote-splicing expression) -> `(\,@ ,$2))
-
-    ; Vectors.
-    (vector-elements (expression) -> (list $1)
-                     (expression vector-elements) -> (cons $1 $2))
-    (vector (square-open square-close) -> (make-vector 0)
-            (square-open vector-elements square-close) -> (list->vector $2))))
+(define (parse-error token msg . args)
+  (apply error msg args))
 
 
-; Use the parser to define the elisp reader function.
-; We only want to read a single expression at a time, so use get-lexer/1.
+; We need peek-functionality for the next lexer token, this is done with some
+; single token look-ahead storage.  This is handled by a closure which allows
+; getting or peeking the next token.
+; When one expression is fully parsed, we don't want a look-ahead stored here
+; because it would miss from future parsing.  This is verified by the finish
+; action.
+
+(define (make-lexer-buffer lex)
+  (let ((look-ahead #f))
+    (lambda (action)
+      (if (eq? action 'finish)
+        (if look-ahead
+          (error "lexer-buffer is not empty when finished")
+          #f)
+        (begin
+          (if (not look-ahead)
+            (set! look-ahead (lex)))
+          (case action
+            ((peek) look-ahead)
+            ((get)
+             (let ((result look-ahead))
+               (set! look-ahead #f)
+               result))
+            (else (error "invalid lexer-buffer action" action))))))))
+
+
+; Get the contents of a list, where the opening parentheses has already been
+; found.  The same code is used for vectors and lists, where lists allow the
+; dotted tail syntax and vectors not; additionally, the closing parenthesis
+; must of course match.
+
+(define (get-list lex allow-dot close-square)
+  (let* ((next (lex 'peek))
+         (type (car next)))
+    (cond
+      ((eq? type (if close-square 'square-close 'paren-close))
+       (begin
+         (if (not (eq? (car (lex 'get)) type))
+           (error "got different token than peeked"))
+         '()))
+      ((and allow-dot (eq? type 'dot))
+       (begin
+         (if (not (eq? (car (lex 'get)) type))
+           (error "got different token than peeked"))
+         (let ((tail (get-list lex #f close-square)))
+           (if (not (= (length tail) 1))
+             (parse-error next "expected exactly one element after dot"))
+           (car tail))))
+      (else
+        ; Do both parses in exactly this sequence!
+        (let* ((head (get-expression lex))
+               (tail (get-list lex allow-dot close-square)))
+          (cons head tail))))))
+
+
+
+; Parse a single expression from a lexer-buffer.  This is the main routine in
+; our recursive-descent parser.
+
+(define quotation-symbols '((quote . quote)
+                            (backquote . \`)
+                            (unquote . \,)
+                            (unquote-splicing . \,@)))
+
+(define (get-expression lex)
+  (let* ((token (lex 'get))
+         (type (car token))
+         (return (lambda (result)
+                   (if (pair? result)
+                     (set-source-properties! result (source-properties token)))
+                   result)))
+    (case type
+      ((integer float symbol character string)
+       (return (cdr token)))
+      ((quote backquote unquote unquote-splicing)
+       (return (list (assq-ref quotation-symbols type) (get-expression lex))))
+      ((paren-open)
+       (return (get-list lex #t #f)))
+      ((square-open)
+       (return (list->vector (get-list lex #f #t))))
+      (else
+        (parse-error token "expected expression, got" token)))))
+
+
+; Define the reader function based on this; build a lexer, a lexer-buffer,
+; and then parse a single expression to return.
 
 (define (read-elisp port)
-  (elisp-parser (get-lexer/1 port) error))
+  (let* ((lexer (get-lexer port))
+         (lexbuf (make-lexer-buffer lexer))
+         (result (get-expression lexbuf)))
+    (lexbuf 'finish)
+    result))

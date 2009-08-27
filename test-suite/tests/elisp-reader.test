@@ -26,9 +26,6 @@
 ; ==============================================================================
 ; Test the lexer.
 
-; This is of course somewhat redundant with the full parser checks, but probably
-; can't hurt and is useful in developing the lexer itself.
-
 (define (get-string-lexer str)
   (call-with-input-string str get-lexer))
 
@@ -138,6 +135,17 @@ test\"ab\"\\ abcd
 
   (pass-if "only next expression"
     (equal? (parse-str "1 2 3") 1))
+
+  (pass-if "source properties"
+    (let* ((list1 (parse-str "\n\n   (\n(7)  (42))"))
+           (list2 (car list1))
+           (list3 (cadr list1)))
+      (and (= (source-property list1 'line) 3)
+           (= (source-property list1 'column) 4)
+           (= (source-property list2 'line) 4)
+           (= (source-property list2 'column) 1)
+           (= (source-property list3 'line) 4)
+           (= (source-property list3 'column) 6))))
 
   (pass-if "constants"
     (and (equal? (parse-str "-12") -12)
