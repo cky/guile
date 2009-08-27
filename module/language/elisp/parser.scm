@@ -26,8 +26,8 @@
 ; The parser (reader) for elisp expressions.
 ; Is is hand-written (just as the lexer is) instead of using some parser
 ; generator because this allows easier transfer of source properties from the
-; lexer, makes the circular syntax parsing easier (as it would be with
-; (text parse-lalr) and is easy enough anyways.
+; lexer ((text parse-lalr) seems not to allow access to the original lexer
+; token-pair) and is easy enough anyways.
 
 
 ; Report a parse error.  The first argument is some current lexer token
@@ -35,6 +35,73 @@
 
 (define (parse-error token msg . args)
   (apply error msg args))
+
+
+; For parsing circular structures, we keep track of definitions in a
+; hash-map that maps the id's to their values.
+; When defining a new id, though, we immediatly fill the slot with a promise
+; before parsing and setting the real value, because it must already be
+; available at that time in case of a circular reference.  The promise refers
+; to a local variable that will be set when the real value is available through
+; a closure.  After parsing the expression is completed, we work through it
+; again and force all promises we find.
+; The definitions themselves are stored in a fluid and their scope is one
+; call to read-elisp (but not only the currently parsed expression!).
+
+(define circular-definitions (make-fluid))
+
+(define (make-circular-definitions)
+  (make-hash-table))
+
+(define (circular-ref token)
+  (if (not (eq? (car token) 'circular-ref))
+    (error "invalid token for circular-ref" token))
+  (let* ((id (cdr token))
+         (value (hashq-ref (fluid-ref circular-definitions) id)))
+    (if value
+      value
+      (parse-error token "undefined circular reference" id))))
+
+; Returned is a closure that, when invoked, will set the final value.
+; This means both the variable the promise will return and the hash-table
+; slot so we don't generate promises any longer.
+(define (circular-define! token)
+  (if (not (eq? (car token) 'circular-def))
+    (error "invalid token for circular-define!" token))
+  (let ((value #f)
+        (table (fluid-ref circular-definitions))
+        (id (cdr token)))
+    (hashq-set! table id (delay value))
+    (lambda (real-value)
+      (set! value real-value)
+      (hashq-set! table id real-value))))
+
+; Work through a parsed data structure and force the promises there.
+; After a promise is forced, the resulting value must not be recursed on;
+; this may lead to infinite recursion with a circular structure, and
+; additionally this value was already processed when it was defined.
+; All deep data structures that can be parsed must be handled here!
+(define (force-promises! data)
+  (cond
+    ((pair? data)
+     (begin
+       (if (promise? (car data))
+         (set-car! data (force (car data)))
+         (force-promises! (car data)))
+       (if (promise? (cdr data))
+         (set-cdr! data (force (cdr data)))
+         (force-promises! (cdr data)))))
+    ((vector? data)
+     (let ((len (vector-length data)))
+       (let iterate ((i 0))
+         (if (< i len)
+           (let ((el (vector-ref data i)))
+             (if (promise? el)
+               (vector-set! data i (force el))
+               (force-promises! el))
+             (iterate (1+ i)))))))
+    ; Else nothing needs to be done.
+  ))
 
 
 ; We need peek-functionality for the next lexer token, this is done with some
@@ -67,6 +134,8 @@
 ; found.  The same code is used for vectors and lists, where lists allow the
 ; dotted tail syntax and vectors not; additionally, the closing parenthesis
 ; must of course match.
+; The implementation here is not tail-recursive, but I think it is clearer
+; and simpler this way.
 
 (define (get-list lex allow-dot close-square)
   (let* ((next (lex 'peek))
@@ -117,16 +186,27 @@
        (return (get-list lex #t #f)))
       ((square-open)
        (return (list->vector (get-list lex #f #t))))
+      ((circular-ref)
+       (circular-ref token))
+      ((circular-def)
+       ; The order of definitions is important!
+       (let* ((setter (circular-define! token))
+              (expr (get-expression lex)))
+         (setter expr)
+         (force-promises! expr)
+         expr))
       (else
         (parse-error token "expected expression, got" token)))))
 
 
 ; Define the reader function based on this; build a lexer, a lexer-buffer,
 ; and then parse a single expression to return.
+; We also define a circular-definitions data structure to use.
 
 (define (read-elisp port)
-  (let* ((lexer (get-lexer port))
-         (lexbuf (make-lexer-buffer lexer))
-         (result (get-expression lexbuf)))
-    (lexbuf 'finish)
-    result))
+  (with-fluids ((circular-definitions (make-circular-definitions)))
+    (let* ((lexer (get-lexer port))
+           (lexbuf (make-lexer-buffer lexer))
+           (result (get-expression lexbuf)))
+      (lexbuf 'finish)
+      result)))

@@ -116,7 +116,11 @@ test\"ab\"\\ abcd
               ,(- (char->integer #\X) (char->integer #\@))
               ,(+ (expt 2 22) (expt 2 23) (expt 2 24) 32))))
 
-  (let* ((lex1-string "'((1 2) [2 [3]] 5)")
+  (pass-if "circular markers"
+    (equal? (lex-string "#0342= #1#")
+            '((circular-def . 342) (circular-ref . 1))))
+
+  (let* ((lex1-string "#1='((1 2) [2 [3]] 5)")
          (lexer (call-with-input-string (string-append lex1-string " 1 2")
                                         get-lexer/1)))
     (pass-if "lexer/1"
@@ -167,4 +171,15 @@ test\"ab\"\\ abcd
 
   (pass-if "vectors"
     (equal? (parse-str "[1 2 [] (3 4) \"abc\" d]")
-            #(1 2 #() (3 4) "abc" d))))
+            #(1 2 #() (3 4) "abc" d)))
+
+  (pass-if "circular structures"
+    (and (equal? (parse-str "(#1=a #2=b #1# (#1=c #1# #2#) #1#)")
+                 '(a b a (c c b) c))
+         (let ((eqpair (parse-str "(#1=\"foobar\" . #1#)")))
+           (eq? (car eqpair) (cdr eqpair)))
+         (let ((circlst (parse-str "#1=(42 #1# #1=5 #1#)")))
+           (and (eq? circlst (cadr circlst))
+                (equal? (cddr circlst) '(5 5))))
+         (let ((circvec (parse-str "#1=[a #1# b]")))
+           (eq? circvec (vector-ref circvec 1))))))

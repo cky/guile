@@ -1,6 +1,6 @@
 ;;; Guile Emac Lisp
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2009 Free Software Foundation, Inc.
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 ; into a real Scheme character range.  Additionally, elisp wants characters
 ; as integers, so we just do the right thing...
 
-; TODO: Circular syntax markers like #1= or #1#
 ; TODO: #@count comments
 
 
@@ -221,6 +220,26 @@
         (else
           (unread-char c port)
           (finish))))))
+
+
+; Parse a circular structure marker without the leading # (which was already
+; read and recognized), that is, a number as identifier and then either
+; = or #.
+
+(define (get-circular-marker port)
+  (call-with-values
+    (lambda ()
+      (let iterate ((result 0))
+        (let ((cur (read-char port)))
+          (if (char-numeric? cur)
+            (let ((val (- (char->integer cur) (char->integer #\0))))
+              (iterate (+ (* result 10) val)))
+            (values result cur)))))
+    (lambda (id type)
+      (case type
+        ((#\#) `(circular-ref . ,id))
+        ((#\=) `(circular-def . ,id))
+        (else (lexer-error port "invalid circular marker character" type))))))
   
 
 ; Main lexer routine, which is given a port and does look for the next token.
@@ -289,6 +308,11 @@
                         (iterate (cons (integer->char (get-character port #t))
                                        result-chars))))))
                  (else (iterate (cons cur result-chars)))))))
+
+          ; Circular markers (either reference or definition).
+          ((#\#)
+           (let ((mark (get-circular-marker port)))
+             (return (car mark) (cdr mark))))
 
           ; Parentheses and other special-meaning single characters.
           ((#\() (return 'paren-open #f))
@@ -374,7 +398,7 @@
              (set! paren-level (1+ paren-level)))
             ((paren-close square-close)
              (set! paren-level (1- paren-level)))
-            ((quote backquote unquote unquote-splicing)
+            ((quote backquote unquote unquote-splicing circular-def)
              (set! quotation #t)))
           (if (and (not quotation) (<= paren-level 0))
             (set! finished #t))
