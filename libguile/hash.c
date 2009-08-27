@@ -50,6 +50,20 @@ scm_string_hash (const unsigned char *str, size_t len)
   return h;
 }
 
+unsigned long 
+scm_i_string_hash (SCM str)
+{
+  size_t len = scm_i_string_length (str);
+  size_t i = 0;
+
+  unsigned long h = 0;
+  while (len-- > 0)
+    h = (unsigned long) scm_i_string_ref (str, i++) + h * 37;
+
+  scm_remember_upto_here_1 (str);
+  return h;
+}
+
 
 /* Dirk:FIXME:: why downcase for characters? (2x: scm_hasher, scm_ihashv) */
 /* Dirk:FIXME:: scm_hasher could be made static. */
@@ -115,8 +129,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
     case scm_tc7_string:
       {
 	unsigned long hash =
-	  scm_string_hash ((const unsigned char *) scm_i_string_chars (obj),
-			   scm_i_string_length (obj)) % n;
+	  scm_i_string_hash (obj) % n;
 	scm_remember_upto_here_1 (obj);
 	return hash;
       }

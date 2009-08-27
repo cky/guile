@@ -1344,9 +1344,9 @@ otherwise.
 @deftypefn  {C Function} SCM scm_take_u8vector (const scm_t_uint8 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_s8vector (const scm_t_int8 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_u16vector (const scm_t_uint16 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s168vector (const scm_t_int16 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s16vector (const scm_t_int16 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_u32vector (const scm_t_uint32 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s328vector (const scm_t_int32 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s32vector (const scm_t_int32 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_u64vector (const scm_t_uint64 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_s64vector (const scm_t_int64 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_f32vector (const float *data, size_t len)
@@ -2001,13 +2001,24 @@ enclosed array is unspecified.
 For example,
 
 @lisp
-(enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1)
+(enclose-array '#3(((a b c)
+                    (d e f))
+                   ((1 2 3)
+                    (4 5 6)))
+               1)
 @result{}
-#<enclosed-array (#1(a d) #1(b e) #1(c f)) (#1(1 4) #1(2 5) #1(3 6))>
+#<enclosed-array (#1(a d) #1(b e) #1(c f))
+                 (#1(1 4) #1(2 5) #1(3 6))>
 
-(enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 0)
+(enclose-array '#3(((a b c)
+                    (d e f))
+                   ((1 2 3)
+                    (4 5 6)))
+               1 0)
 @result{}
-#<enclosed-array #2((a 1) (d 4)) #2((b 2) (e 5)) #2((c 3) (f 6))>
+#<enclosed-array #2((a 1) (d 4))
+                 #2((b 2) (e 5))
+                 #2((c 3) (f 6))>
 @end lisp
 @end deffn
 
@@ -3083,8 +3094,10 @@ which can be changed.
                          (color ball)
                          (owner ball)))
                ball-color))
-(define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))
-(define (owner ball) (struct-ref ball 0))
+(define (color ball)
+  (struct-ref (struct-vtable ball) vtable-offset-user))
+(define (owner ball)
+  (struct-ref ball 0))
 
 (define red (make-ball-type 'red))
 (define green (make-ball-type 'green))
@@ -3460,7 +3473,8 @@ whole is not a proper list:
 (assoc "mary" '((1 . 2) ("key" . "door") . "open sesame"))
 @result{}
 ERROR: In procedure assoc in expression (assoc "mary" (quote #)):
-ERROR: Wrong type argument in position 2 (expecting association list): ((1 . 2) ("key" . "door") . "open sesame")
+ERROR: Wrong type argument in position 2 (expecting
+   association list): ((1 . 2) ("key" . "door") . "open sesame")
 
 (sloppy-assoc "mary" '((1 . 2) ("key" . "door") . "open sesame"))
 @result{}
@@ -3474,7 +3488,8 @@ Secondly, if one of the entries in the specified alist is not a pair:
 (assoc 2 '((1 . 1) 2 (3 . 9)))
 @result{}
 ERROR: In procedure assoc in expression (assoc 2 (quote #)):
-ERROR: Wrong type argument in position 2 (expecting association list): ((1 . 1) 2 (3 . 9))
+ERROR: Wrong type argument in position 2 (expecting
+   association list): ((1 . 1) 2 (3 . 9))
 
 (sloppy-assoc 2 '((1 . 1) 2 (3 . 9)))
 @result{}

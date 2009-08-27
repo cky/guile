@@ -10,9 +10,9 @@
 
 The macros in this section are made available with:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 expect))
-@end smalllisp
+@end lisp
 
 @code{expect} is a macro for selecting actions based on the output from
 a port.  The name comes from a tool of similar functionality by Don Libes.
@@ -30,14 +30,14 @@ which is matched against each of the patterns.  When a
 pattern matches, the remaining expression(s) in
 the clause are evaluated and the value of the last is returned.  For example:
 
-@smalllisp
+@lisp
 (with-input-from-file "/etc/passwd"
   (lambda ()
     (expect-strings
       ("^nobody" (display "Got a nobody user.\n")
                  (display "That's no problem.\n"))
       ("^daemon" (display "Got a daemon user.\n")))))
-@end smalllisp
+@end lisp
 
 The regular expression is compiled with the @code{REG_NEWLINE} flag, so
 that the ^ and $ anchors will match at any newline, not just at the start
@@ -54,13 +54,13 @@ The symbol @code{=>} can be used to indicate that the expression is a
 procedure which will accept the result of a successful regular expression
 match.  E.g.,
 
-@smalllisp
+@lisp
 ("^daemon" => write)
 ("^d(aemon)" => (lambda args (for-each write args)))
 ("^da(em)on" => (lambda (all sub)
                   (write all) (newline)
                   (write sub) (newline)))
-@end smalllisp
+@end lisp
 
 The order of the substrings corresponds to the order in which the
 opening brackets occur.
@@ -135,12 +135,12 @@ expression.
 In the following example, a string will only be matched at the beginning
 of the file:
 
-@smalllisp
+@lisp
 (let ((expect-port (open-input-file "/etc/passwd")))
   (expect
      ((lambda (s eof?) (string=? s "fnord!"))
         (display "Got a nobody user!\n"))))
-@end smalllisp
+@end lisp
 
 The control variables described for @code{expect-strings} also
 influence the behaviour of @code{expect}, with the exception of 

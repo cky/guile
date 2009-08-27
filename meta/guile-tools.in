@@ -25,6 +25,12 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 
 (define-module (guile-tools))
 
+;; Hack to provide scripts with the bug-report address.
+(module-define! the-scm-module
+                '%guile-bug-report-address
+                "@PACKAGE_BUGREPORT@")
+
+
 ;; We can't import srfi-1, unfortunately, as we are used early in the
 ;; boot process, before the srfi-1 shlib is built.
 

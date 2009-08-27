@@ -30,6 +30,7 @@
 #include "libguile/hashtab.h"
 #include "libguile/ports.h"
 #include "libguile/strings.h"
+#include "libguile/srfi-13.h"
 
 #include "libguile/validate.h"
 #include "libguile/struct.h"
@@ -61,9 +62,9 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 {
   SCM new_sym;
   SCM_VALIDATE_STRING (1, fields);
+  scm_t_wchar c;
 
   { /* scope */
-    const char * field_desc;
     size_t len;
     int x;
 
@@ -72,11 +73,9 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
       SCM_MISC_ERROR ("odd length field specification: ~S", 
 		      scm_list_1 (fields));
 
-    field_desc = scm_i_string_chars (fields);
-
     for (x = 0; x < len; x += 2)
       {
-	switch (field_desc[x])
+	switch (c = scm_i_string_ref (fields, x))
 	  {
 	  case 'u':
 	  case 'p':
@@ -88,13 +87,13 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized field type: ~S", 
-			    scm_list_1 (SCM_MAKE_CHAR (field_desc[x])));
+			    scm_list_1 (SCM_MAKE_CHAR (c)));
 	  }
 
-	switch (field_desc[x + 1])
+	switch (c = scm_i_string_ref (fields, x + 1))
 	  {
 	  case 'w':
-	    if (field_desc[x] == 's')
+	    if (scm_i_string_ref (fields, x) == 's')
 	      SCM_MISC_ERROR ("self fields not writable", SCM_EOL);
 	  case 'r':
 	  case 'o':
@@ -102,7 +101,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	  case 'R':
 	  case 'W':
 	  case 'O':
-	    if (field_desc[x] == 's')
+	    if (scm_i_string_ref (fields, x) == 's')
 	      SCM_MISC_ERROR ("self fields not allowed in tail array", 
 			      SCM_EOL);
 	    if (x != len - 2)
@@ -111,12 +110,12 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    break;
 	  default:
 	    SCM_MISC_ERROR ("unrecognized ref specification: ~S",
-			    scm_list_1 (SCM_MAKE_CHAR (field_desc[x + 1])));
+			    scm_list_1 (SCM_MAKE_CHAR (c)));
 	  }
 #if 0
-	if (field_desc[x] == 'd')
+	if (scm_i_string_ref (fields, x, 'd'))
 	  {
-	    if (field_desc[x + 2] != '-')
+	    if (!scm_i_string_ref (fields, x+2, '-'))
 	      SCM_MISC_ERROR ("missing dash field at position ~A",
 			      scm_list_1 (scm_from_int (x / 2)));
 	    x += 2;
@@ -138,18 +137,18 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 static void
 scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM inits)
 {
-  unsigned const char *fields_desc =
-    (unsigned const char *) scm_i_symbol_chars (layout) - 2;
-  unsigned char prot = 0;
+  scm_t_wchar prot = 0;
   int n_fields = scm_i_symbol_length (layout) / 2;
   int tailp = 0;
+  int i;
 
+  i = -2;
   while (n_fields)
     {
       if (!tailp)
 	{
-	  fields_desc += 2;
-	  prot = fields_desc[1];
+	  i += 2;
+	  prot = scm_i_symbol_ref (layout, i+1);
 	  if (SCM_LAYOUT_TAILP (prot))
 	    {
 	      tailp = 1;
@@ -160,8 +159,7 @@ scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM in
 		break;
 	    }
 	}
-      
-      switch (*fields_desc)
+      switch (scm_i_symbol_ref (layout, i))
 	{
 #if 0
 	case 'i':
@@ -237,7 +235,8 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 {
   SCM layout;
   scm_t_bits * mem;
-  int tmp;
+  SCM tmp;
+  size_t len;
 
   if (!SCM_STRUCTP (x))
     return SCM_BOOL_F;
@@ -248,11 +247,14 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
       < scm_i_string_length (required_vtable_fields))
     return SCM_BOOL_F;
 
-  tmp = strncmp (scm_i_symbol_chars (layout),
-		 scm_i_string_chars (required_vtable_fields),
-		 scm_i_string_length (required_vtable_fields));
-  scm_remember_upto_here_1 (required_vtable_fields);
-  if (tmp)
+  len = scm_i_string_length (required_vtable_fields);
+  tmp = scm_string_eq (scm_symbol_to_string (layout), 
+		       required_vtable_fields, 
+		       scm_from_size_t (0), 
+		       scm_from_size_t (len), 
+		       scm_from_size_t (0),
+		       scm_from_size_t (len));
+  if (scm_is_false (tmp))
     return SCM_BOOL_F;
 
   mem = SCM_STRUCT_DATA (x);
@@ -646,8 +648,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   size_t layout_len;
   size_t p;
   scm_t_bits n_fields;
-  const char *fields_desc;
-  char field_type = 0;
+  scm_t_wchar field_type = 0;
   
 
   SCM_VALIDATE_STRUCT (1, handle);
@@ -656,7 +657,6 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = scm_to_size_t (pos);
 
-  fields_desc = scm_i_symbol_chars (layout);
   layout_len = scm_i_symbol_length (layout);
   if (SCM_STRUCT_VTABLE_FLAGS (handle) & SCM_STRUCTF_LIGHT)
     /* no extra words */
@@ -668,9 +668,9 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
   if (p * 2 < layout_len)
     {
-      char ref;
-      field_type = fields_desc[p * 2];
-      ref = fields_desc[p * 2 + 1];
+      scm_t_wchar ref;
+      field_type = scm_i_symbol_ref (layout, p * 2);
+      ref = scm_i_symbol_ref (layout, p * 2 + 1);
       if ((ref != 'r') && (ref != 'w'))
 	{
 	  if ((ref == 'R') || (ref == 'W'))
@@ -679,8 +679,8 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 	    SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
 	}
     }
-  else if (fields_desc[layout_len - 1] != 'O')    
-    field_type = fields_desc[layout_len - 2];
+  else if (scm_i_symbol_ref (layout, layout_len - 1) != 'O')
+    field_type = scm_i_symbol_ref(layout, layout_len - 2);
   else
     SCM_MISC_ERROR ("ref denied for field ~A", scm_list_1 (pos));
   
@@ -728,8 +728,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   size_t layout_len;
   size_t p;
   int n_fields;
-  const char *fields_desc;
-  char field_type = 0;
+  scm_t_wchar field_type = 0;
 
   SCM_VALIDATE_STRUCT (1, handle);
 
@@ -737,7 +736,6 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   data = SCM_STRUCT_DATA (handle);
   p = scm_to_size_t (pos);
 
-  fields_desc = scm_i_symbol_chars (layout);
   layout_len = scm_i_symbol_length (layout);
   if (SCM_STRUCT_VTABLE_FLAGS (handle) & SCM_STRUCTF_LIGHT)
     /* no extra words */
@@ -750,13 +748,13 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   if (p * 2 < layout_len)
     {
       char set_x;
-      field_type = fields_desc[p * 2];
-      set_x = fields_desc [p * 2 + 1];
+      field_type = scm_i_symbol_ref (layout, p * 2);
+      set_x = scm_i_symbol_ref (layout, p * 2 + 1);
       if (set_x != 'w')
 	SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
     }
-  else if (fields_desc[layout_len - 1] == 'W')    
-    field_type = fields_desc[layout_len - 2];
+  else if (scm_i_symbol_ref (layout, layout_len - 1) == 'W')    
+    field_type = scm_i_symbol_ref (layout, layout_len - 2);
   else
     SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
   

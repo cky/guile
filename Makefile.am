@@ -42,6 +42,9 @@ DISTCLEANFILES = check-guile.log
 
 dist-hook: gen-ChangeLog
 
+clean-local:
+	rm -rf cache/
+
 gen_start_rev = 61db429e251bfd2f75cb4632972e0238056eb24b
 .PHONY: gen-ChangeLog
 gen-ChangeLog:

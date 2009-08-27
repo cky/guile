@@ -33,6 +33,9 @@
 
 ;;;; Some general utilities for testing ports.
 
+;;; Make sure we are set up for 8-bit data
+(setbinary)
+
 ;;; Read from PORT until EOF, and return the result as a string.
 (define (read-all port)
   (let loop ((chars '()))

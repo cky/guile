@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,7 +41,7 @@ typedef SCM (*scm_t_vm_engine) (struct scm_vm *vp, SCM program, SCM *argv, int n
 #define SCM_VM_NUM_ENGINES 2
 
 struct scm_vm {
-  scm_byte_t *ip;		/* instruction pointer */
+  scm_t_uint8 *ip;		/* instruction pointer */
   SCM *sp;			/* stack pointer */
   SCM *fp;			/* frame pointer */
   size_t stack_size;		/* stack size */
@@ -88,7 +88,7 @@ SCM_API SCM scm_vm_stats (SCM vm);
 SCM_API SCM scm_vm_trace_frame (SCM vm);
 
 struct scm_vm_cont {
-  scm_byte_t *ip;
+  scm_t_uint8 *ip;
   SCM *sp;
   SCM *fp;
   scm_t_ptrdiff stack_size;

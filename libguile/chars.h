@@ -24,7 +24,11 @@
 
 
 #include "libguile/__scm.h"
-#include "libguile/numbers.h"
+
+#ifndef SCM_T_WCHAR_DEFINED
+typedef scm_t_int32 scm_t_wchar;
+#define SCM_T_WCHAR_DEFINED
+#endif /* SCM_T_WCHAR_DEFINED */
 
 
 /* Immediate Characters
@@ -32,10 +36,16 @@
 #define SCM_CHARP(x) (SCM_ITAG8(x) == scm_tc8_char)
 #define SCM_CHAR(x) ((scm_t_wchar)SCM_ITAG8_DATA(x))
 
-#define SCM_MAKE_CHAR(x)                                              \
-  (x < 0                                                              \
-   ? SCM_MAKE_ITAG8 ((scm_t_bits) (unsigned char) x, scm_tc8_char)    \
-   : SCM_MAKE_ITAG8 ((scm_t_bits) x, scm_tc8_char))
+/* SCM_MAKE_CHAR maps signed chars (-128 to 127) and unsigned chars (0
+   to 255) to Latin-1 codepoints (0 to 255) while allowing higher
+   codepoints (256 to 1114111) to pass through unchanged.
+
+   This macro evaluates x twice, which may lead to side effects if not
+   used properly. */
+#define SCM_MAKE_CHAR(x)                                                \
+  ((x) <= 1                                                             \
+   ? SCM_MAKE_ITAG8 ((scm_t_bits) (unsigned char) (x), scm_tc8_char)    \
+   : SCM_MAKE_ITAG8 ((scm_t_bits) (x), scm_tc8_char))
 
 #define SCM_CODEPOINT_MAX (0x10ffff)
 #define SCM_IS_UNICODE_CHAR(c)                                          \

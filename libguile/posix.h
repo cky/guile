@@ -74,6 +74,7 @@ SCM_API SCM scm_access (SCM path, SCM how);
 SCM_API SCM scm_getpid (void);
 SCM_API SCM scm_putenv (SCM str);
 SCM_API SCM scm_setlocale (SCM category, SCM locale);
+SCM_API SCM scm_setbinary (void);
 SCM_API SCM scm_mknod (SCM path, SCM type, SCM perms, SCM dev);
 SCM_API SCM scm_nice (SCM incr);
 SCM_API SCM scm_sync (void);

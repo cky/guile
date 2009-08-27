@@ -1,6 +1,6 @@
 ;;;; modules.test --- exercise some of guile's module stuff -*- scheme -*-
 
-;;;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,13 @@
 ;;;
 
 (with-test-prefix "foundations"
+
+  (pass-if "modules don't remain anonymous"
+    ;; This is a requirement for `psyntax': it stores module names and relies
+    ;; on being able to `resolve-module' them.
+    (let ((m (make-module)))
+      (and (module-name m)
+           (eq? m (resolve-module (module-name m))))))
 
   (pass-if "module-add!"
     (let ((m (make-module))

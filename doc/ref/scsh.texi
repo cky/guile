@@ -19,8 +19,8 @@ For information about scsh see
 
 The closest emulation of scsh can be obtained by running:
 
-@smalllisp
+@lisp
 (load-from-path "scsh/init")
-@end smalllisp
+@end lisp
 
 See the USAGE file supplied with guile-scsh for more details.

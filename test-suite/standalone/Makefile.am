@@ -28,19 +28,23 @@ check_SCRIPTS =
 BUILT_SOURCES =
 EXTRA_DIST =
 
-TESTS_ENVIRONMENT = "${top_builddir}/meta/uninstalled-env"
+TESTS_ENVIRONMENT =						\
+  GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
+
+## Check for headers in $(srcdir) and bulid dir before $(CPPFLAGS), which
+## may point us to an old, installed version of guile.
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir) \
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
 test_cflags =					\
-  -I$(top_srcdir)/test-suite/standalone		\
-  -I$(top_srcdir) -I$(top_builddir)		\
-  -I$(top_srcdir)/lib -I$(top_builddir)/lib	\
+  -I$(top_srcdir)/test-suite/standalone -I.	\
   $(EXTRA_DEFS) $(GUILE_CFLAGS) $(GCC_CFLAGS)
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 
-snarfcppopts =								\
-  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)	\
-  -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_builddir)
+snarfcppopts =								      \
+  -I$(top_srcdir) -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_builddir) \
+  -I. $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x
 .c.x:

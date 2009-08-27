@@ -1,7 +1,7 @@
 ;;;;                                                          -*- scheme -*-
 ;;;; dynamic-scop.test --- test suite for dynamic scoping constructs
 ;;;;
-;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,12 +21,10 @@
   :use-module (test-suite lib))
 
 
-(define exception:missing-expr
-  (cons 'syntax-error "Missing expression"))
-(define exception:bad-binding
-  (cons 'syntax-error "Bad binding"))
+(define exception:syntax-error
+  (cons 'syntax-error "failed to match"))
 (define exception:duplicate-binding
-  (cons 'syntax-error "Duplicate binding"))
+  (cons 'syntax-error "duplicate"))
 
 (define global-a 0)
 (define (fetch-global-a) global-a)
@@ -48,17 +46,17 @@
 	  (interaction-environment)))
 
   (pass-if-exception "@bind missing expression"
-    exception:missing-expr
+    exception:syntax-error
     (eval '(@bind ((global-a 1)))
 	  (interaction-environment)))
 
   (pass-if-exception "@bind bad bindings"
-    exception:bad-binding
+    exception:syntax-error
     (eval '(@bind (a) #f)
 	  (interaction-environment)))
 
   (pass-if-exception "@bind bad bindings"
-    exception:bad-binding
+    exception:syntax-error
     (eval '(@bind ((a)) #f)
 	  (interaction-environment)))
 

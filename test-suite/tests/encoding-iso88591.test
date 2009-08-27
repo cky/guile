@@ -1,0 +1,135 @@
+;;;; strings.test --- test suite for Guile's string functions    -*- mode: scheme; coding: iso-8859-1 -*-
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;;;; Boston, MA 02110-1301 USA
+
+(define-module (test-strings)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1))
+
+(define exception:conversion
+  (cons 'misc-error "^cannot convert to output locale"))
+
+;; Create a string from integer char values, eg. (string-ints 65) => "A"
+(define (string-ints . args)
+  (apply string (map integer->char args)))
+
+(setlocale LC_ALL "")
+
+(define s1 "última")
+(define s2 "cédula")
+(define s3 "años")
+(define s4 "¿Cómo?")
+
+(with-test-prefix "string length"
+
+  (pass-if "última"
+	   (eq? (string-length s1) 6))
+    
+  (pass-if "cédula"
+	   (eq? (string-length s2) 6))
+
+  (pass-if "años"
+	   (eq? (string-length s3) 4))
+
+  (pass-if "¿Cómo?"
+	   (eq? (string-length s4) 6)))
+
+(with-test-prefix "internal encoding"
+
+  (pass-if "última"
+	   (string=? s1 (string-ints #xfa #x6c #x74 #x69 #x6d #x61)))
+
+  (pass-if "cédula"
+	   (string=? s2 (string-ints #x63 #xe9 #x64 #x75 #x6c #x61)))
+
+  (pass-if "años"
+	   (string=? s3 (string-ints #x61 #xf1 #x6f #x73)))
+ 
+  (pass-if "¿Cómo?"
+	   (string=? s4 (string-ints #xbf #x43 #xf3 #x6d #x6f #x3f))))
+
+(with-test-prefix "chars"
+ 
+  (pass-if "última"
+	   (list= eqv? (string->list s1)
+		  (list #\ú #\l #\t #\i #\m #\a)))
+  
+  (pass-if "cédula"
+	   (list= eqv? (string->list s2)
+		  (list #\c #\é #\d #\u #\l #\a)))
+
+  (pass-if "años"
+	   (list= eqv? (string->list s3)
+		  (list #\a #\ñ #\o #\s)))
+
+  (pass-if "¿Cómo?"
+	   (list= eqv? (string->list s4)
+		  (list #\¿ #\C #\ó #\m #\o #\?))))
+
+;; Check that the output is in ISO-8859-1 encoding
+(with-test-prefix "display"
+ 
+  (pass-if "s1"
+	   (let ((pt (open-output-string)))
+	     (set-port-encoding! pt "ISO-8859-1")
+	     (display s1 pt)
+	     (list= eqv? 
+		    (list #xfa #x6c #x74 #x69 #x6d #x61)
+		    (u8vector->list
+		     (get-output-locale-u8vector pt)))))
+
+  (pass-if "s2"
+	   (let ((pt (open-output-string)))
+	     (set-port-encoding! pt "ISO-8859-1")
+	     (display s2 pt)
+	     (list= eqv? 
+		    (list #x63 #xe9 #x64 #x75 #x6c #x61)
+		    (u8vector->list
+		     (get-output-locale-u8vector pt))))))
+
+(with-test-prefix "symbols == strings"
+
+  (pass-if "última"
+	   (eq? (string->symbol s1) 'última))
+
+  (pass-if "cédula"
+	   (eq? (string->symbol s2) 'cédula))
+
+  (pass-if "años"
+	   (eq? (string->symbol s3) 'años))
+ 
+  (pass-if "¿Cómo?"
+	   (eq? (string->symbol s4) '¿Cómo?)))
+
+(with-test-prefix "non-ascii variable names"
+
+  (pass-if "1"
+	   (let ((á 1)
+		 (ñ 2))
+	     (eq? (+ á ñ) 3))))
+
+(with-test-prefix "output errors"
+
+  (pass-if-exception "char 256" exception:conversion
+		     (let ((pt (open-output-string)))
+		       (set-port-encoding! pt "ISO-8859-1")
+		       (set-port-conversion-strategy! pt 'error)
+		       (display (string-ints 256) pt))))
+
+;; Reset locales
+(setlocale LC_ALL "C")

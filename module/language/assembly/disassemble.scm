@@ -60,6 +60,8 @@
                   (print-info pos `(load-program ,sym) #f #f)
                   (lp (+ pos (byte-length asm)) (cdr code)
                       (acons sym asm programs))))
+               ((nop)
+                (lp (+ pos (byte-length asm)) (cdr code) programs))
                (else
                 (print-info pos asm
                             (code-annotation end asm objs nargs blocs

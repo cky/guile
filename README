@@ -299,9 +299,8 @@ Guile Documentation ==================================================
 
 If you've never used Scheme before, then the Guile Tutorial
 (guile-tut.info) is a good starting point.  The Guile Reference Manual
-(guile.info) is the primary documentation for Guile.  The Goops object
-system is documented separately (goops.info).  A copy of the R5RS
-Scheme specification is included too (r5rs.info).
+(guile.info) is the primary documentation for Guile.  A copy of the
+R5RS Scheme specification is included too (r5rs.info).
 
 Info format versions of this documentation are installed as part of
 the normal build process.  The texinfo sources are under the doc

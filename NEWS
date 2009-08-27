@@ -8,88 +8,30 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.2 (since the 1.9.1 prerelease):
+Changes in 1.9.3 (since the 1.9.2 prerelease):
 
-** Global variables `scm_charnames' and `scm_charnums' are removed.
+** Removed deprecated uniform array procedures: scm_make_uve,
+   scm_array_prototype, scm_list_to_uniform_array,
+   scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
+   scm_ra_set_contp, scm_aind, scm_raprin1
 
-These variables contained the names of control characters and were
-used when writing characters.  While these were global, they were
-never intended to be public API.  They have been replaced with private
-functions.
+These functions have been deprecated since early 2005.
 
-** EBCDIC support is removed.
+** scm_array_p has one argument, not two
 
-There was an EBCDIC compile flag that altered some of the character
-processing.  It appeared that full EBCDIC support was never completed
-and was unmaintained.
+Use of the second argument produced a deprecation warning, so it is
+unlikely that any code out there actually used this functionality.
 
-Changes in 1.9.1 (since the 1.9.0 prerelease):
+** Removed deprecated uniform array procedures:
+   dimensions->uniform-array, list->uniform-array, array-prototype
 
-** `scm_set_port_seek' and `scm_set_port_truncate' use the `scm_t_off' type
+Instead, use make-typed-array, list->typed-array, or array-type,
+respectively.
 
-Previously they would use the `off_t' type, which is fragile since its
-definition depends on the application's value for `_FILE_OFFSET_BITS'.
-
-** Automatically compiled files will be placed in ~/.cache, not ~/.guile-ccache.
-
-Actually, they will be placed in $XDG_CACHE_HOME/guile/ccache/1.9,
-defaulting to XDG_CACHE_HOME=~/.cache. Users may remove their
-~/.guile-ccache directories.
-
-** New language: Brainfuck.
-
-Brainfuck is a toy language that closely models Turing machines. Guile's
-brainfuck compiler is meant to be an example of implementing other
-languages. See the manual for details, or
-http://en.wikipedia.org/wiki/Brainfuck for more information about the
-Brainfuck language itself.
-
-** A number of Scheme files were corrected to be LGPLv3+.
-
-Some Scheme files imported for the compiler were erroneously labeled as
-being LGPLv2+ or GPLv2+. This oversight has been fixed.
-
-** Bytevectors may now be accessed with a C-friendly API.
-
-New functions: `scm_is_bytevector ()', `scm_c_bytevector_length ()',
-`scm_c_bytevector_length ()', and `scm_c_bytevector_set_x ()'. See the
-manual for details.
-
-** Bytevectors are now accessible using the generalized-vector API.
-
-As a side effect, this change allows compilation of literal bytevectors
-(`#vu8(...)').
-
-** Meta-commands to the REPL work better with strange languages.
-
-Specifically, meta-commands that take expressions as arguments will use
-the current language's reader to read those expressions, which may span
-multiple lines, with readline integration if the user has that enabled.
-
-** The object code file format has changed.
-
-The objcode loader will complain about a "bad header cookie" if it
-happens to find an old file. The workaround for that is currently to
-find all stale .go files and remove them. This is likely to affect users
-who have checked out Guile's git repository, not those that build from
-tarballs.
-
-** Vector access has been sped up considerably.
-
-Guile's virtual machine now has vector and bytevector operations. Using
-Guile to process large amounts of data is now easier. This is because
-`vector-ref' and `vector-set!' now have fast opcodes. In addition, there
-are opcodes for `ref' and `set' operations on bytevectors for everything
-from 8-bit integers to 64-bit floating-point values.
-
-In the next release, we hope to extend this speedup to other kinds of
-uniform vectors.
-
-** The `long_long' C type, deprecated in 1.8, has been removed.
-
-** And of course, the usual collection of bugfixes.
-
+** And of course, the usual collection of bugfixes
+ 
 Interested users should see the ChangeLog for more information.
+
 
 Changes in 1.9.x (since the 1.8.x series):
 
@@ -538,6 +480,35 @@ This decision may be revisited before the 2.0 release. Feedback welcome
 to guile-devel@gnu.org (subscription required) or bug-guile@gnu.org (no
 subscription required).
 
+** Unicode characters
+
+Unicode characters may be entered in octal format via e.g. `#\454', or
+created via (integer->char 300). A hex external representation will
+probably be introduced at some point.
+
+** Unicode strings
+
+Internally, strings are now represented either in the `latin-1'
+encoding, one byte per character, or in UTF-32, with four bytes per
+character. Strings manage their own allocation, switching if needed.
+
+Currently no locale conversion is performed. Extended characters may be
+written in a string using the hexadecimal escapes `\xXX', `\uXXXX', or
+`\UXXXXXX', for 8-bit, 16-bit, or 24-bit codepoints, respectively.
+
+** Global variables `scm_charnames' and `scm_charnums' are removed
+
+These variables contained the names of control characters and were
+used when writing characters.  While these were global, they were
+never intended to be public API.  They have been replaced with private
+functions.
+
+** EBCDIC support is removed
+
+There was an EBCDIC compile flag that altered some of the character
+processing.  It appeared that full EBCDIC support was never completed
+and was unmaintained.
+
 ** New macro type: syncase-macro
 
 XXX Need to decide whether to document this for 2.0, probably should:
@@ -571,6 +542,10 @@ These are analogous to %load-path and %load-extensions.
 
 `(make-promise (lambda () foo))' is equivalent to `(delay foo)'.
 
+** `defined?' may accept a module as its second argument
+
+Previously it only accepted internal structures from the evaluator.
+
 ** New entry into %guile-build-info: `ccachedir'
 
 ** Fix bug in `module-bound?'.
@@ -583,6 +558,12 @@ the variable. This was an error, and was fixed.
 
 As syntax-case is available by default, importing `(ice-9 syncase)' has
 no effect, and will trigger a deprecation warning.
+
+** Removed deprecated uniform array procedures:
+   dimensions->uniform-array, list->uniform-array, array-prototype
+
+Instead, use make-typed-array, list->typed-array, or array-type,
+respectively.
 
 * Changes to the C interface
 
@@ -612,6 +593,18 @@ definition depends on the application's value for `_FILE_OFFSET_BITS'.
 
 ** The `long_long' C type, deprecated in 1.8, has been removed
 
+** Removed deprecated uniform array procedures: scm_make_uve,
+   scm_array_prototype, scm_list_to_uniform_array,
+   scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
+   scm_ra_set_contp, scm_aind, scm_raprin1
+
+These functions have been deprecated since early 2005.
+
+** scm_array_p has one argument, not two
+
+Use of the second argument produced a deprecation warning, so it is
+unlikely that any code out there actually used this functionality.
+
 * Changes to the distribution
 
 ** Guile's license is now LGPLv3+
@@ -627,6 +620,11 @@ part of Guile).
 guile.m4 has yet to be modified to call pkg-config instead of
 guile-config.
 
+** Guile now provides `guile-2.0.pc' instead of `guile-1.8.pc'
+
+Programs that use `pkg-config' to find Guile or one of its Autoconf
+macros should now require `guile-2.0' instead of `guile-1.8'.
+
 ** New installation directory: $(pkglibdir)/1.9/ccache
 
 If $(libdir) is /usr/lib, for example, Guile will install its .go files
@@ -634,9 +632,17 @@ to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
 
 ** New dependency: GNU libunistring.
 
-See http://www.gnu.org/software/libunistring/. We hope to merge in
-Unicode support in the next prerelease.
+See http://www.gnu.org/software/libunistring/, for more information. Our
+unicode support uses routines from libunistring.
 
+
+
+Changes in 1.8.8 (since 1.8.7)
+
+* Bugs fixed
+
+** Fix possible buffer overruns when parsing numbers
+** Avoid clash with system setjmp/longjmp on IA64
 
 
 Changes in 1.8.7 (since 1.8.6)

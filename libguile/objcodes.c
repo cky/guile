@@ -28,33 +28,14 @@
 #include <sys/types.h>
 #include <assert.h>
 
-#include <verify.h>
-
 #include "_scm.h"
 #include "vm-bootstrap.h"
 #include "programs.h"
 #include "objcodes.h"
 
-/* The endianness marker in objcode.  */
-#ifdef WORDS_BIGENDIAN
-# define OBJCODE_ENDIANNESS "BE"
-#else
-# define OBJCODE_ENDIANNESS "LE"
-#endif
-
-#define _OBJCODE_STRINGIFY(x)  # x
-#define OBJCODE_STRINGIFY(x)   _OBJCODE_STRINGIFY (x)
-
-/* The word size marker in objcode.  */
-#define OBJCODE_WORD_SIZE  OBJCODE_STRINGIFY (SIZEOF_VOID_P)
-
-/* The objcode magic header.  */
-#define OBJCODE_COOKIE						\
-  "GOOF-0.9-" OBJCODE_ENDIANNESS "-" OBJCODE_WORD_SIZE "---"
-
+/* SCM_OBJCODE_COOKIE is defined in _scm.h */
 /* The length of the header must be a multiple of 8 bytes.  */
-verify (((sizeof (OBJCODE_COOKIE) - 1) & 7) == 0);
-
+verify (((sizeof (SCM_OBJCODE_COOKIE) - 1) & 7) == 0);
 
 
 /*
@@ -77,7 +58,7 @@ make_objcode_by_mmap (int fd)
   if (ret < 0)
     SCM_SYSERROR;
 
-  if (st.st_size <= sizeof (struct scm_objcode) + strlen (OBJCODE_COOKIE))
+  if (st.st_size <= sizeof (struct scm_objcode) + strlen (SCM_OBJCODE_COOKIE))
     scm_misc_error (FUNC_NAME, "object file too small (~a bytes)",
 		    scm_list_1 (SCM_I_MAKINUM (st.st_size)));
 
@@ -88,18 +69,18 @@ make_objcode_by_mmap (int fd)
       SCM_SYSERROR;
     }
 
-  if (memcmp (addr, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE)))
+  if (memcmp (addr, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE)))
     {
       SCM args = scm_list_1 (scm_from_locale_stringn
-                             (addr, strlen (OBJCODE_COOKIE)));
+                             (addr, strlen (SCM_OBJCODE_COOKIE)));
       (void) close (fd);
       (void) munmap (addr, st.st_size);
       scm_misc_error (FUNC_NAME, "bad header on object file: ~s", args);
     }
 
-  data = (struct scm_objcode*)(addr + strlen (OBJCODE_COOKIE));
+  data = (struct scm_objcode*)(addr + strlen (SCM_OBJCODE_COOKIE));
 
-  if (data->len + data->metalen != (st.st_size - sizeof (*data) - strlen (OBJCODE_COOKIE)))
+  if (data->len + data->metalen != (st.st_size - sizeof (*data) - strlen (SCM_OBJCODE_COOKIE)))
     {
       (void) close (fd);
       (void) munmap (addr, st.st_size);
@@ -109,7 +90,7 @@ make_objcode_by_mmap (int fd)
 						   + data->metalen)));
     }
 
-  SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (OBJCODE_COOKIE),
+  SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (SCM_OBJCODE_COOKIE),
                 SCM_PACK (SCM_BOOL_F), fd);
   SCM_SET_SMOB_FLAGS (sret, SCM_F_OBJCODE_IS_MMAP);
 
@@ -138,10 +119,10 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 				scm_from_uint32 (parent_data->len),
 				scm_from_uint32 (parent_data->metalen)));
 
-#if 0
-  /* FIXME: We currently generate bytecode where the objcode-meta isn't
-     suitable aligned, which is an issue on some arches (e.g., SPARC).  */
-  assert ((((uintptr_t) ptr) & (__alignof__ (struct scm_objcode) - 1UL)) == 0);
+#ifdef __GNUC__ /* we need `__alignof__' */
+  /* Make sure bytecode for the objcode-meta is suitable aligned.  Failing to
+     do so leads to SIGBUS/SIGSEGV on some arches (e.g., SPARC).  */
+  assert ((((scm_t_bits) ptr) & (__alignof__ (struct scm_objcode) - 1UL)) == 0);
 #endif
 
   data = (struct scm_objcode*)ptr;
@@ -270,7 +251,7 @@ SCM_DEFINE (scm_write_objcode, "write-objcode", 2, 0, 0,
   SCM_VALIDATE_OBJCODE (1, objcode);
   SCM_VALIDATE_OUTPUT_PORT (2, port);
   
-  scm_c_write (port, OBJCODE_COOKIE, strlen (OBJCODE_COOKIE));
+  scm_c_write (port, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE));
   scm_c_write (port, SCM_OBJCODE_DATA (objcode),
                sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode));
 

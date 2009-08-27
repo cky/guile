@@ -24,6 +24,7 @@
   #:use-module (srfi srfi-4)
   #:use-module (rnrs bytevector)
   #:use-module (language assembly)
+  #:use-module ((system vm objcode) #:select (byte-order))
   #:export (decompile-bytecode))
 
 (define (decompile-bytecode x env opts)
@@ -101,23 +102,27 @@
              (cond
               ((eq? inst 'load-program)
                (decode-load-program pop))
+
               ((< (instruction-length inst) 0)
+               ;; the negative length indicates a variable length
+               ;; instruction
                (let* ((make-sequence
-                       (if (eq? inst 'load-array)
+                       (if (or (memq inst '(load-array load-wide-string)))
                            make-bytevector
                            make-string))
                       (sequence-set!
-                       (if (eq? inst 'load-array)
+                       (if (or (memq inst '(load-array load-wide-string)))
                            bytevector-u8-set!
                            (lambda (str pos value)
                              (string-set! str pos (integer->char value)))))
-
                       (len (let* ((a (pop)) (b (pop)) (c (pop)))
                              (+ (ash a 16) (ash b 8) c)))
                       (seq (make-sequence len)))
                  (let lp ((i 0))
                    (if (= i len)
-                       `(,inst ,seq)
+                       `(,inst ,(if (eq? inst 'load-wide-string)
+                                    (utf32->string seq)
+                                    seq))
                        (begin
                          (sequence-set! seq i (pop))
                          (lp (1+ i)))))))

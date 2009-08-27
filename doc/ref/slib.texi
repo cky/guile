@@ -4,7 +4,6 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@page
 @node SLIB
 @section SLIB
 @cindex SLIB
@@ -12,9 +11,9 @@
 Before the SLIB facilities can be used, the following Scheme expression
 must be executed:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 slib))
-@end smalllisp
+@end lisp
 
 @findex require
 @code{require} can then be used in the usual way (@pxref{Require,,,
@@ -64,7 +63,7 @@ Alternatively, you can create a symlink in the Guile directory to SLIB,
 e.g.:
 
 @example
-ln -s /usr/local/lib/slib /usr/local/share/guile/1.8/slib
+ln -s /usr/local/lib/slib /usr/local/share/guile/@value{EFFECTIVE-VERSION}/slib
 @end example
 
 @item
@@ -78,7 +77,7 @@ guile> (quit)
 @end example
 
 The catalog data should now be in
-@file{/usr/local/share/guile/1.8/slibcat}.
+@file{/usr/local/share/guile/@value{EFFECTIVE-VERSION}/slibcat}.
 
 If instead you get an error such as:
 
@@ -104,11 +103,11 @@ It is usually installed as an extra package in SLIB.
 
 You can use Guile's interface to SLIB to invoke Jacal:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 slib))
 (slib:load "math")
 (math)
-@end smalllisp
+@end lisp
 
 @noindent
 For complete documentation on Jacal, please read the Jacal manual.  If

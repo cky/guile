@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001, 2003, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -33,9 +33,10 @@
 #include "libguile/numbers.h"
 #include "libguile/feature.h"
 #include "libguile/strings.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/srfi-4.h"
 #include "libguile/vectors.h"
+#include "libguile/generalized-vectors.h"
 
 #include "libguile/validate.h"
 #include "libguile/random.h"

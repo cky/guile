@@ -52,14 +52,6 @@ AC_CONFIG_HEADERS([config.h])
 AH_TOP(/*GUILE_CONFIGURE_COPYRIGHT*/)
 
 #--------------------------------------------------------------------
-#
-# Independent Subdirectories
-#
-#--------------------------------------------------------------------
-
-AC_CONFIG_SUBDIRS(guile-readline)
-
-#--------------------------------------------------------------------
 
 AC_LANG([C])
 
@@ -827,22 +819,13 @@ fi
 
 
 dnl GMP tests
-AC_LIB_LINKFLAGS(gmp)
-AC_CHECK_LIB([gmp], [__gmpz_init], ,
-  [AC_MSG_ERROR([GNU MP not found, see README])])
-
-# mpz_import is a macro so we need to include <gmp.h>
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <gmp.h>]],
- 			        [[mpz_import (0, 0, 0, 0, 0, 0, 0); ]])],
+AC_LIB_HAVE_LINKFLAGS(gmp,
   [],
-  [AC_MSG_ERROR([At least GNU MP 4.1 is required, see README])])
+  [#include <gmp.h>],
+  [mpz_import (0, 0, 0, 0, 0, 0, 0);],
+  AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README]))
 
-dnl GNU libunistring tests.
-if test "x$LTLIBUNISTRING" != "x"; then
-   LIBS="$LTLIBUNISTRING $LIBS"
-else
-   AC_MSG_ERROR([GNU libunistring is required, please install it.])
-fi
+dnl GNU libunistring is checked for by Gnulib's `libunistring' module.
 
 dnl i18n tests
 #AC_CHECK_HEADERS([libintl.h])
@@ -1446,6 +1429,9 @@ LIBLOBJS="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`"
 EXTRA_DOT_DOC_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.doc ,g;s,\.[[^.]]*$,.doc,'`"
 EXTRA_DOT_X_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.x ,g;s,\.[[^.]]*$,.x,'`"
 
+# GNU Readline bindings.
+GUILE_READLINE
+
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
 AC_SUBST(GUILE_MICRO_VERSION)
@@ -1532,7 +1518,6 @@ AC_CONFIG_FILES([
   lib/Makefile
   benchmark-suite/Makefile
   doc/Makefile
-  doc/goops/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile
@@ -1541,6 +1526,7 @@ AC_CONFIG_FILES([
   lang/Makefile
   libguile/Makefile
   srfi/Makefile
+  guile-readline/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
   meta/Makefile
@@ -1548,13 +1534,14 @@ AC_CONFIG_FILES([
   testsuite/Makefile
 ])
 
-AC_CONFIG_FILES([meta/guile-1.8.pc])
-AC_CONFIG_FILES([meta/guile-1.8-uninstalled.pc])
+AC_CONFIG_FILES([meta/guile-2.0.pc])
+AC_CONFIG_FILES([meta/guile-2.0-uninstalled.pc])
 AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
 AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
 AC_CONFIG_FILES([meta/guile], [chmod +x meta/guile])
 AC_CONFIG_FILES([meta/uninstalled-env], [chmod +x meta/uninstalled-env])
 AC_CONFIG_FILES([meta/gdb-uninstalled-guile], [chmod +x meta/gdb-uninstalled-guile])
+AC_CONFIG_FILES([meta/guile-tools], [chmod +x meta/guile-tools])
 AC_CONFIG_FILES([libguile/guile-snarf],
                 [chmod +x libguile/guile-snarf])
 AC_CONFIG_FILES([libguile/guile-doc-snarf],
@@ -1567,6 +1554,7 @@ AC_CONFIG_FILES([test-suite/standalone/test-use-srfi],
                 [chmod +x test-suite/standalone/test-use-srfi])
 AC_CONFIG_FILES([test-suite/standalone/test-fast-slot-ref],
                 [chmod +x test-suite/standalone/test-fast-slot-ref])
+AC_CONFIG_FILES([doc/ref/effective-version.texi])
 
 AC_OUTPUT
 

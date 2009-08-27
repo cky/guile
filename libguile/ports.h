@@ -28,7 +28,7 @@
 #include "libguile/print.h"
 #include "libguile/struct.h"
 #include "libguile/threads.h"
-
+#include "libguile/strings.h"
 
 
 
@@ -55,6 +55,10 @@ typedef struct
   SCM file_name;		/* debugging support.  */
   long line_number;		/* debugging support.  */
   int column_number;		/* debugging support.  */
+
+  /* Character encoding support  */
+  char *encoding;
+  scm_t_string_failed_conversion_handler ilseq_handler;
 
   /* port buffers.  the buffer(s) are set up for all ports.  
      in the case of string ports, the buffer is the string itself.
@@ -155,11 +159,11 @@ SCM_INTERNAL SCM scm_i_port_weak_hash;
 #define SCM_REVEALED(x)           (SCM_PTAB_ENTRY(x)->revealed)
 #define SCM_SETREVEALED(x, s)      (SCM_PTAB_ENTRY(x)->revealed = (s))
 
-#define SCM_INCLINE(port)  	{SCM_LINUM (port) += 1; SCM_COL (port) = 0;}
-#define SCM_ZEROCOL(port)  	{SCM_COL (port) = 0;}
-#define SCM_INCCOL(port)  	{SCM_COL (port) += 1;}
-#define SCM_DECCOL(port)  	{if (SCM_COL (port) > 0) SCM_COL (port) -= 1;}
-#define SCM_TABCOL(port)  	{SCM_COL (port) += 8 - SCM_COL (port) % 8;}
+#define SCM_INCLINE(port)  	do {SCM_LINUM (port) += 1; SCM_COL (port) = 0;} while (0)
+#define SCM_ZEROCOL(port)  	do {SCM_COL (port) = 0;} while (0)
+#define SCM_INCCOL(port)  	do {SCM_COL (port) += 1;} while (0)
+#define SCM_DECCOL(port)  	do {if (SCM_COL (port) > 0) SCM_COL (port) -= 1;} while (0)
+#define SCM_TABCOL(port)  	do {SCM_COL (port) += 8 - SCM_COL (port) % 8;} while (0)
 
 /* Maximum number of port types.  */
 #define SCM_I_MAX_PORT_TYPE_COUNT  256
@@ -266,13 +270,18 @@ SCM_API SCM scm_eof_object_p (SCM x);
 SCM_API SCM scm_force_output (SCM port);
 SCM_API SCM scm_flush_all_ports (void);
 SCM_API SCM scm_read_char (SCM port);
+SCM_API scm_t_wchar scm_getc (SCM port);
 SCM_API size_t scm_c_read (SCM port, void *buffer, size_t size);
 SCM_API void scm_c_write (SCM port, const void *buffer, size_t size);
 SCM_API void scm_lfwrite (const char *ptr, size_t size, SCM port);
+SCM_INTERNAL void scm_lfwrite_str (SCM str, SCM port);
+SCM_INTERNAL void scm_lfwrite_substr (SCM str, size_t start, size_t end,
+				      SCM port);
 SCM_API void scm_flush (SCM port);
 SCM_API void scm_end_input (SCM port);
 SCM_API int scm_fill_input (SCM port);
-SCM_API void scm_ungetc (int c, SCM port);
+SCM_INTERNAL void scm_unget_byte (int c, SCM port); 
+SCM_API void scm_ungetc (scm_t_wchar c, SCM port);
 SCM_API void scm_ungets (const char *s, int n, SCM port);
 SCM_API SCM scm_peek_char (SCM port);
 SCM_API SCM scm_unread_char (SCM cobj, SCM port);
@@ -285,13 +294,21 @@ SCM_API SCM scm_port_column (SCM port);
 SCM_API SCM scm_set_port_column_x (SCM port, SCM line);
 SCM_API SCM scm_port_filename (SCM port);
 SCM_API SCM scm_set_port_filename_x (SCM port, SCM filename);
+SCM_INTERNAL const char *scm_i_get_port_encoding (SCM port);
+SCM_INTERNAL void scm_i_set_port_encoding_x (SCM port, const char *str);
+SCM_API SCM scm_port_encoding (SCM port);
+SCM_API SCM scm_set_port_encoding_x (SCM port, SCM encoding);
+SCM_INTERNAL scm_t_string_failed_conversion_handler scm_i_get_conversion_strategy (SCM port);
+SCM_INTERNAL void scm_i_set_conversion_strategy_x (SCM port, 
+						   scm_t_string_failed_conversion_handler h);
+SCM_API SCM scm_port_conversion_strategy (SCM port);
+SCM_API SCM scm_set_port_conversion_strategy_x (SCM port, SCM behavior);
 SCM_API int scm_port_print (SCM exp, SCM port, scm_print_state *);
 SCM_API void scm_print_port_mode (SCM exp, SCM port);
 SCM_API void scm_ports_prehistory (void);
 SCM_API SCM scm_void_port (char * mode_str);
 SCM_API SCM scm_sys_make_void_port (SCM mode);
 SCM_INTERNAL void scm_init_ports (void);
-
 
 #if SCM_ENABLE_DEPRECATED==1
 SCM_API scm_t_port * scm_add_to_port_table (SCM port);

@@ -215,9 +215,35 @@ VM_DEFINE_FUNCTION (120, add, "add", 2)
   FUNC2 (+, scm_sum);
 }
 
+VM_DEFINE_FUNCTION (167, add1, "add1", 1)
+{
+  ARGS1 (x);
+  if (SCM_I_INUMP (x))
+    {
+      scm_t_int64 n = SCM_I_INUM (x) + 1;
+      if (SCM_FIXABLE (n))
+	RETURN (SCM_I_MAKINUM (n));
+    }
+  SYNC_REGISTER ();
+  RETURN (scm_sum (x, SCM_I_MAKINUM (1)));
+}
+
 VM_DEFINE_FUNCTION (121, sub, "sub", 2)
 {
   FUNC2 (-, scm_difference);
+}
+
+VM_DEFINE_FUNCTION (168, sub1, "sub1", 1)
+{
+  ARGS1 (x);
+  if (SCM_I_INUMP (x))
+    {
+      scm_t_int64 n = SCM_I_INUM (x) - 1;
+      if (SCM_FIXABLE (n))
+	RETURN (SCM_I_MAKINUM (n));
+    }
+  SYNC_REGISTER ();
+  RETURN (scm_difference (x, SCM_I_MAKINUM (1)));
 }
 
 VM_DEFINE_FUNCTION (122, mul, "mul", 2)
@@ -289,7 +315,10 @@ VM_DEFINE_FUNCTION (129, vector_ref, "vector-ref", 2)
                   && i < SCM_I_VECTOR_LENGTH (vect)))
     RETURN (SCM_I_VECTOR_ELTS (vect)[i]);
   else
-    RETURN (scm_vector_ref (vect, idx));
+    {
+      SYNC_REGISTER ();
+      RETURN (scm_vector_ref (vect, idx));
+    }
 }
 
 VM_DEFINE_INSTRUCTION (130, vector_set, "vector-set", 0, 3, 0)
@@ -303,7 +332,10 @@ VM_DEFINE_INSTRUCTION (130, vector_set, "vector-set", 0, 3, 0)
                   && i < SCM_I_VECTOR_LENGTH (vect)))
     SCM_I_VECTOR_WELTS (vect)[i] = val;
   else
-    scm_vector_set_x (vect, idx, val);
+    {
+      SYNC_REGISTER ();
+      scm_vector_set_x (vect, idx, val);
+    }
   NEXT;
 }
 

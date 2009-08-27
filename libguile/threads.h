@@ -123,7 +123,7 @@ typedef struct scm_i_thread {
   SCM vm;
   SCM_STACKITEM *base;
   SCM_STACKITEM *top;
-  jmp_buf regs;
+  scm_i_jmp_buf regs;
 #ifdef __ia64__
   void *register_backing_store_base;
   scm_t_contregs *pending_rbs_continuation;

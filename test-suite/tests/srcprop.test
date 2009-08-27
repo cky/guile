@@ -36,11 +36,51 @@
       (not (null? (source-properties s))))))
 
 ;;;
+;;; set-source-property!
+;;;
+
+(with-test-prefix "set-source-property!"
+  (read-enable 'positions)
+
+  (pass-if "setting the breakpoint property works"
+    (let ((s (read (open-input-string "(+ 3 4)"))))
+      (set-source-property! s 'breakpoint #t)
+      (let ((current-trap-opts (evaluator-traps-interface))
+	    (current-debug-opts (debug-options-interface))
+	    (trap-called #f))
+	(trap-set! enter-frame-handler (lambda _ (set! trap-called #t)))
+	(trap-enable 'traps)
+	(debug-enable 'debug)
+	(debug-enable 'breakpoints)
+	(with-traps (lambda ()
+		      (primitive-eval s)))
+	(evaluator-traps-interface current-trap-opts)
+	(debug-options-interface current-debug-opts)
+	trap-called))))
+
+;;;
 ;;; set-source-properties!
 ;;;
 
 (with-test-prefix "set-source-properties!"
   (read-enable 'positions)
+
+  (pass-if "setting the breakpoint property works"
+    (let ((s (read (open-input-string "(+ 3 4)"))))
+      (set-source-properties! s '((breakpoint #t)))
+      (let ((current-trap-opts (evaluator-traps-interface))
+	    (current-debug-opts (debug-options-interface))
+	    (trap-called #f))
+	(trap-set! enter-frame-handler (lambda _ (set! trap-called #t)))
+	(trap-enable 'traps)
+	(debug-enable 'debug)
+	(debug-enable 'breakpoints)
+	(with-traps (lambda ()
+		      (primitive-eval s)))
+	(evaluator-traps-interface current-trap-opts)
+	(debug-options-interface current-debug-opts)
+	trap-called)))
+
   (let ((s (read (open-input-string "(1 . 2)"))))
     
     (with-test-prefix "copied props"
@@ -48,7 +88,7 @@
 	(let ((t (cons 3 4)))
 	  (set-source-properties! t (source-properties s))
 	  (number? (source-property t 'line))))
-      
+
       (pass-if "visible to source-properties"
 	(let ((t (cons 3 4)))
 	  (set-source-properties! t (source-properties s))

@@ -38,8 +38,9 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
 #include "libguile/smob.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/async.h"
+#include "libguile/programs.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
@@ -247,7 +248,6 @@ scm_gc_mark_dependencies (SCM p)
 	scm_t_bits * vtable_data = (scm_t_bits *) word0;
 	SCM layout = SCM_PACK (vtable_data [scm_vtable_index_layout]);
 	long len = scm_i_symbol_length (layout);
-	const char *fields_desc = scm_i_symbol_chars (layout);
 	scm_t_bits *struct_data = (scm_t_bits *) SCM_STRUCT_DATA (ptr);
 
 	if (vtable_data[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
@@ -260,11 +260,12 @@ scm_gc_mark_dependencies (SCM p)
 	    long x;
 
 	    for (x = 0; x < len - 2; x += 2, ++struct_data)
-	      if (fields_desc[x] == 'p')
+	      if (scm_i_symbol_ref (layout, x) ==  'p')
 		scm_gc_mark (SCM_PACK (*struct_data));
-	    if (fields_desc[x] == 'p')
+	    if (scm_i_symbol_ref (layout, x) == 'p')
 	      {
-		if (SCM_LAYOUT_TAILP (fields_desc[x + 1]))
+		scm_t_wchar ch = scm_i_symbol_ref (layout, x+1);
+		if (SCM_LAYOUT_TAILP (ch))
 		  for (x = *struct_data++; x; --x, ++struct_data)
 		    scm_gc_mark (SCM_PACK (*struct_data));
 		else
@@ -284,6 +285,13 @@ scm_gc_mark_dependencies (SCM p)
 	}
       scm_gc_mark (SCM_CLOSCAR (ptr));
       ptr = SCM_ENV (ptr);
+      goto gc_mark_nimp;
+    case scm_tc7_program:
+      if (SCM_PROGRAM_FREE_VARIABLES (ptr) != SCM_BOOL_F)
+        scm_gc_mark (SCM_PROGRAM_FREE_VARIABLES (ptr));
+      if (SCM_PROGRAM_OBJTABLE (ptr) != SCM_BOOL_F)
+        scm_gc_mark (SCM_PROGRAM_OBJTABLE (ptr));
+      ptr = SCM_PROGRAM_OBJCODE (ptr);
       goto gc_mark_nimp;
     case scm_tc7_vector:
       i = SCM_SIMPLE_VECTOR_LENGTH (ptr);

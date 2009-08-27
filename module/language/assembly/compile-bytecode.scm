@@ -65,6 +65,14 @@
     (write-byte (logand (ash x -8) 255))
     (write-byte (logand (ash x -16) 255))
     (write-byte (logand (ash x -24) 255)))
+  (define (write-uint32 x)
+    (case byte-order
+      ((1234) (write-uint32-le x))
+      ((4321) (write-uint32-be x))
+      (else (error "unknown endianness" byte-order))))
+  (define (write-wide-string s)
+    (write-loader-len (* 4 (string-length s)))
+    (string-for-each (lambda (c) (write-uint32 (char->integer c))) s))
   (define (write-loader-len len)
     (write-byte (ash len -16))
     (write-byte (logand (ash len -8) 255))
@@ -72,6 +80,14 @@
   (define (write-loader str)
     (write-loader-len (string-length str))
     (write-string str))
+  (define (write-sized-loader str)
+    (let ((len (string-length str))
+          (wid (string-bytes-per-char str)))
+      (write-loader-len len)
+      (write-byte wid)
+      (if (= wid 4)
+          (write-wide-string str)
+          (write-string str))))
   (define (write-bytevector bv)
     (write-loader-len (bytevector-length bv))
     ;; Ew!
@@ -89,10 +105,6 @@
         (write-uint16 (case byte-order
                         ((1234) write-uint16-le)
                         ((4321) write-uint16-be)
-                        (else (error "unknown endianness" byte-order))))
-        (write-uint32 (case byte-order
-                        ((1234) write-uint32-le)
-                        ((4321) write-uint32-be)
                         (else (error "unknown endianness" byte-order)))))
     (let ((opcode (instruction->opcode inst))
           (len (instruction-length inst)))
@@ -118,19 +130,16 @@
                                (set! i (1+ i))
                                (if (> i 0) (write-byte x))))
                       (get-addr (lambda () i)))
-               ;; FIXME: We should add padding here so that META's bytecode
-               ;; meets the alignment requirements of `scm_objcode'.  See
-               ;; `scm_c_make_objcode_slice ()'.
+               ;; META's bytecode meets the alignment requirements of
+               ;; `scm_objcode', thanks to the alignment computed in
+               ;; `(language assembly)'.
                (write-bytecode meta write get-addr '()))))
         ((make-char32 ,x) (write-uint32-be x))
-        ((load-unsigned-integer ,str) (write-loader str))
-        ((load-integer ,str) (write-loader str))
         ((load-number ,str) (write-loader str))
         ((load-string ,str) (write-loader str))
+        ((load-wide-string ,str) (write-wide-string str))
         ((load-symbol ,str) (write-loader str))
-        ((load-keyword ,str) (write-loader str))
         ((load-array ,bv) (write-bytevector bv))
-        ((define ,str) (write-loader str))
         ((br ,l) (write-break l))
         ((br-if ,l) (write-break l))
         ((br-if-not ,l) (write-break l))

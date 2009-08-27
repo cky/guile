@@ -312,7 +312,7 @@ unblock_from_queue (SCM queue)
       var 't'
       // save registers.
       SCM_FLUSH_REGISTER_WINDOWS;      // sparc only
-      setjmp (t->regs);                // here's most of the magic
+      SCM_I_SETJMP (t->regs);          // here's most of the magic
 
    ... and returns.
 
@@ -366,7 +366,7 @@ unblock_from_queue (SCM queue)
       t->top = SCM_STACK_PTR (&t);
       // save registers.
       SCM_FLUSH_REGISTER_WINDOWS;
-      setjmp (t->regs);
+      SCM_I_SETJMP (t->regs);
       res = func(data);
       scm_enter_guile (t);
 
@@ -425,7 +425,7 @@ suspend (void)
   t->top = SCM_STACK_PTR (&t);
   /* save registers. */
   SCM_FLUSH_REGISTER_WINDOWS;
-  setjmp (t->regs);
+  SCM_I_SETJMP (t->regs);
   return t;
 }
 
@@ -1826,10 +1826,15 @@ scm_std_select (int nfds,
 int
 scm_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
-  int res = scm_i_pthread_mutex_lock (mutex);
-  scm_enter_guile (t);
-  return res;
+  if (scm_i_pthread_mutex_trylock (mutex) == 0)
+    return 0;
+  else
+    {
+      scm_t_guile_ticket t = scm_leave_guile ();
+      int res = scm_i_pthread_mutex_lock (mutex);
+      scm_enter_guile (t);
+      return res;
+    }
 }
 
 static void

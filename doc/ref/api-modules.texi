@@ -60,15 +60,15 @@ Library files in SLIB @emph{provide} a feature, and when user programs
 For example, the file @file{random.scm} in the SLIB package contains the
 line
 
-@smalllisp
+@lisp
 (provide 'random)
-@end smalllisp
+@end lisp
 
 so to use its procedures, a user would type
 
-@smalllisp
+@lisp
 (require 'random)
-@end smalllisp
+@end lisp
 
 and they would magically become available, @emph{but still have the same
 names!}  So this method is nice, but not as good as a full-featured
@@ -99,9 +99,9 @@ i.e., passed as the second argument to @code{eval}.
 Note: the following two procedures are available only when the 
 @code{(ice-9 r5rs)} module is loaded:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 r5rs))
-@end smalllisp
+@end lisp
 
 @deffn {Scheme Procedure} scheme-report-environment version
 @deffnx {Scheme Procedure} null-environment version
@@ -224,9 +224,9 @@ An @dfn{interface specification} has one of two forms.  The first
 variation is simply to name the module, in which case its public
 interface is the one accessed.  For example:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 popen))
-@end smalllisp
+@end lisp
 
 Here, the interface specification is @code{(ice-9 popen)}, and the
 result is that the current module now has access to @code{open-pipe},
@@ -241,11 +241,11 @@ module to be accessed, but also selects bindings from it and renames
 them to suit the current module's needs.  For example:
 
 @cindex binding renamer
-@smalllisp
+@lisp
 (use-modules ((ice-9 popen)
-              :select ((open-pipe . pipe-open) close-pipe)
-              :renamer (symbol-prefix-proc 'unixy:)))
-@end smalllisp
+              #:select ((open-pipe . pipe-open) close-pipe)
+              #:renamer (symbol-prefix-proc 'unixy:)))
+@end lisp
 
 Here, the interface specification is more complex than before, and the
 result is that a custom interface with only two bindings is created and
@@ -270,10 +270,10 @@ You can also directly refer to bindings in a module by using the
 open-pipe)}.  Thus an alternative to the complete @code{use-modules}
 statement would be
 
-@smalllisp
+@lisp
 (define unixy:pipe-open (@@ (ice-9 popen) open-pipe))
 (define unixy:close-pipe (@@ (ice-9 popen) close-pipe))
-@end smalllisp
+@end lisp
 
 There is also @code{@@@@}, which can be used like @code{@@}, but does
 not check whether the variable that is being accessed is actually
@@ -307,9 +307,9 @@ whose public interface is found and used.
 @var{spec} can also be of the form:
 
 @cindex binding renamer
-@smalllisp
+@lisp
  (MODULE-NAME [:select SELECTION] [:renamer RENAMER])
-@end smalllisp
+@end lisp
 
 in which case a custom interface is newly created and used.
 @var{module-name} is a list of symbols, as above; @var{selection} is a
@@ -373,9 +373,9 @@ by using @code{define-public} or @code{export} (both documented below).
 @var{module-name} is of the form @code{(hierarchy file)}.  One
 example of this is
 
-@smalllisp
+@lisp
 (define-module (ice-9 popen))
-@end smalllisp
+@end lisp
 
 @code{define-module} makes this module available to Guile programs under
 the given @var{module-name}.
@@ -541,9 +541,9 @@ duplication to the next handler in @var{list}.
 The default duplicate binding resolution policy is given by the
 @code{default-duplicate-binding-handler} procedure, and is
 
-@smalllisp
+@lisp
 (replace warn-override-core warn last)
-@end smalllisp
+@end lisp
 
 @item #:no-backtrace
 @cindex no backtrace
@@ -1138,12 +1138,12 @@ gcc -shared -o libbessel.so -fPIC bessel.c
 
 Now fire up Guile:
 
-@smalllisp
+@lisp
 (define bessel-lib (dynamic-link "./libbessel.so"))
 (dynamic-call "init_math_bessel" bessel-lib)
 (j0 2)
 @result{} 0.223890779141236
-@end smalllisp
+@end lisp
 
 The filename @file{./libbessel.so} should be pointing to the shared
 library produced with the @code{gcc} command above, of course.  The

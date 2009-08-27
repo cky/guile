@@ -17,7 +17,7 @@ This section aims to pay attention to the small man behind the
 curtain.
 
 @xref{Read/Load/Eval/Compile}, if you're lost and you just wanted to
-know how to compile your .scm file.
+know how to compile your @code{.scm} file.
 
 @menu
 * Compiler Tower::                   
@@ -67,8 +67,7 @@ for Scheme:
   #:title       "Guile Scheme"
   #:version     "0.5"
   #:reader      read
-  #:compilers   `((tree-il . ,compile-tree-il)
-                  (ghil . ,compile-ghil))
+  #:compilers   `((tree-il . ,compile-tree-il))
   #:decompilers `((tree-il . ,decompile-tree-il))
   #:evaluator   (lambda (x module) (primitive-eval x))
   #:printer     write)
@@ -220,13 +219,13 @@ Note however that @code{sc-expand} does not have the same signature as
 around @code{sc-expand}, to make it conform to the general form of
 compiler procedures in Guile's language tower.
 
-Compiler procedures take two arguments, an expression and an
-environment. They return three values: the compiled expression, the
-corresponding environment for the target language, and a
-``continuation environment''. The compiled expression and environment
-will serve as input to the next language's compiler. The
-``continuation environment'' can be used to compile another expression
-from the same source language within the same module.
+Compiler procedures take three arguments: an expression, an
+environment, and a keyword list of options. They return three values:
+the compiled expression, the corresponding environment for the target
+language, and a ``continuation environment''. The compiled expression
+and environment will serve as input to the next language's compiler.
+The ``continuation environment'' can be used to compile another
+expression from the same source language within the same module.
 
 For example, you might compile the expression, @code{(define-module
 (foo))}. This will result in a Tree-IL expression and environment. But
@@ -291,6 +290,14 @@ tree-il@@(guile-user)> (apply (primitive +) (const 32) (const 10))
 @end example
 
 The @code{src} fields are left out of the external representation.
+
+One may create Tree-IL objects from their external representations via
+calling @code{parse-tree-il}, the reader for Tree-IL. If any source
+information is attached to the input S-expression, it will be
+propagated to the resulting Tree-IL expressions. This is probably the
+easiest way to compile to Tree-IL: just make the appropriate external
+representations in S-expression format, and let @code{parse-tree-il}
+take care of the rest.
 
 @deftp {Scheme Variable} <void> src
 @deftpx {External Representation} (void)
@@ -384,12 +391,29 @@ A version of @code{<let>} that creates recursive bindings, like
 Scheme's @code{letrec}.
 @end deftp
 
-@c FIXME -- need to revive this one
-@c @deftp {Scheme Variable} <ghil-mv-bind> src vars rest producer . body
-@c Like Scheme's @code{receive} -- binds the values returned by
-@c applying @code{producer}, which should be a thunk, to the
-@c @code{lambda}-like bindings described by @var{vars} and @var{rest}.
-@c @end deftp
+There are two Tree-IL constructs that are not normally produced by
+higher-level compilers, but instead are generated during the
+source-to-source optimization and analysis passes that the Tree-IL
+compiler does. Users should not generate these expressions directly,
+unless they feel very clever, as the default analysis pass will
+generate them as necessary.
+
+@deftp {Scheme Variable} <let-values> src names vars exp body
+@deftpx {External Representation} (let-values @var{names} @var{vars} @var{exp} @var{body})
+Like Scheme's @code{receive} -- binds the values returned by
+evaluating @code{exp} to the @code{lambda}-like bindings described by
+@var{vars}. That is to say, @var{vars} may be an improper list.
+
+@code{<let-values>} is an optimization of @code{<application>} of the
+primitive, @code{call-with-values}.
+@end deftp
+@deftp {Scheme Variable} <fix> src names vars vals body
+@deftpx {External Representation} (fix @var{names} @var{vars} @var{vals} @var{body})
+Like @code{<letrec>}, but only for @var{vals} that are unset
+@code{lambda} expressions.
+
+@code{fix} is an optimization of @code{letrec} (and @code{let}).
+@end deftp
 
 Tree-IL implements a compiler to GLIL that recursively traverses
 Tree-IL expressions, writing out GLIL expressions into a linear list.
@@ -399,9 +423,9 @@ future computations. This state allows the compiler not to emit code
 for constant expressions that will not be used (e.g. docstrings), and
 to perform tail calls when in tail position.
 
-In the future, there will be a pass at the beginning of the
-Tree-IL->GLIL compilation step to perform inlining, copy propagation,
-dead code elimination, and constant folding.
+Most optimization, such as it currently is, is performed on Tree-IL
+expressions as source-to-source transformations. There will be more
+optimizations added in the future.
 
 Interested readers are encouraged to read the implementation in
 @code{(language tree-il compile-glil)} for more details.
@@ -411,18 +435,16 @@ Interested readers are encouraged to read the implementation in
 
 Guile Low Intermediate Language (GLIL) is a structured intermediate
 language whose expressions more closely approximate Guile's VM
-instruction set.
+instruction set. Its expression types are defined in @code{(language
+glil)}.
 
-Its expression types are defined in @code{(language glil)}, and as
-with GHIL, some of its fields parse as rest arguments.
-
-@deftp {Scheme Variable} <glil-program> nargs nrest nlocs nexts meta . body
+@deftp {Scheme Variable} <glil-program> nargs nrest nlocs meta . body
 A unit of code that at run-time will correspond to a compiled
-procedure. @var{nargs} @var{nrest} @var{nlocs}, and @var{nexts}
-collectively define the program's arity; see @ref{Compiled
-Procedures}, for more information. @var{meta} should be an alist of
-properties, as in Tree IL's @code{<lambda>}. @var{body} is a list of
-GLIL expressions.
+procedure. @var{nargs} @var{nrest} and @var{nlocs} collectively define
+the program's arity; see @ref{Compiled Procedures}, for more
+information. @var{meta} should be an alist of properties, as in
+Tree-IL's @code{<lambda>}. @var{body} is an ordered list of GLIL
+expressions.
 @end deftp
 @deftp {Scheme Variable} <glil-bind> . vars
 An advisory expression that notes a liveness extent for a set of
@@ -461,23 +483,21 @@ and @code{filename} keys, e.g. as returned by
 @code{source-properties}.
 @end deftp
 @deftp {Scheme Variable} <glil-void>
-Pushes the unspecified value on the stack.
+Pushes ``the unspecified value'' on the stack.
 @end deftp
 @deftp {Scheme Variable} <glil-const> obj
 Pushes a constant value onto the stack. @var{obj} must be a number,
-string, symbol, keyword, boolean, character, the empty list, or a pair
-or vector of constants.
+string, symbol, keyword, boolean, character, uniform array, the empty
+list, or a pair or vector of constants.
 @end deftp
-@deftp {Scheme Variable} <glil-local> op index
-Accesses a lexically bound variable from the stack. If @var{op} is
-@code{ref}, the value is pushed onto the stack; if it is @code{set},
-the variable is set from the top value on the stack, which is popped
-off. @xref{Stack Layout}, for more information.
-@end deftp
-@deftp {Scheme Variable} <glil-external> op depth index
-Accesses a heap-allocated variable, addressed by @var{depth}, the nth
-enclosing environment, and @var{index}, the variable's position within
-the environment. @var{op} is @code{ref} or @code{set}.
+@deftp {Scheme Variable} <glil-lexical> local? boxed? op index
+Accesses a lexically bound variable. If the variable is not
+@var{local?} it is free. All variables may have @code{ref} and
+@code{set} as their @var{op}. Boxed variables may also have the
+@var{op}s @code{box}, @code{empty-box}, and @code{fix}, which
+correspond in semantics to the VM instructions @code{box},
+@code{empty-box}, and @code{fix-closure}. @xref{Stack Layout}, for
+more information.
 @end deftp
 @deftp {Scheme Variable} <glil-toplevel> op name
 Accesses a toplevel variable. @var{op} may be @code{ref}, @code{set},
@@ -516,11 +536,12 @@ be wrapped in a thunk that declares the arity of the expression:
 
 @example
 scheme@@(guile-user)> ,language glil
-Guile Lowlevel Intermediate Language (GLIL) interpreter 0.3 on Guile 1.9.0
+Guile Lowlevel Intermediate Language (GLIL) interpreter 0.3 on
+   Guile 1.9.0
 Copyright (C) 2001-2008 Free Software Foundation, Inc.
 
 Enter `,help' for help.
-glil@@(guile-user)> (program 0 0 0 0 () (const 3) (call return 0))
+glil@@(guile-user)> (program 0 0 0 () (const 3) (call return 1))
 @result{} 3
 @end example
 
@@ -542,12 +563,12 @@ differs from GLIL in four main ways:
 @itemize
 @item Labels have been resolved to byte offsets in the program.
 @item Constants inside procedures have either been expressed as inline
-instructions, and possibly cached in object arrays.
+instructions or cached in object arrays.
 @item Procedures with metadata (source location information, liveness
 extents, procedure names, generic properties, etc) have had their
 metadata serialized out to thunks.
 @item All expressions correspond directly to VM instructions -- i.e.,
-there is no @code{<glil-local>} which can be a ref or a set.
+there is no @code{<glil-lexical>} which can be a ref or a set.
 @end itemize
 
 Assembly is isomorphic to the bytecode that it compiles to. You can
@@ -567,10 +588,11 @@ example:
 
 @example
 scheme@@(guile-user)> (compile '(lambda (x) (+ x x)) #:to 'assembly)
-(load-program 0 0 0 0
+(load-program 0 0 0
   () ; Labels
-  60 ; Length
+  70 ; Length
   #f ; Metadata
+  (make-false)
   (make-false) ; object table for the returned lambda
   (nop)
   (nop) ; Alignment. Since assembly has already resolved its labels
@@ -578,11 +600,12 @@ scheme@@(guile-user)> (compile '(lambda (x) (+ x x)) #:to 'assembly)
   (nop) ; object code is mmap'd directly to structures, assembly
   (nop) ; has to have the alignment embedded in it.
   (nop) 
-  (load-program 1 0 0 0 
+  (load-program
+    1
+    0
     ()
-    6
-    ; This is the metadata thunk for the returned procedure.
-    (load-program 0 0 0 0 () 21 #f
+    8
+    (load-program 0 0 0 () 21 #f
       (load-symbol "x")  ; Name and liveness extent for @code{x}.
       (make-false)
       (make-int8:0) ; Some instruction+arg combinations
@@ -597,7 +620,9 @@ scheme@@(guile-user)> (compile '(lambda (x) (+ x x)) #:to 'assembly)
     (local-ref 0)
     (local-ref 0)
     (add)
-    (return))
+    (return)
+    (nop)
+    (nop))
   ; Return our new procedure.
   (return))
 @end example
@@ -618,10 +643,10 @@ the next step down from assembly:
 
 @example
 scheme@@(guile-user)> (compile '(+ 32 10) #:to 'assembly)
-@result{} (load-program 0 0 0 0 () 6 #f
+@result{} (load-program 0 0 0 () 6 #f
        (make-int8 32) (make-int8 10) (add) (return))
 scheme@@(guile-user)> (compile '(+ 32 10) #:to 'bytecode)
-@result{} #u8(0 0 0 0 6 0 0 0 0 0 0 0 10 32 10 10 100 48)
+@result{} #u8(0 0 0 0 6 0 0 0 0 0 0 0 0 0 0 0 10 32 10 10 120 52)
 @end example
 
 ``Objcode'' is bytecode, but mapped directly to a C structure,
@@ -631,8 +656,7 @@ scheme@@(guile-user)> (compile '(+ 32 10) #:to 'bytecode)
 struct scm_objcode @{
   scm_t_uint8 nargs;
   scm_t_uint8 nrest;
-  scm_t_uint8 nlocs;
-  scm_t_uint8 nexts;
+  scm_t_uint16 nlocs;
   scm_t_uint32 len;
   scm_t_uint32 metalen;
   scm_t_uint8 base[0];
@@ -642,7 +666,7 @@ struct scm_objcode @{
 As one might imagine, objcode imposes a minimum length on the
 bytecode. Also, the multibyte fields are in native endianness, which
 makes objcode (and bytecode) system-dependent. Indeed, in the short
-example above, all but the last 5 bytes were the program's header.
+example above, all but the last 6 bytes were the program's header.
 
 Objcode also has a couple of important efficiency hacks. First,
 objcode may be mapped directly from disk, allowing compiled code to be
@@ -672,7 +696,7 @@ Makes a bytecode object from @var{bytecode}, which should be a
 Load object code from a file named @var{file}. The file will be mapped
 into memory via @code{mmap}, so this is a very fast operation.
 
-On disk, object code has an eight-byte cookie prepended to it, to
+On disk, object code has an sixteen-byte cookie prepended to it, to
 prevent accidental loading of arbitrary garbage.
 @end deffn
 
@@ -689,11 +713,11 @@ Copy object code out to a @code{u8vector} for analysis by Scheme.
 The following procedure is actually in @code{(system vm program)}, but
 we'll mention it here:
 
-@deffn {Scheme Variable} make-program objcode objtable [external='()]
-@deffnx {C Function} scm_make_program (objcode, objtable, external)
+@deffn {Scheme Variable} make-program objcode objtable [free-vars=#f]
+@deffnx {C Function} scm_make_program (objcode, objtable, free_vars)
 Load up object code into a Scheme program. The resulting program will
 have @var{objtable} as its object table, which should be a vector or
-@code{#f}, and will capture the closure variables from @var{external}.
+@code{#f}, and will capture the free variables from @var{free-vars}.
 @end deffn
 
 Object code from a file may be disassembled at the REPL via the
@@ -707,9 +731,9 @@ respect to the compilation environment. Normally the environment
 propagates through the compiler transparently, but users may specify
 the compilation environment manually as well:
 
-@deffn {Scheme Procedure} make-objcode-env module externals
+@deffn {Scheme Procedure} make-objcode-env module free-vars
 Make an object code environment. @var{module} should be a Scheme
-module, and @var{externals} should be a list of external variables.
+module, and @var{free-vars} should be a vector of free variables.
 @code{#f} is also a valid object code environment.
 @end deffn
 
@@ -748,12 +772,14 @@ procedure is called a certain number of times.
 The name of the game is a profiling-based harvest of the low-hanging
 fruit, running programs of interest under a system-level profiler and
 determining which improvements would give the most bang for the buck.
-There are many well-known efficiency hacks in the literature: Dybvig's
-letrec optimization, individual boxing of heap-allocated values (and
-then store the boxes on the stack directly), optimized case-lambda
-expressions, stack underflow and overflow handlers, etc. Highly
-recommended papers: Dybvig's HOCS, Ghuloum's compiler paper.
+It's really getting to the point though that native compilation is the
+next step.
 
 The compiler also needs help at the top end, enhancing the Scheme that
-it knows to also understand R6RS, and adding new high-level compilers:
-Emacs Lisp, Lua, JavaScript...
+it knows to also understand R6RS, and adding new high-level compilers.
+We have JavaScript and Emacs Lisp mostly complete, but they could use
+some love; Lua would be nice as well, butq whatever language it is
+that strikes your fancy would be welcome too.
+
+Compilers are for hacking, not for admiring or for complaining about.
+Get to it!

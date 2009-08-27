@@ -15,7 +15,7 @@
 # In projects using CVS, this file can be treated like other built files.
 
 
-# This macro should be invoked from ./configure.in, in the section
+# This macro should be invoked from ./configure.ac, in the section
 # "Checks for programs", right after AC_PROG_CC, and certainly before
 # any checks for libraries, header files, types and library functions.
 AC_DEFUN([gl_EARLY],
@@ -31,7 +31,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_FP_IEEE])
 ])
 
-# This macro should be invoked from ./configure.in, in the section
+# This macro should be invoked from ./configure.ac, in the section
 # "Check for header files, types and library functions".
 AC_DEFUN([gl_INIT],
 [
@@ -62,6 +62,7 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_ICONV_OPEN
   gl_FUNC_ICONV_OPEN_UTF
   gl_INLINE
+  gl_LD_VERSION_SCRIPT
   gl_VISIBILITY
   gl_LIBUNISTRING
   gl_LOCALCHARSET
@@ -361,6 +362,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/inline.m4
   m4/intmax_t.m4
   m4/inttypes_h.m4
+  m4/ld-version-script.m4
   m4/lib-ld.m4
   m4/lib-link.m4
   m4/lib-prefix.m4

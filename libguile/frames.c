@@ -33,7 +33,7 @@ scm_t_bits scm_tc16_vm_frame;
 
 SCM
 scm_c_make_vm_frame (SCM stack_holder, SCM *fp, SCM *sp,
-                     scm_byte_t *ip, scm_t_ptrdiff offset)
+                     scm_t_uint8 *ip, scm_t_ptrdiff offset)
 {
   struct scm_vm_frame *p = scm_gc_malloc (sizeof (struct scm_vm_frame),
                                           "vmframe");
@@ -111,12 +111,12 @@ SCM_DEFINE (scm_vm_frame_arguments, "vm-frame-arguments", 1, 0, 0,
   if (!bp->nargs)
     return SCM_EOL;
   else if (bp->nrest)
-    ret = fp[bp->nargs - 1];
+    ret = SCM_FRAME_VARIABLE (fp, bp->nargs - 1);
   else
-    ret = scm_cons (fp[bp->nargs - 1], SCM_EOL);
+    ret = scm_cons (SCM_FRAME_VARIABLE (fp, bp->nargs - 1), SCM_EOL);
   
   for (i = bp->nargs - 2; i >= 0; i--)
-    ret = scm_cons (fp[i], ret);
+    ret = scm_cons (SCM_FRAME_VARIABLE (fp, i), ret);
   
   return ret;
 }

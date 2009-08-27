@@ -105,27 +105,109 @@ guile_LDFLAGS = $(GUILE_CFLAGS)
 
 libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
-libguile_la_SOURCES = alist.c arbiters.c async.c backtrace.c boolean.c	\
-    bytevectors.c chars.c continuations.c				\
-    convert.c debug.c deprecation.c					\
-    deprecated.c discouraged.c dynwind.c eq.c error.c	\
-    eval.c evalext.c extensions.c feature.c fluids.c fports.c		\
-    futures.c gc.c gc-mark.c gc-segment.c gc-malloc.c gc-card.c		\
-    gc-freelist.c gc_os_dep.c gdbint.c gettext.c gc-segment-table.c     \
-    goops.c gsubr.c		\
-    guardians.c hash.c hashtab.c hooks.c init.c inline.c		\
-    ioext.c keywords.c lang.c list.c load.c macros.c mallocs.c		\
-    modules.c numbers.c objects.c objprop.c options.c pairs.c ports.c	\
-    print.c procprop.c procs.c properties.c				\
-    r6rs-ports.c random.c rdelim.c read.c				\
-    root.c rw.c scmsigs.c script.c simpos.c smob.c sort.c srcprop.c	\
-    stackchk.c stacks.c stime.c strings.c srfi-4.c srfi-13.c srfi-14.c	\
-    strorder.c strports.c struct.c symbols.c threads.c null-threads.c	\
-    throw.c values.c variable.c vectors.c version.c vports.c weaks.c	\
-    ramap.c unif.c
-
-# vm-related sources
-libguile_la_SOURCES += frames.c instructions.c objcodes.c programs.c vm.c
+libguile_la_SOURCES =				\
+	alist.c					\
+	arbiters.c				\
+	array-handle.c				\
+	array-map.c				\
+	arrays.c				\
+	async.c					\
+	backtrace.c				\
+	boolean.c				\
+	bitvectors.c				\
+	bytevectors.c				\
+	chars.c					\
+	continuations.c				\
+	debug.c					\
+	deprecated.c				\
+	deprecation.c				\
+	discouraged.c				\
+	dynwind.c				\
+	eq.c					\
+	error.c					\
+	eval.c					\
+	evalext.c				\
+	extensions.c				\
+	feature.c				\
+	fluids.c				\
+	fports.c				\
+	frames.c				\
+	futures.c				\
+	gc-card.c				\
+	gc-freelist.c				\
+	gc-malloc.c				\
+	gc-mark.c				\
+	gc-segment-table.c			\
+	gc-segment.c				\
+	gc.c					\
+	gc_os_dep.c				\
+	gdbint.c				\
+	gettext.c				\
+	generalized-arrays.c			\
+	generalized-vectors.c			\
+	goops.c					\
+	gsubr.c					\
+	guardians.c				\
+	hash.c					\
+	hashtab.c				\
+	hooks.c					\
+	init.c					\
+	inline.c				\
+	instructions.c				\
+	ioext.c					\
+	keywords.c				\
+	lang.c					\
+	list.c					\
+	load.c					\
+	macros.c				\
+	mallocs.c				\
+	modules.c				\
+	null-threads.c				\
+	numbers.c				\
+	objcodes.c				\
+	objects.c				\
+	objprop.c				\
+	options.c				\
+	pairs.c					\
+	ports.c					\
+	print.c					\
+	procprop.c				\
+	procs.c					\
+	programs.c				\
+	properties.c				\
+	r6rs-ports.c				\
+	random.c				\
+	rdelim.c				\
+	read.c					\
+	root.c					\
+	rw.c					\
+	scmsigs.c				\
+	script.c				\
+	simpos.c				\
+	smob.c					\
+	sort.c					\
+	srcprop.c				\
+	srfi-13.c				\
+	srfi-14.c				\
+	srfi-4.c				\
+	stackchk.c				\
+	stacks.c				\
+	stime.c					\
+	strings.c				\
+	strorder.c				\
+	strports.c				\
+	struct.c				\
+	symbols.c				\
+	threads.c				\
+	throw.c					\
+	uniform.c				\
+	values.c				\
+	variable.c				\
+	vectors.c				\
+	version.c				\
+	vm.c					\
+	vports.c				\
+	weaks.c
 
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_SOURCES = i18n.c
 libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_CFLAGS =	\
@@ -136,48 +218,202 @@ libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LDFLAGS =	\
    -module -L$(builddir) -lguile				\
    -version-info @LIBGUILE_I18N_INTERFACE@
 
-DOT_X_FILES = alist.x arbiters.x async.x backtrace.x boolean.x		\
-    bytevectors.x chars.x						\
-    continuations.x debug.x deprecation.x deprecated.x discouraged.x	\
-    dynl.x dynwind.x eq.x error.x eval.x evalext.x	\
-    extensions.x feature.x fluids.x fports.x futures.x gc.x gc-mark.x	\
-    gc-segment.x gc-malloc.x gc-card.x gettext.x goops.x		\
-    gsubr.x guardians.x gc-segment-table.x                              \
-    hash.x hashtab.x hooks.x i18n.x init.x ioext.x keywords.x lang.x	\
-    list.x load.x macros.x mallocs.x modules.x numbers.x objects.x	\
-    objprop.x options.x pairs.x ports.x print.x procprop.x procs.x	\
-    properties.x r6rs-ports.x random.x rdelim.x				\
-    read.x root.x rw.x scmsigs.x					\
-    script.x simpos.x smob.x sort.x srcprop.x stackchk.x stacks.x	\
-    stime.x strings.x srfi-4.x srfi-13.x srfi-14.x strorder.x		\
-    strports.x struct.x symbols.x threads.x throw.x values.x		\
-    variable.x vectors.x version.x vports.x weaks.x ramap.x unif.x
+DOT_X_FILES =					\
+	alist.x					\
+	arbiters.x				\
+	array-handle.x				\
+	array-map.x				\
+	arrays.x				\
+	async.x					\
+	backtrace.x				\
+	boolean.x				\
+	bitvectors.x				\
+	bytevectors.x				\
+	chars.x					\
+	continuations.x				\
+	debug.x					\
+	deprecated.x				\
+	deprecation.x				\
+	discouraged.x				\
+	dynl.x					\
+	dynwind.x				\
+	eq.x					\
+	error.x					\
+	eval.x					\
+	evalext.x				\
+	extensions.x				\
+	feature.x				\
+	fluids.x				\
+	fports.x				\
+	futures.x				\
+	gc-card.x				\
+	gc-malloc.x				\
+	gc-mark.x				\
+	gc-segment-table.x			\
+	gc-segment.x				\
+	gc.x					\
+	gettext.x				\
+	generalized-arrays.x			\
+	generalized-vectors.x			\
+	goops.x					\
+	gsubr.x					\
+	guardians.x				\
+	hash.x					\
+	hashtab.x				\
+	hooks.x					\
+	i18n.x					\
+	init.x					\
+	ioext.x					\
+	keywords.x				\
+	lang.x					\
+	list.x					\
+	load.x					\
+	macros.x				\
+	mallocs.x				\
+	modules.x				\
+	numbers.x				\
+	objects.x				\
+	objprop.x				\
+	options.x				\
+	pairs.x					\
+	ports.x					\
+	print.x					\
+	procprop.x				\
+	procs.x					\
+	properties.x				\
+	r6rs-ports.x				\
+	random.x				\
+	rdelim.x				\
+	read.x					\
+	root.x					\
+	rw.x					\
+	scmsigs.x				\
+	script.x				\
+	simpos.x				\
+	smob.x					\
+	sort.x					\
+	srcprop.x				\
+	srfi-13.x				\
+	srfi-14.x				\
+	srfi-4.x				\
+	stackchk.x				\
+	stacks.x				\
+	stime.x					\
+	strings.x				\
+	strorder.x				\
+	strports.x				\
+	struct.x				\
+	symbols.x				\
+	threads.x				\
+	throw.x					\
+	uniform.x				\
+	values.x				\
+	variable.x				\
+	vectors.x				\
+	version.x				\
+	vports.x				\
+	weaks.x
 
 # vm-related snarfs
 DOT_X_FILES += frames.x instructions.x objcodes.x programs.x vm.x
 
 EXTRA_DOT_X_FILES = @EXTRA_DOT_X_FILES@
 
-DOT_DOC_FILES = alist.doc arbiters.doc async.doc backtrace.doc		\
-    boolean.doc bytevectors.doc chars.doc				\
-    continuations.doc debug.doc deprecation.doc				\
-    deprecated.doc discouraged.doc dynl.doc dynwind.doc			\
-    eq.doc error.doc eval.doc evalext.doc		\
-    extensions.doc feature.doc fluids.doc fports.doc futures.doc	\
-    gc.doc goops.doc gsubr.doc gc-mark.doc gc-segment.doc \
-    gc-malloc.doc gc-card.doc gettext.doc gc-segment-table.doc          \
-    guardians.doc hash.doc hashtab.doc					\
-    hooks.doc i18n.doc init.doc ioext.doc keywords.doc lang.doc		\
-    list.doc load.doc macros.doc mallocs.doc modules.doc numbers.doc	\
-    objects.doc objprop.doc options.doc pairs.doc ports.doc print.doc	\
-    procprop.doc procs.doc properties.doc r6rs-ports.doc		\
-    random.doc rdelim.doc						\
-    read.doc root.doc rw.doc scmsigs.doc script.doc simpos.doc		\
-    smob.doc sort.doc srcprop.doc stackchk.doc stacks.doc stime.doc	\
-    strings.doc srfi-4.doc srfi-13.doc srfi-14.doc strorder.doc		\
-    strports.doc struct.doc symbols.doc threads.doc throw.doc		\
-    values.doc variable.doc vectors.doc version.doc vports.doc		\
-    weaks.doc ramap.doc unif.doc
+DOT_DOC_FILES = 				\
+	alist.doc				\
+	arbiters.doc				\
+	array-handle.doc			\
+	array-map.doc				\
+	arrays.doc				\
+	async.doc				\
+	backtrace.doc				\
+	boolean.doc				\
+	bitvectors.doc				\
+	bytevectors.doc				\
+	chars.doc				\
+	continuations.doc			\
+	debug.doc				\
+	deprecated.doc				\
+	deprecation.doc				\
+	discouraged.doc				\
+	dynl.doc				\
+	dynwind.doc				\
+	eq.doc					\
+	error.doc				\
+	eval.doc				\
+	evalext.doc				\
+	extensions.doc				\
+	feature.doc				\
+	fluids.doc				\
+	fports.doc				\
+	futures.doc				\
+	gc-card.doc				\
+	gc-malloc.doc				\
+	gc-mark.doc				\
+	gc-segment-table.doc			\
+	gc-segment.doc				\
+	gc.doc					\
+	gettext.doc				\
+	generalized-arrays.doc			\
+	generalized-vectors.doc			\
+	goops.doc				\
+	gsubr.doc				\
+	guardians.doc				\
+	hash.doc				\
+	hashtab.doc				\
+	hooks.doc				\
+	i18n.doc				\
+	init.doc				\
+	ioext.doc				\
+	keywords.doc				\
+	lang.doc				\
+	list.doc				\
+	load.doc				\
+	macros.doc				\
+	mallocs.doc				\
+	modules.doc				\
+	numbers.doc				\
+	objects.doc				\
+	objprop.doc				\
+	options.doc				\
+	pairs.doc				\
+	ports.doc				\
+	print.doc				\
+	procprop.doc				\
+	procs.doc				\
+	properties.doc				\
+	r6rs-ports.doc				\
+	random.doc				\
+	rdelim.doc				\
+	read.doc				\
+	root.doc				\
+	rw.doc					\
+	scmsigs.doc				\
+	script.doc				\
+	simpos.doc				\
+	smob.doc				\
+	sort.doc				\
+	srcprop.doc				\
+	srfi-13.doc				\
+	srfi-14.doc				\
+	srfi-4.doc				\
+	stackchk.doc				\
+	stacks.doc				\
+	stime.doc				\
+	strings.doc				\
+	strorder.doc				\
+	strports.doc				\
+	struct.doc				\
+	symbols.doc				\
+	threads.doc				\
+	throw.doc				\
+	uniform.doc				\
+	values.doc				\
+	variable.doc				\
+	vectors.doc				\
+	version.doc				\
+	vports.doc				\
+	weaks.doc
 
 EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 
@@ -208,10 +444,9 @@ install-exec-hook:
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
-noinst_HEADERS = convert.i.c					\
-                 conv-integer.i.c conv-uinteger.i.c		\
+noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  eval.i.c ieee-754.h				\
-                 srfi-4.i.c					\
+                 srfi-4.i.c srfi-14.i.c				\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
 	         private-gc.h private-options.h
@@ -220,36 +455,134 @@ noinst_HEADERS = convert.i.c					\
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library)
+libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBUNISTRING)
 libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
+
+if HAVE_LD_VERSION_SCRIPT
+
+libguile_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
+
+endif HAVE_LD_VERSION_SCRIPT
+
 
 # These are headers visible as <guile/mumble.h>
 pkginclude_HEADERS = 
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(includedir)/libguile
-modinclude_HEADERS = __scm.h alist.h arbiters.h async.h backtrace.h	\
-    boolean.h bytevectors.h chars.h continuations.h convert.h		\
-    debug.h debug-malloc.h						\
-    deprecation.h deprecated.h discouraged.h dynl.h dynwind.h		\
-    eq.h error.h eval.h evalext.h extensions.h		\
-    feature.h filesys.h fluids.h fports.h futures.h gc.h		\
-    gdb_interface.h gdbint.h gettext.h goops.h				\
-    gsubr.h guardians.h hash.h						\
-    hashtab.h hooks.h i18n.h init.h inline.h ioext.h iselect.h		\
-    keywords.h lang.h list.h load.h macros.h mallocs.h modules.h	\
-    net_db.h numbers.h objects.h objprop.h options.h pairs.h ports.h	\
-    posix.h r6rs-ports.h regex-posix.h print.h				\
-    procprop.h procs.h properties.h					\
-    random.h ramap.h rdelim.h read.h root.h rw.h scmsigs.h validate.h	\
-    script.h simpos.h smob.h snarf.h socket.h sort.h srcprop.h		\
-    stackchk.h stacks.h stime.h strings.h srfi-4.h srfi-13.h srfi-14.h	\
-    strorder.h strports.h struct.h symbols.h tags.h threads.h		\
-    pthread-threads.h null-threads.h throw.h unif.h values.h		\
-    variable.h vectors.h vports.h weaks.h
-
-modinclude_HEADERS += vm-bootstrap.h frames.h instructions.h objcodes.h	\
-    programs.h vm.h vm-engine.h vm-expand.h
+modinclude_HEADERS =				\
+	__scm.h					\
+	alist.h					\
+	arbiters.h				\
+	array-handle.h				\
+	array-map.h				\
+	arrays.h				\
+	async.h					\
+	backtrace.h				\
+	boolean.h				\
+	bitvectors.h				\
+	bytevectors.h				\
+	chars.h					\
+	continuations.h				\
+	debug-malloc.h				\
+	debug.h					\
+	deprecated.h				\
+	deprecation.h				\
+	discouraged.h				\
+	dynl.h					\
+	dynwind.h				\
+	eq.h					\
+	error.h					\
+	eval.h					\
+	evalext.h				\
+	extensions.h				\
+	feature.h				\
+	filesys.h				\
+	fluids.h				\
+	fports.h				\
+	frames.h				\
+	futures.h				\
+	gc.h					\
+	gdb_interface.h				\
+	gdbint.h				\
+	gettext.h				\
+	generalized-arrays.h			\
+	generalized-vectors.h			\
+	goops.h					\
+	gsubr.h					\
+	guardians.h				\
+	hash.h					\
+	hashtab.h				\
+	hooks.h					\
+	i18n.h					\
+	init.h					\
+	inline.h				\
+	instructions.h				\
+	ioext.h					\
+	iselect.h				\
+	keywords.h				\
+	lang.h					\
+	list.h					\
+	load.h					\
+	macros.h				\
+	mallocs.h				\
+	modules.h				\
+	net_db.h				\
+	null-threads.h				\
+	numbers.h				\
+	objcodes.h				\
+	objects.h				\
+	objprop.h				\
+	options.h				\
+	pairs.h					\
+	ports.h					\
+	posix.h					\
+	print.h					\
+	procprop.h				\
+	procs.h					\
+	programs.h				\
+	properties.h				\
+	pthread-threads.h			\
+	r6rs-ports.h				\
+	random.h				\
+	rdelim.h				\
+	read.h					\
+	regex-posix.h				\
+	root.h					\
+	rw.h					\
+	scmsigs.h				\
+	script.h				\
+	simpos.h				\
+	smob.h					\
+	snarf.h					\
+	socket.h				\
+	sort.h					\
+	srcprop.h				\
+	srfi-13.h				\
+	srfi-14.h				\
+	srfi-4.h				\
+	stackchk.h				\
+	stacks.h				\
+	stime.h					\
+	strings.h				\
+	strorder.h				\
+	strports.h				\
+	struct.h				\
+	symbols.h				\
+	tags.h					\
+	threads.h				\
+	throw.h					\
+	validate.h				\
+	uniform.h				\
+	values.h				\
+	variable.h				\
+	vectors.h				\
+	vm-bootstrap.h				\
+	vm-engine.h				\
+	vm-expand.h				\
+	vm.h					\
+	vports.h				\
+	weaks.h
 
 nodist_modinclude_HEADERS = version.h scmconfig.h
 
@@ -264,7 +597,7 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
     c-tokenize.lex version.h.in						\
-    scmconfig.h.top libgettext.h
+    scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 

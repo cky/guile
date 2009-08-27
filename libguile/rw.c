@@ -131,6 +131,7 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	 don't touch the file descriptor.  otherwise the
 	 "return immediately if something is available" rule may
 	 be violated.  */
+      str = scm_i_string_start_writing (str);
       dest = scm_i_string_writable_chars (str) + offset;
       chars_read = scm_take_from_input_buffers (port, dest, read_len);
       scm_i_string_stop_writing ();
@@ -140,6 +141,7 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
   if (chars_read == 0 && read_len > 0) /* don't confuse read_len == 0 with
 					  EOF.  */
     {
+      str = scm_i_string_start_writing (str);
       dest = scm_i_string_writable_chars (str) + offset;
       SCM_SYSCALL (chars_read = read (fdes, dest, read_len));
       scm_i_string_stop_writing ();

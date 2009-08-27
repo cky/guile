@@ -3477,9 +3477,9 @@ allocated string.
 @deffnx {C Function} scm_string_concatenate_reverse (ls, final_string, end)
 Without optional arguments, this procedure is equivalent to
 
-@smalllisp
+@lisp
 (string-concatenate (reverse ls))
-@end smalllisp
+@end lisp
 
 If the optional argument @var{final_string} is specified, it is
 consed onto the beginning to @var{ls} before performing the
@@ -3535,11 +3535,12 @@ For example, to change characters to alternately upper and lower case,
 
 @example
 (define str (string-copy "studly"))
-(string-for-each-index (lambda (i)
-                         (string-set! str i
-                           ((if (even? i) char-upcase char-downcase)
-                            (string-ref str i))))
-                       str)
+(string-for-each-index
+    (lambda (i)
+      (string-set! str i
+        ((if (even? i) char-upcase char-downcase)
+         (string-ref str i))))
+    str)
 str @result{} "StUdLy"
 @end example
 @end deffn
@@ -4447,7 +4448,8 @@ Or matching a @sc{yyyymmdd} format date such as @samp{20020828} and
 re-ordering and hyphenating the fields.
 
 @lisp
-(define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define date-regex
+   "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
 (define s "Date 20020429 12am.")
 (regexp-substitute #f (string-match date-regex s)
                    'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
@@ -4507,7 +4509,8 @@ example the following is the date example from
 @code{string-match} call.
 
 @lisp
-(define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define date-regex 
+   "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
 (define s "Date 20020429 12am.")
 (regexp-substitute/global #f date-regex s
                           'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
@@ -5502,7 +5505,7 @@ the @code{read-set!} procedure documented in @ref{User level options
 interfaces} and @ref{Reader options}.  Note that the @code{prefix} and
 @code{postfix} syntax are mutually exclusive.
 
-@smalllisp
+@lisp
 (read-set! keywords 'prefix)
 
 #:type
@@ -5534,7 +5537,7 @@ type:
 ERROR: In expression :type:
 ERROR: Unbound variable: :type
 ABORT: (unbound-variable)
-@end smalllisp
+@end lisp
 
 @node Keyword Procedures
 @subsubsection Keyword Procedures

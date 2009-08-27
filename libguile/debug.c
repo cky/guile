@@ -363,6 +363,7 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
     if (!SCM_SMOB_DESCRIPTOR (proc).apply)
       break;
   case scm_tcs_subrs:
+  case scm_tc7_program:
   procprop:
     /* It would indeed be a nice thing if we supplied source even for
        built in procedures! */

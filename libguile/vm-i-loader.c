@@ -20,42 +20,6 @@
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_LOADER (80, load_unsigned_integer, "load-unsigned-integer")
-{
-  size_t len;
-
-  FETCH_LENGTH (len);
-  if (SCM_LIKELY (len <= 8))
-    {
-      scm_t_uint64 val = 0;
-      while (len-- > 0)
-	val = (val << 8U) + FETCH ();
-      SYNC_REGISTER ();
-      PUSH (scm_from_uint64 (val));
-      NEXT;
-    }
-  else
-    SCM_MISC_ERROR ("load-unsigned-integer: not implemented yet", SCM_EOL);
-}
-
-VM_DEFINE_LOADER (81, load_integer, "load-integer")
-{
-  size_t len;
-
-  FETCH_LENGTH (len);
-  if (SCM_LIKELY (len <= 4))
-    {
-      int val = 0;
-      while (len-- > 0)
-	val = (val << 8) + FETCH ();
-      SYNC_REGISTER ();
-      PUSH (scm_from_int (val));
-      NEXT;
-    }
-  else
-    SCM_MISC_ERROR ("load-integer: not implemented yet", SCM_EOL);
-}
-
 VM_DEFINE_LOADER (82, load_number, "load-number")
 {
   size_t len;
@@ -72,10 +36,12 @@ VM_DEFINE_LOADER (82, load_number, "load-number")
 VM_DEFINE_LOADER (83, load_string, "load-string")
 {
   size_t len;
+  char *buf;
+
   FETCH_LENGTH (len);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_stringn ((char *)ip, len));
-  /* Was: scm_makfromstr (ip, len, 0) */
+  PUSH (scm_i_make_string (len, &buf));
+  memcpy (buf, (char *) ip, len);
   ip += len;
   NEXT;
 }
@@ -85,17 +51,8 @@ VM_DEFINE_LOADER (84, load_symbol, "load-symbol")
   size_t len;
   FETCH_LENGTH (len);
   SYNC_REGISTER ();
-  PUSH (scm_from_locale_symboln ((char *)ip, len));
-  ip += len;
-  NEXT;
-}
-
-VM_DEFINE_LOADER (85, load_keyword, "load-keyword")
-{
-  size_t len;
-  FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  PUSH (scm_from_locale_keywordn ((char *)ip, len));
+  /* FIXME: should be scm_from_latin1_symboln */
+  PUSH (scm_from_locale_symboln ((const char*)ip, len));
   ip += len;
   NEXT;
 }
@@ -130,21 +87,6 @@ VM_DEFINE_INSTRUCTION (87, link_now, "link-now", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_LOADER (88, define, "define")
-{
-  SCM sym;
-  size_t len;
-
-  FETCH_LENGTH (len);
-  SYNC_REGISTER ();
-  sym = scm_from_locale_symboln ((char *)ip, len);
-  ip += len;
-
-  SYNC_REGISTER ();
-  PUSH (scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T));
-  NEXT;
-}
-
 VM_DEFINE_LOADER (89, load_array, "load-array")
 {
   SCM type, shape;
@@ -154,6 +96,24 @@ VM_DEFINE_LOADER (89, load_array, "load-array")
   POP (type);
   SYNC_REGISTER ();
   PUSH (scm_from_contiguous_typed_array (type, shape, ip, len));
+  ip += len;
+  NEXT;
+}
+
+VM_DEFINE_LOADER (90, load_wide_string, "load-wide-string")
+{
+  size_t len;
+  scm_t_wchar *wbuf;
+
+  FETCH_LENGTH (len);
+  if (SCM_UNLIKELY (len % 4))
+    { finish_args = scm_list_1 (scm_from_size_t (len));
+      goto vm_error_bad_wide_string_length;
+    }
+
+  SYNC_REGISTER ();
+  PUSH (scm_i_make_wide_string (len / 4, &wbuf));
+  memcpy ((char *) wbuf, (char *) ip, len);
   ip += len;
   NEXT;
 }
