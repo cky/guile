@@ -470,10 +470,15 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 
                   enc = scm_i_get_port_encoding (port);
                   wbuf[0] = i;
-                  if (enc == NULL && i <= 0xFF)
+                  if (enc == NULL)
                     {
-                      /* Character is graphic and Latin-1.  Print it  */
-                      scm_lfwrite_str (wstr, port);
+                      if (i <= 0xFF)
+                        /* Character is graphic and Latin-1.  Print it  */
+                        scm_lfwrite_str (wstr, port);
+                      else
+                        /* Character is graphic but unrepresentable in
+                           this port's encoding.  */
+                        scm_intprint (i, 8, port);
                     }
                   else
                     {
