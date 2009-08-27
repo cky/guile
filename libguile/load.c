@@ -650,9 +650,10 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 
 SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled", 0, 0, 0,
 	    (void), "")
+#define FUNC_NAME s_scm_sys_warn_autocompilation_enabled
 {
   static int message_shown = 0;
-  
+
   if (!message_shown)
     {
       scm_puts (";;; note: autocompilation is enabled, set GUILE_AUTO_COMPILE=0\n"
@@ -663,8 +664,8 @@ SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled
 
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-  
 static SCM
 scm_try_autocompile (SCM source)
 {
