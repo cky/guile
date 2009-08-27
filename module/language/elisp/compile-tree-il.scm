@@ -71,20 +71,14 @@
 ; named differently; to make easy adaptions, we define these predicates checking
 ; for a symbol being the car of an unquote/unquote-splicing/backquote form.
 
-; FIXME: Remove the quasiquote/unquote/unquote-splicing symbols when real elisp
-; reader is there.
-
 (define (backquote? sym)
-  (and (symbol? sym) (or (eq? sym 'quasiquote)
-                         (eq? sym '\`))))
+  (and (symbol? sym) (eq? sym '\`)))
 
 (define (unquote? sym)
-  (and (symbol? sym) (or (eq? sym 'unquote)
-                         (eq? sym '\,))))
+  (and (symbol? sym) (eq? sym '\,)))
 
 (define (unquote-splicing? sym)
-  (and (symbol? sym) (or (eq? sym 'unquote-splicing)
-                         (eq? sym '\,@))))
+  (and (symbol? sym) (eq? sym '\,@)))
 
 
 ; Build a call to a primitive procedure nicely.
