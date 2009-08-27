@@ -269,7 +269,6 @@ NOCOMP_SOURCES =				\
   ice-9/debugger/trc.scm \
   ice-9/debugger/utils.scm \
   ice-9/debugging/example-fns.scm \
-  ice-9/debugging/ice-9-debugger-extensions.scm \
   ice-9/debugging/steps.scm \
   ice-9/debugging/trace.scm \
   ice-9/debugging/traps.scm \

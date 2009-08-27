@@ -18,6 +18,9 @@
 
 (define-module (ice-9 debugger command-loop)
   #:use-module ((ice-9 debugger commands) :prefix debugger:)
+  #:use-module (ice-9 debugger)
+  #:use-module (ice-9 debugger state)
+  #:use-module (ice-9 debugging traps)
   #:export (debugger-command-loop
 	    debugger-command-loop-error
 	    debugger-command-loop-quit)
@@ -540,3 +543,11 @@
 (define-command-alias "where" "backtrace")
 (define-command-alias "p" "evaluate")
 (define-command-alias '("info" "stack") "backtrace")
+
+(define-command "continue" '() debugger:continue)
+
+(define-command "finish" '() debugger:finish)
+
+(define-command "step" '('optional exact-integer) debugger:step)
+
+(define-command "next" '('optional exact-integer) debugger:next)

@@ -25,7 +25,6 @@
   #:use-module (ice-9 optargs)
   #:use-module (ice-9 regex)
   #:use-module (oop goops)
-  #:use-module (ice-9 debugging ice-9-debugger-extensions)
   #:use-module (ice-9 debugging traps)
   #:use-module (ice-9 debugging trc)
   #:use-module (srfi srfi-1)
