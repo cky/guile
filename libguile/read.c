@@ -1446,8 +1446,8 @@ scm_scan_for_encoding (SCM port)
   encoding = scm_malloc (i+1);
   memcpy (encoding, pos, i);
   encoding[i] ='\0';
-  for (i = 0; i < strlen(encoding); i++)
-    encoding[i] = toupper(encoding[i]);
+  for (i = 0; i < strlen (encoding); i++)
+    encoding[i] = toupper ((int) encoding[i]);
 
   /* push backwards to make sure we were in a comment */
   in_comment = 0;
