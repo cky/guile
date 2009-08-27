@@ -13,16 +13,7 @@
 	    run-utility
 	    gds-accept-input))
 
-(cond ((string>=? (version) "1.7")
-       (use-modules (ice-9 debugger utils)))
-      (else
-       (define the-ice-9-debugger-module (resolve-module '(ice-9 debugger)))
-       (module-export! the-ice-9-debugger-module
-		       '(source-position
-			 write-frame-short/application
-			 write-frame-short/expression
-			 write-frame-args-long
-			 write-frame-long))))
+(use-modules (ice-9 debugger utils))
 
 (use-modules (ice-9 debugger))
 
@@ -204,11 +195,11 @@
 		(else
 		 (format #f "~A (PID ~A)" arg (getpid))))))))
 
-(if (not (defined? 'make-mutex))
-    (begin
-      (define (make-mutex) #f)
-      (define lock-mutex noop)
-      (define unlock-mutex noop)))
+;;(if (not (defined? 'make-mutex))
+;;    (begin
+;;      (define (make-mutex) #f)
+;;      (define lock-mutex noop)
+;;      (define unlock-mutex noop)))
 
 (define write-mutex (make-mutex))
 

@@ -5,11 +5,8 @@
 ;;; Upgrade the debugger state object so that it can carry a flag
 ;;; indicating whether the debugging session is continuable.
 
-(cond ((string>=? (version) "1.7")
-       (use-modules (ice-9 debugger state))
-       (define-module (ice-9 debugger state)))
-      (else
-       (define-module (ice-9 debugger))))
+(use-modules (ice-9 debugger state))
+(define-module (ice-9 debugger state))
 
 (set! state-rtd (make-record-type "debugger-state" '(stack index flags)))
 (set! state? (record-predicate state-rtd))
@@ -26,18 +23,15 @@
 ;;; Add commands that (ice-9 debugger) doesn't currently have, for
 ;;; continuing or single stepping program execution.
 
-(cond ((string>=? (version) "1.7")
-       (use-modules (ice-9 debugger command-loop))
-       (define-module (ice-9 debugger command-loop)
-	 #:use-module (ice-9 debugger)
-	 #:use-module (ice-9 debugger state)
-	 #:use-module (ice-9 debugging traps))
-       (define new-define-command define-command)
-       (set! define-command
-	     (lambda (name argument-template documentation procedure)
-	       (new-define-command name argument-template procedure))))
-      (else
-       (define-module (ice-9 debugger))))
+(use-modules (ice-9 debugger command-loop))
+(define-module (ice-9 debugger command-loop)
+  #:use-module (ice-9 debugger)
+  #:use-module (ice-9 debugger state)
+  #:use-module (ice-9 debugging traps))
+(define new-define-command define-command)
+(set! define-command
+      (lambda (name argument-template documentation procedure)
+	(new-define-command name argument-template procedure)))
 
 (use-modules (ice-9 debugging steps))
 
@@ -106,14 +100,6 @@ print the result obtained."
   "Continue until entry to @var{n}th next frame in same file."
   debugger:next)
 
-;;; Export a couple of procedures for use by (ice-9 debugging trace).
-
-(cond ((string>=? (version) "1.7"))
-      (else
-       (define-module (ice-9 debugger))
-       (export write-frame-short/expression
-	       write-frame-short/application)))
-
 ;;; Provide a `debug-trap' entry point in (ice-9 debugger).  This is
 ;;; designed so that it can be called to explore the stack at a
 ;;; breakpoint, and to single step from the breakpoint.
@@ -123,11 +109,6 @@ print the result obtained."
 (use-modules (ice-9 debugging traps))
 
 (define *not-yet-introduced* #t)
-
-(cond ((string>=? (version) "1.7"))
-      (else
-       (define (debugger-command-loop state)
-	 (read-and-dispatch-commands state (current-input-port)))))
 
 (define-public (debug-trap trap-context)
   "Invoke the Guile debugger to explore the stack at the specified @var{trap}."
@@ -154,19 +135,4 @@ print the result obtained."
 		 (write-state-short-with-source-location state)
 		 (debugger-command-loop state))))
 
-(define write-state-short-with-source-location
-  (cond ((string>=? (version) "1.7")
-	 write-state-short)
-	(else
-	 (lambda (state)
-	   (let* ((frame (stack-ref (state-stack state) (state-index state)))
-		  (source (frame-source frame))
-		  (position (and source (source-position source))))
-	     (format #t "Frame ~A at " (frame-number frame))
-	     (if position
-		 (display-position position)
-		 (display "unknown source location"))
-	     (newline)
-	     (write-char #\tab)
-	     (write-frame-short frame)
-	     (newline))))))
+(define write-state-short-with-source-location write-state-short)
