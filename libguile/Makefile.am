@@ -446,7 +446,7 @@ install-exec-hook:
 ## working.
 noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  eval.i.c ieee-754.h				\
-                 srfi-4.i.c					\
+                 srfi-4.i.c srfi-14.i.c				\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
 	         private-gc.h private-options.h
@@ -597,7 +597,7 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
     cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
     c-tokenize.lex version.h.in						\
-    scmconfig.h.top libgettext.h libguile.map
+    scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 
