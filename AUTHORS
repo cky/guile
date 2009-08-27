@@ -206,8 +206,34 @@ In the subdirectory doc, changes to:
 Many changes throughout.
 
 Neil Jerram:
+In the subdirectory emacs, wrote:
+    gds.el              gds-scheme.el           gds-server.el
+    gds-test.el         gds-test.sh		gds-test.stdin
+    gds-tutorial.txt	gds-faq.txt
 In the subdirectory ice-9, wrote:
-    buffered-input.scm
+    buffered-input.scm	gds-client.scm      gds-server.scm
+In the subdirectory ice-9/debugging, wrote:
+    example-fns.scm     ice-9-debugger-extensions.scm
+    steps.scm         	trace.scm	    traps.scm
+    trc.scm
+In the subdirectory lang/elisp, wrote:
+    base.scm	        example.el	    interface.scm
+    transform.scm	variables.scm
+In the subdirectory lang/elisp/internals, wrote:
+    evaluation.scm      format.scm	    fset.scm
+    lambda.scm		load.scm	    null.scm
+    set.scm		signal.scm	    time.scm
+    trace.scm
+In the subdirectory lang/elisp/primitives, wrote:
+    buffers.scm	        char-table.scm      features.scm
+    fns.scm		format.scm	    guile.scm
+    keymaps.scm		lists.scm	    load.scm
+    match.scm		numbers.scm	    pure.scm
+    read.scm		signal.scm	    strings.scm
+    symprop.scm		syntax.scm	    system.scm
+    time.scm
+In the subdirectory srfi, wrote:
+    srfi-34.scm
 In the subdirectory doc, wrote:
     deprecated.texi   goops.texi    scheme-ideas.texi
     scheme-reading.texi
@@ -227,6 +253,7 @@ In the subdirectory doc, changes to:
     scm.texi        scripts.texi    script-getopt.texi
 In the subdirectory doc/maint, wrote:
     docstring.el
+Many other changes throughout.
 
 Thien-Thi Nguyen:
 In the top-level directory, wrote:

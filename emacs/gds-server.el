@@ -43,25 +43,24 @@
   :group 'gds
   :type '(choice (const :tag "nil" nil) directory))
 
-(defun gds-start-server (procname port-or-path protocol-handler &optional bufname)
-  "Start a GDS server process called PROCNAME, listening on TCP port
-or Unix domain socket PORT-OR-PATH.  PROTOCOL-HANDLER should be a
-function that accepts and processes one protocol form.  Optional arg
-BUFNAME specifies the name of the buffer that is used for process
-output; if not specified the buffer name is the same as the process
-name."
-  (with-current-buffer (get-buffer-create (or bufname procname))
+(defun gds-start-server (procname unix-socket-name tcp-port protocol-handler)
+  "Start a GDS server process called PROCNAME, listening on Unix
+domain socket UNIX-SOCKET-NAME and TCP port number TCP-PORT.
+PROTOCOL-HANDLER should be a function that accepts and processes
+one protocol form."
+  (with-current-buffer (get-buffer-create procname)
     (erase-buffer)
     (let* ((code (format "(begin
                             %s
                             (use-modules (ice-9 gds-server))
-                            (run-server %S))"
+                            (run-server %S %S))"
 			 (if gds-scheme-directory
 			     (concat "(set! %load-path (cons "
 				     (format "%S" gds-scheme-directory)
 				     " %load-path))")
 			   "")
-                         port-or-path))
+                         unix-socket-name
+			 tcp-port))
            (process-connection-type nil) ; use a pipe
            (proc (start-process procname
                                 (current-buffer)

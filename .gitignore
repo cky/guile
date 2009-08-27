@@ -72,6 +72,8 @@ gdb-pre-inst-guile
 cscope.out
 cscope.files
 *.log
+gds-test.debug
+gds-test.transcript
 INSTALL
 *.aux
 *.cp
