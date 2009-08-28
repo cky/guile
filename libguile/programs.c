@@ -31,8 +31,6 @@
 #include "vm.h"
 
 
-scm_t_bits scm_tc16_program;
-
 static SCM write_program = SCM_BOOL_F;
 
 SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
@@ -50,39 +48,13 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
   else if (free_variables != SCM_BOOL_F)
     SCM_VALIDATE_VECTOR (3, free_variables);
 
-  SCM_RETURN_NEWSMOB3 (scm_tc16_program, objcode, objtable, free_variables);
+  return scm_double_cell (scm_tc7_program, (scm_t_bits)objcode,
+                          (scm_t_bits)objtable, (scm_t_bits)free_variables);
 }
 #undef FUNC_NAME
 
-static SCM
-program_apply (SCM program, SCM args)
-{
-  return scm_vm_apply (scm_the_vm (), program, args);
-}
-
-static SCM
-program_apply_0 (SCM program)
-{
-  return scm_c_vm_run (scm_the_vm (), program, NULL, 0);
-}
-
-static SCM
-program_apply_1 (SCM program, SCM a)
-{
-  return scm_c_vm_run (scm_the_vm (), program, &a, 1);
-}
-
-static SCM
-program_apply_2 (SCM program, SCM a, SCM b)
-{
-  SCM args[2];
-  args[0] = a;
-  args[1] = b;
-  return scm_c_vm_run (scm_the_vm (), program, args, 2);
-}
-
-static int
-program_print (SCM program, SCM port, scm_print_state *pstate)
+void
+scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
 {
   static int print_error = 0;
 
@@ -92,12 +64,17 @@ program_print (SCM program, SCM port, scm_print_state *pstate)
        scm_from_locale_symbol ("write-program"));
   
   if (SCM_FALSEP (write_program) || print_error)
-    return scm_smob_print (program, port, pstate);
-
-  print_error = 1;
-  scm_call_2 (SCM_VARIABLE_REF (write_program), program, port);
-  print_error = 0;
-  return 1;
+    {
+      scm_puts ("#<program ", port);
+      scm_uintprint (SCM_CELL_WORD_1 (program), 16, port);
+      scm_putc ('>', port);
+    }
+  else
+    {
+      print_error = 1;
+      scm_call_2 (SCM_VARIABLE_REF (write_program), program, port);
+      print_error = 0;
+    }
 }
 
 
@@ -309,12 +286,6 @@ SCM_DEFINE (scm_program_objcode, "program-objcode", 1, 0, 0,
 void
 scm_bootstrap_programs (void)
 {
-  scm_tc16_program = scm_make_smob_type ("program", 0);
-  scm_set_smob_apply (scm_tc16_program, program_apply, 0, 0, 1);
-  scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_0 = program_apply_0;
-  scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_1 = program_apply_1;
-  scm_smobs[SCM_TC2SMOBNUM (scm_tc16_program)].apply_2 = program_apply_2;
-  scm_set_smob_print (scm_tc16_program, program_print);
   scm_c_register_extension ("libguile", "scm_init_programs",
                             (scm_t_extension_init_func)scm_init_programs, NULL);
 }

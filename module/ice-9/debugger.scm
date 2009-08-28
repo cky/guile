@@ -20,6 +20,7 @@
   #:use-module (ice-9 debugger command-loop)
   #:use-module (ice-9 debugger state)
   #:use-module (ice-9 debugger utils)
+  #:use-module (ice-9 debugging traps)
   #:use-module (ice-9 format)
   #:export (debug-stack
 	    debug
@@ -142,5 +143,23 @@ Indicates that the debugger should display an introductory message.
 		    (throw 'abort key)))
 	      (apply default-pre-unwind-handler key args))
 	    default-pre-unwind-handler)))
+
+;;; Also provide a `debug-trap' entry point.  This maps from a
+;;; trap-context to a debug-stack call.
+
+(define-public (debug-trap trap-context)
+  "Invoke the Guile debugger to explore the stack at the specified @var{trap-context}."
+  (let* ((stack (tc:stack trap-context))
+	 (flags1 (let ((trap-type (tc:type trap-context)))
+		   (case trap-type
+		     ((#:return #:error)
+		      (list trap-type
+			    (tc:return-value trap-context)))
+		     (else
+		      (list trap-type)))))
+	 (flags (if (tc:continuation trap-context)
+		    (cons #:continuable flags1)
+		    flags1)))
+    (apply debug-stack stack flags)))
 
 ;;; (ice-9 debugger) ends here.

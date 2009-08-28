@@ -202,6 +202,11 @@
       (string=? (strftime "%Z" t)
                 "ZOW")))
 
+  (pass-if "strftime passes wide characters"
+    (let ((t (localtime (current-time))))
+      (string=? (substring (strftime "\u0100%Z" t) 0 1)
+                "\u0100")))
+
   (with-test-prefix "C99 %z format"
 
     ;; %z here is quite possibly affected by the same tm:gmtoff vs current

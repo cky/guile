@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,7 +37,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
 #include "libguile/smob.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
@@ -83,7 +83,7 @@ static int scm_i_minyield_malloc;
 void
 scm_gc_init_malloc (void)
 {
-  scm_mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
+  int mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
 				 SCM_DEFAULT_INIT_MALLOC_LIMIT);
   scm_i_minyield_malloc = scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
 					  SCM_DEFAULT_MALLOC_MINYIELD);
@@ -93,8 +93,10 @@ scm_gc_init_malloc (void)
   if (scm_i_minyield_malloc < 1)
     scm_i_minyield_malloc = 1;
 
-  if (scm_mtrigger < 0)
+  if (mtrigger < 0)
     scm_mtrigger = SCM_DEFAULT_INIT_MALLOC_LIMIT;
+  else
+    scm_mtrigger = mtrigger;
 }
 
 

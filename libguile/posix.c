@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <uniconv.h>
 
 #include "libguile/_scm.h"
 #include "libguile/dynwind.h"
@@ -1501,12 +1502,17 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
 	    "Otherwise the specified locale category is set to the string\n"
 	    "@var{locale} and the new value is returned as a\n"
 	    "system-dependent string.  If @var{locale} is an empty string,\n"
-	    "the locale will be set using environment variables.")
+	    "the locale will be set using environment variables.\n"
+	    "\n"
+	    "When the locale is changed, the character encoding of the new\n"
+	    "locale (UTF-8, ISO-8859-1, etc.) is used for the current\n"
+	    "input, output, and error ports\n")
 #define FUNC_NAME s_scm_setlocale
 {
   int c_category;
   char *clocale;
   char *rv;
+  const char *enc;
 
   scm_dynwind_begin (0);
 
@@ -1535,15 +1541,47 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
       SCM_SYSERROR;
     }
 
-  /* Recompute the standard SRFI-14 character sets in a locale-dependent
-     (actually charset-dependent) way.  */
-  scm_srfi_14_compute_char_sets ();
+  enc = locale_charset ();
+  /* Set the default encoding for new ports.  */
+  scm_i_set_port_encoding_x (SCM_BOOL_F, enc);
+  /* Set the encoding for the stdio ports.  */
+  scm_i_set_port_encoding_x (scm_current_input_port (), enc);
+  scm_i_set_port_encoding_x (scm_current_output_port (), enc);
+  scm_i_set_port_encoding_x (scm_current_error_port (), enc);
 
   scm_dynwind_end ();
   return scm_from_locale_string (rv);
 }
 #undef FUNC_NAME
 #endif /* HAVE_SETLOCALE */
+SCM_DEFINE (scm_setbinary, "setbinary", 0, 0, 0,
+            (void),
+	    "Sets the encoding for the current input, output, and error\n"
+	    "ports to ISO-8859-1.  That character encoding allows\n"
+	    "ports to operate on binary data.\n"
+	    "\n"
+	    "It also sets the default encoding for newly created ports\n"
+	    "to ISO-8859-1.\n"
+            "\n"
+            "The previous default encoding for new ports is returned\n")
+#define FUNC_NAME s_scm_setbinary
+{
+  const char *enc = scm_i_get_port_encoding (SCM_BOOL_F);
+
+  /* Set the default encoding for new ports.  */
+  scm_i_set_port_encoding_x (SCM_BOOL_F, NULL);
+  /* Set the encoding for the stdio ports.  */
+  scm_i_set_port_encoding_x (scm_current_input_port (), NULL);
+  scm_i_set_port_encoding_x (scm_current_output_port (), NULL);
+  scm_i_set_port_encoding_x (scm_current_error_port (), NULL);
+
+  if (enc)
+    return scm_from_locale_string (enc);
+
+  return scm_from_locale_string ("ISO-8859-1");
+}
+#undef FUNC_NAME
+
 
 #ifdef HAVE_MKNOD
 SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,

@@ -1,6 +1,6 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -807,21 +807,20 @@
   (with-test-prefix "unmemoization"
 
     (pass-if "definition unmemoized without prior execution"
-      (eval '(begin 
-               (define (blub) (cons ('(1 . 2)) 2))
-               (equal?
-                 (procedure-source blub)
-                 '(lambda () (cons ('(1 . 2)) 2))))
-            (interaction-environment)))
+      (primitive-eval '(begin 
+                         (define (blub) (cons ('(1 . 2)) 2))
+                         (equal?
+                          (procedure-source blub)
+                          '(lambda () (cons ('(1 . 2)) 2))))))
+    
 
     (pass-if "definition with documentation unmemoized without prior execution"
-      (eval '(begin 
-               (define (blub) "Comment" (cons ('(1 . 2)) 2))
-               (equal?
-                 (procedure-source blub)
-                 '(lambda () "Comment" (cons ('(1 . 2)) 2))))
-            (interaction-environment))))
-
+      (primitive-eval '(begin 
+                         (define (blub) "Comment" (cons ('(1 . 2)) 2))
+                         (equal?
+                          (procedure-source blub)
+                          '(lambda () "Comment" (cons ('(1 . 2)) 2)))))))
+  
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(define)"
@@ -896,16 +895,15 @@
           (interaction-environment)))
 
   (pass-if "unmemoization"
-    (eval '(begin
-             (define (foo) 
-               (define (bar)
-                 'ok)
-               (bar))
-             (foo)
-             (matches?
-              (procedure-source foo)
-              (lambda () (letrec ((_ (lambda () (quote ok)))) (_)))))
-          (current-module))))
+    (primitive-eval '(begin
+                       (define (foo) 
+                         (define (bar)
+                           'ok)
+                         (bar))
+                       (foo)
+                       (matches?
+                        (procedure-source foo)
+                        (lambda () (letrec ((_ (lambda () (quote ok)))) (_))))))))
 
 (with-test-prefix "set!"
 

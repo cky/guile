@@ -24,6 +24,7 @@
  */
 
 #include "libguile/__scm.h"
+#include "libguile/arrays.h"
 #include "libguile/strings.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)

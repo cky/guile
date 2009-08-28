@@ -145,8 +145,11 @@
                        (from (current-language))
                        (to 'objcode)
                        (opts '()))
-  (let ((comp (or output-file (compiled-file-name file)))
-        (in (open-input-file file)))
+  (let* ((comp (or output-file (compiled-file-name file)))
+         (in (open-input-file file))
+         (enc (file-encoding in)))
+    (if enc
+        (set-port-encoding! in enc))
     (ensure-writable-dir (dirname comp))
     (call-with-output-file/atomic comp
       (lambda (port)

@@ -1,4 +1,5 @@
-;;;; srfi-14.test --- Test suite for Guile's SRFI-14 functions.
+;;;; srfi-14.test          -*- mode:scheme; coding: iso-8859-1 -*-
+;;;; --- Test suite for Guile's SRFI-14 functions.
 ;;;; Martin Grabmueller, 2001-07-16
 ;;;;
 ;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
@@ -28,6 +29,30 @@
 
 (define exception:non-char-return
   (cons 'misc-error "returned non-char"))
+
+
+(with-test-prefix "char set contents"
+
+  (pass-if "empty set"
+    (list= eqv? 
+           (char-set->list (char-set))
+           '()))
+
+  (pass-if "single char"
+    (list= eqv?
+           (char-set->list (char-set #\a))
+           (list #\a)))
+
+  (pass-if "contiguous chars"
+    (list= eqv?
+           (char-set->list (char-set #\a #\b #\c))
+           (list #\a #\b #\c))) 
+
+  (pass-if "discontiguous chars"
+    (list= eqv?
+           (char-set->list (char-set #\a #\c #\e))
+           (list #\a #\c #\e))))
+          
 
 (with-test-prefix "char-set?"
 
@@ -113,7 +138,7 @@
 (with-test-prefix "char-set cursor"
 
   (pass-if-exception "invalid character cursor" 
-     exception:invalid-char-set-cursor
+     exception:wrong-type-arg
      (let* ((cs (char-set #\B #\r #\a #\z))
 	    (cc (char-set-cursor cs)))
        (char-set-ref cs 1000)))
@@ -148,30 +173,33 @@
      (= (char-set-size (char-set-fold (lambda (c cs) (char-set-adjoin cs c)) 
 				      (char-set) (char-set #\a #\b))) 2)))
 
+(define char-set:256 
+  (string->char-set (apply string (map integer->char (iota 256)))))
+
 (with-test-prefix "char-set-unfold"
 
   (pass-if "create char set"
-     (char-set= char-set:full
+     (char-set= char-set:256
 		(char-set-unfold (lambda (s) (= s 256)) integer->char
 				 (lambda (s) (+ s 1)) 0)))
   (pass-if "create char set (base set)"
-     (char-set= char-set:full
+     (char-set= char-set:256
 		(char-set-unfold (lambda (s) (= s 256)) integer->char
 				 (lambda (s) (+ s 1)) 0 char-set:empty))))
 
 (with-test-prefix "char-set-unfold!"
 
   (pass-if "create char set"
-     (char-set= char-set:full
+     (char-set= char-set:256
 		(char-set-unfold! (lambda (s) (= s 256)) integer->char
 				 (lambda (s) (+ s 1)) 0
 				 (char-set-copy char-set:empty))))
 
   (pass-if "create char set"
-     (char-set= char-set:full
+     (char-set= char-set:256
 		(char-set-unfold! (lambda (s) (= s 32)) integer->char
 				 (lambda (s) (+ s 1)) 0
-				 (char-set-copy char-set:full)))))
+				 (char-set-copy char-set:256)))))
 
 
 (with-test-prefix "char-set-for-each"
@@ -186,9 +214,15 @@
 
 (with-test-prefix "char-set-map"
 
-  (pass-if "upper case char set"
-     (char-set= (char-set-map char-upcase char-set:lower-case)
-		char-set:upper-case)))
+  (pass-if "upper case char set 1"
+     (char-set= (char-set-map char-upcase 
+                              (string->char-set "abcdefghijklmnopqrstuvwxyz"))
+                (string->char-set "ABCDEFGHIJKLMNOPQRSTUVWXYZ")))
+
+  (pass-if "upper case char set 2"
+     (char-set= (char-set-map char-upcase 
+                              (string->char-set "àáâãäåæçèéêëìíîïñòóôõöøùúûüış"))
+                (string->char-set "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÑÒÓÔÕÖØÙÚÛÜİŞ"))))
 
 (with-test-prefix "string->char-set"
 
@@ -197,42 +231,104 @@
        (char-set= (list->char-set chars)
 		  (string->char-set (apply string chars))))))
 
-;; Make sure we get an ASCII charset and character classification.
-(if (defined? 'setlocale) (setlocale LC_CTYPE "C"))
+(with-test-prefix "char-set->string"
+
+  (pass-if "some char set"
+     (let ((cs (char-set #\g #\u #\i #\l #\e)))
+       (string=? (char-set->string cs)
+                 "egilu"))))
 
 (with-test-prefix "standard char sets (ASCII)"
 
+  (pass-if "char-set:lower-case"
+     (char-set<= (string->char-set "abcdefghijklmnopqrstuvwxyz")
+                 char-set:lower-case))
+
+  (pass-if "char-set:upper-case"
+     (char-set<= (string->char-set "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                 char-set:upper-case))
+
+  (pass-if "char-set:title-case"
+     (char-set<= (string->char-set "")
+                 char-set:title-case))
+
   (pass-if "char-set:letter"
-     (char-set= (string->char-set
-		 (string-append "abcdefghijklmnopqrstuvwxyz"
-				"ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
-		char-set:letter))
+     (char-set<= (char-set-union
+                  (string->char-set "abcdefghijklmnopqrstuvwxyz")
+                  (string->char-set "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+                 char-set:letter))
 
-  (pass-if "char-set:punctuation"
-     (char-set= (string->char-set "!\"#%&'()*,-./:;?@[\\]_{}")
-		char-set:punctuation))
+  (pass-if "char-set:digit"
+     (char-set<= (string->char-set "0123456789")
+                 char-set:digit))
 
-  (pass-if "char-set:symbol"
-     (char-set= (string->char-set "$+<=>^`|~")
-		char-set:symbol))
+  (pass-if "char-set:hex-digit"
+     (char-set<= (string->char-set "0123456789abcdefABCDEF")
+                 char-set:hex-digit))
 
   (pass-if "char-set:letter+digit"
-     (char-set= char-set:letter+digit
-                (char-set-union char-set:letter char-set:digit)))
+     (char-set<= (char-set-union
+                  (string->char-set "abcdefghijklmnopqrstuvwxyz")
+                  (string->char-set "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                  (string->char-set "0123456789"))
+                 char-set:letter+digit))
+
+  (pass-if "char-set:punctuation"
+     (char-set<= (string->char-set "!\"#%&'()*,-./:;?@[\\]_{}")
+                 char-set:punctuation))
+
+  (pass-if "char-set:symbol"
+     (char-set<= (string->char-set "$+<=>^`|~")
+                 char-set:symbol))
 
   (pass-if "char-set:graphic"
-     (char-set= char-set:graphic
-                (char-set-union char-set:letter char-set:digit
-                                char-set:punctuation char-set:symbol)))
+     (char-set<= (char-set-union
+                  (string->char-set "abcdefghijklmnopqrstuvwxyz")
+                  (string->char-set "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                  (string->char-set "0123456789")
+                  (string->char-set "!\"#%&'()*,-./:;?@[\\]_{}")
+                  (string->char-set "$+<=>^`|~"))
+                 char-set:graphic))
 
+  (pass-if "char-set:whitespace"
+     (char-set<= (string->char-set 
+                  (string
+                   (integer->char #x09)
+                   (integer->char #x0a)
+                   (integer->char #x0b)
+                   (integer->char #x0c)
+                   (integer->char #x0d)
+                   (integer->char #x20)))
+                 char-set:whitespace))
+                                  
   (pass-if "char-set:printing"
-      (char-set= char-set:printing
-                 (char-set-union char-set:whitespace char-set:graphic))))
+     (char-set<= (char-set-union
+                  (string->char-set "abcdefghijklmnopqrstuvwxyz")
+                  (string->char-set "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                  (string->char-set "0123456789")
+                  (string->char-set "!\"#%&'()*,-./:;?@[\\]_{}")
+                  (string->char-set "$+<=>^`|~")
+                  (string->char-set (string
+                                     (integer->char #x09)
+                                     (integer->char #x0a)
+                                     (integer->char #x0b)
+                                     (integer->char #x0c)
+                                     (integer->char #x0d)
+                                     (integer->char #x20))))
+                 char-set:printing))
 
+  (pass-if "char-set:iso-control"
+     (char-set<= (string->char-set 
+                  (apply string 
+                         (map integer->char (append 
+                                             ;; U+0000 to U+001F
+                                             (iota #x20)
+                                             (list #x7f)))))
+                 char-set:iso-control)))
 
 
 ;;;
-;;; 8-bit charsets.
+;;; Non-ASCII codepoints
 ;;;
 ;;; Here, we only test ISO-8859-1 (Latin-1), notably because behavior of
 ;;; SRFI-14 for implementations supporting this charset is well-defined.
@@ -241,76 +337,105 @@
 (define (every? pred lst)
   (not (not (every pred lst))))
 
-(define (find-latin1-locale)
-  ;; Try to find and install an ISO-8859-1 locale.  Return `#f' on failure.
-  (if (defined? 'setlocale)
-      (let loop ((locales (map (lambda (lang)
-				 (string-append lang ".iso88591"))
-			       '("de_DE" "en_GB" "en_US" "es_ES"
-				 "fr_FR" "it_IT"))))
-	(if (null? locales)
-	    #f
-	    (if (false-if-exception (setlocale LC_CTYPE (car locales)))
-		(car locales)
-		(loop (cdr locales)))))
-      #f))
-
-
-(define %latin1 (find-latin1-locale))
+(define oldlocale #f)
+(if (defined? 'setlocale)
+    (set! oldlocale (setlocale LC_ALL "")))
 
 (with-test-prefix "Latin-1 (8-bit charset)"
 
-  ;; Note: the membership tests below are not exhaustive.
+  (pass-if "char-set:lower-case"
+    (char-set<= (string->char-set
+                 (string-append "abcdefghijklmnopqrstuvwxyz"
+                                "µßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ")
+                 char-set:lower-case)))
 
-  (pass-if "char-set:letter (membership)"
-     (if (not %latin1)
-	 (throw 'unresolved)
-	 (let ((letters (char-set->list char-set:letter)))
-	   (every? (lambda (8-bit-char)
-		     (memq 8-bit-char letters))
-		   (append '(#\a #\b #\c)             ;; ASCII
-			   (string->list "çéèâùÉÀÈÊ") ;; French
-			   (string->list "øñÑíßåæğş"))))))
+  (pass-if "char-set:upper-case"
+    (char-set<= (string->char-set
+                 (string-append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ")
+                 char-set:lower-case)))
 
-  (pass-if "char-set:letter (size)"
-     (if (not %latin1)
-	 (throw 'unresolved)
-	 (= (char-set-size char-set:letter) 117)))
+  (pass-if "char-set:title-case"
+    (char-set<= (string->char-set "")
+                char-set:title-case))
 
-  (pass-if "char-set:lower-case (size)"
-     (if (not %latin1)
-	 (throw 'unresolved)
-	 (= (char-set-size char-set:lower-case) (+ 26 33))))
+  (pass-if "char-set:letter"
+    (char-set<= (string->char-set
+                 (string-append 
+                  ;; Lowercase
+                  "abcdefghijklmnopqrstuvwxyz" 
+                  "µßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ"
+                  ;; Uppercase
+                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
+                  "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ"
+                  ;; Uncased
+                  "ªº")) 
+                char-set:letter))
+  
+  (pass-if "char-set:digit"
+    (char-set<= (string->char-set "0123456789")
+                char-set:digit))
 
-  (pass-if "char-set:upper-case (size)"
-     (if (not %latin1)
-	 (throw 'unresolved)
-	 (= (char-set-size char-set:upper-case) (+ 26 30))))
-
-  (pass-if "char-set:punctuation (membership)"
-     (if (not %latin1)
-	 (throw 'unresolved)
-	 (let ((punctuation (char-set->list char-set:punctuation)))
-	   (every? (lambda (8-bit-char)
-		     (memq 8-bit-char punctuation))
-		   (append '(#\! #\. #\?)            ;; ASCII
-			   (string->list "¡¿")       ;; Castellano
-			   (string->list "«»"))))))  ;; French
+  (pass-if "char-set:hex-digit"
+    (char-set<= (string->char-set "0123456789abcdefABCDEF")
+                char-set:hex-digit))
 
   (pass-if "char-set:letter+digit"
-     (char-set= char-set:letter+digit
-                (char-set-union char-set:letter char-set:digit)))
+    (char-set<= (char-set-union
+                 char-set:letter
+                 char-set:digit)
+                char-set:letter+digit))
 
+  (pass-if "char-set:punctuation"
+    (char-set<= (string->char-set 
+                 (string-append "!\"#%&'()*,-./:;?@[\\]_{}"
+                                "¡«·»¿"))
+                char-set:punctuation))
+
+  (pass-if "char-set:symbol"
+    (char-set<= (string->char-set 
+                 (string-append "$+<=>^`|~"
+                                "¢£¤¥¦§¨©¬®¯°±´¶¸×÷"))
+                char-set:symbol))
+
+  ;; Note that SRFI-14 itself is inconsistent here.  Characters that
+  ;; are non-digit numbers (such as category No) are clearly 'graphic'
+  ;; but don't occur in the letter, digit, punct, or symbol charsets.
   (pass-if "char-set:graphic"
-     (char-set= char-set:graphic
-                (char-set-union char-set:letter char-set:digit
-                                char-set:punctuation char-set:symbol)))
+    (char-set<= (char-set-union
+                 char-set:letter
+                 char-set:digit
+                 char-set:punctuation
+                 char-set:symbol)
+                char-set:graphic))
 
+  (pass-if "char-set:whitespace"
+    (char-set<= (string->char-set 
+                 (string
+                  (integer->char #x09)
+                  (integer->char #x0a)
+                  (integer->char #x0b)
+                  (integer->char #x0c)
+                  (integer->char #x0d)
+                  (integer->char #x20)
+                  (integer->char #xa0)))
+                char-set:whitespace))
+                                  
   (pass-if "char-set:printing"
-     (char-set= char-set:printing
-                (char-set-union char-set:whitespace char-set:graphic))))
+    (char-set<= (char-set-union char-set:graphic char-set:whitespace)
+                char-set:printing))
 
-;; Local Variables:
-;; mode: scheme
-;; coding: latin-1
-;; End:
+  (pass-if "char-set:iso-control"
+    (char-set<= (string->char-set 
+                 (apply string 
+                        (map integer->char (append 
+                                            ;; U+0000 to U+001F
+                                            (iota #x20)
+                                            (list #x7f)
+                                            ;; U+007F to U+009F
+                                            (map (lambda (x) (+ #x80 x))
+                                                 (iota #x20))))))
+                char-set:iso-control)))
+
+(if (defined? 'setlocale)
+    (setlocale LC_ALL oldlocale))

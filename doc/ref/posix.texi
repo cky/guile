@@ -2072,9 +2072,9 @@ The following procedures are similar to the @code{popen} and
 @code{pclose} system routines.  The code is in a separate ``popen''
 module:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 popen))
-@end smalllisp
+@end lisp
 
 @findex popen
 @deffn {Scheme Procedure} open-pipe command mode

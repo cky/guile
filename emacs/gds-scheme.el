@@ -206,23 +206,28 @@ Emacs to display an error or trap so that the user can debug it."
                               "-q"
                               "--debug"
                               "-c"
-                              code))
-         (client nil))
+                              code)))
     ;; Note that this process can be killed automatically on Emacs
     ;; exit.
     (process-kill-without-query proc)
     ;; Set up a process filter to catch the new client's number.
     (set-process-filter proc
                         (lambda (proc string)
-                          (setq client (string-to-number string))
                           (if (process-buffer proc)
                               (with-current-buffer (process-buffer proc)
-                                (insert string)))))
+                                (insert string)
+				(or gds-client
+				    (save-excursion
+				      (goto-char (point-min))
+				      (setq gds-client
+					    (condition-case nil
+						(read (current-buffer))
+					      (error nil)))))))))
     ;; Accept output from the new process until we have its number.
-    (while (not client)
+    (while (not (with-current-buffer (process-buffer proc) gds-client))
       (accept-process-output proc))
     ;; Return the new process's client number.
-    client))
+    (with-current-buffer (process-buffer proc) gds-client)))
 
 ;;;; Evaluating code.
 

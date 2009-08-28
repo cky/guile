@@ -52,14 +52,6 @@ AC_CONFIG_HEADERS([config.h])
 AH_TOP(/*GUILE_CONFIGURE_COPYRIGHT*/)
 
 #--------------------------------------------------------------------
-#
-# Independent Subdirectories
-#
-#--------------------------------------------------------------------
-
-AC_CONFIG_SUBDIRS(guile-readline)
-
-#--------------------------------------------------------------------
 
 AC_LANG([C])
 
@@ -1456,6 +1448,9 @@ LIBLOBJS="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`"
 EXTRA_DOT_DOC_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.doc ,g;s,\.[[^.]]*$,.doc,'`"
 EXTRA_DOT_X_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.x ,g;s,\.[[^.]]*$,.x,'`"
 
+# GNU Readline bindings.
+GUILE_READLINE
+
 AC_SUBST(GUILE_MAJOR_VERSION)
 AC_SUBST(GUILE_MINOR_VERSION)
 AC_SUBST(GUILE_MICRO_VERSION)
@@ -1542,7 +1537,6 @@ AC_CONFIG_FILES([
   lib/Makefile
   benchmark-suite/Makefile
   doc/Makefile
-  doc/goops/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
   doc/tutorial/Makefile
@@ -1551,6 +1545,7 @@ AC_CONFIG_FILES([
   lang/Makefile
   libguile/Makefile
   srfi/Makefile
+  guile-readline/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
   meta/Makefile
@@ -1578,6 +1573,7 @@ AC_CONFIG_FILES([test-suite/standalone/test-use-srfi],
                 [chmod +x test-suite/standalone/test-use-srfi])
 AC_CONFIG_FILES([test-suite/standalone/test-fast-slot-ref],
                 [chmod +x test-suite/standalone/test-fast-slot-ref])
+AC_CONFIG_FILES([doc/ref/effective-version.texi])
 
 AC_OUTPUT
 

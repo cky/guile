@@ -3328,6 +3328,7 @@ scm_trampoline_0 (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_gsubr:
     case scm_tc7_pws:
+    case scm_tc7_program:
       trampoline = scm_call_0;
       break;
     default:
@@ -3380,8 +3381,7 @@ call_dsubr_1 (SCM proc, SCM arg1)
     {
       return (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
     }
-  SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-		      SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
+  SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
 }
 
 static SCM
@@ -3454,6 +3454,7 @@ scm_trampoline_1 (SCM proc)
     case scm_tc7_rpsubr:
     case scm_tc7_gsubr:
     case scm_tc7_pws:
+    case scm_tc7_program:
       trampoline = scm_call_1;
       break;
     default:
@@ -3548,6 +3549,7 @@ scm_trampoline_2 (SCM proc)
       break;
     case scm_tc7_gsubr:
     case scm_tc7_pws:
+    case scm_tc7_program:
       trampoline = scm_call_2;
       break;
     default:

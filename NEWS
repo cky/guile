@@ -8,100 +8,25 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.2 (since the 1.9.1 prerelease):
+Changes in 1.9.3 (since the 1.9.2 prerelease):
 
-** VM speed improvements
+** Removed deprecated uniform array procedures: scm_make_uve,
+   scm_array_prototype, scm_list_to_uniform_array,
+   scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
+   scm_ra_set_contp, scm_aind, scm_raprin1
 
-Closures now copy the free variables that they need into a flat vector
-instead of capturing all heap-allocated variables. This speeds up access
-to free variables, avoids unnecessary garbage retention, and allows all
-variables to be allocated on the stack.
+These functions have been deprecated since early 2005.
 
-Variables which are `set!' are now allocated on the stack, but in
-"boxes". This allows a more uniform local variable allocation
-discipline, and allows faster access to these variables.
+** scm_array_p has one argument, not two
 
-The VM has new special-case operations, `add1' and `sub1'.
+Use of the second argument produced a deprecation warning, so it is
+unlikely that any code out there actually used this functionality.
 
-** VM robustness improvements
+** Removed deprecated uniform array procedures:
+   dimensions->uniform-array, list->uniform-array, array-prototype
 
-The maximum number of live local variables has been increased from 256
-to 65535.
-
-The default VM stack size is 64 kilo-words, up from 16 kilo-words. This
-allows more programs to execute in the default stack space. In the
-future we will probably implement extensible stacks via overflow
-handlers.
-
-Some lingering cases in which the VM could perform unaligned accesses
-have been fixed.
-
-The address range for relative jumps has been expanded from 16-bit
-addresses to 19-bit addresses via 8-byte alignment of jump targets. This
-will probably change to a 24-bit byte-addressable strategy before Guile
-2.0.
-
-** Compiler optimizations
-
-Procedures bound by `letrec' are no longer allocated on the heap,
-subject to a few constraints. In many cases, procedures bound by
-`letrec' and `let' can be rendered inline to their parent function, with
-loop detection for mutually tail-recursive procedures.
-
-Unreferenced variables are now optimized away.
-
-** Compiler robustness
-
-Guile may now warn about unused lexically-bound variables. Pass
-`-Wunused-variable' to `guile-tools compile', or `#:warnings
-(unused-variable)' within the #:opts argument to the `compile' procedure
-from `(system base compile)'.
-
-** Incomplete support for Unicode characters and strings
-
-Preliminary support for Unicode has landed. Characters may be entered in
-octal format via e.g. `#\454', or created via (integer->char 300). A hex
-external representation will probably be introduced at some point.
-
-Internally, strings are now represented either in the `latin-1'
-encoding, one byte per character, or in UTF-32, with four bytes per
-character. Strings manage their own allocation, switching if needed.
-
-Currently no locale conversion is performed. Extended characters may be
-written in a string using the hexadecimal escapes `\xXX', `\uXXXX', or
-`\UXXXXXX', for 8-bit, 16-bit, or 24-bit codepoints, respectively.
-
-This support is obviously incomplete. Many C functions have not yet been
-updated to deal with the new representations. Users are advised to wait
-for the next release for more serious use of Unicode strings.
-
-** `defined?' may accept a module as its second argument
-
-Previously it only accepted internal structures from the evaluator.
-
-** `let-values' is now implemented with a hygienic macro
-
-This could have implications discussed below in the NEWS entry titled,
-"Lexical bindings introduced by hygienic macros may not be referenced by
-nonhygienic macros".
-
-** Global variables `scm_charnames' and `scm_charnums' are removed
-
-These variables contained the names of control characters and were
-used when writing characters.  While these were global, they were
-never intended to be public API.  They have been replaced with private
-functions.
-
-** EBCDIC support is removed
-
-There was an EBCDIC compile flag that altered some of the character
-processing.  It appeared that full EBCDIC support was never completed
-and was unmaintained.
-
-** Packaging changes
-
-Guile now provides `guile-2.0.pc' (used by pkg-config) instead of
-`guile-1.8.pc'.
+Instead, use make-typed-array, list->typed-array, or array-type,
+respectively.
 
 ** And of course, the usual collection of bugfixes
  
@@ -555,6 +480,35 @@ This decision may be revisited before the 2.0 release. Feedback welcome
 to guile-devel@gnu.org (subscription required) or bug-guile@gnu.org (no
 subscription required).
 
+** Unicode characters
+
+Unicode characters may be entered in octal format via e.g. `#\454', or
+created via (integer->char 300). A hex external representation will
+probably be introduced at some point.
+
+** Unicode strings
+
+Internally, strings are now represented either in the `latin-1'
+encoding, one byte per character, or in UTF-32, with four bytes per
+character. Strings manage their own allocation, switching if needed.
+
+Currently no locale conversion is performed. Extended characters may be
+written in a string using the hexadecimal escapes `\xXX', `\uXXXX', or
+`\UXXXXXX', for 8-bit, 16-bit, or 24-bit codepoints, respectively.
+
+** Global variables `scm_charnames' and `scm_charnums' are removed
+
+These variables contained the names of control characters and were
+used when writing characters.  While these were global, they were
+never intended to be public API.  They have been replaced with private
+functions.
+
+** EBCDIC support is removed
+
+There was an EBCDIC compile flag that altered some of the character
+processing.  It appeared that full EBCDIC support was never completed
+and was unmaintained.
+
 ** New macro type: syncase-macro
 
 XXX Need to decide whether to document this for 2.0, probably should:
@@ -588,6 +542,10 @@ These are analogous to %load-path and %load-extensions.
 
 `(make-promise (lambda () foo))' is equivalent to `(delay foo)'.
 
+** `defined?' may accept a module as its second argument
+
+Previously it only accepted internal structures from the evaluator.
+
 ** New entry into %guile-build-info: `ccachedir'
 
 ** Fix bug in `module-bound?'.
@@ -600,6 +558,12 @@ the variable. This was an error, and was fixed.
 
 As syntax-case is available by default, importing `(ice-9 syncase)' has
 no effect, and will trigger a deprecation warning.
+
+** Removed deprecated uniform array procedures:
+   dimensions->uniform-array, list->uniform-array, array-prototype
+
+Instead, use make-typed-array, list->typed-array, or array-type,
+respectively.
 
 * Changes to the C interface
 
@@ -629,6 +593,18 @@ definition depends on the application's value for `_FILE_OFFSET_BITS'.
 
 ** The `long_long' C type, deprecated in 1.8, has been removed
 
+** Removed deprecated uniform array procedures: scm_make_uve,
+   scm_array_prototype, scm_list_to_uniform_array,
+   scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
+   scm_ra_set_contp, scm_aind, scm_raprin1
+
+These functions have been deprecated since early 2005.
+
+** scm_array_p has one argument, not two
+
+Use of the second argument produced a deprecation warning, so it is
+unlikely that any code out there actually used this functionality.
+
 * Changes to the distribution
 
 ** Guile's license is now LGPLv3+
@@ -656,8 +632,8 @@ to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
 
 ** New dependency: GNU libunistring.
 
-See http://www.gnu.org/software/libunistring/. We hope to merge in
-Unicode support in the next prerelease.
+See http://www.gnu.org/software/libunistring/, for more information. Our
+unicode support uses routines from libunistring.
 
 
 
@@ -666,6 +642,7 @@ Changes in 1.8.8 (since 1.8.7)
 * Bugs fixed
 
 ** Fix possible buffer overruns when parsing numbers
+** Avoid clash with system setjmp/longjmp on IA64
 
 
 Changes in 1.8.7 (since 1.8.6)

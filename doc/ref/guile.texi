@@ -4,22 +4,21 @@
 @setfilename guile.info
 @settitle Guile Reference Manual
 @set guile
-@set MANUAL-EDITION 1.1
+@set MANUAL-REVISION 1
 @c %**end of header
 @include version.texi
 @include lib-version.texi
+@include effective-version.texi
 
 @copying
-This reference manual documents Guile, GNU's Ubiquitous Intelligent
-Language for Extensions.  This is edition @value{MANUAL-EDITION}
-corresponding to Guile @value{VERSION}.
+This manual documents Guile version @value{VERSION}.
 
-Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005 Free
+Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2009 Free
 Software Foundation.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with the
+any later version published by the Free Software Foundation; with
 no Invariant Sections, with the Front-Cover Texts being ``A GNU
 Manual,'' and with the Back-Cover Text ``You are free to copy and
 modify this GNU Manual.''.  A copy of the license is included in the
@@ -137,7 +136,7 @@ x
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
+@subtitle Edition @value{EDITION}, revision @value{MANUAL-REVISION}, for use with Guile @value{VERSION}
 @c @subtitle $Id: guile.texi,v 1.49 2008-03-19 22:51:23 ossau Exp $
 
 @c See preface.texi for the list of authors
@@ -176,6 +175,8 @@ x
 * API Reference::
 
 * Guile Modules::
+
+* GOOPS::
 
 * Guile Implementation::
 
@@ -364,6 +365,8 @@ available through both Scheme and C interfaces.
 @include expect.texi
 @include scsh.texi
 @include scheme-debugging.texi
+
+@include goops.texi
 
 @node Guile Implementation
 @chapter Guile Implementation

@@ -308,6 +308,38 @@
   (syntax-rules ()
     ((_ exp) (make-promise (lambda () exp)))))
 
+;;; @bind is used by the old elisp code as a dynamic scoping mechanism.
+;;; Please let the Guile developers know if you are using this macro.
+;;;
+(define-syntax @bind
+  (lambda (x)
+    (define (bound-member id ids)
+      (cond ((null? ids) #f)
+            ((bound-identifier=? id (car ids)) #t)
+            ((bound-member (car ids) (cdr ids)))))
+    
+    (syntax-case x ()
+      ((_ () b0 b1 ...)
+       #'(let () b0 b1 ...))
+      ((_ ((id val) ...) b0 b1 ...)
+       (and-map identifier? #'(id ...))
+       (if (let lp ((ids #'(id ...)))
+             (cond ((null? ids) #f)
+                   ((bound-member (car ids) (cdr ids)) #t)
+                   (else (lp (cdr ids)))))
+           (syntax-violation '@bind "duplicate bound identifier" x)
+           (with-syntax (((old-v ...) (generate-temporaries #'(id ...)))
+                         ((v ...) (generate-temporaries #'(id ...))))
+             #'(let ((old-v id) ...
+                     (v val) ...)
+                 (dynamic-wind
+                   (lambda ()
+                     (set! id v) ...)
+                   (lambda () b0 b1 ...)
+                   (lambda ()
+                     (set! id old-v) ...)))))))))
+
+
 
 
 ;;; {Defmacros}
@@ -867,11 +899,46 @@
 
 (set! %load-hook %load-announce)
 
+;;; Returns the .go file corresponding to `name'. Does not search load
+;;; paths, only the fallback path. If the .go file is missing or out of
+;;; date, and autocompilation is enabled, will try autocompilation, just
+;;; as primitive-load-path does internally. primitive-load is
+;;; unaffected. Returns #f if autocompilation failed or was disabled.
+(define (autocompiled-file-name name)
+  (catch #t
+    (lambda ()
+      (let* ((cfn ((@ (system base compile) compiled-file-name) name))
+             (scmstat (stat name))
+             (gostat (stat cfn #f)))
+        (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
+            cfn
+            (begin
+              (if gostat
+                  (format (current-error-port)
+                    ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
+                    name cfn))
+              (cond
+               (%load-should-autocompile
+                (%warn-autocompilation-enabled)
+                (format (current-error-port) ";;; compiling ~a\n" name)
+                (let ((cfn ((@ (system base compile) compile-file) name)))
+                  (format (current-error-port) ";;; compiled ~a\n" cfn)
+                  cfn))
+               (else #f))))))
+    (lambda (k . args)
+      (format (current-error-port)
+              ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
+              name k args)
+      #f)))
+
 (define (load name . reader)
   (with-fluid* current-reader (and (pair? reader) (car reader))
     (lambda ()
-      (start-stack 'load-stack
-		   (primitive-load name)))))
+      (let ((cfn (autocompiled-file-name name)))
+        (if cfn
+            (load-compiled cfn)
+            (start-stack 'load-stack
+                         (primitive-load name)))))))
 
 
 

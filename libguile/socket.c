@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,12 +27,13 @@
 #include <gmp.h>
 
 #include "libguile/_scm.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/feature.h"
 #include "libguile/fports.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
+#include "libguile/srfi-13.h"
 
 #include "libguile/validate.h"
 #include "libguile/socket.h"
@@ -1414,6 +1415,8 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 	    "protocols, if a packet larger than this limit is encountered\n"
 	    "then some data\n"
 	    "will be irrevocably lost.\n\n"
+	    "The data is assumed to be binary, and there is no decoding of\n"
+	    "of locale-encoded strings.\n\n"
 	    "The optional @var{flags} argument is a value or\n"
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
 	    "The value returned is the number of bytes read from the\n"
@@ -1428,6 +1431,7 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
   int flg;
   char *dest;
   size_t len;
+  SCM msg;
 
   SCM_VALIDATE_OPFPORT (1, sock);
   SCM_VALIDATE_STRING (2, buf);
@@ -1437,16 +1441,16 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
     flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
-  len =  scm_i_string_length (buf);
-  buf = scm_i_string_start_writing (buf);
-  dest = scm_i_string_writable_chars (buf);
+  len = scm_i_string_length (buf);
+  msg = scm_i_make_string (len, &dest);
   SCM_SYSCALL (rv = recv (fd, dest, len, flg));
-  scm_i_string_stop_writing ();
+  scm_string_copy_x (buf, scm_from_int (0), 
+		     msg, scm_from_int (0), scm_from_size_t (len));
 
   if (rv == -1)
     SCM_SYSERROR;
 
-  scm_remember_upto_here_1 (buf);
+  scm_remember_upto_here_2 (buf, msg);
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
@@ -1464,18 +1468,28 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
 	    "Note that the data is written directly to the socket\n"
 	    "file descriptor:\n"
-	    "any unflushed buffered port data is ignored.")
+	    "any unflushed buffered port data is ignored.\n\n"
+	    "This operation is defined only for strings containing codepoints\n"
+	    "zero to 255.")
 #define FUNC_NAME s_scm_send
 {
   int rv;
   int fd;
   int flg;
-  const char *src;
+  char *src;
   size_t len;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   SCM_VALIDATE_STRING (2, message);
+  
+  /* If the string is wide, see if it can be coerced into
+     a narrow string.  */
+  if (!scm_i_is_narrow_string (message)
+      || scm_i_try_narrow_string (message))
+    SCM_MISC_ERROR ("the message string is not 8-bit: ~s", 
+                        scm_list_1 (message));
+
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
@@ -1592,7 +1606,9 @@ SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
 	    "set to be non-blocking.\n"
 	    "Note that the data is written directly to the socket\n"
 	    "file descriptor:\n"
-	    "any unflushed buffered port data is ignored.")
+	    "any unflushed buffered port data is ignored.\n"
+	    "This operation is defined only for strings containing codepoints\n"
+	    "zero to 255.")
 #define FUNC_NAME s_scm_sendto
 {
   int rv;

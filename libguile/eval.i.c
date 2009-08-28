@@ -1132,6 +1132,8 @@ dispatch:
 	RETURN (SCM_BOOL_T);
       case scm_tc7_asubr:
 	RETURN (SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED));
+      case scm_tc7_program:
+        RETURN (scm_c_vm_run (scm_the_vm (), proc, NULL, 0));
       case scm_tc7_smob:
 	if (!SCM_SMOB_APPLICABLE_P (proc))
 	  goto badfun;
@@ -1236,13 +1238,13 @@ dispatch:
 	      {
                 RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	      }
-	    SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                                SCM_ARG1,
-				scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
+	    SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
 	  case scm_tc7_cxr:
 	    RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
 	  case scm_tc7_rpsubr:
 	    RETURN (SCM_BOOL_T);
+          case scm_tc7_program:
+            RETURN (scm_c_vm_run (scm_the_vm (), proc, &arg1, 1));
 	  case scm_tc7_asubr:
 	    RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
 	  case scm_tc7_lsubr:
@@ -1353,6 +1355,12 @@ dispatch:
 	  case scm_tc7_rpsubr:
 	  case scm_tc7_asubr:
 	    RETURN (SCM_SUBRF (proc) (arg1, arg2));
+          case scm_tc7_program:
+            { SCM args[2];
+              args[0] = arg1;
+              args[1] = arg2;
+              RETURN (scm_c_vm_run (scm_the_vm (), proc, args, 2));
+            }
 	  case scm_tc7_smob:
 	    if (!SCM_SMOB_APPLICABLE_P (proc))
 	      goto badfun;
@@ -1492,6 +1500,8 @@ dispatch:
 				    SCM_CDDR (debug.info->a.args)));
 	case scm_tc7_gsubr:
 	  RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
+        case scm_tc7_program:
+          RETURN (scm_vm_apply (scm_the_vm (), proc, debug.info->a.args));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  debug.info->a.proc = proc;
@@ -1563,6 +1573,11 @@ dispatch:
 					    scm_cons2 (arg1, arg2,
 						       scm_ceval_args (x, env,
 								       proc))));
+        case scm_tc7_program:
+          RETURN (scm_vm_apply
+                  (scm_the_vm (), proc,
+                   scm_cons (arg1, scm_cons (arg2,
+                                             scm_ceval_args (x, env, proc)))));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  if (!SCM_CLOSUREP (proc))
@@ -1764,8 +1779,7 @@ tail:
 	{
 	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	}
-      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                          SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
+      SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
     case scm_tc7_cxr:
       if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
 	scm_wrong_num_args (proc);
@@ -1798,6 +1812,11 @@ tail:
 	  args = SCM_CDR (args);
 	}
       RETURN (arg1);
+    case scm_tc7_program:
+      if (SCM_UNBNDP (arg1))
+        RETURN (scm_c_vm_run (scm_the_vm (), proc, NULL, 0));
+      else
+        RETURN (scm_vm_apply (scm_the_vm (), proc, scm_cons (arg1, args)));
     case scm_tc7_rpsubr:
       if (scm_is_null (args))
 	RETURN (SCM_BOOL_T);

@@ -46,6 +46,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <strftime.h>
+#include <unistr.h>
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
@@ -53,6 +54,7 @@
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
+#include "libguile/strings.h"
 
 #include "libguile/validate.h"
 #include "libguile/stime.h"
@@ -624,18 +626,20 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 {
   struct tm t;
 
-  char *tbuf;
+  scm_t_uint8 *tbuf;
   int size = 50;
-  const char *fmt;
-  char *myfmt;
+  scm_t_uint8 *fmt;
+  scm_t_uint8 *myfmt;
   int len;
   SCM result;
 
   SCM_VALIDATE_STRING (1, format);
   bdtime2c (stime, &t, SCM_ARG2, FUNC_NAME);
 
-  fmt = scm_i_string_chars (format);
-  len = scm_i_string_length (format);
+  /* Convert string to UTF-8 so that non-ASCII characters in the
+     format are passed through unchanged.  */
+  fmt = scm_i_to_utf8_string (format);
+  len = strlen ((const char *) fmt);
 
   /* Ugly hack: strftime can return 0 if its buffer is too small,
      but some valid time strings (e.g. "%p") can sometimes produce
@@ -643,9 +647,11 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
      character to the format string, so that valid returns are always
      nonzero. */
   myfmt = scm_malloc (len+2);
-  *myfmt = 'x';
-  strncpy(myfmt+1, fmt, len);
-  myfmt[len+1] = 0;
+  *myfmt = (scm_t_uint8) 'x';
+  strncpy ((char *) myfmt + 1, (const char *) fmt, len);
+  myfmt[len + 1] = 0;
+  scm_remember_upto_here_1 (format);
+  free (fmt);
 
   tbuf = scm_malloc (size);
   {
@@ -680,7 +686,8 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 
     /* Use `nstrftime ()' from Gnulib, which supports all GNU extensions
        supported by glibc.  */
-    while ((len = nstrftime (tbuf, size, myfmt, &t, 0, 0)) == 0)
+    while ((len = nstrftime ((char *) tbuf, size, 
+			     (const char *) myfmt, &t, 0, 0)) == 0)
       {
 	free (tbuf);
 	size *= 2;
@@ -696,7 +703,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 #endif
     }
 
-  result = scm_from_locale_stringn (tbuf + 1, len - 1);
+  result = scm_i_from_utf8_string ((const scm_t_uint8 *) tbuf + 1);
   free (tbuf);
   free (myfmt);
 #if HAVE_STRUCT_TM_TM_ZONE
@@ -722,14 +729,17 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
 #define FUNC_NAME s_scm_strptime
 {
   struct tm t;
-  const char *fmt, *str, *rest;
+  scm_t_uint8 *fmt, *str, *rest;
+  size_t used_len;
   long zoff;
 
   SCM_VALIDATE_STRING (1, format);
   SCM_VALIDATE_STRING (2, string);
 
-  fmt = scm_i_string_chars (format);
-  str = scm_i_string_chars (string);
+  /* Convert strings to UTF-8 so that non-ASCII characters are passed
+     through unchanged.  */
+  fmt = scm_i_to_utf8_string (format);
+  str = scm_i_to_utf8_string (string);
 
   /* initialize the struct tm */
 #define tm_init(field) t.field = 0
@@ -751,7 +761,8 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
      fields, hence the use of SCM_CRITICAL_SECTION_START.  */
   t.tm_isdst = -1;
   SCM_CRITICAL_SECTION_START;
-  rest = strptime (str, fmt, &t);
+  rest = (scm_t_uint8 *) strptime ((const char *) str, 
+                                   (const char *) fmt, &t);
   SCM_CRITICAL_SECTION_END;
   if (rest == NULL)
     {
@@ -759,6 +770,9 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
          instance it doesn't.  Force a sensible value for our error
          message.  */
       errno = EINVAL;
+      scm_remember_upto_here_2 (format, string);
+      free (str);
+      free (fmt);
       SCM_SYSERROR;
     }
 
@@ -770,8 +784,14 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
   zoff = 0;
 #endif
 
+  /* Compute the number of UTF-8 characters.  */
+  used_len = u8_strnlen (str, rest-str);
+  scm_remember_upto_here_2 (format, string);
+  free (str);
+  free (fmt);
+
   return scm_cons (filltime (&t, zoff, NULL),
-		   scm_from_signed_integer (rest - str));
+		   scm_from_signed_integer (used_len));
 }
 #undef FUNC_NAME
 #endif /* HAVE_STRPTIME */

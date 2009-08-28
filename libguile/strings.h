@@ -102,7 +102,7 @@ SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
 SCM_API SCM scm_make_string (SCM k, SCM chr);
 SCM_API SCM scm_string_length (SCM str);
-SCM_API SCM scm_string_width (SCM str);
+SCM_API SCM scm_string_bytes_per_char (SCM str);
 SCM_API SCM scm_string_ref (SCM str, SCM k);
 SCM_API SCM scm_string_set_x (SCM str, SCM k, SCM chr);
 SCM_API SCM scm_substring (SCM str, SCM start, SCM end);
@@ -124,6 +124,7 @@ SCM_API SCM scm_c_substring_copy (SCM str, size_t start, size_t end);
 SCM_API int scm_is_string (SCM x);
 SCM_API SCM scm_from_locale_string (const char *str);
 SCM_API SCM scm_from_locale_stringn (const char *str, size_t len);
+SCM_INTERNAL SCM scm_i_from_utf8_string (const scm_t_uint8 *str);
 SCM_API SCM scm_take_locale_string (char *str);
 SCM_API SCM scm_take_locale_stringn (char *str, size_t len);
 SCM_API char *scm_to_locale_string (SCM str);
@@ -132,6 +133,7 @@ SCM_INTERNAL char *scm_to_stringn (SCM str, size_t *lenp,
                                    const char *encoding,
                                    scm_t_string_failed_conversion_handler
                                    handler);
+SCM_INTERNAL scm_t_uint8 *scm_i_to_utf8_string (SCM str);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
@@ -152,6 +154,8 @@ SCM_INTERNAL SCM scm_i_string_start_writing (SCM str);
 SCM_INTERNAL void scm_i_string_stop_writing (void);
 SCM_INTERNAL int scm_i_is_narrow_string (SCM str);
 SCM_INTERNAL scm_t_wchar scm_i_string_ref (SCM str, size_t x);
+SCM_INTERNAL int scm_i_string_contains_char (SCM str, char c);
+SCM_INTERNAL int scm_i_string_strcmp (SCM sstr, size_t start_x, const char *cstr);
 SCM_INTERNAL void scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr);
 /* internal functions related to symbols. */
 
@@ -167,6 +171,7 @@ SCM_INTERNAL const char *scm_i_symbol_chars (SCM sym);
 SCM_INTERNAL const scm_t_wchar *scm_i_symbol_wide_chars (SCM sym);
 SCM_INTERNAL size_t scm_i_symbol_length (SCM sym);
 SCM_INTERNAL int scm_i_is_narrow_symbol (SCM str);
+SCM_INTERNAL int scm_i_try_narrow_string (SCM str);
 SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
 SCM_INTERNAL scm_t_wchar scm_i_symbol_ref (SCM sym, size_t x);
 

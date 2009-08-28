@@ -1573,31 +1573,39 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 	    "component, @code{.} is returned.")
 #define FUNC_NAME s_scm_dirname
 {
-  const char *s;
   long int i;
   unsigned long int len;
 
   SCM_VALIDATE_STRING (1, filename);
 
-  s = scm_i_string_chars (filename);
   len = scm_i_string_length (filename);
 
   i = len - 1;
 #ifdef __MINGW32__
-  while (i >= 0 && (s[i] == '/' || s[i] == '\\')) --i;
-  while (i >= 0 && (s[i] != '/' && s[i] != '\\')) --i;
-  while (i >= 0 && (s[i] == '/' || s[i] == '\\')) --i;
+  while (i >= 0 && (scm_i_string_ref (filename, i) == '/'
+		    || scm_i_string_ref (filename, i) == '\\')) 
+    --i;
+  while (i >= 0 && (scm_i_string_ref (filename, i) != '/'
+		    && scm_i_string_ref (filename, i) != '\\')) 
+    --i;
+  while (i >= 0 && (scm_i_string_ref (filename, i) == '/'
+		    || scm_i_string_ref (filename, i) == '\\')) 
+    --i;
 #else
-  while (i >= 0 && s[i] == '/') --i;
-  while (i >= 0 && s[i] != '/') --i;
-  while (i >= 0 && s[i] == '/') --i;
+  while (i >= 0 && scm_i_string_ref (filename, i) == '/') 
+    --i;
+  while (i >= 0 && scm_i_string_ref (filename, i) != '/') 
+    --i;
+  while (i >= 0 && scm_i_string_ref (filename, i) == '/') 
+    --i;
 #endif /* ndef __MINGW32__ */
   if (i < 0)
     {
 #ifdef __MINGW32__
-      if (len > 0 && (s[0] == '/' || s[0] == '\\'))
+      if (len > 0 && (scm_i_string_ref (filename, 0) == '/'
+		      || scm_i_string_ref (filename, 0) == '\\'))
 #else
-      if (len > 0 && s[0] == '/')
+      if (len > 0 && scm_i_string_ref (filename, 0) == '/')
 #endif /* ndef __MINGW32__ */
 	return scm_c_substring (filename, 0, 1);
       else
@@ -1616,11 +1624,9 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 	    "@var{basename}, it is removed also.")
 #define FUNC_NAME s_scm_basename
 {
-  const char *f, *s = 0;
   int i, j, len, end;
 
   SCM_VALIDATE_STRING (1, filename);
-  f = scm_i_string_chars (filename);
   len = scm_i_string_length (filename);
 
   if (SCM_UNBNDP (suffix))
@@ -1628,32 +1634,44 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
   else
     {
       SCM_VALIDATE_STRING (2, suffix);
-      s = scm_i_string_chars (suffix);
       j = scm_i_string_length (suffix) - 1;
     }
   i = len - 1;
 #ifdef __MINGW32__
-  while (i >= 0 && (f[i] == '/' || f[i] == '\\')) --i;
+  while (i >= 0 && (scm_i_string_ref (filename, i) == '/'
+		    || scm_i_string_ref (filename, i) ==  '\\'))
+    --i;
 #else
-  while (i >= 0 && f[i] == '/') --i;
+  while (i >= 0 && scm_i_string_ref (filename, i) == '/')
+    --i;
 #endif /* ndef __MINGW32__ */
   end = i;
-  while (i >= 0 && j >= 0 && f[i] == s[j]) --i, --j;
+  while (i >= 0 && j >= 0 
+	 && (scm_i_string_ref (filename, i)
+	     == scm_i_string_ref (suffix, j)))
+    {
+      --i;
+      --j;
+    }
   if (j == -1)
     end = i;
 #ifdef __MINGW32__
-  while (i >= 0 && f[i] != '/' && f[i] != '\\') --i;
+  while (i >= 0 && (scm_i_string_ref (filename, i) != '/'
+		    && scm_i_string_ref (filename, i) != '\\'))
+    --i;
 #else
-  while (i >= 0 && f[i] != '/') --i;
+  while (i >= 0 && scm_i_string_ref (filename, i) != '/')
+    --i;
 #endif /* ndef __MINGW32__ */
   if (i == end)
     {
 #ifdef __MINGW32__
-      if (len > 0 && (f[0] == '/' || f[0] == '\\'))
+      if (len > 0 && (scm_i_string_ref (filename, 0) ==  '/'
+		      || scm_i_string_ref (filename, 0) ==  '\\'))
 #else
-      if (len > 0 && f[0] == '/')
+      if (len > 0 && scm_i_string_ref (filename, 0) == '/')
 #endif /* ndef __MINGW32__ */
-	return scm_c_substring (filename, 0, 1);
+        return scm_c_substring (filename, 0, 1);
       else
 	return scm_dot_string;
     }

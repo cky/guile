@@ -180,7 +180,6 @@ static SCM
 really_make_boot_program (long nargs)
 {
   SCM u8vec;
-  /* Make sure "bytes" is 64-bit aligned.  */
   scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 1,
                          scm_op_make_int8_1, scm_op_nop, scm_op_nop, scm_op_nop,
                          scm_op_halt };

@@ -53,6 +53,8 @@ SCM_API void scm_wrong_num_args (SCM proc) SCM_NORETURN;
 SCM_API void scm_error_num_args_subr (const char* subr) SCM_NORETURN;
 SCM_API void scm_wrong_type_arg (const char *subr, int pos,
 				 SCM bad_value) SCM_NORETURN;
+SCM_INTERNAL void scm_i_wrong_type_arg_symbol (SCM symbol, int pos,
+					       SCM bad_value) SCM_NORETURN;
 SCM_API void scm_wrong_type_arg_msg (const char *subr, int pos,
 				     SCM bad_value, const char *sz) SCM_NORETURN;
 SCM_API void scm_memory_error (const char *subr) SCM_NORETURN;

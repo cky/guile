@@ -386,33 +386,28 @@ do {						\
 /* See frames.h for the layout of stack frames */
 /* When this is called, bp points to the new program data,
    and the arguments are already on the stack */
-#define NEW_FRAME()				\
+#define INIT_FRAME()				\
 {						\
   int i;					\
-  SCM *dl, *data;                               \
-  scm_byte_t *ra = ip;                          \
-						\
-  /* Save old registers */                      \
-  ra = ip;                                      \
-  dl = fp;                                      \
 						\
   /* New registers */                           \
-  fp = sp - bp->nargs + 1;                      \
-  data = SCM_FRAME_DATA_ADDRESS (fp);           \
-  sp = data + 2;                                \
+  sp += bp->nlocs;                              \
   CHECK_OVERFLOW ();				\
   stack_base = sp;				\
   ip = bp->base;				\
 						\
   /* Init local variables */			\
-  for (i=bp->nlocs; i; i--)                     \
-    data[-i] = SCM_UNDEFINED;                   \
-						\
-  /* Set frame data */				\
-  data[2] = (SCM)ra;                            \
-  data[1] = 0x0;                                \
-  data[0] = (SCM)dl;                            \
+  for (i=bp->nlocs; i;)                         \
+    sp[-(--i)] = SCM_UNDEFINED;                 \
 }
+
+#define DROP_FRAME()                            \
+  {                                             \
+    sp -= 3;                                    \
+    NULLSTACK (3);                              \
+    CHECK_UNDERFLOW ();                         \
+  }
+    
 
 /*
   Local Variables:

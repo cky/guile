@@ -85,6 +85,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
+  char *encoding;
   SCM_VALIDATE_STRING (1, filename);
   if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
     SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
@@ -97,7 +98,15 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
-
+    encoding = scm_scan_for_encoding (port);
+    if (encoding)
+      {
+	scm_i_set_port_encoding_x (port, encoding);
+	free (encoding);
+      }
+    else
+      /* The file has no encoding declaraed.  We'll presume Latin-1.  */
+      scm_i_set_port_encoding_x (port, NULL);
     while (1)
       {
 	SCM reader, form;
@@ -257,7 +266,7 @@ scm_init_load_path ()
     "guile/ccache/" SCM_EFFECTIVE_VERSION "-" SCM_OBJCODE_MACHINE_VERSION_STRING
 
     if ((e = getenv ("XDG_CACHE_HOME")))
-      snprintf (cachedir, sizeof(cachedir), "%s" FALLBACK_DIR, e);
+      snprintf (cachedir, sizeof(cachedir), "%s/" FALLBACK_DIR, e);
     else if ((e = getenv ("HOME")))
       snprintf (cachedir, sizeof(cachedir), "%s/.cache/" FALLBACK_DIR, e);
 #ifdef HAVE_GETPWENT
@@ -639,13 +648,11 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
   return SCM_BOOL_F;
 }
 
-static SCM
-scm_try_autocompile (SCM source)
+SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled", 0, 0, 0,
+	    (void), "")
+#define FUNC_NAME s_scm_sys_warn_autocompilation_enabled
 {
   static int message_shown = 0;
-  
-  if (scm_is_false (*scm_loc_load_should_autocompile))
-    return SCM_BOOL_F;
 
   if (!message_shown)
     {
@@ -655,6 +662,17 @@ scm_try_autocompile (SCM source)
       message_shown = 1;
     }
 
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+static SCM
+scm_try_autocompile (SCM source)
+{
+  if (scm_is_false (*scm_loc_load_should_autocompile))
+    return SCM_BOOL_F;
+
+  scm_sys_warn_autocompilation_enabled ();
   return scm_c_catch (SCM_BOOL_T,
                       do_try_autocompile,
                       SCM2PTR (source),

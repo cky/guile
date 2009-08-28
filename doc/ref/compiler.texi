@@ -536,7 +536,8 @@ be wrapped in a thunk that declares the arity of the expression:
 
 @example
 scheme@@(guile-user)> ,language glil
-Guile Lowlevel Intermediate Language (GLIL) interpreter 0.3 on Guile 1.9.0
+Guile Lowlevel Intermediate Language (GLIL) interpreter 0.3 on
+   Guile 1.9.0
 Copyright (C) 2001-2008 Free Software Foundation, Inc.
 
 Enter `,help' for help.

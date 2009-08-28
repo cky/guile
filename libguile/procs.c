@@ -103,6 +103,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
       case scm_tcs_closures:
       case scm_tcs_subrs:
       case scm_tc7_pws:
+      case scm_tc7_program:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
 	return scm_from_bool (SCM_SMOB_DESCRIPTOR (obj).apply);
@@ -142,6 +143,10 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	  return SCM_BOOL_T;
 	case scm_tc7_gsubr:
 	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
+	case scm_tc7_program:
+	  return scm_from_bool (SCM_PROGRAM_DATA (obj)->nargs == 0
+                                || (SCM_PROGRAM_DATA (obj)->nargs == 1
+                                    && SCM_PROGRAM_DATA (obj)->nrest));
 	case scm_tc7_pws:
 	  obj = SCM_PROCEDURE (obj);
 	  goto again;
@@ -170,6 +175,8 @@ scm_subr_p (SCM obj)
   return 0;
 }
 
+SCM_SYMBOL (sym_documentation, "documentation");
+
 SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
            (SCM proc),
 	    "Return the documentation string associated with @code{proc}.  By\n"
@@ -181,6 +188,8 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
   SCM code;
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
+  if (SCM_PROGRAM_P (proc))
+    return scm_assq_ref (scm_program_properties (proc), sym_documentation);
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:

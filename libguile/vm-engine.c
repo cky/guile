@@ -41,7 +41,7 @@ static SCM
 VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 {
   /* VM registers */
-  register scm_byte_t *ip IP_REG;	/* instruction pointer */
+  register scm_t_uint8 *ip IP_REG;	/* instruction pointer */
   register SCM *sp SP_REG;		/* stack pointer */
   register SCM *fp FP_REG;		/* frame pointer */
 
@@ -107,11 +107,17 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
     /* Initial frame */
     CACHE_REGISTER ();
+    PUSH ((SCM)fp); /* dynamic link */
+    PUSH (0); /* ra */
+    PUSH (0); /* mvra */
     CACHE_PROGRAM ();
     PUSH (program);
-    NEW_FRAME ();
-
-    /* Initial arguments */
+    fp = sp + 1;
+    INIT_FRAME ();
+    /* MV-call frame, function & arguments */
+    PUSH ((SCM)fp); /* dynamic link */
+    PUSH (0); /* ra */
+    PUSH (0); /* mvra */
     PUSH (prog);
     if (SCM_UNLIKELY (sp + nargs >= stack_limit))
       goto vm_error_too_many_args;
@@ -152,12 +158,12 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     SCM err_msg;
 
   vm_error_bad_instruction:
-    err_msg  = scm_from_locale_string ("VM: Bad instruction: ~A");
+    err_msg  = scm_from_locale_string ("VM: Bad instruction: ~s");
     finish_args = scm_list_1 (scm_from_uchar (ip[-1]));
     goto vm_error;
 
   vm_error_unbound:
-    err_msg  = scm_from_locale_string ("VM: Unbound variable: ~A");
+    err_msg  = scm_from_locale_string ("VM: Unbound variable: ~s");
     goto vm_error;
 
   vm_error_wrong_type_arg:
@@ -178,10 +184,9 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     goto vm_error;
 
   vm_error_wrong_type_apply:
-    err_msg  = scm_from_locale_string ("VM: Wrong type to apply: ~S "
-				       "[IP offset: ~a]");
-    finish_args = scm_list_2 (program,
-			      SCM_I_MAKINUM (ip - bp->base));
+    SYNC_ALL ();
+    scm_error (scm_misc_error_key, FUNC_NAME, "Wrong type to apply: ~S",
+               scm_list_1 (program), SCM_BOOL_F);
     goto vm_error;
 
   vm_error_stack_overflow:
@@ -195,7 +200,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     goto vm_error;
 
   vm_error_improper_list:
-    err_msg  = scm_from_locale_string ("VM: Attempt to unroll an improper list: tail is ~A");
+    err_msg  = scm_from_locale_string ("Expected a proper list, but got object with tail ~s");
     goto vm_error;
 
   vm_error_not_a_pair:
@@ -211,12 +216,12 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     goto vm_error;
 
   vm_error_no_values:
-    err_msg  = scm_from_locale_string ("VM: 0-valued return");
+    err_msg  = scm_from_locale_string ("Zero values returned to single-valued continuation");
     finish_args = SCM_EOL;
     goto vm_error;
 
   vm_error_not_enough_values:
-    err_msg  = scm_from_locale_string ("VM: Not enough values for mv-bind");
+    err_msg  = scm_from_locale_string ("Too few values returned to continuation");
     finish_args = SCM_EOL;
     goto vm_error;
 

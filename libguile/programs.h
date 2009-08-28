@@ -26,19 +26,15 @@
  * Programs
  */
 
-typedef unsigned char scm_byte_t;
+#define SCM_F_PROGRAM_IS_BOOT (1<<16)
 
-SCM_API scm_t_bits scm_tc16_program;
-
-#define SCM_F_PROGRAM_IS_BOOT (1<<0)
-
-#define SCM_PROGRAM_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_program, x))
-#define SCM_PROGRAM_OBJCODE(x)	(SCM_SMOB_OBJECT (x))
-#define SCM_PROGRAM_OBJTABLE(x)	(SCM_SMOB_OBJECT_2 (x))
-#define SCM_PROGRAM_FREE_VARIABLES(x) (SCM_SMOB_OBJECT_3 (x))
+#define SCM_PROGRAM_P(x)	(!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_program)
+#define SCM_PROGRAM_OBJCODE(x)	(SCM_CELL_OBJECT_1 (x))
+#define SCM_PROGRAM_OBJTABLE(x)	(SCM_CELL_OBJECT_2 (x))
+#define SCM_PROGRAM_FREE_VARIABLES(x) (SCM_CELL_OBJECT_3 (x))
 #define SCM_PROGRAM_DATA(x)	(SCM_OBJCODE_DATA (SCM_PROGRAM_OBJCODE (x)))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
-#define SCM_PROGRAM_IS_BOOT(x)	(SCM_SMOB_FLAGS (x) & SCM_F_PROGRAM_IS_BOOT)
+#define SCM_PROGRAM_IS_BOOT(x)	(SCM_CELL_WORD_0 (x) & SCM_F_PROGRAM_IS_BOOT)
 
 SCM_API SCM scm_make_program (SCM objcode, SCM objtable, SCM free_variables);
 
@@ -58,6 +54,8 @@ SCM_API SCM scm_program_objcode (SCM program);
 
 SCM_API SCM scm_c_program_source (SCM program, size_t ip);
 
+SCM_INTERNAL void scm_i_program_print (SCM program, SCM port,
+                                       scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_programs (void);
 SCM_INTERNAL void scm_init_programs (void);
 

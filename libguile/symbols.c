@@ -89,15 +89,17 @@ scm_i_hash_symbol (SCM obj, unsigned long n, void *closure)
 }
 
 static SCM
-lookup_interned_symbol (const char *name, size_t len,
-			unsigned long raw_hash)
+lookup_interned_symbol (SCM name, unsigned long raw_hash)
 {
   /* Try to find the symbol in the symbols table */
   SCM result = SCM_BOOL_F;
   SCM bucket, elt, previous_elt;
+  size_t len;
   unsigned long hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
 
+  len = scm_i_string_length (name);
   bucket = SCM_HASHTABLE_BUCKET (symbols, hash);
+
   for (elt = bucket, previous_elt = SCM_BOOL_F;
        !scm_is_null (elt);
        previous_elt = elt, elt = SCM_CDR (elt))
@@ -130,15 +132,32 @@ lookup_interned_symbol (const char *name, size_t len,
       if (scm_i_symbol_hash (sym) == raw_hash
 	  && scm_i_symbol_length (sym) == len)
 	{
-	  const char *chrs = scm_i_symbol_chars (sym);
-	  size_t i = len;
+          size_t i = len;
 
-	  while (i != 0)
-	    {
-	      --i;
-	      if (name[i] != chrs[i])
-		goto next_symbol;
-	    }
+          /* Slightly faster path for comparing narrow to narrow.  */
+          if (scm_i_is_narrow_string (name) && scm_i_is_narrow_symbol (sym))
+            {
+              const char *chrs = scm_i_symbol_chars (sym);
+              const char *str = scm_i_string_chars (name);
+
+              while (i != 0)
+                {
+                  --i;
+                  if (str[i] != chrs[i])
+                    goto next_symbol;
+                }
+            }
+          else
+            {
+              /* Somewhat slower path for comparing narrow to wide or
+                 wide to wide.  */
+              while (i != 0)
+                {
+                  --i;
+                  if (scm_i_string_ref (name, i) != scm_i_symbol_ref (sym, i))
+                    goto next_symbol;
+                }
+            }
 
 	  /* We found it.  */
 	  result = sym;
@@ -174,32 +193,12 @@ intern_symbol (SCM symbol)
 }
 
 static SCM
-scm_i_c_mem2symbol (const char *name, size_t len)
+scm_i_str2symbol (SCM str)
 {
   SCM symbol;
-  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
+  size_t raw_hash = scm_i_string_hash (str);
 
-  symbol = lookup_interned_symbol (name, len, raw_hash);
-  if (scm_is_false (symbol))
-    {
-      /* The symbol was not found, create it.  */
-      symbol = scm_i_c_make_symbol (name, len, 0, raw_hash,
-				    scm_cons (SCM_BOOL_F, SCM_EOL));
-      intern_symbol (symbol);
-    }
-
-  return symbol;
-}
-
-static SCM
-scm_i_mem2symbol (SCM str)
-{
-  SCM symbol;
-  const char *name = scm_i_string_chars (str);
-  size_t len = scm_i_string_length (str);
-  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
-
-  symbol = lookup_interned_symbol (name, len, raw_hash);
+  symbol = lookup_interned_symbol (str, raw_hash);
   if (scm_is_false (symbol))
     {
       /* The symbol was not found, create it.  */
@@ -213,11 +212,9 @@ scm_i_mem2symbol (SCM str)
 
 
 static SCM
-scm_i_mem2uninterned_symbol (SCM str)
+scm_i_str2uninterned_symbol (SCM str)
 {
-  const char *name = scm_i_string_chars (str);
-  size_t len = scm_i_string_length (str);
-  size_t raw_hash = scm_string_hash ((const unsigned char *) name, len);
+  size_t raw_hash = scm_i_string_hash (str);
 
   return scm_i_make_symbol (str, SCM_I_F_SYMBOL_UNINTERNED, 
 			    raw_hash, scm_cons (SCM_BOOL_F, SCM_EOL));
@@ -252,7 +249,7 @@ SCM_DEFINE (scm_make_symbol, "make-symbol", 1, 0, 0,
 #define FUNC_NAME s_scm_make_symbol
 {
   SCM_VALIDATE_STRING (1, name);
-  return scm_i_mem2uninterned_symbol (name);
+  return scm_i_str2uninterned_symbol (name);
 }
 #undef FUNC_NAME
 
@@ -314,7 +311,7 @@ SCM_DEFINE (scm_string_to_symbol, "string->symbol", 1, 0, 0,
 #define FUNC_NAME s_scm_string_to_symbol
 {
   SCM_VALIDATE_STRING (1, string);
-  return scm_i_mem2symbol (string);
+  return scm_i_str2symbol (string);
 }
 #undef FUNC_NAME
 
@@ -421,44 +418,23 @@ SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
 SCM
 scm_from_locale_symbol (const char *sym)
 {
-  return scm_i_c_mem2symbol (sym, strlen (sym));
+  return scm_from_locale_symboln (sym, -1);
 }
 
 SCM
 scm_from_locale_symboln (const char *sym, size_t len)
 {
-  return scm_i_c_mem2symbol (sym, len);
+  SCM str = scm_from_locale_stringn (sym, len);
+  return scm_i_str2symbol (str);
 }
 
 SCM
 scm_take_locale_symboln (char *sym, size_t len)
 {
-  SCM res;
-  unsigned long raw_hash;
+  SCM str;
 
-  if (len == (size_t)-1)
-    len = strlen (sym);
-  else
-    {
-      /* Ensure STR is null terminated.  A realloc for 1 extra byte should
-         often be satisfied from the alignment padding after the block, with
-         no actual data movement.  */
-      sym = scm_realloc (sym, len+1);
-      sym[len] = '\0';
-    }
-
-  raw_hash = scm_string_hash ((unsigned char *)sym, len);
-  res = lookup_interned_symbol (sym, len, raw_hash);
-  if (scm_is_false (res))
-    {
-      res = scm_i_c_take_symbol (sym, len, 0, raw_hash,
-				 scm_cons (SCM_BOOL_F, SCM_EOL));
-      intern_symbol (res);
-    }
-  else
-    free (sym);
-
-  return res;
+  str = scm_take_locale_stringn (sym, len);
+  return scm_i_str2symbol (str);
 }
 
 SCM

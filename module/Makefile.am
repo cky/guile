@@ -203,6 +203,7 @@ SRFI_SOURCES = \
   srfi/srfi-1.scm \
   srfi/srfi-2.scm \
   srfi/srfi-4.scm \
+  srfi/srfi-4/gnu.scm \
   srfi/srfi-6.scm \
   srfi/srfi-8.scm \
   srfi/srfi-9.scm \
@@ -268,7 +269,6 @@ NOCOMP_SOURCES =				\
   ice-9/debugger/trc.scm \
   ice-9/debugger/utils.scm \
   ice-9/debugging/example-fns.scm \
-  ice-9/debugging/ice-9-debugger-extensions.scm \
   ice-9/debugging/steps.scm \
   ice-9/debugging/trace.scm \
   ice-9/debugging/traps.scm \

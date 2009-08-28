@@ -35,7 +35,7 @@
 #include "libguile/procprop.h"
 #include "libguile/read.h"
 #include "libguile/weaks.h"
-#include "libguile/unif.h"
+#include "libguile/programs.h"
 #include "libguile/alist.h"
 #include "libguile/struct.h"
 #include "libguile/objects.h"
@@ -294,13 +294,12 @@ print_circref (SCM port, scm_print_state *pstate, SCM ref)
 /* Print the name of a symbol. */
 
 static int
-quote_keywordish_symbol (const char *str, size_t len)
+quote_keywordish_symbol (SCM symbol)
 {
   SCM option;
 
-  /* LEN is guaranteed to be > 0.
-   */
-  if (str[0] != ':' && str[len-1] != ':')
+  if (scm_i_symbol_ref (symbol, 0) != ':'
+      && scm_i_symbol_ref (symbol, scm_i_symbol_length (symbol) - 1) !=  ':')
     return 0;
 
   option = SCM_PRINT_KEYWORD_STYLE;
@@ -312,7 +311,7 @@ quote_keywordish_symbol (const char *str, size_t len)
 }
 
 void
-scm_print_symbol_name (const char *str, size_t len, SCM port)
+scm_i_print_symbol_name (SCM str, SCM port)
 {
   /* This points to the first character that has not yet been written to the
    * port. */
@@ -333,18 +332,20 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
    * simpler and faster. */
   int maybe_weird = 0;
   size_t mw_pos = 0;
+  size_t len = scm_i_symbol_length (str);
+  scm_t_wchar str0 = scm_i_symbol_ref (str, 0);
 
-  if (len == 0 || str[0] == '\'' || str[0] == '`' || str[0] == ','
-      || quote_keywordish_symbol (str, len)
-      || (str[0] == '.' && len == 1)
-      || scm_is_true (scm_c_locale_stringn_to_number (str, len, 10)))
+  if (len == 0 || str0 == '\'' || str0 == '`' || str0 == ','
+      || quote_keywordish_symbol (str) 
+      || (str0 == '.' && len == 1)
+      || scm_is_true (scm_i_string_to_number (scm_symbol_to_string (str), 10)))
     {
       scm_lfwrite ("#{", 2, port);
       weird = 1;
     }
 
   for (end = pos; end < len; ++end)
-    switch (str[end])
+    switch (scm_i_symbol_ref (str, end))
       {
 #ifdef BRACKETS_AS_PARENS
       case '[':
@@ -369,11 +370,11 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	    weird = 1;
 	  }
 	if (pos < end)
-	  scm_lfwrite (str + pos, end - pos, port);
+	  scm_lfwrite_substr (scm_symbol_to_string (str), pos, end, port);
 	{
 	  char buf[2];
 	  buf[0] = '\\';
-	  buf[1] = str[end];
+	  buf[1] = (char) (unsigned char) scm_i_symbol_ref (str, end);
 	  scm_lfwrite (buf, 2, port);
 	}
 	pos = end + 1;
@@ -391,9 +392,16 @@ scm_print_symbol_name (const char *str, size_t len, SCM port)
 	break;
       }
   if (pos < end)
-    scm_lfwrite (str + pos, end - pos, port);
+    scm_lfwrite_substr (scm_symbol_to_string (str), pos, end, port);
   if (weird)
     scm_lfwrite ("}#", 2, port);
+}
+
+void
+scm_print_symbol_name (const char *str, size_t len, SCM port)
+{
+  SCM symbol = scm_from_locale_symboln (str, len);
+  return scm_i_print_symbol_name (symbol, port);
 }
 
 /* Print generally.  Handles both write and display according to PSTATE.
@@ -454,20 +462,50 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                                                          | UC_CATEGORY_MASK_S))
                 /* Print the character if is graphic character.  */
                 {
-                  if (i<256)
-                    /* Character is graphic.  Print it.  */
-                    scm_putc (i, port);
+                  scm_t_wchar *wbuf;
+                  SCM wstr = scm_i_make_wide_string (1, &wbuf);
+                  char *buf;
+                  size_t len;
+                  const char *enc;
+
+                  enc = scm_i_get_port_encoding (port);
+                  wbuf[0] = i;
+                  if (enc == NULL)
+                    {
+                      if (i <= 0xFF)
+                        /* Character is graphic and Latin-1.  Print it  */
+                        scm_lfwrite_str (wstr, port);
+                      else
+                        /* Character is graphic but unrepresentable in
+                           this port's encoding.  */
+                        scm_intprint (i, 8, port);
+                    }
                   else
-                    /* Character is graphic but unrepresentable in
-                       this port's encoding.  */
-                    scm_intprint (i, 8, port);
+                    {
+                      buf = u32_conv_to_encoding (enc, 
+                                                  iconveh_error,
+                                                  (scm_t_uint32 *) wbuf, 
+                                                  1,
+                                                  NULL,
+                                                  NULL, &len);
+                      if (buf != NULL)
+                        {
+                          /* Character is graphic.  Print it.  */
+                          scm_lfwrite_str (wstr, port);
+                          free (buf);
+                        }
+                      else
+                        /* Character is graphic but unrepresentable in
+                           this port's encoding.  */
+                        scm_intprint (i, 8, port);
+                    }
                 }
               else
                 /* Character is a non-graphical character.  */
                 scm_intprint (i, 8, port);
 	    }
 	  else
-	    scm_putc (i, port);
+	    scm_i_charprint (i, port);
 	}
       else if (SCM_IFLAGP (exp)
 	       && ((size_t) SCM_IFLAGNUM (exp) < (sizeof iflagnames / sizeof (char *))))
@@ -599,21 +637,32 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                       SCM wstr = scm_i_make_wide_string (1, &wbuf);
                       char *buf;
                       size_t len;
-
-                      wbuf[0] = ch;
-
-                      buf = u32_conv_to_encoding ("ISO-8859-1",
-                                                  iconveh_error,
-                                                  (scm_t_uint32 *) wbuf,
-                                                  1, NULL, NULL, &len);
-                      if (buf != NULL)
+                      
+                      if (scm_i_get_port_encoding (port))
                         {
-                          /* Character is graphic and representable in
-                             this encoding.  Print it.  */
-                          scm_lfwrite_str (wstr, port);
-                          free (buf);
-                          printed = 1;
+                          wstr = scm_i_make_wide_string (1, &wbuf);
+                          wbuf[0] = ch;
+                          buf = u32_conv_to_encoding (scm_i_get_port_encoding (port), 
+                                                      iconveh_error,
+                                                      (scm_t_uint32 *) wbuf, 
+                                                      1   ,
+                                                      NULL,
+                                                      NULL, &len);
+                          if (buf != NULL)
+                            {
+                              /* Character is graphic and representable in
+                                 this encoding.  Print it.  */
+                              scm_lfwrite_str (wstr, port);
+                              free (buf);
+                              printed = 1;
+                            }
                         }
+                      else
+                        if (ch <= 0xFF)
+                          {
+                            scm_putc (ch, port);
+                            printed = 1;
+                          }
                     }
 
                   if (!printed)
@@ -658,23 +707,19 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
               scm_remember_upto_here_1 (exp);
             }
           else
-            scm_lfwrite (scm_i_string_chars (exp), scm_i_string_length (exp),
-                         port);
+            scm_lfwrite_str (exp, port);
           scm_remember_upto_here_1 (exp);
           break;
 	case scm_tc7_symbol:
 	  if (scm_i_symbol_is_interned (exp))
 	    {
-	      scm_print_symbol_name (scm_i_symbol_chars (exp),
-				     scm_i_symbol_length (exp), port);
+	      scm_i_print_symbol_name (exp, port);
 	      scm_remember_upto_here_1 (exp);
 	    }
 	  else
 	    {
 	      scm_puts ("#<uninterned-symbol ", port);
-	      scm_print_symbol_name (scm_i_symbol_chars (exp),
-				     scm_i_symbol_length (exp),
-				     port);
+	      scm_i_print_symbol_name (exp, port);
 	      scm_putc (' ', port);
 	      scm_uintprint (SCM_UNPACK (exp), 16, port);
 	      scm_putc ('>', port);
@@ -682,6 +727,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 	case scm_tc7_variable:
 	  scm_i_variable_print (exp, port, pstate);
+	  break;
+	case scm_tc7_program:
+	  scm_i_program_print (exp, port, pstate);
 	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
@@ -737,14 +785,16 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  EXIT_NESTED_DATA (pstate);
 	  break;
 	case scm_tcs_subrs:
-	  scm_puts (SCM_SUBR_GENERIC (exp)
-		    ? "#<primitive-generic "
-		    : "#<primitive-procedure ",
-		    port);
-	  scm_puts (scm_i_symbol_chars (SCM_SUBR_NAME (exp)), port);
-	  scm_putc ('>', port);
-	  break;
-
+	  {
+	    SCM name = scm_symbol_to_string (SCM_SUBR_NAME (exp));
+	    scm_puts (SCM_SUBR_GENERIC (exp)
+		      ? "#<primitive-generic "
+		      : "#<primitive-procedure ",
+		      port);
+	    scm_lfwrite_str (name, port);
+	    scm_putc ('>', port);
+	    break;
+	  }
 	case scm_tc7_pws:
 	  scm_puts ("#<procedure-with-setter", port);
 	  {
@@ -839,7 +889,7 @@ scm_prin1 (SCM exp, SCM port, int writingp)
 /* Print a character.
  */
 void
-scm_i_charprint (scm_t_uint32 ch, SCM port)
+scm_i_charprint (scm_t_wchar ch, SCM port)
 {
   scm_t_wchar *wbuf;
   SCM wstr = scm_i_make_wide_string (1, &wbuf);
@@ -1061,9 +1111,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM port, answer = SCM_UNSPECIFIED;
   int fReturnString = 0;
   int writingp;
-  const char *start;
-  const char *end;
-  const char *p;
+  size_t start, p, end;
 
   if (scm_is_eq (destination, SCM_BOOL_T))
     {
@@ -1086,15 +1134,16 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   SCM_VALIDATE_STRING (2, message);
   SCM_VALIDATE_REST_ARGUMENT (args);
 
-  start = scm_i_string_chars (message);
-  end = start + scm_i_string_length (message);
+  p = 0;
+  start = 0;
+  end = scm_i_string_length (message);
   for (p = start; p != end; ++p)
-    if (*p == '~')
+    if (scm_i_string_ref (message, p) == '~')
       {
 	if (++p == end)
 	  break;
 
-	switch (*p) 
+	switch (scm_i_string_ref (message, p)) 
 	  {
 	  case 'A': case 'a':
 	    writingp = 0;
@@ -1103,33 +1152,33 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    writingp = 1;
 	    break;
 	  case '~':
-	    scm_lfwrite (start, p - start, port);
+	    scm_lfwrite_substr (message, start, p, port);
 	    start = p + 1;
 	    continue;
 	  case '%':
-	    scm_lfwrite (start, p - start - 1, port);
+	    scm_lfwrite_substr (message, start, p - 1, port);
 	    scm_newline (port);
 	    start = p + 1;
 	    continue;
 	  default:
 	    SCM_MISC_ERROR ("FORMAT: Unsupported format option ~~~A - use (ice-9 format) instead",
-			    scm_list_1 (SCM_MAKE_CHAR (*p)));
+			    scm_list_1 (SCM_MAKE_CHAR (scm_i_string_ref (message, p))));
 	    
 	  }
 
 
 	if (!scm_is_pair (args))
 	  SCM_MISC_ERROR ("FORMAT: Missing argument for ~~~A",
-			  scm_list_1 (SCM_MAKE_CHAR (*p)));
+			  scm_list_1 (SCM_MAKE_CHAR (scm_i_string_ref (message, p))));
 			  		
-	scm_lfwrite (start, p - start - 1, port);
+	scm_lfwrite_substr (message, start, p - 1, port);
 	/* we pass destination here */
 	scm_prin1 (SCM_CAR (args), destination, writingp);
 	args = SCM_CDR (args);
 	start = p + 1;
       }
 
-  scm_lfwrite (start, p - start, port);
+  scm_lfwrite_substr (message, start, p, port);
   if (!scm_is_eq (args, SCM_EOL))
     SCM_MISC_ERROR ("FORMAT: ~A superfluous arguments",
 		    scm_list_1 (scm_length (args)));

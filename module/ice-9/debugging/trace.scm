@@ -19,7 +19,7 @@
 (define-module (ice-9 debugging trace)
   #:use-module (ice-9 debug)
   #:use-module (ice-9 debugger)
-  #:use-module (ice-9 debugging ice-9-debugger-extensions)
+  #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 debugging steps)
   #:use-module (ice-9 debugging traps)
   #:export (trace-trap
@@ -39,9 +39,6 @@
             trace/info
 	    trace-at-exit
 	    trace-until-exit))
-
-(cond ((string>=? (version) "1.7")
-       (use-modules (ice-9 debugger utils))))
 
 (define trace-format-string #f)
 (define trace-arg-procs #f)

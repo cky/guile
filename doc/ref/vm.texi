@@ -159,17 +159,19 @@ The structure of the fixed part of an application frame is as follows:
 
 @example
              Stack
-   |                  | <- fp + bp->nargs + bp->nlocs + 3
-   +------------------+    = SCM_FRAME_UPPER_ADDRESS (fp)
-   | Return address   |
-   | MV return address|
-   | Dynamic link     | <- fp + bp->nargs + bp->nlocs
-   | Local variable 1 |    = SCM_FRAME_DATA_ADDRESS (fp)
+   | ...              |
+   | Intermed. val. 0 | <- fp + bp->nargs + bp->nlocs = SCM_FRAME_UPPER_ADDRESS (fp)
+   +==================+
+   | Local variable 1 |
    | Local variable 0 | <- fp + bp->nargs
    | Argument 1       |
    | Argument 0       | <- fp
    | Program          | <- fp - 1
-   +------------------+    = SCM_FRAME_LOWER_ADDRESS (fp)
+   +------------------+    
+   | Return address   |
+   | MV return address|
+   | Dynamic link     | <- fp - 4 = SCM_FRAME_DATA_ADDRESS (fp) = SCM_FRAME_LOWER_ADDRESS (fp)
+   +==================+
    |                  |
 @end example
 
@@ -306,19 +308,19 @@ scheme@@(guile-user)> (define (foo a) (lambda (b) (list foo a b)))
 scheme@@(guile-user)> ,x foo
 Disassembly of #<program foo (a)>:
 
-   0    (object-ref 1)                  ;; #<program b7e478b0 at <unknown port>:0:16 (b)>
-   2    (local-ref 0)                   ;; `a' (arg)
-   4    (vector 0 1)                    ;; 1 element
+   0    (object-ref 1)          ;; #<program b7e478b0 at <unknown port>:0:16 (b)>
+   2    (local-ref 0)           ;; `a' (arg)
+   4    (vector 0 1)            ;; 1 element
    7    (make-closure)                  
    8    (return)                        
 
 ----------------------------------------
 Disassembly of #<program b7e478b0 at <unknown port>:0:16 (b)>:
 
-   0    (toplevel-ref 1)                ;; `foo'
-   2    (free-ref 0)                    ;; (closure variable)
-   4    (local-ref 0)                   ;; `b' (arg)
-   6    (list 0 3)                      ;; 3 elements         at (unknown file):0:28
+   0    (toplevel-ref 1)        ;; `foo'
+   2    (free-ref 0)            ;; (closure variable)
+   4    (local-ref 0)           ;; `b' (arg)
+   6    (list 0 3)              ;; 3 elements         at (unknown file):0:28
    9    (return)                        
 @end smallexample
 
@@ -649,32 +651,30 @@ closures.
 @node Procedural Instructions
 @subsubsection Procedural Instructions
 
-@deffn Instruction return
-Free the program's frame, returning the top value from the stack to
-the current continuation. (The stack should have exactly one value on
-it.)
-
-Specifically, the @code{sp} is decremented to one below the current
-@code{fp}, the @code{ip} is reset to the current return address, the
-@code{fp} is reset to the value of the current dynamic link, and then
-the top item on the stack (formerly the procedure being applied) is
-set to the returned value.
+@deffn Instructions new-frame
+Push a new frame on the stack, reserving space for the dynamic link,
+return address, and the multiple-values return address. The frame
+pointer is not yet updated, because the frame is not yet active -- it
+has to be patched by a @code{call} instruction to get the return
+address.
 @end deffn
 
 @deffn Instruction call nargs
 Call the procedure located at @code{sp[-nargs]} with the @var{nargs}
 arguments located from @code{sp[-nargs + 1]} to @code{sp[0]}.
 
-For compiled procedures, this instruction sets up a new stack frame,
-as described in @ref{Stack Layout}, and then dispatches to the first
-instruction in the called procedure, relying on the called procedure
-to return one value to the newly-created continuation. Because the new
-frame pointer will point to sp[-nargs + 1], the arguments don't have
-to be shuffled around -- they are already in place.
+This instruction requires that a new frame be pushed on the stack
+before the procedure, via @code{new-frame}. @xref{Stack Layout}, for
+more information. It patches up that frame with the current @code{ip}
+as the return address, then dispatches to the first instruction in the
+called procedure, relying on the called procedure to return one value
+to the newly-created continuation. Because the new frame pointer will
+point to sp[-nargs + 1], the arguments don't have to be shuffled
+around -- they are already in place.
 
 For non-compiled procedures (continuations, primitives, and
-interpreted procedures), @code{call} will pop the procedure and
-arguments off the stack, and push the result of calling
+interpreted procedures), @code{call} will pop the frame, procedure,
+and arguments off the stack, and push the result of calling
 @code{scm_apply}.
 @end deffn
 
@@ -682,10 +682,10 @@ arguments off the stack, and push the result of calling
 Like @code{call}, but reusing the current continuation. This
 instruction implements tail calls as required by RnRS.
 
-For compiled procedures, that means that @code{goto/args} reuses the
-current frame instead of building a new one. The @code{goto/*}
-instruction family is named as it is because tail calls are equivalent
-to @code{goto}, along with relabeled variables.
+For compiled procedures, that means that @code{goto/args} simply
+shuffles down the procedure and arguments to the current stack frame.
+The @code{goto/*} instruction family is named as it is because tail
+calls are equivalent to @code{goto}, along with relabeled variables.
 
 For non-VM procedures, the result is the same, but the current VM
 invocation remains on the C stack. True tail calls are not currently
@@ -708,15 +708,6 @@ These instructions are used in the implementation of multiple value
 returns, where the actual number of values is pushed on the stack.
 @end deffn
 
-@deffn Instruction call/cc
-@deffnx Instruction goto/cc
-Capture the current continuation, and then call (or tail-call) the
-procedure on the top of the stack, with the continuation as the
-argument.
-
-Both the VM continuation and the C continuation are captured.
-@end deffn
-
 @deffn Instruction mv-call nargs offset
 Like @code{call}, except that a multiple-value continuation is created
 in addition to a single-value continuation.
@@ -727,6 +718,18 @@ stream; the multiple-value return address in the new frame
 this offset. Instructions at that offset will expect the top value of
 the stack to be the number of values, and below that values
 themselves, pushed separately.
+@end deffn
+
+@deffn Instruction return
+Free the program's frame, returning the top value from the stack to
+the current continuation. (The stack should have exactly one value on
+it.)
+
+Specifically, the @code{sp} is decremented to one below the current
+@code{fp}, the @code{ip} is reset to the current return address, the
+@code{fp} is reset to the value of the current dynamic link, and then
+the top item on the stack (formerly the procedure being applied) is
+set to the returned value.
 @end deffn
 
 @deffn Instruction return/values nvalues
@@ -761,6 +764,19 @@ push them as three values, corresponding to @code{x}, @code{y}, and
 be 1 (to indicate that one of the bindings was a rest argument).
 
 Signals an error if there is an insufficient number of values.
+@end deffn
+
+@deffn Instruction call/cc
+@deffnx Instruction goto/cc
+Capture the current continuation, and then call (or tail-call) the
+procedure on the top of the stack, with the continuation as the
+argument.
+
+@code{call/cc} does not require a @code{new-frame} to be pushed on the
+stack, as @code{call} does, because it needs to capture the stack
+before the frame is pushed.
+
+Both the VM continuation and the C continuation are captured.
 @end deffn
 
 @node Data Control Instructions
@@ -836,32 +852,6 @@ most significant byte first.
 Create and fill a vector with the top @var{n} values from the stack,
 popping off those values and pushing on the resulting vector. @var{n}
 is a two-byte value, like in @code{vector}.
-@end deffn
-
-@deffn Instruction mark
-Pushes a special value onto the stack that other stack instructions
-like @code{list-mark} can use.
-@end deffn
-
-@deffn Instruction list-mark
-Create a list from values from the stack, as in @code{list}, but
-instead of knowing beforehand how many there will be, keep going until
-we see a @code{mark} value.
-@end deffn
-
-@deffn Instruction cons-mark
-As the scheme procedure @code{cons*} is to the scheme procedure
-@code{list}, so the instruction @code{cons-mark} is to the instruction
-@code{list-mark}.
-@end deffn
-
-@deffn Instruction vector-mark
-Like @code{list-mark}, but makes a vector instead of a list.
-@end deffn
-
-@deffn Instruction list-break
-The opposite of @code{list}: pops a value, which should be a list, and
-pushes its elements on the stack.
 @end deffn
 
 @node Miscellaneous Instructions

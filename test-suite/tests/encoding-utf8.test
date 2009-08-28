@@ -1,0 +1,108 @@
+;;;; strings.test --- test suite for Guile's string functions    -*- mode: scheme; coding: utf-8 -*-
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this software; see the file COPYING.  If not, write to
+;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;;;; Boston, MA 02110-1301 USA
+
+(define-module (test-strings)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1))
+
+(define exception:conversion
+  (cons 'misc-error "^cannot convert to output locale"))
+
+;; Create a string from integer char values, eg. (string-ints 65) => "A"
+(define (string-ints . args)
+  (apply string (map integer->char args)))
+
+(define oldlocale #f)
+(if (defined? 'setlocale)
+    (set! oldlocale (setlocale LC_ALL "")))
+
+(define s1 "última")
+(define s2 "cédula")
+(define s3 "años")
+(define s4 "羅生門")
+
+(with-test-prefix "string length"
+
+  (pass-if "última"
+	   (eq? (string-length s1) 6))
+    
+  (pass-if "cédula"
+	   (eq? (string-length s2) 6))
+
+  (pass-if "años"
+	   (eq? (string-length s3) 4))
+
+  (pass-if "羅生門"
+	   (eq? (string-length s4) 3)))
+
+(with-test-prefix "internal encoding"
+
+  (pass-if "última"
+	   (string=? s1 (string-ints #xfa #x6c #x74 #x69 #x6d #x61)))
+
+  (pass-if "cédula"
+	   (string=? s2 (string-ints #x63 #xe9 #x64 #x75 #x6c #x61)))
+
+  (pass-if "años"
+	   (string=? s3 (string-ints #x61 #xf1 #x6f #x73)))
+ 
+  (pass-if "羅生門"
+	   (string=? s4 (string-ints #x7f85 #x751f #x9580))))
+
+(with-test-prefix "chars"
+ 
+  (pass-if "última"
+	   (list= eqv? (string->list s1)
+		  (list #\ú #\l #\t #\i #\m #\a)))
+
+  (pass-if "cédula"
+	   (list= eqv? (string->list s2)
+		  (list #\c #\é #\d #\u #\l #\a)))
+
+  (pass-if "años"
+	   (list= eqv? (string->list s3)
+		  (list #\a #\ñ #\o #\s)))
+
+  (pass-if "羅生門"
+	   (list= eqv? (string->list s4)
+		  (list #\羅 #\生 #\門))))
+
+(with-test-prefix "symbols == strings"
+
+  (pass-if "última"
+	   (eq? (string->symbol s1) 'última))
+
+  (pass-if "cédula"
+	   (eq? (string->symbol s2) 'cédula))
+
+  (pass-if "años"
+	   (eq? (string->symbol s3) 'años))
+ 
+  (pass-if "羅生門"
+	   (eq? (string->symbol s4) '羅生門)))
+
+(with-test-prefix "non-ascii variable names"
+
+  (pass-if "1"
+	   (let ((芥川龍之介  1)
+		 (ñ 2))
+	     (eq? (+  芥川龍之介 ñ) 3))))
+
+(if (defined? 'setlocale)
+    (setlocale LC_ALL oldlocale))

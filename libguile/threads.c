@@ -299,7 +299,7 @@ unblock_from_queue (SCM queue)
       var 't'
       // save registers.
       SCM_FLUSH_REGISTER_WINDOWS;      // sparc only
-      setjmp (t->regs);                // here's most of the magic
+      SCM_I_SETJMP (t->regs);          // here's most of the magic
 
    ... and returns.
 
@@ -353,7 +353,7 @@ unblock_from_queue (SCM queue)
       t->top = SCM_STACK_PTR (&t);
       // save registers.
       SCM_FLUSH_REGISTER_WINDOWS;
-      setjmp (t->regs);
+      SCM_I_SETJMP (t->regs);
       res = func(data);
       scm_enter_guile (t);
 
@@ -404,7 +404,7 @@ suspend (void)
   t->top = SCM_STACK_PTR (&t);
   /* save registers. */
   SCM_FLUSH_REGISTER_WINDOWS;
-  setjmp (t->regs);
+  SCM_I_SETJMP (t->regs);
   return t;
 }
 

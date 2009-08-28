@@ -1,9 +1,9 @@
 /* classes: h_files */
 
-#ifndef SCM_RAMAP_H
-#define SCM_RAMAP_H
+#ifndef SCM_ARRAY_MAP_H
+#define SCM_ARRAY_MAP_H
 
-/* Copyright (C) 1995,1996,1997,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,2000, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -48,9 +48,9 @@ SCM_API SCM scm_array_for_each (SCM proc, SCM ra0, SCM lra);
 SCM_API SCM scm_array_index_map_x (SCM ra, SCM proc);
 SCM_API SCM scm_raequal (SCM ra0, SCM ra1);
 SCM_API SCM scm_array_equal_p (SCM ra0, SCM ra1);
-SCM_INTERNAL void scm_init_ramap (void);
+SCM_INTERNAL void scm_init_array_map (void);
 
-#endif  /* SCM_RAMAP_H */
+#endif  /* SCM_ARRAY_MAP_H */
 
 /*
   Local Variables:

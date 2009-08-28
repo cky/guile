@@ -24,6 +24,10 @@
   (cons 'misc-error "^string is read-only"))
 (define exception:illegal-escape
   (cons 'read-error "illegal character in escape sequence"))
+;; Wrong types may have either the 'wrong-type-arg key when
+;; interpreted or 'vm-error when compiled.  This matches both.
+(define exception:wrong-type-arg
+  (cons #t "Wrong type"))
 
 ;; Create a string from integer char values, eg. (string-ints 65) => "A"
 (define (string-ints . args)

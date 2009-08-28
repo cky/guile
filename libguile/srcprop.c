@@ -69,7 +69,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
  * car = tag
  * cbr = pos
  * ccr = copy
- * cdr = plist 
+ * cdr = alist
  */
 
 #define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
@@ -78,7 +78,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
 #define SRCPROPCOPY(p) (SCM_CELL_OBJECT(p,2))
-#define SRCPROPPLIST(p) (SCM_CELL_OBJECT_3(p))
+#define SRCPROPALIST(p) (SCM_CELL_OBJECT_3(p))
 #define SETSRCPROPBRK(p) \
  (SCM_SET_SMOB_FLAGS ((p), \
                       SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
@@ -90,8 +90,10 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
 #define SETSRCPROPCOPY(p, c) (SCM_SET_CELL_WORD(p, 2, c))
-#define SETSRCPROPPLIST(p, l) (SCM_SET_CELL_WORD(p, 3, l))
+#define SETSRCPROPALIST(p, l) (SCM_SET_CELL_WORD(p, 3, l))
 
+
+static SCM scm_srcprops_to_alist (SCM obj);
 
 
 scm_t_bits scm_tc16_srcprops;
@@ -102,7 +104,7 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
   int writingp = SCM_WRITINGP (pstate);
   scm_puts ("#<srcprops ", port);
   SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (scm_srcprops_to_plist (obj), port, pstate);
+  scm_iprin1 (scm_srcprops_to_alist (obj), port, pstate);
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return 1;
@@ -118,57 +120,57 @@ scm_c_source_property_breakpoint_p (SCM form)
 
 
 /*
- * We remember the last file name settings, so we can share that plist
+ * We remember the last file name settings, so we can share that alist
  * entry.  This works because scm_set_source_property_x does not use
- * assoc-set! for modifying the plist.
+ * assoc-set! for modifying the alist.
  *
  * This variable contains a protected cons, whose cdr is the cached
- * plist
+ * alist
  */
-static SCM scm_last_plist_filename;
+static SCM scm_last_alist_filename;
 
 SCM
-scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM plist)
+scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM alist)
 {
   if (!SCM_UNBNDP (filename))
     {
-      SCM old_plist = plist;
+      SCM old_alist = alist;
 
       /*
 	have to extract the acons, and operate on that, for
 	thread safety.
        */
-      SCM last_acons = SCM_CDR (scm_last_plist_filename);
-      if (old_plist == SCM_EOL
+      SCM last_acons = SCM_CDR (scm_last_alist_filename);
+      if (old_alist == SCM_EOL
 	  && SCM_CDAR (last_acons) == filename)
 	{
-	  plist = last_acons;
+	  alist = last_acons;
 	}
       else
 	{
-	  plist = scm_acons (scm_sym_filename, filename, plist);
-	  if (old_plist == SCM_EOL)
-	    SCM_SETCDR (scm_last_plist_filename, plist);
+	  alist = scm_acons (scm_sym_filename, filename, alist);
+	  if (old_alist == SCM_EOL)
+	    SCM_SETCDR (scm_last_alist_filename, alist);
 	}
     }
   
   SCM_RETURN_NEWSMOB3 (scm_tc16_srcprops,
 		       SRCPROPMAKPOS (line, col),
 		       copy,
-		       plist);
+		       alist);
 }
 
 
-SCM
-scm_srcprops_to_plist (SCM obj)
+static SCM
+scm_srcprops_to_alist (SCM obj)
 {
-  SCM plist = SRCPROPPLIST (obj);
+  SCM alist = SRCPROPALIST (obj);
   if (!SCM_UNBNDP (SRCPROPCOPY (obj)))
-    plist = scm_acons (scm_sym_copy, SRCPROPCOPY (obj), plist);
-  plist = scm_acons (scm_sym_column, scm_from_int (SRCPROPCOL (obj)), plist);
-  plist = scm_acons (scm_sym_line, scm_from_int (SRCPROPLINE (obj)), plist);
-  plist = scm_acons (scm_sym_breakpoint, scm_from_bool (SRCPROPBRK (obj)), plist);
-  return plist;
+    alist = scm_acons (scm_sym_copy, SRCPROPCOPY (obj), alist);
+  alist = scm_acons (scm_sym_column, scm_from_int (SRCPROPCOL (obj)), alist);
+  alist = scm_acons (scm_sym_line, scm_from_int (SRCPROPLINE (obj)), alist);
+  alist = scm_acons (scm_sym_breakpoint, scm_from_bool (SRCPROPBRK (obj)), alist);
+  return alist;
 }
 
 SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0, 
@@ -184,7 +186,7 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
     SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SRCPROPSP (p))
-    return scm_srcprops_to_plist (p);
+    return scm_srcprops_to_alist (p);
   else
     /* list from set-source-properties!, or SCM_EOL for not found */
     return p;
@@ -194,20 +196,83 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 /* Perhaps this procedure should look through an alist
    and try to make a srcprops-object...? */
 SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
-            (SCM obj, SCM plist),
-	    "Install the association list @var{plist} as the source property\n"
+            (SCM obj, SCM alist),
+	    "Install the association list @var{alist} as the source property\n"
 	    "list for @var{obj}.")
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
+  long line = 0, col = 0;
+  SCM fname = SCM_UNDEFINED, copy = SCM_UNDEFINED, breakpoint = SCM_BOOL_F;
+  SCM others = SCM_EOL;
+  SCM *others_cdrloc = &others;
+  int need_srcprops = 0;
+  SCM tail, key;
+
   SCM_VALIDATE_NIM (1, obj);
   if (SCM_MEMOIZEDP (obj))
     obj = SCM_MEMOIZED_EXP (obj);
   else if (!scm_is_pair (obj))
     SCM_WRONG_TYPE_ARG(1, obj);
-  handle = scm_hashq_create_handle_x (scm_source_whash, obj, plist);
 
-  return plist;
+  tail = alist;
+  while (!scm_is_null (tail))
+    {
+      key = SCM_CAAR (tail);
+      if (scm_is_eq (key, scm_sym_line))
+	{
+	  line = scm_to_long (SCM_CDAR (tail));
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_column))
+	{
+	  col = scm_to_long (SCM_CDAR (tail));
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_filename))
+	{
+	  fname = SCM_CDAR (tail);
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_copy))
+	{
+	  copy = SCM_CDAR (tail);
+	  need_srcprops = 1;
+	}
+      else if (scm_is_eq (key, scm_sym_breakpoint))
+	{
+	  breakpoint = SCM_CDAR (tail);
+	  need_srcprops = 1;
+	}
+      else
+	{
+	  /* Do we allocate here, or clobber the caller's alist?
+
+	     Source properties aren't supposed to be used for anything
+	     except the special properties above, so the mainline case
+	     is that we never execute this else branch, and hence it
+	     doesn't matter much.
+
+	     We choose allocation here, as that seems safer.
+	  */
+	  *others_cdrloc = scm_cons (scm_cons (key, SCM_CDAR (tail)),
+				     SCM_EOL);
+	  others_cdrloc = SCM_CDRLOC (*others_cdrloc);
+	}
+      tail = SCM_CDR (tail);
+    }
+  if (need_srcprops)
+    {
+      alist = scm_make_srcprops (line, col, fname, copy, others);
+      if (scm_is_true (breakpoint))
+	SETSRCPROPBRK (alist);
+    }
+  else
+    alist = others;
+
+  handle = scm_hashq_create_handle_x (scm_source_whash, obj, alist);
+  SCM_SETCDR (handle, alist);
+  return alist;
 }
 #undef FUNC_NAME
 
@@ -225,15 +290,15 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
     SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
-    goto plist;
+    goto alist;
   if      (scm_is_eq (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
   else if (scm_is_eq (scm_sym_line,       key)) p = scm_from_int (SRCPROPLINE (p));
   else if (scm_is_eq (scm_sym_column,     key)) p = scm_from_int (SRCPROPCOL (p));
   else if (scm_is_eq (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
   else
     {
-      p = SRCPROPPLIST (p);
-    plist:
+      p = SRCPROPALIST (p);
+    alist:
       p = scm_assoc (key, p);
       return (SCM_NIMP (p) ? SCM_CDR (p) : SCM_BOOL_F);
     }
@@ -309,7 +374,7 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   else
     {
       if (SRCPROPSP (p))
-	SETSRCPROPPLIST (p, scm_acons (key, datum, SRCPROPPLIST (p)));
+	SETSRCPROPALIST (p, scm_acons (key, datum, SRCPROPALIST (p)));
       else
 	SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
     }
@@ -327,7 +392,7 @@ scm_init_srcprop ()
   scm_source_whash = scm_make_weak_key_hash_table (scm_from_int (2047));
   scm_c_define ("source-whash", scm_source_whash);
 
-  scm_last_plist_filename
+  scm_last_alist_filename
     = scm_permanent_object (scm_cons (SCM_EOL,
 				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL)));
 

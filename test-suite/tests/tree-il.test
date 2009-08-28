@@ -80,7 +80,7 @@
    (program 0 0 0 () (toplevel ref foo) (const 1) (call goto/args 1)))
   (assert-tree-il->glil/pmatch
    (begin (apply (toplevel foo) (const 1)) (void))
-   (program 0 0 0 () (toplevel ref foo) (const 1) (mv-call 1 ,l1)
+   (program 0 0 0 () (call new-frame 0) (toplevel ref foo) (const 1) (mv-call 1 ,l1)
             (call drop 1) (branch br ,l2)
             (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -88,7 +88,7 @@
    (and (eq? l1 l3) (eq? l2 l4)))
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel bar)))
-   (program 0 0 0 () (toplevel ref foo) (toplevel ref bar) (call call 0)
+   (program 0 0 0 () (toplevel ref foo) (call new-frame 0) (toplevel ref bar) (call call 0)
             (call goto/args 1))))
 
 (with-test-prefix "conditional"
@@ -444,7 +444,7 @@
   (assert-tree-il->glil/pmatch
    (begin (apply (primitive @apply) (toplevel foo) (toplevel bar)) (void))
    (program 0 0 0 ()
-            (toplevel ref apply) (toplevel ref foo) (toplevel ref bar) (mv-call 2 ,l1)
+            (call new-frame 0) (toplevel ref apply) (toplevel ref foo) (toplevel ref bar) (mv-call 2 ,l1)
             (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
             (void) (call return 1))
@@ -453,7 +453,7 @@
    (apply (toplevel foo) (apply (toplevel @apply) (toplevel bar) (toplevel baz)))
    (program 0 0 0 ()
             (toplevel ref foo)
-            (toplevel ref bar) (toplevel ref baz) (call apply 2)
+            (call new-frame 0) (toplevel ref bar) (toplevel ref baz) (call apply 2)
             (call goto/args 1))))
 
 (with-test-prefix "call/cc"
@@ -463,7 +463,7 @@
   (assert-tree-il->glil/pmatch
    (begin (apply (primitive @call-with-current-continuation) (toplevel foo)) (void))
    (program 0 0 0 ()
-            (toplevel ref call-with-current-continuation) (toplevel ref foo) (mv-call 1 ,l1)
+            (call new-frame 0) (toplevel ref call-with-current-continuation) (toplevel ref foo) (mv-call 1 ,l1)
             (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
             (void) (call return 1))

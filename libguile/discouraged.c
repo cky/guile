@@ -265,7 +265,7 @@ SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 
   SCM dash_string, non_dash_symbol;
 
   SCM_ASSERT (scm_is_symbol (symbol)
-	      && ('-' == scm_i_symbol_chars(symbol)[0]),
+	      && (scm_i_symbol_ref (symbol, 0) == '-'),
 	      symbol, SCM_ARG1, FUNC_NAME);
 
   dash_string = scm_symbol_to_string (symbol);

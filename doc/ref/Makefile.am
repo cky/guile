@@ -78,11 +78,20 @@ guile_TEXINFOS = preface.texi			\
 		 libguile-linking.texi		\
 	 	 libguile-extensions.texi	\
 		 api-init.texi			\
-		 mod-getopt-long.texi
+		 mod-getopt-long.texi		\
+		 goops.texi			\
+		 goops-tutorial.texi		\
+		 effective-version.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 
-EXTRA_DIST = ChangeLog-2008
+PICTURES = hierarchy.eps \
+	   hierarchy.pdf \
+	   hierarchy.png \
+	   hierarchy.txt \
+	   mop.text
+
+EXTRA_DIST = ChangeLog-2008 $(PICTURES)
 
 include $(top_srcdir)/am/pre-inst-guile
 

@@ -72,8 +72,7 @@ equal in the sense of @var{equal?}."
 		     (if (catch #t
 				(lambda ()
 				  (equal? (compile/run-test-from-file file)
-					  (eval (fetch-sexp-from-file file)
-						(interaction-environment))))
+					  (primitive-eval (fetch-sexp-from-file file))))
 				(lambda (key . args)
 				  (format #t "[~a/~a] " key args)
 				  #f))

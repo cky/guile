@@ -424,9 +424,9 @@ the current size, but this is not mandatory in the POSIX standard.
 
 The delimited-I/O module can be accessed with:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 rdelim))
-@end smalllisp
+@end lisp
 
 It can be used to read or write lines of text, or read text delimited by
 a specified set of characters.  It's similar to the @code{(scsh rdelim)}
@@ -536,9 +536,9 @@ delimiter may be either a newline or the @var{eof-object}; if
 
 The Block-string-I/O module can be accessed with:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 rw))
-@end smalllisp
+@end lisp
 
 It currently contains procedures that help to implement the
 @code{(scsh rw)} module in guile-scsh.
@@ -795,17 +795,17 @@ current interfaces.
 @rnindex open-input-file
 @deffn {Scheme Procedure} open-input-file filename
 Open @var{filename} for input.  Equivalent to
-@smalllisp
+@lisp
 (open-file @var{filename} "r")
-@end smalllisp
+@end lisp
 @end deffn
 
 @rnindex open-output-file
 @deffn {Scheme Procedure} open-output-file filename
 Open @var{filename} for output.  Equivalent to
-@smalllisp
+@lisp
 (open-file @var{filename} "w")
-@end smalllisp
+@end lisp
 @end deffn
 
 @deffn {Scheme Procedure} call-with-input-file filename proc

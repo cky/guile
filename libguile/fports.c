@@ -594,7 +594,7 @@ static void fport_flush (SCM port);
 
 /* fill a port's read-buffer with a single read.  returns the first
    char or EOF if end of file.  */
-static int
+static scm_t_wchar
 fport_fill_input (SCM port)
 {
   long count;
@@ -608,7 +608,7 @@ fport_fill_input (SCM port)
   if (count == -1)
     scm_syserror ("fport_fill_input");
   if (count == 0)
-    return EOF;
+    return (scm_t_wchar) EOF;
   else
     {
       pt->read_pos = pt->read_buf;
