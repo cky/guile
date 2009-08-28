@@ -990,7 +990,7 @@ scm_getc (SCM port)
   if (pt->encoding == NULL)
     { 
       /* The encoding is Latin-1: bytes are characters.  */
-      codepoint = buf[0];
+      codepoint = (unsigned char) buf[0];
       goto success;
     }
 
