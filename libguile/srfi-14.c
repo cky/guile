@@ -704,7 +704,6 @@ SCM_DEFINE (scm_char_set_cursor, "char-set-cursor", 1, 0, 0,
     }
   SCM_RETURN_NEWSMOB (scm_tc16_charset_cursor, cur_data);
 }
-
 #undef FUNC_NAME
 
 
@@ -734,7 +733,6 @@ SCM_DEFINE (scm_char_set_ref, "char-set-ref", 2, 0, 0,
     SCM_MISC_ERROR ("invalid character set cursor: ~A", scm_list_1 (cursor));
   return SCM_MAKE_CHAR (cur_data->n);
 }
-
 #undef FUNC_NAME
 
 
@@ -784,7 +782,6 @@ SCM_DEFINE (scm_char_set_cursor_next, "char-set-cursor-next", 2, 0, 0,
 
   return cursor;
 }
-
 #undef FUNC_NAME
 
 
@@ -803,7 +800,6 @@ SCM_DEFINE (scm_end_of_char_set_p, "end-of-char-set?", 1, 0, 0,
 
   return SCM_BOOL_F;
 }
-
 #undef FUNC_NAME
 
 
@@ -943,7 +939,6 @@ SCM_DEFINE (scm_char_set_for_each, "char-set-for-each", 2, 0, 0,
 
   return SCM_UNSPECIFIED;
 }
-
 #undef FUNC_NAME
 
 
@@ -1007,7 +1002,6 @@ SCM_DEFINE (scm_char_set_copy, "char-set-copy", 1, 0, 0,
 
   return ret;
 }
-
 #undef FUNC_NAME
 
 
@@ -1182,7 +1176,6 @@ SCM_DEFINE (scm_char_set_filter, "char-set-filter", 2, 1, 0,
       }
   return ret;
 }
-
 #undef FUNC_NAME
 
 
@@ -1214,7 +1207,6 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
       }
   return base_cs;
 }
-
 #undef FUNC_NAME
 
 
@@ -1347,7 +1339,6 @@ SCM_DEFINE (scm_char_set_size, "char-set-size", 1, 0, 0,
 
   return scm_from_int (count);
 }
-
 #undef FUNC_NAME
 
 
@@ -1400,7 +1391,6 @@ SCM_DEFINE (scm_char_set_to_list, "char-set->list", 1, 0, 0,
       result = scm_cons (SCM_MAKE_CHAR (n), result);
   return result;
 }
-
 #undef FUNC_NAME
 
 
@@ -1445,7 +1435,6 @@ SCM_DEFINE (scm_char_set_to_string, "char-set->string", 1, 0, 0,
       }
   return result;
 }
-
 #undef FUNC_NAME
 
 
@@ -1489,7 +1478,6 @@ SCM_DEFINE (scm_char_set_every, "char-set-every", 2, 0, 0,
       }
   return SCM_BOOL_T;
 }
-
 #undef FUNC_NAME
 
 
@@ -1634,7 +1622,6 @@ SCM_DEFINE (scm_char_set_complement, "char-set-complement", 1, 0, 0,
   charsets_complement (p, q);
   return res;
 }
-
 #undef FUNC_NAME
 
 
@@ -1816,7 +1803,6 @@ SCM_DEFINE (scm_char_set_complement_x, "char-set-complement!", 1, 0, 0,
   cs = scm_char_set_complement (cs);
   return cs;
 }
-
 #undef FUNC_NAME
 
 
@@ -1831,7 +1817,6 @@ SCM_DEFINE (scm_char_set_union_x, "char-set-union!", 1, 0, 1,
   cs1 = scm_char_set_union (scm_cons (cs1, rest));
   return cs1;
 }
-
 #undef FUNC_NAME
 
 
@@ -1846,7 +1831,6 @@ SCM_DEFINE (scm_char_set_intersection_x, "char-set-intersection!", 1, 0, 1,
   cs1 = scm_char_set_intersection (scm_cons (cs1, rest));
   return cs1;
 }
-
 #undef FUNC_NAME
 
 
@@ -1861,7 +1845,6 @@ SCM_DEFINE (scm_char_set_difference_x, "char-set-difference!", 1, 0, 1,
   cs1 = scm_char_set_difference (cs1, rest);
   return cs1;
 }
-
 #undef FUNC_NAME
 
 
@@ -1877,7 +1860,6 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
    */
   return scm_char_set_xor (scm_cons (cs1, rest));
 }
-
 #undef FUNC_NAME
 
 
@@ -1897,8 +1879,8 @@ SCM_DEFINE (scm_char_set_diff_plus_intersection_x,
   cs2 = intersect;
   return scm_values (scm_list_2 (cs1, cs2));
 }
-
 #undef FUNC_NAME
+
 
 
 /* Standard character sets.  */
@@ -1937,7 +1919,7 @@ define_charset (const char *name, const scm_t_char_set *p)
 SCM_DEFINE (scm_debug_char_set, "debug-char-set", 1, 0, 0,
             (SCM charset),
             "Print out the internal C structure of @var{charset}.\n")
-#define FUNC_NAME s_debug_char_set
+#define FUNC_NAME s_scm_debug_char_set
 {
   int i;
   scm_t_char_set *cs = SCM_CHARSET_DATA (charset);
@@ -1956,9 +1938,8 @@ SCM_DEFINE (scm_debug_char_set, "debug-char-set", 1, 0, 0,
   printf ("\n");
   return SCM_UNSPECIFIED;
 }
-
 #undef FUNC_NAME
-#endif
+#endif /* SCM_CHARSET_DEBUG */
 
 
 
