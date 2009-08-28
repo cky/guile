@@ -19,8 +19,8 @@
  * 02110-1301 USA
  */
 
-#ifndef PRIVATE_GC
-#define PRIVATE_GC
+#ifndef SCM_PRIVATE_GC
+#define SCM_PRIVATE_GC
 
 #include  "_scm.h"
 
@@ -32,54 +32,15 @@
  * Each heap cell is 8 bytes on a 32 bit machine and 16 bytes on a
  * 64 bit machine.  The units of the _SIZE parameters are bytes.
  * Cons pairs and object headers occupy one heap cell.
- *
- * SCM_MIN_HEAP_SEG_SIZE is minimum size of heap to accept when more heap
- * is needed.
  */
 
 
-/*
- * Heap size 45000 and 40% min yield gives quick startup and no extra
- * heap allocation.  Having higher values on min yield may lead to
- * large heaps, especially if code behaviour is varying its
- * maximum consumption between different freelists.
- */
-
-/*
-  These values used to be global C variables. However, they're also
-  available through the environment, and having a double interface is
-  confusing. Now they're #defines --hwn.
- */
-
-#define SCM_DEFAULT_INIT_HEAP_SIZE_1  256*1024
-#define SCM_DEFAULT_MIN_YIELD_1 40
 #define SCM_DEFAULT_INIT_HEAP_SIZE_2 32*1024
-
-/*
-  How many cells to collect during one sweep call. This is the pool
-  size of each thread.
- */
-#define DEFAULT_SWEEP_AMOUNT 512
-
-/* The following value may seem large, but note that if we get to GC at
- * all, this means that we have a numerically intensive application
- */
-#define SCM_DEFAULT_MIN_YIELD_2 40
-
-#define SCM_DEFAULT_MAX_SEGMENT_SIZE  (20*1024*1024L)
-
-#define SCM_MIN_HEAP_SEG_SIZE (8 * SCM_GC_SIZEOF_CARD)
-#define SCM_HEAP_SEG_SIZE (16384L * sizeof (scm_t_cell))
 
 #define SCM_DOUBLECELL_ALIGNED_P(x)  (((2 * sizeof (scm_t_cell) - 1) & SCM_UNPACK (x)) == 0)
 
 
-#define SCM_GC_CARD_BVEC_SIZE_IN_LONGS \
-    ((SCM_GC_CARD_N_CELLS + SCM_C_BVEC_LONG_BITS - 1) / SCM_C_BVEC_LONG_BITS)
-#define SCM_GC_IN_CARD_HEADERP(x) \
-  (scm_t_cell *) (x) <  SCM_GC_CELL_CARD (x) + SCM_GC_CARD_N_HEADER_CELLS
-
-int scm_getenv_int (const char *var, int def);
+SCM_INTERNAL int scm_getenv_int (const char *var, int def);
 
 
 typedef enum { return_on_error, abort_on_error } policy_on_error;
@@ -100,28 +61,6 @@ typedef enum { return_on_error, abort_on_error } policy_on_error;
 */
 #define CELL_P(x)  ((SCM_UNPACK(x) & (sizeof(scm_t_cell)-1)) == scm_tc3_cons)
 
-/*
-  gc-mark
- */
-
-/* Non-zero while in the mark phase.  */
-SCM_INTERNAL int scm_i_marking;
-
-SCM_INTERNAL void scm_mark_all (void);
-
-extern long int scm_i_deprecated_memory_return;
-extern long int scm_i_find_heap_calls;
-
 SCM_INTERNAL char const *scm_i_tag_name (scm_t_bits tag); /* MOVEME */
-
-
-/*
-  global init funcs.
- */
-void scm_gc_init_malloc (void);
-void scm_gc_init_freelist (void);
-void scm_gc_init_segments (void);
-void scm_gc_init_mark (void);
-
 
 #endif

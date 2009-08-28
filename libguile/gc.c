@@ -208,16 +208,9 @@ scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
 
-/* scm_mtrigger
- * is the number of bytes of malloc allocation needed to trigger gc.
- */
-unsigned long scm_mtrigger;
-
 /* GC Statistics Keeping
  */
-unsigned long scm_mallocated = 0;
 unsigned long scm_gc_ports_collected = 0;
-
 
 static unsigned long protected_obj_count = 0;
 
@@ -672,8 +665,6 @@ scm_init_storage ()
   j = SCM_NUM_PROTECTS;
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
-
-  j = SCM_HEAP_SEG_SIZE;
 
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it

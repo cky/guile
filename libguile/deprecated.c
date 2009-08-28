@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1503,6 +1503,29 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* GC-related things.  */
+
+unsigned long scm_mallocated, scm_mtrigger;
+size_t scm_max_segment_size;
+
+#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
+SCM
+scm_map_free_list (void)
+{
+  return SCM_EOL;
+}
+#endif
+
+#if defined (GUILE_DEBUG_FREELIST)
+SCM
+scm_gc_set_debug_check_freelist_x (SCM flag)
+{
+  return SCM_UNSPECIFIED;
+}
+#endif
+
+
 void
 scm_i_init_deprecated ()
 {

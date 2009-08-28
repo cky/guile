@@ -583,6 +583,25 @@ SCM_API SCM scm_destroy_guardian_x (SCM guardian);
 SCM_API SCM scm_guardian_greedy_p (SCM guardian);
 SCM_API SCM scm_guardian_destroyed_p (SCM guardian);
 
+
+/* GC-related things deprecated with the move to BDW-GC starting from 1.9.3
+   (2009-09-15).  */
+
+SCM_API unsigned long scm_mallocated;
+SCM_API unsigned long scm_mtrigger;
+
+SCM_API size_t scm_max_segment_size;
+
+#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
+SCM_API SCM scm_map_free_list (void);
+#endif
+
+#if defined (GUILE_DEBUG_FREELIST)
+SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
+#endif
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

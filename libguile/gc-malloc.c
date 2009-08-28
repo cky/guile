@@ -78,27 +78,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 
 /* #define DEBUGINFO */
 
-static int scm_i_minyield_malloc;
-
-void
-scm_gc_init_malloc (void)
-{
-  int mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
-				 SCM_DEFAULT_INIT_MALLOC_LIMIT);
-  scm_i_minyield_malloc = scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
-					  SCM_DEFAULT_MALLOC_MINYIELD);
-
-  if (scm_i_minyield_malloc >= 100)
-    scm_i_minyield_malloc = 99;
-  if (scm_i_minyield_malloc < 1)
-    scm_i_minyield_malloc = 1;
-
-  if (mtrigger < 0)
-    scm_mtrigger = SCM_DEFAULT_INIT_MALLOC_LIMIT;
-  else
-    scm_mtrigger = mtrigger;
-}
-
 
 
 /* Function for non-cell memory management.

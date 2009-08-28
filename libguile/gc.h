@@ -152,17 +152,7 @@ SCM_API size_t scm_default_max_segment_size;
 #define  scm_default_max_segment_size deprecated
 #endif
 
-
-SCM_API size_t scm_max_segment_size;
-
-#define SCM_SET_FREELIST_LOC(key,ptr) scm_i_pthread_setspecific ((key), (ptr))
-#define SCM_FREELIST_LOC(key) ((SCM *) scm_i_pthread_getspecific (key))
-SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
-SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
-
-SCM_API unsigned long scm_mallocated;
 SCM_API unsigned long scm_gc_ports_collected;
-SCM_API unsigned long scm_mtrigger;
 
 SCM_API SCM scm_after_gc_hook;
 
@@ -172,18 +162,6 @@ SCM_API scm_t_c_hook scm_before_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_gc_c_hook;
 
-#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
-#if (SCM_ENABLE_DEPRECATED == 1)
-SCM scm_map_free_list (void);
-#else
-#define scm_map_free_list deprecated
-#define scm_free_list_length deprecated
-#endif
-#endif
-
-#if (SCM_ENABLE_DEPRECATED == 1) && defined (GUILE_DEBUG_FREELIST)
-SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
-#endif
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
