@@ -28,7 +28,9 @@
 (define (string-ints . args)
   (apply string (map integer->char args)))
 
-(setlocale LC_ALL "")
+(define oldlocale #f)
+(if (defined? 'setlocale)
+    (set! oldlocale (setlocale LC_ALL "")))
 
 (define s1 "Περί")
 (define s2 "της")
@@ -133,4 +135,5 @@
 		       (display (string-ints #x0400) pt))))
 
 ;; Reset locale
-(setlocale LC_ALL "C")
+(if (defined? 'setlocale)
+    (setlocale LC_ALL oldlocale))

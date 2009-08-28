@@ -118,22 +118,23 @@
 	     (string=? "\\xfaltima"
 		       (get-output-string pt))))
   (pass-if "Rashomon"
-	   (let ((pt (open-output-string)))
-	     (set-port-encoding! pt "ASCII")
-	     (set-port-conversion-strategy! pt 'escape)
-	     (display s4 pt)
-	     (string=? "\\u7F85\\u751F\\u9580"
-		       (get-output-string pt)))))
-
-(setlocale LC_ALL "en_US.utf8")
+    (let ((pt (open-output-string)))
+      (set-port-encoding! pt "ASCII")
+      (set-port-conversion-strategy! pt 'escape)
+      (display s4 pt)
+      (string=? "\\u7F85\\u751F\\u9580"
+                (get-output-string pt)))))
 
 (with-test-prefix "input escapes"
 
-  (pass-if  "última"
-	    (string=? "última"
-		      (with-input-from-string "\"\\xfaltima\"" read)))
+  (pass-if "última"
+    (with-locale "en_US.utf8"
+                 (string=? "última"
+                           (with-input-from-string "\"\\xfaltima\"" read))))
 
   (pass-if "羅生門"
-	   (string=? "羅生門"
-		     (with-input-from-string "\"\\u7F85\\u751F\\u9580\"" read))))
+    (with-locale "en_US.utf8"
+                 (string=? "羅生門"
+                           (with-input-from-string 
+                               "\"\\u7F85\\u751F\\u9580\"" read)))))
 

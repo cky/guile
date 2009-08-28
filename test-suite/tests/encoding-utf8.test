@@ -28,7 +28,9 @@
 (define (string-ints . args)
   (apply string (map integer->char args)))
 
-(setlocale LC_ALL "")
+(define oldlocale #f)
+(if (defined? 'setlocale)
+    (set! oldlocale (setlocale LC_ALL "")))
 
 (define s1 "última")
 (define s2 "cédula")
@@ -102,4 +104,5 @@
 		 (ñ 2))
 	     (eq? (+  芥川龍之介 ñ) 3))))
 
-
+(if (defined? 'setlocale)
+    (setlocale LC_ALL oldlocale))

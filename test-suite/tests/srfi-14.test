@@ -238,9 +238,6 @@
        (string=? (char-set->string cs)
                  "egilu"))))
 
-;; Make sure we get an ASCII charset and character classification.
-(if (defined? 'setlocale) (setlocale LC_CTYPE "C"))
-
 (with-test-prefix "standard char sets (ASCII)"
 
   (pass-if "char-set:lower-case"
@@ -340,142 +337,105 @@
 (define (every? pred lst)
   (not (not (every pred lst))))
 
-(define (find-latin1-locale)
-  ;; Try to find and install an ISO-8859-1 locale.  Return `#f' on failure.
-  (if (defined? 'setlocale)
-      (let loop ((locales (map (lambda (lang)
-				 (string-append lang ".iso88591"))
-			       '("de_DE" "en_GB" "en_US" "es_ES"
-				 "fr_FR" "it_IT"))))
-	(if (null? locales)
-	    #f
-	    (if (false-if-exception (setlocale LC_CTYPE (car locales)))
-		(car locales)
-		(loop (cdr locales)))))
-      #f))
-
-
-(define %latin1 (find-latin1-locale))
+(define oldlocale #f)
+(if (defined? 'setlocale)
+    (set! oldlocale (setlocale LC_ALL "")))
 
 (with-test-prefix "Latin-1 (8-bit charset)"
 
   (pass-if "char-set:lower-case"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set
-                      (string-append "abcdefghijklmnopqrstuvwxyz"
-                                     "µßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ")
-                      char-set:lower-case))))
+    (char-set<= (string->char-set
+                 (string-append "abcdefghijklmnopqrstuvwxyz"
+                                "µßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ")
+                 char-set:lower-case)))
 
   (pass-if "char-set:upper-case"
-     (if (not %latin1)
-         (throw 'unresolved)
-         (char-set<= (string->char-set
-                      (string-append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                     "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ")
-                      char-set:lower-case))))
+    (char-set<= (string->char-set
+                 (string-append "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ")
+                 char-set:lower-case)))
 
   (pass-if "char-set:title-case"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set "")
-                     char-set:title-case)))
+    (char-set<= (string->char-set "")
+                char-set:title-case))
 
   (pass-if "char-set:letter"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set
-                      (string-append 
-                       ;; Lowercase
-                       "abcdefghijklmnopqrstuvwxyz" 
-                       "µßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ"
-                       ;; Uppercase
-                       "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
-                       "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ"
-                       ;; Uncased
-                       "ªº")) 
-                     char-set:letter)))
+    (char-set<= (string->char-set
+                 (string-append 
+                  ;; Lowercase
+                  "abcdefghijklmnopqrstuvwxyz" 
+                  "µßàáâãäåæçèéêëìíîïğñòóôõöøùúûüışÿ"
+                  ;; Uppercase
+                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" 
+                  "ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏĞÑÒÓÔÕÖØÙÚÛÜİŞ"
+                  ;; Uncased
+                  "ªº")) 
+                char-set:letter))
   
   (pass-if "char-set:digit"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set "0123456789")
-                     char-set:digit)))
+    (char-set<= (string->char-set "0123456789")
+                char-set:digit))
 
   (pass-if "char-set:hex-digit"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set "0123456789abcdefABCDEF")
-                     char-set:hex-digit)))
+    (char-set<= (string->char-set "0123456789abcdefABCDEF")
+                char-set:hex-digit))
 
   (pass-if "char-set:letter+digit"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (char-set-union
-                      char-set:letter
-                      char-set:digit)
-                     char-set:letter+digit)))
+    (char-set<= (char-set-union
+                 char-set:letter
+                 char-set:digit)
+                char-set:letter+digit))
 
   (pass-if "char-set:punctuation"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set 
-                      (string-append "!\"#%&'()*,-./:;?@[\\]_{}"
-                                     "¡«·»¿"))
-                     char-set:punctuation)))
+    (char-set<= (string->char-set 
+                 (string-append "!\"#%&'()*,-./:;?@[\\]_{}"
+                                "¡«·»¿"))
+                char-set:punctuation))
 
   (pass-if "char-set:symbol"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set 
-                      (string-append "$+<=>^`|~"
-                                     "¢£¤¥¦§¨©¬®¯°±´¶¸×÷"))
-                     char-set:symbol)))
+    (char-set<= (string->char-set 
+                 (string-append "$+<=>^`|~"
+                                "¢£¤¥¦§¨©¬®¯°±´¶¸×÷"))
+                char-set:symbol))
 
   ;; Note that SRFI-14 itself is inconsistent here.  Characters that
   ;; are non-digit numbers (such as category No) are clearly 'graphic'
   ;; but don't occur in the letter, digit, punct, or symbol charsets.
   (pass-if "char-set:graphic"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (char-set-union
-                      char-set:letter
-                      char-set:digit
-                      char-set:punctuation
-                      char-set:symbol)
-                     char-set:graphic)))
+    (char-set<= (char-set-union
+                 char-set:letter
+                 char-set:digit
+                 char-set:punctuation
+                 char-set:symbol)
+                char-set:graphic))
 
   (pass-if "char-set:whitespace"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set 
-                      (string
-                       (integer->char #x09)
-                       (integer->char #x0a)
-                       (integer->char #x0b)
-                       (integer->char #x0c)
-                       (integer->char #x0d)
-                       (integer->char #x20)
-                       (integer->char #xa0)))
-                     char-set:whitespace)))
+    (char-set<= (string->char-set 
+                 (string
+                  (integer->char #x09)
+                  (integer->char #x0a)
+                  (integer->char #x0b)
+                  (integer->char #x0c)
+                  (integer->char #x0d)
+                  (integer->char #x20)
+                  (integer->char #xa0)))
+                char-set:whitespace))
                                   
   (pass-if "char-set:printing"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (char-set-union char-set:graphic char-set:whitespace)
-                     char-set:printing)))
+    (char-set<= (char-set-union char-set:graphic char-set:whitespace)
+                char-set:printing))
 
   (pass-if "char-set:iso-control"
-     (if (not %latin1)
-	 (throw 'unresolved)
-         (char-set<= (string->char-set 
-                      (apply string 
-                             (map integer->char (append 
-                                                 ;; U+0000 to U+001F
-                                                 (iota #x20)
-                                                 (list #x7f)
-                                                 ;; U+007F to U+009F
-                                                 (map (lambda (x) (+ #x80 x))
-                                                      (iota #x20))))))
-                     char-set:iso-control))))
+    (char-set<= (string->char-set 
+                 (apply string 
+                        (map integer->char (append 
+                                            ;; U+0000 to U+001F
+                                            (iota #x20)
+                                            (list #x7f)
+                                            ;; U+007F to U+009F
+                                            (map (lambda (x) (+ #x80 x))
+                                                 (iota #x20))))))
+                char-set:iso-control)))
 
+(if (defined? 'setlocale)
+    (setlocale LC_ALL oldlocale))
