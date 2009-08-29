@@ -1867,11 +1867,14 @@ void *scm_get_stack_base()
     /* Skip the required number of fields.  This number is hopefully	*/
     /* constant across all Linux implementations.			*/
       for (i = 0; i < STAT_SKIP; ++i) {
-	while (isspace(c)) c = stat_buf[buf_offset++];
-	while (!isspace(c)) c = stat_buf[buf_offset++];
+	while (isspace ((int) c)) 
+          c = stat_buf[buf_offset++];
+	while (!isspace ((int) c)) 
+          c = stat_buf[buf_offset++];
       }
-    while (isspace(c)) c = stat_buf[buf_offset++];
-    while (isdigit(c)) {
+      while (isspace ((int) c)) 
+        c = stat_buf[buf_offset++];
+    while (isdigit ((int) c)) {
       result *= 10;
       result += c - '0';
       c = stat_buf[buf_offset++];
