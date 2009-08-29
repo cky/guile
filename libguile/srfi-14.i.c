@@ -2,7 +2,8 @@
 
 /* This file is #include'd by srfi-14.c.  */
 
-/* This file was generated from http://unicode.org/Public/UNIDATA/UnicodeData.txt
+/* This file was generated from
+   http://unicode.org/Public/UNIDATA/UnicodeData.txt
    with the unidata_to_charset.pl script.  */
 
 scm_t_char_range cs_lower_case_ranges[] = {
@@ -6925,7 +6926,7 @@ scm_t_char_range cs_full_ranges[] = {
   ,
   {0xac00, 0xd7a3}
   ,
-  {0xd800, 0xfa2d}
+  {0xe000, 0xfa2d}
   ,
   {0xfa30, 0xfa6a}
   ,

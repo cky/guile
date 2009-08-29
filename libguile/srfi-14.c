@@ -29,6 +29,7 @@
 #include "libguile.h"
 #include "libguile/srfi-14.h"
 #include "libguile/strings.h"
+#include "libguile/chars.h"
 
 /* Include the pre-computed standard charset data.  */
 #include "libguile/srfi-14.i.c"
@@ -386,8 +387,8 @@ charsets_complement (scm_t_char_set *p, scm_t_char_set *q)
       p->ranges = scm_gc_malloc (sizeof (scm_t_char_range) * 2,
                                  "character-set");
       p->ranges[0].lo = 0;
-      p->ranges[0].hi = 0xd7ff;
-      p->ranges[1].lo = 0xe000;
+      p->ranges[0].hi = SCM_CODEPOINT_SURROGATE_START - 1;
+      p->ranges[1].lo = SCM_CODEPOINT_SURROGATE_END + 1;
       p->ranges[1].hi = SCM_CODEPOINT_MAX;
       return;
     }

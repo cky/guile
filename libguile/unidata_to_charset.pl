@@ -254,10 +254,14 @@ sub empty {
     return 0;
 }
 
-# Full -- All characters.  
+# Full -- All characters except for the surrogates
 sub full {
     my($codepoint, $name, $category, $uppercase, $lowercase)= @_;
-    return 1;
+    if ($category =~ (/Cs/)) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 
@@ -362,7 +366,7 @@ sub compute {
 # Write a bit of a header
 print $out "/* srfi-14.i.c -- standard SRFI-14 character set data */\n\n";
 print $out "/* This file is #include'd by srfi-14.c.  */\n\n";
-print $out "/* This file was generated from\n"
+print $out "/* This file was generated from\n";
 print $out "   http://unicode.org/Public/UNIDATA/UnicodeData.txt\n";
 print $out "   with the unidata_to_charset.pl script.  */\n\n";
 
