@@ -22,6 +22,12 @@
 (define exception:wrong-type-to-apply
   (cons 'misc-error "^Wrong type to apply:"))
 
+(define exception:unknown-character-name
+  (cons #t "unknown character"))
+
+(define exception:out-of-range-octal
+  (cons #t "out-of-range"))
+
 
 (with-test-prefix "basic char handling"
 
@@ -217,11 +223,21 @@
     (pass-if-exception "integer->char out of range, -1" exception:out-of-range
       (integer->char -1))
 
-    (pass-if-exception "integer->char out of range, surrrogate" exception:out-of-range
+    (pass-if-exception "integer->char out of range, surrrogate" 
+                       exception:out-of-range
       (integer->char #xd800))
 
-    (pass-if-exception "integer->char out of range, 0x110000" exception:out-of-range
-      (integer->char #x110000)))
+    (pass-if-exception "integer->char out of range, too big" 
+                       exception:out-of-range
+      (integer->char #x110000))
+
+    (pass-if-exception "octal out of range, surrrogate" 
+                       exception:out-of-range-octal
+      (with-input-from-string "#\\154000" read))
+
+    (pass-if-exception "octal out of range, too big" 
+                       exception:out-of-range-octal
+      (with-input-from-string "#\\4200000" read)))
 
   (with-test-prefix "case"
 
@@ -252,7 +268,21 @@
            (eqv? #\Soh #\001)
            (eqv? #\Stx #\002)))
 
-   (pass-if "alt charnames are case insensitive"
-     (eqv? #\null #\nul)
-     (eqv? #\NULL #\nul)
-     (eqv? #\Null #\nul))))
+    (pass-if "alt charnames are case insensitive"
+      (eqv? #\null #\nul)
+      (eqv? #\NULL #\nul)
+      (eqv? #\Null #\nul))
+
+    (pass-if-exception "bad charname" exception:unknown-character-name
+      (with-input-from-string "#\\blammo" read))
+
+    (pass-if "R5RS character names are preferred write format"
+      (string=?
+       (with-output-to-string (lambda () (write #\space)))
+       "#\\space"))
+
+    (pass-if "C0 control character names are preferred write format"
+      (string=?
+       (with-output-to-string (lambda () (write #\soh)))
+       "#\\soh"))))
+
