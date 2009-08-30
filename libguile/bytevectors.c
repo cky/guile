@@ -175,27 +175,14 @@
 
 /* Bytevector type.  */
 
-/* The threshold (in octets) under which bytevectors are stored "in-line",
-   i.e., without allocating memory beside the double cell itself.
-   This optimization is necessary since small bytevectors are expected to be
-   common.  */
-#define SCM_BYTEVECTOR_INLINE_THRESHOLD  (2 * sizeof (SCM))
+#define SCM_BYTEVECTOR_HEADER_BYTES		\
+  (SCM_BYTEVECTOR_HEADER_SIZE * sizeof (SCM))
 
-#define SCM_BYTEVECTOR_INLINEABLE_SIZE_P(_size)	\
-  ((_size) <= SCM_BYTEVECTOR_INLINE_THRESHOLD)
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
   SCM_SET_CELL_WORD_1 ((_bv), (scm_t_bits) (_len))
-#define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _buf)          \
-  SCM_SET_CELL_WORD_2 ((_bv), (scm_t_bits) (_buf))
-#define SCM_BYTEVECTOR_SET_INLINE(bv)			\
-  SCM_SET_BYTEVECTOR_FLAGS (bv,				\
-			    SCM_BYTEVECTOR_FLAGS (bv)	\
-			    | SCM_F_BYTEVECTOR_INLINE)
 
-#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)			\
-  SCM_SET_BYTEVECTOR_FLAGS (bv,						\
-			    (SCM_BYTEVECTOR_FLAGS (bv) & SCM_F_BYTEVECTOR_INLINE) \
-			    | ((hint) << 1UL))
+#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)	\
+  SCM_SET_BYTEVECTOR_FLAGS ((bv), (hint))
 #define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
   (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)
 #define SCM_BYTEVECTOR_TYPED_LENGTH(var)                        \
@@ -206,66 +193,64 @@ SCM scm_null_bytevector = SCM_UNSPECIFIED;
 
 
 static inline SCM
-make_bytevector_from_buffer (size_t len, void *contents,
-                             scm_t_array_element_type element_type)
+make_bytevector (size_t len, scm_t_array_element_type element_type)
 {
   SCM ret;
   size_t c_len;
-  
+
   if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
                     || scm_i_array_element_type_sizes[element_type] < 8
                     || len >= (SCM_I_SIZE_MAX
                                / (scm_i_array_element_type_sizes[element_type]/8))))
     /* This would be an internal Guile programming error */
     abort ();
-  
-  c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
-  if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
-    ret = scm_double_cell (scm_tc7_bytevector, (scm_t_bits) c_len,
-			   (scm_t_bits) contents, 0);
+
+  if (SCM_UNLIKELY (len == 0 && element_type == SCM_ARRAY_ELEMENT_TYPE_VU8
+		    && SCM_BYTEVECTOR_P (scm_null_bytevector)))
+    ret = scm_null_bytevector;
   else
     {
-      ret = scm_double_cell (scm_tc7_bytevector, (scm_t_bits) c_len, 0, 0);
-      SCM_BYTEVECTOR_SET_INLINE (ret);
-      if (contents)
-        {
-          memcpy (SCM_BYTEVECTOR_CONTENTS (ret), contents, c_len);
-          scm_gc_free (contents, c_len, SCM_GC_BYTEVECTOR);
-        }
+      c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
+
+      ret = PTR2SCM (scm_gc_malloc_pointerless (SCM_BYTEVECTOR_HEADER_BYTES + c_len,
+						SCM_GC_BYTEVECTOR));
+
+      SCM_SET_CELL_TYPE (ret, scm_tc7_bytevector);
+      SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
+      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
     }
-  SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
+
   return ret;
 }
 
+/* Return a bytevector of LEN elements of type ELEMENT_TYPE, with element
+   values taken from CONTENTS.  */
 static inline SCM
-make_bytevector (size_t len, scm_t_array_element_type element_type)
+make_bytevector_from_buffer (size_t len, void *contents,
+			     scm_t_array_element_type element_type)
 {
-  size_t c_len;
+  SCM ret;
 
-  if (SCM_UNLIKELY (len == 0 && element_type == 0))
-    return scm_null_bytevector;
-  else if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
-                         || scm_i_array_element_type_sizes[element_type] < 8
-                         || len >= (SCM_I_SIZE_MAX
-                                    / (scm_i_array_element_type_sizes[element_type]/8))))
-    /* This would be an internal Guile programming error */
-    abort ();
+  /* We actually never reuse storage from CONTENTS.  Hans Boehm says in
+     <gc/gc.h> that realloc(3) "shouldn't have been invented" and he may well
+     be right.  */
+  ret = make_bytevector (len, element_type);
 
-  c_len = len * (scm_i_array_element_type_sizes[element_type]/8);
-  if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
+  if (len > 0)
     {
-      SCM ret;
-      ret = scm_double_cell (scm_tc7_bytevector, (scm_t_bits) c_len, 0, 0);
-      SCM_BYTEVECTOR_SET_INLINE (ret);
-      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
-      return ret;
+      size_t c_len;
+
+      c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
+      memcpy (SCM_BYTEVECTOR_CONTENTS (ret),
+	      contents,
+	      c_len);
+
+      scm_gc_free (contents, c_len, SCM_GC_BYTEVECTOR);
     }
-  else
-    {
-      void *buf = scm_gc_malloc_pointerless (c_len, SCM_GC_BYTEVECTOR);
-      return make_bytevector_from_buffer (len, buf, element_type);
-    }
+
+  return ret;
 }
+
 
 /* Return a new bytevector of size LEN octets.  */
 SCM
@@ -297,44 +282,30 @@ scm_c_take_typed_bytevector (signed char *contents, size_t len,
 }
 
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
-   size) and return BV.  */
+   size) and return the new bytevector (possibly different from BV).  */
 SCM
-scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
+scm_c_shrink_bytevector (SCM bv, size_t c_new_len)
 {
+  SCM new_bv;
+  size_t c_len;
+
   if (SCM_UNLIKELY (c_new_len % SCM_BYTEVECTOR_TYPE_SIZE (bv)))
     /* This would be an internal Guile programming error */
     abort ();
 
-  if (!SCM_BYTEVECTOR_INLINE_P (bv))
-    {
-      size_t c_len;
-      signed char *c_bv, *c_new_bv;
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  if (SCM_UNLIKELY (c_new_len > c_len))
+    abort ();
 
-      c_len = SCM_BYTEVECTOR_LENGTH (bv);
-      c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
+  SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
 
-      SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
+  /* Resize the existing buffer.  */
+  new_bv = PTR2SCM (scm_gc_realloc (SCM2PTR (bv),
+				    c_len + SCM_BYTEVECTOR_HEADER_BYTES,
+				    c_new_len + SCM_BYTEVECTOR_HEADER_BYTES,
+				    SCM_GC_BYTEVECTOR));
 
-      if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_new_len))
-	{
-	  /* Copy to the in-line buffer and free the current buffer.  */
-          SCM_BYTEVECTOR_SET_INLINE (bv);
-	  c_new_bv = SCM_BYTEVECTOR_CONTENTS (bv);
-	  memcpy (c_new_bv, c_bv, c_new_len);
-	  scm_gc_free (c_bv, c_len, SCM_GC_BYTEVECTOR);
-	}
-      else
-	{
-	  /* Resize the existing buffer.  */
-	  c_new_bv = scm_gc_realloc (c_bv, c_len, c_new_len,
-				     SCM_GC_BYTEVECTOR);
-	  SCM_BYTEVECTOR_SET_CONTENTS (bv, c_new_bv);
-	}
-    }
-  else
-    SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
-
-  return bv;
+  return new_bv;
 }
 
 int
@@ -2242,8 +2213,7 @@ scm_bootstrap_bytevectors (void)
      want to access bytevectors even though `(rnrs bytevector)' hasn't been
      loaded.  */
   scm_null_bytevector =
-    scm_gc_protect_object
-    (make_bytevector_from_buffer (0, NULL, SCM_ARRAY_ELEMENT_TYPE_VU8));
+    scm_gc_protect_object (make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8));
 
 #ifdef WORDS_BIGENDIAN
   scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("big"));

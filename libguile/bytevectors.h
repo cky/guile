@@ -26,12 +26,15 @@
 
 /* R6RS bytevectors.  */
 
+/* The size in words of the bytevector header (type tag, flags, and
+   length).  */
+#define SCM_BYTEVECTOR_HEADER_SIZE   2U
+
 #define SCM_BYTEVECTOR_LENGTH(_bv)		\
   ((size_t) SCM_CELL_WORD_1 (_bv))
-#define SCM_BYTEVECTOR_CONTENTS(_bv)			\
-  (SCM_BYTEVECTOR_INLINE_P (_bv)			\
-   ? (signed char *) SCM_CELL_OBJECT_LOC ((_bv), 2)	\
-   : (signed char *) SCM_CELL_WORD_2 (_bv))
+#define SCM_BYTEVECTOR_CONTENTS(_bv)					\
+  ((signed char *) SCM_CELL_OBJECT_LOC ((_bv),				\
+					SCM_BYTEVECTOR_HEADER_SIZE))
 
 
 SCM_API SCM scm_endianness_big;
@@ -116,14 +119,12 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
   (!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_bytevector)
 #define SCM_BYTEVECTOR_FLAGS(_bv)		\
   (SCM_CELL_TYPE (_bv) >> 7UL)
-#define SCM_SET_BYTEVECTOR_FLAGS(_bv, _f)			\
-  SCM_SET_CELL_TYPE ((_bv), scm_tc7_bytevector | ((_f) << 7UL))
+#define SCM_SET_BYTEVECTOR_FLAGS(_bv, _f)				\
+  SCM_SET_CELL_TYPE ((_bv),						\
+		     scm_tc7_bytevector | ((scm_t_bits)(_f) << 7UL))
 
-#define SCM_F_BYTEVECTOR_INLINE 0x1
-#define SCM_BYTEVECTOR_INLINE_P(_bv)            \
-  (SCM_BYTEVECTOR_FLAGS (_bv) & SCM_F_BYTEVECTOR_INLINE)
 #define SCM_BYTEVECTOR_ELEMENT_TYPE(_bv)	\
-  (SCM_BYTEVECTOR_FLAGS (_bv) >> 1UL)
+  (SCM_BYTEVECTOR_FLAGS (_bv))
 
 /* Hint that is passed to `scm_gc_malloc ()' and friends.  */
 #define SCM_GC_BYTEVECTOR "bytevector"
@@ -140,13 +141,7 @@ SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, size_t);
 
 SCM_INTERNAL int scm_i_print_bytevector (SCM, SCM, scm_print_state *);
 
-
-#define scm_c_shrink_bytevector(_bv, _len)		\
-  (SCM_BYTEVECTOR_INLINE_P (_bv)			\
-   ? (_bv)						\
-   : scm_i_shrink_bytevector ((_bv), (_len)))
-
-SCM_INTERNAL SCM scm_i_shrink_bytevector (SCM, size_t);
+SCM_INTERNAL SCM scm_c_shrink_bytevector (SCM, size_t);
 SCM_INTERNAL void scm_i_bytevector_generalized_set_x (SCM, size_t, SCM);
 SCM_INTERNAL SCM scm_null_bytevector;
 
