@@ -1477,14 +1477,17 @@ scm_is_string (SCM obj)
   return IS_STRING (obj);
 }
 
-static SCM
-scm_from_stringn (const char *str, size_t len, const char *encoding,
-                  scm_t_string_failed_conversion_handler handler)
+SCM
+scm_i_from_stringn (const char *str, size_t len, const char *encoding,
+                    scm_t_string_failed_conversion_handler handler)
 {
   size_t u32len, i;
   scm_t_wchar *u32;
   int wide = 0;
   SCM res;
+
+  if (len == 0)
+    return scm_nullstr;
 
   if (encoding == NULL)
     {
@@ -1575,7 +1578,7 @@ scm_from_locale_stringn (const char *str, size_t len)
       hndl = SCM_FAILED_CONVERSION_ERROR;
     }
 
-  return scm_from_stringn (str, len, enc, hndl);
+  return scm_i_from_stringn (str, len, enc, hndl);
 }
 
 SCM
@@ -1590,7 +1593,7 @@ scm_from_locale_string (const char *str)
 SCM
 scm_i_from_utf8_string (const scm_t_uint8 *str)
 {
-  return scm_from_stringn ((const char *) str,
+  return scm_i_from_stringn ((const char *) str,
                            strlen ((char *) str), "UTF-8",
                            SCM_FAILED_CONVERSION_ERROR);
 }
@@ -1681,7 +1684,7 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
 }
 
 char *
-scm_to_locale_stringn (SCM str, size_t * lenp)
+scm_to_locale_stringn (SCM str, size_t *lenp)
 {
   SCM outport;
   scm_t_port *pt;

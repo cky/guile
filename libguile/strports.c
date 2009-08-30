@@ -301,9 +301,9 @@ scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, co
      to a locale representation for storage.  But, since string ports
      rely on string functionality for their memory management, we need
      to create a new string that has the 8-bit locale representation
-     of the underlying string.  This violates the guideline that the
-     internal encoding of characters in strings is in unicode
-     codepoints. */
+     of the underlying string.  
+
+     locale_str is already in the locale of the port.  */
   str = scm_i_make_string (str_len, &buf);
   memcpy (buf, locale_str, str_len);
 
@@ -348,13 +348,18 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
      of the underlying string.  This violates the guideline that the
      internal encoding of characters in strings is in unicode
      codepoints. */
+
+  /* Ports are initialized with the thread-default values for encoding and
+     invalid sequence handling.  */
   buf = scm_to_locale_stringn (str, &str_len);
   z = scm_i_mkstrport (pos, buf, str_len, modes, caller);
   free (buf);
   return z;
 }
 
-/* create a new string from a string port's buffer.  */
+/* Create a new string from a string port's buffer, converting from
+   the port's 8-bit locale-specific representation to the standard
+   string representation.  */
 SCM scm_strport_to_string (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -363,7 +368,18 @@ SCM scm_strport_to_string (SCM port)
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
 
-  str = scm_from_locale_stringn ((char *)pt->read_buf, pt->read_buf_size);
+  if (pt->read_buf_size == 0)
+    return scm_nullstr;
+
+  if (pt->encoding == NULL)
+    {
+      char *buf;
+      str = scm_i_make_string (pt->read_buf_size, &buf);
+      memcpy (buf, pt->read_buf, pt->read_buf_size);
+    }
+  else
+    str = scm_i_from_stringn ((char *)pt->read_buf, pt->read_buf_size,
+                              pt->encoding, pt->ilseq_handler);
   scm_remember_upto_here_1 (port);
   return str;
 }
