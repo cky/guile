@@ -565,6 +565,9 @@
     (equal? (with-input-from-string "#vu8(0 255 127 128)" read)
             (u8-list->bytevector '(0 255 127 128))))
 
+  (pass-if "self-evaluating?"
+    (self-evaluating? (make-bytevector 1)))
+
   (pass-if "self-evaluating"
     (equal? (eval (with-input-from-string "#vu8(1 2 3 4 5)" read)
                   (current-module))

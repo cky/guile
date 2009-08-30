@@ -151,8 +151,9 @@
     cvar = scm_to_bool (flag); \
   } while (0)
 
-#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)		\
-  SCM_VALIDATE_SMOB ((_pos), (_obj), bytevector)
+#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)			\
+  SCM_ASSERT_TYPE (SCM_BYTEVECTOR_P (_obj), (_obj), (_pos),	\
+		   FUNC_NAME, "bytevector")
 
 #define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
 

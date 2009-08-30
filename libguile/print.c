@@ -739,6 +739,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    scm_puts ("#w(", port);
 	  goto common_vector_printer;
 
+	case scm_tc7_bytevector:
+	  scm_i_print_bytevector (exp, port, pstate);
+	  break;
 	case scm_tc7_vector:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  scm_puts ("#(", port);

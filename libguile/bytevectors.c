@@ -175,19 +175,27 @@
 
 /* Bytevector type.  */
 
-scm_t_bits scm_tc16_bytevector;
-
+/* The threshold (in octets) under which bytevectors are stored "in-line",
+   i.e., without allocating memory beside the double cell itself.
+   This optimization is necessary since small bytevectors are expected to be
+   common.  */
 #define SCM_BYTEVECTOR_INLINE_THRESHOLD  (2 * sizeof (SCM))
+
 #define SCM_BYTEVECTOR_INLINEABLE_SIZE_P(_size)	\
   ((_size) <= SCM_BYTEVECTOR_INLINE_THRESHOLD)
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
-  SCM_SET_SMOB_DATA ((_bv), (scm_t_bits) (_len))
+  SCM_SET_CELL_WORD_1 ((_bv), (scm_t_bits) (_len))
 #define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _buf)          \
-  SCM_SET_SMOB_DATA_2 ((_bv), (scm_t_bits) (_buf))
-#define SCM_BYTEVECTOR_SET_INLINE(bv)                                   \
-  SCM_SET_SMOB_FLAGS (bv, SCM_SMOB_FLAGS (bv) | SCM_F_BYTEVECTOR_INLINE)
-#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)                          \
-  SCM_SET_SMOB_FLAGS (bv, (SCM_SMOB_FLAGS (bv) & 0xFF) | (hint << 8))
+  SCM_SET_CELL_WORD_2 ((_bv), (scm_t_bits) (_buf))
+#define SCM_BYTEVECTOR_SET_INLINE(bv)			\
+  SCM_SET_BYTEVECTOR_FLAGS (bv,				\
+			    SCM_BYTEVECTOR_FLAGS (bv)	\
+			    | SCM_F_BYTEVECTOR_INLINE)
+
+#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)			\
+  SCM_SET_BYTEVECTOR_FLAGS (bv,						\
+			    (SCM_BYTEVECTOR_FLAGS (bv) & SCM_F_BYTEVECTOR_INLINE) \
+			    | ((hint) << 1UL))
 #define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
   (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)
 #define SCM_BYTEVECTOR_TYPED_LENGTH(var)                        \
@@ -213,10 +221,11 @@ make_bytevector_from_buffer (size_t len, void *contents,
   
   c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
   if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
-    SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, contents);
+    ret = scm_double_cell (scm_tc7_bytevector, (scm_t_bits) c_len,
+			   (scm_t_bits) contents, 0);
   else
     {
-      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, NULL);
+      ret = scm_double_cell (scm_tc7_bytevector, (scm_t_bits) c_len, 0, 0);
       SCM_BYTEVECTOR_SET_INLINE (ret);
       if (contents)
         {
@@ -246,7 +255,7 @@ make_bytevector (size_t len, scm_t_array_element_type element_type)
   if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
     {
       SCM ret;
-      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, NULL);
+      ret = scm_double_cell (scm_tc7_bytevector, (scm_t_bits) c_len, 0, 0);
       SCM_BYTEVECTOR_SET_INLINE (ret);
       SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
       return ret;
@@ -331,7 +340,7 @@ scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
 int
 scm_is_bytevector (SCM obj)
 {
-  return SCM_SMOB_PREDICATE (scm_tc16_bytevector, obj);
+  return SCM_BYTEVECTOR_P (obj);
 }
 
 size_t
@@ -384,10 +393,8 @@ scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
 
 
 
-
-
-static int
-print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
+int
+scm_i_print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   ssize_t ubnd, inc, i;
   scm_t_array_handle h;
@@ -407,12 +414,6 @@ print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_putc (')', port);
 
   return 1;
-}
-
-static SCM
-bytevector_equal_p (SCM bv1, SCM bv2)
-{
-  return scm_bytevector_eq_p (bv1, bv2);
 }
 
 
@@ -2237,13 +2238,9 @@ bytevector_get_handle (SCM v, scm_t_array_handle *h)
 void
 scm_bootstrap_bytevectors (void)
 {
-  /* The SMOB type must be instantiated here because the
-     generalized-vector API may want to access bytevectors even though
-     `(rnrs bytevector)' hasn't been loaded.  */
-  scm_tc16_bytevector = scm_make_smob_type ("bytevector", 0);
-  scm_set_smob_print (scm_tc16_bytevector, print_bytevector);
-  scm_set_smob_equalp (scm_tc16_bytevector, bytevector_equal_p);
-
+  /* This must be instantiated here because the generalized-vector API may
+     want to access bytevectors even though `(rnrs bytevector)' hasn't been
+     loaded.  */
   scm_null_bytevector =
     scm_gc_protect_object
     (make_bytevector_from_buffer (0, NULL, SCM_ARRAY_ELEMENT_TYPE_VU8));
@@ -2260,9 +2257,9 @@ scm_bootstrap_bytevectors (void)
 
   {
     scm_t_array_implementation impl;
-    
-    impl.tag = scm_tc16_bytevector;
-    impl.mask = 0xffff;
+
+    impl.tag = scm_tc7_bytevector;
+    impl.mask = 0x7f;
     impl.vref = bv_handle_ref;
     impl.vset = bv_handle_set_x;
     impl.get_handle = bytevector_get_handle;

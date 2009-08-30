@@ -30,6 +30,7 @@
 #include "libguile/smob.h"
 #include "libguile/arrays.h"
 #include "libguile/vectors.h"
+#include "libguile/bytevectors.h"
 
 #include "libguile/struct.h"
 #include "libguile/goops.h"
@@ -239,6 +240,8 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     }
   if (SCM_TYP7 (x) == scm_tc7_string && SCM_TYP7 (y) == scm_tc7_string)
     return scm_string_equal_p (x, y);
+  if (SCM_TYP7 (x) == scm_tc7_bytevector && SCM_TYP7 (y) == scm_tc7_bytevector)
+    return scm_bytevector_eq_p (x, y);
   if (SCM_TYP7 (x) == scm_tc7_smob && SCM_TYP16 (x) == SCM_TYP16 (y))
     {
       int i = SCM_SMOBNUM (x);

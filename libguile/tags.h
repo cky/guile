@@ -434,6 +434,7 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_string		21
 #define scm_tc7_number		23
 #define scm_tc7_stringbuf       39
+#define scm_tc7_bytevector	77
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
@@ -448,7 +449,6 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_unused_5	53
 #define scm_tc7_unused_6	55
 #define scm_tc7_unused_7	71
-#define scm_tc7_unused_8	77
 
 #define scm_tc7_dsubr		61
 #define scm_tc7_gsubr		63
