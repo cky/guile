@@ -32,6 +32,14 @@ respectively.
  
 Interested users should see the ChangeLog for more information.
 
+* Changes to Scheme functions and syntax
+
+** New readline history functions
+
+The (ice-9 readline) module now provides add-history, read-history,
+write-history and clear-history, which wrap the corresponding GNU
+History library functions.
+
 
 Changes in 1.9.x (since the 1.8.x series):
 

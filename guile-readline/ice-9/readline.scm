@@ -24,11 +24,15 @@
 
 
 (define-module (ice-9 readline)
-  :use-module (ice-9 session)
-  :use-module (ice-9 regex)
-  :use-module (ice-9 buffered-input)
-  :no-backtrace
-  :export (filename-completion-function))
+  #:use-module (ice-9 session)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 buffered-input)
+  #:no-backtrace
+  #:export (filename-completion-function
+	    add-history
+	    read-history
+	    write-history
+	    clear-history))
 
 
 
