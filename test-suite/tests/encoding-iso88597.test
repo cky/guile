@@ -31,6 +31,65 @@
 (define oldlocale #f)
 (if (defined? 'setlocale)
     (set! oldlocale (setlocale LC_ALL "")))
+(define ascii-a (integer->char 65))     ; LATIN CAPITAL LETTER A
+(define a-acute (integer->char #x00c1)) ; LATIN CAPITAL LETTER A WITH ACUTE
+(define alpha (integer->char #x03b1))   ; GREEK SMALL LETTER ALPHA
+(define cherokee-a (integer->char #x13a0)) ; CHEROKEE LETTER A
+
+(with-test-prefix "characters"
+  (pass-if "input A"
+    (char=? ascii-a #\A))
+
+  (pass-if "input alpha"
+    (char=? alpha #\α))
+
+  (pass-if "display A"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-7")
+             (set-port-conversion-strategy! pt 'escape)
+             (display ascii-a pt)
+             (string=? "A"
+                       (get-output-string pt))))
+
+  (pass-if "display A acute"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-7")
+             (set-port-conversion-strategy! pt 'escape)
+             (display a-acute pt)
+             (string-ci=? "\\xc1"
+                       (get-output-string pt))))
+
+  (pass-if "display alpha"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-7")
+             (set-port-conversion-strategy! pt 'escape)
+             (display alpha pt)
+             (string-ci=? "α"
+                       (get-output-string pt))))
+
+  (pass-if "display Cherokee A"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-7")
+             (set-port-conversion-strategy! pt 'escape)
+             (display cherokee-a pt)
+             (string-ci=? "\\u13a0"
+                       (get-output-string pt))))
+
+  (pass-if "write A"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-7")
+             (set-port-conversion-strategy! pt 'escape)
+             (write ascii-a pt)
+             (string=? "#\\A"
+                       (get-output-string pt))))
+
+  (pass-if "write alpha"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-7")
+             (set-port-conversion-strategy! pt 'escape)
+             (write alpha pt)
+             (string=? "#\\α"
+                       (get-output-string pt)))))
 
 (define s1 "Περί")
 (define s2 "της")
