@@ -1791,6 +1791,8 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                           scm_list_2 (scm_from_locale_string (enc),
                                       str));
         }
+      if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+        unistring_escapes_to_guile_escapes (&buf, &len);
     }
   if (lenp)
     *lenp = len;
