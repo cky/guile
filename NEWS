@@ -10,6 +10,12 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
+** Character functions operate on Unicode characters
+
+char-upcase and char-downcase use default Unicode casing rules.
+Character comparisons such as char<? and char-ci<? are now sorting
+based on Unicode code points.
+
 ** Removed deprecated uniform array procedures: scm_make_uve,
    scm_array_prototype, scm_list_to_uniform_array,
    scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,

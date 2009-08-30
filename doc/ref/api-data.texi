@@ -1779,16 +1779,31 @@ another manual.
 @subsection Characters
 @tpindex Characters
 
+In Scheme, there is a data type to describe a single character.  
+
+Defining what exactly a character @emph{is} can be more complicated
+than it seems.  Guile follows the advice of R6RS and just uses The
+Unicode Standard to help define what a character is.  So, for Guile,
+a character is anything in the Unicode Character Database.
+
+Unicode assigns each character an unique integer representation: a
+@emph{code point}.  Guile uses Unicode code points as the integer
+representation of characters.  Valid code points are in the ranges 0
+to @code{#xD7FF} inclusive or @code{#xE000} to @code{#x10FFFF}
+inclusive.
+
 In Scheme, a character literal is written as @code{#\@var{name}} where
 @var{name} is the name of the character that you want.  Printable
 characters have their usual single character name; for example,
-@code{#\a} is a lower case @code{a}.
+@code{#\a} is a lower case @code{a}.  Many of the non-printing
+characters, such as whitespace characters and control characters, also
+have names.
 
-Most of the ``control characters'' (those below codepoint 32) in the
-@acronym{ASCII} character set, as well as the space, may be referred
-to by longer names: for example, @code{#\tab}, @code{#\esc},
-@code{#\stx}, and so on.  The following table describes the
-@acronym{ASCII} names for each character.
+The most commonly used non-printing chararacters are space and
+newline.  Their character names are @code{#\space} and
+@code{#\newline}.  There are also names for all of the ``C0 control
+characters'' (those with code points below 32).  The following table
+describes the names for each character.
 
 @multitable @columnfractions .25 .25 .25 .25
 @item 0 = @code{#\nul}
@@ -1801,9 +1816,9 @@ to by longer names: for example, @code{#\tab}, @code{#\esc},
  @tab 7 = @code{#\bel}
 @item 8 = @code{#\bs}
  @tab 9 = @code{#\ht}
- @tab 10 = @code{#\nl}
+ @tab 10 = @code{#\lf} 
  @tab 11 = @code{#\vt}
-@item 12 = @code{#\np}
+@item 12 = @code{#\ff}
  @tab 13 = @code{#\cr}
  @tab 14 = @code{#\so}
  @tab 15 = @code{#\si}
@@ -1826,21 +1841,29 @@ to by longer names: for example, @code{#\tab}, @code{#\esc},
 @item 32 = @code{#\sp}
 @end multitable
 
-The ``delete'' character (octal 177) may be referred to with the name
-@code{#\del}.
+The ``delete'' character (code point 127) may be referred to with the
+name @code{#\del}.
 
-Several characters have more than one name:
+One might note that the space character has two names --
+@code{#\space} and @code{#\sp} -- as does the newline character.
+Several other non-printing characters have more than one name, for the
+sake of compatibility with previous versions.
 
-@multitable {@code{#\backspace}} {Original}
-@item Alias @tab Original
-@item @code{#\space} @tab @code{#\sp}
-@item @code{#\newline} @tab @code{#\nl}
+@multitable {@code{#\backspace}} {Preferred}
+@item Alternate @tab Standard
+@item @code{#\sp} @tab @code{#\space}
+@item @code{#\nl} @tab @code{#\newline}
+@item @code{#\lf} @tab @code{#\newline}
 @item @code{#\tab} @tab @code{#\ht}
 @item @code{#\backspace} @tab @code{#\bs}
 @item @code{#\return} @tab @code{#\cr}
-@item @code{#\page} @tab @code{#\np}
+@item @code{#\page} @tab @code{#\ff}
+@item @code{#\np} @tab @code{#\ff}
 @item @code{#\null} @tab @code{#\nul}
 @end multitable
+
+Characters may also be referred to with an octal value, such as
+@code{#\10} for @code{#\bs} or @code{#\177} for @code{#\del}.
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -1848,63 +1871,76 @@ Several characters have more than one name:
 Return @code{#t} iff @var{x} is a character, else @code{#f}.
 @end deffn
 
+Fundamentally, the character comparisons operations below are
+numeric comparisons of the character's code points.
+
 @rnindex char=?
 @deffn {Scheme Procedure} char=? x y
-Return @code{#t} iff @var{x} is the same character as @var{y}, else @code{#f}.
+Return @code{#t} iff code point of @var{x} is equal to the code point
+of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<?
 @deffn {Scheme Procedure} char<? x y
-Return @code{#t} iff @var{x} is less than @var{y} in the @acronym{ASCII} sequence,
-else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is less than the code
+point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<=?
 @deffn {Scheme Procedure} char<=? x y
-Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
-@acronym{ASCII} sequence, else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is less than or equal
+to the code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char>?
 @deffn {Scheme Procedure} char>? x y
-Return @code{#t} iff @var{x} is greater than @var{y} in the @acronym{ASCII}
-sequence, else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is greater than the
+code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char>=?
 @deffn {Scheme Procedure} char>=? x y
-Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
-@acronym{ASCII} sequence, else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is greater than or
+equal to the code point of @var{y}, else @code{#f}.
 @end deffn
+
+Case-insensitive character comparisons of characters use @emph{Unicode
+case folding}.  In case folding comparisons, if a character is
+lowercase and has an uppercase form that can be expressed as a single
+character, it is converted to uppercase before comparison.  Unicode
+case folding is language independent: it uses rules that are generally
+true, but, it cannot cover all cases for all languages.
 
 @rnindex char-ci=?
 @deffn {Scheme Procedure} char-ci=? x y
-Return @code{#t} iff @var{x} is the same character as @var{y} ignoring
-case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is the same
+as the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<?
 @deffn {Scheme Procedure} char-ci<? x y
-Return @code{#t} iff @var{x} is less than @var{y} in the @acronym{ASCII} sequence
-ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is less
+than the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<=?
 @deffn {Scheme Procedure} char-ci<=? x y
-Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
-@acronym{ASCII} sequence ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is less
+than or equal to the case-folded code point of @var{y}, else
+@code{#f}.
 @end deffn
 
 @rnindex char-ci>?
 @deffn {Scheme Procedure} char-ci>? x y
-Return @code{#t} iff @var{x} is greater than @var{y} in the @acronym{ASCII}
-sequence ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is greater
+than the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>=?
 @deffn {Scheme Procedure} char-ci>=? x y
-Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
-@acronym{ASCII} sequence ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is greater
+than or equal to the case-folded code point of @var{y}, else
+@code{#f}.
 @end deffn
 
 @rnindex char-alphabetic?
@@ -1946,14 +1982,15 @@ Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
 @rnindex char->integer
 @deffn {Scheme Procedure} char->integer chr
 @deffnx {C Function} scm_char_to_integer (chr)
-Return the number corresponding to ordinal position of @var{chr} in the
-@acronym{ASCII} sequence.
+Return the code point of @var{chr}.
 @end deffn
 
 @rnindex integer->char
 @deffn {Scheme Procedure} integer->char n
 @deffnx {C Function} scm_integer_to_char (n)
-Return the character at position @var{n} in the @acronym{ASCII} sequence.
+Return the character that has code point @var{n}.  The integer @var{n}
+must be a valid code point.  Valid code points are in the ranges 0 to
+@code{#xD7FF} inclusive or @code{#xE000} to @code{#x10FFFF} inclusive.
 @end deffn
 
 @rnindex char-upcase
