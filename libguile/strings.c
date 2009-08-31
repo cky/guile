@@ -164,17 +164,6 @@ make_wide_stringbuf (size_t len)
                           (scm_t_bits) len, (scm_t_bits) 0);
 }
 
-/* Return a new stringbuf whose underlying storage consists of the LEN+1
-   octets pointed to by STR (the last octet is zero).  */
-SCM
-scm_i_take_stringbufn (char *str, size_t len)
-{
-  scm_gc_register_collectable_memory (str, len + 1, "stringbuf");
-
-  return scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
-			  (scm_t_bits) len, (scm_t_bits) 0);
-}
-
 /* Convert a stringbuf containing 8-bit Latin-1-encoded characters to
    one containing 32-bit UCS-4-encoded characters.  */
 static void
@@ -742,18 +731,6 @@ scm_i_c_make_symbol (const char *name, size_t len,
 
   return scm_immutable_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
 				    (scm_t_bits) hash, SCM_UNPACK (props));
-}
-
-/* Return a new symbol that uses the LEN bytes pointed to by NAME as its
-   underlying storage.  */
-SCM
-scm_i_c_take_symbol (char *name, size_t len,
-		     scm_t_bits flags, unsigned long hash, SCM props)
-{
-  SCM buf = scm_i_take_stringbufn (name, len);
-
-  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
-			  (scm_t_bits) hash, SCM_UNPACK (props));
 }
 
 /* Returns the number of characters in SYM.  This may be different
@@ -1556,25 +1533,17 @@ scm_i_from_utf8_string (const scm_t_uint8 *str)
 
 /* Create a new scheme string from the C string STR.  The memory of
    STR may be used directly as storage for the new string.  */
+/* FIXME: GC-wise, the only way to use the memory area pointed to by STR
+   would be to register a finalizer to eventually free(3) STR, which isn't
+   worth it.  Should we just deprecate the `scm_take_' functions?  */
 SCM
 scm_take_locale_stringn (char *str, size_t len)
 {
-  SCM buf, res;
+  SCM res;
 
-  if (len == (size_t) -1)
-    len = strlen (str);
-  else
-    {
-      /* Ensure STR is null terminated.  A realloc for 1 extra byte should
-         often be satisfied from the alignment padding after the block, with
-         no actual data movement.  */
-      str = scm_realloc (str, len + 1);
-      str[len] = '\0';
-    }
+  res = scm_from_locale_stringn (str, len);
+  free (str);
 
-  buf = scm_i_take_stringbufn (str, len);
-  res = scm_double_cell (STRING_TAG,
-                         SCM_UNPACK (buf), (scm_t_bits) 0, (scm_t_bits) len);
   return res;
 }
 

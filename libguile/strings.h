@@ -164,9 +164,6 @@ SCM_INTERNAL SCM scm_i_make_symbol (SCM name, scm_t_bits flags,
 SCM_INTERNAL SCM
 scm_i_c_make_symbol (const char *name, size_t len,
 		     scm_t_bits flags, unsigned long hash, SCM props);
-SCM_INTERNAL SCM
-scm_i_c_take_symbol (char *name, size_t len,
-		     scm_t_bits flags, unsigned long hash, SCM props);
 SCM_INTERNAL const char *scm_i_symbol_chars (SCM sym);
 SCM_INTERNAL const scm_t_wchar *scm_i_symbol_wide_chars (SCM sym);
 SCM_INTERNAL size_t scm_i_symbol_length (SCM sym);
@@ -181,7 +178,6 @@ SCM_INTERNAL char **scm_i_allocate_string_pointers (SCM list);
 SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
 					    SCM start, size_t *cstart,
 					    SCM end, size_t *cend);
-SCM_INTERNAL SCM scm_i_take_stringbufn (char *str, size_t len);
 
 /* Debugging functions */
 
