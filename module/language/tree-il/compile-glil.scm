@@ -629,7 +629,7 @@
        ;; we know the vals are lambdas, we can set them to their local
        ;; var slots first, then capture their bindings, mutating them in
        ;; place.
-       (let ((RA (if (eq? context 'tail) #f (make-label))))
+       (let ((new-RA (if (or (eq? context 'tail) RA) #f (make-label))))
          (for-each
           (lambda (x v)
             (cond
@@ -657,7 +657,7 @@
                                allocation self emit-code)
                 (if (lambda-src x)
                     (emit-code #f (make-glil-source (lambda-src x))))
-                (comp-fix (lambda-body x) RA)
+                (comp-fix (lambda-body x) (or RA new-RA))
                 (emit-code #f (make-glil-unbind))
                 (emit-label POST)))))
           vals
@@ -696,7 +696,8 @@
           vals
           vars)
          (comp-tail body)
-         (emit-label RA)
+         (if new-RA
+             (emit-label new-RA))
          (emit-code #f (make-glil-unbind))))
 
       ((<let-values> src names vars exp body)
