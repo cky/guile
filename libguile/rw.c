@@ -1,18 +1,19 @@
-/* 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* 	Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -130,6 +131,7 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
 	 don't touch the file descriptor.  otherwise the
 	 "return immediately if something is available" rule may
 	 be violated.  */
+      str = scm_i_string_start_writing (str);
       dest = scm_i_string_writable_chars (str) + offset;
       chars_read = scm_take_from_input_buffers (port, dest, read_len);
       scm_i_string_stop_writing ();
@@ -139,6 +141,7 @@ SCM_DEFINE (scm_read_string_x_partial, "read-string!/partial", 1, 3, 0,
   if (chars_read == 0 && read_len > 0) /* don't confuse read_len == 0 with
 					  EOF.  */
     {
+      str = scm_i_string_start_writing (str);
       dest = scm_i_string_writable_chars (str) + offset;
       SCM_SYSCALL (chars_read = read (fdes, dest, read_len));
       scm_i_string_stop_writing ();
@@ -206,7 +209,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
 #define FUNC_NAME s_scm_write_string_partial
 {
   const char *src;
-  long write_len;
+  scm_t_off write_len;
   int fdes;
 
   {
@@ -231,7 +234,7 @@ SCM_DEFINE (scm_write_string_partial, "write-string/partial", 1, 3, 0,
       SCM port = (SCM_UNBNDP (port_or_fdes)?
 		  scm_current_output_port () : port_or_fdes);
       scm_t_port *pt;
-      off_t space;
+      scm_t_off space;
 
       SCM_VALIDATE_OPFPORT (2, port);
       SCM_VALIDATE_OUTPUT_PORT (2, port);

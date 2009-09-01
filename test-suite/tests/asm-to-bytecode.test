@@ -1,0 +1,110 @@
+;;;; test assembly to bytecode compilation -*- scheme -*-
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite tests asm-to-bytecode)
+  #:use-module (rnrs bytevector)
+  #:use-module (test-suite lib)
+  #:use-module (system vm instruction)
+  #:use-module (language assembly compile-bytecode))
+
+(define (->u8-list sym val)
+  (let ((entry (assq-ref `((uint16 2 ,bytevector-u16-native-set!)
+                           (uint32 4 ,bytevector-u32-native-set!))
+                         sym)))
+    (or entry (error "unknown sym" sym))
+    (let ((bv (make-bytevector (car entry))))
+      ((cadr entry) bv 0 val)
+      (bytevector->u8-list bv))))
+
+(define (munge-bytecode v)
+  (let lp ((i 0) (out '()))
+    (if (= i (vector-length v))
+        (list->u8vector (reverse out))
+        (let ((x (vector-ref v i)))
+          (cond
+           ((symbol? x)
+            (lp (1+ i) (cons (instruction->opcode x) out)))
+           ((integer? x)
+            (lp (1+ i) (cons x out)))
+           ((pair? x)
+            (lp (1+ i) (append (reverse (apply ->u8-list x)) out)))
+           (else (error "bad test bytecode" x)))))))
+
+(define (comp-test x y)
+  (let* ((y (munge-bytecode y))
+         (len (u8vector-length y))
+         (v (make-u8vector len))
+         (i 0))
+    (define (write-byte b) (u8vector-set! v i b) (set! i (1+ i)))
+    (define (get-addr) i)
+    (run-test `(length ,x) #t
+              (lambda ()
+                (write-bytecode x write-byte get-addr '())
+                (= i len)))
+    (run-test `(compile-equal? ,x ,y) #t
+              (lambda ()
+                (equal? v y)))))
+
+
+(with-test-prefix "compiler"
+  (with-test-prefix "asm-to-bytecode"
+
+    (comp-test '(make-int8 3)
+               #(make-int8 3))
+    
+    (comp-test '(load-number "3.14")
+               (vector 'load-number 0 0 4 (char->integer #\3) (char->integer #\.)
+                       (char->integer #\1) (char->integer #\4)))
+    
+    (comp-test '(load-string "foo")
+               (vector 'load-string 0 0 3 (char->integer #\f) (char->integer #\o)
+                       (char->integer #\o)))
+    
+    (comp-test '(load-symbol "foo")
+               (vector 'load-symbol 0 0 3 (char->integer #\f) (char->integer #\o)
+                       (char->integer #\o)))
+    
+    (comp-test '(load-program 3 2 1 () 3 #f (make-int8 3) (return))
+               #(load-program
+                 3 2 (uint16 1) ;; nargs, nrest, nlocs
+                 (uint32 3)     ;; len
+                 (uint32 0)     ;; metalen
+                 (uint32 0)     ;; padding
+                 make-int8 3
+                 return))
+
+    ;; the nops are to pad meta to an 8-byte alignment. not strictly
+    ;; necessary for this test, but representative of the common case.
+    (comp-test '(load-program 3 2 1 () 8
+                              (load-program 3 2 1 () 3
+                                            #f
+                                            (make-int8 3) (return))
+                              (make-int8 3) (return)
+                              (nop) (nop) (nop) (nop) (nop))
+               #(load-program
+                 3 2 (uint16 1) ;; nargs, nrest, nlocs
+                 (uint32 8)     ;; len
+                 (uint32 19)    ;; metalen
+                 (uint32 0)     ;; padding
+                 make-int8 3
+                 return
+                 nop nop nop nop nop
+                 3 2 (uint16 1) ;; nargs, nrest, nlocs
+                 (uint32 3)     ;; len
+                 (uint32 0)     ;; metalen
+                 (uint32 0)     ;; padding
+                 make-int8 3
+                 return))))

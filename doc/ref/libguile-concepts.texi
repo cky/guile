@@ -153,8 +153,8 @@ that have been added to Guile by third-party libraries.
 
 Also, computing with @code{SCM} is not necessarily inefficient.  Small
 integers will be encoded directly in the @code{SCM} value, for example,
-and do not need any additional memory on the heap.  See @ref{Data
-Representation} to find out the details.
+and do not need any additional memory on the heap.  See @ref{The
+Libguile Runtime Environment} to find out the details.
 
 Some special @code{SCM} values are available to C code without needing
 to convert them from C values:
@@ -170,8 +170,8 @@ In addition to @code{SCM}, Guile also defines the related type
 @code{scm_t_bits}.  This is an unsigned integral type of sufficient
 size to hold all information that is directly contained in a
 @code{SCM} value.  The @code{scm_t_bits} type is used internally by
-Guile to do all the bit twiddling explained in @ref{Data
-Representation}, but you will encounter it occasionally in low-level
+Guile to do all the bit twiddling explained in @ref{The Libguile
+Runtime Environment}, but you will encounter it occasionally in low-level
 user code as well.
 
 
@@ -182,7 +182,7 @@ As explained above, the @code{SCM} type can represent all Scheme values.
 Some values fit entirely into a @code{SCM} value (such as small
 integers), but other values require additional storage in the heap (such
 as strings and vectors).  This additional storage is managed
-automatically by Guile.  You don't need to explicitely deallocate it
+automatically by Guile.  You don't need to explicitly deallocate it
 when a @code{SCM} value is no longer used.
 
 Two things must be guaranteed so that Guile is able to manage the

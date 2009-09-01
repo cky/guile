@@ -1,22 +1,23 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
  *
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -45,8 +46,9 @@
 #endif
 
 #include <math.h>
-#include <ctype.h>
 #include <string.h>
+#include <unicase.h>
+#include <unictype.h>
 
 #if HAVE_COMPLEX_H
 #include <complex.h>
@@ -2436,7 +2438,7 @@ scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM str;
   str = scm_number_to_string (sexp, SCM_UNDEFINED);
-  scm_lfwrite (scm_i_string_chars (str), scm_i_string_length (str), port);
+  scm_lfwrite_str (str, port);
   scm_remember_upto_here_1 (str);
   return !0;
 }
@@ -2483,13 +2485,13 @@ enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
 /* R5RS, section 7.1.1, lexical structure of numbers: <uinteger R>. */
 
 /* In non ASCII-style encodings the following macro might not work. */
-#define XDIGIT2UINT(d)                                  \
-  (isdigit ((int) (unsigned char) d)                    \
-   ? (d) - '0'                                          \
-   : tolower ((int) (unsigned char) d) - 'a' + 10)
+#define XDIGIT2UINT(d)                                                  \
+  (uc_is_property_decimal_digit ((int) (unsigned char) d)               \
+   ? (d) - '0'                                                          \
+   : uc_tolower ((int) (unsigned char) d) - 'a' + 10)
 
 static SCM
-mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
+mem2uinteger (SCM mem, unsigned int *p_idx,
 	      unsigned int radix, enum t_exactness *p_exactness)
 {
   unsigned int idx = *p_idx;
@@ -2499,12 +2501,13 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
   unsigned int digit_value;
   SCM result;
   char c;
+  size_t len = scm_i_string_length (mem);
 
   if (idx == len)
     return SCM_BOOL_F;
 
-  c = mem[idx];
-  if (!isxdigit ((int) (unsigned char) c))
+  c = scm_i_string_ref (mem, idx);
+  if (!uc_is_property_ascii_hex_digit ((scm_t_uint32) c))
     return SCM_BOOL_F;
   digit_value = XDIGIT2UINT (c);
   if (digit_value >= radix)
@@ -2514,8 +2517,8 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
   result = SCM_I_MAKINUM (digit_value);
   while (idx != len)
     {
-      char c = mem[idx];
-      if (isxdigit ((int) (unsigned char) c))
+      scm_t_wchar c = scm_i_string_ref (mem, idx);
+      if (uc_is_property_ascii_hex_digit ((scm_t_uint32) c))
 	{
 	  if (hash_seen)
 	    break;
@@ -2568,20 +2571,20 @@ mem2uinteger (const char* mem, size_t len, unsigned int *p_idx,
  * has already been seen in the digits before the point.
  */
 
-/* In non ASCII-style encodings the following macro might not work. */
-#define DIGIT2UINT(d) ((d) - '0')
+#define DIGIT2UINT(d) (uc_numeric_value(d).numerator)
 
 static SCM
-mem2decimal_from_point (SCM result, const char* mem, size_t len, 
+mem2decimal_from_point (SCM result, SCM mem, 
 			unsigned int *p_idx, enum t_exactness *p_exactness)
 {
   unsigned int idx = *p_idx;
   enum t_exactness x = *p_exactness;
+  size_t len = scm_i_string_length (mem);
 
   if (idx == len)
     return result;
 
-  if (mem[idx] == '.')
+  if (scm_i_string_ref (mem, idx) == '.')
     {
       scm_t_bits shift = 1;
       scm_t_bits add = 0;
@@ -2591,8 +2594,8 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
       idx++;
       while (idx != len)
 	{
-	  char c = mem[idx];
-	  if (isdigit ((int) (unsigned char) c))
+	  scm_t_wchar c = scm_i_string_ref (mem, idx);
+	  if (uc_is_property_decimal_digit ((scm_t_uint32) c))
 	    {
 	      if (x == INEXACT)
 		return SCM_BOOL_F;
@@ -2642,13 +2645,13 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
     {
       int sign = 1;
       unsigned int start;
-      char c;
+      scm_t_wchar c;
       int exponent;
       SCM e;
 
       /* R5RS, section 7.1.1, lexical structure of numbers: <suffix> */
 
-      switch (mem[idx])
+      switch (scm_i_string_ref (mem, idx))
 	{
 	case 'd': case 'D':
 	case 'e': case 'E':
@@ -2656,32 +2659,41 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	case 'l': case 'L':
 	case 's': case 'S':
 	  idx++;
+          if (idx == len)
+            return SCM_BOOL_F;
+
 	  start = idx;
-	  c = mem[idx];
+	  c = scm_i_string_ref (mem, idx);
 	  if (c == '-')
 	    {
 	      idx++;
+              if (idx == len)
+                return SCM_BOOL_F;
+
 	      sign = -1;
-	      c = mem[idx];
+	      c = scm_i_string_ref (mem, idx);
 	    }
 	  else if (c == '+')
 	    {
 	      idx++;
+              if (idx == len)
+                return SCM_BOOL_F;
+
 	      sign = 1;
-	      c = mem[idx];
+	      c = scm_i_string_ref (mem, idx);
 	    }
 	  else
 	    sign = 1;
 
-	  if (!isdigit ((int) (unsigned char) c))
+	  if (!uc_is_property_decimal_digit ((scm_t_uint32) c))
 	    return SCM_BOOL_F;
 
 	  idx++;
 	  exponent = DIGIT2UINT (c);
 	  while (idx != len)
 	    {
-	      char c = mem[idx];
-	      if (isdigit ((int) (unsigned char) c))
+	      scm_t_wchar c = scm_i_string_ref (mem, idx);
+	      if (uc_is_property_decimal_digit ((scm_t_uint32) c))
 		{
 		  idx++;
 		  if (exponent <= SCM_MAXEXP)
@@ -2694,7 +2706,7 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 	  if (exponent > SCM_MAXEXP)
 	    {
 	      size_t exp_len = idx - start;
-	      SCM exp_string = scm_from_locale_stringn (&mem[start], exp_len);
+	      SCM exp_string = scm_i_substring_copy (mem, start, start + exp_len);
 	      SCM exp_num = scm_string_to_number (exp_string, SCM_UNDEFINED);
 	      scm_out_of_range ("string->number", exp_num);
 	    }
@@ -2726,63 +2738,67 @@ mem2decimal_from_point (SCM result, const char* mem, size_t len,
 /* R5RS, section 7.1.1, lexical structure of numbers: <ureal R> */
 
 static SCM
-mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
+mem2ureal (SCM mem, unsigned int *p_idx,
 	   unsigned int radix, enum t_exactness *p_exactness)
 {
   unsigned int idx = *p_idx;
   SCM result;
+  size_t len = scm_i_string_length (mem);
+
+  /* Start off believing that the number will be exact.  This changes
+     to INEXACT if we see a decimal point or a hash. */
+  enum t_exactness x = EXACT;
 
   if (idx == len)
     return SCM_BOOL_F;
 
-  if (idx+5 <= len && !strncmp (mem+idx, "inf.0", 5))
+  if (idx+5 <= len && !scm_i_string_strcmp (mem, idx, "inf.0"))
     {
       *p_idx = idx+5;
       return scm_inf ();
     }
 
-  if (idx+4 < len && !strncmp (mem+idx, "nan.", 4))
+  if (idx+4 < len && !scm_i_string_strcmp (mem, idx, "nan."))
     {
-      enum t_exactness x = EXACT;
-
       /* Cobble up the fractional part.  We might want to set the
 	 NaN's mantissa from it. */
       idx += 4;
-      mem2uinteger (mem, len, &idx, 10, &x);
+      mem2uinteger (mem, &idx, 10, &x);
       *p_idx = idx;
       return scm_nan ();
     }
 
-  if (mem[idx] == '.')
+  if (scm_i_string_ref (mem, idx) == '.')
     {
       if (radix != 10)
 	return SCM_BOOL_F;
       else if (idx + 1 == len)
 	return SCM_BOOL_F;
-      else if (!isdigit ((int) (unsigned char) mem[idx + 1]))
+      else if (!uc_is_property_decimal_digit ((scm_t_uint32) scm_i_string_ref (mem, idx+1)))
 	return SCM_BOOL_F;
       else
-	result = mem2decimal_from_point (SCM_I_MAKINUM (0), mem, len,
-					 p_idx, p_exactness);
+	result = mem2decimal_from_point (SCM_I_MAKINUM (0), mem,
+					 p_idx, &x);
     }
   else
     {
-      enum t_exactness x = EXACT;
       SCM uinteger;
 
-      uinteger = mem2uinteger (mem, len, &idx, radix, &x);
+      uinteger = mem2uinteger (mem, &idx, radix, &x);
       if (scm_is_false (uinteger))
 	return SCM_BOOL_F;
 
       if (idx == len)
 	result = uinteger;
-      else if (mem[idx] == '/')
+      else if (scm_i_string_ref (mem, idx) == '/')
 	{
 	  SCM divisor;
 
 	  idx++;
+          if (idx == len)
+            return SCM_BOOL_F;
 
-	  divisor = mem2uinteger (mem, len, &idx, radix, &x);
+	  divisor = mem2uinteger (mem, &idx, radix, &x);
 	  if (scm_is_false (divisor))
 	    return SCM_BOOL_F;
 
@@ -2791,7 +2807,7 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	}
       else if (radix == 10)
 	{
-	  result = mem2decimal_from_point (uinteger, mem, len, &idx, &x);
+	  result = mem2decimal_from_point (uinteger, mem, &idx, &x);
 	  if (scm_is_false (result))
 	    return SCM_BOOL_F;
 	}
@@ -2799,9 +2815,15 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 	result = uinteger;
 
       *p_idx = idx;
-      if (x == INEXACT)
-	*p_exactness = x;
     }
+
+  /* Update *p_exactness if the number just read was inexact.  This is
+     important for complex numbers, so that a complex number is
+     treated as inexact overall if either its real or imaginary part
+     is inexact.
+  */
+  if (x == INEXACT)
+    *p_exactness = x;
 
   /* When returning an inexact zero, make sure it is represented as a
      floating point value so that we can change its sign. 
@@ -2816,17 +2838,18 @@ mem2ureal (const char* mem, size_t len, unsigned int *p_idx,
 /* R5RS, section 7.1.1, lexical structure of numbers: <complex R> */
 
 static SCM
-mem2complex (const char* mem, size_t len, unsigned int idx,
+mem2complex (SCM mem, unsigned int idx,
 	     unsigned int radix, enum t_exactness *p_exactness)
 {
-  char c;
+  scm_t_wchar c;
   int sign = 0;
   SCM ureal;
+  size_t len = scm_i_string_length (mem);
 
   if (idx == len)
     return SCM_BOOL_F;
 
-  c = mem[idx];
+  c = scm_i_string_ref (mem, idx);
   if (c == '+')
     {
       idx++;
@@ -2841,7 +2864,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
   if (idx == len)
     return SCM_BOOL_F;
 
-  ureal = mem2ureal (mem, len, &idx, radix, p_exactness);
+  ureal = mem2ureal (mem, &idx, radix, p_exactness);
   if (scm_is_false (ureal))
     {
       /* input must be either +i or -i */
@@ -2849,7 +2872,8 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
       if (sign == 0)
 	return SCM_BOOL_F;
 
-      if (mem[idx] == 'i' || mem[idx] == 'I')
+      if (scm_i_string_ref (mem, idx) == 'i'
+	  || scm_i_string_ref (mem, idx) == 'I')
 	{
 	  idx++;
 	  if (idx != len)
@@ -2868,7 +2892,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
       if (idx == len)
 	return ureal;
 
-      c = mem[idx];
+      c = scm_i_string_ref (mem, idx);
       switch (c)
 	{
 	case 'i': case 'I':
@@ -2893,21 +2917,25 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	      SCM angle;
 	      SCM result;
 
-	      c = mem[idx];
+	      c = scm_i_string_ref (mem, idx);
 	      if (c == '+')
 		{
 		  idx++;
+                  if (idx == len)
+                    return SCM_BOOL_F;
 		  sign = 1;
 		}
 	      else if (c == '-')
 		{
 		  idx++;
+                  if (idx == len)
+                    return SCM_BOOL_F;
 		  sign = -1;
 		}
 	      else
 		sign = 1;
 
-	      angle = mem2ureal (mem, len, &idx, radix, p_exactness);
+	      angle = mem2ureal (mem, &idx, radix, p_exactness);
 	      if (scm_is_false (angle))
 		return SCM_BOOL_F;
 	      if (idx != len)
@@ -2929,7 +2957,7 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 	  else
 	    {
 	      int sign = (c == '+') ? 1 : -1;
-	      SCM imag = mem2ureal (mem, len, &idx, radix, p_exactness);
+	      SCM imag = mem2ureal (mem, &idx, radix, p_exactness);
 
 	      if (scm_is_false (imag))
 		imag = SCM_I_MAKINUM (sign);
@@ -2938,7 +2966,8 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 
 	      if (idx == len)
 		return SCM_BOOL_F;
-	      if (mem[idx] != 'i' && mem[idx] != 'I')
+	      if (scm_i_string_ref (mem, idx) != 'i'
+		  && scm_i_string_ref (mem, idx) != 'I')
 		return SCM_BOOL_F;
 
 	      idx++;
@@ -2959,19 +2988,19 @@ mem2complex (const char* mem, size_t len, unsigned int idx,
 enum t_radix {NO_RADIX=0, DUAL=2, OCT=8, DEC=10, HEX=16};
 
 SCM
-scm_c_locale_stringn_to_number (const char* mem, size_t len,
-				unsigned int default_radix)
+scm_i_string_to_number (SCM mem, unsigned int default_radix)
 {
   unsigned int idx = 0;
   unsigned int radix = NO_RADIX;
   enum t_exactness forced_x = NO_EXACTNESS;
   enum t_exactness implicit_x = EXACT;
   SCM result;
+  size_t len = scm_i_string_length (mem);
 
   /* R5RS, section 7.1.1, lexical structure of numbers: <prefix R> */
-  while (idx + 2 < len && mem[idx] == '#')
+  while (idx + 2 < len && scm_i_string_ref (mem, idx) == '#')
     {
-      switch (mem[idx + 1])
+      switch (scm_i_string_ref (mem, idx + 1))
 	{
 	case 'b': case 'B':
 	  if (radix != NO_RADIX)
@@ -3011,9 +3040,9 @@ scm_c_locale_stringn_to_number (const char* mem, size_t len,
 
   /* R5RS, section 7.1.1, lexical structure of numbers: <complex R> */
   if (radix == NO_RADIX)
-    result = mem2complex (mem, len, idx, default_radix, &implicit_x);
+    result = mem2complex (mem, idx, default_radix, &implicit_x);
   else
-    result = mem2complex (mem, len, idx, (unsigned int) radix, &implicit_x);
+    result = mem2complex (mem, idx, (unsigned int) radix, &implicit_x);
 
   if (scm_is_false (result))
     return SCM_BOOL_F;
@@ -3044,6 +3073,15 @@ scm_c_locale_stringn_to_number (const char* mem, size_t len,
     }
 }
 
+SCM
+scm_c_locale_stringn_to_number (const char* mem, size_t len,
+				unsigned int default_radix)
+{
+  SCM str = scm_from_locale_stringn (mem, len);
+
+  return scm_i_string_to_number (str, default_radix);
+}
+
 
 SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
             (SCM string, SCM radix),
@@ -3066,9 +3104,7 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
   else
     base = scm_to_unsigned_integer (radix, 2, INT_MAX);
 
-  answer = scm_c_locale_stringn_to_number (scm_i_string_chars (string),
-					   scm_i_string_length (string),
-					   base);
+  answer = scm_i_string_to_number (string, base);
   scm_remember_upto_here_1 (string);
   return answer;
 }
@@ -5353,7 +5389,12 @@ SCM
 scm_c_make_polar (double mag, double ang)
 {
   double s, c;
-#if HAVE_SINCOS
+
+  /* The sincos(3) function is undocumented an broken on Tru64.  Thus we only
+     use it on Glibc-based systems that have it (it's a GNU extension).  See
+     http://lists.gnu.org/archive/html/guile-user/2009-04/msg00033.html for
+     details.  */
+#if (defined HAVE_SINCOS) && (defined __GLIBC__) && (defined _GNU_SOURCE)
   sincos (ang, &s, &c);
 #else
   s = sin (ang);
@@ -5850,6 +5891,14 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint32 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint32 (arg)
 #include "libguile/conv-uinteger.i.c"
+
+#define TYPE                     scm_t_wchar
+#define TYPE_MIN                 (scm_t_int32)-1
+#define TYPE_MAX                 (scm_t_int32)0x10ffff
+#define SIZEOF_TYPE              4
+#define SCM_TO_TYPE_PROTO(arg)   scm_to_wchar (arg)
+#define SCM_FROM_TYPE_PROTO(arg) scm_from_wchar (arg)
+#include "libguile/conv-integer.i.c"
 
 #if SCM_HAVE_T_INT64
 

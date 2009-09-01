@@ -1,4 +1,5 @@
 (define-module (lang elisp primitives syntax)
+  #:use-syntax (lang elisp expand)
   #:use-module (lang elisp internals evaluation)
   #:use-module (lang elisp internals fset)
   #:use-module (lang elisp internals lambda)

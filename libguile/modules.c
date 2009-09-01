@@ -1,18 +1,19 @@
 /* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -345,6 +346,8 @@ resolve_duplicate_binding (SCM module, SCM sym,
   return result;
 }
 
+SCM scm_pre_modules_obarray;
+
 /* Lookup SYM as an imported variable of MODULE.  */
 static inline SCM
 module_imported_variable (SCM module, SCM sym)
@@ -416,13 +419,13 @@ SCM_DEFINE (scm_module_local_variable, "module-local-variable", 2, 0, 0,
 
   register SCM b;
 
-  /* SCM_MODULE_TAG is not initialized yet when `boot-9.scm' is being
-     evaluated.  */
   if (scm_module_system_booted_p)
     SCM_VALIDATE_MODULE (1, module);
 
   SCM_VALIDATE_SYMBOL (2, sym);
 
+  if (scm_is_false (module))
+    return scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_UNDEFINED);
 
   /* 1. Check module obarray */
   b = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
@@ -470,6 +473,9 @@ SCM_DEFINE (scm_module_variable, "module-variable", 2, 0, 0,
     SCM_VALIDATE_MODULE (1, module);
 
   SCM_VALIDATE_SYMBOL (2, sym);
+
+  if (scm_is_false (module))
+    return scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_UNDEFINED);
 
   /* 1. Check module obarray */
   var = scm_hashq_ref (SCM_MODULE_OBARRAY (module), sym, SCM_UNDEFINED);
@@ -545,6 +551,21 @@ SCM_DEFINE (scm_standard_interface_eval_closure,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_eval_closure_module,
+	    "eval-closure-module", 1, 0, 0,
+	    (SCM eval_closure),
+	    "Return the module associated with this eval closure.")
+/* the idea is that eval closures are really not the way to do things, they're
+   superfluous given our module system. this function lets mmacros migrate away
+   from eval closures. */
+#define FUNC_NAME s_scm_eval_closure_module
+{
+  SCM_MAKE_VALIDATE_MSG (SCM_ARG1, eval_closure, EVAL_CLOSURE_P,
+                         "eval-closure");
+  return SCM_SMOB_OBJECT (eval_closure);
+}
+#undef FUNC_NAME
+
 SCM
 scm_module_lookup_closure (SCM module)
 {
@@ -563,11 +584,20 @@ scm_current_module_lookup_closure ()
     return SCM_BOOL_F;
 }
 
+SCM_SYMBOL (sym_sys_pre_modules_transformer, "%pre-modules-transformer");
+
 SCM
 scm_module_transformer (SCM module)
 {
-  if (scm_is_false (module))
-    return SCM_BOOL_F;
+  if (SCM_UNLIKELY (scm_is_false (module)))
+    { SCM v = scm_hashq_ref (scm_pre_modules_obarray,
+                             sym_sys_pre_modules_transformer,
+                             SCM_BOOL_F);
+      if (scm_is_false (v))
+        return SCM_BOOL_F;
+      else
+        return SCM_VARIABLE_REF (v);
+    }
   else
     return SCM_MODULE_TRANSFORMER (module);
 }
@@ -575,10 +605,7 @@ scm_module_transformer (SCM module)
 SCM
 scm_current_module_transformer ()
 {
-  if (scm_module_system_booted_p)
-    return scm_module_transformer (scm_current_module ());
-  else
-    return SCM_BOOL_F;
+  return scm_module_transformer (scm_current_module ());
 }
 
 SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
@@ -624,6 +651,25 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_SYMBOL (sym_sys_module_public_interface, "%module-public-interface");
+
+SCM_DEFINE (scm_module_public_interface, "module-public-interface", 1, 0, 0,
+	    (SCM module),
+	    "Return the public interface of @var{module}.\n\n"
+            "If @var{module} has no public interface, @code{#f} is returned.")
+#define FUNC_NAME s_scm_module_public_interface
+{
+  SCM var;
+
+  SCM_VALIDATE_MODULE (1, module);
+  var = scm_module_local_variable (module, sym_sys_module_public_interface);
+  if (scm_is_true (var))
+    return SCM_VARIABLE_REF (var);
+  else
+    return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 /* scm_sym2var
  *
  * looks up the variable bound to SYM according to PROC.  PROC should be
@@ -636,8 +682,6 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
  * When PROC is `#f', it is ignored and the binding is searched for in
  * the scm_pre_modules_obarray (a `eq' hash table).
  */
-
-SCM scm_pre_modules_obarray;
 
 SCM 
 scm_sym2var (SCM sym, SCM proc, SCM definep)

@@ -61,7 +61,7 @@ Arrange things so that all of the code in the current thread executes as
 if from within a call to @code{scm_with_guile}.  That is, all functions
 called by the current thread can assume that @code{SCM} values on their
 stack frames are protected from the garbage collector (except when the
-thread has explicitely left guile mode, of course).
+thread has explicitly left guile mode, of course).
 
 When @code{scm_init_guile} is called from a thread that already has been
 in guile mode once, nothing happens.  This behavior matters when you

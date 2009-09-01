@@ -4,7 +4,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,6 +23,9 @@
 
 (define exception:bad-expression
   (cons 'syntax-error "Bad expression"))
+
+(define exception:failed-match
+  (cons 'syntax-error "failed to match any pattern"))
 
 
 ;;;
@@ -85,17 +88,19 @@
     ;; Macros are accepted as function parameters.
     ;; Functions that 'apply' macros are rewritten!!!
 
-    (expect-fail-exception "macro as argument"
-      exception:wrong-type-arg
-      (let ((f (lambda (p a b) (p a b))))
-	(f and #t #t)))
+    (pass-if-exception "macro as argument"
+      exception:failed-match
+      (primitive-eval
+       '(let ((f (lambda (p a b) (p a b))))
+          (f and #t #t))))
 
-    (expect-fail-exception "passing macro as parameter"
-      exception:wrong-type-arg
-      (let* ((f (lambda (p a b) (p a b)))
-	     (foo (procedure-source f)))
-	(f and #t #t)
-	(equal? (procedure-source f) foo)))
+    (pass-if-exception "passing macro as parameter"
+      exception:failed-match
+      (primitive-eval
+       '(let* ((f (lambda (p a b) (p a b)))
+               (foo (procedure-source f)))
+          (f and #t #t)
+          (equal? (procedure-source f) foo))))
 
     ))
 
@@ -214,7 +219,11 @@
 ;;
 (define foo-closure (lambda () "hello"))
 (define bar-closure foo-closure)
-(define foo-pws (make-procedure-with-setter car set-car!))
+;; make sure that make-procedure-with-setter returns an anonymous
+;; procedure-with-setter by passing it an anonymous getter.
+(define foo-pws (make-procedure-with-setter
+                 (lambda (x) (car x))
+                 (lambda (x y) (set-car! x y))))
 (define bar-pws foo-pws)
 
 (with-test-prefix "define set procedure-name"
@@ -223,7 +232,7 @@
     (eq? 'foo-closure (procedure-name bar-closure)))
 
   (pass-if "procedure-with-setter"
-    (eq? 'foo-pws (pk (procedure-name bar-pws)))))
+    (eq? 'foo-pws (procedure-name bar-pws))))
 
 (if old-procnames-flag
     (debug-enable 'procnames)

@@ -283,9 +283,9 @@ runs a script non-interactively.
 The following procedures can be used to access and set the source
 properties of read expressions.
 
-@deffn {Scheme Procedure} set-source-properties! obj plist
-@deffnx {C Function} scm_set_source_properties_x (obj, plist)
-Install the association list @var{plist} as the source property
+@deffn {Scheme Procedure} set-source-properties! obj alist
+@deffnx {C Function} scm_set_source_properties_x (obj, alist)
+Install the association list @var{alist} as the source property
 list for @var{obj}.
 @end deffn
 
@@ -302,12 +302,12 @@ Return the source property association list of @var{obj}.
 
 @deffn {Scheme Procedure} source-property obj key
 @deffnx {C Function} scm_source_property (obj, key)
-Return the source property specified by @var{key} from
-@var{obj}'s source property list.
+Return the property specified by @var{key} from @var{obj}'s source
+properties.
 @end deffn
 
 In practice there are only two ways that you should use the ability to
-set an expression's source breakpoints.
+set an expression's source properties.
 
 @itemize
 @item
@@ -330,9 +330,9 @@ involved in a backtrace or error report.
 
 If you are looking for a way to attach arbitrary information to an
 expression other than these properties, you should use
-@code{make-object-property} instead (@pxref{Object Properties}), because
-that will avoid bloating the source property hash table, which is really
-only intended for the specific purposes described in this section.
+@code{make-object-property} instead (@pxref{Object Properties}).  That
+will avoid bloating the source property hash table, which is really
+only intended for the debugging purposes just described.
 
 
 @node Decoding Memoized Source Expressions
@@ -1708,7 +1708,7 @@ facilities just described.
 A good way to explore in detail what a Scheme procedure does is to set
 a trap on it and then single step through what it does.  To do this,
 make and install a @code{<procedure-trap>} with the @code{debug-trap}
-behaviour from @code{(ice-9 debugging ice-9-debugger-extensions)}.
+behaviour from @code{(ice-9 debugger)}.
 
 The following sample session illustrates this.  It assumes that the
 file @file{matrix.scm} defines a procedure @code{mkmatrix}, which is
@@ -1718,7 +1718,6 @@ calls @code{mkmatrix}.
 @lisp
 $ /usr/bin/guile -q
 guile> (use-modules (ice-9 debugger)
-                    (ice-9 debugging ice-9-debugger-extensions)
                     (ice-9 debugging traps))
 guile> (load "matrix.scm")
 guile> (install-trap (make <procedure-trap>
@@ -1732,16 +1731,16 @@ Frame 2 at matrix.scm:8:3
         [mkmatrix]
 debug> next
 Frame 3 at matrix.scm:4:3
-        (let ((x 1)) (quote this-is-a-matric))
+        (let ((x 1)) (quote hi!))
 debug> info frame
 Stack frame: 3
 This frame is an evaluation.
 The expression being evaluated is:
 matrix.scm:4:3:
-  (let ((x 1)) (quote this-is-a-matric))
+  (let ((x 1)) (quote hi!))
 debug> next
 Frame 3 at matrix.scm:5:21
-        (quote this-is-a-matric)
+        (quote hi!)
 debug> bt
 In unknown file:
    ?: 0* [primitive-eval (do-main 4)]
@@ -1750,18 +1749,17 @@ In standard input:
 In matrix.scm:
    8: 2  [mkmatrix]
    ...
-   5: 3  (quote this-is-a-matric)
+   5: 3  (quote hi!)
 debug> quit
-this-is-a-matric
+hi!
 guile> 
 @end lisp
 
 Or you can use Guile's Emacs interface (GDS), by using the module
 @code{(ice-9 gds-client)} instead of @code{(ice-9 debugger)} and
-@code{(ice-9 debugging ice-9-debugger-extensions)}, and changing
-@code{debug-trap} to @code{gds-debug-trap}.  Then the stack and
-corresponding source locations are displayed in Emacs instead of on
-the Guile command line.
+changing @code{debug-trap} to @code{gds-debug-trap}.  Then the stack and
+corresponding source locations are displayed in Emacs instead of on the
+Guile command line.
 
 
 @node Profiling or Tracing a Procedure's Code
@@ -1813,7 +1811,7 @@ guile> (do-main 4)
 |  5: (memq sym bindings)
 |  5: [memq let (debug)]
 |  5: =>#f
-|  2: (letrec ((yy 23)) (let ((x 1)) (quote this-is-a-matric)))
+|  2: (letrec ((yy 23)) (let ((x 1)) (quote hi!)))
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  4: (and (memq sym bindings) (let ...))
@@ -1832,7 +1830,7 @@ guile> (do-main 4)
 |  5: (memq sym bindings)
 |  5: [memq let (debug)]
 |  5: =>#f
-|  2: (let ((x 1)) (quote this-is-a-matric))
+|  2: (let ((x 1)) (quote hi!))
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  3: [#<procedure #f (a sym definep)> #<autoload # b7c93870> let #f]
 |  4: (and (memq sym bindings) (let ...))
@@ -1841,15 +1839,15 @@ guile> (do-main 4)
 |  5: =>#f
 |  2: [let (let # #) (# # #)]
 |  2: [let (let # #) (# # #)]
-|  2: =>(#@@let* (x 1) #@@let (quote this-is-a-matric))
-this-is-a-matric
+|  2: =>(#@@let* (x 1) #@@let (quote hi!))
+hi!
 guile> (do-main 4)
 |  2: [mkmatrix]
-|  2: (letrec ((yy 23)) (let* ((x 1)) (quote this-is-a-matric)))
-|  2: (let* ((x 1)) (quote this-is-a-matric))
-|  2: (quote this-is-a-matric)
-|  2: =>this-is-a-matric
-this-is-a-matric
+|  2: (letrec ((yy 23)) (let* ((x 1)) (quote hi!)))
+|  2: (let* ((x 1)) (quote hi!))
+|  2: (quote hi!)
+|  2: =>hi!
+hi!
 guile> 
 @end lisp
 
@@ -1881,14 +1879,16 @@ each trace line instead of the stack depth.
 guile> (set-trace-layout "|~16@@a: ~a\n" trace/source trace/info)
 guile> (do-main 4)
 |  matrix.scm:7:2: [mkmatrix]
-|                : (letrec ((yy 23)) (let* ((x 1)) (quote this-is-a-matric)))
-|  matrix.scm:3:2: (let* ((x 1)) (quote this-is-a-matric))
-|  matrix.scm:4:4: (quote this-is-a-matric)
-|  matrix.scm:4:4: =>this-is-a-matric
-this-is-a-matric
+|                : (letrec ((yy 23)) (let* ((x 1)) (quote hi!)))
+|  matrix.scm:3:2: (let* ((x 1)) (quote hi!))
+|  matrix.scm:4:4: (quote hi!)
+|  matrix.scm:4:4: =>hi!
+hi!
 guile> 
 @end lisp
 
+@anchor{Memoization}
+@cindex Memoization
 (For anyone wondering why the first @code{(do-main 4)} call above
 generates lots more trace lines than the subsequent calls: these
 examples also demonstrate how the Guile evaluator ``memoizes'' code.

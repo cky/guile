@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -45,6 +45,7 @@ For the documentation of such @dfn{compound} data types, see
 * Characters::                  Single characters.
 * Character Sets::              Sets of characters.
 * Strings::                     Sequences of characters.
+* Bytevectors::                 Sequences of bytes.
 * Regular Expressions::         Pattern matching and substitution.
 * Symbols::                     Symbols.
 * Keywords::                    Self-quoting, customizable display keywords.
@@ -331,7 +332,7 @@ integers.
 
 The motivation for this behavior is that the inexactness of a number
 should not be lost silently.  If you want to allow inexact integers,
-you can explicitely insert a call to @code{inexact->exact} or to its C
+you can explicitly insert a call to @code{inexact->exact} or to its C
 equivalent @code{scm_inexact_to_exact}.  (Only inexact integers will
 be converted by this call into exact integers; inexact non-integers
 will become exact fractions.)
@@ -3476,9 +3477,9 @@ allocated string.
 @deffnx {C Function} scm_string_concatenate_reverse (ls, final_string, end)
 Without optional arguments, this procedure is equivalent to
 
-@smalllisp
+@lisp
 (string-concatenate (reverse ls))
-@end smalllisp
+@end lisp
 
 If the optional argument @var{final_string} is specified, it is
 consed onto the beginning to @var{ls} before performing the
@@ -3534,11 +3535,12 @@ For example, to change characters to alternately upper and lower case,
 
 @example
 (define str (string-copy "studly"))
-(string-for-each-index (lambda (i)
-                         (string-set! str i
-                           ((if (even? i) char-upcase char-downcase)
-                            (string-ref str i))))
-                       str)
+(string-for-each-index
+    (lambda (i)
+      (string-set! str i
+        ((if (even? i) char-upcase char-downcase)
+         (string-ref str i))))
+    str)
 str @result{} "StUdLy"
 @end example
 @end deffn
@@ -3745,6 +3747,445 @@ bytes that are needed for all of @var{str}, regardless of whether
 is larger than @var{max_len}, only @var{max_len} bytes have been
 stored and you probably need to try again with a larger buffer.
 @end deftypefn
+
+@node Bytevectors
+@subsection Bytevectors
+
+@cindex bytevector
+@cindex R6RS
+
+A @dfn{bytevector} is a raw bit string.  The @code{(rnrs bytevector)}
+module provides the programming interface specified by the
+@uref{http://www.r6rs.org/, Revised^6 Report on the Algorithmic Language
+Scheme (R6RS)}.  It contains procedures to manipulate bytevectors and
+interpret their contents in a number of ways: bytevector contents can be
+accessed as signed or unsigned integer of various sizes and endianness,
+as IEEE-754 floating point numbers, or as strings.  It is a useful tool
+to encode and decode binary data.
+
+The R6RS (Section 4.3.4) specifies an external representation for
+bytevectors, whereby the octets (integers in the range 0--255) contained
+in the bytevector are represented as a list prefixed by @code{#vu8}:
+
+@lisp
+#vu8(1 53 204)
+@end lisp
+
+denotes a 3-byte bytevector containing the octets 1, 53, and 204.  Like
+string literals, booleans, etc., bytevectors are ``self-quoting'', i.e.,
+they do not need to be quoted:
+
+@lisp
+#vu8(1 53 204)
+@result{} #vu8(1 53 204)
+@end lisp
+
+Bytevectors can be used with the binary input/output primitives of the
+R6RS (@pxref{R6RS I/O Ports}).
+
+@menu
+* Bytevector Endianness::       Dealing with byte order.
+* Bytevector Manipulation::     Creating, copying, manipulating bytevectors.
+* Bytevectors as Integers::     Interpreting bytes as integers.
+* Bytevectors and Integer Lists::  Converting to/from an integer list.
+* Bytevectors as Floats::       Interpreting bytes as real numbers.
+* Bytevectors as Strings::      Interpreting bytes as Unicode strings.
+* Bytevectors as Generalized Vectors::  Guile extension to the bytevector API.
+@end menu
+
+@node Bytevector Endianness
+@subsubsection Endianness
+
+@cindex endianness
+@cindex byte order
+@cindex word order
+
+Some of the following procedures take an @var{endianness} parameter.
+The @dfn{endianness} is defined as the order of bytes in multi-byte
+numbers: numbers encoded in @dfn{big endian} have their most
+significant bytes written first, whereas numbers encoded in
+@dfn{little endian} have their least significant bytes
+first@footnote{Big-endian and little-endian are the most common
+``endiannesses'', but others do exist. For instance, the GNU MP
+library allows @dfn{word order} to be specified independently of
+@dfn{byte order} (@pxref{Integer Import and Export,,, gmp, The GNU
+Multiple Precision Arithmetic Library Manual}).}.
+
+Little-endian is the native endianness of the IA32 architecture and
+its derivatives, while big-endian is native to SPARC and PowerPC,
+among others. The @code{native-endianness} procedure returns the
+native endianness of the machine it runs on.
+
+@deffn {Scheme Procedure} native-endianness
+@deffnx {C Function} scm_native_endianness ()
+Return a value denoting the native endianness of the host machine.
+@end deffn
+
+@deffn {Scheme Macro} endianness symbol
+Return an object denoting the endianness specified by @var{symbol}.  If
+@var{symbol} is neither @code{big} nor @code{little} then an error is
+raised at expand-time.
+@end deffn
+
+@defvr {C Variable} scm_endianness_big
+@defvrx {C Variable} scm_endianness_little
+The objects denoting big- and little-endianness, respectively.
+@end defvr
+
+
+@node Bytevector Manipulation
+@subsubsection Manipulating Bytevectors
+
+Bytevectors can be created, copied, and analyzed with the following
+procedures and C functions.
+
+@deffn {Scheme Procedure} make-bytevector len [fill]
+@deffnx {C Function} scm_make_bytevector (len, fill)
+@deffnx {C Function} scm_c_make_bytevector (size_t len)
+Return a new bytevector of @var{len} bytes.  Optionally, if @var{fill}
+is given, fill it with @var{fill}; @var{fill} must be in the range
+[-128,255].
+@end deffn
+
+@deffn {Scheme Procedure} bytevector? obj
+@deffnx {C Function} scm_bytevector_p (obj)
+Return true if @var{obj} is a bytevector.
+@end deffn
+
+@deftypefn {C Function} int scm_is_bytevector (SCM obj)
+Equivalent to @code{scm_is_true (scm_bytevector_p (obj))}.
+@end deftypefn
+
+@deffn {Scheme Procedure} bytevector-length bv
+@deffnx {C Function} scm_bytevector_length (bv)
+Return the length in bytes of bytevector @var{bv}.
+@end deffn
+
+@deftypefn {C Function} size_t scm_c_bytevector_length (SCM bv)
+Likewise, return the length in bytes of bytevector @var{bv}.
+@end deftypefn
+
+@deffn {Scheme Procedure} bytevector=? bv1 bv2
+@deffnx {C Function} scm_bytevector_eq_p (bv1, bv2)
+Return is @var{bv1} equals to @var{bv2}---i.e., if they have the same
+length and contents.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-fill! bv fill
+@deffnx {C Function} scm_bytevector_fill_x (bv, fill)
+Fill bytevector @var{bv} with @var{fill}, a byte.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-copy! source source-start target target-start len
+@deffnx {C Function} scm_bytevector_copy_x (source, source_start, target, target_start, len)
+Copy @var{len} bytes from @var{source} into @var{target}, starting
+reading from @var{source-start} (a positive index within @var{source})
+and start writing at @var{target-start}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-copy bv
+@deffnx {C Function} scm_bytevector_copy (bv)
+Return a newly allocated copy of @var{bv}.
+@end deffn
+
+@deftypefn {C Function} scm_t_uint8 scm_c_bytevector_ref (SCM bv, size_t index)
+Return the byte at @var{index} in bytevector @var{bv}.
+@end deftypefn
+
+@deftypefn {C Function} void scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
+Set the byte at @var{index} in @var{bv} to @var{value}.
+@end deftypefn
+
+Low-level C macros are available.  They do not perform any
+type-checking; as such they should be used with care.
+
+@deftypefn {C Macro} size_t SCM_BYTEVECTOR_LENGTH (bv)
+Return the length in bytes of bytevector @var{bv}.
+@end deftypefn
+
+@deftypefn {C Macro} {signed char *} SCM_BYTEVECTOR_CONTENTS (bv)
+Return a pointer to the contents of bytevector @var{bv}.
+@end deftypefn
+
+
+@node Bytevectors as Integers
+@subsubsection Interpreting Bytevector Contents as Integers
+
+The contents of a bytevector can be interpreted as a sequence of
+integers of any given size, sign, and endianness.
+
+@lisp
+(let ((bv (make-bytevector 4)))
+  (bytevector-u8-set! bv 0 #x12)
+  (bytevector-u8-set! bv 1 #x34)
+  (bytevector-u8-set! bv 2 #x56)
+  (bytevector-u8-set! bv 3 #x78)
+
+  (map (lambda (number)
+         (number->string number 16))
+       (list (bytevector-u8-ref bv 0)
+             (bytevector-u16-ref bv 0 (endianness big))
+             (bytevector-u32-ref bv 0 (endianness little)))))
+
+@result{} ("12" "1234" "78563412")
+@end lisp
+
+The most generic procedures to interpret bytevector contents as integers
+are described below.
+
+@deffn {Scheme Procedure} bytevector-uint-ref bv index endianness size
+@deffnx {Scheme Procedure} bytevector-sint-ref bv index endianness size
+@deffnx {C Function} scm_bytevector_uint_ref (bv, index, endianness, size)
+@deffnx {C Function} scm_bytevector_sint_ref (bv, index, endianness, size)
+Return the @var{size}-byte long unsigned (resp. signed) integer at
+index @var{index} in @var{bv}, decoded according to @var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-uint-set! bv index value endianness size
+@deffnx {Scheme Procedure} bytevector-sint-set! bv index value endianness size
+@deffnx {C Function} scm_bytevector_uint_set_x (bv, index, value, endianness, size)
+@deffnx {C Function} scm_bytevector_sint_set_x (bv, index, value, endianness, size)
+Set the @var{size}-byte long unsigned (resp. signed) integer at
+@var{index} to @var{value}, encoded according to @var{endianness}.
+@end deffn
+
+The following procedures are similar to the ones above, but specialized
+to a given integer size:
+
+@deffn {Scheme Procedure} bytevector-u8-ref bv index
+@deffnx {Scheme Procedure} bytevector-s8-ref bv index
+@deffnx {Scheme Procedure} bytevector-u16-ref bv index endianness
+@deffnx {Scheme Procedure} bytevector-s16-ref bv index endianness
+@deffnx {Scheme Procedure} bytevector-u32-ref bv index endianness
+@deffnx {Scheme Procedure} bytevector-s32-ref bv index endianness
+@deffnx {Scheme Procedure} bytevector-u64-ref bv index endianness
+@deffnx {Scheme Procedure} bytevector-s64-ref bv index endianness
+@deffnx {C Function} scm_bytevector_u8_ref (bv, index)
+@deffnx {C Function} scm_bytevector_s8_ref (bv, index)
+@deffnx {C Function} scm_bytevector_u16_ref (bv, index, endianness)
+@deffnx {C Function} scm_bytevector_s16_ref (bv, index, endianness)
+@deffnx {C Function} scm_bytevector_u32_ref (bv, index, endianness)
+@deffnx {C Function} scm_bytevector_s32_ref (bv, index, endianness)
+@deffnx {C Function} scm_bytevector_u64_ref (bv, index, endianness)
+@deffnx {C Function} scm_bytevector_s64_ref (bv, index, endianness)
+Return the unsigned @var{n}-bit (signed) integer (where @var{n} is 8,
+16, 32 or 64) from @var{bv} at @var{index}, decoded according to
+@var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-u8-set! bv index value
+@deffnx {Scheme Procedure} bytevector-s8-set! bv index value
+@deffnx {Scheme Procedure} bytevector-u16-set! bv index value endianness
+@deffnx {Scheme Procedure} bytevector-s16-set! bv index value endianness
+@deffnx {Scheme Procedure} bytevector-u32-set! bv index value endianness
+@deffnx {Scheme Procedure} bytevector-s32-set! bv index value endianness
+@deffnx {Scheme Procedure} bytevector-u64-set! bv index value endianness
+@deffnx {Scheme Procedure} bytevector-s64-set! bv index value endianness
+@deffnx {C Function} scm_bytevector_u8_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_s8_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_u16_set_x (bv, index, value, endianness)
+@deffnx {C Function} scm_bytevector_s16_set_x (bv, index, value, endianness)
+@deffnx {C Function} scm_bytevector_u32_set_x (bv, index, value, endianness)
+@deffnx {C Function} scm_bytevector_s32_set_x (bv, index, value, endianness)
+@deffnx {C Function} scm_bytevector_u64_set_x (bv, index, value, endianness)
+@deffnx {C Function} scm_bytevector_s64_set_x (bv, index, value, endianness)
+Store @var{value} as an @var{n}-bit (signed) integer (where @var{n} is
+8, 16, 32 or 64) in @var{bv} at @var{index}, encoded according to
+@var{endianness}.
+@end deffn
+
+Finally, a variant specialized for the host's endianness is available
+for each of these functions (with the exception of the @code{u8}
+accessors, for obvious reasons):
+
+@deffn {Scheme Procedure} bytevector-u16-native-ref bv index
+@deffnx {Scheme Procedure} bytevector-s16-native-ref bv index
+@deffnx {Scheme Procedure} bytevector-u32-native-ref bv index
+@deffnx {Scheme Procedure} bytevector-s32-native-ref bv index
+@deffnx {Scheme Procedure} bytevector-u64-native-ref bv index
+@deffnx {Scheme Procedure} bytevector-s64-native-ref bv index
+@deffnx {C Function} scm_bytevector_u16_native_ref (bv, index)
+@deffnx {C Function} scm_bytevector_s16_native_ref (bv, index)
+@deffnx {C Function} scm_bytevector_u32_native_ref (bv, index)
+@deffnx {C Function} scm_bytevector_s32_native_ref (bv, index)
+@deffnx {C Function} scm_bytevector_u64_native_ref (bv, index)
+@deffnx {C Function} scm_bytevector_s64_native_ref (bv, index)
+Return the unsigned @var{n}-bit (signed) integer (where @var{n} is 8,
+16, 32 or 64) from @var{bv} at @var{index}, decoded according to the
+host's native endianness.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-u16-native-set! bv index value
+@deffnx {Scheme Procedure} bytevector-s16-native-set! bv index value
+@deffnx {Scheme Procedure} bytevector-u32-native-set! bv index value
+@deffnx {Scheme Procedure} bytevector-s32-native-set! bv index value
+@deffnx {Scheme Procedure} bytevector-u64-native-set! bv index value
+@deffnx {Scheme Procedure} bytevector-s64-native-set! bv index value
+@deffnx {C Function} scm_bytevector_u16_native_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_s16_native_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_u32_native_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_s32_native_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_u64_native_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_s64_native_set_x (bv, index, value)
+Store @var{value} as an @var{n}-bit (signed) integer (where @var{n} is
+8, 16, 32 or 64) in @var{bv} at @var{index}, encoded according to the
+host's native endianness.
+@end deffn
+
+
+@node Bytevectors and Integer Lists
+@subsubsection Converting Bytevectors to/from Integer Lists
+
+Bytevector contents can readily be converted to/from lists of signed or
+unsigned integers:
+
+@lisp
+(bytevector->sint-list (u8-list->bytevector (make-list 4 255))
+                       (endianness little) 2)
+@result{} (-1 -1)
+@end lisp
+
+@deffn {Scheme Procedure} bytevector->u8-list bv
+@deffnx {C Function} scm_bytevector_to_u8_list (bv)
+Return a newly allocated list of unsigned 8-bit integers from the
+contents of @var{bv}.
+@end deffn
+
+@deffn {Scheme Procedure} u8-list->bytevector lst
+@deffnx {C Function} scm_u8_list_to_bytevector (lst)
+Return a newly allocated bytevector consisting of the unsigned 8-bit
+integers listed in @var{lst}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector->uint-list bv endianness size
+@deffnx {Scheme Procedure} bytevector->sint-list bv endianness size
+@deffnx {C Function} scm_bytevector_to_uint_list (bv, endianness, size)
+@deffnx {C Function} scm_bytevector_to_sint_list (bv, endianness, size)
+Return a list of unsigned (resp. signed) integers of @var{size} bytes
+representing the contents of @var{bv}, decoded according to
+@var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} uint-list->bytevector lst endianness size
+@deffnx {Scheme Procedure} sint-list->bytevector lst endianness size
+@deffnx {C Function} scm_uint_list_to_bytevector (lst, endianness, size)
+@deffnx {C Function} scm_sint_list_to_bytevector (lst, endianness, size)
+Return a new bytevector containing the unsigned (resp. signed) integers
+listed in @var{lst} and encoded on @var{size} bytes according to
+@var{endianness}.
+@end deffn
+
+@node Bytevectors as Floats
+@subsubsection Interpreting Bytevector Contents as Floating Point Numbers
+
+@cindex IEEE-754 floating point numbers
+
+Bytevector contents can also be accessed as IEEE-754 single- or
+double-precision floating point numbers (respectively 32 and 64-bit
+long) using the procedures described here.
+
+@deffn {Scheme Procedure} bytevector-ieee-single-ref bv index endianness
+@deffnx {Scheme Procedure} bytevector-ieee-double-ref bv index endianness
+@deffnx {C Function} scm_bytevector_ieee_single_ref (bv, index, endianness)
+@deffnx {C Function} scm_bytevector_ieee_double_ref (bv, index, endianness)
+Return the IEEE-754 single-precision floating point number from @var{bv}
+at @var{index} according to @var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-ieee-single-set! bv index value endianness
+@deffnx {Scheme Procedure} bytevector-ieee-double-set! bv index value endianness
+@deffnx {C Function} scm_bytevector_ieee_single_set_x (bv, index, value, endianness)
+@deffnx {C Function} scm_bytevector_ieee_double_set_x (bv, index, value, endianness)
+Store real number @var{value} in @var{bv} at @var{index} according to
+@var{endianness}.
+@end deffn
+
+Specialized procedures are also available:
+
+@deffn {Scheme Procedure} bytevector-ieee-single-native-ref bv index
+@deffnx {Scheme Procedure} bytevector-ieee-double-native-ref bv index
+@deffnx {C Function} scm_bytevector_ieee_single_native_ref (bv, index)
+@deffnx {C Function} scm_bytevector_ieee_double_native_ref (bv, index)
+Return the IEEE-754 single-precision floating point number from @var{bv}
+at @var{index} according to the host's native endianness.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-ieee-single-native-set! bv index value
+@deffnx {Scheme Procedure} bytevector-ieee-double-native-set! bv index value
+@deffnx {C Function} scm_bytevector_ieee_single_native_set_x (bv, index, value)
+@deffnx {C Function} scm_bytevector_ieee_double_native_set_x (bv, index, value)
+Store real number @var{value} in @var{bv} at @var{index} according to
+the host's native endianness.
+@end deffn
+
+
+@node Bytevectors as Strings
+@subsubsection Interpreting Bytevector Contents as Unicode Strings
+
+@cindex Unicode string encoding
+
+Bytevector contents can also be interpreted as Unicode strings encoded
+in one of the most commonly available encoding formats@footnote{Guile
+1.8 does @emph{not} support Unicode strings.  Therefore, the procedures
+described here assume that Guile strings are internally encoded
+according to the current locale.  For instance, if @code{$LC_CTYPE} is
+@code{fr_FR.ISO-8859-1}, then @code{string->utf-8} @i{et al.} will
+assume that Guile strings are Latin-1-encoded.}.
+
+@lisp
+(utf8->string (u8-list->bytevector '(99 97 102 101)))
+@result{} "cafe"
+
+(string->utf8 "caf@'e") ;; SMALL LATIN LETTER E WITH ACUTE ACCENT
+@result{} #vu8(99 97 102 195 169)
+@end lisp
+
+@deffn {Scheme Procedure} string->utf8 str
+@deffnx {Scheme Procedure} string->utf16 str
+@deffnx {Scheme Procedure} string->utf32 str
+@deffnx {C Function} scm_string_to_utf8 (str)
+@deffnx {C Function} scm_string_to_utf16 (str)
+@deffnx {C Function} scm_string_to_utf32 (str)
+Return a newly allocated bytevector that contains the UTF-8, UTF-16, or
+UTF-32 (aka. UCS-4) encoding of @var{str}.
+@end deffn
+
+@deffn {Scheme Procedure} utf8->string utf
+@deffnx {Scheme Procedure} utf16->string utf
+@deffnx {Scheme Procedure} utf32->string utf
+@deffnx {C Function} scm_utf8_to_string (utf)
+@deffnx {C Function} scm_utf16_to_string (utf)
+@deffnx {C Function} scm_utf32_to_string (utf)
+Return a newly allocated string that contains from the UTF-8-, UTF-16-,
+or UTF-32-decoded contents of bytevector @var{utf}.
+@end deffn
+
+@node Bytevectors as Generalized Vectors
+@subsubsection Accessing Bytevectors with the Generalized Vector API
+
+As an extension to the R6RS, Guile allows bytevectors to be manipulated
+with the @dfn{generalized vector} procedures (@pxref{Generalized
+Vectors}).  This also allows bytevectors to be accessed using the
+generic @dfn{array} procedures (@pxref{Array Procedures}).  When using
+these APIs, bytes are accessed one at a time as 8-bit unsigned integers:
+
+@example
+(define bv #vu8(0 1 2 3))
+
+(generalized-vector? bv)
+@result{} #t
+
+(generalized-vector-ref bv 2)
+@result{} 2
+
+(generalized-vector-set! bv 2 77)
+(array-ref bv 2)
+@result{} 77
+
+(array-type bv)
+@result{} vu8
+@end example
+
 
 @node Regular Expressions
 @subsection Regular Expressions
@@ -4007,7 +4448,8 @@ Or matching a @sc{yyyymmdd} format date such as @samp{20020828} and
 re-ordering and hyphenating the fields.
 
 @lisp
-(define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define date-regex
+   "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
 (define s "Date 20020429 12am.")
 (regexp-substitute #f (string-match date-regex s)
                    'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
@@ -4067,7 +4509,8 @@ example the following is the date example from
 @code{string-match} call.
 
 @lisp
-(define date-regex "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define date-regex 
+   "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
 (define s "Date 20020429 12am.")
 (regexp-substitute/global #f date-regex s
                           'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
@@ -5062,7 +5505,7 @@ the @code{read-set!} procedure documented in @ref{User level options
 interfaces} and @ref{Reader options}.  Note that the @code{prefix} and
 @code{postfix} syntax are mutually exclusive.
 
-@smalllisp
+@lisp
 (read-set! keywords 'prefix)
 
 #:type
@@ -5094,7 +5537,7 @@ type:
 ERROR: In expression :type:
 ERROR: Unbound variable: :type
 ABORT: (unbound-variable)
-@end smalllisp
+@end lisp
 
 @node Keyword Procedures
 @subsubsection Keyword Procedures

@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #ifdef HAVE_CONFIG_H
@@ -58,12 +59,10 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
   size_t j;
   size_t cstart;
   size_t cend;
-  int c;
-  const char *cdelims;
+  scm_t_wchar c;
   size_t num_delims;
 
   SCM_VALIDATE_STRING (1, delims);
-  cdelims = scm_i_string_chars (delims);
   num_delims = scm_i_string_length (delims);
 
   SCM_VALIDATE_STRING (2, str);
@@ -82,7 +81,7 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
       c = scm_getc (port);
       for (k = 0; k < num_delims; k++)
 	{
-	  if (cdelims[k] == c)
+	  if (scm_i_string_ref (delims, k) == c)
 	    {
 	      if (scm_is_false (gobble))
 		scm_ungetc (c, port);

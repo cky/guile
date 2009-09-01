@@ -2,21 +2,22 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #ifdef HAVE_CONFIG_H
@@ -33,6 +34,7 @@
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/modules.h"
+#include "libguile/generalized-arrays.h"
 #include "libguile/eval.h"
 #include "libguile/smob.h"
 #include "libguile/procprop.h"
@@ -748,16 +750,12 @@ scm_sym2ovcell (SCM sym, SCM obarray)
    return (SYMBOL . SCM_UNDEFINED).  */
 
 
-SCM 
-scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int softness)
+static SCM 
+intern_obarray_soft (SCM symbol, SCM obarray, unsigned int softness)
 {
-  SCM symbol = scm_from_locale_symboln (name, len);
   size_t raw_hash = scm_i_symbol_hash (symbol);
   size_t hash;
   SCM lsym;
-
-  scm_c_issue_deprecation_warning ("`scm_intern_obarray_soft' is deprecated. "
-				   "Use hashtables instead.");
 
   if (scm_is_false (obarray))
     {
@@ -794,6 +792,18 @@ scm_intern_obarray_soft (const char *name,size_t len,SCM obarray,unsigned int so
 }
 
 
+SCM 
+scm_intern_obarray_soft (const char *name, size_t len, SCM obarray,
+                         unsigned int softness)
+{
+  SCM symbol = scm_from_locale_symboln (name, len);
+
+  scm_c_issue_deprecation_warning ("`scm_intern_obarray_soft' is deprecated. "
+				   "Use hashtables instead.");
+
+  return intern_obarray_soft (symbol, obarray, softness);
+}
+  
 SCM
 scm_intern_obarray (const char *name,size_t len,SCM obarray)
 {
@@ -849,10 +859,7 @@ SCM_DEFINE (scm_string_to_obarray_symbol, "string->obarray-symbol", 2, 1, 0,
   else if (scm_is_eq (o, SCM_BOOL_T))
     o = SCM_BOOL_F;
     
-  vcell = scm_intern_obarray_soft (scm_i_string_chars (s),
-				   scm_i_string_length (s),
-				   o,
-				   softness);
+  vcell = intern_obarray_soft (scm_string_to_symbol (s), o, softness);
   if (scm_is_false (vcell))
     return vcell;
   answer = SCM_CAR (vcell);
@@ -1069,7 +1076,8 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 {
   char buf[MAX_PREFIX_LENGTH + SCM_INTBUFLEN];
   char *name = buf;
-  int len, n_digits;
+  int n_digits;
+  size_t len;
 
   scm_c_issue_deprecation_warning ("`gentemp' is deprecated. "
 				   "Use `gensym' instead.");
@@ -1083,9 +1091,8 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
     {
       SCM_VALIDATE_STRING (1, prefix);
       len = scm_i_string_length (prefix);
-      if (len > MAX_PREFIX_LENGTH)
-	name = SCM_MUST_MALLOC (MAX_PREFIX_LENGTH + SCM_INTBUFLEN);
-      strncpy (name, scm_i_string_chars (prefix), len);
+      name = scm_to_locale_stringn (prefix, &len);
+      name = scm_realloc (name, len + SCM_INTBUFLEN);
     }
 
   if (SCM_UNBNDP (obarray))
@@ -1107,7 +1114,7 @@ SCM_DEFINE (scm_gentemp, "gentemp", 0, 2, 0,
 					 obarray,
 					 0);
     if (name != buf)
-      scm_must_free (name);
+      free (name);
     return SCM_CAR (vcell);
   }
 }
@@ -1308,7 +1315,7 @@ scm_i_arrayp (SCM a)
 {
   scm_c_issue_deprecation_warning
     ("SCM_ARRAYP is deprecated.  Use scm_is_array instead.");
-  return SCM_I_ARRAYP(a) || SCM_I_ENCLOSED_ARRAYP(a);
+  return SCM_I_ARRAYP(a);
 }
 
 size_t
@@ -1496,6 +1503,29 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* GC-related things.  */
+
+unsigned long scm_mallocated, scm_mtrigger;
+size_t scm_max_segment_size;
+
+#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
+SCM
+scm_map_free_list (void)
+{
+  return SCM_EOL;
+}
+#endif
+
+#if defined (GUILE_DEBUG_FREELIST)
+SCM
+scm_gc_set_debug_check_freelist_x (SCM flag)
+{
+  return SCM_UNSPECIFIED;
+}
+#endif
+
+
 void
 scm_i_init_deprecated ()
 {

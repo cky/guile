@@ -1,18 +1,19 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -593,7 +594,7 @@ static void fport_flush (SCM port);
 
 /* fill a port's read-buffer with a single read.  returns the first
    char or EOF if end of file.  */
-static int
+static scm_t_wchar
 fport_fill_input (SCM port)
 {
   long count;
@@ -607,7 +608,7 @@ fport_fill_input (SCM port)
   if (count == -1)
     scm_syserror ("fport_fill_input");
   if (count == 0)
-    return EOF;
+    return (scm_t_wchar) EOF;
   else
     {
       pt->read_pos = pt->read_buf;
@@ -616,8 +617,8 @@ fport_fill_input (SCM port)
     }
 }
 
-static off_t_or_off64_t
-fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
+static scm_t_off
+fport_seek (SCM port, scm_t_off offset, int whence)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
@@ -668,53 +669,13 @@ fport_seek_or_seek64 (SCM port, off_t_or_off64_t offset, int whence)
   return result;
 }
 
-/* If we've got largefile and off_t isn't already off64_t then
-   fport_seek_or_seek64 needs a range checking wrapper to be fport_seek in
-   the port descriptor.
-
-   Otherwise if no largefile, or off_t is the same as off64_t (which is the
-   case on NetBSD apparently), then fport_seek_or_seek64 is right to be
-   fport_seek already.  */
-
-#if GUILE_USE_64_CALLS && HAVE_STAT64 && SIZEOF_OFF_T != SIZEOF_OFF64_T
-static off_t
-fport_seek (SCM port, off_t offset, int whence)
-{
-  off64_t rv = fport_seek_or_seek64 (port, (off64_t) offset, whence);
-  if (rv > OFF_T_MAX || rv < OFF_T_MIN)
-    {
-      errno = EOVERFLOW;
-      scm_syserror ("fport_seek");
-    }
-  return (off_t) rv;
-
-}
-#else
-#define fport_seek   fport_seek_or_seek64
-#endif
-
-/* `how' has been validated and is one of SEEK_SET, SEEK_CUR or SEEK_END */
-SCM
-scm_i_fport_seek (SCM port, SCM offset, int how)
-{
-  return scm_from_off_t_or_off64_t
-    (fport_seek_or_seek64 (port, scm_to_off_t_or_off64_t (offset), how));
-}
-
 static void
-fport_truncate (SCM port, off_t length)
+fport_truncate (SCM port, scm_t_off length)
 {
   scm_t_fport *fp = SCM_FSTREAM (port);
 
   if (ftruncate (fp->fdes, length) == -1)
     scm_syserror ("ftruncate");
-}
-
-int
-scm_i_fport_truncate (SCM port, SCM length)
-{
-  scm_t_fport *fp = SCM_FSTREAM (port);
-  return ftruncate_or_ftruncate64 (fp->fdes, scm_to_off_t_or_off64_t (length));
 }
 
 /* helper for fport_write: try to write data, using multiple system
@@ -754,7 +715,7 @@ fport_write (SCM port, const void *data, size_t size)
     }
 
   {
-    off_t space = pt->write_end - pt->write_pos;
+    scm_t_off space = pt->write_end - pt->write_pos;
 
     if (size <= space)
       {

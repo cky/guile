@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -31,10 +32,11 @@ SCM_API SCM scm_c_primitive_load (const char *filename);
 SCM_API SCM scm_sys_package_data_dir (void);
 SCM_API SCM scm_sys_library_dir (void);
 SCM_API SCM scm_sys_site_dir (void);
-SCM_API SCM scm_search_path (SCM path, SCM filename, SCM exts);
+SCM_API SCM scm_search_path (SCM path, SCM filename, SCM exts, SCM require_exts);
 SCM_API SCM scm_sys_search_load_path (SCM filename);
-SCM_API SCM scm_primitive_load_path (SCM filename);
+SCM_API SCM scm_primitive_load_path (SCM filename, SCM exception_on_not_found);
 SCM_API SCM scm_c_primitive_load_path (const char *filename);
+SCM_INTERNAL SCM scm_sys_warn_autocompilation_enabled (void);
 SCM_INTERNAL void scm_init_load_path (void);
 SCM_INTERNAL void scm_init_load (void);
 

@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -31,6 +32,9 @@
 
 #include "libguile/validate.h"
 #include "libguile/procs.h"
+#include "libguile/procprop.h"
+#include "libguile/objcodes.h"
+#include "libguile/programs.h"
 
 
 
@@ -42,14 +46,18 @@ SCM
 scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
 {
   register SCM z;
+  SCM sname;
   SCM *meta_info;
 
   meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
-  meta_info[0] = scm_from_locale_symbol (name);
+  sname = scm_from_locale_symbol (name);
+  meta_info[0] = sname;
   meta_info[1] = SCM_EOL;  /* properties */
 
   z = scm_double_cell ((scm_t_bits) type, (scm_t_bits) fcn,
 		       0 /* generic */, (scm_t_bits) meta_info);
+
+  scm_remember_upto_here_1 (sname);
 
   return z;
 }
@@ -58,7 +66,7 @@ SCM
 scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
 {
   SCM subr = scm_c_make_subr (name, type, fcn);
-  scm_define (SCM_SNAME (subr), subr);
+  scm_define (SCM_SUBR_NAME (subr), subr);
   return subr;
 }
 
@@ -76,7 +84,7 @@ scm_c_define_subr_with_generic (const char *name,
 				long type, SCM (*fcn) (), SCM *gf)
 {
   SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
-  scm_define (SCM_SNAME (subr), subr);
+  scm_define (SCM_SUBR_NAME (subr), subr);
   return subr;
 }
 
@@ -95,6 +103,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
       case scm_tcs_closures:
       case scm_tcs_subrs:
       case scm_tc7_pws:
+      case scm_tc7_program:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
 	return scm_from_bool (SCM_SMOB_DESCRIPTOR (obj).apply);
@@ -134,11 +143,17 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	  return SCM_BOOL_T;
 	case scm_tc7_gsubr:
 	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
+	case scm_tc7_program:
+	  return scm_from_bool (SCM_PROGRAM_DATA (obj)->nargs == 0
+                                || (SCM_PROGRAM_DATA (obj)->nargs == 1
+                                    && SCM_PROGRAM_DATA (obj)->nrest));
 	case scm_tc7_pws:
 	  obj = SCM_PROCEDURE (obj);
 	  goto again;
 	default:
-	  ;
+          if (SCM_PROGRAM_P (obj) && SCM_PROGRAM_DATA (obj)->nargs == 0)
+            return SCM_BOOL_T;
+          /* otherwise fall through */
 	}
     }
   return SCM_BOOL_F;
@@ -160,6 +175,8 @@ scm_subr_p (SCM obj)
   return 0;
 }
 
+SCM_SYMBOL (sym_documentation, "documentation");
+
 SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0, 
            (SCM proc),
 	    "Return the documentation string associated with @code{proc}.  By\n"
@@ -171,6 +188,8 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
   SCM code;
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
+  if (SCM_PROGRAM_P (proc))
+    return scm_assq_ref (scm_program_properties (proc), sym_documentation);
   switch (SCM_TYP7 (proc))
     {
     case scm_tcs_closures:
@@ -208,11 +227,25 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 	    "with the associated setter @var{setter}.")
 #define FUNC_NAME s_scm_make_procedure_with_setter
 {
+  SCM name, ret;
   SCM_VALIDATE_PROC (1, procedure);
   SCM_VALIDATE_PROC (2, setter);
-  return scm_double_cell (scm_tc7_pws,
-			  SCM_UNPACK (procedure),
-			  SCM_UNPACK (setter), 0);
+  ret = scm_double_cell (scm_tc7_pws,
+                         SCM_UNPACK (procedure),
+                         SCM_UNPACK (setter), 0);
+  /* don't use procedure_name, because don't care enough to do a reverse
+     lookup */
+  switch (SCM_TYP7 (procedure)) {
+  case scm_tcs_subrs:
+    name = SCM_SUBR_NAME (procedure);
+    break;
+  default:
+    name = scm_procedure_property (procedure, scm_sym_name);
+    break;
+  }
+  if (scm_is_true (name))
+    scm_set_procedure_property_x (ret, scm_sym_name, name);
+  return ret;
 }
 #undef FUNC_NAME
 

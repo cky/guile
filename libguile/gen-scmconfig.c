@@ -125,6 +125,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <uniconv.h>
 
 #define pf printf
 
@@ -279,21 +280,6 @@ main (int argc, char *argv[])
   pf ("#define SCM_SIZEOF_LONG_LONG %d\n", SIZEOF_LONG_LONG);
   pf ("#define SCM_SIZEOF_UNSIGNED_LONG_LONG %d\n", SIZEOF_UNSIGNED_LONG_LONG);
 
-  pf("\n");
-  pf("/* handling for the deprecated long_long and ulong_long types */\n");  
-  pf("/* If anything suitable is available, it'll be defined here.  */\n");  
-  pf("#if (SCM_ENABLE_DEPRECATED == 1)\n");
-  if (SIZEOF_LONG_LONG != 0)
-    pf ("typedef long long long_long;\n");
-  else if (SIZEOF___INT64 != 0)
-    pf ("typedef __int64 long_long;\n");
-  
-  if (SIZEOF_UNSIGNED_LONG_LONG != 0)
-    pf ("typedef unsigned long long ulong_long;\n");
-  else if (SIZEOF_UNSIGNED___INT64 != 0)
-    pf ("typedef unsigned __int64 ulong_long;\n");
-  pf("#endif /* SCM_ENABLE_DEPRECATED == 1 */\n");
-
   pf ("\n");
   pf ("/* These are always defined. */\n");
   pf ("typedef %s scm_t_int8;\n", SCM_I_GSC_T_INT8);
@@ -400,6 +386,24 @@ main (int argc, char *argv[])
   pf ("#define SCM_HAVE_READDIR64_R 0 /* 0 or 1 */\n");
 #endif
 
+  /* Arrange so that we have a file offset type that reflects the one
+     used when compiling Guile, regardless of what the application's
+     `_FILE_OFFSET_BITS' says.  See
+     http://lists.gnu.org/archive/html/bug-guile/2009-06/msg00018.html
+     for the original bug report.
+
+     Note that we can't define `scm_t_off' in terms of `off_t' or
+     `off64_t' because they may or may not be available depending on
+     how the application that uses Guile is compiled.  */
+
+#if defined GUILE_USE_64_CALLS && defined HAVE_STAT64
+  pf ("typedef scm_t_int64 scm_t_off;\n");
+#elif SIZEOF_OFF_T == SIZEOF_INT
+  pf ("typedef int scm_t_off;\n");
+#else
+  pf ("typedef long int scm_t_off;\n");
+#endif
+
 #if USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");
@@ -420,6 +424,14 @@ main (int argc, char *argv[])
   printf ("\n");
 
   pf ("#define SCM_HAVE_ARRAYS 1 /* always true now */\n");
+
+  pf ("\n");
+  pf ("/* Constants from uniconv.h.  */\n");
+  pf ("#define SCM_ICONVEH_ERROR %d\n", (int) iconveh_error);
+  pf ("#define SCM_ICONVEH_QUESTION_MARK %d\n", 
+      (int) iconveh_question_mark);
+  pf ("#define SCM_ICONVEH_ESCAPE_SEQUENCE %d\n",
+      (int) iconveh_escape_sequence);  
 
   printf ("#endif\n");
 

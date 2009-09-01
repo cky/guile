@@ -1,4 +1,4 @@
-/* Copyright (C) 1991-1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007 Free Software
+/* Copyright (C) 1991-1999, 2000, 2001, 2003, 2004, 2005, 2006, 2007, 2009 Free Software
    Foundation, Inc.
 
    NOTE: The canonical source of this file is maintained with the GNU C Library.
@@ -18,19 +18,18 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef _LIBC
-# define HAVE_MBLEN 1
-# define HAVE_MBRLEN 1
 # define HAVE_STRUCT_ERA_ENTRY 1
 # define HAVE_TM_GMTOFF 1
 # define HAVE_TM_ZONE 1
 # define HAVE_TZNAME 1
 # define HAVE_TZSET 1
-# define MULTIBYTE_IS_FORMAT_SAFE 1
 # include "../locale/localeinfo.h"
 #else
 # include <config.h>
 # if FPRINTFTIME
 #  include "fprintftime.h"
+# else
+#  include "strftime.h"
 # endif
 #endif
 
@@ -44,10 +43,16 @@ extern char *tzname[];
 /* Do multibyte processing if multibytes are supported, unless
    multibyte sequences are safe in formats.  Multibyte sequences are
    safe if they cannot contain byte sequences that look like format
-   conversion specifications.  The GNU C Library uses UTF8 multibyte
-   encoding, which is safe for formats, but strftime.c can be used
-   with other C libraries that use unsafe encodings.  */
-#define DO_MULTIBYTE (HAVE_MBLEN && ! MULTIBYTE_IS_FORMAT_SAFE)
+   conversion specifications.  The multibyte encodings used by the
+   C library on the various platforms (UTF-8, GB2312, GBK, CP936,
+   GB18030, EUC-TW, BIG5, BIG5-HKSCS, CP950, EUC-JP, EUC-KR, CP949,
+   SHIFT_JIS, CP932, JOHAB) are safe for formats, because the byte '%'
+   cannot occur in a multibyte character except in the first byte.
+   But this does not hold for the DEC-HANYU encoding used on OSF/1.  */
+#if !defined __osf__
+# define MULTIBYTE_IS_FORMAT_SAFE 1
+#endif
+#define DO_MULTIBYTE (! MULTIBYTE_IS_FORMAT_SAFE)
 
 #if DO_MULTIBYTE
 # include <wchar.h>
@@ -79,13 +84,6 @@ extern char *tzname[];
 # define MEMCPY(d, s, n) memcpy (d, s, n)
 # define STRLEN(s) strlen (s)
 
-# ifdef _LIBC
-#  define MEMPCPY(d, s, n) __mempcpy (d, s, n)
-# else
-#  ifndef HAVE_MEMPCPY
-#   define MEMPCPY(d, s, n) ((void *) ((char *) memcpy (d, s, n) + (n)))
-#  endif
-# endif
 #endif
 
 /* Shift A right by B bits portably, by dividing A by 2**B and

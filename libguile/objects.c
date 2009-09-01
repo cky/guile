@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -39,6 +40,8 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
+#include "libguile/programs.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/objects.h"
@@ -138,8 +141,9 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
 	    z = SCM_CDR (z);
 	  }
 	while (j-- && !scm_is_null (ls));
-      /* Fewer arguments than specifiers => CAR != ENV */
-      if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
+      /* Fewer arguments than specifiers => CAR != CLASS or `no-method' */
+      if (!scm_is_pair (z)
+          || (!SCM_CLASSP (SCM_CAR (z)) && !scm_is_symbol (SCM_CAR (z))))
 	return z;
     next_method:
       i = (i + 1) & mask;
@@ -161,10 +165,15 @@ SCM
 scm_apply_generic (SCM gf, SCM args)
 {
   SCM cmethod = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (gf), args);
-  return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-			SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-					args,
-					SCM_CMETHOD_ENV (cmethod)));
+  if (SCM_PROGRAM_P (cmethod))
+    return scm_vm_apply (scm_the_vm (), cmethod, args);
+  else if (scm_is_pair (cmethod))
+    return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+                          SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+                                          args,
+                                          SCM_CMETHOD_ENV (cmethod)));
+  else
+    return scm_apply (cmethod, args, SCM_EOL);
 }
 
 SCM

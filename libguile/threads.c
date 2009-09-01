@@ -1,18 +1,19 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -298,7 +299,7 @@ unblock_from_queue (SCM queue)
       var 't'
       // save registers.
       SCM_FLUSH_REGISTER_WINDOWS;      // sparc only
-      setjmp (t->regs);                // here's most of the magic
+      SCM_I_SETJMP (t->regs);          // here's most of the magic
 
    ... and returns.
 
@@ -352,7 +353,7 @@ unblock_from_queue (SCM queue)
       t->top = SCM_STACK_PTR (&t);
       // save registers.
       SCM_FLUSH_REGISTER_WINDOWS;
-      setjmp (t->regs);
+      SCM_I_SETJMP (t->regs);
       res = func(data);
       scm_enter_guile (t);
 
@@ -403,7 +404,7 @@ suspend (void)
   t->top = SCM_STACK_PTR (&t);
   /* save registers. */
   SCM_FLUSH_REGISTER_WINDOWS;
-  setjmp (t->regs);
+  SCM_I_SETJMP (t->regs);
   return t;
 }
 
@@ -499,6 +500,7 @@ guilify_self_2 (SCM parent)
 
   t->continuation_root = scm_cons (t->handle, SCM_EOL);
   t->continuation_base = t->base;
+  t->vm = SCM_BOOL_F;
 
   if (scm_is_true (parent))
     t->dynamic_state = scm_make_dynamic_state (parent);
@@ -1179,6 +1181,16 @@ SCM_DEFINE (scm_join_thread_timed, "join-thread", 1, 2, 0,
 	  scm_i_pthread_mutex_unlock (&t->admin_mutex);
 	  SCM_TICK;
 	  scm_i_scm_pthread_mutex_lock (&t->admin_mutex);
+
+	  /* Check for exit again, since we just released and
+	     reacquired the admin mutex, before the next block_self
+	     call (which would block forever if t has already
+	     exited). */
+	  if (t->exited)
+	    {
+	      res = t->result;
+	      break;
+	    }
 	}
     }
 
@@ -1502,6 +1514,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	    {
 	      if (relock)
 		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, owner);
+	      t->block_asyncs--;
 	      break;
 	    }
 
@@ -2054,6 +2067,49 @@ scm_init_thread_procs ()
 {
 #include "libguile/threads.x"
 }
+
+
+/* IA64-specific things.  */
+
+#ifdef __ia64__
+# ifdef __hpux
+#  include <sys/param.h>
+#  include <sys/pstat.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  struct pst_vm_status vm_status;
+  int i = 0;
+  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
+    if (vm_status.pst_type == PS_RSESTACK)
+      return (void *) vm_status.pst_vaddr;
+  abort ();
+}
+void *
+scm_ia64_ar_bsp (const void *ctx)
+{
+  uint64_t bsp;
+  __uc_get_ar_bsp (ctx, &bsp);
+  return (void *) bsp;
+}
+# endif /* hpux */
+# ifdef linux
+#  include <ucontext.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  extern void *__libc_ia64_register_backing_store_base;
+  return __libc_ia64_register_backing_store_base;
+}
+void *
+scm_ia64_ar_bsp (const void *opaque)
+{
+  const ucontext_t *ctx = opaque;
+  return (void *) ctx->uc_mcontext.sc_ar_bsp;
+}
+# endif /* linux */
+#endif /* __ia64__ */
+
 
 /*
   Local Variables:

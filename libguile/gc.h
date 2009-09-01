@@ -3,21 +3,22 @@
 #ifndef SCM_GC_H
 #define SCM_GC_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -115,15 +116,6 @@ typedef struct scm_t_cell
 #define SCM_CELL_TYPE(x) SCM_CELL_WORD_0 (x)
 #define SCM_SET_CELL_TYPE(x, t) SCM_SET_CELL_WORD_0 ((x), (t))
 
-/* Freelists consist of linked cells where the type entry holds the value
- * scm_tc_free_cell and the second entry holds a pointer to the next cell of
- * the freelist.  Due to this structure, freelist cells are not cons cells
- * and thus may not be accessed using SCM_CAR and SCM_CDR.  */
-
-#define SCM_FREE_CELL_CDR(x) \
-  (SCM_GC_CELL_OBJECT ((x), 1))
-#define SCM_SET_FREE_CELL_CDR(x, v) \
-  (SCM_GC_SET_CELL_OBJECT ((x), 1, (v)))
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 /* Set this to != 0 if every cell that is accessed shall be checked:
@@ -160,17 +152,7 @@ SCM_API size_t scm_default_max_segment_size;
 #define  scm_default_max_segment_size deprecated
 #endif
 
-
-SCM_API size_t scm_max_segment_size;
-
-#define SCM_SET_FREELIST_LOC(key,ptr) scm_i_pthread_setspecific ((key), (ptr))
-#define SCM_FREELIST_LOC(key) ((SCM *) scm_i_pthread_getspecific (key))
-SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist;
-SCM_API struct scm_t_cell_type_statistics scm_i_master_freelist2;
-
-SCM_API unsigned long scm_mallocated;
 SCM_API unsigned long scm_gc_ports_collected;
-SCM_API unsigned long scm_mtrigger;
 
 SCM_API SCM scm_after_gc_hook;
 
@@ -180,18 +162,6 @@ SCM_API scm_t_c_hook scm_before_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_sweep_c_hook;
 SCM_API scm_t_c_hook scm_after_gc_c_hook;
 
-#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
-#if (SCM_ENABLE_DEPRECATED == 1)
-SCM scm_map_free_list (void);
-#else
-#define scm_map_free_list deprecated
-#define scm_free_list_length deprecated
-#endif
-#endif
-
-#if (SCM_ENABLE_DEPRECATED == 1) && defined (GUILE_DEBUG_FREELIST)
-SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
-#endif
 
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
@@ -210,7 +180,6 @@ SCM_API SCM scm_gc_live_object_stats (void);
 SCM_API SCM scm_gc (void);
 SCM_API void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
-SCM_API int scm_in_heap_p (SCM value);
 SCM_API void scm_gc_sweep (void);
 
 SCM_API void *scm_malloc (size_t size);

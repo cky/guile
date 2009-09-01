@@ -1,24 +1,27 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
+#include <alloca.h>
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -91,7 +94,7 @@ create_gsubr (int define, const char *name,
     }
 
   if (define)
-    scm_define (SCM_SNAME (subr), subr);
+    scm_define (SCM_SUBR_NAME (subr), subr);
 
   return subr;
 }
@@ -146,7 +149,7 @@ create_gsubr_with_generic (int define,
       subr = scm_c_make_subr_with_generic (name, scm_tc7_lsubr_2, fcn, gf);
     create_subr:
       if (define)
-	scm_define (SCM_SNAME (subr), subr);
+	scm_define (SCM_SUBR_NAME (subr), subr);
       return subr;
     default:
       ;
@@ -193,7 +196,7 @@ gsubr_apply_raw (SCM proc, unsigned int argc, const SCM *argv)
 
   if (SCM_UNLIKELY (argc != argc_max))
     /* We expect the exact argument count.  */
-    scm_wrong_num_args (SCM_SNAME (proc));
+    scm_wrong_num_args (SCM_SUBR_NAME (proc));
 
   fcn = SCM_SUBRF (proc);
 
@@ -226,7 +229,7 @@ gsubr_apply_raw (SCM proc, unsigned int argc, const SCM *argv)
       return (*fcn) (argv[0], argv[1], argv[2], argv[3], argv[4], argv[5],
 		     argv[6], argv[7], argv[8], argv[9]);
     default:
-      scm_misc_error ((char *) SCM_SNAME (proc),
+      scm_misc_error ((char *) SCM_SUBR_NAME (proc),
 		      "gsubr invocation with more than 10 arguments not implemented",
 		      SCM_EOL);
     }
@@ -255,7 +258,7 @@ scm_i_gsubr_apply (SCM proc, SCM arg, ...)
     argv[argc] = arg;
 
   if (SCM_UNLIKELY (argc < SCM_GSUBR_REQ (type)))
-    scm_wrong_num_args (SCM_SNAME (proc));
+    scm_wrong_num_args (SCM_SUBR_NAME (proc));
 
   /* Fill in optional arguments that were not passed.  */
   while (argc < argc_max)
@@ -293,7 +296,7 @@ scm_i_gsubr_apply_list (SCM self, SCM args)
 
   for (i = 0; i < SCM_GSUBR_REQ (typ); i++) {
     if (scm_is_null (args))
-      scm_wrong_num_args (SCM_SNAME (self));
+      scm_wrong_num_args (SCM_SUBR_NAME (self));
     v[i] = SCM_CAR(args);
     args = SCM_CDR(args);
   }
@@ -308,7 +311,7 @@ scm_i_gsubr_apply_list (SCM self, SCM args)
   if (SCM_GSUBR_REST(typ))
     v[i] = args;
   else if (!scm_is_null (args))
-    scm_wrong_num_args (SCM_SNAME (self));
+    scm_wrong_num_args (SCM_SUBR_NAME (self));
 
   return gsubr_apply_raw (self, n, v);
 }

@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1997,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -42,7 +43,7 @@ SCM_API SCM scm_open_fdes (SCM path, SCM flags, SCM mode);
 SCM_API SCM scm_open (SCM path, SCM flags, SCM mode);
 SCM_API SCM scm_close (SCM fd_or_port);
 SCM_API SCM scm_close_fdes (SCM fd);
-SCM_API SCM scm_stat (SCM object);
+SCM_API SCM scm_stat (SCM object, SCM exception_on_error);
 SCM_API SCM scm_link (SCM oldpath, SCM newpath);
 SCM_API SCM scm_rename (SCM oldname, SCM newname);
 SCM_API SCM scm_delete_file (SCM str);
@@ -64,6 +65,7 @@ SCM_API SCM scm_lstat (SCM str);
 SCM_API SCM scm_copy_file (SCM oldfile, SCM newfile);
 SCM_API SCM scm_dirname (SCM filename);
 SCM_API SCM scm_basename (SCM filename, SCM suffix);
+SCM_API SCM scm_canonicalize_path (SCM path);
 
 SCM_INTERNAL void scm_init_filesys (void);
 

@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -36,7 +37,9 @@
 #include "libguile/arbiters.h"
 #include "libguile/async.h"
 #include "libguile/backtrace.h"
+#include "libguile/bitvectors.h"
 #include "libguile/boolean.h"
+#include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/continuations.h"
 #include "libguile/debug.h"
@@ -60,6 +63,8 @@
 #include "libguile/futures.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
+#include "libguile/generalized-arrays.h"
+#include "libguile/generalized-vectors.h"
 #include "libguile/goops.h"
 #include "libguile/gsubr.h"
 #include "libguile/hash.h"
@@ -90,7 +95,7 @@
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
 #include "libguile/properties.h"
-#include "libguile/ramap.h"
+#include "libguile/array-map.h"
 #include "libguile/random.h"
 #include "libguile/rdelim.h"
 #include "libguile/read.h"
@@ -113,15 +118,17 @@
 #include "libguile/struct.h"
 #include "libguile/symbols.h"
 #include "libguile/throw.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/version.h"
+#include "libguile/vm-bootstrap.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
 #include "libguile/extensions.h"
+#include "libguile/uniform.h"
 #include "libguile/srfi-4.h"
 #include "libguile/discouraged.h"
 #include "libguile/deprecated.h"
@@ -281,7 +288,7 @@ scm_load_startup_files ()
   /* Load Ice-9.  */
   if (!scm_ice_9_already_loaded)
     {
-      scm_primitive_load_path (scm_from_locale_string ("ice-9/boot-9.scm"));
+      scm_c_primitive_load_path ("ice-9/boot-9");
 
       /* Load the init.scm file.  */
       if (scm_is_true (init_path))
@@ -516,7 +523,19 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_sort ();
   scm_init_srcprop ();
   scm_init_stackchk ();
-  scm_init_strings ();
+
+  scm_init_array_handle ();
+  scm_init_generalized_arrays ();
+  scm_init_generalized_vectors ();
+  scm_init_vectors ();
+  scm_init_uniform ();
+  scm_init_bitvectors ();
+  scm_bootstrap_bytevectors ();
+  scm_init_srfi_4 ();
+  scm_init_arrays ();
+  scm_init_array_map ();
+
+  scm_init_strings ();  /* Requires array-handle */
   scm_init_struct ();   /* Requires strings */
   scm_init_stacks ();   /* Requires strings, struct */
   scm_init_symbols ();
@@ -530,7 +549,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_srfi_13 ();
   scm_init_srfi_14 ();
   scm_init_throw ();
-  scm_init_vectors ();
   scm_init_version ();
   scm_init_weaks ();
   scm_init_guardians ();
@@ -539,8 +557,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
-  scm_init_ramap ();
-  scm_init_unif ();
   scm_init_simpos ();
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */
@@ -549,7 +565,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */
   scm_init_script ();
-  scm_init_srfi_4 ();
 
   scm_init_goops ();
 
@@ -572,6 +587,8 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rdelim ();
   scm_init_rw ();
   scm_init_extensions ();
+
+  scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();

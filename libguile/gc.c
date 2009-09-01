@@ -1,18 +1,19 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* #define DEBUGINFO */
@@ -39,7 +40,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
 #include "libguile/smob.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
@@ -106,13 +107,6 @@ int scm_i_cell_validation_already_running ;
 void
 scm_i_expensive_validation_check (SCM cell)
 {
-  if (!scm_in_heap_p (cell))
-    {
-      fprintf (stderr, "scm_assert_cell_valid: this object does not live in the heap: %lux\n",
-	       (unsigned long) SCM_UNPACK (cell));
-      abort ();
-    }
-
   /* If desired, perform additional garbage collections after a user
    * defined number of cell accesses.
    */
@@ -214,16 +208,9 @@ scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
 
-/* scm_mtrigger
- * is the number of bytes of malloc allocation needed to trigger gc.
- */
-unsigned long scm_mtrigger;
-
 /* GC Statistics Keeping
  */
-unsigned long scm_mallocated = 0;
 unsigned long scm_gc_ports_collected = 0;
-
 
 static unsigned long protected_obj_count = 0;
 
@@ -679,8 +666,6 @@ scm_init_storage ()
   while (j)
     scm_sys_protects[--j] = SCM_BOOL_F;
 
-  j = SCM_HEAP_SEG_SIZE;
-
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it
      in. */
@@ -769,15 +754,10 @@ scm_i_tag_name (scm_t_bits tag)
 {
   if (tag >= 255)
     {
-      if (tag == scm_tc_free_cell)
-	return "free cell";
-
-      {
-	int k = 0xff & (tag >> 8);
-	return (scm_smobs[k].name);
-      }
+      int k = 0xff & (tag >> 8);
+      return (scm_smobs[k].name);
     }
-  
+
   switch (tag) /* 7 bits */
     {
     case scm_tcs_struct:

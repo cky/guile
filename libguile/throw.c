@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -22,6 +23,7 @@
 #endif
 
 #include <stdio.h>
+#include <unistdio.h>
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/smob.h"
@@ -41,6 +43,7 @@
 #include "libguile/throw.h"
 #include "libguile/init.h"
 #include "libguile/strings.h"
+#include "libguile/vm.h"
 
 #include "libguile/private-options.h"
 
@@ -57,7 +60,7 @@ static scm_t_bits tc16_jmpbuffer;
 #define DEACTIVATEJB(x) \
   (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) & ~(1L << 16L))))
 
-#define JBJMPBUF(OBJ)           ((jmp_buf *) SCM_CELL_WORD_1 (OBJ))
+#define JBJMPBUF(OBJ)           ((scm_i_jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (v)))
 #define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
 #define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (scm_t_bits) (v)))
@@ -79,7 +82,7 @@ make_jmpbuf (void)
 {
   SCM answer;
   SCM_NEWSMOB2 (answer, tc16_jmpbuffer, 0, 0);
-  SETJBJMPBUF(answer, (jmp_buf *)0);
+  SETJBJMPBUF(answer, (scm_i_jmp_buf *)0);
   DEACTIVATEJB(answer);
   return answer;
 }
@@ -89,7 +92,7 @@ make_jmpbuf (void)
 
 struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
 {
-  jmp_buf buf;			/* must be first */
+  scm_i_jmp_buf buf;		/* must be first */
   SCM throw_tag;
   SCM retval;
 };
@@ -169,7 +172,16 @@ scm_c_catch (SCM tag,
   struct jmp_buf_and_retval jbr;
   SCM jmpbuf;
   SCM answer;
+  SCM vm;
+  SCM *sp = NULL, *fp = NULL; /* to reset the vm */
   struct pre_unwind_data pre_unwind;
+
+  vm = scm_the_vm ();
+  if (SCM_NFALSEP (vm))
+    {
+      sp = SCM_VM_DATA (vm)->sp;
+      fp = SCM_VM_DATA (vm)->fp;
+    }
 
   jmpbuf = make_jmpbuf ();
   answer = SCM_EOL;
@@ -183,7 +195,7 @@ scm_c_catch (SCM tag,
   pre_unwind.lazy_catch_p = 0;
   SCM_SETJBPREUNWIND(jmpbuf, &pre_unwind);
 
-  if (setjmp (jbr.buf))
+  if (SCM_I_SETJMP (jbr.buf))
     {
       SCM throw_tag;
       SCM throw_args;
@@ -199,6 +211,30 @@ scm_c_catch (SCM tag,
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
       jbr.retval = SCM_EOL;
+      if (SCM_NFALSEP (vm))
+        {
+          SCM_VM_DATA (vm)->sp = sp;
+          SCM_VM_DATA (vm)->fp = fp;
+#ifdef VM_ENABLE_STACK_NULLING
+          /* see vm.c -- you'll have to enable this manually */
+          memset (sp + 1, 0,
+                  (SCM_VM_DATA (vm)->stack_size
+                   - (sp + 1 - SCM_VM_DATA (vm)->stack_base)) * sizeof(SCM));
+#endif
+        }
+      else if (SCM_NFALSEP ((vm = scm_the_vm ())))
+        {
+          /* oof, it's possible this catch was called before the vm was
+             booted... yick. anyway, try to reset the vm stack. */
+          SCM_VM_DATA (vm)->sp = SCM_VM_DATA (vm)->stack_base - 1;
+          SCM_VM_DATA (vm)->fp = NULL;
+#ifdef VM_ENABLE_STACK_NULLING
+          /* see vm.c -- you'll have to enable this manually */
+          memset (SCM_VM_DATA (vm)->stack_base, 0,
+                  SCM_VM_DATA (vm)->stack_size * sizeof(SCM));
+#endif
+        }
+          
       answer = handler (handler_data, throw_tag, throw_args);
     }
   else
@@ -709,8 +745,12 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
        */
       fprintf (stderr, "throw from within critical section.\n");
       if (scm_is_symbol (key))
-	fprintf (stderr, "error key: %s\n", scm_i_symbol_chars (key));
-
+	{
+	  if (scm_i_is_narrow_symbol (key))
+	    fprintf (stderr, "error key: %s\n", scm_i_symbol_chars (key));
+	  else
+	    ulc_fprintf (stderr, "error key: %llU\n", scm_i_symbol_wide_chars (key));
+	}
       
       for (; scm_is_pair (s); s = scm_cdr (s), i++)
 	{
@@ -849,7 +889,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
       jbr->throw_tag = key;
       jbr->retval = args;
       scm_i_set_last_debug_frame (SCM_JBDFRAME (jmpbuf));
-      longjmp (*JBJMPBUF (jmpbuf), 1);
+      SCM_I_LONGJMP (*JBJMPBUF (jmpbuf), 1);
     }
 
   /* Otherwise, it's some random piece of junk.  */

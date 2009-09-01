@@ -6,18 +6,19 @@
 /* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -100,6 +101,7 @@ SCM_API void scm_c_export (const char *name, ...);
 
 SCM_API SCM scm_sym2var (SCM sym, SCM thunk, SCM definep);
 
+SCM_API SCM scm_module_public_interface (SCM module);
 SCM_API SCM scm_module_import_interface (SCM module, SCM sym);
 SCM_API SCM scm_module_lookup_closure (SCM module);
 SCM_API SCM scm_module_transformer (SCM module);
@@ -108,6 +110,7 @@ SCM_API SCM scm_current_module_transformer (void);
 SCM_API SCM scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep);
 SCM_API SCM scm_standard_eval_closure (SCM module);
 SCM_API SCM scm_standard_interface_eval_closure (SCM module);
+SCM_API SCM scm_eval_closure_module (SCM eval_closure); /* deprecated already */
 SCM_API SCM scm_get_pre_modules_obarray (void);
 SCM_API SCM scm_lookup_closure_module (SCM proc);
 

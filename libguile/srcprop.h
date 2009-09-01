@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -63,13 +64,11 @@ SCM_API SCM scm_sym_breakpoint;
 
 
 SCM_API int scm_c_source_property_breakpoint_p (SCM form);
-SCM_API SCM scm_srcprops_to_plist (SCM obj);
 SCM_API SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
 SCM_API SCM scm_source_property (SCM obj, SCM key);
 SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
 SCM_API SCM scm_source_properties (SCM obj);
 SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
-SCM_API void scm_finish_srcprop (void);
 SCM_INTERNAL void scm_init_srcprop (void);
 
 #if SCM_ENABLE_DEPRECATED == 1

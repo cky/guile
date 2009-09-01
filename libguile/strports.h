@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,2000,2001,2002, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -43,13 +44,19 @@ SCM_API scm_t_bits scm_tc16_strport;
 
 
 SCM_API SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
+SCM_INTERNAL SCM scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, 
+				  long modes, const char *caller);
 SCM_API SCM scm_strport_to_string (SCM port);
+SCM_API SCM scm_strport_to_locale_u8vector (SCM port);
 SCM_API SCM scm_object_to_string (SCM obj, SCM printer);
 SCM_API SCM scm_call_with_output_string (SCM proc);
+SCM_API SCM scm_call_with_output_locale_u8vector (SCM proc);
 SCM_API SCM scm_call_with_input_string (SCM str, SCM proc);
 SCM_API SCM scm_open_input_string (SCM str);
+SCM_API SCM scm_open_input_locale_u8vector (SCM str);
 SCM_API SCM scm_open_output_string (void);
 SCM_API SCM scm_get_output_string (SCM port);
+SCM_API SCM scm_get_output_locale_u8vector (SCM port);
 SCM_API SCM scm_c_read_string (const char *expr);
 SCM_API SCM scm_c_eval_string (const char *expr);
 SCM_API SCM scm_c_eval_string_in_module (const char *expr, SCM module);

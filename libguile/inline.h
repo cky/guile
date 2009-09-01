@@ -3,21 +3,22 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* This file is for inline functions.  On platforms that don't support
@@ -33,8 +34,9 @@
 #include "libguile/pairs.h"
 #include "libguile/gc.h"
 #include "libguile/threads.h"
-#include "libguile/unif.h"
+#include "libguile/array-handle.h"
 #include "libguile/ports.h"
+#include "libguile/numbers.h"
 #include "libguile/error.h"
 
 
@@ -91,7 +93,7 @@ SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
 SCM_API int scm_is_pair (SCM x);
 
-SCM_API int scm_getc (SCM port);
+SCM_API int scm_get_byte_or_eof (SCM port);
 SCM_API void scm_putc (char c, SCM port);
 SCM_API void scm_puts (const char *str_data, SCM port);
 
@@ -241,7 +243,11 @@ SCM_C_EXTERN_INLINE
 SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
 {
-  return h->ref (h, p);
+  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+    /* catch overflow */
+    scm_out_of_range (NULL, scm_from_ssize_t (p));
+  /* perhaps should catch overflow here too */
+  return h->impl->vref (h, h->base + p);
 }
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
@@ -250,7 +256,11 @@ SCM_C_EXTERN_INLINE
 void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
 {
-  h->set (h, p, v);
+  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+    /* catch overflow */
+    scm_out_of_range (NULL, scm_from_ssize_t (p));
+  /* perhaps should catch overflow here too */
+  h->impl->vset (h, h->base + p, v);
 }
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
@@ -290,7 +300,7 @@ scm_is_pair (SCM x)
 SCM_C_EXTERN_INLINE
 #endif
 int
-scm_getc (SCM port)
+scm_get_byte_or_eof (SCM port)
 {
   int c;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -309,27 +319,6 @@ scm_getc (SCM port)
     }
 
   c = *(pt->read_pos++);
-
-  switch (c)
-    {
-      case '\a':
-        break;
-      case '\b':
-        SCM_DECCOL (port);
-        break;
-      case '\n':
-        SCM_INCLINE (port);
-        break;
-      case '\r':
-        SCM_ZEROCOL (port);
-        break;
-      case '\t':
-        SCM_TABCOL (port);
-        break;
-      default:
-        SCM_INCCOL (port);
-        break;
-    }
 
   return c;
 }

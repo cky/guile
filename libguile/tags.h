@@ -7,18 +7,19 @@
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -373,10 +374,6 @@ typedef unsigned long scm_t_bits;
  * tc16 (for tc7==scm_tc7_smob):
  *   The largest part of the space of smob types is not subdivided in a
  *   predefined way, since smobs can be added arbitrarily by user C code.
- *   However, while Guile also defines a number of smob types throughout,
- *   there is one smob type, namely scm_tc_free_cell, for which Guile assumes
- *   that it is declared first and thus gets a known-in-advance tc16-code.
- *   The reason of requiring a fixed tc16-code for this type is performance.
  */
 
 
@@ -437,6 +434,7 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_string		21
 #define scm_tc7_number		23
 #define scm_tc7_stringbuf       39
+#define scm_tc7_bytevector	77
 
 /* Many of the following should be turned
  * into structs or smobs.  We need back some
@@ -451,12 +449,11 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_unused_5	53
 #define scm_tc7_unused_6	55
 #define scm_tc7_unused_7	71
-#define scm_tc7_unused_8	77
-#define scm_tc7_unused_9	79
 
 #define scm_tc7_dsubr		61
 #define scm_tc7_gsubr		63
 #define scm_tc7_rpsubr		69
+#define scm_tc7_program		79
 #define scm_tc7_subr_0		85
 #define scm_tc7_subr_1		87
 #define scm_tc7_cxr		93
@@ -482,12 +479,6 @@ typedef unsigned long scm_t_bits;
 #define SCM_TYP16(x) 		(0xffff & SCM_CELL_TYPE (x))
 #define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
 
-
-/* Here is the first smob subtype.  */
-
-/* scm_tc_free_cell is the 0th smob type.  We place this in free cells to tell
- * the conservative marker not to trace it.  */
-#define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
 
 
 

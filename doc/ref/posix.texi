@@ -1909,10 +1909,6 @@ for termination, not stopping.
 If a signal occurs while in a system call, deliver the signal then
 restart the system call (as opposed to returning an @code{EINTR} error
 from that call).
-
-Guile always enables this flag where available, no matter what
-@var{flags} are specified.  This avoids spurious error returns in low
-level operations.
 @end defvar
 
 The return value is a pair with information about the old handler as
@@ -2076,9 +2072,9 @@ The following procedures are similar to the @code{popen} and
 @code{pclose} system routines.  The code is in a separate ``popen''
 module:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 popen))
-@end smalllisp
+@end lisp
 
 @findex popen
 @deffn {Scheme Procedure} open-pipe command mode

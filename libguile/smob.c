@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -470,35 +471,13 @@ scm_make_smob (scm_t_bits tc)
   SCM_RETURN_NEWSMOB (tc, data);
 }
 
-
-/* {Initialization for the type of free cells}
- */
-
-static int
-free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
-{
-  char buf[100];
-  sprintf (buf, "#<freed cell %p; GC missed a reference>",
-	   (void *) SCM_UNPACK (exp));
-  scm_puts (buf, port);
-  
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_debug_cell_accesses_p)
-    abort();
-#endif
-  
-
-  return 1;
-}
 
 
 /* Marking SMOBs using user-supplied mark procedures.  */
 
 
-/* The freelist and GC kind used for SMOB types that provide a custom mark
-   procedure.  */
-static void **smob_freelist = NULL;
-static int    smob_gc_kind = 0;
+/* The GC kind used for SMOB types that provide a custom mark procedure.  */
+static int smob_gc_kind;
 
 
 /* The generic SMOB mark procedure that gets called for SMOBs allocated with
@@ -633,10 +612,8 @@ void
 scm_smob_prehistory ()
 {
   long i;
-  scm_t_bits tc;
 
-  smob_freelist = GC_new_free_list ();
-  smob_gc_kind = GC_new_kind ((void **)smob_freelist,
+  smob_gc_kind = GC_new_kind (GC_new_free_list (),
 			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
 			      0,
 			      /* Clear new objects.  As of version 7.1, libgc
@@ -659,10 +636,6 @@ scm_smob_prehistory ()
       scm_smobs[i].apply_3    = 0;
       scm_smobs[i].gsubr_type = 0;
     }
-
-  /* WARNING: This scm_make_smob_type call must be done first.  */
-  tc = scm_make_smob_type ("free", 0);
-  scm_set_smob_print (tc, free_print);
 }
 
 /*

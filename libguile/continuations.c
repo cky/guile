@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -35,6 +36,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/values.h"
 #include "libguile/eval.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/continuations.h"
@@ -84,15 +86,16 @@ scm_make_continuation (int *first)
   continuation->root = thread->continuation_root;
   continuation->dframe = scm_i_last_debug_frame ();
   src = thread->continuation_base;
-  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
-
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
+  continuation->vm_conts = scm_vm_capture_continuations ();
 
-  *first = !setjmp (continuation->jmpbuf);
+  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
+
+  *first = !SCM_I_SETJMP (continuation->jmpbuf);
   if (*first)
     {
 #ifdef __ia64__
@@ -169,6 +172,7 @@ copy_stack (void *data)
   copy_stack_data *d = (copy_stack_data *)data;
   memcpy (d->dst, d->continuation->stack,
 	  sizeof (SCM_STACKITEM) * d->continuation->num_stack_items);
+  scm_vm_reinstate_continuations (d->continuation->vm_conts);
 #ifdef __ia64__
   SCM_I_CURRENT_THREAD->pending_rbs_continuation = d->continuation;
 #endif
@@ -189,12 +193,12 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   scm_i_set_last_debug_frame (continuation->dframe);
 
   continuation->throw_value = val;
-  longjmp (continuation->jmpbuf, 1);
+  SCM_I_LONGJMP (continuation->jmpbuf, 1);
 }
 
 #ifdef __ia64__
 void
-scm_ia64_longjmp (jmp_buf *JB, int VAL)
+scm_ia64_longjmp (scm_i_jmp_buf *JB, int VAL)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 

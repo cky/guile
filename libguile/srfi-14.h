@@ -6,39 +6,52 @@
  * 	Copyright (C) 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
 #include "libguile/__scm.h"
 
-#define SCM_CHARSET_SIZE 256
+typedef struct
+{
+  scm_t_wchar lo;
+  scm_t_wchar hi;
+} scm_t_char_range;
 
-/* We expect 8-bit bytes here.  Should be no problem in the year
-   2001.  */
-#ifndef SCM_BITS_PER_LONG
-# define SCM_BITS_PER_LONG (sizeof (long) * 8)
-#endif
+typedef struct 
+{
+  size_t len;
+  scm_t_char_range *ranges;
+} scm_t_char_set;
 
-#define SCM_CHARSET_GET(cs, idx) (((long *) SCM_SMOB_DATA (cs))\
-			           [((unsigned char) (idx)) / SCM_BITS_PER_LONG] &\
-			 	   (1L << (((unsigned char) (idx)) % SCM_BITS_PER_LONG)))
+typedef struct
+{
+  size_t range;
+  scm_t_wchar n;
+} scm_t_char_set_cursor;
+
+#define SCM_CHARSET_GET(cs,idx)                                 \
+  scm_i_charset_get((scm_t_char_set *)SCM_SMOB_DATA(cs),idx)
 
 #define SCM_CHARSETP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_charset))
 
 /* Smob type code for character sets.  */
 SCM_API int scm_tc16_charset;
+SCM_INTERNAL int scm_i_charset_get (scm_t_char_set *cs, scm_t_wchar n);
+SCM_INTERNAL void scm_i_charset_set (scm_t_char_set *cs, scm_t_wchar n);
+SCM_INTERNAL void scm_i_charset_unset (scm_t_char_set *cs, scm_t_wchar n);
 
 SCM_API SCM scm_char_set_p (SCM obj);
 SCM_API SCM scm_char_set_eq (SCM char_sets);
@@ -87,6 +100,9 @@ SCM_API SCM scm_char_set_intersection_x (SCM cs1, SCM rest);
 SCM_API SCM scm_char_set_difference_x (SCM cs1, SCM rest);
 SCM_API SCM scm_char_set_xor_x (SCM cs1, SCM rest);
 SCM_API SCM scm_char_set_diff_plus_intersection_x (SCM cs1, SCM cs2, SCM rest);
+#if SCM_CHARSET_DEBUG
+SCM_API SCM scm_debug_char_set (SCM cs);
+#endif /* SCM_CHARSET_DEBUG */
 
 SCM_API SCM scm_char_set_lower_case;
 SCM_API SCM scm_char_set_upper_case;
@@ -106,7 +122,6 @@ SCM_API SCM scm_char_set_ascii;
 SCM_API SCM scm_char_set_empty;
 SCM_API SCM scm_char_set_full;
 
-SCM_INTERNAL void scm_srfi_14_compute_char_sets (void);
 SCM_INTERNAL void scm_init_srfi_14 (void);
 
 #endif /* SCM_SRFI_14_H */

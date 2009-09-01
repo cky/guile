@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1344,9 +1344,9 @@ otherwise.
 @deftypefn  {C Function} SCM scm_take_u8vector (const scm_t_uint8 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_s8vector (const scm_t_int8 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_u16vector (const scm_t_uint16 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s168vector (const scm_t_int16 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s16vector (const scm_t_int16 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_u32vector (const scm_t_uint32 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s328vector (const scm_t_int32 *data, size_t len)
+@deftypefnx {C Function} SCM scm_take_s32vector (const scm_t_int32 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_u64vector (const scm_t_uint64 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_s64vector (const scm_t_int64 *data, size_t len)
 @deftypefnx {C Function} SCM scm_take_f32vector (const float *data, size_t len)
@@ -1404,6 +1404,12 @@ Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
 C}), but returns a pointer to the elements of a uniform numeric vector
 of the indicated kind.
 @end deftypefn
+
+Uniform numeric vectors can be written to and read from input/output
+ports using the procedures listed below.  However, bytevectors may often
+be more convenient for binary input/output since they provide more
+flexibility in the interpretation of raw byte sequences
+(@pxref{Bytevectors}).
 
 @deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
 @deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
@@ -1643,18 +1649,18 @@ and writing.
 @subsection Generalized Vectors
 
 Guile has a number of data types that are generally vector-like:
-strings, uniform numeric vectors, bitvectors, and of course ordinary
-vectors of arbitrary Scheme values.  These types are disjoint: a
-Scheme value belongs to at most one of the four types listed above.
+strings, uniform numeric vectors, bytevectors, bitvectors, and of course
+ordinary vectors of arbitrary Scheme values.  These types are disjoint:
+a Scheme value belongs to at most one of the five types listed above.
 
 If you want to gloss over this distinction and want to treat all four
 types with common code, you can use the procedures in this section.
 They work with the @emph{generalized vector} type, which is the union
-of the four vector-like types.
+of the five vector-like types.
 
 @deffn {Scheme Procedure} generalized-vector? obj
 @deffnx {C Function} scm_generalized_vector_p (obj)
-Return @code{#t} if @var{obj} is a vector, string,
+Return @code{#t} if @var{obj} is a vector, bytevector, string,
 bitvector, or uniform numeric vector.
 @end deffn
 
@@ -1743,9 +1749,9 @@ matrix with zero columns and 3 rows is different from a matrix with 3
 columns and zero rows, which again is different from a vector of
 length zero.
 
-Generalized vectors, such as strings, uniform numeric vectors, bit
-vectors and ordinary vectors, are the special case of one dimensional
-arrays.
+Generalized vectors, such as strings, uniform numeric vectors,
+bytevectors, bit vectors and ordinary vectors, are the special case of
+one dimensional arrays.
 
 @menu
 * Array Syntax::                
@@ -1825,6 +1831,16 @@ first dimension has length zero, but the second has length 2.
 
 @item #0(12)
 is a rank-zero array with contents 12.
+
+@end table
+
+In addition, bytevectors are also arrays, but use a different syntax
+(@pxref{Bytevectors}):
+
+@table @code
+
+@item #vu8(1 2 3)
+is a 3-byte long bytevector, with contents 1, 2, 3.
 
 @end table
 
@@ -1985,13 +2001,24 @@ enclosed array is unspecified.
 For example,
 
 @lisp
-(enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1)
+(enclose-array '#3(((a b c)
+                    (d e f))
+                   ((1 2 3)
+                    (4 5 6)))
+               1)
 @result{}
-#<enclosed-array (#1(a d) #1(b e) #1(c f)) (#1(1 4) #1(2 5) #1(3 6))>
+#<enclosed-array (#1(a d) #1(b e) #1(c f))
+                 (#1(1 4) #1(2 5) #1(3 6))>
 
-(enclose-array '#3(((a b c) (d e f)) ((1 2 3) (4 5 6))) 1 0)
+(enclose-array '#3(((a b c)
+                    (d e f))
+                   ((1 2 3)
+                    (4 5 6)))
+               1 0)
 @result{}
-#<enclosed-array #2((a 1) (d 4)) #2((b 2) (e 5)) #2((c 3) (f 6))>
+#<enclosed-array #2((a 1) (d 4))
+                 #2((b 2) (e 5))
+                 #2((c 3) (f 6))>
 @end lisp
 @end deffn
 
@@ -2342,21 +2369,13 @@ the danger of a deadlock.  In a multi-threaded program, you will need
 additional synchronization to avoid modifying reserved arrays.)
 
 You must take care to always unreserve an array after reserving it,
-also in the presence of non-local exits.  To simplify this, reserving
-and unreserving work like a dynwind context (@pxref{Dynamic Wind}): a
-call to @code{scm_array_get_handle} can be thought of as beginning a
-dynwind context and @code{scm_array_handle_release} as ending it.
-When a non-local exit happens between these two calls, the array is
-implicitely unreserved.
+even in the presence of non-local exits.  If a non-local exit can
+happen between these two calls, you should install a dynwind context
+that releases the array when it is left (@pxref{Dynamic Wind}).
 
-That is, you need to properly pair reserving and unreserving in your
-code, but you don't need to worry about non-local exits.
-
-These calls and other pairs of calls that establish dynwind contexts
-need to be properly nested.  If you begin a context prior to reserving
-an array, you need to unreserve the array before ending the context.
-Likewise, when reserving two or more arrays in a certain order, you
-need to unreserve them in the opposite order.
+In addition, array reserving and unreserving must be properly
+paired.  For instance, when reserving two or more arrays in a certain
+order, you need to unreserve them in the opposite order.
 
 Once you have reserved an array and have retrieved the pointer to its
 elements, you must figure out the layout of the elements in memory.
@@ -2797,11 +2816,11 @@ structure.
 @example
 (make-vtable "prpw"
              (lambda (struct port)
-               (display "#<")
-               (display (struct-ref 0))
-               (display " and ")
-               (display (struct-ref 1))
-               (display ">")))
+               (display "#<" port)
+               (display (struct-ref struct 0) port)
+               (display " and " port)
+               (display (struct-ref struct 1) port)
+               (display ">" port)))
 @end example
 @end deffn
 
@@ -3075,8 +3094,10 @@ which can be changed.
                          (color ball)
                          (owner ball)))
                ball-color))
-(define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))
-(define (owner ball) (struct-ref ball 0))
+(define (color ball)
+  (struct-ref (struct-vtable ball) vtable-offset-user))
+(define (owner ball)
+  (struct-ref ball 0))
 
 (define red (make-ball-type 'red))
 (define green (make-ball-type 'green))
@@ -3452,7 +3473,8 @@ whole is not a proper list:
 (assoc "mary" '((1 . 2) ("key" . "door") . "open sesame"))
 @result{}
 ERROR: In procedure assoc in expression (assoc "mary" (quote #)):
-ERROR: Wrong type argument in position 2 (expecting association list): ((1 . 2) ("key" . "door") . "open sesame")
+ERROR: Wrong type argument in position 2 (expecting
+   association list): ((1 . 2) ("key" . "door") . "open sesame")
 
 (sloppy-assoc "mary" '((1 . 2) ("key" . "door") . "open sesame"))
 @result{}
@@ -3466,7 +3488,8 @@ Secondly, if one of the entries in the specified alist is not a pair:
 (assoc 2 '((1 . 1) 2 (3 . 9)))
 @result{}
 ERROR: In procedure assoc in expression (assoc 2 (quote #)):
-ERROR: Wrong type argument in position 2 (expecting association list): ((1 . 1) 2 (3 . 9))
+ERROR: Wrong type argument in position 2 (expecting
+   association list): ((1 . 1) 2 (3 . 9))
 
 (sloppy-assoc 2 '((1 . 1) 2 (3 . 9)))
 @result{}

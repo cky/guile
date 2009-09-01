@@ -4,18 +4,19 @@
  * Copyright (C) 2002, 03, 04, 05, 06, 07, 09 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #undef RETURN
@@ -732,7 +733,7 @@ dispatch:
 
 
 	case (ISYMNUM (SCM_IM_DELAY)):
-	  RETURN (scm_makprom (scm_closure (SCM_CDR (x), env)));
+	  RETURN (scm_make_promise (scm_closure (SCM_CDR (x), env)));
 
 #if 0
 	  /* See futures.h for a comment why futures are not enabled.
@@ -855,9 +856,12 @@ dispatch:
 		      args = SCM_CDR (args);
 		      z = SCM_CDR (z);
 		    }
-		  /* Fewer arguments than specifiers => CAR != ENV */
-		  if (scm_is_null (SCM_CAR (z)) || scm_is_pair (SCM_CAR (z)))
-		    goto apply_cmethod;
+		  /* Fewer arguments than specifiers => CAR != CLASS */
+                  if (!scm_is_pair (z))
+                    goto apply_vm_cmethod;
+                  else if (!SCM_CLASSP (SCM_CAR (z))
+                           && !scm_is_symbol (SCM_CAR (z)))
+                    goto apply_memoized_cmethod;
 		next_method:
 		  hash_value = (hash_value + 1) & mask;
 		} while (hash_value != cache_end_pos);
@@ -865,13 +869,21 @@ dispatch:
 	      /* No appropriate method was found in the cache.  */
 	      z = scm_memoize_method (x, arg1);
 
-	    apply_cmethod: /* inputs: z, arg1 */
-	      {
-		SCM formals = SCM_CMETHOD_FORMALS (z);
-		env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
-		x = SCM_CMETHOD_BODY (z);
-		goto nontoplevel_begin;
-	      }
+              if (scm_is_pair (z))
+                goto apply_memoized_cmethod;
+              
+            apply_vm_cmethod:
+              proc = z;
+              PREP_APPLY (proc, arg1);
+              goto apply_proc;
+
+	    apply_memoized_cmethod: /* inputs: z, arg1 */
+              {
+                SCM formals = SCM_CMETHOD_FORMALS (z);
+                env = SCM_EXTEND_ENV (formals, arg1, SCM_CMETHOD_ENV (z));
+                x = SCM_CMETHOD_BODY (z);
+                goto nontoplevel_begin;
+              }
 	    }
 	  }
 
@@ -1120,6 +1132,8 @@ dispatch:
 	RETURN (SCM_BOOL_T);
       case scm_tc7_asubr:
 	RETURN (SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED));
+      case scm_tc7_program:
+        RETURN (scm_c_vm_run (scm_the_vm (), proc, NULL, 0));
       case scm_tc7_smob:
 	if (!SCM_SMOB_APPLICABLE_P (proc))
 	  goto badfun;
@@ -1224,13 +1238,13 @@ dispatch:
 	      {
                 RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	      }
-	    SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                                SCM_ARG1,
-				scm_i_symbol_chars (SCM_SNAME (proc)));
+	    SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
 	  case scm_tc7_cxr:
 	    RETURN (scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc)));
 	  case scm_tc7_rpsubr:
 	    RETURN (SCM_BOOL_T);
+          case scm_tc7_program:
+            RETURN (scm_c_vm_run (scm_the_vm (), proc, &arg1, 1));
 	  case scm_tc7_asubr:
 	    RETURN (SCM_SUBRF (proc) (arg1, SCM_UNDEFINED));
 	  case scm_tc7_lsubr:
@@ -1341,6 +1355,12 @@ dispatch:
 	  case scm_tc7_rpsubr:
 	  case scm_tc7_asubr:
 	    RETURN (SCM_SUBRF (proc) (arg1, arg2));
+          case scm_tc7_program:
+            { SCM args[2];
+              args[0] = arg1;
+              args[1] = arg2;
+              RETURN (scm_c_vm_run (scm_the_vm (), proc, args, 2));
+            }
 	  case scm_tc7_smob:
 	    if (!SCM_SMOB_APPLICABLE_P (proc))
 	      goto badfun;
@@ -1480,6 +1500,8 @@ dispatch:
 				    SCM_CDDR (debug.info->a.args)));
 	case scm_tc7_gsubr:
 	  RETURN (scm_i_gsubr_apply_list (proc, debug.info->a.args));
+        case scm_tc7_program:
+          RETURN (scm_vm_apply (scm_the_vm (), proc, debug.info->a.args));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  debug.info->a.proc = proc;
@@ -1551,6 +1573,11 @@ dispatch:
 					    scm_cons2 (arg1, arg2,
 						       scm_ceval_args (x, env,
 								       proc))));
+        case scm_tc7_program:
+          RETURN (scm_vm_apply
+                  (scm_the_vm (), proc,
+                   scm_cons (arg1, scm_cons (arg2,
+                                             scm_ceval_args (x, env, proc)))));
 	case scm_tc7_pws:
 	  proc = SCM_PROCEDURE (proc);
 	  if (!SCM_CLOSUREP (proc))
@@ -1752,8 +1779,7 @@ tail:
 	{
 	  RETURN (scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1))));
 	}
-      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                          SCM_ARG1, scm_i_symbol_chars (SCM_SNAME (proc)));
+      SCM_WTA_DISPATCH_1_SUBR (proc, arg1, SCM_ARG1);
     case scm_tc7_cxr:
       if (SCM_UNLIKELY (SCM_UNBNDP (arg1) || !scm_is_null (args)))
 	scm_wrong_num_args (proc);
@@ -1786,6 +1812,11 @@ tail:
 	  args = SCM_CDR (args);
 	}
       RETURN (arg1);
+    case scm_tc7_program:
+      if (SCM_UNBNDP (arg1))
+        RETURN (scm_c_vm_run (scm_the_vm (), proc, NULL, 0));
+      else
+        RETURN (scm_vm_apply (scm_the_vm (), proc, scm_cons (arg1, args)));
     case scm_tc7_rpsubr:
       if (scm_is_null (args))
 	RETURN (SCM_BOOL_T);

@@ -4,22 +4,21 @@
 @setfilename guile.info
 @settitle Guile Reference Manual
 @set guile
-@set MANUAL-EDITION 1.1
+@set MANUAL-REVISION 1
 @c %**end of header
 @include version.texi
 @include lib-version.texi
+@include effective-version.texi
 
 @copying
-This reference manual documents Guile, GNU's Ubiquitous Intelligent
-Language for Extensions.  This is edition @value{MANUAL-EDITION}
-corresponding to Guile @value{VERSION}.
+This manual documents Guile version @value{VERSION}.
 
-Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005 Free
+Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2009 Free
 Software Foundation.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
-any later version published by the Free Software Foundation; with the
+any later version published by the Free Software Foundation; with
 no Invariant Sections, with the Front-Cover Texts being ``A GNU
 Manual,'' and with the Back-Cover Text ``You are free to copy and
 modify this GNU Manual.''.  A copy of the license is included in the
@@ -137,7 +136,7 @@ x
 @sp 10
 @comment The title is printed in a large font.
 @title Guile Reference Manual
-@subtitle Edition @value{MANUAL-EDITION}, for use with Guile @value{VERSION}
+@subtitle Edition @value{EDITION}, revision @value{MANUAL-REVISION}, for use with Guile @value{VERSION}
 @c @subtitle $Id: guile.texi,v 1.49 2008-03-19 22:51:23 ossau Exp $
 
 @c See preface.texi for the list of authors
@@ -177,11 +176,14 @@ x
 
 * Guile Modules::
 
+* GOOPS::
+
+* Guile Implementation::
+
 * Autoconf Support::
 
 Appendices
 
-* Data Representation::             All the details.
 * GNU Free Documentation License::  The license of this manual.
 
 Indices
@@ -252,7 +254,9 @@ different ways to design a program around Guile, or how to embed Guile
 into existing programs.
 
 There is also a pedagogical yet detailed explanation of how the data
-representation of Guile is implemented, @xref{Data Representation}.
+representation of Guile is implemented, see @ref{Data Representation in
+Scheme} and @ref{The Libguile Runtime Environment}.
+
 You don't need to know the details given there to use Guile from C,
 but they are useful when you want to modify Guile itself or when you
 are just curious about how it is all done.
@@ -298,7 +302,7 @@ available through both Scheme and C interfaces.
 * Binding Constructs::          Definitions and variable bindings.
 * Control Mechanisms::          Controlling the flow of program execution.
 * Input and Output::            Ports, reading and writing.
-* Read/Load/Eval::              Reading and evaluating Scheme code.
+* Read/Load/Eval/Compile::      Reading and evaluating Scheme code.
 * Memory Management::           Memory management and garbage collection.
 * Objects::                     Low level object orientation support.
 * Modules::                     Designing reusable code libraries.
@@ -362,9 +366,47 @@ available through both Scheme and C interfaces.
 @include scsh.texi
 @include scheme-debugging.texi
 
+@include goops.texi
+
+@node Guile Implementation
+@chapter Guile Implementation
+
+At some point, after one has been programming in Scheme for some time,
+another level of Scheme comes into view: its implementation. Knowledge
+of how Scheme can be implemented turns out to be necessary to become
+an expert hacker. As Peter Norvig notes in his retrospective on
+PAIP@footnote{PAIP is the common abbreviation for @cite{Paradigms of
+Artificial Intelligence Programming}, an old but still useful text on
+Lisp. Norvig's retrospective sums up the lessons of PAIP, and can be
+found at @uref{http://norvig.com/Lisp-retro.html}.}, ``The expert Lisp
+programmer eventually develops a good `efficiency model'.''
+
+By this Norvig means that over time, the Lisp hacker eventually
+develops an understanding of how much her code ``costs'' in terms of
+space and time.
+
+This chapter describes Guile as an implementation of Scheme: its
+history, how it represents and evaluates its data, and its compiler.
+This knowledge can help you to make that step from being one who is
+merely familiar with Scheme to being a real hacker.
+
+@menu
+* History::                             A brief history of Guile.
+* Data Representation in Scheme::       Why things aren't just totally
+                                        straightforward, in general terms.
+* The Libguile Runtime Environment::    Low-level details on Guile's C
+                                        runtime library.
+* A Virtual Machine for Guile::         How compiled procedures work.
+* Compiling to the Virtual Machine::    Not as hard as you might think.
+@end menu
+
+@include history.texi
+@include data-rep.texi
+@include vm.texi
+@include compiler.texi
+
 @include autoconf.texi
 
-@include data-rep.texi
 @include fdl.texi
 
 @iftex

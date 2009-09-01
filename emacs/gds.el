@@ -5,8 +5,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later
-;;;; version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,10 +36,11 @@
 ;; The subprocess object for the debug server.
 (defvar gds-debug-server nil)
 
-(defvar gds-socket-type-alist '((tcp . 8333)
-				(unix . "/tmp/.gds_socket"))
-  "Maps each of the possible socket types that the GDS server can
-listen on to the path that it should bind to for each one.")
+(defvar gds-unix-socket-name (format "/tmp/.gds-socket-%d" (emacs-pid))
+  "Name of the Unix domain socket that GDS will listen on.")
+
+(defvar gds-tcp-port 8333
+  "The TCP port number that GDS will listen on.")
 
 (defun gds-run-debug-server ()
   "Start (or restart, if already running) the GDS debug server process."
@@ -48,10 +48,14 @@ listen on to the path that it should bind to for each one.")
   (if gds-debug-server (gds-kill-debug-server))
   (setq gds-debug-server
         (gds-start-server "gds-debug"
-			  (cdr (assq gds-server-socket-type
-				     gds-socket-type-alist))
+			  gds-unix-socket-name
+			  gds-tcp-port
 			  'gds-debug-protocol))
-  (process-kill-without-query gds-debug-server))
+  (process-kill-without-query gds-debug-server)
+  ;; Add the Unix socket name to the environment, so that Guile
+  ;; clients started from within this Emacs will be able to use it,
+  ;; and thereby ensure that they connect to the GDS in this Emacs.
+  (setenv "GDS_UNIX_SOCKET_NAME" gds-unix-socket-name))
 
 (defun gds-kill-debug-server ()
   "Kill the GDS debug server process."
@@ -138,7 +142,13 @@ listen on to the path that it should bind to for each one.")
 
 ;;;; Debugger protocol
 
+(defcustom gds-protocol-hook nil
+  "Hook called on receipt of a protocol form from the GDS client."
+  :type 'hook
+  :group 'gds)
+
 (defun gds-debug-protocol (client form)
+  (run-hook-with-args 'gds-protocol-hook form)
   (or (eq client '*)
       (let ((proc (car form)))
         (cond ((eq proc 'name)
@@ -611,7 +621,7 @@ you would add an element to this alist to transform
   :group 'gds)
 
 (defcustom gds-server-socket-type 'tcp
-  "What kind of socket the GDS server should listen on."
+  "This option is now obsolete and has no effect."
   :group 'gds
   :type '(choice (const :tag "TCP" tcp)
 		 (const :tag "Unix" unix)))

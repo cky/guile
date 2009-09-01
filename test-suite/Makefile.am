@@ -4,27 +4,29 @@
 ##
 ## This file is part of GUILE.
 ##
-## GUILE is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as
-## published by the Free Software Foundation; either version 2, or
-## (at your option) any later version.
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
+##   (at your option) any later version.
 ##
-## GUILE is distributed in the hope that it will be useful, but
-## WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
+##   GUILE is distributed in the hope that it will be useful, but
+##   WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##   GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public
-## License along with GUILE; see the file COPYING.  If not, write
-## to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-## Floor, Boston, MA 02110-1301 USA
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 SUBDIRS = standalone
 
 SCM_TESTS = tests/alist.test			\
 	    tests/and-let-star.test		\
 	    tests/arbiters.test			\
+	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
+	    tests/bytevectors.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\
 	    tests/common-list.test		\
@@ -60,6 +62,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/q.test			\
 	    tests/r4rs.test			\
 	    tests/r5rs_pitfall.test		\
+	    tests/r6rs-ports.test		\
 	    tests/ramap.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
@@ -91,6 +94,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/syntax.test			\
 	    tests/threads.test			\
 	    tests/time.test			\
+	    tests/tree-il.test			\
 	    tests/unif.test			\
 	    tests/version.test			\
 	    tests/weaks.test

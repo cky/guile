@@ -1,0 +1,223 @@
+
+;; Welcome to the GDS tutorial!
+
+;; This tutorial teaches the use of GDS by leading you through a set
+;; of examples where you actually use GDS, in Emacs, along the way.
+;; To get maximum benefit, therefore, you should be reading this
+;; tutorial in Emacs.
+
+;; ** GDS setup
+
+;; The first thing to do, if you haven't already, is to load the GDS
+;; library into Emacs.  The Emacs Lisp expression for this is:
+
+(require 'gds)
+
+;; So, if you don't already have this in your .emacs, either add it
+;; and then restart Emacs, or evaluate it just for this Emacs session
+;; by moving the cursor to just after the closing parenthesis and
+;; typing `C-x C-e'.
+
+;; (Note that if you _have_ already loaded GDS, and you type `C-x C-e'
+;; after this expression, you will see a *Guile Evaluation* window
+;; telling you that the evaluation failed because `require' is
+;; unbound.  Don't worry; this is not a problem, and the rest of the
+;; tutorial should still work just fine.)
+
+;; ** Help
+
+;; GDS makes it easy to access the Guile help system when working on a
+;; Scheme program in Emacs.  For example, suppose that you are writing
+;; code that uses list-ref, and need to remind yourself about
+;; list-ref's arguments ...
+
+(define (penultimate l)
+  (list-ref
+
+;; Just place the cursor on the word "list-ref" and type `C-h g RET'.
+;; Try it now!
+
+;; If GDS is working correctly, a window should have popped up above
+;; or below showing the Guile help for list-ref.
+
+;; You can also do an "apropos" search through Guile's help.  If you
+;; couldn't remember the name list-ref, for example, you could search
+;; for anything matching "list" by typing `C-h C-g' and entering
+;; "list" at the minibuffer prompt.  Try doing this now: you should
+;; see a longish list of Guile definitions whose names include "list".
+;; As usual in Emacs, you can use `M-PageUp' and `M-PageDown' to
+;; conveniently scroll the other window without having to select it.
+
+;; The functions called by `C-h g' and `C-h C-g' are gds-help-symbol
+;; and gds-apropos.  They both look up the symbol or word at point by
+;; default, but that default can be overidden by typing something else
+;; at the minibuffer prompt.
+
+;; ** Completion
+
+;; As you are typing Scheme code, you can ask GDS to complete the
+;; symbol before point for you, by typing `ESC TAB'.  GDS selects
+;; possible completions by matching the text so far against all
+;; definitions in the Guile environment.  (This may be contrasted with
+;; the "dabbrev" completion performed by `M-/', which selects possible
+;; completions from the contents of Emacs buffers.  So, if you are
+;; trying to complete "with-ou", to get "with-output-to-string", for
+;; example, `ESC TAB' will always work, because with-output-to-string
+;; is always defined in Guile's default environment, whereas `M-/'
+;; will only work if one of Emacs's buffers happens to contain the
+;; full name "with-output-to-string".)
+
+;; To illustrate the idea, here are some partial names that you can
+;; try completing.  For each one, move the cursor to the end of the
+;; line and type `ESC TAB' to try to complete it.
+
+list-
+with-ou
+with-output-to-s
+mkst
+
+;; (If you are not familiar with any of the completed definitions,
+;; feel free to use `C-h g' to find out about them!)
+
+;; ** Evaluation
+
+;; GDS provides several ways for you to evaluate Scheme code from
+;; within Emacs.
+
+;; Just like in Emacs Lisp, a single expression in a buffer can be
+;; evaluated using `C-x C-e' or `C-M-x'.  For `C-x C-e', the
+;; expression is that which ends immediately before point (so that it
+;; is useful for evaluating something just after you have typed it).
+;; For `C-M-x', the expression is the "top level defun" around point;
+;; this means the balanced chunk of code around point whose opening
+;; parenthesis is in column 0.
+
+;; Take this code fragment as an example:
+
+(let ((x 1) (y 2))
+  (let ((z (atan x y)))
+    (display "Arctangent is: ")
+    (display z)
+    (newline)
+    z))
+
+;; If you move the cursor to the end of the (display z) line and type
+;; `C-x C-e', the code evaluated is just "(display z)", which normally
+;; produces an error, because z is not defined in the usual Guile
+;; environment.  If, however, you type `C-M-x' with the cursor in the
+;; same place, the code evaluated is the whole "(let ((x 1) (y 2))
+;; ...)" kaboodle, because that is the most recent expression before
+;; point that starts in column 0.
+
+;; Try these now.  The Guile Evaluation window should pop up again,
+;; and show you:
+;; - the expression that was evaluated (probably abbreviated)
+;; - the module that it was evaluated in
+;; - anything that the code wrote to its standard output
+;; - the return value(s) of the evaluation.
+;; Following the convention of the Emacs Lisp and Guile manuals,
+;; return values are indicated by the symbol "=>".
+
+;; To see what happens when an expression has multiple return values,
+;; try evaluating this one:
+
+(values 'a (begin (display "hello world\n") 'b) 'c)
+
+;; You can also evaluate a region of a buffer using `C-c C-r'.  If the
+;; code in the region consists of multiple expressions, GDS evaluates
+;; them sequentially.  For example, try selecting the following three
+;; lines and typing `C-c C-r'.
+
+    (display "Arctangent is: ")
+    (display z)
+    (newline)
+
+;; If the code in the region evaluated isn't syntactically balanced,
+;; GDS will indicate a read error, for example for this code:
+
+  (let ((z (atan x y)))
+    (display "Arctangent is: ")
+    (display z)
+    (newline)
+
+;; Finally, if you want to evaluate something quickly that is not in a
+;; buffer, you can use `C-c C-e' and type the code to evaluate at the
+;; minibuffer prompt.  The results are popped up in the same way as
+;; for code from a buffer.
+
+;; ** Breakpoints
+
+;; Before evaluating Scheme code from an Emacs buffer, you may want to
+;; set some breakpoints in it.  With GDS you can set breakpoints in
+;; Scheme code by typing `C-x SPC'.
+;;
+;; To see how this works, select the second line of the following code
+;; (the `(format ...)' line) and type `C-x SPC'.
+
+(for-each (lambda (x)
+	    (format #t "~A cubed is ~A\n" x (* x x x)))
+	  (iota 6))
+
+;; The two opening parentheses in that line should now be highlighted
+;; in red, to show that breakpoints have been set at the start of the
+;; `(format ...)' and `(* x x x)' expressions.  Then evaluate the
+;; whole for-each expression by typing `C-M-x' ...
+;;
+;; In the upper half of your Emacs, a buffer appears showing you the
+;; Scheme stack.
+;;
+;; In the lower half, the `(format ...)' expression is highlighted.
+;;
+;; What has happened is that Guile started evaluating the for-each
+;; code, but then hit the breakpoint that you set on the start of the
+;; format expression.  Guile therefore pauses the evaluation at that
+;; point and passes the stack (which encapsulates everything that is
+;; interesting about the state of Guile at that point) to GDS.  You
+;; can then explore the stack and decide how to tell Guile to
+;; continue.
+;;
+;; - If you move your mouse over any of the identifiers in the
+;;   highlighted code, a help echo (or tooltip) will appear to tell
+;;   you that identifier's current value.  (Note though that this only
+;;   works when the stack buffer is selected.  So if you have switched
+;;   to this buffer in order to scroll down and read these lines, you
+;;   will need to switch back to the stack buffer before trying this
+;;   out.)
+;;
+;; - In the stack buffer, the "=>" on the left shows you that the top
+;;   frame is currently selected.  You can move up and down the stack
+;;   by pressing the up and down arrows (or `u' and `d').  As you do
+;;   this, GDS will change the highlight in the lower window to show
+;;   the code that corresponds to the selected stack frame.
+;;
+;; - You can evaluate an arbitrary expression in the local environment
+;;   of the selected stack frame by typing `e' followed by the
+;;   expression.
+;;
+;; - You can show various bits of information about the selected frame
+;;   by typing `I', `A' and `S'.  Feel free to try these now, to see
+;;   what they do.
+;;
+;; You also have control over the continuing evaluation of this code.
+;; Here are some of the things you can do - please try them as you
+;; read.
+;;
+;; - `g' tells Guile to continue execution normally.  In this case
+;;   that means that evaluation will continue until it hits the next
+;;   breakpoint, which is on the `(* x x x)' expression.
+;;
+;; - `SPC' tells Guile to continue until the next significant event in
+;;   the same source file as the selected frame.  A "significant
+;;   event" means either beginning to evaluate an expression in the
+;;   relevant file, or completing such an evaluation, in which case
+;;   GDS tells you the value that it is returning.  Pressing `SPC'
+;;   repeatedly is a nice way to step through all the details of the
+;;   code in a given file, but stepping over calls that involve code
+;;   from other files.
+;;
+;; - `o' tells Guile to continue execution until the selected stack
+;;   frame completes, and then to show its return value.
+
+;; Local Variables:
+;; mode: scheme
+;; End:

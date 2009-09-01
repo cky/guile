@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -18,6 +18,7 @@
 * Block Reading and Writing::   Reading and writing blocks of text.
 * Default Ports::               Defaults for input, output and errors.
 * Port Types::                  Types of port and how to make them.
+* R6RS I/O Ports::              The R6RS port API.
 * I/O Extensions::              Using and extending ports in C.
 @end menu
 
@@ -423,9 +424,9 @@ the current size, but this is not mandatory in the POSIX standard.
 
 The delimited-I/O module can be accessed with:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 rdelim))
-@end smalllisp
+@end lisp
 
 It can be used to read or write lines of text, or read text delimited by
 a specified set of characters.  It's similar to the @code{(scsh rdelim)}
@@ -535,9 +536,9 @@ delimiter may be either a newline or the @var{eof-object}; if
 
 The Block-string-I/O module can be accessed with:
 
-@smalllisp
+@lisp
 (use-modules (ice-9 rw))
-@end smalllisp
+@end lisp
 
 It currently contains procedures that help to implement the
 @code{(scsh rw)} module in guile-scsh.
@@ -794,17 +795,17 @@ current interfaces.
 @rnindex open-input-file
 @deffn {Scheme Procedure} open-input-file filename
 Open @var{filename} for input.  Equivalent to
-@smalllisp
+@lisp
 (open-file @var{filename} "r")
-@end smalllisp
+@end lisp
 @end deffn
 
 @rnindex open-output-file
 @deffn {Scheme Procedure} open-output-file filename
 Open @var{filename} for output.  Equivalent to
-@smalllisp
+@lisp
 (open-file @var{filename} "w")
-@end smalllisp
+@end lisp
 @end deffn
 
 @deffn {Scheme Procedure} call-with-input-file filename proc
@@ -1020,6 +1021,269 @@ Create and return a new void port.  A void port acts like
 @file{/dev/null}.  The @var{mode} argument
 specifies the input/output modes for this port: see the
 documentation for @code{open-file} in @ref{File Ports}.
+@end deffn
+
+
+@node R6RS I/O Ports
+@subsection R6RS I/O Ports
+
+@cindex R6RS
+@cindex R6RS ports
+
+The I/O port API of the @uref{http://www.r6rs.org/, Revised Report^6 on
+the Algorithmic Language Scheme (R6RS)} is provided by the @code{(rnrs
+io ports)} module.  It provides features, such as binary I/O and Unicode
+string I/O, that complement or refine Guile's historical port API
+presented above (@pxref{Input and Output}).
+
+@c FIXME: Update description when implemented.
+@emph{Note}: The implementation of this R6RS API is currently far from
+complete, notably due to the lack of support for Unicode I/O and strings.
+
+@menu
+* R6RS End-of-File::            The end-of-file object.
+* R6RS Port Manipulation::      Manipulating R6RS ports.
+* R6RS Binary Input::           Binary input.
+* R6RS Binary Output::          Binary output.
+@end menu
+
+@node R6RS End-of-File
+@subsubsection The End-of-File Object
+
+@cindex EOF
+@cindex end-of-file
+
+R5RS' @code{eof-object?} procedure is provided by the @code{(rnrs io
+ports)} module:
+
+@deffn {Scheme Procedure} eof-object? obj
+@deffnx {C Function} scm_eof_object_p (obj)
+Return true if @var{obj} is the end-of-file (EOF) object.
+@end deffn
+
+In addition, the following procedure is provided:
+
+@deffn {Scheme Procedure} eof-object
+@deffnx {C Function} scm_eof_object ()
+Return the end-of-file (EOF) object.
+
+@lisp
+(eof-object? (eof-object))
+@result{} #t
+@end lisp
+@end deffn
+
+
+@node R6RS Port Manipulation
+@subsubsection Port Manipulation
+
+The procedures listed below operate on any kind of R6RS I/O port.
+
+@deffn {Scheme Procedure} port-position port
+If @var{port} supports it (see below), return the offset (an integer)
+indicating where the next octet will be read from/written to in
+@var{port}.  If @var{port} does not support this operation, an error
+condition is raised.
+
+This is similar to Guile's @code{seek} procedure with the
+@code{SEEK_CUR} argument (@pxref{Random Access}).
+@end deffn
+
+@deffn {Scheme Procedure} port-has-port-position? port
+Return @code{#t} is @var{port} supports @code{port-position}.
+@end deffn
+
+@deffn {Scheme Procedure} set-port-position! port offset
+If @var{port} supports it (see below), set the position where the next
+octet will be read from/written to @var{port} to @var{offset} (an
+integer).  If @var{port} does not support this operation, an error
+condition is raised.
+
+This is similar to Guile's @code{seek} procedure with the
+@code{SEEK_SET} argument (@pxref{Random Access}).
+@end deffn
+
+@deffn {Scheme Procedure} port-has-set-port-position!? port
+Return @code{#t} is @var{port} supports @code{set-port-position!}.
+@end deffn
+
+@deffn {Scheme Procedure} call-with-port port proc
+Call @var{proc}, passing it @var{port} and closing @var{port} upon exit
+of @var{proc}.  Return the return values of @var{proc}.
+@end deffn
+
+
+@node R6RS Binary Input
+@subsubsection Binary Input
+
+@cindex binary input
+
+R6RS binary input ports can be created with the procedures described
+below.
+
+@deffn {Scheme Procedure} open-bytevector-input-port bv [transcoder]
+@deffnx {C Function} scm_open_bytevector_input_port (bv, transcoder)
+Return an input port whose contents are drawn from bytevector @var{bv}
+(@pxref{Bytevectors}).
+
+@c FIXME: Update description when implemented.
+The @var{transcoder} argument is currently not supported.
+@end deffn
+
+@cindex custom binary input ports
+
+@deffn {Scheme Procedure} make-custom-binary-input-port id read! get-position set-position! close
+@deffnx {C Function} scm_make_custom_binary_input_port (id, read!, get-position, set-position!, close)
+Return a new custom binary input port@footnote{This is similar in spirit
+to Guile's @dfn{soft ports} (@pxref{Soft Ports}).} named @var{id} (a
+string) whose input is drained by invoking @var{read!} and passing it a
+bytevector, an index where bytes should be written, and the number of
+bytes to read.  The @code{read!}  procedure must return an integer
+indicating the number of bytes read, or @code{0} to indicate the
+end-of-file.
+
+Optionally, if @var{get-position} is not @code{#f}, it must be a thunk
+that will be called when @var{port-position} is invoked on the custom
+binary port and should return an integer indicating the position within
+the underlying data stream; if @var{get-position} was not supplied, the
+returned port does not support @var{port-position}.
+
+Likewise, if @var{set-position!} is not @code{#f}, it should be a
+one-argument procedure.  When @var{set-port-position!} is invoked on the
+custom binary input port, @var{set-position!} is passed an integer
+indicating the position of the next byte is to read.
+
+Finally, if @var{close} is not @code{#f}, it must be a thunk.  It is
+invoked when the custom binary input port is closed.
+
+Using a custom binary input port, the @code{open-bytevector-input-port}
+procedure could be implemented as follows:
+
+@lisp
+(define (open-bytevector-input-port source)
+  (define position 0)
+  (define length (bytevector-length source))
+
+  (define (read! bv start count)
+    (let ((count (min count (- length position))))
+      (bytevector-copy! source position
+                        bv start count)
+      (set! position (+ position count))
+      count))
+
+  (define (get-position) position)
+
+  (define (set-position! new-position)
+    (set! position new-position))
+
+  (make-custom-binary-input-port "the port" read!
+                                  get-position
+                                  set-position!))
+
+(read (open-bytevector-input-port (string->utf8 "hello")))
+@result{} hello
+@end lisp
+@end deffn
+
+@cindex binary input
+Binary input is achieved using the procedures below:
+
+@deffn {Scheme Procedure} get-u8 port
+@deffnx {C Function} scm_get_u8 (port)
+Return an octet read from @var{port}, a binary input port, blocking as
+necessary, or the end-of-file object.
+@end deffn
+
+@deffn {Scheme Procedure} lookahead-u8 port
+@deffnx {C Function} scm_lookahead_u8 (port)
+Like @code{get-u8} but does not update @var{port}'s position to point
+past the octet.
+@end deffn
+
+@deffn {Scheme Procedure} get-bytevector-n port count
+@deffnx {C Function} scm_get_bytevector_n (port, count)
+Read @var{count} octets from @var{port}, blocking as necessary and
+return a bytevector containing the octets read.  If fewer bytes are
+available, a bytevector smaller than @var{count} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} get-bytevector-n! port bv start count
+@deffnx {C Function} scm_get_bytevector_n_x (port, bv, start, count)
+Read @var{count} bytes from @var{port} and store them in @var{bv}
+starting at index @var{start}.  Return either the number of bytes
+actually read or the end-of-file object.
+@end deffn
+
+@deffn {Scheme Procedure} get-bytevector-some port
+@deffnx {C Function} scm_get_bytevector_some (port)
+Read from @var{port}, blocking as necessary, until data are available or
+and end-of-file is reached.  Return either a new bytevector containing
+the data read or the end-of-file object.
+@end deffn
+
+@deffn {Scheme Procedure} get-bytevector-all port
+@deffnx {C Function} scm_get_bytevector_all (port)
+Read from @var{port}, blocking as necessary, until the end-of-file is
+reached.  Return either a new bytevector containing the data read or the
+end-of-file object (if no data were available).
+@end deffn
+
+@node R6RS Binary Output
+@subsubsection Binary Output
+
+Binary output ports can be created with the procedures below.
+
+@deffn {Scheme Procedure} open-bytevector-output-port [transcoder]
+@deffnx {C Function} scm_open_bytevector_output_port (transcoder)
+Return two values: a binary output port and a procedure.  The latter
+should be called with zero arguments to obtain a bytevector containing
+the data accumulated by the port, as illustrated below.
+
+@lisp
+(call-with-values
+  (lambda ()
+    (open-bytevector-output-port))
+  (lambda (port get-bytevector)
+    (display "hello" port)
+    (get-bytevector)))
+
+@result{} #vu8(104 101 108 108 111)
+@end lisp
+
+@c FIXME: Update description when implemented.
+The @var{transcoder} argument is currently not supported.
+@end deffn
+
+@cindex custom binary output ports
+
+@deffn {Scheme Procedure} make-custom-binary-output-port id write! get-position set-position! close
+@deffnx {C Function} scm_make_custom_binary_output_port (id, write!, get-position, set-position!, close)
+Return a new custom binary output port named @var{id} (a string) whose
+output is sunk by invoking @var{write!} and passing it a bytevector, an
+index where bytes should be read from this bytevector, and the number of
+bytes to be ``written''.  The @code{write!}  procedure must return an
+integer indicating the number of bytes actually written; when it is
+passed @code{0} as the number of bytes to write, it should behave as
+though an end-of-file was sent to the byte sink.
+
+The other arguments are as for @code{make-custom-binary-input-port}
+(@pxref{R6RS Binary Input, @code{make-custom-binary-input-port}}).
+@end deffn
+
+@cindex binary output
+Writing to a binary output port can be done using the following
+procedures:
+
+@deffn {Scheme Procedure} put-u8 port octet
+@deffnx {C Function} scm_put_u8 (port, octet)
+Write @var{octet}, an integer in the 0--255 range, to @var{port}, a
+binary output port.
+@end deffn
+
+@deffn {Scheme Procedure} put-bytevector port bv [start [count]]
+@deffnx {C Function} scm_put_bytevector (port, bv, start, count)
+Write the contents of @var{bv} to @var{port}, optionally starting at
+index @var{start} and limiting to @var{count} octets.
 @end deffn
 
 
@@ -1267,7 +1531,7 @@ implementations take care to avoid this problem.
 
 The procedure is set using
 
-@deftypefun void scm_set_port_seek (scm_t_bits tc, off_t (*seek) (SCM port, off_t offset, int whence))
+@deftypefun void scm_set_port_seek (scm_t_bits tc, scm_t_off (*seek) (SCM port, scm_t_off offset, int whence))
 @end deftypefun
 
 @item truncate
@@ -1275,7 +1539,7 @@ Truncate the port data to be specified length.  It can be assumed that the
 current state of @code{rw_active} is @code{SCM_PORT_NEITHER}.
 Set using
 
-@deftypefun void scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, off_t length))
+@deftypefun void scm_set_port_truncate (scm_t_bits tc, void (*truncate) (SCM port, scm_t_off length))
 @end deftypefun
 
 @end table

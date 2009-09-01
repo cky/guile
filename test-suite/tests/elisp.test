@@ -4,7 +4,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,6 +18,13 @@
 (define-module (test-suite test-elisp)
   :use-module (test-suite lib)
   :use-module (ice-9 weak-vector))
+
+(define *old-stack-level* (and=> (memq 'stack (debug-options)) cadr))
+(if *old-stack-level*
+    (debug-set! stack (* 2 *old-stack-level*)))
+
+(define *old-%load-should-autocompile* %load-should-autocompile)
+(set! %load-should-autocompile #f)
 
 ;;;
 ;;; elisp
@@ -274,6 +281,19 @@
 				(write (eval-elisp expr))))))
 		   (string=? calc expected))))
       
+      (define (elisp-pass-if/maybe-error key expr expected)
+	(pass-if (with-output-to-string (lambda () (write expr)))
+		 (string=?
+                  (catch key
+                         (lambda ()
+                           (with-output-to-string
+                             (lambda () (write (eval-elisp expr)))))
+                         (lambda (k . args)
+                           (format (current-error-port)
+                                   "warning: caught ~a: ~a\n" k args)
+                           (throw 'unresolved)))
+                  expected)))
+
       (elisp-pass-if '(and #f) "#f")
       (elisp-pass-if '(and #t) "#t")
       (elisp-pass-if '(and nil) "#nil")
@@ -323,12 +343,17 @@
       ;; loading the macro definition of lambda in subr.el.
       (elisp-pass-if '(function (lambda (x y &optional o &rest r) (list x y o r))) "(lambda (x y &optional o &rest r) (list x y o r))")
       (elisp-pass-if '(funcall (lambda (x y &optional o &rest r) (list x y o r)) 1 2 3 4) "(1 2 3 (4))")
-      (elisp-pass-if '(apply (lambda (x y &optional o &rest r) (list x y o r)) 1 2 3 nil) "(1 2 3 #nil)")
 
+      (elisp-pass-if '(apply (lambda (x y &optional o &rest r) (list x y o r)) 1 2 3 nil)
+                     "(1 2 3 #nil)")
+      
       (elisp-pass-if '(setq x 3) "3")
       (elisp-pass-if '(defvar x 4) "x")
       (elisp-pass-if 'x "3")
 
       ))
+
+(set! %load-should-autocompile *old-%load-should-autocompile*)
+(debug-set! stack *old-stack-level*)
 
 ;;; elisp.test ends here

@@ -2,18 +2,19 @@
  * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #ifdef HAVE_CONFIG_H
@@ -467,8 +468,21 @@ static void
 display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
 {
   SCM source = SCM_FRAME_SOURCE (frame);
-  *file = SCM_MEMOIZEDP (source) ? scm_source_property (source, scm_sym_filename) : SCM_BOOL_F;
-  *line = (SCM_MEMOIZEDP (source)) ? scm_source_property (source, scm_sym_line) : SCM_BOOL_F;
+  *file = *line = SCM_BOOL_F;
+  if (SCM_MEMOIZEDP (source))
+    {
+      *file = scm_source_property (source, scm_sym_filename);
+      *line = scm_source_property (source, scm_sym_line);
+    }
+  else if (scm_is_pair (source)
+           && scm_is_pair (scm_cdr (source))
+           && scm_is_pair (scm_cddr (source))
+           && !scm_is_pair (scm_cdddr (source)))
+    {
+      /* (addr . (filename . (line . column))), from vm compilation */
+      *file = scm_cadr (source);
+      *line = scm_caddr (source);
+    }
 }
 
 static void

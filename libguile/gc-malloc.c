@@ -1,18 +1,19 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -36,7 +37,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/stackchk.h"
 #include "libguile/struct.h"
 #include "libguile/smob.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 #include "libguile/async.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
@@ -76,25 +77,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #define SCM_DEFAULT_MALLOC_MINYIELD 40
 
 /* #define DEBUGINFO */
-
-static int scm_i_minyield_malloc;
-
-void
-scm_gc_init_malloc (void)
-{
-  scm_mtrigger = scm_getenv_int ("GUILE_INIT_MALLOC_LIMIT",
-				 SCM_DEFAULT_INIT_MALLOC_LIMIT);
-  scm_i_minyield_malloc = scm_getenv_int ("GUILE_MIN_YIELD_MALLOC",
-					  SCM_DEFAULT_MALLOC_MINYIELD);
-
-  if (scm_i_minyield_malloc >= 100)
-    scm_i_minyield_malloc = 99;
-  if (scm_i_minyield_malloc < 1)
-    scm_i_minyield_malloc = 1;
-
-  if (scm_mtrigger < 0)
-    scm_mtrigger = SCM_DEFAULT_INIT_MALLOC_LIMIT;
-}
 
 
 

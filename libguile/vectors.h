@@ -6,24 +6,25 @@
 /* Copyright (C) 1995,1996,1998,2000,2001,2002,2004,2005, 2006, 2008 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
 
 #include "libguile/__scm.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
 
 
 
@@ -59,21 +60,6 @@ SCM_API SCM *scm_vector_writable_elements (SCM vec,
 #define SCM_SIMPLE_VECTOR_LENGTH(x)      SCM_I_VECTOR_LENGTH(x)
 #define SCM_SIMPLE_VECTOR_REF(x,idx)     ((SCM_I_VECTOR_ELTS(x))[idx])
 #define SCM_SIMPLE_VECTOR_SET(x,idx,val) ((SCM_I_VECTOR_WELTS(x))[idx]=(val))
-
-/* Generalized vectors */
-
-SCM_API SCM scm_generalized_vector_p (SCM v);
-SCM_API SCM scm_generalized_vector_length (SCM v);
-SCM_API SCM scm_generalized_vector_ref (SCM v, SCM idx);
-SCM_API SCM scm_generalized_vector_set_x (SCM v, SCM idx, SCM val);
-SCM_API SCM scm_generalized_vector_to_list (SCM v);
-
-SCM_API int scm_is_generalized_vector (SCM obj);
-SCM_API size_t scm_c_generalized_vector_length (SCM v);
-SCM_API SCM scm_c_generalized_vector_ref (SCM v, size_t idx);
-SCM_API void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val);
-SCM_API void scm_generalized_vector_get_handle (SCM vec,
-						scm_t_array_handle *h);
 
 /* Internals */
 

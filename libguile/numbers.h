@@ -3,21 +3,22 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -26,6 +27,11 @@
 
 #include "libguile/__scm.h"
 #include "libguile/print.h"
+
+#ifndef SCM_T_WCHAR_DEFINED
+typedef scm_t_int32 scm_t_wchar;
+#define SCM_T_WCHAR_DEFINED
+#endif /* SCM_T_WCHAR_DEFINED */
 
 #if SCM_HAVE_FLOATINGPOINT_H
 # include <floatingpoint.h>
@@ -173,6 +179,7 @@ typedef struct scm_t_complex
   double imag;
 } scm_t_complex;
 
+
 
 
 SCM_API SCM scm_exact_p (SCM x);
@@ -209,6 +216,7 @@ SCM_API int scm_print_complex (SCM sexp, SCM port, scm_print_state *pstate);
 SCM_API int scm_bigprint (SCM exp, SCM port, scm_print_state *pstate);
 SCM_API SCM scm_c_locale_stringn_to_number (const char *mem, size_t len,
 					    unsigned int radix);
+SCM_INTERNAL SCM scm_i_string_to_number (SCM str, unsigned int radix);
 SCM_API SCM scm_string_to_number (SCM str, SCM radix);
 SCM_API SCM scm_bigequal (SCM x, SCM y);
 SCM_API SCM scm_real_equalp (SCM x, SCM y);
@@ -320,6 +328,9 @@ SCM_API SCM          scm_from_int32  (scm_t_int32 x);
 
 SCM_API scm_t_uint32 scm_to_uint32   (SCM x);
 SCM_API SCM          scm_from_uint32 (scm_t_uint32 x);
+
+SCM_API scm_t_wchar  scm_to_wchar    (SCM x);
+SCM_API SCM          scm_from_wchar  (scm_t_wchar x);
 
 #if SCM_HAVE_T_INT64
 

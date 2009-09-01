@@ -4,7 +4,7 @@
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
-;;;; version 2.1 of the License, or (at your option) any later version.
+;;;; version 3 of the License, or (at your option) any later version.
 ;;;; 
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,15 +27,15 @@
   (syntax-rules ()
     ((_ test-id value expression)
      (run-test test-id #t (lambda ()
-			    (false-if-exception
-			     (equal? expression value)))))))
+                            (false-if-exception
+                             (equal? expression value)))))))
 
 (define-syntax should-be-but-isnt
   (syntax-rules ()
     ((_ test-id value expression)
      (run-test test-id #f (lambda ()
-			    (false-if-exception
-			     (equal? expression value)))))))
+                            (false-if-exception
+                             (equal? expression value)))))))
 
 (define call/cc call-with-current-continuation)
 
@@ -65,7 +65,7 @@
 (should-be 1.2 #t
   (letrec ((x (call/cc list)) (y (call/cc list)))
     (cond ((procedure? x) (x (pair? y)))
-	  ((procedure? y) (y (pair? x))))
+          ((procedure? y) (y (pair? x))))
     (let ((x (car x)) (y (car y)))
       (and (call/cc x) (call/cc y) (call/cc x)))))
 
@@ -75,11 +75,11 @@
 ;; http://groups.google.com/groups?selm=19890302162742.4.ALAN%40PIGPEN.AI.MIT.EDU
 (should-be 1.3 #t
   (letrec ((x (call-with-current-continuation
-		  (lambda (c)
-		    (list #T c)))))
+                  (lambda (c)
+                    (list #T c)))))
       (if (car x)
-	  ((cadr x) (list #F (lambda () x)))
-	  (eq? x ((cadr x))))))
+          ((cadr x) (list #F (lambda () x)))
+          (eq? x ((cadr x))))))
 
 ;; Section 2: Proper call/cc and procedure application
 
@@ -300,12 +300,12 @@
     (define res1 #f)
     (define res2 #f)
     (set! res1 (map (lambda (x)
-		      (if (= x 0)
-			  (call/cc (lambda (k) (set! cont k) 0))
-			  0))
-		    '(1 0 2)))
+                      (if (= x 0)
+                          (call/cc (lambda (k) (set! cont k) 0))
+                          0))
+                    '(1 0 2)))
     (if (not executed-k)           
-	(begin (set! executed-k #t) 
-	       (set! res2 res1)
-	       (cont 1)))
+        (begin (set! executed-k #t) 
+               (set! res2 res1)
+               (cont 1)))
     res2))

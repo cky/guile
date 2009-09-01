@@ -121,24 +121,21 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (F(scm_any_to_,TAG,vector), "any->"S(TAG)"vector", 1, 0, 0,
-	    (SCM obj),
-	    "Convert @var{obj}, which can be a list, vector, or\n"
-	    "uniform vector, to a numeric uniform vector of\n"
-	    "type " S(TAG)".")
-#define FUNC_NAME s_F(scm_any_to_,TAG,vector)
-{
-  return coerce_to_uvec (TYPE, obj);
-}
-#undef FUNC_NAME
-
 #ifdef CTYPE
 
 SCM
 F(scm_take_,TAG,vector) (CTYPE *data, size_t n)
 {
-  scm_gc_register_collectable_memory ((void *)data, n*uvec_sizes[TYPE],
-				      uvec_names[TYPE]);
+  /* The manual says "Return a new uniform numeric vector [...] that uses the
+     memory pointed to by DATA".  We *have* to use DATA as the underlying
+     storage; thus we must register a finalizer to eventually free(3) it.  */
+  GC_finalization_proc prev_finalizer;
+  GC_PTR prev_finalization_data;
+
+  GC_REGISTER_FINALIZER_NO_ORDER (data, free_user_data, 0,
+				  &prev_finalizer,
+				  &prev_finalization_data);
+
   return take_uvec (TYPE, data, n);
 }
 
@@ -187,13 +184,13 @@ F(scm_,TAG,vector_writable_elements) (SCM uvec,
 #endif
 
 static SCM
-F(,TAG,ref) (scm_t_array_handle *handle, ssize_t pos)
+F(,TAG,ref) (scm_t_array_handle *handle, size_t pos)
 {
   return uvec_fast_ref (TYPE, handle->elements, pos);
 }
 
 static void
-F(,TAG,set) (scm_t_array_handle *handle, ssize_t pos, SCM val)
+F(,TAG,set) (scm_t_array_handle *handle, size_t pos, SCM val)
 {
   uvec_fast_set_x (TYPE, handle->writable_elements, pos, val);
 }

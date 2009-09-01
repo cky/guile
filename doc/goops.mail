@@ -1,0 +1,78 @@
+From: Mikael Djurfeldt <mdj@mdj.nada.kth.se>
+Subject: Re: After GOOPS integration: Computation with native types!
+To: Keisuke Nishida <kxn30@po.cwru.edu>
+Cc: djurfeldt@nada.kth.se, guile@sourceware.cygnus.com
+Cc: djurfeldt@nada.kth.se
+Date: 17 Aug 2000 03:01:13 +0200
+
+Keisuke Nishida <kxn30@po.cwru.edu> writes:
+
+> Do I need to include some special feature in my VM?  Hmm, but maybe
+> I shouldn't do that now...
+
+Probably not, so I probably shouldn't answer, but...  :)
+
+You'll need to include some extremely efficient mechanism to do
+multi-method dispatch.  The SCM_IM_DISPATCH form, with its
+implementation at line 2250 in eval.c, is the current basis for
+efficient dispatch in GOOPS.
+
+I think we should develop a new instruction for the VM which
+corresponds to the SCM_IM_DISPATCH form.
+
+This form serves both the purpose to map argument types to the correct
+code, and as a cache of compiled methods.
+
+Notice that I talk about cmethods below, not methods.  In GOOPS, the
+GF has a set of methods, but each method has a "code-table" mapping
+argument types to code compiled for those particular concrete types.
+(So, in essence, GOOPS methods abstractly do a deeper level of type
+dispatch.)
+
+The SCM_IM_DISPATCH form has two shapes, depending on whether we use
+sequential search (few cmethods) or hashed lookup (many cmethods).
+
+Shape 1:
+
+ (#@dispatch args N-SPECIALIZED #((TYPE1 ... ENV FORMALS FORM1 ...) ...) GF)
+
+Shape 2:
+
+ (#@dispatch args N-SPECIALIZED HASHSET MASK
+             #((TYPE1 ... ENV FORMALS FORM1 ...) ...)
+             GF)
+
+`args' is (I hope!) a now historic obscure optimization.
+
+N-SPECIALIZED is the maximum number of arguments t do type checking
+on.  This is used early termination of argument checking where the
+already checked arguments are enough to pick out the cmethod.
+
+The vector is the cache proper.
+
+During sequential search the argument types are simply checked against
+each entry.
+
+The method for hashed dispatch is described in:
+
+http://www.parc.xerox.com/csl/groups/sda/publications/papers/Kiczales-Andreas-PCL
+
+In this method, each class has a hash code.  Dispatch means summing
+the hash codes for all arguments (up til N-SPECIALIZED) and using the
+sum to pick a location in the cache.  The cache is sequentially
+searched for an argument type match from that point.
+
+Kiczales introduced a clever method to maximize the probability of a
+direct cache hit.  We actually have 8 separate sets of hash codes for
+all types.  The hash set to use is selected specifically per GF and is
+optimized to give fastest average hit.
+
+
+What we could try to do as soon as the VM is complete enough is to
+represent the cmethods as chunks of byte code.  In the current GOOPS
+code, the compilation step (which is currently empty) is situated in
+`compile-cmethod' in guile-oops/compile.scm.  [Apologies for the
+terrible code.  That particular part was written at Arlanda airport
+after a sleepless night (packing luggage, not coding), on my way to
+visit Marius (who, BTW, didn't take GOOPS seriously.  ;-)]
+

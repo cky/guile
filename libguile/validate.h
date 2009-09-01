@@ -3,21 +3,22 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 /* Written by Greg J. Badros <gjb@cs.washington.edu>, Dec-1999 */
@@ -149,6 +150,10 @@
     SCM_ASSERT (scm_is_bool (flag), flag, pos, FUNC_NAME); \
     cvar = scm_to_bool (flag); \
   } while (0)
+
+#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)			\
+  SCM_ASSERT_TYPE (SCM_BYTEVECTOR_P (_obj), (_obj), (_pos),	\
+		   FUNC_NAME, "bytevector")
 
 #define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
 
@@ -378,7 +383,7 @@
 
 #define SCM_VALIDATE_VECTOR_LEN(pos, v, len) \
   do { \
-    SCM_ASSERT (SCM_VECTORP (v) && len == SCM_VECTOR_LENGTH (v), v, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_vector (v) && len == scm_c_vector_length (v), v, pos, FUNC_NAME); \
   } while (0)
 
 

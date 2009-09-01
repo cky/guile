@@ -173,7 +173,8 @@ creating ./config.status
 creating Makefile
 $ make
 gcc -c -I/usr/local/include simple-guile.c
-gcc simple-guile.o -L/usr/local/lib -lguile -lqthreads -lpthread -lm -o simple-guile
+gcc simple-guile.o -L/usr/local/lib -lguile -lqthreads -lpthread -lm
+  -o simple-guile
 $ ./simple-guile
 guile> (+ 1 2 3)
 6

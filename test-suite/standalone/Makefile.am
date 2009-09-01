@@ -1,23 +1,23 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006, 2007, 2008 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
-## GUILE is free software; you can redistribute it and/or modify
-## it under the terms of the GNU General Public License as
-## published by the Free Software Foundation; either version 2, or
-## (at your option) any later version.
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
+##   (at your option) any later version.
 ##
-## GUILE is distributed in the hope that it will be useful, but
-## WITHOUT ANY WARRANTY; without even the implied warranty of
-## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-## GNU General Public License for more details.
+##   GUILE is distributed in the hope that it will be useful, but
+##   WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##   GNU Lesser General Public License for more details.
 ##
-## You should have received a copy of the GNU General Public
-## License along with GUILE; see the file COPYING.  If not, write
-## to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-## Floor, Boston, MA 02110-1301 USA
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 
 # initializations so we can use += below.
@@ -28,19 +28,23 @@ check_SCRIPTS =
 BUILT_SOURCES =
 EXTRA_DIST =
 
-TESTS_ENVIRONMENT = "${top_builddir}/pre-inst-guile-env"
+TESTS_ENVIRONMENT =						\
+  GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
+
+## Check for headers in $(srcdir) and bulid dir before $(CPPFLAGS), which
+## may point us to an old, installed version of guile.
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_builddir) \
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
 test_cflags =					\
-  -I$(top_srcdir)/test-suite/standalone		\
-  -I$(top_srcdir) -I$(top_builddir)		\
-  -I$(top_srcdir)/lib -I$(top_builddir)/lib	\
+  -I$(top_srcdir)/test-suite/standalone -I.	\
   $(EXTRA_DEFS) $(GUILE_CFLAGS) $(GCC_CFLAGS)
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 
-snarfcppopts =								\
-  $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS) -I$(top_srcdir)	\
-  -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_builddir)
+snarfcppopts =								      \
+  -I$(top_srcdir) -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_builddir) \
+  -I. $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x
 .c.x:
@@ -118,6 +122,23 @@ test_scm_c_read_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-scm-c-read
 TESTS += test-scm-c-read
 
+# test-scm-take-locale-symbol
+test_scm_take_locale_symbol_SOURCES = test-scm-take-locale-symbol.c
+test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
+test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-take-locale-symbol
+TESTS += test-scm-take-locale-symbol
+
+# test-extensions
+noinst_LTLIBRARIES += libtest-extensions.la
+libtest_extensions_la_SOURCES = test-extensions-lib.c
+libtest_extensions_la_CFLAGS = ${test_cflags}
+libtest_extensions_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
+libtest_extensions_la_LIBADD = ${top_builddir}/libguile/libguile.la
+check_SCRIPTS += test-extensions
+TESTS += test-extensions
+
+
 if BUILD_PTHREAD_SUPPORT
 
 # test-with-guile-module
@@ -136,8 +157,5 @@ else
 EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
 
 endif
-
-all-local:
-	cd ${srcdir} && chmod u+x ${check_SCRIPTS}
 
 EXTRA_DIST += ${check_SCRIPTS}

@@ -1,5 +1,5 @@
-# mbrtowc.m4 serial 12
-dnl Copyright (C) 2001-2002, 2004-2005, 2008 Free Software Foundation, Inc.
+# mbrtowc.m4 serial 16
+dnl Copyright (C) 2001-2002, 2004-2005, 2008, 2009 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -65,9 +65,15 @@ AC_DEFUN([gl_MBSTATE_T_BROKEN],
   AC_CHECK_FUNCS_ONCE([mbrtowc])
   if test $ac_cv_func_mbsinit = yes && test $ac_cv_func_mbrtowc = yes; then
     gl_MBRTOWC_INCOMPLETE_STATE
+    gl_MBRTOWC_SANITYCHECK
+    REPLACE_MBSTATE_T=0
     case "$gl_cv_func_mbrtowc_incomplete_state" in
-      *yes) REPLACE_MBSTATE_T=0 ;;
-      *)    REPLACE_MBSTATE_T=1 ;;
+      *yes) ;;
+      *) REPLACE_MBSTATE_T=1 ;;
+    esac
+    case "$gl_cv_func_mbrtowc_sanitycheck" in
+      *yes) ;;
+      *) REPLACE_MBSTATE_T=1 ;;
     esac
   else
     REPLACE_MBSTATE_T=1
@@ -121,7 +127,59 @@ int main ()
 }],
           [gl_cv_func_mbrtowc_incomplete_state=yes],
           [gl_cv_func_mbrtowc_incomplete_state=no],
-          [])
+          [:])
+      fi
+    ])
+])
+
+dnl Test whether mbrtowc works not worse than mbtowc.
+dnl Result is gl_cv_func_mbrtowc_sanitycheck.
+
+AC_DEFUN([gl_MBRTOWC_SANITYCHECK],
+[
+  AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([gt_LOCALE_ZH_CN])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_CACHE_CHECK([whether mbrtowc works as well as mbtowc],
+    [gl_cv_func_mbrtowc_sanitycheck],
+    [
+      dnl Initial guess, used when cross-compiling or when no suitable locale
+      dnl is present.
+changequote(,)dnl
+      case "$host_os" in
+                    # Guess no on Solaris 8.
+        solaris2.8) gl_cv_func_mbrtowc_sanitycheck="guessing no" ;;
+                    # Guess yes otherwise.
+        *)          gl_cv_func_mbrtowc_sanitycheck="guessing yes" ;;
+      esac
+changequote([,])dnl
+      if test $LOCALE_ZH_CN != none; then
+        AC_TRY_RUN([
+#include <locale.h>
+#include <stdlib.h>
+#include <string.h>
+#include <wchar.h>
+int main ()
+{
+  /* This fails on Solaris 8:
+     mbrtowc returns 2, and sets wc to 0x00F0.
+     mbtowc returns 4 (correct) and sets wc to 0x5EDC.  */
+  if (setlocale (LC_ALL, "$LOCALE_ZH_CN") != NULL)
+    {
+      char input[] = "B\250\271\201\060\211\070er"; /* "Büßer" */
+      mbstate_t state;
+      wchar_t wc;
+
+      memset (&state, '\0', sizeof (mbstate_t));
+      if (mbrtowc (&wc, input + 3, 6, &state) != 4
+          && mbtowc (&wc, input + 3, 6) == 4)
+        return 1;
+    }
+  return 0;
+}],
+          [gl_cv_func_mbrtowc_sanitycheck=yes],
+          [gl_cv_func_mbrtowc_sanitycheck=no],
+          [:])
       fi
     ])
 ])
@@ -168,7 +226,7 @@ int main ()
         return 1;
     }
   return 0;
-}], [gl_cv_func_mbrtowc_null_arg=yes], [gl_cv_func_mbrtowc_null_arg=no], [])
+}], [gl_cv_func_mbrtowc_null_arg=yes], [gl_cv_func_mbrtowc_null_arg=no], [:])
       fi
     ])
 ])
@@ -238,7 +296,7 @@ int main ()
 }],
           [gl_cv_func_mbrtowc_retval=yes],
           [gl_cv_func_mbrtowc_retval=no],
-          [])
+          [:])
       fi
     ])
 ])
@@ -258,10 +316,10 @@ AC_DEFUN([gl_MBRTOWC_NUL_RETVAL],
       dnl is present.
 changequote(,)dnl
       case "$host_os" in
-                    # Guess no on Solaris 9.
-        solaris2.9) gl_cv_func_mbrtowc_nul_retval="guessing no" ;;
-                    # Guess yes otherwise.
-        *)          gl_cv_func_mbrtowc_nul_retval="guessing yes" ;;
+                       # Guess no on Solaris 8 and 9.
+        solaris2.[89]) gl_cv_func_mbrtowc_nul_retval="guessing no" ;;
+                       # Guess yes otherwise.
+        *)             gl_cv_func_mbrtowc_nul_retval="guessing yes" ;;
       esac
 changequote([,])dnl
       if test $LOCALE_ZH_CN != none; then
@@ -271,7 +329,7 @@ changequote([,])dnl
 #include <wchar.h>
 int main ()
 {
-  /* This fails on Solaris 9.  */
+  /* This fails on Solaris 8 and 9.  */
   if (setlocale (LC_ALL, "$LOCALE_ZH_CN") != NULL)
     {
       mbstate_t state;
@@ -285,7 +343,7 @@ int main ()
 }],
           [gl_cv_func_mbrtowc_nul_retval=yes],
           [gl_cv_func_mbrtowc_nul_retval=no],
-          [])
+          [:])
       fi
     ])
 ])
@@ -318,7 +376,7 @@ AC_DEFUN([AC_FUNC_MBRTOWC],
        gl_cv_func_mbrtowc=yes,
        gl_cv_func_mbrtowc=no)])
   if test $gl_cv_func_mbrtowc = yes; then
-    AC_DEFINE([HAVE_MBRTOWC], 1,
+    AC_DEFINE([HAVE_MBRTOWC], [1],
       [Define to 1 if mbrtowc and mbstate_t are properly declared.])
   fi
 ])

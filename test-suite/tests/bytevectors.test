@@ -1,0 +1,684 @@
+;;;; bytevectors.test --- Exercise the R6RS bytevector API.
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Ludovic Courtès
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-bytevector)
+  :use-module (test-suite lib)
+  :use-module (system base compile)
+  :use-module (rnrs bytevector))
+
+;;; Some of the tests in here are examples taken from the R6RS Standard
+;;; Libraries document.
+
+(define-syntax c&e
+  (syntax-rules (pass-if pass-if-exception)
+    ((_ (pass-if test-name exp))
+     (begin (pass-if (string-append test-name " (eval)")
+                     (primitive-eval 'exp))
+            (pass-if (string-append test-name " (compile)")
+                     (compile 'exp #:to 'value))))
+    ((_ (pass-if-exception test-name exc exp))
+     (begin (pass-if-exception (string-append test-name " (eval)")
+                               exc (primitive-eval 'exp))
+            (pass-if-exception (string-append test-name " (compile)")
+                               exc (compile 'exp #:to 'value))))))
+
+(define-syntax with-test-prefix/c&e
+  (syntax-rules ()
+    ((_ section-name exp ...)
+     (with-test-prefix section-name (c&e exp) ...))))
+
+
+
+(with-test-prefix/c&e "2.2 General Operations"
+
+  (pass-if "native-endianness"
+    (not (not (memq (native-endianness) '(big little)))))
+
+  (pass-if "make-bytevector"
+    (and (bytevector? (make-bytevector 20))
+         (bytevector? (make-bytevector 20 3))))
+
+  (pass-if "bytevector-length"
+    (= (bytevector-length (make-bytevector 20)) 20))
+
+  (pass-if "bytevector=?"
+    (and (bytevector=? (make-bytevector 20 7)
+                       (make-bytevector 20 7))
+         (not (bytevector=? (make-bytevector 20 7)
+                            (make-bytevector 20 0))))))
+
+
+(with-test-prefix/c&e "2.3 Operations on Bytes and Octets"
+
+  (pass-if "bytevector-{u8,s8}-ref"
+    (equal? '(-127 129 -1 255)
+            (let ((b1 (make-bytevector 16 -127))
+                  (b2 (make-bytevector 16 255)))
+              (list (bytevector-s8-ref b1 0)
+                    (bytevector-u8-ref b1 0)
+                    (bytevector-s8-ref b2 0)
+                    (bytevector-u8-ref b2 0)))))
+
+  (pass-if "bytevector-{u8,s8}-set!"
+    (equal? '(-126 130 -10 246)
+            (let ((b (make-bytevector 16 -127)))
+
+              (bytevector-s8-set! b 0 -126)
+              (bytevector-u8-set! b 1 246)
+
+              (list (bytevector-s8-ref b 0)
+                    (bytevector-u8-ref b 0)
+                    (bytevector-s8-ref b 1)
+                    (bytevector-u8-ref b 1)))))
+
+  (pass-if "bytevector->u8-list"
+    (let ((lst '(1 2 3 128 150 255)))
+      (equal? lst
+              (bytevector->u8-list
+               (let ((b (make-bytevector 6)))
+                 (for-each (lambda (i v)
+                             (bytevector-u8-set! b i v))
+                           (iota 6)
+                           lst)
+                 b)))))
+
+  (pass-if "u8-list->bytevector"
+    (let ((lst '(1 2 3 128 150 255)))
+      (equal? lst
+              (bytevector->u8-list (u8-list->bytevector lst)))))
+
+  (pass-if "bytevector-uint-{ref,set!} [small]"
+    (let ((b (make-bytevector 15)))
+      (bytevector-uint-set! b 0 #x1234
+                            (endianness little) 2)
+      (equal? (bytevector-uint-ref b 0 (endianness big) 2)
+              #x3412)))
+
+  (pass-if "bytevector-uint-set! [large]"
+    (let ((b (make-bytevector 16)))
+      (bytevector-uint-set! b 0 (- (expt 2 128) 3)
+                            (endianness little) 16)
+      (equal? (bytevector->u8-list b)
+              '(253 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 255))))
+
+  (pass-if "bytevector-uint-{ref,set!} [large]"
+    (let ((b (make-bytevector 120)))
+      (bytevector-uint-set! b 0 (- (expt 2 128) 3)
+                            (endianness little) 16)
+      (equal? (bytevector-uint-ref b 0 (endianness little) 16)
+              #xfffffffffffffffffffffffffffffffd)))
+
+  (pass-if "bytevector-sint-ref [small]"
+    (let ((b (u8-list->bytevector '(#xff #xf0 #xff))))
+      (equal? (bytevector-sint-ref b 0 (endianness big) 2)
+              (bytevector-sint-ref b 1 (endianness little) 2)
+              -16)))
+
+  (pass-if "bytevector-sint-ref [large]"
+    (let ((b (make-bytevector 50)))
+      (bytevector-uint-set! b 0 (- (expt 2 128) 3)
+                            (endianness little) 16)
+      (equal? (bytevector-sint-ref b 0 (endianness little) 16)
+              -3)))
+
+  (pass-if "bytevector-sint-set! [small]"
+    (let ((b (make-bytevector 3)))
+      (bytevector-sint-set! b 0 -16 (endianness big) 2)
+      (bytevector-sint-set! b 1 -16 (endianness little) 2)
+      (equal? (bytevector->u8-list b)
+	      '(#xff #xf0 #xff))))
+
+  (pass-if "equal?"
+    (let ((bv1 (u8-list->bytevector (iota 123)))
+          (bv2 (u8-list->bytevector (iota 123))))
+      (equal? bv1 bv2))))
+
+
+(with-test-prefix/c&e "2.4 Operations on Integers of Arbitrary Size"
+
+  (pass-if "bytevector->sint-list"
+    (let ((b (u8-list->bytevector '(1 2 3 255 1 2 1 2))))
+      (equal? (bytevector->sint-list b (endianness little) 2)
+              '(513 -253 513 513))))
+
+  (pass-if "bytevector->uint-list"
+    (let ((b (u8-list->bytevector '(2 1 255 3 2 1 2 1))))
+      (equal? (bytevector->uint-list b (endianness big) 2)
+              '(513 65283 513 513))))
+
+  (pass-if "bytevector->uint-list [empty]"
+    (let ((b (make-bytevector 0)))
+      (null? (bytevector->uint-list b (endianness big) 2))))
+
+  (pass-if-exception "bytevector->sint-list [out-of-range]"
+    exception:out-of-range
+    (bytevector->sint-list (make-bytevector 6) (endianness little) 8))
+
+  (pass-if "bytevector->sint-list [off-by-one]"
+    (equal? (bytevector->sint-list (make-bytevector 31 #xff)
+                                   (endianness little) 8)
+            '(-1 -1 -1)))
+
+  (pass-if "{sint,uint}-list->bytevector"
+    (let ((b1 (sint-list->bytevector '(513 -253 513 513)
+                                     (endianness little) 2))
+          (b2 (uint-list->bytevector '(513 65283 513 513)
+                                     (endianness little) 2))
+          (b3 (u8-list->bytevector '(1 2 3 255 1 2 1 2))))
+      (and (bytevector=? b1 b2)
+           (bytevector=? b2 b3))))
+
+  (pass-if "sint-list->bytevector [limits]"
+           (bytevector=? (sint-list->bytevector '(-32768 32767)
+                                                (endianness big) 2)
+                         (let ((bv (make-bytevector 4)))
+                           (bytevector-u8-set! bv 0 #x80)
+                           (bytevector-u8-set! bv 1 #x00)
+                           (bytevector-u8-set! bv 2 #x7f)
+                           (bytevector-u8-set! bv 3 #xff)
+                           bv)))
+
+  (pass-if-exception "sint-list->bytevector [out-of-range]"
+    exception:out-of-range
+    (sint-list->bytevector (list 0 0 (expt 2 16)) (endianness big)
+                           2))
+
+  (pass-if-exception "uint-list->bytevector [out-of-range]"
+    exception:out-of-range
+    (uint-list->bytevector '(0 -1) (endianness big) 2)))
+
+
+(with-test-prefix/c&e "2.5 Operations on 16-Bit Integers"
+
+  (pass-if "bytevector-u16-ref"
+    (let ((b (u8-list->bytevector
+              '(255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 253))))
+      (and (equal? (bytevector-u16-ref b 14 (endianness little))
+                   #xfdff)
+           (equal? (bytevector-u16-ref b 14 (endianness big))
+                   #xfffd))))
+
+  (pass-if "bytevector-s16-ref"
+    (let ((b (u8-list->bytevector
+              '(255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 253))))
+      (and (equal? (bytevector-s16-ref b 14 (endianness little))
+                   -513)
+           (equal? (bytevector-s16-ref b 14 (endianness big))
+                   -3))))
+
+  (pass-if "bytevector-s16-ref [unaligned]"
+    (let ((b (u8-list->bytevector '(#xff #xf0 #xff))))
+      (equal? (bytevector-s16-ref b 1 (endianness little))
+	      -16)))
+
+  (pass-if "bytevector-{u16,s16}-ref"
+    (let ((b (make-bytevector 2)))
+      (bytevector-u16-set! b 0 44444 (endianness little))
+      (and (equal? (bytevector-u16-ref b 0 (endianness little))
+                   44444)
+           (equal? (bytevector-s16-ref b 0 (endianness little))
+                   (- 44444 65536)))))
+
+  (pass-if "bytevector-native-{u16,s16}-{ref,set!}"
+    (let ((b (make-bytevector 2)))
+      (bytevector-u16-native-set! b 0 44444)
+      (and (equal? (bytevector-u16-native-ref b 0)
+                   44444)
+           (equal? (bytevector-s16-native-ref b 0)
+                   (- 44444 65536)))))
+
+  (pass-if "bytevector-s16-{ref,set!} [unaligned]"
+    (let ((b (make-bytevector 3)))
+      (bytevector-s16-set! b 1 -77 (endianness little))
+      (equal? (bytevector-s16-ref b 1 (endianness little))
+	      -77))))
+
+
+(with-test-prefix/c&e "2.6 Operations on 32-bit Integers"
+
+  (pass-if "bytevector-u32-ref"
+    (let ((b (u8-list->bytevector
+              '(255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 253))))
+      (and (equal? (bytevector-u32-ref b 12 (endianness little))
+                   #xfdffffff)
+           (equal? (bytevector-u32-ref b 12 (endianness big))
+                   #xfffffffd))))
+
+  (pass-if "bytevector-s32-ref"
+    (let ((b (u8-list->bytevector
+              '(255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 253))))
+      (and (equal? (bytevector-s32-ref b 12 (endianness little))
+                   -33554433)
+           (equal? (bytevector-s32-ref b 12 (endianness big))
+                   -3))))
+
+  (pass-if "bytevector-{u32,s32}-ref"
+    (let ((b (make-bytevector 4)))
+      (bytevector-u32-set! b 0 2222222222 (endianness little))
+      (and (equal? (bytevector-u32-ref b 0 (endianness little))
+                   2222222222)
+           (equal? (bytevector-s32-ref b 0 (endianness little))
+                   (- 2222222222 (expt 2 32))))))
+
+  (pass-if "bytevector-{u32,s32}-native-{ref,set!}"
+    (let ((b (make-bytevector 4)))
+      (bytevector-u32-native-set! b 0 2222222222)
+      (and (equal? (bytevector-u32-native-ref b 0)
+                   2222222222)
+           (equal? (bytevector-s32-native-ref b 0)
+                   (- 2222222222 (expt 2 32)))))))
+
+
+(with-test-prefix/c&e "2.7 Operations on 64-bit Integers"
+
+  (pass-if "bytevector-u64-ref"
+    (let ((b (u8-list->bytevector
+              '(255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 253))))
+      (and (equal? (bytevector-u64-ref b 8 (endianness little))
+                   #xfdffffffffffffff)
+           (equal? (bytevector-u64-ref b 8 (endianness big))
+                   #xfffffffffffffffd))))
+
+  (pass-if "bytevector-s64-ref"
+    (let ((b (u8-list->bytevector
+              '(255 255 255 255 255 255 255 255
+                255 255 255 255 255 255 255 253))))
+      (and (equal? (bytevector-s64-ref b 8 (endianness little))
+                   -144115188075855873)
+           (equal? (bytevector-s64-ref b 8 (endianness big))
+                   -3))))
+
+  (pass-if "bytevector-{u64,s64}-ref"
+    (let ((b (make-bytevector 8))
+          (big 9333333333333333333))
+      (bytevector-u64-set! b 0 big (endianness little))
+      (and (equal? (bytevector-u64-ref b 0 (endianness little))
+                   big)
+           (equal? (bytevector-s64-ref b 0 (endianness little))
+                   (- big (expt 2 64))))))
+
+  (pass-if "bytevector-{u64,s64}-native-{ref,set!}"
+    (let ((b (make-bytevector 8))
+          (big 9333333333333333333))
+      (bytevector-u64-native-set! b 0 big)
+      (and (equal? (bytevector-u64-native-ref b 0)
+                   big)
+           (equal? (bytevector-s64-native-ref b 0)
+                   (- big (expt 2 64))))))
+
+  (pass-if "ref/set! with zero"
+     (let ((b (make-bytevector 8)))
+       (bytevector-s64-set! b 0 -1 (endianness big))
+       (bytevector-u64-set! b 0  0 (endianness big))
+       (= 0 (bytevector-u64-ref b 0 (endianness big))))))
+
+
+(with-test-prefix/c&e "2.8 Operations on IEEE-754 Representations"
+
+  (pass-if "bytevector-ieee-single-native-{ref,set!}"
+    (let ((b (make-bytevector 4))
+          (number 3.00))
+      (bytevector-ieee-single-native-set! b 0 number)
+      (equal? (bytevector-ieee-single-native-ref b 0)
+              number)))
+
+  (pass-if "bytevector-ieee-single-{ref,set!}"
+    (let ((b (make-bytevector 8))
+          (number 3.14))
+      (bytevector-ieee-single-set! b 0 number (endianness little))
+      (bytevector-ieee-single-set! b 4 number (endianness big))
+      (equal? (bytevector-ieee-single-ref b 0 (endianness little))
+              (bytevector-ieee-single-ref b 4 (endianness big)))))
+
+  (pass-if "bytevector-ieee-single-{ref,set!} [unaligned]"
+    (let ((b (make-bytevector 9))
+          (number 3.14))
+      (bytevector-ieee-single-set! b 1 number (endianness little))
+      (bytevector-ieee-single-set! b 5 number (endianness big))
+      (equal? (bytevector-ieee-single-ref b 1 (endianness little))
+              (bytevector-ieee-single-ref b 5 (endianness big)))))
+
+  (pass-if "bytevector-ieee-double-native-{ref,set!}"
+    (let ((b (make-bytevector 8))
+          (number 3.14))
+      (bytevector-ieee-double-native-set! b 0 number)
+      (equal? (bytevector-ieee-double-native-ref b 0)
+              number)))
+
+  (pass-if "bytevector-ieee-double-{ref,set!}"
+    (let ((b (make-bytevector 16))
+          (number 3.14))
+      (bytevector-ieee-double-set! b 0 number (endianness little))
+      (bytevector-ieee-double-set! b 8 number (endianness big))
+      (equal? (bytevector-ieee-double-ref b 0 (endianness little))
+              (bytevector-ieee-double-ref b 8 (endianness big))))))
+
+
+(define (with-locale locale thunk)
+  ;; Run THUNK under LOCALE.
+  (let ((original-locale (setlocale LC_ALL)))
+    (catch 'system-error
+      (lambda ()
+        (setlocale LC_ALL locale))
+      (lambda (key . args)
+        (throw 'unresolved)))
+
+    (dynamic-wind
+        (lambda ()
+          #t)
+        thunk
+        (lambda ()
+          (setlocale LC_ALL original-locale)))))
+
+(define (with-latin1-locale thunk)
+  ;; Try out several ISO-8859-1 locales and run THUNK under the one that
+  ;; works (if any).
+  (define %locales
+    (map (lambda (name)
+           (string-append name ".ISO-8859-1"))
+         '("fr_FR" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT")))
+
+  (let loop ((locales %locales))
+    (if (null? locales)
+        (throw 'unresolved)
+        (catch 'unresolved
+          (lambda ()
+            (with-locale (car locales) thunk))
+          (lambda (key . args)
+            (loop (cdr locales)))))))
+
+
+;; Default to the C locale for the following tests.
+(setlocale LC_ALL "C")
+
+
+(with-test-prefix "2.9 Operations on Strings"
+
+  (pass-if "string->utf8"
+    (let* ((str  "hello, world")
+           (utf8 (string->utf8 str)))
+      (and (bytevector? utf8)
+           (= (bytevector-length utf8)
+              (string-length str))
+           (equal? (string->list str)
+                   (map integer->char (bytevector->u8-list utf8))))))
+
+  (pass-if "string->utf8 [latin-1]"
+    (with-latin1-locale
+      (lambda ()
+        (let* ((str  "hé, ça va bien ?")
+               (utf8 (string->utf8 str)))
+          (and (bytevector? utf8)
+               (= (bytevector-length utf8)
+                  (+ 2 (string-length str))))))))
+
+  (pass-if "string->utf16"
+    (let* ((str   "hello, world")
+           (utf16 (string->utf16 str)))
+      (and (bytevector? utf16)
+           (= (bytevector-length utf16)
+              (* 2 (string-length str)))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf16
+                                               (endianness big) 2))))))
+
+  (pass-if "string->utf16 [little]"
+    (let* ((str   "hello, world")
+           (utf16 (string->utf16 str (endianness little))))
+      (and (bytevector? utf16)
+           (= (bytevector-length utf16)
+              (* 2 (string-length str)))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf16
+                                               (endianness little) 2))))))
+
+
+  (pass-if "string->utf32"
+    (let* ((str   "hello, world")
+           (utf32 (string->utf32 str)))
+      (and (bytevector? utf32)
+           (= (bytevector-length utf32)
+              (* 4 (string-length str)))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf32
+                                               (endianness big) 4))))))
+
+  (pass-if "string->utf32 [little]"
+    (let* ((str   "hello, world")
+           (utf32 (string->utf32 str (endianness little))))
+      (and (bytevector? utf32)
+           (= (bytevector-length utf32)
+              (* 4 (string-length str)))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf32
+                                               (endianness little) 4))))))
+
+  (pass-if "utf8->string"
+    (let* ((utf8  (u8-list->bytevector (map char->integer
+                                            (string->list "hello, world"))))
+           (str   (utf8->string utf8)))
+      (and (string? str)
+           (= (string-length str)
+              (bytevector-length utf8))
+           (equal? (string->list str)
+                   (map integer->char (bytevector->u8-list utf8))))))
+
+  (pass-if "utf8->string [latin-1]"
+    (with-latin1-locale
+      (lambda ()
+        (let* ((utf8  (string->utf8 "hé, ça va bien ?"))
+               (str   (utf8->string utf8)))
+          (and (string? str)
+               (= (string-length str)
+                  (- (bytevector-length utf8) 2)))))))
+
+  (pass-if "utf16->string"
+    (let* ((utf16  (uint-list->bytevector (map char->integer
+                                               (string->list "hello, world"))
+                                          (endianness big) 2))
+           (str   (utf16->string utf16)))
+      (and (string? str)
+           (= (* 2 (string-length str))
+              (bytevector-length utf16))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf16 (endianness big)
+                                               2))))))
+
+  (pass-if "utf16->string [little]"
+    (let* ((utf16  (uint-list->bytevector (map char->integer
+                                               (string->list "hello, world"))
+                                          (endianness little) 2))
+           (str   (utf16->string utf16 (endianness little))))
+      (and (string? str)
+           (= (* 2 (string-length str))
+              (bytevector-length utf16))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf16 (endianness little)
+                                               2))))))
+  (pass-if "utf32->string"
+    (let* ((utf32  (uint-list->bytevector (map char->integer
+                                               (string->list "hello, world"))
+                                          (endianness big) 4))
+           (str   (utf32->string utf32)))
+      (and (string? str)
+           (= (* 4 (string-length str))
+              (bytevector-length utf32))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf32 (endianness big)
+                                               4))))))
+
+  (pass-if "utf32->string [little]"
+    (let* ((utf32  (uint-list->bytevector (map char->integer
+                                               (string->list "hello, world"))
+                                          (endianness little) 4))
+           (str   (utf32->string utf32 (endianness little))))
+      (and (string? str)
+           (= (* 4 (string-length str))
+              (bytevector-length utf32))
+           (equal? (string->list str)
+                   (map integer->char
+                        (bytevector->uint-list utf32 (endianness little)
+                                               4)))))))
+
+
+
+(with-test-prefix "Datum Syntax"
+
+  (pass-if "empty"
+    (equal? (with-input-from-string "#vu8()" read)
+            (make-bytevector 0)))
+
+  (pass-if "simple"
+    (equal? (with-input-from-string "#vu8(1 2 3   4 5)" read)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if ">127"
+    (equal? (with-input-from-string "#vu8(0 255 127 128)" read)
+            (u8-list->bytevector '(0 255 127 128))))
+
+  (pass-if "self-evaluating?"
+    (self-evaluating? (make-bytevector 1)))
+
+  (pass-if "self-evaluating"
+    (equal? (eval (with-input-from-string "#vu8(1 2 3 4 5)" read)
+                  (current-module))
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "quoted"
+    (equal? (eval (with-input-from-string "'#vu8(1 2 3 4 5)" read)
+                  (current-module))
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "literal simple"
+    (equal? #vu8(1 2 3   4 5)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if "literal >127"
+    (equal? #vu8(0 255 127 128)
+            (u8-list->bytevector '(0 255 127 128))))
+
+  (pass-if "literal quoted"
+    (equal? '#vu8(1 2 3   4 5)
+            (u8-list->bytevector '(1 2 3 4 5))))
+
+  (pass-if-exception "incorrect prefix"
+    exception:read-error
+    (with-input-from-string "#vi8(1 2 3)" read))
+
+  (pass-if-exception "extraneous space"
+    exception:read-error
+    (with-input-from-string "#vu8 (1 2 3)" read))
+
+  (pass-if-exception "negative integers"
+    exception:wrong-type-arg
+    (with-input-from-string "#vu8(-1 -2 -3)" read))
+
+  (pass-if-exception "out-of-range integers"
+    exception:wrong-type-arg
+    (with-input-from-string "#vu8(0 256)" read)))
+
+
+(with-test-prefix "Generalized Vectors"
+
+  (pass-if "generalized-vector?"
+    (generalized-vector? #vu8(1 2 3)))
+
+  (pass-if "generalized-vector-length"
+    (equal? (iota 16)
+            (map generalized-vector-length
+                 (map make-bytevector (iota 16)))))
+
+  (pass-if "generalized-vector-ref"
+    (let ((bv #vu8(255 127)))
+      (and (= 255 (generalized-vector-ref bv 0))
+           (= 127 (generalized-vector-ref bv 1)))))
+
+  (pass-if-exception "generalized-vector-ref [index out-of-range]"
+    exception:out-of-range
+    (let ((bv #vu8(1 2)))
+      (generalized-vector-ref bv 2)))
+
+  (pass-if "generalized-vector-set!"
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 0 255)
+      (generalized-vector-set! bv 1 77)
+      (equal? '(255 77)
+              (bytevector->u8-list bv))))
+
+  (pass-if-exception "generalized-vector-set! [index out-of-range]"
+    exception:out-of-range
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 2 0)))
+
+  (pass-if-exception "generalized-vector-set! [value out-of-range]"
+    exception:out-of-range
+    (let ((bv (make-bytevector 2)))
+      (generalized-vector-set! bv 0 256)))
+
+  (pass-if "array-type"
+    (eq? 'vu8 (array-type #vu8())))
+
+  (pass-if "array-contents"
+    (let ((bv (u8-list->bytevector (iota 10))))
+      (eq? bv (array-contents bv))))
+
+  (pass-if "array-ref"
+    (let ((bv (u8-list->bytevector (iota 10))))
+      (equal? (iota 10)
+              (map (lambda (i) (array-ref bv i))
+                   (iota 10)))))
+
+  (pass-if "array-set!"
+    (let ((bv (make-bytevector 10)))
+      (for-each (lambda (i)
+                  (array-set! bv i i))
+                (iota 10))
+      (equal? (iota 10)
+              (bytevector->u8-list bv))))
+
+  (pass-if "make-typed-array"
+    (let ((bv (make-typed-array 'vu8 77 33)))
+      (equal? bv (u8-list->bytevector (make-list 33 77)))))
+
+  (pass-if-exception "make-typed-array [out-of-range]"
+    exception:out-of-range
+    (make-typed-array 'vu8 256 77))
+
+  (pass-if "uniform-array->bytevector"
+    (let ((bv #vu8(0 1 128 255)))
+      (equal? bv (uniform-array->bytevector bv)))))
+
+
+;;; Local Variables:
+;;; coding: latin-1
+;;; mode: scheme
+;;; End:

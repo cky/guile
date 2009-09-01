@@ -10,7 +10,7 @@
 
 Guile uses a @emph{garbage collector} to manage most of its objects.
 While the garbage collector is designed to be mostly invisible, you 
-sometimes need to interact with it explicitely.
+sometimes need to interact with it explicitly.
 
 See @ref{Garbage Collection} for a general discussion of how garbage
 collection relates to using Guile from C.
@@ -201,7 +201,7 @@ below for a motivation.
 @deftypefn {C Function} void scm_gc_free (void *@var{mem}, size_t @var{size}, const char *@var{what})
 Like @code{free}, but also call @code{scm_gc_unregister_collectable_memory}.
 
-Note that you need to explicitely pass the @var{size} parameter.  This
+Note that you need to explicitly pass the @var{size} parameter.  This
 is done since it should normally be easy to provide this parameter
 (for memory that is associated with GC controlled objects) and this
 frees us from tracking this value in the GC itself, which will keep

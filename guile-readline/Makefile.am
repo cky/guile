@@ -1,33 +1,42 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
-##   This file is part of GUILE.
+##   This file is part of guile-readline.
 ##
-##   GUILE is free software; you can redistribute it and/or modify
-##   it under the terms of the GNU General Public License as
-##   published by the Free Software Foundation; either version 2, or
+##   guile-readline is free software; you can redistribute it and/or
+##   modify it under the terms of the GNU General Public License as
+##   published by the Free Software Foundation; either version 3, or
 ##   (at your option) any later version.
 ##
-##   GUILE is distributed in the hope that it will be useful, but
-##   WITHOUT ANY WARRANTY; without even the implied warranty of
-##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##   GNU General Public License for more details.
+##   guile-readline is distributed in the hope that it will be useful,
+##   but WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+##   General Public License for more details.
 ##
-##   You should have received a copy of the GNU General Public
-##   License along with GUILE; see the file COPYING.  If not, write
+##   You should have received a copy of the GNU General Public License
+##   along with guile-readline; see the file COPYING.  If not, write
 ##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ##   Floor, Boston, MA 02110-1301 USA
 
-SUBDIRS = ice-9
-
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@ @EXTRA_DEFS@
+
+if HAVE_READLINE
+
+# `ice-9' subdirectory.
+ice9dir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
+nobase_ice9_DATA = ice-9/readline.scm
+EXTRA_DIST = $(nobase_ice9_DATA)
+
+
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
-INCLUDES = -I. -I.. -I$(srcdir)/..			\
-	   -I$(top_srcdir)/lib -I$(top_builddir)/lib
+AM_CPPFLAGS = -I. -I.. -I$(srcdir)/..			\
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
+
+AM_CFLAGS = $(GCC_CFLAGS)
 
 GUILE_SNARF = ../libguile/guile-snarf
 
@@ -35,24 +44,32 @@ lib_LTLIBRARIES = libguilereadline-v-@LIBGUILEREADLINE_MAJOR@.la
 
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES = readline.c
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LIBADD =	\
-   ../libguile/libguile.la ../lib/libgnu.la
-libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS = -version-info @LIBGUILEREADLINE_INTERFACE@ -export-dynamic -no-undefined
+  $(READLINE_LIBS)					\
+  ../libguile/libguile.la ../lib/libgnu.la
+
+libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS =	\
+  -version-info @LIBGUILEREADLINE_INTERFACE@ -export-dynamic	\
+  -no-undefined
 
 
 BUILT_SOURCES = readline.x
 
 pkginclude_HEADERS = readline.h
 
-snarfcppopts = $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
 	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
-EXTRA_DIST = LIBGUILEREADLINE-VERSION ChangeLog-2008
+EXTRA_DIST += LIBGUILEREADLINE-VERSION ChangeLog-2008
 
-MKDEP = gcc -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ETAGS_ARGS =							\
+  $(nobase_ice9_DATA)						\
+  $(libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES)
 
 CLEANFILES = *.x
+
+endif HAVE_READLINE
 
 dist-hook:
 	(temp="/tmp/mangle-deps.$$$$"; \

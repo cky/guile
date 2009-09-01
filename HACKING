@@ -59,8 +59,9 @@ Automake --- a system for automatically generating Makefiles that
 
 libtool --- a system for managing the zillion hairy options needed
 	on various systems to produce shared libraries.  Available in
-	"ftp://ftp.gnu.org/pub/gnu/libtool".  Version 1.5.26 (or
-	later) is needed for correct AIX support.
+	"ftp://ftp.gnu.org/pub/gnu/libtool".  Version 2.2 (or
+	later) is recommended (for correct AIX support, and correct
+	interaction with the Gnulib module for using libunistring).
 
 gettext --- a system for rigging a program so that it can output its
         messages in the local tongue.  Guile presently only exports
@@ -87,6 +88,10 @@ have been known to cause problems, and a short description of the problem.
 
 - autoreconf from autoconf prior to 2.59 will run gettextize, which
   will mess up the Guile tree.
+
+- libtool 1.5.26 does not know that it should remove the -R options
+  that the Gnulib libunistring and havelib modules generate (because
+  gcc doesn't actually support -R).
 
 - (add here.)
 

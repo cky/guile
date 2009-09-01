@@ -6,18 +6,19 @@
 /* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -98,13 +99,10 @@
 #define SCM_UNLIKELY(_expr)  SCM_EXPECT ((_expr), 0)
 
 /* The SCM_INTERNAL macro makes it possible to explicitly declare a function
- * as having "internal" linkage.  */
-#if (defined __GNUC__) && \
-  ((__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ == 3))
-# define SCM_INTERNAL  extern __attribute__ ((__visibility__ ("internal")))
-#else
-# define SCM_INTERNAL  extern
-#endif
+ * as having "internal" linkage.  However our current tack on this problem is
+ * to use GCC 4's -fvisibility=hidden, making functions internal by default,
+ * and then SCM_API marks them for export. */
+#define SCM_INTERNAL  extern
 
 /* The SCM_ALIGNED macro, when defined, can be used to instruct the compiler
  * to honor the given alignment constraint.  */
@@ -164,13 +162,14 @@
 
 
 /* SCM_API is a macro prepended to all function and data definitions
-   which should be exported or imported in the resulting dynamic link
-   library (DLL) in the Win32 port. */
+   which should be exported from libguile. */
 
-#if defined (SCM_IMPORT)
-# define SCM_API __declspec (dllimport) extern
-#elif defined (SCM_EXPORT) || defined (DLL_EXPORT)
-# define SCM_API __declspec (dllexport) extern
+#if BUILDING_LIBGUILE && HAVE_VISIBILITY
+# define SCM_API extern __attribute__((__visibility__("default")))
+#elif BUILDING_LIBGUILE && defined _MSC_VER
+# define SCM_API __declspec(dllexport) extern
+#elif defined _MSC_VER
+# define SCM_API __declspec(dllimport) extern
 #else
 # define SCM_API extern
 #endif
@@ -434,18 +433,27 @@
     typedef struct {
       ucontext_t ctx;
       int fresh;
-    } jmp_buf;
-#   define setjmp(JB)				        \
+    } scm_i_jmp_buf;
+#   define SCM_I_SETJMP(JB)			        \
       ( (JB).fresh = 1,				        \
         getcontext (&((JB).ctx)),			\
         ((JB).fresh ? ((JB).fresh = 0, 0) : 1) )
-#   define longjmp(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
-    void scm_ia64_longjmp (jmp_buf *, int);
+#   define SCM_I_LONGJMP(JB,VAL) scm_ia64_longjmp (&(JB), VAL)
+    void scm_ia64_longjmp (scm_i_jmp_buf *, int);
 #  else                 	/* ndef __ia64__ */
 #   include <setjmp.h>
 #  endif			/* ndef __ia64__ */
 # endif				/* ndef _CRAY1 */
 #endif				/* ndef vms */
+
+/* For any platform where SCM_I_SETJMP hasn't been defined in some
+   special way above, map SCM_I_SETJMP, SCM_I_LONGJMP and
+   scm_i_jmp_buf to setjmp, longjmp and jmp_buf. */
+#ifndef SCM_I_SETJMP
+#define scm_i_jmp_buf jmp_buf
+#define SCM_I_SETJMP setjmp
+#define SCM_I_LONGJMP longjmp
+#endif
 
 /* James Clark came up with this neat one instruction fix for
  * continuations on the SPARC.  It flushes the register windows so
@@ -567,6 +575,13 @@ SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
   return (SCM_UNPACK (gf)					\
 	  ? scm_call_generic_1 ((gf), (a1))			\
 	  : (scm_wrong_type_arg ((subr), (pos), (a1)), SCM_UNSPECIFIED))
+
+/* This form is for dispatching a subroutine.  */
+#define SCM_WTA_DISPATCH_1_SUBR(subr, a1, pos)				\
+  return (SCM_UNPACK ((*SCM_SUBR_GENERIC (subr)))			\
+	  ? scm_call_generic_1 ((*SCM_SUBR_GENERIC (subr)), (a1))	\
+	  : (scm_i_wrong_type_arg_symbol (SCM_SUBR_NAME (subr), (pos), (a1)), SCM_UNSPECIFIED))
+
 #define SCM_GASSERT1(cond, gf, a1, pos, subr)		\
   if (SCM_UNLIKELY (!(cond)))			\
     SCM_WTA_DISPATCH_1((gf), (a1), (pos), (subr))

@@ -5,24 +5,26 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 #include "libguile/__scm.h"
+#include "libguile/arrays.h"
 #include "libguile/strings.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
@@ -116,8 +118,8 @@ SCM_API SCM scm_unprotect_object (SCM obj);
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) & (y))))
 #define SCM_SETOR_CDR(x, y)\
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
-#define SCM_FREEP(x) (SCM_FREE_CELL_P (x))
-#define SCM_NFREEP(x) (!SCM_FREE_CELL_P (x))
+#define SCM_FREEP(x) (0)
+#define SCM_NFREEP(x) (1)
 #define SCM_GC8MARKP(x) SCM_GC_MARK_P (x)
 #define SCM_SETGC8MARK(x) SCM_SET_GC_MARK (x)
 #define SCM_CLRGC8MARK(x) SCM_CLEAR_GC_MARK (x)
@@ -581,6 +583,25 @@ SCM_API SCM scm_destroy_guardian_x (SCM guardian);
 SCM_API SCM scm_guardian_greedy_p (SCM guardian);
 SCM_API SCM scm_guardian_destroyed_p (SCM guardian);
 
+
+/* GC-related things deprecated with the move to BDW-GC starting from 1.9.3
+   (2009-09-15).  */
+
+SCM_API unsigned long scm_mallocated;
+SCM_API unsigned long scm_mtrigger;
+
+SCM_API size_t scm_max_segment_size;
+
+#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
+SCM_API SCM scm_map_free_list (void);
+#endif
+
+#if defined (GUILE_DEBUG_FREELIST)
+SCM_API SCM scm_gc_set_debug_check_freelist_x (SCM flag);
+#endif
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

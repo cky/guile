@@ -1,10 +1,10 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  * 
  * This program is distributed in the hope that it will be useful,
@@ -21,9 +21,9 @@
 
 
 
-
-/* Include private, configure generated header (i.e. config.h). */
-#include "guile-readline-config.h"
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #ifdef HAVE_RL_GETC_FUNCTION
 #include "libguile.h"
@@ -530,26 +530,6 @@ match_paren (int x, int k)
 }
 #endif /* HAVE_RL_GET_KEYMAP */
 
-#if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
-/* Readline disables SA_RESTART on SIGWINCH.
- * This code turns it back on.
- */
-static int
-sigwinch_enable_restart (void)
-{
-#ifdef HAVE_SIGINTERRUPT
-  siginterrupt (SIGWINCH, 0);
-#else
-  struct sigaction action;
-  
-  sigaction (SIGWINCH, NULL, &action);
-  action.sa_flags |= SA_RESTART;
-  sigaction (SIGWINCH, &action, NULL);
-#endif
-  return 0;
-}
-#endif
-
 #endif /* HAVE_RL_GETC_FUNCTION */
 
 void
@@ -569,9 +549,6 @@ scm_init_readline ()
 #endif
   rl_basic_word_break_characters = "\t\n\"'`;()";
   rl_readline_name = "Guile";
-#if defined (HAVE_RL_PRE_INPUT_HOOK) && defined (GUILE_SIGWINCH_SA_RESTART_CLEARED)
-  rl_pre_input_hook = sigwinch_enable_restart;
-#endif
 
   reentry_barrier_mutex = scm_permanent_object (scm_make_mutex ());
   scm_init_opts (scm_readline_options,

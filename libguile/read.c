@@ -1,19 +1,20 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -26,11 +27,15 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <unistd.h>
+#include <unicase.h>
 
 #include "libguile/_scm.h"
+#include "libguile/bytevectors.h"
 #include "libguile/chars.h"
 #include "libguile/eval.h"
-#include "libguile/unif.h"
+#include "libguile/arrays.h"
+#include "libguile/bitvectors.h"
 #include "libguile/keywords.h"
 #include "libguile/alist.h"
 #include "libguile/srcprop.h"
@@ -175,52 +180,76 @@ static SCM *scm_read_hash_procedures;
   (((_chr) == 'e') || ((_chr) == 's') || ((_chr) == 'f')	\
    || ((_chr) == 'd') || ((_chr) == 'l'))
 
-/* An inlinable version of `scm_c_downcase ()'.  */
-#define CHAR_DOWNCASE(_chr)				\
-  (((_chr) <= UCHAR_MAX) ? tolower (_chr) : (_chr))
-
-
 /* Read an SCSH block comment.  */
 static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
+static SCM scm_read_commented_expression (int chr, SCM port);
 
 /* Read from PORT until a delimiter (e.g., a whitespace) is read.  Return
    zero if the whole token fits in BUF, non-zero otherwise.  */
 static inline int
-read_token (SCM port, char *buf, size_t buf_size, size_t *read)
+read_token (SCM port, SCM buf, size_t *read)
 {
+  scm_t_wchar chr;
   *read = 0;
 
-  while (*read < buf_size)
+  buf = scm_i_string_start_writing (buf);
+  while (*read < scm_i_string_length (buf))
     {
-      int chr;
-
       chr = scm_getc (port);
-      chr = (SCM_CASE_INSENSITIVE_P ? CHAR_DOWNCASE (chr) : chr);
 
       if (chr == EOF)
-	return 0;
-      else if (CHAR_IS_DELIMITER (chr))
 	{
+	  scm_i_string_stop_writing ();
+	  return 0;
+	}
+
+      chr = (SCM_CASE_INSENSITIVE_P ? uc_tolower (chr) : chr);
+
+      if (CHAR_IS_DELIMITER (chr))
+	{
+	  scm_i_string_stop_writing ();
 	  scm_ungetc (chr, port);
 	  return 0;
 	}
-      else
-	{
-	  *buf = (char) chr;
-	  buf++, (*read)++;
-	}
+
+      scm_i_string_set_x (buf, *read, chr);
+      (*read)++;
     }
+  scm_i_string_stop_writing ();
 
   return 1;
 }
 
+static SCM
+read_complete_token (SCM port, size_t *read)
+{
+  SCM buffer, str = SCM_EOL;
+  size_t len;
+  int overflow;
+
+  buffer = scm_i_make_string (READER_BUFFER_SIZE, NULL); 
+  overflow = read_token (port, buffer, read);
+  if (!overflow)
+    return scm_i_substring (buffer, 0, *read);
+
+  str = scm_string_copy (buffer);
+  do
+    {
+      overflow = read_token (port, buffer, &len);
+      str = scm_string_append (scm_list_2 (str, buffer));
+      *read += len;
+    }
+  while (overflow);
+
+  return scm_i_substring (str, 0, *read);
+}
 
 /* Skip whitespace from PORT and return the first non-whitespace character
    read.  Raise an error on end-of-file.  */
 static int
 flush_ws (SCM port, const char *eoferr)
 {
-  register int c;
+  register scm_t_wchar c;
   while (1)
     switch (c = scm_getc (port))
       {
@@ -257,6 +286,9 @@ flush_ws (SCM port, const char *eoferr)
 	  case '!':
 	    scm_read_scsh_block_comment (c, port);
 	    break;
+	  case ';':
+	    scm_read_commented_expression (c, port);
+	    break;
 	  default:
 	    scm_ungetc (c, port);
 	    return '#';
@@ -286,7 +318,7 @@ static SCM recsexpr (SCM obj, long line, int column, SCM filename);
 
 
 static SCM
-scm_read_sexp (int chr, SCM port)
+scm_read_sexp (scm_t_wchar chr, SCM port)
 #define FUNC_NAME "scm_i_lreadparen"
 {
   register int c;
@@ -381,207 +413,218 @@ scm_read_string (int chr, SCM port)
      object (the string returned).  */
 
   SCM str = SCM_BOOL_F;
-  char c_str[READER_STRING_BUFFER_SIZE];
   unsigned c_str_len = 0;
-  int c;
+  scm_t_wchar c;
 
+  str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
   while ('"' != (c = scm_getc (port)))
     {
       if (c == EOF)
-	str_eof: scm_i_input_error (FUNC_NAME, port,
-				    "end of file in string constant",
-				    SCM_EOL);
+        {
+        str_eof:
+          scm_i_input_error (FUNC_NAME, port,
+                             "end of file in string constant", SCM_EOL);
+        }
 
-      if (c_str_len + 1 >= sizeof (c_str))
-	{
-	  /* Flush the C buffer onto a Scheme string.  */
-	  SCM addy;
+      if (c_str_len + 1 >= scm_i_string_length (str))
+        {
+          SCM addy = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
 
-	  if (str == SCM_BOOL_F)
-	    str = scm_c_make_string (0, SCM_MAKE_CHAR ('X'));
-
-	  addy = scm_from_locale_stringn (c_str, c_str_len);
-	  str = scm_string_append_shared (scm_list_2 (str, addy));
-
-	  c_str_len = 0;
-	}
+          str = scm_string_append (scm_list_2 (str, addy));
+        }
 
       if (c == '\\')
-	switch (c = scm_getc (port))
-	  {
-	  case EOF:
-	    goto str_eof;
-	  case '"':
-	  case '\\':
-	    break;
+        {
+          switch (c = scm_getc (port))
+            {
+            case EOF:
+              goto str_eof;
+            case '"':
+            case '\\':
+              break;
 #if SCM_ENABLE_ELISP
-	  case '(':
-	  case ')':
-	    if (SCM_ESCAPED_PARENS_P)
-	      break;
-	    goto bad_escaped;
+            case '(':
+            case ')':
+              if (SCM_ESCAPED_PARENS_P)
+                break;
+              goto bad_escaped;
 #endif
-	  case '\n':
-	    continue;
-	  case '0':
-	    c = '\0';
-	    break;
-	  case 'f':
-	    c = '\f';
-	    break;
-	  case 'n':
-	    c = '\n';
-	    break;
-	  case 'r':
-	    c = '\r';
-	    break;
-	  case 't':
-	    c = '\t';
-	    break;
-	  case 'a':
-	    c = '\007';
-	    break;
-	  case 'v':
-	    c = '\v';
-	    break;
-	  case 'x':
-	    {
-	      int a, b;
-	      a = scm_getc (port);
-	      if (a == EOF) goto str_eof;
-	      b = scm_getc (port);
-	      if (b == EOF) goto str_eof;
-	      if      ('0' <= a && a <= '9') a -= '0';
-	      else if ('A' <= a && a <= 'F') a = a - 'A' + 10;
-	      else if ('a' <= a && a <= 'f') a = a - 'a' + 10;
-	      else goto bad_escaped;
-	      if      ('0' <= b && b <= '9') b -= '0';
-	      else if ('A' <= b && b <= 'F') b = b - 'A' + 10;
-	      else if ('a' <= b && b <= 'f') b = b - 'a' + 10;
-	      else goto bad_escaped;
-	      c = a * 16 + b;
-	      break;
-	    }
-	  default:
-	  bad_escaped:
-	    scm_i_input_error (FUNC_NAME, port,
-			       "illegal character in escape sequence: ~S",
-			       scm_list_1 (SCM_MAKE_CHAR (c)));
-	  }
-      c_str[c_str_len++] = c;
+            case '\n':
+              continue;
+            case '0':
+              c = '\0';
+              break;
+            case 'f':
+              c = '\f';
+              break;
+            case 'n':
+              c = '\n';
+              break;
+            case 'r':
+              c = '\r';
+              break;
+            case 't':
+              c = '\t';
+              break;
+            case 'a':
+              c = '\007';
+              break;
+            case 'v':
+              c = '\v';
+              break;
+            case 'x':
+              {
+                scm_t_wchar a, b;
+                a = scm_getc (port);
+                if (a == EOF)
+                  goto str_eof;
+                b = scm_getc (port);
+                if (b == EOF)
+                  goto str_eof;
+                if ('0' <= a && a <= '9')
+                  a -= '0';
+                else if ('A' <= a && a <= 'F')
+                  a = a - 'A' + 10;
+                else if ('a' <= a && a <= 'f')
+                  a = a - 'a' + 10;
+                else
+                  {
+                    c = a;
+                    goto bad_escaped;
+                  }
+                if ('0' <= b && b <= '9')
+                  b -= '0';
+                else if ('A' <= b && b <= 'F')
+                  b = b - 'A' + 10;
+                else if ('a' <= b && b <= 'f')
+                  b = b - 'a' + 10;
+                else
+                  {
+                    c = b;
+                    goto bad_escaped;
+                  }
+                c = a * 16 + b;
+                break;
+              }
+            case 'u':
+              {
+                scm_t_wchar a;
+                int i;
+                c = 0;
+                for (i = 0; i < 4; i++)
+                  {
+                    a = scm_getc (port);
+                    if (a == EOF)
+                      goto str_eof;
+                    if ('0' <= a && a <= '9')
+                      a -= '0';
+                    else if ('A' <= a && a <= 'F')
+                      a = a - 'A' + 10;
+                    else if ('a' <= a && a <= 'f')
+                      a = a - 'a' + 10;
+                    else
+                      {
+                        c = a;
+                        goto bad_escaped;
+                      }
+                    c = c * 16 + a;
+                  }
+                break;
+              }
+            case 'U':
+              {
+                scm_t_wchar a;
+                int i;
+                c = 0;
+                for (i = 0; i < 6; i++)
+                  {
+                    a = scm_getc (port);
+                    if (a == EOF)
+                      goto str_eof;
+                    if ('0' <= a && a <= '9')
+                      a -= '0';
+                    else if ('A' <= a && a <= 'F')
+                      a = a - 'A' + 10;
+                    else if ('a' <= a && a <= 'f')
+                      a = a - 'a' + 10;
+                    else
+                      {
+                        c = a;
+                        goto bad_escaped;
+                      }
+                    c = c * 16 + a;
+                  }
+                break;
+              }
+            default:
+            bad_escaped:
+              scm_i_input_error (FUNC_NAME, port,
+                                 "illegal character in escape sequence: ~S",
+                                 scm_list_1 (SCM_MAKE_CHAR (c)));
+            }
+        }
+      str = scm_i_string_start_writing (str);
+      scm_i_string_set_x (str, c_str_len++, c);
+      scm_i_string_stop_writing ();
     }
 
   if (c_str_len > 0)
     {
-      SCM addy;
-
-      addy = scm_from_locale_stringn (c_str, c_str_len);
-      if (str == SCM_BOOL_F)
-	str = addy;
-      else
-	str = scm_string_append_shared (scm_list_2 (str, addy));
+      return scm_i_substring_copy (str, 0, c_str_len);
     }
-  else
-    str = (str == SCM_BOOL_F) ? scm_nullstr : str;
-
-  return str;
+  
+  return scm_nullstr;
 }
 #undef FUNC_NAME
 
 
 static SCM
-scm_read_number (int chr, SCM port)
+scm_read_number (scm_t_wchar chr, SCM port)
 {
-  SCM result, str = SCM_EOL;
-  char buffer[READER_BUFFER_SIZE];
+  SCM result;
+  SCM buffer;
   size_t read;
-  int overflow = 0;
 
   scm_ungetc (chr, port);
-  do
-    {
-      overflow = read_token (port, buffer, sizeof (buffer), &read);
-
-      if ((overflow) || (scm_is_pair (str)))
-	str = scm_cons (scm_from_locale_stringn (buffer, read), str);
-    }
-  while (overflow);
-
-  if (scm_is_pair (str))
-    {
-      /* The slow path.  */
-
-      str = scm_string_concatenate (scm_reverse_x (str, SCM_EOL));
-      result = scm_string_to_number (str, SCM_UNDEFINED);
-      if (!scm_is_true (result))
-	/* Return a symbol instead of a number.  */
-	result = scm_string_to_symbol (str);
-    }
-  else
-    {
-      result = scm_c_locale_stringn_to_number (buffer, read, 10);
-      if (!scm_is_true (result))
-	/* Return a symbol instead of a number.  */
-	result = scm_from_locale_symboln (buffer, read);
-    }
+  buffer = read_complete_token (port, &read);
+  result = scm_string_to_number (buffer, SCM_UNDEFINED);
+  if (!scm_is_true (result))
+    /* Return a symbol instead of a number.  */
+    result = scm_string_to_symbol (buffer);
 
   return result;
 }
 
 static SCM
-scm_read_mixed_case_symbol (int chr, SCM port)
+scm_read_mixed_case_symbol (scm_t_wchar chr, SCM port)
 {
-  SCM result, str = SCM_EOL;
-  int overflow = 0, ends_with_colon = 0;
-  char buffer[READER_BUFFER_SIZE];
+  SCM result;
+  int ends_with_colon = 0;
+  SCM buffer;
   size_t read = 0;
   int postfix = scm_is_eq (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_postfix);
 
   scm_ungetc (chr, port);
-  do
-    {
-      overflow = read_token (port, buffer, sizeof (buffer), &read);
+  buffer = read_complete_token (port, &read);
+  if (read > 0)
+    ends_with_colon = scm_i_string_ref (buffer, read - 1) == ':';
 
-      if (read > 0)
-	ends_with_colon = (buffer[read - 1] == ':');
-
-      if ((overflow) || (scm_is_pair (str)))
-	str = scm_cons (scm_from_locale_stringn (buffer, read), str);
-    }
-  while (overflow);
-
-  if (scm_is_pair (str))
-    {
-      str = scm_string_concatenate (scm_reverse_x (str, SCM_EOL));
-      result = scm_string_to_symbol (str);
-
-      /* Per SRFI-88, `:' alone is an identifier, not a keyword.  */
-      if (postfix && ends_with_colon && (scm_c_string_length (result) > 1))
-	result = scm_symbol_to_keyword (result);
-    }
+  if (postfix && ends_with_colon && (read > 1))
+    result = scm_symbol_to_keyword (scm_string_to_symbol (scm_i_substring (buffer, 0, read - 1)));
   else
-    {
-      /* For symbols smaller than `sizeof (buffer)', we don't need to recur
-	 to Scheme strings.  Therefore, we only create one Scheme object (a
-	 symbol) per symbol read.  */
-      if (postfix && ends_with_colon && (read > 1))
-	result = scm_from_locale_keywordn (buffer, read - 1);
-      else
-	result = scm_from_locale_symboln (buffer, read);
-    }
+    result = scm_string_to_symbol (buffer);
 
   return result;
 }
 
 static SCM
-scm_read_number_and_radix (int chr, SCM port)
+scm_read_number_and_radix (scm_t_wchar chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
 {
-  SCM result, str = SCM_EOL;
+  SCM result;
   size_t read;
-  char buffer[READER_BUFFER_SIZE];
+  SCM buffer = scm_i_make_string (READER_BUFFER_SIZE, NULL);
   unsigned int radix;
-  int overflow = 0;
 
   switch (chr)
     {
@@ -611,22 +654,8 @@ scm_read_number_and_radix (int chr, SCM port)
       radix = 10;
     }
 
-  do
-    {
-      overflow = read_token (port, buffer, sizeof (buffer), &read);
-
-      if ((overflow) || (scm_is_pair (str)))
-	str = scm_cons (scm_from_locale_stringn (buffer, read), str);
-    }
-  while (overflow);
-
-  if (scm_is_pair (str))
-    {
-      str = scm_string_concatenate (scm_reverse_x (str, SCM_EOL));
-      result = scm_string_to_number (str, scm_from_uint (radix));
-    }
-  else
-    result = scm_c_locale_stringn_to_number (buffer, read, radix);
+  buffer = read_complete_token (port, &read);
+  result = scm_string_to_number (buffer, scm_from_uint (radix));
 
   if (scm_is_true (result))
     return result;
@@ -656,7 +685,7 @@ scm_read_quote (int chr, SCM port)
 
     case ',':
       {
-	int c;
+	scm_t_wchar c;
 
 	c = scm_getc (port);
 	if ('@' == c)
@@ -691,12 +720,74 @@ scm_read_quote (int chr, SCM port)
   return p;
 }
 
+SCM_SYMBOL (sym_syntax, "syntax");
+SCM_SYMBOL (sym_quasisyntax, "quasisyntax");
+SCM_SYMBOL (sym_unsyntax, "unsyntax");
+SCM_SYMBOL (sym_unsyntax_splicing, "unsyntax-splicing");
+
+static SCM
+scm_read_syntax (int chr, SCM port)
+{
+  SCM p;
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
+
+  switch (chr)
+    {
+    case '`':
+      p = sym_quasisyntax;
+      break;
+
+    case '\'':
+      p = sym_syntax;
+      break;
+
+    case ',':
+      {
+	int c;
+
+	c = scm_getc (port);
+	if ('@' == c)
+	  p = sym_unsyntax_splicing;
+	else
+	  {
+	    scm_ungetc (c, port);
+	    p = sym_unsyntax;
+	  }
+	break;
+      }
+
+    default:
+      fprintf (stderr, "%s: unhandled syntax character (%i)\n",
+	       "scm_read_syntax", chr);
+      abort ();
+    }
+
+  p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
+  if (SCM_RECORD_POSITIONS_P)
+    scm_whash_insert (scm_source_whash, p,
+		      scm_make_srcprops (line, column,
+					 SCM_FILENAME (port),
+					 SCM_COPY_SOURCE_P
+					 ? (scm_cons2 (SCM_CAR (p),
+						       SCM_CAR (SCM_CDR (p)),
+						       SCM_EOL))
+					 : SCM_UNDEFINED,
+					 SCM_EOL));
+
+
+  return p;
+}
+
 static inline SCM
 scm_read_semicolon_comment (int chr, SCM port)
 {
   int c;
 
-  for (c = scm_getc (port);
+  /* We use the get_byte here because there is no need to get the
+     locale correct with comment input. This presumes that newline
+     always represents itself no matter what the encoding is.  */
+  for (c = scm_get_byte_or_eof (port);
        (c != EOF) && (c != '\n');
        c = scm_getc (port));
 
@@ -724,14 +815,18 @@ scm_read_boolean (int chr, SCM port)
 }
 
 static SCM
-scm_read_character (int chr, SCM port)
+scm_read_character (scm_t_wchar chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
 {
-  unsigned c;
-  char charname[READER_CHAR_NAME_MAX_SIZE];
+  SCM charname = scm_i_make_string (READER_CHAR_NAME_MAX_SIZE, NULL);
   size_t charname_len;
+  scm_t_wchar cp;
+  int overflow;
 
-  if (read_token (port, charname, sizeof (charname), &charname_len))
+  overflow = read_token (port, charname, &charname_len);
+  charname = scm_c_substring (charname, 0, charname_len);
+
+  if (overflow)
     goto char_error;
 
   if (charname_len == 0)
@@ -746,29 +841,34 @@ scm_read_character (int chr, SCM port)
     }
 
   if (charname_len == 1)
-    return SCM_MAKE_CHAR (charname[0]);
+    return SCM_MAKE_CHAR (scm_i_string_ref (charname, 0));
 
-  if (*charname >= '0' && *charname < '8')
+  cp = scm_i_string_ref (charname, 0);
+  if (cp >= '0' && cp < '8')
     {
       /* Dirk:FIXME::  This type of character syntax is not R5RS
        * compliant.  Further, it should be verified that the constant
        * does only consist of octal digits.  Finally, it should be
        * checked whether the resulting fixnum is in the range of
        * characters.  */
-      SCM p = scm_c_locale_stringn_to_number (charname, charname_len, 8);
+      SCM p = scm_string_to_number (charname, scm_from_uint (8));
       if (SCM_I_INUMP (p))
 	return SCM_MAKE_CHAR (SCM_I_INUM (p));
     }
 
-  for (c = 0; c < scm_n_charnames; c++)
-    if (scm_charnames[c]
-	&& (!strncasecmp (scm_charnames[c], charname, charname_len)))
-      return SCM_MAKE_CHAR (scm_charnums[c]);
+  /* The names of characters should never have non-Latin1
+     characters.  */
+  if (scm_i_is_narrow_string (charname)
+      || scm_i_try_narrow_string (charname))
+    { SCM ch = scm_i_charname_to_char (scm_i_string_chars (charname),
+                                       charname_len);
+      if (scm_is_true (ch))
+        return ch;
+    }
 
  char_error:
   scm_i_input_error (FUNC_NAME, port, "unknown character name ~a",
-		     scm_list_1 (scm_from_locale_stringn (charname,
-							  charname_len)));
+		     scm_list_1 (charname));
 
   return SCM_UNSPECIFIED;
 }
@@ -810,7 +910,31 @@ scm_read_srfi4_vector (int chr, SCM port)
 }
 
 static SCM
-scm_read_guile_bit_vector (int chr, SCM port)
+scm_read_bytevector (scm_t_wchar chr, SCM port)
+{
+  chr = scm_getc (port);
+  if (chr != 'u')
+    goto syntax;
+
+  chr = scm_getc (port);
+  if (chr != '8')
+    goto syntax;
+
+  chr = scm_getc (port);
+  if (chr != '(')
+    goto syntax;
+
+  return scm_u8_list_to_bytevector (scm_read_sexp (chr, port));
+
+ syntax:
+  scm_i_input_error ("read_bytevector", port,
+		     "invalid bytevector prefix",
+		     SCM_MAKE_CHAR (chr));
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+scm_read_guile_bit_vector (scm_t_wchar chr, SCM port)
 {
   /* Read the `#*10101'-style read syntax for bit vectors in Guile.  This is
      terribly inefficient but who cares?  */
@@ -830,13 +954,17 @@ scm_read_guile_bit_vector (int chr, SCM port)
 }
 
 static inline SCM
-scm_read_scsh_block_comment (int chr, SCM port)
+scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 {
   int bang_seen = 0;
 
+  /* We can use the get_byte here because there is no need to get the
+     locale correct when reading comments. This presumes that 
+     hash and exclamation points always represent themselves no
+     matter what the source encoding is.*/
   for (;;)
     {
-      int c = scm_getc (port);
+      int c = scm_get_byte_or_eof (port);
 
       if (c == EOF)
 	scm_i_input_error ("skip_block_comment", port,
@@ -854,19 +982,32 @@ scm_read_scsh_block_comment (int chr, SCM port)
 }
 
 static SCM
-scm_read_extended_symbol (int chr, SCM port)
+scm_read_commented_expression (scm_t_wchar chr, SCM port)
+{
+  scm_t_wchar c;
+  
+  c = flush_ws (port, (char *) NULL);
+  if (EOF == c)
+    scm_i_input_error ("read_commented_expression", port,
+                       "no expression after #; comment", SCM_EOL);
+  scm_ungetc (c, port);
+  scm_read_expression (port);
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 {
   /* Guile's extended symbol read syntax looks like this:
 
        #{This is all a symbol name}#
 
      So here, CHR is expected to be `{'.  */
-  SCM result;
   int saw_brace = 0, finished = 0;
   size_t len = 0;
-  char buf[1024];
+  SCM buf = scm_i_make_string (1024, NULL);
 
-  result = scm_c_make_string (0, SCM_MAKE_CHAR ('X'));
+  buf = scm_i_string_start_writing (buf);
 
   while ((chr = scm_getc (port)) != EOF)
     {
@@ -880,32 +1021,30 @@ scm_read_extended_symbol (int chr, SCM port)
 	  else
 	    {
 	      saw_brace = 0;
-	      buf[len++] = '}';
-	      buf[len++] = chr;
+	      scm_i_string_set_x (buf, len++, '}');
+	      scm_i_string_set_x (buf, len++, chr);
 	    }
 	}
       else if (chr == '}')
 	saw_brace = 1;
       else
-	buf[len++] = chr;
+	scm_i_string_set_x (buf, len++, chr);
 
-      if (len >= sizeof (buf) - 2)
+      if (len >= scm_i_string_length (buf) - 2)
 	{
-	  scm_string_append (scm_list_2 (result,
-					 scm_from_locale_stringn (buf, len)));
+	  scm_i_string_stop_writing ();
+	  SCM addy = scm_i_make_string (1024, NULL);
+	  buf = scm_string_append (scm_list_2 (buf, addy));
 	  len = 0;
+	  buf = scm_i_string_start_writing (buf);
 	}
 
       if (finished)
 	break;
     }
+  scm_i_string_stop_writing ();
 
-  if (len)
-    result = scm_string_append (scm_list_2
-				(result,
-				 scm_from_locale_stringn (buf, len)));
-
-  return (scm_string_to_symbol (result));
+  return (scm_string_to_symbol (scm_c_substring (buf, 0, len)));
 }
 
 
@@ -941,7 +1080,7 @@ scm_read_sharp_extension (int chr, SCM port)
 /* The reader for the sharp `#' character.  It basically dispatches reads
    among the above token readers.   */
 static SCM
-scm_read_sharp (int chr, SCM port)
+scm_read_sharp (scm_t_wchar chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
 {
   SCM result;
@@ -963,6 +1102,8 @@ scm_read_sharp (int chr, SCM port)
     case 'f':
       /* This one may return either a boolean or an SRFI-4 vector.  */
       return (scm_read_srfi4_vector (chr, port));
+    case 'v':
+      return (scm_read_bytevector (chr, port));
     case '*':
       return (scm_read_guile_bit_vector (chr, port));
     case 't':
@@ -991,7 +1132,7 @@ scm_read_sharp (int chr, SCM port)
       {
 	/* When next char is '(', it really is an old-style
 	   uniform array. */
-	int next_c = scm_getc (port);
+	scm_t_wchar next_c = scm_getc (port);
 	if (next_c != EOF)
 	  scm_ungetc (next_c, port);
 	if (next_c == '(')
@@ -1014,6 +1155,12 @@ scm_read_sharp (int chr, SCM port)
       return (scm_read_extended_symbol (chr, port));
     case '!':
       return (scm_read_scsh_block_comment (chr, port));
+    case ';':
+      return (scm_read_commented_expression (chr, port));
+    case '`':
+    case '\'':
+    case ',':
+      return (scm_read_syntax (chr, port));
     default:
       result = scm_read_sharp_extension (chr, port);
       if (scm_is_eq (result, SCM_UNSPECIFIED))
@@ -1033,7 +1180,7 @@ scm_read_expression (SCM port)
 {
   while (1)
     {
-      register int chr;
+      register scm_t_wchar chr;
 
       chr = scm_getc (port);
 
@@ -1243,6 +1390,127 @@ scm_get_hash_procedure (int c)
       rest = SCM_CDR (rest);
     }
 }
+
+#define SCM_ENCODING_SEARCH_SIZE (500)
+
+/* Search the first few hundred characters of a file for
+   an emacs-like coding declaration.  */
+char *
+scm_scan_for_encoding (SCM port)
+{
+  char header[SCM_ENCODING_SEARCH_SIZE+1];
+  size_t bytes_read;
+  char *encoding = NULL;
+  int utf8_bom = 0;
+  char *pos;
+  int i;
+  int in_comment;
+
+  bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);  
+  scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
+
+  if (bytes_read > 3 
+      && header[0] == '\xef' && header[1] == '\xbb' && header[2] == '\xbf')
+    utf8_bom = 1;
+
+  /* search past "coding[:=]" */
+  pos = header;
+  while (1)
+    {
+      if ((pos = strstr(pos, "coding")) == NULL)
+        return NULL;
+
+      pos += strlen("coding");
+      if (pos - header >= SCM_ENCODING_SEARCH_SIZE || 
+          (*pos == ':' || *pos == '='))
+        {
+          pos ++;
+          break;
+        }
+    }
+
+  /* skip spaces */
+  while (pos - header <= SCM_ENCODING_SEARCH_SIZE && 
+	 (*pos == ' ' || *pos == '\t'))
+    pos ++;
+
+  /* grab the next token */
+  i = 0;
+  while (pos + i - header <= SCM_ENCODING_SEARCH_SIZE 
+	 && (isalnum(pos[i]) || pos[i] == '_' || pos[i] == '-' || pos[i] == '.'))
+    i++;
+
+  if (i == 0)
+    return NULL;
+
+  encoding = scm_malloc (i+1);
+  memcpy (encoding, pos, i);
+  encoding[i] ='\0';
+  for (i = 0; i < strlen (encoding); i++)
+    encoding[i] = toupper ((int) encoding[i]);
+
+  /* push backwards to make sure we were in a comment */
+  in_comment = 0;
+  while (pos - i - header > 0)
+    {
+      if (*(pos - i) == '\n')
+	{
+	  /* This wasn't in a semicolon comment. Check for a
+	   hash-bang comment. */
+	  char *beg = strstr (header, "#!");
+	  char *end = strstr (header, "!#");
+	  if (beg < pos && pos < end)
+	    in_comment = 1;
+	  break;
+	}
+      if (*(pos - i) == ';')
+	{
+	  in_comment = 1;
+	  break;
+	}
+      i ++;
+    }
+  if (!in_comment)
+    {
+      /* This wasn't in a comment */
+      free (encoding);
+      return NULL;
+    }
+  if (utf8_bom && strcmp(encoding, "UTF-8"))
+    scm_misc_error (NULL, 
+		    "the port input declares the encoding ~s but is encoded as UTF-8",
+		    scm_list_1 (scm_from_locale_string (encoding)));
+      
+  return encoding;
+}
+
+SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
+            (SCM port),
+            "Scans the port for an EMACS-like character coding declaration\n"
+            "near the top of the contents of a port with random-acessible contents.\n"
+            "The coding declaration is of the form\n"
+            "@code{coding: XXXXX} and must appear in a scheme comment.\n"
+            "\n"
+            "Returns a string containing the character encoding of the file\n"
+            "if a declaration was found, or @code{#f} otherwise.\n")
+#define FUNC_NAME s_scm_file_encoding
+{
+  char *enc;
+  SCM s_enc;
+  
+  enc = scm_scan_for_encoding (port);
+  if (enc == NULL)
+    return SCM_BOOL_F;
+  else
+    {
+      s_enc = scm_from_locale_string (enc);
+      free (enc);
+      return s_enc;
+    }
+  
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
 
 void
 scm_init_read ()

@@ -4,20 +4,20 @@
 ##
 ##   This file is part of GUILE.
 ##
-##   GUILE is free software; you can redistribute it and/or modify
-##   it under the terms of the GNU General Public License as
-##   published by the Free Software Foundation; either version 2, or
+##   GUILE is free software; you can redistribute it and/or modify it
+##   under the terms of the GNU Lesser General Public License as
+##   published by the Free Software Foundation; either version 3, or
 ##   (at your option) any later version.
 ##
 ##   GUILE is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##   GNU General Public License for more details.
+##   GNU Lesser General Public License for more details.
 ##
-##   You should have received a copy of the GNU General Public
-##   License along with GUILE; see the file COPYING.  If not, write
-##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-##   Floor, Boston, MA 02110-1301 USA
+##   You should have received a copy of the GNU Lesser General Public
+##   License along with GUILE; see the file COPYING.LESSER.  If not,
+##   write to the Free Software Foundation, Inc., 51 Franklin Street,
+##   Fifth Floor, Boston, MA 02110-1301 USA
 
 AUTOMAKE_OPTIONS = gnu
 
@@ -68,6 +68,9 @@ guile_TEXINFOS = preface.texi			\
 		 autoconf.texi			\
 		 autoconf-macros.texi		\
 		 tools.texi			\
+		 history.texi			\
+		 vm.texi			\
+		 compiler.texi			\
 		 fdl.texi			\
 		 libguile-concepts.texi		\
 		 libguile-smobs.texi		\
@@ -75,19 +78,29 @@ guile_TEXINFOS = preface.texi			\
 		 libguile-linking.texi		\
 	 	 libguile-extensions.texi	\
 		 api-init.texi			\
-		 mod-getopt-long.texi
+		 mod-getopt-long.texi		\
+		 goops.texi			\
+		 goops-tutorial.texi		\
+		 effective-version.texi
 
 ETAGS_ARGS = $(info_TEXINFOS) $(guile_TEXINFOS)
 
-EXTRA_DIST = ChangeLog-2008
+PICTURES = hierarchy.eps \
+	   hierarchy.pdf \
+	   hierarchy.png \
+	   hierarchy.txt \
+	   mop.text
+
+EXTRA_DIST = ChangeLog-2008 $(PICTURES)
 
 include $(top_srcdir)/am/pre-inst-guile
 
 # Automated snarfing
 
 autoconf.texi: autoconf-macros.texi
-autoconf-macros.texi: $(top_srcdir)/guile-config/guile.m4
-	$(preinstguiletool)/snarf-guile-m4-docs $(top_srcdir)/guile-config/guile.m4 \
+autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
+	GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guile-tools \
+	  snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
 	  > $(srcdir)/$@
 
 lib-version.texi: $(top_srcdir)/GUILE-VERSION

@@ -1,18 +1,19 @@
 /* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
+ * modify it under the terms of the GNU Lesser General Public License
+ * as published by the Free Software Foundation; either version 3 of
+ * the License, or (at your option) any later version.
  *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301 USA
  */
 
 
@@ -29,8 +30,11 @@
 
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
-#include "libguile/unif.h"
-#include "libguile/ramap.h"
+#include "libguile/generalized-vectors.h"
+#include "libguile/arrays.h"
+#include "libguile/bitvectors.h"
+#include "libguile/bytevectors.h"
+#include "libguile/array-map.h"
 #include "libguile/srfi-4.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
@@ -606,129 +610,43 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-
-/* Generalized vectors. */
-
-int
-scm_is_generalized_vector (SCM obj)
+
+static SCM
+vector_handle_ref (scm_t_array_handle *h, size_t idx)
 {
-  return (scm_is_vector (obj)
-	  || scm_is_string (obj)
-	  || scm_is_bitvector (obj)
-	  || scm_is_uniform_vector (obj));
+  if (idx > h->dims[0].ubnd)
+    scm_out_of_range ("vector-handle-ref", scm_from_size_t (idx));
+  return ((SCM*)h->elements)[idx];
 }
 
-SCM_DEFINE (scm_generalized_vector_p, "generalized-vector?", 1, 0, 0,
-	    (SCM obj),
-	    "Return @code{#t} if @var{obj} is a vector, string,\n"
-	    "bitvector, or uniform numeric vector.")
-#define FUNC_NAME s_scm_generalized_vector_p
+static void
+vector_handle_set (scm_t_array_handle *h, size_t idx, SCM val)
 {
-  return scm_from_bool (scm_is_generalized_vector (obj));
-}
-#undef FUNC_NAME
-
-void
-scm_generalized_vector_get_handle (SCM vec, scm_t_array_handle *h)
-{
-  scm_array_get_handle (vec, h);
-  if (scm_array_handle_rank (h) != 1)
-    scm_wrong_type_arg_msg (NULL, 0, vec, "vector");
+  if (idx > h->dims[0].ubnd)
+    scm_out_of_range ("vector-handle-set!", scm_from_size_t (idx));
+  ((SCM*)h->writable_elements)[idx] = val;
 }
 
-size_t
-scm_c_generalized_vector_length (SCM v)
+static void
+vector_get_handle (SCM v, scm_t_array_handle *h)
 {
-  if (scm_is_vector (v))
-    return scm_c_vector_length (v);
-  else if (scm_is_string (v))
-    return scm_c_string_length (v);
-  else if (scm_is_bitvector (v))
-    return scm_c_bitvector_length (v);
-  else if (scm_is_uniform_vector (v))
-    return scm_c_uniform_vector_length (v);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
+  h->array = v;
+  h->ndims = 1;
+  h->dims = &h->dim0;
+  h->dim0.lbnd = 0;
+  h->dim0.ubnd = SCM_I_VECTOR_LENGTH (v) - 1;
+  h->dim0.inc = 1;
+  h->element_type = SCM_ARRAY_ELEMENT_TYPE_SCM;
+  h->elements = h->writable_elements = SCM_I_VECTOR_WELTS (v);
 }
 
-SCM_DEFINE (scm_generalized_vector_length, "generalized-vector-length", 1, 0, 0,
-	    (SCM v),
-	    "Return the length of the generalized vector @var{v}.")
-#define FUNC_NAME s_scm_generalized_vector_length
-{
-  return scm_from_size_t (scm_c_generalized_vector_length (v));
-}
-#undef FUNC_NAME
-
-SCM
-scm_c_generalized_vector_ref (SCM v, size_t idx)
-{
-  if (scm_is_vector (v))
-    return scm_c_vector_ref (v, idx);
-  else if (scm_is_string (v))
-    return scm_c_string_ref (v, idx);
-  else if (scm_is_bitvector (v))
-    return scm_c_bitvector_ref (v, idx);
-  else if (scm_is_uniform_vector (v))
-    return scm_c_uniform_vector_ref (v, idx);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-
-SCM_DEFINE (scm_generalized_vector_ref, "generalized-vector-ref", 2, 0, 0,
-	    (SCM v, SCM idx),
-	    "Return the element at index @var{idx} of the\n"
-	    "generalized vector @var{v}.")
-#define FUNC_NAME s_scm_generalized_vector_ref
-{
-  return scm_c_generalized_vector_ref (v, scm_to_size_t (idx));
-}
-#undef FUNC_NAME
-
-void
-scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
-{
-  if (scm_is_vector (v))
-    scm_c_vector_set_x (v, idx, val);
-  else if (scm_is_string (v))
-    scm_c_string_set_x (v, idx, val);
-  else if (scm_is_bitvector (v))
-    scm_c_bitvector_set_x (v, idx, val);
-  else if (scm_is_uniform_vector (v))
-    scm_c_uniform_vector_set_x (v, idx, val);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-
-SCM_DEFINE (scm_generalized_vector_set_x, "generalized-vector-set!", 3, 0, 0,
-	    (SCM v, SCM idx, SCM val),
-	    "Set the element at index @var{idx} of the\n"
-	    "generalized vector @var{v} to @var{val}.")
-#define FUNC_NAME s_scm_generalized_vector_set_x
-{
-  scm_c_generalized_vector_set_x (v, scm_to_size_t (idx), val);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
-	    (SCM v),
-	    "Return a new list whose elements are the elements of the\n"
-	    "generalized vector @var{v}.")
-#define FUNC_NAME s_scm_generalized_vector_to_list
-{
-  if (scm_is_vector (v))
-    return scm_vector_to_list (v);
-  else if (scm_is_string (v))
-    return scm_string_to_list (v);
-  else if (scm_is_bitvector (v))
-    return scm_bitvector_to_list (v);
-  else if (scm_is_uniform_vector (v))
-    return scm_uniform_vector_to_list (v);
-  else
-    scm_wrong_type_arg_msg (NULL, 0, v, "generalized vector");
-}
-#undef FUNC_NAME
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_vector, 0x7f & ~2,
+                          vector_handle_ref, vector_handle_set,
+                          vector_get_handle);
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_wvect, 0x7f & ~2,
+                          vector_handle_ref, vector_handle_set,
+                          vector_get_handle);
+SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector);
 
 
 void
