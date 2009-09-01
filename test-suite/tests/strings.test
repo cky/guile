@@ -63,26 +63,6 @@
     (let ((s (substring/read-only "zyx" 0)))
       (assq-ref (%string-dump s) 'read-only)))
 
-  (pass-if "null strings are inlined"
-    (let ((s ""))
-      (assq-ref (%string-dump s) 'stringbuf-inline)))
-
-  (pass-if "short Latin-1 encoded strings are inlined"
-    (let ((s "m"))
-      (assq-ref (%string-dump s) 'stringbuf-inline)))
-
-  (pass-if "long Latin-1 encoded strings are not inlined"
-    (let ((s "0123456789012345678901234567890123456789"))
-      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
-
-  (pass-if "short UCS-4 encoded strings are not inlined"
-    (let ((s "\u0100"))
-      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
-
-  (pass-if "long UCS-4 encoded strings are not inlined"
-    (let ((s "\u010012345678901234567890123456789"))
-      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
-
   (pass-if "new Latin-1 encoded strings are not shared"
     (let ((s "abc"))
       (not (assq-ref (%string-dump s) 'stringbuf-shared))))

@@ -49,25 +49,6 @@
       (string=? (symbol->string s) 
                 (assq-ref (%symbol-dump s) 'stringbuf-chars))))
 
-  (pass-if "the null symbol is inlined"
-    (let ((s '#{}#))
-      (assq-ref (%symbol-dump s) 'stringbuf-inline)))
-
-  (pass-if "short Latin-1-encoded symbols are inlined"
-    (let ((s 'm))
-      (assq-ref (%symbol-dump s) 'stringbuf-inline)))
-
-  (pass-if "long Latin-1-encoded symbols are not inlined"
-    (let ((s 'x0123456789012345678901234567890123456789))
-      (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
-
-  (pass-if "short UCS-4-encoded symbols are not inlined"
-    (let ((s (string->symbol "\u0100")))
-      (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
-
-  (pass-if "long UCS-4-encoded symbols are not inlined"
-    (let ((s (string->symbol "\u010012345678901234567890123456789")))
-      (not (assq-ref (%symbol-dump s) 'stringbuf-inline))))
 
   (with-test-prefix "hashes"
   
