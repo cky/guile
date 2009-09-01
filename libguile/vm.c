@@ -190,8 +190,7 @@ really_make_boot_program (long nargs)
     abort ();
   text[1] = (scm_t_uint8)nargs;
 
-  bp = scm_gc_malloc (sizeof (struct scm_objcode) + sizeof (text),
-                      "make-u8vector");
+  bp = scm_malloc (sizeof (struct scm_objcode) + sizeof (text));
   memcpy (bp->base, text, sizeof (text));
   bp->nargs = 0;
   bp->nrest = 0;

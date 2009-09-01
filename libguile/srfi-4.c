@@ -28,6 +28,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
+#include "libguile/boehm-gc.h"
 #include "libguile/srfi-4.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
@@ -279,6 +280,14 @@ uvec_assert (int type, SCM obj)
 {
   if (!is_uvec (type, obj))
     scm_wrong_type_arg_msg (NULL, 0, obj, uvec_names[type]);
+}
+
+/* Invoke free(3) on DATA, a user-provided buffer passed to one of the
+   `scm_take_' functions.  */
+static void
+free_user_data (GC_PTR data, GC_PTR unused)
+{
+  free (data);
 }
 
 static SCM

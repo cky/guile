@@ -229,8 +229,8 @@ SCM_DEFINE (scm_objcode_to_bytecode, "objcode->bytecode", 1, 0, 0,
   SCM_VALIDATE_OBJCODE (1, objcode);
 
   len = sizeof(struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
-  /* FIXME:  Is `gc_malloc' ok here? */
-  u8vector = scm_gc_malloc (len, "objcode-u8vector");
+
+  u8vector = scm_malloc (len);
   memcpy (u8vector, SCM_OBJCODE_DATA (objcode), len);
 
   return scm_take_u8vector (u8vector, len);

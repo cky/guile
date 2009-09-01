@@ -126,8 +126,16 @@ SCM_DEFINE (F(scm_list_to_,TAG,vector), "list->"S(TAG)"vector", 1, 0, 0,
 SCM
 F(scm_take_,TAG,vector) (CTYPE *data, size_t n)
 {
-  scm_gc_register_collectable_memory ((void *)data, n*uvec_sizes[TYPE],
-				      uvec_names[TYPE]);
+  /* The manual says "Return a new uniform numeric vector [...] that uses the
+     memory pointed to by DATA".  We *have* to use DATA as the underlying
+     storage; thus we must register a finalizer to eventually free(3) it.  */
+  GC_finalization_proc prev_finalizer;
+  GC_PTR prev_finalization_data;
+
+  GC_REGISTER_FINALIZER_NO_ORDER (data, free_user_data, 0,
+				  &prev_finalizer,
+				  &prev_finalization_data);
+
   return take_uvec (TYPE, data, n);
 }
 
