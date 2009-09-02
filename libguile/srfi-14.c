@@ -86,18 +86,11 @@ scm_i_charset_set (scm_t_char_set *cs, scm_t_wchar n)
           /* This char is one below the current range. */
           if (i > 0 && cs->ranges[i - 1].hi + 1 == n)
             {
-              /* It is also one above the previous range, so combine them.  */
-              cs->ranges[i - 1].hi = cs->ranges[i].hi;
-              if (i < len - 1)
-                memmove (cs->ranges + i, cs->ranges + (i + 1),
-                         sizeof (scm_t_char_range) * (len - i - 1));
-              cs->ranges = scm_gc_realloc (cs->ranges,
-                                           sizeof (scm_t_char_range) * len,
-                                           sizeof (scm_t_char_range) * (len -
-                                                                        1),
-                                           "character-set");
-              cs->len = len - 1;
-              return;
+              /* It is also one above the previous range.  */
+              /* This is an impossible condition: in the previous
+                 iteration, the test for 'one above the current range'
+                 should already have inserted the character here.  */
+              abort ();
             }
           else
             {
