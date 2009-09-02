@@ -53,6 +53,214 @@
            (char-set->list (char-set #\a #\c #\e))
            (list #\a #\c #\e))))
           
+(with-test-prefix "char set additition"
+
+  (pass-if "empty + x"
+    (let ((cs (char-set)))
+      (char-set-adjoin! cs #\x)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\x))))
+
+  (pass-if "x + y"
+    (let ((cs (char-set #\x)))
+      (char-set-adjoin! cs #\y)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\x #\y))))
+
+  (pass-if "x + w"
+    (let ((cs (char-set #\x)))
+      (char-set-adjoin! cs #\w)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\w #\x))))
+
+  (pass-if "x + z"
+    (let ((cs (char-set #\x)))
+      (char-set-adjoin! cs #\z)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\x #\z))))
+
+  (pass-if "x + v"
+    (let ((cs (char-set #\x)))
+      (char-set-adjoin! cs #\v)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\v #\x))))
+
+  (pass-if "uv + w"
+    (let ((cs (char-set #\u #\v)))
+      (char-set-adjoin! cs #\w)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\u #\v #\w))))
+
+  (pass-if "uv + t"
+    (let ((cs (char-set #\u #\v)))
+      (char-set-adjoin! cs #\t)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\t #\u #\v))))
+
+  (pass-if "uv + x"
+    (let ((cs (char-set #\u #\v)))
+      (char-set-adjoin! cs #\x)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\u #\v #\x))))
+
+  (pass-if "uv + s"
+    (let ((cs (char-set #\u #\v)))
+      (char-set-adjoin! cs #\s)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\s #\u #\v))))
+
+  (pass-if "uvx + w"
+    (let ((cs (char-set #\u #\v #\x)))
+      (char-set-adjoin! cs #\w)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\u #\v #\w #\x))))
+
+  (pass-if "uvx + y"
+    (let ((cs (char-set #\u #\v #\x)))
+      (char-set-adjoin! cs #\y)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\u #\v #\x #\y))))
+
+  (pass-if "uvxy + w"
+    (let ((cs (char-set #\u #\v #\x #\y)))
+      (char-set-adjoin! cs #\w)
+      (list= eqv? 
+             (char-set->list cs)
+             (list #\u #\v #\w #\x #\y)))))
+
+(with-test-prefix "char set union"
+  (pass-if "null U abc"
+    (char-set= (char-set-union (char-set) (->char-set "abc"))
+               (->char-set "abc")))
+
+  (pass-if "ab U ab"
+    (char-set= (char-set-union (->char-set "ab") (->char-set "ab"))
+               (->char-set "ab")))
+
+  (pass-if "ab U bc"
+    (char-set= (char-set-union (->char-set "ab") (->char-set "bc"))
+               (->char-set "abc")))
+
+  (pass-if "ab U cd"
+    (char-set= (char-set-union (->char-set "ab") (->char-set "cd"))
+               (->char-set "abcd")))
+
+  (pass-if "ab U de"
+    (char-set= (char-set-union (->char-set "ab") (->char-set "de"))
+               (->char-set "abde")))
+
+  (pass-if "abc U bcd"
+    (char-set= (char-set-union (->char-set "abc") (->char-set "bcd"))
+               (->char-set "abcd")))
+
+  (pass-if "abdf U abcdefg"
+    (char-set= (char-set-union (->char-set "abdf") (->char-set "abcdefg"))
+               (->char-set "abcdefg")))
+
+  (pass-if "abef U cd"
+    (char-set= (char-set-union (->char-set "abef") (->char-set "cd"))
+               (->char-set "abcdef")))
+
+  (pass-if "abgh U cd"
+    (char-set= (char-set-union (->char-set "abgh") (->char-set "cd"))
+               (->char-set "abcdgh")))
+
+  (pass-if "bc U ab"
+    (char-set= (char-set-union (->char-set "bc") (->char-set "ab"))
+               (->char-set "abc")))
+
+  (pass-if "cd U ab"
+    (char-set= (char-set-union (->char-set "cd") (->char-set "ab"))
+               (->char-set "abcd")))
+
+  (pass-if "de U ab"
+    (char-set= (char-set-union (->char-set "de") (->char-set "ab"))
+               (->char-set "abde")))
+
+  (pass-if "cd U abc"
+    (char-set= (char-set-union (->char-set "cd") (->char-set "abc"))
+               (->char-set "abcd")))
+
+  (pass-if "cd U abcd"
+    (char-set= (char-set-union (->char-set "cd") (->char-set "abcd"))
+               (->char-set "abcd")))
+
+  (pass-if "cde U abcdef"
+    (char-set= (char-set-union (->char-set "cde") (->char-set "abcdef"))
+               (->char-set "abcdef"))))
+
+(with-test-prefix "char set xor"
+  (pass-if "null - xy"
+    (char-set= (char-set-xor (char-set) (char-set #\x #\y))
+               (char-set #\x #\y)))
+
+  (pass-if "x - x"
+    (char-set= (char-set-xor (char-set #\x) (char-set #\x))
+               (char-set)))
+
+  (pass-if "xy - x"
+    (char-set= (char-set-xor (char-set #\x #\y) (char-set #\x))
+               (char-set #\y)))
+
+  (pass-if "xy - y"
+    (char-set= (char-set-xor (char-set #\x #\y) (char-set #\y))
+               (char-set #\x)))
+
+  (pass-if "wxy - w"
+    (char-set= (char-set-xor (char-set #\w #\x #\y) (char-set #\w))
+               (char-set #\x #\y)))
+
+  (pass-if "wxy - x"
+    (char-set= (char-set-xor (char-set #\w #\x #\y) (char-set #\x))
+               (char-set #\w #\y)))
+
+  (pass-if "wxy - y"
+    (char-set= (char-set-xor (char-set #\w #\x #\y) (char-set #\y))
+               (char-set #\w #\x)))
+
+  (pass-if "uvxy - u"
+    (char-set= (char-set-xor (char-set #\u #\v #\x #\y) (char-set #\u))
+               (char-set #\v #\x #\y)))
+
+  (pass-if "uvxy - v"
+    (char-set= (char-set-xor (char-set #\u #\v #\x #\y) (char-set #\v))
+               (char-set #\u #\x #\y)))
+
+  (pass-if "uvxy - x"
+    (char-set= (char-set-xor (char-set #\u #\v #\x #\y) (char-set #\x))
+               (char-set #\u #\v #\y)))
+
+  (pass-if "uvxy - y"
+    (char-set= (char-set-xor (char-set #\u #\v #\x #\y) (char-set #\y))
+               (char-set #\u #\v #\x)))
+
+  (pass-if "uwy - u"
+    (char-set= (char-set-xor (char-set #\u #\w #\y) (char-set #\u))
+               (char-set #\w #\y)))
+
+  (pass-if "uwy - w"
+    (char-set= (char-set-xor (char-set #\u #\w #\y) (char-set #\w))
+               (char-set #\u #\y)))
+
+  (pass-if "uwy - y"
+    (char-set= (char-set-xor (char-set #\u #\w #\y) (char-set #\y))
+               (char-set #\u #\w)))
+
+  (pass-if "uvwy - v"
+    (char-set= (char-set-xor (char-set #\u #\v #\w #\y) (char-set #\v))
+               (char-set #\u #\w #\y))))
+
 
 (with-test-prefix "char-set?"
 
@@ -83,7 +291,10 @@
     (not (char-set= (char-set #\a) (char-set))))
 
   (pass-if "success, more args"
-    (char-set= char-set:blank char-set:blank char-set:blank)))
+    (char-set= char-set:blank char-set:blank char-set:blank))
+
+  (pass-if "failure, same length, different elements"
+    (not (char-set= (char-set #\a #\b #\d) (char-set #\a #\c #\d)))))
 
 (with-test-prefix "char-set<="
   (pass-if "success, no arg"
@@ -237,6 +448,199 @@
      (let ((cs (char-set #\g #\u #\i #\l #\e)))
        (string=? (char-set->string cs)
                  "egilu"))))
+
+(with-test-prefix "list->char-set"
+
+  (pass-if "list->char-set"
+    (char-set= (list->char-set '(#\a #\b #\c))
+               (->char-set "abc")))
+
+  (pass-if "list->char-set!"
+    (let* ((cs (char-set #\a #\z)))
+      (list->char-set! '(#\m #\n) cs)
+      (char-set= cs
+                 (char-set #\a #\m #\n #\z)))))
+
+(with-test-prefix "string->char-set"
+
+  (pass-if "string->char-set"
+    (char-set= (string->char-set "foobar")
+               (string->char-set "barfoo")))
+
+  (pass-if "string->char-set cs"
+    (char-set= (string->char-set "foo" (string->char-set "bar"))
+               (string->char-set "barfoo")))
+
+  (pass-if "string->char-set!"
+    (let ((cs (string->char-set "bar")))
+      (string->char-set! "foo" cs)
+      (char-set= cs
+                 (string->char-set "barfoo")))))
+
+(with-test-prefix "char-set-filter"
+
+  (pass-if "filter w/o base"
+    (char-set=
+     (char-set-filter (lambda (c) (char=? c #\x))
+                      (->char-set "qrstuvwxyz"))
+     (->char-set #\x)))
+
+  (pass-if "filter w/ base"
+    (char-set=
+     (char-set-filter (lambda (c) (char=? c #\x))
+                      (->char-set "qrstuvwxyz")
+                      (->char-set "op"))
+                      
+     (->char-set "opx")))
+
+  (pass-if "filter!"
+    (let ((cs (->char-set "abc")))
+      (set! cs (char-set-filter! (lambda (c) (char=? c #\x))
+                                 (->char-set "qrstuvwxyz")
+                                 cs))
+      (char-set= (string->char-set "abcx")
+                 cs))))
+
+
+(with-test-prefix "char-set-intersection"
+
+  (pass-if "empty"
+    (char-set= (char-set-intersection (char-set) (char-set))
+               (char-set)))
+
+  (pass-if "identical, one element"
+    (char-set= (char-set-intersection (char-set #\a) (char-set #\a))
+               (char-set #\a)))
+
+  (pass-if "identical, two elements"
+    (char-set= (char-set-intersection (char-set #\a #\b) (char-set #\a #\b))
+               (char-set #\a #\b)))
+
+  (pass-if "identical, two elements"
+    (char-set= (char-set-intersection (char-set #\a #\c) (char-set #\a #\c))
+               (char-set #\a #\c)))
+
+  (pass-if "one vs null"
+    (char-set= (char-set-intersection (char-set #\a) (char-set))
+               (char-set)))
+
+  (pass-if "null vs one"
+    (char-set= (char-set-intersection (char-set) (char-set #\a))
+               (char-set)))
+
+  (pass-if "no elements shared"
+    (char-set= (char-set-intersection (char-set #\a #\c) (char-set #\b #\d))
+               (char-set)))
+
+  (pass-if "one elements shared"
+    (char-set= (char-set-intersection (char-set #\a #\c #\d) (char-set #\b #\d))
+               (char-set #\d))))
+
+(with-test-prefix "char-set-complement"
+
+  (pass-if "complement of null"
+           (char-set= (char-set-complement (char-set))
+                      (char-set-union (ucs-range->char-set 0 #xd800)
+                                      (ucs-range->char-set #xe000 #x110000))))
+
+  (pass-if "complement of null (2)"
+           (char-set= (char-set-complement (char-set))
+                      (ucs-range->char-set 0 #x110000)))
+
+  (pass-if "complement of #\\0"
+           (char-set= (char-set-complement (char-set #\nul))
+                      (ucs-range->char-set 1 #x110000)))
+
+  (pass-if "complement of U+10FFFF"
+           (char-set= (char-set-complement (char-set (integer->char #x10ffff)))
+                      (ucs-range->char-set 0 #x10ffff)))
+
+  (pass-if "complement of 'FOO'"
+           (char-set= (char-set-complement (->char-set "FOO"))
+                      (char-set-union (ucs-range->char-set 0 (char->integer #\F))
+                                      (ucs-range->char-set (char->integer #\G) 
+                                                           (char->integer #\O))
+                                      (ucs-range->char-set (char->integer #\P) 
+                                                            #x110000))))
+  (pass-if "complement of #\\a #\\b U+010300"
+           (char-set= (char-set-complement (char-set #\a #\b (integer->char #x010300)))
+                      (char-set-union (ucs-range->char-set 0 (char->integer #\a))
+                                      (ucs-range->char-set (char->integer #\c) #x010300)
+                                      (ucs-range->char-set #x010301 #x110000)))))
+
+(with-test-prefix "ucs-range->char-set"
+  (pass-if "char-set"
+    (char-set= (ucs-range->char-set 65 68)
+               (->char-set "ABC")))
+
+  (pass-if "char-set w/ base"
+    (char-set= (ucs-range->char-set 65 68 #f (->char-set "DEF"))
+               (->char-set "ABCDEF")))
+
+  (pass-if "char-set!"
+    (let ((cs (->char-set "DEF")))
+      (ucs-range->char-set! 65 68 #f cs)
+      (char-set= cs
+                 (->char-set "ABCDEF")))))
+
+(with-test-prefix "char-set-count"
+  (pass-if "null"
+    (= 0 (char-set-count (lambda (c) #t) (char-set))))
+
+  (pass-if "count"
+    (= 5 (char-set-count (lambda (c) #t) 
+                         (->char-set "guile")))))
+
+(with-test-prefix "char-set-contains?"
+  (pass-if "#\\a not in null"
+    (not (char-set-contains? (char-set) #\a)))
+
+  (pass-if "#\\a is in 'abc'"
+    (char-set-contains? (->char-set "abc") #\a)))
+
+(with-test-prefix "any / every"
+  (pass-if "char-set-every #t"
+    (char-set-every (lambda (c) #t) 
+                    (->char-set "abc")))
+
+  (pass-if "char-set-every #f"
+    (not (char-set-every (lambda (c) (char=? c #\c)) 
+                         (->char-set "abc"))))
+
+  (pass-if "char-set-any #t"
+    (char-set-any (lambda (c) (char=? c #\c)) 
+                  (->char-set "abc")))
+
+  (pass-if "char-set-any #f"
+    (not (char-set-any (lambda (c) #f)
+                       (->char-set "abc")))))
+
+(with-test-prefix "char-set-delete"
+  (pass-if "abc - a"
+    (char-set= (char-set-delete (->char-set "abc") #\a)
+               (char-set #\b #\c)))
+
+  (pass-if "abc - d"
+    (char-set= (char-set-delete (->char-set "abc") #\d)
+               (char-set #\a #\b #\c)))
+
+  (pass-if "delete! abc - a"
+    (let ((cs (char-set #\a #\b #\c)))
+      (char-set-delete! cs #\a)
+      (char-set= cs (char-set #\b #\c)))))
+
+(with-test-prefix "char-set-difference"
+  (pass-if "not different"
+    (char-set= (char-set-difference (->char-set "foobar") (->char-set "foobar"))
+               (char-set)))
+
+  (pass-if "completely different"
+    (char-set= (char-set-difference (->char-set "foo") (->char-set "bar"))
+               (->char-set "foo")))
+
+  (pass-if "partially different"
+    (char-set= (char-set-difference (->char-set "breakfast") (->char-set "breakroom"))
+               (->char-set "fst"))))
 
 (with-test-prefix "standard char sets (ASCII)"
 
