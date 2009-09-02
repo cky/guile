@@ -1333,8 +1333,6 @@ scm_i_ucs_range_to_char_set (const char *FUNC_NAME, SCM lower, SCM upper,
 
   clower = scm_to_size_t (lower);
   cupper = scm_to_size_t (upper) - 1;
-  SCM_ASSERT_RANGE (1, lower, clower >= 0);
-  SCM_ASSERT_RANGE (2, upper, cupper >= 0);
   SCM_ASSERT_RANGE (2, upper, cupper >= clower);
   if (!SCM_UNBNDP (error))
     {
