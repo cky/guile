@@ -1298,7 +1298,7 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
   for (k = 0; k < p->len; k++)
     for (n = p->ranges[k].lo; n <= p->ranges[k].hi; n++)
       {
-        SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
+        SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (n));
 
         if (scm_is_true (res))
           SCM_CHARSET_SET (base_cs, n);
