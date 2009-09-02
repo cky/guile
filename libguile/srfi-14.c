@@ -471,22 +471,35 @@ charsets_intersection (scm_t_char_set *a, scm_t_char_set *b)
   return;
 }
 
+#define SCM_ADD_RANGE(low, high)                        \
+  do {                                                  \
+    p->ranges[idx].lo = (low);                          \
+    p->ranges[idx++].hi = (high);                       \
+  } while (0)
+#define SCM_ADD_RANGE_SKIP_SURROGATES(low, high)                  \
+  do {                                                            \
+    p->ranges[idx].lo = (low);                                    \
+    p->ranges[idx++].hi = SCM_CODEPOINT_SURROGATE_START - 1;      \
+    p->ranges[idx].lo = SCM_CODEPOINT_SURROGATE_END + 1;          \
+    p->ranges[idx++].hi = (high);                                 \
+  } while (0)
+
+
+
 /* Make P the compelement of Q.  */
 static void
 charsets_complement (scm_t_char_set *p, scm_t_char_set *q)
 {
   int k, idx;
 
+  idx = 0;
   if (q->len == 0)
     {
       /* Fill with all valid codepoints.  */
       p->len = 2;
       p->ranges = scm_gc_malloc (sizeof (scm_t_char_range) * 2,
                                  "character-set");
-      p->ranges[0].lo = 0;
-      p->ranges[0].hi = SCM_CODEPOINT_SURROGATE_START - 1;
-      p->ranges[1].lo = SCM_CODEPOINT_SURROGATE_END + 1;
-      p->ranges[1].hi = SCM_CODEPOINT_MAX;
+      SCM_ADD_RANGE_SKIP_SURROGATES (0, SCM_CODEPOINT_MAX);
       return;
     }
 
@@ -494,33 +507,42 @@ charsets_complement (scm_t_char_set *p, scm_t_char_set *q)
     scm_gc_free (p->ranges, sizeof (scm_t_char_set) * p->len,
                  "character-set");
 
+  /* Count the number of ranges needed for the output.  */
   p->len = 0;
   if (q->ranges[0].lo > 0)
     p->len++;
   if (q->ranges[q->len - 1].hi < SCM_CODEPOINT_MAX)
     p->len++;
-  p->len += q->len - 1;
+  p->len += q->len;
   p->ranges =
     (scm_t_char_range *) scm_gc_malloc (sizeof (scm_t_char_range) * p->len,
                                         "character-set");
-  idx = 0;
   if (q->ranges[0].lo > 0)
     {
-      p->ranges[idx].lo = 0;
-      p->ranges[idx++].hi = q->ranges[0].lo - 1;
+      if (q->ranges[0].lo > SCM_CODEPOINT_SURROGATE_END)
+        SCM_ADD_RANGE_SKIP_SURROGATES (0, q->ranges[0].lo - 1);
+      else
+        SCM_ADD_RANGE (0, q->ranges[0].lo - 1);
     }
   for (k = 1; k < q->len; k++)
     {
-      p->ranges[idx].lo = q->ranges[k - 1].hi + 1;
-      p->ranges[idx++].hi = q->ranges[k].lo - 1;
+      if (q->ranges[k - 1].hi < SCM_CODEPOINT_SURROGATE_START
+          && q->ranges[k].lo - 1 > SCM_CODEPOINT_SURROGATE_END)
+        SCM_ADD_RANGE_SKIP_SURROGATES (q->ranges[k - 1].hi + 1, q->ranges[k].lo - 1);
+      else
+        SCM_ADD_RANGE (q->ranges[k - 1].hi + 1, q->ranges[k].lo - 1);
     }
   if (q->ranges[q->len - 1].hi < SCM_CODEPOINT_MAX)
     {
-      p->ranges[idx].lo = q->ranges[q->len - 1].hi + 1;
-      p->ranges[idx].hi = SCM_CODEPOINT_MAX;
+      if (q->ranges[q->len - 1].hi < SCM_CODEPOINT_SURROGATE_START)
+        SCM_ADD_RANGE_SKIP_SURROGATES (q->ranges[q->len - 1].hi + 1, SCM_CODEPOINT_MAX);
+      else
+        SCM_ADD_RANGE (q->ranges[q->len - 1].hi + 1, SCM_CODEPOINT_MAX);
     }
   return;
 }
+#undef SCM_ADD_RANGE
+#undef SCM_ADD_RANGE_SKIP_SURROGATES
 
 /* Replace A with elements only found in one of A or B.  */
 static void
