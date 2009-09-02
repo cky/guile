@@ -399,7 +399,7 @@ static void
 charsets_union (scm_t_char_set *a, scm_t_char_set *b)
 {
   size_t i = 0;
-  scm_t_wchar blo, bhi, n;
+  scm_t_wchar blo, bhi;
 
   if (b->len == 0)
     return;
@@ -413,13 +413,11 @@ charsets_union (scm_t_char_set *a, scm_t_char_set *b)
       return;
     }
 
-  /* This needs optimization.  */
   while (i < b->len)
     {
       blo = b->ranges[i].lo;
       bhi = b->ranges[i].hi;
-      for (n = blo; n <= bhi; n++)
-        scm_i_charset_set (a, n);
+      scm_i_charset_set_range (a, blo, bhi);
 
       i++;
     }
