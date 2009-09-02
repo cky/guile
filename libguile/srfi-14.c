@@ -168,6 +168,103 @@ scm_i_charset_set (scm_t_char_set *cs, scm_t_wchar n)
   return;
 }
 
+/* Put LO to HI inclusive into charset CS.  */
+static void
+scm_i_charset_set_range (scm_t_char_set *cs, scm_t_wchar lo, scm_t_wchar hi)
+{
+  size_t i;
+
+  i = 0;
+  while (i < cs->len)
+    {
+      /* Already in this range  */
+      if (cs->ranges[i].lo <= lo && cs->ranges[i].hi >= hi)
+        return;
+
+      /* cur:       +---+
+         new: +---+
+      */
+      if (cs->ranges[i].lo - 1 > hi)
+        {
+          /* Add a new range below the current one.  */
+          cs->ranges = scm_gc_realloc (cs->ranges,
+                                       sizeof (scm_t_char_range) * cs->len,
+                                       sizeof (scm_t_char_range) * (cs->len + 1),
+                                       "character-set");
+          memmove (cs->ranges + (i + 1), cs->ranges + i,
+                   sizeof (scm_t_char_range) * (cs->len - i));
+          cs->ranges[i].lo = lo;
+          cs->ranges[i].hi = hi;
+          cs->len += 1;
+          return;
+        }
+
+      /* cur:      +---+  or     +---+  or    +---+
+         new: +---+          +---+         +---+
+      */
+      if (cs->ranges[i].lo > lo
+          && (cs->ranges[i].lo - 1 <= hi && cs->ranges[i].hi >= hi))
+        {
+          cs->ranges[i].lo = lo;
+          return;
+        }
+
+      /* cur: +---+    or +---+     or +---+
+         new:   +---+         +---+         +---+
+      */
+      else if (cs->ranges[i].hi + 1 >= lo && cs->ranges[i].hi < hi)
+        {
+          if (cs->ranges[i].lo > lo)
+            cs->ranges[i].lo = lo;
+          if (cs->ranges[i].hi < hi)
+            cs->ranges[i].hi = hi;
+          while (i < cs->len - 1)
+            {
+              /* cur: --+    +---+
+                 new: -----+
+              */
+              if (cs->ranges[i + 1].lo - 1 > hi)
+                break;
+              
+              /* cur: --+   +---+  or  --+  +---+  or --+ +--+
+                 new: -----+           ------+        ---------+
+              */
+              /* Combine this range with the previous one.  */
+              if (cs->ranges[i + 1].hi > hi)
+                cs->ranges[i].hi = cs->ranges[i + 1].hi;
+              if (i + 1 < cs->len)
+                memmove (cs->ranges + i + 1, cs->ranges + i + 2,
+                         sizeof (scm_t_char_range) * (cs->len - i - 2));
+              cs->ranges = scm_gc_realloc (cs->ranges,
+                                           sizeof (scm_t_char_range) * cs->len,
+                                           sizeof (scm_t_char_range) * (cs->len - 1),
+                                           "character-set");
+              cs->len -= 1;
+            }
+          return;
+        }
+      i ++;
+    }
+
+  /* This is a new range above all previous ranges.  */
+  if (cs->len == 0)
+    {
+      cs->ranges = scm_gc_malloc (sizeof (scm_t_char_range), "character-set");
+    }
+  else
+    {
+      cs->ranges = scm_gc_realloc (cs->ranges,
+                                   sizeof (scm_t_char_range) * cs->len,
+                                   sizeof (scm_t_char_range) * (cs->len + 1),
+                                   "character-set");
+    }
+  cs->len += 1;
+  cs->ranges[cs->len - 1].lo = lo;
+  cs->ranges[cs->len - 1].hi = hi;
+
+  return;
+}
+
 /* If N is in charset CS, remove it.  */
 void
 scm_i_charset_unset (scm_t_char_set *cs, scm_t_wchar n)
@@ -1211,27 +1308,20 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
-	    (SCM lower, SCM upper, SCM error, SCM base_cs),
-	    "Return a character set containing all characters whose\n"
-	    "character codes lie in the half-open range\n"
-	    "[@var{lower},@var{upper}).\n"
-	    "\n"
-	    "If @var{error} is a true value, an error is signalled if the\n"
-	    "specified range contains characters which are not contained in\n"
-	    "the implemented character range.  If @var{error} is @code{#f},\n"
-	    "these characters are silently left out of the resultung\n"
-	    "character set.\n"
-	    "\n"
-	    "The characters in @var{base_cs} are added to the result, if\n"
-	    "given.")
-#define FUNC_NAME s_scm_ucs_range_to_char_set
+/* Return a character set containing all the characters from [LOWER,UPPER),
+   giving range errors if ERROR, adding chars from BASE_CS, and recycling
+   BASE_CS if REUSE is true.  */
+static SCM
+scm_i_ucs_range_to_char_set (const char *FUNC_NAME, SCM lower, SCM upper, 
+                             SCM error, SCM base_cs, int reuse)
 {
   SCM cs;
   size_t clower, cupper;
 
   clower = scm_to_size_t (lower);
-  cupper = scm_to_size_t (upper);
+  cupper = scm_to_size_t (upper) - 1;
+  SCM_ASSERT_RANGE (1, lower, clower >= 0);
+  SCM_ASSERT_RANGE (2, upper, cupper >= 0);
   SCM_ASSERT_RANGE (2, upper, cupper >= clower);
   if (!SCM_UNBNDP (error))
     {
@@ -1239,27 +1329,65 @@ SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
         {
           SCM_ASSERT_RANGE (1, lower, SCM_IS_UNICODE_CHAR (clower));
           SCM_ASSERT_RANGE (2, upper, SCM_IS_UNICODE_CHAR (cupper));
+          if (clower < SCM_CODEPOINT_SURROGATE_START 
+              && cupper > SCM_CODEPOINT_SURROGATE_END)
+            scm_error(scm_out_of_range_key,
+                      FUNC_NAME, "invalid range - contains surrogate characters: ~S to ~S",
+                      scm_list_2 (lower, upper), scm_list_1 (upper));
         }
     }
-  if (clower > 0x10FFFF)
-    clower = 0x10FFFF;
-  if (cupper > 0x10FFFF)
-    cupper = 0x10FFFF;
+
   if (SCM_UNBNDP (base_cs))
     cs = make_char_set (FUNC_NAME);
   else
     {
       SCM_VALIDATE_SMOB (4, base_cs, charset);
-      cs = scm_char_set_copy (base_cs);
+      if (reuse)
+        cs = base_cs;
+      else
+        cs = scm_char_set_copy (base_cs);
     }
-  /* It not be difficult to write a more optimized version of the
-     following.  */
-  while (clower < cupper)
+
+  if ((clower >= SCM_CODEPOINT_SURROGATE_START && clower <= SCM_CODEPOINT_SURROGATE_END)
+      && (cupper >= SCM_CODEPOINT_SURROGATE_START && cupper <= SCM_CODEPOINT_SURROGATE_END))
+    return cs;
+
+  if (clower > SCM_CODEPOINT_MAX)
+    clower = SCM_CODEPOINT_MAX;
+  if (clower >= SCM_CODEPOINT_SURROGATE_START  && clower <= SCM_CODEPOINT_SURROGATE_END)
+    clower = SCM_CODEPOINT_SURROGATE_END + 1;
+  if (cupper > SCM_CODEPOINT_MAX)
+    cupper = SCM_CODEPOINT_MAX;
+  if (cupper >= SCM_CODEPOINT_SURROGATE_START && cupper <= SCM_CODEPOINT_SURROGATE_END)
+    cupper = SCM_CODEPOINT_SURROGATE_START - 1;
+  if (clower < SCM_CODEPOINT_SURROGATE_START && cupper > SCM_CODEPOINT_SURROGATE_END)
     {
-      SCM_CHARSET_SET (cs, clower);
-      clower++;
+      scm_i_charset_set_range (SCM_CHARSET_DATA (cs), clower, SCM_CODEPOINT_SURROGATE_START - 1);
+      scm_i_charset_set_range (SCM_CHARSET_DATA (cs), SCM_CODEPOINT_SURROGATE_END + 1, cupper);
     }
+  else
+    scm_i_charset_set_range (SCM_CHARSET_DATA (cs), clower, cupper);
   return cs;
+}
+
+SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
+	    (SCM lower, SCM upper, SCM error, SCM base_cs),
+	    "Return a character set containing all characters whose\n"
+	    "character codes lie in the half-open range\n"
+	    "[@var{lower},@var{upper}).\n"
+	    "\n"
+	    "If @var{error} is a true value, an error is signalled if the\n"
+	    "specified range contains characters which are not valid\n"
+	    "Unicode code points.  If @var{error} is @code{#f},\n"
+	    "these characters are silently left out of the resultung\n"
+	    "character set.\n"
+	    "\n"
+	    "The characters in @var{base_cs} are added to the result, if\n"
+	    "given.")
+#define FUNC_NAME s_scm_ucs_range_to_char_set
+{
+  return scm_i_ucs_range_to_char_set (FUNC_NAME, lower, upper, 
+                                      error, base_cs, 0);
 }
 #undef FUNC_NAME
 
@@ -1280,28 +1408,9 @@ SCM_DEFINE (scm_ucs_range_to_char_set_x, "ucs-range->char-set!", 4, 0, 0,
 	    "returned.")
 #define FUNC_NAME s_scm_ucs_range_to_char_set_x
 {
-  size_t clower, cupper;
-
-  clower = scm_to_size_t (lower);
-  cupper = scm_to_size_t (upper);
-  SCM_ASSERT_RANGE (2, upper, cupper >= clower);
-  if (scm_is_true (error))
-    {
-      SCM_ASSERT_RANGE (1, lower, SCM_IS_UNICODE_CHAR (clower));
-      SCM_ASSERT_RANGE (2, upper, SCM_IS_UNICODE_CHAR (cupper));
-    }
-  if (clower > SCM_CODEPOINT_MAX)
-    clower = SCM_CODEPOINT_MAX;
-  if (cupper > SCM_CODEPOINT_MAX)
-    cupper = SCM_CODEPOINT_MAX;
-
-  while (clower < cupper)
-    {
-      if (SCM_IS_UNICODE_CHAR (clower))
-        SCM_CHARSET_SET (base_cs, clower);
-      clower++;
-    }
-  return base_cs;
+  SCM_VALIDATE_SMOB (4, base_cs, charset);  
+  return scm_i_ucs_range_to_char_set (FUNC_NAME, lower, upper, 
+                                      error, base_cs, 1);
 }
 #undef FUNC_NAME
 
