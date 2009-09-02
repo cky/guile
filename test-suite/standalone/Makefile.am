@@ -129,6 +129,13 @@ test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-scm-take-locale-symbol
 TESTS += test-scm-take-locale-symbol
 
+# test-scm-take-u8vector
+test_scm_take_u8vector_SOURCES = test-scm-take-u8vector.c
+test_scm_take_u8vector_CFLAGS = ${test_cflags}
+test_scm_take_u8vector_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-take-u8vector
+TESTS += test-scm-take-u8vector
+
 # test-extensions
 noinst_LTLIBRARIES += libtest-extensions.la
 libtest_extensions_la_SOURCES = test-extensions-lib.c
