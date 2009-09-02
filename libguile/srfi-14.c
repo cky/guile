@@ -1859,7 +1859,8 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
      (char-set-xor a a a) -> char set #\a
      (char-set-xor! a a a) -> char set #\a
    */
-  return scm_char_set_xor (scm_cons (cs1, rest));
+  cs1 = scm_char_set_xor (scm_cons (cs1, rest));
+  return cs1;
 }
 #undef FUNC_NAME
 
