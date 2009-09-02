@@ -1495,7 +1495,9 @@ SCM_DEFINE (scm_char_set_any, "char-set-any", 2, 0, 0,
   SCM_VALIDATE_PROC (1, pred);
   SCM_VALIDATE_SMOB (2, cs, charset);
 
-  cs_data = (scm_t_char_set *) cs;
+  cs_data = SCM_CHARSET_DATA (cs);
+  if (cs_data->len == 0)
+    return SCM_BOOL_T;
 
   for (k = 0; k < cs_data->len; k++)
     for (n = cs_data->ranges[k].lo; n <= cs_data->ranges[k].hi; n++)
