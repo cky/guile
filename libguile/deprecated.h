@@ -400,6 +400,8 @@ SCM_DEPRECATED char *scm_c_symbol2str (SCM obj, char *str, size_t *lenp);
 */
 SCM_DEPRECATED double scm_truncate (double x);
 SCM_DEPRECATED double scm_round (double x);
+/* Deprecated, use scm_expt */
+SCM_DEPRECATED SCM scm_sys_expt (SCM x, SCM y);
 
 /* Deprecated because we don't want people to access the internal
    representation of strings directly.

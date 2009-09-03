@@ -1215,6 +1215,14 @@ scm_round (double x)
   return scm_c_round (x);
 }
 
+SCM
+scm_sys_expt (SCM x, SCM y)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_sys_expt is deprecated.  Use scm_expt instead.");
+  return scm_expt (x, y);
+}
+
 char *
 scm_i_deprecated_symbol_chars (SCM sym)
 {

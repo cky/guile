@@ -5328,15 +5328,19 @@ scm_two_doubles (SCM x, SCM y, const char *sstring, struct dpair *xy)
 }
 
 
-SCM_DEFINE (scm_sys_expt, "$expt", 2, 0, 0,
+SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
             (SCM x, SCM y),
-	    "Return @var{x} raised to the power of @var{y}. This\n"
-	    "procedure does not accept complex arguments.") 
-#define FUNC_NAME s_scm_sys_expt
+	    "Return @var{x} raised to the power of @var{y}.") 
+#define FUNC_NAME s_scm_expt
 {
-  struct dpair xy;
-  scm_two_doubles (x, y, FUNC_NAME, &xy);
-  return scm_from_double (pow (xy.x, xy.y));
+  if (!SCM_INEXACTP (y) && scm_is_integer (y))
+    return scm_integer_expt (x, y);
+  else if (scm_is_real (x) && scm_is_real (y) && scm_to_double (x) >= 0.0)
+    {
+      return scm_from_double (pow (scm_to_double (x), scm_to_double (y)));
+    }
+  else
+    return scm_exp (scm_product (scm_log (x), y));
 }
 #undef FUNC_NAME
 

@@ -952,16 +952,6 @@
 ;;; See the file `COPYING' for terms applying to this program.
 ;;;
 
-(define expt
-  (let ((integer-expt integer-expt))
-    (lambda (z1 z2)
-      (cond ((and (exact? z2) (integer? z2))
-	     (integer-expt z1 z2))
-	    ((and (real? z2) (real? z1) (>= z1 0))
-	     ($expt z1 z2))
-	    (else
-	     (exp (* z2 (log z1))))))))
-
 (define (sinh z)
   (if (real? z) ($sinh z)
       (let ((x (real-part z)) (y (imag-part z)))
