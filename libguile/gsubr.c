@@ -205,6 +205,10 @@ scm_i_gsubr_apply (SCM proc, SCM arg, ...)
     argv[argc] = arg;
 
   if (SCM_UNLIKELY (argc < SCM_GSUBR_REQ (type)))
+    /* too few args */
+    scm_wrong_num_args (SCM_SUBR_NAME (proc));
+  if (SCM_UNLIKELY (!SCM_UNBNDP (arg) && !SCM_GSUBR_REST (type)))
+    /* too many args */
     scm_wrong_num_args (SCM_SUBR_NAME (proc));
 
   /* Fill in optional arguments that were not passed.  */

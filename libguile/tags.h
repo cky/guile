@@ -429,16 +429,16 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_gsubr		63
 #define scm_tc7_rpsubr		69
 #define scm_tc7_program		79
-#define scm_tc7_subr_0		85
-#define scm_tc7_subr_1		87
+#define scm_tc7_unused_9	85
+#define scm_tc7_unused_10	87
 #define scm_tc7_cxr		93
-#define scm_tc7_subr_3		95
-#define scm_tc7_subr_2		101
+#define scm_tc7_unused_11	95
+#define scm_tc7_unused_12	101
 #define scm_tc7_asubr		103
-#define scm_tc7_subr_1o		109
-#define scm_tc7_subr_2o		111
-#define scm_tc7_lsubr_2		117
-#define scm_tc7_lsubr		119
+#define scm_tc7_unused_13	109
+#define scm_tc7_unused_14	111
+#define scm_tc7_unused_15	117
+#define scm_tc7_unused_16	119
 
 /* There are 256 port subtypes.  */
 #define scm_tc7_port		125
@@ -676,17 +676,9 @@ enum scm_tc8_tags
  */
 #define scm_tcs_subrs \
        scm_tc7_asubr:\
-  case scm_tc7_subr_0:\
-  case scm_tc7_subr_1:\
   case scm_tc7_dsubr:\
   case scm_tc7_cxr:\
-  case scm_tc7_subr_3:\
-  case scm_tc7_subr_2:\
   case scm_tc7_rpsubr:\
-  case scm_tc7_subr_1o:\
-  case scm_tc7_subr_2o:\
-  case scm_tc7_lsubr_2:\
-  case scm_tc7_lsubr: \
   case scm_tc7_gsubr
 
 

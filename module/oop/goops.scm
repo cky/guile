@@ -1467,11 +1467,8 @@
     (cond ((not proc))
 	  ((pair? proc)
 	   (apply set-object-procedure! object proc))
-	  ((valid-object-procedure? proc)
-	   (set-object-procedure! object proc))
 	  (else
-	   (set-object-procedure! object
-				  (lambda args (apply proc args)))))))
+           (set-object-procedure! object proc)))))
 
 (define-method (initialize (applicable-struct <applicable-struct>) initargs)
   (next-method)

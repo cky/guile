@@ -226,17 +226,9 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    return scm_class_fraction;
           }
 	case scm_tc7_asubr:
-	case scm_tc7_subr_0:
-	case scm_tc7_subr_1:
 	case scm_tc7_dsubr:
 	case scm_tc7_cxr:
-	case scm_tc7_subr_3:
-	case scm_tc7_subr_2:
 	case scm_tc7_rpsubr:
-	case scm_tc7_subr_1o:
-	case scm_tc7_subr_2o:
-	case scm_tc7_lsubr_2:
-	case scm_tc7_lsubr:
 	case scm_tc7_gsubr:
 	  if (SCM_SUBR_GENERIC (x) && *SCM_SUBR_GENERIC (x))
 	    return scm_class_primitive_generic;

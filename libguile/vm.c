@@ -296,21 +296,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
           arglist = scm_cons (args[nargs], arglist);
         return scm_closure_apply (proc, arglist);
       }
-    case scm_tc7_subr_2o:
-      if (nargs > 2 || nargs < 1) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2);
-    case scm_tc7_subr_2:
-      if (nargs != 2) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2);
-    case scm_tc7_subr_0:
-      if (nargs != 0) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) ();
-    case scm_tc7_subr_1:
-      if (nargs != 1) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1);
-    case scm_tc7_subr_1o:
-      if (nargs > 1) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1);
     case scm_tc7_dsubr:
       if (nargs != 1) scm_wrong_num_args (proc);
       if (SCM_I_INUMP (arg1))
@@ -326,24 +311,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
     case scm_tc7_cxr:
       if (nargs != 1) scm_wrong_num_args (proc);
       return scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc));
-    case scm_tc7_subr_3:
-      if (nargs != 3) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2, arg3);
-    case scm_tc7_lsubr:
-      {
-        SCM arglist = SCM_EOL;
-        while (nargs--)
-          arglist = scm_cons (args[nargs], arglist);
-        return SCM_SUBRF (proc) (arglist);
-      }
-    case scm_tc7_lsubr_2:
-      if (nargs < 2) scm_wrong_num_args (proc);
-      {
-        SCM arglist = SCM_EOL;
-        while (nargs-- > 2)
-          arglist = scm_cons (args[nargs], arglist);
-        return SCM_SUBRF (proc) (arg1, arg2, arglist);
-      }
     case scm_tc7_asubr:
       if (nargs < 2)
         return SCM_SUBRF (proc) (arg1, SCM_UNDEFINED);

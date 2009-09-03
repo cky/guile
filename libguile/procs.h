@@ -44,39 +44,7 @@
    OPT optional arguments, and REST (0 or 1) arguments.  This has to be in
    sync with `create_gsubr ()'.  */
 #define SCM_SUBR_ARITY_TO_TYPE(req, opt, rest)				\
-  ((rest) == 0								\
-   ? ((opt) == 0							\
-      ? ((req) == 0							\
-	 ? scm_tc7_subr_0						\
-	 : ((req) == 1							\
-	    ? scm_tc7_subr_1						\
-	    : ((req) == 2						\
-	       ? scm_tc7_subr_2						\
-	       : ((req) == 3						\
-		  ? scm_tc7_subr_3					\
-		  : scm_tc7_gsubr					\
-		    | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))))	\
-      : ((opt) == 1							\
-	 ? ((req) == 0							\
-	    ? scm_tc7_subr_1o						\
-	    : ((req) == 1						\
-	       ? scm_tc7_subr_2o					\
-	       : scm_tc7_gsubr |					\
-	         (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))		\
-	 : scm_tc7_gsubr |						\
-	   (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))			\
-   : ((rest) == 1							\
-      ? ((opt) == 0							\
-	 ? ((req) == 0							\
-	    ? scm_tc7_lsubr						\
-	    : ((req) == 2						\
-	       ? scm_tc7_lsubr_2					\
-	       : scm_tc7_gsubr						\
-	         | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))		\
-	 : scm_tc7_gsubr						\
-	   | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U))		\
-      : scm_tc7_gsubr							\
-        | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))
+  (scm_tc7_gsubr | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U))
 
 
 

@@ -295,7 +295,7 @@ memoize_env_ref_transformer (SCM env, SCM x)
     { 
       SCM mac = scm_variable_ref (var);
       if (SCM_IMP (SCM_MACRO_CODE (mac))
-          || SCM_TYP7 (SCM_MACRO_CODE (mac)) != scm_tc7_subr_2)
+          || (SCM_TYP7 (SCM_MACRO_CODE (mac)) != scm_tc7_gsubr))
         syntax_error ("bad macro", x, SCM_UNDEFINED);
       else
         return (t_syntax_transformer)SCM_SUBRF (SCM_MACRO_CODE (mac)); /* global macro */

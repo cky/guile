@@ -53,26 +53,12 @@ scm_i_procedure_arity (SCM proc)
  loop:
   switch (SCM_TYP7 (proc))
     {
-    case scm_tc7_subr_1o:
-      o = 1;
-    case scm_tc7_subr_0:
-      break;
-    case scm_tc7_subr_2o:
-      o = 1;
-    case scm_tc7_subr_1:
     case scm_tc7_dsubr:
     case scm_tc7_cxr:
       a += 1;
       break;
-    case scm_tc7_subr_2:
-      a += 2;
-      break;
-    case scm_tc7_subr_3:
-      a += 3;
-      break;
     case scm_tc7_asubr:
     case scm_tc7_rpsubr:
-    case scm_tc7_lsubr:
       r = 1;
       break;
     case scm_tc7_program:
@@ -80,10 +66,6 @@ scm_i_procedure_arity (SCM proc)
         break;
       else
         return SCM_BOOL_F;
-    case scm_tc7_lsubr_2:
-      a += 2;
-      r = 1;
-      break;
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	{
