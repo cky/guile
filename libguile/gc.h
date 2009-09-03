@@ -248,7 +248,7 @@ SCM_INTERNAL void scm_i_ensure_marking(void);
 SCM_API int scm_debug_cell_accesses_p;
 SCM_API int scm_expensive_debug_cell_accesses_p;
 SCM_API int scm_debug_cells_gc_interval ;
-void scm_i_expensive_validation_check (SCM cell);
+SCM_API void scm_i_expensive_validation_check (SCM cell);
 #endif
 
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_gc_admin_mutex;
