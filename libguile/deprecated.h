@@ -403,6 +403,12 @@ SCM_DEPRECATED double scm_round (double x);
 /* Deprecated, use scm_expt */
 SCM_DEPRECATED SCM scm_sys_expt (SCM x, SCM y);
 
+/* if your platform doesn't have asinh et al */
+SCM_API double scm_asinh (double x);
+SCM_API double scm_acosh (double x);
+SCM_API double scm_atanh (double x);
+SCM_API SCM scm_sys_atan2 (SCM z1, SCM z2);
+
 /* Deprecated because we don't want people to access the internal
    representation of strings directly.
 */

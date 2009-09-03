@@ -55,6 +55,7 @@
 #include "libguile/socket.h"
 #include "libguile/feature.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -1221,6 +1222,50 @@ scm_sys_expt (SCM x, SCM y)
   scm_c_issue_deprecation_warning
     ("scm_sys_expt is deprecated.  Use scm_expt instead.");
   return scm_expt (x, y);
+}
+
+double
+scm_asinh (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_asinh is deprecated.  Use asinh instead.");
+#if HAVE_ASINH
+  return asinh (x);
+#else
+  return log (x + sqrt (x * x + 1));
+#endif
+}
+
+double
+scm_acosh (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_acosh is deprecated.  Use acosh instead.");
+#if HAVE_ACOSH
+  return acosh (x);
+#else
+  return log (x + sqrt (x * x - 1));
+#endif
+}
+
+double
+scm_atanh (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_atanh is deprecated.  Use atanh instead.");
+#if HAVE_ATANH
+  return atanh (x);
+#else
+  return 0.5 * log ((1 + x) / (1 - x));
+#endif
+}
+
+SCM
+scm_sys_atan2 (SCM z1, SCM z2)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_sys_atan2 is deprecated.  Use scm_atan instead.");
+  return scm_atan (z1, z2);
 }
 
 char *

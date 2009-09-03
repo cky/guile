@@ -126,6 +126,16 @@ isinf (double x)
 #endif
 
 
+#if !defined (HAVE_ASINH)
+static double asinh (double x) { return log (x + sqrt (x * x + 1)); }
+#endif
+#if !defined (HAVE_ACOSH)
+static double acosh (double x) { return log (x + sqrt (x * x - 1)); }
+#endif
+#if !defined (HAVE_ATANH)
+static double atanh (double x) { return 0.5 * log ((1 + x) / (1 - x)); }
+#endif
+
 /* mpz_cmp_d in gmp 4.1.3 doesn't recognise infinities, so xmpz_cmp_d uses
    an explicit check.  In some future gmp (don't know what version number),
    mpz_cmp_d is supposed to do this itself.  */
@@ -5049,51 +5059,6 @@ static SCM scm_divide2real (SCM x, SCM y)
 
 
 double
-scm_asinh (double x)
-{
-#if HAVE_ASINH
-  return asinh (x);
-#else
-#define asinh scm_asinh
-  return log (x + sqrt (x * x + 1));
-#endif
-}
-SCM_GPROC1 (s_asinh, "$asinh", scm_tc7_dsubr, (SCM (*)()) asinh, g_asinh);
-/* "Return the inverse hyperbolic sine of @var{x}."
- */
-
-
-double
-scm_acosh (double x)
-{
-#if HAVE_ACOSH
-  return acosh (x);
-#else
-#define acosh scm_acosh
-  return log (x + sqrt (x * x - 1));
-#endif
-}
-SCM_GPROC1 (s_acosh, "$acosh", scm_tc7_dsubr, (SCM (*)()) acosh, g_acosh);
-/* "Return the inverse hyperbolic cosine of @var{x}."
- */
-
-
-double
-scm_atanh (double x)
-{
-#if HAVE_ATANH
-  return atanh (x);
-#else
-#define atanh scm_atanh
-  return 0.5 * log ((1 + x) / (1 - x));
-#endif
-}
-SCM_GPROC1 (s_atanh, "$atanh", scm_tc7_dsubr, (SCM (*)()) atanh, g_atanh);
-/* "Return the inverse hyperbolic tangent of @var{x}."
- */
-
-
-double
 scm_c_truncate (double x)
 {
 #if HAVE_TRUNC
@@ -5251,82 +5216,11 @@ SCM_PRIMITIVE_GENERIC (scm_ceiling, "ceiling", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_GPROC1 (s_i_sqrt, "$sqrt", scm_tc7_dsubr, (SCM (*)()) sqrt, g_i_sqrt);
-/* "Return the square root of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_abs, "$abs", scm_tc7_dsubr, (SCM (*)()) fabs, g_i_abs);
-/* "Return the absolute value of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_exp, "$exp", scm_tc7_dsubr, (SCM (*)()) exp, g_i_exp);
-/* "Return the @var{x}th power of e."
- */
-SCM_GPROC1 (s_i_log, "$log", scm_tc7_dsubr, (SCM (*)()) log, g_i_log);
-/* "Return the natural logarithm of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_sin, "$sin", scm_tc7_dsubr, (SCM (*)()) sin, g_i_sin);
-/* "Return the sine of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_cos, "$cos", scm_tc7_dsubr, (SCM (*)()) cos, g_i_cos);
-/* "Return the cosine of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_tan, "$tan", scm_tc7_dsubr, (SCM (*)()) tan, g_i_tan);
-/* "Return the tangent of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_asin, "$asin", scm_tc7_dsubr, (SCM (*)()) asin, g_i_asin);
-/* "Return the arc sine of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_acos, "$acos", scm_tc7_dsubr, (SCM (*)()) acos, g_i_acos);
-/* "Return the arc cosine of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_atan, "$atan", scm_tc7_dsubr, (SCM (*)()) atan, g_i_atan);
-/* "Return the arc tangent of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_sinh, "$sinh", scm_tc7_dsubr, (SCM (*)()) sinh, g_i_sinh);
-/* "Return the hyperbolic sine of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_cosh, "$cosh", scm_tc7_dsubr, (SCM (*)()) cosh, g_i_cosh);
-/* "Return the hyperbolic cosine of the real number @var{x}."
- */
-SCM_GPROC1 (s_i_tanh, "$tanh", scm_tc7_dsubr, (SCM (*)()) tanh, g_i_tanh);
-/* "Return the hyperbolic tangent of the real number @var{x}."
- */
-
-struct dpair
-{
-  double x, y;
-};
-
-static void scm_two_doubles (SCM x,
-			     SCM y,
-			     const char *sstring,
-			     struct dpair * xy);
-
-static void
-scm_two_doubles (SCM x, SCM y, const char *sstring, struct dpair *xy)
-{
-  if (SCM_I_INUMP (x))
-    xy->x = SCM_I_INUM (x);
-  else if (SCM_BIGP (x))
-    xy->x = scm_i_big2dbl (x);
-  else if (SCM_REALP (x))
-    xy->x = SCM_REAL_VALUE (x);
-  else if (SCM_FRACTIONP (x))
-    xy->x = scm_i_fraction2double (x);
-  else
-    scm_wrong_type_arg (sstring, SCM_ARG1, x);
-
-  if (SCM_I_INUMP (y))
-    xy->y = SCM_I_INUM (y);
-  else if (SCM_BIGP (y))
-    xy->y = scm_i_big2dbl (y);
-  else if (SCM_REALP (y))
-    xy->y = SCM_REAL_VALUE (y);
-  else if (SCM_FRACTIONP (y))
-    xy->y = scm_i_fraction2double (y);
-  else
-    scm_wrong_type_arg (sstring, SCM_ARG2, y);
-}
-
+/* sin/cos/tan/asin/acos/atan
+   sinh/cosh/tanh/asinh/acosh/atanh
+   Derived from "Transcen.scm", Complex trancendental functions for SCM.
+   Written by Jerry D. Hedden, (C) FSF.
+   See the file `COPYING' for terms applying to this program. */
 
 SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
             (SCM x, SCM y),
@@ -5344,19 +5238,262 @@ SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_sys_atan2, "$atan2", 2, 0, 0,
-            (SCM x, SCM y),
-	    "Return the arc tangent of the two arguments @var{x} and\n"
-	    "@var{y}. This is similar to calculating the arc tangent of\n"
-	    "@var{x} / @var{y}, except that the signs of both arguments\n"
-	    "are used to determine the quadrant of the result. This\n"
-	    "procedure does not accept complex arguments.")
-#define FUNC_NAME s_scm_sys_atan2
+SCM_PRIMITIVE_GENERIC (scm_sin, "sin", 1, 0, 0,
+                       (SCM z),
+                       "Compute the sine of @var{z}.")
+#define FUNC_NAME s_scm_sin
 {
-  struct dpair xy;
-  scm_two_doubles (x, y, FUNC_NAME, &xy);
-  return scm_from_double (atan2 (xy.x, xy.y));
+  if (scm_is_real (z))
+    return scm_from_double (sin (scm_to_double (z)));
+  else if (SCM_COMPLEXP (z))
+    { double x, y;
+      x = SCM_COMPLEX_REAL (z);
+      y = SCM_COMPLEX_IMAG (z);
+      return scm_c_make_rectangular (sin (x) * cosh (y),
+                                     cos (x) * sinh (y));
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_sin, z, 1, s_scm_sin);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_cos, "cos", 1, 0, 0,
+                       (SCM z),
+                       "Compute the cosine of @var{z}.")
+#define FUNC_NAME s_scm_cos
+{
+  if (scm_is_real (z))
+    return scm_from_double (cos (scm_to_double (z)));
+  else if (SCM_COMPLEXP (z))
+    { double x, y;
+      x = SCM_COMPLEX_REAL (z);
+      y = SCM_COMPLEX_IMAG (z);
+      return scm_c_make_rectangular (cos (x) * cosh (y),
+                                     -sin (x) * sinh (y));
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_cos, z, 1, s_scm_cos);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_tan, "tan", 1, 0, 0,
+                       (SCM z),
+                       "Compute the tangent of @var{z}.")
+#define FUNC_NAME s_scm_tan
+{
+  if (scm_is_real (z))
+    return scm_from_double (tan (scm_to_double (z)));
+  else if (SCM_COMPLEXP (z))
+    { double x, y, w;
+      x = 2.0 * SCM_COMPLEX_REAL (z);
+      y = 2.0 * SCM_COMPLEX_IMAG (z);
+      w = cos (x) + cosh (y);
+#ifndef ALLOW_DIVIDE_BY_ZERO
+      if (w == 0.0)
+        scm_num_overflow (s_scm_tan);
+#endif
+      return scm_c_make_rectangular (sin (x) / w, sinh (y) / w);
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_tan, z, 1, s_scm_tan);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_sinh, "sinh", 1, 0, 0,
+                       (SCM z),
+                       "Compute the hyperbolic sine of @var{z}.")
+#define FUNC_NAME s_scm_sinh
+{
+  if (scm_is_real (z))
+    return scm_from_double (sinh (scm_to_double (z)));
+  else if (SCM_COMPLEXP (z))
+    { double x, y;
+      x = SCM_COMPLEX_REAL (z);
+      y = SCM_COMPLEX_IMAG (z);
+      return scm_c_make_rectangular (sinh (x) * cos (y),
+                                     cosh (x) * sin (y));
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_sinh, z, 1, s_scm_sinh);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_cosh, "cosh", 1, 0, 0,
+                       (SCM z),
+                       "Compute the hyperbolic cosine of @var{z}.")
+#define FUNC_NAME s_scm_cosh
+{
+  if (scm_is_real (z))
+    return scm_from_double (cosh (scm_to_double (z)));
+  else if (SCM_COMPLEXP (z))
+    { double x, y;
+      x = SCM_COMPLEX_REAL (z);
+      y = SCM_COMPLEX_IMAG (z);
+      return scm_c_make_rectangular (cosh (x) * cos (y),
+                                     sinh (x) * sin (y));
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_cosh, z, 1, s_scm_cosh);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_tanh, "tanh", 1, 0, 0,
+                       (SCM z),
+                       "Compute the hyperbolic tangent of @var{z}.")
+#define FUNC_NAME s_scm_tanh
+{
+  if (scm_is_real (z))
+    return scm_from_double (tanh (scm_to_double (z)));
+  else if (SCM_COMPLEXP (z))
+    { double x, y, w;
+      x = 2.0 * SCM_COMPLEX_REAL (z);
+      y = 2.0 * SCM_COMPLEX_IMAG (z);
+      w = cosh (x) + cos (y);
+#ifndef ALLOW_DIVIDE_BY_ZERO
+      if (w == 0.0)
+        scm_num_overflow (s_scm_tanh);
+#endif
+      return scm_c_make_rectangular (sinh (x) / w, sin (y) / w);
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_tanh, z, 1, s_scm_tanh);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_asin, "asin", 1, 0, 0,
+                       (SCM z),
+                       "Compute the arc sine of @var{z}.")
+#define FUNC_NAME s_scm_asin
+{
+  if (scm_is_real (z))
+    {
+      double w = scm_to_double (z);
+      if (w >= -1.0 && w <= 1.0)
+        return scm_from_double (asin (w));
+      else
+        return scm_product (scm_c_make_rectangular (0, -1),
+                            scm_sys_asinh (scm_c_make_rectangular (0, w)));
+    }
+  else if (SCM_COMPLEXP (z))
+    { double x, y;
+      x = SCM_COMPLEX_REAL (z);
+      y = SCM_COMPLEX_IMAG (z);
+      return scm_product (scm_c_make_rectangular (0, -1),
+                          scm_sys_asinh (scm_c_make_rectangular (-y, x)));
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_asin, z, 1, s_scm_asin);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_acos, "acos", 1, 0, 0,
+                       (SCM z),
+                       "Compute the arc cosine of @var{z}.")
+#define FUNC_NAME s_scm_acos
+{
+  if (scm_is_real (z))
+    {
+      double w = scm_to_double (z);
+      if (w >= -1.0 && w <= 1.0)
+        return scm_from_double (acos (w));
+      else
+        return scm_sum (scm_from_double (acos (0.0)),
+                        scm_product (scm_c_make_rectangular (0, 1),
+                                     scm_sys_asinh (scm_c_make_rectangular (0, w))));
+    }
+  else if (SCM_COMPLEXP (z))
+    { double x, y;
+      x = SCM_COMPLEX_REAL (z);
+      y = SCM_COMPLEX_IMAG (z);
+      return scm_sum (scm_from_double (acos (0.0)),
+                      scm_product (scm_c_make_rectangular (0, 1),
+                                   scm_sys_asinh (scm_c_make_rectangular (-y, x))));
+    }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_acos, z, 1, s_scm_acos);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_atan, "atan", 1, 1, 0,
+                       (SCM z, SCM y),
+                       "With one argument, compute the arc tangent of @var{z}.\n"
+                       "If @var{y} is present, compute the arc tangent of @var{z}/@var{y},\n"
+                       "using the sign of @var{z} and @var{y} to determine the quadrant.")
+#define FUNC_NAME s_scm_atan
+{
+  if (SCM_UNBNDP (y))
+    {
+      if (scm_is_real (z))
+        return scm_from_double (atan (scm_to_double (z)));
+      else if (SCM_COMPLEXP (z))
+        {
+          double v, w;
+          v = SCM_COMPLEX_REAL (z);
+          w = SCM_COMPLEX_IMAG (z);
+          return scm_divide (scm_log (scm_divide (scm_c_make_rectangular (v, w - 1.0),
+                                                  scm_c_make_rectangular (v, w + 1.0))),
+                             scm_c_make_rectangular (0, 2));
+        }
+      else
+        SCM_WTA_DISPATCH_2 (g_scm_atan, z, y, SCM_ARG1, s_scm_atan);
+    }
+  else if (scm_is_real (z))
+    {
+      if (scm_is_real (y))
+        return scm_from_double (atan2 (scm_to_double (z), scm_to_double (y)));
+      else
+        SCM_WTA_DISPATCH_2 (g_scm_atan, z, y, SCM_ARG2, s_scm_atan);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_atan, z, y, SCM_ARG1, s_scm_atan);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_sys_asinh, "asinh", 1, 0, 0,
+                       (SCM z),
+                       "Compute the inverse hyperbolic sine of @var{z}.")
+#define FUNC_NAME s_scm_sys_asinh
+{
+  if (scm_is_real (z))
+    return scm_from_double (asinh (scm_to_double (z)));
+  else if (scm_is_number (z))
+    return scm_log (scm_sum (z,
+                             scm_sqrt (scm_sum (scm_product (z, z),
+                                                SCM_I_MAKINUM (1)))));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_sys_asinh, z, 1, s_scm_sys_asinh);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_sys_acosh, "acosh", 1, 0, 0,
+                       (SCM z),
+                       "Compute the inverse hyperbolic cosine of @var{z}.")
+#define FUNC_NAME s_scm_sys_acosh
+{
+  if (scm_is_real (z) && scm_to_double (z) >= 1.0)
+    return scm_from_double (acosh (scm_to_double (z)));
+  else if (scm_is_number (z))
+    return scm_log (scm_sum (z,
+                             scm_sqrt (scm_difference (scm_product (z, z),
+                                                       SCM_I_MAKINUM (1)))));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_sys_acosh, z, 1, s_scm_sys_acosh);
+}
+#undef FUNC_NAME
+
+SCM_PRIMITIVE_GENERIC (scm_sys_atanh, "atanh", 1, 0, 0,
+                       (SCM z),
+                       "Compute the inverse hyperbolic tangent of @var{z}.")
+#define FUNC_NAME s_scm_sys_atanh
+{
+  if (scm_is_real (z) && scm_to_double (z) >= -1.0 && scm_to_double (z) <= 1.0)
+    return scm_from_double (atanh (scm_to_double (z)));
+  else if (scm_is_number (z))
+    return scm_divide (scm_log (scm_divide (scm_sum (SCM_I_MAKINUM (1), z),
+                                            scm_difference (SCM_I_MAKINUM (1), z))),
+                       SCM_I_MAKINUM (2));
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_sys_atanh, z, 1, s_scm_sys_atanh);
 }
 #undef FUNC_NAME
 
@@ -5383,9 +5520,12 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
 	    "and @var{imaginary-part} parts.")
 #define FUNC_NAME s_scm_make_rectangular
 {
-  struct dpair xy;
-  scm_two_doubles (real_part, imaginary_part, FUNC_NAME, &xy);
-  return scm_c_make_rectangular (xy.x, xy.y);
+  SCM_ASSERT_TYPE (scm_is_real (real_part), real_part,
+                   SCM_ARG1, FUNC_NAME, "real");
+  SCM_ASSERT_TYPE (scm_is_real (imaginary_part), imaginary_part,
+                   SCM_ARG2, FUNC_NAME, "real");
+  return scm_c_make_rectangular (scm_to_double (real_part),
+                                 scm_to_double (imaginary_part));
 }
 #undef FUNC_NAME
 
@@ -5412,9 +5552,9 @@ SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
 	    "Return the complex number @var{x} * e^(i * @var{y}).")
 #define FUNC_NAME s_scm_make_polar
 {
-  struct dpair xy;
-  scm_two_doubles (x, y, FUNC_NAME, &xy);
-  return scm_c_make_polar (xy.x, xy.y);
+  SCM_ASSERT_TYPE (scm_is_real (x), x, SCM_ARG1, FUNC_NAME, "real");
+  SCM_ASSERT_TYPE (scm_is_real (y), y, SCM_ARG2, FUNC_NAME, "real");
+  return scm_c_make_polar (scm_to_double (x), scm_to_double (y));
 }
 #undef FUNC_NAME
 
