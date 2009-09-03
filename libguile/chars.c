@@ -45,8 +45,8 @@ SCM_DEFINE (scm_char_p, "char?", 1, 0, 0,
 
 SCM_DEFINE1 (scm_char_eq_p, "char=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff code point of @var{x} is equal to the code point\n"
-             "of @var{y}, else @code{#f}.\n")
+             "Return @code{#t} if the Unicode code point of @var{x} is equal to the\n"
+             "code point of @var{y}, else @code{#f}.\n")
 #define FUNC_NAME s_scm_char_eq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -70,8 +70,8 @@ SCM_DEFINE1 (scm_char_less_p, "char<?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the code point of @var{x} is less than or equal\n"
-             "to the code point of @var{y}, else @code{#f}.")
+             "Return @code{#t} if the Unicode code point of @var{x} is less than or\n"
+             "equal to the code point of @var{y}, else @code{#f}.")
 #define FUNC_NAME s_scm_char_leq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -82,8 +82,8 @@ SCM_DEFINE1 (scm_char_leq_p, "char<=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the code point of @var{x} is greater than the\n"
-             "code point of @var{y}, else @code{#f}.")
+             "Return @code{#t} if the Unicode code point of @var{x} is greater than\n"
+             "the code point of @var{y}, else @code{#f}.")
 #define FUNC_NAME s_scm_char_gr_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -94,8 +94,8 @@ SCM_DEFINE1 (scm_char_gr_p, "char>?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the code point of @var{x} is greater than or\n"
-             "equal to the code point of @var{y}, else @code{#f}.")
+             "Return @code{#t} if the Unicode code point of @var{x} is greater than\n"
+             "or equal to the code point of @var{y}, else @code{#f}.")
 #define FUNC_NAME s_scm_char_geq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -113,8 +113,8 @@ SCM_DEFINE1 (scm_char_geq_p, "char>=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the case-folded code point of @var{x} is the same\n"
-             "as the case-folded code point of @var{y}, else @code{#f}.")
+             "Return @code{#t} if the case-folded Unicode code point of @var{x} is\n"
+             "the same as the case-folded code point of @var{y}, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_eq_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -125,8 +125,8 @@ SCM_DEFINE1 (scm_char_ci_eq_p, "char-ci=?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the case-folded code point of @var{x} is less\n"
-             "than the case-folded code point of @var{y}, else @code{#f}.")
+             "Return @code{#t} if the case-folded Unicode code point of @var{x} is\n"
+             "less than the case-folded code point of @var{y}, else @code{#f}.")
 #define FUNC_NAME s_scm_char_ci_less_p
 {
   SCM_VALIDATE_CHAR (1, x);
@@ -137,8 +137,8 @@ SCM_DEFINE1 (scm_char_ci_less_p, "char-ci<?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_leq_p, "char-ci<=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the case-folded code point of @var{x} is less\n"
-             "than or equal to the case-folded code point of @var{y}, else\n"
+             "Return @code{#t} iff the case-folded Unicodd code point of @var{x} is\n"
+             "less than or equal to the case-folded code point of @var{y}, else\n"
              "@code{#f}")
 #define FUNC_NAME s_scm_char_ci_leq_p
 {
@@ -162,8 +162,8 @@ SCM_DEFINE1 (scm_char_ci_gr_p, "char-ci>?", scm_tc7_rpsubr,
 
 SCM_DEFINE1 (scm_char_ci_geq_p, "char-ci>=?", scm_tc7_rpsubr,
              (SCM x, SCM y),
-             "Return @code{#t} iff the case-folded code point of @var{x} is greater\n"
-             "than or equal to the case-folded code point of @var{y}, else\n"
+             "Return @code{#t} iff the case-folded Unicode code point of @var{x} is\n"
+             "greater than or equal to the case-folded code point of @var{y}, else\n"
              "@code{#f}.")
 #define FUNC_NAME s_scm_char_ci_geq_p
 {
@@ -224,7 +224,8 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 
 SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0, 
             (SCM chr),
-	    "Return @code{#t} iff @var{chr} is either uppercase or lowercase, else @code{#f}.\n")
+	    "Return @code{#t} iff @var{chr} is either uppercase or lowercase, else\n"
+            "@code{#f}.\n")
 #define FUNC_NAME s_scm_char_is_both_p
 {
   if (scm_is_true (scm_char_set_contains_p (scm_char_set_lower_case, chr)))
@@ -236,7 +237,7 @@ SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0,
 
 SCM_DEFINE (scm_char_to_integer, "char->integer", 1, 0, 0, 
             (SCM chr),
-            "Return the code point of @var{chr}.")
+            "Return the Unicode code point of @var{chr}.")
 #define FUNC_NAME s_scm_char_to_integer
 {
   SCM_VALIDATE_CHAR (1, chr);
@@ -247,9 +248,10 @@ SCM_DEFINE (scm_char_to_integer, "char->integer", 1, 0, 0,
 
 SCM_DEFINE (scm_integer_to_char, "integer->char", 1, 0, 0, 
            (SCM n),
-            "Return the character that has code point @var{n}.  The integer @var{n}\n"
-            "must be a valid code point.  Valid code points are in the ranges 0 to\n"
-            "@code{#xD7FF} inclusive or @code{#xE000} to @code{#x10FFFF} inclusive.")
+            "Return the character that has Unicode code point @var{n}.  The integer\n"
+            "@var{n} must be a valid code point.  Valid code points are in the\n"
+            "ranges 0 to @code{#xD7FF} inclusive or @code{#xE000} to\n"
+            "@code{#x10FFFF} inclusive.")
 #define FUNC_NAME s_scm_integer_to_char
 {
   scm_t_wchar cn;

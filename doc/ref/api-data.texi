@@ -1782,22 +1782,57 @@ another manual.
 In Scheme, there is a data type to describe a single character.  
 
 Defining what exactly a character @emph{is} can be more complicated
-than it seems.  Guile follows the advice of R6RS and just uses The
-Unicode Standard to help define what a character is.  So, for Guile,
-a character is anything in the Unicode Character Database.
+than it seems.  Guile follows the advice of R6RS and uses The Unicode
+Standard to help define what a character is.  So, for Guile, a
+character is anything in the Unicode Character Database.
 
-Unicode assigns each character an unique integer representation: a
-@emph{code point}.  Guile uses Unicode code points as the integer
-representation of characters.  Valid code points are in the ranges 0
-to @code{#xD7FF} inclusive or @code{#xE000} to @code{#x10FFFF}
-inclusive.
+@cindex code point
+@cindex Unicode code point
+
+The Unicode Character Database is basically a table of characters
+indexed using integers called 'code points'.  Valid code points are in
+the ranges 0 to @code{#xD7FF} inclusive or @code{#xE000} to
+@code{#x10FFFF} inclusive, which is about 1.1 million code points.
+
+@cindex designated code point
+@cindex code point, designated
+
+Any code point that has been assigned to a character or that has
+otherwise been given a meaning by Unicode is called a 'designated code
+point'.  Most of the designated code points, about 200,000 of them,
+indicate characters, accents or other combining marks that modify
+other characters, symbols, whitespace, and control characters.  Some
+are not characters but indicators that suggest how to format or
+display neighboring characters.
+
+@cindex reserved code point
+@cindex code point, reserved
+
+If a code point is not a designated code point -- if it has not been
+assigned to a character by The Unicode Standard -- it is a 'reserved
+code point', meaning that they are reserved for future use.  Most of
+the code points, about 800,000, are 'reserved code points'.
+
+By convention, a Unicode code point is written as
+``U+XXXX'' where ``XXXX'' is a hexadecimal number.  Please note that
+this convenient notation is not valid code.  Guile does not interpret
+``U+XXXX'' as a character.
 
 In Scheme, a character literal is written as @code{#\@var{name}} where
 @var{name} is the name of the character that you want.  Printable
 characters have their usual single character name; for example,
-@code{#\a} is a lower case @code{a}.  Many of the non-printing
-characters, such as whitespace characters and control characters, also
-have names.
+@code{#\a} is a lower case @code{a}.  
+
+Some of the code points are 'combining characters' that are not meant
+to be printed by themselves but are instead meant to modify the
+appearance of the previous character.  For combining characters, an
+alternate form of the character literal is @code{#\} followed by
+U+25CC (a small, dotted circle), followed by the combining character.
+This allows the combining character to be drawn on the circle, not on
+the backslash of @code{#\}.
+
+Many of the non-printing characters, such as whitespace characters and
+control characters, also have names.
 
 The most commonly used non-printing chararacters are space and
 newline.  Their character names are @code{#\space} and
@@ -1841,7 +1876,7 @@ describes the names for each character.
 @item 32 = @code{#\sp}
 @end multitable
 
-The ``delete'' character (code point 127) may be referred to with the
+The ``delete'' character (code point U+007F) may be referred to with the
 name @code{#\del}.
 
 One might note that the space character has two names --
@@ -1862,8 +1897,9 @@ sake of compatibility with previous versions.
 @item @code{#\null} @tab @code{#\nul}
 @end multitable
 
-Characters may also be referred to with an octal value, such as
-@code{#\10} for @code{#\bs} or @code{#\177} for @code{#\del}.
+Characters may also be written using their code point values.  They can
+be written with as an octal number, such as @code{#\10} for
+@code{#\bs} or @code{#\177} for @code{#\del}.
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -1871,7 +1907,7 @@ Characters may also be referred to with an octal value, such as
 Return @code{#t} iff @var{x} is a character, else @code{#f}.
 @end deffn
 
-Fundamentally, the character comparisons operations below are
+Fundamentally, the character comparison operations below are
 numeric comparisons of the character's code points.
 
 @rnindex char=?
@@ -1904,12 +1940,17 @@ Return @code{#t} iff the code point of @var{x} is greater than or
 equal to the code point of @var{y}, else @code{#f}.
 @end deffn
 
-Case-insensitive character comparisons of characters use @emph{Unicode
-case folding}.  In case folding comparisons, if a character is
-lowercase and has an uppercase form that can be expressed as a single
-character, it is converted to uppercase before comparison.  Unicode
-case folding is language independent: it uses rules that are generally
-true, but, it cannot cover all cases for all languages.
+@cindex case folding
+
+Case-insensitive character comparisons use @emph{Unicode case
+folding}.  In case folding comparisons, if a character is lowercase
+and has an uppercase form that can be expressed as a single character,
+it is converted to uppercase before comparison.  All other characters
+undergo no conversion before the comparison occurs.  This includes the
+German sharp S (Eszett) which is not uppercased before conversion
+because its uppercase form has two characters.  Unicode case folding
+is language independent: it uses rules that are generally true, but,
+it cannot cover all cases for all languages.
 
 @rnindex char-ci=?
 @deffn {Scheme Procedure} char-ci=? x y
