@@ -539,7 +539,7 @@ error.  Instead, the result of the division is either plus or minus
 infinity, depending on the sign of the divided number.
 
 The infinities are written @samp{+inf.0} and @samp{-inf.0},
-respectivly.  This syntax is also recognized by @code{read} as an
+respectively.  This syntax is also recognized by @code{read} as an
 extension to the usual Scheme syntax.
 
 Dividing zero by zero yields something that is not a number at all:
@@ -637,7 +637,7 @@ magnitude.  The argument @var{val} must be a real number.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_from_double (double val)
-Return the @code{SCM} value that representats @var{val}.  The returned
+Return the @code{SCM} value that represents @var{val}.  The returned
 value is inexact according to the predicate @code{inexact?}, but it
 will be exactly equal to @var{val}.
 @end deftypefn
@@ -1834,7 +1834,7 @@ the backslash of @code{#\}.
 Many of the non-printing characters, such as whitespace characters and
 control characters, also have names.
 
-The most commonly used non-printing chararacters are space and
+The most commonly used non-printing characters are space and
 newline.  Their character names are @code{#\space} and
 @code{#\newline}.  There are also names for all of the ``C0 control
 characters'' (those with code points below 32).  The following table
@@ -2059,12 +2059,6 @@ handling them are provided.
 Character sets can be created, extended, tested for the membership of a
 characters and be compared to other character sets.
 
-The Guile implementation of character sets currently deals only with
-8-bit characters.  In the future, when Guile gets support for
-international character sets, this will change, but the functions
-provided here will always then be able to efficiently cope with very
-large character sets.
-
 @menu
 * Character Set Predicates/Comparison::
 * Iterating Over Character Sets::  Enumerate charset elements.
@@ -2263,7 +2257,7 @@ character codes lie in the half-open range
 If @var{error} is a true value, an error is signalled if the
 specified range contains characters which are not contained in
 the implemented character range.  If @var{error} is @code{#f},
-these characters are silently left out of the resultung
+these characters are silently left out of the resulting
 character set.
 
 The characters in @var{base_cs} are added to the result, if
@@ -2279,7 +2273,7 @@ character codes lie in the half-open range
 If @var{error} is a true value, an error is signalled if the
 specified range contains characters which are not contained in
 the implemented character range.  If @var{error} is @code{#f},
-these characters are silently left out of the resultung
+these characters are silently left out of the resulting
 character set.
 
 The characters are added to @var{base_cs} and @var{base_cs} is
@@ -2288,7 +2282,10 @@ returned.
 
 @deffn {Scheme Procedure} ->char-set x
 @deffnx {C Function} scm_to_char_set (x)
-Coerces x into a char-set. @var{x} may be a string, character or char-set. A string is converted to the set of its constituent characters; a character is converted to a singleton set; a char-set is returned as-is.
+Coerces x into a char-set. @var{x} may be a string, character or
+char-set. A string is converted to the set of its constituent
+characters; a character is converted to a singleton set; a char-set is
+returned as-is.
 @end deffn
 
 @c ===================================================================
@@ -2298,6 +2295,23 @@ Coerces x into a char-set. @var{x} may be a string, character or char-set. A str
 
 Access the elements and other information of a character set with these
 procedures.
+
+@deffn {Scheme Procedure} %char-set-dump cs
+Returns an association list containing debugging information
+for @var{cs}. The association list has the following entries.
+@table @code
+@item char-set
+The char-set itself
+@item len
+The number of groups of contiguous code points the char-set
+contains
+@item ranges
+A list of lists where each sublist is a range of code points
+and their associated characters
+@end table
+The return value of this function cannot be relied upon to be
+consistent between versions of Guile and should not be used in code.
+@end deffn
 
 @deffn {Scheme Procedure} char-set-size cs
 @deffnx {C Function} scm_char_set_size (cs)
@@ -2380,6 +2394,12 @@ must be a character set.
 Return the complement of the character set @var{cs}.
 @end deffn
 
+Note that the complement of a character set is likely to contain many
+reserved code points (code points that are not associated with
+characters).  It may be helpful to modify the output of
+@code{char-set-complement} by computing its intersection with the set
+of designated code points, @code{char-set:designated}.
+
 @deffn {Scheme Procedure} char-set-union . rest
 @deffnx {C Function} scm_char_set_union (rest)
 Return the union of all argument character sets.
@@ -2449,12 +2469,10 @@ useful, several predefined character set variables exist.
 @cindex charset
 @cindex locale
 
-Currently, the contents of these character sets are recomputed upon a
-successful @code{setlocale} call (@pxref{Locales}) in order to reflect
-the characters available in the current locale's codeset.  For
-instance, @code{char-set:letter} contains 52 characters under an ASCII
-locale (e.g., the default @code{C} locale) and 117 characters under an
-ISO-8859-1 (``Latin-1'') locale.
+These character sets are locale independent and are not recomputed
+upon a @code{setlocale} call.  They contain characters from the whole
+range of Unicode code points. For instance, @code{char-set:letter}
+contains about 94,000 characters.
 
 @defvr {Scheme Variable} char-set:lower-case
 @defvrx {C Variable} scm_char_set_lower_case
@@ -2468,13 +2486,16 @@ All upper-case characters.
 
 @defvr {Scheme Variable} char-set:title-case
 @defvrx {C Variable} scm_char_set_title_case
-This is empty, because ASCII has no titlecase characters.
+All single characters that function as if they were an upper-case
+letter followed by a lower-case letter.
 @end defvr
 
 @defvr {Scheme Variable} char-set:letter
 @defvrx {C Variable} scm_char_set_letter
-All letters, e.g. the union of @code{char-set:lower-case} and
-@code{char-set:upper-case}.
+All letters.  This includes @code{char-set:lower-case},
+@code{char-set:upper-case}, @code{char-set:title-case}, and many
+letters that have no case at all.  For example, Chinese and Japanese
+characters typically have no concept of case.
 @end defvr
 
 @defvr {Scheme Variable} char-set:digit
@@ -2504,23 +2525,26 @@ All whitespace characters.
 
 @defvr {Scheme Variable} char-set:blank
 @defvrx {C Variable} scm_char_set_blank
-All horizontal whitespace characters, that is @code{#\space} and
-@code{#\tab}.
+All horizontal whitespace characters, which notably includes
+@code{#\space} and @code{#\tab}.
 @end defvr
 
 @defvr {Scheme Variable} char-set:iso-control
 @defvrx {C Variable} scm_char_set_iso_control
-The ISO control characters with the codes 0--31 and 127.
+The ISO control characters are the C0 control characters (U+0000 to
+U+001F), delete (U+007F), and the C1 control characters (U+0080 to
+U+009F).
 @end defvr
 
 @defvr {Scheme Variable} char-set:punctuation
 @defvrx {C Variable} scm_char_set_punctuation
-The characters @code{!"#%&'()*,-./:;?@@[\\]_@{@}}
+All punctuation characters, such as the characters
+@code{!"#%&'()*,-./:;?@@[\\]_@{@}}
 @end defvr
 
 @defvr {Scheme Variable} char-set:symbol
 @defvrx {C Variable} scm_char_set_symbol
-The characters @code{$+<=>^`|~}.
+All symbol characters, such as the characters @code{$+<=>^`|~}.
 @end defvr
 
 @defvr {Scheme Variable} char-set:hex-digit
@@ -2538,9 +2562,17 @@ All ASCII characters.
 The empty character set.
 @end defvr
 
+@defvr {Scheme Variable} char-set:designated
+@defvrx {C Variable} scm_char_set_designated
+This character set contains all designated code points.  This includes
+all the code points to which Unicode has assigned a character or other
+meaning.
+@end defvr
+
 @defvr {Scheme Variable} char-set:full
 @defvrx {C Variable} scm_char_set_full
-This character set contains all possible characters.
+This character set contains all possible code points.  This includes
+both designated and reserved code points.
 @end defvr
 
 @node Strings
@@ -2568,7 +2600,7 @@ memory.
 
 When one of these two strings is modified, as with @code{string-set!},
 their common memory does get copied so that each string has its own
-memory and modifying one does not accidently modify the other as well.
+memory and modifying one does not accidentally modify the other as well.
 Thus, Guile's strings are `copy on write'; the actual copying of their
 memory is delayed until one string is written to.
 
@@ -2988,7 +3020,7 @@ characters.
 @deffnx {C Function} scm_string_trim (s, char_pred, start, end)
 @deffnx {C Function} scm_string_trim_right (s, char_pred, start, end)
 @deffnx {C Function} scm_string_trim_both (s, char_pred, start, end)
-Trim occurrances of @var{char_pred} from the ends of @var{s}.
+Trim occurrences of @var{char_pred} from the ends of @var{s}.
 
 @code{string-trim} trims @var{char_pred} characters from the left
 (start) of the string, @code{string-trim-right} trims them from the
@@ -3270,14 +3302,14 @@ Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-ne
 @deffn {Scheme Procedure} string-index s char_pred [start [end]]
 @deffnx {C Function} scm_string_index (s, char_pred, start, end)
 Search through the string @var{s} from left to right, returning
-the index of the first occurence of a character which
+the index of the first occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure,
+satisfies the predicate @var{char_pred}, if it is a procedure,
 
 @item
 is in the set @var{char_pred}, if it is a character set.
@@ -3287,14 +3319,14 @@ is in the set @var{char_pred}, if it is a character set.
 @deffn {Scheme Procedure} string-rindex s char_pred [start [end]]
 @deffnx {C Function} scm_string_rindex (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
-the index of the last occurence of a character which
+the index of the last occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure,
+satisfies the predicate @var{char_pred}, if it is a procedure,
 
 @item
 is in the set if @var{char_pred} is a character set.
@@ -3348,14 +3380,14 @@ Is @var{s1} a suffix of @var{s2}, ignoring character case?
 @deffn {Scheme Procedure} string-index-right s char_pred [start [end]]
 @deffnx {C Function} scm_string_index_right (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
-the index of the last occurence of a character which
+the index of the last occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure,
+satisfies the predicate @var{char_pred}, if it is a procedure,
 
 @item
 is in the set if @var{char_pred} is a character set.
@@ -3365,14 +3397,14 @@ is in the set if @var{char_pred} is a character set.
 @deffn {Scheme Procedure} string-skip s char_pred [start [end]]
 @deffnx {C Function} scm_string_skip (s, char_pred, start, end)
 Search through the string @var{s} from left to right, returning
-the index of the first occurence of a character which
+the index of the first occurrence of a character which
 
 @itemize @bullet
 @item
 does not equal @var{char_pred}, if it is character,
 
 @item
-does not satisify the predicate @var{char_pred}, if it is a
+does not satisfy the predicate @var{char_pred}, if it is a
 procedure,
 
 @item
@@ -3383,7 +3415,7 @@ is not in the set if @var{char_pred} is a character set.
 @deffn {Scheme Procedure} string-skip-right s char_pred [start [end]]
 @deffnx {C Function} scm_string_skip_right (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
-the index of the last occurence of a character which
+the index of the last occurrence of a character which
 
 @itemize @bullet
 @item
@@ -3408,7 +3440,7 @@ Return the count of the number of characters in the string
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure.
+satisfies the predicate @var{char_pred}, if it is a procedure.
 
 @item
 is in the set @var{char_pred}, if it is a character set.

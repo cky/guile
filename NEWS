@@ -10,6 +10,13 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
+** SRFI-14 char-sets are modified for Unicode
+
+The default char-sets are not longer locale dependent and contain
+characters from the whole Unicode range.  There is a new char-set,
+char-set:designated, which contains all assigned Unicode characters.
+There is a new debugging function: %char-set-dump.
+
 ** Character functions operate on Unicode characters
 
 char-upcase and char-downcase use default Unicode casing rules.
