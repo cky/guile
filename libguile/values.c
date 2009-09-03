@@ -77,8 +77,7 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
 void
 scm_init_values (void)
 {
-  SCM print = scm_c_define_subr ("%print-values", scm_tc7_subr_2,
-				 print_values);
+  SCM print = scm_c_define_gsubr ("%print-values", 2, 0, 0, print_values);
 
   scm_values_vtable = scm_make_vtable (scm_from_locale_string ("pr"), print);
 

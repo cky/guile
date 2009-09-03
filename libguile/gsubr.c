@@ -51,47 +51,16 @@ create_gsubr (int define, const char *name,
 	      SCM (*fcn) ())
 {
   SCM subr;
+  unsigned type;
 
-  switch (SCM_GSUBR_MAKTYPE (req, opt, rst))
-    {
-    case SCM_GSUBR_MAKTYPE(0, 0, 0):
-      subr = scm_c_make_subr (name, scm_tc7_subr_0, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(1, 0, 0):
-      subr = scm_c_make_subr (name, scm_tc7_subr_1, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(0, 1, 0):
-      subr = scm_c_make_subr (name, scm_tc7_subr_1o, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(1, 1, 0):
-      subr = scm_c_make_subr (name, scm_tc7_subr_2o, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(2, 0, 0):
-      subr = scm_c_make_subr (name, scm_tc7_subr_2, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(3, 0, 0):
-      subr = scm_c_make_subr (name, scm_tc7_subr_3, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(0, 0, 1):
-      subr = scm_c_make_subr (name, scm_tc7_lsubr, fcn);
-      break;
-    case SCM_GSUBR_MAKTYPE(2, 0, 1):
-      subr = scm_c_make_subr (name, scm_tc7_lsubr_2, fcn);
-      break;
-    default:
-      {
-	unsigned type;
+  type = SCM_GSUBR_MAKTYPE (req, opt, rst);
+  if (SCM_GSUBR_REQ (type) != req
+      || SCM_GSUBR_OPT (type) != opt
+      || SCM_GSUBR_REST (type) != rst)
+    scm_out_of_range ("create_gsubr", scm_from_uint (req + opt + rst));
 
-	type = SCM_GSUBR_MAKTYPE (req, opt, rst);
-	if (SCM_GSUBR_REQ (type) != req
-	    || SCM_GSUBR_OPT (type) != opt
-	    || SCM_GSUBR_REST (type) != rst)
-	  scm_out_of_range ("create_gsubr", scm_from_uint (req + opt + rst));
-
-	subr = scm_c_make_subr (name, scm_tc7_gsubr | (type << 8U),
-				fcn);
-      }
-    }
+  subr = scm_c_make_subr (name, scm_tc7_gsubr | (type << 8U),
+                          fcn);
 
   if (define)
     scm_define (SCM_SUBR_NAME (subr), subr);
@@ -121,43 +90,21 @@ create_gsubr_with_generic (int define,
 			   SCM *gf)
 {
   SCM subr;
+  unsigned type;
 
-  switch (SCM_GSUBR_MAKTYPE(req, opt, rst))
-    {
-    case SCM_GSUBR_MAKTYPE(0, 0, 0):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_0, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(1, 0, 0):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_1, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(0, 1, 0):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_1o, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(1, 1, 0):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_2o, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(2, 0, 0):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_2, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(3, 0, 0):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_subr_3, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(0, 0, 1):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_lsubr, fcn, gf);
-      goto create_subr;
-    case SCM_GSUBR_MAKTYPE(2, 0, 1):
-      subr = scm_c_make_subr_with_generic (name, scm_tc7_lsubr_2, fcn, gf);
-    create_subr:
-      if (define)
-	scm_define (SCM_SUBR_NAME (subr), subr);
-      return subr;
-    default:
-      ;
-    }
-  scm_misc_error ("scm_c_make_gsubr_with_generic",
-		  "can't make primitive-generic with this arity",
-		  SCM_EOL);
-  return SCM_BOOL_F; /* never reached */
+  type = SCM_GSUBR_MAKTYPE (req, opt, rst);
+  if (SCM_GSUBR_REQ (type) != req
+      || SCM_GSUBR_OPT (type) != opt
+      || SCM_GSUBR_REST (type) != rst)
+    scm_out_of_range ("create_gsubr", scm_from_uint (req + opt + rst));
+
+  subr = scm_c_make_subr_with_generic (name, scm_tc7_gsubr | (type << 8U),
+                                       fcn, gf);
+
+  if (define)
+    scm_define (SCM_SUBR_NAME (subr), subr);
+
+  return subr;
 }
 
 SCM

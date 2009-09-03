@@ -820,8 +820,7 @@ scm_init_gc ()
   scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
 
-  gc_async = scm_c_make_subr ("%gc-thunk", scm_tc7_subr_0,
-			      gc_async_thunk);
+  gc_async = scm_c_make_gsubr ("%gc-thunk", 0, 0, 0, gc_async_thunk);
 
   scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
 

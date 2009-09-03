@@ -941,7 +941,7 @@ scm_init_eval ()
   
   scm_listofnull = scm_list_1 (SCM_EOL);
 
-  f_apply = scm_c_define_subr ("apply", scm_tc7_lsubr_2, scm_apply);
+  f_apply = scm_c_define_gsubr ("apply", 2, 0, 1, scm_apply);
   scm_permanent_object (f_apply);
 
   primitive_eval = scm_c_make_gsubr ("primitive-eval", 1, 0, 0,
