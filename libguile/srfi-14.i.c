@@ -6253,7 +6253,7 @@ scm_t_char_set cs_empty = {
   cs_empty_ranges
 };
 
-scm_t_char_range cs_full_ranges[] = {
+scm_t_char_range cs_designated_ranges[] = {
   {0x0000, 0x0377}
   ,
   {0x037a, 0x037e}
@@ -7145,7 +7145,7 @@ scm_t_char_range cs_full_ranges[] = {
   {0x100000, 0x10fffd}
 };
 
-scm_t_char_set cs_full = {
+scm_t_char_set cs_designated = {
   445,
-  cs_full_ranges
+  cs_designated_ranges
 };

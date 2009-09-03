@@ -254,8 +254,8 @@ sub empty {
     return 0;
 }
 
-# Full -- All characters except for the surrogates
-sub full {
+# Designated -- All characters except for the surrogates
+sub designated {
     my($codepoint, $name, $category, $uppercase, $lowercase)= @_;
     if ($category =~ (/Cs/)) {
         return 0;
@@ -387,7 +387,7 @@ compute "symbol";
 compute "blank";
 compute "ascii";
 compute "empty";
-compute "full";
+compute "designated";
 
 close $in;
 close $out;

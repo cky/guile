@@ -34,6 +34,18 @@
 /* Include the pre-computed standard charset data.  */
 #include "libguile/srfi-14.i.c"
 
+scm_t_char_range cs_full_ranges[] = {
+  {0x0000, SCM_CODEPOINT_SURROGATE_START - 1}
+  ,
+  {SCM_CODEPOINT_SURROGATE_END + 1, SCM_CODEPOINT_MAX}
+};
+
+scm_t_char_set cs_full = {
+  2,
+  cs_full_ranges
+};
+
+
 #define SCM_CHARSET_DATA(charset) ((scm_t_char_set *) SCM_SMOB_DATA (charset))
 
 #define SCM_CHARSET_SET(cs, idx)                        \
@@ -2025,6 +2037,7 @@ SCM scm_char_set_hex_digit;
 SCM scm_char_set_blank;
 SCM scm_char_set_ascii;
 SCM scm_char_set_empty;
+SCM scm_char_set_designated;
 SCM scm_char_set_full;
 
 
@@ -2102,6 +2115,7 @@ scm_init_srfi_14 (void)
   scm_char_set_blank = define_charset ("char-set:blank", &cs_blank);
   scm_char_set_ascii = define_charset ("char-set:ascii", &cs_ascii);
   scm_char_set_empty = define_charset ("char-set:empty", &cs_empty);
+  scm_char_set_designated = define_charset ("char-set:designated", &cs_designated);
   scm_char_set_full = define_charset ("char-set:full", &cs_full);
 
 #include "libguile/srfi-14.x"
