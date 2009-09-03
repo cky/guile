@@ -844,6 +844,9 @@ scm_read_character (scm_t_wchar chr, SCM port)
     return SCM_MAKE_CHAR (scm_i_string_ref (charname, 0));
 
   cp = scm_i_string_ref (charname, 0);
+  if (cp == SCM_CODEPOINT_DOTTED_CIRCLE && charname_len == 2)
+    return SCM_MAKE_CHAR (scm_i_string_ref (charname, 1));
+
   if (cp >= '0' && cp < '8')
     {
       /* Dirk:FIXME::  This type of character syntax is not R5RS

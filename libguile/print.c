@@ -463,13 +463,26 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                 /* Print the character if is graphic character.  */
                 {
                   scm_t_wchar *wbuf;
-                  SCM wstr = scm_i_make_wide_string (1, &wbuf);
+                  SCM wstr;
                   char *buf;
                   size_t len;
                   const char *enc;
 
                   enc = scm_i_get_port_encoding (port);
-                  wbuf[0] = i;
+                  if (uc_combining_class (i) == UC_CCC_NR)
+                    {
+                      wstr = scm_i_make_wide_string (1, &wbuf);
+                      wbuf[0] = i;
+                    }
+                  else
+                    {
+                      /* Character is a combining character: print it connected
+                         to a dotted circle instead of connecting it to the 
+                         backslash in '#\'  */
+                      wstr = scm_i_make_wide_string (2, &wbuf);
+                      wbuf[0] = SCM_CODEPOINT_DOTTED_CIRCLE;
+                      wbuf[1] = i;
+                    }
                   if (enc == NULL)
                     {
                       if (i <= 0xFF)
