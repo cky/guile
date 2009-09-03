@@ -2052,31 +2052,59 @@ define_charset (const char *name, const scm_t_char_set *p)
   return scm_permanent_object (cs);
 }
 
-#ifdef SCM_CHARSET_DEBUG
-SCM_DEFINE (scm_debug_char_set, "debug-char-set", 1, 0, 0,
-            (SCM charset),
-            "Print out the internal C structure of @var{charset}.\n")
-#define FUNC_NAME s_scm_debug_char_set
+SCM_DEFINE (scm_sys_char_set_dump, "%char-set-dump", 1, 0, 0, (SCM charset), 
+            "Returns an association list containing debugging information\n"
+            "for @var{charset}. The association list has the following entries."
+            "@table @code\n"
+            "@item char-set\n"
+            "The char-set itself.\n"
+            "@item len\n"
+            "The number of character ranges the char-set contains\n"
+            "@item ranges\n"
+            "A list of lists where each sublist a range of code points\n"
+            "and their associated characters"
+            "@end table")
+#define FUNC_NAME s_scm_sys_char_set_dump
 {
-  int i;
-  scm_t_char_set *cs = SCM_CHARSET_DATA (charset);
-  fprintf (stderr, "cs %p\n", cs);
-  fprintf (stderr, "len %d\n", cs->len);
-  fprintf (stderr, "arr %p\n", cs->ranges);
+  SCM e1, e2, e3;
+  SCM ranges = SCM_EOL, elt;
+  size_t i;
+  scm_t_char_set *cs;
+  char codepoint_string_lo[9], codepoint_string_hi[9];
+
+  SCM_VALIDATE_SMOB (1, charset, charset);
+  cs = SCM_CHARSET_DATA (charset);
+
+  e1 = scm_cons (scm_from_locale_symbol ("char-set"),
+                 charset);
+  e2 = scm_cons (scm_from_locale_symbol ("n"),
+                 scm_from_size_t (cs->len));
+
   for (i = 0; i < cs->len; i++)
     {
-      if (cs->ranges[i].lo == cs->ranges[i].hi)
-        fprintf (stderr, "%04x\n", cs->ranges[i].lo);
+      if (cs->ranges[i].lo > 0xFFFF)
+        sprintf (codepoint_string_lo, "U+%06x", cs->ranges[i].lo);
       else
-        fprintf (stderr, "%04x..%04x\t[%d]\n",
-                 cs->ranges[i].lo,
-                 cs->ranges[i].hi, cs->ranges[i].hi - cs->ranges[i].lo + 1);
+        sprintf (codepoint_string_lo, "U+%04x", cs->ranges[i].lo);
+      if (cs->ranges[i].hi > 0xFFFF)
+        sprintf (codepoint_string_hi, "U+%06x", cs->ranges[i].hi);
+      else
+        sprintf (codepoint_string_hi, "U+%04x", cs->ranges[i].hi);
+
+      elt = scm_list_4 (SCM_MAKE_CHAR (cs->ranges[i].lo),
+                            SCM_MAKE_CHAR (cs->ranges[i].hi),
+                            scm_from_locale_string (codepoint_string_lo),
+                            scm_from_locale_string (codepoint_string_hi));
+      ranges = scm_append (scm_list_2 (ranges,
+                                       scm_list_1 (elt)));
     }
-  printf ("\n");
-  return SCM_UNSPECIFIED;
+  e3 = scm_cons (scm_from_locale_symbol ("ranges"),
+                 ranges);
+
+  return scm_list_3 (e1, e2, e3);
 }
 #undef FUNC_NAME
-#endif /* SCM_CHARSET_DEBUG */
+
 
 
 
