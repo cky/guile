@@ -290,7 +290,7 @@ st_truncate (SCM port, scm_t_off length)
 }
 
 SCM 
-scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, const char *caller)
+scm_i_mkstrport (SCM pos, const char *utf8_str, size_t str_len, long modes, const char *caller)
 {
   SCM z, str;
   scm_t_port *pt;
@@ -305,7 +305,7 @@ scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, co
 
      locale_str is already in the locale of the port.  */
   str = scm_i_make_string (str_len, &buf);
-  memcpy (buf, locale_str, str_len);
+  memcpy (buf, utf8_str, str_len);
 
   c_pos = scm_to_unsigned_integer (pos, 0, str_len);
 
@@ -323,12 +323,14 @@ scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, co
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
 
   pt->rw_random = 1;
-
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   /* ensure write_pos is writable. */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
     st_flush (z);
+
+  scm_i_set_port_encoding_x (z, "UTF-8");
+  scm_i_set_conversion_strategy_x (z, SCM_FAILED_CONVERSION_ERROR);
   return z;
 }
 
@@ -349,9 +351,9 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
      internal encoding of characters in strings is in unicode
      codepoints. */
 
-  /* Ports are initialized with the thread-default values for encoding and
-     invalid sequence handling.  */
-  buf = scm_to_locale_stringn (str, &str_len);
+  /* String ports are are always initialized with "UTF-8" as their
+     encoding.  */
+  buf = scm_to_stringn (str, &str_len, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
   z = scm_i_mkstrport (pos, buf, str_len, modes, caller);
   free (buf);
   return z;
