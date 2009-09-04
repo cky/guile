@@ -10,6 +10,17 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
+** Ports do transcoding
+
+Ports now have an associated character encoding, and port read/write
+operations do conversion to/from locales automatically.  Ports also
+have an associated strategy for how to deal with locale conversion
+failures.  Four functions to support this: set-port-encoding!,
+port-encoding, set-port-conversion-strategy!,
+port-conversion-strategy.
+
+** String and SRFI-13 functions can operate on Unicode strings
+
 ** SRFI-14 char-sets are modified for Unicode
 
 The default char-sets are not longer locale dependent and contain

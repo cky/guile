@@ -2690,6 +2690,14 @@ Vertical tab character (ASCII 11).
 @item @nicode{\xHH}
 Character code given by two hexadecimal digits.  For example
 @nicode{\x7f} for an ASCII DEL (127).
+
+@item @nicode{\uHHHH}
+Character code given by four hexadecimal digits.  For example
+@nicode{\u0100} for a capital A with macron (U+0100).
+
+@item @nicode{\UHHHHHH}
+Character code given by six hexadecimal digits.  For example
+@nicode{\U010402}.
 @end table
 
 @noindent
@@ -3110,9 +3118,14 @@ The procedures in this section are similar to the character ordering
 predicates (@pxref{Characters}), but are defined on character sequences.
 
 The first set is specified in R5RS and has names that end in @code{?}.
-The second set is specified in SRFI-13 and the names have no ending
-@code{?}.  The predicates ending in @code{-ci} ignore the character case
-when comparing strings.  @xref{Text Collation, the @code{(ice-9
+The second set is specified in SRFI-13 and the names have not ending
+@code{?}.  
+
+The predicates ending in @code{-ci} ignore the character case
+when comparing strings.  For now, case-insensitive comparison is done
+using the R5RS rules, where every lower-case character that has a
+single character upper-case form is converted to uppercase before
+comparison.  See @xref{Text Collation, the @code{(ice-9
 i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
