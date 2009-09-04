@@ -142,27 +142,6 @@
 	   (list= eqv? (string->list s4)
 		  (list #\κ #\α #\ι))))
 
-;; Testing that the display of the string is output in the ISO-8859-7
-;; encoding
-(with-test-prefix "display"
- 
-  (pass-if "s1"
-	   (let ((pt (open-output-string)))
-	     (set-port-encoding! pt "ISO-8859-7")
-	     (display s1 pt)
-	     (list= eqv? 
-		    (list #xd0 #xe5 #xf1 #xdf)
-		    (u8vector->list 
-		     (get-output-locale-u8vector pt)))))
-  (pass-if "s2"
-	   (let ((pt (open-output-string)))
-	     (set-port-encoding! pt "ISO-8859-7")
-	     (display s2 pt)
-	     (list= eqv? 
-		    (list #xf4 #xe7 #xf2)
-		    (u8vector->list 
-		     (get-output-locale-u8vector pt))))))
-
 (with-test-prefix "symbols == strings"
 
   (pass-if "Περί"

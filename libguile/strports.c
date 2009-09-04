@@ -386,24 +386,6 @@ SCM scm_strport_to_string (SCM port)
   return str;
 }
 
-/* Create a vector containing the locale representation of the string in the
-   port's buffer.  */
-SCM scm_strport_to_locale_u8vector (SCM port)
-{
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  SCM vec;
-  char *buf;
-  
-  if (pt->rw_active == SCM_PORT_WRITE)
-    st_flush (port);
-
-  buf = scm_malloc (pt->read_buf_size);
-  memcpy (buf, pt->read_buf, pt->read_buf_size);
-  vec = scm_take_u8vector ((unsigned char *) buf, pt->read_buf_size);
-  scm_remember_upto_here_1 (port);
-  return vec;
-}
-
 SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
 	    (SCM obj, SCM printer),
 	    "Return a Scheme string obtained by printing @var{obj}.\n"
@@ -425,25 +407,6 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
     scm_call_2 (printer, obj, port);
 
   return scm_strport_to_string (port);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_call_with_output_locale_u8vector, "call-with-output-locale-u8vector", 1, 0, 0, 
-           (SCM proc),
-	    "Calls the one-argument procedure @var{proc} with a newly created output\n"
-	    "port.  When the function returns, a vector containing the bytes of a\n"
-	    "locale representation of the characters written into the port is returned\n")
-#define FUNC_NAME s_scm_call_with_output_locale_u8vector
-{
-  SCM p;
-
-  p = scm_mkstrport (SCM_INUM0, 
-		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
-		     SCM_OPN | SCM_WRTNG,
-                     FUNC_NAME);
-  scm_call_1 (proc, p);
-
-  return scm_get_output_locale_u8vector (p);
 }
 #undef FUNC_NAME
 
@@ -491,27 +454,6 @@ SCM_DEFINE (scm_open_input_string, "open-input-string", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_open_input_locale_u8vector, "open-input-locale-u8vector", 1, 0, 0,
-	    (SCM vec),
-	    "Take a u8vector containing the bytes of a string encoded in the\n"
-	    "current locale and return an input port that delivers characters\n"
-	    "from the string. The port can be closed by\n"
-	    "@code{close-input-port}, though its storage will be reclaimed\n"
-	    "by the garbage collector if it becomes inaccessible.")
-#define FUNC_NAME s_scm_open_input_locale_u8vector
-{
-  scm_t_array_handle hnd;
-  ssize_t inc;
-  size_t len;
-  const scm_t_uint8 *buf;
-
-  buf = scm_u8vector_elements (vec, &hnd, &len, &inc);
-  SCM p = scm_i_mkstrport(SCM_INUM0, (const char *) buf, len, SCM_OPN | SCM_RDNG, FUNC_NAME);
-  scm_array_handle_release (&hnd);
-  return p;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0, 
 	    (void),
 	    "Return an output port that will accumulate characters for\n"
@@ -540,19 +482,6 @@ SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0,
 {
   SCM_VALIDATE_OPOUTSTRPORT (1, port);
   return scm_strport_to_string (port);
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_get_output_locale_u8vector, "get-output-locale-u8vector", 1, 0, 0, 
-	    (SCM port),
-	    "Given an output port created by @code{open-output-string},\n"
-	    "return a u8 vector containing the characters of the string\n"
-	    "encoded in the current locale.")
-#define FUNC_NAME s_scm_get_output_locale_u8vector
-{
-  SCM_VALIDATE_OPOUTSTRPORT (1, port);
-  return scm_strport_to_locale_u8vector (port);
 }
 #undef FUNC_NAME
 

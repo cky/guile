@@ -145,27 +145,6 @@
 	   (list= eqv? (string->list s4)
 		  (list #\¿ #\C #\ó #\m #\o #\?))))
 
-;; Check that the output is in ISO-8859-1 encoding
-(with-test-prefix "display"
- 
-  (pass-if "s1"
-	   (let ((pt (open-output-string)))
-	     (set-port-encoding! pt "ISO-8859-1")
-	     (display s1 pt)
-	     (list= eqv? 
-		    (list #xfa #x6c #x74 #x69 #x6d #x61)
-		    (u8vector->list
-		     (get-output-locale-u8vector pt)))))
-
-  (pass-if "s2"
-	   (let ((pt (open-output-string)))
-	     (set-port-encoding! pt "ISO-8859-1")
-	     (display s2 pt)
-	     (list= eqv? 
-		    (list #x63 #xe9 #x64 #x75 #x6c #x61)
-		    (u8vector->list
-		     (get-output-locale-u8vector pt))))))
-
 (with-test-prefix "symbols == strings"
 
   (pass-if "última"
