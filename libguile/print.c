@@ -1216,8 +1216,8 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
 
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPORT_VALUE (2, port);
-
-  scm_putc ((int) SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
+  
+  scm_i_charprint (SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
 #if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
