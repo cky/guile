@@ -1446,6 +1446,7 @@ scm_scan_for_encoding (SCM port)
   /* grab the next token */
   i = 0;
   while (pos + i - header <= SCM_ENCODING_SEARCH_SIZE 
+         && pos + i - header < bytes_read
 	 && (isalnum((int) pos[i]) || pos[i] == '_' || pos[i] == '-' 
              || pos[i] == '.'))
     i++;
