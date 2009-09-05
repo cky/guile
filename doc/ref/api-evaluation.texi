@@ -17,6 +17,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Fly Evaluation::              Procedures for on the fly evaluation.
 * Compilation::                 How to compile Scheme files and procedures.
 * Loading::                     Loading Scheme code from file.
+* Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 * Local Evaluation::            Evaluation in a local environment.
 * Evaluator Behaviour::         Modifying Guile's evaluator.
@@ -229,6 +230,12 @@ Thus a Guile script often starts like this.
 More details on Guile scripting can be found in the scripting section
 (@pxref{Guile Scripting}).
 
+There is one special case where the contents of a comment can actually
+affect the interpretation of code.  When a character encoding
+declaration, such as @code{coding: utf-8} appears in one of the first
+few lines of a source file, it indicates to Guile's default reader
+that this source code file is not ASCII.  For details see @ref{Character
+Encoding of Source Files}.
 
 @node Case Sensitivity
 @subsubsection Case Sensitivity
@@ -589,6 +596,69 @@ A list of default file extensions for files containing Scheme code.
 a file to load.  By default, @code{%load-extensions} is bound to the
 list @code{("" ".scm")}.
 @end defvar
+
+@node Character Encoding of Source Files
+@subsection Character Encoding of Source Files
+
+@cindex primitive-load
+@cindex load
+Scheme source code files are usually encoded in ASCII, but, the
+built-in reader can interpret other character encodings.  The
+procedure @code{primitive-load}, and by extension the functions that
+call it, such as @code{load}, first scan the top 500 characters of the
+file for a coding declaration.
+
+A coding declaration has the form @code{coding: XXXXXX}, where
+@code{XXXXXX} is the name of a character encoding in which the source
+code file has been encoded.  The coding declaration must appear in a
+scheme comment.  It can either be a semicolon-initiated comment or a block
+@code{#!} comment.
+
+The name of the character encoding in the coding declaration is
+typically lower case and containing only letters, numbers, and
+hyphens.  The most common examples of character encodings are
+@code{utf-8} and @code{iso-8859-1}.  This allows the coding
+declaration to be compatible with EMACS.
+
+For source code, only a subset of all possible character encodings can
+be interpreted by the built-in source code reader.  Only those
+character encodings in which ASCII text appears unmodified can be
+used.  This includes @code{UTF-8} and @code{ISO-8859-1} through
+@code{ISO-8859-15}.  The multi-byte character encodings @code{UTF-16}
+and @code{UTF-32} may not be used because they are not compatible with
+ASCII.
+
+@cindex read
+@cindex set-port-encoding!
+There might be a scenario in which one would want to read non-ASCII
+code from a port, such as with the function @code{read}, instead of
+with @code{load}.  If the port's character encoding is the same as the
+encoding of the code to be read by the port, not other special
+handling is necessary.  The port will automatically do the character
+encoding conversion.  The functions @code{setlocale} or by
+@code{set-port-encoding!} are used to set port encodings.
+
+If a port is used to read code of unknown character encoding, it can
+accomplish this in three steps.  First, the character encoding of the
+port should be set to ISO-8859-1 using @code{set-port-encoding!}.
+Then, the procedure @code{file-encoding}, described below, is used to
+scan for a coding declaration when reading from the port.  As a side
+effect, it rewinds the port after its scan is complete. After that,
+the port's character encoding should be set to the encoding returned
+by @code{file-encoding}, if any, again by using
+@code{set-port-encoding!}.  Then the code can be read as normal.
+
+@deffn {Scheme Procedure} file-encoding port
+@deffnx {C Function} scm_file_encoding port
+Scans the port for an EMACS-like character coding declaration near the
+top of the contents of a port with random-acessible contents.  The
+coding declaration is of the form @code{coding: XXXXX} and must appear
+in a scheme comment.
+
+Returns a string containing the character encoding of the file
+if a declaration was found, or @code{#f} otherwise.  The port is
+rewound.
+@end deffn
 
 
 @node Delayed Evaluation

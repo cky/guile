@@ -10,6 +10,18 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
+** Non-ASCII source code files can be read, but require coding
+   declarations
+
+The default reader now handles source code files for some of the
+non-ASCII character encodings, such as UTF-8.  A non-ASCII source file
+should have an encoding declaration near the top of the file.  Also,
+there is a new function file-encoding that scans a port for a coding
+declaration.
+
+The pre-1.9.3 reader handled 8-bit clean but otherwise unspecified source
+code.  This use is now discouraged.
+
 ** Ports do transcoding
 
 Ports now have an associated character encoding, and port read/write

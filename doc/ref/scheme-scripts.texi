@@ -64,6 +64,12 @@ operating system never reads this far, but Guile treats this as the end
 of the comment begun on the first line by the @samp{#!} characters.
 
 @item
+If this source code file is not ASCII or ISO-8859-1 encoded, a coding
+declaration such as @code{coding: utf-8} should appear in a comment
+somewhere in the first five lines of the file: see @ref{Character
+Encoding of Source Files}.
+
+@item
 The rest of the file should be a Scheme program.
 
 @end itemize
