@@ -10,6 +10,21 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
+
+** Files loaded with `load' will now be compiled automatically.
+
+As with files loaded via `primitive-load-path', `load' will also compile
+its target if autocompilation is enabled, and a fresh compiled file is
+not found.
+
+There are two points of difference to note, however. First, `load' does
+not search `GUILE_LOAD_COMPILED_PATH' for the file; it only looks in the
+autocompilation directory, normally a subdirectory of ~/.cache/guile.
+
+Secondly, autocompilation also applies to files loaded via the -l
+command-line argument -- so the user may experience a slight slowdown
+the first time they run a Guile script, as the script is autocompiled.
+
 ** Support for non-ASCII source code files
 
 The default reader now handles source code files for some of the
@@ -48,6 +63,22 @@ Unicode characters. There is a new debugging function, `%char-set-dump'.
 Character comparisons such as `char<?' and `char-ci<?' now sort based on
 Unicode code points.
 
+** Unicode symbol support
+
+One may now use U+03BB (GREEK SMALL LETTER LAMBDA) as an identifier.
+
+** New readline history functions
+
+The (ice-9 readline) module now provides add-history, read-history,
+write-history and clear-history, which wrap the corresponding GNU
+History library functions.
+
+** Removed deprecated uniform array procedures:
+   dimensions->uniform-array, list->uniform-array, array-prototype
+
+Instead, use make-typed-array, list->typed-array, or array-type,
+respectively.
+
 ** Removed deprecated uniform array procedures: scm_make_uve,
    scm_array_prototype, scm_list_to_uniform_array,
    scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
@@ -60,23 +91,14 @@ These functions have been deprecated since early 2005.
 Use of the second argument produced a deprecation warning, so it is
 unlikely that any code out there actually used this functionality.
 
-** Removed deprecated uniform array procedures:
-   dimensions->uniform-array, list->uniform-array, array-prototype
+** GOOPS documentation folded into Guile reference manual
 
-Instead, use make-typed-array, list->typed-array, or array-type,
-respectively.
+GOOPS, Guile's object system, used to be documented in separate manuals.
+This content is now included in Guile's manual directly.
 
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
-
-* Changes to Scheme functions and syntax
-
-** New readline history functions
-
-The (ice-9 readline) module now provides add-history, read-history,
-write-history and clear-history, which wrap the corresponding GNU
-History library functions.
 
 
 Changes in 1.9.x (since the 1.8.x series):
@@ -557,6 +579,10 @@ hexadecimal escapes `\xXX', `\uXXXX', or `\UXXXXXX', for 8-bit, 16-bit,
 or 24-bit codepoints, respectively, or entered directly in the native
 encoding of the port on which the string is read.
 
+** Unicode symbols
+
+One may now use U+03BB (GREEK SMALL LETTER LAMBDA) as an identifier.
+
 ** Support for non-ASCII source code files
 
 The default reader now handles source code files for some of the
@@ -711,6 +737,11 @@ unlikely that any code out there actually used this functionality.
 In other words the GNU Lesser General Public License, version 3 or
 later (at the discretion of each person that chooses to redistribute
 part of Guile).
+
+** GOOPS documentation folded into Guile reference manual
+
+GOOPS, Guile's object system, used to be documented in separate manuals.
+This content is now included in Guile's manual directly.
 
 ** `guile-config' will be deprecated in favor of `pkg-config'
 

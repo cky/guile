@@ -17,7 +17,7 @@ Guile
 
 @goops{} is the object oriented extension to @guile{}. Its
 implementation is derived from @w{STk-3.99.3} by Erick Gallesio and
-version 1.3 of Gregor Kiczales @cite{Tiny-Clos}.  It is very close in
+version 1.3 of Gregor Kiczales' @cite{Tiny-Clos}.  It is very close in
 spirit to CLOS, the Common Lisp Object System (@cite{CLtL2}) but is
 adapted for the Scheme language.  While GOOPS is not compatible with any
 of these systems, GOOPS contains a compatibility module which allows for
