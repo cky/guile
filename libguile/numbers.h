@@ -238,6 +238,7 @@ SCM_API SCM scm_negative_p (SCM x);
 SCM_API SCM scm_max (SCM x, SCM y);
 SCM_API SCM scm_min (SCM x, SCM y);
 SCM_API SCM scm_sum (SCM x, SCM y);
+SCM_INTERNAL SCM scm_i_sum (SCM x, SCM y, SCM rest);
 SCM_API SCM scm_oneplus (SCM x);
 SCM_API SCM scm_difference (SCM x, SCM y);
 SCM_API SCM scm_oneminus (SCM x);

@@ -3991,10 +3991,24 @@ scm_min (SCM x, SCM y)
 }
 
 
-SCM_GPROC1 (s_sum, "+", scm_tc7_asubr, scm_sum, g_sum);
-/* "Return the sum of all parameter values.  Return 0 if called without\n"
- * "any parameters." 
- */
+SCM_PRIMITIVE_GENERIC (scm_i_sum, "+", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return the sum of all parameter values.  Return 0 if called without\n"
+                       "any parameters." )
+#define FUNC_NAME s_scm_i_sum
+{
+  while (!scm_is_null (rest))
+    { x = scm_sum (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_sum (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_sum s_scm_i_sum
+#define g_sum g_scm_i_sum
+
 SCM
 scm_sum (SCM x, SCM y)
 {
