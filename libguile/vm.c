@@ -296,18 +296,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
           arglist = scm_cons (args[nargs], arglist);
         return scm_closure_apply (proc, arglist);
       }
-    case scm_tc7_dsubr:
-      if (nargs != 1) scm_wrong_num_args (proc);
-      if (SCM_I_INUMP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1)));
-      else if (SCM_REALP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1)));
-      else if (SCM_BIGP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1)));
-      else if (SCM_FRACTIONP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1)));
-      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                          SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
     case scm_tc7_cxr:
       if (nargs != 1) scm_wrong_num_args (proc);
       return scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc));

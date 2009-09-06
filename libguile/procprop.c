@@ -53,7 +53,6 @@ scm_i_procedure_arity (SCM proc)
  loop:
   switch (SCM_TYP7 (proc))
     {
-    case scm_tc7_dsubr:
     case scm_tc7_cxr:
       a += 1;
       break;

@@ -698,27 +698,6 @@ ramap (SCM ra0, SCM proc, SCM ras)
 
 
 static int
-ramap_dsubr (SCM ra0, SCM proc, SCM ras)
-{
-  SCM ra1 = SCM_CAR (ras);
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc, inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra1)->lbnd + 1;
-  ra0 = SCM_I_ARRAY_V (ra0);
-  ra1 = SCM_I_ARRAY_V (ra1);
-  switch (SCM_TYP7 (ra0))
-    {
-    default:
-      for (; n-- > 0; i0 += inc0, i1 += inc1)
-	GVSET (ra0, i0, scm_call_1 (proc, GVREF (ra1, i1)));
-      break;
-    }
-  return 1;
-}
-
-
-
-static int
 ramap_rp (SCM ra0, SCM proc, SCM ras)
 {
   SCM ra1 = SCM_CAR (ras), ra2 = SCM_CAR (SCM_CDR (ras));
@@ -816,11 +795,6 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
     default:
     gencase:
       scm_ramapc (ramap, proc, ra0, lra, FUNC_NAME);
-      return SCM_UNSPECIFIED;
-    case scm_tc7_dsubr:
-      if (! scm_is_pair (lra))
-        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
-      scm_ramapc (ramap_dsubr, proc, ra0, lra, FUNC_NAME);
       return SCM_UNSPECIFIED;
     case scm_tc7_rpsubr:
       {

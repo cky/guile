@@ -34,7 +34,6 @@
 #define SCM_SUBR_META_INFO(x)  ((SCM *) SCM_CELL_WORD_3 (x))
 #define SCM_SUBR_NAME(x) (SCM_SUBR_META_INFO (x) [0])
 #define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
-#define SCM_DSUBRF(x) ((double (*)()) SCM_CELL_WORD_1 (x))
 #define SCM_SUBR_PROPS(x) (SCM_SUBR_META_INFO (x) [1])
 #define SCM_SUBR_GENERIC(x) ((SCM *) SCM_CELL_WORD_2 (x))
 #define SCM_SET_SUBR_GENERIC(x, g) (*((SCM *) SCM_CELL_WORD_2 (x)) = (g))
