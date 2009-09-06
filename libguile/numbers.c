@@ -1026,10 +1026,24 @@ scm_modulo (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG1, s_modulo);
 }
 
-SCM_GPROC1 (s_gcd, "gcd", scm_tc7_asubr, scm_gcd, g_gcd);
-/* "Return the greatest common divisor of all arguments.\n"
- * "If called without arguments, 0 is returned."
- */
+SCM_PRIMITIVE_GENERIC (scm_i_gcd, "gcd", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return the greatest common divisor of all parameter values.\n"
+                       "If called without arguments, 0 is returned.")
+#define FUNC_NAME s_scm_i_gcd
+{
+  while (!scm_is_null (rest))
+    { x = scm_gcd (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_gcd (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_gcd s_scm_i_gcd
+#define g_gcd g_scm_i_gcd
+
 SCM
 scm_gcd (SCM x, SCM y)
 {
@@ -1126,10 +1140,24 @@ scm_gcd (SCM x, SCM y)
     SCM_WTA_DISPATCH_2 (g_gcd, x, y, SCM_ARG1, s_gcd);
 }
 
-SCM_GPROC1 (s_lcm, "lcm", scm_tc7_asubr, scm_lcm, g_lcm);
-/* "Return the least common multiple of the arguments.\n"
- * "If called without arguments, 1 is returned."
- */
+SCM_PRIMITIVE_GENERIC (scm_i_lcm, "lcm", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return the least common multiple of the arguments.\n"
+                       "If called without arguments, 1 is returned.")
+#define FUNC_NAME s_scm_i_lcm
+{
+  while (!scm_is_null (rest))
+    { x = scm_lcm (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_lcm (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_lcm s_scm_i_lcm
+#define g_lcm g_scm_i_lcm
+
 SCM
 scm_lcm (SCM n1, SCM n2)
 {
@@ -1227,14 +1255,28 @@ scm_lcm (SCM n1, SCM n2)
 
 */
 
-SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
-             (SCM n1, SCM n2),
-	     "Return the bitwise AND of the integer arguments.\n\n"
-	     "@lisp\n"
-	     "(logand) @result{} -1\n"
-	     "(logand 7) @result{} 7\n"
-	     "(logand #b111 #b011 #b001) @result{} 1\n"
-	     "@end lisp")
+SCM_DEFINE (scm_i_logand, "logand", 0, 2, 1,
+            (SCM x, SCM y, SCM rest),
+            "Return the bitwise AND of the integer arguments.\n\n"
+            "@lisp\n"
+            "(logand) @result{} -1\n"
+            "(logand 7) @result{} 7\n"
+            "(logand #b111 #b011 #b001) @result{} 1\n"
+            "@end lisp")
+#define FUNC_NAME s_scm_i_logand
+{
+  while (!scm_is_null (rest))
+    { x = scm_logand (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_logand (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_scm_logand s_scm_i_logand
+
+SCM scm_logand (SCM n1, SCM n2)
 #define FUNC_NAME s_scm_logand
 {
   long int nn1;
@@ -1303,14 +1345,28 @@ SCM_DEFINE1 (scm_logand, "logand", scm_tc7_asubr,
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
-             (SCM n1, SCM n2),
-	     "Return the bitwise OR of the integer arguments.\n\n"
-	     "@lisp\n"
-	     "(logior) @result{} 0\n"
-	     "(logior 7) @result{} 7\n"
-	     "(logior #b000 #b001 #b011) @result{} 3\n"
-	    "@end lisp")
+SCM_DEFINE (scm_i_logior, "logior", 0, 2, 1,
+            (SCM x, SCM y, SCM rest),
+            "Return the bitwise OR of the integer arguments.\n\n"
+            "@lisp\n"
+            "(logior) @result{} 0\n"
+            "(logior 7) @result{} 7\n"
+            "(logior #b000 #b001 #b011) @result{} 3\n"
+            "@end lisp")
+#define FUNC_NAME s_scm_i_logior
+{
+  while (!scm_is_null (rest))
+    { x = scm_logior (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_logior (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_scm_logior s_scm_i_logior
+
+SCM scm_logior (SCM n1, SCM n2)
 #define FUNC_NAME s_scm_logior
 {
   long int nn1;
@@ -1377,8 +1433,8 @@ SCM_DEFINE1 (scm_logior, "logior", scm_tc7_asubr,
 #undef FUNC_NAME
 
 
-SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
-             (SCM n1, SCM n2),
+SCM_DEFINE (scm_i_logxor, "logxor", 0, 2, 1,
+            (SCM x, SCM y, SCM rest),
 	     "Return the bitwise XOR of the integer arguments.  A bit is\n"
 	     "set in the result if it is set in an odd number of arguments.\n"
 	     "@lisp\n"
@@ -1387,6 +1443,20 @@ SCM_DEFINE1 (scm_logxor, "logxor", scm_tc7_asubr,
 	     "(logxor #b000 #b001 #b011) @result{} 2\n"
 	     "(logxor #b000 #b001 #b011 #b011) @result{} 1\n"
 	    "@end lisp")
+#define FUNC_NAME s_scm_i_logxor
+{
+  while (!scm_is_null (rest))
+    { x = scm_logxor (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_logxor (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_scm_logxor s_scm_i_logxor
+
+SCM scm_logxor (SCM n1, SCM n2)
 #define FUNC_NAME s_scm_logxor
 {
   long int nn1;
@@ -3727,9 +3797,23 @@ scm_negative_p (SCM x)
    unlike scm_less_p above which takes some trouble to preserve all bits in
    its test, such trouble is not required for min and max.  */
 
-SCM_GPROC1 (s_max, "max", scm_tc7_asubr, scm_max, g_max);
-/* "Return the maximum of all parameter values."
- */
+SCM_PRIMITIVE_GENERIC (scm_i_max, "max", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return the maximum of all parameter values.")
+#define FUNC_NAME s_scm_i_max
+{
+  while (!scm_is_null (rest))
+    { x = scm_max (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_max (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_max s_scm_i_max
+#define g_max g_scm_i_max
+
 SCM
 scm_max (SCM x, SCM y)
 {
@@ -3859,9 +3943,23 @@ scm_max (SCM x, SCM y)
 }
 
 
-SCM_GPROC1 (s_min, "min", scm_tc7_asubr, scm_min, g_min);
-/* "Return the minium of all parameter values."
- */
+SCM_PRIMITIVE_GENERIC (scm_i_min, "min", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return the minimum of all parameter values.")
+#define FUNC_NAME s_scm_i_min
+{
+  while (!scm_is_null (rest))
+    { x = scm_min (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_min (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_min s_scm_i_min
+#define g_min g_scm_i_min
+
 SCM
 scm_min (SCM x, SCM y)
 {
@@ -3984,7 +4082,7 @@ scm_min (SCM x, SCM y)
           goto use_less;
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_max, x, y, SCM_ARGn, s_max);
+	SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARGn, s_min);
     }
   else
     SCM_WTA_DISPATCH_2 (g_min, x, y, SCM_ARG1, s_min);
@@ -4198,13 +4296,28 @@ SCM_DEFINE (scm_oneplus, "1+", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_GPROC1 (s_difference, "-", scm_tc7_asubr, scm_difference, g_difference);
-/* If called with one argument @var{z1}, -@var{z1} returned. Otherwise
- * the sum of all but the first argument are subtracted from the first
- * argument.  */
-#define FUNC_NAME s_difference
+SCM_PRIMITIVE_GENERIC (scm_i_difference, "-", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "If called with one argument @var{z1}, -@var{z1} returned. Otherwise\n"
+                       "the sum of all but the first argument are subtracted from the first\n"
+                       "argument.")
+#define FUNC_NAME s_scm_i_difference
+{
+  while (!scm_is_null (rest))
+    { x = scm_difference (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_difference (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_difference s_scm_i_difference
+#define g_difference g_scm_i_difference
+
 SCM
 scm_difference (SCM x, SCM y)
+#define FUNC_NAME s_difference
 {
   if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     {
@@ -4443,10 +4556,24 @@ SCM_DEFINE (scm_oneminus, "1-", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_GPROC1 (s_product, "*", scm_tc7_asubr, scm_product, g_product);
-/* "Return the product of all arguments.  If called without arguments,\n"
- * "1 is returned."
- */
+SCM_PRIMITIVE_GENERIC (scm_i_product, "*", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return the product of all arguments.  If called without arguments,\n"
+                       "1 is returned.")
+#define FUNC_NAME s_scm_i_product
+{
+  while (!scm_is_null (rest))
+    { x = scm_product (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_product (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_product s_scm_i_product
+#define g_product g_scm_i_product
+
 SCM
 scm_product (SCM x, SCM y)
 {
@@ -4663,13 +4790,28 @@ arising out of or in connection with the use or performance of
 this software.
 ****************************************************************/
 
-SCM_GPROC1 (s_divide, "/", scm_tc7_asubr, scm_divide, g_divide);
-/* Divide the first argument by the product of the remaining
-   arguments.  If called with one argument @var{z1}, 1/@var{z1} is
-   returned.  */
-#define FUNC_NAME s_divide
+SCM_PRIMITIVE_GENERIC (scm_i_divide, "/", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Divide the first argument by the product of the remaining\n"
+                       "arguments.  If called with one argument @var{z1}, 1/@var{z1} is\n"
+                       "returned.")
+#define FUNC_NAME s_scm_i_divide
+{
+  while (!scm_is_null (rest))
+    { x = scm_divide (x, y);
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_divide (x, y);
+}
+#undef FUNC_NAME
+                       
+#define s_divide s_scm_i_divide
+#define g_divide g_scm_i_divide
+
 static SCM
-scm_i_divide (SCM x, SCM y, int inexact)
+do_divide (SCM x, SCM y, int inexact)
+#define FUNC_NAME s_divide
 {
   double a;
 
@@ -5062,12 +5204,12 @@ scm_i_divide (SCM x, SCM y, int inexact)
 SCM
 scm_divide (SCM x, SCM y)
 {
-  return scm_i_divide (x, y, 0);
+  return do_divide (x, y, 0);
 }
 
 static SCM scm_divide2real (SCM x, SCM y)
 {
-  return scm_i_divide (x, y, 1);
+  return do_divide (x, y, 1);
 }
 #undef FUNC_NAME
 
