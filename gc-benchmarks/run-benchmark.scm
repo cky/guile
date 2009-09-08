@@ -4,7 +4,7 @@ exec ${GUILE-guile} -q -l "$0"                                  \
                     -c '(apply main (cdr (command-line)))'      \
                     --benchmark-dir="$(dirname $0)" "$@"
 !#
-;;; Copyright (C) 2008 Free Software Foundation, Inc.
+;;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@ exec ${GUILE-guile} -q -l "$0"                                  \
              (ice-9 popen)
              (ice-9 regex)
              (ice-9 format)
+             (ice-9 pretty-print)
              (srfi srfi-1)
              (srfi srfi-37))
 
@@ -103,23 +104,64 @@ exec ${GUILE-guile} -q -l "$0"                                  \
           result)))
 
 (define (pretty-print-result benchmark reference bdwgc)
+  (define ref-heap (assoc-ref reference 'heap-size))
+  (define ref-time (assoc-ref reference 'execution-time))
+
+  (define (distance x1 y1 x2 y2)
+    ;; Return the distance between (X1,Y1) and (X2,Y2), using a scale such
+    ;; that REFERENCE is at (1,1).
+    (let ((y1 (/ y1 (expt 2 20)))
+          (y2 (/ y2 (expt 2 20))))
+      (sqrt (+ (expt (- y1 y2) 2)
+               (expt (- x1 x2) 2)))))
+
+  (define (score time heap)
+    ;; Return a score between -1.0 and +1.0.  The score is positive if the
+    ;; distance to the origin of (TIME,HEAP) is smaller than that of
+    ;; (REF-TIME,REF-HEAP), negative otherwise.
+
+    ;; heap  ^         .
+    ;; size  |         .   worse
+    ;;       |         .    [-]
+    ;;       |         .
+    ;;     1 | . . . .ref. . . .
+    ;;       |         .
+    ;;       |  [+]    .
+    ;;       | better  .
+    ;;     0 +-------------------->
+    ;;                 1      exec. time
+
+    (let ((ref-dist (distance ref-time ref-heap 0 0))
+          (dist     (distance time heap 0 0)))
+      (/ (- ref-dist dist) ref-dist)))
+
+  (define (score-string time heap)
+    ;; Return a string denoting a bar to illustrate the score of (TIME,HEAP)
+    ;; relative to (REF-TIME,REF-HEAP).
+    (define %max-width 15)
+
+    (let ((s (score time heap)))
+      (make-string (inexact->exact (round (* (if (< s 0.0) (- s) s)
+                                             %max-width)))
+                   (if (< s 0.0)
+                       #\-
+                       #\+))))
+
   (define (print-line name result ref?)
-    (let ((name     (string-pad-right name 23))
-          (time     (assoc-ref result 'execution-time))
-          (heap     (assoc-ref result 'heap-size))
-          (ref-heap (assoc-ref reference 'heap-size))
-          (ref-time (assoc-ref reference 'execution-time)))
-      (format #t "~a ~1,2f (~,2fx)     ~6,3f (~,2fx)~A~%"
+    (let ((name (string-pad-right name 23))
+          (time (assoc-ref result 'execution-time))
+          (heap (assoc-ref result 'heap-size)))
+      (format #t "~a ~6,2f (~,2fx)    ~7,3f (~,2fx)~A~%"
               name
-              (/ heap 1000000.0) (/ heap ref-heap 1.0)
+              (/ heap (expt 2.0 20)) (/ heap ref-heap 1.0)
               time (/ time ref-time 1.0)
-              (if (and (not ref?)
-                       (<= heap ref-heap) (<= time ref-time))
-                  " !"
+              (if (not ref?)
+                  (string-append " "
+                                 (score-string time heap))
                   ""))))
 
   (format #t "benchmark: `~a'~%" benchmark)
-  (format #t "                     heap size (MiB) execution time (s.)~%")
+  (format #t "                       heap size (MiB)  execution time (s.)~%")
   (print-line "Guile" reference #t)
   (for-each (lambda (bdwgc)
               (let ((name (format #f "BDW-GC, FSD=~a~a"
@@ -133,6 +175,12 @@ exec ${GUILE-guile} -q -l "$0"                                  \
                                         (else "")))))
                 (print-line name bdwgc #f)))
             bdwgc))
+
+(define (print-raw-result benchmark reference bdwgc)
+  (pretty-print `(,benchmark
+                  (reference . ,reference)
+                  (bdw-gc    . ,bdwgc))))
+
 
 
 ;;;
@@ -170,14 +218,22 @@ exec ${GUILE-guile} -q -l "$0"                                  \
                 (lambda (opt name arg result)
                   (alist-cons 'log-port (open-output-file arg)
                               (alist-delete 'log-port result
-                                            eq?))))))
+                                            eq?))))
+        (option '("raw") #f #f
+                (lambda (opt name arg result)
+                  (alist-cons 'printer print-raw-result
+                              (alist-delete 'printer result eq?))))
+        (option '("load-results") #f #f
+                (lambda (opt name arg result)
+                  (alist-cons 'load-results? #t result)))))
 
 (define %default-options
   `((reference-environment . "GUILE=guile")
     (benchmark-directory   . "./gc-benchmarks")
     (log-port              . ,(current-output-port))
     (profile-options       . "")
-    (input                 . ())))
+    (input                 . ())
+    (printer               . ,pretty-print-result)))
 
 (define (show-help)
   (format #t "Usage: run-benchmark [OPTIONS] BENCHMARKS...
@@ -199,6 +255,12 @@ comparison of standard Guile (1.9) and the BDW-GC-based Guile.
                   Pass OPTS as additional options for `gc-profile.scm'.
   -l, --log-file=FILE
                   Save output to FILE instead of the standard output.
+
+      --raw       Write benchmark results in raw (s-exp) format.
+      --load-results
+                  Load raw (s-exp) results instead of actually running
+                  the benchmarks.
+
   -d, --benchmark-dir=DIR
                   Use DIR as the GC benchmark directory where `gc-profile.scm'
                   lives (it is automatically determined by default).
@@ -234,36 +296,54 @@ Report bugs to <bug-guile@gnu.org>.~%"))
            (bdwgc-env (or (assoc-ref args 'bdwgc-environment)
                           (string-append "GUILE=" bench-dir
                                          "/../meta/guile")))
-           (prof-opts (assoc-ref args 'profile-options)))
-      (for-each (lambda (benchmark)
-                  (let ((ref   (parse-result (run-reference-guile ref-env
-                                                                  bench-dir
-                                                                  prof-opts
-                                                                  benchmark)))
-                        (bdwgc (map (lambda (fsd incremental?
-                                             generational? parallel?)
-                                      (let ((opts
-                                             (list
-                                              (cons 'free-space-divisor fsd)
-                                              (cons 'incremental? incremental?)
-                                              (cons 'generational? generational?)
-                                              (cons 'parallel? parallel?))))
-                                        (append opts
-                                                (parse-result
-                                                 (run-bdwgc-guile bdwgc-env
-                                                                  bench-dir
-                                                                  prof-opts
-                                                                  opts
-                                                                  benchmark)))))
-                                    '( 3  6  9  3  3)
-                                    '(#f #f #f #t #f)    ;; incremental
-                                    '(#f #f #f #f #t)    ;; generational
-                                    '(#f #f #f #f #f)))) ;; parallel
-                    ;;(format #t "ref=~A~%" ref)
-                    ;;(format #t "bdw-gc=~A~%" bdwgc)
+           (prof-opts (assoc-ref args 'profile-options))
+           (print     (assoc-ref args 'printer)))
+      (define (run benchmark)
+        (let ((ref   (parse-result (run-reference-guile ref-env
+                                                        bench-dir
+                                                        prof-opts
+                                                        benchmark)))
+              (bdwgc (map (lambda (fsd incremental?
+                                       generational? parallel?)
+                            (let ((opts
+                                   (list
+                                    (cons 'free-space-divisor fsd)
+                                    (cons 'incremental? incremental?)
+                                    (cons 'generational? generational?)
+                                    (cons 'parallel? parallel?))))
+                              (append opts
+                                      (parse-result
+                                       (run-bdwgc-guile bdwgc-env
+                                                        bench-dir
+                                                        prof-opts
+                                                        opts
+                                                        benchmark)))))
+                          '( 3  6  9  3  3)
+                          '(#f #f #f #t #f)      ;; incremental
+                          '(#f #f #f #f #t)      ;; generational
+                          '(#f #f #f #f #f))))   ;; parallel
+          `(,benchmark
+            (reference . ,ref)
+            (bdw-gc    . ,bdwgc))))
+
+      (define (load-results file)
+        (with-input-from-file file
+          (lambda ()
+            (let loop ((results '()) (o (read)))
+              (if (eof-object? o)
+                  (reverse results)
+                  (loop (cons o results)
+                        (read)))))))
+
+      (for-each (lambda (result)
+                  (let ((benchmark (car result))
+                        (ref       (assoc-ref (cdr result) 'reference))
+                        (bdwgc     (assoc-ref (cdr result) 'bdw-gc)))
                     (with-output-to-port log
                       (lambda ()
-                        (pretty-print-result benchmark ref bdwgc)
+                        (print benchmark ref bdwgc)
                         (newline)
                         (force-output)))))
-                benchmark-files))))
+                (if (assoc-ref args 'load-results?)
+                    (append-map load-results benchmark-files)
+                    (map run benchmark-files))))))
