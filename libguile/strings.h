@@ -111,7 +111,7 @@ SCM_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
 SCM_API SCM scm_substring_copy (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
 
-SCM_INTERNAL SCM scm_i_from_stringn (const char *str, size_t len, 
+SCM_API SCM scm_i_from_stringn (const char *str, size_t len, 
                                      const char *encoding,
                                      scm_t_string_failed_conversion_handler 
                                      handler);
@@ -157,7 +157,7 @@ SCM_INTERNAL const scm_t_wchar *scm_i_string_wide_chars (SCM str);
 SCM_INTERNAL SCM scm_i_string_start_writing (SCM str);
 SCM_INTERNAL void scm_i_string_stop_writing (void);
 SCM_INTERNAL int scm_i_is_narrow_string (SCM str);
-SCM_INTERNAL scm_t_wchar scm_i_string_ref (SCM str, size_t x);
+SCM_API scm_t_wchar scm_i_string_ref (SCM str, size_t x);
 SCM_INTERNAL int scm_i_string_contains_char (SCM str, char c);
 SCM_INTERNAL int scm_i_string_strcmp (SCM sstr, size_t start_x, const char *cstr);
 SCM_INTERNAL void scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr);

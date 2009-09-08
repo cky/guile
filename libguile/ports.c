@@ -1293,7 +1293,7 @@ scm_c_read (SCM port, void *buffer, size_t size)
      requested number of bytes.  (Note that a single scm_fill_input
      call does not guarantee to fill the whole of the port's read
      buffer.) */
-  if (pt->read_buf_size <= 1)
+  if (pt->read_buf_size <= 1 && pt->encoding == NULL)
     {
       /* The port that we are reading from is unbuffered - i.e. does
 	 not have its own persistent buffer - but we have a buffer,
@@ -1305,7 +1305,14 @@ scm_c_read (SCM port, void *buffer, size_t size)
 	 We need to make sure that the port's normal (1 byte) buffer
 	 is reinstated in case one of the scm_fill_input () calls
 	 throws an exception; we use the scm_dynwind_* API to achieve
-	 that. */
+	 that. 
+
+         A consequence of this optimization is that the fill_input
+         functions can't unget characters.  That'll push data to the
+         pushback buffer instead of this psb buffer.  */
+#if SCM_DEBUG == 1
+      unsigned char *pback = pt->putback_buf;
+#endif      
       psb.pt = pt;
       psb.buffer = buffer;
       psb.size = size;
@@ -1320,8 +1327,15 @@ scm_c_read (SCM port, void *buffer, size_t size)
 	  pt->read_buf_size -= (pt->read_end - pt->read_pos);
 	  pt->read_pos = pt->read_buf = pt->read_end;
 	}
+#if SCM_DEBUG == 1
+      if (pback != pt->putback_buf 
+          || pt->read_buf - (unsigned char *) buffer < 0)
+        scm_misc_error (FUNC_NAME, 
+                        "scm_c_read must not call a fill function that pushes "
+                        "back characters onto an unbuffered port", SCM_EOL);
+#endif      
       n_read += pt->read_buf - (unsigned char *) buffer;
-
+      
       /* Reinstate the port's normal buffer. */
       scm_dynwind_end ();
     }

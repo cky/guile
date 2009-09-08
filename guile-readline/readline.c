@@ -128,6 +128,7 @@ rl_free_line_state ()
 
 static int promptp;
 static SCM input_port;
+static SCM output_port;
 static SCM before_read;
 
 static int
@@ -138,7 +139,7 @@ current_input_getc (FILE *in SCM_UNUSED)
       scm_apply (before_read, SCM_EOL, SCM_EOL);
       promptp = 0;
     }
-  return scm_getc (input_port);
+  return scm_get_byte_or_eof (input_port);
 }
 
 static int in_readline = 0;
@@ -255,7 +256,12 @@ internal_readline (SCM text)
   promptp = 1;
   s = readline (prompt);
   if (s)
-    ret = scm_from_locale_string (s);
+    {
+      scm_t_port *pt = SCM_PTAB_ENTRY (output_port);
+      
+      ret = scm_i_from_stringn (s, strlen (s), pt->encoding, 
+                                SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
+    }
   else 
     ret = SCM_EOF_VAL;
 
@@ -311,6 +317,7 @@ scm_readline_init_ports (SCM inp, SCM outp)
   }
 
   input_port = inp;
+  output_port = outp;
 #ifndef __MINGW32__
   rl_instream = stream_from_fport (inp, "r", s_scm_readline);
   rl_outstream = stream_from_fport (outp, "w", s_scm_readline);
