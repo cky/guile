@@ -108,15 +108,15 @@ exec ${GUILE-guile} -q -l "$0"                                  \
   (define ref-time (assoc-ref reference 'execution-time))
 
   (define (distance x1 y1 x2 y2)
-    ;; Return the distance between (X1,Y1) and (X2,Y2), using a scale such
-    ;; that REFERENCE is at (1,1).
+    ;; Return the distance between (X1,Y1) and (X2,Y2).  Y is the heap size,
+    ;; in MiB and X is the execution time in seconds.
     (let ((y1 (/ y1 (expt 2 20)))
           (y2 (/ y2 (expt 2 20))))
       (sqrt (+ (expt (- y1 y2) 2)
                (expt (- x1 x2) 2)))))
 
   (define (score time heap)
-    ;; Return a score between -1.0 and +1.0.  The score is positive if the
+    ;; Return a score lower than +1.0.  The score is positive if the
     ;; distance to the origin of (TIME,HEAP) is smaller than that of
     ;; (REF-TIME,REF-HEAP), negative otherwise.
 
@@ -124,12 +124,12 @@ exec ${GUILE-guile} -q -l "$0"                                  \
     ;; size  |         .   worse
     ;;       |         .    [-]
     ;;       |         .
-    ;;     1 | . . . .ref. . . .
+    ;;       | . . . .ref. . . .
     ;;       |         .
     ;;       |  [+]    .
     ;;       | better  .
     ;;     0 +-------------------->
-    ;;                 1      exec. time
+    ;;                        exec. time
 
     (let ((ref-dist (distance ref-time ref-heap 0 0))
           (dist     (distance time heap 0 0)))
