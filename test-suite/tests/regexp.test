@@ -21,6 +21,8 @@
   #:use-module (test-suite lib)
   #:use-module (ice-9 regex))
 
+(setlocale LC_ALL "C")
+
 
 ;;; Run a regexp-substitute or regexp-substitute/global test, once
 ;;; providing a real port and once providing #f, requesting direct
@@ -130,58 +132,85 @@
 ;;; regexp-quote
 ;;;
 
+(define (with-latin1-locale thunk)
+  ;; Try out several ISO-8859-1 locales and run THUNK under the one that
+  ;; works (if any).
+  (define %locales
+    (append
+     (map (lambda (name)
+            (string-append name ".ISO-8859-1"))
+          '("fr_FR" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
+     (map (lambda (name)
+            (string-append name ".iso88591"))
+          '("fr_FR" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))))
+
+
+  (let loop ((locales %locales))
+    (if (null? locales)
+        (throw 'unresolved)
+        (catch 'unresolved
+          (lambda ()
+            (with-locale (car locales) thunk))
+          (lambda (key . args)
+            (loop (cdr locales)))))))
+
+
+
 (with-test-prefix "regexp-quote"
 
-  (with-locale "en_US.iso88591"
-    (pass-if-exception "no args" exception:wrong-num-args
-      (regexp-quote))
+  (pass-if-exception "no args" exception:wrong-num-args
+    (regexp-quote))
 
-    (pass-if-exception "bad string arg" exception:wrong-type-arg
-      (regexp-quote 'blah))
+  (pass-if-exception "bad string arg" exception:wrong-type-arg
+    (regexp-quote 'blah))
 
-    (let ((lst `((regexp/basic    ,regexp/basic)
-	         (regexp/extended ,regexp/extended)))
-          ;; string of all characters, except #\nul which doesn't work because
-          ;; it's the usual end-of-string for the underlying C regexec()
-          (allchars (list->string (map integer->char
-                                       (cdr (iota char-code-limit))))))
-      (for-each
-       (lambda (elem)
-         (let ((name (car  elem))
-               (flag (cadr elem)))
+  (let ((lst `((regexp/basic    ,regexp/basic)
+	       (regexp/extended ,regexp/extended)))
+	;; string of all characters, except #\nul which doesn't work because
+	;; it's the usual end-of-string for the underlying C regexec()
+	(allchars (list->string (map integer->char
+				     (cdr (iota char-code-limit))))))
+    (for-each
+     (lambda (elem)
+       (let ((name (car  elem))
+	     (flag (cadr elem)))
 
-           (with-test-prefix name
+	 (with-test-prefix name
 
-	     ;; try on each individual character, except #\nul
-	     (do ((i 1 (1+ i)))
-                 ((>= i char-code-limit))
-               (let* ((c (integer->char i))
-                      (s (string c))
-                      (q (regexp-quote s)))
-                 (pass-if (list "char" i (format #f "~s ~s ~s" c s q))
-                   (let ((m (regexp-exec (make-regexp q flag) s)))
-                     (and (= 0 (match:start m))
-                          (= 1 (match:end m)))))))
+	   ;; try on each individual character, except #\nul
+	   (do ((i 1 (1+ i)))
+	       ((>= i char-code-limit))
+             (let* ((c (integer->char i))
+                    (s (string c)))
+               (pass-if (list "char" i (format #f "~s ~s" c s))
+                 (with-latin1-locale
+                  (let* ((q (regexp-quote s))
+                         (m (regexp-exec (make-regexp q flag) s)))
+                    (and (= 0 (match:start m))
+                         (= 1 (match:end m))))))))
 
-             ;; try on pattern "aX" where X is each character, except #\nul
-             ;; this exposes things like "?" which are special only when they
-             ;; follow a pattern to repeat or whatever ("a" in this case)
-             (do ((i 1 (1+ i)))
-                 ((>= i char-code-limit))
-               (let* ((c (integer->char i))
-                      (s (string #\a c))
-                      (q (regexp-quote s)))
-                 (pass-if (list "string \"aX\"" i (format #f "~s ~s ~s" c s q))
-                   (let ((m (regexp-exec (make-regexp q flag) s)))
-                     (and (= 0 (match:start m))
-                          (= 2 (match:end m)))))))
+	   ;; try on pattern "aX" where X is each character, except #\nul
+	   ;; this exposes things like "?" which are special only when they
+	   ;; follow a pattern to repeat or whatever ("a" in this case)
+	   (do ((i 1 (1+ i)))
+	       ((>= i char-code-limit))
+             (let* ((c (integer->char i))
+                    (s (string #\a c))
+                    (q (regexp-quote s)))
+               (pass-if (list "string \"aX\"" i (format #f "~s ~s" c s))
+                 (with-latin1-locale
+		  (let* ((q (regexp-quote s))
+                         (m (regexp-exec (make-regexp q flag) s)))
+                    (and (= 0 (match:start m))
+                         (= 2 (match:end m))))))))
 
-             (pass-if "string of all chars"
-	       (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
-                                                  flag) allchars)))
-                 (and (= 0 (match:start m))
-                      (= (string-length allchars) (match:end m))))))))
-       lst))))
+	   (pass-if "string of all chars"
+             (with-latin1-locale
+              (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
+                                                 flag) allchars)))
+                (and (= 0 (match:start m))
+                     (= (string-length allchars) (match:end m)))))))))
+     lst)))
 
 ;;;
 ;;; regexp-substitute
