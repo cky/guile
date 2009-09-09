@@ -37,7 +37,6 @@
 #include "libguile/vectors.h"
 #include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
-#include "libguile/dynwind.h"
 #include "libguile/generalized-arrays.h"
 #include "libguile/generalized-vectors.h"
 
@@ -77,6 +76,9 @@ static ra_iproc ra_asubrs[] =
   {"/", SCM_UNDEFINED, scm_ra_divide},
   {0, 0, 0}
 };
+
+/* The WHAT argument for `scm_gc_malloc ()' et al.  */
+static const char indices_gc_hint[] = "array-indices";
 
 
 #define GVREF scm_c_generalized_vector_ref
@@ -311,10 +313,8 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 	plvra = SCM_CDRLOC (*plvra);
       }
 
-    scm_dynwind_begin (0);
-
-    vinds = scm_malloc (sizeof(long) * SCM_I_ARRAY_NDIM (ra0));
-    scm_dynwind_free (vinds);
+    vinds = scm_gc_malloc_pointerless (sizeof(long) * SCM_I_ARRAY_NDIM (ra0),
+				       indices_gc_hint);
 
     for (k = 0; k <= kmax; k++)
       vinds[k] = SCM_I_ARRAY_DIMS (ra0)[k].lbnd;
@@ -343,7 +343,6 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       }
     while (k >= 0);
 
-    scm_dynwind_end ();
     return 1;
     }
 }
@@ -1015,10 +1014,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
       if (kmax < 0)
 	return scm_array_set_x (ra, scm_call_0 (proc), SCM_EOL);
 
-      scm_dynwind_begin (0);
-
-      vinds = scm_malloc (sizeof(long) * SCM_I_ARRAY_NDIM (ra));
-      scm_dynwind_free (vinds);
+      vinds = scm_gc_malloc_pointerless (sizeof(long) * SCM_I_ARRAY_NDIM (ra),
+					 indices_gc_hint);
 
       for (k = 0; k <= kmax; k++)
 	vinds[k] = SCM_I_ARRAY_DIMS (ra)[k].lbnd;
@@ -1050,7 +1047,6 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	}
       while (k >= 0);
 
-      scm_dynwind_end ();
       return SCM_UNSPECIFIED;
     }
   else if (scm_is_generalized_vector (ra))
