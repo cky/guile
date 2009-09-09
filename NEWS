@@ -11,6 +11,15 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
 
+** Guile now uses libgc, the Boehm-Demers-Weiser garbage collector
+
+The semantics of `scm_gc_malloc ()' have been changed, in a
+backward-compatible way.  A new allocation routine,
+`scm_gc_malloc_pointerless ()', was added.
+
+Libgc is a conservative GC, which we hope will make interaction with C
+code easier and less error-prone.
+
 ** Files loaded with `load' will now be compiled automatically.
 
 As with files loaded via `primitive-load-path', `load' will also compile
@@ -101,6 +110,7 @@ This content is now included in Guile's manual directly.
 Interested users should see the ChangeLog for more information.
 
 
+
 Changes in 1.9.x (since the 1.8.x series):
 
 * New modules (see the manual for details)
@@ -692,6 +702,15 @@ respectively.
 
 * Changes to the C interface
 
+** Guile now uses libgc, the Boehm-Demers-Weiser garbage collector
+
+The semantics of `scm_gc_malloc ()' have been changed, in a
+backward-compatible way.  A new allocation routine,
+`scm_gc_malloc_pointerless ()', was added.
+
+Libgc is a conservative GC, which we hope will make interaction with C
+code easier and less error-prone.
+
 ** The GH interface (deprecated in version 1.6, 2001) was removed.
 
 ** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
@@ -760,10 +779,14 @@ macros should now require `guile-2.0' instead of `guile-1.8'.
 If $(libdir) is /usr/lib, for example, Guile will install its .go files
 to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
 
-** New dependency: GNU libunistring.
+** New dependency: libgc
+
+See http://www.hpl.hp.com/personal/Hans_Boehm/gc/, for more information.
+
+** New dependency: GNU libunistring
 
 See http://www.gnu.org/software/libunistring/, for more information. Our
-unicode support uses routines from libunistring.
+Unicode support uses routines from libunistring.
 
 
 
