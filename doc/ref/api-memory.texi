@@ -41,6 +41,11 @@ otherwise might be.  When you are done with the object, call
 the object remains protected until it has been unprotected as many times
 as it was protected. It is an error to unprotect an object more times
 than it has been protected. Returns the SCM object it was passed.
+
+Note that storing @var{obj} in a C global variable has the same
+effect@footnote{In Guile up to version 1.8, C global variables were not
+scanned by the garbage collector; hence, @code{scm_gc_protect_object}
+was the only way in C to prevent a Scheme object from being freed.}.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_gc_unprotect_object (SCM @var{obj})
