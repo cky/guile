@@ -1870,11 +1870,13 @@ scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 int
 scm_pthread_cond_wait (scm_i_pthread_cond_t *cond, scm_i_pthread_mutex_t *mutex)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
-  ((scm_i_thread *)t)->held_mutex = mutex;
-  int res = scm_i_pthread_cond_wait (cond, mutex);
-  ((scm_i_thread *)t)->held_mutex = NULL;
-  scm_enter_guile (t);
+  int res;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  t->held_mutex = mutex;
+  res = scm_i_pthread_cond_wait (cond, mutex);
+  t->held_mutex = NULL;
+
   return res;
 }
 
@@ -1883,11 +1885,13 @@ scm_pthread_cond_timedwait (scm_i_pthread_cond_t *cond,
 			    scm_i_pthread_mutex_t *mutex,
 			    const scm_t_timespec *wt)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
-  ((scm_i_thread *)t)->held_mutex = mutex;
-  int res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
-  ((scm_i_thread *)t)->held_mutex = NULL;
-  scm_enter_guile (t);
+  int res;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  t->held_mutex = mutex;
+  res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
+  t->held_mutex = NULL;
+
   return res;
 }
 
