@@ -111,6 +111,10 @@ SCM_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
 SCM_API SCM scm_substring_copy (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
 
+SCM_API SCM scm_from_stringn (const char *str, size_t len, 
+                                     const char *encoding,
+                                     scm_t_string_failed_conversion_handler 
+                                     handler);
 SCM_API SCM scm_c_make_string (size_t len, SCM chr);
 SCM_API size_t scm_c_string_length (SCM str);
 SCM_API size_t scm_c_symbol_length (SCM sym);

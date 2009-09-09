@@ -29,9 +29,22 @@
 #include "libguile.h"
 #include "libguile/srfi-14.h"
 #include "libguile/strings.h"
+#include "libguile/chars.h"
 
 /* Include the pre-computed standard charset data.  */
 #include "libguile/srfi-14.i.c"
+
+scm_t_char_range cs_full_ranges[] = {
+  {0x0000, SCM_CODEPOINT_SURROGATE_START - 1}
+  ,
+  {SCM_CODEPOINT_SURROGATE_END + 1, SCM_CODEPOINT_MAX}
+};
+
+scm_t_char_set cs_full = {
+  2,
+  cs_full_ranges
+};
+
 
 #define SCM_CHARSET_DATA(charset) ((scm_t_char_set *) SCM_SMOB_DATA (charset))
 
@@ -85,18 +98,11 @@ scm_i_charset_set (scm_t_char_set *cs, scm_t_wchar n)
           /* This char is one below the current range. */
           if (i > 0 && cs->ranges[i - 1].hi + 1 == n)
             {
-              /* It is also one above the previous range, so combine them.  */
-              cs->ranges[i - 1].hi = cs->ranges[i].hi;
-              if (i < len - 1)
-                memmove (cs->ranges + i, cs->ranges + (i + 1),
-                         sizeof (scm_t_char_range) * (len - i - 1));
-              cs->ranges = scm_gc_realloc (cs->ranges,
-                                           sizeof (scm_t_char_range) * len,
-                                           sizeof (scm_t_char_range) * (len -
-                                                                        1),
-                                           "character-set");
-              cs->len = len - 1;
-              return;
+              /* It is also one above the previous range.  */
+              /* This is an impossible condition: in the previous
+                 iteration, the test for 'one above the current range'
+                 should already have inserted the character here.  */
+              abort ();
             }
           else
             {
@@ -163,6 +169,103 @@ scm_i_charset_set (scm_t_char_set *cs, scm_t_wchar n)
   cs->ranges[len].lo = n;
   cs->ranges[len].hi = n;
   cs->len = len + 1;
+
+  return;
+}
+
+/* Put LO to HI inclusive into charset CS.  */
+static void
+scm_i_charset_set_range (scm_t_char_set *cs, scm_t_wchar lo, scm_t_wchar hi)
+{
+  size_t i;
+
+  i = 0;
+  while (i < cs->len)
+    {
+      /* Already in this range  */
+      if (cs->ranges[i].lo <= lo && cs->ranges[i].hi >= hi)
+        return;
+
+      /* cur:       +---+
+         new: +---+
+      */
+      if (cs->ranges[i].lo - 1 > hi)
+        {
+          /* Add a new range below the current one.  */
+          cs->ranges = scm_gc_realloc (cs->ranges,
+                                       sizeof (scm_t_char_range) * cs->len,
+                                       sizeof (scm_t_char_range) * (cs->len + 1),
+                                       "character-set");
+          memmove (cs->ranges + (i + 1), cs->ranges + i,
+                   sizeof (scm_t_char_range) * (cs->len - i));
+          cs->ranges[i].lo = lo;
+          cs->ranges[i].hi = hi;
+          cs->len += 1;
+          return;
+        }
+
+      /* cur:      +---+  or     +---+  or    +---+
+         new: +---+          +---+         +---+
+      */
+      if (cs->ranges[i].lo > lo
+          && (cs->ranges[i].lo - 1 <= hi && cs->ranges[i].hi >= hi))
+        {
+          cs->ranges[i].lo = lo;
+          return;
+        }
+
+      /* cur: +---+    or +---+     or +---+
+         new:   +---+         +---+         +---+
+      */
+      else if (cs->ranges[i].hi + 1 >= lo && cs->ranges[i].hi < hi)
+        {
+          if (cs->ranges[i].lo > lo)
+            cs->ranges[i].lo = lo;
+          if (cs->ranges[i].hi < hi)
+            cs->ranges[i].hi = hi;
+          while (i < cs->len - 1)
+            {
+              /* cur: --+    +---+
+                 new: -----+
+              */
+              if (cs->ranges[i + 1].lo - 1 > hi)
+                break;
+              
+              /* cur: --+   +---+  or  --+  +---+  or --+ +--+
+                 new: -----+           ------+        ---------+
+              */
+              /* Combine this range with the previous one.  */
+              if (cs->ranges[i + 1].hi > hi)
+                cs->ranges[i].hi = cs->ranges[i + 1].hi;
+              if (i + 1 < cs->len)
+                memmove (cs->ranges + i + 1, cs->ranges + i + 2,
+                         sizeof (scm_t_char_range) * (cs->len - i - 2));
+              cs->ranges = scm_gc_realloc (cs->ranges,
+                                           sizeof (scm_t_char_range) * cs->len,
+                                           sizeof (scm_t_char_range) * (cs->len - 1),
+                                           "character-set");
+              cs->len -= 1;
+            }
+          return;
+        }
+      i ++;
+    }
+
+  /* This is a new range above all previous ranges.  */
+  if (cs->len == 0)
+    {
+      cs->ranges = scm_gc_malloc (sizeof (scm_t_char_range), "character-set");
+    }
+  else
+    {
+      cs->ranges = scm_gc_realloc (cs->ranges,
+                                   sizeof (scm_t_char_range) * cs->len,
+                                   sizeof (scm_t_char_range) * (cs->len + 1),
+                                   "character-set");
+    }
+  cs->len += 1;
+  cs->ranges[cs->len - 1].lo = lo;
+  cs->ranges[cs->len - 1].hi = hi;
 
   return;
 }
@@ -301,7 +404,7 @@ static void
 charsets_union (scm_t_char_set *a, scm_t_char_set *b)
 {
   size_t i = 0;
-  scm_t_wchar blo, bhi, n;
+  scm_t_wchar blo, bhi;
 
   if (b->len == 0)
     return;
@@ -315,13 +418,11 @@ charsets_union (scm_t_char_set *a, scm_t_char_set *b)
       return;
     }
 
-  /* This needs optimization.  */
   while (i < b->len)
     {
       blo = b->ranges[i].lo;
       bhi = b->ranges[i].hi;
-      for (n = blo; n <= bhi; n++)
-        scm_i_charset_set (a, n);
+      scm_i_charset_set_range (a, blo, bhi);
 
       i++;
     }
@@ -373,22 +474,35 @@ charsets_intersection (scm_t_char_set *a, scm_t_char_set *b)
   return;
 }
 
+#define SCM_ADD_RANGE(low, high)                        \
+  do {                                                  \
+    p->ranges[idx].lo = (low);                          \
+    p->ranges[idx++].hi = (high);                       \
+  } while (0)
+#define SCM_ADD_RANGE_SKIP_SURROGATES(low, high)                  \
+  do {                                                            \
+    p->ranges[idx].lo = (low);                                    \
+    p->ranges[idx++].hi = SCM_CODEPOINT_SURROGATE_START - 1;      \
+    p->ranges[idx].lo = SCM_CODEPOINT_SURROGATE_END + 1;          \
+    p->ranges[idx++].hi = (high);                                 \
+  } while (0)
+
+
+
 /* Make P the compelement of Q.  */
 static void
 charsets_complement (scm_t_char_set *p, scm_t_char_set *q)
 {
   int k, idx;
 
+  idx = 0;
   if (q->len == 0)
     {
       /* Fill with all valid codepoints.  */
       p->len = 2;
       p->ranges = scm_gc_malloc (sizeof (scm_t_char_range) * 2,
                                  "character-set");
-      p->ranges[0].lo = 0;
-      p->ranges[0].hi = 0xd7ff;
-      p->ranges[1].lo = 0xe000;
-      p->ranges[1].hi = SCM_CODEPOINT_MAX;
+      SCM_ADD_RANGE_SKIP_SURROGATES (0, SCM_CODEPOINT_MAX);
       return;
     }
 
@@ -396,33 +510,42 @@ charsets_complement (scm_t_char_set *p, scm_t_char_set *q)
     scm_gc_free (p->ranges, sizeof (scm_t_char_set) * p->len,
                  "character-set");
 
+  /* Count the number of ranges needed for the output.  */
   p->len = 0;
   if (q->ranges[0].lo > 0)
     p->len++;
   if (q->ranges[q->len - 1].hi < SCM_CODEPOINT_MAX)
     p->len++;
-  p->len += q->len - 1;
+  p->len += q->len;
   p->ranges =
     (scm_t_char_range *) scm_gc_malloc (sizeof (scm_t_char_range) * p->len,
                                         "character-set");
-  idx = 0;
   if (q->ranges[0].lo > 0)
     {
-      p->ranges[idx].lo = 0;
-      p->ranges[idx++].hi = q->ranges[0].lo - 1;
+      if (q->ranges[0].lo > SCM_CODEPOINT_SURROGATE_END)
+        SCM_ADD_RANGE_SKIP_SURROGATES (0, q->ranges[0].lo - 1);
+      else
+        SCM_ADD_RANGE (0, q->ranges[0].lo - 1);
     }
   for (k = 1; k < q->len; k++)
     {
-      p->ranges[idx].lo = q->ranges[k - 1].hi + 1;
-      p->ranges[idx++].hi = q->ranges[k].lo - 1;
+      if (q->ranges[k - 1].hi < SCM_CODEPOINT_SURROGATE_START
+          && q->ranges[k].lo - 1 > SCM_CODEPOINT_SURROGATE_END)
+        SCM_ADD_RANGE_SKIP_SURROGATES (q->ranges[k - 1].hi + 1, q->ranges[k].lo - 1);
+      else
+        SCM_ADD_RANGE (q->ranges[k - 1].hi + 1, q->ranges[k].lo - 1);
     }
   if (q->ranges[q->len - 1].hi < SCM_CODEPOINT_MAX)
     {
-      p->ranges[idx].lo = q->ranges[q->len - 1].hi + 1;
-      p->ranges[idx].hi = SCM_CODEPOINT_MAX;
+      if (q->ranges[q->len - 1].hi < SCM_CODEPOINT_SURROGATE_START)
+        SCM_ADD_RANGE_SKIP_SURROGATES (q->ranges[q->len - 1].hi + 1, SCM_CODEPOINT_MAX);
+      else
+        SCM_ADD_RANGE (q->ranges[q->len - 1].hi + 1, SCM_CODEPOINT_MAX);
     }
   return;
 }
+#undef SCM_ADD_RANGE
+#undef SCM_ADD_RANGE_SKIP_SURROGATES
 
 /* Replace A with elements only found in one of A or B.  */
 static void
@@ -1161,7 +1284,7 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
   for (k = 0; k < p->len; k++)
     for (n = p->ranges[k].lo; n <= p->ranges[k].hi; n++)
       {
-        SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (k));
+        SCM res = scm_call_1 (pred, SCM_MAKE_CHAR (n));
 
         if (scm_is_true (res))
           SCM_CHARSET_SET (base_cs, n);
@@ -1171,27 +1294,18 @@ SCM_DEFINE (scm_char_set_filter_x, "char-set-filter!", 3, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
-	    (SCM lower, SCM upper, SCM error, SCM base_cs),
-	    "Return a character set containing all characters whose\n"
-	    "character codes lie in the half-open range\n"
-	    "[@var{lower},@var{upper}).\n"
-	    "\n"
-	    "If @var{error} is a true value, an error is signalled if the\n"
-	    "specified range contains characters which are not contained in\n"
-	    "the implemented character range.  If @var{error} is @code{#f},\n"
-	    "these characters are silently left out of the resultung\n"
-	    "character set.\n"
-	    "\n"
-	    "The characters in @var{base_cs} are added to the result, if\n"
-	    "given.")
-#define FUNC_NAME s_scm_ucs_range_to_char_set
+/* Return a character set containing all the characters from [LOWER,UPPER),
+   giving range errors if ERROR, adding chars from BASE_CS, and recycling
+   BASE_CS if REUSE is true.  */
+static SCM
+scm_i_ucs_range_to_char_set (const char *FUNC_NAME, SCM lower, SCM upper, 
+                             SCM error, SCM base_cs, int reuse)
 {
   SCM cs;
   size_t clower, cupper;
 
   clower = scm_to_size_t (lower);
-  cupper = scm_to_size_t (upper);
+  cupper = scm_to_size_t (upper) - 1;
   SCM_ASSERT_RANGE (2, upper, cupper >= clower);
   if (!SCM_UNBNDP (error))
     {
@@ -1199,27 +1313,65 @@ SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
         {
           SCM_ASSERT_RANGE (1, lower, SCM_IS_UNICODE_CHAR (clower));
           SCM_ASSERT_RANGE (2, upper, SCM_IS_UNICODE_CHAR (cupper));
+          if (clower < SCM_CODEPOINT_SURROGATE_START 
+              && cupper > SCM_CODEPOINT_SURROGATE_END)
+            scm_error(scm_out_of_range_key,
+                      FUNC_NAME, "invalid range - contains surrogate characters: ~S to ~S",
+                      scm_list_2 (lower, upper), scm_list_1 (upper));
         }
     }
-  if (clower > 0x10FFFF)
-    clower = 0x10FFFF;
-  if (cupper > 0x10FFFF)
-    cupper = 0x10FFFF;
+
   if (SCM_UNBNDP (base_cs))
     cs = make_char_set (FUNC_NAME);
   else
     {
       SCM_VALIDATE_SMOB (4, base_cs, charset);
-      cs = scm_char_set_copy (base_cs);
+      if (reuse)
+        cs = base_cs;
+      else
+        cs = scm_char_set_copy (base_cs);
     }
-  /* It not be difficult to write a more optimized version of the
-     following.  */
-  while (clower < cupper)
+
+  if ((clower >= SCM_CODEPOINT_SURROGATE_START && clower <= SCM_CODEPOINT_SURROGATE_END)
+      && (cupper >= SCM_CODEPOINT_SURROGATE_START && cupper <= SCM_CODEPOINT_SURROGATE_END))
+    return cs;
+
+  if (clower > SCM_CODEPOINT_MAX)
+    clower = SCM_CODEPOINT_MAX;
+  if (clower >= SCM_CODEPOINT_SURROGATE_START  && clower <= SCM_CODEPOINT_SURROGATE_END)
+    clower = SCM_CODEPOINT_SURROGATE_END + 1;
+  if (cupper > SCM_CODEPOINT_MAX)
+    cupper = SCM_CODEPOINT_MAX;
+  if (cupper >= SCM_CODEPOINT_SURROGATE_START && cupper <= SCM_CODEPOINT_SURROGATE_END)
+    cupper = SCM_CODEPOINT_SURROGATE_START - 1;
+  if (clower < SCM_CODEPOINT_SURROGATE_START && cupper > SCM_CODEPOINT_SURROGATE_END)
     {
-      SCM_CHARSET_SET (cs, clower);
-      clower++;
+      scm_i_charset_set_range (SCM_CHARSET_DATA (cs), clower, SCM_CODEPOINT_SURROGATE_START - 1);
+      scm_i_charset_set_range (SCM_CHARSET_DATA (cs), SCM_CODEPOINT_SURROGATE_END + 1, cupper);
     }
+  else
+    scm_i_charset_set_range (SCM_CHARSET_DATA (cs), clower, cupper);
   return cs;
+}
+
+SCM_DEFINE (scm_ucs_range_to_char_set, "ucs-range->char-set", 2, 2, 0,
+	    (SCM lower, SCM upper, SCM error, SCM base_cs),
+	    "Return a character set containing all characters whose\n"
+	    "character codes lie in the half-open range\n"
+	    "[@var{lower},@var{upper}).\n"
+	    "\n"
+	    "If @var{error} is a true value, an error is signalled if the\n"
+	    "specified range contains characters which are not valid\n"
+	    "Unicode code points.  If @var{error} is @code{#f},\n"
+	    "these characters are silently left out of the resultung\n"
+	    "character set.\n"
+	    "\n"
+	    "The characters in @var{base_cs} are added to the result, if\n"
+	    "given.")
+#define FUNC_NAME s_scm_ucs_range_to_char_set
+{
+  return scm_i_ucs_range_to_char_set (FUNC_NAME, lower, upper, 
+                                      error, base_cs, 0);
 }
 #undef FUNC_NAME
 
@@ -1240,28 +1392,9 @@ SCM_DEFINE (scm_ucs_range_to_char_set_x, "ucs-range->char-set!", 4, 0, 0,
 	    "returned.")
 #define FUNC_NAME s_scm_ucs_range_to_char_set_x
 {
-  size_t clower, cupper;
-
-  clower = scm_to_size_t (lower);
-  cupper = scm_to_size_t (upper);
-  SCM_ASSERT_RANGE (2, upper, cupper >= clower);
-  if (scm_is_true (error))
-    {
-      SCM_ASSERT_RANGE (1, lower, SCM_IS_UNICODE_CHAR (clower));
-      SCM_ASSERT_RANGE (2, upper, SCM_IS_UNICODE_CHAR (cupper));
-    }
-  if (clower > SCM_CODEPOINT_MAX)
-    clower = SCM_CODEPOINT_MAX;
-  if (cupper > SCM_CODEPOINT_MAX)
-    cupper = SCM_CODEPOINT_MAX;
-
-  while (clower < cupper)
-    {
-      if (SCM_IS_UNICODE_CHAR (clower))
-        SCM_CHARSET_SET (base_cs, clower);
-      clower++;
-    }
-  return base_cs;
+  SCM_VALIDATE_SMOB (4, base_cs, charset);  
+  return scm_i_ucs_range_to_char_set (FUNC_NAME, lower, upper, 
+                                      error, base_cs, 1);
 }
 #undef FUNC_NAME
 
@@ -1455,7 +1588,9 @@ SCM_DEFINE (scm_char_set_any, "char-set-any", 2, 0, 0,
   SCM_VALIDATE_PROC (1, pred);
   SCM_VALIDATE_SMOB (2, cs, charset);
 
-  cs_data = (scm_t_char_set *) cs;
+  cs_data = SCM_CHARSET_DATA (cs);
+  if (cs_data->len == 0)
+    return SCM_BOOL_T;
 
   for (k = 0; k < cs_data->len; k++)
     for (n = cs_data->ranges[k].lo; n <= cs_data->ranges[k].hi; n++)
@@ -1819,7 +1954,8 @@ SCM_DEFINE (scm_char_set_xor_x, "char-set-xor!", 1, 0, 1,
      (char-set-xor a a a) -> char set #\a
      (char-set-xor! a a a) -> char set #\a
    */
-  return scm_char_set_xor (scm_cons (cs1, rest));
+  cs1 = scm_char_set_xor (scm_cons (cs1, rest));
+  return cs1;
 }
 #undef FUNC_NAME
 
@@ -1862,6 +1998,7 @@ SCM scm_char_set_hex_digit;
 SCM scm_char_set_blank;
 SCM scm_char_set_ascii;
 SCM scm_char_set_empty;
+SCM scm_char_set_designated;
 SCM scm_char_set_full;
 
 
@@ -1876,31 +2013,59 @@ define_charset (const char *name, const scm_t_char_set *p)
   return scm_permanent_object (cs);
 }
 
-#ifdef SCM_CHARSET_DEBUG
-SCM_DEFINE (scm_debug_char_set, "debug-char-set", 1, 0, 0,
-            (SCM charset),
-            "Print out the internal C structure of @var{charset}.\n")
-#define FUNC_NAME s_scm_debug_char_set
+SCM_DEFINE (scm_sys_char_set_dump, "%char-set-dump", 1, 0, 0, (SCM charset), 
+            "Returns an association list containing debugging information\n"
+            "for @var{charset}. The association list has the following entries."
+            "@table @code\n"
+            "@item char-set\n"
+            "The char-set itself.\n"
+            "@item len\n"
+            "The number of character ranges the char-set contains\n"
+            "@item ranges\n"
+            "A list of lists where each sublist a range of code points\n"
+            "and their associated characters"
+            "@end table")
+#define FUNC_NAME s_scm_sys_char_set_dump
 {
-  int i;
-  scm_t_char_set *cs = SCM_CHARSET_DATA (charset);
-  fprintf (stderr, "cs %p\n", cs);
-  fprintf (stderr, "len %d\n", cs->len);
-  fprintf (stderr, "arr %p\n", cs->ranges);
+  SCM e1, e2, e3;
+  SCM ranges = SCM_EOL, elt;
+  size_t i;
+  scm_t_char_set *cs;
+  char codepoint_string_lo[9], codepoint_string_hi[9];
+
+  SCM_VALIDATE_SMOB (1, charset, charset);
+  cs = SCM_CHARSET_DATA (charset);
+
+  e1 = scm_cons (scm_from_locale_symbol ("char-set"),
+                 charset);
+  e2 = scm_cons (scm_from_locale_symbol ("n"),
+                 scm_from_size_t (cs->len));
+
   for (i = 0; i < cs->len; i++)
     {
-      if (cs->ranges[i].lo == cs->ranges[i].hi)
-        fprintf (stderr, "%04x\n", cs->ranges[i].lo);
+      if (cs->ranges[i].lo > 0xFFFF)
+        sprintf (codepoint_string_lo, "U+%06x", cs->ranges[i].lo);
       else
-        fprintf (stderr, "%04x..%04x\t[%d]\n",
-                 cs->ranges[i].lo,
-                 cs->ranges[i].hi, cs->ranges[i].hi - cs->ranges[i].lo + 1);
+        sprintf (codepoint_string_lo, "U+%04x", cs->ranges[i].lo);
+      if (cs->ranges[i].hi > 0xFFFF)
+        sprintf (codepoint_string_hi, "U+%06x", cs->ranges[i].hi);
+      else
+        sprintf (codepoint_string_hi, "U+%04x", cs->ranges[i].hi);
+
+      elt = scm_list_4 (SCM_MAKE_CHAR (cs->ranges[i].lo),
+                            SCM_MAKE_CHAR (cs->ranges[i].hi),
+                            scm_from_locale_string (codepoint_string_lo),
+                            scm_from_locale_string (codepoint_string_hi));
+      ranges = scm_append (scm_list_2 (ranges,
+                                       scm_list_1 (elt)));
     }
-  printf ("\n");
-  return SCM_UNSPECIFIED;
+  e3 = scm_cons (scm_from_locale_symbol ("ranges"),
+                 ranges);
+
+  return scm_list_3 (e1, e2, e3);
 }
 #undef FUNC_NAME
-#endif /* SCM_CHARSET_DEBUG */
+
 
 
 
@@ -1937,6 +2102,7 @@ scm_init_srfi_14 (void)
   scm_char_set_blank = define_charset ("char-set:blank", &cs_blank);
   scm_char_set_ascii = define_charset ("char-set:ascii", &cs_ascii);
   scm_char_set_empty = define_charset ("char-set:empty", &cs_empty);
+  scm_char_set_designated = define_charset ("char-set:designated", &cs_designated);
   scm_char_set_full = define_charset ("char-set:full", &cs_full);
 
 #include "libguile/srfi-14.x"

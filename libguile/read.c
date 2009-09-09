@@ -844,16 +844,25 @@ scm_read_character (scm_t_wchar chr, SCM port)
     return SCM_MAKE_CHAR (scm_i_string_ref (charname, 0));
 
   cp = scm_i_string_ref (charname, 0);
+  if (cp == SCM_CODEPOINT_DOTTED_CIRCLE && charname_len == 2)
+    return SCM_MAKE_CHAR (scm_i_string_ref (charname, 1));
+
   if (cp >= '0' && cp < '8')
     {
       /* Dirk:FIXME::  This type of character syntax is not R5RS
        * compliant.  Further, it should be verified that the constant
-       * does only consist of octal digits.  Finally, it should be
-       * checked whether the resulting fixnum is in the range of
-       * characters.  */
+       * does only consist of octal digits.  */
       SCM p = scm_string_to_number (charname, scm_from_uint (8));
       if (SCM_I_INUMP (p))
-	return SCM_MAKE_CHAR (SCM_I_INUM (p));
+        {
+          scm_t_wchar c = SCM_I_INUM (p);
+          if (SCM_IS_UNICODE_CHAR (c))
+            return SCM_MAKE_CHAR (c);
+          else
+            scm_i_input_error (FUNC_NAME, port, 
+                               "out-of-range octal character escape: ~a",
+                               scm_list_1 (charname));
+        }
     }
 
   /* The names of characters should never have non-Latin1
@@ -1437,7 +1446,9 @@ scm_scan_for_encoding (SCM port)
   /* grab the next token */
   i = 0;
   while (pos + i - header <= SCM_ENCODING_SEARCH_SIZE 
-	 && (isalnum(pos[i]) || pos[i] == '_' || pos[i] == '-' || pos[i] == '.'))
+         && pos + i - header < bytes_read
+	 && (isalnum((int) pos[i]) || pos[i] == '_' || pos[i] == '-' 
+             || pos[i] == '.'))
     i++;
 
   if (i == 0)

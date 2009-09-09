@@ -435,7 +435,7 @@ scm_i_socket_uncomment (char *line)
       while (end > line && (*end == '\r' || *end == '\n'))
 	*end-- = '\0';
     }
-  while (end > line && isspace (*end))
+  while (end > line && isspace ((int) (*end)))
     *end-- = '\0';
 
   return end;

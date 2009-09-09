@@ -10,6 +10,75 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.3 (since the 1.9.2 prerelease):
 
+
+** Files loaded with `load' will now be compiled automatically.
+
+As with files loaded via `primitive-load-path', `load' will also compile
+its target if autocompilation is enabled, and a fresh compiled file is
+not found.
+
+There are two points of difference to note, however. First, `load' does
+not search `GUILE_LOAD_COMPILED_PATH' for the file; it only looks in the
+autocompilation directory, normally a subdirectory of ~/.cache/guile.
+
+Secondly, autocompilation also applies to files loaded via the -l
+command-line argument -- so the user may experience a slight slowdown
+the first time they run a Guile script, as the script is autocompiled.
+
+** Support for non-ASCII source code files
+
+The default reader now handles source code files for some of the
+non-ASCII character encodings, such as UTF-8. A non-ASCII source file
+should have an encoding declaration near the top of the file. Also,
+there is a new function, `file-encoding', that scans a port for a coding
+declaration. See the section of the manual entitled, "Character Encoding
+of Source Files".
+
+The pre-1.9.3 reader handled 8-bit clean but otherwise unspecified source
+code.  This use is now discouraged.
+
+** Support for locale transcoding when reading from and writing to ports
+
+Ports now have an associated character encoding, and port read and write
+operations do conversion to and from locales automatically. Ports also
+have an associated strategy for how to deal with locale conversion
+failures.
+
+See the documentation in the manual for the four new support functions,
+`set-port-encoding!', `port-encoding', `set-port-conversion-strategy!',
+and `port-conversion-strategy'.
+
+** String and SRFI-13 functions can operate on Unicode strings
+
+** Unicode support for SRFI-14 character sets
+
+The default character sets are no longer locale dependent and contain
+characters from the whole Unicode range. There is a new predefined
+character set, `char-set:designated', which contains all assigned
+Unicode characters. There is a new debugging function, `%char-set-dump'.
+
+** Character functions operate on Unicode characters
+
+`char-upcase' and `char-downcase' use default Unicode casing rules.
+Character comparisons such as `char<?' and `char-ci<?' now sort based on
+Unicode code points.
+
+** Unicode symbol support
+
+One may now use U+03BB (GREEK SMALL LETTER LAMBDA) as an identifier.
+
+** New readline history functions
+
+The (ice-9 readline) module now provides add-history, read-history,
+write-history and clear-history, which wrap the corresponding GNU
+History library functions.
+
+** Removed deprecated uniform array procedures:
+   dimensions->uniform-array, list->uniform-array, array-prototype
+
+Instead, use make-typed-array, list->typed-array, or array-type,
+respectively.
+
 ** Removed deprecated uniform array procedures: scm_make_uve,
    scm_array_prototype, scm_list_to_uniform_array,
    scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
@@ -22,11 +91,10 @@ These functions have been deprecated since early 2005.
 Use of the second argument produced a deprecation warning, so it is
 unlikely that any code out there actually used this functionality.
 
-** Removed deprecated uniform array procedures:
-   dimensions->uniform-array, list->uniform-array, array-prototype
+** GOOPS documentation folded into Guile reference manual
 
-Instead, use make-typed-array, list->typed-array, or array-type,
-respectively.
+GOOPS, Guile's object system, used to be documented in separate manuals.
+This content is now included in Guile's manual directly.
 
 ** And of course, the usual collection of bugfixes
  
@@ -107,6 +175,20 @@ sometimes be attempted when it shouldn't.
 For example, the old (lang elisp) modules are meant to be interpreted,
 not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
 something here about module-transformer called for compile.
+
+** Files loaded with `load' will now be compiled automatically.
+
+As with files loaded via `primitive-load-path', `load' will also compile
+its target if autocompilation is enabled, and a fresh compiled file is
+not found.
+
+There are two points of difference to note, however. First, `load' does
+not search `GUILE_LOAD_COMPILED_PATH' for the file; it only looks in the
+autocompilation directory, normally a subdirectory of ~/.cache/guile.
+
+Secondly, autocompilation also applies to files loaded via the -l
+command-line argument -- so the user may experience a slight slowdown
+the first time they run a Guile script, as the script is autocompiled.
 
 ** New POSIX procedures: `getrlimit' and `setrlimit'
 
@@ -492,9 +574,52 @@ Internally, strings are now represented either in the `latin-1'
 encoding, one byte per character, or in UTF-32, with four bytes per
 character. Strings manage their own allocation, switching if needed.
 
-Currently no locale conversion is performed. Extended characters may be
-written in a string using the hexadecimal escapes `\xXX', `\uXXXX', or
-`\UXXXXXX', for 8-bit, 16-bit, or 24-bit codepoints, respectively.
+Extended characters may be written in a literal string using the
+hexadecimal escapes `\xXX', `\uXXXX', or `\UXXXXXX', for 8-bit, 16-bit,
+or 24-bit codepoints, respectively, or entered directly in the native
+encoding of the port on which the string is read.
+
+** Unicode symbols
+
+One may now use U+03BB (GREEK SMALL LETTER LAMBDA) as an identifier.
+
+** Support for non-ASCII source code files
+
+The default reader now handles source code files for some of the
+non-ASCII character encodings, such as UTF-8. A non-ASCII source file
+should have an encoding declaration near the top of the file. Also,
+there is a new function, `file-encoding', that scans a port for a coding
+declaration. See the section of the manual entitled, "Character Encoding
+of Source Files".
+
+The pre-1.9.3 reader handled 8-bit clean but otherwise unspecified source
+code.  This use is now discouraged.
+
+** Support for locale transcoding when reading from and writing to ports
+
+Ports now have an associated character encoding, and port read and write
+operations do conversion to and from locales automatically. Ports also
+have an associated strategy for how to deal with locale conversion
+failures.
+
+See the documentation in the manual for the four new support functions,
+`set-port-encoding!', `port-encoding', `set-port-conversion-strategy!',
+and `port-conversion-strategy'.
+
+** String and SRFI-13 functions can operate on Unicode strings
+
+** Unicode support for SRFI-14 character sets
+
+The default character sets are no longer locale dependent and contain
+characters from the whole Unicode range. There is a new predefined
+character set, `char-set:designated', which contains all assigned
+Unicode characters. There is a new debugging function, `%char-set-dump'.
+
+** Character functions operate on Unicode characters
+
+`char-upcase' and `char-downcase' use default Unicode casing rules.
+Character comparisons such as `char<?' and `char-ci<?' now sort based on
+Unicode code points.
 
 ** Global variables `scm_charnames' and `scm_charnums' are removed
 
@@ -612,6 +737,11 @@ unlikely that any code out there actually used this functionality.
 In other words the GNU Lesser General Public License, version 3 or
 later (at the discretion of each person that chooses to redistribute
 part of Guile).
+
+** GOOPS documentation folded into Guile reference manual
+
+GOOPS, Guile's object system, used to be documented in separate manuals.
+This content is now included in Guile's manual directly.
 
 ** `guile-config' will be deprecated in favor of `pkg-config'
 

@@ -752,7 +752,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
           scm_puts (";;; found fresh local cache at ", scm_current_error_port ());
           scm_display (fallback, scm_current_error_port ());
           scm_newline (scm_current_error_port ());
-          return scm_load_compiled_with_vm (compiled_filename);
+          return scm_load_compiled_with_vm (fallback);
         }
     }
 

@@ -539,7 +539,7 @@ error.  Instead, the result of the division is either plus or minus
 infinity, depending on the sign of the divided number.
 
 The infinities are written @samp{+inf.0} and @samp{-inf.0},
-respectivly.  This syntax is also recognized by @code{read} as an
+respectively.  This syntax is also recognized by @code{read} as an
 extension to the usual Scheme syntax.
 
 Dividing zero by zero yields something that is not a number at all:
@@ -637,7 +637,7 @@ magnitude.  The argument @var{val} must be a real number.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_from_double (double val)
-Return the @code{SCM} value that representats @var{val}.  The returned
+Return the @code{SCM} value that represents @var{val}.  The returned
 value is inexact according to the predicate @code{inexact?}, but it
 will be exactly equal to @var{val}.
 @end deftypefn
@@ -1779,16 +1779,66 @@ another manual.
 @subsection Characters
 @tpindex Characters
 
+In Scheme, there is a data type to describe a single character.  
+
+Defining what exactly a character @emph{is} can be more complicated
+than it seems.  Guile follows the advice of R6RS and uses The Unicode
+Standard to help define what a character is.  So, for Guile, a
+character is anything in the Unicode Character Database.
+
+@cindex code point
+@cindex Unicode code point
+
+The Unicode Character Database is basically a table of characters
+indexed using integers called 'code points'.  Valid code points are in
+the ranges 0 to @code{#xD7FF} inclusive or @code{#xE000} to
+@code{#x10FFFF} inclusive, which is about 1.1 million code points.
+
+@cindex designated code point
+@cindex code point, designated
+
+Any code point that has been assigned to a character or that has
+otherwise been given a meaning by Unicode is called a 'designated code
+point'.  Most of the designated code points, about 200,000 of them,
+indicate characters, accents or other combining marks that modify
+other characters, symbols, whitespace, and control characters.  Some
+are not characters but indicators that suggest how to format or
+display neighboring characters.
+
+@cindex reserved code point
+@cindex code point, reserved
+
+If a code point is not a designated code point -- if it has not been
+assigned to a character by The Unicode Standard -- it is a 'reserved
+code point', meaning that they are reserved for future use.  Most of
+the code points, about 800,000, are 'reserved code points'.
+
+By convention, a Unicode code point is written as
+``U+XXXX'' where ``XXXX'' is a hexadecimal number.  Please note that
+this convenient notation is not valid code.  Guile does not interpret
+``U+XXXX'' as a character.
+
 In Scheme, a character literal is written as @code{#\@var{name}} where
 @var{name} is the name of the character that you want.  Printable
 characters have their usual single character name; for example,
-@code{#\a} is a lower case @code{a}.
+@code{#\a} is a lower case @code{a}.  
 
-Most of the ``control characters'' (those below codepoint 32) in the
-@acronym{ASCII} character set, as well as the space, may be referred
-to by longer names: for example, @code{#\tab}, @code{#\esc},
-@code{#\stx}, and so on.  The following table describes the
-@acronym{ASCII} names for each character.
+Some of the code points are 'combining characters' that are not meant
+to be printed by themselves but are instead meant to modify the
+appearance of the previous character.  For combining characters, an
+alternate form of the character literal is @code{#\} followed by
+U+25CC (a small, dotted circle), followed by the combining character.
+This allows the combining character to be drawn on the circle, not on
+the backslash of @code{#\}.
+
+Many of the non-printing characters, such as whitespace characters and
+control characters, also have names.
+
+The most commonly used non-printing characters are space and
+newline.  Their character names are @code{#\space} and
+@code{#\newline}.  There are also names for all of the ``C0 control
+characters'' (those with code points below 32).  The following table
+describes the names for each character.
 
 @multitable @columnfractions .25 .25 .25 .25
 @item 0 = @code{#\nul}
@@ -1801,9 +1851,9 @@ to by longer names: for example, @code{#\tab}, @code{#\esc},
  @tab 7 = @code{#\bel}
 @item 8 = @code{#\bs}
  @tab 9 = @code{#\ht}
- @tab 10 = @code{#\nl}
+ @tab 10 = @code{#\lf} 
  @tab 11 = @code{#\vt}
-@item 12 = @code{#\np}
+@item 12 = @code{#\ff}
  @tab 13 = @code{#\cr}
  @tab 14 = @code{#\so}
  @tab 15 = @code{#\si}
@@ -1826,21 +1876,30 @@ to by longer names: for example, @code{#\tab}, @code{#\esc},
 @item 32 = @code{#\sp}
 @end multitable
 
-The ``delete'' character (octal 177) may be referred to with the name
-@code{#\del}.
+The ``delete'' character (code point U+007F) may be referred to with the
+name @code{#\del}.
 
-Several characters have more than one name:
+One might note that the space character has two names --
+@code{#\space} and @code{#\sp} -- as does the newline character.
+Several other non-printing characters have more than one name, for the
+sake of compatibility with previous versions.
 
-@multitable {@code{#\backspace}} {Original}
-@item Alias @tab Original
-@item @code{#\space} @tab @code{#\sp}
-@item @code{#\newline} @tab @code{#\nl}
+@multitable {@code{#\backspace}} {Preferred}
+@item Alternate @tab Standard
+@item @code{#\sp} @tab @code{#\space}
+@item @code{#\nl} @tab @code{#\newline}
+@item @code{#\lf} @tab @code{#\newline}
 @item @code{#\tab} @tab @code{#\ht}
 @item @code{#\backspace} @tab @code{#\bs}
 @item @code{#\return} @tab @code{#\cr}
-@item @code{#\page} @tab @code{#\np}
+@item @code{#\page} @tab @code{#\ff}
+@item @code{#\np} @tab @code{#\ff}
 @item @code{#\null} @tab @code{#\nul}
 @end multitable
+
+Characters may also be written using their code point values.  They can
+be written with as an octal number, such as @code{#\10} for
+@code{#\bs} or @code{#\177} for @code{#\del}.
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -1848,63 +1907,81 @@ Several characters have more than one name:
 Return @code{#t} iff @var{x} is a character, else @code{#f}.
 @end deffn
 
+Fundamentally, the character comparison operations below are
+numeric comparisons of the character's code points.
+
 @rnindex char=?
 @deffn {Scheme Procedure} char=? x y
-Return @code{#t} iff @var{x} is the same character as @var{y}, else @code{#f}.
+Return @code{#t} iff code point of @var{x} is equal to the code point
+of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<?
 @deffn {Scheme Procedure} char<? x y
-Return @code{#t} iff @var{x} is less than @var{y} in the @acronym{ASCII} sequence,
-else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is less than the code
+point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<=?
 @deffn {Scheme Procedure} char<=? x y
-Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
-@acronym{ASCII} sequence, else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is less than or equal
+to the code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char>?
 @deffn {Scheme Procedure} char>? x y
-Return @code{#t} iff @var{x} is greater than @var{y} in the @acronym{ASCII}
-sequence, else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is greater than the
+code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char>=?
 @deffn {Scheme Procedure} char>=? x y
-Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
-@acronym{ASCII} sequence, else @code{#f}.
+Return @code{#t} iff the code point of @var{x} is greater than or
+equal to the code point of @var{y}, else @code{#f}.
 @end deffn
+
+@cindex case folding
+
+Case-insensitive character comparisons use @emph{Unicode case
+folding}.  In case folding comparisons, if a character is lowercase
+and has an uppercase form that can be expressed as a single character,
+it is converted to uppercase before comparison.  All other characters
+undergo no conversion before the comparison occurs.  This includes the
+German sharp S (Eszett) which is not uppercased before conversion
+because its uppercase form has two characters.  Unicode case folding
+is language independent: it uses rules that are generally true, but,
+it cannot cover all cases for all languages.
 
 @rnindex char-ci=?
 @deffn {Scheme Procedure} char-ci=? x y
-Return @code{#t} iff @var{x} is the same character as @var{y} ignoring
-case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is the same
+as the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<?
 @deffn {Scheme Procedure} char-ci<? x y
-Return @code{#t} iff @var{x} is less than @var{y} in the @acronym{ASCII} sequence
-ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is less
+than the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<=?
 @deffn {Scheme Procedure} char-ci<=? x y
-Return @code{#t} iff @var{x} is less than or equal to @var{y} in the
-@acronym{ASCII} sequence ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is less
+than or equal to the case-folded code point of @var{y}, else
+@code{#f}.
 @end deffn
 
 @rnindex char-ci>?
 @deffn {Scheme Procedure} char-ci>? x y
-Return @code{#t} iff @var{x} is greater than @var{y} in the @acronym{ASCII}
-sequence ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is greater
+than the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>=?
 @deffn {Scheme Procedure} char-ci>=? x y
-Return @code{#t} iff @var{x} is greater than or equal to @var{y} in the
-@acronym{ASCII} sequence ignoring case, else @code{#f}.
+Return @code{#t} iff the case-folded code point of @var{x} is greater
+than or equal to the case-folded code point of @var{y}, else
+@code{#f}.
 @end deffn
 
 @rnindex char-alphabetic?
@@ -1946,14 +2023,15 @@ Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
 @rnindex char->integer
 @deffn {Scheme Procedure} char->integer chr
 @deffnx {C Function} scm_char_to_integer (chr)
-Return the number corresponding to ordinal position of @var{chr} in the
-@acronym{ASCII} sequence.
+Return the code point of @var{chr}.
 @end deffn
 
 @rnindex integer->char
 @deffn {Scheme Procedure} integer->char n
 @deffnx {C Function} scm_integer_to_char (n)
-Return the character at position @var{n} in the @acronym{ASCII} sequence.
+Return the character that has code point @var{n}.  The integer @var{n}
+must be a valid code point.  Valid code points are in the ranges 0 to
+@code{#xD7FF} inclusive or @code{#xE000} to @code{#x10FFFF} inclusive.
 @end deffn
 
 @rnindex char-upcase
@@ -1980,12 +2058,6 @@ handling them are provided.
 
 Character sets can be created, extended, tested for the membership of a
 characters and be compared to other character sets.
-
-The Guile implementation of character sets currently deals only with
-8-bit characters.  In the future, when Guile gets support for
-international character sets, this will change, but the functions
-provided here will always then be able to efficiently cope with very
-large character sets.
 
 @menu
 * Character Set Predicates/Comparison::
@@ -2185,7 +2257,7 @@ character codes lie in the half-open range
 If @var{error} is a true value, an error is signalled if the
 specified range contains characters which are not contained in
 the implemented character range.  If @var{error} is @code{#f},
-these characters are silently left out of the resultung
+these characters are silently left out of the resulting
 character set.
 
 The characters in @var{base_cs} are added to the result, if
@@ -2201,7 +2273,7 @@ character codes lie in the half-open range
 If @var{error} is a true value, an error is signalled if the
 specified range contains characters which are not contained in
 the implemented character range.  If @var{error} is @code{#f},
-these characters are silently left out of the resultung
+these characters are silently left out of the resulting
 character set.
 
 The characters are added to @var{base_cs} and @var{base_cs} is
@@ -2210,7 +2282,10 @@ returned.
 
 @deffn {Scheme Procedure} ->char-set x
 @deffnx {C Function} scm_to_char_set (x)
-Coerces x into a char-set. @var{x} may be a string, character or char-set. A string is converted to the set of its constituent characters; a character is converted to a singleton set; a char-set is returned as-is.
+Coerces x into a char-set. @var{x} may be a string, character or
+char-set. A string is converted to the set of its constituent
+characters; a character is converted to a singleton set; a char-set is
+returned as-is.
 @end deffn
 
 @c ===================================================================
@@ -2220,6 +2295,23 @@ Coerces x into a char-set. @var{x} may be a string, character or char-set. A str
 
 Access the elements and other information of a character set with these
 procedures.
+
+@deffn {Scheme Procedure} %char-set-dump cs
+Returns an association list containing debugging information
+for @var{cs}. The association list has the following entries.
+@table @code
+@item char-set
+The char-set itself
+@item len
+The number of groups of contiguous code points the char-set
+contains
+@item ranges
+A list of lists where each sublist is a range of code points
+and their associated characters
+@end table
+The return value of this function cannot be relied upon to be
+consistent between versions of Guile and should not be used in code.
+@end deffn
 
 @deffn {Scheme Procedure} char-set-size cs
 @deffnx {C Function} scm_char_set_size (cs)
@@ -2302,6 +2394,12 @@ must be a character set.
 Return the complement of the character set @var{cs}.
 @end deffn
 
+Note that the complement of a character set is likely to contain many
+reserved code points (code points that are not associated with
+characters).  It may be helpful to modify the output of
+@code{char-set-complement} by computing its intersection with the set
+of designated code points, @code{char-set:designated}.
+
 @deffn {Scheme Procedure} char-set-union . rest
 @deffnx {C Function} scm_char_set_union (rest)
 Return the union of all argument character sets.
@@ -2371,12 +2469,10 @@ useful, several predefined character set variables exist.
 @cindex charset
 @cindex locale
 
-Currently, the contents of these character sets are recomputed upon a
-successful @code{setlocale} call (@pxref{Locales}) in order to reflect
-the characters available in the current locale's codeset.  For
-instance, @code{char-set:letter} contains 52 characters under an ASCII
-locale (e.g., the default @code{C} locale) and 117 characters under an
-ISO-8859-1 (``Latin-1'') locale.
+These character sets are locale independent and are not recomputed
+upon a @code{setlocale} call.  They contain characters from the whole
+range of Unicode code points. For instance, @code{char-set:letter}
+contains about 94,000 characters.
 
 @defvr {Scheme Variable} char-set:lower-case
 @defvrx {C Variable} scm_char_set_lower_case
@@ -2390,13 +2486,16 @@ All upper-case characters.
 
 @defvr {Scheme Variable} char-set:title-case
 @defvrx {C Variable} scm_char_set_title_case
-This is empty, because ASCII has no titlecase characters.
+All single characters that function as if they were an upper-case
+letter followed by a lower-case letter.
 @end defvr
 
 @defvr {Scheme Variable} char-set:letter
 @defvrx {C Variable} scm_char_set_letter
-All letters, e.g. the union of @code{char-set:lower-case} and
-@code{char-set:upper-case}.
+All letters.  This includes @code{char-set:lower-case},
+@code{char-set:upper-case}, @code{char-set:title-case}, and many
+letters that have no case at all.  For example, Chinese and Japanese
+characters typically have no concept of case.
 @end defvr
 
 @defvr {Scheme Variable} char-set:digit
@@ -2426,23 +2525,26 @@ All whitespace characters.
 
 @defvr {Scheme Variable} char-set:blank
 @defvrx {C Variable} scm_char_set_blank
-All horizontal whitespace characters, that is @code{#\space} and
-@code{#\tab}.
+All horizontal whitespace characters, which notably includes
+@code{#\space} and @code{#\tab}.
 @end defvr
 
 @defvr {Scheme Variable} char-set:iso-control
 @defvrx {C Variable} scm_char_set_iso_control
-The ISO control characters with the codes 0--31 and 127.
+The ISO control characters are the C0 control characters (U+0000 to
+U+001F), delete (U+007F), and the C1 control characters (U+0080 to
+U+009F).
 @end defvr
 
 @defvr {Scheme Variable} char-set:punctuation
 @defvrx {C Variable} scm_char_set_punctuation
-The characters @code{!"#%&'()*,-./:;?@@[\\]_@{@}}
+All punctuation characters, such as the characters
+@code{!"#%&'()*,-./:;?@@[\\]_@{@}}
 @end defvr
 
 @defvr {Scheme Variable} char-set:symbol
 @defvrx {C Variable} scm_char_set_symbol
-The characters @code{$+<=>^`|~}.
+All symbol characters, such as the characters @code{$+<=>^`|~}.
 @end defvr
 
 @defvr {Scheme Variable} char-set:hex-digit
@@ -2460,9 +2562,17 @@ All ASCII characters.
 The empty character set.
 @end defvr
 
+@defvr {Scheme Variable} char-set:designated
+@defvrx {C Variable} scm_char_set_designated
+This character set contains all designated code points.  This includes
+all the code points to which Unicode has assigned a character or other
+meaning.
+@end defvr
+
 @defvr {Scheme Variable} char-set:full
 @defvrx {C Variable} scm_char_set_full
-This character set contains all possible characters.
+This character set contains all possible code points.  This includes
+both designated and reserved code points.
 @end defvr
 
 @node Strings
@@ -2490,7 +2600,7 @@ memory.
 
 When one of these two strings is modified, as with @code{string-set!},
 their common memory does get copied so that each string has its own
-memory and modifying one does not accidently modify the other as well.
+memory and modifying one does not accidentally modify the other as well.
 Thus, Guile's strings are `copy on write'; the actual copying of their
 memory is delayed until one string is written to.
 
@@ -2580,6 +2690,14 @@ Vertical tab character (ASCII 11).
 @item @nicode{\xHH}
 Character code given by two hexadecimal digits.  For example
 @nicode{\x7f} for an ASCII DEL (127).
+
+@item @nicode{\uHHHH}
+Character code given by four hexadecimal digits.  For example
+@nicode{\u0100} for a capital A with macron (U+0100).
+
+@item @nicode{\UHHHHHH}
+Character code given by six hexadecimal digits.  For example
+@nicode{\U010402}.
 @end table
 
 @noindent
@@ -2910,7 +3028,7 @@ characters.
 @deffnx {C Function} scm_string_trim (s, char_pred, start, end)
 @deffnx {C Function} scm_string_trim_right (s, char_pred, start, end)
 @deffnx {C Function} scm_string_trim_both (s, char_pred, start, end)
-Trim occurrances of @var{char_pred} from the ends of @var{s}.
+Trim occurrences of @var{char_pred} from the ends of @var{s}.
 
 @code{string-trim} trims @var{char_pred} characters from the left
 (start) of the string, @code{string-trim-right} trims them from the
@@ -3000,9 +3118,14 @@ The procedures in this section are similar to the character ordering
 predicates (@pxref{Characters}), but are defined on character sequences.
 
 The first set is specified in R5RS and has names that end in @code{?}.
-The second set is specified in SRFI-13 and the names have no ending
-@code{?}.  The predicates ending in @code{-ci} ignore the character case
-when comparing strings.  @xref{Text Collation, the @code{(ice-9
+The second set is specified in SRFI-13 and the names have not ending
+@code{?}.  
+
+The predicates ending in @code{-ci} ignore the character case
+when comparing strings.  For now, case-insensitive comparison is done
+using the R5RS rules, where every lower-case character that has a
+single character upper-case form is converted to uppercase before
+comparison.  See @xref{Text Collation, the @code{(ice-9
 i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
@@ -3192,14 +3315,14 @@ Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-ne
 @deffn {Scheme Procedure} string-index s char_pred [start [end]]
 @deffnx {C Function} scm_string_index (s, char_pred, start, end)
 Search through the string @var{s} from left to right, returning
-the index of the first occurence of a character which
+the index of the first occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure,
+satisfies the predicate @var{char_pred}, if it is a procedure,
 
 @item
 is in the set @var{char_pred}, if it is a character set.
@@ -3209,14 +3332,14 @@ is in the set @var{char_pred}, if it is a character set.
 @deffn {Scheme Procedure} string-rindex s char_pred [start [end]]
 @deffnx {C Function} scm_string_rindex (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
-the index of the last occurence of a character which
+the index of the last occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure,
+satisfies the predicate @var{char_pred}, if it is a procedure,
 
 @item
 is in the set if @var{char_pred} is a character set.
@@ -3270,14 +3393,14 @@ Is @var{s1} a suffix of @var{s2}, ignoring character case?
 @deffn {Scheme Procedure} string-index-right s char_pred [start [end]]
 @deffnx {C Function} scm_string_index_right (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
-the index of the last occurence of a character which
+the index of the last occurrence of a character which
 
 @itemize @bullet
 @item
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure,
+satisfies the predicate @var{char_pred}, if it is a procedure,
 
 @item
 is in the set if @var{char_pred} is a character set.
@@ -3287,14 +3410,14 @@ is in the set if @var{char_pred} is a character set.
 @deffn {Scheme Procedure} string-skip s char_pred [start [end]]
 @deffnx {C Function} scm_string_skip (s, char_pred, start, end)
 Search through the string @var{s} from left to right, returning
-the index of the first occurence of a character which
+the index of the first occurrence of a character which
 
 @itemize @bullet
 @item
 does not equal @var{char_pred}, if it is character,
 
 @item
-does not satisify the predicate @var{char_pred}, if it is a
+does not satisfy the predicate @var{char_pred}, if it is a
 procedure,
 
 @item
@@ -3305,7 +3428,7 @@ is not in the set if @var{char_pred} is a character set.
 @deffn {Scheme Procedure} string-skip-right s char_pred [start [end]]
 @deffnx {C Function} scm_string_skip_right (s, char_pred, start, end)
 Search through the string @var{s} from right to left, returning
-the index of the last occurence of a character which
+the index of the last occurrence of a character which
 
 @itemize @bullet
 @item
@@ -3330,7 +3453,7 @@ Return the count of the number of characters in the string
 equals @var{char_pred}, if it is character,
 
 @item
-satisifies the predicate @var{char_pred}, if it is a procedure.
+satisfies the predicate @var{char_pred}, if it is a procedure.
 
 @item
 is in the set @var{char_pred}, if it is a character set.

@@ -1374,7 +1374,7 @@ scm_is_string (SCM obj)
   return IS_STRING (obj);
 }
 
-static SCM
+SCM
 scm_from_stringn (const char *str, size_t len, const char *encoding,
                   scm_t_string_failed_conversion_handler handler)
 {
@@ -1382,6 +1382,9 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   scm_t_wchar *u32;
   int wide = 0;
   SCM res;
+
+  if (len == 0)
+    return scm_nullstr;
 
   if (encoding == NULL)
     {
@@ -1570,7 +1573,7 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
 }
 
 char *
-scm_to_locale_stringn (SCM str, size_t * lenp)
+scm_to_locale_stringn (SCM str, size_t *lenp)
 {
   SCM outport;
   scm_t_port *pt;
@@ -1677,6 +1680,8 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                           scm_list_2 (scm_from_locale_string (enc),
                                       str));
         }
+      if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+        unistring_escapes_to_guile_escapes (&buf, &len);
     }
   if (lenp)
     *lenp = len;
