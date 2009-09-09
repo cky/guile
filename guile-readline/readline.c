@@ -259,8 +259,8 @@ internal_readline (SCM text)
     {
       scm_t_port *pt = SCM_PTAB_ENTRY (output_port);
       
-      ret = scm_i_from_stringn (s, strlen (s), pt->encoding, 
-                                SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
+      ret = scm_from_stringn (s, strlen (s), pt->encoding, 
+                              SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE);
     }
   else 
     ret = SCM_EOF_VAL;

@@ -380,8 +380,8 @@ SCM scm_strport_to_string (SCM port)
       memcpy (buf, pt->read_buf, pt->read_buf_size);
     }
   else
-    str = scm_i_from_stringn ((char *)pt->read_buf, pt->read_buf_size,
-                              pt->encoding, pt->ilseq_handler);
+    str = scm_from_stringn ((char *)pt->read_buf, pt->read_buf_size,
+                            pt->encoding, pt->ilseq_handler);
   scm_remember_upto_here_1 (port);
   return str;
 }
