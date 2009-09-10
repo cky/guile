@@ -826,6 +826,11 @@ AC_LIB_HAVE_LINKFLAGS(gmp,
   AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README]))
 
 dnl GNU libunistring is checked for by Gnulib's `libunistring' module.
+if test "x$LTLIBUNISTRING" != "x"; then
+  LIBS="$LTLIBUNISTRING $LIBS"
+else
+  AC_MSG_ERROR([GNU libunistring is required, please install it.])
+fi
 
 dnl i18n tests
 #AC_CHECK_HEADERS([libintl.h])
