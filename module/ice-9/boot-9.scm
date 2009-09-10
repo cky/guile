@@ -1,4 +1,4 @@
-;;; installed-scm-file
+;;; -*- mode: scheme; coding: utf-8; -*-
 
 ;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ;;;; Free Software Foundation, Inc.
@@ -3034,6 +3034,13 @@ module '(ice-9 q) '(make-q q-length))}."
        (defmacro name args . body)
        (export-syntax name)))))
 
+;; And now for the most important macro.
+(define-syntax λ
+  (syntax-rules ()
+    ((_ formals body ...)
+     (lambda formals body ...))))
+
+
 ;; Export a local variable
 
 ;; This function is called from "modules.c".  If you change it, be

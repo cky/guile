@@ -105,6 +105,8 @@ unlikely that any code out there actually used this functionality.
 GOOPS, Guile's object system, used to be documented in separate manuals.
 This content is now included in Guile's manual directly.
 
+** Last but not least, the `λ' macro can be used in lieu of `lambda'
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
@@ -699,6 +701,8 @@ no effect, and will trigger a deprecation warning.
 
 Instead, use make-typed-array, list->typed-array, or array-type,
 respectively.
+
+** Last but not least, the `λ' macro can be used in lieu of `lambda'
 
 * Changes to the C interface
 
