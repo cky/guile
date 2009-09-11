@@ -1596,26 +1596,6 @@ SCM_DEFINE (scm_condition_variable_p, "condition-variable?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/*** Marking stacks */
-
-/* XXX - what to do with this?  Do we need to handle this for blocked
-   threads as well?
-*/
-#ifdef __ia64__
-# define SCM_MARK_BACKING_STORE() do {                                \
-    ucontext_t ctx;                                                   \
-    SCM_STACKITEM * top, * bot;                                       \
-    getcontext (&ctx);                                                \
-    scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
-      ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
-       / sizeof (SCM_STACKITEM)));                                    \
-    bot = (SCM_STACKITEM *) SCM_I_CURRENT_THREAD->register_backing_store_base;  \
-    top = (SCM_STACKITEM *) scm_ia64_ar_bsp (&ctx);                   \
-    scm_mark_locations (bot, top - bot); } while (0)
-#else
-# define SCM_MARK_BACKING_STORE()
-#endif
-
 
 
 /*** Select */
