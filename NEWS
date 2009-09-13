@@ -105,6 +105,11 @@ unlikely that any code out there actually used this functionality.
 GOOPS, Guile's object system, used to be documented in separate manuals.
 This content is now included in Guile's manual directly.
 
+** `libguile-i18n' has been merged into `libguile'
+
+The C support code for `(ice-9 i18n)', which used to be in
+`libguile-i18n', is now part of `libguile'.
+
 ** Last but not least, the `λ' macro can be used in lieu of `lambda'
 
 ** And of course, the usual collection of bugfixes
