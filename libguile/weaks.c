@@ -32,7 +32,7 @@
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 #include <gc/gc_typed.h>
 
 

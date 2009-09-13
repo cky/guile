@@ -22,7 +22,7 @@
 # include <config.h>
 #endif
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 #include "libguile/_scm.h"
 
 #if HAVE_UNISTD_H

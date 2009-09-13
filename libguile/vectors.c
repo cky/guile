@@ -41,7 +41,7 @@
 #include "libguile/dynwind.h"
 #include "libguile/deprecation.h"
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 
 
 

@@ -465,6 +465,7 @@ modinclude_HEADERS =				\
 	arrays.h				\
 	async.h					\
 	backtrace.h				\
+	bdw-gc.h				\
 	boolean.h				\
 	bitvectors.h				\
 	bytevectors.h				\

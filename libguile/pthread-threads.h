@@ -30,7 +30,7 @@
 #include <sched.h>
 
 /* `libgc' intercepts pthread calls by defining wrapping macros.  */
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 
 /* Threads 
 */

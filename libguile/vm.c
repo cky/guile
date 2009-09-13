@@ -25,7 +25,7 @@
 #include <string.h>
 #include <assert.h>
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 #include <gc/gc_mark.h>
 
 #include "_scm.h"

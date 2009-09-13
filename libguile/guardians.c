@@ -62,7 +62,7 @@
 #include "libguile/eval.h"
 
 #include "libguile/guardians.h"
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 
 
 

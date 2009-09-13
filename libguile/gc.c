@@ -56,7 +56,7 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #include "libguile/gc.h"
 #include "libguile/dynwind.h"
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"

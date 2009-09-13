@@ -41,7 +41,7 @@
 #include <string.h>
 #endif
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 
 
 

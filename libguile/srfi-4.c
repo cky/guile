@@ -28,7 +28,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 #include "libguile/srfi-4.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"

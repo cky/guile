@@ -78,7 +78,7 @@
    "inline.c", when `inline' is not supported at all or when "extern inline"
    is used.  */
 
-#include "libguile/boehm-gc.h"
+#include "libguile/bdw-gc.h"
 
 
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
