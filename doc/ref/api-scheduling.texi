@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -542,10 +542,19 @@ which only ever executes on behalf of one process at any one time.
 @node Blocking
 @subsection Blocking in Guile Mode
 
-A thread must not block outside of a libguile function while it is in
-guile mode.  The following functions can be used to temporily leave
-guile mode or to perform some common blocking operations in a supported
-way.
+Up to Guile version 1.8, a thread blocked in guile mode would prevent
+the garbage collector from running.  Thus threads had to explicitly
+leave guile mode with @code{scm_without_guile ()} before making a
+potentially blocking call such as a mutex lock, a @code{select ()}
+system call, etc.  The following functions could be used to temporarily
+leave guile mode or to perform some common blocking operations in a
+supported way.
+
+Starting from Guile 2.0, blocked threads no longer hinder garbage
+collection.  Thus, the functions below are not needed anymore.  They can
+still be used to inform the GC that a thread is about to block, giving
+it a (small) optimization opportunity for ``stop the world'' garbage
+collections, should they occur while the thread is blocked.
 
 @deftypefn {C Function} {void *} scm_without_guile (void *(*func) (void *), void *data)
 Leave guile mode, call @var{func} on @var{data}, enter guile mode and
