@@ -71,6 +71,7 @@
 #include "libguile/hashtab.h"
 #include "libguile/hooks.h"
 #include "libguile/gettext.h"
+#include "libguile/i18n.h"
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
@@ -561,6 +562,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_load_path ();
   scm_init_standard_ports ();  /* Requires fports */
   scm_init_dynamic_linking ();
+  scm_bootstrap_i18n ();
 #if SCM_ENABLE_ELISP
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */

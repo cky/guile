@@ -43,8 +43,7 @@ gnulib_library = $(top_builddir)/lib/libgnu.la
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
-lib_LTLIBRARIES = libguile.la						\
-		  libguile-i18n-v-@LIBGUILE_I18N_MAJOR@.la
+lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
 
 noinst_PROGRAMS = guile_filter_doc_snarfage gen-scmconfig
@@ -145,6 +144,7 @@ libguile_la_SOURCES =				\
 	hash.c					\
 	hashtab.c				\
 	hooks.c					\
+	i18n.c					\
 	init.c					\
 	inline.c				\
 	instructions.c				\
@@ -202,15 +202,6 @@ libguile_la_SOURCES =				\
 	vm.c					\
 	vports.c				\
 	weaks.c
-
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_SOURCES = i18n.c
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_CFLAGS =	\
-   $(libguile_la_CFLAGS)
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LIBADD =	\
-   libguile.la $(gnulib_library)
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LDFLAGS =	\
-   -module -L$(builddir) -lguile				\
-   -version-info @LIBGUILE_I18N_INTERFACE@
 
 DOT_X_FILES =					\
 	alist.x					\

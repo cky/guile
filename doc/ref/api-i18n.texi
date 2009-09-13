@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -38,12 +38,6 @@ In order to make use of the functions described thereafter, the
 @example
 (use-modules (ice-9 i18n))
 @end example
-
-@cindex libguile-i18n-v-@value{LIBGUILE_I18N_MAJOR}
-
-C programs can use the C functions corresponding to the procedures of
-this module by including @code{<libguile/i18n.h>} and by linking
-against @code{libguile-i18n-v-@value{LIBGUILE_I18N_MAJOR}}.
 
 @cindex cultural conventions
 

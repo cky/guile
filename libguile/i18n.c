@@ -23,6 +23,7 @@
 #include <alloca.h>
 
 #include "libguile/_scm.h"
+#include "libguile/extensions.h"
 #include "libguile/feature.h"
 #include "libguile/i18n.h"
 #include "libguile/strings.h"
@@ -1705,6 +1706,15 @@ scm_init_i18n ()
   /* Initialize the global locale object with a special `locale' SMOB.  */
   SCM_NEWSMOB (global_locale_smob, scm_tc16_locale_smob_type, NULL);
   SCM_VARIABLE_SET (scm_global_locale, global_locale_smob);
+}
+
+void
+scm_bootstrap_i18n ()
+{
+  scm_c_register_extension ("libguile", "scm_init_i18n",
+			    (scm_t_extension_init_func) scm_init_i18n,
+			    NULL);
+
 }
 
 

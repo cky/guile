@@ -3,7 +3,7 @@
 #ifndef SCM_I18N_H
 #define SCM_I18N_H
 
-/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -42,9 +42,12 @@ SCM_API SCM scm_string_locale_upcase (SCM chr, SCM locale);
 SCM_API SCM scm_string_locale_downcase (SCM chr, SCM locale);
 SCM_API SCM scm_locale_string_to_integer (SCM str, SCM base, SCM locale);
 SCM_API SCM scm_locale_string_to_inexact (SCM str, SCM locale);
-SCM_API SCM scm_nl_langinfo (SCM item, SCM locale);
 
-SCM_API void scm_init_i18n (void);
+SCM_INTERNAL SCM scm_nl_langinfo (SCM item, SCM locale);
+
+SCM_INTERNAL void scm_init_i18n (void);
+SCM_INTERNAL void scm_bootstrap_i18n (void);
+
 
 #endif  /* SCM_I18N_H */
 
