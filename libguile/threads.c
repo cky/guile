@@ -84,7 +84,13 @@ to_timespec (SCM t, scm_t_timespec *waittime)
     }
 }
 
+
 /*** Queues */
+
+/* Note: We annotate with "GC-robust" assignments whose purpose is to avoid
+   the risk of false references leading to unbounded retained space as
+   described in "Bounding Space Usage of Conservative Garbage Collectors",
+   H.J. Boehm, 2001.  */
 
 /* Make an empty queue data structure.
  */
@@ -128,6 +134,10 @@ remqueue (SCM q, SCM c)
 	  if (scm_is_eq (c, SCM_CAR (q)))
 	    SCM_SETCAR (q, SCM_CDR (c));
 	  SCM_SETCDR (prev, SCM_CDR (c));
+
+	  /* GC-robust */
+	  SCM_SETCDR (c, SCM_EOL);
+
 	  SCM_CRITICAL_SECTION_END;
 	  return 1;
 	}
@@ -157,6 +167,10 @@ dequeue (SCM q)
       if (scm_is_null (SCM_CDR (q)))
 	SCM_SETCAR (q, SCM_EOL);
       SCM_CRITICAL_SECTION_END;
+
+      /* GC-robust */
+      SCM_SETCDR (c, SCM_EOL);
+
       return SCM_CAR (c);
     }
 }
@@ -477,6 +491,10 @@ on_thread_exit (void *v)
     if (*tp == t)
       {
 	*tp = t->next_thread;
+
+	/* GC-robust */
+	t->next_thread = NULL;
+
 	break;
       }
   thread_count--;
