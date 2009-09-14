@@ -1,6 +1,6 @@
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1325,7 +1325,7 @@ scm_i_ucs_range_to_char_set (const char *FUNC_NAME, SCM lower, SCM upper,
     cs = make_char_set (FUNC_NAME);
   else
     {
-      SCM_VALIDATE_SMOB (4, base_cs, charset);
+      SCM_VALIDATE_SMOB (3, base_cs, charset);
       if (reuse)
         cs = base_cs;
       else
