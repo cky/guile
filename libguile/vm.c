@@ -357,7 +357,8 @@ vm_stack_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
      corresponding VM.  */
   vm = * ((struct scm_vm **) addr);
 
-  if ((SCM *) addr != vm->stack_base - 1
+  if (vm == NULL
+      || (SCM *) addr != vm->stack_base - 1
       || vm->stack_limit - vm->stack_base != vm->stack_size)
     /* ADDR must be a pointer to a free-list element, which we must ignore
        (see warning in <gc/gc_mark.h>).  */
