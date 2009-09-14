@@ -199,15 +199,7 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
-static size_t
-thread_free (SCM obj)
-{
-  scm_i_thread *t = SCM_I_THREAD_DATA (obj);
-  assert (t->exited);
-  scm_gc_free (t, sizeof (*t), "thread");
-  return 0;
-}
-
+
 /*** Blocking on queues. */
 
 /* See also scm_i_queue_async_cell for how such a block is
@@ -1084,7 +1076,6 @@ fat_mutex_free (SCM mx)
 {
   fat_mutex *m = SCM_MUTEX_DATA (mx);
   scm_i_pthread_mutex_destroy (&m->lock);
-  scm_gc_free (m, sizeof (fat_mutex), "mutex");
   return 0;
 }
 
@@ -1490,14 +1481,6 @@ SCM_DEFINE (scm_mutex_locked_p, "mutex-locked?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-static size_t
-fat_cond_free (SCM mx)
-{
-  fat_cond *c = SCM_CONDVAR_DATA (mx);
-  scm_gc_free (c, sizeof (fat_cond), "condition-variable");
-  return 0;
-}
-
 static int
 fat_cond_print (SCM cv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
@@ -1889,7 +1872,6 @@ scm_init_threads ()
 {
   scm_tc16_thread = scm_make_smob_type ("thread", sizeof (scm_i_thread));
   scm_set_smob_print (scm_tc16_thread, thread_print);
-  scm_set_smob_free (scm_tc16_thread, thread_free); /* XXX: Could be removed */
 
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (fat_mutex));
   scm_set_smob_print (scm_tc16_mutex, fat_mutex_print);
@@ -1898,7 +1880,6 @@ scm_init_threads ()
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
 					 sizeof (fat_cond));
   scm_set_smob_print (scm_tc16_condvar, fat_cond_print);
-  scm_set_smob_free (scm_tc16_condvar, fat_cond_free);
 
   scm_i_default_dynamic_state = SCM_BOOL_F;
   guilify_self_2 (SCM_BOOL_F);
