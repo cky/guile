@@ -433,10 +433,17 @@ BV_FIXABLE_INT_REF (u16, u16_native, uint16, 2)
 VM_DEFINE_FUNCTION (142, bv_s16_native_ref, "bv-s16-native-ref", 2)
 BV_FIXABLE_INT_REF (s16, s16_native, int16, 2)
 VM_DEFINE_FUNCTION (143, bv_u32_native_ref, "bv-u32-native-ref", 2)
-/* FIXME: u32 is always a fixnum on 64-bit builds */
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_REF (u32, u32_native, uint32, 4)
+#else
 BV_INT_REF (u32, uint32, 4)
+#endif
 VM_DEFINE_FUNCTION (144, bv_s32_native_ref, "bv-s32-native-ref", 2)
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_REF (s32, s32_native, int32, 4)
+#else
 BV_INT_REF (s32, int32, 4)
+#endif
 VM_DEFINE_FUNCTION (145, bv_u64_native_ref, "bv-u64-native-ref", 2)
 BV_INT_REF (u64, uint64, 8)
 VM_DEFINE_FUNCTION (146, bv_s64_native_ref, "bv-s64-native-ref", 2)
@@ -541,10 +548,17 @@ BV_FIXABLE_INT_SET (u16, u16_native, uint16, 0, SCM_T_UINT16_MAX, 2)
 VM_DEFINE_INSTRUCTION (160, bv_s16_native_set, "bv-s16-native-set", 0, 3, 0)
 BV_FIXABLE_INT_SET (s16, s16_native, int16, SCM_T_INT16_MIN, SCM_T_INT16_MAX, 2)
 VM_DEFINE_INSTRUCTION (161, bv_u32_native_set, "bv-u32-native-set", 0, 3, 0)
-/* FIXME: u32 is always a fixnum on 64-bit builds */
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_SET (u32, u32_native, uint32, 0, SCM_T_UINT32_MAX, 4)
+#else
 BV_INT_SET (u32, uint32, 4)
+#endif
 VM_DEFINE_INSTRUCTION (162, bv_s32_native_set, "bv-s32-native-set", 0, 3, 0)
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_SET (s32, s32_native, int32, SCM_T_INT32_MIN, SCM_T_INT32_MAX, 4)
+#else
 BV_INT_SET (s32, int32, 4)
+#endif
 VM_DEFINE_INSTRUCTION (163, bv_u64_native_set, "bv-u64-native-set", 0, 3, 0)
 BV_INT_SET (u64, uint64, 8)
 VM_DEFINE_INSTRUCTION (164, bv_s64_native_set, "bv-s64-native-set", 0, 3, 0)
