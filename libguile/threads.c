@@ -53,6 +53,7 @@
 #include "libguile/init.h"
 #include "libguile/scmsigs.h"
 #include "libguile/strings.h"
+#include "libguile/weaks.h"
 
 #ifdef __MINGW32__
 #ifndef ETIMEDOUT
@@ -440,14 +441,18 @@ do_thread_exit (void *v)
 
   while (!scm_is_null (t->mutexes))
     {
-      SCM mutex = SCM_CAR (t->mutexes);
-      fat_mutex *m  = SCM_MUTEX_DATA (mutex);
-      scm_i_pthread_mutex_lock (&m->lock);
+      SCM mutex = SCM_WEAK_PAIR_CAR (t->mutexes);
 
-      unblock_from_queue (m->waiting);
+      if (!SCM_UNBNDP (mutex))
+	{
+	  fat_mutex *m  = SCM_MUTEX_DATA (mutex);
 
-      scm_i_pthread_mutex_unlock (&m->lock);
-      t->mutexes = SCM_CDR (t->mutexes);
+	  scm_i_pthread_mutex_lock (&m->lock);
+	  unblock_from_queue (m->waiting);
+	  scm_i_pthread_mutex_unlock (&m->lock);
+	}
+
+      t->mutexes = SCM_WEAK_PAIR_CDR (t->mutexes);
     }
 
   scm_i_pthread_mutex_unlock (&t->admin_mutex);
@@ -1196,7 +1201,14 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 	    {
 	      scm_i_thread *t = SCM_I_THREAD_DATA (new_owner);
 	      scm_i_pthread_mutex_lock (&t->admin_mutex);
-	      t->mutexes = scm_cons (mutex, t->mutexes);
+
+	      /* Only keep a weak reference to MUTEX so that it's not
+		 retained when not referenced elsewhere (bug #27450).  Note
+		 that the weak pair itself it still retained, but it's better
+		 than retaining MUTEX and the threads referred to by its
+		 associated queue.  */
+	      t->mutexes = scm_weak_car_pair (mutex, t->mutexes);
+
 	      scm_i_pthread_mutex_unlock (&t->admin_mutex);
 	    }
 	  *ret = 1;
