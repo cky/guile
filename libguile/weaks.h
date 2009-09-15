@@ -55,9 +55,9 @@
 
 /* Weak pairs.  */
 
-SCM_API SCM scm_weak_car_pair (SCM car, SCM cdr);
-SCM_API SCM scm_weak_cdr_pair (SCM car, SCM cdr);
-SCM_API SCM scm_doubly_weak_pair (SCM car, SCM cdr);
+SCM_INTERNAL SCM scm_weak_car_pair (SCM car, SCM cdr);
+SCM_INTERNAL SCM scm_weak_cdr_pair (SCM car, SCM cdr);
+SCM_INTERNAL SCM scm_doubly_weak_pair (SCM car, SCM cdr);
 
 /* Testing the weak component(s) of a cell for reachability.  */
 #define SCM_WEAK_PAIR_WORD_DELETED_P(_cell, _word)		\
