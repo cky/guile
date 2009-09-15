@@ -1422,6 +1422,7 @@
       ;; XXX: The following line introduces a circular reference that
       ;; precludes garbage collection of modules with the current weak hash
       ;; table semantics (see
+      ;; http://lists.gnu.org/archive/html/guile-devel/2009-01/msg00102.html and
       ;; http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2465
       ;; for details).  Since it doesn't appear to be used (only in
       ;; `scm_lookup_closure_module ()', which has 1 caller), we just comment
