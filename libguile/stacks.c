@@ -143,6 +143,11 @@ stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
 	{
 	  scm_t_debug_info *info = RELOC_INFO (dframe->info, offset);
 	  scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
+	  /* If current frame is a macro during expansion, we should
+	     skip the previously recorded macro transformer
+	     application frame.  */
+	  if (SCM_MACROEXPP (*dframe) && n > 0)
+	    --n;
 	  n += (info - vect) / 2 + 1;
 	  /* Data in the apply part of an eval info frame comes from previous
 	     stack frame if the scm_t_debug_info vector is overflowed. */
@@ -280,6 +285,7 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 	    {
 	      *(iframe - 1) = *iframe;
 	      --iframe;
+	      ++n;
 	    }
 	  info =  RELOC_INFO (dframe->info, offset);
 	  vect =  RELOC_INFO (dframe->vect, offset);
