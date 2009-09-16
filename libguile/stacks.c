@@ -151,7 +151,7 @@ stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
 	      && !SCM_UNBNDP (info[1].a.proc))
             ++n;
 	}
-      else if (SCM_APPLYFRAMEP (*dframe))
+      else
         {
           scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
           if (SCM_PROGRAM_P (vect[0].a.proc))
@@ -177,8 +177,6 @@ stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
           else
             ++n; /* increment for non-program apply frame */
         }
-      else
-	++n;
     }
   if (dframe && SCM_VOIDFRAMEP (*dframe))
     *id = RELOC_INFO(dframe->vect, offset)[0].id;
