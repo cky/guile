@@ -26,7 +26,7 @@
  * Programs
  */
 
-#define SCM_F_PROGRAM_IS_BOOT (1<<16)
+#define SCM_F_PROGRAM_IS_BOOT 0x100
 
 #define SCM_PROGRAM_P(x)	(!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_program)
 #define SCM_PROGRAM_OBJCODE(x)	(SCM_CELL_OBJECT_1 (x))

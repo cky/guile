@@ -203,7 +203,7 @@ really_make_boot_program (long nargs)
                              sizeof (struct scm_objcode) + sizeof (text));
   ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
                           SCM_BOOL_F, SCM_BOOL_F);
-  SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
+  SCM_SET_CELL_WORD_0 (ret, SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_BOOT);
 
   return ret;
 }
