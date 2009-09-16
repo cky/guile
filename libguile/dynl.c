@@ -48,6 +48,7 @@ maybe_drag_in_eprintf ()
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/libpath.h"
 #include "libguile/dynl.h"
 #include "libguile/smob.h"
 #include "libguile/keywords.h"
@@ -113,7 +114,21 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 static void
 sysdep_dynl_init ()
 {
+  char *env;
+
   lt_dlinit ();
+
+  env = getenv ("GUILE_SYSTEM_LTDL_PATH");
+  if (env && strcmp (env, "") == 0)
+    /* special-case interpret system-ltdl-path=="" as meaning no system path,
+       which is the case during the build */
+    ; 
+  else if (env)
+    lt_dladdsearchdir (env);
+#ifdef SCM_LIB_DIR
+  else
+    lt_dladdsearchdir (SCM_LIB_DIR);
+#endif
 }
 
 scm_t_bits scm_tc16_dynamic_obj;
