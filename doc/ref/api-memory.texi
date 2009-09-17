@@ -113,7 +113,7 @@ functions for dynamic memory allocation that are integrated into the
 garbage collector and the error reporting system.
 
 Memory blocks that are associated with Scheme objects (for example a
-smob) should be allocated and freed with @code{scm_gc_malloc} or
+smob) should be allocated with @code{scm_gc_malloc} or
 @code{scm_gc_malloc_pointerless}.  These two functions will either
 return a valid pointer or signal an error.  Memory blocks allocated this
 way can be freed with @code{scm_gc_free}; however, this is not strictly
