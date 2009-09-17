@@ -43,11 +43,11 @@
 (define (br-instruction? x)
   (memq x '(br br-if br-if-not br-if-eq br-if-not-eq br-if-null br-if-not-null)))
 
-(define (bytes->s16 a b)
-  (let ((x (+ (ash a 8) b)))
-    (if (zero? (logand (ash 1 15) x))
+(define (bytes->s24 a b c)
+  (let ((x (+ (ash a 16) (ash b 8) c)))
+    (if (zero? (logand (ash 1 23) x))
         x
-        (- x (ash 1 16)))))
+        (- x (ash 1 24)))))
 
 ;; FIXME: this is a little-endian disassembly!!!
 (define (decode-load-program pop)
@@ -60,9 +60,8 @@
          (%unused-pad (begin (pop) (pop) (pop) (pop)))
          (labels '())
          (i 0))
-    (define (ensure-label rel1 rel2)
-      (let ((where (+ (logand i (lognot #x7))
-                      (* (bytes->s16 rel1 rel2) 8))))
+    (define (ensure-label rel1 rel2 rel3)
+      (let ((where (+ i (bytes->s24 rel1 rel2 rel3))))
         (or (assv-ref labels where)
             (begin
               (let ((l (gensym ":L")))
@@ -87,9 +86,9 @@
             (else
              (let ((exp (decode-bytecode sub-pop)))
                (pmatch exp
-                 ((,br ,rel1 ,rel2) (guard (br-instruction? br))
-                  (lp (cons `(,br ,(ensure-label rel1 rel2)) out)))
-                 ((mv-call ,n ,rel1 ,rel2)
+                 ((,br ,rel1 ,rel2 ,rel3) (guard (br-instruction? br))
+                  (lp (cons `(,br ,(ensure-label rel1 rel2 rel3)) out)))
+                 ((mv-call ,n ,rel1 ,rel2 ,rel3)
                   (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2)) out)))
                  (else 
                   (lp (cons exp out))))))))))

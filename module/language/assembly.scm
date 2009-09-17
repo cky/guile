@@ -72,7 +72,7 @@
              '(nop)))
 
 (define (align-block addr)
-  (code-alignment addr *block-alignment* 0))
+  '())
 
 (define (align-code code addr alignment header-len)
   `(,@(code-alignment addr alignment header-len)

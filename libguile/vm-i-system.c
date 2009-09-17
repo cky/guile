@@ -411,61 +411,62 @@ VM_DEFINE_INSTRUCTION (30, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
  * branch and jump
  */
 
-/* offset must be a signed 16 bit int!!! */
+/* offset must be at least 24 bits wide, and signed */
 #define FETCH_OFFSET(offset)                    \
 {						\
-  int h = FETCH ();				\
-  int l = FETCH ();				\
-  offset = (h << 8) + l;                        \
+  offset = FETCH () << 16;                      \
+  offset += FETCH () << 8;                      \
+  offset += FETCH ();                           \
+  offset -= (offset & (1<<23)) << 1;            \
 }
 
 #define BR(p)					\
 {						\
-  scm_t_int16 offset;                           \
+  scm_t_int32 offset;                           \
   FETCH_OFFSET (offset);                        \
   if (p)					\
-    ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);      \
+    ip += offset;                               \
   NULLSTACK (1);				\
   DROP ();					\
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (31, br, "br", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (31, br, "br", 3, 0, 0)
 {
-  scm_t_int16 offset;
+  scm_t_int32 offset;
   FETCH_OFFSET (offset);
-  ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);
+  ip += offset;
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (32, br_if, "br-if", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (32, br_if, "br-if", 3, 0, 0)
 {
   BR (!SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (33, br_if_not, "br-if-not", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (33, br_if_not, "br-if-not", 3, 0, 0)
 {
   BR (SCM_FALSEP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (34, br_if_eq, "br-if-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (34, br_if_eq, "br-if-eq", 3, 0, 0)
 {
   sp--; /* underflow? */
   BR (SCM_EQ_P (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (35, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (35, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 {
   sp--; /* underflow? */
   BR (!SCM_EQ_P (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (36, br_if_null, "br-if-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (36, br_if_null, "br-if-null", 3, 0, 0)
 {
   BR (SCM_NULLP (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (37, br_if_not_null, "br-if-not-null", 3, 0, 0)
 {
   BR (!SCM_NULLP (*sp));
 }
@@ -642,15 +643,15 @@ VM_DEFINE_INSTRUCTION (42, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 3, -1, 1)
+VM_DEFINE_INSTRUCTION (43, mv_call, "mv-call", 4, -1, 1)
 {
   SCM x;
-  scm_t_int16 offset;
+  scm_t_int32 offset;
   scm_t_uint8 *mvra;
   
   nargs = FETCH ();
   FETCH_OFFSET (offset);
-  mvra = ip + ((scm_t_ptrdiff)offset) * 8 - ((unsigned long)ip) % 8;
+  mvra = ip + offset;
 
   x = sp[-nargs];
 
