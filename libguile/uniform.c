@@ -44,13 +44,24 @@ const size_t scm_i_array_element_type_sizes[SCM_ARRAY_ELEMENT_TYPE_LAST + 1] = {
   64, 128
 };
 
-/* FIXME: return bit size instead of byte size? */
 size_t
 scm_array_handle_uniform_element_size (scm_t_array_handle *h)
 {
   size_t ret = scm_i_array_element_type_sizes[h->element_type];
   if (ret && ret % 8 == 0)
     return ret / 8;
+  else if (ret)
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "byte-aligned uniform array");
+  else
+    scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
+}
+
+size_t
+scm_array_handle_uniform_element_bit_size (scm_t_array_handle *h)
+{
+  size_t ret = scm_i_array_element_type_sizes[h->element_type];
+  if (ret)
+    return ret;
   else
     scm_wrong_type_arg_msg (NULL, 0, h->array, "uniform array");
 }
@@ -110,14 +121,15 @@ SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,
 
 SCM_DEFINE (scm_uniform_vector_element_type, "uniform-vector-element-type", 1, 0, 0,
 	    (SCM v),
-	    "Return the number of elements in the uniform vector, @var{v}.")
+	    "Return the type of the elements in the uniform vector, @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_element_type
 {
   scm_t_array_handle h;
-  size_t len;
-  ssize_t inc;
   SCM ret;
-  scm_uniform_vector_elements (v, &h, &len, &inc);
+  
+  if (!scm_is_uniform_vector (v))
+    scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, v, "uniform vector");
+  scm_array_get_handle (v, &h);
   ret = scm_array_handle_element_type (&h);
   scm_array_handle_release (&h);
   return ret;
@@ -144,15 +156,9 @@ SCM_DEFINE (scm_uniform_vector_element_size, "uniform-vector-element-size", 1, 0
 SCM
 scm_c_uniform_vector_ref (SCM v, size_t idx)
 {
-  SCM ret;
-  scm_t_array_handle h;
-  size_t len;
-  ssize_t inc;
-  
-  scm_uniform_vector_elements (v, &h, &len, &inc);
-  ret = scm_array_handle_ref (&h, idx*inc);
-  scm_array_handle_release (&h);
-  return ret;
+  if (!scm_is_uniform_vector (v))
+    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+  return scm_c_generalized_vector_ref (v, idx);
 }
 
 SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
@@ -168,13 +174,9 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 void
 scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
 {
-  scm_t_array_handle h;
-  size_t len;
-  ssize_t inc;
-  
-  scm_uniform_vector_elements (v, &h, &len, &inc);
-  scm_array_handle_set (&h, idx*inc, val);
-  scm_array_handle_release (&h);
+  if (!scm_is_uniform_vector (v))
+    scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
+  scm_c_generalized_vector_set_x (v, idx, val);
 }
 
 SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
@@ -193,15 +195,9 @@ SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
 	    "Convert the uniform numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_uniform_vector_to_list
 {
-  SCM ret;
-  scm_t_array_handle h;
-  size_t len;
-  ssize_t inc;
-  
-  scm_uniform_vector_elements (uvec, &h, &len, &inc);
-  ret = scm_generalized_vector_to_list (uvec);
-  scm_array_handle_release (&h);
-  return ret;
+  if (!scm_is_uniform_vector (uvec))
+    scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, uvec, "uniform vector");
+  return scm_generalized_vector_to_list (uvec);
 }
 #undef FUNC_NAME
 

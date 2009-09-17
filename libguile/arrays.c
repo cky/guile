@@ -211,7 +211,7 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
   scm_t_array_dim *s;
   SCM ra;
   scm_t_array_handle h;
-  void *base;
+  void *elts;
   size_t sz;
   
   ra = scm_i_shap2ra (bounds);
@@ -230,16 +230,24 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
 
 
   scm_array_get_handle (ra, &h);
-  base = scm_array_handle_uniform_writable_elements (&h);
-  sz = scm_array_handle_uniform_element_size (&h);
+  elts = h.writable_elements;
+  sz = scm_array_handle_uniform_element_bit_size (&h);
   scm_array_handle_release (&h);
 
-  if (byte_len % sz)
-    SCM_MISC_ERROR ("byte length not a multiple of the unit size", SCM_EOL);
-  if (byte_len / sz != rlen)
-    SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+  if (sz >= 8 && ((sz % 8) == 0))
+    {
+      if (byte_len % (sz / 8))
+        SCM_MISC_ERROR ("byte length not a multiple of the unit size", SCM_EOL);
+      if (byte_len / (sz / 8) != rlen)
+        SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+    }
+  else
+    {
+      if (rlen * (sz / 8) + rlen * (sz % 8) / 8 != byte_len)
+        SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+    }
 
-  memcpy (base, bytes, byte_len);
+  memcpy (elts, bytes, byte_len);
 
   if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))

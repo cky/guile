@@ -36,8 +36,10 @@ SCM_INTERNAL const size_t scm_i_array_element_type_sizes[];
 #define SCM_ARRAY_ELEMENT_TYPE_IS_UNBOXED(t)    \
   (scm_i_array_element_type_sizes[(t)] != 0)
 
-/* returns type size in bits */
+/* type size in bytes */
 SCM_API size_t scm_array_handle_uniform_element_size (scm_t_array_handle *h);
+/* type size in bits */
+SCM_API size_t scm_array_handle_uniform_element_bit_size (scm_t_array_handle *h);
 
 SCM_API const void *scm_array_handle_uniform_elements (scm_t_array_handle *h);
 SCM_API void *scm_array_handle_uniform_writable_elements (scm_t_array_handle *h);

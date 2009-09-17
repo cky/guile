@@ -22,6 +22,7 @@
 #endif
 
 #include <alloca.h>
+#include <assert.h>
 
 #include <gmp.h>
 
@@ -587,23 +588,29 @@ SCM_DEFINE (scm_uniform_array_to_bytevector, "uniform-array->bytevector",
 #define FUNC_NAME s_scm_uniform_array_to_bytevector
 {
   SCM contents, ret;
-  size_t len;
+  size_t len, sz, byte_len;
   scm_t_array_handle h;
-  const void *base;
-  size_t sz;
+  const void *elts;
   
   contents = scm_array_contents (array, SCM_BOOL_T);
   if (scm_is_false (contents))
     scm_wrong_type_arg_msg (FUNC_NAME, 0, array, "uniform contiguous array");
 
   scm_array_get_handle (contents, &h);
+  assert (h.base == 0);
 
-  base = scm_array_handle_uniform_elements (&h);
+  elts = h.elements;
   len = h.dims->inc * (h.dims->ubnd - h.dims->lbnd + 1);
-  sz = scm_array_handle_uniform_element_size (&h);
+  sz = scm_array_handle_uniform_element_bit_size (&h);
+  if (sz >= 8 && ((sz % 8) == 0))
+    byte_len = len * (sz / 8);
+  else
+    /* uf. tricky, and i'm not sure i'm avoiding overflow. */
+    byte_len = len * (sz / 8)
+      + (((len * (sz % 8)) - 1) / 8) + 1;
 
-  ret = make_bytevector (len * sz, SCM_ARRAY_ELEMENT_TYPE_VU8);
-  memcpy (SCM_BYTEVECTOR_CONTENTS (ret), base, len * sz);
+  ret = make_bytevector (byte_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+  memcpy (SCM_BYTEVECTOR_CONTENTS (ret), elts, byte_len);
 
   scm_array_handle_release (&h);
 
