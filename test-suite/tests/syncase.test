@@ -22,11 +22,6 @@
 (define-module (test-suite test-syncase)
   :use-module (test-suite lib))
 
-(pass-if "(ice-9 syncase) loads"
-  (false-if-exception
-   (begin (eval '(use-syntax (ice-9 syncase)) (current-module))
-          #t)))
-
 (define-syntax plus
   (syntax-rules ()
     ((plus x ...) (+ x ...))))

@@ -28,7 +28,6 @@
 
 (define-module (srfi srfi-35)
   #:use-module (srfi srfi-1)
-  #:use-module (ice-9 syncase)
   #:export (make-condition-type condition-type?
             make-condition condition? condition-has-type? condition-ref
             make-compound-condition extract-condition

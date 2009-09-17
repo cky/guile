@@ -20,7 +20,6 @@
 ;; macro has been modified to fit into our test suite machinery.
 
 (define-module (test-suite test-r5rs-pitfall)
-  :use-syntax (ice-9 syncase)
   :use-module (test-suite lib))
 
 (define-syntax should-be
