@@ -726,32 +726,29 @@ SCM_DEFINE (scm_locale_p, "locale?", 1, 0, 0,
    A similar API can be found in MzScheme starting from version 200:
    http://download.plt-scheme.org/chronology/mzmr200alpha14.html .  */
 
-#define SCM_STRING_TO_U32_BUF(s1, c_s1)                                 \
-  do {                                                                  \
-    if (scm_i_is_narrow_string (s1))                                    \
-      {                                                                 \
-        size_t i, len;                                                  \
-        const char *buf = scm_i_string_chars (s1);                      \
-        len = scm_i_string_length (s1);                                 \
-        c_s1 = (scm_t_wchar *) scm_malloc (sizeof (scm_t_wchar) * (len + 1)); \
-        for (i = 0; i < len; i ++)                                      \
-          c_s1[i] = (unsigned char ) buf[i];                            \
-        c_s1[len] = 0;                                                  \
-      }                                                                 \
-    else                                                                \
-      c_s1 = (scm_t_wchar *) scm_i_string_wide_chars (s1);              \
-  } while (0)
-
-#define SCM_U32_BUF_FREE(s1, c_s1)              \
-  do {                                          \
-    if (scm_i_is_narrow_string (s1))            \
-      free (c_s1);                              \
-  } while (0)
+#define SCM_STRING_TO_U32_BUF(s1, c_s1)					\
+  do									\
+    {									\
+      if (scm_i_is_narrow_string (s1))					\
+	{								\
+	  size_t i, len;						\
+	  const char *buf = scm_i_string_chars (s1);			\
+									\
+	  len = scm_i_string_length (s1);				\
+	  c_s1 = (scm_t_wchar *) alloca (sizeof (scm_t_wchar) * (len + 1)); \
+									\
+	  for (i = 0; i < len; i ++)					\
+	    c_s1[i] = (unsigned char ) buf[i];				\
+	  c_s1[len] = 0;						\
+	}								\
+      else								\
+	c_s1 = (scm_t_wchar *) scm_i_string_wide_chars (s1);		\
+    } while (0)
 
 
-/* Compare u32 strings according to the LOCALE.  Returns a negative
-     value if S1 compares smaller than S2, a positive value if S1
-     compares larger than S2, or 0 if they compare equal.  */
+/* Compare UTF-32 strings according to LOCALE.  Returns a negative value if
+   S1 compares smaller than S2, a positive value if S1 compares larger than
+   S2, or 0 if they compare equal.  */
 static inline int
 compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name) 
 #define FUNC_NAME func_name
@@ -771,9 +768,6 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
   else
     result = u32_strcmp ((const scm_t_uint32 *) c_s1, 
                          (const scm_t_uint32 *) c_s2);
-
-  SCM_U32_BUF_FREE (s1, c_s1);
-  SCM_U32_BUF_FREE (s2, c_s2);
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);
@@ -829,9 +823,6 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
       if (ret != 0)
         scm_syserror (func_name);
     }
-  
-  SCM_U32_BUF_FREE (s1, c_s1);
-  SCM_U32_BUF_FREE (s2, c_s2);
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);
