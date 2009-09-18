@@ -778,6 +778,10 @@ scm_c_primitive_load_path (const char *filename)
 
 /* Information about the build environment.  */
 
+SCM_VARIABLE_INIT (sys_host_type, "%host-type",
+		   scm_from_locale_string (HOST_TYPE));
+
+
 /* Initialize the scheme variable %guile-build-info, based on data
    provided by the Makefile, via libpath.h.  */
 static void

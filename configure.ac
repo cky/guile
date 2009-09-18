@@ -86,6 +86,9 @@ AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
 
 AM_PATH_LISPDIR
 
+AC_DEFINE_UNQUOTED([HOST_TYPE], ["$host"],
+  [Define to the host's GNU triplet.])
+
 #--------------------------------------------------------------------
 #
 # User options (after above tests that may set default CFLAGS etc.)
