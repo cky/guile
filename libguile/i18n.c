@@ -766,8 +766,8 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
                            result = u32_strcoll ((const scm_t_uint32 *) c_s1, 
                                                  (const scm_t_uint32 *) c_s2));
   else
-    result = u32_strcmp ((const scm_t_uint32 *) c_s1, 
-                         (const scm_t_uint32 *) c_s2);
+    result = u32_strcoll ((const scm_t_uint32 *) c_s1,
+			  (const scm_t_uint32 *) c_s2);
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);
@@ -796,7 +796,7 @@ static inline int
 compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name) 
 #define FUNC_NAME func_name
 {
-  int ret, result;
+  int result;
   scm_t_locale c_locale;
   scm_t_wchar *c_s1, *c_s2;
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (3, locale, c_locale);
@@ -805,24 +805,15 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
   SCM_STRING_TO_U32_BUF (s2, c_s2);
 
   if (c_locale)
-    RUN_IN_LOCALE_SECTION 
-      (c_locale, 
-       result = u32_locale_casecoll (func_name, 
-                                     (const scm_t_uint32 *) c_s1, 
-                                     (const scm_t_uint32 *) c_s2)
-       );
+    RUN_IN_LOCALE_SECTION
+      (c_locale,
+       result = u32_locale_casecoll (func_name,
+				     (const scm_t_uint32 *) c_s1,
+				     (const scm_t_uint32 *) c_s2);
   else
-    {
-      /* Passing NULL to u32_casecmp to do the default,
-         language-independent case folding. */
-      ret = u32_casecmp ((const scm_t_uint32 *) c_s1, 
-                         u32_strlen ((const scm_t_uint32 *) c_s1),
-                         (const scm_t_uint32 *) c_s2,
-                         u32_strlen ((const scm_t_uint32 *) c_s2),
-                         NULL, UNINORM_NFC, &result);
-      if (ret != 0)
-        scm_syserror (func_name);
-    }
+    result = u32_locale_casecoll (func_name,
+				  (const scm_t_uint32 *) c_s1,
+				  (const scm_t_uint32 *) c_s2);
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);

@@ -1,7 +1,7 @@
-;;;; i18n.test --- Exercise the i18n API.
+;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
-;;;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
-;;;; Ludovic Court�s
+;;;; Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -82,49 +82,104 @@
 (define %french-locale-name
   "fr_FR.ISO-8859-1")
 
+(define %french-utf8-locale-name
+  "fr_FR.UTF-8")
+
 (define %french-locale
   (false-if-exception
    (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
                 %french-locale-name)))
 
-(define (under-french-locale-or-unresolved thunk)
+(define %french-utf8-locale
+  (false-if-exception
+   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
+                %french-utf8-locale-name)))
+
+(define (under-locale-or-unresolved locale thunk)
   ;; On non-GNU systems, an exception may be raised only when the locale is
   ;; actually used rather than at `make-locale'-time.  Thus, we must guard
   ;; against both.
-  (if %french-locale
-      (catch 'system-error thunk
-             (lambda (key . args)
-               (throw 'unresolved)))
+  (if locale
+      (if (string-contains %host-type "-gnu")
+          (thunk)
+          (catch 'system-error thunk
+                 (lambda (key . args)
+                   (throw 'unresolved))))
       (throw 'unresolved)))
+
+(define (under-french-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %french-locale thunk))
+
+(define (under-french-utf8-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %french-utf8-locale thunk))
+
 
 (with-test-prefix "text collation (French)"
 
   (pass-if "string-locale<?"
     (under-french-locale-or-unresolved
       (lambda ()
-        (string-locale<? "�t�" "hiver" %french-locale))))
+        (string-locale<? "été" "hiver" %french-locale))))
 
   (pass-if "char-locale<?"
     (under-french-locale-or-unresolved
       (lambda ()
-        (char-locale<? #\� #\h %french-locale))))
+        (char-locale<? #\é #\h %french-locale))))
 
   (pass-if "string-locale-ci=?"
     (under-french-locale-or-unresolved
       (lambda ()
-        (string-locale-ci=? "�T�" "�t�" %french-locale))))
+        (string-locale-ci=? "ÉTÉ" "été" %french-locale))))
+
+  (pass-if "string-locale-ci=? (2 args, wide strings)"
+    (under-french-utf8-locale-or-unresolved
+      (lambda ()
+        ;; Note: Character `œ' is not part of Latin-1, so these are wide
+        ;; strings.
+        (dynamic-wind
+          (lambda ()
+            (setlocale LC_ALL "fr_FR.UTF-8"))
+          (lambda ()
+            (string-locale-ci=? "œuf" "ŒUF"))
+          (lambda ()
+            (setlocale LC_ALL "C"))))))
+
+  (pass-if "string-locale-ci=? (3 args, wide strings)"
+    (under-french-utf8-locale-or-unresolved
+      (lambda ()
+        (string-locale-ci=? "œuf" "ŒUF" %french-utf8-locale))))
 
   (pass-if "string-locale-ci<>?"
     (under-french-locale-or-unresolved
       (lambda ()
-        (and (string-locale-ci<? "�t�" "Hiver" %french-locale)
-             (string-locale-ci>? "HiVeR" "�t�" %french-locale)))))
+        (and (string-locale-ci<? "été" "Hiver" %french-locale)
+             (string-locale-ci>? "HiVeR" "été" %french-locale)))))
+
+  (pass-if "string-locale-ci<>? (wide strings)"
+    (under-french-utf8-locale-or-unresolved
+      (lambda ()
+        ;; One of the strings is UCS-4, the other is Latin-1.
+        (and (string-locale-ci<? "Œdème" "œuf" %french-utf8-locale)
+             (string-locale-ci>? "Œuf" "œdÈMe" %french-utf8-locale)))))
+
+  (pass-if "string-locale-ci<>? (wide and narrow strings)"
+    (under-french-utf8-locale-or-unresolved
+      (lambda ()
+        ;; One of the strings is UCS-4, the other is Latin-1.
+        (and (string-locale-ci>? "Œdème" "odyssée" %french-utf8-locale)
+             (string-locale-ci<? "Odyssée" "œdème" %french-utf8-locale)))))
 
   (pass-if "char-locale-ci<>?"
      (under-french-locale-or-unresolved
        (lambda ()
-         (and (char-locale-ci<? #\� #\H %french-locale)
-              (char-locale-ci>? #\h #\� %french-locale))))))
+         (and (char-locale-ci<? #\é #\H %french-locale)
+              (char-locale-ci>? #\h #\É %french-locale)))))
+
+  (pass-if "char-locale-ci<>? (wide)"
+     (under-french-utf8-locale-or-unresolved
+       (lambda ()
+         (and (char-locale-ci<? #\o #\œ %french-utf8-locale)
+              (char-locale-ci>? #\Œ #\e %french-utf8-locale))))))
 
 
 (with-test-prefix "character mapping"
@@ -242,9 +297,3 @@
                     (string-ci=? result "Tuesday"))))
            (lambda ()
              (setlocale LC_ALL "C")))))))
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; mode: scheme
-;;; End:
