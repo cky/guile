@@ -509,19 +509,15 @@ get_current_locale (SCM *result)
 #else /* USE_GNU_LOCALE_API */
 
 /* Convenient macro to run STATEMENT in the locale context of C_LOCALE.  */
-#define RUN_IN_LOCALE_SECTION(_c_locale, _statement)                    \
-  do                                                                    \
-    {                                                                   \
-      scm_t_locale old_loc = uselocale (NULL);                          \
-      if (old_loc != _c_locale)                                         \
-        {                                                               \
-          uselocale (_c_locale);                                        \
-          _statement ;                                                  \
-          uselocale (old_loc);                                          \
-        }                                                               \
-      else                                                              \
-        _statement;                                                     \
-    }                                                                   \
+#define RUN_IN_LOCALE_SECTION(_c_locale, _statement)	\
+  do							\
+    {							\
+      scm_t_locale old_loc;				\
+							\
+      old_loc = uselocale (_c_locale);			\
+      _statement ;					\
+      uselocale (old_loc);				\
+    }							\
   while (0)
 
 
