@@ -777,26 +777,27 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
 
 static inline int
 u32_locale_casecoll (const char *func_name, const scm_t_uint32 *c_s1, 
-                     const scm_t_uint32 *c_s2)
+                     const scm_t_uint32 *c_s2,
+		     int *result)
 {
-  int result, ret;
-  const char *loc = uc_locale_language ();
+  /* Note: Since this is called from `RUN_IN_LOCALE_SECTION', it must note
+     make any non-local exit.  */
 
+  int ret;
+  const char *loc = uc_locale_language ();
 
   ret = u32_casecoll (c_s1, u32_strlen (c_s1), 
                       c_s2, u32_strlen (c_s2),
-                      loc, UNINORM_NFC, &result);
-  if (ret != 0)
-    scm_syserror (func_name);
+                      loc, UNINORM_NFC, result);
 
-  return result;
+  return ret == 0 ? ret : errno;
 }
 
 static inline int
 compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name) 
 #define FUNC_NAME func_name
 {
-  int result;
+  int result, ret = 0;
   scm_t_locale c_locale;
   scm_t_wchar *c_s1, *c_s2;
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (3, locale, c_locale);
@@ -807,13 +808,21 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
   if (c_locale)
     RUN_IN_LOCALE_SECTION
       (c_locale,
-       result = u32_locale_casecoll (func_name,
-				     (const scm_t_uint32 *) c_s1,
-				     (const scm_t_uint32 *) c_s2);
-  else
-    result = u32_locale_casecoll (func_name,
+       ret = u32_locale_casecoll (func_name,
 				  (const scm_t_uint32 *) c_s1,
-				  (const scm_t_uint32 *) c_s2);
+				  (const scm_t_uint32 *) c_s2,
+				  &result));
+  else
+    ret = u32_locale_casecoll (func_name,
+			       (const scm_t_uint32 *) c_s1,
+			       (const scm_t_uint32 *) c_s2,
+			       &result);
+
+  if (SCM_UNLIKELY (ret != 0))
+    {
+      errno = ret;
+      scm_syserror (FUNC_NAME);
+    }
 
   scm_remember_upto_here_2 (s1, s2);
   scm_remember_upto_here (locale);
