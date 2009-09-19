@@ -1966,7 +1966,7 @@ scm_i_get_port_encoding (SCM port)
     }
 }
 
-/* Returns ENC is if is a recognized encoding.  If it isn't, it tries
+/* Returns ENC if it is a recognized encoding.  If it isn't, it tries
    to find an alias of ENC that is valid.  Otherwise, it returns
    NULL.  */
 static const char *

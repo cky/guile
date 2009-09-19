@@ -651,7 +651,7 @@ by @code{file-encoding}, if any, again by using
 @deffn {Scheme Procedure} file-encoding port
 @deffnx {C Function} scm_file_encoding port
 Scans the port for an EMACS-like character coding declaration near the
-top of the contents of a port with random-acessible contents.  The
+top of the contents of a port with random-accessible contents.  The
 coding declaration is of the form @code{coding: XXXXX} and must appear
 in a scheme comment.
 
