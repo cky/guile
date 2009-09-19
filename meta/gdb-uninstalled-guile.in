@@ -40,4 +40,4 @@ exec ${top_builddir}/meta/uninstalled-env libtool --mode=execute \
     gdb --args ${top_builddir}/libguile/guile "$@"
 
 # And for GDB in Emacs, evaluate this form:
-# (gdb "@top_builddir_absolute@/meta/uninstalled-env ./libtool --mode=execute gdb --args @top_builddir_absolute@/libguile/guile")
+# (gdb "@top_builddir_absolute@/meta/uninstalled-env ../libtool --mode=execute gdb --annotate=3 --args @top_builddir_absolute@/libguile/guile")
