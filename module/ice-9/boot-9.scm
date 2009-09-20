@@ -2811,15 +2811,7 @@ module '(ice-9 q) '(make-q q-length))}."
 			  (display ";;; QUIT executed, repl exitting")
 			  (newline)
 			  (repl-report)))
-		    args))
-
-	   (-abort (lambda ()
-		     (if scm-repl-verbose
-			 (begin
-			   (display ";;; ABORT executed.")
-			   (newline)
-			   (repl-report)))
-		     (repl -read -eval -print))))
+		    args)))
 
     (let ((status (error-catching-repl -read
 				       -eval

@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -1345,9 +1345,7 @@
 (define priv:read-directives
   (let ((ireader4 (priv:make-integer-reader 4))
         (ireader2 (priv:make-integer-reader 2))
-        (ireaderf (priv:make-integer-reader #f))
         (eireader2 (priv:make-integer-exact-reader 2))
-        (eireader4 (priv:make-integer-exact-reader 4))
         (locale-reader-abbr-weekday (priv:make-locale-reader
                                      priv:locale-abbr-weekday->index))
         (locale-reader-long-weekday (priv:make-locale-reader

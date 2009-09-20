@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2000, 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -186,8 +186,7 @@
       (set! sum (+ sum (struct-ref (car classes) hashset-index))))))
 
 (define (cache-try-hash! min-misses hashset cache entries)
-  (let ((max-misses 0)
-	(mask (- (vector-length cache) 1)))
+  (let ((mask (- (vector-length cache) 1)))
     (let outer ((in entries) (max-misses 0))
       (if (null? in)
           max-misses

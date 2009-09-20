@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 2000,2001,2002, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000,2001,2002, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -183,8 +183,7 @@
   (enumerate-component! (shared-array-root o) env))
 
 (define (make-mapper array)
-  (let* ((dims (array-dimensions array))
-	 (n (array-rank array))
+  (let* ((n (array-rank array))
 	 (indices (reverse (if (<= n 11)
 			       (list-tail '(t s r q p n m l k j i)  (- 11 n))
 			       (let loop ((n n)

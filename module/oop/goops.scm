@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -226,8 +226,7 @@
      slots))
   (if (not (list? supers))
       (goops-error "malformed superclass list: ~S" supers))
-  (let ((slot-defs (cons #f '()))
-        (slots (take-while (lambda (x) (not (keyword? x))) slots))
+  (let ((slots (take-while (lambda (x) (not (keyword? x))) slots))
         (options (or (find-tail keyword? slots) '())))
     `(make-class
       ;; evaluate super class variables
@@ -1074,8 +1073,7 @@
 (define (compute-slot-accessors class slots env)
   (for-each
       (lambda (s g-n-s)
-	(let ((name            (slot-definition-name     s))
-	      (getter-function (slot-definition-getter   s))
+	(let ((getter-function (slot-definition-getter   s))
 	      (setter-function (slot-definition-setter   s))
 	      (accessor        (slot-definition-accessor s)))
 	  (if getter-function
@@ -1412,8 +1410,7 @@
     ((#:virtual) ;; No allocation
      ;; slot-ref and slot-set! function must be given by the user
      (let ((get (get-keyword #:slot-ref  (slot-definition-options s) #f))
-	   (set (get-keyword #:slot-set! (slot-definition-options s) #f))
-	   (env (class-environment class)))
+	   (set (get-keyword #:slot-set! (slot-definition-options s) #f)))
        (if (not (and get set))
 	   (goops-error "You must supply a #:slot-ref and a #:slot-set! in ~S"
 			s))
