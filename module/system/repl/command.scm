@@ -337,13 +337,11 @@ Disassemble a file."
 (define-meta-command (time repl (form))
   "time FORM
 Time execution."
-  (let* ((vms-start (vm-stats (repl-vm repl)))
-	 (gc-start (gc-run-time))
+  (let* ((gc-start (gc-run-time))
 	 (tms-start (times))
 	 (result (repl-eval repl (repl-parse repl form)))
 	 (tms-end (times))
-	 (gc-end (gc-run-time))
-	 (vms-end (vm-stats (repl-vm repl))))
+	 (gc-end (gc-run-time)))
     (define (get proc start end)
       (exact->inexact (/ (- (proc end) (proc start)) internal-time-units-per-second)))
     (repl-print repl result)

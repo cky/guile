@@ -54,7 +54,7 @@
   (let ((prompt (lambda () (repl-prompt repl)))
         (lread (language-reader (repl-language repl))))
     (with-fluid* current-reader (meta-reader lread)
-      (lambda () (repl-reader (lambda () (repl-prompt repl)))))))
+      (lambda () (repl-reader prompt)))))
 
 (define (default-catch-handler . args)
   (pmatch args

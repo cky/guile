@@ -226,10 +226,10 @@
     ((<primitive-ref> name)
      name)
     
-    ((<lexical-ref> name gensym)
+    ((<lexical-ref> gensym)
      gensym)
     
-    ((<lexical-set> name gensym exp)
+    ((<lexical-set> gensym exp)
      `(set! ,gensym ,(tree-il->scheme exp)))
     
     ((<module-ref> mod name public?)
@@ -436,37 +436,37 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (conditional-then x) (lp then))
          (set! (conditional-else x) (lp else)))
 
-        ((<lexical-set> name gensym exp)
+        ((<lexical-set> exp)
          (set! (lexical-set-exp x) (lp exp)))
                
-        ((<module-set> mod name public? exp)
+        ((<module-set> exp)
          (set! (module-set-exp x) (lp exp)))
 
-        ((<toplevel-set> name exp)
+        ((<toplevel-set> exp)
          (set! (toplevel-set-exp x) (lp exp)))
 
-        ((<toplevel-define> name exp)
+        ((<toplevel-define> exp)
          (set! (toplevel-define-exp x) (lp exp)))
 
-        ((<lambda> vars meta body)
+        ((<lambda> body)
          (set! (lambda-body x) (lp body)))
 
         ((<sequence> exps)
          (set! (sequence-exps x) (map lp exps)))
 
-        ((<let> vars vals body)
+        ((<let> vals body)
          (set! (let-vals x) (map lp vals))
          (set! (let-body x) (lp body)))
 
-        ((<letrec> vars vals body)
+        ((<letrec> vals body)
          (set! (letrec-vals x) (map lp vals))
          (set! (letrec-body x) (lp body)))
 
-        ((<fix> vars vals body)
+        ((<fix> vals body)
          (set! (fix-vals x) (map lp vals))
          (set! (fix-body x) (lp body)))
 
-        ((<let-values> vars exp body)
+        ((<let-values> exp body)
          (set! (let-values-exp x) (lp exp))
          (set! (let-values-body x) (lp body)))
 

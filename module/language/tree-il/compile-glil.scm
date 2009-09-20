@@ -251,7 +251,7 @@
        (maybe-emit-return))
 
       ;; FIXME: should represent sequence as exps tail
-      ((<sequence> src exps)
+      ((<sequence> exps)
        (let lp ((exps exps))
          (if (null? (cdr exps))
              (comp-tail (car exps))
@@ -422,7 +422,7 @@
          ;; rename & goto
          (for-each (lambda (sym)
                      (pmatch (hashq-ref (hashq-ref allocation sym) self)
-                       ((#t ,boxed? . ,index)
+                       ((#t _ . ,index)
                         ;; set unboxed, as the proc prelude will box if needed
                         (emit-code #f (make-glil-lexical #t #f 'set index)))
                        (,x (error "what" x))))
@@ -510,7 +510,7 @@
                             'ref (module-name (fluid-ref *comp-module*)) name #f))))
          (maybe-emit-return))))
 
-      ((<lexical-ref> src name gensym)
+      ((<lexical-ref> src gensym)
        (case context
          ((push vals tail)
           (pmatch (hashq-ref (hashq-ref allocation gensym) self)
@@ -520,7 +520,7 @@
              (error "badness" x loc)))))
        (maybe-emit-return))
       
-      ((<lexical-set> src name gensym exp)
+      ((<lexical-set> src gensym exp)
        (comp-push exp)
        (pmatch (hashq-ref (hashq-ref allocation gensym) self)
          ((,local? ,boxed? . ,index)
@@ -578,7 +578,7 @@
                   (for-each
                    (lambda (loc)
                      (pmatch loc
-                       ((,local? ,boxed? . ,n)
+                       ((,local? _ . ,n)
                         (emit-code #f (make-glil-lexical local? #f 'ref n)))
                        (else (error "what" x loc))))
                    free-locs)
@@ -684,7 +684,7 @@
                     (for-each
                      (lambda (loc)
                        (pmatch loc
-                         ((,local? ,boxed? . ,n)
+                         ((,local? _ . ,n)
                           (emit-code #f (make-glil-lexical local? #f 'ref n)))
                          (else (error "what" x loc))))
                      free-locs)

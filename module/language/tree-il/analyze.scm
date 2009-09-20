@@ -162,7 +162,7 @@
       ((<conditional> test then else)
        (lset-union eq? (step test) (step-tail then) (step-tail else)))
 
-      ((<lexical-ref> name gensym)
+      ((<lexical-ref> gensym)
        (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
        (if (not (and tail-call-args
                      (memq gensym labels-in-proc)
@@ -172,18 +172,18 @@
            (hashq-set! labels gensym #f))
        (list gensym))
       
-      ((<lexical-set> name gensym exp)
+      ((<lexical-set> gensym exp)
        (hashq-set! assigned gensym #t)
        (hashq-set! labels gensym #f)
        (lset-adjoin eq? (step exp) gensym))
       
-      ((<module-set> mod name public? exp)
+      ((<module-set> exp)
        (step exp))
       
-      ((<toplevel-set> name exp)
+      ((<toplevel-set> exp)
        (step exp))
       
-      ((<toplevel-define> name exp)
+      ((<toplevel-define> exp)
        (step exp))
       
       ((<sequence> exps)
@@ -194,7 +194,7 @@
                (else
                 (lp (cdr exps) (lset-union eq? ret (step (car exps))))))))
       
-      ((<lambda> vars meta body)
+      ((<lambda> vars body)
        (let ((locally-bound (let rev* ((vars vars) (out '()))
                               (cond ((null? vars) out)
                                     ((pair? vars) (rev* (cdr vars)
@@ -326,22 +326,22 @@
       ((<conditional> test then else)
        (max (recur test) (recur then) (recur else)))
 
-      ((<lexical-set> name gensym exp)
+      ((<lexical-set> exp)
        (recur exp))
       
-      ((<module-set> mod name public? exp)
+      ((<module-set> exp)
        (recur exp))
       
-      ((<toplevel-set> name exp)
+      ((<toplevel-set> exp)
        (recur exp))
       
-      ((<toplevel-define> name exp)
+      ((<toplevel-define> exp)
        (recur exp))
       
       ((<sequence> exps)
        (apply max (map recur exps)))
       
-      ((<lambda> vars meta body)
+      ((<lambda> vars body)
        ;; allocate closure vars in order
        (let lp ((c (hashq-ref free-vars x)) (n 0))
          (if (pair? c)

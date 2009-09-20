@@ -35,7 +35,7 @@
 
 (define (disassemble-load-program asm env)
   (pmatch asm
-    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
+    ((load-program ,nargs _ _ ,labels _ _ . ,code)
      (let ((objs  (and env (assq-ref env 'objects)))
            (free-vars (and env (assq-ref env 'free-vars)))
            (meta  (and env (assq-ref env 'meta)))
@@ -106,8 +106,7 @@
 (define *uninteresting-props* '(name))
 
 (define (disassemble-meta meta)
-  (let ((sources (cadr meta))
-        (props (filter (lambda (x)
+  (let ((props (filter (lambda (x)
                          (not (memq (car x) *uninteresting-props*)))
                        (cddr meta))))
     (unless (null? props)

@@ -149,17 +149,15 @@
             o))))
               
 (define (object->value/string o)
-  (let ((v (object->string o #f)))
-    (if (is-a? x <js-object>)
-        (object->number o #t)
-        x)))
-              
+  (if (is-a? x <js-object>)
+      (object->number o #t)
+      x))
+
 (define (object->value/number o)
-  (let ((v (object->number o #f)))
-    (if (is-a? x <js-object>)
-        (object->string o #t)
-        x)))
-              
+  (if (is-a? x <js-object>)
+      (object->string o #t)
+      x))
+
 (define (object->value o)
   ;; FIXME: if it's a date, we should try numbers first
   (object->value/string o))
