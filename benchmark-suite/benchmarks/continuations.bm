@@ -1,3 +1,7 @@
+
+(define-module (benchmarks continuations)
+  :use-module (benchmark-suite lib))
+
 (define (callee continuation)
   (continuation #t))
 

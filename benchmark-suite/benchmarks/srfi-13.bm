@@ -1,4 +1,4 @@
-;;; -*- mode: scheme; coding: latin-1; -*-
+;;; coding: latin1 -*- mode: scheme; coding: latin-1; -*-
 ;;; srfi-13.bm
 ;;;
 ;;; Copyright (C) 2009  Free Software Foundation, Inc.

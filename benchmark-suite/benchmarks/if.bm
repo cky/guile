@@ -1,3 +1,7 @@
+
+(define-module (benchmarks if)
+  :use-module (benchmark-suite lib))
+
 (with-benchmark-prefix "if-<expr>-then-else"
 
   (benchmark "executing then" 330000

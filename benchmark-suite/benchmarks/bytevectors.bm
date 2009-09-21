@@ -1,4 +1,4 @@
-;;; -*- mode: scheme; coding: latin-1; -*-
+;;; coding: latin1 -*- mode: scheme; coding: latin-1; -*-
 ;;; R6RS Byte Vectors.
 ;;;
 ;;; Copyright 2009  Ludovic Courtès <ludo@gnu.org>

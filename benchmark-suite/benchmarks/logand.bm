@@ -1,3 +1,7 @@
+
+(define-module (benchmarks logand)
+  :use-module (benchmark-suite lib))
+
 (define bignum (1- (expt 2 128)))
 
 (let* ((i 0))

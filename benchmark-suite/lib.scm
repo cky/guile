@@ -325,7 +325,7 @@
 
 ;;; A short form for benchmarks.
 (defmacro benchmark (name iterations body . rest)
-  `(,run-benchmark ,name ,iterations (lambda () ,body ,@rest)))
+  `(run-benchmark ,name ,iterations (lambda () ,body ,@rest)))
 
 
 ;;;; BENCHMARK NAMES
