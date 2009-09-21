@@ -1,0 +1,74 @@
+;;;; records.test --- Test suite for Guile's records. -*- mode: scheme; coding: utf-8 -*-
+;;;;
+;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-records)
+  #:use-module (test-suite lib))
+
+;; ascii names and symbols
+(define rtd-foo (make-record-type "foo" '(x y)))
+(define make-foo (record-constructor rtd-foo))
+(define foo? (record-predicate rtd-foo))
+(define get-foo-x (record-accessor rtd-foo 'x))
+(define get-foo-y (record-accessor rtd-foo 'y))
+(define set-foo-x! (record-modifier rtd-foo 'x))
+(define set-foo-y! (record-modifier rtd-foo 'y))
+
+;; non-Latin-1 names and symbols
+(define rtd-fŏŏ (make-record-type "fŏŏ" '(x ȳ)))
+(define make-fŏŏ (record-constructor rtd-fŏŏ))
+(define fŏŏ? (record-predicate rtd-fŏŏ))
+(define get-fŏŏ-x (record-accessor rtd-fŏŏ 'x))
+(define get-fŏŏ-ȳ (record-accessor rtd-fŏŏ 'ȳ))
+(define set-fŏŏ-x! (record-modifier rtd-fŏŏ 'x))
+(define set-fŏŏ-ȳ! (record-modifier rtd-fŏŏ 'ȳ))
+
+(with-test-prefix "records"
+  
+  (with-test-prefix "constructor"
+
+    (pass-if-exception "0 args (2 required)" exception:wrong-num-args
+      (make-foo))
+
+    (pass-if-exception "1 arg (2 required)" exception:wrong-num-args
+      (make-foo 1))
+
+    (pass-if "2 args (2 required)" exception:wrong-num-args
+      (foo? (make-foo 1 2)))
+
+    (pass-if "non-latin-1" exception:wrong-num-args
+      (fŏŏ? (make-fŏŏ 1 2))))
+
+  (with-test-prefix "modifier and getter"
+
+    (pass-if "set"
+      (let ((r (make-foo 1 2)))
+        (set-foo-x! r 3)
+        (eqv? (get-foo-x r) 3)))
+
+    (pass-if "set 2"
+      (let ((r (make-fŏŏ 1 2)))
+        (set-fŏŏ-ȳ! r 3)
+        (eqv? (get-fŏŏ-ȳ r) 3))))
+
+  (with-test-prefix "record type name"
+    
+    (pass-if "foo"
+      (string=? "foo" (record-type-name rtd-foo)))
+
+    (pass-if "fŏŏ"
+      (string=? "fŏŏ" (record-type-name rtd-fŏŏ)))))
