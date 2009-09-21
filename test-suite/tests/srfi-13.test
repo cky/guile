@@ -40,6 +40,12 @@
 
 (with-test-prefix "string-any"
 
+  (pass-if "null string"
+    (not (string-any #\a "")))
+
+  (pass-if "start index == end index"
+    (not (string-any #\a "aaa" 1 1)))
+
   (with-test-prefix "bad char_pred"
 
     (pass-if-exception "integer" exception:wrong-type-arg
@@ -258,6 +264,12 @@
 ;;;
 
 (with-test-prefix "string-every"
+
+  (pass-if "null string"
+    (string-every #\a ""))
+
+  (pass-if "start index == end index"
+    (string-every #\a "bbb" 1 1))
 
   (with-test-prefix "bad char_pred"
 
