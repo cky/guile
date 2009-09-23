@@ -317,16 +317,22 @@ dnl Check whether GNU ld's read-only relocations (the `PT_GNU_RELRO'
 dnl ELF segment header) are supported.  This allows things like
 dnl statically allocated cells (1) to eventually be remapped read-only
 dnl by the loader, and (2) to be identified as pointerless by the
-dnl garbage collector.
+dnl garbage collector.  Substitute `GNU_LD_FLAGS' with the relevant
+dnl flags.
 AC_DEFUN([GUILE_GNU_LD_RELRO], [
   AC_MSG_CHECKING([whether the linker understands `-z relro'])
 
+  GNU_LD_FLAGS="-Wl,-z -Wl,relro"
+
   save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS -Wl,-z -Wl,relro"
+  LDFLAGS="$LDFLAGS $GNU_LD_FLAGS"
   AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
     [AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])
-     LDFLAGS="$save_LDFLAGS"])
+     GNU_LD_FLAGS=""])
+  LDFLAGS="$save_LDFLAGS"
+
+  AC_SUBST([GNU_LD_FLAGS])
 ])
 
 dnl GUILE_READLINE

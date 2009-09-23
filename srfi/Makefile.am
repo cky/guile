@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##   Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -30,6 +30,7 @@ AM_CPPFLAGS = -I.. -I$(srcdir)/..				\
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
 AM_CFLAGS = $(GCC_CFLAGS)
+AM_LDFLAGS = $(GNU_LD_FLAGS)
 
 srfiincludedir = $(pkgincludedir)/srfi
 

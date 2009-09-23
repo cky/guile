@@ -433,7 +433,11 @@ noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
 libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBUNISTRING)
-libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
+libguile_la_LDFLAGS =							\
+  @LTLIBINTL@								\
+  -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
+  -export-dynamic -no-undefined						\
+  $(GNU_LD_FLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
 
