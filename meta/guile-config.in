@@ -1,5 +1,9 @@
 #!/bin/sh
-exec guile -e main -s $0 "$@"
+PKG_CONFIG_PATH="@pkgconfigdir@:$PKG_CONFIG_PATH"
+GUILE_AUTO_COMPILE=0
+export PKG_CONFIG_PATH GUILE_AUTO_COMPILE
+
+exec "@installed_guile@" -e main -s $0 "$@"
 !#
 ;;;; guile-config --- utility for linking programs with Guile
 ;;;; Jim Blandy <jim@red-bean.com> --- September 1997
@@ -27,6 +31,8 @@ exec guile -e main -s $0 "$@"
              (ice-9 rdelim))
 
 
+(define %pkg-config-program "@PKG_CONFIG@")
+
 ;;;; main function, command-line processing
 
 ;;; The script's entry point.
@@ -74,7 +80,7 @@ exec guile -e main -s $0 "$@"
 (define guile-module "guile-2.0")
 
 (define (pkg-config . args)
-  (let* ((real-args (cons "pkg-config" args))
+  (let* ((real-args (cons %pkg-config-program args))
          (pipe (apply open-pipe* OPEN_READ real-args))
          (output (read-delimited "" pipe))
          (ret (close-pipe pipe)))
@@ -82,7 +88,7 @@ exec guile -e main -s $0 "$@"
       ((0) (if (eof-object? output) "" output))
       (else (display-line-error
              (format #f "error: ~s exited with non-zero error code ~A"
-                     (cons "pkg-config" args) (status:exit-val ret)))
+                     (cons %pkg-config-program args) (status:exit-val ret)))
             ;; assume pkg-config sent diagnostics to stdout
             (exit (status:exit-val ret))))))
 

@@ -113,3 +113,4 @@ INSTALL
 /GSYMS
 /GTAGS
 /meta/guile-tools
+/meta/guile-config
