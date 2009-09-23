@@ -422,7 +422,7 @@
          ;; rename & goto
          (for-each (lambda (sym)
                      (pmatch (hashq-ref (hashq-ref allocation sym) self)
-                       ((#t _ . ,index)
+                       ((#t ,boxed? . ,index)
                         ;; set unboxed, as the proc prelude will box if needed
                         (emit-code #f (make-glil-lexical #t #f 'set index)))
                        (,x (error "what" x))))
@@ -578,7 +578,7 @@
                   (for-each
                    (lambda (loc)
                      (pmatch loc
-                       ((,local? _ . ,n)
+                       ((,local? ,boxed? . ,n)
                         (emit-code #f (make-glil-lexical local? #f 'ref n)))
                        (else (error "what" x loc))))
                    free-locs)
@@ -684,7 +684,7 @@
                     (for-each
                      (lambda (loc)
                        (pmatch loc
-                         ((,local? _ . ,n)
+                         ((,local? ,boxed? . ,n)
                           (emit-code #f (make-glil-lexical local? #f 'ref n)))
                          (else (error "what" x loc))))
                      free-locs)

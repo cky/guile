@@ -31,7 +31,7 @@
 
 (define (decompile-toplevel x)
   (pmatch x
-    ((load-program ,nargs ,nrest ,nlocs ,labels _ ,meta . ,body)
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,body)
      (decompile-load-program nargs nrest nlocs
                              (decompile-meta meta)
                              body labels #f))
@@ -123,7 +123,7 @@
            (lp (cdr in) stack out (1+ pos)))
           ((make-false)
            (lp (cdr in) (cons #f stack) out (1+ pos)))
-          ((load-program ,a ,b ,c ,d ,labels _ ,meta . ,body)
+          ((load-program ,a ,b ,c ,d ,labels ,sublen ,meta . ,body)
            (lp (cdr in)
                (cons (decompile-load-program a b c d (decompile-meta meta)
                                              body labels (car stack))

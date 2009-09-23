@@ -35,7 +35,7 @@
 
 (define (disassemble-load-program asm env)
   (pmatch asm
-    ((load-program ,nargs _ _ ,labels _ _ . ,code)
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
      (let ((objs  (and env (assq-ref env 'objects)))
            (free-vars (and env (assq-ref env 'free-vars)))
            (meta  (and env (assq-ref env 'meta)))

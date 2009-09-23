@@ -49,7 +49,7 @@
      (+ 1 *len-len* (string-length str)))
     ((load-array ,bv)
      (+ 1 *len-len* (bytevector-length bv)))
-    ((load-program _ _ _ _ ,len ,meta . _)
+    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
      (+ 1 *program-header-len* len (if meta (1- (byte-length meta)) 0)))
     ((,inst . _) (guard (>= (instruction-length inst) 0))
      (+ 1 (instruction-length inst)))
