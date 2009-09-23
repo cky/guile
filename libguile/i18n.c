@@ -1070,33 +1070,78 @@ SCM_DEFINE (scm_char_locale_ci_eq, "char-locale-ci=?", 2, 1, 0,
 
 /* Locale-dependent alphabetic character mapping.  */
 
+static inline int
+u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
+                   scm_t_uint32 **p_c_s2, size_t * p_len2,
+                   scm_t_uint32 *(*func) (const scm_t_uint32 *, size_t,
+                                          const char *, uninorm_t,
+                                          scm_t_uint32 *, size_t *))
+{
+  /* Note: Since this is called from `RUN_IN_LOCALE_SECTION', it must not
+     make any non-local exit.  */
+
+  scm_t_uint32 *ret;
+  const char *loc = uc_locale_language ();
+
+  /* The first NULL here indicates that no NFC or NFKC normalization
+     is done.  The second NULL means the return buffer is
+     malloc'ed here.  */
+  ret = func (c_s1, len, loc, NULL, NULL, p_len2);
+
+  if (ret == NULL)
+    {
+      *p_c_s2 = NULL;
+      *p_len2 = 0;
+      return errno;
+    }
+  *p_c_s2 = ret;
+  
+  return 0;
+}
+
+
+
 SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
 	    (SCM chr, SCM locale),
 	    "Return the lowercase character that corresponds to @var{chr} "
 	    "according to either @var{locale} or the current locale.")
 #define FUNC_NAME s_scm_char_locale_downcase
 {
-  char c_chr;
-  int c_result;
+  int ret;
   scm_t_locale c_locale;
+  scm_t_wchar *buf, *downbuf;
+  size_t downlen;
+  SCM str, downchar;
 
   SCM_VALIDATE_CHAR (1, chr);
-  c_chr = SCM_CHAR (chr);
-
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  if (c_locale != NULL)
-    {
-#ifdef USE_GNU_LOCALE_API
-      c_result = tolower_l ((int) c_chr, c_locale);
-#else
-      RUN_IN_LOCALE_SECTION (c_locale, c_result = tolower ((int) c_chr));
-#endif
-    }
-  else
-    c_result = tolower ((int) c_chr);
+  str = scm_i_make_wide_string (1, &buf);
+  buf[0] = SCM_CHAR (chr);
 
-  return (SCM_MAKE_CHAR (c_result));
+  if (c_locale != NULL)
+    RUN_IN_LOCALE_SECTION (c_locale, ret =
+                           u32_locale_tocase ((scm_t_uint32 *) buf, 1,
+                                              (scm_t_uint32 **) &downbuf,
+                                              &downlen, u32_tolower));
+  else
+    ret =
+      u32_locale_tocase ((scm_t_uint32 *) buf, 1, (scm_t_uint32 **) &downbuf,
+                         &downlen, u32_tolower);
+
+  if (SCM_UNLIKELY (ret != 0))
+    {
+      errno = ret;
+      scm_syserror (FUNC_NAME);
+    }
+
+  if (downlen == 1)
+    downchar = SCM_MAKE_CHAR (downbuf[0]);
+  else
+    downchar = chr;
+  free (downbuf);
+
+  return downchar;
 }
 #undef FUNC_NAME
 
@@ -1106,27 +1151,39 @@ SCM_DEFINE (scm_char_locale_upcase, "char-locale-upcase", 1, 1, 0,
 	    "according to either @var{locale} or the current locale.")
 #define FUNC_NAME s_scm_char_locale_upcase
 {
-  char c_chr;
-  int c_result;
+  int ret;
   scm_t_locale c_locale;
+  scm_t_wchar *buf, *upbuf;
+  size_t uplen;
+  SCM str, upchar;
 
   SCM_VALIDATE_CHAR (1, chr);
-  c_chr = SCM_CHAR (chr);
-
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  if (c_locale != NULL)
-    {
-#ifdef USE_GNU_LOCALE_API
-      c_result = toupper_l ((int) c_chr, c_locale);
-#else
-      RUN_IN_LOCALE_SECTION (c_locale, c_result = toupper ((int) c_chr));
-#endif
-    }
-  else
-    c_result = toupper ((int) c_chr);
+  str = scm_i_make_wide_string (1, &buf);
+  buf[0] = SCM_CHAR (chr);
 
-  return (SCM_MAKE_CHAR (c_result));
+  if (c_locale != NULL)
+    RUN_IN_LOCALE_SECTION (c_locale, ret =
+                           u32_locale_tocase ((scm_t_uint32 *) buf, 1,
+                                              (scm_t_uint32 **) &upbuf,
+                                              &uplen, u32_toupper));
+  else
+    ret =
+      u32_locale_tocase ((scm_t_uint32 *) buf, 1, (scm_t_uint32 **) &upbuf,
+                         &uplen, u32_toupper);
+
+  if (SCM_UNLIKELY (ret != 0))
+    {
+      errno = ret;
+      scm_syserror (FUNC_NAME);
+    }
+  if (uplen == 1)
+    upchar = SCM_MAKE_CHAR (upbuf[0]);
+  else
+    upchar = chr;
+  free (upbuf);
+  return upchar;
 }
 #undef FUNC_NAME
 
@@ -1137,30 +1194,44 @@ SCM_DEFINE (scm_string_locale_upcase, "string-locale-upcase", 1, 1, 0,
 	    "locale.")
 #define FUNC_NAME s_scm_string_locale_upcase
 {
-  const char *c_str;
-  char *c_ustr;
+  scm_t_wchar *c_str, *c_upstr, *c_buf;
+  size_t len, uplen;
+  int ret;
   scm_t_locale c_locale;
+  SCM upstr;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
-
-  c_str = scm_i_string_chars (str);
-  c_ustr = (char *) alloca (strlen (c_str) + 1);
+  len = scm_i_string_length (str);
+  if (len == 0)
+    return scm_nullstr;
+  SCM_STRING_TO_U32_BUF (str, c_str);
 
   if (c_locale)
-    {
-#ifdef USE_GNU_LOCALE_API
-      str_upcase_l (c_ustr, c_str, c_locale);
-#else
-      RUN_IN_LOCALE_SECTION (c_locale, str_upcase (c_ustr, c_str));
-#endif
-    }
+    RUN_IN_LOCALE_SECTION (c_locale, ret =
+                           u32_locale_tocase ((scm_t_uint32 *) c_str, len,
+                                              (scm_t_uint32 **) &c_upstr,
+                                              &uplen, u32_toupper));
   else
-    str_upcase (c_ustr, c_str);
+    ret =
+      u32_locale_tocase ((scm_t_uint32 *) c_str, len,
+                         (scm_t_uint32 **) &c_upstr, &uplen, u32_toupper);
 
   scm_remember_upto_here (str);
 
-  return (scm_from_locale_string (c_ustr));
+  if (SCM_UNLIKELY (ret != 0))
+    {
+      errno = ret;
+      scm_syserror (FUNC_NAME);
+    }
+
+  upstr = scm_i_make_wide_string (uplen, &c_buf);
+  memcpy (c_buf, c_upstr, uplen * sizeof (scm_t_wchar));
+  free (c_upstr);
+
+  scm_i_try_narrow_string (upstr);
+
+  return upstr;
 }
 #undef FUNC_NAME
 
@@ -1171,30 +1242,44 @@ SCM_DEFINE (scm_string_locale_downcase, "string-locale-downcase", 1, 1, 0,
 	    "locale.")
 #define FUNC_NAME s_scm_string_locale_downcase
 {
-  const char *c_str;
-  char *c_lstr;
+  scm_t_wchar *c_str, *c_downstr, *c_buf;
+  size_t len, downlen;
+  int ret;
   scm_t_locale c_locale;
+  SCM downstr;
 
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
-
-  c_str = scm_i_string_chars (str);
-  c_lstr = (char *) alloca (strlen (c_str) + 1);
+  len = scm_i_string_length (str);
+  if (len == 0)
+    return scm_nullstr;
+  SCM_STRING_TO_U32_BUF (str, c_str);
 
   if (c_locale)
-    {
-#ifdef USE_GNU_LOCALE_API
-      str_downcase_l (c_lstr, c_str, c_locale);
-#else
-      RUN_IN_LOCALE_SECTION (c_locale, str_downcase (c_lstr, c_str));
-#endif
-    }
+    RUN_IN_LOCALE_SECTION (c_locale, ret =
+                           u32_locale_tocase ((scm_t_uint32 *) c_str, len,
+                                              (scm_t_uint32 **) &c_downstr,
+                                              &downlen, u32_tolower));
   else
-    str_downcase (c_lstr, c_str);
+    ret =
+      u32_locale_tocase ((scm_t_uint32 *) c_str, len,
+                         (scm_t_uint32 **) &c_downstr, &downlen, u32_tolower);
 
   scm_remember_upto_here (str);
 
-  return (scm_from_locale_string (c_lstr));
+  if (SCM_UNLIKELY (ret != 0))
+    {
+      errno = ret;
+      scm_syserror (FUNC_NAME);
+    }
+
+  downstr = scm_i_make_wide_string (downlen, &c_buf);
+  memcpy (c_buf, c_downstr, downlen * sizeof (scm_t_wchar));
+  free (c_downstr);
+
+  scm_i_try_narrow_string (downstr);
+
+  return downstr;
 }
 #undef FUNC_NAME
 
