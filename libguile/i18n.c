@@ -1090,7 +1090,7 @@ u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
 
   if (ret == NULL)
     {
-      *p_c_s2 = NULL;
+      *p_c_s2 = (scm_t_uint32 *) NULL;
       *p_len2 = 0;
       return errno;
     }
@@ -1109,7 +1109,8 @@ SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
 {
   int ret;
   scm_t_locale c_locale;
-  scm_t_wchar *buf, *downbuf;
+  scm_t_wchar *buf;
+  scm_t_uint32 *downbuf;
   size_t downlen;
   SCM str, downchar;
 
@@ -1122,11 +1123,11 @@ SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
   if (c_locale != NULL)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
                            u32_locale_tocase ((scm_t_uint32 *) buf, 1,
-                                              (scm_t_uint32 **) &downbuf,
+                                              &downbuf,
                                               &downlen, u32_tolower));
   else
     ret =
-      u32_locale_tocase ((scm_t_uint32 *) buf, 1, (scm_t_uint32 **) &downbuf,
+      u32_locale_tocase ((scm_t_uint32 *) buf, 1, &downbuf,
                          &downlen, u32_tolower);
 
   if (SCM_UNLIKELY (ret != 0))
@@ -1136,7 +1137,7 @@ SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
     }
 
   if (downlen == 1)
-    downchar = SCM_MAKE_CHAR (downbuf[0]);
+    downchar = SCM_MAKE_CHAR ((scm_t_wchar) downbuf[0]);
   else
     downchar = chr;
   free (downbuf);
@@ -1153,7 +1154,8 @@ SCM_DEFINE (scm_char_locale_upcase, "char-locale-upcase", 1, 1, 0,
 {
   int ret;
   scm_t_locale c_locale;
-  scm_t_wchar *buf, *upbuf;
+  scm_t_wchar *buf;
+  scm_t_uint32 *upbuf;
   size_t uplen;
   SCM str, upchar;
 
@@ -1166,11 +1168,11 @@ SCM_DEFINE (scm_char_locale_upcase, "char-locale-upcase", 1, 1, 0,
   if (c_locale != NULL)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
                            u32_locale_tocase ((scm_t_uint32 *) buf, 1,
-                                              (scm_t_uint32 **) &upbuf,
+                                              &upbuf,
                                               &uplen, u32_toupper));
   else
     ret =
-      u32_locale_tocase ((scm_t_uint32 *) buf, 1, (scm_t_uint32 **) &upbuf,
+      u32_locale_tocase ((scm_t_uint32 *) buf, 1, &upbuf,
                          &uplen, u32_toupper);
 
   if (SCM_UNLIKELY (ret != 0))
@@ -1179,7 +1181,7 @@ SCM_DEFINE (scm_char_locale_upcase, "char-locale-upcase", 1, 1, 0,
       scm_syserror (FUNC_NAME);
     }
   if (uplen == 1)
-    upchar = SCM_MAKE_CHAR (upbuf[0]);
+    upchar = SCM_MAKE_CHAR ((scm_t_wchar) upbuf[0]);
   else
     upchar = chr;
   free (upbuf);
@@ -1194,7 +1196,8 @@ SCM_DEFINE (scm_string_locale_upcase, "string-locale-upcase", 1, 1, 0,
 	    "locale.")
 #define FUNC_NAME s_scm_string_locale_upcase
 {
-  scm_t_wchar *c_str, *c_upstr, *c_buf;
+  scm_t_wchar *c_str, *c_buf;
+  scm_t_uint32 *c_upstr;
   size_t len, uplen;
   int ret;
   scm_t_locale c_locale;
@@ -1210,12 +1213,12 @@ SCM_DEFINE (scm_string_locale_upcase, "string-locale-upcase", 1, 1, 0,
   if (c_locale)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
                            u32_locale_tocase ((scm_t_uint32 *) c_str, len,
-                                              (scm_t_uint32 **) &c_upstr,
+                                              &c_upstr,
                                               &uplen, u32_toupper));
   else
     ret =
       u32_locale_tocase ((scm_t_uint32 *) c_str, len,
-                         (scm_t_uint32 **) &c_upstr, &uplen, u32_toupper);
+                         &c_upstr, &uplen, u32_toupper);
 
   scm_remember_upto_here (str);
 
@@ -1242,7 +1245,8 @@ SCM_DEFINE (scm_string_locale_downcase, "string-locale-downcase", 1, 1, 0,
 	    "locale.")
 #define FUNC_NAME s_scm_string_locale_downcase
 {
-  scm_t_wchar *c_str, *c_downstr, *c_buf;
+  scm_t_wchar *c_str, *c_buf;
+  scm_t_uint32 *c_downstr;
   size_t len, downlen;
   int ret;
   scm_t_locale c_locale;
@@ -1258,12 +1262,12 @@ SCM_DEFINE (scm_string_locale_downcase, "string-locale-downcase", 1, 1, 0,
   if (c_locale)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
                            u32_locale_tocase ((scm_t_uint32 *) c_str, len,
-                                              (scm_t_uint32 **) &c_downstr,
+                                              &c_downstr,
                                               &downlen, u32_tolower));
   else
     ret =
       u32_locale_tocase ((scm_t_uint32 *) c_str, len,
-                         (scm_t_uint32 **) &c_downstr, &downlen, u32_tolower);
+                         &c_downstr, &downlen, u32_tolower);
 
   scm_remember_upto_here (str);
 
