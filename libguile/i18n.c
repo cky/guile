@@ -775,8 +775,52 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
 }
 #undef FUNC_NAME
 
+/* Return the current language of the locale. */
+static const char *
+locale_language ()
+{
+#ifdef USE_GNU_LOCALE_API
+  {
+    static char lang[10];
+    scm_t_locale loc;
+    const char *c_result;
+    char *p;
+
+    /* If we are here, the locale has been set with 'uselocale'.  We
+       can't use libunistring's uc_locale_language because it calls
+       setlocale.  */
+    loc = uselocale (0);
+    if (loc == (scm_t_locale) -1)
+      return "";
+
+    /* The internal structure of locale_t may be specific to the C
+       library, but, there doesn't seem to be any other way to extract
+       the locale name.  */
+    c_result = loc->__names[LC_CTYPE];
+    p = (char *) c_result;
+    while (*p != '\0' && *p != '_' && *p != '.' && *p != '@')
+      p++;
+
+    /* Return a statically allocated pointer to the language portion,
+       so that the caller of this function does not need to free() the
+       result.  */
+    if (p != c_result)
+      {
+        memcpy (lang, c_result, p - c_result);
+        lang[p - c_result] = '\0';
+        return lang;
+      }
+    else
+      return "";
+  }
+#else
+  /* The locale has been set with setlocale.  */
+  return uc_locale_language ();
+#endif
+}
+
 static inline int
-u32_locale_casecoll (const char *func_name, const scm_t_uint32 *c_s1, 
+u32_locale_casecoll (const char *func_name, const scm_t_uint32 *c_s1,
                      const scm_t_uint32 *c_s2,
 		     int *result)
 {
@@ -784,9 +828,9 @@ u32_locale_casecoll (const char *func_name, const scm_t_uint32 *c_s1,
      make any non-local exit.  */
 
   int ret;
-  const char *loc = uc_locale_language ();
+  const char *loc = locale_language ();
 
-  ret = u32_casecoll (c_s1, u32_strlen (c_s1), 
+  ret = u32_casecoll (c_s1, u32_strlen (c_s1),
                       c_s2, u32_strlen (c_s2),
                       loc, UNINORM_NFC, result);
 
@@ -1081,7 +1125,7 @@ u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
      make any non-local exit.  */
 
   scm_t_uint32 *ret;
-  const char *loc = uc_locale_language ();
+  const char *loc = locale_language ();
 
   /* The first NULL here indicates that no NFC or NFKC normalization
      is done.  The second NULL means the return buffer is
@@ -1095,7 +1139,7 @@ u32_locale_tocase (const scm_t_uint32 *c_s1, size_t len,
       return errno;
     }
   *p_c_s2 = ret;
-  
+
   return 0;
 }
 
