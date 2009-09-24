@@ -85,6 +85,9 @@
 (define %french-utf8-locale-name
   "fr_FR.UTF-8")
 
+(define %turkish-utf8-locale-name
+  "tr_TR.UTF-8")
+
 (define %french-locale
   (false-if-exception
    (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
@@ -94,6 +97,11 @@
   (false-if-exception
    (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
                 %french-utf8-locale-name)))
+
+(define %turkish-utf8-locale
+  (false-if-exception
+   (make-locale LC_ALL
+                %turkish-utf8-locale-name)))
 
 (define (under-locale-or-unresolved locale thunk)
   ;; On non-GNU systems, an exception may be raised only when the locale is
@@ -113,6 +121,8 @@
 (define (under-french-utf8-locale-or-unresolved thunk)
   (under-locale-or-unresolved %french-utf8-locale thunk))
 
+(define (under-turkish-utf8-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %turkish-utf8-locale thunk))
 
 (with-test-prefix "text collation (French)"
 
@@ -190,7 +200,38 @@
 
   (pass-if "char-locale-upcase"
     (and (eq? #\Z (char-locale-upcase #\z))
-         (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL "C"))))))
+         (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL "C")))))
+
+  (pass-if "char-locale-upcase Turkish"
+    (under-turkish-utf8-locale-or-unresolved
+     (lambda ()
+       (eq? #\İ (char-locale-upcase #\i %turkish-utf8-locale)))))
+
+  (pass-if "char-locale-downcase Turkish"
+    (under-turkish-utf8-locale-or-unresolved
+     (lambda ()
+       (eq? #\i (char-locale-downcase #\İ %turkish-utf8-locale))))))
+
+
+(with-test-prefix "string mapping"
+
+  (pass-if "string-locale-downcase"
+    (and (string=? "a" (string-locale-downcase "A"))
+         (string=? "a" (string-locale-downcase "A" (make-locale LC_ALL "C")))))
+
+  (pass-if "string-locale-upcase"
+    (and (string=? "Z" (string-locale-upcase "z"))
+         (string=? "Z" (string-locale-upcase "z" (make-locale LC_ALL "C")))))
+
+  (pass-if "string-locale-upcase Turkish"
+    (under-turkish-utf8-locale-or-unresolved
+     (lambda ()
+       (string=? "İI" (string-locale-upcase "iı" %turkish-utf8-locale)))))
+
+  (pass-if "string-locale-downcase Turkish"
+    (under-turkish-utf8-locale-or-unresolved
+     (lambda ()
+       (string=? "iı" (string-locale-downcase "İI" %turkish-utf8-locale))))))
 
 
 (with-test-prefix "number parsing"
