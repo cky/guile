@@ -573,7 +573,6 @@ scm_make_stptob ()
 {
   scm_t_bits tc = scm_make_port_type ("string", stfill_buffer, st_write);
 
-  scm_set_port_mark        (tc, scm_markstream);
   scm_set_port_end_input   (tc, st_end_input);
   scm_set_port_flush       (tc, st_flush);
   scm_set_port_seek        (tc, st_seek);

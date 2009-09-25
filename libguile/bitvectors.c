@@ -45,15 +45,6 @@ static scm_t_bits scm_tc16_bitvector;
 #define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_SMOB_DATA(obj))
 #define BITVECTOR_LENGTH(obj)   ((size_t)SCM_SMOB_DATA_2(obj))
 
-static size_t
-bitvector_free (SCM vec)
-{
-  scm_gc_free (BITVECTOR_BITS (vec),
-	       sizeof (scm_t_uint32) * ((BITVECTOR_LENGTH (vec)+31)/32),
-	       "bitvector");
-  return 0;
-}
-
 static int
 bitvector_print (SCM vec, SCM port, scm_print_state *pstate)
 {
@@ -120,8 +111,8 @@ scm_c_make_bitvector (size_t len, SCM fill)
   scm_t_uint32 *bits;
   SCM res;
 
-  bits = scm_gc_malloc (sizeof (scm_t_uint32) * word_len,
-			"bitvector");
+  bits = scm_gc_malloc_pointerless (sizeof (scm_t_uint32) * word_len,
+				    "bitvector");
   SCM_NEWSMOB2 (res, scm_tc16_bitvector, bits, len);
 
   if (!SCM_UNBNDP (fill))
@@ -896,7 +887,6 @@ void
 scm_init_bitvectors ()
 {
   scm_tc16_bitvector = scm_make_smob_type ("bitvector", 0);
-  scm_set_smob_free (scm_tc16_bitvector, bitvector_free);
   scm_set_smob_print (scm_tc16_bitvector, bitvector_print);
   scm_set_smob_equalp (scm_tc16_bitvector, bitvector_equalp);
 

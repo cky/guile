@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -220,7 +220,6 @@ scm_make_sfptob ()
 {
   scm_t_bits tc = scm_make_port_type ("soft", sf_fill_input, sf_write);
 
-  scm_set_port_mark (tc, scm_markstream);
   scm_set_port_flush (tc, sf_flush);
   scm_set_port_close (tc, sf_close);
   scm_set_port_input_waiting (tc, sf_input_waiting);

@@ -1095,22 +1095,6 @@ scm_i_read_array (SCM port, int c)
 
 
 static SCM
-array_mark (SCM ptr)
-{
-  return SCM_I_ARRAY_V (ptr);
-}
-
-static size_t
-array_free (SCM ptr)
-{
-  scm_gc_free (SCM_I_ARRAY_MEM (ptr),
-	       (sizeof (scm_i_t_array) 
-		+ SCM_I_ARRAY_NDIM (ptr) * sizeof (scm_t_array_dim)),
-	       "array");
-  return 0;
-}
-
-static SCM
 array_handle_ref (scm_t_array_handle *h, size_t pos)
 {
   return scm_c_generalized_vector_ref (SCM_I_ARRAY_V (h->array), pos);
@@ -1146,8 +1130,6 @@ void
 scm_init_arrays ()
 {
   scm_i_tc16_array = scm_make_smob_type ("array", 0);
-  scm_set_smob_mark (scm_i_tc16_array, array_mark);
-  scm_set_smob_free (scm_i_tc16_array, array_free);
   scm_set_smob_print (scm_i_tc16_array, scm_i_print_array);
   scm_set_smob_equalp (scm_i_tc16_array, scm_array_equal_p);
 
