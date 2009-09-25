@@ -43,3 +43,5 @@ guile-config: $(srcdir)/guile-config.in
 	> guile-config.out
 	mv guile-config.out guile-config
 	chmod +x guile-config
+
+CLEANFILES = guile-config
