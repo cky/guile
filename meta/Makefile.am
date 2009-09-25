@@ -34,9 +34,9 @@ pkgconfig_DATA = guile-2.0.pc
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4
 
-guile-config: guile-config.in
+guile-config: $(srcdir)/guile-config.in
 	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-	cat guile-config.in							\
+	cat $(srcdir)/guile-config.in							\
 	| $(SED) -e "s,@pkgconfigdir@,$(pkgconfigdir),g ;			\
 	             s,@""PKG_CONFIG@,$(PKG_CONFIG),g ;				\
 	             s,@installed_guile@,$$guile,g"				\
