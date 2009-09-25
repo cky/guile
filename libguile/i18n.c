@@ -1446,15 +1446,16 @@ SCM_DEFINE (scm_locale_string_to_inexact, "locale-string->inexact",
    2. `nl_langinfo ()' is not available on Windows.
 
    3. `nl_langinfo ()' may return strings encoded in a locale different from
-      the current one, thereby defeating `scm_from_locale_string ()'.
-      Example: support the current locale is "Latin-1" and one asks:
+      the current one.
+      For example:
 
         (nl-langinfo DAY_1 (make-locale LC_ALL "eo_EO.UTF-8"))
 
-      The result will be a UTF-8 string.  However, `scm_from_locale_string',
-      which expects a Latin-1 string, won't be able to make much sense of the
-      returned string.  Thus, we'd need an `scm_from_string ()' variant where
-      the locale (or charset) is explicitly passed.  */
+      returns a result that is a UTF-8 string, regardless of the
+      setting of the current locale.  If nl_langinfo supports CODESET,
+      we can convert the string properly using scm_from_stringn.  If
+      CODESET is not supported, we won't be able to make much sense of
+      the returned string. */
 
 
 SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
@@ -1472,6 +1473,9 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
   nl_item c_item;
   char *c_result;
   scm_t_locale c_locale;
+#ifdef HAVE_LANGINFO_CODESET
+  char *codeset;
+#endif
 
   SCM_VALIDATE_INT_COPY (2, item, c_item);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
@@ -1488,7 +1492,10 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
     {
 #ifdef USE_GNU_LOCALE_API
       c_result = nl_langinfo_l (c_item, c_locale);
-#else
+#ifdef HAVE_LANGINFO_CODESET
+      codeset = nl_langinfo_l (CODESET, c_locale);
+#endif /* HAVE_LANGINFO_CODESET */
+#else /* !USE_GNU_LOCALE_API */
       /* We can't use `RUN_IN_LOCALE_SECTION ()' here because the locale
 	 mutex is already taken.  */
       int lsec_err;
@@ -1512,6 +1519,9 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
       else
 	{
 	  c_result = nl_langinfo (c_item);
+#ifdef HAVE_LANGINFO_CODESET
+          codeset = nl_langinfo (CODESET);
+#endif /* HAVE_LANGINFO_CODESET */
 
 	  restore_locale_settings (&lsec_prev_locale);
 	  free_locale_settings (&lsec_prev_locale);
@@ -1519,7 +1529,12 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 #endif
     }
   else
-    c_result = nl_langinfo (c_item);
+    {
+      c_result = nl_langinfo (c_item);
+#ifdef HAVE_LANGINFO_CODESET
+      codeset = nl_langinfo (CODESET);
+#endif /* HAVE_LANGINFO_CODESET */
+    }
 
   c_result = strdup (c_result);
   scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
@@ -1627,9 +1642,15 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 #endif
 
 	default:
-	  /* FIXME: `locale_string ()' is not appropriate here because of
-	     encoding issues (see comment above).  */
-	  result = scm_take_locale_string (c_result);
+#ifdef HAVE_LANGINFO_CODESET
+          result = scm_from_stringn (c_result, strlen (c_result),
+                                     codeset,
+                                     SCM_FAILED_CONVERSION_QUESTION_MARK);
+#else /* !HAVE_LANGINFO_CODESET */
+          /* This may be incorrectly encoded if the locale differs
+             from the c_locale.  */
+          result = scm_from_locale_string (c_result);
+#endif /* !HAVE_LANGINFO_CODESET */
 	}
     }
 
