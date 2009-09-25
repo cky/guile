@@ -127,12 +127,6 @@ end_input_default (SCM port SCM_UNUSED, int offset SCM_UNUSED)
 {
 }
 
-static size_t
-scm_port_free0 (SCM port)
-{
-  return 0;
-}
-
 scm_t_bits
 scm_make_port_type (char *name,
 		    int (*fill_input) (SCM port),
@@ -153,7 +147,7 @@ scm_make_port_type (char *name,
 
       scm_ptobs[scm_numptob].name = name;
       scm_ptobs[scm_numptob].mark = 0;
-      scm_ptobs[scm_numptob].free = scm_port_free0;
+      scm_ptobs[scm_numptob].free = NULL;
       scm_ptobs[scm_numptob].print = scm_port_print;
       scm_ptobs[scm_numptob].equalp = 0;
       scm_ptobs[scm_numptob].close = 0;

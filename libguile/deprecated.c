@@ -633,6 +633,21 @@ scm_set_smob_mfpe (long tc,
   if (equalp) scm_set_smob_equalp (tc, equalp);
 }
 
+size_t
+scm_smob_free (SCM obj)
+{
+  long n = SCM_SMOBNUM (obj);
+
+  scm_c_issue_deprecation_warning
+    ("`scm_smob_free' is deprecated.  "
+     "It is no longer needed.");
+
+  if (scm_smobs[n].size > 0)
+    scm_gc_free ((void *) SCM_CELL_WORD_1 (obj), 
+		 scm_smobs[n].size, SCM_SMOBNAME (n));
+  return 0;
+}
+
 SCM
 scm_read_0str (char *expr)
 {

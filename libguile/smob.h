@@ -167,7 +167,6 @@ SCM_API void scm_i_finalize_smob (GC_PTR obj, GC_PTR data);
 SCM_API SCM scm_mark0 (SCM ptr);
 SCM_API SCM scm_markcdr (SCM ptr);
 SCM_API size_t scm_free0 (SCM ptr);
-SCM_API size_t scm_smob_free (SCM obj);
 SCM_API int scm_smob_print (SCM exp, SCM port, scm_print_state *pstate);
 
 /* The following set of functions is the standard way to create new

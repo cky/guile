@@ -97,6 +97,7 @@ scm_markcdr (SCM ptr)
   return SCM_CELL_OBJECT_1 (ptr);
 }
 
+
 /* {Free}
  */
 
@@ -106,16 +107,7 @@ scm_free0 (SCM ptr SCM_UNUSED)
   return 0;
 }
 
-size_t
-scm_smob_free (SCM obj)
-{
-  long n = SCM_SMOBNUM (obj);
-  if (scm_smobs[n].size > 0)
-    scm_gc_free ((void *) SCM_CELL_WORD_1 (obj), 
-		 scm_smobs[n].size, SCM_SMOBNAME (n));
-  return 0;
-}
-
+
 /* {Print}
  */
 
@@ -307,11 +299,7 @@ scm_make_smob_type (char const *name, size_t size)
     scm_misc_error (FUNC_NAME, "maximum number of smobs exceeded", SCM_EOL);
 
   scm_smobs[new_smob].name = name;
-  if (size != 0)
-    {
-      scm_smobs[new_smob].size = size;
-      scm_smobs[new_smob].free = scm_smob_free;
-    }
+  scm_smobs[new_smob].size = size;
 
   /* Make a class object if Goops is present. */
   if (SCM_UNPACK (scm_smob_class[0]) != 0)

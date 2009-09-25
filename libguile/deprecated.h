@@ -224,6 +224,8 @@ SCM_API void scm_set_smob_mfpe (long tc,
 				int (*print) (SCM, SCM, scm_print_state*),
 				SCM (*equalp) (SCM, SCM));
 
+SCM_API size_t scm_smob_free (SCM obj);
+
 SCM_API SCM scm_strprint_obj (SCM obj);
 SCM_API SCM scm_read_0str (char *expr);
 SCM_API SCM scm_eval_0str (const char *expr);
