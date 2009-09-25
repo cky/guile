@@ -1651,6 +1651,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
              from the c_locale.  */
           result = scm_from_locale_string (c_result);
 #endif /* !HAVE_LANGINFO_CODESET */
+          free (c_result);
 	}
     }
 
