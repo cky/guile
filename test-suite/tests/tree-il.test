@@ -69,21 +69,21 @@
 (with-test-prefix "void"
   (assert-tree-il->glil
    (void)
-   (program 0 0 0 () (void) (call return 1)))
+   (program 0 0 0 () (arity 0 0 #f) (void) (call return 1)))
   (assert-tree-il->glil
    (begin (void) (const 1))
-   (program 0 0 0 () (const 1) (call return 1)))
+   (program 0 0 0 () (arity 0 0 #f) (const 1) (call return 1)))
   (assert-tree-il->glil
    (apply (primitive +) (void) (const 1))
-   (program 0 0 0 () (void) (call add1 1) (call return 1))))
+   (program 0 0 0 () (arity 0 0 #f) (void) (call add1 1) (call return 1))))
 
 (with-test-prefix "application"
   (assert-tree-il->glil
    (apply (toplevel foo) (const 1))
-   (program 0 0 0 () (toplevel ref foo) (const 1) (call goto/args 1)))
+   (program 0 0 0 () (arity 0 0 #f) (toplevel ref foo) (const 1) (call goto/args 1)))
   (assert-tree-il->glil/pmatch
    (begin (apply (toplevel foo) (const 1)) (void))
-   (program 0 0 0 () (call new-frame 0) (toplevel ref foo) (const 1) (mv-call 1 ,l1)
+   (program 0 0 0 () (arity 0 0 #f) (call new-frame 0) (toplevel ref foo) (const 1) (mv-call 1 ,l1)
             (call drop 1) (branch br ,l2)
             (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -91,26 +91,26 @@
    (and (eq? l1 l3) (eq? l2 l4)))
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel bar)))
-   (program 0 0 0 () (toplevel ref foo) (call new-frame 0) (toplevel ref bar) (call call 0)
+   (program 0 0 0 ()  (arity 0 0 #f)(toplevel ref foo) (call new-frame 0) (toplevel ref bar) (call call 0)
             (call goto/args 1))))
 
 (with-test-prefix "conditional"
   (assert-tree-il->glil/pmatch
    (if (const #t) (const 1) (const 2))
-   (program 0 0 0 () (const #t) (branch br-if-not ,l1)
+   (program 0 0 0 () (arity 0 0 #f) (const #t) (branch br-if-not ,l1)
             (const 1) (call return 1)
             (label ,l2) (const 2) (call return 1))
    (eq? l1 l2))
   
   (assert-tree-il->glil/pmatch
    (begin (if (const #t) (const 1) (const 2)) (const #f))
-   (program 0 0 0 () (const #t) (branch br-if-not ,l1) (branch br ,l2)
+   (program 0 0 0 () (arity 0 0 #f) (const #t) (branch br-if-not ,l1) (branch br ,l2)
             (label ,l3) (label ,l4) (const #f) (call return 1))
    (eq? l1 l3) (eq? l2 l4))
 
   (assert-tree-il->glil/pmatch
    (apply (primitive null?) (if (const #t) (const 1) (const 2)))
-   (program 0 0 0 () (const #t) (branch br-if-not ,l1)
+   (program 0 0 0 () (arity 0 0 #f) (const #t) (branch br-if-not ,l1)
             (const 1) (branch br ,l2)
                     (label ,l3) (const 2) (label ,l4)
                     (call null? 1) (call return 1))
@@ -119,35 +119,35 @@
 (with-test-prefix "primitive-ref"
   (assert-tree-il->glil
    (primitive +)
-   (program 0 0 0 () (toplevel ref +) (call return 1)))
+   (program 0 0 0 () (arity 0 0 #f) (toplevel ref +) (call return 1)))
 
   (assert-tree-il->glil
    (begin (primitive +) (const #f))
-   (program 0 0 0 () (const #f) (call return 1)))
+   (program 0 0 0 () (arity 0 0 #f) (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (primitive +))
-   (program 0 0 0 () (toplevel ref +) (call null? 1)
+   (program 0 0 0 () (arity 0 0 #f) (toplevel ref +) (call null? 1)
             (call return 1))))
 
 (with-test-prefix "lexical refs"
   (assert-tree-il->glil
    (let (x) (y) ((const 1)) (lexical x y))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (call return 1)
             (unbind)))
 
   (assert-tree-il->glil
    (let (x) (y) ((const 1)) (begin (lexical x y) (const #f)))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (const #f) (call return 1)
             (unbind)))
 
   (assert-tree-il->glil
    (let (x) (y) ((const 1)) (apply (primitive null?) (lexical x y)))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (call null? 1) (call return 1)
             (unbind))))
@@ -157,7 +157,7 @@
    ;; unreferenced sets may be optimized away -- make sure they are ref'd
    (let (x) (y) ((const 1))
         (set! (lexical x y) (apply (primitive 1+) (lexical x y))))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
             (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
             (void) (call return 1)
@@ -167,7 +167,7 @@
    (let (x) (y) ((const 1))
         (begin (set! (lexical x y) (apply (primitive 1+) (lexical x y)))
                (lexical x y)))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
             (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
             (lexical #t #t ref 0) (call return 1)
@@ -177,7 +177,7 @@
    (let (x) (y) ((const 1))
      (apply (primitive null?)
             (set! (lexical x y) (apply (primitive 1+) (lexical x y)))))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
             (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0) (void)
             (call null? 1) (call return 1)
@@ -186,205 +186,205 @@
 (with-test-prefix "module refs"
   (assert-tree-il->glil
    (@ (foo) bar)
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (module public ref (foo) bar)
             (call return 1)))
 
   (assert-tree-il->glil
    (begin (@ (foo) bar) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (module public ref (foo) bar) (call drop 1)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (@ (foo) bar))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (module public ref (foo) bar)
             (call null? 1) (call return 1)))
 
   (assert-tree-il->glil
    (@@ (foo) bar)
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (module private ref (foo) bar)
             (call return 1)))
 
   (assert-tree-il->glil
    (begin (@@ (foo) bar) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (module private ref (foo) bar) (call drop 1)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (@@ (foo) bar))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (module private ref (foo) bar)
             (call null? 1) (call return 1))))
 
 (with-test-prefix "module sets"
   (assert-tree-il->glil
    (set! (@ (foo) bar) (const 2))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (module public set (foo) bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (set! (@ (foo) bar) (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (module public set (foo) bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (set! (@ (foo) bar) (const 2)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (module public set (foo) bar)
             (void) (call null? 1) (call return 1)))
 
   (assert-tree-il->glil
    (set! (@@ (foo) bar) (const 2))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (module private set (foo) bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (set! (@@ (foo) bar) (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (module private set (foo) bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (set! (@@ (foo) bar) (const 2)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (module private set (foo) bar)
             (void) (call null? 1) (call return 1))))
 
 (with-test-prefix "toplevel refs"
   (assert-tree-il->glil
    (toplevel bar)
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (toplevel ref bar)
             (call return 1)))
 
   (assert-tree-il->glil
    (begin (toplevel bar) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (toplevel ref bar) (call drop 1)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (toplevel bar))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (toplevel ref bar)
             (call null? 1) (call return 1))))
 
 (with-test-prefix "toplevel sets"
   (assert-tree-il->glil
    (set! (toplevel bar) (const 2))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (toplevel set bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (set! (toplevel bar) (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (toplevel set bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (set! (toplevel bar) (const 2)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (toplevel set bar)
             (void) (call null? 1) (call return 1))))
 
 (with-test-prefix "toplevel defines"
   (assert-tree-il->glil
    (define bar (const 2))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (toplevel define bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (define bar (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (toplevel define bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (define bar (const 2)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (toplevel define bar)
             (void) (call null? 1) (call return 1))))
 
 (with-test-prefix "constants"
   (assert-tree-il->glil
    (const 2)
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (call return 1)))
 
   (assert-tree-il->glil
    (begin (const 2) (const #f))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (const 2))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (call null? 1) (call return 1))))
 
 (with-test-prefix "lambda"
   (assert-tree-il->glil
    (lambda (x) (y) () (const 2))
-   (program 0 0 0 ()
-            (program 1 0 0 ()
+   (program 0 0 0 ()  (arity 0 0 #f)
+            (program 1 0 0 () (arity 1 0 #f)
                      (bind (x #f 0))
                      (const 2) (call return 1))
             (call return 1)))
 
   (assert-tree-il->glil
    (lambda (x x1) (y y1) () (const 2))
-   (program 0 0 0 ()
-            (program 2 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
+            (program 2 0 0 () (arity 2 0 #f)
                      (bind (x #f 0) (x1 #f 1))
                      (const 2) (call return 1))
             (call return 1)))
 
   (assert-tree-il->glil
    (lambda x y () (const 2))
-   (program 0 0 0 ()
-            (program 1 1 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
+            (program 1 1 0 () (arity 1 1 #f)
                      (bind (x #f 0))
                      (const 2) (call return 1))
             (call return 1)))
 
   (assert-tree-il->glil
    (lambda (x . x1) (y . y1) () (const 2))
-   (program 0 0 0 ()
-            (program 2 1 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
+            (program 2 1 0 () (arity 2 1 #f)
                      (bind (x #f 0) (x1 #f 1))
                      (const 2) (call return 1))
             (call return 1)))
 
   (assert-tree-il->glil
    (lambda (x . x1) (y . y1) () (lexical x y))
-   (program 0 0 0 ()
-            (program 2 1 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
+            (program 2 1 0 () (arity 2 1 #f)
                      (bind (x #f 0) (x1 #f 1))
                      (lexical #t #f ref 0) (call return 1))
             (call return 1)))
 
   (assert-tree-il->glil
    (lambda (x . x1) (y . y1) () (lexical x1 y1))
-   (program 0 0 0 ()
-            (program 2 1 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
+            (program 2 1 0 () (arity 2 1 #f)
                      (bind (x #f 0) (x1 #f 1))
                      (lexical #t #f ref 1) (call return 1))
             (call return 1)))
 
   (assert-tree-il->glil
    (lambda (x) (x1) () (lambda (y) (y1) () (lexical x x1)))
-   (program 0 0 0 ()
-            (program 1 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
+            (program 1 0 0 () (arity 1 0 #f)
                      (bind (x #f 0))
-                     (program 1 0 0 ()
+                     (program 1 0 0 () (arity 1 0 #f)
                               (bind (y #f 0))
                               (lexical #f #f ref 0) (call return 1))
                      (lexical #t #f ref 0)
@@ -396,12 +396,12 @@
 (with-test-prefix "sequence"
   (assert-tree-il->glil
    (begin (begin (const 2) (const #f)) (const #t))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const #t) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (begin (const #f) (const 2)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (const 2) (call null? 1) (call return 1))))
 
 ;; FIXME: binding info for or-hacked locals might bork the disassembler,
@@ -413,7 +413,7 @@
             (lexical x y)
             (let (a) (b) ((const 2))
                  (lexical a b))))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (branch br-if-not ,l1)
             (lexical #t #f ref 0) (call return 1)
@@ -431,7 +431,7 @@
             (lexical x y)
             (let (a) (b) ((const 2))
                  (lexical x y))))
-   (program 0 0 1 ()
+   (program 0 0 1 () (arity 0 0 #f)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (branch br-if-not ,l1)
             (lexical #t #f ref 0) (call return 1)
@@ -443,10 +443,10 @@
 (with-test-prefix "apply"
   (assert-tree-il->glil
    (apply (primitive @apply) (toplevel foo) (toplevel bar))
-   (program 0 0 0 () (toplevel ref foo) (toplevel ref bar) (call goto/apply 2)))
+   (program 0 0 0 () (arity 0 0 #f) (toplevel ref foo) (toplevel ref bar) (call goto/apply 2)))
   (assert-tree-il->glil/pmatch
    (begin (apply (primitive @apply) (toplevel foo) (toplevel bar)) (void))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (call new-frame 0) (toplevel ref apply) (toplevel ref foo) (toplevel ref bar) (mv-call 2 ,l1)
             (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -454,7 +454,7 @@
    (and (eq? l1 l3) (eq? l2 l4)))
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel @apply) (toplevel bar) (toplevel baz)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (toplevel ref foo)
             (call new-frame 0) (toplevel ref bar) (toplevel ref baz) (call apply 2)
             (call goto/args 1))))
@@ -462,10 +462,10 @@
 (with-test-prefix "call/cc"
   (assert-tree-il->glil
    (apply (primitive @call-with-current-continuation) (toplevel foo))
-   (program 0 0 0 () (toplevel ref foo) (call goto/cc 1)))
+   (program 0 0 0 () (arity 0 0 #f) (toplevel ref foo) (call goto/cc 1)))
   (assert-tree-il->glil/pmatch
    (begin (apply (primitive @call-with-current-continuation) (toplevel foo)) (void))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (call new-frame 0) (toplevel ref call-with-current-continuation) (toplevel ref foo) (mv-call 1 ,l1)
             (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -474,7 +474,7 @@
   (assert-tree-il->glil
    (apply (toplevel foo)
           (apply (toplevel @call-with-current-continuation) (toplevel bar)))
-   (program 0 0 0 ()
+   (program 0 0 0 () (arity 0 0 #f)
             (toplevel ref foo)
             (toplevel ref bar) (call call/cc 1)
             (call goto/args 1))))

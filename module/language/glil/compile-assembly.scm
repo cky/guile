@@ -356,6 +356,26 @@
     ((<glil-branch> inst label)
      (emit-code `((,inst ,label))))
 
+    ((<glil-arity> nargs nrest label)
+     (emit-code (if label
+                    (if (zero? nrest)
+                        `((br-if-nargs-ne ,(quotient nargs 256) ,label))
+                        `(,@(if (> nargs 1)
+                                `((br-if-nargs-lt ,(quotient (1- nargs) 256)
+                                                  ,(modulo (1- nargs 256))
+                                                  ,label))
+                                '())
+                          (push-rest-list ,(quotient (1- nargs) 256))))
+                    (if (zero? nrest)
+                        `((assert-nargs-ee ,(quotient nargs 256)
+                                           ,(modulo nargs 256)))
+                        `(,@(if (> nargs 1)
+                                `((assert-nargs-ge ,(quotient (1- nargs) 256)
+                                                   ,(modulo (1- nargs) 256)))
+                                '())
+                          (push-rest-list ,(quotient (1- nargs) 256)
+                                          ,(modulo (1- nargs) 256)))))))
+    
     ;; nargs is number of stack args to insn. probably should rename.
     ((<glil-call> inst nargs)
      (if (not (instruction? inst))

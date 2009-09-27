@@ -189,21 +189,24 @@
        nargs nrest nlocs (lambda-meta x)
        (with-output-to-code
         (lambda (emit-code)
-          ;; emit label for self tail calls
-          (if self-label
-              (emit-code #f (make-glil-label self-label)))
-          ;; write bindings and source debugging info
-          (if (not (null? ids))
-              (emit-bindings #f ids vars allocation x emit-code))
+          ;; write source info for proc
           (if (lambda-src x)
               (emit-code #f (make-glil-source (lambda-src x))))
+          ;; check arity, potentially consing a rest list
+          (emit-code #f (make-glil-arity nargs nrest #f))
+          ;; write bindings info
+          (if (not (null? ids))
+              (emit-bindings #f ids vars allocation x emit-code))
+          ;; emit post-prelude label for self tail calls
+          (if self-label
+              (emit-code #f (make-glil-label self-label)))
           ;; box args if necessary
           (for-each
            (lambda (v)
              (pmatch (hashq-ref (hashq-ref allocation v) x)
-                     ((#t #t . ,n)
-                      (emit-code #f (make-glil-lexical #t #f 'ref n))
-                      (emit-code #f (make-glil-lexical #t #t 'box n)))))
+               ((#t #t . ,n)
+                (emit-code #f (make-glil-lexical #t #f 'ref n))
+                (emit-code #f (make-glil-lexical #t #t 'box n)))))
            vars)
           ;; and here, here, dear reader: we compile.
           (flatten (lambda-body x) allocation x self-label
