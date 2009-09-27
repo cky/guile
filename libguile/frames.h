@@ -31,15 +31,15 @@
    ---------------
 
    | ...              |
-   | Intermed. val. 0 | <- fp + bp->nargs + bp->nlocs = SCM_FRAME_UPPER_ADDRESS (fp)
-   +==================+
-   | Local variable 1 |
-   | Local variable 0 | <- fp + bp->nargs
-   | Argument 1       |
-   | Argument 0       | <- fp
-   | Program          | <- fp - 1
+   | Intermed. val. 0 | <- fp + nargs + nlocs
    +------------------+    
-   | Return address   |
+   | Local variable 1 |
+   | Local variable 0 | <- fp + nargs
+   | Argument 1       |
+   | Argument 0       | <- fp = SCM_FRAME_STACK_ADDRESS (fp)
+   | Program          | <- fp - 1
+   +==================+
+   | Return address   | <- SCM_FRAME_UPPER_ADDRESS (fp)
    | MV return address|
    | Dynamic link     | <- fp - 4 = SCM_FRAME_DATA_ADDRESS (fp) = SCM_FRAME_LOWER_ADDRESS (fp)
    +==================+
@@ -50,10 +50,8 @@
    assumed to be as long as SCM objects.  */
 
 #define SCM_FRAME_DATA_ADDRESS(fp)	(fp - 4)
-#define SCM_FRAME_UPPER_ADDRESS(fp)                             \
-  (fp                                                           \
-   + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nargs           \
-   + SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp))->nlocs)
+#define SCM_FRAME_STACK_ADDRESS(fp)	(fp)
+#define SCM_FRAME_UPPER_ADDRESS(fp)	(fp - 2)
 #define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 4)
 
 #define SCM_FRAME_BYTE_CAST(x)		((scm_t_uint8 *) SCM_UNPACK (x))
@@ -71,8 +69,8 @@
   (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[0]))
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)			\
   ((SCM_FRAME_DATA_ADDRESS (fp)[0])) = (SCM)(dl);
-#define SCM_FRAME_VARIABLE(fp,i)	fp[i]
-#define SCM_FRAME_PROGRAM(fp)		fp[-1]
+#define SCM_FRAME_VARIABLE(fp,i)	SCM_FRAME_STACK_ADDRESS (fp)[i]
+#define SCM_FRAME_PROGRAM(fp)		SCM_FRAME_STACK_ADDRESS (fp)[-1]
 
 
 /*
@@ -105,12 +103,13 @@ SCM_API SCM scm_vm_frame_p (SCM obj);
 SCM_API SCM scm_vm_frame_program (SCM frame);
 SCM_API SCM scm_vm_frame_arguments (SCM frame);
 SCM_API SCM scm_vm_frame_source (SCM frame);
+SCM_API SCM scm_vm_frame_num_locals (SCM frame);
 SCM_API SCM scm_vm_frame_local_ref (SCM frame, SCM index);
 SCM_API SCM scm_vm_frame_local_set_x (SCM frame, SCM index, SCM val);
+SCM_API SCM scm_vm_frame_instruction_pointer (SCM frame);
 SCM_API SCM scm_vm_frame_return_address (SCM frame);
 SCM_API SCM scm_vm_frame_mv_return_address (SCM frame);
 SCM_API SCM scm_vm_frame_dynamic_link (SCM frame);
-SCM_API SCM scm_vm_frame_stack (SCM frame);
 
 SCM_API SCM scm_c_vm_frame_prev (SCM frame);
 

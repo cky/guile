@@ -80,32 +80,19 @@ SCM_DEFINE (scm_vm_frame_program, "vm-frame-program", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_frame_arguments, "vm-frame-arguments", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_vm_frame_arguments
+SCM
+scm_vm_frame_arguments (SCM frame)
+#define FUNC_NAME "vm-frame-arguments"
 {
-  SCM *fp;
-  int i;
-  struct scm_objcode *bp;
-  SCM ret;
+  static SCM var = SCM_BOOL_F;
   
   SCM_VALIDATE_VM_FRAME (1, frame);
 
-  fp = SCM_VM_FRAME_FP (frame);
-  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
+  if (scm_is_false (var))
+    var = scm_c_module_lookup (scm_c_resolve_module ("system vm frame"),
+                               "vm-frame-arguments");
 
-  if (!bp->nargs)
-    return SCM_EOL;
-  else if (bp->nrest)
-    ret = SCM_FRAME_VARIABLE (fp, bp->nargs - 1);
-  else
-    ret = scm_cons (SCM_FRAME_VARIABLE (fp, bp->nargs - 1), SCM_EOL);
-  
-  for (i = bp->nargs - 2; i >= 0; i--)
-    ret = scm_cons (SCM_FRAME_VARIABLE (fp, i), ret);
-  
-  return ret;
+  return scm_call_1 (SCM_VARIABLE_REF (var), frame);
 }
 #undef FUNC_NAME
 
@@ -127,47 +114,114 @@ SCM_DEFINE (scm_vm_frame_source, "vm-frame-source", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* The number of locals would be a simple thing to compute, if it weren't for
+   the presence of not-yet-active frames on the stack. So we have a cheap
+   heuristic to detect not-yet-active frames, and skip over them. Perhaps we
+   should represent them more usefully.
+ */
+SCM_DEFINE (scm_vm_frame_num_locals, "vm-frame-num-locals", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_vm_frame_num_locals
+{
+  SCM *sp, *p;
+  unsigned int n = 0;
+
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+  sp = SCM_VM_FRAME_SP (frame);
+  p = SCM_FRAME_STACK_ADDRESS (SCM_VM_FRAME_FP (frame));
+  while (p <= sp)
+    {
+      if (p + 1 < sp && p[1] == (SCM)0)
+        /* skip over not-yet-active frame */
+        p += 3;
+      else
+        {
+          p++;
+          n++;
+        }
+    }
+  return scm_from_uint (n);
+}
+#undef FUNC_NAME
+
+/* Need same not-yet-active frame logic here as in vm-frame-num-locals */
 SCM_DEFINE (scm_vm_frame_local_ref, "vm-frame-local-ref", 2, 0, 0,
 	    (SCM frame, SCM index),
 	    "")
 #define FUNC_NAME s_scm_vm_frame_local_ref
 {
-  SCM *fp;
+  SCM *sp, *p;
+  unsigned int n = 0;
   unsigned int i;
-  struct scm_objcode *bp;
-  
+
   SCM_VALIDATE_VM_FRAME (1, frame);
-
-  fp = SCM_VM_FRAME_FP (frame);
-  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
-
   SCM_VALIDATE_UINT_COPY (2, index, i);
-  SCM_ASSERT_RANGE (2, index, i < bp->nargs + bp->nlocs);
 
-  return SCM_FRAME_VARIABLE (fp, i);
+  sp = SCM_VM_FRAME_SP (frame);
+  p = SCM_FRAME_STACK_ADDRESS (SCM_VM_FRAME_FP (frame));
+  while (p <= sp)
+    {
+      if (p + 1 < sp && p[1] == (SCM)0)
+        /* skip over not-yet-active frame */
+        p += 3;
+      else if (n == i)
+        return *p;
+      else
+        {
+          p++;
+          n++;
+        }
+    }
+  SCM_OUT_OF_RANGE (SCM_ARG2, index);
 }
 #undef FUNC_NAME
 
+/* Need same not-yet-active frame logic here as in vm-frame-num-locals */
 SCM_DEFINE (scm_vm_frame_local_set_x, "vm-frame-local-set!", 3, 0, 0,
 	    (SCM frame, SCM index, SCM val),
 	    "")
 #define FUNC_NAME s_scm_vm_frame_local_set_x
 {
-  SCM *fp;
+  SCM *sp, *p;
+  unsigned int n = 0;
   unsigned int i;
-  struct scm_objcode *bp;
-  
+
   SCM_VALIDATE_VM_FRAME (1, frame);
-
-  fp = SCM_VM_FRAME_FP (frame);
-  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
-
   SCM_VALIDATE_UINT_COPY (2, index, i);
-  SCM_ASSERT_RANGE (2, index, i < bp->nargs + bp->nlocs);
 
-  SCM_FRAME_VARIABLE (fp, i) = val;
+  sp = SCM_VM_FRAME_SP (frame);
+  p = SCM_FRAME_STACK_ADDRESS (SCM_VM_FRAME_FP (frame));
+  while (p <= sp)
+    {
+      if (p + 1 < sp && p[1] == (SCM)0)
+        /* skip over not-yet-active frame */
+        p += 3;
+      else if (n == i)
+        {
+          *p = val;
+          return SCM_UNSPECIFIED;
+        }
+      else
+        {
+          p++;
+          n++;
+        }
+    }
+  SCM_OUT_OF_RANGE (SCM_ARG2, index);
+}
+#undef FUNC_NAME
 
-  return SCM_UNSPECIFIED;
+SCM_DEFINE (scm_vm_frame_instruction_pointer, "vm-frame-instruction-pointer", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_vm_frame_instruction_pointer
+{
+  SCM_VALIDATE_VM_FRAME (1, frame);
+  return scm_from_ulong ((unsigned long)
+                         (SCM_VM_FRAME_IP (frame)
+                          - SCM_PROGRAM_DATA (scm_vm_frame_program (frame))->base));
 }
 #undef FUNC_NAME
 
@@ -206,24 +260,6 @@ SCM_DEFINE (scm_vm_frame_dynamic_link, "vm-frame-dynamic-link", 1, 0, 0,
     ((unsigned long)
      RELOC (frame,
             SCM_FRAME_DYNAMIC_LINK (SCM_VM_FRAME_FP (frame))));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_frame_stack, "vm-frame-stack", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_vm_frame_stack
-{
-  SCM *top, *bottom, ret = SCM_EOL;
-
-  SCM_VALIDATE_VM_FRAME (1, frame);
-
-  top = SCM_VM_FRAME_SP (frame);
-  bottom = SCM_FRAME_UPPER_ADDRESS (SCM_VM_FRAME_FP (frame));
-  while (bottom <= top)
-    ret = scm_cons (*bottom++, ret);
-
-  return ret;
 }
 #undef FUNC_NAME
 

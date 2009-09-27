@@ -51,7 +51,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   size_t free_vars_count = 0;           /* length of FREE_VARS */
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
-  SCM *stack_base = vp->stack_base;	/* stack base address */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
   /* Internal variables */
@@ -108,16 +107,16 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     /* Initial frame */
     CACHE_REGISTER ();
     PUSH ((SCM)fp); /* dynamic link */
-    PUSH (0); /* ra */
     PUSH (0); /* mvra */
+    PUSH ((SCM)ip); /* ra */
     CACHE_PROGRAM ();
     PUSH (program);
     fp = sp + 1;
     INIT_FRAME ();
     /* MV-call frame, function & arguments */
     PUSH ((SCM)fp); /* dynamic link */
-    PUSH (0); /* ra */
     PUSH (0); /* mvra */
+    PUSH (0); /* ra */
     PUSH (prog);
     if (SCM_UNLIKELY (sp + nargs >= stack_limit))
       goto vm_error_too_many_args;

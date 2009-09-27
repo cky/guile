@@ -68,13 +68,13 @@
            (else
             (lp (cdr in) out filename)))))))
 
-(define (make-meta bindings sources tail)
+(define (make-meta bindings sources arities tail)
   (if (and (null? bindings) (null? sources) (null? tail))
       #f
       (compile-assembly
        (make-glil-program 0 0 0 '()
                           (list
-                           (make-glil-const `(,bindings ,sources ,@tail))
+                           (make-glil-const `(,bindings ,sources ,arities ,@tail))
                            (make-glil-call 'return 1))))))
 
 ;; A functional stack of names of live variables.
@@ -128,24 +128,39 @@
 
 (define (compile-assembly glil)
   (receive (code . _)
-      (glil->assembly glil #t '(()) '() '() #f -1)
+      (glil->assembly glil #t '(()) '() '() #f '() -1)
     (car code)))
 (define (make-object-table objects)
   (and (not (null? objects))
        (list->vector (cons #f objects))))
 
+;; arities := ((ip nreq [[nopt] [[rest?] [kw]]]]) ...)
+(define (begin-arity addr nreq nopt rest? kw arities)
+  (cons
+   (cond
+    (kw (list addr nreq nopt rest? kw))
+    (rest? (list addr nreq nopt rest?))
+    (nopt (list addr nreq nopt))
+    (nreq (list addr req))
+    (else (list addr)))
+   arities))
+
 (define (glil->assembly glil toplevel? bindings
-                        source-alist label-alist object-alist addr)
+                        source-alist label-alist object-alist arities addr)
   (define (emit-code x)
-    (values x bindings source-alist label-alist object-alist))
+    (values x bindings source-alist label-alist object-alist arities))
   (define (emit-code/object x object-alist)
-    (values x bindings source-alist label-alist object-alist))
+    (values x bindings source-alist label-alist object-alist arities))
+  (define (emit-code/arity x nreq nopt rest? kw)
+    (values x bindings source-alist label-alist object-alist
+            (begin-arity (addr+ addr x) nreq nopt rest? kw arities)))
 
   (record-case glil
     ((<glil-program> nargs nrest nlocs meta body)
      (define (process-body)
        (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
-                (label-alist '()) (object-alist (if toplevel? #f '())) (addr 0))
+                (label-alist '()) (object-alist (if toplevel? #f '()))
+                (arities '()) (addr 0))
          (cond
           ((null? body)
            (values (reverse code)
@@ -153,18 +168,21 @@
                    (limn-sources (reverse! source-alist))
                    (reverse label-alist)
                    (and object-alist (map car (reverse object-alist)))
+                   (reverse arities)
                    addr))
           (else
-           (receive (subcode bindings source-alist label-alist object-alist)
+           (receive (subcode bindings source-alist label-alist object-alist
+                     arities)
                (glil->assembly (car body) #f bindings
-                               source-alist label-alist object-alist addr)
+                               source-alist label-alist object-alist
+                               arities addr)
              (lp (cdr body) (append (reverse subcode) code)
-                 bindings source-alist label-alist object-alist
+                 bindings source-alist label-alist object-alist arities
                  (addr+ addr subcode)))))))
 
-     (receive (code bindings sources labels objects len)
+     (receive (code bindings sources labels objects arities len)
          (process-body)
-       (let* ((meta (make-meta bindings sources meta))
+       (let* ((meta (make-meta bindings sources arities meta))
               (meta-pad (if meta (modulo (- 8 (modulo len 8)) 8) 0))
               (prog `(load-program ,nargs ,nrest ,nlocs ,labels
                                   ,(+ len meta-pad)
@@ -205,28 +223,32 @@
              (open-binding bindings vars addr)
              source-alist
              label-alist
-             object-alist))
+             object-alist
+             arities))
 
     ((<glil-mv-bind> vars rest)
      (values `((truncate-values ,(length vars) ,(if rest 1 0)))
              (open-binding bindings vars addr)
              source-alist
              label-alist
-             object-alist))
+             object-alist
+             arities))
 
     ((<glil-unbind>)
      (values '()
              (close-binding bindings addr)
              source-alist
              label-alist
-             object-alist))
+             object-alist
+             arities))
              
     ((<glil-source> props)
      (values '()
              bindings
              (acons addr props source-alist)
              label-alist
-             object-alist))
+             object-alist
+             arities))
 
     ((<glil-void>)
      (emit-code '((void))))
@@ -351,30 +373,33 @@
                bindings
                source-alist
                (acons label (addr+ addr code) label-alist)
-               object-alist)))
+               object-alist
+               arities)))
 
     ((<glil-branch> inst label)
      (emit-code `((,inst ,label))))
 
     ((<glil-arity> nargs nrest label)
-     (emit-code (if label
-                    (if (zero? nrest)
-                        `((br-if-nargs-ne ,(quotient nargs 256) ,label))
-                        `(,@(if (> nargs 1)
-                                `((br-if-nargs-lt ,(quotient (1- nargs) 256)
-                                                  ,(modulo (1- nargs 256))
-                                                  ,label))
-                                '())
-                          (push-rest-list ,(quotient (1- nargs) 256))))
-                    (if (zero? nrest)
-                        `((assert-nargs-ee ,(quotient nargs 256)
-                                           ,(modulo nargs 256)))
-                        `(,@(if (> nargs 1)
-                                `((assert-nargs-ge ,(quotient (1- nargs) 256)
-                                                   ,(modulo (1- nargs) 256)))
-                                '())
-                          (push-rest-list ,(quotient (1- nargs) 256)
-                                          ,(modulo (1- nargs) 256)))))))
+     (emit-code/arity
+      (if label
+          (if (zero? nrest)
+              `((br-if-nargs-ne ,(quotient nargs 256) ,label))
+              `(,@(if (> nargs 1)
+                      `((br-if-nargs-lt ,(quotient (1- nargs) 256)
+                                        ,(modulo (1- nargs 256))
+                                        ,label))
+                      '())
+                (push-rest-list ,(quotient (1- nargs) 256))))
+          (if (zero? nrest)
+              `((assert-nargs-ee ,(quotient nargs 256)
+                                 ,(modulo nargs 256)))
+              `(,@(if (> nargs 1)
+                      `((assert-nargs-ge ,(quotient (1- nargs) 256)
+                                         ,(modulo (1- nargs) 256)))
+                      '())
+                (push-rest-list ,(quotient (1- nargs) 256)
+                                ,(modulo (1- nargs) 256)))))
+      (- nargs nrest) 0 (< 0 nrest) #f))
     
     ;; nargs is number of stack args to insn. probably should rename.
     ((<glil-call> inst nargs)

@@ -40,11 +40,11 @@ SCM_API SCM scm_make_program (SCM objcode, SCM objtable, SCM free_variables);
 
 SCM_API SCM scm_program_p (SCM obj);
 SCM_API SCM scm_program_base (SCM program);
-SCM_API SCM scm_program_arity (SCM program);
 SCM_API SCM scm_program_meta (SCM program);
 SCM_API SCM scm_program_bindings (SCM program);
 SCM_API SCM scm_program_sources (SCM program);
 SCM_API SCM scm_program_source (SCM program, SCM ip);
+SCM_API SCM scm_program_arities (SCM program);
 SCM_API SCM scm_program_properties (SCM program);
 SCM_API SCM scm_program_name (SCM program);
 SCM_API SCM scm_program_objects (SCM program);

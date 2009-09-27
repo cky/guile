@@ -107,7 +107,6 @@
   ip = vp->ip;					\
   sp = vp->sp;					\
   fp = vp->fp;					\
-  stack_base = fp ? SCM_FRAME_UPPER_ADDRESS (fp) - 1 : vp->stack_base; \
 }
 
 #define SYNC_REGISTER()				\
@@ -256,7 +255,7 @@
     goto vm_error_stack_overflow
 
 #define CHECK_UNDERFLOW()                       \
-  if (sp < stack_base)                          \
+  if (sp < SCM_FRAME_UPPER_ADDRESS (fp))        \
     goto vm_error_stack_underflow;
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
@@ -393,7 +392,6 @@ do {						\
   /* New registers */                           \
   sp += bp->nlocs;                              \
   CHECK_OVERFLOW ();				\
-  stack_base = sp;				\
   ip = bp->base;				\
 						\
   /* Init local variables */			\

@@ -19,6 +19,7 @@
 ;;; Code:
 
 (define-module (system vm frame)
+  #:use-module (system base pmatch)
   #:use-module (system vm program)
   #:use-module (system vm instruction)
   #:use-module (system vm objcode)
@@ -26,10 +27,13 @@
   #:export (vm-frame?
             vm-frame-program
             vm-frame-local-ref vm-frame-local-set!
+            vm-frame-instruction-pointer
             vm-frame-return-address vm-frame-mv-return-address
             vm-frame-dynamic-link
-            vm-frame-stack
+            vm-frame-num-locals
 
+            vm-frame-bindings vm-frame-binding-ref vm-frame-binding-set!
+            vm-frame-arguments
 
             vm-frame-number vm-frame-address
             make-frame-chain
@@ -43,6 +47,61 @@
             frame-dynamic-link heap-frame?))
 
 (load-extension "libguile" "scm_init_frames")
+
+(define (vm-frame-bindings frame)
+  (map (lambda (b)
+         (cons (binding:name b) (binding:index b)))
+       (program-bindings-for-ip (vm-frame-program frame)
+                                (vm-frame-instruction-pointer frame))))
+
+(define (vm-frame-binding-set! frame var val)
+  (let ((i (assq-ref (vm-frame-bindings frame) var)))
+    (if i
+        (vm-frame-local-set! frame i val)
+        (error "variable not bound in frame" var frame))))
+
+(define (vm-frame-binding-ref frame var)
+  (let ((i (assq-ref (vm-frame-bindings frame) var)))
+    (if i
+        (vm-frame-local-ref frame i)
+        (error "variable not bound in frame" var frame))))
+
+;; Basically there are two cases to deal with here:
+;;
+;;   1. We've already parsed the arguments, and bound them to local
+;;      variables. In a standard (lambda (a b c) ...) call, this doesn't
+;;      involve any argument shuffling; but with rest, optional, or
+;;      keyword arguments, the arguments as given to the procedure may
+;;      not correspond to what's on the stack. We reconstruct the
+;;      arguments using e.g. for the case above: `(,a ,b ,c). This works
+;;      for rest arguments too: (a b . c) => `(,a ,b . ,c)
+;;
+;;   2. We have failed to parse the arguments. Perhaps it's the wrong
+;;      number of arguments, or perhaps we're doing a typed dispatch and
+;;      the types don't match. In that case the arguments are all on the
+;;      stack, and nothing else is on the stack.
+(define (vm-frame-arguments frame)
+  (cond
+   ((program-lambda-list (vm-frame-program frame)
+                         (vm-frame-instruction-pointer frame))
+    ;; case 1
+    => (lambda (formals)
+         (let lp ((formals formals))
+           (pmatch formals
+             (() '())
+             ((,x . ,rest) (guard (symbol? x))
+              (cons (vm-frame-binding-ref frame x) (lp rest)))
+             ((,x . ,rest)
+              ;; could be a keyword
+              (cons x (lp rest)))
+             (,rest (guard (symbol? rest))
+              (vm-frame-binding-ref frame rest))
+             (else (error "bad formals" formals))))))
+   (else
+    ;; case 2
+    (map (lambda (i)
+           (vm-frame-local-ref frame i))
+         (iota (vm-frame-num-locals frame))))))
 
 ;;;
 ;;; Frame chain

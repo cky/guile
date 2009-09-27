@@ -102,22 +102,6 @@ SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
-	    (SCM program),
-	    "")
-#define FUNC_NAME s_scm_program_arity
-{
-  struct scm_objcode *p;
-
-  SCM_VALIDATE_PROGRAM (1, program);
-
-  p = SCM_PROGRAM_DATA (program);
-  return scm_list_3 (SCM_I_MAKINUM (p->nargs),
-		     SCM_I_MAKINUM (p->nrest),
-		     SCM_I_MAKINUM (p->nlocs));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_program_objects, "program-objects", 1, 0, 0,
 	    (SCM program),
 	    "")
@@ -209,6 +193,23 @@ SCM_DEFINE (scm_program_sources, "program-sources", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_program_arities, "program-arities", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_arities
+{
+  SCM meta;
+  
+  SCM_VALIDATE_PROGRAM (1, program);
+
+  meta = scm_program_meta (program);
+  if (scm_is_false (meta))
+    return SCM_BOOL_F;
+
+  return scm_caddr (scm_call_0 (meta));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_program_properties, "program-properties", 1, 0, 0,
 	    (SCM program),
 	    "")
@@ -222,7 +223,7 @@ SCM_DEFINE (scm_program_properties, "program-properties", 1, 0, 0,
   if (scm_is_false (meta))
     return SCM_EOL;
   
-  return scm_cddr (scm_call_0 (meta));
+  return scm_cdddr (scm_call_0 (meta));
 }
 #undef FUNC_NAME
 

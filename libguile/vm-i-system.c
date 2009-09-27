@@ -46,14 +46,18 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
     }
     
   {
-    ASSERT (sp == stack_base);
-    ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
+#ifdef VM_ENABLE_STACK_NULLING
+    SCM *old_sp = sp;
+#endif
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-    ip = NULL;
+    /* Setting the ip here doesn't actually affect control flow, as the calling
+       code will restore its own registers, but it does help when walking the
+       stack */
+    ip = SCM_FRAME_RETURN_ADDRESS (fp);
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
-    NULLSTACK (stack_base - sp);
+    NULLSTACK (old_sp - sp);
   }
   
   goto vm_done;
@@ -517,6 +521,8 @@ VM_DEFINE_INSTRUCTION (40, push_rest_list, "push-rest-list", 2, -1, -1)
 
 VM_DEFINE_INSTRUCTION (41, new_frame, "new-frame", 0, 0, 3)
 {
+  /* NB: if you change this, see frames.c:vm-frame-num-locals */
+  /* and frames.h, vm-engine.c, etc of course */
   PUSH ((SCM)fp); /* dynamic link */
   PUSH (0);  /* mvra */
   PUSH (0);  /* ra */
@@ -863,20 +869,19 @@ VM_DEFINE_INSTRUCTION (51, return, "return", 0, 1, 1)
     SCM ret;
 
     POP (ret);
-    ASSERT (sp == stack_base);
-    ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
+
+#ifdef VM_ENABLE_STACK_NULLING
+    SCM *old_sp = sp;
+#endif
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
     ip = SCM_FRAME_RETURN_ADDRESS (fp);
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
-    {
+
 #ifdef VM_ENABLE_STACK_NULLING
-      int nullcount = stack_base - sp;
+    NULLSTACK (old_sp - sp);
 #endif
-      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
-      NULLSTACK (nullcount);
-    }
 
     /* Set return value (sp is already pushed) */
     *sp = ret;
@@ -898,11 +903,10 @@ VM_DEFINE_INSTRUCTION (52, return_values, "return/values", 1, -1, -1)
   EXIT_HOOK ();
   RETURN_HOOK ();
 
-  ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
-
-  /* data[1] is the mv return address */
   if (nvalues != 1 && SCM_FRAME_MV_RETURN_ADDRESS (fp)) 
     {
+      /* A multiply-valued continuation */
+      SCM *vals = sp - nvalues;
       int i;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
@@ -911,12 +915,11 @@ VM_DEFINE_INSTRUCTION (52, return_values, "return/values", 1, -1, -1)
         
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
-        *++sp = stack_base[1+i];
+        *++sp = vals[i+1];
       *++sp = SCM_I_MAKINUM (nvalues);
              
-      /* Finally set new stack_base */
-      NULLSTACK (stack_base - sp + nvalues + 1);
-      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      /* Finally null the end of the stack */
+      NULLSTACK (vals + nvalues - sp);
     }
   else if (nvalues >= 1)
     {
@@ -924,17 +927,17 @@ VM_DEFINE_INSTRUCTION (52, return_values, "return/values", 1, -1, -1)
          break with guile tradition and try and do something sensible. (Also,
          this block handles the single-valued return to an mv
          continuation.) */
+      SCM *vals = sp - nvalues;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
       ip = SCM_FRAME_RETURN_ADDRESS (fp);
       fp = SCM_FRAME_DYNAMIC_LINK (fp);
         
       /* Push first value */
-      *++sp = stack_base[1];
+      *++sp = vals[1];
              
-      /* Finally set new stack_base */
-      NULLSTACK (stack_base - sp + nvalues + 1);
-      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      /* Finally null the end of the stack */
+      NULLSTACK (vals + nvalues - sp);
     }
   else
     goto vm_error_no_values;
