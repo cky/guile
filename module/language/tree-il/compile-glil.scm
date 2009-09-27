@@ -194,6 +194,9 @@
               (emit-code #f (make-glil-source (lambda-src x))))
           ;; check arity, potentially consing a rest list
           (emit-code #f (make-glil-arity nargs nrest #f))
+          ;; reserve space for locals, if necessary
+          (if (not (zero? nlocs))
+              (emit-code #f (make-glil-call 'reserve-locals nlocs)))
           ;; write bindings info
           (if (not (null? ids))
               (emit-bindings #f ids vars allocation x emit-code))
