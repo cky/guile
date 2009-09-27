@@ -30,11 +30,6 @@
   #:use-module (language tree-il analyze)
   #:export (compile-glil))
 
-;;; TODO:
-;;
-;; call-with-values -> mv-bind
-;; basic degenerate-case reduction
-
 ;; allocation:
 ;;  sym -> {lambda -> address}
 ;;  lambda -> (nlocs labels . free-locs)
@@ -164,7 +159,6 @@
        ids
        vars))
 
-;; FIXME: always emit? otherwise it's hard to pair bind with unbind
 (define (emit-bindings src ids vars allocation proc emit-code)
   (emit-code src (make-glil-bind
                   (vars->bind-list ids vars allocation proc))))
