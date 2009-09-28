@@ -1,5 +1,5 @@
 ;;;; weaks.test --- tests guile's weaks     -*- scheme -*-
-;;;; Copyright (C) 1999, 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -95,11 +95,11 @@
 
 (define global-weak (make-weak-vector 10 #f))
 (begin
-  (vector-set! global-weak 0 "string")
-  (vector-set! global-weak 1 "beans")
-  (vector-set! global-weak 2 "to")
-  (vector-set! global-weak 3 "utah")
-  (vector-set! global-weak 4 "yum yum")
+  (vector-set! global-weak 0 (string-copy "string"))
+  (vector-set! global-weak 1 (string-copy "beans"))
+  (vector-set! global-weak 2 (string-copy "to"))
+  (vector-set! global-weak 3 (string-copy "utah"))
+  (vector-set! global-weak 4 (string-copy "yum yum"))
   (gc))
 
 ;;; Normal weak vectors
