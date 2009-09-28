@@ -485,10 +485,8 @@ VM_DEFINE_INSTRUCTION (38, assert_nargs_ee, "assert-nargs-ee", 2, 0, 0)
   scm_t_ptrdiff n;
   n = FETCH () << 8;
   n += FETCH ();
-#if 0
-  if (sp - fp != n)
+  if (sp - (fp - 1) != n)
     goto vm_error_wrong_num_args;
-#endif
   NEXT;
 }
 
@@ -497,25 +495,21 @@ VM_DEFINE_INSTRUCTION (39, assert_nargs_ge, "assert-nargs-ge", 2, 0, 0)
   scm_t_ptrdiff n;
   n = FETCH () << 8;
   n += FETCH ();
-#if 0
-  if (sp - fp < n)
+  if (sp - (fp - 1) < n)
     goto vm_error_wrong_num_args;
-#endif
   NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (40, push_rest_list, "push-rest-list", 2, -1, -1)
 {
   scm_t_ptrdiff n;
+  SCM rest = SCM_EOL;
   n = FETCH () << 8;
   n += FETCH ();
-#if 0
-  SCM rest = SCM_EOL;
-  while (sp - fp >= n)
+  while (sp - (fp - 1) > n)
     /* No need to check for underflow. */
     CONS (rest, *sp--, rest);
   PUSH (rest);
-#endif
   NEXT;
 }
 
@@ -524,12 +518,10 @@ VM_DEFINE_INSTRUCTION (41, reserve_locals, "reserve-locals", 2, -1, -1)
   scm_t_int32 n;
   n = FETCH () << 8;
   n += FETCH ();
-#if 0
   sp += n;
   CHECK_OVERFLOW ();
   while (n--)
     sp[-n] = SCM_UNDEFINED;
-#endif
   NEXT;
 }
 
@@ -561,13 +553,12 @@ VM_DEFINE_INSTRUCTION (43, call, "call", 1, -1, 1)
     {
       program = x;
       CACHE_PROGRAM ();
-      INIT_ARGS ();
-      fp = sp - bp->nargs + 1;
+      fp = sp - nargs + 1;
       ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
       ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
-      INIT_FRAME ();
+      ip = bp->base;
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -622,7 +613,8 @@ VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
     {
       int i;
 #ifdef VM_ENABLE_STACK_NULLING
-      SCM *old_sp;
+      SCM *old_sp = sp;
+      CHECK_STACK_LEAK ();
 #endif
 
       EXIT_HOOK ();
@@ -630,22 +622,15 @@ VM_DEFINE_INSTRUCTION (44, goto_args, "goto/args", 1, -1, 1)
       /* switch programs */
       program = x;
       CACHE_PROGRAM ();
-      INIT_ARGS ();
+      /* shuffle down the program and the arguments */
+      for (i = -1, sp = sp - nargs + 1; i < nargs; i++)
+        SCM_FRAME_STACK_ADDRESS (fp)[i] = sp[i];
 
-#ifdef VM_ENABLE_STACK_NULLING
-      old_sp = sp;
-      CHECK_STACK_LEAK ();
-#endif
-
-      /* delay shuffling the new program+args down so that if INIT_ARGS had to
-         cons up a rest arg, going into GC, the stack still made sense */
-      for (i = -1, sp = sp - bp->nargs + 1; i < bp->nargs; i++)
-        fp[i] = sp[i];
       sp = fp + i - 1;
 
       NULLSTACK (old_sp - sp);
 
-      INIT_FRAME ();
+      ip = bp->base;
 
       ENTER_HOOK ();
       APPLY_HOOK ();
@@ -721,13 +706,12 @@ VM_DEFINE_INSTRUCTION (47, mv_call, "mv-call", 4, -1, 1)
     {
       program = x;
       CACHE_PROGRAM ();
-      INIT_ARGS ();
-      fp = sp - bp->nargs + 1;
+      fp = sp - nargs + 1;
       ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
       ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
-      INIT_FRAME ();
+      ip = bp->base;
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;

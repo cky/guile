@@ -335,7 +335,6 @@ do {						\
 
 #define FETCH()		(*ip++)
 #define FETCH_LENGTH(len) do { len=*ip++; len<<=8; len+=*ip++; len<<=8; len+=*ip++; } while (0)
-#define FETCH_WIDTH(width) do { width=*ip++; } while (0)
 
 #undef CLOCK
 #if VM_USE_CLOCK
@@ -360,45 +359,9 @@ do {						\
 }
 
 
-/*
- * Stack frame
- */
-
-#define INIT_ARGS()				\
-{						\
-  if (SCM_UNLIKELY (bp->nrest))                 \
-    {						\
-      int n = nargs - (bp->nargs - 1);		\
-      if (n < 0)				\
-	goto vm_error_wrong_num_args;		\
-      /* NB, can cause GC while setting up the  \
-         stack frame */                         \
-      POP_LIST (n);				\
-    }						\
-  else						\
-    {						\
-      if (SCM_UNLIKELY (nargs != bp->nargs))    \
-	goto vm_error_wrong_num_args;		\
-    }						\
-}
-
 /* See frames.h for the layout of stack frames */
 /* When this is called, bp points to the new program data,
    and the arguments are already on the stack */
-#define INIT_FRAME()				\
-{						\
-  int i;					\
-						\
-  /* New registers */                           \
-  sp += bp->nlocs;                              \
-  CHECK_OVERFLOW ();				\
-  ip = bp->base;				\
-						\
-  /* Init local variables */			\
-  for (i=bp->nlocs; i;)                         \
-    sp[-(--i)] = SCM_UNDEFINED;                 \
-}
-
 #define DROP_FRAME()                            \
   {                                             \
     sp -= 3;                                    \

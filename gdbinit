@@ -1,5 +1,8 @@
 # -*- GDB-Script -*-
 
+handle SIGPWR noprint nostop
+handle SIGXCPU noprint nostop
+
 define newline
   call (void)scm_newline (scm_current_error_port ())
 end

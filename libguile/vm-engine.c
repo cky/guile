@@ -112,7 +112,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     CACHE_PROGRAM ();
     PUSH (program);
     fp = sp + 1;
-    INIT_FRAME ();
+    ip = bp->base;
     /* MV-call frame, function & arguments */
     PUSH ((SCM)fp); /* dynamic link */
     PUSH (0); /* mvra */
