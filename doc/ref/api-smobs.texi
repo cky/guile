@@ -67,14 +67,15 @@ longer needed (@pxref{Memory Blocks, @code{scm_gc_malloc}}).
 This function sets the smob marking procedure for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 
-Defining a marking procedure should rarely be necessary because all the
-process' memory (with the exception of @code{scm_gc_malloc_pointerless}
-or read-only regions) is scanned for live pointers@footnote{Conversely,
-in Guile up to the 1.8 series, the marking procedure was required.  The
-reason is that Guile's GC would only look for pointers in the memory
-area used for built-in types (the @dfn{cell heap}), not in
-user-allocated or statically allocated memory.  This approach is often
-referred to as @dfn{precise marking}.}.
+Defining a marking procedure may sometimes be unnecessary because large
+parts of the process' memory (with the exception of
+@code{scm_gc_malloc_pointerless} regions, and @code{malloc}- or
+@code{scm_malloc}-allocated memory) are scanned for live
+pointers@footnote{Conversely, in Guile up to the 1.8 series, the marking
+procedure was always required.  The reason is that Guile's GC would only
+look for pointers in the memory area used for built-in types (the
+@dfn{cell heap}), not in user-allocated or statically allocated memory.
+This approach is often referred to as @dfn{precise marking}.}.
 
 The @var{mark} procedure must cause @code{scm_gc_mark} to be called
 for every @code{SCM} value that is directly referenced by the smob
