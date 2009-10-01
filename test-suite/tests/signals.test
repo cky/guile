@@ -17,7 +17,8 @@
 ;;;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(use-modules (test-suite lib))
+(define-module (test-suite test-signals)
+  #:use-module (test-suite lib))
 
 (with-test-prefix "sigaction"
 
