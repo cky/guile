@@ -10708,8 +10708,8 @@ the input is an integer with normal host byte ordering.
 
 @lisp
 (inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"
-(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}
-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+(inet-ntop AF_INET6 (- (expt 2 128) 1))
+  @result{} "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
 @end lisp
 @end deffn
 

@@ -399,8 +399,8 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-ntop AF_INET 2130706433) @result{} \"127.0.0.1\"\n"
-	    "(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}\n"
-	    "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\n"
+	    "(inet-ntop AF_INET6 (- (expt 2 128) 1))\n"
+	    "  @result{} \"ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\"\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_inet_ntop
 {
