@@ -805,6 +805,7 @@ Changes in 1.8.8 (since 1.8.7)
 
 ** Fix possible buffer overruns when parsing numbers
 ** Avoid clash with system setjmp/longjmp on IA64
+** Fix `wrong type arg' exceptions with IPv6 addresses
 
 
 Changes in 1.8.7 (since 1.8.6)

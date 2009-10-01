@@ -320,3 +320,88 @@
 
 	#t)))
 
+
+(if (defined? 'AF_INET6)
+    (with-test-prefix "AF_INET6/SOCK_STREAM"
+
+      ;; testing `bind', `listen' and `connect' on stream-oriented sockets
+
+      (let ((server-socket (socket AF_INET6 SOCK_STREAM 0))
+	    (server-bound? #f)
+	    (server-listening? #f)
+	    (server-pid #f)
+	    (ipv6-addr 1)		; ::1
+	    (server-port 8889)
+	    (client-port 9998))
+
+	(pass-if "bind"
+	  (catch 'system-error
+	    (lambda ()
+	      (bind server-socket AF_INET6 ipv6-addr server-port)
+	      (set! server-bound? #t)
+	      #t)
+	    (lambda args
+	      (let ((errno (system-error-errno args)))
+		(cond ((= errno EADDRINUSE) (throw 'unresolved))
+		      (else (apply throw args)))))))
+
+	(pass-if "bind/sockaddr"
+	  (let* ((sock (socket AF_INET6 SOCK_STREAM 0))
+		 (sockaddr (make-socket-address AF_INET6 ipv6-addr client-port)))
+	    (catch 'system-error
+	      (lambda ()
+		(bind sock sockaddr)
+		#t)
+	      (lambda args
+		(let ((errno (system-error-errno args)))
+		  (cond ((= errno EADDRINUSE) (throw 'unresolved))
+			(else (apply throw args))))))))
+
+	(pass-if "listen"
+	  (if (not server-bound?)
+	      (throw 'unresolved)
+	      (begin
+		(listen server-socket 123)
+		(set! server-listening? #t)
+		#t)))
+
+	(if server-listening?
+	    (let ((pid (primitive-fork)))
+	      ;; Spawn a server process.
+	      (case pid
+		((-1) (throw 'unresolved))
+		((0)   ;; the kid:  serve two connections and exit
+		 (let serve ((conn
+			      (false-if-exception (accept server-socket)))
+			     (count 1))
+		   (if (not conn)
+		       (exit 1)
+		       (if (> count 0)
+			   (serve (false-if-exception (accept server-socket))
+				  (- count 1)))))
+		 (exit 0))
+		(else  ;; the parent
+		 (set! server-pid pid)
+		 #t))))
+
+	(pass-if "connect"
+	  (if (not server-pid)
+	      (throw 'unresolved)
+	      (let ((s (socket AF_INET6 SOCK_STREAM 0)))
+		(connect s AF_INET6 ipv6-addr server-port)
+		#t)))
+
+	(pass-if "connect/sockaddr"
+	  (if (not server-pid)
+	      (throw 'unresolved)
+	      (let ((s (socket AF_INET6 SOCK_STREAM 0)))
+		(connect s (make-socket-address AF_INET6 ipv6-addr server-port))
+		#t)))
+
+	(pass-if "accept"
+	  (if (not server-pid)
+	      (throw 'unresolved)
+	      (let ((status (cdr (waitpid server-pid))))
+		(eq? 0 (status:exit-val status)))))
+
+	#t)))
