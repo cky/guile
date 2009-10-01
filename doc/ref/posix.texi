@@ -2860,8 +2860,8 @@ same as @code{make-socket-address} would take to make such an object
 (@pxref{Network Socket Address}).  The return value is unspecified.
 
 @example
-(connect sock AF_INET INADDR_LOCALHOST 23)
-(connect sock (make-socket-address AF_INET INADDR_LOCALHOST 23))
+(connect sock AF_INET INADDR_LOOPBACK 23)
+(connect sock (make-socket-address AF_INET INADDR_LOOPBACK 23))
 @end example
 @end deffn
 
