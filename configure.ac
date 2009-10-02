@@ -1380,6 +1380,8 @@ AC_DEFINE(PTHREAD_ATTR_GETSTACK_WORKS, [1], [Define when pthread_att_get_stack w
 CFLAGS="$old_CFLAGS"
 AC_MSG_RESULT($works)
 
+GUILE_THREAD_LOCAL_STORAGE
+
 fi # with_threads=pthreads
 
 

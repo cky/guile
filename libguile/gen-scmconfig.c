@@ -404,6 +404,13 @@ main (int argc, char *argv[])
   pf ("typedef long int scm_t_off;\n");
 #endif
 
+  pf ("/* Define to 1 if the compiler supports the "
+      "`__thread' storage class.  */\n");
+  if (SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS)
+    pf ("#define SCM_HAVE_THREAD_STORAGE_CLASS\n");
+  else
+    pf ("/* #undef SCM_HAVE_THREAD_STORAGE_CLASS */\n");
+
 #if USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");

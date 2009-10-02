@@ -335,6 +335,26 @@ AC_DEFUN([GUILE_GNU_LD_RELRO], [
   AC_SUBST([GNU_LD_FLAGS])
 ])
 
+dnl GUILE_THREAD_LOCAL_STORAGE
+dnl
+dnl Check for compiler thread-local storage (TLS) support.
+AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
+  AC_CACHE_CHECK([whether the `__thread' storage class is available],
+    [ac_cv_have_thread_storage_class],
+    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
+			  [tls_integer = 123;])],
+       [ac_cv_have_thread_storage_class="yes"],
+       [ac_cv_have_thread_storage_class="no"])])
+
+  if test "x$ac_cv_have_thread_storage_class" = "xyes"; then
+     SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS=1
+  else
+     SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS=0
+  fi
+
+  AC_SUBST([SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS])
+])
+
 dnl GUILE_READLINE
 dnl
 dnl Check all the things needed by `guile-readline', the Readline

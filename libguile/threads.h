@@ -194,9 +194,18 @@ SCM_API void scm_dynwind_critical_section (SCM mutex);
 
 #ifdef BUILDING_LIBGUILE
 
-# define SCM_I_CURRENT_THREAD						\
-  ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
-SCM_API scm_i_pthread_key_t scm_i_thread_key;
+# ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+
+SCM_INTERNAL SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread;
+#  define SCM_I_CURRENT_THREAD (scm_i_current_thread)
+
+# else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
+
+SCM_INTERNAL scm_i_pthread_key_t scm_i_thread_key;
+#  define SCM_I_CURRENT_THREAD						\
+    ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
+
+# endif /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 
 # define scm_i_dynwinds()         (SCM_I_CURRENT_THREAD->dynwinds)
 # define scm_i_set_dynwinds(w)    (SCM_I_CURRENT_THREAD->dynwinds = (w))

@@ -679,6 +679,14 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_C_INLINE_KEYWORD
 #endif
 
+/* Handling thread-local storage (TLS).  */
+
+#ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+# define SCM_THREAD_LOCAL __thread
+#else
+# define SCM_THREAD_LOCAL
+#endif
+
 #endif  /* SCM___SCM_H */
 
 /*

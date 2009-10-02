@@ -290,7 +290,26 @@ unblock_from_queue (SCM queue)
 /* Getting into and out of guile mode.
  */
 
+#ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+
+/* When thread-local storage (TLS) is available, a pointer to the
+   current-thread object is kept in TLS.  Note that storing the thread-object
+   itself in TLS (rather than a pointer to some malloc'd memory) is not
+   possible since thread objects may live longer than the actual thread they
+   represent.  */
+SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread = NULL;
+
+# define SET_CURRENT_THREAD(_t)  scm_i_current_thread = (_t)
+
+#else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
+
+/* Key used to retrieve the current thread with `pthread_getspecific ()'.  */
 scm_i_pthread_key_t scm_i_thread_key;
+
+# define SET_CURRENT_THREAD(_t)				\
+  scm_i_pthread_setspecific (scm_i_thread_key, (_t))
+
+#endif /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 
 
 static scm_i_pthread_mutex_t thread_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
@@ -357,7 +376,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->exited = 0;
   t->guile_mode = 0;
 
-  scm_i_pthread_setspecific (scm_i_thread_key, t);
+  SET_CURRENT_THREAD (t);
 
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t->next_thread = all_threads;
@@ -475,7 +494,7 @@ on_thread_exit (void *v)
       t->held_mutex = NULL;
     }
 
-  scm_i_pthread_setspecific (scm_i_thread_key, v);
+  SET_CURRENT_THREAD (v);
 
   /* Ensure the signal handling thread has been launched, because we might be
      shutting it down.  */
@@ -514,8 +533,10 @@ on_thread_exit (void *v)
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 
-  scm_i_pthread_setspecific (scm_i_thread_key, NULL);
+  SET_CURRENT_THREAD (NULL);
 }
+
+#ifndef SCM_HAVE_THREAD_STORAGE_CLASS
 
 static scm_i_pthread_once_t init_thread_key_once = SCM_I_PTHREAD_ONCE_INIT;
 
@@ -524,6 +545,8 @@ init_thread_key (void)
 {
   scm_i_pthread_key_create (&scm_i_thread_key, NULL);
 }
+
+#endif
 
 /* Perform any initializations necessary to bring the current thread
    into guile mode, initializing Guile itself, if necessary.
@@ -542,9 +565,12 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 {
   scm_i_thread *t;
 
+#ifndef SCM_HAVE_THREAD_STORAGE_CLASS
   scm_i_pthread_once (&init_thread_key_once, init_thread_key);
+#endif
 
-  if ((t = SCM_I_CURRENT_THREAD) == NULL)
+  t = SCM_I_CURRENT_THREAD;
+  if (t == NULL)
     {
       /* This thread has not been guilified yet.
        */
