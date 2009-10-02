@@ -154,7 +154,7 @@ static scm_t_bits tc16_winder;
 #define WINDER_MARK_P(w)     (SCM_SMOB_FLAGS(w) & WINDER_F_MARK)
 
 void
-scm_dynwind_begin (scm_t_dynwind_flags flags)
+scm_dynwind_begin (int flags)
 {
   SCM f;
   SCM_NEWSMOB (f, tc16_frame, 0);
@@ -192,8 +192,7 @@ scm_dynwind_end (void)
 }
 
 void
-scm_dynwind_unwind_handler (void (*proc) (void *), void *data,
-			    scm_t_wind_flags flags)
+scm_dynwind_unwind_handler (void (*proc) (void *), void *data, int flags)
 {
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder,	(scm_t_bits) proc, (scm_t_bits) data);
@@ -203,8 +202,7 @@ scm_dynwind_unwind_handler (void (*proc) (void *), void *data,
 }
 
 void
-scm_dynwind_rewind_handler (void (*proc) (void *), void *data,
-			    scm_t_wind_flags flags)
+scm_dynwind_rewind_handler (void (*proc) (void *), void *data, int flags)
 {
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder,	(scm_t_bits) proc, (scm_t_bits) data);
@@ -215,8 +213,7 @@ scm_dynwind_rewind_handler (void (*proc) (void *), void *data,
 }
 
 void
-scm_dynwind_unwind_handler_with_scm (void (*proc) (SCM), SCM data,
-				     scm_t_wind_flags flags)
+scm_dynwind_unwind_handler_with_scm (void (*proc) (SCM), SCM data, int flags)
 {
   SCM w;
   scm_t_bits fl = ((flags&SCM_F_WIND_EXPLICITLY)? WINDER_F_EXPLICIT : 0);
@@ -226,8 +223,7 @@ scm_dynwind_unwind_handler_with_scm (void (*proc) (SCM), SCM data,
 }
 
 void
-scm_dynwind_rewind_handler_with_scm (void (*proc) (SCM), SCM data,
-				     scm_t_wind_flags flags)
+scm_dynwind_rewind_handler_with_scm (void (*proc) (SCM), SCM data, int flags)
 {
   SCM w;
   SCM_NEWSMOB2 (w, tc16_winder, (scm_t_bits) proc, SCM_UNPACK (data));

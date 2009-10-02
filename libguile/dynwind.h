@@ -43,26 +43,21 @@ SCM_INTERNAL void scm_init_dynwind (void);
 
 SCM_API void scm_swap_bindings (SCM vars, SCM vals);
 
-typedef enum {
-  SCM_F_DYNWIND_REWINDABLE = (1 << 0)
-} scm_t_dynwind_flags;
+/* Flags for scm_dynwind_begin. */
+#define SCM_F_DYNWIND_REWINDABLE 1
 
-typedef enum {
-  SCM_F_WIND_EXPLICITLY = (1 << 0)
-} scm_t_wind_flags;
+/* Flags for scm_dynwind_unwind_handler(_with_scm) and
+   scm_dynwind_rewind_handler(_with_scm). */
+#define SCM_F_WIND_EXPLICITLY 1
 
-SCM_API void scm_dynwind_begin (scm_t_dynwind_flags);
+SCM_API void scm_dynwind_begin (int);
 SCM_API void scm_dynwind_end (void);
 
-SCM_API void scm_dynwind_unwind_handler (void (*func) (void *), void *data,
-					 scm_t_wind_flags);
-SCM_API void scm_dynwind_rewind_handler (void (*func) (void *), void *data,
-					 scm_t_wind_flags);
+SCM_API void scm_dynwind_unwind_handler (void (*) (void *), void *, int);
+SCM_API void scm_dynwind_rewind_handler (void (*) (void *), void *, int);
 
-SCM_API void scm_dynwind_unwind_handler_with_scm (void (*func) (SCM), SCM data,
-						  scm_t_wind_flags);
-SCM_API void scm_dynwind_rewind_handler_with_scm (void (*func) (SCM), SCM data,
-						  scm_t_wind_flags);
+SCM_API void scm_dynwind_unwind_handler_with_scm (void (*) (SCM), SCM, int);
+SCM_API void scm_dynwind_rewind_handler_with_scm (void (*) (SCM), SCM, int);
 
 SCM_API void scm_dynwind_free (void *mem);
 

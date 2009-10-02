@@ -136,7 +136,7 @@ check_flag1 (const char *tag, void (*func)(void), int val)
 SCM
 check_cont_body (void *data)
 {
-  scm_t_dynwind_flags flags = (data? SCM_F_DYNWIND_REWINDABLE : 0);
+  int flags = (data? SCM_F_DYNWIND_REWINDABLE : 0);
   int first;
   SCM val;
 
