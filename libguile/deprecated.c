@@ -1467,6 +1467,14 @@ scm_i_defer_ints_etc ()
      "Use a mutex instead if appropriate.");
 }
 
+int
+scm_i_mask_ints (void)
+{
+  scm_c_issue_deprecation_warning ("`scm_mask_ints' is deprecated.");
+  return (SCM_I_CURRENT_THREAD->block_asyncs != 0);
+}
+
+
 SCM
 scm_guard (SCM guardian, SCM obj, int throw_p)
 {

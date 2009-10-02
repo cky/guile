@@ -576,6 +576,12 @@ SCM_DEPRECATED void scm_i_defer_ints_etc (void);
 #define SCM_REDEFER_INTS scm_i_defer_ints_etc ()
 #define SCM_REALLOW_INTS scm_i_defer_ints_etc ()
 
+/* In the old days (pre-1.8), this macro was sometimes used as an lvalue as
+   in "scm_mask_ints = 1" to block async execution.  It no longer works.  */
+#define scm_mask_ints (scm_i_mask_ints ())
+
+SCM_DEPRECATED int scm_i_mask_ints (void);
+
 /* Deprecated since they are unnecessary and had not been documented.
  */
 SCM_DEPRECATED SCM scm_guard (SCM guardian, SCM obj, int throw_p);

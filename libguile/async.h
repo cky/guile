@@ -29,10 +29,6 @@
 
 
 
-#define scm_mask_ints (SCM_I_CURRENT_THREAD->block_asyncs != 0)
-
-
-
 SCM_API void scm_async_click (void);
 SCM_API void scm_switch (void);
 SCM_API SCM scm_async (SCM thunk);
