@@ -139,11 +139,11 @@ void *scm_ia64_ar_bsp (const void *);
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)
-SCM_API size_t scm_default_init_heap_size_1;
-SCM_API int scm_default_min_yield_1;
-SCM_API size_t scm_default_init_heap_size_2;
-SCM_API int scm_default_min_yield_2;
-SCM_API size_t scm_default_max_segment_size;
+SCM_DEPRECATED size_t scm_default_init_heap_size_1;
+SCM_DEPRECATED int scm_default_min_yield_1;
+SCM_DEPRECATED size_t scm_default_init_heap_size_2;
+SCM_DEPRECATED int scm_default_min_yield_2;
+SCM_DEPRECATED size_t scm_default_max_segment_size;
 #else
 #define  scm_default_init_heap_size_1 deprecated
 #define  scm_default_min_yield_1 deprecated
@@ -243,23 +243,23 @@ SCM_API void scm_init_gc (void);
 
 #if SCM_ENABLE_DEPRECATED == 1
 
-SCM_API SCM scm_deprecated_newcell (void);
-SCM_API SCM scm_deprecated_newcell2 (void);
+SCM_DEPRECATED SCM scm_deprecated_newcell (void);
+SCM_DEPRECATED SCM scm_deprecated_newcell2 (void);
 
 #define SCM_NEWCELL(_into) \
   do { _into = scm_deprecated_newcell (); } while (0)
 #define SCM_NEWCELL2(_into) \
   do { _into = scm_deprecated_newcell2 (); } while (0)
 
-SCM_API void * scm_must_malloc (size_t len, const char *what);
-SCM_API void * scm_must_realloc (void *where,
-				 size_t olen, size_t len,
-				 const char *what);
-SCM_API char *scm_must_strdup (const char *str);
-SCM_API char *scm_must_strndup (const char *str, size_t n);
-SCM_API void scm_done_malloc (long size);
-SCM_API void scm_done_free (long size);
-SCM_API void scm_must_free (void *obj);
+SCM_DEPRECATED void * scm_must_malloc (size_t len, const char *what);
+SCM_DEPRECATED void * scm_must_realloc (void *where,
+					size_t olen, size_t len,
+					const char *what);
+SCM_DEPRECATED char *scm_must_strdup (const char *str);
+SCM_DEPRECATED char *scm_must_strndup (const char *str, size_t n);
+SCM_DEPRECATED void scm_done_malloc (long size);
+SCM_DEPRECATED void scm_done_free (long size);
+SCM_DEPRECATED void scm_must_free (void *obj);
 
 #endif
 

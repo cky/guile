@@ -157,9 +157,9 @@ SCM_INTERNAL void scm_init_eval (void);
 #if (SCM_ENABLE_DEPRECATED == 1)
 
 /* Deprecated in guile 1.7.0 on 2004-03-29.  */
-SCM_API SCM scm_ceval (SCM x, SCM env);
-SCM_API SCM scm_deval (SCM x, SCM env);
-SCM_API SCM (*scm_ceval_ptr) (SCM x, SCM env);
+SCM_DEPRECATED SCM scm_ceval (SCM x, SCM env);
+SCM_DEPRECATED SCM scm_deval (SCM x, SCM env);
+SCM_DEPRECATED SCM (*scm_ceval_ptr) (SCM x, SCM env);
 
 #endif
 

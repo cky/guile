@@ -195,9 +195,9 @@ SCM_API SCM scm_sys_stringbuf_hist (void);
 
 #if SCM_ENABLE_DEPRECATED
 
-SCM_API int scm_i_deprecated_stringp (SCM obj);
-SCM_API char *scm_i_deprecated_string_chars (SCM str);
-SCM_API size_t scm_i_deprecated_string_length (SCM str);
+SCM_DEPRECATED int scm_i_deprecated_stringp (SCM obj);
+SCM_DEPRECATED char *scm_i_deprecated_string_chars (SCM str);
+SCM_DEPRECATED size_t scm_i_deprecated_string_length (SCM str);
 
 #define SCM_STRINGP(x)       scm_i_deprecated_stringp(x)
 #define SCM_STRING_CHARS(x)  scm_i_deprecated_string_chars(x)

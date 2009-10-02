@@ -22,6 +22,8 @@
 # include <config.h>
 #endif
 
+#define SCM_BUILDING_DEPRECATED_CODE
+
 #include "libguile/_scm.h"
 #include "libguile/alist.h" /* for SCM_EXTEND_ENV (well...) */
 #include "libguile/eval.h"

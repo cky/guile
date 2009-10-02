@@ -24,6 +24,8 @@
 # include <config.h>
 #endif
 
+#define SCM_BUILDING_DEPRECATED_CODE
+
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/deprecated.h"

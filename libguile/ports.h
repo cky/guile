@@ -310,7 +310,7 @@ SCM_API SCM scm_sys_make_void_port (SCM mode);
 SCM_INTERNAL void scm_init_ports (void);
 
 #if SCM_ENABLE_DEPRECATED==1
-SCM_API scm_t_port * scm_add_to_port_table (SCM port);
+SCM_DEPRECATED scm_t_port * scm_add_to_port_table (SCM port);
 #endif
 
 #ifdef GUILE_DEBUG
