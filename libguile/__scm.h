@@ -104,6 +104,17 @@
  * and then SCM_API marks them for export. */
 #define SCM_INTERNAL  extern
 
+/* The SCM_DEPRECATED macro is used in declarations of deprecated functions
+ * or variables.  Defining `SCM_BUILDING_DEPRECATED_CODE' allows deprecated
+ * functions to be implemented in terms of deprecated functions, and allows
+ * deprecated functions to be referred to by `scm_c_define_gsubr ()'.  */
+#if !defined (SCM_BUILDING_DEPRECATED_CODE)	\
+    && defined (__GNUC__) && (__GNUC__ >= 3)
+# define SCM_DEPRECATED  SCM_API __attribute__ ((__deprecated__))
+#else
+# define SCM_DEPRECATED  SCM_API
+#endif
+
 
 
 /* {Supported Options}
