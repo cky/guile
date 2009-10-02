@@ -492,11 +492,24 @@ typedef long SCM_STACKITEM;
 #define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
-#define SCM_ASYNC_TICK /*fixme* should change names */ \
-do { \
-  if (SCM_I_CURRENT_THREAD->pending_asyncs) \
-    scm_async_click (); \
-} while (0)
+SCM_API void scm_async_tick (void);
+
+#ifdef BUILDING_LIBGUILE
+
+/* FIXME: should change names */
+# define SCM_ASYNC_TICK					\
+    do							\
+      {							\
+	if (SCM_I_CURRENT_THREAD->pending_asyncs)	\
+	  scm_async_click ();				\
+      }							\
+    while (0)
+
+#else /* !BUILDING_LIBGUILE */
+
+# define SCM_ASYNC_TICK  (scm_async_tick ())
+
+#endif /* !BUILDING_LIBGUILE */
 
 
 /* Anthony Green writes:

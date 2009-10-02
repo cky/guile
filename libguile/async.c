@@ -472,6 +472,29 @@ scm_dynwind_unblock_asyncs ()
   scm_dynwind_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
+
+/* These are function variants of the same-named macros (uppercase) for use
+   outside of libguile.  This is so that `SCM_I_CURRENT_THREAD', which may
+   reside in TLS, is not accessed from outside of libguile.  It thus allows
+   libguile to be built with the "local-dynamic" TLS model.  */
+
+void
+scm_critical_section_start (void)
+{
+  SCM_CRITICAL_SECTION_START;
+}
+
+void
+scm_critical_section_end (void)
+{
+  SCM_CRITICAL_SECTION_END;
+}
+
+void
+scm_async_tick (void)
+{
+  SCM_ASYNC_TICK;
+}
 
 
 

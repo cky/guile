@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -192,15 +192,20 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API void scm_dynwind_critical_section (SCM mutex);
 
-#define SCM_I_CURRENT_THREAD \
+#ifdef BUILDING_LIBGUILE
+
+# define SCM_I_CURRENT_THREAD						\
   ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
 SCM_API scm_i_pthread_key_t scm_i_thread_key;
 
-#define scm_i_dynwinds()         (SCM_I_CURRENT_THREAD->dynwinds)
-#define scm_i_set_dynwinds(w)    (SCM_I_CURRENT_THREAD->dynwinds = (w))
-#define scm_i_last_debug_frame() (SCM_I_CURRENT_THREAD->last_debug_frame)
-#define scm_i_set_last_debug_frame(f) \
-                                 (SCM_I_CURRENT_THREAD->last_debug_frame = (f))
+# define scm_i_dynwinds()         (SCM_I_CURRENT_THREAD->dynwinds)
+# define scm_i_set_dynwinds(w)    (SCM_I_CURRENT_THREAD->dynwinds = (w))
+# define scm_i_last_debug_frame() (SCM_I_CURRENT_THREAD->last_debug_frame)
+# define scm_i_set_last_debug_frame(f) \
+                                  (SCM_I_CURRENT_THREAD->last_debug_frame = (f))
+
+#endif /* BUILDING_LIBGUILE */
+
 
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_misc_mutex;
 
