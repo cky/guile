@@ -1259,7 +1259,7 @@ dispatch:
 	    RETURN (SCM_SMOB_APPLY_1 (proc, arg1));
 	  case scm_tc7_gsubr:
 #ifdef DEVAL
-	    debug.info->a.args = scm_cons (arg1, debug.info->a.args);
+	    debug.info->a.args = debug.info->a.args;
 	    debug.info->a.proc = proc;
 #endif
 	    RETURN (scm_i_gsubr_apply (proc, arg1, SCM_UNDEFINED));
@@ -1896,7 +1896,7 @@ tail:
 #ifdef DEVAL
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
       debug.vect[0].a.proc = proc;
-      debug.vect[0].a.args = scm_cons (arg1, args);
+      debug.vect[0].a.args = args;
 #else
       args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
