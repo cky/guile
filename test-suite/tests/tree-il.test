@@ -26,6 +26,9 @@
   #:use-module (language glil)
   #:use-module (srfi srfi-13))
 
+(define read-and-compile
+  (@@ (system base compile) read-and-compile))
+
 ;; Of course, the GLIL that is emitted depends on the source info of the
 ;; input. Here we're not concerned about that, so we strip source
 ;; information from the incoming tree-il.
@@ -535,6 +538,8 @@
 (define %opts-w-unused
   '(#:warnings (unused-variable)))
 
+(define %opts-w-unbound
+  '(#:warnings (unbound-variable)))
 
 (with-test-prefix "warnings"
 
@@ -588,4 +593,62 @@
        (null? (call-with-warnings
                 (lambda ()
                   (compile '(lambda (x y z) #t)
-                           #:opts %opts-w-unused)))))))
+                           #:opts %opts-w-unused))))))
+
+   (with-test-prefix "unbound variable"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '+ #:opts %opts-w-unbound)))))
+
+     (pass-if "ref"
+       (let* ((v (gensym))
+              (w (call-with-warnings
+                   (lambda ()
+                     (compile v
+                              #:to 'assembly
+                              #:opts %opts-w-unbound)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        (format #f "unbound variable `~A'"
+                                                v))))))
+
+     (pass-if "set!"
+       (let* ((v (gensym))
+              (w (call-with-warnings
+                   (lambda ()
+                     (compile `(set! ,v 7)
+                              #:to 'assembly
+                              #:opts %opts-w-unbound)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        (format #f "unbound variable `~A'"
+                                                v))))))
+
+     (pass-if "module-local top-level is visible"
+       (let ((m (make-module))
+             (v (gensym)))
+         (beautify-user-module! m)
+         (compile `(define ,v 123)
+                  #:env m #:opts %opts-w-unbound)
+         (null? (call-with-warnings
+                  (lambda ()
+                    (compile v
+                             #:env m
+                             #:to 'assembly
+                             #:opts %opts-w-unbound))))))
+
+     (pass-if "module-local top-level is visible after"
+       (let ((m (make-module))
+             (v (gensym)))
+         (beautify-user-module! m)
+         (null? (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string
+                               "(define (f)
+                                  (set! chbouib 3))
+                                (define chbouib 5)")))
+                      (read-and-compile in
+                                        #:env m
+                                        #:opts %opts-w-unbound)))))))))

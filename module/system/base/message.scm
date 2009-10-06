@@ -79,6 +79,12 @@
           "report unused variables"
           ,(lambda (port loc name)
              (format port "~A: warning: unused variable `~A'~%"
+                     loc name)))
+
+         (unbound-variable
+          "report possibly unbound variables"
+          ,(lambda (port loc name)
+             (format port "~A: warning: possibly unbound variable `~A'~%"
                      loc name))))))
 
 (define (lookup-warning-type name)

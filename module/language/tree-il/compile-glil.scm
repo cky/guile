@@ -46,7 +46,8 @@
 (define *comp-module* (make-fluid))
 
 (define %warning-passes
-  `((unused-variable . ,report-unused-variables)))
+  `((unused-variable     . ,report-unused-variables)
+    (unbound-variable    . ,report-possibly-unbound-variables)))
 
 (define (compile-glil x e opts)
   (define warnings
