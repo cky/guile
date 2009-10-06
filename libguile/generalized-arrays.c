@@ -43,7 +43,7 @@ SCM_DEFINE (scm_array_p_2, "array?", 1, 0, 0,
 	    (SCM obj),
 	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
 	    "not.")
-#define FUNC_NAME s_scm_array_p
+#define FUNC_NAME s_scm_array_p_2
 {
   return scm_from_bool (scm_is_array (obj));
 }
