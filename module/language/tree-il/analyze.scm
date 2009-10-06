@@ -502,7 +502,7 @@
   (refs binding-info-refs)  ;; (GENSYM ...)
   (locs binding-info-locs)) ;; (LOCATION ...)
 
-(define (report-unused-variables tree)
+(define (report-unused-variables tree env)
   "Report about unused variables in TREE.  Return TREE."
 
   (define (dotless-list lst)

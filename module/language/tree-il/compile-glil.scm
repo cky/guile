@@ -53,11 +53,11 @@
     (or (and=> (memq #:warnings opts) cadr)
         '()))
 
-  ;; Go throught the warning passes.
+  ;; Go through the warning passes.
   (for-each (lambda (kind)
                 (let ((warn (assoc-ref %warning-passes kind)))
                   (and (procedure? warn)
-                       (warn x))))
+                       (warn x e))))
             warnings)
 
   (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
