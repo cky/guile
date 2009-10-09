@@ -779,44 +779,17 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
 static const char *
 locale_language ()
 {
-#ifdef USE_GNU_LOCALE_API
-  {
-    static char lang[10];
-    scm_t_locale loc;
-    const char *c_result;
-    char *p;
+  /* FIXME: If the locale has been set with 'uselocale',
+     libunistring's uc_locale_language will return the incorrect
+     language: it will return the language appropriate for the global
+     (non-thread-specific) locale.
 
-    /* If we are here, the locale has been set with 'uselocale'.  We
-       can't use libunistring's uc_locale_language because it calls
-       setlocale.  */
-    loc = uselocale (0);
-    if (loc == (scm_t_locale) -1)
-      return "";
+     There appears to be no portable way to extract the language from
+     the thread-specific locale_t.  There is no LANGUAGE capability in
+     nl_langinfo or nl_langinfo_l.
 
-    /* The internal structure of locale_t may be specific to the C
-       library, but, there doesn't seem to be any other way to extract
-       the locale name.  */
-    c_result = loc->__names[LC_CTYPE];
-    p = (char *) c_result;
-    while (*p != '\0' && *p != '_' && *p != '.' && *p != '@')
-      p++;
-
-    /* Return a statically allocated pointer to the language portion,
-       so that the caller of this function does not need to free() the
-       result.  */
-    if (p != c_result)
-      {
-        memcpy (lang, c_result, p - c_result);
-        lang[p - c_result] = '\0';
-        return lang;
-      }
-    else
-      return "";
-  }
-#else
-  /* The locale has been set with setlocale.  */
+     Thus, uc_locale_language needs to be fixed upstream.  */
   return uc_locale_language ();
-#endif
 }
 
 static inline int
