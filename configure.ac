@@ -1193,6 +1193,13 @@ AC_CHECK_DECL([GC_do_blocking],
   [],
   [#include <gc/gc.h>])
 
+# `GC_fn_type' is not available in GC 7.1 and earlier.
+AC_CHECK_TYPE([GC_fn_type],
+  [AC_DEFINE([HAVE_GC_FN_TYPE], [1],
+    [Define this if the `GC_fn_type' type is available.])],
+  [],
+  [#include <gc/gc.h>])
+
 
 AC_CHECK_SIZEOF(float)
 if test "$ac_cv_sizeof_float" -le "$ac_cv_sizeof_long"; then

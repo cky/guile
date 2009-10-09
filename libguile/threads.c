@@ -745,14 +745,18 @@ scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
 
 /*** Non-guile mode.  */
 
-#if (defined HAVE_GC_DO_BLOCKING) && (!defined HAVE_DECL_GC_DO_BLOCKING)
-
-/* This declaration is missing from the public headers of GC 7.1.  */
-extern void GC_do_blocking (void (*) (void *), void *);
-
-#endif
-
 #ifdef HAVE_GC_DO_BLOCKING
+
+# ifndef HAVE_GC_FN_TYPE
+/* This typedef is missing from the public headers of GC 7.1 and earlier.  */
+typedef void * (* GC_fn_type) (void *);
+# endif /* HAVE_GC_FN_TYPE */
+
+# ifndef HAVE_DECL_GC_DO_BLOCKING
+/* This declaration is missing from the public headers of GC 7.1.  */
+extern void GC_do_blocking (GC_fn_type, void *);
+# endif /* HAVE_DECL_GC_DO_BLOCKING  */
+
 struct without_guile_arg
 {
   void * (*function) (void *);
@@ -772,7 +776,9 @@ without_guile_trampoline (void *closure)
 
   SCM_I_CURRENT_THREAD->guile_mode = 1;
 }
-#endif
+
+#endif /* HAVE_GC_DO_BLOCKING */
+
 
 void *
 scm_without_guile (void *(*func)(void *), void *data)
@@ -786,7 +792,7 @@ scm_without_guile (void *(*func)(void *), void *data)
 
       arg.function = func;
       arg.data = data;
-      GC_do_blocking (without_guile_trampoline, &arg);
+      GC_do_blocking ((GC_fn_type) without_guile_trampoline, &arg);
       result = arg.result;
     }
   else
