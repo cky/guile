@@ -56,7 +56,11 @@
           '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
      (map (lambda (name)
             (string-append name ".iso88591"))
-          '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))))
+          '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
+     (map (lambda (name)
+            (string-append name ".ISO8859-1"))
+          '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
+     ))
    (begin
      (false-if-exception (set-port-encoding! (current-input-port) 
                                              "ISO-8859-1"))
@@ -226,7 +230,7 @@
                          (= 2 (match:end m)))))))
 
 	   (pass-if "string of all chars"
-             (setbinary)
+             (set-latin-1)
              (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
                                                 flag) allchars)))
                (and (= 0 (match:start m))
