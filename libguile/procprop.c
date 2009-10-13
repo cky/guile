@@ -194,7 +194,18 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
     /* avoid a cons in this case */
     return scm_i_procedure_arity (proc);
   else
-    return scm_assq_ref (scm_procedure_properties (proc), key);
+    {
+      SCM props;
+      if (SCM_CLOSUREP (proc))
+        props = SCM_PROCPROPS (proc);
+      else
+        {
+          scm_i_pthread_mutex_lock (&non_closure_props_lock);
+          props = scm_hashq_ref (non_closure_props, proc, SCM_EOL);
+          scm_i_pthread_mutex_unlock (&non_closure_props_lock);
+        }
+      return scm_assq_ref (props, key);
+    }
 }
 #undef FUNC_NAME
 
@@ -208,9 +219,20 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 
   if (scm_is_eq (key, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
-  scm_set_procedure_properties_x
-    (proc,
-     scm_assq_set_x (scm_procedure_properties (proc), key, val));
+
+  if (SCM_CLOSUREP (proc))
+    SCM_SETPROCPROPS (proc,
+                      scm_assq_set_x (SCM_PROCPROPS (proc), key, val));
+  else
+    {
+      scm_i_pthread_mutex_lock (&non_closure_props_lock);
+      scm_hashq_set_x (non_closure_props, proc,
+                       scm_assq_set_x (scm_hashq_ref (non_closure_props, proc,
+                                                      SCM_EOL),
+                                       key, val));
+      scm_i_pthread_mutex_unlock (&non_closure_props_lock);
+    }
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
