@@ -601,7 +601,8 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '#define SCM_PKGDATA_DIR "$(pkgdatadir)"' >> libpath.tmp
 	@echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)"'>>libpath.tmp
 	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
-	@echo '#define SCM_LIB_DIR "$(pkglibdir)"' >> libpath.tmp
+	@echo '#define SCM_LIB_DIR "$(libdir)"' >> libpath.tmp
+	@echo '#define SCM_EXTENSIONS_DIR "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/extensions"' >> libpath.tmp
 	@echo '#define SCM_CCACHE_DIR "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache"' >> libpath.tmp
 	@echo '#define SCM_EFFECTIVE_VERSION "$(GUILE_EFFECTIVE_VERSION)"' >> libpath.tmp
 	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
@@ -625,6 +626,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '	{ "pkglibdir",	   "$(pkglibdir)" }, \' >> libpath.tmp
 	@echo '	{ "pkgincludedir", "$(pkgincludedir)" }, \' \
 		>> libpath.tmp
+	@echo ' { "extensionsdir", "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/extensions" }, \' >> libpath.tmp
 	@echo '	{ "guileversion", "@GUILE_VERSION@" }, \' >> libpath.tmp
 	@echo '	{ "libguileinterface", "@LIBGUILE_INTERFACE@" }, \' \
 		>> libpath.tmp

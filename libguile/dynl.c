@@ -118,17 +118,20 @@ sysdep_dynl_init ()
 
   lt_dlinit ();
 
-  env = getenv ("GUILE_SYSTEM_LTDL_PATH");
+  env = getenv ("GUILE_SYSTEM_EXTENSIONS_PATH");
   if (env && strcmp (env, "") == 0)
     /* special-case interpret system-ltdl-path=="" as meaning no system path,
        which is the case during the build */
     ; 
   else if (env)
+    /* FIXME: should this be a colon-separated path? Or is the only point to
+       allow the build system to turn off the installed extensions path? */
     lt_dladdsearchdir (env);
-#ifdef SCM_LIB_DIR
   else
-    lt_dladdsearchdir (SCM_LIB_DIR);
-#endif
+    {
+      lt_dladdsearchdir (SCM_LIB_DIR);
+      lt_dladdsearchdir (SCM_EXTENSIONS_DIR);
+    }
 }
 
 scm_t_bits scm_tc16_dynamic_obj;
