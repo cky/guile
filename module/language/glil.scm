@@ -24,7 +24,6 @@
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export
   (<glil-program> make-glil-program glil-program?
-   glil-program-nargs glil-program-nrest glil-program-nlocs
    glil-program-meta glil-program-body
    
    <glil-arity> make-glil-arity glil-arity?
@@ -74,7 +73,7 @@
 
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
-  (<glil-program> nargs nrest nlocs meta body)
+  (<glil-program> meta body)
   (<glil-arity> nargs nrest label)
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
@@ -97,8 +96,8 @@
 
 (define (parse-glil x)
   (pmatch x
-    ((program ,nargs ,nrest ,nlocs ,meta . ,body)
-     (make-glil-program nargs nrest nlocs meta (map parse-glil body)))
+    ((program ,meta . ,body)
+     (make-glil-program meta (map parse-glil body)))
     ((arity ,nargs ,nrest ,label) (make-glil-arity nargs nrest label))
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars ,rest) (make-glil-mv-bind vars rest))
@@ -119,8 +118,8 @@
 (define (unparse-glil glil)
   (record-case glil
     ;; meta
-    ((<glil-program> nargs nrest nlocs meta body)
-     `(program ,nargs ,nrest ,nlocs ,meta ,@(map unparse-glil body)))
+    ((<glil-program> meta body)
+     `(program ,meta ,@(map unparse-glil body)))
     ((<glil-arity> nargs nrest label) `(arity ,nargs ,nrest ,label))
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,rest))

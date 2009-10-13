@@ -144,16 +144,18 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	case scm_tc7_gsubr:
 	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
 	case scm_tc7_program:
-	  return scm_from_bool (SCM_PROGRAM_DATA (obj)->nargs == 0
-                                || (SCM_PROGRAM_DATA (obj)->nargs == 1
-                                    && SCM_PROGRAM_DATA (obj)->nrest));
+          {
+            int a, o, r;
+            if (scm_i_program_arity (obj, &a, &o, &r))
+              return scm_from_bool (a == 0);
+            else
+              return SCM_BOOL_F;
+          }
 	case scm_tc7_pws:
 	  obj = SCM_PROCEDURE (obj);
 	  goto again;
 	default:
-          if (SCM_PROGRAM_P (obj) && SCM_PROGRAM_DATA (obj)->nargs == 0)
-            return SCM_BOOL_T;
-          /* otherwise fall through */
+          return SCM_BOOL_F;
 	}
     }
   return SCM_BOOL_F;

@@ -35,7 +35,7 @@
 
 (define (disassemble-load-program asm env)
   (pmatch asm
-    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
+    ((load-program ,labels ,len ,meta . ,code)
      (let ((objs  (and env (assq-ref env 'objects)))
            (free-vars (and env (assq-ref env 'free-vars)))
            (meta  (and env (assq-ref env 'meta)))
@@ -64,7 +64,9 @@
                 (lp (+ pos (byte-length asm)) (cdr code) programs))
                (else
                 (print-info pos asm
-                            (code-annotation end asm objs nargs blocs
+                            ;; FIXME: code-annotation for whether it's
+                            ;; an arg or not, currently passing nargs=-1
+                            (code-annotation end asm objs -1 blocs
                                              labels)
                             (and=> (and srcs (assq end srcs)) source->string))
                 (lp (+ pos (byte-length asm)) (cdr code) programs)))))))

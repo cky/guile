@@ -54,6 +54,7 @@ SCM_API SCM scm_program_objcode (SCM program);
 
 SCM_API SCM scm_c_program_source (SCM program, size_t ip);
 
+SCM_INTERNAL int scm_i_program_arity (SCM program, int *req, int *opt, int *rest);
 SCM_INTERNAL void scm_i_program_print (SCM program, SCM port,
                                        scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_programs (void);

@@ -31,9 +31,8 @@
 
 (define (decompile-toplevel x)
   (pmatch x
-    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,body)
-     (decompile-load-program nargs nrest nlocs
-                             (decompile-meta meta)
+    ((load-program ,labels ,len ,meta . ,body)
+     (decompile-load-program (decompile-meta meta)
                              body labels #f))
     (else
      (error "invalid assembly" x))))
@@ -56,7 +55,7 @@
           ((glil-program? (car in)) (lp (cdr in) (cons (car in) out)))
           (else (lp (cdr in) (cons (make-glil-const (car l)) out))))))
 
-(define (decompile-load-program nargs nrest nlocs meta body labels
+(define (decompile-load-program meta body labels
                                 objects)
   (let ((glil-labels (sort (map (lambda (x)
                                   (cons (cdr x) (make-glil-label (car x))))
@@ -100,7 +99,7 @@
       (cond
        ((null? in)
         (or (null? stack) (error "leftover stack insts" stack body))
-        (make-glil-program nargs nrest nlocs props (reverse out) #f))
+        (make-glil-program props (reverse out)))
        ((pop-bindings! pos)
         => (lambda (bindings)
              (lp in stack
@@ -123,9 +122,9 @@
            (lp (cdr in) stack out (1+ pos)))
           ((make-false)
            (lp (cdr in) (cons #f stack) out (1+ pos)))
-          ((load-program ,a ,b ,c ,d ,labels ,sublen ,meta . ,body)
+          ((load-program ,labels ,sublen ,meta . ,body)
            (lp (cdr in)
-               (cons (decompile-load-program a b c d (decompile-meta meta)
+               (cons (decompile-load-program (decompile-meta meta)
                                              body labels (car stack))
                      (cdr stack))
                out

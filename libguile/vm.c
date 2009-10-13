@@ -191,12 +191,8 @@ really_make_boot_program (long nargs)
 
   bp = scm_malloc (sizeof (struct scm_objcode) + sizeof (text));
   memcpy (bp->base, text, sizeof (text));
-  bp->nargs = 0;
-  bp->nrest = 0;
-  bp->nlocs = 0;
   bp->len = sizeof(text);
   bp->metalen = 0;
-  bp->unused = 0;
 
   u8vec = scm_take_u8vector ((scm_t_uint8*)bp,
                              sizeof (struct scm_objcode) + sizeof (text));

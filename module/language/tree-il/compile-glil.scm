@@ -186,7 +186,7 @@
     (let ((nlocs (car (hashq-ref allocation x)))
           (labels (cadr (hashq-ref allocation x))))
       (make-glil-program
-       nargs nrest nlocs (lambda-meta x)
+       (lambda-meta x)
        (with-output-to-code
         (lambda (emit-code)
           ;; write source info for proc

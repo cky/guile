@@ -282,11 +282,51 @@ SCM_DEFINE (scm_program_objcode, "program-objcode", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* This one is a shim to pre-case-lambda internal interfaces. Avoid it if you
+   can -- use program-arguments or the like. */
+static SCM sym_arglist;
+int
+scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
+{
+  SCM arities, x;
+  
+  arities = scm_program_arities (program);
+  if (!scm_is_pair (arities))
+    return 0;
+  /* take the last arglist, it will be least specific */
+  while (scm_is_pair (scm_cdr (arities)))
+    arities = scm_cdr (arities);
+  x = scm_cdar (arities);
+  if (scm_is_pair (x))
+    {
+      *req = scm_to_int (scm_car (x));
+      x = scm_cdr (x);
+      if (scm_is_pair (x))
+        {
+          *opt = scm_to_int (scm_car (x));
+          x = scm_cdr (x);
+          if (scm_is_pair (x))
+            *rest = scm_is_true (scm_car (x));
+          else
+            *rest = 0;
+        }
+      else
+        *opt = *rest = 0;
+    }
+  else
+    *req = *opt = *rest = 0;
+          
+  return 1;
+}
 
 
+
 void
 scm_bootstrap_programs (void)
 {
+  /* arglist can't be snarfed, because snarfage is only loaded when (system vm
+     program) is loaded. perhaps static-alloc will fix this. */
+  sym_arglist = scm_from_locale_symbol ("arglist");
   scm_c_register_extension ("libguile", "scm_init_programs",
                             (scm_t_extension_init_func)scm_init_programs, NULL);
 }

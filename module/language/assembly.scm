@@ -28,8 +28,8 @@
             assembly-pack assembly-unpack
             object->assembly assembly->object))
 
-;; nargs, nrest, nlocs, len, metalen, padding
-(define *program-header-len* (+ 1 1 2 4 4 4))
+;; len, metalen
+(define *program-header-len* (+ 4 4))
 
 ;; lengths are encoded in 3 bytes
 (define *len-len* 3)
@@ -49,7 +49,7 @@
      (+ 1 *len-len* (string-length str)))
     ((load-array ,bv)
      (+ 1 *len-len* (bytevector-length bv)))
-    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
+    ((load-program ,labels ,len ,meta . ,code)
      (+ 1 *program-header-len* len (if meta (1- (byte-length meta)) 0)))
     ((,inst . _) (guard (>= (instruction-length inst) 0))
      (+ 1 (instruction-length inst)))

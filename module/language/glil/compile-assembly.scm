@@ -72,7 +72,7 @@
   (if (and (null? bindings) (null? sources) (null? tail))
       #f
       (compile-assembly
-       (make-glil-program 0 0 0 '()
+       (make-glil-program '()
                           (list
                            (make-glil-const `(,bindings ,sources ,arities ,@tail))
                            (make-glil-call 'return 1))))))
@@ -156,7 +156,7 @@
             (begin-arity (addr+ addr x) nreq nopt rest? kw arities)))
 
   (record-case glil
-    ((<glil-program> nargs nrest nlocs meta body)
+    ((<glil-program> meta body)
      (define (process-body)
        (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
                 (label-alist '()) (object-alist (if toplevel? #f '()))
@@ -184,7 +184,7 @@
          (process-body)
        (let* ((meta (make-meta bindings sources arities meta))
               (meta-pad (if meta (modulo (- 8 (modulo len 8)) 8) 0))
-              (prog `(load-program ,nargs ,nrest ,nlocs ,labels
+              (prog `(load-program ,labels
                                   ,(+ len meta-pad)
                                   ,meta
                                   ,@code

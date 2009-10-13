@@ -680,7 +680,6 @@ scm_init_storage ()
 
 #endif
 
-  scm_stand_in_procs = scm_make_weak_key_hash_table (scm_from_int (257));
   scm_protects = scm_c_make_hash_table (31);
 
   return 0;

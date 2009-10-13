@@ -42,6 +42,9 @@
 SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
 
+static SCM non_closure_props;
+static scm_i_pthread_mutex_t non_closure_props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 SCM
 scm_i_procedure_arity (SCM proc)
 {
@@ -74,10 +77,10 @@ scm_i_procedure_arity (SCM proc)
       r = 1;
       break;
     case scm_tc7_program:
-      a += SCM_PROGRAM_DATA (proc)->nargs;
-      r = SCM_PROGRAM_DATA (proc)->nrest;
-      a -= r;
-      break;
+      if (scm_i_program_arity (proc, &a, &o, &r))
+        break;
+      else
+        return SCM_BOOL_F;
     case scm_tc7_lsubr_2:
       a += 2;
       r = 1;
@@ -137,92 +140,77 @@ scm_i_procedure_arity (SCM proc)
   return scm_list_3 (scm_from_int (a), scm_from_int (o), scm_from_bool(r));
 }
 
-/* XXX - instead of using a stand-in value for everything except
-   closures, we should find other ways to store the procedure
-   properties for those other kinds of procedures.  For example, subrs
-   have their own property slot, which is unused at present.
-*/
-
-static SCM
-scm_stand_in_scm_proc(SCM proc)
-{
-  SCM handle, answer;
-  handle = scm_hashq_get_handle (scm_stand_in_procs, proc);
-  if (scm_is_false (handle))
-    {
-      answer = scm_closure (scm_list_2 (SCM_EOL, SCM_BOOL_F), SCM_EOL);
-      scm_hashq_set_x (scm_stand_in_procs, proc, answer);
-    }
-  else
-    answer = SCM_CDR (handle);
-  return answer;
-}
+/* FIXME: instead of the weak hash, perhaps for some kinds of procedures, use
+   other means; for example subrs have their own property slot, which is unused
+   at present. */
 
 SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0, 
            (SCM proc),
 	    "Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_procedure_properties
 {
+  SCM props;
+  
   SCM_VALIDATE_PROC (1, proc);
-  return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc),
-		    SCM_PROCPROPS (SCM_CLOSUREP (proc)
-				   ? proc
-				   : scm_stand_in_scm_proc (proc)));
+  if (SCM_CLOSUREP (proc))
+    props = SCM_PROCPROPS (proc);
+  else
+    {
+      scm_i_pthread_mutex_lock (&non_closure_props_lock);
+      props = scm_hashq_ref (non_closure_props, proc, SCM_EOL);
+      scm_i_pthread_mutex_unlock (&non_closure_props_lock);
+    }
+  return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc), props);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0,
-           (SCM proc, SCM new_val),
-	    "Set @var{obj}'s property list to @var{alist}.")
+           (SCM proc, SCM alist),
+	    "Set @var{proc}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_procedure_properties_x
 {
-  if (!SCM_CLOSUREP (proc))
-    proc = scm_stand_in_scm_proc(proc);
-  SCM_VALIDATE_CLOSURE (1, proc);
-  SCM_SETPROCPROPS (proc, new_val);
+  SCM_VALIDATE_PROC (1, proc);
+
+  if (SCM_CLOSUREP (proc))
+    SCM_SETPROCPROPS (proc, alist);
+  else
+    {
+      scm_i_pthread_mutex_lock (&non_closure_props_lock);
+      scm_hashq_set_x (non_closure_props, proc, alist);
+      scm_i_pthread_mutex_unlock (&non_closure_props_lock);
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
-           (SCM p, SCM k),
-	    "Return the property of @var{obj} with name @var{key}.")
+           (SCM proc, SCM key),
+	    "Return the property of @var{proc} with name @var{key}.")
 #define FUNC_NAME s_scm_procedure_property
 {
-  SCM assoc;
-  if (scm_is_eq (k, scm_sym_arity))
-    {
-      SCM arity;
-      SCM_ASSERT (scm_is_true (arity = scm_i_procedure_arity (p)),
-		  p, SCM_ARG1, FUNC_NAME);
-      return arity;
-    }
-  SCM_VALIDATE_PROC (1, p);
-  assoc = scm_sloppy_assq (k,
-			   SCM_PROCPROPS (SCM_CLOSUREP (p)
-					  ? p
-					  : scm_stand_in_scm_proc (p)));
-  return (SCM_NIMP (assoc) ? SCM_CDR (assoc) : SCM_BOOL_F);
+  SCM_VALIDATE_PROC (1, proc);
+
+  if (scm_is_eq (key, scm_sym_arity))
+    /* avoid a cons in this case */
+    return scm_i_procedure_arity (proc);
+  else
+    return scm_assq_ref (scm_procedure_properties (proc), key);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
-           (SCM p, SCM k, SCM v),
-	    "In @var{obj}'s property list, set the property named @var{key} to\n"
-	    "@var{value}.")
+           (SCM proc, SCM key, SCM val),
+	    "In @var{proc}'s property list, set the property named @var{key} to\n"
+	    "@var{val}.")
 #define FUNC_NAME s_scm_set_procedure_property_x
 {
-  SCM assoc;
-  if (!SCM_CLOSUREP (p))
-    p = scm_stand_in_scm_proc(p);
-  SCM_VALIDATE_CLOSURE (1, p);
-  if (scm_is_eq (k, scm_sym_arity))
+  SCM_VALIDATE_PROC (1, proc);
+
+  if (scm_is_eq (key, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
-  assoc = scm_sloppy_assq (k, SCM_PROCPROPS (p));
-  if (SCM_NIMP (assoc))
-    SCM_SETCDR (assoc, v);
-  else
-    SCM_SETPROCPROPS (p, scm_acons (k, v, SCM_PROCPROPS (p)));
+  scm_set_procedure_properties_x
+    (proc,
+     scm_assq_set_x (scm_procedure_properties (proc), key, val));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -233,6 +221,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 void
 scm_init_procprop ()
 {
+  non_closure_props = scm_make_doubly_weak_hash_table (SCM_UNDEFINED);
 #include "libguile/procprop.x"
 }
 
