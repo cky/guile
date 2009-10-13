@@ -112,13 +112,20 @@
 ;; translated into labels, and information on what free variables to
 ;; capture from its lexical parent procedure.
 ;;
+;; In addition, we have a conflation: while we're traversing the code,
+;; recording information to pass to the compiler, we take the
+;; opportunity to generate labels for each lambda-case clause, so that
+;; generated code can skip argument checks at runtime if they match at
+;; compile-time.
+;;
 ;; That is:
 ;;
 ;;  sym -> {lambda -> address}
-;;  lambda -> (nlocs labels . free-locs)
+;;  lambda -> (labels . free-locs)
+;;  lambda-case -> (gensym . nlocs)
 ;;
 ;; address ::= (local? boxed? . index)
-;; labels ::= ((sym . lambda-vars) ...)
+;; labels ::= ((sym . lambda) ...)
 ;; free-locs ::= ((sym0 . address0) (sym1 . address1) ...)
 ;; free variable addresses are relative to parent proc.
 
@@ -141,9 +148,9 @@
   ;; refcounts: sym -> count
   ;;  allows us to detect the or-expansion in O(1) time
   (define refcounts (make-hash-table))
-  ;; labels: sym -> lambda-vars
+  ;; labels: sym -> lambda
   ;;  for determining if fixed-point procedures can be rendered as
-  ;;  labels. lambda-vars may be an improper list.
+  ;;  labels.
   (define labels (make-hash-table))
 
   ;; returns variables referenced in expr
@@ -167,9 +174,21 @@
        (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
        (if (not (and tail-call-args
                      (memq gensym labels-in-proc)
-                     (let ((args (hashq-ref labels gensym)))
-                       (and (list? args)
-                            (= (length args) (length tail-call-args))))))
+                     (let ((p (hashq-ref labels gensym)))
+                       (and p
+                            (let lp ((c (lambda-body p)))
+                              (and c (lambda-case? c)
+                                   (or 
+                                    ;; for now prohibit optional &
+                                    ;; keyword arguments; can relax this
+                                    ;; restriction later
+                                    (and (= (length (lambda-case-req c))
+                                            (length tail-call-args))
+                                         (not (lambda-case-opt c))
+                                         (not (lambda-case-kw c))
+                                         (not (lambda-case-rest c))
+                                         (not (lambda-case-predicate c)))
+                                    (lp (lambda-case-else c)))))))))
            (hashq-set! labels gensym #f))
        (list gensym))
       
@@ -195,19 +214,24 @@
                (else
                 (lp (cdr exps) (lset-union eq? ret (step (car exps))))))))
       
-      ((<lambda> vars body)
-       (let ((locally-bound (let rev* ((vars vars) (out '()))
-                              (cond ((null? vars) out)
-                                    ((pair? vars) (rev* (cdr vars)
-                                                        (cons (car vars) out)))
-                                    (else (cons vars out))))))
-         (hashq-set! bound-vars x locally-bound)
-         (let* ((referenced (recur body x))
-                (free (lset-difference eq? referenced locally-bound))
-                (all-bound (reverse! (hashq-ref bound-vars x))))
-           (hashq-set! bound-vars x all-bound)
-           (hashq-set! free-vars x free)
-           free)))
+      ((<lambda> body)
+       ;; order is important here
+       (hashq-set! bound-vars x '())
+       (let ((free (recur body x)))
+         (hashq-set! bound-vars x (reverse! (hashq-ref bound-vars x)))
+         (hashq-set! free-vars x free)
+         free))
+      
+      ((<lambda-case> vars predicate body else)
+       (hashq-set! bound-vars proc
+                   (append (reverse vars) (hashq-ref bound-vars proc)))
+       (lset-union
+        eq?
+        (lset-difference eq?
+                         (lset-union eq? (if predicate (step predicate) '())
+                                     (step-tail body))
+                         vars)
+        (if else (step-tail else) '())))
       
       ((<let> vars vals body)
        (hashq-set! bound-vars proc
@@ -226,7 +250,7 @@
       
       ((<fix> vars vals body)
        ;; Try to allocate these procedures as labels.
-       (for-each (lambda (sym val) (hashq-set! labels sym (lambda-vars val)))
+       (for-each (lambda (sym val) (hashq-set! labels sym val))
                  vars vals)
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
@@ -240,21 +264,14 @@
                 ;; prevent label allocation.)
                 (lambda (x)
                   (record-case x
-                    ((<lambda> (lvars vars) body)
-                     (let ((locally-bound
-                            (let rev* ((lvars lvars) (out '()))
-                              (cond ((null? lvars) out)
-                                    ((pair? lvars) (rev* (cdr lvars)
-                                                         (cons (car lvars) out)))
-                                    (else (cons lvars out))))))
-                       (hashq-set! bound-vars x locally-bound)
-                       ;; recur/labels, the difference from the closure case
-                       (let* ((referenced (recur/labels body x vars))
-                              (free (lset-difference eq? referenced locally-bound))
-                              (all-bound (reverse! (hashq-ref bound-vars x))))
-                         (hashq-set! bound-vars x all-bound)
-                         (hashq-set! free-vars x free)
-                         free)))))
+                    ((<lambda> body)
+                     ;; just like the closure case, except here we use
+                     ;; recur/labels instead of recur
+                     (hashq-set! bound-vars x '())
+                     (let ((free (recur/labels body x vars)))
+                       (hashq-set! bound-vars x (reverse! (hashq-ref bound-vars x)))
+                       (hashq-set! free-vars x free)
+                       free))))
                 vals))
               (vars-with-refs (map cons vars var-refs))
               (body-refs (recur/labels body proc vars)))
@@ -302,15 +319,8 @@
                           (apply lset-union eq? body-refs var-refs)
                           vars)))
       
-      ((<let-values> vars exp body)
-       (let ((bound (let lp ((out (hashq-ref bound-vars proc)) (in vars))
-                      (if (pair? in)
-                          (lp (cons (car in) out) (cdr in))
-                          (if (null? in) out (cons in out))))))
-         (hashq-set! bound-vars proc bound)
-         (lset-difference eq?
-                          (lset-union eq? (step exp) (step-tail body))
-                          bound)))
+      ((<let-values> exp body)
+       (lset-union eq? (step exp) (step body)))
       
       (else '())))
   
@@ -342,7 +352,7 @@
       ((<sequence> exps)
        (apply max (map recur exps)))
       
-      ((<lambda> vars body)
+      ((<lambda> body)
        ;; allocate closure vars in order
        (let lp ((c (hashq-ref free-vars x)) (n 0))
          (if (pair? c)
@@ -352,18 +362,7 @@
                            `(#f ,(hashq-ref assigned (car c)) . ,n))
                (lp (cdr c) (1+ n)))))
       
-       (let ((nlocs
-              (let lp ((vars vars) (n 0))
-                (if (not (null? vars))
-                    ;; allocate args
-                    (let ((v (if (pair? vars) (car vars) vars)))
-                      (hashq-set! allocation v
-                                  (make-hashq
-                                   x `(#t ,(hashq-ref assigned v) . ,n)))
-                      (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
-                    ;; allocate body, return total number of locals
-                    ;; (including arguments)
-                    (allocate! body x n))))
+       (let ((nlocs (allocate! body x 0))
              (free-addresses
               (map (lambda (v)
                      (hashq-ref (hashq-ref allocation v) proc))
@@ -373,9 +372,25 @@
                                     (cons sym (hashq-ref labels sym)))
                                   (hashq-ref bound-vars x)))))
          ;; set procedure allocations
-         (hashq-set! allocation x (cons* nlocs labels free-addresses)))
+         (hashq-set! allocation x (cons labels free-addresses)))
        n)
 
+      ((<lambda-case> vars predicate body else)
+       (max
+        (let lp ((vars vars) (n n))
+          (if (null? vars)
+              (let ((nlocs (max (if predicate (allocate! predicate body n) n)
+                                (allocate! body proc n))))
+                ;; label and nlocs for the case
+                (hashq-set! allocation x (cons (gensym ":LCASE") nlocs))
+                nlocs)
+              (begin
+                (hashq-set! allocation (car vars)
+                            (make-hashq
+                             proc `(#t ,(hashq-ref assigned (car vars)) . ,n)))
+                (lp (cdr vars) (1+ n)))))
+        (if else (allocate! else proc n) n)))
+      
       ((<let> vars vals body)
        (let ((nmax (apply max (map recur vals))))
          (cond
@@ -427,22 +442,12 @@
                 ((null? vars)
                  (max nmax (allocate! body proc n)))
                 ((hashq-ref labels (car vars))                 
-                 ;; allocate label bindings & body inline to proc
+                 ;; allocate lambda body inline to proc
                  (lp (cdr vars)
                      (cdr vals)
                      (record-case (car vals)
-                       ((<lambda> vars body)
-                        (let lp ((vars vars) (n n))
-                          (if (not (null? vars))
-                              ;; allocate bindings
-                              (let ((v (if (pair? vars) (car vars) vars)))
-                                (hashq-set!
-                                 allocation v
-                                 (make-hashq
-                                  proc `(#t ,(hashq-ref assigned v) . ,n)))
-                                (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
-                              ;; allocate body
-                              (max nmax (allocate! body proc n))))))))
+                       ((<lambda> body)
+                        (max nmax (allocate! body proc n))))))
                 (else
                  ;; allocate closure
                  (lp (cdr vars)
@@ -461,25 +466,8 @@
                  (hashq-set! allocation v (make-hashq proc `(#t #f . ,n)))
                  (lp (cdr in) (1+ n))))))))
 
-      ((<let-values> vars exp body)
-       (let ((nmax (recur exp)))
-         (let lp ((vars vars) (n n))
-           (cond
-            ((null? vars)
-             (max nmax (allocate! body proc n)))
-            ((not (pair? vars))
-             (hashq-set! allocation vars
-                         (make-hashq proc
-                                     `(#t ,(hashq-ref assigned vars) . ,n)))
-             ;; the 1+ for this var
-             (max nmax (allocate! body proc (1+ n))))
-            (else               
-             (let ((v (car vars)))
-               (hashq-set!
-                allocation v
-                (make-hashq proc
-                            `(#t ,(hashq-ref assigned v) . ,n)))
-               (lp (cdr vars) (1+ n))))))))
+      ((<let-values> exp body)
+       (max (recur exp) (recur body)))
       
       (else n)))
 
@@ -504,20 +492,9 @@
   (refs binding-info-refs)  ;; (GENSYM ...)
   (locs binding-info-locs)) ;; (LOCATION ...)
 
+;; FIXME!!
 (define (report-unused-variables tree env)
   "Report about unused variables in TREE.  Return TREE."
-
-  (define (dotless-list lst)
-    ;; If LST is a dotted list, return a proper list equal to LST except that
-    ;; the very last element is a pair; otherwise return LST.
-    (let loop ((lst    lst)
-               (result '()))
-      (cond ((null? lst)
-             (reverse result))
-            ((pair? lst)
-             (loop (cdr lst) (cons (car lst) result)))
-            (else
-             (loop '() (cons lst result))))))
 
   (tree-il-fold (lambda (x info)
                   ;; X is a leaf: extend INFO's refs accordingly.
@@ -546,9 +523,9 @@
                       ((<lexical-set> gensym)
                        (make-binding-info vars (cons gensym refs)
                                           (cons src locs)))
-                      ((<lambda> vars names)
-                       (let ((vars  (dotless-list vars))
-                             (names (dotless-list names)))
+                      ((<lambda-case> req opt rest kw vars)
+                       ;; FIXME keywords.
+                       (let ((names `(,@req ,@(or opt '()) . ,(or rest '()))))
                          (make-binding-info (extend vars names) refs
                                             (cons src locs))))
                       ((<let> vars names)
@@ -558,9 +535,6 @@
                        (make-binding-info (extend vars names) refs
                                           (cons src locs)))
                       ((<fix> vars names)
-                       (make-binding-info (extend vars names) refs
-                                          (cons src locs)))
-                      ((<let-values> vars names)
                        (make-binding-info (extend vars names) refs
                                           (cons src locs)))
                       (else info))))
@@ -577,7 +551,7 @@
                                     ;; Don't report lambda parameters as
                                     ;; unused.
                                     (if (and (not (memq gensym refs))
-                                             (not (and (lambda? x)
+                                             (not (and (lambda-case? x)
                                                        (memq gensym
                                                              inner-vars))))
                                         (let ((name (cadr var))
@@ -597,10 +571,9 @@
                     ;; It doesn't hurt as these are unique names, it just
                     ;; makes REFS unnecessarily fat.
                     (record-case x
-                      ((<lambda> vars)
-                       (let ((vars (dotless-list vars)))
-                         (make-binding-info (shrink vars refs) refs
-                                            (cdr locs))))
+                      ((<lambda-case> vars)
+                       (make-binding-info (shrink vars refs) refs
+                                          (cdr locs)))
                       ((<let> vars)
                        (make-binding-info (shrink vars refs) refs
                                           (cdr locs)))
@@ -608,9 +581,6 @@
                        (make-binding-info (shrink vars refs) refs
                                           (cdr locs)))
                       ((<fix> vars)
-                       (make-binding-info (shrink vars refs) refs
-                                          (cdr locs)))
-                      ((<let-values> vars)
                        (make-binding-info (shrink vars refs) refs
                                           (cdr locs)))
                       (else info))))

@@ -448,16 +448,65 @@
        ((@ (language tree-il) make-toplevel-define) source var exp))
       (else (decorate-source `(define ,var ,exp) source)))))
 
-(define build-lambda
-  (lambda (src ids vars docstring exp)
+;; Ideally we would have all lambdas be case lambdas, but that would
+;; need special support in the interpreter for the full capabilities of
+;; case-lambda, with optional and keyword args, predicates, and else
+;; clauses. This will come with the new interpreter, but for now we
+;; separate the cases.
+(define build-simple-lambda
+  (lambda (src req rest vars docstring exp)
     (case (fluid-ref *mode*)
-      ((c) ((@ (language tree-il) make-lambda) src ids vars
+      ((c) ((@ (language tree-il) make-lambda) src
             (if docstring `((documentation . ,docstring)) '())
-            exp))
+            ;; hah, a case in which kwargs would be nice.
+            ((@ (language tree-il) make-lambda-case)
+             ;; src req opt rest kw vars predicate body else
+             src req #f rest #f vars #f exp #f)))
       (else (decorate-source
-             `(lambda ,vars ,@(if docstring (list docstring) '())
-                      ,exp)
+             `(lambda ,(if rest (apply cons* vars) vars)
+                ,@(if docstring (list docstring) '())
+                ,exp)
              src)))))
+
+(define build-case-lambda
+  (lambda (src docstring body)
+    (case (fluid-ref *mode*)
+      ((c) ((@ (language tree-il) make-lambda) src
+            (if docstring `((documentation . ,docstring)) '())
+            body))
+      (else (decorate-source
+             ;; really gross hack
+             `(lambda %%args 
+                ,@(if docstring (list docstring) '())
+                (cond ,@body))
+             src)))))
+
+(define build-lambda-case
+  ;; kw: ((keyword var init) ...)
+  (lambda (src req opt rest kw vars predicate body else-case)
+    (case (fluid-ref *mode*)
+      ((c)
+       ((@ (language tree-il) make-lambda-case)
+        src req opt rest kw vars predicate body else-case))
+      (else
+       (let ((nkw (map (lambda (x)
+                         `(list ,(car x)
+                                ;; grr
+                                ,(let lp ((vars vars) (i 0))
+                                   (cond ((null? vars) (error "bad kwarg" x))
+                                         ((eq? (cadr x) (car vars)) i)
+                                         (else (lp (cdr vars) (1+ i)))))
+                                (lambda () ,(caddr x))))
+                       kw)))
+         (decorate-source
+          `((((@@ (ice-9 optargs) parse-lambda-case)
+              (list ,(length req) ,(length opt) ,(and rest #t) ,nkw
+                    ,(if predicate (error "not yet implemented") #f))
+              %%args)
+             => (lambda ,vars ,body))
+            ,@(or else-case
+                  `((%%args (error "wrong number of arguments" %%args)))))
+          src))))))
 
 (define build-primref
   (lambda (src name)
@@ -506,7 +555,7 @@
           (ids (cdr ids)))
       (case (fluid-ref *mode*)
         ((c)
-         (let ((proc (build-lambda src ids vars #f body-exp)))
+         (let ((proc (build-simple-lambda src ids #f vars #f body-exp)))
            (maybe-name-value! f-name proc)
            (for-each maybe-name-value! ids val-exps)
            ((@ (language tree-il) make-letrec) src
@@ -1455,48 +1504,6 @@
                                     (cons (cons er (source-wrap e w s mod))
                                           (cdr body)))))))))))))))))
 
-(define chi-lambda-clause
-  (lambda (e docstring c r w mod k)
-    (syntax-case c ()
-      ((args doc e1 e2 ...)
-       (and (string? (syntax->datum (syntax doc))) (not docstring))
-       (chi-lambda-clause e (syntax doc) (syntax (args e1 e2 ...)) r w mod k))
-      (((id ...) e1 e2 ...)
-       (let ((ids (syntax (id ...))))
-         (if (not (valid-bound-ids? ids))
-             (syntax-violation 'lambda "invalid parameter list" e)
-             (let ((labels (gen-labels ids))
-                   (new-vars (map gen-var ids)))
-               (k (map syntax->datum ids)
-                  new-vars
-                  (and docstring (syntax->datum docstring))
-                  (chi-body (syntax (e1 e2 ...))
-                            e
-                            (extend-var-env labels new-vars r)
-                            (make-binding-wrap ids labels w)
-                            mod))))))
-      ((ids e1 e2 ...)
-       (let ((old-ids (lambda-var-list (syntax ids))))
-         (if (not (valid-bound-ids? old-ids))
-             (syntax-violation 'lambda "invalid parameter list" e)
-             (let ((labels (gen-labels old-ids))
-                   (new-vars (map gen-var old-ids)))
-               (k (let f ((ls1 (cdr old-ids)) (ls2 (car old-ids)))
-                    (if (null? ls1)
-                        (syntax->datum ls2)
-                        (f (cdr ls1) (cons (syntax->datum (car ls1)) ls2))))
-                  (let f ((ls1 (cdr new-vars)) (ls2 (car new-vars)))
-                    (if (null? ls1)
-                        ls2
-                        (f (cdr ls1) (cons (car ls1) ls2))))
-                  (and docstring (syntax->datum docstring))
-                  (chi-body (syntax (e1 e2 ...))
-                            e
-                            (extend-var-env labels new-vars r)
-                            (make-binding-wrap old-ids labels w)
-                            mod))))))
-      (_ (syntax-violation 'lambda "bad lambda" e)))))
-
 (define chi-local-syntax
   (lambda (rec? e r w s mod k)
     (syntax-case e ()
@@ -1574,6 +1581,7 @@
     (let ((id (if (syntax-object? id) (syntax-object-expression id) id)))
       (build-lexical-var no-source id))))
 
+;; appears to return a reversed list
 (define lambda-var-list
   (lambda (vars)
     (let lvl ((vars vars) (ls '()) (w empty-wrap))
@@ -1777,7 +1785,10 @@
           ((ref) (build-lexical-reference 'value no-source (cadr x) (cadr x)))
           ((primitive) (build-primref no-source (cadr x)))
           ((quote) (build-data no-source (cadr x)))
-          ((lambda) (build-lambda no-source (cadr x) (cadr x) #f (regen (caddr x))))
+          ((lambda)
+           (if (list? (cadr x))
+               (build-simple-lambda no-source (cadr x) #f (cadr x) #f (regen (caddr x)))
+               (error "how did we get here" x)))
           (else (build-application no-source
                   (build-primref no-source (car x))
                   (map regen (cdr x)))))))
@@ -1794,11 +1805,55 @@
 
 (global-extend 'core 'lambda
    (lambda (e r w s mod)
-      (syntax-case e ()
-         ((_ . c)
-          (chi-lambda-clause (source-wrap e w s mod) #f (syntax c) r w mod
-            (lambda (names vars docstring body)
-              (build-lambda s names vars docstring body)))))))
+     (define (docstring&body ids vars labels c)
+       (syntax-case c ()
+         ((docstring e1 e2 ...)
+          (string? (syntax->datum (syntax docstring)))
+          (values (syntax->datum (syntax docstring))
+                  (chi-body (syntax (e1 e2 ...))
+                            (source-wrap e w s mod)
+                            (extend-var-env labels vars r)
+                            (make-binding-wrap ids labels w)
+                            mod)))
+         ((e1 e2 ...)
+          (values #f
+                  (chi-body (syntax (e1 e2 ...))
+                            (source-wrap e w s mod)
+                            (extend-var-env labels vars r)
+                            (make-binding-wrap ids labels w)
+                            mod)))))
+     (syntax-case e ()
+       ((_ (id ...) e1 e2 ...)
+        (let ((ids (syntax (id ...))))
+          (if (not (valid-bound-ids? ids))
+              (syntax-violation 'lambda "invalid parameter list" e)
+              (let ((vars (map gen-var ids))
+                    (labels (gen-labels ids)))
+                (call-with-values
+                    (lambda ()
+                      (docstring&body ids vars labels
+                                      (syntax (e1 e2 ...))))
+                  (lambda (docstring body)
+                    (build-simple-lambda s (map syntax->datum ids) #f
+                                         vars docstring body)))))))
+       ((_ ids e1 e2 ...)
+        (let ((rids (lambda-var-list (syntax ids))))
+          (if (not (valid-bound-ids? rids))
+              (syntax-violation 'lambda "invalid parameter list" e)
+              (let* ((req (reverse (cdr rids)))
+                     (rest (car rids))
+                     (rrids (reverse rids))
+                     (vars (map gen-var rrids))
+                     (labels (gen-labels rrids)))
+                (call-with-values
+                    (lambda ()
+                      (docstring&body rrids vars labels
+                                      (syntax (e1 e2 ...))))
+                  (lambda (docstring body)
+                    (build-simple-lambda s (map syntax->datum req)
+                                         (syntax->datum rest)
+                                         vars docstring body)))))))
+       (_ (syntax-violation 'lambda "bad lambda" e)))))
 
 
 (global-extend 'core 'let
@@ -1975,7 +2030,7 @@
           (let ((labels (gen-labels ids)) (new-vars (map gen-var ids)))
             (build-application no-source
               (build-primref no-source 'apply)
-              (list (build-lambda no-source (map syntax->datum ids) new-vars #f
+              (list (build-simple-lambda no-source (map syntax->datum ids) #f new-vars #f
                       (chi exp
                            (extend-env
                             labels
@@ -2002,7 +2057,7 @@
                (let ((y (gen-var 'tmp)))
                  ; fat finger binding and references to temp variable y
                  (build-application no-source
-                   (build-lambda no-source (list 'tmp) (list y) #f
+                   (build-simple-lambda no-source (list 'tmp) #f (list y) #f
                      (let ((y (build-lexical-reference 'value no-source
                                                        'tmp y)))
                        (build-conditional no-source
@@ -2039,16 +2094,16 @@
                    (let ((labels (list (gen-label)))
                          (var (gen-var (syntax pat))))
                      (build-application no-source
-                       (build-lambda no-source
-                                     (list (syntax->datum (syntax pat))) (list var)
-                                     #f
-                         (chi (syntax exp)
-                              (extend-env labels
-                                (list (make-binding 'syntax `(,var . 0)))
-                                r)
-                              (make-binding-wrap (syntax (pat))
-                                labels empty-wrap)
-                              mod))
+                       (build-simple-lambda
+                        no-source (list (syntax->datum (syntax pat))) #f (list var)
+                        #f
+                        (chi (syntax exp)
+                             (extend-env labels
+                                         (list (make-binding 'syntax `(,var . 0)))
+                                         r)
+                             (make-binding-wrap (syntax (pat))
+                                                labels empty-wrap)
+                             mod))
                        (list x)))
                    (gen-clause x keys (cdr clauses) r
                      (syntax pat) #t (syntax exp) mod)))
@@ -2067,7 +2122,7 @@
                (let ((x (gen-var 'tmp)))
                  ; fat finger binding and references to temp variable x
                  (build-application s
-                   (build-lambda no-source (list 'tmp) (list x) #f
+                   (build-simple-lambda no-source (list 'tmp) #f (list x) #f
                      (gen-syntax-case (build-lexical-reference 'value no-source
                                                                'tmp x)
                        (syntax (key ...)) (syntax (m ...))
