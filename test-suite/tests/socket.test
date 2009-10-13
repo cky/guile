@@ -277,6 +277,8 @@
 		(set! server-listening? #t)
 		#t)))
 
+	(force-output (current-output-port))
+	(force-output (current-error-port))
 	(if server-listening?
 	    (let ((pid (primitive-fork)))
 	      ;; Spawn a server process.
@@ -365,6 +367,8 @@
 		(set! server-listening? #t)
 		#t)))
 
+	(force-output (current-output-port))
+	(force-output (current-error-port))
 	(if server-listening?
 	    (let ((pid (primitive-fork)))
 	      ;; Spawn a server process.
