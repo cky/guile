@@ -141,7 +141,7 @@
     (kw (list addr nreq nopt rest? kw))
     (rest? (list addr nreq nopt rest?))
     (nopt (list addr nreq nopt))
-    (nreq (list addr req))
+    (nreq (list addr nreq))
     (else (list addr)))
    arities))
 
@@ -154,7 +154,7 @@
   (define (emit-code/arity x nreq nopt rest? kw)
     (values x bindings source-alist label-alist object-alist
             (begin-arity (addr+ addr x) nreq nopt rest? kw arities)))
-
+  
   (record-case glil
     ((<glil-program> meta body)
      (define (process-body)
@@ -217,6 +217,94 @@
                  (emit-code
                   `(,@table-code
                     ,@(align-program prog (addr+ addr table-code)))))))))))))
+    
+    ((<glil-std-prelude> nreq nlocs else-label)
+     (emit-code/arity
+      `(,(if else-label
+             `(br-if-nargs-ne ,(quotient nreq 256)
+                              ,(modulo nreq 256)
+                              ,else-label)
+             `(assert-nargs-ee ,(quotient nreq 256)
+                               ,(modulo nreq 256)))
+        (reserve-locals ,(quotient nlocs 256)
+                        ,(modulo nlocs 256)))
+      nreq #f #f #f))
+
+    ((<glil-opt-prelude> nreq nopt rest? nlocs else-label)
+     (let ((bind-required
+            (if else-label
+                `((br-if-nargs-lt ,(quotient nreq 256)
+                                  ,(modulo nreq 256)
+                                  ,else-label))
+                `((assert-nargs-ge ,(quotient nreq 256)
+                                   ,(modulo nreq 256)))))
+           (bind-optionals
+            (if (zero? nopt)
+                '()
+                `((bind-optionals ,(quotient (+ nopt nreq) 256)
+                                  ,(modulo (+ nreq nopt) 256)))))
+           (bind-rest
+            (cond
+             (rest?
+              `((bind-rest ,(quotient (+ nreq nopt) 256)
+                           ,(modulo (+ nreq nopt) 256))))
+             (else
+              (if else-label
+                  `((br-if-nargs-ge ,(quotient (+ nreq nopt) 256)
+                                    ,(modulo (+ nreq nopt) 256)
+                                    ,else-label))
+                  `((assert-nargs-ee ,(quotient (+ nreq nopt) 256)
+                                     ,(modulo (+ nreq nopt) 256))))))))
+       (emit-code/arity
+        `(,@bind-required
+          ,@bind-optionals
+          ,@bind-rest
+          (reserve-locals ,(quotient nlocs 256)
+                          ,(modulo nlocs 256)))
+        nreq nopt rest? #f)))
+    
+    ((<glil-kw-prelude> nreq nopt rest? kw allow-other-keys? nlocs else-label)
+     (receive (kw-idx object-alist)
+         (object-index-and-alist object-alist kw)
+       (let ((bind-required
+              (if else-label
+                  `((br-if-nargs-lt ,(quotient nreq 256)
+                                    ,(modulo nreq 256)
+                                    ,else-label))
+                  `((assert-nargs-ge ,(quotient nreq 256)
+                                     ,(modulo nreq 256)))))
+             (bind-optionals-and-shuffle
+              `((bind-optionals-and-shuffle-kwargs
+                 ,(quotient (+ nreq nopt) 256)
+                 ,(modulo (+ nreq nopt) 256)
+                 ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
+                 ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256))))
+             (bind-kw
+              ;; when this code gets called, all optionals are filled
+              ;; in, space has been made for kwargs, and the kwargs
+              ;; themselves have been shuffled above the slots for all
+              ;; req/opt/kwargs locals.
+              `((,(if allow-other-keys? 'bind-kwargs/aok 'bind-kwargs/no-aok)
+                 ,(quotient kw-idx 256)
+                 ,(modulo kw-idx 256)
+                 ,(quotient (+ nreq nopt) 256)
+                 ,(modulo (+ nreq nopt) 256)
+                 ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
+                 ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256))))
+             (bind-rest
+              (if rest?
+                  `((bind-rest ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
+                               ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)))
+                  '())))
+         
+         (let ((code `(,@bind-required
+                       ,@bind-optionals-and-shuffle
+                       ,@bind-kw
+                       ,@bind-rest
+                       (reserve-locals ,(quotient nlocs 256)
+                                       ,(modulo nlocs 256)))))
+           (values code bindings source-alist label-alist object-alist
+                   (begin-arity (addr+ addr code) nreq nopt rest? kw arities))))))
     
     ((<glil-bind> vars)
      (values '()
@@ -379,28 +467,6 @@
     ((<glil-branch> inst label)
      (emit-code `((,inst ,label))))
 
-    ((<glil-arity> nargs nrest label)
-     (emit-code/arity
-      (if label
-          (if (zero? nrest)
-              `((br-if-nargs-ne ,(quotient nargs 256) ,label))
-              `(,@(if (> nargs 1)
-                      `((br-if-nargs-lt ,(quotient (1- nargs) 256)
-                                        ,(modulo (1- nargs 256))
-                                        ,label))
-                      '())
-                (push-rest-list ,(quotient (1- nargs) 256))))
-          (if (zero? nrest)
-              `((assert-nargs-ee ,(quotient nargs 256)
-                                 ,(modulo nargs 256)))
-              `(,@(if (> nargs 1)
-                      `((assert-nargs-ge ,(quotient (1- nargs) 256)
-                                         ,(modulo (1- nargs) 256)))
-                      '())
-                (push-rest-list ,(quotient (1- nargs) 256)
-                                ,(modulo (1- nargs) 256)))))
-      (- nargs nrest) 0 (< 0 nrest) #f))
-    
     ;; nargs is number of stack args to insn. probably should rename.
     ((<glil-call> inst nargs)
      (if (not (instruction? inst))

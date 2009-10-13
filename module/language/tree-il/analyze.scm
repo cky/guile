@@ -361,8 +361,9 @@
                                   (make-hashq
                                    x `(#t ,(hashq-ref assigned v) . ,n)))
                       (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
-                    ;; allocate body, return number of additional locals
-                    (- (allocate! body x n) n))))
+                    ;; allocate body, return total number of locals
+                    ;; (including arguments)
+                    (allocate! body x n))))
              (free-addresses
               (map (lambda (v)
                      (hashq-ref (hashq-ref allocation v) proc))

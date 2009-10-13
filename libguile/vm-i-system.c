@@ -500,7 +500,7 @@ VM_DEFINE_INSTRUCTION (39, assert_nargs_ge, "assert-nargs-ge", 2, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (40, push_rest_list, "push-rest-list", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (40, bind_rest, "bind-rest", 2, -1, -1)
 {
   scm_t_ptrdiff n;
   SCM rest = SCM_EOL;
@@ -515,13 +515,22 @@ VM_DEFINE_INSTRUCTION (40, push_rest_list, "push-rest-list", 2, -1, -1)
 
 VM_DEFINE_INSTRUCTION (41, reserve_locals, "reserve-locals", 2, -1, -1)
 {
+  SCM *old_sp;
   scm_t_int32 n;
   n = FETCH () << 8;
   n += FETCH ();
-  sp += n;
-  CHECK_OVERFLOW ();
-  while (n--)
-    sp[-n] = SCM_UNDEFINED;
+  old_sp = sp;
+  sp = (fp - 1) + n;
+
+  if (old_sp < sp)
+    {
+      CHECK_OVERFLOW ();
+      while (old_sp < sp)
+        *++old_sp = SCM_UNDEFINED;
+    }
+  else
+    NULLSTACK (old_sp - sp);
+
   NEXT;
 }
 

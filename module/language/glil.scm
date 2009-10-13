@@ -26,8 +26,17 @@
   (<glil-program> make-glil-program glil-program?
    glil-program-meta glil-program-body
    
-   <glil-arity> make-glil-arity glil-arity?
-   glil-arity-nargs glil-arity-nrest glil-arity-label
+   <glil-std-prelude> make-glil-std-prelude glil-std-prelude?
+   glil-std-prelude-nreq glil-std-prelude-nlocs glil-std-prelude-else-label
+
+   <glil-opt-prelude> make-glil-opt-prelude glil-opt-prelude?
+   glil-opt-prelude-nreq glil-opt-prelude-nopt glil-opt-prelude-rest?
+   glil-opt-prelude-nlocs glil-opt-prelude-else-label
+
+   <glil-kw-prelude> make-glil-kw-prelude glil-kw-prelude?
+   glil-kw-prelude-nreq glil-kw-prelude-nopt glil-kw-prelude-kw
+   glil-kw-prelude-allow-other-keys? glil-kw-prelude-rest?
+   glil-kw-prelude-nlocs glil-kw-prelude-else-label
 
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
@@ -74,7 +83,9 @@
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
   (<glil-program> meta body)
-  (<glil-arity> nargs nrest label)
+  (<glil-std-prelude> nreq nlocs else-label)
+  (<glil-opt-prelude> nreq nopt rest? nlocs else-label)
+  (<glil-kw-prelude> nreq nopt rest? kw allow-other-keys? nlocs else-label)
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
@@ -98,7 +109,12 @@
   (pmatch x
     ((program ,meta . ,body)
      (make-glil-program meta (map parse-glil body)))
-    ((arity ,nargs ,nrest ,label) (make-glil-arity nargs nrest label))
+    ((std-prelude ,nreq ,nlocs ,else-label)
+     (make-glil-std-prelude nreq nlocs else-label))
+    ((opt-prelude ,nreq ,nopt ,rest? ,nlocs ,else-label)
+     (make-glil-opt-prelude nreq nopt rest? nlocs else-label))
+    ((kw-prelude ,nreq ,nopt ,rest? ,kw ,allow-other-keys? ,nlocs ,else-label)
+     (make-glil-kw-prelude nreq nopt rest? kw allow-other-keys? nlocs else-label))
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars ,rest) (make-glil-mv-bind vars rest))
     ((unbind) (make-glil-unbind))
@@ -120,7 +136,12 @@
     ;; meta
     ((<glil-program> meta body)
      `(program ,meta ,@(map unparse-glil body)))
-    ((<glil-arity> nargs nrest label) `(arity ,nargs ,nrest ,label))
+    ((<glil-std-prelude> nreq nlocs else-label)
+     `(std-prelude ,nreq ,nlocs ,else-label))
+    ((<glil-opt-prelude> nreq nopt rest? nlocs else-label)
+     `(opt-prelude ,nreq ,nopt ,rest? ,nlocs ,else-label))
+    ((<glil-kw-prelude> nreq nopt rest? kw allow-other-keys? nlocs else-label)
+     `(kw-prelude ,nreq ,nopt ,rest? ,kw ,allow-other-keys? ,nlocs ,else-label))
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,rest))
     ((<glil-unbind>) `(unbind))
