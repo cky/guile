@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -538,13 +538,20 @@ documentation for @code{%load-hook} later in this section.
 @code{SCM}.
 @end deftypefn
 
-@deffn {Scheme Procedure} primitive-load-path filename
+@deffn {Scheme Procedure} primitive-load-path filename [exception-on-not-found]
 @deffnx {C Function} scm_primitive_load_path (filename)
 Search @code{%load-path} for the file named @var{filename} and
 load it into the top-level environment.  If @var{filename} is a
 relative pathname and is not found in the list of search paths,
 an error is signalled. Preferentially loads a compiled version of the
 file, if it is available and up-to-date.
+
+By default or if @var{exception-on-not-found} is true, an exception is
+raised if @var{filename} is not found.  If @var{exception-on-not-found}
+is @code{#f} and @var{filename} is not found, no exception is raised and
+@code{#f} is returned.  For compatibility with Guile 1.8 and earlier,
+the C function takes only one argument, which can be either a string
+(the file name) or an argument list.
 @end deffn
 
 @deffn {Scheme Procedure} %search-load-path filename

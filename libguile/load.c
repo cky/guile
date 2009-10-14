@@ -685,8 +685,8 @@ scm_try_autocompile (SCM source)
                       NULL, NULL);
 }
 
-SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0, 
-	    (SCM filename, SCM exception_on_not_found),
+SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
+	    (SCM args),
 	    "Search @var{%load-path} for the file named @var{filename} and\n"
 	    "load it into the top-level environment.  If @var{filename} is a\n"
 	    "relative pathname and is not found in the list of search paths,\n"
@@ -695,8 +695,32 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
             "@code{#f} is returned instead.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
+  SCM filename, exception_on_not_found;
   SCM full_filename, compiled_filename;
   int compiled_is_fallback = 0;
+
+  if (scm_is_string (args))
+    {
+      /* C code written for 1.8 and earlier expects this function to take a
+	 single argument (the file name).  */
+      filename = args;
+      exception_on_not_found = SCM_UNDEFINED;
+    }
+  else
+    {
+      /* Starting from 1.9, this function takes 1 required and 1 optional
+	 argument.  */
+      long len;
+
+      SCM_VALIDATE_LIST_COPYLEN (SCM_ARG1, args, len);
+      if (len < 1 || len > 2)
+	scm_error_num_args_subr (FUNC_NAME);
+
+      filename = SCM_CAR (args);
+      SCM_VALIDATE_STRING (SCM_ARG1, filename);
+
+      exception_on_not_found = len > 1 ? SCM_CADR (args) : SCM_UNDEFINED;
+    }
 
   if (SCM_UNBNDP (exception_on_not_found))
     exception_on_not_found = SCM_BOOL_T;
@@ -775,8 +799,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
 SCM
 scm_c_primitive_load_path (const char *filename)
 {
-  return scm_primitive_load_path (scm_from_locale_string (filename),
-                                  SCM_BOOL_T);
+  return scm_primitive_load_path (scm_from_locale_string (filename));
 }
 
 
