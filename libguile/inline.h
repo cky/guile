@@ -243,7 +243,7 @@ SCM_C_EXTERN_INLINE
 SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
 {
-  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+  if (SCM_UNLIKELY (p < 0 && -p > (ssize_t) h->base))
     /* catch overflow */
     scm_out_of_range (NULL, scm_from_ssize_t (p));
   /* perhaps should catch overflow here too */
@@ -256,7 +256,7 @@ SCM_C_EXTERN_INLINE
 void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
 {
-  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+  if (SCM_UNLIKELY (p < 0 && -p > (ssize_t) h->base))
     /* catch overflow */
     scm_out_of_range (NULL, scm_from_ssize_t (p));
   /* perhaps should catch overflow here too */
