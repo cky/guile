@@ -587,7 +587,7 @@ scm_new_port_table_entry (scm_t_bits tag)
   if ((enc = scm_i_get_port_encoding (SCM_BOOL_F)) == NULL)
     entry->encoding = NULL;
   else
-    entry->encoding = strdup (enc);
+    entry->encoding = scm_gc_strdup (enc, "port");
   entry->ilseq_handler = scm_i_get_conversion_strategy (SCM_BOOL_F);
 
   SCM_SET_CELL_TYPE (z, tag);
@@ -627,14 +627,11 @@ scm_i_remove_port (SCM port)
 #define FUNC_NAME "scm_remove_port"
 {
   scm_t_port *p = SCM_PTAB_ENTRY (port);
-  if (p->putback_buf)
-    scm_gc_free (p->putback_buf, p->putback_buf_size, "putback buffer");
-  if (p->encoding)
-    {
-      free (p->encoding);
-      p->encoding = NULL;
-    }
-  scm_gc_free (p, sizeof (scm_t_port), "port");
+
+  scm_port_non_buffer (p);
+
+  p->putback_buf = NULL;
+  p->putback_buf_size = 0;
 
   SCM_SETPTAB_ENTRY (port, 0);
   scm_hashq_remove_x (scm_i_port_weak_hash, port);
@@ -1498,8 +1495,6 @@ scm_unget_byte (int c, SCM port)
 	{
 	  size_t new_size = pt->read_buf_size * 2;
 	  unsigned char *tmp = (unsigned char *)
-	    /* XXX: Can we use `GC_REALLOC' with `GC_MALLOC_ATOMIC'-allocated
-	       data?  (Ludo)  */
 	    scm_gc_realloc (pt->putback_buf, pt->read_buf_size, new_size,
 			    "putback buffer");
 
@@ -2024,12 +2019,10 @@ scm_i_set_port_encoding_x (SCM port, const char *enc)
     {
       /* Set the character encoding for this port.  */
       pt = SCM_PTAB_ENTRY (port);
-      if (pt->encoding)
-	free (pt->encoding);
       if (valid_enc == NULL)
         pt->encoding = NULL;
       else
-        pt->encoding = strdup (valid_enc);
+        pt->encoding = scm_gc_strdup (valid_enc, "port");
     }
 }
 
