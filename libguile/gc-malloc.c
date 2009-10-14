@@ -236,7 +236,7 @@ scm_gc_free (void *mem, size_t size, const char *what)
 char *
 scm_gc_strndup (const char *str, size_t n, const char *what)
 {
-  char *dst = GC_MALLOC (n+1);
+  char *dst = GC_MALLOC_ATOMIC (n + 1);
   memcpy (dst, str, n);
   dst[n] = 0;
   return dst;
