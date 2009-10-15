@@ -605,9 +605,8 @@ SCM_DEFINE (scm_uniform_array_to_bytevector, "uniform-array->bytevector",
   if (sz >= 8 && ((sz % 8) == 0))
     byte_len = len * (sz / 8);
   else
-    /* uf. tricky, and i'm not sure i'm avoiding overflow. */
-    byte_len = len * (sz / 8)
-      + (((len * (sz % 8)) - 1) / 8) + 1;
+    /* byte_len = ceil (len * sz / 8) */
+    byte_len = (len * sz + 7) / 8;
 
   ret = make_bytevector (byte_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   memcpy (SCM_BYTEVECTOR_CONTENTS (ret), elts, byte_len);

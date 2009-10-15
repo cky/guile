@@ -672,11 +672,30 @@
 
   (pass-if-exception "make-typed-array [out-of-range]"
     exception:out-of-range
-    (make-typed-array 'vu8 256 77))
+    (make-typed-array 'vu8 256 77)))
 
-  (pass-if "uniform-array->bytevector"
+
+(with-test-prefix "uniform-array->bytevector"
+
+  (pass-if "bytevector"
     (let ((bv #vu8(0 1 128 255)))
-      (equal? bv (uniform-array->bytevector bv)))))
+      (equal? bv (uniform-array->bytevector bv))))
+
+  (pass-if "empty bitvector"
+    (let ((bv (uniform-array->bytevector (make-bitvector 0))))
+      (equal? bv #vu8())))
+
+  (pass-if "bitvector < 8"
+    (let ((bv (uniform-array->bytevector (make-bitvector 4 #t))))
+      (= (bytevector-length bv) 1)))
+
+  (pass-if "bitvector == 8"
+    (let ((bv (uniform-array->bytevector (make-bitvector 8 #t))))
+      (= (bytevector-length bv) 1)))
+
+  (pass-if "bitvector > 8"
+    (let ((bv (uniform-array->bytevector (make-bitvector 9 #t))))
+      (= (bytevector-length bv) 2))))
 
 
 ;;; Local Variables:
