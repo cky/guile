@@ -8,109 +8,63 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.3 (since the 1.9.2 prerelease):
+Changes in 1.9.4 (since the 1.9.3 prerelease):
 
+** Guile now adds its install prefix to the LTDL_LIBRARY_PATH
 
-** Guile now uses libgc, the Boehm-Demers-Weiser garbage collector
+Users may now install Guile to nonstandard prefixes and just run
+`/path/to/bin/guile', instead of also having to set LTDL_LIBRARY_PATH to
+include `/path/to/lib'.
 
-The semantics of `scm_gc_malloc ()' have been changed, in a
-backward-compatible way.  A new allocation routine,
-`scm_gc_malloc_pointerless ()', was added.
+** Dynamically loadable extensions may be placed in a Guile-specific path
 
-Libgc is a conservative GC, which we hope will make interaction with C
-code easier and less error-prone.
+Before, Guile only searched the system library paths for extensions
+(e.g. /usr/lib), which meant that the names of Guile extensions had to
+be globally unique. Installing them to a Guile-specific extensions
+directory is cleaner. Use `pkg-config --variable=extensionsdir
+guile-2.0' to get the location of the extensions directory.
 
-** Files loaded with `load' will now be compiled automatically.
+** The programmatic `compile' procedure compiles its expression in a
+   fresh module, by default
 
-As with files loaded via `primitive-load-path', `load' will also compile
-its target if autocompilation is enabled, and a fresh compiled file is
-not found.
+This should make the results of `compile' more predictable. Users may
+specify a specific module in which to compile via the `#:env' keyword
+argument to `compile' (and `compile-file').
 
-There are two points of difference to note, however. First, `load' does
-not search `GUILE_LOAD_COMPILED_PATH' for the file; it only looks in the
-autocompilation directory, normally a subdirectory of ~/.cache/guile.
+** `compile-file' preserves expansion-time side-effects to `current-reader'
 
-Secondly, autocompilation also applies to files loaded via the -l
-command-line argument -- so the user may experience a slight slowdown
-the first time they run a Guile script, as the script is autocompiled.
+User modules may now modify the `current-reader' fluid at expansion
+time, usually within an eval-when, and those modifications will remain
+in place when compiling subsequent forms in the file.
 
-** Support for non-ASCII source code files
+See "The Scheme Compiler" in the Guile manual for more details.
 
-The default reader now handles source code files for some of the
-non-ASCII character encodings, such as UTF-8. A non-ASCII source file
-should have an encoding declaration near the top of the file. Also,
-there is a new function, `file-encoding', that scans a port for a coding
-declaration. See the section of the manual entitled, "Character Encoding
-of Source Files".
+** Guile's Emacs integration is now more keyboard-friendly
 
-The pre-1.9.3 reader handled 8-bit clean but otherwise unspecified source
-code.  This use is now discouraged.
+Backtraces may now be disclosed with the keyboard in addition to the
+mouse.
 
-** Support for locale transcoding when reading from and writing to ports
+** Compile-time warnings: -Wunbound-variable
 
-Ports now have an associated character encoding, and port read and write
-operations do conversion to and from locales automatically. Ports also
-have an associated strategy for how to deal with locale conversion
-failures.
+Guile can warn about potentially unbound free variables. Pass the
+-Wunbound-variable on the `guile-tools compile' command line, or add
+`#:warnings '(unbound-variable)' to your `compile' or `compile-file'
+invocation.
 
-See the documentation in the manual for the four new support functions,
-`set-port-encoding!', `port-encoding', `set-port-conversion-strategy!',
-and `port-conversion-strategy'.
+** Wide character/string support in locale-specific character/string
+   functions
 
-** String and SRFI-13 functions can operate on Unicode strings
+The `(ice-9 i18n)' functions (`string-locale<?', etc.) now work
+correctly on wide strings as well. This should finish off the remaining
+Unicode support patches. Please send any Unicode bug reports to
+`bug-guile@gnu.org'.
 
-** Unicode support for SRFI-14 character sets
+** ABI harmonization
 
-The default character sets are no longer locale dependent and contain
-characters from the whole Unicode range. There is a new predefined
-character set, `char-set:designated', which contains all assigned
-Unicode characters. There is a new debugging function, `%char-set-dump'.
-
-** Character functions operate on Unicode characters
-
-`char-upcase' and `char-downcase' use default Unicode casing rules.
-Character comparisons such as `char<?' and `char-ci<?' now sort based on
-Unicode code points.
-
-** Unicode symbol support
-
-One may now use U+03BB (GREEK SMALL LETTER LAMBDA) as an identifier.
-
-** New readline history functions
-
-The (ice-9 readline) module now provides add-history, read-history,
-write-history and clear-history, which wrap the corresponding GNU
-History library functions.
-
-** Removed deprecated uniform array procedures:
-   dimensions->uniform-array, list->uniform-array, array-prototype
-
-Instead, use make-typed-array, list->typed-array, or array-type,
-respectively.
-
-** Removed deprecated uniform array procedures: scm_make_uve,
-   scm_array_prototype, scm_list_to_uniform_array,
-   scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
-   scm_ra_set_contp, scm_aind, scm_raprin1
-
-These functions have been deprecated since early 2005.
-
-** scm_array_p has one argument, not two
-
-Use of the second argument produced a deprecation warning, so it is
-unlikely that any code out there actually used this functionality.
-
-** GOOPS documentation folded into Guile reference manual
-
-GOOPS, Guile's object system, used to be documented in separate manuals.
-This content is now included in Guile's manual directly.
-
-** `libguile-i18n' has been merged into `libguile'
-
-The C support code for `(ice-9 i18n)', which used to be in
-`libguile-i18n', is now part of `libguile'.
-
-** Last but not least, the `λ' macro can be used in lieu of `lambda'
+`scm_primitive_load_path' now has the signature it did in 1.8.
+`scm_array_p' does as well, reverting an incompatible change made in
+1.9.3. Finally, Guile now has the same ABI when built with or without
+threads, something that should make Debian users happy.
 
 ** And of course, the usual collection of bugfixes
  
@@ -159,6 +113,17 @@ documented in the manual. This will be fixed before 2.0.
 
 Pass the `--help' command-line option to these commands for more
 information.
+
+** Guile now adds its install prefix to the LTDL_LIBRARY_PATH
+
+Users may now install Guile to nonstandard prefixes and just run
+`/path/to/bin/guile', instead of also having to set LTDL_LIBRARY_PATH to
+include `/path/to/lib'.
+
+** Guile's Emacs integration is now more keyboard-friendly
+
+Backtraces may now be disclosed with the keyboard in addition to the
+mouse.
 
 * Changes to Scheme functions and syntax
 
@@ -651,6 +616,13 @@ There was an EBCDIC compile flag that altered some of the character
 processing.  It appeared that full EBCDIC support was never completed
 and was unmaintained.
 
+** Compile-time warnings: -Wunbound-variable
+
+Guile can warn about potentially unbound free variables. Pass the
+-Wunbound-variable on the `guile-tools compile' command line, or add
+`#:warnings '(unbound-variable)' to your `compile' or `compile-file'
+invocation.
+
 ** New macro type: syncase-macro
 
 XXX Need to decide whether to document this for 2.0, probably should:
@@ -700,6 +672,12 @@ the variable. This was an error, and was fixed.
 
 As syntax-case is available by default, importing `(ice-9 syncase)' has
 no effect, and will trigger a deprecation warning.
+
+** New readline history functions
+
+The (ice-9 readline) module now provides add-history, read-history,
+write-history and clear-history, which wrap the corresponding GNU
+History library functions.
 
 ** Removed deprecated uniform array procedures:
    dimensions->uniform-array, list->uniform-array, array-prototype
@@ -753,11 +731,6 @@ definition depends on the application's value for `_FILE_OFFSET_BITS'.
 
 These functions have been deprecated since early 2005.
 
-** scm_array_p has one argument, not two
-
-Use of the second argument produced a deprecation warning, so it is
-unlikely that any code out there actually used this functionality.
-
 * Changes to the distribution
 
 ** Guile's license is now LGPLv3+
@@ -787,6 +760,14 @@ macros should now require `guile-2.0' instead of `guile-1.8'.
 
 If $(libdir) is /usr/lib, for example, Guile will install its .go files
 to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
+
+** Dynamically loadable extensions may be placed in a Guile-specific path
+
+Before, Guile only searched the system library paths for extensions
+(e.g. /usr/lib), which meant that the names of Guile extensions had to
+be globally unique. Installing them to a Guile-specific extensions
+directory is cleaner. Use `pkg-config --variable=extensionsdir
+guile-2.0' to get the location of the extensions directory.
 
 ** New dependency: libgc
 
