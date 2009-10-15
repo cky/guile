@@ -185,3 +185,20 @@
          `(begin *unspecified* . ,exps)))
    (else
     `(begin))))
+
+(read-hash-extend
+ #\y
+ (lambda (c port)
+   (issue-deprecation-warning
+    "The `#y' bitvector syntax is deprecated.  Use `#*' instead.")
+   (let ((x (read port)))
+     (cond
+      ((list? x)
+       (list->bitvector
+        (map (lambda (x)
+               (cond ((zero? x) #f)
+                     ((eqv? x 1) #t)
+                     (else (error "invalid #y element" x))))
+             x)))
+      (else
+       (error "#y needs to be followed by a list" x))))))
