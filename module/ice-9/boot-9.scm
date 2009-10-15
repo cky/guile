@@ -899,39 +899,39 @@
 
 (set! %load-hook %load-announce)
 
-;;; Returns the .go file corresponding to `name'. Does not search load
-;;; paths, only the fallback path. If the .go file is missing or out of
-;;; date, and autocompilation is enabled, will try autocompilation, just
-;;; as primitive-load-path does internally. primitive-load is
-;;; unaffected. Returns #f if autocompilation failed or was disabled.
-(define (autocompiled-file-name name)
-  (catch #t
-    (lambda ()
-      (let* ((cfn ((@ (system base compile) compiled-file-name) name))
-             (scmstat (stat name))
-             (gostat (stat cfn #f)))
-        (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
-            cfn
-            (begin
-              (if gostat
-                  (format (current-error-port)
-                    ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                    name cfn))
-              (cond
-               (%load-should-autocompile
-                (%warn-autocompilation-enabled)
-                (format (current-error-port) ";;; compiling ~a\n" name)
-                (let ((cfn ((@ (system base compile) compile-file) name)))
-                  (format (current-error-port) ";;; compiled ~a\n" cfn)
-                  cfn))
-               (else #f))))))
-    (lambda (k . args)
-      (format (current-error-port)
-              ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
-              name k args)
-      #f)))
-
 (define (load name . reader)
+  ;; Returns the .go file corresponding to `name'. Does not search load
+  ;; paths, only the fallback path. If the .go file is missing or out of
+  ;; date, and autocompilation is enabled, will try autocompilation, just
+  ;; as primitive-load-path does internally. primitive-load is
+  ;; unaffected. Returns #f if autocompilation failed or was disabled.
+  (define (autocompiled-file-name name)
+    (catch #t
+      (lambda ()
+        (let* ((cfn ((@ (system base compile) compiled-file-name) name))
+               (scmstat (stat name))
+               (gostat (stat cfn #f)))
+          (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
+              cfn
+              (begin
+                (if gostat
+                    (format (current-error-port)
+                            ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
+                            name cfn))
+                (cond
+                 (%load-should-autocompile
+                  (%warn-autocompilation-enabled)
+                  (format (current-error-port) ";;; compiling ~a\n" name)
+                  (let ((cfn ((@ (system base compile) compile-file) name
+                              #:env (current-module))))
+                    (format (current-error-port) ";;; compiled ~a\n" cfn)
+                    cfn))
+                 (else #f))))))
+      (lambda (k . args)
+        (format (current-error-port)
+                ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
+                name k args)
+        #f)))
   (with-fluid* current-reader (and (pair? reader) (car reader))
     (lambda ()
       (let ((cfn (autocompiled-file-name name)))
