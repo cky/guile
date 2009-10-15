@@ -572,6 +572,21 @@ that they are loading).  @code{current-reader} is a fluid, so it has an
 independent value in each dynamic root and should be read and set using
 @code{fluid-ref} and @code{fluid-set!} (@pxref{Fluids and Dynamic
 States}).
+
+Changing @code{current-reader} is typically useful to introduce local
+syntactic changes, such that code following the @code{fluid-set!} call
+is read using the newly installed reader.  The @code{current-reader}
+change should take place at evaluation time when the code is evaluated,
+or at compilation time when the code is compiled:
+
+@findex eval-when
+@example
+(eval-when (compile eval)
+  (fluid-set! current-reader my-own-reader))
+@end example
+
+The @code{eval-when} form above ensures that the @code{current-reader}
+change occurs at the right time.
 @end defvar
 
 @defvar %load-hook

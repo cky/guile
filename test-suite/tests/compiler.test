@@ -98,4 +98,10 @@
                    this-should-be-ignored")))
       (and (eq? (vm-load (the-vm) (read-and-compile input))
                 'ok)
-           (eq? r (fluid-ref current-reader))))))
+           (eq? r (fluid-ref current-reader)))))
+
+  (pass-if "with eval-when"
+    (let ((r (fluid-ref current-reader)))
+      (compile '(eval-when (compile eval)
+                  (fluid-set! current-reader (lambda args 'chbouib))))
+      (eq? (fluid-ref current-reader) r))))

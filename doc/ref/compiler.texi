@@ -236,11 +236,48 @@ which puts the user in the @code{(foo)} module. That is purpose of the
 when compiling the subsequent expression.
 
 For Scheme, an environment may be one of two things:
+
 @itemize
 @item @code{#f}, in which case compilation is performed in the context
 of the current module; or
 @item a module, which specifies the context of the compilation.
 @end itemize
+
+By default, the @code{compile} and @code{compile-file} procedures
+compile in a fresh module, such that bindings and macros introduced by
+the expression being compiled are isolated:
+
+@example
+(eq? (current-module) (compile '(current-module)))
+@result{} #f
+
+(compile '(define hello 'world))
+(defined? 'hello)
+@result{} #f
+
+(define / *)
+(eq? (compile '/) /)
+@result{} #f
+@end example
+
+Similarly, changes to the @code{current-reader} fluid (@pxref{Loading,
+@code{current-reader}}) are isolated:
+
+@example
+(compile '(fluid-set! current-reader (lambda args 'fail)))
+(fluid-ref current-reader)
+@result{} #f
+@end example
+
+Nevertheless, having the compiler and @dfn{compilee} share the same name
+space can be achieved by explicitly passing @code{(current-module)} as
+the compilation environment:
+
+@example
+(define hello 'world)
+(compile 'hello #:env (current-module))
+@result{} world
+@end example
 
 @node Tree-IL
 @subsection Tree-IL
