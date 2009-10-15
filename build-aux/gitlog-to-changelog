@@ -1,4 +1,7 @@
-#!/usr/bin/perl
+#!/bin/sh
+# Accommodate systems where /usr/bin/perl is not the right path.
+exec perl -x "$0" "$@"
+#!perl
 # Convert git log output to ChangeLog format.
 
 my $VERSION = '2009-06-04 08:53'; # UTC
