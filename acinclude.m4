@@ -341,8 +341,11 @@ dnl Check for compiler thread-local storage (TLS) support.
 AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
   AC_CACHE_CHECK([whether the `__thread' storage class is available],
     [ac_cv_have_thread_storage_class],
-    [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
-			  [tls_integer = 123;])],
+    [dnl On some systems, e.g., NetBSD 5.0 with GCC 4.1, `__thread' is
+     dnl properly compiled but fails to link due to the lack of TLS
+     dnl support in the C library.  Thus we try to link, not just compile.
+     AC_LINK_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
+		      [tls_integer = 123;])],
        [ac_cv_have_thread_storage_class="yes"],
        [ac_cv_have_thread_storage_class="no"])])
 
