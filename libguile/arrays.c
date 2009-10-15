@@ -243,7 +243,8 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
     }
   else
     {
-      if (rlen * (sz / 8) + rlen * (sz % 8) / 8 != byte_len)
+      /* byte_len ?= ceil (rlen * sz / 8) */
+      if (byte_len != (rlen * sz + 7) / 8)
         SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
     }
 
