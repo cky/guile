@@ -51,7 +51,6 @@ SOURCES =								\
   $(OOP_SOURCES)							\
   $(SYSTEM_SOURCES)                                                     \
   $(SCRIPTS_SOURCES)                                                    \
-  $(GHIL_LANG_SOURCES)                                                  \
   $(ECMASCRIPT_LANG_SOURCES)						\
   $(BRAINFUCK_LANG_SOURCES)
 
@@ -69,11 +68,9 @@ ice-9/psyntax-pp.scm: ice-9/psyntax.scm
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 SCHEME_LANG_SOURCES =						\
-  language/scheme/compile-ghil.scm 				\
   language/scheme/spec.scm					\
   language/scheme/compile-tree-il.scm				\
-  language/scheme/decompile-tree-il.scm				\
-  language/scheme/inline.scm
+  language/scheme/decompile-tree-il.scm
 
 TREE_IL_LANG_SOURCES =						\
   language/tree-il/primitives.scm				\
@@ -83,9 +80,6 @@ TREE_IL_LANG_SOURCES =						\
   language/tree-il/analyze.scm					\
   language/tree-il/compile-glil.scm 				\
   language/tree-il/spec.scm
-
-GHIL_LANG_SOURCES =						\
-  language/ghil.scm language/ghil/spec.scm language/ghil/compile-glil.scm
 
 GLIL_LANG_SOURCES =						\
   language/glil/spec.scm language/glil/compile-assembly.scm 	\
