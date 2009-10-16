@@ -34,7 +34,7 @@
 (define-language tree-il
   #:title	"Tree Intermediate Language"
   #:version	"1.0"
-  #:reader	read
+  #:reader	(lambda (port env) (read port))
   #:printer	write-tree-il
   #:parser      parse-tree-il
   #:joiner      join

@@ -38,19 +38,18 @@
 (define-language scheme
   #:title	"Guile Scheme"
   #:version	"0.5"
-  #:reader      (lambda args
-                  ;; Read using the compilation environment's current reader.
-                  ;; Don't use the current module's `current-reader' because
-                  ;; it might be set, e.g., to the REPL's reader, so we'd
-                  ;; enter an infinite recursion.
-                  ;; FIXME: Handle `read-options' as well.
-                  (let* ((mod  (current-compilation-environment))
-                         (cr   (and (module? mod)
-                                    (module-ref mod 'current-reader)))
-                         (read (if (and cr (fluid-ref cr))
-                                   (fluid-ref cr)
-                                   read)))
-                    (apply read args)))
+  #:reader      (lambda (port env)
+                  ;; Use the binding of current-reader from the environment.
+                  ;; FIXME: Handle `read-options' as well?
+                  ((or (and=> (and=> (module-variable 
+                                      (cond ((pair? env) (car env))
+                                            (env)
+                                            (else (current-module)))
+                                      'current-reader)
+                                     variable-ref)
+                              fluid-ref)
+                       read)
+                   port))
 
   #:compilers   `((tree-il . ,compile-tree-il))
   #:decompilers `((tree-il . ,decompile-tree-il))

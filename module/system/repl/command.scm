@@ -133,9 +133,13 @@
      (define (name repl)
        docstring
        (let* ((expression0
-               (with-fluid* current-reader
-                            (language-reader (repl-language repl))
-                 (lambda () (repl-reader ""))))
+               (repl-reader ""
+                            (lambda args
+                              (let ((port (if (pair? args)
+                                              (car args)
+                                              (current-input-port))))
+                                ((language-reader (repl-language repl))
+                                 port (current-module))))))
               ...)
          (apply (lambda datums b0 b1 ...)
                 (let ((port (open-input-string (read-line repl))))

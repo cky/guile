@@ -31,7 +31,7 @@
 (define-language ecmascript
   #:title	"Guile ECMAScript"
   #:version	"3.0"
-  #:reader	(lambda () (read-ecmascript/1 (current-input-port)))
+  #:reader	(lambda (port env) (read-ecmascript/1 port))
   #:compilers   `((tree-il . ,compile-tree-il))
   ;; a pretty-printer would be interesting.
   #:printer	write

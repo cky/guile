@@ -235,7 +235,7 @@ function should only be called from stages in the compiler tower."
                          (language-default-environment from))))
         (let lp ((exps '()) (env #f)
                  (cenv (fluid-ref *compilation-environment*)))
-          (let ((x ((language-reader (current-language)) port)))
+          (let ((x ((language-reader (current-language)) port env)))
             (cond
              ((eof-object? x)
               (compile ((language-joiner joint) (reverse exps) env)

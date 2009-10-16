@@ -61,7 +61,8 @@
           (module-name (current-module))))
 
 (define (repl-read repl)
-  ((language-reader (repl-language repl))))
+  ((language-reader (repl-language repl)) (current-input-port)
+                                          (current-module)))
 
 (define (repl-compile repl form . opts)
   (let ((to (lookup-language (cond ((memq #:e opts) 'scheme)
