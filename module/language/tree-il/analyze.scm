@@ -633,76 +633,67 @@
   (defs  toplevel-info-defs)  ;; (VARIABLE-NAME ...)
   (locs  toplevel-info-locs)) ;; (LOCATION ...)
 
-(define (env-module e)
-  "Return the module corresponding to E."
-  ;; XXX: This is a bit of a hack since since representation of compile-time
-  ;; environments is hidden in `(language scheme compile-tree-il)'.
-  (cond ((pair? e)   (car e))
-        ((module? e) e)
-        (else        (current-module))))
-
 ;; TODO: Combine with `report-unused-variables' so we don't traverse the tree
 ;; once for each warning type.
 
 (define (report-possibly-unbound-variables tree env)
   "Return possibly unbound variables in TREE.  Return TREE."
   (define toplevel
-    (let ((env (env-module env)))
-      (tree-il-fold (lambda (x info)
-                      ;; X is a leaf: extend INFO's refs accordingly.
-                      (let ((refs (toplevel-info-refs info))
-                            (defs (toplevel-info-defs info))
-                            (locs (toplevel-info-locs info)))
-                        (define (bound? name)
-                          (or (and (module? env)
-                                   (module-variable env name))
-                              (memq name defs)))
+    (tree-il-fold (lambda (x info)
+                    ;; X is a leaf: extend INFO's refs accordingly.
+                    (let ((refs (toplevel-info-refs info))
+                          (defs (toplevel-info-defs info))
+                          (locs (toplevel-info-locs info)))
+                      (define (bound? name)
+                        (or (and (module? env)
+                                 (module-variable env name))
+                            (memq name defs)))
 
-                        (record-case x
-                          ((<toplevel-ref> name src)
-                           (if (bound? name)
-                               info
-                               (let ((src (or src (find pair? locs))))
-                                 (make-toplevel-info (alist-cons name src refs)
-                                                     defs
-                                                     locs))))
-                          (else info))))
+                      (record-case x
+                        ((<toplevel-ref> name src)
+                         (if (bound? name)
+                             info
+                             (let ((src (or src (find pair? locs))))
+                               (make-toplevel-info (alist-cons name src refs)
+                                                   defs
+                                                   locs))))
+                        (else info))))
 
-                    (lambda (x info)
-                      ;; Going down into X.
-                      (let* ((refs (toplevel-info-refs info))
-                             (defs (toplevel-info-defs info))
-                             (src  (tree-il-src x))
-                             (locs (cons src (toplevel-info-locs info))))
-                        (define (bound? name)
-                          (or (and (module? env)
-                                   (module-variable env name))
-                              (memq name defs)))
+                  (lambda (x info)
+                    ;; Going down into X.
+                    (let* ((refs (toplevel-info-refs info))
+                           (defs (toplevel-info-defs info))
+                           (src  (tree-il-src x))
+                           (locs (cons src (toplevel-info-locs info))))
+                      (define (bound? name)
+                        (or (and (module? env)
+                                 (module-variable env name))
+                            (memq name defs)))
 
-                        (record-case x
-                          ((<toplevel-set> name src)
-                           (if (bound? name)
-                               (make-toplevel-info refs defs locs)
-                               (let ((src (find pair? locs)))
-                                 (make-toplevel-info (alist-cons name src refs)
-                                                     defs
-                                                     locs))))
-                          ((<toplevel-define> name)
-                           (make-toplevel-info (alist-delete name refs eq?)
-                                               (cons name defs)
-                                               locs))
-                          (else
-                           (make-toplevel-info refs defs locs)))))
+                      (record-case x
+                        ((<toplevel-set> name src)
+                         (if (bound? name)
+                             (make-toplevel-info refs defs locs)
+                             (let ((src (find pair? locs)))
+                               (make-toplevel-info (alist-cons name src refs)
+                                                   defs
+                                                   locs))))
+                        ((<toplevel-define> name)
+                         (make-toplevel-info (alist-delete name refs eq?)
+                                             (cons name defs)
+                                             locs))
+                        (else
+                         (make-toplevel-info refs defs locs)))))
 
-                    (lambda (x info)
-                      ;; Leaving X's scope.
-                      (let ((refs (toplevel-info-refs info))
-                            (defs (toplevel-info-defs info))
-                            (locs (toplevel-info-locs info)))
-                        (make-toplevel-info refs defs (cdr locs))))
+                  (lambda (x info)
+                    ;; Leaving X's scope.
+                    (let ((refs (toplevel-info-refs info))
+                          (defs (toplevel-info-defs info))
+                          (locs (toplevel-info-locs info)))
+                      (make-toplevel-info refs defs (cdr locs))))
 
-                    (make-toplevel-info '() '() '())
-                    tree)))
+                  (make-toplevel-info '() '() '())
+                  tree))
 
   (for-each (lambda (name+loc)
               (let ((name (car name+loc))

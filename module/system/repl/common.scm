@@ -70,13 +70,7 @@
                                    ((memq #:c opts) 'glil)
                                    (else 'objcode))))
         (from (repl-language repl)))
-    (compile form #:from from #:to to #:opts opts
-                  ;; XXX: Languages other than Scheme may not support having
-                  ;; a module as the environment, so work around that.  See
-                  ;; also `language-default-environment'.
-                  #:env (if (eq? from (lookup-language 'scheme))
-                            (current-module)
-                            #f))))
+    (compile form #:from from #:to to #:opts opts #:env (current-module))))
 
 (define (repl-parse repl form)
   (let ((parser (language-parser (repl-language repl))))

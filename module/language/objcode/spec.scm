@@ -22,25 +22,17 @@
   #:use-module (system base language)
   #:use-module (system vm objcode)
   #:use-module (system vm program)
-  #:export (objcode make-objcode-env))
-
-(define (make-objcode-env module externals)
-  (cons module externals))
-
-(define (objcode-env-module env)
-  (if env (car env) (current-module)))
-
-(define (objcode-env-externals env)
-  (and env (vector? (cdr env)) (cdr env)))
+  #:export (objcode))
 
 (define (objcode->value x e opts)
-  (let ((thunk (make-program x #f (objcode-env-externals e))))
-    (if e
+  (let ((thunk (make-program x #f #f)))
+    (if (eq? e (current-module))
+        ;; save a cons in this case
+        (values (thunk) e e)
         (save-module-excursion
          (lambda ()
-           (set-current-module (objcode-env-module e))
-           (values (thunk) #f e)))
-        (values (thunk) #f e))))
+           (set-current-module e)
+           (values (thunk) e e))))))
 
 ;; since locals are allocated on the stack and can have limited scope,
 ;; in many cases we use one local for more than one lexical variable. so

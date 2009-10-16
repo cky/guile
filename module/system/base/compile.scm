@@ -141,9 +141,9 @@
 
 (define* (compile-file file #:key
                        (output-file #f)
-                       (env #f)
                        (from (current-language))
                        (to 'objcode)
+                       (env (default-environment from))
                        (opts '()))
   (let* ((comp (or output-file (compiled-file-name file)))
          (in (open-input-file file))
@@ -159,10 +159,11 @@
       file)
     comp))
 
-(define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
+(define* (compile-and-load file #:key (from 'scheme) (to 'value)
+                           (env (current-module)) (opts '()))
   (read-and-compile (open-input-file file)
                     #:from from #:to to #:opts opts
-                    #:env (current-module)))
+                    #:env env))
 
 
 ;;;
@@ -191,33 +192,10 @@
           (else
            (lp (cdr in) (caar in))))))
 
-(define (make-compilation-module)
-  "Return a fresh module to be used as the compilation environment."
-
-  ;; Ideally we'd duplicate the whole module hierarchy so that `set!',
-  ;; `fluid-set!', etc. don't have any effect in the current environment.
-
-  (let ((m (make-module)))
-    (beautify-user-module! m)
-
-    ;; Provide a separate `current-reader' fluid so that the Scheme language
-    ;; reader doesn't get to see the REPL's settings for `current-reader',
-    ;; which would lead to an infinite loop.
-    (module-define! m 'current-reader (make-fluid))
-
-    m))
-
-(define (language-default-environment lang)
-  "Return the default compilation environment for source language LANG."
-  (if (or (eq? lang 'scheme)
-          (eq? lang (lookup-language 'scheme)))
-      (make-compilation-module)
-      #f))
-
 (define* (read-and-compile port #:key
                            (from (current-language))
                            (to 'objcode)
-                           (env (language-default-environment from))
+                           (env (default-environment from))
                            (opts '()))
   (let ((from (ensure-language from))
         (to (ensure-language to)))
@@ -227,10 +205,11 @@
           (let ((x ((language-reader (current-language)) port cenv)))
             (cond
              ((eof-object? x)
-              ;; FIXME: what if there are no expressions to be read?
-              ;; then env is #f. Here default to cenv in that case.
               (compile ((language-joiner joint) (reverse exps) env)
-                       #:from joint #:to to #:env (or env cenv) #:opts opts))
+                       #:from joint #:to to
+                       ;; env can be false if no expressions were read.
+                       #:env (or env (default-environment joint))
+                       #:opts opts))
              (else
               ;; compile-fold instead of compile so we get the env too
               (receive (jexp jenv jcenv)
@@ -241,7 +220,7 @@
 (define* (compile x #:key
                   (from (current-language))
                   (to 'value)
-                  (env (language-default-environment from))
+                  (env (default-environment from))
                   (opts '()))
 
   (let ((warnings (memq #:warnings opts)))

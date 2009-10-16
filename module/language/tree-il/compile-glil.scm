@@ -65,10 +65,10 @@
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
 
-    (with-fluid* *comp-module* (or (and e (car e)) (current-module))
+    (with-fluid* *comp-module* e
       (lambda ()
         (values (flatten-lambda x #f allocation)
-                (and e (cons (car e) (cddr e)))
+                e
                 e)))))
 
 

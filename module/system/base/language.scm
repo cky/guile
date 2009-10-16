@@ -25,10 +25,10 @@
             language-name language-title language-version language-reader
             language-printer language-parser 
             language-compilers language-decompilers language-evaluator
-            language-joiner
+            language-joiner language-make-default-environment
 
             lookup-compilation-order lookup-decompilation-order
-            invalidate-compilation-cache!))
+            invalidate-compilation-cache! default-environment))
 
 
 ;;;
@@ -45,7 +45,8 @@
   (compilers '())
   (decompilers '())
   (evaluator #f)
-  (joiner #f))
+  (joiner #f)
+  (make-default-environment make-fresh-user-module))
 
 (define-macro (define-language name . spec)
   `(begin
@@ -97,3 +98,8 @@
                       reverse!)))
           (set! *decompilation-cache* (acons key order *decompilation-cache*))
           order))))
+
+(define (default-environment lang)
+  "Return the default compilation environment for source language LANG."
+  ((language-make-default-environment
+    (if (language? lang) lang (lookup-language lang)))))

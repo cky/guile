@@ -2008,6 +2008,11 @@
       ;; Import the default set of bindings (from the SCM module) in MODULE.
       (module-use! module the-scm-module)))
 
+(define (make-fresh-user-module)
+  (let ((m (make-module)))
+    (beautify-user-module! m)
+    m))
+
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
 (define resolve-module
