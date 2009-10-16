@@ -241,12 +241,15 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
       if (byte_len / (sz / 8) != rlen)
         SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
     }
-  else
+  else if (sz < 8)
     {
       /* byte_len ?= ceil (rlen * sz / 8) */
       if (byte_len != (rlen * sz + 7) / 8)
         SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
     }
+  else
+    /* an internal guile error, really */
+    SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
   memcpy (elts, bytes, byte_len);
 

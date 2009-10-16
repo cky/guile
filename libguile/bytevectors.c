@@ -604,9 +604,12 @@ SCM_DEFINE (scm_uniform_array_to_bytevector, "uniform-array->bytevector",
   sz = scm_array_handle_uniform_element_bit_size (&h);
   if (sz >= 8 && ((sz % 8) == 0))
     byte_len = len * (sz / 8);
-  else
+  else if (sz < 8)
     /* byte_len = ceil (len * sz / 8) */
     byte_len = (len * sz + 7) / 8;
+  else
+    /* an internal guile error, really */
+    SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
   ret = make_bytevector (byte_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   memcpy (SCM_BYTEVECTOR_CONTENTS (ret), elts, byte_len);
