@@ -1,0 +1,51 @@
+;;;; test brainfuck compilation -*- scheme -*-
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite tests brainfuck)
+  #:use-module (test-suite lib)
+  #:use-module (system base compile))
+
+;; This program taken from Wikipedia's brainfuck introduction page.
+(define prog "
+   +++ +++ +++ +           initialize counter (cell #0) to 10
+   [                       use loop to set the next four cells to 70/100/30/10
+       > +++ +++ +             add  7 to cell #1
+       > +++ +++ +++ +         add 10 to cell #2 
+       > +++                   add  3 to cell #3
+       > +                     add  1 to cell #4
+       <<< < -                 decrement counter (cell #0)
+   ]                   
+   >++ .                   print 'H'
+   >+.                     print 'e'
+   +++ +++ +.              print 'l'
+   .                       print 'l'
+   +++ .                   print 'o'
+   >++ .                   print ' '
+   <<+ +++ +++ +++ +++ ++. print 'W'
+   >.                      print 'o'
+   +++ .                   print 'r'
+   --- --- .               print 'l'
+   --- --- --.             print 'd'
+   >+.                     print '!'")
+
+(pass-if
+ (equal? (with-output-to-string
+          (lambda ()
+            (call-with-input-string
+             prog
+             (lambda (port)
+               (read-and-compile port #:from 'brainfuck #:to 'value)))))
+         "Hello World!"))

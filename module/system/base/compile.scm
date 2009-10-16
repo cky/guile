@@ -28,7 +28,10 @@
   #:use-module (ice-9 receive)
   #:export (syntax-error 
             *current-language*
-            compiled-file-name compile-file compile-and-load
+            compiled-file-name
+            compile-file
+            compile-and-load
+            read-and-compile
             compile
             decompile)
   #:export-syntax (call-with-compile-error-catch))

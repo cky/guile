@@ -26,6 +26,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/arbiters.test			\
 	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
+	    tests/brainfuck.test		\
 	    tests/bytevectors.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\

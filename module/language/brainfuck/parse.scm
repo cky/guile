@@ -66,9 +66,16 @@
 (define (read-brainfuck p)
   (let iterate ((parsed '()))
     (let ((chr (read-char p)))
-      (if (or (eof-object? chr) (eq? #\] chr))
-        (reverse-without-nops parsed)
-        (iterate (cons (process-input-char chr p) parsed))))))
+      (cond
+       ((eof-object? chr)
+        (let ((parsed (reverse-without-nops parsed)))
+          (if (null? parsed)
+              chr ;; pass on the EOF object
+              parsed)))
+       ((eqv? chr #\])
+        (reverse-without-nops parsed))
+       (else
+        (iterate (cons (process-input-char chr p) parsed)))))))
 
 
 ; This routine processes a single character of input and builds the
