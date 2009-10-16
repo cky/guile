@@ -1,6 +1,6 @@
 ;;;; readline.scm --- support functions for command-line editing
 ;;;;
-;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -208,7 +208,7 @@
       (let ((repl-read-hook (lambda () (run-hook before-read-hook))))
 	(set-current-input-port (readline-port))
 	(set! repl-reader
-	      (lambda (repl-prompt)
+	      (lambda (repl-prompt . reader)
 		(let ((outer-new-input-prompt new-input-prompt)
 		      (outer-continuation-prompt continuation-prompt)
 		      (outer-read-hook read-hook))
@@ -217,7 +217,9 @@
 			(set-buffered-input-continuation?! (readline-port) #f)
 			(set-readline-prompt! repl-prompt "... ")
 			(set-readline-read-hook! repl-read-hook))
-		      (lambda () ((or (fluid-ref current-reader) read)))
+		      (lambda () ((or (and (pair? reader) (car reader))
+                                      (fluid-ref current-reader)
+                                      read)))
 		      (lambda ()
 			(set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
 			(set-readline-read-hook! outer-read-hook))))))

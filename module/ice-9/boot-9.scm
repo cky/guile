@@ -2705,11 +2705,14 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; The default repl-reader function.  We may override this if we've
 ;;; the readline library.
 (define repl-reader
-  (lambda (prompt)
+  (lambda (prompt . reader)
     (display (if (string? prompt) prompt (prompt)))
     (force-output)
     (run-hook before-read-hook)
-    ((or (fluid-ref current-reader) read) (current-input-port))))
+    ((or (and (pair? reader) (car reader))
+         (fluid-ref current-reader)
+         read)
+     (current-input-port))))
 
 (define (scm-style-repl)
 
