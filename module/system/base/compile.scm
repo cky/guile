@@ -28,7 +28,6 @@
   #:use-module (ice-9 receive)
   #:export (syntax-error 
             *current-language*
-            current-compilation-environment
             compiled-file-name compile-file compile-and-load
             compile
             decompile)
@@ -63,12 +62,6 @@
 (fluid-set! *current-language* 'scheme)
 (define (current-language)
   (fluid-ref *current-language*))
-
-(define *compilation-environment* (make-fluid))
-(define (current-compilation-environment)
-  "Return the current compilation environment (a module) or #f.  This
-function should only be called from stages in the compiler tower."
-  (fluid-ref *compilation-environment*))
 
 (define (call-once thunk)
   (let ((entered #f))
@@ -222,24 +215,22 @@ function should only be called from stages in the compiler tower."
       #f))
 
 (define* (read-and-compile port #:key
-                           (env #f)
                            (from (current-language))
                            (to 'objcode)
+                           (env (language-default-environment from))
                            (opts '()))
   (let ((from (ensure-language from))
         (to (ensure-language to)))
     (let ((joint (find-language-joint from to)))
-      (with-fluids ((*current-language* from)
-                    (*compilation-environment*
-                     (or env
-                         (language-default-environment from))))
-        (let lp ((exps '()) (env #f)
-                 (cenv (fluid-ref *compilation-environment*)))
-          (let ((x ((language-reader (current-language)) port env)))
+      (with-fluids ((*current-language* from))
+        (let lp ((exps '()) (env #f) (cenv env))
+          (let ((x ((language-reader (current-language)) port cenv)))
             (cond
              ((eof-object? x)
+              ;; FIXME: what if there are no expressions to be read?
+              ;; then env is #f. Here default to cenv in that case.
               (compile ((language-joiner joint) (reverse exps) env)
-                       #:from joint #:to to #:env env #:opts opts))
+                       #:from joint #:to to #:env (or env cenv) #:opts opts))
              (else
               ;; compile-fold instead of compile so we get the env too
               (receive (jexp jenv jcenv)
@@ -248,9 +239,9 @@ function should only be called from stages in the compiler tower."
                 (lp (cons jexp exps) jenv jcenv))))))))))
 
 (define* (compile x #:key
-                  (env #f)
                   (from (current-language))
                   (to 'value)
+                  (env (language-default-environment from))
                   (opts '()))
 
   (let ((warnings (memq #:warnings opts)))
@@ -263,9 +254,7 @@ function should only be called from stages in the compiler tower."
                     warnings))))
 
   (receive (exp env cenv)
-      (let ((env (or env (language-default-environment from))))
-        (with-fluids ((*compilation-environment* env))
-          (compile-fold (compile-passes from to opts) x env opts)))
+      (compile-fold (compile-passes from to opts) x env opts)
     exp))
 
 

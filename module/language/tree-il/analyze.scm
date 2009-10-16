@@ -24,8 +24,6 @@
   #:use-module (system base syntax)
   #:use-module (system base message)
   #:use-module (language tree-il)
-  #:use-module ((system base compile)
-                #:select (current-compilation-environment))
   #:export (analyze-lexicals
             report-unused-variables
             report-possibly-unbound-variables))
@@ -641,7 +639,7 @@
   ;; environments is hidden in `(language scheme compile-tree-il)'.
   (cond ((pair? e)   (car e))
         ((module? e) e)
-        (else        (current-compilation-environment))))
+        (else        (current-module))))
 
 ;; TODO: Combine with `report-unused-variables' so we don't traverse the tree
 ;; once for each warning type.
