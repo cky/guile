@@ -250,7 +250,7 @@
                            ,(modulo (+ nreq nopt) 256))))
              (else
               (if else-label
-                  `((br-if-nargs-ge ,(quotient (+ nreq nopt) 256)
+                  `((br-if-nargs-gt ,(quotient (+ nreq nopt) 256)
                                     ,(modulo (+ nreq nopt) 256)
                                     ,else-label))
                   `((assert-nargs-ee ,(quotient (+ nreq nopt) 256)
@@ -274,7 +274,9 @@
                   `((assert-nargs-ge ,(quotient nreq 256)
                                      ,(modulo nreq 256)))))
              (bind-optionals-and-shuffle
-              `((bind-optionals-and-shuffle-kwargs
+              `((bind-optionals/shuffle
+                 ,(quotient nreq 256)
+                 ,(modulo nreq 256)
                  ,(quotient (+ nreq nopt) 256)
                  ,(modulo (+ nreq nopt) 256)
                  ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
@@ -284,13 +286,12 @@
               ;; in, space has been made for kwargs, and the kwargs
               ;; themselves have been shuffled above the slots for all
               ;; req/opt/kwargs locals.
-              `((,(if allow-other-keys? 'bind-kwargs/aok 'bind-kwargs/no-aok)
+              `((bind-kwargs
                  ,(quotient kw-idx 256)
                  ,(modulo kw-idx 256)
-                 ,(quotient (+ nreq nopt) 256)
-                 ,(modulo (+ nreq nopt) 256)
                  ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
-                 ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256))))
+                 ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)
+                 ,(if allow-other-keys? 1 0))))
              (bind-rest
               (if rest?
                   `((bind-rest ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)

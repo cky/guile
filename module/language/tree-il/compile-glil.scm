@@ -599,28 +599,61 @@
                   (emit-code #f (make-glil-call 'make-closure 2)))))))
        (maybe-emit-return))
       
-      ((<lambda-case> req opt kw rest vars predicate else body)
-       ;; the prelude, to check args & reset the stack pointer,
-       ;; allowing room for locals
-       (let ((nlocs (cdr (hashq-ref allocation x))))
-         (if rest
-             (emit-code #f (make-glil-opt-prelude (length req) 0 #t nlocs #f))
-             (emit-code #f (make-glil-std-prelude (length req) nlocs #f))))
-       ;; box args if necessary
-       (for-each
-        (lambda (v)
-          (pmatch (hashq-ref (hashq-ref allocation v) self)
-            ((#t #t . ,n)
-             (emit-code #f (make-glil-lexical #t #f 'ref n))
-             (emit-code #f (make-glil-lexical #t #t 'box n)))))
-        vars)
-       ;; write bindings info -- FIXME deal with opt/kw
-       (if (not (null? vars))
-           (emit-bindings #f (append req (if rest (list rest) '()))
-                          vars allocation self emit-code))
-       ;; post-prelude case label for label calls
-       (emit-label (car (hashq-ref allocation x)))
-       (let ((else-label (and else (make-label))))
+      ((<lambda-case> src req opt rest kw vars predicate else body)
+       (let ((nlocs (cdr (hashq-ref allocation x)))
+             (else-label (and else (make-label))))
+         ;; the prelude, to check args & reset the stack pointer,
+         ;; allowing room for locals
+         (emit-code
+          src
+          (cond
+           ;; kw := (allow-other-keys? (#:key name var) ...)
+           (kw
+            (make-glil-kw-prelude
+             (length req) (length (or opt '())) (and rest #t)
+             (map (lambda (x)
+                    (pmatch x
+                      ((,key ,name ,var)
+                       (cons key
+                             (pmatch (hashq-ref (hashq-ref allocation var) self)
+                               ((#t ,boxed . ,n) n)
+                               (,a (error "bad keyword allocation" x a)))))
+                      (,x (error "bad keyword" x))))
+                  (cdr kw))
+             (car kw) nlocs else-label))
+           ((or rest opt)
+            (make-glil-opt-prelude
+             (length req) (length (or opt '())) (and rest #t) nlocs else-label))
+           (#t
+            (make-glil-std-prelude (length req) nlocs else-label))))
+         ;; box args if necessary
+         (for-each
+          (lambda (v)
+            (pmatch (hashq-ref (hashq-ref allocation v) self)
+              ((#t #t . ,n)
+               (emit-code #f (make-glil-lexical #t #f 'ref n))
+               (emit-code #f (make-glil-lexical #t #t 'box n)))))
+          vars)
+         ;; write bindings info
+         (if (not (null? vars))
+             (emit-bindings
+              #f
+              (let lp ((kw (if kw (cdr kw) '()))
+                       (names (append (if opt (reverse opt) '())
+                                      (reverse req)))
+                       (vars (list-tail vars (+ (length req)
+                                                (if opt (length opt) 0)
+                                                (if rest 1 0)))))
+                (pmatch kw
+                  (() (reverse (if rest (cons rest names) names)))
+                  (((,key ,name ,var) . ,kw)
+                   (if (memq var vars)
+                       (lp kw (cons name names) (delq var vars))
+                       (lp kw names vars)))
+                  (,kw (error "bad keywords, yo" kw))))
+              vars allocation self emit-code))
+         ;; post-prelude case label for label calls
+         (emit-label (car (hashq-ref allocation x)))
          (if predicate
              (begin
                (comp-push predicate)

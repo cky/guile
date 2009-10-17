@@ -170,6 +170,21 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     finish_args = SCM_EOL;
     goto vm_error;
 
+  vm_error_kwargs_length_not_even:
+    err_msg  = scm_from_locale_string ("Bad keyword argument list: odd length");
+    finish_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_kwargs_invalid_keyword:
+    err_msg  = scm_from_locale_string ("Bad keyword argument list: expected keyword");
+    finish_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_kwargs_unrecognized_keyword:
+    err_msg  = scm_from_locale_string ("Bad keyword argument list: unrecognized keyword");
+    finish_args = SCM_EOL;
+    goto vm_error;
+
   vm_error_too_many_args:
     err_msg  = scm_from_locale_string ("VM: Too many arguments");
     finish_args = scm_list_1 (scm_from_int (nargs));

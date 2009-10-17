@@ -140,6 +140,12 @@
                         (retrans body)
                         (and=> else retrans)))
 
+     ((lambda-case ((,req ,opt ,rest ,kw ,vars ,predicate) ,body))
+      (make-lambda-case loc req opt rest kw vars
+                        (and=> predicate retrans)
+                        (retrans body)
+                        #f))
+
      ((const ,exp)
       (make-const loc exp))
 
@@ -202,7 +208,7 @@
     ((<lambda-case> req opt rest kw vars predicate body else)
      `(lambda-case ((,req ,opt ,rest ,kw ,vars ,(and=> predicate unparse-tree-il))
                     ,(unparse-tree-il body))
-                   ,(and=> else unparse-tree-il)))
+                   . ,(if else (list (unparse-tree-il else)) '())))
 
     ((<const> exp)
      `(const ,exp))
@@ -268,19 +274,19 @@
     
     ((<lambda-case> req opt rest kw vars predicate body else)
      ;; FIXME
-     #; `(((,@req
-         ,@(if (not opt)
-               '()
-               (cons #:optional opt))
-         ,@(if (not kw)
-               '()
-               (cons #:key (cdr kw)))
-         ,@(if predicate
-               (list #:predicate (tree-il->scheme predicate))
-               '())
-         . ,(or rest '()))
-        ,(tree-il->scheme body))
-       ,@(if else (tree-il->scheme else) '()))
+     ;; `(((,@req
+     ;;    ,@(if (not opt)
+     ;;          '()
+     ;;          (cons #:optional opt))
+     ;;    ,@(if (not kw)
+     ;;          '()
+     ;;          (cons #:key (cdr kw)))
+     ;;    ,@(if predicate
+     ;;          (list #:predicate (tree-il->scheme predicate))
+     ;;          '())
+     ;;    . ,(or rest '()))
+     ;;   ,(tree-il->scheme body))
+     ;;  ,@(if else (tree-il->scheme else) '()))
      `((,(if rest (apply cons* vars) vars)
         ,(tree-il->scheme body))
        ,@(if else (tree-il->scheme else) '())))
