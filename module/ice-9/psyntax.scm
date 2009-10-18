@@ -1323,7 +1323,7 @@
                        (rebuild-macro-output (vector-ref x i) m)))))
               ((symbol? x)
                (syntax-violation #f "encountered raw symbol in macro output"
-                                 (source-wrap e w s mod) x))
+                                 (source-wrap e w (wrap-subst w) mod) x))
               (else x))))
     (rebuild-macro-output (p (wrap e (anti-mark w) mod)) (new-mark))))
 
