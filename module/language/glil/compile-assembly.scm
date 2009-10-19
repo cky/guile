@@ -134,12 +134,12 @@
   (and (not (null? objects))
        (list->vector (cons #f objects))))
 
-;; arities := ((ip nreq [[nopt] [[rest?] [kw]]]]) ...)
-(define (begin-arity addr nreq nopt rest? kw arities)
+;; arities := ((ip nreq [[nopt] [[rest] [kw]]]]) ...)
+(define (begin-arity addr nreq nopt rest kw arities)
   (cons
    (cond
-    (kw (list addr nreq nopt rest? kw))
-    (rest? (list addr nreq nopt rest?))
+    (kw (list addr nreq nopt rest kw))
+    (rest (list addr nreq nopt rest))
     (nopt (list addr nreq nopt))
     (nreq (list addr nreq))
     (else (list addr)))
@@ -151,9 +151,9 @@
     (values x bindings source-alist label-alist object-alist arities))
   (define (emit-code/object x object-alist)
     (values x bindings source-alist label-alist object-alist arities))
-  (define (emit-code/arity x nreq nopt rest? kw)
+  (define (emit-code/arity x nreq nopt rest kw)
     (values x bindings source-alist label-alist object-alist
-            (begin-arity (addr+ addr x) nreq nopt rest? kw arities)))
+            (begin-arity (addr+ addr x) nreq nopt rest kw arities)))
   
   (record-case glil
     ((<glil-program> meta body)
@@ -230,7 +230,7 @@
                         ,(modulo nlocs 256)))
       nreq #f #f #f))
 
-    ((<glil-opt-prelude> nreq nopt rest? nlocs else-label)
+    ((<glil-opt-prelude> nreq nopt rest nlocs else-label)
      (let ((bind-required
             (if else-label
                 `((br-if-nargs-lt ,(quotient nreq 256)
@@ -245,8 +245,8 @@
                                   ,(modulo (+ nreq nopt) 256)))))
            (bind-rest
             (cond
-             (rest?
-              `((bind-rest ,(quotient (+ nreq nopt) 256)
+             (rest
+              `((push-rest ,(quotient (+ nreq nopt) 256)
                            ,(modulo (+ nreq nopt) 256))))
              (else
               (if else-label
@@ -261,9 +261,9 @@
           ,@bind-rest
           (reserve-locals ,(quotient nlocs 256)
                           ,(modulo nlocs 256)))
-        nreq nopt rest? #f)))
+        nreq nopt rest #f)))
     
-    ((<glil-kw-prelude> nreq nopt rest? kw allow-other-keys? nlocs else-label)
+    ((<glil-kw-prelude> nreq nopt rest kw allow-other-keys? nlocs else-label)
      (receive (kw-idx object-alist)
          (object-index-and-alist object-alist kw)
        (let ((bind-required
@@ -293,9 +293,11 @@
                  ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)
                  ,(if allow-other-keys? 1 0))))
              (bind-rest
-              (if rest?
+              (if rest
                   `((bind-rest ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
-                               ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)))
+                               ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)
+                               ,(quotient rest 256)
+                               ,(modulo rest 256)))
                   '())))
          
          (let ((code `(,@bind-required
@@ -305,7 +307,7 @@
                        (reserve-locals ,(quotient nlocs 256)
                                        ,(modulo nlocs 256)))))
            (values code bindings source-alist label-alist object-alist
-                   (begin-arity (addr+ addr code) nreq nopt rest? kw arities))))))
+                   (begin-arity (addr+ addr code) nreq nopt rest kw arities))))))
     
     ((<glil-bind> vars)
      (values '()

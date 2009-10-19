@@ -600,32 +600,65 @@
        (maybe-emit-return))
       
       ((<lambda-case> src req opt rest kw vars predicate else body)
-       (let ((nlocs (cdr (hashq-ref allocation x)))
-             (else-label (and else (make-label))))
+       ;; o/~ feature on top of feature o/~
+       ;; req := (name ...)
+       ;; opt := ((name init) ...) | #f
+       ;; rest := name | #f
+       ;; kw: (allow-other-keys? (keyword name var [init]) ...) | #f
+       ;; vars: (sym ...)
+       ;; predicate: tree-il in context of vars
+       ;; init: tree-il in context of vars
+       ;; vars map to named arguments in the following order:
+       ;;  required, optional (positional), rest, keyword.
+       (let* ((nreq (length req))
+              (nopt (if opt (length opt) 0))
+              (rest-idx (and rest (+ nreq nopt)))
+              (opt-inits (map cdr (or opt '())))
+              (allow-other-keys? (if kw (car kw) #f))
+              (kw-indices (map (lambda (x)
+                                 (pmatch x
+                                   ((,key ,name ,var . _)
+                                    (cons key (list-index vars var)))
+                                   (else (error "bad kwarg" x))))
+                               (if kw (cdr kw) '())))
+              (kw-inits (filter
+                         identity
+                         (map (lambda (x)
+                                (pmatch x
+                                  ((,key ,name ,var ,init)
+                                   (let ((i (list-index vars var)))
+                                     (if (> (+ nreq nopt) i)
+                                         (error "kw init for rest arg" x)
+                                         (if (and rest (= rest-idx i))
+                                             (error "kw init for positional arg" x)
+                                             (cons i init)))))
+                                  ((,key ,name ,var)
+                                   (let ((i (list-index vars var)))
+                                     (if (< (+ nreq nopt) i)
+                                         #f
+                                         (error "missing init for kw arg" x))))
+                                  (else (error "bad kwarg" x))))
+                              (if kw (cdr kw) '()))))
+              (nargs (apply max (+ nreq nopt (if rest 1 0)) (map cdr kw-indices)))
+              (nlocs (cdr (hashq-ref allocation x)))
+              (else-label (and else (make-label))))
+         (or (= nargs
+                (length vars)
+                (+ nreq (length opt-inits) (if rest 1 0) (length kw-inits)))
+             (error "something went wrong"
+                    req opt rest kw vars nreq nopt kw-indices kw-inits nargs))
          ;; the prelude, to check args & reset the stack pointer,
          ;; allowing room for locals
          (emit-code
           src
           (cond
-           ;; kw := (allow-other-keys? (#:key name var) ...)
            (kw
-            (make-glil-kw-prelude
-             (length req) (length (or opt '())) (and rest #t)
-             (map (lambda (x)
-                    (pmatch x
-                      ((,key ,name ,var)
-                       (cons key
-                             (pmatch (hashq-ref (hashq-ref allocation var) self)
-                               ((#t ,boxed . ,n) n)
-                               (,a (error "bad keyword allocation" x a)))))
-                      (,x (error "bad keyword" x))))
-                  (cdr kw))
-             (car kw) nlocs else-label))
+            (make-glil-kw-prelude nreq nopt rest-idx kw-indices
+                                  allow-other-keys? nlocs else-label))
            ((or rest opt)
-            (make-glil-opt-prelude
-             (length req) (length (or opt '())) (and rest #t) nlocs else-label))
+            (make-glil-opt-prelude nreq nopt rest-idx nlocs else-label))
            (#t
-            (make-glil-std-prelude (length req) nlocs else-label))))
+            (make-glil-std-prelude nreq nlocs else-label))))
          ;; box args if necessary
          (for-each
           (lambda (v)
@@ -641,11 +674,12 @@
               (let lp ((kw (if kw (cdr kw) '()))
                        (names (append (if opt (reverse opt) '())
                                       (reverse req)))
-                       (vars (list-tail vars (+ (length req)
-                                                (if opt (length opt) 0)
+                       (vars (list-tail vars (+ nreq nopt
                                                 (if rest 1 0)))))
                 (pmatch kw
-                  (() (reverse (if rest (cons rest names) names)))
+                  (()
+                   ;; fixme: check that vars is empty
+                   (reverse (if rest (cons rest names) names)))
                   (((,key ,name ,var) . ,kw)
                    (if (memq var vars)
                        (lp kw (cons name names) (delq var vars))

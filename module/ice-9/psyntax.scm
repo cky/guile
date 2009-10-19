@@ -482,26 +482,64 @@
              src)))))
 
 (define build-lambda-case
-  ;; kw: ((keyword var init) ...)
+  ;; req := (name ...)
+  ;; opt := ((name init) ...) | #f
+  ;; rest := name | #f
+  ;; kw: (allow-other-keys? (keyword name var [init]) ...) | #f
+  ;; vars: (sym ...)
+  ;; vars map to named arguments in the following order:
+  ;;  required, optional (positional), rest, keyword.
+  ;; predicate: something you can stuff in a (lambda ,vars ,pred), already expanded
+  ;; the body of a lambda: anything, already expanded
+  ;; else: lambda-case | #f
   (lambda (src req opt rest kw vars predicate body else-case)
     (case (fluid-ref *mode*)
       ((c)
        ((@ (language tree-il) make-lambda-case)
         src req opt rest kw vars predicate body else-case))
       (else
-       (let ((nkw (map (lambda (x)
-                         `(list ,(car x)
-                                ;; grr
-                                ,(let lp ((vars vars) (i 0))
-                                   (cond ((null? vars) (error "bad kwarg" x))
-                                         ((eq? (cadr x) (car vars)) i)
-                                         (else (lp (cdr vars) (1+ i)))))
-                                (lambda () ,(caddr x))))
-                       kw)))
+       ;; Very much like the logic of (language tree-il compile-glil).
+       (let* ((nreq (length req))
+              (nopt (if opt (length opt) 0))
+              (rest-idx (and rest (+ nreq nopt)))
+              (opt-inits (map (lambda (x) `(lambda ,vars ,(cdr x)))
+                              (or opt '())))
+              (allow-other-keys? (if kw (car kw) #f))
+              (kw-indices (map (lambda (x)
+                                 ;; (,key ,name ,var . _)
+                                 (cons (car x) (list-index vars (caddr x))))
+                               (if kw (cdr kw) '())))
+              (kw-inits (sort
+                         (filter
+                          identity
+                          (map (lambda (x)
+                                 (if (pair? (cdddr x))
+                                     ;; (,key ,name ,var ,init)
+                                     (let ((i (list-index vars (caddr x))))
+                                       (if (> (+ nreq nopt) i)
+                                           (error "kw init for rest arg" x)
+                                           (if (and rest (= (+ nreq nopt) i))
+                                               (error "kw init for positional arg" x)
+                                               `(lambda ,vars ,(cadddr x)))))
+                                     ;; (,key ,name ,var)
+                                     (let ((i (list-index vars (caddr x))))
+                                       (if (< (+ nreq nopt) i)
+                                           #f
+                                           (error "missing init for kw arg" x)))))
+                               (if kw (cdr kw) '())))
+                         (lambda (x y) (< (cdr x) (cdr y)))))
+              (nargs (apply max (pk (+ nreq nopt (if rest 1 0)))
+                            (map cdr kw-indices))))
+         (or (= nargs
+                (length vars)
+                (+ nreq (length opt-inits) (if rest 1 0) (length kw-inits)))
+             (error "something went wrong"
+                    req opt rest kw vars nreq nopt kw-indices kw-inits nargs))
          (decorate-source
           `((((@@ (ice-9 optargs) parse-lambda-case)
-              (list ,(length req) ,(length opt) ,(and rest #t) ,nkw
-                    ,(if predicate (error "not yet implemented") #f))
+              '(,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
+              (list ,@opt-inits ,@kw-inits)
+              ,(if predicate `(lambda ,vars ,predicate) #f)
               %%args)
              => (lambda ,vars ,body))
             ,@(or else-case

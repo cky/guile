@@ -624,7 +624,7 @@ VM_DEFINE_INSTRUCTION (45, bind_kwargs, "bind-kwargs", 5, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (46, bind_rest, "bind-rest", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (46, push_rest, "push-rest", 2, -1, -1)
 {
   scm_t_ptrdiff n;
   SCM rest = SCM_EOL;
@@ -637,7 +637,23 @@ VM_DEFINE_INSTRUCTION (46, bind_rest, "bind-rest", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (47, reserve_locals, "reserve-locals", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (47, bind_rest, "bind-rest", 4, -1, -1)
+{
+  scm_t_ptrdiff n;
+  scm_t_uint32 i;
+  SCM rest = SCM_EOL;
+  n = FETCH () << 8;
+  n += FETCH ();
+  i = FETCH () << 8;
+  i += FETCH ();
+  while (sp - (fp - 1) > n)
+    /* No need to check for underflow. */
+    CONS (rest, *sp--, rest);
+  LOCAL_SET (i, rest);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (48, reserve_locals, "reserve-locals", 2, -1, -1)
 {
   SCM *old_sp;
   scm_t_int32 n;
@@ -658,7 +674,7 @@ VM_DEFINE_INSTRUCTION (47, reserve_locals, "reserve-locals", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (48, new_frame, "new-frame", 0, 0, 3)
+VM_DEFINE_INSTRUCTION (49, new_frame, "new-frame", 0, 0, 3)
 {
   /* NB: if you change this, see frames.c:vm-frame-num-locals */
   /* and frames.h, vm-engine.c, etc of course */
@@ -668,7 +684,7 @@ VM_DEFINE_INSTRUCTION (48, new_frame, "new-frame", 0, 0, 3)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (49, call, "call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (50, call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
@@ -729,7 +745,7 @@ VM_DEFINE_INSTRUCTION (49, call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (50, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (51, goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
@@ -802,7 +818,7 @@ VM_DEFINE_INSTRUCTION (50, goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (51, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (52, goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -811,7 +827,7 @@ VM_DEFINE_INSTRUCTION (51, goto_nargs, "goto/nargs", 0, 0, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (52, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (53, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -820,7 +836,7 @@ VM_DEFINE_INSTRUCTION (52, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (53, mv_call, "mv-call", 4, -1, 1)
+VM_DEFINE_INSTRUCTION (54, mv_call, "mv-call", 4, -1, 1)
 {
   SCM x;
   scm_t_int32 offset;
@@ -882,7 +898,7 @@ VM_DEFINE_INSTRUCTION (53, mv_call, "mv-call", 4, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (54, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (55, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -901,7 +917,7 @@ VM_DEFINE_INSTRUCTION (54, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (55, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (56, goto_apply, "goto/apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -920,7 +936,7 @@ VM_DEFINE_INSTRUCTION (55, goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (56, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (57, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -957,7 +973,7 @@ VM_DEFINE_INSTRUCTION (56, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (57, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (58, goto_cc, "goto/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -989,7 +1005,7 @@ VM_DEFINE_INSTRUCTION (57, goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (58, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (59, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -1025,7 +1041,7 @@ VM_DEFINE_INSTRUCTION (58, return, "return", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (59, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (60, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -1080,7 +1096,7 @@ VM_DEFINE_INSTRUCTION (59, return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (60, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (61, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -1103,7 +1119,7 @@ VM_DEFINE_INSTRUCTION (60, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (61, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (62, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -1126,7 +1142,7 @@ VM_DEFINE_INSTRUCTION (61, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (62, box, "box", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (63, box, "box", 1, 1, 0)
 {
   SCM val;
   POP (val);
@@ -1140,7 +1156,7 @@ VM_DEFINE_INSTRUCTION (62, box, "box", 1, 1, 0)
      (set! a (lambda () (b ...)))
      ...)
  */
-VM_DEFINE_INSTRUCTION (63, empty_box, "empty-box", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (64, empty_box, "empty-box", 1, 0, 0)
 {
   SYNC_BEFORE_GC ();
   LOCAL_SET (FETCH (),
@@ -1148,7 +1164,7 @@ VM_DEFINE_INSTRUCTION (63, empty_box, "empty-box", 1, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (64, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (65, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
 {
   SCM v = LOCAL_REF (FETCH ());
   ASSERT_BOUND_VARIABLE (v);
@@ -1156,7 +1172,7 @@ VM_DEFINE_INSTRUCTION (64, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (65, local_boxed_set, "local-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (66, local_boxed_set, "local-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   v = LOCAL_REF (FETCH ());
@@ -1166,7 +1182,7 @@ VM_DEFINE_INSTRUCTION (65, local_boxed_set, "local-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (66, free_ref, "free-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (67, free_ref, "free-ref", 1, 0, 1)
 {
   scm_t_uint8 idx = FETCH ();
   
@@ -1177,7 +1193,7 @@ VM_DEFINE_INSTRUCTION (66, free_ref, "free-ref", 1, 0, 1)
 
 /* no free-set -- if a var is assigned, it should be in a box */
 
-VM_DEFINE_INSTRUCTION (67, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (68, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
 {
   SCM v;
   scm_t_uint8 idx = FETCH ();
@@ -1188,7 +1204,7 @@ VM_DEFINE_INSTRUCTION (67, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (68, free_boxed_set, "free-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (69, free_boxed_set, "free-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   scm_t_uint8 idx = FETCH ();
@@ -1200,7 +1216,7 @@ VM_DEFINE_INSTRUCTION (68, free_boxed_set, "free-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (69, make_closure, "make-closure", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (70, make_closure, "make-closure", 0, 2, 1)
 {
   SCM vect;
   POP (vect);
@@ -1211,7 +1227,7 @@ VM_DEFINE_INSTRUCTION (69, make_closure, "make-closure", 0, 2, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (70, make_variable, "make-variable", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (71, make_variable, "make-variable", 0, 0, 1)
 {
   SYNC_BEFORE_GC ();
   /* fixme underflow */
@@ -1219,7 +1235,7 @@ VM_DEFINE_INSTRUCTION (70, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (71, fix_closure, "fix-closure", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (72, fix_closure, "fix-closure", 2, 0, 1)
 {
   SCM x, vect;
   unsigned int i = FETCH ();
@@ -1233,7 +1249,7 @@ VM_DEFINE_INSTRUCTION (71, fix_closure, "fix-closure", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (72, define, "define", 0, 0, 2)
+VM_DEFINE_INSTRUCTION (73, define, "define", 0, 0, 2)
 {
   SCM sym, val;
   POP (sym);
@@ -1245,7 +1261,7 @@ VM_DEFINE_INSTRUCTION (72, define, "define", 0, 0, 2)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (73, make_keyword, "make-keyword", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (74, make_keyword, "make-keyword", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
@@ -1253,7 +1269,7 @@ VM_DEFINE_INSTRUCTION (73, make_keyword, "make-keyword", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (74, make_symbol, "make-symbol", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (75, make_symbol, "make-symbol", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
