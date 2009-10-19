@@ -230,6 +230,21 @@ Thus a Guile script often starts like this.
 More details on Guile scripting can be found in the scripting section
 (@pxref{Guile Scripting}).
 
+@cindex R6RS block comments
+@cindex SRFI-30 block comments
+Similarly, Guile (starting from version 2.0) supports nested block
+comments as specified by R6RS and
+@url{http://srfi.schemers.org/srfi-30/srfi-30.html, SRFI-30}:
+
+@lisp
+(+  #| this is a #| nested |# block comment |# 2)
+@result{} 3
+@end lisp
+
+For backward compatibility, this syntax can be overridden with
+@code{read-hash-extend} (@pxref{Reader Extensions,
+@code{read-hash-extend}}).
+
 There is one special case where the contents of a comment can actually
 affect the interpretation of code.  When a character encoding
 declaration, such as @code{coding: utf-8} appears in one of the first

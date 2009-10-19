@@ -181,8 +181,10 @@ static SCM *scm_read_hash_procedures;
    || ((_chr) == 'd') || ((_chr) == 'l'))
 
 /* Read an SCSH block comment.  */
-static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
-static SCM scm_read_commented_expression (int chr, SCM port);
+static inline SCM scm_read_scsh_block_comment (scm_t_wchar, SCM);
+static SCM scm_read_r6rs_block_comment (scm_t_wchar, SCM);
+static SCM scm_read_commented_expression (scm_t_wchar, SCM);
+static SCM scm_get_hash_procedure (int);
 
 /* Read from PORT until a delimiter (e.g., a whitespace) is read.  Return
    zero if the whole token fits in BUF, non-zero otherwise.  */
@@ -289,6 +291,13 @@ flush_ws (SCM port, const char *eoferr)
 	  case ';':
 	    scm_read_commented_expression (c, port);
 	    break;
+	  case '|':
+	    if (scm_is_false (scm_get_hash_procedure (c)))
+	      {
+		scm_read_r6rs_block_comment (c, port);
+		break;
+	      }
+	    /* fall through */
 	  default:
 	    scm_ungetc (c, port);
 	    return '#';
@@ -313,7 +322,6 @@ flush_ws (SCM port, const char *eoferr)
 
 static SCM scm_read_expression (SCM port);
 static SCM scm_read_sharp (int chr, SCM port);
-static SCM scm_get_hash_procedure (int c);
 static SCM recsexpr (SCM obj, long line, int column, SCM filename);
 
 
@@ -991,6 +999,45 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 }
 
 static SCM
+scm_read_r6rs_block_comment (scm_t_wchar chr, SCM port)
+{
+  /* Unlike SCSH-style block comments, SRFI-30/R6RS block comments may be
+     nested.  So care must be taken.  */
+  int nesting_level = 1;
+  int opening_seen = 0, closing_seen = 0;
+
+  while (nesting_level > 0)
+    {
+      int c = scm_getc (port);
+
+      if (c == EOF)
+	scm_i_input_error (__FUNCTION__, port,
+			   "unterminated `#| ... |#' comment", SCM_EOL);
+
+      if (opening_seen)
+	{
+	  if (c == '|')
+	    nesting_level++;
+	  opening_seen = 0;
+	}
+      else if (closing_seen)
+	{
+	  if (c == '#')
+	    nesting_level--;
+	  closing_seen = 0;
+	}
+      else if (c == '|')
+	closing_seen = 1;
+      else if (c == '#')
+	opening_seen = 1;
+      else
+	opening_seen = closing_seen = 0;
+    }
+
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
 scm_read_commented_expression (scm_t_wchar chr, SCM port)
 {
   scm_t_wchar c;
@@ -1173,8 +1220,19 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     default:
       result = scm_read_sharp_extension (chr, port);
       if (scm_is_eq (result, SCM_UNSPECIFIED))
-	scm_i_input_error (FUNC_NAME, port, "Unknown # object: ~S",
-			   scm_list_1 (SCM_MAKE_CHAR (chr)));
+	{
+	  /* To remain compatible with 1.8 and earlier, the following
+	     characters have lower precedence than `read-hash-extend'
+	     characters.  */
+	  switch (chr)
+	    {
+	    case '|':
+	      return scm_read_r6rs_block_comment (chr, port);
+	    default:
+	      scm_i_input_error (FUNC_NAME, port, "Unknown # object: ~S",
+				 scm_list_1 (SCM_MAKE_CHAR (chr)));
+	    }
+	}
       else
 	return result;
     }
