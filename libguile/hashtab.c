@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -429,9 +429,13 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* Accessing hash table entries.  */
 
 SCM
-scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
+scm_hash_fn_get_handle (SCM table, SCM obj,
+			scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+			void * closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
   int weak = 0;
@@ -659,7 +663,10 @@ SCM_DEFINE (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
 	    "Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_get_handle
 {
-  return scm_hash_fn_get_handle (table, key, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_get_handle (table, key,
+				 (scm_t_hash_fn) scm_ihashq,
+				 (scm_t_assoc_fn) scm_sloppy_assq,
+				 0);
 }
 #undef FUNC_NAME
 
@@ -671,7 +678,10 @@ SCM_DEFINE (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashq_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_create_handle_x (table, key, init,
+				      (scm_t_hash_fn) scm_ihashq,
+				      (scm_t_assoc_fn) scm_sloppy_assq,
+				      0);
 }
 #undef FUNC_NAME
 
@@ -686,7 +696,10 @@ SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, key, dflt, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_ref (table, key, dflt,
+			  (scm_t_hash_fn) scm_ihashq,
+			  (scm_t_assoc_fn) scm_sloppy_assq,
+			  0);
 }
 #undef FUNC_NAME
 
@@ -698,7 +711,10 @@ SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
 	    "store @var{value} there. Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_set_x
 {
-  return scm_hash_fn_set_x (table, key, val, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_set_x (table, key, val,
+			    (scm_t_hash_fn) scm_ihashq,
+			    (scm_t_assoc_fn) scm_sloppy_assq,
+			    0);
 }
 #undef FUNC_NAME
 
@@ -710,7 +726,10 @@ SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{eq?} for equality tests.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_remove_x (table, key,
+			       (scm_t_hash_fn) scm_ihashq,
+			       (scm_t_assoc_fn) scm_sloppy_assq,
+			       0);
 }
 #undef FUNC_NAME
 
@@ -725,7 +744,10 @@ SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
 	    "Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_get_handle
 {
-  return scm_hash_fn_get_handle (table, key, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_get_handle (table, key,
+				 (scm_t_hash_fn) scm_ihashv,
+				 (scm_t_assoc_fn) scm_sloppy_assv,
+				 0);
 }
 #undef FUNC_NAME
 
@@ -737,8 +759,10 @@ SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashv_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashv,
-				      scm_sloppy_assv, 0);
+  return scm_hash_fn_create_handle_x (table, key, init,
+				      (scm_t_hash_fn) scm_ihashv,
+				      (scm_t_assoc_fn) scm_sloppy_assv,
+				      0);
 }
 #undef FUNC_NAME
 
@@ -753,7 +777,10 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, key, dflt, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_ref (table, key, dflt,
+			  (scm_t_hash_fn) scm_ihashv,
+			  (scm_t_assoc_fn) scm_sloppy_assv,
+			  0);
 }
 #undef FUNC_NAME
 
@@ -765,7 +792,10 @@ SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
 	    "store @var{value} there. Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_set_x
 {
-  return scm_hash_fn_set_x (table, key, val, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_set_x (table, key, val,
+			    (scm_t_hash_fn) scm_ihashv,
+			    (scm_t_assoc_fn) scm_sloppy_assv,
+			    0);
 }
 #undef FUNC_NAME
 
@@ -776,7 +806,10 @@ SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{eqv?} for equality tests.")
 #define FUNC_NAME s_scm_hashv_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_remove_x (table, key,
+			       (scm_t_hash_fn) scm_ihashv,
+			       (scm_t_assoc_fn) scm_sloppy_assv,
+			       0);
 }
 #undef FUNC_NAME
 
@@ -790,7 +823,10 @@ SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
 	    "Uses @code{equal?} for equality testing.")
 #define FUNC_NAME s_scm_hash_get_handle
 {
-  return scm_hash_fn_get_handle (table, key, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_get_handle (table, key,
+				 (scm_t_hash_fn) scm_ihash,
+				 (scm_t_assoc_fn) scm_sloppy_assoc,
+				 0);
 }
 #undef FUNC_NAME
 
@@ -802,7 +838,10 @@ SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hash_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_create_handle_x (table, key, init,
+				      (scm_t_hash_fn) scm_ihash,
+				      (scm_t_assoc_fn) scm_sloppy_assoc,
+				      0);
 }
 #undef FUNC_NAME
 
@@ -817,7 +856,10 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, key, dflt, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_ref (table, key, dflt,
+			  (scm_t_hash_fn) scm_ihash,
+			  (scm_t_assoc_fn) scm_sloppy_assoc,
+			  0);
 }
 #undef FUNC_NAME
 
@@ -830,7 +872,10 @@ SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
 	    "testing.")
 #define FUNC_NAME s_scm_hash_set_x
 {
-  return scm_hash_fn_set_x (table, key, val, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_set_x (table, key, val,
+			    (scm_t_hash_fn) scm_ihash,
+			    (scm_t_assoc_fn) scm_sloppy_assoc,
+			    0);
 }
 #undef FUNC_NAME
 
@@ -842,7 +887,10 @@ SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{equal?} for equality tests.")
 #define FUNC_NAME s_scm_hash_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_remove_x (table, key,
+			       (scm_t_hash_fn) scm_ihash,
+			       (scm_t_assoc_fn) scm_sloppy_assoc,
+			       0);
 }
 #undef FUNC_NAME
 
@@ -858,17 +906,20 @@ typedef struct scm_t_ihashx_closure
 
 
 static unsigned long
-scm_ihashx (SCM obj, unsigned long n, scm_t_ihashx_closure *closure)
+scm_ihashx (SCM obj, unsigned long n, void *arg)
 {
-  SCM answer = scm_call_2 (closure->hash, obj, scm_from_ulong (n));
+  SCM answer;
+  scm_t_ihashx_closure *closure = (scm_t_ihashx_closure *) arg;
+  answer = scm_call_2 (closure->hash, obj, scm_from_ulong (n));
   return scm_to_ulong (answer);
 }
 
 
 
 static SCM
-scm_sloppy_assx (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
+scm_sloppy_assx (SCM obj, SCM alist, void *arg)
 {
+  scm_t_ihashx_closure *closure = (scm_t_ihashx_closure *) arg;
   return scm_call_2 (closure->assoc, obj, alist);
 }
 

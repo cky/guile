@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -96,7 +96,7 @@ SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);
 SCM_API SCM scm_struct_vtable_tag (SCM handle);
-SCM_API unsigned long scm_struct_ihashq (SCM obj, unsigned long n);
+SCM_INTERNAL unsigned long scm_struct_ihashq (SCM, unsigned long, void *);
 SCM_API SCM scm_struct_create_handle (SCM obj);
 SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);

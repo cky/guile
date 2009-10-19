@@ -795,7 +795,7 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
  */
 
 unsigned long
-scm_struct_ihashq (SCM obj, unsigned long n)
+scm_struct_ihashq (SCM obj, unsigned long n, void *closure)
 {
   /* The length of the hash table should be a relative prime it's not
      necessary to shift down the address.  */
@@ -809,7 +809,7 @@ scm_struct_create_handle (SCM obj)
 					    obj,
 					    SCM_BOOL_F,
 					    scm_struct_ihashq,
-					    scm_sloppy_assq,
+					    (scm_t_assoc_fn) scm_sloppy_assq,
 					    0);
   if (scm_is_false (SCM_CDR (handle)))
     SCM_SETCDR (handle, scm_cons (SCM_BOOL_F, SCM_BOOL_F));

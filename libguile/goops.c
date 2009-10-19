@@ -3000,7 +3000,7 @@ scm_wrap_component (SCM class, SCM container, void *data)
 					    obj,
 					    SCM_BOOL_F,
 					    scm_struct_ihashq,
-					    scm_sloppy_assq,
+					    (scm_t_assoc_fn) scm_sloppy_assq,
 					    0);
   SCM_SETCDR (handle, container);
   return obj;
