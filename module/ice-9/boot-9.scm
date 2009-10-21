@@ -2630,8 +2630,6 @@ module '(ice-9 q) '(make-q q-length))}."
 		 (apply make-stack #t save-stack primitive-eval #t 0 narrowing))
 		((load-stack)
 		 (apply make-stack #t save-stack 0 #t 0 narrowing))
-		((tk-stack)
-		 (apply make-stack #t save-stack tk-stack-mark #t 0 narrowing))
 		((#t)
 		 (apply make-stack #t save-stack 0 1 narrowing))
 		(else
