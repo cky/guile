@@ -135,6 +135,7 @@ The Guile core has the following features,
 
 @example
 guile
+guile-2  ;; starting from Guile 2.x
 r5rs
 srfi-0
 srfi-4
@@ -160,6 +161,23 @@ how to load it with the Guile mechanism.
               )
              (guile
               (use-modules (srfi srfi-8))))
+@end example
+
+@cindex @code{guile-2} SRFI-0 feature
+@cindex portability between 2.0 and older versions
+Likewise, testing the @code{guile-2} feature allows code to be portable
+between Guile 2.0 and previous versions of Guile.  For instance, it
+makes it possible to write code that accounts for Guile 2.0's compiler,
+yet be correctly interpreted on 1.8 and earlier versions:
+
+@example
+(cond-expand (guile-2 (eval-when (compile)
+                        ;; This must be evaluated at compile time.
+                        (fluid-set! current-reader my-reader)))
+             (guile
+                      ;; Earlier versions of Guile do not have a
+                      ;; separate compilation phase.
+                      (fluid-set! current-reader my-reader)))
 @end example
 
 It should be noted that @code{cond-expand} is separate from the

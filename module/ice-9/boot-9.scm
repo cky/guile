@@ -3258,6 +3258,7 @@ module '(ice-9 q) '(make-q q-length))}."
 (define %cond-expand-features
   ;; Adjust the above comment when changing this.
   '(guile
+    guile-2
     r5rs
     srfi-0   ;; cond-expand itself
     srfi-4   ;; homogenous numeric vectors
