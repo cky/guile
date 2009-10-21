@@ -651,4 +651,19 @@
                                 (define chbouib 5)")))
                       (read-and-compile in
                                         #:env m
+                                        #:opts %opts-w-unbound)))))))
+
+     (pass-if "GOOPS definitions are visible"
+       (let ((m (make-module))
+             (v (gensym)))
+         (beautify-user-module! m)
+         (module-use! m (resolve-interface '(oop goops)))
+         (null? (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string
+                               "(define-class <foo> ()
+                                  (bar #:getter foo-bar))
+                                (define z (foo-bar (make <foo>)))")))
+                      (read-and-compile in
+                                        #:env m
                                         #:opts %opts-w-unbound)))))))))

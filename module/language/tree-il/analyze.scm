@@ -633,6 +633,23 @@
   (defs  toplevel-info-defs)  ;; (VARIABLE-NAME ...)
   (locs  toplevel-info-locs)) ;; (LOCATION ...)
 
+(define (goops-toplevel-definition proc args)
+  ;; If application of PROC to ARGS is a GOOPS top-level definition, return
+  ;; the name of the variable being defined; otherwise return #f.  This
+  ;; assumes knowledge of the current implementation of `define-class' et al.
+  (record-case proc
+    ((<module-ref> mod public? name)
+     (and (equal? mod '(oop goops))
+          (not public?)
+          (eq? name 'toplevel-define!)
+          (pair? args) (pair? (cdr args)) (null? (cddr args))
+          (record-case (car args)
+            ((<const> exp)
+             (and (symbol? exp)
+                  exp))
+            (else #f))))
+    (else #f)))
+
 ;; TODO: Combine with `report-unused-variables' so we don't traverse the tree
 ;; once for each warning type.
 
@@ -682,6 +699,17 @@
                          (make-toplevel-info (alist-delete name refs eq?)
                                              (cons name defs)
                                              locs))
+
+                        ((<application> proc args)
+                         ;; Check for a dynamic top-level definition, as is
+                         ;; done by code expanded from GOOPS macros.
+                         (let ((name (goops-toplevel-definition proc args)))
+                           (if (symbol? name)
+                               (make-toplevel-info (alist-delete name refs
+                                                                 eq?)
+                                                   (cons name defs)
+                                                   locs)
+                               (make-toplevel-info refs defs locs))))
                         (else
                          (make-toplevel-info refs defs locs)))))
 
