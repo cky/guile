@@ -633,21 +633,29 @@
   (defs  toplevel-info-defs)  ;; (VARIABLE-NAME ...)
   (locs  toplevel-info-locs)) ;; (LOCATION ...)
 
-(define (goops-toplevel-definition proc args)
+(define (goops-toplevel-definition proc args env)
   ;; If application of PROC to ARGS is a GOOPS top-level definition, return
   ;; the name of the variable being defined; otherwise return #f.  This
   ;; assumes knowledge of the current implementation of `define-class' et al.
+  (define (toplevel-define-arg args)
+    (and (pair? args) (pair? (cdr args)) (null? (cddr args))
+         (record-case (car args)
+           ((<const> exp)
+            (and (symbol? exp) exp))
+           (else #f))))
+
   (record-case proc
     ((<module-ref> mod public? name)
      (and (equal? mod '(oop goops))
           (not public?)
           (eq? name 'toplevel-define!)
-          (pair? args) (pair? (cdr args)) (null? (cddr args))
-          (record-case (car args)
-            ((<const> exp)
-             (and (symbol? exp)
-                  exp))
-            (else #f))))
+          (toplevel-define-arg args)))
+    ((<toplevel-ref> name)
+     ;; This may be the result of expanding one of the GOOPS macros within
+     ;; `oop/goops.scm'.
+     (and (eq? name 'toplevel-define!)
+          (eq? env (resolve-module '(oop goops)))
+          (toplevel-define-arg args)))
     (else #f)))
 
 ;; TODO: Combine with `report-unused-variables' so we don't traverse the tree
@@ -703,7 +711,8 @@
                         ((<application> proc args)
                          ;; Check for a dynamic top-level definition, as is
                          ;; done by code expanded from GOOPS macros.
-                         (let ((name (goops-toplevel-definition proc args)))
+                         (let ((name (goops-toplevel-definition proc args
+                                                                env)))
                            (if (symbol? name)
                                (make-toplevel-info (alist-delete name refs
                                                                  eq?)
