@@ -89,7 +89,7 @@
                  ((,br ,rel1 ,rel2 ,rel3) (guard (br-instruction? br))
                   (lp (cons `(,br ,(ensure-label rel1 rel2 rel3)) out)))
                  ((mv-call ,n ,rel1 ,rel2 ,rel3)
-                  (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2)) out)))
+                  (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2 rel3)) out)))
                  (else 
                   (lp (cons exp out))))))))))
 
