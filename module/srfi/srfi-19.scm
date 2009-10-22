@@ -42,6 +42,7 @@
   :use-module (srfi srfi-6)
   :use-module (srfi srfi-8)
   :use-module (srfi srfi-9)
+  :autoload   (ice-9 rdelim) (read-line)
   :use-module (ice-9 i18n))
 
 (begin-deprecated
@@ -300,7 +301,7 @@
     (set-tm:hour result (date-hour date))
     ;; FIXME: SRFI day ranges from 0-31.  (not compatible with set-tm:mday).
     (set-tm:mday result (date-day date))
-    (set-tm:month result (- (date-month date) 1))
+    (set-tm:mon result (- (date-month date) 1))
     ;; FIXME: need to signal error on range violation.
     (set-tm:year result (+ 1900 (date-year date)))
     (set-tm:isdst result -1)
@@ -489,33 +490,38 @@
 ;; -- these depend on time-monotonic having the same definition as time-tai!
 (define (time-monotonic->time-utc time-in)
   (if (not (eq? (time-type time-in) time-monotonic))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-monotonic->time-utc
+                       'incompatible-time-types time-in))
   (let ((ntime (copy-time time-in)))
     (set-time-type! ntime time-tai)
     (priv:time-tai->time-utc! ntime ntime 'time-monotonic->time-utc)))
 
 (define (time-monotonic->time-utc! time-in)
   (if (not (eq? (time-type time-in) time-monotonic))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-monotonic->time-utc!
+                       'incompatible-time-types time-in))
   (set-time-type! time-in time-tai)
-  (priv:time-tai->time-utc! ntime ntime 'time-monotonic->time-utc))
+  (priv:time-tai->time-utc! time-in time-in 'time-monotonic->time-utc))
 
 (define (time-monotonic->time-tai time-in)
   (if (not (eq? (time-type time-in) time-monotonic))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-monotonic->time-tai
+                       'incompatible-time-types time-in))
   (let ((ntime (copy-time time-in)))
     (set-time-type! ntime time-tai)
     ntime))
 
 (define (time-monotonic->time-tai! time-in)
   (if (not (eq? (time-type time-in) time-monotonic))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-monotonic->time-tai!
+                       'incompatible-time-types time-in))
   (set-time-type! time-in time-tai)
   time-in)
 
 (define (time-utc->time-monotonic time-in)
   (if (not (eq? (time-type time-in) time-utc))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-utc->time-monotonic
+                       'incompatible-time-types time-in))
   (let ((ntime (priv:time-utc->time-tai! time-in (make-time-unnormalized #f #f #f)
                                          'time-utc->time-monotonic)))
     (set-time-type! ntime time-monotonic)
@@ -523,7 +529,8 @@
 
 (define (time-utc->time-monotonic! time-in)
   (if (not (eq? (time-type time-in) time-utc))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-utc->time-monotonic!
+                       'incompatible-time-types time-in))
   (let ((ntime (priv:time-utc->time-tai! time-in time-in
                                          'time-utc->time-monotonic!)))
     (set-time-type! ntime time-monotonic)
@@ -531,14 +538,16 @@
 
 (define (time-tai->time-monotonic time-in)
   (if (not (eq? (time-type time-in) time-tai))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-tai->time-monotonic
+                       'incompatible-time-types time-in))
   (let ((ntime (copy-time time-in)))
     (set-time-type! ntime time-monotonic)
     ntime))
 
 (define (time-tai->time-monotonic! time-in)
   (if (not (eq? (time-type time-in) time-tai))
-      (priv:time-error caller 'incompatible-time-types time-in))
+      (priv:time-error 'time-tai->time-monotonic!
+                       'incompatible-time-types time-in))
   (set-time-type! time-in time-monotonic)
   time-in)
 
@@ -741,7 +750,7 @@
 (define (priv:year-day day month year)
   (let ((days-pr (assoc month priv:month-assoc)))
     (if (not days-pr)
-        (priv:error 'date-year-day 'invalid-month-specification month))
+        (priv:time-error 'date-year-day 'invalid-month-specification month))
     (if (and (priv:leap-year? year) (> month 2))
         (+ day (cdr days-pr) 1)
         (+ day (cdr days-pr)))))
@@ -1216,7 +1225,7 @@
    ((#\8) 8)
    ((#\9) 9)
    (else (priv:time-error 'bad-date-template-string
-                          (list "Non-integer character" ch i)))))
+                          (list "Non-integer character" ch)))))
 
 ;; read an integer upto n characters long on port; upto -> #f is any length
 (define (priv:integer-reader upto port)

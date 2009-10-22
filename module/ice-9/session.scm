@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -112,7 +112,8 @@ You don't seem to have regular expressions installed.\n")
                   (= (length name) 2)
                   (eq? (car name) 'unquote))
              (let ((doc (try-value-help (cadr name)
-                                        (local-eval (cadr name) env))))
+                                        (module-ref (current-module)
+                                                    (cadr name)))))
                (cond ((not doc) (not-found 'documentation (cadr name)))
                      ((eq? doc #t)) ;; pass
                      (else (write-line doc)))))

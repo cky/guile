@@ -1,7 +1,6 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
-;;; Copyright (C) 2005 Ludovic Courtès  <ludovic.courtes@laas.fr>
+;;; Copyright (C) 2001, 2005, 2009 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -22,6 +21,7 @@
 (define-module (system vm frame)
   #:use-module (system vm program)
   #:use-module (system vm instruction)
+  #:use-module (system vm objcode)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export (vm-frame?
             vm-frame-program

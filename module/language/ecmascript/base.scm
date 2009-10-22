@@ -149,14 +149,14 @@
             o))))
               
 (define (object->value/string o)
-  (if (is-a? x <js-object>)
+  (if (is-a? o <js-object>)
       (object->number o #t)
-      x))
+      o))
 
 (define (object->value/number o)
-  (if (is-a? x <js-object>)
+  (if (is-a? o <js-object>)
       (object->string o #t)
-      x))
+      o))
 
 (define (object->value o)
   ;; FIXME: if it's a date, we should try numbers first
@@ -176,7 +176,7 @@
         ((boolean? x) (if x 1 0))
         ((null? x) 0)
         ((eq? x *undefined*) +nan.0)
-        ((is-a? x <js-object>) (object->number o))
+        ((is-a? x <js-object>) (object->number x))
         ((string? x) (string->number x))
         (else (throw 'TypeError o '->number))))
 

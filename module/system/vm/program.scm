@@ -59,7 +59,7 @@
   (cdddr source))
 
 (define (program-property prog prop)
-  (assq-ref (program-properties proc) prop))
+  (assq-ref (program-properties prog) prop))
 
 (define (program-documentation prog)
   (assq-ref (program-properties prog) 'documentation))

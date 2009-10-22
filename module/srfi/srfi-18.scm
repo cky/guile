@@ -1,6 +1,6 @@
 ;;; srfi-18.scm --- Multithreading support
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -232,7 +232,7 @@
   (let* ((ct (time->seconds (current-time)))
 	 (t (cond ((time? timeout) (- (time->seconds timeout) ct))
 		  ((number? timeout) (- timeout ct))
-		  (else (scm-error 'wrong-type-arg caller
+		  (else (scm-error 'wrong-type-arg "thread-sleep!"
 				   "Wrong type argument: ~S" 
 				   (list timeout) 
 				   '()))))

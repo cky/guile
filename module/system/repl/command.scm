@@ -267,16 +267,16 @@ Import modules / List those imported."
         (for-each puts (map module-name (module-uses (current-module))))
         (for-each use args))))
 
+(define guile:load load)
 (define-meta-command (load repl file . opts)
   "load FILE
 Load a file in the current module.
 
   -f    Load source file (see `compile')"
-  (let* ((file (->string file))
-	 (objcode (if (memq #:f opts)
-		      (apply load-source-file file opts)
-		      (apply load-file file opts))))
-    (vm-load (repl-vm repl) objcode)))
+  (let ((file (->string file)))
+    (if (memq #:f opts)
+        (primitive-load file)
+        (guile:load file))))
 
 (define-meta-command (binding repl)
   "binding

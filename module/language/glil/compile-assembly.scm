@@ -262,8 +262,8 @@
                 ((empty-box) `((empty-box ,index)))
                 ((fix) `((fix-closure 0 ,index)))
                 (else (error "what" op)))
-              (let ((a (quotient i 256))
-                    (b (modulo i 256)))
+              (let ((a (quotient index 256))
+                    (b (modulo index 256)))
                 `((,(case op
                       ((ref)
                        (if boxed?

@@ -1157,7 +1157,7 @@
 (define-standard-accessor-method ((bound-check-get n) o)
   (let ((x (@slot-ref o n)))
     (if (unbound? x)
-        (slot-unbound obj)
+        (slot-unbound o)
         x)))
 
 (define-standard-accessor-method ((standard-get n) o)

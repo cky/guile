@@ -95,7 +95,7 @@
 
 (define (disassemble-free-vars free-vars)
   (display "Free variables:\n\n")
-  (let ((i 0))
+  (let lp ((i 0))
     (cond ((< i (vector-length free-vars))
            (print-info i (vector-ref free-vars i) #f #f)
            (lp (1+ i))))))
