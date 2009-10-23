@@ -58,12 +58,14 @@
 ;;; Code:
 
 (define-module (ice-9 optargs)
-  :export-syntax (let-optional
+  #:use-module (system base pmatch)
+  #:replace (lambda*)
+  #:export-syntax (let-optional
 		  let-optional*
 		  let-keywords
 		  let-keywords*
-		  define* lambda*
-		  define*-public
+		  define*
+                  define*-public
 		  defmacro*
 		  defmacro*-public))
 
@@ -417,4 +419,81 @@
      (defmacro* ,NAME ,ARGLIST ,@BODY)
      (export-syntax ,NAME)))
 
-;;; optargs.scm ends here
+;;; Support for optional & keyword args with the interpreter.
+(define *uninitialized* (list 'uninitialized))
+(define (parse-lambda-case spec inits predicate args)
+  (pmatch spec
+    ((,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
+     (define (req args prev tail n)
+       (cond
+        ((zero? n)
+         (if prev (set-cdr! prev '()))
+         (let ((slots-tail (make-list (- nargs nreq) *uninitialized*)))
+           (opt (if prev (append! args slots-tail) slots-tail)
+                slots-tail tail nopt inits)))
+        ((null? tail)
+         #f) ;; fail
+        (else
+         (req args tail (cdr tail) (1- n)))))
+     (define (opt slots slots-tail args-tail n inits)
+       (cond
+        ((zero? n)
+         (rest-or-key slots slots-tail args-tail inits rest-idx))
+        ((null? args-tail)
+         (set-car! slots-tail (apply (car inits) slots))
+         (opt slots (cdr slots-tail) '() (1- n) (cdr inits)))
+        (else
+         (set-car! slots-tail (car args-tail))
+         (opt slots (cdr slots-tail) (cdr args-tail) (1- n) (cdr inits)))))
+     (define (rest-or-key slots slots-tail args-tail inits rest-idx)
+       (cond
+        (rest-idx
+         ;; it has to be this way, vars are allocated in this order
+         (set-car! slots-tail args-tail)
+         (if (pair? kw-indices)
+             (key slots (cdr slots-tail) args-tail inits)
+             (rest-or-key slots (cdr slots-tail) '() inits #f)))
+        ((pair? kw-indices)
+         ;; fail early here, because once we're in keyword land we throw
+         ;; errors instead of failing
+         (and (or (null? args-tail) rest-idx (keyword? (car args-tail)))
+              (key slots slots-tail args-tail inits)))
+        ((pair? args-tail)
+         #f) ;; fail
+        (else
+         (pred slots))))
+     (define (key slots slots-tail args-tail inits)
+       (cond
+        ((null? args-tail)
+         (if (null? inits)
+             (pred slots)
+             (begin
+               (if (eq? (car slots-tail) *uninitialized*)
+                   (set-car! slots-tail (apply (car inits) slots)))
+               (key slots (cdr slots-tail) '() (cdr inits)))))
+        ((not (keyword? (car args-tail)))
+         (if rest-idx
+             ;; no error checking, everything goes to the rest..
+             (key slots slots-tail '() inits)
+             (error "bad keyword argument list" args-tail)))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              (assq-ref kw-indices (car args-tail)))
+         => (lambda (i)
+              (list-set! slots i (cadr args-tail))
+              (key slots slots-tail (cddr args-tail) inits)))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              allow-other-keys?)
+         (key slots slots-tail (cddr args-tail) inits))
+        (else (error "unrecognized keyword" args-tail))))
+     (define (pred slots)
+       (cond
+        (predicate
+         (if (apply predicate slots)
+             slots
+             #f))
+        (else slots)))
+     (let ((args (list-copy args)))
+       (req args #f args nreq)))
+    (else (error "unexpected spec" spec))))

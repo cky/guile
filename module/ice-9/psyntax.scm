@@ -483,65 +483,50 @@
 
 (define build-lambda-case
   ;; req := (name ...)
-  ;; opt := ((name init) ...) | #f
+  ;; opt := (name ...) | #f
   ;; rest := name | #f
-  ;; kw: (allow-other-keys? (keyword name var [init]) ...) | #f
+  ;; kw := (allow-other-keys? (keyword name var [init]) ...) | #f
+  ;; inits: (init ...)
   ;; vars: (sym ...)
   ;; vars map to named arguments in the following order:
   ;;  required, optional (positional), rest, keyword.
   ;; predicate: something you can stuff in a (lambda ,vars ,pred), already expanded
   ;; the body of a lambda: anything, already expanded
   ;; else: lambda-case | #f
-  (lambda (src req opt rest kw vars predicate body else-case)
+  (lambda (src req opt rest kw inits vars predicate body else-case)
     (case (fluid-ref *mode*)
       ((c)
        ((@ (language tree-il) make-lambda-case)
-        src req opt rest kw '() vars predicate body else-case))
+        src req opt rest kw inits vars predicate body else-case))
       (else
        ;; Very much like the logic of (language tree-il compile-glil).
        (let* ((nreq (length req))
               (nopt (if opt (length opt) 0))
               (rest-idx (and rest (+ nreq nopt)))
-              (opt-inits (map (lambda (x) `(lambda ,vars ,(cdr x)))
-                              (or opt '())))
               (allow-other-keys? (if kw (car kw) #f))
               (kw-indices (map (lambda (x)
-                                 ;; (,key ,name ,var . _)
+                                 ;; (,key ,name ,var)
                                  (cons (car x) (list-index vars (caddr x))))
                                (if kw (cdr kw) '())))
-              (kw-inits (sort
-                         (filter
-                          identity
-                          (map (lambda (x)
-                                 (if (pair? (cdddr x))
-                                     ;; (,key ,name ,var ,init)
-                                     (let ((i (list-index vars (caddr x))))
-                                       (if (> (+ nreq nopt) i)
-                                           (error "kw init for rest arg" x)
-                                           (if (and rest (= (+ nreq nopt) i))
-                                               (error "kw init for positional arg" x)
-                                               `(lambda ,vars ,(cadddr x)))))
-                                     ;; (,key ,name ,var)
-                                     (let ((i (list-index vars (caddr x))))
-                                       (if (< (+ nreq nopt) i)
-                                           #f
-                                           (error "missing init for kw arg" x)))))
-                               (if kw (cdr kw) '())))
-                         (lambda (x y) (< (cdr x) (cdr y)))))
-              (nargs (apply max (pk (+ nreq nopt (if rest 1 0)))
-                            (map cdr kw-indices))))
+              (nargs (apply max (+ nreq nopt (if rest 1 0))
+                            (map 1+ (map cdr kw-indices)))))
          (or (= nargs
                 (length vars)
-                (+ nreq (length opt-inits) (if rest 1 0) (length kw-inits)))
+                (+ nreq (length inits) (if rest 1 0)))
              (error "something went wrong"
-                    req opt rest kw vars nreq nopt kw-indices kw-inits nargs))
+                    req opt rest kw inits vars nreq nopt kw-indices nargs))
          (decorate-source
           `((((@@ (ice-9 optargs) parse-lambda-case)
               '(,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
-              (list ,@opt-inits ,@kw-inits)
+              (list ,@(map (lambda (i) `(lambda ,vars ,i)) inits))
               ,(if predicate `(lambda ,vars ,predicate) #f)
               %%args)
-             => (lambda ,vars ,body))
+             ;; FIXME: This _ is here to work around a bug in the
+             ;; memoizer. The %%% makes it different from %%, also a
+             ;; memoizer workaround. See the "interesting bug" mail from
+             ;; 23 oct 2009. As soon as we change the evaluator, this
+             ;; can be removed.
+             => (lambda (%%%args . _) (apply (lambda ,vars ,body) %%%args)))
             ,@(or else-case
                   `((%%args (error "wrong number of arguments" %%args)))))
           src))))))
@@ -1893,6 +1878,158 @@
                                          vars docstring body)))))))
        (_ (syntax-violation 'lambda "bad lambda" e)))))
 
+
+(global-extend 'core 'lambda*
+   (lambda (e r w s mod)
+     ;; arg parsing state machine
+     (define (req args rreq)
+       (syntax-case args ()
+         (()
+          (values (reverse rreq) '() #f '()))
+         ((a . b) (symbol? (syntax->datum #'a))
+          (req #'b (cons #'a rreq)))
+         ((a . b) (eq? (syntax->datum #'a) #:optional)
+          (opt #'b (reverse rreq) '()))
+         ((a . b) (eq? (syntax->datum #'a) #:key)
+          (key #'b (reverse rreq) '() '()))
+         ((a b) (eq? (syntax->datum #'a) #:rest)
+          (rest #'b (reverse rreq) '() '()))
+         (r (symbol? (syntax->datum #'a))
+          (rest #'r (reverse rreq) '() '()))
+         (else
+          (syntax-violation 'lambda* "invalid argument list" e args))))
+     (define (opt args req ropt)
+       (syntax-case args ()
+         (()
+          (values req (reverse ropt) #f '()))
+         ((a . b) (symbol? (syntax->datum #'a))
+          (opt #'b req (cons #'(a #f) ropt)))
+         (((a init) . b) (symbol? (syntax->datum #'a))
+          (opt #'b req (cons #'(a init) ropt)))
+         ((a . b) (eq? (syntax->datum #'a) #:key)
+          (key #'b req (reverse ropt) '()))
+         ((a b) (eq? (syntax->datum #'a) #:rest)
+          (rest #'b req (reverse ropt) '()))
+         (r (symbol? (syntax->datum #'a))
+          (rest #'r req (reverse ropt) '()))
+         (else
+          (syntax-violation 'lambda* "invalid argument list" e args))))
+     (define (key args req opt rkey)
+       (syntax-case args ()
+         (()
+          (values req opt #f (cons #f (reverse rkey))))
+         ((a . b) (symbol? (syntax->datum #'a))
+          (with-syntax ((k (symbol->keyword (syntax->datum #'a))))
+            (key #'b req opt (cons #'(k a #f) rkey))))
+         (((a init) . b) (symbol? (syntax->datum #'a))
+          (with-syntax ((k (symbol->keyword (syntax->datum #'a))))
+            (key #'b req opt (cons #'(k a init) rkey))))
+         (((a init k) . b) (and (symbol? (syntax->datum #'a))
+                                (keyword? (syntax->datum #'k)))
+          (key #'b req opt (cons #'(k a init) rkey)))
+         ((aok) (eq? (syntax->datum #'aok) #:allow-other-keys)
+          (values req opt #f (cons #t (reverse rkey))))
+         ((aok a b) (and (eq? (syntax->datum #'aok) #:allow-other-keys)
+                         (eq? (syntax->datum #'a) #:rest))
+          (rest #'b req opt (cons #t (reverse rkey))))
+         ((aok . r) (and (eq? (syntax->datum #'aok) #:allow-other-keys)
+                         (symbol? (syntax->datum #'r)))
+          (rest #'r req opt (cons #t (reverse rkey))))
+         ((a b) (eq? (syntax->datum #'a) #:rest)
+          (rest #'b req opt (cons #f (reverse rkey))))
+         (r (symbol? (syntax->datum #'a))
+          (rest #'r req opt (cons #f (reverse rkey))))
+         (else
+          (syntax-violation 'lambda* "invalid argument list" e args))))
+     (define (rest args req opt kw)
+       (syntax-case args ()
+         (r (symbol? (syntax->datum #'r))
+          (values req opt #'r kw))
+         (else
+          (syntax-violation 'lambda* "invalid rest argument" e args))))
+     (define (expand-req req opt rest kw body)
+       (let ((vars (map gen-var req))
+             (labels (gen-labels req)))
+         (let ((r* (extend-var-env labels vars r))
+               (w* (make-binding-wrap req labels w)))
+           (expand-opt (map syntax->datum req)
+                       opt rest kw body (reverse vars) r* w* '() '()))))
+     (define (expand-opt req opt rest kw body vars r* w* out inits)
+       (cond
+        ((pair? opt)
+         (syntax-case (car opt) ()
+           ((id i)
+            (let* ((v (gen-var #'id))
+                   (l (gen-labels (list v)))
+                   (r** (extend-var-env l (list v) r*))
+                   (w** (make-binding-wrap (list #'id) l w*)))
+              (expand-opt req (cdr opt) rest kw body (cons v vars)
+                          r** w** (cons (syntax->datum #'id) out)
+                          (cons (chi #'i r* w* mod) inits))))))
+        (rest
+         (let* ((v (gen-var rest))
+                (l (gen-labels (list v)))
+                (r* (extend-var-env l (list v) r*))
+                (w* (make-binding-wrap (list rest) l w*)))
+           (expand-kw req (if (pair? out) (reverse out) #f)
+                      (syntax->datum rest)
+                      (if (pair? kw) (cdr kw) kw)
+                      body (cons v vars) r* w* 
+                      (if (pair? kw) (car kw) #f)
+                      '() inits)))
+        (else
+         (expand-kw req (if (pair? out) (reverse out) #f) #f
+                    (if (pair? kw) (cdr kw) kw)
+                    body vars r* w*
+                    (if (pair? kw) (car kw) #f)
+                    '() inits))))
+     (define (expand-kw req opt rest kw body vars r* w* aok out inits)
+       (cond
+        ((pair? kw)
+         (syntax-case (car kw) ()
+           ((k id i)
+            (let* ((v (gen-var #'id))
+                   (l (gen-labels (list v)))
+                   (r** (extend-var-env l (list v) r*))
+                   (w** (make-binding-wrap (list #'id) l w*)))
+              (expand-kw req opt rest (cdr kw) body (cons v vars)
+                         r** w** aok
+                         (cons (list (syntax->datum #'k)
+                                     (syntax->datum #'id)
+                                     v)
+                               out)
+                         (cons (chi #'i r* w* mod) inits))))))
+        (else
+         (expand-body req opt rest
+                      (if (or aok (pair? out)) (cons aok (reverse out)) #f)
+                      body (reverse vars) r* w* (reverse inits)))))
+     (define (expand-body req opt rest kw body vars r* w* inits)
+       (syntax-case body ()
+         ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
+          (values (syntax->datum #'docstring) req opt rest kw inits vars #f
+                  (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
+                            r* w* mod)))
+         ((e1 e2 ...)
+          (values #f req opt rest kw inits vars #f
+                  (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
+                             r* w* mod)))))
+     ;; whew. 
+
+     (syntax-case e ()
+       ((_ args e1 e2 ...)
+        (call-with-values (lambda () (req #'args '()))
+          (lambda (req opt rest kw)
+            (if (not (valid-bound-ids?
+                      (append req (map car opt) (if rest (list rest) '())
+                              (if (pair? kw) (map cadr (cdr kw)) '()))))
+                (syntax-violation 'lambda "invalid parameter list" e #'args)
+                (call-with-values (lambda ()
+                                    (expand-req req opt rest kw #'(e1 e2 ...)))
+                  (lambda (docstring req opt rest kw inits vars pred body)
+                    (build-case-lambda
+                     s docstring
+                     (build-lambda-case s req opt rest kw inits vars pred body #f))))))))
+       (_ (syntax-violation 'lambda "bad lambda*" e)))))
 
 (global-extend 'core 'let
   (let ()
