@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,6 +45,12 @@ scm_t_bits scm_module_tag;
 static SCM the_module;
 
 static SCM the_root_module_var;
+
+static SCM unbound_variable (const char *func, SCM sym)
+{
+  scm_error (scm_from_locale_symbol ("unbound-variable"), func,
+             "Unbound variable: ~S", scm_list_1 (sym), SCM_BOOL_F);
+}
 
 static SCM
 the_root_module ()
@@ -740,7 +746,7 @@ scm_module_lookup (SCM module, SCM sym)
 
   var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
   if (scm_is_false (var))
-    SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (sym));
+    unbound_variable (FUNC_NAME, sym);
   return var;
 }
 #undef FUNC_NAME
@@ -757,7 +763,7 @@ scm_lookup (SCM sym)
   SCM var = 
     scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
   if (scm_is_false (var))
-    scm_misc_error ("scm_lookup", "unbound variable: ~S", scm_list_1 (sym));
+    unbound_variable (NULL, sym);
   return var;
 }
 
