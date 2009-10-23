@@ -460,8 +460,8 @@
             (if docstring `((documentation . ,docstring)) '())
             ;; hah, a case in which kwargs would be nice.
             ((@ (language tree-il) make-lambda-case)
-             ;; src req opt rest kw vars predicate body else
-             src req #f rest #f vars #f exp #f)))
+             ;; src req opt rest kw inits vars predicate body else
+             src req #f rest #f '() vars #f exp #f)))
       (else (decorate-source
              `(lambda ,(if rest (apply cons* vars) vars)
                 ,@(if docstring (list docstring) '())
@@ -496,7 +496,7 @@
     (case (fluid-ref *mode*)
       ((c)
        ((@ (language tree-il) make-lambda-case)
-        src req opt rest kw vars predicate body else-case))
+        src req opt rest kw '() vars predicate body else-case))
       (else
        ;; Very much like the logic of (language tree-il compile-glil).
        (let* ((nreq (length req))

@@ -59,7 +59,7 @@
             warnings)
 
   (let* ((x (make-lambda (tree-il-src x) '()
-                         (make-lambda-case #f '() #f #f #f '() #f x #f)))
+                         (make-lambda-case #f '() #f #f #f '() '() #f x #f)))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
 
@@ -599,12 +599,12 @@
                   (emit-code #f (make-glil-call 'make-closure 2)))))))
        (maybe-emit-return))
       
-      ((<lambda-case> src req opt rest kw vars predicate else body)
+      ((<lambda-case> src req opt rest kw inits vars predicate else body)
        ;; o/~ feature on top of feature o/~
        ;; req := (name ...)
-       ;; opt := ((name init) ...) | #f
+       ;; opt := (name ...) | #f
        ;; rest := name | #f
-       ;; kw: (allow-other-keys? (keyword name var [init]) ...) | #f
+       ;; kw: (allow-other-keys? (keyword name var) ...) | #f
        ;; vars: (sym ...)
        ;; predicate: tree-il in context of vars
        ;; init: tree-il in context of vars
@@ -613,40 +613,23 @@
        (let* ((nreq (length req))
               (nopt (if opt (length opt) 0))
               (rest-idx (and rest (+ nreq nopt)))
-              (opt-inits (map cdr (or opt '())))
+              (opt-names (or opt '()))
               (allow-other-keys? (if kw (car kw) #f))
               (kw-indices (map (lambda (x)
                                  (pmatch x
-                                   ((,key ,name ,var . _)
+                                   ((,key ,name ,var)
                                     (cons key (list-index vars var)))
                                    (else (error "bad kwarg" x))))
                                (if kw (cdr kw) '())))
-              (kw-inits (filter
-                         identity
-                         (map (lambda (x)
-                                (pmatch x
-                                  ((,key ,name ,var ,init)
-                                   (let ((i (list-index vars var)))
-                                     (if (> (+ nreq nopt) i)
-                                         (error "kw init for rest arg" x)
-                                         (if (and rest (= rest-idx i))
-                                             (error "kw init for positional arg" x)
-                                             (cons i init)))))
-                                  ((,key ,name ,var)
-                                   (let ((i (list-index vars var)))
-                                     (if (< (+ nreq nopt) i)
-                                         #f
-                                         (error "missing init for kw arg" x))))
-                                  (else (error "bad kwarg" x))))
-                              (if kw (cdr kw) '()))))
-              (nargs (apply max (+ nreq nopt (if rest 1 0)) (map cdr kw-indices)))
+              (nargs (apply max (+ nreq nopt (if rest 1 0))
+                            (map 1+ (map cdr kw-indices))))
               (nlocs (cdr (hashq-ref allocation x)))
               (else-label (and else (make-label))))
          (or (= nargs
                 (length vars)
-                (+ nreq (length opt-inits) (if rest 1 0) (length kw-inits)))
+                (+ nreq (length inits) (if rest 1 0)))
              (error "something went wrong"
-                    req opt rest kw vars nreq nopt kw-indices kw-inits nargs))
+                    req opt rest kw inits vars nreq nopt kw-indices nargs))
          ;; the prelude, to check args & reset the stack pointer,
          ;; allowing room for locals
          (emit-code
@@ -672,8 +655,7 @@
              (emit-bindings
               #f
               (let lp ((kw (if kw (cdr kw) '()))
-                       (names (append (if opt (reverse opt) '())
-                                      (reverse req)))
+                       (names (append (reverse opt-names) (reverse req)))
                        (vars (list-tail vars (+ nreq nopt
                                                 (if rest 1 0)))))
                 (pmatch kw
@@ -686,6 +668,23 @@
                        (lp kw names vars)))
                   (,kw (error "bad keywords, yo" kw))))
               vars allocation self emit-code))
+         ;; init optional/kw args
+         (let lp ((inits inits) (n nreq) (vars (list-tail vars nreq)))
+           (cond
+            ((null? inits))             ; done
+            ((and rest-idx (= n rest-idx))
+             (lp inits (1+ n) (cdr vars)))
+            (#t
+             (pmatch (hashq-ref (hashq-ref allocation (car vars)) self)
+               ((#t ,boxed? . ,n*) (guard (= n* n))
+                (let ((L (make-label)))
+                  (emit-code #f (make-glil-lexical #t boxed? 'bound? n))
+                  (emit-code #f (make-glil-branch 'br-if L))
+                  (comp-push (car inits))
+                  (emit-code #f (make-glil-lexical #t boxed? 'set n))
+                  (emit-label L)
+                  (lp (cdr inits) (1+ n) (cdr vars))))
+               (#t (error "what" inits))))))
          ;; post-prelude case label for label calls
          (emit-label (car (hashq-ref allocation x)))
          (if predicate

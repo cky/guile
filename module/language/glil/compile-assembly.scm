@@ -265,40 +265,42 @@
     
     ((<glil-kw-prelude> nreq nopt rest kw allow-other-keys? nlocs else-label)
      (receive (kw-idx object-alist)
-         (object-index-and-alist object-alist kw)
-       (let ((bind-required
-              (if else-label
-                  `((br-if-nargs-lt ,(quotient nreq 256)
-                                    ,(modulo nreq 256)
-                                    ,else-label))
-                  `((assert-nargs-ge ,(quotient nreq 256)
-                                     ,(modulo nreq 256)))))
-             (bind-optionals-and-shuffle
-              `((bind-optionals/shuffle
-                 ,(quotient nreq 256)
-                 ,(modulo nreq 256)
-                 ,(quotient (+ nreq nopt) 256)
-                 ,(modulo (+ nreq nopt) 256)
-                 ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
-                 ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256))))
-             (bind-kw
-              ;; when this code gets called, all optionals are filled
-              ;; in, space has been made for kwargs, and the kwargs
-              ;; themselves have been shuffled above the slots for all
-              ;; req/opt/kwargs locals.
-              `((bind-kwargs
-                 ,(quotient kw-idx 256)
-                 ,(modulo kw-idx 256)
-                 ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
-                 ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)
-                 ,(if allow-other-keys? 1 0))))
-             (bind-rest
-              (if rest
-                  `((bind-rest ,(quotient (apply max (+ nreq nopt) (map cdr kw)) 256)
-                               ,(modulo (apply max (+ nreq nopt) (map cdr kw)) 256)
-                               ,(quotient rest 256)
-                               ,(modulo rest 256)))
-                  '())))
+         (object-index-and-alist kw object-alist)
+       (let* ((bind-required
+               (if else-label
+                   `((br-if-nargs-lt ,(quotient nreq 256)
+                                     ,(modulo nreq 256)
+                                     ,else-label))
+                   `((assert-nargs-ge ,(quotient nreq 256)
+                                      ,(modulo nreq 256)))))
+              (ntotal (apply max (+ nreq nopt) (map 1+ (map cdr kw))))
+              (bind-optionals-and-shuffle
+               `((bind-optionals/shuffle
+                  ,(quotient nreq 256)
+                  ,(modulo nreq 256)
+                  ,(quotient (+ nreq nopt) 256)
+                  ,(modulo (+ nreq nopt) 256)
+                  ,(quotient ntotal 256)
+                  ,(modulo ntotal 256))))
+              (bind-kw
+               ;; when this code gets called, all optionals are filled
+               ;; in, space has been made for kwargs, and the kwargs
+               ;; themselves have been shuffled above the slots for all
+               ;; req/opt/kwargs locals.
+               `((bind-kwargs
+                  ,(quotient kw-idx 256)
+                  ,(modulo kw-idx 256)
+                  ,(quotient ntotal 256)
+                  ,(modulo ntotal 256)
+                  ,(logior (if rest 2 0)
+                           (if allow-other-keys? 1 0)))))
+              (bind-rest
+               (if rest
+                   `((bind-rest ,(quotient ntotal 256)
+                                ,(modulo ntotal 256)
+                                ,(quotient rest 256)
+                                ,(modulo rest 256)))
+                   '())))
          
          (let ((code `(,@bind-required
                        ,@bind-optionals-and-shuffle
@@ -307,7 +309,9 @@
                        (reserve-locals ,(quotient nlocs 256)
                                        ,(modulo nlocs 256)))))
            (values code bindings source-alist label-alist object-alist
-                   (begin-arity (addr+ addr code) nreq nopt rest kw arities))))))
+                   (begin-arity (addr+ addr code) nreq nopt rest
+                                (and kw (cons allow-other-keys? kw))
+                                arities))))))
     
     ((<glil-bind> vars)
      (values '()
@@ -374,6 +378,10 @@
                 ((box) `((box ,index)))
                 ((empty-box) `((empty-box ,index)))
                 ((fix) `((fix-closure 0 ,index)))
+                ((bound?) (if boxed?
+                              `((local-ref ,index)
+                                (variable-bound?))
+                              `((local-bound? ,index))))
                 (else (error "what" op)))
               (let ((a (quotient index 256))
                     (b (modulo index 256)))
@@ -397,6 +405,11 @@
                          (long-local-set ,a ,b)))
                       ((fix)
                        `((fix-closure ,a ,b)))
+                      ((bound?)
+                       (if boxed?
+                           `((long-local-ref ,a ,b)
+                             (variable-bound?))
+                           `((long-local-bound? ,a ,b))))
                       (else (error "what" op)))
                    ,index))))
           `((,(case op

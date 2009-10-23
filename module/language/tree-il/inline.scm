@@ -44,8 +44,9 @@
           (let lp ((lcase body))
             (and lcase
                  (record-case lcase
-                   ((<lambda-case> req opt rest kw vars predicate body else)
-                    (if (and (= (length vars) (length req) (length args)))
+                   ((<lambda-case> req opt rest kw inits vars predicate body else)
+                    (if (and (= (length vars) (length req) (length args))
+                             (not predicate))
                         (let ((x (make-let src req vars args body)))
                           (or (inline1 x) x))
                         (lp else)))))))

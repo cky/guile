@@ -325,7 +325,7 @@
 (with-test-prefix "lambda"
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case (((x) #f #f #f (y) #f) (const 2)) #f))
+     (lambda-case (((x) #f #f #f () (y) #f) (const 2)) #f))
    (program ()  (std-prelude 0 0 #f) (label _)
             (program () (std-prelude 1 1 #f)
                      (bind (x #f 0)) (label _)
@@ -334,7 +334,7 @@
 
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case (((x y) #f #f #f (x1 y1) #f)
+     (lambda-case (((x y) #f #f #f () (x1 y1) #f)
                    (const 2))
                   #f))
    (program () (std-prelude 0 0 #f) (label _)
@@ -346,7 +346,7 @@
 
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case ((() #f x #f (y) #f) (const 2))
+     (lambda-case ((() #f x #f () (y) #f) (const 2))
                   #f))
    (program () (std-prelude 0 0 #f) (label _)
             (program () (opt-prelude 0 0 0 1 #f) 
@@ -357,7 +357,7 @@
 
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case (((x) #f x1 #f (y y1) #f) (const 2))
+     (lambda-case (((x) #f x1 #f () (y y1) #f) (const 2))
                   #f))
    (program () (std-prelude 0 0 #f) (label _)
             (program () (opt-prelude 1 0 1 2 #f)
@@ -368,7 +368,7 @@
 
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case (((x) #f x1 #f (y y1) #f) (lexical x y))
+     (lambda-case (((x) #f x1 #f () (y y1) #f) (lexical x y))
                   #f))
    (program () (std-prelude 0 0 #f) (label _)
             (program () (opt-prelude 1 0 1 2 #f)
@@ -379,7 +379,7 @@
 
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case (((x) #f x1 #f (y y1) #f) (lexical x1 y1))
+     (lambda-case (((x) #f x1 #f () (y y1) #f) (lexical x1 y1))
                   #f))
    (program () (std-prelude 0 0 #f) (label _)
             (program () (opt-prelude 1 0 1 2 #f)
@@ -390,9 +390,9 @@
 
   (assert-tree-il->glil
    (lambda ()
-     (lambda-case (((x) #f #f #f (x1) #f)
+     (lambda-case (((x) #f #f #f () (x1) #f)
                    (lambda ()
-                     (lambda-case (((y) #f #f #f (y1) #f)
+                     (lambda-case (((y) #f #f #f () (y1) #f)
                                    (lexical x x1))
                                   #f)))
                   #f))
@@ -526,7 +526,7 @@
                                  (parse-tree-il
                                   '(lambda ()
                                      (lambda-case
-                                      (((x y) #f #f #f (x1 y1) #f)
+                                      (((x y) #f #f #f () (x1 y1) #f)
                                        (apply (toplevel +)
                                               (lexical x x1)
                                               (lexical y y1)))

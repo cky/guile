@@ -222,13 +222,15 @@
          (hashq-set! free-vars x free)
          free))
       
-      ((<lambda-case> vars predicate body else)
+      ((<lambda-case> opt kw inits vars predicate body else)
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
        (lset-union
         eq?
         (lset-difference eq?
-                         (lset-union eq? (if predicate (step predicate) '())
+                         (lset-union eq?
+                                     (apply lset-union eq? (map step inits))
+                                     (if predicate (step predicate) '())
                                      (step-tail body))
                          vars)
         (if else (step-tail else) '())))
@@ -375,12 +377,17 @@
          (hashq-set! allocation x (cons labels free-addresses)))
        n)
 
-      ((<lambda-case> vars predicate body else)
+      ((<lambda-case> opt kw inits vars predicate body else)
        (max
         (let lp ((vars vars) (n n))
           (if (null? vars)
-              (let ((nlocs (max (if predicate (allocate! predicate body n) n)
-                                (allocate! body proc n))))
+              (let ((nlocs (apply
+                            max
+                            (if predicate (allocate! predicate body n) n)
+                            (allocate! body proc n)
+                            ;; inits not logically at the end, but they
+                            ;; are the list...
+                            (map (lambda (x) (allocate! x body n)) inits))))
                 ;; label and nlocs for the case
                 (hashq-set! allocation x (cons (gensym ":LCASE") nlocs))
                 nlocs)
@@ -523,9 +530,12 @@
                       ((<lexical-set> gensym)
                        (make-binding-info vars (cons gensym refs)
                                           (cons src locs)))
-                      ((<lambda-case> req opt rest kw vars)
+                      ((<lambda-case> req opt inits rest kw vars)
                        ;; FIXME keywords.
-                       (let ((names `(,@req ,@(or opt '()) . ,(or rest '()))))
+                       (let ((names `(,@req
+                                      ,@(map car (or opt '()))
+                                      ,@(if rest (list rest) '())
+                                      ,@(if kw (map cadr (cdr kw)) '()))))
                          (make-binding-info (extend vars names) refs
                                             (cons src locs))))
                       ((<let> vars names)

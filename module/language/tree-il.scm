@@ -38,7 +38,8 @@
             <sequence> sequence? make-sequence sequence-src sequence-exps
             <lambda> lambda? make-lambda lambda-src lambda-meta lambda-body
             <lambda-case> lambda-case? make-lambda-case lambda-case-src
-                          lambda-case-req lambda-case-opt lambda-case-rest lambda-case-kw lambda-case-vars
+                          lambda-case-req lambda-case-opt lambda-case-rest lambda-case-kw
+                          lambda-case-inits lambda-case-vars
                           lambda-case-predicate lambda-case-body lambda-case-else
             <let> let? make-let let-src let-names let-vars let-vals let-body
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
@@ -69,7 +70,7 @@
   (<application> proc args)
   (<sequence> exps)
   (<lambda> meta body)
-  (<lambda-case> req opt rest kw vars predicate body else)
+  (<lambda-case> req opt rest kw inits vars predicate body else)
   (<let> names vars vals body)
   (<letrec> names vars vals body)
   (<fix> names vars vals body)
@@ -134,14 +135,16 @@
      ((lambda ,meta ,body)
       (make-lambda loc meta (retrans body)))
 
-     ((lambda-case ((,req ,opt ,rest ,kw ,vars ,predicate) ,body) ,else)
-      (make-lambda-case loc req opt rest kw vars
+     ((lambda-case ((,req ,opt ,rest ,kw ,inits ,vars ,predicate) ,body) ,else)
+      (make-lambda-case loc req opt rest kw 
+                        (map retrans inits) vars
                         (and=> predicate retrans)
                         (retrans body)
                         (and=> else retrans)))
 
-     ((lambda-case ((,req ,opt ,rest ,kw ,vars ,predicate) ,body))
-      (make-lambda-case loc req opt rest kw vars
+     ((lambda-case ((,req ,opt ,rest ,kw ,inits ,vars ,predicate) ,body))
+      (make-lambda-case loc req opt rest kw
+                        (map retrans inits) vars
                         (and=> predicate retrans)
                         (retrans body)
                         #f))
@@ -205,8 +208,9 @@
     ((<lambda> meta body)
      `(lambda ,meta ,(unparse-tree-il body)))
 
-    ((<lambda-case> req opt rest kw vars predicate body else)
-     `(lambda-case ((,req ,opt ,rest ,kw ,vars ,(and=> predicate unparse-tree-il))
+    ((<lambda-case> req opt rest kw inits vars predicate body else)
+     `(lambda-case ((,req ,opt ,rest ,kw ,(map unparse-tree-il inits) ,vars
+                     ,(and=> predicate unparse-tree-il))
                     ,(unparse-tree-il body))
                    . ,(if else (list (unparse-tree-il else)) '())))
 
@@ -272,21 +276,8 @@
          `(lambda ,@(car (tree-il->scheme body)))
          `(case-lambda ,@(tree-il->scheme body))))
     
-    ((<lambda-case> req opt rest kw vars predicate body else)
-     ;; FIXME
-     ;; `(((,@req
-     ;;    ,@(if (not opt)
-     ;;          '()
-     ;;          (cons #:optional opt))
-     ;;    ,@(if (not kw)
-     ;;          '()
-     ;;          (cons #:key (cdr kw)))
-     ;;    ,@(if predicate
-     ;;          (list #:predicate (tree-il->scheme predicate))
-     ;;          '())
-     ;;    . ,(or rest '()))
-     ;;   ,(tree-il->scheme body))
-     ;;  ,@(if else (tree-il->scheme else) '()))
+    ((<lambda-case> req opt rest kw inits vars predicate body else)
+     ;; FIXME! use parse-lambda-case?
      `((,(if rest (apply cons* vars) vars)
         ,(tree-il->scheme body))
        ,@(if else (tree-il->scheme else) '())))
@@ -345,15 +336,15 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop exps (down tree result))))
           ((<lambda> body)
            (up tree (loop body (down tree result))))
-          ((<lambda-case> predicate body else)
+          ((<lambda-case> inits predicate body else)
            (up tree (if else
                         (loop else
                               (if predicate
-                                  (loop body (loop predicate (down tree result)))
-                                  (loop body (down tree result))))
+                                  (loop body (loop predicate (loop inits (down tree result))))
+                                  (loop body (loop inits (down tree result)))))
                         (if predicate
-                            (loop body (loop predicate (down tree result)))
-                            (loop body (down tree result))))))
+                            (loop body (loop predicate (loop inits (down tree result))))
+                            (loop body (loop inits (down tree result)))))))
           ((<let> vals body)
            (up tree (loop body
                           (loop vals
@@ -405,18 +396,19 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (fold-values foldts exps seed ...))
                  ((<lambda> body)
                   (foldts body seed ...))
-                 ((<lambda-case> predicate body else)
-                  (if predicate
-                      (if else
-                          (let*-values (((seed ...) (foldts predicate seed ...))
-                                        ((seed ...) (foldts body seed ...)))
-                            (foldts else seed ...))
-                          (let-values (((seed ...) (foldts predicate seed ...)))
-                            (foldts body seed ...)))
-                      (if else
-                          (let-values (((seed ...) (foldts body seed ...)))
-                            (foldts else seed ...))
-                          (foldts body seed ...))))
+                 ((<lambda-case> inits predicate body else)
+                  (let-values (((seed ...) (fold-values foldts inits seed ...)))
+                    (if predicate
+                        (if else
+                            (let*-values (((seed ...) (foldts predicate seed ...))
+                                          ((seed ...) (foldts body seed ...)))
+                              (foldts else seed ...))
+                            (let-values (((seed ...) (foldts predicate seed ...)))
+                              (foldts body seed ...)))
+                        (if else
+                            (let-values (((seed ...) (foldts body seed ...)))
+                              (foldts else seed ...))
+                            (foldts body seed ...)))))
                  ((<let> vals body)
                   (let*-values (((seed ...) (fold-values foldts vals seed ...)))
                     (foldts body seed ...)))
@@ -460,7 +452,8 @@ This is an implementation of `foldts' as described by Andy Wingo in
       ((<lambda> body)
        (set! (lambda-body x) (lp body)))
       
-      ((<lambda-case> predicate body else)
+      ((<lambda-case> inits predicate body else)
+       (set! inits (map lp inits))
        (if predicate
            (set! (lambda-case-predicate x) (lp predicate)))
        (set! (lambda-case-body x) (lp body))
@@ -518,7 +511,8 @@ This is an implementation of `foldts' as described by Andy Wingo in
         ((<lambda> body)
          (set! (lambda-body x) (lp body)))
 
-        ((<lambda-case> predicate body else)
+        ((<lambda-case> inits predicate body else)
+         (set! inits (map lp inits))
          (if predicate (set! (lambda-case-predicate x) (lp predicate)))
          (set! (lambda-case-body x) (lp body))
          (if else (set! (lambda-case-else x) (lp else))))
