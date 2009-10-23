@@ -1650,12 +1650,13 @@ SCM_DEFINE (scm_sys_modify_instance, "%modify-instance", 2, 0, 0,
    */
   SCM_CRITICAL_SECTION_START;
   {
-    SCM car = SCM_CAR (old);
-    SCM cdr = SCM_CDR (old);
-    SCM_SETCAR (old, SCM_CAR (new));
-    SCM_SETCDR (old, SCM_CDR (new));
-    SCM_SETCAR (new, car);
-    SCM_SETCDR (new, cdr);
+    scm_t_bits word0, word1;
+    word0 = SCM_CELL_WORD_0 (old);
+    word1 = SCM_CELL_WORD_1 (old);
+    SCM_SET_CELL_WORD_0 (old, SCM_CELL_WORD_0 (new));
+    SCM_SET_CELL_WORD_1 (old, SCM_CELL_WORD_1 (new));
+    SCM_SET_CELL_WORD_0 (new, word0);
+    SCM_SET_CELL_WORD_1 (new, word1);
   }
   SCM_CRITICAL_SECTION_END;
   return SCM_UNSPECIFIED;
@@ -1672,13 +1673,14 @@ SCM_DEFINE (scm_sys_modify_class, "%modify-class", 2, 0, 0,
 
   SCM_CRITICAL_SECTION_START;
   {
-    SCM car = SCM_CAR (old);
-    SCM cdr = SCM_CDR (old);
-    SCM_SETCAR (old, SCM_CAR (new));
-    SCM_SETCDR (old, SCM_CDR (new));
+    scm_t_bits word0, word1;
+    word0 = SCM_CELL_WORD_0 (old);
+    word1 = SCM_CELL_WORD_1 (old);
+    SCM_SET_CELL_WORD_0 (old, SCM_CELL_WORD_0 (new));
+    SCM_SET_CELL_WORD_1 (old, SCM_CELL_WORD_1 (new));
     SCM_STRUCT_DATA (old)[scm_vtable_index_vtable] = SCM_UNPACK (old);
-    SCM_SETCAR (new, car);
-    SCM_SETCDR (new, cdr);
+    SCM_SET_CELL_WORD_0 (new, word0);
+    SCM_SET_CELL_WORD_1 (new, word1);
     SCM_STRUCT_DATA (new)[scm_vtable_index_vtable] = SCM_UNPACK (new);
   }
   SCM_CRITICAL_SECTION_END;
