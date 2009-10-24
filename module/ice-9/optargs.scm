@@ -59,12 +59,11 @@
 
 (define-module (ice-9 optargs)
   #:use-module (system base pmatch)
-  #:re-export (lambda*)
+  #:re-export (lambda* define*)
   #:export (let-optional
             let-optional*
             let-keywords
             let-keywords*
-            define*
             define*-public
             defmacro*
             defmacro*-public))
@@ -255,11 +254,6 @@
 ;;
 ;; Of course, define*[-public] also supports #:rest and #:allow-other-keys
 ;; in the same way as lambda*.
-
-(define-syntax define*
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (define id (lambda* args b0 b1 ...)))))
 
 (define-syntax define*-public
   (syntax-rules ()
