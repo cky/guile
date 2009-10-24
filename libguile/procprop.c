@@ -243,7 +243,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 void
 scm_init_procprop ()
 {
-  non_closure_props = scm_make_doubly_weak_hash_table (SCM_UNDEFINED);
+  non_closure_props = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/procprop.x"
 }
 
