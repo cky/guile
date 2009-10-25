@@ -282,11 +282,15 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 		return SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle));
 	      else
 		{
-		  SCM name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
-		  SCM class = scm_make_extended_class_from_symbol (scm_is_true (name)
-						       ? name
-						       : scm_nullstr,
-						       SCM_I_OPERATORP (x));
+		  SCM class, name;
+
+		  name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
+		  if (!scm_is_symbol (name))
+		    name = scm_string_to_symbol (scm_nullstr);
+
+		  class =
+		    scm_make_extended_class_from_symbol (name,
+							 SCM_I_OPERATORP (x));
 		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
 		  return class;
 		}

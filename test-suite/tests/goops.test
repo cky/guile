@@ -139,7 +139,12 @@
     (eq? (class-of "foo") <string>))
 
   (pass-if "port"
-    (is-a? (%make-void-port "w") <port>)))
+    (is-a? (%make-void-port "w") <port>))
+
+  (pass-if "struct vtable"
+    ;; Previously, `class-of' would fail for nameless structs, i.e., structs
+    ;; for which `struct-vtable-name' is #f.
+    (is-a? (class-of (make-vtable-vtable "prprpr" 0)) <class>)))
 
 
 (with-test-prefix "defining classes"
