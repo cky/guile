@@ -206,7 +206,8 @@ void *
 scm_gc_calloc (size_t size, const char *what)
 {
   void *ptr = scm_gc_malloc (size, what);
-  memset (ptr, 0x0, size);
+  if (size)
+    memset (ptr, 0x0, size);
   return ptr;
 }
 
