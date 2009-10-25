@@ -137,6 +137,9 @@
         ((br-if-not-eq ,l) (write-break l))
         ((br-if-null ,l) (write-break l))
         ((br-if-not-null ,l) (write-break l))
+        ((br-if-nargs-ne ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
+        ((br-if-nargs-lt ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
+        ((br-if-nargs-gt ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
         ((mv-call ,n ,l) (write-byte n) (write-break l))
         (else
          (cond

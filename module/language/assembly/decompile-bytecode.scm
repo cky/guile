@@ -42,6 +42,8 @@
 
 (define (br-instruction? x)
   (memq x '(br br-if br-if-not br-if-eq br-if-not-eq br-if-null br-if-not-null)))
+(define (br-nargs-instruction? x)
+  (memq x '(br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt)))
 
 (define (bytes->s24 a b c)
   (let ((x (+ (ash a 16) (ash b 8) c)))
@@ -84,6 +86,8 @@
                (pmatch exp
                  ((,br ,rel1 ,rel2 ,rel3) (guard (br-instruction? br))
                   (lp (cons `(,br ,(ensure-label rel1 rel2 rel3)) out)))
+                 ((,br ,hi ,lo ,rel1 ,rel2 ,rel3) (guard (br-nargs-instruction? br))
+                  (lp (cons `(,br ,hi ,lo ,(ensure-label rel1 rel2 rel3)) out)))
                  ((mv-call ,n ,rel1 ,rel2 ,rel3)
                   (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2 rel3)) out)))
                  (else 

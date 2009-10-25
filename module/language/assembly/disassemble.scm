@@ -132,6 +132,8 @@
        (list "~a element~:p" (apply make-int16 args)))
       ((br br-if br-if-eq br-if-not br-if-not-eq br-if-not-null br-if-null)
        (list "-> ~A" (assq-ref labels (car args))))
+      ((br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt)
+       (list "-> ~A" (assq-ref labels (caddr args))))
       ((object-ref)
        (and objs (list "~s" (vector-ref objs (car args)))))
       ((local-ref local-boxed-ref local-set local-boxed-set)
