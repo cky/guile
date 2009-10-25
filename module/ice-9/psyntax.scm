@@ -2054,6 +2054,32 @@
             (build-case-lambda s docstring lcase))))
        (_ (syntax-violation 'lambda "bad lambda*" e)))))
 
+(global-extend 'core 'case-lambda
+   (lambda (e r w s mod)
+     (syntax-case e ()
+       ((_ (args e1 e2 ...) (args* e1* e2* ...) ...)
+        (call-with-values
+            (lambda ()
+              (chi-lambda-case e r w s mod
+                               lambda-formals
+                               #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
+          (lambda (docstring lcase)
+            (build-case-lambda s docstring lcase))))
+       (_ (syntax-violation 'case-lambda "bad case-lambda" e)))))
+
+(global-extend 'core 'case-lambda*
+   (lambda (e r w s mod)
+     (syntax-case e ()
+       ((_ (args e1 e2 ...) (args* e1* e2* ...) ...)
+        (call-with-values
+            (lambda ()
+              (chi-lambda-case e r w s mod
+                               lambda*-formals
+                               #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
+          (lambda (docstring lcase)
+            (build-case-lambda s docstring lcase))))
+       (_ (syntax-violation 'case-lambda "bad case-lambda*" e)))))
+
 (global-extend 'core 'let
   (let ()
     (define (chi-let e r w s mod constructor ids vals exps)

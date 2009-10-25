@@ -1,6 +1,6 @@
 ;;; srfi-16.scm --- case-lambda
 
-;; Copyright (C) 2001, 2002, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2006, 2009 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,7 @@
 ;;; Code:
 
 (define-module (srfi srfi-16)
-  :export-syntax (case-lambda))
+  #:replace (case-lambda))
 
 (cond-expand-provide (current-module) '(srfi-16))
 
