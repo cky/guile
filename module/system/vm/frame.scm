@@ -96,7 +96,9 @@
               (cons x (lp rest)))
              (,rest (guard (symbol? rest))
               (vm-frame-binding-ref frame rest))
-             (else (error "bad formals" formals))))))
+             ;; let's not error here, as we are called during
+             ;; backtraces...
+             (else '???)))))
    (else
     ;; case 2
     (map (lambda (i)

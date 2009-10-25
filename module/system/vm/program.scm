@@ -97,13 +97,30 @@
                      (cons (car binds) out))
                     (else (inner (cdr binds)))))))))
 
+(define (arity:start a)
+  (pmatch a ((,start ,end . _) start) (else (error "bad arity" a))))
+(define (arity:end a)
+  (pmatch a ((,start ,end . _) end) (else (error "bad arity" a))))
+(define (arity:nreq a)
+  (pmatch a ((_ _ ,nreq . _) nreq) (else 0)))
+(define (arity:nopt a)
+  (pmatch a ((_ _ ,nreq ,nopt . _) nopt) (else 0)))
+(define (arity:rest? a)
+  (pmatch a ((_ _ ,nreq ,nopt ,rest? . _) rest?) (else #f)))
+(define (arity:kw a)
+  (pmatch a ((_ _ ,nreq ,nopt ,rest? (_ . ,kw)) kw) (else '())))
+(define (arity:allow-other-keys? a)
+  (pmatch a ((_ _ ,nreq ,nopt ,rest? (,aok . ,kw)) aok) (else #f)))
+
 ;; not exported; should it be?
 (define (program-arity prog ip)
   (let ((arities (program-arities prog)))
     (and arities
          (let lp ((arities arities))
            (cond ((null? arities) #f)
-                 ((<= (caar arities) ip) (car arities))
+                 ((and (< (arity:start (car arities)) ip)
+                       (<= ip (arity:end (car arities))))
+                  (car arities))
                  (else (lp (cdr arities))))))))
 
 (define (arglist->arguments arglist)
@@ -116,19 +133,6 @@
        (rest . ,rest)
        (extents . ,extents)))
     (else #f)))
-
-(define (arity:start a)
-  (pmatch a ((,ip . _) ip) (else (error "bad arity" a))))
-(define (arity:nreq a)
-  (pmatch a ((_ ,nreq . _) nreq) (else 0)))
-(define (arity:nopt a)
-  (pmatch a ((_ ,nreq ,nopt . _) nopt) (else 0)))
-(define (arity:rest? a)
-  (pmatch a ((_ ,nreq ,nopt ,rest? . _) rest?) (else #f)))
-(define (arity:kw a)
-  (pmatch a ((_ ,nreq ,nopt ,rest? (_ . ,kw)) kw) (else '())))
-(define (arity:allow-other-keys? a)
-  (pmatch a ((_ ,nreq ,nopt ,rest? (,aok . ,kw)) aok) (else #f)))
 
 (define (arity->arguments prog arity)
   (define var-by-index

@@ -125,17 +125,13 @@
   (assoc-ref-or-acons alist x
                       (lambda (x alist)
                         (+ (length alist) *module*))))
-
-(define (compile-assembly glil)
-  (receive (code . _)
-      (glil->assembly glil #t '(()) '() '() #f '() -1)
-    (car code)))
 (define (make-object-table objects)
   (and (not (null? objects))
        (list->vector (cons #f objects))))
 
+;; A functional arities thingamajiggy.
 ;; arities := ((ip nreq [[nopt] [[rest] [kw]]]]) ...)
-(define (begin-arity addr nreq nopt rest kw arities)
+(define (open-arity addr nreq nopt rest kw arities)
   (cons
    (cond
     (kw (list addr nreq nopt rest kw))
@@ -144,6 +140,19 @@
     (nreq (list addr nreq))
     (else (list addr)))
    arities))
+(define (close-arity addr arities)
+  (pmatch arities
+    (() '())
+    (((,start . ,tail) . ,rest)
+     `((,start ,addr . ,tail) . ,rest))
+    (else (error "bad arities" arities))))
+(define (begin-arity end start nreq nopt rest kw arities)
+  (open-arity start nreq nopt rest kw (close-arity end arities)))
+
+(define (compile-assembly glil)
+  (receive (code . _)
+      (glil->assembly glil #t '(()) '() '() #f '() -1)
+    (car code)))
 
 (define (glil->assembly glil toplevel? bindings
                         source-alist label-alist object-alist arities addr)
@@ -153,7 +162,7 @@
     (values x bindings source-alist label-alist object-alist arities))
   (define (emit-code/arity x nreq nopt rest kw)
     (values x bindings source-alist label-alist object-alist
-            (begin-arity (addr+ addr x) nreq nopt rest kw arities)))
+            (begin-arity addr (addr+ addr x) nreq nopt rest kw arities)))
   
   (record-case glil
     ((<glil-program> meta body)
@@ -168,7 +177,7 @@
                    (limn-sources (reverse! source-alist))
                    (reverse label-alist)
                    (and object-alist (map car (reverse object-alist)))
-                   (reverse arities)
+                   (reverse (close-arity addr arities))
                    addr))
           (else
            (receive (subcode bindings source-alist label-alist object-alist
@@ -309,7 +318,7 @@
                        (reserve-locals ,(quotient nlocs 256)
                                        ,(modulo nlocs 256)))))
            (values code bindings source-alist label-alist object-alist
-                   (begin-arity (addr+ addr code) nreq nopt rest
+                   (begin-arity addr (addr+ addr code) nreq nopt rest
                                 (and kw (cons allow-other-keys? kw))
                                 arities))))))
     

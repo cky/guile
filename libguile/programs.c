@@ -296,7 +296,7 @@ scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
   /* take the last arglist, it will be least specific */
   while (scm_is_pair (scm_cdr (arities)))
     arities = scm_cdr (arities);
-  x = scm_cdar (arities);
+  x = scm_cddar (arities);
   if (scm_is_pair (x))
     {
       *req = scm_to_int (scm_car (x));
