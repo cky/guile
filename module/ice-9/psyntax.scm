@@ -1570,6 +1570,209 @@
     (and (nonsymbol-id? x)
          (free-id=? x (syntax (... ...))))))
 
+(define lambda-formals
+  (lambda (orig-args)
+    (define (req args rreq)
+      (syntax-case args ()
+        (()
+         (check (reverse rreq) #f))
+        ((a . b) (id? #'a)
+         (req #'b (cons #'a rreq)))
+        (r (id? #'r)
+           (check (reverse rreq) #'r))
+        (else
+         (syntax-violation 'lambda "invalid argument list" orig-args args))))
+    (define (check req rest)
+      (cond
+       ((distinct-bound-ids? (if rest (cons rest req) req))
+        (values req #f rest #f))
+       (else
+        (syntax-violation 'lambda "duplicate identifier in argument list"
+                          orig-args))))
+    (req orig-args '())))
+
+(define chi-simple-lambda
+  (lambda (e r w s mod req rest docstring body)
+    (let* ((ids (if rest (append req (list rest)) req))
+           (vars (map gen-var ids))
+           (labels (gen-labels ids)))
+      (build-simple-lambda
+       s
+       (map syntax->datum req) (and rest (syntax->datum rest)) vars
+       docstring
+       (chi-body body (source-wrap e w s mod)
+                 (extend-var-env labels vars r)
+                 (make-binding-wrap ids labels w)
+                 mod)))))
+
+(define lambda*-formals
+  (lambda (orig-args)
+    (define (req args rreq)
+      (syntax-case args ()
+        (()
+         (check (reverse rreq) '() #f '()))
+        ((a . b) (id? #'a)
+         (req #'b (cons #'a rreq)))
+        ((a . b) (eq? (syntax->datum #'a) #:optional)
+         (opt #'b (reverse rreq) '()))
+        ((a . b) (eq? (syntax->datum #'a) #:key)
+         (key #'b (reverse rreq) '() '()))
+        ((a b) (eq? (syntax->datum #'a) #:rest)
+         (rest #'b (reverse rreq) '() '()))
+        (r (id? #'r)
+           (rest #'r (reverse rreq) '() '()))
+        (else
+         (syntax-violation 'lambda* "invalid argument list" orig-args args))))
+    (define (opt args req ropt)
+      (syntax-case args ()
+        (()
+         (check req (reverse ropt) #f '()))
+        ((a . b) (id? #'a)
+         (opt #'b req (cons #'(a #f) ropt)))
+        (((a init) . b) (id? #'a)
+         (opt #'b req (cons #'(a init) ropt)))
+        ((a . b) (eq? (syntax->datum #'a) #:key)
+         (key #'b req (reverse ropt) '()))
+        ((a b) (eq? (syntax->datum #'a) #:rest)
+         (rest #'b req (reverse ropt) '()))
+        (r (id? #'r)
+           (rest #'r req (reverse ropt) '()))
+        (else
+         (syntax-violation 'lambda* "invalid optional argument list"
+                           orig-args args))))
+    (define (key args req opt rkey)
+      (syntax-case args ()
+        (()
+         (check req opt #f (cons #f (reverse rkey))))
+        ((a . b) (id? #'a)
+         (with-syntax ((k (symbol->keyword (syntax->datum #'a))))
+           (key #'b req opt (cons #'(k a #f) rkey))))
+        (((a init) . b) (id? #'a)
+         (with-syntax ((k (symbol->keyword (syntax->datum #'a))))
+           (key #'b req opt (cons #'(k a init) rkey))))
+        (((a init k) . b) (and (id? #'a)
+                               (keyword? (syntax->datum #'k)))
+         (key #'b req opt (cons #'(k a init) rkey)))
+        ((aok) (eq? (syntax->datum #'aok) #:allow-other-keys)
+         (check req opt #f (cons #t (reverse rkey))))
+        ((aok a b) (and (eq? (syntax->datum #'aok) #:allow-other-keys)
+                        (eq? (syntax->datum #'a) #:rest))
+         (rest #'b req opt (cons #t (reverse rkey))))
+        ((aok . r) (and (eq? (syntax->datum #'aok) #:allow-other-keys)
+                        (id? #'r))
+         (rest #'r req opt (cons #t (reverse rkey))))
+        ((a b) (eq? (syntax->datum #'a) #:rest)
+         (rest #'b req opt (cons #f (reverse rkey))))
+        (r (id? #'r)
+           (rest #'r req opt (cons #f (reverse rkey))))
+        (else
+         (syntax-violation 'lambda* "invalid keyword argument list"
+                           orig-args args))))
+    (define (rest args req opt kw)
+      (syntax-case args ()
+        (r (id? #'r)
+           (check req opt #'r kw))
+        (else
+         (syntax-violation 'lambda* "invalid rest argument"
+                           orig-args args))))
+    (define (check req opt rest kw)
+      (cond
+       ((distinct-bound-ids?
+         (append req (map car opt) (if rest (list rest) '())
+                 (if (pair? kw) (map cadr (cdr kw)) '())))
+        (values req opt rest kw))
+       (else
+        (syntax-violation 'lambda* "duplicate identifier in argument list"
+                          orig-args))))
+    (req orig-args '())))
+
+(define chi-lambda-case
+  (lambda (e r w s mod get-formals clauses)
+    (define (expand-req req opt rest kw body)
+      (let ((vars (map gen-var req))
+            (labels (gen-labels req)))
+        (let ((r* (extend-var-env labels vars r))
+              (w* (make-binding-wrap req labels w)))
+          (expand-opt (map syntax->datum req)
+                      opt rest kw body (reverse vars) r* w* '() '()))))
+    (define (expand-opt req opt rest kw body vars r* w* out inits)
+      (cond
+       ((pair? opt)
+        (syntax-case (car opt) ()
+          ((id i)
+           (let* ((v (gen-var #'id))
+                  (l (gen-labels (list v)))
+                  (r** (extend-var-env l (list v) r*))
+                  (w** (make-binding-wrap (list #'id) l w*)))
+             (expand-opt req (cdr opt) rest kw body (cons v vars)
+                         r** w** (cons (syntax->datum #'id) out)
+                         (cons (chi #'i r* w* mod) inits))))))
+       (rest
+        (let* ((v (gen-var rest))
+               (l (gen-labels (list v)))
+               (r* (extend-var-env l (list v) r*))
+               (w* (make-binding-wrap (list rest) l w*)))
+          (expand-kw req (if (pair? out) (reverse out) #f)
+                     (syntax->datum rest)
+                     (if (pair? kw) (cdr kw) kw)
+                     body (cons v vars) r* w* 
+                     (if (pair? kw) (car kw) #f)
+                     '() inits)))
+       (else
+        (expand-kw req (if (pair? out) (reverse out) #f) #f
+                   (if (pair? kw) (cdr kw) kw)
+                   body vars r* w*
+                   (if (pair? kw) (car kw) #f)
+                   '() inits))))
+    (define (expand-kw req opt rest kw body vars r* w* aok out inits)
+      (cond
+       ((pair? kw)
+        (syntax-case (car kw) ()
+          ((k id i)
+           (let* ((v (gen-var #'id))
+                  (l (gen-labels (list v)))
+                  (r** (extend-var-env l (list v) r*))
+                  (w** (make-binding-wrap (list #'id) l w*)))
+             (expand-kw req opt rest (cdr kw) body (cons v vars)
+                        r** w** aok
+                        (cons (list (syntax->datum #'k)
+                                    (syntax->datum #'id)
+                                    v)
+                              out)
+                        (cons (chi #'i r* w* mod) inits))))))
+       (else
+        (expand-body req opt rest
+                     (if (or aok (pair? out)) (cons aok (reverse out)) #f)
+                     body (reverse vars) r* w* (reverse inits)))))
+    (define (expand-body req opt rest kw body vars r* w* inits)
+      (syntax-case body ()
+        ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
+         (values (syntax->datum #'docstring) req opt rest kw inits vars #f
+                 (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
+                           r* w* mod)))
+        ((e1 e2 ...)
+         (values #f req opt rest kw inits vars #f
+                 (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
+                           r* w* mod)))))
+
+    (syntax-case clauses ()
+      (() (values #f #f))
+      (((args e1 e2 ...) (args* e1* e2* ...) ...)
+       (call-with-values (lambda () (get-formals #'args))
+          (lambda (req opt rest kw)
+            (call-with-values (lambda ()
+                                (expand-req req opt rest kw #'(e1 e2 ...)))
+              (lambda (docstring req opt rest kw inits vars pred body)
+                (call-with-values
+                    (lambda ()
+                      (chi-lambda-case e r w s mod get-formals
+                                       #'((args* e1* e2* ...) ...)))
+                  (lambda (docstring* else*)
+                    (values
+                     (or docstring docstring*)
+                     (build-lambda-case s req opt rest kw inits vars
+                                        pred body else*))))))))))))
+
 ;;; data
 
 ;;; strips syntax-objects down to top-wrap
@@ -1825,210 +2028,30 @@
              (lambda (e maps) (regen e))))
           (_ (syntax-violation 'syntax "bad `syntax' form" e)))))))
 
-
 (global-extend 'core 'lambda
    (lambda (e r w s mod)
-     (define (docstring&body ids vars labels c)
-       (syntax-case c ()
-         ((docstring e1 e2 ...)
-          (string? (syntax->datum (syntax docstring)))
-          (values (syntax->datum (syntax docstring))
-                  (chi-body (syntax (e1 e2 ...))
-                            (source-wrap e w s mod)
-                            (extend-var-env labels vars r)
-                            (make-binding-wrap ids labels w)
-                            mod)))
-         ((e1 e2 ...)
-          (values #f
-                  (chi-body (syntax (e1 e2 ...))
-                            (source-wrap e w s mod)
-                            (extend-var-env labels vars r)
-                            (make-binding-wrap ids labels w)
-                            mod)))))
      (syntax-case e ()
-       ((_ (id ...) e1 e2 ...)
-        (let ((ids (syntax (id ...))))
-          (if (not (valid-bound-ids? ids))
-              (syntax-violation 'lambda "invalid parameter list" e)
-              (let ((vars (map gen-var ids))
-                    (labels (gen-labels ids)))
-                (call-with-values
-                    (lambda ()
-                      (docstring&body ids vars labels
-                                      (syntax (e1 e2 ...))))
-                  (lambda (docstring body)
-                    (build-simple-lambda s (map syntax->datum ids) #f
-                                         vars docstring body)))))))
-       ((_ ids e1 e2 ...)
-        (let ((rids (lambda-var-list (syntax ids))))
-          (if (not (valid-bound-ids? rids))
-              (syntax-violation 'lambda "invalid parameter list" e)
-              (let* ((req (reverse (cdr rids)))
-                     (rest (car rids))
-                     (rrids (reverse rids))
-                     (vars (map gen-var rrids))
-                     (labels (gen-labels rrids)))
-                (call-with-values
-                    (lambda ()
-                      (docstring&body rrids vars labels
-                                      (syntax (e1 e2 ...))))
-                  (lambda (docstring body)
-                    (build-simple-lambda s (map syntax->datum req)
-                                         (syntax->datum rest)
-                                         vars docstring body)))))))
+       ((_ args docstring e1 e2 ...) (string? (syntax->datum #'docstring))
+        (call-with-values (lambda () (lambda-formals #'args))
+          (lambda (req opt rest kw)
+            (chi-simple-lambda e r w s mod req rest (syntax->datum #'docstring)
+                               #'(e1 e2 ...)))))
+       ((_ args e1 e2 ...)
+        (call-with-values (lambda () (lambda-formals #'args))
+          (lambda (req opt rest kw)
+            (chi-simple-lambda e r w s mod req rest #f #'(e1 e2 ...)))))
        (_ (syntax-violation 'lambda "bad lambda" e)))))
-
 
 (global-extend 'core 'lambda*
    (lambda (e r w s mod)
-     ;; arg parsing state machine
-     (define (req args rreq)
-       (syntax-case args ()
-         (()
-          (values (reverse rreq) '() #f '()))
-         ((a . b) (symbol? (syntax->datum #'a))
-          (req #'b (cons #'a rreq)))
-         ((a . b) (eq? (syntax->datum #'a) #:optional)
-          (opt #'b (reverse rreq) '()))
-         ((a . b) (eq? (syntax->datum #'a) #:key)
-          (key #'b (reverse rreq) '() '()))
-         ((a b) (eq? (syntax->datum #'a) #:rest)
-          (rest #'b (reverse rreq) '() '()))
-         (r (symbol? (syntax->datum #'a))
-          (rest #'r (reverse rreq) '() '()))
-         (else
-          (syntax-violation 'lambda* "invalid argument list" e args))))
-     (define (opt args req ropt)
-       (syntax-case args ()
-         (()
-          (values req (reverse ropt) #f '()))
-         ((a . b) (symbol? (syntax->datum #'a))
-          (opt #'b req (cons #'(a #f) ropt)))
-         (((a init) . b) (symbol? (syntax->datum #'a))
-          (opt #'b req (cons #'(a init) ropt)))
-         ((a . b) (eq? (syntax->datum #'a) #:key)
-          (key #'b req (reverse ropt) '()))
-         ((a b) (eq? (syntax->datum #'a) #:rest)
-          (rest #'b req (reverse ropt) '()))
-         (r (symbol? (syntax->datum #'a))
-          (rest #'r req (reverse ropt) '()))
-         (else
-          (syntax-violation 'lambda* "invalid argument list" e args))))
-     (define (key args req opt rkey)
-       (syntax-case args ()
-         (()
-          (values req opt #f (cons #f (reverse rkey))))
-         ((a . b) (symbol? (syntax->datum #'a))
-          (with-syntax ((k (symbol->keyword (syntax->datum #'a))))
-            (key #'b req opt (cons #'(k a #f) rkey))))
-         (((a init) . b) (symbol? (syntax->datum #'a))
-          (with-syntax ((k (symbol->keyword (syntax->datum #'a))))
-            (key #'b req opt (cons #'(k a init) rkey))))
-         (((a init k) . b) (and (symbol? (syntax->datum #'a))
-                                (keyword? (syntax->datum #'k)))
-          (key #'b req opt (cons #'(k a init) rkey)))
-         ((aok) (eq? (syntax->datum #'aok) #:allow-other-keys)
-          (values req opt #f (cons #t (reverse rkey))))
-         ((aok a b) (and (eq? (syntax->datum #'aok) #:allow-other-keys)
-                         (eq? (syntax->datum #'a) #:rest))
-          (rest #'b req opt (cons #t (reverse rkey))))
-         ((aok . r) (and (eq? (syntax->datum #'aok) #:allow-other-keys)
-                         (symbol? (syntax->datum #'r)))
-          (rest #'r req opt (cons #t (reverse rkey))))
-         ((a b) (eq? (syntax->datum #'a) #:rest)
-          (rest #'b req opt (cons #f (reverse rkey))))
-         (r (symbol? (syntax->datum #'a))
-          (rest #'r req opt (cons #f (reverse rkey))))
-         (else
-          (syntax-violation 'lambda* "invalid argument list" e args))))
-     (define (rest args req opt kw)
-       (syntax-case args ()
-         (r (symbol? (syntax->datum #'r))
-          (values req opt #'r kw))
-         (else
-          (syntax-violation 'lambda* "invalid rest argument" e args))))
-     (define (expand-req req opt rest kw body)
-       (let ((vars (map gen-var req))
-             (labels (gen-labels req)))
-         (let ((r* (extend-var-env labels vars r))
-               (w* (make-binding-wrap req labels w)))
-           (expand-opt (map syntax->datum req)
-                       opt rest kw body (reverse vars) r* w* '() '()))))
-     (define (expand-opt req opt rest kw body vars r* w* out inits)
-       (cond
-        ((pair? opt)
-         (syntax-case (car opt) ()
-           ((id i)
-            (let* ((v (gen-var #'id))
-                   (l (gen-labels (list v)))
-                   (r** (extend-var-env l (list v) r*))
-                   (w** (make-binding-wrap (list #'id) l w*)))
-              (expand-opt req (cdr opt) rest kw body (cons v vars)
-                          r** w** (cons (syntax->datum #'id) out)
-                          (cons (chi #'i r* w* mod) inits))))))
-        (rest
-         (let* ((v (gen-var rest))
-                (l (gen-labels (list v)))
-                (r* (extend-var-env l (list v) r*))
-                (w* (make-binding-wrap (list rest) l w*)))
-           (expand-kw req (if (pair? out) (reverse out) #f)
-                      (syntax->datum rest)
-                      (if (pair? kw) (cdr kw) kw)
-                      body (cons v vars) r* w* 
-                      (if (pair? kw) (car kw) #f)
-                      '() inits)))
-        (else
-         (expand-kw req (if (pair? out) (reverse out) #f) #f
-                    (if (pair? kw) (cdr kw) kw)
-                    body vars r* w*
-                    (if (pair? kw) (car kw) #f)
-                    '() inits))))
-     (define (expand-kw req opt rest kw body vars r* w* aok out inits)
-       (cond
-        ((pair? kw)
-         (syntax-case (car kw) ()
-           ((k id i)
-            (let* ((v (gen-var #'id))
-                   (l (gen-labels (list v)))
-                   (r** (extend-var-env l (list v) r*))
-                   (w** (make-binding-wrap (list #'id) l w*)))
-              (expand-kw req opt rest (cdr kw) body (cons v vars)
-                         r** w** aok
-                         (cons (list (syntax->datum #'k)
-                                     (syntax->datum #'id)
-                                     v)
-                               out)
-                         (cons (chi #'i r* w* mod) inits))))))
-        (else
-         (expand-body req opt rest
-                      (if (or aok (pair? out)) (cons aok (reverse out)) #f)
-                      body (reverse vars) r* w* (reverse inits)))))
-     (define (expand-body req opt rest kw body vars r* w* inits)
-       (syntax-case body ()
-         ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
-          (values (syntax->datum #'docstring) req opt rest kw inits vars #f
-                  (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
-                            r* w* mod)))
-         ((e1 e2 ...)
-          (values #f req opt rest kw inits vars #f
-                  (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
-                             r* w* mod)))))
-     ;; whew. 
-
      (syntax-case e ()
        ((_ args e1 e2 ...)
-        (call-with-values (lambda () (req #'args '()))
-          (lambda (req opt rest kw)
-            (if (not (valid-bound-ids?
-                      (append req (map car opt) (if rest (list rest) '())
-                              (if (pair? kw) (map cadr (cdr kw)) '()))))
-                (syntax-violation 'lambda "invalid parameter list" e #'args)
-                (call-with-values (lambda ()
-                                    (expand-req req opt rest kw #'(e1 e2 ...)))
-                  (lambda (docstring req opt rest kw inits vars pred body)
-                    (build-case-lambda
-                     s docstring
-                     (build-lambda-case s req opt rest kw inits vars pred body #f))))))))
+        (call-with-values
+            (lambda ()
+              (chi-lambda-case e r w s mod
+                               lambda*-formals #'((args e1 e2 ...))))
+          (lambda (docstring lcase)
+            (build-case-lambda s docstring lcase))))
        (_ (syntax-violation 'lambda "bad lambda*" e)))))
 
 (global-extend 'core 'let

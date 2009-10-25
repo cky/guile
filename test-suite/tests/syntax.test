@@ -58,11 +58,11 @@
 (define exception:bad-body
   (cons 'misc-error "^bad body"))
 (define exception:bad-formals
-  '(syntax-error . "invalid parameter list"))
+  '(syntax-error . "invalid argument list"))
 (define exception:bad-formal
   (cons 'syntax-error "Bad formal"))
-(define exception:duplicate-formal
-  (cons 'syntax-error "Duplicate formal"))
+(define exception:duplicate-formals
+  (cons 'syntax-error "duplicate identifier in argument list"))
 
 (define exception:missing-clauses
   (cons 'syntax-error "Missing clauses"))
@@ -228,13 +228,13 @@
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x) 1)"
-      exception:bad-formals
+      exception:duplicate-formals
       (eval '(lambda (x x) 1)
 	    (interaction-environment)))
 
     ;; Fixed on 2001-3-3
     (pass-if-exception "(lambda (x x x) 1)"
-      exception:bad-formals
+      exception:duplicate-formals
       (eval '(lambda (x x x) 1)
 	    (interaction-environment))))
 
