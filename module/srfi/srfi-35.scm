@@ -57,6 +57,19 @@
 				    (number->string (object-address ct)
 						    16))))))
 
+(define (%make-condition-type layout id parent all-fields)
+  (let ((struct (make-struct %condition-type-vtable 0
+                             (make-struct-layout layout) ;; layout
+                             print-condition             ;; printer
+                             id parent all-fields)))
+
+    ;; Hack to associate STRUCT with a name, providing a better name for
+    ;; GOOPS classes as returned by `class-of' et al.
+    (set-struct-vtable-name! struct (cond ((symbol? id) id)
+                                          ((string? id) (string->symbol id))
+                                          (else         (string->symbol ""))))
+    struct))
+
 (define (condition-type? obj)
   "Return true if OBJ is a condition type."
   (and (struct? obj)
@@ -104,10 +117,8 @@ supertypes."
 					       field-names parent-fields)))
 		(let* ((all-fields (append parent-fields field-names))
 		       (layout     (struct-layout-for-condition all-fields)))
-		  (make-struct %condition-type-vtable 0
-			       (make-struct-layout layout) ;; layout
-			       print-condition             ;; printer
-			       id parent all-fields))
+		  (%make-condition-type layout
+                                        id parent all-fields))
 		(error "invalid condition type field names"
 		       field-names)))
 	  (error "parent is not a condition type" parent))
@@ -126,13 +137,10 @@ supertypes."
          (let* ((all-fields (append-map condition-type-all-fields
                                         parents))
                 (layout     (struct-layout-for-condition all-fields)))
-           (make-struct %condition-type-vtable 0
-                        (make-struct-layout layout) ;; layout
-                        print-condition             ;; printer
-                        id
-                        parents                     ;; list of parents!
-                        all-fields
-                        all-fields)))))
+           (%make-condition-type layout
+                                 id
+                                 parents         ;; list of parents!
+                                 all-fields)))))
 
 
 ;;;
