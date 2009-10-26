@@ -1577,66 +1577,9 @@ The SRFI-14 data type and procedures are always available,
 @cindex variable arity
 @cindex arity, variable
 
-@c FIXME::martin: Review me!
-
-@findex case-lambda
-The syntactic form @code{case-lambda} creates procedures, just like
-@code{lambda}, but has syntactic extensions for writing procedures of
-varying arity easier.
-
-The syntax of the @code{case-lambda} form is defined in the following
-EBNF grammar.
-
-@example
-@group
-<case-lambda>
-   --> (case-lambda <case-lambda-clause>)
-<case-lambda-clause>
-   --> (<formals> <definition-or-command>*)
-<formals>
-   --> (<identifier>*)
-     | (<identifier>* . <identifier>)
-     | <identifier>
-@end group
-@end example
-
-The value returned by a @code{case-lambda} form is a procedure which
-matches the number of actual arguments against the formals in the
-various clauses, in order.  @dfn{Formals} means a formal argument list
-just like with @code{lambda} (@pxref{Lambda}). The first matching clause
-is selected, the corresponding values from the actual parameter list are
-bound to the variable names in the clauses and the body of the clause is
-evaluated.  If no clause matches, an error is signalled.
-
-The following (silly) definition creates a procedure @var{foo} which
-acts differently, depending on the number of actual arguments.  If one
-argument is given, the constant @code{#t} is returned, two arguments are
-added and if more arguments are passed, their product is calculated.
-
-@lisp
-(define foo (case-lambda
-              ((x) #t)
-              ((x y) (+ x y))
-              (z
-                (apply * z))))
-(foo 'bar)
-@result{}
-#t
-(foo 2 4)
-@result{}
-6
-(foo 3 3 3)
-@result{}
-27
-(foo)
-@result{}
-1
-@end lisp
-
-The last expression evaluates to 1 because the last clause is matched,
-@var{z} is bound to the empty list and the following multiplication,
-applied to zero arguments, yields 1.
-
+SRFI-16 defines a variable-arity @code{lambda} form,
+@code{case-lambda}. This form is available in the default Guile
+environment. @xref{Case-lambda}, for more information.
 
 @node SRFI-17
 @subsection SRFI-17 - Generalized set!

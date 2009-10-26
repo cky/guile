@@ -32,8 +32,12 @@
             program-name
 
             program-bindings program-bindings-by-index program-bindings-for-ip
-            program-arities program-arguments program-lambda-list
-           
+            program-arities program-arity arity:start arity:end
+
+            arity:nreq arity:nopt arity:rest? arity:kw arity:allow-other-keys?
+
+            program-arguments program-lambda-list
+            
             program-meta
             program-objcode program? program-objects
             program-module program-base program-free-variables))
@@ -112,7 +116,6 @@
 (define (arity:allow-other-keys? a)
   (pmatch a ((_ _ ,nreq ,nopt ,rest? (,aok . ,kw)) aok) (else #f)))
 
-;; not exported; should it be?
 (define (program-arity prog ip)
   (let ((arities (program-arities prog)))
     (and arities
