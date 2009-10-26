@@ -72,6 +72,14 @@ typedef unsigned long (*scm_t_hash_fn) (SCM obj, unsigned long max,
    some equality predicate.  */
 typedef SCM (*scm_t_assoc_fn) (SCM obj, SCM alist, void *closure);
 
+/* Function to fold over the entries of a hash table.  */
+typedef SCM (*scm_t_hash_fold_fn) (void *closure, SCM key, SCM value,
+				   SCM result);
+
+/* Function to iterate over the handles (key-value pairs) of a hash
+   table.  */
+typedef SCM (*scm_t_hash_handle_fn) (void *closure, SCM handle);
+
 typedef struct scm_t_hashtable {
   int flags;			/* properties of table */
   unsigned long n_items;	/* number of items in table */
@@ -83,12 +91,6 @@ typedef struct scm_t_hashtable {
 } scm_t_hashtable;
 
 
-
-#if 0
-typedef unsigned int scm_t_hash_fn (SCM obj, unsigned int d, void *closure);
-typedef SCM scm_t_assoc_fn (SCM key, SCM alist, void *closure);
-typedef SCM scm_t_delete_fn (SCM elt, SCM list);
-#endif
 
 SCM_API SCM scm_vector_to_hash_table (SCM vector);
 SCM_API SCM scm_c_make_hash_table (unsigned long k);
@@ -126,8 +128,10 @@ SCM_API SCM scm_hash_fn_remove_x (SCM table, SCM obj,
 				  scm_t_hash_fn hash_fn,
 				  scm_t_assoc_fn assoc_fn,
 				  void *closure);
-SCM_API SCM scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table);
-SCM_API void scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table);
+SCM_API SCM scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
+				    SCM init, SCM table);
+SCM_API void scm_internal_hash_for_each_handle (scm_t_hash_handle_fn fn,
+						void *closure, SCM table);
 SCM_API SCM scm_hash_clear_x (SCM table);
 
 SCM_API SCM scm_hashq_get_handle (SCM table, SCM obj);

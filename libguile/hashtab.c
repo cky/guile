@@ -1039,7 +1039,8 @@ SCM_DEFINE (scm_hashx_remove_x, "hashx-remove!", 4, 0, 0,
 static const char s_scm_hash_fold[];
 
 SCM
-scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
+scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
+			SCM init, SCM table)
 {
   long i, n;
   SCM buckets, result = init;
@@ -1103,7 +1104,8 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 static const char s_scm_hash_for_each[];
 
 void
-scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table)
+scm_internal_hash_for_each_handle (scm_t_hash_handle_fn fn, void *closure,
+				   SCM table)
 {
   long i, n;
   SCM buckets;
@@ -1145,7 +1147,8 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
   SCM_VALIDATE_PROC (1, proc);
   if (!SCM_HASHTABLE_P (table))
     SCM_VALIDATE_VECTOR (3, table);
-  return scm_internal_hash_fold (scm_call_3, (void *) SCM_UNPACK (proc), init, table);
+  return scm_internal_hash_fold ((scm_t_hash_fold_fn) scm_call_3,
+				 (void *) SCM_UNPACK (proc), init, table);
 }
 #undef FUNC_NAME
 
@@ -1185,7 +1188,7 @@ SCM_DEFINE (scm_hash_for_each_handle, "hash-for-each-handle", 2, 0, 0,
   if (!SCM_HASHTABLE_P (table))
     SCM_VALIDATE_VECTOR (2, table);
   
-  scm_internal_hash_for_each_handle (call,
+  scm_internal_hash_for_each_handle ((scm_t_hash_handle_fn) call,
 				     (void *) SCM_UNPACK (proc),
 				     table);
   return SCM_UNSPECIFIED;
