@@ -207,7 +207,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
 
 void
 scm_i_rehash (SCM table,
-	      unsigned long (*hash_fn)(),
+	      scm_t_hash_fn hash_fn,
 	      void *closure,
 	      const char* func_name)
 {
@@ -472,8 +472,9 @@ scm_hash_fn_get_handle (SCM table, SCM obj,
 
 
 SCM
-scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn)(),
-                             SCM (*assoc_fn)(), void * closure)
+scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
+			     scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+                             void * closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
   int weak = 0;
@@ -563,9 +564,10 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 #undef FUNC_NAME
 
 
-SCM 
-scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn)(),
-                 SCM (*assoc_fn)(), void * closure)
+SCM
+scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
+		 scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+                 void *closure)
 {
   SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
   if (scm_is_pair (it))
@@ -577,9 +579,10 @@ scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn)(),
 
 
 
-SCM 
-scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn)(),
-                   SCM (*assoc_fn)(), void * closure)
+SCM
+scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
+		   scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+                   void *closure)
 {
   SCM it;
 
@@ -591,8 +594,8 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn)(),
 
 SCM
 scm_hash_fn_remove_x (SCM table, SCM obj,
-		      unsigned long (*hash_fn)(),
-		      SCM (*assoc_fn)(),
+		      scm_t_hash_fn hash_fn,
+		      scm_t_assoc_fn assoc_fn,
                       void *closure)
 {
   int weak = 0;
