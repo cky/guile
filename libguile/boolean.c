@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,15 +29,37 @@
 #include "libguile/lang.h"
 #include "libguile/tags.h"
 
+#include "verify.h"
+
 
 
+/*
+ * These compile-time tests verify the properties needed for the
+ * efficient test macros defined in boolean.h, which are defined in
+ * terms of the SCM_MATCHES_BITS_IN_COMMON macro.
+ *
+ * See the comments preceeding the definitions of SCM_BOOL_F and
+ * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
+ */
+verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
+		(SCM_BOOL_F, SCM_BOOL_T));
+verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
+		(SCM_ELISP_NIL, SCM_BOOL_F));
+verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
+		(SCM_ELISP_NIL, SCM_EOL));
+verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
+		(SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T,		\
+		 SCM_XXX_ANOTHER_BOOLEAN_DONT_USE));
+verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
+		(SCM_ELISP_NIL, SCM_BOOL_F, SCM_EOL,		\
+		 SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE));
 
 SCM_DEFINE (scm_not, "not", 1, 0, 0, 
             (SCM x),
             "Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.")
 #define FUNC_NAME s_scm_not
 {
-  return scm_from_bool (scm_is_false (x) || SCM_NILP (x));
+  return scm_from_bool (scm_is_false_or_nil (x));
 }
 #undef FUNC_NAME
 
@@ -47,19 +69,14 @@ SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0,
             "Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.")
 #define FUNC_NAME s_scm_boolean_p
 {
-  return scm_from_bool (scm_is_bool (obj) || SCM_NILP (obj));
+  return scm_from_bool (scm_is_bool_or_nil (obj));
 }
 #undef FUNC_NAME
 
 int
-scm_is_bool (SCM x)
-{
-  return scm_is_eq (x, SCM_BOOL_F) || scm_is_eq (x, SCM_BOOL_T);
-}
-
-int
 scm_to_bool (SCM x)
 {
+  /* XXX Should this first test use scm_is_false_or_nil instead? */
   if (scm_is_eq (x, SCM_BOOL_F))
     return 0;
   else if (scm_is_eq (x, SCM_BOOL_T))

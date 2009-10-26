@@ -304,7 +304,7 @@ dispatch:
           while (!scm_is_null (SCM_CDR (x)))
             {
               SCM test_result = EVALCAR (x, env);
-              if (scm_is_false (test_result) || SCM_NILP (test_result))
+              if (scm_is_false_or_nil (test_result))
                 RETURN (SCM_BOOL_F);
               else
                 x = SCM_CDR (x);
@@ -442,8 +442,7 @@ dispatch:
 		      xx = SCM_CDR (clause);
 		      proc = EVALCAR (xx, env);
 		      guard_result = SCM_APPLY (proc, arg1, SCM_EOL);
-		      if (scm_is_true (guard_result)
-			  && !SCM_NILP (guard_result))
+		      if (scm_is_true_and_not_nil (guard_result))
 			{
 			  proc = SCM_CDDR (xx);
 			  proc = EVALCAR (proc, env);
@@ -451,7 +450,7 @@ dispatch:
 			  goto apply_proc;
 			}
 		    }
-                  else if (scm_is_true (arg1) && !SCM_NILP (arg1))
+                  else if (scm_is_true_and_not_nil (arg1))
                     {
                       x = SCM_CDR (clause);
                       if (scm_is_null (x))
@@ -498,7 +497,7 @@ dispatch:
 
             SCM test_result = EVALCAR (test_form, env);
 
-            while (scm_is_false (test_result) || SCM_NILP (test_result))
+            while (scm_is_false_or_nil (test_result))
               {
                 {
                   /* Evaluate body forms.  */
@@ -552,7 +551,7 @@ dispatch:
           {
             SCM test_result = EVALCAR (x, env);
             x = SCM_CDR (x);  /* then expression */
-            if (scm_is_false (test_result) || SCM_NILP (test_result))
+            if (scm_is_false_or_nil (test_result))
               {
                 x = SCM_CDR (x);  /* else expression */
                 if (scm_is_null (x))
@@ -623,7 +622,7 @@ dispatch:
           while (!scm_is_null (SCM_CDR (x)))
             {
               SCM val = EVALCAR (x, env);
-              if (scm_is_true (val) && !SCM_NILP (val))
+              if (scm_is_true_and_not_nil (val))
                 RETURN (val);
               else
                 x = SCM_CDR (x);

@@ -3,7 +3,7 @@
 #ifndef SCM_PAIRS_H
 #define SCM_PAIRS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -34,7 +34,32 @@
 # define SCM_VALIDATE_PAIR(cell, expr) (expr)
 #endif
 
-#define scm_is_null(x)          (scm_is_eq ((x), SCM_EOL))
+/*
+ * Use scm_is_null_and_not_nil if it's important (for correctness)
+ * that %nil must NOT be considered null.
+ */
+#define scm_is_null_and_not_nil(x)     (scm_is_eq ((x), SCM_EOL))
+
+/*
+ * Use scm_is_null_assume_not_nil if %nil will never be tested,
+ * for increased efficiency.
+ */
+#define scm_is_null_assume_not_nil(x)  (scm_is_eq ((x), SCM_EOL))
+
+/*
+ * See the comments preceeding the definitions of SCM_BOOL_F and
+ * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information on
+ * how the following macro works.
+ */
+#if SCM_ENABLE_ELISP
+# define scm_is_null_or_nil(x)  \
+  (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_EOL))
+#else
+# define scm_is_null_or_nil(x)  (scm_is_null_assume_not_nil (x))
+#endif
+
+/* XXX Should scm_is_null treat %nil as null by default? */
+#define scm_is_null(x)		(scm_is_null_and_not_nil(x))
 
 #define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))
 #define SCM_CDR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_1 (x)))

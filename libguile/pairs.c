@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,10 +27,24 @@
 
 #include "libguile/pairs.h"
 
+#include "verify.h"
+
 
 
 /* {Pairs}
  */
+
+/*
+ * This compile-time test verifies the properties needed for the
+ * efficient test macro scm_is_null_or_nil defined in pairs.h,
+ * which is defined in terms of the SCM_MATCHES_BITS_IN_COMMON macro.
+ *
+ * See the comments preceeding the definitions of SCM_BOOL_F and
+ * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
+ */
+verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
+		 (SCM_ELISP_NIL, SCM_EOL));
+
 
 #if (SCM_DEBUG_PAIR_ACCESSES == 1)
 

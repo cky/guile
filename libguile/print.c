@@ -63,18 +63,17 @@
 static const char *iflagnames[] =
 {
   "#f",
+  "#nil",  /* Elisp nil value. Should print from elisp as symbol `nil'. */
+  "#<XXX UNUSED LISP FALSE -- DO NOT USE -- SHOULD NEVER BE SEEN XXX>",
+  "()",
   "#t",
+  "#<XXX UNUSED BOOLEAN -- DO NOT USE -- SHOULD NEVER BE SEEN XXX>",
+  "#<unspecified>",
   "#<undefined>",
   "#<eof>",
-  "()",
-  "#<unspecified>",
 
   /* Unbound slot marker for GOOPS.  For internal use in GOOPS only.  */
   "#<unbound>",
-
-  /* Elisp nil value.  This is its Scheme name; whenever it's printed in
-   * Elisp, it should appear as the symbol `nil'.  */
-  "#nil"
 };
 
 SCM_SYMBOL (sym_reader, "reader");

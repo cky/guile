@@ -506,12 +506,54 @@ enum scm_tc8_tags
 #define SCM_MAKIFLAG(n)  SCM_MAKE_ITAG8 ((n), scm_tc8_flag)
 #define SCM_IFLAGNUM(n)  (SCM_ITAG8_DATA (n))
 
+/*
+ * IMPORTANT NOTE regarding IFLAG numbering!!!
+ *
+ * Several macros depend upon careful IFLAG numbering of SCM_BOOL_F,
+ * SCM_BOOL_T, SCM_ELISP_NIL, SCM_EOL, and the two SCM_XXX_*_DONT_USE
+ * constants.  In particular:
+ *
+ * - SCM_BOOL_F and SCM_BOOL_T must differ in exactly one bit position.
+ *   (used to implement scm_is_bool_and_not_nil, aka scm_is_bool)
+ *
+ * - SCM_ELISP_NIL and SCM_BOOL_F must differ in exactly one bit position.
+ *   (used to implement scm_is_false_or_nil and
+ *    scm_is_true_and_not_nil)
+ *
+ * - SCM_ELISP_NIL and SCM_EOL must differ in exactly one bit position.
+ *   (used to implement scm_is_null_or_nil)
+ *
+ * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_EOL, SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE
+ *   must all be equal except for two bit positions.
+ *   (used to implement scm_is_lisp_false)
+ *
+ * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T, SCM_XXX_ANOTHER_BOOLEAN_DONT_USE
+ *   must all be equal except for two bit positions.
+ *   (used to implement scm_is_bool_or_nil)
+ *
+ * These properties allow the aforementioned macros to be implemented
+ * by bitwise ANDing with a mask and then comparing with a constant,
+ * using as a common basis the macro SCM_MATCHES_BITS_IN_COMMON,
+ * defined below.  The properties are checked at compile-time using
+ * `verify' macros near the top of boolean.c and pairs.c.
+ */
 #define SCM_BOOL_F		SCM_MAKIFLAG (0)
-#define SCM_BOOL_T 		SCM_MAKIFLAG (1)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG (2)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG (3)
-#define SCM_EOL			SCM_MAKIFLAG (4)
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG (5)
+#define SCM_ELISP_NIL		SCM_MAKIFLAG (1)
+
+#ifdef BUILDING_LIBGUILE
+#define SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE	SCM_MAKIFLAG (2)
+#endif
+
+#define SCM_EOL			SCM_MAKIFLAG (3)
+#define SCM_BOOL_T 		SCM_MAKIFLAG (4)
+
+#ifdef BUILDING_LIBGUILE
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE	SCM_MAKIFLAG (5)
+#endif
+
+#define SCM_UNSPECIFIED		SCM_MAKIFLAG (6)
+#define SCM_UNDEFINED	 	SCM_MAKIFLAG (7)
+#define SCM_EOF_VAL 		SCM_MAKIFLAG (8)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -521,14 +563,52 @@ enum scm_tc8_tags
  * the code which handles this value in C so that SCM_UNDEFINED can be
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (6)
-
-/* The Elisp nil value.  */
-#define SCM_ELISP_NIL		SCM_MAKIFLAG (7)
-
+#define SCM_UNBOUND		SCM_MAKIFLAG (9)
 
 #define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 
+/*
+ * SCM_MATCHES_BITS_IN_COMMON(x,a,b) returns 1 if and only if x
+ * matches both a and b in every bit position where a and b are equal;
+ * otherwise it returns 0.  Bit positions where a and b differ are
+ * ignored.
+ *
+ * This is used to efficiently compare against two values which differ
+ * in exactly one bit position, or against four values which differ in
+ * exactly two bit positions.  It is the basis for the following
+ * macros:
+ *
+ *   scm_is_null_or_nil,
+ *   scm_is_false_or_nil,
+ *   scm_is_true_and_not_nil,
+ *   scm_is_lisp_false,
+ *   scm_is_lisp_true,
+ *   scm_is_bool_and_not_nil (aka scm_is_bool)
+ *   scm_is_bool_or_nil.
+ */
+#define SCM_MATCHES_BITS_IN_COMMON(x,a,b)				\
+  ((SCM_UNPACK(x) & ~(SCM_UNPACK(a) ^ SCM_UNPACK(b))) ==		\
+   (SCM_UNPACK(a) & SCM_UNPACK(b)))
+
+/*
+ * These macros are used for compile-time verification that the
+ * constants have the properties needed for the above macro to work
+ * properly.
+ */
+#ifdef BUILDING_LIBGUILE
+#define SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED(x)  ((x) & ((x)-1))
+#define SCM_HAS_EXACTLY_ONE_BIT_SET(x)					\
+  ((x) != 0 && SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED (x) == 0)
+#define SCM_HAS_EXACTLY_TWO_BITS_SET(x)					\
+  (SCM_HAS_EXACTLY_ONE_BIT_SET (SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED (x)))
+
+#define SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION(a,b)		\
+  (SCM_HAS_EXACTLY_ONE_BIT_SET (SCM_UNPACK(a) ^ SCM_UNPACK(b)))
+#define SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS(a,b,c,d)		\
+  (SCM_HAS_EXACTLY_TWO_BITS_SET ((SCM_UNPACK(a) ^ SCM_UNPACK(b)) |	\
+                                 (SCM_UNPACK(b) ^ SCM_UNPACK(c)) |	\
+                                 (SCM_UNPACK(c) ^ SCM_UNPACK(d))))
+#endif /* BUILDING_LIBGUILE */
 
 
 /* Evaluator byte codes ('immediate symbols').  These constants are used only
