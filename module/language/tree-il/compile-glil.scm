@@ -418,7 +418,7 @@
             (else
              ;; no cases left; shuffle args down and jump before the prelude.
              (for-each (lambda (i)
-                         (emit-code #f (make-glil-lexical #t #f 'set index)))
+                         (emit-code #f (make-glil-lexical #t #f 'set i)))
                        (reverse (iota (length args))))
              (emit-branch src 'br self-label)))))
         
@@ -693,8 +693,9 @@
                (if else-label
                    ;; fixme: debox if necessary
                    (emit-branch src 'br-if-not else-label)
-                   ;; fixme: better error
-                   (emit-code src (make-glil-call 'assert-true 0)))))
+                   (comp-push (make-application
+                               src (make-primitive-ref #f 'error)
+                               (list (make-const #f "precondition not met")))))))
          (comp-tail body)
          (if (not (null? vars))
              (emit-code #f (make-glil-unbind)))
