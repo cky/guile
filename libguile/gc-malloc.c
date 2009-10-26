@@ -205,10 +205,8 @@ scm_gc_malloc (size_t size, const char *what)
 void *
 scm_gc_calloc (size_t size, const char *what)
 {
-  void *ptr = scm_gc_malloc (size, what);
-  if (size)
-    memset (ptr, 0x0, size);
-  return ptr;
+  /* `GC_MALLOC ()' always returns a zeroed buffer.  */
+  return scm_gc_malloc (size, what);
 }
 
 
