@@ -475,12 +475,12 @@ VM_DEFINE_INSTRUCTION (34, br, "br", 3, 0, 0)
 
 VM_DEFINE_INSTRUCTION (35, br_if, "br-if", 3, 0, 0)
 {
-  BR (!SCM_FALSEP (*sp));
+  BR (scm_is_true_and_not_nil (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (36, br_if_not, "br-if-not", 3, 0, 0)
 {
-  BR (SCM_FALSEP (*sp));
+  BR (scm_is_false_or_nil (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (37, br_if_eq, "br-if-eq", 3, 0, 0)
@@ -497,12 +497,12 @@ VM_DEFINE_INSTRUCTION (38, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 
 VM_DEFINE_INSTRUCTION (39, br_if_null, "br-if-null", 3, 0, 0)
 {
-  BR (SCM_NULLP (*sp));
+  BR (scm_is_null_or_nil (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (40, br_if_not_null, "br-if-not-null", 3, 0, 0)
 {
-  BR (!SCM_NULLP (*sp));
+  BR (!scm_is_null_or_nil (*sp));
 }
 
 

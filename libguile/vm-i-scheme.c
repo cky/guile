@@ -32,13 +32,13 @@
 VM_DEFINE_FUNCTION (100, not, "not", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (SCM_FALSEP (x)));
+  RETURN (SCM_BOOL (scm_is_false_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (101, not_not, "not-not", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (!SCM_FALSEP (x)));
+  RETURN (SCM_BOOL (!scm_is_false_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (102, eq, "eq?", 2)
@@ -56,13 +56,13 @@ VM_DEFINE_FUNCTION (103, not_eq, "not-eq?", 2)
 VM_DEFINE_FUNCTION (104, nullp, "null?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (SCM_NULLP (x)));
+  RETURN (SCM_BOOL (scm_is_null_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (105, not_nullp, "not-null?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (!SCM_NULLP (x)));
+  RETURN (SCM_BOOL (!scm_is_null_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (106, eqv, "eqv?", 2)
