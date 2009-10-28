@@ -40,6 +40,7 @@
 #include <byteswap.h>
 #include <striconveh.h>
 #include <uniconv.h>
+#include <unistr.h>
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
@@ -1871,58 +1872,50 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
 #define MAX_UTF_ENCODING_NAME_LEN  16
 
 /* Produce the body of a `string->utf' function.  */
-#define STRING_TO_UTF(_utf_width)					\
-  SCM utf;								\
-  int err;								\
-  char *c_str;								\
-  char c_utf_name[MAX_UTF_ENCODING_NAME_LEN];				\
-  char *c_utf = NULL, *c_locale;					\
-  size_t c_strlen, c_raw_strlen, c_utf_len = 0;				\
-									\
-  SCM_VALIDATE_STRING (1, str);						\
-  if (endianness == SCM_UNDEFINED)					\
-    endianness = scm_sym_big;						\
-  else									\
-    SCM_VALIDATE_SYMBOL (2, endianness);				\
-									\
-  c_strlen = scm_c_string_length (str);					\
-  c_raw_strlen = c_strlen * ((_utf_width) / 8);				\
-  do									\
-    {									\
-      c_str = (char *) alloca (c_raw_strlen + 1);			\
-      c_raw_strlen = scm_to_locale_stringbuf (str, c_str, c_strlen);	\
-    }									\
-  while (c_raw_strlen > c_strlen);					\
-  c_str[c_raw_strlen] = '\0';						\
-									\
-  utf_encoding_name (c_utf_name, (_utf_width), endianness);		\
-									\
-  c_locale = (char *) alloca (strlen (locale_charset ()) + 1);		\
-  strcpy (c_locale, locale_charset ());					\
-									\
-  err = mem_iconveh (c_str, c_raw_strlen,				\
-		     c_locale, c_utf_name,				\
-		     iconveh_question_mark, NULL,			\
-		     &c_utf, &c_utf_len);				\
-  if (SCM_UNLIKELY (err))						\
-    scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",	\
-		      scm_list_1 (str), err);				\
-  else									\
-    {									\
-      /* C_UTF is null-terminated.  It is malloc(3)-allocated, so we cannot \
-	 use `scm_c_take_bytevector ()'.  */				\
-      scm_dynwind_begin (0);						\
-      scm_dynwind_free (c_utf);						\
-									\
-      utf = make_bytevector (c_utf_len,					\
-                             SCM_ARRAY_ELEMENT_TYPE_VU8);		\
-      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf,			\
-	      c_utf_len);						\
-									\
-      scm_dynwind_end ();						\
-    }									\
-									\
-  return (utf);
+#define STRING_TO_UTF(_utf_width)                                       \
+  SCM utf;                                                              \
+  int err;                                                              \
+  char c_utf_name[MAX_UTF_ENCODING_NAME_LEN];                           \
+  char *c_utf = NULL;                                                   \
+  size_t c_strlen, c_utf_len = 0;                                       \
+                                                                        \
+  SCM_VALIDATE_STRING (1, str);                                         \
+  if (endianness == SCM_UNDEFINED)                                      \
+    endianness = scm_sym_big;                                           \
+  else                                                                  \
+    SCM_VALIDATE_SYMBOL (2, endianness);                                \
+                                                                        \
+  utf_encoding_name (c_utf_name, (_utf_width), endianness);             \
+                                                                        \
+  c_strlen = scm_i_string_length (str);                                 \
+  if (scm_i_is_narrow_string (str))                                     \
+    {                                                                   \
+      err = mem_iconveh (scm_i_string_chars (str), c_strlen,            \
+                         "ISO-8859-1", c_utf_name,                      \
+                         iconveh_question_mark, NULL,                   \
+                         &c_utf, &c_utf_len);                           \
+      if (SCM_UNLIKELY (err))                                           \
+        scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",    \
+                          scm_list_1 (str), err);                       \
+    }                                                                   \
+  else                                                                  \
+    {                                                                   \
+      const scm_t_wchar *wbuf = scm_i_string_wide_chars (str);          \
+      c_utf = u32_conv_to_encoding (c_utf_name,                         \
+                                    iconveh_question_mark,              \
+                                    (scm_t_uint32 *) wbuf,              \
+                                    c_strlen, NULL, NULL, &c_utf_len);  \
+      if (SCM_UNLIKELY (c_utf == NULL))                                 \
+        scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",    \
+                          scm_list_1 (str), errno);                     \
+    }                                                                   \
+  scm_dynwind_begin (0);                                                \
+  scm_dynwind_free (c_utf);                                             \
+  utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);        \
+  memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);             \
+  scm_dynwind_end ();                                                   \
+                                                                        \
+  return (utf); 
 
 
 
@@ -1934,36 +1927,30 @@ SCM_DEFINE (scm_string_to_utf8, "string->utf8",
 #define FUNC_NAME s_scm_string_to_utf8
 {
   SCM utf;
-  char *c_str;
   uint8_t *c_utf;
-  size_t c_strlen, c_raw_strlen;
+  size_t c_strlen, c_utf_len = 0;
 
   SCM_VALIDATE_STRING (1, str);
 
-  c_strlen = scm_c_string_length (str);
-  c_raw_strlen = c_strlen;
-  do
+  c_strlen = scm_i_string_length (str);
+  if (scm_i_is_narrow_string (str))
+    c_utf = u8_conv_from_encoding ("ISO-8859-1", iconveh_question_mark,
+                                   scm_i_string_chars (str), c_strlen,
+                                   NULL, NULL, &c_utf_len);
+  else
     {
-      c_str = (char *) alloca (c_raw_strlen + 1);
-      c_raw_strlen = scm_to_locale_stringbuf (str, c_str, c_strlen);
+      const scm_t_wchar *wbuf = scm_i_string_wide_chars (str);
+      c_utf = u32_to_u8 ((const uint32_t *) wbuf, c_strlen, NULL, &c_utf_len);
     }
-  while (c_raw_strlen > c_strlen);
-  c_str[c_raw_strlen] = '\0';
-
-  c_utf = u8_strconv_from_locale (c_str);
   if (SCM_UNLIKELY (c_utf == NULL))
     scm_syserror (FUNC_NAME);
   else
     {
-      /* C_UTF is null-terminated.  It is malloc(3)-allocated, so we cannot
-	 use `scm_c_take_bytevector ()'.  */
       scm_dynwind_begin (0);
       scm_dynwind_free (c_utf);
 
-      utf = make_bytevector (UTF_STRLEN (8, c_utf),
-			     SCM_ARRAY_ELEMENT_TYPE_VU8);
-      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf,
-	      UTF_STRLEN (8, c_utf));
+      utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);
 
       scm_dynwind_end ();
     }
@@ -2000,10 +1987,10 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
 #define UTF_TO_STRING(_utf_width)					\
   SCM str = SCM_BOOL_F;							\
   int err;								\
-  char *c_str = NULL, *c_locale;					\
+  char *c_str = NULL;                                                   \
   char c_utf_name[MAX_UTF_ENCODING_NAME_LEN];				\
-  const char *c_utf;							\
-  size_t c_strlen = 0, c_utf_len;					\
+  char *c_utf;                                                          \
+  size_t c_strlen = 0, c_utf_len = 0;					\
 									\
   SCM_VALIDATE_BYTEVECTOR (1, utf);					\
   if (endianness == SCM_UNDEFINED)					\
@@ -2015,20 +2002,19 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
   c_utf = (char *) SCM_BYTEVECTOR_CONTENTS (utf);			\
   utf_encoding_name (c_utf_name, (_utf_width), endianness);		\
 									\
-  c_locale = (char *) alloca (strlen (locale_charset ()) + 1);		\
-  strcpy (c_locale, locale_charset ());					\
-									\
   err = mem_iconveh (c_utf, c_utf_len,					\
-		     c_utf_name, c_locale,				\
+		     c_utf_name, "UTF-8",				\
 		     iconveh_question_mark, NULL,			\
 		     &c_str, &c_strlen);				\
   if (SCM_UNLIKELY (err))						\
     scm_syserror_msg (FUNC_NAME, "failed to convert to string: ~A",	\
 		      scm_list_1 (utf), err);				\
   else									\
-    /* C_STR is null-terminated.  */					\
-    str = scm_take_locale_stringn (c_str, c_strlen);			\
-									\
+    {                                                                   \
+      str = scm_from_stringn (c_str, c_strlen, "UTF-8",                 \
+                              SCM_FAILED_CONVERSION_ERROR);             \
+      free (c_str);                                                     \
+    }                                                                   \
   return (str);
 
 
@@ -2040,29 +2026,15 @@ SCM_DEFINE (scm_utf8_to_string, "utf8->string",
 #define FUNC_NAME s_scm_utf8_to_string
 {
   SCM str;
-  int err;
-  char *c_str = NULL, *c_locale;
   const char *c_utf;
-  size_t c_utf_len, c_strlen = 0;
+  size_t c_utf_len = 0;
 
   SCM_VALIDATE_BYTEVECTOR (1, utf);
 
   c_utf_len = SCM_BYTEVECTOR_LENGTH (utf);
-
-  c_locale = (char *) alloca (strlen (locale_charset ()) + 1);
-  strcpy (c_locale, locale_charset ());
-
   c_utf = (char *) SCM_BYTEVECTOR_CONTENTS (utf);
-  err = mem_iconveh (c_utf, c_utf_len,
-		     "UTF-8", c_locale,
-		     iconveh_question_mark, NULL,
-		     &c_str, &c_strlen);
-  if (SCM_UNLIKELY (err))
-    scm_syserror_msg (FUNC_NAME, "failed to convert to string: ~A",
-		      scm_list_1 (utf), err);
-  else
-    /* C_STR is null-terminated.  */
-    str = scm_take_locale_stringn (c_str, c_strlen);
+  str = scm_from_stringn (c_utf, c_utf_len, "UTF-8",
+                          SCM_FAILED_CONVERSION_ERROR);
 
   return (str);
 }
@@ -2089,7 +2061,6 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
   UTF_TO_STRING (32);
 }
 #undef FUNC_NAME
-
 
 
 /* Bytevectors as generalized vectors & arrays.  */
