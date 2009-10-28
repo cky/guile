@@ -119,7 +119,7 @@
                  (let lp ((i 0))
                    (if (= i len)
                        `(,inst ,(if (eq? inst 'load-wide-string)
-                                    (utf32->string seq)
+                                    (utf32->string seq (native-endianness))
                                     seq))
                        (begin
                          (sequence-set! seq i (pop))
