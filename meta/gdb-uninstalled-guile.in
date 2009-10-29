@@ -36,7 +36,7 @@ set -e
 top_builddir="@top_builddir_absolute@"
 XDG_CACHE_HOME=${top_builddir}/cache
 export XDG_CACHE_HOME
-exec ${top_builddir}/meta/uninstalled-env libtool --mode=execute \
+exec ${top_builddir}/meta/uninstalled-env ${top_builddir}/libtool --mode=execute \
     gdb --args ${top_builddir}/libguile/guile "$@"
 
 # And for GDB in Emacs, evaluate this form:
