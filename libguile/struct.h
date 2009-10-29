@@ -78,9 +78,6 @@ typedef void (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 #define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
 SCM_API SCM scm_struct_table;
 
-#define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
-#define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
-
 
 
 SCM_API scm_t_bits * scm_alloc_struct (int n_words, int n_extra,
