@@ -41,7 +41,6 @@
 #include "libguile/eq.h"
 #include "libguile/feature.h"
 #include "libguile/fluids.h"
-#include "libguile/futures.h"
 #include "libguile/goops.h"
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
@@ -409,7 +408,6 @@ static const char *const isymnames[] =
   "#@slot-ref",
   "#@slot-set!",
   "#@delay",
-  "#@future",
   "#@call-with-values",
   "#@else",
   "#@arrow",
@@ -784,9 +782,6 @@ static SCM scm_m_do (SCM xorig, SCM env);
 static SCM scm_m_quasiquote (SCM xorig, SCM env);
 static SCM scm_m_delay (SCM xorig, SCM env);
 static SCM scm_m_generalized_set_x (SCM xorig, SCM env);
-#if 0  /* Futures are disabled, see "futures.h".  */
-static SCM scm_m_future (SCM xorig, SCM env);
-#endif
 static SCM scm_m_define (SCM x, SCM env);
 static SCM scm_m_letrec (SCM xorig, SCM env);
 static SCM scm_m_let (SCM xorig, SCM env);
@@ -2196,36 +2191,6 @@ scm_m_eval_when (SCM expr, SCM env SCM_UNUSED)
   return scm_list_1 (SCM_IM_BEGIN);
 }
 
-#if 0
-
-/* See futures.h for a comment why futures are not enabled.
- */
-
-SCM_SYNTAX (s_future, "future", scm_i_makbimacro, scm_m_future);
-SCM_GLOBAL_SYMBOL (scm_sym_future, s_future);
-
-/* Like promises, futures are implemented as closures with an empty
- * parameter list.  Thus, (future <expression>) is transformed into
- * (#@future '() <expression>), where the empty list represents the
- * empty parameter list.  This representation allows for easy creation
- * of the closure during evaluation.  */
-static SCM
-scm_m_future (SCM expr, SCM env)
-{
-  const SCM new_expr = memoize_as_thunk_prototype (expr, env);
-  SCM_SETCAR (new_expr, SCM_IM_FUTURE);
-  return new_expr;
-}
-
-static SCM
-unmemoize_future (const SCM expr, const SCM env)
-{
-  const SCM thunk_expr = SCM_CADDR (expr);
-  return scm_list_2 (scm_sym_future, unmemoize_expression (thunk_expr, env));
-}
-
-#endif /* futures disabled. */
-
 SCM_SYNTAX (s_gset_x, "set!", scm_i_makbimacro, scm_m_generalized_set_x);
 SCM_SYMBOL (scm_sym_setter, "setter");
 
@@ -2493,13 +2458,6 @@ unmemoize_builtin_macro (const SCM expr, const SCM env)
 
     case (ISYMNUM (SCM_IM_CALL_WITH_VALUES)):
       return unmemoize_at_call_with_values (expr, env);
-
-#if 0
-    /* See futures.h for a comment why futures are not enabled.
-     */
-    case (ISYMNUM (SCM_IM_FUTURE)):
-      return unmemoize_future (expr, env);
-#endif
 
     case (ISYMNUM (SCM_IM_SLOT_REF)):
       return unmemoize_atslot_ref (expr, env);

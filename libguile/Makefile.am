@@ -131,7 +131,6 @@ libguile_la_SOURCES =				\
 	fluids.c				\
 	fports.c				\
 	frames.c				\
-	futures.c				\
 	gc-malloc.c				\
 	gc.c					\
 	gdbint.c				\
@@ -230,7 +229,6 @@ DOT_X_FILES =					\
 	feature.x				\
 	fluids.x				\
 	fports.x				\
-	futures.x				\
 	gc-malloc.x				\
 	gc.x					\
 	gettext.x				\
@@ -327,7 +325,6 @@ DOT_DOC_FILES = 				\
 	feature.doc				\
 	fluids.doc				\
 	fports.doc				\
-	futures.doc				\
 	gc-malloc.doc				\
 	gc.doc					\
 	gettext.doc				\
@@ -483,7 +480,6 @@ modinclude_HEADERS =				\
 	fluids.h				\
 	fports.h				\
 	frames.h				\
-	futures.h				\
 	gc.h					\
 	gdb_interface.h				\
 	gdbint.h				\

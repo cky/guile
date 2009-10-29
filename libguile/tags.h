@@ -613,7 +613,7 @@ enum scm_tc8_tags
 
 /* Evaluator byte codes ('immediate symbols').  These constants are used only
  * in eval but their values have to be allocated here.  The indices of the
- * SCM_IM_ symbols must agree with the declarations in print.c:
+ * SCM_IM_ symbols must agree with the declarations in eval.c:
  * scm_isymnames.  */
 
 #define SCM_ISYMP(n) 		(SCM_ITAG8 (n) == scm_tc8_isym)
@@ -639,12 +639,11 @@ enum scm_tc8_tags
 #define SCM_IM_SLOT_REF		SCM_MAKISYM (17)
 #define SCM_IM_SLOT_SET_X	SCM_MAKISYM (18)
 #define SCM_IM_DELAY		SCM_MAKISYM (19)
-#define SCM_IM_FUTURE		SCM_MAKISYM (20)
-#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (21)
-#define SCM_IM_ELSE             SCM_MAKISYM (22)
-#define SCM_IM_ARROW            SCM_MAKISYM (23)
-#define SCM_IM_NIL_COND         SCM_MAKISYM (24)  /* Multi-language support */
-#define SCM_IM_BIND             SCM_MAKISYM (25)  /* Multi-language support */
+#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (20)
+#define SCM_IM_ELSE             SCM_MAKISYM (21)
+#define SCM_IM_ARROW            SCM_MAKISYM (22)
+#define SCM_IM_NIL_COND         SCM_MAKISYM (23)  /* Multi-language support */
+#define SCM_IM_BIND             SCM_MAKISYM (24)  /* Multi-language support */
 
 
 

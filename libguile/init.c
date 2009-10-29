@@ -60,7 +60,6 @@
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
-#include "libguile/futures.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"
@@ -479,11 +478,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_dynwind ();
   scm_init_eq ();
   scm_init_error ();
-#if 0
-  /* See futures.h for a comment why futures are not enabled.
-   */
-  scm_init_futures ();
-#endif
   scm_init_fluids ();
   scm_init_feature ();          /* Requires fluids */
   scm_init_backtrace ();	/* Requires fluids */

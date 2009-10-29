@@ -51,7 +51,6 @@ extern "C" {
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
-#include "libguile/futures.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"

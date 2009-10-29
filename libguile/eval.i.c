@@ -734,13 +734,6 @@ dispatch:
 	case (ISYMNUM (SCM_IM_DELAY)):
 	  RETURN (scm_make_promise (scm_closure (SCM_CDR (x), env)));
 
-#if 0
-	  /* See futures.h for a comment why futures are not enabled.
-	   */
-	case (ISYMNUM (SCM_IM_FUTURE)):
-	  RETURN (scm_i_make_future (scm_closure (SCM_CDR (x), env)));
-#endif
-
 	  /* PLACEHOLDER for case (ISYMNUM (SCM_IM_DISPATCH)): The following
 	     code (type_dispatch) is intended to be the tail of the case
 	     clause for the internal macro SCM_IM_DISPATCH.  Please don't
