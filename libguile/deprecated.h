@@ -120,9 +120,6 @@ SCM_DEPRECATED SCM scm_unprotect_object (SCM obj);
   (SCM_SETCDR ((x), SCM_PACK (SCM_UNPACK (SCM_CDR (x)) | (y))))
 #define SCM_FREEP(x) (0)
 #define SCM_NFREEP(x) (1)
-#define SCM_GC8MARKP(x) SCM_GC_MARK_P (x)
-#define SCM_SETGC8MARK(x) SCM_SET_GC_MARK (x)
-#define SCM_CLRGC8MARK(x) SCM_CLEAR_GC_MARK (x)
 #define SCM_GCTYP16(x) SCM_TYP16 (x)
 #define SCM_GCCDR(x) SCM_CDR (x)
 SCM_DEPRECATED void scm_remember (SCM * ptr);

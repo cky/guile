@@ -146,18 +146,7 @@ scm_assert_cell_valid (SCM cell)
       */
       if (scm_expensive_debug_cell_accesses_p)
 	scm_i_expensive_validation_check (cell);
-#if (SCM_DEBUG_MARKING_API == 0)
-      if (!SCM_GC_MARK_P (cell))
-	{
-	  fprintf (stderr,
-		   "scm_assert_cell_valid: this object is unmarked. \n"
-		   "It has been garbage-collected in the last GC run: "
-		   "%lux\n",
-                   (unsigned long) SCM_UNPACK (cell));
-	  abort ();
-	}
-#endif /* SCM_DEBUG_MARKING_API */
-      
+
       scm_i_cell_validation_already_running = 0;  /* re-enable */
     }
 }
