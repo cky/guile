@@ -23,6 +23,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
@@ -94,9 +95,8 @@ static char *s_hashtable = "hashtable";
    buckets and remove them.  */
 
 
-/* Return a ``usable'' version of ALIST, an alist of weak pairs.  By
-   ``usable'', we mean that it contains only valid Scheme objects.  On
-   return, REMOVED_ITEMS is set to the number of pairs that have been
+/* Remove nullified weak pairs from ALIST such that the result contains only
+   valid pairs.  Set REMOVED_ITEMS to the number of pairs that have been
    deleted.  */
 static SCM
 scm_fixup_weak_alist (SCM alist, size_t *removed_items)
@@ -132,8 +132,6 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
 }
 
 
-/* Helper macros.  */
-
 /* Return true if OBJ is either a weak hash table or a weak alist vector (as
    defined in `weaks.[ch]').
    FIXME: We should eventually keep only weah hash tables.  Actually, the
@@ -144,36 +142,88 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
    || (SCM_I_IS_VECTOR (table)))
 
 
+/* Packed arguments for `do_weak_bucket_assoc ()'.  */
+struct t_assoc_args
+{
+  /* Input arguments.  */
+  SCM object;
+  SCM buckets;
+  size_t bucket_index;
+  scm_t_assoc_fn assoc_fn;
+  void *closure;
 
-/* Fixup BUCKET, an alist part of weak hash table OBJ.  BUCKETS is the full
-   bucket vector for OBJ and IDX is the index of BUCKET within this
-   vector.  See also `scm_internal_hash_fold ()'.  */
-#define START_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket, _hashfn)	     \
-do									     \
-  {									     \
-    size_t _removed;							     \
-									     \
-    /* Disable the GC so that BUCKET remains valid until ASSOC_FN has	     \
-       returned.  */							     \
-    /* FIXME: We could maybe trigger a rehash here depending on whether	     \
-       `scm_fixup_weak_alist ()' noticed some change.  */		     \
-    GC_disable ();							     \
-    (_bucket) = scm_fixup_weak_alist ((_bucket), &_removed);		     \
-    SCM_SIMPLE_VECTOR_SET ((_buckets), (_idx), (_bucket));		     \
-									     \
-    if ((_removed) && (SCM_HASHTABLE_P (_obj)))				     \
-      {									     \
-	SCM_SET_HASHTABLE_N_ITEMS ((_obj),				     \
-				   SCM_HASHTABLE_N_ITEMS (_obj) - _removed); \
-	scm_i_rehash ((_obj), (_hashfn),				     \
-		      NULL, "START_WEAK_BUCKET_FIXUP");			     \
-      }									     \
-  }									     \
-while (0)
+  /* Output arguments.  */
+  SCM result;
+  size_t removed_items;
+};
 
-/* Terminate a weak bucket fixup phase.  */
-#define END_WEAK_BUCKET_FIXUP(_obj, _buckets, _idx, _bucket, _hashfn)	\
-  do { GC_enable (); } while (0)
+static void *
+do_weak_bucket_assoc (void *data)
+{
+  struct t_assoc_args *args;
+  size_t removed;
+  SCM bucket, result;
+
+  args = (struct t_assoc_args *) data;
+
+  bucket = SCM_SIMPLE_VECTOR_REF (args->buckets, args->bucket_index);
+  bucket = scm_fixup_weak_alist (bucket, &removed);
+
+  SCM_SIMPLE_VECTOR_SET (args->buckets, args->bucket_index, bucket);
+
+  /* Run ASSOC_FN on the now clean BUCKET.  */
+  result = args->assoc_fn (args->object, bucket, args->closure);
+
+  args->result = result;
+  args->removed_items = removed;
+
+  return args;
+}
+
+/* Lookup OBJECT in weak hash table TABLE using ASSOC.  OBJECT is searched
+   for in the alist that is the BUCKET_INDEXth element of BUCKETS.
+   Optionally update TABLE and rehash it.  */
+static SCM
+weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
+		   scm_t_hash_fn hash_fn,
+		   scm_t_assoc_fn assoc, SCM object, void *closure)
+{
+  SCM result;
+  struct t_assoc_args args;
+
+  args.object = object;
+  args.buckets = buckets;
+  args.bucket_index = bucket_index;
+  args.assoc_fn = assoc;
+  args.closure = closure;
+
+  /* Fixup the bucket and pass the clean bucket to ASSOC.  Do that with the
+     allocation lock held to avoid seeing disappearing links pointing to
+     objects that have already been reclaimed (this happens when the
+     disappearing links that point to it haven't yet been cleared.)
+     Thus, ASSOC must not take long, and it must not make any non-local
+     exit.  */
+  GC_call_with_alloc_lock (do_weak_bucket_assoc, &args);
+
+  result = args.result;
+  assert (!scm_is_pair (result) ||
+	  !SCM_WEAK_PAIR_DELETED_P (GC_is_visible (result)));
+
+  if (args.removed_items > 0 && SCM_HASHTABLE_P (table))
+    {
+      /* Update TABLE's item count and optionally trigger a rehash.  */
+      size_t remaining;
+
+      assert (SCM_HASHTABLE_N_ITEMS (table) >= args.removed_items);
+
+      remaining = SCM_HASHTABLE_N_ITEMS (table) - args.removed_items;
+      SCM_SET_HASHTABLE_N_ITEMS (table, remaining);
+
+      scm_i_rehash (table, hash_fn, closure, "weak_bucket_assoc");
+    }
+
+  return result;
+}
 
 
 
@@ -438,9 +488,8 @@ scm_hash_fn_get_handle (SCM table, SCM obj,
 			void * closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
-  int weak = 0;
   unsigned long k;
-  SCM buckets, alist, h;
+  SCM buckets, h;
 
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
@@ -456,15 +505,11 @@ scm_hash_fn_get_handle (SCM table, SCM obj,
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_get_handle", scm_from_ulong (k));
 
-  weak = IS_WEAK_THING (table);
-  alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
-
-  if (weak)
-    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
-
-  h = assoc_fn (obj, alist, closure);
-  if (weak)
-    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
+  if (IS_WEAK_THING (table))
+    h = weak_bucket_assoc (table, buckets, k, hash_fn,
+			   assoc_fn, obj, closure);
+  else
+    h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
 
   return h;
 }
@@ -477,9 +522,8 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
                              void * closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
-  int weak = 0;
   unsigned long k;
-  SCM buckets, alist, it;
+  SCM buckets, it;
 
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
@@ -496,14 +540,11 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_create_handle_x", scm_from_ulong (k));
 
-  weak = IS_WEAK_THING (table);
-  alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
-  if (weak)
-    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
-
-  it = assoc_fn (obj, alist, closure);
-  if (weak)
-    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
+  if (IS_WEAK_THING (table))
+    it = weak_bucket_assoc (table, buckets, k, hash_fn,
+			    assoc_fn, obj, closure);
+  else
+    it = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
 
   if (scm_is_pair (it))
     return it;
@@ -598,9 +639,8 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
 		      scm_t_assoc_fn assoc_fn,
                       void *closure)
 {
-  int weak = 0;
   unsigned long k;
-  SCM buckets, alist, h;
+  SCM buckets, h;
 
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
@@ -617,14 +657,11 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_remove_x", scm_from_ulong (k));
 
-  weak = IS_WEAK_THING (table);
-  alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
-  if (weak)
-    START_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
-
-  h = assoc_fn (obj, alist, closure);
-  if (weak)
-    END_WEAK_BUCKET_FIXUP (table, buckets, k, alist, hash_fn);
+  if (IS_WEAK_THING (table))
+    h = weak_bucket_assoc (table, buckets, k, hash_fn,
+			   assoc_fn, obj, closure);
+  else
+    h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
 
   if (scm_is_true (h))
     {
