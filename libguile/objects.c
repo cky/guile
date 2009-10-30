@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,7 +50,6 @@
 
 
 SCM scm_metaclass_standard;
-SCM scm_metaclass_operator;
 
 /* The cache argument for scm_mcache_lookup_cmethod has one of two possible
  * formats:
@@ -209,17 +208,6 @@ SCM_DEFINE (scm_entity_p, "entity?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_operator_p, "operator?", 1, 0, 0, 
-            (SCM obj),
-	    "Return @code{#t} if @var{obj} is an operator.")
-#define FUNC_NAME s_scm_operator_p
-{
-  return scm_from_bool(SCM_STRUCTP (obj)
-                  && SCM_I_OPERATORP (obj)
-                  && !SCM_I_ENTITYP (obj));
-}
-#undef FUNC_NAME
-
 /* XXX - What code requires the object procedure to be only of certain
          types? */
 
@@ -249,22 +237,18 @@ SCM_DEFINE (scm_valid_object_procedure_p, "valid-object-procedure?", 1, 0, 0,
 SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, 
             (SCM obj, SCM proc),
 	    "Set the object procedure of @var{obj} to @var{proc}.\n"
-	    "@var{obj} must be either an entity or an operator.")
+	    "@var{obj} must be an entity.")
 #define FUNC_NAME s_scm_set_object_procedure_x
 {
   SCM_ASSERT (SCM_STRUCTP (obj)
-	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
-		  || (SCM_I_ENTITYP (obj)
-		      && !(SCM_OBJ_CLASS_FLAGS (obj)
-			   & SCM_CLASSF_PURE_GENERIC))),
+	      && (SCM_I_ENTITYP (obj)
+                  && !(SCM_OBJ_CLASS_FLAGS (obj)
+                       & SCM_CLASSF_PURE_GENERIC)),
 	      obj,
 	      SCM_ARG1,
               FUNC_NAME);
   SCM_ASSERT (scm_valid_object_procedure_p (proc), proc, SCM_ARG2, FUNC_NAME);
-  if (SCM_I_ENTITYP (obj))
-    SCM_SET_ENTITY_PROCEDURE (obj, proc);
-  else
-    SCM_OPERATOR_CLASS (obj)->procedure = proc;
+SCM_SET_ENTITY_PROCEDURE (obj, proc);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -273,16 +257,12 @@ SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
 SCM_DEFINE (scm_object_procedure, "object-procedure", 1, 0, 0, 
             (SCM obj),
 	    "Return the object procedure of @var{obj}. @var{obj} must be\n"
-	    "an entity or an operator.")
+	    "an entity.")
 #define FUNC_NAME s_scm_object_procedure
 {
-  SCM_ASSERT (SCM_STRUCTP (obj)
-	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
-		  || SCM_I_ENTITYP (obj)),
+  SCM_ASSERT (SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj),
 	      obj, SCM_ARG1, FUNC_NAME);
-  return (SCM_I_ENTITYP (obj)
-	  ? SCM_ENTITY_PROCEDURE (obj)
-	  : SCM_OPERATOR_CLASS (obj)->procedure);
+  return SCM_ENTITY_PROCEDURE (obj);
 }
 #undef FUNC_NAME
 #endif /* GUILE_DEBUG */
@@ -315,8 +295,6 @@ SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0,
   unsigned long flags = 0;
   SCM_VALIDATE_STRUCT (1, metaclass);
   SCM_VALIDATE_STRING (2, layout);
-  if (scm_is_eq (metaclass, scm_metaclass_operator))
-    flags = SCM_CLASSF_OPERATOR;
   return scm_i_make_class_object (metaclass, layout, flags);
 }
 #undef FUNC_NAME
@@ -345,10 +323,6 @@ scm_init_objects ()
   SCM mt = scm_make_vtable_vtable (ms, SCM_INUM0,
 				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
   
-  SCM os = scm_from_locale_string (SCM_METACLASS_OPERATOR_LAYOUT);
-  SCM ot = scm_make_vtable_vtable (os, SCM_INUM0,
-				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
-  
   SCM es = scm_from_locale_string (SCM_ENTITY_LAYOUT);
   SCM el = scm_make_struct_layout (es);
   SCM et = scm_make_struct (mt, SCM_INUM0,
@@ -356,9 +330,7 @@ scm_init_objects ()
 
   scm_c_define ("<class>", mt);
   scm_metaclass_standard = mt;
-  scm_c_define ("<operator-class>", ot);
-  scm_metaclass_operator = ot;
-  SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
+  SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_ENTITY);
   scm_c_define ("<entity>", et);
 
 #include "libguile/objects.x"

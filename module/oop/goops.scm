@@ -73,7 +73,7 @@
 	   primitive-generic-generic enable-primitive-generic!
 	   method-procedure accessor-method-slot-definition
 	   slot-exists? make find-method get-keyword)
-  :replace (<class> <operator-class> <entity-class> <entity>)
+  :replace (<class> <entity-class> <entity>)
   :no-backtrace)
 
 (define *goops-module* (current-module))
@@ -1483,14 +1483,6 @@
 	  (else
 	   (set-object-procedure! object
 				  (lambda args (apply proc args)))))))
-
-(define-method (initialize (class <operator-class>) initargs)
-  (next-method)
-  (initialize-object-procedure class initargs))
-
-(define-method (initialize (owsc <operator-with-setter-class>) initargs)
-  (next-method)
-  (%set-object-setter! owsc (get-keyword #:setter initargs #f)))
 
 (define-method (initialize (entity <entity>) initargs)
   (next-method)

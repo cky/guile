@@ -145,7 +145,6 @@ SCM scm_class_extended_accessor;
 SCM scm_class_method;
 SCM scm_class_simple_method, scm_class_accessor_method;
 SCM scm_class_procedure_class;
-SCM scm_class_operator_class, scm_class_operator_with_setter_class;
 SCM scm_class_entity_class;
 SCM scm_class_number, scm_class_list;
 SCM scm_class_keyword;
@@ -289,8 +288,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 		    name = scm_string_to_symbol (scm_nullstr);
 
 		  class =
-		    scm_make_extended_class_from_symbol (name,
-							 SCM_I_OPERATORP (x));
+		    scm_make_extended_class_from_symbol (name, SCM_I_ENTITYP (x));
 		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
 		  return class;
 		}
@@ -831,10 +829,7 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
   /* Support for the underlying structs: */
   SCM_SET_CLASS_FLAGS (z, (class == scm_class_entity_class
 			   ? (SCM_CLASSF_GOOPS_OR_VALID
-			      | SCM_CLASSF_OPERATOR
 			      | SCM_CLASSF_ENTITY)
-			   : class == scm_class_operator_class
-			   ? SCM_CLASSF_GOOPS_OR_VALID | SCM_CLASSF_OPERATOR
 			   : SCM_CLASSF_GOOPS_OR_VALID));
   return z;
 }
@@ -1600,9 +1595,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 	SCM_SET_SLOT (z, i, SCM_GOOPS_UNBOUND);
 
       if (SCM_SUBCLASSP (class, scm_class_entity_class))
-	SCM_SET_CLASS_FLAGS (z, SCM_CLASSF_OPERATOR | SCM_CLASSF_ENTITY);
-      else if (SCM_SUBCLASSP (class, scm_class_operator_class))
-	SCM_SET_CLASS_FLAGS (z, SCM_CLASSF_OPERATOR);
+	SCM_SET_CLASS_FLAGS (z, SCM_CLASSF_ENTITY);
 
       return z;
     }
@@ -1620,16 +1613,11 @@ SCM_DEFINE (scm_sys_set_object_setter_x, "%set-object-setter!", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_sys_set_object_setter_x
 {
-  SCM_ASSERT (SCM_STRUCTP (obj)
-	      && ((SCM_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR)
-		  || SCM_I_ENTITYP (obj)),
+  SCM_ASSERT (SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj),
 	      obj,
 	      SCM_ARG1,
 	      FUNC_NAME);
-  if (SCM_I_ENTITYP (obj))
-    SCM_SET_ENTITY_SETTER (obj, setter);
-  else
-    SCM_OPERATOR_CLASS (obj)->setter = setter;
+  SCM_SET_ENTITY_SETTER (obj, setter);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2557,11 +2545,6 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_class, SCM_EOL);
   make_stdcls (&scm_class_entity_class,    "<entity-class>",
 	       scm_class_class, scm_class_procedure_class, SCM_EOL);
-  make_stdcls (&scm_class_operator_class,  "<operator-class>",
-	       scm_class_class, scm_class_procedure_class, SCM_EOL);
-  make_stdcls (&scm_class_operator_with_setter_class,
-	       "<operator-with-setter-class>",
-	       scm_class_class, scm_class_operator_class, SCM_EOL);
   make_stdcls (&scm_class_method,	   "<method>",
 	       scm_class_class, scm_class_object,	   method_slots);
   make_stdcls (&scm_class_simple_method,   "<simple-method>",
@@ -2835,7 +2818,7 @@ make_struct_class (void *closure SCM_UNUSED,
   SCM sym = SCM_STRUCT_TABLE_NAME (data);
   if (scm_is_true (sym))
     {
-      int applicablep = SCM_CLASS_FLAGS (vtable) & SCM_CLASSF_OPERATOR;
+      int applicablep = SCM_CLASS_FLAGS (vtable) & SCM_CLASSF_ENTITY;
 
       SCM_SET_STRUCT_TABLE_CLASS (data, 
 				  scm_make_extended_class_from_symbol (sym, applicablep));

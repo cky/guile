@@ -189,8 +189,6 @@ SCM_API SCM scm_class_method;
 SCM_API SCM scm_class_simple_method;
 SCM_API SCM scm_class_accessor_method;
 SCM_API SCM scm_class_procedure_class;
-SCM_API SCM scm_class_operator_class;
-SCM_API SCM scm_class_operator_with_setter_class;
 SCM_API SCM scm_class_entity_class;
 SCM_API SCM scm_class_number;
 SCM_API SCM scm_class_list;

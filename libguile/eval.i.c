@@ -1031,12 +1031,10 @@ dispatch:
 	    arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
-	else if (SCM_I_OPERATORP (proc))
+	else if (SCM_I_ENTITYP (proc))
 	  {
 	    arg1 = proc;
-	    proc = (SCM_I_ENTITYP (proc)
-		    ? SCM_ENTITY_PROCEDURE (proc)
-		    : SCM_OPERATOR_PROCEDURE (proc));
+	    proc = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
 	    debug.info->a.proc = proc;
 	    debug.info->a.args = scm_list_1 (arg1);
@@ -1164,13 +1162,11 @@ dispatch:
 #endif
 		goto type_dispatch;
 	      }
-	    else if (SCM_I_OPERATORP (proc))
+	    else if (SCM_I_ENTITYP (proc))
 	      {
 		arg2 = arg1;
 		arg1 = proc;
-		proc = (SCM_I_ENTITYP (proc)
-			? SCM_ENTITY_PROCEDURE (proc)
-			: SCM_OPERATOR_PROCEDURE (proc));
+		proc = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
 		debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 		debug.info->a.proc = proc;
@@ -1245,19 +1241,15 @@ dispatch:
 #endif
 		goto type_dispatch;
 	      }
-	    else if (SCM_I_OPERATORP (proc))
+	    else if (SCM_I_ENTITYP (proc))
 	      {
 	      operatorn:
 #ifdef DEVAL
-		RETURN (SCM_APPLY (SCM_I_ENTITYP (proc)
-				   ? SCM_ENTITY_PROCEDURE (proc)
-				   : SCM_OPERATOR_PROCEDURE (proc),
+		RETURN (SCM_APPLY (SCM_ENTITY_PROCEDURE (proc),
 				   scm_cons (proc, debug.info->a.args),
 				   SCM_EOL));
 #else
-		RETURN (SCM_APPLY (SCM_I_ENTITYP (proc)
-				   ? SCM_ENTITY_PROCEDURE (proc)
-				   : SCM_OPERATOR_PROCEDURE (proc),
+		RETURN (SCM_APPLY (SCM_ENTITY_PROCEDURE (proc),
 				   scm_cons2 (proc, arg1,
 					      scm_cons (arg2,
 							scm_ceval_args (x,
@@ -1475,7 +1467,7 @@ dispatch:
 	      x = SCM_ENTITY_PROCEDURE (proc);
 	      goto type_dispatch;
 	    }
-	  else if (SCM_I_OPERATORP (proc))
+	  else if (SCM_I_ENTITYP (proc))
 	    goto operatorn;
 	  else
 	    goto badfun;
@@ -1780,7 +1772,7 @@ tail:
 #endif
 	  RETURN (scm_apply_generic (proc, args));
 	}
-      else if (SCM_I_OPERATORP (proc))
+      else if (SCM_I_ENTITYP (proc))
 	{
 	  /* operator */
 #ifdef DEVAL
@@ -1789,9 +1781,7 @@ tail:
 	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
 	  arg1 = proc;
-	  proc = (SCM_I_ENTITYP (proc)
-		  ? SCM_ENTITY_PROCEDURE (proc)
-		  : SCM_OPERATOR_PROCEDURE (proc));
+	  proc = SCM_ENTITY_PROCEDURE (proc);
 #ifdef DEVAL
 	  debug.vect[0].a.proc = proc;
 	  debug.vect[0].a.args = scm_cons (arg1, args);

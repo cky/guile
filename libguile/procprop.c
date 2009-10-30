@@ -127,11 +127,9 @@ scm_i_procedure_arity (SCM proc)
 	  r = 1;
 	  break;
 	}
-      else if (!SCM_I_OPERATORP (proc))
+      else if (!SCM_I_ENTITYP (proc))
 	return SCM_BOOL_F;
-      proc = (SCM_I_ENTITYP (proc)
-	      ? SCM_ENTITY_PROCEDURE (proc)
-	      : SCM_OPERATOR_PROCEDURE (proc));
+      proc = SCM_ENTITY_PROCEDURE (proc);
       a -= 1;
       goto loop;
     default:

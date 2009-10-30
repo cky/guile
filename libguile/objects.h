@@ -52,18 +52,6 @@
 #define SCM_CLASSF_MASK SCM_STRUCTF_MASK
 
 #define SCM_CLASSF_ENTITY	SCM_STRUCTF_ENTITY
-/* Operator classes need to be identified in the evaluator.
-   (Entities also have SCM_CLASSF_OPERATOR set in their vtable.) */
-#define SCM_CLASSF_OPERATOR	(1L << 29)
-
-#define SCM_I_OPERATORP(obj)\
-	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_OPERATOR) != 0)
-#define SCM_OPERATOR_CLASS(obj)\
-((struct scm_metaclass_operator *) SCM_STRUCT_DATA (obj))
-#define SCM_OBJ_OPERATOR_CLASS(obj)\
-((struct scm_metaclass_operator *) SCM_STRUCT_VTABLE_DATA (obj))
-#define SCM_OPERATOR_PROCEDURE(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->procedure)
-#define SCM_OPERATOR_SETTER(obj) (SCM_OBJ_OPERATOR_CLASS (obj)->setter)
 
 #define SCM_I_ENTITYP(obj)\
 	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
@@ -80,38 +68,6 @@
   (SCM_STRUCT_DATA (c)[scm_struct_i_size] \
    = (SCM_STRUCT_DATA (c) [scm_struct_i_size] & SCM_STRUCTF_MASK) | s)
 
-/* {Operator classes}
- *
- * Instances of operator classes can work as operators, i. e., they
- * can be applied to arguments just as if they were ordinary
- * procedures.
- *
- * For instances of operator classes, the procedures to be applied are
- * stored in four dedicated slots in the associated class object.
- * Which one is selected depends on the number of arguments in the
- * application.
- *
- * If zero arguments are passed, the first will be selected.
- * If one argument is passed, the second will be selected.
- * If two arguments are passed, the third will be selected.
- * If three or more arguments are passed, the fourth will be selected.
- *
- * This is complicated and may seem gratuitous but has to do with the
- * architecture of the evaluator.  Using only one procedure would
- * result in a great deal less efficient application, loss of
- * tail-recursion and would be difficult to reconcile with the
- * debugging evaluator.
- *
- * Also, using this "forked" application in low-level code has the
- * advantage of speeding up some code.  An example is method dispatch
- * for generic operators applied to few arguments.  On the user level,
- * the "forked" application will be hidden by mechanisms in the GOOPS
- * package.
- *
- * Operator classes have the metaclass <operator-metaclass>.
- *
- * An example of an operator class is the class <tk-command>.
- */
 #define SCM_METACLASS_STANDARD_LAYOUT ""
 struct scm_metaclass_standard {
   SCM layout;
@@ -120,21 +76,10 @@ struct scm_metaclass_standard {
   SCM print;
 };
 
-#define SCM_METACLASS_OPERATOR_LAYOUT "popo"
-struct scm_metaclass_operator {
-  SCM layout;
-  SCM vcell;
-  SCM vtable;
-  SCM print;
-  SCM procedure;
-  SCM setter;
-};
-
 /* {Entity classes}
  *
  * For instances of entity classes (entities), the procedures to be
- * applied are stored in the instance itself rather than in the class
- * object as is the case for instances of operator classes (see above).
+ * applied are stored in the instance itself.
  *
  * An example of an entity class is the class of generic methods.
  */
@@ -178,7 +123,6 @@ typedef struct scm_effective_slot_definition {
 
 /* Plugin proxy classes for basic types. */
 SCM_API SCM scm_metaclass_standard;
-SCM_API SCM scm_metaclass_operator;
 
 /* Goops functions. */
 SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
@@ -197,7 +141,6 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 */
 SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
 SCM_API SCM scm_entity_p (SCM obj);
-SCM_API SCM scm_operator_p (SCM obj);
 SCM_API SCM scm_valid_object_procedure_p (SCM proc);
 SCM_API SCM scm_set_object_procedure_x (SCM obj, SCM proc);
 #ifdef GUILE_DEBUG
