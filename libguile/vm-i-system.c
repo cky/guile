@@ -749,6 +749,17 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
       APPLY_HOOK ();
       NEXT;
     }
+  if (SCM_STRUCTP (x) && SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_PURE_GENERIC)
+    {
+      SCM args = SCM_EOL;
+      int n = nargs;
+      SCM* walk = sp;
+      SYNC_REGISTER ();
+      while (n--)
+        args = scm_cons (*walk--, args);
+      *walk = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (x), args);
+      goto vm_call;
+    }
   /*
    * Other interpreted or compiled call
    */
@@ -822,6 +833,17 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
       APPLY_HOOK ();
       NEXT;
     }
+  if (SCM_STRUCTP (x) && SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_PURE_GENERIC)
+    {
+      SCM args = SCM_EOL;
+      int n = nargs;
+      SCM* walk = sp;
+      SYNC_REGISTER ();
+      while (n--)
+        args = scm_cons (*walk--, args);
+      *walk = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (x), args);
+      goto vm_goto_args;
+    }
 
   /*
    * Other interpreted or compiled call
@@ -883,6 +905,7 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
   FETCH_OFFSET (offset);
   mvra = ip + offset;
 
+ vm_mv_call:
   x = sp[-nargs];
 
   /*
@@ -901,6 +924,17 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
+    }
+  if (SCM_STRUCTP (x) && SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_PURE_GENERIC)
+    {
+      SCM args = SCM_EOL;
+      int n = nargs;
+      SCM* walk = sp;
+      SYNC_REGISTER ();
+      while (n--)
+        args = scm_cons (*walk--, args);
+      *walk = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (x), args);
+      goto vm_mv_call;
     }
   /*
    * Other interpreted or compiled call
