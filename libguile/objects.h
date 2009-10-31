@@ -68,14 +68,6 @@
   (SCM_STRUCT_DATA (c)[scm_struct_i_size] \
    = (SCM_STRUCT_DATA (c) [scm_struct_i_size] & SCM_STRUCTF_MASK) | s)
 
-#define SCM_METACLASS_STANDARD_LAYOUT ""
-struct scm_metaclass_standard {
-  SCM layout;
-  SCM vcell;
-  SCM vtable;
-  SCM print;
-};
-
 /* {Entity classes}
  *
  * For instances of entity classes (entities), the procedures to be
@@ -101,16 +93,6 @@ struct scm_metaclass_standard {
 #define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
 #define SCM_OBJ_CLASS_REDEF(x)  (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x) [scm_si_redefined]))
 
-typedef struct scm_effective_slot_definition {
-  SCM name;
-  long location;
-  SCM init_value;
-  SCM (*get) (SCM obj, SCM slotdef);
-  SCM (*set) (SCM obj, SCM slotdef, SCM value);
-} scm_effective_slot_definition;
-
-#define SCM_ESLOTDEF(x) ((scm_effective_slot_definition *) SCM_CDR (x))
-
 #define SCM_CMETHOD_CODE(cmethod) SCM_CDR (cmethod)
 #define SCM_CMETHOD_FORMALS(cmethod) SCM_CAR (SCM_CMETHOD_CODE (cmethod))
 #define SCM_CMETHOD_BODY(cmethod) SCM_CDR (SCM_CMETHOD_CODE (cmethod))
@@ -120,9 +102,6 @@ typedef struct scm_effective_slot_definition {
 #define SCM_IN_PCLASS_INDEX       0
 #define SCM_OUT_PCLASS_INDEX      SCM_I_MAX_PORT_TYPE_COUNT
 #define SCM_INOUT_PCLASS_INDEX    (2 * SCM_I_MAX_PORT_TYPE_COUNT)
-
-/* Plugin proxy classes for basic types. */
-SCM_API SCM scm_metaclass_standard;
 
 /* Goops functions. */
 SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
@@ -143,14 +122,7 @@ SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
 SCM_API SCM scm_entity_p (SCM obj);
 SCM_API SCM scm_valid_object_procedure_p (SCM proc);
 SCM_API SCM scm_set_object_procedure_x (SCM obj, SCM proc);
-#ifdef GUILE_DEBUG
-SCM_API SCM scm_object_procedure (SCM obj);
-#endif
-SCM_API SCM scm_make_class_object (SCM metaclass, SCM layout);
-SCM_API SCM scm_make_subclass_object (SCM c, SCM layout);
 
-SCM_INTERNAL SCM scm_i_make_class_object (SCM metaclass, SCM layout_string,
-					  unsigned long flags);
 SCM_INTERNAL void scm_init_objects (void);
 
 #endif  /* SCM_OBJECTS_H */

@@ -253,68 +253,7 @@ SCM_SET_ENTITY_PROCEDURE (obj, proc);
 }
 #undef FUNC_NAME
 
-#ifdef GUILE_DEBUG
-SCM_DEFINE (scm_object_procedure, "object-procedure", 1, 0, 0, 
-            (SCM obj),
-	    "Return the object procedure of @var{obj}. @var{obj} must be\n"
-	    "an entity.")
-#define FUNC_NAME s_scm_object_procedure
-{
-  SCM_ASSERT (SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj),
-	      obj, SCM_ARG1, FUNC_NAME);
-  return SCM_ENTITY_PROCEDURE (obj);
-}
-#undef FUNC_NAME
-#endif /* GUILE_DEBUG */
-
-/* The following procedures are not a part of Goops but a minimal
- * object system built upon structs.  They are here for those who
- * want to implement their own object system.
- */
-
-SCM
-scm_i_make_class_object (SCM meta,
-			 SCM layout_string,
-			 unsigned long flags)
-{
-  SCM c;
-  SCM layout = scm_make_struct_layout (layout_string);
-  c = scm_make_struct (meta,
-		       SCM_INUM0,
-		       scm_list_4 (layout, SCM_BOOL_F, SCM_EOL, SCM_EOL));
-  SCM_SET_CLASS_FLAGS (c, flags);
-  return c;
-}
-
-SCM_DEFINE (scm_make_class_object, "make-class-object", 2, 0, 0, 
-            (SCM metaclass, SCM layout),
-	    "Create a new class object of class @var{metaclass}, with the\n"
-	    "slot layout specified by @var{layout}.")
-#define FUNC_NAME s_scm_make_class_object
-{
-  unsigned long flags = 0;
-  SCM_VALIDATE_STRUCT (1, metaclass);
-  SCM_VALIDATE_STRING (2, layout);
-  return scm_i_make_class_object (metaclass, layout, flags);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_make_subclass_object, "make-subclass-object", 2, 0, 0, 
-            (SCM class, SCM layout),
-	    "Create a subclass object of @var{class}, with the slot layout\n"
-	    "specified by @var{layout}.")
-#define FUNC_NAME s_scm_make_subclass_object
-{
-  SCM pl;
-  SCM_VALIDATE_STRUCT (1, class);
-  SCM_VALIDATE_STRING (2, layout);
-  pl = SCM_PACK (SCM_STRUCT_DATA (class) [scm_vtable_index_layout]);
-  pl = scm_symbol_to_string (pl);
-  return scm_i_make_class_object (SCM_STRUCT_VTABLE (class),
-				  scm_string_append (scm_list_2 (pl, layout)),
-				  SCM_CLASS_FLAGS (class));
-}
-#undef FUNC_NAME
+#define SCM_METACLASS_STANDARD_LAYOUT ""
 
 void
 scm_init_objects ()
