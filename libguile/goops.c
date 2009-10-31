@@ -1797,7 +1797,7 @@ static void
 clear_method_cache (SCM gf)
 {
   SCM cache = scm_make_method_cache (gf);
-  SCM_SET_ENTITY_PROCEDURE (gf, cache);
+  SCM_SET_GENERIC_METHOD_CACHE (gf, cache);
   SCM_SET_SLOT (gf, scm_si_used_by, SCM_BOOL_F);
 }
 
@@ -1821,7 +1821,7 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
   {
     SCM n = SCM_SLOT (gf, scm_si_n_specialized);
     /* The sign of n is a flag indicating rest args. */
-    SCM_SET_MCACHE_N_SPECIALIZED (SCM_ENTITY_PROCEDURE (gf), n);
+    SCM_SET_MCACHE_N_SPECIALIZED (SCM_GENERIC_METHOD_CACHE (gf), n);
   }
   return SCM_UNSPECIFIED;
 }

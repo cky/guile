@@ -163,7 +163,7 @@ scm_mcache_compute_cmethod (SCM cache, SCM args)
 SCM
 scm_apply_generic (SCM gf, SCM args)
 {
-  SCM cmethod = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (gf), args);
+  SCM cmethod = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (gf), args);
   if (SCM_PROGRAM_P (cmethod))
     return scm_vm_apply (scm_the_vm (), cmethod, args);
   else if (scm_is_pair (cmethod))
@@ -247,8 +247,7 @@ SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0,
 	      obj,
 	      SCM_ARG1,
               FUNC_NAME);
-  SCM_ASSERT (scm_valid_object_procedure_p (proc), proc, SCM_ARG2, FUNC_NAME);
-SCM_SET_ENTITY_PROCEDURE (obj, proc);
+  SCM_SET_ENTITY_PROCEDURE (obj, proc);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

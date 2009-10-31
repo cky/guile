@@ -757,7 +757,7 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
       SYNC_REGISTER ();
       while (n--)
         args = scm_cons (*walk--, args);
-      *walk = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (x), args);
+      *walk = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (x), args);
       goto vm_call;
     }
   /*
@@ -841,7 +841,7 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
       SYNC_REGISTER ();
       while (n--)
         args = scm_cons (*walk--, args);
-      *walk = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (x), args);
+      *walk = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (x), args);
       goto vm_goto_args;
     }
 
@@ -933,7 +933,7 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
       SYNC_REGISTER ();
       while (n--)
         args = scm_cons (*walk--, args);
-      *walk = scm_mcache_compute_cmethod (SCM_ENTITY_PROCEDURE (x), args);
+      *walk = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (x), args);
       goto vm_mv_call;
     }
   /*

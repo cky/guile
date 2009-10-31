@@ -1027,7 +1027,7 @@ dispatch:
       case scm_tcs_struct:
 	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
-	    x = SCM_ENTITY_PROCEDURE (proc);
+	    x = SCM_GENERIC_METHOD_CACHE (proc);
 	    arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
@@ -1154,7 +1154,7 @@ dispatch:
 	  case scm_tcs_struct:
 	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	      {
-		x = SCM_ENTITY_PROCEDURE (proc);
+		x = SCM_GENERIC_METHOD_CACHE (proc);
 #ifdef DEVAL
 		arg1 = debug.info->a.args;
 #else
@@ -1233,7 +1233,7 @@ dispatch:
 	  case scm_tcs_struct:
 	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	      {
-		x = SCM_ENTITY_PROCEDURE (proc);
+		x = SCM_GENERIC_METHOD_CACHE (proc);
 #ifdef DEVAL
 		arg1 = debug.info->a.args;
 #else
@@ -1464,7 +1464,7 @@ dispatch:
 #else
 	      arg1 = scm_cons2 (arg1, arg2, scm_ceval_args (x, env, proc));
 #endif
-	      x = SCM_ENTITY_PROCEDURE (proc);
+	      x = SCM_GENERIC_METHOD_CACHE (proc);
 	      goto type_dispatch;
 	    }
 	  else if (SCM_I_ENTITYP (proc))
