@@ -33,17 +33,6 @@
 #define SCM_WVECT_WEAK_KEY_P(x) (SCM_I_WVECT_EXTRA(x) & SCM_WVECTF_WEAK_KEY)
 #define SCM_WVECT_WEAK_VALUE_P(x) (SCM_I_WVECT_EXTRA(x) & SCM_WVECTF_WEAK_VALUE)
 
-/* The DELTA field is used by the abstract hash tables.  During GC,
-   this field will be set to the number of items that have been
-   dropped.  The abstract hash table will then use it to update its
-   item count.  DELTA is unsigned.
-*/
-
-#define SCM_I_WVECT_DELTA(x)       (SCM_I_WVECT_EXTRA(x) >> 3)
-#define SCM_I_SET_WVECT_DELTA(x,n) (SCM_I_SET_WVECT_EXTRA \
-				    ((x), ((SCM_I_WVECT_EXTRA (x) & 7)	\
-					   | ((n) << 3))))
-
 #define SCM_I_WVECT_TYPE(x)       (SCM_I_WVECT_EXTRA(x) & 7)
 #define SCM_I_SET_WVECT_TYPE(x,t) (SCM_I_SET_WVECT_EXTRA		\
 				   ((x), (SCM_I_WVECT_EXTRA (x) & ~7) | (t)))

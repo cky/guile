@@ -339,26 +339,28 @@ SCM
 scm_c_make_vector (size_t k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
-  SCM v;
-  SCM *base;
+  SCM *vector;
 
-  if (k > 0) 
+  vector = (SCM *)
+    scm_gc_malloc ((k + SCM_I_VECTOR_HEADER_SIZE) * sizeof (SCM),
+		   "vector");
+
+  if (k > 0)
     {
+      SCM *base;
       unsigned long int j;
 
       SCM_ASSERT_RANGE (1, scm_from_ulong (k), k <= VECTOR_MAX_LENGTH);
 
-      base = scm_gc_malloc (k * sizeof (SCM), "vector");
+      base = vector + SCM_I_VECTOR_HEADER_SIZE;
       for (j = 0; j != k; ++j)
 	base[j] = fill;
     }
-  else
-    base = NULL;
 
-  v = scm_immutable_cell ((k << 8) | scm_tc7_vector, (scm_t_bits) base);
-  scm_remember_upto_here_1 (fill);
+  ((scm_t_bits *) vector)[0] = (k << 8) | scm_tc7_vector;
+  ((scm_t_bits *) vector)[1] = 0;
 
-  return v;
+  return PTR2SCM (vector);
 }
 #undef FUNC_NAME
 
@@ -371,54 +373,39 @@ SCM_DEFINE (scm_vector_copy, "vector-copy", 1, 0, 0,
   size_t i, len;
   ssize_t inc;
   const SCM *src;
-  SCM *dst;
+  SCM result, *dst;
 
   src = scm_vector_elements (vec, &handle, &len, &inc);
-  dst = scm_gc_malloc (len * sizeof (SCM), "vector");
+
+  result = scm_c_make_vector (len, SCM_UNDEFINED);
+  dst = SCM_I_VECTOR_WELTS (result);
   for (i = 0; i < len; i++, src += inc)
     dst[i] = *src;
+
   scm_array_handle_release (&handle);
 
-  return scm_cell ((len << 8) | scm_tc7_vector, (scm_t_bits) dst);
+  return result;
 }
 #undef FUNC_NAME
-
-void
-scm_i_vector_free (SCM vec)
-{
-  scm_gc_free (SCM_I_VECTOR_WELTS (vec),
-	       SCM_I_VECTOR_LENGTH (vec) * sizeof(SCM),
-	       "vector");
-}
 
 
 /* Weak vectors.  */
 
-
-/* Initialize RET as a weak vector of type TYPE of SIZE elements pointed to
-   by BASE.  */
-#define MAKE_WEAK_VECTOR(_ret, _type, _size, _base)		\
-  (_ret) = scm_double_cell ((_size << 8) | scm_tc7_wvect,	\
-			    (scm_t_bits) (_base),		\
-			    (_type),				\
-			    SCM_UNPACK (SCM_EOL));
-
-
 /* Allocate memory for the elements of a weak vector on behalf of the
    caller.  */
-static SCM *
-allocate_weak_vector (scm_t_bits type, size_t c_size)
+static SCM
+make_weak_vector (scm_t_bits type, size_t c_size)
 {
-  SCM *base;
+  SCM *vector;
+  size_t total_size;
 
-  if (c_size > 0)
-    /* The base itself should not be scanned for pointers otherwise those
-       pointers will always be reachable.  */
-    base = scm_gc_malloc_pointerless (c_size * sizeof (SCM), "weak vector");
-  else
-    base = NULL;
+  total_size = (c_size + SCM_I_VECTOR_HEADER_SIZE) * sizeof (SCM);
+  vector = (SCM *) scm_gc_malloc_pointerless (total_size, "weak vector");
 
-  return base;
+  ((scm_t_bits *) vector)[0] = (c_size << 8) | scm_tc7_wvect;
+  ((scm_t_bits *) vector)[1] = type;
+
+  return PTR2SCM (vector);
 }
 
 /* Return a new weak vector.  The allocated vector will be of the given weak
@@ -434,12 +421,11 @@ scm_i_make_weak_vector (scm_t_bits type, SCM size, SCM fill)
     fill = SCM_UNSPECIFIED;
 
   c_size = scm_to_unsigned_integer (size, 0, VECTOR_MAX_LENGTH);
-  base = allocate_weak_vector (type, c_size);
+  wv = make_weak_vector (type, c_size);
+  base = SCM_I_WVECT_GC_WVELTS (wv);
 
   for (j = 0; j != c_size; ++j)
     base[j] = fill;
-
-  MAKE_WEAK_VECTOR (wv, type, c_size, base);
 
   return wv;
 }
@@ -449,21 +435,20 @@ scm_i_make_weak_vector (scm_t_bits type, SCM size, SCM fill)
 SCM
 scm_i_make_weak_vector_from_list (scm_t_bits type, SCM lst)
 {
-  SCM wv, *base, *elt;
+  SCM wv, *elt;
   long c_size;
 
   c_size = scm_ilength (lst);
   SCM_ASSERT (c_size >= 0, lst, SCM_ARG2, "scm_i_make_weak_vector_from_list");
 
-  base = allocate_weak_vector (type, (size_t)c_size);
-  for (elt = base;
+  wv = make_weak_vector(type, (size_t) c_size);
+
+  for (elt = SCM_I_WVECT_GC_WVELTS (wv);
        scm_is_pair (lst);
        lst = SCM_CDR (lst), elt++)
     {
       *elt = SCM_CAR (lst);
     }
-
-  MAKE_WEAK_VECTOR (wv, type, (size_t)c_size, base);
 
   return wv;
 }
