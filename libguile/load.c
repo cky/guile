@@ -391,8 +391,8 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
    If FILENAME is absolute, return it unchanged.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
-SCM_DEFINE (scm_search_path, "search-path", 2, 2, 0,
-            (SCM path, SCM filename, SCM extensions, SCM require_exts),
+SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
+            (SCM path, SCM filename, SCM rest),
 	    "Search @var{path} for a directory containing a file named\n"
 	    "@var{filename}. The file must be readable, and not a directory.\n"
 	    "If we find one, return its full filename; otherwise, return\n"
@@ -405,10 +405,45 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 2, 0,
   struct stringbuf buf;
   char *filename_chars;
   size_t filename_len;
+  SCM extensions, require_exts;
   SCM result = SCM_BOOL_F;
+
+  if (scm_is_null (rest))
+    {
+      /* Called either by Scheme code that didn't provide the optional
+         arguments, or C code that used the Guile 1.8 signature (2 required,
+         1 optional arg) and passed '() as the EXTENSIONS argument.  */
+      extensions = SCM_EOL;
+      require_exts = SCM_UNDEFINED;
+    }
+  else
+    {
+      if (scm_is_null (SCM_CAR (rest)) || scm_is_pair (SCM_CAR (rest)))
+	{
+	  /* Called by Scheme code written for 1.9.  */
+	  extensions = SCM_CAR (rest);
+	  if (scm_is_null (SCM_CDR (rest)))
+	    require_exts = SCM_UNDEFINED;
+	  else
+	    {
+	      require_exts = SCM_CADR (rest);
+	      if (SCM_UNLIKELY (!scm_is_null (SCM_CDDR (rest))))
+		scm_wrong_num_args (scm_from_locale_string (FUNC_NAME));
+	    }
+	}
+      else
+	{
+	  /* Called by C code that uses the 1.8 signature, i.e., which
+	     expects the 3rd argument to be EXTENSIONS.  */
+	  extensions = rest;
+	  require_exts = SCM_UNDEFINED;
+	}
+    }
 
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
+
+  SCM_VALIDATE_LIST (3, extensions);
 
   if (SCM_UNBNDP (require_exts))
     require_exts = SCM_BOOL_F;
@@ -565,7 +600,7 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
     SCM_MISC_ERROR ("%load-path is not a proper list", SCM_EOL);
   if (scm_ilength (exts) < 0)
     SCM_MISC_ERROR ("%load-extension list is not a proper list", SCM_EOL);
-  return scm_search_path (path, filename, exts, SCM_UNDEFINED);
+  return scm_search_path (path, filename, exts);
 }
 #undef FUNC_NAME
 
@@ -726,11 +761,12 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
     exception_on_not_found = SCM_BOOL_T;
 
   full_filename = scm_sys_search_load_path (filename);
-  compiled_filename = scm_search_path (*scm_loc_load_compiled_path,
-                                       filename,
-                                       *scm_loc_load_compiled_extensions,
-                                       SCM_BOOL_T);
-  
+  compiled_filename =
+    scm_search_path (*scm_loc_load_compiled_path,
+		     filename,
+		     scm_list_2 (*scm_loc_load_compiled_extensions,
+				 SCM_BOOL_T));
+
   if (scm_is_false (compiled_filename)
       && scm_is_true (full_filename)
       && scm_is_true (*scm_loc_compile_fallback_path)
