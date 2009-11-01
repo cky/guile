@@ -38,7 +38,6 @@
 #include "libguile/programs.h"
 #include "libguile/alist.h"
 #include "libguile/struct.h"
-#include "libguile/objects.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"

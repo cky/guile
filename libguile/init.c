@@ -82,7 +82,6 @@
 #include "libguile/modules.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
-#include "libguile/objects.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
 #include "libguile/pairs.h"
@@ -536,7 +535,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_symbols ();
   scm_init_values ();   /* Requires struct */
   scm_init_load ();     /* Requires strings */
-  scm_init_objects ();	/* Requires struct */
   scm_init_print ();	/* Requires strings, struct */
   scm_init_read ();
   scm_init_stime ();

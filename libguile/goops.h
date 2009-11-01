@@ -47,11 +47,9 @@
 #define scm_si_setter		  4
 
 #define scm_si_goops_fields	  5
-
-/* Defined in libguile/objects.h:
-#define scm_si_redefined	  5    The class to which class was redefined.
+#define scm_si_redefined	  5    /* The class to which class was redefined. */
 #define scm_si_hashsets	 	  6
-*/
+
 #define scm_si_name 		 14 /* a symbol */
 #define scm_si_direct_supers 	 15 /* (class ...) */
 #define scm_si_direct_slots	 16 /* ((name . options) ...) */
@@ -61,6 +59,7 @@
 #define scm_si_slotdef_class	 20
 #define scm_si_slots		 21 /* ((name . options) ...) */
 #define scm_si_name_access	 22
+#define scm_si_getters_n_setters scm_si_name_access
 #define scm_si_keyword_access	 23
 #define scm_si_nfields		 24 /* an integer */
 #define scm_si_environment	 25 /* The environment in which class is built  */
@@ -74,18 +73,25 @@ typedef struct scm_t_method {
 
 #define SCM_METHOD(obj) ((scm_t_method *) SCM_STRUCT_DATA (obj))
 
+/* {Class flags}
+ *
+ * These are used for efficient identification of instances of a
+ * certain class or its subclasses when traversal of the inheritance
+ * graph would be too costly.
+ */
+#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class) [scm_struct_i_flags])
+#define SCM_OBJ_CLASS_FLAGS(obj) (SCM_STRUCT_VTABLE_DATA (obj) [scm_struct_i_flags])
+#define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
+#define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
+#define SCM_CLASSF_MASK SCM_STRUCTF_MASK
+
 #define SCM_CLASSF_SIMPLE_METHOD    (0x004 << 20)
 #define SCM_CLASSF_ACCESSOR_METHOD  (0x008 << 20)
-
-/* Defined in libguile/objects.c */
-/* #define SCM_CLASSF_PURE_GENERIC  (0x010 << 20) */
-
+#define SCM_CLASSF_PURE_GENERIC SCM_STRUCTF_GOOPS_HACK
 #define SCM_CLASSF_FOREIGN	    (0x020 << 20)
 #define SCM_CLASSF_METACLASS        (0x040 << 20)
-
-/* Defined in libguile/objects.c */
-/* #define SCM_CLASSF_GOOPS_VALID   (0x080 << 20) */
-/* #define SCM_CLASSF_GOOPS         (0x100 << 20) */
+#define SCM_CLASSF_GOOPS_VALID  (0x080 << 20)
+#define SCM_CLASSF_GOOPS        (0x100 << 20)
 #define SCM_CLASSF_GOOPS_OR_VALID (SCM_CLASSF_GOOPS | SCM_CLASSF_GOOPS_VALID)
 
 #define SCM_CLASSF_INHERIT	 (~(SCM_CLASSF_PURE_GENERIC \
@@ -94,9 +100,10 @@ typedef struct scm_t_method {
 				    | SCM_STRUCTF_LIGHT) \
 				  & SCM_CLASSF_MASK)
 
+#define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
+#define SCM_OBJ_CLASS_REDEF(x)  (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x) [scm_si_redefined]))
 #define SCM_INST(x)	       SCM_STRUCT_DATA (x)
 
-/* Also defined in libguile/objects.c */
 #define SCM_CLASS_OF(x)        SCM_STRUCT_VTABLE (x)
 #define SCM_ACCESSORS_OF(x)    (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x)[scm_si_getters_n_setters]))
 
@@ -133,6 +140,11 @@ typedef struct scm_t_method {
   (SCM_INSTANCEP (x) && SCM_SUBCLASSP (SCM_CLASS_OF (x), scm_class_method))
 #define SCM_VALIDATE_METHOD(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, METHODP, "method")
 
+#define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
+#define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \
+  (SCM_STRUCT_DATA (c)[scm_struct_i_size] \
+   = (SCM_STRUCT_DATA (c) [scm_struct_i_size] & SCM_STRUCTF_MASK) | s)
+
 #define SCM_GENERIC_METHOD_CACHE(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_struct_i_procedure]))
 #define SCM_SET_GENERIC_METHOD_CACHE(G,C) (SCM_STRUCT_DATA (G) [scm_struct_i_procedure] = SCM_UNPACK (C))
 #define SCM_GENERIC_SETTER(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_struct_i_setter]))
@@ -141,8 +153,6 @@ typedef struct scm_t_method {
 #define SCM_SET_MCACHE_N_SPECIALIZED(C, X) SCM_SETCAR (SCM_CDDR (C), X)
 
 #define SCM_INITIAL_MCACHE_SIZE	  1
-
-#define scm_si_getters_n_setters scm_si_name_access
 
 #define scm_si_constructor	 SCM_N_CLASS_SLOTS
 #define scm_si_destructor	 SCM_N_CLASS_SLOTS + 1
@@ -229,6 +239,8 @@ SCM_API SCM scm_make_foreign_object (SCM cls, SCM initargs);
 SCM_API SCM scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
 			    void * (*constructor) (SCM initargs),
 			    size_t (*destructor) (void *));
+SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
+SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
 SCM_API void scm_add_slot (SCM c, char *slot, SCM slot_class,
 			   SCM (*getter) (SCM obj),
 			   SCM (*setter) (SCM obj, SCM x),
@@ -257,6 +269,7 @@ SCM_API SCM scm_pure_generic_p (SCM obj);
 #endif
 
 SCM_API SCM scm_sys_compute_slots (SCM c);
+SCM_INTERNAL void scm_i_inherit_applicable (SCM c);
 SCM_INTERNAL SCM scm_i_get_keyword (SCM key, SCM l, long len,
 				    SCM default_value, const char *subr);
 SCM_API SCM scm_get_keyword (SCM key, SCM l, SCM default_value);
@@ -300,6 +313,18 @@ SCM_API SCM stklos_version (void);
 SCM_API SCM scm_make (SCM args);
 SCM_API SCM scm_find_method (SCM args);
 SCM_API SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
+SCM_API void scm_change_object_class (SCM, SCM, SCM);
+SCM_API SCM scm_memoize_method (SCM x, SCM args);
+SCM_API SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
+SCM_API SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
+/* The following are declared in __scm.h
+SCM_API SCM scm_call_generic_0 (SCM gf);
+SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);
+SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
+SCM_API SCM scm_apply_generic (SCM gf, SCM args);
+*/
+SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
+
 
 SCM_INTERNAL SCM scm_init_goops_builtins (void);
 SCM_INTERNAL void scm_init_goops (void);

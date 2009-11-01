@@ -28,7 +28,6 @@
 #include "libguile/eval.h"
 #include "libguile/procs.h"
 #include "libguile/gsubr.h"
-#include "libguile/objects.h"
 #include "libguile/smob.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"

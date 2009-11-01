@@ -44,9 +44,9 @@
 #include "libguile/keywords.h"
 #include "libguile/macros.h"
 #include "libguile/modules.h"
-#include "libguile/objects.h"
 #include "libguile/ports.h"
 #include "libguile/procprop.h"
+#include "libguile/programs.h"
 #include "libguile/random.h"
 #include "libguile/root.h"
 #include "libguile/smob.h"
@@ -54,11 +54,22 @@
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/goops.h"
 
 #define SPEC_OF(x)  SCM_SLOT (x, scm_si_specializers)
+
+#define SCM_CMETHOD_CODE(cmethod) SCM_CDR (cmethod)
+#define SCM_CMETHOD_FORMALS(cmethod) SCM_CAR (SCM_CMETHOD_CODE (cmethod))
+#define SCM_CMETHOD_BODY(cmethod) SCM_CDR (SCM_CMETHOD_CODE (cmethod))
+#define SCM_CMETHOD_ENV(cmethod)  SCM_CAR (cmethod)
+
+/* Port classes */
+#define SCM_IN_PCLASS_INDEX       0
+#define SCM_OUT_PCLASS_INDEX      SCM_I_MAX_PORT_TYPE_COUNT
+#define SCM_INOUT_PCLASS_INDEX    (2 * SCM_I_MAX_PORT_TYPE_COUNT)
 
 /* this file is a mess. in theory, though, we shouldn't have many SCM references
    -- most of the references should be to vars. */
@@ -103,10 +114,6 @@ SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
    pointing to m1.  The non-immediate `redefined'-slot in m1 indicates
    the class modification and the new class pointer can be found via
    h1.
-*/
-
-/* The following definition is located in libguile/objects.h:
-#define SCM_OBJ_CLASS_REDEF(x) (SCM_STRUCT_VTABLE_DATA(x)[scm_si_redefined])
 */
 
 #define TEST_CHANGE_CLASS(obj, class)				       \
@@ -1776,6 +1783,154 @@ static SCM list_of_no_method;
 
 SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 
+
+/* The cache argument for scm_mcache_lookup_cmethod has one of two possible
+ * formats:
+ *
+ * Format #1:
+ * (SCM_IM_DISPATCH ARGS N-SPECIALIZED
+ *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+ *   GF)
+ *
+ * Format #2:
+ * (SCM_IM_HASH_DISPATCH ARGS N-SPECIALIZED HASHSET MASK
+ *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+ *   GF)
+ *
+ * ARGS is either a list of expressions, in which case they
+ * are interpreted as the arguments of an application, or
+ * a non-pair, which is interpreted as a single expression
+ * yielding all arguments.
+ *
+ * SCM_IM_DISPATCH expressions in generic functions always
+ * have ARGS = the symbol `args' or the iloc #@0-0.
+ *
+ * Need FORMALS in order to support varying arity.  This
+ * also avoids the need for renaming of bindings.
+ *
+ * We should probably not complicate this mechanism by
+ * introducing "optimizations" for getters and setters or
+ * primitive methods.  Getters and setter will normally be
+ * compiled into @slot-[ref|set!] or a procedure call.
+ * They rely on the dispatch performed before executing
+ * the code which contains them.
+ *
+ * We might want to use a more efficient representation of
+ * this form in the future, perhaps after we have introduced
+ * low-level support for syntax-case macros.
+ */
+
+SCM
+scm_mcache_lookup_cmethod (SCM cache, SCM args)
+{
+  unsigned long i, mask, n, end;
+  SCM ls, methods, z = SCM_CDDR (cache);
+  n = scm_to_ulong (SCM_CAR (z)); /* maximum number of specializers */
+  methods = SCM_CADR (z);
+
+  if (scm_is_simple_vector (methods))
+    {
+      /* cache format #1: prepare for linear search */
+      mask = -1;
+      i = 0;
+      end = SCM_SIMPLE_VECTOR_LENGTH (methods);
+    }
+  else
+    {
+      /* cache format #2: compute a hash value */
+      unsigned long hashset = scm_to_ulong (methods);
+      long j = n;
+      z = SCM_CDDR (z);
+      mask = scm_to_ulong (SCM_CAR (z));
+      methods = SCM_CADR (z);
+      i = 0;
+      ls = args;
+      if (!scm_is_null (ls))
+	do
+	  {
+	    i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
+		 [scm_si_hashsets + hashset];
+	    ls = SCM_CDR (ls);
+	  }
+	while (j-- && !scm_is_null (ls));
+      i &= mask;
+      end = i;
+    }
+
+  /* Search for match  */
+  do
+    {
+      long j = n;
+      z = SCM_SIMPLE_VECTOR_REF (methods, i);
+      ls = args; /* list of arguments */
+      if (!scm_is_null (ls))
+	do
+	  {
+	    /* More arguments than specifiers => CLASS != ENV */
+	    if (! scm_is_eq (scm_class_of (SCM_CAR (ls)), SCM_CAR (z)))
+	      goto next_method;
+	    ls = SCM_CDR (ls);
+	    z = SCM_CDR (z);
+	  }
+	while (j-- && !scm_is_null (ls));
+      /* Fewer arguments than specifiers => CAR != CLASS or `no-method' */
+      if (!scm_is_pair (z)
+          || (!SCM_CLASSP (SCM_CAR (z)) && !scm_is_symbol (SCM_CAR (z))))
+	return z;
+    next_method:
+      i = (i + 1) & mask;
+    } while (i != end);
+  return SCM_BOOL_F;
+}
+
+SCM
+scm_mcache_compute_cmethod (SCM cache, SCM args)
+{
+  SCM cmethod = scm_mcache_lookup_cmethod (cache, args);
+  if (scm_is_false (cmethod))
+    /* No match - memoize */
+    return scm_memoize_method (cache, args);
+  return cmethod;
+}
+
+SCM
+scm_apply_generic (SCM gf, SCM args)
+{
+  SCM cmethod = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (gf), args);
+  if (SCM_PROGRAM_P (cmethod))
+    return scm_vm_apply (scm_the_vm (), cmethod, args);
+  else if (scm_is_pair (cmethod))
+    return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
+                          SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
+                                          args,
+                                          SCM_CMETHOD_ENV (cmethod)));
+  else
+    return scm_apply (cmethod, args, SCM_EOL);
+}
+
+SCM
+scm_call_generic_0 (SCM gf)
+{
+  return scm_apply_generic (gf, SCM_EOL);
+}
+
+SCM
+scm_call_generic_1 (SCM gf, SCM a1)
+{
+  return scm_apply_generic (gf, scm_list_1 (a1));
+}
+
+SCM
+scm_call_generic_2 (SCM gf, SCM a1, SCM a2)
+{
+  return scm_apply_generic (gf, scm_list_2 (a1, a2));
+}
+
+SCM
+scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
+{
+  return scm_apply_generic (gf, scm_list_3 (a1, a2, a3));
+}
 
 SCM
 scm_make_method_cache (SCM gf)

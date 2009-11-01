@@ -24,7 +24,6 @@
 
 #include "libguile/_scm.h"
 
-#include "libguile/objects.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/smob.h"

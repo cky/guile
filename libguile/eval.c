@@ -48,7 +48,6 @@
 #include "libguile/list.h"
 #include "libguile/macros.h"
 #include "libguile/modules.h"
-#include "libguile/objects.h"
 #include "libguile/ports.h"
 #include "libguile/print.h"
 #include "libguile/procprop.h"

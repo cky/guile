@@ -34,7 +34,6 @@
 
 #include "libguile/struct.h"
 #include "libguile/goops.h"
-#include "libguile/objects.h"
 
 #include "libguile/validate.h"
 #include "libguile/eq.h"

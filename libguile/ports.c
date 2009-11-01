@@ -40,7 +40,6 @@
 #include "libguile/async.h"
 #include "libguile/eval.h"
 #include "libguile/fports.h"  /* direct access for seek and truncate */
-#include "libguile/objects.h"
 #include "libguile/goops.h"
 #include "libguile/smob.h"
 #include "libguile/chars.h"

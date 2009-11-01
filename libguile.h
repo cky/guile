@@ -73,7 +73,6 @@ extern "C" {
 #include "libguile/modules.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
-#include "libguile/objects.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
 #include "libguile/pairs.h"

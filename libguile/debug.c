@@ -47,7 +47,6 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/fluids.h"
-#include "libguile/objects.h"
 #include "libguile/programs.h"
 
 #include "libguile/validate.h"

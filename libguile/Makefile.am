@@ -158,7 +158,6 @@ libguile_la_SOURCES =				\
 	null-threads.c				\
 	numbers.c				\
 	objcodes.c				\
-	objects.c				\
 	objprop.c				\
 	options.c				\
 	pairs.c					\
@@ -251,7 +250,6 @@ DOT_X_FILES =					\
 	mallocs.x				\
 	modules.x				\
 	numbers.x				\
-	objects.x				\
 	objprop.x				\
 	options.x				\
 	pairs.x					\
@@ -347,7 +345,6 @@ DOT_DOC_FILES = 				\
 	mallocs.doc				\
 	modules.doc				\
 	numbers.doc				\
-	objects.doc				\
 	objprop.doc				\
 	options.doc				\
 	pairs.doc				\
@@ -509,7 +506,6 @@ modinclude_HEADERS =				\
 	null-threads.h				\
 	numbers.h				\
 	objcodes.h				\
-	objects.h				\
 	objprop.h				\
 	options.h				\
 	pairs.h					\
