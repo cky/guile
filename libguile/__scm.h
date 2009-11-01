@@ -115,6 +115,16 @@
 # define SCM_DEPRECATED  SCM_API
 #endif
 
+/* The SCM_ALIGNED macro, when defined, can be used to instruct the compiler
+ * to honor the given alignment constraint.  */
+#if defined __GNUC__
+# define SCM_ALIGNED(x)  __attribute__ ((aligned (x)))
+#elif defined __INTEL_COMPILER
+# define SCM_ALIGNED(x)  __declspec (align (x))
+#else
+/* Don't know how to align things.  */
+# undef SCM_ALIGNED
+#endif
 
 
 /* {Supported Options}

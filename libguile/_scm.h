@@ -79,6 +79,7 @@
 #include "libguile/variable.h"
 #include "libguile/modules.h"
 #include "libguile/inline.h"
+#include "libguile/strings.h"
 
 #ifndef SCM_SYSCALL
 #ifdef vms

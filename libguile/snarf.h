@@ -3,7 +3,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,17 @@
 #define SCM_FUNC_CAST_ARBITRARY_ARGS SCM (*)()
 #endif
 
+#if (defined SCM_ALIGNED) && (SCM_DEBUG_TYPING_STRICTNESS <= 1)
+/* We support static allocation of some `SCM' objects.  */
+# define SCM_SUPPORT_STATIC_ALLOCATION
+#endif
+
+/* C preprocessor token concatenation.  */
+#define scm_i_paste(x, y)      x ## y
+#define scm_i_paste3(a, b, c)  a ## b ## c
+
+
+
 /* Generic macros to be used in user macro definitions.
  *
  * For example, in order to define a macro which creates ints and
@@ -74,7 +85,7 @@ DOCSTRING ^^ }
 # endif
 #endif
 
-#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
+#define SCM_DEFINE_GSUBR(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
 static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
@@ -84,6 +95,35 @@ scm_c_define_gsubr (s_ ## FNAME, REQ, OPT, VAR, \
                     (SCM_FUNC_CAST_ARBITRARY_ARGS) FNAME); \
 )\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+/* Static subr allocation.  */
+#define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
+SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
+SCM_SNARF_HERE(								\
+  static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
+  SCM_IMMUTABLE_SUBR (scm_i_paste (FNAME, __subr),			\
+		      scm_i_paste (FNAME, __name),			\
+		      REQ, OPT, VAR, &FNAME);				\
+  SCM FNAME ARGLIST							\
+)									\
+SCM_SNARF_INIT(								\
+  /* Initialize the procedure name (an interned symbol).  */		\
+  scm_i_paste (FNAME, __subr_meta_info)[0] = scm_i_paste (FNAME, __name); \
+									\
+  /* Define the subr.  */						\
+  scm_c_define (scm_i_paste (s_, FNAME), scm_i_paste (FNAME, __subr));	\
+)									\
+SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
+
+#else /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
+/* Always use the generic subr case.  */
+#define SCM_DEFINE SCM_DEFINE_GSUBR
+
+#endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
 
 #define SCM_PRIMITIVE_GENERIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
@@ -174,13 +214,35 @@ scm_c_define_subr_with_generic (RANAME, TYPE, \
 SCM_SNARF_HERE(static const char RANAME[]=STR)\
 SCM_SNARF_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
-#define SCM_SYMBOL(c_name, scheme_name) \
-SCM_SNARF_HERE(static SCM c_name) \
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+# define SCM_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(								\
+  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
+  static SCM c_name)							\
+SCM_SNARF_INIT(								\
+  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
+)
+
+# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(								\
+  SCM_IMMUTABLE_STRING (scm_i_paste (c_name, _string), scheme_name);	\
+  SCM c_name)								\
+SCM_SNARF_INIT(								\
+  c_name = scm_string_to_symbol (scm_i_paste (c_name, _string))		\
+)
+
+#else /* !SCM_SUPPORT_STATIC_ALLOCATION */
+
+# define SCM_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(static SCM c_name)					\
 SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
 
-#define SCM_GLOBAL_SYMBOL(c_name, scheme_name) \
-SCM_SNARF_HERE(SCM c_name) \
+# define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
+SCM_SNARF_HERE(SCM c_name)						\
 SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
+
+#endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
 
 #define SCM_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
@@ -270,6 +332,60 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 SCM_SNARF_HERE(SCM c_name arglist) \
 SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 
+
+/* Low-level snarfing for static memory allocation.  */
+
+#ifdef SCM_SUPPORT_STATIC_ALLOCATION
+
+#define SCM_IMMUTABLE_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
+  static SCM_ALIGNED (8) SCM_UNUSED const scm_t_cell			\
+  c_name ## _raw_cell [2] =						\
+    {									\
+      { SCM_PACK (car), SCM_PACK (cbr) },				\
+      { SCM_PACK (ccr), SCM_PACK (cdr) }				\
+    };									\
+  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_cell)
+
+#define SCM_IMMUTABLE_STRINGBUF(c_name, contents)	\
+  static SCM_UNUSED const				\
+  struct						\
+  {							\
+    scm_t_bits word_0;					\
+    scm_t_bits word_1;					\
+    const char buffer[sizeof (contents)];		\
+  }							\
+  c_name =						\
+    {							\
+      scm_tc7_stringbuf | SCM_I_STRINGBUF_F_SHARED,	\
+      sizeof (contents) - 1,				\
+      contents						\
+    }
+
+#define SCM_IMMUTABLE_STRING(c_name, contents)				\
+  SCM_IMMUTABLE_STRINGBUF (scm_i_paste (c_name, _stringbuf), contents);	\
+  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
+			     scm_tc7_ro_string,				\
+			     (scm_t_bits) &scm_i_paste (c_name,		\
+							_stringbuf),	\
+			     (scm_t_bits) 0,				\
+			     (scm_t_bits) sizeof (contents) - 1)
+
+#define SCM_IMMUTABLE_SUBR(c_name, name, req, opt, rest, fcn)		\
+  static SCM_UNUSED SCM scm_i_paste (c_name, _meta_info)[2] =		\
+    {									\
+      SCM_BOOL_F,  /* The name, initialized at run-time.  */		\
+      SCM_EOL      /* The procedure properties.  */			\
+    };									\
+  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
+			     SCM_SUBR_ARITY_TO_TYPE (req, opt, rest),	\
+			     (scm_t_bits) fcn,				\
+			     (scm_t_bits) 0 /* no generic */,		\
+			     (scm_t_bits) & scm_i_paste (c_name, _meta_info));
+
+#endif /* SCM_SUPPORT_STATIC_ALLOCATION */
+
+
+/* Documentation.  */
 
 #ifdef SCM_MAGIC_SNARF_DOCS
 #undef SCM_ASSERT

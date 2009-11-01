@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -65,8 +65,8 @@ scm_weak_car_pair (SCM car, SCM cdr)
   if (SCM_NIMP (car))
     {
       /* Weak car cells make sense iff the car is non-immediate.  */
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
-					     (GC_PTR)SCM_UNPACK (car));
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
+					(GC_PTR) SCM_UNPACK (car));
     }
 
   return (SCM_PACK (cell));
@@ -86,8 +86,8 @@ scm_weak_cdr_pair (SCM car, SCM cdr)
   if (SCM_NIMP (cdr))
     {
       /* Weak cdr cells make sense iff the cdr is non-immediate.  */
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
-					     (GC_PTR)SCM_UNPACK (cdr));
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
+					(GC_PTR) SCM_UNPACK (cdr));
     }
 
   return (SCM_PACK (cell));
@@ -105,13 +105,13 @@ scm_doubly_weak_pair (SCM car, SCM cdr)
 
   if (SCM_NIMP (car))
     {
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_0,
-					     (GC_PTR)SCM_UNPACK (car));
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
+					(GC_PTR) SCM_UNPACK (car));
     }
   if (SCM_NIMP (cdr))
     {
-      GC_GENERAL_REGISTER_DISAPPEARING_LINK ((GC_PTR)&cell->word_1,
-					     (GC_PTR)SCM_UNPACK (cdr));
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
+					(GC_PTR) SCM_UNPACK (cdr));
     }
 
   return (SCM_PACK (cell));

@@ -40,6 +40,46 @@
 #define SCM_SET_SUBR_GENERIC(x, g) (*((SCM *) SCM_CELL_WORD_2 (x)) = (g))
 #define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SET_CELL_WORD_2 (x, (scm_t_bits) g))
 
+/* Return the most suitable subr type for a subr with REQ required arguments,
+   OPT optional arguments, and REST (0 or 1) arguments.  This has to be in
+   sync with `create_gsubr ()'.  */
+#define SCM_SUBR_ARITY_TO_TYPE(req, opt, rest)				\
+  ((rest) == 0								\
+   ? ((opt) == 0							\
+      ? ((req) == 0							\
+	 ? scm_tc7_subr_0						\
+	 : ((req) == 1							\
+	    ? scm_tc7_subr_1						\
+	    : ((req) == 2						\
+	       ? scm_tc7_subr_2						\
+	       : ((req) == 3						\
+		  ? scm_tc7_subr_3					\
+		  : scm_tc7_gsubr					\
+		    | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))))	\
+      : ((opt) == 1							\
+	 ? ((req) == 0							\
+	    ? scm_tc7_subr_1o						\
+	    : ((req) == 1						\
+	       ? scm_tc7_subr_2o					\
+	       : scm_tc7_gsubr |					\
+	         (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))		\
+	 : scm_tc7_gsubr |						\
+	   (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))			\
+   : ((rest) == 1							\
+      ? ((opt) == 0							\
+	 ? ((req) == 0							\
+	    ? scm_tc7_lsubr						\
+	    : ((req) == 2						\
+	       ? scm_tc7_lsubr_2					\
+	       : scm_tc7_gsubr						\
+	         | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))		\
+	 : scm_tc7_gsubr						\
+	   | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U))		\
+      : scm_tc7_gsubr							\
+        | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U)))
+
+
+
 /* Closures
  */
 
@@ -103,6 +143,9 @@
 #define SCM_PROCEDURE_WITH_SETTER_P(obj) (!SCM_IMP(obj) && (SCM_TYP7 (obj) == scm_tc7_pws))
 #define SCM_PROCEDURE(obj) SCM_CELL_OBJECT_1 (obj)
 #define SCM_SETTER(obj) SCM_CELL_OBJECT_2 (obj)
+
+
+
 
 SCM_API SCM scm_c_make_subr (const char *name, long type, SCM (*fcn)());
 SCM_API SCM scm_c_make_subr_with_generic (const char *name, long type,

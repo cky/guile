@@ -107,7 +107,7 @@ typedef unsigned long scm_t_bits;
 /* This is the default, which provides an intermediate level of compile time
  * type checking while still resulting in very efficient code.
  */
-    typedef struct scm_unused_struct * SCM;
+    typedef struct { char scm_unused_field; } * SCM;
 
 /*
   The 0?: constructions makes sure that the code is never executed,

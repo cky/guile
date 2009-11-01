@@ -923,7 +923,7 @@ m_expand_body (const SCM forms, const SCM env)
 }
 
 SCM_SYNTAX (s_and, "and", scm_i_makbimacro, scm_m_and);
-SCM_GLOBAL_SYMBOL (scm_sym_and, s_and);
+SCM_GLOBAL_SYMBOL (scm_sym_and, "and");
 
 static SCM
 scm_m_and (SCM expr, SCM env SCM_UNUSED)
@@ -953,7 +953,7 @@ unmemoize_and (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_begin, "begin", scm_i_makbimacro, scm_m_begin);
-SCM_GLOBAL_SYMBOL (scm_sym_begin, s_begin);
+SCM_GLOBAL_SYMBOL (scm_sym_begin, "begin");
 
 static SCM
 scm_m_begin (SCM expr, SCM env SCM_UNUSED)
@@ -976,7 +976,7 @@ unmemoize_begin (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_case, "case", scm_i_makbimacro, scm_m_case);
-SCM_GLOBAL_SYMBOL (scm_sym_case, s_case);
+SCM_GLOBAL_SYMBOL (scm_sym_case, "case");
 SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 
 static SCM
@@ -1072,7 +1072,7 @@ unmemoize_case (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_cond, "cond", scm_i_makbimacro, scm_m_cond);
-SCM_GLOBAL_SYMBOL (scm_sym_cond, s_cond);
+SCM_GLOBAL_SYMBOL (scm_sym_cond, "cond");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
 
 static SCM
@@ -1175,7 +1175,7 @@ unmemoize_cond (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_define, "define", scm_i_makbimacro, scm_m_define);
-SCM_GLOBAL_SYMBOL (scm_sym_define, s_define);
+SCM_GLOBAL_SYMBOL (scm_sym_define, "define");
 
 /* Guile provides an extension to R5RS' define syntax to represent function
  * currying in a compact way.  With this extension, it is allowed to write
@@ -1286,7 +1286,7 @@ memoize_as_thunk_prototype (const SCM expr, const SCM env SCM_UNUSED)
 
 
 SCM_SYNTAX (s_delay, "delay", scm_i_makbimacro, scm_m_delay);
-SCM_GLOBAL_SYMBOL (scm_sym_delay, s_delay);
+SCM_GLOBAL_SYMBOL (scm_sym_delay, "delay");
 
 /* Promises are implemented as closures with an empty parameter list.  Thus,
  * (delay <expression>) is transformed into (#@delay '() <expression>), where
@@ -1315,7 +1315,7 @@ unmemoize_delay (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX(s_do, "do", scm_i_makbimacro, scm_m_do);
-SCM_GLOBAL_SYMBOL(scm_sym_do, s_do);
+SCM_GLOBAL_SYMBOL(scm_sym_do, "do");
 
 /* DO gets the most radically altered syntax.  The order of the vars is
  * reversed here.  During the evaluation this allows for simple consing of the
@@ -1431,7 +1431,7 @@ unmemoize_do (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_if, "if", scm_i_makbimacro, scm_m_if);
-SCM_GLOBAL_SYMBOL (scm_sym_if, s_if);
+SCM_GLOBAL_SYMBOL (scm_sym_if, "if");
 
 static SCM
 scm_m_if (SCM expr, SCM env SCM_UNUSED)
@@ -1465,7 +1465,7 @@ unmemoize_if (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_lambda, "lambda", scm_i_makbimacro, scm_m_lambda);
-SCM_GLOBAL_SYMBOL (scm_sym_lambda, s_lambda);
+SCM_GLOBAL_SYMBOL (scm_sym_lambda, "lambda");
 
 /* A helper function for memoize_lambda to support checking for duplicate
  * formal arguments: Return true if OBJ is `eq?' to one of the elements of
@@ -1613,7 +1613,7 @@ transform_bindings (
 
 
 SCM_SYNTAX(s_let, "let", scm_i_makbimacro, scm_m_let);
-SCM_GLOBAL_SYMBOL(scm_sym_let, s_let);
+SCM_GLOBAL_SYMBOL(scm_sym_let, "let");
 
 /* This function is a helper function for memoize_let.  It transforms
  * (let name ((var init) ...) body ...) into
@@ -1725,7 +1725,7 @@ unmemoize_let (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX(s_letrec, "letrec", scm_i_makbimacro, scm_m_letrec);
-SCM_GLOBAL_SYMBOL(scm_sym_letrec, s_letrec);
+SCM_GLOBAL_SYMBOL(scm_sym_letrec, "letrec");
 
 static SCM
 scm_m_letrec (SCM expr, SCM env)
@@ -1774,7 +1774,7 @@ unmemoize_letrec (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_letstar, "let*", scm_i_makbimacro, scm_m_letstar);
-SCM_GLOBAL_SYMBOL (scm_sym_letstar, s_letstar);
+SCM_GLOBAL_SYMBOL (scm_sym_letstar, "let*");
 
 /* (let* ((v1 i1) (v2 i2) ...) body) with variables v1 .. vn and initializers
  * i1 .. in is transformed into the form (#@let* (v1 i1 v2 i2 ...) body).  */
@@ -1849,7 +1849,7 @@ unmemoize_letstar (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_or, "or", scm_i_makbimacro, scm_m_or);
-SCM_GLOBAL_SYMBOL (scm_sym_or, s_or);
+SCM_GLOBAL_SYMBOL (scm_sym_or, "or");
 
 static SCM
 scm_m_or (SCM expr, SCM env SCM_UNUSED)
@@ -1879,7 +1879,7 @@ unmemoize_or (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_quasiquote, "quasiquote", scm_makacro, scm_m_quasiquote);
-SCM_GLOBAL_SYMBOL (scm_sym_quasiquote, s_quasiquote);
+SCM_GLOBAL_SYMBOL (scm_sym_quasiquote, "quasiquote");
 SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
 SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
 
@@ -1946,7 +1946,7 @@ scm_m_quasiquote (SCM expr, SCM env)
 
 
 SCM_SYNTAX (s_quote, "quote", scm_i_makbimacro, scm_m_quote);
-SCM_GLOBAL_SYMBOL (scm_sym_quote, s_quote);
+SCM_GLOBAL_SYMBOL (scm_sym_quote, "quote");
 
 static SCM
 scm_m_quote (SCM expr, SCM env SCM_UNUSED)
@@ -1974,8 +1974,7 @@ unmemoize_quote (const SCM expr, const SCM env SCM_UNUSED)
 
 /* Will go into the RnRS module when Guile is factorized.
 SCM_SYNTAX (s_set_x, "set!", scm_i_makbimacro, scm_m_set_x); */
-static const char s_set_x[] = "set!";
-SCM_GLOBAL_SYMBOL (scm_sym_set_x, s_set_x);
+SCM_GLOBAL_SYMBOL (scm_sym_set_x, "set!");
 
 static SCM
 scm_m_set_x (SCM expr, SCM env SCM_UNUSED)
@@ -2012,7 +2011,7 @@ unmemoize_set_x (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_at, "@", scm_makmmacro, scm_m_at);
-SCM_GLOBAL_SYMBOL (scm_sym_at, s_at);
+SCM_GLOBAL_SYMBOL (scm_sym_at, "@");
 
 static SCM
 scm_m_at (SCM expr, SCM env SCM_UNUSED)
@@ -2033,7 +2032,7 @@ scm_m_at (SCM expr, SCM env SCM_UNUSED)
 }
 
 SCM_SYNTAX (s_atat, "@@", scm_makmmacro, scm_m_atat);
-SCM_GLOBAL_SYMBOL (scm_sym_atat, s_atat);
+SCM_GLOBAL_SYMBOL (scm_sym_atat, "@@");
 
 static SCM
 scm_m_atat (SCM expr, SCM env SCM_UNUSED)
@@ -2054,8 +2053,8 @@ scm_m_atat (SCM expr, SCM env SCM_UNUSED)
 }
 
 SCM_SYNTAX (s_atapply, "@apply", scm_i_makbimacro, scm_m_apply);
-SCM_GLOBAL_SYMBOL (scm_sym_atapply, s_atapply);
-SCM_GLOBAL_SYMBOL (scm_sym_apply, s_atapply + 1);
+SCM_GLOBAL_SYMBOL (scm_sym_atapply, "@apply");
+SCM_GLOBAL_SYMBOL (scm_sym_apply, "apply");
 
 static SCM
 scm_m_apply (SCM expr, SCM env SCM_UNUSED)
@@ -2131,7 +2130,7 @@ scm_m_atbind (SCM expr, SCM env)
 
 
 SCM_SYNTAX(s_atcall_cc, "@call-with-current-continuation", scm_i_makbimacro, scm_m_cont);
-SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, s_atcall_cc);
+SCM_GLOBAL_SYMBOL(scm_sym_atcall_cc, "@call-with-current-continuation");
 
 static SCM
 scm_m_cont (SCM expr, SCM env SCM_UNUSED)
@@ -2152,7 +2151,7 @@ unmemoize_atcall_cc (const SCM expr, const SCM env)
 
 
 SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_i_makbimacro, scm_m_at_call_with_values);
-SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, s_at_call_with_values);
+SCM_GLOBAL_SYMBOL(scm_sym_at_call_with_values, "@call-with-values");
 
 static SCM
 scm_m_at_call_with_values (SCM expr, SCM env SCM_UNUSED)
@@ -2173,7 +2172,7 @@ unmemoize_at_call_with_values (const SCM expr, const SCM env)
 }
 
 SCM_SYNTAX (s_eval_when, "eval-when", scm_makmmacro, scm_m_eval_when);
-SCM_GLOBAL_SYMBOL (scm_sym_eval_when, s_eval_when);
+SCM_GLOBAL_SYMBOL (scm_sym_eval_when, "eval-when");
 SCM_SYMBOL (sym_eval, "eval");
 SCM_SYMBOL (sym_load, "load");
 

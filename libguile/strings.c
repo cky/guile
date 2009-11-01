@@ -72,10 +72,8 @@
 
 #define STRINGBUF_HEADER_BYTES  (STRINGBUF_HEADER_SIZE * sizeof (SCM))
 
-#define STRINGBUF_F_SHARED      0x100
-#define STRINGBUF_F_WIDE        0x400 /* If true, strings have UCS-4
-                                         encoding.  Otherwise, strings
-                                         are Latin-1.  */
+#define STRINGBUF_F_SHARED      SCM_I_STRINGBUF_F_SHARED
+#define STRINGBUF_F_WIDE        SCM_I_STRINGBUF_F_WIDE
 
 #define STRINGBUF_TAG           scm_tc7_stringbuf
 #define STRINGBUF_SHARED(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_SHARED)
@@ -88,8 +86,15 @@
 
 #define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *) STRINGBUF_CHARS (buf))
 
-#define SET_STRINGBUF_SHARED(buf) \
-  (SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED))
+#define SET_STRINGBUF_SHARED(buf)					\
+  do									\
+    {									\
+      /* Don't modify BUF if it's already marked as shared since it might be \
+	 a read-only, statically allocated stringbuf.  */		\
+      if (SCM_LIKELY (!STRINGBUF_SHARED (buf)))				\
+	SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED); \
+    }									\
+  while (0)
 
 #if SCM_STRING_LENGTH_HISTOGRAM
 static size_t lenhist[1001];
@@ -235,7 +240,7 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 /* Read-only strings.
  */
 
-#define RO_STRING_TAG         (scm_tc7_string + 0x200)
+#define RO_STRING_TAG         scm_tc7_ro_string
 #define IS_RO_STRING(str)     (SCM_CELL_TYPE(str)==RO_STRING_TAG)
 
 /* Mutation-sharing substrings

@@ -46,4 +46,20 @@
 typedef void *GC_PTR;
 #endif
 
+
+/* Return true if PTR points to the heap.  */
+#define SCM_I_IS_POINTER_TO_THE_HEAP(ptr)	\
+  (GC_base (ptr) != NULL)
+
+/* Register a disappearing link for the object pointed to by OBJ such that
+   the pointer pointed to be LINK is cleared when OBJ is reclaimed.  Do so
+   only if OBJ actually points to the heap.  See
+   http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2563
+   for details.  */
+#define SCM_I_REGISTER_DISAPPEARING_LINK(link, obj)		\
+  ((SCM_I_IS_POINTER_TO_THE_HEAP (obj))				\
+   ? GC_GENERAL_REGISTER_DISAPPEARING_LINK ((link), (obj))	\
+   : 0)
+
+
 #endif /* SCM_BDW_GC_H */

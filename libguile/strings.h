@@ -142,6 +142,17 @@ SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
 
+
+/* internal constants */
+
+/* Type tag for read-only strings.  */
+#define scm_tc7_ro_string             (scm_tc7_string + 0x200)
+
+/* Flags for shared and wide strings.  */
+#define SCM_I_STRINGBUF_F_SHARED      0x100
+#define SCM_I_STRINGBUF_F_WIDE        0x400
+
+
 /* internal accessor functions.  Arguments must be valid. */
 
 SCM_INTERNAL SCM scm_i_make_string (size_t len, char **datap);
