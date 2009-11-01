@@ -775,8 +775,7 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
 #endif
       if (n > 0 && !(flags & SCM_CLASSF_METACLASS))
 	{
-	  /* NOTE: The following depends on scm_struct_i_size. */
-	  flags |= SCM_STRUCTF_LIGHT + n * sizeof (SCM); /* use light representation */
+	  flags |= SCM_STRUCTF_LIGHT; /* use light representation */
 	}
     }
   SCM_SET_CLASS_FLAGS (class, flags);
@@ -3043,10 +3042,6 @@ scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
     {
       SCM_SET_SLOT (class, scm_si_destructor, (SCM) destructor);
       SCM_SET_CLASS_DESTRUCTOR (class, scm_free_foreign_object);
-    }
-  else if (size > 0)
-    {
-      SCM_SET_CLASS_INSTANCE_SIZE (class, size);
     }
 
   SCM_SET_SLOT (class, scm_si_layout, scm_from_locale_symbol (""));

@@ -38,7 +38,6 @@
 #define scm_struct_i_free	-4 /* Destructor */
 #define scm_struct_i_ptr	-3 /* Start of block (see alloc_struct) */
 #define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
-#define scm_struct_i_size	-1 /* Instance size */
 #define scm_struct_i_flags	-1 /* Upper 12 bits used as flags */
 
 /* These indices must correspond to required_vtable_fields in
