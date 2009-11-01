@@ -51,7 +51,7 @@
 typedef void (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 
 #define SCM_STRUCTF_MASK   (0xFFF << 20)
-#define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
+#define SCM_STRUCTF_GOOPS_HACK  (0x010 << 20) /* FIXME -- PURE_GENERIC */
 #define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
 					 (no hidden words) */
 

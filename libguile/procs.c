@@ -98,7 +98,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
     switch (SCM_TYP7 (obj))
       {
       case scm_tcs_struct:
-	if (!SCM_I_ENTITYP (obj))
+	if (!(SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC))
 	  break;
       case scm_tcs_closures:
       case scm_tcs_subrs:
@@ -262,7 +262,8 @@ SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0,
     return SCM_PROCEDURE (proc);
   else if (SCM_STRUCTP (proc))
     {
-      SCM_ASSERT (SCM_I_ENTITYP (proc), proc, SCM_ARG1, FUNC_NAME);
+      SCM_ASSERT (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC,
+                  proc, SCM_ARG1, FUNC_NAME);
       return proc;
     }
   SCM_WRONG_TYPE_ARG (1, proc);
@@ -281,9 +282,9 @@ scm_setter (SCM proc)
   else if (SCM_STRUCTP (proc))
     {
       SCM setter;
-      SCM_GASSERT1 (SCM_I_ENTITYP (proc),
+      SCM_GASSERT1 (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC,
 		    g_setter, proc, SCM_ARG1, s_setter);
-      setter = SCM_ENTITY_SETTER (proc);
+      setter = SCM_GENERIC_SETTER (proc);
       if (SCM_NIMP (setter))
 	return setter;
       /* fall through */

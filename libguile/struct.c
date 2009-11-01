@@ -420,7 +420,7 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
      need for a lock on the section below, as it does not access or update
      any globals, so the critical section has been removed. */
 
-  if (c_vtable[scm_struct_i_flags] & SCM_STRUCTF_ENTITY)
+  if (c_vtable[scm_struct_i_flags] & SCM_STRUCTF_GOOPS_HACK)
     {
       data = scm_alloc_struct (basic_size + tail_elts,
 			       scm_struct_entity_n_extra_words,

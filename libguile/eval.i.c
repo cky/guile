@@ -1031,6 +1031,7 @@ dispatch:
 	    arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
+#if 0
 	else if (SCM_I_ENTITYP (proc))
 	  {
 	    arg1 = proc;
@@ -1041,6 +1042,7 @@ dispatch:
 #endif
             goto evap1;
 	  }
+#endif
         else
           goto badfun;
       case scm_tc7_subr_1:
@@ -1162,6 +1164,7 @@ dispatch:
 #endif
 		goto type_dispatch;
 	      }
+#if 0
 	    else if (SCM_I_ENTITYP (proc))
 	      {
 		arg2 = arg1;
@@ -1173,6 +1176,7 @@ dispatch:
 #endif
                 goto evap2;
 	      }
+#endif
             else
               goto badfun;
 	  case scm_tc7_subr_2:
@@ -1241,6 +1245,7 @@ dispatch:
 #endif
 		goto type_dispatch;
 	      }
+#if 0
 	    else if (SCM_I_ENTITYP (proc))
 	      {
 	      operatorn:
@@ -1258,6 +1263,7 @@ dispatch:
 				   SCM_EOL));
 #endif
 	      }
+#endif
             else
               goto badfun;
 	  case scm_tc7_subr_0:
@@ -1467,8 +1473,10 @@ dispatch:
 	      x = SCM_GENERIC_METHOD_CACHE (proc);
 	      goto type_dispatch;
 	    }
+#if 0
 	  else if (SCM_I_ENTITYP (proc))
 	    goto operatorn;
+#endif
 	  else
 	    goto badfun;
 	case scm_tc7_subr_2:
@@ -1772,6 +1780,7 @@ tail:
 #endif
 	  RETURN (scm_apply_generic (proc, args));
 	}
+#if 0
       else if (SCM_I_ENTITYP (proc))
 	{
 	  /* operator */
@@ -1791,6 +1800,7 @@ tail:
 	  else
 	    goto badproc;
 	}
+#endif
       else
         goto badproc;
     default:

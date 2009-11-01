@@ -199,78 +199,9 @@ scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
   return scm_apply_generic (gf, scm_list_3 (a1, a2, a3));
 }
 
-SCM_DEFINE (scm_entity_p, "entity?", 1, 0, 0, 
-            (SCM obj),
-	    "Return @code{#t} if @var{obj} is an entity.")
-#define FUNC_NAME s_scm_entity_p
-{
-  return scm_from_bool(SCM_STRUCTP (obj) && SCM_I_ENTITYP (obj));
-}
-#undef FUNC_NAME
-
-/* XXX - What code requires the object procedure to be only of certain
-         types? */
-
-SCM_DEFINE (scm_valid_object_procedure_p, "valid-object-procedure?", 1, 0, 0,
-	    (SCM proc),
-	    "Return @code{#t} iff @var{proc} is a procedure that can be used "
-	    "with @code{set-object-procedure}.  It is always valid to use "
-            "a closure constructed by @code{lambda}.")
-#define FUNC_NAME s_scm_valid_object_procedure_p
-{
-  if (SCM_IMP (proc))
-    return SCM_BOOL_F;
-  switch (SCM_TYP7 (proc))
-    {
-    default:
-      return SCM_BOOL_F;
-    case scm_tcs_closures:
-    case scm_tc7_subr_1:
-    case scm_tc7_subr_2:
-    case scm_tc7_subr_3:
-    case scm_tc7_lsubr_2:
-      return SCM_BOOL_T;
-    }
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_set_object_procedure_x, "set-object-procedure!", 2, 0, 0, 
-            (SCM obj, SCM proc),
-	    "Set the object procedure of @var{obj} to @var{proc}.\n"
-	    "@var{obj} must be an entity.")
-#define FUNC_NAME s_scm_set_object_procedure_x
-{
-  SCM_ASSERT (SCM_STRUCTP (obj)
-	      && (SCM_I_ENTITYP (obj)
-                  && !(SCM_OBJ_CLASS_FLAGS (obj)
-                       & SCM_CLASSF_PURE_GENERIC)),
-	      obj,
-	      SCM_ARG1,
-              FUNC_NAME);
-  SCM_SET_ENTITY_PROCEDURE (obj, proc);
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#define SCM_METACLASS_STANDARD_LAYOUT ""
-
 void
 scm_init_objects ()
 {
-  SCM ms = scm_from_locale_string (SCM_METACLASS_STANDARD_LAYOUT);
-  SCM mt = scm_make_vtable_vtable (ms, SCM_INUM0,
-				   scm_list_3 (SCM_BOOL_F, SCM_EOL, SCM_EOL));
-  
-  SCM es = scm_from_locale_string (SCM_ENTITY_LAYOUT);
-  SCM el = scm_make_struct_layout (es);
-  SCM et = scm_make_struct (mt, SCM_INUM0,
-			    scm_list_4 (el, SCM_BOOL_F, SCM_EOL, SCM_EOL));
-
-  scm_c_define ("<class>", mt);
-  scm_metaclass_standard = mt;
-  SCM_SET_CLASS_FLAGS (et, SCM_CLASSF_ENTITY);
-  scm_c_define ("<entity>", et);
-
 #include "libguile/objects.x"
 }
 

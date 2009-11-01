@@ -51,31 +51,10 @@
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
 #define SCM_CLASSF_MASK SCM_STRUCTF_MASK
 
-#define SCM_CLASSF_ENTITY	SCM_STRUCTF_ENTITY
-
-#define SCM_I_ENTITYP(obj)\
-	((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_ENTITY) != 0)
-#define SCM_ENTITY_PROCEDURE(obj) \
-        (SCM_PACK (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure]))
-#define SCM_SET_ENTITY_PROCEDURE(obj, v) \
-        (SCM_STRUCT_DATA (obj) [scm_struct_i_procedure] = SCM_UNPACK (v))
-#define SCM_ENTITY_SETTER(obj) (SCM_PACK (SCM_STRUCT_DATA (obj)[scm_struct_i_setter]))
-#define SCM_SET_ENTITY_SETTER(obj, v) \
-        (SCM_STRUCT_DATA (obj) [scm_struct_i_setter] = SCM_UNPACK (v))
-
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 #define SCM_SET_CLASS_INSTANCE_SIZE(c, s) \
   (SCM_STRUCT_DATA (c)[scm_struct_i_size] \
    = (SCM_STRUCT_DATA (c) [scm_struct_i_size] & SCM_STRUCTF_MASK) | s)
-
-/* {Entity classes}
- *
- * For instances of entity classes (entities), the procedures to be
- * applied are stored in the instance itself.
- *
- * An example of an entity class is the class of generic methods.
- */
-#define SCM_ENTITY_LAYOUT ""
 
 /* {Interface to Goops}
  *
@@ -85,7 +64,7 @@
  */
 
 /* Internal representation of Goops objects. */
-#define SCM_CLASSF_PURE_GENERIC (0x010 << 20)
+#define SCM_CLASSF_PURE_GENERIC SCM_STRUCTF_GOOPS_HACK
 #define SCM_CLASSF_GOOPS_VALID  (0x080 << 20)
 #define SCM_CLASSF_GOOPS        (0x100 << 20)
 #define scm_si_redefined         5
@@ -119,9 +98,6 @@ SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 */
 SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
-SCM_API SCM scm_entity_p (SCM obj);
-SCM_API SCM scm_valid_object_procedure_p (SCM proc);
-SCM_API SCM scm_set_object_procedure_x (SCM obj, SCM proc);
 
 SCM_INTERNAL void scm_init_objects (void);
 
