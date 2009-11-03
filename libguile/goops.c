@@ -791,7 +791,7 @@ prep_hashsets (SCM class)
 {
   unsigned int i;
 
-  for (i = 0; i < 7; ++i)
+  for (i = 0; i < 8; ++i)
     SCM_SET_HASHSET (class, i, scm_c_uniform32 (goops_rstate));
 }
 
