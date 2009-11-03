@@ -1032,18 +1032,16 @@ dispatch:
 	    arg1 = SCM_EOL;
 	    goto type_dispatch;
 	  }
-#if 0
-	else if (SCM_I_ENTITYP (proc))
+	else if (SCM_STRUCT_APPLICABLE_P (proc))
 	  {
 	    arg1 = proc;
-	    proc = SCM_ENTITY_PROCEDURE (proc);
+	    proc = SCM_STRUCT_PROCEDURE (proc);
 #ifdef DEVAL
 	    debug.info->a.proc = proc;
 	    debug.info->a.args = scm_list_1 (arg1);
 #endif
             goto evap1;
 	  }
-#endif
         else
           goto badfun;
       case scm_tc7_subr_1:
@@ -1165,19 +1163,17 @@ dispatch:
 #endif
 		goto type_dispatch;
 	      }
-#if 0
-	    else if (SCM_I_ENTITYP (proc))
+	    else if (SCM_STRUCT_APPLICABLE_P (proc))
 	      {
 		arg2 = arg1;
 		arg1 = proc;
-		proc = SCM_ENTITY_PROCEDURE (proc);
+		proc = SCM_STRUCT_PROCEDURE (proc);
 #ifdef DEVAL
 		debug.info->a.args = scm_cons (arg1, debug.info->a.args);
 		debug.info->a.proc = proc;
 #endif
                 goto evap2;
 	      }
-#endif
             else
               goto badfun;
 	  case scm_tc7_subr_2:
@@ -1246,16 +1242,15 @@ dispatch:
 #endif
 		goto type_dispatch;
 	      }
-#if 0
-	    else if (SCM_I_ENTITYP (proc))
+	    else if (SCM_STRUCT_APPLICABLE_P (proc))
 	      {
 	      operatorn:
 #ifdef DEVAL
-		RETURN (SCM_APPLY (SCM_ENTITY_PROCEDURE (proc),
+		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
 				   scm_cons (proc, debug.info->a.args),
 				   SCM_EOL));
 #else
-		RETURN (SCM_APPLY (SCM_ENTITY_PROCEDURE (proc),
+		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
 				   scm_cons2 (proc, arg1,
 					      scm_cons (arg2,
 							scm_ceval_args (x,
@@ -1264,7 +1259,6 @@ dispatch:
 				   SCM_EOL));
 #endif
 	      }
-#endif
             else
               goto badfun;
 	  case scm_tc7_subr_0:
@@ -1474,10 +1468,8 @@ dispatch:
 	      x = SCM_GENERIC_METHOD_CACHE (proc);
 	      goto type_dispatch;
 	    }
-#if 0
-	  else if (SCM_I_ENTITYP (proc))
+	  else if (SCM_STRUCT_APPLICABLE_P (proc))
 	    goto operatorn;
-#endif
 	  else
 	    goto badfun;
 	case scm_tc7_subr_2:
@@ -1781,8 +1773,7 @@ tail:
 #endif
 	  RETURN (scm_apply_generic (proc, args));
 	}
-#if 0
-      else if (SCM_I_ENTITYP (proc))
+      else if (SCM_STRUCT_APPLICABLE_P (proc))
 	{
 	  /* operator */
 #ifdef DEVAL
@@ -1791,7 +1782,7 @@ tail:
 	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
 	  arg1 = proc;
-	  proc = SCM_ENTITY_PROCEDURE (proc);
+	  proc = SCM_STRUCT_PROCEDURE (proc);
 #ifdef DEVAL
 	  debug.vect[0].a.proc = proc;
 	  debug.vect[0].a.args = scm_cons (arg1, args);
@@ -1801,7 +1792,6 @@ tail:
 	  else
 	    goto badproc;
 	}
-#endif
       else
         goto badproc;
     default:

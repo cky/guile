@@ -34,36 +34,85 @@
 
 #include "libguile/validate.h"
 
+/* {Class flags}
+ *
+ * These are used for efficient identification of instances of a
+ * certain class or its subclasses when traversal of the inheritance
+ * graph would be too costly.
+ */
+#define SCM_VTABLE_FLAG_GOOPS_CLASS SCM_VTABLE_FLAG_GOOPS_0
+#define SCM_VTABLE_FLAG_GOOPS_VALID SCM_VTABLE_FLAG_GOOPS_1
+#define SCM_VTABLE_FLAG_GOOPS_METACLASS SCM_VTABLE_FLAG_GOOPS_2
+#define SCM_VTABLE_FLAG_GOOPS_FOREIGN SCM_VTABLE_FLAG_GOOPS_3
+#define SCM_VTABLE_FLAG_GOOPS_PURE_GENERIC SCM_VTABLE_FLAG_GOOPS_4
+#define SCM_VTABLE_FLAG_GOOPS_SIMPLE_METHOD SCM_VTABLE_FLAG_GOOPS_5
+#define SCM_VTABLE_FLAG_GOOPS_ACCESSOR_METHOD SCM_VTABLE_FLAG_GOOPS_6
+
+#define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
+#define SCM_CLASS_FLAGS(class) (SCM_VTABLE_FLAGS (class))
+#define SCM_OBJ_CLASS_FLAGS(obj) (SCM_STRUCT_VTABLE_FLAGS (obj))
+#define SCM_SET_CLASS_FLAGS(c, f) (SCM_SET_VTABLE_FLAGS (c, f))
+#define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLEAR_VTABLE_FLAGS (c, f))
+
+#define SCM_CLASSF_FOREIGN	 SCM_VTABLE_FLAG_GOOPS_FOREIGN
+#define SCM_CLASSF_METACLASS     SCM_VTABLE_FLAG_GOOPS_METACLASS
+#define SCM_CLASSF_PURE_GENERIC  SCM_VTABLE_FLAG_GOOPS_PURE_GENERIC
+#define SCM_CLASSF_GOOPS_VALID   SCM_VTABLE_FLAG_GOOPS_VALID
+#define SCM_CLASSF_GOOPS         SCM_VTABLE_FLAG_GOOPS_CLASS
+#define SCM_CLASSF_SIMPLE_METHOD SCM_VTABLE_FLAG_GOOPS_SIMPLE_METHOD
+#define SCM_CLASSF_ACCESSOR_METHOD SCM_VTABLE_FLAG_GOOPS_ACCESSOR_METHOD
+#define SCM_CLASSF_GOOPS_OR_VALID (SCM_CLASSF_GOOPS | SCM_CLASSF_GOOPS_VALID)
+
 /*
  * scm_class_class
  */
 
-#define SCM_CLASS_CLASS_LAYOUT "prsrpwpopopwururururururururpwpwpwpwpwpwpwpwpwpwpwpw"
+/* see also, SCM_VTABLE_BASE_LAYOUT, and build_class_class_slots */
+#define SCM_CLASS_CLASS_LAYOUT \
+  "pw" /* redefined */ \
+  "ur" /* h0 */ \
+  "ur" /* h1 */ \
+  "ur" /* h2 */ \
+  "ur" /* h3 */ \
+  "ur" /* h4 */ \
+  "ur" /* h5 */ \
+  "ur" /* h6 */ \
+  "ur" /* h7 */ \
+  "pw" /* direct supers */ \
+  "pw" /* direct slots */ \
+  "pw" /* direct subclasses */ \
+  "pw" /* direct methods */ \
+  "pw" /* cpl */ \
+  "pw" /* default-slot-definition-class */ \
+  "pw" /* slots */ \
+  "pw" /* getters-n-setters */ \
+  "pw" /* keyword access */ \
+  "pw" /* nfields */ \
+  "pw" /* environment */
 
-#define scm_si_layout		  0 /* the struct layout */
-#define scm_si_vtable		  1
-#define scm_si_print		  2 /* the struct print closure */
-#define scm_si_proc		  3
-#define scm_si_setter		  4
-
-#define scm_si_goops_fields	  5
-#define scm_si_redefined	  5    /* The class to which class was redefined. */
-#define scm_si_hashsets	 	  6
-
-#define scm_si_name 		 14 /* a symbol */
-#define scm_si_direct_supers 	 15 /* (class ...) */
-#define scm_si_direct_slots	 16 /* ((name . options) ...) */
-#define scm_si_direct_subclasses 17 /* (class ...) */
-#define scm_si_direct_methods	 18 /* (methods ...) */
-#define scm_si_cpl		 19 /* (class ...) */
-#define scm_si_slotdef_class	 20
-#define scm_si_slots		 21 /* ((name . options) ...) */
-#define scm_si_name_access	 22
+#define scm_si_redefined         (scm_vtable_offset_user + 0)
+#define scm_si_h0                (scm_vtable_offset_user + 1)
+#define scm_si_hashsets          scm_si_h0
+#define scm_si_h1                (scm_vtable_offset_user + 2)
+#define scm_si_h2                (scm_vtable_offset_user + 3)
+#define scm_si_h3                (scm_vtable_offset_user + 4)
+#define scm_si_h4                (scm_vtable_offset_user + 5)
+#define scm_si_h5                (scm_vtable_offset_user + 6)
+#define scm_si_h6                (scm_vtable_offset_user + 7)
+#define scm_si_h7                (scm_vtable_offset_user + 8)
+#define scm_si_direct_supers 	 (scm_vtable_offset_user + 9) /* (class ...) */
+#define scm_si_direct_slots	 (scm_vtable_offset_user + 10) /* ((name . options) ...) */
+#define scm_si_direct_subclasses (scm_vtable_offset_user + 11) /* (class ...) */
+#define scm_si_direct_methods	 (scm_vtable_offset_user + 12) /* (methods ...) */
+#define scm_si_cpl		 (scm_vtable_offset_user + 13) /* (class ...) */
+#define scm_si_slotdef_class	 (scm_vtable_offset_user + 14)
+#define scm_si_slots		 (scm_vtable_offset_user + 15) /* ((name . options) ...) */
+#define scm_si_name_access	 (scm_vtable_offset_user + 16)
 #define scm_si_getters_n_setters scm_si_name_access
-#define scm_si_keyword_access	 23
-#define scm_si_nfields		 24 /* an integer */
-#define scm_si_environment	 25 /* The environment in which class is built  */
-#define SCM_N_CLASS_SLOTS	 26
+#define scm_si_keyword_access	 (scm_vtable_offset_user + 17)
+#define scm_si_nfields		 (scm_vtable_offset_user + 18) /* an integer */
+#define scm_si_environment	 (scm_vtable_offset_user + 19) /* The environment in which class is built  */
+#define SCM_N_CLASS_SLOTS	 (scm_vtable_offset_user + 20)
 
 typedef struct scm_t_method {
   SCM generic_function;
@@ -73,34 +122,6 @@ typedef struct scm_t_method {
 
 #define SCM_METHOD(obj) ((scm_t_method *) SCM_STRUCT_DATA (obj))
 
-/* {Class flags}
- *
- * These are used for efficient identification of instances of a
- * certain class or its subclasses when traversal of the inheritance
- * graph would be too costly.
- */
-#define SCM_CLASS_FLAGS(class) (SCM_STRUCT_DATA (class) [scm_struct_i_flags])
-#define SCM_OBJ_CLASS_FLAGS(obj) (SCM_STRUCT_VTABLE_DATA (obj) [scm_struct_i_flags])
-#define SCM_SET_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) |= (f))
-#define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLASS_FLAGS (c) &= ~(f))
-#define SCM_CLASSF_MASK SCM_STRUCTF_MASK
-
-#define SCM_CLASSF_SIMPLE_METHOD    (0x004 << 20)
-#define SCM_CLASSF_ACCESSOR_METHOD  (0x008 << 20)
-#define SCM_CLASSF_PURE_GENERIC SCM_STRUCTF_GOOPS_HACK
-#define SCM_CLASSF_FOREIGN	    (0x020 << 20)
-#define SCM_CLASSF_METACLASS        (0x040 << 20)
-#define SCM_CLASSF_GOOPS_VALID  (0x080 << 20)
-#define SCM_CLASSF_GOOPS        (0x100 << 20)
-#define SCM_CLASSF_GOOPS_OR_VALID (SCM_CLASSF_GOOPS | SCM_CLASSF_GOOPS_VALID)
-
-#define SCM_CLASSF_INHERIT	 (~(SCM_CLASSF_PURE_GENERIC \
-				    | SCM_CLASSF_SIMPLE_METHOD \
-				    | SCM_CLASSF_ACCESSOR_METHOD \
-				    | SCM_STRUCTF_LIGHT) \
-				  & SCM_CLASSF_MASK)
-
-#define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
 #define SCM_OBJ_CLASS_REDEF(x)  (SCM_PACK (SCM_STRUCT_VTABLE_DATA (x) [scm_si_redefined]))
 #define SCM_INST(x)	       SCM_STRUCT_DATA (x)
 
@@ -123,8 +144,8 @@ typedef struct scm_t_method {
   (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_ACCESSOR_METHOD))
 #define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, ACCESSORP, "accessor")
 
-#define SCM_SLOT(x, i)         (SCM_PACK (SCM_INST (x) [i]))
-#define SCM_SET_SLOT(x, i, v)  (SCM_INST (x) [i] = SCM_UNPACK (v))
+#define SCM_SLOT(x, i)         (SCM_STRUCT_SLOT_REF (x, i))
+#define SCM_SET_SLOT(x, i, v)  (SCM_STRUCT_SLOT_SET (x, i, v))
 #define SCM_INSTANCE_HASH(c, i) (SCM_INST (c) [scm_si_hashsets + (i)])
 #define SCM_SET_HASHSET(c, i, h)  (SCM_INST (c) [scm_si_hashsets + (i)] = (h))
 
@@ -142,22 +163,22 @@ typedef struct scm_t_method {
 
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 
-#define SCM_GENERIC_METHOD_CACHE(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_struct_i_procedure]))
-#define SCM_SET_GENERIC_METHOD_CACHE(G,C) (SCM_STRUCT_DATA (G) [scm_struct_i_procedure] = SCM_UNPACK (C))
-#define SCM_GENERIC_SETTER(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_struct_i_setter]))
-#define SCM_SET_GENERIC_SETTER(G,C) (SCM_STRUCT_DATA (G) [scm_struct_i_setter] = SCM_UNPACK (C))
+#define SCM_GENERIC_METHOD_CACHE(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_cache]))
+#define SCM_SET_GENERIC_METHOD_CACHE(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_cache] = SCM_UNPACK (C))
+#define SCM_GENERIC_SETTER(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_setter_cache]))
+#define SCM_SET_GENERIC_SETTER(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_setter_cache] = SCM_UNPACK (C))
 #define SCM_MCACHE_N_SPECIALIZED(C) SCM_CADDR (C)
 #define SCM_SET_MCACHE_N_SPECIALIZED(C, X) SCM_SETCAR (SCM_CDDR (C), X)
 
 #define SCM_INITIAL_MCACHE_SIZE	  1
 
-#define scm_si_constructor	 SCM_N_CLASS_SLOTS
-#define scm_si_destructor	 SCM_N_CLASS_SLOTS + 1
-
 #define scm_si_methods		 0  /* offset of methods slot in a <generic> */
 #define scm_si_n_specialized	 1
 #define scm_si_used_by		 2
 #define scm_si_cache_mutex	 3
+#define scm_si_extended_by	 4
+#define scm_si_generic_cache	 5
+#define scm_si_generic_setter_cache 6
 
 #define scm_si_generic_function	 0  /* offset of gf    slot in a <method> */
 #define scm_si_specializers	 1  /* offset of spec. slot in a <method> */
@@ -213,8 +234,10 @@ SCM_API SCM scm_class_foreign_object;
 SCM_API SCM scm_class_foreign_slot;
 SCM_API SCM scm_class_self;
 SCM_API SCM scm_class_protected;
+SCM_API SCM scm_class_hidden;
 SCM_API SCM scm_class_opaque;
 SCM_API SCM scm_class_read_only;
+SCM_API SCM scm_class_protected_hidden;
 SCM_API SCM scm_class_protected_opaque;
 SCM_API SCM scm_class_protected_read_only;
 SCM_API SCM scm_class_scm;
@@ -232,18 +255,8 @@ SCM_API SCM scm_oldfmt (SCM);
 SCM_API char *scm_c_oldfmt0 (char *);
 SCM_API char *scm_c_oldfmt (char *, int n);
 SCM_API void scm_load_goops (void);
-SCM_API SCM scm_make_foreign_object (SCM cls, SCM initargs);
-SCM_API SCM scm_make_class (SCM meta, char *s_name, SCM supers, size_t size,
-			    void * (*constructor) (SCM initargs),
-			    size_t (*destructor) (void *));
 SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
 SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
-SCM_API void scm_add_slot (SCM c, char *slot, SCM slot_class,
-			   SCM (*getter) (SCM obj),
-			   SCM (*setter) (SCM obj, SCM x),
-			   char *accessor_name);
-SCM_API SCM scm_wrap_object (SCM c, void *);
-SCM_API SCM scm_wrap_component (SCM c, SCM obj, void *);
 SCM_API SCM scm_ensure_accessor (SCM name);
 SCM_API void scm_add_method (SCM gf, SCM m);
 SCM_API SCM scm_class_of (SCM obj);
@@ -325,19 +338,6 @@ SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
 
 SCM_INTERNAL SCM scm_init_goops_builtins (void);
 SCM_INTERNAL void scm_init_goops (void);
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-
-#define SCM_INST_TYPE(x)       SCM_OBJ_CLASS_FLAGS (x)
-#define SCM_SIMPLEMETHODP(x) \
-  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_SIMPLE_METHOD))
-#define SCM_FASTMETHODP(x) \
-  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) \
-                       & (SCM_CLASSF_ACCESSOR_METHOD \
-			  | SCM_CLASSF_SIMPLE_METHOD)))
-
-
-#endif
 
 #endif  /* SCM_GOOPS_H */
 

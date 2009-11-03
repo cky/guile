@@ -40,7 +40,7 @@
 ;;;
 
 (define hashsets 8)
-(define hashset-index 6)
+(define hashset-index 9)
 
 (define hash-threshold 3)
 (define initial-hash-size 4) ;must be a power of 2 and >= hash-threshold

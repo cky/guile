@@ -45,8 +45,13 @@
 
 
 
+/* A needlessly obscure test. */
+#define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
+
 static SCM required_vtable_fields = SCM_BOOL_F;
-SCM scm_struct_table;
+static SCM required_applicable_fields = SCM_BOOL_F;
+static SCM required_applicable_with_setter_fields = SCM_BOOL_F;
+SCM scm_struct_table = SCM_BOOL_F;
 
 
 SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
@@ -57,9 +62,14 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	    "type, the second a field protection.  Allowed types are 'p' for\n"
 	    "GC-protected Scheme data, 'u' for unprotected binary data, and 's' for\n"
 	    "a field that points to the structure itself.    Allowed protections\n"
-	    "are 'w' for mutable fields, 'r' for read-only fields, and 'o' for opaque\n"
-	    "fields.  The last field protection specification may be capitalized to\n"
-	    "indicate that the field is a tail-array.")
+	    "are 'w' for mutable fields, 'h' for hidden fields, 'r' for read-only\n"
+            "fields, and 'o' for opaque fields.\n\n"
+            "Hidden fields are writable, but they will not consume an initializer arg\n"
+            "passed to @code{make-struct}. They are useful to add slots to a struct\n"
+            "in a way that preserves backward-compatibility with existing calls to\n"
+            "@code{make-struct}, especially for derived vtables.\n\n"
+            "The last field protection specification may be capitalized to indicate\n"
+	    "that the field is a tail-array.")
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
@@ -96,6 +106,7 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 	switch (c = scm_i_string_ref (fields, x + 1))
 	  {
 	  case 'w':
+	  case 'h':
 	    if (scm_i_string_ref (fields, x) == 's')
 	      SCM_MISC_ERROR ("self fields not writable", SCM_EOL);
 	  case 'r':
@@ -138,12 +149,13 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 
 
 static void
-scm_struct_init (SCM handle, SCM layout, scm_t_bits * mem, int tail_elts, SCM inits)
+scm_struct_init (SCM handle, SCM layout, int tail_elts, SCM inits)
 {
   scm_t_wchar prot = 0;
   int n_fields = scm_i_symbol_length (layout) / 2;
   int tailp = 0;
   int i;
+  scm_t_bits *mem = SCM_STRUCT_DATA (handle);
 
   i = -2;
   while (n_fields)
@@ -236,33 +248,9 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 	    "Return @code{#t} iff @var{x} is a vtable structure.")
 #define FUNC_NAME s_scm_struct_vtable_p
 {
-  SCM layout;
-  scm_t_bits * mem;
-  SCM tmp;
-  size_t len;
-
-  if (!SCM_STRUCTP (x))
-    return SCM_BOOL_F;
-
-  layout = SCM_STRUCT_LAYOUT (x);
-
-  if (scm_i_symbol_length (layout)
-      < scm_i_string_length (required_vtable_fields))
-    return SCM_BOOL_F;
-
-  len = scm_i_string_length (required_vtable_fields);
-  tmp = scm_string_eq (scm_symbol_to_string (layout), 
-		       required_vtable_fields, 
-		       scm_from_size_t (0), 
-		       scm_from_size_t (len), 
-		       scm_from_size_t (0),
-		       scm_from_size_t (len));
-  if (scm_is_false (tmp))
-    return SCM_BOOL_F;
-
-  mem = SCM_STRUCT_DATA (x);
-
-  return scm_from_bool (scm_is_symbol (SCM_PACK (mem[scm_vtable_index_layout])));
+  return scm_from_bool
+    (SCM_STRUCTP (x)
+     && SCM_STRUCT_VTABLE_FLAG_IS_SET (x, SCM_VTABLE_FLAG_VTABLE));
 }
 #undef FUNC_NAME
 
@@ -274,54 +262,27 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
    address of that data doesn't end in three zeros, tagging it will
    destroy the pointer.
 
-   This function allocates a block of memory, and returns a pointer at
-   least scm_struct_n_extra_words words into the block.  Furthermore,
-   it guarantees that that pointer's least three significant bits are
-   all zero.
+   I suppose we should make it clear here that, the data must be 8-byte aligned,
+   *within* the struct, and the struct itself should be 8-byte aligned. In
+   practice we ensure this because the data starts two words into a struct.
 
-   The argument n_words should be the number of words that should
-   appear after the returned address.  (That is, it shouldn't include
-   scm_struct_n_extra_words.)
-
-   This function initializes the following fields of the struct:
-
-     scm_struct_i_ptr --- the actual start of the block of memory; the
-	 address you should pass to 'free' to dispose of the block.
-	 This field allows us to both guarantee that the returned
-	 address is divisible by eight, and allow the GC to free the
-	 block.
-
-     scm_struct_i_n_words --- the number of words allocated to the
-         block, including the extra fields.  This is used by the GC.
-
-     Ugh.  */
-
-
-scm_t_bits *
-scm_alloc_struct (int n_words, int n_extra, const char *what)
+   This function allocates an 8-byte aligned block of memory, whose first word
+   points to the given vtable data, then a data pointer, then n_words of data.
+ */
+SCM
+scm_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what)
 {
-  int size = sizeof (scm_t_bits) * (n_words + n_extra) + 7;
-  void * block = scm_gc_malloc (size, what);
-
-  /* Adjust the pointer to hide the extra words.  */
-  scm_t_bits * p = (scm_t_bits *) block + n_extra;
-
-  /* Adjust it even further so it's aligned on an eight-byte boundary.  */
-  p = (scm_t_bits *) (((scm_t_bits) p + 7) & ~7);
-
-  /* Initialize a few fields as described above.  */
-  p[scm_struct_i_free] = (scm_t_bits) 0;
-  p[scm_struct_i_ptr] = (scm_t_bits) block;
-  p[scm_struct_i_n_words] = n_words;
-  p[scm_struct_i_flags] = 0;
-
-  /* Since `SCM' objects will record either P or P + SCM_TC3_STRUCT, we need
-     to register them as valid displacements.  Fortunately, only a handful of
-     N_EXTRA values are used in core Guile.  */
-  GC_REGISTER_DISPLACEMENT ((char *)p - (char *)block);
-  GC_REGISTER_DISPLACEMENT ((char *)p - (char *)block + scm_tc3_struct);
-
-  return p;
+  scm_t_bits ret;
+  ret = (scm_t_bits)scm_gc_malloc (sizeof (scm_t_bits) * (n_words + 2), "struct");
+  /* Now that all platforms support scm_t_uint64, I would think that malloc on
+     all platforms is required to return 8-byte-aligned blocks. This test will
+     let us find out quickly though ;-) */
+  if (ret & 7)
+    abort ();
+  SCM_SET_CELL_WORD_0 (SCM_PACK (ret), (scm_t_bits)vtable_data | scm_tc3_struct);
+  SCM_SET_CELL_WORD_1 (SCM_PACK (ret),
+                       (scm_t_bits)SCM_CELL_OBJECT_LOC (SCM_PACK (ret), 2));
+  return SCM_PACK (ret);
 }
 
 
@@ -333,25 +294,10 @@ static void
 struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
 {
   SCM obj = PTR2SCM (ptr);
+  scm_t_struct_finalize finalize = SCM_STRUCT_FINALIZER (obj);
 
-  /* XXX - use less explicit code. */
-  scm_t_bits word0 = SCM_CELL_WORD_0 (obj) - scm_tc3_struct;
-  scm_t_bits *vtable_data = (scm_t_bits *) word0;
-  scm_t_bits *data = SCM_STRUCT_DATA (obj);
-  scm_t_struct_free free_struct_data
-    = ((scm_t_struct_free) vtable_data[scm_struct_i_free]);
-
-  SCM_SET_CELL_TYPE (obj, scm_tc3_struct);
-
-#if 0
-  /* A sanity check.  However, this check can fail if the free function
-     changed between the `make-struct' time and now.  */
-  if (free_struct_data != (scm_t_struct_free)unused_data)
-    abort ();
-#endif
-
-  if (free_struct_data)
-    free_struct_data (vtable_data, data);
+  if (finalize)
+    finalize (obj);
 }
 
 
@@ -368,30 +314,23 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 	    "successive fields of the structure should be initialized.  Only fields\n"
 	    "with protection 'r' or 'w' can be initialized, except for fields of\n"
 	    "type 's', which are automatically initialized to point to the new\n"
-	    "structure itself; fields with protection 'o' can not be initialized by\n"
+	    "structure itself. Fields with protection 'o' can not be initialized by\n"
 	    "Scheme programs.\n\n"
 	    "If fewer optional arguments than initializable fields are supplied,\n"
 	    "fields of type 'p' get default value #f while fields of type 'u' are\n"
 	    "initialized to 0.\n\n"
-	    "Structs are currently the basic representation for record-like data\n"
-	    "structures in Guile.  The plan is to eventually replace them with a\n"
-	    "new representation which will at the same time be easier to use and\n"
-	    "more powerful.\n\n"
 	    "For more information, see the documentation for @code{make-vtable-vtable}.")
 #define FUNC_NAME s_scm_make_struct
 {
   SCM layout;
   size_t basic_size;
   size_t tail_elts;
-  scm_t_bits *data, *c_vtable;
-  SCM handle;
+  SCM obj;
 
   SCM_VALIDATE_VTABLE (1, vtable);
   SCM_VALIDATE_REST_ARGUMENT (init);
 
-  c_vtable = SCM_STRUCT_DATA (vtable);
-
-  layout = SCM_PACK (c_vtable [scm_vtable_index_layout]);
+  layout = SCM_VTABLE_LAYOUT (vtable);
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
 
@@ -414,47 +353,81 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
         goto bad_tail;
     }
 
-  /* In guile 1.8.5 and earlier, everything below was covered by a
-     CRITICAL_SECTION lock.  This can lead to deadlocks in garbage
-     collection, since other threads might be holding the heap_mutex, while
-     sleeping on the CRITICAL_SECTION lock.  There does not seem to be any
-     need for a lock on the section below, as it does not access or update
-     any globals, so the critical section has been removed. */
+  obj = scm_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + tail_elts,
+                          "struct");
 
-  if (c_vtable[scm_struct_i_flags] & SCM_STRUCTF_GOOPS_HACK)
-    {
-      data = scm_alloc_struct (basic_size + tail_elts,
-			       scm_struct_entity_n_extra_words,
-			       "entity struct");
-      data[scm_struct_i_procedure] = SCM_UNPACK (SCM_BOOL_F);
-      data[scm_struct_i_setter] = SCM_UNPACK (SCM_BOOL_F);
-    }
-  else
-    data = scm_alloc_struct (basic_size + tail_elts,
-			     scm_struct_n_extra_words,
-			     "struct");
-  handle = scm_double_cell ((((scm_t_bits) c_vtable)
-			     + scm_tc3_struct),
-			    (scm_t_bits) data, 0, 0);
-
-  if (c_vtable[scm_struct_i_free])
+  if (SCM_VTABLE_INSTANCE_FINALIZER (vtable))
     {
       /* Register a finalizer for the newly created instance.  */
       GC_finalization_proc prev_finalizer;
       GC_PTR prev_finalizer_data;
-      scm_t_struct_free free_struct =
-	(scm_t_struct_free)c_vtable[scm_struct_i_free];
-
-      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (handle),
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (obj),
 				      struct_finalizer_trampoline,
-				      free_struct,
+				      NULL,
 				      &prev_finalizer,
 				      &prev_finalizer_data);
     }
 
-  scm_struct_init (handle, layout, data, tail_elts, init);
+  scm_struct_init (obj, layout, tail_elts, init);
 
-  return handle;
+  /* Verily, what is the deal here, you ask? Basically, we need to know a couple
+     of properties of structures at runtime. For example, "is this structure a
+     vtable of vtables (a metaclass)?"; also, "is this structure applicable?".
+     Both of these questions also imply a certain layout of the structure. So
+     instead of checking the layout at runtime, what we do is pre-verify the
+     layout -- so that at runtime we can just check the applicable flag and
+     dispatch directly to the Scheme procedure in slot 0.
+   */
+  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE)
+      /* only do these checks if the layout was passed as an initarg.
+         something of a hack, but it's for back-compatibility. */
+      && scm_is_true (SCM_VTABLE_LAYOUT (obj)))
+    {
+      /* scm_struct_init will have initialized our layout */
+      SCM olayout;
+
+      /* verify that obj is a valid vtable */
+      if (scm_is_false (scm_symbol_p (SCM_VTABLE_LAYOUT (obj))))
+        scm_misc_error (FUNC_NAME, "invalid layout for new vtable",
+                        scm_list_1 (SCM_VTABLE_LAYOUT (obj)));
+
+      /* if obj is a metaclass, verify that its vtable is compatible with the
+         required vtable (class) layout */
+      olayout = scm_symbol_to_string (SCM_VTABLE_LAYOUT (obj));
+      if (scm_is_true (scm_string_eq (olayout, required_vtable_fields,
+                                      scm_from_size_t (0), 
+                                      scm_string_length (olayout),
+                                      scm_from_size_t (0),
+                                      scm_string_length (required_vtable_fields))))
+        SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
+
+      /* finally if obj is an applicable class, verify that its vtable is
+         compatible with the required applicable layout */
+      if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SETTER_VTABLE))
+        {
+          if (scm_is_false (scm_string_eq (olayout, required_applicable_with_setter_fields,
+                                           scm_from_size_t (0), 
+                                           scm_from_size_t (4), 
+                                           scm_from_size_t (0),
+                                           scm_from_size_t (4))))
+            scm_misc_error (FUNC_NAME, "invalid applicable-with-setter struct layout",
+                            scm_list_1 (olayout));
+          SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE | SCM_VTABLE_FLAG_SETTER);
+        }
+      else if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_APPLICABLE_VTABLE))
+        {
+          if (scm_is_false (scm_string_eq (olayout, required_applicable_fields,
+                                           scm_from_size_t (0), 
+                                           scm_from_size_t (2), 
+                                           scm_from_size_t (0),
+                                           scm_from_size_t (2))))
+            scm_misc_error (FUNC_NAME, "invalid applicable struct layout",
+                            scm_list_1 (olayout));
+          SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE);
+        }
+    }
+
+  return obj;
 }
 #undef FUNC_NAME
 
@@ -512,8 +485,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM layout;
   size_t basic_size;
   size_t tail_elts;
-  scm_t_bits *data;
-  SCM handle;
+  SCM obj;
 
   SCM_VALIDATE_STRING (1, user_fields);
   SCM_VALIDATE_REST_ARGUMENT (init);
@@ -524,15 +496,13 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
   SCM_CRITICAL_SECTION_START;
-  data = scm_alloc_struct (basic_size + tail_elts,
-			   scm_struct_n_extra_words,
-			   "struct");
-  handle = scm_double_cell ((scm_t_bits) data + scm_tc3_struct,
-			    (scm_t_bits) data, 0, 0);
-  data [scm_vtable_index_layout] = SCM_UNPACK (layout);
-  scm_struct_init (handle, layout, data, tail_elts, scm_cons (layout, init));
+  obj = scm_alloc_struct (NULL, basic_size + tail_elts, "struct");
+  /* magic magic magic */
+  SCM_SET_CELL_WORD_0 (obj, (scm_t_bits)SCM_STRUCT_DATA (obj) | scm_tc3_struct);
   SCM_CRITICAL_SECTION_END;
-  return handle;
+  scm_struct_init (obj, layout, tail_elts, scm_cons (layout, init));
+  SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
+  return obj;
 }
 #undef FUNC_NAME
 
@@ -611,8 +581,7 @@ scm_i_struct_equalp (SCM s1, SCM s2)
 
 SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
             (SCM handle, SCM pos),
-	    "@deffnx {Scheme Procedure} struct-set! struct n value\n"
-	    "Access (or modify) the @var{n}th field of @var{struct}.\n\n"
+	    "Access the @var{n}th field of @var{struct}.\n\n"
 	    "If the field is of type 'p', then it can be set to an arbitrary value.\n\n"
 	    "If the field is of type 'u', then it can only be set to a non-negative\n"
 	    "integer value small enough to fit in one machine word.")
@@ -634,11 +603,9 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
   p = scm_to_size_t (pos);
 
   layout_len = scm_i_symbol_length (layout);
-  if (SCM_STRUCT_VTABLE_FLAGS (handle) & SCM_STRUCTF_LIGHT)
-    /* no extra words */
-    n_fields = layout_len / 2;
-  else
-    n_fields = data[scm_struct_i_n_words];
+  n_fields = layout_len / 2;
+  if (SCM_LAYOUT_TAILP (scm_i_symbol_ref (layout, layout_len - 1)))
+    n_fields += data[n_fields - 1];
   
   SCM_ASSERT_RANGE(1, pos, p < n_fields);
 
@@ -647,7 +614,7 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
       scm_t_wchar ref;
       field_type = scm_i_symbol_ref (layout, p * 2);
       ref = scm_i_symbol_ref (layout, p * 2 + 1);
-      if ((ref != 'r') && (ref != 'w'))
+      if ((ref != 'r') && (ref != 'w') && (ref != 'h'))
 	{
 	  if ((ref == 'R') || (ref == 'W'))
 	    field_type = 'u';
@@ -713,11 +680,9 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   p = scm_to_size_t (pos);
 
   layout_len = scm_i_symbol_length (layout);
-  if (SCM_STRUCT_VTABLE_FLAGS (handle) & SCM_STRUCTF_LIGHT)
-    /* no extra words */
-    n_fields = layout_len / 2;
-  else
-    n_fields = data[scm_struct_i_n_words];
+  n_fields = layout_len / 2;
+  if (SCM_LAYOUT_TAILP (scm_i_symbol_ref (layout, layout_len - 1)))
+    n_fields += data[n_fields - 1];
 
   SCM_ASSERT_RANGE (1, pos, p < n_fields);
 
@@ -726,7 +691,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
       char set_x;
       field_type = scm_i_symbol_ref (layout, p * 2);
       set_x = scm_i_symbol_ref (layout, p * 2 + 1);
-      if (set_x != 'w')
+      if (set_x != 'w' && set_x != 'h')
 	SCM_MISC_ERROR ("set! denied for field ~A", scm_list_1 (pos));
     }
   else if (scm_i_symbol_ref (layout, layout_len - 1) == 'W')    
@@ -854,13 +819,39 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
       SCM name = scm_struct_vtable_name (vtable);
       scm_puts ("#<", port);
       if (scm_is_true (name))
-	scm_display (name, port);
+	{
+          scm_display (name, port);
+          scm_putc (' ', port);
+        }
       else
-	scm_puts ("struct", port);
-      scm_putc (' ', port);
-      scm_uintprint (SCM_UNPACK (vtable), 16, port);
-      scm_putc (':', port);
+	{
+          if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE))
+            scm_puts ("vtable:", port);
+          else
+            scm_puts ("struct:", port);
+          scm_uintprint (SCM_UNPACK (vtable), 16, port);
+          scm_putc (' ', port);
+          scm_write (SCM_VTABLE_LAYOUT (vtable), port);
+          scm_putc (' ', port);
+        }
       scm_uintprint (SCM_UNPACK (exp), 16, port);
+      /* hackety hack */
+      if (SCM_STRUCT_APPLICABLE_P (exp))
+        {
+          if (scm_is_true (SCM_STRUCT_PROCEDURE (exp)))
+            {
+              scm_puts (" proc: ", port);
+              if (scm_is_true (scm_procedure_p (SCM_STRUCT_PROCEDURE (exp))))
+                scm_write (SCM_STRUCT_PROCEDURE (exp), port);
+              else
+                scm_puts ("(not a procedure?)", port);
+            }
+          if (SCM_STRUCT_SETTER_P (exp))
+            {
+              scm_puts (" setter: ", port);
+              scm_write (SCM_STRUCT_SETTER (exp), port);
+            }
+        }
       scm_putc ('>', port);
     }
 }
@@ -874,19 +865,38 @@ scm_struct_prehistory ()
 void
 scm_init_struct ()
 {
-  scm_struct_table
-    = scm_permanent_object (scm_make_weak_key_hash_table (scm_from_int (31)));
-  required_vtable_fields = scm_from_locale_string ("prsrpw");
-  scm_permanent_object (required_vtable_fields);
+  SCM scm_applicable_struct_vtable_vtable;
+  SCM scm_applicable_struct_with_setter_vtable_vtable;
+
+  GC_REGISTER_DISPLACEMENT (2*sizeof(scm_t_bits)); /* for the self data pointer */
+  GC_REGISTER_DISPLACEMENT (2*sizeof(scm_t_bits)
+                            + scm_tc3_struct); /* for the vtable data pointer */
+
+  scm_struct_table = scm_make_weak_key_hash_table (scm_from_int (31));
+  required_vtable_fields = scm_from_locale_string (SCM_VTABLE_BASE_LAYOUT);
+  required_applicable_fields = scm_from_locale_string (SCM_APPLICABLE_BASE_LAYOUT);
+  required_applicable_with_setter_fields = scm_from_locale_string (SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT);
 
   scm_i_vtable_vtable_no_extra_fields =
-    scm_permanent_object
-    (scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL));
+    scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
+
+  scm_applicable_struct_vtable_vtable =
+    scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+                     scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
+  SCM_SET_VTABLE_FLAGS (scm_applicable_struct_vtable_vtable,
+                        SCM_VTABLE_FLAG_APPLICABLE_VTABLE);
+  scm_c_define ("<applicable-struct-vtable>", scm_applicable_struct_vtable_vtable);
+
+  scm_applicable_struct_with_setter_vtable_vtable =
+    scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+                     scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
+  SCM_SET_VTABLE_FLAGS (scm_applicable_struct_with_setter_vtable_vtable,
+                        SCM_VTABLE_FLAG_APPLICABLE_VTABLE | SCM_VTABLE_FLAG_SETTER_VTABLE);
+  scm_c_define ("<applicable-struct-with-setter-vtable>", scm_applicable_struct_with_setter_vtable_vtable);
 
   scm_c_define ("vtable-index-layout", scm_from_int (scm_vtable_index_layout));
-  scm_c_define ("vtable-index-vtable", scm_from_int (scm_vtable_index_vtable));
   scm_c_define ("vtable-index-printer",
-		scm_from_int (scm_vtable_index_printer));
+		scm_from_int (scm_vtable_index_instance_printer));
   scm_c_define ("vtable-offset-user", scm_from_int (scm_vtable_offset_user));
 #include "libguile/struct.x"
 }

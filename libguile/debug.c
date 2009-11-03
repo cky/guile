@@ -355,7 +355,10 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
         }
     }
   case scm_tcs_struct:
-    if (!(SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC))
+    if (!SCM_STRUCT_APPLICABLE_P (proc))
+      break;
+    proc = SCM_STRUCT_PROCEDURE (proc);
+    if (SCM_IMP (proc))
       break;
     goto procprop;
   case scm_tc7_smob:

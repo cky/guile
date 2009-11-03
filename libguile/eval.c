@@ -3269,6 +3269,8 @@ scm_trampoline_0 (SCM proc)
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	trampoline = scm_call_generic_0;
+      else if (SCM_STRUCT_APPLICABLE_P (proc))
+        trampoline = scm_call_0;
       else
         return NULL;
       break;
@@ -3393,6 +3395,8 @@ scm_trampoline_1 (SCM proc)
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	trampoline = scm_call_generic_1;
+      else if (SCM_STRUCT_APPLICABLE_P (proc))
+        trampoline = scm_call_1;
       else
         return NULL;
       break;
@@ -3488,6 +3492,8 @@ scm_trampoline_2 (SCM proc)
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	trampoline = scm_call_generic_2;
+      else if (SCM_STRUCT_APPLICABLE_P (proc))
+        trampoline = scm_call_2;
       else
         return NULL;
       break;

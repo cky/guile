@@ -126,13 +126,10 @@ scm_i_procedure_arity (SCM proc)
 	  r = 1;
 	  break;
 	}
-      /* FIXME applicable structs */
-      return SCM_BOOL_F;
-#if 0
-      proc = SCM_ENTITY_PROCEDURE (proc);
-      a -= 1;
+      else if (!SCM_STRUCT_APPLICABLE_P (proc))
+        return SCM_BOOL_F;
+      proc = SCM_STRUCT_PROCEDURE (proc);
       goto loop;
-#endif
     default:
       return SCM_BOOL_F;
     }

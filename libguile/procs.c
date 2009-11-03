@@ -97,7 +97,8 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
     switch (SCM_TYP7 (obj))
       {
       case scm_tcs_struct:
-	if (!(SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC))
+	if (!((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC)
+              || SCM_STRUCT_APPLICABLE_P (obj)))
 	  break;
       case scm_tcs_closures:
       case scm_tcs_subrs:
@@ -253,7 +254,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0, 
             (SCM proc),
 	    "Return the procedure of @var{proc}, which must be either a\n"
-	    "procedure with setter, or an operator struct.")
+	    "procedure with setter, or an applicable struct.")
 #define FUNC_NAME s_scm_procedure
 {
   SCM_VALIDATE_NIM (1, proc);
@@ -261,7 +262,7 @@ SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0,
     return SCM_PROCEDURE (proc);
   else if (SCM_STRUCTP (proc))
     {
-      SCM_ASSERT (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC,
+      SCM_ASSERT (SCM_PUREGENERICP (proc) || SCM_STRUCT_APPLICABLE_P (proc),
                   proc, SCM_ARG1, FUNC_NAME);
       return proc;
     }
@@ -280,10 +281,11 @@ scm_setter (SCM proc)
     return SCM_SETTER (proc);
   else if (SCM_STRUCTP (proc))
     {
-      SCM setter;
-      SCM_GASSERT1 (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC,
-		    g_setter, proc, SCM_ARG1, s_setter);
-      setter = SCM_GENERIC_SETTER (proc);
+      SCM setter = SCM_BOOL_F;
+      if (SCM_PUREGENERICP (proc))
+        setter = SCM_GENERIC_SETTER (proc);
+      else if (SCM_STRUCT_SETTER_P (proc))
+        setter = SCM_STRUCT_SETTER (proc);
       if (SCM_NIMP (setter))
 	return setter;
       /* fall through */

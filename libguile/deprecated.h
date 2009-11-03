@@ -92,6 +92,15 @@ SCM_DEPRECATED const char scm_s_formals[];
 			      : scm_i_eval_x (SCM_CAR (x), (env)))
 
 
+/* From structs.h:
+   Deprecated in Guile 1.9.5 on 2009-11-03. */
+#define scm_vtable_index_vtable scm_vtable_index_self
+#define scm_vtable_index_printer scm_vtable_index_instance_printer
+#define scm_struct_i_free scm_vtable_index_instance_finalize
+#define scm_struct_i_flags scm_vtable_index_flags
+#define SCM_STRUCTF_MASK ((scm_t_bits)-1)
+#define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA(x)[scm_struct_i_free]=(scm_t_bits)(D))
+
 #define scm_substring_move_left_x scm_substring_move_x
 #define scm_substring_move_right_x scm_substring_move_x
 
