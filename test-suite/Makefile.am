@@ -48,6 +48,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/i18n.test			\
 	    tests/import.test			\
 	    tests/interp.test			\
+	    tests/keywords.test			\
 	    tests/list.test			\
 	    tests/load.test			\
 	    tests/modules.test			\

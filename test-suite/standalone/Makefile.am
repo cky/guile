@@ -107,6 +107,13 @@ test_conversion_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-conversion
 TESTS += test-conversion
 
+# test-loose-ends
+test_loose_ends_SOURCES = test-loose-ends.c
+test_loose_ends_CFLAGS = ${test_cflags}
+test_loose_ends_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-loose-ends
+TESTS += test-loose-ends
+
 # test-fast-slot-ref
 check_SCRIPTS += test-fast-slot-ref
 TESTS += test-fast-slot-ref

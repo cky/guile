@@ -52,6 +52,34 @@
   (pass-if "throwing to a rewound catch context"
     (eq? (dont-crash-please) 'no-reentry))
 
+  (pass-if "can print a continuation"
+    (let ((s (with-output-to-string
+	       (lambda ()
+		 (call-with-current-continuation write)))))
+      (string=? "#<continuation " (substring s 0 15))))
+
+  (pass-if "blocked attempt to cross a continuation barrier"
+    (call-with-current-continuation
+     (lambda (k)
+       (with-continuation-barrier
+	(lambda ()
+	  (catch 'misc-error
+		 (lambda ()
+		   (k 1)
+		   #f)
+		 (lambda _
+		   #t)))))))
+
+  (pass-if "uncaught exception is handled by continuation barrier"
+    (let* ((handled #f)
+	   (s (with-error-to-string
+	       (lambda ()
+		 (set! handled
+		       (not (with-continuation-barrier
+			     (lambda ()
+			       (error "Catch me if you can!")))))))))
+      handled))
+
   (with-debugging-evaluator
 
     (pass-if "make a stack from a continuation"
