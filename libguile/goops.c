@@ -1166,15 +1166,6 @@ SCM_DEFINE (scm_accessor_method_slot_definition, "accessor-method-slot-definitio
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_sys_tag_body, "%tag-body", 1, 0, 0,
-	    (SCM body),
-	    "Internal GOOPS magic---don't use this function!")
-#define FUNC_NAME s_scm_sys_tag_body
-{
-  return scm_cons (SCM_IM_LAMBDA, body);
-}
-#undef FUNC_NAME
-
 /******************************************************************************
  *
  * S l o t   a c c e s s
