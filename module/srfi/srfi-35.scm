@@ -78,15 +78,15 @@
 
 (define (condition-type-id ct)
   (and (condition-type? ct)
-       (struct-ref ct 3)))
+       (struct-ref ct (+ vtable-offset-user 0))))
 
 (define (condition-type-parent ct)
   (and (condition-type? ct)
-       (struct-ref ct 4)))
+       (struct-ref ct (+ vtable-offset-user 1))))
 
 (define (condition-type-all-fields ct)
   (and (condition-type? ct)
-       (struct-ref ct 5)))
+       (struct-ref ct (+ vtable-offset-user 2))))
 
 
 (define (struct-layout-for-condition field-names)
