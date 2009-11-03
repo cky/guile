@@ -198,7 +198,7 @@
                                (source:line s) (source:column s))))
               (number->string (object-address prog) 16))
           (let ((arities (program-arities prog)))
-            (if (null? arities)
+            (if (or (not arities) (null? arities))
                 ""
                 (string-append
                  " " (string-join (map (lambda (a)
