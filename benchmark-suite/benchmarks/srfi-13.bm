@@ -122,7 +122,7 @@ Italiam, fato profugus, Laviniaque venit")
               (string-ref long-string k)
               (loop (+ k 1))))))
 
-    (benchmark "copy" 1100
+    (benchmark "copy" 20000
       (string-copy short-string)
       (string-copy medium-string)
       (string-copy long-string)
@@ -130,7 +130,7 @@ Italiam, fato profugus, Laviniaque venit")
       (substring/copy medium-string 10 20)
       (substring/copy long-string 100 200))
 
-    (benchmark "pad" 6800
+    (benchmark "pad" 34000
       (string-pad short-string 100)
       (string-pad medium-string 100)
       (string-pad long-string 100))
