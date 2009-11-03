@@ -377,8 +377,7 @@
 
 #define SCM_VALIDATE_VTABLE(pos, v) \
   do { \
-    SCM_ASSERT (!SCM_IMP (v) && scm_is_true (scm_struct_vtable_p (v)), \
-                v, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_true (scm_struct_vtable_p (v)), v, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_VECTOR_LEN(pos, v, len) \
