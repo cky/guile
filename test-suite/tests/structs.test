@@ -1,7 +1,7 @@
 ;;;; structs.test --- Test suite for Guile's structures.   -*- Scheme -*-
 ;;;; Ludovic Courtès <ludovic.courtes@laas.fr>, 2006-06-12.
 ;;;;
-;;;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -86,7 +86,7 @@
 (with-test-prefix "equal?"
 
   (pass-if "simple structs"
-     (let* ((vtable (make-vtable-vtable "pr" 0))
+     (let* ((vtable (make-vtable "pr"))
             (s1     (make-struct vtable 0 "hello"))
             (s2     (make-struct vtable 0 "hello")))
        (equal? s1 s2)))
