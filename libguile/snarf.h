@@ -101,14 +101,15 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 /* Static subr allocation.  */
 #define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
 SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
-SCM_SNARF_HERE(								\
+SCM_SNARF_HERE(							\
   static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
+  SCM_API SCM FNAME ARGLIST;						\
   SCM_IMMUTABLE_SUBR (scm_i_paste (FNAME, __subr),			\
 		      scm_i_paste (FNAME, __name),			\
 		      REQ, OPT, VAR, &FNAME);				\
   SCM FNAME ARGLIST							\
 )									\
-SCM_SNARF_INIT(								\
+SCM_SNARF_INIT(							\
   /* Initialize the procedure name (an interned symbol).  */		\
   scm_i_paste (FNAME, __subr_meta_info)[0] = scm_i_paste (FNAME, __name); \
 									\
