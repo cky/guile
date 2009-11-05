@@ -165,10 +165,14 @@ typedef struct scm_t_method {
 
 #define SCM_GENERIC_METHOD_CACHE(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_cache]))
 #define SCM_SET_GENERIC_METHOD_CACHE(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_cache] = SCM_UNPACK (C))
-#define SCM_GENERIC_SETTER(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_setter_cache]))
-#define SCM_SET_GENERIC_SETTER(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_setter_cache] = SCM_UNPACK (C))
 #define SCM_MCACHE_N_SPECIALIZED(C) SCM_CADDR (C)
 #define SCM_SET_MCACHE_N_SPECIALIZED(C, X) SCM_SETCAR (SCM_CDDR (C), X)
+
+#define SCM_SET_GENERIC_DISPATCH_PROCEDURE(G,C) (SCM_STRUCT_SLOT_SET (G, scm_si_dispatch_procedure, (C)))
+#define SCM_CLEAR_GENERIC_EFFECTIVE_METHODS(G) (SCM_STRUCT_SLOT_SET (G, scm_si_effective_methods, SCM_EOL));
+
+#define SCM_GENERIC_SETTER(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_setter]))
+#define SCM_SET_GENERIC_SETTER(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_setter] = SCM_UNPACK (C))
 
 #define SCM_INITIAL_MCACHE_SIZE	  1
 
@@ -177,11 +181,9 @@ typedef struct scm_t_method {
 #define scm_si_cache_mutex	 2
 #define scm_si_extended_by	 3
 #define scm_si_generic_cache	 4
-#define scm_si_applicable_methods 5
-#define scm_si_effective_method 6
-#define scm_si_generic_setter_cache 7
-#define scm_si_applicable_setter_methods 8
-#define scm_si_effective_setter_method 9
+#define scm_si_dispatch_procedure 5
+#define scm_si_effective_methods 6
+#define scm_si_generic_setter 7
 
 #define scm_si_generic_function	 0  /* offset of gf    slot in a <method> */
 #define scm_si_specializers	 1  /* offset of spec. slot in a <method> */

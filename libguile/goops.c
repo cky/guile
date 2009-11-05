@@ -1904,6 +1904,8 @@ clear_method_cache (SCM gf)
 {
   SCM cache = scm_make_method_cache (gf);
   SCM_SET_GENERIC_METHOD_CACHE (gf, cache);
+  SCM_SET_GENERIC_DISPATCH_PROCEDURE (gf, SCM_BOOL_F);
+  SCM_CLEAR_GENERIC_EFFECTIVE_METHODS (gf);
 }
 
 SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0, 0,
@@ -2575,12 +2577,10 @@ create_standard_classes (void)
 					 k_init_value,
 					 SCM_EOL),
                              scm_from_locale_symbol ("%cache"),
-                             scm_from_locale_symbol ("applicable-methods"),
-                             scm_from_locale_symbol ("effective-method"),
+                             scm_from_locale_symbol ("dispatch-procedure"),
+                             scm_from_locale_symbol ("effective-methods"),
                              SCM_UNDEFINED);
-  SCM setter_slots = scm_list_3 (scm_from_locale_symbol ("%setter-cache"),
-                                 scm_from_locale_symbol ("applicable-setter-methods"),
-                                 scm_from_locale_symbol ("effective-setter-method"));
+  SCM setter_slots = scm_list_1 (sym_setter);
   SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("extends"),
 					  k_init_value,
 					  SCM_EOL));
