@@ -2594,8 +2594,12 @@ create_standard_classes (void)
 					 k_init_value,
 					 SCM_EOL),
                              scm_from_locale_symbol ("%cache"),
+                             scm_from_locale_symbol ("applicable-methods"),
+                             scm_from_locale_symbol ("effective-method"),
                              SCM_UNDEFINED);
-  SCM setter_slots = scm_list_1 (scm_from_locale_symbol ("%setter-cache"));
+  SCM setter_slots = scm_list_3 (scm_from_locale_symbol ("%setter-cache"),
+                                 scm_from_locale_symbol ("applicable-setter-methods"),
+                                 scm_from_locale_symbol ("effective-setter-method"));
   SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("extends"),
 					  k_init_value,
 					  SCM_EOL));
