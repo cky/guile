@@ -190,8 +190,7 @@
                                             (length tail-call-args))
                                          (not (lambda-case-opt c))
                                          (not (lambda-case-kw c))
-                                         (not (lambda-case-rest c))
-                                         (not (lambda-case-predicate c)))
+                                         (not (lambda-case-rest c)))
                                     (lp (lambda-case-else c)))))))))
            (hashq-set! labels gensym #f))
        (list gensym))
@@ -226,7 +225,7 @@
          (hashq-set! free-vars x free)
          free))
       
-      ((<lambda-case> opt kw inits vars predicate body else)
+      ((<lambda-case> opt kw inits vars body else)
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
        (lset-union
@@ -234,7 +233,6 @@
         (lset-difference eq?
                          (lset-union eq?
                                      (apply lset-union eq? (map step inits))
-                                     (if predicate (step predicate) '())
                                      (step-tail body))
                          vars)
         (if else (step-tail else) '())))
@@ -381,13 +379,12 @@
          (hashq-set! allocation x (cons labels free-addresses)))
        n)
 
-      ((<lambda-case> opt kw inits vars predicate body else)
+      ((<lambda-case> opt kw inits vars body else)
        (max
         (let lp ((vars vars) (n n))
           (if (null? vars)
               (let ((nlocs (apply
                             max
-                            (if predicate (allocate! predicate body n) n)
                             (allocate! body proc n)
                             ;; inits not logically at the end, but they
                             ;; are the list...

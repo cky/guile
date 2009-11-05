@@ -110,7 +110,6 @@
                  (apply (lambda vars b0 b1 ...)
                         (or (parse-lambda-case '(0 n n n+1 #f '())
                                                (list t ...)
-                                               #f
                                                rest-arg)
                             (error "sth" rest-arg)))))))))))
 
@@ -127,7 +126,6 @@
              #'(apply (lambda vars b0 b1 ...)
                       (or (parse-lambda-case '(0 n n n+1 #f '())
                                              (list (lambda vars i) ...)
-                                             #f
                                              rest-arg)
                           (error "sth" rest-arg))))))))))
 
@@ -166,7 +164,6 @@
                  (apply (lambda vars b0 b1 ...)
                         (or (parse-lambda-case '(0 0 #f n aok ((kw . idx) ...))
                                                (list t ...)
-                                               #f
                                                rest-arg)
                             (error "sth" rest-arg))))))))
       ((_ rest-arg aok (binding ...) b0 b1 ...)
@@ -188,7 +185,6 @@
              #'(apply (lambda vars b0 b1 ...)
                       (or (parse-lambda-case '(0 0 #f n aok ((kw . idx) ...))
                                              (list (lambda vars i) ...)
-                                             #f
                                              rest-arg)
                           (error "sth" rest-arg)))))))
       ((_ rest-arg aok (binding ...) b0 b1 ...)
@@ -285,7 +281,7 @@
 
 ;;; Support for optional & keyword args with the interpreter.
 (define *uninitialized* (list 'uninitialized))
-(define (parse-lambda-case spec inits predicate args)
+(define (parse-lambda-case spec inits args)
   (pmatch spec
     ((,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
      (define (req args prev tail n)
@@ -325,12 +321,12 @@
         ((pair? args-tail)
          #f) ;; fail
         (else
-         (pred slots))))
+         slots)))
      (define (key slots slots-tail args-tail inits)
        (cond
         ((null? args-tail)
          (if (null? inits)
-             (pred slots)
+             slots
              (begin
                (if (eq? (car slots-tail) *uninitialized*)
                    (set-car! slots-tail (apply (car inits) slots)))
@@ -351,13 +347,6 @@
               allow-other-keys?)
          (key slots slots-tail (cddr args-tail) inits))
         (else (error "unrecognized keyword" args-tail))))
-     (define (pred slots)
-       (cond
-        (predicate
-         (if (apply predicate slots)
-             slots
-             #f))
-        (else slots)))
      (let ((args (list-copy args)))
        (req args #f args nreq)))
     (else (error "unexpected spec" spec))))

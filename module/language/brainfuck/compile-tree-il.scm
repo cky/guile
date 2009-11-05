@@ -170,7 +170,7 @@
            (emit `(letrec (iterate) (,iterate)
                           ((lambda ()
                              (lambda-case
-                              ((() #f #f #f () () #f)
+                              ((() #f #f #f () ())
                                (if (apply (primitive =)
                                           (apply (primitive vector-ref)
                                                  (lexical tape) (lexical pointer))

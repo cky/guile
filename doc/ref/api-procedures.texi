@@ -594,25 +594,6 @@ A @code{case-lambda*} clause matches if the arguments fill the
 required arguments, but are not too many for the optional and/or rest
 arguments.
 
-@code{case-lambda*} is particularly useful in combination with an
-obscure @code{lambda*} feature, @code{#:predicate}. @code{lambda*}
-argument lists may contain a @code{#:predicate @var{expr}} clause at
-the end -- before the rest argument, if any. This expression is
-evaluated in the context of all of the arguments, and if false, causes
-the @code{case-lambda*} expression not to match. This can be used to
-make a simple form of type dispatch:
-
-@lisp
-(define type-of
-  (case-lambda*
-    ((a #:predicate (symbol? a)) 'symbol)
-    ((a #:predicate (string? a)) 'string)
-    ((a) 'unknown)))
-(type-of 'foo) @result{} symbol
-(type-of "foo") @result{} string
-(type-of '(foo)) @result{} unknown
-@end lisp
-
 Keyword arguments are possible with @code{case-lambda*}, but they do
 not contribute to the ``matching'' behavior. That is to say,
 @code{case-lambda*} matches only on required, optional, and rest

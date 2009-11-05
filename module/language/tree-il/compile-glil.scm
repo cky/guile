@@ -60,7 +60,7 @@
     (analyze-tree analyses x e))
 
   (let* ((x (make-lambda (tree-il-src x) '()
-                         (make-lambda-case #f '() #f #f #f '() '() #f x #f)))
+                         (make-lambda-case #f '() #f #f #f '() '() x #f)))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
 
@@ -603,14 +603,13 @@
                   (emit-code #f (make-glil-call 'make-closure 2)))))))
        (maybe-emit-return))
       
-      ((<lambda-case> src req opt rest kw inits vars predicate else body)
+      ((<lambda-case> src req opt rest kw inits vars else body)
        ;; o/~ feature on top of feature o/~
        ;; req := (name ...)
        ;; opt := (name ...) | #f
        ;; rest := name | #f
        ;; kw: (allow-other-keys? (keyword name var) ...) | #f
        ;; vars: (sym ...)
-       ;; predicate: tree-il in context of vars
        ;; init: tree-il in context of vars
        ;; vars map to named arguments in the following order:
        ;;  required, optional (positional), rest, keyword.
@@ -691,15 +690,6 @@
                (#t (error "what" inits))))))
          ;; post-prelude case label for label calls
          (emit-label (car (hashq-ref allocation x)))
-         (if predicate
-             (begin
-               (comp-push predicate)
-               (if else-label
-                   ;; fixme: debox if necessary
-                   (emit-branch src 'br-if-not else-label)
-                   (comp-push (make-application
-                               src (make-primitive-ref #f 'error)
-                               (list (make-const #f "precondition not met")))))))
          (comp-tail body)
          (if (not (null? vars))
              (emit-code #f (make-glil-unbind)))
@@ -828,8 +818,8 @@
 
       ((<let-values> src exp body)
        (record-case body
-         ((<lambda-case> req opt kw rest vars predicate body else)
-          (if (or opt kw predicate else)
+         ((<lambda-case> req opt kw rest vars body else)
+          (if (or opt kw else)
               (error "unexpected lambda-case in let-values" x))
           (let ((MV (make-label)))
             (comp-vals exp MV)

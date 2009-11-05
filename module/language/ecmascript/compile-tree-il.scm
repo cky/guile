@@ -337,14 +337,14 @@
                         formals)))
          `(lambda ()
             (lambda-case
-             ((() ,formals #f #f ,(map (lambda (x) (@implv *undefined*)) formals) ,syms #f)
+             ((() ,formals #f #f ,(map (lambda (x) (@implv *undefined*)) formals) ,syms)
               ,(comp-body e body formals syms))))))
       ((call/this ,obj ,prop . ,args)
        (@impl call/this*
               obj
               (-> (lambda '() 
                     `(lambda-case
-                      ((() #f #f #f () () #f)
+                      ((() #f #f #f () ())
                        (apply ,(@impl pget obj prop) ,@args)))))))
       ((call (pref ,obj ,prop) ,args)
        (comp `(call/this ,(comp obj e)
@@ -447,13 +447,13 @@
            (-> (letrec '(%loop %continue) (list %loop %continue)
                        (list (-> (lambda '()
                                    (-> (lambda-case
-                                        `((() #f #f #f () () #f)
+                                        `((() #f #f #f () ())
                                           ,(-> (begin
                                                  (comp statement e)
                                                  (-> (apply (-> (lexical '%continue %continue)))))))))))
                              (-> (lambda '()
                                    (-> (lambda-case
-                                        `((() #f #f #f () () #f)
+                                        `((() #f #f #f () ())
                                           ,(-> (if (@impl ->boolean (comp test e))
                                                    (-> (apply (-> (lexical '%loop %loop))))
                                                    (@implv *undefined*)))))))))
@@ -464,7 +464,7 @@
            (-> (letrec '(%continue) (list %continue)
                        (list (-> (lambda '()
                                    (-> (lambda-case
-                                        `((() #f #f #f () () #f)
+                                        `((() #f #f #f () ())
                                           ,(-> (if (@impl ->boolean (comp test e))
                                                    (-> (begin (comp statement e)
                                                               (-> (apply (-> (lexical '%continue %continue))))))
@@ -477,7 +477,7 @@
            (-> (letrec '(%continue) (list %continue)
                        (list (-> (lambda '()
                                    (-> (lambda-case
-                                        `((() #f #f #f () () #f)
+                                        `((() #f #f #f () ())
                                           ,(-> (if (if test
                                                        (@impl ->boolean (comp test e))
                                                        (comp 'true e))
@@ -496,7 +496,7 @@
                        (list (@impl make-enumerator (comp object e))
                              (-> (lambda '()
                                    (-> (lambda-case
-                                        `((() #f #f #f () () #f)
+                                        `((() #f #f #f () ())
                                           (-> (if (@impl ->boolean
                                                          (@impl pget
                                                                 (-> (lexical '%enum %enum))
