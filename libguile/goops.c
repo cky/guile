@@ -1904,7 +1904,6 @@ clear_method_cache (SCM gf)
 {
   SCM cache = scm_make_method_cache (gf);
   SCM_SET_GENERIC_METHOD_CACHE (gf, cache);
-  SCM_SET_SLOT (gf, scm_si_used_by, SCM_BOOL_F);
 }
 
 SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0, 0,
@@ -1912,23 +1911,16 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
 	    "")
 #define FUNC_NAME s_scm_sys_invalidate_method_cache_x
 {
-  SCM used_by;
+  SCM methods, n;
+  
   SCM_ASSERT (SCM_PUREGENERICP (gf), gf, SCM_ARG1, FUNC_NAME);
-  used_by = SCM_SLOT (gf, scm_si_used_by);
-  if (scm_is_true (used_by))
-    {
-      SCM methods = SCM_SLOT (gf, scm_si_methods);
-      for (; scm_is_pair (used_by); used_by = SCM_CDR (used_by))
-	scm_sys_invalidate_method_cache_x (SCM_CAR (used_by));
-      clear_method_cache (gf);
-      for (; scm_is_pair (methods); methods = SCM_CDR (methods))
-	SCM_SET_SLOT (SCM_CAR (methods), scm_si_code_table, SCM_EOL);
-    }
-  {
-    SCM n = SCM_SLOT (gf, scm_si_n_specialized);
-    /* The sign of n is a flag indicating rest args. */
-    SCM_SET_MCACHE_N_SPECIALIZED (SCM_GENERIC_METHOD_CACHE (gf), n);
-  }
+  methods = SCM_SLOT (gf, scm_si_methods);
+  clear_method_cache (gf);
+  for (; scm_is_pair (methods); methods = SCM_CDR (methods))
+    SCM_SET_SLOT (SCM_CAR (methods), scm_si_code_table, SCM_EOL);
+  n = SCM_SLOT (gf, scm_si_n_specialized);
+  /* The sign of n is a flag indicating rest args. */
+  SCM_SET_MCACHE_N_SPECIALIZED (SCM_GENERIC_METHOD_CACHE (gf), n);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2363,9 +2355,8 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
   if (class == scm_class_generic || class == scm_class_accessor)
     {
       z = scm_make_struct (class, SCM_INUM0,
-			   scm_list_5 (SCM_EOL,
+			   scm_list_4 (SCM_EOL,
 				       SCM_INUM0,
-				       SCM_BOOL_F,
 				       scm_make_mutex (),
 				       SCM_EOL));
       scm_set_procedure_property_x (z, scm_sym_name,
@@ -2584,9 +2575,6 @@ create_standard_classes (void)
 			     scm_list_3 (scm_from_locale_symbol ("n-specialized"),
 					 k_init_value,
 					 SCM_INUM0),
-			     scm_list_3 (scm_from_locale_symbol ("used-by"),
-					 k_init_value,
-					 SCM_BOOL_F),
 			     scm_list_3 (scm_from_locale_symbol ("cache-mutex"),
 					 k_init_thunk,
                                          mutex_closure),

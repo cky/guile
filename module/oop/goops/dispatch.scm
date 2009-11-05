@@ -212,8 +212,6 @@
   (no-applicable-method (car args) (cadr args)))
 
 (define (memoize-method! gf args exp)
-  (if (not (slot-ref gf 'used-by))
-      (slot-set! gf 'used-by '()))
   (let ((applicable ((if (eq? gf compute-applicable-methods)
 			 %compute-applicable-methods
 			 compute-applicable-methods)
