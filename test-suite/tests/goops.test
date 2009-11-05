@@ -20,6 +20,9 @@
   #:use-module (test-suite lib)
   #:autoload   (srfi srfi-1)    (unfold))
 
+(define exception:no-applicable-method
+  '(goops-error . "^No applicable method"))
+
 (pass-if "GOOPS loads"
 	 (false-if-exception
 	  (begin (resolve-module '(oop goops))
@@ -499,3 +502,23 @@
 			 (= (x (o2 o)) 3)
 			 (= (y (o2 o)) 5)))
 		 (current-module))))
+
+(with-test-prefix "no-applicable-method"
+  (pass-if-exception "calling generic, no methods"
+                     exception:no-applicable-method
+    (eval '(begin
+	     (define-class <qux> ())
+             (define-generic quxy)
+	     (quxy 1))
+	  (current-module)))
+  (pass-if "calling generic, one method, applicable"
+    (eval '(begin
+	     (define-method (quxy (q <qux>))
+               #t)
+	     (define q (make <qux>))
+	     (quxy q))
+	  (current-module)))
+  (pass-if-exception "calling generic, one method, not applicable"
+                     exception:no-applicable-method
+    (eval '(quxy 1)
+	  (current-module))))

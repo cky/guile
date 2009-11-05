@@ -207,10 +207,6 @@
 ;;; Memoization
 ;;;
 
-;; Backward compatibility
-(define (lookup-create-cmethod gf args)
-  (no-applicable-method (car args) (cadr args)))
-
 (define (memoize-method! gf args exp)
   (let ((applicable ((if (eq? gf compute-applicable-methods)
 			 %compute-applicable-methods
@@ -237,13 +233,8 @@
 						 new args applicable)))))
 	     (set-cdr! (cdr exp) (cddr new))
 	     res))
-	  ((null? args)
-	   (lookup-create-cmethod no-applicable-method (list gf '())))
 	  (else
-	   ;; Mutate arglist to fit no-applicable-method
-	   (set-cdr! args (list (cons (car args) (cdr args))))
-	   (set-car! args gf)
-	   (lookup-create-cmethod no-applicable-method args)))))
+	   (no-applicable-method gf args)))))
 
 (set-procedure-property! memoize-method! 'system-procedure #t)
 
