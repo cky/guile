@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -29,32 +29,6 @@
   )
 
 ;;;
-;;; Method entries
-;;;
-
-(define code-table-lookup
-  (letrec ((check-entry (lambda (entry types)
-                          (cond
-                           ((not (pair? entry)) (and (null? types) entry))
-                           ((null? types) #f)
-                           (else
-                            (and (eq? (car entry) (car types))
-                                 (check-entry (cdr entry) (cdr types))))))))
-    (lambda (code-table types)
-      (cond ((null? code-table) #f)
-	    ((check-entry (car code-table) types))
-	    (else (code-table-lookup (cdr code-table) types))))))
-
-(define (compute-cmethod methods types)
-  (or (code-table-lookup (slot-ref (car methods) 'code-table) types)
-      (let* ((method (car methods))
-             (cmethod (compile-method methods types))
-	     (entry (append types cmethod)))
-	(slot-set! method 'code-table
-		   (cons entry (slot-ref method 'code-table)))
-	cmethod)))
-
-;;;
 ;;; Compiling next methods into method bodies
 ;;;
 
@@ -70,7 +44,7 @@
 ;;; I think this whole generic application mess would benefit from a
 ;;; strict MOP.
 
-(define (compile-method methods types)
+(define (compute-cmethod methods types)
   (let ((make-procedure (slot-ref (car methods) 'make-procedure)))
     (if make-procedure
         (make-procedure

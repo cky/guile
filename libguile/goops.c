@@ -1911,16 +1911,11 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
 	    "")
 #define FUNC_NAME s_scm_sys_invalidate_method_cache_x
 {
-  SCM methods, n;
-  
   SCM_ASSERT (SCM_PUREGENERICP (gf), gf, SCM_ARG1, FUNC_NAME);
-  methods = SCM_SLOT (gf, scm_si_methods);
   clear_method_cache (gf);
-  for (; scm_is_pair (methods); methods = SCM_CDR (methods))
-    SCM_SET_SLOT (SCM_CAR (methods), scm_si_code_table, SCM_EOL);
-  n = SCM_SLOT (gf, scm_si_n_specialized);
-  /* The sign of n is a flag indicating rest args. */
-  SCM_SET_MCACHE_N_SPECIALIZED (SCM_GENERIC_METHOD_CACHE (gf), n);
+  /* The sign of n-specialized is a flag indicating rest args. */
+  SCM_SET_MCACHE_N_SPECIALIZED (SCM_GENERIC_METHOD_CACHE (gf),
+                                SCM_SLOT (gf, scm_si_n_specialized));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2397,7 +2392,6 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 			       len - 1,
 			       SCM_BOOL_F,
 			       FUNC_NAME));
-	  SCM_SET_SLOT (z, scm_si_code_table, SCM_EOL);
 	  SCM_SET_SLOT (z, scm_si_formals,
 	    scm_i_get_keyword (k_formals,
 			       args,
@@ -2558,7 +2552,6 @@ create_standard_classes (void)
   SCM method_slots = scm_list_n (scm_from_locale_symbol ("generic-function"),
 				 scm_from_locale_symbol ("specializers"),
 				 sym_procedure,
-				 scm_from_locale_symbol ("code-table"),
 				 scm_from_locale_symbol ("formals"),
 				 scm_from_locale_symbol ("body"),
 				 scm_from_locale_symbol ("make-procedure"),

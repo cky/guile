@@ -1517,7 +1517,6 @@
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
   (slot-set! method 'procedure
 	     (get-keyword #:procedure initargs #f))
-  (slot-set! method 'code-table '())
   (slot-set! method 'formals (get-keyword #:formals initargs '()))
   (slot-set! method 'body (get-keyword #:body initargs '()))
   (slot-set! method 'make-procedure (get-keyword #:make-procedure initargs #f)))
