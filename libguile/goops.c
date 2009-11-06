@@ -1899,12 +1899,23 @@ scm_make_method_cache (SCM gf)
 		     gf);
 }
 
+SCM_SYMBOL (sym_delayed_compile, "delayed-compile");
+static SCM
+make_dispatch_procedure (SCM gf)
+{
+  static SCM var = SCM_BOOL_F;
+  if (var == SCM_BOOL_F)
+    var = scm_module_variable (scm_c_resolve_module ("oop goops dispatch"),
+                               sym_delayed_compile);
+  return scm_call_1 (SCM_VARIABLE_REF (var), gf);
+}
+
 static void
 clear_method_cache (SCM gf)
 {
   SCM cache = scm_make_method_cache (gf);
   SCM_SET_GENERIC_METHOD_CACHE (gf, cache);
-  SCM_SET_GENERIC_DISPATCH_PROCEDURE (gf, SCM_BOOL_F);
+  SCM_SET_GENERIC_DISPATCH_PROCEDURE (gf, make_dispatch_procedure (gf));
   SCM_CLEAR_GENERIC_EFFECTIVE_METHODS (gf);
 }
 
