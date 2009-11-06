@@ -82,6 +82,12 @@
 (eval-when (eval load compile)
   (%init-goops-builtins))
 
+(eval-when (eval load compile)
+  (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
+  (add-interesting-primitive! 'class-of)
+  (add-interesting-primitive! '@slot-ref)
+  (add-interesting-primitive! '@slot-set!))
+
 ;; Then load the rest of GOOPS
 (use-modules (oop goops util)
 	     (oop goops dispatch)
@@ -1124,11 +1130,6 @@
 
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
-
-(eval-when (compile)
-  (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
-  (add-interesting-primitive! '@slot-ref)
-  (add-interesting-primitive! '@slot-set!))
 
 (eval-when (eval load compile)
   (define num-standard-pre-cache 20))

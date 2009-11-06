@@ -103,6 +103,7 @@
    ((list? . 1) . list?)
    (list . list)
    (vector . vector)
+   ((class-of . 1) . class-of)
    ((@slot-ref . 2) . slot-ref)
    ((@slot-set! . 3) . slot-set)
    ((vector-ref . 2) . vector-ref)

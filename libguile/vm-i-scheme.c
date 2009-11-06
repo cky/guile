@@ -285,6 +285,12 @@ VM_DEFINE_FUNCTION (126, mod, "mod", 2)
 /*
  * GOOPS support
  */
+VM_DEFINE_FUNCTION (169, class_of, "class-of", 1)
+{
+  ARGS1 (obj);
+  RETURN (SCM_INSTANCEP (obj) ? SCM_CLASS_OF (obj) : scm_class_of (obj));
+}
+
 VM_DEFINE_FUNCTION (127, slot_ref, "slot-ref", 2)
 {
   size_t slot;
