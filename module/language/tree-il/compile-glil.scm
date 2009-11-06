@@ -28,6 +28,7 @@
   #:use-module (language tree-il)
   #:use-module (language tree-il optimize)
   #:use-module (language tree-il analyze)
+  #:use-module ((srfi srfi-1) #:select (filter-map))
   #:export (compile-glil))
 
 ;; allocation:
@@ -43,8 +44,8 @@
 (define *comp-module* (make-fluid))
 
 (define %warning-passes
-  `((unused-variable     . ,report-unused-variables)
-    (unbound-variable    . ,report-possibly-unbound-variables)))
+  `((unused-variable     . ,unused-variable-analysis)
+    (unbound-variable    . ,unbound-variable-analysis)))
 
 (define (compile-glil x e opts)
   (define warnings
@@ -52,11 +53,10 @@
         '()))
 
   ;; Go through the warning passes.
-  (for-each (lambda (kind)
-                (let ((warn (assoc-ref %warning-passes kind)))
-                  (and (procedure? warn)
-                       (warn x e))))
-            warnings)
+  (let ((analyses (filter-map (lambda (kind)
+                                (assoc-ref %warning-passes kind))
+                              warnings)))
+    (analyze-tree analyses x e))
 
   (let* ((x (make-lambda (tree-il-src x) '()
                          (make-lambda-case #f '() #f #f #f '() '() #f x #f)))
