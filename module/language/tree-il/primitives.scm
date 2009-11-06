@@ -276,8 +276,8 @@
 (define-primitive-expander acons (x y z)
   (cons (cons x y) z))
 
-(define-primitive-expander apply (f . args)
-  (@apply f . args))
+(define-primitive-expander apply (f a0 . args)
+  (@apply f a0 . args))
 
 (define-primitive-expander call-with-values (producer consumer)
   (@call-with-values producer consumer))
