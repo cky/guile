@@ -487,7 +487,7 @@
                            (emit-branch #f 'br RA)
                            (emit-label POST)))))))))
 
-      ((<conditional> src test then else)
+      ((<conditional> src test then (alternate else))
        ;;     TEST
        ;;     (br-if-not L1)
        ;;     THEN
@@ -495,15 +495,68 @@
        ;; L1: ELSE
        ;; L2:
        (let ((L1 (make-label)) (L2 (make-label)))
-         (comp-push test)
-         (emit-branch src 'br-if-not L1)
+         ;; need a pattern matcher
+         (record-case test
+           ((<application> proc args)
+            (record-case proc
+              ((<primitive-ref> name)
+               (let ((len (length args)))
+                 (cond
+
+                  ((and (eq? name 'eq?) (= len 2))
+                   (comp-push (car args))
+                   (comp-push (cadr args))
+                   (emit-branch src 'br-if-not-eq L1))
+
+                  ((and (eq? name 'null?) (= len 1))
+                   (comp-push (car args))
+                   (emit-branch src 'br-if-not-null L1))
+
+                  ((and (eq? name 'not) (= len 1))
+                   (let ((app (car args)))
+                     (record-case app
+                       ((<application> proc args)
+                        (let ((len (length args)))
+                          (record-case proc
+                            ((<primitive-ref> name)
+                             (cond
+
+                              ((and (eq? name 'eq?) (= len 2))
+                               (comp-push (car args))
+                               (comp-push (cadr args))
+                               (emit-branch src 'br-if-eq L1))
+                            
+                              ((and (eq? name 'null?) (= len 1))
+                               (comp-push (car args))
+                               (emit-branch src 'br-if-null L1))
+
+                              (else
+                               (comp-push app)
+                               (emit-branch src 'br-if L1))))
+                            (else
+                             (comp-push app)
+                             (emit-branch src 'br-if L1)))))
+                       (else
+                        (comp-push app)
+                        (emit-branch src 'br-if L1)))))
+                  
+                  (else
+                   (comp-push test)
+                   (emit-branch src 'br-if-not L1)))))
+              (else
+               (comp-push test)
+               (emit-branch src 'br-if-not L1))))
+           (else
+            (comp-push test)
+            (emit-branch src 'br-if-not L1)))
+
          (comp-tail then)
          ;; if there is an RA, comp-tail will cause a jump to it -- just
          ;; have to clean up here if there is no RA.
          (if (and (not RA) (not (eq? context 'tail)))
              (emit-branch #f 'br L2))
          (emit-label L1)
-         (comp-tail else)
+         (comp-tail alternate)
          (if (and (not RA) (not (eq? context 'tail)))
              (emit-label L2))))
       
