@@ -281,6 +281,49 @@ VM_DEFINE_FUNCTION (126, mod, "mod", 2)
   RETURN (scm_modulo (x, y));
 }
 
+VM_DEFINE_FUNCTION (170, ash, "ash", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    {
+      if (SCM_I_INUM (y) < 0)
+        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) >> -SCM_I_INUM (y)));
+      else if ((SCM_I_INUM (x) << SCM_I_INUM (y)) >> SCM_I_INUM (y)
+               == SCM_I_INUM (x))
+        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) << SCM_I_INUM (y)));
+      /* fall through */
+    }
+  SYNC_REGISTER ();
+  RETURN (scm_ash (x, y));
+}
+
+VM_DEFINE_FUNCTION (171, logand, "logand", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) & SCM_I_INUM (y)));
+  SYNC_REGISTER ();
+  RETURN (scm_logand (x, y));
+}
+
+VM_DEFINE_FUNCTION (172, logior, "logior", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) | SCM_I_INUM (y)));
+  SYNC_REGISTER ();
+  RETURN (scm_logior (x, y));
+}
+
+VM_DEFINE_FUNCTION (173, logxor, "logxor", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) ^ SCM_I_INUM (y)));
+  SYNC_REGISTER ();
+  RETURN (scm_logxor (x, y));
+}
+
 
 /*
  * GOOPS support

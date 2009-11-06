@@ -36,6 +36,7 @@
     eq? eqv? equal?
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo
+    ash logand logior logxor
     not
     pair? null? list? acons cons cons*
 
