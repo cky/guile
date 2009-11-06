@@ -104,7 +104,7 @@ real_eqv (double x, double y)
 }
 
 #include <stdio.h>
-SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
+SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
              (SCM x, SCM y),
 	    "Return @code{#t} if @var{x} and @var{y} are the same object, or\n"
 	    "for characters and numbers the same value.\n"
@@ -173,10 +173,7 @@ SCM_PRIMITIVE_GENERIC_1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 				      SCM_COMPLEX_IMAG (y)));
       }
     }
-  if (SCM_UNPACK (g_scm_eqv_p))
-    return scm_call_generic_2 (g_scm_eqv_p, x, y);
-  else
-    return SCM_BOOL_F;
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -294,13 +291,20 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);
     }
+  /* Check equality between structs of equal type (see cell-type test above). */
+  if (SCM_STRUCTP (x))
+    {
+      if (SCM_INSTANCEP (x))
+        goto generic_equal;
+      else
+        return scm_i_struct_equalp (x, y);
+    }
 
-  /* Check equality between structs of equal type (see cell-type test above)
-     that are not GOOPS instances.  GOOPS instances are treated via the
-     generic function.  */
-  if ((SCM_STRUCTP (x)) && (!SCM_INSTANCEP (x)))
-    return scm_i_struct_equalp (x, y);
-
+  /* Otherwise just return false. Dispatching to the generic is the wrong thing
+     here, as we can hit this case for any two objects of the same type that we
+     think are distinct, like different symbols. */
+  return SCM_BOOL_F;
+  
  generic_equal:
   if (SCM_UNPACK (g_scm_equal_p))
     return scm_call_generic_2 (g_scm_equal_p, x, y);

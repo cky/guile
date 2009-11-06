@@ -713,7 +713,6 @@
 ;;; Methods to compare objects
 ;;;
 
-(define-method (eqv? x y) #f)
 (define-method (equal? x y) (eqv? x y))
 
 ;;;

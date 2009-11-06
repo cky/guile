@@ -408,18 +408,6 @@
 		    (define o4 (make <c> #:x '(4) #:y '(3)))
 		    (not (eqv? o1 o2)))
 		 (current-module)))
-  (pass-if "eqv?"
-	   (eval '(begin
-		    (define-method (eqv? (a <c>) (b <c>))
-		      (equal? (x a) (x b)))
-		    (eqv? o1 o2))
-		 (current-module)))
-  (pass-if "not eqv?"
-	   (eval '(not (eqv? o2 o3))
-		 (current-module)))
-  (pass-if "transfer eqv? => equal?"
-	   (eval '(equal? o1 o2)
-		 (current-module)))
   (pass-if "equal?"
 	   (eval '(begin
 		    (define-method (equal? (a <c>) (b <c>))
