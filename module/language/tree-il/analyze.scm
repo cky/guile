@@ -27,7 +27,8 @@
   #:export (analyze-lexicals
             analyze-tree
             unused-variable-analysis
-            unbound-variable-analysis))
+            unbound-variable-analysis
+            arity-analysis))
 
 ;; Allocation is the process of assigning storage locations for lexical
 ;; variables. A lexical variable has a distinct "address", or storage
@@ -539,8 +540,7 @@
   (locs binding-info-locs)) ;; (LOCATION ...)
 
 (define unused-variable-analysis
-  ;; Report about unused variables in TREE.
-
+  ;; Report unused variables in the given tree.
   (make-tree-analysis
    (lambda (x info env)
      ;; X is a leaf: extend INFO's refs accordingly.
@@ -679,7 +679,7 @@
     (else #f)))
 
 (define unbound-variable-analysis
-  ;; Return possibly unbound variables in TREE.
+  ;; Report possibly unbound variables in the given tree.
   (make-tree-analysis
    (lambda (x info env)
      ;; X is a leaf: extend INFO's refs accordingly.
@@ -755,3 +755,213 @@
                (reverse (toplevel-info-refs toplevel))))
 
    (make-toplevel-info '() '() '())))
+
+
+;;;
+;;; Arity analysis.
+;;;
+
+;; <arity-info> records contains information about lexical definitions of
+;; procedures currently in scope, top-level procedure definitions that have
+;; been encountered, and calls to top-level procedures that have been
+;; encountered.
+(define-record-type <arity-info>
+  (make-arity-info toplevel-calls lexical-lambdas toplevel-lambdas)
+  arity-info?
+  (toplevel-calls   toplevel-procedure-calls) ;; ((NAME . APPLICATION) ...)
+  (lexical-lambdas  lexical-lambdas)          ;; ((GENSYM . DEFINITION) ...)
+  (toplevel-lambdas toplevel-lambdas))        ;; ((NAME . DEFINITION) ...)
+
+(define (validate-arity proc application lexical?)
+  ;; Validate the argument count of APPLICATION, a tree-il application of
+  ;; PROC, emitting a warning in case of argument count mismatch.
+
+  (define (arity proc)
+    ;; Return the arity of PROC, which can be either a tree-il or a
+    ;; procedure.
+    (define (len x)
+      (or (and (or (null? x) (pair? x))
+               (length x))
+          0))
+    (cond ;; FIXME: Handle programs to get accurate arity info?
+          ;; ((program? proc)
+          ;;  (let ((a (program-arities proc)))
+          ;;    (values (program-name proc)
+          ;;            (arity:nreq a) (arity:nopt a) (arity:rest? a)
+          ;;            (arity:kw a))))
+          ((procedure? proc)
+           (let ((arity (procedure-property proc 'arity)))
+             (values (procedure-name proc)
+                     (car arity) (cadr arity) (caddr arity) 0)))
+          (else
+           (let loop ((name #f)
+                      (proc proc))
+             (record-case proc
+               ((<lambda-case> req opt rest kw)
+                (values name (len req) (len opt) rest (len kw)))
+               ((<lambda> meta body)
+                (loop (assoc-ref meta 'name) body))
+               (else
+                (values #f #f #f #f #f)))))))
+
+  (let ((args (application-args application))
+        (src  (tree-il-src application)))
+    (call-with-values (lambda () (arity proc))
+      (lambda (name req opt rest kw)
+        ;; FIXME: handle keyword arguments
+        (if (and req opt)
+            (let ((count (length args)))
+              (if (or (< count req)
+                      (and (not rest)
+                           (> count (+ req opt))))
+                  (warning 'arity-mismatch src
+                           (or name
+                               (with-output-to-string
+                                 (lambda ()
+                                   (write proc))))
+                           (and lexical? (= 0 kw)))))
+            #t))))
+  #t)
+
+(define arity-analysis
+  ;; Report arity mismatches in the given tree.
+  (make-tree-analysis
+   (lambda (x info env)
+     ;; X is a leaf.
+     info)
+   (lambda (x info env)
+     ;; Down into X.
+     (define (extend lexical-name val info)
+       ;; If VAL is a lambda, add NAME to the lexical-lambdas of INFO.
+       (let ((toplevel-calls   (toplevel-procedure-calls info))
+             (lexical-lambdas  (lexical-lambdas info))
+             (toplevel-lambdas (toplevel-lambdas info)))
+         (record-case val
+           ((<lambda> body)
+            (make-arity-info toplevel-calls
+                             (alist-cons lexical-name val
+                                         lexical-lambdas)
+                             toplevel-lambdas))
+           ((<lexical-ref> gensym)
+            ;; lexical alias
+            (let ((val* (assq gensym lexical-lambdas)))
+              (if (pair? val*)
+                  (extend lexical-name (cdr val*) info)
+                  info)))
+           ((<toplevel-ref> name)
+            ;; top-level alias
+            (make-arity-info toplevel-calls
+                             (alist-cons lexical-name val
+                                         lexical-lambdas)
+                             toplevel-lambdas))
+           (else info))))
+
+     (let ((toplevel-calls   (toplevel-procedure-calls info))
+           (lexical-lambdas  (lexical-lambdas info))
+           (toplevel-lambdas (toplevel-lambdas info)))
+
+       (record-case x
+         ((<toplevel-define> name exp)
+          (record-case exp
+            ((<lambda> body)
+             (make-arity-info toplevel-calls
+                              lexical-lambdas
+                              (alist-cons name exp toplevel-lambdas)))
+            ((<toplevel-ref> name)
+             ;; alias for another toplevel
+             (let ((proc (assq name toplevel-lambdas)))
+               (make-arity-info toplevel-calls
+                                lexical-lambdas
+                                (alist-cons (toplevel-define-name x)
+                                            (if (pair? proc)
+                                                (cdr proc)
+                                                exp)
+                                            toplevel-lambdas))))
+            (else info)))
+         ((<let> vars vals)
+          (fold extend info vars vals))
+         ((<letrec> vars vals)
+          (fold extend info vars vals))
+         ((<fix> vars vals)
+          (fold extend info vars vals))
+
+         ((<application> proc args src)
+          (record-case proc
+            ((<lambda> body)
+             (validate-arity proc x #t)
+             info)
+            ((<toplevel-ref> name)
+             (make-arity-info (alist-cons name x toplevel-calls)
+                              lexical-lambdas
+                              toplevel-lambdas))
+            ((<lexical-ref> gensym)
+             (let ((proc (assq gensym lexical-lambdas)))
+               (if (pair? proc)
+                   (record-case (cdr proc)
+                     ((<toplevel-ref> name)
+                      ;; alias to toplevel
+                      (make-arity-info (alist-cons name x toplevel-calls)
+                                       lexical-lambdas
+                                       toplevel-lambdas))
+                     (else
+                      (validate-arity (cdr proc) x #t)
+                      info))
+
+                   ;; If GENSYM wasn't found, it may be because it's an
+                   ;; argument of the procedure being compiled.
+                   info)))
+            (else info)))
+         (else info))))
+
+   (lambda (x info env)
+     ;; Up from X.
+     (define (shrink name val info)
+       ;; Remove NAME from the lexical-lambdas of INFO.
+       (let ((toplevel-calls   (toplevel-procedure-calls info))
+             (lexical-lambdas  (lexical-lambdas info))
+             (toplevel-lambdas (toplevel-lambdas info)))
+         (make-arity-info toplevel-calls
+                          (alist-delete name lexical-lambdas eq?)
+                          toplevel-lambdas)))
+
+     (let ((toplevel-calls   (toplevel-procedure-calls info))
+           (lexical-lambdas  (lexical-lambdas info))
+           (toplevel-lambdas (toplevel-lambdas info)))
+       (record-case x
+         ((<let> vars vals)
+          (fold shrink info vars vals))
+         ((<letrec> vars vals)
+          (fold shrink info vars vals))
+         ((<fix> vars vals)
+          (fold shrink info vars vals))
+
+         (else info))))
+
+   (lambda (result env)
+     ;; Post-processing: check all top-level procedure calls that have been
+     ;; encountered.
+     (let ((toplevel-calls   (toplevel-procedure-calls result))
+           (toplevel-lambdas (toplevel-lambdas result)))
+       (for-each (lambda (name+application)
+                   (let* ((name        (car name+application))
+                          (application (cdr name+application))
+                          (proc
+                           (or (assoc-ref toplevel-lambdas name)
+                               (and (module? env)
+                                    (false-if-exception
+                                     (module-ref env name)))))
+                          (proc*
+                           ;; handle toplevel aliases
+                           (if (toplevel-ref? proc)
+                               (let ((name (toplevel-ref-name proc)))
+                                 (and (module? env)
+                                      (false-if-exception
+                                       (module-ref env name))))
+                               proc)))
+                     ;; (format #t "toplevel-call to ~A (~A) from ~A~%"
+                     ;;         name proc* application)
+                     (if (or (lambda? proc*) (procedure? proc*))
+                         (validate-arity proc* application (lambda? proc*)))))
+                 toplevel-calls)))
+
+   (make-arity-info '() '() '())))

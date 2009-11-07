@@ -26,9 +26,6 @@
   #:use-module (language glil)
   #:use-module (srfi srfi-13))
 
-(define read-and-compile
-  (@@ (system base compile) read-and-compile))
-
 ;; Of course, the GLIL that is emitted depends on the source info of the
 ;; input. Here we're not concerned about that, so we strip source
 ;; information from the incoming tree-il.
@@ -561,6 +558,10 @@
 (define %opts-w-unbound
   '(#:warnings (unbound-variable)))
 
+(define %opts-w-arity
+  '(#:warnings (arity-mismatch)))
+
+
 (with-test-prefix "warnings"
 
    (pass-if "unknown warning type"
@@ -686,4 +687,125 @@
                                 (define z (foo-bar (make <foo>)))")))
                       (read-and-compile in
                                         #:env m
-                                        #:opts %opts-w-unbound)))))))))
+                                        #:opts %opts-w-unbound))))))))
+
+   (with-test-prefix "arity mismatch"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(cons 'a 'b) #:opts %opts-w-arity)))))
+
+     (pass-if "direct application"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '((lambda (x y) (or x y)) 1 2 3 4 5)
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+     (pass-if "local"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (lambda (x y) (+ x y))))
+                                (f 2))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "global"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(cons 1 2 3 4)
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "alias to global"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f cons)) (f 1 2 3 4))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "alias to lexical to global"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f number?))
+                                (let ((g f))
+                                  (f 1 2 3 4)))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "alias to lexical"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (lambda (x y z) (+ x y z))))
+                                (let ((g f))
+                                  (g 1)))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "letrec"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(letrec ((odd?  (lambda (x) (even? (1- x))))
+                                       (even? (lambda (x)
+                                                (or (= 0 x)
+                                                    (odd?)))))
+                                (odd? 1))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "local toplevel-defines"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string "
+                                (define (g x) (f x))
+                                (define (f) 1)")))
+                      (read-and-compile in
+                                        #:opts %opts-w-arity
+                                        #:to 'assembly))))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "global toplevel alias"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string "
+                                (define f cons)
+                                (define (g) (f))")))
+                      (read-and-compile in
+                                        #:opts %opts-w-arity
+                                        #:to 'assembly))))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "local toplevel overrides global"
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string "
+                              (define (cons) 0)
+                              (define (foo x) (cons))")))
+                    (read-and-compile in
+                                      #:opts %opts-w-arity
+                                      #:to 'assembly))))))))

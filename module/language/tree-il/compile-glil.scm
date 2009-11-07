@@ -45,7 +45,8 @@
 
 (define %warning-passes
   `((unused-variable     . ,unused-variable-analysis)
-    (unbound-variable    . ,unbound-variable-analysis)))
+    (unbound-variable    . ,unbound-variable-analysis)
+    (arity-mismatch      . ,arity-analysis)))
 
 (define (compile-glil x e opts)
   (define warnings
