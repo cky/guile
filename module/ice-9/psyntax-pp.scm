@@ -628,8 +628,8 @@
                                                              #{a\ 483}#
                                                              #{b\ 484}#)
                                                       (eq? (syntax->datum
-                                                             #{a\ 483}#
-                                                             #:rest)))
+                                                             #{a\ 483}#)
+                                                           #:rest))
                                                     #{tmp\ 481}#)
                                              #f)
                                          (apply (lambda (#{x\ 485}#
@@ -639,9 +639,8 @@
                                                     #{b\ 487}#
                                                     #{req\ 475}#
                                                     #{opt\ 476}#
-                                                    #f
                                                     #{kw\ 477}#
-                                                    #{x\ 485}#))
+                                                    #f))
                                                 #{tmp\ 481}#)
                                          ((lambda (#{tmp\ 488}#)
                                             (if (if #{tmp\ 488}#
@@ -657,9 +656,8 @@
                                                          #{b\ 492}#
                                                          #{req\ 475}#
                                                          #{opt\ 476}#
-                                                         #f
                                                          #{kw\ 477}#
-                                                         #{x\ 491}#))
+                                                         #f))
                                                      #{tmp\ 488}#)
                                               ((lambda (#{else\ 493}#)
                                                  (syntax-violation
@@ -1250,7 +1248,8 @@
                                                                              #{opt\ 496}#
                                                                              (cons #t
                                                                                    (reverse
-                                                                                     #{rkey\ 497}#))))
+                                                                                     #{rkey\ 497}#))
+                                                                             #f))
                                                                          #{tmp\ 535}#)
                                                                   ((lambda (#{tmp\ 542}#)
                                                                      (if (if #{tmp\ 542}#
@@ -1272,7 +1271,8 @@
                                                                                   #{opt\ 496}#
                                                                                   (cons #t
                                                                                         (reverse
-                                                                                          #{rkey\ 497}#))))
+                                                                                          #{rkey\ 497}#))
+                                                                                  #f))
                                                                               #{tmp\ 542}#)
                                                                        ((lambda (#{tmp\ 547}#)
                                                                           (if (if #{tmp\ 547}#
