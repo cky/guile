@@ -1,6 +1,6 @@
 ;;; Guile object channel
 
-;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -159,7 +159,7 @@
 (define guile:eval eval)
 (define eval
   (if (= (car (procedure-property guile:eval 'arity)) 1)
-    (lambda (x e) (guile:eval x))
+    (lambda (x e) (guile:eval x e))
     guile:eval))
 
 (define object->string

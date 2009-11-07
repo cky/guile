@@ -270,7 +270,7 @@
 	   (display "(list->uniform-array " file)
 	   (display (array-rank o) file)
 	   (display " '() " file)
-	   (write-array "(list " o file env)))))
+	   (write-array "(list " o #f file env)))))
 
 ;;;
 ;;; Pairs

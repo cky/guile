@@ -1224,7 +1224,7 @@
    ((#\7) 7)
    ((#\8) 8)
    ((#\9) 9)
-   (else (priv:time-error 'bad-date-template-string
+   (else (priv:time-error 'priv:char->int 'bad-date-template-string
                           (list "Non-integer character" ch)))))
 
 ;; read an integer upto n characters long on port; upto -> #f is any length
