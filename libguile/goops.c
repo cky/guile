@@ -2273,10 +2273,9 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
   if (class == scm_class_generic || class == scm_class_accessor)
     {
       z = scm_make_struct (class, SCM_INUM0,
-                           scm_list_5 (SCM_BOOL_F,
+                           scm_list_4 (SCM_BOOL_F,
                                        SCM_EOL,
 				       SCM_INUM0,
-				       scm_make_mutex (),
 				       SCM_EOL));
       scm_set_procedure_property_x (z, scm_sym_name,
 				    scm_get_keyword (k_name,
@@ -2482,24 +2481,15 @@ create_standard_classes (void)
   SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("slot-definition"),
 					      k_init_keyword,
 					      k_slot_definition));
-  SCM mutex_slot = scm_list_1 (scm_from_locale_symbol ("make-mutex"));
-  SCM mutex_closure = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
-                                                SCM_EOL,
-                                                mutex_slot),
-                                    SCM_EOL);
-  SCM gf_slots = scm_list_n (scm_from_locale_symbol ("methods"),
+  SCM gf_slots = scm_list_5 (scm_from_locale_symbol ("methods"),
 			     scm_list_3 (scm_from_locale_symbol ("n-specialized"),
 					 k_init_value,
 					 SCM_INUM0),
-			     scm_list_3 (scm_from_locale_symbol ("cache-mutex"),
-					 k_init_thunk,
-                                         mutex_closure),
 			     scm_list_3 (scm_from_locale_symbol ("extended-by"),
 					 k_init_value,
 					 SCM_EOL),
                              scm_from_locale_symbol ("%cache"),
-                             scm_from_locale_symbol ("effective-methods"),
-                             SCM_UNDEFINED);
+                             scm_from_locale_symbol ("effective-methods"));
   SCM setter_slots = scm_list_1 (sym_setter);
   SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("extends"),
 					  k_init_value,

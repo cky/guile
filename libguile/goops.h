@@ -168,11 +168,10 @@ typedef struct scm_t_method {
 #define scm_si_dispatch_procedure scm_applicable_struct_index_procedure /* 0 */
 #define scm_si_methods            1
 #define scm_si_n_specialized	  2
-#define scm_si_cache_mutex	  3
-#define scm_si_extended_by	  4
-#define scm_si_generic_cache	  5
-#define scm_si_effective_methods  6
-#define scm_si_generic_setter     7
+#define scm_si_extended_by	  3
+#define scm_si_generic_cache	  4
+#define scm_si_effective_methods  5
+#define scm_si_generic_setter     6
 
 #define scm_si_generic_function	 0  /* offset of gf    slot in a <method> */
 #define scm_si_specializers	 1  /* offset of spec. slot in a <method> */
