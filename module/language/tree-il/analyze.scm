@@ -571,9 +571,8 @@
           (make-binding-info vars (cons gensym refs)
                              (cons src locs)))
          ((<lambda-case> req opt inits rest kw vars)
-          ;; FIXME keywords.
           (let ((names `(,@req
-                         ,@(map car (or opt '()))
+                         ,@(or opt '())
                          ,@(if rest (list rest) '())
                          ,@(if kw (map cadr (cdr kw)) '()))))
             (make-binding-info (extend vars names) refs
