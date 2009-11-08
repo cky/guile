@@ -11,3 +11,4 @@
 /test-fast-slot-ref
 /test-scm-take-locale-symbol
 /test-scm-take-u8vector
+/test-loose-ends
