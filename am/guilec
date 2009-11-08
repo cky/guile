@@ -1,6 +1,8 @@
 # -*- makefile -*-
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
+GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch
+
 moddir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/$(modpath)
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 ccachedir = $(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache/$(modpath)
@@ -32,4 +34,4 @@ SUFFIXES = .scm .go
 .scm.go:
 	GUILE_AUTO_COMPILE=0					\
 	$(top_builddir)/meta/uninstalled-env			\
-	guile-tools compile -Wunbound-variable -o "$@" "$<"
+	guile-tools compile $(GUILE_WARNINGS) -o "$@" "$<"
