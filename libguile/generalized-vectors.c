@@ -178,7 +178,7 @@ SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
   ssize_t pos, i = 0;
   scm_t_array_handle h;
   scm_generalized_vector_get_handle (v, &h);
-  // FIXME CHECKME
+  /* FIXME CHECKME */
   for (pos = h.dims[0].ubnd, i = (h.dims[0].ubnd - h.dims[0].lbnd + 1);
        i >= 0;
        pos += h.dims[0].inc)

@@ -158,7 +158,7 @@ vm_dispatch_hook (struct scm_vm *vp, SCM hook, SCM hook_args)
     return;
   
   scm_dynwind_begin (0);
-  // FIXME, stack holder should be the vm
+  /* FIXME, stack holder should be the vm */
   vp->trace_frame = scm_c_make_vm_frame (SCM_BOOL_F, vp->fp, vp->sp, vp->ip, 0);
   scm_dynwind_unwind_handler (enfalsen_frame, vp, SCM_F_WIND_EXPLICITLY);
 

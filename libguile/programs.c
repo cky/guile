@@ -26,8 +26,8 @@
 #include "instructions.h"
 #include "modules.h"
 #include "programs.h"
-#include "procprop.h" // scm_sym_name
-#include "srcprop.h" // scm_sym_filename
+#include "procprop.h" /* scm_sym_name */
+#include "srcprop.h"  /* scm_sym_filename */
 #include "vm.h"
 
 
