@@ -674,6 +674,20 @@
                                         #:env m
                                         #:opts %opts-w-unbound)))))))
 
+     (pass-if "optional arguments are visible"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda* (x #:optional y z) (list x y z))
+                           #:opts %opts-w-unbound
+                           #:to 'assembly)))))
+
+     (pass-if "keyword arguments are visible"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda* (x #:key y z) (list x y z))
+                           #:opts %opts-w-unbound
+                           #:to 'assembly)))))
+
      (pass-if "GOOPS definitions are visible"
        (let ((m (make-module))
              (v (gensym)))
