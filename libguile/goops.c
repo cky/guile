@@ -1915,6 +1915,19 @@ SCM_DEFINE (scm_enable_primitive_generic_x, "enable-primitive-generic!", 0, 0, 1
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_set_primitive_generic_x, "set-primitive-generic!", 2, 0, 0,
+	    (SCM subr, SCM generic),
+	    "")
+#define FUNC_NAME s_scm_set_primitive_generic_x
+{
+  SCM_ASSERT (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr),
+              subr, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_PUREGENERICP (generic), generic, SCM_ARG2, FUNC_NAME);
+  *SCM_SUBR_GENERIC (subr) = generic;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
 	    (SCM subr),
 	    "")

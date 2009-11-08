@@ -716,7 +716,15 @@
 ;;; Methods to compare objects
 ;;;
 
-(define-method (equal? x y) (eqv? x y))
+;; Have to do this in a strange order because equal? is used in the
+;; add-method! implementation; we need to make sure that when the
+;; primitive is extended, that the generic has a method. =
+(define g-equal? (make-generic 'equal?))
+;; When this generic gets called, we will have already checked eq? and
+;; eqv? -- the purpose of this generic is to extend equality. So by
+;; default, there is no extension, thus the #f return.
+(add-method! g-equal? (method (x y) #f)) 
+(set-primitive-generic! equal? g-equal?)
 
 ;;;
 ;;; methods to display/write an object
