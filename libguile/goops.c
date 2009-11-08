@@ -144,20 +144,19 @@ SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
 SCM scm_class_unknown;
 SCM scm_class_top, scm_class_object, scm_class_class;
 SCM scm_class_applicable;
-SCM scm_class_entity, scm_class_entity_with_setter;
+SCM scm_class_applicable_struct, scm_class_applicable_struct_with_setter;
 SCM scm_class_generic, scm_class_generic_with_setter;
 SCM scm_class_accessor;
 SCM scm_class_extended_generic, scm_class_extended_generic_with_setter;
 SCM scm_class_extended_accessor;
 SCM scm_class_method;
-SCM scm_class_simple_method, scm_class_accessor_method;
+SCM scm_class_accessor_method;
 SCM scm_class_procedure_class;
-SCM scm_class_entity_class;
+SCM scm_class_applicable_struct_class;
 SCM scm_class_number, scm_class_list;
 SCM scm_class_keyword;
 SCM scm_class_port, scm_class_input_output_port;
 SCM scm_class_input_port, scm_class_output_port;
-SCM scm_class_foreign_class, scm_class_foreign_object;
 SCM scm_class_foreign_slot;
 SCM scm_class_self, scm_class_protected;
 SCM scm_class_hidden, scm_class_opaque, scm_class_read_only;
@@ -747,21 +746,9 @@ SCM_DEFINE (scm_sys_inherit_magic_x, "%inherit-magic!", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_sys_inherit_magic_x
 {
-  SCM ls = dsupers;
-  long flags = 0;
   SCM_VALIDATE_INSTANCE (1, class);
-  while (!scm_is_null (ls))
-    {
-      SCM_ASSERT (scm_is_pair (ls)
-		  && SCM_INSTANCEP (SCM_CAR (ls)),
-		  dsupers,
-		  SCM_ARG2,
-		  FUNC_NAME);
-      flags |= SCM_CLASS_FLAGS (SCM_CAR (ls));
-      ls = SCM_CDR (ls);
-    }
-
-  SCM_SET_CLASS_FLAGS (class, flags &~SCM_CLASSF_PURE_GENERIC);
+  scm_i_struct_inherit_vtable_magic (SCM_CLASS_OF (class), class);
+  SCM_SET_CLASS_FLAGS (class, SCM_CLASSF_GOOPS_OR_VALID);
 
   prep_hashsets (class);
 
@@ -816,9 +803,6 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
 					   scm_si_direct_subclasses)));
   }
 
-  /* Support for the underlying structs: */
-  /* FIXME: set entity flag on z if class == entity_class ? */
-  SCM_SET_CLASS_FLAGS (z, SCM_CLASSF_GOOPS_OR_VALID);
   return z;
 }
 
@@ -826,8 +810,8 @@ SCM
 scm_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
 {
   SCM z = scm_basic_basic_make_class (class, name, dsupers, dslots);
-  scm_sys_inherit_magic_x (z, dsupers);
   scm_sys_prep_layout_x (z);
+  scm_sys_inherit_magic_x (z, dsupers);
   return z;
 }
 
@@ -934,7 +918,7 @@ create_basic_classes (void)
 
   DEFVAR(name, scm_class_class);
 
-  /**** <scm_class_top> ****/
+  /**** <top> ****/
   name = scm_from_locale_symbol ("<top>");
   scm_class_top = scm_permanent_object (scm_basic_make_class (scm_class_class,
 						    name,
@@ -943,7 +927,7 @@ create_basic_classes (void)
 
   DEFVAR(name, scm_class_top);
 
-  /**** <scm_class_object> ****/
+  /**** <object> ****/
   name	 = scm_from_locale_symbol ("<object>");
   scm_class_object = scm_permanent_object (scm_basic_make_class (scm_class_class,
 						       name,
@@ -1142,16 +1126,6 @@ SCM_DEFINE (scm_method_procedure, "method-procedure", 1, 0, 0,
 {
   SCM_VALIDATE_METHOD (1, obj);
   return scm_slot_ref (obj, sym_procedure);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_accessor_method_slot_definition, "accessor-method-slot-definition", 1, 0, 0,
-	    (SCM obj),
-	    "Return the slot definition of the accessor @var{obj}.")
-#define FUNC_NAME s_scm_accessor_method_slot_definition
-{
-  SCM_VALIDATE_ACCESSOR (1, obj);
-  return scm_slot_ref (obj, scm_from_locale_symbol ("slot-definition"));
 }
 #undef FUNC_NAME
 
@@ -1505,15 +1479,6 @@ SCM_DEFINE (scm_slot_exists_p, "slot-exists?", 2, 0, 0,
 
 static void clear_method_cache (SCM);
 
-static void
-goops_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
-{
-  SCM obj = PTR2SCM (ptr);
-  scm_t_struct_finalize finalize = SCM_STRUCT_FINALIZER (obj);
-
-  if (finalize)
-    finalize (obj);
-}
 SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 	    (SCM class, SCM initargs),
 	    "Create a new instance of class @var{class} and initialize it\n"
@@ -1530,7 +1495,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
   /* FIXME: duplicates some of scm_make_struct. */
 
   n = SCM_I_INUM (SCM_SLOT (class, scm_si_nfields));
-  obj = scm_alloc_struct (SCM_STRUCT_DATA (class), n, "struct");
+  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (class), n, "struct");
 
   layout = SCM_VTABLE_LAYOUT (class);
 
@@ -1545,25 +1510,8 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
         SCM_STRUCT_DATA (obj)[i] = 0;
     }
 
-  if (SCM_VTABLE_INSTANCE_FINALIZER (class))
-    {
-      /* Register a finalizer for the newly created instance.  */
-      GC_finalization_proc prev_finalizer;
-      GC_PTR prev_finalizer_data;
-      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (obj),
-				      goops_finalizer_trampoline,
-				      NULL,
-				      &prev_finalizer,
-				      &prev_finalizer_data);
-    }
-
   if (SCM_CLASS_FLAGS (class) & SCM_CLASSF_PURE_GENERIC)
     clear_method_cache (obj);
-
-  /* Class objects */
-  /* if ((SCM_CLASS_FLAGS (class) & SCM_CLASSF_METACLASS)
-      && (SCM_SUBCLASSP (class, scm_class_entity_class)))
-      SCM_SET_CLASS_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE); */
 
   return obj;
 }
@@ -2219,10 +2167,6 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   for (l = scm_generic_function_methods (gf); !scm_is_null (l); l = SCM_CDR (l))
     {
       fl = SPEC_OF (SCM_CAR (l));
-      /* Only accept accessors which match exactly in first arg. */
-      if (SCM_ACCESSORP (SCM_CAR (l))
-	  && (scm_is_null (fl) || types[0] != SCM_CAR (fl)))
-	continue;
       for (i = 0; ; i++, fl = SCM_CDR (fl))
 	{
 	  if (SCM_INSTANCEP (fl)
@@ -2363,7 +2307,8 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
   if (class == scm_class_generic || class == scm_class_accessor)
     {
       z = scm_make_struct (class, SCM_INUM0,
-			   scm_list_4 (SCM_EOL,
+                           scm_list_5 (SCM_BOOL_F,
+                                       SCM_EOL,
 				       SCM_INUM0,
 				       scm_make_mutex (),
 				       SCM_EOL));
@@ -2384,7 +2329,6 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
       z = scm_sys_allocate_instance (class, args);
 
       if (class == scm_class_method
-	  || class == scm_class_simple_method
 	  || class == scm_class_accessor_method)
 	{
 	  SCM_SET_SLOT (z, scm_si_generic_function,
@@ -2588,7 +2532,6 @@ create_standard_classes (void)
 					 k_init_value,
 					 SCM_EOL),
                              scm_from_locale_symbol ("%cache"),
-                             scm_from_locale_symbol ("dispatch-procedure"),
                              scm_from_locale_symbol ("effective-methods"),
                              SCM_UNDEFINED);
   SCM setter_slots = scm_list_1 (sym_setter);
@@ -2637,63 +2580,45 @@ create_standard_classes (void)
   SCM_SET_SLOT (scm_class_class, scm_si_getters_n_setters,
 		compute_getters_n_setters (slots));
 
-  make_stdcls (&scm_class_foreign_class, "<foreign-class>",
-	       scm_class_class, scm_class_class,
-	       scm_list_2 (scm_list_3 (scm_from_locale_symbol ("constructor"),
-				       k_class,
-				       scm_class_opaque),
-			   scm_list_3 (scm_from_locale_symbol ("destructor"),
-				       k_class,
-				       scm_class_opaque)));
-  make_stdcls (&scm_class_foreign_object,  "<foreign-object>",
-	       scm_class_foreign_class, scm_class_object,   SCM_EOL);
-  SCM_SET_CLASS_FLAGS (scm_class_foreign_object, SCM_CLASSF_FOREIGN);
-
   /* scm_class_generic functions classes */
   make_stdcls (&scm_class_procedure_class, "<procedure-class>",
 	       scm_class_class, scm_class_class, SCM_EOL);
-  make_stdcls (&scm_class_entity_class,    "<entity-class>",
+  make_stdcls (&scm_class_applicable_struct_class,    "<applicable-struct-class>",
 	       scm_class_class, scm_class_procedure_class, SCM_EOL);
+  /* SCM_SET_VTABLE_FLAGS (scm_class_applicable_struct_class,
+     SCM_VTABLE_FLAG_APPLICABLE_VTABLE); */
   make_stdcls (&scm_class_method,	   "<method>",
 	       scm_class_class, scm_class_object,	   method_slots);
-  make_stdcls (&scm_class_simple_method,   "<simple-method>",
-	       scm_class_class, scm_class_method,	   SCM_EOL);
-  SCM_SET_CLASS_FLAGS (scm_class_simple_method, SCM_CLASSF_SIMPLE_METHOD);
   make_stdcls (&scm_class_accessor_method, "<accessor-method>",
-	       scm_class_class, scm_class_simple_method,   amethod_slots);
-  SCM_SET_CLASS_FLAGS (scm_class_accessor_method, SCM_CLASSF_ACCESSOR_METHOD);
+	       scm_class_class, scm_class_method,   amethod_slots);
   make_stdcls (&scm_class_applicable,	   "<applicable>",
 	       scm_class_class, scm_class_top, SCM_EOL);
-  make_stdcls (&scm_class_entity,	   "<entity>",
-	       scm_class_entity_class,
+  make_stdcls (&scm_class_applicable_struct,	   "<applicable-struct>",
+	       scm_class_applicable_struct_class,
 	       scm_list_2 (scm_class_object, scm_class_applicable),
-	       SCM_EOL);
-  make_stdcls (&scm_class_entity_with_setter, "<entity-with-setter>",
-	       scm_class_entity_class, scm_class_entity,   SCM_EOL);
+	       scm_list_1 (sym_procedure));
   make_stdcls (&scm_class_generic,	   "<generic>",
-	       scm_class_entity_class, scm_class_entity,   gf_slots);
+	       scm_class_applicable_struct_class, scm_class_applicable_struct,   gf_slots);
   SCM_SET_CLASS_FLAGS (scm_class_generic, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_extended_generic, "<extended-generic>",
-	       scm_class_entity_class, scm_class_generic, egf_slots);
+	       scm_class_applicable_struct_class, scm_class_generic, egf_slots);
   SCM_SET_CLASS_FLAGS (scm_class_extended_generic, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_generic_with_setter, "<generic-with-setter>",
-	       scm_class_entity_class,
-	       scm_list_2 (scm_class_generic, scm_class_entity_with_setter),
-	       setter_slots);
+	       scm_class_applicable_struct_class, scm_class_generic, setter_slots);
   SCM_SET_CLASS_FLAGS (scm_class_generic_with_setter, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_accessor,	   "<accessor>",
-	       scm_class_entity_class, scm_class_generic_with_setter, SCM_EOL);
+	       scm_class_applicable_struct_class, scm_class_generic_with_setter, SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_accessor, SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_extended_generic_with_setter,
 	       "<extended-generic-with-setter>",
-	       scm_class_entity_class,
+	       scm_class_applicable_struct_class,
 	       scm_list_2 (scm_class_generic_with_setter,
 			   scm_class_extended_generic),
 	       SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_extended_generic_with_setter,
 		       SCM_CLASSF_PURE_GENERIC);
   make_stdcls (&scm_class_extended_accessor, "<extended-accessor>",
-	       scm_class_entity_class,
+	       scm_class_applicable_struct_class,
 	       scm_list_2 (scm_class_accessor,
 			   scm_class_extended_generic_with_setter),
 	       SCM_EOL);

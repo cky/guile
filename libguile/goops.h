@@ -42,11 +42,7 @@
  */
 #define SCM_VTABLE_FLAG_GOOPS_CLASS SCM_VTABLE_FLAG_GOOPS_0
 #define SCM_VTABLE_FLAG_GOOPS_VALID SCM_VTABLE_FLAG_GOOPS_1
-#define SCM_VTABLE_FLAG_GOOPS_METACLASS SCM_VTABLE_FLAG_GOOPS_2
-#define SCM_VTABLE_FLAG_GOOPS_FOREIGN SCM_VTABLE_FLAG_GOOPS_3
-#define SCM_VTABLE_FLAG_GOOPS_PURE_GENERIC SCM_VTABLE_FLAG_GOOPS_4
-#define SCM_VTABLE_FLAG_GOOPS_SIMPLE_METHOD SCM_VTABLE_FLAG_GOOPS_5
-#define SCM_VTABLE_FLAG_GOOPS_ACCESSOR_METHOD SCM_VTABLE_FLAG_GOOPS_6
+#define SCM_VTABLE_FLAG_GOOPS_PURE_GENERIC SCM_VTABLE_FLAG_GOOPS_2
 
 #define SCM_CLASS_OF(x)         SCM_STRUCT_VTABLE (x)
 #define SCM_CLASS_FLAGS(class) (SCM_VTABLE_FLAGS (class))
@@ -54,13 +50,10 @@
 #define SCM_SET_CLASS_FLAGS(c, f) (SCM_SET_VTABLE_FLAGS (c, f))
 #define SCM_CLEAR_CLASS_FLAGS(c, f) (SCM_CLEAR_VTABLE_FLAGS (c, f))
 
-#define SCM_CLASSF_FOREIGN	 SCM_VTABLE_FLAG_GOOPS_FOREIGN
-#define SCM_CLASSF_METACLASS     SCM_VTABLE_FLAG_GOOPS_METACLASS
+#define SCM_CLASSF_METACLASS     (SCM_VTABLE_FLAG_GOOPS_CLASS|SCM_VTABLE_FLAG_VTABLE)
 #define SCM_CLASSF_PURE_GENERIC  SCM_VTABLE_FLAG_GOOPS_PURE_GENERIC
 #define SCM_CLASSF_GOOPS_VALID   SCM_VTABLE_FLAG_GOOPS_VALID
 #define SCM_CLASSF_GOOPS         SCM_VTABLE_FLAG_GOOPS_CLASS
-#define SCM_CLASSF_SIMPLE_METHOD SCM_VTABLE_FLAG_GOOPS_SIMPLE_METHOD
-#define SCM_CLASSF_ACCESSOR_METHOD SCM_VTABLE_FLAG_GOOPS_ACCESSOR_METHOD
 #define SCM_CLASSF_GOOPS_OR_VALID (SCM_CLASSF_GOOPS | SCM_CLASSF_GOOPS_VALID)
 
 /*
@@ -140,10 +133,6 @@ typedef struct scm_t_method {
   (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_PURE_GENERIC))
 #define SCM_VALIDATE_PUREGENERIC(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, PUREGENERICP, "pure generic function")
 
-#define SCM_ACCESSORP(x) \
-  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE_FLAGS (x) & SCM_CLASSF_ACCESSOR_METHOD))
-#define SCM_VALIDATE_ACCESSOR(pos, x) SCM_MAKE_VALIDATE_MSG (pos, x, ACCESSORP, "accessor")
-
 #define SCM_SLOT(x, i)         (SCM_STRUCT_SLOT_REF (x, i))
 #define SCM_SET_SLOT(x, i, v)  (SCM_STRUCT_SLOT_SET (x, i, v))
 #define SCM_INSTANCE_HASH(c, i) (SCM_INST (c) [scm_si_hashsets + (i)])
@@ -176,14 +165,14 @@ typedef struct scm_t_method {
 
 #define SCM_INITIAL_MCACHE_SIZE	  1
 
-#define scm_si_methods		 0  /* offset of methods slot in a <generic> */
-#define scm_si_n_specialized	 1
-#define scm_si_cache_mutex	 2
-#define scm_si_extended_by	 3
-#define scm_si_generic_cache	 4
-#define scm_si_dispatch_procedure 5
-#define scm_si_effective_methods 6
-#define scm_si_generic_setter 7
+#define scm_si_dispatch_procedure scm_applicable_struct_index_procedure /* 0 */
+#define scm_si_methods            1
+#define scm_si_n_specialized	  2
+#define scm_si_cache_mutex	  3
+#define scm_si_extended_by	  4
+#define scm_si_generic_cache	  5
+#define scm_si_effective_methods  6
+#define scm_si_generic_setter     7
 
 #define scm_si_generic_function	 0  /* offset of gf    slot in a <method> */
 #define scm_si_specializers	 1  /* offset of spec. slot in a <method> */
@@ -213,8 +202,8 @@ SCM_API SCM scm_class_top;
 SCM_API SCM scm_class_object;
 SCM_API SCM scm_class_class;
 SCM_API SCM scm_class_applicable;
-SCM_API SCM scm_class_entity;
-SCM_API SCM scm_class_entity_with_setter;
+SCM_API SCM scm_class_applicable_struct;
+SCM_API SCM scm_class_applicable_struct_with_setter;
 SCM_API SCM scm_class_generic;
 SCM_API SCM scm_class_generic_with_setter;
 SCM_API SCM scm_class_accessor;
@@ -222,10 +211,9 @@ SCM_API SCM scm_class_extended_generic;
 SCM_API SCM scm_class_extended_generic_with_setter;
 SCM_API SCM scm_class_extended_accessor;
 SCM_API SCM scm_class_method;
-SCM_API SCM scm_class_simple_method;
 SCM_API SCM scm_class_accessor_method;
 SCM_API SCM scm_class_procedure_class;
-SCM_API SCM scm_class_entity_class;
+SCM_API SCM scm_class_applicable_struct_class;
 SCM_API SCM scm_class_number;
 SCM_API SCM scm_class_list;
 SCM_API SCM scm_class_keyword;
@@ -233,8 +221,6 @@ SCM_API SCM scm_class_port;
 SCM_API SCM scm_class_input_output_port;
 SCM_API SCM scm_class_input_port;
 SCM_API SCM scm_class_output_port;
-SCM_API SCM scm_class_foreign_class;
-SCM_API SCM scm_class_foreign_object;
 SCM_API SCM scm_class_foreign_slot;
 SCM_API SCM scm_class_self;
 SCM_API SCM scm_class_protected;
@@ -304,7 +290,6 @@ SCM_API SCM scm_generic_function_methods (SCM obj);
 SCM_API SCM scm_method_generic_function (SCM obj);
 SCM_API SCM scm_method_specializers (SCM obj);
 SCM_API SCM scm_method_procedure (SCM obj);
-SCM_API SCM scm_accessor_method_slot_definition (SCM obj);
 SCM_API SCM scm_sys_tag_body (SCM body);
 SCM_API SCM scm_sys_fast_slot_ref (SCM obj, SCM index);
 SCM_API SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value);

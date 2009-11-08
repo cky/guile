@@ -146,6 +146,63 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 
 
 
+void
+scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
+#define FUNC_NAME "%inherit-vtable-magic"
+{
+  /* Verily, what is the deal here, you ask? Basically, we need to know a couple
+     of properties of structures at runtime. For example, "is this structure a
+     vtable of vtables (a metaclass)?"; also, "is this structure applicable?".
+     Both of these questions also imply a certain layout of the structure. So
+     instead of checking the layout at runtime, what we do is pre-verify the
+     layout -- so that at runtime we can just check the applicable flag and
+     dispatch directly to the Scheme procedure in slot 0.
+  */
+  SCM olayout;
+
+  /* verify that obj is a valid vtable */
+  if (scm_is_false (scm_symbol_p (SCM_VTABLE_LAYOUT (obj))))
+    scm_misc_error (FUNC_NAME, "invalid layout for new vtable",
+                    scm_list_1 (SCM_VTABLE_LAYOUT (obj)));
+
+  /* if obj's vtable is compatible with the required vtable (class) layout, it
+     is a metaclass */
+  olayout = scm_symbol_to_string (SCM_VTABLE_LAYOUT (obj));
+  if (scm_is_true (scm_leq_p (scm_string_length (required_vtable_fields),
+                              scm_string_length (olayout)))
+      && scm_is_true (scm_string_eq (olayout, required_vtable_fields,
+                                     scm_from_size_t (0), 
+                                     scm_string_length (required_vtable_fields),
+                                     scm_from_size_t (0),
+                                     scm_string_length (required_vtable_fields))))
+    SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
+
+  /* finally if obj is an applicable class, verify that its vtable is
+     compatible with the required applicable layout */
+  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SETTER_VTABLE))
+    {
+      if (scm_is_false (scm_string_eq (olayout, required_applicable_with_setter_fields,
+                                       scm_from_size_t (0), 
+                                       scm_from_size_t (4), 
+                                       scm_from_size_t (0),
+                                       scm_from_size_t (4))))
+        scm_misc_error (FUNC_NAME, "invalid applicable-with-setter struct layout",
+                        scm_list_1 (olayout));
+      SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE | SCM_VTABLE_FLAG_SETTER);
+    }
+  else if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_APPLICABLE_VTABLE))
+    {
+      if (scm_is_false (scm_string_eq (olayout, required_applicable_fields,
+                                       scm_from_size_t (0), 
+                                       scm_from_size_t (2), 
+                                       scm_from_size_t (0),
+                                       scm_from_size_t (2))))
+        scm_misc_error (FUNC_NAME, "invalid applicable struct layout",
+                        scm_list_1 (olayout));
+      SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE);
+    }
+}
+#undef FUNC_NAME
 
 
 static void
@@ -255,6 +312,17 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* Finalization: invoke the finalizer of the struct pointed to by PTR.  */
+static void
+struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
+{
+  SCM obj = PTR2SCM (ptr);
+  scm_t_struct_finalize finalize = SCM_STRUCT_FINALIZER (obj);
+
+  if (finalize)
+    finalize (obj);
+}
+
 /* All struct data must be allocated at an address whose bottom three
    bits are zero.  This is because the tag for a struct lives in the
    bottom three bits of the struct's car, and the upper bits point to
@@ -270,37 +338,29 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
    points to the given vtable data, then a data pointer, then n_words of data.
  */
 SCM
-scm_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what)
+scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what)
 {
   scm_t_bits ret;
   ret = (scm_t_bits)scm_gc_malloc (sizeof (scm_t_bits) * (n_words + 2), "struct");
-  /* Now that all platforms support scm_t_uint64, I would think that malloc on
-     all platforms is required to return 8-byte-aligned blocks. This test will
-     let us find out quickly though ;-) */
-  if (ret & 7)
-    abort ();
   SCM_SET_CELL_WORD_0 (SCM_PACK (ret), (scm_t_bits)vtable_data | scm_tc3_struct);
   SCM_SET_CELL_WORD_1 (SCM_PACK (ret),
                        (scm_t_bits)SCM_CELL_OBJECT_LOC (SCM_PACK (ret), 2));
+
+  /* vtable_data can be null when making a vtable vtable */
+  if (vtable_data && vtable_data[scm_vtable_index_instance_finalize])
+    {
+      /* Register a finalizer for the newly created instance.  */
+      GC_finalization_proc prev_finalizer;
+      GC_PTR prev_finalizer_data;
+      GC_REGISTER_FINALIZER_NO_ORDER ((void*)ret,
+				      struct_finalizer_trampoline,
+				      NULL,
+				      &prev_finalizer,
+				      &prev_finalizer_data);
+    }
+
   return SCM_PACK (ret);
 }
-
-
-/* Finalization.  */
-
-
-/* Invoke the finalizer of the struct pointed to by PTR.  */
-static void
-struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
-{
-  SCM obj = PTR2SCM (ptr);
-  scm_t_struct_finalize finalize = SCM_STRUCT_FINALIZER (obj);
-
-  if (finalize)
-    finalize (obj);
-}
-
-
 
 
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
@@ -353,79 +413,16 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
         goto bad_tail;
     }
 
-  obj = scm_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + tail_elts,
-                          "struct");
-
-  if (SCM_VTABLE_INSTANCE_FINALIZER (vtable))
-    {
-      /* Register a finalizer for the newly created instance.  */
-      GC_finalization_proc prev_finalizer;
-      GC_PTR prev_finalizer_data;
-      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (obj),
-				      struct_finalizer_trampoline,
-				      NULL,
-				      &prev_finalizer,
-				      &prev_finalizer_data);
-    }
+  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + tail_elts,
+                            "struct");
 
   scm_struct_init (obj, layout, tail_elts, init);
 
-  /* Verily, what is the deal here, you ask? Basically, we need to know a couple
-     of properties of structures at runtime. For example, "is this structure a
-     vtable of vtables (a metaclass)?"; also, "is this structure applicable?".
-     Both of these questions also imply a certain layout of the structure. So
-     instead of checking the layout at runtime, what we do is pre-verify the
-     layout -- so that at runtime we can just check the applicable flag and
-     dispatch directly to the Scheme procedure in slot 0.
-   */
+  /* only check things and inherit magic if the layout was passed as an initarg.
+     something of a hack, but it's for back-compatibility. */
   if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE)
-      /* only do these checks if the layout was passed as an initarg.
-         something of a hack, but it's for back-compatibility. */
       && scm_is_true (SCM_VTABLE_LAYOUT (obj)))
-    {
-      /* scm_struct_init will have initialized our layout */
-      SCM olayout;
-
-      /* verify that obj is a valid vtable */
-      if (scm_is_false (scm_symbol_p (SCM_VTABLE_LAYOUT (obj))))
-        scm_misc_error (FUNC_NAME, "invalid layout for new vtable",
-                        scm_list_1 (SCM_VTABLE_LAYOUT (obj)));
-
-      /* if obj is a metaclass, verify that its vtable is compatible with the
-         required vtable (class) layout */
-      olayout = scm_symbol_to_string (SCM_VTABLE_LAYOUT (obj));
-      if (scm_is_true (scm_string_eq (olayout, required_vtable_fields,
-                                      scm_from_size_t (0), 
-                                      scm_string_length (olayout),
-                                      scm_from_size_t (0),
-                                      scm_string_length (required_vtable_fields))))
-        SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
-
-      /* finally if obj is an applicable class, verify that its vtable is
-         compatible with the required applicable layout */
-      if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SETTER_VTABLE))
-        {
-          if (scm_is_false (scm_string_eq (olayout, required_applicable_with_setter_fields,
-                                           scm_from_size_t (0), 
-                                           scm_from_size_t (4), 
-                                           scm_from_size_t (0),
-                                           scm_from_size_t (4))))
-            scm_misc_error (FUNC_NAME, "invalid applicable-with-setter struct layout",
-                            scm_list_1 (olayout));
-          SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE | SCM_VTABLE_FLAG_SETTER);
-        }
-      else if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_APPLICABLE_VTABLE))
-        {
-          if (scm_is_false (scm_string_eq (olayout, required_applicable_fields,
-                                           scm_from_size_t (0), 
-                                           scm_from_size_t (2), 
-                                           scm_from_size_t (0),
-                                           scm_from_size_t (2))))
-            scm_misc_error (FUNC_NAME, "invalid applicable struct layout",
-                            scm_list_1 (olayout));
-          SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE);
-        }
-    }
+    scm_i_struct_inherit_vtable_magic (vtable, obj);
 
   return obj;
 }
@@ -496,7 +493,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   basic_size = scm_i_symbol_length (layout) / 2;
   tail_elts = scm_to_size_t (tail_array_size);
   SCM_CRITICAL_SECTION_START;
-  obj = scm_alloc_struct (NULL, basic_size + tail_elts, "struct");
+  obj = scm_i_alloc_struct (NULL, basic_size + tail_elts, "struct");
   /* magic magic magic */
   SCM_SET_CELL_WORD_0 (obj, (scm_t_bits)SCM_STRUCT_DATA (obj) | scm_tc3_struct);
   SCM_CRITICAL_SECTION_END;

@@ -206,7 +206,7 @@
               (with-fluids ((*in-progress* (cons gf in-progress)))
                 (let ((dispatch (compute-dispatch-procedure
                                  gf (slot-ref gf 'effective-methods))))
-                  (slot-set! gf 'dispatch-procedure dispatch)
+                  (slot-set! gf 'procedure dispatch)
                   (apply dispatch args))))))))))
 
 (define (cache-dispatch gf args)
@@ -242,7 +242,7 @@
            (cache (cons (vector len types rest? cmethod)
                         (slot-ref gf 'effective-methods))))
       (slot-set! gf 'effective-methods cache)
-      (slot-set! gf 'dispatch-procedure (delayed-compile gf))
+      (slot-set! gf 'procedure (delayed-compile gf))
       cmethod))
   (parse 0 args))
 

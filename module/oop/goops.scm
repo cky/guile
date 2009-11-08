@@ -73,7 +73,6 @@
 	   primitive-generic-generic enable-primitive-generic!
 	   method-procedure accessor-method-slot-definition
 	   slot-exists? make find-method get-keyword)
-  :replace (<class> <entity-class> <entity>)
   :no-backtrace)
 
 (define *goops-module* (current-module))
@@ -705,6 +704,10 @@
 (define (slot-init-function class slot-name)
   (cadr (assq slot-name (slot-ref class 'getters-n-setters))))
 
+(define (accessor-method-slot-definition obj)
+  "Return the slot definition of the accessor @var{obj}."
+  (slot-ref obj 'slot-definition))
+
 
 ;;;
 ;;; {Standard methods used by the C runtime}
@@ -739,17 +742,6 @@
     (if (slot-bound? class 'name)
 	(begin
 	  (display "#<" file)
-	  (display (class-name class) file)
-	  (display #\space file)
-	  (display-address o file)
-	  (display #\> file))
-	(next-method))))
-
-(define-method (write (o <foreign-object>) file)
-  (let ((class (class-of o)))
-    (if (slot-bound? class 'name)
-	(begin
-	  (display "#<foreign-object " file)
 	  (display (class-name class) file)
 	  (display #\space file)
 	  (display-address o file)
@@ -1168,6 +1160,7 @@
 
 ;;; compute-getters-n-setters
 ;;;
+;; FIXME!!!
 (define (make-thunk thunk)
   (lambda () (thunk)))
 
@@ -1467,11 +1460,10 @@
 
     ;; Support for the underlying structs:
     
-    ;; Inherit class flags (invisible on scheme level) from supers
-    (%inherit-magic! class supers)
-
     ;; Set the layout slot
-    (%prep-layout! class)))
+    (%prep-layout! class)
+    ;; Inherit class flags (invisible on scheme level) from supers
+    (%inherit-magic! class supers)))
 
 (define (initialize-object-procedure object initargs)
   (let ((proc (get-keyword #:procedure initargs #f)))
@@ -1484,13 +1476,9 @@
 	   (set-object-procedure! object
 				  (lambda args (apply proc args)))))))
 
-(define-method (initialize (entity <entity>) initargs)
+(define-method (initialize (applicable-struct <applicable-struct>) initargs)
   (next-method)
-  (initialize-object-procedure entity initargs))
-
-(define-method (initialize (ews <entity-with-setter>) initargs)
-  (next-method)
-  (%set-object-setter! ews (get-keyword #:setter initargs #f)))
+  (initialize-object-procedure applicable-struct initargs))
 
 (define-method (initialize (generic <generic>) initargs)
   (let ((previous-definition (get-keyword #:default initargs #f))
@@ -1503,6 +1491,10 @@
     (if name
 	(set-procedure-property! generic 'name name))
     ))
+
+(define-method (initialize (gws <generic-with-setter>) initargs)
+  (next-method)
+  (%set-object-setter! gws (get-keyword #:setter initargs #f)))
 
 (define-method (initialize (eg <extended-generic>) initargs)
   (next-method)
@@ -1520,8 +1512,6 @@
   (slot-set! method 'body (get-keyword #:body initargs '()))
   (slot-set! method 'make-procedure (get-keyword #:make-procedure initargs #f)))
              
-
-(define-method (initialize (obj <foreign-object>) initargs))
 
 ;;;
 ;;; {Change-class}

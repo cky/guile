@@ -143,24 +143,26 @@ SCM_API SCM scm_struct_table;
 
 
 
-SCM_API SCM scm_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what);
 SCM_API SCM scm_make_struct_layout (SCM fields);
 SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);
 SCM_API SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
 SCM_API SCM scm_make_vtable (SCM fields, SCM printer);
 SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
-SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);
 SCM_API SCM scm_struct_vtable_tag (SCM handle);
-SCM_INTERNAL unsigned long scm_struct_ihashq (SCM, unsigned long, void *);
 SCM_API SCM scm_struct_create_handle (SCM obj);
 SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
 SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);
 SCM_API void scm_struct_prehistory (void);
+
+SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
+SCM_INTERNAL unsigned long scm_struct_ihashq (SCM, unsigned long, void *);
+SCM_INTERNAL SCM scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what);
+SCM_INTERNAL void scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj);
 SCM_INTERNAL void scm_init_struct (void);
 
 #endif  /* SCM_STRUCT_H */
