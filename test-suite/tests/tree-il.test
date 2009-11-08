@@ -808,4 +808,50 @@
                               (define (foo x) (cons))")))
                     (read-and-compile in
                                       #:opts %opts-w-arity
-                                      #:to 'assembly))))))))
+                                      #:to 'assembly))))))
+
+     (pass-if "keyword not passed and quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (lambda* (x #:key y) y)))
+                              (f 2))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "keyword passed and quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (lambda* (x #:key y) y)))
+                              (f 2 #:y 3))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "keyword passed to global and quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string "
+                              (use-modules (system base compile))
+                              (compile '(+ 2 3) #:env (current-module))")))
+                    (read-and-compile in
+                                      #:opts %opts-w-arity
+                                      #:to 'assembly))))))
+
+     (pass-if "extra keyword"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (lambda* (x #:key y) y)))
+                                (f 2 #:Z 3))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "extra keywords allowed"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (lambda* (x #:key y #:allow-other-keys)
+                                       y)))
+                              (f 2 #:Z 3))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))))

@@ -23,6 +23,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (system base syntax)
   #:use-module (system base message)
+  #:use-module (system vm program)
   #:use-module (language tree-il)
   #:export (analyze-lexicals
             analyze-tree
@@ -761,7 +762,7 @@
 ;;; Arity analysis.
 ;;;
 
-;; <arity-info> records contains information about lexical definitions of
+;; <arity-info> records contain information about lexical definitions of
 ;; procedures currently in scope, top-level procedure definitions that have
 ;; been encountered, and calls to top-level procedures that have been
 ;; encountered.
@@ -776,6 +777,26 @@
   ;; Validate the argument count of APPLICATION, a tree-il application of
   ;; PROC, emitting a warning in case of argument count mismatch.
 
+  (define (filter-keyword-args keywords allow-other-keys? args)
+    ;; Filter keyword arguments from ARGS and return the resulting list.
+    ;; KEYWORDS is the list of allowed keywords, and ALLOW-OTHER-KEYS?
+    ;; specified whethere keywords not listed in KEYWORDS are allowed.
+    (let loop ((args   args)
+               (result '()))
+      (if (null? args)
+          (reverse result)
+          (let ((arg (car args)))
+            (if (and (const? arg)
+                     (or (memq (const-exp arg) keywords)
+                         (and allow-other-keys?
+                              (keyword? (const-exp arg)))))
+                (loop (if (pair? (cdr args))
+                          (cddr args)
+                          '())
+                      result)
+                (loop (cdr args)
+                      (cons arg result)))))))
+
   (define (arity proc)
     ;; Return the arity of PROC, which can be either a tree-il or a
     ;; procedure.
@@ -783,44 +804,48 @@
       (or (and (or (null? x) (pair? x))
                (length x))
           0))
-    (cond ;; FIXME: Handle programs to get accurate arity info?
-          ;; ((program? proc)
-          ;;  (let ((a (program-arities proc)))
-          ;;    (values (program-name proc)
-          ;;            (arity:nreq a) (arity:nopt a) (arity:rest? a)
-          ;;            (arity:kw a))))
+    (cond ((program? proc)
+           (let ((a (car (last-pair (program-arities proc)))))
+             (values (program-name proc)
+                     (arity:nreq a) (arity:nopt a) (arity:rest? a)
+                     (map car (arity:kw a)) (arity:allow-other-keys? a))))
           ((procedure? proc)
            (let ((arity (procedure-property proc 'arity)))
              (values (procedure-name proc)
-                     (car arity) (cadr arity) (caddr arity) 0)))
+                     (car arity) (cadr arity) (caddr arity)
+                     #f #f)))
           (else
            (let loop ((name #f)
                       (proc proc))
              (record-case proc
                ((<lambda-case> req opt rest kw)
-                (values name (len req) (len opt) rest (len kw)))
+                (values name (len req) (len opt) rest
+                        (and (pair? kw) (map car (cdr kw)))
+                        (and (pair? kw) (car kw))))
                ((<lambda> meta body)
                 (loop (assoc-ref meta 'name) body))
                (else
-                (values #f #f #f #f #f)))))))
+                (values #f #f #f #f #f #f)))))))
 
   (let ((args (application-args application))
         (src  (tree-il-src application)))
     (call-with-values (lambda () (arity proc))
-      (lambda (name req opt rest kw)
-        ;; FIXME: handle keyword arguments
-        (if (and req opt)
-            (let ((count (length args)))
-              (if (or (< count req)
-                      (and (not rest)
-                           (> count (+ req opt))))
-                  (warning 'arity-mismatch src
-                           (or name
-                               (with-output-to-string
-                                 (lambda ()
-                                   (write proc))))
-                           (and lexical? (= 0 kw)))))
-            #t))))
+      (lambda (name req opt rest kw aok?)
+        (let ((args (if (pair? kw)
+                        (filter-keyword-args kw aok? args)
+                        args)))
+          (if (and req opt)
+              (let ((count (length args)))
+                (if (or (< count req)
+                        (and (not rest)
+                             (> count (+ req opt))))
+                    (warning 'arity-mismatch src
+                             (or name
+                                 (with-output-to-string
+                                   (lambda ()
+                                     (write proc))))
+                             lexical?)))
+              #t)))))
   #t)
 
 (define arity-analysis
