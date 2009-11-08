@@ -788,6 +788,65 @@
               (number? (string-contains (car w)
                                         "wrong number of arguments to")))))
 
+     (pass-if "case-lambda"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (case-lambda
+                                       ((x)     1)
+                                       ((x y)   2)
+                                       ((x y z) 3))))
+                              (list (f 1)
+                                    (f 1 2)
+                                    (f 1 2 3)))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "case-lambda with wrong number of arguments"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (case-lambda
+                                         ((x)     1)
+                                         ((x y)   2))))
+                                (f 1 2 3))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "case-lambda*"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (case-lambda*
+                                       ((x #:optional y) 1)
+                                       ((x #:key y)      2)
+                                       ((x y #:key z)    3))))
+                              (list (f 1)
+                                    (f 1 2)
+                                    (f #:y 2)
+                                    (f 1 2 #:z 3)))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "case-lambda* with wrong arguments"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (case-lambda*
+                                         ((x #:optional y) 1)
+                                         ((x #:key y)      2)
+                                         ((x y #:key z)    3))))
+                                (list (f)
+                                      (f 1 #:z 3)))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 2)
+              (null? (filter (lambda (w)
+                               (not
+                                (number?
+                                 (string-contains
+                                  w "wrong number of arguments to"))))
+                             w)))))
+
      (pass-if "local toplevel-defines"
        (let ((w (call-with-warnings
                   (lambda ()
