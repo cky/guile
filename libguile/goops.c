@@ -2222,51 +2222,17 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
 SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
 
-static void
-lock_cache_mutex (void *m)
+SCM
+scm_memoize_method (SCM cache, SCM args)
 {
-  SCM mutex = SCM_PACK ((scm_t_bits) m);
-  scm_lock_mutex (mutex);
-}
-
-static void
-unlock_cache_mutex (void *m)
-{
-  SCM mutex = SCM_PACK ((scm_t_bits) m);
-  scm_unlock_mutex (mutex);
-}
-
-static SCM
-call_memoize_method (void *a)
-{
-  SCM args = SCM_PACK ((scm_t_bits) a);
-  SCM gf = SCM_CAR (args);
-  SCM x = SCM_CADR (args);
-  /* First check if another thread has inserted a method between
-   * the cache miss and locking the mutex.
-   */
-  SCM cmethod = scm_mcache_lookup_cmethod (x, SCM_CDDR (args));
-  if (scm_is_true (cmethod))
-    return cmethod;
+  SCM gf = SCM_CAR (scm_last_pair (cache));
 
   if (SCM_UNLIKELY (scm_is_false (var_memoize_method_x)))
     var_memoize_method_x =
       scm_permanent_object
       (scm_module_variable (scm_module_goops, sym_memoize_method_x));
       
-  return scm_call_3 (SCM_VARIABLE_REF (var_memoize_method_x), gf, SCM_CDDR (args), x);
-}
-
-SCM
-scm_memoize_method (SCM x, SCM args)
-{
-  SCM gf = SCM_CAR (scm_last_pair (x));
-  return scm_internal_dynamic_wind (
-    lock_cache_mutex,
-    call_memoize_method,
-    unlock_cache_mutex,
-    (void *) SCM_UNPACK (scm_cons2 (gf, x, args)),
-    (void *) SCM_UNPACK (SCM_SLOT (gf, scm_si_cache_mutex)));
+  return scm_call_3 (SCM_VARIABLE_REF (var_memoize_method_x), gf, args, cache);
 }
 
 /******************************************************************************
