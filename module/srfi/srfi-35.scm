@@ -100,9 +100,22 @@
 	      (cons "pr" layout)))))
 
 (define (print-condition c port)
-  (format port "#<condition ~a ~a>"
-	  (condition-type-id (condition-type c))
-	  (number->string (object-address c) 16)))
+  ;; Print condition C to PORT in a way similar to how records print:
+  ;; #<condition TYPE [FIELD: VALUE ...] ADDRESS>.
+  (define (field-values)
+    (let* ((type    (struct-vtable c))
+           (strings (fold (lambda (field result)
+                            (cons (format #f "~A: ~S" field
+                                          (condition-ref c field))
+                                  result))
+                          '()
+                          (condition-type-all-fields type))))
+      (string-join (reverse strings) " ")))
+
+  (format port "#<condition ~a [~a] ~a>"
+          (condition-type-id (condition-type c))
+          (field-values)
+          (number->string (object-address c) 16)))
 
 (define (make-condition-type id parent field-names)
   "Return a new condition type named ID, inheriting from PARENT, and with the
