@@ -3,7 +3,7 @@
 #ifndef SCM_READ_H
 #define SCM_READ_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -56,7 +56,7 @@ SCM_API SCM scm_read_options (SCM setting);
 SCM_API SCM scm_read (SCM port);
 SCM_API size_t scm_read_token (int ic, SCM * tok_buf, SCM port, int weird);
 SCM_API SCM scm_read_hash_extend (SCM chr, SCM proc);
-SCM_INTERNAL char *scm_scan_for_encoding (SCM port);
+SCM_INTERNAL char *scm_i_scan_for_encoding (SCM port);
 SCM_API SCM scm_file_encoding (SCM port);
 
 SCM_INTERNAL void scm_i_input_error (const char *func, SCM port,

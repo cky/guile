@@ -98,15 +98,14 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
-    encoding = scm_scan_for_encoding (port);
+
+    encoding = scm_i_scan_for_encoding (port);
     if (encoding)
-      {
-	scm_i_set_port_encoding_x (port, encoding);
-	free (encoding);
-      }
+      scm_i_set_port_encoding_x (port, encoding);
     else
-      /* The file has no encoding declaraed.  We'll presume Latin-1.  */
+      /* The file has no encoding declared.  We'll presume Latin-1.  */
       scm_i_set_port_encoding_x (port, NULL);
+
     while (1)
       {
 	SCM reader, form;

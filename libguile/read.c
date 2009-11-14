@@ -1460,10 +1460,11 @@ scm_get_hash_procedure (int c)
 
 #define SCM_ENCODING_SEARCH_SIZE (500)
 
-/* Search the first few hundred characters of a file for
-   an emacs-like coding declaration.  */
+/* Search the first few hundred characters of a file for an Emacs-like coding
+   declaration.  Returns either NULL or a string whose storage has been
+   allocated with `scm_gc_malloc ()'.  */
 char *
-scm_scan_for_encoding (SCM port)
+scm_i_scan_for_encoding (SCM port)
 {
   char header[SCM_ENCODING_SEARCH_SIZE+1];
   size_t bytes_read;
@@ -1512,9 +1513,7 @@ scm_scan_for_encoding (SCM port)
   if (i == 0)
     return NULL;
 
-  encoding = scm_malloc (i+1);
-  memcpy (encoding, pos, i);
-  encoding[i] ='\0';
+  encoding = scm_gc_strndup (pos, i + 1, "encoding");
   for (i = 0; i < strlen (encoding); i++)
     encoding[i] = toupper ((int) encoding[i]);
 
@@ -1540,16 +1539,14 @@ scm_scan_for_encoding (SCM port)
       i ++;
     }
   if (!in_comment)
-    {
-      /* This wasn't in a comment */
-      free (encoding);
-      return NULL;
-    }
+    /* This wasn't in a comment */
+    return NULL;
+
   if (utf8_bom && strcmp(encoding, "UTF-8"))
     scm_misc_error (NULL, 
 		    "the port input declares the encoding ~s but is encoded as UTF-8",
 		    scm_list_1 (scm_from_locale_string (encoding)));
-      
+
   return encoding;
 }
 
@@ -1566,17 +1563,16 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
 {
   char *enc;
   SCM s_enc;
-  
-  enc = scm_scan_for_encoding (port);
+
+  enc = scm_i_scan_for_encoding (port);
   if (enc == NULL)
     return SCM_BOOL_F;
   else
     {
       s_enc = scm_from_locale_string (enc);
-      free (enc);
       return s_enc;
     }
-  
+
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
