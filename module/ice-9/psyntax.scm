@@ -2699,6 +2699,17 @@
          (with-syntax (((exp ...) (read-file fn #'k)))
            #'(begin exp ...)))))))
 
+(define-syntax include-from-path
+  (lambda (x)
+    (syntax-case x ()
+      ((k filename)
+       (let ((fn (syntax->datum #'filename)))
+         (with-syntax ((fn (or (%search-load-path fn)
+                               (syntax-violation 'include-from-path
+                                                 "file not found in path"
+                                                 x #'filename))))
+           #'(include fn)))))))
+
 (define-syntax unquote
   (lambda (x)
     (syntax-case x ()

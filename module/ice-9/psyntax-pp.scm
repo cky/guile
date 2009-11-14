@@ -13694,18 +13694,41 @@
             ($sc-dispatch #{tmp\ 1950}# (quote (any any)))))
          #{x\ 1943}#)))))
 
-(define unquote
+(define include-from-path
   (make-syncase-macro
     'macro
     (lambda (#{x\ 1959}#)
       ((lambda (#{tmp\ 1960}#)
          ((lambda (#{tmp\ 1961}#)
             (if #{tmp\ 1961}#
-              (apply (lambda (#{_\ 1962}# #{e\ 1963}#)
-                       (syntax-violation
-                         'unquote
-                         "expression not valid outside of quasiquote"
-                         #{x\ 1959}#))
+              (apply (lambda (#{k\ 1962}# #{filename\ 1963}#)
+                       (let ((#{fn\ 1964}# (syntax->datum #{filename\ 1963}#)))
+                         ((lambda (#{tmp\ 1965}#)
+                            ((lambda (#{fn\ 1966}#)
+                               (list '#(syntax-object
+                                        include
+                                        ((top)
+                                         #(ribcage #(fn) #((top)) #("i"))
+                                         #(ribcage () () ())
+                                         #(ribcage () () ())
+                                         #(ribcage #(fn) #((top)) #("i"))
+                                         #(ribcage
+                                           #(k filename)
+                                           #((top) (top))
+                                           #("i" "i"))
+                                         #(ribcage () () ())
+                                         #(ribcage #(x) #((top)) #("i")))
+                                        (hygiene guile))
+                                     #{fn\ 1966}#))
+                             #{tmp\ 1965}#))
+                          (let ((#{t\ 1967}# (%search-load-path #{fn\ 1964}#)))
+                            (if #{t\ 1967}#
+                              #{t\ 1967}#
+                              (syntax-violation
+                                'include-from-path
+                                "file not found in path"
+                                #{x\ 1959}#
+                                #{filename\ 1963}#))))))
                      #{tmp\ 1961}#)
               (syntax-violation
                 #f
@@ -13714,40 +13737,60 @@
           ($sc-dispatch #{tmp\ 1960}# (quote (any any)))))
        #{x\ 1959}#))))
 
-(define unquote-splicing
+(define unquote
   (make-syncase-macro
     'macro
-    (lambda (#{x\ 1964}#)
-      ((lambda (#{tmp\ 1965}#)
-         ((lambda (#{tmp\ 1966}#)
-            (if #{tmp\ 1966}#
-              (apply (lambda (#{_\ 1967}# #{e\ 1968}#)
+    (lambda (#{x\ 1968}#)
+      ((lambda (#{tmp\ 1969}#)
+         ((lambda (#{tmp\ 1970}#)
+            (if #{tmp\ 1970}#
+              (apply (lambda (#{_\ 1971}# #{e\ 1972}#)
                        (syntax-violation
-                         'unquote-splicing
+                         'unquote
                          "expression not valid outside of quasiquote"
-                         #{x\ 1964}#))
-                     #{tmp\ 1966}#)
+                         #{x\ 1968}#))
+                     #{tmp\ 1970}#)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                #{tmp\ 1965}#)))
-          ($sc-dispatch #{tmp\ 1965}# (quote (any any)))))
-       #{x\ 1964}#))))
+                #{tmp\ 1969}#)))
+          ($sc-dispatch #{tmp\ 1969}# (quote (any any)))))
+       #{x\ 1968}#))))
+
+(define unquote-splicing
+  (make-syncase-macro
+    'macro
+    (lambda (#{x\ 1973}#)
+      ((lambda (#{tmp\ 1974}#)
+         ((lambda (#{tmp\ 1975}#)
+            (if #{tmp\ 1975}#
+              (apply (lambda (#{_\ 1976}# #{e\ 1977}#)
+                       (syntax-violation
+                         'unquote-splicing
+                         "expression not valid outside of quasiquote"
+                         #{x\ 1973}#))
+                     #{tmp\ 1975}#)
+              (syntax-violation
+                #f
+                "source expression failed to match any pattern"
+                #{tmp\ 1974}#)))
+          ($sc-dispatch #{tmp\ 1974}# (quote (any any)))))
+       #{x\ 1973}#))))
 
 (define case
   (make-extended-syncase-macro
     (module-ref (current-module) (quote case))
     'macro
-    (lambda (#{x\ 1969}#)
-      ((lambda (#{tmp\ 1970}#)
-         ((lambda (#{tmp\ 1971}#)
-            (if #{tmp\ 1971}#
-              (apply (lambda (#{_\ 1972}#
-                              #{e\ 1973}#
-                              #{m1\ 1974}#
-                              #{m2\ 1975}#)
-                       ((lambda (#{tmp\ 1976}#)
-                          ((lambda (#{body\ 1977}#)
+    (lambda (#{x\ 1978}#)
+      ((lambda (#{tmp\ 1979}#)
+         ((lambda (#{tmp\ 1980}#)
+            (if #{tmp\ 1980}#
+              (apply (lambda (#{_\ 1981}#
+                              #{e\ 1982}#
+                              #{m1\ 1983}#
+                              #{m2\ 1984}#)
+                       ((lambda (#{tmp\ 1985}#)
+                          ((lambda (#{body\ 1986}#)
                              (list '#(syntax-object
                                       let
                                       ((top)
@@ -13776,17 +13819,17 @@
                                                      #((top))
                                                      #("i")))
                                                   (hygiene guile))
-                                               #{e\ 1973}#))
-                                   #{body\ 1977}#))
-                           #{tmp\ 1976}#))
-                        (letrec ((#{f\ 1978}#
-                                   (lambda (#{clause\ 1979}# #{clauses\ 1980}#)
-                                     (if (null? #{clauses\ 1980}#)
-                                       ((lambda (#{tmp\ 1982}#)
-                                          ((lambda (#{tmp\ 1983}#)
-                                             (if #{tmp\ 1983}#
-                                               (apply (lambda (#{e1\ 1984}#
-                                                               #{e2\ 1985}#)
+                                               #{e\ 1982}#))
+                                   #{body\ 1986}#))
+                           #{tmp\ 1985}#))
+                        (letrec ((#{f\ 1987}#
+                                   (lambda (#{clause\ 1988}# #{clauses\ 1989}#)
+                                     (if (null? #{clauses\ 1989}#)
+                                       ((lambda (#{tmp\ 1991}#)
+                                          ((lambda (#{tmp\ 1992}#)
+                                             (if #{tmp\ 1992}#
+                                               (apply (lambda (#{e1\ 1993}#
+                                                               #{e2\ 1994}#)
                                                         (cons '#(syntax-object
                                                                  begin
                                                                  ((top)
@@ -13832,14 +13875,14 @@
                                                                     #("i")))
                                                                  (hygiene
                                                                    guile))
-                                                              (cons #{e1\ 1984}#
-                                                                    #{e2\ 1985}#)))
-                                                      #{tmp\ 1983}#)
-                                               ((lambda (#{tmp\ 1987}#)
-                                                  (if #{tmp\ 1987}#
-                                                    (apply (lambda (#{k\ 1988}#
-                                                                    #{e1\ 1989}#
-                                                                    #{e2\ 1990}#)
+                                                              (cons #{e1\ 1993}#
+                                                                    #{e2\ 1994}#)))
+                                                      #{tmp\ 1992}#)
+                                               ((lambda (#{tmp\ 1996}#)
+                                                  (if #{tmp\ 1996}#
+                                                    (apply (lambda (#{k\ 1997}#
+                                                                    #{e1\ 1998}#
+                                                                    #{e2\ 1999}#)
                                                              (list '#(syntax-object
                                                                       if
                                                                       ((top)
@@ -14040,7 +14083,7 @@
                                                                                      #("i")))
                                                                                   (hygiene
                                                                                     guile))
-                                                                               #{k\ 1988}#))
+                                                                               #{k\ 1997}#))
                                                                    (cons '#(syntax-object
                                                                             begin
                                                                             ((top)
@@ -14091,24 +14134,24 @@
                                                                                #("i")))
                                                                             (hygiene
                                                                               guile))
-                                                                         (cons #{e1\ 1989}#
-                                                                               #{e2\ 1990}#))))
-                                                           #{tmp\ 1987}#)
-                                                    ((lambda (#{_\ 1993}#)
+                                                                         (cons #{e1\ 1998}#
+                                                                               #{e2\ 1999}#))))
+                                                           #{tmp\ 1996}#)
+                                                    ((lambda (#{_\ 2002}#)
                                                        (syntax-violation
                                                          'case
                                                          "bad clause"
-                                                         #{x\ 1969}#
-                                                         #{clause\ 1979}#))
-                                                     #{tmp\ 1982}#)))
+                                                         #{x\ 1978}#
+                                                         #{clause\ 1988}#))
+                                                     #{tmp\ 1991}#)))
                                                 ($sc-dispatch
-                                                  #{tmp\ 1982}#
+                                                  #{tmp\ 1991}#
                                                   '(each-any
                                                      any
                                                      .
                                                      each-any)))))
                                            ($sc-dispatch
-                                             #{tmp\ 1982}#
+                                             #{tmp\ 1991}#
                                              '(#(free-id
                                                  #(syntax-object
                                                    else
@@ -14134,15 +14177,15 @@
                                                any
                                                .
                                                each-any))))
-                                        #{clause\ 1979}#)
-                                       ((lambda (#{tmp\ 1994}#)
-                                          ((lambda (#{rest\ 1995}#)
-                                             ((lambda (#{tmp\ 1996}#)
-                                                ((lambda (#{tmp\ 1997}#)
-                                                   (if #{tmp\ 1997}#
-                                                     (apply (lambda (#{k\ 1998}#
-                                                                     #{e1\ 1999}#
-                                                                     #{e2\ 2000}#)
+                                        #{clause\ 1988}#)
+                                       ((lambda (#{tmp\ 2003}#)
+                                          ((lambda (#{rest\ 2004}#)
+                                             ((lambda (#{tmp\ 2005}#)
+                                                ((lambda (#{tmp\ 2006}#)
+                                                   (if #{tmp\ 2006}#
+                                                     (apply (lambda (#{k\ 2007}#
+                                                                     #{e1\ 2008}#
+                                                                     #{e2\ 2009}#)
                                                               (list '#(syntax-object
                                                                        if
                                                                        ((top)
@@ -14359,7 +14402,7 @@
                                                                                       #("i")))
                                                                                    (hygiene
                                                                                      guile))
-                                                                                #{k\ 1998}#))
+                                                                                #{k\ 2007}#))
                                                                     (cons '#(syntax-object
                                                                              begin
                                                                              ((top)
@@ -14414,47 +14457,47 @@
                                                                                 #("i")))
                                                                              (hygiene
                                                                                guile))
-                                                                          (cons #{e1\ 1999}#
-                                                                                #{e2\ 2000}#))
-                                                                    #{rest\ 1995}#))
-                                                            #{tmp\ 1997}#)
-                                                     ((lambda (#{_\ 2003}#)
+                                                                          (cons #{e1\ 2008}#
+                                                                                #{e2\ 2009}#))
+                                                                    #{rest\ 2004}#))
+                                                            #{tmp\ 2006}#)
+                                                     ((lambda (#{_\ 2012}#)
                                                         (syntax-violation
                                                           'case
                                                           "bad clause"
-                                                          #{x\ 1969}#
-                                                          #{clause\ 1979}#))
-                                                      #{tmp\ 1996}#)))
+                                                          #{x\ 1978}#
+                                                          #{clause\ 1988}#))
+                                                      #{tmp\ 2005}#)))
                                                  ($sc-dispatch
-                                                   #{tmp\ 1996}#
+                                                   #{tmp\ 2005}#
                                                    '(each-any
                                                       any
                                                       .
                                                       each-any))))
-                                              #{clause\ 1979}#))
-                                           #{tmp\ 1994}#))
-                                        (#{f\ 1978}#
-                                          (car #{clauses\ 1980}#)
-                                          (cdr #{clauses\ 1980}#)))))))
-                          (#{f\ 1978}# #{m1\ 1974}# #{m2\ 1975}#))))
-                     #{tmp\ 1971}#)
+                                              #{clause\ 1988}#))
+                                           #{tmp\ 2003}#))
+                                        (#{f\ 1987}#
+                                          (car #{clauses\ 1989}#)
+                                          (cdr #{clauses\ 1989}#)))))))
+                          (#{f\ 1987}# #{m1\ 1983}# #{m2\ 1984}#))))
+                     #{tmp\ 1980}#)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                #{tmp\ 1970}#)))
+                #{tmp\ 1979}#)))
           ($sc-dispatch
-            #{tmp\ 1970}#
+            #{tmp\ 1979}#
             '(any any any . each-any))))
-       #{x\ 1969}#))))
+       #{x\ 1978}#))))
 
 (define identifier-syntax
   (make-syncase-macro
     'macro
-    (lambda (#{x\ 2004}#)
-      ((lambda (#{tmp\ 2005}#)
-         ((lambda (#{tmp\ 2006}#)
-            (if #{tmp\ 2006}#
-              (apply (lambda (#{_\ 2007}# #{e\ 2008}#)
+    (lambda (#{x\ 2013}#)
+      ((lambda (#{tmp\ 2014}#)
+         ((lambda (#{tmp\ 2015}#)
+            (if #{tmp\ 2015}#
+              (apply (lambda (#{_\ 2016}# #{e\ 2017}#)
                        (list '#(syntax-object
                                 lambda
                                 ((top)
@@ -14543,8 +14586,8 @@
                                                      #((top))
                                                      #("i")))
                                                   (hygiene guile))
-                                               #{e\ 2008}#))
-                                   (list (cons #{_\ 2007}#
+                                               #{e\ 2017}#))
+                                   (list (cons #{_\ 2016}#
                                                '(#(syntax-object
                                                    x
                                                    ((top)
@@ -14584,7 +14627,7 @@
                                                      #((top))
                                                      #("i")))
                                                   (hygiene guile))
-                                               (cons #{e\ 2008}#
+                                               (cons #{e\ 2017}#
                                                      '(#(syntax-object
                                                          x
                                                          ((top)
@@ -14612,26 +14655,26 @@
                                                             #("i")))
                                                          (hygiene
                                                            guile)))))))))
-                     #{tmp\ 2006}#)
+                     #{tmp\ 2015}#)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                #{tmp\ 2005}#)))
-          ($sc-dispatch #{tmp\ 2005}# (quote (any any)))))
-       #{x\ 2004}#))))
+                #{tmp\ 2014}#)))
+          ($sc-dispatch #{tmp\ 2014}# (quote (any any)))))
+       #{x\ 2013}#))))
 
 (define define*
   (make-syncase-macro
     'macro
-    (lambda (#{x\ 2009}#)
-      ((lambda (#{tmp\ 2010}#)
-         ((lambda (#{tmp\ 2011}#)
-            (if #{tmp\ 2011}#
-              (apply (lambda (#{dummy\ 2012}#
-                              #{id\ 2013}#
-                              #{args\ 2014}#
-                              #{b0\ 2015}#
-                              #{b1\ 2016}#)
+    (lambda (#{x\ 2018}#)
+      ((lambda (#{tmp\ 2019}#)
+         ((lambda (#{tmp\ 2020}#)
+            (if #{tmp\ 2020}#
+              (apply (lambda (#{dummy\ 2021}#
+                              #{id\ 2022}#
+                              #{args\ 2023}#
+                              #{b0\ 2024}#
+                              #{b1\ 2025}#)
                        (list '#(syntax-object
                                 define
                                 ((top)
@@ -14642,7 +14685,7 @@
                                  #(ribcage () () ())
                                  #(ribcage #(x) #(("m" top)) #("i")))
                                 (hygiene guile))
-                             #{id\ 2013}#
+                             #{id\ 2022}#
                              (cons '#(syntax-object
                                       lambda*
                                       ((top)
@@ -14653,15 +14696,15 @@
                                        #(ribcage () () ())
                                        #(ribcage #(x) #(("m" top)) #("i")))
                                       (hygiene guile))
-                                   (cons #{args\ 2014}#
-                                         (cons #{b0\ 2015}# #{b1\ 2016}#)))))
-                     #{tmp\ 2011}#)
+                                   (cons #{args\ 2023}#
+                                         (cons #{b0\ 2024}# #{b1\ 2025}#)))))
+                     #{tmp\ 2020}#)
               (syntax-violation
                 #f
                 "source expression failed to match any pattern"
-                #{tmp\ 2010}#)))
+                #{tmp\ 2019}#)))
           ($sc-dispatch
-            #{tmp\ 2010}#
+            #{tmp\ 2019}#
             '(any (any . any) any . each-any))))
-       #{x\ 2009}#))))
+       #{x\ 2018}#))))
 
