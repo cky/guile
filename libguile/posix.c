@@ -1554,34 +1554,6 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_SETLOCALE */
-SCM_DEFINE (scm_setbinary, "setbinary", 0, 0, 0,
-            (void),
-	    "Sets the encoding for the current input, output, and error\n"
-	    "ports to ISO-8859-1.  That character encoding allows\n"
-	    "ports to operate on binary data.\n"
-	    "\n"
-	    "It also sets the default encoding for newly created ports\n"
-	    "to ISO-8859-1.\n"
-            "\n"
-            "The previous default encoding for new ports is returned\n")
-#define FUNC_NAME s_scm_setbinary
-{
-  const char *enc = scm_i_get_port_encoding (SCM_BOOL_F);
-
-  /* Set the default encoding for new ports.  */
-  scm_i_set_port_encoding_x (SCM_BOOL_F, NULL);
-  /* Set the encoding for the stdio ports.  */
-  scm_i_set_port_encoding_x (scm_current_input_port (), NULL);
-  scm_i_set_port_encoding_x (scm_current_output_port (), NULL);
-  scm_i_set_port_encoding_x (scm_current_error_port (), NULL);
-
-  if (enc)
-    return scm_from_locale_string (enc);
-
-  return scm_from_locale_string ("ISO-8859-1");
-}
-#undef FUNC_NAME
-
 
 #ifdef HAVE_MKNOD
 SCM_DEFINE (scm_mknod, "mknod", 4, 0, 0,

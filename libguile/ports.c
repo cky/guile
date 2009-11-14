@@ -1917,10 +1917,11 @@ SCM_DEFINE (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* The default port encoding for this locale. New ports will have this
-   encoding.  If it is a string, that is the encoding.  If it #f, it
-   is in the native (Latin-1) encoding.  */
-SCM_GLOBAL_VARIABLE (scm_port_encoding_var, "%port-encoding");
+/* A fluid specifying the default encoding for newly created ports.  If it is
+   a string, that is the encoding.  If it is #f, it is in the "native"
+   (Latin-1) encoding.  */
+SCM_VARIABLE (default_port_encoding_var, "%default-port-encoding");
+
 static int scm_port_encoding_init = 0;
 
 /* Return a C string representation of the current encoding.  */
@@ -1933,11 +1934,11 @@ scm_i_get_port_encoding (SCM port)
     {
       if (!scm_port_encoding_init)
 	return NULL;
-      else if (!scm_is_fluid (SCM_VARIABLE_REF (scm_port_encoding_var)))
+      else if (!scm_is_fluid (SCM_VARIABLE_REF (default_port_encoding_var)))
 	return NULL;
       else
 	{
-	  encoding = scm_fluid_ref (SCM_VARIABLE_REF (scm_port_encoding_var));
+	  encoding = scm_fluid_ref (SCM_VARIABLE_REF (default_port_encoding_var));
 	  if (!scm_is_string (encoding))
 	    return NULL;
 	  else
@@ -2002,7 +2003,7 @@ scm_i_set_port_encoding_x (SCM port, const char *enc)
     {
       /* Set the default encoding for future ports.  */
       if (!scm_port_encoding_init
-	  || !scm_is_fluid (SCM_VARIABLE_REF (scm_port_encoding_var)))
+	  || !scm_is_fluid (SCM_VARIABLE_REF (default_port_encoding_var)))
 	scm_misc_error (NULL, "tried to set port encoding fluid before it is initialized",
                        SCM_EOL);
 
@@ -2010,9 +2011,9 @@ scm_i_set_port_encoding_x (SCM port, const char *enc)
           || !strcmp (valid_enc, "ASCII")
           || !strcmp (valid_enc, "ANSI_X3.4-1968")
           || !strcmp (valid_enc, "ISO-8859-1"))
-        scm_fluid_set_x (SCM_VARIABLE_REF (scm_port_encoding_var), SCM_BOOL_F);
+        scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
       else
-        scm_fluid_set_x (SCM_VARIABLE_REF (scm_port_encoding_var), 
+        scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), 
                          scm_from_locale_string (valid_enc));
     }
   else
@@ -2045,7 +2046,7 @@ SCM_DEFINE (scm_port_encoding, "port-encoding", 1, 0, 0,
     return scm_from_locale_string ("NONE");
 }
 #undef FUNC_NAME
-  
+
 SCM_DEFINE (scm_set_port_encoding_x, "set-port-encoding!", 2, 0, 0,
 	    (SCM port, SCM enc),
 	    "Sets the character encoding that will be used to interpret all\n"
@@ -2053,7 +2054,6 @@ SCM_DEFINE (scm_set_port_encoding_x, "set-port-encoding!", 2, 0, 0,
 	    "appropriate for the current locale if @code{setlocale} has \n"
 	    "been called or ISO-8859-1 otherwise\n"
 	    "and this procedure can be used to modify that encoding.\n")
-
 #define FUNC_NAME s_scm_set_port_encoding_x
 {
   char *enc_str;
@@ -2347,12 +2347,14 @@ scm_init_ports ()
   cur_loadport_fluid = scm_permanent_object (scm_make_fluid ());
 
   scm_i_port_weak_hash = scm_permanent_object (scm_make_weak_key_hash_table (SCM_I_MAKINUM(31)));
+
 #include "libguile/ports.x"
 
-  SCM_VARIABLE_SET (scm_port_encoding_var, scm_make_fluid ());
-  scm_fluid_set_x (SCM_VARIABLE_REF (scm_port_encoding_var), SCM_BOOL_F);
+  /* Use Latin-1 as the default port encoding.  */
+  SCM_VARIABLE_SET (default_port_encoding_var, scm_make_fluid ());
+  scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
   scm_port_encoding_init = 1;
-  
+
   SCM_VARIABLE_SET (scm_conversion_strategy, scm_make_fluid ());
   scm_fluid_set_x (SCM_VARIABLE_REF (scm_conversion_strategy), 
 		   scm_from_int ((int) SCM_FAILED_CONVERSION_QUESTION_MARK));

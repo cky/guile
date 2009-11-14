@@ -666,14 +666,17 @@ and @code{UTF-32} may not be used because they are not compatible with
 ASCII.
 
 @cindex read
-@cindex set-port-encoding!
+@cindex encoding
+@cindex port encoding
+@findex set-port-encoding!
 There might be a scenario in which one would want to read non-ASCII
 code from a port, such as with the function @code{read}, instead of
 with @code{load}.  If the port's character encoding is the same as the
 encoding of the code to be read by the port, not other special
 handling is necessary.  The port will automatically do the character
 encoding conversion.  The functions @code{setlocale} or by
-@code{set-port-encoding!} are used to set port encodings.
+@code{set-port-encoding!} are used to set port encodings
+(@pxref{Ports}).
 
 If a port is used to read code of unknown character encoding, it can
 accomplish this in three steps.  First, the character encoding of the

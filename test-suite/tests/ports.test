@@ -1,7 +1,7 @@
 ;;;; ports.test --- test suite for Guile I/O ports     -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -33,8 +33,12 @@
 
 ;;;; Some general utilities for testing ports.
 
-;;; Make sure we are set up for 8-bit data
-(setbinary)
+;; Make sure we are set up for 8-bit Latin-1 data.
+(fluid-set! %default-port-encoding "ISO-8859-1")
+(for-each (lambda (p)
+            (set-port-encoding! p (fluid-ref %default-port-encoding)))
+          (list (current-input-port) (current-output-port)
+                (current-error-port)))
 
 ;;; Read from PORT until EOF, and return the result as a string.
 (define (read-all port)

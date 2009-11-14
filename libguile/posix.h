@@ -3,7 +3,7 @@
 #ifndef SCM_POSIX_H
 #define SCM_POSIX_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -74,7 +74,6 @@ SCM_API SCM scm_access (SCM path, SCM how);
 SCM_API SCM scm_getpid (void);
 SCM_API SCM scm_putenv (SCM str);
 SCM_API SCM scm_setlocale (SCM category, SCM locale);
-SCM_API SCM scm_setbinary (void);
 SCM_API SCM scm_mknod (SCM path, SCM type, SCM perms, SCM dev);
 SCM_API SCM scm_nice (SCM incr);
 SCM_API SCM scm_sync (void);
