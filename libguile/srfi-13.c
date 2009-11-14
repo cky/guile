@@ -1097,13 +1097,13 @@ SCM_DEFINE (scm_string_compare_ci, "string-compare-ci", 5, 4, 0,
 
 /* This function compares two substrings, S1 from START1 to END1 and
    S2 from START2 to END2, possibly case insensitively, and returns
-   one of the parameters LESSTHAN, GREATERTHAN, LONGER, SHORTER, or
-   EQUAL depending if S1 is less than S2, greater than S2, longer,
-   shorter, or equal. */
+   one of the parameters LESSTHAN, GREATERTHAN, SHORTER, LONGER, or
+   EQUAL depending if S1 is less than S2, greater than S2, shorter,
+   longer, or equal. */
 static SCM
 compare_strings (const char *fname, int case_insensitive,
 		 SCM s1, SCM s2, SCM start1, SCM end1, SCM start2, SCM end2,
-		 SCM lessthan, SCM greaterthan, SCM longer, SCM shorter, SCM equal)
+		 SCM lessthan, SCM greaterthan, SCM shorter, SCM longer, SCM equal)
 {
   size_t cstart1, cend1, cstart2, cend2;
   SCM ret;
