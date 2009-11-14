@@ -55,7 +55,11 @@ SOURCES =								\
   $(BRAINFUCK_LANG_SOURCES)
 
 ## test.scm is not currently installed.
-EXTRA_DIST += ice-9/test.scm ice-9/compile-psyntax.scm ice-9/ChangeLog-2008
+EXTRA_DIST +=					\
+  ice-9/test.scm				\
+  ice-9/compile-psyntax.scm			\
+  ice-9/quasisyntax.scm				\
+  ice-9/ChangeLog-2008
 
 # We expect this to never be invoked when there is not already
 # ice-9/psyntax-pp.scm in %load-path, since compile-psyntax.scm depends

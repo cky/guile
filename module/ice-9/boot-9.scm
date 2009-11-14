@@ -308,6 +308,8 @@
   (syntax-rules ()
     ((_ exp) (make-promise (lambda () exp)))))
 
+(include-from-path "ice-9/quasisyntax")
+
 ;;; @bind is used by the old elisp code as a dynamic scoping mechanism.
 ;;; Please let the Guile developers know if you are using this macro.
 ;;;
