@@ -22,6 +22,20 @@
   #:use-module (system base compile)
   #:use-module (ice-9 optargs))
 
+(define exception:unrecognized-keyword
+  ;; Can be `vm-error' or `misc-error' depending on whether we use the
+  ;; interpreter or VM:
+  ;;  (vm-error vm-run "Bad keyword argument list: unrecognized keyword" ())
+  ;;  (misc-error #f "~A ~S" ("unrecognized keyword" (#:y 2)) #f)
+  (cons #t ".*"))
+
+(define exception:extraneous-arguments
+  ;; Can be `vm-error' or `misc-error' depending on whether we use the
+  ;; interpreter or VM, and depending on the evenness of the number of extra
+  ;; arguments (!).
+  (cons #t ".*"))
+
+
 (define-syntax c&e
   (syntax-rules (pass-if pass-if-exception)
     ((_ (pass-if test-name exp))
@@ -146,4 +160,21 @@
 (with-test-prefix/c&e "define*"
   (pass-if "the whole enchilada"
     (equal? (foo 1 2)
-            '(1 2 #f 1 #f #f #f 1 () ()))))
+            '(1 2 #f 1 #f #f #f 1 () ())))
+
+  (pass-if-exception "extraneous arguments"
+    exception:extraneous-arguments
+    (let ((f (lambda* (#:key x) x)))
+      (f 1 2 #:x 'x)))
+
+  (pass-if-exception "unrecognized keyword"
+    exception:unrecognized-keyword
+    (let ((f (lambda* (#:key x) x)))
+      (f #:y 'not-recognized)))
+
+  (pass-if "rest given before keywords"
+    ;; Passing the rest argument before the keyword arguments should not
+    ;; prevent keyword argument binding.
+    (let ((f (lambda* (#:key x y z #:rest r) (list x y z r))))
+      (equal? (f 1 2 3 #:x 'x #:z 'z)
+              '(x #f z (1 2 3 #:x x #:z z))))))
