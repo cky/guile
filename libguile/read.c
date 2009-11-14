@@ -1513,7 +1513,7 @@ scm_i_scan_for_encoding (SCM port)
   if (i == 0)
     return NULL;
 
-  encoding = scm_gc_strndup (pos, i + 1, "encoding");
+  encoding = scm_gc_strndup (pos, i, "encoding");
   for (i = 0; i < strlen (encoding); i++)
     encoding[i] = toupper ((int) encoding[i]);
 
