@@ -343,11 +343,22 @@ AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
     [ac_cv_have_thread_storage_class],
     [dnl On some systems, e.g., NetBSD 5.0 with GCC 4.1, `__thread' is
      dnl properly compiled but fails to link due to the lack of TLS
-     dnl support in the C library.  Thus we try to link, not just compile.
-     AC_LINK_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
-		      [tls_integer = 123;])],
-       [ac_cv_have_thread_storage_class="yes"],
-       [ac_cv_have_thread_storage_class="no"])])
+     dnl support in the C library.  Thus we try to link, not just
+     dnl compile.  Unfortunately, this test is not enough, so we
+     dnl explicitly check for known-broken systems.  See
+     dnl http://lists.gnu.org/archive/html/guile-devel/2009-10/msg00138.html
+     dnl for details.
+     case "x$enable_shared--$host" in
+       xyes--*netbsd[0-5].[0-9])
+         ac_cv_have_thread_storage_class="no"
+	 ;;
+       *)
+	 AC_LINK_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
+			  [tls_integer = 123;])],
+	   [ac_cv_have_thread_storage_class="yes"],
+	   [ac_cv_have_thread_storage_class="no"])
+	 ;;
+     esac])
 
   if test "x$ac_cv_have_thread_storage_class" = "xyes"; then
      SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS=1
