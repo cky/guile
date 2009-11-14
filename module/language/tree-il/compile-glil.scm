@@ -108,6 +108,9 @@
    ((vector-ref . 2) . vector-ref)
    ((vector-set! . 3) . vector-set)
 
+   ;; hack for javascript
+   ((return . 1) return)
+
    ((bytevector-u8-ref . 2) . bv-u8-ref)
    ((bytevector-u8-set! . 3) . bv-u8-set)
    ((bytevector-s8-ref . 2) . bv-s8-ref)

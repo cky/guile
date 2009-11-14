@@ -33,7 +33,7 @@
 (define-syntax @implv
   (syntax-rules ()
     ((_ sym)
-     (-> (module-ref '(language ecmascript impl) 'sym #t)))))
+     (-> (@ '(language ecmascript impl) 'sym)))))
 
 (define-syntax @impl
   (syntax-rules ()
@@ -44,7 +44,7 @@
   '())
 
 (define (econs name gensym env)
-  (acons name gensym env))
+  (acons name (-> (lexical name gensym)) env))
 
 (define (lookup name env)
   (or (assq-ref env name)
@@ -52,7 +52,9 @@
 
 (define (compile-tree-il exp env opts)
   (values
-   (parse-tree-il (comp exp (empty-lexical-environment)))
+   (parse-tree-il
+    (-> (begin (@impl js-init)
+               (comp exp (empty-lexical-environment)))))
    env
    env))
 
@@ -99,7 +101,7 @@
       ((string ,str)
        (-> (const str)))
       (this
-       (@impl get-this '()))
+       (@impl get-this))
       ((+ ,a)
        (-> (apply (-> (primitive '+))
                   (@impl ->number (comp a e))
@@ -166,7 +168,7 @@
        (-> (if (@impl ->boolean (comp test e))
                (comp then e)
                (comp else e))))
-      ((if ,test ,then ,else)
+      ((if ,test ,then)
        (-> (if (@impl ->boolean (comp test e))
                (comp then e)
                (@implv *undefined*))))
@@ -314,32 +316,36 @@
       ((ref ,id)
        (lookup id e))
       ((var . ,forms)
-       (-> (begin
-             (map (lambda (form)
-                    (pmatch form
-                      ((,x ,y)
-                       (-> (define x (comp y e))))
-                      ((,x)
-                       (-> (define x (@implv *undefined*))))
-                      (else (error "bad var form" form))))
-                  forms))))
+       `(begin
+          ,@(map (lambda (form)
+                   (pmatch form
+                     ((,x ,y)
+                      (-> (define x (comp y e))))
+                     ((,x)
+                      (-> (define x (@implv *undefined*))))
+                     (else (error "bad var form" form))))
+                 forms)))
+      ((begin)
+       (-> (void)))
+      ((begin ,form)
+       (comp form e))
       ((begin . ,forms)
        `(begin ,@(map (lambda (x) (comp x e)) forms)))
       ((lambda ,formals ,body)
        (let ((syms (map (lambda (x)
                           (gensym (string-append (symbol->string x) " ")))
                         formals)))
-         (-> (lambda '()
-               (-> (lambda-case
-                    `((() ,formals #f #f () ,syms #f)
-                      ,(comp-body e body formals syms))))))))
+         `(lambda ()
+            (lambda-case
+             ((() ,formals #f #f ,(map (lambda (x) (@implv *undefined*)) formals) ,syms #f)
+              ,(comp-body e body formals syms))))))
       ((call/this ,obj ,prop . ,args)
        (@impl call/this*
               obj
               (-> (lambda '() 
-                    (-> (lambda-case
-                         `((() #f #f #f () () #f)
-                           (apply ,(@impl pget obj prop) ,@args))))))))
+                    `(lambda-case
+                      ((() #f #f #f () () #f)
+                       (apply ,(@impl pget obj prop) ,@args)))))))
       ((call (pref ,obj ,prop) ,args)
        (comp `(call/this ,(comp obj e)
                          ,(-> (const prop))
@@ -551,5 +557,5 @@
                         (gensym (string-append (symbol->string x) " ")))
                       names))
            (e (fold econs (fold econs e formals formal-syms) names syms)))
-      (-> (let names syms (map (lambda (x) (->@implv *undefined*)) names)
+      (-> (let names syms (map (lambda (x) (@implv *undefined*)) names)
                (comp out e))))))
