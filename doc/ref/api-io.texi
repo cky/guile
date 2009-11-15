@@ -107,19 +107,21 @@ Equivalent to @code{(or (input-port? @var{x}) (output-port?
 
 @deffn {Scheme Procedure} set-port-encoding! port enc
 @deffnx {C Function} scm_set_port_encoding_x (port, enc)
-Sets the character encoding that will be used to interpret all port
-I/O.  @var{enc} is a string containing the name of an encoding.  
+Sets the character encoding that will be used to interpret all port I/O.
+@var{enc} is a string containing the name of an encoding.  Valid
+encoding names are those
+@url{http://www.iana.org/assignments/character-sets, defined by IANA}.
 @end deffn
 
 @defvr {Scheme Variable} %default-port-encoding
 A fluid containing containing @code{#f} or the name of the encoding to
 be used by default for newly created ports (@pxref{Fluids and Dynamic
 States}).  The value @code{#f} is equivalent to @code{"ISO-8859-1"}.
-@end defvr
 
 New ports are created with the encoding appropriate for the current
-locale if @code{setlocale} has been called or ISO-8859-1 otherwise,
-and this procedure can be used to modify that encoding.
+locale if @code{setlocale} has been called or the value specified by
+this fluid otherwise.
+@end defvr
 
 @deffn {Scheme Procedure} port-encoding port
 @deffnx {C Function} scm_port_encoding
