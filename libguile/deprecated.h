@@ -541,6 +541,12 @@ SCM_DEPRECATED SCM_STACKITEM *scm_i_stack_base (void);
 #define SCM_FLUIDP(x) scm_i_fluidp (x)
 SCM_DEPRECATED int scm_i_fluidp (SCM x);
 
+/* Deprecated in Guile 1.9.5 on 2009-11-15 because these are IPv4-only
+   functions which are deprecated upstream.  */
+
+SCM_DEPRECATED SCM scm_inet_aton (SCM address);
+SCM_DEPRECATED SCM scm_inet_ntoa (SCM inetid);
+
 /* In the old days, SCM_CRITICAL_SECTION_START stopped signal handlers
    from running, since in those days the handler directly ran scheme
    code, and that had to be avoided when the heap was not in a

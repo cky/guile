@@ -398,7 +398,7 @@ BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
-    inet_aton.c memmove.c putenv.c strerror.c	\
+    memmove.c putenv.c strerror.c		\
     dynl.c regex-posix.c			\
     filesys.c posix.c net_db.c socket.c		\
     debug-malloc.c mkstemp.c			\

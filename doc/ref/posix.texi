@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -2225,6 +2225,8 @@ The address of the local host using the loopback device, ie.@:
 
 @deffn {Scheme Procedure} inet-aton address
 @deffnx {C Function} scm_inet_aton (address)
+This function is deprecated in favor of @code{inet-pton}.
+
 Convert an IPv4 Internet address from printable string
 (dotted decimal notation) to an integer.  E.g.,
 
@@ -2235,6 +2237,8 @@ Convert an IPv4 Internet address from printable string
 
 @deffn {Scheme Procedure} inet-ntoa inetid
 @deffnx {C Function} scm_inet_ntoa (inetid)
+This function is deprecated in favor of @code{inet-ntop}.
+
 Convert an IPv4 Internet address to a printable
 (dotted decimal notation) string.  E.g.,
 
@@ -3107,7 +3111,7 @@ returns the contents of the root index URL.
 
 @example
 (let ((s (socket PF_INET SOCK_STREAM 0)))
-  (connect s AF_INET (inet-aton "127.0.0.1") 80)
+  (connect s AF_INET (inet-pton AF_INET "127.0.0.1") 80)
   (display "GET / HTTP/1.0\r\n\r\n" s)
 
   (do ((line (read-line s) (read-line s)))
@@ -3128,7 +3132,7 @@ client.
 (let ((s (socket PF_INET SOCK_STREAM 0)))
   (setsockopt s SOL_SOCKET SO_REUSEADDR 1)
   ;; @r{Specific address?}
-  ;; @r{(bind s AF_INET (inet-aton "127.0.0.1") 2904)}
+  ;; @r{(bind s AF_INET (inet-pton AF_INET "127.0.0.1") 2904)}
   (bind s AF_INET INADDR_ANY 2904)
   (listen s 5)
 

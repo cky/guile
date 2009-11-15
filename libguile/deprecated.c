@@ -52,10 +52,13 @@
 #include "libguile/smob.h"
 #include "libguile/alist.h"
 #include "libguile/keywords.h"
+#include "libguile/socket.h"
 #include "libguile/feature.h"
 
 #include <stdio.h>
 #include <string.h>
+
+#include <arpa/inet.h>
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -1459,6 +1462,44 @@ scm_i_fluidp (SCM x)
   return scm_is_fluid (x);
 }
 
+
+/* Networking.  */
+
+SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
+            (SCM address),
+	    "Convert an IPv4 Internet address from printable string\n"
+	    "(dotted decimal notation) to an integer.  E.g.,\n\n"
+	    "@lisp\n"
+	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_aton
+{
+  scm_c_issue_deprecation_warning
+    ("`inet-aton' is deprecated.  Use `inet-pton' instead.");
+
+  return scm_inet_pton (scm_from_int (AF_INET), address);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
+            (SCM inetid),
+	    "Convert an IPv4 Internet address to a printable\n"
+	    "(dotted decimal notation) string.  E.g.,\n\n"
+	    "@lisp\n"
+	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_ntoa
+{
+  scm_c_issue_deprecation_warning
+    ("`inet-ntoa' is deprecated.  Use `inet-ntop' instead.");
+
+  return scm_inet_ntop (scm_from_int (AF_INET), inetid);
+}
+#undef FUNC_NAME
+
+
+
 void
 scm_i_defer_ints_etc ()
 {

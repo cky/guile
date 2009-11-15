@@ -137,53 +137,6 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifndef HAVE_INET_ATON
-/* for our definition in inet_aton.c, not usually needed.  */
-extern int inet_aton ();
-#endif
-
-SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
-            (SCM address),
-	    "Convert an IPv4 Internet address from printable string\n"
-	    "(dotted decimal notation) to an integer.  E.g.,\n\n"
-	    "@lisp\n"
-	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_aton
-{
-  struct in_addr soka;
-  char *c_address;
-  int rv;
-
-  c_address = scm_to_locale_string (address);
-  rv = inet_aton (c_address, &soka);
-  free (c_address);
-  if (rv == 0)
-    SCM_MISC_ERROR ("bad address", SCM_EOL);
-  return scm_from_ulong (ntohl (soka.s_addr));
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
-            (SCM inetid),
-	    "Convert an IPv4 Internet address to a printable\n"
-	    "(dotted decimal notation) string.  E.g.,\n\n"
-	    "@lisp\n"
-	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_ntoa
-{
-  struct in_addr addr;
-  char *s;
-  SCM answer;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
-  s = inet_ntoa (addr);
-  answer = scm_from_locale_string (s);
-  return answer;
-}
-#undef FUNC_NAME
-
 #ifdef HAVE_INET_NETOF
 SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
             (SCM address),
