@@ -15,11 +15,12 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl --libtool --macro-prefix=gl --no-vc-files alloca-opt autobuild byteswap canonicalize-lgpl environ extensions flock fpieee full-read full-write havelib iconv_open-utf inet_ntop inet_pton lib-symbol-versions lib-symbol-visibility libunistring putenv stdlib strcase strftime striconveh string verify vsnprintf
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl --libtool --macro-prefix=gl --no-vc-files alignof alloca-opt autobuild byteswap canonicalize-lgpl environ extensions flock fpieee full-read full-write havelib iconv_open-utf inet_ntop inet_pton lib-symbol-versions lib-symbol-visibility libunistring putenv stdlib strcase strftime striconveh string verify vsnprintf
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
 gl_MODULES([
+  alignof
   alloca-opt
   autobuild
   byteswap

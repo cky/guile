@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <assert.h>
+#include <alignof.h>
 
 #include "_scm.h"
 #include "vm-bootstrap.h"
@@ -119,11 +120,10 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 				scm_from_uint32 (parent_data->len),
 				scm_from_uint32 (parent_data->metalen)));
 
-#ifdef __GNUC__ /* we need `__alignof__' */
   /* Make sure bytecode for the objcode-meta is suitable aligned.  Failing to
      do so leads to SIGBUS/SIGSEGV on some arches (e.g., SPARC).  */
-  assert ((((scm_t_bits) ptr) & (__alignof__ (struct scm_objcode) - 1UL)) == 0);
-#endif
+  assert ((((scm_t_bits) ptr) &
+	   (alignof_type (struct scm_objcode) - 1UL)) == 0);
 
   data = (struct scm_objcode*)ptr;
   if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)
