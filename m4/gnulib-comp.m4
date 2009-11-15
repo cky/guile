@@ -45,9 +45,13 @@ AC_DEFUN([gl_INIT],
   gl_COMMON
   gl_source_base='lib'
   gl_FUNC_ALLOCA
+  gl_HEADER_ARPA_INET
+  AC_PROG_MKDIR_P
   gl_BYTESWAP
   gl_CANONICALIZE_LGPL
   gl_MODULE_INDICATOR([canonicalize-lgpl])
+  gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
+  gl_STDLIB_MODULE_INDICATOR([realpath])
   gl_ENVIRON
   gl_UNISTD_MODULE_INDICATOR([environ])
   gl_HEADER_ERRNO_H
@@ -60,6 +64,10 @@ AC_DEFUN([gl_INIT],
   gl_ICONV_H
   gl_FUNC_ICONV_OPEN
   gl_FUNC_ICONV_OPEN_UTF
+  gl_INET_NTOP
+  gl_ARPA_INET_MODULE_INDICATOR([inet_ntop])
+  gl_INET_PTON
+  gl_ARPA_INET_MODULE_INDICATOR([inet_pton])
   gl_INLINE
   gl_LD_VERSION_SCRIPT
   gl_VISIBILITY
@@ -67,6 +75,8 @@ AC_DEFUN([gl_INIT],
   gl_LOCALCHARSET
   LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(top_builddir)/$gl_source_base\""
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
+  gl_FUNC_LSTAT
+  gl_SYS_STAT_MODULE_INDICATOR([lstat])
   gl_FUNC_MALLOC_POSIX
   gl_STDLIB_MODULE_INDICATOR([malloc-posix])
   gl_MALLOCA
@@ -79,6 +89,8 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_MEMCHR
   gl_STRING_MODULE_INDICATOR([memchr])
   gl_MULTIARCH
+  gl_HEADER_NETINET_IN
+  AC_PROG_MKDIR_P
   gl_PATHMAX
   gl_FUNC_PUTENV
   gl_STDLIB_MODULE_INDICATOR([putenv])
@@ -87,8 +99,12 @@ AC_DEFUN([gl_INIT],
   gl_SAFE_READ
   gl_SAFE_WRITE
   gl_SIZE_MAX
+  gl_TYPE_SOCKLEN_T
   gt_TYPE_SSIZE_T
+  gl_FUNC_STAT
+  gl_SYS_STAT_MODULE_INDICATOR([stat])
   AM_STDBOOL_H
+  gl_STDDEF_H
   gl_STDINT_H
   gl_STDIO_H
   gl_STDLIB_H
@@ -101,6 +117,10 @@ AC_DEFUN([gl_INIT],
   gl_HEADER_STRING_H
   gl_HEADER_STRINGS_H
   gl_HEADER_SYS_FILE_H
+  AC_PROG_MKDIR_P
+  gl_HEADER_SYS_SOCKET
+  AC_PROG_MKDIR_P
+  gl_HEADER_SYS_STAT_H
   AC_PROG_MKDIR_P
   gl_HEADER_TIME_H
   gl_TIME_R
@@ -246,7 +266,9 @@ AC_DEFUN([gltests_LIBSOURCES], [
 AC_DEFUN([gl_FILE_LIST], [
   build-aux/config.rpath
   build-aux/link-warning.h
+  lib/alignof.h
   lib/alloca.in.h
+  lib/arpa_inet.in.h
   lib/asnprintf.c
   lib/byteswap.in.h
   lib/c-ctype.c
@@ -256,7 +278,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strcaseeq.h
   lib/c-strncasecmp.c
   lib/canonicalize-lgpl.c
-  lib/canonicalize.h
   lib/config.charset
   lib/errno.in.h
   lib/float+.h
@@ -274,10 +295,14 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/iconv_open-hpux.gperf
   lib/iconv_open-irix.gperf
   lib/iconv_open-osf.gperf
+  lib/iconv_open-solaris.gperf
   lib/iconv_open.c
   lib/iconveh.h
+  lib/inet_ntop.c
+  lib/inet_pton.c
   lib/localcharset.c
   lib/localcharset.h
+  lib/lstat.c
   lib/malloc.c
   lib/malloca.c
   lib/malloca.h
@@ -287,6 +312,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mbsinit.c
   lib/memchr.c
   lib/memchr.valgrind
+  lib/netinet_in.in.h
   lib/pathmax.h
   lib/printf-args.c
   lib/printf-args.h
@@ -301,7 +327,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.c
   lib/safe-write.h
   lib/size_max.h
+  lib/stat.c
   lib/stdbool.in.h
+  lib/stddef.in.h
   lib/stdint.in.h
   lib/stdio-write.c
   lib/stdio.in.h
@@ -316,6 +344,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/strings.in.h
   lib/strncasecmp.c
   lib/sys_file.in.h
+  lib/sys_socket.in.h
+  lib/sys_stat.in.h
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
@@ -338,14 +368,18 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/xsize.h
   m4/00gnulib.m4
   m4/alloca.m4
+  m4/arpa_inet_h.m4
   m4/autobuild.m4
   m4/byteswap.m4
-  m4/canonicalize-lgpl.m4
+  m4/canonicalize.m4
   m4/codeset.m4
+  m4/dos.m4
+  m4/double-slash-root.m4
   m4/eealloc.m4
   m4/environ.m4
   m4/errno_h.m4
   m4/extensions.m4
+  m4/fcntl_h.m4
   m4/float_h.m4
   m4/flock.m4
   m4/fpieee.m4
@@ -356,6 +390,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/iconv_h.m4
   m4/iconv_open.m4
   m4/include_next.m4
+  m4/inet_ntop.m4
+  m4/inet_pton.m4
   m4/inline.m4
   m4/intmax_t.m4
   m4/inttypes_h.m4
@@ -369,6 +405,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/locale-ja.m4
   m4/locale-zh.m4
   m4/longlong.m4
+  m4/lstat.m4
   m4/malloc.m4
   m4/malloca.m4
   m4/mbrlen.m4
@@ -378,6 +415,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/memchr.m4
   m4/mmap-anon.m4
   m4/multiarch.m4
+  m4/netinet_in_h.m4
   m4/pathmax.m4
   m4/printf.m4
   m4/putenv.m4
@@ -385,8 +423,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/safe-read.m4
   m4/safe-write.m4
   m4/size_max.m4
+  m4/socklen.m4
+  m4/sockpfaf.m4
   m4/ssize_t.m4
+  m4/stat.m4
   m4/stdbool.m4
+  m4/stddef_h.m4
   m4/stdint.m4
   m4/stdint_h.m4
   m4/stdio_h.m4
@@ -396,6 +438,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/string_h.m4
   m4/strings_h.m4
   m4/sys_file_h.m4
+  m4/sys_socket_h.m4
+  m4/sys_stat_h.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4

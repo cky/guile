@@ -899,8 +899,7 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                setprotoent  getprotoent  endprotoent  dnl
                setservent   getservent   endservent   dnl
                getnetbyaddr getnetbyname dnl
-	       inet_lnaof inet_makeaddr inet_netof hstrerror dnl
-	       inet_pton inet_ntop)
+	       inet_lnaof inet_makeaddr inet_netof hstrerror)
 
 # struct sockaddr field sin_len is only present on BSD systems.
 # On 4.4BSD apparently a #define SIN_LEN exists, but on other BSD systems

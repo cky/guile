@@ -352,7 +352,6 @@ scm_to_ipv6 (scm_t_uint8 dst[16], SCM src)
     scm_wrong_type_arg_msg ("scm_to_ipv6", 0, src, "integer");
 }
 
-#ifdef HAVE_INET_PTON
 SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
             (SCM family, SCM address),
 	    "Convert a string containing a printable network address to\n"
@@ -388,9 +387,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
     return scm_from_ipv6 ((scm_t_uint8 *) dst);
 }
 #undef FUNC_NAME
-#endif
 
-#ifdef HAVE_INET_NTOP
 SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
             (SCM family, SCM address),
 	    "Convert a network address into a printable string.\n"
@@ -435,7 +432,6 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
   return scm_from_locale_string (dst);
 }
 #undef FUNC_NAME
-#endif
 
 #endif  /* HAVE_IPV6 */
 

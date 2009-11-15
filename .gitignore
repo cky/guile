@@ -108,6 +108,10 @@ INSTALL
 /lib/time.h
 /lib/unistd.h
 /lib/unistr/.dirstamp
+/lib/arpa/inet.h
+/lib/iconv_open-solaris.h
+/lib/stdio.h
+/lib/sys/stat.h
 /GPATH
 /GRTAGS
 /GSYMS
