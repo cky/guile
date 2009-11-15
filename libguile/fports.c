@@ -318,11 +318,9 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 #define FUNC_NAME s_scm_open_file
 {
   SCM port;
-  int fdes;
-  int flags = 0;
-  char *file;
-  char *md;
-  char *ptr;
+  int fdes, flags = 0;
+  unsigned int retries;
+  char *file, *md, *ptr;
 
   scm_dynwind_begin (0);
 
@@ -367,15 +365,27 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	}
       ptr++;
     }
-  SCM_SYSCALL (fdes = open_or_open64 (file, flags, 0666));
-  if (fdes == -1)
-    {
-      int en = errno;
 
-      SCM_SYSERROR_MSG ("~A: ~S",
-			scm_cons (scm_strerror (scm_from_int (en)),
-				  scm_cons (filename, SCM_EOL)), en);
+  for (retries = 0, fdes = -1;
+       fdes < 0 && retries < 2;
+       retries++)
+    {
+      SCM_SYSCALL (fdes = open_or_open64 (file, flags, 0666));
+      if (fdes == -1)
+	{
+	  int en = errno;
+
+	  if (en == EMFILE && retries == 0)
+	    /* Run the GC in case it collects open file ports that are no
+	       longer referenced.  */
+	    scm_i_gc (FUNC_NAME);
+	  else
+	    SCM_SYSERROR_MSG ("~A: ~S",
+			      scm_cons (scm_strerror (scm_from_int (en)),
+					scm_cons (filename, SCM_EOL)), en);
+	}
     }
+
   port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode), filename);
 
   scm_dynwind_end ();
