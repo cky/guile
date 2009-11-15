@@ -26,15 +26,14 @@
 
 /* R6RS bytevectors.  */
 
-/* The size in words of the bytevector header (type tag, flags, and
-   length).  */
-#define SCM_BYTEVECTOR_HEADER_SIZE   2U
+/* The size in words of the bytevector header (type tag and flags, length,
+   and pointer to the underlying buffer).  */
+#define SCM_BYTEVECTOR_HEADER_SIZE   3U
 
 #define SCM_BYTEVECTOR_LENGTH(_bv)		\
   ((size_t) SCM_CELL_WORD_1 (_bv))
-#define SCM_BYTEVECTOR_CONTENTS(_bv)					\
-  ((signed char *) SCM_CELL_OBJECT_LOC ((_bv),				\
-					SCM_BYTEVECTOR_HEADER_SIZE))
+#define SCM_BYTEVECTOR_CONTENTS(_bv)		\
+  ((signed char *) SCM_CELL_WORD_2 (_bv))
 
 
 SCM_API SCM scm_endianness_big;
@@ -124,7 +123,9 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
 		     scm_tc7_bytevector | ((scm_t_bits)(_f) << 7UL))
 
 #define SCM_BYTEVECTOR_ELEMENT_TYPE(_bv)	\
-  (SCM_BYTEVECTOR_FLAGS (_bv))
+  (SCM_BYTEVECTOR_FLAGS (_bv) & 0xffUL)
+#define SCM_BYTEVECTOR_CONTIGUOUS_P(_bv)	\
+  (SCM_BYTEVECTOR_FLAGS (_bv) >> 8UL)
 
 /* Hint that is passed to `scm_gc_malloc ()' and friends.  */
 #define SCM_GC_BYTEVECTOR "bytevector"

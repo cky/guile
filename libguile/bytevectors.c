@@ -182,13 +182,21 @@
 
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
   SCM_SET_CELL_WORD_1 ((_bv), (scm_t_bits) (_len))
+#define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _contents)	\
+  SCM_SET_CELL_WORD_2 ((_bv), (scm_t_bits) (_contents))
+#define SCM_BYTEVECTOR_SET_CONTIGUOUS_P(bv, contiguous_p)	\
+  SCM_SET_BYTEVECTOR_FLAGS ((bv),				\
+			    SCM_BYTEVECTOR_ELEMENT_TYPE (bv)	\
+			    | ((contiguous_p) << 8UL))
 
-#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)	\
-  SCM_SET_BYTEVECTOR_FLAGS ((bv), (hint))
+#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)			\
+  SCM_SET_BYTEVECTOR_FLAGS ((bv),					\
+                            (hint)					\
+                            | (SCM_BYTEVECTOR_CONTIGUOUS_P (bv) << 8UL))
 #define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
   (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)
 #define SCM_BYTEVECTOR_TYPED_LENGTH(var)                        \
-  SCM_BYTEVECTOR_LENGTH (var) / SCM_BYTEVECTOR_TYPE_SIZE (var)
+  (SCM_BYTEVECTOR_LENGTH (var) / SCM_BYTEVECTOR_TYPE_SIZE (var))
 
 /* The empty bytevector.  */
 SCM scm_null_bytevector = SCM_UNSPECIFIED;
@@ -212,13 +220,18 @@ make_bytevector (size_t len, scm_t_array_element_type element_type)
     ret = scm_null_bytevector;
   else
     {
+      signed char *contents;
+
       c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
 
-      ret = PTR2SCM (scm_gc_malloc_pointerless (SCM_BYTEVECTOR_HEADER_BYTES + c_len,
-						SCM_GC_BYTEVECTOR));
+      contents = scm_gc_malloc_pointerless (SCM_BYTEVECTOR_HEADER_BYTES + c_len,
+					    SCM_GC_BYTEVECTOR);
+      ret = PTR2SCM (contents);
+      contents += SCM_BYTEVECTOR_HEADER_BYTES;
 
-      SCM_SET_CELL_TYPE (ret, scm_tc7_bytevector);
       SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
+      SCM_BYTEVECTOR_SET_CONTENTS (ret, contents);
+      SCM_BYTEVECTOR_SET_CONTIGUOUS_P (ret, 1);
       SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
     }
 
@@ -226,28 +239,29 @@ make_bytevector (size_t len, scm_t_array_element_type element_type)
 }
 
 /* Return a bytevector of LEN elements of type ELEMENT_TYPE, with element
-   values taken from CONTENTS.  */
+   values taken from CONTENTS.  Assume that the storage for CONTENTS will be
+   automatically reclaimed when it becomes unreachable.  */
 static inline SCM
 make_bytevector_from_buffer (size_t len, void *contents,
 			     scm_t_array_element_type element_type)
 {
   SCM ret;
 
-  /* We actually never reuse storage from CONTENTS.  Hans Boehm says in
-     <gc/gc.h> that realloc(3) "shouldn't have been invented" and he may well
-     be right.  */
-  ret = make_bytevector (len, element_type);
-
-  if (len > 0)
+  if (SCM_UNLIKELY (len == 0))
+    ret = make_bytevector (len, element_type);
+  else
     {
       size_t c_len;
 
-      c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
-      memcpy (SCM_BYTEVECTOR_CONTENTS (ret),
-	      contents,
-	      c_len);
+      ret = PTR2SCM (scm_gc_malloc (SCM_BYTEVECTOR_HEADER_BYTES,
+				    SCM_GC_BYTEVECTOR));
 
-      scm_gc_free (contents, c_len, SCM_GC_BYTEVECTOR);
+      c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
+
+      SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
+      SCM_BYTEVECTOR_SET_CONTENTS (ret, contents);
+      SCM_BYTEVECTOR_SET_CONTIGUOUS_P (ret, 0);
+      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
     }
 
   return ret;
@@ -287,11 +301,21 @@ scm_c_shrink_bytevector (SCM bv, size_t c_new_len)
 
   SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
 
-  /* Resize the existing buffer.  */
-  new_bv = PTR2SCM (scm_gc_realloc (SCM2PTR (bv),
-				    c_len + SCM_BYTEVECTOR_HEADER_BYTES,
-				    c_new_len + SCM_BYTEVECTOR_HEADER_BYTES,
-				    SCM_GC_BYTEVECTOR));
+  if (SCM_BYTEVECTOR_CONTIGUOUS_P (bv))
+    new_bv = PTR2SCM (scm_gc_realloc (SCM2PTR (bv),
+				      c_len + SCM_BYTEVECTOR_HEADER_BYTES,
+				      c_new_len + SCM_BYTEVECTOR_HEADER_BYTES,
+				      SCM_GC_BYTEVECTOR));
+  else
+    {
+      signed char *c_bv;
+
+      c_bv = scm_gc_realloc (SCM_BYTEVECTOR_CONTENTS (bv),
+			     c_len, c_new_len, SCM_GC_BYTEVECTOR);
+      SCM_BYTEVECTOR_SET_CONTENTS (bv, c_bv);
+
+      new_bv = bv;
+    }
 
   return new_bv;
 }
