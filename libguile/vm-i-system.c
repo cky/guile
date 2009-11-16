@@ -537,9 +537,10 @@ VM_DEFINE_INSTRUCTION (42, br_if_nargs_lt, "br-if-nargs-lt", 5, 0, 0)
 VM_DEFINE_INSTRUCTION (43, br_if_nargs_gt, "br-if-nargs-gt", 5, 0, 0)
 {
   scm_t_ptrdiff n;
+  scm_t_int32 offset;
+
   n = FETCH () << 8;
   n += FETCH ();
-  scm_t_int32 offset;
   FETCH_OFFSET (offset);
   if (sp - (fp - 1) > n)
     ip += offset;
@@ -613,53 +614,64 @@ VM_DEFINE_INSTRUCTION (47, bind_optionals_shuffle, "bind-optionals/shuffle", 6, 
   NEXT;
 }
 
+/* Flags that determine whether other keywords are allowed, and whether a
+   rest argument is expected.  These values must match those used by the
+   glil->assembly compiler.  */
+#define F_ALLOW_OTHER_KEYS  1
+#define F_REST              2
+
 VM_DEFINE_INSTRUCTION (48, bind_kwargs, "bind-kwargs", 5, 0, 0)
 {
   scm_t_uint16 idx;
   scm_t_ptrdiff nkw;
-  int allow_other_keys_and_rest;
+  int kw_and_rest_flags;
   SCM kw;
   idx = FETCH () << 8;
   idx += FETCH ();
+  /* XXX: We don't actually use NKW.  */
   nkw = FETCH () << 8;
   nkw += FETCH ();
-  allow_other_keys_and_rest = FETCH ();
+  kw_and_rest_flags = FETCH ();
 
-  if (!(allow_other_keys_and_rest & 2)
-      &&(sp - (fp - 1) - nkw) % 2)
+  if (!(kw_and_rest_flags & F_REST)
+      && ((sp - (fp - 1) - nkw) % 2))
     goto vm_error_kwargs_length_not_even;
 
   CHECK_OBJECT (idx);
   kw = OBJECT_REF (idx);
-  /* switch nkw to be a negative index below sp */
-  for (nkw = -(sp - (fp - 1) - nkw) + 1; nkw < 0; nkw += 2)
+
+  /* Switch NKW to be a negative index below SP.  */
+  for (nkw = -(sp - (fp - 1) - nkw) + 1; nkw < 0; nkw++)
     {
       SCM walk;
-      if (!scm_is_keyword (sp[nkw]))
-        {
-          if (allow_other_keys_and_rest & 2)
-            /* reached the end of keywords, but we have a rest arg; just cut
-               out */
-            break;
-          else
-            goto vm_error_kwargs_invalid_keyword;
-        }
-      for (walk = kw; scm_is_pair (walk); walk = SCM_CDR (walk))
-        {
-          if (scm_is_eq (SCM_CAAR (walk), sp[nkw]))
-            {
-              SCM si = SCM_CDAR (walk);
-              LOCAL_SET (SCM_I_INUMP (si) ? SCM_I_INUM (si) : scm_to_long (si),
-                         sp[nkw + 1]);
-              break;
-            }
-        }
-      if (!(allow_other_keys_and_rest & 1) && !scm_is_pair (walk))
-        goto vm_error_kwargs_unrecognized_keyword;
+
+      if (scm_is_keyword (sp[nkw]))
+	{
+	  for (walk = kw; scm_is_pair (walk); walk = SCM_CDR (walk))
+	    {
+	      if (scm_is_eq (SCM_CAAR (walk), sp[nkw]))
+		{
+		  SCM si = SCM_CDAR (walk);
+		  LOCAL_SET (SCM_I_INUMP (si) ? SCM_I_INUM (si) : scm_to_long (si),
+			     sp[nkw + 1]);
+		  break;
+		}
+	    }
+	  if (!(kw_and_rest_flags & F_ALLOW_OTHER_KEYS) && !scm_is_pair (walk))
+	    goto vm_error_kwargs_unrecognized_keyword;
+
+	  nkw++;
+	}
+      else if (!(kw_and_rest_flags & F_REST))
+        goto vm_error_kwargs_invalid_keyword;
     }
 
   NEXT;
 }
+
+#undef F_ALLOW_OTHER_KEYS
+#undef F_REST
+
 
 VM_DEFINE_INSTRUCTION (49, push_rest, "push-rest", 2, -1, -1)
 {

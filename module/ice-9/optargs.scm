@@ -311,7 +311,7 @@
          ;; it has to be this way, vars are allocated in this order
          (set-car! slots-tail args-tail)
          (if (pair? kw-indices)
-             (key slots (cdr slots-tail) args-tail inits)
+             (permissive-keys slots (cdr slots-tail) args-tail inits)
              (rest-or-key slots (cdr slots-tail) '() inits #f)))
         ((pair? kw-indices)
          ;; fail early here, because once we're in keyword land we throw
@@ -322,6 +322,28 @@
          #f) ;; fail
         (else
          slots)))
+     (define (permissive-keys slots slots-tail args-tail inits)
+       (cond
+        ((null? args-tail)
+         (if (null? inits)
+             slots
+             (begin
+               (if (eq? (car slots-tail) *uninitialized*)
+                   (set-car! slots-tail (apply (car inits) slots)))
+               (permissive-keys slots (cdr slots-tail) '() (cdr inits)))))
+        ((not (keyword? (car args-tail)))
+         (permissive-keys slots slots-tail (cdr args-tail) inits))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              (assq-ref kw-indices (car args-tail)))
+         => (lambda (i)
+              (list-set! slots i (cadr args-tail))
+              (permissive-keys slots slots-tail (cddr args-tail) inits)))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              allow-other-keys?)
+         (permissive-keys slots slots-tail (cddr args-tail) inits))
+        (else (error "unrecognized keyword" args-tail))))
      (define (key slots slots-tail args-tail inits)
        (cond
         ((null? args-tail)
