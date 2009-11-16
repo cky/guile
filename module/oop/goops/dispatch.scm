@@ -53,9 +53,9 @@
 ;;; Method cache
 ;;;
 
-;; (#@dispatch args N-SPECIALIZED #((TYPE1 ... ENV FORMALS FORM1 ...) ...) GF)
+;; (#@dispatch args N-SPECIALIZED #((TYPE1 ... . CMETHOD) ...) GF)
 ;; (#@dispatch args N-SPECIALIZED HASHSET MASK
-;;             #((TYPE1 ... ENV FORMALS FORM1 ...) ...)
+;;             #((TYPE1 ... . CMETHOD) ...)
 ;;             GF)
 
 ;;; Representation

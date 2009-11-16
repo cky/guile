@@ -1779,12 +1779,12 @@ SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
  *
  * Format #1:
  * (SCM_IM_DISPATCH ARGS N-SPECIALIZED
- *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+ *   #((TYPE1 ... . CMETHOD) ...)
  *   GF)
  *
  * Format #2:
  * (SCM_IM_HASH_DISPATCH ARGS N-SPECIALIZED HASHSET MASK
- *   #((TYPE1 ... ENV FORMALS FORM ...) ...)
+ *   #((TYPE1 ... CMETHOD) ...)
  *   GF)
  *
  * ARGS is either a list of expressions, in which case they
@@ -1794,9 +1794,6 @@ SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
  *
  * SCM_IM_DISPATCH expressions in generic functions always
  * have ARGS = the symbol `args' or the iloc #@0-0.
- *
- * Need FORMALS in order to support varying arity.  This
- * also avoids the need for renaming of bindings.
  *
  * We should probably not complicate this mechanism by
  * introducing "optimizations" for getters and setters or
@@ -1853,19 +1850,18 @@ scm_mcache_lookup_cmethod (SCM cache, SCM args)
       long j = n;
       z = SCM_SIMPLE_VECTOR_REF (methods, i);
       ls = args; /* list of arguments */
-      if (!scm_is_null (ls))
+      /* More arguments than specifiers => z = CMETHOD, not a pair.
+       * Fewer arguments than specifiers => CAR != CLASS or `no-method'.  */
+      if (!scm_is_null (ls) && scm_is_pair (z))
 	do
 	  {
-	    /* More arguments than specifiers => CLASS != ENV */
 	    if (! scm_is_eq (scm_class_of (SCM_CAR (ls)), SCM_CAR (z)))
 	      goto next_method;
 	    ls = SCM_CDR (ls);
 	    z = SCM_CDR (z);
 	  }
-	while (j-- && !scm_is_null (ls));
-      /* Fewer arguments than specifiers => CAR != CLASS or `no-method' */
-      if (!scm_is_pair (z)
-          || (!SCM_CLASSP (SCM_CAR (z)) && !scm_is_symbol (SCM_CAR (z))))
+	while (j-- && !scm_is_null (ls) && scm_is_pair (z));
+      if (!scm_is_pair (z))
 	return z;
     next_method:
       i = (i + 1) & mask;
