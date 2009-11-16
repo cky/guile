@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -279,13 +279,6 @@ scm_i_get_one_zombie (SCM guardian)
 static SCM
 guardian_apply (SCM guardian, SCM obj, SCM throw_p)
 {
-#if ENABLE_DEPRECATED
-  if (!SCM_UNBNDP (throw_p))
-    scm_c_issue_deprecation_warning
-      ("Using the 'throw?' argument of a guardian is deprecated "
-       "and ineffective.");
-#endif
-
   if (!SCM_UNBNDP (obj))
     {
       scm_i_guard (guardian, obj);
@@ -362,11 +355,7 @@ scm_init_guardians ()
   tc16_guardian = scm_make_smob_type ("guardian", 0);
 
   scm_set_smob_print (tc16_guardian, guardian_print);
-#if ENABLE_DEPRECATED
-  scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 2, 0);
-#else
   scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 1, 0);
-#endif
 
 #include "libguile/guardians.x"
 }
