@@ -1515,8 +1515,7 @@ scm_i_scan_for_encoding (SCM port)
   i = 0;
   while (pos + i - header <= SCM_ENCODING_SEARCH_SIZE 
          && pos + i - header < bytes_read
-	 && (isalnum((int) pos[i]) || pos[i] == '_' || pos[i] == '-' 
-             || pos[i] == '.'))
+	 && (isalnum ((int) pos[i]) || strchr ("_-.:/,+=()", pos[i]) != NULL))
     i++;
 
   if (i == 0)
