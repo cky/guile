@@ -58,8 +58,6 @@ AC_DEFUN([gl_INIT],
   gl_FLOAT_H
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
-  gl_FUNC_GETPAGESIZE
-  gl_UNISTD_MODULE_INDICATOR([getpagesize])
   AM_ICONV
   gl_ICONV_H
   gl_FUNC_ICONV_OPEN
@@ -132,6 +130,7 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_VASNPRINTF
   gl_FUNC_VSNPRINTF
   gl_STDIO_MODULE_INDICATOR([vsnprintf])
+  AC_SUBST([WARN_CFLAGS])
   gl_WCHAR_H
   gl_FUNC_WRITE
   gl_UNISTD_MODULE_INDICATOR([write])
@@ -287,7 +286,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
-  lib/getpagesize.c
   lib/iconv.c
   lib/iconv.in.h
   lib/iconv_close.c
@@ -383,7 +381,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/float_h.m4
   m4/flock.m4
   m4/fpieee.m4
-  m4/getpagesize.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
   m4/iconv.m4
@@ -447,6 +444,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/vasnprintf.m4
   m4/visibility.m4
   m4/vsnprintf.m4
+  m4/warnings.m4
   m4/wchar.m4
   m4/wchar_t.m4
   m4/wint_t.m4

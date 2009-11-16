@@ -1436,6 +1436,7 @@ AC_ARG_VAR(GUILE_FOR_BUILD,[guile for build system])
 AC_SUBST(GUILE_FOR_BUILD)
   			
 ## If we're using GCC, ask for aggressive warnings.
+GCC_CFLAGS=""
 case "$GCC" in
   yes )
     ## We had -Wstrict-prototypes in here for a bit, but Guile does too
@@ -1443,14 +1444,19 @@ case "$GCC" in
     ## less than exasperating.
     ## -Wpointer-arith was here too, but something changed in gcc/glibc
     ## and it became equally exasperating (gcc 2.95 and/or glibc 2.1.2).
-    GCC_CFLAGS="-Wall -Wmissing-prototypes"
+    POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
     if test "${GUILE_ERROR_ON_WARNING}" = yes
     then
-	GCC_CFLAGS="${GCC_CFLAGS} -Werror"
+	POTENTIAL_GCC_CFLAGS="${POTENTIAL_GCC_CFLAGS} -Werror"
 	enable_compile_warnings=no
     fi
+
+    for flag in $POTENTIAL_GCC_CFLAGS
+    do
+	gl_WARN_ADD([$flag], [GCC_CFLAGS])
+    done
     ;;
 esac
 
