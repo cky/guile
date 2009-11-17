@@ -1,4 +1,4 @@
-/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+
+#include <version-etc.h>
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
@@ -358,13 +360,13 @@ scm_shell_usage (int fatal, char *message)
   if (message)
     fprintf (fp, "%s\n", message);
 
-  fprintf (fp, 
-           "Usage: %s OPTION ...\n"
+  fprintf (fp,
+           "Usage: %s [OPTION]... [FILE]...\n"
            "Evaluate Scheme code, interactively or from a script.\n"
            "\n"
            "  [-s] FILE      load Scheme source code from FILE, and exit\n"
            "  -c EXPR        evalute Scheme expression EXPR, and exit\n"
-           "  --             stop scanning arguments; run interactively\n"
+           "  --             stop scanning arguments; run interactively\n\n"
            "The above switches stop argument processing, and pass all\n"
            "remaining arguments as the value of (command-line).\n"
            "If FILE begins with `-' the -s switch is mandatory.\n"
@@ -388,10 +390,10 @@ scm_shell_usage (int fatal, char *message)
 	   "                 which is a list of numbers like \"2,13,14\"\n"
            "  -h, --help     display this help and exit\n"
            "  -v, --version  display version information and exit\n"
-	   "  \\              read arguments from following script lines\n"
-           "\n"
-	   "Please report bugs to bug-guile@gnu.org\n",
+	   "  \\              read arguments from following script lines\n",
            scm_usage_name);
+
+  emit_bug_reporting_address ();
 
   if (fatal)
     exit (fatal);
@@ -656,13 +658,9 @@ scm_compile_shell_switches (int argc, char **argv)
 	       || ! strcmp (argv[i], "--version"))
 	{
 	  /* Print version number.  */
-	  printf ("Guile %s\n"
-		  "Copyright (c) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation\n"
-		  "Guile may be distributed under the terms of the GNU General Public Licence;\n"
-		  "certain other uses are permitted as well.  For details, see the file\n"
-		  "`COPYING', which is included in the Guile distribution.\n"
-		  "There is no warranty, to the extent permitted by law.\n",
-		  scm_to_locale_string (scm_version ()));
+	  version_etc (stdout, scm_usage_name, PACKAGE_NAME, PACKAGE_VERSION,
+		       /* XXX: Use gettext for the string below.  */
+		       "the Guile developers", NULL);
 	  exit (0);
 	}
 

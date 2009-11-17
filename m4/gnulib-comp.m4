@@ -29,6 +29,11 @@ AC_DEFUN([gl_EARLY],
   AB_INIT
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([gl_FP_IEEE])
+  dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
+  dnl for the builtin va_copy to work.  With Autoconf 2.60 or later,
+  dnl AC_PROG_CC_STDC arranges for this.  With older Autoconf AC_PROG_CC_STDC
+  dnl shouldn't hurt, though installers are on their own to set c99 mode.
+  AC_REQUIRE([AC_PROG_CC_STDC])
 ])
 
 # This macro should be invoked from ./configure.ac, in the section
@@ -58,6 +63,8 @@ AC_DEFUN([gl_INIT],
   gl_FLOAT_H
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
+  AC_SUBST([LIBINTL])
+  AC_SUBST([LTLIBINTL])
   AM_ICONV
   gl_ICONV_H
   gl_FUNC_ICONV_OPEN
@@ -101,6 +108,7 @@ AC_DEFUN([gl_INIT],
   gt_TYPE_SSIZE_T
   gl_FUNC_STAT
   gl_SYS_STAT_MODULE_INDICATOR([stat])
+  gl_STDARG_H
   AM_STDBOOL_H
   gl_STDDEF_H
   gl_STDINT_H
@@ -128,6 +136,7 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
   gl_MODULE_INDICATOR([unistr/u8-uctomb])
   gl_FUNC_VASNPRINTF
+  gl_VERSION_ETC
   gl_FUNC_VSNPRINTF
   gl_STDIO_MODULE_INDICATOR([vsnprintf])
   AC_SUBST([WARN_CFLAGS])
@@ -286,6 +295,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
+  lib/gettext.h
   lib/iconv.c
   lib/iconv.in.h
   lib/iconv_close.c
@@ -326,6 +336,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.h
   lib/size_max.h
   lib/stat.c
+  lib/stdarg.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
@@ -360,6 +371,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/vasnprintf.c
   lib/vasnprintf.h
   lib/verify.h
+  lib/version-etc-fsf.c
+  lib/version-etc.c
+  lib/version-etc.h
   lib/vsnprintf.c
   lib/wchar.in.h
   lib/write.c
@@ -424,6 +438,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sockpfaf.m4
   m4/ssize_t.m4
   m4/stat.m4
+  m4/stdarg.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4
@@ -442,6 +457,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/tm_gmtoff.m4
   m4/unistd_h.m4
   m4/vasnprintf.m4
+  m4/version-etc.m4
   m4/visibility.m4
   m4/vsnprintf.m4
   m4/warnings.m4

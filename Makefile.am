@@ -40,6 +40,10 @@ ACLOCAL_AMFLAGS = -I m4
 
 DISTCLEANFILES = check-guile.log
 
+# Help Automake choose the right directory name (Automake 1.11 uses
+# `$(PACKAGE)-$(PACKAGE_VERSION)' by default, which is wrong.)
+distdir = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)
+
 dist-hook: gen-ChangeLog
 
 clean-local:
