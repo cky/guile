@@ -1444,7 +1444,9 @@ case "$GCC" in
     ## less than exasperating.
     ## -Wpointer-arith was here too, but something changed in gcc/glibc
     ## and it became equally exasperating (gcc 2.95 and/or glibc 2.1.2).
-    POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes"
+    POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
+      -Wdeclaration-after-statement -Wundef \
+      -Wswitch-enum"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
     if test "${GUILE_ERROR_ON_WARNING}" = yes
