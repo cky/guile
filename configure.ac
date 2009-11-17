@@ -96,7 +96,7 @@ AC_DEFINE_UNQUOTED([HOST_TYPE], ["$host"],
 #
 #--------------------------------------------------------------------
 
-GUILE_ERROR_ON_WARNING="yes"
+GUILE_ERROR_ON_WARNING="no"
 
 AC_ARG_ENABLE(error-on-warning,
   [  --enable-error-on-warning    treat compile warnings as errors],

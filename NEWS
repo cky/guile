@@ -149,6 +149,10 @@ procedure. Pass the -Warity-mismatch on the `guile-tools compile'
 command line, or add `#:warnings '(arity-mismatch)' to your `compile'
 or `compile-file' invocation.
 
+** Guile is now built without `-Werror' by default
+
+Use the `--enable-error-on-warning' configure option to enable it.
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.

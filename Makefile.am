@@ -44,6 +44,8 @@ DISTCLEANFILES = check-guile.log
 # `$(PACKAGE)-$(PACKAGE_VERSION)' by default, which is wrong.)
 distdir = $(PACKAGE_TARNAME)-$(PACKAGE_VERSION)
 
+DISTCHECK_CONFIGURE_FLAGS = --enable-error-on-warning
+
 dist-hook: gen-ChangeLog
 
 clean-local:
