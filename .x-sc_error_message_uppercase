@@ -1,0 +1,6 @@
+^libguile/
+^guile-readline/
+^gc-benchmarks/
+^emacs/
+^NEWS
+^doc/
