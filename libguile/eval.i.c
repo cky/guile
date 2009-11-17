@@ -221,8 +221,7 @@ CEVAL (SCM x, SCM env)
    *
    * Even frames are eval frames, odd frames are apply frames.
    */
-  debug.vect = (scm_t_debug_info *) alloca (scm_debug_eframe_size
-					    * sizeof (scm_t_debug_info));
+  debug.vect = alloca (scm_debug_eframe_size * sizeof (scm_t_debug_info));
   debug.info = debug.vect;
   debug_info_end = debug.vect + scm_debug_eframe_size;
   scm_i_set_last_debug_frame (&debug);

@@ -322,13 +322,8 @@ scm_must_free (void *obj)
 #ifdef GUILE_DEBUG_MALLOC
   scm_malloc_unregister (obj);
 #endif
-  if (obj)
-    free (obj);
-  else
-    {
-      fprintf (stderr,"freeing NULL pointer");
-      abort ();
-    }
+
+  free (obj);
 }
 #undef FUNC_NAME
 

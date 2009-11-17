@@ -1833,8 +1833,8 @@ scm_i_deprecated_string_chars (SCM str)
      null-terminated.
   */
   if (IS_SH_STRING (str))
-    scm_misc_error (NULL, 
-		    "SCM_STRING_CHARS does not work with shared substrings.",
+    scm_misc_error (NULL,
+		    "SCM_STRING_CHARS does not work with shared substrings",
 		    SCM_EOL);
 
   /* We explicitly test for read-only strings to produce a better
@@ -1842,10 +1842,10 @@ scm_i_deprecated_string_chars (SCM str)
   */
 
   if (IS_RO_STRING (str))
-    scm_misc_error (NULL, 
-		    "SCM_STRING_CHARS does not work with read-only strings.",
+    scm_misc_error (NULL,
+		    "SCM_STRING_CHARS does not work with read-only strings",
 		    SCM_EOL);
-    
+
   /* The following is still wrong, of course...
    */
   str = scm_i_string_start_writing (str);

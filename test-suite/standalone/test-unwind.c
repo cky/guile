@@ -1,4 +1,4 @@
-/* Copyright (C) 2004, 2005, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2005, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -206,8 +206,7 @@ check_ports ()
   if (tmpdir == NULL)
     tmpdir = "/tmp";
 
-  filename = (char *) alloca (strlen (tmpdir) +
-			      sizeof (FILENAME_TEMPLATE) + 1);
+  filename = alloca (strlen (tmpdir) + sizeof (FILENAME_TEMPLATE) + 1);
   strcpy (filename, tmpdir);
   strcat (filename, FILENAME_TEMPLATE);
 

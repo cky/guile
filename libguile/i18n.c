@@ -735,7 +735,7 @@ SCM_DEFINE (scm_locale_p, "locale?", 1, 0, 0,
 	  const char *buf = scm_i_string_chars (s1);			\
 									\
 	  len = scm_i_string_length (s1);				\
-	  c_s1 = (scm_t_wchar *) alloca (sizeof (scm_t_wchar) * (len + 1)); \
+	  c_s1 = alloca (sizeof (scm_t_wchar) * (len + 1));		\
 									\
 	  for (i = 0; i < len; i ++)					\
 	    c_s1[i] = (unsigned char ) buf[i];				\
