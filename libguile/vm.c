@@ -298,11 +298,12 @@ make_vm (void)
 #define FUNC_NAME "make_vm"
 {
   int i;
+  struct scm_vm *vp;
 
   if (!scm_tc16_vm)
     return SCM_BOOL_F; /* not booted yet */
 
-  struct scm_vm *vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
+  vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
 
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
 

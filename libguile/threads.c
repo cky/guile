@@ -1373,6 +1373,7 @@ static int
 fat_mutex_unlock (SCM mutex, SCM cond,
 		  const scm_t_timespec *waittime, int relock)
 {
+  SCM owner;
   fat_mutex *m = SCM_MUTEX_DATA (mutex);
   fat_cond *c = NULL;
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
@@ -1380,7 +1381,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 
   scm_i_scm_pthread_mutex_lock (&m->lock);
 
-  SCM owner = m->owner;
+  owner = m->owner;
 
   if (!scm_is_eq (owner, scm_current_thread ()))
     {

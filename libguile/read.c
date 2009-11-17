@@ -1088,8 +1088,10 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 
       if (len >= scm_i_string_length (buf) - 2)
 	{
+	  SCM addy;
+
 	  scm_i_string_stop_writing ();
-	  SCM addy = scm_i_make_string (1024, NULL);
+	  addy = scm_i_make_string (1024, NULL);
 	  buf = scm_string_append (scm_list_2 (buf, addy));
 	  len = 0;
 	  buf = scm_i_string_start_writing (buf);

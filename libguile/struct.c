@@ -63,8 +63,9 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 #define FUNC_NAME s_scm_make_struct_layout
 {
   SCM new_sym;
-  SCM_VALIDATE_STRING (1, fields);
   scm_t_wchar c;
+
+  SCM_VALIDATE_STRING (1, fields);
 
   { /* scope */
     size_t len;

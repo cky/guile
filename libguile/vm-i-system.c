@@ -513,9 +513,9 @@ VM_DEFINE_INSTRUCTION (40, br_if_not_null, "br-if-not-null", 3, 0, 0)
 VM_DEFINE_INSTRUCTION (41, br_if_nargs_ne, "br-if-nargs-ne", 5, 0, 0)
 {
   scm_t_ptrdiff n;
+  scm_t_int32 offset;
   n = FETCH () << 8;
   n += FETCH ();
-  scm_t_int32 offset;
   FETCH_OFFSET (offset);
   if (sp - (fp - 1) != n)
     ip += offset;
@@ -525,9 +525,9 @@ VM_DEFINE_INSTRUCTION (41, br_if_nargs_ne, "br-if-nargs-ne", 5, 0, 0)
 VM_DEFINE_INSTRUCTION (42, br_if_nargs_lt, "br-if-nargs-lt", 5, 0, 0)
 {
   scm_t_ptrdiff n;
+  scm_t_int32 offset;
   n = FETCH () << 8;
   n += FETCH ();
-  scm_t_int32 offset;
   FETCH_OFFSET (offset);
   if (sp - (fp - 1) < n)
     ip += offset;

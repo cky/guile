@@ -883,9 +883,11 @@ dispatch:
 #ifdef DEVAL
 	    if (scm_check_memoize_p && SCM_TRAPS_P)
 	      {
+		SCM arg1, retval;
+
 		SCM_CLEAR_TRACED_FRAME (debug);
-		SCM arg1 = scm_make_debugobj (&debug);
-		SCM retval = SCM_BOOL_T;
+		arg1 = scm_make_debugobj (&debug);
+		retval = SCM_BOOL_T;
 		SCM_TRAPS_P = 0;
 		retval = scm_call_4 (SCM_MEMOIZE_HDLR,
 				     scm_sym_memoize_symbol,
