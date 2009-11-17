@@ -627,6 +627,30 @@ This decision may be revisited before the 2.0 release. Feedback welcome
 to guile-devel@gnu.org (subscription required) or bug-guile@gnu.org (no
 subscription required).
 
+** `case-lambda' is now available in the default environment.
+
+The binding in the default environment is equivalent to the one from the
+`(srfi srfi-16)' module. Use the srfi-16 module explicitly if you wish
+to maintain compatibility with Guile 1.8 and earlier.
+
+** `lambda*' and `define*' are now available in the default environment
+
+As with `case-lambda', `(ice-9 optargs)' continues to be supported, for
+compatibility purposes. No semantic change has been made (we hope).
+Optional and keyword arguments now dispatch via special VM operations,
+without the need to cons rest arguments, making them very fast.
+
+** New syntax: include-from-path.
+
+`include-from-path' is like `include', except it looks for its file in
+the load path. It can be used to compile other files into a file.
+
+** New syntax: quasisyntax.
+
+`quasisyntax' is to `syntax' as `quasiquote' is to `quote'. See the R6RS
+documentation for more information. Thanks to Andre van Tonder for the
+implementation.
+
 ** Unicode characters
 
 Unicode characters may be entered in octal format via e.g. `#\454', or
@@ -729,6 +753,39 @@ This slightly improves program startup times.
 
 See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
 
+** GOOPS cleanups.
+
+GOOPS had a number of concepts that were relevant to the days of Tcl,
+but not any more: operators and entities, mainly. These objects were
+never documented, and it is unlikely that they were ever used. Operators
+were a kind of generic specific to the Tcl support. Entities were
+applicable structures, but were unusable; entities will come back in the
+next alpha release, but with a less stupid name.
+
+** `inet-ntop' and `inet-pton' are always available.
+
+Guile now use a portable implementation of `inet_pton'/`inet_ntop', so
+there is no more need to use `inet-aton'/`inet-ntoa'. The latter
+functions are deprecated.
+
+** R6RS block comment support
+
+Guile now supports R6RS nested block comments. The start of a comment is
+marked with `#|', and the end with `|#'.
+
+** `guile-2' cond-expand feature
+
+To test if your code is running under Guile 2.0 (or its alpha releases),
+test for the `guile-2' cond-expand feature. Like this:
+
+     (cond-expand (guile-2 (eval-when (compile)
+                             ;; This must be evaluated at compile time.
+                             (fluid-set! current-reader my-reader)))
+                  (guile
+                           ;; Earlier versions of Guile do not have a
+                           ;; separate compilation phase.
+                           (fluid-set! current-reader my-reader)))
+
 ** Fix bad interaction between `false-if-exception' and stack-call.
 
 Exceptions thrown by `false-if-exception' were erronously causing the
@@ -800,6 +857,36 @@ indicating length of the `scm_t_option' array.
 ** New C function: scm_module_public_interface
 
 This procedure corresponds to Scheme's `module-public-interface'.
+
+** Inline vector allocation
+
+Instead of having vectors point out into the heap for their data, their
+data is now allocated inline to the vector object itself. The same is
+true for bytevectors, by default, though there is an indirection
+available which should allow for making a bytevector from an existing
+memory region.
+
+** Removal of Guile's primitive object system.
+
+There were a number of pieces in `objects.[ch]' that tried to be a
+minimal object system, but were never documented, and were quickly
+obseleted by GOOPS' merge into Guile proper. So `scm_make_class_object',
+`scm_make_subclass_object', `scm_metaclass_standard', and like symbols
+from objects.h are no more. In the very unlikely case in which these
+were useful to you, we urge you to contact guile-devel.
+
+** No future.
+
+Actually the future is still in the state that it was, is, and ever
+shall be, Amen, except that `futures.c' and `futures.h' are no longer a
+part of it. These files were experimental, never compiled, and would be
+better implemented in Scheme anyway. In the future, that is.
+
+** Support for static allocation of strings, symbols, and subrs.
+
+Calls to snarfing CPP macros like SCM_DEFINE macro will now allocate
+much of their associated data as static variables, reducing Guile's
+memory footprint.
 
 ** `scm_stat' has an additional argument, `exception_on_error'
 ** `scm_primitive_load_path' has an additional argument `exception_on_not_found'
