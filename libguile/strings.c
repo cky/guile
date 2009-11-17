@@ -96,7 +96,7 @@
     }									\
   while (0)
 
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
 static size_t lenhist[1001];
 #endif
 
@@ -114,7 +114,7 @@ make_stringbuf (size_t len)
 
   SCM buf;
 
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
   if (len < 1000)
     lenhist[len]++;
   else
@@ -140,7 +140,7 @@ make_wide_stringbuf (size_t len)
   SCM buf;
   size_t raw_len;
 
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
   if (len < 1000)
     lenhist[len]++;
   else
@@ -972,7 +972,7 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
 }
 #undef FUNC_NAME
 
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
 
 SCM_DEFINE (scm_sys_stringbuf_hist, "%stringbuf-hist", 0, 0, 0, (void), "")
 #define FUNC_NAME s_scm_sys_stringbuf_hist
@@ -1040,9 +1040,11 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 
   if (wide == 0)
     {
+      char *buf;
+
       result = scm_i_make_string (len, NULL);
       result = scm_i_string_start_writing (result);
-      char *buf = scm_i_string_writable_chars (result);
+      buf = scm_i_string_writable_chars (result);
       while (len > 0 && scm_is_pair (rest))
         {
           SCM elt = SCM_CAR (rest);
@@ -1055,9 +1057,11 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     }
   else
     {
+      scm_t_wchar *buf;
+
       result = scm_i_make_wide_string (len, NULL);
       result = scm_i_string_start_writing (result);
-      scm_t_wchar *buf = scm_i_string_writable_wide_chars (result);
+      buf = scm_i_string_writable_wide_chars (result);
       while (len > 0 && scm_is_pair (rest))
         {
           SCM elt = SCM_CAR (rest);

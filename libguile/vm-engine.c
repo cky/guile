@@ -243,7 +243,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     err_msg  = scm_from_locale_string ("VM: Bad wide string length: ~S");
     goto vm_error;
 
-#if VM_CHECK_IP
+#ifdef VM_CHECK_IP
   vm_error_invalid_address:
     err_msg  = scm_from_locale_string ("VM: Invalid program address");
     finish_args = SCM_EOL;

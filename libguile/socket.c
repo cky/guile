@@ -624,7 +624,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
   struct linger opt_linger;
 #endif
 
-#if HAVE_STRUCT_IP_MREQ
+#ifdef HAVE_STRUCT_IP_MREQ
   struct ip_mreq opt_mreq;
 #endif
 
@@ -678,7 +678,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  }
     }
 
-#if HAVE_STRUCT_IP_MREQ
+#ifdef HAVE_STRUCT_IP_MREQ
   if (ilevel == IPPROTO_IP &&
       (ioptname == IP_ADD_MEMBERSHIP || ioptname == IP_DROP_MEMBERSHIP))
     {
@@ -760,7 +760,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	*args = SCM_CDR (*args);
 	soka = (struct sockaddr_in *) scm_malloc (sizeof (struct sockaddr_in));
 
-#if HAVE_STRUCT_SOCKADDR_SIN_LEN
+#ifdef HAVE_STRUCT_SOCKADDR_SIN_LEN
 	soka->sin_len = sizeof (struct sockaddr_in);
 #endif
 	soka->sin_family = AF_INET;
@@ -794,7 +794,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	  }
 	soka = (struct sockaddr_in6 *) scm_malloc (sizeof (struct sockaddr_in6));
 
-#if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
+#ifdef HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
 	soka->sin6_len = sizeof (struct sockaddr_in6);
 #endif
 	soka->sin6_family = AF_INET6;

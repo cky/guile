@@ -198,7 +198,7 @@ SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
 
 SCM_API SCM scm_sys_string_dump (SCM);
 SCM_API SCM scm_sys_symbol_dump (SCM);
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
 SCM_API SCM scm_sys_stringbuf_hist (void);
 #endif
 

@@ -169,10 +169,10 @@ main (int argc, char *argv[])
 #ifdef STDC_HEADERS
   pf ("#define SCM_HAVE_STDC_HEADERS 1 /* 0 or 1 */\n");
   pf ("#include <stdlib.h>\n");
-# if HAVE_SYS_TYPES_H
+# ifdef HAVE_SYS_TYPES_H
   pf ("#include <sys/types.h>\n");
 # endif
-# if HAVE_SYS_STDTYPES_H
+# ifdef HAVE_SYS_STDTYPES_H
   pf ("#include <sys/stdtypes.h>\n");
 # endif
   pf ("#include <stddef.h>\n");
@@ -411,7 +411,7 @@ main (int argc, char *argv[])
   else
     pf ("/* #undef SCM_HAVE_THREAD_STORAGE_CLASS */\n");
 
-#if USE_DLL_IMPORT
+#ifdef USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");
   pf ("# define __REGEX_IMPORT__ 1\n");

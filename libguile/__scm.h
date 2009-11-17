@@ -175,9 +175,9 @@
 /* SCM_API is a macro prepended to all function and data definitions
    which should be exported from libguile. */
 
-#if BUILDING_LIBGUILE && HAVE_VISIBILITY
+#if defined BUILDING_LIBGUILE && defined HAVE_VISIBILITY
 # define SCM_API extern __attribute__((__visibility__("default")))
-#elif BUILDING_LIBGUILE && defined _MSC_VER
+#elif defined BUILDING_LIBGUILE && defined _MSC_VER
 # define SCM_API __declspec(dllexport) extern
 #elif defined _MSC_VER
 # define SCM_API __declspec(dllimport) extern

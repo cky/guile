@@ -619,7 +619,7 @@ guile_ieee_init (void)
      before trying to use it.  (But in practice we believe this is not a
      problem on any system guile is likely to target.)  */
   guile_Inf = INFINITY;
-#elif HAVE_DINFINITY
+#elif defined HAVE_DINFINITY
   /* OSF */
   extern unsigned int DINFINITY[2];
   guile_Inf = (*((double *) (DINFINITY)));
@@ -642,7 +642,7 @@ guile_ieee_init (void)
 #ifdef NAN
   /* C99 NAN, when available */
   guile_NaN = NAN;
-#elif HAVE_DQNAN
+#elif defined HAVE_DQNAN
   {
     /* OSF */
     extern unsigned int DQNAN[2];

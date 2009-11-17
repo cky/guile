@@ -69,10 +69,10 @@
    gnulib ftruncate.c has code using fcntl F_CHSIZE and F_FREESP, which
    might be possibilities if we've got other systems without ftruncate.  */
 
-#if HAVE_CHSIZE && ! HAVE_FTRUNCATE
+#if defined HAVE_CHSIZE && ! defined HAVE_FTRUNCATE
 # define ftruncate(fd, size) chsize (fd, size)
-#undef HAVE_FTRUNCATE
-#define HAVE_FTRUNCATE 1
+# undef HAVE_FTRUNCATE
+# define HAVE_FTRUNCATE 1
 #endif
 
 #if SIZEOF_OFF_T == SIZEOF_INT

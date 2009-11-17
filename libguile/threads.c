@@ -661,7 +661,7 @@ get_thread_stack_base ()
     }
 }
 
-#elif HAVE_PTHREAD_GET_STACKADDR_NP
+#elif defined HAVE_PTHREAD_GET_STACKADDR_NP
 /* This method for MacOS X.
    It'd be nice if there was some documentation on pthread_get_stackaddr_np,
    but as of 2006 there's nothing obvious at apple.com.  */

@@ -31,10 +31,13 @@
 /* picks up scmconfig.h too */
 #include "libguile/__scm.h"
 
-#if HAVE_INTTYPES_H
+/* FIXME: We shouldn't rely on `HAVE_*' macros here since it's a public
+   header.  */
+
+#ifdef HAVE_INTTYPES_H
 # include <inttypes.h>  /* for INTPTR_MAX and friends */
 #else
-# if HAVE_STDINT_H
+# ifdef HAVE_STDINT_H
 #  include <stdint.h>   /* for INTPTR_MAX and friends */
 # endif
 #endif
