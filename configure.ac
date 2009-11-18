@@ -1544,9 +1544,20 @@ AC_SUBST(top_builddir_absolute)
 top_srcdir_absolute=`(cd $srcdir && pwd)`
 AC_SUBST(top_srcdir_absolute)
 
+dnl Override Automake 1.11's broken definitions.
+dnl See http://thread.gmane.org/gmane.comp.sysutils.automake.bugs/4803
+dnl and info "(automake) Uniform" and info "(autoconf) Initializing configure".
+pkgdatadir="$datadir/$PACKAGE_TARNAME"
+pkgincludedir="$includedir/$PACKAGE_TARNAME"
+pkglibdir="$libdir/$PACKAGE_TARNAME"
+pkglibexecdir="$libexecdir/$PACKAGE_TARNAME"
+AC_SUBST([pkgdatadir])
+AC_SUBST([pkgincludedir])
+AC_SUBST([pkglibdir])
+AC_SUBST([pkglibexecdir])
+
 dnl We need `sitedir' in `guile-1.8.pc'.
 dnl Note: `sitedir' must be kept in sync with `GUILE_SITE_DIR' in `guile.m4'.
-pkgdatadir="$datadir/guile"
 sitedir="$pkgdatadir/site"
 AC_SUBST([sitedir])
 
