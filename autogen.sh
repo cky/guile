@@ -21,7 +21,7 @@ else
   libtool --version
 fi
 echo ""
-${M4:-/usr/bin/m4} --version
+${M4:-m4} --version
 echo ""
 
 ######################################################################
