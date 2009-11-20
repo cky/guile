@@ -1800,40 +1800,31 @@ scm_mcache_compute_cmethod (SCM cache, SCM args)
 SCM
 scm_apply_generic (SCM gf, SCM args)
 {
-  SCM cmethod = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (gf), args);
-  if (SCM_PROGRAM_P (cmethod))
-    return scm_vm_apply (scm_the_vm (), cmethod, args);
-  else if (scm_is_pair (cmethod))
-    return scm_eval_body (SCM_CDR (SCM_CMETHOD_CODE (cmethod)),
-                          SCM_EXTEND_ENV (SCM_CAR (SCM_CMETHOD_CODE (cmethod)),
-                                          args,
-                                          SCM_CMETHOD_ENV (cmethod)));
-  else
-    return scm_apply (cmethod, args, SCM_EOL);
+  return scm_apply (SCM_STRUCT_PROCEDURE (gf), args, SCM_EOL);
 }
 
 SCM
 scm_call_generic_0 (SCM gf)
 {
-  return scm_apply_generic (gf, SCM_EOL);
+  return scm_call_0 (SCM_STRUCT_PROCEDURE (gf));
 }
 
 SCM
 scm_call_generic_1 (SCM gf, SCM a1)
 {
-  return scm_apply_generic (gf, scm_list_1 (a1));
+  return scm_call_1 (SCM_STRUCT_PROCEDURE (gf), a1);
 }
 
 SCM
 scm_call_generic_2 (SCM gf, SCM a1, SCM a2)
 {
-  return scm_apply_generic (gf, scm_list_2 (a1, a2));
+  return scm_call_2 (SCM_STRUCT_PROCEDURE (gf), a1, a2);
 }
 
 SCM
 scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
 {
-  return scm_apply_generic (gf, scm_list_3 (a1, a2, a3));
+  return scm_call_3 (SCM_STRUCT_PROCEDURE (gf), a1, a2, a3);
 }
 
 SCM
@@ -1955,8 +1946,6 @@ typedef struct t_extension {
 static const char extension_gc_hint[] = "GOOPS extension";
 
 static t_extension *extensions = 0;
-
-SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
 
 void
 scm_c_extend_primitive_generic (SCM extended, SCM extension)
@@ -2554,8 +2543,7 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_class, SCM_EOL);
   make_stdcls (&scm_class_applicable_struct_class,    "<applicable-struct-class>",
 	       scm_class_class, scm_class_procedure_class, SCM_EOL);
-  /* SCM_SET_VTABLE_FLAGS (scm_class_applicable_struct_class,
-     SCM_VTABLE_FLAG_APPLICABLE_VTABLE); */
+  SCM_SET_VTABLE_FLAGS (scm_class_applicable_struct_class, SCM_VTABLE_FLAG_APPLICABLE_VTABLE);
   make_stdcls (&scm_class_method,	   "<method>",
 	       scm_class_class, scm_class_object,	   method_slots);
   make_stdcls (&scm_class_accessor_method, "<accessor-method>",

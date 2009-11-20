@@ -63,14 +63,14 @@
 /* see also, SCM_VTABLE_BASE_LAYOUT, and build_class_class_slots */
 #define SCM_CLASS_CLASS_LAYOUT \
   "pw" /* redefined */ \
-  "ur" /* h0 */ \
-  "ur" /* h1 */ \
-  "ur" /* h2 */ \
-  "ur" /* h3 */ \
-  "ur" /* h4 */ \
-  "ur" /* h5 */ \
-  "ur" /* h6 */ \
-  "ur" /* h7 */ \
+  "uw" /* h0 */ \
+  "uw" /* h1 */ \
+  "uw" /* h2 */ \
+  "uw" /* h3 */ \
+  "uw" /* h4 */ \
+  "uw" /* h5 */ \
+  "uw" /* h6 */ \
+  "uw" /* h7 */ \
   "pw" /* direct supers */ \
   "pw" /* direct slots */ \
   "pw" /* direct subclasses */ \

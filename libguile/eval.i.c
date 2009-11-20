@@ -1026,21 +1026,19 @@ dispatch:
           goto nontoplevel_begin;
         }
       case scm_tcs_struct:
-	if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	if (SCM_STRUCT_APPLICABLE_P (proc))
+          {
+            proc = SCM_STRUCT_PROCEDURE (proc);
+#ifdef DEVAL
+            debug.info->a.proc = proc;
+#endif
+            goto evap0;
+	  }
+	else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	  {
 	    x = SCM_GENERIC_METHOD_CACHE (proc);
 	    arg1 = SCM_EOL;
 	    goto type_dispatch;
-	  }
-	else if (SCM_STRUCT_APPLICABLE_P (proc))
-	  {
-	    arg1 = proc;
-	    proc = SCM_STRUCT_PROCEDURE (proc);
-#ifdef DEVAL
-	    debug.info->a.proc = proc;
-	    debug.info->a.args = scm_list_1 (arg1);
-#endif
-            goto evap1;
 	  }
         else
           goto badfun;
@@ -1153,7 +1151,15 @@ dispatch:
               goto nontoplevel_begin;
             }
 	  case scm_tcs_struct:
-	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	    if (SCM_STRUCT_APPLICABLE_P (proc))
+	      {
+		proc = SCM_STRUCT_PROCEDURE (proc);
+#ifdef DEVAL
+		debug.info->a.proc = proc;
+#endif
+                goto evap1;
+	      }
+	    else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	      {
 		x = SCM_GENERIC_METHOD_CACHE (proc);
 #ifdef DEVAL
@@ -1162,17 +1168,6 @@ dispatch:
 		arg1 = scm_list_1 (arg1);
 #endif
 		goto type_dispatch;
-	      }
-	    else if (SCM_STRUCT_APPLICABLE_P (proc))
-	      {
-		arg2 = arg1;
-		arg1 = proc;
-		proc = SCM_STRUCT_PROCEDURE (proc);
-#ifdef DEVAL
-		debug.info->a.args = scm_cons (arg1, debug.info->a.args);
-		debug.info->a.proc = proc;
-#endif
-                goto evap2;
 	      }
             else
               goto badfun;
@@ -1232,7 +1227,24 @@ dispatch:
 	    RETURN (scm_i_gsubr_apply (proc, arg1, arg2, SCM_UNDEFINED));
 #endif
 	  case scm_tcs_struct:
-	    if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	    if (SCM_STRUCT_APPLICABLE_P (proc))
+	      {
+	      operatorn:
+#ifdef DEVAL
+		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
+				   debug.info->a.args,
+				   SCM_EOL));
+#else
+		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
+				   scm_cons (arg1,
+                                             scm_cons (arg2,
+                                                       scm_ceval_args (x,
+								       env,
+								       proc))),
+				   SCM_EOL));
+#endif
+	      }
+	    else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	      {
 		x = SCM_GENERIC_METHOD_CACHE (proc);
 #ifdef DEVAL
@@ -1241,23 +1253,6 @@ dispatch:
 		arg1 = scm_list_2 (arg1, arg2);
 #endif
 		goto type_dispatch;
-	      }
-	    else if (SCM_STRUCT_APPLICABLE_P (proc))
-	      {
-	      operatorn:
-#ifdef DEVAL
-		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
-				   scm_cons (proc, debug.info->a.args),
-				   SCM_EOL));
-#else
-		RETURN (SCM_APPLY (SCM_STRUCT_PROCEDURE (proc),
-				   scm_cons2 (proc, arg1,
-					      scm_cons (arg2,
-							scm_ceval_args (x,
-								       env,
-								       proc))),
-				   SCM_EOL));
-#endif
 	      }
             else
               goto badfun;
@@ -1458,7 +1453,9 @@ dispatch:
 	  }
 #endif /* DEVAL */
 	case scm_tcs_struct:
-	  if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+	  if (SCM_STRUCT_APPLICABLE_P (proc))
+	    goto operatorn;
+	  else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	    {
 #ifdef DEVAL
 	      arg1 = debug.info->a.args;
@@ -1468,8 +1465,6 @@ dispatch:
 	      x = SCM_GENERIC_METHOD_CACHE (proc);
 	      goto type_dispatch;
 	    }
-	  else if (SCM_STRUCT_APPLICABLE_P (proc))
-	    goto operatorn;
 	  else
 	    goto badfun;
 	case scm_tc7_subr_2:
@@ -1764,7 +1759,18 @@ tail:
 #endif
       goto tail;
     case scm_tcs_struct:
-      if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
+      if (SCM_STRUCT_APPLICABLE_P (proc))
+	{
+          proc = SCM_STRUCT_PROCEDURE (proc);
+#ifdef DEVAL
+          debug.vect[0].a.proc = proc;
+#endif
+	  if (SCM_NIMP (proc))
+	    goto tail;
+	  else
+	    goto badproc;
+	}
+      else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
 	{
 #ifdef DEVAL
 	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
@@ -1772,25 +1778,6 @@ tail:
 	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
 #endif
 	  RETURN (scm_apply_generic (proc, args));
-	}
-      else if (SCM_STRUCT_APPLICABLE_P (proc))
-	{
-	  /* operator */
-#ifdef DEVAL
-	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : debug.vect[0].a.args);
-#else
-	  args = (SCM_UNBNDP(arg1) ? SCM_EOL : scm_cons (arg1, args));
-#endif
-	  arg1 = proc;
-	  proc = SCM_STRUCT_PROCEDURE (proc);
-#ifdef DEVAL
-	  debug.vect[0].a.proc = proc;
-	  debug.vect[0].a.args = scm_cons (arg1, args);
-#endif
-	  if (SCM_NIMP (proc))
-	    goto tail;
-	  else
-	    goto badproc;
 	}
       else
         goto badproc;

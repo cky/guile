@@ -72,7 +72,9 @@
     (let lp ((methods methods)
              (free free)
              (exp `(cache-miss ,gf-sym
-                               ,(if rest? `(cons* ,@args rest) args))))
+                               ,(if rest?
+                                    `(cons* ,@args rest)
+                                    `(list ,@args)))))
       (cond
        ((null? methods)
         (values `(,(if rest? `(,@args . rest) args)
@@ -189,38 +191,41 @@
 ;;            get out before it blows    o/~
 ;;
 (define timer-init 10)
-(define *in-progress* (make-fluid))
-(fluid-set! *in-progress* '())
-
 (define (delayed-compile gf)
   (let ((timer timer-init))
     (lambda args
+      (set! timer (1- timer))
       (cond
-       ((> timer 0)
-        (set! timer (1- timer))
-        (cache-dispatch gf args))
+       ((zero? timer)
+        (let ((dispatch (compute-dispatch-procedure
+                         gf (slot-ref gf 'effective-methods))))
+          (slot-set! gf 'procedure dispatch)
+          (apply dispatch args)))
        (else
-        (let ((in-progress (fluid-ref *in-progress*)))
-          (if (memq gf in-progress)
-              (cache-dispatch gf args)
-              (with-fluids ((*in-progress* (cons gf in-progress)))
-                (let ((dispatch (compute-dispatch-procedure
-                                 gf (slot-ref gf 'effective-methods))))
-                  (slot-set! gf 'procedure dispatch)
-                  (apply dispatch args))))))))))
+        ;; interestingly, this catches recursive compilation attempts as
+        ;; well; in that case, timer is negative
+        (cache-dispatch gf args))))))
 
 (define (cache-dispatch gf args)
   (define (map-until n f ls)
     (if (or (zero? n) (null? ls))
         '()
         (cons (f (car ls)) (map-until (1- n) f (cdr ls)))))
-  (let ((types (map-until (slot-ref gf 'n-specialized) class-of args)))
-    (let lp ((cache (slot-ref gf 'effective-methods)))
-      (cond ((null? cache)
-             (cache-miss gf args))
-            ((equal? (vector-ref (car cache) 1) types)
-             (apply (vector-ref (car cache) 3) args))
-            (else (lp (cdr cache)))))))
+  (define (equal? x y) ; can't use the stock equal? because it's a generic...
+    (cond ((pair? x) (and (pair? y)
+                          (eq? (car x) (car y))
+                          (equal? (cdr x) (cdr y))))
+          ((null? x) (null? y))
+          (else #f)))
+  (if (slot-ref gf 'n-specialized)
+      (let ((types (map-until (slot-ref gf 'n-specialized) class-of args)))
+        (let lp ((cache (slot-ref gf 'effective-methods)))
+          (cond ((null? cache)
+                 (cache-miss gf args))
+                ((equal? (vector-ref (car cache) 1) types)
+                 (apply (vector-ref (car cache) 3) args))
+                (else (lp (cdr cache))))))
+      (cache-miss gf args)))
 
 (define (cache-miss gf args)
   (apply (memoize-method! gf args (slot-ref gf '%cache)) args))
