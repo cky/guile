@@ -733,23 +733,6 @@ dispatch:
 	case (ISYMNUM (SCM_IM_DELAY)):
 	  RETURN (scm_make_promise (scm_closure (SCM_CDR (x), env)));
 
-	  /* PLACEHOLDER for case (ISYMNUM (SCM_IM_DISPATCH)): The following
-	     code (type_dispatch) is intended to be the tail of the case
-	     clause for the internal macro SCM_IM_DISPATCH.  Please don't
-	     remove it from this location without discussing it with Mikael
-	     <djurfeldt@nada.kth.se>  */
-	  
-	  /* The type dispatch code is duplicated below
-	   * (c.f. objects.c:scm_mcache_compute_cmethod) since that
-	   * cuts down execution time for type dispatch to 50%.  */
-	type_dispatch: /* inputs: x, arg1 */
-          {
-            proc = scm_mcache_compute_cmethod (x, arg1);
-            PREP_APPLY (proc, arg1);
-            goto apply_proc;
-	  }
-
-
 	case (ISYMNUM (SCM_IM_SLOT_REF)):
 	  x = SCM_CDR (x);
 	  {
@@ -1034,12 +1017,6 @@ dispatch:
 #endif
             goto evap0;
 	  }
-	else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	  {
-	    x = SCM_GENERIC_METHOD_CACHE (proc);
-	    arg1 = SCM_EOL;
-	    goto type_dispatch;
-	  }
         else
           goto badfun;
       case scm_tc7_subr_1:
@@ -1159,16 +1136,6 @@ dispatch:
 #endif
                 goto evap1;
 	      }
-	    else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	      {
-		x = SCM_GENERIC_METHOD_CACHE (proc);
-#ifdef DEVAL
-		arg1 = debug.info->a.args;
-#else
-		arg1 = scm_list_1 (arg1);
-#endif
-		goto type_dispatch;
-	      }
             else
               goto badfun;
 	  case scm_tc7_subr_2:
@@ -1243,16 +1210,6 @@ dispatch:
 								       proc))),
 				   SCM_EOL));
 #endif
-	      }
-	    else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	      {
-		x = SCM_GENERIC_METHOD_CACHE (proc);
-#ifdef DEVAL
-		arg1 = debug.info->a.args;
-#else
-		arg1 = scm_list_2 (arg1, arg2);
-#endif
-		goto type_dispatch;
 	      }
             else
               goto badfun;
@@ -1455,16 +1412,6 @@ dispatch:
 	case scm_tcs_struct:
 	  if (SCM_STRUCT_APPLICABLE_P (proc))
 	    goto operatorn;
-	  else if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	    {
-#ifdef DEVAL
-	      arg1 = debug.info->a.args;
-#else
-	      arg1 = scm_cons2 (arg1, arg2, scm_ceval_args (x, env, proc));
-#endif
-	      x = SCM_GENERIC_METHOD_CACHE (proc);
-	      goto type_dispatch;
-	    }
 	  else
 	    goto badfun;
 	case scm_tc7_subr_2:

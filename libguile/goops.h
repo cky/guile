@@ -154,16 +154,12 @@ typedef struct scm_t_method {
 
 #define SCM_GENERIC_METHOD_CACHE(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_cache]))
 #define SCM_SET_GENERIC_METHOD_CACHE(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_cache] = SCM_UNPACK (C))
-#define SCM_MCACHE_N_SPECIALIZED(C) SCM_CADDR (C)
-#define SCM_SET_MCACHE_N_SPECIALIZED(C, X) SCM_SETCAR (SCM_CDDR (C), X)
 
 #define SCM_SET_GENERIC_DISPATCH_PROCEDURE(G,C) (SCM_STRUCT_SLOT_SET (G, scm_si_dispatch_procedure, (C)))
 #define SCM_CLEAR_GENERIC_EFFECTIVE_METHODS(G) (SCM_STRUCT_SLOT_SET (G, scm_si_effective_methods, SCM_EOL));
 
 #define SCM_GENERIC_SETTER(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_setter]))
 #define SCM_SET_GENERIC_SETTER(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_setter] = SCM_UNPACK (C))
-
-#define SCM_INITIAL_MCACHE_SIZE	  1
 
 #define scm_si_dispatch_procedure scm_applicable_struct_index_procedure /* 0 */
 #define scm_si_methods            1
@@ -301,7 +297,6 @@ SCM_API SCM scm_slot_exists_p (SCM obj, SCM slot_name);
 SCM_API SCM scm_sys_modify_instance (SCM old, SCM newinst);
 SCM_API SCM scm_sys_modify_class (SCM old, SCM newcls);
 SCM_API SCM scm_sys_invalidate_class (SCM cls);
-SCM_API SCM scm_make_method_cache (SCM gf);
 SCM_API SCM scm_sys_invalidate_method_cache_x (SCM gf);
 SCM_API SCM scm_generic_capability_p (SCM proc);
 SCM_API SCM scm_enable_primitive_generic_x (SCM subrs);
@@ -313,9 +308,6 @@ SCM_API SCM scm_make (SCM args);
 SCM_API SCM scm_find_method (SCM args);
 SCM_API SCM scm_sys_method_more_specific_p (SCM m1, SCM m2, SCM targs);
 SCM_API void scm_change_object_class (SCM, SCM, SCM);
-SCM_API SCM scm_memoize_method (SCM x, SCM args);
-SCM_API SCM scm_mcache_lookup_cmethod (SCM cache, SCM args);
-SCM_API SCM scm_mcache_compute_cmethod (SCM cache, SCM args);
 /* The following are declared in __scm.h
 SCM_API SCM scm_call_generic_0 (SCM gf);
 SCM_API SCM scm_call_generic_1 (SCM gf, SCM a1);

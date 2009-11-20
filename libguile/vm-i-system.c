@@ -766,17 +766,6 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
       goto vm_call;
     }
-  if (SCM_STRUCTP (x) && SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_PURE_GENERIC)
-    {
-      SCM args = SCM_EOL;
-      int n = nargs;
-      SCM* walk = sp;
-      SYNC_REGISTER ();
-      while (n--)
-        args = scm_cons (*walk--, args);
-      *walk = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (x), args);
-      goto vm_call;
-    }
   /*
    * Other interpreted or compiled call
    */
@@ -853,17 +842,6 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
   if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
     {
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_goto_args;
-    }
-  if (SCM_STRUCTP (x) && SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_PURE_GENERIC)
-    {
-      SCM args = SCM_EOL;
-      int n = nargs;
-      SCM* walk = sp;
-      SYNC_REGISTER ();
-      while (n--)
-        args = scm_cons (*walk--, args);
-      *walk = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (x), args);
       goto vm_goto_args;
     }
 
@@ -950,17 +928,6 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
   if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
     {
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_mv_call;
-    }
-  if (SCM_STRUCTP (x) && SCM_OBJ_CLASS_FLAGS (x) & SCM_CLASSF_PURE_GENERIC)
-    {
-      SCM args = SCM_EOL;
-      int n = nargs;
-      SCM* walk = sp;
-      SYNC_REGISTER ();
-      while (n--)
-        args = scm_cons (*walk--, args);
-      *walk = scm_mcache_compute_cmethod (SCM_GENERIC_METHOD_CACHE (x), args);
       goto vm_mv_call;
     }
   /*

@@ -78,7 +78,6 @@ static SCM var_slot_unbound = SCM_BOOL_F;
 static SCM var_slot_missing = SCM_BOOL_F;
 static SCM var_compute_cpl = SCM_BOOL_F;
 static SCM var_no_applicable_method = SCM_BOOL_F;
-static SCM var_memoize_method_x = SCM_BOOL_F;
 static SCM var_change_class = SCM_BOOL_F;
 
 SCM_SYMBOL (sym_slot_unbound, "slot-unbound");
@@ -1692,111 +1691,6 @@ static SCM list_of_no_method;
 SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 
 
-/* The cache argument for scm_mcache_lookup_cmethod has one of two possible
- * formats:
- *
- * Format #1:
- * (SCM_IM_DISPATCH ARGS N-SPECIALIZED
- *   #((TYPE1 ... . CMETHOD) ...)
- *   GF)
- *
- * Format #2:
- * (SCM_IM_HASH_DISPATCH ARGS N-SPECIALIZED HASHSET MASK
- *   #((TYPE1 ... CMETHOD) ...)
- *   GF)
- *
- * ARGS is either a list of expressions, in which case they
- * are interpreted as the arguments of an application, or
- * a non-pair, which is interpreted as a single expression
- * yielding all arguments.
- *
- * SCM_IM_DISPATCH expressions in generic functions always
- * have ARGS = the symbol `args' or the iloc #@0-0.
- *
- * We should probably not complicate this mechanism by
- * introducing "optimizations" for getters and setters or
- * primitive methods.  Getters and setter will normally be
- * compiled into @slot-[ref|set!] or a procedure call.
- * They rely on the dispatch performed before executing
- * the code which contains them.
- *
- * We might want to use a more efficient representation of
- * this form in the future, perhaps after we have introduced
- * low-level support for syntax-case macros.
- */
-
-SCM
-scm_mcache_lookup_cmethod (SCM cache, SCM args)
-{
-  unsigned long i, mask, n, end;
-  SCM ls, methods, z = SCM_CDDR (cache);
-  n = scm_to_ulong (SCM_CAR (z)); /* maximum number of specializers */
-  methods = SCM_CADR (z);
-
-  if (scm_is_simple_vector (methods))
-    {
-      /* cache format #1: prepare for linear search */
-      mask = -1;
-      i = 0;
-      end = SCM_SIMPLE_VECTOR_LENGTH (methods);
-    }
-  else
-    {
-      /* cache format #2: compute a hash value */
-      unsigned long hashset = scm_to_ulong (methods);
-      long j = n;
-      z = SCM_CDDR (z);
-      mask = scm_to_ulong (SCM_CAR (z));
-      methods = SCM_CADR (z);
-      i = 0;
-      ls = args;
-      if (!scm_is_null (ls))
-	do
-	  {
-	    i += SCM_STRUCT_DATA (scm_class_of (SCM_CAR (ls)))
-		 [scm_si_hashsets + hashset];
-	    ls = SCM_CDR (ls);
-	  }
-	while (j-- && !scm_is_null (ls));
-      i &= mask;
-      end = i;
-    }
-
-  /* Search for match  */
-  do
-    {
-      long j = n;
-      z = SCM_SIMPLE_VECTOR_REF (methods, i);
-      ls = args; /* list of arguments */
-      /* More arguments than specifiers => z = CMETHOD, not a pair.
-       * Fewer arguments than specifiers => CAR != CLASS or `no-method'.  */
-      if (!scm_is_null (ls) && scm_is_pair (z))
-	do
-	  {
-	    if (! scm_is_eq (scm_class_of (SCM_CAR (ls)), SCM_CAR (z)))
-	      goto next_method;
-	    ls = SCM_CDR (ls);
-	    z = SCM_CDR (z);
-	  }
-	while (j-- && !scm_is_null (ls) && scm_is_pair (z));
-      if (!scm_is_pair (z))
-	return z;
-    next_method:
-      i = (i + 1) & mask;
-    } while (i != end);
-  return SCM_BOOL_F;
-}
-
-SCM
-scm_mcache_compute_cmethod (SCM cache, SCM args)
-{
-  SCM cmethod = scm_mcache_lookup_cmethod (cache, args);
-  if (scm_is_false (cmethod))
-    /* No match - memoize */
-    return scm_memoize_method (cache, args);
-  return cmethod;
-}
-
 SCM
 scm_apply_generic (SCM gf, SCM args)
 {
@@ -1827,17 +1721,6 @@ scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
   return scm_call_3 (SCM_STRUCT_PROCEDURE (gf), a1, a2, a3);
 }
 
-SCM
-scm_make_method_cache (SCM gf)
-{
-  return scm_list_5 (SCM_IM_DISPATCH,
-		     scm_sym_args,
-		     scm_from_int (1),
-		     scm_c_make_vector (SCM_INITIAL_MCACHE_SIZE,
-					list_of_no_method),
-		     gf);
-}
-
 SCM_SYMBOL (sym_delayed_compile, "delayed-compile");
 static SCM
 make_dispatch_procedure (SCM gf)
@@ -1852,8 +1735,6 @@ make_dispatch_procedure (SCM gf)
 static void
 clear_method_cache (SCM gf)
 {
-  SCM cache = scm_make_method_cache (gf);
-  SCM_SET_GENERIC_METHOD_CACHE (gf, cache);
   SCM_SET_GENERIC_DISPATCH_PROCEDURE (gf, make_dispatch_procedure (gf));
   SCM_CLEAR_GENERIC_EFFECTIVE_METHODS (gf);
 }
@@ -1865,9 +1746,6 @@ SCM_DEFINE (scm_sys_invalidate_method_cache_x, "%invalidate-method-cache!", 1, 0
 {
   SCM_ASSERT (SCM_PUREGENERICP (gf), gf, SCM_ARG1, FUNC_NAME);
   clear_method_cache (gf);
-  /* The sign of n-specialized is a flag indicating rest args. */
-  SCM_SET_MCACHE_N_SPECIALIZED (SCM_GENERIC_METHOD_CACHE (gf),
-                                SCM_SLOT (gf, scm_si_n_specialized));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2223,19 +2101,6 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 
 SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
 SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
-
-SCM
-scm_memoize_method (SCM cache, SCM args)
-{
-  SCM gf = SCM_CAR (scm_last_pair (cache));
-
-  if (SCM_UNLIKELY (scm_is_false (var_memoize_method_x)))
-    var_memoize_method_x =
-      scm_permanent_object
-      (scm_module_variable (scm_module_goops, sym_memoize_method_x));
-      
-  return scm_call_3 (SCM_VARIABLE_REF (var_memoize_method_x), gf, args, cache);
-}
 
 /******************************************************************************
  *

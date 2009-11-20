@@ -228,7 +228,7 @@
       (cache-miss gf args)))
 
 (define (cache-miss gf args)
-  (apply (memoize-method! gf args (slot-ref gf '%cache)) args))
+  (apply (memoize-method! gf args) args))
 
 (define (memoize-effective-method! gf args applicable)
   (define (first-n ls n)
@@ -256,7 +256,7 @@
 ;;; Memoization
 ;;;
 
-(define (memoize-method! gf args exp)
+(define (memoize-method! gf args)
   (let ((applicable ((if (eq? gf compute-applicable-methods)
 			 %compute-applicable-methods
 			 compute-applicable-methods)
