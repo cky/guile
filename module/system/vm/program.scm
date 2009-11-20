@@ -180,7 +180,8 @@
 (define (arguments->lambda-list arguments)
   (let ((req (or (assq-ref arguments 'required) '()))
         (opt (or (assq-ref arguments 'optional) '()))
-        (key (or (assq-ref arguments 'keyword) '()))
+        (key (map keyword->symbol
+                  (map car (or (assq-ref arguments 'keyword) '()))))
         (rest (or (assq-ref arguments 'rest) '())))
     `(,@req
       ,@(if (pair? opt) (cons #:optional opt) '())
