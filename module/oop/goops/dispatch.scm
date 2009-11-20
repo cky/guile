@@ -190,7 +190,7 @@
 ;;
 ;;            get out before it blows    o/~
 ;;
-(define timer-init 10)
+(define timer-init 30)
 (define (delayed-compile gf)
   (let ((timer timer-init))
     (lambda args
