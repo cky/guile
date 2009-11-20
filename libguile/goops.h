@@ -152,9 +152,6 @@ typedef struct scm_t_method {
 
 #define SCM_SET_CLASS_DESTRUCTOR(c, d) SCM_SET_VTABLE_DESTRUCTOR (c, d)
 
-#define SCM_GENERIC_METHOD_CACHE(G) (SCM_PACK (SCM_STRUCT_DATA (G) [scm_si_generic_cache]))
-#define SCM_SET_GENERIC_METHOD_CACHE(G,C) (SCM_STRUCT_DATA (G) [scm_si_generic_cache] = SCM_UNPACK (C))
-
 #define SCM_SET_GENERIC_DISPATCH_PROCEDURE(G,C) (SCM_STRUCT_SLOT_SET (G, scm_si_dispatch_procedure, (C)))
 #define SCM_CLEAR_GENERIC_EFFECTIVE_METHODS(G) (SCM_STRUCT_SLOT_SET (G, scm_si_effective_methods, SCM_EOL));
 
@@ -165,9 +162,8 @@ typedef struct scm_t_method {
 #define scm_si_methods            1
 #define scm_si_n_specialized	  2
 #define scm_si_extended_by	  3
-#define scm_si_generic_cache	  4
-#define scm_si_effective_methods  5
-#define scm_si_generic_setter     6
+#define scm_si_effective_methods  4
+#define scm_si_generic_setter     5
 
 #define scm_si_generic_function	 0  /* offset of gf    slot in a <method> */
 #define scm_si_specializers	 1  /* offset of spec. slot in a <method> */

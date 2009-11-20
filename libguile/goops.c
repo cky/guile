@@ -61,11 +61,6 @@
 
 #define SPEC_OF(x)  SCM_SLOT (x, scm_si_specializers)
 
-#define SCM_CMETHOD_CODE(cmethod) SCM_CDR (cmethod)
-#define SCM_CMETHOD_FORMALS(cmethod) SCM_CAR (SCM_CMETHOD_CODE (cmethod))
-#define SCM_CMETHOD_BODY(cmethod) SCM_CDR (SCM_CMETHOD_CODE (cmethod))
-#define SCM_CMETHOD_ENV(cmethod)  SCM_CAR (cmethod)
-
 /* Port classes */
 #define SCM_IN_PCLASS_INDEX       0
 #define SCM_OUT_PCLASS_INDEX      SCM_I_MAX_PORT_TYPE_COUNT
@@ -2348,14 +2343,13 @@ create_standard_classes (void)
   SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("slot-definition"),
 					      k_init_keyword,
 					      k_slot_definition));
-  SCM gf_slots = scm_list_5 (scm_from_locale_symbol ("methods"),
+  SCM gf_slots = scm_list_4 (scm_from_locale_symbol ("methods"),
 			     scm_list_3 (scm_from_locale_symbol ("n-specialized"),
 					 k_init_value,
 					 SCM_INUM0),
 			     scm_list_3 (scm_from_locale_symbol ("extended-by"),
 					 k_init_value,
 					 SCM_EOL),
-                             scm_from_locale_symbol ("%cache"),
                              scm_from_locale_symbol ("effective-methods"));
   SCM setter_slots = scm_list_1 (sym_setter);
   SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("extends"),
