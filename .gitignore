@@ -117,3 +117,4 @@ INSTALL
 /GTAGS
 /meta/guile-tools
 /meta/guile-config
+/lib/locale.h

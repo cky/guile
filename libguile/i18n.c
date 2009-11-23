@@ -57,10 +57,6 @@
 # define USE_GNU_LOCALE_API
 #endif
 
-#if (defined USE_GNU_LOCALE_API) && (defined HAVE_XLOCALE_H)
-# include <xlocale.h>
-#endif
-
 #include "libguile/posix.h"  /* for `scm_i_locale_mutex' */
 
 #if (defined HAVE_LANGINFO_H) && (defined HAVE_NL_TYPES_H)

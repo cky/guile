@@ -730,13 +730,12 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime
 #       check this specifically, we need it for the timespec test below.
 #   sethostname - the function itself check because it's not in mingw,
 #       the DECL is checked because Solaris 10 doens't have in any header
-#   xlocale.h - needed on Darwin for the `locale_t' API
 #   hstrerror - on Tru64 5.1b the symbol is available in libc but the
 #       declaration isn't anywhere.
 #   cuserid - on Tru64 5.1b the declaration is documented to be available
 #       only with `_XOPEN_SOURCE' or some such.
 #
-AC_CHECK_HEADERS(crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h xlocale.h)
+AC_CHECK_HEADERS([crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h])
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
 AC_CHECK_DECLS([sethostname, hstrerror, cuserid])
 

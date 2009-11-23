@@ -90,6 +90,7 @@ AC_DEFUN([gl_INIT],
   gl_LOCALCHARSET
   LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(top_builddir)/$gl_source_base\""
   AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
+  gl_LOCALE_H
   gl_FUNC_LSTAT
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
   gl_FUNC_MALLOC_POSIX
@@ -328,6 +329,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/inet_pton.c
   lib/localcharset.c
   lib/localcharset.h
+  lib/locale.in.h
   lib/lstat.c
   lib/malloc.c
   lib/malloca.c
@@ -433,6 +435,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/locale-fr.m4
   m4/locale-ja.m4
   m4/locale-zh.m4
+  m4/locale_h.m4
   m4/longlong.m4
   m4/lstat.m4
   m4/malloc.m4

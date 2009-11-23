@@ -63,6 +63,20 @@ my_distdir = $(PACKAGE)-$(VERSION)
 # Old releases are stored here.
 release_archive_dir ?= ../release
 
+# Override gnu_rel_host and url_dir_list in cfg.mk if these are not right.
+# Use alpha.gnu.org for alpha and beta releases.
+# Use ftp.gnu.org for stable releases.
+gnu_ftp_host-alpha = alpha.gnu.org
+gnu_ftp_host-beta = alpha.gnu.org
+gnu_ftp_host-stable = ftp.gnu.org
+gnu_rel_host ?= $(gnu_ftp_host-$(RELEASE_TYPE))
+
+ifeq ($(gnu_rel_host),ftp.gnu.org)
+url_dir_list ?= http://ftpmirror.gnu.org/$(PACKAGE)
+else
+url_dir_list ?= ftp://$(gnu_rel_host)/gnu/$(PACKAGE)
+endif
+
 # Prevent programs like 'sort' from considering distinct strings to be equal.
 # Doing it here saves us from having to set LC_ALL elsewhere in this file.
 export LC_ALL = C
@@ -157,8 +171,17 @@ sc_prohibit_strcmp:
 		1>&2; exit 1; } || :
 
 # Pass EXIT_*, not number, to usage, exit, and error (when exiting)
+# Convert all uses automatically, via these two commands:
+# git grep -l '\<exit *(1)' \
+#  | grep -vEf .x-sc_prohibit_magic_number_exit \
+#  | xargs --no-run-if-empty \
+#      perl -pi -e 's/(^|[^.])\b(exit ?)\(1\)/$1$2(EXIT_FAILURE)/'
+# git grep -l '\<exit *(0)' \
+#  | grep -vEf .x-sc_prohibit_magic_number_exit \
+#  | xargs --no-run-if-empty \
+#      perl -pi -e 's/(^|[^.])\b(exit ?)\(0\)/$1$2(EXIT_SUCCESS)/'
 sc_prohibit_magic_number_exit:
-	@re='\<(usage|exit) ?\([0-9]|\<error ?\([1-9][0-9]*,'		\
+	@re='(^|[^.])\<(usage|exit) ?\([0-9]|\<error ?\([1-9][0-9]*,'	\
 	msg='use EXIT_* values rather than magic number'		\
 	  $(_prohibit_regexp)
 

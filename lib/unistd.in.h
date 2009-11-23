@@ -714,11 +714,15 @@ extern int rmdir (char const *name);
 
 
 #if @GNULIB_SLEEP@
+# if @REPLACE_SLEEP@
+#  undef sleep
+#  define sleep rpl_sleep
+# endif
 /* Pause the execution of the current thread for N seconds.
    Returns the number of seconds left to sleep.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/sleep.html>.  */
-# if !@HAVE_SLEEP@
+# if !@HAVE_SLEEP@ || @REPLACE_SLEEP@
 extern unsigned int sleep (unsigned int n);
 # endif
 #elif defined GNULIB_POSIXCHECK
@@ -789,6 +793,27 @@ extern int unlinkat (int fd, char const *file, int flag);
     (GL_LINK_WARNING ("unlinkat is not portable - " \
                       "use gnulib module openat for portability"), \
      unlinkat (d, n, f))
+#endif
+
+
+#if @GNULIB_USLEEP@
+# if @REPLACE_USLEEP@
+#  undef usleep
+#  define usleep rpl_usleep
+# endif
+# if !@HAVE_USLEEP@ || @REPLACE_USLEEP@
+/* Pause the execution of the current thread for N microseconds.
+   Returns 0 on completion, or -1 on range error.
+   See the POSIX:2001 specification
+   <http://www.opengroup.org/susv3xsh/sleep.html>.  */
+extern int usleep (useconds_t n);
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef usleep
+# define usleep(n) \
+    (GL_LINK_WARNING ("usleep is unportable - " \
+                      "use gnulib module usleep for portability"), \
+     usleep (n))
 #endif
 
 
