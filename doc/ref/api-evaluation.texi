@@ -664,8 +664,9 @@ However, there are some differences in encoding names recognized by
 Emacs and encoding names defined by IANA, the latter being essentially a
 subset of the former.  For instance, @code{latin-1} is a valid encoding
 name for Emacs, but it's not according to the IANA standard, which Guile
-follows; instead, you should use @code{latin1}, which is both understood
-by Emacs and dubbed by IANA.
+follows; instead, you should use @code{iso-8859-1}, which is both
+understood by Emacs and dubbed by IANA (IANA writes it uppercase but
+Emacs wants it lowercase and Guile is case insensitive.)
 
 For source code, only a subset of all possible character encodings can
 be interpreted by the built-in source code reader.  Only those
