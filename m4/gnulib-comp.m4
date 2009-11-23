@@ -57,6 +57,8 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([canonicalize-lgpl])
   gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
   gl_STDLIB_MODULE_INDICATOR([realpath])
+  gl_FUNC_DUPLOCALE
+  gl_LOCALE_MODULE_INDICATOR([duplocale])
   gl_ENVIRON
   gl_UNISTD_MODULE_INDICATOR([environ])
   gl_HEADER_ERRNO_H
@@ -306,6 +308,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strncasecmp.c
   lib/canonicalize-lgpl.c
   lib/config.charset
+  lib/duplocale.c
   lib/errno.in.h
   lib/float+.h
   lib/float.in.h
@@ -407,6 +410,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/codeset.m4
   m4/dos.m4
   m4/double-slash-root.m4
+  m4/duplocale.m4
   m4/eealloc.m4
   m4/environ.m4
   m4/errno_h.m4

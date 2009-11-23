@@ -614,27 +614,14 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
 #ifdef USE_GNU_LOCALE_API
 
   if (scm_is_eq (base_locale, SCM_VARIABLE_REF (scm_global_locale)))
-    {
-      /* Fetch the current locale and turn in into a `locale_t'.  Don't
-	 duplicate the resulting `locale_t' because we want it to be consumed
-	 by `newlocale ()'.  */
-      char *current_locale;
+    c_base_locale = LC_GLOBAL_LOCALE;
 
-      scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
-
-      current_locale = setlocale (LC_ALL, NULL);
-      c_base_locale = newlocale (LC_ALL_MASK, current_locale, NULL);
-
-      scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
-
-      if (c_base_locale == (locale_t) 0)
-	scm_locale_error (FUNC_NAME, errno);
-    }
-  else if (c_base_locale != (locale_t) 0)
+  if (c_base_locale != (locale_t) 0)
     {
       /* C_BASE_LOCALE is to be consumed by `newlocale ()' so it needs to be
 	 duplicated before.  */
       c_base_locale = duplocale (c_base_locale);
+
       if (c_base_locale == (locale_t) 0)
 	{
 	  err = errno;
@@ -648,10 +635,8 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
 
   if (c_locale == (locale_t) 0)
     {
-      if (scm_is_eq (base_locale, SCM_VARIABLE_REF (scm_global_locale)))
-	/* The base locale object was created lazily and must be freed.  */
+      if (c_base_locale != (locale_t) 0)
 	freelocale (c_base_locale);
-
       scm_locale_error (FUNC_NAME, errno);
     }
   else
@@ -1812,6 +1797,9 @@ scm_init_i18n ()
 #include "libguile/i18n.x"
 
   /* Initialize the global locale object with a special `locale' SMOB.  */
+  /* XXX: We don't define it as `LC_GLOBAL_LOCALE' because of bugs as of
+     glibc <= 2.11 not (yet) worked around by Gnulib.  See
+     http://sourceware.org/bugzilla/show_bug.cgi?id=11009 for details.  */
   SCM_NEWSMOB (global_locale_smob, scm_tc16_locale_smob_type, NULL);
   SCM_VARIABLE_SET (scm_global_locale, global_locale_smob);
 }
