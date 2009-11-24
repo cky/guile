@@ -349,7 +349,7 @@ AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
      dnl http://lists.gnu.org/archive/html/guile-devel/2009-10/msg00138.html
      dnl for details.
      case "x$enable_shared--$host" in
-       xyes--*netbsd[0-5].[0-9])
+       xyes--*netbsd[0-5].[0-9].)
          ac_cv_have_thread_storage_class="no"
 	 ;;
        *)
