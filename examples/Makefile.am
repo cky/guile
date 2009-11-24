@@ -38,8 +38,8 @@ EXTRA_DIST = README ChangeLog-2008 check.test				\
 									\
  safe/README safe/safe safe/untrusted.scm safe/evil.scm
 
-AM_CFLAGS = `PATH=$(bindir):$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config compile`
-AM_LIBS   = `PATH=$(bindir):$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config link`
+AM_CFLAGS = `PATH=$(bindir)$(PATH_SEPARATOR)$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config compile`
+AM_LIBS   = `PATH=$(bindir)$(PATH_SEPARATOR)$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config link`
 
 
 box/box: box/box.o
@@ -77,10 +77,10 @@ box-dynamic-module/box.lo: box-dynamic-module/box.c
 
 
 installcheck: box/box box-module/box libbox.la libbox-module.la
-	LD_LIBRARY_PATH="$(libdir):$$LD_LIBRARY_PATH"		\
-	  LTDL_LIBRARY_PATH="$(builddir):$$LTDL_LIBRARY_PATH"	\
-	  GUILE_LOAD_PATH="$(abs_top_srcdir):$$GUILE_LOAD_PATH"	\
-	  PATH="$(bindir):$$PATH"				\
+	LD_LIBRARY_PATH="$(libdir)$(PATH_SEPARATOR)$$LD_LIBRARY_PATH"		\
+	  LTDL_LIBRARY_PATH="$(builddir)$(PATH_SEPARATOR)$$LTDL_LIBRARY_PATH"	\
+	  GUILE_LOAD_PATH="$(abs_top_srcdir)$(PATH_SEPARATOR)$$GUILE_LOAD_PATH"	\
+	  PATH="$(bindir)$(PATH_SEPARATOR)$$PATH"		\
 	  GUILE_AUTO_COMPILE=0					\
 	  srcdir="$(srcdir)"					\
 	  $(srcdir)/check.test
