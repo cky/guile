@@ -290,6 +290,8 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_uint32;\n", SCM_I_GSC_T_UINT32);
   pf ("typedef %s scm_t_intmax;\n", SCM_I_GSC_T_INTMAX);
   pf ("typedef %s scm_t_uintmax;\n", SCM_I_GSC_T_UINTMAX);
+  pf ("typedef %s scm_t_intptr;\n", SCM_I_GSC_T_INTPTR);
+  pf ("typedef %s scm_t_uintptr;\n", SCM_I_GSC_T_UINTPTR);
 
   if (0 == strcmp ("intmax_t", SCM_I_GSC_T_INTMAX))
     pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF_INTMAX_T);

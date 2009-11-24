@@ -39,6 +39,9 @@
 #  include <config.h>
 #endif
 
+/* The size of `scm_t_bits'.  */
+#define SIZEOF_SCM_T_BITS SIZEOF_VOID_P
+
 /* Undefine HAVE_STRUCT_TIMESPEC, because the libguile C code doesn't
    need it anymore, and because on MinGW:
 

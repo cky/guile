@@ -355,6 +355,8 @@ if test "$ac_cv_header_stdint_h" = yes; then
    AC_CHECK_TYPE([uint64_t],[scm_stdint_has_uint64=1],,[#include <stdint.h>])
    AC_CHECK_TYPE([intmax_t],[scm_stdint_has_intmax=1],,[#include <stdint.h>])
    AC_CHECK_TYPE([uintmax_t],[scm_stdint_has_uintmax=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([intptr_t],[scm_stdint_has_intptr=1],,[#include <stdint.h>])
+   AC_CHECK_TYPE([uintptr_t],[scm_stdint_has_uintptr=1],,[#include <stdint.h>])
 fi
 
 # so we don't get confused by the cache (wish there was a better way
@@ -383,6 +385,8 @@ if test "$ac_cv_header_inttypes_h" = yes; then
   AC_CHECK_TYPE([uint64_t],[scm_inttypes_has_uint64=1],,[#include <inttypes.h>])
   AC_CHECK_TYPE([intmax_t],[scm_inttypes_has_intmax=1],,[#include <inttypes.h>])
   AC_CHECK_TYPE([uintmax_t],[scm_inttypes_has_uintmax=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([intptr_t],[scm_inttypes_has_intptr=1],,[#include <inttypes.h>])
+  AC_CHECK_TYPE([uintptr_t],[scm_inttypes_has_uintptr=1],,[#include <inttypes.h>])
 fi
 
 # Try hard to find definitions for some required scm_t_*int* types.
@@ -574,6 +578,46 @@ else
   SCM_I_GSC_T_UINTMAX='"unsigned long"'
 fi
 AC_SUBST([SCM_I_GSC_T_UINTMAX])
+
+### Required type scm_t_intptr
+###
+SCM_I_GSC_T_INTPTR=0
+if test "$scm_stdint_has_intptr"; then
+  SCM_I_GSC_T_INTPTR='"intptr_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_intptr"; then
+  SCM_I_GSC_T_INTPTR='"intptr_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+elif test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_void_p"; then
+  SCM_I_GSC_T_INTPTR='"int"'
+elif test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_void_p"; then
+  SCM_I_GSC_T_INTPTR='"long"'
+elif test "$ac_cv_sizeof_long_long" = "$ac_cv_sizeof_void_p"; then
+  SCM_I_GSC_T_INTPTR='"long long"'
+else
+  AC_MSG_ERROR([Can't find appropriate type for `scm_t_intptr'.])
+fi
+AC_SUBST([SCM_I_GSC_T_INTPTR])
+
+### Required type scm_t_uintptr
+###
+SCM_I_GSC_T_UINTPTR=0
+if test "$scm_stdint_has_uintptr"; then
+  SCM_I_GSC_T_UINTPTR='"uintptr_t"'
+  SCM_I_GSC_NEEDS_STDINT_H=1
+elif test "$scm_inttypes_has_uintptr"; then
+  SCM_I_GSC_T_UINTPTR='"uintptr_t"'
+  SCM_I_GSC_NEEDS_INTTYPES_H=1
+elif test "$ac_cv_sizeof_int" = "$ac_cv_sizeof_void_p"; then
+  SCM_I_GSC_T_UINTPTR='"unsigned int"'
+elif test "$ac_cv_sizeof_long" = "$ac_cv_sizeof_void_p"; then
+  SCM_I_GSC_T_UINTPTR='"unsigned long"'
+elif test "$ac_cv_sizeof_long_long" = "$ac_cv_sizeof_void_p"; then
+  SCM_I_GSC_T_UINTPTR='"unsigned long long"'
+else
+  AC_MSG_ERROR([Can't find appropriate type for `scm_t_uintptr'.])
+fi
+AC_SUBST([SCM_I_GSC_T_UINTPTR])
 
 
 AC_SUBST([SCM_I_GSC_NEEDS_STDINT_H])
