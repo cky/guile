@@ -1331,6 +1331,7 @@ case "$with_threads" in
   ;;
   "no" | "null")
     SCM_I_GSC_USE_NULL_THREADS=1
+    SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS=0
     with_threads="null-threads"
   ;;
   * )
