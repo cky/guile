@@ -57,7 +57,7 @@ AC_DEFUN([GUILE_HEADER_LIBC_WITH_UNISTD],
       ]
     )
     if test "$guile_cv_header_libc_with_unistd" = yes; then
-      AC_DEFINE(LIBC_H_WITH_UNISTD_H, 1,
+      AC_DEFINE([LIBC_H_WITH_UNISTD_H], 1,
         [Define this if we should include <libc.h> when we've already
          included <unistd.h>.  On some systems, they conflict, and libc.h
          should be omitted.  See GUILE_HEADER_LIBC_WITH_UNISTD in
@@ -267,7 +267,7 @@ if test "x$acx_pthread_ok" = xyes; then
         done
         AC_MSG_RESULT($attr_name)
         if test "$attr_name" != PTHREAD_CREATE_JOINABLE; then
-            AC_DEFINE_UNQUOTED(PTHREAD_CREATE_JOINABLE, $attr_name,
+            AC_DEFINE_UNQUOTED([PTHREAD_CREATE_JOINABLE], $attr_name,
                                [Define to necessary symbol if this constant
                                 uses a non-standard name on your system.])
         fi
@@ -302,7 +302,7 @@ AC_SUBST(PTHREAD_CC)
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
 if test x"$acx_pthread_ok" = xyes; then
-        ifelse([$1],,AC_DEFINE(HAVE_PTHREAD,1,[Define if you have POSIX threads libraries and header files.]),[$1])
+        ifelse([$1],,AC_DEFINE([HAVE_PTHREAD],1,[Define if you have POSIX threads libraries and header files.]),[$1])
         :
 else
         acx_pthread_ok=no

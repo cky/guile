@@ -116,7 +116,7 @@ AC_ARG_ENABLE(debug-freelist,
 AC_ARG_ENABLE(debug-malloc,
   [  --enable-debug-malloc   include malloc debugging code],
   if test "$enable_debug_malloc" = y || test "$enable_debug_malloc" = yes; then
-    AC_DEFINE(GUILE_DEBUG_MALLOC, 1,
+    AC_DEFINE([GUILE_DEBUG_MALLOC], 1,
       [Define this if you want to debug scm_must_malloc/realloc/free calls.])
   fi)
 
@@ -165,7 +165,7 @@ else
   fi
   SCM_I_GSC_ENABLE_DEPRECATED=1
 fi
-AC_DEFINE_UNQUOTED(SCM_WARN_DEPRECATED_DEFAULT, "$warn_default",
+AC_DEFINE_UNQUOTED([SCM_WARN_DEPRECATED_DEFAULT], "$warn_default",
 [Define this to control the default warning level for deprecated features.])
 
 AC_ARG_ENABLE(elisp,
@@ -212,7 +212,7 @@ AC_ARG_WITH([64-calls],
 AC_MSG_RESULT($use_64_calls)
 case "$use_64_calls" in
   y* )
-    AC_DEFINE(GUILE_USE_64_CALLS, 1,
+    AC_DEFINE([GUILE_USE_64_CALLS], 1,
       [Define to 1 in order to try to use "64" versions of system and library calls.])
     ;;
 esac
@@ -247,14 +247,14 @@ fi
 if test "$enable_posix" = yes; then
    AC_LIBOBJ([filesys])
    AC_LIBOBJ([posix])
-   AC_DEFINE(HAVE_POSIX, 1,
+   AC_DEFINE([HAVE_POSIX], 1,
      [Define this if you want support for POSIX system calls in Guile.])
 fi
 
 if test "$enable_networking" = yes; then
    AC_LIBOBJ([net_db])
    AC_LIBOBJ([socket])
-   AC_DEFINE(HAVE_NETWORKING, 1,
+   AC_DEFINE([HAVE_NETWORKING], 1,
      [Define this if you want support for networking in Guile.])
 fi
 
@@ -681,7 +681,7 @@ AC_CHECK_TYPES(complex double,,,
 # On MacOS X <sys/socklen.h> contains socklen_t, so must include that
 # when testing.
 AC_CHECK_TYPE(socklen_t, ,
-  [AC_DEFINE_UNQUOTED(socklen_t, int,
+  [AC_DEFINE_UNQUOTED([socklen_t], int,
                       [Define to `int' if <sys/socket.h> does not define.])],
   [#if HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -727,7 +727,7 @@ case $host in
     fi
     if test "$enable_shared" = yes ; then
       EXTRA_DEFS="-DSCM_IMPORT"
-      AC_DEFINE(USE_DLL_IMPORT, 1,
+      AC_DEFINE([USE_DLL_IMPORT], 1,
         [Define if you need additional CPP macros on Win32 platforms.])
     fi
     ;;
@@ -797,7 +797,7 @@ AC_CHECK_DECLS([sethostname, hstrerror, cuserid])
 # libraries already in that list.
 #
 AC_SEARCH_LIBS(crypt, crypt,
-  [AC_DEFINE(HAVE_CRYPT,1,
+  [AC_DEFINE([HAVE_CRYPT],1,
              [Define to 1 if you have the `crypt' function.])])
 
 # When compiling with GCC on some OSs (Solaris, AIX), _Complex_I doesn't
@@ -815,7 +815,7 @@ complex double z;
 ]], [[
 z = _Complex_I;
 ]])],
-    [AC_DEFINE(GUILE_I,_Complex_I,[The imaginary unit (positive square root of -1).])
+    [AC_DEFINE([GUILE_I],_Complex_I,[The imaginary unit (positive square root of -1).])
      AC_MSG_RESULT([_Complex_I])],
     [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #if HAVE_COMPLEX_H
@@ -825,7 +825,7 @@ complex double z;
 ]],[[
 z = 1.0fi;
 ]])],
-  [AC_DEFINE(GUILE_I,1.0fi)
+  [AC_DEFINE([GUILE_I],1.0fi)
    AC_MSG_RESULT([1.0fi])],
   [ac_cv_type_complex_double=no
    AC_MSG_RESULT([not available])])])
@@ -858,7 +858,7 @@ main (void)
     [guile_cv_use_csqrt="yes, hopefully (cross-compiling)"])])
   case $guile_cv_use_csqrt in
     yes*)
-      AC_DEFINE(HAVE_USABLE_CSQRT, 1, [Define to 1 if csqrt is bug-free])
+      AC_DEFINE([HAVE_USABLE_CSQRT], 1, [Define to 1 if csqrt is bug-free])
       ;;
   esac
 fi
@@ -921,14 +921,14 @@ AC_CACHE_CHECK([return type of usleep], guile_cv_func_usleep_return_type,
 		   [guile_cv_func_usleep_return_type=int])])
 case "$guile_cv_func_usleep_return_type" in
   "void" )
-    AC_DEFINE(USLEEP_RETURNS_VOID, 1,
+    AC_DEFINE([USLEEP_RETURNS_VOID], 1,
       [Define if the system headers declare usleep to return void.])
   ;;
 esac
 
 AC_CHECK_HEADER(sys/un.h, have_sys_un_h=1)
 if test -n "$have_sys_un_h" ; then
-  AC_DEFINE(HAVE_UNIX_DOMAIN_SOCKETS, 1,
+  AC_DEFINE([HAVE_UNIX_DOMAIN_SOCKETS], 1,
     [Define if the system supports Unix-domain (file-domain) sockets.])
 fi
 
@@ -962,7 +962,7 @@ extern char *__libc_stack_end;]],
 AC_MSG_RESULT($guile_cv_have_libc_stack_end)
 
 if test $guile_cv_have_libc_stack_end = yes; then
-  AC_DEFINE(HAVE_LIBC_STACK_END, 1,
+  AC_DEFINE([HAVE_LIBC_STACK_END], 1,
            [Define if you have the __libc_stack_end variable.])
 fi
 
@@ -977,7 +977,7 @@ AC_CACHE_VAL(guile_cv_have_h_errno,
   [guile_cv_have_h_errno=no])])
 AC_MSG_RESULT($guile_cv_have_h_errno)
 if test $guile_cv_have_h_errno = yes; then
-  AC_DEFINE(HAVE_H_ERRNO, 1, [Define if h_errno is declared in netdb.h.])
+  AC_DEFINE([HAVE_H_ERRNO], 1, [Define if h_errno is declared in netdb.h.])
 fi
 
 AC_MSG_CHECKING(whether uint32_t is defined)
@@ -994,7 +994,7 @@ AC_CACHE_VAL(guile_cv_have_uint32_t,
 		   [guile_cv_have_uint32_t=no])])
 AC_MSG_RESULT($guile_cv_have_uint32_t)
 if test $guile_cv_have_uint32_t = yes; then
-  AC_DEFINE(HAVE_UINT32_T, 1,
+  AC_DEFINE([HAVE_UINT32_T], 1,
     [Define if uint32_t typedef is defined when netdb.h is include.])
 fi
 
@@ -1011,7 +1011,7 @@ AC_CACHE_VAL(guile_cv_have_ipv6,
 [guile_cv_have_ipv6=no])])
 AC_MSG_RESULT($guile_cv_have_ipv6)
 if test $guile_cv_have_ipv6 = yes; then
-  AC_DEFINE(HAVE_IPV6, 1, [Define if you want support for IPv6.])
+  AC_DEFINE([HAVE_IPV6], 1, [Define if you want support for IPv6.])
 fi
 
 # included in rfc2553 but not in older implementations, e.g., glibc 2.1.3.
@@ -1027,7 +1027,7 @@ AC_CACHE_VAL(guile_cv_have_sin6_scope_id,
 [guile_cv_have_sin6_scope_id=no])])
 AC_MSG_RESULT($guile_cv_have_sin6_scope_id)
 if test $guile_cv_have_sin6_scope_id = yes; then
-  AC_DEFINE(HAVE_SIN6_SCOPE_ID, 1,
+  AC_DEFINE([HAVE_SIN6_SCOPE_ID], 1,
     [Define this if your IPv6 has sin6_scope_id in sockaddr_in6 struct.])
 fi
 
@@ -1084,7 +1084,7 @@ else
 fi])dnl
 AC_MSG_RESULT($guile_cv_localtime_cache)
 if test $guile_cv_localtime_cache = yes; then
-  AC_DEFINE(LOCALTIME_CACHE, 1, [Define if localtime caches the TZ setting.])
+  AC_DEFINE([LOCALTIME_CACHE], 1, [Define if localtime caches the TZ setting.])
 fi
 
 if test "$enable_regex" = yes; then
@@ -1102,7 +1102,7 @@ if test "$enable_regex" = yes; then
      if test "$ac_cv_func_regcomp_norx" = yes ||
         test "$ac_cv_func_regcomp_regex" = yes ||
         test "$ac_cv_func_regcomp_rx" = yes; then
-       AC_DEFINE(HAVE_REGCOMP, 1,
+       AC_DEFINE([HAVE_REGCOMP], 1,
          [This is included as part of a workaround for a autoheader bug.])
      fi
    fi
@@ -1134,7 +1134,7 @@ AC_LINK_IFELSE(AC_LANG_SOURCE(
 volatile double x = 0.0;
 int main () { return (isinf(x) != 0); }]]),
   [AC_MSG_RESULT([yes])
-   AC_DEFINE(HAVE_ISINF, 1,
+   AC_DEFINE([HAVE_ISINF], 1,
              [Define to 1 if you have the `isinf' macro or function.])],
   [AC_MSG_RESULT([no])])
 AC_MSG_CHECKING([for isnan])
@@ -1143,7 +1143,7 @@ AC_LINK_IFELSE(AC_LANG_SOURCE(
 volatile double x = 0.0;
 int main () { return (isnan(x) != 0); }]]),
   [AC_MSG_RESULT([yes])
-   AC_DEFINE(HAVE_ISNAN, 1,
+   AC_DEFINE([HAVE_ISNAN], 1,
              [Define to 1 if you have the `isnan' macro or function.])],
   [AC_MSG_RESULT([no])])
 
@@ -1245,7 +1245,7 @@ AC_CHECK_TYPE([GC_fn_type],
 
 AC_CHECK_SIZEOF(float)
 if test "$ac_cv_sizeof_float" -le "$ac_cv_sizeof_long"; then
-    AC_DEFINE(SCM_SINGLES, 1, 
+    AC_DEFINE([SCM_SINGLES], 1, 
               [Define this if floats are the same size as longs.])
 fi
 
@@ -1259,7 +1259,7 @@ AC_CACHE_VAL(scm_cv_struct_linger,
 			  [scm_cv_struct_linger="no"]))
 AC_MSG_RESULT($scm_cv_struct_linger)
 if test $scm_cv_struct_linger = yes; then
-	AC_DEFINE(HAVE_STRUCT_LINGER, 1,
+	AC_DEFINE([HAVE_STRUCT_LINGER], 1,
           [Define this if your system defines struct linger, for use with the
            getsockopt and setsockopt system calls.])
 fi
@@ -1278,7 +1278,7 @@ AC_CACHE_VAL(scm_cv_struct_timespec,
           [scm_cv_struct_timespec="no"]))
 AC_MSG_RESULT($scm_cv_struct_timespec)
 if test $scm_cv_struct_timespec = yes; then
-  AC_DEFINE(HAVE_STRUCT_TIMESPEC, 1,
+  AC_DEFINE([HAVE_STRUCT_TIMESPEC], 1,
     [Define this if your system defines struct timespec via either <time.h> or <pthread.h>.])
 fi
 
@@ -1424,7 +1424,7 @@ int main ()
 #endif
 ]])],
 [works=yes
-AC_DEFINE(PTHREAD_ATTR_GETSTACK_WORKS, [1], [Define when pthread_att_get_stack works for the main thread])],
+AC_DEFINE([PTHREAD_ATTR_GETSTACK_WORKS], [1], [Define when pthread_att_get_stack works for the main thread])],
 [works=no],
 [])
 CFLAGS="$old_CFLAGS"

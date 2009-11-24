@@ -12,7 +12,7 @@ AC_DEFUN([GUILE_COMPAT],
                                ac_cv_have_scm_t_bits=no)])
   AC_MSG_RESULT($ac_cv_have_scm_t_bits)
   if test $ac_cv_have_scm_t_bits = yes; then
-    AC_DEFINE(HAVE_SCM_T_BITS)
+    AC_DEFINE([HAVE_SCM_T_BITS])
   fi
   LIBS="$guile_compat_save_LIBS"
   CFLAGS="$guile_compat_save_CFLAGS"])
