@@ -420,7 +420,7 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  srfi-4.i.c srfi-14.i.c				\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
-	         private-gc.h private-options.h
+		 private-gc.h private-options.h
 
 # vm instructions
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c

@@ -38,8 +38,8 @@ guile-config: $(srcdir)/guile-config.in
 	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
 	cat $(srcdir)/guile-config.in							\
 	| $(SED) -e "s,@pkgconfigdir@,$(pkgconfigdir),g ;			\
-	             s,@""PKG_CONFIG@,$(PKG_CONFIG),g ;				\
-	             s,@installed_guile@,$$guile,g"				\
+		     s,@""PKG_CONFIG@,$(PKG_CONFIG),g ;				\
+		     s,@installed_guile@,$$guile,g"				\
 	> guile-config.out
 	mv guile-config.out guile-config
 	chmod +x guile-config
