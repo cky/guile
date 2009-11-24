@@ -12,7 +12,7 @@ be required to make them available.
 * Ports and descriptors::       Ports, file descriptors and how they
                                 interact.
 * Extended I/O::                Reading and writing to ports.
-* File system::                 Working in a hierarchical filesystem.
+* File system::                 Working in a hierarchical file system.
 * User database::               Information about users from system databases.
 * Processes::                   Information and control of Unix processes.
 * Terminals::                   Terminals and pseudo-terminals.
