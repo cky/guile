@@ -134,19 +134,6 @@
 
 /* #define GUILE_DEBUG_FREELIST */
 
-/* All the number support there is.
- */
-#define BIGNUMS
-
-/* GC should relinquish empty cons-pair arenas. */
-/* cmm:FIXME look at this after done mangling the GC */
-/* #define GC_FREE_SEGMENTS */
-
-/* Provide a scheme-accessible count-down timer that
- * generates a pseudo-interrupt.
- */
-#define TICKS
-
 
 /* Use engineering notation when converting numbers strings?
  */
