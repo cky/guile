@@ -154,9 +154,9 @@ static void enfalsen_frame (void *p)
 static void
 vm_dispatch_hook (struct scm_vm *vp, SCM hook, SCM hook_args)
 {
-  if (!SCM_FALSEP (vp->trace_frame))
+  if (!scm_is_false (vp->trace_frame))
     return;
-  
+
   scm_dynwind_begin (0);
   /* FIXME, stack holder should be the vm */
   vp->trace_frame = scm_c_make_vm_frame (SCM_BOOL_F, vp->fp, vp->sp, vp->ip, 0);
@@ -229,7 +229,7 @@ vm_make_boot_program (long nargs)
 static SCM
 resolve_variable (SCM what, SCM program_module)
 {
-  if (SCM_LIKELY (SCM_SYMBOLP (what))) 
+  if (SCM_LIKELY (scm_is_symbol (what)))
     {
       if (SCM_LIKELY (scm_module_system_booted_p
                       && scm_is_true (program_module)))
@@ -434,7 +434,7 @@ SCM_DEFINE (scm_vm_p, "vm?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_p
 {
-  return SCM_BOOL (SCM_VM_P (obj));
+  return scm_from_bool (SCM_VM_P (obj));
 }
 #undef FUNC_NAME
 

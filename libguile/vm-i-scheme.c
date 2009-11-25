@@ -32,37 +32,37 @@
 VM_DEFINE_FUNCTION (100, not, "not", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (scm_is_false_or_nil (x)));
+  RETURN (scm_from_bool (scm_is_false_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (101, not_not, "not-not", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (!scm_is_false_or_nil (x)));
+  RETURN (scm_from_bool (!scm_is_false_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (102, eq, "eq?", 2)
 {
   ARGS2 (x, y);
-  RETURN (SCM_BOOL (SCM_EQ_P (x, y)));
+  RETURN (scm_from_bool (SCM_EQ_P (x, y)));
 }
 
 VM_DEFINE_FUNCTION (103, not_eq, "not-eq?", 2)
 {
   ARGS2 (x, y);
-  RETURN (SCM_BOOL (!SCM_EQ_P (x, y)));
+  RETURN (scm_from_bool (!SCM_EQ_P (x, y)));
 }
 
 VM_DEFINE_FUNCTION (104, nullp, "null?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (scm_is_null_or_nil (x)));
+  RETURN (scm_from_bool (scm_is_null_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (105, not_nullp, "not-null?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (!scm_is_null_or_nil (x)));
+  RETURN (scm_from_bool (!scm_is_null_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (106, eqv, "eqv?", 2)
@@ -90,13 +90,13 @@ VM_DEFINE_FUNCTION (107, equal, "equal?", 2)
 VM_DEFINE_FUNCTION (108, pairp, "pair?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (SCM_CONSP (x)));
+  RETURN (scm_from_bool (SCM_CONSP (x)));
 }
 
 VM_DEFINE_FUNCTION (109, listp, "list?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (scm_ilength (x) >= 0));
+  RETURN (scm_from_bool (scm_ilength (x) >= 0));
 }
 
 
@@ -161,7 +161,7 @@ VM_DEFINE_INSTRUCTION (114, set_cdr, "set-cdr!", 0, 2, 0)
 {								\
   ARGS2 (x, y);							\
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))			\
-    RETURN (SCM_BOOL (SCM_I_INUM (x) crel SCM_I_INUM (y)));	\
+    RETURN (scm_from_bool (SCM_I_INUM (x) crel SCM_I_INUM (y)));  \
   SYNC_REGISTER ();                                             \
   RETURN (srel (x, y));                                         \
 }

@@ -486,13 +486,13 @@ VM_DEFINE_INSTRUCTION (36, br_if_not, "br-if-not", 3, 0, 0)
 VM_DEFINE_INSTRUCTION (37, br_if_eq, "br-if-eq", 3, 0, 0)
 {
   sp--; /* underflow? */
-  BR (SCM_EQ_P (sp[0], sp[1]));
+  BR (scm_is_eq (sp[0], sp[1]));
 }
 
 VM_DEFINE_INSTRUCTION (38, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 {
   sp--; /* underflow? */
-  BR (!SCM_EQ_P (sp[0], sp[1]));
+  BR (!scm_is_eq (sp[0], sp[1]));
 }
 
 VM_DEFINE_INSTRUCTION (39, br_if_null, "br-if-null", 3, 0, 0)
@@ -877,7 +877,7 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
           POP (values);
           values = scm_struct_ref (values, SCM_INUM0);
           nvalues = scm_ilength (values);
-          PUSH_LIST (values, SCM_NULLP);
+          PUSH_LIST (values, scm_is_null);
           goto vm_return_values;
         }
       else
@@ -970,7 +970,7 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
           POP (values);
           values = scm_struct_ref (values, SCM_INUM0);
           len = scm_length (values);
-          PUSH_LIST (values, SCM_NULLP);
+          PUSH_LIST (values, scm_is_null);
           PUSH (len);
           ip = mvra;
         }
@@ -1043,7 +1043,7 @@ VM_DEFINE_INSTRUCTION (60, call_cc, "call/cc", 0, 1, 1)
       /* multiple values returned to continuation */
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
-      if (SCM_NULLP (values))
+      if (scm_is_null (values))
         goto vm_error_no_values;
       /* non-tail context does not accept multiple values? */
       PUSH (SCM_CAR (values));
@@ -1078,7 +1078,7 @@ VM_DEFINE_INSTRUCTION (61, goto_cc, "goto/cc", 0, 1, 1)
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
       nvalues = scm_ilength (values);
-      PUSH_LIST (values, SCM_NULLP);
+      PUSH_LIST (values, scm_is_null);
       goto vm_return_values;
     }
   else
@@ -1188,7 +1188,7 @@ VM_DEFINE_INSTRUCTION (64, return_values_star, "return/values*", 1, -1, -1)
     
   nvalues--;
   POP (l);
-  while (SCM_CONSP (l))
+  while (scm_is_pair (l))
     {
       PUSH (SCM_CAR (l));
       l = SCM_CDR (l);
