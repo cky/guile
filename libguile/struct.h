@@ -39,14 +39,14 @@
  */
 
 /* All vtables have the following fields. */
-#define SCM_VTABLE_BASE_LAYOUT \
-  "pr" /* layout */ \
-  "uh" /* flags */ \
-  "sr" /* self */ \
-  "uh" /* finalizer */ \
-  "pw" /* printer */ \
-  "ph" /* name (hidden from make-struct for back-compat reasons) */ \
-  "uh" /* reserved */ \
+#define SCM_VTABLE_BASE_LAYOUT                                          \
+  "pr" /* layout */                                                     \
+  "uh" /* flags */                                                      \
+  "sr" /* self */                                                       \
+  "uh" /* finalizer */                                                  \
+  "pw" /* printer */                                                    \
+  "ph" /* name (hidden from make-struct for back-compat reasons) */     \
+  "uh" /* reserved */                                                   \
   "uh" /* reserved */
 
 #define scm_vtable_index_layout            0 /* A symbol describing the physical arrangement of this type. */
@@ -60,10 +60,10 @@
 #define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
 
 /* All applicable structs have the following fields. */
-#define SCM_APPLICABLE_BASE_LAYOUT \
+#define SCM_APPLICABLE_BASE_LAYOUT              \
   "pw" /* procedure */
-#define SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT \
-  "pw" /* procedure */ \
+#define SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT  \
+  "pw" /* procedure */                          \
   "pw" /* setter */
 #define scm_applicable_struct_index_procedure 0 /* The procedure of an applicable
                                                    struct. Only valid if the

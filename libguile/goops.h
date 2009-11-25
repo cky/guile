@@ -61,26 +61,26 @@
  */
 
 /* see also, SCM_VTABLE_BASE_LAYOUT, and build_class_class_slots */
-#define SCM_CLASS_CLASS_LAYOUT \
-  "pw" /* redefined */ \
-  "uw" /* h0 */ \
-  "uw" /* h1 */ \
-  "uw" /* h2 */ \
-  "uw" /* h3 */ \
-  "uw" /* h4 */ \
-  "uw" /* h5 */ \
-  "uw" /* h6 */ \
-  "uw" /* h7 */ \
-  "pw" /* direct supers */ \
-  "pw" /* direct slots */ \
-  "pw" /* direct subclasses */ \
-  "pw" /* direct methods */ \
-  "pw" /* cpl */ \
-  "pw" /* default-slot-definition-class */ \
-  "pw" /* slots */ \
-  "pw" /* getters-n-setters */ \
-  "pw" /* keyword access */ \
-  "pw" /* nfields */ \
+#define SCM_CLASS_CLASS_LAYOUT                  \
+  "pw" /* redefined */                          \
+  "uw" /* h0 */                                 \
+  "uw" /* h1 */                                 \
+  "uw" /* h2 */                                 \
+  "uw" /* h3 */                                 \
+  "uw" /* h4 */                                 \
+  "uw" /* h5 */                                 \
+  "uw" /* h6 */                                 \
+  "uw" /* h7 */                                 \
+  "pw" /* direct supers */                      \
+  "pw" /* direct slots */                       \
+  "pw" /* direct subclasses */                  \
+  "pw" /* direct methods */                     \
+  "pw" /* cpl */                                \
+  "pw" /* default-slot-definition-class */      \
+  "pw" /* slots */                              \
+  "pw" /* getters-n-setters */                  \
+  "pw" /* keyword access */                     \
+  "pw" /* nfields */                            \
   "pw" /* environment */
 
 #define scm_si_redefined         (scm_vtable_offset_user + 0)
