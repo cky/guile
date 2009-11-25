@@ -1495,7 +1495,8 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 
   /* Set all SCM-holding slots to unbound */
   for (i = 0; i < n; i++)
-    { scm_t_wchar c = scm_i_symbol_ref (layout, i*2);
+    {
+      scm_t_wchar c = scm_i_symbol_ref (layout, i*2);
       if (c == 'p')
         SCM_STRUCT_DATA (obj)[i] = SCM_UNPACK (SCM_GOOPS_UNBOUND);
       else if (c == 's')

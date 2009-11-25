@@ -107,7 +107,8 @@ VM_DEFINE_LOADER (90, load_wide_string, "load-wide-string")
 
   FETCH_LENGTH (len);
   if (SCM_UNLIKELY (len % 4))
-    { finish_args = scm_list_1 (scm_from_size_t (len));
+    {
+      finish_args = scm_list_1 (scm_from_size_t (len));
       goto vm_error_bad_wide_string_length;
     }
 
