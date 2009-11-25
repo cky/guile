@@ -1465,7 +1465,9 @@ scm_i_fluidp (SCM x)
 
 /* Networking.  */
 
-SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
+#ifdef HAVE_NETWORKING
+
+SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
             (SCM address),
 	    "Convert an IPv4 Internet address from printable string\n"
 	    "(dotted decimal notation) to an integer.  E.g.,\n\n"
@@ -1482,7 +1484,7 @@ SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
+SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
             (SCM inetid),
 	    "Convert an IPv4 Internet address to a printable\n"
 	    "(dotted decimal notation) string.  E.g.,\n\n"
@@ -1498,6 +1500,7 @@ SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+#endif /* HAVE_NETWORKING */
 
 
 void
