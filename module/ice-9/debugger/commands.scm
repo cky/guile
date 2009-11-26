@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugger commands) -- debugger commands
 
-;;; Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2006, 2009 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -71,6 +71,7 @@ If the number of frames isn't explicitly given, the debug option
 		 (apply display-error stack (current-error-port) args)))))
   (throw 'continue))
 
+;; FIXME: no longer working due to no more local-eval
 (define (evaluate state expression)
   "Evaluate an expression in the environment of the selected stack frame.
 The expression must appear on the same line as the command, however it

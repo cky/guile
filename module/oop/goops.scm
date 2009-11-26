@@ -1114,14 +1114,7 @@
 	  #:slot-definition slotdef)))
 
 (define (make-generic-bound-check-getter proc)
-  (let ((source (and (closure? proc) (procedure-source proc))))
-    (if (and source (null? (cdddr source)))
-	(let ((obj (caadr source)))
-	  ;; smart closure compilation
-	  (local-eval
-	   `(lambda (,obj) (,assert-bound ,(caddr source) ,obj))
-	   (procedure-environment proc)))
-	(lambda (o) (assert-bound (proc o) o)))))
+  (lambda (o) (assert-bound (proc o) o)))
 
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.

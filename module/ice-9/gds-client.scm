@@ -248,6 +248,8 @@
 	     erf))
 	 flags)))
 
+;; FIXME: the new evaluator breaks this, by removing local-eval. Need to
+;; figure out our story in this regard.
 (define (eval-in-frame stack index expr)
   (write-form
    (list 'eval-result

@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugging traps) -- abstraction of libguile's traps interface
 
-;;; Copyright (C) 2002, 2004 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2004, 2009 Free Software Foundation, Inc.
 ;;; Copyright (C) 2005 Neil Jerram
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -887,6 +887,7 @@ it twice."
              (= (caddr trap-location) (slot-ref trap 'column))))))
 
 ;; (trap-here EXPRESSION . OPTIONS)
+;; FIXME: no longer working due to no mmacros, no local-eval
 (define trap-here
   (procedure->memoizing-macro
    (lambda (expr env)
