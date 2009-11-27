@@ -2931,8 +2931,6 @@ int scm_check_apply_p;
 int scm_check_exit_p;
 int scm_check_memoize_p;
 
-long scm_eval_stack;
-
 scm_t_option scm_eval_opts[] = {
   { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." },
   { 0 }
@@ -3011,7 +3009,6 @@ SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0,
   ans = scm_options (setting,
 		     scm_eval_opts,
 		     FUNC_NAME);
-  scm_eval_stack = SCM_EVAL_STACK * sizeof (void *);
   scm_dynwind_end ();
 
   return ans;
