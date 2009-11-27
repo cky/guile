@@ -26,6 +26,7 @@
 #include "libguile/__scm.h"
 #include "libguile/arrays.h"
 #include "libguile/strings.h"
+#include "libguile/eval.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -587,6 +588,12 @@ SCM_DEPRECATED SCM scm_map_free_list (void);
 SCM_DEPRECATED SCM scm_gc_set_debug_check_freelist_x (SCM flag);
 #endif
 
+
+
+/* Deprecated 2009-11-27, scm_call_N is sufficient */
+SCM_DEPRECATED scm_t_trampoline_0 scm_trampoline_0 (SCM proc);
+SCM_DEPRECATED scm_t_trampoline_1 scm_trampoline_1 (SCM proc);
+SCM_DEPRECATED scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
 
 
 void scm_i_init_deprecated (void);

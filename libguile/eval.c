@@ -3179,38 +3179,6 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 
 
 
-/* Trampolines
- *  
- * Trampolines were an intent to speed up calling the same Scheme procedure many
- * times from C.
- *
- * However, this was the wrong thing to optimize; if you really know what you're
- * calling, call its function directly, otherwise you're in Scheme-land, and we
- * have many better tricks there (inlining, for example, which can remove the
- * need for closures and free variables).
- *
- * Also, in the normal debugging case, trampolines were being computed but not
- * used. Silliness.
- */
-
-scm_t_trampoline_0
-scm_trampoline_0 (SCM proc)
-{
-  return scm_call_0;
-}
-
-scm_t_trampoline_1
-scm_trampoline_1 (SCM proc)
-{
-  return scm_call_1;
-}
-
-scm_t_trampoline_2
-scm_trampoline_2 (SCM proc)
-{
-  return scm_call_2;
-}
-
 /* Typechecking for multi-argument MAP and FOR-EACH.
 
    Verify that each element of the vector ARGV, except for the first,

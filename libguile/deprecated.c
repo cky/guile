@@ -1573,6 +1573,45 @@ scm_gc_set_debug_check_freelist_x (SCM flag)
 #endif
 
 
+/* Trampolines
+ *  
+ * Trampolines were an intent to speed up calling the same Scheme procedure many
+ * times from C.
+ *
+ * However, this was the wrong thing to optimize; if you really know what you're
+ * calling, call its function directly, otherwise you're in Scheme-land, and we
+ * have many better tricks there (inlining, for example, which can remove the
+ * need for closures and free variables).
+ *
+ * Also, in the normal debugging case, trampolines were being computed but not
+ * used. Silliness.
+ */
+
+scm_t_trampoline_0
+scm_trampoline_0 (SCM proc)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_trampoline_0' is deprecated. Just use `scm_call_0' instead.");
+  return scm_call_0;
+}
+
+scm_t_trampoline_1
+scm_trampoline_1 (SCM proc)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_trampoline_1' is deprecated. Just use `scm_call_1' instead.");
+  return scm_call_1;
+}
+
+scm_t_trampoline_2
+scm_trampoline_2 (SCM proc)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_trampoline_2' is deprecated. Just use `scm_call_2' instead.");
+  return scm_call_2;
+}
+
+
 void
 scm_i_init_deprecated ()
 {

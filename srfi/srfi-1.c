@@ -200,18 +200,16 @@ SCM_DEFINE (scm_srfi1_break, "break", 2, 0, 0,
 	    "make a new define under a different name.")
 #define FUNC_NAME s_scm_srfi1_break
 {
-  scm_t_trampoline_1 pred_tramp;
   SCM ret, *p;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   ret = SCM_EOL;
   p = &ret;
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
       SCM elem = SCM_CAR (lst);
-      if (scm_is_true (pred_tramp (pred, elem)))
+      if (scm_is_true (scm_call_1 (pred, elem)))
         goto done;
 
       /* want this elem, tack it onto the end of ret */
@@ -235,15 +233,13 @@ SCM_DEFINE (scm_srfi1_break_x, "break!", 2, 0, 0,
 #define FUNC_NAME s_scm_srfi1_break_x
 {
   SCM upto, *p;
-  scm_t_trampoline_1 pred_tramp;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   p = &lst;
   for (upto = lst; scm_is_pair (upto); upto = SCM_CDR (upto))
     {
-      if (scm_is_true (pred_tramp (pred, SCM_CAR (upto))))
+      if (scm_is_true (scm_call_1 (pred, SCM_CAR (upto))))
         goto done;
 
       /* want this element */
@@ -329,12 +325,10 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
   if (scm_is_null (rest))
     {
       /* one list */
-      scm_t_trampoline_1 pred_tramp;
-      pred_tramp = scm_trampoline_1 (pred);
-      SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+      SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
       for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
-        count += scm_is_true (pred_tramp (pred, SCM_CAR (list1)));
+        count += scm_is_true (scm_call_1 (pred, SCM_CAR (list1)));
 
       /* check below that list1 is a proper list, and done */
     end_list1:
@@ -344,11 +338,9 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
   else if (scm_is_pair (rest) && scm_is_null (SCM_CDR (rest)))
     {
       /* two lists */
-      scm_t_trampoline_2 pred_tramp;
       SCM list2;
 
-      pred_tramp = scm_trampoline_2 (pred);
-      SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+      SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
       list2 = SCM_CAR (rest);
       for (;;)
@@ -361,7 +353,7 @@ SCM_DEFINE (scm_srfi1_count, "count", 2, 0, 1,
               argnum = 3;
               break;
             }
-          count += scm_is_true (pred_tramp
+          count += scm_is_true (scm_call_2
 				(pred, SCM_CAR (list1), SCM_CAR (list2)));
           list1 = SCM_CDR (list1);
           list2 = SCM_CDR (list2);
@@ -426,15 +418,13 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
 	    "common tail with @var{lst}.")
 #define FUNC_NAME s_scm_srfi1_delete
 {
-  scm_t_trampoline_2 equal_p;
   SCM  ret, *p, keeplst;
   int  count;
 
   if (SCM_UNBNDP (pred))
     return scm_delete (x, lst);
 
-  equal_p = scm_trampoline_2 (pred);
-  SCM_ASSERT (equal_p, pred, SCM_ARG3, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG3, FUNC_NAME);
 
   /* ret is the return list being constructed.  p is where to append to it,
      initially &ret then SCM_CDRLOC of the last pair.  lst progresses as
@@ -452,7 +442,7 @@ SCM_DEFINE (scm_srfi1_delete, "delete", 2, 1, 0,
 
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
-      if (scm_is_true (equal_p (pred, x, SCM_CAR (lst))))
+      if (scm_is_true (scm_call_2 (pred, x, SCM_CAR (lst))))
         {
           /* delete this element, so copy those at keeplst */
           p = list_copy_part (keeplst, count, p);
@@ -495,21 +485,19 @@ SCM_DEFINE (scm_srfi1_delete_x, "delete!", 2, 1, 0,
 	    "@var{lst} may be modified to construct the returned list.")
 #define FUNC_NAME s_scm_srfi1_delete_x
 {
-  scm_t_trampoline_2 equal_p;
   SCM walk;
   SCM *prev;
 
   if (SCM_UNBNDP (pred))
     return scm_delete_x (x, lst);
 
-  equal_p = scm_trampoline_2 (pred);
-  SCM_ASSERT (equal_p, pred, SCM_ARG3, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG3, FUNC_NAME);
 
   for (prev = &lst, walk = lst;
        scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
-      if (scm_is_true (equal_p (pred, x, SCM_CAR (walk))))
+      if (scm_is_true (scm_call_2 (pred, x, SCM_CAR (walk))))
 	*prev = SCM_CDR (walk);
       else
 	prev = SCM_CDRLOC (walk);
@@ -576,8 +564,8 @@ SCM_DEFINE (scm_srfi1_delete_duplicates, "delete-duplicates", 1, 1, 0,
     equal_p = equal_trampoline;
   else
     {
-      equal_p = scm_trampoline_2 (pred);
-      SCM_ASSERT (equal_p, pred, SCM_ARG2, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG2, pred);
+      equal_p = scm_call_2;
     }
 
   keeplst = lst;
@@ -666,8 +654,8 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
         equal_p = equal_trampoline;
       else
         {
-          equal_p = scm_trampoline_2 (pred);
-          SCM_ASSERT (equal_p, pred, SCM_ARG2, FUNC_NAME);
+          SCM_VALIDATE_PROC (SCM_ARG2, pred);
+          equal_p = scm_call_2;
         }
 
       endret = ret;
@@ -766,11 +754,10 @@ SCM_DEFINE (scm_srfi1_drop_while, "drop-while", 2, 0, 0,
 	    "satisfy the predicate @var{pred}.")
 #define FUNC_NAME s_scm_srfi1_drop_while
 {
-  scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, pred);
 
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
-    if (scm_is_false (pred_tramp (pred, SCM_CAR (lst))))
+    if (scm_is_false (scm_call_1 (pred, SCM_CAR (lst))))
       goto done;
 
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
@@ -818,12 +805,11 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
   if (scm_is_null (rest))
     {
       /* one list */
-      scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
-      SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG1, proc);
 
       for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
         {
-          elem = proc_tramp (proc, SCM_CAR (list1));
+          elem = scm_call_1 (proc, SCM_CAR (list1));
           if (scm_is_true (elem))
             {
               newcell = scm_cons (elem, SCM_EOL);
@@ -840,9 +826,8 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
   else if (scm_is_null (SCM_CDR (rest)))
     {
       /* two lists */
-      scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
       SCM list2 = SCM_CAR (rest);
-      SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG1, proc);
 
       for (;;)
         {
@@ -854,7 +839,7 @@ SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
               argnum = 3;
               goto check_lst_and_done;
             }
-          elem = proc_tramp (proc, SCM_CAR (list1), SCM_CAR (list2));
+          elem = scm_call_2 (proc, SCM_CAR (list1), SCM_CAR (list2));
           if (scm_is_true (elem))
             {
               newcell = scm_cons (elem, SCM_EOL);
@@ -918,13 +903,12 @@ SCM_DEFINE (scm_srfi1_find, "find", 2, 0, 0,
 	    "found.")
 #define FUNC_NAME s_scm_srfi1_find
 {
-  scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, pred);
 
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
       SCM elem = SCM_CAR (lst);
-      if (scm_is_true (pred_tramp (pred, elem)))
+      if (scm_is_true (scm_call_1 (pred, elem)))
         return elem;
     }
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
@@ -941,11 +925,10 @@ SCM_DEFINE (scm_srfi1_find_tail, "find-tail", 2, 0, 0,
 	    "found.")
 #define FUNC_NAME s_scm_srfi1_find_tail
 {
-  scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, pred);
 
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
-    if (scm_is_true (pred_tramp (pred, SCM_CAR (lst))))
+    if (scm_is_true (scm_call_1 (pred, SCM_CAR (lst))))
       return lst;
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
 
@@ -1015,11 +998,10 @@ SCM_DEFINE (scm_srfi1_fold, "fold", 3, 0, 1,
   if (scm_is_null (rest))
     {
       /* one list */
-      scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
-      SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG1, proc);
 
       for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
-        init = proc_tramp (proc, SCM_CAR (list1), init);
+        init = scm_call_2 (proc, SCM_CAR (list1), init);
 
       /* check below that list1 is a proper list, and done */
       lst = list1;
@@ -1117,11 +1099,10 @@ SCM_DEFINE (scm_srfi1_list_index, "list-index", 2, 0, 1,
   if (scm_is_null (rest))
     {
       /* one list */
-      scm_t_trampoline_1 pred_tramp = scm_trampoline_1 (pred);
-      SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG1, pred);
 
       for ( ; scm_is_pair (list1); n++, list1 = SCM_CDR (list1))
-        if (scm_is_true (pred_tramp (pred, SCM_CAR (list1))))
+        if (scm_is_true (scm_call_1 (pred, SCM_CAR (list1))))
           return SCM_I_MAKINUM (n);
 
       /* not found, check below that list1 is a proper list */
@@ -1133,8 +1114,7 @@ SCM_DEFINE (scm_srfi1_list_index, "list-index", 2, 0, 1,
     {
       /* two lists */
       SCM list2 = SCM_CAR (rest);
-      scm_t_trampoline_2 pred_tramp = scm_trampoline_2 (pred);
-      SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG1, pred);
 
       for ( ; ; n++)
         {
@@ -1146,7 +1126,7 @@ SCM_DEFINE (scm_srfi1_list_index, "list-index", 2, 0, 1,
               argnum = 3;
               break;
             }
-          if (scm_is_true (pred_tramp (pred,
+          if (scm_is_true (scm_call_2 (pred,
                                        SCM_CAR (list1), SCM_CAR (list2))))
             return SCM_I_MAKINUM (n);
 
@@ -1237,15 +1217,11 @@ SCM_DEFINE (scm_srfi1_list_tabulate, "list-tabulate", 2, 0, 0,
 #define FUNC_NAME s_scm_srfi1_list_tabulate
 {
   long i, nn;
-  scm_t_trampoline_1 proc_tramp = scm_trampoline_1 (proc);
   SCM ret = SCM_EOL;
-
   nn = scm_to_signed_integer (n, 0, LONG_MAX);
-  SCM_ASSERT (proc_tramp, proc, SCM_ARG2, FUNC_NAME);
-
+  SCM_VALIDATE_PROC (SCM_ARG2, proc);
   for (i = nn-1; i >= 0; i--)
-    ret = scm_cons (proc_tramp (proc, scm_from_long (i)), ret);
-
+    ret = scm_cons (scm_call_1 (proc, scm_from_long (i)), ret);
   return ret;
 }
 #undef FUNC_NAME
@@ -1267,11 +1243,9 @@ SCM_DEFINE (scm_srfi1_lset_adjoin, "lset-adjoin", 2, 0, 1,
 	    "@end example")
 #define FUNC_NAME s_scm_srfi1_lset_adjoin
 {
-  scm_t_trampoline_2 equal_tramp;
   SCM l, elem;
 
-  equal_tramp = scm_trampoline_2 (equal);
-  SCM_ASSERT (equal_tramp, equal, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, equal);
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
   /* It's not clear if duplicates among the `rest' elements are meant to be
@@ -1286,7 +1260,7 @@ SCM_DEFINE (scm_srfi1_lset_adjoin, "lset-adjoin", 2, 0, 1,
       elem = SCM_CAR (rest);
 
       for (l = lst; scm_is_pair (l); l = SCM_CDR (l))
-        if (scm_is_true (equal_tramp (equal, SCM_CAR (l), elem)))
+        if (scm_is_true (scm_call_2 (equal, SCM_CAR (l), elem)))
           goto next_elem; /* elem already in lst, don't add */
 
       SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(l), lst, SCM_ARG2, FUNC_NAME, "list");
@@ -1325,11 +1299,9 @@ SCM_DEFINE (scm_srfi1_lset_difference_x, "lset-difference!", 2, 0, 1,
 	    "result.")
 #define FUNC_NAME s_scm_srfi1_lset_difference_x
 {
-  scm_t_trampoline_2 equal_tramp = scm_trampoline_2 (equal);
   SCM ret, *pos, elem, r, b;
   int argnum;
 
-  SCM_ASSERT (equal_tramp, equal, SCM_ARG1, FUNC_NAME);
   SCM_VALIDATE_PROC (SCM_ARG1, equal);
   SCM_VALIDATE_REST_ARGUMENT (rest);
 
@@ -1344,7 +1316,7 @@ SCM_DEFINE (scm_srfi1_lset_difference_x, "lset-difference!", 2, 0, 1,
            r = SCM_CDR (r), argnum++)
         {
           for (b = SCM_CAR (r); scm_is_pair (b); b = SCM_CDR (b))
-            if (scm_is_true (equal_tramp (equal, elem, SCM_CAR (b))))
+            if (scm_is_true (scm_call_2 (equal, elem, SCM_CAR (b))))
               goto next_elem; /* equal to elem, so drop that elem */
 
           SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (b), b, argnum, FUNC_NAME,"list");
@@ -1437,12 +1409,12 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
   SCM_VALIDATE_REST_ARGUMENT (args);
   if (scm_is_null (args))
     {
-      scm_t_trampoline_1 call = scm_trampoline_1 (proc);
-      SCM_GASSERT2 (call, g_srfi1_map, proc, arg1, SCM_ARG1, s_srfi1_map);
+      SCM_GASSERT2 (scm_is_true (scm_procedure_p (proc)), g_srfi1_map,
+                    proc, arg1, SCM_ARG1, s_srfi1_map);
       SCM_GASSERT2 (len >= 0, g_srfi1_map, proc, arg1, SCM_ARG2, s_srfi1_map);
       while (SCM_NIMP (arg1))
 	{
-	  *pres = scm_list_1 (call (proc, SCM_CAR (arg1)));
+	  *pres = scm_list_1 (scm_call_1 (proc, SCM_CAR (arg1)));
 	  pres = SCM_CDRLOC (*pres);
 	  arg1 = SCM_CDR (arg1);
 	}
@@ -1452,8 +1424,7 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = srfi1_ilength (arg2);
-      scm_t_trampoline_2 call = scm_trampoline_2 (proc);
-      SCM_GASSERTn (call, g_srfi1_map,
+      SCM_GASSERTn (scm_is_true (scm_procedure_p (proc)), g_srfi1_map,
 		    scm_cons2 (proc, arg1, args), SCM_ARG1, s_srfi1_map);
       if (len < 0 || (len2 >= 0 && len2 < len))
 	len = len2;
@@ -1465,7 +1436,7 @@ scm_srfi1_map (SCM proc, SCM arg1, SCM args)
 		    s_srfi1_map);
       while (len > 0)
 	{
-	  *pres = scm_list_1 (call (proc, SCM_CAR (arg1), SCM_CAR (arg2)));
+	  *pres = scm_list_1 (scm_call_2 (proc, SCM_CAR (arg1), SCM_CAR (arg2)));
 	  pres = SCM_CDRLOC (*pres);
 	  arg1 = SCM_CDR (arg1);
 	  arg2 = SCM_CDR (arg2);
@@ -1508,14 +1479,13 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
   SCM_VALIDATE_REST_ARGUMENT (args);
   if (scm_is_null (args))
     {
-      scm_t_trampoline_1 call = scm_trampoline_1 (proc);
-      SCM_GASSERT2 (call, g_srfi1_for_each, proc, arg1,
-		    SCM_ARG1, s_srfi1_for_each);
+      SCM_GASSERT2 (scm_is_true (scm_procedure_p (proc)), g_srfi1_for_each,
+                    proc, arg1, SCM_ARG1, s_srfi1_for_each);
       SCM_GASSERT2 (len >= 0, g_srfi1_for_each, proc, arg1,
 		    SCM_ARG2, s_srfi1_map);
       while (SCM_NIMP (arg1))
 	{
-	  call (proc, SCM_CAR (arg1));
+	  scm_call_1 (proc, SCM_CAR (arg1));
 	  arg1 = SCM_CDR (arg1);
 	}
       return SCM_UNSPECIFIED;
@@ -1524,8 +1494,7 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = srfi1_ilength (arg2);
-      scm_t_trampoline_2 call = scm_trampoline_2 (proc);
-      SCM_GASSERTn (call, g_srfi1_for_each,
+      SCM_GASSERTn (scm_is_true (scm_procedure_p (proc)), g_srfi1_for_each,
 		    scm_cons2 (proc, arg1, args), SCM_ARG1, s_srfi1_for_each);
       if (len < 0 || (len2 >= 0 && len2 < len))
 	len = len2;
@@ -1537,7 +1506,7 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 		    s_srfi1_for_each);
       while (len > 0)
 	{
-	  call (proc, SCM_CAR (arg1), SCM_CAR (arg2));
+	  scm_call_2 (proc, SCM_CAR (arg1), SCM_CAR (arg2));
 	  arg1 = SCM_CDR (arg1);
 	  arg2 = SCM_CDR (arg2);
 	  --len;
@@ -1589,8 +1558,8 @@ SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
     equal_p = equal_trampoline;
   else
     {
-      equal_p = scm_trampoline_2 (pred);
-      SCM_ASSERT (equal_p, pred, 3, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG3, pred);
+      equal_p = scm_call_2;
     }
   for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
     {
@@ -1614,8 +1583,8 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
     equal_p = equal_trampoline;
   else
     {
-      equal_p = scm_trampoline_2 (pred);
-      SCM_ASSERT (equal_p, pred, 3, FUNC_NAME);
+      SCM_VALIDATE_PROC (SCM_ARG3, pred);
+      equal_p = scm_call_2;
     }
   for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
@@ -1668,14 +1637,13 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 {
   /* In this implementation, the output lists don't share memory with
      list, because it's probably not worth the effort. */
-  scm_t_trampoline_1 call = scm_trampoline_1(pred);
   SCM orig_list = list;
   SCM kept = scm_cons(SCM_EOL, SCM_EOL);
   SCM kept_tail = kept;
   SCM dropped = scm_cons(SCM_EOL, SCM_EOL);
   SCM dropped_tail = dropped;
   
-  SCM_ASSERT(call, pred, 2, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, pred);
   
   for (; !SCM_NULL_OR_NIL_P (list); list = SCM_CDR(list)) {
     SCM elt, new_tail;
@@ -1686,7 +1654,7 @@ SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
     elt = SCM_CAR (list);
     new_tail = scm_cons (SCM_CAR (list), SCM_EOL);
 
-    if (scm_is_true (call (pred, elt))) {
+    if (scm_is_true (scm_call_1 (pred, elt))) {
       SCM_SETCDR(kept_tail, new_tail);
       kept_tail = new_tail;
     }
@@ -1722,10 +1690,8 @@ SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
 #define FUNC_NAME s_scm_srfi1_partition_x
 {
   SCM  tlst, flst, *tp, *fp;
-  scm_t_trampoline_1 pred_tramp;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   /* tlst and flst are the lists of true and false elements.  tp and fp are
      where to store to append to them, initially &tlst and &flst, then
@@ -1738,7 +1704,7 @@ SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
 
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
-      if (scm_is_true (pred_tramp (pred, SCM_CAR (lst))))
+      if (scm_is_true (scm_call_1 (pred, SCM_CAR (lst))))
         {
           *tp = lst;
           tp = SCM_CDRLOC (lst);
@@ -1798,18 +1764,15 @@ SCM_DEFINE (scm_srfi1_reduce, "reduce", 3, 0, 0,
 	    "avoids that unnecessary call.")
 #define FUNC_NAME s_scm_srfi1_reduce
 {
-  scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
-  SCM  ret;
-
-  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
-
+  SCM ret;
+  SCM_VALIDATE_PROC (SCM_ARG1, proc);
   ret = def;  /* if lst is empty */
   if (scm_is_pair (lst))
     {
       ret = SCM_CAR (lst);  /* if lst has one element */
 
       for (lst = SCM_CDR (lst); scm_is_pair (lst); lst = SCM_CDR (lst))
-        ret = proc_tramp (proc, SCM_CAR (lst), ret);
+        ret = scm_call_2 (proc, SCM_CAR (lst), ret);
     }
 
   SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG3, FUNC_NAME, "list");
@@ -1866,12 +1829,9 @@ SCM_DEFINE (scm_srfi1_reduce_right, "reduce-right", 3, 0, 0,
      is long.  A vector is preferred over a reversed list since it's more
      compact and is less work for the gc to collect.  */
 
-  scm_t_trampoline_2 proc_tramp = scm_trampoline_2 (proc);
-  SCM  ret, vec;
-  long len, i;
-
-  SCM_ASSERT (proc_tramp, proc, SCM_ARG1, FUNC_NAME);
-
+  SCM vec, ret;
+  ssize_t len, i;
+  SCM_VALIDATE_PROC (SCM_ARG1, proc);
   if (SCM_NULL_OR_NIL_P (lst))
     return def;
 
@@ -1880,7 +1840,7 @@ SCM_DEFINE (scm_srfi1_reduce_right, "reduce-right", 3, 0, 0,
 
   ret = SCM_SIMPLE_VECTOR_REF (vec, len-1);
   for (i = len-2; i >= 0; i--)
-    ret = proc_tramp (proc, SCM_SIMPLE_VECTOR_REF (vec, i), ret);
+    ret = scm_call_2 (proc, SCM_SIMPLE_VECTOR_REF (vec, i), ret);
 
   return ret;
 }
@@ -1896,18 +1856,17 @@ SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
 	    "specified.")
 #define FUNC_NAME s_scm_srfi1_remove
 {
-  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
   SCM walk;
   SCM *prev;
   SCM res = SCM_EOL;
-  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, pred);
   SCM_VALIDATE_LIST (2, list);
   
   for (prev = &res, walk = list;
        scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
-      if (scm_is_false (call (pred, SCM_CAR (walk))))
+      if (scm_is_false (scm_call_1 (pred, SCM_CAR (walk))))
 	{
 	  *prev = scm_cons (SCM_CAR (walk), SCM_EOL);
 	  prev = SCM_CDRLOC (*prev);
@@ -1929,17 +1888,16 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 	    "list.")
 #define FUNC_NAME s_scm_srfi1_remove_x
 {
-  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
   SCM walk;
   SCM *prev;
-  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, pred);
   SCM_VALIDATE_LIST (2, list);
   
   for (prev = &list, walk = list;
        scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
-      if (scm_is_false (call (pred, SCM_CAR (walk))))
+      if (scm_is_false (scm_call_1 (pred, SCM_CAR (walk))))
 	prev = SCM_CDRLOC (walk);
       else
 	*prev = SCM_CDR (walk);
@@ -1977,18 +1935,16 @@ SCM_DEFINE (scm_srfi1_span, "span", 2, 0, 0,
 	    "remainder of @var{lst}.")
 #define FUNC_NAME s_scm_srfi1_span
 {
-  scm_t_trampoline_1 pred_tramp;
   SCM ret, *p;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   ret = SCM_EOL;
   p = &ret;
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
       SCM elem = SCM_CAR (lst);
-      if (scm_is_false (pred_tramp (pred, elem)))
+      if (scm_is_false (scm_call_1 (pred, elem)))
         goto done;
 
       /* want this elem, tack it onto the end of ret */
@@ -2012,15 +1968,13 @@ SCM_DEFINE (scm_srfi1_span_x, "span!", 2, 0, 0,
 #define FUNC_NAME s_scm_srfi1_span_x
 {
   SCM upto, *p;
-  scm_t_trampoline_1 pred_tramp;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   p = &lst;
   for (upto = lst; scm_is_pair (upto); upto = SCM_CDR (upto))
     {
-      if (scm_is_false (pred_tramp (pred, SCM_CAR (upto))))
+      if (scm_is_false (scm_call_1 (pred, SCM_CAR (upto))))
         goto done;
 
       /* want this element */
@@ -2137,18 +2091,16 @@ SCM_DEFINE (scm_srfi1_take_while, "take-while", 2, 0, 0,
 	    "@var{lst} whose elements all satisfy the predicate @var{pred}.")
 #define FUNC_NAME s_scm_srfi1_take_while
 {
-  scm_t_trampoline_1 pred_tramp;
   SCM ret, *p;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   ret = SCM_EOL;
   p = &ret;
   for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
     {
       SCM elem = SCM_CAR (lst);
-      if (scm_is_false (pred_tramp (pred, elem)))
+      if (scm_is_false (scm_call_1 (pred, elem)))
         goto done;
 
       /* want this elem, tack it onto the end of ret */
@@ -2171,15 +2123,13 @@ SCM_DEFINE (scm_srfi1_take_while_x, "take-while!", 2, 0, 0,
 #define FUNC_NAME s_scm_srfi1_take_while_x
 {
   SCM upto, *p;
-  scm_t_trampoline_1 pred_tramp;
 
-  pred_tramp = scm_trampoline_1 (pred);
-  SCM_ASSERT (pred_tramp, pred, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
 
   p = &lst;
   for (upto = lst; scm_is_pair (upto); upto = SCM_CDR (upto))
     {
-      if (scm_is_false (pred_tramp (pred, SCM_CAR (upto))))
+      if (scm_is_false (scm_call_1 (pred, SCM_CAR (upto))))
         goto done;
 
       /* want this element */
