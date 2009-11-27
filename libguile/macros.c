@@ -75,16 +75,6 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
       scm_putc (' ', port);
       scm_iprin1 (scm_macro_name (macro), port, pstate);
 
-      if (SCM_CLOSUREP (code) && SCM_PRINT_SOURCE_P)
-	{
-	  SCM formals = SCM_CLOSURE_FORMALS (code);
-	  SCM env = SCM_ENV (code);
-	  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
-	  SCM src = scm_i_unmemocopy_body (SCM_CODE (code), xenv);
-	  scm_putc (' ', port);
-	  scm_iprin1 (src, port, pstate);
-	}
-
       if (SCM_MACRO_IS_EXTENDED (macro))
         {
           scm_putc (' ', port);
