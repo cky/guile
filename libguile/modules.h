@@ -71,6 +71,7 @@ SCM_API scm_t_bits scm_tc16_eval_closure;
 
 
 SCM_API SCM scm_current_module (void);
+SCM_API SCM scm_the_root_module (void);
 SCM_API SCM scm_module_variable (SCM module, SCM sym);
 SCM_API SCM scm_module_local_variable (SCM module, SCM sym);
 SCM_API SCM scm_interaction_environment (void);

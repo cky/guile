@@ -58,40 +58,6 @@ SCM_API char *scm_isymnames[];
 #define SCM_SLOPPY_COMPLEXP(x) (SCM_TYP16 (x) == scm_tc16_complex)
 
 
-/* From eval.h: Macros for handling ilocs.  These were deprecated in guile
- * 1.7.0 on 2003-06-04.  */
-#define SCM_ILOC00		SCM_MAKE_ITAG8(0L, scm_tc8_iloc)
-#define SCM_IDINC		(0x00100000L)
-#define SCM_IDSTMSK		(-SCM_IDINC)
-
-
-/* From eval.h: Error messages of the evaluator.  These were deprecated in
- * guile 1.7.0 on 2003-06-02.  */
-SCM_DEPRECATED const char scm_s_expression[];
-SCM_DEPRECATED const char scm_s_test[];
-SCM_DEPRECATED const char scm_s_body[];
-SCM_DEPRECATED const char scm_s_bindings[];
-SCM_DEPRECATED const char scm_s_variable[];
-SCM_DEPRECATED const char scm_s_clauses[];
-SCM_DEPRECATED const char scm_s_formals[];
-
-
-/* From eval.h: Helper macros for evaluation and application.  These were
- * deprecated in guile 1.7.0 on 2003-06-02.  */
-#define SCM_EVALIM2(x) \
-  ((scm_is_eq ((x), SCM_EOL) \
-    ? scm_misc_error (NULL, scm_s_expression, SCM_EOL), 0 \
-    : 0), \
-   (x))
-#define SCM_EVALIM(x, env) (SCM_ILOCP (x) \
-                            ? *scm_ilookup ((x), env) \
-			    : SCM_EVALIM2(x))
-#define SCM_XEVAL(x, env) (scm_i_eval_x ((x), (env)))
-#define SCM_XEVALCAR(x, env) (SCM_SYMBOLP (SCM_CAR (x)) \
-			      ? *scm_lookupcar (x, env, 1) \
-			      : scm_i_eval_x (SCM_CAR (x), (env)))
-
-
 /* From structs.h:
    Deprecated in Guile 1.9.5 on 2009-11-03. */
 #define scm_vtable_index_vtable scm_vtable_index_self
@@ -133,7 +99,6 @@ SCM_DEPRECATED SCM scm_unprotect_object (SCM obj);
 #define SCM_GCCDR(x) SCM_CDR (x)
 SCM_DEPRECATED void scm_remember (SCM * ptr);
 
-SCM_DEPRECATED SCM scm_the_root_module (void);
 SCM_DEPRECATED SCM scm_make_module (SCM name);
 SCM_DEPRECATED SCM scm_ensure_user_module (SCM name);
 SCM_DEPRECATED SCM scm_load_scheme_module (SCM name);

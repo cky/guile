@@ -52,8 +52,8 @@ static SCM unbound_variable (const char *func, SCM sym)
              "Unbound variable: ~S", scm_list_1 (sym), SCM_BOOL_F);
 }
 
-static SCM
-the_root_module ()
+SCM
+scm_the_root_module (void)
 {
   if (scm_module_system_booted_p)
     return SCM_VARIABLE_REF (the_root_module_var);
@@ -68,7 +68,7 @@ SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
 {
   SCM curr = scm_fluid_ref (the_module);
 
-  return scm_is_true (curr) ? curr : the_root_module ();
+  return scm_is_true (curr) ? curr : scm_the_root_module ();
 }
 #undef FUNC_NAME
 
@@ -257,7 +257,7 @@ SCM
 scm_lookup_closure_module (SCM proc)
 {
   if (scm_is_false (proc))
-    return the_root_module ();
+    return scm_the_root_module ();
   else if (SCM_EVAL_CLOSURE_P (proc))
     return SCM_PACK (SCM_SMOB_DATA (proc));
   else
@@ -270,7 +270,7 @@ scm_lookup_closure_module (SCM proc)
 
       mod = scm_procedure_property (proc, sym_module);
       if (scm_is_false (mod))
-	mod = the_root_module ();
+	mod = scm_the_root_module ();
       return mod;
     }
 }

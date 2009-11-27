@@ -70,17 +70,6 @@ char *scm_isymnames[] =
 };
 
 
-/* From eval.c: Error messages of the evaluator.  These were deprecated in
- * guile 1.7.0 on 2003-06-02.  */
-const char scm_s_expression[] = "missing or extra expression";
-const char scm_s_test[] = "bad test";
-const char scm_s_body[] = "bad body";
-const char scm_s_bindings[] = "bad bindings";
-const char scm_s_variable[] = "bad variable";
-const char scm_s_clauses[] = "bad or missing clauses";
-const char scm_s_formals[] = "bad formals";
-
-
 SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
 
 SCM_REGISTER_PROC(s_substring_move_right_x, "substring-move-right!", 5, 0, 0, scm_substring_move_x);
@@ -269,17 +258,6 @@ init_module_stuff ()
 	PERM (scm_c_lookup ("beautify-user-module!"));
       try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
     }
-}
-
-SCM
-scm_the_root_module ()
-{
-  init_module_stuff ();
-  scm_c_issue_deprecation_warning ("`scm_the_root_module' is deprecated. "
-				   "Use `scm_c_resolve_module (\"guile\")' "
-				   "instead.");
-
-  return scm_c_resolve_module ("guile");
 }
 
 static SCM
