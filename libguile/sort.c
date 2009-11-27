@@ -65,14 +65,6 @@
 #define INC         inc
 #include "libguile/quicksort.i.c"
 
-static scm_t_trampoline_2
-compare_function (SCM less, unsigned int arg_nr, const char* fname)
-{
-  const scm_t_trampoline_2 cmp = scm_trampoline_2 (less);
-  SCM_ASSERT_TYPE (cmp != NULL, less, arg_nr, fname, "less predicate");
-  return cmp;
-}
-
 
 SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0, 
             (SCM vec, SCM less, SCM startpos, SCM endpos),
@@ -83,7 +75,6 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
 	    "is not specified.")
 #define FUNC_NAME s_scm_restricted_vector_sort_x
 {
-  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   size_t vlen, spos, len;
   ssize_t vinc;
   scm_t_array_handle handle;
@@ -94,9 +85,9 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
   len = scm_to_unsigned_integer (endpos, spos, vlen) - spos;
 
   if (vinc == 1)
-    quicksort1 (velts + spos*vinc, len, cmp, less);
+    quicksort1 (velts + spos*vinc, len, less);
   else
-    quicksort (velts + spos*vinc, len, vinc, cmp, less);
+    quicksort (velts + spos*vinc, len, vinc, less);
 
   scm_array_handle_release (&handle);
 
@@ -116,7 +107,6 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
 	    "applied to all elements i - 1 and i")
 #define FUNC_NAME s_scm_sorted_p
 {
-  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len, j;			/* list/vector length, temp j */
   SCM item, rest;		/* rest of items loop variable */
 
@@ -135,7 +125,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
       j = len - 1;
       while (j > 0)
 	{
-	  if (scm_is_true ((*cmp) (less, SCM_CAR (rest), item)))
+	  if (scm_is_true (scm_call_2 (less, SCM_CAR (rest), item)))
 	    return SCM_BOOL_F;
 	  else
 	    {
@@ -158,7 +148,7 @@ SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
 
       for (i = 1; i < len; i++, elts += inc)
 	{
-	  if (scm_is_true ((*cmp) (less, elts[inc], elts[0])))
+	  if (scm_is_true (scm_call_2 (less, elts[inc], elts[0])))
 	    {
 	      result = SCM_BOOL_F;
 	      break;
@@ -199,13 +189,12 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
     return alist;
   else
     {
-      const scm_t_trampoline_2 cmp = compare_function (less, 3, FUNC_NAME);
       long alen, blen;		/* list lengths */
       SCM last;
 
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1, alist, alen);
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, blist, blen);
-      if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+      if (scm_is_true (scm_call_2 (less, SCM_CAR (blist), SCM_CAR (alist))))
 	{
 	  build = scm_cons (SCM_CAR (blist), SCM_EOL);
 	  blist = SCM_CDR (blist);
@@ -221,7 +210,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
       while ((alen > 0) && (blen > 0))
 	{
 	  SCM_TICK;
-	  if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+	  if (scm_is_true (scm_call_2 (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, scm_cons (SCM_CAR (blist), SCM_EOL));
 	      blist = SCM_CDR (blist);
@@ -248,7 +237,7 @@ SCM_DEFINE (scm_merge, "merge", 3, 0, 0,
 static SCM 
 scm_merge_list_x (SCM alist, SCM blist,
 		  long alen, long blen,
-		  scm_t_trampoline_2 cmp, SCM less)
+		  SCM less)
 {
   SCM build, last;
 
@@ -258,7 +247,7 @@ scm_merge_list_x (SCM alist, SCM blist,
     return alist;
   else
     {
-      if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+      if (scm_is_true (scm_call_2 (less, SCM_CAR (blist), SCM_CAR (alist))))
 	{
 	  build = blist;
 	  blist = SCM_CDR (blist);
@@ -274,7 +263,7 @@ scm_merge_list_x (SCM alist, SCM blist,
       while ((alen > 0) && (blen > 0))
 	{
 	  SCM_TICK;
-	  if (scm_is_true ((*cmp) (less, SCM_CAR (blist), SCM_CAR (alist))))
+	  if (scm_is_true (scm_call_2 (less, SCM_CAR (blist), SCM_CAR (alist))))
 	    {
 	      SCM_SETCDR (last, blist);
 	      blist = SCM_CDR (blist);
@@ -314,11 +303,10 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
     return alist;
   else
     {
-      const scm_t_trampoline_2 cmp = compare_function (less, 3, FUNC_NAME);
       long alen, blen;		/* list lengths */
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (1, alist, alen);
       SCM_VALIDATE_NONEMPTYLIST_COPYLEN (2, blist, blen);
-      return scm_merge_list_x (alist, blist, alen, blen, cmp, less);
+      return scm_merge_list_x (alist, blist, alen, blen, less);
     }
 }
 #undef FUNC_NAME
@@ -330,7 +318,7 @@ SCM_DEFINE (scm_merge_x, "merge!", 3, 0, 0,
    though it claimed to be.
 */
 static SCM 
-scm_merge_list_step (SCM * seq, scm_t_trampoline_2 cmp, SCM less, long n)
+scm_merge_list_step (SCM * seq, SCM less, long n)
 {
   SCM a, b;
 
@@ -338,9 +326,9 @@ scm_merge_list_step (SCM * seq, scm_t_trampoline_2 cmp, SCM less, long n)
     {
       long mid = n / 2;
       SCM_TICK;
-      a = scm_merge_list_step (seq, cmp, less, mid);
-      b = scm_merge_list_step (seq, cmp, less, n - mid);
-      return scm_merge_list_x (a, b, mid, n - mid, cmp, less);
+      a = scm_merge_list_step (seq, less, mid);
+      b = scm_merge_list_step (seq, less, n - mid);
+      return scm_merge_list_x (a, b, mid, n - mid, less);
     }
   else if (n == 2)
     {
@@ -350,7 +338,7 @@ scm_merge_list_step (SCM * seq, scm_t_trampoline_2 cmp, SCM less, long n)
       SCM y = SCM_CAR (SCM_CDR (*seq));
       *seq = SCM_CDR (rest);
       SCM_SETCDR (rest, SCM_EOL);
-      if (scm_is_true ((*cmp) (less, y, x)))
+      if (scm_is_true (scm_call_2 (less, y, x)))
 	{
 	  SCM_SETCAR (p, y);
 	  SCM_SETCAR (rest, x);
@@ -384,9 +372,8 @@ SCM_DEFINE (scm_sort_x, "sort!", 2, 0, 0,
 
   if (scm_is_pair (items))
     {
-      const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-      return scm_merge_list_step (&items, cmp, less, len);
+      return scm_merge_list_step (&items, less, len);
     }
   else if (scm_is_vector (items))
     {
@@ -425,7 +412,6 @@ SCM_DEFINE (scm_sort, "sort", 2, 0, 0,
 static void
 scm_merge_vector_x (SCM *vec,
 		    SCM *temp,
-		    scm_t_trampoline_2 cmp,
 		    SCM less,
 		    size_t low,
 		    size_t mid,
@@ -441,7 +427,7 @@ scm_merge_vector_x (SCM *vec,
   /* Copy while both segments contain more characters */
   for (it = low; (i1 <= mid) && (i2 <= high); ++it)
     {
-      if (scm_is_true ((*cmp) (less, VEC(i2), VEC(i1))))
+      if (scm_is_true (scm_call_2 (less, VEC(i2), VEC(i1))))
 	temp[it] = VEC(i2++);
       else
 	temp[it] = VEC(i1++);
@@ -466,7 +452,6 @@ scm_merge_vector_x (SCM *vec,
 static void
 scm_merge_vector_step (SCM *vec,
 		       SCM *temp,
-		       scm_t_trampoline_2 cmp,
 		       SCM less,
 		       size_t low,
 		       size_t high,
@@ -476,9 +461,9 @@ scm_merge_vector_step (SCM *vec,
     {
       size_t mid = (low + high) / 2;
       SCM_TICK;
-      scm_merge_vector_step (vec, temp, cmp, less, low, mid, inc);
-      scm_merge_vector_step (vec, temp, cmp, less, mid+1, high, inc);
-      scm_merge_vector_x (vec, temp, cmp, less, low, mid, high, inc);
+      scm_merge_vector_step (vec, temp, less, low, mid, inc);
+      scm_merge_vector_step (vec, temp, less, mid+1, high, inc);
+      scm_merge_vector_x (vec, temp, less, low, mid, high, inc);
     }
 }				/* scm_merge_vector_step */
 
@@ -492,7 +477,6 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_stable_sort_x
 {
-  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len;			/* list/vector length */
 
   if (SCM_NULL_OR_NIL_P (items))
@@ -501,7 +485,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
   if (scm_is_pair (items))
     {
       SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-      return scm_merge_list_step (&items, cmp, less, len);
+      return scm_merge_list_step (&items, less, len);
     }
   else if (scm_is_vector (items))
     {
@@ -516,7 +500,7 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
       temp_elts = scm_vector_writable_elements (temp, &temp_handle,
 						NULL, NULL);
 
-      scm_merge_vector_step (vec_elts, temp_elts, cmp, less, 0, len-1, inc);
+      scm_merge_vector_step (vec_elts, temp_elts, less, 0, len-1, inc);
 
       scm_array_handle_release (&temp_handle);
       scm_array_handle_release (&vec_handle);
@@ -557,11 +541,10 @@ SCM_DEFINE (scm_sort_list_x, "sort-list!", 2, 0, 0,
 	    "This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list_x
 {
-  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len;
 
   SCM_VALIDATE_LIST_COPYLEN (1, items, len);
-  return scm_merge_list_step (&items, cmp, less, len);
+  return scm_merge_list_step (&items, less, len);
 }
 #undef FUNC_NAME
 
@@ -572,12 +555,11 @@ SCM_DEFINE (scm_sort_list, "sort-list", 2, 0, 0,
 	    "list elements. This is a stable sort.")
 #define FUNC_NAME s_scm_sort_list
 {
-  const scm_t_trampoline_2 cmp = compare_function (less, 2, FUNC_NAME);
   long len;
 
   SCM_VALIDATE_LIST_COPYLEN (1, items, len);
   items = scm_list_copy (items);
-  return scm_merge_list_step (&items, cmp, less, len);
+  return scm_merge_list_step (&items, less, len);
 }
 #undef FUNC_NAME
 

@@ -3268,11 +3268,10 @@ scm_map (SCM proc, SCM arg1, SCM args)
   SCM_VALIDATE_REST_ARGUMENT (args);
   if (scm_is_null (args))
     {
-      scm_t_trampoline_1 call = scm_trampoline_1 (proc);
-      SCM_GASSERT2 (call, g_map, proc, arg1, SCM_ARG1, s_map);
+      SCM_GASSERT2 (scm_is_true (scm_procedure_p (proc)), g_map, proc, arg1, SCM_ARG1, s_map);
       while (SCM_NIMP (arg1))
 	{
-	  *pres = scm_list_1 (call (proc, SCM_CAR (arg1)));
+	  *pres = scm_list_1 (scm_call_1 (proc, SCM_CAR (arg1)));
 	  pres = SCM_CDRLOC (*pres);
 	  arg1 = SCM_CDR (arg1);
 	}
@@ -3282,16 +3281,15 @@ scm_map (SCM proc, SCM arg1, SCM args)
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = scm_ilength (arg2);
-      scm_t_trampoline_2 call = scm_trampoline_2 (proc);
-      SCM_GASSERTn (call,
-		    g_map, scm_cons2 (proc, arg1, args), SCM_ARG1, s_map);
+      SCM_GASSERTn (scm_is_true (scm_procedure_p (proc)), g_map,
+                    scm_cons2 (proc, arg1, args), SCM_ARG1, s_map);
       SCM_GASSERTn (len2 >= 0,
 		    g_map, scm_cons2 (proc, arg1, args), SCM_ARG3, s_map);
       if (len2 != len)
 	SCM_OUT_OF_RANGE (3, arg2);
       while (SCM_NIMP (arg1))
 	{
-	  *pres = scm_list_1 (call (proc, SCM_CAR (arg1), SCM_CAR (arg2)));
+	  *pres = scm_list_1 (scm_call_2 (proc, SCM_CAR (arg1), SCM_CAR (arg2)));
 	  pres = SCM_CDRLOC (*pres);
 	  arg1 = SCM_CDR (arg1);
 	  arg2 = SCM_CDR (arg2);
@@ -3332,11 +3330,11 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
   SCM_VALIDATE_REST_ARGUMENT (args);
   if (scm_is_null (args))
     {
-      scm_t_trampoline_1 call = scm_trampoline_1 (proc);
-      SCM_GASSERT2 (call, g_for_each, proc, arg1, SCM_ARG1, s_for_each);
+      SCM_GASSERT2 (scm_is_true (scm_procedure_p (proc)), g_for_each,
+                    proc, arg1, SCM_ARG1, s_for_each);
       while (SCM_NIMP (arg1))
 	{
-	  call (proc, SCM_CAR (arg1));
+	  scm_call_1 (proc, SCM_CAR (arg1));
 	  arg1 = SCM_CDR (arg1);
 	}
       return SCM_UNSPECIFIED;
@@ -3345,8 +3343,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
     {
       SCM arg2 = SCM_CAR (args);
       int len2 = scm_ilength (arg2);
-      scm_t_trampoline_2 call = scm_trampoline_2 (proc);
-      SCM_GASSERTn (call, g_for_each,
+      SCM_GASSERTn (scm_is_true (scm_procedure_p (proc)), g_for_each,
 		    scm_cons2 (proc, arg1, args), SCM_ARG1, s_for_each);
       SCM_GASSERTn (len2 >= 0, g_for_each,
 		    scm_cons2 (proc, arg1, args), SCM_ARG3, s_for_each);
@@ -3354,7 +3351,7 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 	SCM_OUT_OF_RANGE (3, arg2);
       while (SCM_NIMP (arg1))
 	{
-	  call (proc, SCM_CAR (arg1), SCM_CAR (arg2));
+	  scm_call_2 (proc, SCM_CAR (arg1), SCM_CAR (arg2));
 	  arg1 = SCM_CDR (arg1);
 	  arg2 = SCM_CDR (arg2);
 	}

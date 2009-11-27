@@ -1220,12 +1220,11 @@ SCM_DEFINE (scm_hash_for_each_handle, "hash-for-each-handle", 2, 0, 0,
             "Applies PROC successively on all hash table handles.")
 #define FUNC_NAME s_scm_hash_for_each_handle
 {
-  scm_t_trampoline_1 call = scm_trampoline_1 (proc);
-  SCM_ASSERT (call, proc, 1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, 1, FUNC_NAME);
   if (!SCM_HASHTABLE_P (table))
     SCM_VALIDATE_VECTOR (2, table);
   
-  scm_internal_hash_for_each_handle ((scm_t_hash_handle_fn) call,
+  scm_internal_hash_for_each_handle ((scm_t_hash_handle_fn) scm_call_1,
 				     (void *) SCM_UNPACK (proc),
 				     table);
   return SCM_UNSPECIFIED;
