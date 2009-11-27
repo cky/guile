@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001,2002,2004
+ * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -190,8 +190,7 @@ gdb_eval (SCM exp)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   {
-    SCM env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
-    gdb_result = scm_permanent_object (scm_i_eval_x (exp, env));
+    gdb_result = scm_permanent_object (scm_primitive_eval (exp));
   }
   SCM_END_FOREIGN_BLOCK;
   return 0;
