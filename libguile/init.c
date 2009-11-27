@@ -118,6 +118,7 @@
 #include "libguile/symbols.h"
 #include "libguile/throw.h"
 #include "libguile/arrays.h"
+#include "libguile/trees.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
@@ -542,6 +543,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_srfi_13 ();
   scm_init_srfi_14 ();
   scm_init_throw ();
+  scm_init_trees ();
   scm_init_version ();
   scm_init_weaks ();
   scm_init_guardians ();

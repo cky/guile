@@ -383,6 +383,24 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0, 
+            (SCM xorig, SCM x, SCM y),
+	    "Create and return a new pair whose car and cdr are @var{x} and @var{y}.\n"
+	    "Any source properties associated with @var{xorig} are also associated\n"
+	    "with the new pair.")
+#define FUNC_NAME s_scm_cons_source
+{
+  SCM p, z;
+  z = scm_cons (x, y);
+  /* Copy source properties possibly associated with xorig. */
+  p = scm_whash_lookup (scm_source_whash, xorig);
+  if (scm_is_true (p))
+    scm_whash_insert (scm_source_whash, z, p);
+  return z;
+}
+#undef FUNC_NAME
+
+
 void
 scm_init_srcprop ()
 {

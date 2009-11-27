@@ -72,6 +72,7 @@ SCM_API SCM scm_source_property (SCM obj, SCM key);
 SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
 SCM_API SCM scm_source_properties (SCM obj);
 SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
+SCM_API SCM scm_cons_source (SCM xorig, SCM x, SCM y);
 SCM_INTERNAL void scm_init_srcprop (void);
 
 #if SCM_ENABLE_DEPRECATED == 1

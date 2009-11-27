@@ -51,7 +51,7 @@
         (equal? bar '(#t . #(#t)))))
 
     (pass-if-exception "circular lists in forms"
-      exception:bad-expression
+      exception:wrong-type-arg
       (let ((foo (list #f)))
         (set-cdr! foo foo)
         (copy-tree foo))))
@@ -157,7 +157,7 @@
   (with-test-prefix "scm_tc7_subr_2o"
 
     ;; prior to guile 1.6.9 and 1.8.1 this called the function with
-    ;; SCM_UNDEFIEND, which in the case of make-vector resulted in
+    ;; SCM_UNDEFINED, which in the case of make-vector resulted in
     ;; wrong-type-arg, instead of the intended wrong-num-args
     (pass-if-exception "0 args" exception:wrong-num-args
       (apply make-vector '()))

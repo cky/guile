@@ -138,8 +138,6 @@ SCM_API SCM scm_closure (SCM code, SCM env);
 SCM_API SCM scm_make_promise (SCM thunk);
 SCM_API SCM scm_force (SCM x);
 SCM_API SCM scm_promise_p (SCM x);
-SCM_API SCM scm_cons_source (SCM xorig, SCM x, SCM y);
-SCM_API SCM scm_copy_tree (SCM obj);
 SCM_API SCM scm_i_eval_x (SCM exp, SCM env) /* not internal */;
 SCM_INTERNAL SCM scm_i_eval (SCM exp, SCM env);
 SCM_API SCM scm_primitive_eval (SCM exp);

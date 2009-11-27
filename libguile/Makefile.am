@@ -192,6 +192,7 @@ libguile_la_SOURCES =				\
 	symbols.c				\
 	threads.c				\
 	throw.c					\
+	trees.c					\
 	uniform.c				\
 	values.c				\
 	variable.c				\
@@ -283,6 +284,7 @@ DOT_X_FILES =					\
 	symbols.x				\
 	threads.x				\
 	throw.x					\
+	trees.x					\
 	uniform.x				\
 	values.x				\
 	variable.x				\
@@ -378,6 +380,7 @@ DOT_DOC_FILES = 				\
 	symbols.doc				\
 	threads.doc				\
 	throw.doc				\
+	trees.doc				\
 	uniform.doc				\
 	values.doc				\
 	variable.doc				\
@@ -549,6 +552,7 @@ modinclude_HEADERS =				\
 	tags.h					\
 	threads.h				\
 	throw.h					\
+	trees.h					\
 	validate.h				\
 	uniform.h				\
 	values.h				\
