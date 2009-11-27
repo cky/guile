@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -77,31 +77,7 @@ SCM scm_the_last_stack_fluid_var;
 static void
 display_header (SCM source, SCM port)
 {
-  if (SCM_MEMOIZEDP (source))
-    {
-      SCM fname = scm_source_property (source, scm_sym_filename);
-      SCM line = scm_source_property (source, scm_sym_line);
-      SCM col = scm_source_property (source, scm_sym_column);
-
-      /* Dirk:FIXME:: Maybe we should store the _port_ rather than the
-       * filename with the source properties?  Then we could in case of
-       * non-file ports give at least some more details than just
-       * "<unnamed port>". */
-      if (scm_is_true (fname))
-	scm_prin1 (fname, port, 0);
-      else
-	scm_puts ("<unnamed port>", port);
-
-      if (scm_is_true (line) && scm_is_true (col))
-	{
-	  scm_putc (':', port);
-	  scm_intprint (scm_to_long (line) + 1, 10, port);
-	  scm_putc (':', port);
-	  scm_intprint (scm_to_long (col) + 1, 10, port);
-	}
-    }
-  else
-    scm_puts ("ERROR", port);
+  scm_puts ("ERROR", port);
   scm_puts (": ", port);
 }
 
@@ -187,18 +163,6 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
       else
 	scm_puts ("In procedure ", port);
       scm_iprin1 (pname, port, pstate);
-      if (SCM_MEMOIZEDP (source))
-	{
-	  scm_puts (" in expression ", port);
-	  pstate->writingp = 1;
-	  scm_iprin1 (scm_i_unmemoize_expr (source), port, pstate);
-	}
-    }
-  else if (SCM_MEMOIZEDP (source))
-    {
-      scm_puts ("In expression ", port);
-      pstate->writingp = 1;
-      scm_iprin1 (scm_i_unmemoize_expr (source), port, pstate);
     }
   scm_puts (":\n", port);
   scm_free_print_state (print_state);
@@ -218,25 +182,9 @@ display_error_body (struct display_error_args *a)
 {
   SCM current_frame = SCM_BOOL_F;
   SCM source = SCM_BOOL_F;
-  SCM prev_frame = SCM_BOOL_F;
   SCM pname = a->subr;
 
-  if (scm_debug_mode_p
-      && SCM_STACKP (a->stack)
-      && SCM_STACK_LENGTH (a->stack) > 0)
-    {
-      current_frame = scm_stack_ref (a->stack, SCM_INUM0);
-      source = SCM_FRAME_SOURCE (current_frame);
-      prev_frame = SCM_FRAME_PREV (current_frame);
-      if (!SCM_MEMOIZEDP (source) && scm_is_true (prev_frame))
-	source = SCM_FRAME_SOURCE (prev_frame);
-      if (!scm_is_symbol (pname)
-	  && !scm_is_string (pname)
-	  && SCM_FRAME_PROC_P (current_frame)
-	  && scm_is_true (scm_procedure_p (SCM_FRAME_PROC (current_frame))))
-	pname = scm_procedure_name (SCM_FRAME_PROC (current_frame));
-    }
-  if (scm_is_symbol (pname) || scm_is_string (pname) || SCM_MEMOIZEDP (source))
+  if (scm_is_symbol (pname) || scm_is_string (pname))
     {
       display_header (source, a->port);
       display_expression (current_frame, pname, source, a->port);
@@ -469,15 +417,10 @@ display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
 {
   SCM source = SCM_FRAME_SOURCE (frame);
   *file = *line = SCM_BOOL_F;
-  if (SCM_MEMOIZEDP (source))
-    {
-      *file = scm_source_property (source, scm_sym_filename);
-      *line = scm_source_property (source, scm_sym_line);
-    }
-  else if (scm_is_pair (source)
-           && scm_is_pair (scm_cdr (source))
-           && scm_is_pair (scm_cddr (source))
-           && !scm_is_pair (scm_cdddr (source)))
+  if (scm_is_pair (source)
+      && scm_is_pair (scm_cdr (source))
+      && scm_is_pair (scm_cddr (source))
+      && !scm_is_pair (scm_cdddr (source)))
     {
       /* (addr . (filename . (line . column))), from vm compilation */
       *file = scm_cadr (source);
@@ -604,11 +547,8 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
       SCM copy = (scm_is_pair (source) 
 		  ? scm_source_property (source, scm_sym_copy)
 		  : SCM_BOOL_F);
-      SCM umcopy = (SCM_MEMOIZEDP (source)
-		    ? scm_i_unmemoize_expr (source)
-		    : SCM_BOOL_F);
       display_frame_expr ("(",
-			  scm_is_pair (copy) ? copy : umcopy,
+			  copy,
 			  ")",
 			  nfield + 1 + indentation,
 			  sport,
