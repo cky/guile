@@ -1614,7 +1614,6 @@ AC_CONFIG_FILES([
   doc/tutorial/Makefile
   emacs/Makefile
   examples/Makefile
-  lang/Makefile
   libguile/Makefile
   srfi/Makefile
   guile-readline/Makefile
