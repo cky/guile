@@ -66,7 +66,7 @@
 	   slot-exists-using-class? slot-ref slot-set! slot-bound?
 	   class-name class-direct-supers class-direct-subclasses
 	   class-direct-methods class-direct-slots class-precedence-list
-	   class-slots class-environment
+	   class-slots
 	   generic-function-name
 	   generic-function-methods method-generic-function
 	   method-specializers method-formals
@@ -129,7 +129,7 @@
 	      (set! table-of-metas (cons (cons meta-supers new) table-of-metas))
 	      new))))))
 
-(define (ensure-metaclass supers env)
+(define (ensure-metaclass supers)
   (if (null? supers)
       <class>
       (let* ((all-metas (map (lambda (x) (class-of x)) supers))
@@ -175,36 +175,33 @@
     (mapper f k a)))
 
 (define (make-class supers slots . options)
-  (let ((env (or (get-keyword #:environment options #f)
-		 (top-level-env))))
-    (let* ((name (get-keyword #:name options (make-unbound)))
-	   (supers (if (not (or-map (lambda (class)
-				      (memq <object>
-					    (class-precedence-list class)))
-				    supers))
-		       (append supers (list <object>))
-		       supers))
-	   (metaclass (or (get-keyword #:metaclass options #f)
-			  (ensure-metaclass supers env))))
+  (let* ((name (get-keyword #:name options (make-unbound)))
+         (supers (if (not (or-map (lambda (class)
+                                    (memq <object>
+                                          (class-precedence-list class)))
+                                  supers))
+                     (append supers (list <object>))
+                     supers))
+         (metaclass (or (get-keyword #:metaclass options #f)
+                        (ensure-metaclass supers))))
 
-      ;; Verify that all direct slots are different and that we don't inherit
-      ;; several time from the same class
-      (let ((tmp1 (find-duplicate supers))
-	    (tmp2 (find-duplicate (map slot-definition-name slots))))
-	(if tmp1
-	    (goops-error "make-class: super class ~S is duplicate in class ~S"
-			 tmp1 name))
-	(if tmp2
-	    (goops-error "make-class: slot ~S is duplicate in class ~S"
-			 tmp2 name)))
+    ;; Verify that all direct slots are different and that we don't inherit
+    ;; several time from the same class
+    (let ((tmp1 (find-duplicate supers))
+          (tmp2 (find-duplicate (map slot-definition-name slots))))
+      (if tmp1
+          (goops-error "make-class: super class ~S is duplicate in class ~S"
+                       tmp1 name))
+      (if tmp2
+          (goops-error "make-class: slot ~S is duplicate in class ~S"
+                       tmp2 name)))
 
-      ;; Everything seems correct, build the class
-      (apply make metaclass
-	     #:dsupers supers
-	     #:slots slots 
-	     #:name name
-	     #:environment env
-	     options))))
+    ;; Everything seems correct, build the class
+    (apply make metaclass
+           #:dsupers supers
+           #:slots slots 
+           #:name name
+           options)))
 
 ;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
 ;;;
@@ -1066,7 +1063,6 @@
 		      (make-class (class-direct-supers c)
 				  (class-direct-slots c)
 				  #:name (class-name c)
-				  #:environment (slot-ref c 'environment)
 				  #:metaclass (class-of c))))
 
 ;;;
@@ -1075,7 +1071,7 @@
 
 ;;; compute-slot-accessors
 ;;;
-(define (compute-slot-accessors class slots env)
+(define (compute-slot-accessors class slots)
   (for-each
       (lambda (s g-n-s)
 	(let ((getter-function (slot-definition-getter   s))
@@ -1172,7 +1168,7 @@
 (define (make-thunk thunk)
   (lambda () (thunk)))
 
-(define (compute-getters-n-setters class slots env)
+(define (compute-getters-n-setters class slots)
 
   (define (compute-slot-init-function name s)
     (or (let ((thunk (slot-definition-init-thunk s)))
@@ -1439,9 +1435,7 @@
 (define-method (initialize (class <class>) initargs)
   (next-method)
   (let ((dslots (get-keyword #:slots initargs '()))
-	(supers (get-keyword #:dsupers	  initargs '()))
-	(env    (get-keyword #:environment initargs (top-level-env))))
-
+	(supers (get-keyword #:dsupers	  initargs '())))
     (slot-set! class 'name	  	(get-keyword #:name initargs '???))
     (slot-set! class 'direct-supers 	supers)
     (slot-set! class 'direct-slots  	dslots)
@@ -1449,15 +1443,13 @@
     (slot-set! class 'direct-methods    '())
     (slot-set! class 'cpl		(compute-cpl class))
     (slot-set! class 'redefined		#f)
-    (slot-set! class 'environment	env)
     (let ((slots (compute-slots class)))
       (slot-set! class 'slots	  	  slots)
       (slot-set! class 'nfields	  	  0)
       (slot-set! class 'getters-n-setters (compute-getters-n-setters class 
-								     slots 
-								     env))
+								     slots))
       ;; Build getters - setters - accessors
-      (compute-slot-accessors class slots env))
+      (compute-slot-accessors class slots))
 
     ;; Update the "direct-subclasses" of each inherited classes
     (for-each (lambda (x)

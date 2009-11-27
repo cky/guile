@@ -80,8 +80,7 @@
   "pw" /* slots */                              \
   "pw" /* getters-n-setters */                  \
   "pw" /* keyword access */                     \
-  "pw" /* nfields */                            \
-  "pw" /* environment */
+  "pw" /* nfields */
 
 #define scm_si_redefined         (scm_vtable_offset_user + 0)
 #define scm_si_h0                (scm_vtable_offset_user + 1)
@@ -104,8 +103,7 @@
 #define scm_si_getters_n_setters scm_si_name_access
 #define scm_si_keyword_access	 (scm_vtable_offset_user + 17)
 #define scm_si_nfields		 (scm_vtable_offset_user + 18) /* an integer */
-#define scm_si_environment	 (scm_vtable_offset_user + 19) /* The environment in which class is built  */
-#define SCM_N_CLASS_SLOTS	 (scm_vtable_offset_user + 20)
+#define SCM_N_CLASS_SLOTS	 (scm_vtable_offset_user + 19)
 
 typedef struct scm_t_method {
   SCM generic_function;
@@ -275,13 +273,11 @@ SCM_API SCM scm_class_direct_subclasses (SCM obj);
 SCM_API SCM scm_class_direct_methods (SCM obj);
 SCM_API SCM scm_class_precedence_list (SCM obj);
 SCM_API SCM scm_class_slots (SCM obj);
-SCM_API SCM scm_class_environment (SCM obj);
 SCM_API SCM scm_generic_function_name (SCM obj);
 SCM_API SCM scm_generic_function_methods (SCM obj);
 SCM_API SCM scm_method_generic_function (SCM obj);
 SCM_API SCM scm_method_specializers (SCM obj);
 SCM_API SCM scm_method_procedure (SCM obj);
-SCM_API SCM scm_sys_tag_body (SCM body);
 SCM_API SCM scm_sys_fast_slot_ref (SCM obj, SCM index);
 SCM_API SCM scm_sys_fast_slot_set_x (SCM obj, SCM index, SCM value);
 SCM_API SCM scm_slot_ref_using_class (SCM cls, SCM obj, SCM slot_name);

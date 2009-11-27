@@ -465,11 +465,10 @@ compute_getters_n_setters (SCM slots)
 	  init = scm_get_keyword (k_init_value, options, 0);
 	  if (init)
             {
-              init = scm_i_eval_x (scm_list_3 (scm_sym_lambda,
-                                               SCM_EOL,
-                                               scm_list_2 (scm_sym_quote,
-                                                           init)),
-                                   SCM_EOL);
+              init = scm_primitive_eval (scm_list_3 (scm_sym_lambda,
+                                                     SCM_EOL,
+                                                     scm_list_2 (scm_sym_quote,
+                                                                 init)));
             }
 	  else
 	    init = scm_get_keyword (k_init_thunk, options, SCM_BOOL_F);
@@ -785,8 +784,6 @@ scm_basic_basic_make_class (SCM class, SCM name, SCM dsupers, SCM dslots)
   SCM_SET_SLOT (z, scm_si_nfields, nfields);
   SCM_SET_SLOT (z, scm_si_getters_n_setters, g_n_s);
   SCM_SET_SLOT (z, scm_si_redefined, SCM_BOOL_F);
-  SCM_SET_SLOT (z, scm_si_environment,
-		scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
 
   /* Add this class in the direct-subclasses slot of dsupers */
   {
@@ -840,7 +837,6 @@ SCM_SYMBOL (sym_slots, "slots");
 SCM_SYMBOL (sym_getters_n_setters, "getters-n-setters");
 SCM_SYMBOL (sym_keyword_access, "keyword-access");
 SCM_SYMBOL (sym_nfields, "nfields");
-SCM_SYMBOL (sym_environment, "environment");
 
 
 static SCM
@@ -876,7 +872,6 @@ build_class_class_slots ()
     scm_list_1 (sym_getters_n_setters),
     scm_list_1 (sym_keyword_access),
     scm_list_1 (sym_nfields),
-    scm_list_1 (sym_environment),
     SCM_UNDEFINED);
 }
 
@@ -905,8 +900,6 @@ create_basic_classes (void)
   /* SCM_SET_SLOT (scm_class_class, scm_si_getters_n_setters,
                    compute_getters_n_setters (slots_of_class)); */
   SCM_SET_SLOT (scm_class_class, scm_si_redefined, SCM_BOOL_F);
-  SCM_SET_SLOT (scm_class_class, scm_si_environment,
-		scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE));
 
   prep_hashsets (scm_class_class);
 
@@ -1023,17 +1016,6 @@ SCM_DEFINE (scm_class_slots, "class-slots", 1, 0, 0,
   return scm_slot_ref (obj, sym_slots);
 }
 #undef FUNC_NAME
-
-SCM_DEFINE (scm_class_environment, "class-environment", 1, 0, 0,
-	    (SCM obj),
-	    "Return the environment of the class @var{obj}.")
-#define FUNC_NAME s_scm_class_environment
-{
-  SCM_VALIDATE_CLASS (1, obj);
-  return scm_slot_ref(obj, sym_environment);
-}
-#undef FUNC_NAME
-
 
 SCM_DEFINE (scm_generic_function_name, "generic-function-name", 1, 0, 0,
 	    (SCM obj),
@@ -1245,20 +1227,7 @@ get_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef)
        access bits for us. */
     return scm_struct_ref (obj, access);
   else
-    {
-      /* We must evaluate (apply (car access) (list obj))
-       * where (car access) is known to be a closure of arity 1  */
-      register SCM code, env;
-
-      code = SCM_CAR (access);
-      if (!SCM_CLOSUREP (code))
-	return scm_call_1 (code, obj);
-      env  = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
-			     scm_list_1 (obj),
-			     SCM_ENV (code));
-      /* Evaluate the closure body */
-      return scm_eval_body (SCM_CLOSURE_BODY (code), env);
-    }
+    return scm_call_1 (SCM_CAR (access), obj);
 }
 #undef FUNC_NAME
 
@@ -1288,23 +1257,8 @@ set_slot_value (SCM class SCM_UNUSED, SCM obj, SCM slotdef, SCM value)
     /* obey permissions bits via going through struct-set! */
     scm_struct_set_x (obj, access, value);
   else
-    {
-      /* We must evaluate (apply (cadr l) (list obj value))
-       * where (cadr l) is known to be a closure of arity 2  */
-      register SCM code, env;
-
-      code = SCM_CADR (access);
-      if (!SCM_CLOSUREP (code))
-	scm_call_2 (code, obj, value);
-      else
-	{
-	  env  = SCM_EXTEND_ENV (SCM_CLOSURE_FORMALS (code),
-				 scm_list_2 (obj, value),
-				 SCM_ENV (code));
-	  /* Evaluate the closure body */
-	  scm_eval_body (SCM_CLOSURE_BODY (code), env);
-	}
-    }
+    /* ((cadr l) obj value) */
+    scm_call_2 (SCM_CADR (access), obj, value);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
