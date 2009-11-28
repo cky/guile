@@ -211,7 +211,7 @@ scm_c_catch (SCM tag,
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
       jbr.retval = SCM_EOL;
-      if (SCM_NFALSEP (vm))
+      if (scm_is_true (vm))
         {
           SCM_VM_DATA (vm)->sp = sp;
           SCM_VM_DATA (vm)->fp = fp;
@@ -222,7 +222,7 @@ scm_c_catch (SCM tag,
                    - (sp + 1 - SCM_VM_DATA (vm)->stack_base)) * sizeof(SCM));
 #endif
         }
-      else if (SCM_NFALSEP ((vm = scm_the_vm ())))
+      else if (scm_is_true ((vm = scm_the_vm ())))
         {
           /* oof, it's possible this catch was called before the vm was
              booted... yick. anyway, try to reset the vm stack. */

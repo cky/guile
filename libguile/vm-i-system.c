@@ -769,7 +769,7 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
   /*
    * Other interpreted or compiled call
    */
-  if (!SCM_FALSEP (scm_procedure_p (x)))
+  if (!scm_is_false (scm_procedure_p (x)))
     {
       SCM args;
       /* At this point, the stack contains the frame, the procedure and each one
@@ -848,7 +848,7 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
   /*
    * Other interpreted or compiled call
    */
-  if (!SCM_FALSEP (scm_procedure_p (x)))
+  if (!scm_is_false (scm_procedure_p (x)))
     {
       SCM args;
       POP_LIST (nargs);
@@ -933,7 +933,7 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
   /*
    * Other interpreted or compiled call
    */
-  if (!SCM_FALSEP (scm_procedure_p (x)))
+  if (!scm_is_false (scm_procedure_p (x)))
     {
       SCM args;
       /* At this point, the stack contains the procedure and each one of its

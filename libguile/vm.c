@@ -421,7 +421,7 @@ SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
-  if (SCM_UNLIKELY (SCM_FALSEP ((t->vm))))
+  if (SCM_UNLIKELY (scm_is_false ((t->vm))))
     t->vm = make_vm ();
 
   return t->vm;
@@ -482,7 +482,7 @@ SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
   struct scm_vm *vp;					\
   SCM_VALIDATE_VM (1, vm);				\
   vp = SCM_VM_DATA (vm);				\
-  if (SCM_FALSEP (vp->hooks[n]))			\
+  if (scm_is_false (vp->hooks[n]))			\
     vp->hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
   return vp->hooks[n];					\
 }

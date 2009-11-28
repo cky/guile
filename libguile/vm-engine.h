@@ -208,7 +208,7 @@
 #if VM_USE_HOOKS
 #define RUN_HOOK(h)				\
 {						\
-  if (SCM_UNLIKELY (!SCM_FALSEP (vp->hooks[h])))\
+  if (SCM_UNLIKELY (scm_is_true (vp->hooks[h])))\
     {						\
       SYNC_REGISTER ();				\
       vm_dispatch_hook (vp, vp->hooks[h], hook_args);      \
