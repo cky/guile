@@ -58,12 +58,12 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
 {
   static int print_error = 0;
 
-  if (SCM_FALSEP (write_program) && scm_module_system_booted_p)
+  if (scm_is_false (write_program) && scm_module_system_booted_p)
     write_program = scm_module_local_variable
       (scm_c_resolve_module ("system vm program"),
        scm_from_locale_symbol ("write-program"));
   
-  if (SCM_FALSEP (write_program) || print_error)
+  if (scm_is_false (write_program) || print_error)
     {
       scm_puts ("#<program ", port);
       scm_uintprint (SCM_CELL_WORD_1 (program), 16, port);
@@ -87,7 +87,7 @@ SCM_DEFINE (scm_program_p, "program?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_p
 {
-  return SCM_BOOL (SCM_PROGRAM_P (obj));
+  return scm_from_bool (SCM_PROGRAM_P (obj));
 }
 #undef FUNC_NAME
 

@@ -254,7 +254,7 @@ resolve_variable (SCM what, SCM program_module)
       mod = scm_resolve_module (SCM_CAR (what));
       if (scm_is_true (SCM_CADDR (what)))
         mod = scm_module_public_interface (mod);
-      if (SCM_FALSEP (mod))
+      if (scm_is_false (mod))
         scm_misc_error (NULL, "no such module: ~S",
                         scm_list_1 (SCM_CAR (what)));
       /* might longjmp */

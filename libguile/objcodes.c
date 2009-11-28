@@ -145,7 +145,7 @@ SCM_DEFINE (scm_objcode_p, "objcode?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_objcode_p
 {
-  return SCM_BOOL (SCM_OBJCODE_P (obj));
+  return scm_from_bool (SCM_OBJCODE_P (obj));
 }
 #undef FUNC_NAME
 

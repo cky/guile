@@ -44,13 +44,13 @@ VM_DEFINE_FUNCTION (101, not_not, "not-not", 1)
 VM_DEFINE_FUNCTION (102, eq, "eq?", 2)
 {
   ARGS2 (x, y);
-  RETURN (scm_from_bool (SCM_EQ_P (x, y)));
+  RETURN (scm_from_bool (scm_is_eq (x, y)));
 }
 
 VM_DEFINE_FUNCTION (103, not_eq, "not-eq?", 2)
 {
   ARGS2 (x, y);
-  RETURN (scm_from_bool (!SCM_EQ_P (x, y)));
+  RETURN (scm_from_bool (!scm_is_eq (x, y)));
 }
 
 VM_DEFINE_FUNCTION (104, nullp, "null?", 1)
@@ -68,7 +68,7 @@ VM_DEFINE_FUNCTION (105, not_nullp, "not-null?", 1)
 VM_DEFINE_FUNCTION (106, eqv, "eqv?", 2)
 {
   ARGS2 (x, y);
-  if (SCM_EQ_P (x, y))
+  if (scm_is_eq (x, y))
     RETURN (SCM_BOOL_T);
   if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
@@ -79,7 +79,7 @@ VM_DEFINE_FUNCTION (106, eqv, "eqv?", 2)
 VM_DEFINE_FUNCTION (107, equal, "equal?", 2)
 {
   ARGS2 (x, y);
-  if (SCM_EQ_P (x, y))
+  if (scm_is_eq (x, y))
     RETURN (SCM_BOOL_T);
   if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
@@ -90,7 +90,7 @@ VM_DEFINE_FUNCTION (107, equal, "equal?", 2)
 VM_DEFINE_FUNCTION (108, pairp, "pair?", 1)
 {
   ARGS1 (x);
-  RETURN (scm_from_bool (SCM_CONSP (x)));
+  RETURN (scm_from_bool (scm_is_pair (x)));
 }
 
 VM_DEFINE_FUNCTION (109, listp, "list?", 1)

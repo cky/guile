@@ -66,7 +66,7 @@ SCM_DEFINE (scm_vm_frame_p, "vm-frame?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_frame_p
 {
-  return SCM_BOOL (SCM_VM_FRAME_P (obj));
+  return scm_from_bool (SCM_VM_FRAME_P (obj));
 }
 #undef FUNC_NAME
 
