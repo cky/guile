@@ -46,23 +46,6 @@
 
 
 
-/* {Promises}
- */
-
-#define SCM_F_PROMISE_COMPUTED (1L << 0)
-#define SCM_PROMISE_COMPUTED_P(promise) \
-  (SCM_F_PROMISE_COMPUTED & SCM_SMOB_FLAGS (promise))
-#define SCM_SET_PROMISE_COMPUTED(promise) \
-  SCM_SET_SMOB_FLAGS ((promise), SCM_F_PROMISE_COMPUTED)
-#define SCM_PROMISE_MUTEX     SCM_SMOB_OBJECT_2
-#define SCM_PROMISE_DATA      SCM_SMOB_OBJECT
-#define SCM_SET_PROMISE_DATA  SCM_SET_SMOB_OBJECT
-
-
-SCM_API scm_t_bits scm_tc16_promise;
-
-
-
 /* {Evaluator}
  */
 
@@ -97,9 +80,6 @@ SCM_API SCM scm_apply (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_map (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_for_each (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_closure (SCM code, SCM env);
-SCM_API SCM scm_make_promise (SCM thunk);
-SCM_API SCM scm_force (SCM x);
-SCM_API SCM scm_promise_p (SCM x);
 SCM_API SCM scm_primitive_eval (SCM exp);
 #define scm_primitive_eval_x(exp) scm_primitive_eval (exp)
 SCM_API SCM scm_eval (SCM exp, SCM module);

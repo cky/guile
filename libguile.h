@@ -80,6 +80,7 @@ extern "C" {
 #include "libguile/posix.h"
 #include "libguile/print.h"
 #include "libguile/procprop.h"
+#include "libguile/promises.h"
 #include "libguile/properties.h"
 #include "libguile/procs.h"
 #include "libguile/r6rs-ports.h"

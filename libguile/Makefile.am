@@ -167,6 +167,7 @@ libguile_la_SOURCES =				\
 	procprop.c				\
 	procs.c					\
 	programs.c				\
+	promises.c				\
 	properties.c				\
 	r6rs-ports.c				\
 	random.c				\
@@ -260,6 +261,7 @@ DOT_X_FILES =					\
 	print.x					\
 	procprop.x				\
 	procs.x					\
+	promises.x				\
 	properties.x				\
 	r6rs-ports.x				\
 	random.x				\
@@ -357,6 +359,7 @@ DOT_DOC_FILES = 				\
 	print.doc				\
 	procprop.doc				\
 	procs.doc				\
+	promises.doc				\
 	properties.doc				\
 	r6rs-ports.doc				\
 	random.doc				\
@@ -525,6 +528,7 @@ modinclude_HEADERS =				\
 	procprop.h				\
 	procs.h					\
 	programs.h				\
+	promises.h				\
 	properties.h				\
 	pthread-threads.h			\
 	r6rs-ports.h				\

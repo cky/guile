@@ -987,72 +987,6 @@ scm_closure (SCM code, SCM env)
 }
 
 
-scm_t_bits scm_tc16_promise;
-
-SCM_DEFINE (scm_make_promise, "make-promise", 1, 0, 0, 
-	    (SCM thunk),
-	    "Create a new promise object.\n\n"
-            "@code{make-promise} is a procedural form of @code{delay}.\n"
-            "These two expressions are equivalent:\n"
-            "@lisp\n"
-	    "(delay @var{exp})\n"
-	    "(make-promise (lambda () @var{exp}))\n"
-            "@end lisp\n")
-#define FUNC_NAME s_scm_make_promise
-{
-  SCM_VALIDATE_THUNK (1, thunk);
-  SCM_RETURN_NEWSMOB2 (scm_tc16_promise,
-		       SCM_UNPACK (thunk),
-		       scm_make_recursive_mutex ());
-}
-#undef FUNC_NAME
-
-static int 
-promise_print (SCM exp, SCM port, scm_print_state *pstate)
-{
-  int writingp = SCM_WRITINGP (pstate);
-  scm_puts ("#<promise ", port);
-  SCM_SET_WRITINGP (pstate, 1);
-  scm_iprin1 (SCM_PROMISE_DATA (exp), port, pstate);
-  SCM_SET_WRITINGP (pstate, writingp);
-  scm_putc ('>', port);
-  return !0;
-}
-
-SCM_DEFINE (scm_force, "force", 1, 0, 0, 
-	    (SCM promise),
-	    "If the promise @var{x} has not been computed yet, compute and\n"
-	    "return @var{x}, otherwise just return the previously computed\n"
-	    "value.")
-#define FUNC_NAME s_scm_force
-{
-  SCM_VALIDATE_SMOB (1, promise, promise);
-  scm_lock_mutex (SCM_PROMISE_MUTEX (promise));
-  if (!SCM_PROMISE_COMPUTED_P (promise))
-    {
-      SCM ans = scm_call_0 (SCM_PROMISE_DATA (promise));
-      if (!SCM_PROMISE_COMPUTED_P (promise))
-	{
-	  SCM_SET_PROMISE_DATA (promise, ans);
-	  SCM_SET_PROMISE_COMPUTED (promise);
-	}
-    }
-  scm_unlock_mutex (SCM_PROMISE_MUTEX (promise));
-  return SCM_PROMISE_DATA (promise);
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_promise_p, "promise?", 1, 0, 0, 
-            (SCM obj),
-	    "Return true if @var{obj} is a promise, i.e. a delayed computation\n"
-	    "(@pxref{Delayed evaluation,,,r5rs.info,The Revised^5 Report on Scheme}).")
-#define FUNC_NAME s_scm_promise_p
-{
-  return scm_from_bool (SCM_TYP16_PREDICATE (scm_tc16_promise, obj));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
 	    (SCM exp),
 	    "Evaluate @var{exp} in the top-level environment specified by\n"
@@ -1138,17 +1072,12 @@ scm_init_eval ()
   scm_init_opts (scm_eval_options_interface,
 		 scm_eval_opts);
   
-  scm_tc16_promise = scm_make_smob_type ("promise", 0);
-  scm_set_smob_print (scm_tc16_promise, promise_print);
-
   scm_listofnull = scm_list_1 (SCM_EOL);
 
   f_apply = scm_c_define_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_permanent_object (f_apply);
 
 #include "libguile/eval.x"
-
-  scm_add_feature ("delay");
 }
 
 /*
