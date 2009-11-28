@@ -84,6 +84,10 @@
 (eval-when (eval load compile)
   (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
   (add-interesting-primitive! 'class-of)
+  (define (@slot-ref o n)
+    (struct-ref o n))
+  (define (@slot-set! o n v)
+    (struct-set! o n v))
   (add-interesting-primitive! '@slot-ref)
   (add-interesting-primitive! '@slot-set!))
 

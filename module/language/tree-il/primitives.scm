@@ -79,7 +79,8 @@
 
 (define (add-interesting-primitive! name)
   (hashq-set! *interesting-primitive-vars*
-              (module-variable (current-module) name)
+              (or (module-variable (current-module) name)
+                  (error "unbound interesting primitive" name))
               name))
 
 (define *interesting-primitive-vars* (make-hash-table))
