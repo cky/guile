@@ -523,14 +523,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
         {
           scm_puts (iflagnames [SCM_IFLAGNUM (exp)], port);
         }
-      else if (SCM_ISYMP (exp))
-        {
-          scm_i_print_isym (exp, port);
-        }
-      else if (SCM_ILOCP (exp))
-	{
-          scm_i_print_iloc (exp, port);
-	}
       else
 	{
 	  /* unknown immediate value */
@@ -574,22 +566,14 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
 						exp, port, pstate)))
 	    {
-	      SCM formals = SCM_CLOSURE_FORMALS (exp);
 	      scm_puts ("#<procedure", port);
 	      scm_putc (' ', port);
 	      scm_iprin1 (scm_procedure_name (exp), port, pstate);
 	      scm_putc (' ', port);
-	      if (SCM_PRINT_SOURCE_P)
-		{
-		  SCM env = SCM_ENV (exp);
-		  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
-		  SCM src = scm_i_unmemocopy_body (SCM_CODE (exp), xenv);
-		  ENTER_NESTED_DATA (pstate, exp, circref);
-		  scm_iprin1 (src, port, pstate);
-		  EXIT_NESTED_DATA (pstate);
-		}
-	      else
-		scm_iprin1 (formals, port, pstate);
+              scm_iprin1
+                (scm_cons (SCM_I_MAKINUM (SCM_CLOSURE_NUM_REQUIRED_ARGS (exp)),
+                           scm_from_bool (SCM_CLOSURE_HAS_REST_ARGS (exp))),
+                 port, pstate);
 	      scm_putc ('>', port);
 	    }
 	  break;

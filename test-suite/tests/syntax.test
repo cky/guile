@@ -129,30 +129,6 @@
   (pass-if "legal (begin)"
     (eval '(begin (begin) #t) (interaction-environment)))
 
-  (with-test-prefix "unmemoization"
-
-    ;; FIXME. I have no idea why, but the expander is filling in (if #f
-    ;; #f) as the second arm of the if, if the second arm is missing. I
-    ;; thought I made it not do that. But in the meantime, let's adapt,
-    ;; since that's not what we're testing.
-
-    (pass-if "normal begin"
-      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (+ 2)) #f))))
-        (equal? (procedure-source foo)
-                '(lambda () (if (= 1 1) (begin (+ 1) (+ 2)) #f)))))
-
-    (pass-if "redundant nested begin"
-      (let ((foo (lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3))) #f))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (if (= 1 1) (begin (+ 1) (begin (+ 2) (+ 3))) #f)))))
-
-    (pass-if "redundant begin at start of body"
-      (let ((foo (lambda () (begin (+ 1) (+ 2))))) ; should be optimized
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda () (begin (+ 1) (+ 2)))))))
-
   (pass-if-exception "illegal (begin)"
     exception:generic-syncase-error
     (eval '(begin (if #t (begin)) #t) (interaction-environment))))
@@ -169,18 +145,6 @@
     ((_ x pat)              (equal? x 'pat))))
 
 (with-test-prefix "lambda"
-
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal lambda"
-      (let ((foo (lambda () (lambda (x y) (+ x y)))))
-        (matches? (procedure-source foo)
-                  (lambda () (lambda (_ _) (+ _ _))))))
-
-    (pass-if "lambda with documentation"
-      (let ((foo (lambda () (lambda (x y) "docstring" (+ x y)))))
-        (matches? (procedure-source foo)
-                  (lambda () (lambda (_ _) "docstring" (+ _ _)))))))
 
   (with-test-prefix "bad formals"
 
@@ -246,13 +210,6 @@
 	    (interaction-environment)))))
 
 (with-test-prefix "let"
-
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal let"
-      (let ((foo (lambda () (let ((i 1) (j 2)) (+ i j)))))
-        (matches? (procedure-source foo)
-                  (lambda () (let ((_ 1) (_ 2)) (+ _ _)))))))
 
   (with-test-prefix "bindings"
 
@@ -350,21 +307,6 @@
 
 (with-test-prefix "let*"
 
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal let*"
-      (let ((foo (lambda () (let* ((x 1) (y 2)) (+ x y)))))
-        (matches? (procedure-source foo)
-                  (lambda () (let ((_ 1)) (let ((_ 2)) (+ _ _)))))))
-
-    (pass-if "let* without bindings"
-      (let ((foo (lambda () (let ((x 1) (y 2))
-                              (let* ()
-                                (and (= x 1) (= y 2)))))))
-        (matches? (procedure-source foo)
-                  (lambda () (let ((_ 1) (_ 2))
-                               (if (= _ 1) (= _ 2) #f)))))))
-
   (with-test-prefix "bindings"
 
     (pass-if "(let* ((x 1) (x 2)) ...)"
@@ -441,13 +383,6 @@
 
 (with-test-prefix "letrec"
 
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal letrec"
-      (let ((foo (lambda () (letrec ((i 1) (j 2)) (+ i j)))))
-        (matches? (procedure-source foo)
-                  (lambda () (letrec ((_ 1) (_ 2)) (+ _ _)))))))
-
   (with-test-prefix "bindings"
 
     (pass-if-exception "initial bindings are undefined"
@@ -522,28 +457,6 @@
 	    (interaction-environment)))))
 
 (with-test-prefix "if"
-
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal if"
-      (let ((foo (lambda (x) (if x (+ 1) (+ 2)))))
-        (foo #t) ; make sure, memoization has been performed
-        (foo #f) ; make sure, memoization has been performed
-        (matches? (procedure-source foo)
-                  (lambda (_) (if _ (+ 1) (+ 2))))))
-
-    (expect-fail "if without else"
-      (let ((foo (lambda (x) (if x (+ 1)))))
-        (foo #t) ; make sure, memoization has been performed
-        (foo #f) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                '(lambda (x) (if x (+ 1))))))
-
-    (expect-fail "if #f without else"
-      (let ((foo (lambda () (if #f #f))))
-        (foo) ; make sure, memoization has been performed
-        (equal? (procedure-source foo)
-                `(lambda () (if #f #f))))))
 
   (with-test-prefix "missing or extra expressions"
 
@@ -622,26 +535,6 @@
       '(syntax-error . "cond: wrong number of receiver expressions")
       (cond (#t identity => identity identity))))
 
-  (with-test-prefix "unmemoization"
-
-    ;; FIXME: the (if #f #f) is a hack!
-    (pass-if "normal clauses"
-      (let ((foo (lambda () (cond ((= x 1) 'bar) ((= x 2) 'baz)))))
-        (equal? (procedure-source foo)
-                '(lambda () (if (= x 1) 'bar (if (= x 2) 'baz (if #f #f)))))))
-
-    (pass-if "else"
-      (let ((foo (lambda () (cond (else 'bar)))))
-        (equal? (procedure-source foo)
-                '(lambda () 'bar))))
-
-    ;; FIXME: the (if #f #f) is a hack!
-    (pass-if "=>"
-      (let ((foo (lambda () (cond (#t => identity)))))
-        (matches? (procedure-source foo)
-                  (lambda () (let ((_ #t))
-                               (if _ (identity _) (if #f #f))))))))
-
   (with-test-prefix "bad or missing clauses"
 
     (pass-if-exception "(cond)"
@@ -706,28 +599,6 @@
       exception:generic-syncase-error
       (eval '(let ((else #f)) (case 1 (else #f)))
             (interaction-environment))))
-
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal clauses"
-      (let ((foo (lambda (x) (case x ((1) 'bar) ((2) 'baz) (else 'foobar)))))
-        (matches? (procedure-source foo)
-                  (lambda (_)
-                    (if ((@@ (guile) memv) _ '(1))
-                        'bar
-                        (if ((@@ (guile) memv) _ '(2))
-                            'baz
-                            'foobar))))))
-
-    (pass-if "empty labels"
-      (let ((foo (lambda (x) (case x ((1) 'bar) (() 'baz) (else 'foobar)))))
-        (matches? (procedure-source foo)
-                  (lambda (_)
-                    (if ((@@ (guile) memv) _ '(1))
-                        'bar
-                        (if ((@@ (guile) memv) _ '())
-                            'baz
-                            'foobar)))))))
 
   (with-test-prefix "bad or missing clauses"
 
@@ -804,23 +675,6 @@
       (eval '(define round round) m)
       (eq? (module-ref m 'round) round)))
 
-  (with-test-prefix "unmemoization"
-
-    (pass-if "definition unmemoized without prior execution"
-      (primitive-eval '(begin 
-                         (define (blub) (cons ('(1 . 2)) 2))
-                         (equal?
-                          (procedure-source blub)
-                          '(lambda () (cons ('(1 . 2)) 2))))))
-    
-
-    (pass-if "definition with documentation unmemoized without prior execution"
-      (primitive-eval '(begin 
-                         (define (blub) "Comment" (cons ('(1 . 2)) 2))
-                         (equal?
-                          (procedure-source blub)
-                          '(lambda () "Comment" (cons ('(1 . 2)) 2)))))))
-  
   (with-test-prefix "missing or extra expressions"
 
     (pass-if-exception "(define)"
@@ -892,28 +746,9 @@
   (pass-if-exception "missing body expression"
     exception:missing-body-expr
     (eval '(let () (define x #t))
-          (interaction-environment)))
-
-  (pass-if "unmemoization"
-    (primitive-eval '(begin
-                       (define (foo) 
-                         (define (bar)
-                           'ok)
-                         (bar))
-                       (foo)
-                       (matches?
-                        (procedure-source foo)
-                        (lambda () (letrec ((_ (lambda () (quote ok)))) (_))))))))
+          (interaction-environment))))
 
 (with-test-prefix "set!"
-
-  (with-test-prefix "unmemoization"
-
-    (pass-if "normal set!"
-      (let ((foo (lambda (x) (set! x (+ 1 x)))))
-        (foo 1) ; make sure, memoization has been performed
-        (matches? (procedure-source foo)
-                  (lambda (_) (set! _ (+ 1 _)))))))
 
   (with-test-prefix "missing or extra expressions"
 

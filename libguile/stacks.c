@@ -212,7 +212,6 @@ read_frame (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 		flags |= SCM_FRAMEF_EVAL_ARGS;
 	    }
 	}
-      iframe->source = scm_make_memoized (info[0].e.exp, info[0].e.env);
     }
   else
     {
@@ -239,16 +238,6 @@ get_applybody ()
 
 #define NEXT_FRAME(iframe, n, quit) \
 do { \
-  if (SCM_MEMOIZEDP (iframe->source) \
-      && scm_is_eq (SCM_MEMOIZED_EXP (iframe->source), applybody)) \
-    { \
-      iframe->source = SCM_BOOL_F; \
-      if (scm_is_false (iframe->proc)) \
-	{ \
-	  --iframe; \
-	  ++n; \
-	} \
-    } \
   ++iframe; \
   if (--n == 0) \
     goto quit; \
@@ -316,8 +305,7 @@ read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
 		}
 	      else
 		iframe->flags = SCM_UNPACK (SCM_INUM0);
-	      iframe->source = scm_make_memoized (info[0].e.exp,
-						  info[0].e.env);
+	      iframe->source = SCM_BOOL_F;
 	      info -= 2;
 	      NEXT_FRAME (iframe, n, quit);
 	    }
@@ -395,31 +383,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
     {
       /* Cut all frames up to user module code */
       for (i = 0; inner; ++i, --inner)
-	{
-	  SCM m = s->frames[i].source;
-	  if (SCM_MEMOIZEDP (m)
-	      && !SCM_IMP (SCM_MEMOIZED_ENV (m))
-	      && scm_is_false (scm_system_module_env_p (SCM_MEMOIZED_ENV (m))))
-	    {
-	      /* Back up in order to include any non-source frames */
-	      while (i > 0)
-		{
-		  m = s->frames[i - 1].source;
-		  if (SCM_MEMOIZEDP (m))
-		    break;
-
-		  m = s->frames[i - 1].proc;
-		  if (scm_is_true (scm_procedure_p (m))
-		      && scm_is_true (scm_procedure_property
-				      (m, scm_sym_system_procedure)))
-		    break;
-
-		  --i;
-		  ++inner;
-		}
-	      break;
-	    }
-	}
+        ;
     }
   else
     /* Use standard cutting procedure. */

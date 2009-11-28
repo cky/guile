@@ -79,6 +79,7 @@
 #include "libguile/load.h"
 #include "libguile/macros.h"
 #include "libguile/mallocs.h"
+#include "libguile/memoize.h"
 #include "libguile/modules.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
@@ -548,6 +549,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_weaks ();
   scm_init_guardians ();
   scm_init_vports ();
+  scm_init_memoize ();
   scm_init_eval ();
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */

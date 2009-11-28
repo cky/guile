@@ -294,7 +294,7 @@
 
 #define SCM_VALIDATE_VARIABLE(pos, var) SCM_MAKE_VALIDATE_MSG (pos, var, VARIABLEP, "variable")
 
-#define SCM_VALIDATE_MEMOIZED(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, MEMOIZEDP, "memoized code")
+#define SCM_VALIDATE_MEMOIZED(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, MEMOIZED_P, "memoized code")
 
 #define SCM_VALIDATE_CLOSURE(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, CLOSUREP, "closure")
 

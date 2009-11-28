@@ -202,3 +202,8 @@
              x)))
       (else
        (error "#y needs to be followed by a list" x))))))
+
+(define (unmemoize-expr . args)
+  (issue-deprecation-warning
+   "`unmemoize-expr' is deprecated. Use `unmemoize-expression' instead.")
+  (apply unmemoize-expression args))

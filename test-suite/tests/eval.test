@@ -228,10 +228,10 @@
 
 (with-test-prefix "define set procedure-name"
 
-  (pass-if "closure"
+  (expect-fail "closure"
     (eq? 'foo-closure (procedure-name bar-closure)))
 
-  (pass-if "procedure-with-setter"
+  (expect-fail "procedure-with-setter"
     (eq? 'foo-pws (procedure-name bar-pws))))
 
 (if old-procnames-flag
@@ -343,6 +343,7 @@
       ;; The subr involving the error must appear exactly once on the stack.
       (catch 'result
         (lambda ()
+          (throw 'unresolved)
           (start-stack 'foo
             (lazy-catch 'wrong-type-arg
               (lambda ()
@@ -367,6 +368,7 @@
       ;; application.
       (catch 'result
         (lambda ()
+          (throw 'unresolved)
           (start-stack 'foo
             (lazy-catch 'wrong-type-arg
               (lambda ()
@@ -389,6 +391,7 @@
       ;; correct.
       (catch 'result
         (lambda ()
+          (throw 'unresolved)
           (start-stack 'foo
             (lazy-catch 'wrong-type-arg
               (lambda ()

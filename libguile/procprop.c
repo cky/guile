@@ -109,16 +109,8 @@ scm_i_procedure_arity (SCM proc)
       proc = SCM_PROCEDURE (proc);
       goto loop;
     case scm_tcs_closures:
-      proc = SCM_CLOSURE_FORMALS (proc);
-      if (scm_is_null (proc))
-	break;
-      while (scm_is_pair (proc))
-	{
-	  ++a;
-	  proc = SCM_CDR (proc);
-	}
-      if (!scm_is_null (proc))
-	r = 1;
+      a = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
+      r = SCM_CLOSURE_HAS_REST_ARGS (proc) ? 1 : 0;
       break;
     case scm_tcs_struct:
       if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)

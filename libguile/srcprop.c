@@ -180,10 +180,6 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SRCPROPSP (p))
     return scm_srcprops_to_alist (p);
@@ -217,10 +213,6 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto alist;
@@ -248,10 +240,6 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   scm_whash_handle h;
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG (1, obj);
   h = scm_whash_get_handle (scm_source_whash, obj);
   if (SCM_WHASHFOUNDP (h))
     p = SCM_WHASHREF (scm_source_whash, h);

@@ -134,7 +134,7 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
       switch (SCM_TYP7 (obj))
 	{
 	case scm_tcs_closures:
-	  return scm_from_bool (!scm_is_pair (SCM_CLOSURE_FORMALS (obj)));
+	  return scm_from_bool (SCM_CLOSURE_NUM_REQUIRED_ARGS (obj) == 0);
 	case scm_tc7_subr_0:
 	case scm_tc7_subr_1o:
 	case scm_tc7_lsubr:

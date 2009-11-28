@@ -3,7 +3,7 @@
 #ifndef SCM_DEBUG_H
 #define SCM_DEBUG_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -45,26 +45,6 @@
 
 
 
-SCM_API int scm_debug_mode_p;
-SCM_API int scm_check_entry_p;
-SCM_API int scm_check_apply_p;
-SCM_API int scm_check_exit_p;
-SCM_API int scm_check_memoize_p;
-
-#define SCM_RESET_DEBUG_MODE \
-do {\
-  scm_check_entry_p = (SCM_ENTER_FRAME_P || SCM_BREAKPOINTS_P)\
-    && scm_is_true (SCM_ENTER_FRAME_HDLR);\
-  scm_check_apply_p = (SCM_APPLY_FRAME_P || SCM_TRACE_P)\
-    && scm_is_true (SCM_APPLY_FRAME_HDLR);\
-  scm_check_exit_p = (SCM_EXIT_FRAME_P || SCM_TRACE_P)\
-    && scm_is_true (SCM_EXIT_FRAME_HDLR);\
-  scm_check_memoize_p = (SCM_MEMOIZE_P)\
-    && scm_is_true (SCM_MEMOIZE_HDLR);\
-  scm_debug_mode_p = SCM_DEVAL_P\
-    || scm_check_memoize_p || scm_check_entry_p || scm_check_apply_p || scm_check_exit_p;\
-} while (0)
-
 /* {Evaluator}
  */
 
@@ -74,8 +54,6 @@ typedef union scm_t_debug_info
   struct { SCM proc, args; } a;
   SCM id;
 } scm_t_debug_info;
-
-SCM_API long scm_debug_eframe_size;
 
 typedef struct scm_t_debug_frame
 {
@@ -125,28 +103,14 @@ SCM_API scm_t_bits scm_tc16_debugobj;
   ((scm_t_debug_frame *) SCM_CELL_WORD_1 (x))
 #define SCM_SET_DEBUGOBJ_FRAME(x, f)  SCM_SET_CELL_WORD_1 (x, f)
 
-/* {Memoized Source}
- */
-
-SCM_API scm_t_bits scm_tc16_memoized;
-
-#define SCM_MEMOIZEDP(x)	SCM_TYP16_PREDICATE (scm_tc16_memoized, x)
-#define SCM_MEMOIZED_EXP(x)	SCM_CAR (SCM_CELL_OBJECT_1 (x))
-#define SCM_MEMOIZED_ENV(x)	SCM_CDR (SCM_CELL_OBJECT_1 (x))
-
 
 
 SCM_API SCM scm_debug_object_p (SCM obj);
-SCM_API SCM scm_local_eval (SCM exp, SCM env);
 SCM_API SCM scm_reverse_lookup (SCM env, SCM data);
 SCM_API SCM scm_sys_start_stack (SCM info_id, SCM thunk);
-SCM_API SCM scm_procedure_environment (SCM proc);
 SCM_API SCM scm_procedure_module (SCM proc);
 SCM_API SCM scm_procedure_source (SCM proc);
 SCM_API SCM scm_procedure_name (SCM proc);
-SCM_API SCM scm_memoized_environment (SCM m);
-SCM_API SCM scm_make_memoized (SCM exp, SCM env);
-SCM_API SCM scm_memoized_p (SCM obj);
 SCM_API SCM scm_with_traps (SCM thunk);
 SCM_API SCM scm_evaluator_traps (SCM setting);
 SCM_API SCM scm_debug_options (SCM setting);
@@ -156,9 +120,6 @@ SCM_INTERNAL SCM scm_i_unmemoize_expr (SCM memoized);
 SCM_INTERNAL void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG
-SCM_API SCM scm_memcons (SCM car, SCM cdr, SCM env);
-SCM_API SCM scm_mem_to_proc (SCM obj);
-SCM_API SCM scm_proc_to_mem (SCM obj);
 SCM_API SCM scm_debug_hang (SCM obj);
 #endif /*GUILE_DEBUG*/
 

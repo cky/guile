@@ -229,28 +229,6 @@ scm_c_export (const char *name, ...)
 
 /* Environments */
 
-SCM
-scm_top_level_env (SCM thunk)
-{
-  if (SCM_IMP (thunk))
-    return SCM_EOL;
-  else
-    return scm_cons (thunk, SCM_EOL);
-}
-
-SCM
-scm_env_top_level (SCM env)
-{
-  while (scm_is_pair (env))
-    {
-      SCM car_env = SCM_CAR (env);
-      if (!scm_is_pair (car_env) && scm_is_true (scm_procedure_p (car_env)))
-	return car_env;
-      env = SCM_CDR (env);
-    }
-  return SCM_BOOL_F;
-}
-
 SCM_SYMBOL (sym_module, "module");
 
 SCM
@@ -274,15 +252,6 @@ scm_lookup_closure_module (SCM proc)
       return mod;
     }
 }
-
-SCM_DEFINE (scm_env_module, "env-module", 1, 0, 0,
-	    (SCM env),
-	    "Return the module of @var{ENV}, a lexical environment.")
-#define FUNC_NAME s_scm_env_module
-{
-  return scm_lookup_closure_module (scm_env_top_level (env));
-}
-#undef FUNC_NAME
 
 /*
  * C level implementation of the standard eval closure
@@ -877,18 +846,6 @@ SCM_DEFINE (scm_get_pre_modules_obarray, "%get-pre-modules-obarray", 0, 0, 0,
 #undef FUNC_NAME
 
 SCM_SYMBOL (scm_sym_system_module, "system-module");
-
-SCM
-scm_system_module_env_p (SCM env)
-{
-  SCM proc = scm_env_top_level (env);
-  if (scm_is_false (proc))
-    return SCM_BOOL_T;
-  return ((scm_is_true (scm_procedure_property (proc,
-						scm_sym_system_module)))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
-}
 
 void
 scm_modules_prehistory ()

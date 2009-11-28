@@ -115,11 +115,6 @@ SCM_API SCM scm_eval_closure_module (SCM eval_closure); /* deprecated already */
 SCM_API SCM scm_get_pre_modules_obarray (void);
 SCM_API SCM scm_lookup_closure_module (SCM proc);
 
-SCM_API SCM scm_env_top_level (SCM env);
-SCM_API SCM scm_env_module (SCM env);
-SCM_API SCM scm_top_level_env (SCM thunk);
-SCM_API SCM scm_system_module_env_p (SCM env);
-
 SCM_INTERNAL void scm_modules_prehistory (void);
 SCM_INTERNAL void scm_init_modules (void);
 

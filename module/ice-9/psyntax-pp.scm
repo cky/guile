@@ -11741,8 +11741,7 @@
        #{x\ 4298}#))))
 
 (define do
-  (make-extended-syncase-macro
-    (module-ref (current-module) (quote do))
+  (make-syncase-macro
     'macro
     (lambda (#{orig-x\ 4321}#)
       ((lambda (#{tmp\ 4322}#)
@@ -12351,8 +12350,7 @@
        #{orig-x\ 4321}#))))
 
 (define quasiquote
-  (make-extended-syncase-macro
-    (module-ref (current-module) (quote quasiquote))
+  (make-syncase-macro
     'macro
     (letrec ((#{quasicons\ 4358}#
                (lambda (#{x\ 4362}# #{y\ 4363}#)
@@ -13506,8 +13504,7 @@
        #{x\ 4458}#))))
 
 (define case
-  (make-extended-syncase-macro
-    (module-ref (current-module) (quote case))
+  (make-syncase-macro
     'macro
     (lambda (#{x\ 4463}#)
       ((lambda (#{tmp\ 4464}#)

@@ -307,8 +307,8 @@ typedef scm_t_uintptr scm_t_bits;
  * tc8 (for objects with tc3==100):
  *   00000-100:  special objects ('flags')
  *   00001-100:  characters
- *   00010-100:  evaluator byte codes ('isyms')
- *   00011-100:  evaluator byte codes ('ilocs')
+ *   00010-100:  unused
+ *   00011-100:  unused
  *
  *
  * Summary of type codes on the heap
@@ -464,8 +464,8 @@ enum scm_tc8_tags
 {
   scm_tc8_flag = scm_tc3_imm24 + 0x00,  /* special objects ('flags') */
   scm_tc8_char = scm_tc3_imm24 + 0x08,  /* characters */
-  scm_tc8_isym = scm_tc3_imm24 + 0x10,  /* evaluator byte codes ('isyms') */
-  scm_tc8_iloc = scm_tc3_imm24 + 0x18   /* evaluator byte codes ('ilocs') */
+  scm_tc8_unused_0 = scm_tc3_imm24 + 0x10,
+  scm_tc8_unused_1 = scm_tc3_imm24 + 0x18
 };
 
 #define SCM_ITAG8(X)		(SCM_UNPACK (X) & 0xff)
@@ -584,42 +584,6 @@ enum scm_tc8_tags
                                  (SCM_UNPACK(b) ^ SCM_UNPACK(c)) |	\
                                  (SCM_UNPACK(c) ^ SCM_UNPACK(d))))
 #endif /* BUILDING_LIBGUILE */
-
-
-/* Evaluator byte codes ('immediate symbols').  These constants are used only
- * in eval but their values have to be allocated here.  The indices of the
- * SCM_IM_ symbols must agree with the declarations in eval.c:
- * scm_isymnames.  */
-
-#define SCM_ISYMP(n) 		(SCM_ITAG8 (n) == scm_tc8_isym)
-#define SCM_MAKISYM(n) 		SCM_MAKE_ITAG8 ((n), scm_tc8_isym)
-
-#define SCM_IM_AND              SCM_MAKISYM (0)
-#define SCM_IM_BEGIN            SCM_MAKISYM (1)
-#define SCM_IM_CASE             SCM_MAKISYM (2)
-#define SCM_IM_COND             SCM_MAKISYM (3)
-#define SCM_IM_DO               SCM_MAKISYM (4)
-#define SCM_IM_IF               SCM_MAKISYM (5)
-#define SCM_IM_LAMBDA           SCM_MAKISYM (6)
-#define SCM_IM_LET              SCM_MAKISYM (7)
-#define SCM_IM_LETSTAR          SCM_MAKISYM (8)
-#define SCM_IM_LETREC           SCM_MAKISYM (9)
-#define SCM_IM_OR               SCM_MAKISYM (10)
-#define SCM_IM_QUOTE            SCM_MAKISYM (11)
-#define SCM_IM_SET_X            SCM_MAKISYM (12)
-#define SCM_IM_DEFINE           SCM_MAKISYM (13)
-#define SCM_IM_APPLY		SCM_MAKISYM (14)
-#define SCM_IM_CONT		SCM_MAKISYM (15)
-#define SCM_IM_DISPATCH		SCM_MAKISYM (16)
-#define SCM_IM_SLOT_REF		SCM_MAKISYM (17)
-#define SCM_IM_SLOT_SET_X	SCM_MAKISYM (18)
-#define SCM_IM_DELAY		SCM_MAKISYM (19)
-#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (20)
-#define SCM_IM_ELSE             SCM_MAKISYM (21)
-#define SCM_IM_ARROW            SCM_MAKISYM (22)
-#define SCM_IM_NIL_COND         SCM_MAKISYM (23)  /* Multi-language support */
-#define SCM_IM_BIND             SCM_MAKISYM (24)  /* Multi-language support */
-
 
 
 /* Dispatching aids:

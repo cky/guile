@@ -36,7 +36,7 @@
     ;; The following test makes sure that the evaluator distinguishes between
     ;; evaluator-internal instruction codes and characters.
     (pass-if-exception "evaluating chars"
-      exception:wrong-type-to-apply
+      exception:wrong-type-arg
       (eval '(#\0) (interaction-environment))))
 
   (with-test-prefix "comparisons"

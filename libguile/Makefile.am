@@ -154,6 +154,7 @@ libguile_la_SOURCES =				\
 	load.c					\
 	macros.c				\
 	mallocs.c				\
+	memoize.c				\
 	modules.c				\
 	null-threads.c				\
 	numbers.c				\
@@ -249,6 +250,7 @@ DOT_X_FILES =					\
 	load.x					\
 	macros.x				\
 	mallocs.x				\
+	memoize.x				\
 	modules.x				\
 	numbers.x				\
 	objprop.x				\
@@ -345,6 +347,7 @@ DOT_DOC_FILES = 				\
 	load.doc				\
 	macros.doc				\
 	mallocs.doc				\
+	memoize.doc				\
 	modules.doc				\
 	numbers.doc				\
 	objprop.doc				\
@@ -507,6 +510,7 @@ modinclude_HEADERS =				\
 	load.h					\
 	macros.h				\
 	mallocs.h				\
+	memoize.h				\
 	modules.h				\
 	net_db.h				\
 	null-threads.h				\
