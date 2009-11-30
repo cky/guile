@@ -761,14 +761,20 @@ scm_c_define (const char *name, SCM value)
   return scm_define (scm_from_locale_symbol (name), value);
 }
 
-SCM
-scm_define (SCM sym, SCM value)
+SCM_DEFINE (scm_define, "define!", 2, 0, 0,
+	    (SCM sym, SCM value),
+	    "Define @var{sym} to be @var{value} in the current module."
+            "Returns the variable itself. Note that this is a procedure, "
+            "not a macro.")
+#define FUNC_NAME s_scm_define
 {
-  SCM var =
-    scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T);
+  SCM var;
+  SCM_VALIDATE_SYMBOL (SCM_ARG1, sym);
+  var = scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T);
   SCM_VARIABLE_SET (var, value);
   return var;
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
 	    (SCM module, SCM variable),
