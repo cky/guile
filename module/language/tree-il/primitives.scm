@@ -53,6 +53,8 @@
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
 
     vector-ref vector-set!
+    variable-ref variable-set!
+    ;; args of variable-set are switched; it needs special help
 
     bytevector-u8-ref bytevector-u8-set!
     bytevector-s8-ref bytevector-s8-set!
@@ -291,3 +293,7 @@
   (@call-with-current-continuation proc))
 
 (define-primitive-expander values (x) x)
+
+;; swap args
+(define-primitive-expander variable-set! (var val)
+  (variable-set val var))

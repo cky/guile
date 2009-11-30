@@ -112,6 +112,9 @@
    ((@slot-set! . 3) . slot-set)
    ((vector-ref . 2) . vector-ref)
    ((vector-set! . 3) . vector-set)
+   ((variable-ref . 1) . variable-ref)
+   ;; nb, *not* variable-set! -- the args are switched
+   ((variable-set . 2) . variable-set)
 
    ;; hack for javascript
    ((return . 1) return)
