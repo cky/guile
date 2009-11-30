@@ -24,6 +24,18 @@ include $(top_srcdir)/am/guilec
 # We're at the root of the module hierarchy.
 modpath =
 
+BEGINNING_OF_TIME=198001010100
+
+$(GOBJECTS): ice-9/eval.go.stamp
+ice-9/eval.go.stamp: ice-9/eval.go
+	touch -t $(BEGINNING_OF_TIME) $(srcdir)/ice-9/eval.scm 
+	touch -r $(srcdir)/ice-9/eval.scm ice-9/eval.go
+	touch -r $(srcdir)/ice-9/eval.scm ice-9/eval.go.stamp
+CLEANFILES += ice-9/eval.go ice-9/eval.go.stamp
+nobase_mod_DATA += ice-9/eval.scm
+nobase_ccache_DATA += ice-9/eval.go
+EXTRA_DIST += ice-9/eval.scm
+
 # Compile psyntax and boot-9 first, so that we get the speed benefit in
 # the rest of the compilation. Also, if there is too much switching back
 # and forth between interpreted and compiled code, we end up using more
