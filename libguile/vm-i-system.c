@@ -298,7 +298,7 @@ VM_DEFINE_INSTRUCTION (24, long_local_bound, "long-local-bound?", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 1, 1)
 {
   SCM x = *sp;
 
@@ -393,7 +393,7 @@ VM_DEFINE_INSTRUCTION (30, long_local_set, "long-local-set", 2, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (31, variable_set, "variable-set", 0, 1, 0)
+VM_DEFINE_INSTRUCTION (31, variable_set, "variable-set", 0, 2, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
