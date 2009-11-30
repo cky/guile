@@ -92,6 +92,10 @@ enum
 
 SCM_INTERNAL SCM scm_memoize_expression (SCM exp);
 SCM_INTERNAL SCM scm_unmemoize_expression (SCM memoized);
+SCM_INTERNAL SCM scm_memoized_expression_typecode (SCM memoized);
+SCM_INTERNAL SCM scm_memoized_expression_data (SCM memoized);
+SCM_INTERNAL SCM scm_memoized_typecode (SCM sym);
+SCM_INTERNAL SCM scm_memoize_variable_access_x (SCM memoized, SCM module);
 SCM_API SCM scm_memoized_p (SCM obj);
 
 SCM_INTERNAL void scm_init_memoize (void);

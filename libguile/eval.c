@@ -120,13 +120,6 @@
 
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
 
-static void error_unbound_variable (SCM symbol) SCM_NORETURN;
-static void error_unbound_variable (SCM symbol)
-{
-  scm_error (scm_unbound_variable_key, NULL, "Unbound variable: ~S",
-	     scm_list_1 (symbol), SCM_BOOL_F);
-}
-
 static void error_used_before_defined (void)
 {
   scm_error (scm_unbound_variable_key, NULL,
@@ -151,7 +144,7 @@ scm_badargsp (SCM formals, SCM args)
 static SCM apply (SCM proc, SCM args);
 
 /* the environment:
-   ((SYM . VAL) (SYM . VAL) ... . MOD)
+   (VAL ... . MOD)
    If MOD is #f, it means the environment was captured before modules were
    booted.
    If MOD is the literal value '(), we are evaluating at the top level, and so
@@ -347,14 +340,10 @@ eval (SCM x, SCM env)
         return SCM_VARIABLE_REF (mx);
       else
         {
-          SCM var;
           while (scm_is_pair (env))
             env = scm_cdr (env);
-          var = scm_module_variable (CAPTURE_ENV (env), mx);
-          if (scm_is_false (var) || scm_is_false (scm_variable_bound_p (var)))
-            error_unbound_variable (mx);
-          SCM_SET_SMOB_OBJECT (x, var);
-          return SCM_VARIABLE_REF (var);
+          return SCM_VARIABLE_REF
+            (scm_memoize_variable_access_x (x, CAPTURE_ENV (env)));
         }
 
     case SCM_M_TOPLEVEL_SET:
@@ -370,11 +359,9 @@ eval (SCM x, SCM env)
           {
             while (scm_is_pair (env))
               env = scm_cdr (env);
-            var = scm_module_variable (CAPTURE_ENV (env), var);
-            if (scm_is_false (var) || scm_is_false (scm_variable_bound_p (var)))
-              error_unbound_variable (CAR (mx));
-            SCM_SETCAR (mx, var);
-            SCM_VARIABLE_SET (var, val);
+            SCM_VARIABLE_SET
+              (scm_memoize_variable_access_x (x, CAPTURE_ENV (env)),
+               val);
             return SCM_UNSPECIFIED;
           }
       }
@@ -383,16 +370,8 @@ eval (SCM x, SCM env)
       if (SCM_VARIABLEP (mx))
         return SCM_VARIABLE_REF (mx);
       else
-        {
-          SCM mod, var;
-          mod = scm_resolve_module (CAR (mx));
-          if (scm_is_true (CDDR (mx)))
-            mod = scm_module_public_interface (mod);
-          var = scm_module_lookup (mod, CADR (mx));
-          if (scm_is_true (scm_variable_bound_p (var)))
-            SCM_SET_SMOB_OBJECT (x, var);
-          return scm_variable_ref (var);
-        }
+        return SCM_VARIABLE_REF
+          (scm_memoize_variable_access_x (x, SCM_BOOL_F));
 
     case SCM_M_MODULE_SET:
       if (SCM_VARIABLEP (CDR (mx)))
@@ -402,13 +381,9 @@ eval (SCM x, SCM env)
         }
       else
         {
-          SCM mod, var;
-          mod = scm_resolve_module (CADR (mx));
-          if (scm_is_true (CDDDR (mx)))
-            mod = scm_module_public_interface (mod);
-          var = scm_module_lookup (mod, CADDR (mx));
-          SCM_SET_SMOB_OBJECT (x, var);
-          SCM_VARIABLE_SET (var, eval (CAR (mx), env));
+          SCM_VARIABLE_SET
+            (scm_memoize_variable_access_x (x, SCM_BOOL_F),
+             eval (CAR (mx), env));
           return SCM_UNSPECIFIED;
         }
 

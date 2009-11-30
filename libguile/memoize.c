@@ -236,7 +236,7 @@ static const char *const memoized_tags[] =
   "quote",
   "define",
   "apply",
-  "call-with-current-continuation",
+  "call/cc",
   "call-with-values",
   "call",
   "lexical-ref",
@@ -244,7 +244,7 @@ static const char *const memoized_tags[] =
   "toplevel-ref",
   "toplevel-set!",
   "module-ref",
-  "module-set",
+  "module-set!",
 };
 
 static int
@@ -1118,6 +1118,126 @@ SCM_DEFINE (scm_unmemoize_expression, "unmemoize-expression", 1, 0, 0,
 {
   SCM_VALIDATE_MEMOIZED (1, m);
   return unmemoize (m);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoized_expression_typecode, "memoized-expression-typecode", 1, 0, 0, 
+            (SCM m),
+	    "Return the typecode from the memoized expression @var{m}.")
+#define FUNC_NAME s_scm_memoized_expression_typecode
+{
+  SCM_VALIDATE_MEMOIZED (1, m);
+  return scm_from_uint16 (SCM_MEMOIZED_TAG (m));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoized_expression_data, "memoized-expression-data", 1, 0, 0, 
+            (SCM m),
+	    "Return the data from the memoized expression @var{m}.")
+#define FUNC_NAME s_scm_memoized_expression_data
+{
+  SCM_VALIDATE_MEMOIZED (1, m);
+  return SCM_MEMOIZED_ARGS (m);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoized_typecode, "memoized-typecode", 1, 0, 0, 
+            (SCM sym),
+	    "Return the memoized typecode corresponding to the symbol @var{sym}.")
+#define FUNC_NAME s_scm_memoized_typecode
+{
+  int i;
+
+  SCM_VALIDATE_SYMBOL (1, sym);
+
+  for (i = 0; i < sizeof(memoized_tags)/sizeof(const char*); i++)
+    if (strcmp (scm_i_symbol_chars (sym), memoized_tags[i]) == 0)
+      return scm_from_int32 (i);
+
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
+static void error_unbound_variable (SCM symbol) SCM_NORETURN;
+static void error_unbound_variable (SCM symbol)
+{
+  scm_error (scm_unbound_variable_key, NULL, "Unbound variable: ~S",
+	     scm_list_1 (symbol), SCM_BOOL_F);
+}
+
+SCM_DEFINE (scm_memoize_variable_access_x, "memoize-variable-access!", 2, 0, 0, 
+            (SCM m, SCM mod),
+	    "Look up and cache the variable that @var{m} will access, returning the variable.")
+#define FUNC_NAME s_scm_memoized_expression_data
+{
+  SCM mx;
+  SCM_VALIDATE_MEMOIZED (1, m);
+  mx = SCM_MEMOIZED_ARGS (m);
+  switch (SCM_MEMOIZED_TAG (m))
+    {
+    case SCM_M_TOPLEVEL_REF:
+      if (SCM_VARIABLEP (mx))
+        return mx;
+      else
+        {
+          SCM var = scm_module_variable (mod, mx);
+          if (scm_is_false (var) || scm_is_false (scm_variable_bound_p (var)))
+            error_unbound_variable (mx);
+          SCM_SET_SMOB_OBJECT (m, var);
+          return var;
+        }
+
+    case SCM_M_TOPLEVEL_SET:
+      {
+        SCM var = CAR (mx);
+        if (SCM_VARIABLEP (var))
+          return var;
+        else
+          {
+            var = scm_module_variable (mod, var);
+            if (scm_is_false (var))
+              error_unbound_variable (CAR (mx));
+            SCM_SETCAR (mx, var);
+            return var;
+          }
+      }
+
+    case SCM_M_MODULE_REF:
+      if (SCM_VARIABLEP (mx))
+        return mx;
+      else
+        {
+          SCM var;
+          mod = scm_resolve_module (CAR (mx));
+          if (scm_is_true (CDDR (mx)))
+            mod = scm_module_public_interface (mod);
+          var = scm_module_lookup (mod, CADR (mx));
+          if (scm_is_false (scm_variable_bound_p (var)))
+            error_unbound_variable (CADR (mx));
+          SCM_SET_SMOB_OBJECT (m, var);
+          return var;
+        }
+
+    case SCM_M_MODULE_SET:
+      /* FIXME: not quite threadsafe */
+      if (SCM_VARIABLEP (CDR (mx)))
+        return CDR (mx);
+      else
+        {
+          SCM var;
+          mod = scm_resolve_module (CADR (mx));
+          if (scm_is_true (CDDDR (mx)))
+            mod = scm_module_public_interface (mod);
+          var = scm_module_lookup (mod, CADDR (mx));
+          SCM_SETCDR (mx, var);
+          return var;
+        }
+
+    default:
+      scm_wrong_type_arg (FUNC_NAME, 1, m);
+      return SCM_BOOL_F;
+    }
 }
 #undef FUNC_NAME
 
