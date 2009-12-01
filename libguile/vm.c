@@ -262,6 +262,134 @@ resolve_variable (SCM what, SCM program_module)
     }
 }
   
+static SCM
+apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
+{
+  SCM arg1, arg2, arg3;
+
+  SCM_ASRTGO (SCM_NIMP (proc), badproc);
+
+  /* Parse args. */
+  switch (nargs)
+    {
+    case 0:
+      arg1 = SCM_UNDEFINED; arg2 = SCM_UNDEFINED; arg3 = SCM_UNDEFINED;
+      break;
+    case 1:
+      arg1 = args[0]; arg2 = SCM_UNDEFINED; arg3 = SCM_UNDEFINED;
+      break;
+    case 2:
+      arg1 = args[0]; arg2 = args[1]; arg3 = SCM_UNDEFINED;
+      break;
+    default:
+      arg1 = args[0]; arg2 = args[1]; arg3 = args[2];
+      break;
+    }
+
+  switch (SCM_TYP7 (proc))
+    {
+    case scm_tcs_closures:
+      /* FIXME: pre-boot closures should be smobs */
+      {
+        SCM arglist = SCM_EOL;
+        while (nargs--)
+          arglist = scm_cons (args[nargs], arglist);
+        return scm_closure_apply (proc, arglist);
+      }
+    case scm_tc7_subr_2o:
+      if (nargs > 2 || nargs < 1) scm_wrong_num_args (proc);
+      return SCM_SUBRF (proc) (arg1, arg2);
+    case scm_tc7_subr_2:
+      if (nargs != 2) scm_wrong_num_args (proc);
+      return SCM_SUBRF (proc) (arg1, arg2);
+    case scm_tc7_subr_0:
+      if (nargs != 0) scm_wrong_num_args (proc);
+      return SCM_SUBRF (proc) ();
+    case scm_tc7_subr_1:
+      if (nargs != 1) scm_wrong_num_args (proc);
+      return SCM_SUBRF (proc) (arg1);
+    case scm_tc7_subr_1o:
+      if (nargs > 1) scm_wrong_num_args (proc);
+      return SCM_SUBRF (proc) (arg1);
+    case scm_tc7_dsubr:
+      if (nargs != 1) scm_wrong_num_args (proc);
+      if (SCM_I_INUMP (arg1))
+        return scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1)));
+      else if (SCM_REALP (arg1))
+        return scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1)));
+      else if (SCM_BIGP (arg1))
+        return scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1)));
+      else if (SCM_FRACTIONP (arg1))
+        return scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1)));
+      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
+                          SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
+    case scm_tc7_cxr:
+      if (nargs != 1) scm_wrong_num_args (proc);
+      return scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc));
+    case scm_tc7_subr_3:
+      if (nargs != 3) scm_wrong_num_args (proc);
+      return SCM_SUBRF (proc) (arg1, arg2, arg3);
+    case scm_tc7_lsubr:
+      {
+        SCM arglist = SCM_EOL;
+        while (nargs--)
+          arglist = scm_cons (args[nargs], arglist);
+        return SCM_SUBRF (proc) (arglist);
+      }
+    case scm_tc7_lsubr_2:
+      if (nargs < 2) scm_wrong_num_args (proc);
+      {
+        SCM arglist = SCM_EOL;
+        while (nargs-- > 2)
+          arglist = scm_cons (args[nargs], arglist);
+        return SCM_SUBRF (proc) (arg1, arg2, arglist);
+      }
+    case scm_tc7_asubr:
+      if (nargs < 2)
+        return SCM_SUBRF (proc) (arg1, SCM_UNDEFINED);
+      {
+        int idx = 1;
+        while (nargs-- > 1)
+          arg1 = SCM_SUBRF (proc) (arg1, args[idx++]);
+        return arg1;
+      }
+    case scm_tc7_rpsubr:
+      {
+        int idx = 0;
+        while (nargs-- > 1)
+          { idx++;
+            if (scm_is_false (SCM_SUBRF (proc) (args[idx-1], args[idx])))
+              return SCM_BOOL_F;
+          }
+        return SCM_BOOL_T;
+      }
+    case scm_tc7_smob:
+      if (!SCM_SMOB_APPLICABLE_P (proc))
+        goto badproc;
+      switch (nargs)
+        {
+        case 0:
+          return SCM_SMOB_APPLY_0 (proc);
+        case 1:
+          return SCM_SMOB_APPLY_1 (proc, arg1);
+        case 2:
+          return SCM_SMOB_APPLY_2 (proc, arg1, arg2);
+        default:
+          {
+            SCM arglist = SCM_EOL;
+            while (nargs-- > 2)
+              arglist = scm_cons (args[nargs], arglist);
+            return SCM_SMOB_APPLY_3 (proc, arg1, arg2, arglist);
+          }
+        }
+    case scm_tc7_gsubr:
+      return scm_i_gsubr_apply_array (proc, args, nargs, headroom);
+    default:
+    badproc:
+      scm_wrong_type_arg ("apply", SCM_ARG1, proc);
+    }
+}
+
 
 #define VM_DEFAULT_STACK_SIZE	(64 * 1024)
 

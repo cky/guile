@@ -317,6 +317,45 @@ scm_i_gsubr_apply_list (SCM self, SCM args)
 }
 #undef FUNC_NAME
 
+/* Apply SELF, a gsubr, to the arguments in ARGS.  Missing optional
+   arguments are added, and rest arguments are consed into a list.  */
+SCM
+scm_i_gsubr_apply_array (SCM self, SCM *args, int nargs, int headroom)
+#define FUNC_NAME "scm_i_gsubr_apply"
+{
+  unsigned int typ = SCM_GSUBR_TYPE (self);
+  long i, n = SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ) + SCM_GSUBR_REST (typ);
+
+  if (SCM_UNLIKELY (nargs < SCM_GSUBR_REQ (typ)))
+    scm_wrong_num_args (SCM_SUBR_NAME (self));
+
+  if (SCM_UNLIKELY (headroom < n - nargs))
+    {
+      /* fallback on apply-list */
+      SCM arglist = SCM_EOL;
+      while (nargs--)
+        arglist = scm_cons (args[nargs], arglist);
+      return scm_i_gsubr_apply_list (self, arglist);
+    }
+
+  for (i = nargs; i < SCM_GSUBR_REQ (typ) + SCM_GSUBR_OPT (typ); i++)
+    args[i] = SCM_UNDEFINED;
+
+  if (SCM_GSUBR_REST(typ))
+    {
+      SCM rest = SCM_EOL;
+      /* fallback on apply-list */
+      while (nargs-- >= n)
+        rest = scm_cons (args[nargs], rest);
+      args[n - 1] = rest;
+    }
+  else if (nargs > n)
+    scm_wrong_num_args (SCM_SUBR_NAME (self));
+
+  return gsubr_apply_raw (self, n, args);
+}
+#undef FUNC_NAME
+
 
 #ifdef GSUBR_TEST
 /* A silly example, taking 2 required args, 1 optional, and

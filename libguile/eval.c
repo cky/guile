@@ -539,6 +539,41 @@ apply (SCM proc, SCM args)
     }
 }
 
+SCM
+scm_closure_apply (SCM proc, SCM args)
+{
+  unsigned int nargs;
+  int nreq;
+  SCM env;
+
+  /* Args contains a list of all args. */
+  {
+    int ilen = scm_ilength (args);
+    if (ilen < 0)
+      scm_wrong_num_args (proc);
+    nargs = ilen;
+  }
+
+  nreq = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
+  env = SCM_ENV (proc);
+  if (SCM_CLOSURE_HAS_REST_ARGS (proc))
+    {
+      if (SCM_UNLIKELY (scm_ilength (args) < nreq))
+        scm_wrong_num_args (proc);
+      for (; nreq; nreq--, args = CDR (args))
+        env = scm_cons (CAR (args), env);
+      env = scm_cons (args, env);
+    }
+  else
+    {
+      for (; scm_is_pair (args); args = CDR (args), nreq--)
+        env = scm_cons (CAR (args), env);
+      if (SCM_UNLIKELY (nreq != 0))
+        scm_wrong_num_args (proc);
+    }
+  return eval (SCM_CLOSURE_BODY (proc), env);
+}
+
 
 scm_t_option scm_eval_opts[] = {
   { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." },

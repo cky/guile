@@ -766,32 +766,38 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
       goto vm_call;
     }
+  else if (SCM_PROCEDURE_WITH_SETTER_P (x))
+    {
+      sp[-nargs] = SCM_PROCEDURE (x);
+      goto vm_call;
+    }
   /*
    * Other interpreted or compiled call
    */
   if (!scm_is_false (scm_procedure_p (x)))
     {
-      SCM args;
+      SCM ret;
       /* At this point, the stack contains the frame, the procedure and each one
 	 of its arguments. */
-      POP_LIST (nargs);
-      POP (args);
-      DROP (); /* drop the procedure */
+      SYNC_REGISTER ();
+      ret = apply_foreign (sp[-nargs],
+                           sp - nargs + 1,
+                           nargs,
+                           vp->stack_limit - sp + 1);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
+      DROPN (nargs + 1); /* drop args and procedure */
       DROP_FRAME ();
       
-      SYNC_REGISTER ();
-      PUSH (scm_apply (x, args, SCM_EOL));
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
+      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
         {
           /* truncate values */
-          SCM values;
-          POP (values);
-          values = scm_struct_ref (values, SCM_INUM0);
-          if (scm_is_null (values))
+          ret = scm_struct_ref (ret, SCM_INUM0);
+          if (scm_is_null (ret))
             goto vm_error_not_enough_values;
-          PUSH (SCM_CAR (values));
+          PUSH (SCM_CAR (ret));
         }
+      else
+        PUSH (ret);
       NEXT;
     }
 

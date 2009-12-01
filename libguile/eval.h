@@ -76,6 +76,7 @@ SCM_API SCM scm_apply_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM args);
 SCM_INTERNAL SCM scm_i_call_closure_0 (SCM proc);
 SCM_API SCM scm_nconc2last (SCM lst);
 SCM_API SCM scm_apply (SCM proc, SCM arg1, SCM args);
+SCM_INTERNAL SCM scm_closure_apply (SCM proc, SCM args);
 #define scm_dapply(proc,arg1,args) scm_apply (proc, arg1, args)
 SCM_API SCM scm_map (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_for_each (SCM proc, SCM arg1, SCM args);
