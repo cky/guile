@@ -850,32 +850,39 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
       goto vm_goto_args;
     }
+  else if (SCM_PROCEDURE_WITH_SETTER_P (x))
+    {
+      sp[-nargs] = SCM_PROCEDURE (x);
+      goto vm_goto_args;
+    }
 
   /*
    * Other interpreted or compiled call
    */
   if (!scm_is_false (scm_procedure_p (x)))
     {
-      SCM args;
-      POP_LIST (nargs);
-      POP (args);
-
+      SCM ret;
       SYNC_REGISTER ();
-      *sp = scm_apply (x, args, SCM_EOL);
+      ret = apply_foreign (sp[-nargs],
+                           sp - nargs + 1,
+                           nargs,
+                           vp->stack_limit - sp + 1);
       NULLSTACK_FOR_NONLOCAL_EXIT ();
-
-      if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
+      DROPN (nargs + 1); /* drop args and procedure */
+      
+      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
         {
           /* multiple values returned to continuation */
-          SCM values;
-          POP (values);
-          values = scm_struct_ref (values, SCM_INUM0);
-          nvalues = scm_ilength (values);
-          PUSH_LIST (values, scm_is_null);
+          ret = scm_struct_ref (ret, SCM_INUM0);
+          nvalues = scm_ilength (ret);
+          PUSH_LIST (ret, scm_is_null);
           goto vm_return_values;
         }
       else
-        goto vm_return;
+        {
+          PUSH (ret);
+          goto vm_return;
+        }
     }
 
   program = x;
@@ -936,32 +943,39 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
       goto vm_mv_call;
     }
+  else if (SCM_PROCEDURE_WITH_SETTER_P (x))
+    {
+      sp[-nargs] = SCM_PROCEDURE (x);
+      goto vm_mv_call;
+    }
   /*
    * Other interpreted or compiled call
    */
   if (!scm_is_false (scm_procedure_p (x)))
     {
-      SCM args;
-      /* At this point, the stack contains the procedure and each one of its
-	 arguments.  */
-      POP_LIST (nargs);
-      POP (args);
-      DROP (); /* drop the procedure */
+      SCM ret;
+      /* At this point, the stack contains the frame, the procedure and each one
+	 of its arguments. */
+      SYNC_REGISTER ();
+      ret = apply_foreign (sp[-nargs],
+                           sp - nargs + 1,
+                           nargs,
+                           vp->stack_limit - sp + 1);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
+      DROPN (nargs + 1); /* drop args and procedure */
       DROP_FRAME ();
       
-      SYNC_REGISTER ();
-      PUSH (scm_apply (x, args, SCM_EOL));
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      if (SCM_VALUESP (*sp))
+      if (SCM_VALUESP (ret))
         {
-          SCM values, len;
-          POP (values);
-          values = scm_struct_ref (values, SCM_INUM0);
-          len = scm_length (values);
-          PUSH_LIST (values, scm_is_null);
+          SCM len;
+          ret = scm_struct_ref (ret, SCM_INUM0);
+          len = scm_length (ret);
+          PUSH_LIST (ret, scm_is_null);
           PUSH (len);
           ip = mvra;
         }
+      else
+        PUSH (ret);
       NEXT;
     }
 
