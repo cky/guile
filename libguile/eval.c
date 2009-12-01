@@ -848,11 +848,8 @@ scm_closure (SCM code, SCM env)
 }
 
 
-SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
-	    (SCM exp),
-	    "Evaluate @var{exp} in the top-level environment specified by\n"
-	    "the current module.")
-#define FUNC_NAME s_scm_primitive_eval
+static SCM
+scm_c_primitive_eval (SCM exp)
 {
   SCM transformer = scm_current_module_transformer ();
   if (scm_is_true (transformer))
@@ -860,7 +857,14 @@ SCM_DEFINE (scm_primitive_eval, "primitive-eval", 1, 0, 0,
   exp = scm_memoize_expression (exp);
   return eval (exp, SCM_EOL);
 }
-#undef FUNC_NAME
+
+static SCM var_primitive_eval;
+SCM
+scm_primitive_eval (SCM exp)
+{
+  return scm_c_vm_run (scm_the_vm (), scm_variable_ref (var_primitive_eval),
+                       &exp, 1);
+}
 
 
 /* Eval does not take the second arg optionally.  This is intentional
@@ -928,6 +932,8 @@ scm_apply (SCM proc, SCM arg1, SCM args)
 void 
 scm_init_eval ()
 {
+  SCM primitive_eval;
+
   scm_init_opts (scm_evaluator_traps,
 		 scm_evaluator_trap_table);
   scm_init_opts (scm_eval_options_interface,
@@ -937,6 +943,11 @@ scm_init_eval ()
 
   f_apply = scm_c_define_subr ("apply", scm_tc7_lsubr_2, scm_apply);
   scm_permanent_object (f_apply);
+
+  primitive_eval = scm_c_make_gsubr ("primitive-eval", 1, 0, 0,
+                                     scm_c_primitive_eval);
+  var_primitive_eval = scm_define (SCM_SUBR_NAME (primitive_eval),
+                                   primitive_eval);
 
 #include "libguile/eval.x"
 }

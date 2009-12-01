@@ -36,34 +36,32 @@ nobase_mod_DATA += ice-9/eval.scm
 nobase_ccache_DATA += ice-9/eval.go
 EXTRA_DIST += ice-9/eval.scm
 
-# Compile psyntax and boot-9 first, so that we get the speed benefit in
-# the rest of the compilation. Also, if there is too much switching back
-# and forth between interpreted and compiled code, we end up using more
-# of the C stack than the interpreter would have; so avoid that by
-# putting these core modules first.
-
-SOURCES =								\
-  ice-9/psyntax-pp.scm 							\
-  system/base/pmatch.scm system/base/syntax.scm				\
-  system/base/compile.scm system/base/language.scm			\
-  system/base/message.scm						\
-									\
-  language/tree-il.scm							\
-  language/glil.scm language/assembly.scm				\
-									\
-  $(SCHEME_LANG_SOURCES) 						\
-  $(TREE_IL_LANG_SOURCES)						\
-  $(GLIL_LANG_SOURCES)							\
-  $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
-  $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
-									\
-  $(ICE_9_SOURCES)							\
-  $(SRFI_SOURCES)							\
-  $(RNRS_SOURCES)							\
-  $(OOP_SOURCES)							\
-  $(SYSTEM_SOURCES)                                                     \
-  $(SCRIPTS_SOURCES)                                                    \
-  $(ECMASCRIPT_LANG_SOURCES)						\
+# We can compile these in any order, but it's fastest if we compile
+# psyntax and boot-9 first, then the compiler itself, then the rest of
+# the code.
+SOURCES =					\
+  ice-9/psyntax-pp.scm				\
+  ice-9/boot-9.scm				\
+						\
+  language/tree-il.scm				\
+  language/glil.scm				\
+  language/assembly.scm				\
+  $(TREE_IL_LANG_SOURCES)			\
+  $(GLIL_LANG_SOURCES)				\
+  $(ASSEMBLY_LANG_SOURCES)			\
+  $(BYTECODE_LANG_SOURCES)			\
+  $(OBJCODE_LANG_SOURCES)			\
+  $(VALUE_LANG_SOURCES)				\
+  $(SCHEME_LANG_SOURCES)			\
+  $(SYSTEM_BASE_SOURCES)			\
+						\
+  $(ICE_9_SOURCES)				\
+  $(SRFI_SOURCES)				\
+  $(RNRS_SOURCES)				\
+  $(OOP_SOURCES)				\
+  $(SYSTEM_SOURCES)				\
+  $(SCRIPTS_SOURCES)				\
+  $(ECMASCRIPT_LANG_SOURCES)			\
   $(BRAINFUCK_LANG_SOURCES)
 
 ## test.scm is not currently installed.
@@ -154,8 +152,14 @@ SCRIPTS_SOURCES =				\
   scripts/read-rfc822.scm			\
   scripts/snarf-guile-m4-docs.scm
 
+SYSTEM_BASE_SOURCES = 				\
+  system/base/pmatch.scm			\
+  system/base/syntax.scm			\
+  system/base/compile.scm			\
+  system/base/language.scm			\
+  system/base/message.scm
+
 ICE_9_SOURCES = \
-  ice-9/boot-9.scm \
   ice-9/r4rs.scm \
   ice-9/r5rs.scm \
   ice-9/and-let-star.scm \

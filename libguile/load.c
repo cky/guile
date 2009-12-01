@@ -837,6 +837,22 @@ scm_c_primitive_load_path (const char *filename)
   return scm_primitive_load_path (scm_from_locale_string (filename));
 }
 
+void
+scm_init_eval_in_scheme (void)
+{
+  SCM eval_scm, eval_go;
+  eval_scm = scm_search_path (*scm_loc_load_path,
+                              scm_from_locale_string ("ice-9/eval.scm"),
+                              SCM_EOL);
+  eval_go = scm_search_path (*scm_loc_load_compiled_path,
+                             scm_from_locale_string ("ice-9/eval.go"),
+                             SCM_EOL);
+  
+  if (scm_is_true (eval_scm) && scm_is_true (eval_go)
+      && compiled_is_fresh (eval_scm, eval_go))
+    scm_load_compiled_with_vm (eval_go);
+}
+
 
 /* Information about the build environment.  */
 

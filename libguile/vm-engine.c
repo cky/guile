@@ -199,8 +199,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   vm_error_wrong_type_apply:
     SYNC_ALL ();
-    scm_error (scm_misc_error_key, FUNC_NAME, "Wrong type to apply: ~S",
-               scm_list_1 (program), SCM_BOOL_F);
+    scm_error (scm_arg_type_key, FUNC_NAME, "Wrong type to apply: ~S",
+               scm_list_1 (program), scm_list_1 (program));
     goto vm_error;
 
   vm_error_stack_overflow:

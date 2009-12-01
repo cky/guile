@@ -1397,7 +1397,7 @@
 ;; NOTE: This binding is used in libguile/modules.c.
 (define module-eval-closure (record-accessor module-type 'eval-closure))
 
-(define module-transformer (record-accessor module-type 'transformer))
+;; (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
 ;; (define module-name (record-accessor module-type 'name)) wait until mods are booted
 (define set-module-name! (record-modifier module-type 'name))

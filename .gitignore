@@ -118,3 +118,4 @@ INSTALL
 /meta/guile-tools
 /meta/guile-config
 /lib/locale.h
+/module/ice-9/eval.go.stamp

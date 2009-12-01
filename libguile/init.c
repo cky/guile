@@ -551,15 +551,16 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_weaks ();
   scm_init_guardians ();
   scm_init_vports ();
+  scm_init_standard_ports ();  /* Requires fports */
   scm_bootstrap_vm ();
   scm_init_memoize ();
   scm_init_eval ();
+  scm_init_load_path ();
+  scm_init_eval_in_scheme ();
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();
   scm_init_simpos ();
-  scm_init_load_path ();
-  scm_init_standard_ports ();  /* Requires fports */
   scm_init_dynamic_linking ();
   scm_bootstrap_i18n ();
 #if SCM_ENABLE_ELISP

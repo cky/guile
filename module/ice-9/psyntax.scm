@@ -1055,12 +1055,33 @@
                           '())
                          (build-data no-source name)))
                   (build-data no-source 'macro)
-                  e))
+                  (build-application
+                   no-source
+                   (build-primref no-source 'cons)
+                   (list e
+                         (build-application
+                          no-source
+                          (build-primref no-source 'module-name)
+                          (list (build-application
+                                 no-source
+                                 (build-primref no-source 'current-module)
+                                 '())))))))
            (build-application
             no-source
             (build-primref no-source 'make-syncase-macro)
-            (list (build-data no-source 'macro) e))))))
-
+            (list (build-data no-source 'macro)
+                  (build-application
+                   no-source
+                   (build-primref no-source 'cons)
+                   (list e
+                         (build-application
+                          no-source
+                          (build-primref no-source 'module-name)
+                          (list (build-application
+                                 no-source
+                                 (build-primref no-source 'current-module)
+                                 '())))))))))))
+  
   (define chi-when-list
     (lambda (e when-list w)
                                         ; when-list is syntax'd version of list of situations
@@ -1356,6 +1377,7 @@
 
   (define chi-macro
     (lambda (p e r w rib mod)
+      ;; p := (procedure . module-name)
       (define rebuild-macro-output
         (lambda (x m)
           (cond ((pair? x)
@@ -1377,14 +1399,9 @@
                                      (if rib
                                          (cons rib (cons 'shift s))
                                          (cons 'shift s)))
-                          (let ((pmod (procedure-module p)))
-                            (if pmod
-                                ;; hither the hygiene
-                                (cons 'hygiene (module-name pmod))
-                                ;; but it's possible for the proc to have
-                                ;; no mod, if it was made before modules
-                                ;; were booted
-                                '(hygiene guile))))))))
+                          ;; hither the hygiene
+                          (cons 'hygiene (cdr p)))))))
+                
                 ((vector? x)
                  (let* ((n (vector-length x)) (v (make-vector n)))
                    (do ((i 0 (fx+ i 1)))
@@ -1395,7 +1412,7 @@
                  (syntax-violation #f "encountered raw symbol in macro output"
                                    (source-wrap e w (wrap-subst w) mod) x))
                 (else x))))
-      (rebuild-macro-output (p (wrap e (anti-mark w) mod)) (new-mark))))
+      (rebuild-macro-output ((car p) (wrap e (anti-mark w) mod)) (new-mark))))
 
   (define chi-body
     ;; In processing the forms of the body, we create a new, empty wrap.
@@ -1556,7 +1573,7 @@
     (lambda (expanded mod)
       (let ((p (local-eval-hook expanded mod)))
         (if (procedure? p)
-            p
+            (cons p (module-name (current-module)))
             (syntax-violation #f "nonprocedure transformer" p)))))
 
   (define chi-void

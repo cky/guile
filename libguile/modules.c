@@ -561,8 +561,10 @@ scm_current_module_lookup_closure ()
 
 SCM_SYMBOL (sym_sys_pre_modules_transformer, "%pre-modules-transformer");
 
-SCM
-scm_module_transformer (SCM module)
+SCM_DEFINE (scm_module_transformer, "module-transformer", 1, 0, 0,
+	    (SCM module),
+	    "Returns the syntax expander for the given module.")
+#define FUNC_NAME s_scm_module_transformer
 {
   if (SCM_UNLIKELY (scm_is_false (module)))
     { SCM v = scm_hashq_ref (scm_pre_modules_obarray,
@@ -574,8 +576,12 @@ scm_module_transformer (SCM module)
         return SCM_VARIABLE_REF (v);
     }
   else
-    return SCM_MODULE_TRANSFORMER (module);
+    {
+      SCM_VALIDATE_MODULE (SCM_ARG1, module);
+      return SCM_MODULE_TRANSFORMER (module);
+    }
 }
+#undef FUNC_NAME
 
 SCM
 scm_current_module_transformer ()

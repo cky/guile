@@ -37,7 +37,8 @@
        (if (null? env)
            (current-module)
            (if (not env)
-               the-root-module
+               ;; the and current-module checks that modules are booted
+               (and (current-module) the-root-module)
                env)))))
 
   ;; could be more straightforward if we had better copy propagation
@@ -115,10 +116,14 @@
                          (if rest?
                              (cons args env)
                              (if (not (null? args))
-                                 (error "too many args" args)
+                                 (scm-error 'wrong-number-of-args
+                                            "eval" "Wrong number of arguments"
+                                            '() #f)
                                  env)))
                    (if (null? args)
-                       (error "too few args" nreq)
+                       (scm-error 'wrong-number-of-args
+                                  "eval" "Wrong number of arguments"
+                                  '() #f)
                        (lp (cons (car args) env)
                            (1- nreq)
                            (cdr args))))))))
@@ -194,7 +199,8 @@
   
     (lambda (exp)
       (eval 
-       (memoize-expression ((or (module-transformer (current-module)) identity)
+       (memoize-expression ((or (module-transformer (current-module))
+                                (lambda (x) x))
                             exp))
        '()))))
 
