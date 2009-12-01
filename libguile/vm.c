@@ -514,7 +514,7 @@ scm_vm_apply (SCM vm, SCM program, SCM args)
   int i, nargs;
   
   SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_PROGRAM (2, program);
+  SCM_VALIDATE_PROC (2, program);
 
   nargs = scm_ilength (args);
   if (SCM_UNLIKELY (nargs < 0))

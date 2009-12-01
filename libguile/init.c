@@ -551,6 +551,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_weaks ();
   scm_init_guardians ();
   scm_init_vports ();
+  scm_bootstrap_vm ();
   scm_init_memoize ();
   scm_init_eval ();
   scm_init_evalext ();
@@ -587,8 +588,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rdelim ();
   scm_init_rw ();
   scm_init_extensions ();
-
-  scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();

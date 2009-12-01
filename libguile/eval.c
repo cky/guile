@@ -141,8 +141,6 @@ scm_badargsp (SCM formals, SCM args)
   return !scm_is_null (args) ? 1 : 0;
 }
 
-static SCM apply (SCM proc, SCM args);
-
 /* the environment:
    (VAL ... . MOD)
    If MOD is #f, it means the environment was captured before modules were
@@ -236,7 +234,7 @@ eval (SCM x, SCM env)
           goto loop;
         }
       else
-        return apply (proc, args);
+        return scm_vm_apply (scm_the_vm (), proc, args);
 
     case SCM_M_CALL:
       /* Evaluate the procedure to be applied.  */
@@ -278,7 +276,7 @@ eval (SCM x, SCM env)
           SCM rest = SCM_EOL;
           for (; scm_is_pair (mx); mx = CDR (mx))
             rest = scm_cons (eval (CAR (mx), env), rest);
-          return apply (proc, scm_reverse (rest));
+          return scm_vm_apply (scm_the_vm (), proc, scm_reverse (rest));
         }
           
     case SCM_M_CONT:
@@ -303,7 +301,7 @@ eval (SCM x, SCM env)
 
         producer = eval (CAR (mx), env);
         proc = eval (CDR (mx), env);  /* proc is the consumer. */
-        v = apply (producer, SCM_EOL);
+        v = scm_vm_apply (scm_the_vm (), producer, SCM_EOL);
         if (SCM_VALUESP (v))
           args = scm_struct_ref (v, SCM_INUM0);
         else
@@ -389,153 +387,6 @@ eval (SCM x, SCM env)
 
     default:
       abort ();
-    }
-}
-
-static SCM 
-apply (SCM proc, SCM args)
-{
-  SCM arg1, arg2, arg3, rest;
-  unsigned int nargs;
-
-  SCM_ASRTGO (SCM_NIMP (proc), badproc);
-
-  /* Args contains a list of all args. */
-  {
-    int ilen = scm_ilength (args);
-    if (ilen < 0)
-      scm_wrong_num_args (proc);
-    nargs = ilen;
-  }
-
-  /* Parse args. */
-  switch (nargs)
-    {
-    case 0:
-      arg1 = SCM_UNDEFINED; arg2 = SCM_UNDEFINED;
-      arg3 = SCM_UNDEFINED; rest = SCM_EOL;
-      break;
-    case 1:
-      arg1 = CAR (args); arg2 = SCM_UNDEFINED;
-      arg3 = SCM_UNDEFINED; rest = SCM_EOL;
-      break;
-    case 2:
-      arg1 = CAR (args); arg2 = CADR (args);
-      arg3 = SCM_UNDEFINED; rest = SCM_EOL;
-      break;
-    default:
-      arg1 = CAR (args); arg2 = CADR (args);
-      arg3 = CADDR (args); rest = CDDDR (args);
-      break;
-    }
-
- tail:
-  switch (SCM_TYP7 (proc))
-    {
-    case scm_tcs_closures:
-      {
-        int nreq = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
-        SCM env = SCM_ENV (proc);
-        if (SCM_CLOSURE_HAS_REST_ARGS (proc))
-          {
-            if (SCM_UNLIKELY (scm_ilength (args) < nreq))
-              scm_wrong_num_args (proc);
-            for (; nreq; nreq--, args = CDR (args))
-              env = scm_cons (CAR (args), env);
-            env = scm_cons (args, env);
-          }
-        else
-          {
-            for (; scm_is_pair (args); args = CDR (args), nreq--)
-              env = scm_cons (CAR (args), env);
-            if (SCM_UNLIKELY (nreq != 0))
-              scm_wrong_num_args (proc);
-          }
-        return eval (SCM_CLOSURE_BODY (proc), env);
-      }
-    case scm_tc7_subr_2o:
-      if (nargs > 2 || nargs < 1) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2);
-    case scm_tc7_subr_2:
-      if (nargs != 2) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2);
-    case scm_tc7_subr_0:
-      if (nargs != 0) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) ();
-    case scm_tc7_subr_1:
-      if (nargs != 1) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1);
-    case scm_tc7_subr_1o:
-      if (nargs > 1) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1);
-    case scm_tc7_dsubr:
-      if (nargs != 1) scm_wrong_num_args (proc);
-      if (SCM_I_INUMP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) ((double) SCM_I_INUM (arg1)));
-      else if (SCM_REALP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) (SCM_REAL_VALUE (arg1)));
-      else if (SCM_BIGP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) (scm_i_big2dbl (arg1)));
-      else if (SCM_FRACTIONP (arg1))
-        return scm_from_double (SCM_DSUBRF (proc) (scm_i_fraction2double (arg1)));
-      SCM_WTA_DISPATCH_1 (*SCM_SUBR_GENERIC (proc), arg1,
-                          SCM_ARG1, scm_i_symbol_chars (SCM_SUBR_NAME (proc)));
-    case scm_tc7_cxr:
-      if (nargs != 1) scm_wrong_num_args (proc);
-      return scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc));
-    case scm_tc7_subr_3:
-      if (nargs != 3) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2, arg3);
-    case scm_tc7_lsubr:
-      return SCM_SUBRF (proc) (args);
-    case scm_tc7_lsubr_2:
-      if (nargs < 2) scm_wrong_num_args (proc);
-      return SCM_SUBRF (proc) (arg1, arg2, scm_cddr (args));
-    case scm_tc7_asubr:
-      if (nargs < 2)
-        return SCM_SUBRF (proc) (arg1, SCM_UNDEFINED);
-      for (args = CDR (args); nargs > 1; args = CDR (args), nargs--)
-        arg1 = SCM_SUBRF (proc) (arg1, CAR (args));
-      return arg1;
-    case scm_tc7_program:
-      return scm_vm_apply (scm_the_vm (), proc, args);
-    case scm_tc7_rpsubr:
-      if (nargs == 0)
-        return SCM_BOOL_T;
-      for (args = CDR (args); nargs > 1;
-           arg1 = CAR (args), args = CDR (args), nargs--)
-        if (scm_is_false (SCM_SUBRF (proc) (arg1, CAR (args))))
-          return SCM_BOOL_F;
-      return SCM_BOOL_T;
-    case scm_tc7_smob:
-      if (!SCM_SMOB_APPLICABLE_P (proc))
-        goto badproc;
-      switch (nargs)
-        {
-        case 0:
-          return SCM_SMOB_APPLY_0 (proc);
-        case 1:
-          return SCM_SMOB_APPLY_1 (proc, arg1);
-        case 2:
-          return SCM_SMOB_APPLY_2 (proc, arg1, arg2);
-        default:
-          return SCM_SMOB_APPLY_3 (proc, arg1, arg2, scm_cddr (args));
-        }
-    case scm_tc7_gsubr:
-      return scm_i_gsubr_apply_list (proc, args);
-    case scm_tc7_pws:
-      return apply (SCM_PROCEDURE (proc), args);
-    case scm_tcs_struct:
-      if (SCM_STRUCT_APPLICABLE_P (proc))
-        {
-          proc = SCM_STRUCT_PROCEDURE (proc);
-          goto tail;
-        }
-      else
-        goto badproc;
-    default:
-    badproc:
-      scm_wrong_type_arg ("apply", SCM_ARG1, proc);
     }
 }
 
@@ -1070,7 +921,7 @@ scm_apply (SCM proc, SCM arg1, SCM args)
   else
     args = scm_cons_star (arg1, args);
 
-  return apply (proc, args);
+  return scm_vm_apply (scm_the_vm (), proc, args);
 }
 
 
