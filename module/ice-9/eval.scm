@@ -22,14 +22,27 @@
 
 ;;; Commentary:
 
-;;; Scheme eval, written in Scheme!
+;;; Scheme eval, written in Scheme.
+;;;
+;;; Expressions are first expanded, by the syntax expander (i.e.
+;;; psyntax), then memoized into internal forms. The evaluator itself
+;;; only operates on the internal forms ("memoized expressions").
+;;;
+;;; Environments are represented as linked lists of the form (VAL ... .
+;;; MOD). If MOD is #f, it means the environment was captured before
+;;; modules were booted. If MOD is the literal value '(), we are
+;;; evaluating at the top level, and so should track changes to the
+;;; current module.
+;;;
+;;; Evaluate this in Emacs to make code indentation work right:
+;;;
+;;;    (put 'memoized-expression-case 'scheme-indent-function 1)
 ;;;
 
 ;;; Code:
 
 
 
-;; (put 'memoized-expression-case 'scheme-indent-function 1)
 (eval-when (compile)
   (define-syntax capture-env
     (syntax-rules ()
@@ -37,11 +50,13 @@
        (if (null? env)
            (current-module)
            (if (not env)
-               ;; the and current-module checks that modules are booted
+               ;; the and current-module checks that modules are booted,
+               ;; and thus the-root-module is defined
                (and (current-module) the-root-module)
                env)))))
 
-  ;; could be more straightforward if we had better copy propagation
+  ;; This macro could be more straightforward if the compiler had better
+  ;; copy propagation. As it is we do some copy propagation by hand.
   (define-syntax mx-bind
     (lambda (x)
       (syntax-case x ()
@@ -63,6 +78,8 @@
          #'(let ((v data))
              body)))))
   
+  ;; The resulting nested if statements will be an O(n) dispatch. Once
+  ;; we compile `case' effectively, this situation will improve.
   (define-syntax mx-match
     (lambda (x)
       (syntax-case x (quote)
@@ -85,6 +102,7 @@
 
 (define primitive-eval
   (let ()
+    ;; The "engine". EXP is a memoized expression.
     (define (eval exp env)
       (memoized-expression-case exp
         (('begin (first . rest))
@@ -197,7 +215,9 @@
               (memoize-variable-access! exp #f))
           (eval x env)))))
   
+    ;; primitive-eval
     (lambda (exp)
+      "Evaluate @var{exp} in the current module."
       (eval 
        (memoize-expression ((or (module-transformer (current-module))
                                 (lambda (x) x))
