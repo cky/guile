@@ -265,26 +265,7 @@ resolve_variable (SCM what, SCM program_module)
 static SCM
 apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
 {
-  SCM arg1, arg2, arg3;
-
   SCM_ASRTGO (SCM_NIMP (proc), badproc);
-
-  /* Parse args. */
-  switch (nargs)
-    {
-    case 0:
-      arg1 = SCM_UNDEFINED; arg2 = SCM_UNDEFINED; arg3 = SCM_UNDEFINED;
-      break;
-    case 1:
-      arg1 = args[0]; arg2 = SCM_UNDEFINED; arg3 = SCM_UNDEFINED;
-      break;
-    case 2:
-      arg1 = args[0]; arg2 = args[1]; arg3 = SCM_UNDEFINED;
-      break;
-    default:
-      arg1 = args[0]; arg2 = args[1]; arg3 = args[2];
-      break;
-    }
 
   switch (SCM_TYP7 (proc))
     {
@@ -298,15 +279,16 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
       }
     case scm_tc7_cxr:
       if (nargs != 1) scm_wrong_num_args (proc);
-      return scm_i_chase_pairs (arg1, (scm_t_bits) SCM_SUBRF (proc));
+      return scm_i_chase_pairs (args[0], (scm_t_bits) SCM_SUBRF (proc));
     case scm_tc7_asubr:
       if (nargs < 2)
-        return SCM_SUBRF (proc) (arg1, SCM_UNDEFINED);
+        return SCM_SUBRF (proc) (args[0], SCM_UNDEFINED);
       {
+        SCM x = args[0];
         int idx = 1;
         while (nargs-- > 1)
-          arg1 = SCM_SUBRF (proc) (arg1, args[idx++]);
-        return arg1;
+          x = SCM_SUBRF (proc) (x, args[idx++]);
+        return x;
       }
     case scm_tc7_rpsubr:
       {
@@ -326,15 +308,15 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
         case 0:
           return SCM_SMOB_APPLY_0 (proc);
         case 1:
-          return SCM_SMOB_APPLY_1 (proc, arg1);
+          return SCM_SMOB_APPLY_1 (proc, args[0]);
         case 2:
-          return SCM_SMOB_APPLY_2 (proc, arg1, arg2);
+          return SCM_SMOB_APPLY_2 (proc, args[0], args[1]);
         default:
           {
             SCM arglist = SCM_EOL;
             while (nargs-- > 2)
               arglist = scm_cons (args[nargs], arglist);
-            return SCM_SMOB_APPLY_3 (proc, arg1, arg2, arglist);
+            return SCM_SMOB_APPLY_3 (proc, args[0], args[1], arglist);
           }
         }
     case scm_tc7_gsubr:
