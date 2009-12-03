@@ -533,9 +533,12 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_arrays ();
   scm_init_array_map ();
 
+  scm_bootstrap_vm ();
+
   scm_init_strings ();  /* Requires array-handle */
   scm_init_struct ();   /* Requires strings */
-  scm_init_stacks ();   /* Requires strings, struct */
+  scm_init_frames ();
+  scm_init_stacks ();   /* Requires strings, struct, frames */
   scm_init_symbols ();
   scm_init_values ();   /* Requires struct */
   scm_init_load ();     /* Requires strings */
@@ -552,7 +555,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_guardians ();
   scm_init_vports ();
   scm_init_standard_ports ();  /* Requires fports */
-  scm_bootstrap_vm ();
   scm_init_memoize ();
   scm_init_eval ();
   scm_init_load_path ();

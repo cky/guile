@@ -43,6 +43,7 @@
 #include "libguile/ports.h"
 #include "libguile/strings.h"
 #include "libguile/dynwind.h"
+#include "libguile/frames.h"
 
 #include "libguile/validate.h"
 #include "libguile/lang.h"
@@ -157,11 +158,7 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
   pstate->length = DISPLAY_EXPRESSION_MAX_LENGTH;
   if (scm_is_symbol (pname) || scm_is_string (pname))
     {
-      if (SCM_FRAMEP (frame)
-	  && SCM_FRAME_EVAL_ARGS_P (frame))
-	scm_puts ("While evaluating arguments to ", port);
-      else
-	scm_puts ("In procedure ", port);
+      scm_puts ("In procedure ", port);
       scm_iprin1 (pname, port, pstate);
     }
   scm_puts (":\n", port);
@@ -354,14 +351,14 @@ display_frame_expr (char *hdr, SCM exp, char *tlr, int indentation, SCM sport, S
 static void
 display_application (SCM frame, int indentation, SCM sport, SCM port, scm_print_state *pstate)
 {
-  SCM proc = SCM_FRAME_PROC (frame);
+  SCM proc = scm_frame_procedure (frame);
   SCM name = (scm_is_true (scm_procedure_p (proc))
 	      ? scm_procedure_name (proc)
 	      : SCM_BOOL_F);
   display_frame_expr ("[",
 		      scm_cons (scm_is_true (name) ? name : proc,
-				SCM_FRAME_ARGS (frame)),
-		      SCM_FRAME_EVAL_ARGS_P (frame) ? " ..." : "]",
+				scm_frame_arguments (frame)),
+		      "]",
 		      indentation,
 		      sport,
 		      port,
@@ -383,30 +380,27 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
   if (SCM_UNBNDP (indent))
     indent = SCM_INUM0;
   
-  if (SCM_FRAME_PROC_P (frame))
-    /* Display an application. */
-    {
-      SCM sport, print_state;
-      scm_print_state *pstate;
+  /* Display an application. */
+  {
+    SCM sport, print_state;
+    scm_print_state *pstate;
       
-      /* Create a string port used for adaptation of printing parameters. */
-      sport = scm_mkstrport (SCM_INUM0,
-			     scm_make_string (scm_from_int (240),
-					      SCM_UNDEFINED),
-			     SCM_OPN | SCM_WRTNG,
-			     FUNC_NAME);
+    /* Create a string port used for adaptation of printing parameters. */
+    sport = scm_mkstrport (SCM_INUM0,
+                           scm_make_string (scm_from_int (240),
+                                            SCM_UNDEFINED),
+                           SCM_OPN | SCM_WRTNG,
+                           FUNC_NAME);
 
-      /* Create a print state for printing of frames. */
-      print_state = scm_make_print_state ();
-      pstate = SCM_PRINT_STATE (print_state);
-      pstate->writingp = 1;
-      pstate->fancyp = 1;
+    /* Create a print state for printing of frames. */
+    print_state = scm_make_print_state ();
+    pstate = SCM_PRINT_STATE (print_state);
+    pstate->writingp = 1;
+    pstate->fancyp = 1;
       
-      display_application (frame, scm_to_int (indent), sport, port, pstate);
-      return SCM_BOOL_T;
-    }
-  else
-    return SCM_BOOL_F;
+    display_application (frame, scm_to_int (indent), sport, port, pstate);
+    return SCM_BOOL_T;
+  }
 }
 #undef FUNC_NAME
 
@@ -415,7 +409,7 @@ SCM_SYMBOL (sym_base, "base");
 static void
 display_backtrace_get_file_line (SCM frame, SCM *file, SCM *line)
 {
-  SCM source = SCM_FRAME_SOURCE (frame);
+  SCM source = scm_frame_source (frame);
   *file = *line = SCM_BOOL_F;
   if (scm_is_pair (source)
       && scm_is_pair (scm_cdr (source))
@@ -439,7 +433,7 @@ display_backtrace_file (frame, last_file, port, pstate)
 
   display_backtrace_get_file_line (frame, &file, &line);
 
-  if (scm_is_eq (file, *last_file))
+  if (scm_is_true (scm_equal_p (file, *last_file)))
     return;
 
   *last_file = file;
@@ -506,23 +500,16 @@ display_backtrace_file_and_line (SCM frame, SCM port, scm_print_state *pstate)
 }
 
 static void
-display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_print_state *pstate)
+display_frame (SCM frame, int n, int nfield, int indentation,
+               SCM sport, SCM port, scm_print_state *pstate)
 {
-  int n, i, j;
-
-  /* Announce missing frames? */
-  if (!SCM_BACKWARDS_P && SCM_FRAME_OVERFLOW_P (frame))
-    {
-      indent (nfield + 1 + indentation, port);
-      scm_puts ("...\n", port);
-    }
+  int i, j;
 
   /* display file name and line number */
   if (scm_is_true (SCM_PACK (SCM_SHOW_FILE_NAME)))
     display_backtrace_file_and_line (frame, port, pstate);
 
   /* Check size of frame number. */
-  n = SCM_FRAME_NUMBER (frame);
   for (i = 0, j = n; j > 0; ++i) j /= 10;
 
   /* Number indentation. */
@@ -531,38 +518,12 @@ display_frame (SCM frame, int nfield, int indentation, SCM sport, SCM port, scm_
   /* Frame number. */
   scm_iprin1 (scm_from_int (n), port, pstate);
 
-  /* Real frame marker */
-  scm_putc (SCM_FRAME_REAL_P (frame) ? '*' : ' ', port);
-
   /* Indentation. */
   indent (indentation, port);
 
-  if (SCM_FRAME_PROC_P (frame))
-    /* Display an application. */
-    display_application (frame, nfield + 1 + indentation, sport, port, pstate);
-  else
-    /* Display a special form. */
-    {
-      SCM source = SCM_FRAME_SOURCE (frame);
-      SCM copy = (scm_is_pair (source) 
-		  ? scm_source_property (source, scm_sym_copy)
-		  : SCM_BOOL_F);
-      display_frame_expr ("(",
-			  copy,
-			  ")",
-			  nfield + 1 + indentation,
-			  sport,
-			  port,
-			  pstate);
-    }
+  /* Display an application. */
+  display_application (frame, nfield + 1 + indentation, sport, port, pstate);
   scm_putc ('\n', port);
-
-  /* Announce missing frames? */
-  if (SCM_BACKWARDS_P && SCM_FRAME_OVERFLOW_P (frame))
-    {
-      indent (nfield + 1 + indentation, port);
-      scm_puts ("...\n", port);
-    }
 }
 
 struct display_backtrace_args {
@@ -633,48 +594,26 @@ display_backtrace_body (struct display_backtrace_args *a)
   pstate->highlight_objects = a->highlight_objects;
 
   /* First find out if it's reasonable to do indentation. */
-  if (SCM_BACKWARDS_P)
-    indent_p = 0;
-  else
-    {
-      unsigned int j;
-
-      indent_p = 1;
-      frame = scm_stack_ref (a->stack, scm_from_int (beg));
-      for (i = 0, j = 0; i < n; ++i)
-	{
-	  if (SCM_FRAME_REAL_P (frame))
-	    ++j;
-	  if (j > SCM_BACKTRACE_INDENT)
-	    {
-	      indent_p = 0;
-	      break;
-	    }
-	  frame = (SCM_BACKWARDS_P
-		   ? SCM_FRAME_PREV (frame)
-		   : SCM_FRAME_NEXT (frame));
-	}
-    }
+  indent_p = 0;
   
   /* Determine size of frame number field. */
-  j = SCM_FRAME_NUMBER (scm_stack_ref (a->stack, scm_from_int (end)));
+  j = end;
   for (i = 0; j > 0; ++i) j /= 10;
   nfield = i ? i : 1;
   
   /* Print frames. */
-  frame = scm_stack_ref (a->stack, scm_from_int (beg));
   indentation = 1;
   last_file = SCM_UNDEFINED;
-  for (i = 0; i < n; ++i)
+  if (SCM_BACKWARDS_P)
+    end++;
+  else
+    end--;
+  for (i = beg; i != end; SCM_BACKWARDS_P ? ++i : --i)
     {
+      frame = scm_stack_ref (a->stack, scm_from_int (i));
       if (!scm_is_eq (SCM_PACK (SCM_SHOW_FILE_NAME), sym_base))
 	display_backtrace_file (frame, &last_file, a->port, pstate);
-
-      display_frame (frame, nfield, indentation, sport, a->port, pstate);
-      if (indent_p && SCM_FRAME_EVAL_ARGS_P (frame))
-	++indentation;
-      frame = (SCM_BACKWARDS_P ? 
-	       SCM_FRAME_PREV (frame) : SCM_FRAME_NEXT (frame));
+      display_frame (frame, i, nfield, indentation, sport, a->port, pstate);
     }
 
   scm_remember_upto_here_1 (print_state);

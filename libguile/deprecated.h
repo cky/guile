@@ -240,8 +240,6 @@ SCM_DEPRECATED SCM scm_gentemp (SCM prefix, SCM obarray);
 #define scm_option scm_t_option
 #define scm_srcprops scm_t_srcprops
 #define scm_srcprops_chunk scm_t_srcprops_chunk
-#define scm_info_frame scm_t_info_frame
-#define scm_stack scm_t_stack
 #define scm_array scm_t_array
 #define scm_array_dim scm_t_array_dim
 #define SCM_ARRAY_CONTIGUOUS SCM_ARRAY_FLAG_CONTIGUOUS
