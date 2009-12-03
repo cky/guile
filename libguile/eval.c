@@ -543,56 +543,34 @@ SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0,
 SCM
 scm_call_0 (SCM proc)
 {
-  if (SCM_PROGRAM_P (proc))
-    return scm_c_vm_run (scm_the_vm (), proc, NULL, 0);
-  else
-    return scm_apply (proc, SCM_EOL, SCM_EOL);
+  return scm_c_vm_run (scm_the_vm (), proc, NULL, 0);
 }
 
 SCM
 scm_call_1 (SCM proc, SCM arg1)
 {
-  if (SCM_PROGRAM_P (proc))
-    return scm_c_vm_run (scm_the_vm (), proc, &arg1, 1);
-  else
-    return scm_apply (proc, arg1, scm_listofnull);
+  return scm_c_vm_run (scm_the_vm (), proc, &arg1, 1);
 }
 
 SCM
 scm_call_2 (SCM proc, SCM arg1, SCM arg2)
 {
-  if (SCM_PROGRAM_P (proc))
-    {
-      SCM args[] = { arg1, arg2 };
-      return scm_c_vm_run (scm_the_vm (), proc, args, 2);
-    }
-  else
-    return scm_apply (proc, arg1, scm_cons (arg2, scm_listofnull));
+  SCM args[] = { arg1, arg2 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 2);
 }
 
 SCM
 scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3)
 {
-  if (SCM_PROGRAM_P (proc))
-    {
-      SCM args[] = { arg1, arg2, arg3 };
-      return scm_c_vm_run (scm_the_vm (), proc, args, 3);
-    }
-  else
-    return scm_apply (proc, arg1, scm_cons2 (arg2, arg3, scm_listofnull));
+  SCM args[] = { arg1, arg2, arg3 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 3);
 }
 
 SCM
 scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4)
 {
-  if (SCM_PROGRAM_P (proc))
-    {
-      SCM args[] = { arg1, arg2, arg3, arg4 };
-      return scm_c_vm_run (scm_the_vm (), proc, args, 4);
-    }
-  else
-    return scm_apply (proc, arg1, scm_cons2 (arg2, arg3,
-                                             scm_cons (arg4, scm_listofnull)));
+  SCM args[] = { arg1, arg2, arg3, arg4 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 4);
 }
 
 /* Simple procedure applies
