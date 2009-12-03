@@ -3,7 +3,7 @@
 #ifndef SCM_CONTINUATIONS_H
 #define SCM_CONTINUATIONS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -63,11 +63,6 @@ typedef struct
      into the copy.
   */
   scm_t_ptrdiff offset;
-
-  /* The most recently created debug frame on the live stack, before
-     it was saved.  This needs to be adjusted with OFFSET, above.
-  */
-  struct scm_t_debug_frame *dframe;
 
   SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
 } scm_t_contregs;

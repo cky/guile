@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -84,7 +84,6 @@ scm_make_continuation (int *first)
   continuation->dynenv = scm_i_dynwinds ();
   continuation->throw_value = SCM_EOL;
   continuation->root = thread->continuation_root;
-  continuation->dframe = scm_i_last_debug_frame ();
   src = thread->continuation_base;
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
@@ -190,8 +189,6 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   data.dst = dst;
   scm_i_dowinds (continuation->dynenv, delta, copy_stack, &data);
 
-  scm_i_set_last_debug_frame (continuation->dframe);
-
   continuation->throw_value = val;
   SCM_I_LONGJMP (continuation->jmpbuf, 1);
 }
@@ -276,17 +273,14 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   SCM old_controot;
   SCM_STACKITEM *old_contbase;
-  scm_t_debug_frame *old_lastframe;
   SCM result;
 
   /* Establish a fresh continuation root.  
    */
   old_controot = thread->continuation_root;
   old_contbase = thread->continuation_base;
-  old_lastframe = thread->last_debug_frame;
   thread->continuation_root = scm_cons (thread->handle, old_controot);
   thread->continuation_base = &stack_item;
-  thread->last_debug_frame = NULL;
 
   /* Call FUNC inside a catch all.  This is now guaranteed to return
      directly and exactly once.
@@ -298,7 +292,6 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
 
   /* Return to old continuation root.
    */
-  thread->last_debug_frame = old_lastframe;
   thread->continuation_base = old_contbase;
   thread->continuation_root = old_controot;
 

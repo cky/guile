@@ -44,32 +44,6 @@
 
 /* {Frames and stacks}
  *
- * The debugging evaluator creates debug frames on the stack.  These
- * are linked from the innermost frame and outwards.  The last frame
- * created can always be accessed as SCM_LAST_DEBUG_FRAME.
- * Continuations contain a pointer to the innermost debug frame on the
- * continuation stack.
- *
- * Each debug frame contains a set of flags and information about one
- * or more stack frames.  The case of multiple frames occurs due to
- * tail recursion.  The maximal number of stack frames which can be
- * recorded in one debug frame can be set dynamically with the debug
- * option FRAMES.
- *
- * Stack frame information is of two types: eval information (the
- * expression being evaluated and its environment) and apply
- * information (the procedure being applied and its arguments).  A
- * stack frame normally corresponds to an eval/apply pair, but macros
- * and special forms (which are implemented as macros in Guile) only
- * have eval information and apply calls leads to apply only frames.
- *
- * Since we want to record the total stack information and later
- * manipulate this data at the scheme level in the debugger, we need
- * to transform it into a new representation.  In the following code
- * section you'll find the functions implementing this data type.
- *
- * Representation:
- *
  * The stack is represented as a struct with an id slot and a tail
  * array of scm_t_info_frame structs.
  *
@@ -104,248 +78,48 @@
 
 
 
-/* Some auxiliary functions for reading debug frames off the stack.
- */
+static SCM stack_id_with_fp (SCM vmframe, SCM **fp);
 
-/* Stacks often contain pointers to other items on the stack; for
-   example, each scm_t_debug_frame structure contains a pointer to the
-   next frame out.  When we capture a continuation, we copy the stack
-   into the heap, and just leave all the pointers unchanged.  This
-   makes it simple to restore the continuation --- just copy the stack
-   back!  However, if we retrieve a pointer from the heap copy to
-   another item that was originally on the stack, we have to add an
-   offset to the pointer to discover the new referent.
-
-   If PTR is a pointer retrieved from a continuation, whose original
-   target was on the stack, and OFFSET is the appropriate offset from
-   the original stack to the continuation, then RELOC_MUMBLE (PTR,
-   OFFSET) is a pointer to the copy in the continuation of the
-   original referent, cast to an scm_debug_MUMBLE *.  */
-#define RELOC_INFO(ptr, offset) \
-  ((scm_t_debug_info *) ((SCM_STACKITEM *) (ptr) + (offset)))
-#define RELOC_FRAME(ptr, offset) \
-  ((scm_t_debug_frame *) ((SCM_STACKITEM *) (ptr) + (offset)))
-
-/* Count number of debug info frames on a stack, beginning with
- * DFRAME.  OFFSET is used for relocation of pointers when the stack
- * is read from a continuation.
+/* Count number of debug info frames on a stack, beginning with VMFRAME.
  */
 static long
-stack_depth (scm_t_debug_frame *dframe, scm_t_ptrdiff offset, SCM vmframe,
-	     SCM *id)
+stack_depth (SCM vmframe, SCM *fp)
 {
   long n;
-  for (n = 0;
-       dframe && !SCM_VOIDFRAMEP (*dframe);
-       dframe = RELOC_FRAME (dframe->prev, offset))
-    {
-      if (SCM_EVALFRAMEP (*dframe))
-	{
-	  scm_t_debug_info *info = RELOC_INFO (dframe->info, offset);
-	  scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
-	  /* If current frame is a macro during expansion, we should
-	     skip the previously recorded macro transformer
-	     application frame.  */
-	  if (SCM_MACROEXPP (*dframe) && n > 0)
-	    --n;
-	  n += (info - vect) / 2 + 1;
-	  /* Data in the apply part of an eval info frame comes from previous
-	     stack frame if the scm_t_debug_info vector is overflowed. */
-	  if ((((info - vect) & 1) == 0)
-	      && SCM_OVERFLOWP (*dframe)
-	      && !SCM_UNBNDP (info[1].a.proc))
-            ++n;
-	}
-      else
-        {
-          scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
-          if (SCM_PROGRAM_P (vect[0].a.proc))
-            {
-              if (!SCM_PROGRAM_IS_BOOT (vect[0].a.proc))
-                /* Programs can end up in the debug stack via deval; but we just
-                   ignore those, because we know that the debugging VM engine
-                   pushes one dframe per invocation, with the boot program as
-                   the proc, so we only count those. */
-                continue;
-              /* count vmframe back to previous boot frame */
-              for (; scm_is_true (vmframe); vmframe = scm_c_vm_frame_prev (vmframe))
-                {
-                  if (!SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
-                    ++n;
-                  else
-                    { /* skip boot frame, cut out of the vm backtrace */
-                      vmframe = scm_c_vm_frame_prev (vmframe);
-                      break;
-                    }
-                }
-            }
-          else
-            ++n; /* increment for non-program apply frame */
-        }
-    }
-  if (dframe && SCM_VOIDFRAMEP (*dframe))
-    *id = RELOC_INFO(dframe->vect, offset)[0].id;
+  /* count vmframes, skipping boot frames */
+  for (; scm_is_true (vmframe) && SCM_VM_FRAME_FP (vmframe) > fp;
+       vmframe = scm_c_vm_frame_prev (vmframe))
+    if (!SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+      ++n;
   return n;
 }
 
-/* Read debug info from DFRAME into IFRAME.
- */
-static void
-read_frame (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
-	    scm_t_info_frame *iframe)
-{
-  scm_t_bits flags = SCM_UNPACK (SCM_INUM0); /* UGh. */
-  if (SCM_EVALFRAMEP (*dframe))
-    {
-      scm_t_debug_info *info = RELOC_INFO (dframe->info, offset);
-      scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
-      if ((info - vect) & 1)
-	{
-	  /* Debug.vect ends with apply info. */
-	  --info;
-	  if (!SCM_UNBNDP (info[1].a.proc))
-	    {
-	      flags |= SCM_FRAMEF_PROC;
-	      iframe->proc = info[1].a.proc;
-	      iframe->args = info[1].a.args;
-	      if (!SCM_ARGS_READY_P (*dframe))
-		flags |= SCM_FRAMEF_EVAL_ARGS;
-	    }
-	}
-    }
-  else
-    {
-      scm_t_debug_info *vect = RELOC_INFO (dframe->vect, offset);
-      flags |= SCM_FRAMEF_PROC;
-      iframe->proc = vect[0].a.proc;
-      iframe->args = vect[0].a.args;
-    }
-  iframe->flags = flags;
-}
-
-/* Look up the first body form of the apply closure.  We'll use this
-   below to prevent it from being displayed.
-*/
-static SCM
-get_applybody ()
-{
-  SCM var = scm_sym2var (scm_sym_apply, SCM_BOOL_F, SCM_BOOL_F);
-  if (SCM_VARIABLEP (var) && SCM_CLOSUREP (SCM_VARIABLE_REF (var)))
-    return SCM_CAR (SCM_CLOSURE_BODY (SCM_VARIABLE_REF (var)));
-  else
-    return SCM_UNDEFINED;
-}
-
-#define NEXT_FRAME(iframe, n, quit) \
-do { \
-  ++iframe; \
-  if (--n == 0) \
-    goto quit; \
-} while (0)
-
-
 /* Fill the scm_t_info_frame vector IFRAME with data from N stack frames
- * starting with the first stack frame represented by debug frame
- * DFRAME.
+ * starting with the first stack frame represented by VMFRAME.
  */
 
 static scm_t_bits
-read_frames (scm_t_debug_frame *dframe, scm_t_ptrdiff offset,
-	     SCM vmframe, long n, scm_t_info_frame *iframes)
+read_frames (SCM vmframe, long n, scm_t_info_frame *iframes)
 {
   scm_t_info_frame *iframe = iframes;
-  scm_t_debug_info *info, *vect;
-  static SCM applybody = SCM_UNDEFINED;
-  
-  /* The value of applybody has to be setup after r4rs.scm has executed. */
-  if (SCM_UNBNDP (applybody))
-    applybody = get_applybody ();
-  for (;
-       dframe && !SCM_VOIDFRAMEP (*dframe) && n > 0;
-       dframe = RELOC_FRAME (dframe->prev, offset))
+
+  for (; scm_is_true (vmframe);
+       vmframe = scm_c_vm_frame_prev (vmframe))
     {
-      read_frame (dframe, offset, iframe);
-      if (SCM_EVALFRAMEP (*dframe))
-	{
-	  /* If current frame is a macro during expansion, we should
-	     skip the previously recorded macro transformer
-	     application frame.  */
-	  if (SCM_MACROEXPP (*dframe) && iframe > iframes)
-	    {
-	      *(iframe - 1) = *iframe;
-	      --iframe;
-	      ++n;
-	    }
-	  info =  RELOC_INFO (dframe->info, offset);
-	  vect =  RELOC_INFO (dframe->vect, offset);
-	  if ((info - vect) & 1)
-	    --info;
-	  /* Data in the apply part of an eval info frame comes from
-	     previous stack frame if the scm_t_debug_info vector is
-	     overflowed. */
-	  else if (SCM_OVERFLOWP (*dframe)
-		   && !SCM_UNBNDP (info[1].a.proc))
-	    {
-	      NEXT_FRAME (iframe, n, quit);
-	      iframe->flags = SCM_UNPACK(SCM_INUM0) | SCM_FRAMEF_PROC;
-	      iframe->proc = info[1].a.proc;
-	      iframe->args = info[1].a.args;
-	    }
-	  if (SCM_OVERFLOWP (*dframe))
-	    iframe->flags |= SCM_FRAMEF_OVERFLOW;
-	  info -= 2;
-	  NEXT_FRAME (iframe, n, quit);
-	  while (info >= vect)
-	    {
-	      if (!SCM_UNBNDP (info[1].a.proc))
-		{
-		  iframe->flags = SCM_UNPACK(SCM_INUM0) | SCM_FRAMEF_PROC;
-		  iframe->proc = info[1].a.proc;
-		  iframe->args = info[1].a.args;
-		}
-	      else
-		iframe->flags = SCM_UNPACK (SCM_INUM0);
-	      iframe->source = SCM_BOOL_F;
-	      info -= 2;
-	      NEXT_FRAME (iframe, n, quit);
-	    }
-	}
-      else if (SCM_PROGRAM_P (iframe->proc))
+      if (SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
+        /* skip boot frame */
+        continue;
+      else 
         {
-          if (!SCM_PROGRAM_IS_BOOT (iframe->proc))
-            /* Programs can end up in the debug stack via deval; but we just
-               ignore those, because we know that the debugging VM engine
-               pushes one dframe per invocation, with the boot program as
-               the proc, so we only count those. */
-            continue;
-          for (; scm_is_true (vmframe);
-               vmframe = scm_c_vm_frame_prev (vmframe))
-            {
-              if (SCM_PROGRAM_IS_BOOT (scm_vm_frame_program (vmframe)))
-                { /* skip boot frame, back to interpreted frames */
-                  vmframe = scm_c_vm_frame_prev (vmframe);
-                  break;
-                }
-              else 
-                {
-                  /* Oh dear, oh dear, oh dear. */
-                  iframe->flags = SCM_UNPACK (SCM_INUM0) | SCM_FRAMEF_PROC;
-                  iframe->source = scm_vm_frame_source (vmframe);
-                  iframe->proc = scm_vm_frame_program (vmframe);
-                  iframe->args = scm_vm_frame_arguments (vmframe);
-                  ++iframe;
-                  if (--n == 0)
-                    goto quit;
-                }
-            }
+          /* Oh dear, oh dear, oh dear. */
+          iframe->flags = SCM_UNPACK (SCM_INUM0) | SCM_FRAMEF_PROC;
+          iframe->source = scm_vm_frame_source (vmframe);
+          iframe->proc = scm_vm_frame_program (vmframe);
+          iframe->args = scm_vm_frame_arguments (vmframe);
+          ++iframe;
+          if (--n == 0)
+            break;
         }
-      else
-        {
-          NEXT_FRAME (iframe, n, quit);
-        }
-    quit:
-      if (iframe > iframes)
-	(iframe - 1) -> flags |= SCM_FRAMEF_REAL;
     }
   return iframe - iframes;  /* Number of frames actually read */
 }
@@ -448,11 +222,10 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 {
   long n, size;
   int maxp;
-  scm_t_debug_frame *dframe;
   scm_t_info_frame *iframe;
   SCM vmframe;
-  long offset = 0;
-  SCM stack, id;
+  SCM stack;
+  SCM id, *id_fp;
   SCM inner_cut, outer_cut;
 
   /* Extract a pointer to the innermost frame of whatever object
@@ -460,24 +233,13 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   if (scm_is_eq (obj, SCM_BOOL_T))
     {
       struct scm_vm *vp = SCM_VM_DATA (scm_the_vm ());
-      dframe = scm_i_last_debug_frame ();
       vmframe = scm_c_make_vm_frame (scm_the_vm (), vp->fp, vp->sp, vp->ip, 0);
     }
-  else if (SCM_DEBUGOBJP (obj))
-    {
-      dframe = SCM_DEBUGOBJ_FRAME (obj);
-      vmframe = SCM_BOOL_F;
-    }
   else if (SCM_VM_FRAME_P (obj))
-    {
-      dframe = NULL;
-      vmframe = obj;
-    }
+    vmframe = obj;
   else if (SCM_CONTINUATIONP (obj))
     {
       scm_t_contregs *cont = SCM_CONTREGS (obj);
-      offset = cont->offset;
-      dframe = RELOC_FRAME (cont->dframe, offset);
       if (!scm_is_null (cont->vm_conts))
         { SCM vm_cont;
           struct scm_vm_cont *data;
@@ -497,12 +259,18 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       /* not reached */
     }
 
+  if (scm_is_false (vmframe))
+    return SCM_BOOL_F;
+
+  /* Get ID of the stack corresponding to the given frame. */
+  id = stack_id_with_fp (vmframe, &id_fp);
+
   /* Count number of frames.  Also get stack id tag and check whether
      there are more stackframes than we want to record
      (SCM_BACKTRACE_MAXDEPTH). */
   id = SCM_BOOL_F;
   maxp = 0;
-  n = stack_depth (dframe, offset, vmframe, &id);
+  n = stack_depth (vmframe, id_fp);
   /* FIXME: redo maxp? */
   size = n * SCM_FRAME_N_SLOTS;
 
@@ -514,7 +282,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   SCM_STACK (stack) -> length = n;
 
   /* Translate the current chain of stack frames into debugging information. */
-  n = read_frames (dframe, offset, vmframe, n, iframe);
+  n = read_frames (vmframe, n, iframe);
   if (n != SCM_STACK (stack)->length)
     {
       scm_puts ("warning: stack count incorrect!\n", scm_current_error_port ());
@@ -561,38 +329,57 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 	    "Return the identifier given to @var{stack} by @code{start-stack}.")
 #define FUNC_NAME s_scm_stack_id
 {
-  scm_t_debug_frame *dframe;
-  long offset = 0;
+  SCM vmframe, *id_fp;
+  
   if (scm_is_eq (stack, SCM_BOOL_T))
     {
-      dframe = scm_i_last_debug_frame ();
+      struct scm_vm *vp = SCM_VM_DATA (scm_the_vm ());
+      vmframe = scm_c_make_vm_frame (scm_the_vm (), vp->fp, vp->sp, vp->ip, 0);
     }
-  else if (SCM_DEBUGOBJP (stack))
-    {
-      dframe = SCM_DEBUGOBJ_FRAME (stack);
-    }
+  else if (SCM_VM_FRAME_P (stack))
+    vmframe = stack;
   else if (SCM_CONTINUATIONP (stack))
     {
       scm_t_contregs *cont = SCM_CONTREGS (stack);
-      offset = cont->offset;
-      dframe = RELOC_FRAME (cont->dframe, offset);
-    }
-  else if (SCM_STACKP (stack))
-    {
-      return SCM_STACK (stack) -> id;
+      if (!scm_is_null (cont->vm_conts))
+        { SCM vm_cont;
+          struct scm_vm_cont *data;
+          vm_cont = scm_cdr (scm_car (cont->vm_conts));
+          data = SCM_VM_CONT_DATA (vm_cont);
+          vmframe = scm_c_make_vm_frame (vm_cont,
+                                         data->fp + data->reloc,
+                                         data->sp + data->reloc,
+                                         data->ip,
+                                         data->reloc);
+        } else 
+          vmframe = SCM_BOOL_F;
     }
   else
     {
-      SCM_WRONG_TYPE_ARG (1, stack);
+      SCM_WRONG_TYPE_ARG (SCM_ARG1, stack);
+      /* not reached */
     }
 
-  while (dframe && !SCM_VOIDFRAMEP (*dframe))
-    dframe = RELOC_FRAME (dframe->prev, offset);
-  if (dframe && SCM_VOIDFRAMEP (*dframe))
-    return RELOC_INFO (dframe->vect, offset)[0].id;
-  return SCM_BOOL_F;
+  return stack_id_with_fp (vmframe, &id_fp);
 }
 #undef FUNC_NAME
+
+static SCM
+stack_id_with_fp (SCM vmframe, SCM **fp)
+{
+  SCM holder = SCM_VM_FRAME_STACK_HOLDER (vmframe);
+
+  if (SCM_VM_CONT_P (holder))
+    {
+      *fp = NULL;
+      return SCM_BOOL_F;
+    }
+  else
+    {
+      *fp = NULL;
+      return SCM_BOOL_F;
+    }
+}
 
 SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
             (SCM stack, SCM index),
@@ -626,46 +413,6 @@ SCM_DEFINE (scm_frame_p, "frame?", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_p
 {
   return scm_from_bool(SCM_FRAMEP (obj));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_last_stack_frame, "last-stack-frame", 1, 0, 0, 
-	    (SCM obj),
-	    "Return the last (innermost) frame of @var{obj}, which must be\n"
-	    "either a debug object or a continuation.")
-#define FUNC_NAME s_scm_last_stack_frame
-{
-  scm_t_debug_frame *dframe;
-  long offset = 0;
-  SCM stack;
-  
-  if (SCM_DEBUGOBJP (obj))
-    {
-      dframe = SCM_DEBUGOBJ_FRAME (obj);
-    }
-  else if (SCM_CONTINUATIONP (obj))
-    {
-      scm_t_contregs *cont = SCM_CONTREGS (obj);
-      offset = cont->offset;
-      dframe = RELOC_FRAME (cont->dframe, offset);
-    }
-  else
-    {
-      SCM_WRONG_TYPE_ARG (1, obj);
-      /* not reached */
-    }
-  
-  if (!dframe || SCM_VOIDFRAMEP (*dframe))
-    return SCM_BOOL_F;
-
-  stack = scm_make_struct (scm_stack_type, scm_from_int (SCM_FRAME_N_SLOTS),
-			   SCM_EOL);
-  SCM_STACK (stack) -> length = 1;
-  SCM_STACK (stack) -> frames = &SCM_STACK (stack) -> tail[0];
-  read_frame (dframe, offset,
-	      (scm_t_info_frame *) &SCM_STACK (stack) -> frames[0]);
-  
-  return scm_cons (stack, SCM_INUM0);
 }
 #undef FUNC_NAME
 

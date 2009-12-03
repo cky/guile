@@ -338,7 +338,6 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->block_asyncs = 1;
   t->pending_asyncs = 1;
   t->critical_section_level = 0;
-  t->last_debug_frame = NULL;
   t->base = base;
 #ifdef __ia64__
   /* Calculate and store off the base of this thread's register

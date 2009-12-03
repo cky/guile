@@ -79,7 +79,6 @@ typedef struct scm_i_thread {
   /* Other thread local things.
    */
   SCM dynamic_state;
-  scm_t_debug_frame *last_debug_frame;
   SCM dynwinds;
 
   /* For system asyncs.
@@ -209,9 +208,6 @@ SCM_INTERNAL scm_i_pthread_key_t scm_i_thread_key;
 
 # define scm_i_dynwinds()         (SCM_I_CURRENT_THREAD->dynwinds)
 # define scm_i_set_dynwinds(w)    (SCM_I_CURRENT_THREAD->dynwinds = (w))
-# define scm_i_last_debug_frame() (SCM_I_CURRENT_THREAD->last_debug_frame)
-# define scm_i_set_last_debug_frame(f) \
-                                  (SCM_I_CURRENT_THREAD->last_debug_frame = (f))
 
 #endif /* BUILDING_LIBGUILE */
 

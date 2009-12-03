@@ -23,13 +23,11 @@
 #define VM_USE_CLOCK		0	/* Bogoclock */
 #define VM_CHECK_OBJECT         1       /* Check object table */
 #define VM_CHECK_FREE_VARIABLES 1       /* Check free variable access */
-#define VM_PUSH_DEBUG_FRAMES    0       /* Push frames onto the evaluator debug stack */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
 #define VM_USE_CLOCK		1
 #define VM_CHECK_OBJECT         1
 #define VM_CHECK_FREE_VARIABLES 1
-#define VM_PUSH_DEBUG_FRAMES    1
 #else
 #error unknown debug engine VM_ENGINE
 #endif
@@ -66,12 +64,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   static void **jump_table = NULL;
 #endif
   
-#if VM_PUSH_DEBUG_FRAMES
-  scm_t_debug_frame debug;
-  scm_t_debug_info debug_vect_body;
-  debug.status = SCM_VOIDFRAME;
-#endif
-
 #ifdef HAVE_LABELS_AS_VALUES
   if (SCM_UNLIKELY (!jump_table))
     {
@@ -94,15 +86,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
     /* Boot program */
     program = vm_make_boot_program (nargs);
-
-#if VM_PUSH_DEBUG_FRAMES
-    debug.prev = scm_i_last_debug_frame ();
-    debug.status = SCM_APPLYFRAME;
-    debug.vect = &debug_vect_body;
-    debug.vect[0].a.proc = program; /* the boot program */
-    debug.vect[0].a.args = SCM_EOL;
-    scm_i_set_last_debug_frame (&debug);
-#endif
 
     /* Initial frame */
     CACHE_REGISTER ();
@@ -147,9 +130,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   
  vm_done:
   SYNC_ALL ();
-#if VM_PUSH_DEBUG_FRAMES
-  scm_i_set_last_debug_frame (debug.prev);
-#endif
   return finish_args;
 
   /* Errors */
@@ -278,7 +258,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 #undef VM_USE_CLOCK
 #undef VM_CHECK_OBJECT
 #undef VM_CHECK_FREE_VARIABLE
-#undef VM_PUSH_DEBUG_FRAMES
 
 /*
   Local Variables:

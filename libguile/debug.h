@@ -29,22 +29,6 @@
 #include "libguile/options.h"
 
 
-/*
- * Here comes some definitions for the debugging machinery.
- * It might seem strange to represent debug flags as ints,
- * but consider that any particular piece of code is normally
- * only interested in one flag at a time.  This is then
- * the most efficient representation.
- */
-
-/* {Options}
- */
-
-/* scm_debug_opts is  defined in eval.c.
- */
-
-
-
 /* {Evaluator}
  */
 
@@ -55,57 +39,8 @@ typedef union scm_t_debug_info
   SCM id;
 } scm_t_debug_info;
 
-typedef struct scm_t_debug_frame
-{
-  struct scm_t_debug_frame *prev;
-  long status;
-  scm_t_debug_info *vect;
-  scm_t_debug_info *info;
-} scm_t_debug_frame;
-
-#define SCM_EVALFRAME    (0L << 11)
-#define SCM_APPLYFRAME   (1L << 11)
-#define SCM_VOIDFRAME    (3L << 11)
-#define SCM_MACROEXPF    (1L << 10)
-#define SCM_TAILREC      (1L << 9)
-#define SCM_TRACED_FRAME (1L << 8)
-#define SCM_ARGS_READY   (1L << 7)
-#define SCM_DOVERFLOW    (1L << 6)
-#define SCM_MAX_FRAME_SIZE 63
-
-#define SCM_FRAMETYPE    (3L << 11)
-
-#define SCM_EVALFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_EVALFRAME)
-#define SCM_APPLYFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_APPLYFRAME)
-#define SCM_VOIDFRAMEP(x) (((x).status & SCM_FRAMETYPE) == SCM_VOIDFRAME)
-#define SCM_OVERFLOWP(x) (((x).status & SCM_DOVERFLOW) != 0)
-#define SCM_ARGS_READY_P(x) (((x).status & SCM_ARGS_READY) != 0)
-#define SCM_TRACED_FRAME_P(x) (((x).status & SCM_TRACED_FRAME) != 0)
-#define SCM_TAILRECP(x) (((x).status & SCM_TAILREC) != 0)
-#define SCM_MACROEXPP(x) (((x).status & SCM_MACROEXPF) != 0)
-#define SCM_SET_OVERFLOW(x) ((x).status |= SCM_DOVERFLOW)
-#define SCM_SET_ARGSREADY(x) ((x).status |= SCM_ARGS_READY)
-#define SCM_CLEAR_ARGSREADY(x) ((x).status &= ~SCM_ARGS_READY)
-#define SCM_SET_TRACED_FRAME(x) ((x).status |= SCM_TRACED_FRAME)
-#define SCM_CLEAR_TRACED_FRAME(x) ((x).status &= ~SCM_TRACED_FRAME)
-#define SCM_SET_TAILREC(x) ((x).status |= SCM_TAILREC)
-#define SCM_SET_MACROEXP(x) ((x).status |= SCM_MACROEXPF)
-#define SCM_CLEAR_MACROEXP(x) ((x).status &= ~SCM_MACROEXPF)
-
-/* {Debug Objects}
- */
-
-SCM_API scm_t_bits scm_tc16_debugobj;
-
-#define SCM_DEBUGOBJP(x) \
-  SCM_TYP16_PREDICATE (scm_tc16_debugobj, x)
-#define SCM_DEBUGOBJ_FRAME(x) \
-  ((scm_t_debug_frame *) SCM_CELL_WORD_1 (x))
-#define SCM_SET_DEBUGOBJ_FRAME(x, f)  SCM_SET_CELL_WORD_1 (x, f)
-
 
 
-SCM_API SCM scm_debug_object_p (SCM obj);
 SCM_API SCM scm_reverse_lookup (SCM env, SCM data);
 SCM_API SCM scm_sys_start_stack (SCM info_id, SCM thunk);
 SCM_API SCM scm_procedure_module (SCM proc);
@@ -114,9 +49,7 @@ SCM_API SCM scm_procedure_name (SCM proc);
 SCM_API SCM scm_with_traps (SCM thunk);
 SCM_API SCM scm_evaluator_traps (SCM setting);
 SCM_API SCM scm_debug_options (SCM setting);
-SCM_API SCM scm_make_debugobj (scm_t_debug_frame *debug);
 
-SCM_INTERNAL SCM scm_i_unmemoize_expr (SCM memoized);
 SCM_INTERNAL void scm_init_debug (void);
 
 #ifdef GUILE_DEBUG

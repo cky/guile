@@ -49,6 +49,7 @@
 #include "libguile/fluids.h"
 #include "libguile/programs.h"
 #include "libguile/memoize.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/debug.h"
@@ -73,7 +74,7 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   scm_dynwind_critical_section (SCM_BOOL_F);
 
   ans = scm_options (setting, scm_debug_opts, FUNC_NAME);
-  if (!(1 <= SCM_N_FRAMES && SCM_N_FRAMES <= SCM_MAX_FRAME_SIZE))
+  if (SCM_N_FRAMES < 1)
     {
       scm_options (ans, scm_debug_opts, FUNC_NAME);
       SCM_OUT_OF_RANGE (1, setting);
@@ -246,51 +247,9 @@ SCM_DEFINE (scm_sys_start_stack, "%start-stack", 2, 0, 0,
 	    "Call @var{thunk} on an evaluator stack tagged with @var{id}.")
 #define FUNC_NAME s_scm_sys_start_stack
 {
-  SCM answer;
-  scm_t_debug_frame vframe;
-  scm_t_debug_info vframe_vect_body;
-  vframe.prev = scm_i_last_debug_frame ();
-  vframe.status = SCM_VOIDFRAME;
-  vframe.vect = &vframe_vect_body;
-  vframe.vect[0].id = id;
-  scm_i_set_last_debug_frame (&vframe);
-  answer = scm_call_0 (thunk);
-  scm_i_set_last_debug_frame (vframe.prev);
-  return answer;
+  return scm_vm_call_with_new_stack (scm_the_vm (), thunk, id);
 }
 #undef FUNC_NAME
-
-/* {Debug Objects}
- *
- * The debugging evaluator throws these on frame traps.
- */
-
-scm_t_bits scm_tc16_debugobj;
-
-static int
-debugobj_print (SCM obj, SCM port, scm_print_state *pstate SCM_UNUSED)
-{
-  scm_puts ("#<debug-object ", port);
-  scm_intprint ((long) SCM_DEBUGOBJ_FRAME (obj), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-SCM_DEFINE (scm_debug_object_p, "debug-object?", 1, 0, 0, 
-            (SCM obj),
-	    "Return @code{#t} if @var{obj} is a debug object.")
-#define FUNC_NAME s_scm_debug_object_p
-{
-  return scm_from_bool(SCM_DEBUGOBJP (obj));
-}
-#undef FUNC_NAME
-
-
-SCM
-scm_make_debugobj (scm_t_debug_frame *frame)
-{
-  return scm_cell (scm_tc16_debugobj, (scm_t_bits) frame);
-}
 
 
 
@@ -336,9 +295,6 @@ scm_init_debug ()
 {
   init_stack_limit ();
   scm_init_opts (scm_debug_options, scm_debug_opts);
-
-  scm_tc16_debugobj = scm_make_smob_type ("debug-object", 0);
-  scm_set_smob_print (scm_tc16_debugobj, debugobj_print);
 
   scm_add_feature ("debug-extensions");
 

@@ -1416,14 +1416,6 @@ scm_i_deprecated_dynwinds (void)
   return scm_i_dynwinds ();
 }
 
-scm_t_debug_frame *
-scm_i_deprecated_last_debug_frame (void)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_last_debug_frame is deprecated.  Do not use it.");
-  return scm_i_last_debug_frame ();
-}
-
 SCM_STACKITEM *
 scm_i_stack_base (void)
 {

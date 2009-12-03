@@ -62,8 +62,6 @@ static scm_t_bits tc16_jmpbuffer;
 
 #define JBJMPBUF(OBJ)           ((scm_i_jmp_buf *) SCM_CELL_WORD_1 (OBJ))
 #define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (v)))
-#define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
-#define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (scm_t_bits) (v)))
 #define SCM_JBPREUNWIND(x)      ((struct pre_unwind_data *) SCM_CELL_WORD_3 (x))
 #define SCM_SETJBPREUNWIND(x, v) (SCM_SET_CELL_WORD_3 ((x), (scm_t_bits) (v)))
 
@@ -187,7 +185,6 @@ scm_c_catch (SCM tag,
   answer = SCM_EOL;
   scm_i_set_dynwinds (scm_acons (tag, jmpbuf, scm_i_dynwinds ()));
   SETJBJMPBUF(jmpbuf, &jbr.buf);
-  SCM_SETJBDFRAME(jmpbuf, scm_i_last_debug_frame ());
 
   pre_unwind.handler = pre_unwind_handler;
   pre_unwind.handler_data = pre_unwind_handler_data;
@@ -888,7 +885,6 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
       jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
       jbr->throw_tag = key;
       jbr->retval = args;
-      scm_i_set_last_debug_frame (SCM_JBDFRAME (jmpbuf));
       SCM_I_LONGJMP (*JBJMPBUF (jmpbuf), 1);
     }
 

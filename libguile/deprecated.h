@@ -499,7 +499,6 @@ SCM_DEPRECATED scm_t_array_dim *scm_i_array_dims (SCM a);
 #define scm_cur_loadp         scm_i_cur_loadp ()
 #define scm_progargs          scm_i_progargs ()
 #define scm_dynwinds          scm_i_deprecated_dynwinds ()
-#define scm_last_debug_frame  scm_i_deprecated_last_debug_frame ()
 #define scm_stack_base        scm_i_stack_base ()
 
 SCM_DEPRECATED SCM scm_i_cur_inp (void);
@@ -508,7 +507,6 @@ SCM_DEPRECATED SCM scm_i_cur_errp (void);
 SCM_DEPRECATED SCM scm_i_cur_loadp (void);
 SCM_DEPRECATED SCM scm_i_progargs (void);
 SCM_DEPRECATED SCM scm_i_deprecated_dynwinds (void);
-SCM_DEPRECATED scm_t_debug_frame *scm_i_deprecated_last_debug_frame (void);
 SCM_DEPRECATED SCM_STACKITEM *scm_i_stack_base (void);
 
 /* Deprecated because it evaluates its argument twice.
