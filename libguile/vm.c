@@ -280,16 +280,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
     case scm_tc7_cxr:
       if (nargs != 1) scm_wrong_num_args (proc);
       return scm_i_chase_pairs (args[0], (scm_t_bits) SCM_SUBRF (proc));
-    case scm_tc7_asubr:
-      if (nargs < 2)
-        return SCM_SUBRF (proc) (args[0], SCM_UNDEFINED);
-      {
-        SCM x = args[0];
-        int idx = 1;
-        while (nargs-- > 1)
-          x = SCM_SUBRF (proc) (x, args[idx++]);
-        return x;
-      }
     case scm_tc7_rpsubr:
       {
         int idx = 0;

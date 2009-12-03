@@ -56,7 +56,6 @@ scm_i_procedure_arity (SCM proc)
     case scm_tc7_cxr:
       a += 1;
       break;
-    case scm_tc7_asubr:
     case scm_tc7_rpsubr:
       r = 1;
       break;

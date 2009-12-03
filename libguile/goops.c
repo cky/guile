@@ -225,7 +225,6 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  case scm_tc16_fraction:
 	    return scm_class_fraction;
           }
-	case scm_tc7_asubr:
 	case scm_tc7_cxr:
 	case scm_tc7_rpsubr:
 	case scm_tc7_gsubr:
