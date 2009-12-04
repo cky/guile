@@ -47,20 +47,6 @@
 
 
 
-/* Closures
- */
-
-#define SCM_CLOSUREP(x) (!SCM_IMP(x) && (SCM_TYP3 (x) == scm_tc3_closure))
-#define SCM_CLOSCAR(x) SCM_PACK (SCM_CELL_WORD_0 (x) - scm_tc3_closure)
-#define SCM_CODE(x) SCM_CAR (SCM_CLOSCAR (x))
-#define SCM_CLOSURE_NUM_REQUIRED_ARGS(x) SCM_I_INUM (SCM_CAR (SCM_CODE (x)))
-#define SCM_CLOSURE_HAS_REST_ARGS(x) scm_is_true (SCM_CADR (SCM_CODE (x)))
-#define SCM_CLOSURE_BODY(x) SCM_CDDR (SCM_CODE (x))
-#define SCM_PROCPROPS(x) SCM_CDR (SCM_CLOSCAR (x))
-#define SCM_SETPROCPROPS(x, p) SCM_SETCDR (SCM_CLOSCAR (x), p)
-#define SCM_ENV(x) SCM_CELL_OBJECT_1 (x)
-#define SCM_TOP_LEVEL(ENV)  (scm_is_null (ENV) || (scm_is_true (scm_procedure_p (SCM_CAR (ENV)))))
-
 /* Procedure-with-setter
 
    Four representations for procedure-with-setters were
@@ -122,7 +108,6 @@ SCM_API SCM scm_c_define_subr (const char *name, long type, SCM (*fcn)());
 SCM_API SCM scm_c_define_subr_with_generic (const char *name, long type,
 					    SCM (*fcn)(), SCM *gf);
 SCM_API SCM scm_procedure_p (SCM obj);
-SCM_API SCM scm_closure_p (SCM obj);
 SCM_API SCM scm_thunk_p (SCM obj);
 SCM_API int scm_subr_p (SCM obj);
 SCM_API SCM scm_procedure_documentation (SCM proc);

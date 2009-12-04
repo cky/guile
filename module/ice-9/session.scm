@@ -163,10 +163,8 @@ You don't seem to have regular expressions installed.\n")
 				 (cons (list module
 					     name
 					     (try-value-help name object)
-					     (cond ((closure? object)
+					     (cond ((procedure? object)
 						    "a procedure")
-						   ((procedure? object)
-						    "a primitive procedure")
 						   (else
 						    "an object")))
 				       data))
@@ -498,17 +496,7 @@ It is an image under the mapping EXTRACT."
 	       (= (car arity) 1)
 	       (<= (cadr arity) 1))
 	  (display " argument")
-	  (display " arguments"))
-      (if (closure? obj)
-	  (let ((formals (cadr (procedure-source obj))))
-	    (cond
-	     ((pair? formals)
-	      (display ": ")
-	      (display-arg-list formals))
-	     (else
-	      (display " in `")
-	      (display formals)
-	      (display #\'))))))))
+	  (display " arguments")))))
   (display ".\n"))
 
 

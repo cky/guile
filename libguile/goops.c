@@ -205,8 +205,6 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	{
 	case scm_tcs_cons_nimcar:
 	  return scm_class_pair;
-	case scm_tcs_closures:
-	  return scm_class_procedure;
 	case scm_tc7_symbol:
 	  return scm_class_symbol;
 	case scm_tc7_vector:
@@ -292,7 +290,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
     case scm_tc3_struct:
     case scm_tc3_tc7_1:
     case scm_tc3_tc7_2:
-    case scm_tc3_closure:
+      /* case scm_tc3_unused: */
       /* Never reached */
       break;
     }

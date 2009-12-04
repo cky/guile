@@ -46,45 +46,41 @@ static int
 macro_print (SCM macro, SCM port, scm_print_state *pstate)
 {
   SCM code = SCM_MACRO_CODE (macro);
-  if (!SCM_CLOSUREP (code)
-      || scm_is_false (scm_procedure_p (SCM_PRINT_CLOSURE))
-      || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
-					macro, port, pstate)))
-    {
-      scm_puts ("#<", port);
 
-      if (SCM_MACRO_TYPE (macro) < 4 && SCM_MACRO_IS_EXTENDED (macro))
-	scm_puts ("extended-", port);
+  scm_puts ("#<", port);
 
-      if (!SCM_CLOSUREP (code) && !SCM_PROGRAM_P (code))
-	scm_puts ("primitive-", port);
+  if (SCM_MACRO_TYPE (macro) < 4 && SCM_MACRO_IS_EXTENDED (macro))
+    scm_puts ("extended-", port);
 
-      if (SCM_MACRO_TYPE (macro) == 0)
-	scm_puts ("syntax", port);
+  /* FIXME: doesn't catch boot closures; but do we care? */
+  if (!SCM_PROGRAM_P (code))
+    scm_puts ("primitive-", port);
+
+  if (SCM_MACRO_TYPE (macro) == 0)
+    scm_puts ("syntax", port);
 #if SCM_ENABLE_DEPRECATED == 1
-      if (SCM_MACRO_TYPE (macro) == 1)
-	scm_puts ("macro", port);
+  if (SCM_MACRO_TYPE (macro) == 1)
+    scm_puts ("macro", port);
 #endif
-      if (SCM_MACRO_TYPE (macro) == 2)
-	scm_puts ("macro!", port);
-      if (SCM_MACRO_TYPE (macro) == 3)
-	scm_puts ("builtin-macro!", port);
-      if (SCM_MACRO_TYPE (macro) == 4)
-	scm_puts ("syncase-macro", port);
+  if (SCM_MACRO_TYPE (macro) == 2)
+    scm_puts ("macro!", port);
+  if (SCM_MACRO_TYPE (macro) == 3)
+    scm_puts ("builtin-macro!", port);
+  if (SCM_MACRO_TYPE (macro) == 4)
+    scm_puts ("syncase-macro", port);
 
+  scm_putc (' ', port);
+  scm_iprin1 (scm_macro_name (macro), port, pstate);
+
+  if (SCM_MACRO_IS_EXTENDED (macro))
+    {
       scm_putc (' ', port);
-      scm_iprin1 (scm_macro_name (macro), port, pstate);
-
-      if (SCM_MACRO_IS_EXTENDED (macro))
-        {
-          scm_putc (' ', port);
-          scm_write (SCM_SMOB_OBJECT_2 (macro), port);
-          scm_putc (' ', port);
-          scm_write (SCM_SMOB_OBJECT_3 (macro), port);
-        }
-
-      scm_putc ('>', port);
+      scm_write (SCM_SMOB_OBJECT_2 (macro), port);
+      scm_putc (' ', port);
+      scm_write (SCM_SMOB_OBJECT_3 (macro), port);
     }
+
+  scm_putc ('>', port);
 
   return 1;
 }
@@ -273,7 +269,7 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
   SCM_VALIDATE_SMOB (1, m, macro);
   data = SCM_PACK (SCM_SMOB_DATA (m));
   
-  if (SCM_CLOSUREP (data) || SCM_PROGRAM_P (data))
+  if (scm_is_true (scm_procedure_p (data)))
     return data;
   else
     return SCM_BOOL_F;

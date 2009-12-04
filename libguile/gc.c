@@ -631,7 +631,7 @@ scm_storage_prehistory ()
      pointer to an 8-octet aligned region).  For `scm_tc3_struct', this is
      handled in `scm_alloc_struct ()'.  */
   GC_REGISTER_DISPLACEMENT (scm_tc3_cons);
-  GC_REGISTER_DISPLACEMENT (scm_tc3_closure);
+  /* GC_REGISTER_DISPLACEMENT (scm_tc3_unused); */
 
   /* Sanity check.  */
   if (!GC_is_visible (scm_sys_protects))
@@ -754,18 +754,12 @@ scm_i_tag_name (scm_t_bits tag)
       return "cons (immediate car)";
     case scm_tcs_cons_nimcar:
       return "cons (non-immediate car)";
-    case scm_tcs_closures:
-      return "closures";
     case scm_tc7_pws:
       return "pws";
     case scm_tc7_wvect:
       return "weak vector";
     case scm_tc7_vector:
       return "vector";
-#ifdef CCLO
-    case scm_tc7_cclo:
-      return "compiled closure";
-#endif
     case scm_tc7_number:
       switch (tag)
 	{

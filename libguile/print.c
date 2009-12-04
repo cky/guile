@@ -428,7 +428,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   switch (SCM_ITAG3 (exp))
     {
-    case scm_tc3_closure:
     case scm_tc3_tc7_1:
     case scm_tc3_tc7_2:
       /* These tc3 tags should never occur in an immediate value.  They are
@@ -560,22 +559,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 	circref:
 	  print_circref (port, pstate, exp);
-	  break;
-	case scm_tcs_closures:
-	  if (scm_is_false (scm_procedure_p (SCM_PRINT_CLOSURE))
-	      || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
-						exp, port, pstate)))
-	    {
-	      scm_puts ("#<procedure", port);
-	      scm_putc (' ', port);
-	      scm_iprin1 (scm_procedure_name (exp), port, pstate);
-	      scm_putc (' ', port);
-              scm_iprin1
-                (scm_cons (SCM_I_MAKINUM (SCM_CLOSURE_NUM_REQUIRED_ARGS (exp)),
-                           scm_from_bool (SCM_CLOSURE_HAS_REST_ARGS (exp))),
-                 port, pstate);
-	      scm_putc ('>', port);
-	    }
 	  break;
 	case scm_tc7_number:
           switch SCM_TYP16 (exp) {
@@ -820,6 +803,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  EXIT_NESTED_DATA (pstate);
 	  break;
 	default:
+          /* case scm_tcs_closures: */
 	punk:
 	  scm_ipruk ("type", exp, port);
 	}

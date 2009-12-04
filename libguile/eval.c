@@ -97,6 +97,21 @@
 */
 
 
+/* Boot closures. We only see these when compiling eval.scm, because once
+   eval.scm is in the house, closures are standard VM closures.
+ */
+
+static scm_t_bits scm_tc16_boot_closure;
+#define RETURN_BOOT_CLOSURE(code, env) SCM_RETURN_NEWSMOB2 (scm_tc16_boot_closure, (code), (env))
+#define BOOT_CLOSURE_P(obj) SCM_TYP16_PREDICATE (scm_tc16_boot_closure, (obj))
+#define BOOT_CLOSURE_CODE(x) SCM_SMOB_OBJECT (x)
+#define BOOT_CLOSURE_ENV(x) SCM_SMOB_OBJECT_2 (x)
+#define BOOT_CLOSURE_NUM_REQUIRED_ARGS(x) SCM_I_INUM (CAR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_HAS_REST_ARGS(x) scm_is_true (CADR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_BODY(x) CDDR (BOOT_CLOSURE_CODE (x))
+
+
+
 #if 0
 #define CAR(x)   SCM_CAR(x)
 #define CDR(x)   SCM_CDR(x)
@@ -192,7 +207,7 @@ eval (SCM x, SCM env)
       }
           
     case SCM_M_LAMBDA:
-      return scm_closure (mx, CAPTURE_ENV (env));
+      RETURN_BOOT_CLOSURE (mx, CAPTURE_ENV (env));
 
     case SCM_M_QUOTE:
       return mx;
@@ -210,11 +225,11 @@ eval (SCM x, SCM env)
     apply_proc:
       /* Go here to tail-apply a procedure.  PROC is the procedure and
        * ARGS is the list of arguments. */
-      if (SCM_CLOSUREP (proc))
+      if (BOOT_CLOSURE_P (proc))
         {
-          int nreq = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
-          SCM new_env = SCM_ENV (proc);
-          if (SCM_CLOSURE_HAS_REST_ARGS (proc))
+          int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
+          SCM new_env = BOOT_CLOSURE_ENV (proc);
+          if (BOOT_CLOSURE_HAS_REST_ARGS (proc))
             {
               if (SCM_UNLIKELY (scm_ilength (args) < nreq))
                 scm_wrong_num_args (proc);
@@ -229,7 +244,7 @@ eval (SCM x, SCM env)
               for (; scm_is_pair (args); args = CDR (args))
                 new_env = scm_cons (CAR (args), new_env);
             }
-          x = SCM_CLOSURE_BODY (proc);
+          x = BOOT_CLOSURE_BODY (proc);
           env = new_env;
           goto loop;
         }
@@ -242,11 +257,11 @@ eval (SCM x, SCM env)
           
       mx = CDR (mx);
 
-      if (SCM_CLOSUREP (proc))
+      if (BOOT_CLOSURE_P (proc))
         {
-          int nreq = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
-          SCM new_env = SCM_ENV (proc);
-          if (SCM_CLOSURE_HAS_REST_ARGS (proc))
+          int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
+          SCM new_env = BOOT_CLOSURE_ENV (proc);
+          if (BOOT_CLOSURE_HAS_REST_ARGS (proc))
             {
               if (SCM_UNLIKELY (scm_ilength (mx) < nreq))
                 scm_wrong_num_args (proc);
@@ -267,7 +282,7 @@ eval (SCM x, SCM env)
               if (SCM_UNLIKELY (nreq != 0))
                 scm_wrong_num_args (proc);
             }
-          x = SCM_CLOSURE_BODY (proc);
+          x = BOOT_CLOSURE_BODY (proc);
           env = new_env;
           goto loop;
         }
@@ -389,42 +404,6 @@ eval (SCM x, SCM env)
       abort ();
     }
 }
-
-SCM
-scm_closure_apply (SCM proc, SCM args)
-{
-  unsigned int nargs;
-  int nreq;
-  SCM env;
-
-  /* Args contains a list of all args. */
-  {
-    int ilen = scm_ilength (args);
-    if (ilen < 0)
-      scm_wrong_num_args (proc);
-    nargs = ilen;
-  }
-
-  nreq = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
-  env = SCM_ENV (proc);
-  if (SCM_CLOSURE_HAS_REST_ARGS (proc))
-    {
-      if (SCM_UNLIKELY (scm_ilength (args) < nreq))
-        scm_wrong_num_args (proc);
-      for (; nreq; nreq--, args = CDR (args))
-        env = scm_cons (CAR (args), env);
-      env = scm_cons (args, env);
-    }
-  else
-    {
-      for (; scm_is_pair (args); args = CDR (args), nreq--)
-        env = scm_cons (CAR (args), env);
-      if (SCM_UNLIKELY (nreq != 0))
-        scm_wrong_num_args (proc);
-    }
-  return eval (SCM_CLOSURE_BODY (proc), env);
-}
-
 
 scm_t_option scm_eval_opts[] = {
   { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." },
@@ -814,18 +793,6 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 #undef FUNC_NAME
 
 
-SCM 
-scm_closure (SCM code, SCM env)
-{
-  SCM z;
-  SCM closcar = scm_cons (code, SCM_EOL);
-  z = scm_immutable_cell (SCM_UNPACK (closcar) + scm_tc3_closure,
-			  (scm_t_bits) env);
-  scm_remember_upto_here (closcar);
-  return z;
-}
-
-
 static SCM
 scm_c_primitive_eval (SCM exp)
 {
@@ -907,6 +874,45 @@ scm_apply (SCM proc, SCM arg1, SCM args)
 }
 
 
+static SCM
+boot_closure_apply (SCM closure, SCM args)
+{
+  int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (closure);
+  SCM new_env = BOOT_CLOSURE_ENV (closure);
+  if (BOOT_CLOSURE_HAS_REST_ARGS (closure))
+    {
+      if (SCM_UNLIKELY (scm_ilength (args) < nreq))
+        scm_wrong_num_args (closure);
+      for (; nreq; nreq--, args = CDR (args))
+        new_env = scm_cons (CAR (args), new_env);
+      new_env = scm_cons (args, new_env);
+    }
+  else
+    {
+      if (SCM_UNLIKELY (scm_ilength (args) != nreq))
+        scm_wrong_num_args (closure);
+      for (; scm_is_pair (args); args = CDR (args))
+        new_env = scm_cons (CAR (args), new_env);
+    }
+  return eval (BOOT_CLOSURE_BODY (closure), new_env);
+}
+
+static int
+boot_closure_print (SCM closure, SCM port, scm_print_state *pstate)
+{
+  SCM args;
+  scm_puts ("#<boot-closure ", port);
+  scm_uintprint ((unsigned long)SCM2PTR (closure), 16, port);
+  scm_putc (' ', port);
+  args = scm_make_list (scm_from_int (BOOT_CLOSURE_NUM_REQUIRED_ARGS (closure)),
+                        scm_from_locale_symbol ("_"));
+  if (BOOT_CLOSURE_HAS_REST_ARGS (closure))
+    args = scm_cons_star (scm_from_locale_symbol ("_"), args);
+  scm_display (args, port);
+  scm_putc ('>', port);
+  return 1;
+}
+
 void 
 scm_init_eval ()
 {
@@ -921,6 +927,10 @@ scm_init_eval ()
 
   f_apply = scm_c_define_gsubr ("apply", 2, 0, 1, scm_apply);
   scm_permanent_object (f_apply);
+
+  scm_tc16_boot_closure = scm_make_smob_type ("boot-closure", 0);
+  scm_set_smob_apply (scm_tc16_boot_closure, boot_closure_apply, 0, 0, 1);
+  scm_set_smob_print (scm_tc16_boot_closure, boot_closure_print);
 
   primitive_eval = scm_c_make_gsubr ("primitive-eval", 1, 0, 0,
                                      scm_c_primitive_eval);

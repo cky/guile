@@ -143,14 +143,6 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
   default:
     {
       SCM name = scm_procedure_property (proc, scm_sym_name);
-#if 0
-      /* Source property scm_sym_procname not implemented yet... */
-      SCM name = scm_source_property (SCM_CAR (SCM_CLOSURE_BODY (proc)), scm_sym_procname);
-      if (scm_is_false (name))
-	name = scm_procedure_property (proc, scm_sym_name);
-#endif
-      if (scm_is_false (name) && SCM_CLOSUREP (proc))
-	name = scm_reverse_lookup (SCM_ENV (proc), proc);
       if (scm_is_false (name) && SCM_PROGRAM_P (proc))
         name = scm_program_name (proc);
       return name;
@@ -190,27 +182,6 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
   while (0);
 
   return SCM_BOOL_F;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_procedure_module, "procedure-module", 1, 0, 0, 
-           (SCM proc),
-	    "Return the module that was current when @var{proc} was defined.")
-#define FUNC_NAME s_scm_procedure_module
-{
-  SCM_VALIDATE_PROC (SCM_ARG1, proc);
-
-  if (scm_is_true (scm_program_p (proc)))
-    return scm_program_module (proc);
-  else if (SCM_CLOSUREP (proc))
-    {
-      SCM env = SCM_ENV (proc);
-      while (scm_is_pair (env))
-        env = scm_cdr (env);
-      return env;
-    }
-  else
-    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

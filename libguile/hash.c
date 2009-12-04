@@ -169,7 +169,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       else return 1;
     case scm_tc7_port:
       return ((SCM_RDNG & SCM_CELL_WORD_0 (obj)) ? 260 : 261) % n;
-    case scm_tcs_closures: 
+      /* case scm_tcs_closures: */
     case scm_tc7_gsubr:
       return 262 % n;
     }

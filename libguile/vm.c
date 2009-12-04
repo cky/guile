@@ -269,14 +269,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
 
   switch (SCM_TYP7 (proc))
     {
-    case scm_tcs_closures:
-      /* FIXME: pre-boot closures should be smobs */
-      {
-        SCM arglist = SCM_EOL;
-        while (nargs--)
-          arglist = scm_cons (args[nargs], arglist);
-        return scm_closure_apply (proc, arglist);
-      }
     case scm_tc7_smob:
       if (!SCM_SMOB_APPLICABLE_P (proc))
         goto badproc;

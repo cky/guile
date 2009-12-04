@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1998, 1999, 2001, 2006, 2008 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1998, 1999, 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -67,10 +67,7 @@
 	(display x))
     (display " is ")
     (display (if name #\a "an anonymous"))
-    (display (cond ((closure? x) " procedure")
-		   ((not (struct? x)) " primitive procedure")
-		   ((entity? x) " entity")
-		   (else " operator")))
+    (display " procedure")
     (display " with ")
     (arity x)))
 

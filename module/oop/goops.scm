@@ -1161,20 +1161,15 @@
 
 ;;; compute-getters-n-setters
 ;;;
-;; FIXME!!!
-(define (make-thunk thunk)
-  (lambda () (thunk)))
-
 (define (compute-getters-n-setters class slots)
 
   (define (compute-slot-init-function name s)
     (or (let ((thunk (slot-definition-init-thunk s)))
 	  (and thunk
-	       (cond ((not (thunk? thunk))
-		      (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
-				   name class thunk))
-		     ((closure? thunk) thunk)
-		     (else (make-thunk thunk)))))
+	       (if (thunk? thunk)
+                   thunk
+                   (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
+                                name class thunk))))
 	(let ((init (slot-definition-init-value s)))
 	  (and (not (unbound? init))
 	       (lambda () init)))))
@@ -1187,18 +1182,11 @@
 	  (else
 	   (let ((get (car l)) 
 		 (set (cadr l)))
-             ;; note that we allow non-closures; we only check arity on
-             ;; the closures, though, because we inline their dispatch
-             ;; in %get-slot-value / %set-slot-value.
-	     (if (or (not (procedure? get))
-                     (and (closure? get)
-                          (not (= (car (procedure-property get 'arity)) 1))))
-		 (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
+	     (if (not (procedure? get))
+                 (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
 			      slot class get))
-	     (if (or (not (procedure? set))
-                     (and (closure? set)
-                          (not (= (car (procedure-property set 'arity)) 2))))
-		 (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
+	     (if (not (procedure? set))
+                 (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
 			      slot class set))))))
 
   (map (lambda (s)

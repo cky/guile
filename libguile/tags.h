@@ -386,7 +386,7 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc3_cons	 	 0
 #define scm_tc3_struct    	 1
 #define scm_tc3_int_1		 (scm_tc2_int + 0)
-#define scm_tc3_closure		 3
+#define scm_tc3_unused		 3
 #define scm_tc3_imm24		 4
 #define scm_tc3_tc7_1		 5
 #define scm_tc3_int_2		 (scm_tc2_int + 4)
@@ -651,26 +651,6 @@ enum scm_tc8_tags
   case scm_tc3_struct + 104:\
   case scm_tc3_struct + 112:\
   case scm_tc3_struct + 120
-
-/* For closures
- */
-#define scm_tcs_closures \
-       scm_tc3_closure + 0:\
-  case scm_tc3_closure + 8:\
-  case scm_tc3_closure + 16:\
-  case scm_tc3_closure + 24:\
-  case scm_tc3_closure + 32:\
-  case scm_tc3_closure + 40:\
-  case scm_tc3_closure + 48:\
-  case scm_tc3_closure + 56:\
-  case scm_tc3_closure + 64:\
-  case scm_tc3_closure + 72:\
-  case scm_tc3_closure + 80:\
-  case scm_tc3_closure + 88:\
-  case scm_tc3_closure + 96:\
-  case scm_tc3_closure + 104:\
-  case scm_tc3_closure + 112:\
-  case scm_tc3_closure + 120
 
 /* For subrs
  */

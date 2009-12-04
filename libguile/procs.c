@@ -100,7 +100,6 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 	if (!((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC)
               || SCM_STRUCT_APPLICABLE_P (obj)))
 	  break;
-      case scm_tcs_closures:
       case scm_tc7_gsubr:
       case scm_tc7_pws:
       case scm_tc7_program:
@@ -114,45 +113,14 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0, 
-           (SCM obj),
-	    "Return @code{#t} if @var{obj} is a closure.")
-#define FUNC_NAME s_scm_closure_p
-{
-  return scm_from_bool (SCM_CLOSUREP (obj));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0, 
 	    (SCM obj),
 	    "Return @code{#t} if @var{obj} is a thunk.")
 #define FUNC_NAME s_scm_thunk_p
 {
-  if (SCM_NIMP (obj))
-    {
-    again:
-      switch (SCM_TYP7 (obj))
-	{
-	case scm_tcs_closures:
-	  return scm_from_bool (SCM_CLOSURE_NUM_REQUIRED_ARGS (obj) == 0);
-	case scm_tc7_gsubr:
-	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
-	case scm_tc7_program:
-          {
-            int a, o, r;
-            if (scm_i_program_arity (obj, &a, &o, &r))
-              return scm_from_bool (a == 0);
-            else
-              return SCM_BOOL_F;
-          }
-	case scm_tc7_pws:
-	  obj = SCM_PROCEDURE (obj);
-	  goto again;
-	default:
-          return SCM_BOOL_F;
-	}
-    }
-  return SCM_BOOL_F;
+  int req, opt, rest;
+  return scm_from_bool (scm_i_procedure_arity (obj, &req, &opt, &rest)
+                        && req == 0);
 }
 #undef FUNC_NAME
 
@@ -181,25 +149,11 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 	    "documentation for that procedure.")
 #define FUNC_NAME s_scm_procedure_documentation
 {
-  SCM code;
-  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
-	      proc, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, proc);
   if (SCM_PROGRAM_P (proc))
     return scm_assq_ref (scm_program_properties (proc), sym_documentation);
-  switch (SCM_TYP7 (proc))
-    {
-    case scm_tcs_closures:
-      code = SCM_CLOSURE_BODY (proc);
-      if (scm_is_null (SCM_CDR (code)))
-	return SCM_BOOL_F;
-      code = SCM_CAR (code);
-      if (scm_is_string (code))
-	return code;
-      else
-	return SCM_BOOL_F;
-    default:
-      return SCM_BOOL_F;
-    }
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

@@ -224,3 +224,7 @@
 (define ($sinh z) (sinh z))
 (define ($cosh z) (cosh z))
 (define ($tanh z) (tanh z))
+(define (closure? x)
+  (issue-deprecation-warning
+   "`closure?' is deprecated. Use `procedure?' instead.")
+  (procedure? x))

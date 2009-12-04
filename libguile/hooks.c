@@ -203,16 +203,13 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
 	    "procedure is not specified.")
 #define FUNC_NAME s_scm_add_hook_x
 {
-  SCM arity, rest;
-  int n_args;
+  SCM rest;
+  int n_args, p_req, p_opt, p_rest;
   SCM_VALIDATE_HOOK (1, hook);
-  SCM_ASSERT (scm_is_true (arity = scm_i_procedure_arity (proc)),
+  SCM_ASSERT (scm_i_procedure_arity (proc, &p_req, &p_opt, &p_rest),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
-  if (scm_to_int (SCM_CAR (arity)) > n_args
-      || (scm_is_false (SCM_CADDR (arity))
-	  && (scm_to_int (SCM_CAR (arity)) + scm_to_int (SCM_CADR (arity))
-	      < n_args)))
+  if (p_req > n_args || (!p_rest && p_req + p_opt < n_args))
     scm_wrong_type_arg (FUNC_NAME, 2, proc);
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
   SCM_SET_HOOK_PROCEDURES (hook,

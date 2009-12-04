@@ -41,65 +41,49 @@
 SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
 
-static SCM non_closure_props;
-static scm_i_pthread_mutex_t non_closure_props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+static SCM props;
+static scm_i_pthread_mutex_t props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-SCM
-scm_i_procedure_arity (SCM proc)
+int
+scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
 {
-  int a = 0, o = 0, r = 0;
   if (SCM_IMP (proc))
-    return SCM_BOOL_F;
+    return 0;
  loop:
   switch (SCM_TYP7 (proc))
     {
     case scm_tc7_program:
-      if (scm_i_program_arity (proc, &a, &o, &r))
-        break;
-      else
-        return SCM_BOOL_F;
+      return scm_i_program_arity (proc, req, opt, rest);
     case scm_tc7_smob:
       if (SCM_SMOB_APPLICABLE_P (proc))
 	{
 	  int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
-	  a += SCM_GSUBR_REQ (type);
-	  o = SCM_GSUBR_OPT (type);
-	  r = SCM_GSUBR_REST (type);
-	  break;
+	  *req = SCM_GSUBR_REQ (type);
+	  *opt = SCM_GSUBR_OPT (type);
+	  *rest = SCM_GSUBR_REST (type);
+          return 1;
 	}
       else
-	{
-	  return SCM_BOOL_F;
-	}
+        return 0;
     case scm_tc7_gsubr:
       {
 	unsigned int type = SCM_GSUBR_TYPE (proc);
-	a = SCM_GSUBR_REQ (type);
-	o = SCM_GSUBR_OPT (type);
-	r = SCM_GSUBR_REST (type);
-	break;
+	*req = SCM_GSUBR_REQ (type);
+	*opt = SCM_GSUBR_OPT (type);
+	*rest = SCM_GSUBR_REST (type);
+        return 1;
       }
     case scm_tc7_pws:
       proc = SCM_PROCEDURE (proc);
       goto loop;
-    case scm_tcs_closures:
-      a = SCM_CLOSURE_NUM_REQUIRED_ARGS (proc);
-      r = SCM_CLOSURE_HAS_REST_ARGS (proc) ? 1 : 0;
-      break;
     case scm_tcs_struct:
-      if (SCM_OBJ_CLASS_FLAGS (proc) & SCM_CLASSF_PURE_GENERIC)
-	{
-	  r = 1;
-	  break;
-	}
-      else if (!SCM_STRUCT_APPLICABLE_P (proc))
-        return SCM_BOOL_F;
+      if (!SCM_STRUCT_APPLICABLE_P (proc))
+        return 0;
       proc = SCM_STRUCT_PROCEDURE (proc);
       goto loop;
     default:
-      return SCM_BOOL_F;
+      return 0;
     }
-  return scm_list_3 (scm_from_int (a), scm_from_int (o), scm_from_bool(r));
 }
 
 /* FIXME: instead of the weak hash, perhaps for some kinds of procedures, use
@@ -111,18 +95,22 @@ SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0,
 	    "Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_procedure_properties
 {
-  SCM props;
+  SCM ret;
+  int req, opt, rest;
   
   SCM_VALIDATE_PROC (1, proc);
-  if (SCM_CLOSUREP (proc))
-    props = SCM_PROCPROPS (proc);
-  else
-    {
-      scm_i_pthread_mutex_lock (&non_closure_props_lock);
-      props = scm_hashq_ref (non_closure_props, proc, SCM_EOL);
-      scm_i_pthread_mutex_unlock (&non_closure_props_lock);
-    }
-  return scm_acons (scm_sym_arity, scm_i_procedure_arity (proc), props);
+
+  scm_i_pthread_mutex_lock (&props_lock);
+  ret = scm_hashq_ref (props, proc, SCM_EOL);
+  scm_i_pthread_mutex_unlock (&props_lock);
+
+  scm_i_procedure_arity (proc, &req, &opt, &rest);
+
+  return scm_acons (scm_sym_arity,
+                    scm_list_3 (scm_from_int (req),
+                                scm_from_int (opt),
+                                scm_from_bool (rest)),
+                    ret);
 }
 #undef FUNC_NAME
 
@@ -133,14 +121,10 @@ SCM_DEFINE (scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0
 {
   SCM_VALIDATE_PROC (1, proc);
 
-  if (SCM_CLOSUREP (proc))
-    SCM_SETPROCPROPS (proc, alist);
-  else
-    {
-      scm_i_pthread_mutex_lock (&non_closure_props_lock);
-      scm_hashq_set_x (non_closure_props, proc, alist);
-      scm_i_pthread_mutex_unlock (&non_closure_props_lock);
-    }
+  scm_i_pthread_mutex_lock (&props_lock);
+  scm_hashq_set_x (props, proc, alist);
+  scm_i_pthread_mutex_unlock (&props_lock);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -154,19 +138,22 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
 
   if (scm_is_eq (key, scm_sym_arity))
     /* avoid a cons in this case */
-    return scm_i_procedure_arity (proc);
+    {
+      int req, opt, rest;
+      scm_i_procedure_arity (proc, &req, &opt, &rest);
+      return scm_list_3 (scm_from_int (req),
+                         scm_from_int (opt),
+                         scm_from_bool (rest));
+    }
   else
     {
-      SCM props;
-      if (SCM_CLOSUREP (proc))
-        props = SCM_PROCPROPS (proc);
-      else
-        {
-          scm_i_pthread_mutex_lock (&non_closure_props_lock);
-          props = scm_hashq_ref (non_closure_props, proc, SCM_EOL);
-          scm_i_pthread_mutex_unlock (&non_closure_props_lock);
-        }
-      return scm_assq_ref (props, key);
+      SCM ret;
+
+      scm_i_pthread_mutex_lock (&props_lock);
+      ret = scm_hashq_ref (props, proc, SCM_EOL);
+      scm_i_pthread_mutex_unlock (&props_lock);
+
+      return scm_assq_ref (ret, key);
     }
 }
 #undef FUNC_NAME
@@ -182,18 +169,12 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
   if (scm_is_eq (key, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
 
-  if (SCM_CLOSUREP (proc))
-    SCM_SETPROCPROPS (proc,
-                      scm_assq_set_x (SCM_PROCPROPS (proc), key, val));
-  else
-    {
-      scm_i_pthread_mutex_lock (&non_closure_props_lock);
-      scm_hashq_set_x (non_closure_props, proc,
-                       scm_assq_set_x (scm_hashq_ref (non_closure_props, proc,
-                                                      SCM_EOL),
-                                       key, val));
-      scm_i_pthread_mutex_unlock (&non_closure_props_lock);
-    }
+  scm_i_pthread_mutex_lock (&props_lock);
+  scm_hashq_set_x (props, proc,
+                   scm_assq_set_x (scm_hashq_ref (props, proc,
+                                                  SCM_EOL),
+                                   key, val));
+  scm_i_pthread_mutex_unlock (&props_lock);
 
   return SCM_UNSPECIFIED;
 }
@@ -205,7 +186,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 void
 scm_init_procprop ()
 {
-  non_closure_props = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  props = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/procprop.x"
 }
 

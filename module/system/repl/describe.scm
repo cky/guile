@@ -1,6 +1,6 @@
 ;;; Describe objects
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -200,17 +200,7 @@
 
 (define-method (display-object (obj <procedure>))
   (cond
-   ((closure? obj)
-    ;; Construct output from the source.
-    (display "(")
-    (display (procedure-name obj))
-    (let ((args (cadr (procedure-source obj))))
-      (cond ((null? args) (display ")"))
-	    ((pair? args)
-	     (let ((str (with-output-to-string (lambda () (display args)))))
-	       (format #t " ~a" (string-upcase! (substring str 1)))))
-	    (else
-	     (format #t " . ~a)" (string-upcase! (symbol->string args)))))))
+   ;; FIXME: VM programs, ...
    (else
     ;; Primitive procedure.  Let's lookup the dictionary.
     (and-let* ((entry (lookup-procedure obj)))
@@ -240,10 +230,8 @@
 (define-method (display-type (obj <procedure>))
   (cond
    ((and (thunk? obj) (not (procedure-name obj))) (display "a thunk"))
-   ((closure? obj) (display-class <procedure> "a procedure"))
    ((procedure-with-setter? obj)
     (display-class <procedure-with-setter> "a procedure with setter"))
-   ((not (struct? obj)) (display "a primitive procedure"))
    (else (display-class <procedure> "a procedure")))
   (display ".\n"))
 
@@ -252,9 +240,8 @@
     (display-file (entry-file entry))))
 
 (define-method (display-documentation (obj <procedure>))
-  (cond ((cond ((closure? obj) (procedure-documentation obj))
-	       ((lookup-procedure obj) => entry-text)
-	       (else #f))
+  (cond ((or (procedure-documentation obj)
+             (and=> (lookup-procedure obj) entry-text))
 	 => format-documentation)
 	(else (next-method))))
 

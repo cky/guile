@@ -73,14 +73,11 @@ SCM_API SCM scm_apply_0 (SCM proc, SCM args);
 SCM_API SCM scm_apply_1 (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_apply_2 (SCM proc, SCM arg1, SCM arg2, SCM args);
 SCM_API SCM scm_apply_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM args);
-SCM_INTERNAL SCM scm_i_call_closure_0 (SCM proc);
 SCM_API SCM scm_nconc2last (SCM lst);
 SCM_API SCM scm_apply (SCM proc, SCM arg1, SCM args);
-SCM_INTERNAL SCM scm_closure_apply (SCM proc, SCM args);
 #define scm_dapply(proc,arg1,args) scm_apply (proc, arg1, args)
 SCM_API SCM scm_map (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_for_each (SCM proc, SCM arg1, SCM args);
-SCM_API SCM scm_closure (SCM code, SCM env);
 SCM_API SCM scm_primitive_eval (SCM exp);
 #define scm_primitive_eval_x(exp) scm_primitive_eval (exp)
 SCM_API SCM scm_eval (SCM exp, SCM module);
