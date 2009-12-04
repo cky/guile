@@ -96,36 +96,6 @@ SCM_DEFINE (scm_pair_p, "pair?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_car (SCM pair)
-{
-  if (!scm_is_pair (pair))
-    scm_wrong_type_arg_msg (NULL, 0, pair, "pair");
-  return SCM_CAR (pair);
-}
-
-SCM
-scm_cdr (SCM pair)
-{
-  if (!scm_is_pair (pair))
-    scm_wrong_type_arg_msg (NULL, 0, pair, "pair");
-  return SCM_CDR (pair);
-}
-
-SCM
-scm_i_chase_pairs (SCM tree, scm_t_uint32 pattern)
-{
-  do
-    {
-      if (!scm_is_pair (tree))
-	scm_wrong_type_arg_msg (NULL, 0, tree, "pair");
-      tree = (pattern & 1) ? SCM_CAR (tree) : SCM_CDR (tree);
-      pattern >>= 2;
-    }
-  while (pattern);
-  return tree;
-}
-
 SCM_DEFINE (scm_set_car_x, "set-car!", 2, 0, 0,
             (SCM pair, SCM value),
             "Stores @var{value} in the car field of @var{pair}.  The value returned\n"
@@ -159,59 +129,146 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
  * two bits is only needed to indicate when cxr-ing is ready.  This is the
  * case, when all remaining pairs of bits equal 00.  */
 
-typedef struct {
-  const char *name;
-  unsigned char pattern;
-} t_cxr;
+/* The compiler should unroll this. */
+#define CHASE_PAIRS(tree, FUNC_NAME, pattern)                           \
+  scm_t_uint32 pattern_var = pattern;                                   \
+  do                                                                    \
+    {                                                                   \
+      if (!scm_is_pair (tree))                                          \
+	scm_wrong_type_arg_msg (FUNC_NAME, 0, tree, "pair");            \
+      tree = (pattern_var & 1) ? SCM_CAR (tree) : SCM_CDR (tree);       \
+      pattern_var >>= 2;                                                \
+    }                                                                   \
+  while (pattern_var);                                                  \
+  return tree
 
-static const t_cxr cxrs[] = 
+
+SCM_DEFINE (scm_cdr, "cdr", 1, 0, 0, (SCM x), "")
 {
-  {"cdr",    0x02}, /* 00000010 */
-  {"car",    0x03}, /* 00000011 */
-  {"cddr",   0x0a}, /* 00001010 */
-  {"cdar",   0x0b}, /* 00001011 */
-  {"cadr",   0x0e}, /* 00001110 */
-  {"caar",   0x0f}, /* 00001111 */
-  {"cdddr",  0x2a}, /* 00101010 */
-  {"cddar",  0x2b}, /* 00101011 */
-  {"cdadr",  0x2e}, /* 00101110 */
-  {"cdaar",  0x2f}, /* 00101111 */
-  {"caddr",  0x3a}, /* 00111010 */
-  {"cadar",  0x3b}, /* 00111011 */
-  {"caadr",  0x3e}, /* 00111110 */
-  {"caaar",  0x3f}, /* 00111111 */
-  {"cddddr", 0xaa}, /* 10101010 */
-  {"cdddar", 0xab}, /* 10101011 */
-  {"cddadr", 0xae}, /* 10101110 */
-  {"cddaar", 0xaf}, /* 10101111 */
-  {"cdaddr", 0xba}, /* 10111010 */
-  {"cdadar", 0xbb}, /* 10111011 */
-  {"cdaadr", 0xbe}, /* 10111110 */
-  {"cdaaar", 0xbf}, /* 10111111 */
-  {"cadddr", 0xea}, /* 11101010 */
-  {"caddar", 0xeb}, /* 11101011 */
-  {"cadadr", 0xee}, /* 11101110 */
-  {"cadaar", 0xef}, /* 11101111 */
-  {"caaddr", 0xfa}, /* 11111010 */
-  {"caadar", 0xfb}, /* 11111011 */
-  {"caaadr", 0xfe}, /* 11111110 */
-  {"caaaar", 0xff}, /* 11111111 */
-  {0, 0}
-};
+  CHASE_PAIRS (x, "cdr", 0x02); /* 00000010 */
+}
+SCM_DEFINE (scm_car, "car", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "car", 0x03); /* 00000011 */
+}
+SCM_DEFINE (scm_cddr, "cddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cddr", 0x0a); /* 00001010 */
+}
+SCM_DEFINE (scm_cdar, "cdar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdar", 0x0b); /* 00001011 */
+}
+SCM_DEFINE (scm_cadr, "cadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cadr", 0x0e); /* 00001110 */
+}
+SCM_DEFINE (scm_caar, "caar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caar", 0x0f); /* 00001111 */
+}
+SCM_DEFINE (scm_cdddr, "cdddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdddr", 0x2a); /* 00101010 */
+}
+SCM_DEFINE (scm_cddar, "cddar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cddar", 0x2b); /* 00101011 */
+}
+SCM_DEFINE (scm_cdadr, "cdadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdadr", 0x2e); /* 00101110 */
+}
+SCM_DEFINE (scm_cdaar, "cdaar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdaar", 0x2f); /* 00101111 */
+}
+SCM_DEFINE (scm_caddr, "caddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caddr", 0x3a); /* 00111010 */
+}
+SCM_DEFINE (scm_cadar, "cadar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cadar", 0x3b); /* 00111011 */
+}
+SCM_DEFINE (scm_caadr, "caadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caadr", 0x3e); /* 00111110 */
+}
+SCM_DEFINE (scm_caaar, "caaar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caaar", 0x3f); /* 00111111 */
+}
+SCM_DEFINE (scm_cddddr, "cddddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cddddr", 0xaa); /* 10101010 */
+}
+SCM_DEFINE (scm_cdddar, "cdddar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdddar", 0xab); /* 10101011 */
+}
+SCM_DEFINE (scm_cddadr, "cddadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cddadr", 0xae); /* 10101110 */
+}
+SCM_DEFINE (scm_cddaar, "cddaar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cddaar", 0xaf); /* 10101111 */
+}
+SCM_DEFINE (scm_cdaddr, "cdaddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdaddr", 0xba); /* 10111010 */
+}
+SCM_DEFINE (scm_cdadar, "cdadar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdadar", 0xbb); /* 10111011 */
+}
+SCM_DEFINE (scm_cdaadr, "cdaadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdaadr", 0xbe); /* 10111110 */
+}
+SCM_DEFINE (scm_cdaaar, "cdaaar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cdaaar", 0xbf); /* 10111111 */
+}
+SCM_DEFINE (scm_cadddr, "cadddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cadddr", 0xea); /* 11101010 */
+}
+SCM_DEFINE (scm_caddar, "caddar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caddar", 0xeb); /* 11101011 */
+}
+SCM_DEFINE (scm_cadadr, "cadadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cadadr", 0xee); /* 11101110 */
+}
+SCM_DEFINE (scm_cadaar, "cadaar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "cadaar", 0xef); /* 11101111 */
+}
+SCM_DEFINE (scm_caaddr, "caaddr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caaddr", 0xfa); /* 11111010 */
+}
+SCM_DEFINE (scm_caadar, "caadar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caadar", 0xfb); /* 11111011 */
+}
+SCM_DEFINE (scm_caaadr, "caaadr", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caaadr", 0xfe); /* 11111110 */
+}
+SCM_DEFINE (scm_caaaar, "caaaar", 1, 0, 0, (SCM x), "")
+{
+  CHASE_PAIRS (x, "caaaar", 0xff); /* 11111111 */
+}
 
 
 
 void
 scm_init_pairs ()
 {
-  unsigned int subnr = 0;
-
-  for (subnr = 0; cxrs[subnr].name; subnr++)
-    {
-      SCM (*pattern) () = (SCM (*) ()) (scm_t_bits) cxrs[subnr].pattern;
-      scm_c_define_subr (cxrs[subnr].name, scm_tc7_cxr, pattern);
-    }
-
 #include "libguile/pairs.x"
 }
 

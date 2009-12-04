@@ -101,7 +101,7 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
               || SCM_STRUCT_APPLICABLE_P (obj)))
 	  break;
       case scm_tcs_closures:
-      case scm_tcs_subrs:
+      case scm_tc7_gsubr:
       case scm_tc7_pws:
       case scm_tc7_program:
 	return SCM_BOOL_T;
@@ -163,7 +163,7 @@ scm_subr_p (SCM obj)
   if (SCM_NIMP (obj))
     switch (SCM_TYP7 (obj))
       {
-      case scm_tcs_subrs:
+      case scm_tc7_gsubr:
 	return 1;
       default:
 	;
@@ -232,7 +232,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
   /* don't use procedure_name, because don't care enough to do a reverse
      lookup */
   switch (SCM_TYP7 (procedure)) {
-  case scm_tcs_subrs:
+  case scm_tc7_gsubr:
     name = SCM_SUBR_NAME (procedure);
     break;
   default:

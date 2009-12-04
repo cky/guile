@@ -795,8 +795,8 @@ scm_i_tag_name (scm_t_bits tag)
     case scm_tc7_variable:
       return "variable";
       break;
-    case scm_tcs_subrs:
-      return "subrs";
+    case scm_tc7_gsubr:
+      return "gsubr";
       break;
     case scm_tc7_port:
       return "port";

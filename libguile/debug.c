@@ -138,7 +138,7 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 {
   SCM_VALIDATE_PROC (1, proc);
   switch (SCM_TYP7 (proc)) {
-  case scm_tcs_subrs:
+  case scm_tc7_gsubr:
     return SCM_SUBR_NAME (proc);
   default:
     {

@@ -277,9 +277,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
           arglist = scm_cons (args[nargs], arglist);
         return scm_closure_apply (proc, arglist);
       }
-    case scm_tc7_cxr:
-      if (nargs != 1) scm_wrong_num_args (proc);
-      return scm_i_chase_pairs (args[0], (scm_t_bits) SCM_SUBRF (proc));
     case scm_tc7_smob:
       if (!SCM_SMOB_APPLICABLE_P (proc))
         goto badproc;

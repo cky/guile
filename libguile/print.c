@@ -782,7 +782,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
-	case scm_tcs_subrs:
+	case scm_tc7_gsubr:
 	  {
 	    SCM name = scm_symbol_to_string (SCM_SUBR_NAME (exp));
 	    scm_puts (SCM_SUBR_GENERIC (exp)
