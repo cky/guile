@@ -135,8 +135,6 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
 	{
 	case scm_tcs_closures:
 	  return scm_from_bool (SCM_CLOSURE_NUM_REQUIRED_ARGS (obj) == 0);
-	case scm_tc7_rpsubr:
-	  return SCM_BOOL_T;
 	case scm_tc7_gsubr:
 	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
 	case scm_tc7_program:

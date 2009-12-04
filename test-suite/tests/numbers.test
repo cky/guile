@@ -1589,7 +1589,7 @@
 ;;;
 
 (with-test-prefix "="
-  (expect-fail (documented? =))
+  (pass-if (documented? =))
   (pass-if (= 0 0))
   (pass-if (= 7 7))
   (pass-if (= -7 -7))
@@ -1673,7 +1673,7 @@
 
 (with-test-prefix "<"
 
-  (expect-fail "documented?"
+  (pass-if "documented?"
     (documented? <))
 
   (with-test-prefix "(< 0 n)"

@@ -3331,8 +3331,25 @@ SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_GPROC1 (s_eq_p, "=", scm_tc7_rpsubr, scm_num_eq_p, g_eq_p);
-/* "Return @code{#t} if all parameters are numerically equal."  */
+SCM scm_i_num_eq_p (SCM, SCM, SCM);
+SCM_PRIMITIVE_GENERIC (scm_i_num_eq_p, "=", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return @code{#t} if all parameters are numerically equal.")
+#define FUNC_NAME s_scm_i_num_eq_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (scm_is_false (scm_num_eq_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_num_eq_p (x, y);
+}
+#undef FUNC_NAME
 SCM
 scm_num_eq_p (SCM x, SCM y)
 {
@@ -3375,7 +3392,7 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_FRACTIONP (y))
 	return SCM_BOOL_F;
       else
-	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_eq_p, x, y, SCM_ARGn, s_scm_i_num_eq_p);
     }
   else if (SCM_BIGP (x))
     {
@@ -3410,7 +3427,7 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_FRACTIONP (y))
 	return SCM_BOOL_F;
       else
-	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_eq_p, x, y, SCM_ARGn, s_scm_i_num_eq_p);
     }
   else if (SCM_REALP (x))
     {
@@ -3448,7 +3465,7 @@ scm_num_eq_p (SCM x, SCM y)
           goto again;
         }
       else
-	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_eq_p, x, y, SCM_ARGn, s_scm_i_num_eq_p);
     }
   else if (SCM_COMPLEXP (x))
     {
@@ -3486,7 +3503,7 @@ scm_num_eq_p (SCM x, SCM y)
           goto again;
         }
       else
-	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_eq_p, x, y, SCM_ARGn, s_scm_i_num_eq_p);
     }
   else if (SCM_FRACTIONP (x))
     {
@@ -3520,10 +3537,10 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_FRACTIONP (y))
 	return scm_i_fraction_equalp (x, y);
       else
-	SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARGn, s_eq_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_eq_p, x, y, SCM_ARGn, s_scm_i_num_eq_p);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_eq_p, x, y, SCM_ARG1, s_eq_p);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_eq_p, x, y, SCM_ARG1, s_scm_i_num_eq_p);
 }
 
 
@@ -3533,10 +3550,26 @@ scm_num_eq_p (SCM x, SCM y)
    mpq_cmp.  flonum/frac compares likewise, but with the slight complication
    of the float exponent to take into account.  */
 
-SCM_GPROC1 (s_less_p, "<", scm_tc7_rpsubr, scm_less_p, g_less_p);
-/* "Return @code{#t} if the list of parameters is monotonically\n"
- * "increasing."
- */
+SCM scm_i_num_less_p (SCM, SCM, SCM);
+SCM_PRIMITIVE_GENERIC (scm_i_num_less_p, "<", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return @code{#t} if the list of parameters is monotonically\n"
+                       "increasing.")
+#define FUNC_NAME s_scm_i_num_less_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (scm_is_false (scm_less_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_less_p (x, y);
+}
+#undef FUNC_NAME
 SCM
 scm_less_p (SCM x, SCM y)
 {
@@ -3566,7 +3599,7 @@ scm_less_p (SCM x, SCM y)
           goto again;
         }
       else
-	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_less_p, x, y, SCM_ARGn, s_scm_i_num_less_p);
     }
   else if (SCM_BIGP (x))
     {
@@ -3594,7 +3627,7 @@ scm_less_p (SCM x, SCM y)
       else if (SCM_FRACTIONP (y))
         goto int_frac;
       else
-	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_less_p, x, y, SCM_ARGn, s_scm_i_num_less_p);
     }
   else if (SCM_REALP (x))
     {
@@ -3622,7 +3655,7 @@ scm_less_p (SCM x, SCM y)
           goto again;
         }
       else
-	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_less_p, x, y, SCM_ARGn, s_scm_i_num_less_p);
     }
   else if (SCM_FRACTIONP (x))
     {
@@ -3655,43 +3688,75 @@ scm_less_p (SCM x, SCM y)
           goto again;
         }
       else
-	SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARGn, s_less_p);
+	SCM_WTA_DISPATCH_2 (g_scm_i_num_less_p, x, y, SCM_ARGn, s_scm_i_num_less_p);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_less_p, x, y, SCM_ARG1, s_less_p);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_less_p, x, y, SCM_ARG1, s_scm_i_num_less_p);
 }
 
 
-SCM_GPROC1 (s_scm_gr_p, ">", scm_tc7_rpsubr, scm_gr_p, g_gr_p);
-/* "Return @code{#t} if the list of parameters is monotonically\n"
- * "decreasing."
- */
-#define FUNC_NAME s_scm_gr_p
+SCM scm_i_num_gr_p (SCM, SCM, SCM);
+SCM_PRIMITIVE_GENERIC (scm_i_num_gr_p, ">", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return @code{#t} if the list of parameters is monotonically\n"
+                       "decreasing.")
+#define FUNC_NAME s_scm_i_num_gr_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (scm_is_false (scm_gr_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_gr_p (x, y);
+}
+#undef FUNC_NAME
+#define FUNC_NAME s_scm_i_num_gr_p
 SCM
 scm_gr_p (SCM x, SCM y)
 {
   if (!SCM_NUMBERP (x))
-    SCM_WTA_DISPATCH_2 (g_gr_p, x, y, SCM_ARG1, FUNC_NAME);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_gr_p, x, y, SCM_ARG1, FUNC_NAME);
   else if (!SCM_NUMBERP (y))
-    SCM_WTA_DISPATCH_2 (g_gr_p, x, y, SCM_ARG2, FUNC_NAME);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_gr_p, x, y, SCM_ARG2, FUNC_NAME);
   else
     return scm_less_p (y, x);
 }
 #undef FUNC_NAME
 
 
-SCM_GPROC1 (s_scm_leq_p, "<=", scm_tc7_rpsubr, scm_leq_p, g_leq_p);
-/* "Return @code{#t} if the list of parameters is monotonically\n"
- * "non-decreasing."
- */
-#define FUNC_NAME s_scm_leq_p
+SCM scm_i_num_leq_p (SCM, SCM, SCM);
+SCM_PRIMITIVE_GENERIC (scm_i_num_leq_p, "<=", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return @code{#t} if the list of parameters is monotonically\n"
+                       "non-decreasing.")
+#define FUNC_NAME s_scm_i_num_leq_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (scm_is_false (scm_leq_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_leq_p (x, y);
+}
+#undef FUNC_NAME
+#define FUNC_NAME s_scm_i_num_leq_p
 SCM
 scm_leq_p (SCM x, SCM y)
 {
   if (!SCM_NUMBERP (x))
-    SCM_WTA_DISPATCH_2 (g_leq_p, x, y, SCM_ARG1, FUNC_NAME);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_leq_p, x, y, SCM_ARG1, FUNC_NAME);
   else if (!SCM_NUMBERP (y))
-    SCM_WTA_DISPATCH_2 (g_leq_p, x, y, SCM_ARG2, FUNC_NAME);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_leq_p, x, y, SCM_ARG2, FUNC_NAME);
   else if (scm_is_true (scm_nan_p (x)) || scm_is_true (scm_nan_p (y)))
     return SCM_BOOL_F;
   else
@@ -3700,18 +3765,34 @@ scm_leq_p (SCM x, SCM y)
 #undef FUNC_NAME
 
 
-SCM_GPROC1 (s_scm_geq_p, ">=", scm_tc7_rpsubr, scm_geq_p, g_geq_p);
-/* "Return @code{#t} if the list of parameters is monotonically\n"
- * "non-increasing."
- */
-#define FUNC_NAME s_scm_geq_p
+SCM scm_i_num_geq_p (SCM, SCM, SCM);
+SCM_PRIMITIVE_GENERIC (scm_i_num_geq_p, ">=", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return @code{#t} if the list of parameters is monotonically\n"
+                       "non-increasing.")
+#define FUNC_NAME s_scm_i_num_geq_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (scm_is_false (scm_geq_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_geq_p (x, y);
+}
+#undef FUNC_NAME
+#define FUNC_NAME s_scm_i_num_geq_p
 SCM
 scm_geq_p (SCM x, SCM y)
 {
   if (!SCM_NUMBERP (x))
-    SCM_WTA_DISPATCH_2 (g_geq_p, x, y, SCM_ARG1, FUNC_NAME);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_geq_p, x, y, SCM_ARG1, FUNC_NAME);
   else if (!SCM_NUMBERP (y))
-    SCM_WTA_DISPATCH_2 (g_geq_p, x, y, SCM_ARG2, FUNC_NAME);
+    SCM_WTA_DISPATCH_2 (g_scm_i_num_geq_p, x, y, SCM_ARG2, FUNC_NAME);
   else if (scm_is_true (scm_nan_p (x)) || scm_is_true (scm_nan_p (y)))
     return SCM_BOOL_F;
   else

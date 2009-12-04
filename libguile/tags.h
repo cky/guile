@@ -427,7 +427,7 @@ typedef scm_t_uintptr scm_t_bits;
 
 #define scm_tc7_unused_17	61
 #define scm_tc7_gsubr		63
-#define scm_tc7_rpsubr		69
+#define scm_tc7_unused_19	69
 #define scm_tc7_program		79
 #define scm_tc7_unused_9	85
 #define scm_tc7_unused_10	87
@@ -676,7 +676,6 @@ enum scm_tc8_tags
  */
 #define scm_tcs_subrs \
        scm_tc7_cxr:\
-  case scm_tc7_rpsubr:\
   case scm_tc7_gsubr
 
 

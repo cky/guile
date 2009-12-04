@@ -47,8 +47,8 @@
 #endif
 
 
-SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
-             (SCM x, SCM y),
+SCM_DEFINE (scm_i_eq_p, "eq?", 0, 2, 1,
+            (SCM x, SCM y, SCM rest),
 	    "Return @code{#t} if @var{x} and @var{y} are the same object,\n"
 	    "except for numbers and characters.  For example,\n"
 	    "\n"
@@ -87,11 +87,27 @@ SCM_DEFINE1 (scm_eq_p, "eq?", scm_tc7_rpsubr,
 	    "(define x (string->symbol \"foo\"))\n"
 	    "(eq? x 'foo) @result{} #t\n"
 	    "@end example")
-#define FUNC_NAME s_scm_eq_p
+#define FUNC_NAME s_scm_i_eq_p
 {
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (scm_is_pair (rest))
+    {
+      if (!scm_is_eq (x, y))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
   return scm_from_bool (scm_is_eq (x, y));
 }
 #undef FUNC_NAME
+
+SCM
+scm_eq_p (SCM x, SCM y)
+{
+  return scm_from_bool (scm_is_eq (x, y));
+}
 
 /* We compare doubles in a special way for 'eqv?' to be able to
    distinguish plus and minus zero and to identify NaNs.
@@ -104,8 +120,8 @@ real_eqv (double x, double y)
 }
 
 #include <stdio.h>
-SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
-             (SCM x, SCM y),
+SCM_DEFINE (scm_i_eqv_p, "eqv?", 0, 2, 1,
+            (SCM x, SCM y, SCM rest),
 	    "Return @code{#t} if @var{x} and @var{y} are the same object, or\n"
 	    "for characters and numbers the same value.\n"
 	    "\n"
@@ -122,7 +138,24 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 	    "(eqv? 3 (+ 1 2)) @result{} #t\n"
 	    "(eqv? 1 1.0)     @result{} #f\n"
 	    "@end example")
-#define FUNC_NAME s_scm_eqv_p
+#define FUNC_NAME s_scm_i_eqv_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (!scm_is_true (scm_eqv_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_eqv_p (x, y);
+}
+#undef FUNC_NAME
+
+SCM scm_eqv_p (SCM x, SCM y)
+#define FUNC_NAME s_scm_i_eqv_p
 {
   if (scm_is_eq (x, y))
     return SCM_BOOL_T;
@@ -178,44 +211,63 @@ SCM_DEFINE1 (scm_eqv_p, "eqv?", scm_tc7_rpsubr,
 #undef FUNC_NAME
 
 
-SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
-			 (SCM x, SCM y),
-	    "Return @code{#t} if @var{x} and @var{y} are the same type, and\n"
-	    "their contents or value are equal.\n"
-	    "\n"
-	    "For a pair, string, vector or array, @code{equal?} compares the\n"
-	    "contents, and does so using using the same @code{equal?}\n"
-	    "recursively, so a deep structure can be traversed.\n"
-	    "\n"
-	    "@example\n"
-	    "(equal? (list 1 2 3) (list 1 2 3))   @result{} #t\n"
-	    "(equal? (list 1 2 3) (vector 1 2 3)) @result{} #f\n"
-	    "@end example\n"
-	    "\n"
-	    "For other objects, @code{equal?} compares as per @code{eqv?},\n"
-	    "which means characters and numbers are compared by type and\n"
-	    "value (and like @code{eqv?}, exact and inexact numbers are not\n"
-	    "@code{equal?}, even if their value is the same).\n"
-	    "\n"
-	    "@example\n"
-	    "(equal? 3 (+ 1 2)) @result{} #t\n"
-	    "(equal? 1 1.0)     @result{} #f\n"
-	    "@end example\n"
-	    "\n"
-	    "Hash tables are currently only compared as per @code{eq?}, so\n"
-	    "two different tables are not @code{equal?}, even if their\n"
-	    "contents are the same.\n"
-	    "\n"
-	    "@code{equal?} does not support circular data structures, it may\n"
-	    "go into an infinite loop if asked to compare two circular lists\n"
-	    "or similar.\n"
-	    "\n"
-	    "New application-defined object types (Smobs) have an\n"
-	    "@code{equalp} handler which is called by @code{equal?}.  This\n"
-	    "lets an application traverse the contents or control what is\n"
-	    "considered @code{equal?} for two such objects.  If there's no\n"
-	    "handler, the default is to just compare as per @code{eq?}.")
-#define FUNC_NAME s_scm_equal_p
+SCM scm_i_equal_p (SCM, SCM, SCM);
+SCM_PRIMITIVE_GENERIC (scm_i_equal_p, "equal?", 0, 2, 1,
+                       (SCM x, SCM y, SCM rest),
+                       "Return @code{#t} if @var{x} and @var{y} are the same type, and\n"
+                       "their contents or value are equal.\n"
+                       "\n"
+                       "For a pair, string, vector or array, @code{equal?} compares the\n"
+                       "contents, and does so using using the same @code{equal?}\n"
+                       "recursively, so a deep structure can be traversed.\n"
+                       "\n"
+                       "@example\n"
+                       "(equal? (list 1 2 3) (list 1 2 3))   @result{} #t\n"
+                       "(equal? (list 1 2 3) (vector 1 2 3)) @result{} #f\n"
+                       "@end example\n"
+                       "\n"
+                       "For other objects, @code{equal?} compares as per @code{eqv?},\n"
+                       "which means characters and numbers are compared by type and\n"
+                       "value (and like @code{eqv?}, exact and inexact numbers are not\n"
+                       "@code{equal?}, even if their value is the same).\n"
+                       "\n"
+                       "@example\n"
+                       "(equal? 3 (+ 1 2)) @result{} #t\n"
+                       "(equal? 1 1.0)     @result{} #f\n"
+                       "@end example\n"
+                       "\n"
+                       "Hash tables are currently only compared as per @code{eq?}, so\n"
+                       "two different tables are not @code{equal?}, even if their\n"
+                       "contents are the same.\n"
+                       "\n"
+                       "@code{equal?} does not support circular data structures, it may\n"
+                       "go into an infinite loop if asked to compare two circular lists\n"
+                       "or similar.\n"
+                       "\n"
+                       "New application-defined object types (Smobs) have an\n"
+                       "@code{equalp} handler which is called by @code{equal?}.  This\n"
+                       "lets an application traverse the contents or control what is\n"
+                       "considered @code{equal?} for two such objects.  If there's no\n"
+                       "handler, the default is to just compare as per @code{eq?}.")
+#define FUNC_NAME s_scm_i_equal_p
+{
+  if (SCM_UNBNDP (x) || SCM_UNBNDP (y))
+    return SCM_BOOL_T;
+  while (!scm_is_null (rest))
+    {
+      if (!scm_is_true (scm_equal_p (x, y)))
+        return SCM_BOOL_F;
+      x = y;
+      y = scm_car (rest);
+      rest = SCM_CDR (rest);
+    }
+  return scm_equal_p (x, y);
+}
+#undef FUNC_NAME
+
+SCM
+scm_equal_p (SCM x, SCM y)
+#define FUNC_NAME s_scm_i_equal_p
 {
   SCM_CHECK_STACK;
  tailrecurse:
@@ -306,8 +358,8 @@ SCM_PRIMITIVE_GENERIC_1 (scm_equal_p, "equal?", scm_tc7_rpsubr,
   return SCM_BOOL_F;
   
  generic_equal:
-  if (SCM_UNPACK (g_scm_equal_p))
-    return scm_call_generic_2 (g_scm_equal_p, x, y);
+  if (SCM_UNPACK (g_scm_i_equal_p))
+    return scm_call_generic_2 (g_scm_i_equal_p, x, y);
   else
     return SCM_BOOL_F;
 }

@@ -942,8 +942,10 @@ SCM_DEFINE (scm_i_array_equal_p, "array-equal?", 0, 2, 1,
     return SCM_BOOL_T;
   
   while (!scm_is_null (rest))
-    { if (scm_is_false (scm_array_equal_p (ra0, scm_car (rest))))
+    { if (scm_is_false (scm_array_equal_p (ra0, ra1)))
         return SCM_BOOL_F;
+      ra0 = ra1;
+      ra1 = scm_car (rest);
       rest = scm_cdr (rest);
     }
   return scm_array_equal_p (ra0, ra1);
