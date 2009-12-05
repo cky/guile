@@ -862,8 +862,7 @@ SCM_SYMBOL (scm_sym_system_module, "system-module");
 void
 scm_modules_prehistory ()
 {
-  scm_pre_modules_obarray 
-    = scm_permanent_object (scm_c_make_hash_table (1533));
+  scm_pre_modules_obarray = scm_c_make_hash_table (1533);
 }
 
 void
@@ -875,24 +874,22 @@ scm_init_modules ()
   scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
   scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
 
-  the_module = scm_permanent_object (scm_make_fluid ());
+  the_module = scm_make_fluid ();
 }
 
 static void
 scm_post_boot_init_modules ()
 {
-#define PERM(x) scm_permanent_object(x)
-
   SCM module_type = SCM_VARIABLE_REF (scm_c_lookup ("module-type"));
   scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_struct);
 
-  resolve_module_var = PERM (scm_c_lookup ("resolve-module"));
-  process_define_module_var = PERM (scm_c_lookup ("process-define-module"));
-  process_use_modules_var = PERM (scm_c_lookup ("process-use-modules"));
-  module_export_x_var = PERM (scm_c_lookup ("module-export!"));
-  the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
-  default_duplicate_binding_procedures_var =
-    PERM (scm_c_lookup ("default-duplicate-binding-procedures"));
+  resolve_module_var = scm_c_lookup ("resolve-module");
+  process_define_module_var = scm_c_lookup ("process-define-module");
+  process_use_modules_var = scm_c_lookup ("process-use-modules");
+  module_export_x_var = scm_c_lookup ("module-export!");
+  the_root_module_var = scm_c_lookup ("the-root-module");
+  default_duplicate_binding_procedures_var = 
+    scm_c_lookup ("default-duplicate-binding-procedures");
 
   scm_module_system_booted_p = 1;
 }

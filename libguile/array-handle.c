@@ -132,8 +132,7 @@ void
 scm_init_array_handle (void)
 {
 #define DEFINE_ARRAY_TYPE(tag, TAG)                             \
-  scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_##TAG]   \
-    = (scm_permanent_object (scm_from_locale_symbol (#tag)))
+  scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_##TAG] = scm_from_locale_symbol (#tag)
   
   scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_SCM] = SCM_BOOL_T;
   DEFINE_ARRAY_TYPE (a, CHAR);

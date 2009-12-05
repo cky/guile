@@ -249,15 +249,13 @@ static SCM try_module_autoload_var;
 static void
 init_module_stuff ()
 {
-#define PERM(x) scm_permanent_object(x)
-
   if (module_prefix == SCM_BOOL_F)
     {
-      module_prefix = PERM (scm_list_2 (scm_sym_app, scm_sym_modules));
-      make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
+      module_prefix = scm_list_2 (scm_sym_app, scm_sym_modules);
+      make_modules_in_var = scm_c_lookup ("make-modules-in");
       beautify_user_module_x_var =
-	PERM (scm_c_lookup ("beautify-user-module!"));
-      try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
+	scm_c_lookup ("beautify-user-module!");
+      try_module_autoload_var = scm_c_lookup ("try-module-autoload");
     }
 }
 

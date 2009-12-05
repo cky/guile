@@ -212,7 +212,7 @@ vm_make_boot_program (long nargs)
     {
       int i;
       for (i = 0; i < NUM_BOOT_PROGS; i++)
-        programs[i] = scm_permanent_object (really_make_boot_program (i));
+        programs[i] = really_make_boot_program (i);
     }
   
   if (SCM_LIKELY (nargs < NUM_BOOT_PROGS))
@@ -685,9 +685,9 @@ scm_bootstrap_vm (void)
                 scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
                                   scm_load_compiled_with_vm));
 
-  sym_vm_run = scm_permanent_object (scm_from_locale_symbol ("vm-run"));
-  sym_vm_error = scm_permanent_object (scm_from_locale_symbol ("vm-error"));
-  sym_debug = scm_permanent_object (scm_from_locale_symbol ("debug"));
+  sym_vm_run = scm_from_locale_symbol ("vm-run");
+  sym_vm_error = scm_from_locale_symbol ("vm-error");
+  sym_debug = scm_from_locale_symbol ("debug");
 
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);

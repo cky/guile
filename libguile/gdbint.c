@@ -166,7 +166,7 @@ gdb_read (char *str)
 	}
     }
   gdb_result = ans;
-  /* Protect answer from future GC */
+  /* Protect answer from future GC (FIXME: still needed with BDW-GC?) */
   if (SCM_NIMP (ans))
     scm_permanent_object (ans);
 exit:

@@ -879,9 +879,7 @@ create_basic_classes (void)
   /**** <class> ****/
   SCM cs = scm_from_locale_string (SCM_CLASS_CLASS_LAYOUT);
   SCM name = scm_from_locale_symbol ("<class>");
-  scm_class_class = scm_permanent_object (scm_make_vtable_vtable (cs,
-								  SCM_INUM0,
-								  SCM_EOL));
+  scm_class_class = scm_make_vtable_vtable (cs, SCM_INUM0, SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_class, (SCM_CLASSF_GOOPS_OR_VALID
 					 | SCM_CLASSF_METACLASS));
 
@@ -903,19 +901,15 @@ create_basic_classes (void)
 
   /**** <top> ****/
   name = scm_from_locale_symbol ("<top>");
-  scm_class_top = scm_permanent_object (scm_basic_make_class (scm_class_class,
-						    name,
-						    SCM_EOL,
-						    SCM_EOL));
+  scm_class_top = scm_basic_make_class (scm_class_class, name,
+                                        SCM_EOL, SCM_EOL);
 
   DEFVAR(name, scm_class_top);
 
   /**** <object> ****/
   name	 = scm_from_locale_symbol ("<object>");
-  scm_class_object = scm_permanent_object (scm_basic_make_class (scm_class_class,
-						       name,
-						       scm_list_1 (scm_class_top),
-						       SCM_EOL));
+  scm_class_object = scm_basic_make_class (scm_class_class, name,
+                                           scm_list_1 (scm_class_top), SCM_EOL);
 
   DEFVAR (name, scm_class_object);
 
@@ -1630,10 +1624,6 @@ scm_change_object_class (SCM obj, SCM old_class SCM_UNUSED, SCM new_class)
 
 SCM_KEYWORD (k_name, "name");
 
-SCM_SYMBOL (sym_no_method, "no-method");
-
-static SCM list_of_no_method;
-
 SCM_GLOBAL_SYMBOL (scm_sym_args, "args");
 
 
@@ -2268,12 +2258,9 @@ make_stdcls (SCM *var, char *name, SCM meta, SCM super, SCM slots)
 {
    SCM tmp = scm_from_locale_symbol (name);
 
-   *var = scm_permanent_object (scm_basic_make_class (meta,
-						      tmp,
-						      scm_is_pair (super)
-						      ? super
-						      : scm_list_1 (super),
-						      slots));
+   *var = scm_basic_make_class (meta, tmp,
+                                scm_is_pair (super) ? super : scm_list_1 (super),
+                                slots);
    DEFVAR(tmp, *var);
 }
 
@@ -2467,12 +2454,8 @@ make_class_from_template (char const *template, char const *type_name, SCM super
   else
     name = SCM_GOOPS_UNBOUND;
 
-  class = scm_permanent_object (scm_basic_make_class (applicablep
-						      ? scm_class_procedure_class
-						      : scm_class_class,
-						      name,
-						      supers,
-						      SCM_EOL));
+  class = scm_basic_make_class (applicablep ? scm_class_procedure_class : scm_class_class,
+                                name, supers, SCM_EOL);
 
   /* Only define name if doesn't already exist. */
   if (!SCM_GOOPS_UNBOUNDP (name)
@@ -2495,12 +2478,8 @@ make_class_from_symbol (SCM type_name_sym, SCM supers, int applicablep)
   else
     name = SCM_GOOPS_UNBOUND;
 
-  class = scm_permanent_object (scm_basic_make_class (applicablep
-						      ? scm_class_procedure_class
-						      : scm_class_class,
-						      name,
-						      supers,
-						      SCM_EOL));
+  class = scm_basic_make_class (applicablep ? scm_class_procedure_class : scm_class_class,
+                                name, supers, SCM_EOL);
 
   /* Only define name if doesn't already exist. */
   if (!SCM_GOOPS_UNBOUNDP (name)
@@ -2710,23 +2689,17 @@ SCM_DEFINE (scm_sys_goops_loaded, "%goops-loaded", 0, 0, 0,
 {
   goops_loaded_p = 1;
   var_compute_applicable_methods =
-    scm_permanent_object
-    (scm_module_variable (scm_module_goops, sym_compute_applicable_methods));
+    scm_module_variable (scm_module_goops, sym_compute_applicable_methods);
   var_slot_unbound =
-    scm_permanent_object
-    (scm_module_variable (scm_module_goops, sym_slot_unbound));
+    scm_module_variable (scm_module_goops, sym_slot_unbound);
   var_slot_missing =
-    scm_permanent_object
-    (scm_module_variable (scm_module_goops, sym_slot_missing));
+    scm_module_variable (scm_module_goops, sym_slot_missing);
   var_compute_cpl =
-    scm_permanent_object
-    (scm_module_variable (scm_module_goops, sym_compute_cpl));
+    scm_module_variable (scm_module_goops, sym_compute_cpl);
   var_no_applicable_method =
-    scm_permanent_object
-    (scm_module_variable (scm_module_goops, sym_no_applicable_method));
+    scm_module_variable (scm_module_goops, sym_no_applicable_method);
   var_change_class =
-    scm_permanent_object
-    (scm_module_variable (scm_module_goops, sym_change_class));
+    scm_module_variable (scm_module_goops, sym_change_class);
   setup_extended_primitive_generics ();
   return SCM_UNSPECIFIED;
 }
@@ -2739,18 +2712,12 @@ scm_init_goops_builtins (void)
 {
   scm_module_goops = scm_current_module ();
 
-  /* Not really necessary right now, but who knows...
-   */
-  scm_permanent_object (scm_module_goops);
-
   goops_rstate = scm_c_make_rstate ("GOOPS", 5);
 
 #include "libguile/goops.x"
 
-  list_of_no_method = scm_permanent_object (scm_list_1 (sym_no_method));
-
   hell = scm_calloc (hell_size * sizeof (*hell));
-  hell_mutex = scm_permanent_object (scm_make_mutex ());
+  hell_mutex = scm_make_mutex ();
 
   create_basic_classes ();
   create_standard_classes ();
@@ -2760,10 +2727,8 @@ scm_init_goops_builtins (void)
 
   {
     SCM name = scm_from_locale_symbol ("no-applicable-method");
-    scm_no_applicable_method
-      = scm_permanent_object (scm_make (scm_list_3 (scm_class_generic,
-						    k_name,
-						    name)));
+    scm_no_applicable_method =
+      scm_make (scm_list_3 (scm_class_generic, k_name, name));
     DEFVAR (name, scm_no_applicable_method);
   }
 

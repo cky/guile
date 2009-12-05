@@ -881,7 +881,7 @@ init_build_info ()
 void
 scm_init_load ()
 {
-  scm_listofnullstr = scm_permanent_object (scm_list_1 (scm_nullstr));
+  scm_listofnullstr = scm_list_1 (scm_nullstr);
   scm_loc_load_path = SCM_VARIABLE_LOC (scm_c_define ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",

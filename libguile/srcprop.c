@@ -331,9 +331,8 @@ scm_init_srcprop ()
   scm_source_whash = scm_make_weak_key_hash_table (scm_from_int (2047));
   scm_c_define ("source-whash", scm_source_whash);
 
-  scm_last_alist_filename
-    = scm_permanent_object (scm_cons (SCM_EOL,
-				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL)));
+  scm_last_alist_filename = scm_cons (SCM_EOL,
+				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL));
 
 #include "libguile/srcprop.x"
 }

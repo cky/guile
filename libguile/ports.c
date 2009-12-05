@@ -2333,12 +2333,12 @@ scm_init_ports ()
   scm_tc16_void_port = scm_make_port_type ("void", fill_input_void_port, 
 					   write_void_port);
 
-  cur_inport_fluid = scm_permanent_object (scm_make_fluid ());
-  cur_outport_fluid = scm_permanent_object (scm_make_fluid ());
-  cur_errport_fluid = scm_permanent_object (scm_make_fluid ());
-  cur_loadport_fluid = scm_permanent_object (scm_make_fluid ());
+  cur_inport_fluid = scm_make_fluid ();
+  cur_outport_fluid = scm_make_fluid ();
+  cur_errport_fluid = scm_make_fluid ();
+  cur_loadport_fluid = scm_make_fluid ();
 
-  scm_i_port_weak_hash = scm_permanent_object (scm_make_weak_key_hash_table (SCM_I_MAKINUM(31)));
+  scm_i_port_weak_hash = scm_make_weak_key_hash_table (SCM_I_MAKINUM(31));
 
 #include "libguile/ports.x"
 

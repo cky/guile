@@ -668,10 +668,8 @@ scm_init_scmsigs ()
   signal_handlers =
     SCM_VARIABLE_LOC (scm_c_define ("signal-handlers",
 				  scm_c_make_vector (NSIG, SCM_BOOL_F)));
-  signal_handler_asyncs =
-    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
-  signal_handler_threads =
-    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
+  signal_handler_asyncs = scm_c_make_vector (NSIG, SCM_BOOL_F);
+  signal_handler_threads = scm_c_make_vector (NSIG, SCM_BOOL_F);
 
   for (i = 0; i < NSIG; i++)
     {

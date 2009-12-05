@@ -6604,11 +6604,10 @@ scm_init_numbers ()
     }
 #ifdef DBL_DIG
   /* hard code precision for base 10 if the preprocessor tells us to... */
-      scm_dblprec[10-2] = (DBL_DIG > 20) ? 20 : DBL_DIG;
+  scm_dblprec[10-2] = (DBL_DIG > 20) ? 20 : DBL_DIG;
 #endif
 
-  exactly_one_half = scm_permanent_object (scm_divide (SCM_I_MAKINUM (1),
-						       SCM_I_MAKINUM (2)));
+  exactly_one_half = scm_divide (SCM_I_MAKINUM (1), SCM_I_MAKINUM (2));
 #include "libguile/numbers.x"
 }
 

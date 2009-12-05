@@ -895,14 +895,10 @@ scm_init_srfi_4 (void)
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
 
 #if SCM_HAVE_T_INT64 == 0
-  scm_uint64_min =
-    scm_permanent_object (scm_from_int (0));
-  scm_uint64_max =
-    scm_permanent_object (scm_c_read_string ("18446744073709551615"));
-  scm_int64_min =
-    scm_permanent_object (scm_c_read_string ("-9223372036854775808"));
-  scm_int64_max =
-    scm_permanent_object (scm_c_read_string ("9223372036854775807"));
+  scm_uint64_min = scm_from_int (0);
+  scm_uint64_max = scm_c_read_string ("18446744073709551615");
+  scm_int64_min = scm_c_read_string ("-9223372036854775808");
+  scm_int64_max = scm_c_read_string ("9223372036854775807");
 #endif
 
 #define REGISTER(tag, TAG)                                       \

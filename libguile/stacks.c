@@ -375,10 +375,8 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 void
 scm_init_stacks ()
 {
-  scm_stack_type =
-    scm_permanent_object
-    (scm_make_vtable (scm_from_locale_string (SCM_STACK_LAYOUT),
-                      SCM_UNDEFINED));
+  scm_stack_type = scm_make_vtable (scm_from_locale_string (SCM_STACK_LAYOUT),
+                                    SCM_UNDEFINED);
   scm_set_struct_vtable_name_x (scm_stack_type,
 				scm_from_locale_symbol ("stack"));
 #include "libguile/stacks.x"

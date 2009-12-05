@@ -926,7 +926,6 @@ scm_init_eval ()
   scm_listofnull = scm_list_1 (SCM_EOL);
 
   f_apply = scm_c_define_gsubr ("apply", 2, 0, 1, scm_apply);
-  scm_permanent_object (f_apply);
 
   scm_tc16_boot_closure = scm_make_smob_type ("boot-closure", 0);
   scm_set_smob_apply (scm_tc16_boot_closure, boot_closure_apply, 0, 0, 1);

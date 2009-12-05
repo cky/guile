@@ -817,7 +817,7 @@ scm_init_gc ()
 {
   /* `GC_INIT ()' was invoked in `scm_storage_prehistory ()'.  */
 
-  scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
+  scm_after_gc_hook = scm_make_hook (SCM_INUM0);
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
 
   gc_async = scm_c_make_gsubr ("%gc-thunk", 0, 0, 0, gc_async_thunk);

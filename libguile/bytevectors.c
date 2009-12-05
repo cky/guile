@@ -2206,9 +2206,9 @@ scm_bootstrap_bytevectors (void)
     scm_gc_protect_object (make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8));
 
 #ifdef WORDS_BIGENDIAN
-  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("big"));
+  scm_i_native_endianness = scm_from_locale_symbol ("big");
 #else
-  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("little"));
+  scm_i_native_endianness = scm_from_locale_symbol ("little");
 #endif
 
   scm_c_register_extension ("libguile", "scm_init_bytevectors",

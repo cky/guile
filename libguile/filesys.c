@@ -1712,7 +1712,7 @@ scm_init_filesys ()
   scm_set_smob_free (scm_tc16_dir, scm_dir_free);
   scm_set_smob_print (scm_tc16_dir, scm_dir_print);
 
-  scm_dot_string = scm_permanent_object (scm_from_locale_string ("."));
+  scm_dot_string = scm_from_locale_string (".");
   
 #ifdef O_RDONLY
   scm_c_define ("O_RDONLY", scm_from_int (O_RDONLY));

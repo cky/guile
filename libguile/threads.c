@@ -1947,15 +1947,14 @@ scm_init_threads ()
   guilify_self_2 (SCM_BOOL_F);
   threads_initialized_p = 1;
 
-  dynwind_critical_section_mutex =
-    scm_permanent_object (scm_make_recursive_mutex ());
+  dynwind_critical_section_mutex = scm_make_recursive_mutex ();
 }
 
 void
 scm_init_threads_default_dynamic_state ()
 {
   SCM state = scm_make_dynamic_state (scm_current_dynamic_state ());
-  scm_i_default_dynamic_state = scm_permanent_object (state);
+  scm_i_default_dynamic_state = state;
 }
 
 void
