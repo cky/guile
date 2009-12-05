@@ -440,27 +440,25 @@ scm_i_init_guile (SCM_STACKITEM *base)
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  scm_init_gc_protect_object ();  /* requires threads_prehistory, only provides
-                                     scm_protect_object / scm_permanent_object */
   scm_smob_prehistory ();
   scm_symbols_prehistory ();      /* requires weaks_prehistory */
   scm_modules_prehistory ();
   scm_init_variable ();
-  scm_init_continuations ();      /* requires smobs */
+  scm_init_continuations ();      /* requires smob_prehistory */
   scm_init_root ();		  /* requires continuations */
-  scm_init_threads ();
+  scm_init_threads ();            /* requires smob_prehistory */
   scm_init_gsubr ();
   scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
   scm_init_alist ();
-  scm_init_arbiters ();
-  scm_init_async ();
+  scm_init_arbiters ();           /* requires smob_prehistory */
+  scm_init_async ();              /* requires smob_prehistory */
   scm_init_boolean ();
   scm_init_chars ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_init_debug_malloc ();
 #endif
-  scm_init_dynwind ();
+  scm_init_dynwind ();            /* requires smob_prehistory */
   scm_init_eq ();
   scm_init_error ();
   scm_init_fluids ();
@@ -469,31 +467,32 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_fports ();
   scm_init_strports ();
   scm_init_ports ();
-  scm_init_gdbint ();           /* Requires strports, gc_protect_object */
   scm_init_hash ();
   scm_init_hashtab ();
   scm_init_deprecation ();
   scm_init_objprop ();
-  scm_init_promises ();
+  scm_init_promises ();         /* requires smob_prehistory */
   scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
   scm_init_gc ();		/* Requires hooks */
+  scm_init_gc_protect_object ();  /* requires threads_prehistory */
+  scm_init_gdbint ();           /* Requires strports, gc_protect_object */
   scm_init_gettext ();
   scm_init_ioext ();
-  scm_init_keywords ();
+  scm_init_keywords ();    /* Requires smob_prehistory */
   scm_init_list ();
-  scm_init_macros ();
-  scm_init_mallocs ();
-  scm_init_modules ();
+  scm_init_macros ();      /* Requires smob_prehistory */
+  scm_init_mallocs ();     /* Requires smob_prehistory */
+  scm_init_modules ();     /* Requires smob_prehistory */
   scm_init_numbers ();
   scm_init_options ();
   scm_init_pairs ();
 #ifdef HAVE_POSIX
-  scm_init_filesys ();
+  scm_init_filesys ();     /* Requires smob_prehistory */
   scm_init_posix ();
 #endif
 #ifdef HAVE_REGCOMP
-  scm_init_regex_posix ();
+  scm_init_regex_posix (); /* Requires smob_prehistory */
 #endif
   scm_init_procs ();
   scm_init_scmsigs ();
@@ -502,7 +501,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_socket ();
 #endif
   scm_init_sort ();
-  scm_init_srcprop ();
+  scm_init_srcprop ();     /* requires smob_prehistory */
   scm_init_stackchk ();
 
   scm_init_array_handle ();
@@ -510,43 +509,43 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_generalized_vectors ();
   scm_init_vectors ();
   scm_init_uniform ();
-  scm_init_bitvectors ();
+  scm_init_bitvectors ();  /* Requires smob_prehistory */
   scm_bootstrap_bytevectors ();
-  scm_init_srfi_4 ();
-  scm_init_arrays ();
+  scm_init_srfi_4 ();  /* requires smob_prehistory */
+  scm_init_arrays ();  /* Requires smob_prehistory */
   scm_init_array_map ();
 
-  scm_bootstrap_vm ();  /* requires gc_permanent_object */
+  scm_bootstrap_vm ();  /* requires smob_prehistory, gc_permanent_object */
 
   scm_init_strings ();  /* Requires array-handle */
   scm_init_struct ();   /* Requires strings */
-  scm_init_frames ();
+  scm_init_frames ();   /* Requires smob_prehistory */
   scm_init_stacks ();   /* Requires strings, struct, frames */
   scm_init_symbols ();
   scm_init_values ();   /* Requires struct */
   scm_init_load ();     /* Requires strings */
-  scm_init_print ();	/* Requires strings, struct */
+  scm_init_print ();	/* Requires strings, struct, smob */
   scm_init_read ();
   scm_init_stime ();
   scm_init_strorder ();
   scm_init_srfi_13 ();
-  scm_init_srfi_14 ();
-  scm_init_throw ();
+  scm_init_srfi_14 ();  /* Requires smob_prehistory */
+  scm_init_throw ();    /* Requires smob_prehistory */
   scm_init_trees ();
   scm_init_version ();
   scm_init_weaks ();
-  scm_init_guardians ();
+  scm_init_guardians (); /* requires smob_prehistory */
   scm_init_vports ();
   scm_init_standard_ports ();  /* Requires fports */
-  scm_init_memoize ();
-  scm_init_eval ();
+  scm_init_memoize ();  /* Requires smob_prehistory */
+  scm_init_eval ();     /* Requires smob_prehistory */
   scm_init_load_path ();
   scm_init_eval_in_scheme ();
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
-  scm_init_random ();
+  scm_init_random ();   /* Requires smob_prehistory */
   scm_init_simpos ();
-  scm_init_dynamic_linking ();
+  scm_init_dynamic_linking (); /* Requires smob_prehistory */
   scm_bootstrap_i18n ();
 #if SCM_ENABLE_ELISP
   scm_init_lang ();
