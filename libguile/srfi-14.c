@@ -2010,7 +2010,7 @@ define_charset (const char *name, const scm_t_char_set *p)
 
   SCM_NEWSMOB (cs, scm_tc16_charset, p);
   scm_c_define (name, cs);
-  return scm_permanent_object (cs);
+  return cs;
 }
 
 SCM_DEFINE (scm_sys_char_set_dump, "%char-set-dump", 1, 0, 0, (SCM charset), 

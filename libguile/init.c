@@ -469,7 +469,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_fports ();
   scm_init_strports ();
   scm_init_ports ();
-  scm_init_gdbint ();           /* Requires strports */
+  scm_init_gdbint ();           /* Requires strports, gc_protect_object */
   scm_init_hash ();
   scm_init_hashtab ();
   scm_init_deprecation ();
@@ -516,7 +516,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_arrays ();
   scm_init_array_map ();
 
-  scm_bootstrap_vm ();
+  scm_bootstrap_vm ();  /* requires gc_permanent_object */
 
   scm_init_strings ();  /* Requires array-handle */
   scm_init_struct ();   /* Requires strings */
