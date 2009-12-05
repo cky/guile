@@ -646,8 +646,8 @@ scm_storage_prehistory ()
 
 scm_i_pthread_mutex_t scm_i_gc_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-int
-scm_init_storage ()
+void
+scm_init_gc_protect_object ()
 {
   size_t j;
 
@@ -670,8 +670,6 @@ scm_init_storage ()
 #endif
 
   scm_protects = scm_c_make_hash_table (31);
-
-  return 0;
 }
 
 

@@ -435,21 +435,20 @@ scm_i_init_guile (SCM_STACKITEM *base)
     }
 
   scm_storage_prehistory ();
-  scm_threads_prehistory (base);
-  scm_weaks_prehistory ();
+  scm_threads_prehistory (base);  /* requires storage_prehistory */
+  scm_weaks_prehistory ();        /* requires storage_prehistory */
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  if (scm_init_storage ())        /* requires threads_prehistory */
-    abort ();
-  
+  scm_init_gc_protect_object ();  /* requires threads_prehistory, only provides
+                                     scm_protect_object / scm_permanent_object */
   scm_smob_prehistory ();
-  scm_symbols_prehistory ();      /* requires storage */
-  scm_modules_prehistory ();      /* requires storage */
-  scm_init_variable ();           /* all bindings need variables */
-  scm_init_continuations ();
+  scm_symbols_prehistory ();      /* requires weaks_prehistory */
+  scm_modules_prehistory ();
+  scm_init_variable ();
+  scm_init_continuations ();      /* requires smobs */
   scm_init_root ();		  /* requires continuations */
-  scm_init_threads ();            /* requires fluids */
+  scm_init_threads ();
   scm_init_gsubr ();
   scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
@@ -465,20 +464,20 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_eq ();
   scm_init_error ();
   scm_init_fluids ();
-  scm_init_feature ();          /* Requires fluids */
-  scm_init_backtrace ();	/* Requires fluids */
+  scm_init_feature ();
+  scm_init_backtrace ();
   scm_init_fports ();
   scm_init_strports ();
   scm_init_ports ();
   scm_init_gdbint ();           /* Requires strports */
   scm_init_hash ();
   scm_init_hashtab ();
-  scm_init_deprecation ();      /* Requires hashtabs */
+  scm_init_deprecation ();
   scm_init_objprop ();
   scm_init_promises ();
   scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
-  scm_init_gc ();		/* Requires hooks, async */
+  scm_init_gc ();		/* Requires hooks */
   scm_init_gettext ();
   scm_init_ioext ();
   scm_init_keywords ();

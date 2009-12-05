@@ -2202,8 +2202,7 @@ scm_bootstrap_bytevectors (void)
   /* This must be instantiated here because the generalized-vector API may
      want to access bytevectors even though `(rnrs bytevector)' hasn't been
      loaded.  */
-  scm_null_bytevector =
-    scm_gc_protect_object (make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8));
+  scm_null_bytevector = make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8);
 
 #ifdef WORDS_BIGENDIAN
   scm_i_native_endianness = scm_from_locale_symbol ("big");
