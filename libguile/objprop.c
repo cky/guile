@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 2000, 2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -35,12 +35,14 @@
 /* {Object Properties}
  */
 
+static SCM object_whash;
+
 SCM_DEFINE (scm_object_properties, "object-properties", 1, 0, 0, 
            (SCM obj),
 	    "Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_object_properties
 {
-  return scm_hashq_ref (scm_object_whash, obj, SCM_EOL);
+  return scm_hashq_ref (object_whash, obj, SCM_EOL);
 }
 #undef FUNC_NAME
 
@@ -50,7 +52,7 @@ SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
 	    "Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_object_properties_x
 {
-  SCM handle = scm_hashq_create_handle_x (scm_object_whash, obj, alist);
+  SCM handle = scm_hashq_create_handle_x (object_whash, obj, alist);
   SCM_SETCDR (handle, alist);
   return alist;
 }
@@ -75,7 +77,7 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
 {
   SCM h;
   SCM assoc;
-  h = scm_hashq_create_handle_x (scm_object_whash, obj, SCM_EOL);
+  h = scm_hashq_create_handle_x (object_whash, obj, SCM_EOL);
   SCM_CRITICAL_SECTION_START;
   assoc = scm_assq (key, SCM_CDR (h));
   if (SCM_NIMP (assoc))
@@ -94,7 +96,7 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
 void
 scm_init_objprop ()
 {
-  scm_object_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  object_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/objprop.x"
 }
 

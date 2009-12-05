@@ -253,6 +253,8 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 #define IS_SH_STRING(str)   (SCM_CELL_TYPE(str)==SH_STRING_TAG)
 
+SCM scm_nullstr;
+
 /* Create a scheme string with space for LEN 8-bit Latin-1-encoded
    characters.  CHARSP, if not NULL, will be set to location of the
    char array.  */

@@ -645,11 +645,7 @@ ramap (SCM ra0, SCM proc, SCM ras)
       unsigned long k, i1 = SCM_I_ARRAY_BASE (ra1);
       long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_I_ARRAY_V (ra1);
-      ras = SCM_CDR (ras);
-      if (scm_is_null(ras))
-	ras = scm_nullvect;
-      else
-	ras = scm_vector (ras);
+      ras = scm_vector (SCM_CDR (ras));
       
       for (; i <= n; i++, i1 += inc1)
 	{
@@ -706,11 +702,8 @@ rafe (SCM ra0, SCM proc, SCM ras)
       unsigned long k, i1 = SCM_I_ARRAY_BASE (ra1);
       long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_I_ARRAY_V (ra1);
-      ras = SCM_CDR (ras);
-      if (scm_is_null(ras))
-	ras = scm_nullvect;
-      else
-	ras = scm_vector (ras);
+      ras = scm_vector (SCM_CDR (ras));
+
       for (; i <= n; i++, i0 += inc0, i1 += inc1)
 	{
 	  args = SCM_EOL;

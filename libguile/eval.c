@@ -923,8 +923,6 @@ scm_init_eval ()
   scm_init_opts (scm_eval_options_interface,
 		 scm_eval_opts);
   
-  scm_listofnull = scm_list_1 (SCM_EOL);
-
   f_apply = scm_c_define_gsubr ("apply", 2, 0, 1, scm_apply);
 
   scm_tc16_boot_closure = scm_make_smob_type ("boot-closure", 0);

@@ -98,6 +98,8 @@
 /* the macro above will not work as is with fractions */
 
 
+static SCM flo0;
+
 #define SCM_SWAP(x, y) do { SCM __t = x; x = y; y = __t; } while (0)
 
 /* FLOBUFLEN is the maximum number of characters neccessary for the
@@ -5828,7 +5830,7 @@ scm_imag_part (SCM z)
   else if (SCM_BIGP (z))
     return SCM_INUM0;
   else if (SCM_REALP (z))
-    return scm_flo0;
+    return flo0;
   else if (SCM_COMPLEXP (z))
     return scm_from_double (SCM_COMPLEX_IMAG (z));
   else if (SCM_FRACTIONP (z))
@@ -5923,13 +5925,13 @@ SCM
 scm_angle (SCM z)
 {
   /* atan(0,-1) is pi and it'd be possible to have that as a constant like
-     scm_flo0 to save allocating a new flonum with scm_from_double each time.
+     flo0 to save allocating a new flonum with scm_from_double each time.
      But if atan2 follows the floating point rounding mode, then the value
      is not a constant.  Maybe it'd be close enough though.  */
   if (SCM_I_INUMP (z))
     {
       if (SCM_I_INUM (z) >= 0)
-        return scm_flo0;
+        return flo0;
       else
 	return scm_from_double (atan2 (0.0, -1.0));
     }
@@ -5940,12 +5942,12 @@ scm_angle (SCM z)
       if (sgn < 0)
 	return scm_from_double (atan2 (0.0, -1.0));
       else
-        return scm_flo0;
+        return flo0;
     }
   else if (SCM_REALP (z))
     {
       if (SCM_REAL_VALUE (z) >= 0)
-        return scm_flo0;
+        return flo0;
       else
         return scm_from_double (atan2 (0.0, -1.0));
     }
@@ -5954,7 +5956,7 @@ scm_angle (SCM z)
   else if (SCM_FRACTIONP (z))
     {
       if (scm_is_false (scm_negative_p (SCM_FRACTION_NUMERATOR (z))))
-	return scm_flo0;
+	return flo0;
       else return scm_from_double (atan2 (0.0, -1.0));
     }
   else
@@ -6594,7 +6596,7 @@ scm_init_numbers ()
 
   scm_add_feature ("complex");
   scm_add_feature ("inexact");
-  scm_flo0 = scm_from_double (0.0);
+  flo0 = scm_from_double (0.0);
 
   /* determine floating point precision */
   for (i=2; i <= SCM_MAX_DBL_RADIX; ++i)

@@ -501,7 +501,6 @@ scm_async_tick (void)
 void
 scm_init_async ()
 {
-  scm_asyncs = SCM_EOL;
   tc16_async = scm_make_smob_type ("async", 0);
 
 #include "libguile/async.x"

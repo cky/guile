@@ -29,22 +29,6 @@
 
 
 
-#define scm_flo0 scm_sys_protects[0]
-#define scm_listofnull scm_sys_protects[1]
-#define scm_nullvect scm_sys_protects[2]
-#define scm_nullstr scm_sys_protects[3]
-#define scm_keyword_obarray scm_sys_protects[4]
-#define scm_object_whash scm_sys_protects[5]
-#define scm_asyncs scm_sys_protects[6]
-#define scm_protects scm_sys_protects[7]
-#define scm_properties_whash scm_sys_protects[8]
-#define scm_source_whash scm_sys_protects[9]
-#define SCM_NUM_PROTECTS 10
-
-SCM_API SCM scm_sys_protects[];
-
-
-
 SCM_API SCM scm_internal_cwdr (scm_t_catch_body body,
 			       void *body_data,
 			       scm_t_catch_handler handler,

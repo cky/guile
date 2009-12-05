@@ -237,37 +237,37 @@ SCM_SNARF_INIT(								\
 
 # define SCM_SYMBOL(c_name, scheme_name)				\
 SCM_SNARF_HERE(static SCM c_name)					\
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
+SCM_SNARF_INIT(c_name = scm_from_locale_symbol (scheme_name))
 
 # define SCM_GLOBAL_SYMBOL(c_name, scheme_name)				\
 SCM_SNARF_HERE(SCM c_name)						\
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_symbol (scheme_name)))
+SCM_SNARF_INIT(c_name = scm_from_locale_symbol (scheme_name))
 
 #endif /* !SCM_SUPPORT_STATIC_ALLOCATION */
 
 #define SCM_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_keyword (scheme_name)))
+SCM_SNARF_INIT(c_name = scm_from_locale_keyword (scheme_name))
 
 #define SCM_GLOBAL_KEYWORD(c_name, scheme_name) \
 SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_from_locale_keyword (scheme_name)))
+SCM_SNARF_INIT(c_name = scm_from_locale_keyword (scheme_name))
 
 #define SCM_VARIABLE(c_name, scheme_name) \
 SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, SCM_BOOL_F));)
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, SCM_BOOL_F);)
 
 #define SCM_GLOBAL_VARIABLE(c_name, scheme_name) \
 SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, SCM_BOOL_F));)
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, SCM_BOOL_F);)
 
 #define SCM_VARIABLE_INIT(c_name, scheme_name, init_val) \
 SCM_SNARF_HERE(static SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_val));)
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, init_val);)
 
 #define SCM_GLOBAL_VARIABLE_INIT(c_name, scheme_name, init_val) \
 SCM_SNARF_HERE(SCM c_name) \
-SCM_SNARF_INIT(c_name = scm_permanent_object (scm_c_define (scheme_name, init_val));)
+SCM_SNARF_INIT(c_name = scm_c_define (scheme_name, init_val);)
 
 #define SCM_MUTEX(c_name) \
 SCM_SNARF_HERE(static scm_t_mutex c_name) \

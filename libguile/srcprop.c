@@ -59,6 +59,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_copy, "copy");
 SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
 SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
+SCM scm_source_whash;
 
 
 

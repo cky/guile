@@ -90,6 +90,9 @@ int scm_debug_cells_gc_interval = 0;
  */
 int scm_i_cell_validation_already_running ;
 
+static SCM protects;
+
+
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 
 
@@ -505,7 +508,7 @@ scm_gc_protect_object (SCM obj)
      critsec/mutex inconsistency here. */
   SCM_CRITICAL_SECTION_START;
 
-  handle = scm_hashq_create_handle_x (scm_protects, obj, scm_from_int (0));
+  handle = scm_hashq_create_handle_x (protects, obj, scm_from_int (0));
   SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
 
   protected_obj_count ++;
@@ -535,7 +538,7 @@ scm_gc_unprotect_object (SCM obj)
       abort ();
     }
  
-  handle = scm_hashq_get_handle (scm_protects, obj);
+  handle = scm_hashq_get_handle (protects, obj);
 
   if (scm_is_false (handle))
     {
@@ -546,7 +549,7 @@ scm_gc_unprotect_object (SCM obj)
     {
       SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
       if (scm_is_eq (count, scm_from_int (0)))
-	scm_hashq_remove_x (scm_protects, obj);
+	scm_hashq_remove_x (protects, obj);
       else
 	SCM_SETCDR (handle, count);
     }
@@ -634,7 +637,7 @@ scm_storage_prehistory ()
   /* GC_REGISTER_DISPLACEMENT (scm_tc3_unused); */
 
   /* Sanity check.  */
-  if (!GC_is_visible (scm_sys_protects))
+  if (!GC_is_visible (&protects))
     abort ();
 
   scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
@@ -649,11 +652,7 @@ scm_i_pthread_mutex_t scm_i_gc_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 void
 scm_init_gc_protect_object ()
 {
-  size_t j;
-
-  j = SCM_NUM_PROTECTS;
-  while (j)
-    scm_sys_protects[--j] = SCM_BOOL_F;
+  protects = scm_c_make_hash_table (31);
 
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it
@@ -668,8 +667,6 @@ scm_init_gc_protect_object ()
 #endif
 
 #endif
-
-  scm_protects = scm_c_make_hash_table (31);
 }
 
 

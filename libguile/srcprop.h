@@ -57,6 +57,7 @@ do { \
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK 1
 
 SCM_API scm_t_bits scm_tc16_srcprops;
+SCM_INTERNAL SCM scm_source_whash;
 
 SCM_API SCM scm_sym_filename;
 SCM_API SCM scm_sym_copy;

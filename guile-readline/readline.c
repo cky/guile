@@ -557,7 +557,7 @@ scm_init_readline ()
   rl_basic_word_break_characters = "\t\n\"'`;()";
   rl_readline_name = "Guile";
 
-  reentry_barrier_mutex = scm_permanent_object (scm_make_mutex ());
+  reentry_barrier_mutex = scm_make_mutex ();
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts);
 #if HAVE_RL_GET_KEYMAP

@@ -637,8 +637,6 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector);
 void
 scm_init_vectors ()
 {
-  scm_nullvect = scm_c_make_vector (0, SCM_UNDEFINED);
-
 #include "libguile/vectors.x"
 }
 
