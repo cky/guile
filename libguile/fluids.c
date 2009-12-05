@@ -112,6 +112,14 @@ scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_putc ('>', port);
 }
 
+void
+scm_i_dynamic_state_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+{
+  scm_puts ("#<dynamic-state ", port);
+  scm_intprint (SCM_UNPACK (exp), 16, port);
+  scm_putc ('>', port);
+}
+
 static size_t
 next_fluid_num ()
 {
