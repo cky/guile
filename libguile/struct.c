@@ -854,12 +854,6 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 void
-scm_struct_prehistory ()
-{
-  /* Empty.  */
-}
-
-void
 scm_init_struct ()
 {
   SCM scm_applicable_struct_vtable_vtable;

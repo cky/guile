@@ -157,7 +157,6 @@ SCM_API SCM scm_struct_create_handle (SCM obj);
 SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
 SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);
-SCM_API void scm_struct_prehistory (void);
 
 SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
 SCM_INTERNAL unsigned long scm_struct_ihashq (SCM, unsigned long, void *);
