@@ -26,7 +26,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/print.h"
-#include "libguile/smob.h"
 #include "libguile/dynwind.h"
 #include "libguile/fluids.h"
 #include "libguile/alist.h"
@@ -66,22 +65,12 @@ static size_t allocated_fluids_len = 0;
 static size_t allocated_fluids_num = 0;
 static char *allocated_fluids = NULL;
 
-static scm_t_bits tc16_fluid;
+#define IS_FLUID(x)         (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
+#define FLUID_NUM(x)        ((size_t)SCM_CELL_WORD_1(x))
 
-#define IS_FLUID(x)         SCM_SMOB_PREDICATE(tc16_fluid, (x))
-#define FLUID_NUM(x)        ((size_t)SCM_SMOB_DATA(x))
-#define FLUID_NEXT(x)       SCM_SMOB_OBJECT_2(x)
-#define FLUID_NEXT_LOC(x)       SCM_SMOB_OBJECT_2_LOC(x)
-#define SET_FLUID_NEXT(x,y) SCM_SET_SMOB_OBJECT_2((x), (y))
-
-static scm_t_bits tc16_dynamic_state;
-
-#define IS_DYNAMIC_STATE(x)        SCM_SMOB_PREDICATE(tc16_dynamic_state, (x))
-#define DYNAMIC_STATE_FLUIDS(x)        SCM_SMOB_OBJECT(x)
-#define SET_DYNAMIC_STATE_FLUIDS(x, y) SCM_SET_SMOB_OBJECT((x), (y))
-#define DYNAMIC_STATE_NEXT(x)          SCM_SMOB_OBJECT_2(x)
-#define DYNAMIC_STATE_NEXT_LOC(x)          SCM_SMOB_OBJECT_2_LOC(x)
-#define SET_DYNAMIC_STATE_NEXT(x, y)   SCM_SET_SMOB_OBJECT_2((x), (y))
+#define IS_DYNAMIC_STATE(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_dynamic_state)
+#define DYNAMIC_STATE_FLUIDS(x)        SCM_PACK (SCM_CELL_WORD_1 (x))
+#define SET_DYNAMIC_STATE_FLUIDS(x, y) SCM_SET_CELL_WORD_1 ((x), (SCM_UNPACK (y)))
 
 
 
@@ -115,13 +104,12 @@ grow_dynamic_state (SCM state)
   scm_i_pthread_mutex_unlock (&fluid_admin_mutex);
 }
 
-static int
-fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+void
+scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   scm_puts ("#<fluid ", port);
   scm_intprint ((int) FLUID_NUM (exp), 10, port);
   scm_putc ('>', port);
-  return 1;
 }
 
 static size_t
@@ -190,12 +178,7 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 	    "with its own dynamic state, you can use fluids for thread local storage.")
 #define FUNC_NAME s_scm_make_fluid
 {
-  SCM fluid;
-
-  SCM_NEWSMOB2 (fluid, tc16_fluid,
-		(scm_t_bits) next_fluid_num (), SCM_UNPACK (SCM_EOL));
-
-  return fluid;
+  return scm_cell (scm_tc7_fluid, (scm_t_bits) next_fluid_num ());
 }
 #undef FUNC_NAME
 
@@ -406,10 +389,7 @@ SCM
 scm_i_make_initial_dynamic_state ()
 {
   SCM fluids = scm_c_make_vector (allocated_fluids_len, SCM_BOOL_F);
-  SCM state;
-  SCM_NEWSMOB2 (state, tc16_dynamic_state,
-		SCM_UNPACK (fluids), SCM_UNPACK (SCM_EOL));
-  return state;
+  return scm_cell (scm_tc7_dynamic_state, SCM_UNPACK (fluids));
 }
 
 SCM_DEFINE (scm_make_dynamic_state, "make-dynamic-state", 0, 1, 0,
@@ -418,17 +398,14 @@ SCM_DEFINE (scm_make_dynamic_state, "make-dynamic-state", 0, 1, 0,
 	    "or of the current dynamic state when @var{parent} is omitted.")
 #define FUNC_NAME s_scm_make_dynamic_state
 {
-  SCM fluids, state;
+  SCM fluids;
 
   if (SCM_UNBNDP (parent))
     parent = scm_current_dynamic_state ();
 
-  scm_assert_smob_type (tc16_dynamic_state, parent);
+  SCM_ASSERT (IS_DYNAMIC_STATE (parent), parent, SCM_ARG1, FUNC_NAME);
   fluids = scm_vector_copy (DYNAMIC_STATE_FLUIDS (parent));
-  SCM_NEWSMOB2 (state, tc16_dynamic_state,
-		SCM_UNPACK (fluids), SCM_UNPACK (SCM_EOL));
-
-  return state;
+  return scm_cell (scm_tc7_dynamic_state, SCM_UNPACK (fluids));
 }
 #undef FUNC_NAME
 
@@ -465,7 +442,7 @@ SCM_DEFINE (scm_set_current_dynamic_state, "set-current-dynamic-state", 1,0,0,
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
   SCM old = t->dynamic_state;
-  scm_assert_smob_type (tc16_dynamic_state, state);
+  SCM_ASSERT (IS_DYNAMIC_STATE (state), state, SCM_ARG1, FUNC_NAME);
   t->dynamic_state = state;
   return old;
 }
@@ -481,7 +458,7 @@ void
 scm_dynwind_current_dynamic_state (SCM state)
 {
   SCM loc = scm_cons (state, SCM_EOL);
-  scm_assert_smob_type (tc16_dynamic_state, state);
+  SCM_ASSERT (IS_DYNAMIC_STATE (state), state, SCM_ARG1, NULL);
   scm_dynwind_rewind_handler_with_scm (swap_dynamic_state, loc,
 				     SCM_F_WIND_EXPLICITLY);
   scm_dynwind_unwind_handler_with_scm (swap_dynamic_state, loc,
@@ -514,14 +491,6 @@ SCM_DEFINE (scm_with_dynamic_state, "with-dynamic-state", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-void
-scm_fluids_prehistory ()
-{
-  tc16_fluid = scm_make_smob_type ("fluid", 0);
-  scm_set_smob_print (tc16_fluid, fluid_print);
-
-  tc16_dynamic_state = scm_make_smob_type ("dynamic-state", 0);
-}
 
 void
 scm_init_fluids ()

@@ -355,12 +355,6 @@ scm_i_hashtable_print (SCM exp, SCM port, scm_print_state *pstate)
   scm_puts (">", port);
 }
 
-SCM
-scm_i_hashtable_equal_p (SCM x, SCM y)
-{
-  return SCM_BOOL_F;
-}
-
 
 SCM
 scm_c_make_hash_table (unsigned long k)

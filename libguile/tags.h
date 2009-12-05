@@ -411,15 +411,11 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_stringbuf       39
 #define scm_tc7_bytevector	77
 
-/* Many of the following should be turned
- * into structs or smobs.  We need back some
- * of these 7 bit tags!  */
-
 #define scm_tc7_pws		31
-
 #define scm_tc7_hashtable	29
-#define scm_tc7_unused_2	37
-#define scm_tc7_unused_3	45
+#define scm_tc7_fluid		37
+#define scm_tc7_dynamic_state	45
+
 #define scm_tc7_unused_4	47
 #define scm_tc7_unused_5	53
 #define scm_tc7_unused_6	55

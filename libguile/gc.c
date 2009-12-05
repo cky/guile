@@ -758,6 +758,10 @@ scm_i_tag_name (scm_t_bits tag)
       return "pws";
     case scm_tc7_hashtable:
       return "hashtable";
+    case scm_tc7_fluid:
+      return "fluid";
+    case scm_tc7_dynamic_state:
+      return "dynamic state";
     case scm_tc7_wvect:
       return "weak vector";
     case scm_tc7_vector:

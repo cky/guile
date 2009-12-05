@@ -133,7 +133,7 @@ static scm_t_rstate *goops_rstate;
 SCM scm_class_boolean, scm_class_char, scm_class_pair;
 SCM scm_class_procedure, scm_class_string, scm_class_symbol;
 SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
-SCM scm_class_vector, scm_class_hashtable, scm_class_null;
+SCM scm_class_vector, scm_class_null;
 SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
 SCM scm_class_unknown;
 SCM scm_class_top, scm_class_object, scm_class_class;
@@ -157,6 +157,10 @@ SCM scm_class_hidden, scm_class_opaque, scm_class_read_only;
 SCM scm_class_protected_hidden, scm_class_protected_opaque, scm_class_protected_read_only;
 SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
+
+static SCM class_hashtable;
+static SCM class_fluid;
+static SCM class_dynamic_state;
 
 /* Port classes.  Allocate 3 times the maximum number of port types so that
    input ports, output ports, and in/out ports can be stored at different
@@ -211,7 +215,11 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	case scm_tc7_wvect:
 	  return scm_class_vector;
 	case scm_tc7_hashtable:
-	  return scm_class_hashtable;
+	  return class_hashtable;
+	case scm_tc7_fluid:
+	  return class_fluid;
+	case scm_tc7_dynamic_state:
+	  return class_dynamic_state;
 	case scm_tc7_string:
 	  return scm_class_string;
         case scm_tc7_number:
@@ -2402,7 +2410,11 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_vector,	   "<vector>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
-  make_stdcls (&scm_class_hashtable,	   "<hashtable>",
+  make_stdcls (&class_hashtable,	   "<hashtable>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_fluid,		   "<fluid>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_dynamic_state,	   "<dynamic-state>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_number,	   "<number>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);

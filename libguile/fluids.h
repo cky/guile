@@ -3,7 +3,7 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,18 +29,17 @@
 
 /* Fluids.
 
-   Fluids are objects of a certain type (a smob) that can hold one SCM
-   value per dynamic state.  That is, modifications to this value are
-   only visible to code that executes with the same dynamic state as
-   the modifying code.  When a new dynamic state is constructed, it
-   inherits the values from its parent.  Because each thread executes
-   with its own dynamic state, you can use fluids for thread local
-   storage.
+   Fluids are objects of a certain type that can hold one SCM value per
+   dynamic state. That is, modifications to this value are only visible
+   to code that executes with the same dynamic state as the modifying
+   code. When a new dynamic state is constructed, it inherits the
+   values from its parent. Because each thread executes with its own
+   dynamic state, you can use fluids for thread local storage.
 
-   Each fluid is identified by a small integer.  This integer is used
-   to index a vector that holds the values of all fluids.  A dynamic
-   state consists of this vector, wrapped in a smob so that the vector
-   can grow.
+   Each fluid is identified by a small integer. This integer is used to
+   index a vector that holds the values of all fluids. A dynamic state
+   consists of this vector, wrapped in an object so that the vector can
+   grow.
  */
 
 /* The fastest way to acces/modify the value of a fluid.  These macros
@@ -78,7 +77,7 @@ SCM_API SCM scm_with_dynamic_state (SCM state, SCM proc);
 
 SCM_INTERNAL SCM scm_i_make_initial_dynamic_state (void);
 
-SCM_INTERNAL void scm_fluids_prehistory (void);
+SCM_INTERNAL void scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */

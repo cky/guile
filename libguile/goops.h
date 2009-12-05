@@ -180,7 +180,6 @@ SCM_API SCM scm_class_symbol;
 SCM_API SCM scm_class_procedure_with_setter;
 SCM_API SCM scm_class_primitive_generic;
 SCM_API SCM scm_class_vector;
-SCM_API SCM scm_class_hashtable;
 SCM_API SCM scm_class_null;
 SCM_API SCM scm_class_real;
 SCM_API SCM scm_class_complex;
