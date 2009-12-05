@@ -95,8 +95,8 @@
  * Indexes into this table are used when generating type
  * tags for smobjects (if you know a tag you can get an index and conversely).
  */
-scm_t_ptob_descriptor *scm_ptobs;
-long scm_numptob;
+scm_t_ptob_descriptor *scm_ptobs = NULL;
+long scm_numptob = 0;
 
 /* GC marker for a port with stream of SCM type.  */
 SCM 
@@ -2264,13 +2264,6 @@ scm_port_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_uintprint (SCM_CELL_WORD_1 (exp), 16, port);
   scm_putc ('>', port);
   return 1;
-}
-
-void
-scm_ports_prehistory ()
-{
-  scm_numptob = 0;
-  scm_ptobs = NULL;
 }
 
 

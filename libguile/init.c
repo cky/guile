@@ -436,7 +436,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
 
   scm_storage_prehistory ();
   scm_threads_prehistory (base);
-  scm_ports_prehistory ();
   scm_smob_prehistory ();
   scm_weaks_prehistory ();
 #ifdef GUILE_DEBUG_MALLOC

@@ -304,7 +304,6 @@ SCM_API SCM scm_port_conversion_strategy (SCM port);
 SCM_API SCM scm_set_port_conversion_strategy_x (SCM port, SCM behavior);
 SCM_API int scm_port_print (SCM exp, SCM port, scm_print_state *);
 SCM_API void scm_print_port_mode (SCM exp, SCM port);
-SCM_API void scm_ports_prehistory (void);
 SCM_API SCM scm_void_port (char * mode_str);
 SCM_API SCM scm_sys_make_void_port (SCM mode);
 SCM_INTERNAL void scm_init_ports (void);
