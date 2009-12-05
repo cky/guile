@@ -30,6 +30,7 @@
 #include "libguile/smob.h"
 #include "libguile/arrays.h"
 #include "libguile/vectors.h"
+#include "libguile/hashtab.h"
 #include "libguile/bytevectors.h"
 
 #include "libguile/struct.h"
@@ -342,6 +343,9 @@ scm_equal_p (SCM x, SCM y)
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);
+
+    case scm_tc7_hashtable:
+      return scm_i_hashtable_equal_p (x, y);
     }
   /* Check equality between structs of equal type (see cell-type test above). */
   if (SCM_STRUCTP (x))

@@ -756,6 +756,8 @@ scm_i_tag_name (scm_t_bits tag)
       return "cons (non-immediate car)";
     case scm_tc7_pws:
       return "pws";
+    case scm_tc7_hashtable:
+      return "hashtable";
     case scm_tc7_wvect:
       return "weak vector";
     case scm_tc7_vector:

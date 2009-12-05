@@ -133,7 +133,7 @@ static scm_t_rstate *goops_rstate;
 SCM scm_class_boolean, scm_class_char, scm_class_pair;
 SCM scm_class_procedure, scm_class_string, scm_class_symbol;
 SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
-SCM scm_class_vector, scm_class_null;
+SCM scm_class_vector, scm_class_hashtable, scm_class_null;
 SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
 SCM scm_class_unknown;
 SCM scm_class_top, scm_class_object, scm_class_class;
@@ -210,6 +210,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
 	  return scm_class_vector;
+	case scm_tc7_hashtable:
+	  return scm_class_hashtable;
 	case scm_tc7_string:
 	  return scm_class_string;
         case scm_tc7_number:
@@ -2399,6 +2401,8 @@ create_standard_classes (void)
   make_stdcls (&scm_class_symbol,	   "<symbol>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_vector,	   "<vector>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&scm_class_hashtable,	   "<hashtable>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_number,	   "<number>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);

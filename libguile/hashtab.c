@@ -50,10 +50,7 @@
  *
  */
 
-/* Hash tables are either vectors of association lists or smobs
- * containing such vectors.  Currently, the vector version represents
- * constant size tables while those wrapped in a smob represents
- * resizing tables.
+/* A hash table is a cell containing a vector of association lists.
  *
  * Growing or shrinking, with following rehashing, is triggered when
  * the load factor
@@ -68,8 +65,6 @@
  * Possible hash table sizes (primes) are stored in the array
  * hashtable_size.
  */
-
-scm_t_bits scm_tc16_hashtable;
 
 static unsigned long hashtable_size[] = {
   31, 61, 113, 223, 443, 883, 1759, 3517, 7027, 14051, 28099, 56197, 112363,
@@ -230,7 +225,7 @@ weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
 static SCM
 make_hash_table (int flags, unsigned long k, const char *func_name) 
 {
-  SCM table, vector;
+  SCM vector;
   scm_t_hashtable *t;
   int i = 0, n = k ? k : 31;
   while (i < HASHTABLE_SIZE_N && n > hashtable_size[i])
@@ -250,9 +245,9 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
   t->flags = flags;
   t->hash_fn = NULL;
 
-  SCM_NEWSMOB2 (table, scm_tc16_hashtable, vector, t);
-
-  return table;
+  /* FIXME: we just need two words of storage, not three */
+  return scm_double_cell (scm_tc7_hashtable, SCM_UNPACK (vector),
+                          (scm_t_bits)t, 0);
 }
 
 void
@@ -342,8 +337,8 @@ scm_i_rehash (SCM table,
 }
 
 
-static int
-hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+void
+scm_i_hashtable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<", port);
   if (SCM_HASHTABLE_WEAK_KEY_P (exp))
@@ -358,7 +353,12 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_uintprint (SCM_SIMPLE_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)),
 		 10, port);
   scm_puts (">", port);
-  return 1;
+}
+
+SCM
+scm_i_hashtable_equal_p (SCM x, SCM y)
+{
+  return SCM_BOOL_F;
 }
 
 
@@ -650,7 +650,7 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
 		  SCM_ARG1, "hash_fn_remove_x");
       buckets = table;
     }
-  if (SCM_SIMPLE_VECTOR_LENGTH (table) == 0)
+  if (SCM_SIMPLE_VECTOR_LENGTH (buckets) == 0)
     return SCM_EOL;
 
   k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
@@ -1257,14 +1257,6 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 
 
 
-
-void
-scm_hashtab_prehistory ()
-{
-  /* Initialize the hashtab SMOB type.  */
-  scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
-  scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
-}
 
 void
 scm_init_hashtab ()

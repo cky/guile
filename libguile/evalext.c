@@ -77,6 +77,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	{
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
+	case scm_tc7_hashtable:
 	case scm_tc7_number:
 	case scm_tc7_string:
 	case scm_tc7_smob:

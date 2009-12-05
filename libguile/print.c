@@ -709,6 +709,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_program:
 	  scm_i_program_print (exp, port, pstate);
 	  break;
+	case scm_tc7_hashtable:
+	  scm_i_hashtable_print (exp, port, pstate);
+	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))

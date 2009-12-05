@@ -417,7 +417,7 @@ typedef scm_t_uintptr scm_t_bits;
 
 #define scm_tc7_pws		31
 
-#define scm_tc7_unused_1        29
+#define scm_tc7_hashtable	29
 #define scm_tc7_unused_2	37
 #define scm_tc7_unused_3	45
 #define scm_tc7_unused_4	47
