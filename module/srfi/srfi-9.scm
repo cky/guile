@@ -64,6 +64,32 @@
 
 (cond-expand-provide (current-module) '(srfi-9))
 
+(define-syntax define-inlinable
+  ;; Define a macro and a procedure such that direct calls are inlined, via
+  ;; the macro expansion, whereas references in non-call contexts refer to
+  ;; the procedure.  Inspired by the `define-integrable' macro by Dybvig et al.
+  (lambda (x)
+    (define (make-procedure-name name)
+      (datum->syntax name
+                     (symbol-append '% (syntax->datum name)
+                                    '-procedure)))
+
+    (syntax-case x ()
+      ((_ (name formals ...) body ...)
+       (identifier? #'name)
+       (with-syntax ((proc-name (make-procedure-name #'name)))
+         #`(begin
+             (define (proc-name formals ...)
+               body ...)
+             proc-name ;; unused
+             (define-syntax name
+               (lambda (x)
+                 (syntax-case x ()
+                   ((_ formals ...)
+                    #'(begin body ...))
+                   (_
+                    #'proc-name))))))))))
+
 (define-syntax define-record-type
   (lambda (x)
     (define (field-identifiers field-specs)
@@ -115,7 +141,7 @@
          (syntax-case #'field-spec ()
            ((name accessor)
             (with-syntax ((index (assoc-ref indices (syntax->datum #'name))))
-              #`((define (accessor s)
+              #`((define-inlinable (accessor s)
                    (if (eq? (struct-vtable s) #,type-name)
                        (struct-ref s index)
                        (throw 'wrong-type-arg 'accessor
@@ -124,7 +150,7 @@
            ((name accessor modifier)
             (with-syntax ((index (assoc-ref indices (syntax->datum #'name))))
               #`(#,@(accessors type-name #'((name accessor)) indices)
-                 (define (modifier s val)
+                 (define-inlinable (modifier s val)
                    (if (eq? (struct-vtable s) #,type-name)
                        (struct-set! s index val)
                        (throw 'wrong-type-arg 'modifier
@@ -152,7 +178,7 @@
                                                     (struct-ref obj #,i))))
                                       fields)
                               (format port ">"))))
-             (define (predicate-name obj)
+             (define-inlinable (predicate-name obj)
                (and (struct? obj)
                     (eq? (struct-vtable obj) type-name)))
 
