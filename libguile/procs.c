@@ -101,7 +101,6 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
               || SCM_STRUCT_APPLICABLE_P (obj)))
 	  break;
       case scm_tc7_gsubr:
-      case scm_tc7_pws:
       case scm_tc7_program:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
@@ -161,13 +160,16 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 /* Procedure-with-setter
  */
 
+static SCM pws_vtable;
+
+
 SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, 
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a procedure with an\n"
 	    "associated setter procedure.")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
-  return scm_from_bool(SCM_PROCEDURE_WITH_SETTER_P (obj));
+  return scm_from_bool (SCM_STRUCTP (obj) && SCM_STRUCT_SETTER_P (obj));
 }
 #undef FUNC_NAME
 
@@ -180,9 +182,9 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
   SCM name, ret;
   SCM_VALIDATE_PROC (1, procedure);
   SCM_VALIDATE_PROC (2, setter);
-  ret = scm_double_cell (scm_tc7_pws,
-                         SCM_UNPACK (procedure),
-                         SCM_UNPACK (setter), 0);
+  ret = scm_make_struct (pws_vtable, SCM_INUM0,
+                         scm_list_2 (procedure, setter));
+
   /* don't use procedure_name, because don't care enough to do a reverse
      lookup */
   switch (SCM_TYP7 (procedure)) {
@@ -201,51 +203,42 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 
 SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0, 
             (SCM proc),
-	    "Return the procedure of @var{proc}, which must be either a\n"
-	    "procedure with setter, or an applicable struct.")
+	    "Return the procedure of @var{proc}, which must be an\n"
+	    "applicable struct.")
 #define FUNC_NAME s_scm_procedure
 {
   SCM_VALIDATE_NIM (1, proc);
-  if (SCM_PROCEDURE_WITH_SETTER_P (proc))
-    return SCM_PROCEDURE (proc);
-  else if (SCM_STRUCTP (proc))
-    {
-      SCM_ASSERT (SCM_PUREGENERICP (proc) || SCM_STRUCT_APPLICABLE_P (proc),
-                  proc, SCM_ARG1, FUNC_NAME);
-      return proc;
-    }
-  SCM_WRONG_TYPE_ARG (1, proc);
-  return SCM_BOOL_F; /* not reached */
+  SCM_ASSERT (SCM_STRUCT_APPLICABLE_P (proc), proc, SCM_ARG1, FUNC_NAME);
+  return SCM_STRUCT_PROCEDURE (proc);
 }
 #undef FUNC_NAME
 
-SCM_GPROC (s_setter, "setter", 1, 0, 0, scm_setter, g_setter);
-
-SCM
-scm_setter (SCM proc)
+SCM_PRIMITIVE_GENERIC (scm_setter, "setter", 1, 0, 0,
+                       (SCM proc),
+                       "Return the setter of @var{proc}, which must be an\n"
+                       "applicable struct with a setter.")
+#define FUNC_NAME s_scm_setter
 {
-  SCM_GASSERT1 (SCM_NIMP (proc), g_setter, proc, SCM_ARG1, s_setter);
-  if (SCM_PROCEDURE_WITH_SETTER_P (proc))
-    return SCM_SETTER (proc);
-  else if (SCM_STRUCTP (proc))
-    {
-      SCM setter = SCM_BOOL_F;
-      if (SCM_PUREGENERICP (proc))
-        setter = SCM_GENERIC_SETTER (proc);
-      else if (SCM_STRUCT_SETTER_P (proc))
-        setter = SCM_STRUCT_SETTER (proc);
-      if (SCM_NIMP (setter))
-	return setter;
-      /* fall through */
-    }
-  SCM_WTA_DISPATCH_1 (g_setter, proc, SCM_ARG1, s_setter);
+  SCM_GASSERT1 (SCM_STRUCTP (proc), g_scm_setter, proc, SCM_ARG1, FUNC_NAME);
+  if (SCM_STRUCT_SETTER_P (proc))
+    return SCM_STRUCT_SETTER (proc);
+  if (SCM_PUREGENERICP (proc))
+    /* FIXME: might not be an accessor */
+    return SCM_GENERIC_SETTER (proc);
+  SCM_WTA_DISPATCH_1 (g_scm_setter, proc, SCM_ARG1, FUNC_NAME);
   return SCM_BOOL_F; /* not reached */
 }
+#undef FUNC_NAME
 
 
 void
 scm_init_procs ()
 {
+  SCM setter_vtable_vtable =
+    scm_variable_ref (scm_c_lookup ("<applicable-struct-with-setter-vtable>"));
+  pws_vtable = scm_make_struct (setter_vtable_vtable, SCM_INUM0,
+                                scm_list_1 (scm_from_locale_symbol ("pwpw")));
+
 #include "libguile/procs.x"
 }
 

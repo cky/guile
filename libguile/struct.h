@@ -35,7 +35,7 @@
 
    I would like to write this all up here, but for now:
 
-   http://wingolog.org/pub/goops-class-redefinition-3.png
+     http://wingolog.org/archives/2009/11/09/class-redefinition-in-guile
  */
 
 /* All vtables have the following fields. */

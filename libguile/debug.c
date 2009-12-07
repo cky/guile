@@ -172,9 +172,6 @@ SCM_DEFINE (scm_procedure_source, "procedure-source", 1, 0, 0,
           break;
         proc = SCM_STRUCT_PROCEDURE (proc);
         continue;
-      case scm_tc7_pws:
-        proc = SCM_PROCEDURE (proc);
-        continue;
       default:
         break;
       }

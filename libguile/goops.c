@@ -132,7 +132,7 @@ static scm_t_rstate *goops_rstate;
 /* These variables are filled in by the object system when loaded. */
 SCM scm_class_boolean, scm_class_char, scm_class_pair;
 SCM scm_class_procedure, scm_class_string, scm_class_symbol;
-SCM scm_class_procedure_with_setter, scm_class_primitive_generic;
+SCM scm_class_primitive_generic;
 SCM scm_class_vector, scm_class_null;
 SCM scm_class_integer, scm_class_real, scm_class_complex, scm_class_fraction;
 SCM scm_class_unknown;
@@ -240,8 +240,6 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    return scm_class_procedure;
 	case scm_tc7_program:
 	  return scm_class_procedure;
-	case scm_tc7_pws:
-	  return scm_class_procedure_with_setter;
 
 	case scm_tc7_smob:
 	  {
@@ -2419,8 +2417,6 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_procedure,	   "<procedure>",
 	       scm_class_procedure_class, scm_class_applicable, SCM_EOL);
-  make_stdcls (&scm_class_procedure_with_setter, "<procedure-with-setter>",
-	       scm_class_procedure_class, scm_class_procedure, SCM_EOL);
   make_stdcls (&scm_class_primitive_generic, "<primitive-generic>",
 	       scm_class_procedure_class, scm_class_procedure, SCM_EOL);
   make_stdcls (&scm_class_port,		   "<port>",

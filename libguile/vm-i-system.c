@@ -766,11 +766,6 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
       goto vm_call;
     }
-  else if (SCM_PROCEDURE_WITH_SETTER_P (x))
-    {
-      sp[-nargs] = SCM_PROCEDURE (x);
-      goto vm_call;
-    }
   /*
    * Other interpreted or compiled call
    */
@@ -850,12 +845,6 @@ VM_DEFINE_INSTRUCTION (54, goto_args, "goto/args", 1, -1, 1)
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
       goto vm_goto_args;
     }
-  else if (SCM_PROCEDURE_WITH_SETTER_P (x))
-    {
-      sp[-nargs] = SCM_PROCEDURE (x);
-      goto vm_goto_args;
-    }
-
   /*
    * Other interpreted or compiled call
    */
@@ -941,11 +930,6 @@ VM_DEFINE_INSTRUCTION (57, mv_call, "mv-call", 4, -1, 1)
   if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
     {
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_mv_call;
-    }
-  else if (SCM_PROCEDURE_WITH_SETTER_P (x))
-    {
-      sp[-nargs] = SCM_PROCEDURE (x);
       goto vm_mv_call;
     }
   /*

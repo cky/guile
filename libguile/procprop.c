@@ -73,9 +73,6 @@ scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
 	*rest = SCM_GSUBR_REST (type);
         return 1;
       }
-    case scm_tc7_pws:
-      proc = SCM_PROCEDURE (proc);
-      goto loop;
     case scm_tcs_struct:
       if (!SCM_STRUCT_APPLICABLE_P (proc))
         return 0;

@@ -177,7 +177,6 @@ SCM_API SCM scm_class_pair;
 SCM_API SCM scm_class_procedure;
 SCM_API SCM scm_class_string;
 SCM_API SCM scm_class_symbol;
-SCM_API SCM scm_class_procedure_with_setter;
 SCM_API SCM scm_class_primitive_generic;
 SCM_API SCM scm_class_vector;
 SCM_API SCM scm_class_null;

@@ -785,18 +785,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    scm_putc ('>', port);
 	    break;
 	  }
-	case scm_tc7_pws:
-	  scm_puts ("#<procedure-with-setter", port);
-	  {
-	    SCM name = scm_procedure_name (exp);
-	    if (scm_is_true (name))
-	      {
-		scm_putc (' ', port);
-		scm_display (name, port);
-	      }
-	  }
-	  scm_putc ('>', port);
-	  break;
 	case scm_tc7_port:
 	  {
 	    register long i = SCM_PTOBNUM (exp);

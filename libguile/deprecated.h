@@ -600,6 +600,14 @@ SCM_DEPRECATED scm_t_trampoline_1 scm_trampoline_1 (SCM proc);
 SCM_DEPRECATED scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
 
 
+
+/* Deprecated 2009-12-06, use the procedures instead */
+#define SCM_PROCEDURE_WITH_SETTER_P(obj) (scm_is_true (scm_procedure_with_setter_p (obj)))
+#define SCM_PROCEDURE(obj) SCM_STRUCT_PROCEDURE (obj, 0)
+#define SCM_SETTER(obj) SCM_STRUCT_SETTER (obj, 1)
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif
