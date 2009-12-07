@@ -21,6 +21,8 @@
 #  include <config.h>
 #endif
 
+#include <alloca.h>
+
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/chars.h"
@@ -206,12 +208,14 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
 
 
 static void
-scm_struct_init (SCM handle, SCM layout, int tail_elts, SCM inits)
+scm_struct_init (SCM handle, SCM layout, size_t n_tail,
+                 size_t n_inits, scm_t_bits *inits)
 {
   scm_t_wchar prot = 0;
   int n_fields = scm_i_symbol_length (layout) / 2;
   int tailp = 0;
   int i;
+  size_t inits_idx = 0;
   scm_t_bits *mem = SCM_STRUCT_DATA (handle);
 
   i = -2;
@@ -225,59 +229,34 @@ scm_struct_init (SCM handle, SCM layout, int tail_elts, SCM inits)
 	    {
 	      tailp = 1;
 	      prot = prot == 'R' ? 'r' : prot == 'W' ? 'w' : 'o';
-	      *mem++ = tail_elts;
-	      n_fields += tail_elts - 1;
+	      *mem++ = (scm_t_bits)n_tail;
+	      n_fields += n_tail - 1;
 	      if (n_fields == 0)
 		break;
 	    }
 	}
       switch (scm_i_symbol_ref (layout, i))
 	{
-#if 0
-	case 'i':
-	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
-	    *mem = 0;
-	  else
-	    {
-	      *mem = scm_to_long (SCM_CAR (inits));
-	      inits = SCM_CDR (inits);
-	    }
-	  break;
-#endif
-
 	case 'u':
-	  if ((prot != 'r' && prot != 'w') || scm_is_null (inits))
+	  if ((prot != 'r' && prot != 'w') || inits_idx == n_inits)
 	    *mem = 0;
 	  else
 	    {
-	      *mem = scm_to_ulong (SCM_CAR (inits));
-	      inits = SCM_CDR (inits);
+	      *mem = scm_to_ulong (SCM_PACK (inits[inits_idx]));
+              inits_idx++;
 	    }
 	  break;
 
 	case 'p':
-	  if ((prot != 'r' && prot != 'w') || scm_is_null (inits))
+	  if ((prot != 'r' && prot != 'w') || inits_idx == n_inits)
 	    *mem = SCM_UNPACK (SCM_BOOL_F);
 	  else
 	    {
-	      *mem = SCM_UNPACK (SCM_CAR (inits));
-	      inits = SCM_CDR (inits);
+	      *mem = inits[inits_idx];
+              inits_idx++;
 	    }
 	      
 	  break;
-
-#if 0
-	case 'd':
-	  if ((prot != 'r' && prot != 'w') || inits == SCM_EOL)
-	    *((double *)mem) = 0.0;
-	  else
-	    {
-	      *mem = scm_num2dbl (SCM_CAR (inits), "scm_struct_init");
-	      inits = SCM_CDR (inits);
-	    }
-	  fields_desc += 2;
-	  break;
-#endif
 
 	case 's':
 	  *mem = SCM_UNPACK (handle);
@@ -363,6 +342,71 @@ scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what)
 }
 
 
+SCM
+scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits *init)
+#define FUNC_NAME "make-struct"
+{
+  SCM layout;
+  size_t basic_size;
+  SCM obj;
+
+  SCM_VALIDATE_VTABLE (1, vtable);
+
+  layout = SCM_VTABLE_LAYOUT (vtable);
+  basic_size = scm_i_symbol_length (layout) / 2;
+
+  if (n_tail != 0)
+    {
+      SCM layout_str, last_char;
+      
+      if (basic_size == 0)
+        {
+        bad_tail: 
+          SCM_MISC_ERROR ("tail array not allowed unless layout ends R, W, or O", SCM_EOL);
+        }
+
+      layout_str = scm_symbol_to_string (layout);
+      last_char = scm_string_ref (layout_str,
+                                  scm_from_size_t (2 * basic_size - 1));
+      if (! SCM_LAYOUT_TAILP (SCM_CHAR (last_char)))
+        goto bad_tail;
+    }
+
+  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + n_tail,
+                            "struct");
+
+  scm_struct_init (obj, layout, n_tail, n_init, init);
+
+  /* only check things and inherit magic if the layout was passed as an initarg.
+     something of a hack, but it's for back-compatibility. */
+  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE)
+      && scm_is_true (SCM_VTABLE_LAYOUT (obj)))
+    scm_i_struct_inherit_vtable_magic (vtable, obj);
+
+  return obj;
+}
+#undef FUNC_NAME
+
+SCM
+scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits init, ...)
+{
+  va_list foo;
+  scm_t_bits *v;
+  size_t i;
+
+  v = alloca (sizeof (scm_t_bits) * n_init);
+
+  va_start (foo, init);
+  for (i = 0; i < n_init; i++)
+    {
+      v[i] = init;
+      init = va_arg (foo, scm_t_bits);
+    }
+  va_end (foo);
+
+  return scm_c_make_structv (vtable, n_tail, n_init, v);
+}
+
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
 	    "Create a new structure.\n\n"
@@ -382,49 +426,28 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 	    "For more information, see the documentation for @code{make-vtable-vtable}.")
 #define FUNC_NAME s_scm_make_struct
 {
-  SCM layout;
-  size_t basic_size;
-  size_t tail_elts;
-  SCM obj;
+  size_t i, n_init;
+  long ilen;
+  scm_t_bits *v;
 
   SCM_VALIDATE_VTABLE (1, vtable);
-  SCM_VALIDATE_REST_ARGUMENT (init);
+  ilen = scm_ilength (init);
+  if (ilen < 0)
+    SCM_MISC_ERROR ("Rest arguments do not form a proper list.", SCM_EOL);
+  
+  n_init = (size_t)ilen;
 
-  layout = SCM_VTABLE_LAYOUT (vtable);
-  basic_size = scm_i_symbol_length (layout) / 2;
-  tail_elts = scm_to_size_t (tail_array_size);
+  /* best to use alloca, but init could be big, so hack to avoid a possible
+     stack overflow */
+  if (n_init < 64)
+    v = alloca (n_init * sizeof(scm_t_bits));
+  else
+    v = scm_gc_malloc (n_init * sizeof(scm_t_bits), "struct");
 
-  /* A tail array is only allowed if the layout fields string ends in "R",
-     "W" or "O". */
-  if (tail_elts != 0)
-    {
-      SCM layout_str, last_char;
-      
-      if (basic_size == 0)
-        {
-        bad_tail: 
-          SCM_MISC_ERROR ("tail array not allowed unless layout ends R, W, or O", SCM_EOL);
-        }
+  for (i = 0; i < n_init; i++, init = SCM_CDR (init))
+    v[i] = SCM_UNPACK (SCM_CAR (init));
 
-      layout_str = scm_symbol_to_string (layout);
-      last_char = scm_string_ref (layout_str,
-                                  scm_from_size_t (2 * basic_size - 1));
-      if (! SCM_LAYOUT_TAILP (SCM_CHAR (last_char)))
-        goto bad_tail;
-    }
-
-  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + tail_elts,
-                            "struct");
-
-  scm_struct_init (obj, layout, tail_elts, init);
-
-  /* only check things and inherit magic if the layout was passed as an initarg.
-     something of a hack, but it's for back-compatibility. */
-  if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE)
-      && scm_is_true (SCM_VTABLE_LAYOUT (obj)))
-    scm_i_struct_inherit_vtable_magic (vtable, obj);
-
-  return obj;
+  return scm_c_make_structv (vtable, scm_to_size_t (tail_array_size), n_init, v);
 }
 #undef FUNC_NAME
 
@@ -481,23 +504,42 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM fields;
   SCM layout;
   size_t basic_size;
-  size_t tail_elts;
+  size_t n_tail, i, n_init;
   SCM obj;
+  long ilen;
+  scm_t_bits *v;
 
   SCM_VALIDATE_STRING (1, user_fields);
-  SCM_VALIDATE_REST_ARGUMENT (init);
+  ilen = scm_ilength (init);
+  if (ilen < 0)
+    SCM_MISC_ERROR ("Rest arguments do not form a proper list.", SCM_EOL);
+  
+  n_init = (size_t)ilen + 1; /* + 1 for the layout */
+
+  /* best to use alloca, but init could be big, so hack to avoid a possible
+     stack overflow */
+  if (n_init < 64)
+    v = alloca (n_init * sizeof(scm_t_bits));
+  else
+    v = scm_gc_malloc (n_init * sizeof(scm_t_bits), "struct");
 
   fields = scm_string_append (scm_list_2 (required_vtable_fields,
 					  user_fields));
   layout = scm_make_struct_layout (fields);
   basic_size = scm_i_symbol_length (layout) / 2;
-  tail_elts = scm_to_size_t (tail_array_size);
+  n_tail = scm_to_size_t (tail_array_size);
+
+  i = 0;
+  v[i++] = SCM_UNPACK (layout);
+  for (; i < n_init; i++, init = SCM_CDR (init))
+    v[i] = SCM_UNPACK (SCM_CAR (init));
+
   SCM_CRITICAL_SECTION_START;
-  obj = scm_i_alloc_struct (NULL, basic_size + tail_elts, "struct");
+  obj = scm_i_alloc_struct (NULL, basic_size + n_tail, "struct");
   /* magic magic magic */
   SCM_SET_CELL_WORD_0 (obj, (scm_t_bits)SCM_STRUCT_DATA (obj) | scm_tc3_struct);
   SCM_CRITICAL_SECTION_END;
-  scm_struct_init (obj, layout, tail_elts, scm_cons (layout, init));
+  scm_struct_init (obj, layout, n_tail, n_init, v);
   SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
   return obj;
 }

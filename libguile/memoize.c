@@ -23,8 +23,6 @@
 #  include <config.h>
 #endif
 
-#include <alloca.h>
-
 #include "libguile/__scm.h"
 
 #include <assert.h>

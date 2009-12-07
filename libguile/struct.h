@@ -147,6 +147,10 @@ SCM_API SCM scm_make_struct_layout (SCM fields);
 SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);
 SCM_API SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
+SCM_API SCM scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_inits,
+                               scm_t_bits init, ...);
+SCM_API SCM scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_inits,
+                                scm_t_bits init[]);
 SCM_API SCM scm_make_vtable (SCM fields, SCM printer);
 SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
