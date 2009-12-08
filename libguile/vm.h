@@ -99,7 +99,7 @@ struct scm_vm_cont {
 
 SCM_API scm_t_bits scm_tc16_vm_cont;
 #define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
-#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
+#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_SMOB_DATA_1 (CONT))
 
 SCM_API SCM scm_vm_capture_continuations (void);
 SCM_API void scm_vm_reinstate_continuations (SCM conts);
