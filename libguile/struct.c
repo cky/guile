@@ -321,7 +321,7 @@ struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
    points to the given vtable data, then a data pointer, then n_words of data.
  */
 SCM
-scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words, const char *what)
+scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words)
 {
   scm_t_bits ret;
   ret = (scm_t_bits)scm_gc_malloc (sizeof (scm_t_bits) * (n_words + 2), "struct");
@@ -376,8 +376,7 @@ scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits *init)
         goto bad_tail;
     }
 
-  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + n_tail,
-                            "struct");
+  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), basic_size + n_tail);
 
   scm_struct_init (obj, layout, n_tail, n_init, init);
 
@@ -539,7 +538,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
     v[i] = SCM_UNPACK (SCM_CAR (init));
 
   SCM_CRITICAL_SECTION_START;
-  obj = scm_i_alloc_struct (NULL, basic_size + n_tail, "struct");
+  obj = scm_i_alloc_struct (NULL, basic_size + n_tail);
   /* magic magic magic */
   SCM_SET_CELL_WORD_0 (obj, (scm_t_bits)SCM_STRUCT_DATA (obj) | scm_tc3_struct);
   SCM_CRITICAL_SECTION_END;
