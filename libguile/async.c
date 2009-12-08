@@ -87,9 +87,9 @@ static scm_t_bits tc16_async;
 #define SCM_ASYNCP(X)		SCM_TYP16_PREDICATE (tc16_async, X)
 #define VALIDATE_ASYNC(pos, a)	SCM_MAKE_VALIDATE_MSG(pos, a, ASYNCP, "user async")
 
-#define ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
-#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))
-#define ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
+#define ASYNC_GOT_IT(X)        (SCM_SMOB_FLAGS (X))
+#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_SMOB_FLAGS ((X), ((V))))
+#define ASYNC_THUNK(X)         SCM_SMOB_OBJECT_1 (X)
 
 
 SCM_DEFINE (scm_async, "async", 1, 0, 0,
