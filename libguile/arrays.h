@@ -65,13 +65,13 @@ typedef struct scm_i_t_array
 
 SCM_API scm_t_bits scm_i_tc16_array;
 
-#define SCM_I_ARRAY_FLAG_CONTIGUOUS (1 << 16)
+#define SCM_I_ARRAY_FLAG_CONTIGUOUS (1 << 0)
 
 #define SCM_I_ARRAYP(a)	    SCM_TYP16_PREDICATE (scm_i_tc16_array, a)
-#define SCM_I_ARRAY_NDIM(x)  ((size_t) (SCM_CELL_WORD_0 (x) >> 17))
-#define SCM_I_ARRAY_CONTP(x) (SCM_CELL_WORD_0(x) & SCM_I_ARRAY_FLAG_CONTIGUOUS)
+#define SCM_I_ARRAY_NDIM(x)  ((size_t) (SCM_SMOB_FLAGS (x)>>1))
+#define SCM_I_ARRAY_CONTP(x) (SCM_SMOB_FLAGS(x) & SCM_I_ARRAY_FLAG_CONTIGUOUS)
 
-#define SCM_I_ARRAY_MEM(a)  ((scm_i_t_array *) SCM_CELL_WORD_1 (a))
+#define SCM_I_ARRAY_MEM(a)  ((scm_i_t_array *) SCM_SMOB_DATA_1 (a))
 #define SCM_I_ARRAY_V(a)    (SCM_I_ARRAY_MEM (a)->v)
 #define SCM_I_ARRAY_BASE(a) (SCM_I_ARRAY_MEM (a)->base)
 #define SCM_I_ARRAY_DIMS(a) \
