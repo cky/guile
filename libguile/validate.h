@@ -278,7 +278,7 @@
 
 #define SCM_VALIDATE_SMOB(pos, obj, type) \
   do { \
-    SCM_ASSERT (SCM_TYP16_PREDICATE (scm_tc16_ ## type, obj), \
+    SCM_ASSERT (SCM_SMOB_PREDICATE (scm_tc16_ ## type, obj), \
                 obj, pos, FUNC_NAME); \
   } while (0)
 
