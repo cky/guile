@@ -122,7 +122,7 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 {
   scm_t_bits old;
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-  FETCH_STORE (old, * (scm_t_bits *) SCM_CELL_OBJECT_LOC(arb,0), SCM_LOCK_VAL);
+  FETCH_STORE (old, SCM_SMOB_DATA_0 (arb), SCM_LOCK_VAL);
   return scm_from_bool (old == SCM_UNLOCK_VAL);
 }
 #undef FUNC_NAME
@@ -148,7 +148,7 @@ SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 {
   scm_t_bits old;
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-  FETCH_STORE (old, *(scm_t_bits*)SCM_CELL_OBJECT_LOC(arb,0), SCM_UNLOCK_VAL);
+  FETCH_STORE (old, SCM_SMOB_DATA_0 (arb), SCM_UNLOCK_VAL);
   return scm_from_bool (old == SCM_LOCK_VAL);
 }
 #undef FUNC_NAME
