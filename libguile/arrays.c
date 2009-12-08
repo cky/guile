@@ -1126,7 +1126,8 @@ array_get_handle (SCM array, scm_t_array_handle *h)
   h->base = SCM_I_ARRAY_BASE (array);
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_i_tc16_array, 0xffff,
+SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_i_tc16_array),
+                          SCM_SMOB_TYPE_MASK,
                           array_handle_ref, array_handle_set,
                           array_get_handle);
 

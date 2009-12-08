@@ -883,7 +883,8 @@ uvec_get_handle (SCM v, scm_t_array_handle *h)
   h->elements = h->writable_elements = SCM_UVEC_BASE (v);
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_tc16_uvec, 0xffff,
+SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_uvec),
+                          SCM_SMOB_TYPE_MASK,
                           uvec_handle_ref, uvec_handle_set,
                           uvec_get_handle);
 

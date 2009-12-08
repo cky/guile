@@ -161,6 +161,8 @@ while (0)
 #define SCM_SMOB_OBJECT_LOC(x)		(SCM_SMOB_OBJECT_1_LOC (x)))
 
 
+#define SCM_SMOB_TYPE_MASK		0xffff
+#define SCM_SMOB_TYPE_BITS(tc)		(tc)
 #define SCM_TC2SMOBNUM(x)		(0x0ff & ((x) >> 8))
 #define SCM_SMOBNUM(x)			(SCM_TC2SMOBNUM (SCM_CELL_TYPE (x)))
 /* SCM_SMOBNAME can be 0 if name is missing */

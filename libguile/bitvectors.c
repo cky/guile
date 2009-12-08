@@ -878,7 +878,8 @@ bitvector_get_handle (SCM bv, scm_t_array_handle *h)
   h->elements = h->writable_elements = BITVECTOR_BITS (bv);
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_tc16_bitvector, 0xffff,
+SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_bitvector),
+                          SCM_SMOB_TYPE_MASK,
                           bitvector_handle_ref, bitvector_handle_set,
                           bitvector_get_handle);
 SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_BIT, scm_make_bitvector);
