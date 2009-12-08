@@ -141,6 +141,10 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
 SCM_API SCM scm_struct_table;
 
+SCM_API SCM scm_standard_vtable_vtable;
+SCM_API SCM scm_applicable_struct_vtable_vtable;
+SCM_API SCM scm_applicable_struct_with_setter_vtable_vtable;
+
 
 
 SCM_API SCM scm_make_struct_layout (SCM fields);

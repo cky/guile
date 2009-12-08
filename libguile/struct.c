@@ -54,6 +54,10 @@ static SCM required_vtable_fields = SCM_BOOL_F;
 static SCM required_applicable_fields = SCM_BOOL_F;
 static SCM required_applicable_with_setter_fields = SCM_BOOL_F;
 SCM scm_struct_table = SCM_BOOL_F;
+SCM scm_applicable_struct_vtable_vtable;
+SCM scm_applicable_struct_with_setter_vtable_vtable;
+SCM scm_standard_vtable_vtable;
+
 
 
 SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0, 
@@ -546,8 +550,6 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 #undef FUNC_NAME
 
 
-static SCM scm_i_vtable_vtable_no_extra_fields;
-
 SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
             (SCM fields, SCM printer),
 	    "Create a vtable, for creating structures with the given\n"
@@ -561,7 +563,7 @@ SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
   if (SCM_UNBNDP (printer))
     printer = SCM_BOOL_F;
 
-  return scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+  return scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
                           scm_list_2 (scm_make_struct_layout (fields),
                                       printer));
 }
@@ -898,9 +900,6 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_init_struct ()
 {
-  SCM scm_applicable_struct_vtable_vtable;
-  SCM scm_applicable_struct_with_setter_vtable_vtable;
-
   GC_REGISTER_DISPLACEMENT (2*sizeof(scm_t_bits)); /* for the self data pointer */
   GC_REGISTER_DISPLACEMENT (2*sizeof(scm_t_bits)
                             + scm_tc3_struct); /* for the vtable data pointer */
@@ -910,18 +909,18 @@ scm_init_struct ()
   required_applicable_fields = scm_from_locale_string (SCM_APPLICABLE_BASE_LAYOUT);
   required_applicable_with_setter_fields = scm_from_locale_string (SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT);
 
-  scm_i_vtable_vtable_no_extra_fields =
+  scm_standard_vtable_vtable =
     scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
 
   scm_applicable_struct_vtable_vtable =
-    scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+    scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
                      scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
   SCM_SET_VTABLE_FLAGS (scm_applicable_struct_vtable_vtable,
                         SCM_VTABLE_FLAG_APPLICABLE_VTABLE);
   scm_c_define ("<applicable-struct-vtable>", scm_applicable_struct_vtable_vtable);
 
   scm_applicable_struct_with_setter_vtable_vtable =
-    scm_make_struct (scm_i_vtable_vtable_no_extra_fields, SCM_INUM0,
+    scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
                      scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
   SCM_SET_VTABLE_FLAGS (scm_applicable_struct_with_setter_vtable_vtable,
                         SCM_VTABLE_FLAG_APPLICABLE_VTABLE | SCM_VTABLE_FLAG_SETTER_VTABLE);
