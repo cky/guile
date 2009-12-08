@@ -77,7 +77,7 @@ typedef struct t_guardian
 } t_guardian;
 
 #define GUARDIAN_P(x)    SCM_SMOB_PREDICATE(tc16_guardian, x)
-#define GUARDIAN_DATA(x) ((t_guardian *) SCM_CELL_WORD_1 (x))
+#define GUARDIAN_DATA(x) ((t_guardian *) SCM_SMOB_DATA_1 (x))
 
 
 
