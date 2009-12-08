@@ -440,7 +440,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  scm_smob_prehistory ();
   scm_symbols_prehistory ();      /* requires weaks_prehistory */
   scm_modules_prehistory ();
   scm_init_array_handle ();
@@ -448,6 +447,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_generalized_vectors ();
   scm_init_strings ();            /* Requires array-handle, generalized-vectors */
   scm_init_struct ();             /* Requires strings */
+  scm_smob_prehistory ();
   scm_init_variable ();
   scm_init_continuations ();      /* requires smob_prehistory */
   scm_init_root ();		  /* requires continuations */
