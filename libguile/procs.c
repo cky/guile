@@ -234,10 +234,11 @@ SCM_PRIMITIVE_GENERIC (scm_setter, "setter", 1, 0, 0,
 void
 scm_init_procs ()
 {
-  SCM setter_vtable_vtable =
-    scm_variable_ref (scm_c_lookup ("<applicable-struct-with-setter-vtable>"));
-  pws_vtable = scm_make_struct (setter_vtable_vtable, SCM_INUM0,
-                                scm_list_1 (scm_from_locale_symbol ("pwpw")));
+  pws_vtable =
+    scm_c_make_struct (scm_applicable_struct_with_setter_vtable_vtable,
+                       0,
+                       1,
+                       SCM_UNPACK (scm_from_locale_symbol ("pwpw")));
 
 #include "libguile/procs.x"
 }
