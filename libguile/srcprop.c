@@ -75,11 +75,11 @@ SCM scm_source_whash;
 
 #define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
 #define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
-#define SRCPROPPOS(p) (SCM_CELL_WORD(p,1))
+#define SRCPROPPOS(p) (SCM_SMOB_DATA(p))
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
-#define SRCPROPCOPY(p) (SCM_CELL_OBJECT(p,2))
-#define SRCPROPALIST(p) (SCM_CELL_OBJECT_3(p))
+#define SRCPROPCOPY(p) (SCM_SMOB_OBJECT_2(p))
+#define SRCPROPALIST(p) (SCM_SMOB_OBJECT_3(p))
 #define SETSRCPROPBRK(p) \
  (SCM_SET_SMOB_FLAGS ((p), \
                       SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
@@ -87,11 +87,11 @@ SCM scm_source_whash;
  (SCM_SET_SMOB_FLAGS ((p), \
                       SCM_SMOB_FLAGS (p) & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
-#define SETSRCPROPPOS(p, l, c) (SCM_SET_CELL_WORD(p,1, SRCPROPMAKPOS (l, c)))
+#define SETSRCPROPPOS(p, l, c) (SCM_SET_SMOB_DATA_1 (p, SRCPROPMAKPOS (l, c)))
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
-#define SETSRCPROPCOPY(p, c) (SCM_SET_CELL_WORD(p, 2, c))
-#define SETSRCPROPALIST(p, l) (SCM_SET_CELL_WORD(p, 3, l))
+#define SETSRCPROPCOPY(p, c) (SCM_SET_SMOB_OBJECT_2 (p, c))
+#define SETSRCPROPALIST(p, l) (SCM_SET_SMOB_OBJECT_3 (p, l))
 
 
 static SCM scm_srcprops_to_alist (SCM obj);
