@@ -81,7 +81,7 @@
 #define SCM_VTABLE_FLAG_SETTER (1L << 4) /* instances of this vtable are applicable-with-setters? */
 #define SCM_VTABLE_FLAG_RESERVED_0 (1L << 5)
 #define SCM_VTABLE_FLAG_RESERVED_1 (1L << 6)
-#define SCM_VTABLE_FLAG_RESERVED_2 (1L << 7)
+#define SCM_VTABLE_FLAG_SMOB_0 (1L << 7)
 #define SCM_VTABLE_FLAG_GOOPS_0 (1L << 8)
 #define SCM_VTABLE_FLAG_GOOPS_1 (1L << 9)
 #define SCM_VTABLE_FLAG_GOOPS_2 (1L << 10)
