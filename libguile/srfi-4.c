@@ -65,9 +65,9 @@ int scm_tc16_uvec = 0;
    - The vector's length (counted in elements).
    - The address of the data area (holding the elements of the
      vector). */
-#define SCM_UVEC_TYPE(u)   (SCM_CELL_WORD_1(u))
-#define SCM_UVEC_LENGTH(u) ((size_t)SCM_CELL_WORD_2(u))
-#define SCM_UVEC_BASE(u)   ((void *)SCM_CELL_WORD_3(u))
+#define SCM_UVEC_TYPE(u)   (SCM_SMOB_DATA_1(u))
+#define SCM_UVEC_LENGTH(u) ((size_t)SCM_SMOB_DATA_2(u))
+#define SCM_UVEC_BASE(u)   ((void *)SCM_SMOB_DATA_3(u))
 
 
 /* Symbolic constants encoding the various types of uniform
