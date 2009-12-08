@@ -69,7 +69,7 @@ typedef struct
 
 #define SCM_CONTINUATIONP(x)	SCM_TYP16_PREDICATE (scm_tc16_continuation, x)
 
-#define SCM_CONTREGS(x)		((scm_t_contregs *) SCM_CELL_WORD_1 (x))
+#define SCM_CONTREGS(x)		((scm_t_contregs *) SCM_SMOB_DATA_1 (x))
 
 #define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
 #define SCM_SET_CONTINUATION_LENGTH(x, n)\
