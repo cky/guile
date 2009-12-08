@@ -852,7 +852,7 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
   STRING_SYSCALL (dirname, c_dirname, ds = opendir (c_dirname));
   if (ds == NULL)
     SCM_SYSERROR;
-  SCM_RETURN_NEWSMOB (scm_tc16_dir | SCM_DIR_FLAG_OPEN, ds);
+  SCM_RETURN_NEWSMOB (scm_tc16_dir | (SCM_DIR_FLAG_OPEN<<16), ds);
 }
 #undef FUNC_NAME
 
@@ -893,7 +893,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
      somewhere in the smob, or just the dirent size calculated once.  */
   {
     struct dirent_or_dirent64 de; /* just for sizeof */
-    DIR    *ds = (DIR *) SCM_CELL_WORD_1 (port);
+    DIR    *ds = (DIR *) SCM_SMOB_DATA_1 (port);
     size_t namlen;
 #ifdef NAME_MAX
     char   buf [SCM_MAX (sizeof (de),
@@ -926,7 +926,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
     scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
     errno = 0;
-    SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_CELL_WORD_1 (port)));
+    SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_SMOB_DATA_1 (port)));
     if (errno != 0)
       SCM_SYSERROR;
 
@@ -951,7 +951,7 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
   if (!SCM_DIR_OPEN_P (port))
     SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
 
-  rewinddir ((DIR *) SCM_CELL_WORD_1 (port));
+  rewinddir ((DIR *) SCM_SMOB_DATA_1 (port));
 
   return SCM_UNSPECIFIED;
 }
@@ -970,11 +970,11 @@ SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
     {
       int sts;
 
-      SCM_SYSCALL (sts = closedir ((DIR *) SCM_CELL_WORD_1 (port)));
+      SCM_SYSCALL (sts = closedir ((DIR *) SCM_SMOB_DATA_1 (port)));
       if (sts != 0)
 	SCM_SYSERROR;
 
-      SCM_SET_CELL_WORD_0 (port, scm_tc16_dir);
+      SCM_SET_SMOB_DATA_0 (port, scm_tc16_dir);
     }
 
   return SCM_UNSPECIFIED;
@@ -989,7 +989,7 @@ scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   if (!SCM_DIR_OPEN_P (exp))
     scm_puts ("closed: ", port);
   scm_puts ("directory stream ", port);
-  scm_uintprint (SCM_CELL_WORD_1 (exp), 16, port);
+  scm_uintprint (SCM_SMOB_DATA_1 (exp), 16, port);
   scm_putc ('>', port);
   return 1;
 }
@@ -999,7 +999,7 @@ static size_t
 scm_dir_free (SCM p)
 {
   if (SCM_DIR_OPEN_P (p))
-    closedir ((DIR *) SCM_CELL_WORD_1 (p));
+    closedir ((DIR *) SCM_SMOB_DATA_1 (p));
   return 0;
 }
 
