@@ -625,7 +625,7 @@ scm_smob_free (SCM obj)
      "It is no longer needed.");
 
   if (scm_smobs[n].size > 0)
-    scm_gc_free ((void *) SCM_CELL_WORD_1 (obj), 
+    scm_gc_free ((void *) SCM_SMOB_DATA_1 (obj), 
 		 scm_smobs[n].size, SCM_SMOBNAME (n));
   return 0;
 }
