@@ -110,8 +110,10 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_SET_VTABLE_FLAGS(X,F)       (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags) |= (F))
 #define SCM_CLEAR_VTABLE_FLAGS(X,F)     (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags) &= (~(F)))
 #define SCM_VTABLE_FLAG_IS_SET(X,F)     (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags) & (F))
-#define SCM_VTABLE_INSTANCE_FINALIZER(X) ((scm_t_struct_finalize)SCM_STRUCT_SLOT_REF (X, scm_vtable_index_instance_finalize))
+#define SCM_VTABLE_INSTANCE_FINALIZER(X) ((scm_t_struct_finalize)SCM_STRUCT_DATA_REF (X, scm_vtable_index_instance_finalize))
+#define SCM_SET_VTABLE_INSTANCE_FINALIZER(X,P) (SCM_STRUCT_DATA_SET (X, scm_vtable_index_instance_finalize, (scm_t_bits)(P)))
 #define SCM_VTABLE_INSTANCE_PRINTER(X)  (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_instance_printer))
+#define SCM_SET_VTABLE_INSTANCE_PRINTER(X,P) (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_instance_printer, (P)))
 #define SCM_VTABLE_NAME(X)              (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_name))
 #define SCM_SET_VTABLE_NAME(X,V)        (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_name, V))
 
