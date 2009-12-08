@@ -483,9 +483,9 @@ SCM_DEFINE (scm_module_variable, "module-variable", 2, 0, 0,
 
 scm_t_bits scm_tc16_eval_closure;
 
-#define SCM_F_EVAL_CLOSURE_INTERFACE (1<<16)
+#define SCM_F_EVAL_CLOSURE_INTERFACE (1<<0)
 #define SCM_EVAL_CLOSURE_INTERFACE_P(e) \
-  (SCM_CELL_WORD_0 (e) & SCM_F_EVAL_CLOSURE_INTERFACE)
+  (SCM_SMOB_FLAGS (e) & SCM_F_EVAL_CLOSURE_INTERFACE)
 
 /* NOTE: This function may be called by a smob application
    or from another C function directly. */
@@ -521,7 +521,7 @@ SCM_DEFINE (scm_standard_interface_eval_closure,
 	    "Such a closure does not allow new bindings to be added.")
 #define FUNC_NAME s_scm_standard_interface_eval_closure
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure | SCM_F_EVAL_CLOSURE_INTERFACE,
+  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure | (SCM_F_EVAL_CLOSURE_INTERFACE<<16),
 		      SCM_UNPACK (module));
 }
 #undef FUNC_NAME
