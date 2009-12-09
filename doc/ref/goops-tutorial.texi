@@ -466,13 +466,17 @@ super class of all standard Scheme types.
 
 @example
 @group
-@image{hierarchy}
-@center @emph{Fig 1: A class hierarchy}
 @iftex
+@center @image{hierarchy,5in}
+@end iftex
+@ifnottex
+@verbatiminclude hierarchy.txt
+@end ifnottex
+
+@emph{Fig 1: A class hierarchy}
 @emph{(@code{<complex>} which is the direct subclass of @code{<number>}
 and the direct superclass of @code{<real>} has been omitted in this
 figure.)}
-@end iftex
 @end group
 @end example
 

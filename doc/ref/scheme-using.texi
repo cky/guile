@@ -371,19 +371,14 @@ to each other, with the arrows indicating ``builds on'' or
 ``extends''.  For example, the Quack library builds on cmuscheme,
 which in turn builds on the standard scheme mode.
 
+@iftex
+@center @image{scheme,5in}
+@end iftex
+@ifnottex
 @example
-            scheme
-               ^
-               |
-         .-----+-----.
-         |           |
-     cmuscheme    xscheme
-         ^
-         |
-   .-----+-----.
-   |           |
- Quack        GDS
+@verbatiminclude scheme.txt
 @end example
+@end ifnottex
 
 @dfn{scheme}, written by Bill Rozas and Dave Love, is Emacs's standard
 mode for Scheme code files.  It provides Scheme-sensitive syntax
@@ -550,25 +545,14 @@ program that wants to use GDS in any way.
 The following diagram shows how these components are connected to each
 other.
 
+@iftex
+@center @image{gds,5in}
+@end iftex
+@ifnottex
 @example
-+----------------+
-| Program #1     |
-|                |
-| +------------+ |
-| | GDS Client |-_
-| +------------+ |-_                       +-------------------+
-+----------------+  -_TCP                  | Emacs             |
-                      -_                   |                   |
-                        -_+------------+   | +---------------+ |
-                         _| GDS Server |-----| GDS Interface | |
-+----------------+     _- +------------+   | +---------------+ |
-| Program #2     |   _-                    +-------------------+
-|                | _- TCP
-| +------------+ _-
-| | GDS Client |-|
-| +------------+ |
-+----------------+
+@verbatiminclude gds.txt
 @end example
+@end ifnottex
 
 @cindex TCP, use of
 The data exchanged between client and server components, and between

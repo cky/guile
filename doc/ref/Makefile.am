@@ -89,7 +89,15 @@ PICTURES = hierarchy.eps \
 	   hierarchy.pdf \
 	   hierarchy.png \
 	   hierarchy.txt \
+	   gds.eps \
+	   gds.pdf \
+	   gds.txt \
+	   scheme.eps \
+	   scheme.pdf \
+	   scheme.txt \
 	   mop.text
+
+noinst_DATA = $(PICTURES)
 
 EXTRA_DIST = ChangeLog-2008 $(PICTURES)
 
