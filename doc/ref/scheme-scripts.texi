@@ -458,7 +458,7 @@ Here is a script which prints the factorial of its argument:
 @end example
 In action:
 @example
-$ fact 5
+$ ./fact 5
 120
 $
 @end example
@@ -487,7 +487,7 @@ definitions, without any extraneous computation taking place.  Then we
 used the meta switch @code{\} and the entry point switch @code{-e} to
 tell Guile to call @code{main} after loading the script.
 @example
-$ fact 50
+$ ./fact 50
 30414093201713378043612608166064768844377641568960512000000000000
 @end example
 
@@ -515,17 +515,17 @@ The command-line arguments here tell Guile to first load the file
 point.  In other words, the @code{choose} script can use definitions
 made in the @code{fact} script.  Here are some sample runs:
 @example
-$ choose 0 4
+$ ./choose 0 4
 1
-$ choose 1 4
+$ ./choose 1 4
 4
-$ choose 2 4
+$ ./choose 2 4
 6
-$ choose 3 4
+$ ./choose 3 4
 4
-$ choose 4 4
+$ ./choose 4 4
 1
-$ choose 50 100
+$ ./choose 50 100
 100891344545564193334812497256
 @end example
 
