@@ -1167,7 +1167,7 @@ static void error_unbound_variable (SCM symbol)
 SCM_DEFINE (scm_memoize_variable_access_x, "memoize-variable-access!", 2, 0, 0, 
             (SCM m, SCM mod),
 	    "Look up and cache the variable that @var{m} will access, returning the variable.")
-#define FUNC_NAME s_scm_memoized_expression_data
+#define FUNC_NAME s_scm_memoize_variable_access_x
 {
   SCM mx;
   SCM_VALIDATE_MEMOIZED (1, m);
