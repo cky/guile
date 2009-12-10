@@ -276,6 +276,7 @@ EXTRA_DIST += oop/ChangeLog-2008
 NOCOMP_SOURCES =				\
   ice-9/gds-client.scm \
   ice-9/psyntax.scm \
+  ice-9/quasisyntax.scm \
   system/repl/describe.scm \
   ice-9/debugger/command-loop.scm \
   ice-9/debugger/commands.scm \
