@@ -416,40 +416,42 @@ the module is used.
 
 @item #:export @var{list}
 @cindex export
-Export all identifiers in @var{list} which must be a list of symbols.
-This is equivalent to @code{(export @var{list})} in the module body.
+Export all identifiers in @var{list} which must be a list of symbols
+or pairs of symbols. This is equivalent to @code{(export @var{list})} 
+in the module body.
 
 @item #:re-export @var{list}
 @cindex re-export
 Re-export all identifiers in @var{list} which must be a list of
-symbols.  The symbols in @var{list} must be imported by the current
-module from other modules.  This is equivalent to @code{re-export}
-below.
+symbols or pairs of symbols.  The symbols in @var{list} must be 
+imported by the current module from other modules.  This is equivalent
+to @code{re-export} below.
 
 @item #:export-syntax @var{list}
 @cindex export-syntax
-Export all identifiers in @var{list} which must be a list of symbols.
-The identifiers in @var{list} must refer to macros (@pxref{Macros})
-defined in the current module.  This is equivalent to
-@code{(export-syntax @var{list})} in the module body.
+Export all identifiers in @var{list} which must be a list of symbols
+or pairs of symbols.  The identifiers in @var{list} must refer to 
+macros (@pxref{Macros}) defined in the current module.  This is 
+equivalent to @code{(export-syntax @var{list})} in the module body.
 
 @item #:re-export-syntax @var{list}
 @cindex re-export-syntax
 Re-export all identifiers in @var{list} which must be a list of
-symbols.  The symbols in @var{list} must refer to macros imported by
-the current module from other modules.  This is equivalent to
-@code{(re-export-syntax @var{list})} in the module body. 
+symbols or pairs of symbols.  The symbols in @var{list} must refer to
+macros imported by the current module from other modules.  This is 
+equivalent to @code{(re-export-syntax @var{list})} in the module body. 
 
 @item #:replace @var{list}
 @cindex replace
 @cindex replacing binding
 @cindex overriding binding
 @cindex duplicate binding
-Export all identifiers in @var{list} (a list of symbols) and mark them
-as @dfn{replacing bindings}.  In the module user's name space, this
-will have the effect of replacing any binding with the same name that
-is not also ``replacing''.  Normally a replacement results in an
-``override'' warning message, @code{#:replace} avoids that.
+Export all identifiers in @var{list} (a list of symbols or pairs of
+symbols) and mark them as @dfn{replacing bindings}.  In the module 
+user's name space, this will have the effect of replacing any binding 
+with the same name that is not also ``replacing''.  Normally a 
+replacement results in an ``override'' warning message, 
+@code{#:replace} avoids that.
 
 This is useful for modules that export bindings that have the same
 name as core bindings.  @code{#:replace}, in a sense, lets Guile know
@@ -557,8 +559,11 @@ do not know anything about dangerous procedures.
 @c end
 
 @deffn syntax export variable @dots{}
-Add all @var{variable}s (which must be symbols) to the list of exported
-bindings of the current module.
+Add all @var{variable}s (which must be symbols or pairs of symbols) to 
+the list of exported bindings of the current module.  If @var{variable}
+is a pair, its @code{car} gives the name of the variable as seen by the
+current module and its @code{cdr} specifies a name for the binding in
+the current module's public interface.
 @end deffn
 
 @c begin (scm-doc-string "boot-9.scm" "define-public")
@@ -568,9 +573,10 @@ Equivalent to @code{(begin (define foo ...) (export foo))}.
 @c end
 
 @deffn syntax re-export variable @dots{}
-Add all @var{variable}s (which must be symbols) to the list of
-re-exported bindings of the current module.  Re-exported bindings must
-be imported by the current module from some other module.
+Add all @var{variable}s (which must be symbols or pairs of symbols) to 
+the list of re-exported bindings of the current module.  Pairs of 
+symbols are handled as in @code{export}.  Re-exported bindings must be
+imported by the current module from some other module.
 @end deffn
 
 @node Module System Reflection
