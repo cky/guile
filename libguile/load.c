@@ -851,6 +851,9 @@ scm_init_eval_in_scheme (void)
   if (scm_is_true (eval_scm) && scm_is_true (eval_go)
       && compiled_is_fresh (eval_scm, eval_go))
     scm_load_compiled_with_vm (eval_go);
+  else
+    /* if we have no eval.go, we shouldn't load any compiled code at all */
+    *scm_loc_load_compiled_path = SCM_EOL;
 }
 
 
