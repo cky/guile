@@ -69,7 +69,9 @@
             (lp (cdr in) out filename)))))))
 
 (define (make-meta bindings sources arities tail)
-  (if (and (null? bindings) (null? sources) (null? tail))
+  ;; sounds silly, but the only case in which we have no arities is when
+  ;; compiling a meta procedure.
+  (if (and (null? bindings) (null? sources) (null? arities) (null? tail))
       #f
       (compile-assembly
        (make-glil-program '()
