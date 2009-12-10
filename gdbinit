@@ -198,3 +198,7 @@ end
 define inst
   p scm_instruction_table[$arg0]
 end
+
+define gbt
+  call scm_display_backtrace (scm_make_stack(0x404,0x304), scm_current_error_port (), 0x704, 0x704, 0x704)
+end

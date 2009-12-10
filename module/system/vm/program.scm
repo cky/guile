@@ -121,6 +121,7 @@
     (and arities
          (let lp ((arities arities))
            (cond ((null? arities) #f)
+                 ((not ip) (car arities)) ; take the first one
                  ((and (< (arity:start (car arities)) ip)
                        (<= ip (arity:end (car arities))))
                   (car arities))
