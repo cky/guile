@@ -1,0 +1,51 @@
+;;; -*- mode: scheme; coding: iso-8859-1; -*-
+;;; Vectors.
+;;;
+;;; Copyright 2009 Free Software Foundation, Inc.
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public License
+;;; as published by the Free Software Foundation; either version 3, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this software; see the file COPYING.LESSER.  If
+;;; not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (benchmarks vectors)
+  :use-module (benchmark-suite lib))
+
+;; Note: Use `--iteration-factor' to change this.
+(define iterations 1000000)
+
+
+(with-benchmark-prefix "constructors"
+
+  (benchmark "vector (opcode)" iterations
+    (vector 1 2 3 4 5 6 7))
+
+  (benchmark "vector (procedure)" iterations
+    (let ((v vector))
+      (v 1 2 3 4 5 6 7)))
+
+  (benchmark "make-vector" iterations
+    (make-vector 7)))
+
+
+(with-benchmark-prefix "pairs" ;; for comparison
+
+  (benchmark "list (opcode)" iterations
+    (list 1 2 3 4 5 6 7))
+
+  (benchmark "list (procedure)" iterations
+    (let ((l list))
+      (l 1 2 3 4 5 6 7)))
+
+  (benchmark "make-list" iterations
+    (make-list 7)))

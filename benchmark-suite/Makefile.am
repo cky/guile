@@ -4,8 +4,10 @@ SCM_BENCHMARKS = benchmarks/0-reference.bm		\
                  benchmarks/if.bm			\
                  benchmarks/logand.bm			\
 		 benchmarks/read.bm			\
+		 benchmarks/structs.bm			\
 		 benchmarks/subr.bm			\
-		 benchmarks/uniform-vector-read.bm
+		 benchmarks/uniform-vector-read.bm	\
+		 benchmarks/vectors.bm
 
 EXTRA_DIST = guile-benchmark lib.scm $(SCM_BENCHMARKS)	\
 	     ChangeLog-2008

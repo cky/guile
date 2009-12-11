@@ -1,8 +1,7 @@
-;;; coding: latin1 -*- mode: scheme; coding: latin-1; -*-
+;;; -*- mode: scheme; coding: iso-8859-1; -*-
 ;;; R6RS Byte Vectors.
 ;;;
-;;; Copyright 2009  Ludovic Courtès <ludo@gnu.org>
-;;;
+;;; Copyright 2009 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
