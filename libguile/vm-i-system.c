@@ -747,8 +747,7 @@ VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
  vm_call:
   x = sp[-nargs];
 
-  SYNC_REGISTER ();
-  SCM_TICK;	/* allow interrupt here */
+  VM_HANDLE_INTERRUPTS;
 
   /*
    * Subprogram call
@@ -813,8 +812,7 @@ VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
  vm_goto_args:
   x = sp[-nargs];
 
-  SYNC_REGISTER ();
-  SCM_TICK;	/* allow interrupt here */
+  VM_HANDLE_INTERRUPTS;
 
   /*
    * Tail call
@@ -1085,8 +1083,9 @@ VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
  vm_return:
   EXIT_HOOK ();
   RETURN_HOOK ();
-  SYNC_REGISTER ();
-  SCM_TICK;	/* allow interrupt here */
+
+  VM_HANDLE_INTERRUPTS;
+
   {
     SCM ret;
 

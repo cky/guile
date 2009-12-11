@@ -498,12 +498,24 @@ SCM_API void scm_async_tick (void);
 #ifdef BUILDING_LIBGUILE
 
 /* FIXME: should change names */
-# define SCM_ASYNC_TICK					\
-    do							\
-      {							\
-	if (SCM_I_CURRENT_THREAD->pending_asyncs)	\
-	  scm_async_click ();				\
-      }							\
+# define SCM_ASYNC_TICK                                                 \
+    do                                                                  \
+      {                                                                 \
+	if (SCM_UNLIKELY (SCM_I_CURRENT_THREAD->pending_asyncs))	\
+	  scm_async_click ();                                           \
+      }                                                                 \
+    while (0)
+
+/* SCM_ASYNC_TICK_WITH_CODE is only available to Guile itself */
+# define SCM_ASYNC_TICK_WITH_CODE(stmt)                                 \
+    do                                                                  \
+      {                                                                 \
+	if (SCM_UNLIKELY (SCM_I_CURRENT_THREAD->pending_asyncs))	\
+	  {                                                             \
+            stmt;                                                       \
+            scm_async_click ();                                         \
+          }                                                             \
+      }                                                                 \
     while (0)
 
 #else /* !BUILDING_LIBGUILE */

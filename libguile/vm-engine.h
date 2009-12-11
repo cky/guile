@@ -228,6 +228,9 @@
 #define EXIT_HOOK()	RUN_HOOK (SCM_VM_EXIT_HOOK)
 #define RETURN_HOOK()	RUN_HOOK (SCM_VM_RETURN_HOOK)
 
+#define VM_HANDLE_INTERRUPTS                     \
+  SCM_ASYNC_TICK_WITH_CODE (SYNC_REGISTER ())
+
 
 /*
  * Stack operation
