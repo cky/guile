@@ -59,19 +59,23 @@
 
 (with-test-prefix "gc"
   (pass-if "Unused modules are removed"
-	   (let* ((guard (make-guardian))
-                  (total 1000))
+    (let* ((guard (make-guardian))
+           (total 1000))
 
-	     (for-each (lambda (x) (guard (make-module))) (iota total))
+      (for-each (lambda (x) (guard (make-module))) (iota total))
 
-             (gc)
-	     (gc) ;; twice: have to kill the weak vectors.
-             (gc) ;; thrice: because the test doesn't succeed with only
-                  ;; one gc round. not sure why.
+      ;; Avoid false references to the modules on the stack.
+      (let cleanup ((i 20))
+        (and (> i 0)
+             (begin (cleanup (1- i)) i)))
 
-             (= (let lp ((i 0))
-                  (if (guard)
-                      (lp (1+ i))
-                      i))
-                total))))
+      (gc)
+      (gc) ;; twice: have to kill the weak vectors.
+      (gc) ;; thrice: because the test doesn't succeed with only
+           ;; one gc round. not sure why.
 
+      (= (let lp ((i 0))
+           (if (guard)
+               (lp (1+ i))
+               i))
+         total))))
