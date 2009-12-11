@@ -34,6 +34,7 @@
     call/cc
     values
     eq? eqv? equal?
+    memq memv
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo
     ash logand logior logxor

@@ -50,27 +50,51 @@
                           (or (inline1 x) x))
                         (lp alternate)))))))
 
-         ;; (call-with-values (lambda () foo) (lambda (a b . c) bar))
-         ;; => (let-values (((a b . c) foo)) bar)
-         ;;
-         ;; Note that this is a singly-binding form of let-values. Also
-         ;; note that Scheme's let-values expands into call-with-values,
-         ;; then here we reduce it to tree-il's let-values.
          ((<primitive-ref> name)
-          (and (eq? name '@call-with-values)
-               (pmatch args
-                 ((,producer ,consumer)
-                  (guard (lambda? consumer)
-                         (lambda-case? (lambda-body consumer))
-                         (not (lambda-case-opt (lambda-body consumer)))
-                         (not (lambda-case-kw (lambda-body consumer)))
-                         (not (lambda-case-alternate (lambda-body consumer))))
-                  (make-let-values
-                   src
-                   (let ((x (make-application src producer '())))
-                     (or (inline1 x) x))
-                   (lambda-body consumer)))
-                 (else #f))))
+          (case name
+            ((@call-with-values)
+             (pmatch args
+               ;; (call-with-values (lambda () foo) (lambda (a b . c) bar))
+               ;; => (let-values (((a b . c) foo)) bar)
+               ;;
+               ;; Note that this is a singly-binding form of let-values.
+               ;; Also note that Scheme's let-values expands into
+               ;; call-with-values, then here we reduce it to tree-il's
+               ;; let-values.
+               ((,producer ,consumer)
+                (guard (lambda? consumer)
+                       (lambda-case? (lambda-body consumer))
+                       (not (lambda-case-opt (lambda-body consumer)))
+                       (not (lambda-case-kw (lambda-body consumer)))
+                       (not (lambda-case-alternate (lambda-body consumer))))
+                (make-let-values
+                 src
+                 (let ((x (make-application src producer '())))
+                   (or (inline1 x) x))
+                 (lambda-body consumer)))
+               (else #f)))
+
+            ((memq memv)
+             (pmatch args
+               ((,k ,l) (guard (const? l) (list? (const-exp l)))
+                (let lp ((elts (const-exp l)))
+                  (if (null? elts)
+                      (make-const #f #f)
+                      (make-conditional
+                       src
+                       (make-application
+                        #f
+                        (make-primitive-ref #f (case name
+                                                 ((memq) 'eq?)
+                                                 ((memv) 'eqv?)
+                                                 (else (error "what"))))
+                        (list k (make-const #f (car elts))))
+                       (make-const #f #t)
+                       (lp (cdr elts))))))
+
+               (else #f)))
+
+            (else #f)))
 
          (else #f)))
        
