@@ -621,6 +621,40 @@ BV_FLOAT_SET (f64, ieee_double, double, 8)
 #undef BV_INT_SET
 #undef BV_FLOAT_SET
 
+#define VM_VALIDATE_STRUCT(obj)			\
+  if (SCM_UNLIKELY (!SCM_STRUCTP (obj)))	\
+    {						\
+      finish_args = (obj);			\
+      goto vm_error_not_a_struct;		\
+    }
+
+VM_DEFINE_FUNCTION (174, struct_p, "struct?", 1)
+{
+  ARGS1 (obj);
+  RETURN (scm_from_bool (SCM_STRUCTP (obj)));
+}
+
+VM_DEFINE_FUNCTION (175, struct_vtable, "struct-vtable", 1)
+{
+  ARGS1 (obj);
+  VM_VALIDATE_STRUCT (obj);
+  RETURN (SCM_STRUCT_VTABLE (obj));
+}
+
+VM_DEFINE_INSTRUCTION (176, make_struct, "make-struct", 2, -1, 1)
+{
+  unsigned h = FETCH ();
+  unsigned l = FETCH ();
+  int n_args = ((h << 8U) + l);
+  SCM vtable = sp[1 - n_args], n_tail = sp[2 - n_args];
+  const SCM *inits = sp - n_args + 3;
+
+  sp -= n_args - 1;
+
+  RETURN (scm_c_make_structv (vtable, scm_to_size_t (n_tail),
+			      n_args - 2, (scm_t_bits *) inits));
+}
+
 /*
 (defun renumber-ops ()
   "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"

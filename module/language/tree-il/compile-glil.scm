@@ -115,6 +115,9 @@
    ((variable-ref . 1) . variable-ref)
    ;; nb, *not* variable-set! -- the args are switched
    ((variable-set . 2) . variable-set)
+   ((struct? . 1) . struct?)
+   ((struct-vtable . 1) . struct-vtable)
+   (make-struct . make-struct)
 
    ;; hack for javascript
    ((return . 1) return)
