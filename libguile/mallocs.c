@@ -42,14 +42,6 @@
 scm_t_bits scm_tc16_malloc;
 
 
-static size_t
-malloc_free (SCM ptr)
-{
-  if (SCM_MALLOCDATA (ptr))
-    free (SCM_MALLOCDATA (ptr));
-  return 0;
-}
-
 
 static int
 malloc_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -72,11 +64,10 @@ scm_malloc_obj (size_t n)
 
 
 
-void 
+void
 scm_init_mallocs ()
 {
   scm_tc16_malloc = scm_make_smob_type ("malloc", 0);
-  scm_set_smob_free (scm_tc16_malloc, malloc_free);
   scm_set_smob_print (scm_tc16_malloc, malloc_print);
 }
 

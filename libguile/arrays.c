@@ -56,9 +56,9 @@
 
 scm_t_bits scm_i_tc16_array;
 #define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
-  (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) | SCM_I_ARRAY_FLAG_CONTIGUOUS))
+  (SCM_SET_SMOB_FLAGS ((x), SCM_SMOB_FLAGS (x) | SCM_I_ARRAY_FLAG_CONTIGUOUS))
 #define SCM_CLR_ARRAY_CONTIGUOUS_FLAG(x) \
-  (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) & ~SCM_I_ARRAY_FLAG_CONTIGUOUS))
+  (SCM_SET_SMOB_FLAGS ((x), SCM_SMOB_FLAGS (x) & ~SCM_I_ARRAY_FLAG_CONTIGUOUS))
 
 
 SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0, 
@@ -211,7 +211,7 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
   scm_t_array_dim *s;
   SCM ra;
   scm_t_array_handle h;
-  void *base;
+  void *elts;
   size_t sz;
   
   ra = scm_i_shap2ra (bounds);
@@ -230,16 +230,28 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
 
 
   scm_array_get_handle (ra, &h);
-  base = scm_array_handle_uniform_writable_elements (&h);
-  sz = scm_array_handle_uniform_element_size (&h);
+  elts = h.writable_elements;
+  sz = scm_array_handle_uniform_element_bit_size (&h);
   scm_array_handle_release (&h);
 
-  if (byte_len % sz)
-    SCM_MISC_ERROR ("byte length not a multiple of the unit size", SCM_EOL);
-  if (byte_len / sz != rlen)
-    SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+  if (sz >= 8 && ((sz % 8) == 0))
+    {
+      if (byte_len % (sz / 8))
+        SCM_MISC_ERROR ("byte length not a multiple of the unit size", SCM_EOL);
+      if (byte_len / (sz / 8) != rlen)
+        SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+    }
+  else if (sz < 8)
+    {
+      /* byte_len ?= ceil (rlen * sz / 8) */
+      if (byte_len != (rlen * sz + 7) / 8)
+        SCM_MISC_ERROR ("byte length and dimensions do not match", SCM_EOL);
+    }
+  else
+    /* an internal guile error, really */
+    SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
-  memcpy (base, bytes, byte_len);
+  memcpy (elts, bytes, byte_len);
 
   if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
@@ -1087,22 +1099,6 @@ scm_i_read_array (SCM port, int c)
 
 
 static SCM
-array_mark (SCM ptr)
-{
-  return SCM_I_ARRAY_V (ptr);
-}
-
-static size_t
-array_free (SCM ptr)
-{
-  scm_gc_free (SCM_I_ARRAY_MEM (ptr),
-	       (sizeof (scm_i_t_array) 
-		+ SCM_I_ARRAY_NDIM (ptr) * sizeof (scm_t_array_dim)),
-	       "array");
-  return 0;
-}
-
-static SCM
 array_handle_ref (scm_t_array_handle *h, size_t pos)
 {
   return scm_c_generalized_vector_ref (SCM_I_ARRAY_V (h->array), pos);
@@ -1130,7 +1126,8 @@ array_get_handle (SCM array, scm_t_array_handle *h)
   h->base = SCM_I_ARRAY_BASE (array);
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_i_tc16_array, 0xffff,
+SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_i_tc16_array),
+                          SCM_SMOB_TYPE_MASK,
                           array_handle_ref, array_handle_set,
                           array_get_handle);
 
@@ -1138,8 +1135,6 @@ void
 scm_init_arrays ()
 {
   scm_i_tc16_array = scm_make_smob_type ("array", 0);
-  scm_set_smob_mark (scm_i_tc16_array, array_mark);
-  scm_set_smob_free (scm_i_tc16_array, array_free);
   scm_set_smob_print (scm_i_tc16_array, scm_i_print_array);
   scm_set_smob_equalp (scm_i_tc16_array, scm_array_equal_p);
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -71,7 +71,7 @@ static SCM *scm_loc_load_hook;
 
 /* The current reader (a fluid).  */
 static SCM the_reader = SCM_BOOL_F;
-static size_t the_reader_fluid_num = 0;
+
 
 SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0, 
            (SCM filename),
@@ -98,22 +98,21 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
-    encoding = scm_scan_for_encoding (port);
+
+    encoding = scm_i_scan_for_encoding (port);
     if (encoding)
-      {
-	scm_i_set_port_encoding_x (port, encoding);
-	free (encoding);
-      }
+      scm_i_set_port_encoding_x (port, encoding);
     else
-      /* The file has no encoding declaraed.  We'll presume Latin-1.  */
+      /* The file has no encoding declared.  We'll presume Latin-1.  */
       scm_i_set_port_encoding_x (port, NULL);
+
     while (1)
       {
 	SCM reader, form;
 
 	/* Lookup and use the current reader to read the next
 	   expression. */
-	reader = SCM_FAST_FLUID_REF (the_reader_fluid_num);
+	reader = scm_fluid_ref (the_reader);
 	if (reader == SCM_BOOL_F)
 	  form = scm_read (port);
 	else
@@ -391,8 +390,8 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
    If FILENAME is absolute, return it unchanged.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
-SCM_DEFINE (scm_search_path, "search-path", 2, 2, 0,
-            (SCM path, SCM filename, SCM extensions, SCM require_exts),
+SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
+            (SCM path, SCM filename, SCM rest),
 	    "Search @var{path} for a directory containing a file named\n"
 	    "@var{filename}. The file must be readable, and not a directory.\n"
 	    "If we find one, return its full filename; otherwise, return\n"
@@ -405,10 +404,45 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 2, 0,
   struct stringbuf buf;
   char *filename_chars;
   size_t filename_len;
+  SCM extensions, require_exts;
   SCM result = SCM_BOOL_F;
+
+  if (scm_is_null (rest))
+    {
+      /* Called either by Scheme code that didn't provide the optional
+         arguments, or C code that used the Guile 1.8 signature (2 required,
+         1 optional arg) and passed '() as the EXTENSIONS argument.  */
+      extensions = SCM_EOL;
+      require_exts = SCM_UNDEFINED;
+    }
+  else
+    {
+      if (scm_is_null (SCM_CAR (rest)) || scm_is_pair (SCM_CAR (rest)))
+	{
+	  /* Called by Scheme code written for 1.9.  */
+	  extensions = SCM_CAR (rest);
+	  if (scm_is_null (SCM_CDR (rest)))
+	    require_exts = SCM_UNDEFINED;
+	  else
+	    {
+	      require_exts = SCM_CADR (rest);
+	      if (SCM_UNLIKELY (!scm_is_null (SCM_CDDR (rest))))
+		scm_wrong_num_args (scm_from_locale_string (FUNC_NAME));
+	    }
+	}
+      else
+	{
+	  /* Called by C code that uses the 1.8 signature, i.e., which
+	     expects the 3rd argument to be EXTENSIONS.  */
+	  extensions = rest;
+	  require_exts = SCM_UNDEFINED;
+	}
+    }
 
   if (SCM_UNBNDP (extensions))
     extensions = SCM_EOL;
+
+  SCM_VALIDATE_LIST (3, extensions);
 
   if (SCM_UNBNDP (require_exts))
     require_exts = SCM_BOOL_F;
@@ -565,7 +599,7 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
     SCM_MISC_ERROR ("%load-path is not a proper list", SCM_EOL);
   if (scm_ilength (exts) < 0)
     SCM_MISC_ERROR ("%load-extension list is not a proper list", SCM_EOL);
-  return scm_search_path (path, filename, exts, SCM_UNDEFINED);
+  return scm_search_path (path, filename, exts);
 }
 #undef FUNC_NAME
 
@@ -601,6 +635,8 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
   return res;
 }
 
+SCM_KEYWORD (kw_env, "env");
+
 static SCM
 do_try_autocompile (void *data)
 {
@@ -617,7 +653,9 @@ do_try_autocompile (void *data)
 
   if (scm_is_true (compile_file))
     {
-      SCM res = scm_call_1 (scm_variable_ref (compile_file), source);
+      /* Auto-compile in the context of the current module.  */
+      SCM res = scm_call_3 (scm_variable_ref (compile_file), source,
+			    kw_env, scm_current_module ());
       scm_puts (";;; compiled ", scm_current_error_port ());
       scm_display (res, scm_current_error_port ());
       scm_newline (scm_current_error_port ());
@@ -650,9 +688,10 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
 
 SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled", 0, 0, 0,
 	    (void), "")
+#define FUNC_NAME s_scm_sys_warn_autocompilation_enabled
 {
   static int message_shown = 0;
-  
+
   if (!message_shown)
     {
       scm_puts (";;; note: autocompilation is enabled, set GUILE_AUTO_COMPILE=0\n"
@@ -663,8 +702,8 @@ SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled
 
   return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
-  
 static SCM
 scm_try_autocompile (SCM source)
 {
@@ -680,8 +719,8 @@ scm_try_autocompile (SCM source)
                       NULL, NULL);
 }
 
-SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0, 
-	    (SCM filename, SCM exception_on_not_found),
+SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
+	    (SCM args),
 	    "Search @var{%load-path} for the file named @var{filename} and\n"
 	    "load it into the top-level environment.  If @var{filename} is a\n"
 	    "relative pathname and is not found in the list of search paths,\n"
@@ -690,18 +729,43 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
             "@code{#f} is returned instead.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
+  SCM filename, exception_on_not_found;
   SCM full_filename, compiled_filename;
   int compiled_is_fallback = 0;
+
+  if (scm_is_string (args))
+    {
+      /* C code written for 1.8 and earlier expects this function to take a
+	 single argument (the file name).  */
+      filename = args;
+      exception_on_not_found = SCM_UNDEFINED;
+    }
+  else
+    {
+      /* Starting from 1.9, this function takes 1 required and 1 optional
+	 argument.  */
+      long len;
+
+      SCM_VALIDATE_LIST_COPYLEN (SCM_ARG1, args, len);
+      if (len < 1 || len > 2)
+	scm_error_num_args_subr (FUNC_NAME);
+
+      filename = SCM_CAR (args);
+      SCM_VALIDATE_STRING (SCM_ARG1, filename);
+
+      exception_on_not_found = len > 1 ? SCM_CADR (args) : SCM_UNDEFINED;
+    }
 
   if (SCM_UNBNDP (exception_on_not_found))
     exception_on_not_found = SCM_BOOL_T;
 
   full_filename = scm_sys_search_load_path (filename);
-  compiled_filename = scm_search_path (*scm_loc_load_compiled_path,
-                                       filename,
-                                       *scm_loc_load_compiled_extensions,
-                                       SCM_BOOL_T);
-  
+  compiled_filename =
+    scm_search_path (*scm_loc_load_compiled_path,
+		     filename,
+		     scm_list_2 (*scm_loc_load_compiled_extensions,
+				 SCM_BOOL_T));
+
   if (scm_is_false (compiled_filename)
       && scm_is_true (full_filename)
       && scm_is_true (*scm_loc_compile_fallback_path)
@@ -751,7 +815,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
           scm_puts (";;; found fresh local cache at ", scm_current_error_port ());
           scm_display (fallback, scm_current_error_port ());
           scm_newline (scm_current_error_port ());
-          return scm_load_compiled_with_vm (compiled_filename);
+          return scm_load_compiled_with_vm (fallback);
         }
     }
 
@@ -770,12 +834,34 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 1, 1, 0,
 SCM
 scm_c_primitive_load_path (const char *filename)
 {
-  return scm_primitive_load_path (scm_from_locale_string (filename),
-                                  SCM_BOOL_T);
+  return scm_primitive_load_path (scm_from_locale_string (filename));
+}
+
+void
+scm_init_eval_in_scheme (void)
+{
+  SCM eval_scm, eval_go;
+  eval_scm = scm_search_path (*scm_loc_load_path,
+                              scm_from_locale_string ("ice-9/eval.scm"),
+                              SCM_EOL);
+  eval_go = scm_search_path (*scm_loc_load_compiled_path,
+                             scm_from_locale_string ("ice-9/eval.go"),
+                             SCM_EOL);
+  
+  if (scm_is_true (eval_scm) && scm_is_true (eval_go)
+      && compiled_is_fresh (eval_scm, eval_go))
+    scm_load_compiled_with_vm (eval_go);
+  else
+    /* if we have no eval.go, we shouldn't load any compiled code at all */
+    *scm_loc_load_compiled_path = SCM_EOL;
 }
 
 
 /* Information about the build environment.  */
+
+SCM_VARIABLE_INIT (sys_host_type, "%host-type",
+		   scm_from_locale_string (HOST_TYPE));
+
 
 /* Initialize the scheme variable %guile-build-info, based on data
    provided by the Makefile, via libpath.h.  */
@@ -798,7 +884,7 @@ init_build_info ()
 void
 scm_init_load ()
 {
-  scm_listofnullstr = scm_permanent_object (scm_list_1 (scm_nullstr));
+  scm_listofnullstr = scm_list_1 (scm_nullstr);
   scm_loc_load_path = SCM_VARIABLE_LOC (scm_c_define ("%load-path", SCM_EOL));
   scm_loc_load_extensions
     = SCM_VARIABLE_LOC (scm_c_define ("%load-extensions",
@@ -818,8 +904,7 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", SCM_BOOL_F));
 
   the_reader = scm_make_fluid ();
-  the_reader_fluid_num = SCM_FLUID_NUM (the_reader);
-  SCM_FAST_FLUID_SET_X (the_reader_fluid_num, SCM_BOOL_F);
+  scm_fluid_set_x (the_reader, SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);
 
   init_build_info ();

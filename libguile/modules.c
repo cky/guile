@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -46,8 +46,14 @@ static SCM the_module;
 
 static SCM the_root_module_var;
 
-static SCM
-the_root_module ()
+static SCM unbound_variable (const char *func, SCM sym)
+{
+  scm_error (scm_from_locale_symbol ("unbound-variable"), func,
+             "Unbound variable: ~S", scm_list_1 (sym), SCM_BOOL_F);
+}
+
+SCM
+scm_the_root_module (void)
 {
   if (scm_module_system_booted_p)
     return SCM_VARIABLE_REF (the_root_module_var);
@@ -62,7 +68,7 @@ SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
 {
   SCM curr = scm_fluid_ref (the_module);
 
-  return scm_is_true (curr) ? curr : the_root_module ();
+  return scm_is_true (curr) ? curr : scm_the_root_module ();
 }
 #undef FUNC_NAME
 
@@ -223,54 +229,29 @@ scm_c_export (const char *name, ...)
 
 /* Environments */
 
-SCM
-scm_top_level_env (SCM thunk)
-{
-  if (SCM_IMP (thunk))
-    return SCM_EOL;
-  else
-    return scm_cons (thunk, SCM_EOL);
-}
-
-SCM
-scm_env_top_level (SCM env)
-{
-  while (scm_is_pair (env))
-    {
-      SCM car_env = SCM_CAR (env);
-      if (!scm_is_pair (car_env) && scm_is_true (scm_procedure_p (car_env)))
-	return car_env;
-      env = SCM_CDR (env);
-    }
-  return SCM_BOOL_F;
-}
-
 SCM_SYMBOL (sym_module, "module");
 
 SCM
 scm_lookup_closure_module (SCM proc)
 {
   if (scm_is_false (proc))
-    return the_root_module ();
+    return scm_the_root_module ();
   else if (SCM_EVAL_CLOSURE_P (proc))
     return SCM_PACK (SCM_SMOB_DATA (proc));
   else
     {
-      SCM mod = scm_procedure_property (proc, sym_module);
+      SCM mod;
+
+      /* FIXME: The `module' property is no longer set.  See
+	 `set-module-eval-closure!' in `boot-9.scm'.  */
+      abort ();
+
+      mod = scm_procedure_property (proc, sym_module);
       if (scm_is_false (mod))
-	mod = the_root_module ();
+	mod = scm_the_root_module ();
       return mod;
     }
 }
-
-SCM_DEFINE (scm_env_module, "env-module", 1, 0, 0,
-	    (SCM env),
-	    "Return the module of @var{ENV}, a lexical environment.")
-#define FUNC_NAME s_scm_env_module
-{
-  return scm_lookup_closure_module (scm_env_top_level (env));
-}
-#undef FUNC_NAME
 
 /*
  * C level implementation of the standard eval closure
@@ -502,9 +483,9 @@ SCM_DEFINE (scm_module_variable, "module-variable", 2, 0, 0,
 
 scm_t_bits scm_tc16_eval_closure;
 
-#define SCM_F_EVAL_CLOSURE_INTERFACE (1<<16)
+#define SCM_F_EVAL_CLOSURE_INTERFACE (1<<0)
 #define SCM_EVAL_CLOSURE_INTERFACE_P(e) \
-  (SCM_CELL_WORD_0 (e) & SCM_F_EVAL_CLOSURE_INTERFACE)
+  (SCM_SMOB_FLAGS (e) & SCM_F_EVAL_CLOSURE_INTERFACE)
 
 /* NOTE: This function may be called by a smob application
    or from another C function directly. */
@@ -540,7 +521,7 @@ SCM_DEFINE (scm_standard_interface_eval_closure,
 	    "Such a closure does not allow new bindings to be added.")
 #define FUNC_NAME s_scm_standard_interface_eval_closure
 {
-  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure | SCM_F_EVAL_CLOSURE_INTERFACE,
+  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure | (SCM_F_EVAL_CLOSURE_INTERFACE<<16),
 		      SCM_UNPACK (module));
 }
 #undef FUNC_NAME
@@ -580,8 +561,10 @@ scm_current_module_lookup_closure ()
 
 SCM_SYMBOL (sym_sys_pre_modules_transformer, "%pre-modules-transformer");
 
-SCM
-scm_module_transformer (SCM module)
+SCM_DEFINE (scm_module_transformer, "module-transformer", 1, 0, 0,
+	    (SCM module),
+	    "Returns the syntax expander for the given module.")
+#define FUNC_NAME s_scm_module_transformer
 {
   if (SCM_UNLIKELY (scm_is_false (module)))
     { SCM v = scm_hashq_ref (scm_pre_modules_obarray,
@@ -593,8 +576,12 @@ scm_module_transformer (SCM module)
         return SCM_VARIABLE_REF (v);
     }
   else
-    return SCM_MODULE_TRANSFORMER (module);
+    {
+      SCM_VALIDATE_MODULE (SCM_ARG1, module);
+      return SCM_MODULE_TRANSFORMER (module);
+    }
 }
+#undef FUNC_NAME
 
 SCM
 scm_current_module_transformer ()
@@ -734,7 +721,7 @@ scm_module_lookup (SCM module, SCM sym)
 
   var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
   if (scm_is_false (var))
-    SCM_MISC_ERROR ("unbound variable: ~S", scm_list_1 (sym));
+    unbound_variable (FUNC_NAME, sym);
   return var;
 }
 #undef FUNC_NAME
@@ -751,7 +738,7 @@ scm_lookup (SCM sym)
   SCM var = 
     scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
   if (scm_is_false (var))
-    scm_misc_error ("scm_lookup", "unbound variable: ~S", scm_list_1 (sym));
+    unbound_variable (NULL, sym);
   return var;
 }
 
@@ -780,14 +767,20 @@ scm_c_define (const char *name, SCM value)
   return scm_define (scm_from_locale_symbol (name), value);
 }
 
-SCM
-scm_define (SCM sym, SCM value)
+SCM_DEFINE (scm_define, "define!", 2, 0, 0,
+	    (SCM sym, SCM value),
+	    "Define @var{sym} to be @var{value} in the current module."
+            "Returns the variable itself. Note that this is a procedure, "
+            "not a macro.")
+#define FUNC_NAME s_scm_define
 {
-  SCM var =
-    scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T);
+  SCM var;
+  SCM_VALIDATE_SYMBOL (SCM_ARG1, sym);
+  var = scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T);
   SCM_VARIABLE_SET (var, value);
   return var;
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
 	    (SCM module, SCM variable),
@@ -821,8 +814,18 @@ SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
       while (!scm_is_null (ls))
 	{
 	  handle = SCM_CAR (ls);
-	  if (SCM_CDR (handle) == variable)
-	    return SCM_CAR (handle);
+
+	  if (SCM_CAR (handle) == SCM_PACK (NULL))
+	    {
+	      /* FIXME: We hit a weak pair whose car has become unreachable.
+		 We should remove the pair in question or something.  */
+	    }
+	  else
+	    {
+	      if (SCM_CDR (handle) == variable)
+		return SCM_CAR (handle);
+	    }
+
 	  ls = SCM_CDR (ls);
 	}
     }
@@ -856,23 +859,10 @@ SCM_DEFINE (scm_get_pre_modules_obarray, "%get-pre-modules-obarray", 0, 0, 0,
 
 SCM_SYMBOL (scm_sym_system_module, "system-module");
 
-SCM
-scm_system_module_env_p (SCM env)
-{
-  SCM proc = scm_env_top_level (env);
-  if (scm_is_false (proc))
-    return SCM_BOOL_T;
-  return ((scm_is_true (scm_procedure_property (proc,
-						scm_sym_system_module)))
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
-}
-
 void
 scm_modules_prehistory ()
 {
-  scm_pre_modules_obarray 
-    = scm_permanent_object (scm_c_make_hash_table (1533));
+  scm_pre_modules_obarray = scm_c_make_hash_table (1533);
 }
 
 void
@@ -882,27 +872,24 @@ scm_init_modules ()
   module_make_local_var_x_var = scm_c_define ("module-make-local-var!",
 					    SCM_UNDEFINED);
   scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
-  scm_set_smob_mark (scm_tc16_eval_closure, scm_markcdr);
   scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
 
-  the_module = scm_permanent_object (scm_make_fluid ());
+  the_module = scm_make_fluid ();
 }
 
 static void
 scm_post_boot_init_modules ()
 {
-#define PERM(x) scm_permanent_object(x)
-
   SCM module_type = SCM_VARIABLE_REF (scm_c_lookup ("module-type"));
   scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_struct);
 
-  resolve_module_var = PERM (scm_c_lookup ("resolve-module"));
-  process_define_module_var = PERM (scm_c_lookup ("process-define-module"));
-  process_use_modules_var = PERM (scm_c_lookup ("process-use-modules"));
-  module_export_x_var = PERM (scm_c_lookup ("module-export!"));
-  the_root_module_var = PERM (scm_c_lookup ("the-root-module"));
-  default_duplicate_binding_procedures_var =
-    PERM (scm_c_lookup ("default-duplicate-binding-procedures"));
+  resolve_module_var = scm_c_lookup ("resolve-module");
+  process_define_module_var = scm_c_lookup ("process-define-module");
+  process_use_modules_var = scm_c_lookup ("process-use-modules");
+  module_export_x_var = scm_c_lookup ("module-export!");
+  the_root_module_var = scm_c_lookup ("the-root-module");
+  default_duplicate_binding_procedures_var = 
+    scm_c_lookup ("default-duplicate-binding-procedures");
 
   scm_module_system_booted_p = 1;
 }

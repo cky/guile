@@ -185,3 +185,46 @@
          `(begin *unspecified* . ,exps)))
    (else
     `(begin))))
+
+(read-hash-extend
+ #\y
+ (lambda (c port)
+   (issue-deprecation-warning
+    "The `#y' bitvector syntax is deprecated.  Use `#*' instead.")
+   (let ((x (read port)))
+     (cond
+      ((list? x)
+       (list->bitvector
+        (map (lambda (x)
+               (cond ((zero? x) #f)
+                     ((eqv? x 1) #t)
+                     (else (error "invalid #y element" x))))
+             x)))
+      (else
+       (error "#y needs to be followed by a list" x))))))
+
+(define (unmemoize-expr . args)
+  (issue-deprecation-warning
+   "`unmemoize-expr' is deprecated. Use `unmemoize-expression' instead.")
+  (apply unmemoize-expression args))
+
+(define ($asinh z) (asinh z))
+(define ($acosh z) (acosh z))
+(define ($atanh z) (atanh z))
+(define ($sqrt z) (sqrt z))
+(define ($abs z) (abs z))
+(define ($exp z) (exp z))
+(define ($log z) (log z))
+(define ($sin z) (sin z))
+(define ($cos z) (cos z))
+(define ($tan z) (tan z))
+(define ($asin z) (asin z))
+(define ($acos z) (acos z))
+(define ($atan z) (atan z))
+(define ($sinh z) (sinh z))
+(define ($cosh z) (cosh z))
+(define ($tanh z) (tanh z))
+(define (closure? x)
+  (issue-deprecation-warning
+   "`closure?' is deprecated. Use `procedure?' instead.")
+  (procedure? x))

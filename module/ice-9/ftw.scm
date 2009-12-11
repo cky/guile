@@ -1,4 +1,4 @@
-;;;; ftw.scm --- filesystem tree walk
+;;;; ftw.scm --- file system tree walk
 
 ;;;; 	Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
 ;;;;
@@ -104,7 +104,7 @@
 ;;           entered directory.
 ;;
 ;; * Procedure: (ftw filename proc . options)
-;;   Do a filesystem tree walk starting at FILENAME using PROC.
+;;   Do a file system tree walk starting at FILENAME using PROC.
 ;;
 ;;   The `ftw' procedure calls the callback procedure given in the
 ;;   parameter PROC for every item which is found in the directory
@@ -140,7 +140,7 @@
 ;;   returned as the return value of `ftw'.
 ;;
 ;; * Procedure: (nftw filename proc . control-flags)
-;;   Do a new-style filesystem tree walk starting at FILENAME using PROC.
+;;   Do a new-style file system tree walk starting at FILENAME using PROC.
 ;;   Various optional CONTROL-FLAGS alter the default behavior.
 ;;
 ;;   The `nftw' procedures works like the `ftw' procedures.  It calls
@@ -165,7 +165,7 @@
 ;;
 ;;   mount'
 ;;        The callback procedure is only called for items which are on
-;;        the same mounted filesystem as the directory given as the
+;;        the same mounted file system as the directory given as the
 ;;        FILENAME parameter to `nftw'.
 ;;
 ;;   chdir'

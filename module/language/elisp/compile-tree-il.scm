@@ -4,7 +4,7 @@
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 ;; 
 ;; This program is distributed in the hope that it will be useful,
@@ -132,7 +132,8 @@
              (make-module-ref loc module sym #t))
            syms))
     (make-application loc (make-primitive-ref loc 'list) vals)
-    (make-lambda loc '() '() '() body)))
+    (make-lambda loc '()
+                 (make-lambda-case #f '() #f #f #f '() '() body #f))))
 
 
 ; Handle access to a variable (reference/setting) correctly depending on
@@ -449,8 +450,14 @@
                                    (map car all-lex-pairs)
                                    (map cdr all-lex-pairs)
               (lambda ()
-                (make-lambda loc
-                  arg-names real-args '()
+                (make-lambda loc '()
+                 (make-lambda-case
+                  #f required #f
+                  (if have-real-rest rest-name #f)
+                  #f '()
+                  (if have-real-rest
+                    (append required-sym (list rest-sym))
+                    required-sym)
                   (let* ((init-req (map (lambda (name-sym)
                                           (make-lexical-ref loc (car name-sym)
                                                                 (cdr name-sym)))
@@ -474,7 +481,8 @@
                     (make-let loc
                               optional-sym optional-sym
                               (map (lambda (sym) (nil-value loc)) optional-sym)
-                      full-body))))))))))))
+                      full-body)))
+                  #f))))))))))
 
 ; Build the code to handle setting of optional arguments that are present
 ; and updating the rest list.
@@ -759,7 +767,9 @@
                            (compile-expr condition)
                            full-body
                            (nil-value loc)))
-            (iter-thunk (make-lambda loc '() '() '() lambda-body)))
+            (iter-thunk (make-lambda loc '()
+                          (make-lambda-case #f '() #f #f #f '() '()
+                                            lambda-body #f))))
        (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
          iter-call)))
 

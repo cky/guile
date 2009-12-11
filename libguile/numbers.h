@@ -208,6 +208,12 @@ SCM_API SCM scm_bit_extract (SCM n, SCM start, SCM end);
 SCM_API SCM scm_logcount (SCM n);
 SCM_API SCM scm_integer_length (SCM n);
 
+SCM_INTERNAL SCM scm_i_gcd (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_lcm (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_logand (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_logior (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_logxor (SCM x, SCM y, SCM rest);
+
 SCM_API size_t scm_iint2str (scm_t_intmax num, int rad, char *p);
 SCM_API size_t scm_iuint2str (scm_t_uintmax num, int rad, char *p);
 SCM_API SCM scm_number_to_string (SCM x, SCM radix);
@@ -245,15 +251,23 @@ SCM_API SCM scm_product (SCM x, SCM y);
 SCM_API SCM scm_divide (SCM x, SCM y);
 SCM_API SCM scm_floor (SCM x);
 SCM_API SCM scm_ceiling (SCM x);
-SCM_API double scm_asinh (double x);
-SCM_API double scm_acosh (double x);
-SCM_API double scm_atanh (double x);
 SCM_API double scm_c_truncate (double x);
 SCM_API double scm_c_round (double x);
 SCM_API SCM scm_truncate_number (SCM x);
 SCM_API SCM scm_round_number (SCM x);
-SCM_API SCM scm_sys_expt (SCM z1, SCM z2);
-SCM_API SCM scm_sys_atan2 (SCM z1, SCM z2);
+SCM_API SCM scm_expt (SCM z1, SCM z2);
+SCM_API SCM scm_sin (SCM z);
+SCM_API SCM scm_cos (SCM z);
+SCM_API SCM scm_tan (SCM z);
+SCM_API SCM scm_sinh (SCM z);
+SCM_API SCM scm_cosh (SCM z);
+SCM_API SCM scm_tanh (SCM z);
+SCM_API SCM scm_asin (SCM z);
+SCM_API SCM scm_acos (SCM z);
+SCM_API SCM scm_atan (SCM x, SCM y);
+SCM_API SCM scm_sys_asinh (SCM z);
+SCM_API SCM scm_sys_acosh (SCM z);
+SCM_API SCM scm_sys_atanh (SCM z);
 SCM_API SCM scm_make_rectangular (SCM z1, SCM z2);
 SCM_API SCM scm_make_polar (SCM z1, SCM z2);
 SCM_API SCM scm_real_part (SCM z);
@@ -267,6 +281,13 @@ SCM_API SCM scm_log (SCM z);
 SCM_API SCM scm_log10 (SCM z);
 SCM_API SCM scm_exp (SCM z);
 SCM_API SCM scm_sqrt (SCM z);
+
+SCM_INTERNAL SCM scm_i_min (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_max (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_sum (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_difference (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_product (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_divide (SCM x, SCM y, SCM rest);
 
 /* bignum internal functions */
 SCM_INTERNAL SCM scm_i_mkbig (void);

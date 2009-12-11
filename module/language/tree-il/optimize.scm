@@ -25,11 +25,8 @@
   #:use-module (language tree-il fix-letrec)
   #:export (optimize!))
 
-(define (env-module e)
-  (if e (car e) (current-module)))
-
 (define (optimize! x env opts)
   (inline!
    (fix-letrec!
     (expand-primitives! 
-     (resolve-primitives! x (env-module env))))))
+     (resolve-primitives! x env)))))

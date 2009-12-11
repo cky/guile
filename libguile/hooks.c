@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -43,6 +43,9 @@
  * using C level hooks.
  */
 
+/* Hint for `scm_gc_malloc ()' and friends.  */
+static const char hook_entry_gc_hint[] = "hook entry";
+
 void
 scm_c_hook_init (scm_t_c_hook *hook, void *hook_data, scm_t_c_hook_type type)
 {
@@ -57,8 +60,10 @@ scm_c_hook_add (scm_t_c_hook *hook,
 		void *fn_data, 
 		int appendp)
 {
-  scm_t_c_hook_entry *entry = scm_malloc (sizeof (scm_t_c_hook_entry));
+  scm_t_c_hook_entry *entry;
   scm_t_c_hook_entry **loc = &hook->first;
+
+  entry = scm_gc_malloc (sizeof (scm_t_c_hook_entry), hook_entry_gc_hint);
   if (appendp)
     while (*loc)
       loc = &(*loc)->next;
@@ -78,9 +83,7 @@ scm_c_hook_remove (scm_t_c_hook *hook,
     {
       if ((*loc)->func == func && (*loc)->data == fn_data)
 	{
-	  scm_t_c_hook_entry *entry = *loc;
 	  *loc = (*loc)->next;
-	  free (entry);
 	  return;
 	}
       loc = &(*loc)->next;
@@ -200,16 +203,13 @@ SCM_DEFINE (scm_add_hook_x, "add-hook!", 2, 1, 0,
 	    "procedure is not specified.")
 #define FUNC_NAME s_scm_add_hook_x
 {
-  SCM arity, rest;
-  int n_args;
+  SCM rest;
+  int n_args, p_req, p_opt, p_rest;
   SCM_VALIDATE_HOOK (1, hook);
-  SCM_ASSERT (scm_is_true (arity = scm_i_procedure_arity (proc)),
+  SCM_ASSERT (scm_i_procedure_arity (proc, &p_req, &p_opt, &p_rest),
 	      proc, SCM_ARG2, FUNC_NAME);
   n_args = SCM_HOOK_ARITY (hook);
-  if (scm_to_int (SCM_CAR (arity)) > n_args
-      || (scm_is_false (SCM_CADDR (arity))
-	  && (scm_to_int (SCM_CAR (arity)) + scm_to_int (SCM_CADR (arity))
-	      < n_args)))
+  if (p_req > n_args || (!p_rest && p_req + p_opt < n_args))
     scm_wrong_type_arg (FUNC_NAME, 2, proc);
   rest = scm_delq_x (proc, SCM_HOOK_PROCEDURES (hook));
   SCM_SET_HOOK_PROCEDURES (hook,
@@ -294,7 +294,6 @@ void
 scm_init_hooks ()
 {
   scm_tc16_hook = scm_make_smob_type ("hook", 0);
-  scm_set_smob_mark (scm_tc16_hook, scm_markcdr);
   scm_set_smob_print (scm_tc16_hook, hook_print);
 #include "libguile/hooks.x"
 }

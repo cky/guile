@@ -28,7 +28,6 @@
 #include "libguile/_scm.h"
 
 #include "libguile/async.h"
-#include "libguile/objects.h"
 #include "libguile/goops.h"
 #include "libguile/ports.h"
 
@@ -37,6 +36,10 @@
 #endif
 
 #include "libguile/smob.h"
+
+#include "libguile/bdw-gc.h"
+#include <gc/gc_mark.h>
+
 
 
 
@@ -50,14 +53,6 @@
 
 long scm_numsmob;
 scm_smob_descriptor scm_smobs[MAX_SMOB_COUNT];
-
-/* Lower 16 bit of data must be zero. 
-*/
-void
-scm_i_set_smob_flags (SCM x, scm_t_bits data)
-{
-  SCM_SET_CELL_WORD_0 (x, (SCM_CELL_WORD_0 (x) & 0xFFFF) | data);
-}
 
 void
 scm_assert_smob_type (scm_t_bits tag, SCM val)
@@ -93,6 +88,7 @@ scm_markcdr (SCM ptr)
   return SCM_CELL_OBJECT_1 (ptr);
 }
 
+
 /* {Free}
  */
 
@@ -102,16 +98,7 @@ scm_free0 (SCM ptr SCM_UNUSED)
   return 0;
 }
 
-size_t
-scm_smob_free (SCM obj)
-{
-  long n = SCM_SMOBNUM (obj);
-  if (scm_smobs[n].size > 0)
-    scm_gc_free ((void *) SCM_CELL_WORD_1 (obj), 
-		 scm_smobs[n].size, SCM_SMOBNAME (n));
-  return 0;
-}
-
+
 /* {Print}
  */
 
@@ -303,11 +290,7 @@ scm_make_smob_type (char const *name, size_t size)
     scm_misc_error (FUNC_NAME, "maximum number of smobs exceeded", SCM_EOL);
 
   scm_smobs[new_smob].name = name;
-  if (size != 0)
-    {
-      scm_smobs[new_smob].size = size;
-      scm_smobs[new_smob].free = scm_smob_free;
-    }
+  scm_smobs[new_smob].size = size;
 
   /* Make a class object if Goops is present. */
   if (SCM_UNPACK (scm_smob_class[0]) != 0)
@@ -458,40 +441,163 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
 SCM
 scm_make_smob (scm_t_bits tc)
 {
-  long n = SCM_TC2SMOBNUM (tc);
+  scm_t_bits n = SCM_TC2SMOBNUM (tc);
   size_t size = scm_smobs[n].size;
   scm_t_bits data = (size > 0
 		     ? (scm_t_bits) scm_gc_malloc (size, SCM_SMOBNAME (n))
 		     : 0);
-  return scm_cell (tc, data);
+
+  SCM_RETURN_NEWSMOB (tc, data);
+}
+
+
+
+/* Marking SMOBs using user-supplied mark procedures.  */
+
+
+/* The GC kind used for SMOB types that provide a custom mark procedure.  */
+static int smob_gc_kind;
+
+
+/* The generic SMOB mark procedure that gets called for SMOBs allocated with
+   `scm_i_new_smob_with_mark_proc ()'.  */
+static struct GC_ms_entry *
+smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
+	   struct GC_ms_entry *mark_stack_limit, GC_word env)
+{
+  register SCM cell;
+  register scm_t_bits tc, smobnum;
+
+  cell = PTR2SCM (addr);
+
+  if (SCM_TYP7 (cell) != scm_tc7_smob)
+    /* It is likely that the GC passed us a pointer to a free-list element
+       which we must ignore (see warning in `gc/gc_mark.h').  */
+    return mark_stack_ptr;
+
+  tc = SCM_CELL_WORD_0 (cell);
+  smobnum = SCM_TC2SMOBNUM (tc);
+
+  if (smobnum >= scm_numsmob)
+    /* The first word looks corrupt.  */
+    abort ();
+
+  mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_1 (cell)),
+				     mark_stack_ptr,
+				     mark_stack_limit, NULL);
+  mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_2 (cell)),
+				     mark_stack_ptr,
+				     mark_stack_limit, NULL);
+  mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (SCM_CELL_OBJECT_3 (cell)),
+				     mark_stack_ptr,
+				     mark_stack_limit, NULL);
+
+  if (scm_smobs[smobnum].mark)
+    {
+      SCM obj;
+
+      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
+      SCM_I_CURRENT_THREAD->current_mark_stack_limit = mark_stack_limit;
+
+      /* Invoke the SMOB's mark procedure, which will in turn invoke
+	 `scm_gc_mark ()', which may modify `current_mark_stack_ptr'.  */
+      obj = scm_smobs[smobnum].mark (cell);
+
+      mark_stack_ptr = SCM_I_CURRENT_THREAD->current_mark_stack_ptr;
+
+      if (SCM_NIMP (obj))
+	/* Mark the returned object.  */
+	mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (obj),
+					   mark_stack_ptr,
+					   mark_stack_limit, NULL);
+
+      SCM_I_CURRENT_THREAD->current_mark_stack_limit = NULL;
+      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = NULL;
+    }
+
+  return mark_stack_ptr;
+
+}
+
+/* Mark object O.  We assume that this function is only called during the
+   mark phase, i.e., from within `smob_mark ()' or one of its
+   descendents.  */
+void
+scm_gc_mark (SCM o)
+{
+#define CURRENT_MARK_PTR						 \
+  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_ptr))
+#define CURRENT_MARK_LIMIT						   \
+  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_limit))
+
+  if (SCM_NIMP (o))
+    {
+      /* At this point, the `current_mark_*' fields of the current thread
+	 must be defined (they are set in `smob_mark ()').  */
+      register struct GC_ms_entry *mark_stack_ptr;
+
+      if (!CURRENT_MARK_PTR)
+	/* The function was not called from a mark procedure.  */
+	abort ();
+
+      mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (o),
+					 CURRENT_MARK_PTR, CURRENT_MARK_LIMIT,
+					 NULL);
+      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
+    }
+#undef CURRENT_MARK_PTR
+#undef CURRENT_MARK_LIMIT
+}
+
+/* Return a SMOB with typecode TC.  The SMOB type corresponding to TC may
+   provide a custom mark procedure and it will be honored.  */
+SCM
+scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits data1,
+			       scm_t_bits data2, scm_t_bits data3)
+{
+  /* Return a double cell.  */
+  SCM cell = SCM_PACK (GC_generic_malloc (2 * sizeof (scm_t_cell),
+					  smob_gc_kind));
+
+  SCM_SET_CELL_WORD_3 (cell, data3);
+  SCM_SET_CELL_WORD_2 (cell, data2);
+  SCM_SET_CELL_WORD_1 (cell, data1);
+  SCM_SET_CELL_WORD_0 (cell, tc);
+
+  return cell;
 }
 
 
-/* {Initialization for the type of free cells}
- */
-
-static int
-free_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+/* Finalize SMOB by calling its SMOB type's free function, if any.  */
+void
+scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
 {
-  char buf[100];
-  sprintf (buf, "#<freed cell %p; GC missed a reference>",
-	   (void *) SCM_UNPACK (exp));
-  scm_puts (buf, port);
-  
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_debug_cell_accesses_p)
-    abort();
-#endif
-  
+  SCM smob;
+  size_t (* free_smob) (SCM);
 
-  return 1;
+  smob = PTR2SCM (ptr);
+#if 0
+  printf ("finalizing SMOB %p (smobnum: %u)\n",
+	  ptr, SCM_SMOBNUM (smob));
+#endif
+
+  free_smob = scm_smobs[SCM_SMOBNUM (smob)].free;
+  if (free_smob)
+    free_smob (smob);
 }
 
+
 void
 scm_smob_prehistory ()
 {
   long i;
-  scm_t_bits tc;
+
+  smob_gc_kind = GC_new_kind (GC_new_free_list (),
+			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
+			      0,
+			      /* Clear new objects.  As of version 7.1, libgc
+				 doesn't seem to support passing 0 here.  */
+			      1);
 
   scm_numsmob = 0;
   for (i = 0; i < MAX_SMOB_COUNT; ++i)
@@ -509,10 +615,6 @@ scm_smob_prehistory ()
       scm_smobs[i].apply_3    = 0;
       scm_smobs[i].gsubr_type = 0;
     }
-
-  /* WARNING: This scm_make_smob_type call must be done first.  */
-  tc = scm_make_smob_type ("free", 0);
-  scm_set_smob_print (tc, free_print);
 }
 
 /*

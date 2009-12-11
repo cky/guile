@@ -24,7 +24,6 @@
 
 #include "libguile/_scm.h"
 
-#include "libguile/objects.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/smob.h"
@@ -70,15 +69,6 @@ scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
   return subr;
 }
 
-/* This function isn't currently used since subrs are never freed. */
-/* *fixme* Need mutex here. */
-void
-scm_free_subr_entry (SCM subr)
-{
-  scm_gc_free (SCM_SUBR_META_INFO (subr), 2 * sizeof (SCM),
-	       "subr meta-info");
-}
-
 SCM
 scm_c_make_subr_with_generic (const char *name, 
 			      long type, SCM (*fcn) (), SCM *gf)
@@ -107,11 +97,10 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
     switch (SCM_TYP7 (obj))
       {
       case scm_tcs_struct:
-	if (!SCM_I_OPERATORP (obj))
+	if (!((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC)
+              || SCM_STRUCT_APPLICABLE_P (obj)))
 	  break;
-      case scm_tcs_closures:
-      case scm_tcs_subrs:
-      case scm_tc7_pws:
+      case scm_tc7_gsubr:
       case scm_tc7_program:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
@@ -123,49 +112,14 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_closure_p, "closure?", 1, 0, 0, 
-           (SCM obj),
-	    "Return @code{#t} if @var{obj} is a closure.")
-#define FUNC_NAME s_scm_closure_p
-{
-  return scm_from_bool (SCM_CLOSUREP (obj));
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0, 
 	    (SCM obj),
 	    "Return @code{#t} if @var{obj} is a thunk.")
 #define FUNC_NAME s_scm_thunk_p
 {
-  if (SCM_NIMP (obj))
-    {
-    again:
-      switch (SCM_TYP7 (obj))
-	{
-	case scm_tcs_closures:
-	  return scm_from_bool (!scm_is_pair (SCM_CLOSURE_FORMALS (obj)));
-	case scm_tc7_subr_0:
-	case scm_tc7_subr_1o:
-	case scm_tc7_lsubr:
-	case scm_tc7_rpsubr:
-	case scm_tc7_asubr:
-	  return SCM_BOOL_T;
-	case scm_tc7_gsubr:
-	  return scm_from_bool (SCM_GSUBR_REQ (SCM_GSUBR_TYPE (obj)) == 0);
-	case scm_tc7_program:
-	  return scm_from_bool (SCM_PROGRAM_DATA (obj)->nargs == 0
-                                || (SCM_PROGRAM_DATA (obj)->nargs == 1
-                                    && SCM_PROGRAM_DATA (obj)->nrest));
-	case scm_tc7_pws:
-	  obj = SCM_PROCEDURE (obj);
-	  goto again;
-	default:
-          if (SCM_PROGRAM_P (obj) && SCM_PROGRAM_DATA (obj)->nargs == 0)
-            return SCM_BOOL_T;
-          /* otherwise fall through */
-	}
-    }
-  return SCM_BOOL_F;
+  int req, opt, rest;
+  return scm_from_bool (scm_i_procedure_arity (obj, &req, &opt, &rest)
+                        && req == 0);
 }
 #undef FUNC_NAME
 
@@ -176,7 +130,7 @@ scm_subr_p (SCM obj)
   if (SCM_NIMP (obj))
     switch (SCM_TYP7 (obj))
       {
-      case scm_tcs_subrs:
+      case scm_tc7_gsubr:
 	return 1;
       default:
 	;
@@ -194,25 +148,11 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 	    "documentation for that procedure.")
 #define FUNC_NAME s_scm_procedure_documentation
 {
-  SCM code;
-  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
-	      proc, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_PROC (SCM_ARG1, proc);
   if (SCM_PROGRAM_P (proc))
     return scm_assq_ref (scm_program_properties (proc), sym_documentation);
-  switch (SCM_TYP7 (proc))
-    {
-    case scm_tcs_closures:
-      code = SCM_CLOSURE_BODY (proc);
-      if (scm_is_null (SCM_CDR (code)))
-	return SCM_BOOL_F;
-      code = SCM_CAR (code);
-      if (scm_is_string (code))
-	return code;
-      else
-	return SCM_BOOL_F;
-    default:
-      return SCM_BOOL_F;
-    }
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -220,13 +160,16 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 /* Procedure-with-setter
  */
 
+static SCM pws_vtable;
+
+
 SCM_DEFINE (scm_procedure_with_setter_p, "procedure-with-setter?", 1, 0, 0, 
             (SCM obj),
 	    "Return @code{#t} if @var{obj} is a procedure with an\n"
 	    "associated setter procedure.")
 #define FUNC_NAME s_scm_procedure_with_setter_p
 {
-  return scm_from_bool(SCM_PROCEDURE_WITH_SETTER_P (obj));
+  return scm_from_bool (SCM_STRUCTP (obj) && SCM_STRUCT_SETTER_P (obj));
 }
 #undef FUNC_NAME
 
@@ -239,13 +182,13 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
   SCM name, ret;
   SCM_VALIDATE_PROC (1, procedure);
   SCM_VALIDATE_PROC (2, setter);
-  ret = scm_double_cell (scm_tc7_pws,
-                         SCM_UNPACK (procedure),
-                         SCM_UNPACK (setter), 0);
+  ret = scm_make_struct (pws_vtable, SCM_INUM0,
+                         scm_list_2 (procedure, setter));
+
   /* don't use procedure_name, because don't care enough to do a reverse
      lookup */
   switch (SCM_TYP7 (procedure)) {
-  case scm_tcs_subrs:
+  case scm_tc7_gsubr:
     name = SCM_SUBR_NAME (procedure);
     break;
   default:
@@ -260,51 +203,43 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 
 SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0, 
             (SCM proc),
-	    "Return the procedure of @var{proc}, which must be either a\n"
-	    "procedure with setter, or an operator struct.")
+	    "Return the procedure of @var{proc}, which must be an\n"
+	    "applicable struct.")
 #define FUNC_NAME s_scm_procedure
 {
   SCM_VALIDATE_NIM (1, proc);
-  if (SCM_PROCEDURE_WITH_SETTER_P (proc))
-    return SCM_PROCEDURE (proc);
-  else if (SCM_STRUCTP (proc))
-    {
-      SCM_ASSERT (SCM_I_OPERATORP (proc), proc, SCM_ARG1, FUNC_NAME);
-      return proc;
-    }
-  SCM_WRONG_TYPE_ARG (1, proc);
-  return SCM_BOOL_F; /* not reached */
+  SCM_ASSERT (SCM_STRUCT_APPLICABLE_P (proc), proc, SCM_ARG1, FUNC_NAME);
+  return SCM_STRUCT_PROCEDURE (proc);
 }
 #undef FUNC_NAME
 
-SCM_GPROC (s_setter, "setter", 1, 0, 0, scm_setter, g_setter);
-
-SCM
-scm_setter (SCM proc)
+SCM_PRIMITIVE_GENERIC (scm_setter, "setter", 1, 0, 0,
+                       (SCM proc),
+                       "Return the setter of @var{proc}, which must be an\n"
+                       "applicable struct with a setter.")
+#define FUNC_NAME s_scm_setter
 {
-  SCM_GASSERT1 (SCM_NIMP (proc), g_setter, proc, SCM_ARG1, s_setter);
-  if (SCM_PROCEDURE_WITH_SETTER_P (proc))
-    return SCM_SETTER (proc);
-  else if (SCM_STRUCTP (proc))
-    {
-      SCM setter;
-      SCM_GASSERT1 (SCM_I_OPERATORP (proc),
-		    g_setter, proc, SCM_ARG1, s_setter);
-      setter = (SCM_I_ENTITYP (proc)
-		? SCM_ENTITY_SETTER (proc)
-		: SCM_OPERATOR_SETTER (proc));
-      if (SCM_NIMP (setter))
-	return setter;
-      /* fall through */
-    }
-  SCM_WTA_DISPATCH_1 (g_setter, proc, SCM_ARG1, s_setter);
+  SCM_GASSERT1 (SCM_STRUCTP (proc), g_scm_setter, proc, SCM_ARG1, FUNC_NAME);
+  if (SCM_STRUCT_SETTER_P (proc))
+    return SCM_STRUCT_SETTER (proc);
+  if (SCM_PUREGENERICP (proc))
+    /* FIXME: might not be an accessor */
+    return SCM_GENERIC_SETTER (proc);
+  SCM_WTA_DISPATCH_1 (g_scm_setter, proc, SCM_ARG1, FUNC_NAME);
   return SCM_BOOL_F; /* not reached */
 }
+#undef FUNC_NAME
 
 
 void
 scm_init_procs ()
 {
+  pws_vtable =
+    scm_c_make_struct (scm_applicable_struct_with_setter_vtable_vtable,
+                       0,
+                       1,
+                       SCM_UNPACK (scm_from_locale_symbol ("pwpw")));
+
 #include "libguile/procs.x"
 }
 

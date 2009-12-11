@@ -37,7 +37,6 @@
 #include "libguile/vectors.h"
 #include "libguile/bitvectors.h"
 #include "libguile/srfi-4.h"
-#include "libguile/dynwind.h"
 #include "libguile/generalized-arrays.h"
 #include "libguile/generalized-vectors.h"
 
@@ -45,38 +44,8 @@
 #include "libguile/array-map.h"
 
 
-typedef struct
-{
-  char *name;
-  SCM sproc;
-  int (*vproc) ();
-} ra_iproc;
-
-
-/* These tables are a kluge that will not scale well when more
- * vectorized subrs are added.  It is tempting to steal some bits from
- * the SCM_CAR of all subrs (like those selected by SCM_SMOBNUM) to hold an
- * offset into a table of vectorized subrs.  
- */
-
-static ra_iproc ra_rpsubrs[] =
-{
-  {"=", SCM_UNDEFINED, scm_ra_eqp},
-  {"<", SCM_UNDEFINED, scm_ra_lessp},
-  {"<=", SCM_UNDEFINED, scm_ra_leqp},
-  {">", SCM_UNDEFINED, scm_ra_grp},
-  {">=", SCM_UNDEFINED, scm_ra_greqp},
-  {0, 0, 0}
-};
-
-static ra_iproc ra_asubrs[] =
-{
-  {"+", SCM_UNDEFINED, scm_ra_sum},
-  {"-", SCM_UNDEFINED, scm_ra_difference},
-  {"*", SCM_UNDEFINED, scm_ra_product},
-  {"/", SCM_UNDEFINED, scm_ra_divide},
-  {0, 0, 0}
-};
+/* The WHAT argument for `scm_gc_malloc ()' et al.  */
+static const char indices_gc_hint[] = "array-indices";
 
 
 #define GVREF scm_c_generalized_vector_ref
@@ -311,10 +280,8 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
 	plvra = SCM_CDRLOC (*plvra);
       }
 
-    scm_dynwind_begin (0);
-
-    vinds = scm_malloc (sizeof(long) * SCM_I_ARRAY_NDIM (ra0));
-    scm_dynwind_free (vinds);
+    vinds = scm_gc_malloc_pointerless (sizeof(long) * SCM_I_ARRAY_NDIM (ra0),
+				       indices_gc_hint);
 
     for (k = 0; k <= kmax; k++)
       vinds[k] = SCM_I_ARRAY_DIMS (ra0)[k].lbnd;
@@ -343,7 +310,6 @@ scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
       }
     while (k >= 0);
 
-    scm_dynwind_end ();
     return 1;
     }
 }
@@ -679,11 +645,7 @@ ramap (SCM ra0, SCM proc, SCM ras)
       unsigned long k, i1 = SCM_I_ARRAY_BASE (ra1);
       long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_I_ARRAY_V (ra1);
-      ras = SCM_CDR (ras);
-      if (scm_is_null(ras))
-	ras = scm_nullvect;
-      else
-	ras = scm_vector (ras);
+      ras = scm_vector (SCM_CDR (ras));
       
       for (; i <= n; i++, i1 += inc1)
 	{
@@ -693,122 +655,6 @@ ramap (SCM ra0, SCM proc, SCM ras)
 	  args = scm_cons (GVREF (ra1, i1), args);
 	  GVSET (ra0, i*inc+base, scm_apply_0 (proc, args));
 	}
-    }
-  return 1;
-}
-
-
-static int
-ramap_dsubr (SCM ra0, SCM proc, SCM ras)
-{
-  SCM ra1 = SCM_CAR (ras);
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc, inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra1)->lbnd + 1;
-  ra0 = SCM_I_ARRAY_V (ra0);
-  ra1 = SCM_I_ARRAY_V (ra1);
-  switch (SCM_TYP7 (ra0))
-    {
-    default:
-      for (; n-- > 0; i0 += inc0, i1 += inc1)
-	GVSET (ra0, i0, scm_call_1 (proc, GVREF (ra1, i1)));
-      break;
-    }
-  return 1;
-}
-
-
-
-static int
-ramap_rp (SCM ra0, SCM proc, SCM ras)
-{
-  SCM ra1 = SCM_CAR (ras), ra2 = SCM_CAR (SCM_CDR (ras));
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1), i2 = SCM_I_ARRAY_BASE (ra2);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
-  long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  long inc2 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  ra0 = SCM_I_ARRAY_V (ra0);
-  ra1 = SCM_I_ARRAY_V (ra1);
-  ra2 = SCM_I_ARRAY_V (ra2);
-
-  for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-    if (scm_is_true (scm_c_bitvector_ref (ra0, i0)))
-      if (scm_is_false (SCM_SUBRF (proc) (GVREF (ra1, i1), GVREF (ra2, i2))))
-	scm_c_bitvector_set_x (ra0, i0, SCM_BOOL_F);
-
-  return 1;
-}
-
-
-
-static int
-ramap_1 (SCM ra0, SCM proc, SCM ras)
-{
-  SCM ra1 = SCM_CAR (ras);
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc, inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  ra0 = SCM_I_ARRAY_V (ra0);
-  ra1 = SCM_I_ARRAY_V (ra1);
-  if (scm_tc7_vector == SCM_TYP7 (ra0) || scm_tc7_wvect == SCM_TYP7 (ra0))
-    for (; n-- > 0; i0 += inc0, i1 += inc1)
-      GVSET (ra0, i0, SCM_SUBRF (proc) (GVREF (ra1, i1)));
-  else
-    for (; n-- > 0; i0 += inc0, i1 += inc1)
-      GVSET (ra0, i0, SCM_SUBRF (proc) (GVREF (ra1, i1)));
-  return 1;
-}
-
-
-
-static int
-ramap_2o (SCM ra0, SCM proc, SCM ras)
-{
-  SCM ra1 = SCM_CAR (ras);
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0), i1 = SCM_I_ARRAY_BASE (ra1);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc, inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-  ra0 = SCM_I_ARRAY_V (ra0);
-  ra1 = SCM_I_ARRAY_V (ra1);
-  ras = SCM_CDR (ras);
-  if (scm_is_null (ras))
-    {
-      for (; n-- > 0; i0 += inc0, i1 += inc1)
-	GVSET (ra0, i0, SCM_SUBRF (proc) (GVREF (ra1, i1), SCM_UNDEFINED));
-    }
-  else
-    {
-      SCM ra2 = SCM_CAR (ras);
-      unsigned long i2 = SCM_I_ARRAY_BASE (ra2);
-      long inc2 = SCM_I_ARRAY_DIMS (ra2)->inc;
-      ra2 = SCM_I_ARRAY_V (ra2);
-      for (; n-- > 0; i0 += inc0, i1 += inc1, i2 += inc2)
-	GVSET (ra0, i0, SCM_SUBRF (proc) (GVREF (ra1, i1), GVREF (ra2, i2)));
-    }
-  return 1;
-}
-
-
-
-static int
-ramap_a (SCM ra0, SCM proc, SCM ras)
-{
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  unsigned long i0 = SCM_I_ARRAY_BASE (ra0);
-  long inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
-  ra0 = SCM_I_ARRAY_V (ra0);
-  if (scm_is_null (ras))
-    for (; n-- > 0; i0 += inc0)
-      GVSET (ra0, i0, SCM_SUBRF (proc) (GVREF (ra0, i0), SCM_UNDEFINED));
-  else
-    {
-      SCM ra1 = SCM_CAR (ras);
-      unsigned long i1 = SCM_I_ARRAY_BASE (ra1);
-      long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-      ra1 = SCM_I_ARRAY_V (ra1);
-      for (; n-- > 0; i0 += inc0, i1 += inc1)
-	GVSET (ra0, i0, SCM_SUBRF (proc) (GVREF (ra0, i0), GVREF (ra1, i1)));
     }
   return 1;
 }
@@ -832,103 +678,8 @@ SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
   SCM_VALIDATE_PROC (2, proc);
   SCM_VALIDATE_REST_ARGUMENT (lra);
 
-  switch (SCM_TYP7 (proc))
-    {
-    default:
-    gencase:
- scm_ramapc (ramap, proc, ra0, lra, FUNC_NAME);
- return SCM_UNSPECIFIED;
-    case scm_tc7_subr_1:
-      if (! scm_is_pair (lra))
-        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
-      scm_ramapc (ramap_1, proc, ra0, lra, FUNC_NAME);
-      return SCM_UNSPECIFIED;
-    case scm_tc7_subr_2:
-      if (! (scm_is_pair (lra) && scm_is_pair (SCM_CDR (lra))))
-        SCM_WRONG_NUM_ARGS ();  /* need 2 sources */
-      goto subr_2o;
-    case scm_tc7_subr_2o:
-      if (! scm_is_pair (lra))
-        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
-    subr_2o:
-      scm_ramapc (ramap_2o, proc, ra0, lra, FUNC_NAME);
-      return SCM_UNSPECIFIED;
-    case scm_tc7_dsubr:
-      if (! scm_is_pair (lra))
-        SCM_WRONG_NUM_ARGS ();  /* need 1 source */
-      scm_ramapc (ramap_dsubr, proc, ra0, lra, FUNC_NAME);
-      return SCM_UNSPECIFIED;
-    case scm_tc7_rpsubr:
-      {
-	ra_iproc *p;
-	if (!scm_is_typed_array (ra0, sym_b))
-	  goto gencase;
-	scm_array_fill_x (ra0, SCM_BOOL_T);
-	for (p = ra_rpsubrs; p->name; p++)
-	  if (scm_is_eq (proc, p->sproc))
-	    {
-	      while (!scm_is_null (lra) && !scm_is_null (SCM_CDR (lra)))
-		{
-		  scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, FUNC_NAME);
-		  lra = SCM_CDR (lra);
-		}
-	      return SCM_UNSPECIFIED;
-	    }
-	while (!scm_is_null (lra) && !scm_is_null (SCM_CDR (lra)))
-	  {
-	    scm_ramapc (ramap_rp, proc, ra0, lra, FUNC_NAME);
-	    lra = SCM_CDR (lra);
-	  }
-	return SCM_UNSPECIFIED;
-      }
-    case scm_tc7_asubr:
-      if (scm_is_null (lra))
-	{
-	  SCM fill = SCM_SUBRF (proc) (SCM_UNDEFINED, SCM_UNDEFINED);
-	  scm_array_fill_x (ra0, fill);
-	}
-      else
-	{
-	  SCM tail, ra1 = SCM_CAR (lra);
-	  SCM v0 = (SCM_I_ARRAYP (ra0) ? SCM_I_ARRAY_V (ra0) : ra0);
-	  ra_iproc *p;
-	  /* Check to see if order might matter.
-	     This might be an argument for a separate
-	     SERIAL-ARRAY-MAP! */
-	  if (scm_is_eq (v0, ra1) 
-	      || (SCM_I_ARRAYP (ra1) && scm_is_eq (v0, SCM_I_ARRAY_V (ra1))))
-	    if (!scm_is_eq (ra0, ra1) 
-		|| (SCM_I_ARRAYP(ra0) && !SCM_I_ARRAY_CONTP(ra0)))
-	      goto gencase;
-	  for (tail = SCM_CDR (lra); !scm_is_null (tail); tail = SCM_CDR (tail))
-	    {
-	      ra1 = SCM_CAR (tail);
-	      if (scm_is_eq (v0, ra1) 
-		  || (SCM_I_ARRAYP (ra1) && scm_is_eq (v0, SCM_I_ARRAY_V (ra1))))
-		goto gencase;
-	    }
-	  for (p = ra_asubrs; p->name; p++)
-	    if (scm_is_eq (proc, p->sproc))
-	      {
-		if (!scm_is_eq (ra0, SCM_CAR (lra)))
-		  scm_ramapc (scm_array_identity, SCM_UNDEFINED, ra0, scm_cons (SCM_CAR (lra), SCM_EOL), FUNC_NAME);
-		lra = SCM_CDR (lra);
-		while (1)
-		  {
-		    scm_ramapc (p->vproc, SCM_UNDEFINED, ra0, lra, FUNC_NAME);
-		    if (SCM_IMP (lra) || SCM_IMP (SCM_CDR (lra)))
-		      return SCM_UNSPECIFIED;
-		    lra = SCM_CDR (lra);
-		  }
-	      }
-	  scm_ramapc (ramap_2o, proc, ra0, lra, FUNC_NAME);
-	  lra = SCM_CDR (lra);
-	  if (SCM_NIMP (lra))
-	    for (lra = SCM_CDR (lra); SCM_NIMP (lra); lra = SCM_CDR (lra))
-	      scm_ramapc (ramap_a, proc, ra0, lra, FUNC_NAME);
-	}
-      return SCM_UNSPECIFIED;
-    }
+  scm_ramapc (ramap, proc, ra0, lra, FUNC_NAME);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -951,11 +702,8 @@ rafe (SCM ra0, SCM proc, SCM ras)
       unsigned long k, i1 = SCM_I_ARRAY_BASE (ra1);
       long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_I_ARRAY_V (ra1);
-      ras = SCM_CDR (ras);
-      if (scm_is_null(ras))
-	ras = scm_nullvect;
-      else
-	ras = scm_vector (ras);
+      ras = scm_vector (SCM_CDR (ras));
+
       for (; i <= n; i++, i0 += inc0, i1 += inc1)
 	{
 	  args = SCM_EOL;
@@ -1015,10 +763,8 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
       if (kmax < 0)
 	return scm_array_set_x (ra, scm_call_0 (proc), SCM_EOL);
 
-      scm_dynwind_begin (0);
-
-      vinds = scm_malloc (sizeof(long) * SCM_I_ARRAY_NDIM (ra));
-      scm_dynwind_free (vinds);
+      vinds = scm_gc_malloc_pointerless (sizeof(long) * SCM_I_ARRAY_NDIM (ra),
+					 indices_gc_hint);
 
       for (k = 0; k <= kmax; k++)
 	vinds[k] = SCM_I_ARRAY_DIMS (ra)[k].lbnd;
@@ -1050,7 +796,6 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	}
       while (k >= 0);
 
-      scm_dynwind_end ();
       return SCM_UNSPECIFIED;
     }
   else if (scm_is_generalized_vector (ra))
@@ -1176,23 +921,29 @@ scm_raequal (SCM ra0, SCM ra1)
   return scm_from_bool(raeql (ra0, SCM_BOOL_T, ra1));
 }
 
-#if 0
-/* GJB:FIXME:: Why not use SCM_DEFINE1 for array-equal? */
-SCM_DEFINE1 (scm_array_equal_p, "array-equal?", scm_tc7_rpsubr,
-	     (SCM ra0, SCM ra1),
+SCM_DEFINE (scm_i_array_equal_p, "array-equal?", 0, 2, 1,
+            (SCM ra0, SCM ra1, SCM rest),
 	    "Return @code{#t} iff all arguments are arrays with the same\n"
 	    "shape, the same type, and have corresponding elements which are\n"
 	    "either @code{equal?}  or @code{array-equal?}.  This function\n"
 	    "differs from @code{equal?} in that a one dimensional shared\n"
 	    "array may be @var{array-equal?} but not @var{equal?} to a\n"
 	    "vector or uniform vector.")
-#define FUNC_NAME s_scm_array_equal_p
+#define FUNC_NAME s_scm_i_array_equal_p
 {
+  if (SCM_UNBNDP (ra0) || SCM_UNBNDP (ra1))
+    return SCM_BOOL_T;
+  
+  while (!scm_is_null (rest))
+    { if (scm_is_false (scm_array_equal_p (ra0, ra1)))
+        return SCM_BOOL_F;
+      ra0 = ra1;
+      ra1 = scm_car (rest);
+      rest = scm_cdr (rest);
+    }
+  return scm_array_equal_p (ra0, ra1);
 }
 #undef FUNC_NAME
-#endif
-
-static char s_array_equal_p[] = "array-equal?";
 
 
 SCM
@@ -1204,28 +955,9 @@ scm_array_equal_p (SCM ra0, SCM ra1)
 }
 
 
-static void
-init_raprocs (ra_iproc *subra)
-{
-  for (; subra->name; subra++)
-    {
-      SCM sym = scm_from_locale_symbol (subra->name);
-      SCM var =
-	scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
-      if (var != SCM_BOOL_F)
-	subra->sproc = SCM_VARIABLE_REF (var);
-      else
-	subra->sproc = SCM_BOOL_F;
-    }
-}
-
-
 void
 scm_init_array_map (void)
 {
-  init_raprocs (ra_rpsubrs);
-  init_raprocs (ra_asubrs);
-  scm_c_define_subr (s_array_equal_p, scm_tc7_rpsubr, scm_array_equal_p);
   scm_smobs[SCM_TC2SMOBNUM (scm_i_tc16_array)].equalp = scm_raequal;
 #include "libguile/array-map.x"
   scm_add_feature (s_scm_array_for_each);

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -54,18 +54,14 @@ static scm_t_bits tc16_jmpbuffer;
 
 #define SCM_JMPBUFP(OBJ)	SCM_TYP16_PREDICATE (tc16_jmpbuffer, OBJ)
 
-#define JBACTIVE(OBJ)		(SCM_CELL_WORD_0 (OBJ) & (1L << 16L))
-#define ACTIVATEJB(x)	\
-  (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) | (1L << 16L))))
-#define DEACTIVATEJB(x) \
-  (SCM_SET_CELL_WORD_0 ((x), (SCM_CELL_WORD_0 (x) & ~(1L << 16L))))
+#define JBACTIVE(OBJ)		(SCM_SMOB_FLAGS (OBJ) & 1L)
+#define ACTIVATEJB(x)		(SCM_SET_SMOB_FLAGS ((x), 1L))
+#define DEACTIVATEJB(x)		(SCM_SET_SMOB_FLAGS ((x), 0L))
 
-#define JBJMPBUF(OBJ)           ((scm_i_jmp_buf *) SCM_CELL_WORD_1 (OBJ))
-#define SETJBJMPBUF(x, v)        (SCM_SET_CELL_WORD_1 ((x), (scm_t_bits) (v)))
-#define SCM_JBDFRAME(x)         ((scm_t_debug_frame *) SCM_CELL_WORD_2 (x))
-#define SCM_SETJBDFRAME(x, v)    (SCM_SET_CELL_WORD_2 ((x), (scm_t_bits) (v)))
-#define SCM_JBPREUNWIND(x)      ((struct pre_unwind_data *) SCM_CELL_WORD_3 (x))
-#define SCM_SETJBPREUNWIND(x, v) (SCM_SET_CELL_WORD_3 ((x), (scm_t_bits) (v)))
+#define JBJMPBUF(OBJ)           ((scm_i_jmp_buf *) SCM_SMOB_DATA_1 (OBJ))
+#define SETJBJMPBUF(x, v)        (SCM_SET_SMOB_DATA_1 ((x), (scm_t_bits) (v)))
+#define SCM_JBPREUNWIND(x)      ((struct pre_unwind_data *) SCM_SMOB_DATA_3 (x))
+#define SCM_SETJBPREUNWIND(x, v) (SCM_SET_SMOB_DATA_3 ((x), (scm_t_bits) (v)))
 
 static int
 jmpbuffer_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -177,7 +173,7 @@ scm_c_catch (SCM tag,
   struct pre_unwind_data pre_unwind;
 
   vm = scm_the_vm ();
-  if (SCM_NFALSEP (vm))
+  if (scm_is_true (vm))
     {
       sp = SCM_VM_DATA (vm)->sp;
       fp = SCM_VM_DATA (vm)->fp;
@@ -187,7 +183,6 @@ scm_c_catch (SCM tag,
   answer = SCM_EOL;
   scm_i_set_dynwinds (scm_acons (tag, jmpbuf, scm_i_dynwinds ()));
   SETJBJMPBUF(jmpbuf, &jbr.buf);
-  SCM_SETJBDFRAME(jmpbuf, scm_i_last_debug_frame ());
 
   pre_unwind.handler = pre_unwind_handler;
   pre_unwind.handler_data = pre_unwind_handler_data;
@@ -211,7 +206,7 @@ scm_c_catch (SCM tag,
       throw_tag = jbr.throw_tag;
       jbr.throw_tag = SCM_EOL;
       jbr.retval = SCM_EOL;
-      if (SCM_NFALSEP (vm))
+      if (scm_is_true (vm))
         {
           SCM_VM_DATA (vm)->sp = sp;
           SCM_VM_DATA (vm)->fp = fp;
@@ -222,7 +217,7 @@ scm_c_catch (SCM tag,
                    - (sp + 1 - SCM_VM_DATA (vm)->stack_base)) * sizeof(SCM));
 #endif
         }
-      else if (SCM_NFALSEP ((vm = scm_the_vm ())))
+      else if (scm_is_true ((vm = scm_the_vm ())))
         {
           /* oof, it's possible this catch was called before the vm was
              booted... yick. anyway, try to reset the vm stack. */
@@ -272,7 +267,7 @@ static scm_t_bits tc16_pre_unwind_data;
 static int
 pre_unwind_data_print (SCM closure, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
-  struct pre_unwind_data *c = (struct pre_unwind_data *) SCM_CELL_WORD_1 (closure);
+  struct pre_unwind_data *c = (struct pre_unwind_data *) SCM_SMOB_DATA_1 (closure);
   char buf[200];
 
   sprintf (buf, "#<pre-unwind-data 0x%lx 0x%lx>",
@@ -732,7 +727,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   SCM dynpair = SCM_UNDEFINED;
   SCM winds;
 
-  if (scm_i_critical_section_level)
+  if (SCM_I_CURRENT_THREAD->critical_section_level)
     {
       SCM s = args;
       int i = 0;
@@ -786,7 +781,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 	      else
 		{
 		  struct pre_unwind_data *c =
-		    (struct pre_unwind_data *) SCM_CELL_WORD_1 (jmpbuf);
+		    (struct pre_unwind_data *) SCM_SMOB_DATA_1 (jmpbuf);
 		  if (!c->running)
 		    break;
 		}
@@ -819,7 +814,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
   if (SCM_PRE_UNWIND_DATA_P (jmpbuf))
     {
       struct pre_unwind_data *c =
-	(struct pre_unwind_data *) SCM_CELL_WORD_1 (jmpbuf);
+	(struct pre_unwind_data *) SCM_SMOB_DATA_1 (jmpbuf);
       SCM handle, answer;
 
       /* For old-style lazy-catch behaviour, we unwind the dynamic
@@ -888,7 +883,6 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
       jbr = (struct jmp_buf_and_retval *)JBJMPBUF (jmpbuf);
       jbr->throw_tag = key;
       jbr->retval = args;
-      scm_i_set_last_debug_frame (SCM_JBDFRAME (jmpbuf));
       SCM_I_LONGJMP (*JBJMPBUF (jmpbuf), 1);
     }
 

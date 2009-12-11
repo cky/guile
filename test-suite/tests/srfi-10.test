@@ -1,7 +1,7 @@
 ;;;; srfi-10.test --- Test suite for Guile's SRFI-10 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-10
 ;;;;
-;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -27,3 +27,7 @@
      (let* ((rx #,(rx "^foo$")))
        (and (->bool (regexp-exec rx "foo"))
 	    (not (regexp-exec rx "bar foo frob"))))))
+
+;; Disable SRFI-10 reader syntax again, to avoid messing up
+;; syntax-case's unsyntax
+(read-hash-extend #\, #f)

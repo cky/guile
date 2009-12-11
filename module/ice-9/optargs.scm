@@ -1,6 +1,6 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -58,14 +58,15 @@
 ;;; Code:
 
 (define-module (ice-9 optargs)
-  :export-syntax (let-optional
-		  let-optional*
-		  let-keywords
-		  let-keywords*
-		  define* lambda*
-		  define*-public
-		  defmacro*
-		  defmacro*-public))
+  #:use-module (system base pmatch)
+  #:re-export (lambda* define*)
+  #:export (let-optional
+            let-optional*
+            let-keywords
+            let-keywords*
+            define*-public
+            defmacro*
+            defmacro*-public))
 
 ;; let-optional rest-arg (binding ...) . body
 ;; let-optional* rest-arg (binding ...) . body
@@ -83,12 +84,50 @@
 ;; bound to whatever may have been left of rest-arg.
 ;;
 
-(defmacro let-optional (REST-ARG BINDINGS . BODY)
-  (let-optional-template REST-ARG BINDINGS BODY 'let))
+(define (vars&inits bindings)
+  (let lp ((bindings bindings) (vars '()) (inits '()))
+    (syntax-case bindings ()
+      (()
+       (values (reverse vars) (reverse inits)))
+      (((v init) . rest) (identifier? #'v)
+       (lp #'rest (cons #'v vars) (cons #'init inits)))
+      ((v . rest) (identifier? #'v)
+       (lp #'rest (cons #'v vars) (cons #'#f inits))))))
 
-(defmacro let-optional* (REST-ARG BINDINGS . BODY)
-  (let-optional-template REST-ARG BINDINGS BODY 'let*))
+(define-syntax let-optional
+  (lambda (x)
+    (syntax-case x ()
+      ((_ rest-arg (binding ...) b0 b1 ...) (identifier? #'rest-arg)
+       (call-with-values (lambda () (vars&inits #'(binding ...)))
+         (lambda (vars inits)
+           (with-syntax ((n (length vars))
+                         (n+1 (1+ (length vars)))
+                         (vars (append vars (list #'rest-arg)))
+                         ((t ...) (generate-temporaries vars))
+                         ((i ...) inits))
+             #'(let ((t (lambda vars i))
+                     ...)
+                 (apply (lambda vars b0 b1 ...)
+                        (or (parse-lambda-case '(0 n n n+1 #f '())
+                                               (list t ...)
+                                               rest-arg)
+                            (error "sth" rest-arg)))))))))))
 
+(define-syntax let-optional*
+  (lambda (x)
+    (syntax-case x ()
+      ((_ rest-arg (binding ...) b0 b1 ...) (identifier? #'rest-arg)
+       (call-with-values (lambda () (vars&inits #'(binding ...)))
+         (lambda (vars inits)
+           (with-syntax ((n (length vars))
+                         (n+1 (1+ (length vars)))
+                         (vars (append vars (list #'rest-arg)))
+                         ((i ...) inits))
+             #'(apply (lambda vars b0 b1 ...)
+                      (or (parse-lambda-case '(0 n n n+1 #f '())
+                                             (list (lambda vars i) ...)
+                                             rest-arg)
+                          (error "sth" rest-arg))))))))))
 
 
 ;; let-keywords rest-arg allow-other-keys? (binding ...) . body
@@ -106,82 +145,51 @@
 ;;
 
 
-(defmacro let-keywords (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
-  (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let))
+(define-syntax let-keywords
+  (lambda (x)
+    (syntax-case x ()
+      ((_ rest-arg aok (binding ...) b0 b1 ...) (identifier? #'rest-arg)
+       (call-with-values (lambda () (vars&inits #'(binding ...)))
+         (lambda (vars inits)
+           (with-syntax ((n (length vars))
+                         (vars vars)
+                         (ivars (generate-temporaries vars))
+                         ((kw ...) (map symbol->keyword
+                                        (map syntax->datum vars)))
+                         ((idx ...) (iota (length vars)))
+                         ((t ...) (generate-temporaries vars))
+                         ((i ...) inits))
+             #'(let ((t (lambda ivars i))
+                     ...)
+                 (apply (lambda vars b0 b1 ...)
+                        (or (parse-lambda-case '(0 0 #f n aok ((kw . idx) ...))
+                                               (list t ...)
+                                               rest-arg)
+                            (error "sth" rest-arg))))))))
+      ((_ rest-arg aok (binding ...) b0 b1 ...)
+       #'(let ((r rest-arg))
+           (let-keywords r aok (binding ...) b0 b1 ...))))))
 
-(defmacro let-keywords* (REST-ARG ALLOW-OTHER-KEYS? BINDINGS . BODY)
-  (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY 'let*))
-
-
-;; some utility procedures for implementing the various let-forms.
-
-(define (let-o-k-template REST-ARG BINDINGS BODY let-type proc)
-  (let ((bindings (map (lambda (x)
-			 (if (list? x)
-			     x
-			     (list x #f)))
-		       BINDINGS)))
-    `(,let-type ,(map proc bindings) ,@BODY)))
-
-(define (let-optional-template REST-ARG BINDINGS BODY let-type)
-    (if (null? BINDINGS)
-	`(let () ,@BODY)
-	(let-o-k-template REST-ARG BINDINGS BODY let-type
-			  (lambda (optional)
-			    `(,(car optional)
-			      (cond
-			       ((not (null? ,REST-ARG))
-				(let ((result (car ,REST-ARG)))
-				  ,(list 'set! REST-ARG
-					 `(cdr ,REST-ARG))
-				  result))
-			       (else
-				,(cadr optional))))))))
-
-(define (let-keywords-template REST-ARG ALLOW-OTHER-KEYS? BINDINGS BODY let-type)
-    (if (null? BINDINGS)
-	`(let () ,@BODY)
-	(let* ((kb-list-gensym (gensym "kb:G"))
-	       (bindfilter (lambda (key)
-			     `(,(car key)
-			       (cond
-				((assq ',(car key) ,kb-list-gensym)
-				 => cdr)
-				(else
-				 ,(cadr key)))))))
-	  `(let ((,kb-list-gensym ((@@ (ice-9 optargs) rest-arg->keyword-binding-list)
-                                   ,REST-ARG ',(map (lambda (x) (symbol->keyword (if (pair? x) (car x) x)))
-                                                    BINDINGS)
-                                   ,ALLOW-OTHER-KEYS?)))
-	     ,(let-o-k-template REST-ARG BINDINGS BODY let-type bindfilter)))))
-
-
-(define (rest-arg->keyword-binding-list rest-arg keywords allow-other-keys?)
-  (if (null? rest-arg)
-      '()
-      (let loop ((first (car rest-arg))
-		 (rest (cdr rest-arg))
-		 (accum '()))
-	(let ((next (lambda (a)
-		      (if (null? (cdr rest))
-			  a
-			  (loop (cadr rest) (cddr rest) a)))))
-	  (if (keyword? first)
-	      (cond
-	       ((memq first keywords)
-		(if (null? rest)
-		    (error "Keyword argument has no value.")
-		    (next (cons (cons (keyword->symbol first)
-				      (car rest)) accum))))
-	       ((not allow-other-keys?)
-		(error "Unknown keyword in arguments."))
-	       (else (if (null? rest)
-			 accum
-			 (next accum))))
-	      (if (null? rest)
-		  accum
-		  (loop (car rest) (cdr rest) accum)))))))
-
+(define-syntax let-keywords*
+  (lambda (x)
+    (syntax-case x ()
+      ((_ rest-arg aok (binding ...) b0 b1 ...) (identifier? #'rest-arg)
+       (call-with-values (lambda () (vars&inits #'(binding ...)))
+         (lambda (vars inits)
+           (with-syntax ((n (length vars))
+                         (vars vars)
+                         ((kw ...) (map symbol->keyword
+                                        (map syntax->datum vars)))
+                         ((idx ...) (iota (length vars)))
+                         ((i ...) inits))
+             #'(apply (lambda vars b0 b1 ...)
+                      (or (parse-lambda-case '(0 0 #f n aok ((kw . idx) ...))
+                                             (list (lambda vars i) ...)
+                                             rest-arg)
+                          (error "sth" rest-arg)))))))
+      ((_ rest-arg aok (binding ...) b0 b1 ...)
+       #'(let ((r rest-arg))
+           (let-keywords* r aok (binding ...) b0 b1 ...))))))
 
 ;; lambda* args . body
 ;;   lambda extended for optional and keyword arguments
@@ -230,173 +238,24 @@
 ;; Lisp dialects.
 
 
-(defmacro lambda* (ARGLIST . BODY)
-  (parse-arglist
-   ARGLIST
-   (lambda (non-optional-args optionals keys aok? rest-arg)
-     ;; Check for syntax errors.
-     (if (not (every? symbol? non-optional-args))
-	 (error "Syntax error in fixed argument declaration."))
-     (if (not (every? ext-decl? optionals))
-	 (error "Syntax error in optional argument declaration."))
-     (if (not (every? ext-decl? keys))
-	 (error "Syntax error in keyword argument declaration."))
-     (if (not (or (symbol? rest-arg) (eq? #f rest-arg)))
-	 (error "Syntax error in rest argument declaration."))
-     ;; generate the code.
-     (let ((rest-gensym (or rest-arg (gensym "lambda*:G")))
-	   (lambda-gensym (gensym "lambda*:L")))
-       (if (not (and (null? optionals) (null? keys)))
-	   `(let ((,lambda-gensym
-		   (lambda (,@non-optional-args . ,rest-gensym)
-		     ;; Make sure that if the proc had a docstring, we put it
-		     ;; here where it will be visible.
-		     ,@(if (and (not (null? BODY))
-				(string? (car BODY)))
-			   (list (car BODY))
-			   '())
-		     (let-optional*
-		      ,rest-gensym
-		      ,optionals
-		      (let-keywords* ,rest-gensym
-				     ,aok?
-				     ,keys
-				     ,@(if (and (not rest-arg) (null? keys))
-					   `((if (not (null? ,rest-gensym))
-						 (error "Too many arguments.")))
-					   '())
-				     (let ()
-				       ,@BODY))))))
-	      (set-procedure-property! ,lambda-gensym 'arglist
-				       '(,non-optional-args
-					 ,optionals
-					 ,keys
-					 ,aok?
-					 ,rest-arg))
-	      ,lambda-gensym)
-	   `(lambda (,@non-optional-args . ,(if rest-arg rest-arg '()))
-	      ,@BODY))))))
-
-
-(define (every? pred lst)
-  (or (null? lst)
-      (and (pred (car lst))
-	   (every? pred (cdr lst)))))
-
-(define (ext-decl? obj)
-  (or (symbol? obj)
-      (and (list? obj) (= 2 (length obj)) (symbol? (car obj)))))
-
-;; XXX - not tail recursive
-(define (improper-list-copy obj)
-  (if (pair? obj)
-      (cons (car obj) (improper-list-copy (cdr obj)))
-      obj))
-
-(define (parse-arglist arglist cont)
-  (define (split-list-at val lst cont)
-    (cond
-     ((memq val lst)
-      => (lambda (pos)
-	   (if (memq val (cdr pos))
-	       (error (with-output-to-string
-			(lambda ()
-			  (map display `(,val
-					 " specified more than once in argument list.")))))
-	       (cont (reverse (cdr (memq val (reverse lst)))) (cdr pos) #t))))
-     (else (cont lst '() #f))))
-  (define (parse-opt-and-fixed arglist keys aok? rest cont)
-    (split-list-at
-     #:optional arglist
-     (lambda (before after split?)
-       (if (and split? (null? after))
-	   (error "#:optional specified but no optional arguments declared.")
-	   (cont before after keys aok? rest)))))
-  (define (parse-keys arglist rest cont)
-    (split-list-at
-     #:allow-other-keys arglist
-     (lambda (aok-before aok-after aok-split?)
-       (if (and aok-split? (not (null? aok-after)))
-	   (error "#:allow-other-keys not at end of keyword argument declarations.")
-	   (split-list-at
-	    #:key aok-before
-	    (lambda (key-before key-after key-split?)
-	      (cond
-	       ((and aok-split? (not key-split?))
-		(error "#:allow-other-keys specified but no keyword arguments declared."))
-	       (key-split?
-		(cond
-		 ((null? key-after) (error "#:key specified but no keyword arguments declared."))
-		 ((memq #:optional key-after) (error "#:optional arguments declared after #:key arguments."))
-		 (else (parse-opt-and-fixed key-before key-after aok-split? rest cont))))
-	       (else (parse-opt-and-fixed arglist '() #f rest cont)))))))))
-  (define (parse-rest arglist cont)
-    (cond
-     ((null? arglist) (cont '() '() '() #f #f))
-     ((not (pair? arglist)) (cont '() '() '() #f arglist))
-     ((not (list? arglist))
-	  (let* ((copy (improper-list-copy arglist))
-		 (lp (last-pair copy))
-		 (ra (cdr lp)))
-	    (set-cdr! lp '())
-	    (if (memq #:rest copy)
-		(error "Cannot specify both #:rest and dotted rest argument.")
-		(parse-keys copy ra cont))))
-     (else (split-list-at
-	    #:rest arglist
-	    (lambda (before after split?)
-	      (if split?
-		  (case (length after)
-		    ((0) (error "#:rest not followed by argument."))
-		    ((1) (parse-keys before (car after) cont))
-		    (else (error "#:rest argument must be declared last.")))
-		  (parse-keys before #f cont)))))))
-
-  (parse-rest arglist cont))
-
-
-
 ;; define* args . body
 ;; define*-public args . body
 ;;   define and define-public extended for optional and keyword arguments
 ;;
 ;; define* and define*-public support optional arguments with
-;; a similar syntax to lambda*. They also support arbitrary-depth
-;; currying, just like Guile's define. Some examples:
+;; a similar syntax to lambda*. Some examples:
 ;;   (define* (x y #:optional a (z 3) #:key w . u) (display (list y z u)))
 ;; defines a procedure x with a fixed argument y, an optional agument
 ;; a, another optional argument z with default value 3, a keyword argument w,
 ;; and a rest argument u.
-;;   (define-public* ((foo #:optional bar) #:optional baz) '())
-;; This illustrates currying. A procedure foo is defined, which,
-;; when called with an optional argument bar, returns a procedure that
-;; takes an optional argument baz.
 ;;
 ;; Of course, define*[-public] also supports #:rest and #:allow-other-keys
 ;; in the same way as lambda*.
 
-(defmacro define* (ARGLIST . BODY)
-  (define*-guts 'define ARGLIST BODY))
-
-(defmacro define*-public (ARGLIST . BODY)
-  (define*-guts 'define-public ARGLIST BODY))
-
-;; The guts of define* and define*-public.
-(define (define*-guts DT ARGLIST BODY)
-  (define (nest-lambda*s arglists)
-    (if (null? arglists)
-        BODY
-        `((lambda* ,(car arglists) ,@(nest-lambda*s (cdr arglists))))))
-  (define (define*-guts-helper ARGLIST arglists)
-    (let ((first (car ARGLIST))
-	  (al (cons (cdr ARGLIST) arglists)))
-      (if (symbol? first)
-	  `(,DT ,first ,@(nest-lambda*s al))
-	  (define*-guts-helper first al))))
-  (if (symbol? ARGLIST)
-      `(,DT ,ARGLIST ,@BODY)
-      (define*-guts-helper ARGLIST '())))
-
+(define-syntax define*-public
+  (syntax-rules ()
+    ((_ (id . args) b0 b1 ...)
+     (define-public id (lambda* args b0 b1 ...)))))
 
 
 ;; defmacro* name args . body
@@ -409,12 +268,107 @@
 ;; semantics. Here is an example of a macro with an optional argument:
 ;;   (defmacro* transmorgify (a #:optional b)
 
-(defmacro defmacro* (NAME ARGLIST . BODY)
-  `(define-macro ,NAME #f (lambda* ,ARGLIST ,@BODY)))
+(define-syntax defmacro*
+  (syntax-rules ()
+    ((_ (id . args) b0 b1 ...)
+     (defmacro id (lambda* args b0 b1 ...)))))
+(define-syntax defmacro*-public
+  (syntax-rules ()
+    ((_ (id . args) b0 b1 ...)
+     (begin
+       (defmacro id (lambda* args b0 b1 ...))
+       (export-syntax id)))))
 
-(defmacro defmacro*-public (NAME ARGLIST . BODY)
-  `(begin
-     (defmacro* ,NAME ,ARGLIST ,@BODY)
-     (export-syntax ,NAME)))
-
-;;; optargs.scm ends here
+;;; Support for optional & keyword args with the interpreter.
+(define *uninitialized* (list 'uninitialized))
+(define (parse-lambda-case spec inits args)
+  (pmatch spec
+    ((,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
+     (define (req args prev tail n)
+       (cond
+        ((zero? n)
+         (if prev (set-cdr! prev '()))
+         (let ((slots-tail (make-list (- nargs nreq) *uninitialized*)))
+           (opt (if prev (append! args slots-tail) slots-tail)
+                slots-tail tail nopt inits)))
+        ((null? tail)
+         #f) ;; fail
+        (else
+         (req args tail (cdr tail) (1- n)))))
+     (define (opt slots slots-tail args-tail n inits)
+       (cond
+        ((zero? n)
+         (rest-or-key slots slots-tail args-tail inits rest-idx))
+        ((null? args-tail)
+         (set-car! slots-tail (apply (car inits) slots))
+         (opt slots (cdr slots-tail) '() (1- n) (cdr inits)))
+        (else
+         (set-car! slots-tail (car args-tail))
+         (opt slots (cdr slots-tail) (cdr args-tail) (1- n) (cdr inits)))))
+     (define (rest-or-key slots slots-tail args-tail inits rest-idx)
+       (cond
+        (rest-idx
+         ;; it has to be this way, vars are allocated in this order
+         (set-car! slots-tail args-tail)
+         (if (pair? kw-indices)
+             (permissive-keys slots (cdr slots-tail) args-tail inits)
+             (rest-or-key slots (cdr slots-tail) '() inits #f)))
+        ((pair? kw-indices)
+         ;; fail early here, because once we're in keyword land we throw
+         ;; errors instead of failing
+         (and (or (null? args-tail) rest-idx (keyword? (car args-tail)))
+              (key slots slots-tail args-tail inits)))
+        ((pair? args-tail)
+         #f) ;; fail
+        (else
+         slots)))
+     (define (permissive-keys slots slots-tail args-tail inits)
+       (cond
+        ((null? args-tail)
+         (if (null? inits)
+             slots
+             (begin
+               (if (eq? (car slots-tail) *uninitialized*)
+                   (set-car! slots-tail (apply (car inits) slots)))
+               (permissive-keys slots (cdr slots-tail) '() (cdr inits)))))
+        ((not (keyword? (car args-tail)))
+         (permissive-keys slots slots-tail (cdr args-tail) inits))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              (assq-ref kw-indices (car args-tail)))
+         => (lambda (i)
+              (list-set! slots i (cadr args-tail))
+              (permissive-keys slots slots-tail (cddr args-tail) inits)))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              allow-other-keys?)
+         (permissive-keys slots slots-tail (cddr args-tail) inits))
+        (else (error "unrecognized keyword" args-tail))))
+     (define (key slots slots-tail args-tail inits)
+       (cond
+        ((null? args-tail)
+         (if (null? inits)
+             slots
+             (begin
+               (if (eq? (car slots-tail) *uninitialized*)
+                   (set-car! slots-tail (apply (car inits) slots)))
+               (key slots (cdr slots-tail) '() (cdr inits)))))
+        ((not (keyword? (car args-tail)))
+         (if rest-idx
+             ;; no error checking, everything goes to the rest..
+             (key slots slots-tail '() inits)
+             (error "bad keyword argument list" args-tail)))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              (assq-ref kw-indices (car args-tail)))
+         => (lambda (i)
+              (list-set! slots i (cadr args-tail))
+              (key slots slots-tail (cddr args-tail) inits)))
+        ((and (keyword? (car args-tail))
+              (pair? (cdr args-tail))
+              allow-other-keys?)
+         (key slots slots-tail (cddr args-tail) inits))
+        (else (error "unrecognized keyword" args-tail))))
+     (let ((args (list-copy args)))
+       (req args #f args nreq)))
+    (else (error "unexpected spec" spec))))

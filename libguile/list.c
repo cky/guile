@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008,2009
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -885,18 +885,17 @@ SCM_DEFINE (scm_filter, "filter", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_filter
 {
-  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
   SCM walk;
   SCM *prev;
   SCM res = SCM_EOL;
-  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, 1, FUNC_NAME);
   SCM_VALIDATE_LIST (2, list);
   
   for (prev = &res, walk = list;
        scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
-      if (scm_is_true (call (pred, SCM_CAR (walk))))
+      if (scm_is_true (scm_call_1 (pred, SCM_CAR (walk))))
 	{
 	  *prev = scm_cons (SCM_CAR (walk), SCM_EOL);
 	  prev = SCM_CDRLOC (*prev);
@@ -912,17 +911,16 @@ SCM_DEFINE (scm_filter_x, "filter!", 2, 0, 0,
 	    "Linear-update variant of @code{filter}.")
 #define FUNC_NAME s_scm_filter_x
 {
-  scm_t_trampoline_1 call = scm_trampoline_1 (pred);
   SCM walk;
   SCM *prev;
-  SCM_ASSERT (call, pred, 1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, 1, FUNC_NAME);
   SCM_VALIDATE_LIST (2, list);
   
   for (prev = &list, walk = list;
        scm_is_pair (walk);
        walk = SCM_CDR (walk))
     {
-      if (scm_is_true (call (pred, SCM_CAR (walk))))
+      if (scm_is_true (scm_call_1 (pred, SCM_CAR (walk))))
 	prev = SCM_CDRLOC (walk);
       else
 	*prev = SCM_CDR (walk);

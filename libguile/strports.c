@@ -290,7 +290,7 @@ st_truncate (SCM port, scm_t_off length)
 }
 
 SCM 
-scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, const char *caller)
+scm_i_mkstrport (SCM pos, const char *utf8_str, size_t str_len, long modes, const char *caller)
 {
   SCM z, str;
   scm_t_port *pt;
@@ -301,11 +301,11 @@ scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, co
      to a locale representation for storage.  But, since string ports
      rely on string functionality for their memory management, we need
      to create a new string that has the 8-bit locale representation
-     of the underlying string.  This violates the guideline that the
-     internal encoding of characters in strings is in unicode
-     codepoints. */
+     of the underlying string.  
+
+     locale_str is already in the locale of the port.  */
   str = scm_i_make_string (str_len, &buf);
-  memcpy (buf, locale_str, str_len);
+  memcpy (buf, utf8_str, str_len);
 
   c_pos = scm_to_unsigned_integer (pos, 0, str_len);
 
@@ -323,12 +323,14 @@ scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, long modes, co
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
 
   pt->rw_random = 1;
-
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   /* ensure write_pos is writable. */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
     st_flush (z);
+
+  scm_i_set_port_encoding_x (z, "UTF-8");
+  scm_i_set_conversion_strategy_x (z, SCM_FAILED_CONVERSION_ERROR);
   return z;
 }
 
@@ -348,13 +350,18 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
      of the underlying string.  This violates the guideline that the
      internal encoding of characters in strings is in unicode
      codepoints. */
-  buf = scm_to_locale_stringn (str, &str_len);
+
+  /* String ports are are always initialized with "UTF-8" as their
+     encoding.  */
+  buf = scm_to_stringn (str, &str_len, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
   z = scm_i_mkstrport (pos, buf, str_len, modes, caller);
   free (buf);
   return z;
 }
 
-/* create a new string from a string port's buffer.  */
+/* Create a new string from a string port's buffer, converting from
+   the port's 8-bit locale-specific representation to the standard
+   string representation.  */
 SCM scm_strport_to_string (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -363,27 +370,20 @@ SCM scm_strport_to_string (SCM port)
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
 
-  str = scm_from_locale_stringn ((char *)pt->read_buf, pt->read_buf_size);
+  if (pt->read_buf_size == 0)
+    return scm_nullstr;
+
+  if (pt->encoding == NULL)
+    {
+      char *buf;
+      str = scm_i_make_string (pt->read_buf_size, &buf);
+      memcpy (buf, pt->read_buf, pt->read_buf_size);
+    }
+  else
+    str = scm_from_stringn ((char *)pt->read_buf, pt->read_buf_size,
+                            pt->encoding, pt->ilseq_handler);
   scm_remember_upto_here_1 (port);
   return str;
-}
-
-/* Create a vector containing the locale representation of the string in the
-   port's buffer.  */
-SCM scm_strport_to_locale_u8vector (SCM port)
-{
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  SCM vec;
-  char *buf;
-  
-  if (pt->rw_active == SCM_PORT_WRITE)
-    st_flush (port);
-
-  buf = scm_malloc (pt->read_buf_size);
-  memcpy (buf, pt->read_buf, pt->read_buf_size);
-  vec = scm_take_u8vector ((unsigned char *) buf, pt->read_buf_size);
-  scm_remember_upto_here_1 (port);
-  return vec;
 }
 
 SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
@@ -407,25 +407,6 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
     scm_call_2 (printer, obj, port);
 
   return scm_strport_to_string (port);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_call_with_output_locale_u8vector, "call-with-output-locale-u8vector", 1, 0, 0, 
-           (SCM proc),
-	    "Calls the one-argument procedure @var{proc} with a newly created output\n"
-	    "port.  When the function returns, a vector containing the bytes of a\n"
-	    "locale representation of the characters written into the port is returned\n")
-#define FUNC_NAME s_scm_call_with_output_locale_u8vector
-{
-  SCM p;
-
-  p = scm_mkstrport (SCM_INUM0, 
-		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
-		     SCM_OPN | SCM_WRTNG,
-                     FUNC_NAME);
-  scm_call_1 (proc, p);
-
-  return scm_get_output_locale_u8vector (p);
 }
 #undef FUNC_NAME
 
@@ -473,27 +454,6 @@ SCM_DEFINE (scm_open_input_string, "open-input-string", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_open_input_locale_u8vector, "open-input-locale-u8vector", 1, 0, 0,
-	    (SCM vec),
-	    "Take a u8vector containing the bytes of a string encoded in the\n"
-	    "current locale and return an input port that delivers characters\n"
-	    "from the string. The port can be closed by\n"
-	    "@code{close-input-port}, though its storage will be reclaimed\n"
-	    "by the garbage collector if it becomes inaccessible.")
-#define FUNC_NAME s_scm_open_input_locale_u8vector
-{
-  scm_t_array_handle hnd;
-  ssize_t inc;
-  size_t len;
-  const scm_t_uint8 *buf;
-
-  buf = scm_u8vector_elements (vec, &hnd, &len, &inc);
-  SCM p = scm_i_mkstrport(SCM_INUM0, (const char *) buf, len, SCM_OPN | SCM_RDNG, FUNC_NAME);
-  scm_array_handle_release (&hnd);
-  return p;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0, 
 	    (void),
 	    "Return an output port that will accumulate characters for\n"
@@ -522,19 +482,6 @@ SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0,
 {
   SCM_VALIDATE_OPOUTSTRPORT (1, port);
   return scm_strport_to_string (port);
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_get_output_locale_u8vector, "get-output-locale-u8vector", 1, 0, 0, 
-	    (SCM port),
-	    "Given an output port created by @code{open-output-string},\n"
-	    "return a u8 vector containing the characters of the string\n"
-	    "encoded in the current locale.")
-#define FUNC_NAME s_scm_get_output_locale_u8vector
-{
-  SCM_VALIDATE_OPOUTSTRPORT (1, port);
-  return scm_strport_to_locale_u8vector (port);
 }
 #undef FUNC_NAME
 
@@ -626,7 +573,6 @@ scm_make_stptob ()
 {
   scm_t_bits tc = scm_make_port_type ("string", stfill_buffer, st_write);
 
-  scm_set_port_mark        (tc, scm_markstream);
   scm_set_port_end_input   (tc, st_end_input);
   scm_set_port_flush       (tc, st_flush);
   scm_set_port_seek        (tc, st_seek);

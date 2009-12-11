@@ -151,8 +151,9 @@
     cvar = scm_to_bool (flag); \
   } while (0)
 
-#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)		\
-  SCM_VALIDATE_SMOB ((_pos), (_obj), bytevector)
+#define SCM_VALIDATE_BYTEVECTOR(_pos, _obj)			\
+  SCM_ASSERT_TYPE (SCM_BYTEVECTOR_P (_obj), (_obj), (_pos),	\
+		   FUNC_NAME, "bytevector")
 
 #define SCM_VALIDATE_CHAR(pos, scm) SCM_MAKE_VALIDATE_MSG (pos, scm, CHARP, "character")
 
@@ -277,7 +278,7 @@
 
 #define SCM_VALIDATE_SMOB(pos, obj, type) \
   do { \
-    SCM_ASSERT (SCM_TYP16_PREDICATE (scm_tc16_ ## type, obj), \
+    SCM_ASSERT (SCM_SMOB_PREDICATE (scm_tc16_ ## type, obj), \
                 obj, pos, FUNC_NAME); \
   } while (0)
 
@@ -293,9 +294,7 @@
 
 #define SCM_VALIDATE_VARIABLE(pos, var) SCM_MAKE_VALIDATE_MSG (pos, var, VARIABLEP, "variable")
 
-#define SCM_VALIDATE_MEMOIZED(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, MEMOIZEDP, "memoized code")
-
-#define SCM_VALIDATE_CLOSURE(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, CLOSUREP, "closure")
+#define SCM_VALIDATE_MEMOIZED(pos, obj) SCM_MAKE_VALIDATE_MSG (pos, obj, MEMOIZED_P, "memoized code")
 
 #define SCM_VALIDATE_PROC(pos, proc) \
   do { \
@@ -376,8 +375,7 @@
 
 #define SCM_VALIDATE_VTABLE(pos, v) \
   do { \
-    SCM_ASSERT (!SCM_IMP (v) && scm_is_true (scm_struct_vtable_p (v)), \
-                v, pos, FUNC_NAME); \
+    SCM_ASSERT (scm_is_true (scm_struct_vtable_p (v)), v, pos, FUNC_NAME); \
   } while (0)
 
 #define SCM_VALIDATE_VECTOR_LEN(pos, v, len) \

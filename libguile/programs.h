@@ -26,7 +26,7 @@
  * Programs
  */
 
-#define SCM_F_PROGRAM_IS_BOOT (1<<16)
+#define SCM_F_PROGRAM_IS_BOOT 0x100
 
 #define SCM_PROGRAM_P(x)	(!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_program)
 #define SCM_PROGRAM_OBJCODE(x)	(SCM_CELL_OBJECT_1 (x))
@@ -40,11 +40,11 @@ SCM_API SCM scm_make_program (SCM objcode, SCM objtable, SCM free_variables);
 
 SCM_API SCM scm_program_p (SCM obj);
 SCM_API SCM scm_program_base (SCM program);
-SCM_API SCM scm_program_arity (SCM program);
 SCM_API SCM scm_program_meta (SCM program);
 SCM_API SCM scm_program_bindings (SCM program);
 SCM_API SCM scm_program_sources (SCM program);
 SCM_API SCM scm_program_source (SCM program, SCM ip);
+SCM_API SCM scm_program_arities (SCM program);
 SCM_API SCM scm_program_properties (SCM program);
 SCM_API SCM scm_program_name (SCM program);
 SCM_API SCM scm_program_objects (SCM program);
@@ -54,6 +54,7 @@ SCM_API SCM scm_program_objcode (SCM program);
 
 SCM_API SCM scm_c_program_source (SCM program, size_t ip);
 
+SCM_INTERNAL int scm_i_program_arity (SCM program, int *req, int *opt, int *rest);
 SCM_INTERNAL void scm_i_program_print (SCM program, SCM port,
                                        scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_programs (void);

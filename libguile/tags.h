@@ -31,14 +31,6 @@
 /* picks up scmconfig.h too */
 #include "libguile/__scm.h"
 
-#if HAVE_INTTYPES_H
-# include <inttypes.h>  /* for INTPTR_MAX and friends */
-#else
-# if HAVE_STDINT_H
-#  include <stdint.h>   /* for INTPTR_MAX and friends */
-# endif
-#endif
-
 
 
 /* In the beginning was the Word:
@@ -69,31 +61,14 @@
 /* For dealing with the bit level representation of scheme objects we define
  * scm_t_bits:
  */
-/* On Solaris 7 and 8, /usr/include/sys/int_limits.h defines
-   INTPTR_MAX and UINTPTR_MAX to empty, INTPTR_MIN is not defined.
-   To avoid uintptr_t and intptr_t in this case we require
-   UINTPTR_MAX-0 != 0 etc.  */
-#if SCM_SIZEOF_INTPTR_T != 0 && defined(INTPTR_MAX) && defined(INTPTR_MIN) \
-  && INTPTR_MAX-0 != 0 && INTPTR_MIN-0 != 0 \
-  && SCM_SIZEOF_UINTPTR_T != 0 && defined(UINTPTR_MAX) && UINTPTR_MAX-0 != 0
 
-typedef intptr_t scm_t_signed_bits;
-#define SCM_T_SIGNED_BITS_MAX INTPTR_MAX
-#define SCM_T_SIGNED_BITS_MIN INTPTR_MIN
-typedef uintptr_t scm_t_bits;
-#define SIZEOF_SCM_T_BITS SCM_SIZEOF_UINTPTR_T
-#define SCM_T_BITS_MAX UINTPTR_MAX
+typedef scm_t_intptr  scm_t_signed_bits;
+typedef scm_t_uintptr scm_t_bits;
 
-#else
+#define SCM_T_SIGNED_BITS_MAX SCM_T_INTPTR_MAX
+#define SCM_T_SIGNED_BITS_MIN SCM_T_INTPTR_MIN
+#define SCM_T_BITS_MAX        SCM_T_UINTPTR_MAX
 
-typedef signed long scm_t_signed_bits;
-#define SCM_T_SIGNED_BITS_MAX LONG_MAX
-#define SCM_T_SIGNED_BITS_MIN LONG_MIN
-typedef unsigned long scm_t_bits;
-#define SIZEOF_SCM_T_BITS SCM_SIZEOF_UNSIGNED_LONG
-#define SCM_T_BITS_MAX ULONG_MAX
-
-#endif
 
 /* But as external interface, we define SCM, which may, according to the
  * desired level of type checking, be defined in several ways:
@@ -107,7 +82,7 @@ typedef unsigned long scm_t_bits;
 /* This is the default, which provides an intermediate level of compile time
  * type checking while still resulting in very efficient code.
  */
-    typedef struct scm_unused_struct * SCM;
+    typedef struct scm_unused_struct { char scm_unused_field; } *SCM;
 
 /*
   The 0?: constructions makes sure that the code is never executed,
@@ -332,8 +307,8 @@ typedef unsigned long scm_t_bits;
  * tc8 (for objects with tc3==100):
  *   00000-100:  special objects ('flags')
  *   00001-100:  characters
- *   00010-100:  evaluator byte codes ('isyms')
- *   00011-100:  evaluator byte codes ('ilocs')
+ *   00010-100:  unused
+ *   00011-100:  unused
  *
  *
  * Summary of type codes on the heap
@@ -374,10 +349,6 @@ typedef unsigned long scm_t_bits;
  * tc16 (for tc7==scm_tc7_smob):
  *   The largest part of the space of smob types is not subdivided in a
  *   predefined way, since smobs can be added arbitrarily by user C code.
- *   However, while Guile also defines a number of smob types throughout,
- *   there is one smob type, namely scm_tc_free_cell, for which Guile assumes
- *   that it is declared first and thus gets a known-in-advance tc16-code.
- *   The reason of requiring a fixed tc16-code for this type is performance.
  */
 
 
@@ -415,7 +386,7 @@ typedef unsigned long scm_t_bits;
 #define scm_tc3_cons	 	 0
 #define scm_tc3_struct    	 1
 #define scm_tc3_int_1		 (scm_tc2_int + 0)
-#define scm_tc3_closure		 3
+#define scm_tc3_unused		 3
 #define scm_tc3_imm24		 4
 #define scm_tc3_tc7_1		 5
 #define scm_tc3_int_2		 (scm_tc2_int + 4)
@@ -438,36 +409,32 @@ typedef unsigned long scm_t_bits;
 #define scm_tc7_string		21
 #define scm_tc7_number		23
 #define scm_tc7_stringbuf       39
+#define scm_tc7_bytevector	77
 
-/* Many of the following should be turned
- * into structs or smobs.  We need back some
- * of these 7 bit tags!  */
+#define scm_tc7_unused_1	31
+#define scm_tc7_hashtable	29
+#define scm_tc7_fluid		37
+#define scm_tc7_dynamic_state	45
 
-#define scm_tc7_pws		31
-
-#define scm_tc7_unused_1        29
-#define scm_tc7_unused_2	37
-#define scm_tc7_unused_3	45
 #define scm_tc7_unused_4	47
 #define scm_tc7_unused_5	53
 #define scm_tc7_unused_6	55
 #define scm_tc7_unused_7	71
-#define scm_tc7_unused_8	77
 
-#define scm_tc7_dsubr		61
+#define scm_tc7_unused_17	61
 #define scm_tc7_gsubr		63
-#define scm_tc7_rpsubr		69
+#define scm_tc7_unused_19	69
 #define scm_tc7_program		79
-#define scm_tc7_subr_0		85
-#define scm_tc7_subr_1		87
-#define scm_tc7_cxr		93
-#define scm_tc7_subr_3		95
-#define scm_tc7_subr_2		101
-#define scm_tc7_asubr		103
-#define scm_tc7_subr_1o		109
-#define scm_tc7_subr_2o		111
-#define scm_tc7_lsubr_2		117
-#define scm_tc7_lsubr		119
+#define scm_tc7_unused_9	85
+#define scm_tc7_unused_10	87
+#define scm_tc7_unused_20	93
+#define scm_tc7_unused_11	95
+#define scm_tc7_unused_12	101
+#define scm_tc7_unused_18	103
+#define scm_tc7_unused_13	109
+#define scm_tc7_unused_14	111
+#define scm_tc7_unused_15	117
+#define scm_tc7_unused_16	119
 
 /* There are 256 port subtypes.  */
 #define scm_tc7_port		125
@@ -484,12 +451,6 @@ typedef unsigned long scm_t_bits;
 #define SCM_TYP16_PREDICATE(tag, x) (!SCM_IMP (x) && SCM_TYP16 (x) == (tag))
 
 
-/* Here is the first smob subtype.  */
-
-/* scm_tc_free_cell is the 0th smob type.  We place this in free cells to tell
- * the conservative marker not to trace it.  */
-#define scm_tc_free_cell	(scm_tc7_smob + 0 * 256L)
-
 
 
 /* {Immediate Values}
@@ -499,8 +460,8 @@ enum scm_tc8_tags
 {
   scm_tc8_flag = scm_tc3_imm24 + 0x00,  /* special objects ('flags') */
   scm_tc8_char = scm_tc3_imm24 + 0x08,  /* characters */
-  scm_tc8_isym = scm_tc3_imm24 + 0x10,  /* evaluator byte codes ('isyms') */
-  scm_tc8_iloc = scm_tc3_imm24 + 0x18   /* evaluator byte codes ('ilocs') */
+  scm_tc8_unused_0 = scm_tc3_imm24 + 0x10,
+  scm_tc8_unused_1 = scm_tc3_imm24 + 0x18
 };
 
 #define SCM_ITAG8(X)		(SCM_UNPACK (X) & 0xff)
@@ -516,12 +477,54 @@ enum scm_tc8_tags
 #define SCM_MAKIFLAG(n)  SCM_MAKE_ITAG8 ((n), scm_tc8_flag)
 #define SCM_IFLAGNUM(n)  (SCM_ITAG8_DATA (n))
 
+/*
+ * IMPORTANT NOTE regarding IFLAG numbering!!!
+ *
+ * Several macros depend upon careful IFLAG numbering of SCM_BOOL_F,
+ * SCM_BOOL_T, SCM_ELISP_NIL, SCM_EOL, and the two SCM_XXX_*_DONT_USE
+ * constants.  In particular:
+ *
+ * - SCM_BOOL_F and SCM_BOOL_T must differ in exactly one bit position.
+ *   (used to implement scm_is_bool_and_not_nil, aka scm_is_bool)
+ *
+ * - SCM_ELISP_NIL and SCM_BOOL_F must differ in exactly one bit position.
+ *   (used to implement scm_is_false_or_nil and
+ *    scm_is_true_and_not_nil)
+ *
+ * - SCM_ELISP_NIL and SCM_EOL must differ in exactly one bit position.
+ *   (used to implement scm_is_null_or_nil)
+ *
+ * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_EOL, SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE
+ *   must all be equal except for two bit positions.
+ *   (used to implement scm_is_lisp_false)
+ *
+ * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T, SCM_XXX_ANOTHER_BOOLEAN_DONT_USE
+ *   must all be equal except for two bit positions.
+ *   (used to implement scm_is_bool_or_nil)
+ *
+ * These properties allow the aforementioned macros to be implemented
+ * by bitwise ANDing with a mask and then comparing with a constant,
+ * using as a common basis the macro SCM_MATCHES_BITS_IN_COMMON,
+ * defined below.  The properties are checked at compile-time using
+ * `verify' macros near the top of boolean.c and pairs.c.
+ */
 #define SCM_BOOL_F		SCM_MAKIFLAG (0)
-#define SCM_BOOL_T 		SCM_MAKIFLAG (1)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG (2)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG (3)
-#define SCM_EOL			SCM_MAKIFLAG (4)
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG (5)
+#define SCM_ELISP_NIL		SCM_MAKIFLAG (1)
+
+#ifdef BUILDING_LIBGUILE
+#define SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE	SCM_MAKIFLAG (2)
+#endif
+
+#define SCM_EOL			SCM_MAKIFLAG (3)
+#define SCM_BOOL_T 		SCM_MAKIFLAG (4)
+
+#ifdef BUILDING_LIBGUILE
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE	SCM_MAKIFLAG (5)
+#endif
+
+#define SCM_UNSPECIFIED		SCM_MAKIFLAG (6)
+#define SCM_UNDEFINED	 	SCM_MAKIFLAG (7)
+#define SCM_EOF_VAL 		SCM_MAKIFLAG (8)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -531,51 +534,52 @@ enum scm_tc8_tags
  * the code which handles this value in C so that SCM_UNDEFINED can be
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (6)
-
-/* The Elisp nil value.  */
-#define SCM_ELISP_NIL		SCM_MAKIFLAG (7)
-
+#define SCM_UNBOUND		SCM_MAKIFLAG (9)
 
 #define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 
-
+/*
+ * SCM_MATCHES_BITS_IN_COMMON(x,a,b) returns 1 if and only if x
+ * matches both a and b in every bit position where a and b are equal;
+ * otherwise it returns 0.  Bit positions where a and b differ are
+ * ignored.
+ *
+ * This is used to efficiently compare against two values which differ
+ * in exactly one bit position, or against four values which differ in
+ * exactly two bit positions.  It is the basis for the following
+ * macros:
+ *
+ *   scm_is_null_or_nil,
+ *   scm_is_false_or_nil,
+ *   scm_is_true_and_not_nil,
+ *   scm_is_lisp_false,
+ *   scm_is_lisp_true,
+ *   scm_is_bool_and_not_nil (aka scm_is_bool)
+ *   scm_is_bool_or_nil.
+ */
+#define SCM_MATCHES_BITS_IN_COMMON(x,a,b)				\
+  ((SCM_UNPACK(x) & ~(SCM_UNPACK(a) ^ SCM_UNPACK(b))) ==		\
+   (SCM_UNPACK(a) & SCM_UNPACK(b)))
 
-/* Evaluator byte codes ('immediate symbols').  These constants are used only
- * in eval but their values have to be allocated here.  The indices of the
- * SCM_IM_ symbols must agree with the declarations in print.c:
- * scm_isymnames.  */
+/*
+ * These macros are used for compile-time verification that the
+ * constants have the properties needed for the above macro to work
+ * properly.
+ */
+#ifdef BUILDING_LIBGUILE
+#define SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED(x)  ((x) & ((x)-1))
+#define SCM_HAS_EXACTLY_ONE_BIT_SET(x)					\
+  ((x) != 0 && SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED (x) == 0)
+#define SCM_HAS_EXACTLY_TWO_BITS_SET(x)					\
+  (SCM_HAS_EXACTLY_ONE_BIT_SET (SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED (x)))
 
-#define SCM_ISYMP(n) 		(SCM_ITAG8 (n) == scm_tc8_isym)
-#define SCM_MAKISYM(n) 		SCM_MAKE_ITAG8 ((n), scm_tc8_isym)
-
-#define SCM_IM_AND              SCM_MAKISYM (0)
-#define SCM_IM_BEGIN            SCM_MAKISYM (1)
-#define SCM_IM_CASE             SCM_MAKISYM (2)
-#define SCM_IM_COND             SCM_MAKISYM (3)
-#define SCM_IM_DO               SCM_MAKISYM (4)
-#define SCM_IM_IF               SCM_MAKISYM (5)
-#define SCM_IM_LAMBDA           SCM_MAKISYM (6)
-#define SCM_IM_LET              SCM_MAKISYM (7)
-#define SCM_IM_LETSTAR          SCM_MAKISYM (8)
-#define SCM_IM_LETREC           SCM_MAKISYM (9)
-#define SCM_IM_OR               SCM_MAKISYM (10)
-#define SCM_IM_QUOTE            SCM_MAKISYM (11)
-#define SCM_IM_SET_X            SCM_MAKISYM (12)
-#define SCM_IM_DEFINE           SCM_MAKISYM (13)
-#define SCM_IM_APPLY		SCM_MAKISYM (14)
-#define SCM_IM_CONT		SCM_MAKISYM (15)
-#define SCM_IM_DISPATCH		SCM_MAKISYM (16)
-#define SCM_IM_SLOT_REF		SCM_MAKISYM (17)
-#define SCM_IM_SLOT_SET_X	SCM_MAKISYM (18)
-#define SCM_IM_DELAY		SCM_MAKISYM (19)
-#define SCM_IM_FUTURE		SCM_MAKISYM (20)
-#define SCM_IM_CALL_WITH_VALUES SCM_MAKISYM (21)
-#define SCM_IM_ELSE             SCM_MAKISYM (22)
-#define SCM_IM_ARROW            SCM_MAKISYM (23)
-#define SCM_IM_NIL_COND         SCM_MAKISYM (24)  /* Multi-language support */
-#define SCM_IM_BIND             SCM_MAKISYM (25)  /* Multi-language support */
-
+#define SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION(a,b)		\
+  (SCM_HAS_EXACTLY_ONE_BIT_SET (SCM_UNPACK(a) ^ SCM_UNPACK(b)))
+#define SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS(a,b,c,d)		\
+  (SCM_HAS_EXACTLY_TWO_BITS_SET ((SCM_UNPACK(a) ^ SCM_UNPACK(b)) |	\
+                                 (SCM_UNPACK(b) ^ SCM_UNPACK(c)) |	\
+                                 (SCM_UNPACK(c) ^ SCM_UNPACK(d))))
+#endif /* BUILDING_LIBGUILE */
 
 
 /* Dispatching aids:
@@ -644,41 +648,9 @@ enum scm_tc8_tags
   case scm_tc3_struct + 112:\
   case scm_tc3_struct + 120
 
-/* For closures
- */
-#define scm_tcs_closures \
-       scm_tc3_closure + 0:\
-  case scm_tc3_closure + 8:\
-  case scm_tc3_closure + 16:\
-  case scm_tc3_closure + 24:\
-  case scm_tc3_closure + 32:\
-  case scm_tc3_closure + 40:\
-  case scm_tc3_closure + 48:\
-  case scm_tc3_closure + 56:\
-  case scm_tc3_closure + 64:\
-  case scm_tc3_closure + 72:\
-  case scm_tc3_closure + 80:\
-  case scm_tc3_closure + 88:\
-  case scm_tc3_closure + 96:\
-  case scm_tc3_closure + 104:\
-  case scm_tc3_closure + 112:\
-  case scm_tc3_closure + 120
-
 /* For subrs
  */
 #define scm_tcs_subrs \
-       scm_tc7_asubr:\
-  case scm_tc7_subr_0:\
-  case scm_tc7_subr_1:\
-  case scm_tc7_dsubr:\
-  case scm_tc7_cxr:\
-  case scm_tc7_subr_3:\
-  case scm_tc7_subr_2:\
-  case scm_tc7_rpsubr:\
-  case scm_tc7_subr_1o:\
-  case scm_tc7_subr_2o:\
-  case scm_tc7_lsubr_2:\
-  case scm_tc7_lsubr: \
   case scm_tc7_gsubr
 
 

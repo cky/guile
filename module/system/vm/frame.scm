@@ -1,40 +1,42 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
-;;; Copyright (C) 2005 Ludovic Courtès  <ludovic.courtes@laas.fr>
+;;; Copyright (C) 2001, 2005, 2009 Free Software Foundation, Inc.
 ;;;
-;;; This program is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2 of the License, or
-;;; (at your option) any later version.
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
 ;;;
-;;; This program is distributed in the hope that it will be useful,
+;;; This library is distributed in the hope that it will be useful,
 ;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
 ;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with this program; if not, write to the Free Software
-;;; Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; Code:
 
 (define-module (system vm frame)
+  #:use-module (system base pmatch)
   #:use-module (system vm program)
   #:use-module (system vm instruction)
+  #:use-module (system vm objcode)
   #:use-module ((srfi srfi-1) #:select (fold))
-  #:export (vm-frame?
-            vm-frame-program
-            vm-frame-local-ref vm-frame-local-set!
-            vm-frame-return-address vm-frame-mv-return-address
-            vm-frame-dynamic-link
-            vm-frame-stack
+  #:export (frame-local-ref frame-local-set!
+            frame-instruction-pointer
+            frame-return-address frame-mv-return-address
+            frame-dynamic-link
+            frame-num-locals
 
+            frame-bindings frame-binding-ref frame-binding-set!
+            ; frame-arguments
 
-            vm-frame-number vm-frame-address
+            frame-number frame-address
             make-frame-chain
             print-frame print-frame-chain-as-backtrace
-            frame-arguments frame-local-variables
+            frame-local-variables
             frame-environment
             frame-variable-exists? frame-variable-ref frame-variable-set!
             frame-object-name
@@ -44,12 +46,69 @@
 
 (load-extension "libguile" "scm_init_frames")
 
+(define (frame-bindings frame)
+  (map (lambda (b)
+         (cons (binding:name b) (binding:index b)))
+       (program-bindings-for-ip (frame-procedure frame)
+                                (frame-instruction-pointer frame))))
+
+(define (frame-binding-set! frame var val)
+  (let ((i (assq-ref (frame-bindings frame) var)))
+    (if i
+        (frame-local-set! frame i val)
+        (error "variable not bound in frame" var frame))))
+
+(define (frame-binding-ref frame var)
+  (let ((i (assq-ref (frame-bindings frame) var)))
+    (if i
+        (frame-local-ref frame i)
+        (error "variable not bound in frame" var frame))))
+
+;; Basically there are two cases to deal with here:
+;;
+;;   1. We've already parsed the arguments, and bound them to local
+;;      variables. In a standard (lambda (a b c) ...) call, this doesn't
+;;      involve any argument shuffling; but with rest, optional, or
+;;      keyword arguments, the arguments as given to the procedure may
+;;      not correspond to what's on the stack. We reconstruct the
+;;      arguments using e.g. for the case above: `(,a ,b ,c). This works
+;;      for rest arguments too: (a b . c) => `(,a ,b . ,c)
+;;
+;;   2. We have failed to parse the arguments. Perhaps it's the wrong
+;;      number of arguments, or perhaps we're doing a typed dispatch and
+;;      the types don't match. In that case the arguments are all on the
+;;      stack, and nothing else is on the stack.
+(define (frame-arguments frame)
+  (cond
+   ((program-lambda-list (frame-procedure frame)
+                         (frame-instruction-pointer frame))
+    ;; case 1
+    => (lambda (formals)
+         (let lp ((formals formals))
+           (pmatch formals
+             (() '())
+             ((,x . ,rest) (guard (symbol? x))
+              (cons (frame-binding-ref frame x) (lp rest)))
+             ((,x . ,rest)
+              ;; could be a keyword
+              (cons x (lp rest)))
+             (,rest (guard (symbol? rest))
+              (frame-binding-ref frame rest))
+             ;; let's not error here, as we are called during
+             ;; backtraces...
+             (else '???)))))
+   (else
+    ;; case 2
+    (map (lambda (i)
+           (frame-local-ref frame i))
+         (iota (frame-num-locals frame))))))
+
 ;;;
 ;;; Frame chain
 ;;;
 
-(define vm-frame-number (make-object-property))
-(define vm-frame-address (make-object-property))
+(define frame-number (make-object-property))
+(define frame-address (make-object-property))
 
 ;; FIXME: the header.
 (define (bootstrap-frame? frame)
@@ -140,16 +199,8 @@
 		   prog (module-obarray (current-module))))))
 
 
-;;;
 ;;; Frames
 ;;;
-
-(define (frame-arguments frame)
-  (let* ((prog (frame-program frame))
-	 (arity (program-arity prog)))
-    (do ((n (+ (arity:nargs arity) -1) (1- n))
-	 (l '() (cons (frame-local-ref frame n) l)))
-	((< n 0) l))))
 
 (define (frame-local-variables frame)
   (let* ((prog (frame-program frame))
@@ -157,26 +208,6 @@
     (do ((n (+ (arity:nargs arity) (arity:nlocs arity) -1) (1- n))
 	 (l '() (cons (frame-local-ref frame n) l)))
 	((< n 0) l))))
-
-(define (frame-binding-ref frame binding)
-  (let ((x (frame-local-ref frame (binding:index binding))))
-    (if (and (binding:boxed? binding) (variable? x))
-        (variable-ref x)
-        x)))
-
-(define (frame-binding-set! frame binding val)
-  (if (binding:boxed? binding)
-      (let ((v (frame-local-ref frame binding)))
-        (if (variable? v)
-            (variable-set! v val)
-            (frame-local-set! frame binding (make-variable val))))
-      (frame-local-set! frame binding val)))
-
-;; FIXME handle #f program-bindings return
-(define (frame-bindings frame addr)
-  (filter (lambda (b) (and (>= addr (binding:start b))
-                           (<= addr (binding:end b))))
-          (program-bindings (frame-program frame))))
 
 (define (frame-lookup-binding frame addr sym)
   (assq sym (reverse (frame-bindings frame addr))))

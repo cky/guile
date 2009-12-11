@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008 Free Software Foundation
+/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009 Free Software Foundation
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -281,7 +281,6 @@ scm_init_opts (SCM (*func) (SCM), scm_t_option options[])
     {
       SCM name = scm_from_locale_symbol (options[i].name);
       options[i].name =	(char *) SCM_UNPACK (name);
-      scm_permanent_object (name);
     }
   func (SCM_UNDEFINED);
 }

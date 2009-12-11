@@ -41,6 +41,9 @@
 #include "libguile/dynwind.h"
 #include "libguile/deprecation.h"
 
+#include "libguile/bdw-gc.h"
+
+
 
 
 #define VECTOR_MAX_LENGTH (SCM_T_BITS_MAX >> 8)
@@ -68,6 +71,11 @@ const SCM *
 scm_vector_elements (SCM vec, scm_t_array_handle *h,
 		     size_t *lenp, ssize_t *incp)
 {
+  if (SCM_I_WVECTP (vec))
+    /* FIXME: We should check each (weak) element of the vector for NULL and
+       convert it to SCM_BOOL_F.  */
+    abort ();
+
   scm_generalized_vector_get_handle (vec, h);
   if (lenp)
     {
@@ -82,6 +90,11 @@ SCM *
 scm_vector_writable_elements (SCM vec, scm_t_array_handle *h,
 			      size_t *lenp, ssize_t *incp)
 {
+  if (SCM_I_WVECTP (vec))
+    /* FIXME: We should check each (weak) element of the vector for NULL and
+       convert it to SCM_BOOL_F.  */
+    abort ();
+
   scm_generalized_vector_get_handle (vec, h);
   if (lenp)
     {
@@ -199,9 +212,17 @@ scm_c_vector_ref (SCM v, size_t k)
 {
   if (SCM_I_IS_VECTOR (v))
     {
+      register SCM elt;
+
       if (k >= SCM_I_VECTOR_LENGTH (v))
-	scm_out_of_range (NULL, scm_from_size_t (k)); 
-      return (SCM_I_VECTOR_ELTS(v))[k];
+	scm_out_of_range (NULL, scm_from_size_t (k));
+      elt = (SCM_I_VECTOR_ELTS(v))[k];
+
+      if ((elt == SCM_PACK (NULL)) && SCM_I_WVECTP (v))
+	/* ELT was a weak pointer and got nullified by the GC.  */
+	return SCM_BOOL_F;
+
+      return elt;
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
@@ -209,10 +230,18 @@ scm_c_vector_ref (SCM v, size_t k)
       SCM vv = SCM_I_ARRAY_V (v);
       if (SCM_I_IS_VECTOR (vv))
 	{
+	  register SCM elt;
+
 	  if (k >= dim->ubnd - dim->lbnd + 1)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
-	  return (SCM_I_VECTOR_ELTS (vv))[k];
+	  elt = (SCM_I_VECTOR_ELTS (vv))[k];
+
+	  if ((elt == SCM_PACK (NULL)) && (SCM_I_WVECTP (vv)))
+	    /* ELT was a weak pointer and got nullified by the GC.  */
+	    return SCM_BOOL_F;
+
+	  return elt;
 	}
       scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
     }
@@ -250,6 +279,12 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
       if (k >= SCM_I_VECTOR_LENGTH (v))
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
       (SCM_I_VECTOR_WELTS(v))[k] = obj;
+      if (SCM_I_WVECTP (v))
+	{
+	  /* Make it a weak pointer.  */
+	  GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (v))[k]);
+	  SCM_I_REGISTER_DISAPPEARING_LINK (link, obj);
+	}
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
@@ -261,6 +296,13 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
 	  (SCM_I_VECTOR_WELTS (vv))[k] = obj;
+
+	  if (SCM_I_WVECTP (vv))
+	    {
+	      /* Make it a weak pointer.  */
+	      GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (vv))[k]);
+	      SCM_I_REGISTER_DISAPPEARING_LINK (link, obj);
+	    }
 	}
       else
 	scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
@@ -297,26 +339,28 @@ SCM
 scm_c_make_vector (size_t k, SCM fill)
 #define FUNC_NAME s_scm_make_vector
 {
-  SCM v;
-  SCM *base;
+  SCM *vector;
 
-  if (k > 0) 
+  vector = (SCM *)
+    scm_gc_malloc ((k + SCM_I_VECTOR_HEADER_SIZE) * sizeof (SCM),
+		   "vector");
+
+  if (k > 0)
     {
+      SCM *base;
       unsigned long int j;
 
       SCM_ASSERT_RANGE (1, scm_from_ulong (k), k <= VECTOR_MAX_LENGTH);
 
-      base = scm_gc_malloc (k * sizeof (SCM), "vector");
+      base = vector + SCM_I_VECTOR_HEADER_SIZE;
       for (j = 0; j != k; ++j)
 	base[j] = fill;
     }
-  else
-    base = NULL;
 
-  v = scm_cell ((k << 8) | scm_tc7_vector, (scm_t_bits) base);
-  scm_remember_upto_here_1 (fill);
+  ((scm_t_bits *) vector)[0] = (k << 8) | scm_tc7_vector;
+  ((scm_t_bits *) vector)[1] = 0;
 
-  return v;
+  return PTR2SCM (vector);
 }
 #undef FUNC_NAME
 
@@ -329,63 +373,88 @@ SCM_DEFINE (scm_vector_copy, "vector-copy", 1, 0, 0,
   size_t i, len;
   ssize_t inc;
   const SCM *src;
-  SCM *dst;
+  SCM result, *dst;
 
   src = scm_vector_elements (vec, &handle, &len, &inc);
-  dst = scm_gc_malloc (len * sizeof (SCM), "vector");
+
+  result = scm_c_make_vector (len, SCM_UNDEFINED);
+  dst = SCM_I_VECTOR_WELTS (result);
   for (i = 0; i < len; i++, src += inc)
     dst[i] = *src;
+
   scm_array_handle_release (&handle);
 
-  return scm_cell ((len << 8) | scm_tc7_vector, (scm_t_bits) dst);
+  return result;
 }
 #undef FUNC_NAME
 
-void
-scm_i_vector_free (SCM vec)
+
+/* Weak vectors.  */
+
+/* Allocate memory for the elements of a weak vector on behalf of the
+   caller.  */
+static SCM
+make_weak_vector (scm_t_bits type, size_t c_size)
 {
-  scm_gc_free (SCM_I_VECTOR_WELTS (vec),
-	       SCM_I_VECTOR_LENGTH (vec) * sizeof(SCM),
-	       "vector");
+  SCM *vector;
+  size_t total_size;
+
+  total_size = (c_size + SCM_I_VECTOR_HEADER_SIZE) * sizeof (SCM);
+  vector = (SCM *) scm_gc_malloc_pointerless (total_size, "weak vector");
+
+  ((scm_t_bits *) vector)[0] = (c_size << 8) | scm_tc7_wvect;
+  ((scm_t_bits *) vector)[1] = type;
+
+  return PTR2SCM (vector);
 }
 
-/* Allocate memory for a weak vector on behalf of the caller.  The allocated
- * vector will be of the given weak vector subtype.  It will contain size
- * elements which are initialized with the 'fill' object, or, if 'fill' is
- * undefined, with an unspecified object.
- */
+/* Return a new weak vector.  The allocated vector will be of the given weak
+   vector subtype.  It will contain SIZE elements which are initialized with
+   the FILL object, or, if FILL is undefined, with an unspecified object.  */
 SCM
-scm_i_allocate_weak_vector (scm_t_bits type, SCM size, SCM fill)
+scm_i_make_weak_vector (scm_t_bits type, SCM size, SCM fill)
 {
-  size_t c_size;
-  SCM *base;
-  SCM v;
+  SCM wv, *base;
+  size_t c_size, j;
+
+  if (SCM_UNBNDP (fill))
+    fill = SCM_UNSPECIFIED;
 
   c_size = scm_to_unsigned_integer (size, 0, VECTOR_MAX_LENGTH);
+  wv = make_weak_vector (type, c_size);
+  base = SCM_I_WVECT_GC_WVELTS (wv);
 
-  if (c_size > 0)
-    {
-      size_t j;
-      
-      if (SCM_UNBNDP (fill))
-	fill = SCM_UNSPECIFIED;
-      
-      base = scm_gc_malloc (c_size * sizeof (SCM), "weak vector");
-      for (j = 0; j != c_size; ++j)
-	base[j] = fill;
-    }
-  else
-    base = NULL;
+  for (j = 0; j != c_size; ++j)
+    base[j] = fill;
 
-  v = scm_double_cell ((c_size << 8) | scm_tc7_wvect,
-		       (scm_t_bits) base,
-		       type,
-		       SCM_UNPACK (SCM_EOL));
-  scm_remember_upto_here_1 (fill);
-
-  return v;
+  return wv;
 }
 
+/* Return a new weak vector with type TYPE and whose content are taken from
+   list LST.  */
+SCM
+scm_i_make_weak_vector_from_list (scm_t_bits type, SCM lst)
+{
+  SCM wv, *elt;
+  long c_size;
+
+  c_size = scm_ilength (lst);
+  SCM_ASSERT (c_size >= 0, lst, SCM_ARG2, "scm_i_make_weak_vector_from_list");
+
+  wv = make_weak_vector(type, (size_t) c_size);
+
+  for (elt = SCM_I_WVECT_GC_WVELTS (wv);
+       scm_is_pair (lst);
+       lst = SCM_CDR (lst), elt++)
+    {
+      *elt = SCM_CAR (lst);
+    }
+
+  return wv;
+}
+
+
+
 SCM_DEFINE (scm_vector_to_list, "vector->list", 1, 0, 0, 
 	    (SCM v),
 	    "Return a newly allocated list composed of the elements of @var{v}.\n"
@@ -568,8 +637,6 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector);
 void
 scm_init_vectors ()
 {
-  scm_nullvect = scm_c_make_vector (0, SCM_UNDEFINED);
-
 #include "libguile/vectors.x"
 }
 

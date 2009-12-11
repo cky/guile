@@ -3,7 +3,7 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -63,35 +63,22 @@ typedef struct scm_i_thread {
   int canceled;
   int exited;
 
+  /* Boolean indicating whether the thread is in guile mode.  */
+  int guile_mode;
+
   SCM sleep_object;
   scm_i_pthread_mutex_t *sleep_mutex;
   scm_i_pthread_cond_t sleep_cond;
   int sleep_fd, sleep_pipe[2];
 
-  /* This mutex represents this threads right to access the heap.
-     That right can temporarily be taken away by the GC.
-  */
-  scm_i_pthread_mutex_t heap_mutex;
-
-  /* Boolean tracking whether the above mutex is currently locked by
-     this thread.  This is equivalent to whether or not the thread is
-     in "Guile mode".  This field doesn't need any protection because
-     it is only ever set or tested by the owning thread.
-  */
-  int heap_mutex_locked_by_self;
-
-  /* The freelists of this thread.  Each thread has its own lists so
-     that they can all allocate concurrently.
-  */
-  SCM freelist, freelist2;
-  int clear_freelists_p; /* set if GC was done while thread was asleep */
-  int gc_running_p;      /* non-zero while this thread does GC or a
-			    sweep. */
+  /* Information about the Boehm-GC mark stack during the mark phase.  This
+     is used by `scm_gc_mark ()'.  */
+  void *current_mark_stack_ptr;
+  void *current_mark_stack_limit;
 
   /* Other thread local things.
    */
   SCM dynamic_state;
-  scm_t_debug_frame *last_debug_frame;
   SCM dynwinds;
 
   /* For system asyncs.
@@ -129,6 +116,9 @@ typedef struct scm_i_thread {
   scm_t_contregs *pending_rbs_continuation;
 #endif
 
+  /* Whether this thread is in a critical section. */
+  int critical_section_level;
+
 } scm_i_thread;
 
 #define SCM_I_IS_THREAD(x)    SCM_SMOB_PREDICATE (scm_tc16_thread, x)
@@ -151,26 +141,16 @@ SCM_INTERNAL void *scm_i_with_guile_and_parent (void *(*func)(void *),
 						void *data, SCM parent);
 
 
-extern int scm_i_thread_go_to_sleep;
+void scm_threads_prehistory (SCM_STACKITEM *);
+void scm_threads_init_first_thread (void);
 
-SCM_INTERNAL void scm_i_thread_put_to_sleep (void);
-SCM_INTERNAL void scm_i_thread_wake_up (void);
-SCM_INTERNAL void scm_i_thread_invalidate_freelists (void);
-void scm_i_thread_sleep_for_gc (void);
-
-SCM_INTERNAL void scm_threads_prehistory (SCM_STACKITEM *);
-SCM_INTERNAL void scm_threads_init_first_thread (void);
-SCM_INTERNAL void scm_threads_mark_stacks (void);
 SCM_INTERNAL void scm_init_threads (void);
 SCM_INTERNAL void scm_init_thread_procs (void);
 SCM_INTERNAL void scm_init_threads_default_dynamic_state (void);
 
 
 #define SCM_THREAD_SWITCHING_CODE \
-do { \
-  if (scm_i_thread_go_to_sleep) \
-    scm_i_thread_sleep_for_gc (); \
-} while (0)
+  do { } while (0)
 
 SCM_API SCM scm_call_with_new_thread (SCM thunk, SCM handler);
 SCM_API SCM scm_yield (void);
@@ -211,15 +191,26 @@ SCM_API SCM scm_thread_exited_p (SCM thread);
 
 SCM_API void scm_dynwind_critical_section (SCM mutex);
 
-#define SCM_I_CURRENT_THREAD \
-  ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
-SCM_API scm_i_pthread_key_t scm_i_thread_key;
+#ifdef BUILDING_LIBGUILE
 
-#define scm_i_dynwinds()         (SCM_I_CURRENT_THREAD->dynwinds)
-#define scm_i_set_dynwinds(w)    (SCM_I_CURRENT_THREAD->dynwinds = (w))
-#define scm_i_last_debug_frame() (SCM_I_CURRENT_THREAD->last_debug_frame)
-#define scm_i_set_last_debug_frame(f) \
-                                 (SCM_I_CURRENT_THREAD->last_debug_frame = (f))
+# ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+
+SCM_INTERNAL SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread;
+#  define SCM_I_CURRENT_THREAD (scm_i_current_thread)
+
+# else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
+
+SCM_INTERNAL scm_i_pthread_key_t scm_i_thread_key;
+#  define SCM_I_CURRENT_THREAD						\
+    ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
+
+# endif /* !SCM_HAVE_THREAD_STORAGE_CLASS */
+
+# define scm_i_dynwinds()         (SCM_I_CURRENT_THREAD->dynwinds)
+# define scm_i_set_dynwinds(w)    (SCM_I_CURRENT_THREAD->dynwinds = (w))
+
+#endif /* BUILDING_LIBGUILE */
+
 
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_misc_mutex;
 

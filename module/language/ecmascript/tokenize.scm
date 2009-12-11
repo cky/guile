@@ -50,8 +50,9 @@
       (+ 10 (- (char->integer (char-downcase c)) (char->integer #\a)))))
 
 (define (read-slash port div?)
-  (let* ((c0 (read-char port))
-         (c1 (peek-char port)))
+  (let ((c1 (begin
+              (read-char port)
+              (peek-char port))))
     (cond
      ((eof-object? c1)
       ;; hmm. error if we're not looking for a div? ?

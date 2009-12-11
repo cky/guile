@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,6 +22,7 @@
 # include <config.h>
 #endif
 
+#include "libguile/bdw-gc.h"
 #include "libguile/_scm.h"
 
 #if HAVE_UNISTD_H
@@ -52,6 +53,7 @@
 #include "libguile/init.h"
 #include "libguile/scmsigs.h"
 #include "libguile/strings.h"
+#include "libguile/weaks.h"
 
 #ifdef __MINGW32__
 #ifndef ETIMEDOUT
@@ -83,7 +85,13 @@ to_timespec (SCM t, scm_t_timespec *waittime)
     }
 }
 
+
 /*** Queues */
+
+/* Note: We annotate with "GC-robust" assignments whose purpose is to avoid
+   the risk of false references leading to unbounded retained space as
+   described in "Bounding Space Usage of Conservative Garbage Collectors",
+   H.J. Boehm, 2001.  */
 
 /* Make an empty queue data structure.
  */
@@ -127,6 +135,10 @@ remqueue (SCM q, SCM c)
 	  if (scm_is_eq (c, SCM_CAR (q)))
 	    SCM_SETCAR (q, SCM_CDR (c));
 	  SCM_SETCDR (prev, SCM_CDR (c));
+
+	  /* GC-robust */
+	  SCM_SETCDR (c, SCM_EOL);
+
 	  SCM_CRITICAL_SECTION_END;
 	  return 1;
 	}
@@ -156,26 +168,16 @@ dequeue (SCM q)
       if (scm_is_null (SCM_CDR (q)))
 	SCM_SETCAR (q, SCM_EOL);
       SCM_CRITICAL_SECTION_END;
+
+      /* GC-robust */
+      SCM_SETCDR (c, SCM_EOL);
+
       return SCM_CAR (c);
     }
 }
 
 /*** Thread smob routines */
 
-static SCM
-thread_mark (SCM obj)
-{
-  scm_i_thread *t = SCM_I_THREAD_DATA (obj);
-  scm_gc_mark (t->result);
-  scm_gc_mark (t->cleanup_handler);
-  scm_gc_mark (t->join_queue);
-  scm_gc_mark (t->mutexes);
-  scm_gc_mark (t->dynwinds);
-  scm_gc_mark (t->active_asyncs);
-  scm_gc_mark (t->continuation_root);
-  scm_gc_mark (t->vm);
-  return t->dynamic_state;
-}
 
 static int
 thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -212,15 +214,7 @@ thread_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
-static size_t
-thread_free (SCM obj)
-{
-  scm_i_thread *t = SCM_I_THREAD_DATA (obj);
-  assert (t->exited);
-  scm_gc_free (t, sizeof (*t), "thread");
-  return 0;
-}
-
+
 /*** Blocking on queues. */
 
 /* See also scm_i_queue_async_cell for how such a block is
@@ -292,154 +286,31 @@ unblock_from_queue (SCM queue)
   return thread;
 }
 
+
 /* Getting into and out of guile mode.
  */
 
-/* Ken Raeburn observes that the implementation of suspend and resume
-   (and the things that build on top of them) are very likely not
-   correct (see below).  We will need fix this eventually, and that's
-   why scm_leave_guile/scm_enter_guile are not exported in the API.
+#ifdef SCM_HAVE_THREAD_STORAGE_CLASS
 
-   Ken writes:
+/* When thread-local storage (TLS) is available, a pointer to the
+   current-thread object is kept in TLS.  Note that storing the thread-object
+   itself in TLS (rather than a pointer to some malloc'd memory) is not
+   possible since thread objects may live longer than the actual thread they
+   represent.  */
+SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread = NULL;
 
-   Consider this sequence:
+# define SET_CURRENT_THREAD(_t)  scm_i_current_thread = (_t)
 
-   Function foo, called in Guile mode, calls suspend (maybe indirectly
-   through scm_leave_guile), which does this:
+#else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 
-      // record top of stack for the GC
-      t->top = SCM_STACK_PTR (&t);     // just takes address of automatic
-      var 't'
-      // save registers.
-      SCM_FLUSH_REGISTER_WINDOWS;      // sparc only
-      SCM_I_SETJMP (t->regs);          // here's most of the magic
-
-   ... and returns.
-
-   Function foo has a SCM value X, a handle on a non-immediate object, in
-   a caller-saved register R, and it's the only reference to the object
-   currently.
-
-   The compiler wants to use R in suspend, so it pushes the current
-   value, X, into a stack slot which will be reloaded on exit from
-   suspend; then it loads stuff into R and goes about its business.  The
-   setjmp call saves (some of) the current registers, including R, which
-   no longer contains X.  (This isn't a problem for a normal
-   setjmp/longjmp situation, where longjmp would be called before
-   setjmp's caller returns; the old value for X would be loaded back from
-   the stack after the longjmp, before the function returned.)
-
-   So, suspend returns, loading X back into R (and invalidating the jump
-   buffer) in the process.  The caller foo then goes off and calls a
-   bunch of other functions out of Guile mode, occasionally storing X on
-   the stack again, but, say, much deeper on the stack than suspend's
-   stack frame went, and the stack slot where suspend had written X has
-   long since been overwritten with other values.
-
-   Okay, nothing actively broken so far.  Now, let garbage collection
-   run, triggered by another thread.
-
-   The thread calling foo is out of Guile mode at the time, so the
-   garbage collector just scans a range of stack addresses.  Too bad that
-   X isn't stored there.  So the pointed-to storage goes onto the free
-   list, and I think you can see where things go from there.
-
-   Is there anything I'm missing that'll prevent this scenario from
-   happening?  I mean, aside from, "well, suspend and scm_leave_guile
-   don't have many local variables, so they probably won't need to save
-   any registers on most systems, so we hope everything will wind up in
-   the jump buffer and we'll just get away with it"?
-
-   (And, going the other direction, if scm_leave_guile and suspend push
-   the stack pointer over onto a new page, and foo doesn't make further
-   function calls and thus the stack pointer no longer includes that
-   page, are we guaranteed that the kernel cannot release the now-unused
-   stack page that contains the top-of-stack pointer we just saved?  I
-   don't know if any OS actually does that.  If it does, we could get
-   faults in garbage collection.)
-
-   I don't think scm_without_guile has to have this problem, as it gets
-   more control over the stack handling -- but it should call setjmp
-   itself.  I'd probably try something like:
-
-      // record top of stack for the GC
-      t->top = SCM_STACK_PTR (&t);
-      // save registers.
-      SCM_FLUSH_REGISTER_WINDOWS;
-      SCM_I_SETJMP (t->regs);
-      res = func(data);
-      scm_enter_guile (t);
-
-   ... though even that's making some assumptions about the stack
-   ordering of local variables versus caller-saved registers.
-
-   For something like scm_leave_guile to work, I don't think it can just
-   rely on invalidated jump buffers.  A valid jump buffer, and a handle
-   on the stack state at the point when the jump buffer was initialized,
-   together, would work fine, but I think then we're talking about macros
-   invoking setjmp in the caller's stack frame, and requiring that the
-   caller of scm_leave_guile also call scm_enter_guile before returning,
-   kind of like pthread_cleanup_push/pop calls that have to be paired up
-   in a function.  (In fact, the pthread ones have to be paired up
-   syntactically, as if they might expand to a compound statement
-   incorporating the user's code, and invoking a compiler's
-   exception-handling primitives.  Which might be something to think
-   about for cases where Guile is used with C++ exceptions or
-   pthread_cancel.)
-*/
-
+/* Key used to retrieve the current thread with `pthread_getspecific ()'.  */
 scm_i_pthread_key_t scm_i_thread_key;
 
-static void
-resume (scm_i_thread *t)
-{
-  t->top = NULL;
-  if (t->clear_freelists_p)
-    {
-      *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-      *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-      t->clear_freelists_p = 0;
-    }
-}
+# define SET_CURRENT_THREAD(_t)				\
+  scm_i_pthread_setspecific (scm_i_thread_key, (_t))
 
-typedef void* scm_t_guile_ticket;
+#endif /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 
-static void
-scm_enter_guile (scm_t_guile_ticket ticket)
-{
-  scm_i_thread *t = (scm_i_thread *)ticket;
-  if (t)
-    {
-      scm_i_pthread_mutex_lock (&t->heap_mutex);
-      t->heap_mutex_locked_by_self = 1;
-      resume (t);
-    }
-}
-
-static scm_i_thread *
-suspend (void)
-{
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-  /* record top of stack for the GC */
-  t->top = SCM_STACK_PTR (&t);
-  /* save registers. */
-  SCM_FLUSH_REGISTER_WINDOWS;
-  SCM_I_SETJMP (t->regs);
-  return t;
-}
-
-static scm_t_guile_ticket
-scm_leave_guile ()
-{
-  scm_i_thread *t = suspend ();
-  if (t->heap_mutex_locked_by_self)
-    {
-      t->heap_mutex_locked_by_self = 0;
-      scm_i_pthread_mutex_unlock (&t->heap_mutex);
-    }
-  return (scm_t_guile_ticket) t;
-}
 
 static scm_i_pthread_mutex_t thread_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 static scm_i_thread *all_threads = NULL;
@@ -452,7 +323,7 @@ static SCM scm_i_default_dynamic_state;
 static void
 guilify_self_1 (SCM_STACKITEM *base)
 {
-  scm_i_thread *t = malloc (sizeof (scm_i_thread));
+  scm_i_thread *t = scm_gc_malloc (sizeof (scm_i_thread), "thread");
 
   t->pthread = scm_i_pthread_self ();
   t->handle = SCM_BOOL_F;
@@ -466,7 +337,7 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->active_asyncs = SCM_EOL;
   t->block_asyncs = 1;
   t->pending_asyncs = 1;
-  t->last_debug_frame = NULL;
+  t->critical_section_level = 0;
   t->base = base;
 #ifdef __ia64__
   /* Calculate and store off the base of this thread's register
@@ -497,23 +368,14 @@ guilify_self_1 (SCM_STACKITEM *base)
        currently have type `void'.  */
     abort ();
 
-  scm_i_pthread_mutex_init (&t->heap_mutex, NULL);
-  t->heap_mutex_locked_by_self = 0;
   scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
-  t->clear_freelists_p = 0;
-  t->gc_running_p = 0;
+  t->current_mark_stack_ptr = NULL;
+  t->current_mark_stack_limit = NULL;
   t->canceled = 0;
   t->exited = 0;
+  t->guile_mode = 0;
 
-  t->freelist = SCM_EOL;
-  t->freelist2 = SCM_EOL;
-  SCM_SET_FREELIST_LOC (scm_i_freelist, &t->freelist);
-  SCM_SET_FREELIST_LOC (scm_i_freelist2, &t->freelist2);
-
-  scm_i_pthread_setspecific (scm_i_thread_key, t);
-
-  scm_i_pthread_mutex_lock (&t->heap_mutex);
-  t->heap_mutex_locked_by_self = 1;
+  SET_CURRENT_THREAD (t);
 
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t->next_thread = all_threads;
@@ -529,8 +391,10 @@ guilify_self_2 (SCM parent)
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
+  t->guile_mode = 1;
+
   SCM_NEWSMOB (t->handle, scm_tc16_thread, t);
-  scm_gc_register_collectable_memory (t, sizeof (scm_i_thread), "thread");
+
   t->continuation_root = scm_cons (t->handle, SCM_EOL);
   t->continuation_base = t->base;
   t->vm = SCM_BOOL_F;
@@ -596,14 +460,18 @@ do_thread_exit (void *v)
 
   while (!scm_is_null (t->mutexes))
     {
-      SCM mutex = SCM_CAR (t->mutexes);
-      fat_mutex *m  = SCM_MUTEX_DATA (mutex);
-      scm_i_pthread_mutex_lock (&m->lock);
+      SCM mutex = SCM_WEAK_PAIR_CAR (t->mutexes);
 
-      unblock_from_queue (m->waiting);
+      if (!SCM_UNBNDP (mutex))
+	{
+	  fat_mutex *m  = SCM_MUTEX_DATA (mutex);
 
-      scm_i_pthread_mutex_unlock (&m->lock);
-      t->mutexes = SCM_CDR (t->mutexes);
+	  scm_i_pthread_mutex_lock (&m->lock);
+	  unblock_from_queue (m->waiting);
+	  scm_i_pthread_mutex_unlock (&m->lock);
+	}
+
+      t->mutexes = SCM_WEAK_PAIR_CDR (t->mutexes);
     }
 
   scm_i_pthread_mutex_unlock (&t->admin_mutex);
@@ -625,7 +493,7 @@ on_thread_exit (void *v)
       t->held_mutex = NULL;
     }
 
-  scm_i_pthread_setspecific (scm_i_thread_key, v);
+  SET_CURRENT_THREAD (v);
 
   /* Ensure the signal handling thread has been launched, because we might be
      shutting it down.  */
@@ -633,7 +501,11 @@ on_thread_exit (void *v)
 
   /* Unblocking the joining threads needs to happen in guile mode
      since the queue is a SCM data structure.  */
-  scm_with_guile (do_thread_exit, v);
+
+  /* Note: Since `do_thread_exit ()' uses allocates memory via `libgc', we
+     assume the GC is usable at this point, and notably that thread-local
+     storage (TLS) hasn't been deallocated yet.  */
+  do_thread_exit (v);
 
   /* Removing ourself from the list of all threads needs to happen in
      non-guile mode since all SCM values on our stack become
@@ -643,6 +515,10 @@ on_thread_exit (void *v)
     if (*tp == t)
       {
 	*tp = t->next_thread;
+
+	/* GC-robust */
+	t->next_thread = NULL;
+
 	break;
       }
   thread_count--;
@@ -656,16 +532,20 @@ on_thread_exit (void *v)
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 
-  scm_i_pthread_setspecific (scm_i_thread_key, NULL);
+  SET_CURRENT_THREAD (NULL);
 }
+
+#ifndef SCM_HAVE_THREAD_STORAGE_CLASS
 
 static scm_i_pthread_once_t init_thread_key_once = SCM_I_PTHREAD_ONCE_INIT;
 
 static void
 init_thread_key (void)
 {
-  scm_i_pthread_key_create (&scm_i_thread_key, on_thread_exit);
+  scm_i_pthread_key_create (&scm_i_thread_key, NULL);
 }
+
+#endif
 
 /* Perform any initializations necessary to bring the current thread
    into guile mode, initializing Guile itself, if necessary.
@@ -684,9 +564,12 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 {
   scm_i_thread *t;
 
+#ifndef SCM_HAVE_THREAD_STORAGE_CLASS
   scm_i_pthread_once (&init_thread_key_once, init_thread_key);
+#endif
 
-  if ((t = SCM_I_CURRENT_THREAD) == NULL)
+  t = SCM_I_CURRENT_THREAD;
+  if (t == NULL)
     {
       /* This thread has not been guilified yet.
        */
@@ -728,7 +611,7 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
          t->base = base;
 #endif
 
-      scm_enter_guile ((scm_t_guile_ticket) t);
+      t->top = NULL;
       return 1;
     }
   else
@@ -765,7 +648,7 @@ get_thread_stack_base ()
 
 #ifndef PTHREAD_ATTR_GETSTACK_WORKS
   if ((void *)&attr < start || (void *)&attr >= end)
-    return scm_get_stack_base ();
+    return (SCM_STACKITEM *) GC_stackbottom;
   else
 #endif
     {
@@ -777,7 +660,7 @@ get_thread_stack_base ()
     }
 }
 
-#elif HAVE_PTHREAD_GET_STACKADDR_NP
+#elif defined HAVE_PTHREAD_GET_STACKADDR_NP
 /* This method for MacOS X.
    It'd be nice if there was some documentation on pthread_get_stackaddr_np,
    but as of 2006 there's nothing obvious at apple.com.  */
@@ -797,7 +680,7 @@ get_thread_stack_base ()
 static SCM_STACKITEM *
 get_thread_stack_base ()
 {
-  return scm_get_stack_base ();
+  return (SCM_STACKITEM *) GC_stackbottom;
 }
 
 #endif /* pthread methods of get_thread_stack_base */
@@ -809,7 +692,7 @@ get_thread_stack_base ()
 static SCM_STACKITEM *
 get_thread_stack_base ()
 {
-  return scm_get_stack_base ();
+  return (SCM_STACKITEM *) GC_stackbottom;
 }
 
 #endif /* !SCM_USE_PTHREAD_THREADS */
@@ -835,7 +718,7 @@ scm_with_guile (void *(*func)(void *), void *data)
 SCM_UNUSED static void
 scm_leave_guile_cleanup (void *x)
 {
-  scm_leave_guile ();
+  on_thread_exit (SCM_I_CURRENT_THREAD);
 }
 
 void *
@@ -851,7 +734,6 @@ scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
       scm_i_pthread_cleanup_push (scm_leave_guile_cleanup, NULL);
       res = scm_c_with_continuation_barrier (func, data);
       scm_i_pthread_cleanup_pop (0);
-      scm_leave_guile ();
     }
   else
     res = scm_c_with_continuation_barrier (func, data);
@@ -859,17 +741,67 @@ scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
   return res;
 }
 
+
+/*** Non-guile mode.  */
+
+#ifdef HAVE_GC_DO_BLOCKING
+
+# ifndef HAVE_GC_FN_TYPE
+/* This typedef is missing from the public headers of GC 7.1 and earlier.  */
+typedef void * (* GC_fn_type) (void *);
+# endif /* HAVE_GC_FN_TYPE */
+
+# ifndef HAVE_DECL_GC_DO_BLOCKING
+/* This declaration is missing from the public headers of GC 7.1.  */
+extern void GC_do_blocking (GC_fn_type, void *);
+# endif /* HAVE_DECL_GC_DO_BLOCKING  */
+
+struct without_guile_arg
+{
+  void * (*function) (void *);
+  void    *data;
+  void    *result;
+};
+
+static void
+without_guile_trampoline (void *closure)
+{
+  struct without_guile_arg *arg;
+
+  SCM_I_CURRENT_THREAD->guile_mode = 0;
+
+  arg = (struct without_guile_arg *) closure;
+  arg->result = arg->function (arg->data);
+
+  SCM_I_CURRENT_THREAD->guile_mode = 1;
+}
+
+#endif /* HAVE_GC_DO_BLOCKING */
+
+
 void *
 scm_without_guile (void *(*func)(void *), void *data)
 {
-  void *res;
-  scm_t_guile_ticket t;
-  t = scm_leave_guile ();
-  res = func (data);
-  scm_enter_guile (t);
-  return res;
+  void *result;
+
+#ifdef HAVE_GC_DO_BLOCKING
+  if (SCM_I_CURRENT_THREAD->guile_mode)
+    {
+      struct without_guile_arg arg;
+
+      arg.function = func;
+      arg.data = data;
+      GC_do_blocking ((GC_fn_type) without_guile_trampoline, &arg);
+      result = arg.result;
+    }
+  else
+#endif
+    result = func (data);
+
+  return result;
 }
 
+
 /*** Thread creation */
 
 typedef struct {
@@ -899,6 +831,9 @@ really_launch (void *d)
     t->result = scm_call_0 (thunk);
   else
     t->result = scm_catch (SCM_BOOL_T, thunk, handler);
+
+  /* Trigger a call to `on_thread_exit ()'.  */
+  pthread_exit (NULL);
 
   return 0;
 }
@@ -1190,20 +1125,12 @@ SCM_DEFINE (scm_thread_p, "thread?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-static SCM
-fat_mutex_mark (SCM mx)
-{
-  fat_mutex *m = SCM_MUTEX_DATA (mx);
-  scm_gc_mark (m->owner);
-  return m->waiting;
-}
 
 static size_t
 fat_mutex_free (SCM mx)
 {
   fat_mutex *m = SCM_MUTEX_DATA (mx);
   scm_i_pthread_mutex_destroy (&m->lock);
-  scm_gc_free (m, sizeof (fat_mutex), "mutex");
   return 0;
 }
 
@@ -1306,7 +1233,14 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 	    {
 	      scm_i_thread *t = SCM_I_THREAD_DATA (new_owner);
 	      scm_i_pthread_mutex_lock (&t->admin_mutex);
-	      t->mutexes = scm_cons (mutex, t->mutexes);
+
+	      /* Only keep a weak reference to MUTEX so that it's not
+		 retained when not referenced elsewhere (bug #27450).  Note
+		 that the weak pair itself it still retained, but it's better
+		 than retaining MUTEX and the threads referred to by its
+		 associated queue.  */
+	      t->mutexes = scm_weak_car_pair (mutex, t->mutexes);
+
 	      scm_i_pthread_mutex_unlock (&t->admin_mutex);
 	    }
 	  *ret = 1;
@@ -1438,6 +1372,7 @@ static int
 fat_mutex_unlock (SCM mutex, SCM cond,
 		  const scm_t_timespec *waittime, int relock)
 {
+  SCM owner;
   fat_mutex *m = SCM_MUTEX_DATA (mutex);
   fat_cond *c = NULL;
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
@@ -1445,7 +1380,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 
   scm_i_scm_pthread_mutex_lock (&m->lock);
 
-  SCM owner = m->owner;
+  owner = m->owner;
 
   if (!scm_is_eq (owner, scm_current_thread ()))
     {
@@ -1609,21 +1544,6 @@ SCM_DEFINE (scm_mutex_locked_p, "mutex-locked?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-static SCM
-fat_cond_mark (SCM cv)
-{
-  fat_cond *c = SCM_CONDVAR_DATA (cv);
-  return c->waiting;
-}
-
-static size_t
-fat_cond_free (SCM mx)
-{
-  fat_cond *c = SCM_CONDVAR_DATA (mx);
-  scm_gc_free (c, sizeof (fat_cond), "condition-variable");
-  return 0;
-}
-
 static int
 fat_cond_print (SCM cv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
@@ -1722,52 +1642,37 @@ SCM_DEFINE (scm_condition_variable_p, "condition-variable?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/*** Marking stacks */
 
-/* XXX - what to do with this?  Do we need to handle this for blocked
-   threads as well?
-*/
-#ifdef __ia64__
-# define SCM_MARK_BACKING_STORE() do {                                \
-    ucontext_t ctx;                                                   \
-    SCM_STACKITEM * top, * bot;                                       \
-    getcontext (&ctx);                                                \
-    scm_mark_locations ((SCM_STACKITEM *) &ctx.uc_mcontext,           \
-      ((size_t) (sizeof (SCM_STACKITEM) - 1 + sizeof ctx.uc_mcontext) \
-       / sizeof (SCM_STACKITEM)));                                    \
-    bot = (SCM_STACKITEM *) SCM_I_CURRENT_THREAD->register_backing_store_base;  \
-    top = (SCM_STACKITEM *) scm_ia64_ar_bsp (&ctx);                   \
-    scm_mark_locations (bot, top - bot); } while (0)
-#else
-# define SCM_MARK_BACKING_STORE()
-#endif
-
-void
-scm_threads_mark_stacks (void)
-{
-  scm_i_thread *t;
-  for (t = all_threads; t; t = t->next_thread)
-    {
-      /* Check that thread has indeed been suspended.
-       */
-      assert (t->top);
-
-      scm_gc_mark (t->handle);
-
-#if SCM_STACK_GROWS_UP
-      scm_mark_locations (t->base, t->top - t->base);
-#else
-      scm_mark_locations (t->top, t->base - t->top);
-#endif
-      scm_mark_locations ((void *) &t->regs,
-			  ((size_t) sizeof(t->regs)
-			   / sizeof (SCM_STACKITEM)));
-    }
-
-  SCM_MARK_BACKING_STORE ();
-}
-
+
 /*** Select */
+
+struct select_args
+{
+  int             nfds;
+  SELECT_TYPE    *read_fds;
+  SELECT_TYPE    *write_fds;
+  SELECT_TYPE    *except_fds;
+  struct timeval *timeout;
+
+  int             result;
+  int             errno_value;
+};
+
+static void *
+do_std_select (void *args)
+{
+  struct select_args *select_args;
+
+  select_args = (struct select_args *) args;
+
+  select_args->result =
+    select (select_args->nfds,
+	    select_args->read_fds, select_args->write_fds,
+	    select_args->except_fds, select_args->timeout);
+  select_args->errno_value = errno;
+
+  return NULL;
+}
 
 int
 scm_std_select (int nfds,
@@ -1779,7 +1684,7 @@ scm_std_select (int nfds,
   fd_set my_readfds;
   int res, eno, wakeup_fd;
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  scm_t_guile_ticket ticket;
+  struct select_args args;
 
   if (readfds == NULL)
     {
@@ -1791,15 +1696,23 @@ scm_std_select (int nfds,
     SCM_TICK;
 
   wakeup_fd = t->sleep_pipe[0];
-  ticket = scm_leave_guile ();
   FD_SET (wakeup_fd, readfds);
   if (wakeup_fd >= nfds)
     nfds = wakeup_fd+1;
-  res = select (nfds, readfds, writefds, exceptfds, timeout);
-  t->sleep_fd = -1;
-  eno = errno;
-  scm_enter_guile (ticket);
 
+  args.nfds = nfds;
+  args.read_fds = readfds;
+  args.write_fds = writefds;
+  args.except_fds = exceptfds;
+  args.timeout = timeout;
+
+  /* Explicitly cooperate with the GC.  */
+  scm_without_guile (do_std_select, &args);
+
+  res = args.result;
+  eno = args.errno_value;
+
+  t->sleep_fd = -1;
   scm_i_reset_sleep (t);
 
   if (res > 0 && FD_ISSET (wakeup_fd, readfds))
@@ -1823,18 +1736,17 @@ scm_std_select (int nfds,
 
 #if SCM_USE_PTHREAD_THREADS
 
+/* It seems reasonable to not run procedures related to mutex and condition
+   variables within `GC_do_blocking ()' since, (i) the GC can operate even
+   without it, and (ii) the only potential gain would be GC latency.  See
+   http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2245/focus=2251
+   for a discussion of the pros and cons.  */
+
 int
 scm_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 {
-  if (scm_i_pthread_mutex_trylock (mutex) == 0)
-    return 0;
-  else
-    {
-      scm_t_guile_ticket t = scm_leave_guile ();
-      int res = scm_i_pthread_mutex_lock (mutex);
-      scm_enter_guile (t);
-      return res;
-    }
+  int res = scm_i_pthread_mutex_lock (mutex);
+  return res;
 }
 
 static void
@@ -1853,11 +1765,13 @@ scm_dynwind_pthread_mutex_lock (scm_i_pthread_mutex_t *mutex)
 int
 scm_pthread_cond_wait (scm_i_pthread_cond_t *cond, scm_i_pthread_mutex_t *mutex)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
-  ((scm_i_thread *)t)->held_mutex = mutex;
-  int res = scm_i_pthread_cond_wait (cond, mutex);
-  ((scm_i_thread *)t)->held_mutex = NULL;
-  scm_enter_guile (t);
+  int res;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  t->held_mutex = mutex;
+  res = scm_i_pthread_cond_wait (cond, mutex);
+  t->held_mutex = NULL;
+
   return res;
 }
 
@@ -1866,11 +1780,13 @@ scm_pthread_cond_timedwait (scm_i_pthread_cond_t *cond,
 			    scm_i_pthread_mutex_t *mutex,
 			    const scm_t_timespec *wt)
 {
-  scm_t_guile_ticket t = scm_leave_guile ();
-  ((scm_i_thread *)t)->held_mutex = mutex;
-  int res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
-  ((scm_i_thread *)t)->held_mutex = NULL;
-  scm_enter_guile (t);
+  int res;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  t->held_mutex = mutex;
+  res = scm_i_pthread_cond_timedwait (cond, mutex, wt);
+  t->held_mutex = NULL;
+
   return res;
 }
 
@@ -1966,73 +1882,12 @@ scm_c_thread_exited_p (SCM thread)
 #undef FUNC_NAME
 
 static scm_i_pthread_cond_t wake_up_cond;
-int scm_i_thread_go_to_sleep;
 static int threads_initialized_p = 0;
 
-void
-scm_i_thread_put_to_sleep ()
-{
-  if (threads_initialized_p)
-    {
-      scm_i_thread *t;
-
-      scm_leave_guile ();
-      scm_i_pthread_mutex_lock (&thread_admin_mutex);
-
-      /* Signal all threads to go to sleep
-       */
-      scm_i_thread_go_to_sleep = 1;
-      for (t = all_threads; t; t = t->next_thread)
-	scm_i_pthread_mutex_lock (&t->heap_mutex);
-      scm_i_thread_go_to_sleep = 0;
-    }
-}
-
-void
-scm_i_thread_invalidate_freelists ()
-{
-  /* thread_admin_mutex is already locked. */
-
-  scm_i_thread *t;
-  for (t = all_threads; t; t = t->next_thread)
-    if (t != SCM_I_CURRENT_THREAD)
-      t->clear_freelists_p = 1;
-}
-
-void
-scm_i_thread_wake_up ()
-{
-  if (threads_initialized_p)
-    {
-      scm_i_thread *t;
-
-      scm_i_pthread_cond_broadcast (&wake_up_cond);
-      for (t = all_threads; t; t = t->next_thread)
-	scm_i_pthread_mutex_unlock (&t->heap_mutex);
-      scm_i_pthread_mutex_unlock (&thread_admin_mutex);
-      scm_enter_guile ((scm_t_guile_ticket) SCM_I_CURRENT_THREAD);
-    }
-}
-
-void
-scm_i_thread_sleep_for_gc ()
-{
-  scm_i_thread *t = suspend ();
-
-  /* Don't put t->heap_mutex in t->held_mutex here, because if the
-     thread is cancelled during the cond wait, the thread's cleanup
-     function (scm_leave_guile_cleanup) will handle unlocking the
-     heap_mutex, so we don't need to do that again in on_thread_exit.
-  */
-  scm_i_pthread_cond_wait (&wake_up_cond, &t->heap_mutex);
-
-  resume (t);
-}
 
 /* This mutex is used by SCM_CRITICAL_SECTION_START/END.
  */
 scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-int scm_i_critical_section_level = 0;
 
 static SCM dynwind_critical_section_mutex;
 
@@ -2047,7 +1902,6 @@ scm_dynwind_critical_section (SCM mutex)
 
 /*** Initialization */
 
-scm_i_pthread_key_t scm_i_freelist, scm_i_freelist2;
 scm_i_pthread_mutex_t scm_i_misc_mutex;
 
 #if SCM_USE_PTHREAD_THREADS
@@ -2067,8 +1921,6 @@ scm_threads_prehistory (SCM_STACKITEM *base)
 			    scm_i_pthread_mutexattr_recursive);
   scm_i_pthread_mutex_init (&scm_i_misc_mutex, NULL);
   scm_i_pthread_cond_init (&wake_up_cond, NULL);
-  scm_i_pthread_key_create (&scm_i_freelist, NULL);
-  scm_i_pthread_key_create (&scm_i_freelist2, NULL);
 
   guilify_self_1 (base);
 }
@@ -2081,34 +1933,28 @@ void
 scm_init_threads ()
 {
   scm_tc16_thread = scm_make_smob_type ("thread", sizeof (scm_i_thread));
-  scm_set_smob_mark (scm_tc16_thread, thread_mark);
   scm_set_smob_print (scm_tc16_thread, thread_print);
-  scm_set_smob_free (scm_tc16_thread, thread_free);
 
   scm_tc16_mutex = scm_make_smob_type ("mutex", sizeof (fat_mutex));
-  scm_set_smob_mark (scm_tc16_mutex, fat_mutex_mark);
   scm_set_smob_print (scm_tc16_mutex, fat_mutex_print);
   scm_set_smob_free (scm_tc16_mutex, fat_mutex_free);
 
   scm_tc16_condvar = scm_make_smob_type ("condition-variable",
 					 sizeof (fat_cond));
-  scm_set_smob_mark (scm_tc16_condvar, fat_cond_mark);
   scm_set_smob_print (scm_tc16_condvar, fat_cond_print);
-  scm_set_smob_free (scm_tc16_condvar, fat_cond_free);
 
   scm_i_default_dynamic_state = SCM_BOOL_F;
   guilify_self_2 (SCM_BOOL_F);
   threads_initialized_p = 1;
 
-  dynwind_critical_section_mutex =
-    scm_permanent_object (scm_make_recursive_mutex ());
+  dynwind_critical_section_mutex = scm_make_recursive_mutex ();
 }
 
 void
 scm_init_threads_default_dynamic_state ()
 {
   SCM state = scm_make_dynamic_state (scm_current_dynamic_state ());
-  scm_i_default_dynamic_state = scm_permanent_object (state);
+  scm_i_default_dynamic_state = state;
 }
 
 void
@@ -2116,6 +1962,49 @@ scm_init_thread_procs ()
 {
 #include "libguile/threads.x"
 }
+
+
+/* IA64-specific things.  */
+
+#ifdef __ia64__
+# ifdef __hpux
+#  include <sys/param.h>
+#  include <sys/pstat.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  struct pst_vm_status vm_status;
+  int i = 0;
+  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
+    if (vm_status.pst_type == PS_RSESTACK)
+      return (void *) vm_status.pst_vaddr;
+  abort ();
+}
+void *
+scm_ia64_ar_bsp (const void *ctx)
+{
+  uint64_t bsp;
+  __uc_get_ar_bsp (ctx, &bsp);
+  return (void *) bsp;
+}
+# endif /* hpux */
+# ifdef linux
+#  include <ucontext.h>
+void *
+scm_ia64_register_backing_store_base (void)
+{
+  extern void *__libc_ia64_register_backing_store_base;
+  return __libc_ia64_register_backing_store_base;
+}
+void *
+scm_ia64_ar_bsp (const void *opaque)
+{
+  const ucontext_t *ctx = opaque;
+  return (void *) ctx->uc_mcontext.sc_ar_bsp;
+}
+# endif /* linux */
+#endif /* __ia64__ */
+
 
 /*
   Local Variables:

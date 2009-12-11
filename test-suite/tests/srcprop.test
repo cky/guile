@@ -1,6 +1,6 @@
 ;;;; srcprop.test --- test Guile source properties    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -44,6 +44,7 @@
 
   (pass-if "setting the breakpoint property works"
     (let ((s (read (open-input-string "(+ 3 4)"))))
+      (throw 'unresolved)
       (set-source-property! s 'breakpoint #t)
       (let ((current-trap-opts (evaluator-traps-interface))
 	    (current-debug-opts (debug-options-interface))
@@ -67,6 +68,7 @@
 
   (pass-if "setting the breakpoint property works"
     (let ((s (read (open-input-string "(+ 3 4)"))))
+      (throw 'unresolved)
       (set-source-properties! s '((breakpoint #t)))
       (let ((current-trap-opts (evaluator-traps-interface))
 	    (current-debug-opts (debug-options-interface))

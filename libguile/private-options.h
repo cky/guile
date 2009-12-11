@@ -4,7 +4,7 @@
  * We put this in a private header, since layout of data structures
  * is an implementation detail that we want to hide.
  * 
- * Copyright (C) 2007 Free Software Foundation, Inc.
+ * Copyright (C) 2007, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,8 +29,6 @@
   evaluator
  */
 SCM_API scm_t_option scm_eval_opts[];
-
-SCM_API long scm_eval_stack;
 
 SCM_API scm_t_option scm_evaluator_trap_table[];
 

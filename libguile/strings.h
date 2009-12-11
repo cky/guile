@@ -98,6 +98,8 @@ typedef enum
   SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE = SCM_ICONVEH_ESCAPE_SEQUENCE
 } scm_t_string_failed_conversion_handler;
 
+SCM_INTERNAL SCM scm_nullstr;
+
 SCM_API SCM scm_string_p (SCM x);
 SCM_API SCM scm_string (SCM chrs);
 SCM_API SCM scm_make_string (SCM k, SCM chr);
@@ -111,6 +113,10 @@ SCM_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
 SCM_API SCM scm_substring_copy (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
 
+SCM_API SCM scm_from_stringn (const char *str, size_t len, 
+                                     const char *encoding,
+                                     scm_t_string_failed_conversion_handler 
+                                     handler);
 SCM_API SCM scm_c_make_string (size_t len, SCM chr);
 SCM_API size_t scm_c_string_length (SCM str);
 SCM_API size_t scm_c_symbol_length (SCM sym);
@@ -138,6 +144,17 @@ SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
 
+
+/* internal constants */
+
+/* Type tag for read-only strings.  */
+#define scm_tc7_ro_string             (scm_tc7_string + 0x200)
+
+/* Flags for shared and wide strings.  */
+#define SCM_I_STRINGBUF_F_SHARED      0x100
+#define SCM_I_STRINGBUF_F_WIDE        0x400
+
+
 /* internal accessor functions.  Arguments must be valid. */
 
 SCM_INTERNAL SCM scm_i_make_string (size_t len, char **datap);
@@ -164,9 +181,6 @@ SCM_INTERNAL SCM scm_i_make_symbol (SCM name, scm_t_bits flags,
 SCM_INTERNAL SCM
 scm_i_c_make_symbol (const char *name, size_t len,
 		     scm_t_bits flags, unsigned long hash, SCM props);
-SCM_INTERNAL SCM
-scm_i_c_take_symbol (char *name, size_t len,
-		     scm_t_bits flags, unsigned long hash, SCM props);
 SCM_INTERNAL const char *scm_i_symbol_chars (SCM sym);
 SCM_INTERNAL const scm_t_wchar *scm_i_symbol_wide_chars (SCM sym);
 SCM_INTERNAL size_t scm_i_symbol_length (SCM sym);
@@ -175,29 +189,18 @@ SCM_INTERNAL int scm_i_try_narrow_string (SCM str);
 SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
 SCM_INTERNAL scm_t_wchar scm_i_symbol_ref (SCM sym, size_t x);
 
-/* internal GC functions. */
-
-SCM_INTERNAL SCM scm_i_string_mark (SCM str);
-SCM_INTERNAL SCM scm_i_stringbuf_mark (SCM buf);
-SCM_INTERNAL SCM scm_i_symbol_mark (SCM buf);
-SCM_INTERNAL void scm_i_string_free (SCM str);
-SCM_INTERNAL void scm_i_stringbuf_free (SCM buf);
-SCM_INTERNAL void scm_i_symbol_free (SCM sym);
-
 /* internal utility functions. */
 
 SCM_INTERNAL char **scm_i_allocate_string_pointers (SCM list);
-SCM_INTERNAL void scm_i_free_string_pointers (char **pointers);
 SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
 					    SCM start, size_t *cstart,
 					    SCM end, size_t *cend);
-SCM_INTERNAL SCM scm_i_take_stringbufn (char *str, size_t len);
 
 /* Debugging functions */
 
 SCM_API SCM scm_sys_string_dump (SCM);
 SCM_API SCM scm_sys_symbol_dump (SCM);
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
 SCM_API SCM scm_sys_stringbuf_hist (void);
 #endif
 
@@ -205,9 +208,9 @@ SCM_API SCM scm_sys_stringbuf_hist (void);
 
 #if SCM_ENABLE_DEPRECATED
 
-SCM_API int scm_i_deprecated_stringp (SCM obj);
-SCM_API char *scm_i_deprecated_string_chars (SCM str);
-SCM_API size_t scm_i_deprecated_string_length (SCM str);
+SCM_DEPRECATED int scm_i_deprecated_stringp (SCM obj);
+SCM_DEPRECATED char *scm_i_deprecated_string_chars (SCM str);
+SCM_DEPRECATED size_t scm_i_deprecated_string_length (SCM str);
 
 #define SCM_STRINGP(x)       scm_i_deprecated_stringp(x)
 #define SCM_STRING_CHARS(x)  scm_i_deprecated_string_chars(x)

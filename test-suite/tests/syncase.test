@@ -1,6 +1,6 @@
 ;;;; syncase.test --- test suite for (ice-9 syncase)            -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,11 +22,6 @@
 (define-module (test-suite test-syncase)
   :use-module (test-suite lib))
 
-(pass-if "(ice-9 syncase) loads"
-  (false-if-exception
-   (begin (eval '(use-syntax (ice-9 syncase)) (current-module))
-          #t)))
-
 (define-syntax plus
   (syntax-rules ()
     ((plus x ...) (+ x ...))))
@@ -36,3 +31,15 @@
 
 (pass-if "@ works with syncase"
   (eq? run-test (@ (test-suite lib) run-test)))
+
+(define-syntax string-let
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ id body ...)
+       #`(let ((id #,(symbol->string
+                      (syntax->datum #'id))))
+           body ...)))))
+
+(pass-if "macro using quasisyntax"
+  (equal? (string-let foo (list foo foo))
+          '("foo" "foo")))

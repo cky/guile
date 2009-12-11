@@ -1,5 +1,9 @@
+
+(define-module (benchmarks continuations)
+  :use-module (benchmark-suite lib))
+
 (define (callee continuation)
   (continuation #t))
 
-(benchmark "call/cc" 300
+(benchmark "call/cc" 12000
   (call-with-current-continuation callee))

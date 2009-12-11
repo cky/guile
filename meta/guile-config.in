@@ -1,0 +1,210 @@
+#!/bin/sh
+PKG_CONFIG_PATH="@pkgconfigdir@:$PKG_CONFIG_PATH"
+GUILE_AUTO_COMPILE=0
+export PKG_CONFIG_PATH GUILE_AUTO_COMPILE
+
+exec "@installed_guile@" -e main -s $0 "$@"
+!#
+;;;; guile-config --- utility for linking programs with Guile
+;;;; Jim Blandy <jim@red-bean.com> --- September 1997
+;;;; 
+;;;; 	Copyright (C) 1998, 2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+;;;; 
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free
+;;;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;;;; Boston, MA 02110-1301 USA
+
+;;; This script has been deprecated. Just use pkg-config.
+
+(use-modules (ice-9 popen)
+             (ice-9 rdelim))
+
+
+(define %pkg-config-program "@PKG_CONFIG@")
+
+;;;; main function, command-line processing
+
+;;; The script's entry point.
+(define (main args)
+  (set-program-name! (car args))
+  (let ((args (cdr args)))
+    (cond
+     ((null? args) (show-help '())
+		   (quit 1))
+     ((assoc (car args) command-table)
+      => (lambda (row)
+	   (set! subcommand-name (car args))
+	   ((cadr row) (cdr args))))
+     (else (show-help '())
+	   (quit 1)))))
+
+(define program-name #f)
+(define subcommand-name #f)
+
+;;; Given an executable path PATH, set program-name to something
+;;; appropriate f or use in error messages (i.e., with leading
+;;; directory names stripped).
+(define (set-program-name! path)
+  (set! program-name (basename path)))
+
+(define (show-help args)
+  (cond
+   ((null? args) (show-help-overview))
+   ((assoc (car args) command-table)
+    => (lambda (row) ((caddr row))))
+   (else
+    (show-help-overview))))
+
+(define (show-help-overview)
+  (display-line-error "Usage: ")
+  (for-each (lambda (row) ((cadddr row)))
+	    command-table))
+
+(define (usage-help)
+  (let ((dle display-line-error)
+	(p program-name))
+    (dle "  " p " --help      - show usage info (this message)")
+    (dle "  " p " --help SUBCOMMAND - show help for SUBCOMMAND")))
+
+(define guile-module "guile-2.0")
+
+(define (pkg-config . args)
+  (let* ((real-args (cons %pkg-config-program args))
+         (pipe (apply open-pipe* OPEN_READ real-args))
+         (output (read-delimited "" pipe))
+         (ret (close-pipe pipe)))
+    (case (status:exit-val ret)
+      ((0) (if (eof-object? output) "" output))
+      (else (display-line-error
+             (format #f "error: ~s exited with non-zero error code ~A"
+                     (cons %pkg-config-program args) (status:exit-val ret)))
+            ;; assume pkg-config sent diagnostics to stdout
+            (exit (status:exit-val ret))))))
+
+(define (show-version args)
+  (format (current-error-port) "~A - Guile version ~A"
+          program-name (pkg-config "--modversion" guile-module)))
+
+(define (help-version)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " --version")
+    (dle "Show the version of this script.  This is also the version of")
+    (dle "Guile this script was installed with.")))
+
+(define (usage-version)
+  (display-line-error
+   "  " program-name " --version   - show installed script and Guile version"))
+
+
+;;;; the "link" subcommand
+
+;;; Write a set of linker flags to standard output to include the
+;;; libraries that libguile needs to link against.
+;;;
+;;; In the long run, we want to derive these flags from Guile module
+;;; declarations files that are installed along the load path.  For
+;;; now, we're just going to reach into Guile's configuration info and
+;;; hack it out.
+(define (build-link args)
+  (display (apply pkg-config "--libs" guile-module args)))
+
+(define (help-link)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " link")
+    (dle "Print linker flags for building the `guile' executable.")
+    (dle "Print the linker command-line flags necessary to link against")
+    (dle "the Guile library, and any other libraries it requires.")))
+
+(define (usage-link)
+  (display-line-error
+   "  " program-name " link        - print libraries to link with"))
+
+
+
+;;;; The "compile" subcommand
+
+(define (build-compile args)
+  (display (apply pkg-config "--cflags" guile-module args)))
+
+(define (help-compile)
+  (let ((dle display-line-error))
+    (dle "Usage: " program-name " compile")
+    (dle "Print C compiler flags for compiling code that uses Guile.")
+    (dle "This includes any `-I' flags needed to find Guile's header files.")))
+
+(define (usage-compile)
+  (display-line-error
+   "  " program-name " compile     - print C compiler flags to compile with"))
+
+
+;;;; The "info" subcommand
+
+(define (build-info args)
+  (cond
+   ((null? args)
+    (display-line-error "guile-config info with no args has been removed")
+    (quit 2))
+   ((null? (cdr args))
+    (cond
+     ((string=? (car args) "guileversion")
+      (display (pkg-config "--modversion" guile-module)))
+     (else
+      (display (pkg-config (format #f "--variable=~A" (car args))
+                           guile-module)))))
+   (else (display-line-error "Usage: " program-name " info VAR")
+	 (quit 2))))
+
+(define (help-info)
+  (let ((d display-line-error))
+    (d "Usage: " program-name " info VAR")
+    (d "Display the value of the pkg-config variable VAR used when Guile")
+    (d "was built.\n")
+    (d "Use this command to find out where Guile was installed,")
+    (d "where it will look for Scheme code at run-time, and so on.")))
+
+(define (usage-info)
+  (display-line-error
+   "  " program-name " info VAR    - print Guile build directories"))
+
+
+;;;; trivial utilities
+
+(define (display-line . args)
+  (apply display-line-port (current-output-port) args))
+
+(define (display-line-error . args)
+  (apply display-line-port (current-error-port) args))
+
+(define (display-line-port port . args)
+  (for-each (lambda (arg) (display arg port))
+	    args)
+  (newline port))
+
+
+;;;; the command table
+
+;;; We define this down here, so Guile builds the list after all the
+;;; functions have been defined.
+(define command-table
+  (list
+   (list "--version" show-version help-version usage-version)
+   (list "--help" show-help show-help-overview usage-help)
+   (list "link" build-link help-link usage-link)
+   (list "compile" build-compile help-compile usage-compile)
+   (list "info" build-info help-info usage-info)))
+
+
+;;; Local Variables:
+;;; mode: scheme
+;;; End:

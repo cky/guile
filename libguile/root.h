@@ -3,7 +3,7 @@
 #ifndef SCM_ROOT_H
 #define SCM_ROOT_H
 
-/* Copyright (C) 1996,1998,2000,2001, 2002, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001, 2002, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,25 +26,6 @@
 #include "libguile/__scm.h"
 #include "libguile/debug.h"
 #include "libguile/throw.h"
-
-
-
-#define scm_flo0 scm_sys_protects[0]
-#define scm_listofnull scm_sys_protects[1]
-#define scm_nullvect scm_sys_protects[2]
-#define scm_nullstr scm_sys_protects[3]
-#define scm_keyword_obarray scm_sys_protects[4]
-#define scm_stand_in_procs scm_sys_protects[5]
-#define scm_object_whash scm_sys_protects[6]
-#define scm_permobjs scm_sys_protects[7]
-#define scm_asyncs scm_sys_protects[8]
-#define scm_protects scm_sys_protects[9]
-#define scm_properties_whash scm_sys_protects[10]
-#define scm_gc_registered_roots scm_sys_protects[11]
-#define scm_source_whash scm_sys_protects[12]
-#define SCM_NUM_PROTECTS 13
-
-SCM_API SCM scm_sys_protects[];
 
 
 

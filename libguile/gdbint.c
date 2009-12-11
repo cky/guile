@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001,2002,2004
+ * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -102,55 +102,26 @@ int gdb_output_length;
 int scm_print_carefully_p;
 
 static SCM gdb_input_port;
-static int port_mark_p, stream_mark_p, string_mark_p;
-
 static SCM gdb_output_port;
-
-
-static void
-unmark_port (SCM port)
-{
-  SCM stream, string;
-  port_mark_p = SCM_GC_MARK_P (port);
-  SCM_CLEAR_GC_MARK (port);
-  stream = SCM_PACK (SCM_STREAM (port));
-  stream_mark_p = SCM_GC_MARK_P (stream);
-  SCM_CLEAR_GC_MARK (stream);
-  string = SCM_CDR (stream);
-  string_mark_p = SCM_GC_MARK_P (string);
-  SCM_CLEAR_GC_MARK (string);
-}
-
-
-static void
-remark_port (SCM port)
-{
-  SCM stream = SCM_PACK (SCM_STREAM (port));
-  SCM string = SCM_CDR (stream);
-  if (string_mark_p)
-    SCM_SET_GC_MARK (string);
-  if (stream_mark_p)
-    SCM_SET_GC_MARK (stream);
-  if (port_mark_p)
-    SCM_SET_GC_MARK (port);
-}
 
 
 int
 gdb_maybe_valid_type_p (SCM value)
 {
-  return SCM_IMP (value) || scm_in_heap_p (value);
+  return SCM_IMP (value); /*  || scm_in_heap_p (value); */ /* FIXME: What to
+							      do? */
 }
 
 
 int
 gdb_read (char *str)
 {
+#if 0
   SCM ans;
   int status = 0;
   RESET_STRING;
   /* Need to be restrictive about what to read? */
-  if (SCM_GC_P)
+  if (1)  /* (SCM_GC_P) */ /* FIXME */
     {
       char *p;
       for (p = str; *p != '\0'; ++p)
@@ -195,13 +166,16 @@ gdb_read (char *str)
 	}
     }
   gdb_result = ans;
-  /* Protect answer from future GC */
+  /* Protect answer from future GC (FIXME: still needed with BDW-GC?) */
   if (SCM_NIMP (ans))
     scm_permanent_object (ans);
 exit:
   remark_port (gdb_input_port);
   SCM_END_FOREIGN_BLOCK;
   return status;
+#else
+  abort ();
+#endif
 }
 
 
@@ -216,8 +190,7 @@ gdb_eval (SCM exp)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   {
-    SCM env = scm_top_level_env (SCM_TOP_LEVEL_LOOKUP_CLOSURE);
-    gdb_result = scm_permanent_object (scm_i_eval_x (exp, env));
+    gdb_result = scm_permanent_object (scm_primitive_eval (exp));
   }
   SCM_END_FOREIGN_BLOCK;
   return 0;

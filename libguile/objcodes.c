@@ -27,6 +27,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <assert.h>
+#include <alignof.h>
 
 #include "_scm.h"
 #include "vm-bootstrap.h"
@@ -119,11 +120,10 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 				scm_from_uint32 (parent_data->len),
 				scm_from_uint32 (parent_data->metalen)));
 
-#ifdef __GNUC__ /* we need `__alignof__' */
   /* Make sure bytecode for the objcode-meta is suitable aligned.  Failing to
      do so leads to SIGBUS/SIGSEGV on some arches (e.g., SPARC).  */
-  assert ((((scm_t_bits) ptr) & (__alignof__ (struct scm_objcode) - 1UL)) == 0);
-#endif
+  assert ((((scm_t_bits) ptr) &
+	   (alignof_type (struct scm_objcode) - 1UL)) == 0);
 
   data = (struct scm_objcode*)ptr;
   if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)
@@ -135,12 +135,6 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 }
 #undef FUNC_NAME
 
-static SCM
-objcode_mark (SCM obj)
-{
-  return SCM_SMOB_OBJECT_2 (obj);
-}
-
 
 /*
  * Scheme interface
@@ -151,7 +145,7 @@ SCM_DEFINE (scm_objcode_p, "objcode?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_objcode_p
 {
-  return SCM_BOOL (SCM_OBJCODE_P (obj));
+  return scm_from_bool (SCM_OBJCODE_P (obj));
 }
 #undef FUNC_NAME
 
@@ -235,8 +229,8 @@ SCM_DEFINE (scm_objcode_to_bytecode, "objcode->bytecode", 1, 0, 0,
   SCM_VALIDATE_OBJCODE (1, objcode);
 
   len = sizeof(struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
-  /* FIXME:  Is `gc_malloc' ok here? */
-  u8vector = scm_gc_malloc (len, "objcode-u8vector");
+
+  u8vector = scm_malloc (len);
   memcpy (u8vector, SCM_OBJCODE_DATA (objcode), len);
 
   return scm_take_u8vector (u8vector, len);
@@ -264,7 +258,6 @@ void
 scm_bootstrap_objcodes (void)
 {
   scm_tc16_objcode = scm_make_smob_type ("objcode", 0);
-  scm_set_smob_mark (scm_tc16_objcode, objcode_mark);
   scm_c_register_extension ("libguile", "scm_init_objcodes",
                             (scm_t_extension_init_func)scm_init_objcodes, NULL);
 }

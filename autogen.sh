@@ -15,9 +15,13 @@ autoconf --version
 echo ""
 automake --version
 echo ""
-libtool --version
+if test "`uname -s`" = Darwin; then
+  glibtool --version
+else
+  libtool --version
+fi
 echo ""
-${M4:-/usr/bin/m4} --version
+${M4:-m4} --version
 echo ""
 
 ######################################################################

@@ -1,6 +1,6 @@
 ;;;; reader.test --- Exercise the reader.               -*- Scheme -*-
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008, 2009 Free Software Foundation, Inc.
 ;;;; Jim Blandy <jimb@red-bean.com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -18,6 +18,7 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite reader)
+  :use-module (srfi srfi-1)
   :use-module (test-suite lib))
 
 
@@ -26,7 +27,7 @@
 (define exception:unexpected-rparen
   (cons 'read-error "unexpected \")\"$"))
 (define exception:unterminated-block-comment
-  (cons 'read-error "unterminated `#! ... !#' comment$"))
+  (cons 'read-error "unterminated `#. \\.\\.\\. .#' comment$"))
 (define exception:unknown-character-name
   (cons 'read-error "unknown character name .*$"))
 (define exception:unknown-sharp-object
@@ -83,6 +84,30 @@
     (equal? '(+ 2)
             (read-string "(+ 2 #! a comment\n!#\n) ")))
 
+  (pass-if "R6RS/SRFI-30 block comment"
+    (equal? '(+ 1 2 3)
+            (read-string "(+ 1 #| this is a\ncomment |# 2 3)")))
+
+  (pass-if "R6RS/SRFI-30 nested block comment"
+    (equal? '(a b c)
+            (read-string "(a b c #| d #| e |# f |#)")))
+
+  (pass-if "R6RS/SRFI-30 block comment syntax overridden"
+    ;; To be compatible with 1.8 and earlier, we should be able to override
+    ;; this syntax.
+    (let ((rhp read-hash-procedures))
+      (dynamic-wind
+        (lambda ()
+          (read-hash-extend #\| (lambda args 'not)))
+        (lambda ()
+          (fold (lambda (x y result)
+                  (and result (eq? x y)))
+                #t
+                (read-string "(this is #| a comment)")
+                `(this is not a comment)))
+        (lambda ()
+          (set! read-hash-procedures rhp)))))
+
   (pass-if "unprintable symbol"
     ;; The reader tolerates unprintable characters for symbols.
     (equal? (string->symbol "\001\002\003")
@@ -131,6 +156,9 @@
   (pass-if-exception "unterminated block comment"
     exception:unterminated-block-comment
     (read-string "(+ 1 #! comment\n..."))
+  (pass-if-exception "R6RS/SRFI-30 unterminated nested block comment"
+    exception:unterminated-block-comment
+    (read-string "(foo #| bar #| |#)"))
   (pass-if-exception "unknown character name"
     exception:unknown-character-name
     (read-string "#\\theunknowncharacter"))

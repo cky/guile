@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -92,19 +92,26 @@ sf_fill_input (SCM port)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
   SCM ans;
+  scm_t_port *pt;
 
   ans = scm_call_0 (SCM_SIMPLE_VECTOR_REF (p, 3)); /* get char.  */
   if (scm_is_false (ans) || SCM_EOF_OBJECT_P (ans))
     return EOF;
   SCM_ASSERT (SCM_CHARP (ans), ans, SCM_ARG1, "sf_fill_input");
-  {
-    scm_t_port *pt = SCM_PTAB_ENTRY (port);    
+  pt = SCM_PTAB_ENTRY (port);    
 
-    *pt->read_buf = SCM_CHAR (ans);
-    pt->read_pos = pt->read_buf;
-    pt->read_end = pt->read_buf + 1;
-    return *pt->read_buf;
-  }
+  if (pt->encoding == NULL)
+    {
+      scm_t_port *pt = SCM_PTAB_ENTRY (port);    
+      
+      *pt->read_buf = SCM_CHAR (ans);
+      pt->read_pos = pt->read_buf;
+      pt->read_end = pt->read_buf + 1;
+      return *pt->read_buf;
+    }
+  else
+    scm_ungetc (SCM_CHAR (ans), port);
+  return SCM_CHAR (ans);
 }
 
 
@@ -213,7 +220,6 @@ scm_make_sfptob ()
 {
   scm_t_bits tc = scm_make_port_type ("soft", sf_fill_input, sf_write);
 
-  scm_set_port_mark (tc, scm_markstream);
   scm_set_port_flush (tc, sf_flush);
   scm_set_port_close (tc, sf_close);
   scm_set_port_input_waiting (tc, sf_input_waiting);

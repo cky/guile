@@ -1,7 +1,7 @@
 ;;;; optargs.test --- test suite for optional arg processing -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,10 +18,44 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-optargs)
-  :use-module (test-suite lib)
-  :use-module (ice-9 optargs))
+  #:use-module (test-suite lib)
+  #:use-module (system base compile)
+  #:use-module (ice-9 optargs))
 
-(with-test-prefix "optional argument processing"
+(define exception:unrecognized-keyword
+  ;; Can be `vm-error' or `misc-error' depending on whether we use the
+  ;; interpreter or VM:
+  ;;  (vm-error vm-run "Bad keyword argument list: unrecognized keyword" ())
+  ;;  (misc-error #f "~A ~S" ("unrecognized keyword" (#:y 2)) #f)
+  (cons #t ".*"))
+
+(define exception:extraneous-arguments
+  ;; Can be `vm-error' or `misc-error' depending on whether we use the
+  ;; interpreter or VM, and depending on the evenness of the number of extra
+  ;; arguments (!).
+  (cons #t ".*"))
+
+
+(define-syntax c&e
+  (syntax-rules (pass-if pass-if-exception)
+    ((_ (pass-if test-name exp))
+     (begin (pass-if (string-append test-name " (eval)")
+                     (primitive-eval 'exp))
+            (pass-if (string-append test-name " (compile)")
+                     (compile 'exp #:to 'value #:env (current-module)))))
+    ((_ (pass-if-exception test-name exc exp))
+     (begin (pass-if-exception (string-append test-name " (eval)")
+                               exc (primitive-eval 'exp))
+            (pass-if-exception (string-append test-name " (compile)")
+                               exc (compile 'exp #:to 'value
+                                            #:env (current-module)))))))
+
+(define-syntax with-test-prefix/c&e
+  (syntax-rules ()
+    ((_ section-name exp ...)
+     (with-test-prefix section-name (c&e exp) ...))))
+
+(with-test-prefix/c&e "optional argument processing"
   (pass-if "local defines work with optional arguments"
     (eval '(begin
              (define* (test-1 #:optional (x 0))
@@ -34,7 +68,7 @@
 ;;; let-keywords
 ;;;
 
-(with-test-prefix "let-keywords"
+(with-test-prefix/c&e "let-keywords"
 
   ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
   ;; which caused apparently internal defines to "leak" out into the
@@ -55,7 +89,7 @@
 ;;; let-keywords*
 ;;;
 
-(with-test-prefix "let-keywords*"
+(with-test-prefix/c&e "let-keywords*"
 
   ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
   ;; which caused apparently internal defines to "leak" out into the
@@ -76,7 +110,7 @@
 ;;; let-optional
 ;;;
 
-(with-test-prefix "let-optional"
+(with-test-prefix/c&e "let-optional"
 
   ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
   ;; which caused apparently internal defines to "leak" out into the
@@ -98,7 +132,7 @@
 ;;; let-optional*
 ;;;
 
-(with-test-prefix "let-optional*"
+(with-test-prefix/c&e "let-optional*"
 
   ;; in guile 1.6.4 and earlier, an empty binding list only used `begin',
   ;; which caused apparently internal defines to "leak" out into the
@@ -115,3 +149,32 @@
     (let ((rest '(123)))
       (let-optional* rest ((foo 999))
 	(= foo 123)))))
+
+(define* (foo a b #:optional c (d 1) (e c) f #:key g (h a) (i r) #:rest r)
+  (list a b c d e f g h i r))
+
+;; So we could use lots more tests here, but the fact that lambda* is in
+;; the compiler, and the compiler compiles itself, using the evaluator
+;; (when bootstrapping) and compiled code (when doing a partial rebuild)
+;; makes me a bit complacent.
+(with-test-prefix/c&e "define*"
+  (pass-if "the whole enchilada"
+    (equal? (foo 1 2)
+            '(1 2 #f 1 #f #f #f 1 () ())))
+
+  (pass-if-exception "extraneous arguments"
+    exception:extraneous-arguments
+    (let ((f (lambda* (#:key x) x)))
+      (f 1 2 #:x 'x)))
+
+  (pass-if-exception "unrecognized keyword"
+    exception:unrecognized-keyword
+    (let ((f (lambda* (#:key x) x)))
+      (f #:y 'not-recognized)))
+
+  (pass-if "rest given before keywords"
+    ;; Passing the rest argument before the keyword arguments should not
+    ;; prevent keyword argument binding.
+    (let ((f (lambda* (#:key x y z #:rest r) (list x y z r))))
+      (equal? (f 1 2 3 #:x 'x #:z 'z)
+              '(x #f z (1 2 3 #:x x #:z z))))))

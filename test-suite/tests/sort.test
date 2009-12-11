@@ -1,5 +1,5 @@
 ;;;; sort.test --- tests Guile's sort functions    -*- scheme -*-
-;;;; Copyright (C) 2003, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -24,11 +24,11 @@
 (with-test-prefix "sort"
 
   (pass-if-exception "less function taking less than two arguments"
-    exception:wrong-type-arg
+    exception:wrong-num-args
     (sort '(1 2) (lambda (x) #t)))
 
   (pass-if-exception "less function taking more than two arguments"
-    exception:wrong-type-arg
+    exception:wrong-num-args
     (sort '(1 2) (lambda (x y z) z)))
 
   (pass-if "sort!"

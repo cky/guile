@@ -78,9 +78,15 @@
    "inline.c", when `inline' is not supported at all or when "extern inline"
    is used.  */
 
+#include "libguile/bdw-gc.h"
+
+
 SCM_API SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_API SCM scm_immutable_cell (scm_t_bits car, scm_t_bits cdr);
 SCM_API SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 			     scm_t_bits ccr, scm_t_bits cdr);
+SCM_API SCM scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
+				       scm_t_bits ccr, scm_t_bits cdr);
 
 SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
 SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
@@ -107,65 +113,40 @@ extern unsigned scm_newcell_count;
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
+
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
-  SCM z;
-  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist);
+  SCM cell = SCM_PACK ((scm_t_bits) (GC_MALLOC (sizeof (scm_t_cell))));
 
-  if (scm_is_null (*freelist))
-    z = scm_gc_for_newcell (&scm_i_master_freelist, freelist);
-  else
-    {
-      z = *freelist;
-      *freelist = SCM_FREE_CELL_CDR (*freelist);
-    }
+  /* Initialize the type slot last so that the cell is ignored by the GC
+     until it is completely initialized.  This is only relevant when the GC
+     can actually run during this code, which it can't since the GC only runs
+     when all other threads are stopped.  */
+  SCM_GC_SET_CELL_WORD (cell, 1, cdr);
+  SCM_GC_SET_CELL_WORD (cell, 0, car);
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-    if (scm_debug_cell_accesses_p)
-      {
-	if (SCM_GC_MARK_P (z))
-	  {
-	    fprintf(stderr, "scm_cell tried to allocate a marked cell.\n");
-	    abort();
-	  }
-	else if (SCM_GC_CELL_WORD(z, 0) != scm_tc_free_cell)
-	  {
-	    fprintf(stderr, "cell from freelist is not a free cell.\n");
-	    abort();
-	  }
-      }
+  return cell;
+}
 
-#if (SCM_DEBUG_MARKING_API == 0)
-    /*
-      Always set mark. Otherwise cells that are alloced before
-      scm_debug_cell_accesses_p is toggled seem invalid.
-    */
-    SCM_SET_GC_MARK (z);
-#endif /* SCM_DEBUG_MARKING_API */
-    
-    /*
-      TODO: figure out if this use of mark bits is valid with
-      threading. What if another thread is doing GC at this point
-      ... ?
-     */
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
 #endif
+SCM
+scm_immutable_cell (scm_t_bits car, scm_t_bits cdr)
+{
+  SCM cell = SCM_PACK ((scm_t_bits) (GC_MALLOC_STUBBORN (sizeof (scm_t_cell))));
 
-  
-  /* Initialize the type slot last so that the cell is ignored by the
-     GC until it is completely initialized.  This is only relevant
-     when the GC can actually run during this code, which it can't
-     since the GC only runs when all other threads are stopped.
-  */
-  SCM_GC_SET_CELL_WORD (z, 1, cdr);
-  SCM_GC_SET_CELL_WORD (z, 0, car);
+  /* Initialize the type slot last so that the cell is ignored by the GC
+     until it is completely initialized.  This is only relevant when the GC
+     can actually run during this code, which it can't since the GC only runs
+     when all other threads are stopped.  */
+  SCM_GC_SET_CELL_WORD (cell, 1, cdr);
+  SCM_GC_SET_CELL_WORD (cell, 0, car);
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_expensive_debug_cell_accesses_p )
-    scm_i_expensive_validation_check (z);
-#endif
-  
-  return z;
+  GC_END_STUBBORN_CHANGE ((void *) cell);
+
+  return cell;
 }
 
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
@@ -176,16 +157,8 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 		 scm_t_bits ccr, scm_t_bits cdr)
 {
   SCM z;
-  SCM *freelist = SCM_FREELIST_LOC (scm_i_freelist2);
 
-  if (scm_is_null (*freelist))
-    z = scm_gc_for_newcell (&scm_i_master_freelist2, freelist);
-  else
-    {
-      z = *freelist;
-      *freelist = SCM_FREE_CELL_CDR (*freelist);
-    }
-
+  z = SCM_PACK ((scm_t_bits) (GC_MALLOC (2 * sizeof (scm_t_cell))));
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
      when the GC can actually run during this code, which it can't
@@ -196,22 +169,50 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM_GC_SET_CELL_WORD (z, 3, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
-#if (SCM_DEBUG_CELL_ACCESSES == 1)
-  if (scm_debug_cell_accesses_p)
-    {
-      if (SCM_GC_MARK_P (z))
-	{
-	  fprintf(stderr,
-		  "scm_double_cell tried to allocate a marked cell.\n");
-	  abort();
-	}
-    }
-#if (SCM_DEBUG_MARKING_API == 0)
-  /* see above. */
-  SCM_SET_GC_MARK (z);
-#endif /* SCM_DEBUG_MARKING_API */
-  
+  /* When this function is inlined, it's possible that the last
+     SCM_GC_SET_CELL_WORD above will be adjacent to a following
+     initialization of z.  E.g., it occurred in scm_make_real.  GCC
+     from around version 3 (e.g., certainly 3.2) began taking
+     advantage of strict C aliasing rules which say that it's OK to
+     interchange the initialization above and the one below when the
+     pointer types appear to differ sufficiently.  We don't want that,
+     of course.  GCC allows this behaviour to be disabled with the
+     -fno-strict-aliasing option, but would also need to be supplied
+     by Guile users.  Instead, the following statements prevent the
+     reordering.
+   */
+#ifdef __GNUC__
+  __asm__ volatile ("" : : : "memory");
+#else
+  /* portable version, just in case any other compiler does the same
+     thing.  */
+  scm_remember_upto_here_1 (z);
 #endif
+
+  return z;
+}
+
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+SCM
+scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
+			   scm_t_bits ccr, scm_t_bits cdr)
+{
+  SCM z;
+
+  z = SCM_PACK ((scm_t_bits) (GC_MALLOC_STUBBORN (2 * sizeof (scm_t_cell))));
+  /* Initialize the type slot last so that the cell is ignored by the
+     GC until it is completely initialized.  This is only relevant
+     when the GC can actually run during this code, which it can't
+     since the GC only runs when all other threads are stopped.
+  */
+  SCM_GC_SET_CELL_WORD (z, 1, cbr);
+  SCM_GC_SET_CELL_WORD (z, 2, ccr);
+  SCM_GC_SET_CELL_WORD (z, 3, cdr);
+  SCM_GC_SET_CELL_WORD (z, 0, car);
+
+  GC_END_STUBBORN_CHANGE ((void *) z);
 
   /* When this function is inlined, it's possible that the last
      SCM_GC_SET_CELL_WORD above will be adjacent to a following
@@ -242,7 +243,7 @@ SCM_C_EXTERN_INLINE
 SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
 {
-  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+  if (SCM_UNLIKELY (p < 0 && ((size_t)-p) > h->base))
     /* catch overflow */
     scm_out_of_range (NULL, scm_from_ssize_t (p));
   /* perhaps should catch overflow here too */
@@ -255,7 +256,7 @@ SCM_C_EXTERN_INLINE
 void
 scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
 {
-  if (SCM_UNLIKELY (p < 0 && -p > h->base))
+  if (SCM_UNLIKELY (p < 0 && ((size_t)-p) > h->base))
     /* catch overflow */
     scm_out_of_range (NULL, scm_from_ssize_t (p));
   /* perhaps should catch overflow here too */

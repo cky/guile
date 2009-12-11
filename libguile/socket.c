@@ -137,53 +137,6 @@ SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifndef HAVE_INET_ATON
-/* for our definition in inet_aton.c, not usually needed.  */
-extern int inet_aton ();
-#endif
-
-SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0, 
-            (SCM address),
-	    "Convert an IPv4 Internet address from printable string\n"
-	    "(dotted decimal notation) to an integer.  E.g.,\n\n"
-	    "@lisp\n"
-	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_aton
-{
-  struct in_addr soka;
-  char *c_address;
-  int rv;
-
-  c_address = scm_to_locale_string (address);
-  rv = inet_aton (c_address, &soka);
-  free (c_address);
-  if (rv == 0)
-    SCM_MISC_ERROR ("bad address", SCM_EOL);
-  return scm_from_ulong (ntohl (soka.s_addr));
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0, 
-            (SCM inetid),
-	    "Convert an IPv4 Internet address to a printable\n"
-	    "(dotted decimal notation) string.  E.g.,\n\n"
-	    "@lisp\n"
-	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_ntoa
-{
-  struct in_addr addr;
-  char *s;
-  SCM answer;
-  addr.s_addr = htonl (SCM_NUM2ULONG (1, inetid));
-  s = inet_ntoa (addr);
-  answer = scm_from_locale_string (s);
-  return answer;
-}
-#undef FUNC_NAME
-
 #ifdef HAVE_INET_NETOF
 SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 
             (SCM address),
@@ -349,10 +302,9 @@ scm_to_ipv6 (scm_t_uint8 dst[16], SCM src)
       scm_remember_upto_here_1 (src);
     }
   else
-    scm_wrong_type_arg (NULL, 0, src);
+    scm_wrong_type_arg_msg ("scm_to_ipv6", 0, src, "integer");
 }
 
-#ifdef HAVE_INET_PTON
 SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
             (SCM family, SCM address),
 	    "Convert a string containing a printable network address to\n"
@@ -388,9 +340,7 @@ SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
     return scm_from_ipv6 ((scm_t_uint8 *) dst);
 }
 #undef FUNC_NAME
-#endif
 
-#ifdef HAVE_INET_NTOP
 SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
             (SCM family, SCM address),
 	    "Convert a network address into a printable string.\n"
@@ -399,8 +349,8 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
 	    "@lisp\n"
 	    "(inet-ntop AF_INET 2130706433) @result{} \"127.0.0.1\"\n"
-	    "(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}\n"
-	    "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\n"
+	    "(inet-ntop AF_INET6 (- (expt 2 128) 1))\n"
+	    "  @result{} \"ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff\"\n"
 	    "@end lisp")
 #define FUNC_NAME s_scm_inet_ntop
 {
@@ -435,7 +385,6 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
   return scm_from_locale_string (dst);
 }
 #undef FUNC_NAME
-#endif
 
 #endif  /* HAVE_IPV6 */
 
@@ -675,7 +624,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
   struct linger opt_linger;
 #endif
 
-#if HAVE_STRUCT_IP_MREQ
+#ifdef HAVE_STRUCT_IP_MREQ
   struct ip_mreq opt_mreq;
 #endif
 
@@ -729,7 +678,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  }
     }
 
-#if HAVE_STRUCT_IP_MREQ
+#ifdef HAVE_STRUCT_IP_MREQ
   if (ilevel == IPPROTO_IP &&
       (ioptname == IP_ADD_MEMBERSHIP || ioptname == IP_DROP_MEMBERSHIP))
     {
@@ -811,7 +760,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	*args = SCM_CDR (*args);
 	soka = (struct sockaddr_in *) scm_malloc (sizeof (struct sockaddr_in));
 
-#if HAVE_STRUCT_SOCKADDR_SIN_LEN
+#ifdef HAVE_STRUCT_SOCKADDR_SIN_LEN
 	soka->sin_len = sizeof (struct sockaddr_in);
 #endif
 	soka->sin_family = AF_INET;
@@ -845,7 +794,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	  }
 	soka = (struct sockaddr_in6 *) scm_malloc (sizeof (struct sockaddr_in6));
 
-#if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
+#ifdef HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
 	soka->sin6_len = sizeof (struct sockaddr_in6);
 #endif
 	soka->sin6_family = AF_INET6;
@@ -1169,7 +1118,8 @@ scm_to_sockaddr (SCM address, size_t *address_size)
 	  {
 	    struct sockaddr_in6 c_inet6;
 
-	    scm_to_ipv6 (c_inet6.sin6_addr.s6_addr, address);
+	    scm_to_ipv6 (c_inet6.sin6_addr.s6_addr,
+			 SCM_SIMPLE_VECTOR_REF (address, 1));
 	    c_inet6.sin6_port =
 	      htons (scm_to_ushort (SCM_SIMPLE_VECTOR_REF (address, 2)));
 	    c_inet6.sin6_flowinfo =

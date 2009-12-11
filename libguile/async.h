@@ -3,7 +3,7 @@
 #ifndef SCM_ASYNC_H
 #define SCM_ASYNC_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,10 +26,6 @@
 #include "libguile/__scm.h"
 #include "libguile/root.h"
 #include "libguile/threads.h"
-
-
-
-#define scm_mask_ints (SCM_I_CURRENT_THREAD->block_asyncs != 0)
 
 
 
@@ -60,32 +56,42 @@ void scm_dynwind_unblock_asyncs (void);
    the manual.
 */
 
-/* Defined in threads.c.  scm_i_critical_section_level is only used
-   for error checking and will go away eventually. */
-extern scm_i_pthread_mutex_t scm_i_critical_section_mutex;
-extern int scm_i_critical_section_level;
+/* Defined in threads.c. */
+SCM_INTERNAL scm_i_pthread_mutex_t scm_i_critical_section_mutex;
 
-#define SCM_CRITICAL_SECTION_START \
-  do { \
-    scm_i_pthread_mutex_lock (&scm_i_critical_section_mutex);\
-    SCM_I_CURRENT_THREAD->block_asyncs++; \
-    scm_i_critical_section_level++; \
+SCM_API void scm_critical_section_start (void);
+SCM_API void scm_critical_section_end (void);
+
+#ifdef BUILDING_LIBGUILE
+
+# define SCM_CRITICAL_SECTION_START				\
+  do {								\
+    scm_i_pthread_mutex_lock (&scm_i_critical_section_mutex);	\
+    SCM_I_CURRENT_THREAD->block_asyncs++;			\
+    SCM_I_CURRENT_THREAD->critical_section_level++;		\
   } while (0)
-#define SCM_CRITICAL_SECTION_END \
-  do { \
-    scm_i_critical_section_level--; \
-    SCM_I_CURRENT_THREAD->block_asyncs--; \
+# define SCM_CRITICAL_SECTION_END				\
+  do {								\
+    SCM_I_CURRENT_THREAD->critical_section_level--;		\
+    SCM_I_CURRENT_THREAD->block_asyncs--;			\
     scm_i_pthread_mutex_unlock (&scm_i_critical_section_mutex); \
-    scm_async_click ();	\
+    scm_async_click ();						\
   } while (0)
+
+#else /* !BUILDING_LIBGUILE */
+
+# define SCM_CRITICAL_SECTION_START  scm_critical_section_start ()
+# define SCM_CRITICAL_SECTION_END    scm_critical_section_end ()
+
+#endif /* !BUILDING_LIBGUILE */
 
 SCM_INTERNAL void scm_init_async (void);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
-SCM_API SCM scm_system_async (SCM thunk);
-SCM_API SCM scm_unmask_signals (void);
-SCM_API SCM scm_mask_signals (void);
+SCM_DEPRECATED SCM scm_system_async (SCM thunk);
+SCM_DEPRECATED SCM scm_unmask_signals (void);
+SCM_DEPRECATED SCM scm_mask_signals (void);
 
 #endif
 

@@ -25,7 +25,7 @@
 AUTOMAKE_OPTIONS = 1.10
 
 SUBDIRS = lib meta libguile guile-readline emacs \
-	  srfi doc examples test-suite benchmark-suite lang am \
+	  srfi doc examples test-suite benchmark-suite am \
 	  module testsuite
 
 include_HEADERS = libguile.h
@@ -39,6 +39,8 @@ TESTS = check-guile
 ACLOCAL_AMFLAGS = -I m4
 
 DISTCLEANFILES = check-guile.log
+
+DISTCHECK_CONFIGURE_FLAGS = --enable-error-on-warning
 
 dist-hook: gen-ChangeLog
 

@@ -24,39 +24,53 @@ include $(top_srcdir)/am/guilec
 # We're at the root of the module hierarchy.
 modpath =
 
-# Compile psyntax and boot-9 first, so that we get the speed benefit in
-# the rest of the compilation. Also, if there is too much switching back
-# and forth between interpreted and compiled code, we end up using more
-# of the C stack than the interpreter would have; so avoid that by
-# putting these core modules first.
+BEGINNING_OF_TIME=198001010100
 
-SOURCES =								\
-  ice-9/psyntax-pp.scm 							\
-  system/base/pmatch.scm system/base/syntax.scm				\
-  system/base/compile.scm system/base/language.scm			\
-  system/base/message.scm						\
-									\
-  language/tree-il.scm							\
-  language/glil.scm language/assembly.scm				\
-									\
-  $(SCHEME_LANG_SOURCES) 						\
-  $(TREE_IL_LANG_SOURCES)						\
-  $(GLIL_LANG_SOURCES)							\
-  $(ASSEMBLY_LANG_SOURCES) $(BYTECODE_LANG_SOURCES)			\
-  $(OBJCODE_LANG_SOURCES) $(VALUE_LANG_SOURCES)				\
-									\
-  $(ICE_9_SOURCES)							\
-  $(SRFI_SOURCES)							\
-  $(RNRS_SOURCES)							\
-  $(OOP_SOURCES)							\
-  $(SYSTEM_SOURCES)                                                     \
-  $(SCRIPTS_SOURCES)                                                    \
-  $(GHIL_LANG_SOURCES)                                                  \
-  $(ECMASCRIPT_LANG_SOURCES)						\
+$(GOBJECTS): ice-9/eval.go.stamp
+ice-9/eval.go.stamp: ice-9/eval.go
+	touch -t $(BEGINNING_OF_TIME) $(srcdir)/ice-9/eval.scm 
+	touch -r $(srcdir)/ice-9/eval.scm ice-9/eval.go
+	touch -r $(srcdir)/ice-9/eval.scm ice-9/eval.go.stamp
+CLEANFILES += ice-9/eval.go ice-9/eval.go.stamp
+nobase_mod_DATA += ice-9/eval.scm
+nobase_ccache_DATA += ice-9/eval.go
+EXTRA_DIST += ice-9/eval.scm
+
+# We can compile these in any order, but it's fastest if we compile
+# psyntax and boot-9 first, then the compiler itself, then the rest of
+# the code.
+SOURCES =					\
+  ice-9/psyntax-pp.scm				\
+  ice-9/boot-9.scm				\
+						\
+  language/tree-il.scm				\
+  language/glil.scm				\
+  language/assembly.scm				\
+  $(TREE_IL_LANG_SOURCES)			\
+  $(GLIL_LANG_SOURCES)				\
+  $(ASSEMBLY_LANG_SOURCES)			\
+  $(BYTECODE_LANG_SOURCES)			\
+  $(OBJCODE_LANG_SOURCES)			\
+  $(VALUE_LANG_SOURCES)				\
+  $(SCHEME_LANG_SOURCES)			\
+  $(SYSTEM_BASE_SOURCES)			\
+						\
+  $(ICE_9_SOURCES)				\
+  $(SRFI_SOURCES)				\
+  $(RNRS_SOURCES)				\
+  $(OOP_SOURCES)				\
+  $(SYSTEM_SOURCES)				\
+  $(SCRIPTS_SOURCES)				\
+  $(ECMASCRIPT_LANG_SOURCES)			\
+  $(ELISP_LANG_SOURCES)				\
   $(BRAINFUCK_LANG_SOURCES)
 
 ## test.scm is not currently installed.
-EXTRA_DIST += ice-9/test.scm ice-9/compile-psyntax.scm ice-9/ChangeLog-2008
+EXTRA_DIST +=					\
+  ice-9/test.scm				\
+  ice-9/compile-psyntax.scm			\
+  ice-9/quasisyntax.scm				\
+  ice-9/ChangeLog-2008
 
 # We expect this to never be invoked when there is not already
 # ice-9/psyntax-pp.scm in %load-path, since compile-psyntax.scm depends
@@ -69,11 +83,9 @@ ice-9/psyntax-pp.scm: ice-9/psyntax.scm
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 SCHEME_LANG_SOURCES =						\
-  language/scheme/compile-ghil.scm 				\
   language/scheme/spec.scm					\
   language/scheme/compile-tree-il.scm				\
-  language/scheme/decompile-tree-il.scm				\
-  language/scheme/inline.scm
+  language/scheme/decompile-tree-il.scm
 
 TREE_IL_LANG_SOURCES =						\
   language/tree-il/primitives.scm				\
@@ -83,9 +95,6 @@ TREE_IL_LANG_SOURCES =						\
   language/tree-il/analyze.scm					\
   language/tree-il/compile-glil.scm 				\
   language/tree-il/spec.scm
-
-GHIL_LANG_SOURCES =						\
-  language/ghil.scm language/ghil/spec.scm language/ghil/compile-glil.scm
 
 GLIL_LANG_SOURCES =						\
   language/glil/spec.scm language/glil/compile-assembly.scm 	\
@@ -117,6 +126,17 @@ ECMASCRIPT_LANG_SOURCES =			\
   language/ecmascript/compile-tree-il.scm	\
   language/ecmascript/spec.scm
 
+ELISP_LANG_SOURCES =				\
+  language/elisp/lexer.scm			\
+  language/elisp/parser.scm			\
+  language/elisp/bindings.scm			\
+  language/elisp/compile-tree-il.scm		\
+  language/elisp/runtime.scm			\
+  language/elisp/runtime/function-slot.scm	\
+  language/elisp/runtime/macro-slot.scm		\
+  language/elisp/runtime/value-slot.scm		\
+  language/elisp/spec.scm
+
 BRAINFUCK_LANG_SOURCES =			\
   language/brainfuck/parse.scm			\
   language/brainfuck/compile-scheme.scm		\
@@ -144,8 +164,14 @@ SCRIPTS_SOURCES =				\
   scripts/read-rfc822.scm			\
   scripts/snarf-guile-m4-docs.scm
 
+SYSTEM_BASE_SOURCES = 				\
+  system/base/pmatch.scm			\
+  system/base/syntax.scm			\
+  system/base/compile.scm			\
+  system/base/language.scm			\
+  system/base/message.scm
+
 ICE_9_SOURCES = \
-  ice-9/boot-9.scm \
   ice-9/r4rs.scm \
   ice-9/r5rs.scm \
   ice-9/and-let-star.scm \
@@ -262,6 +288,7 @@ EXTRA_DIST += oop/ChangeLog-2008
 NOCOMP_SOURCES =				\
   ice-9/gds-client.scm \
   ice-9/psyntax.scm \
+  ice-9/quasisyntax.scm \
   system/repl/describe.scm \
   ice-9/debugger/command-loop.scm \
   ice-9/debugger/commands.scm \
@@ -269,7 +296,6 @@ NOCOMP_SOURCES =				\
   ice-9/debugger/trc.scm \
   ice-9/debugger/utils.scm \
   ice-9/debugging/example-fns.scm \
-  ice-9/debugging/ice-9-debugger-extensions.scm \
   ice-9/debugging/steps.scm \
   ice-9/debugging/trace.scm \
   ice-9/debugging/traps.scm \

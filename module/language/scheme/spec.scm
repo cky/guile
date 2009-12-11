@@ -19,6 +19,7 @@
 ;;; Code:
 
 (define-module (language scheme spec)
+  #:use-module (system base compile)
   #:use-module (system base language)
   #:use-module (language scheme compile-tree-il)
   #:use-module (language scheme decompile-tree-il)
@@ -37,9 +38,26 @@
 (define-language scheme
   #:title	"Guile Scheme"
   #:version	"0.5"
-  #:reader	read
+  #:reader      (lambda (port env)
+                  ;; Use the binding of current-reader from the environment.
+                  ;; FIXME: Handle `read-options' as well?
+                  ((or (and=> (and=> (module-variable env 'current-reader)
+                                     variable-ref)
+                              fluid-ref)
+                       read)
+                   port))
+
   #:compilers   `((tree-il . ,compile-tree-il))
   #:decompilers `((tree-il . ,decompile-tree-il))
   #:evaluator	(lambda (x module) (primitive-eval x))
   #:printer	write
-  )
+  #:make-default-environment
+                (lambda ()
+                  ;; Ideally we'd duplicate the whole module hierarchy so that `set!',
+                  ;; `fluid-set!', etc. don't have any effect in the current environment.
+                  (let ((m (make-fresh-user-module)))
+                    ;; Provide a separate `current-reader' fluid so that
+                    ;; compile-time changes to `current-reader' are
+                    ;; limited to the current compilation unit.
+                    (module-define! m 'current-reader (make-fluid))
+                    m)))

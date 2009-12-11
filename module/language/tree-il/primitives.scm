@@ -36,6 +36,7 @@
     eq? eqv? equal?
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo
+    ash logand logior logxor
     not
     pair? null? list? acons cons cons*
 
@@ -52,6 +53,8 @@
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
 
     vector-ref vector-set!
+    variable-ref variable-set!
+    ;; args of variable-set are switched; it needs special help
 
     bytevector-u8-ref bytevector-u8-set!
     bytevector-s8-ref bytevector-s8-set!
@@ -78,7 +81,8 @@
 
 (define (add-interesting-primitive! name)
   (hashq-set! *interesting-primitive-vars*
-              (module-variable (current-module) name)
+              (or (module-variable (current-module) name)
+                  (error "unbound interesting primitive" name))
               name))
 
 (define *interesting-primitive-vars* (make-hash-table))
@@ -208,13 +212,17 @@
   (x) x
   (x y) (if (and (const? y)
                  (let ((y (const-exp y)))
-                   (and (exact? y) (= y 1))))
+                   (and (number? y) (exact? y) (= y 1))))
             (1+ x)
-            (if (and (const? x)
-                     (let ((x (const-exp x)))
-                       (and (exact? x) (= x 1))))
-                (1+ y)
-                (+ x y)))
+            (if (and (const? y)
+                 (let ((y (const-exp y)))
+                   (and (number? y) (exact? y) (= y -1))))
+                (1- x)
+                (if (and (const? x)
+                         (let ((x (const-exp x)))
+                           (and (number? y) (exact? x) (= x 1))))
+                    (1+ y)
+                    (+ x y))))
   (x y z . rest) (+ x (+ y z . rest)))
   
 (define-primitive-expander *
@@ -226,7 +234,7 @@
   (x) (- 0 x)
   (x y) (if (and (const? y)
                  (let ((y (const-exp y)))
-                   (and (exact? y) (= y 1))))
+                   (and (number? y) (exact? y) (= y 1))))
             (1- x)
             (- x y))
   (x y z . rest) (- x (+ y z . rest)))
@@ -272,8 +280,8 @@
 (define-primitive-expander acons (x y z)
   (cons (cons x y) z))
 
-(define-primitive-expander apply (f . args)
-  (@apply f . args))
+(define-primitive-expander apply (f a0 . args)
+  (@apply f a0 . args))
 
 (define-primitive-expander call-with-values (producer consumer)
   (@call-with-values producer consumer))
@@ -285,3 +293,7 @@
   (@call-with-current-continuation proc))
 
 (define-primitive-expander values (x) x)
+
+;; swap args
+(define-primitive-expander variable-set! (var val)
+  (variable-set val var))

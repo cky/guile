@@ -1,21 +1,20 @@
 ;;;; encoding-escapes.test --- test suite for Guile's string encodings -*- mode: scheme; coding: utf-8 -*-
 ;;;;
 ;;;; Copyright (C) 2009 Free Software Foundation, Inc.
-;;;; 
-;;;; This program is free software; you can redistribute it and/or modify
-;;;; it under the terms of the GNU General Public License as published by
-;;;; the Free Software Foundation; either version 2, or (at your option)
-;;;; any later version.
-;;;; 
-;;;; This program is distributed in the hope that it will be useful,
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;;; GNU General Public License for more details.
-;;;; 
-;;;; You should have received a copy of the GNU General Public License
-;;;; along with this software; see the file COPYING.  If not, write to
-;;;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;;;; Boston, MA 02110-1301 USA
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-strings)
   #:use-module (test-suite lib)
@@ -118,22 +117,23 @@
 	     (string=? "\\xfaltima"
 		       (get-output-string pt))))
   (pass-if "Rashomon"
-	   (let ((pt (open-output-string)))
-	     (set-port-encoding! pt "ASCII")
-	     (set-port-conversion-strategy! pt 'escape)
-	     (display s4 pt)
-	     (string=? "\\u7F85\\u751F\\u9580"
-		       (get-output-string pt)))))
-
-(setlocale LC_ALL "en_US.utf8")
+    (let ((pt (open-output-string)))
+      (set-port-encoding! pt "ASCII")
+      (set-port-conversion-strategy! pt 'escape)
+      (display s4 pt)
+      (string=? "\\u7F85\\u751F\\u9580"
+                (get-output-string pt)))))
 
 (with-test-prefix "input escapes"
 
-  (pass-if  "última"
-	    (string=? "última"
-		      (with-input-from-string "\"\\xfaltima\"" read)))
+  (pass-if "última"
+    (with-locale "en_US.utf8"
+                 (string=? "última"
+                           (with-input-from-string "\"\\xfaltima\"" read))))
 
   (pass-if "羅生門"
-	   (string=? "羅生門"
-		     (with-input-from-string "\"\\u7F85\\u751F\\u9580\"" read))))
+    (with-locale "en_US.utf8"
+                 (string=? "羅生門"
+                           (with-input-from-string 
+                               "\"\\u7F85\\u751F\\u9580\"" read)))))
 

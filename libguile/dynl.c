@@ -1,7 +1,7 @@
 /* dynl.c - dynamic linking
  *
  * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003, 2008 Free Software Foundation, Inc.
+ * 2003, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -48,6 +48,7 @@ maybe_drag_in_eprintf ()
 #include <string.h>
 
 #include "libguile/_scm.h"
+#include "libguile/libpath.h"
 #include "libguile/dynl.h"
 #include "libguile/smob.h"
 #include "libguile/keywords.h"
@@ -113,7 +114,24 @@ sysdep_dynl_func (const char *symb, void *handle, const char *subr)
 static void
 sysdep_dynl_init ()
 {
+  char *env;
+
   lt_dlinit ();
+
+  env = getenv ("GUILE_SYSTEM_EXTENSIONS_PATH");
+  if (env && strcmp (env, "") == 0)
+    /* special-case interpret system-ltdl-path=="" as meaning no system path,
+       which is the case during the build */
+    ; 
+  else if (env)
+    /* FIXME: should this be a colon-separated path? Or is the only point to
+       allow the build system to turn off the installed extensions path? */
+    lt_dladdsearchdir (env);
+  else
+    {
+      lt_dladdsearchdir (SCM_LIB_DIR);
+      lt_dladdsearchdir (SCM_EXTENSIONS_DIR);
+    }
 }
 
 scm_t_bits scm_tc16_dynamic_obj;
@@ -122,12 +140,6 @@ scm_t_bits scm_tc16_dynamic_obj;
 #define DYNL_HANDLE(x)        ((void *) SCM_SMOB_DATA_2 (x))
 #define SET_DYNL_HANDLE(x, v) (SCM_SET_SMOB_DATA_2 ((x), (scm_t_bits) (v)))
 
-
-static SCM
-dynl_obj_mark (SCM ptr)
-{
-  return DYNL_FILENAME (ptr);
-}
 
 
 static int
@@ -269,12 +281,6 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-static void
-free_string_pointers (void *data)
-{
-  scm_i_free_string_pointers ((char **)data);
-}
-
 SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
             (SCM func, SCM dobj, SCM args),
 	    "Call the C function indicated by @var{func} and @var{dobj},\n"
@@ -295,21 +301,16 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   int result, argc;
   char **argv;
 
-  scm_dynwind_begin (0);
-
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
 
   fptr = (int (*) (int, char **)) scm_to_ulong (func);
 
   argv = scm_i_allocate_string_pointers (args);
-  scm_dynwind_unwind_handler (free_string_pointers, argv,
-			      SCM_F_WIND_EXPLICITLY);
   for (argc = 0; argv[argc]; argc++)
     ;
   result = (*fptr) (argc, argv);
 
-  scm_dynwind_end ();
   return scm_from_int (result);
 }
 #undef FUNC_NAME
@@ -318,7 +319,6 @@ void
 scm_init_dynamic_linking ()
 {
   scm_tc16_dynamic_obj = scm_make_smob_type ("dynamic-object", 0);
-  scm_set_smob_mark (scm_tc16_dynamic_obj, dynl_obj_mark);
   scm_set_smob_print (scm_tc16_dynamic_obj, dynl_obj_print);
   sysdep_dynl_init ();
 #include "libguile/dynl.x"

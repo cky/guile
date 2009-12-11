@@ -3,7 +3,7 @@
 #ifndef SCM_PAIRS_H
 #define SCM_PAIRS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -34,7 +34,32 @@
 # define SCM_VALIDATE_PAIR(cell, expr) (expr)
 #endif
 
-#define scm_is_null(x)          (scm_is_eq ((x), SCM_EOL))
+/*
+ * Use scm_is_null_and_not_nil if it's important (for correctness)
+ * that %nil must NOT be considered null.
+ */
+#define scm_is_null_and_not_nil(x)     (scm_is_eq ((x), SCM_EOL))
+
+/*
+ * Use scm_is_null_assume_not_nil if %nil will never be tested,
+ * for increased efficiency.
+ */
+#define scm_is_null_assume_not_nil(x)  (scm_is_eq ((x), SCM_EOL))
+
+/*
+ * See the comments preceeding the definitions of SCM_BOOL_F and
+ * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information on
+ * how the following macro works.
+ */
+#if SCM_ENABLE_ELISP
+# define scm_is_null_or_nil(x)  \
+  (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_EOL))
+#else
+# define scm_is_null_or_nil(x)  (scm_is_null_assume_not_nil (x))
+#endif
+
+/* XXX Should scm_is_null treat %nil as null by default? */
+#define scm_is_null(x)		(scm_is_null_and_not_nil(x))
 
 #define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))
 #define SCM_CDR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_1 (x)))
@@ -87,67 +112,34 @@ SCM_API SCM scm_cdr (SCM x);
 SCM_API SCM scm_set_car_x (SCM pair, SCM value);
 SCM_API SCM scm_set_cdr_x (SCM pair, SCM value);
 
-#define SCM_I_D_PAT    0x02 /* 00000010 */
-#define SCM_I_A_PAT    0x03 /* 00000011 */
-#define SCM_I_DD_PAT   0x0a /* 00001010 */
-#define SCM_I_DA_PAT   0x0b /* 00001011 */
-#define SCM_I_AD_PAT   0x0e /* 00001110 */
-#define SCM_I_AA_PAT   0x0f /* 00001111 */
-#define SCM_I_DDD_PAT  0x2a /* 00101010 */
-#define SCM_I_DDA_PAT  0x2b /* 00101011 */
-#define SCM_I_DAD_PAT  0x2e /* 00101110 */
-#define SCM_I_DAA_PAT  0x2f /* 00101111 */
-#define SCM_I_ADD_PAT  0x3a /* 00111010 */
-#define SCM_I_ADA_PAT  0x3b /* 00111011 */
-#define SCM_I_AAD_PAT  0x3e /* 00111110 */
-#define SCM_I_AAA_PAT  0x3f /* 00111111 */
-#define SCM_I_DDDD_PAT 0xaa /* 10101010 */
-#define SCM_I_DDDA_PAT 0xab /* 10101011 */
-#define SCM_I_DDAD_PAT 0xae /* 10101110 */
-#define SCM_I_DDAA_PAT 0xaf /* 10101111 */
-#define SCM_I_DADD_PAT 0xba /* 10111010 */
-#define SCM_I_DADA_PAT 0xbb /* 10111011 */
-#define SCM_I_DAAD_PAT 0xbe /* 10111110 */
-#define SCM_I_DAAA_PAT 0xbf /* 10111111 */
-#define SCM_I_ADDD_PAT 0xea /* 11101010 */
-#define SCM_I_ADDA_PAT 0xeb /* 11101011 */
-#define SCM_I_ADAD_PAT 0xee /* 11101110 */
-#define SCM_I_ADAA_PAT 0xef /* 11101111 */
-#define SCM_I_AADD_PAT 0xfa /* 11111010 */
-#define SCM_I_AADA_PAT 0xfb /* 11111011 */
-#define SCM_I_AAAD_PAT 0xfe /* 11111110 */
-#define SCM_I_AAAA_PAT 0xff /* 11111111 */
-
-SCM_API SCM scm_i_chase_pairs (SCM x, scm_t_uint32 pattern);
-
-#define scm_cddr(x)   scm_i_chase_pairs ((x), SCM_I_DD_PAT)
-#define scm_cdar(x)   scm_i_chase_pairs ((x), SCM_I_DA_PAT)
-#define scm_cadr(x)   scm_i_chase_pairs ((x), SCM_I_AD_PAT)
-#define scm_caar(x)   scm_i_chase_pairs ((x), SCM_I_AA_PAT)
-#define scm_cdddr(x)  scm_i_chase_pairs ((x), SCM_I_DDD_PAT)
-#define scm_cddar(x)  scm_i_chase_pairs ((x), SCM_I_DDA_PAT)
-#define scm_cdadr(x)  scm_i_chase_pairs ((x), SCM_I_DAD_PAT)
-#define scm_cdaar(x)  scm_i_chase_pairs ((x), SCM_I_DAA_PAT)
-#define scm_caddr(x)  scm_i_chase_pairs ((x), SCM_I_ADD_PAT)
-#define scm_cadar(x)  scm_i_chase_pairs ((x), SCM_I_ADA_PAT)
-#define scm_caadr(x)  scm_i_chase_pairs ((x), SCM_I_AAD_PAT)
-#define scm_caaar(x)  scm_i_chase_pairs ((x), SCM_I_AAA_PAT)
-#define scm_cddddr(x) scm_i_chase_pairs ((x), SCM_I_DDDD_PAT)
-#define scm_cdddar(x) scm_i_chase_pairs ((x), SCM_I_DDDA_PAT)
-#define scm_cddadr(x) scm_i_chase_pairs ((x), SCM_I_DDAD_PAT)
-#define scm_cddaar(x) scm_i_chase_pairs ((x), SCM_I_DDAA_PAT)
-#define scm_cdaddr(x) scm_i_chase_pairs ((x), SCM_I_DADD_PAT)
-#define scm_cdadar(x) scm_i_chase_pairs ((x), SCM_I_DADA_PAT)
-#define scm_cdaadr(x) scm_i_chase_pairs ((x), SCM_I_DAAD_PAT)
-#define scm_cdaaar(x) scm_i_chase_pairs ((x), SCM_I_DAAA_PAT)
-#define scm_cadddr(x) scm_i_chase_pairs ((x), SCM_I_ADDD_PAT)
-#define scm_caddar(x) scm_i_chase_pairs ((x), SCM_I_ADDA_PAT)
-#define scm_cadadr(x) scm_i_chase_pairs ((x), SCM_I_ADAD_PAT)
-#define scm_cadaar(x) scm_i_chase_pairs ((x), SCM_I_ADAA_PAT)
-#define scm_caaddr(x) scm_i_chase_pairs ((x), SCM_I_AADD_PAT)
-#define scm_caadar(x) scm_i_chase_pairs ((x), SCM_I_AADA_PAT)
-#define scm_caaadr(x) scm_i_chase_pairs ((x), SCM_I_AAAD_PAT)
-#define scm_caaaar(x) scm_i_chase_pairs ((x), SCM_I_AAAA_PAT)
+SCM_API SCM scm_cddr (SCM x);
+SCM_API SCM scm_cdar (SCM x);
+SCM_API SCM scm_cadr (SCM x);
+SCM_API SCM scm_caar (SCM x);
+SCM_API SCM scm_cdddr (SCM x);
+SCM_API SCM scm_cddar (SCM x);
+SCM_API SCM scm_cdadr (SCM x);
+SCM_API SCM scm_cdaar (SCM x);
+SCM_API SCM scm_caddr (SCM x);
+SCM_API SCM scm_cadar (SCM x);
+SCM_API SCM scm_caadr (SCM x);
+SCM_API SCM scm_caaar (SCM x);
+SCM_API SCM scm_cddddr (SCM x);
+SCM_API SCM scm_cdddar (SCM x);
+SCM_API SCM scm_cddadr (SCM x);
+SCM_API SCM scm_cddaar (SCM x);
+SCM_API SCM scm_cdaddr (SCM x);
+SCM_API SCM scm_cdadar (SCM x);
+SCM_API SCM scm_cdaadr (SCM x);
+SCM_API SCM scm_cdaaar (SCM x);
+SCM_API SCM scm_cadddr (SCM x);
+SCM_API SCM scm_caddar (SCM x);
+SCM_API SCM scm_cadadr (SCM x);
+SCM_API SCM scm_cadaar (SCM x);
+SCM_API SCM scm_caaddr (SCM x);
+SCM_API SCM scm_caadar (SCM x);
+SCM_API SCM scm_caaadr (SCM x);
+SCM_API SCM scm_caaaar (SCM x);
 
 SCM_INTERNAL void scm_init_pairs (void);
 

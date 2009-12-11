@@ -21,10 +21,10 @@
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
 bin_SCRIPTS = guile-config guile-tools
-EXTRA_DIST= $(bin_SCRIPTS)			\
+EXTRA_DIST= \
   guile.m4 ChangeLog-2008			\
   guile-2.0.pc.in guile-2.0-uninstalled.pc.in	\
-  guile-tools.in
+  guile-tools.in guile-config.in
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = guile-2.0.pc
@@ -33,3 +33,15 @@ pkgconfig_DATA = guile-2.0.pc
 ## doing this.  When that happens, switch over.
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4
+
+guile-config: $(srcdir)/guile-config.in
+	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
+	cat $(srcdir)/guile-config.in							\
+	| $(SED) -e "s,@pkgconfigdir@,$(pkgconfigdir),g ;			\
+		     s,@""PKG_CONFIG@,$(PKG_CONFIG),g ;				\
+		     s,@installed_guile@,$$guile,g"				\
+	> guile-config.out
+	mv guile-config.out guile-config
+	chmod +x guile-config
+
+CLEANFILES = guile-config

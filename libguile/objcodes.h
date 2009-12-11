@@ -23,13 +23,9 @@
 
 /* objcode data should be directly mappable to this C structure. */
 struct scm_objcode {
-  scm_t_uint8 nargs;
-  scm_t_uint8 nrest;
-  scm_t_uint16 nlocs;
   scm_t_uint32 len;             /* the maximum index of base[] */
   scm_t_uint32 metalen;         /* well, i lie. this many bytes at the end of
                                    base[] for metadata */
-  scm_t_uint32 unused;          /* pad so that `base' is 8-byte aligned */
   scm_t_uint8 base[0];
 };
 
@@ -46,9 +42,6 @@ SCM_API scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_LEN(x)	(SCM_OBJCODE_DATA (x)->len)
 #define SCM_OBJCODE_META_LEN(x)	(SCM_OBJCODE_DATA (x)->metalen)
 #define SCM_OBJCODE_TOTAL_LEN(x) (SCM_OBJCODE_LEN (x) + SCM_OBJCODE_META_LEN (x))
-#define SCM_OBJCODE_NARGS(x)	(SCM_OBJCODE_DATA (x)->nargs)
-#define SCM_OBJCODE_NREST(x)	(SCM_OBJCODE_DATA (x)->nrest)
-#define SCM_OBJCODE_NLOCS(x)	(SCM_OBJCODE_DATA (x)->nlocs)
 #define SCM_OBJCODE_BASE(x)	(SCM_OBJCODE_DATA (x)->base)
 
 #define SCM_OBJCODE_IS_MMAP(x)	(SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_MMAP)

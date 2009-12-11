@@ -57,7 +57,7 @@ AC_DEFUN([GUILE_HEADER_LIBC_WITH_UNISTD],
       ]
     )
     if test "$guile_cv_header_libc_with_unistd" = yes; then
-      AC_DEFINE(LIBC_H_WITH_UNISTD_H, 1,
+      AC_DEFINE([LIBC_H_WITH_UNISTD_H], 1,
         [Define this if we should include <libc.h> when we've already
          included <unistd.h>.  On some systems, they conflict, and libc.h
          should be omitted.  See GUILE_HEADER_LIBC_WITH_UNISTD in
@@ -267,7 +267,7 @@ if test "x$acx_pthread_ok" = xyes; then
         done
         AC_MSG_RESULT($attr_name)
         if test "$attr_name" != PTHREAD_CREATE_JOINABLE; then
-            AC_DEFINE_UNQUOTED(PTHREAD_CREATE_JOINABLE, $attr_name,
+            AC_DEFINE_UNQUOTED([PTHREAD_CREATE_JOINABLE], $attr_name,
                                [Define to necessary symbol if this constant
                                 uses a non-standard name on your system.])
         fi
@@ -302,7 +302,7 @@ AC_SUBST(PTHREAD_CC)
 
 # Finally, execute ACTION-IF-FOUND/ACTION-IF-NOT-FOUND:
 if test x"$acx_pthread_ok" = xyes; then
-        ifelse([$1],,AC_DEFINE(HAVE_PTHREAD,1,[Define if you have POSIX threads libraries and header files.]),[$1])
+        ifelse([$1],,AC_DEFINE([HAVE_PTHREAD],1,[Define if you have POSIX threads libraries and header files.]),[$1])
         :
 else
         acx_pthread_ok=no
@@ -310,6 +310,64 @@ else
 fi
 AC_LANG_RESTORE
 ])dnl ACX_PTHREAD
+
+dnl GUILE_GNU_LD_RELRO
+dnl
+dnl Check whether GNU ld's read-only relocations (the `PT_GNU_RELRO'
+dnl ELF segment header) are supported.  This allows things like
+dnl statically allocated cells (1) to eventually be remapped read-only
+dnl by the loader, and (2) to be identified as pointerless by the
+dnl garbage collector.  Substitute `GNU_LD_FLAGS' with the relevant
+dnl flags.
+AC_DEFUN([GUILE_GNU_LD_RELRO], [
+  AC_MSG_CHECKING([whether the linker understands `-z relro'])
+
+  GNU_LD_FLAGS="-Wl,-z -Wl,relro"
+
+  save_LDFLAGS="$LDFLAGS"
+  LDFLAGS="$LDFLAGS $GNU_LD_FLAGS"
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])
+     GNU_LD_FLAGS=""])
+  LDFLAGS="$save_LDFLAGS"
+
+  AC_SUBST([GNU_LD_FLAGS])
+])
+
+dnl GUILE_THREAD_LOCAL_STORAGE
+dnl
+dnl Check for compiler thread-local storage (TLS) support.
+AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
+  AC_CACHE_CHECK([whether the `__thread' storage class is available],
+    [ac_cv_have_thread_storage_class],
+    [dnl On some systems, e.g., NetBSD 5.0 with GCC 4.1, `__thread' is
+     dnl properly compiled but fails to link due to the lack of TLS
+     dnl support in the C library.  Thus we try to link, not just
+     dnl compile.  Unfortunately, this test is not enough, so we
+     dnl explicitly check for known-broken systems.  See
+     dnl http://lists.gnu.org/archive/html/guile-devel/2009-10/msg00138.html
+     dnl for details.
+     case "x$enable_shared--$host" in
+       xyes--*netbsd[0-5].[0-9].)
+         ac_cv_have_thread_storage_class="no"
+	 ;;
+       *)
+	 AC_LINK_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
+			  [tls_integer = 123;])],
+	   [ac_cv_have_thread_storage_class="yes"],
+	   [ac_cv_have_thread_storage_class="no"])
+	 ;;
+     esac])
+
+  if test "x$ac_cv_have_thread_storage_class" = "xyes"; then
+     SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS=1
+  else
+     SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS=0
+  fi
+
+  AC_SUBST([SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS])
+])
 
 dnl GUILE_READLINE
 dnl

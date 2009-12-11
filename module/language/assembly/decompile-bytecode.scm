@@ -42,28 +42,25 @@
 
 (define (br-instruction? x)
   (memq x '(br br-if br-if-not br-if-eq br-if-not-eq br-if-null br-if-not-null)))
+(define (br-nargs-instruction? x)
+  (memq x '(br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt)))
 
-(define (bytes->s16 a b)
-  (let ((x (+ (ash a 8) b)))
-    (if (zero? (logand (ash 1 15) x))
+(define (bytes->s24 a b c)
+  (let ((x (+ (ash a 16) (ash b 8) c)))
+    (if (zero? (logand (ash 1 23) x))
         x
-        (- x (ash 1 16)))))
+        (- x (ash 1 24)))))
 
 ;; FIXME: this is a little-endian disassembly!!!
 (define (decode-load-program pop)
-  (let* ((nargs (pop)) (nrest (pop)) (nlocs0 (pop)) (nlocs1 (pop))
-         (nlocs (+ nlocs0 (ash nlocs1 8)))
-         (a (pop)) (b (pop)) (c (pop)) (d (pop))
+  (let* ((a (pop)) (b (pop)) (c (pop)) (d (pop))
          (e (pop)) (f (pop)) (g (pop)) (h (pop))
          (len (+ a (ash b 8) (ash c 16) (ash d 24)))
          (metalen (+ e (ash f 8) (ash g 16) (ash h 24)))
-         (totlen (+ len metalen))
-         (pad0 (pop)) (pad1 (pop)) (pad2 (pop)) (pad3 (pop))
          (labels '())
          (i 0))
-    (define (ensure-label rel1 rel2)
-      (let ((where (+ (logand i (lognot #x7))
-                      (* (bytes->s16 rel1 rel2) 8))))
+    (define (ensure-label rel1 rel2 rel3)
+      (let ((where (+ i (bytes->s24 rel1 rel2 rel3))))
         (or (assv-ref labels where)
             (begin
               (let ((l (gensym ":L")))
@@ -79,8 +76,7 @@
       (cond ((> i len)
              (error "error decoding program -- read too many bytes" out))
             ((= i len)
-             `(load-program ,nargs ,nrest ,nlocs 
-                            ,(map (lambda (x) (cons (cdr x) (car x)))
+             `(load-program ,(map (lambda (x) (cons (cdr x) (car x)))
                                   (reverse labels))
                             ,len
                             ,(if (zero? metalen) #f (decode-load-program pop))
@@ -88,10 +84,12 @@
             (else
              (let ((exp (decode-bytecode sub-pop)))
                (pmatch exp
-                 ((,br ,rel1 ,rel2) (guard (br-instruction? br))
-                  (lp (cons `(,br ,(ensure-label rel1 rel2)) out)))
-                 ((mv-call ,n ,rel1 ,rel2)
-                  (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2)) out)))
+                 ((,br ,rel1 ,rel2 ,rel3) (guard (br-instruction? br))
+                  (lp (cons `(,br ,(ensure-label rel1 rel2 rel3)) out)))
+                 ((,br ,hi ,lo ,rel1 ,rel2 ,rel3) (guard (br-nargs-instruction? br))
+                  (lp (cons `(,br ,hi ,lo ,(ensure-label rel1 rel2 rel3)) out)))
+                 ((mv-call ,n ,rel1 ,rel2 ,rel3)
+                  (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2 rel3)) out)))
                  (else 
                   (lp (cons exp out))))))))))
 
@@ -121,7 +119,7 @@
                  (let lp ((i 0))
                    (if (= i len)
                        `(,inst ,(if (eq? inst 'load-wide-string)
-                                    (utf32->string seq)
+                                    (utf32->string seq (native-endianness))
                                     seq))
                        (begin
                          (sequence-set! seq i (pop))

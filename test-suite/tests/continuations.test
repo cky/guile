@@ -1,7 +1,7 @@
 ;;;;                                                          -*- scheme -*-
 ;;;; continuations.test --- test suite for continutations
 ;;;;
-;;;; Copyright (C) 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -52,6 +52,34 @@
   (pass-if "throwing to a rewound catch context"
     (eq? (dont-crash-please) 'no-reentry))
 
+  (pass-if "can print a continuation"
+    (let ((s (with-output-to-string
+	       (lambda ()
+		 (call-with-current-continuation write)))))
+      (string=? "#<continuation " (substring s 0 15))))
+
+  (pass-if "blocked attempt to cross a continuation barrier"
+    (call-with-current-continuation
+     (lambda (k)
+       (with-continuation-barrier
+	(lambda ()
+	  (catch 'misc-error
+		 (lambda ()
+		   (k 1)
+		   #f)
+		 (lambda _
+		   #t)))))))
+
+  (pass-if "uncaught exception is handled by continuation barrier"
+    (let* ((handled #f)
+	   (s (with-error-to-string
+	       (lambda ()
+		 (set! handled
+		       (not (with-continuation-barrier
+			     (lambda ()
+			       (error "Catch me if you can!")))))))))
+      handled))
+
   (with-debugging-evaluator
 
     (pass-if "make a stack from a continuation"
@@ -59,9 +87,6 @@
 
     (pass-if "get a continuation's stack ID"
       (let ((id (call-with-current-continuation stack-id)))
-	(or (boolean? id) (symbol? id))))
-
-    (pass-if "get a continuation's innermost frame"
-      (pair? (call-with-current-continuation last-stack-frame))))
+	(or (boolean? id) (symbol? id)))))
 
 )

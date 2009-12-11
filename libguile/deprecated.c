@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,8 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
+#define SCM_BUILDING_DEPRECATED_CODE
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
@@ -50,10 +52,14 @@
 #include "libguile/smob.h"
 #include "libguile/alist.h"
 #include "libguile/keywords.h"
+#include "libguile/socket.h"
 #include "libguile/feature.h"
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <arpa/inet.h>
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -63,17 +69,6 @@ char *scm_isymnames[] =
 {
   "#@<deprecated>"
 };
-
-
-/* From eval.c: Error messages of the evaluator.  These were deprecated in
- * guile 1.7.0 on 2003-06-02.  */
-const char scm_s_expression[] = "missing or extra expression";
-const char scm_s_test[] = "bad test";
-const char scm_s_body[] = "bad body";
-const char scm_s_bindings[] = "bad bindings";
-const char scm_s_variable[] = "bad variable";
-const char scm_s_clauses[] = "bad or missing clauses";
-const char scm_s_formals[] = "bad formals";
 
 
 SCM_REGISTER_PROC(s_substring_move_left_x, "substring-move-left!", 5, 0, 0, scm_substring_move_x);
@@ -254,27 +249,14 @@ static SCM try_module_autoload_var;
 static void
 init_module_stuff ()
 {
-#define PERM(x) scm_permanent_object(x)
-
   if (module_prefix == SCM_BOOL_F)
     {
-      module_prefix = PERM (scm_list_2 (scm_sym_app, scm_sym_modules));
-      make_modules_in_var = PERM (scm_c_lookup ("make-modules-in"));
+      module_prefix = scm_list_2 (scm_sym_app, scm_sym_modules);
+      make_modules_in_var = scm_c_lookup ("make-modules-in");
       beautify_user_module_x_var =
-	PERM (scm_c_lookup ("beautify-user-module!"));
-      try_module_autoload_var = PERM (scm_c_lookup ("try-module-autoload"));
+	scm_c_lookup ("beautify-user-module!");
+      try_module_autoload_var = scm_c_lookup ("try-module-autoload");
     }
-}
-
-SCM
-scm_the_root_module ()
-{
-  init_module_stuff ();
-  scm_c_issue_deprecation_warning ("`scm_the_root_module' is deprecated. "
-				   "Use `scm_c_resolve_module (\"guile\")' "
-				   "instead.");
-
-  return scm_c_resolve_module ("guile");
 }
 
 static SCM
@@ -441,7 +423,7 @@ scm_create_hook (const char *name, int n_args)
   {
     SCM hook = scm_make_hook (scm_from_int (n_args));
     scm_c_define (name, hook);
-    return scm_permanent_object (hook);
+    return hook;
   }
 }
 
@@ -631,6 +613,21 @@ scm_set_smob_mfpe (long tc,
   if (free) scm_set_smob_free (tc, free);
   if (print) scm_set_smob_print (tc, print);
   if (equalp) scm_set_smob_equalp (tc, equalp);
+}
+
+size_t
+scm_smob_free (SCM obj)
+{
+  long n = SCM_SMOBNUM (obj);
+
+  scm_c_issue_deprecation_warning
+    ("`scm_smob_free' is deprecated.  "
+     "It is no longer needed.");
+
+  if (scm_smobs[n].size > 0)
+    scm_gc_free ((void *) SCM_SMOB_DATA_1 (obj), 
+		 scm_smobs[n].size, SCM_SMOBNAME (n));
+  return 0;
 }
 
 SCM
@@ -1217,6 +1214,58 @@ scm_round (double x)
   return scm_c_round (x);
 }
 
+SCM
+scm_sys_expt (SCM x, SCM y)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_sys_expt is deprecated.  Use scm_expt instead.");
+  return scm_expt (x, y);
+}
+
+double
+scm_asinh (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_asinh is deprecated.  Use asinh instead.");
+#if HAVE_ASINH
+  return asinh (x);
+#else
+  return log (x + sqrt (x * x + 1));
+#endif
+}
+
+double
+scm_acosh (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_acosh is deprecated.  Use acosh instead.");
+#if HAVE_ACOSH
+  return acosh (x);
+#else
+  return log (x + sqrt (x * x - 1));
+#endif
+}
+
+double
+scm_atanh (double x)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_atanh is deprecated.  Use atanh instead.");
+#if HAVE_ATANH
+  return atanh (x);
+#else
+  return 0.5 * log ((1 + x) / (1 - x));
+#endif
+}
+
+SCM
+scm_sys_atan2 (SCM z1, SCM z2)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_sys_atan2 is deprecated.  Use scm_atan instead.");
+  return scm_atan (z1, z2);
+}
+
 char *
 scm_i_deprecated_symbol_chars (SCM sym)
 {
@@ -1418,14 +1467,6 @@ scm_i_deprecated_dynwinds (void)
   return scm_i_dynwinds ();
 }
 
-scm_t_debug_frame *
-scm_i_deprecated_last_debug_frame (void)
-{
-  scm_c_issue_deprecation_warning
-    ("scm_last_debug_frame is deprecated.  Do not use it.");
-  return scm_i_last_debug_frame ();
-}
-
 SCM_STACKITEM *
 scm_i_stack_base (void)
 {
@@ -1442,6 +1483,47 @@ scm_i_fluidp (SCM x)
   return scm_is_fluid (x);
 }
 
+
+/* Networking.  */
+
+#ifdef HAVE_NETWORKING
+
+SCM_DEFINE (scm_inet_aton, "inet-aton", 1, 0, 0,
+            (SCM address),
+	    "Convert an IPv4 Internet address from printable string\n"
+	    "(dotted decimal notation) to an integer.  E.g.,\n\n"
+	    "@lisp\n"
+	    "(inet-aton \"127.0.0.1\") @result{} 2130706433\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_aton
+{
+  scm_c_issue_deprecation_warning
+    ("`inet-aton' is deprecated.  Use `inet-pton' instead.");
+
+  return scm_inet_pton (scm_from_int (AF_INET), address);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_inet_ntoa, "inet-ntoa", 1, 0, 0,
+            (SCM inetid),
+	    "Convert an IPv4 Internet address to a printable\n"
+	    "(dotted decimal notation) string.  E.g.,\n\n"
+	    "@lisp\n"
+	    "(inet-ntoa 2130706433) @result{} \"127.0.0.1\"\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_ntoa
+{
+  scm_c_issue_deprecation_warning
+    ("`inet-ntoa' is deprecated.  Use `inet-ntop' instead.");
+
+  return scm_inet_ntop (scm_from_int (AF_INET), inetid);
+}
+#undef FUNC_NAME
+
+#endif /* HAVE_NETWORKING */
+
+
 void
 scm_i_defer_ints_etc ()
 {
@@ -1450,6 +1532,14 @@ scm_i_defer_ints_etc ()
      "Use a mutex instead if appropriate.");
 }
 
+int
+scm_i_mask_ints (void)
+{
+  scm_c_issue_deprecation_warning ("`scm_mask_ints' is deprecated.");
+  return (SCM_I_CURRENT_THREAD->block_asyncs != 0);
+}
+
+
 SCM
 scm_guard (SCM guardian, SCM obj, int throw_p)
 {
@@ -1503,6 +1593,68 @@ SCM_DEFINE (scm_destroy_guardian_x, "destroy-guardian!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* GC-related things.  */
+
+unsigned long scm_mallocated, scm_mtrigger;
+size_t scm_max_segment_size;
+
+#if defined (GUILE_DEBUG) || defined (GUILE_DEBUG_FREELIST)
+SCM
+scm_map_free_list (void)
+{
+  return SCM_EOL;
+}
+#endif
+
+#if defined (GUILE_DEBUG_FREELIST)
+SCM
+scm_gc_set_debug_check_freelist_x (SCM flag)
+{
+  return SCM_UNSPECIFIED;
+}
+#endif
+
+
+/* Trampolines
+ *  
+ * Trampolines were an intent to speed up calling the same Scheme procedure many
+ * times from C.
+ *
+ * However, this was the wrong thing to optimize; if you really know what you're
+ * calling, call its function directly, otherwise you're in Scheme-land, and we
+ * have many better tricks there (inlining, for example, which can remove the
+ * need for closures and free variables).
+ *
+ * Also, in the normal debugging case, trampolines were being computed but not
+ * used. Silliness.
+ */
+
+scm_t_trampoline_0
+scm_trampoline_0 (SCM proc)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_trampoline_0' is deprecated. Just use `scm_call_0' instead.");
+  return scm_call_0;
+}
+
+scm_t_trampoline_1
+scm_trampoline_1 (SCM proc)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_trampoline_1' is deprecated. Just use `scm_call_1' instead.");
+  return scm_call_1;
+}
+
+scm_t_trampoline_2
+scm_trampoline_2 (SCM proc)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_trampoline_2' is deprecated. Just use `scm_call_2' instead.");
+  return scm_call_2;
+}
+
+
 void
 scm_i_init_deprecated ()
 {

@@ -69,10 +69,10 @@
    gnulib ftruncate.c has code using fcntl F_CHSIZE and F_FREESP, which
    might be possibilities if we've got other systems without ftruncate.  */
 
-#if HAVE_CHSIZE && ! HAVE_FTRUNCATE
+#if defined HAVE_CHSIZE && ! defined HAVE_FTRUNCATE
 # define ftruncate(fd, size) chsize (fd, size)
-#undef HAVE_FTRUNCATE
-#define HAVE_FTRUNCATE 1
+# undef HAVE_FTRUNCATE
+# define HAVE_FTRUNCATE 1
 #endif
 
 #if SIZEOF_OFF_T == SIZEOF_INT
@@ -122,7 +122,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
 
   if (SCM_INPUT_PORT_P (port) && read_size > 0)
     {
-      pt->read_buf = scm_gc_malloc (read_size, "port buffer");
+      pt->read_buf = scm_gc_malloc_pointerless (read_size, "port buffer");
       pt->read_pos = pt->read_end = pt->read_buf;
       pt->read_buf_size = read_size;
     }
@@ -134,7 +134,7 @@ scm_fport_buffer_add (SCM port, long read_size, int write_size)
 
   if (SCM_OUTPUT_PORT_P (port) && write_size > 0)
     {
-      pt->write_buf = scm_gc_malloc (write_size, "port buffer");
+      pt->write_buf = scm_gc_malloc_pointerless (write_size, "port buffer");
       pt->write_pos = pt->write_buf;
       pt->write_buf_size = write_size;
     }
@@ -231,9 +231,15 @@ scm_i_evict_port (void *closure, SCM port)
 
   if (SCM_FPORTP (port))
     {
-      scm_t_fport *fp = SCM_FSTREAM (port);
+      scm_t_port *p;
+      scm_t_fport *fp;
 
-      if (fp->fdes == fd)
+      /* XXX: In some cases, we can encounter a port with no associated ptab
+	 entry.  */
+      p = SCM_PTAB_ENTRY (port);
+      fp = (p != NULL) ? (scm_t_fport *) p->stream : NULL;
+
+      if ((fp != NULL) && (fp->fdes == fd))
 	{
 	  fp->fdes = dup (fd);
 	  if (fp->fdes == -1)
@@ -312,11 +318,9 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 #define FUNC_NAME s_scm_open_file
 {
   SCM port;
-  int fdes;
-  int flags = 0;
-  char *file;
-  char *md;
-  char *ptr;
+  int fdes, flags = 0;
+  unsigned int retries;
+  char *file, *md, *ptr;
 
   scm_dynwind_begin (0);
 
@@ -361,15 +365,27 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	}
       ptr++;
     }
-  SCM_SYSCALL (fdes = open_or_open64 (file, flags, 0666));
-  if (fdes == -1)
-    {
-      int en = errno;
 
-      SCM_SYSERROR_MSG ("~A: ~S",
-			scm_cons (scm_strerror (scm_from_int (en)),
-				  scm_cons (filename, SCM_EOL)), en);
+  for (retries = 0, fdes = -1;
+       fdes < 0 && retries < 2;
+       retries++)
+    {
+      SCM_SYSCALL (fdes = open_or_open64 (file, flags, 0666));
+      if (fdes == -1)
+	{
+	  int en = errno;
+
+	  if (en == EMFILE && retries == 0)
+	    /* Run the GC in case it collects open file ports that are no
+	       longer referenced.  */
+	    scm_i_gc (FUNC_NAME);
+	  else
+	    SCM_SYSERROR_MSG ("~A: ~S",
+			      scm_cons (scm_strerror (scm_from_int (en)),
+					scm_cons (filename, SCM_EOL)), en);
+	}
     }
+
   port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode), filename);
 
   scm_dynwind_end ();
@@ -459,7 +475,8 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
   pt = SCM_PTAB_ENTRY(port);
   {
     scm_t_fport *fp
-      = (scm_t_fport *) scm_gc_malloc (sizeof (scm_t_fport), "file port");
+      = (scm_t_fport *) scm_gc_malloc_pointerless (sizeof (scm_t_fport),
+						   "file port");
 
     fp->fdes = fdes;
     pt->rw_random = SCM_FDES_RANDOM_P (fdes);

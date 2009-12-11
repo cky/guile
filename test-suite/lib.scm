@@ -46,6 +46,9 @@
  ;; Using the debugging evaluator.
  with-debugging-evaluator with-debugging-evaluator*
 
+;; Using a given locale
+with-locale with-locale*
+
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
  make-count-reporter print-counts
@@ -437,6 +440,26 @@
 (define-macro (with-debugging-evaluator . body)
   `(with-debugging-evaluator* (lambda () ,@body)))
 
+;;; Call THUNK with a given locale
+(define (with-locale* nloc thunk)
+  (let ((loc #f))
+    (dynamic-wind
+	(lambda ()
+          (if (defined? 'setlocale)
+              (begin
+                (set! loc 
+                      (false-if-exception (setlocale LC_ALL nloc)))
+                (if (not loc)
+                    (throw 'unresolved)))
+              (throw 'unresolved)))
+	thunk
+	(lambda ()
+          (if (defined? 'setlocale)
+              (setlocale LC_ALL loc))))))
+
+;;; Evaluate BODY... using the given locale.
+(define-macro (with-locale loc . body)
+  `(with-locale* ,loc (lambda () ,@body)))
 
 
 ;;;; REPORTERS

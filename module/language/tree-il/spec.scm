@@ -20,6 +20,7 @@
 
 (define-module (language tree-il spec)
   #:use-module (system base language)
+  #:use-module (system base pmatch)
   #:use-module (language glil)
   #:use-module (language tree-il)
   #:use-module (language tree-il compile-glil)
@@ -29,12 +30,15 @@
   (apply write (unparse-tree-il exp) port))
 
 (define (join exps env)
-  (make-sequence #f exps))
+  (pmatch exps
+    (() (make-void #f))
+    ((,x) x)
+    (else (make-sequence #f exps))))
 
 (define-language tree-il
   #:title	"Tree Intermediate Language"
   #:version	"1.0"
-  #:reader	read
+  #:reader	(lambda (port env) (read port))
   #:printer	write-tree-il
   #:parser      parse-tree-il
   #:joiner      join

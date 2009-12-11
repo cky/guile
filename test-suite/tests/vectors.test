@@ -36,7 +36,29 @@
   (pass-if "simple vector"
     (equal? '(1 2 3) (vector->list #(1 2 3))))
 
+  (pass-if "string vector 1"
+    (equal? '("abc" "def" "ghi") (vector->list #("abc" "def" "ghi"))))
+
+  (pass-if "string-vector 2"
+    (equal? '("abc\u0100" "def\u0101" "ghi\u0102") 
+            (vector->list #("abc\u0100" "def\u0101" "ghi\u0102"))))
+
   (pass-if "shared array"
     (let ((b (make-shared-array #(1) (lambda (x) '(0)) 2)))
       (equal? b (list->vector (vector->list b))))))
+
+(with-test-prefix "make-vector"
+
+  (pass-if "null"
+    (equal? #() (make-vector 0)))
+
+  (pass-if "fill with num"
+    (equal? #(1 1 1) (make-vector 3 1)))
+
+  (pass-if "fill with string"
+    (equal? #("abc" "abc" "abc") (make-vector 3 "abc")))
+
+  (pass-if "fill with string 2"
+    (equal? #("ab\u0100" "ab\u0100" "ab\u0100") 
+            (make-vector 3 "ab\u0100"))))
 

@@ -33,6 +33,7 @@ Guile depends on the following external libraries.
 - libintl
 - libltdl
 - libunistring
+- libgc
 It will also use the libreadline library if it is available.  For each
 of these there is a corresponding --with-XXX-prefix option that you
 can use when invoking ./configure, if you have these libraries
@@ -68,18 +69,24 @@ Guile requires the following external packages:
   - GNU MP, at least version 4.1
 
     GNU MP is used for bignum arithmetic.  It is available from
-    http://swox.com/gmp
+    http://gmplib.org/ .
 
-  - libltdl from libtool, at least from libtool version 1.5.6
+  - libltdl from GNU Libtool, at least version 1.5.6
 
     libltdl is used for loading extensions at run-time.  It is
-    available from http://www.gnu.org/software/libtool/
+    available from http://www.gnu.org/software/libtool/ .
 
   - GNU libunistring
 
     libunistring is used for Unicode string operations, such as the
     `utf*->string' procedures.  It is available from
     http://www.gnu.org/software/libunistring/ .
+
+  - libgc, at least version 7.0
+
+    libgc (aka. the Boehm-Demers-Weiser garbage collector) is the
+    conservative garbage collector used by Guile.  It is available
+    from http://www.hpl.hp.com/personal/Hans_Boehm/gc/ .
 
 
 Special Instructions For Some Systems =====================================

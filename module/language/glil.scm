@@ -24,9 +24,20 @@
   #:use-module ((srfi srfi-1) #:select (fold))
   #:export
   (<glil-program> make-glil-program glil-program?
-   glil-program-nargs glil-program-nrest glil-program-nlocs
    glil-program-meta glil-program-body
    
+   <glil-std-prelude> make-glil-std-prelude glil-std-prelude?
+   glil-std-prelude-nreq glil-std-prelude-nlocs glil-std-prelude-else-label
+
+   <glil-opt-prelude> make-glil-opt-prelude glil-opt-prelude?
+   glil-opt-prelude-nreq glil-opt-prelude-nopt glil-opt-prelude-rest
+   glil-opt-prelude-nlocs glil-opt-prelude-else-label
+
+   <glil-kw-prelude> make-glil-kw-prelude glil-kw-prelude?
+   glil-kw-prelude-nreq glil-kw-prelude-nopt glil-kw-prelude-kw
+   glil-kw-prelude-allow-other-keys? glil-kw-prelude-rest
+   glil-kw-prelude-nlocs glil-kw-prelude-else-label
+
    <glil-bind> make-glil-bind glil-bind?
    glil-bind-vars
 
@@ -71,7 +82,10 @@
 
 (define-type (<glil> #:printer print-glil)
   ;; Meta operations
-  (<glil-program> nargs nrest nlocs meta body)
+  (<glil-program> meta body)
+  (<glil-std-prelude> nreq nlocs else-label)
+  (<glil-opt-prelude> nreq nopt rest nlocs else-label)
+  (<glil-kw-prelude> nreq nopt rest kw allow-other-keys? nlocs else-label)
   (<glil-bind> vars)
   (<glil-mv-bind> vars rest)
   (<glil-unbind>)
@@ -93,8 +107,14 @@
 
 (define (parse-glil x)
   (pmatch x
-    ((program ,nargs ,nrest ,nlocs ,meta . ,body)
-     (make-glil-program nargs nrest nlocs meta (map parse-glil body)))
+    ((program ,meta . ,body)
+     (make-glil-program meta (map parse-glil body)))
+    ((std-prelude ,nreq ,nlocs ,else-label)
+     (make-glil-std-prelude nreq nlocs else-label))
+    ((opt-prelude ,nreq ,nopt ,rest ,nlocs ,else-label)
+     (make-glil-opt-prelude nreq nopt rest nlocs else-label))
+    ((kw-prelude ,nreq ,nopt ,rest ,kw ,allow-other-keys? ,nlocs ,else-label)
+     (make-glil-kw-prelude nreq nopt rest kw allow-other-keys? nlocs else-label))
     ((bind . ,vars) (make-glil-bind vars))
     ((mv-bind ,vars ,rest) (make-glil-mv-bind vars rest))
     ((unbind) (make-glil-unbind))
@@ -105,7 +125,7 @@
     ((toplevel ,op ,name) (make-glil-toplevel op name))
     ((module public ,op ,mod ,name) (make-glil-module op mod name #t))
     ((module private ,op ,mod ,name) (make-glil-module op mod name #f))
-    ((label ,label) (make-label label))
+    ((label ,label) (make-glil-label label))
     ((branch ,inst ,label) (make-glil-branch inst label))
     ((call ,inst ,nargs) (make-glil-call inst nargs))
     ((mv-call ,nargs ,ra) (make-glil-mv-call nargs ra))
@@ -114,8 +134,14 @@
 (define (unparse-glil glil)
   (record-case glil
     ;; meta
-    ((<glil-program> nargs nrest nlocs meta body)
-     `(program ,nargs ,nrest ,nlocs ,meta ,@(map unparse-glil body)))
+    ((<glil-program> meta body)
+     `(program ,meta ,@(map unparse-glil body)))
+    ((<glil-std-prelude> nreq nlocs else-label)
+     `(std-prelude ,nreq ,nlocs ,else-label))
+    ((<glil-opt-prelude> nreq nopt rest nlocs else-label)
+     `(opt-prelude ,nreq ,nopt ,rest ,nlocs ,else-label))
+    ((<glil-kw-prelude> nreq nopt rest kw allow-other-keys? nlocs else-label)
+     `(kw-prelude ,nreq ,nopt ,rest ,kw ,allow-other-keys? ,nlocs ,else-label))
     ((<glil-bind> vars) `(bind ,@vars))
     ((<glil-mv-bind> vars rest) `(mv-bind ,vars ,rest))
     ((<glil-unbind>) `(unbind))

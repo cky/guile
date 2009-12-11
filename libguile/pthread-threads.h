@@ -29,6 +29,9 @@
 #include <pthread.h>
 #include <sched.h>
 
+/* `libgc' intercepts pthread calls by defining wrapping macros.  */
+#include "libguile/bdw-gc.h"
+
 /* Threads 
 */
 #define scm_i_pthread_t                     pthread_t

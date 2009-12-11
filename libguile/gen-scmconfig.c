@@ -169,10 +169,10 @@ main (int argc, char *argv[])
 #ifdef STDC_HEADERS
   pf ("#define SCM_HAVE_STDC_HEADERS 1 /* 0 or 1 */\n");
   pf ("#include <stdlib.h>\n");
-# if HAVE_SYS_TYPES_H
+# ifdef HAVE_SYS_TYPES_H
   pf ("#include <sys/types.h>\n");
 # endif
-# if HAVE_SYS_STDTYPES_H
+# ifdef HAVE_SYS_STDTYPES_H
   pf ("#include <sys/stdtypes.h>\n");
 # endif
   pf ("#include <stddef.h>\n");
@@ -290,6 +290,8 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_uint32;\n", SCM_I_GSC_T_UINT32);
   pf ("typedef %s scm_t_intmax;\n", SCM_I_GSC_T_INTMAX);
   pf ("typedef %s scm_t_uintmax;\n", SCM_I_GSC_T_UINTMAX);
+  pf ("typedef %s scm_t_intptr;\n", SCM_I_GSC_T_INTPTR);
+  pf ("typedef %s scm_t_uintptr;\n", SCM_I_GSC_T_UINTPTR);
 
   if (0 == strcmp ("intmax_t", SCM_I_GSC_T_INTMAX))
     pf ("#define SCM_SIZEOF_INTMAX %d\n", SIZEOF_INTMAX_T);
@@ -404,7 +406,14 @@ main (int argc, char *argv[])
   pf ("typedef long int scm_t_off;\n");
 #endif
 
-#if USE_DLL_IMPORT
+  pf ("/* Define to 1 if the compiler supports the "
+      "`__thread' storage class.  */\n");
+  if (SCM_I_GSC_HAVE_THREAD_STORAGE_CLASS)
+    pf ("#define SCM_HAVE_THREAD_STORAGE_CLASS\n");
+  else
+    pf ("/* #undef SCM_HAVE_THREAD_STORAGE_CLASS */\n");
+
+#ifdef USE_DLL_IMPORT
   pf ("\n");
   pf ("/* Define some additional CPP macros on Win32 platforms. */\n");
   pf ("# define __REGEX_IMPORT__ 1\n");

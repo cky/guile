@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -148,32 +148,6 @@ take_signal (int signum)
 #endif
 }
 
-typedef struct {
-  ssize_t res;
-  int fd;
-  char *buf;
-  size_t n;
-} read_without_guile_data;
-
-static void *
-do_read_without_guile (void *raw_data)
-{
-  read_without_guile_data *data = (read_without_guile_data *)raw_data;
-  data->res = read (data->fd, data->buf, data->n);
-  return NULL;
-}
-
-static ssize_t
-read_without_guile (int fd, char *buf, size_t n)
-{
-  read_without_guile_data data;
-  data.fd = fd;
-  data.buf = buf;
-  data.n = n;
-  scm_without_guile (do_read_without_guile, &data);
-  return data.res;
-}
-
 static SCM
 signal_delivery_thread (void *data)
 {
@@ -187,7 +161,7 @@ signal_delivery_thread (void *data)
 
   while (1)
     {
-      n = read_without_guile (signal_pipe[0], &sigbyte, 1);
+      n = read (signal_pipe[0], &sigbyte, 1);
       sig = sigbyte;
       if (n == 1 && sig >= 0 && sig < NSIG)
 	{
@@ -366,7 +340,10 @@ SCM_DEFINE (scm_sigaction_for_thread, "sigaction", 1, 3, 0,
 	  install_handler (csig, SCM_BOOL_F, SCM_BOOL_F);
 	}
       else
-	SCM_OUT_OF_RANGE (2, handler);
+	{
+	  SCM_CRITICAL_SECTION_END;
+	  SCM_OUT_OF_RANGE (2, handler);
+	}
     }
   else if (scm_is_false (handler))
     {
@@ -691,10 +668,8 @@ scm_init_scmsigs ()
   signal_handlers =
     SCM_VARIABLE_LOC (scm_c_define ("signal-handlers",
 				  scm_c_make_vector (NSIG, SCM_BOOL_F)));
-  signal_handler_asyncs =
-    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
-  signal_handler_threads =
-    scm_permanent_object (scm_c_make_vector (NSIG, SCM_BOOL_F));
+  signal_handler_asyncs = scm_c_make_vector (NSIG, SCM_BOOL_F);
+  signal_handler_threads = scm_c_make_vector (NSIG, SCM_BOOL_F);
 
   for (i = 0; i < NSIG; i++)
     {

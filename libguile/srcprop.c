@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008 Free Software Foundation
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008, 2009 Free Software Foundation
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -34,6 +34,7 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/weaks.h"
+#include "libguile/gc.h"
 
 #include "libguile/validate.h"
 #include "libguile/srcprop.h"
@@ -58,6 +59,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_copy, "copy");
 SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
 SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
+SCM scm_source_whash;
 
 
 
@@ -73,11 +75,11 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 
 #define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
 #define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
-#define SRCPROPPOS(p) (SCM_CELL_WORD(p,1))
+#define SRCPROPPOS(p) (SCM_SMOB_DATA(p))
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
-#define SRCPROPCOPY(p) (SCM_CELL_OBJECT(p,2))
-#define SRCPROPALIST(p) (SCM_CELL_OBJECT_3(p))
+#define SRCPROPCOPY(p) (SCM_SMOB_OBJECT_2(p))
+#define SRCPROPALIST(p) (SCM_SMOB_OBJECT_3(p))
 #define SETSRCPROPBRK(p) \
  (SCM_SET_SMOB_FLAGS ((p), \
                       SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
@@ -85,24 +87,17 @@ SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
  (SCM_SET_SMOB_FLAGS ((p), \
                       SCM_SMOB_FLAGS (p) & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
-#define SETSRCPROPPOS(p, l, c) (SCM_SET_CELL_WORD(p,1, SRCPROPMAKPOS (l, c)))
+#define SETSRCPROPPOS(p, l, c) (SCM_SET_SMOB_DATA_1 (p, SRCPROPMAKPOS (l, c)))
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
 #define SETSRCPROPCOL(p, c) SETSRCPROPPOS (p, SRCPROPLINE (p), c)
-#define SETSRCPROPCOPY(p, c) (SCM_SET_CELL_WORD(p, 2, c))
-#define SETSRCPROPALIST(p, l) (SCM_SET_CELL_WORD(p, 3, l))
+#define SETSRCPROPCOPY(p, c) (SCM_SET_SMOB_OBJECT_2 (p, c))
+#define SETSRCPROPALIST(p, l) (SCM_SET_SMOB_OBJECT_3 (p, l))
 
 
 static SCM scm_srcprops_to_alist (SCM obj);
 
 
 scm_t_bits scm_tc16_srcprops;
-
-static SCM
-srcprops_mark (SCM obj)
-{
-  scm_gc_mark (SRCPROPCOPY (obj));
-  return SRCPROPALIST (obj);
-}
 
 static int
 srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
@@ -186,10 +181,6 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (SRCPROPSP (p))
     return scm_srcprops_to_alist (p);
@@ -208,74 +199,7 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM handle;
-  long line = 0, col = 0;
-  SCM fname = SCM_UNDEFINED, copy = SCM_UNDEFINED, breakpoint = SCM_BOOL_F;
-  SCM others = SCM_EOL;
-  SCM *others_cdrloc = &others;
-  int need_srcprops = 0;
-  SCM tail, key;
-
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG(1, obj);
-
-  tail = alist;
-  while (!scm_is_null (tail))
-    {
-      key = SCM_CAAR (tail);
-      if (scm_is_eq (key, scm_sym_line))
-	{
-	  line = scm_to_long (SCM_CDAR (tail));
-	  need_srcprops = 1;
-	}
-      else if (scm_is_eq (key, scm_sym_column))
-	{
-	  col = scm_to_long (SCM_CDAR (tail));
-	  need_srcprops = 1;
-	}
-      else if (scm_is_eq (key, scm_sym_filename))
-	{
-	  fname = SCM_CDAR (tail);
-	  need_srcprops = 1;
-	}
-      else if (scm_is_eq (key, scm_sym_copy))
-	{
-	  copy = SCM_CDAR (tail);
-	  need_srcprops = 1;
-	}
-      else if (scm_is_eq (key, scm_sym_breakpoint))
-	{
-	  breakpoint = SCM_CDAR (tail);
-	  need_srcprops = 1;
-	}
-      else
-	{
-	  /* Do we allocate here, or clobber the caller's alist?
-
-	     Source properties aren't supposed to be used for anything
-	     except the special properties above, so the mainline case
-	     is that we never execute this else branch, and hence it
-	     doesn't matter much.
-
-	     We choose allocation here, as that seems safer.
-	  */
-	  *others_cdrloc = scm_cons (scm_cons (key, SCM_CDAR (tail)),
-				     SCM_EOL);
-	  others_cdrloc = SCM_CDRLOC (*others_cdrloc);
-	}
-      tail = SCM_CDR (tail);
-    }
-  if (need_srcprops)
-    {
-      alist = scm_make_srcprops (line, col, fname, copy, others);
-      if (scm_is_true (breakpoint))
-	SETSRCPROPBRK (alist);
-    }
-  else
-    alist = others;
-
   handle = scm_hashq_create_handle_x (scm_source_whash, obj, alist);
   SCM_SETCDR (handle, alist);
   return alist;
@@ -290,10 +214,6 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG (1, obj);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto alist;
@@ -321,10 +241,6 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
   scm_whash_handle h;
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  if (SCM_MEMOIZEDP (obj))
-    obj = SCM_MEMOIZED_EXP (obj);
-  else if (!scm_is_pair (obj))
-    SCM_WRONG_TYPE_ARG (1, obj);
   h = scm_whash_get_handle (scm_source_whash, obj);
   if (SCM_WHASHFOUNDP (h))
     p = SCM_WHASHREF (scm_source_whash, h);
@@ -389,19 +305,35 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0, 
+            (SCM xorig, SCM x, SCM y),
+	    "Create and return a new pair whose car and cdr are @var{x} and @var{y}.\n"
+	    "Any source properties associated with @var{xorig} are also associated\n"
+	    "with the new pair.")
+#define FUNC_NAME s_scm_cons_source
+{
+  SCM p, z;
+  z = scm_cons (x, y);
+  /* Copy source properties possibly associated with xorig. */
+  p = scm_whash_lookup (scm_source_whash, xorig);
+  if (scm_is_true (p))
+    scm_whash_insert (scm_source_whash, z, p);
+  return z;
+}
+#undef FUNC_NAME
+
+
 void
 scm_init_srcprop ()
 {
   scm_tc16_srcprops = scm_make_smob_type ("srcprops", 0);
-  scm_set_smob_mark (scm_tc16_srcprops, srcprops_mark);
   scm_set_smob_print (scm_tc16_srcprops, srcprops_print);
 
   scm_source_whash = scm_make_weak_key_hash_table (scm_from_int (2047));
   scm_c_define ("source-whash", scm_source_whash);
 
-  scm_last_alist_filename
-    = scm_permanent_object (scm_cons (SCM_EOL,
-				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL)));
+  scm_last_alist_filename = scm_cons (SCM_EOL,
+				      scm_acons (SCM_EOL, SCM_EOL, SCM_EOL));
 
 #include "libguile/srcprop.x"
 }

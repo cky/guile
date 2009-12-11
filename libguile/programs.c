@@ -26,8 +26,8 @@
 #include "instructions.h"
 #include "modules.h"
 #include "programs.h"
-#include "procprop.h" // scm_sym_name
-#include "srcprop.h" // scm_sym_filename
+#include "procprop.h" /* scm_sym_name */
+#include "srcprop.h"  /* scm_sym_filename */
 #include "vm.h"
 
 
@@ -58,12 +58,12 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
 {
   static int print_error = 0;
 
-  if (SCM_FALSEP (write_program) && scm_module_system_booted_p)
+  if (scm_is_false (write_program) && scm_module_system_booted_p)
     write_program = scm_module_local_variable
       (scm_c_resolve_module ("system vm program"),
        scm_from_locale_symbol ("write-program"));
   
-  if (SCM_FALSEP (write_program) || print_error)
+  if (scm_is_false (write_program) || print_error)
     {
       scm_puts ("#<program ", port);
       scm_uintprint (SCM_CELL_WORD_1 (program), 16, port);
@@ -87,7 +87,7 @@ SCM_DEFINE (scm_program_p, "program?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_p
 {
-  return SCM_BOOL (SCM_PROGRAM_P (obj));
+  return scm_from_bool (SCM_PROGRAM_P (obj));
 }
 #undef FUNC_NAME
 
@@ -99,22 +99,6 @@ SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
   SCM_VALIDATE_PROGRAM (1, program);
 
   return scm_from_ulong ((unsigned long) SCM_PROGRAM_DATA (program)->base);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_program_arity, "program-arity", 1, 0, 0,
-	    (SCM program),
-	    "")
-#define FUNC_NAME s_scm_program_arity
-{
-  struct scm_objcode *p;
-
-  SCM_VALIDATE_PROGRAM (1, program);
-
-  p = SCM_PROGRAM_DATA (program);
-  return scm_list_3 (SCM_I_MAKINUM (p->nargs),
-		     SCM_I_MAKINUM (p->nrest),
-		     SCM_I_MAKINUM (p->nlocs));
 }
 #undef FUNC_NAME
 
@@ -209,6 +193,23 @@ SCM_DEFINE (scm_program_sources, "program-sources", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_program_arities, "program-arities", 1, 0, 0,
+	    (SCM program),
+	    "")
+#define FUNC_NAME s_scm_program_arities
+{
+  SCM meta;
+  
+  SCM_VALIDATE_PROGRAM (1, program);
+
+  meta = scm_program_meta (program);
+  if (scm_is_false (meta))
+    return SCM_BOOL_F;
+
+  return scm_caddr (scm_call_0 (meta));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_program_properties, "program-properties", 1, 0, 0,
 	    (SCM program),
 	    "")
@@ -222,7 +223,7 @@ SCM_DEFINE (scm_program_properties, "program-properties", 1, 0, 0,
   if (scm_is_false (meta))
     return SCM_EOL;
   
-  return scm_cddr (scm_call_0 (meta));
+  return scm_cdddr (scm_call_0 (meta));
 }
 #undef FUNC_NAME
 
@@ -281,11 +282,51 @@ SCM_DEFINE (scm_program_objcode, "program-objcode", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* This one is a shim to pre-case-lambda internal interfaces. Avoid it if you
+   can -- use program-arguments or the like. */
+static SCM sym_arglist;
+int
+scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
+{
+  SCM arities, x;
+  
+  arities = scm_program_arities (program);
+  if (!scm_is_pair (arities))
+    return 0;
+  /* take the last arglist, it will be least specific */
+  while (scm_is_pair (scm_cdr (arities)))
+    arities = scm_cdr (arities);
+  x = scm_cddar (arities);
+  if (scm_is_pair (x))
+    {
+      *req = scm_to_int (scm_car (x));
+      x = scm_cdr (x);
+      if (scm_is_pair (x))
+        {
+          *opt = scm_to_int (scm_car (x));
+          x = scm_cdr (x);
+          if (scm_is_pair (x))
+            *rest = scm_is_true (scm_car (x));
+          else
+            *rest = 0;
+        }
+      else
+        *opt = *rest = 0;
+    }
+  else
+    *req = *opt = *rest = 0;
+          
+  return 1;
+}
 
 
+
 void
 scm_bootstrap_programs (void)
 {
+  /* arglist can't be snarfed, because snarfage is only loaded when (system vm
+     program) is loaded. perhaps static-alloc will fix this. */
+  sym_arglist = scm_from_locale_symbol ("arglist");
   scm_c_register_extension ("libguile", "scm_init_programs",
                             (scm_t_extension_init_func)scm_init_programs, NULL);
 }

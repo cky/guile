@@ -47,16 +47,12 @@ SCM_API SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
 SCM_INTERNAL SCM scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, 
 				  long modes, const char *caller);
 SCM_API SCM scm_strport_to_string (SCM port);
-SCM_API SCM scm_strport_to_locale_u8vector (SCM port);
 SCM_API SCM scm_object_to_string (SCM obj, SCM printer);
 SCM_API SCM scm_call_with_output_string (SCM proc);
-SCM_API SCM scm_call_with_output_locale_u8vector (SCM proc);
 SCM_API SCM scm_call_with_input_string (SCM str, SCM proc);
 SCM_API SCM scm_open_input_string (SCM str);
-SCM_API SCM scm_open_input_locale_u8vector (SCM str);
 SCM_API SCM scm_open_output_string (void);
 SCM_API SCM scm_get_output_string (SCM port);
-SCM_API SCM scm_get_output_locale_u8vector (SCM port);
 SCM_API SCM scm_c_read_string (const char *expr);
 SCM_API SCM scm_c_eval_string (const char *expr);
 SCM_API SCM scm_c_eval_string_in_module (const char *expr, SCM module);

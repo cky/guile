@@ -37,7 +37,6 @@
 #include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
-#include "libguile/dynwind.h"
 
 
 
@@ -62,54 +61,42 @@
  * cow-strings, but it failed randomly with more than 10 threads, say.
  * I couldn't figure out what went wrong, so I used the conservative
  * approach implemented below.
- * 
- * A stringbuf needs to know its length, but only so that it can be
- * reported when the stringbuf is freed.
  *
- * There are 3 storage strategies for stringbufs: inline, outline, and
- * wide.
- *
- * Inline strings are small 8-bit strings stored within the double
- * cell itself.  Outline strings are larger 8-bit strings with GC
- * allocated storage.  Wide strings are 32-bit strings with allocated
- * storage.
- *
- * There was little value in making wide string inlineable, since
- * there is only room for three inlined 32-bit characters.  Thus wide
- * stringbufs are never inlined.
+ * There are 2 storage strategies for stringbufs: 8-bit and wide.  8-bit
+ * strings are ISO-8859-1-encoded strings; wide strings are 32-bit (UCS-4)
+ * strings.
  */
 
-#define STRINGBUF_F_SHARED      0x100
-#define STRINGBUF_F_INLINE      0x200
-#define STRINGBUF_F_WIDE        0x400 /* If true, strings have UCS-4
-                                         encoding.  Otherwise, strings
-                                         are Latin-1.  */
+/* The size in words of the stringbuf header (type tag + size).  */
+#define STRINGBUF_HEADER_SIZE   2U
+
+#define STRINGBUF_HEADER_BYTES  (STRINGBUF_HEADER_SIZE * sizeof (SCM))
+
+#define STRINGBUF_F_SHARED      SCM_I_STRINGBUF_F_SHARED
+#define STRINGBUF_F_WIDE        SCM_I_STRINGBUF_F_WIDE
 
 #define STRINGBUF_TAG           scm_tc7_stringbuf
 #define STRINGBUF_SHARED(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_SHARED)
-#define STRINGBUF_INLINE(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_INLINE)
 #define STRINGBUF_WIDE(buf)     (SCM_CELL_WORD_0(buf) & STRINGBUF_F_WIDE)
 
-#define STRINGBUF_OUTLINE_CHARS(buf)   ((unsigned char *) SCM_CELL_WORD_1(buf))
-#define STRINGBUF_OUTLINE_LENGTH(buf)  (SCM_CELL_WORD_2(buf))
-#define STRINGBUF_INLINE_CHARS(buf)    ((unsigned char *) SCM_CELL_OBJECT_LOC(buf,1))
-#define STRINGBUF_INLINE_LENGTH(buf)   (((size_t)SCM_CELL_WORD_0(buf))>>16)
+#define STRINGBUF_CHARS(buf)    ((unsigned char *)			\
+                                 SCM_CELL_OBJECT_LOC (buf,		\
+						      STRINGBUF_HEADER_SIZE))
+#define STRINGBUF_LENGTH(buf)   (SCM_CELL_WORD_1 (buf))
 
-#define STRINGBUF_CHARS(buf)  (STRINGBUF_INLINE (buf) \
-                               ? STRINGBUF_INLINE_CHARS (buf) \
-                               : STRINGBUF_OUTLINE_CHARS (buf))
+#define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *) STRINGBUF_CHARS (buf))
 
-#define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *) SCM_CELL_WORD_1(buf))
-#define STRINGBUF_LENGTH(buf) (STRINGBUF_INLINE (buf) \
-                               ? STRINGBUF_INLINE_LENGTH (buf) \
-                               : STRINGBUF_OUTLINE_LENGTH (buf))
+#define SET_STRINGBUF_SHARED(buf)					\
+  do									\
+    {									\
+      /* Don't modify BUF if it's already marked as shared since it might be \
+	 a read-only, statically allocated stringbuf.  */		\
+      if (SCM_LIKELY (!STRINGBUF_SHARED (buf)))				\
+	SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED); \
+    }									\
+  while (0)
 
-#define STRINGBUF_MAX_INLINE_LEN (3*sizeof(scm_t_bits))
-
-#define SET_STRINGBUF_SHARED(buf) \
-  (SCM_SET_CELL_WORD_0 ((buf), SCM_CELL_WORD_0 (buf) | STRINGBUF_F_SHARED))
-
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
 static size_t lenhist[1001];
 #endif
 
@@ -125,25 +112,24 @@ make_stringbuf (size_t len)
      can be dropped.
   */
 
-#if SCM_STRING_LENGTH_HISTOGRAM
+  SCM buf;
+
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
   if (len < 1000)
     lenhist[len]++;
   else
     lenhist[1000]++;
 #endif
 
-  if (len <= STRINGBUF_MAX_INLINE_LEN-1)
-    {
-      return scm_double_cell (STRINGBUF_TAG | STRINGBUF_F_INLINE | (len << 16),
-			      0, 0, 0);
-    }
-  else
-    {
-      char *mem = scm_gc_malloc (len+1, "string");
-      mem[len] = '\0';
-      return scm_double_cell (STRINGBUF_TAG, (scm_t_bits) mem,
-			      (scm_t_bits) len, (scm_t_bits) 0);
-    }
+  buf = PTR2SCM (scm_gc_malloc_pointerless (STRINGBUF_HEADER_BYTES + len + 1,
+					    "string"));
+
+  SCM_SET_CELL_TYPE (buf, STRINGBUF_TAG);
+  SCM_SET_CELL_WORD_1 (buf, (scm_t_bits) len);
+
+  STRINGBUF_CHARS (buf)[len] = 0;
+
+  return buf;
 }
 
 /* Make a stringbuf with space for LEN 32-bit UCS-4-encoded
@@ -151,129 +137,92 @@ make_stringbuf (size_t len)
 static SCM
 make_wide_stringbuf (size_t len)
 {
-  scm_t_wchar *mem;
-#if SCM_STRING_LENGTH_HISTOGRAM
+  SCM buf;
+  size_t raw_len;
+
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
   if (len < 1000)
     lenhist[len]++;
   else
     lenhist[1000]++;
 #endif
 
-  mem = scm_gc_malloc (sizeof (scm_t_wchar) * (len + 1), "string");
-  mem[len] = 0;
-  return scm_double_cell (STRINGBUF_TAG | STRINGBUF_F_WIDE, (scm_t_bits) mem,
-                          (scm_t_bits) len, (scm_t_bits) 0);
+  raw_len = (len + 1) * sizeof (scm_t_wchar);
+  buf = PTR2SCM (scm_gc_malloc_pointerless (STRINGBUF_HEADER_BYTES + raw_len,
+					    "string"));
+
+  SCM_SET_CELL_TYPE (buf, STRINGBUF_TAG | STRINGBUF_F_WIDE);
+  SCM_SET_CELL_WORD_1 (buf, (scm_t_bits) len);
+
+  STRINGBUF_WIDE_CHARS (buf)[len] = 0;
+
+  return buf;
 }
 
-/* Return a new stringbuf whose underlying storage consists of the LEN+1
-   octets pointed to by STR (the last octet is zero).  */
-SCM
-scm_i_take_stringbufn (char *str, size_t len)
+/* Return a UCS-4-encoded stringbuf containing the (possibly Latin-1-encoded)
+   characters from BUF.  */
+static SCM
+wide_stringbuf (SCM buf)
 {
-  scm_gc_register_collectable_memory (str, len + 1, "stringbuf");
-
-  return scm_double_cell (STRINGBUF_TAG, (scm_t_bits) str,
-			  (scm_t_bits) len, (scm_t_bits) 0);
-}
-
-SCM
-scm_i_stringbuf_mark (SCM buf)
-{
-  return SCM_BOOL_F;
-}
-
-void
-scm_i_stringbuf_free (SCM buf)
-{
-  if (!STRINGBUF_INLINE (buf))
-    {
-      if (!STRINGBUF_WIDE (buf))
-        scm_gc_free (STRINGBUF_OUTLINE_CHARS (buf),
-                     STRINGBUF_OUTLINE_LENGTH (buf) + 1, "string");
-      else
-        scm_gc_free (STRINGBUF_OUTLINE_CHARS (buf),
-                     sizeof (scm_t_wchar) * (STRINGBUF_OUTLINE_LENGTH (buf) 
-                                             + 1), "string");
-    }
-
-}
-
-/* Convert a stringbuf containing 8-bit Latin-1-encoded characters to
-   one containing 32-bit UCS-4-encoded characters.  */
-static void
-widen_stringbuf (SCM buf)
-{
-  size_t i, len;
-  scm_t_wchar *mem;
+  SCM new_buf;
 
   if (STRINGBUF_WIDE (buf))
-    return;
-
-  if (STRINGBUF_INLINE (buf))
-    {
-      len = STRINGBUF_INLINE_LENGTH (buf);
-
-      mem = scm_gc_malloc (sizeof (scm_t_wchar) * (len + 1), "string");
-      for (i = 0; i < len; i++)
-        mem[i] =
-          (scm_t_wchar) STRINGBUF_INLINE_CHARS (buf)[i];
-      mem[len] = 0;
-
-      SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) ^ STRINGBUF_F_INLINE);
-      SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) | STRINGBUF_F_WIDE);
-      SCM_SET_CELL_WORD_1 (buf, mem);
-      SCM_SET_CELL_WORD_2 (buf, len);
-    }
+    new_buf = buf;
   else
     {
-      len = STRINGBUF_OUTLINE_LENGTH (buf);
+      size_t i, len;
+      scm_t_wchar *mem;
 
-      mem = scm_gc_malloc (sizeof (scm_t_wchar) * (len + 1), "string");
+      len = STRINGBUF_LENGTH (buf);
+
+      new_buf = make_wide_stringbuf (len);
+
+      mem = STRINGBUF_WIDE_CHARS (new_buf);
       for (i = 0; i < len; i++)
-        mem[i] =
-          (scm_t_wchar) STRINGBUF_OUTLINE_CHARS (buf)[i];
+	mem[i] = (scm_t_wchar) STRINGBUF_CHARS (buf)[i];
       mem[len] = 0;
-
-      scm_gc_free (STRINGBUF_OUTLINE_CHARS (buf), len + 1, "string");
-
-      SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) | STRINGBUF_F_WIDE);
-      SCM_SET_CELL_WORD_1 (buf, mem);
-      SCM_SET_CELL_WORD_2 (buf, len);
     }
+
+  return new_buf;
 }
 
-/* Convert a stringbuf of 32-bit UCS-4-encoded characters to one
-   containing 8-bit Latin-1-encoded characters, if possible.  */
-static void
+/* Return a Latin-1-encoded stringbuf containing the (possibly UCS-4-encoded)
+   characters from BUF, if possible.  */
+static SCM
 narrow_stringbuf (SCM buf)
 {
-  size_t i, len;
-  scm_t_wchar *wmem;
-  char *mem;
+  SCM new_buf;
 
   if (!STRINGBUF_WIDE (buf))
-    return;
+    new_buf = buf;
+  else
+    {
+      size_t i, len;
+      scm_t_wchar *wmem;
+      unsigned char *mem;
 
-  len = STRINGBUF_OUTLINE_LENGTH (buf);
-  i = 0;
-  wmem = STRINGBUF_WIDE_CHARS (buf);
-  while (i < len)
-    if (wmem[i++] > 0xFF)
-      return;
+      len = STRINGBUF_LENGTH (buf);
+      wmem = STRINGBUF_WIDE_CHARS (buf);
 
-  mem = scm_gc_malloc (sizeof (char) * (len + 1), "string");
-  for (i = 0; i < len; i++)
-    mem[i] = (unsigned char) wmem[i];
+      for (i = 0; i < len; i++)
+	if (wmem[i] > 0xFF)
+	  /* BUF cannot be narrowed.  */
+	  return buf;
 
-  scm_gc_free (wmem, sizeof (scm_t_wchar) * (len + 1), "string");
+      new_buf = make_stringbuf (len);
 
-  SCM_SET_CELL_WORD_0 (buf, SCM_CELL_WORD_0 (buf) ^ STRINGBUF_F_WIDE);
-  SCM_SET_CELL_WORD_1 (buf, mem);
-  SCM_SET_CELL_WORD_2 (buf, len);
+      mem = STRINGBUF_CHARS (new_buf);
+      for (i = 0; i < len; i++)
+	mem[i] = (unsigned char) wmem[i];
+      mem[len] = 0;
+    }
+
+  return new_buf;
 }
 
 scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
+
 /* Copy-on-write strings.
  */
 
@@ -291,7 +240,7 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 /* Read-only strings.
  */
 
-#define RO_STRING_TAG         (scm_tc7_string + 0x200)
+#define RO_STRING_TAG         scm_tc7_ro_string
 #define IS_RO_STRING(str)     (SCM_CELL_TYPE(str)==RO_STRING_TAG)
 
 /* Mutation-sharing substrings
@@ -303,6 +252,8 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 /* START and LENGTH as for STRINGs. */
 
 #define IS_SH_STRING(str)   (SCM_CELL_TYPE(str)==SH_STRING_TAG)
+
+SCM scm_nullstr;
 
 /* Create a scheme string with space for LEN 8-bit Latin-1-encoded
    characters.  CHARSP, if not NULL, will be set to location of the
@@ -458,20 +409,7 @@ scm_c_substring_shared (SCM str, size_t start, size_t end)
   return scm_i_substring_shared (str, start, end);
 }
 
-SCM
-scm_i_string_mark (SCM str)
-{
-  if (IS_SH_STRING (str))
-    return SH_STRING_STRING (str);
-  else
-    return STRING_STRINGBUF (str);
-}
-
-void
-scm_i_string_free (SCM str)
-{
-}
-
+
 /* Internal accessors
  */
 
@@ -499,7 +437,7 @@ scm_i_is_narrow_string (SCM str)
 int
 scm_i_try_narrow_string (SCM str)
 {
-  narrow_stringbuf (STRING_STRINGBUF (str));
+  SET_STRING_STRINGBUF (str, narrow_stringbuf (STRING_STRINGBUF (str)));
 
   return scm_i_is_narrow_string (str);
 }
@@ -573,11 +511,18 @@ scm_i_string_start_writing (SCM orig_str)
                    (scm_t_uint32 *) (STRINGBUF_WIDE_CHARS (buf) 
                                      + STRING_START (str)), len);
         }
-      scm_i_thread_put_to_sleep ();
+
       SET_STRING_STRINGBUF (str, new_buf);
       start -= STRING_START (str);
+
+      /* FIXME: The following operations are not atomic, so other threads
+	 looking at STR may see an inconsistent state.  Nevertheless it can't
+	 hurt much since (i) accessing STR while it is being mutated can't
+	 yield a crash, and (ii) concurrent accesses to STR should be
+	 protected by a mutex at the application level.  The latter may not
+	 apply when STR != ORIG_STR, though.  */
       SET_STRING_START (str, 0);
-      scm_i_thread_wake_up ();
+      SET_STRING_STRINGBUF (str, new_buf);
 
       buf = new_buf;
 
@@ -694,7 +639,7 @@ void
 scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)
 {
   if (chr > 0xFF && scm_i_is_narrow_string (str))
-    widen_stringbuf (STRING_STRINGBUF (str));
+    SET_STRING_STRINGBUF (str, wide_stringbuf (STRING_STRINGBUF (str)));
 
   if (scm_i_is_narrow_string (str))
     {
@@ -708,6 +653,7 @@ scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)
     }
 }
 
+
 /* Symbols.
 
    Basic symbol creation and accessing is done here, the rest is in
@@ -769,20 +715,8 @@ scm_i_c_make_symbol (const char *name, size_t len,
   SCM buf = make_stringbuf (len);
   memcpy (STRINGBUF_CHARS (buf), name, len);
 
-  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
-			  (scm_t_bits) hash, SCM_UNPACK (props));
-}
-
-/* Return a new symbol that uses the LEN bytes pointed to by NAME as its
-   underlying storage.  */
-SCM
-scm_i_c_take_symbol (char *name, size_t len,
-		     scm_t_bits flags, unsigned long hash, SCM props)
-{
-  SCM buf = scm_i_take_stringbufn (name, len);
-
-  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
-			  (scm_t_bits) hash, SCM_UNPACK (props));
+  return scm_immutable_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
+				    (scm_t_bits) hash, SCM_UNPACK (props));
 }
 
 /* Returns the number of characters in SYM.  This may be different
@@ -845,18 +779,6 @@ scm_i_symbol_wide_chars (SCM sym)
 }
 
 SCM
-scm_i_symbol_mark (SCM sym)
-{
-  scm_gc_mark (SYMBOL_STRINGBUF (sym));
-  return SCM_CELL_OBJECT_3 (sym);
-}
-
-void
-scm_i_symbol_free (SCM sym)
-{
-}
-
-SCM
 scm_i_symbol_substring (SCM sym, size_t start, size_t end)
 {
   SCM buf = SYMBOL_STRINGBUF (sym);
@@ -901,9 +823,6 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
             "The number of characters in this stringbuf\n"
             "@item stringbuf-shared\n"
             "@code{#t} if this stringbuf is shared\n"
-            "@item stringbuf-inline\n"
-            "@code{#t} if this stringbuf's characters are stored in the\n"
-            "cell itself, or @code{#f} if they were allocated in memory\n"
             "@item stringbuf-wide\n"
             "@code{#t} if this stringbuf's characters are stored in a\n"
             "32-bit buffer, or @code{#f} if they are stored in an 8-bit\n"
@@ -911,7 +830,7 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
             "@end table")
 #define FUNC_NAME s_scm_sys_string_dump
 {
-  SCM e1, e2, e3, e4, e5, e6, e7, e8, e9, e10;
+  SCM e1, e2, e3, e4, e5, e6, e7, e8, e9;
   SCM buf;
   SCM_VALIDATE_STRING (1, str);
 
@@ -971,20 +890,14 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
   else
     e8 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
                    SCM_BOOL_F);
-  if (STRINGBUF_INLINE (buf))
-    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
-                   SCM_BOOL_T);
-  else
-    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
-                   SCM_BOOL_F);
   if (STRINGBUF_WIDE (buf))
-    e10 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
-                    SCM_BOOL_T);
+    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+		   SCM_BOOL_T);
   else
-    e10 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
-                    SCM_BOOL_F);
+    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+		   SCM_BOOL_F);
 
-  return scm_list_n (e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, SCM_UNDEFINED);
+  return scm_list_n (e1, e2, e3, e4, e5, e6, e7, e8, e9, SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -1004,9 +917,6 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
             "The number of characters in this stringbuf\n"
             "@item stringbuf-shared\n"
             "@code{#t} if this stringbuf is shared\n"
-            "@item stringbuf-inline\n"
-            "@code{#t} if this stringbuf's characters are stored in the\n"
-            "cell itself, or @code{#f} if they were allocated in memory\n"
             "@item stringbuf-wide\n"
             "@code{#t} if this stringbuf's characters are stored in a\n"
             "32-bit buffer, or @code{#f} if they are stored in an 8-bit\n"
@@ -1014,7 +924,7 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
             "@end table")
 #define FUNC_NAME s_scm_sys_symbol_dump
 {
-  SCM e1, e2, e3, e4, e5, e6, e7, e8;
+  SCM e1, e2, e3, e4, e5, e6, e7;
   SCM buf;
   SCM_VALIDATE_SYMBOL (1, sym);
   e1 = scm_cons (scm_from_locale_symbol ("symbol"),
@@ -1053,24 +963,18 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
   else
     e6 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
                    SCM_BOOL_F);
-  if (STRINGBUF_INLINE (buf))
-    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
-                   SCM_BOOL_T);
-  else
-    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-inline"), 
-                   SCM_BOOL_F);
   if (STRINGBUF_WIDE (buf))
-    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
                     SCM_BOOL_T);
   else
-    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
                     SCM_BOOL_F);
-  return scm_list_n (e1, e2, e3, e4, e5, e6, e7, e8, SCM_UNDEFINED);
+  return scm_list_n (e1, e2, e3, e4, e5, e6, e7, SCM_UNDEFINED);
 
 }
 #undef FUNC_NAME
 
-#if SCM_STRING_LENGTH_HISTOGRAM
+#ifdef SCM_STRING_LENGTH_HISTOGRAM
 
 SCM_DEFINE (scm_sys_stringbuf_hist, "%stringbuf-hist", 0, 0, 0, (void), "")
 #define FUNC_NAME s_scm_sys_stringbuf_hist
@@ -1138,9 +1042,11 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
 
   if (wide == 0)
     {
+      char *buf;
+
       result = scm_i_make_string (len, NULL);
       result = scm_i_string_start_writing (result);
-      char *buf = scm_i_string_writable_chars (result);
+      buf = scm_i_string_writable_chars (result);
       while (len > 0 && scm_is_pair (rest))
         {
           SCM elt = SCM_CAR (rest);
@@ -1153,9 +1059,11 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     }
   else
     {
+      scm_t_wchar *buf;
+
       result = scm_i_make_wide_string (len, NULL);
       result = scm_i_string_start_writing (result);
-      scm_t_wchar *buf = scm_i_string_writable_wide_chars (result);
+      buf = scm_i_string_writable_wide_chars (result);
       while (len > 0 && scm_is_pair (rest))
         {
           SCM elt = SCM_CAR (rest);
@@ -1477,7 +1385,7 @@ scm_is_string (SCM obj)
   return IS_STRING (obj);
 }
 
-static SCM
+SCM
 scm_from_stringn (const char *str, size_t len, const char *encoding,
                   scm_t_string_failed_conversion_handler handler)
 {
@@ -1485,6 +1393,9 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   scm_t_wchar *u32;
   int wide = 0;
   SCM res;
+
+  if (len == 0)
+    return scm_nullstr;
 
   if (encoding == NULL)
     {
@@ -1597,25 +1508,17 @@ scm_i_from_utf8_string (const scm_t_uint8 *str)
 
 /* Create a new scheme string from the C string STR.  The memory of
    STR may be used directly as storage for the new string.  */
+/* FIXME: GC-wise, the only way to use the memory area pointed to by STR
+   would be to register a finalizer to eventually free(3) STR, which isn't
+   worth it.  Should we just deprecate the `scm_take_' functions?  */
 SCM
 scm_take_locale_stringn (char *str, size_t len)
 {
-  SCM buf, res;
+  SCM res;
 
-  if (len == (size_t) -1)
-    len = strlen (str);
-  else
-    {
-      /* Ensure STR is null terminated.  A realloc for 1 extra byte should
-         often be satisfied from the alignment padding after the block, with
-         no actual data movement.  */
-      str = scm_realloc (str, len + 1);
-      str[len] = '\0';
-    }
+  res = scm_from_locale_stringn (str, len);
+  free (str);
 
-  buf = scm_i_take_stringbufn (str, len);
-  res = scm_double_cell (STRING_TAG,
-                         SCM_UNPACK (buf), (scm_t_bits) 0, (scm_t_bits) len);
   return res;
 }
 
@@ -1681,7 +1584,7 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
 }
 
 char *
-scm_to_locale_stringn (SCM str, size_t * lenp)
+scm_to_locale_stringn (SCM str, size_t *lenp)
 {
   SCM outport;
   scm_t_port *pt;
@@ -1788,6 +1691,8 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                           scm_list_2 (scm_from_locale_string (enc),
                                       str));
         }
+      if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+        unistring_escapes_to_guile_escapes (&buf, &len);
     }
   if (lenp)
     *lenp = len;
@@ -1850,6 +1755,7 @@ scm_makfromstrs (int argc, char **argv)
 
 char **
 scm_i_allocate_string_pointers (SCM list)
+#define FUNC_NAME "scm_i_allocate_string_pointers"
 {
   char **result;
   int len = scm_ilength (list);
@@ -1858,34 +1764,31 @@ scm_i_allocate_string_pointers (SCM list)
   if (len < 0)
     scm_wrong_type_arg_msg (NULL, 0, list, "proper list");
 
-  scm_dynwind_begin (0);
-
-  result = (char **) scm_malloc ((len + 1) * sizeof (char *));
+  result = scm_gc_malloc ((len + 1) * sizeof (char *),
+			  "string pointers");
   result[len] = NULL;
-  scm_dynwind_unwind_handler (free, result, 0);
 
   /* The list might be have been modified in another thread, so
      we check LIST before each access.
    */
   for (i = 0; i < len && scm_is_pair (list); i++)
     {
-      result[i] = scm_to_locale_string (SCM_CAR (list));
+      SCM str;
+      size_t len;
+
+      str = SCM_CAR (list);
+      len = scm_c_string_length (str);
+
+      result[i] = scm_gc_malloc_pointerless (len + 1, "string pointers");
+      memcpy (result[i], scm_i_string_chars (str), len);
+      result[i][len] = '\0';
+
       list = SCM_CDR (list);
     }
 
-  scm_dynwind_end ();
   return result;
 }
-
-void
-scm_i_free_string_pointers (char **pointers)
-{
-  int i;
-  
-  for (i = 0; pointers[i]; i++)
-    free (pointers[i]);
-  free (pointers);
-}
+#undef FUNC_NAME
 
 void
 scm_i_get_substring_spec (size_t len,
@@ -1932,8 +1835,8 @@ scm_i_deprecated_string_chars (SCM str)
      null-terminated.
   */
   if (IS_SH_STRING (str))
-    scm_misc_error (NULL, 
-		    "SCM_STRING_CHARS does not work with shared substrings.",
+    scm_misc_error (NULL,
+		    "SCM_STRING_CHARS does not work with shared substrings",
 		    SCM_EOL);
 
   /* We explicitly test for read-only strings to produce a better
@@ -1941,10 +1844,10 @@ scm_i_deprecated_string_chars (SCM str)
   */
 
   if (IS_RO_STRING (str))
-    scm_misc_error (NULL, 
-		    "SCM_STRING_CHARS does not work with read-only strings.",
+    scm_misc_error (NULL,
+		    "SCM_STRING_CHARS does not work with read-only strings",
 		    SCM_EOL);
-    
+
   /* The following is still wrong, of course...
    */
   str = scm_i_string_start_writing (str);

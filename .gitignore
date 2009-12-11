@@ -72,6 +72,8 @@ gdb-pre-inst-guile
 cscope.out
 cscope.files
 *.log
+gds-test.debug
+gds-test.transcript
 INSTALL
 *.aux
 *.cp
@@ -106,8 +108,14 @@ INSTALL
 /lib/time.h
 /lib/unistd.h
 /lib/unistr/.dirstamp
+/lib/arpa/inet.h
+/lib/stdio.h
+/lib/sys/stat.h
 /GPATH
 /GRTAGS
 /GSYMS
 /GTAGS
 /meta/guile-tools
+/meta/guile-config
+/lib/locale.h
+/module/ice-9/eval.go.stamp

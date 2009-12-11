@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,49 +28,114 @@
 
 
 
-/* Number of words with negative index */
-#define scm_struct_n_extra_words 4
-#define scm_struct_entity_n_extra_words 6
+/* The relationship between a struct and its vtable is a bit complicated,
+   because we want structs to be used as GOOPS' native representation -- which
+   in turn means we need support for changing the "class" (vtable) of an
+   "instance" (struct). This necessitates some indirection and trickery.
 
-/* These are how the initial words of a vtable are allocated. */
-#define scm_struct_i_setter	-6 /* Setter */
-#define scm_struct_i_procedure	-5 /* Optional procedure slot */
-#define scm_struct_i_free	-4 /* Destructor */
-#define scm_struct_i_ptr	-3 /* Start of block (see alloc_struct) */
-#define scm_struct_i_n_words	-2 /* How many words allocated to this struct? */
-#define scm_struct_i_size	-1 /* Instance size */
-#define scm_struct_i_flags	-1 /* Upper 12 bits used as flags */
+   I would like to write this all up here, but for now:
 
-/* These indices must correspond to required_vtable_fields in
-   struct.c. */
-#define scm_vtable_index_layout  0 /* A symbol describing the physical arrangement of this type. */
-#define scm_vtable_index_vtable  1 /* A pointer to the handle for this vtable. */
-#define scm_vtable_index_printer 2 /* A printer for this struct type. */
-#define scm_vtable_offset_user   3 /* Where do user fields start? */
+     http://wingolog.org/archives/2009/11/09/class-redefinition-in-guile
+ */
 
-typedef void (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
+/* All vtables have the following fields. */
+#define SCM_VTABLE_BASE_LAYOUT                                          \
+  "pr" /* layout */                                                     \
+  "uh" /* flags */                                                      \
+  "sr" /* self */                                                       \
+  "uh" /* finalizer */                                                  \
+  "pw" /* printer */                                                    \
+  "ph" /* name (hidden from make-struct for back-compat reasons) */     \
+  "uh" /* reserved */                                                   \
+  "uh" /* reserved */
 
-#define SCM_STRUCTF_MASK   (0xFFF << 20)
-#define SCM_STRUCTF_ENTITY (1L << 30) /* Indicates presence of proc slots */
-#define SCM_STRUCTF_LIGHT  (1L << 31) /* Light representation
-					 (no hidden words) */
+#define scm_vtable_index_layout            0 /* A symbol describing the physical arrangement of this type. */
+#define scm_vtable_index_flags	           1 /* Class flags */
+#define scm_vtable_index_self	           2 /* A pointer to the vtable itself */
+#define scm_vtable_index_instance_finalize 3 /* Finalizer for instances of this struct type. */
+#define scm_vtable_index_instance_printer  4 /* A printer for this struct type. */
+#define scm_vtable_index_name              5 /* Name of this vtable. */
+#define scm_vtable_index_reserved_6        6
+#define scm_vtable_index_reserved_7        7
+#define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
+
+/* All applicable structs have the following fields. */
+#define SCM_APPLICABLE_BASE_LAYOUT              \
+  "pw" /* procedure */
+#define SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT  \
+  "pw" /* procedure */                          \
+  "pw" /* setter */
+#define scm_applicable_struct_index_procedure 0 /* The procedure of an applicable
+                                                   struct. Only valid if the
+                                                   struct's vtable has the
+                                                   applicable flag set. */
+#define scm_applicable_struct_index_setter    1 /* The setter of an applicable
+                                                   struct. Only valid if the
+                                                   struct's vtable has the
+                                                   setter flag set. */
+
+#define SCM_VTABLE_FLAG_VTABLE (1L << 0) /* instances of this vtable are themselves vtables? */
+#define SCM_VTABLE_FLAG_APPLICABLE_VTABLE (1L << 1) /* instances of this vtable are applicable vtables? */
+#define SCM_VTABLE_FLAG_APPLICABLE (1L << 2) /* instances of this vtable are applicable? */
+#define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 3) /* instances of this vtable are applicable-with-setter vtables? */
+#define SCM_VTABLE_FLAG_SETTER (1L << 4) /* instances of this vtable are applicable-with-setters? */
+#define SCM_VTABLE_FLAG_RESERVED_0 (1L << 5)
+#define SCM_VTABLE_FLAG_RESERVED_1 (1L << 6)
+#define SCM_VTABLE_FLAG_SMOB_0 (1L << 7)
+#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 8)
+#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 9)
+#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 10)
+#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 11)
+#define SCM_VTABLE_FLAG_GOOPS_4 (1L << 12)
+#define SCM_VTABLE_FLAG_GOOPS_5 (1L << 13)
+#define SCM_VTABLE_FLAG_GOOPS_6 (1L << 14)
+#define SCM_VTABLE_FLAG_GOOPS_7 (1L << 15)
+#define SCM_VTABLE_USER_FLAG_SHIFT 16
+
+typedef void (*scm_t_struct_finalize) (SCM obj);
 
 #define SCM_STRUCTP(X)  		(!SCM_IMP(X) && (SCM_TYP3(X) == scm_tc3_struct))
-#define SCM_STRUCT_DATA(X) 		((scm_t_bits *) SCM_CELL_WORD_1 (X))
-#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_t_bits *) (SCM_CELL_WORD_0 (X) - scm_tc3_struct))
+#define SCM_STRUCT_SLOTS(X) 		((SCM*)SCM_CELL_WORD_1 ((X)))
+#define SCM_STRUCT_SLOT_REF(X,I) 	(SCM_STRUCT_SLOTS (X)[(I)])
+#define SCM_STRUCT_SLOT_SET(X,I,V) 	SCM_STRUCT_SLOTS (X)[(I)]=(V)
+#define SCM_STRUCT_DATA(X) 		((scm_t_bits*)SCM_CELL_WORD_1 (X))
+#define SCM_STRUCT_DATA_REF(X,I) 	(SCM_STRUCT_DATA (X)[(I)])
+#define SCM_STRUCT_DATA_SET(X,I,V) 	SCM_STRUCT_DATA (X)[(I)]=(V)
 
-#define SCM_STRUCT_LAYOUT(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout]))
-#define SCM_SET_STRUCT_LAYOUT(X, v)     (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_layout] = SCM_UNPACK (v))
+/* The SCM_VTABLE_* macros assume that you're passing them a struct which is a
+   valid vtable. */
+#define SCM_VTABLE_LAYOUT(X)            (SCM_STRUCT_SLOT_REF ((X), scm_vtable_index_layout))
+#define SCM_SET_VTABLE_LAYOUT(X,L)      (SCM_STRUCT_SLOT_SET ((X), scm_vtable_index_layout, L))
+#define SCM_VTABLE_FLAGS(X)             (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags))
+#define SCM_SET_VTABLE_FLAGS(X,F)       (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags) |= (F))
+#define SCM_CLEAR_VTABLE_FLAGS(X,F)     (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags) &= (~(F)))
+#define SCM_VTABLE_FLAG_IS_SET(X,F)     (SCM_STRUCT_DATA_REF (X, scm_vtable_index_flags) & (F))
+#define SCM_VTABLE_INSTANCE_FINALIZER(X) ((scm_t_struct_finalize)SCM_STRUCT_DATA_REF (X, scm_vtable_index_instance_finalize))
+#define SCM_SET_VTABLE_INSTANCE_FINALIZER(X,P) (SCM_STRUCT_DATA_SET (X, scm_vtable_index_instance_finalize, (scm_t_bits)(P)))
+#define SCM_VTABLE_INSTANCE_PRINTER(X)  (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_instance_printer))
+#define SCM_SET_VTABLE_INSTANCE_PRINTER(X,P) (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_instance_printer, (P)))
+#define SCM_VTABLE_NAME(X)              (SCM_STRUCT_SLOT_REF (X, scm_vtable_index_name))
+#define SCM_SET_VTABLE_NAME(X,V)        (SCM_STRUCT_SLOT_SET (X, scm_vtable_index_name, V))
 
-#define SCM_STRUCT_VTABLE(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_vtable]))
-#define SCM_STRUCT_VTABLE_FLAGS(X) \
-  (SCM_STRUCT_VTABLE_DATA (X) [scm_struct_i_flags])
-#define SCM_STRUCT_PRINTER(X) 	        (SCM_PACK (SCM_STRUCT_VTABLE_DATA (X) [scm_vtable_index_printer]))
-#define SCM_SET_STRUCT_PRINTER(x, v)\
-   (SCM_STRUCT_VTABLE_DATA (x) [scm_vtable_index_printer] = SCM_UNPACK (v))
-#define SCM_SET_VTABLE_DESTRUCTOR(X, D) (SCM_STRUCT_DATA (X) [scm_struct_i_free] = (scm_t_bits) (D))
-/* Efficiency is important in the following macro, since it's used in GC */
-#define SCM_LAYOUT_TAILP(X)		(((X) & 32) == 0) /* R, W or O */
+/* Structs hold a pointer to their vtable's data, not the vtable itself. To get
+   the vtable we have to do an indirection through the self slot. */
+#define SCM_STRUCT_VTABLE_DATA(X)       ((scm_t_bits*)(SCM_CELL_WORD_0 (X) - scm_tc3_struct))
+#define SCM_STRUCT_VTABLE_SLOTS(X)      ((SCM*)(SCM_CELL_WORD_0 (X) - scm_tc3_struct))
+#define SCM_STRUCT_VTABLE(X)            (SCM_STRUCT_VTABLE_SLOTS(X)[scm_vtable_index_self])
+/* But often we just need to access the vtable's data; we can do that without
+   the data->self->data indirection. */
+#define SCM_STRUCT_LAYOUT(X) 	        (SCM_STRUCT_VTABLE_SLOTS (X)[scm_vtable_index_layout])
+#define SCM_STRUCT_PRINTER(X) 	        (SCM_STRUCT_VTABLE_SLOTS (X)[scm_vtable_index_instance_printer])
+#define SCM_STRUCT_FINALIZER(X)         ((scm_t_struct_finalize)SCM_STRUCT_VTABLE_DATA (X)[scm_vtable_index_instance_finalize])
+#define SCM_STRUCT_VTABLE_FLAGS(X) 	(SCM_STRUCT_VTABLE_DATA (X)[scm_vtable_index_flags])
+#define SCM_STRUCT_VTABLE_FLAG_IS_SET(X,F) (SCM_STRUCT_VTABLE_DATA (X)[scm_vtable_index_flags]&(F))
+
+#define SCM_STRUCT_APPLICABLE_P(X) 	(SCM_STRUCT_VTABLE_FLAG_IS_SET ((X), SCM_VTABLE_FLAG_APPLICABLE))
+#define SCM_STRUCT_SETTER_P(X) 	        (SCM_STRUCT_VTABLE_FLAG_IS_SET ((X), SCM_VTABLE_FLAG_SETTER))
+#define SCM_STRUCT_PROCEDURE(X) 	(SCM_STRUCT_SLOT_REF (X, scm_applicable_struct_index_procedure))
+#define SCM_SET_STRUCT_PROCEDURE(X,P) 	(SCM_STRUCT_SLOT_SET (X, scm_applicable_struct_index_procedure, P))
+#define SCM_STRUCT_SETTER(X)            (SCM_STRUCT_SLOT_REF (X, scm_applicable_struct_index_setter))
+#define SCM_SET_STRUCT_SETTER(X,P) 	(SCM_STRUCT_SLOT_SET (X, scm_applicable_struct_index_setter, P))
 
 #define SCM_STRUCT_TABLE_NAME(X) SCM_CAR (X)
 #define SCM_SET_STRUCT_TABLE_NAME(X, NAME) SCM_SETCAR (X, NAME)
@@ -78,44 +143,35 @@ typedef void (*scm_t_struct_free) (scm_t_bits * vtable, scm_t_bits * data);
 #define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
 SCM_API SCM scm_struct_table;
 
-#define SCM_STRUCT_GC_CHAIN(X) SCM_CELL_OBJECT_3 (X)
-#define SCM_SET_STRUCT_GC_CHAIN(X, Y) SCM_SET_CELL_OBJECT_3 (X, Y)
-
-/* For clearing structs. We can't use the regular GC mark bits, as
-   meddling with them at random times would mess up the invariants of
-   the garbage collector.
- */
-#define SCM_STRUCT_MARK_P(X) SCM_CELL_WORD_2 (X)
-#define SCM_SET_STRUCT_MARK(X) SCM_SET_CELL_WORD_2 (X, 0x1)
-#define SCM_CLEAR_STRUCT_MARK(X) SCM_SET_CELL_WORD_2 (X, 0x0)
-
-SCM_INTERNAL SCM scm_i_structs_to_free;
+SCM_API SCM scm_standard_vtable_vtable;
+SCM_API SCM scm_applicable_struct_vtable_vtable;
+SCM_API SCM scm_applicable_struct_with_setter_vtable_vtable;
 
 
 
-SCM_API scm_t_bits * scm_alloc_struct (int n_words, int n_extra,
-				       const char *what);
-SCM_API void scm_struct_free_0 (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API void scm_struct_free_light (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API void scm_struct_free_standard (scm_t_bits * vtable, scm_t_bits * data);
-SCM_API void scm_struct_free_entity (scm_t_bits * vtable, scm_t_bits * data);
 SCM_API SCM scm_make_struct_layout (SCM fields);
 SCM_API SCM scm_struct_p (SCM x);
 SCM_API SCM scm_struct_vtable_p (SCM x);
 SCM_API SCM scm_make_struct (SCM vtable, SCM tail_array_size, SCM init);
+SCM_API SCM scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_inits,
+                               scm_t_bits init, ...);
+SCM_API SCM scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_inits,
+                                scm_t_bits init[]);
 SCM_API SCM scm_make_vtable (SCM fields, SCM printer);
 SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
-SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);
 SCM_API SCM scm_struct_vtable_tag (SCM handle);
-SCM_API unsigned long scm_struct_ihashq (SCM obj, unsigned long n);
 SCM_API SCM scm_struct_create_handle (SCM obj);
 SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
 SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);
-SCM_API void scm_struct_prehistory (void);
+
+SCM_INTERNAL SCM scm_i_struct_equalp (SCM s1, SCM s2);
+SCM_INTERNAL unsigned long scm_struct_ihashq (SCM, unsigned long, void *);
+SCM_INTERNAL SCM scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words);
+SCM_INTERNAL void scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj);
 SCM_INTERNAL void scm_init_struct (void);
 
 #endif  /* SCM_STRUCT_H */

@@ -45,14 +45,6 @@
 
 (define-syntax assert-tree-il->glil
   (syntax-rules ()
-    ((_ in out)
-     (pass-if 'in
-              (let ((tree-il (strip-source (parse-tree-il 'in))))
-                (equal? (unparse-glil (compile tree-il #:from 'tree-il #:to 'glil))
-                        'out))))))
-
-(define-syntax assert-tree-il->glil/pmatch
-  (syntax-rules ()
     ((_ in pat test ...)
      (let ((exp 'in))
        (pass-if 'in
@@ -66,21 +58,21 @@
 (with-test-prefix "void"
   (assert-tree-il->glil
    (void)
-   (program 0 0 0 () (void) (call return 1)))
+   (program () (std-prelude 0 0 #f) (label _) (void) (call return 1)))
   (assert-tree-il->glil
    (begin (void) (const 1))
-   (program 0 0 0 () (const 1) (call return 1)))
+   (program () (std-prelude 0 0 #f) (label _) (const 1) (call return 1)))
   (assert-tree-il->glil
    (apply (primitive +) (void) (const 1))
-   (program 0 0 0 () (void) (call add1 1) (call return 1))))
+   (program () (std-prelude 0 0 #f) (label _) (void) (call add1 1) (call return 1))))
 
 (with-test-prefix "application"
   (assert-tree-il->glil
    (apply (toplevel foo) (const 1))
-   (program 0 0 0 () (toplevel ref foo) (const 1) (call goto/args 1)))
-  (assert-tree-il->glil/pmatch
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (const 1) (call goto/args 1)))
+  (assert-tree-il->glil
    (begin (apply (toplevel foo) (const 1)) (void))
-   (program 0 0 0 () (call new-frame 0) (toplevel ref foo) (const 1) (mv-call 1 ,l1)
+   (program () (std-prelude 0 0 #f) (label _) (call new-frame 0) (toplevel ref foo) (const 1) (mv-call 1 ,l1)
             (call drop 1) (branch br ,l2)
             (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -88,26 +80,26 @@
    (and (eq? l1 l3) (eq? l2 l4)))
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel bar)))
-   (program 0 0 0 () (toplevel ref foo) (call new-frame 0) (toplevel ref bar) (call call 0)
+   (program ()  (std-prelude 0 0 #f) (label _) (toplevel ref foo) (call new-frame 0) (toplevel ref bar) (call call 0)
             (call goto/args 1))))
 
 (with-test-prefix "conditional"
-  (assert-tree-il->glil/pmatch
+  (assert-tree-il->glil
    (if (const #t) (const 1) (const 2))
-   (program 0 0 0 () (const #t) (branch br-if-not ,l1)
+   (program () (std-prelude 0 0 #f) (label _) (const #t) (branch br-if-not ,l1)
             (const 1) (call return 1)
             (label ,l2) (const 2) (call return 1))
    (eq? l1 l2))
   
-  (assert-tree-il->glil/pmatch
+  (assert-tree-il->glil
    (begin (if (const #t) (const 1) (const 2)) (const #f))
-   (program 0 0 0 () (const #t) (branch br-if-not ,l1) (branch br ,l2)
+   (program () (std-prelude 0 0 #f) (label _) (const #t) (branch br-if-not ,l1) (branch br ,l2)
             (label ,l3) (label ,l4) (const #f) (call return 1))
    (eq? l1 l3) (eq? l2 l4))
 
-  (assert-tree-il->glil/pmatch
+  (assert-tree-il->glil
    (apply (primitive null?) (if (const #t) (const 1) (const 2)))
-   (program 0 0 0 () (const #t) (branch br-if-not ,l1)
+   (program () (std-prelude 0 0 #f) (label _) (const #t) (branch br-if-not ,l1)
             (const 1) (branch br ,l2)
                     (label ,l3) (const 2) (label ,l4)
                     (call null? 1) (call return 1))
@@ -116,35 +108,35 @@
 (with-test-prefix "primitive-ref"
   (assert-tree-il->glil
    (primitive +)
-   (program 0 0 0 () (toplevel ref +) (call return 1)))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref +) (call return 1)))
 
   (assert-tree-il->glil
    (begin (primitive +) (const #f))
-   (program 0 0 0 () (const #f) (call return 1)))
+   (program () (std-prelude 0 0 #f) (label _) (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (primitive +))
-   (program 0 0 0 () (toplevel ref +) (call null? 1)
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref +) (call null? 1)
             (call return 1))))
 
 (with-test-prefix "lexical refs"
   (assert-tree-il->glil
    (let (x) (y) ((const 1)) (lexical x y))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (call return 1)
             (unbind)))
 
   (assert-tree-il->glil
    (let (x) (y) ((const 1)) (begin (lexical x y) (const #f)))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (const #f) (call return 1)
             (unbind)))
 
   (assert-tree-il->glil
    (let (x) (y) ((const 1)) (apply (primitive null?) (lexical x y)))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (call null? 1) (call return 1)
             (unbind))))
@@ -154,7 +146,7 @@
    ;; unreferenced sets may be optimized away -- make sure they are ref'd
    (let (x) (y) ((const 1))
         (set! (lexical x y) (apply (primitive 1+) (lexical x y))))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
             (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
             (void) (call return 1)
@@ -164,7 +156,7 @@
    (let (x) (y) ((const 1))
         (begin (set! (lexical x y) (apply (primitive 1+) (lexical x y)))
                (lexical x y)))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
             (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0)
             (lexical #t #t ref 0) (call return 1)
@@ -174,7 +166,7 @@
    (let (x) (y) ((const 1))
      (apply (primitive null?)
             (set! (lexical x y) (apply (primitive 1+) (lexical x y)))))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #t 0)) (lexical #t #t box 0)
             (lexical #t #t ref 0) (call add1 1) (lexical #t #t set 0) (void)
             (call null? 1) (call return 1)
@@ -183,234 +175,259 @@
 (with-test-prefix "module refs"
   (assert-tree-il->glil
    (@ (foo) bar)
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (module public ref (foo) bar)
             (call return 1)))
 
   (assert-tree-il->glil
    (begin (@ (foo) bar) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (module public ref (foo) bar) (call drop 1)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (@ (foo) bar))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (module public ref (foo) bar)
             (call null? 1) (call return 1)))
 
   (assert-tree-il->glil
    (@@ (foo) bar)
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (module private ref (foo) bar)
             (call return 1)))
 
   (assert-tree-il->glil
    (begin (@@ (foo) bar) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (module private ref (foo) bar) (call drop 1)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (@@ (foo) bar))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (module private ref (foo) bar)
             (call null? 1) (call return 1))))
 
 (with-test-prefix "module sets"
   (assert-tree-il->glil
    (set! (@ (foo) bar) (const 2))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (module public set (foo) bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (set! (@ (foo) bar) (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (module public set (foo) bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (set! (@ (foo) bar) (const 2)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (module public set (foo) bar)
             (void) (call null? 1) (call return 1)))
 
   (assert-tree-il->glil
    (set! (@@ (foo) bar) (const 2))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (module private set (foo) bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (set! (@@ (foo) bar) (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (module private set (foo) bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (set! (@@ (foo) bar) (const 2)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (module private set (foo) bar)
             (void) (call null? 1) (call return 1))))
 
 (with-test-prefix "toplevel refs"
   (assert-tree-il->glil
    (toplevel bar)
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref bar)
             (call return 1)))
 
   (assert-tree-il->glil
    (begin (toplevel bar) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref bar) (call drop 1)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (toplevel bar))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref bar)
             (call null? 1) (call return 1))))
 
 (with-test-prefix "toplevel sets"
   (assert-tree-il->glil
    (set! (toplevel bar) (const 2))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (toplevel set bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (set! (toplevel bar) (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (toplevel set bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (set! (toplevel bar) (const 2)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (toplevel set bar)
             (void) (call null? 1) (call return 1))))
 
 (with-test-prefix "toplevel defines"
   (assert-tree-il->glil
    (define bar (const 2))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (toplevel define bar)
             (void) (call return 1)))
 
   (assert-tree-il->glil
    (begin (define bar (const 2)) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (toplevel define bar)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (define bar (const 2)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (toplevel define bar)
             (void) (call null? 1) (call return 1))))
 
 (with-test-prefix "constants"
   (assert-tree-il->glil
    (const 2)
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (call return 1)))
 
   (assert-tree-il->glil
    (begin (const 2) (const #f))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (const 2))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (call null? 1) (call return 1))))
 
 (with-test-prefix "lambda"
   (assert-tree-il->glil
-   (lambda (x) (y) () (const 2))
-   (program 0 0 0 ()
-            (program 1 0 0 ()
-                     (bind (x #f 0))
-                     (const 2) (call return 1))
+   (lambda ()
+     (lambda-case (((x) #f #f #f () (y)) (const 2)) #f))
+   (program ()  (std-prelude 0 0 #f) (label _)
+            (program () (std-prelude 1 1 #f)
+                     (bind (x #f 0)) (label _)
+                     (const 2) (call return 1) (unbind))
             (call return 1)))
 
   (assert-tree-il->glil
-   (lambda (x x1) (y y1) () (const 2))
-   (program 0 0 0 ()
-            (program 2 0 0 ()
-                     (bind (x #f 0) (x1 #f 1))
-                     (const 2) (call return 1))
+   (lambda ()
+     (lambda-case (((x y) #f #f #f () (x1 y1))
+                   (const 2))
+                  #f))
+   (program () (std-prelude 0 0 #f) (label _)
+            (program () (std-prelude 2 2 #f)
+                     (bind (x #f 0) (y #f 1)) (label _)
+                     (const 2) (call return 1)
+                     (unbind))
             (call return 1)))
 
   (assert-tree-il->glil
-   (lambda x y () (const 2))
-   (program 0 0 0 ()
-            (program 1 1 0 ()
-                     (bind (x #f 0))
-                     (const 2) (call return 1))
+   (lambda ()
+     (lambda-case ((() #f x #f () (y)) (const 2))
+                  #f))
+   (program () (std-prelude 0 0 #f) (label _)
+            (program () (opt-prelude 0 0 0 1 #f) 
+                     (bind (x #f 0)) (label _)
+                     (const 2) (call return 1)
+                     (unbind))
             (call return 1)))
 
   (assert-tree-il->glil
-   (lambda (x . x1) (y . y1) () (const 2))
-   (program 0 0 0 ()
-            (program 2 1 0 ()
-                     (bind (x #f 0) (x1 #f 1))
-                     (const 2) (call return 1))
+   (lambda ()
+     (lambda-case (((x) #f x1 #f () (y y1)) (const 2))
+                  #f))
+   (program () (std-prelude 0 0 #f) (label _)
+            (program () (opt-prelude 1 0 1 2 #f)
+                     (bind (x #f 0) (x1 #f 1)) (label _)
+                     (const 2) (call return 1)
+                     (unbind))
             (call return 1)))
 
   (assert-tree-il->glil
-   (lambda (x . x1) (y . y1) () (lexical x y))
-   (program 0 0 0 ()
-            (program 2 1 0 ()
-                     (bind (x #f 0) (x1 #f 1))
-                     (lexical #t #f ref 0) (call return 1))
+   (lambda ()
+     (lambda-case (((x) #f x1 #f () (y y1)) (lexical x y))
+                  #f))
+   (program () (std-prelude 0 0 #f) (label _)
+            (program () (opt-prelude 1 0 1 2 #f)
+                     (bind (x #f 0) (x1 #f 1)) (label _)
+                     (lexical #t #f ref 0) (call return 1)
+                     (unbind))
             (call return 1)))
 
   (assert-tree-il->glil
-   (lambda (x . x1) (y . y1) () (lexical x1 y1))
-   (program 0 0 0 ()
-            (program 2 1 0 ()
-                     (bind (x #f 0) (x1 #f 1))
-                     (lexical #t #f ref 1) (call return 1))
+   (lambda ()
+     (lambda-case (((x) #f x1 #f () (y y1)) (lexical x1 y1))
+                  #f))
+   (program () (std-prelude 0 0 #f) (label _)
+            (program () (opt-prelude 1 0 1 2 #f)
+                     (bind (x #f 0) (x1 #f 1)) (label _)
+                     (lexical #t #f ref 1) (call return 1)
+                     (unbind))
             (call return 1)))
 
   (assert-tree-il->glil
-   (lambda (x) (x1) () (lambda (y) (y1) () (lexical x x1)))
-   (program 0 0 0 ()
-            (program 1 0 0 ()
-                     (bind (x #f 0))
-                     (program 1 0 0 ()
-                              (bind (y #f 0))
-                              (lexical #f #f ref 0) (call return 1))
+   (lambda ()
+     (lambda-case (((x) #f #f #f () (x1))
+                   (lambda ()
+                     (lambda-case (((y) #f #f #f () (y1))
+                                   (lexical x x1))
+                                  #f)))
+                  #f))
+   (program () (std-prelude 0 0 #f) (label _)
+            (program () (std-prelude 1 1 #f) 
+                     (bind (x #f 0)) (label _)
+                     (program () (std-prelude 1 1 #f)
+                              (bind (y #f 0)) (label _)
+                              (lexical #f #f ref 0) (call return 1)
+                              (unbind))
                      (lexical #t #f ref 0)
                      (call vector 1)
                      (call make-closure 2)
-                     (call return 1))
+                     (call return 1)
+                     (unbind))
             (call return 1))))
 
 (with-test-prefix "sequence"
   (assert-tree-il->glil
    (begin (begin (const 2) (const #f)) (const #t))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const #t) (call return 1)))
 
   (assert-tree-il->glil
    (apply (primitive null?) (begin (const #f) (const 2)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (const 2) (call null? 1) (call return 1))))
 
 ;; FIXME: binding info for or-hacked locals might bork the disassembler,
 ;; and could be tightened in any case
 (with-test-prefix "the or hack"
-  (assert-tree-il->glil/pmatch
+  (assert-tree-il->glil
    (let (x) (y) ((const 1))
         (if (lexical x y)
             (lexical x y)
             (let (a) (b) ((const 2))
                  (lexical a b))))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (branch br-if-not ,l1)
             (lexical #t #f ref 0) (call return 1)
@@ -422,13 +439,13 @@
    (eq? l1 l2))
 
   ;; second bound var is unreferenced
-  (assert-tree-il->glil/pmatch
+  (assert-tree-il->glil
    (let (x) (y) ((const 1))
         (if (lexical x y)
             (lexical x y)
             (let (a) (b) ((const 2))
                  (lexical x y))))
-   (program 0 0 1 ()
+   (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (branch br-if-not ,l1)
             (lexical #t #f ref 0) (call return 1)
@@ -440,10 +457,10 @@
 (with-test-prefix "apply"
   (assert-tree-il->glil
    (apply (primitive @apply) (toplevel foo) (toplevel bar))
-   (program 0 0 0 () (toplevel ref foo) (toplevel ref bar) (call goto/apply 2)))
-  (assert-tree-il->glil/pmatch
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (toplevel ref bar) (call goto/apply 2)))
+  (assert-tree-il->glil
    (begin (apply (primitive @apply) (toplevel foo) (toplevel bar)) (void))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (call new-frame 0) (toplevel ref apply) (toplevel ref foo) (toplevel ref bar) (mv-call 2 ,l1)
             (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -451,7 +468,7 @@
    (and (eq? l1 l3) (eq? l2 l4)))
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel @apply) (toplevel bar) (toplevel baz)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref foo)
             (call new-frame 0) (toplevel ref bar) (toplevel ref baz) (call apply 2)
             (call goto/args 1))))
@@ -459,10 +476,10 @@
 (with-test-prefix "call/cc"
   (assert-tree-il->glil
    (apply (primitive @call-with-current-continuation) (toplevel foo))
-   (program 0 0 0 () (toplevel ref foo) (call goto/cc 1)))
-  (assert-tree-il->glil/pmatch
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (call goto/cc 1)))
+  (assert-tree-il->glil
    (begin (apply (primitive @call-with-current-continuation) (toplevel foo)) (void))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (call new-frame 0) (toplevel ref call-with-current-continuation) (toplevel ref foo) (mv-call 1 ,l1)
             (call drop 1) (branch br ,l2) (label ,l3) (mv-bind () #f) (unbind)
             (label ,l4)
@@ -471,7 +488,7 @@
   (assert-tree-il->glil
    (apply (toplevel foo)
           (apply (toplevel @call-with-current-continuation) (toplevel bar)))
-   (program 0 0 0 ()
+   (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref foo)
             (toplevel ref bar) (call call/cc 1)
             (call goto/args 1))))
@@ -504,15 +521,18 @@
                                    (1+ y))
                                  0
                                  (parse-tree-il
-                                  '(lambda (x y) (x1 y1)
-                                     (apply (toplevel +)
-                                            (lexical x x1)
-                                            (lexical y y1)))))))
+                                  '(lambda ()
+                                     (lambda-case
+                                      (((x y) #f #f #f () (x1 y1))
+                                       (apply (toplevel +)
+                                              (lexical x x1)
+                                              (lexical y y1)))
+                                      #f))))))
       (and (equal? (map strip-source leaves)
                    (list (make-lexical-ref #f 'y 'y1)
                          (make-lexical-ref #f 'x 'x1)
                          (make-toplevel-ref #f '+)))
-           (= (length downs) 2)
+           (= (length downs) 3)
            (equal? (reverse (map strip-source ups))
                    (map strip-source downs))))))
 
@@ -534,6 +554,12 @@
 
 (define %opts-w-unused
   '(#:warnings (unused-variable)))
+
+(define %opts-w-unbound
+  '(#:warnings (unbound-variable)))
+
+(define %opts-w-arity
+  '(#:warnings (arity-mismatch)))
 
 
 (with-test-prefix "warnings"
@@ -588,4 +614,317 @@
        (null? (call-with-warnings
                 (lambda ()
                   (compile '(lambda (x y z) #t)
-                           #:opts %opts-w-unused)))))))
+                           #:opts %opts-w-unused))))))
+
+   (with-test-prefix "unbound variable"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '+ #:opts %opts-w-unbound)))))
+
+     (pass-if "ref"
+       (let* ((v (gensym))
+              (w (call-with-warnings
+                   (lambda ()
+                     (compile v
+                              #:to 'assembly
+                              #:opts %opts-w-unbound)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        (format #f "unbound variable `~A'"
+                                                v))))))
+
+     (pass-if "set!"
+       (let* ((v (gensym))
+              (w (call-with-warnings
+                   (lambda ()
+                     (compile `(set! ,v 7)
+                              #:to 'assembly
+                              #:opts %opts-w-unbound)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        (format #f "unbound variable `~A'"
+                                                v))))))
+
+     (pass-if "module-local top-level is visible"
+       (let ((m (make-module))
+             (v (gensym)))
+         (beautify-user-module! m)
+         (compile `(define ,v 123)
+                  #:env m #:opts %opts-w-unbound)
+         (null? (call-with-warnings
+                  (lambda ()
+                    (compile v
+                             #:env m
+                             #:to 'assembly
+                             #:opts %opts-w-unbound))))))
+
+     (pass-if "module-local top-level is visible after"
+       (let ((m (make-module))
+             (v (gensym)))
+         (beautify-user-module! m)
+         (null? (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string
+                               "(define (f)
+                                  (set! chbouib 3))
+                                (define chbouib 5)")))
+                      (read-and-compile in
+                                        #:env m
+                                        #:opts %opts-w-unbound)))))))
+
+     (pass-if "optional arguments are visible"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda* (x #:optional y z) (list x y z))
+                           #:opts %opts-w-unbound
+                           #:to 'assembly)))))
+
+     (pass-if "keyword arguments are visible"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda* (x #:key y z) (list x y z))
+                           #:opts %opts-w-unbound
+                           #:to 'assembly)))))
+
+     (pass-if "GOOPS definitions are visible"
+       (let ((m (make-module))
+             (v (gensym)))
+         (beautify-user-module! m)
+         (module-use! m (resolve-interface '(oop goops)))
+         (null? (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string
+                               "(define-class <foo> ()
+                                  (bar #:getter foo-bar))
+                                (define z (foo-bar (make <foo>)))")))
+                      (read-and-compile in
+                                        #:env m
+                                        #:opts %opts-w-unbound))))))))
+
+   (with-test-prefix "arity mismatch"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(cons 'a 'b) #:opts %opts-w-arity)))))
+
+     (pass-if "direct application"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '((lambda (x y) (or x y)) 1 2 3 4 5)
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+     (pass-if "local"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (lambda (x y) (+ x y))))
+                                (f 2))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "global"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(cons 1 2 3 4)
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "alias to global"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f cons)) (f 1 2 3 4))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "alias to lexical to global"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f number?))
+                                (let ((g f))
+                                  (f 1 2 3 4)))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "alias to lexical"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (lambda (x y z) (+ x y z))))
+                                (let ((g f))
+                                  (g 1)))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "letrec"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(letrec ((odd?  (lambda (x) (even? (1- x))))
+                                       (even? (lambda (x)
+                                                (or (= 0 x)
+                                                    (odd?)))))
+                                (odd? 1))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "case-lambda"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (case-lambda
+                                       ((x)     1)
+                                       ((x y)   2)
+                                       ((x y z) 3))))
+                              (list (f 1)
+                                    (f 1 2)
+                                    (f 1 2 3)))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "case-lambda with wrong number of arguments"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (case-lambda
+                                         ((x)     1)
+                                         ((x y)   2))))
+                                (f 1 2 3))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "case-lambda*"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (case-lambda*
+                                       ((x #:optional y) 1)
+                                       ((x #:key y)      2)
+                                       ((x y #:key z)    3))))
+                              (list (f 1)
+                                    (f 1 2)
+                                    (f #:y 2)
+                                    (f 1 2 #:z 3)))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "case-lambda* with wrong arguments"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (case-lambda*
+                                         ((x #:optional y) 1)
+                                         ((x #:key y)      2)
+                                         ((x y #:key z)    3))))
+                                (list (f)
+                                      (f 1 #:z 3)))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 2)
+              (null? (filter (lambda (w)
+                               (not
+                                (number?
+                                 (string-contains
+                                  w "wrong number of arguments to"))))
+                             w)))))
+
+     (pass-if "local toplevel-defines"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string "
+                                (define (g x) (f x))
+                                (define (f) 1)")))
+                      (read-and-compile in
+                                        #:opts %opts-w-arity
+                                        #:to 'assembly))))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "global toplevel alias"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (let ((in (open-input-string "
+                                (define f cons)
+                                (define (g) (f))")))
+                      (read-and-compile in
+                                        #:opts %opts-w-arity
+                                        #:to 'assembly))))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "local toplevel overrides global"
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string "
+                              (define (cons) 0)
+                              (define (foo x) (cons))")))
+                    (read-and-compile in
+                                      #:opts %opts-w-arity
+                                      #:to 'assembly))))))
+
+     (pass-if "keyword not passed and quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (lambda* (x #:key y) y)))
+                              (f 2))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "keyword passed and quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (lambda* (x #:key y) y)))
+                              (f 2 #:y 3))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))
+
+     (pass-if "keyword passed to global and quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string "
+                              (use-modules (system base compile))
+                              (compile '(+ 2 3) #:env (current-module))")))
+                    (read-and-compile in
+                                      #:opts %opts-w-arity
+                                      #:to 'assembly))))))
+
+     (pass-if "extra keyword"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(let ((f (lambda* (x #:key y) y)))
+                                (f 2 #:Z 3))
+                             #:opts %opts-w-arity
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
+     (pass-if "extra keywords allowed"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(let ((f (lambda* (x #:key y #:allow-other-keys)
+                                       y)))
+                              (f 2 #:Z 3))
+                           #:opts %opts-w-arity
+                           #:to 'assembly)))))))

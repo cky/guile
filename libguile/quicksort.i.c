@@ -55,7 +55,7 @@
 
 static void
 NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
-      scm_t_trampoline_2 cmp, SCM less)
+      SCM less)
 {
   /* Stack node declarations used to store unfulfilled partition obligations. */
   typedef struct {
@@ -93,13 +93,13 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 
 	  SCM_TICK;
 	
-	  if (scm_is_true ((*cmp) (less, ELT(mid), ELT(lo))))
+	  if (scm_is_true (scm_call_2 (less, ELT(mid), ELT(lo))))
 	    SWAP (ELT(mid), ELT(lo));
-	  if (scm_is_true ((*cmp) (less, ELT(hi), ELT(mid))))
+	  if (scm_is_true (scm_call_2 (less, ELT(hi), ELT(mid))))
 	    SWAP (ELT(mid), ELT(hi));
 	  else
 	    goto jump_over;
-	  if (scm_is_true ((*cmp) (less, ELT(mid), ELT(lo))))
+	  if (scm_is_true (scm_call_2 (less, ELT(mid), ELT(lo))))
 	    SWAP (ELT(mid), ELT(lo));
 	jump_over:;
 
@@ -112,7 +112,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 	     that this algorithm runs much faster than others. */
 	  do
 	    {
-	      while (scm_is_true ((*cmp) (less, ELT(left), pivot)))
+	      while (scm_is_true (scm_call_2 (less, ELT(left), pivot)))
 		{
 		  left += 1;
 		  /* The comparison predicate may be buggy */
@@ -120,7 +120,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 		    scm_misc_error (NULL, s_buggy_less, SCM_EOL);
 		}
 
-	      while (scm_is_true ((*cmp) (less, pivot, ELT(right))))
+	      while (scm_is_true (scm_call_2 (less, pivot, ELT(right))))
 		{
 		  right -= 1;
 		  /* The comparison predicate may be buggy */
@@ -192,7 +192,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
        and the operation speeds up insertion sort's inner loop. */
 
     for (run = tmp + 1; run <= thresh; run += 1)
-      if (scm_is_true ((*cmp) (less, ELT(run), ELT(tmp))))
+      if (scm_is_true (scm_call_2 (less, ELT(run), ELT(tmp))))
 	tmp = run;
 
     if (tmp != 0)
@@ -206,7 +206,7 @@ NAME (SCM *const base_ptr, size_t nr_elems, INC_PARAM
 	SCM_TICK;
 
 	tmp = run - 1;
-	while (scm_is_true ((*cmp) (less, ELT(run), ELT(tmp))))
+	while (scm_is_true (scm_call_2 (less, ELT(run), ELT(tmp))))
 	  {
 	    /* The comparison predicate may be buggy */
 	    if (tmp == 0)

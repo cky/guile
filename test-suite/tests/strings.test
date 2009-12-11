@@ -63,26 +63,6 @@
     (let ((s (substring/read-only "zyx" 0)))
       (assq-ref (%string-dump s) 'read-only)))
 
-  (pass-if "null strings are inlined"
-    (let ((s ""))
-      (assq-ref (%string-dump s) 'stringbuf-inline)))
-
-  (pass-if "short Latin-1 encoded strings are inlined"
-    (let ((s "m"))
-      (assq-ref (%string-dump s) 'stringbuf-inline)))
-
-  (pass-if "long Latin-1 encoded strings are not inlined"
-    (let ((s "0123456789012345678901234567890123456789"))
-      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
-
-  (pass-if "short UCS-4 encoded strings are not inlined"
-    (let ((s "\u0100"))
-      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
-
-  (pass-if "long UCS-4 encoded strings are not inlined"
-    (let ((s "\u010012345678901234567890123456789"))
-      (not (assq-ref (%string-dump s) 'stringbuf-inline))))
-
   (pass-if "new Latin-1 encoded strings are not shared"
     (let ((s "abc"))
       (not (assq-ref (%string-dump s) 'stringbuf-shared))))
@@ -197,7 +177,7 @@
       (let ((s "\U000040"))
         (not (assq-ref (%string-dump s) 'stringbuf-wide))))))
 
-(with-test-prefix "hex escapes"
+(with-test-prefix "escapes"
 
   (pass-if-exception "non-hex char in two-digit hex-escape"
     exception:illegal-escape                     
@@ -236,7 +216,44 @@
           (integer->char #x010300)))
 
   (pass-if "escaped characters match non-escaped ASCII characters"
-    (string=? "ABC" "\x41\u0042\U000043")))
+    (string=? "ABC" "\x41\u0042\U000043"))
+
+  (pass-if "R5RS backslash escapes"
+    (string=? "\"\\" (string #\" #\\)))
+
+  (pass-if "Guile extensions backslash escapes"
+    (string=? "\0\a\f\n\r\t\v"
+              (apply string (map integer->char '(0 7 12 10 13 9 11))))))
+
+;;
+;; string?
+;;
+(with-test-prefix "string?"
+
+  (pass-if "string"
+    (string? "abc"))
+
+  (pass-if "symbol"
+    (not (string? 'abc))))
+
+;;
+;; string-null?
+;; 
+
+(with-test-prefix "string-null?"
+
+  (pass-if "null string"
+    (string-null? ""))
+
+  (pass-if "non-null string"
+    (not (string-null? "a")))
+
+  (pass-if "respects \\0"
+    (not (string-null? "\0")))
+
+  (pass-if-exception "symbol"
+    exception:wrong-type-arg
+    (string-null? 'a)))
 
 ;;
 ;; string=?

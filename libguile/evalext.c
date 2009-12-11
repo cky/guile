@@ -75,15 +75,17 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
     case scm_tc3_cons:
       switch (SCM_TYP7 (obj))
 	{
-	case scm_tcs_closures:
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
+	case scm_tc7_hashtable:
+	case scm_tc7_fluid:
+	case scm_tc7_dynamic_state:
 	case scm_tc7_number:
 	case scm_tc7_string:
 	case scm_tc7_smob:
-	case scm_tc7_pws:
 	case scm_tc7_program:
-	case scm_tcs_subrs:
+	case scm_tc7_bytevector:
+	case scm_tc7_gsubr:
 	case scm_tcs_struct:
 	  return SCM_BOOL_T;
 	default:

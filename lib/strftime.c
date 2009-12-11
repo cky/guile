@@ -27,6 +27,7 @@
 #else
 # include <config.h>
 # if FPRINTFTIME
+#  include "ignore-value.h"
 #  include "fprintftime.h"
 # else
 #  include "strftime.h"
@@ -198,12 +199,25 @@ extern char *tzname[];
 #if FPRINTFTIME
 # define cpy(n, s) \
     add ((n),								      \
+     do									      \
+       {								      \
 	 if (to_lowcase)						      \
 	   fwrite_lowcase (p, (s), _n);					      \
 	 else if (to_uppcase)						      \
 	   fwrite_uppcase (p, (s), _n);					      \
 	 else								      \
-	   fwrite ((s), _n, 1, p))
+	   {								      \
+	     /* We are ignoring the value of fwrite here, in spite of the     \
+		fact that technically, that may not be valid: the fwrite      \
+		specification in POSIX 2008 defers to that of fputc, which    \
+		is intended to be consistent with the one from ISO C,         \
+		which permits failure due to ENOMEM *without* setting the     \
+		stream's error indicator.  */                                 \
+	     ignore_value (fwrite ((s), _n, 1, p));                           \
+	   }								      \
+       }								      \
+     while (0)								      \
+    )
 #else
 # define cpy(n, s)							      \
     add ((n),								      \

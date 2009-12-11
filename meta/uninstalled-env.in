@@ -88,6 +88,10 @@ export GUILE_LOAD_COMPILED_PATH
 if ( env | grep -v -q -E '^GUILE_SYSTEM_COMPILED_PATH=' ); then
   export GUILE_SYSTEM_COMPILED_PATH=
 fi
+# Don't look in installed dirs for dlopen-able modules
+if ( env | grep -v -q -E '^GUILE_SYSTEM_EXTENSIONS_PATH=' ); then
+  export GUILE_SYSTEM_EXTENSIONS_PATH=
+fi
 
 # handle LTDL_LIBRARY_PATH (no clobber)
 ltdl_prefix=""

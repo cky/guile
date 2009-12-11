@@ -28,7 +28,6 @@
 
 (define-module (srfi srfi-35)
   #:use-module (srfi srfi-1)
-  #:use-module (ice-9 syncase)
   #:export (make-condition-type condition-type?
             make-condition condition? condition-has-type? condition-ref
             make-compound-condition extract-condition
@@ -58,6 +57,19 @@
 				    (number->string (object-address ct)
 						    16))))))
 
+(define (%make-condition-type layout id parent all-fields)
+  (let ((struct (make-struct %condition-type-vtable 0
+                             (make-struct-layout layout) ;; layout
+                             print-condition             ;; printer
+                             id parent all-fields)))
+
+    ;; Hack to associate STRUCT with a name, providing a better name for
+    ;; GOOPS classes as returned by `class-of' et al.
+    (set-struct-vtable-name! struct (cond ((symbol? id) id)
+                                          ((string? id) (string->symbol id))
+                                          (else         (string->symbol ""))))
+    struct))
+
 (define (condition-type? obj)
   "Return true if OBJ is a condition type."
   (and (struct? obj)
@@ -66,15 +78,15 @@
 
 (define (condition-type-id ct)
   (and (condition-type? ct)
-       (struct-ref ct 3)))
+       (struct-ref ct (+ vtable-offset-user 0))))
 
 (define (condition-type-parent ct)
   (and (condition-type? ct)
-       (struct-ref ct 4)))
+       (struct-ref ct (+ vtable-offset-user 1))))
 
 (define (condition-type-all-fields ct)
   (and (condition-type? ct)
-       (struct-ref ct 5)))
+       (struct-ref ct (+ vtable-offset-user 2))))
 
 
 (define (struct-layout-for-condition field-names)
@@ -88,9 +100,22 @@
 	      (cons "pr" layout)))))
 
 (define (print-condition c port)
-  (format port "#<condition ~a ~a>"
-	  (condition-type-id (condition-type c))
-	  (number->string (object-address c) 16)))
+  ;; Print condition C to PORT in a way similar to how records print:
+  ;; #<condition TYPE [FIELD: VALUE ...] ADDRESS>.
+  (define (field-values)
+    (let* ((type    (struct-vtable c))
+           (strings (fold (lambda (field result)
+                            (cons (format #f "~A: ~S" field
+                                          (condition-ref c field))
+                                  result))
+                          '()
+                          (condition-type-all-fields type))))
+      (string-join (reverse strings) " ")))
+
+  (format port "#<condition ~a [~a] ~a>"
+          (condition-type-id (condition-type c))
+          (field-values)
+          (number->string (object-address c) 16)))
 
 (define (make-condition-type id parent field-names)
   "Return a new condition type named ID, inheriting from PARENT, and with the
@@ -105,10 +130,8 @@ supertypes."
 					       field-names parent-fields)))
 		(let* ((all-fields (append parent-fields field-names))
 		       (layout     (struct-layout-for-condition all-fields)))
-		  (make-struct %condition-type-vtable 0
-			       (make-struct-layout layout) ;; layout
-			       print-condition             ;; printer
-			       id parent all-fields))
+		  (%make-condition-type layout
+                                        id parent all-fields))
 		(error "invalid condition type field names"
 		       field-names)))
 	  (error "parent is not a condition type" parent))
@@ -127,13 +150,10 @@ supertypes."
          (let* ((all-fields (append-map condition-type-all-fields
                                         parents))
                 (layout     (struct-layout-for-condition all-fields)))
-           (make-struct %condition-type-vtable 0
-                        (make-struct-layout layout) ;; layout
-                        print-condition             ;; printer
-                        id
-                        parents                     ;; list of parents!
-                        all-fields
-                        all-fields)))))
+           (%make-condition-type layout
+                                 id
+                                 parents         ;; list of parents!
+                                 all-fields)))))
 
 
 ;;;

@@ -20,6 +20,9 @@
   #:use-module (test-suite lib)
   #:autoload   (srfi srfi-1)    (unfold))
 
+(define exception:no-applicable-method
+  '(goops-error . "^No applicable method"))
+
 (pass-if "GOOPS loads"
 	 (false-if-exception
 	  (begin (resolve-module '(oop goops))
@@ -139,7 +142,12 @@
     (eq? (class-of "foo") <string>))
 
   (pass-if "port"
-    (is-a? (%make-void-port "w") <port>)))
+    (is-a? (%make-void-port "w") <port>))
+
+  (pass-if "struct vtable"
+    ;; Previously, `class-of' would fail for nameless structs, i.e., structs
+    ;; for which `struct-vtable-name' is #f.
+    (is-a? (class-of (make-vtable-vtable "prprpr" 0)) <class>)))
 
 
 (with-test-prefix "defining classes"
@@ -158,14 +166,19 @@
       (eval '(is-a? <foo> <class>) (current-module)))
 
     (expect-fail "bad init-thunk"
-		 (catch #t
-			(lambda ()
-			  (eval '(define-class <foo> ()
-				   (x #:init-thunk (lambda (x) 1)))
-				(current-module))
-			  #t)
-			(lambda args
-			  #f)))
+		 (begin
+                   ;; Currently UPASSing because we can't usefully get
+                   ;; any arity information out of interpreted
+                   ;; procedures. A FIXME I guess.
+                   (throw 'unresolved)
+                   (catch #t
+                     (lambda ()
+                       (eval '(define-class <foo> ()
+                                (x #:init-thunk (lambda (x) 1)))
+                             (current-module))
+                       #t)
+                     (lambda args
+                       #f))))
 
     (pass-if "interaction with `struct-ref'"
        (eval '(define-class <class-struct> ()
@@ -400,18 +413,6 @@
 		    (define o4 (make <c> #:x '(4) #:y '(3)))
 		    (not (eqv? o1 o2)))
 		 (current-module)))
-  (pass-if "eqv?"
-	   (eval '(begin
-		    (define-method (eqv? (a <c>) (b <c>))
-		      (equal? (x a) (x b)))
-		    (eqv? o1 o2))
-		 (current-module)))
-  (pass-if "not eqv?"
-	   (eval '(not (eqv? o2 o3))
-		 (current-module)))
-  (pass-if "transfer eqv? => equal?"
-	   (eval '(equal? o1 o2)
-		 (current-module)))
   (pass-if "equal?"
 	   (eval '(begin
 		    (define-method (equal? (a <c>) (b <c>))
@@ -494,3 +495,23 @@
 			 (= (x (o2 o)) 3)
 			 (= (y (o2 o)) 5)))
 		 (current-module))))
+
+(with-test-prefix "no-applicable-method"
+  (pass-if-exception "calling generic, no methods"
+                     exception:no-applicable-method
+    (eval '(begin
+	     (define-class <qux> ())
+             (define-generic quxy)
+	     (quxy 1))
+	  (current-module)))
+  (pass-if "calling generic, one method, applicable"
+    (eval '(begin
+	     (define-method (quxy (q <qux>))
+               #t)
+	     (define q (make <qux>))
+	     (quxy q))
+	  (current-module)))
+  (pass-if-exception "calling generic, one method, not applicable"
+                     exception:no-applicable-method
+    (eval '(quxy 1)
+	  (current-module))))

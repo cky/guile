@@ -1,12 +1,14 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @page
 @node Smobs
 @section Smobs
+
+@cindex smob
 
 This chapter contains reference information related to defining and
 working with smobs.  See @ref{Defining New Types (Smobs)} for a
@@ -33,9 +35,47 @@ immediately followed by calls to one or several of
 @code{scm_set_smob_print}, and/or @code{scm_set_smob_equalp}.
 @end deftypefun
 
+@cindex finalizer
+@cindex finalization
+
+@deftypefn {C Function} void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM obj))
+This function sets the smob freeing procedure (sometimes referred to as
+a @dfn{finalizer}) for the smob type specified by the tag
+@var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
+
+The @var{free} procedure must deallocate all resources that are
+directly associated with the smob instance @var{OBJ}.  It must assume
+that all @code{SCM} values that it references have already been freed
+and are thus invalid.
+
+It must also not call any libguile function or macro except
+@code{scm_gc_free}, @code{SCM_SMOB_FLAGS}, @code{SCM_SMOB_DATA},
+@code{SCM_SMOB_DATA_2}, and @code{SCM_SMOB_DATA_3}.
+
+The @var{free} procedure must return 0.
+
+Note that defining a freeing procedure is not necessary if the resources
+associated with @var{obj} consists only of memory allocated with
+@code{scm_gc_malloc} or @code{scm_gc_malloc_pointerless} because this
+memory is automatically reclaimed by the garbage collector when it is no
+longer needed (@pxref{Memory Blocks, @code{scm_gc_malloc}}).
+@end deftypefn
+
+@cindex precise marking
+
 @deftypefn {C Function} void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM obj))
 This function sets the smob marking procedure for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
+
+Defining a marking procedure may sometimes be unnecessary because large
+parts of the process' memory (with the exception of
+@code{scm_gc_malloc_pointerless} regions, and @code{malloc}- or
+@code{scm_malloc}-allocated memory) are scanned for live
+pointers@footnote{Conversely, in Guile up to the 1.8 series, the marking
+procedure was always required.  The reason is that Guile's GC would only
+look for pointers in the memory area used for built-in types (the
+@dfn{cell heap}), not in user-allocated or statically allocated memory.
+This approach is often referred to as @dfn{precise marking}.}.
 
 The @var{mark} procedure must cause @code{scm_gc_mark} to be called
 for every @code{SCM} value that is directly referenced by the smob
@@ -49,22 +89,6 @@ It must not call any libguile function or macro except
 @code{SCM_SMOB_DATA_2}, and @code{SCM_SMOB_DATA_3}.
 @end deftypefn
 
-@deftypefn {C Function} void scm_set_smob_free (scm_t_bits tc, size_t (*free) (SCM obj))
-This function sets the smob freeing procedure for the smob type
-specified by the tag @var{tc}. @var{tc} is the tag returned by
-@code{scm_make_smob_type}.
-
-The @var{free} procedure must deallocate all resources that are
-directly associated with the smob instance @var{OBJ}.  It must assume
-that all @code{SCM} values that it references have already been freed
-and are thus invalid.
-
-It must also not call any libguile function or macro except
-@code{scm_gc_free}, @code{SCM_SMOB_FLAGS}, @code{SCM_SMOB_DATA},
-@code{SCM_SMOB_DATA_2}, and @code{SCM_SMOB_DATA_3}.
-
-The @var{free} procedure must return 0.
-@end deftypefn
 
 @deftypefn {C Function} void scm_set_smob_print (scm_t_bits tc, int (*print) (SCM obj, SCM port, scm_print_state* pstate))
 This function sets the smob printing procedure for the smob type

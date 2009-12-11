@@ -104,6 +104,27 @@
  * and then SCM_API marks them for export. */
 #define SCM_INTERNAL  extern
 
+/* The SCM_DEPRECATED macro is used in declarations of deprecated functions
+ * or variables.  Defining `SCM_BUILDING_DEPRECATED_CODE' allows deprecated
+ * functions to be implemented in terms of deprecated functions, and allows
+ * deprecated functions to be referred to by `scm_c_define_gsubr ()'.  */
+#if !defined (SCM_BUILDING_DEPRECATED_CODE)	\
+    && defined (__GNUC__) && (__GNUC__ >= 3)
+# define SCM_DEPRECATED  SCM_API __attribute__ ((__deprecated__))
+#else
+# define SCM_DEPRECATED  SCM_API
+#endif
+
+/* The SCM_ALIGNED macro, when defined, can be used to instruct the compiler
+ * to honor the given alignment constraint.  */
+#if defined __GNUC__
+# define SCM_ALIGNED(x)  __attribute__ ((aligned (x)))
+#elif defined __INTEL_COMPILER
+# define SCM_ALIGNED(x)  __declspec (align (x))
+#else
+/* Don't know how to align things.  */
+# undef SCM_ALIGNED
+#endif
 
 
 /* {Supported Options}
@@ -112,19 +133,6 @@
  */
 
 /* #define GUILE_DEBUG_FREELIST */
-
-/* All the number support there is.
- */
-#define BIGNUMS
-
-/* GC should relinquish empty cons-pair arenas. */
-/* cmm:FIXME look at this after done mangling the GC */
-/* #define GC_FREE_SEGMENTS */
-
-/* Provide a scheme-accessible count-down timer that
- * generates a pseudo-interrupt.
- */
-#define TICKS
 
 
 /* Use engineering notation when converting numbers strings?
@@ -154,9 +162,9 @@
 /* SCM_API is a macro prepended to all function and data definitions
    which should be exported from libguile. */
 
-#if BUILDING_LIBGUILE && HAVE_VISIBILITY
+#if defined BUILDING_LIBGUILE && defined HAVE_VISIBILITY
 # define SCM_API extern __attribute__((__visibility__("default")))
-#elif BUILDING_LIBGUILE && defined _MSC_VER
+#elif defined BUILDING_LIBGUILE && defined _MSC_VER
 # define SCM_API __declspec(dllexport) extern
 #elif defined _MSC_VER
 # define SCM_API __declspec(dllimport) extern
@@ -389,6 +397,10 @@
 #define SCM_T_INTMAX_MIN  SCM_I_TYPE_MIN(scm_t_intmax,SCM_T_UINTMAX_MAX)
 #define SCM_T_INTMAX_MAX  SCM_I_TYPE_MAX(scm_t_intmax,SCM_T_UINTMAX_MAX)
 
+#define SCM_T_UINTPTR_MAX SCM_I_UTYPE_MAX(scm_t_uintptr)
+#define SCM_T_INTPTR_MIN  SCM_I_TYPE_MIN(scm_t_intptr,SCM_T_UINTPTR_MAX)
+#define SCM_T_INTPTR_MAX  SCM_I_TYPE_MAX(scm_t_intptr,SCM_T_UINTPTR_MAX)
+
 #define SCM_I_SIZE_MAX    SCM_I_UTYPE_MAX(size_t)
 #define SCM_I_SSIZE_MIN   SCM_I_TYPE_MIN(ssize_t,SCM_I_SIZE_MAX)
 #define SCM_I_SSIZE_MAX   SCM_I_TYPE_MAX(ssize_t,SCM_I_SIZE_MAX)
@@ -481,11 +493,24 @@ typedef long SCM_STACKITEM;
 #define SCM_STACK_PTR(ptr) ((SCM_STACKITEM *) (void *) (ptr))
 
 
-#define SCM_ASYNC_TICK /*fixme* should change names */ \
-do { \
-  if (SCM_I_CURRENT_THREAD->pending_asyncs) \
-    scm_async_click (); \
-} while (0)
+SCM_API void scm_async_tick (void);
+
+#ifdef BUILDING_LIBGUILE
+
+/* FIXME: should change names */
+# define SCM_ASYNC_TICK					\
+    do							\
+      {							\
+	if (SCM_I_CURRENT_THREAD->pending_asyncs)	\
+	  scm_async_click ();				\
+      }							\
+    while (0)
+
+#else /* !BUILDING_LIBGUILE */
+
+# define SCM_ASYNC_TICK  (scm_async_tick ())
+
+#endif /* !BUILDING_LIBGUILE */
 
 
 /* Anthony Green writes:
@@ -653,6 +678,14 @@ SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 #define SCM_C_INLINE_KEYWORD SCM_C_INLINE
 #else
 #define SCM_C_INLINE_KEYWORD
+#endif
+
+/* Handling thread-local storage (TLS).  */
+
+#ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+# define SCM_THREAD_LOCAL __thread
+#else
+# define SCM_THREAD_LOCAL
 #endif
 
 #endif  /* SCM___SCM_H */

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,6 +37,8 @@
 
 
 
+static SCM keyword_obarray;
+
 scm_t_bits scm_tc16_keyword;
 
 #define KEYWORDP(X)	(SCM_SMOB_PREDICATE (scm_tc16_keyword, (X)))
@@ -71,11 +73,11 @@ SCM_DEFINE (scm_symbol_to_keyword, "symbol->keyword", 1, 0, 0,
 
   SCM_CRITICAL_SECTION_START;
   /* njrev: NEWSMOB and hashq_set_x can raise errors */
-  keyword = scm_hashq_ref (scm_keyword_obarray, symbol, SCM_BOOL_F);
+  keyword = scm_hashq_ref (keyword_obarray, symbol, SCM_BOOL_F);
   if (scm_is_false (keyword))
     {
       SCM_NEWSMOB (keyword, scm_tc16_keyword, SCM_UNPACK (symbol));
-      scm_hashq_set_x (scm_keyword_obarray, symbol, keyword);
+      scm_hashq_set_x (keyword_obarray, symbol, keyword);
     }
   SCM_CRITICAL_SECTION_END;
   return keyword;
@@ -115,10 +117,9 @@ void
 scm_init_keywords ()
 {
   scm_tc16_keyword = scm_make_smob_type ("keyword", 0);
-  scm_set_smob_mark (scm_tc16_keyword, scm_markcdr);
   scm_set_smob_print (scm_tc16_keyword, keyword_print);
 
-  scm_keyword_obarray = scm_c_make_hash_table (0);
+  keyword_obarray = scm_c_make_hash_table (0);
 #include "libguile/keywords.x"
 }
 

@@ -47,10 +47,15 @@ typedef scm_t_int32 scm_t_wchar;
    ? SCM_MAKE_ITAG8 ((scm_t_bits) (unsigned char) (x), scm_tc8_char)    \
    : SCM_MAKE_ITAG8 ((scm_t_bits) (x), scm_tc8_char))
 
+#define SCM_CODEPOINT_DOTTED_CIRCLE (0x25cc)
+#define SCM_CODEPOINT_SURROGATE_START (0xd800)
+#define SCM_CODEPOINT_SURROGATE_END (0xdfff)
 #define SCM_CODEPOINT_MAX (0x10ffff)
 #define SCM_IS_UNICODE_CHAR(c)                                          \
-  ((scm_t_wchar) (c) <= 0xd7ff                                          \
-   || ((scm_t_wchar) (c) >= 0xe000 && (scm_t_wchar) (c) <= SCM_CODEPOINT_MAX))
+  (((scm_t_wchar) (c) >= 0                                              \
+    && (scm_t_wchar) (c) < SCM_CODEPOINT_SURROGATE_START)               \
+   || ((scm_t_wchar) (c) > SCM_CODEPOINT_SURROGATE_END                  \
+       && (scm_t_wchar) (c) <= SCM_CODEPOINT_MAX))
 
 
 

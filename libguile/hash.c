@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -169,8 +169,8 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       else return 1;
     case scm_tc7_port:
       return ((SCM_RDNG & SCM_CELL_WORD_0 (obj)) ? 260 : 261) % n;
-    case scm_tcs_closures: 
-    case scm_tcs_subrs:
+      /* case scm_tcs_closures: */
+    case scm_tc7_gsubr:
       return 262 % n;
     }
   }

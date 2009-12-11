@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -66,14 +66,13 @@
 	   slot-exists-using-class? slot-ref slot-set! slot-bound?
 	   class-name class-direct-supers class-direct-subclasses
 	   class-direct-methods class-direct-slots class-precedence-list
-	   class-slots class-environment
+	   class-slots
 	   generic-function-name
 	   generic-function-methods method-generic-function
 	   method-specializers method-formals
 	   primitive-generic-generic enable-primitive-generic!
 	   method-procedure accessor-method-slot-definition
 	   slot-exists? make find-method get-keyword)
-  :replace (<class> <operator-class> <entity-class> <entity>)
   :no-backtrace)
 
 (define *goops-module* (current-module))
@@ -81,6 +80,16 @@
 ;; First initialize the builtin part of GOOPS
 (eval-when (eval load compile)
   (%init-goops-builtins))
+
+(eval-when (eval load compile)
+  (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
+  (add-interesting-primitive! 'class-of)
+  (define (@slot-ref o n)
+    (struct-ref o n))
+  (define (@slot-set! o n v)
+    (struct-set! o n v))
+  (add-interesting-primitive! '@slot-ref)
+  (add-interesting-primitive! '@slot-set!))
 
 ;; Then load the rest of GOOPS
 (use-modules (oop goops util)
@@ -124,7 +133,7 @@
 	      (set! table-of-metas (cons (cons meta-supers new) table-of-metas))
 	      new))))))
 
-(define (ensure-metaclass supers env)
+(define (ensure-metaclass supers)
   (if (null? supers)
       <class>
       (let* ((all-metas (map (lambda (x) (class-of x)) supers))
@@ -170,36 +179,33 @@
     (mapper f k a)))
 
 (define (make-class supers slots . options)
-  (let ((env (or (get-keyword #:environment options #f)
-		 (top-level-env))))
-    (let* ((name (get-keyword #:name options (make-unbound)))
-	   (supers (if (not (or-map (lambda (class)
-				      (memq <object>
-					    (class-precedence-list class)))
-				    supers))
-		       (append supers (list <object>))
-		       supers))
-	   (metaclass (or (get-keyword #:metaclass options #f)
-			  (ensure-metaclass supers env))))
+  (let* ((name (get-keyword #:name options (make-unbound)))
+         (supers (if (not (or-map (lambda (class)
+                                    (memq <object>
+                                          (class-precedence-list class)))
+                                  supers))
+                     (append supers (list <object>))
+                     supers))
+         (metaclass (or (get-keyword #:metaclass options #f)
+                        (ensure-metaclass supers))))
 
-      ;; Verify that all direct slots are different and that we don't inherit
-      ;; several time from the same class
-      (let ((tmp1 (find-duplicate supers))
-	    (tmp2 (find-duplicate (map slot-definition-name slots))))
-	(if tmp1
-	    (goops-error "make-class: super class ~S is duplicate in class ~S"
-			 tmp1 name))
-	(if tmp2
-	    (goops-error "make-class: slot ~S is duplicate in class ~S"
-			 tmp2 name)))
+    ;; Verify that all direct slots are different and that we don't inherit
+    ;; several time from the same class
+    (let ((tmp1 (find-duplicate supers))
+          (tmp2 (find-duplicate (map slot-definition-name slots))))
+      (if tmp1
+          (goops-error "make-class: super class ~S is duplicate in class ~S"
+                       tmp1 name))
+      (if tmp2
+          (goops-error "make-class: slot ~S is duplicate in class ~S"
+                       tmp2 name)))
 
-      ;; Everything seems correct, build the class
-      (apply make metaclass
-	     #:dsupers supers
-	     #:slots slots 
-	     #:name name
-	     #:environment env
-	     options))))
+    ;; Everything seems correct, build the class
+    (apply make metaclass
+           #:dsupers supers
+           #:slots slots 
+           #:name name
+           options)))
 
 ;;; (class (SUPER ...) SLOT-DEFINITION ... OPTION ...)
 ;;;
@@ -226,8 +232,7 @@
      slots))
   (if (not (list? supers))
       (goops-error "malformed superclass list: ~S" supers))
-  (let ((slot-defs (cons #f '()))
-        (slots (take-while (lambda (x) (not (keyword? x))) slots))
+  (let ((slots (take-while (lambda (x) (not (keyword? x))) slots))
         (options (or (find-tail keyword? slots) '())))
     `(make-class
       ;; evaluate super class variables
@@ -700,6 +705,10 @@
 (define (slot-init-function class slot-name)
   (cadr (assq slot-name (slot-ref class 'getters-n-setters))))
 
+(define (accessor-method-slot-definition obj)
+  "Return the slot definition of the accessor @var{obj}."
+  (slot-ref obj 'slot-definition))
+
 
 ;;;
 ;;; {Standard methods used by the C runtime}
@@ -708,8 +717,15 @@
 ;;; Methods to compare objects
 ;;;
 
-(define-method (eqv? x y) #f)
-(define-method (equal? x y) (eqv? x y))
+;; Have to do this in a strange order because equal? is used in the
+;; add-method! implementation; we need to make sure that when the
+;; primitive is extended, that the generic has a method. =
+(define g-equal? (make-generic 'equal?))
+;; When this generic gets called, we will have already checked eq? and
+;; eqv? -- the purpose of this generic is to extend equality. So by
+;; default, there is no extension, thus the #f return.
+(add-method! g-equal? (method (x y) #f)) 
+(set-primitive-generic! equal? g-equal?)
 
 ;;;
 ;;; methods to display/write an object
@@ -735,17 +751,6 @@
     (if (slot-bound? class 'name)
 	(begin
 	  (display "#<" file)
-	  (display (class-name class) file)
-	  (display #\space file)
-	  (display-address o file)
-	  (display #\> file))
-	(next-method))))
-
-(define-method (write (o <foreign-object>) file)
-  (let ((class (class-of o)))
-    (if (slot-bound? class 'name)
-	(begin
-	  (display "#<foreign-object " file)
 	  (display (class-name class) file)
 	  (display #\space file)
 	  (display-address o file)
@@ -1062,7 +1067,6 @@
 		      (make-class (class-direct-supers c)
 				  (class-direct-slots c)
 				  #:name (class-name c)
-				  #:environment (slot-ref c 'environment)
 				  #:metaclass (class-of c))))
 
 ;;;
@@ -1071,11 +1075,10 @@
 
 ;;; compute-slot-accessors
 ;;;
-(define (compute-slot-accessors class slots env)
+(define (compute-slot-accessors class slots)
   (for-each
       (lambda (s g-n-s)
-	(let ((name            (slot-definition-name     s))
-	      (getter-function (slot-definition-getter   s))
+	(let ((getter-function (slot-definition-getter   s))
 	      (setter-function (slot-definition-setter   s))
 	      (accessor        (slot-definition-accessor s)))
 	  (if getter-function
@@ -1115,22 +1118,10 @@
 	  #:slot-definition slotdef)))
 
 (define (make-generic-bound-check-getter proc)
-  (let ((source (and (closure? proc) (procedure-source proc))))
-    (if (and source (null? (cdddr source)))
-	(let ((obj (caadr source)))
-	  ;; smart closure compilation
-	  (local-eval
-	   `(lambda (,obj) (,assert-bound ,(caddr source) ,obj))
-	   (procedure-environment proc)))
-	(lambda (o) (assert-bound (proc o) o)))))
+  (lambda (o) (assert-bound (proc o) o)))
 
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
-
-(eval-when (compile)
-  (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
-  (add-interesting-primitive! '@slot-ref)
-  (add-interesting-primitive! '@slot-set!))
 
 (eval-when (eval load compile)
   (define num-standard-pre-cache 20))
@@ -1159,7 +1150,7 @@
 (define-standard-accessor-method ((bound-check-get n) o)
   (let ((x (@slot-ref o n)))
     (if (unbound? x)
-        (slot-unbound obj)
+        (slot-unbound o)
         x)))
 
 (define-standard-accessor-method ((standard-get n) o)
@@ -1170,19 +1161,15 @@
 
 ;;; compute-getters-n-setters
 ;;;
-(define (make-thunk thunk)
-  (lambda () (thunk)))
-
-(define (compute-getters-n-setters class slots env)
+(define (compute-getters-n-setters class slots)
 
   (define (compute-slot-init-function name s)
     (or (let ((thunk (slot-definition-init-thunk s)))
 	  (and thunk
-	       (cond ((not (thunk? thunk))
-		      (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
-				   name class thunk))
-		     ((closure? thunk) thunk)
-		     (else (make-thunk thunk)))))
+	       (if (thunk? thunk)
+                   thunk
+                   (goops-error "Bad init-thunk for slot `~S' in ~S: ~S"
+                                name class thunk))))
 	(let ((init (slot-definition-init-value s)))
 	  (and (not (unbound? init))
 	       (lambda () init)))))
@@ -1195,18 +1182,11 @@
 	  (else
 	   (let ((get (car l)) 
 		 (set (cadr l)))
-             ;; note that we allow non-closures; we only check arity on
-             ;; the closures, though, because we inline their dispatch
-             ;; in %get-slot-value / %set-slot-value.
-	     (if (or (not (procedure? get))
-                     (and (closure? get)
-                          (not (= (car (procedure-property get 'arity)) 1))))
-		 (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
+	     (if (not (procedure? get))
+                 (goops-error "Bad getter closure for slot `~S' in ~S: ~S"
 			      slot class get))
-	     (if (or (not (procedure? set))
-                     (and (closure? set)
-                          (not (= (car (procedure-property set 'arity)) 2))))
-		 (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
+	     (if (not (procedure? set))
+                 (goops-error "Bad setter closure for slot `~S' in ~S: ~S"
 			      slot class set))))))
 
   (map (lambda (s)
@@ -1412,8 +1392,7 @@
     ((#:virtual) ;; No allocation
      ;; slot-ref and slot-set! function must be given by the user
      (let ((get (get-keyword #:slot-ref  (slot-definition-options s) #f))
-	   (set (get-keyword #:slot-set! (slot-definition-options s) #f))
-	   (env (class-environment class)))
+	   (set (get-keyword #:slot-set! (slot-definition-options s) #f)))
        (if (not (and get set))
 	   (goops-error "You must supply a #:slot-ref and a #:slot-set! in ~S"
 			s))
@@ -1441,9 +1420,7 @@
 (define-method (initialize (class <class>) initargs)
   (next-method)
   (let ((dslots (get-keyword #:slots initargs '()))
-	(supers (get-keyword #:dsupers	  initargs '()))
-	(env    (get-keyword #:environment initargs (top-level-env))))
-
+	(supers (get-keyword #:dsupers	  initargs '())))
     (slot-set! class 'name	  	(get-keyword #:name initargs '???))
     (slot-set! class 'direct-supers 	supers)
     (slot-set! class 'direct-slots  	dslots)
@@ -1451,15 +1428,13 @@
     (slot-set! class 'direct-methods    '())
     (slot-set! class 'cpl		(compute-cpl class))
     (slot-set! class 'redefined		#f)
-    (slot-set! class 'environment	env)
     (let ((slots (compute-slots class)))
       (slot-set! class 'slots	  	  slots)
       (slot-set! class 'nfields	  	  0)
       (slot-set! class 'getters-n-setters (compute-getters-n-setters class 
-								     slots 
-								     env))
+								     slots))
       ;; Build getters - setters - accessors
-      (compute-slot-accessors class slots env))
+      (compute-slot-accessors class slots))
 
     ;; Update the "direct-subclasses" of each inherited classes
     (for-each (lambda (x)
@@ -1470,38 +1445,22 @@
 
     ;; Support for the underlying structs:
     
-    ;; Inherit class flags (invisible on scheme level) from supers
-    (%inherit-magic! class supers)
-
     ;; Set the layout slot
-    (%prep-layout! class)))
+    (%prep-layout! class)
+    ;; Inherit class flags (invisible on scheme level) from supers
+    (%inherit-magic! class supers)))
 
 (define (initialize-object-procedure object initargs)
   (let ((proc (get-keyword #:procedure initargs #f)))
     (cond ((not proc))
 	  ((pair? proc)
 	   (apply set-object-procedure! object proc))
-	  ((valid-object-procedure? proc)
-	   (set-object-procedure! object proc))
 	  (else
-	   (set-object-procedure! object
-				  (lambda args (apply proc args)))))))
+           (set-object-procedure! object proc)))))
 
-(define-method (initialize (class <operator-class>) initargs)
+(define-method (initialize (applicable-struct <applicable-struct>) initargs)
   (next-method)
-  (initialize-object-procedure class initargs))
-
-(define-method (initialize (owsc <operator-with-setter-class>) initargs)
-  (next-method)
-  (%set-object-setter! owsc (get-keyword #:setter initargs #f)))
-
-(define-method (initialize (entity <entity>) initargs)
-  (next-method)
-  (initialize-object-procedure entity initargs))
-
-(define-method (initialize (ews <entity-with-setter>) initargs)
-  (next-method)
-  (%set-object-setter! ews (get-keyword #:setter initargs #f)))
+  (initialize-object-procedure applicable-struct initargs))
 
 (define-method (initialize (generic <generic>) initargs)
   (let ((previous-definition (get-keyword #:default initargs #f))
@@ -1515,6 +1474,10 @@
 	(set-procedure-property! generic 'name name))
     ))
 
+(define-method (initialize (gws <generic-with-setter>) initargs)
+  (next-method)
+  (%set-object-setter! gws (get-keyword #:setter initargs #f)))
+
 (define-method (initialize (eg <extended-generic>) initargs)
   (next-method)
   (slot-set! eg 'extends (get-keyword #:extends initargs '())))
@@ -1527,13 +1490,10 @@
   (slot-set! method 'specializers (get-keyword #:specializers initargs '()))
   (slot-set! method 'procedure
 	     (get-keyword #:procedure initargs #f))
-  (slot-set! method 'code-table '())
   (slot-set! method 'formals (get-keyword #:formals initargs '()))
   (slot-set! method 'body (get-keyword #:body initargs '()))
   (slot-set! method 'make-procedure (get-keyword #:make-procedure initargs #f)))
              
-
-(define-method (initialize (obj <foreign-object>) initargs))
 
 ;;;
 ;;; {Change-class}

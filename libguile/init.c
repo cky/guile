@@ -49,9 +49,6 @@
 #include "libguile/deprecation.h"
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
-#if 0
-#include "libguile/environments.h"
-#endif
 #include "libguile/eq.h"
 #include "libguile/error.h"
 #include "libguile/eval.h"
@@ -60,7 +57,6 @@
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
-#include "libguile/futures.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"
@@ -71,6 +67,7 @@
 #include "libguile/hashtab.h"
 #include "libguile/hooks.h"
 #include "libguile/gettext.h"
+#include "libguile/i18n.h"
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
@@ -79,10 +76,10 @@
 #include "libguile/load.h"
 #include "libguile/macros.h"
 #include "libguile/mallocs.h"
+#include "libguile/memoize.h"
 #include "libguile/modules.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
-#include "libguile/objects.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
 #include "libguile/pairs.h"
@@ -94,6 +91,7 @@
 #include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
+#include "libguile/promises.h"
 #include "libguile/properties.h"
 #include "libguile/array-map.h"
 #include "libguile/random.h"
@@ -119,6 +117,7 @@
 #include "libguile/symbols.h"
 #include "libguile/throw.h"
 #include "libguile/arrays.h"
+#include "libguile/trees.h"
 #include "libguile/values.h"
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
@@ -436,81 +435,69 @@ scm_i_init_guile (SCM_STACKITEM *base)
     }
 
   scm_storage_prehistory ();
-  scm_threads_prehistory (base);
-  scm_ports_prehistory ();
-  scm_smob_prehistory ();
-  scm_fluids_prehistory ();
-  scm_hashtab_prehistory ();	/* requires storage_prehistory */
+  scm_threads_prehistory (base);  /* requires storage_prehistory */
+  scm_weaks_prehistory ();        /* requires storage_prehistory */
 #ifdef GUILE_DEBUG_MALLOC
   scm_debug_malloc_prehistory ();
 #endif
-  if (scm_init_storage ())        /* requires threads_prehistory,
-				     smob_prehistory and
-				     hashtab_prehistory */
-    abort ();
-  
-  scm_struct_prehistory ();	  /* requires storage */
-  scm_symbols_prehistory ();      /* requires storage */
-#if 0
-  scm_environments_prehistory (); /* requires storage */
-#endif
-  scm_modules_prehistory ();      /* requires storage and hash tables */
-  scm_init_variable ();           /* all bindings need variables */
-  scm_init_continuations ();
+  scm_symbols_prehistory ();      /* requires weaks_prehistory */
+  scm_modules_prehistory ();
+  scm_init_array_handle ();
+  scm_init_generalized_arrays ();
+  scm_init_generalized_vectors ();
+  scm_init_strings ();            /* Requires array-handle, generalized-vectors */
+  scm_init_struct ();             /* Requires strings */
+  scm_smob_prehistory ();
+  scm_init_variable ();
+  scm_init_continuations ();      /* requires smob_prehistory */
   scm_init_root ();		  /* requires continuations */
-  scm_init_threads ();            /* requires fluids */
+  scm_init_threads ();            /* requires smob_prehistory */
   scm_init_gsubr ();
   scm_init_thread_procs ();       /* requires gsubrs */
   scm_init_procprop ();
-#if 0
-  scm_init_environments ();
-#endif
   scm_init_alist ();
-  scm_init_arbiters ();
-  scm_init_async ();
+  scm_init_arbiters ();           /* requires smob_prehistory */
+  scm_init_async ();              /* requires smob_prehistory */
   scm_init_boolean ();
   scm_init_chars ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_init_debug_malloc ();
 #endif
-  scm_init_dynwind ();
+  scm_init_dynwind ();            /* requires smob_prehistory */
   scm_init_eq ();
   scm_init_error ();
-#if 0
-  /* See futures.h for a comment why futures are not enabled.
-   */
-  scm_init_futures ();
-#endif
   scm_init_fluids ();
-  scm_init_feature ();          /* Requires fluids */
-  scm_init_backtrace ();	/* Requires fluids */
+  scm_init_feature ();
+  scm_init_backtrace ();
   scm_init_fports ();
   scm_init_strports ();
   scm_init_ports ();
-  scm_init_gdbint ();           /* Requires strports */
   scm_init_hash ();
   scm_init_hashtab ();
-  scm_init_deprecation ();      /* Requires hashtabs */
+  scm_init_deprecation ();
   scm_init_objprop ();
+  scm_init_promises ();         /* requires smob_prehistory */
   scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
-  scm_init_gc ();		/* Requires hooks, async */
+  scm_init_gc ();		/* Requires hooks */
+  scm_init_gc_protect_object ();  /* requires threads_prehistory */
+  scm_init_gdbint ();           /* Requires strports, gc_protect_object */
   scm_init_gettext ();
   scm_init_ioext ();
-  scm_init_keywords ();
+  scm_init_keywords ();    /* Requires smob_prehistory */
   scm_init_list ();
-  scm_init_macros ();
-  scm_init_mallocs ();
-  scm_init_modules ();
+  scm_init_macros ();      /* Requires smob_prehistory */
+  scm_init_mallocs ();     /* Requires smob_prehistory */
+  scm_init_modules ();     /* Requires smob_prehistory */
   scm_init_numbers ();
   scm_init_options ();
   scm_init_pairs ();
 #ifdef HAVE_POSIX
-  scm_init_filesys ();
+  scm_init_filesys ();     /* Requires smob_prehistory */
   scm_init_posix ();
 #endif
 #ifdef HAVE_REGCOMP
-  scm_init_regex_posix ();
+  scm_init_regex_posix (); /* Requires smob_prehistory */
 #endif
   scm_init_procs ();
   scm_init_scmsigs ();
@@ -519,46 +506,47 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_socket ();
 #endif
   scm_init_sort ();
-  scm_init_srcprop ();
+  scm_init_srcprop ();     /* requires smob_prehistory */
   scm_init_stackchk ();
 
-  scm_init_array_handle ();
-  scm_init_generalized_arrays ();
-  scm_init_generalized_vectors ();
-  scm_init_vectors ();
+  scm_init_vectors ();  /* Requires array-handle, generalized-vectors */
   scm_init_uniform ();
-  scm_init_bitvectors ();
-  scm_bootstrap_bytevectors ();
-  scm_init_srfi_4 ();
-  scm_init_arrays ();
+  scm_init_bitvectors ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
+  scm_bootstrap_bytevectors ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
+  scm_init_srfi_4 ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
+  scm_init_arrays ();    /* Requires smob_prehistory, array-handle */
   scm_init_array_map ();
 
-  scm_init_strings ();  /* Requires array-handle */
-  scm_init_struct ();   /* Requires strings */
-  scm_init_stacks ();   /* Requires strings, struct */
+  scm_bootstrap_vm ();  /* requires smob_prehistory, gc_permanent_object */
+
+  scm_init_frames ();   /* Requires smob_prehistory */
+  scm_init_stacks ();   /* Requires strings, struct, frames */
   scm_init_symbols ();
   scm_init_values ();   /* Requires struct */
   scm_init_load ();     /* Requires strings */
-  scm_init_objects ();	/* Requires struct */
-  scm_init_print ();	/* Requires strings, struct */
+  scm_init_print ();	/* Requires strings, struct, smob */
   scm_init_read ();
   scm_init_stime ();
   scm_init_strorder ();
   scm_init_srfi_13 ();
-  scm_init_srfi_14 ();
-  scm_init_throw ();
+  scm_init_srfi_14 ();  /* Requires smob_prehistory */
+  scm_init_throw ();    /* Requires smob_prehistory */
+  scm_init_trees ();
   scm_init_version ();
   scm_init_weaks ();
-  scm_init_guardians ();
+  scm_init_guardians (); /* requires smob_prehistory */
   scm_init_vports ();
-  scm_init_eval ();
+  scm_init_standard_ports ();  /* Requires fports */
+  scm_init_memoize ();  /* Requires smob_prehistory */
+  scm_init_eval ();     /* Requires smob_prehistory */
+  scm_init_load_path ();
+  scm_init_eval_in_scheme ();
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
-  scm_init_random ();
+  scm_init_random ();   /* Requires smob_prehistory */
   scm_init_simpos ();
-  scm_init_load_path ();
-  scm_init_standard_ports ();  /* Requires fports */
-  scm_init_dynamic_linking ();
+  scm_init_dynamic_linking (); /* Requires smob_prehistory */
+  scm_bootstrap_i18n ();
 #if SCM_ENABLE_ELISP
   scm_init_lang ();
 #endif /* SCM_ENABLE_ELISP */
@@ -585,8 +573,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_rdelim ();
   scm_init_rw ();
   scm_init_extensions ();
-
-  scm_bootstrap_vm ();
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();

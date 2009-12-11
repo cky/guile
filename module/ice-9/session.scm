@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -112,7 +112,8 @@ You don't seem to have regular expressions installed.\n")
                   (= (length name) 2)
                   (eq? (car name) 'unquote))
              (let ((doc (try-value-help (cadr name)
-                                        (local-eval (cadr name) env))))
+                                        (module-ref (current-module)
+                                                    (cadr name)))))
                (cond ((not doc) (not-found 'documentation (cadr name)))
                      ((eq? doc #t)) ;; pass
                      (else (write-line doc)))))
@@ -162,10 +163,8 @@ You don't seem to have regular expressions installed.\n")
 				 (cons (list module
 					     name
 					     (try-value-help name object)
-					     (cond ((closure? object)
+					     (cond ((procedure? object)
 						    "a procedure")
-						   ((procedure? object)
-						    "a primitive procedure")
 						   (else
 						    "an object")))
 				       data))
@@ -497,17 +496,7 @@ It is an image under the mapping EXTRACT."
 	       (= (car arity) 1)
 	       (<= (cadr arity) 1))
 	  (display " argument")
-	  (display " arguments"))
-      (if (closure? obj)
-	  (let ((formals (cadr (procedure-source obj))))
-	    (cond
-	     ((pair? formals)
-	      (display ": ")
-	      (display-arg-list formals))
-	     (else
-	      (display " in `")
-	      (display formals)
-	      (display #\'))))))))
+	  (display " arguments")))))
   (display ".\n"))
 
 

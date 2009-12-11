@@ -1708,7 +1708,7 @@ facilities just described.
 A good way to explore in detail what a Scheme procedure does is to set
 a trap on it and then single step through what it does.  To do this,
 make and install a @code{<procedure-trap>} with the @code{debug-trap}
-behaviour from @code{(ice-9 debugging ice-9-debugger-extensions)}.
+behaviour from @code{(ice-9 debugger)}.
 
 The following sample session illustrates this.  It assumes that the
 file @file{matrix.scm} defines a procedure @code{mkmatrix}, which is
@@ -1718,7 +1718,6 @@ calls @code{mkmatrix}.
 @lisp
 $ /usr/bin/guile -q
 guile> (use-modules (ice-9 debugger)
-                    (ice-9 debugging ice-9-debugger-extensions)
                     (ice-9 debugging traps))
 guile> (load "matrix.scm")
 guile> (install-trap (make <procedure-trap>
@@ -1758,10 +1757,9 @@ guile>
 
 Or you can use Guile's Emacs interface (GDS), by using the module
 @code{(ice-9 gds-client)} instead of @code{(ice-9 debugger)} and
-@code{(ice-9 debugging ice-9-debugger-extensions)}, and changing
-@code{debug-trap} to @code{gds-debug-trap}.  Then the stack and
-corresponding source locations are displayed in Emacs instead of on
-the Guile command line.
+changing @code{debug-trap} to @code{gds-debug-trap}.  Then the stack and
+corresponding source locations are displayed in Emacs instead of on the
+Guile command line.
 
 
 @node Profiling or Tracing a Procedure's Code

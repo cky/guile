@@ -1,7 +1,7 @@
 ;;;; srfi-35.test --- Test suite for SRFI-35               -*- Scheme -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,11 @@
     (condition-type? &condition))
 
   (pass-if "make-condition-type"
-    (condition-type? (make-condition-type 'foo &condition '(a b)))))
+    (condition-type? (make-condition-type 'foo &condition '(a b))))
+
+  (pass-if "struct-vtable-name"
+    (let ((ct  (make-condition-type 'chbouib &condition '(a b))))
+      (eq? 'chbouib (struct-vtable-name ct)))))
 
 
 

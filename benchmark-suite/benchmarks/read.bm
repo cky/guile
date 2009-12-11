@@ -49,14 +49,14 @@
   (benchmark "_IONBF" 5  ;; this one is very slow
     (exercise-read (list _IONBF)))
 
-  (benchmark "_IOLBF" 100
+  (benchmark "_IOLBF" 10
     (exercise-read (list _IOLBF)))
 
-  (benchmark "_IOFBF 4096" 100
+  (benchmark "_IOFBF 4096" 10
     (exercise-read (list _IOFBF 4096)))
 
-  (benchmark "_IOFBF 8192" 100
+  (benchmark "_IOFBF 8192" 10
     (exercise-read (list _IOFBF 8192)))
 
-  (benchmark "_IOFBF 16384" 100
+  (benchmark "_IOFBF 16384" 10
     (exercise-read (list _IOFBF 16384))))

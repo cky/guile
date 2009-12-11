@@ -26,12 +26,14 @@
 
 /* R6RS bytevectors.  */
 
+/* The size in words of the bytevector header (type tag and flags, length,
+   and pointer to the underlying buffer).  */
+#define SCM_BYTEVECTOR_HEADER_SIZE   3U
+
 #define SCM_BYTEVECTOR_LENGTH(_bv)		\
-  ((size_t) SCM_SMOB_DATA (_bv))
+  ((size_t) SCM_CELL_WORD_1 (_bv))
 #define SCM_BYTEVECTOR_CONTENTS(_bv)		\
-  (SCM_BYTEVECTOR_INLINE_P (_bv)			\
-   ? (signed char *) SCM_SMOB_OBJECT_2_LOC (_bv)	\
-   : (signed char *) SCM_SMOB_DATA_2 (_bv))
+  ((signed char *) SCM_CELL_WORD_2 (_bv))
 
 
 SCM_API SCM scm_endianness_big;
@@ -112,38 +114,31 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
 
 /* Internal API.  */
 
-/* The threshold (in octets) under which bytevectors are stored "in-line",
-   i.e., without allocating memory beside the SMOB itself (a double cell).
-   This optimization is necessary since small bytevectors are expected to be
-   common.  */
-#define SCM_BYTEVECTOR_P(_bv)                   \
-  SCM_SMOB_PREDICATE (scm_tc16_bytevector, _bv)
-#define SCM_F_BYTEVECTOR_INLINE 0x1
-#define SCM_BYTEVECTOR_INLINE_P(_bv)            \
-  (SCM_SMOB_FLAGS (_bv) & SCM_F_BYTEVECTOR_INLINE)
+#define SCM_BYTEVECTOR_P(x)				\
+  (!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_bytevector)
+#define SCM_BYTEVECTOR_FLAGS(_bv)		\
+  (SCM_CELL_TYPE (_bv) >> 7UL)
+#define SCM_SET_BYTEVECTOR_FLAGS(_bv, _f)				\
+  SCM_SET_CELL_TYPE ((_bv),						\
+		     scm_tc7_bytevector | ((scm_t_bits)(_f) << 7UL))
+
 #define SCM_BYTEVECTOR_ELEMENT_TYPE(_bv)	\
-  (SCM_SMOB_FLAGS (_bv) >> 8)
+  (SCM_BYTEVECTOR_FLAGS (_bv) & 0xffUL)
+#define SCM_BYTEVECTOR_CONTIGUOUS_P(_bv)	\
+  (SCM_BYTEVECTOR_FLAGS (_bv) >> 8UL)
 
 /* Hint that is passed to `scm_gc_malloc ()' and friends.  */
 #define SCM_GC_BYTEVECTOR "bytevector"
 
-SCM_INTERNAL SCM scm_i_make_typed_bytevector (size_t, scm_t_array_element_type);
-SCM_INTERNAL SCM scm_c_take_typed_bytevector (signed char *, size_t,
-                                              scm_t_array_element_type);
-
 SCM_INTERNAL void scm_bootstrap_bytevectors (void);
 SCM_INTERNAL void scm_init_bytevectors (void);
 
-SCM_INTERNAL scm_t_bits scm_tc16_bytevector;
 SCM_INTERNAL SCM scm_i_native_endianness;
 SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, size_t);
 
-#define scm_c_shrink_bytevector(_bv, _len)		\
-  (SCM_BYTEVECTOR_INLINE_P (_bv)			\
-   ? (_bv)						\
-   : scm_i_shrink_bytevector ((_bv), (_len)))
+SCM_INTERNAL int scm_i_print_bytevector (SCM, SCM, scm_print_state *);
 
-SCM_INTERNAL SCM scm_i_shrink_bytevector (SCM, size_t);
+SCM_INTERNAL SCM scm_c_shrink_bytevector (SCM, size_t);
 SCM_INTERNAL void scm_i_bytevector_generalized_set_x (SCM, size_t, SCM);
 SCM_INTERNAL SCM scm_null_bytevector;
 

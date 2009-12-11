@@ -39,6 +39,9 @@
 #  include <config.h>
 #endif
 
+/* The size of `scm_t_bits'.  */
+#define SIZEOF_SCM_T_BITS SIZEOF_VOID_P
+
 /* Undefine HAVE_STRUCT_TIMESPEC, because the libguile C code doesn't
    need it anymore, and because on MinGW:
 
@@ -79,6 +82,7 @@
 #include "libguile/variable.h"
 #include "libguile/modules.h"
 #include "libguile/inline.h"
+#include "libguile/strings.h"
 
 #ifndef SCM_SYSCALL
 #ifdef vms
@@ -172,7 +176,7 @@
 
 /* Major and minor versions must be single characters. */
 #define SCM_OBJCODE_MAJOR_VERSION 0
-#define SCM_OBJCODE_MINOR_VERSION D
+#define SCM_OBJCODE_MINOR_VERSION M
 #define SCM_OBJCODE_MAJOR_VERSION_STRING        \
   SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
 #define SCM_OBJCODE_MINOR_VERSION_STRING        \

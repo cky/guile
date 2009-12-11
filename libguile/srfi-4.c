@@ -28,6 +28,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
+#include "libguile/bdw-gc.h"
 #include "libguile/srfi-4.h"
 #include "libguile/bitvectors.h"
 #include "libguile/bytevectors.h"
@@ -64,9 +65,9 @@ int scm_tc16_uvec = 0;
    - The vector's length (counted in elements).
    - The address of the data area (holding the elements of the
      vector). */
-#define SCM_UVEC_TYPE(u)   (SCM_CELL_WORD_1(u))
-#define SCM_UVEC_LENGTH(u) ((size_t)SCM_CELL_WORD_2(u))
-#define SCM_UVEC_BASE(u)   ((void *)SCM_CELL_WORD_3(u))
+#define SCM_UVEC_TYPE(u)   (SCM_SMOB_DATA_1(u))
+#define SCM_UVEC_LENGTH(u) ((size_t)SCM_SMOB_DATA_2(u))
+#define SCM_UVEC_BASE(u)   ((void *)SCM_SMOB_DATA_3(u))
 
 
 /* Symbolic constants encoding the various types of uniform
@@ -250,34 +251,6 @@ uvec_equalp (SCM a, SCM b)
   return result;
 }
 
-/* Mark hook.  Only used when U64 and S64 are implemented as SCMs. */
-
-#if SCM_HAVE_T_INT64 == 0
-static SCM
-uvec_mark (SCM uvec)
-{
-  if (SCM_UVEC_TYPE (uvec) == SCM_UVEC_U64
-      || SCM_UVEC_TYPE (uvec) == SCM_UVEC_S64)
-    {
-      SCM *ptr = (SCM *)SCM_UVEC_BASE (uvec);
-      size_t len = SCM_UVEC_LENGTH (uvec), i;
-      for (i = 0; i < len; i++)
-	scm_gc_mark (*ptr++);
-    }
-  return SCM_BOOL_F;
-}
-#endif
-
-/* Smob free hook for uniform numeric vectors. */
-static size_t
-uvec_free (SCM uvec)
-{
-  int type = SCM_UVEC_TYPE (uvec);
-  scm_gc_free (SCM_UVEC_BASE (uvec),
-	       SCM_UVEC_LENGTH (uvec) * uvec_sizes[type],
-	       uvec_names[type]);
-  return 0;
-}
 
 /* ================================================================ */
 /* Utility procedures.                                              */
@@ -307,6 +280,14 @@ uvec_assert (int type, SCM obj)
 {
   if (!is_uvec (type, obj))
     scm_wrong_type_arg_msg (NULL, 0, obj, uvec_names[type]);
+}
+
+/* Invoke free(3) on DATA, a user-provided buffer passed to one of the
+   `scm_take_' functions.  */
+static void
+free_user_data (GC_PTR data, GC_PTR unused)
+{
+  free (data);
 }
 
 static SCM
@@ -902,7 +883,8 @@ uvec_get_handle (SCM v, scm_t_array_handle *h)
   h->elements = h->writable_elements = SCM_UVEC_BASE (v);
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_tc16_uvec, 0xffff,
+SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_uvec),
+                          SCM_SMOB_TYPE_MASK,
                           uvec_handle_ref, uvec_handle_set,
                           uvec_get_handle);
 
@@ -911,21 +893,13 @@ scm_init_srfi_4 (void)
 {
   scm_tc16_uvec = scm_make_smob_type ("uvec", 0);
   scm_set_smob_equalp (scm_tc16_uvec, uvec_equalp);
-#if SCM_HAVE_T_INT64 == 0
-  scm_set_smob_mark (scm_tc16_uvec, uvec_mark);
-#endif
-  scm_set_smob_free (scm_tc16_uvec, uvec_free);
   scm_set_smob_print (scm_tc16_uvec, uvec_print);
 
 #if SCM_HAVE_T_INT64 == 0
-  scm_uint64_min =
-    scm_permanent_object (scm_from_int (0));
-  scm_uint64_max =
-    scm_permanent_object (scm_c_read_string ("18446744073709551615"));
-  scm_int64_min =
-    scm_permanent_object (scm_c_read_string ("-9223372036854775808"));
-  scm_int64_max =
-    scm_permanent_object (scm_c_read_string ("9223372036854775807"));
+  scm_uint64_min = scm_from_int (0);
+  scm_uint64_max = scm_c_read_string ("18446744073709551615");
+  scm_int64_min = scm_c_read_string ("-9223372036854775808");
+  scm_int64_max = scm_c_read_string ("9223372036854775807");
 #endif
 
 #define REGISTER(tag, TAG)                                       \

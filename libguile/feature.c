@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -99,7 +99,7 @@ SCM_DEFINE (scm_set_program_arguments_scm, "set-program-arguments", 1, 0, 0,
 void
 scm_init_feature()
 {
-  progargs_fluid = scm_permanent_object (scm_make_fluid ());
+  progargs_fluid = scm_make_fluid ();
 
   features_var = scm_c_define ("*features*", SCM_EOL);
 #ifndef _Windows

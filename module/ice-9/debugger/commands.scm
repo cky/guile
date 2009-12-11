@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugger commands) -- debugger commands
 
-;;; Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2006, 2009 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
   #:use-module (ice-9 debugger)
   #:use-module (ice-9 debugger state)
   #:use-module (ice-9 debugger utils)
+  #:use-module (ice-9 debugging steps)
   #:export (backtrace
 	    evaluate
 	    info-args
@@ -28,7 +29,11 @@
 	    position
 	    up
 	    down
-	    frame))
+	    frame
+	    continue
+	    finish
+	    step
+	    next))
 
 (define (backtrace state n-frames)
   "Print backtrace of all stack frames, or innermost COUNT frames.
@@ -66,6 +71,7 @@ If the number of frames isn't explicitly given, the debug option
 		 (apply display-error stack (current-error-port) args)))))
   (throw 'continue))
 
+;; FIXME: no longer working due to no more local-eval
 (define (evaluate state expression)
   "Evaluate an expression in the environment of the selected stack frame.
 The expression must appear on the same line as the command, however it
@@ -150,5 +156,53 @@ With no argument, print the selected stack frame.  (See also \"info frame\").
 An argument specifies the frame to select; it must be a stack-frame number."
   (if n (set-stack-index! state (frame-number->index n (state-stack state))))
   (write-state-short state))
+
+(define (assert-continuable state)
+  ;; Check that debugger is in a state where `continuing' makes sense.
+  ;; If not, signal an error.
+  (or (memq #:continuable (state-flags state))
+      (user-error "This debug session is not continuable.")))
+
+(define (continue state)
+  "Tell the program being debugged to continue running.  (In fact this is
+the same as the @code{quit} command, because it exits the debugger
+command loop and so allows whatever code it was that invoked the
+debugger to continue.)"
+  (assert-continuable state)
+  (throw 'exit-debugger))
+
+(define (finish state)
+  "Continue until evaluation of the current frame is complete, and
+print the result obtained."
+  (assert-continuable state)
+  (at-exit (- (stack-length (state-stack state))
+	      (state-index state))
+	   (list trace-trap debug-trap))
+  (continue state))
+
+(define (step state n)
+  "Tell the debugged program to do @var{n} more steps from its current
+position.  One @dfn{step} means executing until the next frame entry
+or exit of any kind.  @var{n} defaults to 1."
+  (assert-continuable state)
+  (at-step debug-trap (or n 1))
+  (continue state))
+
+(define (next state n)
+  "Tell the debugged program to do @var{n} more steps from its current
+position, but only counting frame entries and exits where the
+corresponding source code comes from the same file as the current
+stack frame.  (See @ref{Step Traps} for the details of how this
+works.)  If the current stack frame has no source code, the effect of
+this command is the same as of @code{step}.  @var{n} defaults to 1."
+  (assert-continuable state)
+  (at-step debug-trap
+	   (or n 1)
+	   (frame-file-name (stack-ref (state-stack state)
+				       (state-index state)))
+	   (if (memq #:return (state-flags state))
+	       #f
+	       (- (stack-length (state-stack state)) (state-index state))))
+  (continue state))
 
 ;;; (ice-9 debugger commands) ends here.

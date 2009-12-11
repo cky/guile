@@ -51,7 +51,7 @@
         (equal? bar '(#t . #(#t)))))
 
     (pass-if-exception "circular lists in forms"
-      exception:bad-expression
+      exception:wrong-type-arg
       (let ((foo (list #f)))
         (set-cdr! foo foo)
         (copy-tree foo))))
@@ -157,7 +157,7 @@
   (with-test-prefix "scm_tc7_subr_2o"
 
     ;; prior to guile 1.6.9 and 1.8.1 this called the function with
-    ;; SCM_UNDEFIEND, which in the case of make-vector resulted in
+    ;; SCM_UNDEFINED, which in the case of make-vector resulted in
     ;; wrong-type-arg, instead of the intended wrong-num-args
     (pass-if-exception "0 args" exception:wrong-num-args
       (apply make-vector '()))
@@ -228,10 +228,10 @@
 
 (with-test-prefix "define set procedure-name"
 
-  (pass-if "closure"
+  (expect-fail "closure"
     (eq? 'foo-closure (procedure-name bar-closure)))
 
-  (pass-if "procedure-with-setter"
+  (expect-fail "procedure-with-setter"
     (eq? 'foo-pws (procedure-name bar-pws))))
 
 (if old-procnames-flag
@@ -343,6 +343,7 @@
       ;; The subr involving the error must appear exactly once on the stack.
       (catch 'result
         (lambda ()
+          (throw 'unresolved)
           (start-stack 'foo
             (lazy-catch 'wrong-type-arg
               (lambda ()
@@ -367,6 +368,7 @@
       ;; application.
       (catch 'result
         (lambda ()
+          (throw 'unresolved)
           (start-stack 'foo
             (lazy-catch 'wrong-type-arg
               (lambda ()
@@ -382,7 +384,31 @@
                                             hashq-ref)))
                                 frames)))))))
         (lambda (key result)
-          (= 1 result))))))
+          (= 1 result))))
+
+    (pass-if "arguments of a gsubr stack frame"
+      ;; Create a stack with two gsubr frames and make sure the arguments are
+      ;; correct.
+      (catch 'result
+        (lambda ()
+          (throw 'unresolved)
+          (start-stack 'foo
+            (lazy-catch 'wrong-type-arg
+              (lambda ()
+                ;; Trigger a `wrong-type-arg' exception.
+                (substring 'wrong 'type 'arg))
+              (lambda _
+                (let* ((stack  (make-stack #t))
+                       (frames (stack->frames stack)))
+                  (throw 'result
+                         (map (lambda (frame)
+                                (cons (frame-procedure frame)
+                                      (frame-arguments frame)))
+                              frames)))))))
+        (lambda (key result)
+          (and (equal? (car result) `(,make-stack #t))
+               (pair? (member `(,substring  wrong type arg)
+                              (cdr result)))))))))
 
 ;;;
 ;;; letrec init evaluation

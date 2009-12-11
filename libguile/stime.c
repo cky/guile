@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -423,8 +423,8 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
 
   result = filltime (&lt, zoff, zname);
   SCM_CRITICAL_SECTION_END;
-  if (zname)
-    free (zname);
+
+  free (zname);
   return result;
 }
 #undef FUNC_NAME
@@ -581,8 +581,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
 
   result = scm_cons (scm_from_long (itime),
 		     filltime (&lt, zoff, zname));
-  if (zname)
-    free (zname);
+  free (zname);
 
   scm_dynwind_end ();
   return result;

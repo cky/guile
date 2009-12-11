@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000,2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000,2001, 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -201,7 +201,6 @@ OBJECT can be a procedure, macro or any object that has its
       (and (macro? object)
            (object-documentation (macro-transformer object)))
       (and (procedure? object)
-	   (not (closure? object))
 	   (procedure-name object)
 	   (let ((docstring (search-documentation-files
                              (procedure-name object))))

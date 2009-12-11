@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -17,7 +17,6 @@
  */
 
 
-
 /* This is an implementation of guardians as described in
  * R. Kent Dybvig, Carl Bruggeman, and David Eby (1993) "Guardians in
  * a Generation-Based Garbage Collector" ACM SIGPLAN Conference on
@@ -38,7 +37,13 @@
  * Now they should again behave like those described in the paper.
  * Scheme guardians should be simple and friendly, not like the greedy
  * monsters we had...
+ *
+ * Rewritten for the Boehm-Demers-Weiser GC by Ludovic Courtès.
+ * FIXME: This is currently not thread-safe.
  */
+
+/* Uncomment the following line to debug guardian finalization.  */
+/* #define DEBUG_GUARDIANS 1 */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -57,150 +62,25 @@
 #include "libguile/eval.h"
 
 #include "libguile/guardians.h"
+#include "libguile/bdw-gc.h"
 
 
-/* The live and zombies FIFOs are implemented as tconcs as described
-   in Dybvig's paper.  This decouples addition and removal of elements
-   so that no synchronization between these needs to take place.
-*/
-
-typedef struct t_tconc
-{
-  SCM head;
-  SCM tail;
-} t_tconc;
-
-#define TCONC_EMPTYP(tc) (scm_is_eq ((tc).head, (tc).tail))
-
-#define TCONC_IN(tc, obj, pair) \
-do { \
-  SCM_SETCAR ((tc).tail, obj); \
-  SCM_SET_CELL_OBJECT_1 (pair, SCM_EOL); \
-  SCM_SET_CELL_OBJECT_0 (pair, SCM_BOOL_F); \
-  SCM_SETCDR ((tc).tail, pair); \
-  (tc).tail = pair; \
-} while (0)
-
-#define TCONC_OUT(tc, res) \
-do { \
-  (res) = SCM_CAR ((tc).head); \
-  (tc).head = SCM_CDR ((tc).head); \
-} while (0)
 
 
 static scm_t_bits tc16_guardian;
 
 typedef struct t_guardian
 {
-  t_tconc live;
-  t_tconc zombies;
+  unsigned long live;
+  SCM zombies;
   struct t_guardian *next;
 } t_guardian;
 
 #define GUARDIAN_P(x)    SCM_SMOB_PREDICATE(tc16_guardian, x)
-#define GUARDIAN_DATA(x) ((t_guardian *) SCM_CELL_WORD_1 (x))
+#define GUARDIAN_DATA(x) ((t_guardian *) SCM_SMOB_DATA_1 (x))
 
-static t_guardian *guardians;
 
-void
-scm_i_init_guardians_for_gc ()
-{
-  guardians = NULL;
-}
 
-/* mark a guardian by adding it to the live guardian list.  */
-static SCM
-guardian_mark (SCM ptr)
-{
-  t_guardian *g = GUARDIAN_DATA (ptr);
-  g->next = guardians;
-  guardians = g;
-
-  return SCM_BOOL_F;
-}
-
-/* Identify inaccessible objects and move them from the live list to
-   the zombie list.  An object is inaccessible when it is unmarked at
-   this point.  Therefore, the inaccessible objects are not marked yet
-   since that would prevent them from being recognized as
-   inaccessible.
-
-   The pairs that form the life list itself are marked, tho.
-*/
-void
-scm_i_identify_inaccessible_guardeds ()
-{
-  t_guardian *g;
-
-  for (g = guardians; g; g = g->next)
-    {
-      SCM pair, next_pair;
-      SCM *prev_ptr;
-
-      for (pair = g->live.head, prev_ptr = &g->live.head;
-	   !scm_is_eq (pair, g->live.tail);
-	   pair = next_pair)
-	{
-	  SCM obj = SCM_CAR (pair);
-	  next_pair = SCM_CDR (pair);
-	  if (!SCM_GC_MARK_P (obj))
-	    {
-	      /* Unmarked, move to 'inaccessible' list.
-	       */
-	      *prev_ptr = next_pair;
-	      TCONC_IN (g->zombies, obj, pair);
-	    }
-	  else
-	    {
-	      SCM_SET_GC_MARK (pair);
-	      prev_ptr = SCM_CDRLOC (pair);
-	    }
-	}
-      SCM_SET_GC_MARK (pair);
-    }
-}
-
-int
-scm_i_mark_inaccessible_guardeds ()
-{
-  t_guardian *g;
-  int again = 0;
-
-  /* We never need to see the guardians again that are processed here,
-     so we clear the list.  Calling scm_gc_mark below might find new
-     guardians, however (and other things), and we inform the GC about
-     this by returning non-zero.  See scm_mark_all in gc-mark.c
-  */
-
-  g = guardians;
-  guardians = NULL;
-
-  for (; g; g = g->next)
-    {
-      SCM pair;
-
-      for (pair = g->zombies.head;
-	   !scm_is_eq (pair, g->zombies.tail);
-	   pair = SCM_CDR (pair))
-	{
-	  if (!SCM_GC_MARK_P (pair))
-	    {
-	      scm_gc_mark (SCM_CAR (pair));
-	      SCM_SET_GC_MARK (pair);
-	      again = 1;
-	    }
-	}
-      SCM_SET_GC_MARK (pair);
-    }
-  return again;
-}
-
-static size_t
-guardian_free (SCM ptr)
-{
-  scm_gc_free (GUARDIAN_DATA (ptr), sizeof (t_guardian), "guardian");
-  return 0;
-}
 
 static int
 guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
@@ -211,9 +91,9 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_uintprint ((scm_t_bits) g, 16, port);
 
   scm_puts (" (reachable: ", port);
-  scm_display (scm_length (SCM_CDR (g->live.head)), port);
+  scm_display (scm_from_uint (g->live), port);
   scm_puts (" unreachable: ", port);
-  scm_display (scm_length (SCM_CDR (g->zombies.head)), port);
+  scm_display (scm_length (g->zombies), port);
   scm_puts (")", port);
 
   scm_puts (">", port);
@@ -221,16 +101,153 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
+/* Handle finalization of OBJ which is guarded by the guardians listed in
+   GUARDIAN_LIST.  */
+static void
+finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
+{
+  SCM cell_pool;
+  SCM obj, guardian_list, proxied_finalizer;
+
+  obj = PTR2SCM (ptr);
+  guardian_list = SCM_CDR (PTR2SCM (finalizer_data));
+  proxied_finalizer = SCM_CAR (PTR2SCM (finalizer_data));
+
+#ifdef DEBUG_GUARDIANS
+  printf ("finalizing guarded %p (%u guardians)\n",
+	  ptr, scm_to_uint (scm_length (guardian_list)));
+#endif
+
+  /* Preallocate a bunch of cells so that we can make sure that no garbage
+     collection (and, thus, nested calls to `finalize_guarded ()') occurs
+     while executing the following loop.  This is quite inefficient (call to
+     `scm_length ()') but that shouldn't be a problem in most cases.  */
+  cell_pool = scm_make_list (scm_length (guardian_list), SCM_UNSPECIFIED);
+
+  /* Tell each guardian interested in OBJ that OBJ is no longer
+     reachable.  */
+  for (;
+       guardian_list != SCM_EOL;
+       guardian_list = SCM_CDR (guardian_list))
+    {
+      SCM zombies;
+      t_guardian *g;
+
+      if (SCM_WEAK_PAIR_CAR_DELETED_P (guardian_list))
+	{
+	  /* The guardian itself vanished in the meantime.  */
+#ifdef DEBUG_GUARDIANS
+	  printf ("  guardian for %p vanished\n", ptr);
+#endif
+	  continue;
+	}
+
+      g = GUARDIAN_DATA (SCM_CAR (guardian_list));
+      if (g->live == 0)
+	abort ();
+
+      /* Get a fresh cell from CELL_POOL.  */
+      zombies = cell_pool;
+      cell_pool = SCM_CDR (cell_pool);
+
+      /* Compute and update G's zombie list.  */
+      SCM_SETCAR (zombies, SCM_PACK (obj));
+      SCM_SETCDR (zombies, g->zombies);
+      g->zombies = zombies;
+
+      g->live--;
+      g->zombies = zombies;
+    }
+
+  if (proxied_finalizer != SCM_BOOL_F)
+    {
+      /* Re-register the finalizer that was in place before we installed this
+	 one.  */
+      GC_finalization_proc finalizer, prev_finalizer;
+      GC_PTR finalizer_data, prev_finalizer_data;
+
+      finalizer = (GC_finalization_proc) SCM2PTR (SCM_CAR (proxied_finalizer));
+      finalizer_data = SCM2PTR (SCM_CDR (proxied_finalizer));
+
+      if (finalizer == NULL)
+	abort ();
+
+      GC_REGISTER_FINALIZER_NO_ORDER (ptr, finalizer, finalizer_data,
+				      &prev_finalizer, &prev_finalizer_data);
+
+#ifdef DEBUG_GUARDIANS
+      printf ("  reinstalled proxied finalizer %p for %p\n", finalizer, ptr);
+#endif
+    }
+
+#ifdef DEBUG_GUARDIANS
+  printf ("end of finalize (%p)\n", ptr);
+#endif
+}
+
+/* Add OBJ as a guarded object of GUARDIAN.  */
 static void
 scm_i_guard (SCM guardian, SCM obj)
 {
   t_guardian *g = GUARDIAN_DATA (guardian);
-  
-  if (!SCM_IMP (obj))
+
+  if (SCM_NIMP (obj))
     {
-      SCM z;
-      z = scm_cons (SCM_BOOL_F, SCM_BOOL_F);
-      TCONC_IN (g->live, obj, z);
+      /* Register a finalizer and pass a pair as the ``client data''
+	 argument.  The pair contains in its car `#f' or a pair describing a
+	 ``proxied'' finalizer (see below); its cdr contains a list of
+	 guardians interested in OBJ.
+
+	 A ``proxied'' finalizer is a finalizer that was registered for OBJ
+	 before OBJ became guarded (e.g., a SMOB `free' function).  We are
+	 assuming here that finalizers are only used internally, either at
+	 the very beginning of an object's lifetime (e.g., see `SCM_NEWSMOB')
+	 or by this function.  */
+      GC_finalization_proc prev_finalizer;
+      GC_PTR prev_data;
+      SCM guardians_for_obj, finalizer_data;
+
+      g->live++;
+
+      /* Note: GUARDIANS_FOR_OBJ is a weak list so that a guardian can be
+	 collected before the objects it guards (see `guardians.test').  */
+      guardians_for_obj = scm_weak_car_pair (guardian, SCM_EOL);
+      finalizer_data = scm_cons (SCM_BOOL_F, guardians_for_obj);
+
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (obj), finalize_guarded,
+				      SCM2PTR (finalizer_data),
+				      &prev_finalizer, &prev_data);
+
+      if (prev_finalizer == finalize_guarded)
+	{
+	  /* OBJ is already guarded by another guardian: add GUARDIAN to its
+	     list of guardians.  */
+	  SCM prev_guardian_list, prev_finalizer_data;
+
+	  if (prev_data == NULL)
+	    abort ();
+
+	  prev_finalizer_data = PTR2SCM (prev_data);
+	  if (!scm_is_pair (prev_finalizer_data))
+	    abort ();
+
+	  prev_guardian_list = SCM_CDR (prev_finalizer_data);
+	  SCM_SETCDR (guardians_for_obj, prev_guardian_list);
+
+	  /* Also copy information about proxied finalizers.  */
+	  SCM_SETCAR (finalizer_data, SCM_CAR (prev_finalizer_data));
+	}
+      else if (prev_finalizer != NULL)
+	{
+	  /* There was already a finalizer registered for OBJ so we will
+	     ``proxy'' it, i.e., record it so that we can re-register it once
+	     `finalize_guarded ()' has finished.  */
+	  SCM proxied_finalizer;
+
+	  proxied_finalizer = scm_cons (PTR2SCM (prev_finalizer),
+					PTR2SCM (prev_data));
+	  SCM_SETCAR (finalizer_data, proxied_finalizer);
+	}
     }
 }
 
@@ -240,8 +257,12 @@ scm_i_get_one_zombie (SCM guardian)
   t_guardian *g = GUARDIAN_DATA (guardian);
   SCM res = SCM_BOOL_F;
 
-  if (!TCONC_EMPTYP (g->zombies))
-    TCONC_OUT (g->zombies, res);
+  if (g->zombies != SCM_EOL)
+    {
+      /* Note: We return zombies in reverse order.  */
+      res = SCM_CAR (g->zombies);
+      g->zombies = SCM_CDR (g->zombies);
+    }
 
   return res;
 }
@@ -258,13 +279,6 @@ scm_i_get_one_zombie (SCM guardian)
 static SCM
 guardian_apply (SCM guardian, SCM obj, SCM throw_p)
 {
-#if ENABLE_DEPRECATED
-  if (!SCM_UNBNDP (throw_p))
-    scm_c_issue_deprecation_warning
-      ("Using the 'throw?' argument of a guardian is deprecated "
-       "and ineffective.");
-#endif
-
   if (!SCM_UNBNDP (obj))
     {
       scm_i_guard (guardian, obj);
@@ -318,13 +332,11 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
 #define FUNC_NAME s_scm_make_guardian
 {
   t_guardian *g = scm_gc_malloc (sizeof (t_guardian), "guardian");
-  SCM z1 = scm_cons (SCM_BOOL_F, SCM_EOL);
-  SCM z2 = scm_cons (SCM_BOOL_F, SCM_EOL);
   SCM z;
 
   /* A tconc starts out with one tail pair. */
-  g->live.head = g->live.tail = z1;
-  g->zombies.head = g->zombies.tail = z2;
+  g->live = 0;
+  g->zombies = SCM_EOL;
 
   g->next = NULL;
 
@@ -337,15 +349,13 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
 void
 scm_init_guardians ()
 {
+  /* We use unordered finalization `a la Java.  */
+  GC_java_finalization = 1;
+
   tc16_guardian = scm_make_smob_type ("guardian", 0);
-  scm_set_smob_mark (tc16_guardian, guardian_mark);
-  scm_set_smob_free (tc16_guardian, guardian_free);
+
   scm_set_smob_print (tc16_guardian, guardian_print);
-#if ENABLE_DEPRECATED
-  scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 2, 0);
-#else
   scm_set_smob_apply (tc16_guardian, guardian_apply, 0, 1, 0);
-#endif
 
 #include "libguile/guardians.x"
 }

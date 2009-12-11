@@ -3,7 +3,7 @@
 #ifndef SCM_LIST_H
 #define SCM_LIST_H
 
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2005,2006,2008
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2005,2006,2008,2009
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@ SCM_API SCM scm_delv1_x (SCM item, SCM lst);
 SCM_API SCM scm_delete1_x (SCM item, SCM lst);
 SCM_API SCM scm_filter (SCM pred, SCM list);
 SCM_API SCM scm_filter_x (SCM pred, SCM list);
+SCM_API SCM scm_copy_tree (SCM obj);
 
 
 

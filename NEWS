@@ -8,31 +8,157 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.3 (since the 1.9.2 prerelease):
+Changes in 1.9.5 (since the 1.9.4 prerelease):
 
-** Removed deprecated uniform array procedures: scm_make_uve,
-   scm_array_prototype, scm_list_to_uniform_array,
-   scm_dimensions_to_uniform_array, scm_make_ra, scm_shap2ra, scm_cvref,
-   scm_ra_set_contp, scm_aind, scm_raprin1
+** Compiled procedures may now have more than one arity.
 
-These functions have been deprecated since early 2005.
+This can be the case, for example, in case-lambda procedures. The
+arities of compiled procedures may be accessed via procedures from the
+`(system vm program)' module; see "Compiled Procedures", "Optional
+Arguments", and "Case-lambda" in the manual. 
 
-** scm_array_p has one argument, not two
+** `case-lambda' is now available in the default environment.
 
-Use of the second argument produced a deprecation warning, so it is
-unlikely that any code out there actually used this functionality.
+The binding in the default environment is equivalent to the one from the
+`(srfi srfi-16)' module. Use the srfi-16 module explicitly if you wish
+to maintain compatibility with Guile 1.8 and earlier.
 
-** Removed deprecated uniform array procedures:
-   dimensions->uniform-array, list->uniform-array, array-prototype
+** VM calling convention change: callee-parsed arguments
 
-Instead, use make-typed-array, list->typed-array, or array-type,
-respectively.
+As an internal implementation detail, compiled procedures are now
+responsible for parsing their own arguments, which they receive on the
+stack.
+
+** VM support for multiple-arity dispatch
+
+Calls to procedures with multiple arities, for example those made be
+`case-lambda', now dispatch via special opcodes, without the need to
+cons a rest list.
+
+** Intermediate language support for multiple-arity procedures.
+
+In the intermediate language, tree-il, all procedures may have one or
+more arities. This allows all Guile languages to have multiple arities.
+It is, however, an incompatible change, and anyone maintaining a
+compiler out-of-tree would be advised to get it into Guile soon :)
+
+** `lambda*' and `define*' are now available in the default environment
+
+As with `case-lambda', `(ice-9 optargs)' continues to be supported, for
+compatibility purposes. No semantic change has been made (we hope).
+Optional and keyword arguments now dispatch via special VM operations,
+without the need to cons rest arguments, making them very fast.
+
+** Better support for Lisp `nil'.
+
+The bit representation of `nil' has been tweaked so that it is now very
+efficient to check e.g. if a value is equal to Scheme's end-of-list or
+Lisp's nil. Additionally there are a heap of new, specific predicates
+like scm_is_null_or_nil. Probably in the future we will #define
+scm_is_null to scm_is_null_or_nil.
+
+** No future.
+
+Actually the future is still in the state that it was, is, and ever
+shall be, Amen, except that `futures.c' and `futures.h' are no longer a
+part of it. These files were experimental, never compiled, and would be
+better implemented in Scheme anyway. In the future, that is.
+
+** Support for static allocation of strings, symbols, and subrs.
+
+Calls to snarfing CPP macros like SCM_DEFINE macro will now allocate
+much of their associated data as static variables, reducing Guile's
+memory footprint.
+
+** Inline vector allocation
+
+Instead of having vectors point out into the heap for their data, their
+data is now allocated inline to the vector object itself. The same is
+true for bytevectors, by default, though there is an indirection
+available which should allow for making a bytevector from an existing
+memory region.
+
+** New syntax: include-from-path.
+
+`include-from-path' is like `include', except it looks for its file in
+the load path. It can be used to compile other files into a file.
+
+** New syntax: quasisyntax.
+
+`quasisyntax' is to `syntax' as `quasiquote' is to `quote'. See the R6RS
+documentation for more information. Thanks to Andre van Tonder for the
+implementation.
+
+** Cleanups to Guile's primitive object system.
+
+There were a number of pieces in `objects.[ch]' that tried to be a
+minimal object system, but were never documented, and were quickly
+obseleted by GOOPS' merge into Guile proper. So `scm_make_class_object',
+`scm_make_subclass_object', `scm_metaclass_standard', and like symbols
+from objects.h are no more. In the very unlikely case in which these
+were useful to you, we urge you to contact guile-devel.
+
+** GOOPS cleanups.
+
+GOOPS had a number of concepts that were relevant to the days of Tcl,
+but not any more: operators and entities, mainly. These objects were
+never documented, and it is unlikely that they were ever used. Operators
+were a kind of generic specific to the Tcl support. Entities were
+applicable structures, but were unusable; entities will come back in the
+next alpha release, but with a less stupid name.
+
+** Faster bit operations.
+
+The bit-twiddling operations `ash', `logand', `logior', and `logxor' now
+have dedicated bytecodes. Guile is not just for symbolic computation,
+it's for number crunching too.
+
+** `inet-ntop' and `inet-pton' are always available.
+
+Guile now use a portable implementation of `inet_pton'/`inet_ntop', so
+there is no more need to use `inet-aton'/`inet-ntoa'. The latter
+functions are deprecated.
+
+** R6RS block comment support
+
+Guile now supports R6RS nested block comments. The start of a comment is
+marked with `#|', and the end with `|#'.
+
+** `guile-2' cond-expand feature
+
+To test if your code is running under Guile 2.0 (or its alpha releases),
+test for the `guile-2' cond-expand feature. Like this:
+
+     (cond-expand (guile-2 (eval-when (compile)
+                             ;; This must be evaluated at compile time.
+                             (fluid-set! current-reader my-reader)))
+                  (guile
+                           ;; Earlier versions of Guile do not have a
+                           ;; separate compilation phase.
+                           (fluid-set! current-reader my-reader)))
+
+** ABI harmonization
+
+`scm_search_path' now has the signature it did in 1.8, reverting an
+incompatible change made in 1.9.0.
+
+** Compile-time warnings: -Warity-mismatch
+
+Guile can warn when you pass the wrong number of arguments to a
+procedure. Pass the -Warity-mismatch on the `guile-tools compile'
+command line, or add `#:warnings '(arity-mismatch)' to your `compile'
+or `compile-file' invocation.
+
+** Guile is now built without `-Werror' by default
+
+Use the `--enable-error-on-warning' configure option to enable it.
 
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
 
 
+
 Changes in 1.9.x (since the 1.8.x series):
 
 * New modules (see the manual for details)
@@ -75,6 +201,17 @@ documented in the manual. This will be fixed before 2.0.
 Pass the `--help' command-line option to these commands for more
 information.
 
+** Guile now adds its install prefix to the LTDL_LIBRARY_PATH
+
+Users may now install Guile to nonstandard prefixes and just run
+`/path/to/bin/guile', instead of also having to set LTDL_LIBRARY_PATH to
+include `/path/to/lib'.
+
+** Guile's Emacs integration is now more keyboard-friendly
+
+Backtraces may now be disclosed with the keyboard in addition to the
+mouse.
+
 * Changes to Scheme functions and syntax
 
 ** Procedure removed: `the-environment'
@@ -107,6 +244,20 @@ sometimes be attempted when it shouldn't.
 For example, the old (lang elisp) modules are meant to be interpreted,
 not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
 something here about module-transformer called for compile.
+
+** Files loaded with `load' will now be compiled automatically.
+
+As with files loaded via `primitive-load-path', `load' will also compile
+its target if autocompilation is enabled, and a fresh compiled file is
+not found.
+
+There are two points of difference to note, however. First, `load' does
+not search `GUILE_LOAD_COMPILED_PATH' for the file; it only looks in the
+autocompilation directory, normally a subdirectory of ~/.cache/guile.
+
+Secondly, autocompilation also applies to files loaded via the -l
+command-line argument -- so the user may experience a slight slowdown
+the first time they run a Guile script, as the script is autocompiled.
 
 ** New POSIX procedures: `getrlimit' and `setrlimit'
 
@@ -480,6 +631,30 @@ This decision may be revisited before the 2.0 release. Feedback welcome
 to guile-devel@gnu.org (subscription required) or bug-guile@gnu.org (no
 subscription required).
 
+** `case-lambda' is now available in the default environment.
+
+The binding in the default environment is equivalent to the one from the
+`(srfi srfi-16)' module. Use the srfi-16 module explicitly if you wish
+to maintain compatibility with Guile 1.8 and earlier.
+
+** `lambda*' and `define*' are now available in the default environment
+
+As with `case-lambda', `(ice-9 optargs)' continues to be supported, for
+compatibility purposes. No semantic change has been made (we hope).
+Optional and keyword arguments now dispatch via special VM operations,
+without the need to cons rest arguments, making them very fast.
+
+** New syntax: include-from-path.
+
+`include-from-path' is like `include', except it looks for its file in
+the load path. It can be used to compile other files into a file.
+
+** New syntax: quasisyntax.
+
+`quasisyntax' is to `syntax' as `quasiquote' is to `quote'. See the R6RS
+documentation for more information. Thanks to Andre van Tonder for the
+implementation.
+
 ** Unicode characters
 
 Unicode characters may be entered in octal format via e.g. `#\454', or
@@ -492,9 +667,52 @@ Internally, strings are now represented either in the `latin-1'
 encoding, one byte per character, or in UTF-32, with four bytes per
 character. Strings manage their own allocation, switching if needed.
 
-Currently no locale conversion is performed. Extended characters may be
-written in a string using the hexadecimal escapes `\xXX', `\uXXXX', or
-`\UXXXXXX', for 8-bit, 16-bit, or 24-bit codepoints, respectively.
+Extended characters may be written in a literal string using the
+hexadecimal escapes `\xXX', `\uXXXX', or `\UXXXXXX', for 8-bit, 16-bit,
+or 24-bit codepoints, respectively, or entered directly in the native
+encoding of the port on which the string is read.
+
+** Unicode symbols
+
+One may now use U+03BB (GREEK SMALL LETTER LAMBDA) as an identifier.
+
+** Support for non-ASCII source code files
+
+The default reader now handles source code files for some of the
+non-ASCII character encodings, such as UTF-8. A non-ASCII source file
+should have an encoding declaration near the top of the file. Also,
+there is a new function, `file-encoding', that scans a port for a coding
+declaration. See the section of the manual entitled, "Character Encoding
+of Source Files".
+
+The pre-1.9.3 reader handled 8-bit clean but otherwise unspecified source
+code.  This use is now discouraged.
+
+** Support for locale transcoding when reading from and writing to ports
+
+Ports now have an associated character encoding, and port read and write
+operations do conversion to and from locales automatically. Ports also
+have an associated strategy for how to deal with locale conversion
+failures.
+
+See the documentation in the manual for the four new support functions,
+`set-port-encoding!', `port-encoding', `set-port-conversion-strategy!',
+and `port-conversion-strategy'.
+
+** String and SRFI-13 functions can operate on Unicode strings
+
+** Unicode support for SRFI-14 character sets
+
+The default character sets are no longer locale dependent and contain
+characters from the whole Unicode range. There is a new predefined
+character set, `char-set:designated', which contains all assigned
+Unicode characters. There is a new debugging function, `%char-set-dump'.
+
+** Character functions operate on Unicode characters
+
+`char-upcase' and `char-downcase' use default Unicode casing rules.
+Character comparisons such as `char<?' and `char-ci<?' now sort based on
+Unicode code points.
 
 ** Global variables `scm_charnames' and `scm_charnums' are removed
 
@@ -508,6 +726,17 @@ functions.
 There was an EBCDIC compile flag that altered some of the character
 processing.  It appeared that full EBCDIC support was never completed
 and was unmaintained.
+
+** Compile-time warnings: -Wunbound-variable, -Warity-mismatch. 
+
+Guile can warn about potentially unbound free variables. Pass the
+-Wunbound-variable on the `guile-tools compile' command line, or add
+`#:warnings '(unbound-variable)' to your `compile' or `compile-file'
+invocation.
+
+Guile can also warn when you pass the wrong number of arguments to a
+procedure, with -Warity-mismatch, or `arity-mismatch' in the
+`#:warnings' as above.
 
 ** New macro type: syncase-macro
 
@@ -527,6 +756,39 @@ This slightly improves program startup times.
 ** New thread cancellation and thread cleanup API
 
 See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
+
+** GOOPS cleanups.
+
+GOOPS had a number of concepts that were relevant to the days of Tcl,
+but not any more: operators and entities, mainly. These objects were
+never documented, and it is unlikely that they were ever used. Operators
+were a kind of generic specific to the Tcl support. Entities were
+applicable structures, but were unusable; entities will come back in the
+next alpha release, but with a less stupid name.
+
+** `inet-ntop' and `inet-pton' are always available.
+
+Guile now use a portable implementation of `inet_pton'/`inet_ntop', so
+there is no more need to use `inet-aton'/`inet-ntoa'. The latter
+functions are deprecated.
+
+** R6RS block comment support
+
+Guile now supports R6RS nested block comments. The start of a comment is
+marked with `#|', and the end with `|#'.
+
+** `guile-2' cond-expand feature
+
+To test if your code is running under Guile 2.0 (or its alpha releases),
+test for the `guile-2' cond-expand feature. Like this:
+
+     (cond-expand (guile-2 (eval-when (compile)
+                             ;; This must be evaluated at compile time.
+                             (fluid-set! current-reader my-reader)))
+                  (guile
+                           ;; Earlier versions of Guile do not have a
+                           ;; separate compilation phase.
+                           (fluid-set! current-reader my-reader)))
 
 ** Fix bad interaction between `false-if-exception' and stack-call.
 
@@ -559,13 +821,30 @@ the variable. This was an error, and was fixed.
 As syntax-case is available by default, importing `(ice-9 syncase)' has
 no effect, and will trigger a deprecation warning.
 
+** New readline history functions
+
+The (ice-9 readline) module now provides add-history, read-history,
+write-history and clear-history, which wrap the corresponding GNU
+History library functions.
+
 ** Removed deprecated uniform array procedures:
    dimensions->uniform-array, list->uniform-array, array-prototype
 
 Instead, use make-typed-array, list->typed-array, or array-type,
 respectively.
 
+** Last but not least, the `λ' macro can be used in lieu of `lambda'
+
 * Changes to the C interface
+
+** Guile now uses libgc, the Boehm-Demers-Weiser garbage collector
+
+The semantics of `scm_gc_malloc ()' have been changed, in a
+backward-compatible way.  A new allocation routine,
+`scm_gc_malloc_pointerless ()', was added.
+
+Libgc is a conservative GC, which we hope will make interaction with C
+code easier and less error-prone.
 
 ** The GH interface (deprecated in version 1.6, 2001) was removed.
 
@@ -582,6 +861,36 @@ indicating length of the `scm_t_option' array.
 ** New C function: scm_module_public_interface
 
 This procedure corresponds to Scheme's `module-public-interface'.
+
+** Inline vector allocation
+
+Instead of having vectors point out into the heap for their data, their
+data is now allocated inline to the vector object itself. The same is
+true for bytevectors, by default, though there is an indirection
+available which should allow for making a bytevector from an existing
+memory region.
+
+** Removal of Guile's primitive object system.
+
+There were a number of pieces in `objects.[ch]' that tried to be a
+minimal object system, but were never documented, and were quickly
+obseleted by GOOPS' merge into Guile proper. So `scm_make_class_object',
+`scm_make_subclass_object', `scm_metaclass_standard', and like symbols
+from objects.h are no more. In the very unlikely case in which these
+were useful to you, we urge you to contact guile-devel.
+
+** No future.
+
+Actually the future is still in the state that it was, is, and ever
+shall be, Amen, except that `futures.c' and `futures.h' are no longer a
+part of it. These files were experimental, never compiled, and would be
+better implemented in Scheme anyway. In the future, that is.
+
+** Support for static allocation of strings, symbols, and subrs.
+
+Calls to snarfing CPP macros like SCM_DEFINE macro will now allocate
+much of their associated data as static variables, reducing Guile's
+memory footprint.
 
 ** `scm_stat' has an additional argument, `exception_on_error'
 ** `scm_primitive_load_path' has an additional argument `exception_on_not_found'
@@ -600,11 +909,6 @@ definition depends on the application's value for `_FILE_OFFSET_BITS'.
 
 These functions have been deprecated since early 2005.
 
-** scm_array_p has one argument, not two
-
-Use of the second argument produced a deprecation warning, so it is
-unlikely that any code out there actually used this functionality.
-
 * Changes to the distribution
 
 ** Guile's license is now LGPLv3+
@@ -612,6 +916,11 @@ unlikely that any code out there actually used this functionality.
 In other words the GNU Lesser General Public License, version 3 or
 later (at the discretion of each person that chooses to redistribute
 part of Guile).
+
+** GOOPS documentation folded into Guile reference manual
+
+GOOPS, Guile's object system, used to be documented in separate manuals.
+This content is now included in Guile's manual directly.
 
 ** `guile-config' will be deprecated in favor of `pkg-config'
 
@@ -630,10 +939,22 @@ macros should now require `guile-2.0' instead of `guile-1.8'.
 If $(libdir) is /usr/lib, for example, Guile will install its .go files
 to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
 
-** New dependency: GNU libunistring.
+** Dynamically loadable extensions may be placed in a Guile-specific path
+
+Before, Guile only searched the system library paths for extensions
+(e.g. /usr/lib), which meant that the names of Guile extensions had to
+be globally unique. Installing them to a Guile-specific extensions
+directory is cleaner. Use `pkg-config --variable=extensionsdir
+guile-2.0' to get the location of the extensions directory.
+
+** New dependency: libgc
+
+See http://www.hpl.hp.com/personal/Hans_Boehm/gc/, for more information.
+
+** New dependency: GNU libunistring
 
 See http://www.gnu.org/software/libunistring/, for more information. Our
-unicode support uses routines from libunistring.
+Unicode support uses routines from libunistring.
 
 
 
@@ -643,6 +964,7 @@ Changes in 1.8.8 (since 1.8.7)
 
 ** Fix possible buffer overruns when parsing numbers
 ** Avoid clash with system setjmp/longjmp on IA64
+** Fix `wrong type arg' exceptions with IPv6 addresses
 
 
 Changes in 1.8.7 (since 1.8.6)

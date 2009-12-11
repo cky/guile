@@ -38,7 +38,6 @@
 #include "libguile/programs.h"
 #include "libguile/alist.h"
 #include "libguile/struct.h"
-#include "libguile/objects.h"
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
@@ -63,18 +62,17 @@
 static const char *iflagnames[] =
 {
   "#f",
+  "#nil",  /* Elisp nil value. Should print from elisp as symbol `nil'. */
+  "#<XXX UNUSED LISP FALSE -- DO NOT USE -- SHOULD NEVER BE SEEN XXX>",
+  "()",
   "#t",
+  "#<XXX UNUSED BOOLEAN -- DO NOT USE -- SHOULD NEVER BE SEEN XXX>",
+  "#<unspecified>",
   "#<undefined>",
   "#<eof>",
-  "()",
-  "#<unspecified>",
 
   /* Unbound slot marker for GOOPS.  For internal use in GOOPS only.  */
   "#<unbound>",
-
-  /* Elisp nil value.  This is its Scheme name; whenever it's printed in
-   * Elisp, it should appear as the symbol `nil'.  */
-  "#nil"
 };
 
 SCM_SYMBOL (sym_reader, "reader");
@@ -430,7 +428,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
   switch (SCM_ITAG3 (exp))
     {
-    case scm_tc3_closure:
     case scm_tc3_tc7_1:
     case scm_tc3_tc7_2:
       /* These tc3 tags should never occur in an immediate value.  They are
@@ -463,13 +460,26 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                 /* Print the character if is graphic character.  */
                 {
                   scm_t_wchar *wbuf;
-                  SCM wstr = scm_i_make_wide_string (1, &wbuf);
+                  SCM wstr;
                   char *buf;
                   size_t len;
                   const char *enc;
 
                   enc = scm_i_get_port_encoding (port);
-                  wbuf[0] = i;
+                  if (uc_combining_class (i) == UC_CCC_NR)
+                    {
+                      wstr = scm_i_make_wide_string (1, &wbuf);
+                      wbuf[0] = i;
+                    }
+                  else
+                    {
+                      /* Character is a combining character: print it connected
+                         to a dotted circle instead of connecting it to the 
+                         backslash in '#\'  */
+                      wstr = scm_i_make_wide_string (2, &wbuf);
+                      wbuf[0] = SCM_CODEPOINT_DOTTED_CIRCLE;
+                      wbuf[1] = i;
+                    }
                   if (enc == NULL)
                     {
                       if (i <= 0xFF)
@@ -512,14 +522,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
         {
           scm_puts (iflagnames [SCM_IFLAGNUM (exp)], port);
         }
-      else if (SCM_ISYMP (exp))
-        {
-          scm_i_print_isym (exp, port);
-        }
-      else if (SCM_ILOCP (exp))
-	{
-          scm_i_print_iloc (exp, port);
-	}
       else
 	{
 	  /* unknown immediate value */
@@ -557,30 +559,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 	circref:
 	  print_circref (port, pstate, exp);
-	  break;
-	case scm_tcs_closures:
-	  if (scm_is_false (scm_procedure_p (SCM_PRINT_CLOSURE))
-	      || scm_is_false (scm_printer_apply (SCM_PRINT_CLOSURE,
-						exp, port, pstate)))
-	    {
-	      SCM formals = SCM_CLOSURE_FORMALS (exp);
-	      scm_puts ("#<procedure", port);
-	      scm_putc (' ', port);
-	      scm_iprin1 (scm_procedure_name (exp), port, pstate);
-	      scm_putc (' ', port);
-	      if (SCM_PRINT_SOURCE_P)
-		{
-		  SCM env = SCM_ENV (exp);
-		  SCM xenv = SCM_EXTEND_ENV (formals, SCM_EOL, env);
-		  SCM src = scm_i_unmemocopy_body (SCM_CODE (exp), xenv);
-		  ENTER_NESTED_DATA (pstate, exp, circref);
-		  scm_iprin1 (src, port, pstate);
-		  EXIT_NESTED_DATA (pstate);
-		}
-	      else
-		scm_iprin1 (formals, port, pstate);
-	      scm_putc ('>', port);
-	    }
 	  break;
 	case scm_tc7_number:
           switch SCM_TYP16 (exp) {
@@ -731,6 +709,15 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_program:
 	  scm_i_program_print (exp, port, pstate);
 	  break;
+	case scm_tc7_hashtable:
+	  scm_i_hashtable_print (exp, port, pstate);
+	  break;
+	case scm_tc7_fluid:
+	  scm_i_fluid_print (exp, port, pstate);
+	  break;
+	case scm_tc7_dynamic_state:
+	  scm_i_dynamic_state_print (exp, port, pstate);
+	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
@@ -739,6 +726,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    scm_puts ("#w(", port);
 	  goto common_vector_printer;
 
+	case scm_tc7_bytevector:
+	  scm_i_print_bytevector (exp, port, pstate);
+	  break;
 	case scm_tc7_vector:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  scm_puts ("#(", port);
@@ -753,16 +743,30 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		last = pstate->length - 1;
 		cutp = 1;
 	      }
-	    for (i = 0; i < last; ++i)
+	    if (SCM_I_WVECTP (exp))
 	      {
-		/* CHECK_INTS; */
-		scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
-		scm_putc (' ', port);
+		/* Elements of weak vectors may not be accessed via the
+		   `SIMPLE_VECTOR_REF ()' macro.  */
+		for (i = 0; i < last; ++i)
+		  {
+		    scm_iprin1 (scm_c_vector_ref (exp, i),
+				port, pstate);
+		    scm_putc (' ', port);
+		  }
 	      }
+	    else
+	      {
+		for (i = 0; i < last; ++i)
+		  {
+		    scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
+		    scm_putc (' ', port);
+		  }
+	      }
+
 	    if (i == last)
 	      {
 		/* CHECK_INTS; */
-		scm_iprin1 (SCM_SIMPLE_VECTOR_REF (exp, i), port, pstate);
+		scm_iprin1 (scm_c_vector_ref (exp, i), port, pstate);
 	      }
 	    if (cutp)
 	      scm_puts (" ...", port);
@@ -770,7 +774,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  }
 	  EXIT_NESTED_DATA (pstate);
 	  break;
-	case scm_tcs_subrs:
+	case scm_tc7_gsubr:
 	  {
 	    SCM name = scm_symbol_to_string (SCM_SUBR_NAME (exp));
 	    scm_puts (SCM_SUBR_GENERIC (exp)
@@ -781,18 +785,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    scm_putc ('>', port);
 	    break;
 	  }
-	case scm_tc7_pws:
-	  scm_puts ("#<procedure-with-setter", port);
-	  {
-	    SCM name = scm_procedure_name (exp);
-	    if (scm_is_true (name))
-	      {
-		scm_putc (' ', port);
-		scm_display (name, port);
-	      }
-	  }
-	  scm_putc ('>', port);
-	  break;
 	case scm_tc7_port:
 	  {
 	    register long i = SCM_PTOBNUM (exp);
@@ -808,6 +800,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  EXIT_NESTED_DATA (pstate);
 	  break;
 	default:
+          /* case scm_tcs_closures: */
 	punk:
 	  scm_ipruk ("type", exp, port);
 	}
@@ -909,7 +902,7 @@ scm_ipruk (char *hdr, SCM ptr, SCM port)
 {
   scm_puts ("#<unknown-", port);
   scm_puts (hdr, port);
-  if (scm_in_heap_p (ptr))
+  if (1) /* (scm_in_heap_p (ptr)) */ /* FIXME */
     {
       scm_puts (" (0x", port);
       scm_uintprint (SCM_CELL_WORD_0 (ptr), 16, port);
@@ -1203,8 +1196,8 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
 
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPORT_VALUE (2, port);
-
-  scm_putc ((int) SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
+  
+  scm_i_charprint (SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
 #if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
@@ -1300,7 +1293,6 @@ scm_init_print ()
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */
   scm_tc16_port_with_ps = scm_make_smob_type (0, 0);
-  scm_set_smob_mark (scm_tc16_port_with_ps, scm_markcdr);
   scm_set_smob_print (scm_tc16_port_with_ps, port_with_ps_print);
 
 #include "libguile/print.x"

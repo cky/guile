@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,7 @@
 #endif
 
 #include <stdio.h>
+#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
@@ -34,6 +35,8 @@
 
 #include "libguile/validate.h"
 #include "libguile/hashtab.h"
+
+
 
 
 /* NOTES
@@ -47,10 +50,7 @@
  *
  */
 
-/* Hash tables are either vectors of association lists or smobs
- * containing such vectors.  Currently, the vector version represents
- * constant size tables while those wrapped in a smob represents
- * resizing tables.
+/* A hash table is a cell containing a vector of association lists.
  *
  * Growing or shrinking, with following rehashing, is triggered when
  * the load factor
@@ -66,8 +66,6 @@
  * hashtable_size.
  */
 
-scm_t_bits scm_tc16_hashtable;
-
 static unsigned long hashtable_size[] = {
   31, 61, 113, 223, 443, 883, 1759, 3517, 7027, 14051, 28099, 56197, 112363,
   224717, 449419, 898823, 1797641, 3595271, 7190537, 14381041
@@ -82,41 +80,179 @@ static unsigned long hashtable_size[] = {
 
 static char *s_hashtable = "hashtable";
 
-SCM weak_hashtables = SCM_EOL;
 
+
+/* Helper functions and macros to deal with weak pairs.
+
+   Weak pairs need to be accessed very carefully since their components can
+   be nullified by the GC when the object they refer to becomes unreachable.
+   Hence the macros and functions below that detect such weak pairs within
+   buckets and remove them.  */
+
+
+/* Remove nullified weak pairs from ALIST such that the result contains only
+   valid pairs.  Set REMOVED_ITEMS to the number of pairs that have been
+   deleted.  */
+static SCM
+scm_fixup_weak_alist (SCM alist, size_t *removed_items)
+{
+  SCM result;
+  SCM prev = SCM_EOL;
+
+  *removed_items = 0;
+  for (result = alist;
+       scm_is_pair (alist);
+       prev = alist, alist = SCM_CDR (alist))
+    {
+      SCM pair = SCM_CAR (alist);
+
+      if (scm_is_pair (pair))
+	{
+	  if (SCM_WEAK_PAIR_DELETED_P (pair))
+	    {
+	      /* Remove from ALIST weak pair PAIR whose car/cdr has been
+		 nullified by the GC.  */
+	      if (prev == SCM_EOL)
+		result = SCM_CDR (alist);
+	      else
+		SCM_SETCDR (prev, SCM_CDR (alist));
+
+	      (*removed_items)++;
+	      continue;
+	    }
+	}
+    }
+
+  return result;
+}
+
+
+/* Return true if OBJ is either a weak hash table or a weak alist vector (as
+   defined in `weaks.[ch]').
+   FIXME: We should eventually keep only weah hash tables.  Actually, the
+   procs in `weaks.c' already no longer return vectors.  */
+/* XXX: We assume that if OBJ is a vector, then it's a _weak_ alist vector.  */
+#define IS_WEAK_THING(_obj)					\
+  ((SCM_HASHTABLE_P (table) && (SCM_HASHTABLE_WEAK_P (table)))	\
+   || (SCM_I_IS_VECTOR (table)))
+
+
+/* Packed arguments for `do_weak_bucket_assoc ()'.  */
+struct t_assoc_args
+{
+  /* Input arguments.  */
+  SCM object;
+  SCM buckets;
+  size_t bucket_index;
+  scm_t_assoc_fn assoc_fn;
+  void *closure;
+
+  /* Output arguments.  */
+  SCM result;
+  size_t removed_items;
+};
+
+static void *
+do_weak_bucket_assoc (void *data)
+{
+  struct t_assoc_args *args;
+  size_t removed;
+  SCM bucket, result;
+
+  args = (struct t_assoc_args *) data;
+
+  bucket = SCM_SIMPLE_VECTOR_REF (args->buckets, args->bucket_index);
+  bucket = scm_fixup_weak_alist (bucket, &removed);
+
+  SCM_SIMPLE_VECTOR_SET (args->buckets, args->bucket_index, bucket);
+
+  /* Run ASSOC_FN on the now clean BUCKET.  */
+  result = args->assoc_fn (args->object, bucket, args->closure);
+
+  args->result = result;
+  args->removed_items = removed;
+
+  return args;
+}
+
+/* Lookup OBJECT in weak hash table TABLE using ASSOC.  OBJECT is searched
+   for in the alist that is the BUCKET_INDEXth element of BUCKETS.
+   Optionally update TABLE and rehash it.  */
+static SCM
+weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
+		   scm_t_hash_fn hash_fn,
+		   scm_t_assoc_fn assoc, SCM object, void *closure)
+{
+  SCM result;
+  struct t_assoc_args args;
+
+  args.object = object;
+  args.buckets = buckets;
+  args.bucket_index = bucket_index;
+  args.assoc_fn = assoc;
+  args.closure = closure;
+
+  /* Fixup the bucket and pass the clean bucket to ASSOC.  Do that with the
+     allocation lock held to avoid seeing disappearing links pointing to
+     objects that have already been reclaimed (this happens when the
+     disappearing links that point to it haven't yet been cleared.)
+     Thus, ASSOC must not take long, and it must not make any non-local
+     exit.  */
+  GC_call_with_alloc_lock (do_weak_bucket_assoc, &args);
+
+  result = args.result;
+  assert (!scm_is_pair (result) ||
+	  !SCM_WEAK_PAIR_DELETED_P (GC_is_visible (result)));
+
+  if (args.removed_items > 0 && SCM_HASHTABLE_P (table))
+    {
+      /* Update TABLE's item count and optionally trigger a rehash.  */
+      size_t remaining;
+
+      assert (SCM_HASHTABLE_N_ITEMS (table) >= args.removed_items);
+
+      remaining = SCM_HASHTABLE_N_ITEMS (table) - args.removed_items;
+      SCM_SET_HASHTABLE_N_ITEMS (table, remaining);
+
+      scm_i_rehash (table, hash_fn, closure, "weak_bucket_assoc");
+    }
+
+  return result;
+}
+
+
+
 static SCM
 make_hash_table (int flags, unsigned long k, const char *func_name) 
 {
-  SCM table, vector;
+  SCM vector;
   scm_t_hashtable *t;
   int i = 0, n = k ? k : 31;
   while (i < HASHTABLE_SIZE_N && n > hashtable_size[i])
     ++i;
   n = hashtable_size[i];
-  if (flags)
-    vector = scm_i_allocate_weak_vector (flags, scm_from_int (n), SCM_EOL);
-  else
-    vector = scm_c_make_vector (n, SCM_EOL);
-  t = scm_gc_malloc (sizeof (*t), s_hashtable);
+
+  /* In both cases, i.e., regardless of whether we are creating a weak hash
+     table, we return a non-weak vector.  This is because the vector itself
+     is not weak in the case of a weak hash table: the alist pairs are.  */
+  vector = scm_c_make_vector (n, SCM_EOL);
+
+  t = scm_gc_malloc_pointerless (sizeof (*t), s_hashtable);
   t->min_size_index = t->size_index = i;
   t->n_items = 0;
   t->lower = 0;
   t->upper = 9 * n / 10;
   t->flags = flags;
   t->hash_fn = NULL;
-  if (flags)
-    {
-      SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, weak_hashtables);
-      weak_hashtables = table;
-    }
-  else
-    SCM_NEWSMOB3 (table, scm_tc16_hashtable, vector, t, SCM_EOL);
-  return table;
+
+  /* FIXME: we just need two words of storage, not three */
+  return scm_double_cell (scm_tc7_hashtable, SCM_UNPACK (vector),
+                          (scm_t_bits)t, 0);
 }
 
 void
 scm_i_rehash (SCM table,
-	      unsigned long (*hash_fn)(),
+	      scm_t_hash_fn hash_fn,
 	      void *closure,
 	      const char* func_name)
 {
@@ -157,13 +293,8 @@ scm_i_rehash (SCM table,
     SCM_HASHTABLE (table)->lower = new_size / 4;
   SCM_HASHTABLE (table)->upper = 9 * new_size / 10;
   buckets = SCM_HASHTABLE_VECTOR (table);
-  
-  if (SCM_HASHTABLE_WEAK_P (table))
-    new_buckets = scm_i_allocate_weak_vector (SCM_HASHTABLE_FLAGS (table),
-					      scm_from_ulong (new_size),
-					      SCM_EOL);
-  else
-    new_buckets = scm_c_make_vector (new_size, SCM_EOL);
+
+  new_buckets = scm_c_make_vector (new_size, SCM_EOL);
 
   /* When this is a weak hashtable, running the GC might change it.
      We need to cope with this while rehashing its elements.  We do
@@ -186,9 +317,15 @@ scm_i_rehash (SCM table,
       while (scm_is_pair (ls))
 	{
 	  unsigned long h;
+
 	  cell = ls;
 	  handle = SCM_CAR (cell);
 	  ls = SCM_CDR (ls);
+
+	  if (SCM_WEAK_PAIR_DELETED_P (handle))
+	    /* HANDLE is a nullified weak pair: skip it.  */
+	    continue;
+
 	  h = hash_fn (SCM_CAR (handle), new_size, closure);
 	  if (h >= new_size)
 	    scm_out_of_range (func_name, scm_from_ulong (h));
@@ -200,8 +337,8 @@ scm_i_rehash (SCM table,
 }
 
 
-static int
-hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+void
+scm_i_hashtable_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<", port);
   if (SCM_HASHTABLE_WEAK_KEY_P (exp))
@@ -216,80 +353,6 @@ hashtable_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_uintprint (SCM_SIMPLE_VECTOR_LENGTH (SCM_HASHTABLE_VECTOR (exp)),
 		 10, port);
   scm_puts (">", port);
-  return 1;
-}
-
-/* keep track of hash tables that need to shrink after scan */
-static SCM to_rehash = SCM_EOL;
-
-/* scan hash tables and update hash tables item count */
-void
-scm_i_scan_weak_hashtables ()
-{
-  SCM *next = &weak_hashtables;
-  SCM h = *next;
-  while (!scm_is_null (h))
-    {
-      if (!SCM_GC_MARK_P (h))
-	*next = h = SCM_HASHTABLE_NEXT (h);
-      else
-	{
-	  SCM vec = SCM_HASHTABLE_VECTOR (h);
-	  size_t delta = SCM_I_WVECT_DELTA (vec);
-	  SCM_I_SET_WVECT_DELTA (vec, 0);
-	  SCM_SET_HASHTABLE_N_ITEMS (h, SCM_HASHTABLE_N_ITEMS (h) - delta);
-
-	  if (SCM_HASHTABLE_N_ITEMS (h) < SCM_HASHTABLE_LOWER (h))
-	    {
-	      SCM tmp = SCM_HASHTABLE_NEXT (h);
-	      /* temporarily move table from weak_hashtables to to_rehash */
-	      SCM_SET_HASHTABLE_NEXT (h, to_rehash);
-	      to_rehash = h;
-	      *next = h = tmp;
-	    }
-	  else
-	    {
-	      next = SCM_HASHTABLE_NEXTLOC (h);
-	      h = SCM_HASHTABLE_NEXT (h);
-	    }
-	}
-    }
-}
-
-static void *
-rehash_after_gc (void *dummy1 SCM_UNUSED,
-		 void *dummy2 SCM_UNUSED,
-		 void *dummy3 SCM_UNUSED)
-{
-  if (!scm_is_null (to_rehash))
-    {
-      SCM first = to_rehash, last, h;
-      /* important to clear to_rehash here so that we don't get stuck
-	 in an infinite loop if scm_i_rehash causes GC */
-      to_rehash = SCM_EOL;
-      h = first;
-      do
-	{
-	  /* Rehash only when we have a hash_fn.
-	   */
-	  if (SCM_HASHTABLE (h)->hash_fn)
-	    scm_i_rehash (h, SCM_HASHTABLE (h)->hash_fn, NULL,
-			  "rehash_after_gc");
-	  last = h;
-	  h = SCM_HASHTABLE_NEXT (h);
-	} while (!scm_is_null (h));
-      /* move tables back to weak_hashtables */
-      SCM_SET_HASHTABLE_NEXT (last, weak_hashtables);
-      weak_hashtables = first;
-    }
-  return 0;
-}
-
-static size_t
-hashtable_free (SCM obj)
-{
-  scm_gc_free (SCM_HASHTABLE (obj), sizeof (scm_t_hashtable), s_hashtable);
-  return 0;
 }
 
 
@@ -410,32 +473,47 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
+/* Accessing hash table entries.  */
 
 SCM
-scm_hash_fn_get_handle (SCM table, SCM obj, unsigned long (*hash_fn)(), SCM (*assoc_fn)(), void * closure)
+scm_hash_fn_get_handle (SCM table, SCM obj,
+			scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+			void * closure)
 #define FUNC_NAME "scm_hash_fn_get_handle"
 {
   unsigned long k;
-  SCM h;
+  SCM buckets, h;
 
   if (SCM_HASHTABLE_P (table))
-    table = SCM_HASHTABLE_VECTOR (table);
+    buckets = SCM_HASHTABLE_VECTOR (table);
   else
-    SCM_VALIDATE_VECTOR (1, table);
-  if (SCM_SIMPLE_VECTOR_LENGTH (table) == 0)
+    {
+      SCM_VALIDATE_VECTOR (1, table);
+      buckets = table;
+    }
+
+  if (SCM_SIMPLE_VECTOR_LENGTH (buckets) == 0)
     return SCM_BOOL_F;
-  k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (table), closure);
-  if (k >= SCM_SIMPLE_VECTOR_LENGTH (table))
+  k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
+  if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_get_handle", scm_from_ulong (k));
-  h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (table, k), closure);
+
+  if (IS_WEAK_THING (table))
+    h = weak_bucket_assoc (table, buckets, k, hash_fn,
+			   assoc_fn, obj, closure);
+  else
+    h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
   return h;
 }
 #undef FUNC_NAME
 
 
 SCM
-scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_fn)(),
-                             SCM (*assoc_fn)(), void * closure)
+scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
+			     scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+                             void * closure)
 #define FUNC_NAME "scm_hash_fn_create_handle_x"
 {
   unsigned long k;
@@ -455,7 +533,13 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
   k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_create_handle_x", scm_from_ulong (k));
-  it = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
+  if (IS_WEAK_THING (table))
+    it = weak_bucket_assoc (table, buckets, k, hash_fn,
+			    assoc_fn, obj, closure);
+  else
+    it = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
   if (scm_is_pair (it))
     return it;
   else if (scm_is_true (it))
@@ -468,7 +552,25 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 	 again since the hashtable might have been rehashed.  This
 	 necessitates a new hash value as well.
       */
-      SCM new_bucket = scm_acons (obj, init, SCM_EOL);
+      SCM handle, new_bucket;
+
+      if ((SCM_HASHTABLE_P (table)) && (SCM_HASHTABLE_WEAK_P (table)))
+	{
+	  /* FIXME: We don't support weak alist vectors.  */
+	  /* Use a weak cell.  */
+	  if (SCM_HASHTABLE_DOUBLY_WEAK_P (table))
+	    handle = scm_doubly_weak_pair (obj, init);
+	  else if (SCM_HASHTABLE_WEAK_KEY_P (table))
+	    handle = scm_weak_car_pair (obj, init);
+	  else
+	    handle = scm_weak_cdr_pair (obj, init);
+	}
+      else
+	/* Use a regular, non-weak cell.  */
+	handle = scm_cons (obj, init);
+
+      new_bucket = scm_cons (handle, SCM_EOL);
+
       if (!scm_is_eq (table, buckets)
 	  && !scm_is_eq (SCM_HASHTABLE_VECTOR (table), buckets))
 	{
@@ -497,9 +599,10 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init, unsigned long (*hash_
 #undef FUNC_NAME
 
 
-SCM 
-scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn)(),
-                 SCM (*assoc_fn)(), void * closure)
+SCM
+scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
+		 scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+                 void *closure)
 {
   SCM it = scm_hash_fn_get_handle (table, obj, hash_fn, assoc_fn, closure);
   if (scm_is_pair (it))
@@ -511,9 +614,10 @@ scm_hash_fn_ref (SCM table, SCM obj, SCM dflt, unsigned long (*hash_fn)(),
 
 
 
-SCM 
-scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn)(),
-                   SCM (*assoc_fn)(), void * closure)
+SCM
+scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
+		   scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
+                   void *closure)
 {
   SCM it;
 
@@ -523,10 +627,10 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val, unsigned long (*hash_fn)(),
 }
 
 
-SCM 
+SCM
 scm_hash_fn_remove_x (SCM table, SCM obj,
-		      unsigned long (*hash_fn)(),
-		      SCM (*assoc_fn)(),
+		      scm_t_hash_fn hash_fn,
+		      scm_t_assoc_fn assoc_fn,
                       void *closure)
 {
   unsigned long k;
@@ -540,13 +644,19 @@ scm_hash_fn_remove_x (SCM table, SCM obj,
 		  SCM_ARG1, "hash_fn_remove_x");
       buckets = table;
     }
-  if (SCM_SIMPLE_VECTOR_LENGTH (table) == 0)
+  if (SCM_SIMPLE_VECTOR_LENGTH (buckets) == 0)
     return SCM_EOL;
 
   k = hash_fn (obj, SCM_SIMPLE_VECTOR_LENGTH (buckets), closure);
   if (k >= SCM_SIMPLE_VECTOR_LENGTH (buckets))
     scm_out_of_range ("hash_fn_remove_x", scm_from_ulong (k));
-  h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
+  if (IS_WEAK_THING (table))
+    h = weak_bucket_assoc (table, buckets, k, hash_fn,
+			   assoc_fn, obj, closure);
+  else
+    h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
   if (scm_is_true (h))
     {
       SCM_SIMPLE_VECTOR_SET 
@@ -587,7 +697,10 @@ SCM_DEFINE (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
 	    "Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_get_handle
 {
-  return scm_hash_fn_get_handle (table, key, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_get_handle (table, key,
+				 (scm_t_hash_fn) scm_ihashq,
+				 (scm_t_assoc_fn) scm_sloppy_assq,
+				 0);
 }
 #undef FUNC_NAME
 
@@ -599,7 +712,10 @@ SCM_DEFINE (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashq_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_create_handle_x (table, key, init,
+				      (scm_t_hash_fn) scm_ihashq,
+				      (scm_t_assoc_fn) scm_sloppy_assq,
+				      0);
 }
 #undef FUNC_NAME
 
@@ -614,7 +730,10 @@ SCM_DEFINE (scm_hashq_ref, "hashq-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, key, dflt, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_ref (table, key, dflt,
+			  (scm_t_hash_fn) scm_ihashq,
+			  (scm_t_assoc_fn) scm_sloppy_assq,
+			  0);
 }
 #undef FUNC_NAME
 
@@ -626,7 +745,10 @@ SCM_DEFINE (scm_hashq_set_x, "hashq-set!", 3, 0, 0,
 	    "store @var{value} there. Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_set_x
 {
-  return scm_hash_fn_set_x (table, key, val, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_set_x (table, key, val,
+			    (scm_t_hash_fn) scm_ihashq,
+			    (scm_t_assoc_fn) scm_sloppy_assq,
+			    0);
 }
 #undef FUNC_NAME
 
@@ -638,7 +760,10 @@ SCM_DEFINE (scm_hashq_remove_x, "hashq-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{eq?} for equality tests.")
 #define FUNC_NAME s_scm_hashq_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihashq, scm_sloppy_assq, 0);
+  return scm_hash_fn_remove_x (table, key,
+			       (scm_t_hash_fn) scm_ihashq,
+			       (scm_t_assoc_fn) scm_sloppy_assq,
+			       0);
 }
 #undef FUNC_NAME
 
@@ -653,7 +778,10 @@ SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
 	    "Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_get_handle
 {
-  return scm_hash_fn_get_handle (table, key, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_get_handle (table, key,
+				 (scm_t_hash_fn) scm_ihashv,
+				 (scm_t_assoc_fn) scm_sloppy_assv,
+				 0);
 }
 #undef FUNC_NAME
 
@@ -665,8 +793,10 @@ SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashv_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihashv,
-				      scm_sloppy_assv, 0);
+  return scm_hash_fn_create_handle_x (table, key, init,
+				      (scm_t_hash_fn) scm_ihashv,
+				      (scm_t_assoc_fn) scm_sloppy_assv,
+				      0);
 }
 #undef FUNC_NAME
 
@@ -681,7 +811,10 @@ SCM_DEFINE (scm_hashv_ref, "hashv-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, key, dflt, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_ref (table, key, dflt,
+			  (scm_t_hash_fn) scm_ihashv,
+			  (scm_t_assoc_fn) scm_sloppy_assv,
+			  0);
 }
 #undef FUNC_NAME
 
@@ -693,7 +826,10 @@ SCM_DEFINE (scm_hashv_set_x, "hashv-set!", 3, 0, 0,
 	    "store @var{value} there. Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_set_x
 {
-  return scm_hash_fn_set_x (table, key, val, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_set_x (table, key, val,
+			    (scm_t_hash_fn) scm_ihashv,
+			    (scm_t_assoc_fn) scm_sloppy_assv,
+			    0);
 }
 #undef FUNC_NAME
 
@@ -704,7 +840,10 @@ SCM_DEFINE (scm_hashv_remove_x, "hashv-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{eqv?} for equality tests.")
 #define FUNC_NAME s_scm_hashv_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihashv, scm_sloppy_assv, 0);
+  return scm_hash_fn_remove_x (table, key,
+			       (scm_t_hash_fn) scm_ihashv,
+			       (scm_t_assoc_fn) scm_sloppy_assv,
+			       0);
 }
 #undef FUNC_NAME
 
@@ -718,7 +857,10 @@ SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
 	    "Uses @code{equal?} for equality testing.")
 #define FUNC_NAME s_scm_hash_get_handle
 {
-  return scm_hash_fn_get_handle (table, key, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_get_handle (table, key,
+				 (scm_t_hash_fn) scm_ihash,
+				 (scm_t_assoc_fn) scm_sloppy_assoc,
+				 0);
 }
 #undef FUNC_NAME
 
@@ -730,7 +872,10 @@ SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hash_create_handle_x
 {
-  return scm_hash_fn_create_handle_x (table, key, init, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_create_handle_x (table, key, init,
+				      (scm_t_hash_fn) scm_ihash,
+				      (scm_t_assoc_fn) scm_sloppy_assoc,
+				      0);
 }
 #undef FUNC_NAME
 
@@ -745,7 +890,10 @@ SCM_DEFINE (scm_hash_ref, "hash-ref", 2, 1, 0,
 {
   if (SCM_UNBNDP (dflt))
     dflt = SCM_BOOL_F;
-  return scm_hash_fn_ref (table, key, dflt, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_ref (table, key, dflt,
+			  (scm_t_hash_fn) scm_ihash,
+			  (scm_t_assoc_fn) scm_sloppy_assoc,
+			  0);
 }
 #undef FUNC_NAME
 
@@ -758,7 +906,10 @@ SCM_DEFINE (scm_hash_set_x, "hash-set!", 3, 0, 0,
 	    "testing.")
 #define FUNC_NAME s_scm_hash_set_x
 {
-  return scm_hash_fn_set_x (table, key, val, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_set_x (table, key, val,
+			    (scm_t_hash_fn) scm_ihash,
+			    (scm_t_assoc_fn) scm_sloppy_assoc,
+			    0);
 }
 #undef FUNC_NAME
 
@@ -770,7 +921,10 @@ SCM_DEFINE (scm_hash_remove_x, "hash-remove!", 2, 0, 0,
 	    "@var{table}.  Uses @code{equal?} for equality tests.")
 #define FUNC_NAME s_scm_hash_remove_x
 {
-  return scm_hash_fn_remove_x (table, key, scm_ihash, scm_sloppy_assoc, 0);
+  return scm_hash_fn_remove_x (table, key,
+			       (scm_t_hash_fn) scm_ihash,
+			       (scm_t_assoc_fn) scm_sloppy_assoc,
+			       0);
 }
 #undef FUNC_NAME
 
@@ -786,17 +940,20 @@ typedef struct scm_t_ihashx_closure
 
 
 static unsigned long
-scm_ihashx (SCM obj, unsigned long n, scm_t_ihashx_closure *closure)
+scm_ihashx (SCM obj, unsigned long n, void *arg)
 {
-  SCM answer = scm_call_2 (closure->hash, obj, scm_from_ulong (n));
+  SCM answer;
+  scm_t_ihashx_closure *closure = (scm_t_ihashx_closure *) arg;
+  answer = scm_call_2 (closure->hash, obj, scm_from_ulong (n));
   return scm_to_ulong (answer);
 }
 
 
 
 static SCM
-scm_sloppy_assx (SCM obj, SCM alist, scm_t_ihashx_closure *closure)
+scm_sloppy_assx (SCM obj, SCM alist, void *arg)
 {
+  scm_t_ihashx_closure *closure = (scm_t_ihashx_closure *) arg;
   return scm_call_2 (closure->assoc, obj, alist);
 }
 
@@ -913,7 +1070,8 @@ SCM_DEFINE (scm_hashx_remove_x, "hashx-remove!", 4, 0, 0,
 static const char s_scm_hash_fold[];
 
 SCM
-scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
+scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
+			SCM init, SCM table)
 {
   long i, n;
   SCM buckets, result = init;
@@ -921,21 +1079,47 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
   if (SCM_HASHTABLE_P (table))
     buckets = SCM_HASHTABLE_VECTOR (table);
   else
+    /* Weak alist vector.  */
     buckets = table;
   
   n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < n; ++i)
     {
-      SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
-      while (!scm_is_null (ls))
+      SCM prev, ls;
+
+      for (prev = SCM_BOOL_F, ls = SCM_SIMPLE_VECTOR_REF (buckets, i);
+	   !scm_is_null (ls);
+	   prev = ls, ls = SCM_CDR (ls))
 	{
+	  SCM handle;
+
 	  if (!scm_is_pair (ls))
 	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+
 	  handle = SCM_CAR (ls);
 	  if (!scm_is_pair (handle))
 	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+
+	  if (IS_WEAK_THING (table))
+	    {
+	      if (SCM_WEAK_PAIR_DELETED_P (handle))
+		{
+		  /* We hit a weak pair whose car/cdr has become
+		     unreachable: unlink it from the bucket.  */
+		  if (prev != SCM_BOOL_F)
+		    SCM_SETCDR (prev, SCM_CDR (ls));
+		  else
+		    SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_CDR (ls));
+
+		  if (SCM_HASHTABLE_P (table))
+		    /* Update the item count.  */
+		    SCM_HASHTABLE_DECREMENT (table);
+
+		  continue;
+		}
+	    }
+
 	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
-	  ls = SCM_CDR (ls);
 	}
     }
 
@@ -951,7 +1135,8 @@ scm_internal_hash_fold (SCM (*fn) (), void *closure, SCM init, SCM table)
 static const char s_scm_hash_for_each[];
 
 void
-scm_internal_hash_for_each_handle (SCM (*fn) (), void *closure, SCM table)
+scm_internal_hash_for_each_handle (scm_t_hash_handle_fn fn, void *closure,
+				   SCM table)
 {
   long i, n;
   SCM buckets;
@@ -993,7 +1178,8 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
   SCM_VALIDATE_PROC (1, proc);
   if (!SCM_HASHTABLE_P (table))
     SCM_VALIDATE_VECTOR (3, table);
-  return scm_internal_hash_fold (scm_call_3, (void *) SCM_UNPACK (proc), init, table);
+  return scm_internal_hash_fold ((scm_t_hash_fold_fn) scm_call_3,
+				 (void *) SCM_UNPACK (proc), init, table);
 }
 #undef FUNC_NAME
 
@@ -1028,12 +1214,11 @@ SCM_DEFINE (scm_hash_for_each_handle, "hash-for-each-handle", 2, 0, 0,
             "Applies PROC successively on all hash table handles.")
 #define FUNC_NAME s_scm_hash_for_each_handle
 {
-  scm_t_trampoline_1 call = scm_trampoline_1 (proc);
-  SCM_ASSERT (call, proc, 1, FUNC_NAME);
+  SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, 1, FUNC_NAME);
   if (!SCM_HASHTABLE_P (table))
     SCM_VALIDATE_VECTOR (2, table);
   
-  scm_internal_hash_for_each_handle (call,
+  scm_internal_hash_for_each_handle ((scm_t_hash_handle_fn) scm_call_1,
 				     (void *) SCM_UNPACK (proc),
 				     table);
   return SCM_UNSPECIFIED;
@@ -1066,16 +1251,6 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 
 
 
-
-void
-scm_hashtab_prehistory ()
-{
-  scm_tc16_hashtable = scm_make_smob_type (s_hashtable, 0);
-  scm_set_smob_mark (scm_tc16_hashtable, scm_markcdr);
-  scm_set_smob_print (scm_tc16_hashtable, hashtable_print);
-  scm_set_smob_free (scm_tc16_hashtable, hashtable_free);
-  scm_c_hook_add (&scm_after_gc_c_hook, rehash_after_gc, 0, 0);
-}
 
 void
 scm_init_hashtab ()

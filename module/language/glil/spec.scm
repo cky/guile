@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -34,7 +34,7 @@
 (define-language glil
   #:title	"Guile Lowlevel Intermediate Language (GLIL)"
   #:version	"0.3"
-  #:reader	read
+  #:reader	(lambda (port env) (read port))
   #:printer	write-glil
   #:parser      parse-glil
   #:compilers   `((assembly . ,compile-asm))

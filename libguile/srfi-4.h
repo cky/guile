@@ -286,7 +286,7 @@ SCM_INTERNAL scm_i_t_array_set scm_i_uniform_vector_set_proc (SCM uvec);
    interface.
 */
 
-SCM_API size_t scm_uniform_element_size (SCM obj);
+SCM_DEPRECATED size_t scm_uniform_element_size (SCM obj);
 
 #endif
 

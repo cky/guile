@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -48,42 +48,6 @@
 
 scm_t_bits scm_tc16_continuation;
 
-static SCM
-continuation_mark (SCM obj)
-{
-  scm_t_contregs *continuation = SCM_CONTREGS (obj);
-
-  scm_gc_mark (continuation->root);
-  scm_gc_mark (continuation->throw_value);
-  scm_gc_mark (continuation->vm_conts);
-  scm_mark_locations (continuation->stack, continuation->num_stack_items);
-#ifdef __ia64__
-  if (continuation->backing_store)
-    scm_mark_locations (continuation->backing_store, 
-                        continuation->backing_store_size / 
-                        sizeof (SCM_STACKITEM));
-#endif /* __ia64__ */
-  return continuation->dynenv;
-}
-
-static size_t
-continuation_free (SCM obj)
-{
-  scm_t_contregs *continuation = SCM_CONTREGS (obj);
-  /* stack array size is 1 if num_stack_items is 0.  */
-  size_t extra_items = (continuation->num_stack_items > 0)
-    ? (continuation->num_stack_items - 1)
-    : 0;
-  size_t bytes_free = sizeof (scm_t_contregs)
-    + extra_items * sizeof (SCM_STACKITEM);
-
-#ifdef __ia64__
-  scm_gc_free (continuation->backing_store, continuation->backing_store_size,
-	       "continuation backing store");
-#endif /* __ia64__ */ 
-  scm_gc_free (continuation, bytes_free, "continuation");
-  return 0;
-}
 
 static int
 continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
@@ -93,7 +57,7 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
   scm_puts ("#<continuation ", port);
   scm_intprint (continuation->num_stack_items, 10, port);
   scm_puts (" @ ", port);
-  scm_uintprint (SCM_CELL_WORD_1 (obj), 16, port);
+  scm_uintprint (SCM_SMOB_DATA_1 (obj), 16, port);
   scm_putc ('>', port);
   return 1;
 }
@@ -120,7 +84,6 @@ scm_make_continuation (int *first)
   continuation->dynenv = scm_i_dynwinds ();
   continuation->throw_value = SCM_EOL;
   continuation->root = thread->continuation_root;
-  continuation->dframe = scm_i_last_debug_frame ();
   src = thread->continuation_base;
 #if ! SCM_STACK_GROWS_UP
   src -= stack_size;
@@ -226,8 +189,6 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   data.dst = dst;
   scm_i_dowinds (continuation->dynenv, delta, copy_stack, &data);
 
-  scm_i_set_last_debug_frame (continuation->dframe);
-
   continuation->throw_value = val;
   SCM_I_LONGJMP (continuation->jmpbuf, 1);
 }
@@ -261,7 +222,7 @@ scm_dynthrow (SCM cont, SCM val)
   SCM_STACKITEM *dst = thread->continuation_base;
   SCM_STACKITEM stack_top_element;
 
-  if (scm_i_critical_section_level)
+  if (thread->critical_section_level)
     {
       fprintf (stderr, "continuation invoked from within critical section.\n");
       abort ();
@@ -312,17 +273,14 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   SCM old_controot;
   SCM_STACKITEM *old_contbase;
-  scm_t_debug_frame *old_lastframe;
   SCM result;
 
   /* Establish a fresh continuation root.  
    */
   old_controot = thread->continuation_root;
   old_contbase = thread->continuation_base;
-  old_lastframe = thread->last_debug_frame;
   thread->continuation_root = scm_cons (thread->handle, old_controot);
   thread->continuation_base = &stack_item;
-  thread->last_debug_frame = NULL;
 
   /* Call FUNC inside a catch all.  This is now guaranteed to return
      directly and exactly once.
@@ -334,7 +292,6 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
 
   /* Return to old continuation root.
    */
-  thread->last_debug_frame = old_lastframe;
   thread->continuation_base = old_contbase;
   thread->continuation_root = old_controot;
 
@@ -418,8 +375,6 @@ void
 scm_init_continuations ()
 {
   scm_tc16_continuation = scm_make_smob_type ("continuation", 0);
-  scm_set_smob_mark (scm_tc16_continuation, continuation_mark);
-  scm_set_smob_free (scm_tc16_continuation, continuation_free);
   scm_set_smob_print (scm_tc16_continuation, continuation_print);
   scm_set_smob_apply (scm_tc16_continuation, continuation_apply, 0, 0, 1);
 #include "libguile/continuations.x"

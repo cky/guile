@@ -23,6 +23,11 @@
 #include <stdlib.h>
 #include <alloca.h>
 #include <string.h>
+#include <assert.h>
+
+#include "libguile/bdw-gc.h"
+#include <gc/gc_mark.h>
+
 #include "_scm.h"
 #include "vm-bootstrap.h"
 #include "frames.h"
@@ -56,62 +61,19 @@
 #define VM_ENABLE_ASSERTIONS
 #endif
 
+/* When defined, arrange so that the GC doesn't scan the VM stack beyond its
+   current SP.  This should help avoid excess data retention.  See
+   http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/3001
+   for a discussion.  */
+#define VM_ENABLE_PRECISE_STACK_GC_SCAN
+
+
 
 /*
  * VM Continuation
  */
 
 scm_t_bits scm_tc16_vm_cont;
-
-static void
-vm_mark_stack (SCM *base, scm_t_ptrdiff size, SCM *fp, scm_t_ptrdiff reloc)
-{
-  SCM *sp, *mark;
-  sp = base + size - 1;
-
-  while (sp > base && fp) 
-    {
-      mark = SCM_FRAME_LOWER_ADDRESS (fp) + 3;
-
-      for (; sp >= mark; sp--)
-        if (SCM_NIMP (*sp)) 
-          {
-            if (scm_in_heap_p (*sp))
-              scm_gc_mark (*sp);
-            /* this can happen for open frames */
-            /* else fprintf (stderr, "BADNESS: crap on the stack: %p\n", *sp); */
-          }
-      
-
-      /* skip ra, mvra */
-      sp -= 2;
-
-      /* update fp from the dynamic link */
-      fp = (SCM*)*sp-- + reloc;
-    }
-}
-
-static SCM
-vm_cont_mark (SCM obj)
-{
-  struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
-
-  if (p->stack_size)
-    vm_mark_stack (p->stack_base, p->stack_size, p->fp + p->reloc, p->reloc);
-
-  return SCM_BOOL_F;
-}
-
-static size_t
-vm_cont_free (SCM obj)
-{
-  struct scm_vm_cont *p = SCM_VM_CONT_DATA (obj);
-
-  scm_gc_free (p->stack_base, p->stack_size * sizeof (SCM), "stack-base");
-  scm_gc_free (p, sizeof (*p), "vm-cont");
-
-  return 0;
-}
 
 static SCM
 capture_vm_cont (struct scm_vm *vp)
@@ -192,12 +154,12 @@ static void enfalsen_frame (void *p)
 static void
 vm_dispatch_hook (struct scm_vm *vp, SCM hook, SCM hook_args)
 {
-  if (!SCM_FALSEP (vp->trace_frame))
+  if (!scm_is_false (vp->trace_frame))
     return;
-  
+
   scm_dynwind_begin (0);
-  // FIXME, stack holder should be the vm
-  vp->trace_frame = scm_c_make_vm_frame (SCM_BOOL_F, vp->fp, vp->sp, vp->ip, 0);
+  /* FIXME, stack holder should be the vm */
+  vp->trace_frame = scm_c_make_frame (SCM_BOOL_F, vp->fp, vp->sp, vp->ip, 0);
   scm_dynwind_unwind_handler (enfalsen_frame, vp, SCM_F_WIND_EXPLICITLY);
 
   scm_c_run_hook (hook, hook_args);
@@ -218,9 +180,8 @@ static SCM
 really_make_boot_program (long nargs)
 {
   SCM u8vec;
-  scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 1,
-                         scm_op_make_int8_1, scm_op_nop, scm_op_nop, scm_op_nop,
-                         scm_op_halt };
+  scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 0, 1,
+                         scm_op_make_int8_1, scm_op_halt };
   struct scm_objcode *bp;
   SCM ret;
 
@@ -228,21 +189,16 @@ really_make_boot_program (long nargs)
     abort ();
   text[1] = (scm_t_uint8)nargs;
 
-  bp = scm_gc_malloc (sizeof (struct scm_objcode) + sizeof (text),
-                      "make-u8vector");
+  bp = scm_malloc (sizeof (struct scm_objcode) + sizeof (text));
   memcpy (bp->base, text, sizeof (text));
-  bp->nargs = 0;
-  bp->nrest = 0;
-  bp->nlocs = 0;
   bp->len = sizeof(text);
   bp->metalen = 0;
-  bp->unused = 0;
 
   u8vec = scm_take_u8vector ((scm_t_uint8*)bp,
                              sizeof (struct scm_objcode) + sizeof (text));
   ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
                           SCM_BOOL_F, SCM_BOOL_F);
-  SCM_SET_SMOB_FLAGS (ret, SCM_F_PROGRAM_IS_BOOT);
+  SCM_SET_CELL_WORD_0 (ret, SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_BOOT);
 
   return ret;
 }
@@ -256,7 +212,7 @@ vm_make_boot_program (long nargs)
     {
       int i;
       for (i = 0; i < NUM_BOOT_PROGS; i++)
-        programs[i] = scm_permanent_object (really_make_boot_program (i));
+        programs[i] = really_make_boot_program (i);
     }
   
   if (SCM_LIKELY (nargs < NUM_BOOT_PROGS))
@@ -273,7 +229,7 @@ vm_make_boot_program (long nargs)
 static SCM
 resolve_variable (SCM what, SCM program_module)
 {
-  if (SCM_LIKELY (SCM_SYMBOLP (what))) 
+  if (SCM_LIKELY (scm_is_symbol (what)))
     {
       if (SCM_LIKELY (scm_module_system_booted_p
                       && scm_is_true (program_module)))
@@ -298,7 +254,7 @@ resolve_variable (SCM what, SCM program_module)
       mod = scm_resolve_module (SCM_CAR (what));
       if (scm_is_true (SCM_CADDR (what)))
         mod = scm_module_public_interface (mod);
-      if (SCM_FALSEP (mod))
+      if (scm_is_false (mod))
         scm_misc_error (NULL, "no such module: ~S",
                         scm_list_1 (SCM_CAR (what)));
       /* might longjmp */
@@ -306,6 +262,40 @@ resolve_variable (SCM what, SCM program_module)
     }
 }
   
+static SCM
+apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
+{
+  SCM_ASRTGO (SCM_NIMP (proc), badproc);
+
+  switch (SCM_TYP7 (proc))
+    {
+    case scm_tc7_smob:
+      if (!SCM_SMOB_APPLICABLE_P (proc))
+        goto badproc;
+      switch (nargs)
+        {
+        case 0:
+          return SCM_SMOB_APPLY_0 (proc);
+        case 1:
+          return SCM_SMOB_APPLY_1 (proc, args[0]);
+        case 2:
+          return SCM_SMOB_APPLY_2 (proc, args[0], args[1]);
+        default:
+          {
+            SCM arglist = SCM_EOL;
+            while (nargs-- > 2)
+              arglist = scm_cons (args[nargs], arglist);
+            return SCM_SMOB_APPLY_3 (proc, args[0], args[1], arglist);
+          }
+        }
+    case scm_tc7_gsubr:
+      return scm_i_gsubr_apply_array (proc, args, nargs, headroom);
+    default:
+    badproc:
+      scm_wrong_type_arg ("apply", SCM_ARG1, proc);
+    }
+}
+
 
 #define VM_DEFAULT_STACK_SIZE	(64 * 1024)
 
@@ -330,24 +320,45 @@ static const scm_t_vm_engine vm_engines[] =
 
 scm_t_bits scm_tc16_vm;
 
+#ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
+
+/* The GC "kind" for the VM stack.  */
+static int vm_stack_gc_kind;
+
+#endif
+
 static SCM
 make_vm (void)
 #define FUNC_NAME "make_vm"
 {
   int i;
+  struct scm_vm *vp;
 
   if (!scm_tc16_vm)
     return SCM_BOOL_F; /* not booted yet */
 
-  struct scm_vm *vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
+  vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
 
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
+
+#ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
+  vp->stack_base = GC_generic_malloc (vp->stack_size * sizeof (SCM),
+				      vm_stack_gc_kind);
+
+  /* Keep a pointer to VP so that `vm_stack_mark ()' can know what the stack
+     top is.  */
+  *vp->stack_base = PTR2SCM (vp);
+  vp->stack_base++;
+  vp->stack_size--;
+#else
   vp->stack_base  = scm_gc_malloc (vp->stack_size * sizeof (SCM),
 				   "stack-base");
+#endif
+
 #ifdef VM_ENABLE_STACK_NULLING
   memset (vp->stack_base, 0, vp->stack_size * sizeof (SCM));
 #endif
-  vp->stack_limit = vp->stack_base + vp->stack_size - 3;
+  vp->stack_limit = vp->stack_base + vp->stack_size;
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;
@@ -362,41 +373,37 @@ make_vm (void)
 }
 #undef FUNC_NAME
 
-static SCM
-vm_mark (SCM obj)
+#ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
+
+/* Mark the VM stack region between its base and its current top.  */
+static struct GC_ms_entry *
+vm_stack_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
+	       struct GC_ms_entry *mark_stack_limit, GC_word env)
 {
-  int i;
-  struct scm_vm *vp = SCM_VM_DATA (obj);
+  GC_word *word;
+  const struct scm_vm *vm;
 
-#ifdef VM_ENABLE_STACK_NULLING
-  if (vp->sp >= vp->stack_base)
-    if (!vp->sp[0] || vp->sp[1])
-      abort ();
-#endif
+  /* The first word of the VM stack should contain a pointer to the
+     corresponding VM.  */
+  vm = * ((struct scm_vm **) addr);
 
-  /* mark the stack, precisely */
-  vm_mark_stack (vp->stack_base, vp->sp + 1 - vp->stack_base, vp->fp, 0);
+  if (vm == NULL
+      || (SCM *) addr != vm->stack_base - 1
+      || vm->stack_limit - vm->stack_base != vm->stack_size)
+    /* ADDR must be a pointer to a free-list element, which we must ignore
+       (see warning in <gc/gc_mark.h>).  */
+    return mark_stack_ptr;
 
-  /* mark other objects  */
-  for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
-    scm_gc_mark (vp->hooks[i]);
+  for (word = (GC_word *) vm->stack_base; word <= (GC_word *) vm->sp; word++)
+    mark_stack_ptr = GC_MARK_AND_PUSH ((* (GC_word **) word),
+				       mark_stack_ptr, mark_stack_limit,
+				       NULL);
 
-  scm_gc_mark (vp->trace_frame);
-
-  return vp->options;
+  return mark_stack_ptr;
 }
 
-static size_t
-vm_free (SCM obj)
-{
-  struct scm_vm *vp = SCM_VM_DATA (obj);
+#endif /* VM_ENABLE_PRECISE_STACK_GC_SCAN */
 
-  scm_gc_free (vp->stack_base, vp->stack_size * sizeof (SCM),
-	       "stack-base");
-  scm_gc_free (vp, sizeof (struct scm_vm), "vm");
-
-  return 0;
-}
 
 SCM
 scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
@@ -413,7 +420,7 @@ scm_vm_apply (SCM vm, SCM program, SCM args)
   int i, nargs;
   
   SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_PROGRAM (2, program);
+  SCM_VALIDATE_PROC (2, program);
 
   nargs = scm_ilength (args);
   if (SCM_UNLIKELY (nargs < 0))
@@ -429,6 +436,12 @@ scm_vm_apply (SCM vm, SCM program, SCM args)
   return scm_c_vm_run (vm, program, argv, nargs);
 }
 #undef FUNC_NAME
+
+SCM
+scm_vm_call_with_new_stack (SCM vm, SCM thunk, SCM id)
+{
+  return scm_c_vm_run (vm, thunk, NULL, 0);
+}
 
 /* Scheme interface */
 
@@ -448,7 +461,7 @@ SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
 {
   scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
-  if (SCM_UNLIKELY (SCM_FALSEP ((t->vm))))
+  if (SCM_UNLIKELY (scm_is_false ((t->vm))))
     t->vm = make_vm ();
 
   return t->vm;
@@ -461,7 +474,7 @@ SCM_DEFINE (scm_vm_p, "vm?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_vm_p
 {
-  return SCM_BOOL (SCM_VM_P (obj));
+  return scm_from_bool (SCM_VM_P (obj));
 }
 #undef FUNC_NAME
 
@@ -509,7 +522,7 @@ SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
   struct scm_vm *vp;					\
   SCM_VALIDATE_VM (1, vm);				\
   vp = SCM_VM_DATA (vm);				\
-  if (SCM_FALSEP (vp->hooks[n]))			\
+  if (scm_is_false (vp->hooks[n]))			\
     vp->hooks[n] = scm_make_hook (SCM_I_MAKINUM (1));	\
   return vp->hooks[n];					\
 }
@@ -664,26 +677,30 @@ scm_bootstrap_vm (void)
   scm_bootstrap_programs ();
 
   scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
-  scm_set_smob_mark (scm_tc16_vm_cont, vm_cont_mark);
-  scm_set_smob_free (scm_tc16_vm_cont, vm_cont_free);
 
   scm_tc16_vm = scm_make_smob_type ("vm", 0);
-  scm_set_smob_mark (scm_tc16_vm, vm_mark);
-  scm_set_smob_free (scm_tc16_vm, vm_free);
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
 
   scm_c_define ("load-compiled",
                 scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
                                   scm_load_compiled_with_vm));
 
-  sym_vm_run = scm_permanent_object (scm_from_locale_symbol ("vm-run"));
-  sym_vm_error = scm_permanent_object (scm_from_locale_symbol ("vm-error"));
-  sym_debug = scm_permanent_object (scm_from_locale_symbol ("debug"));
+  sym_vm_run = scm_from_locale_symbol ("vm-run");
+  sym_vm_error = scm_from_locale_symbol ("vm-error");
+  sym_debug = scm_from_locale_symbol ("debug");
 
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
 
   strappage = 1;
+
+#ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
+  vm_stack_gc_kind =
+    GC_new_kind (GC_new_free_list (),
+		 GC_MAKE_PROC (GC_new_proc (vm_stack_mark), 0),
+		 0, 1);
+
+#endif
 }
 
 void

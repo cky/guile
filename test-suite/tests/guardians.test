@@ -18,8 +18,18 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 ;;; These tests make some questionable assumptions.
+;;;
 ;;; - They assume that a GC will find all dead objects, so they
 ;;;   will become flaky if we have a generational GC.
+;;;
+;;; - More generally, when a weakly referenced object doesn't disappear as
+;;;   expected, it's hard to tell whether that's because of a guardian bug of
+;;;   because a reference to it is being held somewhere, e.g., one some part
+;;;   of the stack that hasn't been overwritten.  Thus, most tests cannot
+;;;   fail, they can just throw `unresolved'.  We try hard to clear
+;;;   references that may have been left on the stacks (see "clear refs left
+;;;   on the stack" lines).
+;;;
 ;;; - They assume that objects won't be saved by the guardian until
 ;;;   they explicitly invoke GC --- in other words, they assume that GC
 ;;;   won't happen too often.
@@ -41,11 +51,18 @@
 (gc)
 
 ;;; Who guards the guardian?
+
+;;; Note: We use strings rather than symbols because symbols are usually
+;;; ``interned'', i.e., kept in a weakly-keyed hash table, thus making them
+;;; inappropriate for the tests below.  Furthermore, we use `string-copy' in
+;;; order to make sure that no string is kept around in the interpreter
+;;; unwillingly (e.g., in the source-property weak hash table).
+
 (gc)
 (define g2 (make-guardian))
-(g2 (list 'g2-garbage))
+(g2 (list (string-copy "g2-garbage")))
 (define g3 (make-guardian))
-(g3 (list 'g3-garbage))
+(g3 (list (string-copy "g3-garbage")))
 (g3 g2)
 (pass-if "g2-garbage not collected yet" (equal? (g2) #f))
 (pass-if "g3-garbage not collected yet" (equal? (g3) #f))
@@ -59,15 +76,37 @@
       (if saved
 	  (begin
 	    (cond
-	     ((equal? saved '(g3-garbage)) (set! seen-g3-garbage #t))
+	     ((equal? saved (list (string-copy "g3-garbage")))
+	      (set! seen-g3-garbage #t))
 	     ((procedure? saved) (set! seen-g2 saved))
-	     (else (pk saved) (set! seen-something-else #t)))
+	     (else (pk 'junk saved) (set! seen-something-else #t)))
 	    (loop)))))
   (pass-if "g3-garbage saved" (or seen-g3-garbage (throw 'unresolved)))
   (pass-if "g2-saved" (or (procedure? seen-g2) (throw 'unresolved)))
   (pass-if "nothing else saved" (not seen-something-else))
+
+  ;; FIXME: The following test fails because the guardian for `g2-garbage'
+  ;; disappared from the weak-car guardian list of `g2-garbage' right before
+  ;; `g2-garbage' was finalized (in `finalize_guarded ()').  Sample session
+  ;; (compiled with `-DDEBUG_GUARDIANS'):
+  ;;
+  ;; guile> (define g (make-guardian))
+  ;; guile> (let ((g2 (make-guardian)))
+  ;;          (format #t "g2 = ~x~%" (object-address g2))
+  ;;          (g2 (string-copy "foo"))
+  ;;          (g g2))
+  ;; g2 = 81fde18
+  ;; guile> (gc)
+  ;; finalizing guarded 0x827f6a0 (1 guardians)
+  ;;   guardian for 0x827f6a0 vanished
+  ;; end of finalize (0x827f6a0)
+  ;; finalizing guarded 0x81fde18 (1 guardians)
+  ;; end of finalize (0x81fde18)
+
   (pass-if "g2-garbage saved" (or (and (procedure? seen-g2)
-				       (equal? (seen-g2) '(g2-garbage)))
+				       (equal? (seen-g2)
+					       (list (string-copy
+						      "g2-garbage"))))
 				  (throw 'unresolved))))
 
 (with-test-prefix "standard guardian functionality"
@@ -107,6 +146,7 @@
       (let ((g (make-guardian)))
 	(gc)
 	(g (cons #f #f))
+        (cons 'clear 'stack)  ;; clear refs left on the stack
 	(if (not (eq? (g) #f))
 	    (throw 'unresolved)
 	    (begin
@@ -120,6 +160,7 @@
 	(gc)
 	(g (cons #f #f))
 	(g (cons #t #t))
+        (cons 'clear 'stack)  ;; clear refs left on the stack
 	(if (not (eq? (g) #f))
 	    (throw 'unresolved)
 	    (begin
@@ -134,6 +175,7 @@
       (let ((g (make-guardian)))
 	(gc)
 	(g (cons #f #f))
+        (cons 'clear 'stack)  ;; clear refs left on the stack
 	(if (not (eq? (g) #f))
 	    (throw 'unresolved)
 	    (begin
@@ -167,7 +209,8 @@
 	(gc)
 	(let ((p (cons #f #f)))
 	  (g p)
-	  (vector-set! v 0 p))
+	  (vector-set! v 0 p)
+          (set! p #f))           ;; clear refs left on the stack
 	(if (not (eq? (g) #f))
 	    (throw 'unresolved)
 	    (begin
@@ -182,7 +225,8 @@
 	(gc)
 	(let ((p (cons #f #f)))
 	  (g p)
-	  (vector-set! v 0 p))
+	  (vector-set! v 0 p)
+          (set! p #f))        ;; clear refs left on the stack
 	(begin
 	  (gc)
 	  (if (not (equal? (g) (cons #f #f)))
@@ -196,7 +240,11 @@
 
     (pass-if "element of guarded weak vector gets collected"
       (let ((g (make-guardian))
-	    (v (weak-vector (cons #f #f))))
+	    (v (weak-vector #f)))
+        ;; Note: We don't pass `(cons #f #f)' as an argument to `weak-vector'
+        ;; otherwise references to it are likely to be left on the stack.
+        (vector-set! v 0 (cons #f #f))
+
 	(g v)
 	(gc)
 	(if (equal? (vector-ref v 0) (cons #f #f))
@@ -240,7 +288,8 @@
 	 (gc)
 	 (let ((p (cons #f #f)))
 	   (g p)
-	   (g p))
+	   (g p)
+           (set! p #f))       ;; clear refs left on the stack
 	 (if (not (eq? (g) #f))
 	     (throw 'unresolved)
 	     (begin
@@ -255,7 +304,8 @@
 	 (gc)
 	 (let ((p (cons #f #f)))
 	   (g p)
-	   (h p))
+	   (h p)
+           (set! p #f))         ;; clear refs left on the stack
 	 (if (not (eq? (g) #f))
 	     (throw 'unresolved)
 	     (begin

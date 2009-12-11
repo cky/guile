@@ -23,9 +23,14 @@
   #:use-module (srfi srfi-9)
   #:use-module (system base syntax)
   #:use-module (system base message)
+  #:use-module (system vm program)
   #:use-module (language tree-il)
+  #:use-module (system base pmatch)
   #:export (analyze-lexicals
-            report-unused-variables))
+            analyze-tree
+            unused-variable-analysis
+            unbound-variable-analysis
+            arity-analysis))
 
 ;; Allocation is the process of assigning storage locations for lexical
 ;; variables. A lexical variable has a distinct "address", or storage
@@ -111,13 +116,20 @@
 ;; translated into labels, and information on what free variables to
 ;; capture from its lexical parent procedure.
 ;;
+;; In addition, we have a conflation: while we're traversing the code,
+;; recording information to pass to the compiler, we take the
+;; opportunity to generate labels for each lambda-case clause, so that
+;; generated code can skip argument checks at runtime if they match at
+;; compile-time.
+;;
 ;; That is:
 ;;
 ;;  sym -> {lambda -> address}
-;;  lambda -> (nlocs labels . free-locs)
+;;  lambda -> (labels . free-locs)
+;;  lambda-case -> (gensym . nlocs)
 ;;
 ;; address ::= (local? boxed? . index)
-;; labels ::= ((sym . lambda-vars) ...)
+;; labels ::= ((sym . lambda) ...)
 ;; free-locs ::= ((sym0 . address0) (sym1 . address1) ...)
 ;; free variable addresses are relative to parent proc.
 
@@ -140,9 +152,9 @@
   ;; refcounts: sym -> count
   ;;  allows us to detect the or-expansion in O(1) time
   (define refcounts (make-hash-table))
-  ;; labels: sym -> lambda-vars
+  ;; labels: sym -> lambda
   ;;  for determining if fixed-point procedures can be rendered as
-  ;;  labels. lambda-vars may be an improper list.
+  ;;  labels.
   (define labels (make-hash-table))
 
   ;; returns variables referenced in expr
@@ -162,28 +174,39 @@
       ((<conditional> test then else)
        (lset-union eq? (step test) (step-tail then) (step-tail else)))
 
-      ((<lexical-ref> name gensym)
+      ((<lexical-ref> gensym)
        (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
        (if (not (and tail-call-args
                      (memq gensym labels-in-proc)
-                     (let ((args (hashq-ref labels gensym)))
-                       (and (list? args)
-                            (= (length args) (length tail-call-args))))))
+                     (let ((p (hashq-ref labels gensym)))
+                       (and p
+                            (let lp ((c (lambda-body p)))
+                              (and c (lambda-case? c)
+                                   (or 
+                                    ;; for now prohibit optional &
+                                    ;; keyword arguments; can relax this
+                                    ;; restriction later
+                                    (and (= (length (lambda-case-req c))
+                                            (length tail-call-args))
+                                         (not (lambda-case-opt c))
+                                         (not (lambda-case-kw c))
+                                         (not (lambda-case-rest c)))
+                                    (lp (lambda-case-else c)))))))))
            (hashq-set! labels gensym #f))
        (list gensym))
       
-      ((<lexical-set> name gensym exp)
+      ((<lexical-set> gensym exp)
        (hashq-set! assigned gensym #t)
        (hashq-set! labels gensym #f)
        (lset-adjoin eq? (step exp) gensym))
       
-      ((<module-set> mod name public? exp)
+      ((<module-set> exp)
        (step exp))
       
-      ((<toplevel-set> name exp)
+      ((<toplevel-set> exp)
        (step exp))
       
-      ((<toplevel-define> name exp)
+      ((<toplevel-define> exp)
        (step exp))
       
       ((<sequence> exps)
@@ -194,19 +217,25 @@
                (else
                 (lp (cdr exps) (lset-union eq? ret (step (car exps))))))))
       
-      ((<lambda> vars meta body)
-       (let ((locally-bound (let rev* ((vars vars) (out '()))
-                              (cond ((null? vars) out)
-                                    ((pair? vars) (rev* (cdr vars)
-                                                        (cons (car vars) out)))
-                                    (else (cons vars out))))))
-         (hashq-set! bound-vars x locally-bound)
-         (let* ((referenced (recur body x))
-                (free (lset-difference eq? referenced locally-bound))
-                (all-bound (reverse! (hashq-ref bound-vars x))))
-           (hashq-set! bound-vars x all-bound)
-           (hashq-set! free-vars x free)
-           free)))
+      ((<lambda> body)
+       ;; order is important here
+       (hashq-set! bound-vars x '())
+       (let ((free (recur body x)))
+         (hashq-set! bound-vars x (reverse! (hashq-ref bound-vars x)))
+         (hashq-set! free-vars x free)
+         free))
+      
+      ((<lambda-case> opt kw inits vars body else)
+       (hashq-set! bound-vars proc
+                   (append (reverse vars) (hashq-ref bound-vars proc)))
+       (lset-union
+        eq?
+        (lset-difference eq?
+                         (lset-union eq?
+                                     (apply lset-union eq? (map step inits))
+                                     (step-tail body))
+                         vars)
+        (if else (step-tail else) '())))
       
       ((<let> vars vals body)
        (hashq-set! bound-vars proc
@@ -225,7 +254,7 @@
       
       ((<fix> vars vals body)
        ;; Try to allocate these procedures as labels.
-       (for-each (lambda (sym val) (hashq-set! labels sym (lambda-vars val)))
+       (for-each (lambda (sym val) (hashq-set! labels sym val))
                  vars vals)
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
@@ -239,21 +268,14 @@
                 ;; prevent label allocation.)
                 (lambda (x)
                   (record-case x
-                    ((<lambda> (lvars vars) body)
-                     (let ((locally-bound
-                            (let rev* ((lvars lvars) (out '()))
-                              (cond ((null? lvars) out)
-                                    ((pair? lvars) (rev* (cdr lvars)
-                                                         (cons (car lvars) out)))
-                                    (else (cons lvars out))))))
-                       (hashq-set! bound-vars x locally-bound)
-                       ;; recur/labels, the difference from the closure case
-                       (let* ((referenced (recur/labels body x vars))
-                              (free (lset-difference eq? referenced locally-bound))
-                              (all-bound (reverse! (hashq-ref bound-vars x))))
-                         (hashq-set! bound-vars x all-bound)
-                         (hashq-set! free-vars x free)
-                         free)))))
+                    ((<lambda> body)
+                     ;; just like the closure case, except here we use
+                     ;; recur/labels instead of recur
+                     (hashq-set! bound-vars x '())
+                     (let ((free (recur/labels body x vars)))
+                       (hashq-set! bound-vars x (reverse! (hashq-ref bound-vars x)))
+                       (hashq-set! free-vars x free)
+                       free))))
                 vals))
               (vars-with-refs (map cons vars var-refs))
               (body-refs (recur/labels body proc vars)))
@@ -301,15 +323,8 @@
                           (apply lset-union eq? body-refs var-refs)
                           vars)))
       
-      ((<let-values> vars exp body)
-       (let ((bound (let lp ((out (hashq-ref bound-vars proc)) (in vars))
-                      (if (pair? in)
-                          (lp (cons (car in) out) (cdr in))
-                          (if (null? in) out (cons in out))))))
-         (hashq-set! bound-vars proc bound)
-         (lset-difference eq?
-                          (lset-union eq? (step exp) (step-tail body))
-                          bound)))
+      ((<let-values> exp body)
+       (lset-union eq? (step exp) (step body)))
       
       (else '())))
   
@@ -326,22 +341,22 @@
       ((<conditional> test then else)
        (max (recur test) (recur then) (recur else)))
 
-      ((<lexical-set> name gensym exp)
+      ((<lexical-set> exp)
        (recur exp))
       
-      ((<module-set> mod name public? exp)
+      ((<module-set> exp)
        (recur exp))
       
-      ((<toplevel-set> name exp)
+      ((<toplevel-set> exp)
        (recur exp))
       
-      ((<toplevel-define> name exp)
+      ((<toplevel-define> exp)
        (recur exp))
       
       ((<sequence> exps)
        (apply max (map recur exps)))
       
-      ((<lambda> vars meta body)
+      ((<lambda> body)
        ;; allocate closure vars in order
        (let lp ((c (hashq-ref free-vars x)) (n 0))
          (if (pair? c)
@@ -351,17 +366,7 @@
                            `(#f ,(hashq-ref assigned (car c)) . ,n))
                (lp (cdr c) (1+ n)))))
       
-       (let ((nlocs
-              (let lp ((vars vars) (n 0))
-                (if (not (null? vars))
-                    ;; allocate args
-                    (let ((v (if (pair? vars) (car vars) vars)))
-                      (hashq-set! allocation v
-                                  (make-hashq
-                                   x `(#t ,(hashq-ref assigned v) . ,n)))
-                      (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
-                    ;; allocate body, return number of additional locals
-                    (- (allocate! body x n) n))))
+       (let ((nlocs (allocate! body x 0))
              (free-addresses
               (map (lambda (v)
                      (hashq-ref (hashq-ref allocation v) proc))
@@ -371,9 +376,29 @@
                                     (cons sym (hashq-ref labels sym)))
                                   (hashq-ref bound-vars x)))))
          ;; set procedure allocations
-         (hashq-set! allocation x (cons* nlocs labels free-addresses)))
+         (hashq-set! allocation x (cons labels free-addresses)))
        n)
 
+      ((<lambda-case> opt kw inits vars body else)
+       (max
+        (let lp ((vars vars) (n n))
+          (if (null? vars)
+              (let ((nlocs (apply
+                            max
+                            (allocate! body proc n)
+                            ;; inits not logically at the end, but they
+                            ;; are the list...
+                            (map (lambda (x) (allocate! x body n)) inits))))
+                ;; label and nlocs for the case
+                (hashq-set! allocation x (cons (gensym ":LCASE") nlocs))
+                nlocs)
+              (begin
+                (hashq-set! allocation (car vars)
+                            (make-hashq
+                             proc `(#t ,(hashq-ref assigned (car vars)) . ,n)))
+                (lp (cdr vars) (1+ n)))))
+        (if else (allocate! else proc n) n)))
+      
       ((<let> vars vals body)
        (let ((nmax (apply max (map recur vals))))
          (cond
@@ -425,22 +450,12 @@
                 ((null? vars)
                  (max nmax (allocate! body proc n)))
                 ((hashq-ref labels (car vars))                 
-                 ;; allocate label bindings & body inline to proc
+                 ;; allocate lambda body inline to proc
                  (lp (cdr vars)
                      (cdr vals)
                      (record-case (car vals)
-                       ((<lambda> vars body)
-                        (let lp ((vars vars) (n n))
-                          (if (not (null? vars))
-                              ;; allocate bindings
-                              (let ((v (if (pair? vars) (car vars) vars)))
-                                (hashq-set!
-                                 allocation v
-                                 (make-hashq
-                                  proc `(#t ,(hashq-ref assigned v) . ,n)))
-                                (lp (if (pair? vars) (cdr vars) '()) (1+ n)))
-                              ;; allocate body
-                              (max nmax (allocate! body proc n))))))))
+                       ((<lambda> body)
+                        (max nmax (allocate! body proc n))))))
                 (else
                  ;; allocate closure
                  (lp (cdr vars)
@@ -459,25 +474,8 @@
                  (hashq-set! allocation v (make-hashq proc `(#t #f . ,n)))
                  (lp (cdr in) (1+ n))))))))
 
-      ((<let-values> vars exp body)
-       (let ((nmax (recur exp)))
-         (let lp ((vars vars) (n n))
-           (cond
-            ((null? vars)
-             (max nmax (allocate! body proc n)))
-            ((not (pair? vars))
-             (hashq-set! allocation vars
-                         (make-hashq proc
-                                     `(#t ,(hashq-ref assigned vars) . ,n)))
-             ;; the 1+ for this var
-             (max nmax (allocate! body proc (1+ n))))
-            (else               
-             (let ((v (car vars)))
-               (hashq-set!
-                allocation v
-                (make-hashq proc
-                            `(#t ,(hashq-ref assigned v) . ,n)))
-               (lp (cdr vars) (1+ n))))))))
+      ((<let-values> exp body)
+       (max (recur exp) (recur body)))
       
       (else n)))
 
@@ -485,6 +483,44 @@
   (allocate! x #f 0)
 
   allocation)
+
+
+;;;
+;;; Tree analyses for warnings.
+;;;
+
+(define-record-type <tree-analysis>
+  (make-tree-analysis leaf down up post init)
+  tree-analysis?
+  (leaf tree-analysis-leaf)  ;; (lambda (x result env) ...)
+  (down tree-analysis-down)  ;; (lambda (x result env) ...)
+  (up   tree-analysis-up)    ;; (lambda (x result env) ...)
+  (post tree-analysis-post)  ;; (lambda (result env) ...)
+  (init tree-analysis-init)) ;; arbitrary value
+
+(define (analyze-tree analyses tree env)
+  "Run all tree analyses listed in ANALYSES on TREE for ENV, using
+`tree-il-fold'.  Return TREE."
+  (define (traverse proc)
+    (lambda (x results)
+      (map (lambda (analysis result)
+             ((proc analysis) x result env))
+           analyses
+           results)))
+
+  (let ((results
+         (tree-il-fold (traverse tree-analysis-leaf)
+                       (traverse tree-analysis-down)
+                       (traverse tree-analysis-up)
+                       (map tree-analysis-init analyses)
+                       tree)))
+
+    (for-each (lambda (analysis result)
+                ((tree-analysis-post analysis) result env))
+              analyses
+              results))
+
+  tree)
 
 
 ;;;
@@ -502,116 +538,464 @@
   (refs binding-info-refs)  ;; (GENSYM ...)
   (locs binding-info-locs)) ;; (LOCATION ...)
 
-(define (report-unused-variables tree)
-  "Report about unused variables in TREE.  Return TREE."
+(define unused-variable-analysis
+  ;; Report unused variables in the given tree.
+  (make-tree-analysis
+   (lambda (x info env)
+     ;; X is a leaf: extend INFO's refs accordingly.
+     (let ((refs (binding-info-refs info))
+           (vars (binding-info-vars info))
+           (locs (binding-info-locs info)))
+       (record-case x
+         ((<lexical-ref> gensym)
+          (make-binding-info vars (cons gensym refs) locs))
+         (else info))))
 
-  (define (dotless-list lst)
-    ;; If LST is a dotted list, return a proper list equal to LST except that
-    ;; the very last element is a pair; otherwise return LST.
-    (let loop ((lst    lst)
+   (lambda (x info env)
+     ;; Going down into X: extend INFO's variable list
+     ;; accordingly.
+     (let ((refs (binding-info-refs info))
+           (vars (binding-info-vars info))
+           (locs (binding-info-locs info))
+           (src  (tree-il-src x)))
+       (define (extend inner-vars inner-names)
+         (append (map (lambda (var name)
+                        (list var name src))
+                      inner-vars
+                      inner-names)
+                 vars))
+       (record-case x
+         ((<lexical-set> gensym)
+          (make-binding-info vars (cons gensym refs)
+                             (cons src locs)))
+         ((<lambda-case> req opt inits rest kw vars)
+          (let ((names `(,@req
+                         ,@(or opt '())
+                         ,@(if rest (list rest) '())
+                         ,@(if kw (map cadr (cdr kw)) '()))))
+            (make-binding-info (extend vars names) refs
+                               (cons src locs))))
+         ((<let> vars names)
+          (make-binding-info (extend vars names) refs
+                             (cons src locs)))
+         ((<letrec> vars names)
+          (make-binding-info (extend vars names) refs
+                             (cons src locs)))
+         ((<fix> vars names)
+          (make-binding-info (extend vars names) refs
+                             (cons src locs)))
+         (else info))))
+
+   (lambda (x info env)
+     ;; Leaving X's scope: shrink INFO's variable list
+     ;; accordingly and reported unused nested variables.
+     (let ((refs (binding-info-refs info))
+           (vars (binding-info-vars info))
+           (locs (binding-info-locs info)))
+       (define (shrink inner-vars refs)
+         (for-each (lambda (var)
+                     (let ((gensym (car var)))
+                       ;; Don't report lambda parameters as
+                       ;; unused.
+                       (if (and (not (memq gensym refs))
+                                (not (and (lambda-case? x)
+                                          (memq gensym
+                                                inner-vars))))
+                           (let ((name (cadr var))
+                                 ;; We can get approximate
+                                 ;; source location by going up
+                                 ;; the LOCS location stack.
+                                 (loc  (or (caddr var)
+                                           (find pair? locs))))
+                             (warning 'unused-variable loc name)))))
+                   (filter (lambda (var)
+                             (memq (car var) inner-vars))
+                           vars))
+         (fold alist-delete vars inner-vars))
+
+       ;; For simplicity, we leave REFS untouched, i.e., with
+       ;; names of variables that are now going out of scope.
+       ;; It doesn't hurt as these are unique names, it just
+       ;; makes REFS unnecessarily fat.
+       (record-case x
+         ((<lambda-case> vars)
+          (make-binding-info (shrink vars refs) refs
+                             (cdr locs)))
+         ((<let> vars)
+          (make-binding-info (shrink vars refs) refs
+                             (cdr locs)))
+         ((<letrec> vars)
+          (make-binding-info (shrink vars refs) refs
+                             (cdr locs)))
+         ((<fix> vars)
+          (make-binding-info (shrink vars refs) refs
+                             (cdr locs)))
+         (else info))))
+
+   (lambda (result env) #t)
+   (make-binding-info '() '() '())))
+
+
+;;;
+;;; Unbound variable analysis.
+;;;
+
+;; <toplevel-info> records are used during tree traversal in search of
+;; possibly unbound variable.  They contain a list of references to
+;; potentially unbound top-level variables, a list of the top-level defines
+;; that have been encountered, and a "location stack" (see above).
+(define-record-type <toplevel-info>
+  (make-toplevel-info refs defs locs)
+  toplevel-info?
+  (refs  toplevel-info-refs)  ;; ((VARIABLE-NAME . LOCATION) ...)
+  (defs  toplevel-info-defs)  ;; (VARIABLE-NAME ...)
+  (locs  toplevel-info-locs)) ;; (LOCATION ...)
+
+(define (goops-toplevel-definition proc args env)
+  ;; If application of PROC to ARGS is a GOOPS top-level definition, return
+  ;; the name of the variable being defined; otherwise return #f.  This
+  ;; assumes knowledge of the current implementation of `define-class' et al.
+  (define (toplevel-define-arg args)
+    (and (pair? args) (pair? (cdr args)) (null? (cddr args))
+         (record-case (car args)
+           ((<const> exp)
+            (and (symbol? exp) exp))
+           (else #f))))
+
+  (record-case proc
+    ((<module-ref> mod public? name)
+     (and (equal? mod '(oop goops))
+          (not public?)
+          (eq? name 'toplevel-define!)
+          (toplevel-define-arg args)))
+    ((<toplevel-ref> name)
+     ;; This may be the result of expanding one of the GOOPS macros within
+     ;; `oop/goops.scm'.
+     (and (eq? name 'toplevel-define!)
+          (eq? env (resolve-module '(oop goops)))
+          (toplevel-define-arg args)))
+    (else #f)))
+
+(define unbound-variable-analysis
+  ;; Report possibly unbound variables in the given tree.
+  (make-tree-analysis
+   (lambda (x info env)
+     ;; X is a leaf: extend INFO's refs accordingly.
+     (let ((refs (toplevel-info-refs info))
+           (defs (toplevel-info-defs info))
+           (locs (toplevel-info-locs info)))
+       (define (bound? name)
+         (or (and (module? env)
+                  (module-variable env name))
+             (memq name defs)))
+
+       (record-case x
+         ((<toplevel-ref> name src)
+          (if (bound? name)
+              info
+              (let ((src (or src (find pair? locs))))
+                (make-toplevel-info (alist-cons name src refs)
+                                    defs
+                                    locs))))
+         (else info))))
+
+   (lambda (x info env)
+     ;; Going down into X.
+     (let* ((refs (toplevel-info-refs info))
+            (defs (toplevel-info-defs info))
+            (src  (tree-il-src x))
+            (locs (cons src (toplevel-info-locs info))))
+       (define (bound? name)
+         (or (and (module? env)
+                  (module-variable env name))
+             (memq name defs)))
+
+       (record-case x
+         ((<toplevel-set> name src)
+          (if (bound? name)
+              (make-toplevel-info refs defs locs)
+              (let ((src (find pair? locs)))
+                (make-toplevel-info (alist-cons name src refs)
+                                    defs
+                                    locs))))
+         ((<toplevel-define> name)
+          (make-toplevel-info (alist-delete name refs eq?)
+                              (cons name defs)
+                              locs))
+
+         ((<application> proc args)
+          ;; Check for a dynamic top-level definition, as is
+          ;; done by code expanded from GOOPS macros.
+          (let ((name (goops-toplevel-definition proc args
+                                                 env)))
+            (if (symbol? name)
+                (make-toplevel-info (alist-delete name refs
+                                                  eq?)
+                                    (cons name defs)
+                                    locs)
+                (make-toplevel-info refs defs locs))))
+         (else
+          (make-toplevel-info refs defs locs)))))
+
+   (lambda (x info env)
+     ;; Leaving X's scope.
+     (let ((refs (toplevel-info-refs info))
+           (defs (toplevel-info-defs info))
+           (locs (toplevel-info-locs info)))
+       (make-toplevel-info refs defs (cdr locs))))
+
+   (lambda (toplevel env)
+     ;; Post-process the result.
+     (for-each (lambda (name+loc)
+                 (let ((name (car name+loc))
+                       (loc  (cdr name+loc)))
+                   (warning 'unbound-variable loc name)))
+               (reverse (toplevel-info-refs toplevel))))
+
+   (make-toplevel-info '() '() '())))
+
+
+;;;
+;;; Arity analysis.
+;;;
+
+;; <arity-info> records contain information about lexical definitions of
+;; procedures currently in scope, top-level procedure definitions that have
+;; been encountered, and calls to top-level procedures that have been
+;; encountered.
+(define-record-type <arity-info>
+  (make-arity-info toplevel-calls lexical-lambdas toplevel-lambdas)
+  arity-info?
+  (toplevel-calls   toplevel-procedure-calls) ;; ((NAME . APPLICATION) ...)
+  (lexical-lambdas  lexical-lambdas)          ;; ((GENSYM . DEFINITION) ...)
+  (toplevel-lambdas toplevel-lambdas))        ;; ((NAME . DEFINITION) ...)
+
+(define (validate-arity proc application lexical?)
+  ;; Validate the argument count of APPLICATION, a tree-il application of
+  ;; PROC, emitting a warning in case of argument count mismatch.
+
+  (define (filter-keyword-args keywords allow-other-keys? args)
+    ;; Filter keyword arguments from ARGS and return the resulting list.
+    ;; KEYWORDS is the list of allowed keywords, and ALLOW-OTHER-KEYS?
+    ;; specified whethere keywords not listed in KEYWORDS are allowed.
+    (let loop ((args   args)
                (result '()))
-      (cond ((null? lst)
-             (reverse result))
-            ((pair? lst)
-             (loop (cdr lst) (cons (car lst) result)))
-            (else
-             (loop '() (cons lst result))))))
+      (if (null? args)
+          (reverse result)
+          (let ((arg (car args)))
+            (if (and (const? arg)
+                     (or (memq (const-exp arg) keywords)
+                         (and allow-other-keys?
+                              (keyword? (const-exp arg)))))
+                (loop (if (pair? (cdr args))
+                          (cddr args)
+                          '())
+                      result)
+                (loop (cdr args)
+                      (cons arg result)))))))
 
-  (tree-il-fold (lambda (x info)
-                  ;; X is a leaf: extend INFO's refs accordingly.
-                  (let ((refs (binding-info-refs info))
-                        (vars (binding-info-vars info))
-                        (locs (binding-info-locs info)))
-                    (record-case x
-                      ((<lexical-ref> gensym)
-                       (make-binding-info vars (cons gensym refs) locs))
-                      (else info))))
+  (define (arities proc)
+    ;; Return the arities of PROC, which can be either a tree-il or a
+    ;; procedure.
+    (define (len x)
+      (or (and (or (null? x) (pair? x))
+               (length x))
+          0))
+    (cond ((program? proc)
+           (values (program-name proc)
+                   (map (lambda (a)
+                          (list (arity:nreq a) (arity:nopt a) (arity:rest? a)
+                                (map car (arity:kw a))
+                                (arity:allow-other-keys? a)))
+                        (program-arities proc))))
+          ((procedure? proc)
+           (let ((arity (procedure-property proc 'arity)))
+             (values (procedure-name proc)
+                     (list (list (car arity) (cadr arity) (caddr arity)
+                                 #f #f)))))
+          (else
+           (let loop ((name    #f)
+                      (proc    proc)
+                      (arities '()))
+             (if (not proc)
+                 (values name (reverse arities))
+                 (record-case proc
+                   ((<lambda-case> req opt rest kw else)
+                    (loop name else
+                          (cons (list (len req) (len opt) rest
+                                      (and (pair? kw) (map car (cdr kw)))
+                                      (and (pair? kw) (car kw)))
+                                arities)))
+                   ((<lambda> meta body)
+                    (loop (assoc-ref meta 'name) body arities))
+                   (else
+                    (values #f #f))))))))
 
-                (lambda (x info)
-                  ;; Going down into X: extend INFO's variable list
-                  ;; accordingly.
-                  (let ((refs (binding-info-refs info))
-                        (vars (binding-info-vars info))
-                        (locs (binding-info-locs info))
-                        (src  (tree-il-src x)))
-                    (define (extend inner-vars inner-names)
-                      (append (map (lambda (var name)
-                                     (list var name src))
-                                   inner-vars
-                                   inner-names)
-                              vars))
-                    (record-case x
-                      ((<lexical-set> gensym)
-                       (make-binding-info vars (cons gensym refs)
-                                          (cons src locs)))
-                      ((<lambda> vars names)
-                       (let ((vars  (dotless-list vars))
-                             (names (dotless-list names)))
-                         (make-binding-info (extend vars names) refs
-                                            (cons src locs))))
-                      ((<let> vars names)
-                       (make-binding-info (extend vars names) refs
-                                          (cons src locs)))
-                      ((<letrec> vars names)
-                       (make-binding-info (extend vars names) refs
-                                          (cons src locs)))
-                      ((<fix> vars names)
-                       (make-binding-info (extend vars names) refs
-                                          (cons src locs)))
-                      ((<let-values> vars names)
-                       (make-binding-info (extend vars names) refs
-                                          (cons src locs)))
-                      (else info))))
+  (let ((args (application-args application))
+        (src  (tree-il-src application)))
+    (call-with-values (lambda () (arities proc))
+      (lambda (name arities)
+        (define matches?
+          (find (lambda (arity)
+                  (pmatch arity
+                    ((,req ,opt ,rest? ,kw ,aok?)
+                     (let ((args (if (pair? kw)
+                                     (filter-keyword-args kw aok? args)
+                                     args)))
+                       (if (and req opt)
+                           (let ((count (length args)))
+                             (and (>= count req)
+                                  (or rest?
+                                      (<= count (+ req opt)))))
+                           #t)))
+                    (else #t)))
+                arities))
 
-                (lambda (x info)
-                  ;; Leaving X's scope: shrink INFO's variable list
-                  ;; accordingly and reported unused nested variables.
-                  (let ((refs (binding-info-refs info))
-                        (vars (binding-info-vars info))
-                        (locs (binding-info-locs info)))
-                    (define (shrink inner-vars refs)
-                      (for-each (lambda (var)
-                                  (let ((gensym (car var)))
-                                    ;; Don't report lambda parameters as
-                                    ;; unused.
-                                    (if (and (not (memq gensym refs))
-                                             (not (and (lambda? x)
-                                                       (memq gensym
-                                                             inner-vars))))
-                                        (let ((name (cadr var))
-                                              ;; We can get approximate
-                                              ;; source location by going up
-                                              ;; the LOCS location stack.
-                                              (loc  (or (caddr var)
-                                                        (find pair? locs))))
-                                          (warning 'unused-variable loc name)))))
-                                (filter (lambda (var)
-                                          (memq (car var) inner-vars))
-                                        vars))
-                      (fold alist-delete vars inner-vars))
+        (if (not matches?)
+            (warning 'arity-mismatch src
+                     (or name (with-output-to-string (lambda () (write proc))))
+                     lexical?)))))
+  #t)
 
-                    ;; For simplicity, we leave REFS untouched, i.e., with
-                    ;; names of variables that are now going out of scope.
-                    ;; It doesn't hurt as these are unique names, it just
-                    ;; makes REFS unnecessarily fat.
-                    (record-case x
-                      ((<lambda> vars)
-                       (let ((vars (dotless-list vars)))
-                         (make-binding-info (shrink vars refs) refs
-                                            (cdr locs))))
-                      ((<let> vars)
-                       (make-binding-info (shrink vars refs) refs
-                                          (cdr locs)))
-                      ((<letrec> vars)
-                       (make-binding-info (shrink vars refs) refs
-                                          (cdr locs)))
-                      ((<fix> vars)
-                       (make-binding-info (shrink vars refs) refs
-                                          (cdr locs)))
-                      ((<let-values> vars)
-                       (make-binding-info (shrink vars refs) refs
-                                          (cdr locs)))
-                      (else info))))
-                (make-binding-info '() '() '())
-                tree)
-  tree)
+(define arity-analysis
+  ;; Report arity mismatches in the given tree.
+  (make-tree-analysis
+   (lambda (x info env)
+     ;; X is a leaf.
+     info)
+   (lambda (x info env)
+     ;; Down into X.
+     (define (extend lexical-name val info)
+       ;; If VAL is a lambda, add NAME to the lexical-lambdas of INFO.
+       (let ((toplevel-calls   (toplevel-procedure-calls info))
+             (lexical-lambdas  (lexical-lambdas info))
+             (toplevel-lambdas (toplevel-lambdas info)))
+         (record-case val
+           ((<lambda> body)
+            (make-arity-info toplevel-calls
+                             (alist-cons lexical-name val
+                                         lexical-lambdas)
+                             toplevel-lambdas))
+           ((<lexical-ref> gensym)
+            ;; lexical alias
+            (let ((val* (assq gensym lexical-lambdas)))
+              (if (pair? val*)
+                  (extend lexical-name (cdr val*) info)
+                  info)))
+           ((<toplevel-ref> name)
+            ;; top-level alias
+            (make-arity-info toplevel-calls
+                             (alist-cons lexical-name val
+                                         lexical-lambdas)
+                             toplevel-lambdas))
+           (else info))))
+
+     (let ((toplevel-calls   (toplevel-procedure-calls info))
+           (lexical-lambdas  (lexical-lambdas info))
+           (toplevel-lambdas (toplevel-lambdas info)))
+
+       (record-case x
+         ((<toplevel-define> name exp)
+          (record-case exp
+            ((<lambda> body)
+             (make-arity-info toplevel-calls
+                              lexical-lambdas
+                              (alist-cons name exp toplevel-lambdas)))
+            ((<toplevel-ref> name)
+             ;; alias for another toplevel
+             (let ((proc (assq name toplevel-lambdas)))
+               (make-arity-info toplevel-calls
+                                lexical-lambdas
+                                (alist-cons (toplevel-define-name x)
+                                            (if (pair? proc)
+                                                (cdr proc)
+                                                exp)
+                                            toplevel-lambdas))))
+            (else info)))
+         ((<let> vars vals)
+          (fold extend info vars vals))
+         ((<letrec> vars vals)
+          (fold extend info vars vals))
+         ((<fix> vars vals)
+          (fold extend info vars vals))
+
+         ((<application> proc args src)
+          (record-case proc
+            ((<lambda> body)
+             (validate-arity proc x #t)
+             info)
+            ((<toplevel-ref> name)
+             (make-arity-info (alist-cons name x toplevel-calls)
+                              lexical-lambdas
+                              toplevel-lambdas))
+            ((<lexical-ref> gensym)
+             (let ((proc (assq gensym lexical-lambdas)))
+               (if (pair? proc)
+                   (record-case (cdr proc)
+                     ((<toplevel-ref> name)
+                      ;; alias to toplevel
+                      (make-arity-info (alist-cons name x toplevel-calls)
+                                       lexical-lambdas
+                                       toplevel-lambdas))
+                     (else
+                      (validate-arity (cdr proc) x #t)
+                      info))
+
+                   ;; If GENSYM wasn't found, it may be because it's an
+                   ;; argument of the procedure being compiled.
+                   info)))
+            (else info)))
+         (else info))))
+
+   (lambda (x info env)
+     ;; Up from X.
+     (define (shrink name val info)
+       ;; Remove NAME from the lexical-lambdas of INFO.
+       (let ((toplevel-calls   (toplevel-procedure-calls info))
+             (lexical-lambdas  (lexical-lambdas info))
+             (toplevel-lambdas (toplevel-lambdas info)))
+         (make-arity-info toplevel-calls
+                          (alist-delete name lexical-lambdas eq?)
+                          toplevel-lambdas)))
+
+     (let ((toplevel-calls   (toplevel-procedure-calls info))
+           (lexical-lambdas  (lexical-lambdas info))
+           (toplevel-lambdas (toplevel-lambdas info)))
+       (record-case x
+         ((<let> vars vals)
+          (fold shrink info vars vals))
+         ((<letrec> vars vals)
+          (fold shrink info vars vals))
+         ((<fix> vars vals)
+          (fold shrink info vars vals))
+
+         (else info))))
+
+   (lambda (result env)
+     ;; Post-processing: check all top-level procedure calls that have been
+     ;; encountered.
+     (let ((toplevel-calls   (toplevel-procedure-calls result))
+           (toplevel-lambdas (toplevel-lambdas result)))
+       (for-each (lambda (name+application)
+                   (let* ((name        (car name+application))
+                          (application (cdr name+application))
+                          (proc
+                           (or (assoc-ref toplevel-lambdas name)
+                               (and (module? env)
+                                    (false-if-exception
+                                     (module-ref env name)))))
+                          (proc*
+                           ;; handle toplevel aliases
+                           (if (toplevel-ref? proc)
+                               (let ((name (toplevel-ref-name proc)))
+                                 (and (module? env)
+                                      (false-if-exception
+                                       (module-ref env name))))
+                               proc)))
+                     ;; (format #t "toplevel-call to ~A (~A) from ~A~%"
+                     ;;         name proc* application)
+                     (if (or (lambda? proc*) (procedure? proc*))
+                         (validate-arity proc* application (lambda? proc*)))))
+                 toplevel-calls)))
+
+   (make-arity-info '() '() '())))

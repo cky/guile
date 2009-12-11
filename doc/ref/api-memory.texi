@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -41,6 +41,11 @@ otherwise might be.  When you are done with the object, call
 the object remains protected until it has been unprotected as many times
 as it was protected. It is an error to unprotect an object more times
 than it has been protected. Returns the SCM object it was passed.
+
+Note that storing @var{obj} in a C global variable has the same
+effect@footnote{In Guile up to version 1.8, C global variables were not
+scanned by the garbage collector; hence, @code{scm_gc_protect_object}
+was the only way in C to prevent a Scheme object from being freed.}.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_gc_unprotect_object (SCM @var{obj})
@@ -98,38 +103,52 @@ typically from a smob @emph{mark} function.
 @node Memory Blocks
 @subsection Memory Blocks
 
+@cindex automatically-managed memory
+@cindex GC-managed memory
+@cindex conservative garbage collection
+
 In C programs, dynamic management of memory blocks is normally done
 with the functions malloc, realloc, and free.  Guile has additional
 functions for dynamic memory allocation that are integrated into the
 garbage collector and the error reporting system.
 
 Memory blocks that are associated with Scheme objects (for example a
-smob) should be allocated and freed with @code{scm_gc_malloc} and
-@code{scm_gc_free}.  The function @code{scm_gc_malloc} will either
-return a valid pointer or signal an error.  It will also assume that
-the new memory can be freed by a garbage collection.  The garbage
-collector uses this information to decide when to try to actually
-collect some garbage.  Memory blocks allocated with
-@code{scm_gc_malloc} must be freed with @code{scm_gc_free}.
+smob) should be allocated with @code{scm_gc_malloc} or
+@code{scm_gc_malloc_pointerless}.  These two functions will either
+return a valid pointer or signal an error.  Memory blocks allocated this
+way can be freed with @code{scm_gc_free}; however, this is not strictly
+needed: memory allocated with @code{scm_gc_malloc} or
+@code{scm_gc_malloc_pointerless} is automatically reclaimed when the
+garbage collector no longer sees any live reference to it@footnote{In
+Guile up to version 1.8, memory allocated with @code{scm_gc_malloc}
+@emph{had} to be freed with @code{scm_gc_free}.}.
+
+Memory allocated with @code{scm_gc_malloc} is scanned for live pointers.
+This means that if @code{scm_gc_malloc}-allocated memory contains a
+pointer to some other part of the memory, the garbage collector notices
+it and prevents it from being reclaimed@footnote{In Guile up to 1.8,
+memory allocated with @code{scm_gc_malloc} was @emph{not} scanned.
+Consequently, the GC had to be told explicitly about pointers to live
+objects contained in the memory block, e.g., @i{via} SMOB mark functions
+(@pxref{Smobs, @code{scm_set_smob_mark}})}.  Conversely, memory
+allocated with @code{scm_gc_malloc_pointerless} is assumed to be
+``pointer-less'' and is not scanned.
 
 For memory that is not associated with a Scheme object, you can use
 @code{scm_malloc} instead of @code{malloc}.  Like
 @code{scm_gc_malloc}, it will either return a valid pointer or signal
 an error.  However, it will not assume that the new memory block can
-be freed by a garbage collection.  The memory can be freed with
-@code{free}.
+be freed by a garbage collection.  The memory must be explicitly freed
+with @code{free}.
 
 There is also @code{scm_gc_realloc} and @code{scm_realloc}, to be used
 in place of @code{realloc} when appropriate, and @code{scm_gc_calloc}
 and @code{scm_calloc}, to be used in place of @code{calloc} when
 appropriate.
 
-The function @code{scm_dynwind_free} can be useful when memory should
-be freed when a dynwind context, @xref{Dynamic Wind}.
-
-For really specialized needs, take at look at
-@code{scm_gc_register_collectable_memory} and
-@code{scm_gc_unregister_collectable_memory}.
+The function @code{scm_dynwind_free} can be useful when memory should be
+freed with libc's @code{free} when leaving a dynwind context,
+@xref{Dynamic Wind}.
 
 @deftypefn {C Function} {void *} scm_malloc (size_t @var{size})
 @deftypefnx {C Function} {void *} scm_calloc (size_t @var{size})
@@ -161,6 +180,36 @@ runs the GC to free up some memory when it deems it appropriate.
 
 
 
+@deftypefn {C Function} {void *} scm_gc_malloc (size_t @var{size}, const char *@var{what})
+@deftypefnx {C Function} {void *} scm_gc_malloc_pointerless (size_t @var{size}, const char *@var{what})
+@deftypefnx {C Function} {void *} scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
+@deftypefnx {C Function} {void *} scm_gc_calloc (size_t @var{size}, const char *@var{what})
+Allocate @var{size} bytes of automatically-managed memory.  The memory
+is automatically freed when no longer referenced from any live memory
+block.
+
+Memory allocated with @code{scm_gc_malloc} or @code{scm_gc_calloc} is
+scanned for pointers.  Memory allocated by
+@code{scm_gc_malloc_pointerless} is not scanned.
+
+The @code{scm_gc_realloc} call preserves the ``pointerlessness'' of the
+memory area pointed to by @var{mem}.  Note that you need to pass the old
+size of a reallocated memory block as well.  See below for a motivation.
+@end deftypefn
+
+
+@deftypefn {C Function} void scm_gc_free (void *@var{mem}, size_t @var{size}, const char *@var{what})
+Explicitly free the memory block pointed to by @var{mem}, which was
+previously allocated by one of the above @code{scm_gc} functions.
+
+Note that you need to explicitly pass the @var{size} parameter.  This
+is done since it should normally be easy to provide this parameter
+(for memory that is associated with GC controlled objects) and help keep
+the memory management overhead very low.  However, in Guile 2.x,
+@var{size} is always ignored.
+@end deftypefn
+
+
 @deftypefn {C Function} void scm_gc_register_collectable_memory (void *@var{mem}, size_t @var{size}, const char *@var{what})
 Informs the GC that the memory at @var{mem} of size @var{size} can
 potentially be freed during a GC.  That is, announce that @var{mem} is
@@ -170,13 +219,12 @@ object, @var{size} bytes will be freed along with it.  The GC will
 much bytes of memory are associated with GC controlled objects and the
 memory system figures this into its decisions when to run a GC.
 
-@var{mem} does not need to come from @code{scm_malloc}.  You can only
-call this function once for every memory block.
-
 The @var{what} argument is used for statistical purposes.  It should
 describe the type of object that the memory will be used for so that
 users can identify just what strange objects are eating up their
 memory.
+
+In Guile 2.x, this function has no effect.
 @end deftypefn
 
 @deftypefn {C Function} void scm_gc_unregister_collectable_memory (void *@var{mem}, size_t @var{size})
@@ -186,27 +234,10 @@ match up every call to @code{scm_gc_register_collectable_memory} with
 a call to @code{scm_gc_unregister_collectable_memory}.  If you don't do
 this, the GC might have a wrong impression of what is going on and run
 much less efficiently than it could.
+
+In Guile 2.x, this function has no effect.
 @end deftypefn
 
-@deftypefn {C Function} {void *} scm_gc_malloc (size_t @var{size}, const char *@var{what})
-@deftypefnx {C Function} {void *} scm_gc_realloc (void *@var{mem}, size_t @var{old_size}, size_t @var{new_size}, const char *@var{what});
-@deftypefnx {C Function} {void *} scm_gc_calloc (size_t @var{size}, const char *@var{what})
-Like @code{scm_malloc}, @code{scm_realloc} or @code{scm_calloc}, but
-also call @code{scm_gc_register_collectable_memory}.  Note that you
-need to pass the old size of a reallocated memory block as well.  See
-below for a motivation.
-@end deftypefn
-
-
-@deftypefn {C Function} void scm_gc_free (void *@var{mem}, size_t @var{size}, const char *@var{what})
-Like @code{free}, but also call @code{scm_gc_unregister_collectable_memory}.
-
-Note that you need to explicitly pass the @var{size} parameter.  This
-is done since it should normally be easy to provide this parameter
-(for memory that is associated with GC controlled objects) and this
-frees us from tracking this value in the GC itself, which will keep
-the memory management overhead very low.
-@end deftypefn
 
 @deftypefn {C Function} void scm_frame_free (void *mem)
 Equivalent to @code{scm_frame_unwind_handler (free, @var{mem},
@@ -220,6 +251,9 @@ of malloced objects.
 @var{what} is the second argument to @code{scm_gc_malloc},
 @var{n} is the number of objects of that type currently
 allocated.
+
+This function is only available if the @code{GUILE_DEBUG_MALLOC}
+preprocessor macro was defined when Guile was compiled.
 @end deffn
 
 

@@ -1750,22 +1750,6 @@ current interfaces.  If a file cannot be opened with the access
 requested, @code{open-file} throws an exception.
 @end deffn
 
-make-future
-@c snarfed from futures.c:89
-@deffn {Scheme Procedure} make-future thunk
-@deffnx {C Function} scm_make_future (thunk)
-Make a future evaluating THUNK.
-@end deffn
-
-future-ref
-@c snarfed from futures.c:221
-@deffn {Scheme Procedure} future-ref future
-@deffnx {C Function} scm_future_ref (future)
-If the future @var{x} has not been computed yet, compute and
-return @var{x}, otherwise just return the previously computed
-value.
-@end deffn
-
 gc-live-object-stats
 @c snarfed from gc.c:276
 @deffn {Scheme Procedure} gc-live-object-stats
@@ -10708,8 +10692,8 @@ the input is an integer with normal host byte ordering.
 
 @lisp
 (inet-ntop AF_INET 2130706433) @result{} "127.0.0.1"
-(inet-ntop AF_INET6 (- (expt 2 128) 1)) @result{}
-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+(inet-ntop AF_INET6 (- (expt 2 128) 1))
+  @result{} "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
 @end lisp
 @end deffn
 

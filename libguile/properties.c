@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,8 @@
 /* {Properties}
  */
 
+static SCM properties_whash;
+
 SCM_DEFINE (scm_primitive_make_property, "primitive-make-property", 1, 0, 0,
 	    (SCM not_found_proc),
 	    "Create a @dfn{property token} that can be used with\n"
@@ -67,7 +69,7 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
 
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
 
-  h = scm_hashq_get_handle (scm_properties_whash, obj);
+  h = scm_hashq_get_handle (properties_whash, obj);
   if (scm_is_true (h))
     {
       SCM assoc = scm_assq (prop, SCM_CDR (h));
@@ -81,7 +83,7 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
     {
       SCM val = scm_call_2 (SCM_CAR (prop), prop, obj);
       if (scm_is_false (h))
-	h = scm_hashq_create_handle_x (scm_properties_whash, obj, SCM_EOL);
+	h = scm_hashq_create_handle_x (properties_whash, obj, SCM_EOL);
       SCM_SETCDR (h, scm_acons (prop, val, SCM_CDR (h)));
       return val;
     }
@@ -96,7 +98,7 @@ SCM_DEFINE (scm_primitive_property_set_x, "primitive-property-set!", 3, 0, 0,
 {
   SCM h, assoc;
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
-  h = scm_hashq_create_handle_x (scm_properties_whash, obj, SCM_EOL);
+  h = scm_hashq_create_handle_x (properties_whash, obj, SCM_EOL);
   assoc = scm_assq (prop, SCM_CDR (h));
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, val);
@@ -117,7 +119,7 @@ SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
 {
   SCM h;
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
-  h = scm_hashq_get_handle (scm_properties_whash, obj);
+  h = scm_hashq_get_handle (properties_whash, obj);
   if (scm_is_true (h))
     SCM_SETCDR (h, scm_assq_remove_x (SCM_CDR (h), prop));
   return SCM_UNSPECIFIED;
@@ -128,7 +130,7 @@ SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
 void
 scm_init_properties ()
 {
-  scm_properties_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  properties_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/properties.x"
 }
 

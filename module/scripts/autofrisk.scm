@@ -1,6 +1,6 @@
 ;;; autofrisk --- Generate module checks for use with auto* tools
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2009 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -157,7 +157,6 @@
          (files (apply append (map unglob (cfg 'files-glob))))
          (ncx (cfg 'non-critical-external))
          (nci (cfg 'non-critical-internal))
-         (prog (cfg 'non-critical))
          (report ((make-frisker) files))
          (external (report 'external)))
     (let ((pww-varname (cfg 'pww-varname)))

@@ -43,8 +43,7 @@ gnulib_library = $(top_builddir)/lib/libgnu.la
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
-lib_LTLIBRARIES = libguile.la						\
-		  libguile-i18n-v-@LIBGUILE_I18N_MAJOR@.la
+lib_LTLIBRARIES = libguile.la
 bin_PROGRAMS = guile
 
 noinst_PROGRAMS = guile_filter_doc_snarfage gen-scmconfig
@@ -132,15 +131,8 @@ libguile_la_SOURCES =				\
 	fluids.c				\
 	fports.c				\
 	frames.c				\
-	futures.c				\
-	gc-card.c				\
-	gc-freelist.c				\
 	gc-malloc.c				\
-	gc-mark.c				\
-	gc-segment-table.c			\
-	gc-segment.c				\
 	gc.c					\
-	gc_os_dep.c				\
 	gdbint.c				\
 	gettext.c				\
 	generalized-arrays.c			\
@@ -151,6 +143,7 @@ libguile_la_SOURCES =				\
 	hash.c					\
 	hashtab.c				\
 	hooks.c					\
+	i18n.c					\
 	init.c					\
 	inline.c				\
 	instructions.c				\
@@ -161,11 +154,11 @@ libguile_la_SOURCES =				\
 	load.c					\
 	macros.c				\
 	mallocs.c				\
+	memoize.c				\
 	modules.c				\
 	null-threads.c				\
 	numbers.c				\
 	objcodes.c				\
-	objects.c				\
 	objprop.c				\
 	options.c				\
 	pairs.c					\
@@ -174,6 +167,7 @@ libguile_la_SOURCES =				\
 	procprop.c				\
 	procs.c					\
 	programs.c				\
+	promises.c				\
 	properties.c				\
 	r6rs-ports.c				\
 	random.c				\
@@ -200,6 +194,7 @@ libguile_la_SOURCES =				\
 	symbols.c				\
 	threads.c				\
 	throw.c					\
+	trees.c					\
 	uniform.c				\
 	values.c				\
 	variable.c				\
@@ -208,15 +203,6 @@ libguile_la_SOURCES =				\
 	vm.c					\
 	vports.c				\
 	weaks.c
-
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_SOURCES = i18n.c
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_CFLAGS =	\
-   $(libguile_la_CFLAGS)
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LIBADD =	\
-   libguile.la $(gnulib_library)
-libguile_i18n_v_@LIBGUILE_I18N_MAJOR@_la_LDFLAGS =	\
-   -module -L$(builddir) -lguile				\
-   -version-info @LIBGUILE_I18N_INTERFACE@
 
 DOT_X_FILES =					\
 	alist.x					\
@@ -245,12 +231,7 @@ DOT_X_FILES =					\
 	feature.x				\
 	fluids.x				\
 	fports.x				\
-	futures.x				\
-	gc-card.x				\
 	gc-malloc.x				\
-	gc-mark.x				\
-	gc-segment-table.x			\
-	gc-segment.x				\
 	gc.x					\
 	gettext.x				\
 	generalized-arrays.x			\
@@ -270,9 +251,9 @@ DOT_X_FILES =					\
 	load.x					\
 	macros.x				\
 	mallocs.x				\
+	memoize.x				\
 	modules.x				\
 	numbers.x				\
-	objects.x				\
 	objprop.x				\
 	options.x				\
 	pairs.x					\
@@ -280,6 +261,7 @@ DOT_X_FILES =					\
 	print.x					\
 	procprop.x				\
 	procs.x					\
+	promises.x				\
 	properties.x				\
 	r6rs-ports.x				\
 	random.x				\
@@ -306,6 +288,7 @@ DOT_X_FILES =					\
 	symbols.x				\
 	threads.x				\
 	throw.x					\
+	trees.x					\
 	uniform.x				\
 	values.x				\
 	variable.x				\
@@ -346,12 +329,7 @@ DOT_DOC_FILES = 				\
 	feature.doc				\
 	fluids.doc				\
 	fports.doc				\
-	futures.doc				\
-	gc-card.doc				\
 	gc-malloc.doc				\
-	gc-mark.doc				\
-	gc-segment-table.doc			\
-	gc-segment.doc				\
 	gc.doc					\
 	gettext.doc				\
 	generalized-arrays.doc			\
@@ -371,9 +349,9 @@ DOT_DOC_FILES = 				\
 	load.doc				\
 	macros.doc				\
 	mallocs.doc				\
+	memoize.doc				\
 	modules.doc				\
 	numbers.doc				\
-	objects.doc				\
 	objprop.doc				\
 	options.doc				\
 	pairs.doc				\
@@ -381,6 +359,7 @@ DOT_DOC_FILES = 				\
 	print.doc				\
 	procprop.doc				\
 	procs.doc				\
+	promises.doc				\
 	properties.doc				\
 	r6rs-ports.doc				\
 	random.doc				\
@@ -407,6 +386,7 @@ DOT_DOC_FILES = 				\
 	symbols.doc				\
 	threads.doc				\
 	throw.doc				\
+	trees.doc				\
 	uniform.doc				\
 	values.doc				\
 	variable.doc				\
@@ -427,7 +407,7 @@ BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_la_SOURCES = _scm.h		\
-    inet_aton.c memmove.c putenv.c strerror.c	\
+    memmove.c strerror.c			\
     dynl.c regex-posix.c			\
     filesys.c posix.c net_db.c socket.c		\
     debug-malloc.c mkstemp.c			\
@@ -445,18 +425,25 @@ install-exec-hook:
 ## Perhaps we can deal with them normally once the merge seems to be
 ## working.
 noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
-                 eval.i.c ieee-754.h				\
-                 srfi-4.i.c srfi-14.i.c				\
+                 ieee-754.h					\
+                 srfi-4.i.c					\
+                 srfi-14.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
-	         private-gc.h private-options.h
+		 private-gc.h private-options.h
 
 # vm instructions
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
 libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD = @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBUNISTRING)
-libguile_la_LDFLAGS = @LTLIBINTL@ -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@ -export-dynamic -no-undefined
+libguile_la_LIBADD =				\
+  @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP)	\
+  $(LTLIBUNISTRING) $(LTLIBICONV)
+libguile_la_LDFLAGS =							\
+  @LTLIBINTL@ $(INET_NTOP_LIB) $(INET_PTON_LIB)				\
+  -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
+  -export-dynamic -no-undefined						\
+  $(GNU_LD_FLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
 
@@ -479,6 +466,7 @@ modinclude_HEADERS =				\
 	arrays.h				\
 	async.h					\
 	backtrace.h				\
+	bdw-gc.h				\
 	boolean.h				\
 	bitvectors.h				\
 	bytevectors.h				\
@@ -501,7 +489,6 @@ modinclude_HEADERS =				\
 	fluids.h				\
 	fports.h				\
 	frames.h				\
-	futures.h				\
 	gc.h					\
 	gdb_interface.h				\
 	gdbint.h				\
@@ -526,12 +513,12 @@ modinclude_HEADERS =				\
 	load.h					\
 	macros.h				\
 	mallocs.h				\
+	memoize.h				\
 	modules.h				\
 	net_db.h				\
 	null-threads.h				\
 	numbers.h				\
 	objcodes.h				\
-	objects.h				\
 	objprop.h				\
 	options.h				\
 	pairs.h					\
@@ -541,6 +528,7 @@ modinclude_HEADERS =				\
 	procprop.h				\
 	procs.h					\
 	programs.h				\
+	promises.h				\
 	properties.h				\
 	pthread-threads.h			\
 	r6rs-ports.h				\
@@ -572,6 +560,7 @@ modinclude_HEADERS =				\
 	tags.h					\
 	threads.h				\
 	throw.h					\
+	trees.h					\
 	validate.h				\
 	uniform.h				\
 	values.h				\
@@ -619,6 +608,8 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '#define SCM_PKGDATA_DIR "$(pkgdatadir)"' >> libpath.tmp
 	@echo '#define SCM_LIBRARY_DIR "$(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)"'>>libpath.tmp
 	@echo '#define SCM_SITE_DIR "$(pkgdatadir)/site"' >> libpath.tmp
+	@echo '#define SCM_LIB_DIR "$(libdir)"' >> libpath.tmp
+	@echo '#define SCM_EXTENSIONS_DIR "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/extensions"' >> libpath.tmp
 	@echo '#define SCM_CCACHE_DIR "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache"' >> libpath.tmp
 	@echo '#define SCM_EFFECTIVE_VERSION "$(GUILE_EFFECTIVE_VERSION)"' >> libpath.tmp
 	@echo '#define SCM_BUILD_INFO { \' >> libpath.tmp
@@ -638,10 +629,11 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '	{ "infodir",	   "@infodir@" }, \' >> libpath.tmp
 	@echo '	{ "mandir",	   "@mandir@" }, \' >> libpath.tmp
 	@echo '	{ "includedir",	   "@includedir@" }, \' >> libpath.tmp
-	@echo '	{ "pkgdatadir",	   "@pkgdatadir@" }, \' >> libpath.tmp
-	@echo '	{ "pkglibdir",	   "@pkglibdir@" }, \' >> libpath.tmp
-	@echo '	{ "pkgincludedir", "@pkgincludedir@" }, \' \
+	@echo '	{ "pkgdatadir",	   "$(pkgdatadir)" }, \' >> libpath.tmp
+	@echo '	{ "pkglibdir",	   "$(pkglibdir)" }, \' >> libpath.tmp
+	@echo '	{ "pkgincludedir", "$(pkgincludedir)" }, \' \
 		>> libpath.tmp
+	@echo ' { "extensionsdir", "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/extensions" }, \' >> libpath.tmp
 	@echo '	{ "guileversion", "@GUILE_VERSION@" }, \' >> libpath.tmp
 	@echo '	{ "libguileinterface", "@LIBGUILE_INTERFACE@" }, \' \
 		>> libpath.tmp

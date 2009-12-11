@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -21,6 +21,8 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
+
+#define SCM_BUILDING_DEPRECATED_CODE
 
 #include <signal.h>
 #include "libguile/_scm.h"
@@ -85,15 +87,10 @@ static scm_t_bits tc16_async;
 #define SCM_ASYNCP(X)		SCM_TYP16_PREDICATE (tc16_async, X)
 #define VALIDATE_ASYNC(pos, a)	SCM_MAKE_VALIDATE_MSG(pos, a, ASYNCP, "user async")
 
-#define ASYNC_GOT_IT(X)        (SCM_CELL_WORD_0 (X) >> 16)
-#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_CELL_WORD_0 ((X), SCM_TYP16 (X) | ((V) << 16)))
-#define ASYNC_THUNK(X)         SCM_CELL_OBJECT_1 (X)
+#define ASYNC_GOT_IT(X)        (SCM_SMOB_FLAGS (X))
+#define SET_ASYNC_GOT_IT(X, V) (SCM_SET_SMOB_FLAGS ((X), ((V))))
+#define ASYNC_THUNK(X)         SCM_SMOB_OBJECT_1 (X)
 
-static SCM
-async_gc_mark (SCM obj)
-{
-  return ASYNC_THUNK (obj);
-}
 
 SCM_DEFINE (scm_async, "async", 1, 0, 0,
 	    (SCM thunk),
@@ -475,15 +472,36 @@ scm_dynwind_unblock_asyncs ()
   scm_dynwind_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
+
+/* These are function variants of the same-named macros (uppercase) for use
+   outside of libguile.  This is so that `SCM_I_CURRENT_THREAD', which may
+   reside in TLS, is not accessed from outside of libguile.  It thus allows
+   libguile to be built with the "local-dynamic" TLS model.  */
+
+void
+scm_critical_section_start (void)
+{
+  SCM_CRITICAL_SECTION_START;
+}
+
+void
+scm_critical_section_end (void)
+{
+  SCM_CRITICAL_SECTION_END;
+}
+
+void
+scm_async_tick (void)
+{
+  SCM_ASYNC_TICK;
+}
 
 
 
 void
 scm_init_async ()
 {
-  scm_asyncs = SCM_EOL;
   tc16_async = scm_make_smob_type ("async", 0);
-  scm_set_smob_mark (tc16_async, async_gc_mark);
 
 #include "libguile/async.x"
 }

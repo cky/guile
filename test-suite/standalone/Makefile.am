@@ -107,6 +107,13 @@ test_conversion_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-conversion
 TESTS += test-conversion
 
+# test-loose-ends
+test_loose_ends_SOURCES = test-loose-ends.c
+test_loose_ends_CFLAGS = ${test_cflags}
+test_loose_ends_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-loose-ends
+TESTS += test-loose-ends
+
 # test-fast-slot-ref
 check_SCRIPTS += test-fast-slot-ref
 TESTS += test-fast-slot-ref
@@ -128,6 +135,13 @@ test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
 test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile.la
 check_PROGRAMS += test-scm-take-locale-symbol
 TESTS += test-scm-take-locale-symbol
+
+# test-scm-take-u8vector
+test_scm_take_u8vector_SOURCES = test-scm-take-u8vector.c
+test_scm_take_u8vector_CFLAGS = ${test_cflags}
+test_scm_take_u8vector_LDADD = ${top_builddir}/libguile/libguile.la
+check_PROGRAMS += test-scm-take-u8vector
+TESTS += test-scm-take-u8vector
 
 # test-extensions
 noinst_LTLIBRARIES += libtest-extensions.la

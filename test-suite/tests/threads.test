@@ -1,6 +1,6 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -363,7 +363,21 @@
         (pass-if "locking mutex with no owner"
 	  (let ((m (make-mutex)))
 	    (lock-mutex m #f #f)
-	    (not (mutex-owner m)))))
+	    (not (mutex-owner m))))
+
+        (pass-if "mutex with owner not retained (bug #27450)"
+          (let ((g (make-guardian)))
+            (g (let ((m (make-mutex))) (lock-mutex m) m))
+
+            ;; Avoid false references to M on the stack.
+            (let cleanup ((i 20))
+              (and (> i 0)
+                   (begin (cleanup (1- i)) i)))
+
+            (gc) (gc)
+            (let ((m (g)))
+              (and (mutex? m)
+                   (eq? (mutex-owner m) (current-thread)))))))
 
       ;;
       ;; mutex lock levels

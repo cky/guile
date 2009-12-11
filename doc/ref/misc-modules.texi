@@ -1038,7 +1038,7 @@ Reference Manual}).
 @sp 1
 
 @defun ftw startname proc ['hash-size n]
-Walk the filesystem tree descending from @var{startname}, calling
+Walk the file system tree descending from @var{startname}, calling
 @var{proc} for each file and directory.
 
 Hard links and symbolic links are followed.  A file or directory is
@@ -1094,7 +1094,7 @@ use @code{throw} or similar to escape.
 
 
 @defun nftw startname proc ['chdir] ['depth] ['hash-size n] ['mount] ['physical]
-Walk the filesystem tree starting at @var{startname}, calling
+Walk the file system tree starting at @var{startname}, calling
 @var{proc} for each file and directory.  @code{nftw} has extra
 features over the basic @code{ftw} described above.
 
@@ -1177,7 +1177,7 @@ Set the size of the hash table used to track items already visited.
 
 @item @code{mount}
 Don't cross a mount point, meaning only visit items on the same
-filesystem as @var{startname} (ie.@: the same @code{stat:dev}).
+file system as @var{startname} (ie.@: the same @code{stat:dev}).
 
 @item @code{physical}
 Don't follow symbolic links, instead report them to @var{proc} as

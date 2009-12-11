@@ -87,19 +87,7 @@ SCM_DEFINE (scm_version, "version", 0, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_version
 {
-
-  char version_str[3 * 4 + 3];
-
-#if SCM_MAJOR_VERSION > 9999 \
-    || SCM_MINOR_VERSION > 9999 \
-    || SCM_MICRO_VERSION > 9999
-# error version string may overflow buffer
-#endif
-  sprintf (version_str, "%d.%d.%d",
-           SCM_MAJOR_VERSION,
-           SCM_MINOR_VERSION,
-           SCM_MICRO_VERSION);
-  return scm_from_locale_string (version_str);
+  return scm_from_locale_string (PACKAGE_VERSION);
 }
 #undef FUNC_NAME
 

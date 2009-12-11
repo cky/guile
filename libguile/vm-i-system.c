@@ -46,14 +46,18 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
     }
     
   {
-    ASSERT (sp == stack_base);
-    ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
+#ifdef VM_ENABLE_STACK_NULLING
+    SCM *old_sp = sp;
+#endif
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
-    ip = NULL;
+    /* Setting the ip here doesn't actually affect control flow, as the calling
+       code will restore its own registers, but it does help when walking the
+       stack */
+    ip = SCM_FRAME_RETURN_ADDRESS (fp);
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
-    NULLSTACK (stack_base - sp);
+    NULLSTACK (old_sp - sp);
   }
   
   goto vm_done;
@@ -279,7 +283,28 @@ VM_DEFINE_INSTRUCTION (23, long_local_ref, "long-local-ref", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (24, local_bound, "local-bound?", 1, 0, 1)
+{
+  if (LOCAL_REF (FETCH ()) == SCM_UNDEFINED)
+    PUSH (SCM_BOOL_F);
+  else
+    PUSH (SCM_BOOL_T);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (25, long_local_bound, "long-local-bound?", 2, 0, 1)
+{
+  unsigned int i = FETCH ();
+  i <<= 8;
+  i += FETCH ();
+  if (LOCAL_REF (i) == SCM_UNDEFINED)
+    PUSH (SCM_BOOL_F);
+  else
+    PUSH (SCM_BOOL_T);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (26, variable_ref, "variable-ref", 0, 1, 1)
 {
   SCM x = *sp;
 
@@ -298,7 +323,16 @@ VM_DEFINE_INSTRUCTION (24, variable_ref, "variable-ref", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (27, variable_bound, "variable-bound?", 0, 0, 1)
+{
+  if (VARIABLE_BOUNDP (*sp))
+    *sp = SCM_BOOL_T;
+  else
+    *sp = SCM_BOOL_F;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (28, toplevel_ref, "toplevel-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -321,7 +355,7 @@ VM_DEFINE_INSTRUCTION (25, toplevel_ref, "toplevel-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (26, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (29, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
 {
   SCM what;
   unsigned int objnum = FETCH ();
@@ -348,14 +382,14 @@ VM_DEFINE_INSTRUCTION (26, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
 
 /* set */
 
-VM_DEFINE_INSTRUCTION (27, local_set, "local-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (30, local_set, "local-set", 1, 1, 0)
 {
   LOCAL_SET (FETCH (), *sp);
   DROP ();
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (28, long_local_set, "long-local-set", 2, 1, 0)
+VM_DEFINE_INSTRUCTION (31, long_local_set, "long-local-set", 2, 1, 0)
 {
   unsigned int i = FETCH ();
   i <<= 8;
@@ -365,14 +399,14 @@ VM_DEFINE_INSTRUCTION (28, long_local_set, "long-local-set", 2, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (29, variable_set, "variable-set", 0, 1, 0)
+VM_DEFINE_INSTRUCTION (32, variable_set, "variable-set", 0, 2, 0)
 {
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (30, toplevel_set, "toplevel-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (33, toplevel_set, "toplevel-set", 1, 1, 0)
 {
   unsigned objnum = FETCH ();
   SCM what;
@@ -391,7 +425,7 @@ VM_DEFINE_INSTRUCTION (30, toplevel_set, "toplevel-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (31, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
+VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
 {
   SCM what;
   unsigned int objnum = FETCH ();
@@ -417,63 +451,64 @@ VM_DEFINE_INSTRUCTION (31, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
  * branch and jump
  */
 
-/* offset must be a signed 16 bit int!!! */
+/* offset must be at least 24 bits wide, and signed */
 #define FETCH_OFFSET(offset)                    \
 {						\
-  int h = FETCH ();				\
-  int l = FETCH ();				\
-  offset = (h << 8) + l;                        \
+  offset = FETCH () << 16;                      \
+  offset += FETCH () << 8;                      \
+  offset += FETCH ();                           \
+  offset -= (offset & (1<<23)) << 1;            \
 }
 
 #define BR(p)					\
 {						\
-  scm_t_int16 offset;                           \
+  scm_t_int32 offset;                           \
   FETCH_OFFSET (offset);                        \
   if (p)					\
-    ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);      \
+    ip += offset;                               \
   NULLSTACK (1);				\
   DROP ();					\
   NEXT;						\
 }
 
-VM_DEFINE_INSTRUCTION (32, br, "br", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (35, br, "br", 3, 0, 0)
 {
-  scm_t_int16 offset;
+  scm_t_int32 offset;
   FETCH_OFFSET (offset);
-  ip += ((scm_t_ptrdiff)offset) * 8 - (((unsigned long)ip) % 8);
+  ip += offset;
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (33, br_if, "br-if", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (36, br_if, "br-if", 3, 0, 0)
 {
-  BR (!SCM_FALSEP (*sp));
+  BR (scm_is_true_and_not_nil (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (34, br_if_not, "br-if-not", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (37, br_if_not, "br-if-not", 3, 0, 0)
 {
-  BR (SCM_FALSEP (*sp));
+  BR (scm_is_false_or_nil (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (35, br_if_eq, "br-if-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (38, br_if_eq, "br-if-eq", 3, 0, 0)
 {
   sp--; /* underflow? */
-  BR (SCM_EQ_P (sp[0], sp[1]));
+  BR (scm_is_eq (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (36, br_if_not_eq, "br-if-not-eq", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (39, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 {
   sp--; /* underflow? */
-  BR (!SCM_EQ_P (sp[0], sp[1]));
+  BR (!scm_is_eq (sp[0], sp[1]));
 }
 
-VM_DEFINE_INSTRUCTION (37, br_if_null, "br-if-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (40, br_if_null, "br-if-null", 3, 0, 0)
 {
-  BR (SCM_NULLP (*sp));
+  BR (scm_is_null_or_nil (*sp));
 }
 
-VM_DEFINE_INSTRUCTION (38, br_if_not_null, "br-if-not-null", 2, 0, 0)
+VM_DEFINE_INSTRUCTION (41, br_if_not_null, "br-if-not-null", 3, 0, 0)
 {
-  BR (!SCM_NULLP (*sp));
+  BR (!scm_is_null_or_nil (*sp));
 }
 
 
@@ -481,15 +516,230 @@ VM_DEFINE_INSTRUCTION (38, br_if_not_null, "br-if-not-null", 2, 0, 0)
  * Subprogram call
  */
 
-VM_DEFINE_INSTRUCTION (39, new_frame, "new-frame", 0, 0, 3)
+VM_DEFINE_INSTRUCTION (42, br_if_nargs_ne, "br-if-nargs-ne", 5, 0, 0)
 {
+  scm_t_ptrdiff n;
+  scm_t_int32 offset;
+  n = FETCH () << 8;
+  n += FETCH ();
+  FETCH_OFFSET (offset);
+  if (sp - (fp - 1) != n)
+    ip += offset;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (43, br_if_nargs_lt, "br-if-nargs-lt", 5, 0, 0)
+{
+  scm_t_ptrdiff n;
+  scm_t_int32 offset;
+  n = FETCH () << 8;
+  n += FETCH ();
+  FETCH_OFFSET (offset);
+  if (sp - (fp - 1) < n)
+    ip += offset;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (44, br_if_nargs_gt, "br-if-nargs-gt", 5, 0, 0)
+{
+  scm_t_ptrdiff n;
+  scm_t_int32 offset;
+
+  n = FETCH () << 8;
+  n += FETCH ();
+  FETCH_OFFSET (offset);
+  if (sp - (fp - 1) > n)
+    ip += offset;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (45, assert_nargs_ee, "assert-nargs-ee", 2, 0, 0)
+{
+  scm_t_ptrdiff n;
+  n = FETCH () << 8;
+  n += FETCH ();
+  if (sp - (fp - 1) != n)
+    goto vm_error_wrong_num_args;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (46, assert_nargs_ge, "assert-nargs-ge", 2, 0, 0)
+{
+  scm_t_ptrdiff n;
+  n = FETCH () << 8;
+  n += FETCH ();
+  if (sp - (fp - 1) < n)
+    goto vm_error_wrong_num_args;
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (47, bind_optionals, "bind-optionals", 2, -1, -1)
+{
+  scm_t_ptrdiff n;
+  n = FETCH () << 8;
+  n += FETCH ();
+  while (sp - (fp - 1) < n)
+    PUSH (SCM_UNDEFINED);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (48, bind_optionals_shuffle, "bind-optionals/shuffle", 6, -1, -1)
+{
+  SCM *walk;
+  scm_t_ptrdiff nreq, nreq_and_opt, ntotal;
+  nreq = FETCH () << 8;
+  nreq += FETCH ();
+  nreq_and_opt = FETCH () << 8;
+  nreq_and_opt += FETCH ();
+  ntotal = FETCH () << 8;
+  ntotal += FETCH ();
+
+  /* look in optionals for first keyword or last positional */
+  /* starting after the last required positional arg */
+  walk = fp + nreq;
+  while (/* while we have args */
+         walk <= sp
+         /* and we still have positionals to fill */
+         && walk - fp < nreq_and_opt
+         /* and we haven't reached a keyword yet */
+         && !scm_is_keyword (*walk))
+    /* bind this optional arg (by leaving it in place) */
+    walk++;
+  /* now shuffle up, from walk to ntotal */
+  {
+    scm_t_ptrdiff nshuf = sp - walk + 1, i;
+    sp = (fp - 1) + ntotal + nshuf;
+    CHECK_OVERFLOW ();
+    for (i = 0; i < nshuf; i++)
+      sp[-i] = walk[nshuf-i-1];
+  }
+  /* and fill optionals & keyword args with SCM_UNDEFINED */
+  while (walk <= (fp - 1) + ntotal)
+    *walk++ = SCM_UNDEFINED;
+
+  NEXT;
+}
+
+/* Flags that determine whether other keywords are allowed, and whether a
+   rest argument is expected.  These values must match those used by the
+   glil->assembly compiler.  */
+#define F_ALLOW_OTHER_KEYS  1
+#define F_REST              2
+
+VM_DEFINE_INSTRUCTION (49, bind_kwargs, "bind-kwargs", 5, 0, 0)
+{
+  scm_t_uint16 idx;
+  scm_t_ptrdiff nkw;
+  int kw_and_rest_flags;
+  SCM kw;
+  idx = FETCH () << 8;
+  idx += FETCH ();
+  /* XXX: We don't actually use NKW.  */
+  nkw = FETCH () << 8;
+  nkw += FETCH ();
+  kw_and_rest_flags = FETCH ();
+
+  if (!(kw_and_rest_flags & F_REST)
+      && ((sp - (fp - 1) - nkw) % 2))
+    goto vm_error_kwargs_length_not_even;
+
+  CHECK_OBJECT (idx);
+  kw = OBJECT_REF (idx);
+
+  /* Switch NKW to be a negative index below SP.  */
+  for (nkw = -(sp - (fp - 1) - nkw) + 1; nkw < 0; nkw++)
+    {
+      SCM walk;
+
+      if (scm_is_keyword (sp[nkw]))
+	{
+	  for (walk = kw; scm_is_pair (walk); walk = SCM_CDR (walk))
+	    {
+	      if (scm_is_eq (SCM_CAAR (walk), sp[nkw]))
+		{
+		  SCM si = SCM_CDAR (walk);
+		  LOCAL_SET (SCM_I_INUMP (si) ? SCM_I_INUM (si) : scm_to_long (si),
+			     sp[nkw + 1]);
+		  break;
+		}
+	    }
+	  if (!(kw_and_rest_flags & F_ALLOW_OTHER_KEYS) && !scm_is_pair (walk))
+	    goto vm_error_kwargs_unrecognized_keyword;
+
+	  nkw++;
+	}
+      else if (!(kw_and_rest_flags & F_REST))
+        goto vm_error_kwargs_invalid_keyword;
+    }
+
+  NEXT;
+}
+
+#undef F_ALLOW_OTHER_KEYS
+#undef F_REST
+
+
+VM_DEFINE_INSTRUCTION (50, push_rest, "push-rest", 2, -1, -1)
+{
+  scm_t_ptrdiff n;
+  SCM rest = SCM_EOL;
+  n = FETCH () << 8;
+  n += FETCH ();
+  while (sp - (fp - 1) > n)
+    /* No need to check for underflow. */
+    CONS (rest, *sp--, rest);
+  PUSH (rest);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (51, bind_rest, "bind-rest", 4, -1, -1)
+{
+  scm_t_ptrdiff n;
+  scm_t_uint32 i;
+  SCM rest = SCM_EOL;
+  n = FETCH () << 8;
+  n += FETCH ();
+  i = FETCH () << 8;
+  i += FETCH ();
+  while (sp - (fp - 1) > n)
+    /* No need to check for underflow. */
+    CONS (rest, *sp--, rest);
+  LOCAL_SET (i, rest);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (52, reserve_locals, "reserve-locals", 2, -1, -1)
+{
+  SCM *old_sp;
+  scm_t_int32 n;
+  n = FETCH () << 8;
+  n += FETCH ();
+  old_sp = sp;
+  sp = (fp - 1) + n;
+
+  if (old_sp < sp)
+    {
+      CHECK_OVERFLOW ();
+      while (old_sp < sp)
+        *++old_sp = SCM_UNDEFINED;
+    }
+  else
+    NULLSTACK (old_sp - sp);
+
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (53, new_frame, "new-frame", 0, 0, 3)
+{
+  /* NB: if you change this, see frames.c:vm-frame-num-locals */
+  /* and frames.h, vm-engine.c, etc of course */
   PUSH ((SCM)fp); /* dynamic link */
   PUSH (0);  /* mvra */
   PUSH (0);  /* ra */
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (40, call, "call", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
 {
   SCM x;
   nargs = FETCH ();
@@ -507,43 +757,48 @@ VM_DEFINE_INSTRUCTION (40, call, "call", 1, -1, 1)
     {
       program = x;
       CACHE_PROGRAM ();
-      INIT_ARGS ();
-      fp = sp - bp->nargs + 1;
+      fp = sp - nargs + 1;
       ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
       ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
-      INIT_FRAME ();
+      ip = bp->base;
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
     }
+  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
+    {
+      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
+      goto vm_call;
+    }
   /*
    * Other interpreted or compiled call
    */
-  if (!SCM_FALSEP (scm_procedure_p (x)))
+  if (!scm_is_false (scm_procedure_p (x)))
     {
-      SCM args;
+      SCM ret;
       /* At this point, the stack contains the frame, the procedure and each one
 	 of its arguments. */
-      POP_LIST (nargs);
-      POP (args);
-      DROP (); /* drop the procedure */
+      SYNC_REGISTER ();
+      ret = apply_foreign (sp[-nargs],
+                           sp - nargs + 1,
+                           nargs,
+                           vp->stack_limit - sp + 1);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
+      DROPN (nargs + 1); /* drop args and procedure */
       DROP_FRAME ();
       
-      SYNC_REGISTER ();
-      PUSH (scm_apply (x, args, SCM_EOL));
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
+      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
         {
           /* truncate values */
-          SCM values;
-          POP (values);
-          values = scm_struct_ref (values, SCM_INUM0);
-          if (scm_is_null (values))
+          ret = scm_struct_ref (ret, SCM_INUM0);
+          if (scm_is_null (ret))
             goto vm_error_not_enough_values;
-          PUSH (SCM_CAR (values));
+          PUSH (SCM_CAR (ret));
         }
+      else
+        PUSH (ret);
       NEXT;
     }
 
@@ -551,7 +806,7 @@ VM_DEFINE_INSTRUCTION (40, call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (41, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
@@ -568,7 +823,8 @@ VM_DEFINE_INSTRUCTION (41, goto_args, "goto/args", 1, -1, 1)
     {
       int i;
 #ifdef VM_ENABLE_STACK_NULLING
-      SCM *old_sp;
+      SCM *old_sp = sp;
+      CHECK_STACK_LEAK ();
 #endif
 
       EXIT_HOOK ();
@@ -576,53 +832,52 @@ VM_DEFINE_INSTRUCTION (41, goto_args, "goto/args", 1, -1, 1)
       /* switch programs */
       program = x;
       CACHE_PROGRAM ();
-      INIT_ARGS ();
+      /* shuffle down the program and the arguments */
+      for (i = -1, sp = sp - nargs + 1; i < nargs; i++)
+        SCM_FRAME_STACK_ADDRESS (fp)[i] = sp[i];
 
-#ifdef VM_ENABLE_STACK_NULLING
-      old_sp = sp;
-      CHECK_STACK_LEAK ();
-#endif
-
-      /* delay shuffling the new program+args down so that if INIT_ARGS had to
-         cons up a rest arg, going into GC, the stack still made sense */
-      for (i = -1, sp = sp - bp->nargs + 1; i < bp->nargs; i++)
-        fp[i] = sp[i];
       sp = fp + i - 1;
 
       NULLSTACK (old_sp - sp);
 
-      INIT_FRAME ();
+      ip = bp->base;
 
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
     }
-
+  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
+    {
+      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
+      goto vm_goto_args;
+    }
   /*
    * Other interpreted or compiled call
    */
-  if (!SCM_FALSEP (scm_procedure_p (x)))
+  if (!scm_is_false (scm_procedure_p (x)))
     {
-      SCM args;
-      POP_LIST (nargs);
-      POP (args);
-
+      SCM ret;
       SYNC_REGISTER ();
-      *sp = scm_apply (x, args, SCM_EOL);
+      ret = apply_foreign (sp[-nargs],
+                           sp - nargs + 1,
+                           nargs,
+                           vp->stack_limit - sp + 1);
       NULLSTACK_FOR_NONLOCAL_EXIT ();
-
-      if (SCM_UNLIKELY (SCM_VALUESP (*sp)))
+      DROPN (nargs + 1); /* drop args and procedure */
+      
+      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
         {
           /* multiple values returned to continuation */
-          SCM values;
-          POP (values);
-          values = scm_struct_ref (values, SCM_INUM0);
-          nvalues = scm_ilength (values);
-          PUSH_LIST (values, SCM_NULLP);
+          ret = scm_struct_ref (ret, SCM_INUM0);
+          nvalues = scm_ilength (ret);
+          PUSH_LIST (ret, scm_is_null);
           goto vm_return_values;
         }
       else
-        goto vm_return;
+        {
+          PUSH (ret);
+          goto vm_return;
+        }
     }
 
   program = x;
@@ -630,7 +885,7 @@ VM_DEFINE_INSTRUCTION (41, goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (42, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (56, goto_nargs, "goto/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -639,7 +894,7 @@ VM_DEFINE_INSTRUCTION (42, goto_nargs, "goto/nargs", 0, 0, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (43, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -648,16 +903,17 @@ VM_DEFINE_INSTRUCTION (43, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (44, mv_call, "mv-call", 3, -1, 1)
+VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
 {
   SCM x;
-  scm_t_int16 offset;
+  scm_t_int32 offset;
   scm_t_uint8 *mvra;
   
   nargs = FETCH ();
   FETCH_OFFSET (offset);
-  mvra = ip + ((scm_t_ptrdiff)offset) * 8 - ((unsigned long)ip) % 8;
+  mvra = ip + offset;
 
+ vm_mv_call:
   x = sp[-nargs];
 
   /*
@@ -667,43 +923,49 @@ VM_DEFINE_INSTRUCTION (44, mv_call, "mv-call", 3, -1, 1)
     {
       program = x;
       CACHE_PROGRAM ();
-      INIT_ARGS ();
-      fp = sp - bp->nargs + 1;
+      fp = sp - nargs + 1;
       ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
       ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
-      INIT_FRAME ();
+      ip = bp->base;
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
     }
+  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
+    {
+      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
+      goto vm_mv_call;
+    }
   /*
    * Other interpreted or compiled call
    */
-  if (!SCM_FALSEP (scm_procedure_p (x)))
+  if (!scm_is_false (scm_procedure_p (x)))
     {
-      SCM args;
-      /* At this point, the stack contains the procedure and each one of its
-	 arguments.  */
-      POP_LIST (nargs);
-      POP (args);
-      DROP (); /* drop the procedure */
+      SCM ret;
+      /* At this point, the stack contains the frame, the procedure and each one
+	 of its arguments. */
+      SYNC_REGISTER ();
+      ret = apply_foreign (sp[-nargs],
+                           sp - nargs + 1,
+                           nargs,
+                           vp->stack_limit - sp + 1);
+      NULLSTACK_FOR_NONLOCAL_EXIT ();
+      DROPN (nargs + 1); /* drop args and procedure */
       DROP_FRAME ();
       
-      SYNC_REGISTER ();
-      PUSH (scm_apply (x, args, SCM_EOL));
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      if (SCM_VALUESP (*sp))
+      if (SCM_VALUESP (ret))
         {
-          SCM values, len;
-          POP (values);
-          values = scm_struct_ref (values, SCM_INUM0);
-          len = scm_length (values);
-          PUSH_LIST (values, SCM_NULLP);
+          SCM len;
+          ret = scm_struct_ref (ret, SCM_INUM0);
+          len = scm_length (ret);
+          PUSH_LIST (ret, scm_is_null);
           PUSH (len);
           ip = mvra;
         }
+      else
+        PUSH (ret);
       NEXT;
     }
 
@@ -711,7 +973,7 @@ VM_DEFINE_INSTRUCTION (44, mv_call, "mv-call", 3, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (45, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -730,7 +992,7 @@ VM_DEFINE_INSTRUCTION (45, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (46, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (60, goto_apply, "goto/apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -749,7 +1011,7 @@ VM_DEFINE_INSTRUCTION (46, goto_apply, "goto/apply", 1, -1, 1)
   goto vm_goto_args;
 }
 
-VM_DEFINE_INSTRUCTION (47, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -773,7 +1035,7 @@ VM_DEFINE_INSTRUCTION (47, call_cc, "call/cc", 0, 1, 1)
       /* multiple values returned to continuation */
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
-      if (SCM_NULLP (values))
+      if (scm_is_null (values))
         goto vm_error_no_values;
       /* non-tail context does not accept multiple values? */
       PUSH (SCM_CAR (values));
@@ -786,7 +1048,7 @@ VM_DEFINE_INSTRUCTION (47, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (48, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (62, goto_cc, "goto/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -808,7 +1070,7 @@ VM_DEFINE_INSTRUCTION (48, goto_cc, "goto/cc", 0, 1, 1)
       SCM values;
       values = scm_struct_ref (cont, SCM_INUM0);
       nvalues = scm_ilength (values);
-      PUSH_LIST (values, SCM_NULLP);
+      PUSH_LIST (values, scm_is_null);
       goto vm_return_values;
     }
   else
@@ -818,7 +1080,7 @@ VM_DEFINE_INSTRUCTION (48, goto_cc, "goto/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (49, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -829,20 +1091,19 @@ VM_DEFINE_INSTRUCTION (49, return, "return", 0, 1, 1)
     SCM ret;
 
     POP (ret);
-    ASSERT (sp == stack_base);
-    ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
+
+#ifdef VM_ENABLE_STACK_NULLING
+    SCM *old_sp = sp;
+#endif
 
     /* Restore registers */
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
     ip = SCM_FRAME_RETURN_ADDRESS (fp);
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
-    {
+
 #ifdef VM_ENABLE_STACK_NULLING
-      int nullcount = stack_base - sp;
+    NULLSTACK (old_sp - sp);
 #endif
-      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
-      NULLSTACK (nullcount);
-    }
 
     /* Set return value (sp is already pushed) */
     *sp = ret;
@@ -855,7 +1116,7 @@ VM_DEFINE_INSTRUCTION (49, return, "return", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (50, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -864,11 +1125,10 @@ VM_DEFINE_INSTRUCTION (50, return_values, "return/values", 1, -1, -1)
   EXIT_HOOK ();
   RETURN_HOOK ();
 
-  ASSERT (stack_base == SCM_FRAME_UPPER_ADDRESS (fp) - 1);
-
-  /* data[1] is the mv return address */
   if (nvalues != 1 && SCM_FRAME_MV_RETURN_ADDRESS (fp)) 
     {
+      /* A multiply-valued continuation */
+      SCM *vals = sp - nvalues;
       int i;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
@@ -877,12 +1137,11 @@ VM_DEFINE_INSTRUCTION (50, return_values, "return/values", 1, -1, -1)
         
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
-        *++sp = stack_base[1+i];
+        *++sp = vals[i+1];
       *++sp = SCM_I_MAKINUM (nvalues);
              
-      /* Finally set new stack_base */
-      NULLSTACK (stack_base - sp + nvalues + 1);
-      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      /* Finally null the end of the stack */
+      NULLSTACK (vals + nvalues - sp);
     }
   else if (nvalues >= 1)
     {
@@ -890,17 +1149,17 @@ VM_DEFINE_INSTRUCTION (50, return_values, "return/values", 1, -1, -1)
          break with guile tradition and try and do something sensible. (Also,
          this block handles the single-valued return to an mv
          continuation.) */
+      SCM *vals = sp - nvalues;
       /* Restore registers */
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
       ip = SCM_FRAME_RETURN_ADDRESS (fp);
       fp = SCM_FRAME_DYNAMIC_LINK (fp);
         
       /* Push first value */
-      *++sp = stack_base[1];
+      *++sp = vals[1];
              
-      /* Finally set new stack_base */
-      NULLSTACK (stack_base - sp + nvalues + 1);
-      stack_base = SCM_FRAME_UPPER_ADDRESS (fp) - 1;
+      /* Finally null the end of the stack */
+      NULLSTACK (vals + nvalues - sp);
     }
   else
     goto vm_error_no_values;
@@ -912,7 +1171,7 @@ VM_DEFINE_INSTRUCTION (50, return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (51, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (65, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -921,7 +1180,7 @@ VM_DEFINE_INSTRUCTION (51, return_values_star, "return/values*", 1, -1, -1)
     
   nvalues--;
   POP (l);
-  while (SCM_CONSP (l))
+  while (scm_is_pair (l))
     {
       PUSH (SCM_CAR (l));
       l = SCM_CDR (l);
@@ -935,7 +1194,7 @@ VM_DEFINE_INSTRUCTION (51, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (52, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (66, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -958,7 +1217,7 @@ VM_DEFINE_INSTRUCTION (52, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (53, box, "box", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (67, box, "box", 1, 1, 0)
 {
   SCM val;
   POP (val);
@@ -972,7 +1231,7 @@ VM_DEFINE_INSTRUCTION (53, box, "box", 1, 1, 0)
      (set! a (lambda () (b ...)))
      ...)
  */
-VM_DEFINE_INSTRUCTION (54, empty_box, "empty-box", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (68, empty_box, "empty-box", 1, 0, 0)
 {
   SYNC_BEFORE_GC ();
   LOCAL_SET (FETCH (),
@@ -980,7 +1239,7 @@ VM_DEFINE_INSTRUCTION (54, empty_box, "empty-box", 1, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (55, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (69, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
 {
   SCM v = LOCAL_REF (FETCH ());
   ASSERT_BOUND_VARIABLE (v);
@@ -988,7 +1247,7 @@ VM_DEFINE_INSTRUCTION (55, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (56, local_boxed_set, "local-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (70, local_boxed_set, "local-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   v = LOCAL_REF (FETCH ());
@@ -998,7 +1257,7 @@ VM_DEFINE_INSTRUCTION (56, local_boxed_set, "local-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (57, free_ref, "free-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (71, free_ref, "free-ref", 1, 0, 1)
 {
   scm_t_uint8 idx = FETCH ();
   
@@ -1009,7 +1268,7 @@ VM_DEFINE_INSTRUCTION (57, free_ref, "free-ref", 1, 0, 1)
 
 /* no free-set -- if a var is assigned, it should be in a box */
 
-VM_DEFINE_INSTRUCTION (58, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (72, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
 {
   SCM v;
   scm_t_uint8 idx = FETCH ();
@@ -1020,7 +1279,7 @@ VM_DEFINE_INSTRUCTION (58, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (59, free_boxed_set, "free-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (73, free_boxed_set, "free-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   scm_t_uint8 idx = FETCH ();
@@ -1032,7 +1291,7 @@ VM_DEFINE_INSTRUCTION (59, free_boxed_set, "free-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (60, make_closure, "make-closure", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (74, make_closure, "make-closure", 0, 2, 1)
 {
   SCM vect;
   POP (vect);
@@ -1043,7 +1302,7 @@ VM_DEFINE_INSTRUCTION (60, make_closure, "make-closure", 0, 2, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (61, make_variable, "make-variable", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (75, make_variable, "make-variable", 0, 0, 1)
 {
   SYNC_BEFORE_GC ();
   /* fixme underflow */
@@ -1051,7 +1310,7 @@ VM_DEFINE_INSTRUCTION (61, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (62, fix_closure, "fix-closure", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (76, fix_closure, "fix-closure", 2, 0, 1)
 {
   SCM x, vect;
   unsigned int i = FETCH ();
@@ -1065,7 +1324,7 @@ VM_DEFINE_INSTRUCTION (62, fix_closure, "fix-closure", 2, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (63, define, "define", 0, 0, 2)
+VM_DEFINE_INSTRUCTION (77, define, "define", 0, 0, 2)
 {
   SCM sym, val;
   POP (sym);
@@ -1077,7 +1336,7 @@ VM_DEFINE_INSTRUCTION (63, define, "define", 0, 0, 2)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (64, make_keyword, "make-keyword", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (78, make_keyword, "make-keyword", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
@@ -1085,7 +1344,7 @@ VM_DEFINE_INSTRUCTION (64, make_keyword, "make-keyword", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (65, make_symbol, "make-symbol", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (79, make_symbol, "make-symbol", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();

@@ -191,14 +191,6 @@ scm_dynwind_end (void)
   assert (0);
 }
 
-static SCM
-winder_mark (SCM w)
-{
-  if (WINDER_MARK_P (w))
-    return SCM_PACK (WINDER_DATA (w));
-  return SCM_BOOL_F;
-}
-
 void
 scm_dynwind_unwind_handler (void (*proc) (void *), void *data,
 			    scm_t_wind_flags flags)
@@ -376,7 +368,6 @@ scm_init_dynwind ()
   tc16_frame = scm_make_smob_type ("frame", 0);
 
   tc16_winder = scm_make_smob_type ("winder", 0);
-  scm_set_smob_mark (tc16_winder, winder_mark);
 
 #include "libguile/dynwind.x"
 }

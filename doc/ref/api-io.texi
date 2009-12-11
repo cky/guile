@@ -47,7 +47,7 @@ are two interesting and powerful examples of this technique.
 
 Ports are garbage collected in the usual way (@pxref{Memory
 Management}), and will be closed at that time if not already closed.
-In this case any errors occuring in the close will not be reported.
+In this case any errors occurring in the close will not be reported.
 Usually a program will want to explicitly close so as to be sure all
 its operations have been successful.  Of course if a program has
 abandoned something due to an error or other condition then closing
@@ -69,6 +69,18 @@ may be an acceptable way to control resource usage.
 All file access uses the ``LFS'' large file support functions when
 available, so files bigger than 2 Gbytes (@math{2^31} bytes) can be
 read and written on a 32-bit system.
+
+Each port has an associated character encoding that controls how bytes
+read from the port are converted to characters and string and controls
+how characters and strings written to the port are converted to bytes.
+When ports are created, they inherit their character encoding from the
+current locale, but, that can be modified after the port is created.
+
+Each port also has an associated conversion strategy: what to do when
+a Guile character can't be converted to the port's encoded character
+representation for output. There are three possible strategies: to
+raise an error, to replace the character with a hex escape, or to
+replace the character with a substitute character.
 
 @rnindex input-port?
 @deffn {Scheme Procedure} input-port? x
@@ -92,6 +104,63 @@ Return a boolean indicating whether @var{x} is a port.
 Equivalent to @code{(or (input-port? @var{x}) (output-port?
 @var{x}))}.
 @end deffn
+
+@deffn {Scheme Procedure} set-port-encoding! port enc
+@deffnx {C Function} scm_set_port_encoding_x (port, enc)
+Sets the character encoding that will be used to interpret all port I/O.
+@var{enc} is a string containing the name of an encoding.  Valid
+encoding names are those
+@url{http://www.iana.org/assignments/character-sets, defined by IANA}.
+@end deffn
+
+@defvr {Scheme Variable} %default-port-encoding
+A fluid containing containing @code{#f} or the name of the encoding to
+be used by default for newly created ports (@pxref{Fluids and Dynamic
+States}).  The value @code{#f} is equivalent to @code{"ISO-8859-1"}.
+
+New ports are created with the encoding appropriate for the current
+locale if @code{setlocale} has been called or the value specified by
+this fluid otherwise.
+@end defvr
+
+@deffn {Scheme Procedure} port-encoding port
+@deffnx {C Function} scm_port_encoding
+Returns, as a string, the character encoding that @var{port} uses to
+interpret its input and output.
+@end deffn
+
+@deffn {Scheme Procedure} set-port-conversion-strategy! port sym
+@deffnx {C Function} scm_set_port_conversion_strategy_x (port, sym)
+Sets the behavior of the interpreter when outputting a character that
+is not representable in the port's current encoding.  @var{sym} can be
+either @code{'error}, @code{'substitute}, or @code{'escape}.  If it is
+@code{'error}, an error will be thrown when an nonconvertible character
+is encountered.  If it is @code{'substitute}, then nonconvertible
+characters will be replaced with approximate characters, or with
+question marks if no approximately correct character is available.  If
+it is @code{'escape}, it will appear as a hex escape when output.
+
+If @var{port} is an open port, the conversion error behavior
+is set for that port.  If it is @code{#f}, it is set as the
+default behavior for any future ports that get created in
+this thread.
+@end deffn
+
+@deffn {Scheme Procedure} port-conversion-strategy port
+@deffnx {C Function} scm_port_conversion_strategy (port)
+Returns the behavior of the port when outputting a character that is
+not representable in the port's current encoding.  It returns the
+symbol @code{error} if unrepresentable characters should cause
+exceptions, @code{substitute} if the port should try to replace
+unrepresentable characters with question marks or approximate
+characters, or @code{escape} if unrepresentable characters should be
+converted to string escapes.
+
+If @var{port} is @code{#f}, then the current default behavior will be
+returned.  New ports will have this default behavior when they are
+created.
+@end deffn
+
 
 
 @node Reading
@@ -238,7 +307,7 @@ output port if not given.
 
 The output is designed to be machine readable, and can be read back
 with @code{read} (@pxref{Reading}).  Strings are printed in
-doublequotes, with escapes if necessary, and characters are printed in
+double quotes, with escapes if necessary, and characters are printed in
 @samp{#\} notation.
 @end deffn
 
@@ -248,7 +317,7 @@ Send a representation of @var{obj} to @var{port} or to the current
 output port if not given.
 
 The output is designed for human readability, it differs from
-@code{write} in that strings are printed without doublequotes and
+@code{write} in that strings are printed without double quotes and
 escapes, and characters are printed as per @code{write-char}, not in
 @samp{#\} form.
 @end deffn
@@ -496,7 +565,7 @@ used.  This function is equivalent to:
 @end lisp
 @end deffn
 
-Some of the abovementioned I/O functions rely on the following C
+Some of the aforementioned I/O functions rely on the following C
 primitives.  These will mainly be of interest to people hacking Guile
 internals.
 
@@ -815,11 +884,11 @@ Open @var{filename} for output.  Equivalent to
 Open @var{filename} for input or output, and call @code{(@var{proc}
 port)} with the resulting port.  Return the value returned by
 @var{proc}.  @var{filename} is opened as per @code{open-input-file} or
-@code{open-output-file} respectively, and an error is signalled if it
+@code{open-output-file} respectively, and an error is signaled if it
 cannot be opened.
 
 When @var{proc} returns, the port is closed.  If @var{proc} does not
-return (eg.@: if it throws an error), then the port might not be
+return (e.g.@: if it throws an error), then the port might not be
 closed automatically, though it will be garbage collected in the usual
 way if not otherwise referenced.
 @end deffn
@@ -834,7 +903,7 @@ setup as respectively the @code{current-input-port},
 @code{current-output-port}, or @code{current-error-port}.  Return the
 value returned by @var{thunk}.  @var{filename} is opened as per
 @code{open-input-file} or @code{open-output-file} respectively, and an
-error is signalled if it cannot be opened.
+error is signaled if it cannot be opened.
 
 When @var{thunk} returns, the port is closed and the previous setting
 of the respective current port is restored.
@@ -890,6 +959,13 @@ Determine whether @var{obj} is a port that is related to a file.
 
 The following allow string ports to be opened by analogy to R4R*
 file port facilities:
+
+With string ports, the port-encoding is treated differently than other
+types of ports.  When string ports are created, they do not inherit a
+character encoding from the current locale.  They are given a
+default locale that allows them to handle all valid string characters.
+Typically one should not modify a string port's character encoding
+away from its default.
 
 @deffn {Scheme Procedure} call-with-output-string proc
 @deffnx {C Function} scm_call_with_output_string (proc)
@@ -1409,7 +1485,7 @@ is set.
 
 @node Port Implementation
 @subsubsection Port Implementation
-@cindex Port implemenation
+@cindex Port implementation
 
 This section describes how to implement a new port type in C.
 

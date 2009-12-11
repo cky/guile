@@ -22,6 +22,7 @@
 #endif
 
 #include <alloca.h>
+#include <assert.h>
 
 #include <gmp.h>
 
@@ -39,6 +40,7 @@
 #include <byteswap.h>
 #include <striconveh.h>
 #include <uniconv.h>
+#include <unistr.h>
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
@@ -175,101 +177,102 @@
 
 /* Bytevector type.  */
 
-scm_t_bits scm_tc16_bytevector;
+#define SCM_BYTEVECTOR_HEADER_BYTES		\
+  (SCM_BYTEVECTOR_HEADER_SIZE * sizeof (SCM))
 
-#define SCM_BYTEVECTOR_INLINE_THRESHOLD  (2 * sizeof (SCM))
-#define SCM_BYTEVECTOR_INLINEABLE_SIZE_P(_size)	\
-  ((_size) <= SCM_BYTEVECTOR_INLINE_THRESHOLD)
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
-  SCM_SET_SMOB_DATA ((_bv), (scm_t_bits) (_len))
-#define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _buf)          \
-  SCM_SET_SMOB_DATA_2 ((_bv), (scm_t_bits) (_buf))
-#define SCM_BYTEVECTOR_SET_INLINE(bv)                                   \
-  SCM_SET_SMOB_FLAGS (bv, SCM_SMOB_FLAGS (bv) | SCM_F_BYTEVECTOR_INLINE)
-#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)                          \
-  SCM_SET_SMOB_FLAGS (bv, (SCM_SMOB_FLAGS (bv) & 0xFF) | (hint << 8))
+  SCM_SET_CELL_WORD_1 ((_bv), (scm_t_bits) (_len))
+#define SCM_BYTEVECTOR_SET_CONTENTS(_bv, _contents)	\
+  SCM_SET_CELL_WORD_2 ((_bv), (scm_t_bits) (_contents))
+#define SCM_BYTEVECTOR_SET_CONTIGUOUS_P(bv, contiguous_p)	\
+  SCM_SET_BYTEVECTOR_FLAGS ((bv),				\
+			    SCM_BYTEVECTOR_ELEMENT_TYPE (bv)	\
+			    | ((contiguous_p) << 8UL))
+
+#define SCM_BYTEVECTOR_SET_ELEMENT_TYPE(bv, hint)			\
+  SCM_SET_BYTEVECTOR_FLAGS ((bv),					\
+                            (hint)					\
+                            | (SCM_BYTEVECTOR_CONTIGUOUS_P (bv) << 8UL))
 #define SCM_BYTEVECTOR_TYPE_SIZE(var)                           \
   (scm_i_array_element_type_sizes[SCM_BYTEVECTOR_ELEMENT_TYPE (var)]/8)
 #define SCM_BYTEVECTOR_TYPED_LENGTH(var)                        \
-  SCM_BYTEVECTOR_LENGTH (var) / SCM_BYTEVECTOR_TYPE_SIZE (var)
+  (SCM_BYTEVECTOR_LENGTH (var) / SCM_BYTEVECTOR_TYPE_SIZE (var))
 
 /* The empty bytevector.  */
 SCM scm_null_bytevector = SCM_UNSPECIFIED;
 
 
 static inline SCM
-make_bytevector_from_buffer (size_t len, void *contents,
-                             scm_t_array_element_type element_type)
+make_bytevector (size_t len, scm_t_array_element_type element_type)
 {
   SCM ret;
   size_t c_len;
-  
+
   if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
                     || scm_i_array_element_type_sizes[element_type] < 8
                     || len >= (SCM_I_SIZE_MAX
                                / (scm_i_array_element_type_sizes[element_type]/8))))
     /* This would be an internal Guile programming error */
     abort ();
-  
-  c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
-  if (!SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
-    SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, contents);
+
+  if (SCM_UNLIKELY (len == 0 && element_type == SCM_ARRAY_ELEMENT_TYPE_VU8
+		    && SCM_BYTEVECTOR_P (scm_null_bytevector)))
+    ret = scm_null_bytevector;
   else
     {
-      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, NULL);
-      SCM_BYTEVECTOR_SET_INLINE (ret);
-      if (contents)
-        {
-          memcpy (SCM_BYTEVECTOR_CONTENTS (ret), contents, c_len);
-          scm_gc_free (contents, c_len, SCM_GC_BYTEVECTOR);
-        }
+      signed char *contents;
+
+      c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
+
+      contents = scm_gc_malloc_pointerless (SCM_BYTEVECTOR_HEADER_BYTES + c_len,
+					    SCM_GC_BYTEVECTOR);
+      ret = PTR2SCM (contents);
+      contents += SCM_BYTEVECTOR_HEADER_BYTES;
+
+      SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
+      SCM_BYTEVECTOR_SET_CONTENTS (ret, contents);
+      SCM_BYTEVECTOR_SET_CONTIGUOUS_P (ret, 1);
+      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
     }
-  SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
+
   return ret;
 }
 
+/* Return a bytevector of LEN elements of type ELEMENT_TYPE, with element
+   values taken from CONTENTS.  Assume that the storage for CONTENTS will be
+   automatically reclaimed when it becomes unreachable.  */
 static inline SCM
-make_bytevector (size_t len, scm_t_array_element_type element_type)
+make_bytevector_from_buffer (size_t len, void *contents,
+			     scm_t_array_element_type element_type)
 {
-  size_t c_len;
+  SCM ret;
 
-  if (SCM_UNLIKELY (len == 0 && element_type == 0))
-    return scm_null_bytevector;
-  else if (SCM_UNLIKELY (element_type > SCM_ARRAY_ELEMENT_TYPE_LAST
-                         || scm_i_array_element_type_sizes[element_type] < 8
-                         || len >= (SCM_I_SIZE_MAX
-                                    / (scm_i_array_element_type_sizes[element_type]/8))))
-    /* This would be an internal Guile programming error */
-    abort ();
-
-  c_len = len * (scm_i_array_element_type_sizes[element_type]/8);
-  if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_len))
-    {
-      SCM ret;
-      SCM_NEWSMOB2 (ret, scm_tc16_bytevector, c_len, NULL);
-      SCM_BYTEVECTOR_SET_INLINE (ret);
-      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
-      return ret;
-    }
+  if (SCM_UNLIKELY (len == 0))
+    ret = make_bytevector (len, element_type);
   else
     {
-      void *buf = scm_gc_malloc (c_len, SCM_GC_BYTEVECTOR);
-      return make_bytevector_from_buffer (len, buf, element_type);
+      size_t c_len;
+
+      ret = PTR2SCM (scm_gc_malloc (SCM_BYTEVECTOR_HEADER_BYTES,
+				    SCM_GC_BYTEVECTOR));
+
+      c_len = len * (scm_i_array_element_type_sizes[element_type] / 8);
+
+      SCM_BYTEVECTOR_SET_LENGTH (ret, c_len);
+      SCM_BYTEVECTOR_SET_CONTENTS (ret, contents);
+      SCM_BYTEVECTOR_SET_CONTIGUOUS_P (ret, 0);
+      SCM_BYTEVECTOR_SET_ELEMENT_TYPE (ret, element_type);
     }
+
+  return ret;
 }
+
 
 /* Return a new bytevector of size LEN octets.  */
 SCM
 scm_c_make_bytevector (size_t len)
 {
   return make_bytevector (len, SCM_ARRAY_ELEMENT_TYPE_VU8);
-}
-
-/* Return a new bytevector of size LEN elements.  */
-SCM
-scm_i_make_typed_bytevector (size_t len, scm_t_array_element_type element_type)
-{
-  return make_bytevector (len, element_type);
 }
 
 /* Return a bytevector of size LEN made up of CONTENTS.  The area pointed to
@@ -280,58 +283,47 @@ scm_c_take_bytevector (signed char *contents, size_t len)
   return make_bytevector_from_buffer (len, contents, SCM_ARRAY_ELEMENT_TYPE_VU8);
 }
 
-SCM
-scm_c_take_typed_bytevector (signed char *contents, size_t len,
-                             scm_t_array_element_type element_type)
-{
-  return make_bytevector_from_buffer (len, contents, element_type);
-}
-
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
-   size) and return BV.  */
+   size) and return the new bytevector (possibly different from BV).  */
 SCM
-scm_i_shrink_bytevector (SCM bv, size_t c_new_len)
+scm_c_shrink_bytevector (SCM bv, size_t c_new_len)
 {
+  SCM new_bv;
+  size_t c_len;
+
   if (SCM_UNLIKELY (c_new_len % SCM_BYTEVECTOR_TYPE_SIZE (bv)))
     /* This would be an internal Guile programming error */
     abort ();
 
-  if (!SCM_BYTEVECTOR_INLINE_P (bv))
-    {
-      size_t c_len;
-      signed char *c_bv, *c_new_bv;
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  if (SCM_UNLIKELY (c_new_len > c_len))
+    abort ();
 
-      c_len = SCM_BYTEVECTOR_LENGTH (bv);
-      c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
+  SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
 
-      SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
-
-      if (SCM_BYTEVECTOR_INLINEABLE_SIZE_P (c_new_len))
-	{
-	  /* Copy to the in-line buffer and free the current buffer.  */
-          SCM_BYTEVECTOR_SET_INLINE (bv);
-	  c_new_bv = SCM_BYTEVECTOR_CONTENTS (bv);
-	  memcpy (c_new_bv, c_bv, c_new_len);
-	  scm_gc_free (c_bv, c_len, SCM_GC_BYTEVECTOR);
-	}
-      else
-	{
-	  /* Resize the existing buffer.  */
-	  c_new_bv = scm_gc_realloc (c_bv, c_len, c_new_len,
-				     SCM_GC_BYTEVECTOR);
-	  SCM_BYTEVECTOR_SET_CONTENTS (bv, c_new_bv);
-	}
-    }
+  if (SCM_BYTEVECTOR_CONTIGUOUS_P (bv))
+    new_bv = PTR2SCM (scm_gc_realloc (SCM2PTR (bv),
+				      c_len + SCM_BYTEVECTOR_HEADER_BYTES,
+				      c_new_len + SCM_BYTEVECTOR_HEADER_BYTES,
+				      SCM_GC_BYTEVECTOR));
   else
-    SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
+    {
+      signed char *c_bv;
 
-  return bv;
+      c_bv = scm_gc_realloc (SCM_BYTEVECTOR_CONTENTS (bv),
+			     c_len, c_new_len, SCM_GC_BYTEVECTOR);
+      SCM_BYTEVECTOR_SET_CONTENTS (bv, c_bv);
+
+      new_bv = bv;
+    }
+
+  return new_bv;
 }
 
 int
 scm_is_bytevector (SCM obj)
 {
-  return SCM_SMOB_PREDICATE (scm_tc16_bytevector, obj);
+  return SCM_BYTEVECTOR_P (obj);
 }
 
 size_t
@@ -384,10 +376,8 @@ scm_c_bytevector_set_x (SCM bv, size_t index, scm_t_uint8 value)
 
 
 
-
-
-static int
-print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
+int
+scm_i_print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   ssize_t ubnd, inc, i;
   scm_t_array_handle h;
@@ -408,31 +398,6 @@ print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
 
   return 1;
 }
-
-static SCM
-bytevector_equal_p (SCM bv1, SCM bv2)
-{
-  return scm_bytevector_eq_p (bv1, bv2);
-}
-
-static size_t
-free_bytevector (SCM bv)
-{
-
-  if (!SCM_BYTEVECTOR_INLINE_P (bv))
-    {
-      unsigned c_len;
-      signed char *c_bv;
-
-      c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
-      c_len = SCM_BYTEVECTOR_LENGTH (bv);
-
-      scm_gc_free (c_bv, c_len, SCM_GC_BYTEVECTOR);
-    }
-
-  return 0;
-}
-
 
 
 /* General operations.  */
@@ -634,23 +599,31 @@ SCM_DEFINE (scm_uniform_array_to_bytevector, "uniform-array->bytevector",
 #define FUNC_NAME s_scm_uniform_array_to_bytevector
 {
   SCM contents, ret;
-  size_t len;
+  size_t len, sz, byte_len;
   scm_t_array_handle h;
-  const void *base;
-  size_t sz;
+  const void *elts;
   
   contents = scm_array_contents (array, SCM_BOOL_T);
   if (scm_is_false (contents))
     scm_wrong_type_arg_msg (FUNC_NAME, 0, array, "uniform contiguous array");
 
   scm_array_get_handle (contents, &h);
+  assert (h.base == 0);
 
-  base = scm_array_handle_uniform_elements (&h);
+  elts = h.elements;
   len = h.dims->inc * (h.dims->ubnd - h.dims->lbnd + 1);
-  sz = scm_array_handle_uniform_element_size (&h);
+  sz = scm_array_handle_uniform_element_bit_size (&h);
+  if (sz >= 8 && ((sz % 8) == 0))
+    byte_len = len * (sz / 8);
+  else if (sz < 8)
+    /* byte_len = ceil (len * sz / 8) */
+    byte_len = (len * sz + 7) / 8;
+  else
+    /* an internal guile error, really */
+    SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
-  ret = make_bytevector (len * sz, SCM_ARRAY_ELEMENT_TYPE_VU8);
-  memcpy (SCM_BYTEVECTOR_CONTENTS (ret), base, len * sz);
+  ret = make_bytevector (byte_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+  memcpy (SCM_BYTEVECTOR_CONTENTS (ret), elts, byte_len);
 
   scm_array_handle_release (&h);
 
@@ -1909,47 +1882,50 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
 #define MAX_UTF_ENCODING_NAME_LEN  16
 
 /* Produce the body of a `string->utf' function.  */
-#define STRING_TO_UTF(_utf_width)					\
-  SCM utf;								\
-  int err;								\
-  char *c_str;								\
-  char c_utf_name[MAX_UTF_ENCODING_NAME_LEN];				\
-  char *c_utf = NULL, *c_locale;					\
-  size_t c_strlen, c_raw_strlen, c_utf_len = 0;				\
-									\
-  SCM_VALIDATE_STRING (1, str);						\
-  if (endianness == SCM_UNDEFINED)					\
-    endianness = scm_sym_big;						\
-  else									\
-    SCM_VALIDATE_SYMBOL (2, endianness);				\
-									\
-  c_strlen = scm_c_string_length (str);					\
-  c_raw_strlen = c_strlen * ((_utf_width) / 8);				\
-  do									\
-    {									\
-      c_str = (char *) alloca (c_raw_strlen + 1);			\
-      c_raw_strlen = scm_to_locale_stringbuf (str, c_str, c_strlen);	\
-    }									\
-  while (c_raw_strlen > c_strlen);					\
-  c_str[c_raw_strlen] = '\0';						\
-									\
-  utf_encoding_name (c_utf_name, (_utf_width), endianness);		\
-									\
-  c_locale = (char *) alloca (strlen (locale_charset ()) + 1);		\
-  strcpy (c_locale, locale_charset ());					\
-									\
-  err = mem_iconveh (c_str, c_raw_strlen,				\
-		     c_locale, c_utf_name,				\
-		     iconveh_question_mark, NULL,			\
-		     &c_utf, &c_utf_len);				\
-  if (SCM_UNLIKELY (err))						\
-    scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",	\
-		      scm_list_1 (str), err);				\
-  else									\
-    /* C_UTF is null-terminated.  */					\
-    utf = scm_c_take_bytevector ((signed char *) c_utf, c_utf_len);     \
-									\
-  return (utf);
+#define STRING_TO_UTF(_utf_width)                                       \
+  SCM utf;                                                              \
+  int err;                                                              \
+  char c_utf_name[MAX_UTF_ENCODING_NAME_LEN];                           \
+  char *c_utf = NULL;                                                   \
+  size_t c_strlen, c_utf_len = 0;                                       \
+                                                                        \
+  SCM_VALIDATE_STRING (1, str);                                         \
+  if (endianness == SCM_UNDEFINED)                                      \
+    endianness = scm_sym_big;                                           \
+  else                                                                  \
+    SCM_VALIDATE_SYMBOL (2, endianness);                                \
+                                                                        \
+  utf_encoding_name (c_utf_name, (_utf_width), endianness);             \
+                                                                        \
+  c_strlen = scm_i_string_length (str);                                 \
+  if (scm_i_is_narrow_string (str))                                     \
+    {                                                                   \
+      err = mem_iconveh (scm_i_string_chars (str), c_strlen,            \
+                         "ISO-8859-1", c_utf_name,                      \
+                         iconveh_question_mark, NULL,                   \
+                         &c_utf, &c_utf_len);                           \
+      if (SCM_UNLIKELY (err))                                           \
+        scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",    \
+                          scm_list_1 (str), err);                       \
+    }                                                                   \
+  else                                                                  \
+    {                                                                   \
+      const scm_t_wchar *wbuf = scm_i_string_wide_chars (str);          \
+      c_utf = u32_conv_to_encoding (c_utf_name,                         \
+                                    iconveh_question_mark,              \
+                                    (scm_t_uint32 *) wbuf,              \
+                                    c_strlen, NULL, NULL, &c_utf_len);  \
+      if (SCM_UNLIKELY (c_utf == NULL))                                 \
+        scm_syserror_msg (FUNC_NAME, "failed to convert string: ~A",    \
+                          scm_list_1 (str), errno);                     \
+    }                                                                   \
+  scm_dynwind_begin (0);                                                \
+  scm_dynwind_free (c_utf);                                             \
+  utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);        \
+  memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);             \
+  scm_dynwind_end ();                                                   \
+                                                                        \
+  return (utf); 
 
 
 
@@ -1961,29 +1937,33 @@ SCM_DEFINE (scm_string_to_utf8, "string->utf8",
 #define FUNC_NAME s_scm_string_to_utf8
 {
   SCM utf;
-  char *c_str;
   uint8_t *c_utf;
-  size_t c_strlen, c_raw_strlen;
+  size_t c_strlen, c_utf_len = 0;
 
   SCM_VALIDATE_STRING (1, str);
 
-  c_strlen = scm_c_string_length (str);
-  c_raw_strlen = c_strlen;
-  do
+  c_strlen = scm_i_string_length (str);
+  if (scm_i_is_narrow_string (str))
+    c_utf = u8_conv_from_encoding ("ISO-8859-1", iconveh_question_mark,
+                                   scm_i_string_chars (str), c_strlen,
+                                   NULL, NULL, &c_utf_len);
+  else
     {
-      c_str = (char *) alloca (c_raw_strlen + 1);
-      c_raw_strlen = scm_to_locale_stringbuf (str, c_str, c_strlen);
+      const scm_t_wchar *wbuf = scm_i_string_wide_chars (str);
+      c_utf = u32_to_u8 ((const uint32_t *) wbuf, c_strlen, NULL, &c_utf_len);
     }
-  while (c_raw_strlen > c_strlen);
-  c_str[c_raw_strlen] = '\0';
-
-  c_utf = u8_strconv_from_locale (c_str);
   if (SCM_UNLIKELY (c_utf == NULL))
     scm_syserror (FUNC_NAME);
   else
-    /* C_UTF is null-terminated.  */
-    utf = scm_c_take_bytevector ((signed char *) c_utf,
-				      UTF_STRLEN (8, c_utf));
+    {
+      scm_dynwind_begin (0);
+      scm_dynwind_free (c_utf);
+
+      utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);
+
+      scm_dynwind_end ();
+    }
 
   return (utf);
 }
@@ -2017,10 +1997,10 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
 #define UTF_TO_STRING(_utf_width)					\
   SCM str = SCM_BOOL_F;							\
   int err;								\
-  char *c_str = NULL, *c_locale;					\
+  char *c_str = NULL;                                                   \
   char c_utf_name[MAX_UTF_ENCODING_NAME_LEN];				\
-  const char *c_utf;							\
-  size_t c_strlen = 0, c_utf_len;					\
+  char *c_utf;                                                          \
+  size_t c_strlen = 0, c_utf_len = 0;					\
 									\
   SCM_VALIDATE_BYTEVECTOR (1, utf);					\
   if (endianness == SCM_UNDEFINED)					\
@@ -2032,20 +2012,19 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
   c_utf = (char *) SCM_BYTEVECTOR_CONTENTS (utf);			\
   utf_encoding_name (c_utf_name, (_utf_width), endianness);		\
 									\
-  c_locale = (char *) alloca (strlen (locale_charset ()) + 1);		\
-  strcpy (c_locale, locale_charset ());					\
-									\
   err = mem_iconveh (c_utf, c_utf_len,					\
-		     c_utf_name, c_locale,				\
+		     c_utf_name, "UTF-8",				\
 		     iconveh_question_mark, NULL,			\
 		     &c_str, &c_strlen);				\
   if (SCM_UNLIKELY (err))						\
     scm_syserror_msg (FUNC_NAME, "failed to convert to string: ~A",	\
 		      scm_list_1 (utf), err);				\
   else									\
-    /* C_STR is null-terminated.  */					\
-    str = scm_take_locale_stringn (c_str, c_strlen);			\
-									\
+    {                                                                   \
+      str = scm_from_stringn (c_str, c_strlen, "UTF-8",                 \
+                              SCM_FAILED_CONVERSION_ERROR);             \
+      free (c_str);                                                     \
+    }                                                                   \
   return (str);
 
 
@@ -2057,29 +2036,15 @@ SCM_DEFINE (scm_utf8_to_string, "utf8->string",
 #define FUNC_NAME s_scm_utf8_to_string
 {
   SCM str;
-  int err;
-  char *c_str = NULL, *c_locale;
   const char *c_utf;
-  size_t c_utf_len, c_strlen = 0;
+  size_t c_utf_len = 0;
 
   SCM_VALIDATE_BYTEVECTOR (1, utf);
 
   c_utf_len = SCM_BYTEVECTOR_LENGTH (utf);
-
-  c_locale = (char *) alloca (strlen (locale_charset ()) + 1);
-  strcpy (c_locale, locale_charset ());
-
   c_utf = (char *) SCM_BYTEVECTOR_CONTENTS (utf);
-  err = mem_iconveh (c_utf, c_utf_len,
-		     "UTF-8", c_locale,
-		     iconveh_question_mark, NULL,
-		     &c_str, &c_strlen);
-  if (SCM_UNLIKELY (err))
-    scm_syserror_msg (FUNC_NAME, "failed to convert to string: ~A",
-		      scm_list_1 (utf), err);
-  else
-    /* C_STR is null-terminated.  */
-    str = scm_take_locale_stringn (c_str, c_strlen);
+  str = scm_from_stringn (c_utf, c_utf_len, "UTF-8",
+                          SCM_FAILED_CONVERSION_ERROR);
 
   return (str);
 }
@@ -2106,7 +2071,6 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
   UTF_TO_STRING (32);
 }
 #undef FUNC_NAME
-
 
 
 /* Bytevectors as generalized vectors & arrays.  */
@@ -2235,22 +2199,15 @@ bytevector_get_handle (SCM v, scm_t_array_handle *h)
 void
 scm_bootstrap_bytevectors (void)
 {
-  /* The SMOB type must be instantiated here because the
-     generalized-vector API may want to access bytevectors even though
-     `(rnrs bytevector)' hasn't been loaded.  */
-  scm_tc16_bytevector = scm_make_smob_type ("bytevector", 0);
-  scm_set_smob_free (scm_tc16_bytevector, free_bytevector);
-  scm_set_smob_print (scm_tc16_bytevector, print_bytevector);
-  scm_set_smob_equalp (scm_tc16_bytevector, bytevector_equal_p);
-
-  scm_null_bytevector =
-    scm_gc_protect_object
-    (make_bytevector_from_buffer (0, NULL, SCM_ARRAY_ELEMENT_TYPE_VU8));
+  /* This must be instantiated here because the generalized-vector API may
+     want to access bytevectors even though `(rnrs bytevector)' hasn't been
+     loaded.  */
+  scm_null_bytevector = make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8);
 
 #ifdef WORDS_BIGENDIAN
-  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("big"));
+  scm_i_native_endianness = scm_from_locale_symbol ("big");
 #else
-  scm_i_native_endianness = scm_permanent_object (scm_from_locale_symbol ("little"));
+  scm_i_native_endianness = scm_from_locale_symbol ("little");
 #endif
 
   scm_c_register_extension ("libguile", "scm_init_bytevectors",
@@ -2259,9 +2216,9 @@ scm_bootstrap_bytevectors (void)
 
   {
     scm_t_array_implementation impl;
-    
-    impl.tag = scm_tc16_bytevector;
-    impl.mask = 0xffff;
+
+    impl.tag = scm_tc7_bytevector;
+    impl.mask = 0x7f;
     impl.vref = bv_handle_ref;
     impl.vset = bv_handle_set_x;
     impl.get_handle = bytevector_get_handle;

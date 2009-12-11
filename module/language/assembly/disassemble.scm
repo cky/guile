@@ -35,7 +35,7 @@
 
 (define (disassemble-load-program asm env)
   (pmatch asm
-    ((load-program ,nargs ,nrest ,nlocs ,labels ,len ,meta . ,code)
+    ((load-program ,labels ,len ,meta . ,code)
      (let ((objs  (and env (assq-ref env 'objects)))
            (free-vars (and env (assq-ref env 'free-vars)))
            (meta  (and env (assq-ref env 'meta)))
@@ -64,7 +64,9 @@
                 (lp (+ pos (byte-length asm)) (cdr code) programs))
                (else
                 (print-info pos asm
-                            (code-annotation end asm objs nargs blocs
+                            ;; FIXME: code-annotation for whether it's
+                            ;; an arg or not, currently passing nargs=-1
+                            (code-annotation end asm objs -1 blocs
                                              labels)
                             (and=> (and srcs (assq end srcs)) source->string))
                 (lp (+ pos (byte-length asm)) (cdr code) programs)))))))
@@ -95,7 +97,7 @@
 
 (define (disassemble-free-vars free-vars)
   (display "Free variables:\n\n")
-  (let ((i 0))
+  (let lp ((i 0))
     (cond ((< i (vector-length free-vars))
            (print-info i (vector-ref free-vars i) #f #f)
            (lp (1+ i))))))
@@ -106,8 +108,7 @@
 (define *uninteresting-props* '(name))
 
 (define (disassemble-meta meta)
-  (let ((sources (cadr meta))
-        (props (filter (lambda (x)
+  (let ((props (filter (lambda (x)
                          (not (memq (car x) *uninteresting-props*)))
                        (cddr meta))))
     (unless (null? props)
@@ -131,6 +132,8 @@
        (list "~a element~:p" (apply make-int16 args)))
       ((br br-if br-if-eq br-if-not br-if-not-eq br-if-not-null br-if-null)
        (list "-> ~A" (assq-ref labels (car args))))
+      ((br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt)
+       (list "-> ~A" (assq-ref labels (caddr args))))
       ((object-ref)
        (and objs (list "~s" (vector-ref objs (car args)))))
       ((local-ref local-boxed-ref local-set local-boxed-set)

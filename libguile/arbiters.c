@@ -121,8 +121,10 @@ SCM_DEFINE (scm_try_arbiter, "try-arbiter", 1, 0, 0,
 #define FUNC_NAME s_scm_try_arbiter
 {
   scm_t_bits old;
+  scm_t_bits *loc;
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-  FETCH_STORE (old, * (scm_t_bits *) SCM_CELL_OBJECT_LOC(arb,0), SCM_LOCK_VAL);
+  loc = (scm_t_bits*)SCM_SMOB_OBJECT_N_LOC (arb, 0);
+  FETCH_STORE (old, *loc, SCM_LOCK_VAL);
   return scm_from_bool (old == SCM_UNLOCK_VAL);
 }
 #undef FUNC_NAME
@@ -147,8 +149,10 @@ SCM_DEFINE (scm_release_arbiter, "release-arbiter", 1, 0, 0,
 #define FUNC_NAME s_scm_release_arbiter
 {
   scm_t_bits old;
+  scm_t_bits *loc;
   SCM_VALIDATE_SMOB (1, arb, arbiter);
-  FETCH_STORE (old, *(scm_t_bits*)SCM_CELL_OBJECT_LOC(arb,0), SCM_UNLOCK_VAL);
+  loc = (scm_t_bits*)SCM_SMOB_OBJECT_N_LOC (arb, 0);
+  FETCH_STORE (old, *loc, SCM_UNLOCK_VAL);
   return scm_from_bool (old == SCM_LOCK_VAL);
 }
 #undef FUNC_NAME
@@ -159,7 +163,6 @@ void
 scm_init_arbiters ()
 {
   scm_tc16_arbiter = scm_make_smob_type ("arbiter", 0);
-  scm_set_smob_mark (scm_tc16_arbiter, scm_markcdr);
   scm_set_smob_print (scm_tc16_arbiter, arbiter_print);
 #include "libguile/arbiters.x"
 }

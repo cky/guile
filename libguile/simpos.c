@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004 Free Software
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2009 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -89,11 +89,6 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
 #ifdef HAVE_SYSTEM
 #ifdef HAVE_WAITPID
 
-static void
-free_string_pointers (void *data)
-{
-  scm_i_free_string_pointers ((char **)data);
-}
 
 SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
            (SCM args),
@@ -128,12 +123,8 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       int pid;
       char **execargv;
 
-      scm_dynwind_begin (0);
-
       /* allocate before fork */
       execargv = scm_i_allocate_string_pointers (args);
-      scm_dynwind_unwind_handler (free_string_pointers, execargv,
-				  SCM_F_WIND_EXPLICITLY);
 
       /* make sure the child can't kill us (as per normal system call) */
       sig_ign = scm_from_long ((unsigned long) SIG_IGN);
@@ -149,7 +140,6 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
           execvp (execargv[0], execargv);
           SCM_SYSERROR;
           /* not reached.  */
-	  scm_dynwind_end ();
           return SCM_BOOL_F;
         }
       else
@@ -166,7 +156,6 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
           scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
           scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
 
-	  scm_dynwind_end ();
           return scm_from_int (status);
         }
     }

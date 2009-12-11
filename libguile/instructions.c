@@ -67,8 +67,7 @@ fetch_instruction_table ()
         {
           table[i].opcode = i;
           if (table[i].name)
-            table[i].symname =
-              scm_permanent_object (scm_from_locale_symbol (table[i].name));
+            table[i].symname = scm_from_locale_symbol (table[i].name);
           else
             table[i].symname = SCM_BOOL_F;
         }
@@ -83,17 +82,19 @@ scm_lookup_instruction_by_name (SCM name)
   struct scm_instruction *table = fetch_instruction_table ();
   SCM op;
 
-  if (SCM_UNLIKELY (SCM_FALSEP (instructions_by_name)))
-    { 
-      int i;
-      instructions_by_name = scm_permanent_object
-        (scm_make_hash_table (SCM_I_MAKINUM (SCM_VM_NUM_INSTRUCTIONS)));
+  if (SCM_UNLIKELY (scm_is_false (instructions_by_name)))
+    {
+      unsigned int i;
+
+      instructions_by_name =
+        scm_make_hash_table (SCM_I_MAKINUM (SCM_VM_NUM_INSTRUCTIONS));
+
       for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
         if (scm_is_true (table[i].symname))
           scm_hashq_set_x (instructions_by_name, table[i].symname,
                            SCM_I_MAKINUM (i));
     }
-  
+
   op = scm_hashq_ref (instructions_by_name, name, SCM_UNDEFINED);
   if (SCM_I_INUMP (op))
     return &table[SCM_I_INUM (op)];
@@ -124,7 +125,7 @@ SCM_DEFINE (scm_instruction_p, "instruction?", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_instruction_p
 {
-  return SCM_BOOL (scm_lookup_instruction_by_name (obj));
+  return scm_from_bool (scm_lookup_instruction_by_name (obj) != NULL);
 }
 #undef FUNC_NAME
 

@@ -42,6 +42,7 @@
 #include "libguile/hashtab.h"
 #include "libguile/hash.h"
 #include "libguile/ports.h"
+#include "libguile/fports.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
@@ -181,8 +182,10 @@ static SCM *scm_read_hash_procedures;
    || ((_chr) == 'd') || ((_chr) == 'l'))
 
 /* Read an SCSH block comment.  */
-static inline SCM scm_read_scsh_block_comment (int chr, SCM port);
-static SCM scm_read_commented_expression (int chr, SCM port);
+static inline SCM scm_read_scsh_block_comment (scm_t_wchar, SCM);
+static SCM scm_read_r6rs_block_comment (scm_t_wchar, SCM);
+static SCM scm_read_commented_expression (scm_t_wchar, SCM);
+static SCM scm_get_hash_procedure (int);
 
 /* Read from PORT until a delimiter (e.g., a whitespace) is read.  Return
    zero if the whole token fits in BUF, non-zero otherwise.  */
@@ -289,6 +292,13 @@ flush_ws (SCM port, const char *eoferr)
 	  case ';':
 	    scm_read_commented_expression (c, port);
 	    break;
+	  case '|':
+	    if (scm_is_false (scm_get_hash_procedure (c)))
+	      {
+		scm_read_r6rs_block_comment (c, port);
+		break;
+	      }
+	    /* fall through */
 	  default:
 	    scm_ungetc (c, port);
 	    return '#';
@@ -313,7 +323,6 @@ flush_ws (SCM port, const char *eoferr)
 
 static SCM scm_read_expression (SCM port);
 static SCM scm_read_sharp (int chr, SCM port);
-static SCM scm_get_hash_procedure (int c);
 static SCM recsexpr (SCM obj, long line, int column, SCM filename);
 
 
@@ -844,16 +853,25 @@ scm_read_character (scm_t_wchar chr, SCM port)
     return SCM_MAKE_CHAR (scm_i_string_ref (charname, 0));
 
   cp = scm_i_string_ref (charname, 0);
+  if (cp == SCM_CODEPOINT_DOTTED_CIRCLE && charname_len == 2)
+    return SCM_MAKE_CHAR (scm_i_string_ref (charname, 1));
+
   if (cp >= '0' && cp < '8')
     {
       /* Dirk:FIXME::  This type of character syntax is not R5RS
        * compliant.  Further, it should be verified that the constant
-       * does only consist of octal digits.  Finally, it should be
-       * checked whether the resulting fixnum is in the range of
-       * characters.  */
+       * does only consist of octal digits.  */
       SCM p = scm_string_to_number (charname, scm_from_uint (8));
       if (SCM_I_INUMP (p))
-	return SCM_MAKE_CHAR (SCM_I_INUM (p));
+        {
+          scm_t_wchar c = SCM_I_INUM (p);
+          if (SCM_IS_UNICODE_CHAR (c))
+            return SCM_MAKE_CHAR (c);
+          else
+            scm_i_input_error (FUNC_NAME, port, 
+                               "out-of-range octal character escape: ~a",
+                               scm_list_1 (charname));
+        }
     }
 
   /* The names of characters should never have non-Latin1
@@ -982,6 +1000,45 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 }
 
 static SCM
+scm_read_r6rs_block_comment (scm_t_wchar chr, SCM port)
+{
+  /* Unlike SCSH-style block comments, SRFI-30/R6RS block comments may be
+     nested.  So care must be taken.  */
+  int nesting_level = 1;
+  int opening_seen = 0, closing_seen = 0;
+
+  while (nesting_level > 0)
+    {
+      int c = scm_getc (port);
+
+      if (c == EOF)
+	scm_i_input_error (__FUNCTION__, port,
+			   "unterminated `#| ... |#' comment", SCM_EOL);
+
+      if (opening_seen)
+	{
+	  if (c == '|')
+	    nesting_level++;
+	  opening_seen = 0;
+	}
+      else if (closing_seen)
+	{
+	  if (c == '#')
+	    nesting_level--;
+	  closing_seen = 0;
+	}
+      else if (c == '|')
+	closing_seen = 1;
+      else if (c == '#')
+	opening_seen = 1;
+      else
+	opening_seen = closing_seen = 0;
+    }
+
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
 scm_read_commented_expression (scm_t_wchar chr, SCM port)
 {
   scm_t_wchar c;
@@ -1032,8 +1089,10 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 
       if (len >= scm_i_string_length (buf) - 2)
 	{
+	  SCM addy;
+
 	  scm_i_string_stop_writing ();
-	  SCM addy = scm_i_make_string (1024, NULL);
+	  addy = scm_i_make_string (1024, NULL);
 	  buf = scm_string_append (scm_list_2 (buf, addy));
 	  len = 0;
 	  buf = scm_i_string_start_writing (buf);
@@ -1164,8 +1223,19 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     default:
       result = scm_read_sharp_extension (chr, port);
       if (scm_is_eq (result, SCM_UNSPECIFIED))
-	scm_i_input_error (FUNC_NAME, port, "Unknown # object: ~S",
-			   scm_list_1 (SCM_MAKE_CHAR (chr)));
+	{
+	  /* To remain compatible with 1.8 and earlier, the following
+	     characters have lower precedence than `read-hash-extend'
+	     characters.  */
+	  switch (chr)
+	    {
+	    case '|':
+	      return scm_read_r6rs_block_comment (chr, port);
+	    default:
+	      scm_i_input_error (FUNC_NAME, port, "Unknown # object: ~S",
+				 scm_list_1 (SCM_MAKE_CHAR (chr)));
+	    }
+	}
       else
 	return result;
     }
@@ -1393,10 +1463,11 @@ scm_get_hash_procedure (int c)
 
 #define SCM_ENCODING_SEARCH_SIZE (500)
 
-/* Search the first few hundred characters of a file for
-   an emacs-like coding declaration.  */
+/* Search the first few hundred characters of a file for an Emacs-like coding
+   declaration.  Returns either NULL or a string whose storage has been
+   allocated with `scm_gc_malloc ()'.  */
 char *
-scm_scan_for_encoding (SCM port)
+scm_i_scan_for_encoding (SCM port)
 {
   char header[SCM_ENCODING_SEARCH_SIZE+1];
   size_t bytes_read;
@@ -1406,7 +1477,13 @@ scm_scan_for_encoding (SCM port)
   int i;
   int in_comment;
 
-  bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);  
+  if (SCM_FPORTP (port) && !SCM_FDES_RANDOM_P (SCM_FPORT_FDES (port)))
+    /* PORT is a non-seekable file port (e.g., as created by Bash when using
+       "guile <(echo '(display "hello")')") so bail out.  */
+    return NULL;
+
+  bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);
+
   scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
 
   if (bytes_read > 3 
@@ -1437,15 +1514,15 @@ scm_scan_for_encoding (SCM port)
   /* grab the next token */
   i = 0;
   while (pos + i - header <= SCM_ENCODING_SEARCH_SIZE 
-	 && (isalnum(pos[i]) || pos[i] == '_' || pos[i] == '-' || pos[i] == '.'))
+         && pos + i - header < bytes_read
+	 && (isalnum((int) pos[i]) || pos[i] == '_' || pos[i] == '-' 
+             || pos[i] == '.'))
     i++;
 
   if (i == 0)
     return NULL;
 
-  encoding = scm_malloc (i+1);
-  memcpy (encoding, pos, i);
-  encoding[i] ='\0';
+  encoding = scm_gc_strndup (pos, i, "encoding");
   for (i = 0; i < strlen (encoding); i++)
     encoding[i] = toupper ((int) encoding[i]);
 
@@ -1471,22 +1548,20 @@ scm_scan_for_encoding (SCM port)
       i ++;
     }
   if (!in_comment)
-    {
-      /* This wasn't in a comment */
-      free (encoding);
-      return NULL;
-    }
+    /* This wasn't in a comment */
+    return NULL;
+
   if (utf8_bom && strcmp(encoding, "UTF-8"))
     scm_misc_error (NULL, 
 		    "the port input declares the encoding ~s but is encoded as UTF-8",
 		    scm_list_1 (scm_from_locale_string (encoding)));
-      
+
   return encoding;
 }
 
 SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
             (SCM port),
-            "Scans the port for an EMACS-like character coding declaration\n"
+            "Scans the port for an Emacs-like character coding declaration\n"
             "near the top of the contents of a port with random-acessible contents.\n"
             "The coding declaration is of the form\n"
             "@code{coding: XXXXX} and must appear in a scheme comment.\n"
@@ -1497,17 +1572,16 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
 {
   char *enc;
   SCM s_enc;
-  
-  enc = scm_scan_for_encoding (port);
+
+  enc = scm_i_scan_for_encoding (port);
   if (enc == NULL)
     return SCM_BOOL_F;
   else
     {
       s_enc = scm_from_locale_string (enc);
-      free (enc);
       return s_enc;
     }
-  
+
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME

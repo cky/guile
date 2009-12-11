@@ -39,15 +39,25 @@ scm_is_array (SCM obj)
   return scm_i_array_implementation_for_obj (obj) ? 1 : 0;
 }
 
-SCM_DEFINE (scm_array_p, "array?", 1, 0, 0,
-           (SCM obj),
+SCM_DEFINE (scm_array_p_2, "array?", 1, 0, 0,
+	    (SCM obj),
 	    "Return @code{#t} if the @var{obj} is an array, and @code{#f} if\n"
 	    "not.")
-#define FUNC_NAME s_scm_array_p
+#define FUNC_NAME s_scm_array_p_2
 {
   return scm_from_bool (scm_is_array (obj));
 }
 #undef FUNC_NAME
+
+/* The array type predicate, with an extra argument kept for backward
+   compatibility.  Note that we can't use `SCM_DEFINE' directly because there
+   would be an argument count mismatch that would be caught by
+   `snarf-check-and-output-texi.scm'.  */
+SCM
+scm_array_p (SCM obj, SCM unused)
+{
+  return scm_array_p_2 (obj);
+}
 
 int
 scm_is_typed_array (SCM obj, SCM type)

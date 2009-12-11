@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -32,6 +32,92 @@
 #include "libguile/validate.h"
 #include "libguile/weaks.h"
 
+#include "libguile/bdw-gc.h"
+#include <gc/gc_typed.h>
+
+
+
+/* Weak pairs for use in weak alist vectors and weak hash tables.
+
+   We have weal-car pairs, weak-cdr pairs, and doubly weak pairs.  In weak
+   pairs, the weak component(s) are not scanned for pointers and are
+   registered as disapperaring links; therefore, the weak component may be
+   set to NULL by the garbage collector when no other reference to that word
+   exist.  Thus, users should only access weak pairs via the
+   `SCM_WEAK_PAIR_C[AD]R ()' macros.  See also `scm_fixup_weak_alist ()' in
+   `hashtab.c'.  */
+
+/* Type descriptors for weak-c[ad]r pairs.  */
+static GC_descr wcar_pair_descr, wcdr_pair_descr;
+
+
+SCM
+scm_weak_car_pair (SCM car, SCM cdr)
+{
+  scm_t_cell *cell;
+
+  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
+						   wcar_pair_descr);
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (car))
+    {
+      /* Weak car cells make sense iff the car is non-immediate.  */
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
+					(GC_PTR) SCM_UNPACK (car));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+SCM
+scm_weak_cdr_pair (SCM car, SCM cdr)
+{
+  scm_t_cell *cell;
+
+  cell = (scm_t_cell *)GC_malloc_explicitly_typed (sizeof (*cell),
+						   wcdr_pair_descr);
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (cdr))
+    {
+      /* Weak cdr cells make sense iff the cdr is non-immediate.  */
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
+					(GC_PTR) SCM_UNPACK (cdr));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+SCM
+scm_doubly_weak_pair (SCM car, SCM cdr)
+{
+  /* Doubly weak cells shall not be scanned at all for pointers.  */
+  scm_t_cell *cell = (scm_t_cell *)scm_gc_malloc_pointerless (sizeof (*cell),
+							      "weak cell");
+
+  cell->word_0 = car;
+  cell->word_1 = cdr;
+
+  if (SCM_NIMP (car))
+    {
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
+					(GC_PTR) SCM_UNPACK (car));
+    }
+  if (SCM_NIMP (cdr))
+    {
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
+					(GC_PTR) SCM_UNPACK (cdr));
+    }
+
+  return (SCM_PACK (cell));
+}
+
+
 
 
 /* 1. The current hash table implementation in hashtab.c uses weak alist
@@ -56,7 +142,7 @@ SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    "empty list.")
 #define FUNC_NAME s_scm_make_weak_vector
 {
-  return scm_i_allocate_weak_vector (0, size, fill);
+  return scm_i_make_weak_vector (0, size, fill);
 }
 #undef FUNC_NAME
 
@@ -72,26 +158,7 @@ SCM_DEFINE (scm_weak_vector, "weak-vector", 0, 0, 1,
 	    "the same way @code{list->vector} would.")
 #define FUNC_NAME s_scm_weak_vector
 {
-  scm_t_array_handle handle;
-  SCM res, *data;
-  long i;
-
-  i = scm_ilength (l);
-  SCM_ASSERT (i >= 0, l, SCM_ARG1, FUNC_NAME);
-
-  res = scm_make_weak_vector (scm_from_int (i), SCM_UNSPECIFIED);
-  data = scm_vector_writable_elements (res, &handle, NULL, NULL);
-
-  while (scm_is_pair (l) && i > 0)
-    {
-      *data++ = SCM_CAR (l);
-      l = SCM_CDR (l);
-      i--;
-    }
-
-  scm_array_handle_release (&handle);
-
-  return res;
+  return scm_i_make_weak_vector_from_list (0, l);
 }
 #undef FUNC_NAME
 
@@ -107,6 +174,16 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* Weak alist vectors, i.e., vectors of alists.
+
+   The alist vector themselves are _not_ weak.  The `car' (or `cdr', or both)
+   of the pairs within it are weak.  See `hashtab.c' for details.  */
+
+
+/* FIXME: We used to have two implementations of weak hash tables: the one in
+   here and the one in `hashtab.c'.  The difference is that weak alist
+   vectors could be used as vectors while (weak) hash tables can't.  We need
+   to unify that.  */
 
 SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 0, 
 	    (SCM size),
@@ -120,8 +197,7 @@ SCM_DEFINE (scm_make_weak_key_alist_vector, "make-weak-key-alist-vector", 0, 1, 
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_alist_vector
 {
-  return scm_i_allocate_weak_vector
-    (1, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
+  return scm_make_weak_key_hash_table (size);
 }
 #undef FUNC_NAME
 
@@ -132,8 +208,7 @@ SCM_DEFINE (scm_make_weak_value_alist_vector, "make-weak-value-alist-vector", 0,
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_alist_vector
 {
-  return scm_i_allocate_weak_vector
-    (2, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
+  return scm_make_weak_value_hash_table (size);
 }
 #undef FUNC_NAME
 
@@ -144,8 +219,7 @@ SCM_DEFINE (scm_make_doubly_weak_alist_vector, "make-doubly-weak-alist-vector", 
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_alist_vector
 {
-  return scm_i_allocate_weak_vector
-    (3, SCM_UNBNDP (size) ? scm_from_int (31) : size, SCM_EOL);
+  return scm_make_doubly_weak_hash_table (size);
 }
 #undef FUNC_NAME
 
@@ -183,185 +257,35 @@ SCM_DEFINE (scm_doubly_weak_alist_vector_p, "doubly-weak-alist-vector?", 1, 0, 0
 }
 #undef FUNC_NAME
 
-#define UNMARKED_CELL_P(x) (SCM_NIMP(x) && !SCM_GC_MARK_P (x))
 
-static SCM weak_vectors;
-
-void
-scm_i_init_weak_vectors_for_gc ()
-{
-  weak_vectors = SCM_EOL;
-}
-
-void
-scm_i_mark_weak_vector (SCM w)
-{
-  SCM_I_SET_WVECT_GC_CHAIN (w, weak_vectors);
-  weak_vectors = w;
-}
-
-static int
-scm_i_mark_weak_vector_non_weaks (SCM w)
-{
-  int again = 0;
-
-  if (SCM_IS_WHVEC_ANY (w))
-    {
-      SCM *ptr;
-      long n = SCM_I_WVECT_LENGTH (w);
-      long j;
-      int weak_keys = SCM_IS_WHVEC (w) || SCM_IS_WHVEC_B (w);
-      int weak_values = SCM_IS_WHVEC_V (w) || SCM_IS_WHVEC_B (w);
-
-      ptr = SCM_I_WVECT_GC_WVELTS (w);
-
-      for (j = 0; j < n; ++j)
-	{
-	  SCM alist, slow_alist;
-	  int slow_toggle = 0;
-
-	  /* We do not set the mark bits of the alist spine cells here
-	     since we do not want to ever create the situation where a
-	     marked cell references an unmarked cell (except in
-	     scm_gc_mark, where the referenced cells will be marked
-	     immediately).  Thus, we can not use mark bits to stop us
-	     from looping indefinitely over a cyclic alist.  Instead,
-	     we use the standard tortoise and hare trick to catch
-	     cycles.  The fast walker does the work, and stops when it
-	     catches the slow walker to ensure that the whole cycle
-	     has been worked on.
-	  */
-
-	  alist = slow_alist = ptr[j];
-
-	  while (scm_is_pair (alist))
-	    {
-	      SCM elt = SCM_CAR (alist);
-
-	      if (UNMARKED_CELL_P (elt))
-		{
-		  if (scm_is_pair (elt))
-		    {
-		      SCM key = SCM_CAR (elt);
-		      SCM value = SCM_CDR (elt);
-		  
-		      if (!((weak_keys && UNMARKED_CELL_P (key))
-			    || (weak_values && UNMARKED_CELL_P (value))))
-			{
-			  /* The item should be kept.  We need to mark it
-			     recursively.
-			  */ 
-			  scm_gc_mark (elt);
-			  again = 1;
-			}
-		    }
-		  else
-		    {
-		      /* A non-pair cell element.  This should not
-			 appear in a real alist, but when it does, we
-			 need to keep it.
-		      */
-		      scm_gc_mark (elt);
-		      again = 1;
-		    }
-		}
-
-	      alist = SCM_CDR (alist);
-
-	      if (slow_toggle && scm_is_pair (slow_alist))
-		{
-		  slow_alist = SCM_CDR (slow_alist);
-		  slow_toggle = !slow_toggle;
-		  if (scm_is_eq (slow_alist, alist))
-		    break;
-		}
-	    }
-	  if (!scm_is_pair (alist))
-	    scm_gc_mark (alist);
-	}
-    }
-
-  return again;
-}
-
-int
-scm_i_mark_weak_vectors_non_weaks ()
-{
-  int again = 0;
-  SCM w = weak_vectors;
-  while (!scm_is_null (w))
-    {
-      if (scm_i_mark_weak_vector_non_weaks (w))
-	again = 1;
-      w = SCM_I_WVECT_GC_CHAIN (w);
-    }
-  return again;
-}
-
-static void
-scm_i_remove_weaks (SCM w)
-{
-  SCM *ptr = SCM_I_WVECT_GC_WVELTS (w);
-  size_t n = SCM_I_WVECT_LENGTH (w);
-  size_t i;
-
-  if (!SCM_IS_WHVEC_ANY (w))
-    {
-      for (i = 0; i < n; ++i)
-	if (UNMARKED_CELL_P (ptr[i]))
-	  ptr[i] = SCM_BOOL_F;
-    }
-  else
-    {
-      size_t delta = 0;
-
-      for (i = 0; i < n; ++i)
-	{
-	  SCM alist, *fixup;
-
-	  fixup = ptr + i;
-	  alist = *fixup;
-	  while (scm_is_pair (alist) && !SCM_GC_MARK_P (alist))
-	    {
-	      if (UNMARKED_CELL_P (SCM_CAR (alist)))
-		{
-		  *fixup = SCM_CDR (alist);
-		  delta++;
-		}
-	      else
-		{
-		  SCM_SET_GC_MARK (alist);
-		  fixup = SCM_CDRLOC (alist);
-		}
-	      alist = *fixup;
-	    }
-	}
-#if 0
-      if (delta)
-	fprintf (stderr, "vector %p, delta %d\n", w, delta);
-#endif
-      SCM_I_SET_WVECT_DELTA (w, delta);
-    }
-}
-
-void
-scm_i_remove_weaks_from_weak_vectors ()
-{
-  SCM w = weak_vectors;
-  while (!scm_is_null (w))
-    {
-      scm_i_remove_weaks (w);
-      w = SCM_I_WVECT_GC_CHAIN (w);
-    }
-}
 
 
-
 SCM
 scm_init_weaks_builtins ()
 {
 #include "libguile/weaks.x"
   return SCM_UNSPECIFIED;
+}
+
+void
+scm_weaks_prehistory ()
+{
+  /* Initialize weak pairs.  */
+  GC_word wcar_pair_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
+  GC_word wcdr_pair_bitmap[GC_BITMAP_SIZE (scm_t_cell)] = { 0 };
+
+  /* In a weak-car pair, only the second word must be scanned for
+     pointers.  */
+  GC_set_bit (wcar_pair_bitmap, GC_WORD_OFFSET (scm_t_cell, word_1));
+  wcar_pair_descr = GC_make_descriptor (wcar_pair_bitmap,
+					GC_WORD_LEN (scm_t_cell));
+
+  /* Conversely, in a weak-cdr pair, only the first word must be scanned for
+     pointers.  */
+  GC_set_bit (wcdr_pair_bitmap, GC_WORD_OFFSET (scm_t_cell, word_0));
+  wcdr_pair_descr = GC_make_descriptor (wcdr_pair_bitmap,
+					GC_WORD_LEN (scm_t_cell));
+
 }
 
 void

@@ -104,13 +104,6 @@ make_bip (SCM bv)
   return port;
 }
 
-static SCM
-bip_mark (SCM port)
-{
-  /* Mark the underlying bytevector.  */
-  return (SCM_PACK (SCM_STREAM (port)));
-}
-
 static int
 bip_fill_input (SCM port)
 {
@@ -176,7 +169,6 @@ initialize_bytevector_input_ports (void)
     scm_make_port_type ("r6rs-bytevector-input-port", bip_fill_input,
 			NULL);
 
-  scm_set_port_mark (bytevector_input_port_type, bip_mark);
   scm_set_port_seek (bytevector_input_port_type, bip_seek);
 }
 
@@ -206,16 +198,6 @@ SCM_DEFINE (scm_open_bytevector_input_port,
   SCM_SIMPLE_VECTOR_REF (SCM_PACK (SCM_STREAM (_port)), 2)
 #define SCM_CBP_CLOSE_PROC(_port)				\
   SCM_SIMPLE_VECTOR_REF (SCM_PACK (SCM_STREAM (_port)), 3)
-
-static SCM
-cbp_mark (SCM port)
-{
-  /* Mark the underlying method and object vector.  */
-  if (SCM_OPENP (port))
-    return SCM_PACK (SCM_STREAM (port));
-  else
-    return SCM_BOOL_F;
-}
 
 static scm_t_off
 cbp_seek (SCM port, scm_t_off offset, int whence)
@@ -421,7 +403,6 @@ initialize_custom_binary_input_ports (void)
     scm_make_port_type ("r6rs-custom-binary-input-port",
 			cbip_fill_input, NULL);
 
-  scm_set_port_mark (custom_binary_input_port_type, cbp_mark);
   scm_set_port_seek (custom_binary_input_port_type, cbp_seek);
   scm_set_port_close (custom_binary_input_port_type, cbp_close);
 }
@@ -581,7 +562,7 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
   c_len = 4096;
-  c_bv = (char *) scm_gc_malloc (c_len, SCM_GC_BYTEVECTOR);
+  c_bv = (char *) scm_gc_malloc_pointerless (c_len, SCM_GC_BYTEVECTOR);
   c_total = 0;
 
   do
@@ -645,7 +626,7 @@ SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
   c_len = c_count = 4096;
-  c_bv = (char *) scm_gc_malloc (c_len, SCM_GC_BYTEVECTOR);
+  c_bv = (char *) scm_gc_malloc_pointerless (c_len, SCM_GC_BYTEVECTOR);
   c_total = c_read = 0;
 
   do
@@ -817,7 +798,7 @@ bop_buffer_grow (scm_t_bop_buffer *buf, size_t min_size)
     new_buf = scm_gc_realloc ((void *) buf->buffer, buf->total_len,
 			      new_size, SCM_GC_BOP);
   else
-    new_buf = scm_gc_malloc (new_size, SCM_GC_BOP);
+    new_buf = scm_gc_malloc_pointerless (new_size, SCM_GC_BOP);
 
   buf->buffer = new_buf;
   buf->total_len = new_size;
@@ -850,23 +831,6 @@ make_bop (void)
 	       SCM_PACK (port));
 
   return (scm_values (scm_list_2 (port, bop_proc)));
-}
-
-static size_t
-bop_free (SCM port)
-{
-  /* The port itself is necessarily freed _after_ the bop proc, since the bop
-     proc holds a reference to it.  Thus we can safely free the internal
-     buffer when the bop becomes unreferenced.  */
-  scm_t_bop_buffer *buf;
-
-  buf = SCM_BOP_BUFFER (port);
-  if (buf->buffer)
-    scm_gc_free (buf->buffer, buf->total_len, SCM_GC_BOP);
-
-  scm_gc_free (buf, sizeof (* buf), SCM_GC_BOP);
-
-  return 0;
 }
 
 /* Write SIZE octets from DATA to PORT.  */
@@ -952,14 +916,6 @@ SCM_SMOB_APPLY (bytevector_output_port_procedure,
   return bv;
 }
 
-SCM_SMOB_MARK (bytevector_output_port_procedure, bop_proc_mark,
-	       bop_proc)
-{
-  /* Mark the port associated with BOP_PROC.  */
-  return (SCM_PACK (SCM_SMOB_DATA (bop_proc)));
-}
-
-
 SCM_DEFINE (scm_open_bytevector_output_port,
 	    "open-bytevector-output-port", 0, 1, 0,
 	    (SCM transcoder),
@@ -983,7 +939,6 @@ initialize_bytevector_output_ports (void)
 			NULL, bop_write);
 
   scm_set_port_seek (bytevector_output_port_type, bop_seek);
-  scm_set_port_free (bytevector_output_port_type, bop_free);
 }
 
 
@@ -1102,7 +1057,6 @@ initialize_custom_binary_output_ports (void)
     scm_make_port_type ("r6rs-custom-binary-output-port",
 			NULL, cbop_write);
 
-  scm_set_port_mark (custom_binary_output_port_type, cbp_mark);
   scm_set_port_seek (custom_binary_output_port_type, cbp_seek);
   scm_set_port_close (custom_binary_output_port_type, cbp_close);
 }

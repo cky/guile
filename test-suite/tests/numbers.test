@@ -1,5 +1,5 @@
 ;;;; numbers.test --- tests guile's numbers     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,6 @@
 ;;;
 ;;; miscellaneous
 ;;;
-(setbinary)
 
 (define exception:numerical-overflow
   (cons 'numerical-overflow "^Numerical overflow"))
@@ -1057,7 +1056,7 @@
 
 (with-test-prefix "gcd"
 
-  (expect-fail "documented?"
+  (pass-if "documented?"
     (documented? gcd))
 
   (with-test-prefix "(n)"
@@ -1242,7 +1241,7 @@
 (with-test-prefix "lcm"
   ;; FIXME: more tests?
   ;; (some of these are already in r4rs.test)
-  (expect-fail (documented? lcm))
+  (pass-if (documented? lcm))
   (pass-if (= (lcm) 1))
   (pass-if (= (lcm 32 -36) 288))
   (let ((big-n 115792089237316195423570985008687907853269984665640564039457584007913129639936) ; 2 ^ 256
@@ -1590,7 +1589,7 @@
 ;;;
 
 (with-test-prefix "="
-  (expect-fail (documented? =))
+  (pass-if (documented? =))
   (pass-if (= 0 0))
   (pass-if (= 7 7))
   (pass-if (= -7 -7))
@@ -1674,7 +1673,7 @@
 
 (with-test-prefix "<"
 
-  (expect-fail "documented?"
+  (pass-if "documented?"
     (documented? <))
 
   (with-test-prefix "(< 0 n)"
@@ -2340,7 +2339,7 @@
         (big*4 (* fixnum-max 4))
         (big*5 (* fixnum-max 5)))
 
-    (expect-fail (documented? min))
+    (pass-if (documented? min))
     (pass-if (= 1 (min 7 3 1 5)))
     (pass-if (= 1 (min 1 7 3 5)))
     (pass-if (= 1 (min 7 3 5 1)))
@@ -2436,7 +2435,7 @@
 
 (with-test-prefix "+"
 
-  (expect-fail "documented?"
+  (pass-if "documented?"
     (documented? +))
 
   (with-test-prefix "wrong type argument"
@@ -2525,7 +2524,7 @@
 
 (with-test-prefix "/"
 
-  (expect-fail "documented?"
+  (pass-if "documented?"
     (documented? /))
 
   (with-test-prefix "division by zero"

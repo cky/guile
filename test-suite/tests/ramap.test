@@ -1,6 +1,6 @@
 ;;;; ramap.test --- test array mapping functions -*- scheme -*-
 ;;;; 
-;;;; Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005, 2006, 2009 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -65,7 +65,7 @@
       (array-map! (make-array #f 5) number->string))
 
     (pass-if-exception "dsubr" exception:wrong-num-args
-      (array-map! (make-array #f 5) $sqrt))
+      (array-map! (make-array #f 5) sqrt))
 
     (pass-if "rpsubr"
       (let ((a (make-array 'foo 5)))
@@ -113,7 +113,7 @@
 
     (pass-if "dsubr"
       (let ((a (make-array #f 5)))
-	(array-map! a $sqrt (make-array 16.0 5))
+	(array-map! a sqrt (make-array 16.0 5))
 	(equal? a (make-array 4.0 5))))
 
     (pass-if "rpsubr"
@@ -148,7 +148,7 @@
 		    (make-array #f 5) (make-array #f 5))
 	(equal? a (make-array 'foo 5))))
 
-    (pass-if-exception "subr_1" exception:wrong-type-arg
+    (pass-if-exception "subr_1" exception:wrong-num-args
       (array-map! (make-array #f 5) length
 		  (make-array #f 5) (make-array #f 5)))
 
@@ -164,9 +164,9 @@
 		    (make-array 32 5) (make-array 16 5))
 	(equal? a (make-array "20" 5))))
 
-    (pass-if "dsubr"
+    (pass-if-exception "dsubr" exception:wrong-num-args
       (let ((a (make-array #f 5)))
-	(array-map! a $sqrt
+	(array-map! a sqrt
 		    (make-array 16.0 5) (make-array 16.0 5))
 	(equal? a (make-array 4.0 5))))
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -37,6 +37,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-18::                     Multithreading support
 * SRFI-19::                     Time/Date library.
 * SRFI-26::                     Specializing parameters
+* SRFI-30::                     Nested multi-line block comments
 * SRFI-31::                     A special form `rec' for recursive evaluation
 * SRFI-34::                     Exception handling.
 * SRFI-35::                     Conditions.
@@ -134,6 +135,7 @@ The Guile core has the following features,
 
 @example
 guile
+guile-2  ;; starting from Guile 2.x
 r5rs
 srfi-0
 srfi-4
@@ -159,6 +161,23 @@ how to load it with the Guile mechanism.
               )
              (guile
               (use-modules (srfi srfi-8))))
+@end example
+
+@cindex @code{guile-2} SRFI-0 feature
+@cindex portability between 2.0 and older versions
+Likewise, testing the @code{guile-2} feature allows code to be portable
+between Guile 2.0 and previous versions of Guile.  For instance, it
+makes it possible to write code that accounts for Guile 2.0's compiler,
+yet be correctly interpreted on 1.8 and earlier versions:
+
+@example
+(cond-expand (guile-2 (eval-when (compile)
+                        ;; This must be evaluated at compile time.
+                        (fluid-set! current-reader my-reader)))
+             (guile
+                      ;; Earlier versions of Guile do not have a
+                      ;; separate compilation phase.
+                      (fluid-set! current-reader my-reader)))
 @end example
 
 It should be noted that @code{cond-expand} is separate from the
@@ -1558,66 +1577,9 @@ The SRFI-14 data type and procedures are always available,
 @cindex variable arity
 @cindex arity, variable
 
-@c FIXME::martin: Review me!
-
-@findex case-lambda
-The syntactic form @code{case-lambda} creates procedures, just like
-@code{lambda}, but has syntactic extensions for writing procedures of
-varying arity easier.
-
-The syntax of the @code{case-lambda} form is defined in the following
-EBNF grammar.
-
-@example
-@group
-<case-lambda>
-   --> (case-lambda <case-lambda-clause>)
-<case-lambda-clause>
-   --> (<formals> <definition-or-command>*)
-<formals>
-   --> (<identifier>*)
-     | (<identifier>* . <identifier>)
-     | <identifier>
-@end group
-@end example
-
-The value returned by a @code{case-lambda} form is a procedure which
-matches the number of actual arguments against the formals in the
-various clauses, in order.  @dfn{Formals} means a formal argument list
-just like with @code{lambda} (@pxref{Lambda}). The first matching clause
-is selected, the corresponding values from the actual parameter list are
-bound to the variable names in the clauses and the body of the clause is
-evaluated.  If no clause matches, an error is signalled.
-
-The following (silly) definition creates a procedure @var{foo} which
-acts differently, depending on the number of actual arguments.  If one
-argument is given, the constant @code{#t} is returned, two arguments are
-added and if more arguments are passed, their product is calculated.
-
-@lisp
-(define foo (case-lambda
-              ((x) #t)
-              ((x y) (+ x y))
-              (z
-                (apply * z))))
-(foo 'bar)
-@result{}
-#t
-(foo 2 4)
-@result{}
-6
-(foo 3 3 3)
-@result{}
-27
-(foo)
-@result{}
-1
-@end lisp
-
-The last expression evaluates to 1 because the last clause is matched,
-@var{z} is bound to the empty list and the following multiplication,
-applied to zero arguments, yields 1.
-
+SRFI-16 defines a variable-arity @code{lambda} form,
+@code{case-lambda}. This form is available in the default Guile
+environment. @xref{Case-lambda}, for more information.
 
 @node SRFI-17
 @subsection SRFI-17 - Generalized set!
@@ -2711,6 +2673,13 @@ or similar is typical.
 (for-each (cut write <> my-port) my-list)  
 @end example
 @end deffn
+
+@node SRFI-30
+@subsection SRFI-30 - Nested Multi-line Comments
+@cindex SRFI-30
+
+Starting from version 2.0, Guile's @code{read} supports SRFI-30/R6RS
+nested multi-line comments by default, @ref{Block Comments}.
 
 @node SRFI-31
 @subsection SRFI-31 - A special form `rec' for recursive evaluation

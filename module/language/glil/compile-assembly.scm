@@ -68,13 +68,15 @@
            (else
             (lp (cdr in) out filename)))))))
 
-(define (make-meta bindings sources tail)
-  (if (and (null? bindings) (null? sources) (null? tail))
+(define (make-meta bindings sources arities tail)
+  ;; sounds silly, but the only case in which we have no arities is when
+  ;; compiling a meta procedure.
+  (if (and (null? bindings) (null? sources) (null? arities) (null? tail))
       #f
       (compile-assembly
-       (make-glil-program 0 0 0 '()
+       (make-glil-program '()
                           (list
-                           (make-glil-const `(,bindings ,sources ,@tail))
+                           (make-glil-const `(,bindings ,sources ,arities ,@tail))
                            (make-glil-call 'return 1))))))
 
 ;; A functional stack of names of live variables.
@@ -125,27 +127,51 @@
   (assoc-ref-or-acons alist x
                       (lambda (x alist)
                         (+ (length alist) *module*))))
-
-(define (compile-assembly glil)
-  (receive (code . _)
-      (glil->assembly glil #t '(()) '() '() #f -1)
-    (car code)))
 (define (make-object-table objects)
   (and (not (null? objects))
        (list->vector (cons #f objects))))
 
-(define (glil->assembly glil toplevel? bindings
-                        source-alist label-alist object-alist addr)
-  (define (emit-code x)
-    (values x bindings source-alist label-alist object-alist))
-  (define (emit-code/object x object-alist)
-    (values x bindings source-alist label-alist object-alist))
+;; A functional arities thingamajiggy.
+;; arities := ((ip nreq [[nopt] [[rest] [kw]]]]) ...)
+(define (open-arity addr nreq nopt rest kw arities)
+  (cons
+   (cond
+    (kw (list addr nreq nopt rest kw))
+    (rest (list addr nreq nopt rest))
+    (nopt (list addr nreq nopt))
+    (nreq (list addr nreq))
+    (else (list addr)))
+   arities))
+(define (close-arity addr arities)
+  (pmatch arities
+    (() '())
+    (((,start . ,tail) . ,rest)
+     `((,start ,addr . ,tail) . ,rest))
+    (else (error "bad arities" arities))))
+(define (begin-arity end start nreq nopt rest kw arities)
+  (open-arity start nreq nopt rest kw (close-arity end arities)))
 
+(define (compile-assembly glil)
+  (receive (code . _)
+      (glil->assembly glil #t '(()) '() '() #f '() -1)
+    (car code)))
+
+(define (glil->assembly glil toplevel? bindings
+                        source-alist label-alist object-alist arities addr)
+  (define (emit-code x)
+    (values x bindings source-alist label-alist object-alist arities))
+  (define (emit-code/object x object-alist)
+    (values x bindings source-alist label-alist object-alist arities))
+  (define (emit-code/arity x nreq nopt rest kw)
+    (values x bindings source-alist label-alist object-alist
+            (begin-arity addr (addr+ addr x) nreq nopt rest kw arities)))
+  
   (record-case glil
-    ((<glil-program> nargs nrest nlocs meta body)
+    ((<glil-program> meta body)
      (define (process-body)
        (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
-                (label-alist '()) (object-alist (if toplevel? #f '())) (addr 0))
+                (label-alist '()) (object-alist (if toplevel? #f '()))
+                (arities '()) (addr 0))
          (cond
           ((null? body)
            (values (reverse code)
@@ -153,20 +179,23 @@
                    (limn-sources (reverse! source-alist))
                    (reverse label-alist)
                    (and object-alist (map car (reverse object-alist)))
+                   (reverse (close-arity addr arities))
                    addr))
           (else
-           (receive (subcode bindings source-alist label-alist object-alist)
+           (receive (subcode bindings source-alist label-alist object-alist
+                     arities)
                (glil->assembly (car body) #f bindings
-                               source-alist label-alist object-alist addr)
+                               source-alist label-alist object-alist
+                               arities addr)
              (lp (cdr body) (append (reverse subcode) code)
-                 bindings source-alist label-alist object-alist
+                 bindings source-alist label-alist object-alist arities
                  (addr+ addr subcode)))))))
 
-     (receive (code bindings sources labels objects len)
+     (receive (code bindings sources labels objects arities len)
          (process-body)
-       (let* ((meta (make-meta bindings sources meta))
+       (let* ((meta (make-meta bindings sources arities meta))
               (meta-pad (if meta (modulo (- 8 (modulo len 8)) 8) 0))
-              (prog `(load-program ,nargs ,nrest ,nlocs ,labels
+              (prog `(load-program ,labels
                                   ,(+ len meta-pad)
                                   ,meta
                                   ,@code
@@ -200,33 +229,132 @@
                   `(,@table-code
                     ,@(align-program prog (addr+ addr table-code)))))))))))))
     
+    ((<glil-std-prelude> nreq nlocs else-label)
+     (emit-code/arity
+      `(,(if else-label
+             `(br-if-nargs-ne ,(quotient nreq 256)
+                              ,(modulo nreq 256)
+                              ,else-label)
+             `(assert-nargs-ee ,(quotient nreq 256)
+                               ,(modulo nreq 256)))
+        (reserve-locals ,(quotient nlocs 256)
+                        ,(modulo nlocs 256)))
+      nreq #f #f #f))
+
+    ((<glil-opt-prelude> nreq nopt rest nlocs else-label)
+     (let ((bind-required
+            (if else-label
+                `((br-if-nargs-lt ,(quotient nreq 256)
+                                  ,(modulo nreq 256)
+                                  ,else-label))
+                `((assert-nargs-ge ,(quotient nreq 256)
+                                   ,(modulo nreq 256)))))
+           (bind-optionals
+            (if (zero? nopt)
+                '()
+                `((bind-optionals ,(quotient (+ nopt nreq) 256)
+                                  ,(modulo (+ nreq nopt) 256)))))
+           (bind-rest
+            (cond
+             (rest
+              `((push-rest ,(quotient (+ nreq nopt) 256)
+                           ,(modulo (+ nreq nopt) 256))))
+             (else
+              (if else-label
+                  `((br-if-nargs-gt ,(quotient (+ nreq nopt) 256)
+                                    ,(modulo (+ nreq nopt) 256)
+                                    ,else-label))
+                  `((assert-nargs-ee ,(quotient (+ nreq nopt) 256)
+                                     ,(modulo (+ nreq nopt) 256))))))))
+       (emit-code/arity
+        `(,@bind-required
+          ,@bind-optionals
+          ,@bind-rest
+          (reserve-locals ,(quotient nlocs 256)
+                          ,(modulo nlocs 256)))
+        nreq nopt rest #f)))
+    
+    ((<glil-kw-prelude> nreq nopt rest kw allow-other-keys? nlocs else-label)
+     (receive (kw-idx object-alist)
+         (object-index-and-alist kw object-alist)
+       (let* ((bind-required
+               (if else-label
+                   `((br-if-nargs-lt ,(quotient nreq 256)
+                                     ,(modulo nreq 256)
+                                     ,else-label))
+                   `((assert-nargs-ge ,(quotient nreq 256)
+                                      ,(modulo nreq 256)))))
+              (ntotal (apply max (+ nreq nopt) (map 1+ (map cdr kw))))
+              (bind-optionals-and-shuffle
+               `((bind-optionals/shuffle
+                  ,(quotient nreq 256)
+                  ,(modulo nreq 256)
+                  ,(quotient (+ nreq nopt) 256)
+                  ,(modulo (+ nreq nopt) 256)
+                  ,(quotient ntotal 256)
+                  ,(modulo ntotal 256))))
+              (bind-kw
+               ;; when this code gets called, all optionals are filled
+               ;; in, space has been made for kwargs, and the kwargs
+               ;; themselves have been shuffled above the slots for all
+               ;; req/opt/kwargs locals.
+               `((bind-kwargs
+                  ,(quotient kw-idx 256)
+                  ,(modulo kw-idx 256)
+                  ,(quotient ntotal 256)
+                  ,(modulo ntotal 256)
+                  ,(logior (if rest 2 0)
+                           (if allow-other-keys? 1 0)))))
+              (bind-rest
+               (if rest
+                   `((bind-rest ,(quotient ntotal 256)
+                                ,(modulo ntotal 256)
+                                ,(quotient rest 256)
+                                ,(modulo rest 256)))
+                   '())))
+         
+         (let ((code `(,@bind-required
+                       ,@bind-optionals-and-shuffle
+                       ,@bind-kw
+                       ,@bind-rest
+                       (reserve-locals ,(quotient nlocs 256)
+                                       ,(modulo nlocs 256)))))
+           (values code bindings source-alist label-alist object-alist
+                   (begin-arity addr (addr+ addr code) nreq nopt rest
+                                (and kw (cons allow-other-keys? kw))
+                                arities))))))
+    
     ((<glil-bind> vars)
      (values '()
              (open-binding bindings vars addr)
              source-alist
              label-alist
-             object-alist))
+             object-alist
+             arities))
 
     ((<glil-mv-bind> vars rest)
      (values `((truncate-values ,(length vars) ,(if rest 1 0)))
              (open-binding bindings vars addr)
              source-alist
              label-alist
-             object-alist))
+             object-alist
+             arities))
 
     ((<glil-unbind>)
      (values '()
              (close-binding bindings addr)
              source-alist
              label-alist
-             object-alist))
+             object-alist
+             arities))
              
     ((<glil-source> props)
      (values '()
              bindings
              (acons addr props source-alist)
              label-alist
-             object-alist))
+             object-alist
+             arities))
 
     ((<glil-void>)
      (emit-code '((void))))
@@ -261,9 +389,13 @@
                 ((box) `((box ,index)))
                 ((empty-box) `((empty-box ,index)))
                 ((fix) `((fix-closure 0 ,index)))
+                ((bound?) (if boxed?
+                              `((local-ref ,index)
+                                (variable-bound?))
+                              `((local-bound? ,index))))
                 (else (error "what" op)))
-              (let ((a (quotient i 256))
-                    (b (modulo i 256)))
+              (let ((a (quotient index 256))
+                    (b (modulo index 256)))
                 `((,(case op
                       ((ref)
                        (if boxed?
@@ -284,6 +416,11 @@
                          (long-local-set ,a ,b)))
                       ((fix)
                        `((fix-closure ,a ,b)))
+                      ((bound?)
+                       (if boxed?
+                           `((long-local-ref ,a ,b)
+                             (variable-bound?))
+                           `((long-local-bound? ,a ,b))))
                       (else (error "what" op)))
                    ,index))))
           `((,(case op
@@ -351,7 +488,8 @@
                bindings
                source-alist
                (acons label (addr+ addr code) label-alist)
-               object-alist)))
+               object-alist
+               arities)))
 
     ((<glil-branch> inst label)
      (emit-code `((,inst ,label))))

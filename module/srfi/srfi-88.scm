@@ -1,6 +1,6 @@
 ;;; srfi-88.scm --- Keyword Objects
 
-;; Copyright (C) 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,10 @@
 (cond-expand-provide (current-module) '(srfi-88))
 
 
-(read-set! keywords 'postfix)
+;; Change the keyword syntax both at compile time and run time; the latter is
+;; useful at the REPL.
+(eval-when (compile load)
+  (read-set! keywords 'postfix))
 
 (define (keyword->string k)
   "Return the name of @var{k} as a string."

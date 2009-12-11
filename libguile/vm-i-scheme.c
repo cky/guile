@@ -32,43 +32,43 @@
 VM_DEFINE_FUNCTION (100, not, "not", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (SCM_FALSEP (x)));
+  RETURN (scm_from_bool (scm_is_false_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (101, not_not, "not-not", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (!SCM_FALSEP (x)));
+  RETURN (scm_from_bool (!scm_is_false_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (102, eq, "eq?", 2)
 {
   ARGS2 (x, y);
-  RETURN (SCM_BOOL (SCM_EQ_P (x, y)));
+  RETURN (scm_from_bool (scm_is_eq (x, y)));
 }
 
 VM_DEFINE_FUNCTION (103, not_eq, "not-eq?", 2)
 {
   ARGS2 (x, y);
-  RETURN (SCM_BOOL (!SCM_EQ_P (x, y)));
+  RETURN (scm_from_bool (!scm_is_eq (x, y)));
 }
 
 VM_DEFINE_FUNCTION (104, nullp, "null?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (SCM_NULLP (x)));
+  RETURN (scm_from_bool (scm_is_null_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (105, not_nullp, "not-null?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (!SCM_NULLP (x)));
+  RETURN (scm_from_bool (!scm_is_null_or_nil (x)));
 }
 
 VM_DEFINE_FUNCTION (106, eqv, "eqv?", 2)
 {
   ARGS2 (x, y);
-  if (SCM_EQ_P (x, y))
+  if (scm_is_eq (x, y))
     RETURN (SCM_BOOL_T);
   if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
@@ -79,7 +79,7 @@ VM_DEFINE_FUNCTION (106, eqv, "eqv?", 2)
 VM_DEFINE_FUNCTION (107, equal, "equal?", 2)
 {
   ARGS2 (x, y);
-  if (SCM_EQ_P (x, y))
+  if (scm_is_eq (x, y))
     RETURN (SCM_BOOL_T);
   if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
@@ -90,13 +90,13 @@ VM_DEFINE_FUNCTION (107, equal, "equal?", 2)
 VM_DEFINE_FUNCTION (108, pairp, "pair?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (SCM_CONSP (x)));
+  RETURN (scm_from_bool (scm_is_pair (x)));
 }
 
 VM_DEFINE_FUNCTION (109, listp, "list?", 1)
 {
   ARGS1 (x);
-  RETURN (SCM_BOOL (scm_ilength (x) >= 0));
+  RETURN (scm_from_bool (scm_ilength (x) >= 0));
 }
 
 
@@ -161,7 +161,7 @@ VM_DEFINE_INSTRUCTION (114, set_cdr, "set-cdr!", 0, 2, 0)
 {								\
   ARGS2 (x, y);							\
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))			\
-    RETURN (SCM_BOOL (SCM_I_INUM (x) crel SCM_I_INUM (y)));	\
+    RETURN (scm_from_bool (SCM_I_INUM (x) crel SCM_I_INUM (y)));  \
   SYNC_REGISTER ();                                             \
   RETURN (srel (x, y));                                         \
 }
@@ -281,10 +281,59 @@ VM_DEFINE_FUNCTION (126, mod, "mod", 2)
   RETURN (scm_modulo (x, y));
 }
 
+VM_DEFINE_FUNCTION (170, ash, "ash", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    {
+      if (SCM_I_INUM (y) < 0)
+        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) >> -SCM_I_INUM (y)));
+      else if ((SCM_I_INUM (x) << SCM_I_INUM (y)) >> SCM_I_INUM (y)
+               == SCM_I_INUM (x))
+        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) << SCM_I_INUM (y)));
+      /* fall through */
+    }
+  SYNC_REGISTER ();
+  RETURN (scm_ash (x, y));
+}
+
+VM_DEFINE_FUNCTION (171, logand, "logand", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) & SCM_I_INUM (y)));
+  SYNC_REGISTER ();
+  RETURN (scm_logand (x, y));
+}
+
+VM_DEFINE_FUNCTION (172, logior, "logior", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) | SCM_I_INUM (y)));
+  SYNC_REGISTER ();
+  RETURN (scm_logior (x, y));
+}
+
+VM_DEFINE_FUNCTION (173, logxor, "logxor", 2)
+{
+  ARGS2 (x, y);
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
+    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) ^ SCM_I_INUM (y)));
+  SYNC_REGISTER ();
+  RETURN (scm_logxor (x, y));
+}
+
 
 /*
  * GOOPS support
  */
+VM_DEFINE_FUNCTION (169, class_of, "class-of", 1)
+{
+  ARGS1 (obj);
+  RETURN (SCM_INSTANCEP (obj) ? SCM_CLASS_OF (obj) : scm_class_of (obj));
+}
+
 VM_DEFINE_FUNCTION (127, slot_ref, "slot-ref", 2)
 {
   size_t slot;
@@ -433,10 +482,17 @@ BV_FIXABLE_INT_REF (u16, u16_native, uint16, 2)
 VM_DEFINE_FUNCTION (142, bv_s16_native_ref, "bv-s16-native-ref", 2)
 BV_FIXABLE_INT_REF (s16, s16_native, int16, 2)
 VM_DEFINE_FUNCTION (143, bv_u32_native_ref, "bv-u32-native-ref", 2)
-/* FIXME: u32 is always a fixnum on 64-bit builds */
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_REF (u32, u32_native, uint32, 4)
+#else
 BV_INT_REF (u32, uint32, 4)
+#endif
 VM_DEFINE_FUNCTION (144, bv_s32_native_ref, "bv-s32-native-ref", 2)
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_REF (s32, s32_native, int32, 4)
+#else
 BV_INT_REF (s32, int32, 4)
+#endif
 VM_DEFINE_FUNCTION (145, bv_u64_native_ref, "bv-u64-native-ref", 2)
 BV_INT_REF (u64, uint64, 8)
 VM_DEFINE_FUNCTION (146, bv_s64_native_ref, "bv-s64-native-ref", 2)
@@ -541,10 +597,17 @@ BV_FIXABLE_INT_SET (u16, u16_native, uint16, 0, SCM_T_UINT16_MAX, 2)
 VM_DEFINE_INSTRUCTION (160, bv_s16_native_set, "bv-s16-native-set", 0, 3, 0)
 BV_FIXABLE_INT_SET (s16, s16_native, int16, SCM_T_INT16_MIN, SCM_T_INT16_MAX, 2)
 VM_DEFINE_INSTRUCTION (161, bv_u32_native_set, "bv-u32-native-set", 0, 3, 0)
-/* FIXME: u32 is always a fixnum on 64-bit builds */
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_SET (u32, u32_native, uint32, 0, SCM_T_UINT32_MAX, 4)
+#else
 BV_INT_SET (u32, uint32, 4)
+#endif
 VM_DEFINE_INSTRUCTION (162, bv_s32_native_set, "bv-s32-native-set", 0, 3, 0)
+#if SIZEOF_VOID_P > 4
+BV_FIXABLE_INT_SET (s32, s32_native, int32, SCM_T_INT32_MIN, SCM_T_INT32_MAX, 4)
+#else
 BV_INT_SET (s32, int32, 4)
+#endif
 VM_DEFINE_INSTRUCTION (163, bv_u64_native_set, "bv-u64-native-set", 0, 3, 0)
 BV_INT_SET (u64, uint64, 8)
 VM_DEFINE_INSTRUCTION (164, bv_s64_native_set, "bv-s64-native-set", 0, 3, 0)

@@ -32,29 +32,28 @@
 
 (define meta-command-token (cons 'meta 'command))
 
-(define (meta-reader read)
+(define (meta-reader read env)
   (lambda read-args
-    (with-input-from-port
-        (if (pair? read-args) (car read-args) (current-input-port))
-      (lambda ()
-        (let ((ch (next-char #t)))
-          (cond ((eof-object? ch)
-                 ;; apparently sometimes even if this is eof, read will
-                 ;; wait on somethingorother. strange.
-                 ch)
-                ((eqv? ch #\,)
-                 (read-char)
-                 meta-command-token)
-                (else (read))))))))
+    (let ((port (if (pair? read-args) (car read-args) (current-input-port))))
+      (with-input-from-port port
+        (lambda ()
+          (let ((ch (next-char #t)))
+            (cond ((eof-object? ch)
+                   ;; apparently sometimes even if this is eof, read will
+                   ;; wait on somethingorother. strange.
+                   ch)
+                  ((eqv? ch #\,)
+                   (read-char port)
+                   meta-command-token)
+                  (else (read port env)))))))))
         
 ;; repl-reader is a function defined in boot-9.scm, and is replaced by
 ;; something else if readline has been activated. much of this hoopla is
 ;; to be able to re-use the existing readline machinery.
 (define (prompting-meta-read repl)
-  (let ((prompt (lambda () (repl-prompt repl)))
-        (lread (language-reader (repl-language repl))))
-    (with-fluid* current-reader (meta-reader lread)
-      (lambda () (repl-reader (lambda () (repl-prompt repl)))))))
+  (repl-reader (lambda () (repl-prompt repl))
+               (meta-reader (language-reader (repl-language repl))
+                            (current-module))))
 
 (define (default-catch-handler . args)
   (pmatch args

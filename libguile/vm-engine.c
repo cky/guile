@@ -23,13 +23,11 @@
 #define VM_USE_CLOCK		0	/* Bogoclock */
 #define VM_CHECK_OBJECT         1       /* Check object table */
 #define VM_CHECK_FREE_VARIABLES 1       /* Check free variable access */
-#define VM_PUSH_DEBUG_FRAMES    0       /* Push frames onto the evaluator debug stack */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
 #define VM_USE_CLOCK		1
 #define VM_CHECK_OBJECT         1
 #define VM_CHECK_FREE_VARIABLES 1
-#define VM_PUSH_DEBUG_FRAMES    1
 #else
 #error unknown debug engine VM_ENGINE
 #endif
@@ -51,7 +49,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   size_t free_vars_count = 0;           /* length of FREE_VARS */
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
-  SCM *stack_base = vp->stack_base;	/* stack base address */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
   /* Internal variables */
@@ -67,12 +64,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   static void **jump_table = NULL;
 #endif
   
-#if VM_PUSH_DEBUG_FRAMES
-  scm_t_debug_frame debug;
-  scm_t_debug_info debug_vect_body;
-  debug.status = SCM_VOIDFRAME;
-#endif
-
 #ifdef HAVE_LABELS_AS_VALUES
   if (SCM_UNLIKELY (!jump_table))
     {
@@ -96,28 +87,19 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     /* Boot program */
     program = vm_make_boot_program (nargs);
 
-#if VM_PUSH_DEBUG_FRAMES
-    debug.prev = scm_i_last_debug_frame ();
-    debug.status = SCM_APPLYFRAME;
-    debug.vect = &debug_vect_body;
-    debug.vect[0].a.proc = program; /* the boot program */
-    debug.vect[0].a.args = SCM_EOL;
-    scm_i_set_last_debug_frame (&debug);
-#endif
-
     /* Initial frame */
     CACHE_REGISTER ();
     PUSH ((SCM)fp); /* dynamic link */
-    PUSH (0); /* ra */
     PUSH (0); /* mvra */
+    PUSH ((SCM)ip); /* ra */
     CACHE_PROGRAM ();
     PUSH (program);
     fp = sp + 1;
-    INIT_FRAME ();
+    ip = bp->base;
     /* MV-call frame, function & arguments */
     PUSH ((SCM)fp); /* dynamic link */
-    PUSH (0); /* ra */
     PUSH (0); /* mvra */
+    PUSH (0); /* ra */
     PUSH (prog);
     if (SCM_UNLIKELY (sp + nargs >= stack_limit))
       goto vm_error_too_many_args;
@@ -148,9 +130,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   
  vm_done:
   SYNC_ALL ();
-#if VM_PUSH_DEBUG_FRAMES
-  scm_i_set_last_debug_frame (debug.prev);
-#endif
   return finish_args;
 
   /* Errors */
@@ -171,6 +150,21 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     finish_args = SCM_EOL;
     goto vm_error;
 
+  vm_error_kwargs_length_not_even:
+    err_msg  = scm_from_locale_string ("Bad keyword argument list: odd length");
+    finish_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_kwargs_invalid_keyword:
+    err_msg  = scm_from_locale_string ("Bad keyword argument list: expected keyword");
+    finish_args = SCM_EOL;
+    goto vm_error;
+
+  vm_error_kwargs_unrecognized_keyword:
+    err_msg  = scm_from_locale_string ("Bad keyword argument list: unrecognized keyword");
+    finish_args = SCM_EOL;
+    goto vm_error;
+
   vm_error_too_many_args:
     err_msg  = scm_from_locale_string ("VM: Too many arguments");
     finish_args = scm_list_1 (scm_from_int (nargs));
@@ -185,8 +179,8 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   vm_error_wrong_type_apply:
     SYNC_ALL ();
-    scm_error (scm_misc_error_key, FUNC_NAME, "Wrong type to apply: ~S",
-               scm_list_1 (program), SCM_BOOL_F);
+    scm_error (scm_arg_type_key, FUNC_NAME, "Wrong type to apply: ~S",
+               scm_list_1 (program), scm_list_1 (program));
     goto vm_error;
 
   vm_error_stack_overflow:
@@ -229,7 +223,7 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
     err_msg  = scm_from_locale_string ("VM: Bad wide string length: ~S");
     goto vm_error;
 
-#if VM_CHECK_IP
+#ifdef VM_CHECK_IP
   vm_error_invalid_address:
     err_msg  = scm_from_locale_string ("VM: Invalid program address");
     finish_args = SCM_EOL;
@@ -264,7 +258,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 #undef VM_USE_CLOCK
 #undef VM_CHECK_OBJECT
 #undef VM_CHECK_FREE_VARIABLE
-#undef VM_PUSH_DEBUG_FRAMES
 
 /*
   Local Variables:

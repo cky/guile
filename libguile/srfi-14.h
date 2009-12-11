@@ -100,9 +100,7 @@ SCM_API SCM scm_char_set_intersection_x (SCM cs1, SCM rest);
 SCM_API SCM scm_char_set_difference_x (SCM cs1, SCM rest);
 SCM_API SCM scm_char_set_xor_x (SCM cs1, SCM rest);
 SCM_API SCM scm_char_set_diff_plus_intersection_x (SCM cs1, SCM cs2, SCM rest);
-#if SCM_CHARSET_DEBUG
-SCM_API SCM scm_debug_char_set (SCM cs);
-#endif
+SCM_API SCM scm_sys_char_set_dump (SCM charset);
 
 SCM_API SCM scm_char_set_lower_case;
 SCM_API SCM scm_char_set_upper_case;

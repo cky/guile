@@ -1,0 +1,3 @@
+lib(guile)?/
+guile-readline/
+srfi/

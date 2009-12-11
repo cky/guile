@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugging traps) -- abstraction of libguile's traps interface
 
-;;; Copyright (C) 2002, 2004 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2004, 2009 Free Software Foundation, Inc.
 ;;; Copyright (C) 2005 Neil Jerram
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -25,6 +25,7 @@
 
 (define-module (ice-9 debugging traps)
   #:use-module (ice-9 regex)
+  #:use-module (ice-9 weak-vector)
   #:use-module (oop goops)
   #:use-module (oop goops describe)
   #:use-module (ice-9 debugging trc)
@@ -85,11 +86,6 @@
 ;; How to debug the debugging infrastructure, when needed.  Grep for
 ;; "(trc " to find other symbols that can be passed to trc-add.
 ;; (trc-add 'after-gc-hook)
-
-;; In Guile 1.7 onwards, weak-vector and friends are provided by the
-;; (ice-9 weak-vector) module.
-(cond ((string>=? (version) "1.7")
-       (use-modules (ice-9 weak-vector))))
 
 ;;; The current low level traps interface is as follows.
 ;;;
@@ -891,6 +887,7 @@ it twice."
              (= (caddr trap-location) (slot-ref trap 'column))))))
 
 ;; (trap-here EXPRESSION . OPTIONS)
+;; FIXME: no longer working due to no mmacros, no local-eval
 (define trap-here
   (procedure->memoizing-macro
    (lambda (expr env)
@@ -1002,34 +999,7 @@ it twice."
 		(trap-disable 'traps)
 		(thunk))))
 
-(define guile-trap-features
-  ;; Helper procedure, to test whether a specific possible Guile
-  ;; feature is supported.
-  (let ((supported?
-         (lambda (test-feature)
-           (case test-feature
-             ((tweaking)
-              ;; Tweaking is supported if the description of the cheap
-              ;; traps option includes the word "obsolete", or if the
-              ;; option isn't there any more.
-              (and (string>=? (version) "1.7")
-                   (let ((cheap-opt-desc
-                          (assq 'cheap (debug-options-interface 'help))))
-                     (or (not cheap-opt-desc)
-                         (string-match "obsolete" (caddr cheap-opt-desc))))))
-             (else
-              (error "Unexpected feature name:" test-feature))))))
-    ;; Compile the list of actually supported features from all
-    ;; possible features.
-    (let loop ((possible-features '(tweaking))
-               (actual-features '()))
-      (if (null? possible-features)
-          (reverse! actual-features)
-          (let ((test-feature (car possible-features)))
-            (loop (cdr possible-features)
-                  (if (supported? test-feature)
-                      (cons test-feature actual-features)
-                      actual-features)))))))
+(define guile-trap-features '(tweaking))
 
 ;; Make sure that traps are enabled.
 (trap-enable 'traps)

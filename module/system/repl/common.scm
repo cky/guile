@@ -1,6 +1,6 @@
 ;;; Repl common routines
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2008, 2009 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -61,14 +61,16 @@
           (module-name (current-module))))
 
 (define (repl-read repl)
-  ((language-reader (repl-language repl))))
+  ((language-reader (repl-language repl)) (current-input-port)
+                                          (current-module)))
 
 (define (repl-compile repl form . opts)
   (let ((to (lookup-language (cond ((memq #:e opts) 'scheme)
                                    ((memq #:t opts) 'ghil)
                                    ((memq #:c opts) 'glil)
-                                   (else 'objcode)))))
-    (compile form #:from (repl-language repl) #:to to #:opts opts)))
+                                   (else 'objcode))))
+        (from (repl-language repl)))
+    (compile form #:from from #:to to #:opts opts #:env (current-module))))
 
 (define (repl-parse repl form)
   (let ((parser (language-parser (repl-language repl))))

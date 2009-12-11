@@ -133,9 +133,13 @@
      (define (name repl)
        docstring
        (let* ((expression0
-               (with-fluid* current-reader
-                            (language-reader (repl-language repl))
-                 (lambda () (repl-reader ""))))
+               (repl-reader ""
+                            (lambda args
+                              (let ((port (if (pair? args)
+                                              (car args)
+                                              (current-input-port))))
+                                ((language-reader (repl-language repl))
+                                 port (current-module))))))
               ...)
          (apply (lambda datums b0 b1 ...)
                 (let ((port (open-input-string (read-line repl))))
@@ -263,16 +267,16 @@ Import modules / List those imported."
         (for-each puts (map module-name (module-uses (current-module))))
         (for-each use args))))
 
+(define guile:load load)
 (define-meta-command (load repl file . opts)
   "load FILE
 Load a file in the current module.
 
   -f    Load source file (see `compile')"
-  (let* ((file (->string file))
-	 (objcode (if (memq #:f opts)
-		      (apply load-source-file file opts)
-		      (apply load-file file opts))))
-    (vm-load (repl-vm repl) objcode)))
+  (let ((file (->string file)))
+    (if (memq #:f opts)
+        (primitive-load file)
+        (guile:load file))))
 
 (define-meta-command (binding repl)
   "binding
@@ -337,13 +341,11 @@ Disassemble a file."
 (define-meta-command (time repl (form))
   "time FORM
 Time execution."
-  (let* ((vms-start (vm-stats (repl-vm repl)))
-	 (gc-start (gc-run-time))
+  (let* ((gc-start (gc-run-time))
 	 (tms-start (times))
 	 (result (repl-eval repl (repl-parse repl form)))
 	 (tms-end (times))
-	 (gc-end (gc-run-time))
-	 (vms-end (vm-stats (repl-vm repl))))
+	 (gc-end (gc-run-time)))
     (define (get proc start end)
       (exact->inexact (/ (- (proc end) (proc start)) internal-time-units-per-second)))
     (repl-print repl result)

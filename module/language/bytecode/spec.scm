@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,7 @@
 (define-language bytecode
   #:title	"Guile Bytecode Vectors"
   #:version	"0.3"
-  #:reader	read
+  #:reader	(lambda (port env) (read port))
   #:printer	write
   #:compilers   `((objcode . ,compile-objcode))
   #:decompilers `((objcode . ,decompile-objcode))

@@ -13,16 +13,7 @@
 	    run-utility
 	    gds-accept-input))
 
-(cond ((string>=? (version) "1.7")
-       (use-modules (ice-9 debugger utils)))
-      (else
-       (define the-ice-9-debugger-module (resolve-module '(ice-9 debugger)))
-       (module-export! the-ice-9-debugger-module
-		       '(source-position
-			 write-frame-short/application
-			 write-frame-short/expression
-			 write-frame-args-long
-			 write-frame-long))))
+(use-modules (ice-9 debugger utils))
 
 (use-modules (ice-9 debugger))
 
@@ -172,23 +163,20 @@
 
 (define (connect-to-gds . application-name)
   (or gds-port
-      (begin
+      (let ((gds-unix-socket-name (getenv "GDS_UNIX_SOCKET_NAME")))
         (set! gds-port
-	      (or (let ((s (socket PF_INET SOCK_STREAM 0))
-			(SOL_TCP 6)
-			(TCP_NODELAY 1))
-		    (setsockopt s SOL_TCP TCP_NODELAY 1)
-		    (catch #t
-			   (lambda ()
-			     (connect s AF_INET (inet-aton "127.0.0.1") 8333)
-			     s)
-			   (lambda _ #f)))
-		  (let ((s (socket PF_UNIX SOCK_STREAM 0)))
-		    (catch #t
-			   (lambda ()
-			     (connect s AF_UNIX "/tmp/.gds_socket")
-			     s)
-			   (lambda _ #f)))
+	      (or (and gds-unix-socket-name
+		       (false-if-exception
+			(let ((s (socket PF_UNIX SOCK_STREAM 0)))
+			  (connect s AF_UNIX gds-unix-socket-name)
+			  s)))
+		  (false-if-exception
+		   (let ((s (socket PF_INET SOCK_STREAM 0))
+			 (SOL_TCP 6)
+			 (TCP_NODELAY 1))
+		     (setsockopt s SOL_TCP TCP_NODELAY 1)
+		     (connect s AF_INET (inet-aton "127.0.0.1") 8333)
+		     s))
 		  (error "Couldn't connect to GDS by TCP or Unix domain socket")))
         (write-form (list 'name (getpid) (apply client-name application-name))))))
 
@@ -204,11 +192,11 @@
 		(else
 		 (format #f "~A (PID ~A)" arg (getpid))))))))
 
-(if (not (defined? 'make-mutex))
-    (begin
-      (define (make-mutex) #f)
-      (define lock-mutex noop)
-      (define unlock-mutex noop)))
+;;(if (not (defined? 'make-mutex))
+;;    (begin
+;;      (define (make-mutex) #f)
+;;      (define lock-mutex noop)
+;;      (define unlock-mutex noop)))
 
 (define write-mutex (make-mutex))
 
@@ -260,6 +248,8 @@
 	     erf))
 	 flags)))
 
+;; FIXME: the new evaluator breaks this, by removing local-eval. Need to
+;; figure out our story in this regard.
 (define (eval-in-frame stack index expr)
   (write-form
    (list 'eval-result

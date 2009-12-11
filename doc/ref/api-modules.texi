@@ -758,7 +758,7 @@ Record definition with @code{define-record-type} (@pxref{SRFI-9}).
 Read hash extension @code{#,()} (@pxref{SRFI-10}).
 
 @item (srfi srfi-11)
-Multiple-value handling with @code{let-values} and @code{let-values*}
+Multiple-value handling with @code{let-values} and @code{let*-values}
 (@pxref{SRFI-11}).
 
 @item (srfi srfi-13)

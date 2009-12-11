@@ -33,7 +33,7 @@
 (define-syntax @implv
   (syntax-rules ()
     ((_ sym)
-     (-> (module-ref '(language ecmascript impl) 'sym #t)))))
+     (-> (@ '(language ecmascript impl) 'sym)))))
 
 (define-syntax @impl
   (syntax-rules ()
@@ -44,7 +44,7 @@
   '())
 
 (define (econs name gensym env)
-  (acons name gensym env))
+  (acons name (-> (lexical name gensym)) env))
 
 (define (lookup name env)
   (or (assq-ref env name)
@@ -52,7 +52,9 @@
 
 (define (compile-tree-il exp env opts)
   (values
-   (parse-tree-il (comp exp (empty-lexical-environment)))
+   (parse-tree-il
+    (-> (begin (@impl js-init)
+               (comp exp (empty-lexical-environment)))))
    env
    env))
 
@@ -99,7 +101,7 @@
       ((string ,str)
        (-> (const str)))
       (this
-       (@impl get-this '()))
+       (@impl get-this))
       ((+ ,a)
        (-> (apply (-> (primitive '+))
                   (@impl ->number (comp a e))
@@ -166,7 +168,7 @@
        (-> (if (@impl ->boolean (comp test e))
                (comp then e)
                (comp else e))))
-      ((if ,test ,then ,else)
+      ((if ,test ,then)
        (-> (if (@impl ->boolean (comp test e))
                (comp then e)
                (@implv *undefined*))))
@@ -314,26 +316,36 @@
       ((ref ,id)
        (lookup id e))
       ((var . ,forms)
-       (-> (begin
-             (map (lambda (form)
-                    (pmatch form
-                      ((,x ,y)
-                       (-> (define x (comp y e))))
-                      ((,x)
-                       (-> (define x (@implv *undefined*))))
-                      (else (error "bad var form" form))))
-                  forms))))
+       `(begin
+          ,@(map (lambda (form)
+                   (pmatch form
+                     ((,x ,y)
+                      (-> (define x (comp y e))))
+                     ((,x)
+                      (-> (define x (@implv *undefined*))))
+                     (else (error "bad var form" form))))
+                 forms)))
+      ((begin)
+       (-> (void)))
+      ((begin ,form)
+       (comp form e))
       ((begin . ,forms)
        `(begin ,@(map (lambda (x) (comp x e)) forms)))
       ((lambda ,formals ,body)
-       (let ((%args (gensym "%args ")))
-         (-> (lambda '%args %args '()
-                     (comp-body (econs '%args %args e) body formals '%args)))))
+       (let ((syms (map (lambda (x)
+                          (gensym (string-append (symbol->string x) " ")))
+                        formals)))
+         `(lambda ()
+            (lambda-case
+             ((() ,formals #f #f ,(map (lambda (x) (@implv *undefined*)) formals) ,syms)
+              ,(comp-body e body formals syms))))))
       ((call/this ,obj ,prop . ,args)
        (@impl call/this*
               obj
-              (-> (lambda '() '() '()
-                          `(apply ,(@impl pget obj prop) ,@args)))))
+              (-> (lambda '() 
+                    `(lambda-case
+                      ((() #f #f #f () ())
+                       (apply ,(@impl pget obj prop) ,@args)))))))
       ((call (pref ,obj ,prop) ,args)
        (comp `(call/this ,(comp obj e)
                          ,(-> (const prop))
@@ -433,40 +445,46 @@
              (%continue (gensym "%continue ")))
          (let ((e (econs '%loop %loop (econs '%continue %continue e))))
            (-> (letrec '(%loop %continue) (list %loop %continue)
-                       (list (-> (lambda '() '() '()
-                                         (-> (begin
-                                               (comp statement e)
-                                               (-> (apply (-> (lexical '%continue %continue)))
-                                                   )))))
-                             
-                             (-> (lambda '() '() '()
-                                         (-> (if (@impl ->boolean (comp test e))
-                                                 (-> (apply (-> (lexical '%loop %loop))))
-                                                 (@implv *undefined*))))))
+                       (list (-> (lambda '()
+                                   (-> (lambda-case
+                                        `((() #f #f #f () ())
+                                          ,(-> (begin
+                                                 (comp statement e)
+                                                 (-> (apply (-> (lexical '%continue %continue)))))))))))
+                             (-> (lambda '()
+                                   (-> (lambda-case
+                                        `((() #f #f #f () ())
+                                          ,(-> (if (@impl ->boolean (comp test e))
+                                                   (-> (apply (-> (lexical '%loop %loop))))
+                                                   (@implv *undefined*)))))))))
                        (-> (apply (-> (lexical '%loop %loop)))))))))
       ((while ,test ,statement)
        (let ((%continue (gensym "%continue ")))
          (let ((e (econs '%continue %continue e)))
            (-> (letrec '(%continue) (list %continue)
-                       (list (-> (lambda '() '() '()
-                                         (-> (if (@impl ->boolean (comp test e))
-                                                 (-> (begin (comp statement e)
-                                                            (-> (apply (-> (lexical '%continue %continue))))))
-                                                 (@implv *undefined*))))))
+                       (list (-> (lambda '()
+                                   (-> (lambda-case
+                                        `((() #f #f #f () ())
+                                          ,(-> (if (@impl ->boolean (comp test e))
+                                                   (-> (begin (comp statement e)
+                                                              (-> (apply (-> (lexical '%continue %continue))))))
+                                                   (@implv *undefined*)))))))))
                        (-> (apply (-> (lexical '%continue %continue)))))))))
       
       ((for ,init ,test ,inc ,statement)
        (let ((%continue (gensym "%continue ")))
          (let ((e (econs '%continue %continue e)))
            (-> (letrec '(%continue) (list %continue)
-                       (list (-> (lambda '() '() '()
-                                         (-> (if (if test
-                                                     (@impl ->boolean (comp test e))
-                                                     (comp 'true e))
-                                                 (-> (begin (comp statement e)
-                                                            (comp (or inc '(begin)) e)
-                                                            (-> (apply (-> (lexical '%continue %continue))))))
-                                                 (@implv *undefined*))))))
+                       (list (-> (lambda '()
+                                   (-> (lambda-case
+                                        `((() #f #f #f () ())
+                                          ,(-> (if (if test
+                                                       (@impl ->boolean (comp test e))
+                                                       (comp 'true e))
+                                                   (-> (begin (comp statement e)
+                                                              (comp (or inc '(begin)) e)
+                                                              (-> (apply (-> (lexical '%continue %continue))))))
+                                                   (@implv *undefined*)))))))))
                        (-> (begin (comp (or init '(begin)) e)
                                   (-> (apply (-> (lexical '%continue %continue)))))))))))
       
@@ -476,18 +494,20 @@
          (let ((e (econs '%enum %enum (econs '%continue %continue e))))
            (-> (letrec '(%enum %continue) (list %enum %continue)
                        (list (@impl make-enumerator (comp object e))
-                             (-> (lambda '() '() '()
-                                         (-> (if (@impl ->boolean
-                                                        (@impl pget
-                                                               (-> (lexical '%enum %enum))
-                                                               (-> (const 'length))))
-                                                 (-> (begin
-                                                       (comp `(= ,var (call/this ,(-> (lexical '%enum %enum))
-                                                                                 ,(-> (const 'pop))))
-                                                             e)
-                                                       (comp statement e)
-                                                       (-> (apply (-> (lexical '%continue %continue))))))
-                                                 (@implv *undefined*))))))
+                             (-> (lambda '()
+                                   (-> (lambda-case
+                                        `((() #f #f #f () ())
+                                          (-> (if (@impl ->boolean
+                                                         (@impl pget
+                                                                (-> (lexical '%enum %enum))
+                                                                (-> (const 'length))))
+                                                  (-> (begin
+                                                        (comp `(= ,var (call/this ,(-> (lexical '%enum %enum))
+                                                                                  ,(-> (const 'pop))))
+                                                              e)
+                                                        (comp statement e)
+                                                        (-> (apply (-> (lexical '%continue %continue))))))
+                                                  (@implv *undefined*)))))))))
                        (-> (apply (-> (lexical '%continue %continue)))))))))
       
       ((block ,x)
@@ -495,18 +515,22 @@
       (else
        (error "compilation not yet implemented:" x)))))
 
-(define (comp-body e body formals %args)
+(define (comp-body e body formals formal-syms)
   (define (process)
-    (let lp ((in body) (out '()) (rvars (reverse formals)))
+    (let lp ((in body) (out '()) (rvars '()))
       (pmatch in
         (((var (,x) . ,morevars) . ,rest)
          (lp `((var . ,morevars) . ,rest)
              out
-             (if (memq x rvars) rvars (cons x rvars))))
+             (if (or (memq x rvars) (memq x formals))
+                 rvars
+                 (cons x rvars))))
         (((var (,x ,y) . ,morevars) . ,rest)
          (lp `((var . ,morevars) . ,rest)
              `((= (ref ,x) ,y) . ,out)
-             (if (memq x rvars) rvars (cons x rvars))))
+             (if (or (memq x rvars) (memq x formals))
+                 rvars
+                 (cons x rvars))))
         (((var) . ,rest)
          (lp rest out rvars))
         ((,x . ,rest) (guard (and (pair? x) (eq? (car x) 'lambda)))
@@ -532,18 +556,6 @@
            (syms (map (lambda (x)
                         (gensym (string-append (symbol->string x) " ")))
                       names))
-           (e (fold acons e names syms)))
-      (let ((%argv (lookup %args e)))
-        (let lp ((names names) (syms syms))
-          (if (null? names)
-              ;; fixme: here check for too many args
-              (comp out e)
-              (-> (let (list (car names)) (list (car syms))
-                       (list (-> (if (-> (apply (-> (primitive 'null?)) %argv))
-                                     (-> (@implv *undefined*))
-                                     (-> (let1 (-> (apply (-> (primitive 'car)) %argv))
-                                               (lambda (v)
-                                                 (-> (set! %argv
-                                                     (-> (apply (-> (primitive 'cdr)) %argv))))
-                                                 (-> (lexical v v))))))))
-                       (lp (cdr names) (cdr syms))))))))))
+           (e (fold econs (fold econs e formals formal-syms) names syms)))
+      (-> (let names syms (map (lambda (x) (@implv *undefined*)) names)
+               (comp out e))))))

@@ -1,5 +1,5 @@
 /* Return the canonical absolute name of a given file.
-   Copyright (C) 1996-2003, 2005-2008 Free Software Foundation, Inc.
+   Copyright (C) 1996-2009 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software: you can redistribute it and/or modify
@@ -15,45 +15,25 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#include <config.h>
-
-/* Avoid a clash of our rpl_realpath() function with the prototype in
-   <stdlib.h> on Solaris 2.5.1.  */
-#undef realpath
-
-#if !HAVE_CANONICALIZE_FILE_NAME || defined _LIBC
-
-#include <alloca.h>
-
-/* Specification.  */
-#include "canonicalize.h"
-
-#include <stddef.h>
-#include <stdlib.h>
-#include <string.h>
-
-#if HAVE_UNISTD_H || defined _LIBC
-# include <unistd.h>
+#ifndef _LIBC
+# include <config.h>
 #endif
 
-#include <limits.h>
+#if !HAVE_CANONICALIZE_FILE_NAME || !FUNC_REALPATH_WORKS || defined _LIBC
 
+/* Specification.  */
+#include <stdlib.h>
+
+#include <alloca.h>
+#include <string.h>
+#include <unistd.h>
+#include <limits.h>
 #if HAVE_SYS_PARAM_H || defined _LIBC
 # include <sys/param.h>
 #endif
-#ifndef MAXSYMLINKS
-# define MAXSYMLINKS 20
-#endif
-
 #include <sys/stat.h>
-
 #include <errno.h>
-#ifndef _LIBC
-# define __set_errno(e) errno = (e)
-# ifndef ENAMETOOLONG
-#  define ENAMETOOLONG EINVAL
-# endif
-#endif
+#include <stddef.h>
 
 #ifdef _LIBC
 # include <shlib-compat.h>
@@ -63,7 +43,7 @@
 # define compat_symbol(lib, local, symbol, version)
 # define weak_alias(local, symbol)
 # define __canonicalize_file_name canonicalize_file_name
-# define __realpath rpl_realpath
+# define __realpath realpath
 # include "pathmax.h"
 # include "malloca.h"
 # if HAVE_GETCWD
@@ -77,12 +57,21 @@
 #  define __getcwd(buf, max) getwd (buf)
 # endif
 # define __readlink readlink
-  /* On systems without symbolic links, call stat() instead of lstat().  */
-# if !defined S_ISLNK && !HAVE_READLINK
-#  define lstat stat
+# define __set_errno(e) errno = (e)
+# ifndef MAXSYMLINKS
+#  ifdef SYMLOOP_MAX
+#   define MAXSYMLINKS SYMLOOP_MAX
+#  else
+#   define MAXSYMLINKS 20
+#  endif
 # endif
 #endif
 
+#ifndef DOUBLE_SLASH_IS_DISTINCT_ROOT
+# define DOUBLE_SLASH_IS_DISTINCT_ROOT 0
+#endif
+
+#if !FUNC_REALPATH_WORKS || defined _LIBC
 /* Return the canonical absolute name of file NAME.  A canonical name
    does not contain any `.', `..' components nor any repeated path
    separators ('/') or symlinks.  All path components must exist.  If
@@ -100,9 +89,7 @@ __realpath (const char *name, char *resolved)
   char *rpath, *dest, *extra_buf = NULL;
   const char *start, *end, *rpath_limit;
   long int path_max;
-#if HAVE_READLINK
   int num_links = 0;
-#endif
 
   if (name == NULL)
     {
@@ -158,6 +145,8 @@ __realpath (const char *name, char *resolved)
     {
       rpath[0] = '/';
       dest = rpath + 1;
+      if (DOUBLE_SLASH_IS_DISTINCT_ROOT && name[1] == '/')
+	*dest++ = '/';
     }
 
   for (start = end = name; *start; start = end)
@@ -167,6 +156,7 @@ __realpath (const char *name, char *resolved)
 #else
       struct stat st;
 #endif
+      int n;
 
       /* Skip sequence of multiple path-separators.  */
       while (*start == '/')
@@ -185,6 +175,9 @@ __realpath (const char *name, char *resolved)
 	  /* Back up to previous component, ignore if at root already.  */
 	  if (dest > rpath + 1)
 	    while ((--dest)[-1] != '/');
+	  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
+	      && *dest == '/')
+	    dest++;
 	}
       else
 	{
@@ -240,12 +233,10 @@ __realpath (const char *name, char *resolved)
 #endif
 	    goto error;
 
-#if HAVE_READLINK
 	  if (S_ISLNK (st.st_mode))
 	    {
 	      char *buf;
 	      size_t len;
-	      int n;
 
 	      if (++num_links > MAXSYMLINKS)
 		{
@@ -294,44 +285,58 @@ __realpath (const char *name, char *resolved)
 	      name = end = memcpy (extra_buf, buf, n);
 
 	      if (buf[0] == '/')
-		dest = rpath + 1;	/* It's an absolute symlink */
+		{
+		  dest = rpath + 1;	/* It's an absolute symlink */
+		  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && buf[1] == '/')
+		    *dest++ = '/';
+		}
 	      else
-		/* Back up to previous component, ignore if at root already: */
-		if (dest > rpath + 1)
-		  while ((--dest)[-1] != '/');
+		{
+		  /* Back up to previous component, ignore if at root
+		     already: */
+		  if (dest > rpath + 1)
+		    while ((--dest)[-1] != '/');
+		  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
+		      && *dest == '/')
+		    dest++;
+		}
 	    }
-#endif
+	  else if (!S_ISDIR (st.st_mode) && *end != '\0')
+	    {
+	      __set_errno (ENOTDIR);
+	      goto error;
+	    }
 	}
     }
   if (dest > rpath + 1 && dest[-1] == '/')
     --dest;
+  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1 && *dest == '/')
+    dest++;
   *dest = '\0';
 
   if (extra_buf)
     freea (extra_buf);
 
-  return resolved ? memcpy (resolved, rpath, dest - rpath + 1) : rpath;
+  return rpath;
 
 error:
   {
     int saved_errno = errno;
     if (extra_buf)
       freea (extra_buf);
-    if (resolved)
-      strcpy (resolved, rpath);
-    else
+    if (resolved == NULL)
       free (rpath);
     errno = saved_errno;
   }
   return NULL;
 }
-#ifdef _LIBC
 versioned_symbol (libc, __realpath, realpath, GLIBC_2_3);
-#endif
+#endif /* !FUNC_REALPATH_WORKS || defined _LIBC */
 
 
 #if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_3)
 char *
+attribute_compat_text_section
 __old_realpath (const char *name, char *resolved)
 {
   if (resolved == NULL)

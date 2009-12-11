@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -77,15 +77,9 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
 void
 scm_init_values (void)
 {
-  SCM print = scm_c_define_subr ("%print-values", scm_tc7_subr_2,
-				 print_values);
+  SCM print = scm_c_define_gsubr ("%print-values", 2, 0, 0, print_values);
 
-  scm_values_vtable 
-    = scm_permanent_object (
-        scm_make_vtable_vtable (scm_from_locale_string ("pr"),
-				SCM_INUM0, SCM_EOL));
-
-  SCM_SET_STRUCT_PRINTER (scm_values_vtable, print);
+  scm_values_vtable = scm_make_vtable (scm_from_locale_string ("pr"), print);
 
   scm_add_feature ("values");
 

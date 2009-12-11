@@ -28,46 +28,46 @@
   #:use-module (language tree-il)
   #:use-module (language tree-il optimize)
   #:use-module (language tree-il analyze)
+  #:use-module ((srfi srfi-1) #:select (filter-map))
   #:export (compile-glil))
-
-;;; TODO:
-;;
-;; call-with-values -> mv-bind
-;; basic degenerate-case reduction
 
 ;; allocation:
 ;;  sym -> {lambda -> address}
-;;  lambda -> (nlocs labels . free-locs)
+;;  lambda -> (labels . free-locs)
+;;  lambda-case -> (gensym . nlocs)
 ;;
-;; address := (local? boxed? . index)
+;; address ::= (local? boxed? . index)
+;; labels ::= ((sym . lambda) ...)
 ;; free-locs ::= ((sym0 . address0) (sym1 . address1) ...)
 ;; free variable addresses are relative to parent proc.
 
 (define *comp-module* (make-fluid))
 
 (define %warning-passes
-  `((unused-variable . ,report-unused-variables)))
+  `((unused-variable     . ,unused-variable-analysis)
+    (unbound-variable    . ,unbound-variable-analysis)
+    (arity-mismatch      . ,arity-analysis)))
 
 (define (compile-glil x e opts)
   (define warnings
     (or (and=> (memq #:warnings opts) cadr)
         '()))
 
-  ;; Go throught the warning passes.
-  (for-each (lambda (kind)
-                (let ((warn (assoc-ref %warning-passes kind)))
-                  (and (procedure? warn)
-                       (warn x))))
-            warnings)
+  ;; Go through the warning passes.
+  (let ((analyses (filter-map (lambda (kind)
+                                (assoc-ref %warning-passes kind))
+                              warnings)))
+    (analyze-tree analyses x e))
 
-  (let* ((x (make-lambda (tree-il-src x) '() '() '() x))
+  (let* ((x (make-lambda (tree-il-src x) '()
+                         (make-lambda-case #f '() #f #f #f '() '() x #f)))
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
 
-    (with-fluid* *comp-module* (or (and e (car e)) (current-module))
+    (with-fluid* *comp-module* e
       (lambda ()
         (values (flatten-lambda x #f allocation)
-                (and e (cons (car e) (cddr e)))
+                e
                 e)))))
 
 
@@ -92,6 +92,10 @@
    ((quotient . 2) . quo)
    ((remainder . 2) . rem)
    ((modulo . 2) . mod)
+   ((ash . 2) . ash)
+   ((logand . 2) . logand)
+   ((logior . 2) . logior)
+   ((logxor . 2) . logxor)
    ((not . 1) . not)
    ((pair? . 1) . pair?)
    ((cons . 2) . cons)
@@ -103,10 +107,17 @@
    ((list? . 1) . list?)
    (list . list)
    (vector . vector)
+   ((class-of . 1) . class-of)
    ((@slot-ref . 2) . slot-ref)
    ((@slot-set! . 3) . slot-set)
    ((vector-ref . 2) . vector-ref)
    ((vector-set! . 3) . vector-set)
+   ((variable-ref . 1) . variable-ref)
+   ;; nb, *not* variable-set! -- the args are switched
+   ((variable-set . 2) . variable-set)
+
+   ;; hack for javascript
+   ((return . 1) return)
 
    ((bytevector-u8-ref . 2) . bv-u8-ref)
    ((bytevector-u8-set! . 3) . bv-u8-set)
@@ -163,7 +174,6 @@
        ids
        vars))
 
-;; FIXME: always emit? otherwise it's hard to pair bind with unbind
 (define (emit-bindings src ids vars allocation proc emit-code)
   (emit-code src (make-glil-bind
                   (vars->bind-list ids vars allocation proc))))
@@ -178,41 +188,21 @@
     (reverse out)))
 
 (define (flatten-lambda x self-label allocation)
-  (receive (ids vars nargs nrest)
-      (let lp ((ids (lambda-names x)) (vars (lambda-vars x))
-               (oids '()) (ovars '()) (n 0))
-          (cond ((null? vars) (values (reverse oids) (reverse ovars) n 0))
-                ((pair? vars) (lp (cdr ids) (cdr vars)
-                                  (cons (car ids) oids) (cons (car vars) ovars)
-                                  (1+ n)))
-                (else (values (reverse (cons ids oids))
-                              (reverse (cons vars ovars))
-                              (1+ n) 1))))
-    (let ((nlocs (car (hashq-ref allocation x)))
-          (labels (cadr (hashq-ref allocation x))))
-      (make-glil-program
-       nargs nrest nlocs (lambda-meta x)
-       (with-output-to-code
-        (lambda (emit-code)
-          ;; emit label for self tail calls
-          (if self-label
-              (emit-code #f (make-glil-label self-label)))
-          ;; write bindings and source debugging info
-          (if (not (null? ids))
-              (emit-bindings #f ids vars allocation x emit-code))
-          (if (lambda-src x)
-              (emit-code #f (make-glil-source (lambda-src x))))
-          ;; box args if necessary
-          (for-each
-           (lambda (v)
-             (pmatch (hashq-ref (hashq-ref allocation v) x)
-                     ((#t #t . ,n)
-                      (emit-code #f (make-glil-lexical #t #f 'ref n))
-                      (emit-code #f (make-glil-lexical #t #t 'box n)))))
-           vars)
-          ;; and here, here, dear reader: we compile.
-          (flatten (lambda-body x) allocation x self-label
-                   labels emit-code)))))))
+  (record-case x
+    ((<lambda> src meta body)
+     (make-glil-program
+      meta
+      (with-output-to-code
+       (lambda (emit-code)
+         ;; write source info for proc
+         (if src (emit-code #f (make-glil-source src)))
+         ;; emit pre-prelude label for self tail calls in which the
+         ;; number of arguments doesn't check out at compile time
+         (if self-label
+             (emit-code #f (make-glil-label self-label)))
+         ;; compile the body, yo
+         (flatten body allocation x self-label (car (hashq-ref allocation x))
+                  emit-code)))))))
 
 (define (flatten x allocation self self-label fix-labels emit-code)
   (define (emit-label label)
@@ -251,7 +241,7 @@
        (maybe-emit-return))
 
       ;; FIXME: should represent sequence as exps tail
-      ((<sequence> src exps)
+      ((<sequence> exps)
        (let lp ((exps exps))
          (if (null? (cdr exps))
              (comp-tail (car exps))
@@ -409,43 +399,78 @@
                  (error "bad primitive op: too many pushes"
                         op (instruction-pushes op))))))
         
-        ;; da capo al fine
+        ;; self-call in tail position
         ((and (lexical-ref? proc)
               self-label (eq? (lexical-ref-gensym proc) self-label)
-              ;; self-call in tail position is a goto
-              (eq? context 'tail)
-              ;; make sure the arity is right
-              (list? (lambda-vars self))
-              (= (length args) (length (lambda-vars self))))
-         ;; evaluate new values
+              (eq? context 'tail))
+         ;; first, evaluate new values, pushing them on the stack
          (for-each comp-push args)
-         ;; rename & goto
-         (for-each (lambda (sym)
-                     (pmatch (hashq-ref (hashq-ref allocation sym) self)
-                       ((#t ,boxed? . ,index)
-                        ;; set unboxed, as the proc prelude will box if needed
-                        (emit-code #f (make-glil-lexical #t #f 'set index)))
-                       (,x (error "what" x))))
-                   (reverse (lambda-vars self)))
-         (emit-branch src 'br self-label))
+         (let lp ((lcase (lambda-body self)))
+           (cond
+            ((and (lambda-case? lcase)
+                  (not (lambda-case-kw lcase))
+                  (not (lambda-case-opt lcase))
+                  (not (lambda-case-rest lcase))
+                  (= (length args) (length (lambda-case-req lcase))))
+             ;; we have a case that matches the args; rename variables
+             ;; and goto the case label
+             (for-each (lambda (sym)
+                         (pmatch (hashq-ref (hashq-ref allocation sym) self)
+                           ((#t #f . ,index) ; unboxed
+                            (emit-code #f (make-glil-lexical #t #f 'set index)))
+                           ((#t #t . ,index) ; boxed
+                            ;; new box
+                            (emit-code #f (make-glil-lexical #t #t 'box index)))
+                           (,x (error "what" x))))
+                       (reverse (lambda-case-vars lcase)))
+             (emit-branch src 'br (car (hashq-ref allocation lcase))))
+            ((lambda-case? lcase)
+             ;; no match, try next case
+             (lp (lambda-case-else lcase)))
+            (else
+             ;; no cases left; shuffle args down and jump before the prelude.
+             (for-each (lambda (i)
+                         (emit-code #f (make-glil-lexical #t #f 'set i)))
+                       (reverse (iota (length args))))
+             (emit-branch src 'br self-label)))))
         
         ;; lambda, the ultimate goto
         ((and (lexical-ref? proc)
               (assq (lexical-ref-gensym proc) fix-labels))
-         ;; evaluate new values, assuming that analyze-lexicals did its
-         ;; job, and that the arity was right
+         ;; like the self-tail-call case, though we can handle "drop"
+         ;; contexts too. first, evaluate new values, pushing them on
+         ;; the stack
          (for-each comp-push args)
-         ;; rename
-         (for-each (lambda (sym)
-                     (pmatch (hashq-ref (hashq-ref allocation sym) self)
-                       ((#t #f . ,index)
-                        (emit-code #f (make-glil-lexical #t #f 'set index)))
-                       ((#t #t . ,index)
-                        (emit-code #f (make-glil-lexical #t #t 'box index)))
-                       (,x (error "what" x))))
-                   (reverse (assq-ref fix-labels (lexical-ref-gensym proc))))
-         ;; goto!
-         (emit-branch src 'br (lexical-ref-gensym proc)))
+         ;; find the specific case, rename args, and goto the case label
+         (let lp ((lcase (lambda-body
+                          (assq-ref fix-labels (lexical-ref-gensym proc)))))
+           (cond
+            ((and (lambda-case? lcase)
+                  (not (lambda-case-kw lcase))
+                  (not (lambda-case-opt lcase))
+                  (not (lambda-case-rest lcase))
+                  (= (length args) (length (lambda-case-req lcase))))
+             ;; we have a case that matches the args; rename variables
+             ;; and goto the case label
+             (for-each (lambda (sym)
+                         (pmatch (hashq-ref (hashq-ref allocation sym) self)
+                           ((#t #f . ,index) ; unboxed
+                            (emit-code #f (make-glil-lexical #t #f 'set index)))
+                           ((#t #t . ,index) ; boxed
+                            (emit-code #f (make-glil-lexical #t #t 'box index)))
+                           (,x (error "what" x))))
+                       (reverse (lambda-case-vars lcase)))
+             (emit-branch src 'br (car (hashq-ref allocation lcase))))
+            ((lambda-case? lcase)
+             ;; no match, try next case
+             (lp (lambda-case-else lcase)))
+            (else
+             ;; no cases left. we can't really handle this currently.
+             ;; ideally we would push on a new frame, then do a "local
+             ;; call" -- which doesn't require consing up a program
+             ;; object. but for now error, as this sort of case should
+             ;; preclude label allocation.
+             (error "couldn't find matching case for label call" x)))))
         
         (else
          (if (not (eq? context 'tail))
@@ -470,7 +495,7 @@
                            (emit-branch #f 'br RA)
                            (emit-label POST)))))))))
 
-      ((<conditional> src test then else)
+      ((<conditional> src test then (alternate else))
        ;;     TEST
        ;;     (br-if-not L1)
        ;;     THEN
@@ -478,15 +503,68 @@
        ;; L1: ELSE
        ;; L2:
        (let ((L1 (make-label)) (L2 (make-label)))
-         (comp-push test)
-         (emit-branch src 'br-if-not L1)
+         ;; need a pattern matcher
+         (record-case test
+           ((<application> proc args)
+            (record-case proc
+              ((<primitive-ref> name)
+               (let ((len (length args)))
+                 (cond
+
+                  ((and (eq? name 'eq?) (= len 2))
+                   (comp-push (car args))
+                   (comp-push (cadr args))
+                   (emit-branch src 'br-if-not-eq L1))
+
+                  ((and (eq? name 'null?) (= len 1))
+                   (comp-push (car args))
+                   (emit-branch src 'br-if-not-null L1))
+
+                  ((and (eq? name 'not) (= len 1))
+                   (let ((app (car args)))
+                     (record-case app
+                       ((<application> proc args)
+                        (let ((len (length args)))
+                          (record-case proc
+                            ((<primitive-ref> name)
+                             (cond
+
+                              ((and (eq? name 'eq?) (= len 2))
+                               (comp-push (car args))
+                               (comp-push (cadr args))
+                               (emit-branch src 'br-if-eq L1))
+                            
+                              ((and (eq? name 'null?) (= len 1))
+                               (comp-push (car args))
+                               (emit-branch src 'br-if-null L1))
+
+                              (else
+                               (comp-push app)
+                               (emit-branch src 'br-if L1))))
+                            (else
+                             (comp-push app)
+                             (emit-branch src 'br-if L1)))))
+                       (else
+                        (comp-push app)
+                        (emit-branch src 'br-if L1)))))
+                  
+                  (else
+                   (comp-push test)
+                   (emit-branch src 'br-if-not L1)))))
+              (else
+               (comp-push test)
+               (emit-branch src 'br-if-not L1))))
+           (else
+            (comp-push test)
+            (emit-branch src 'br-if-not L1)))
+
          (comp-tail then)
          ;; if there is an RA, comp-tail will cause a jump to it -- just
          ;; have to clean up here if there is no RA.
          (if (and (not RA) (not (eq? context 'tail)))
              (emit-branch #f 'br L2))
          (emit-label L1)
-         (comp-tail else)
+         (comp-tail alternate)
          (if (and (not RA) (not (eq? context 'tail)))
              (emit-label L2))))
       
@@ -510,7 +588,7 @@
                             'ref (module-name (fluid-ref *comp-module*)) name #f))))
          (maybe-emit-return))))
 
-      ((<lexical-ref> src name gensym)
+      ((<lexical-ref> src gensym)
        (case context
          ((push vals tail)
           (pmatch (hashq-ref (hashq-ref allocation gensym) self)
@@ -520,7 +598,7 @@
              (error "badness" x loc)))))
        (maybe-emit-return))
       
-      ((<lexical-set> src name gensym exp)
+      ((<lexical-set> src gensym exp)
        (comp-push exp)
        (pmatch (hashq-ref (hashq-ref allocation gensym) self)
          ((,local? ,boxed? . ,index)
@@ -569,7 +647,7 @@
        (maybe-emit-return))
 
       ((<lambda>)
-       (let ((free-locs (cddr (hashq-ref allocation x))))
+       (let ((free-locs (cdr (hashq-ref allocation x))))
          (case context
            ((push vals tail)
             (emit-code #f (flatten-lambda x #f allocation))
@@ -585,6 +663,101 @@
                   (emit-code #f (make-glil-call 'vector (length free-locs)))
                   (emit-code #f (make-glil-call 'make-closure 2)))))))
        (maybe-emit-return))
+      
+      ((<lambda-case> src req opt rest kw inits vars else body)
+       ;; o/~ feature on top of feature o/~
+       ;; req := (name ...)
+       ;; opt := (name ...) | #f
+       ;; rest := name | #f
+       ;; kw: (allow-other-keys? (keyword name var) ...) | #f
+       ;; vars: (sym ...)
+       ;; init: tree-il in context of vars
+       ;; vars map to named arguments in the following order:
+       ;;  required, optional (positional), rest, keyword.
+       (let* ((nreq (length req))
+              (nopt (if opt (length opt) 0))
+              (rest-idx (and rest (+ nreq nopt)))
+              (opt-names (or opt '()))
+              (allow-other-keys? (if kw (car kw) #f))
+              (kw-indices (map (lambda (x)
+                                 (pmatch x
+                                   ((,key ,name ,var)
+                                    (cons key (list-index vars var)))
+                                   (else (error "bad kwarg" x))))
+                               (if kw (cdr kw) '())))
+              (nargs (apply max (+ nreq nopt (if rest 1 0))
+                            (map 1+ (map cdr kw-indices))))
+              (nlocs (cdr (hashq-ref allocation x)))
+              (else-label (and else (make-label))))
+         (or (= nargs
+                (length vars)
+                (+ nreq (length inits) (if rest 1 0)))
+             (error "something went wrong"
+                    req opt rest kw inits vars nreq nopt kw-indices nargs))
+         ;; the prelude, to check args & reset the stack pointer,
+         ;; allowing room for locals
+         (emit-code
+          src
+          (cond
+           (kw
+            (make-glil-kw-prelude nreq nopt rest-idx kw-indices
+                                  allow-other-keys? nlocs else-label))
+           ((or rest opt)
+            (make-glil-opt-prelude nreq nopt rest-idx nlocs else-label))
+           (#t
+            (make-glil-std-prelude nreq nlocs else-label))))
+         ;; box args if necessary
+         (for-each
+          (lambda (v)
+            (pmatch (hashq-ref (hashq-ref allocation v) self)
+              ((#t #t . ,n)
+               (emit-code #f (make-glil-lexical #t #f 'ref n))
+               (emit-code #f (make-glil-lexical #t #t 'box n)))))
+          vars)
+         ;; write bindings info
+         (if (not (null? vars))
+             (emit-bindings
+              #f
+              (let lp ((kw (if kw (cdr kw) '()))
+                       (names (append (reverse opt-names) (reverse req)))
+                       (vars (list-tail vars (+ nreq nopt
+                                                (if rest 1 0)))))
+                (pmatch kw
+                  (()
+                   ;; fixme: check that vars is empty
+                   (reverse (if rest (cons rest names) names)))
+                  (((,key ,name ,var) . ,kw)
+                   (if (memq var vars)
+                       (lp kw (cons name names) (delq var vars))
+                       (lp kw names vars)))
+                  (,kw (error "bad keywords, yo" kw))))
+              vars allocation self emit-code))
+         ;; init optional/kw args
+         (let lp ((inits inits) (n nreq) (vars (list-tail vars nreq)))
+           (cond
+            ((null? inits))             ; done
+            ((and rest-idx (= n rest-idx))
+             (lp inits (1+ n) (cdr vars)))
+            (#t
+             (pmatch (hashq-ref (hashq-ref allocation (car vars)) self)
+               ((#t ,boxed? . ,n*) (guard (= n* n))
+                (let ((L (make-label)))
+                  (emit-code #f (make-glil-lexical #t boxed? 'bound? n))
+                  (emit-code #f (make-glil-branch 'br-if L))
+                  (comp-push (car inits))
+                  (emit-code #f (make-glil-lexical #t boxed? 'set n))
+                  (emit-label L)
+                  (lp (cdr inits) (1+ n) (cdr vars))))
+               (#t (error "what" inits))))))
+         ;; post-prelude case label for label calls
+         (emit-label (car (hashq-ref allocation x)))
+         (comp-tail body)
+         (if (not (null? vars))
+             (emit-code #f (make-glil-unbind)))
+         (if else-label
+             (begin
+               (emit-label else-label)
+               (comp-tail else)))))
       
       ((<let> src names vars vals body)
        (for-each comp-push vals)
@@ -629,14 +802,14 @@
        ;; we know the vals are lambdas, we can set them to their local
        ;; var slots first, then capture their bindings, mutating them in
        ;; place.
-       (let ((RA (if (eq? context 'tail) #f (make-label))))
+       (let ((new-RA (if (or (eq? context 'tail) RA) #f (make-label))))
          (for-each
           (lambda (x v)
             (cond
              ((hashq-ref allocation x)
               ;; allocating a closure
               (emit-code #f (flatten-lambda x v allocation))
-              (if (not (null? (cddr (hashq-ref allocation x))))
+              (if (not (null? (cdr (hashq-ref allocation x))))
                   ;; Need to make-closure first, but with a temporary #f
                   ;; free-variables vector, so we are mutating fresh
                   ;; closures on the heap.
@@ -651,15 +824,19 @@
               ;; labels allocation: emit label & body, but jump over it
               (let ((POST (make-label)))
                 (emit-branch #f 'br POST)
-                (emit-label v)
-                ;; we know the lambda vars are a list
-                (emit-bindings #f (lambda-names x) (lambda-vars x)
-                               allocation self emit-code)
-                (if (lambda-src x)
-                    (emit-code #f (make-glil-source (lambda-src x))))
-                (comp-fix (lambda-body x) RA)
-                (emit-code #f (make-glil-unbind))
-                (emit-label POST)))))
+                (let lp ((lcase (lambda-body x)))
+                  (if lcase
+                      (record-case lcase
+                        ((<lambda-case> src req vars body else)
+                         (emit-label (car (hashq-ref allocation lcase)))
+                         ;; FIXME: opt & kw args in the bindings
+                         (emit-bindings #f req vars allocation self emit-code)
+                         (if src
+                             (emit-code #f (make-glil-source src)))
+                         (comp-fix body (or RA new-RA))
+                         (emit-code #f (make-glil-unbind))
+                         (lp else)))
+                      (emit-label POST)))))))
           vals
           vars)
          ;; Emit bindings metadata for closures
@@ -676,7 +853,7 @@
          (for-each
           (lambda (x v)
             (let ((free-locs (if (hashq-ref allocation x)
-                                 (cddr (hashq-ref allocation x))
+                                 (cdr (hashq-ref allocation x))
                                  ;; can hit this latter case for labels allocation
                                  '())))
               (if (not (null? free-locs))
@@ -696,34 +873,31 @@
           vals
           vars)
          (comp-tail body)
-         (emit-label RA)
+         (if new-RA
+             (emit-label new-RA))
          (emit-code #f (make-glil-unbind))))
 
-      ((<let-values> src names vars exp body)
-       (let lp ((names '()) (vars '()) (inames names) (ivars vars) (rest? #f))
-         (cond
-          ((pair? inames)
-           (lp (cons (car inames) names) (cons (car ivars) vars)
-               (cdr inames) (cdr ivars) #f))
-          ((not (null? inames))
-           (lp (cons inames names) (cons ivars vars) '() '() #t))
-          (else
-           (let ((names (reverse! names))
-                 (vars (reverse! vars))
-                 (MV (make-label)))
-             (comp-vals exp MV)
-             (emit-code #f (make-glil-const 1))
-             (emit-label MV)
-             (emit-code src (make-glil-mv-bind
-                             (vars->bind-list names vars allocation self)
-                             rest?))
-             (for-each (lambda (v)
-                         (pmatch (hashq-ref (hashq-ref allocation v) self)
-                           ((#t #f . ,n)
-                            (emit-code src (make-glil-lexical #t #f 'set n)))
-                           ((#t #t . ,n)
-                            (emit-code src (make-glil-lexical #t #t 'box n)))
-                           (,loc (error "badness" x loc))))
-                       (reverse vars))
-             (comp-tail body)
-             (emit-code #f (make-glil-unbind))))))))))
+      ((<let-values> src exp body)
+       (record-case body
+         ((<lambda-case> req opt kw rest vars body else)
+          (if (or opt kw else)
+              (error "unexpected lambda-case in let-values" x))
+          (let ((MV (make-label)))
+            (comp-vals exp MV)
+            (emit-code #f (make-glil-const 1))
+            (emit-label MV)
+            (emit-code src (make-glil-mv-bind
+                            (vars->bind-list
+                             (append req (if rest (list rest) '()))
+                             vars allocation self)
+                            (and rest #t)))
+            (for-each (lambda (v)
+                        (pmatch (hashq-ref (hashq-ref allocation v) self)
+                          ((#t #f . ,n)
+                           (emit-code src (make-glil-lexical #t #f 'set n)))
+                          ((#t #t . ,n)
+                           (emit-code src (make-glil-lexical #t #t 'box n)))
+                          (,loc (error "badness" x loc))))
+                      (reverse vars))
+            (comp-tail body)
+            (emit-code #f (make-glil-unbind)))))))))

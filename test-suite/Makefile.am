@@ -26,6 +26,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/arbiters.test			\
 	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
+	    tests/brainfuck.test		\
 	    tests/bytevectors.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\
@@ -34,7 +35,6 @@ SCM_TESTS = tests/alist.test			\
 	    tests/elisp.test			\
 	    tests/elisp-compiler.text		\
 	    tests/elisp-reader.text		\
-	    tests/environments.test		\
 	    tests/eval.test			\
 	    tests/exceptions.test		\
 	    tests/filesys.test			\
@@ -50,6 +50,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/i18n.test			\
 	    tests/import.test			\
 	    tests/interp.test			\
+	    tests/keywords.test			\
 	    tests/list.test			\
 	    tests/load.test			\
 	    tests/modules.test			\
@@ -70,6 +71,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
 	    tests/regexp.test			\
+	    tests/signals.test			\
 	    tests/socket.test			\
 	    tests/srcprop.test			\
 	    tests/srfi-1.test			\

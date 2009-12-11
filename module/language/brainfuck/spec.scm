@@ -37,7 +37,7 @@
 (define-language brainfuck
   #:title	"Guile Brainfuck"
   #:version	"1.0"
-  #:reader	(lambda () (read-brainfuck (current-input-port)))
+  #:reader	(lambda (port env) (read-brainfuck port))
   #:compilers	`((tree-il . ,compile-tree-il)
                   (scheme . ,compile-scheme))
   #:printer	write

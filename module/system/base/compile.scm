@@ -28,7 +28,10 @@
   #:use-module (ice-9 receive)
   #:export (syntax-error 
             *current-language*
-            compiled-file-name compile-file compile-and-load
+            compiled-file-name
+            compile-file
+            compile-and-load
+            read-and-compile
             compile
             decompile)
   #:export-syntax (call-with-compile-error-catch))
@@ -141,9 +144,9 @@
 
 (define* (compile-file file #:key
                        (output-file #f)
-                       (env #f)
                        (from (current-language))
                        (to 'objcode)
+                       (env (default-environment from))
                        (opts '()))
   (let* ((comp (or output-file (compiled-file-name file)))
          (in (open-input-file file))
@@ -159,9 +162,11 @@
       file)
     comp))
 
-(define* (compile-and-load file #:key (from 'scheme) (to 'value) (opts '()))
+(define* (compile-and-load file #:key (from 'scheme) (to 'value)
+                           (env (current-module)) (opts '()))
   (read-and-compile (open-input-file file)
-                    #:from from #:to to #:opts opts))
+                    #:from from #:to to #:opts opts
+                    #:env env))
 
 
 ;;;
@@ -191,20 +196,23 @@
            (lp (cdr in) (caar in))))))
 
 (define* (read-and-compile port #:key
-                           (env #f)
                            (from (current-language))
                            (to 'objcode)
+                           (env (default-environment from))
                            (opts '()))
   (let ((from (ensure-language from))
         (to (ensure-language to)))
     (let ((joint (find-language-joint from to)))
       (with-fluids ((*current-language* from))
         (let lp ((exps '()) (env #f) (cenv env))
-          (let ((x ((language-reader (current-language)) port)))
+          (let ((x ((language-reader (current-language)) port cenv)))
             (cond
              ((eof-object? x)
               (compile ((language-joiner joint) (reverse exps) env)
-                       #:from joint #:to to #:env env #:opts opts))
+                       #:from joint #:to to
+                       ;; env can be false if no expressions were read.
+                       #:env (or env (default-environment joint))
+                       #:opts opts))
              (else
               ;; compile-fold instead of compile so we get the env too
               (receive (jexp jenv jcenv)
@@ -213,9 +221,9 @@
                 (lp (cons jexp exps) jenv jcenv))))))))))
 
 (define* (compile x #:key
-                  (env #f)
                   (from (current-language))
                   (to 'value)
+                  (env (default-environment from))
                   (opts '()))
 
   (let ((warnings (memq #:warnings opts)))

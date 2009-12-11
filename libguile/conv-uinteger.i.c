@@ -54,13 +54,8 @@ SCM_TO_TYPE_PROTO (SCM val)
 	      return n;
 #else
 
-#if TYPE_MIN == 0 
-              if (n <= TYPE_MAX)
-                return n;
-#else /* TYPE_MIN != 0 */
               if (n >= TYPE_MIN && n <= TYPE_MAX)
                 return n;
-#endif /* TYPE_MIN != 0 */
               else
                 goto out_of_range;
 
@@ -83,13 +78,8 @@ SCM_TO_TYPE_PROTO (SCM val)
 	  
 	  mpz_export (&n, &count, 1, sizeof (TYPE), 0, 0, SCM_I_BIG_MPZ (val));
 
-#if TYPE_MIN == 0
-	  if (n <= TYPE_MAX)
-	    return n;
-#else /* TYPE_MIN != 0 */
 	  if (n >= TYPE_MIN && n <= TYPE_MAX)
 	    return n;
-#endif /* TYPE_MIN != 0 */
           else
             goto out_of_range;
 

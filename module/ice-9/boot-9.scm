@@ -1,6 +1,6 @@
-;;; installed-scm-file
+;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2009
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -67,6 +67,7 @@
   (car (last-pair stuff)))
 
 (define pk peek)
+
 
 (define (warn . stuff)
   (with-output-to-port (current-error-port)
@@ -307,6 +308,8 @@
 (define-syntax delay
   (syntax-rules ()
     ((_ exp) (make-promise (lambda () exp)))))
+
+(include-from-path "ice-9/quasisyntax")
 
 ;;; @bind is used by the old elisp code as a dynamic scoping mechanism.
 ;;; Please let the Guile developers know if you are using this macro.
@@ -899,39 +902,39 @@
 
 (set! %load-hook %load-announce)
 
-;;; Returns the .go file corresponding to `name'. Does not search load
-;;; paths, only the fallback path. If the .go file is missing or out of
-;;; date, and autocompilation is enabled, will try autocompilation, just
-;;; as primitive-load-path does internally. primitive-load is
-;;; unaffected. Returns #f if autocompilation failed or was disabled.
-(define (autocompiled-file-name name)
-  (catch #t
-    (lambda ()
-      (let* ((cfn ((@ (system base compile) compiled-file-name) name))
-             (scmstat (stat name))
-             (gostat (stat cfn #f)))
-        (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
-            cfn
-            (begin
-              (if gostat
-                  (format (current-error-port)
-                    ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                    name cfn))
-              (cond
-               (%load-should-autocompile
-                (%warn-autocompilation-enabled)
-                (format (current-error-port) ";;; compiling ~a\n" name)
-                (let ((cfn ((@ (system base compile) compile-file) name)))
-                  (format (current-error-port) ";;; compiled ~a\n" cfn)
-                  cfn))
-               (else #f))))))
-    (lambda (k . args)
-      (format (current-error-port)
-              ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
-              name k args)
-      #f)))
-
 (define (load name . reader)
+  ;; Returns the .go file corresponding to `name'. Does not search load
+  ;; paths, only the fallback path. If the .go file is missing or out of
+  ;; date, and autocompilation is enabled, will try autocompilation, just
+  ;; as primitive-load-path does internally. primitive-load is
+  ;; unaffected. Returns #f if autocompilation failed or was disabled.
+  (define (autocompiled-file-name name)
+    (catch #t
+      (lambda ()
+        (let* ((cfn ((@ (system base compile) compiled-file-name) name))
+               (scmstat (stat name))
+               (gostat (stat cfn #f)))
+          (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
+              cfn
+              (begin
+                (if gostat
+                    (format (current-error-port)
+                            ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
+                            name cfn))
+                (cond
+                 (%load-should-autocompile
+                  (%warn-autocompilation-enabled)
+                  (format (current-error-port) ";;; compiling ~a\n" name)
+                  (let ((cfn ((@ (system base compile) compile-file) name
+                              #:env (current-module))))
+                    (format (current-error-port) ";;; compiled ~a\n" cfn)
+                    cfn))
+                 (else #f))))))
+      (lambda (k . args)
+        (format (current-error-port)
+                ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
+                name k args)
+        #f)))
   (with-fluid* current-reader (and (pair? reader) (car reader))
     (lambda ()
       (let ((cfn (autocompiled-file-name name)))
@@ -939,89 +942,6 @@
             (load-compiled cfn)
             (start-stack 'load-stack
                          (primitive-load name)))))))
-
-
-
-;;; {Transcendental Functions}
-;;;
-;;; Derived from "Transcen.scm", Complex trancendental functions for SCM.
-;;; Written by Jerry D. Hedden, (C) FSF.
-;;; See the file `COPYING' for terms applying to this program.
-;;;
-
-(define expt
-  (let ((integer-expt integer-expt))
-    (lambda (z1 z2)
-      (cond ((and (exact? z2) (integer? z2))
-	     (integer-expt z1 z2))
-	    ((and (real? z2) (real? z1) (>= z1 0))
-	     ($expt z1 z2))
-	    (else
-	     (exp (* z2 (log z1))))))))
-
-(define (sinh z)
-  (if (real? z) ($sinh z)
-      (let ((x (real-part z)) (y (imag-part z)))
-	(make-rectangular (* ($sinh x) ($cos y))
-			  (* ($cosh x) ($sin y))))))
-(define (cosh z)
-  (if (real? z) ($cosh z)
-      (let ((x (real-part z)) (y (imag-part z)))
-	(make-rectangular (* ($cosh x) ($cos y))
-			  (* ($sinh x) ($sin y))))))
-(define (tanh z)
-  (if (real? z) ($tanh z)
-      (let* ((x (* 2 (real-part z)))
-	     (y (* 2 (imag-part z)))
-	     (w (+ ($cosh x) ($cos y))))
-	(make-rectangular (/ ($sinh x) w) (/ ($sin y) w)))))
-
-(define (asinh z)
-  (if (real? z) ($asinh z)
-      (log (+ z (sqrt (+ (* z z) 1))))))
-
-(define (acosh z)
-  (if (and (real? z) (>= z 1))
-      ($acosh z)
-      (log (+ z (sqrt (- (* z z) 1))))))
-
-(define (atanh z)
-  (if (and (real? z) (> z -1) (< z 1))
-      ($atanh z)
-      (/ (log (/ (+ 1 z) (- 1 z))) 2)))
-
-(define (sin z)
-  (if (real? z) ($sin z)
-      (let ((x (real-part z)) (y (imag-part z)))
-	(make-rectangular (* ($sin x) ($cosh y))
-			  (* ($cos x) ($sinh y))))))
-(define (cos z)
-  (if (real? z) ($cos z)
-      (let ((x (real-part z)) (y (imag-part z)))
-	(make-rectangular (* ($cos x) ($cosh y))
-			  (- (* ($sin x) ($sinh y)))))))
-(define (tan z)
-  (if (real? z) ($tan z)
-      (let* ((x (* 2 (real-part z)))
-	     (y (* 2 (imag-part z)))
-	     (w (+ ($cos x) ($cosh y))))
-	(make-rectangular (/ ($sin x) w) (/ ($sinh y) w)))))
-
-(define (asin z)
-  (if (and (real? z) (>= z -1) (<= z 1))
-      ($asin z)
-      (* -i (asinh (* +i z)))))
-
-(define (acos z)
-  (if (and (real? z) (>= z -1) (<= z 1))
-      ($acos z)
-      (+ (/ (angle -1) 2) (* +i (asinh (* +i z))))))
-
-(define (atan z . y)
-  (if (null? y)
-      (if (real? z) ($atan z)
-	  (/ (log (/ (- +i z) (+ +i z))) +2i))
-      ($atan2 z (car y))))
 
 
 
@@ -1394,7 +1314,7 @@
 ;; NOTE: This binding is used in libguile/modules.c.
 (define module-eval-closure (record-accessor module-type 'eval-closure))
 
-(define module-transformer (record-accessor module-type 'transformer))
+;; (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
 ;; (define module-name (record-accessor module-type 'name)) wait until mods are booted
 (define set-module-name! (record-modifier module-type 'name))
@@ -1418,7 +1338,18 @@
       ;; Make it possible to lookup the module from the environment.
       ;; This implementation is correct since an eval closure can belong
       ;; to maximally one module.
-      (set-procedure-property! closure 'module module))))
+
+      ;; XXX: The following line introduces a circular reference that
+      ;; precludes garbage collection of modules with the current weak hash
+      ;; table semantics (see
+      ;; http://lists.gnu.org/archive/html/guile-devel/2009-01/msg00102.html and
+      ;; http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2465
+      ;; for details).  Since it doesn't appear to be used (only in
+      ;; `scm_lookup_closure_module ()', which has 1 caller), we just comment
+      ;; it out.
+
+      ;(set-procedure-property! closure 'module module)
+      )))
 
 
 
@@ -1996,6 +1927,11 @@
 	   (not (eq? module the-root-module)))
       ;; Import the default set of bindings (from the SCM module) in MODULE.
       (module-use! module the-scm-module)))
+
+(define (make-fresh-user-module)
+  (let ((m (make-module)))
+    (beautify-user-module! m)
+    m))
 
 ;; NOTE: This binding is used in libguile/modules.c.
 ;;
@@ -2614,8 +2550,6 @@ module '(ice-9 q) '(make-q q-length))}."
 		 (apply make-stack #t save-stack primitive-eval #t 0 narrowing))
 		((load-stack)
 		 (apply make-stack #t save-stack 0 #t 0 narrowing))
-		((tk-stack)
-		 (apply make-stack #t save-stack tk-stack-mark #t 0 narrowing))
 		((#t)
 		 (apply make-stack #t save-stack 0 1 narrowing))
 		(else
@@ -2694,11 +2628,14 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; The default repl-reader function.  We may override this if we've
 ;;; the readline library.
 (define repl-reader
-  (lambda (prompt)
+  (lambda (prompt . reader)
     (display (if (string? prompt) prompt (prompt)))
     (force-output)
     (run-hook before-read-hook)
-    ((or (fluid-ref current-reader) read) (current-input-port))))
+    ((or (and (pair? reader) (car reader))
+         (fluid-ref current-reader)
+         read)
+     (current-input-port))))
 
 (define (scm-style-repl)
 
@@ -2800,15 +2737,7 @@ module '(ice-9 q) '(make-q q-length))}."
 			  (display ";;; QUIT executed, repl exitting")
 			  (newline)
 			  (repl-report)))
-		    args))
-
-	   (-abort (lambda ()
-		     (if scm-repl-verbose
-			 (begin
-			   (display ";;; ABORT executed.")
-			   (newline)
-			   (repl-report)))
-		     (repl -read -eval -print))))
+		    args)))
 
     (let ((status (error-catching-repl -read
 				       -eval
@@ -3024,6 +2953,13 @@ module '(ice-9 q) '(make-q q-length))}."
        (defmacro name args . body)
        (export-syntax name)))))
 
+;; And now for the most important macro.
+(define-syntax λ
+  (syntax-rules ()
+    ((_ formals body ...)
+     (lambda formals body ...))))
+
+
 ;; Export a local variable
 
 ;; This function is called from "modules.c".  If you change it, be
@@ -3240,6 +3176,7 @@ module '(ice-9 q) '(make-q q-length))}."
 (define %cond-expand-features
   ;; Adjust the above comment when changing this.
   '(guile
+    guile-2
     r5rs
     srfi-0   ;; cond-expand itself
     srfi-4   ;; homogenous numeric vectors

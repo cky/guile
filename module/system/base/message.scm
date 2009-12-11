@@ -79,7 +79,24 @@
           "report unused variables"
           ,(lambda (port loc name)
              (format port "~A: warning: unused variable `~A'~%"
-                     loc name))))))
+                     loc name)))
+
+         (unbound-variable
+          "report possibly unbound variables"
+          ,(lambda (port loc name)
+             (format port "~A: warning: possibly unbound variable `~A'~%"
+                     loc name)))
+
+         (arity-mismatch
+          "report procedure arity mismatches (wrong number of arguments)"
+          ,(lambda (port loc name certain?)
+             (if certain?
+                 (format port
+                         "~A: warning: wrong number of arguments to `~A'~%"
+                         loc name)
+                 (format port
+                         "~A: warning: possibly wrong number of arguments to `~A'~%"
+                         loc name)))))))
 
 (define (lookup-warning-type name)
   "Return the warning type NAME or `#f' if not found."

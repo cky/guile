@@ -3,7 +3,7 @@
 #ifndef SCM_FILESYS_H
 #define SCM_FILESYS_H
 
-/* Copyright (C) 1995,1997,1998,1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,10 +29,10 @@
 
 SCM_API scm_t_bits scm_tc16_dir;
 
-#define SCM_DIR_FLAG_OPEN (1L << 16)
+#define SCM_DIR_FLAG_OPEN (1L << 0)
 
 #define SCM_DIRP(x) (!SCM_IMP (x) && (SCM_TYP16 (x) == scm_tc16_dir))
-#define SCM_DIR_OPEN_P(x) (SCM_CELL_WORD_0 (x) & SCM_DIR_FLAG_OPEN)
+#define SCM_DIR_OPEN_P(x) (SCM_SMOB_FLAGS (x) & SCM_DIR_FLAG_OPEN)
 
 
 

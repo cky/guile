@@ -22,10 +22,17 @@
 #  include <config.h>
 #endif
 
+#include "libguile/gen-scmconfig.h"
+
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
+
+#ifdef __ia64__
+#include <ucontext.h>
+extern unsigned long * __libc_ia64_register_backing_store_base;
+#endif
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
@@ -48,6 +55,8 @@
 #include "libguile/deprecation.h"
 #include "libguile/gc.h"
 #include "libguile/dynwind.h"
+
+#include "libguile/bdw-gc.h"
 
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
@@ -81,6 +90,9 @@ int scm_debug_cells_gc_interval = 0;
  */
 int scm_i_cell_validation_already_running ;
 
+static SCM protects;
+
+
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 
 
@@ -98,13 +110,6 @@ int scm_i_cell_validation_already_running ;
 void
 scm_i_expensive_validation_check (SCM cell)
 {
-  if (!scm_in_heap_p (cell))
-    {
-      fprintf (stderr, "scm_assert_cell_valid: this object does not live in the heap: %lux\n",
-	       (unsigned long) SCM_UNPACK (cell));
-      abort ();
-    }
-
   /* If desired, perform additional garbage collections after a user
    * defined number of cell accesses.
    */
@@ -144,18 +149,7 @@ scm_assert_cell_valid (SCM cell)
       */
       if (scm_expensive_debug_cell_accesses_p)
 	scm_i_expensive_validation_check (cell);
-#if (SCM_DEBUG_MARKING_API == 0)
-      if (!SCM_GC_MARK_P (cell))
-	{
-	  fprintf (stderr,
-		   "scm_assert_cell_valid: this object is unmarked. \n"
-		   "It has been garbage-collected in the last GC run: "
-		   "%lux\n",
-                   (unsigned long) SCM_UNPACK (cell));
-	  abort ();
-	}
-#endif /* SCM_DEBUG_MARKING_API */
-      
+
       scm_i_cell_validation_already_running = 0;  /* re-enable */
     }
 }
@@ -198,43 +192,25 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
 
+/* Hooks.  */
+scm_t_c_hook scm_before_gc_c_hook;
+scm_t_c_hook scm_before_mark_c_hook;
+scm_t_c_hook scm_before_sweep_c_hook;
+scm_t_c_hook scm_after_sweep_c_hook;
+scm_t_c_hook scm_after_gc_c_hook;
 
-
-/* scm_mtrigger
- * is the number of bytes of malloc allocation needed to trigger gc.
- */
-unsigned long scm_mtrigger;
 
 /* GC Statistics Keeping
  */
-unsigned long scm_cells_allocated = 0;
-unsigned long scm_last_cells_allocated = 0;
-unsigned long scm_mallocated = 0;
-long int scm_i_find_heap_calls = 0;
-/* Global GC sweep statistics since the last full GC.  */
-scm_t_sweep_statistics scm_i_gc_sweep_stats = { 0, 0 };
+unsigned long scm_gc_ports_collected = 0;
 
-/* Total count of cells marked/swept.  */
-static double scm_gc_cells_marked_acc = 0.;
-static double scm_gc_cells_marked_conservatively_acc = 0.;
-static double scm_gc_cells_swept_acc = 0.;
-static double scm_gc_cells_allocated_acc = 0.;
-
-static unsigned long scm_gc_time_taken = 0;
-static unsigned long scm_gc_mark_time_taken = 0;
-
-static unsigned long scm_gc_times = 0;
-
-static int scm_gc_cell_yield_percentage = 0;
 static unsigned long protected_obj_count = 0;
-
-/* The following are accessed from `gc-malloc.c' and `gc-card.c'.  */
-int scm_gc_malloc_yield_percentage = 0;
-unsigned long scm_gc_malloc_collected = 0;
 
 
 SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
-SCM_SYMBOL (sym_heap_size, "cell-heap-size");
+SCM_SYMBOL (sym_heap_size, "heap-size");
+SCM_SYMBOL (sym_heap_free_size, "heap-free-size");
+SCM_SYMBOL (sym_heap_total_allocated, "heap-total-allocated");
 SCM_SYMBOL (sym_mallocated, "bytes-malloced");
 SCM_SYMBOL (sym_mtrigger, "gc-malloc-threshold");
 SCM_SYMBOL (sym_heap_segments, "cell-heap-segments");
@@ -288,8 +264,6 @@ SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
   SCM tab = scm_make_hash_table (scm_from_int (57));
   SCM alist;
 
-  scm_i_all_segments_statistics (tab);
-  
   alist
     = scm_internal_hash_fold (&tag_table_to_type_alist, NULL, SCM_EOL, tab);
   
@@ -304,84 +278,27 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 	    "use of storage.\n")
 #define FUNC_NAME s_scm_gc_stats
 {
-  long i = 0;
-  SCM heap_segs = SCM_EOL ;
-  unsigned long int local_scm_mtrigger;
-  unsigned long int local_scm_mallocated;
-  unsigned long int local_scm_heap_size;
-  int local_scm_gc_cell_yield_percentage;
-  int local_scm_gc_malloc_yield_percentage;
-  unsigned long int local_scm_cells_allocated;
-  unsigned long int local_scm_gc_time_taken;
-  unsigned long int local_scm_gc_times;
-  unsigned long int local_scm_gc_mark_time_taken;
-  unsigned long int local_protected_obj_count;
-  double local_scm_gc_cells_swept;
-  double local_scm_gc_cells_marked;
-  double local_scm_gc_cells_marked_conservatively;
-  double local_scm_total_cells_allocated;
   SCM answer;
-  unsigned long *bounds = 0;
-  int table_size = 0;
-  SCM_CRITICAL_SECTION_START;
+  size_t heap_size, free_bytes, bytes_since_gc, total_bytes;
+  size_t gc_times;
 
-  bounds = scm_i_segment_table_info (&table_size);
+  heap_size      = GC_get_heap_size ();
+  free_bytes     = GC_get_free_bytes ();
+  bytes_since_gc = GC_get_bytes_since_gc ();
+  total_bytes    = GC_get_total_bytes ();
+  gc_times       = GC_gc_no;
 
-  /* Below, we cons to produce the resulting list.  We want a snapshot of
-   * the heap situation before consing.
-   */
-  local_scm_mtrigger = scm_mtrigger;
-  local_scm_mallocated = scm_mallocated;
-  local_scm_heap_size =
-    (scm_i_master_freelist.heap_total_cells + scm_i_master_freelist2.heap_total_cells);
-
-  local_scm_cells_allocated =
-    scm_cells_allocated + scm_i_gc_sweep_stats.collected;
-  
-  local_scm_gc_time_taken = scm_gc_time_taken;
-  local_scm_gc_mark_time_taken = scm_gc_mark_time_taken;
-  local_scm_gc_times = scm_gc_times;
-  local_scm_gc_malloc_yield_percentage = scm_gc_malloc_yield_percentage;
-  local_scm_gc_cell_yield_percentage = scm_gc_cell_yield_percentage;
-  local_protected_obj_count = protected_obj_count;
-  local_scm_gc_cells_swept =
-    (double) scm_gc_cells_swept_acc
-    + (double) scm_i_gc_sweep_stats.swept;
-  local_scm_gc_cells_marked = scm_gc_cells_marked_acc 
-    + (double) scm_i_gc_sweep_stats.swept
-    - (double) scm_i_gc_sweep_stats.collected;
-  local_scm_gc_cells_marked_conservatively
-    = scm_gc_cells_marked_conservatively_acc;
-
-  local_scm_total_cells_allocated = scm_gc_cells_allocated_acc
-    + (double) scm_i_gc_sweep_stats.collected;
-  
-  for (i = table_size; i--;)
-    {
-      heap_segs = scm_cons (scm_cons (scm_from_ulong (bounds[2*i]),
-				      scm_from_ulong (bounds[2*i+1])),
-			    heap_segs);
-    }
-  
   /* njrev: can any of these scm_cons's or scm_list_n signal a memory
      error?  If so we need a frame here. */
   answer =
-    scm_list_n (scm_cons (sym_gc_time_taken,
-			  scm_from_ulong (local_scm_gc_time_taken)),
+    scm_list_n (scm_cons (sym_gc_time_taken, SCM_INUM0),
+#if 0
 		scm_cons (sym_cells_allocated,
 			  scm_from_ulong (local_scm_cells_allocated)),
-		scm_cons (sym_total_cells_allocated,
-			  scm_from_double (local_scm_total_cells_allocated)),
-		scm_cons (sym_heap_size,
-			  scm_from_ulong (local_scm_heap_size)),
-		scm_cons (sym_cells_marked_conservatively,
-			  scm_from_ulong (local_scm_gc_cells_marked_conservatively)),
 		scm_cons (sym_mallocated,
 			  scm_from_ulong (local_scm_mallocated)),
 		scm_cons (sym_mtrigger,
 			  scm_from_ulong (local_scm_mtrigger)),
-		scm_cons (sym_times,
-			  scm_from_ulong (local_scm_gc_times)),
 		scm_cons (sym_gc_mark_time_taken,
 			  scm_from_ulong (local_scm_gc_mark_time_taken)),
 		scm_cons (sym_cells_marked,
@@ -392,37 +309,34 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 			  scm_from_long (local_scm_gc_malloc_yield_percentage)),
 		scm_cons (sym_cell_yield,
 			  scm_from_long (local_scm_gc_cell_yield_percentage)),
-		scm_cons (sym_protected_objects,
-			  scm_from_ulong (local_protected_obj_count)),
 		scm_cons (sym_heap_segments, heap_segs),
+#endif
+		scm_cons (sym_heap_size, scm_from_size_t (heap_size)),
+		scm_cons (sym_heap_free_size, scm_from_size_t (free_bytes)),
+		scm_cons (sym_heap_total_allocated,
+			  scm_from_size_t (total_bytes)),
+		scm_cons (sym_protected_objects,
+			  scm_from_ulong (protected_obj_count)),
+		scm_cons (sym_times, scm_from_size_t (gc_times)),
 		SCM_UNDEFINED);
-  SCM_CRITICAL_SECTION_END;
-  
-  free (bounds);
+
   return answer;
 }
 #undef FUNC_NAME
 
-/*
-  Update nice-to-know-statistics.
- */
-static void
-gc_end_stats ()
+
+SCM_DEFINE (scm_gc_dump, "gc-dump", 0, 0, 0,
+	    (void),
+	    "Dump information about the garbage collector's internal data "
+	    "structures and memory usage to the standard output.")
+#define FUNC_NAME s_scm_gc_dump
 {
-  /* CELLS SWEPT is another word for the number of cells that were examined
-     during GC. YIELD is the number that we cleaned out. MARKED is the number
-     that weren't cleaned.  */
-  scm_gc_cell_yield_percentage = (scm_i_gc_sweep_stats.collected * 100) /
-    (scm_i_master_freelist.heap_total_cells + scm_i_master_freelist2.heap_total_cells);
+  GC_dump ();
 
-  scm_gc_cells_allocated_acc +=
-    (double) scm_i_gc_sweep_stats.collected;
-  scm_gc_cells_marked_acc += (double) scm_i_last_marked_cell_count;
-  scm_gc_cells_marked_conservatively_acc += (double) scm_i_find_heap_calls;
-  scm_gc_cells_swept_acc += (double) scm_i_gc_sweep_stats.swept;
-
-  ++scm_gc_times;
+  return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
             (SCM obj),
@@ -435,6 +349,29 @@ SCM_DEFINE (scm_object_address, "object-address", 1, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_gc_disable, "gc-disable", 0, 0, 0,
+	    (),
+	    "Disables the garbage collector.  Nested calls are permitted.  "
+	    "GC is re-enabled once @code{gc-enable} has been called the "
+	    "same number of times @code{gc-disable} was called.")
+#define FUNC_NAME s_scm_gc_disable
+{
+  GC_disable ();
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_gc_enable, "gc-enable", 0, 0, 0,
+	    (),
+	    "Enables the garbage collector.")
+#define FUNC_NAME s_scm_gc_enable
+{
+  GC_enable ();
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
            (),
 	    "Scans all of SCM objects and reclaims for further use those that are\n"
@@ -442,7 +379,6 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 #define FUNC_NAME s_scm_gc
 {
   scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-  scm_gc_running_p = 1;
   scm_i_gc ("call");
   /* njrev: It looks as though other places, e.g. scm_realloc,
      can call scm_i_gc without acquiring the sweep mutex.  Does this
@@ -451,240 +387,16 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
      (e.g. scm_permobjs above in scm_gc_stats) by a critical section,
      not by the sweep mutex.  Shouldn't all the GC-relevant objects be
      protected in the same way? */
-  scm_gc_running_p = 0;
   scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
   scm_c_hook_run (&scm_after_gc_c_hook, 0);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
-
-
-
-/* The master is global and common while the freelist will be
- * individual for each thread.
- */
-
-SCM
-scm_gc_for_newcell (scm_t_cell_type_statistics *freelist, SCM *free_cells)
-{
-  SCM cell;
-  int did_gc = 0;
-
-  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
-  scm_gc_running_p = 1;
-  
-  *free_cells = scm_i_sweep_for_freelist (freelist);
-  if (*free_cells == SCM_EOL)
-    {
-      float delta = scm_i_gc_heap_size_delta (freelist);
-      if (delta > 0.0)
-	{
-	  size_t bytes = ((unsigned long) delta) * sizeof (scm_t_cell);
-	  freelist->heap_segment_idx =
-	    scm_i_get_new_heap_segment (freelist, bytes, abort_on_error);
-
-	  *free_cells = scm_i_sweep_for_freelist (freelist);
-	}
-    }
-  
-  if (*free_cells == SCM_EOL)
-    {
-      /*
-	out of fresh cells. Try to get some new ones.
-       */
-      char reason[] = "0-cells";
-      reason[0] += freelist->span;
-      
-      did_gc = 1;
-      scm_i_gc (reason);
-
-      *free_cells = scm_i_sweep_for_freelist (freelist);
-    }
-  
-  if (*free_cells == SCM_EOL)
-    {
-      /*
-	failed getting new cells. Get new juice or die.
-      */
-      float delta = scm_i_gc_heap_size_delta (freelist);
-      assert (delta > 0.0);
-      size_t bytes = ((unsigned long) delta) * sizeof (scm_t_cell);
-      freelist->heap_segment_idx =
-	scm_i_get_new_heap_segment (freelist, bytes, abort_on_error);
-
-      *free_cells = scm_i_sweep_for_freelist (freelist);
-    }
-  
-  if (*free_cells == SCM_EOL)
-    abort ();
-
-  cell = *free_cells;
-
-  *free_cells = SCM_FREE_CELL_CDR (cell);
-
-  scm_gc_running_p = 0;
-  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-
-  if (did_gc)
-    scm_c_hook_run (&scm_after_gc_c_hook, 0);
-
-  return cell;
-}
-
-
-scm_t_c_hook scm_before_gc_c_hook;
-scm_t_c_hook scm_before_mark_c_hook;
-scm_t_c_hook scm_before_sweep_c_hook;
-scm_t_c_hook scm_after_sweep_c_hook;
-scm_t_c_hook scm_after_gc_c_hook;
-
-static void
-scm_check_deprecated_memory_return ()
-{
-  if (scm_mallocated < scm_i_deprecated_memory_return)
-    {
-      /* The byte count of allocated objects has underflowed.  This is
-	 probably because you forgot to report the sizes of objects you
-	 have allocated, by calling scm_done_malloc or some such.  When
-	 the GC freed them, it subtracted their size from
-	 scm_mallocated, which underflowed.  */
-      fprintf (stderr,
-	       "scm_gc_sweep: Byte count of allocated objects has underflowed.\n"
-	       "This is probably because the GC hasn't been correctly informed\n"
-	       "about object sizes\n");
-      abort ();
-    }
-  scm_mallocated -= scm_i_deprecated_memory_return;
-  scm_i_deprecated_memory_return = 0;
-}
-
-long int scm_i_last_marked_cell_count;
-
-/* Must be called while holding scm_i_sweep_mutex.
-
-   This function is fairly long, but it touches various global
-   variables. To not obscure the side effects on global variables,
-   this function has not been split up.
- */
 void
 scm_i_gc (const char *what)
 {
-  unsigned long t_before_gc = 0;
-  
-  scm_i_thread_put_to_sleep ();
-  
-  scm_c_hook_run (&scm_before_gc_c_hook, 0);
-
-#ifdef DEBUGINFO
-  fprintf (stderr,"gc reason %s\n", what);
-  fprintf (stderr,
-	   scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist))
-	   ? "*"
-	   : (scm_is_null (*SCM_FREELIST_LOC (scm_i_freelist2)) ? "o" : "m"));
-#endif
-
-  t_before_gc = scm_c_get_internal_run_time ();
-  scm_gc_malloc_collected = 0;
-
-  /*
-    Set freelists to NULL so scm_cons () always triggers gc, causing
-    the assertion above to fail.
-  */
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-  
-  /*
-    Let's finish the sweep. The conservative GC might point into the
-    garbage, and marking that would create a mess.
-   */
-  scm_i_sweep_all_segments ("GC", &scm_i_gc_sweep_stats);
-  scm_check_deprecated_memory_return ();
-
-#if (SCM_DEBUG_CELL_ACCESSES == 0 && SCM_SIZEOF_UNSIGNED_LONG == 4)
-  /* Sanity check our numbers. */
-  /* TODO(hanwen): figure out why the stats are off on x64_64. */
-  /* If this was not true, someone touched mark bits outside of the
-     mark phase. */
-  if (scm_i_last_marked_cell_count != scm_i_marked_count ())
-    {
-      static char msg[] =
-	"The number of marked objects changed since the last GC: %d vs %d.";
-      /* At some point, we should probably use a deprecation warning. */
-      fprintf(stderr, msg, scm_i_last_marked_cell_count, scm_i_marked_count ());
-    }
-  assert (scm_i_gc_sweep_stats.swept
-	  == (scm_i_master_freelist.heap_total_cells
-	      + scm_i_master_freelist2.heap_total_cells));
-  assert (scm_i_gc_sweep_stats.collected + scm_i_last_marked_cell_count
-	  == scm_i_gc_sweep_stats.swept);
-#endif /* SCM_DEBUG_CELL_ACCESSES */
-  
-  /* Mark */
-  scm_c_hook_run (&scm_before_mark_c_hook, 0);
-
-  scm_mark_all ();
-  scm_gc_mark_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
-
-  scm_i_last_marked_cell_count = scm_cells_allocated = scm_i_marked_count ();
-
-  /* Sweep
-
-    TODO: the after_sweep hook should probably be moved to just before
-    the mark, since that's where the sweep is finished in lazy
-    sweeping.
-
-    MDJ 030219 <djurfeldt@nada.kth.se>: No, probably not.  The
-    original meaning implied at least two things: that it would be
-    called when
-
-      1. the freelist is re-initialized (no evaluation possible, though)
-      
-    and
-    
-      2. the heap is "fresh"
-         (it is well-defined what data is used and what is not)
-
-    Neither of these conditions would hold just before the mark phase.
-    
-    Of course, the lazy sweeping has muddled the distinction between
-    scm_before_sweep_c_hook and scm_after_sweep_c_hook, but even if
-    there were no difference, it would still be useful to have two
-    distinct classes of hook functions since this can prevent some
-    bad interference when several modules adds gc hooks.
-   */
-  scm_c_hook_run (&scm_before_sweep_c_hook, 0);
-
-  /*
-    Nothing here: lazy sweeping.
-   */
-  scm_i_reset_segments ();
-  
-  *SCM_FREELIST_LOC (scm_i_freelist) = SCM_EOL;
-  *SCM_FREELIST_LOC (scm_i_freelist2) = SCM_EOL;
-
-  /* Invalidate the freelists of other threads. */
-  scm_i_thread_invalidate_freelists ();
-
-  scm_c_hook_run (&scm_after_sweep_c_hook, 0);
-
-  gc_end_stats ();
-
-  scm_i_gc_sweep_stats.collected = scm_i_gc_sweep_stats.swept = 0;
-  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist);
-  scm_i_gc_sweep_freelist_reset (&scm_i_master_freelist2);
-  
-  /* Arguably, this statistic is fairly useless: marking will dominate
-     the time taken.
-  */
-  scm_gc_time_taken += (scm_c_get_internal_run_time () - t_before_gc);
-    
-  scm_i_thread_wake_up ();
-  /*
-    For debugging purposes, you could do
-    scm_i_sweep_all_segments ("debug"), but then the remains of the
-    cell aren't left to analyse.
-   */
+  GC_gcollect ();
 }
 
 
@@ -766,12 +478,7 @@ scm_return_first_int (int i, ...)
 SCM
 scm_permanent_object (SCM obj)
 {
-  SCM cell = scm_cons (obj, SCM_EOL);
-  SCM_CRITICAL_SECTION_START;
-  SCM_SETCDR (cell, scm_permobjs);
-  scm_permobjs = cell;
-  SCM_CRITICAL_SECTION_END;
-  return obj;
+  return (scm_gc_protect_object (obj));
 }
 
 
@@ -801,7 +508,7 @@ scm_gc_protect_object (SCM obj)
      critsec/mutex inconsistency here. */
   SCM_CRITICAL_SECTION_START;
 
-  handle = scm_hashq_create_handle_x (scm_protects, obj, scm_from_int (0));
+  handle = scm_hashq_create_handle_x (protects, obj, scm_from_int (0));
   SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
 
   protected_obj_count ++;
@@ -831,7 +538,7 @@ scm_gc_unprotect_object (SCM obj)
       abort ();
     }
  
-  handle = scm_hashq_get_handle (scm_protects, obj);
+  handle = scm_hashq_get_handle (protects, obj);
 
   if (scm_is_false (handle))
     {
@@ -842,7 +549,7 @@ scm_gc_unprotect_object (SCM obj)
     {
       SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
       if (scm_is_eq (count, scm_from_int (0)))
-	scm_hashq_remove_x (scm_protects, obj);
+	scm_hashq_remove_x (protects, obj);
       else
 	SCM_SETCDR (handle, count);
     }
@@ -856,48 +563,13 @@ scm_gc_unprotect_object (SCM obj)
 void
 scm_gc_register_root (SCM *p)
 {
-  SCM handle;
-  SCM key = scm_from_ulong ((unsigned long) p);
-
-  /* This critical section barrier will be replaced by a mutex. */
-  /* njrev: and again. */
-  SCM_CRITICAL_SECTION_START;
-
-  handle = scm_hashv_create_handle_x (scm_gc_registered_roots, key,
-				      scm_from_int (0));
-  /* njrev: note also that the above can probably signal an error */
-  SCM_SETCDR (handle, scm_sum (SCM_CDR (handle), scm_from_int (1)));
-
-  SCM_CRITICAL_SECTION_END;
+  /* Nothing.  */
 }
 
 void
 scm_gc_unregister_root (SCM *p)
 {
-  SCM handle;
-  SCM key = scm_from_ulong ((unsigned long) p);
-
-  /* This critical section barrier will be replaced by a mutex. */
-  /* njrev: and again. */
-  SCM_CRITICAL_SECTION_START;
-
-  handle = scm_hashv_get_handle (scm_gc_registered_roots, key);
-
-  if (scm_is_false (handle))
-    {
-      fprintf (stderr, "scm_gc_unregister_root called on unregistered root\n");
-      abort ();
-    }
-  else
-    {
-      SCM count = scm_difference (SCM_CDR (handle), scm_from_int (1));
-      if (scm_is_eq (count, scm_from_int (0)))
-	scm_hashv_remove_x (scm_gc_registered_roots, key);
-      else
-	SCM_SETCDR (handle, count);
-    }
-
-  SCM_CRITICAL_SECTION_END;
+  /* Nothing.  */
 }
 
 void
@@ -943,6 +615,31 @@ scm_getenv_int (const char *var, int def)
 void
 scm_storage_prehistory ()
 {
+  GC_all_interior_pointers = 0;
+  GC_set_free_space_divisor (scm_getenv_int ("GC_FREE_SPACE_DIVISOR", 3));
+
+  GC_INIT ();
+
+#if (! ((defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR >= 7))) \
+    && (defined SCM_I_GSC_USE_PTHREAD_THREADS)
+  /* When using GC 6.8, this call is required to initialize thread-local
+     freelists (shouldn't be necessary with GC 7.0).  */
+  GC_init ();
+#endif
+
+  GC_expand_hp (SCM_DEFAULT_INIT_HEAP_SIZE_2);
+
+  /* We only need to register a displacement for those types for which the
+     higher bits of the type tag are used to store a pointer (that is, a
+     pointer to an 8-octet aligned region).  For `scm_tc3_struct', this is
+     handled in `scm_alloc_struct ()'.  */
+  GC_REGISTER_DISPLACEMENT (scm_tc3_cons);
+  /* GC_REGISTER_DISPLACEMENT (scm_tc3_unused); */
+
+  /* Sanity check.  */
+  if (!GC_is_visible (&protects))
+    abort ();
+
   scm_c_hook_init (&scm_before_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_before_mark_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
@@ -952,17 +649,10 @@ scm_storage_prehistory ()
 
 scm_i_pthread_mutex_t scm_i_gc_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-int
-scm_init_storage ()
+void
+scm_init_gc_protect_object ()
 {
-  size_t j;
-
-  j = SCM_NUM_PROTECTS;
-  while (j)
-    scm_sys_protects[--j] = SCM_BOOL_F;
-
-  scm_gc_init_freelist ();
-  scm_gc_init_malloc ();
+  protects = scm_c_make_hash_table (31);
 
 #if 0
   /* We can't have a cleanup handler since we have no thread to run it
@@ -977,13 +667,6 @@ scm_init_storage ()
 #endif
 
 #endif
-
-  scm_stand_in_procs = scm_make_weak_key_hash_table (scm_from_int (257));
-  scm_permobjs = SCM_EOL;
-  scm_protects = scm_c_make_hash_table (31);
-  scm_gc_registered_roots = scm_c_make_hash_table (31);
-
-  return 0;
 }
 
 
@@ -1049,65 +732,101 @@ mark_gc_async (void * hook_data SCM_UNUSED,
   return NULL;
 }
 
+char const *
+scm_i_tag_name (scm_t_bits tag)
+{
+  if (tag >= 255)
+    {
+      int k = 0xff & (tag >> 8);
+      return (scm_smobs[k].name);
+    }
+
+  switch (tag) /* 7 bits */
+    {
+    case scm_tcs_struct:
+      return "struct";
+    case scm_tcs_cons_imcar:
+      return "cons (immediate car)";
+    case scm_tcs_cons_nimcar:
+      return "cons (non-immediate car)";
+    case scm_tc7_hashtable:
+      return "hashtable";
+    case scm_tc7_fluid:
+      return "fluid";
+    case scm_tc7_dynamic_state:
+      return "dynamic state";
+    case scm_tc7_wvect:
+      return "weak vector";
+    case scm_tc7_vector:
+      return "vector";
+    case scm_tc7_number:
+      switch (tag)
+	{
+	case scm_tc16_real:
+	  return "real";
+	  break;
+	case scm_tc16_big:
+	  return "bignum";
+	  break;
+	case scm_tc16_complex:
+	  return "complex number";
+	  break;
+	case scm_tc16_fraction:
+	  return "fraction";
+	  break;
+	}
+      break;
+    case scm_tc7_string:
+      return "string";
+      break;
+    case scm_tc7_stringbuf:
+      return "string buffer";
+      break;
+    case scm_tc7_symbol:
+      return "symbol";
+      break;
+    case scm_tc7_variable:
+      return "variable";
+      break;
+    case scm_tc7_gsubr:
+      return "gsubr";
+      break;
+    case scm_tc7_port:
+      return "port";
+      break;
+    case scm_tc7_smob:
+      return "smob";		/* should not occur. */
+      break; 
+    }
+
+  return NULL;
+}
+
+
+
+
 void
 scm_init_gc ()
 {
-  scm_gc_init_mark ();
+  /* `GC_INIT ()' was invoked in `scm_storage_prehistory ()'.  */
 
-  scm_after_gc_hook = scm_permanent_object (scm_make_hook (SCM_INUM0));
+  scm_after_gc_hook = scm_make_hook (SCM_INUM0);
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
 
-  gc_async = scm_c_make_subr ("%gc-thunk", scm_tc7_subr_0,
-			      gc_async_thunk);
+  gc_async = scm_c_make_gsubr ("%gc-thunk", 0, 0, 0, gc_async_thunk);
 
   scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
 
 #include "libguile/gc.x"
 }
 
-#ifdef __ia64__
-# ifdef __hpux
-#  include <sys/param.h>
-#  include <sys/pstat.h>
-void *
-scm_ia64_register_backing_store_base (void)
-{
-  struct pst_vm_status vm_status;
-  int i = 0;
-  while (pstat_getprocvm (&vm_status, sizeof (vm_status), 0, i++) == 1)
-    if (vm_status.pst_type == PS_RSESTACK)
-      return (void *) vm_status.pst_vaddr;
-  abort ();
-}
-void *
-scm_ia64_ar_bsp (const void *ctx)
-{
-  uint64_t bsp;
-  __uc_get_ar_bsp (ctx, &bsp);
-  return (void *) bsp;
-}
-# endif /* hpux */
-# ifdef linux
-#  include <ucontext.h>
-void *
-scm_ia64_register_backing_store_base (void)
-{
-  extern void *__libc_ia64_register_backing_store_base;
-  return __libc_ia64_register_backing_store_base;
-}
-void *
-scm_ia64_ar_bsp (const void *opaque)
-{
-  const ucontext_t *ctx = opaque;
-  return (void *) ctx->uc_mcontext.sc_ar_bsp;
-}
-# endif	/* linux */
-#endif /* __ia64__ */
 
 void
 scm_gc_sweep (void)
 #define FUNC_NAME "scm_gc_sweep"
 {
+  /* FIXME */
+  fprintf (stderr, "%s: doing nothing\n", __FUNCTION__);
 }
 
 #undef FUNC_NAME

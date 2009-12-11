@@ -36,12 +36,12 @@
 
 (with-benchmark-prefix "uniform-vector-read!"
 
-  (benchmark "uniform-vector-write" 500
+  (benchmark "uniform-vector-write" 4000
     (let ((output (open-output-file file-name)))
       (uniform-vector-write buf output)
       (close output)))
 
-  (benchmark "uniform-vector-read!" 500
+  (benchmark "uniform-vector-read!" 20000
     (let ((input (open-input-file file-name)))
       (setvbuf input _IONBF)
       (uniform-vector-read! buf input)

@@ -1,2 +1,6 @@
+
+(define-module (benchmarks 0-reference)
+  :use-module (benchmark-suite lib))
+
 (benchmark "reference benchmark for iteration counts" 330000
   #t)

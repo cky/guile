@@ -92,15 +92,43 @@ static SCM
 lookup_interned_symbol (SCM name, unsigned long raw_hash)
 {
   /* Try to find the symbol in the symbols table */
-  SCM l;
-  size_t len = scm_i_string_length (name);
+  SCM result = SCM_BOOL_F;
+  SCM bucket, elt, previous_elt;
+  size_t len;
   unsigned long hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
 
-  for (l = SCM_HASHTABLE_BUCKET (symbols, hash);
-       !scm_is_null (l);
-       l = SCM_CDR (l))
+  len = scm_i_string_length (name);
+  bucket = SCM_HASHTABLE_BUCKET (symbols, hash);
+
+  for (elt = bucket, previous_elt = SCM_BOOL_F;
+       !scm_is_null (elt);
+       previous_elt = elt, elt = SCM_CDR (elt))
     {
-      SCM sym = SCM_CAAR (l);
+      SCM pair, sym;
+
+      pair = SCM_CAR (elt);
+      if (!scm_is_pair (pair))
+	abort ();
+
+      if (SCM_WEAK_PAIR_CAR_DELETED_P (pair))
+	{
+	  /* PAIR is a weak pair whose key got nullified: remove it from
+	     BUCKET.  */
+	  /* FIXME: Since this is done lazily, i.e., only when a new symbol
+	     is to be inserted in a bucket containing deleted symbols, the
+	     number of items in the hash table may remain erroneous for some
+	     time, thus precluding proper rehashing.  */
+	  if (previous_elt != SCM_BOOL_F)
+	    SCM_SETCDR (previous_elt, SCM_CDR (elt));
+	  else
+	    bucket = SCM_CDR (elt);
+
+	  SCM_HASHTABLE_DECREMENT (symbols);
+	  continue;
+	}
+
+      sym = SCM_CAR (pair);
+
       if (scm_i_symbol_hash (sym) == raw_hash
 	  && scm_i_symbol_length (sym) == len)
 	{
@@ -131,13 +159,19 @@ lookup_interned_symbol (SCM name, unsigned long raw_hash)
                 }
             }
 
-	  return sym;
+	  /* We found it.  */
+	  result = sym;
+	  break;
 	}
     next_symbol:
       ;
     }
 
-  return SCM_BOOL_F;
+  if (SCM_HASHTABLE_N_ITEMS (symbols) < SCM_HASHTABLE_LOWER (symbols))
+    /* We removed many symbols in this pass so trigger a rehashing.  */
+    scm_i_rehash (symbols, scm_i_hash_symbol, 0, "lookup_interned_symbol");
+
+  return result;
 }
 
 /* Intern SYMBOL, an uninterned symbol.  */
@@ -413,7 +447,6 @@ void
 scm_symbols_prehistory ()
 {
   symbols = scm_make_weak_key_hash_table (scm_from_int (2139));
-  scm_permanent_object (symbols);
 }
 
 
