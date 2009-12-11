@@ -2235,33 +2235,55 @@
                                         ; accepts pattern & keys
                                         ; returns $sc-dispatch pattern & ids
                      (lambda (pattern keys)
-                       (let cvt ((p pattern) (n 0) (ids '()))
-                         (if (id? p)
-                             (if (bound-id-member? p keys)
-                                 (values (vector 'free-id p) ids)
-                                 (values 'any (cons (cons p n) ids)))
-                             (syntax-case p ()
-                               ((x dots)
-                                (ellipsis? #'dots)
-                                (call-with-values
-                                    (lambda () (cvt #'x (fx+ n 1) ids))
-                                  (lambda (p ids)
-                                    (values (if (eq? p 'any) 'each-any (vector 'each p))
-                                            ids))))
-                               ((x . y)
-                                (call-with-values
-                                    (lambda () (cvt #'y n ids))
-                                  (lambda (y ids)
-                                    (call-with-values
-                                        (lambda () (cvt #'x n ids))
-                                      (lambda (x ids)
-                                        (values (cons x y) ids))))))
-                               (() (values '() ids))
-                               (#(x ...)
-                                (call-with-values
-                                    (lambda () (cvt #'(x ...) n ids))
-                                  (lambda (p ids) (values (vector 'vector p) ids))))
-                               (x (values (vector 'atom (strip p empty-wrap)) ids)))))))
+                       (define cvt*
+                         (lambda (p* n ids)
+                           (if (null? p*)
+                               (values '() ids)
+                               (call-with-values
+                                   (lambda () (cvt* (cdr p*) n ids))
+                                 (lambda (y ids)
+                                   (call-with-values
+                                       (lambda () (cvt (car p*) n ids))
+                                     (lambda (x ids)
+                                       (values (cons x y) ids))))))))
+                       (define cvt
+                         (lambda (p n ids)
+                           (if (id? p)
+                               (if (bound-id-member? p keys)
+                                   (values (vector 'free-id p) ids)
+                                   (values 'any (cons (cons p n) ids)))
+                               (syntax-case p ()
+                                 ((x dots)
+                                  (ellipsis? (syntax dots))
+                                  (call-with-values
+                                      (lambda () (cvt (syntax x) (fx+ n 1) ids))
+                                    (lambda (p ids)
+                                      (values (if (eq? p 'any) 'each-any (vector 'each p))
+                                              ids))))
+                                 ((x dots ys ...)
+                                  (ellipsis? (syntax dots))
+                                  (call-with-values
+                                      (lambda () (cvt* (syntax (ys ...)) n ids))
+                                    (lambda (ys ids)
+                                      (call-with-values
+                                          (lambda () (cvt (syntax x) (+ n 1) ids))
+                                        (lambda (x ids)
+                                          (values `#(each+ ,x ,(reverse ys) ()) ids))))))
+                                 ((x . y)
+                                  (call-with-values
+                                      (lambda () (cvt (syntax y) n ids))
+                                    (lambda (y ids)
+                                      (call-with-values
+                                          (lambda () (cvt (syntax x) n ids))
+                                        (lambda (x ids)
+                                          (values (cons x y) ids))))))
+                                 (() (values '() ids))
+                                 (#(x ...)
+                                  (call-with-values
+                                      (lambda () (cvt (syntax (x ...)) n ids))
+                                    (lambda (p ids) (values (vector 'vector p) ids))))
+                                 (x (values (vector 'atom (strip p empty-wrap)) ids))))))
+                       (cvt pattern 0 '())))
 
                    (define build-dispatch-call
                      (lambda (pvars exp y r mod)
@@ -2454,6 +2476,7 @@
 ;;;   each-any                           (any*)
 ;;;   #(free-id <key>)                   <key> with free-identifier=?
 ;;;   #(each <pattern>)                  (<pattern>*)
+;;;   #(each+ p1 (p2_1 ... p2_n) p3)      (p1* (p2_n ... p2_1) . p3)
 ;;;   #(vector <pattern>)                (list->vector <pattern>)
 ;;;   #(atom <object>)                   <object> with "equal?"
 
@@ -2479,6 +2502,29 @@
                       (syntax-object-module e)))
          (else #f))))
 
+    (define match-each+
+      (lambda (e x-pat y-pat z-pat w r mod)
+        (let f ((e e) (w w))
+          (cond
+           ((pair? e)
+            (call-with-values (lambda () (f (cdr e) w))
+              (lambda (xr* y-pat r)
+                (if r
+                    (if (null? y-pat)
+                        (let ((xr (match (car e) x-pat w '() mod)))
+                          (if xr
+                              (values (cons xr xr*) y-pat r)
+                              (values #f #f #f)))
+                        (values
+                         '()
+                         (cdr y-pat)
+                         (match (car e) (car y-pat) w r mod)))
+                    (values #f #f #f)))))
+           ((syntax-object? e)
+            (f (syntax-object-expression e) (join-wraps w e)))
+           (else
+            (values '() y-pat (match e z-pat w r mod)))))))
+
     (define match-each-any
       (lambda (e w mod)
         (cond
@@ -2502,8 +2548,18 @@
          (else
           (case (vector-ref p 0)
             ((each) (match-empty (vector-ref p 1) r))
+            ((each+) (match-empty (vector-ref p 1)
+                                  (match-empty
+                                   (reverse (vector-ref p 2))
+                                   (match-empty (vector-ref p 3) r))))
             ((free-id atom) r)
             ((vector) (match-empty (vector-ref p 1) r)))))))
+
+    (define combine
+      (lambda (r* r)
+        (if (null? (car r*))
+            r
+            (cons (map car r*) (combine (map cdr r*) r)))))
 
     (define match*
       (lambda (e p w r mod)
@@ -2526,6 +2582,16 @@
                           (if (null? (car l))
                               r
                               (cons (map car l) (collect (map cdr l)))))))))
+            ((each+)
+             (call-with-values
+                 (lambda ()
+                   (match-each+ e (vector-ref p 1) (vector-ref p 2) (vector-ref p 3) w r mod))
+               (lambda (xr* y-pat r)
+                 (and r
+                      (null? y-pat)
+                      (if (null? xr*)
+                          (match-empty (vector-ref p 1) r)
+                          (combine xr* r))))))
             ((free-id) (and (id? e) (free-id=? (wrap e w mod) (vector-ref p 1)) r))
             ((atom) (and (equal? (vector-ref p 1) (strip e w)) r))
             ((vector)

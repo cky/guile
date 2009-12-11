@@ -20,7 +20,8 @@
 ;; affect code outside of this file.
 ;;
 (define-module (test-suite test-syncase)
-  :use-module (test-suite lib))
+  :use-module (test-suite lib)
+  :use-module ((srfi srfi-1) :select (member)))
 
 (define-syntax plus
   (syntax-rules ()
@@ -43,3 +44,41 @@
 (pass-if "macro using quasisyntax"
   (equal? (string-let foo (list foo foo))
           '("foo" "foo")))
+
+(define-syntax string-case
+  (syntax-rules (else)
+    ((string-case expr ((string ...) clause-body ...) ... (else else-body ...))
+     (let ((value expr))
+       (cond ((member value '(string ...) string=?)
+              clause-body ...)
+             ...
+             (else
+              else-body ...))))
+    ((string-case expr ((string ...) clause-body ...) ...)
+     (let ((value expr))
+       (cond ((member value '(string ...) string=?)
+              clause-body ...)
+             ...)))))
+
+(define-syntax alist
+  (syntax-rules (tail)
+    ((alist ((key val) ... (tail expr)))
+     (cons* '(key . val) ... expr))
+    ((alist ((key val) ...))
+     (list '(key . val) ...))))
+
+(with-test-prefix "tail patterns"
+  (with-test-prefix "at the outermost level"
+    (pass-if "non-tail invocation"
+      (equal? (string-case "foo" (("foo") 'foo))
+              'foo))
+    (pass-if "tail invocation"
+      (equal? (string-case "foo" (("bar") 'bar) (else 'else))
+              'else)))
+  (with-test-prefix "at a nested level"
+    (pass-if "non-tail invocation"
+      (equal? (alist ((a 1) (b 2) (c 3)))
+              '((a . 1) (b . 2) (c . 3))))
+    (pass-if "tail invocation"
+      (equal? (alist ((foo 42) (tail '((bar . 66)))))
+              '((foo . 42) (bar . 66))))))
