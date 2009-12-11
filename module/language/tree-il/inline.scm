@@ -77,20 +77,23 @@
             ((memq memv)
              (pmatch args
                ((,k ,l) (guard (const? l) (list? (const-exp l)))
-                (let lp ((elts (const-exp l)))
-                  (if (null? elts)
-                      (make-const #f #f)
-                      (make-conditional
-                       src
-                       (make-application
-                        #f
-                        (make-primitive-ref #f (case name
-                                                 ((memq) 'eq?)
-                                                 ((memv) 'eqv?)
-                                                 (else (error "what"))))
-                        (list k (make-const #f (car elts))))
-                       (make-const #f #t)
-                       (lp (cdr elts))))))
+                (if (null? (const-exp l))
+                    (make-const #f #f)
+                    (let lp ((elts (const-exp l)))
+                      (let ((test (make-application
+                                   #f
+                                   (make-primitive-ref #f (case name
+                                                            ((memq) 'eq?)
+                                                            ((memv) 'eqv?)
+                                                            (else (error "what"))))
+                                   (list k (make-const #f (car elts))))))
+                        (if (null? (cdr elts))
+                            test
+                            (make-conditional
+                             src
+                             test
+                             (make-const #f #t)
+                             (lp (cdr elts))))))))
 
                (else #f)))
 
