@@ -191,7 +191,7 @@
                                          (not (lambda-case-opt c))
                                          (not (lambda-case-kw c))
                                          (not (lambda-case-rest c)))
-                                    (lp (lambda-case-else c)))))))))
+                                    (lp (lambda-case-alternate c)))))))))
            (hashq-set! labels gensym #f))
        (list gensym))
       
@@ -225,7 +225,7 @@
          (hashq-set! free-vars x free)
          free))
       
-      ((<lambda-case> opt kw inits vars body else)
+      ((<lambda-case> opt kw inits vars body alternate)
        (hashq-set! bound-vars proc
                    (append (reverse vars) (hashq-ref bound-vars proc)))
        (lset-union
@@ -235,7 +235,7 @@
                                      (apply lset-union eq? (map step inits))
                                      (step-tail body))
                          vars)
-        (if else (step-tail else) '())))
+        (if alternate (step-tail alternate) '())))
       
       ((<let> vars vals body)
        (hashq-set! bound-vars proc
@@ -379,7 +379,7 @@
          (hashq-set! allocation x (cons labels free-addresses)))
        n)
 
-      ((<lambda-case> opt kw inits vars body else)
+      ((<lambda-case> opt kw inits vars body alternate)
        (max
         (let lp ((vars vars) (n n))
           (if (null? vars)
@@ -397,7 +397,7 @@
                             (make-hashq
                              proc `(#t ,(hashq-ref assigned (car vars)) . ,n)))
                 (lp (cdr vars) (1+ n)))))
-        (if else (allocate! else proc n) n)))
+        (if alternate (allocate! alternate proc n) n)))
       
       ((<let> vars vals body)
        (let ((nmax (apply max (map recur vals))))
@@ -820,8 +820,8 @@
              (if (not proc)
                  (values name (reverse arities))
                  (record-case proc
-                   ((<lambda-case> req opt rest kw else)
-                    (loop name else
+                   ((<lambda-case> req opt rest kw alternate)
+                    (loop name alternate
                           (cons (list (len req) (len opt) rest
                                       (and (pair? kw) (map car (cdr kw)))
                                       (and (pair? kw) (car kw)))

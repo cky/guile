@@ -44,11 +44,11 @@
           (let lp ((lcase body))
             (and lcase
                  (record-case lcase
-                   ((<lambda-case> req opt rest kw inits vars body else)
+                   ((<lambda-case> req opt rest kw inits vars body alternate)
                     (if (and (= (length vars) (length req) (length args)))
                         (let ((x (make-let src req vars args body)))
                           (or (inline1 x) x))
-                        (lp else)))))))
+                        (lp alternate)))))))
 
          ;; (call-with-values (lambda () foo) (lambda (a b . c) bar))
          ;; => (let-values (((a b . c) foo)) bar)
@@ -64,7 +64,7 @@
                          (lambda-case? (lambda-body consumer))
                          (not (lambda-case-opt (lambda-body consumer)))
                          (not (lambda-case-kw (lambda-body consumer)))
-                         (not (lambda-case-else (lambda-body consumer))))
+                         (not (lambda-case-alternate (lambda-body consumer))))
                   (make-let-values
                    src
                    (let ((x (make-application src producer '())))

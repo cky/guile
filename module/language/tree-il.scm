@@ -40,7 +40,7 @@
             <lambda-case> lambda-case? make-lambda-case lambda-case-src
                           lambda-case-req lambda-case-opt lambda-case-rest lambda-case-kw
                           lambda-case-inits lambda-case-vars
-                          lambda-case-body lambda-case-else
+                          lambda-case-body lambda-case-alternate
             <let> let? make-let let-src let-names let-vars let-vals let-body
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
             <fix> fix? make-fix fix-src fix-names fix-vars fix-vals fix-body
@@ -70,7 +70,7 @@
   (<application> proc args)
   (<sequence> exps)
   (<lambda> meta body)
-  (<lambda-case> req opt rest kw inits vars body else)
+  (<lambda-case> req opt rest kw inits vars body alternate)
   (<let> names vars vals body)
   (<letrec> names vars vals body)
   (<fix> names vars vals body)
@@ -135,11 +135,11 @@
      ((lambda ,meta ,body)
       (make-lambda loc meta (retrans body)))
 
-     ((lambda-case ((,req ,opt ,rest ,kw ,inits ,vars) ,body) ,else)
+     ((lambda-case ((,req ,opt ,rest ,kw ,inits ,vars) ,body) ,alternate)
       (make-lambda-case loc req opt rest kw 
                         (map retrans inits) vars
                         (retrans body)
-                        (and=> else retrans)))
+                        (and=> alternate retrans)))
 
      ((lambda-case ((,req ,opt ,rest ,kw ,inits ,vars) ,body))
       (make-lambda-case loc req opt rest kw
@@ -206,10 +206,10 @@
     ((<lambda> meta body)
      `(lambda ,meta ,(unparse-tree-il body)))
 
-    ((<lambda-case> req opt rest kw inits vars body else)
+    ((<lambda-case> req opt rest kw inits vars body alternate)
      `(lambda-case ((,req ,opt ,rest ,kw ,(map unparse-tree-il inits) ,vars)
                     ,(unparse-tree-il body))
-                   . ,(if else (list (unparse-tree-il else)) '())))
+                   . ,(if alternate (list (unparse-tree-il alternate)) '())))
 
     ((<const> exp)
      `(const ,exp))
@@ -269,15 +269,15 @@
     ((<lambda> meta body)
      ;; fixme: put in docstring
      (if (and (lambda-case? body)
-              (not (lambda-case-else body)))
+              (not (lambda-case-alternate body)))
          `(lambda ,@(car (tree-il->scheme body)))
          `(case-lambda ,@(tree-il->scheme body))))
     
-    ((<lambda-case> req opt rest kw inits vars body else)
+    ((<lambda-case> req opt rest kw inits vars body alternate)
      ;; FIXME! use parse-lambda-case?
      `((,(if rest (apply cons* vars) vars)
         ,(tree-il->scheme body))
-       ,@(if else (tree-il->scheme else) '())))
+       ,@(if alternate (tree-il->scheme alternate) '())))
     
     ((<const> exp)
      (if (and (self-evaluating? exp) (not (vector? exp)))
@@ -333,9 +333,9 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop exps (down tree result))))
           ((<lambda> body)
            (up tree (loop body (down tree result))))
-          ((<lambda-case> inits body else)
-           (up tree (if else
-                        (loop else
+          ((<lambda-case> inits body alternate)
+           (up tree (if alternate
+                        (loop alternate
                               (loop body (loop inits (down tree result))))
                         (loop body (loop inits (down tree result))))))
           ((<let> vals body)
@@ -389,11 +389,11 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (fold-values foldts exps seed ...))
                  ((<lambda> body)
                   (foldts body seed ...))
-                 ((<lambda-case> inits body else)
+                 ((<lambda-case> inits body alternate)
                   (let-values (((seed ...) (fold-values foldts inits seed ...)))
-                    (if else
+                    (if alternate
                         (let-values (((seed ...) (foldts body seed ...)))
-                          (foldts else seed ...))
+                          (foldts alternate seed ...))
                         (foldts body seed ...))))
                  ((<let> vals body)
                   (let*-values (((seed ...) (fold-values foldts vals seed ...)))
@@ -438,11 +438,11 @@ This is an implementation of `foldts' as described by Andy Wingo in
       ((<lambda> body)
        (set! (lambda-body x) (lp body)))
       
-      ((<lambda-case> inits body else)
+      ((<lambda-case> inits body alternate)
        (set! inits (map lp inits))
        (set! (lambda-case-body x) (lp body))
-       (if else
-           (set! (lambda-case-else x) (lp else))))
+       (if alternate
+           (set! (lambda-case-alternate x) (lp alternate))))
       
       ((<sequence> exps)
        (set! (sequence-exps x) (map lp exps)))
@@ -495,10 +495,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
         ((<lambda> body)
          (set! (lambda-body x) (lp body)))
 
-        ((<lambda-case> inits body else)
+        ((<lambda-case> inits body alternate)
          (set! inits (map lp inits))
          (set! (lambda-case-body x) (lp body))
-         (if else (set! (lambda-case-else x) (lp else))))
+         (if alternate (set! (lambda-case-alternate x) (lp alternate))))
 
         ((<sequence> exps)
          (set! (sequence-exps x) (map lp exps)))

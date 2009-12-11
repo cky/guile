@@ -426,7 +426,7 @@
              (emit-branch src 'br (car (hashq-ref allocation lcase))))
             ((lambda-case? lcase)
              ;; no match, try next case
-             (lp (lambda-case-else lcase)))
+             (lp (lambda-case-alternate lcase)))
             (else
              ;; no cases left; shuffle args down and jump before the prelude.
              (for-each (lambda (i)
@@ -463,7 +463,7 @@
              (emit-branch src 'br (car (hashq-ref allocation lcase))))
             ((lambda-case? lcase)
              ;; no match, try next case
-             (lp (lambda-case-else lcase)))
+             (lp (lambda-case-alternate lcase)))
             (else
              ;; no cases left. we can't really handle this currently.
              ;; ideally we would push on a new frame, then do a "local
@@ -664,7 +664,7 @@
                   (emit-code #f (make-glil-call 'make-closure 2)))))))
        (maybe-emit-return))
       
-      ((<lambda-case> src req opt rest kw inits vars else body)
+      ((<lambda-case> src req opt rest kw inits vars alternate body)
        ;; o/~ feature on top of feature o/~
        ;; req := (name ...)
        ;; opt := (name ...) | #f
@@ -688,7 +688,7 @@
               (nargs (apply max (+ nreq nopt (if rest 1 0))
                             (map 1+ (map cdr kw-indices))))
               (nlocs (cdr (hashq-ref allocation x)))
-              (else-label (and else (make-label))))
+              (alternate-label (and alternate (make-label))))
          (or (= nargs
                 (length vars)
                 (+ nreq (length inits) (if rest 1 0)))
@@ -701,11 +701,11 @@
           (cond
            (kw
             (make-glil-kw-prelude nreq nopt rest-idx kw-indices
-                                  allow-other-keys? nlocs else-label))
+                                  allow-other-keys? nlocs alternate-label))
            ((or rest opt)
-            (make-glil-opt-prelude nreq nopt rest-idx nlocs else-label))
+            (make-glil-opt-prelude nreq nopt rest-idx nlocs alternate-label))
            (#t
-            (make-glil-std-prelude nreq nlocs else-label))))
+            (make-glil-std-prelude nreq nlocs alternate-label))))
          ;; box args if necessary
          (for-each
           (lambda (v)
@@ -754,10 +754,10 @@
          (comp-tail body)
          (if (not (null? vars))
              (emit-code #f (make-glil-unbind)))
-         (if else-label
+         (if alternate-label
              (begin
-               (emit-label else-label)
-               (comp-tail else)))))
+               (emit-label alternate-label)
+               (comp-tail alternate)))))
       
       ((<let> src names vars vals body)
        (for-each comp-push vals)
@@ -827,7 +827,7 @@
                 (let lp ((lcase (lambda-body x)))
                   (if lcase
                       (record-case lcase
-                        ((<lambda-case> src req vars body else)
+                        ((<lambda-case> src req vars body alternate)
                          (emit-label (car (hashq-ref allocation lcase)))
                          ;; FIXME: opt & kw args in the bindings
                          (emit-bindings #f req vars allocation self emit-code)
@@ -835,7 +835,7 @@
                              (emit-code #f (make-glil-source src)))
                          (comp-fix body (or RA new-RA))
                          (emit-code #f (make-glil-unbind))
-                         (lp else)))
+                         (lp alternate)))
                       (emit-label POST)))))))
           vals
           vars)
@@ -879,8 +879,8 @@
 
       ((<let-values> src exp body)
        (record-case body
-         ((<lambda-case> req opt kw rest vars body else)
-          (if (or opt kw else)
+         ((<lambda-case> req opt kw rest vars body alternate)
+          (if (or opt kw alternate)
               (error "unexpected lambda-case in let-values" x))
           (let ((MV (make-label)))
             (comp-vals exp MV)
