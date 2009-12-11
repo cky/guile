@@ -466,6 +466,8 @@ VM_DEFINE_INSTRUCTION (34, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
   FETCH_OFFSET (offset);                        \
   if (p)					\
     ip += offset;                               \
+  if (offset < 0)                               \
+    VM_HANDLE_INTERRUPTS;                       \
   NULLSTACK (1);				\
   DROP ();					\
   NEXT;						\
@@ -476,6 +478,8 @@ VM_DEFINE_INSTRUCTION (35, br, "br", 3, 0, 0)
   scm_t_int32 offset;
   FETCH_OFFSET (offset);
   ip += offset;
+  if (offset < 0)
+    VM_HANDLE_INTERRUPTS;
   NEXT;
 }
 
