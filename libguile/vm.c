@@ -363,8 +363,6 @@ make_vm (void)
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;
   vp->engine      = SCM_VM_DEBUG_ENGINE;
-  vp->time        = 0;
-  vp->clock       = 0;
   vp->options     = SCM_EOL;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
@@ -618,25 +616,6 @@ SCM_DEFINE (scm_set_vm_option_x, "set-vm-option!", 3, 0, 0,
   SCM_VM_DATA (vm)->options
     = scm_assq_set_x (SCM_VM_DATA (vm)->options, key, val);
   return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_stats, "vm-stats", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_stats
-{
-  SCM stats;
-
-  SCM_VALIDATE_VM (1, vm);
-
-  stats = scm_make_vector (SCM_I_MAKINUM (2), SCM_UNSPECIFIED);
-  scm_vector_set_x (stats, SCM_I_MAKINUM (0),
-		    scm_from_ulong (SCM_VM_DATA (vm)->time));
-  scm_vector_set_x (stats, SCM_I_MAKINUM (1),
-		    scm_from_ulong (SCM_VM_DATA (vm)->clock));
-
-  return stats;
 }
 #undef FUNC_NAME
 

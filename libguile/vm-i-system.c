@@ -31,7 +31,6 @@ VM_DEFINE_INSTRUCTION (0, nop, "nop", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
 {
-  vp->time += scm_c_get_internal_run_time () - start_time;
   HALT_HOOK ();
   nvalues = SCM_I_INUM (*sp--);
   NULLSTACK (1);

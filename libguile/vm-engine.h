@@ -339,13 +339,6 @@ do {						\
 #define FETCH()		(*ip++)
 #define FETCH_LENGTH(len) do { len=*ip++; len<<=8; len+=*ip++; len<<=8; len+=*ip++; } while (0)
 
-#undef CLOCK
-#if VM_USE_CLOCK
-#define CLOCK(n)	vp->clock += n
-#else
-#define CLOCK(n)
-#endif
-
 #undef NEXT_JUMP
 #ifdef HAVE_LABELS_AS_VALUES
 #define NEXT_JUMP()		goto *jump_table[FETCH () & SCM_VM_INSTRUCTION_MASK]
@@ -355,7 +348,6 @@ do {						\
 
 #define NEXT					\
 {						\
-  CLOCK (1);					\
   NEXT_HOOK ();					\
   CHECK_STACK_LEAK ();                          \
   NEXT_JUMP ();					\

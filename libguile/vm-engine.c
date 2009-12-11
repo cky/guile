@@ -20,12 +20,10 @@
 
 #if (VM_ENGINE == SCM_VM_REGULAR_ENGINE)
 #define VM_USE_HOOKS		0	/* Various hooks */
-#define VM_USE_CLOCK		0	/* Bogoclock */
 #define VM_CHECK_OBJECT         1       /* Check object table */
 #define VM_CHECK_FREE_VARIABLES 1       /* Check free variable access */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
-#define VM_USE_CLOCK		1
 #define VM_CHECK_OBJECT         1
 #define VM_CHECK_FREE_VARIABLES 1
 #else
@@ -53,7 +51,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 
   /* Internal variables */
   int nvalues = 0;
-  long start_time = scm_c_get_internal_run_time ();
   SCM finish_args;                      /* used both for returns: both in error
                                            and normal situations */
 #if VM_USE_HOOKS
@@ -255,7 +252,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
 }
 
 #undef VM_USE_HOOKS
-#undef VM_USE_CLOCK
 #undef VM_CHECK_OBJECT
 #undef VM_CHECK_FREE_VARIABLE
 

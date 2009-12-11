@@ -24,7 +24,7 @@
   #:use-module (system base language)
   #:use-module (system vm vm)
   #:export (<repl> make-repl repl-vm repl-language repl-options
-            repl-tm-stats repl-gc-stats repl-vm-stats
+            repl-tm-stats repl-gc-stats
             repl-welcome repl-prompt repl-read repl-compile repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
             puts ->string user-error))
@@ -34,7 +34,7 @@
 ;;; Repl type
 ;;;
 
-(define-record/keywords <repl> vm language options tm-stats gc-stats vm-stats)
+(define-record/keywords <repl> vm language options tm-stats gc-stats)
 
 (define repl-default-options
   '((trace . #f)
@@ -46,8 +46,7 @@
               #:language (lookup-language lang)
               #:options repl-default-options
               #:tm-stats (times)
-              #:gc-stats (gc-stats)
-              #:vm-stats (vm-stats (the-vm))))
+              #:gc-stats (gc-stats)))
 
 (define (repl-welcome repl)
   (let ((language (repl-language repl)))

@@ -50,8 +50,6 @@ struct scm_vm {
   int engine;                   /* which vm engine we're using */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
-  unsigned long time;		/* time spent */
-  unsigned long clock;		/* bogos clock */
   SCM trace_frame;              /* a frame being traced */
 };
 
@@ -85,7 +83,6 @@ SCM_API SCM scm_vm_exit_hook (SCM vm);
 SCM_API SCM scm_vm_return_hook (SCM vm);
 SCM_API SCM scm_vm_option (SCM vm, SCM key);
 SCM_API SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
-SCM_API SCM scm_vm_stats (SCM vm);
 SCM_API SCM scm_vm_trace_frame (SCM vm);
 
 struct scm_vm_cont {

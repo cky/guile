@@ -24,7 +24,7 @@
   #:export (vm? the-vm make-vm vm-version
             vm:ip vm:sp vm:fp vm:last-ip
 
-            vm-load vm-option set-vm-option! vm-version vm-stats
+            vm-load vm-option set-vm-option! vm-version
             vms:time vms:clock
 
             vm-trace-frame

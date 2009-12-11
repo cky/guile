@@ -413,10 +413,8 @@ Garbage collection."
   "statistics
 Display statistics."
   (let ((this-tms (times))
-	(this-vms (vm-stats (repl-vm repl)))
 	(this-gcs (gc-stats))
 	(last-tms (repl-tm-stats repl))
-	(last-vms (repl-vm-stats repl))
 	(last-gcs (repl-gc-stats repl)))
     ;; GC times
     (let ((this-times  (assq-ref this-gcs 'gc-times))
@@ -465,20 +463,9 @@ Display statistics."
       (display-time-stat "child user" this-cutime last-cutime)
       (display-time-stat "child system" this-cstime last-cstime)
       (newline))
-    ;; VM statistics
-    (let ((this-time  (vms:time this-vms))
-	  (last-time  (vms:time last-vms))
-	  (this-clock (vms:clock this-vms))
-	  (last-clock (vms:clock last-vms)))
-      (display-stat-title "VM statistics:" "diff" "total")
-      (display-time-stat "time spent" this-time last-time)
-      (display-diff-stat "bogoclock" #f this-clock last-clock "clock")
-      (display-mips-stat "bogomips" this-time this-clock last-time last-clock)
-      (newline))
     ;; Save statistics
     ;; Save statistics
     (set! (repl-tm-stats repl) this-tms)
-    (set! (repl-vm-stats repl) this-vms)
     (set! (repl-gc-stats repl) this-gcs)))
 
 (define (display-stat title flag field1 field2 unit)
