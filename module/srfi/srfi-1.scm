@@ -1,6 +1,6 @@
 ;;; srfi-1.scm --- List Library
 
-;; 	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -242,14 +242,12 @@
   (set-cdr! (last-pair elts) elts)
   elts)
 
-(define (iota count . rest)
+(define* (iota count #:optional (start 0) (step 1))
   (check-arg-type non-negative-integer? count "iota")
-  (let ((start (if (pair? rest) (car rest) 0))
-	(step (if (and (pair? rest) (pair? (cdr rest))) (cadr rest) 1)))
-    (let lp ((n 0) (acc '()))
-      (if (= n count)
+  (let lp ((n 0) (acc '()))
+    (if (= n count)
 	(reverse! acc)
-	(lp (+ n 1) (cons (+ start (* n step)) acc))))))
+	(lp (+ n 1) (cons (+ start (* n step)) acc)))))
 
 ;;; Predicates
 
@@ -381,31 +379,18 @@
 	knil
 	(apply kons (append! lists (list (f (map1 cdr lists)))))))))
 
-(define (unfold p f g seed . rest)
-  (let ((tail-gen (if (pair? rest)
-		      (if (pair? (cdr rest))
-			  (scm-error 'wrong-number-of-args
-				     "unfold" "too many arguments" '() '())
-			  (car rest))
-		      (lambda (x) '()))))
-    (let uf ((seed seed))
-      (if (p seed)
-	  (tail-gen seed)
-	  (cons (f seed)
-		(uf (g seed)))))))
+(define* (unfold p f g seed #:optional (tail-gen (lambda (x) '())))
+  (let uf ((seed seed))
+    (if (p seed)
+        (tail-gen seed)
+        (cons (f seed)
+              (uf (g seed))))))
 
-(define (unfold-right p f g seed . rest)
-  (let ((tail (if (pair? rest)
-		  (if (pair? (cdr rest))
-		      (scm-error 'wrong-number-of-args
-				     "unfold-right" "too many arguments" '()
-				     '())
-		      (car rest))
-		      '())))
-    (let uf ((seed seed) (lis tail))
-      (if (p seed)
-	  lis
-	  (uf (g seed) (cons (f seed) lis))))))
+(define* (unfold-right p f g seed #:optional (tail '()))
+  (let uf ((seed seed) (lis tail))
+    (if (p seed)
+        lis
+        (uf (g seed) (cons (f seed) lis)))))
 
 
 ;; Internal helper procedure.  Map `f' over the single list `ls'.
@@ -482,18 +467,16 @@
 
 (define alist-cons acons)
 
-(define (alist-delete key alist . rest)
-  (let ((k= (if (pair? rest) (car rest) equal?)))
-    (let lp ((a alist) (rl '()))
-      (if (null? a)
+(define* (alist-delete key alist #:optional (k= equal?))
+  (let lp ((a alist) (rl '()))
+    (if (null? a)
 	(reverse! rl)
 	(if (k= key (caar a))
-	  (lp (cdr a) rl)
-	  (lp (cdr a) (cons (car a) rl)))))))
+            (lp (cdr a) rl)
+            (lp (cdr a) (cons (car a) rl))))))
 
-(define (alist-delete! key alist . rest)
-  (let ((k= (if (pair? rest) (car rest) equal?)))
-    (alist-delete key alist k=)))	; XXX:optimize
+(define* (alist-delete! key alist #:optional (k= equal?))
+  (alist-delete key alist k=))	; XXX:optimize
 
 ;;; Set operations on lists
 
