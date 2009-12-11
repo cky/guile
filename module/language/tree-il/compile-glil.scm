@@ -495,12 +495,12 @@
                            (emit-branch #f 'br RA)
                            (emit-label POST)))))))))
 
-      ((<conditional> src test then (alternate else))
+      ((<conditional> src test consequent alternate)
        ;;     TEST
        ;;     (br-if-not L1)
-       ;;     THEN
+       ;;     consequent
        ;;     (br L2)
-       ;; L1: ELSE
+       ;; L1: alternate
        ;; L2:
        (let ((L1 (make-label)) (L2 (make-label)))
          ;; need a pattern matcher
@@ -558,7 +558,7 @@
             (comp-push test)
             (emit-branch src 'br-if-not L1)))
 
-         (comp-tail then)
+         (comp-tail consequent)
          ;; if there is an RA, comp-tail will cause a jump to it -- just
          ;; have to clean up here if there is no RA.
          (if (and (not RA) (not (eq? context 'tail)))

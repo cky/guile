@@ -73,11 +73,11 @@
 ;;  (or x y z)
 ;;    -> (let ((a x)) (if a a (let ((b y)) (if b b z))))
 ;;
-;; As you can see, the `a' binding is only used in the ephemeral `then'
-;; clause of the first `if', but its index would be reserved for the
-;; whole of the `or' expansion. So we have a hack for this specific
-;; case. A proper solution would be some sort of liveness analysis, and
-;; not our linear allocation algorithm.
+;; As you can see, the `a' binding is only used in the ephemeral
+;; `consequent' clause of the first `if', but its index would be
+;; reserved for the whole of the `or' expansion. So we have a hack for
+;; this specific case. A proper solution would be some sort of liveness
+;; analysis, and not our linear allocation algorithm.
 ;;
 ;; Closure variables are captured when a closure is created, and stored
 ;; in a vector. Each closure variable has a unique index into that
@@ -171,8 +171,8 @@
        (apply lset-union eq? (step-tail-call proc args)
               (map step args)))
 
-      ((<conditional> test then else)
-       (lset-union eq? (step test) (step-tail then) (step-tail else)))
+      ((<conditional> test consequent alternate)
+       (lset-union eq? (step test) (step-tail consequent) (step-tail alternate)))
 
       ((<lexical-ref> gensym)
        (hashq-set! refcounts gensym (1+ (hashq-ref refcounts gensym 0)))
@@ -338,8 +338,8 @@
       ((<application> proc args)
        (apply max (recur proc) (map recur args)))
 
-      ((<conditional> test then else)
-       (max (recur test) (recur then) (recur else)))
+      ((<conditional> test consequent alternate)
+       (max (recur test) (recur consequent) (recur alternate)))
 
       ((<lexical-set> exp)
        (recur exp))
@@ -410,12 +410,12 @@
                        (= (hashq-ref refcounts v 0) 2)
                        (lexical-ref? (conditional-test body))
                        (eq? (lexical-ref-gensym (conditional-test body)) v)
-                       (lexical-ref? (conditional-then body))
-                       (eq? (lexical-ref-gensym (conditional-then body)) v))))
+                       (lexical-ref? (conditional-consequent body))
+                       (eq? (lexical-ref-gensym (conditional-consequent body)) v))))
            (hashq-set! allocation (car vars)
                        (make-hashq proc `(#t #f . ,n)))
            ;; the 1+ for this var
-           (max nmax (1+ n) (allocate! (conditional-else body) proc n)))
+           (max nmax (1+ n) (allocate! (conditional-alternate body) proc n)))
           (else
            (let lp ((vars vars) (n n))
              (if (null? vars)

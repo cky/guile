@@ -33,7 +33,7 @@
             <toplevel-ref> toplevel-ref? make-toplevel-ref toplevel-ref-src toplevel-ref-name
             <toplevel-set> toplevel-set? make-toplevel-set toplevel-set-src toplevel-set-name toplevel-set-exp
             <toplevel-define> toplevel-define? make-toplevel-define toplevel-define-src toplevel-define-name toplevel-define-exp
-            <conditional> conditional? make-conditional conditional-src conditional-test conditional-then conditional-else
+            <conditional> conditional? make-conditional conditional-src conditional-test conditional-consequent conditional-alternate
             <application> application? make-application application-src application-proc application-args
             <sequence> sequence? make-sequence sequence-src sequence-exps
             <lambda> lambda? make-lambda lambda-src lambda-meta lambda-body
@@ -66,7 +66,7 @@
   (<toplevel-ref> name)
   (<toplevel-set> name exp)
   (<toplevel-define> name exp)
-  (<conditional> test then else)
+  (<conditional> test consequent alternate)
   (<application> proc args)
   (<sequence> exps)
   (<lambda> meta body)
@@ -93,8 +93,8 @@
      ((apply ,proc . ,args)
       (make-application loc (retrans proc) (map retrans args)))
 
-     ((if ,test ,then ,else)
-      (make-conditional loc (retrans test) (retrans then) (retrans else)))
+     ((if ,test ,consequent ,alternate)
+      (make-conditional loc (retrans test) (retrans consequent) (retrans alternate)))
 
      ((primitive ,name) (guard (symbol? name))
       (make-primitive-ref loc name))
@@ -176,8 +176,8 @@
     ((<application> proc args)
      `(apply ,(unparse-tree-il proc) ,@(map unparse-tree-il args)))
 
-    ((<conditional> test then else)
-     `(if ,(unparse-tree-il test) ,(unparse-tree-il then) ,(unparse-tree-il else)))
+    ((<conditional> test consequent alternate)
+     `(if ,(unparse-tree-il test) ,(unparse-tree-il consequent) ,(unparse-tree-il alternate)))
 
     ((<primitive-ref> name)
      `(primitive ,name))
@@ -237,10 +237,10 @@
     ((<application> proc args)
      `(,(tree-il->scheme proc) ,@(map tree-il->scheme args)))
 
-    ((<conditional> test then else)
-     (if (void? else)
-         `(if ,(tree-il->scheme test) ,(tree-il->scheme then))
-         `(if ,(tree-il->scheme test) ,(tree-il->scheme then) ,(tree-il->scheme else))))
+    ((<conditional> test consequent alternate)
+     (if (void? alternate)
+         `(if ,(tree-il->scheme test) ,(tree-il->scheme consequent))
+         `(if ,(tree-il->scheme test) ,(tree-il->scheme consequent) ,(tree-il->scheme alternate))))
 
     ((<primitive-ref> name)
      name)
@@ -323,9 +323,9 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop exp (down tree result))))
           ((<toplevel-define> exp)
            (up tree (loop exp (down tree result))))
-          ((<conditional> test then else)
-           (up tree (loop else
-                          (loop then
+          ((<conditional> test consequent alternate)
+           (up tree (loop alternate
+                          (loop consequent
                                 (loop test (down tree result))))))
           ((<application> proc args)
            (up tree (loop (cons proc args) (down tree result))))
@@ -378,10 +378,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (foldts exp seed ...))
                  ((<toplevel-define> exp)
                   (foldts exp seed ...))
-                 ((<conditional> test then else)
+                 ((<conditional> test consequent alternate)
                   (let*-values (((seed ...) (foldts test seed ...))
-                                ((seed ...) (foldts then seed ...)))
-                    (foldts else seed ...)))
+                                ((seed ...) (foldts consequent seed ...)))
+                    (foldts alternate seed ...)))
                  ((<application> proc args)
                   (let-values (((seed ...) (foldts proc seed ...)))
                     (fold-values foldts args seed ...)))
@@ -418,10 +418,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (application-proc x) (lp proc))
        (set! (application-args x) (map lp args)))
 
-      ((<conditional> test then else)
+      ((<conditional> test consequent alternate)
        (set! (conditional-test x) (lp test))
-       (set! (conditional-then x) (lp then))
-       (set! (conditional-else x) (lp else)))
+       (set! (conditional-consequent x) (lp consequent))
+       (set! (conditional-alternate x) (lp alternate)))
       
       ((<lexical-set> name gensym exp)
        (set! (lexical-set-exp x) (lp exp)))
@@ -475,10 +475,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (application-proc x) (lp proc))
          (set! (application-args x) (map lp args)))
 
-        ((<conditional> test then else)
+        ((<conditional> test consequent alternate)
          (set! (conditional-test x) (lp test))
-         (set! (conditional-then x) (lp then))
-         (set! (conditional-else x) (lp else)))
+         (set! (conditional-consequent x) (lp consequent))
+         (set! (conditional-alternate x) (lp alternate)))
 
         ((<lexical-set> exp)
          (set! (lexical-set-exp x) (lp exp)))
