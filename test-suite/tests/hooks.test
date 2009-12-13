@@ -52,12 +52,7 @@
 		     (pass-if-exception "illegal proc"
 		       exception:wrong-type-arg
 		       (let ((x (make-hook 1)))
-                         ;; Currently fails to raise an exception
-                         ;; because we can't usefully get any arity
-                         ;; information out of interpreted procedures. A
-                         ;; FIXME I guess.
-                         (throw 'unresolved)
-			 (add-hook! x bad-proc)))
+                         (add-hook! x bad-proc)))
 		     (pass-if-exception "illegal hook"
 		       exception:wrong-type-arg
 		       (add-hook! '(foo) proc1)))

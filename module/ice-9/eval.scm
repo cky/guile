@@ -55,6 +55,58 @@
                (and (current-module) the-root-module)
                env)))))
 
+  (define *max-static-argument-count* 8)
+
+  (define-syntax make-closure
+    (lambda (x)
+      (define (make-formals n)
+        (map (lambda (i)
+               (datum->syntax
+                x 
+                (string->symbol
+                 (string (integer->char (+ (char->integer #\a) i))))))
+             (iota n)))
+      (syntax-case x ()
+        ((_ eval nreq rest? body env) (not (identifier? #'env))
+         #'(let ((e env))
+             (make-closure eval nreq rest? body e)))
+        ((_ eval nreq rest? body env)
+         #`(case nreq
+             #,@(map (lambda (nreq)
+                       (let ((formals (make-formals nreq)))
+                         #`((#,nreq)
+                            (if rest?
+                                (lambda (#,@formals . rest)
+                                  (eval body
+                                        (cons* rest #,@(reverse formals)
+                                               env)))
+                                (lambda (#,@formals)
+                                  (eval body
+                                        (cons* #,@(reverse formals) env)))))))
+                     (iota *max-static-argument-count*))
+             (else
+              #,(let ((formals (make-formals *max-static-argument-count*)))
+                  #`(lambda (#,@formals . more)
+                      (let lp ((new-env (cons* #,@(reverse formals) env))
+                               (nreq (- nreq #,*max-static-argument-count*))
+                               (args more))
+                        (if (zero? nreq)
+                            (eval body
+                                  (if rest?
+                                      (cons args new-env)
+                                      (if (not (null? args))
+                                          (scm-error 'wrong-number-of-args
+                                                     "eval" "Wrong number of arguments"
+                                                     '() #f)
+                                          new-env)))
+                            (if (null? args)
+                                (scm-error 'wrong-number-of-args
+                                           "eval" "Wrong number of arguments"
+                                           '() #f)
+                                (lp (cons (car args) new-env)
+                                    (1- nreq)
+                                    (cdr args)))))))))))))
+
   ;; This macro could be more straightforward if the compiler had better
   ;; copy propagation. As it is we do some copy propagation by hand.
   (define-syntax mx-bind
@@ -126,26 +178,8 @@
                    (cons (eval (car inits) env) new-env)))))
       
         (('lambda (nreq rest? . body))
-         (let ((env (capture-env env)))
-           (lambda args
-             (let lp ((env env) (nreq nreq) (args args))
-               (if (zero? nreq)
-                   (eval body
-                         (if rest?
-                             (cons args env)
-                             (if (not (null? args))
-                                 (scm-error 'wrong-number-of-args
-                                            "eval" "Wrong number of arguments"
-                                            '() #f)
-                                 env)))
-                   (if (null? args)
-                       (scm-error 'wrong-number-of-args
-                                  "eval" "Wrong number of arguments"
-                                  '() #f)
-                       (lp (cons (car args) env)
-                           (1- nreq)
-                           (cdr args))))))))
-
+         (make-closure eval nreq rest? body (capture-env env)))
+        
         (('quote x)
          x)
 

@@ -167,10 +167,6 @@
 
     (expect-fail "bad init-thunk"
 		 (begin
-                   ;; Currently UPASSing because we can't usefully get
-                   ;; any arity information out of interpreted
-                   ;; procedures. A FIXME I guess.
-                   (throw 'unresolved)
                    (catch #t
                      (lambda ()
                        (eval '(define-class <foo> ()
