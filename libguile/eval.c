@@ -254,8 +254,8 @@ eval (SCM x, SCM env)
     case SCM_M_CALL:
       /* Evaluate the procedure to be applied.  */
       proc = eval (CAR (mx), env);
-          
-      mx = CDR (mx);
+      /* int nargs = CADR (mx); */
+      mx = CDDR (mx);
 
       if (BOOT_CLOSURE_P (proc))
         {
@@ -289,6 +289,7 @@ eval (SCM x, SCM env)
       else
         {
           SCM rest = SCM_EOL;
+          /* FIXME: use alloca */
           for (; scm_is_pair (mx); mx = CDR (mx))
             rest = scm_cons (eval (CAR (mx), env), rest);
           return scm_vm_apply (scm_the_vm (), proc, scm_reverse (rest));

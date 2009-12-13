@@ -207,8 +207,8 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_CONT, proc)
 #define MAKMEMO_CALL_WITH_VALUES(prod, cons) \
   MAKMEMO (SCM_M_CALL_WITH_VALUES, scm_cons (prod, cons))
-#define MAKMEMO_CALL(proc, args) \
-  MAKMEMO (SCM_M_CALL, scm_cons (proc, args))
+#define MAKMEMO_CALL(proc, nargs, args) \
+  MAKMEMO (SCM_M_CALL, scm_cons (proc, scm_cons (SCM_I_MAKINUM (nargs), args)))
 #define MAKMEMO_LEX_REF(n) \
   MAKMEMO (SCM_M_LEXICAL_REF, SCM_I_MAKINUM (n))
 #define MAKMEMO_LEX_SET(n, val) \
@@ -345,11 +345,15 @@ memoize (SCM exp, SCM env)
         return trans (exp, env);
       else
         {
+          SCM proc;
           SCM args = SCM_EOL;
-          for (; scm_is_pair (exp); exp = CDR (exp))
+          int nargs = 0;
+          proc = memoize (CAR (exp), env);
+          for (exp = CDR (exp); scm_is_pair (exp); exp = CDR (exp), nargs++)
             args = scm_cons (memoize (CAR (exp), env), args);
           if (scm_is_null (exp))
-            return MAKMEMO (SCM_M_CALL, scm_reverse_x (args, SCM_UNDEFINED));
+            return MAKMEMO_CALL (proc, nargs,
+                                 scm_reverse_x (args, SCM_UNDEFINED));
           else
             syntax_error ("expected a proper list", exp, SCM_UNDEFINED);
         }
@@ -566,6 +570,7 @@ scm_m_cond (SCM expr, SCM env)
           i = MAKMEMO_IF (MAKMEMO_LEX_REF (0),
                           MAKMEMO_CALL (memoize (CADDR (clause),
                                                  scm_cons (tmp, new_env)),
+                                        1,
                                         scm_list_1 (MAKMEMO_LEX_REF (0))),
                           MAKMEMO_QUOTE (SCM_UNSPECIFIED));
           SCM_SETCDR (loc, 
@@ -793,6 +798,7 @@ memoize_named_let (const SCM expr, SCM env)
                     memoize_sequence (CDDDR (expr),
                                       memoize_env_extend (env, rvariables)))),
                   MAKMEMO_CALL (MAKMEMO_LEX_REF (0),
+                                nreq,
                                 memoize_exprs (inits, env)))));
 }
 
@@ -1054,7 +1060,7 @@ unmemoize (const SCM expr)
     case SCM_M_BEGIN:
       return scm_cons (scm_sym_begin, unmemoize_exprs (args));
     case SCM_M_CALL:
-      return unmemoize_exprs (args);
+      return scm_cons (unmemoize (CAR (args)), unmemoize_exprs (CDDR (args)));
     case SCM_M_CONT:
       return scm_list_2 (scm_sym_atcall_cc, unmemoize (args));
     case SCM_M_CALL_WITH_VALUES:

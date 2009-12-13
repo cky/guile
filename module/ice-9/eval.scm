@@ -55,10 +55,9 @@
                (and (current-module) the-root-module)
                env)))))
 
-  (define *max-static-argument-count* 8)
-
   (define-syntax make-closure
     (lambda (x)
+      (define *max-static-argument-count* 8)
       (define (make-formals n)
         (map (lambda (i)
                (datum->syntax
@@ -106,6 +105,43 @@
                                 (lp (cons (car args) new-env)
                                     (1- nreq)
                                     (cdr args)))))))))))))
+
+  (define-syntax call
+    (lambda (x)
+      (define *max-static-call-count* 4)
+      (syntax-case x ()
+        ((_ eval proc nargs args env) (identifier? #'env)
+         #`(case nargs
+             #,@(map (lambda (nargs)
+                       #`((#,nargs)
+                          (proc
+                           #,@(map
+                               (lambda (n)
+                                 (let lp ((n n) (args #'args))
+                                   (if (zero? n)
+                                       #`(eval (car #,args) env)
+                                       (lp (1- n) #`(cdr #,args)))))
+                               (iota nargs)))))
+                     (iota *max-static-call-count*))
+             (else
+              (apply proc
+                     #,@(map
+                         (lambda (n)
+                           (let lp ((n n) (args #'args))
+                             (if (zero? n)
+                                 #`(eval (car #,args) env)
+                                 (lp (1- n) #`(cdr #,args)))))
+                         (iota *max-static-call-count*))
+                     (let lp ((exps #,(let lp ((n *max-static-call-count*)
+                                               (args #'args))
+                                        (if (zero? n)
+                                            args
+                                            (lp (1- n) #`(cdr #,args)))))
+                              (args '()))
+                       (if (null? exps)
+                           (reverse args)
+                           (lp (cdr exps)
+                               (cons (eval (car exps) env) args)))))))))))
 
   ;; This macro could be more straightforward if the compiler had better
   ;; copy propagation. As it is we do some copy propagation by hand.
@@ -189,14 +225,10 @@
         (('apply (f args))
          (apply (eval f env) (eval args env)))
 
-        (('call (f . args))
+        (('call (f nargs . args))
          (let ((proc (eval f env)))
-           (let eval-args ((in args) (out '()))
-             (if (null? in)
-                 (apply proc (reverse out))
-                 (eval-args (cdr in)
-                            (cons (eval (car in) env) out))))))
-      
+           (call eval proc nargs args env)))
+        
         (('call/cc proc)
          (call/cc (eval proc env)))
 
