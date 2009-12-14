@@ -120,8 +120,7 @@ SCM_API SCM scm_frame_instruction_pointer (SCM frame);
 SCM_API SCM scm_frame_return_address (SCM frame);
 SCM_API SCM scm_frame_mv_return_address (SCM frame);
 SCM_API SCM scm_frame_dynamic_link (SCM frame);
-
-SCM_API SCM scm_c_frame_prev (SCM frame);
+SCM_API SCM scm_frame_previous (SCM frame);
 
 SCM_INTERNAL void scm_bootstrap_frames (void);
 SCM_INTERNAL void scm_init_frames (void);

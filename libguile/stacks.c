@@ -69,9 +69,8 @@ stack_depth (SCM frame, SCM *fp)
   long n;
   /* count frames, skipping boot frames */
   for (; scm_is_true (frame) && SCM_VM_FRAME_FP (frame) > fp;
-       frame = scm_c_frame_prev (frame))
-    if (!SCM_PROGRAM_IS_BOOT (scm_frame_procedure (frame)))
-      ++n;
+       frame = scm_frame_previous (frame))
+    ++n;
   return n;
 }
 
@@ -112,7 +111,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
       for (; inner && len; --inner)
         {
           len--;
-          frame = scm_c_frame_prev (frame);
+          frame = scm_frame_previous (frame);
         }
     }
   else
@@ -122,7 +121,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
         {
           SCM proc = scm_frame_procedure (frame);
           len--;
-          frame = scm_c_frame_prev (frame);
+          frame = scm_frame_previous (frame);
           if (scm_is_eq (proc, inner_key))
             break;
         }
@@ -231,6 +230,11 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       /* not reached */
     }
 
+  /* FIXME: is this even possible? */
+  if (scm_is_true (frame)
+      && SCM_PROGRAM_IS_BOOT (scm_frame_procedure (frame)))
+    frame = scm_frame_previous (frame);
+  
   if (scm_is_false (frame))
     return SCM_BOOL_F;
 
@@ -351,11 +355,7 @@ SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
   c_index = scm_to_unsigned_integer (index, 0, SCM_STACK_LENGTH(stack)-1);
   frame = SCM_STACK_FRAME (stack);
   while (c_index--)
-    {
-      frame = scm_c_frame_prev (frame);
-      while (SCM_PROGRAM_IS_BOOT (scm_frame_procedure (frame)))
-        frame = scm_c_frame_prev (frame);
-    }
+    frame = scm_frame_previous (frame);
   return frame;
 }
 #undef FUNC_NAME

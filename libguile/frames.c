@@ -264,23 +264,34 @@ SCM_DEFINE (scm_frame_dynamic_link, "frame-dynamic-link", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-extern SCM
-scm_c_frame_prev (SCM frame)
+SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_frame_previous
 {
   SCM *this_fp, *new_fp, *new_sp;
+
+  SCM_VALIDATE_VM_FRAME (1, frame);
+
+ again:
   this_fp = SCM_VM_FRAME_FP (frame);
   new_fp = SCM_FRAME_DYNAMIC_LINK (this_fp);
   if (new_fp) 
     { new_fp = RELOC (frame, new_fp);
       new_sp = SCM_FRAME_LOWER_ADDRESS (this_fp) - 1;
-      return scm_c_make_frame (SCM_VM_FRAME_STACK_HOLDER (frame),
-                               new_fp, new_sp,
-                               SCM_FRAME_RETURN_ADDRESS (this_fp),
-                               SCM_VM_FRAME_OFFSET (frame));
+      frame = scm_c_make_frame (SCM_VM_FRAME_STACK_HOLDER (frame),
+                                new_fp, new_sp,
+                                SCM_FRAME_RETURN_ADDRESS (this_fp),
+                                SCM_VM_FRAME_OFFSET (frame));
+      if (SCM_PROGRAM_IS_BOOT (scm_frame_procedure (frame)))
+        goto again;
+      else
+        return frame;
     }
   else
     return SCM_BOOL_F;
 }
+#undef FUNC_NAME
 
 
 void
