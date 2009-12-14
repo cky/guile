@@ -78,7 +78,7 @@ static const char *iflagnames[] =
 SCM_SYMBOL (sym_reader, "reader");
 
 scm_t_option scm_print_opts[] = {
-  { SCM_OPTION_SCM, "closure-hook", SCM_UNPACK (SCM_BOOL_F),
+  { SCM_OPTION_SCM, "closure-hook", (unsigned long) SCM_BOOL_F,
     "Hook for printing closures (should handle macros as well)." },
   { SCM_OPTION_BOOLEAN, "source", 0,
     "Print closures with source." },
@@ -92,7 +92,6 @@ scm_t_option scm_print_opts[] = {
     "'reader' quotes them when the reader option 'keywords' is not '#f'." 
   },
   { 0 },
-  
 };
 
 SCM_DEFINE (scm_print_options, "print-options-interface", 0, 1, 0, 
