@@ -1108,7 +1108,7 @@ if test "$enable_regex" = yes; then
    fi
 fi
 
-AC_REPLACE_FUNCS(inet_aton putenv strerror memmove mkstemp)
+AC_REPLACE_FUNCS([strerror memmove mkstemp])
 
 AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
 
