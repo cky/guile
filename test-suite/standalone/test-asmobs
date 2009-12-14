@@ -2,7 +2,8 @@
 exec guile -q -s "$0" "$@"
 !#
 
-(load-extension "libtest-asmobs" "libtest_asmobs_init")
+(load-extension (string-append (getenv "builddir") "/libtest-asmobs")
+                "libtest_asmobs_init")
 
 (define (test x v)
   (if v

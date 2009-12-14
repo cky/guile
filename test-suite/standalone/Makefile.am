@@ -29,6 +29,7 @@ BUILT_SOURCES =
 EXTRA_DIST =
 
 TESTS_ENVIRONMENT =						\
+  builddir="$(builddir)"					\
   GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
 
 ## Check for headers in $(srcdir) and bulid dir before $(CPPFLAGS), which
