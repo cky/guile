@@ -399,7 +399,7 @@ void
 scm_print_symbol_name (const char *str, size_t len, SCM port)
 {
   SCM symbol = scm_from_locale_symboln (str, len);
-  return scm_i_print_symbol_name (symbol, port);
+  scm_i_print_symbol_name (symbol, port);
 }
 
 /* Print generally.  Handles both write and display according to PSTATE.
