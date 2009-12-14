@@ -96,9 +96,12 @@ SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_base
 {
+  const struct scm_objcode *c_objcode;
+
   SCM_VALIDATE_PROGRAM (1, program);
 
-  return scm_from_ulong ((unsigned long) SCM_PROGRAM_DATA (program)->base);
+  c_objcode = SCM_PROGRAM_DATA (program);
+  return scm_from_ulong ((unsigned long) SCM_C_OBJCODE_BASE (c_objcode));
 }
 #undef FUNC_NAME
 

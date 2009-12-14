@@ -764,7 +764,7 @@ VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
       ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
-      ip = bp->base;
+      ip = SCM_C_OBJCODE_BASE (bp);
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
@@ -841,7 +841,7 @@ VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
 
       NULLSTACK (old_sp - sp);
 
-      ip = bp->base;
+      ip = SCM_C_OBJCODE_BASE (bp);
 
       ENTER_HOOK ();
       APPLY_HOOK ();
@@ -929,7 +929,7 @@ VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
       ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
       SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
       SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
-      ip = bp->base;
+      ip = SCM_C_OBJCODE_BASE (bp);
       ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;

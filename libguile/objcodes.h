@@ -21,13 +21,19 @@
 
 #include <libguile.h>
 
-/* objcode data should be directly mappable to this C structure. */
-struct scm_objcode {
+/* Objcode data should be directly mappable to this C structure.  */
+struct scm_objcode
+{
   scm_t_uint32 len;             /* the maximum index of base[] */
   scm_t_uint32 metalen;         /* well, i lie. this many bytes at the end of
                                    base[] for metadata */
-  scm_t_uint8 base[0];
+  /* In C99, we'd have:
+     scm_t_uint8 base[];  */
 };
+
+/* Return a pointer to the base of objcode OBJ.  */
+#define SCM_C_OBJCODE_BASE(obj)				\
+  ((scm_t_uint8 *)(obj) + sizeof (struct scm_objcode))
 
 #define SCM_F_OBJCODE_IS_MMAP     (1<<0)
 #define SCM_F_OBJCODE_IS_U8VECTOR (1<<1)
@@ -42,7 +48,7 @@ SCM_API scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_LEN(x)	(SCM_OBJCODE_DATA (x)->len)
 #define SCM_OBJCODE_META_LEN(x)	(SCM_OBJCODE_DATA (x)->metalen)
 #define SCM_OBJCODE_TOTAL_LEN(x) (SCM_OBJCODE_LEN (x) + SCM_OBJCODE_META_LEN (x))
-#define SCM_OBJCODE_BASE(x)	(SCM_OBJCODE_DATA (x)->base)
+#define SCM_OBJCODE_BASE(x)	(SCM_C_OBJCODE_BASE (SCM_OBJCODE_DATA (x)))
 
 #define SCM_OBJCODE_IS_MMAP(x)	(SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_MMAP)
 #define SCM_OBJCODE_IS_U8VECTOR(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_U8VECTOR)

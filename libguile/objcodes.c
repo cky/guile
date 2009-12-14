@@ -106,17 +106,19 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 #define FUNC_NAME "make-objcode-slice"
 {
   const struct scm_objcode *data, *parent_data;
+  const scm_t_uint8 *parent_base;
   SCM ret;
 
   SCM_VALIDATE_OBJCODE (1, parent);
   parent_data = SCM_OBJCODE_DATA (parent);
-  
-  if (ptr < parent_data->base
-      || ptr >= (parent_data->base + parent_data->len + parent_data->metalen
+  parent_base = SCM_C_OBJCODE_BASE (parent_data);
+
+  if (ptr < parent_base
+      || ptr >= (parent_base + parent_data->len + parent_data->metalen
                  - sizeof (struct scm_objcode)))
     scm_misc_error (FUNC_NAME, "offset out of bounds (~a vs ~a + ~a + ~a)",
-		    scm_list_4 (scm_from_ulong ((unsigned long)ptr),
-				scm_from_ulong ((unsigned long)parent_data->base),
+		    scm_list_4 (scm_from_ulong ((unsigned long) ptr),
+				scm_from_ulong ((unsigned long) parent_base),
 				scm_from_uint32 (parent_data->len),
 				scm_from_uint32 (parent_data->metalen)));
 
@@ -125,9 +127,9 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
   assert ((((scm_t_bits) ptr) &
 	   (alignof_type (struct scm_objcode) - 1UL)) == 0);
 
-  data = (struct scm_objcode*)ptr;
-  if (data->base + data->len + data->metalen > parent_data->base + parent_data->len + parent_data->metalen)
-    abort ();
+  data = (struct scm_objcode*) ptr;
+  assert (SCM_C_OBJCODE_BASE (data) + data->len + data->metalen
+	  <= parent_base + parent_data->len + parent_data->metalen);
 
   SCM_NEWSMOB2 (ret, scm_tc16_objcode, data, parent);
   SCM_SET_SMOB_FLAGS (ret, SCM_F_OBJCODE_IS_SLICE);

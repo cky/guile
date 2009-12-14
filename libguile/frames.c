@@ -111,7 +111,8 @@ SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
   bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
 
   return scm_c_program_source (SCM_FRAME_PROGRAM (fp),
-                               SCM_VM_FRAME_IP (frame) - bp->base);
+                               SCM_VM_FRAME_IP (frame)
+			       - SCM_C_OBJCODE_BASE (bp));
 }
 #undef FUNC_NAME
 
@@ -219,10 +220,14 @@ SCM_DEFINE (scm_frame_instruction_pointer, "frame-instruction-pointer", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_frame_instruction_pointer
 {
+  const struct scm_objcode *c_objcode;
+
   SCM_VALIDATE_VM_FRAME (1, frame);
+
+  c_objcode = SCM_PROGRAM_DATA (scm_frame_procedure (frame));
   return scm_from_ulong ((unsigned long)
                          (SCM_VM_FRAME_IP (frame)
-                          - SCM_PROGRAM_DATA (scm_frame_procedure (frame))->base));
+                          - SCM_C_OBJCODE_BASE (c_objcode)));
 }
 #undef FUNC_NAME
 
