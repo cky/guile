@@ -1012,7 +1012,7 @@ scm_read_r6rs_block_comment (scm_t_wchar chr, SCM port)
       int c = scm_getc (port);
 
       if (c == EOF)
-	scm_i_input_error (__FUNCTION__, port,
+	scm_i_input_error ("scm_read_r6rs_block_comment", port,
 			   "unterminated `#| ... |#' comment", SCM_EOL);
 
       if (opening_seen)

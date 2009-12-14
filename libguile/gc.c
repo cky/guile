@@ -826,12 +826,9 @@ scm_gc_sweep (void)
 #define FUNC_NAME "scm_gc_sweep"
 {
   /* FIXME */
-  fprintf (stderr, "%s: doing nothing\n", __FUNCTION__);
+  fprintf (stderr, "%s: doing nothing\n", FUNC_NAME);
 }
-
 #undef FUNC_NAME
-
-
 
 /*
   Local Variables:
