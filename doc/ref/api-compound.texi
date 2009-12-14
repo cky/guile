@@ -3626,11 +3626,11 @@ h
 ;; entry is at index (hashq 'frob).
 h
 @result{}
-#(() () () () ((frob . #f) (braz . "zonk")) () ((foo . "bar")))
+#(((braz . "zonk")) ((foo . "bar")) () () () () ((frob . #f)))
 
-(hashq 'frob)
+(hashq 'frob 7)
 @result{}
-4
+6
 
 @end lisp
 
