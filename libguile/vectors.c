@@ -627,11 +627,11 @@ vector_get_handle (SCM v, scm_t_array_handle *h)
 
 SCM_ARRAY_IMPLEMENTATION (scm_tc7_vector, 0x7f & ~2,
                           vector_handle_ref, vector_handle_set,
-                          vector_get_handle);
+                          vector_get_handle)
 SCM_ARRAY_IMPLEMENTATION (scm_tc7_wvect, 0x7f & ~2,
                           vector_handle_ref, vector_handle_set,
-                          vector_get_handle);
-SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector);
+                          vector_get_handle)
+SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector)
 
 
 void

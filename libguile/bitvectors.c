@@ -881,8 +881,8 @@ bitvector_get_handle (SCM bv, scm_t_array_handle *h)
 SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_bitvector),
                           SCM_SMOB_TYPE_MASK,
                           bitvector_handle_ref, bitvector_handle_set,
-                          bitvector_get_handle);
-SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_BIT, scm_make_bitvector);
+                          bitvector_get_handle)
+SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_BIT, scm_make_bitvector)
 
 void
 scm_init_bitvectors ()

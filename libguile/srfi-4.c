@@ -886,7 +886,7 @@ uvec_get_handle (SCM v, scm_t_array_handle *h)
 SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_uvec),
                           SCM_SMOB_TYPE_MASK,
                           uvec_handle_ref, uvec_handle_set,
-                          uvec_get_handle);
+                          uvec_get_handle)
 
 void
 scm_init_srfi_4 (void)

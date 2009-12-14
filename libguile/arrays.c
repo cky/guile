@@ -1129,7 +1129,7 @@ array_get_handle (SCM array, scm_t_array_handle *h)
 SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_i_tc16_array),
                           SCM_SMOB_TYPE_MASK,
                           array_handle_ref, array_handle_set,
-                          array_get_handle);
+                          array_get_handle)
 
 void
 scm_init_arrays ()
