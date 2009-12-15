@@ -144,7 +144,7 @@ start with @code{@@}), which is equivalent to @code{(@@ (symbol ...)
 main)}, or @code{(symbol ...)  symbol} (that is, a list of only symbols
 followed by a symbol), which is equivalent to @code{(@@ (symbol ...)
 symbol)}.  We recommend to use the equivalent forms directly since they
-corresponf to the @code{(@@ ...)}  read syntax that can be used in
+correspond to the @code{(@@ ...)}  read syntax that can be used in
 normal code, @xref{Using Guile Modules}.
 
 @xref{Scripting Examples}.

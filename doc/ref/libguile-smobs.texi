@@ -192,7 +192,7 @@ This procedure ensures that the smob is in a valid state as soon as it
 exists, that all resources that are allocated for the smob are
 properly associated with it so that they can be properly freed, and
 that no @code{SCM} values that need to be protected are stored in it
-while the smob does not yet competely exist and thus can not protect
+while the smob does not yet completely exist and thus can not protect
 them.
 
 Continuing the example from above, if the global variable

@@ -21,7 +21,7 @@ will extract this information from your source code, and automatically
 generate a file of calls to @code{scm_c_define_gsubr} which you can
 @code{#include} into an initialization function.
 
-The snarfing mechanism works for many kind of initialiation actions,
+The snarfing mechanism works for many kind of initialization actions,
 not just for collecting calls to @code{scm_c_define_gsubr}.  For a
 full list of what can be done, @xref{Snarfing Macros}.
 

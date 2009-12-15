@@ -109,7 +109,7 @@ my_incrementing_function (SCM a, SCM flag)
 @}
 @end example
 
-Often, you need to convert between @code{SCM} values and approriate C
+Often, you need to convert between @code{SCM} values and appropriate C
 values.  For example, we needed to convert the integer @code{1} to its
 @code{SCM} representation in order to add it to @var{a}.  Libguile
 provides many function to do these conversions, both from C to
@@ -206,7 +206,7 @@ Other references to @code{SCM} objects, such as global variables of type
 @code{SCM} or other random data structures in the heap that contain
 fields of type @code{SCM}, can be made visible to the garbage collector
 by calling the functions @code{scm_gc_protect} or
-@code{scm_permanent_object}.  You normally use these funtions for long
+@code{scm_permanent_object}.  You normally use these functions for long
 lived objects such as a hash table that is stored in a global variable.
 For temporary references in local variables or function arguments, using
 these functions would be too expensive.
@@ -239,7 +239,7 @@ However, a local variable or function parameter is only protected as
 long as it is really on the stack (or in some register).  As an
 optimization, the C compiler might reuse its location for some other
 value and the @code{SCM} object would no longer be protected.  Normally,
-this leads to exactly the right behabvior: the compiler will only
+this leads to exactly the right behavior: the compiler will only
 overwrite a reference when it is no longer needed and thus the object
 becomes unprotected precisely when the reference disappears, just as
 wanted.
@@ -311,7 +311,7 @@ Scheme offers a few syntactic abstractions (@code{do} and @dfn{named}
 But only Scheme functions can call other functions in a tail position:
 C functions can not.  This matters when you have, say, two functions
 that call each other recursively to form a common loop.  The following
-(unrealistic) example shows how one might go about determing whether a
+(unrealistic) example shows how one might go about determining whether a
 non-negative integer @var{n} is even or odd.
 
 @lisp

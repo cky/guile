@@ -459,7 +459,7 @@ be used (@pxref{Gettext Support}).
 Example uses of some of these functions are the implementation of the
 @code{number->locale-string} and @code{monetary-amount->locale-string}
 procedures (@pxref{Number Input and Output}), as well as that the
-SRFI-19 date and time convertion to/from strings (@pxref{SRFI-19}).
+SRFI-19 date and time conversion to/from strings (@pxref{SRFI-19}).
 
 
 @node Gettext Support,  , Accessing Locale Information, Internationalization

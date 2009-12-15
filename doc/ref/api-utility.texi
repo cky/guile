@@ -138,7 +138,7 @@ Return @code{#t} if @var{x} and @var{y} are the same type, and their
 contents or value are equal.
 
 For a pair, string, vector, array or structure, @code{equal?} compares the
-contents, and does so using using the same @code{equal?} recursively,
+contents, and does so using the same @code{equal?} recursively,
 so a deep structure can be traversed.
 
 @example
@@ -819,7 +819,7 @@ accessible from C with the name @code{scm_after_gc_hook}.)
 @end defvr
 
 All the C hooks listed here have type @code{SCM_C_HOOK_NORMAL}, are
-initialized with hook closure data NULL, are are invoked by
+initialized with hook closure data NULL, are invoked by
 @code{scm_c_hook_run} with call closure data NULL.
 
 @cindex guardians, testing for GC'd objects

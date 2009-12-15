@@ -2815,7 +2815,7 @@ specified by @var{c}.
 
 If @var{c} is a compound condition, extract the field values from the
 subcondition belonging to @var{type} that appeared first in the call to
-@code{make-compound-condition} that created the the condition.
+@code{make-compound-condition} that created the condition.
 @end deffn
 
 Convenience macros are also available to create condition types and
@@ -3030,7 +3030,7 @@ the new locations.
 (my-param) @result{} 456
 @end example
 
-Parameters are like dynamically bound variables in other Lisp dialets.
+Parameters are like dynamically bound variables in other Lisp dialects.
 They allow an application to establish parameter settings (as the name
 suggests) just for the execution of a particular bit of code,
 restoring when done.  Examples of such parameters might be
@@ -3038,7 +3038,7 @@ case-sensitivity for a search, or a prompt for user input.
 
 Global variables are not as good as parameter objects for this sort of
 thing.  Changes to them are visible to all threads, but in Guile
-parameter object locations are per-thread, thereby truely limiting the
+parameter object locations are per-thread, thereby truly limiting the
 effect of @code{parameterize} to just its dynamic execution.
 
 Passing arguments to functions is thread-safe, but that soon becomes

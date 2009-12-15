@@ -71,7 +71,7 @@ Lisp.
 
 Due to a naming conflict with another programming language, Jim Blandy
 suggested a new name for GEL: ``Guile''. Besides being a recursive
-acroymn, ``Guile'' craftily follows the naming of its ancestors,
+acronym, ``Guile'' craftily follows the naming of its ancestors,
 ``Planner'', ``Conniver'', and ``Schemer''. (The latter was truncated
 to ``Scheme'' due to a 6-character file name limit on an old operating
 system.) Finally, ``Guile'' suggests ``guy-ell'', or ``Guy L.
@@ -102,7 +102,7 @@ applications and a more fully dynamic programming environment is still
 with us today.
 
 @node A Scheme of Many Maintainers
-@subsection A Scheme of Many Mantainers
+@subsection A Scheme of Many Maintainers
 
 Surveying the field, it seems that Scheme implementations correspond
 with their maintainers on an N-to-1 relationship. That is to say, that
@@ -112,7 +112,7 @@ maintainership of one individual.
 
 Guile is atypical in this regard.
 
-Tom Lord maintaned Guile for its first year and a half or so,
+Tom Lord maintained Guile for its first year and a half or so,
 corresponding to the end of 1994 through the middle of 1996. The
 releases made in this time constitute an arc from SCM as a standalone
 program to Guile as a reusable, embeddable library, but passing

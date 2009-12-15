@@ -1284,7 +1284,7 @@ table.
 @table @code
 @item SCM_F_DYNWIND_REWINDABLE
 The dynamic context is @dfn{rewindable}.  This means that it can be
-reentered non-locally (via the invokation of a continuation).  The
+reentered non-locally (via the invocation of a continuation).  The
 default is that a dynwind context can not be reentered non-locally.
 @end table
 

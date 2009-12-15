@@ -629,7 +629,7 @@ argument list, a reverse of what the @nicode{@@} modifier does.
 (format #t "~#*~2:*~a" 'a 'b 'c 'd)   @print{} c
 @end example
 
-At the end of the format string the current argument postion doesn't
+At the end of the format string the current argument position doesn't
 matter, any further arguments are ignored.
 
 @item @nicode{~t}
@@ -1273,7 +1273,7 @@ is empty, a @code{q-empty} exception is thrown.
 @end deffn
 
 @deffn {Scheme Procedure} q-remove! q obj
-Remove all occurences of @var{obj} from @var{q}, and return @var{q}.
+Remove all occurrences of @var{obj} from @var{q}, and return @var{q}.
 @var{obj} is compared to queue elements using @code{eq?}.
 @end deffn
 

@@ -470,7 +470,7 @@ Return a list comprising the elements of @var{lst}, in reverse order.
 @code{reverse} constructs a new list, @code{reverse!} modifies
 @var{lst} in constructing its return.
 
-For @code{reverse!}, the optional @var{newtail} is appended to to the
+For @code{reverse!}, the optional @var{newtail} is appended to the
 result.  @var{newtail} isn't reversed, it simply becomes the list
 tail.  For @code{scm_reverse_x}, the @var{newtail} parameter is
 mandatory, but can be @code{SCM_EOL} if no further tail is required.
@@ -1057,7 +1057,7 @@ being a @code{double}
 
 The external representation (ie.@: read syntax) for these vectors is
 similar to normal Scheme vectors, but with an additional tag from the
-table above indiciating the vector's type.  For example,
+table above indicating the vector's type.  For example,
 
 @lisp
 #u16(1 2 3)
@@ -1475,7 +1475,7 @@ are displayed as a sequence of @code{0}s and @code{1}s prefixed by
 #*00000000
 @end example
 
-Bit vectors are are also generalized vectors, @xref{Generalized
+Bit vectors are also generalized vectors, @xref{Generalized
 Vectors}, and can thus be used with the array procedures, @xref{Arrays}.
 Bit vectors are the special case of one dimensional bit arrays.
 
@@ -1567,7 +1567,7 @@ Return a count of how many entries in @var{bitvector} are equal to
 
 @deffn {Scheme Procedure} bit-position bool bitvector start
 @deffnx {C Function} scm_bit_position (bool, bitvector, start)
-Return the index of the first occurrance of @var{bool} in
+Return the index of the first occurrence of @var{bool} in
 @var{bitvector}, starting from @var{start}.  If there is no @var{bool}
 entry between @var{start} and the end of @var{bitvector}, then return
 @code{#f}.  For example,
@@ -1777,7 +1777,7 @@ In more words, the array tag is of the form
 where @code{<rank>} is a positive integer in decimal giving the rank of
 the array.  It is omitted when the rank is 1 and the array is non-shared
 and has zero-origin (see below).  For shared arrays and for a non-zero
-origin, the rank is always printed even when it is 1 to dinstinguish
+origin, the rank is always printed even when it is 1 to distinguish
 them from ordinary vectors.
 
 The @code{<vectag>} part is the tag for a uniform numeric vector, like
@@ -1902,7 +1902,7 @@ Equivalent to @code{(make-typed-array #t @var{fill} @var{bound} ...)}.
 Create and return an array that has as many dimensions as there are
 @var{bound}s and (maybe) fill it with @var{fill}.
 
-The underlaying storage vector is created according to @var{type},
+The underlying storage vector is created according to @var{type},
 which must be a symbol whose name is the `vectag' of the array as
 explained above, or @code{#t} for ordinary, non-specialized arrays.
 
@@ -2025,7 +2025,7 @@ For example,
 @deffn {Scheme Procedure} array-shape array
 @deffnx {Scheme Procedure} array-dimensions array
 @deffnx {C Function} scm_array_dimensions (array)
-Return a list of the bounds for each dimenson of @var{array}.
+Return a list of the bounds for each dimension of @var{array}.
 
 @code{array-shape} gives @code{(@var{lower} @var{upper})} for each
 dimension.  @code{array-dimensions} instead returns just
@@ -2485,7 +2485,7 @@ for (i = 0; i < RANK; i++)
 Compute the position corresponding to @var{indices}, a list of
 indices.  The position is computed as described above for
 @code{scm_array_handle_dims}.  The number of the indices and their
-range is checked and an approrpiate error is signalled for invalid
+range is checked and an appropriate error is signalled for invalid
 indices.
 @end deftypefn
 
@@ -3379,7 +3379,7 @@ Return the value from the first entry in @var{alist} with the given
 @code{eqv?} and @code{assoc-ref} uses @code{equal?}.
 
 Notice these functions have the @var{key} argument last, like other
-@code{-ref} functions, but this is opposite to what what @code{assq}
+@code{-ref} functions, but this is opposite to what @code{assq}
 etc above use.
 
 When the return is @code{#f} it can be either @var{key} not found, or

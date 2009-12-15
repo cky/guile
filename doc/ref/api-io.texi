@@ -114,7 +114,7 @@ encoding names are those
 @end deffn
 
 @defvr {Scheme Variable} %default-port-encoding
-A fluid containing containing @code{#f} or the name of the encoding to
+A fluid containing @code{#f} or the name of the encoding to
 be used by default for newly created ports (@pxref{Fluids and Dynamic
 States}).  The value @code{#f} is equivalent to @code{"ISO-8859-1"}.
 
