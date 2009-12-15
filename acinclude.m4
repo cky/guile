@@ -348,8 +348,12 @@ AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
      dnl explicitly check for known-broken systems.  See
      dnl http://lists.gnu.org/archive/html/guile-devel/2009-10/msg00138.html
      dnl for details.
+     dnl
+     dnl Known broken systems includes:
+     dnl   - x86_64-unknown-netbsd5.0.
+     dnl   - sparc-sun-solaris2.8
      case "x$enable_shared--$host" in
-       xyes--*netbsd[0-5].[0-9].)
+       xyes--*netbsd[0-5].[0-9].|xyes--*solaris2.8)
          ac_cv_have_thread_storage_class="no"
 	 ;;
        *)
