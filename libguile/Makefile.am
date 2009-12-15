@@ -400,7 +400,7 @@ EXTRA_DOT_DOC_FILES = @EXTRA_DOT_DOC_FILES@
 DOT_I_FILES = vm-i-system.i vm-i-scheme.i vm-i-loader.i
 
 .c.i:
-	grep '^VM_DEFINE' $< > $@
+	$(GREP) '^VM_DEFINE' $< > $@
 
 BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     version.h scmconfig.h \
@@ -707,10 +707,10 @@ cpp_sig_symbols.c: cpp_sig_symbols.in cpp_cnvt.awk
 ## Create a new version of the cpp_sig_symbols.in file, including all SIGXXX
 ## macros defined on this platform.
 check_signals:
-	gcc -undef -dM -E $(srcdir)/cpp_signal.c | egrep ' SIG[A-Z]+' \
+	gcc -undef -dM -E $(srcdir)/cpp_signal.c | $(EGREP) ' SIG[A-Z]+' \
 	  | cut -f2 -d' ' | sort > cpp_sig_symbols_here
 	diff -u $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_here \
-          | egrep '^\+S' \
+          | $(EGREP) '^\+S' \
 	  | cut -c2- > cpp_sig_symbols_diff
 	if test -s cpp_sig_symbols_diff ; then \
 	  cat $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_diff \
@@ -722,10 +722,10 @@ check_signals:
 
 ## Likewise for cpp_err_symbols.in.
 check_errnos:
-	gcc -undef -dM -E $(srcdir)/cpp_errno.c | egrep ' E.+' \
+	gcc -undef -dM -E $(srcdir)/cpp_errno.c | $(EGREP) ' E.+' \
 	  | cut -f2 -d' ' | sort > cpp_err_symbols_here
 	diff -u $(srcdir)/cpp_err_symbols.in cpp_err_symbols_here \
-          | egrep '^\+E' \
+          | $(EGREP) '^\+E' \
 	  | cut -c2- > cpp_err_symbols_diff
 	if test -s cpp_err_symbols_diff ; then \
 	  cat $(srcdir)/cpp_err_symbols.in cpp_err_symbols_diff \
