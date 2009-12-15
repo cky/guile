@@ -77,6 +77,11 @@ else
 url_dir_list ?= ftp://$(gnu_rel_host)/gnu/$(PACKAGE)
 endif
 
+# Override this in cfg.mk if you are using a different format in your
+# NEWS file.
+today = $(shell date +%Y-%m-%d)
+news-check-regexp ?= '^\*.* $(VERSION_REGEXP) \($(today)\)'
+
 # Prevent programs like 'sort' from considering distinct strings to be equal.
 # Doing it here saves us from having to set LC_ALL elsewhere in this file.
 export LC_ALL = C
@@ -568,13 +573,12 @@ sc_makefile_check:
 	    $$($(VC_LIST_EXCEPT) | grep -E '(^|/)Makefile\.am$$')	\
 	  && { echo '$(ME): use $$(...), not @...@' 1>&2; exit 1; } || :
 
-news-date-check: NEWS
-	today=`date +%Y-%m-%d`;						\
-	if head $(srcdir)/NEWS | grep '^\*.* $(VERSION_REGEXP) ('$$today')' \
+news-check: NEWS
+	if head $(srcdir)/NEWS | grep -E $(news-check-regexp)		\
 	    >/dev/null; then						\
 	  :;								\
 	else								\
-	  echo "version or today's date is not in NEWS" 1>&2;		\
+	  echo 'NEWS: $$(news-check-regexp) failed to match' 1>&2;	\
 	  exit 1;							\
 	fi
 
@@ -678,17 +682,6 @@ vc-diff-check:
 	  rm vc-diffs;						\
 	fi
 
-# Use this to make sure we don't run these programs when building
-# from a virgin tgz file, below.
-null_AM_MAKEFLAGS = \
-  ACLOCAL=false \
-  AUTOCONF=false \
-  AUTOMAKE=false \
-  AUTOHEADER=false \
-  MAKEINFO=false
-
-built_programs = $$(cd src && MAKEFLAGS= $(MAKE) -s built_programs.list)
-
 rel-files = $(DIST_ARCHIVES)
 
 gnulib_dir ?= $(srcdir)/gnulib
@@ -754,15 +747,24 @@ alpha beta stable: $(local-check) writable-files no-submodule-changes
 	       || { echo "invalid version string: $(VERSION)" 1>&2; exit 1;};}\
 	  || :
 	$(MAKE) vc-diff-check
-	$(MAKE) news-date-check
+	$(MAKE) news-check
 	$(MAKE) distcheck
 	$(MAKE) dist XZ_OPT=-9ev
-	$(MAKE) -s announcement RELEASE_TYPE=$@ > /tmp/announce-$(my_distdir)
+	$(MAKE) $(release-prep-hook) RELEASE_TYPE=$@
+	$(MAKE) -s emit_upload_commands RELEASE_TYPE=$@
+
+# Override this in cfg.mk if you follow different procedures.
+release-prep-hook ?= release-prep
+
+.PHONY: release-prep
+release-prep:
+	case $$RELEASE_TYPE in alpha|beta|stable) ;; \
+	  *) echo "invalid RELEASE_TYPE: $$RELEASE_TYPE" 1>&2; exit 1;; esac
+	$(MAKE) -s announcement > /tmp/announce-$(my_distdir)
 	if test -d $(release_archive_dir); then			\
 	  ln $(rel-files) $(release_archive_dir);		\
 	  chmod a-w $(rel-files);				\
 	fi
-	$(MAKE) -s emit_upload_commands RELEASE_TYPE=$@
 	echo $(VERSION) > $(prev_version_file)
 	$(MAKE) update-NEWS-hash
 	perl -pi -e '$$. == 3 and print "$(noteworthy)\n\n\n"' NEWS

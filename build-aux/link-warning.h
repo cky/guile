@@ -1,3 +1,20 @@
+/* A C macro for emitting link time warnings.
+   Copyright (C) 1995, 1997, 2000, 2002-2003, 2007, 2009 Free Software
+   Foundation, Inc.
+
+   This program is free software: you can redistribute it and/or modify it
+   under the terms of the GNU General Public License as published
+   by the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
 /* GL_LINK_WARNING("literal string") arranges to emit the literal string as
    a linker warning on most glibc systems.
    We use a linker warning rather than a preprocessor warning, because
@@ -15,12 +32,12 @@
 #  define GL_LINK_WARNING2(file, line, message) \
      GL_LINK_WARNING3 (file ":" #line ": warning: " message)
 #  define GL_LINK_WARNING3(message) \
-     ({ static const char warning[sizeof (message)]		\
-          __attribute__ ((__unused__,				\
-                          __section__ (".gnu.warning"),		\
-                          __aligned__ (1)))			\
-          = message "\n";					\
-        (void)0;						\
+     ({ static const char warning[sizeof (message)]             \
+          __attribute__ ((__unused__,                           \
+                          __section__ (".gnu.warning"),         \
+                          __aligned__ (1)))                     \
+          = message "\n";                                       \
+        (void)0;                                                \
      })
 # else
 #  define GL_LINK_WARNING(message) ((void) 0)

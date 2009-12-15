@@ -59,42 +59,44 @@
 #  include <winsock2.h>
 #  if !defined _GL_SYS_SOCKET_H
 #   undef socket
-#   define socket		socket_used_without_including_sys_socket_h
+#   define socket               socket_used_without_including_sys_socket_h
 #   undef connect
-#   define connect		connect_used_without_including_sys_socket_h
+#   define connect              connect_used_without_including_sys_socket_h
 #   undef accept
-#   define accept		accept_used_without_including_sys_socket_h
+#   define accept               accept_used_without_including_sys_socket_h
 #   undef bind
-#   define bind			bind_used_without_including_sys_socket_h
+#   define bind                 bind_used_without_including_sys_socket_h
 #   undef getpeername
-#   define getpeername		getpeername_used_without_including_sys_socket_h
+#   define getpeername          getpeername_used_without_including_sys_socket_h
 #   undef getsockname
-#   define getsockname		getsockname_used_without_including_sys_socket_h
+#   define getsockname          getsockname_used_without_including_sys_socket_h
 #   undef getsockopt
-#   define getsockopt		getsockopt_used_without_including_sys_socket_h
+#   define getsockopt           getsockopt_used_without_including_sys_socket_h
 #   undef listen
-#   define listen		listen_used_without_including_sys_socket_h
+#   define listen               listen_used_without_including_sys_socket_h
 #   undef recv
-#   define recv			recv_used_without_including_sys_socket_h
+#   define recv                 recv_used_without_including_sys_socket_h
 #   undef send
-#   define send			send_used_without_including_sys_socket_h
+#   define send                 send_used_without_including_sys_socket_h
 #   undef recvfrom
-#   define recvfrom		recvfrom_used_without_including_sys_socket_h
+#   define recvfrom             recvfrom_used_without_including_sys_socket_h
 #   undef sendto
-#   define sendto		sendto_used_without_including_sys_socket_h
+#   define sendto               sendto_used_without_including_sys_socket_h
 #   undef setsockopt
-#   define setsockopt		setsockopt_used_without_including_sys_socket_h
+#   define setsockopt           setsockopt_used_without_including_sys_socket_h
 #   undef shutdown
-#   define shutdown		shutdown_used_without_including_sys_socket_h
+#   define shutdown             shutdown_used_without_including_sys_socket_h
 #  endif
 #  if !defined _GL_SYS_SELECT_H
 #   undef select
-#   define select		select_used_without_including_sys_select_h
+#   define select               select_used_without_including_sys_select_h
 #  endif
 # endif
 #endif
 
 /* The definition of GL_LINK_WARNING is copied here.  */
+
+/* The definition of _GL_ARG_NONNULL is copied here.  */
 
 
 /* OS/2 EMX lacks these macros.  */
@@ -135,7 +137,8 @@ extern "C" {
    Return 0 if successful, otherwise -1 and errno set.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/chown.html>.  */
-extern int chown (const char *file, uid_t uid, gid_t gid);
+extern int chown (const char *file, uid_t uid, gid_t gid)
+     _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef chown
@@ -239,7 +242,7 @@ extern char **environ;
 # if !@HAVE_EUIDACCESS@
 /* Like access(), except that it uses the effective user id and group id of
    the current process.  */
-extern int euidaccess (const char *filename, int mode);
+extern int euidaccess (const char *filename, int mode) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef euidaccess
@@ -252,11 +255,12 @@ extern int euidaccess (const char *filename, int mode);
 
 #if @GNULIB_FACCESSAT@
 # if !@HAVE_FACCESSAT@
-int faccessat (int fd, char const *file, int mode, int flag);
+extern int faccessat (int fd, char const *file, int mode, int flag)
+     _GL_ARG_NONNULL ((2));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef faccessat
-# define faccessat(d,n,m,f)			    \
+# define faccessat(d,n,m,f)                         \
     (GL_LINK_WARNING ("faccessat is not portable - " \
                       "use gnulib module faccessat for portability"), \
      faccessat (d, n, m, f))
@@ -273,7 +277,8 @@ int faccessat (int fd, char const *file, int mode, int flag);
 extern int fchdir (int /*fd*/);
 
 /* Gnulib internal hooks needed to maintain the fchdir metadata.  */
-extern int _gl_register_fd (int fd, const char *filename);
+extern int _gl_register_fd (int fd, const char *filename)
+     _GL_ARG_NONNULL ((2));
 extern void _gl_unregister_fd (int fd);
 extern int _gl_register_dup (int oldfd, int newfd);
 extern const char *_gl_directory_name (int fd);
@@ -294,11 +299,12 @@ extern const char *_gl_directory_name (int fd);
 #  define fchownat rpl_fchownat
 # endif
 # if !@HAVE_FCHOWNAT@ || @REPLACE_FCHOWNAT@
-extern int fchownat (int fd, char const *file, uid_t owner, gid_t group, int flag);
+extern int fchownat (int fd, char const *file, uid_t owner, gid_t group, int flag)
+     _GL_ARG_NONNULL ((2));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef fchownat
-# define fchownat(d,n,o,g,f)			    \
+# define fchownat(d,n,o,g,f)                        \
     (GL_LINK_WARNING ("fchownat is not portable - " \
                       "use gnulib module openat for portability"), \
      fchownat (d, n, o, g, f))
@@ -378,7 +384,7 @@ extern char * getcwd (char *buf, size_t size);
    If the NIS domain name is longer than LEN, set errno = EINVAL and return -1.
    Return 0 if successful, otherwise set errno and return -1.  */
 # if !@HAVE_GETDOMAINNAME@
-extern int getdomainname(char *name, size_t len);
+extern int getdomainname(char *name, size_t len) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef getdomainname
@@ -439,7 +445,7 @@ int getgroups (int n, gid_t *groups);
 #  define gethostname rpl_gethostname
 # endif
 # if @UNISTD_H_HAVE_WINSOCK2_H@ || !@HAVE_GETHOSTNAME@
-extern int gethostname(char *name, size_t len);
+extern int gethostname(char *name, size_t len) _GL_ARG_NONNULL ((1));
 # endif
 #elif @UNISTD_H_HAVE_WINSOCK2_H@
 # undef gethostname
@@ -464,7 +470,7 @@ extern int gethostname(char *name, size_t len);
    See <http://www.opengroup.org/susv3xsh/getlogin.html>.
  */
 # if !@HAVE_DECL_GETLOGIN_R@
-extern int getlogin_r (char *name, size_t size);
+extern int getlogin_r (char *name, size_t size) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef getlogin_r
@@ -574,7 +580,8 @@ extern void endusershell (void);
    Return 0 if successful, otherwise -1 and errno set.
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/lchown.html>.  */
-extern int lchown (char const *file, uid_t owner, gid_t group);
+extern int lchown (char const *file, uid_t owner, gid_t group)
+     _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef lchown
@@ -594,7 +601,8 @@ extern int lchown (char const *file, uid_t owner, gid_t group);
    See POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/link.html>.  */
 # if !@HAVE_LINK@ || @REPLACE_LINK@
-extern int link (const char *path1, const char *path2);
+extern int link (const char *path1, const char *path2)
+     _GL_ARG_NONNULL ((1, 2));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef link
@@ -614,11 +622,12 @@ extern int link (const char *path1, const char *path2);
    Return 0 if successful, otherwise -1 and errno set.  */
 # if !@HAVE_LINKAT@ || @REPLACE_LINKAT@
 extern int linkat (int fd1, const char *path1, int fd2, const char *path2,
-		   int flag);
+                   int flag)
+     _GL_ARG_NONNULL ((2, 4));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef linkat
-# define link(f1,path1,f2,path2,f)		\
+# define link(f1,path1,f2,path2,f)              \
     (GL_LINK_WARNING ("linkat is unportable - " \
                       "use gnulib module linkat for portability"), \
      linkat (f1, path1, f2, path2,f))
@@ -654,13 +663,34 @@ extern int linkat (int fd1, const char *path1, int fd2, const char *path2,
 # if @HAVE_PIPE2@
 #  define pipe2 rpl_pipe2
 # endif
-extern int pipe2 (int fd[2], int flags);
+extern int pipe2 (int fd[2], int flags) _GL_ARG_NONNULL ((1));
 #elif defined GNULIB_POSIXCHECK
 # undef pipe2
 # define pipe2(f,o) \
     (GL_LINK_WARNING ("pipe2 is unportable - " \
                       "use gnulib module pipe2 for portability"), \
      pipe2 (f, o))
+#endif
+
+
+#if @GNULIB_PREAD@
+# if @REPLACE_PREAD@
+#  define pread rpl_pread
+# endif
+/* Read at most BUFSIZE bytes from FD into BUF, starting at OFFSET.
+   Return the number of bytes placed into BUF if successful, otherwise
+   set errno and return -1.  0 indicates EOF.  See the POSIX:2001
+   specification <http://www.opengroup.org/susv3xsh/pread.html>.  */
+# if !@HAVE_PREAD@ || @REPLACE_PREAD@
+  extern ssize_t pread (int fd, void *buf, size_t bufsize, off_t offset)
+       _GL_ARG_NONNULL ((2));
+# endif
+#elif defined GNULIB_POSIXCHECK
+# undef pread
+# define pread(f,b,s,o)                        \
+    (GL_LINK_WARNING ("pread is unportable - " \
+                      "use gnulib module pread for portability"), \
+     pread (f, b, s, o))
 #endif
 
 
@@ -674,7 +704,8 @@ extern int pipe2 (int fd[2], int flags);
    See the POSIX:2001 specification
    <http://www.opengroup.org/susv3xsh/readlink.html>.  */
 # if !@HAVE_READLINK@ || @REPLACE_READLINK@
-extern ssize_t readlink (const char *file, char *buf, size_t bufsize);
+extern ssize_t readlink (const char *file, char *buf, size_t bufsize)
+     _GL_ARG_NONNULL ((1, 2));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef readlink
@@ -687,11 +718,12 @@ extern ssize_t readlink (const char *file, char *buf, size_t bufsize);
 
 #if @GNULIB_READLINKAT@
 # if !@HAVE_READLINKAT@
-ssize_t readlinkat (int fd, char const *file, char *buf, size_t len);
+extern ssize_t readlinkat (int fd, char const *file, char *buf, size_t len)
+     _GL_ARG_NONNULL ((2, 3));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef readlinkat
-# define readlinkat(d,n,b,l)			     \
+# define readlinkat(d,n,b,l)                         \
     (GL_LINK_WARNING ("readlinkat is not portable - " \
                       "use gnulib module symlinkat for portability"), \
      readlinkat (d, n, b, l))
@@ -702,7 +734,7 @@ ssize_t readlinkat (int fd, char const *file, char *buf, size_t len);
 # if @REPLACE_RMDIR@
 #  define rmdir rpl_rmdir
 /* Remove the directory DIR.  */
-extern int rmdir (char const *name);
+extern int rmdir (char const *name) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef rmdir
@@ -740,11 +772,12 @@ extern unsigned int sleep (unsigned int n);
 #  define symlink rpl_symlink
 # endif
 # if !@HAVE_SYMLINK@ || @REPLACE_SYMLINK@
-int symlink (char const *contents, char const *file);
+extern int symlink (char const *contents, char const *file)
+     _GL_ARG_NONNULL ((1, 2));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef symlink
-# define symlink(c,n)			     \
+# define symlink(c,n)                        \
     (GL_LINK_WARNING ("symlink is not portable - " \
                       "use gnulib module symlink for portability"), \
      symlink (c, n))
@@ -753,11 +786,12 @@ int symlink (char const *contents, char const *file);
 
 #if @GNULIB_SYMLINKAT@
 # if !@HAVE_SYMLINKAT@
-int symlinkat (char const *contents, int fd, char const *file);
+extern int symlinkat (char const *contents, int fd, char const *file)
+     _GL_ARG_NONNULL ((1, 3));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef symlinkat
-# define symlinkat(c,d,n)			     \
+# define symlinkat(c,d,n)                            \
     (GL_LINK_WARNING ("symlinkat is not portable - " \
                       "use gnulib module symlinkat for portability"), \
      symlinkat (c, d, n))
@@ -768,7 +802,7 @@ int symlinkat (char const *contents, int fd, char const *file);
 # if @REPLACE_UNLINK@
 #  undef unlink
 #  define unlink rpl_unlink
-extern int unlink (char const *file);
+extern int unlink (char const *file) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef unlink
@@ -785,7 +819,7 @@ extern int unlink (char const *file);
 #  define unlinkat rpl_unlinkat
 # endif
 # if !@HAVE_UNLINKAT@ || @REPLACE_UNLINKAT@
-extern int unlinkat (int fd, char const *file, int flag);
+extern int unlinkat (int fd, char const *file, int flag) _GL_ARG_NONNULL ((2));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef unlinkat
@@ -823,7 +857,8 @@ extern int usleep (useconds_t n);
    <http://www.opengroup.org/susv3xsh/write.html>.  */
 # undef write
 # define write rpl_write
-extern ssize_t write (int fd, const void *buf, size_t count);
+extern ssize_t write (int fd, const void *buf, size_t count)
+     _GL_ARG_NONNULL ((2));
 #endif
 
 
