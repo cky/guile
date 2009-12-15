@@ -27,7 +27,6 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
-#include <assert.h>
 
 #ifdef __ia64__
 #include <ucontext.h>

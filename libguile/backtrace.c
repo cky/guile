@@ -23,7 +23,6 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <assert.h>
 
 #include "libguile/_scm.h"
 

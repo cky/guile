@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <alloca.h>
 #include <string.h>
-#include <assert.h>
 
 #include "libguile/bdw-gc.h"
 #include <gc/gc_mark.h>

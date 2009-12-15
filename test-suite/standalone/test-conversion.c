@@ -23,7 +23,6 @@
 #include <libguile.h>
 
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 
 #ifdef HAVE_INTTYPES_H

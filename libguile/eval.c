@@ -27,7 +27,6 @@
 
 #include "libguile/__scm.h"
 
-#include <assert.h>
 #include "libguile/_scm.h"
 #include "libguile/alist.h"
 #include "libguile/async.h"

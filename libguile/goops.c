@@ -30,7 +30,6 @@
 #endif
 
 #include <stdio.h>
-#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/alist.h"

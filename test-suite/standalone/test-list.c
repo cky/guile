@@ -1,6 +1,6 @@
 /* test-list.c - exercise libguile/list.c functions */
 
-/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,7 +25,6 @@
 #include <libguile.h>
 
 #include <stdio.h>
-#include <assert.h>
 #include <string.h>
 
 /* pretty trivial, but ensure this entrypoint exists, since it was
