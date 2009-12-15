@@ -11,7 +11,6 @@
 When Guile is installed, a pkg-config description file and a set of
 Autoconf macros is installed.  This chapter documents pkg-config and
 Autoconf support, as well as the high-level guile-tool Autofrisk.
-@xref{Top,The GNU Autoconf Manual,,autoconf}, for more info.
 
 @menu
 * Autoconf Background::         Why use autoconf?
@@ -25,19 +24,21 @@ Autoconf support, as well as the high-level guile-tool Autofrisk.
 @node Autoconf Background
 @section Autoconf Background
 
-As explained elsewhere (@pxref{Top,The GNU Autoconf Manual,,autoconf}), any
-package needs configuration at build-time.  If your package uses Guile (or
-uses a package that in turn uses Guile), you probably need to know what
-specific Guile features are available and details about them.
+As explained in the @cite{GNU Autoconf Manual}, any package needs
+configuration at build-time (@pxref{Top, ,Introduction,autoconf,The GNU
+Autoconf Manual}).  If your package uses Guile (or uses a package that
+in turn uses Guile), you probably need to know what specific Guile
+features are available and details about them.
 
 The way to do this is to write feature tests and arrange for their execution
 by the @file{configure} script, typically by adding the tests to
 @file{configure.ac}, and running @code{autoconf} to create @file{configure}.
 Users of your package then run @file{configure} in the normal way.
 
-Macros are a way to make common feature tests easy to express.  Autoconf
-provides a wide range of macros (@pxref{Existing Tests,,,autoconf}), and
-Guile installation provides Guile-specific tests in the areas of:
+Macros are a way to make common feature tests easy to express.
+Autoconf provides a wide range of macros 
+(@pxref{Existing Tests,,,autoconf,The GNU Autoconf Manual}), 
+and Guile installation provides Guile-specific tests in the areas of:
 program detection, compilation flags reporting, and Scheme module
 checks.
 

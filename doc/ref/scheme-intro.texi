@@ -15,8 +15,8 @@ series of reports known as @dfn{RnRS}.  @dfn{RnRS} is shorthand for the
 @ifnottex
 @dfn{Revised^n Report on the Algorithmic Language Scheme}.
 @end ifnottex
-The current latest revision of RnRS is version 5
-(@pxref{Top,R5RS,,r5rs}), and Guile 1.4 is fully compliant with the
+The current latest revision of RnRS is version 5 (@pxref{Top,
+,Introduction,r5rs,R5RS}), and Guile 1.4 is fully compliant with the
 Scheme specification in this revision.
 
 But Guile, like most Scheme implementations, also goes beyond R5RS in

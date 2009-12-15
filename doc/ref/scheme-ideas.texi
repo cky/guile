@@ -549,9 +549,10 @@ and then by describing the value and side effects of evaluation for each
 type of expression individually.
 
 @noindent
-So, some@footnote{These definitions are approximate.  For the whole and
-detailed truth, see @xref{Formal syntax and semantics,R5RS
-syntax,,r5rs}.} definitions@dots{}
+So, some@footnote{These definitions are approximate.  For the whole
+and detailed truth, see @ref{Formal syntax and semantics,R5RS
+syntax,,r5rs,The Revised(5) Report on the Algorithmic Language
+Scheme}.} definitions@dots{}
 
 @itemize @bullet
 
