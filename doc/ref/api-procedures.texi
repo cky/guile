@@ -36,7 +36,7 @@ When a procedure created by @code{lambda} is called with some actual
 arguments, the environment enclosed in the procedure is extended by
 binding the variables named in the formal argument list to new locations
 and storing the actual arguments into these locations.  Then the body of
-the @code{lambda} expression is evaluation sequentially.  The result of
+the @code{lambda} expression is evaluated sequentially.  The result of
 the last expression in the procedure body is then the result of the
 procedure invocation.
 
