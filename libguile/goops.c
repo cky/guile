@@ -2648,14 +2648,6 @@ scm_ensure_accessor (SCM name)
   return gf;
 }
 
-SCM_SYMBOL (sym_internal_add_method_x, "internal-add-method!");
-
-void
-scm_add_method (SCM gf, SCM m)
-{
-  scm_eval (scm_list_3 (sym_internal_add_method_x, gf, m), scm_module_goops);
-}
-
 #ifdef GUILE_DEBUG
 /*
  * Debugging utilities
