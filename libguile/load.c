@@ -239,8 +239,8 @@ scm_init_load_path ()
   else if (env)
     path = scm_parse_path (scm_from_locale_string (env), path);
   else
-    path = scm_list_3 (scm_from_locale_string (SCM_SITE_DIR),
-                       scm_from_locale_string (SCM_LIBRARY_DIR),
+    path = scm_list_3 (scm_from_locale_string (SCM_LIBRARY_DIR),
+                       scm_from_locale_string (SCM_SITE_DIR),
                        scm_from_locale_string (SCM_PKGDATA_DIR));
 
   env = getenv ("GUILE_SYSTEM_COMPILED_PATH");
