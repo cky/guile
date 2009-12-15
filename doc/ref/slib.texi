@@ -8,14 +8,21 @@
 @section SLIB
 @cindex SLIB
 
-Before the SLIB facilities can be used, the following Scheme expression
-must be executed:
+SLIB is a portable library of Scheme packages which can be used with
+Guile and other Scheme implementations.  SLIB is not included in the
+Guile distribution, but can be installed separately (@pxref{SLIB
+installation}).  It is available from
+@url{http://people.csail.mit.edu/jaffer/SLIB.html}.
+
+After SLIB is installed, the following Scheme expression must be
+executed before the SLIB facilities can be used:
 
 @lisp
 (use-modules (ice-9 slib))
 @end lisp
 
 @findex require
+@noindent
 @code{require} can then be used in the usual way (@pxref{Require,,,
 slib, The SLIB Manual}).  For example,
 
