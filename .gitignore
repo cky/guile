@@ -119,3 +119,5 @@ INSTALL
 /meta/guile-config
 /lib/locale.h
 /module/ice-9/eval.go.stamp
+/doc/ref/standard-library.texi
+/doc/ref/standard-libraryscmfiles

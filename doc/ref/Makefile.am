@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2004, 2006, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-BUILT_SOURCES = lib-version.texi
+BUILT_SOURCES = lib-version.texi standard-library.texi
 
 info_TEXINFOS = guile.texi
 
@@ -128,3 +128,17 @@ EXTRA_DIST += lib-version.texi
 # But when we want to get back to a clean tree, lib-version.texi
 # should be cleaned.
 CLEANFILES = lib-version.texi
+
+# Support for snarfing docs out of Scheme modules.
+snarf_doc=standard-library
+$(snarf_doc)scmfiles:
+	$(preinstguile) -l $(srcdir)/$(snarf_doc).scm \
+	 -c '(for-each (lambda (m) (format #t "~a.scm\n" (string-join (map symbol->string m) "/"))) (map car *modules*))' \
+	 > $@
+depfiles=$(addprefix $(top_srcdir)/module/,$(shell test ! -f $(snarf_doc)scmfiles || cat $(snarf_doc)scmfiles))
+
+$(snarf_doc).texi: $(srcdir)/$(snarf_doc).scm $(snarf_doc)scmfiles $(depfiles)
+	$(top_builddir)/meta/uninstalled-env $(srcdir)/make-texinfo.scm $(srcdir)/$(snarf_doc).scm >$@
+
+CLEANFILES+=$(snarf_doc).texi $(snarf_doc)scmfiles
+EXTRA_DIST+=$(snarf_doc).scm make-texinfo.scm $(snarf_doc).texi $(snarf_doc)scmfiles

@@ -47,7 +47,8 @@
             package-stexi-standard-menu
             package-stexi-extended-menu
             package-stexi-standard-prologue
-            package-stexi-documentation))
+            package-stexi-documentation
+            package-stexi-documentation-for-include))
 
 ;; List for sorting the definitions in a module
 (define defs
@@ -524,5 +525,42 @@ useful to define a @code{#:docs-resolver} argument."
                      (script-stexi-documentation script)))
                   scripts)
     ,@epilogue))
+
+(define* (package-stexi-documentation-for-include modules module-descriptions
+                                                  #:key
+                                                  (module-stexi-documentation-args '()))
+  "Create stexi documentation for a @dfn{package}, where a
+package is a set of modules that is released together.
+
+@var{modules} is expected to be a list of module names, where a
+module name is a list of symbols. Returns an stexinfo fragment.
+
+Unlike @code{package-stexi-documentation}, this function simply produces
+a menu and the module documentations instead of producing a full texinfo
+document. This can be useful if you write part of your manual by hand,
+and just use @code{@@include} to pull in the automatically generated
+parts.
+
+@var{module-stexi-documentation-args} is an optional argument that, if
+given, will be added to the argument list when
+@code{module-texi-documentation} is called. For example, it might be
+useful to define a @code{#:docs-resolver} argument."
+  (define (make-entry node description)
+    `("* " ,node "::"
+      ,(make-string (max (- 21 (string-length node)) 2) #\space)
+      ,@description "\n"))
+  `(*fragment*
+    (menu
+     ,@(append-map (lambda (modname desc)
+                     (make-entry (module-name->node-name modname)
+                                 desc))
+                   modules
+                   module-descriptions))
+    ,@(append-map (lambda (modname)
+                    (stexi->chapter
+                     (apply module-stexi-documentation 
+                            modname
+                            module-stexi-documentation-args)))
+                  modules)))
 
 ;;; arch-tag: bbe2bc03-e16d-4a9e-87b9-55225dc9836c

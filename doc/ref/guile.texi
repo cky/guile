@@ -175,6 +175,7 @@ x
 * API Reference::
 
 * Guile Modules::
+* Standard Library::
 
 * GOOPS::
 
@@ -365,6 +366,13 @@ available through both Scheme and C interfaces.
 @include expect.texi
 @include scsh.texi
 @include scheme-debugging.texi
+
+@node Standard Library
+@chapter Standard Library
+
+@lowersections
+@include standard-library.texi
+@raisesections
 
 @include goops.texi
 
