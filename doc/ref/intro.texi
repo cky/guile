@@ -10,8 +10,14 @@
 Guile is an implementation of the Scheme programming language.  Scheme
 (@url{schemers.org}) is an elegant and conceptually simple dialect of
 Lisp, originated by Guy Steele and Gerald Sussman, and since evolved
-mainly by the series of reports known as RnRS (the Revised^n Reports
-on Scheme).
+by the series of reports known as RnRS (the
+@tex
+Revised$^n$
+@end tex
+@ifnottex
+Revised^n
+@end ifnottex
+Reports onScheme).
 
 Unlike -- for example -- Python or Perl, Scheme has no benevolent
 dictator.  There are many Scheme implementations, with different
