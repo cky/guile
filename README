@@ -88,6 +88,20 @@ Guile requires the following external packages:
     conservative garbage collector used by Guile.  It is available
     from http://www.hpl.hp.com/personal/Hans_Boehm/gc/ .
 
+  - pkg-config
+
+    Guile's ./configure script uses pkg-config to discover the correct
+    compile and link options for libgc.  If you don't have pkg-config
+    installed, or you have a version of libgc that doesn't provide a
+    .pc file, you can work around this by setting some environment
+    variables before running ./configure:
+
+    - PKG_CONFIG=true
+
+    - BDW_GC_CFLAGS=<compile flags for picking up libgc headers>
+
+    - BDW_GC_LIBS=<linker flags for picking up the libgc library>
+
 
 Special Instructions For Some Systems =====================================
 
