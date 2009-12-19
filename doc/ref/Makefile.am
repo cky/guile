@@ -56,6 +56,7 @@ guile_TEXINFOS = preface.texi			\
 		 tcltk.texi			\
 		 scheme-scripts.texi		\
 		 api-overview.texi		\
+		 api-discdepr.texi		\
 		 scheme-debugging.texi		\
 		 scheme-using.texi		\
 		 indices.texi			\
