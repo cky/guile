@@ -11,8 +11,8 @@
 * What is Guile?::              
 * Obtaining and Installing Guile::  
 * Whirlwind Tour::              
-* Manual Conventions::          
 * Reporting Bugs::              
+* Typographical Conventions::          
 @end menu
 
 @node What is Guile?
@@ -384,53 +384,6 @@ There is also a way to manipulate the module system from C but only
 Scheme files can be autoloaded.  Thus, we recommend that you define
 your modules in Scheme.
 
-@node Manual Conventions
-@section Conventions used in this Manual
-
-We use some conventions in this manual.
-
-@itemize @bullet
-
-@item
-For some procedures, notably type predicates, we use ``iff'' to mean
-``if and only if''.  The construct is usually something like: `Return
-@var{val} iff @var{condition}', where @var{val} is usually
-``@nicode{#t}'' or ``non-@nicode{#f}''.  This typically means that
-@var{val} is returned if @var{condition} holds, and that @samp{#f} is
-returned otherwise.  To clarify: @var{val} will @strong{only} be
-returned when @var{condition} is true.
-@cindex iff
-
-@item
-In examples and procedure descriptions and all other places where the
-evaluation of Scheme expression is shown, we use some notation for
-denoting the output and evaluation results of expressions.
-
-The symbol @samp{@result{}} is used to tell which value is returned by
-an evaluation:
-
-@lisp
-(+ 1 2)
-@result{} 3
-@end lisp
-
-Some procedures produce some output besides returning a value.  This
-is denoted by the symbol @samp{@print{}}.
-
-@lisp
-(begin (display 1) (newline) 'hooray)
-@print{} 1
-@result{} hooray
-@end lisp
-
-As you can see, this code prints @samp{1} (denoted by
-@samp{@print{}}), and returns @code{hooray} (denoted by
-@samp{@result{}}).  Do not confuse the two.
-
-@c Add other conventions here.
-
-@end itemize
-
 @node Reporting Bugs
 @section Reporting Bugs
 
@@ -598,6 +551,53 @@ matters is the contents of the objects they point to (and most of the
 contents are themselves pointers).
 @end itemize
 
+
+@node Typographical Conventions
+@section Typographical Conventions
+
+We use some conventions in this manual.
+
+@itemize @bullet
+
+@item
+For some procedures, notably type predicates, we use ``iff'' to mean
+``if and only if''.  The construct is usually something like: `Return
+@var{val} iff @var{condition}', where @var{val} is usually
+``@nicode{#t}'' or ``non-@nicode{#f}''.  This typically means that
+@var{val} is returned if @var{condition} holds, and that @samp{#f} is
+returned otherwise.  To clarify: @var{val} will @strong{only} be
+returned when @var{condition} is true.
+@cindex iff
+
+@item
+In examples and procedure descriptions and all other places where the
+evaluation of Scheme expression is shown, we use some notation for
+denoting the output and evaluation results of expressions.
+
+The symbol @samp{@result{}} is used to tell which value is returned by
+an evaluation:
+
+@lisp
+(+ 1 2)
+@result{} 3
+@end lisp
+
+Some procedures produce some output besides returning a value.  This
+is denoted by the symbol @samp{@print{}}.
+
+@lisp
+(begin (display 1) (newline) 'hooray)
+@print{} 1
+@result{} hooray
+@end lisp
+
+As you can see, this code prints @samp{1} (denoted by
+@samp{@print{}}), and returns @code{hooray} (denoted by
+@samp{@result{}}).  Do not confuse the two.
+
+@c Add other conventions here.
+
+@end itemize
 
 
 @c Local Variables:
