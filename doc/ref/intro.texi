@@ -4,8 +4,36 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@node Introduction to Guile
-@chapter Introduction to Guile
+@node Introduction
+@chapter Introduction
+
+Guile is an implementation of the Scheme programming language.  Scheme
+(@url{schemers.org}) is an elegant and conceptually simple dialect of
+Lisp, originated by Guy Steele and Gerald Sussman, and since evolved
+mainly by the series of reports known as RnRS (the Revised^n Reports
+on Scheme).
+
+Unlike -- for example -- Python or Perl, Scheme has no benevolent
+dictator.  There are many Scheme implementations, with different
+characteristics and with communities and academic activities around
+them, and the language develops as a result of the interplay between
+these.  Guile's particular characteristics are that
+@itemize
+@item
+it is easy to combine with other code written in C
+@item
+it has a historical and continuing connection with the GNU Project
+@item
+it emphasizes interactive and incremental programming
+@item
+it actually supports several languages, not just Scheme.
+@end itemize
+@noindent
+The next section explains what we mean by these points.  The sections
+after that cover how you can obtain and install Guile, a tour of the
+ways that you can use it, how to report any problems that you
+encounter, and some typographical conventions that we use in this
+manual.
 
 @menu
 * What is Guile?::              

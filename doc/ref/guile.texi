@@ -167,7 +167,7 @@ x
 @menu
 
 * Preface::
-* Introduction to Guile::
+* Introduction::
 
 * Programming in Scheme::
 * Programming in C::

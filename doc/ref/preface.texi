@@ -12,7 +12,7 @@ Language for Extensions.  It relates particularly to Guile version
 @value{VERSION}.  The manual is divided into the following chapters.
 
 @table @strong
-@item Chapter 1: Introduction to Guile
+@item Chapter 1: Introduction
 This part provides an overview of what Guile is and how you can use
 it.  A whirlwind tour shows how Guile can be used interactively and as
 a script interpreter, how to link Guile into your own applications,
