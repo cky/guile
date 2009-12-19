@@ -17,13 +17,14 @@ Revised$^n$
 @ifnottex
 Revised^n
 @end ifnottex
-Reports onScheme).
+Reports on Scheme).
 
 Unlike -- for example -- Python or Perl, Scheme has no benevolent
 dictator.  There are many Scheme implementations, with different
 characteristics and with communities and academic activities around
 them, and the language develops as a result of the interplay between
 these.  Guile's particular characteristics are that
+
 @itemize
 @item
 it is easy to combine with other code written in C
@@ -34,6 +35,7 @@ it emphasizes interactive and incremental programming
 @item
 it actually supports several languages, not just Scheme.
 @end itemize
+
 @noindent
 The next few sections explain what we mean by these points.  The
 sections after that cover how you can obtain and install Guile, a tour
