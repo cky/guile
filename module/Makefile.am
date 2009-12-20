@@ -63,7 +63,8 @@ SOURCES =					\
   $(SCRIPTS_SOURCES)				\
   $(ECMASCRIPT_LANG_SOURCES)			\
   $(ELISP_LANG_SOURCES)				\
-  $(BRAINFUCK_LANG_SOURCES)
+  $(BRAINFUCK_LANG_SOURCES)			\
+  $(LIB_SOURCES)
 
 ## test.scm is not currently installed.
 EXTRA_DIST +=					\
@@ -283,20 +284,43 @@ SYSTEM_SOURCES = \
   system/repl/repl.scm system/repl/common.scm				\
   system/repl/command.scm
 
+LIB_SOURCES =					\
+  statprof.scm					\
+  sxml/apply-templates.scm			\
+  sxml/fold.scm					\
+  sxml/simple.scm				\
+  sxml/ssax/input-parse.scm			\
+  sxml/ssax.scm					\
+  sxml/transform.scm				\
+  sxml/xpath.scm				\
+  texinfo.scm					\
+  texinfo/docbook.scm				\
+  texinfo/html.scm				\
+  texinfo/indexing.scm				\
+  texinfo/string-utils.scm			\
+  texinfo/plain-text.scm			\
+  texinfo/reflection.scm			\
+  texinfo/serialize.scm
+
 EXTRA_DIST += oop/ChangeLog-2008
 
 NOCOMP_SOURCES =				\
-  ice-9/gds-client.scm \
-  ice-9/psyntax.scm \
-  ice-9/quasisyntax.scm \
-  system/repl/describe.scm \
-  ice-9/debugger/command-loop.scm \
-  ice-9/debugger/commands.scm \
-  ice-9/debugger/state.scm \
-  ice-9/debugger/trc.scm \
-  ice-9/debugger/utils.scm \
-  ice-9/debugging/example-fns.scm \
-  ice-9/debugging/steps.scm \
-  ice-9/debugging/trace.scm \
-  ice-9/debugging/traps.scm \
-  ice-9/debugging/trc.scm
+  ice-9/gds-client.scm				\
+  ice-9/psyntax.scm				\
+  ice-9/quasisyntax.scm				\
+  system/repl/describe.scm			\
+  ice-9/debugger/command-loop.scm		\
+  ice-9/debugger/commands.scm			\
+  ice-9/debugger/state.scm			\
+  ice-9/debugger/trc.scm			\
+  ice-9/debugger/utils.scm			\
+  ice-9/debugging/example-fns.scm		\
+  ice-9/debugging/steps.scm			\
+  ice-9/debugging/trace.scm			\
+  ice-9/debugging/traps.scm			\
+  ice-9/debugging/trc.scm			\
+  sxml/upstream/SSAX.scm			\
+  sxml/upstream/SXML-tree-trans.scm		\
+  sxml/upstream/SXPath-old.scm			\
+  sxml/upstream/assert.scm			\
+  sxml/upstream/input-parse.scm
