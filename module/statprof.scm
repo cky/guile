@@ -187,16 +187,17 @@
 
 ;; If you change the call-data data structure, you need to also change
 ;; sample-uncount-frame.
-(define (make-call-data name call-count cum-sample-count self-sample-count)
-  (vector (or name (error "internal error (we don't count anonymous procs)"))
-          call-count cum-sample-count self-sample-count))
-(define (call-data-name cd) (vector-ref cd 0))
+(define (make-call-data proc call-count cum-sample-count self-sample-count)
+  (vector proc call-count cum-sample-count self-sample-count))
+(define (call-data-proc cd) (vector-ref cd 0))
+(define (call-data-name cd) (procedure-name (call-data-proc cd)))
+(define (call-data-printable cd)
+  (or (call-data-name cd)
+      (with-output-to-string (lambda () (write (call-data-proc cd))))))
 (define (call-data-call-count cd) (vector-ref cd 1))
 (define (call-data-cum-sample-count cd) (vector-ref cd 2))
 (define (call-data-self-sample-count cd) (vector-ref cd 3))
 
-(define (set-call-data-name! cd name)
-  (vector-set! cd 0 name))
 (define (inc-call-data-call-count! cd)
   (vector-set! cd 1 (1+ (vector-ref cd 1))))
 (define (inc-call-data-cum-sample-count! cd)
@@ -210,7 +211,7 @@
 
 (define (get-call-data proc)
   (or (hashq-ref procedure-data proc)
-      (let ((call-data (make-call-data (procedure-name proc) 0 0 0)))
+      (let ((call-data (make-call-data proc 0 0 0)))
         (hashq-set! procedure-data proc call-data)
         call-data)))
 
@@ -248,13 +249,11 @@
                ;; slate.
                (set! hit-count-call? #t)
                (loop (frame-previous frame) (make-hash-table 13) #f))
-              ((procedure-name proc)
+              (else
                (hashq-set! procs-seen proc #t)
                (loop (frame-previous frame)
                      procs-seen
-                     (or self proc)))
-              (else
-               (loop (frame-previous frame) procs-seen self)))))
+                     (or self proc))))))
        (else
         (loop (frame-previous frame) procs-seen self))))
     hit-count-call?))
@@ -268,10 +267,14 @@
   ;; stack cut
   (if (positive? profile-level)
       (let* ((stop-time (get-internal-run-time))
-             ;; cut down to the signal handler, then we rely on
-             ;; knowledge of guile: it dispatches signal handlers
-             ;; through a thunk, so cut one more procedure
-             (stack (make-stack #t profile-signal-handler 0 1))
+             ;; cut down to the signal handler. note that this will only
+             ;; work if statprof.scm is compiled; otherwise we get
+             ;; `eval' on the stack instead, because if it's not
+             ;; compiled, profile-signal-handler is a thunk that
+             ;; tail-calls eval. perhaps we should always compile the
+             ;; signal handler instead...
+             (stack (or (make-stack #t profile-signal-handler)
+                        (pk 'what! (make-stack #t))))
              (inside-apply-trap? (sample-stack-procs stack)))
 
         (if (not inside-apply-trap?)
@@ -307,9 +310,8 @@
 
         (and=> (frame-procedure (last-stack-frame continuation))
                (lambda (proc)
-                 (if (procedure-name proc)
-                     (inc-call-data-call-count!
-                      (get-call-data proc)))))
+                 (inc-call-data-call-count!
+                  (get-call-data proc))))
         
         (set! last-start-time (get-internal-run-time)))))
 
@@ -426,7 +428,7 @@ none is available."
   ;;                 self-secs-per-call
   ;;                 total-secs-per-call)
 
-  (let* ((proc-name (call-data-name call-data))
+  (let* ((proc-name (call-data-printable call-data))
          (self-samples (call-data-self-sample-count call-data))
          (cum-samples (call-data-cum-sample-count call-data))
          (all-samples (statprof-sample-count))
@@ -523,12 +525,12 @@ statistics.@code{}"
    (lambda (data prior-value)
      (if (and %count-calls?
               (zero? (call-data-call-count data))
-              (positive? (call-data-sample-count data)))
+              (positive? (call-data-cum-sample-count data)))
          (simple-format #t
                         "==[~A ~A ~A]\n"
                         (call-data-name data)
                         (call-data-call-count data)
-                        (call-data-sample-count data))))
+                        (call-data-cum-sample-count data))))
    #f)
   (simple-format #t "Total time: ~A\n" (statprof-accumulated-time))
   (simple-format #t "Sample count: ~A\n" (statprof-sample-count)))
