@@ -593,7 +593,7 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
 ## We use @-...-@ as the substitution brackets here, instead of the
 ## usual @...@, so autoconf doesn't go and substitute the values
 ## directly into the left-hand sides of the sed substitutions.  *sigh*
-version.h: version.h.in
+version.h: version.h.in $(top_builddir)/config.status
 	sed < $(srcdir)/version.h.in > $@.tmp \
 	  -e s:@-GUILE_MAJOR_VERSION-@:${GUILE_MAJOR_VERSION}: \
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
