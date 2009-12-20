@@ -917,6 +917,8 @@ VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
  vm_mv_call:
   x = sp[-nargs];
 
+  VM_HANDLE_INTERRUPTS;
+
   /*
    * Subprogram call
    */
@@ -1126,6 +1128,8 @@ VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
  vm_return_values:
   EXIT_HOOK ();
   RETURN_HOOK ();
+
+  VM_HANDLE_INTERRUPTS;
 
   if (nvalues != 1 && SCM_FRAME_MV_RETURN_ADDRESS (fp)) 
     {
