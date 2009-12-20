@@ -88,7 +88,7 @@
 ;; Some utilities
 
 (define (parser-error port message . rest)
-  (apply error port message rest))
+  (apply throw 'parser-error port message rest))
 
 (define (call-with-file-and-dir filename proc)
   "Call the one-argument procedure @var{proc} with an input port that
@@ -377,11 +377,11 @@ lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
 
 Examples:
 @example
-(texi-command-depth 'chapter 4)        @result{} 1
-(texi-command-depth 'top 4)            @result{} 0
-(texi-command-depth 'subsection 4)     @result{} 3
-(texi-command-depth 'appendixsubsec 4) @result{} 3
-(texi-command-depth 'subsection 2)     @result{} #f
+ (texi-command-depth 'chapter 4)        @result{} 1
+ (texi-command-depth 'top 4)            @result{} 0
+ (texi-command-depth 'subsection 4)     @result{} 3
+ (texi-command-depth 'appendixsubsec 4) @result{} 3
+ (texi-command-depth 'subsection 2)     @result{} #f
 @end example"
   (let ((depth (and=> (assq command command-depths) cdr)))
     (and depth (<= depth max-depth) depth)))
@@ -628,7 +628,7 @@ Examples:
                      (parser-error
                       port "@item formatter must be INLINE" f))
                  f))
-          (parser-error "Invalid @item formatter" line)))
+          (parser-error port "Invalid @item formatter" line)))
     (case command
       ((enumerate)
        (if (zero? length)
