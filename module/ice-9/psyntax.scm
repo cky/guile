@@ -787,9 +787,10 @@
     (syntax-rules ()
       ((_ old new marks) (vector old new marks))))
 
-;;; labels must be comparable with "eq?" and distinct from symbols.
+;;; labels must be comparable with "eq?", have read-write invariance,
+;;; and distinct from symbols.
   (define gen-label
-    (lambda () (string #\i)))
+    (lambda () (symbol->string (gensym "i"))))
 
   (define gen-labels
     (lambda (ls)
@@ -820,7 +821,7 @@
 
   (define-syntax new-mark
     (syntax-rules ()
-      ((_) (string #\m))))
+      ((_) (gensym "m"))))
 
 ;;; make-empty-ribcage and extend-ribcage maintain list-based ribcages for
 ;;; internal definitions, in which the ribcages are built incrementally
