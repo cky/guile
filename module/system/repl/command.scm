@@ -36,6 +36,7 @@
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 and-let-star)
   #:use-module (ice-9 rdelim)
+  #:use-module (statprof)
   #:export (meta-command))
 
 
@@ -359,13 +360,14 @@ Time execution."
 	    (get identity gc-start gc-end))
     result))
 
-(define-meta-command (profile repl form . opts)
+(define-meta-command (profile repl (form) . opts)
   "profile FORM
 Profile execution."
-  (apply vm-profile
-         (repl-vm repl)
-         (repl-compile repl (repl-parse repl form))
-         opts))
+  ;; FIXME opts
+  (let ((vm (repl-vm repl))
+        (proc (make-program (repl-compile repl (repl-parse repl form)))))
+    (with-statprof #:hz 100 (vm proc))))
+
 
 
 ;;;
