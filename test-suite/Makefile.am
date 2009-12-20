@@ -92,11 +92,20 @@ SCM_TESTS = tests/alist.test			\
 	    tests/srfi-88.test			\
 	    tests/srfi-4.test			\
 	    tests/srfi-9.test			\
+	    tests/statprof.test			\
 	    tests/strings.test			\
 	    tests/structs.test			\
+	    tests/sxml.fold.test		\
+	    tests/sxml.ssax.test		\
+	    tests/sxml.transform.test		\
+	    tests/sxml.xpath.test		\
 	    tests/symbols.test			\
 	    tests/syncase.test			\
 	    tests/syntax.test			\
+	    tests/texinfo.test			\
+	    tests/texinfo.docbook.test		\
+	    tests/texinfo.serialize.test	\
+	    tests/texinfo.string-utils.test	\
 	    tests/threads.test			\
 	    tests/time.test			\
 	    tests/tree-il.test			\

@@ -1,0 +1,118 @@
+;; -*- scheme -*-
+;;; ----------------------------------------------------------------------
+;;;    unit test
+;;;    Copyright (C) 2003, 2009  Free Software Foundation, Inc.
+;;;
+;;;    This program is free software; you can redistribute it and/or modify
+;;;    it under the terms of the GNU General Public License as published by
+;;;    the Free Software Foundation; either version 2 of the License, or
+;;;    (at your option) any later version.
+;;;
+;;;    This program is distributed in the hope that it will be useful,
+;;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;    GNU General Public License for more details.
+;;;
+;;;    You should have received a copy of the GNU General Public License
+;;;    along with this program; if not, write to the Free Software
+;;;    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+;;; ----------------------------------------------------------------------
+(define-module (test-suite test-string-utils)
+  #:use-module (test-suite lib)
+  #:use-module (texinfo string-utils))
+
+
+;; **********************************************************************
+;; Test for expand-tabs
+;; **********************************************************************
+(with-test-prefix "test-beginning-expansion"
+  (pass-if (equal? "        Hello"
+                   (expand-tabs "\tHello")))
+  (pass-if (equal? "                Hello"
+                   (expand-tabs "\t\tHello"))))
+
+(with-test-prefix "test-ending-expansion"
+  (pass-if (equal? "Hello        "
+                   (expand-tabs "Hello\t")))
+  (pass-if (equal? "Hello                "
+                   (expand-tabs "Hello\t\t"))))
+
+(with-test-prefix "test-middle-expansion"
+  (pass-if (equal? "Hello        there" (expand-tabs "Hello\tthere")))
+  (pass-if (equal? "Hello                there" (expand-tabs "Hello\t\tthere"))))
+
+(with-test-prefix "test-alternate-tab-size"
+  (pass-if (equal? "Hello   there"
+                   (expand-tabs "Hello\tthere" 3)))
+  (pass-if (equal? "Hello    there"
+                   (expand-tabs "Hello\tthere" 4)))
+  (pass-if (equal? "Hello     there"
+                   (expand-tabs "Hello\tthere" 5))))
+  
+;; **********************************************************************
+;; tests for escape-special-chars
+;; **********************************************************************
+(with-test-prefix "test-single-escape-char"
+  (pass-if (equal? "HeElElo"
+                   (escape-special-chars "Hello" #\l #\E))))
+
+(with-test-prefix "test-multiple-escape-chars"
+  (pass-if (equal? "HEeElElo"
+                   (escape-special-chars "Hello" "el" #\E))))
+
+
+;; **********************************************************************
+;; tests for collapsing-multiple-chars
+;; **********************************************************************
+(with-test-prefix "collapse-repeated-chars"
+  (define test-string
+    "H e  l   l    o     t      h       e        r         e")
+
+  (with-test-prefix "test-basic-collapse"
+    (pass-if (equal? "H e l l o t h e r e"
+                     (collapse-repeated-chars test-string))))
+
+  (with-test-prefix "test-choose-other-char"
+    (pass-if (equal? "H-e-l-l-o-t-h-e-r-e"
+                     (collapse-repeated-chars (transform-string test-string #\space #\-) 
+                                              #\-))))
+
+  (with-test-prefix "test-choose-maximum-repeats"
+    (pass-if (equal? "H e  l  l  o  t  h  e  r  e"
+                     (collapse-repeated-chars test-string #\space 2)))
+    (pass-if (equal? "H e  l   l   o   t   h   e   r   e"
+                     (collapse-repeated-chars test-string #\space 3)))))
+
+;; **********************************************************************
+;; Test of the object itself...
+;; **********************************************************************
+(with-test-prefix "text wrapping"
+  (define test-string "
+The last language environment specified with 
+`set-language-environment'.   This variable should be 
+set only with M-x customize, which is equivalent
+to using the function `set-language-environment'.
+")
+
+  (with-test-prefix "runs-without-exception"
+    (pass-if (->bool (fill-string test-string)))
+    (pass-if (->bool (fill-string test-string #:line-width 20)))
+    (pass-if (->bool (fill-string test-string #:initial-indent " * " #:tab-width 3))))
+                
+  (with-test-prefix "test-fill-equivalent-to-joined-lines"
+    (pass-if (equal? (fill-string test-string)
+                     (string-join (string->wrapped-lines test-string) "\n" 'infix))))
+
+  (with-test-prefix "test-no-collapse-ws"
+    (pass-if (equal? (fill-string test-string #:collapse-whitespace? #f)
+                     "The last language environment specified with  `set-language-environment'.   This
+variable should be  set only with M-x customize, which is equivalent to using
+the function `set-language-environment'.")))
+
+  (with-test-prefix "test-no-word-break"
+    (pass-if (equal? "thisisalongword
+blah
+blah"
+                     (fill-string "thisisalongword blah blah"
+                                  #:line-width 8
+                                  #:break-long-words? #f)))))
