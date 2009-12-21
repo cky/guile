@@ -46,6 +46,9 @@ manual.
 @menu
 * Guile and Scheme::              
 * Combining with C::              
+* Guile and the GNU Project::
+* Interactive Programming::
+* Supporting Multiple Languages::
 * Obtaining and Installing Guile::  
 * Whirlwind Tour::              
 * Reporting Bugs::              
@@ -127,6 +130,15 @@ Modules also encourage developers to package up useful collections of
 routines for general distribution; as of this writing, one can find
 Emacs interfaces, database access routines, compilers, @acronym{GUI}
 toolkit interfaces, and @acronym{HTTP} client functions, among others.
+
+@node Guile and the GNU Project
+@section Guile and the GNU Project
+
+@node Interactive Programming
+@section Interactive Programming
+
+@node Supporting Multiple Languages
+@section Supporting Multiple Languages
 
 In the future, we hope to expand Guile to support other languages like
 Tcl and Perl by translating them to Scheme code.  This means that users
