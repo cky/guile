@@ -107,6 +107,18 @@ control structures, and even syntax to Guile, creating a domain-specific
 language tailored to the task at hand, but based on a robust language
 design.
 
+This kind of combination is helped by four aspects of Guile's design
+and history.  First is that Guile has always been targeted as an
+extension language.  Hence its C API has always been of great
+importance, and has been developed accordingly.  Second and third are
+rather technical points -- that Guile uses conservative garbage
+collection, and that it implements the Scheme concept of continuations
+by copying and reinstating the C stack -- but whose practical
+consequence is that most existing C code can be glued into Guile as
+is, without needing modifications to cope with strange Scheme
+execution flows.  Last is the module system, which helps extensions to
+coexist without stepping on each others' toes.
+
 Guile's module system allows one to break up a large program into
 manageable sections with well-defined interfaces between them.
 Modules may contain a mixture of interpreted and compiled code; Guile
