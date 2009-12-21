@@ -195,7 +195,6 @@ read_token (SCM port, SCM buf, size_t *read)
   scm_t_wchar chr;
   *read = 0;
 
-  buf = scm_i_string_start_writing (buf);
   while (*read < scm_i_string_length (buf))
     {
       chr = scm_getc (port);
@@ -218,7 +217,6 @@ read_token (SCM port, SCM buf, size_t *read)
       scm_i_string_set_x (buf, *read, chr);
       (*read)++;
     }
-  scm_i_string_stop_writing ();
 
   return 1;
 }
