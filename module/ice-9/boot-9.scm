@@ -55,8 +55,8 @@
 ;; It is handy to wrap around an expression to look at
 ;; a value each time is evaluated, e.g.:
 ;;
-;;	(+ 10 (troublesome-fn))
-;;	=> (+ 10 (pk 'troublesome-fn-returned (troublesome-fn)))
+;;      (+ 10 (troublesome-fn))
+;;      => (+ 10 (pk 'troublesome-fn-returned (troublesome-fn)))
 ;;
 
 (define (peek . stuff)
@@ -110,11 +110,11 @@
 ;;
 (define (and-map f lst)
   (let loop ((result #t)
-	     (l lst))
+             (l lst))
     (and result
-	 (or (and (null? l)
-		  result)
-	     (loop (f (car l)) (cdr l))))))
+         (or (and (null? l)
+                  result)
+             (loop (f (car l)) (cdr l))))))
 
 ;; or-map f l
 ;;
@@ -123,10 +123,10 @@
 ;;
 (define (or-map f lst)
   (let loop ((result #f)
-	     (l lst))
+             (l lst))
     (or result
-	(and (not (null? l))
-	     (loop (f (car l)) (cdr l))))))
+        (and (not (null? l))
+             (loop (f (car l)) (cdr l))))))
 
 
 
@@ -138,29 +138,29 @@
 ;; per SRFI-13 spec
 (define (string-any char_pred s . rest)
   (let ((start (if (null? rest)
-		   0 (car rest)))
-	(end   (if (or (null? rest) (null? (cdr rest)))
-		   (string-length s) (cadr rest))))
+                   0 (car rest)))
+        (end   (if (or (null? rest) (null? (cdr rest)))
+                   (string-length s) (cadr rest))))
     (if (and (procedure? char_pred)
-	     (> end start)
-	     (<= end (string-length s))) ;; let c-code handle range error
-	(or (string-any-c-code char_pred s start (1- end))
-	    (char_pred (string-ref s (1- end))))
-	(string-any-c-code char_pred s start end))))
+             (> end start)
+             (<= end (string-length s))) ;; let c-code handle range error
+        (or (string-any-c-code char_pred s start (1- end))
+            (char_pred (string-ref s (1- end))))
+        (string-any-c-code char_pred s start end))))
 
 ;; this is scheme wrapping the C code so the final pred call is a tail call,
 ;; per SRFI-13 spec
 (define (string-every char_pred s . rest)
   (let ((start (if (null? rest)
-		   0 (car rest)))
-	(end   (if (or (null? rest) (null? (cdr rest)))
-		   (string-length s) (cadr rest))))
+                   0 (car rest)))
+        (end   (if (or (null? rest) (null? (cdr rest)))
+                   (string-length s) (cadr rest))))
     (if (and (procedure? char_pred)
-	     (> end start)
-	     (<= end (string-length s))) ;; let c-code handle range error
-	(and (string-every-c-code char_pred s start (1- end))
-	     (char_pred (string-ref s (1- end))))
-	(string-every-c-code char_pred s start end))))
+             (> end start)
+             (<= end (string-length s))) ;; let c-code handle range error
+        (and (string-every-c-code char_pred s start (1- end))
+             (char_pred (string-ref s (1- end))))
+        (string-every-c-code char_pred s start end))))
 
 ;; A variant of string-fill! that we keep for compatability
 ;;
@@ -409,9 +409,9 @@
 ;;; perform binding in many circumstances when the "let" family of
 ;;; of forms don't cut it.  E.g.:
 ;;;
-;;;	(apply-to-args (return-3d-mouse-coords)
-;;;	  (lambda (x y z)
-;;;		...))
+;;;     (apply-to-args (return-3d-mouse-coords)
+;;;       (lambda (x y z)
+;;;             ...))
 ;;;
 
 (define (apply-to-args args fn) (apply fn args))
@@ -450,13 +450,13 @@
 (define (set-symbol-property! sym prop val)
   (let ((pair (assoc prop (symbol-pref sym))))
     (if pair
-	(set-cdr! pair val)
-	(symbol-pset! sym (acons prop val (symbol-pref sym))))))
+        (set-cdr! pair val)
+        (symbol-pset! sym (acons prop val (symbol-pref sym))))))
 
 (define (symbol-property-remove! sym prop)
   (let ((pair (assoc prop (symbol-pref sym))))
     (if pair
-	(symbol-pset! sym (delq! pair (symbol-pref sym))))))
+        (symbol-pset! sym (delq! pair (symbol-pref sym))))))
 
 
 
@@ -509,13 +509,13 @@
 ;; 0: type-name, 1: fields
 (define record-type-vtable
   (make-vtable-vtable "prpr" 0
-		      (lambda (s p)
-			(cond ((eq? s record-type-vtable)
-			       (display "#<record-type-vtable>" p))
-			      (else
-			       (display "#<record-type " p)
-			       (display (record-type-name s) p)
-			       (display ">" p))))))
+                      (lambda (s p)
+                        (cond ((eq? s record-type-vtable)
+                               (display "#<record-type-vtable>" p))
+                              (else
+                               (display "#<record-type " p)
+                               (display (record-type-name s) p)
+                               (display ">" p))))))
 
 (define (record-type? obj)
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
@@ -523,30 +523,30 @@
 (define (make-record-type type-name fields . opt)
   (let ((printer-fn (and (pair? opt) (car opt))))
     (let ((struct (make-struct record-type-vtable 0
-			       (make-struct-layout
-				(apply string-append
-				       (map (lambda (f) "pw") fields)))
-			       (or printer-fn
-				   (lambda (s p)
-				     (display "#<" p)
-				     (display type-name p)
-				     (let loop ((fields fields)
-						(off 0))
-				       (cond
-					((not (null? fields))
-					 (display " " p)
-					 (display (car fields) p)
-					 (display ": " p)
-					 (display (struct-ref s off) p)
-					 (loop (cdr fields) (+ 1 off)))))
-				     (display ">" p)))
-			       type-name
-			       (copy-tree fields))))
+                               (make-struct-layout
+                                (apply string-append
+                                       (map (lambda (f) "pw") fields)))
+                               (or printer-fn
+                                   (lambda (s p)
+                                     (display "#<" p)
+                                     (display type-name p)
+                                     (let loop ((fields fields)
+                                                (off 0))
+                                       (cond
+                                        ((not (null? fields))
+                                         (display " " p)
+                                         (display (car fields) p)
+                                         (display ": " p)
+                                         (display (struct-ref s off) p)
+                                         (loop (cdr fields) (+ 1 off)))))
+                                     (display ">" p)))
+                               type-name
+                               (copy-tree fields))))
       ;; Temporary solution: Associate a name to the record type descriptor
       ;; so that the object system can create a wrapper class for it.
       (set-struct-vtable-name! struct (if (symbol? type-name)
-					  type-name
-					  (string->symbol type-name)))
+                                          type-name
+                                          (string->symbol type-name)))
       struct)))
 
 (define (record-type-name obj)
@@ -575,14 +575,14 @@
 (define (%record-type-error rtd obj)  ;; private helper
   (or (eq? rtd (record-type-descriptor obj))
       (scm-error 'wrong-type-arg "%record-type-check"
-		 "Wrong type record (want `~S'): ~S"
-		 (list (record-type-name rtd) obj)
-		 #f)))
+                 "Wrong type record (want `~S'): ~S"
+                 (list (record-type-name rtd) obj)
+                 #f)))
 
 (define (record-accessor rtd field-name)
   (let ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
-	(error 'no-such-field field-name))
+        (error 'no-such-field field-name))
     (lambda (obj)
       (if (eq? (struct-vtable obj) rtd)
           (struct-ref obj pos)
@@ -591,7 +591,7 @@
 (define (record-modifier rtd field-name)
   (let ((pos (list-index (record-type-fields rtd) field-name)))
     (if (not pos)
-	(error 'no-such-field field-name))
+        (error 'no-such-field field-name))
     (lambda (obj val)
       (if (eq? (struct-vtable obj) rtd)
           (struct-set! obj pos val)
@@ -635,11 +635,11 @@
 
 (define (list-index l k)
   (let loop ((n 0)
-	     (l l))
+             (l l))
     (and (not (null? l))
-	 (if (eq? (car l) k)
-	     n
-	     (loop (+ n 1) (cdr l))))))
+         (if (eq? (car l) k)
+             n
+             (loop (+ n 1) (cdr l))))))
 
 
 
@@ -653,24 +653,24 @@
 (define file-exists?
   (if (provided? 'posix)
       (lambda (str)
-	(->bool (stat str #f)))
+        (->bool (stat str #f)))
       (lambda (str)
-	(let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
-			   (lambda args #f))))
-	  (if port (begin (close-port port) #t)
-	      #f)))))
+        (let ((port (catch 'system-error (lambda () (open-file str OPEN_READ))
+                           (lambda args #f))))
+          (if port (begin (close-port port) #t)
+              #f)))))
 
 (define file-is-directory?
   (if (provided? 'posix)
       (lambda (str)
-	(eq? (stat:type (stat str)) 'directory))
+        (eq? (stat:type (stat str)) 'directory))
       (lambda (str)
-	(let ((port (catch 'system-error
-			   (lambda () (open-file (string-append str "/.")
-						 OPEN_READ))
-			   (lambda args #f))))
-	  (if port (begin (close-port port) #t)
-	      #f)))))
+        (let ((port (catch 'system-error
+                           (lambda () (open-file (string-append str "/.")
+                                                 OPEN_READ))
+                           (lambda args #f))))
+          (if port (begin (close-port port) #t)
+              #f)))))
 
 (define (has-suffix? str suffix)
   (string-suffix? suffix str))
@@ -690,11 +690,11 @@
   (if (null? args)
       (scm-error 'misc-error #f "?" #f #f)
       (let loop ((msg "~A")
-		 (rest (cdr args)))
-	(if (not (null? rest))
-	    (loop (string-append msg " ~S")
-		  (cdr rest))
-	    (scm-error 'misc-error #f msg args #f)))))
+                 (rest (cdr args)))
+        (if (not (null? rest))
+            (loop (string-append msg " ~S")
+                  (cdr rest))
+            (scm-error 'misc-error #f msg args #f)))))
 
 ;; bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key (unless the throw has four arguments, in which case
@@ -705,7 +705,7 @@
 (define (bad-throw key . args)
   (let ((default (symbol-property key 'throw-handler-default)))
     (or (and default (apply default key args))
-	(apply error "unhandled-exception:" key args))))
+        (apply error "unhandled-exception:" key args))))
 
 
 
@@ -746,24 +746,24 @@
 
 (define (move->fdes fd/port fd)
   (cond ((integer? fd/port)
-	 (dup->fdes fd/port fd)
-	 (close fd/port)
-	 fd)
-	(else
-	 (primitive-move->fdes fd/port fd)
-	 (set-port-revealed! fd/port 1)
-	 fd/port)))
+         (dup->fdes fd/port fd)
+         (close fd/port)
+         fd)
+        (else
+         (primitive-move->fdes fd/port fd)
+         (set-port-revealed! fd/port 1)
+         fd/port)))
 
 (define (release-port-handle port)
   (let ((revealed (port-revealed port)))
     (if (> revealed 0)
-	(set-port-revealed! port (- revealed 1)))))
+        (set-port-revealed! port (- revealed 1)))))
 
 (define (dup->port port/fd mode . maybe-fd)
   (let ((port (fdopen (apply dup->fdes port/fd maybe-fd)
-		      mode)))
+                      mode)))
     (if (pair? maybe-fd)
-	(set-port-revealed! port 1))
+        (set-port-revealed! port 1))
     port))
 
 (define (dup->inport port/fd . maybe-fd)
@@ -783,28 +783,28 @@
 (define (fdes->inport fdes)
   (let loop ((rest-ports (fdes->ports fdes)))
     (cond ((null? rest-ports)
-	   (let ((result (fdopen fdes "r")))
-	     (set-port-revealed! result 1)
-	     result))
-	  ((input-port? (car rest-ports))
-	   (set-port-revealed! (car rest-ports)
-			       (+ (port-revealed (car rest-ports)) 1))
-	   (car rest-ports))
-	  (else
-	   (loop (cdr rest-ports))))))
+           (let ((result (fdopen fdes "r")))
+             (set-port-revealed! result 1)
+             result))
+          ((input-port? (car rest-ports))
+           (set-port-revealed! (car rest-ports)
+                               (+ (port-revealed (car rest-ports)) 1))
+           (car rest-ports))
+          (else
+           (loop (cdr rest-ports))))))
 
 (define (fdes->outport fdes)
   (let loop ((rest-ports (fdes->ports fdes)))
     (cond ((null? rest-ports)
-	   (let ((result (fdopen fdes "w")))
-	     (set-port-revealed! result 1)
-	     result))
-	  ((output-port? (car rest-ports))
-	   (set-port-revealed! (car rest-ports)
-			       (+ (port-revealed (car rest-ports)) 1))
-	   (car rest-ports))
-	  (else
-	   (loop (cdr rest-ports))))))
+           (let ((result (fdopen fdes "w")))
+             (set-port-revealed! result 1)
+             result))
+          ((output-port? (car rest-ports))
+           (set-port-revealed! (car rest-ports)
+                               (+ (port-revealed (car rest-ports)) 1))
+           (car rest-ports))
+          (else
+           (loop (cdr rest-ports))))))
 
 (define (port->fdes port)
   (set-port-revealed! port (+ (port-revealed port) 1))
@@ -830,15 +830,15 @@
 
 (define (in-vicinity vicinity file)
   (let ((tail (let ((len (string-length vicinity)))
-		(if (zero? len)
-		    #f
-		    (string-ref vicinity (- len 1))))))
+                (if (zero? len)
+                    #f
+                    (string-ref vicinity (- len 1))))))
     (string-append vicinity
-		   (if (or (not tail)
-			   (eq? tail #\/))
-		       ""
-		       "/")
-		   file)))
+                   (if (or (not tail)
+                           (eq? tail #\/))
+                       ""
+                       "/")
+                   file)))
 
 
 
@@ -861,11 +861,11 @@
 
 (define (load-user-init)
   (let* ((home (or (getenv "HOME")
-		   (false-if-exception (passwd:dir (getpwuid (getuid))))
-		   "/"))  ;; fallback for cygwin etc.
-	 (init-file (in-vicinity home ".guile")))
+                   (false-if-exception (passwd:dir (getpwuid (getuid))))
+                   "/"))  ;; fallback for cygwin etc.
+         (init-file (in-vicinity home ".guile")))
     (if (file-exists? init-file)
-	(primitive-load init-file))))
+        (primitive-load init-file))))
 
 
 
@@ -885,7 +885,7 @@
 ;;; name extensions listed in %load-extensions.
 (define (load-from-path name)
   (start-stack 'load-stack
-	       (primitive-load-path name)))
+               (primitive-load-path name)))
 
 (define %load-verbosely #f)
 (define (assert-load-verbosity v) (set! %load-verbosely v))
@@ -893,12 +893,12 @@
 (define (%load-announce file)
   (if %load-verbosely
       (with-output-to-port (current-error-port)
-	(lambda ()
-	  (display ";;; ")
-	  (display "loading ")
-	  (display file)
-	  (newline)
-	  (force-output)))))
+        (lambda ()
+          (display ";;; ")
+          (display "loading ")
+          (display file)
+          (newline)
+          (force-output)))))
 
 (set! %load-hook %load-announce)
 
@@ -970,117 +970,117 @@
     (return #f #f argv))
 
    ((or (not (eq? #\- (string-ref (car argv) 0)))
-	(eq? (string-length (car argv)) 1))
+        (eq? (string-length (car argv)) 1))
     (return 'normal-arg (car argv) (cdr argv)))
 
    ((eq? #\- (string-ref (car argv) 1))
     (let* ((kw-arg-pos (or (string-index (car argv) #\=)
-			   (string-length (car argv))))
-	   (kw (symbol->keyword (substring (car argv) 2 kw-arg-pos)))
-	   (kw-opt? (member kw kw-opts))
-	   (kw-arg? (member kw kw-args))
-	   (arg (or (and (not (eq? kw-arg-pos (string-length (car argv))))
-			 (substring (car argv)
-				    (+ kw-arg-pos 1)
-				    (string-length (car argv))))
-		    (and kw-arg?
-			 (begin (set! argv (cdr argv)) (car argv))))))
+                           (string-length (car argv))))
+           (kw (symbol->keyword (substring (car argv) 2 kw-arg-pos)))
+           (kw-opt? (member kw kw-opts))
+           (kw-arg? (member kw kw-args))
+           (arg (or (and (not (eq? kw-arg-pos (string-length (car argv))))
+                         (substring (car argv)
+                                    (+ kw-arg-pos 1)
+                                    (string-length (car argv))))
+                    (and kw-arg?
+                         (begin (set! argv (cdr argv)) (car argv))))))
       (if (or kw-opt? kw-arg?)
-	  (return kw arg (cdr argv))
-	  (return 'usage-error kw (cdr argv)))))
+          (return kw arg (cdr argv))
+          (return 'usage-error kw (cdr argv)))))
 
    (else
     (let* ((char (substring (car argv) 1 2))
-	   (kw (symbol->keyword char)))
+           (kw (symbol->keyword char)))
       (cond
 
        ((member kw kw-opts)
-	(let* ((rest-car (substring (car argv) 2 (string-length (car argv))))
-	       (new-argv (if (= 0 (string-length rest-car))
-			     (cdr argv)
-			     (cons (string-append "-" rest-car) (cdr argv)))))
-	  (return kw #f new-argv)))
+        (let* ((rest-car (substring (car argv) 2 (string-length (car argv))))
+               (new-argv (if (= 0 (string-length rest-car))
+                             (cdr argv)
+                             (cons (string-append "-" rest-car) (cdr argv)))))
+          (return kw #f new-argv)))
 
        ((member kw kw-args)
-	(let* ((rest-car (substring (car argv) 2 (string-length (car argv))))
-	       (arg (if (= 0 (string-length rest-car))
-			(cadr argv)
-			rest-car))
-	       (new-argv (if (= 0 (string-length rest-car))
-			     (cddr argv)
-			     (cdr argv))))
-	  (return kw arg new-argv)))
+        (let* ((rest-car (substring (car argv) 2 (string-length (car argv))))
+               (arg (if (= 0 (string-length rest-car))
+                        (cadr argv)
+                        rest-car))
+               (new-argv (if (= 0 (string-length rest-car))
+                             (cddr argv)
+                             (cdr argv))))
+          (return kw arg new-argv)))
 
        (else (return 'usage-error kw argv)))))))
 
 (define (for-next-option proc argv kw-opts kw-args)
   (let loop ((argv argv))
     (get-option argv kw-opts kw-args
-		(lambda (opt opt-arg argv)
-		  (and opt (proc opt opt-arg argv loop))))))
+                (lambda (opt opt-arg argv)
+                  (and opt (proc opt opt-arg argv loop))))))
 
 (define (display-usage-report kw-desc)
   (for-each
    (lambda (kw)
      (or (eq? (car kw) #t)
-	 (eq? (car kw) 'else)
-	 (let* ((opt-desc kw)
-		(help (cadr opt-desc))
-		(opts (car opt-desc))
-		(opts-proper (if (string? (car opts)) (cdr opts) opts))
-		(arg-name (if (string? (car opts))
-			      (string-append "<" (car opts) ">")
-			      ""))
-		(left-part (string-append
-			    (with-output-to-string
-			      (lambda ()
-				(map (lambda (x) (display (keyword->symbol x)) (display " "))
-				     opts-proper)))
-			    arg-name))
-		(middle-part (if (and (< (string-length left-part) 30)
-				      (< (string-length help) 40))
-				 (make-string (- 30 (string-length left-part)) #\ )
-				 "\n\t")))
-	   (display left-part)
-	   (display middle-part)
-	   (display help)
-	   (newline))))
+         (eq? (car kw) 'else)
+         (let* ((opt-desc kw)
+                (help (cadr opt-desc))
+                (opts (car opt-desc))
+                (opts-proper (if (string? (car opts)) (cdr opts) opts))
+                (arg-name (if (string? (car opts))
+                              (string-append "<" (car opts) ">")
+                              ""))
+                (left-part (string-append
+                            (with-output-to-string
+                              (lambda ()
+                                (map (lambda (x) (display (keyword->symbol x)) (display " "))
+                                     opts-proper)))
+                            arg-name))
+                (middle-part (if (and (< (string-length left-part) 30)
+                                      (< (string-length help) 40))
+                                 (make-string (- 30 (string-length left-part)) #\ )
+                                 "\n\t")))
+           (display left-part)
+           (display middle-part)
+           (display help)
+           (newline))))
    kw-desc))
 
 
 
 (define (transform-usage-lambda cases)
   (let* ((raw-usage (delq! 'else (map car cases)))
-	 (usage-sans-specials (map (lambda (x)
-				    (or (and (not (list? x)) x)
-					(and (symbol? (car x)) #t)
-					(and (boolean? (car x)) #t)
-					x))
-				  raw-usage))
-	 (usage-desc (delq! #t usage-sans-specials))
-	 (kw-desc (map car usage-desc))
-	 (kw-opts (apply append (map (lambda (x) (and (not (string? (car x))) x)) kw-desc)))
-	 (kw-args (apply append (map (lambda (x) (and (string? (car x)) (cdr x))) kw-desc)))
-	 (transmogrified-cases (map (lambda (case)
-				      (cons (let ((opts (car case)))
-					      (if (or (boolean? opts) (eq? 'else opts))
-						  opts
-						  (cond
-						   ((symbol? (car opts))  opts)
-						   ((boolean? (car opts)) opts)
-						   ((string? (caar opts)) (cdar opts))
-						   (else (car opts)))))
-					    (cdr case)))
-				    cases)))
+         (usage-sans-specials (map (lambda (x)
+                                    (or (and (not (list? x)) x)
+                                        (and (symbol? (car x)) #t)
+                                        (and (boolean? (car x)) #t)
+                                        x))
+                                  raw-usage))
+         (usage-desc (delq! #t usage-sans-specials))
+         (kw-desc (map car usage-desc))
+         (kw-opts (apply append (map (lambda (x) (and (not (string? (car x))) x)) kw-desc)))
+         (kw-args (apply append (map (lambda (x) (and (string? (car x)) (cdr x))) kw-desc)))
+         (transmogrified-cases (map (lambda (case)
+                                      (cons (let ((opts (car case)))
+                                              (if (or (boolean? opts) (eq? 'else opts))
+                                                  opts
+                                                  (cond
+                                                   ((symbol? (car opts))  opts)
+                                                   ((boolean? (car opts)) opts)
+                                                   ((string? (caar opts)) (cdar opts))
+                                                   (else (car opts)))))
+                                            (cdr case)))
+                                    cases)))
     `(let ((%display-usage (lambda () (display-usage-report ',usage-desc))))
        (lambda (%argv)
-	 (let %next-arg ((%argv %argv))
-	   (get-option %argv
-		       ',kw-opts
-		       ',kw-args
-		       (lambda (%opt %arg %new-argv)
-			 (case %opt
-			   ,@ transmogrified-cases))))))))
+         (let %next-arg ((%argv %argv))
+           (get-option %argv
+                       ',kw-opts
+                       ',kw-args
+                       (lambda (%opt %arg %new-argv)
+                         (case %opt
+                           ,@ transmogrified-cases))))))))
 
 
 
@@ -1207,7 +1207,7 @@
 ;;; (module-local-variable module symbol) => [#<variable ...> | #f]
 ;;; (module-variable module symbol) => [#<variable ...> | #f]
 ;;; (module-symbol-binding module symbol opt-value)
-;;;		=> [ <obj> | opt-value | an error occurs ]
+;;;             => [ <obj> | opt-value | an error occurs ]
 ;;; (module-make-local-var! module symbol) => #<variable...>
 ;;; (module-add! module symbol var) => unspecified
 ;;; (module-remove! module symbol) =>  unspecified
@@ -1251,10 +1251,10 @@
 ;;
 (define module-type
   (make-record-type 'module
-		    '(obarray uses binder eval-closure transformer name kind
-		      duplicates-handlers import-obarray
-		      observers weak-observers)
-		    %print-module))
+                    '(obarray uses binder eval-closure transformer name kind
+                      duplicates-handlers import-obarray
+                      observers weak-observers)
+                    %print-module))
 
 ;; make-module &opt size uses binder
 ;;
@@ -1265,43 +1265,43 @@
     (lambda args
 
       (define (parse-arg index default)
-	(if (> (length args) index)
-	    (list-ref args index)
-	    default))
+        (if (> (length args) index)
+            (list-ref args index)
+            default))
 
       (define %default-import-size
         ;; Typical number of imported bindings actually used by a module.
         600)
 
       (if (> (length args) 3)
-	  (error "Too many args to make-module." args))
+          (error "Too many args to make-module." args))
 
       (let ((size (parse-arg 0 31))
-	    (uses (parse-arg 1 '()))
-	    (binder (parse-arg 2 #f)))
+            (uses (parse-arg 1 '()))
+            (binder (parse-arg 2 #f)))
 
-	(if (not (integer? size))
-	    (error "Illegal size to make-module." size))
-	(if (not (and (list? uses)
-		      (and-map module? uses)))
-	    (error "Incorrect use list." uses))
-	(if (and binder (not (procedure? binder)))
-	    (error
-	     "Lazy-binder expected to be a procedure or #f." binder))
+        (if (not (integer? size))
+            (error "Illegal size to make-module." size))
+        (if (not (and (list? uses)
+                      (and-map module? uses)))
+            (error "Incorrect use list." uses))
+        (if (and binder (not (procedure? binder)))
+            (error
+             "Lazy-binder expected to be a procedure or #f." binder))
 
-	(let ((module (module-constructor (make-hash-table size)
-					  uses binder #f %pre-modules-transformer
+        (let ((module (module-constructor (make-hash-table size)
+                                          uses binder #f %pre-modules-transformer
                                           #f #f #f
-					  (make-hash-table %default-import-size)
-					  '()
-					  (make-weak-key-hash-table 31))))
+                                          (make-hash-table %default-import-size)
+                                          '()
+                                          (make-weak-key-hash-table 31))))
 
-	  ;; We can't pass this as an argument to module-constructor,
-	  ;; because we need it to close over a pointer to the module
-	  ;; itself.
-	  (set-module-eval-closure! module (standard-eval-closure module))
+          ;; We can't pass this as an argument to module-constructor,
+          ;; because we need it to close over a pointer to the module
+          ;; itself.
+          (set-module-eval-closure! module (standard-eval-closure module))
 
-	  module))))
+          module))))
 
 (define module-constructor (record-constructor module-type))
 (define module-obarray  (record-accessor module-type 'obarray))
@@ -1376,10 +1376,10 @@
 
 (define (module-unobserve token)
   (let ((module (car token))
-	(id (cdr token)))
+        (id (cdr token)))
     (if (integer? id)
-	(hash-remove! (module-weak-observers module) id)
-	(set-module-observers! module (delq1! id (module-observers module)))))
+        (hash-remove! (module-weak-observers module) id)
+        (set-module-observers! module (delq1! id (module-observers module)))))
   *unspecified*)
 
 (define module-defer-observers #f)
@@ -1397,16 +1397,16 @@
 (define (call-with-deferred-observers thunk)
   (dynamic-wind
       (lambda ()
-	(lock-mutex module-defer-observers-mutex)
-	(set! module-defer-observers #t))
+        (lock-mutex module-defer-observers-mutex)
+        (set! module-defer-observers #t))
       thunk
       (lambda ()
-	(set! module-defer-observers #f)
-	(hash-for-each (lambda (m dummy)
-			 (module-call-observers m))
-		       module-defer-observers-table)
-	(hash-clear! module-defer-observers-table)
-	(unlock-mutex module-defer-observers-mutex))))
+        (set! module-defer-observers #f)
+        (hash-for-each (lambda (m dummy)
+                         (module-call-observers m))
+                       module-defer-observers-table)
+        (hash-clear! module-defer-observers-table)
+        (unlock-mutex module-defer-observers-mutex))))
 
 (define (module-call-observers m)
   (for-each (lambda (proc) (proc m)) (module-observers m))
@@ -1444,8 +1444,8 @@
 (define (module-search fn m v)
   (define (loop pos)
     (and (pair? pos)
-	 (or (module-search fn (car pos) v)
-	     (loop (cdr pos)))))
+         (or (module-search fn (car pos) v)
+             (loop (cdr pos)))))
   (or (fn m v)
       (loop (module-uses m))))
 
@@ -1463,7 +1463,7 @@
 (define (module-locally-bound? m v)
   (let ((var (module-local-variable m v)))
     (and var
-	 (variable-bound? var))))
+         (variable-bound? var))))
 
 ;; module-bound? module symbol
 ;;
@@ -1473,7 +1473,7 @@
 (define (module-bound? m v)
   (let ((var (module-variable m v)))
     (and var
-	 (variable-bound? var))))
+         (variable-bound? var))))
 
 ;;; {Is a symbol interned in a module?}
 ;;;
@@ -1559,10 +1559,10 @@
 (define (module-symbol-local-binding m v . opt-val)
   (let ((var (module-local-variable m v)))
     (if (and var (variable-bound? var))
-	(variable-ref var)
-	(if (not (null? opt-val))
-	    (car opt-val)
-	    (error "Locally unbound variable." v)))))
+        (variable-ref var)
+        (if (not (null? opt-val))
+            (car opt-val)
+            (error "Locally unbound variable." v)))))
 
 ;; module-symbol-binding module symbol opt-value
 ;;
@@ -1574,10 +1574,10 @@
 (define (module-symbol-binding m v . opt-val)
   (let ((var (module-variable m v)))
     (if (and var (variable-bound? var))
-	(variable-ref var)
-	(if (not (null? opt-val))
-	    (car opt-val)
-	    (error "Unbound variable." v)))))
+        (variable-ref var)
+        (if (not (null? opt-val))
+            (car opt-val)
+            (error "Unbound variable." v)))))
 
 
 
@@ -1595,12 +1595,12 @@
 ;;
 (define (module-make-local-var! m v)
   (or (let ((b (module-obarray-ref (module-obarray m) v)))
-	(and (variable? b)
-	     (begin
-	       ;; Mark as modified since this function is called when
-	       ;; the standard eval closure defines a binding
-	       (module-modified m)
-	       b)))
+        (and (variable? b)
+             (begin
+               ;; Mark as modified since this function is called when
+               ;; the standard eval closure defines a binding
+               (module-modified m)
+               b)))
 
       ;; Create a new local variable.
       (let ((local-var (make-undefined-variable)))
@@ -1616,8 +1616,8 @@
 (define (module-ensure-local-variable! module symbol)
   (or (module-local-variable module symbol)
       (let ((var (make-undefined-variable)))
-	(module-add! module symbol var)
-	var)))
+        (module-add! module symbol var)
+        var)))
 
 ;; module-add! module symbol var
 ;;
@@ -1689,16 +1689,16 @@
 
 (define (save-module-excursion thunk)
   (let ((inner-module (current-module))
-	(outer-module #f))
+        (outer-module #f))
     (dynamic-wind (lambda ()
-		    (set! outer-module (current-module))
-		    (set-current-module inner-module)
-		    (set! inner-module #f))
-		  thunk
-		  (lambda ()
-		    (set! inner-module (current-module))
-		    (set-current-module outer-module)
-		    (set! outer-module #f)))))
+                    (set! outer-module (current-module))
+                    (set-current-module inner-module)
+                    (set! inner-module #f))
+                  thunk
+                  (lambda ()
+                    (set! inner-module (current-module))
+                    (set-current-module outer-module)
+                    (set! outer-module #f)))))
 
 (define basic-load load)
 
@@ -1706,15 +1706,15 @@
   (save-module-excursion
    (lambda ()
      (let ((oldname (and (current-load-port)
-			 (port-filename (current-load-port)))))
+                         (port-filename (current-load-port)))))
        (apply basic-load
-	      (if (and oldname
-		       (> (string-length filename) 0)
-		       (not (char=? (string-ref filename 0) #\/))
-		       (not (string=? (dirname oldname) ".")))
-		  (string-append (dirname oldname) "/" filename)
-		  filename)
-	      reader)))))
+              (if (and oldname
+                       (> (string-length filename) 0)
+                       (not (char=? (string-ref filename 0) #\/))
+                       (not (string=? (dirname oldname) ".")))
+                  (string-append (dirname oldname) "/" filename)
+                  filename)
+              reader)))))
 
 
 
@@ -1729,11 +1729,11 @@
 (define (module-ref module name . rest)
   (let ((variable (module-variable module name)))
     (if (and variable (variable-bound? variable))
-	(variable-ref variable)
-	(if (null? rest)
-	    (error "No variable named" name 'in module)
-	    (car rest)			; default value
-	    ))))
+        (variable-ref variable)
+        (if (null? rest)
+            (error "No variable named" name 'in module)
+            (car rest)                  ; default value
+            ))))
 
 ;; MODULE-SET! -- exported
 ;;
@@ -1743,8 +1743,8 @@
 (define (module-set! module name value)
   (let ((variable (module-variable module name)))
     (if variable
-	(variable-set! variable value)
-	(error "No variable named" name 'in module))))
+        (variable-set! variable value)
+        (error "No variable named" name 'in module))))
 
 ;; MODULE-DEFINE! -- exported
 ;;
@@ -1754,11 +1754,11 @@
 (define (module-define! module name value)
   (let ((variable (module-local-variable module name)))
     (if variable
-	(begin
-	  (variable-set! variable value)
-	  (module-modified module))
-	(let ((variable (make-variable value)))
-	  (module-add! module name variable)))))
+        (begin
+          (variable-set! variable value)
+          (module-modified module))
+        (let ((variable (make-variable value)))
+          (module-add! module name variable)))))
 
 ;; MODULE-DEFINED? -- exported
 ;;
@@ -1810,60 +1810,60 @@
 ;;; Each variable name is a list of elements, looked up in successively nested
 ;;; modules.
 ;;;
-;;;		(nested-ref some-root-module '(foo bar baz))
-;;;		=> <value of a variable named baz in the module bound to bar in
-;;;		    the module bound to foo in some-root-module>
+;;;             (nested-ref some-root-module '(foo bar baz))
+;;;             => <value of a variable named baz in the module bound to bar in
+;;;                 the module bound to foo in some-root-module>
 ;;;
 ;;;
 ;;; There are:
 ;;;
-;;;	;; a-root is a module
-;;;	;; name is a list of symbols
+;;;     ;; a-root is a module
+;;;     ;; name is a list of symbols
 ;;;
-;;;	nested-ref a-root name
-;;;	nested-set! a-root name val
-;;;	nested-define! a-root name val
-;;;	nested-remove! a-root name
+;;;     nested-ref a-root name
+;;;     nested-set! a-root name val
+;;;     nested-define! a-root name val
+;;;     nested-remove! a-root name
 ;;;
 ;;;
 ;;; (current-module) is a natural choice for a-root so for convenience there are
 ;;; also:
 ;;;
-;;;	local-ref name		==	nested-ref (current-module) name
-;;;	local-set! name val	==	nested-set! (current-module) name val
-;;;	local-define! name val	==	nested-define! (current-module) name val
-;;;	local-remove! name	==	nested-remove! (current-module) name
+;;;     local-ref name          ==      nested-ref (current-module) name
+;;;     local-set! name val     ==      nested-set! (current-module) name val
+;;;     local-define! name val  ==      nested-define! (current-module) name val
+;;;     local-remove! name      ==      nested-remove! (current-module) name
 ;;;
 
 
 (define (nested-ref root names)
   (let loop ((cur root)
-	     (elts names))
+             (elts names))
     (cond
-     ((null? elts)		cur)
-     ((not (module? cur))	#f)
+     ((null? elts)              cur)
+     ((not (module? cur))       #f)
      (else (loop (module-ref cur (car elts) #f) (cdr elts))))))
 
 (define (nested-set! root names val)
   (let loop ((cur root)
-	     (elts names))
+             (elts names))
     (if (null? (cdr elts))
-	(module-set! cur (car elts) val)
-	(loop (module-ref cur (car elts)) (cdr elts)))))
+        (module-set! cur (car elts) val)
+        (loop (module-ref cur (car elts)) (cdr elts)))))
 
 (define (nested-define! root names val)
   (let loop ((cur root)
-	     (elts names))
+             (elts names))
     (if (null? (cdr elts))
-	(module-define! cur (car elts) val)
-	(loop (module-ref cur (car elts)) (cdr elts)))))
+        (module-define! cur (car elts) val)
+        (loop (module-ref cur (car elts)) (cdr elts)))))
 
 (define (nested-remove! root names)
   (let loop ((cur root)
-	     (elts names))
+             (elts names))
     (if (null? (cdr elts))
-	(module-remove! cur (car elts))
-	(loop (module-ref cur (car elts)) (cdr elts)))))
+        (module-remove! cur (car elts))
+        (loop (module-ref cur (car elts)) (cdr elts)))))
 
 (define (local-ref names) (nested-ref (current-module) names))
 (define (local-set! names val) (nested-set! (current-module) names val))
@@ -1918,13 +1918,13 @@
 (define (beautify-user-module! module)
   (let ((interface (module-public-interface module)))
     (if (or (not interface)
-	    (eq? interface module))
-	(let ((interface (make-module 31)))
-	  (set-module-name! interface (module-name module))
-	  (set-module-kind! interface 'interface)
-	  (set-module-public-interface! module interface))))
+            (eq? interface module))
+        (let ((interface (make-module 31)))
+          (set-module-name! interface (module-name module))
+          (set-module-kind! interface 'interface)
+          (set-module-public-interface! module interface))))
   (if (and (not (memq the-scm-module (module-uses module)))
-	   (not (eq? module the-root-module)))
+           (not (eq? module the-root-module)))
       ;; Import the default set of bindings (from the SCM module) in MODULE.
       (module-use! module the-scm-module)))
 
@@ -2003,8 +2003,8 @@
   "Removes bindings in MODULE which are inherited from the (guile) module."
   (let ((use-list (module-uses module)))
     (if (and (pair? use-list)
-	     (eq? (car (last-pair use-list)) the-scm-module))
-	(set-module-uses! module (reverse (cdr (reverse use-list)))))))
+             (eq? (car (last-pair use-list)) the-scm-module))
+        (set-module-uses! module (reverse (cdr (reverse use-list)))))))
 
 ;; Return a module that is an interface to the module designated by
 ;; NAME.
@@ -2044,19 +2044,19 @@
 
   (define (get-keyword-arg args kw def)
     (cond ((memq kw args)
-	   => (lambda (kw-arg)
-		(if (null? (cdr kw-arg))
-		    (error "keyword without value: " kw))
-		(cadr kw-arg)))
-	  (else
-	   def)))
+           => (lambda (kw-arg)
+                (if (null? (cdr kw-arg))
+                    (error "keyword without value: " kw))
+                (cadr kw-arg)))
+          (else
+           def)))
 
   (let* ((select (get-keyword-arg args #:select #f))
-	 (hide (get-keyword-arg args #:hide '()))
-	 (renamer (or (get-keyword-arg args #:renamer #f)
-		      (let ((prefix (get-keyword-arg args #:prefix #f)))
-			(and prefix (symbol-prefix-proc prefix)))
-		      identity))
+         (hide (get-keyword-arg args #:hide '()))
+         (renamer (or (get-keyword-arg args #:renamer #f)
+                      (let ((prefix (get-keyword-arg args #:prefix #f)))
+                        (and prefix (symbol-prefix-proc prefix)))
+                      identity))
          (module (resolve-module name))
          (public-i (and module (module-public-interface module))))
     (and (or (not module) (not public-i))
@@ -2064,37 +2064,37 @@
     (if (and (not select) (null? hide) (eq? renamer identity))
         public-i
         (let ((selection (or select (module-map (lambda (sym var) sym)
-						public-i)))
+                                                public-i)))
               (custom-i (make-module 31)))
           (set-module-kind! custom-i 'custom-interface)
-	  (set-module-name! custom-i name)
-	  ;; XXX - should use a lazy binder so that changes to the
-	  ;; used module are picked up automatically.
-	  (for-each (lambda (bspec)
-		      (let* ((direct? (symbol? bspec))
-			     (orig (if direct? bspec (car bspec)))
-			     (seen (if direct? bspec (cdr bspec)))
-			     (var (or (module-local-variable public-i orig)
-				      (module-local-variable module orig)
-				      (error
-				       ;; fixme: format manually for now
-				       (simple-format
-					#f "no binding `~A' in module ~A"
-					orig name)))))
-			(if (memq orig hide)
-			    (set! hide (delq! orig hide))
-			    (module-add! custom-i
-					 (renamer seen)
-					 var))))
-		    selection)
-	  ;; Check that we are not hiding bindings which don't exist
-	  (for-each (lambda (binding)
-		      (if (not (module-local-variable public-i binding))
-			  (error
-			   (simple-format
-			    #f "no binding `~A' to hide in module ~A"
-			    binding name))))
-		    hide)
+          (set-module-name! custom-i name)
+          ;; XXX - should use a lazy binder so that changes to the
+          ;; used module are picked up automatically.
+          (for-each (lambda (bspec)
+                      (let* ((direct? (symbol? bspec))
+                             (orig (if direct? bspec (car bspec)))
+                             (seen (if direct? bspec (cdr bspec)))
+                             (var (or (module-local-variable public-i orig)
+                                      (module-local-variable module orig)
+                                      (error
+                                       ;; fixme: format manually for now
+                                       (simple-format
+                                        #f "no binding `~A' in module ~A"
+                                        orig name)))))
+                        (if (memq orig hide)
+                            (set! hide (delq! orig hide))
+                            (module-add! custom-i
+                                         (renamer seen)
+                                         var))))
+                    selection)
+          ;; Check that we are not hiding bindings which don't exist
+          (for-each (lambda (binding)
+                      (if (not (module-local-variable public-i binding))
+                          (error
+                           (simple-format
+                            #f "no binding `~A' to hide in module ~A"
+                            binding name))))
+                    hide)
           custom-i))))
 
 (define (symbol-prefix-proc prefix)
@@ -2230,16 +2230,16 @@
 
 (define (make-autoload-interface module name bindings)
   (let ((b (lambda (a sym definep)
-	     (and (memq sym bindings)
-		  (let ((i (module-public-interface (resolve-module name))))
-		    (if (not i)
-			(error "missing interface for module" name))
-		    (let ((autoload (memq a (module-uses module))))
-		      ;; Replace autoload-interface with actual interface if
-		      ;; that has not happened yet.
-		      (if (pair? autoload)
-			  (set-car! autoload i)))
-		    (module-local-variable i sym))))))
+             (and (memq sym bindings)
+                  (let ((i (module-public-interface (resolve-module name))))
+                    (if (not i)
+                        (error "missing interface for module" name))
+                    (let ((autoload (memq a (module-uses module))))
+                      ;; Replace autoload-interface with actual interface if
+                      ;; that has not happened yet.
+                      (if (pair? autoload)
+                          (set-car! autoload i)))
+                    (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table 31))))
 
@@ -2273,26 +2273,26 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define (try-module-autoload module-name)
   (let* ((reverse-name (reverse module-name))
-	 (name (symbol->string (car reverse-name)))
-	 (dir-hint-module-name (reverse (cdr reverse-name)))
-	 (dir-hint (apply string-append
-			  (map (lambda (elt)
-				 (string-append (symbol->string elt) "/"))
-			       dir-hint-module-name))))
+         (name (symbol->string (car reverse-name)))
+         (dir-hint-module-name (reverse (cdr reverse-name)))
+         (dir-hint (apply string-append
+                          (map (lambda (elt)
+                                 (string-append (symbol->string elt) "/"))
+                               dir-hint-module-name))))
     (resolve-module dir-hint-module-name #f)
     (and (not (autoload-done-or-in-progress? dir-hint name))
-	 (let ((didit #f))
-	   (dynamic-wind
-	    (lambda () (autoload-in-progress! dir-hint name))
-	    (lambda ()
-	      (with-fluid* current-reader #f
+         (let ((didit #f))
+           (dynamic-wind
+            (lambda () (autoload-in-progress! dir-hint name))
+            (lambda ()
+              (with-fluid* current-reader #f
                 (lambda ()
                   (save-module-excursion
                    (lambda () 
                      (primitive-load-path (in-vicinity dir-hint name) #f)
                      (set! didit #t))))))
-	    (lambda () (set-autoloaded! dir-hint name didit)))
-	   didit))))
+            (lambda () (set-autoloaded! dir-hint name didit)))
+           didit))))
 
 
 
@@ -2304,27 +2304,27 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (autoload-done-or-in-progress? p m)
   (let ((n (cons p m)))
     (->bool (or (member n autoloads-done)
-		(member n autoloads-in-progress)))))
+                (member n autoloads-in-progress)))))
 
 (define (autoload-done! p m)
   (let ((n (cons p m)))
     (set! autoloads-in-progress
-	  (delete! n autoloads-in-progress))
+          (delete! n autoloads-in-progress))
     (or (member n autoloads-done)
-	(set! autoloads-done (cons n autoloads-done)))))
+        (set! autoloads-done (cons n autoloads-done)))))
 
 (define (autoload-in-progress! p m)
   (let ((n (cons p m)))
     (set! autoloads-done
-	  (delete! n autoloads-done))
+          (delete! n autoloads-done))
     (set! autoloads-in-progress (cons n autoloads-in-progress))))
 
 (define (set-autoloaded! p m done?)
   (if done?
       (autoload-done! p m)
       (let ((n (cons p m)))
-	(set! autoloads-done (delete! n autoloads-done))
-	(set! autoloads-in-progress (delete! n autoloads-in-progress)))))
+        (set! autoloads-done (delete! n autoloads-done))
+        (set! autoloads-in-progress (delete! n autoloads-in-progress)))))
 
 
 
@@ -2333,17 +2333,17 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro define-option-interface (option-group)
   (let* ((option-name 'car)
-	 (option-value 'cadr)
-	 (option-documentation 'caddr)
+         (option-value 'cadr)
+         (option-documentation 'caddr)
 
-	 ;; Below follow the macros defining the run-time option interfaces.
+         ;; Below follow the macros defining the run-time option interfaces.
 
-	 (make-options (lambda (interface)
-			 `(lambda args
-			    (cond ((null? args) (,interface))
-				  ((list? (car args))
-				   (,interface (car args)) (,interface))
-				  (else (for-each
+         (make-options (lambda (interface)
+                         `(lambda args
+                            (cond ((null? args) (,interface))
+                                  ((list? (car args))
+                                   (,interface (car args)) (,interface))
+                                  (else (for-each
                                          (lambda (option)
                                            (display (,option-name option))
                                            (if (< (string-length
@@ -2357,19 +2357,19 @@ module '(ice-9 q) '(make-q q-length))}."
                                            (newline))
                                          (,interface #t)))))))
 
-	 (make-enable (lambda (interface)
-			`(lambda flags
-			   (,interface (append flags (,interface)))
-			   (,interface))))
+         (make-enable (lambda (interface)
+                        `(lambda flags
+                           (,interface (append flags (,interface)))
+                           (,interface))))
 
-	 (make-disable (lambda (interface)
-			 `(lambda flags
-			    (let ((options (,interface)))
-			      (for-each (lambda (flag)
-					  (set! options (delq! flag options)))
-					flags)
-			      (,interface options)
-			      (,interface))))))
+         (make-disable (lambda (interface)
+                         `(lambda flags
+                            (let ((options (,interface)))
+                              (for-each (lambda (flag)
+                                          (set! options (delq! flag options)))
+                                        flags)
+                              (,interface options)
+                              (,interface))))))
     (let* ((interface (car option-group))
            (options/enable/disable (cadr option-group)))
       `(begin
@@ -2454,81 +2454,81 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define (error-catching-loop thunk)
   (let ((status #f)
-	(interactive #t))
+        (interactive #t))
     (define (loop first)
       (let ((next
-	     (catch #t
+             (catch #t
 
-		    (lambda ()
-		      (call-with-unblocked-asyncs
-		       (lambda ()
-			 (with-traps
-			  (lambda ()
-			    (first)
+                    (lambda ()
+                      (call-with-unblocked-asyncs
+                       (lambda ()
+                         (with-traps
+                          (lambda ()
+                            (first)
 
-			    ;; This line is needed because mark
-			    ;; doesn't do closures quite right.
-			    ;; Unreferenced locals should be
-			    ;; collected.
-			    (set! first #f)
-			    (let loop ((v (thunk)))
-			      (loop (thunk)))
-			    #f)))))
+                            ;; This line is needed because mark
+                            ;; doesn't do closures quite right.
+                            ;; Unreferenced locals should be
+                            ;; collected.
+                            (set! first #f)
+                            (let loop ((v (thunk)))
+                              (loop (thunk)))
+                            #f)))))
 
-		    (lambda (key . args)
-		      (case key
-			((quit)
-			 (set! status args)
-			 #f)
+                    (lambda (key . args)
+                      (case key
+                        ((quit)
+                         (set! status args)
+                         #f)
 
-			((switch-repl)
-			 (apply throw 'switch-repl args))
+                        ((switch-repl)
+                         (apply throw 'switch-repl args))
 
-			((abort)
-			 ;; This is one of the closures that require
-			 ;; (set! first #f) above
-			 ;;
-			 (lambda ()
-			   (run-hook abort-hook)
-			   (force-output (current-output-port))
-			   (display "ABORT: "  (current-error-port))
-			   (write args (current-error-port))
-			   (newline (current-error-port))
-			   (if interactive
-			       (begin
-				 (if (and
-				      (not has-shown-debugger-hint?)
-				      (not (memq 'backtrace
-						 (debug-options-interface)))
-				      (stack? (fluid-ref the-last-stack)))
-				     (begin
-				       (newline (current-error-port))
-				       (display
-					"Type \"(backtrace)\" to get more information or \"(debug)\" to enter the debugger.\n"
-					(current-error-port))
-				       (set! has-shown-debugger-hint? #t)))
-				 (force-output (current-error-port)))
-			       (begin
-				 (primitive-exit 1)))
-			   (set! stack-saved? #f)))
+                        ((abort)
+                         ;; This is one of the closures that require
+                         ;; (set! first #f) above
+                         ;;
+                         (lambda ()
+                           (run-hook abort-hook)
+                           (force-output (current-output-port))
+                           (display "ABORT: "  (current-error-port))
+                           (write args (current-error-port))
+                           (newline (current-error-port))
+                           (if interactive
+                               (begin
+                                 (if (and
+                                      (not has-shown-debugger-hint?)
+                                      (not (memq 'backtrace
+                                                 (debug-options-interface)))
+                                      (stack? (fluid-ref the-last-stack)))
+                                     (begin
+                                       (newline (current-error-port))
+                                       (display
+                                        "Type \"(backtrace)\" to get more information or \"(debug)\" to enter the debugger.\n"
+                                        (current-error-port))
+                                       (set! has-shown-debugger-hint? #t)))
+                                 (force-output (current-error-port)))
+                               (begin
+                                 (primitive-exit 1)))
+                           (set! stack-saved? #f)))
 
-			(else
-			 ;; This is the other cons-leak closure...
-			 (lambda ()
-			   (cond ((= (length args) 4)
-				  (apply handle-system-error key args))
-				 (else
-				  (apply bad-throw key args)))))))
+                        (else
+                         ;; This is the other cons-leak closure...
+                         (lambda ()
+                           (cond ((= (length args) 4)
+                                  (apply handle-system-error key args))
+                                 (else
+                                  (apply bad-throw key args)))))))
 
                     default-pre-unwind-handler)))
 
-	(if next (loop next) status)))
+        (if next (loop next) status)))
     (set! set-batch-mode?! (lambda (arg)
-			     (cond (arg
-				    (set! interactive #f)
-				    (restore-signals))
-				   (#t
-				    (error "sorry, not implemented")))))
+                             (cond (arg
+                                    (set! interactive #f)
+                                    (restore-signals))
+                                   (#t
+                                    (error "sorry, not implemented")))))
     (set! batch-mode? (lambda () (not interactive)))
     (call-with-blocked-asyncs
      (lambda () (loop (lambda () #t))))))
@@ -2540,23 +2540,23 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (save-stack . narrowing)
   (or stack-saved?
       (cond ((not (memq 'debug (debug-options-interface)))
-	     (fluid-set! the-last-stack #f)
-	     (set! stack-saved? #t))
-	    (else
-	     (fluid-set!
-	      the-last-stack
-	      (case (stack-id #t)
-		((repl-stack)
-		 (apply make-stack #t save-stack primitive-eval #t 0 narrowing))
-		((load-stack)
-		 (apply make-stack #t save-stack 0 #t 0 narrowing))
-		((#t)
-		 (apply make-stack #t save-stack 0 1 narrowing))
-		(else
-		 (let ((id (stack-id #t)))
-		   (and (procedure? id)
-			(apply make-stack #t save-stack id #t 0 narrowing))))))
-	     (set! stack-saved? #t)))))
+             (fluid-set! the-last-stack #f)
+             (set! stack-saved? #t))
+            (else
+             (fluid-set!
+              the-last-stack
+              (case (stack-id #t)
+                ((repl-stack)
+                 (apply make-stack #t save-stack primitive-eval #t 0 narrowing))
+                ((load-stack)
+                 (apply make-stack #t save-stack 0 #t 0 narrowing))
+                ((#t)
+                 (apply make-stack #t save-stack 0 1 narrowing))
+                (else
+                 (let ((id (stack-id #t)))
+                   (and (procedure? id)
+                        (apply make-stack #t save-stack id #t 0 narrowing))))))
+             (set! stack-saved? #t)))))
 
 (define before-error-hook (make-hook))
 (define after-error-hook (make-hook))
@@ -2568,18 +2568,18 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (handle-system-error key . args)
   (let ((cep (current-error-port)))
     (cond ((not (stack? (fluid-ref the-last-stack))))
-	  ((memq 'backtrace (debug-options-interface))
-	   (let ((highlights (if (or (eq? key 'wrong-type-arg)
-				     (eq? key 'out-of-range))
-				 (list-ref args 3)
-				 '())))
-	     (run-hook before-backtrace-hook)
-	     (newline cep)
-	     (display "Backtrace:\n")
-	     (display-backtrace (fluid-ref the-last-stack) cep
-				#f #f highlights)
-	     (newline cep)
-	     (run-hook after-backtrace-hook))))
+          ((memq 'backtrace (debug-options-interface))
+           (let ((highlights (if (or (eq? key 'wrong-type-arg)
+                                     (eq? key 'out-of-range))
+                                 (list-ref args 3)
+                                 '())))
+             (run-hook before-backtrace-hook)
+             (newline cep)
+             (display "Backtrace:\n")
+             (display-backtrace (fluid-ref the-last-stack) cep
+                                #f #f highlights)
+             (newline cep)
+             (run-hook after-backtrace-hook))))
     (run-hook before-error-hook)
     (apply display-error (fluid-ref the-last-stack) cep args)
     (run-hook after-error-hook)
@@ -2597,16 +2597,16 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;(define (backtrace)
 ;;  (if (fluid-ref the-last-stack)
 ;;      (begin
-;;	(newline)
-;;	(display-backtrace (fluid-ref the-last-stack) (current-output-port))
-;;	(newline)
-;;	(if (and (not has-shown-backtrace-hint?)
-;;		 (not (memq 'backtrace (debug-options-interface))))
-;;	    (begin
-;;	      (display
+;;      (newline)
+;;      (display-backtrace (fluid-ref the-last-stack) (current-output-port))
+;;      (newline)
+;;      (if (and (not has-shown-backtrace-hint?)
+;;               (not (memq 'backtrace (debug-options-interface))))
+;;          (begin
+;;            (display
 ;;"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
 ;;automatically if an error occurs in the future.\n")
-;;	      (set! has-shown-backtrace-hint? #t))))
+;;            (set! has-shown-backtrace-hint? #t))))
 ;;      (display "No backtrace available.\n")))
 
 (define (error-catching-repl r e p)
@@ -2640,108 +2640,108 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (scm-style-repl)
 
   (letrec (
-	   (start-gc-rt #f)
-	   (start-rt #f)
-	   (repl-report-start-timing (lambda ()
-				       (set! start-gc-rt (gc-run-time))
-				       (set! start-rt (get-internal-run-time))))
-	   (repl-report (lambda ()
-			  (display ";;; ")
-			  (display (inexact->exact
-				    (* 1000 (/ (- (get-internal-run-time) start-rt)
-					       internal-time-units-per-second))))
-			  (display "  msec  (")
-			  (display  (inexact->exact
-				     (* 1000 (/ (- (gc-run-time) start-gc-rt)
-						internal-time-units-per-second))))
-			  (display " msec in gc)\n")))
+           (start-gc-rt #f)
+           (start-rt #f)
+           (repl-report-start-timing (lambda ()
+                                       (set! start-gc-rt (gc-run-time))
+                                       (set! start-rt (get-internal-run-time))))
+           (repl-report (lambda ()
+                          (display ";;; ")
+                          (display (inexact->exact
+                                    (* 1000 (/ (- (get-internal-run-time) start-rt)
+                                               internal-time-units-per-second))))
+                          (display "  msec  (")
+                          (display  (inexact->exact
+                                     (* 1000 (/ (- (gc-run-time) start-gc-rt)
+                                                internal-time-units-per-second))))
+                          (display " msec in gc)\n")))
 
-	   (consume-trailing-whitespace
-	    (lambda ()
-	      (let ((ch (peek-char)))
-		(cond
-		 ((eof-object? ch))
-		 ((or (char=? ch #\space) (char=? ch #\tab))
-		  (read-char)
-		  (consume-trailing-whitespace))
-		 ((char=? ch #\newline)
-		  (read-char))))))
-	   (-read (lambda ()
-		    (let ((val
-			   (let ((prompt (cond ((string? scm-repl-prompt)
-						scm-repl-prompt)
-					       ((thunk? scm-repl-prompt)
-						(scm-repl-prompt))
-					       (scm-repl-prompt "> ")
-					       (else ""))))
-			     (repl-reader prompt))))
+           (consume-trailing-whitespace
+            (lambda ()
+              (let ((ch (peek-char)))
+                (cond
+                 ((eof-object? ch))
+                 ((or (char=? ch #\space) (char=? ch #\tab))
+                  (read-char)
+                  (consume-trailing-whitespace))
+                 ((char=? ch #\newline)
+                  (read-char))))))
+           (-read (lambda ()
+                    (let ((val
+                           (let ((prompt (cond ((string? scm-repl-prompt)
+                                                scm-repl-prompt)
+                                               ((thunk? scm-repl-prompt)
+                                                (scm-repl-prompt))
+                                               (scm-repl-prompt "> ")
+                                               (else ""))))
+                             (repl-reader prompt))))
 
-		      ;; As described in R4RS, the READ procedure updates the
-		      ;; port to point to the first character past the end of
-		      ;; the external representation of the object.  This
-		      ;; means that it doesn't consume the newline typically
-		      ;; found after an expression.  This means that, when
-		      ;; debugging Guile with GDB, GDB gets the newline, which
-		      ;; it often interprets as a "continue" command, making
-		      ;; breakpoints kind of useless.  So, consume any
-		      ;; trailing newline here, as well as any whitespace
-		      ;; before it.
-		      ;; But not if EOF, for control-D.
-		      (if (not (eof-object? val))
-			  (consume-trailing-whitespace))
-		      (run-hook after-read-hook)
-		      (if (eof-object? val)
-			  (begin
-			    (repl-report-start-timing)
-			    (if scm-repl-verbose
-				(begin
-				  (newline)
-				  (display ";;; EOF -- quitting")
-				  (newline)))
-			    (quit 0)))
-		      val)))
+                      ;; As described in R4RS, the READ procedure updates the
+                      ;; port to point to the first character past the end of
+                      ;; the external representation of the object.  This
+                      ;; means that it doesn't consume the newline typically
+                      ;; found after an expression.  This means that, when
+                      ;; debugging Guile with GDB, GDB gets the newline, which
+                      ;; it often interprets as a "continue" command, making
+                      ;; breakpoints kind of useless.  So, consume any
+                      ;; trailing newline here, as well as any whitespace
+                      ;; before it.
+                      ;; But not if EOF, for control-D.
+                      (if (not (eof-object? val))
+                          (consume-trailing-whitespace))
+                      (run-hook after-read-hook)
+                      (if (eof-object? val)
+                          (begin
+                            (repl-report-start-timing)
+                            (if scm-repl-verbose
+                                (begin
+                                  (newline)
+                                  (display ";;; EOF -- quitting")
+                                  (newline)))
+                            (quit 0)))
+                      val)))
 
-	   (-eval (lambda (sourc)
-		    (repl-report-start-timing)
-		    (run-hook before-eval-hook sourc)
-		    (let ((val (start-stack 'repl-stack
-					    ;; If you change this procedure
-					    ;; (primitive-eval), please also
-					    ;; modify the repl-stack case in
-					    ;; save-stack so that stack cutting
-					    ;; continues to work.
-					    (primitive-eval sourc))))
-		      (run-hook after-eval-hook sourc)
-		      val)))
+           (-eval (lambda (sourc)
+                    (repl-report-start-timing)
+                    (run-hook before-eval-hook sourc)
+                    (let ((val (start-stack 'repl-stack
+                                            ;; If you change this procedure
+                                            ;; (primitive-eval), please also
+                                            ;; modify the repl-stack case in
+                                            ;; save-stack so that stack cutting
+                                            ;; continues to work.
+                                            (primitive-eval sourc))))
+                      (run-hook after-eval-hook sourc)
+                      val)))
 
 
-	   (-print (let ((maybe-print (lambda (result)
-					(if (or scm-repl-print-unspecified
-						(not (unspecified? result)))
-					    (begin
-					      (write result)
-					      (newline))))))
-		     (lambda (result)
-		       (if (not scm-repl-silent)
-			   (begin
-			     (run-hook before-print-hook result)
-			     (maybe-print result)
-			     (run-hook after-print-hook result)
-			     (if scm-repl-verbose
-				 (repl-report))
-			     (force-output))))))
+           (-print (let ((maybe-print (lambda (result)
+                                        (if (or scm-repl-print-unspecified
+                                                (not (unspecified? result)))
+                                            (begin
+                                              (write result)
+                                              (newline))))))
+                     (lambda (result)
+                       (if (not scm-repl-silent)
+                           (begin
+                             (run-hook before-print-hook result)
+                             (maybe-print result)
+                             (run-hook after-print-hook result)
+                             (if scm-repl-verbose
+                                 (repl-report))
+                             (force-output))))))
 
-	   (-quit (lambda (args)
-		    (if scm-repl-verbose
-			(begin
-			  (display ";;; QUIT executed, repl exitting")
-			  (newline)
-			  (repl-report)))
-		    args)))
+           (-quit (lambda (args)
+                    (if scm-repl-verbose
+                        (begin
+                          (display ";;; QUIT executed, repl exitting")
+                          (newline)
+                          (repl-report)))
+                    args)))
 
     (let ((status (error-catching-repl -read
-				       -eval
-				       -print)))
+                                       -eval
+                                       -print)))
       (-quit status))))
 
 
@@ -2782,11 +2782,11 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (defmacro with-fluids (bindings . body)
   (let ((fluids (map car bindings))
-	(values (map cadr bindings)))
+        (values (map cadr bindings)))
     (if (and (= (length fluids) 1) (= (length values) 1))
-	`(with-fluid* ,(car fluids) ,(car values) (lambda () ,@body))
-	`(with-fluids* (list ,@fluids) (list ,@values)
-		       (lambda () ,@body)))))
+        `(with-fluid* ,(car fluids) ,(car values) (lambda () ,@body))
+        `(with-fluids* (list ,@fluids) (list ,@values)
+                       (lambda () ,@body)))))
 
 ;;; {While}
 ;;;
@@ -2833,25 +2833,25 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (compile-interface-spec spec)
   (define (make-keyarg sym key quote?)
     (cond ((or (memq sym spec)
-	       (memq key spec))
-	   => (lambda (rest)
-		(if quote?
-		    (list key (list 'quote (cadr rest)))
-		    (list key (cadr rest)))))
-	  (else
-	   '())))
+               (memq key spec))
+           => (lambda (rest)
+                (if quote?
+                    (list key (list 'quote (cadr rest)))
+                    (list key (cadr rest)))))
+          (else
+           '())))
   (define (map-apply func list)
     (map (lambda (args) (apply func args)) list))
   (define keys
     ;; sym     key      quote?
     '((:select #:select #t)
-      (:hide   #:hide	#t)
+      (:hide   #:hide   #t)
       (:prefix #:prefix #t)
       (:renamer #:renamer #f)))
   (if (not (pair? (car spec)))
       `(',spec)
       `(',(car spec)
-	,@(apply append (map-apply make-keyarg keys)))))
+        ,@(apply append (map-apply make-keyarg keys)))))
 
 (define (keyword-like-symbol->keyword sym)
   (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
@@ -2863,34 +2863,34 @@ module '(ice-9 q) '(make-q q-length))}."
   ;; keyword args in a define-module form are not regular
   ;; (i.e. no-backtrace doesn't take a value).
   (let loop ((compiled-args `((quote ,(car args))))
-	     (args (cdr args)))
+             (args (cdr args)))
     (cond ((null? args)
-	   (reverse! compiled-args))
-	  ;; symbol in keyword position
-	  ((symbol? (car args))
-	   (loop compiled-args
-		 (cons (keyword-like-symbol->keyword (car args)) (cdr args))))
-	  ((memq (car args) '(#:no-backtrace #:pure))
-	   (loop (cons (car args) compiled-args)
-		 (cdr args)))
-	  ((null? (cdr args))
-	   (error "keyword without value:" (car args)))
-	  ((memq (car args) '(#:use-module #:use-syntax))
-	   (loop (cons* `(list ,@(compile-interface-spec (cadr args)))
-			(car args)
-			compiled-args)
-		 (cddr args)))
-	  ((eq? (car args) #:autoload)
-	   (loop (cons* `(quote ,(caddr args))
-			`(quote ,(cadr args))
-			(car args)
-			compiled-args)
-		 (cdddr args)))
-	  (else
-	   (loop (cons* `(quote ,(cadr args))
-			(car args)
-			compiled-args)
-		 (cddr args))))))
+           (reverse! compiled-args))
+          ;; symbol in keyword position
+          ((symbol? (car args))
+           (loop compiled-args
+                 (cons (keyword-like-symbol->keyword (car args)) (cdr args))))
+          ((memq (car args) '(#:no-backtrace #:pure))
+           (loop (cons (car args) compiled-args)
+                 (cdr args)))
+          ((null? (cdr args))
+           (error "keyword without value:" (car args)))
+          ((memq (car args) '(#:use-module #:use-syntax))
+           (loop (cons* `(list ,@(compile-interface-spec (cadr args)))
+                        (car args)
+                        compiled-args)
+                 (cddr args)))
+          ((eq? (car args) #:autoload)
+           (loop (cons* `(quote ,(caddr args))
+                        `(quote ,(cadr args))
+                        (car args)
+                        compiled-args)
+                 (cdddr args)))
+          (else
+           (loop (cons* `(quote ,(cadr args))
+                        (car args)
+                        compiled-args)
+                 (cddr args))))))
 
 (defmacro define-module args
   `(eval-when
@@ -2908,9 +2908,9 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define (process-use-modules module-interface-args)
   (let ((interfaces (map (lambda (mif-args)
-			   (or (apply resolve-interface mif-args)
-			       (error "no such module" mif-args)))
-			 module-interface-args)))
+                           (or (apply resolve-interface mif-args)
+                               (error "no such module" mif-args)))
+                         module-interface-args)))
     (call-with-deferred-observers
      (lambda ()
        (module-use-interfaces! (current-module) interfaces)))))
@@ -2968,31 +2968,31 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (module-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		(let ((var (module-ensure-local-variable! m name)))
-		  (module-add! public-i name var)))
-	      names)))
+                (let ((var (module-ensure-local-variable! m name)))
+                  (module-add! public-i name var)))
+              names)))
 
 (define (module-replace! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		(let ((var (module-ensure-local-variable! m name)))
-		  (set-object-property! var 'replace #t)
-		  (module-add! public-i name var)))
-	      names)))
+                (let ((var (module-ensure-local-variable! m name)))
+                  (set-object-property! var 'replace #t)
+                  (module-add! public-i name var)))
+              names)))
 
 ;; Re-export a imported variable
 ;;
 (define (module-re-export! m names)
   (let ((public-i (module-public-interface m)))
     (for-each (lambda (name)
-		(let ((var (module-variable m name)))
-		  (cond ((not var)
-			 (error "Undefined variable:" name))
-			((eq? var (module-local-variable m name))
-			 (error "re-exporting local variable:" name))
-			(else
-			 (module-add! public-i name var)))))
-	      names)))
+                (let ((var (module-variable m name)))
+                  (cond ((not var)
+                         (error "Undefined variable:" name))
+                        ((eq? var (module-local-variable m name))
+                         (error "re-exporting local variable:" name))
+                        (else
+                         (module-add! public-i name var)))))
+              names)))
 
 (defmacro export names
   `(call-with-deferred-observers
@@ -3019,17 +3019,17 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define make-mutable-parameter
   (let ((make (lambda (fluid converter)
-		(lambda args
-		  (if (null? args)
-		      (fluid-ref fluid)
-		      (fluid-set! fluid (converter (car args))))))))
+                (lambda args
+                  (if (null? args)
+                      (fluid-ref fluid)
+                      (fluid-set! fluid (converter (car args))))))))
     (lambda (init . converter)
       (let ((fluid (make-fluid))
-	    (converter (if (null? converter)
-			   identity
-			   (car converter))))
-	(fluid-set! fluid (converter init))
-	(make fluid converter)))))
+            (converter (if (null? converter)
+                           identity
+                           (car converter))))
+        (fluid-set! fluid (converter init))
+        (make fluid converter)))))
 
 
 
@@ -3039,13 +3039,13 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; Duplicate handlers take the following arguments:
 ;;
 ;; module  importing module
-;; name	   conflicting name
-;; int1	   old interface where name occurs
-;; val1	   value of binding in old interface
-;; int2	   new interface where name occurs
-;; val2	   value of binding in new interface
-;; var	   previous resolution or #f
-;; val	   value of previous resolution
+;; name    conflicting name
+;; int1    old interface where name occurs
+;; val1    value of binding in old interface
+;; int2    new interface where name occurs
+;; val2    value of binding in new interface
+;; var     previous resolution or #f
+;; val     value of previous resolution
 ;;
 ;; A duplicate handler can take three alternative actions:
 ;;
@@ -3059,43 +3059,43 @@ module '(ice-9 q) '(make-q q-length))}."
     
     (define (check module name int1 val1 int2 val2 var val)
       (scm-error 'misc-error
-		 #f
-		 "~A: `~A' imported from both ~A and ~A"
-		 (list (module-name module)
-		       name
-		       (module-name int1)
-		       (module-name int2))
-		 #f))
+                 #f
+                 "~A: `~A' imported from both ~A and ~A"
+                 (list (module-name module)
+                       name
+                       (module-name int1)
+                       (module-name int2))
+                 #f))
     
     (define (warn module name int1 val1 int2 val2 var val)
       (format (current-error-port)
-	      "WARNING: ~A: `~A' imported from both ~A and ~A\n"
-	      (module-name module)
-	      name
-	      (module-name int1)
-	      (module-name int2))
+              "WARNING: ~A: `~A' imported from both ~A and ~A\n"
+              (module-name module)
+              name
+              (module-name int1)
+              (module-name int2))
       #f)
      
     (define (replace module name int1 val1 int2 val2 var val)
       (let ((old (or (and var (object-property var 'replace) var)
-		     (module-variable int1 name)))
-	    (new (module-variable int2 name)))
-	(if (object-property old 'replace)
-	    (and (or (eq? old new)
-		     (not (object-property new 'replace)))
-		 old)
-	    (and (object-property new 'replace)
-		 new))))
+                     (module-variable int1 name)))
+            (new (module-variable int2 name)))
+        (if (object-property old 'replace)
+            (and (or (eq? old new)
+                     (not (object-property new 'replace)))
+                 old)
+            (and (object-property new 'replace)
+                 new))))
     
     (define (warn-override-core module name int1 val1 int2 val2 var val)
       (and (eq? int1 the-scm-module)
-	   (begin
-	     (format (current-error-port)
-		     "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
-		     (module-name module)
-		     (module-name int2)
-		     name)
-	     (module-local-variable int2 name))))
+           (begin
+             (format (current-error-port)
+                     "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
+                     (module-name module)
+                     (module-name int2)
+                     name)
+             (module-local-variable int2 name))))
      
     (define (first module name int1 val1 int2 val2 var val)
       (or var (module-local-variable int1 name)))
@@ -3121,23 +3121,23 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (lookup-duplicates-handlers handler-names)
   (and handler-names
        (map (lambda (handler-name)
-	      (or (module-symbol-local-binding
-		   duplicate-handlers handler-name #f)
-		  (error "invalid duplicate handler name:"
-			 handler-name)))
-	    (if (list? handler-names)
-		handler-names
-		(list handler-names)))))
+              (or (module-symbol-local-binding
+                   duplicate-handlers handler-name #f)
+                  (error "invalid duplicate handler name:"
+                         handler-name)))
+            (if (list? handler-names)
+                handler-names
+                (list handler-names)))))
 
 (define default-duplicate-binding-procedures
   (make-mutable-parameter #f))
 
 (define default-duplicate-binding-handler
   (make-mutable-parameter '(replace warn-override-core warn last)
-			  (lambda (handler-names)
-			    (default-duplicate-binding-procedures
-			      (lookup-duplicates-handlers handler-names))
-			    handler-names)))
+                          (lambda (handler-names)
+                            (default-duplicate-binding-procedures
+                              (lookup-duplicates-handlers handler-names))
+                            handler-names)))
 
 
 
@@ -3197,9 +3197,9 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (cond-expand-provide module features)
   (let ((mod (module-public-interface module)))
     (and mod
-	 (hashq-set! %cond-expand-table mod
-		     (append (hashq-ref %cond-expand-table mod '())
-			     features)))))
+         (hashq-set! %cond-expand-table mod
+                     (append (hashq-ref %cond-expand-table mod '())
+                             features)))))
 
 (define-macro (cond-expand . clauses)
   (let ((syntax-error (lambda (cl)
@@ -3268,9 +3268,9 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (use-srfis srfis)
   (process-use-modules
    (map (lambda (num)
-	  (list (list 'srfi (string->symbol
-			     (string-append "srfi-" (number->string num))))))
-	srfis)))
+          (list (list 'srfi (string->symbol
+                             (string-append "srfi-" (number->string num))))))
+        srfis)))
 
 
 
@@ -3333,8 +3333,8 @@ module '(ice-9 q) '(make-q q-length))}."
 
     ;; Load emacs interface support if emacs option is given.
     (if (and (module-defined? guile-user-module 'use-emacs-interface)
-	     (module-ref guile-user-module 'use-emacs-interface))
-	(load-emacs-interface))
+             (module-ref guile-user-module 'use-emacs-interface))
+        (load-emacs-interface))
 
     ;; Use some convenient modules (in reverse order)
 
@@ -3342,14 +3342,14 @@ module '(ice-9 q) '(make-q q-length))}."
     (process-use-modules 
      (append
       '(((ice-9 r5rs))
-	((ice-9 session))
-	((ice-9 debug)))
+        ((ice-9 session))
+        ((ice-9 debug)))
       (if (provided? 'regex)
-	  '(((ice-9 regex)))
-	  '())
+          '(((ice-9 regex)))
+          '())
       (if (provided? 'threads)
-	  '(((ice-9 threads)))
-	  '())))
+          '(((ice-9 threads)))
+          '())))
     ;; load debugger on demand
     (module-autoload! guile-user-module '(ice-9 debugger) '(debug))
 
@@ -3359,55 +3359,55 @@ module '(ice-9 q) '(make-q q-length))}."
     (let ((old-handlers #f)
           (start-repl (module-ref (resolve-interface '(system repl repl))
                                   'start-repl))
-	  (signals (if (provided? 'posix)
-		       `((,SIGINT . "User interrupt")
-			 (,SIGFPE . "Arithmetic error")
-			 (,SIGSEGV
-			  . "Bad memory access (Segmentation violation)"))
-		       '())))
+          (signals (if (provided? 'posix)
+                       `((,SIGINT . "User interrupt")
+                         (,SIGFPE . "Arithmetic error")
+                         (,SIGSEGV
+                          . "Bad memory access (Segmentation violation)"))
+                       '())))
       ;; no SIGBUS on mingw
       (if (defined? 'SIGBUS)
-	  (set! signals (acons SIGBUS "Bad memory access (bus error)"
-			       signals)))
+          (set! signals (acons SIGBUS "Bad memory access (bus error)"
+                               signals)))
 
       (dynamic-wind
 
-	  ;; call at entry
-	  (lambda ()
-	    (let ((make-handler (lambda (msg)
-				  (lambda (sig)
-				    ;; Make a backup copy of the stack
-				    (fluid-set! before-signal-stack
-						(fluid-ref the-last-stack))
-				    (save-stack 2)
-				    (scm-error 'signal
-					       #f
-					       msg
-					       #f
-					       (list sig))))))
-	      (set! old-handlers
-		    (map (lambda (sig-msg)
-			   (sigaction (car sig-msg)
-				      (make-handler (cdr sig-msg))))
-			 signals))))
+          ;; call at entry
+          (lambda ()
+            (let ((make-handler (lambda (msg)
+                                  (lambda (sig)
+                                    ;; Make a backup copy of the stack
+                                    (fluid-set! before-signal-stack
+                                                (fluid-ref the-last-stack))
+                                    (save-stack 2)
+                                    (scm-error 'signal
+                                               #f
+                                               msg
+                                               #f
+                                               (list sig))))))
+              (set! old-handlers
+                    (map (lambda (sig-msg)
+                           (sigaction (car sig-msg)
+                                      (make-handler (cdr sig-msg))))
+                         signals))))
 
-	  ;; the protected thunk.
-	  (lambda ()
+          ;; the protected thunk.
+          (lambda ()
             (let ((status (start-repl 'scheme)))
-	      (run-hook exit-hook)
-	      status))
+              (run-hook exit-hook)
+              status))
 
-	  ;; call at exit.
-	  (lambda ()
-	    (map (lambda (sig-msg old-handler)
-		   (if (not (car old-handler))
-		       ;; restore original C handler.
-		       (sigaction (car sig-msg) #f)
-		       ;; restore Scheme handler, SIG_IGN or SIG_DFL.
-		       (sigaction (car sig-msg)
-				  (car old-handler)
-				  (cdr old-handler))))
-		 signals old-handlers))))))
+          ;; call at exit.
+          (lambda ()
+            (map (lambda (sig-msg old-handler)
+                   (if (not (car old-handler))
+                       ;; restore original C handler.
+                       (sigaction (car sig-msg) #f)
+                       ;; restore Scheme handler, SIG_IGN or SIG_DFL.
+                       (sigaction (car sig-msg)
+                                  (car old-handler)
+                                  (cdr old-handler))))
+                 signals old-handlers))))))
 
 ;;; This hook is run at the very end of an interactive session.
 ;;;
@@ -3435,7 +3435,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; FIXME: annotate ?
 ;; (define (syncase exp)
 ;;   (with-fluids ((expansion-eval-closure
-;; 		 (module-eval-closure (current-module))))
+;;               (module-eval-closure (current-module))))
 ;;     (deannotate/source-properties (sc-expand (annotate exp)))))
 
 (define-module (guile-user)
