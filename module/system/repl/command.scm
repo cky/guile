@@ -29,7 +29,7 @@
   #:use-module (system vm vm)
   #:autoload (system base language) (lookup-language language-reader)
   #:autoload (system vm debug) (vm-debugger vm-backtrace)
-  #:autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
+  #:autoload (system vm trace) (vm-trace vm-trace-on! vm-trace-off!)
   #:autoload (system vm profile) (vm-profile)
   #:use-module (ice-9 format)
   #:use-module (ice-9 session)
@@ -233,8 +233,9 @@ List/show/set options."
        ((trace)
         (let ((vm (repl-vm repl)))
           (if val
-              (apply vm-trace-on vm val)
-              (vm-trace-off vm))))))))
+              (apply vm-trace-on! vm val)
+              ;; fixme: asymmetry
+              (vm-trace-off! vm))))))))
 
 (define-meta-command (quit repl)
   "quit
@@ -386,13 +387,11 @@ Start debugger."
 
 (define-meta-command (trace repl form . opts)
   "trace FORM
-Trace execution.
-
-  -s    Display stack
-  -l    Display local variables
-  -b    Bytecode level trace"
-  (apply vm-trace (repl-vm repl)
-         (repl-compile repl (repl-parse repl form))
+Trace execution."
+  ;; FIXME: doc, or somehow deal with them better
+  (apply vm-trace
+         (repl-vm repl)
+         (make-program (repl-compile repl (repl-parse repl form)))
          opts))
 
 (define-meta-command (step repl)
