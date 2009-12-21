@@ -144,26 +144,24 @@ scm_vm_reinstate_continuations (SCM conts)
     reinstate_vm_cont (SCM_VM_DATA (SCM_CAAR (conts)), SCM_CDAR (conts));
 }
 
-static void enfalsen_frame (void *p)
-{ 
-  struct scm_vm *vp = p;
-  vp->trace_frame = SCM_BOOL_F;
-}
-
 static void
-vm_dispatch_hook (struct scm_vm *vp, SCM hook, SCM hook_args)
+vm_dispatch_hook (SCM vm, int hook_num)
 {
-  if (!scm_is_false (vp->trace_frame))
+  struct scm_vm *vp;
+  SCM hook;
+  SCM frame;
+
+  vp = SCM_VM_DATA (vm);
+  hook = vp->hooks[hook_num];
+
+  if (SCM_LIKELY (scm_is_false (hook))
+      || scm_is_null (SCM_HOOK_PROCEDURES (hook)))
     return;
-
-  scm_dynwind_begin (0);
-  /* FIXME, stack holder should be the vm */
-  vp->trace_frame = scm_c_make_frame (SCM_BOOL_F, vp->fp, vp->sp, vp->ip, 0);
-  scm_dynwind_unwind_handler (enfalsen_frame, vp, SCM_F_WIND_EXPLICITLY);
-
-  scm_c_run_hook (hook, hook_args);
-
-  scm_dynwind_end ();
+  
+  vp->trace_level--;
+  frame = scm_c_make_frame (vm, vp->fp, vp->sp, vp->ip, 0);
+  scm_c_run_hookn (hook, &frame, 1);
+  vp->trace_level++;
 }
 
 
@@ -363,9 +361,9 @@ make_vm (void)
   vp->fp    	  = NULL;
   vp->engine      = SCM_VM_DEBUG_ENGINE;
   vp->options     = SCM_EOL;
+  vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
-  vp->trace_frame = SCM_BOOL_F;
   SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
 }
 #undef FUNC_NAME
@@ -406,7 +404,7 @@ SCM
 scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
 {
   struct scm_vm *vp = SCM_VM_DATA (vm);
-  return vm_engines[vp->engine](vp, program, argv, nargs);
+  return vm_engines[vp->engine](vm, program, argv, nargs);
 }
 
 SCM
@@ -618,13 +616,24 @@ SCM_DEFINE (scm_set_vm_option_x, "set-vm-option!", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_trace_frame, "vm-trace-frame", 1, 0, 0,
+SCM_DEFINE (scm_vm_trace_level, "vm-trace-level", 1, 0, 0,
 	    (SCM vm),
 	    "")
-#define FUNC_NAME s_scm_vm_trace_frame
+#define FUNC_NAME s_scm_vm_trace_level
 {
   SCM_VALIDATE_VM (1, vm);
-  return SCM_VM_DATA (vm)->trace_frame;
+  return scm_from_int (SCM_VM_DATA (vm)->trace_level);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_vm_trace_level_x, "set-vm-trace-level!", 2, 0, 0,
+	    (SCM vm, SCM level),
+	    "")
+#define FUNC_NAME s_scm_set_vm_trace_level_x
+{
+  SCM_VALIDATE_VM (1, vm);
+  SCM_VM_DATA (vm)->trace_level = scm_to_int (level);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 

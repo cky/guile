@@ -206,15 +206,14 @@
 
 #undef RUN_HOOK
 #if VM_USE_HOOKS
-#define RUN_HOOK(h)				\
-{						\
-  if (SCM_UNLIKELY (scm_is_true (vp->hooks[h])))\
-    {						\
-      SYNC_REGISTER ();				\
-      vm_dispatch_hook (vp, vp->hooks[h], hook_args);      \
-      CACHE_REGISTER ();			\
-    }						\
-}
+#define RUN_HOOK(h)                                     \
+  {                                                     \
+    if (SCM_UNLIKELY (vp->trace_level > 0))             \
+      {                                                 \
+        SYNC_REGISTER ();				\
+        vm_dispatch_hook (vm, h);                       \
+      }                                                 \
+  }
 #else
 #define RUN_HOOK(h)
 #endif

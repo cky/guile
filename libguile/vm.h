@@ -34,7 +34,7 @@
 
 struct scm_vm;
 
-typedef SCM (*scm_t_vm_engine) (struct scm_vm *vp, SCM program, SCM *argv, int nargs);
+typedef SCM (*scm_t_vm_engine) (SCM vm, SCM program, SCM *argv, int nargs);
 
 #define SCM_VM_REGULAR_ENGINE 0
 #define SCM_VM_DEBUG_ENGINE 1
@@ -50,7 +50,7 @@ struct scm_vm {
   int engine;                   /* which vm engine we're using */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
-  SCM trace_frame;              /* a frame being traced */
+  int trace_level;              /* traces enabled if trace_level > 0 */
 };
 
 SCM_API SCM scm_the_vm_fluid;
@@ -83,7 +83,8 @@ SCM_API SCM scm_vm_exit_hook (SCM vm);
 SCM_API SCM scm_vm_return_hook (SCM vm);
 SCM_API SCM scm_vm_option (SCM vm, SCM key);
 SCM_API SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
-SCM_API SCM scm_vm_trace_frame (SCM vm);
+SCM_API SCM scm_vm_trace_level (SCM vm);
+SCM_API SCM scm_set_vm_trace_level_x (SCM vm, SCM level);
 
 struct scm_vm_cont {
   scm_t_uint8 *ip;

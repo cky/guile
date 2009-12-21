@@ -27,7 +27,7 @@
             vm-load vm-option set-vm-option! vm-version
             vms:time vms:clock
 
-            vm-trace-frame
+            vm-trace-level set-vm-trace-level!
             vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
             vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
 

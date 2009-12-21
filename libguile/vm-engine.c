@@ -34,12 +34,13 @@
 
 
 static SCM
-VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
+VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 {
   /* VM registers */
   register scm_t_uint8 *ip IP_REG;	/* instruction pointer */
   register SCM *sp SP_REG;		/* stack pointer */
   register SCM *fp FP_REG;		/* frame pointer */
+  struct scm_vm *vp = SCM_VM_DATA (vm);
 
   /* Cache variables */
   struct scm_objcode *bp = NULL;	/* program base pointer */
@@ -53,10 +54,6 @@ VM_NAME (struct scm_vm *vp, SCM program, SCM *argv, int nargs)
   int nvalues = 0;
   SCM finish_args;                      /* used both for returns: both in error
                                            and normal situations */
-#if VM_USE_HOOKS
-  SCM hook_args = SCM_EOL;
-#endif
-
 #ifdef HAVE_LABELS_AS_VALUES
   static void **jump_table = NULL;
 #endif
