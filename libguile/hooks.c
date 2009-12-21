@@ -276,6 +276,17 @@ scm_c_run_hook (SCM hook, SCM args)
     }
 }
 
+void
+scm_c_run_hookn (SCM hook, SCM *argv, size_t nargs)
+{
+  SCM procs = SCM_HOOK_PROCEDURES (hook);
+  while (SCM_NIMP (procs))
+    {
+      scm_call_n (SCM_CAR (procs), argv, nargs);
+      procs = SCM_CDR (procs);
+    }
+}
+
 
 SCM_DEFINE (scm_hook_to_list, "hook->list", 1, 0, 0, 
             (SCM hook),

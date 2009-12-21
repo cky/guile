@@ -69,6 +69,7 @@ SCM_API SCM scm_call_1 (SCM proc, SCM arg1);
 SCM_API SCM scm_call_2 (SCM proc, SCM arg1, SCM arg2);
 SCM_API SCM scm_call_3 (SCM proc, SCM arg1, SCM arg2, SCM arg3);
 SCM_API SCM scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4);
+SCM_API SCM scm_call_n (SCM proc, SCM *argv, size_t nargs);
 SCM_API SCM scm_apply_0 (SCM proc, SCM args);
 SCM_API SCM scm_apply_1 (SCM proc, SCM arg1, SCM args);
 SCM_API SCM scm_apply_2 (SCM proc, SCM arg1, SCM arg2, SCM args);
