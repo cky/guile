@@ -150,7 +150,6 @@ there is still some flux.
 * Using Guile Modules::         How to use existing modules.
 * Creating Guile Modules::      How to package your code into modules.
 * Module System Reflection::    Accessing module objects at run-time.
-* Module System Quirks::        Strange things to be aware of.
 * Included Guile Modules::      Which modules come with Guile?
 * Accessing Modules from C::    How to work with modules with C code.
 @end menu
@@ -202,10 +201,6 @@ time the module is read in and evaluated.  When working with modules,
 you can manipulate the current syntax transformer using the
 @code{use-syntax} syntactic form or the @code{#:use-syntax} module
 definition option (@pxref{Creating Guile Modules}).
-
-Please note that there are some problems with the current module system
-you should keep in mind (@pxref{Module System Quirks}).  We hope to
-address these eventually.
 
 
 @node Using Guile Modules
@@ -631,37 +626,6 @@ Add @var{interface} to the front of the use-list of @var{module}.  Both
 arguments should be module objects, and @var{interface} should very
 likely be a module returned by @code{resolve-interface}.
 @end deffn
-
-@node Module System Quirks
-@subsubsection Module System Quirks
-
-Although the programming interfaces are relatively stable, the Guile
-module system itself is still evolving.  Here are some situations where
-usage surpasses design.
-
-@itemize @bullet
-
-@item
-When using a module which exports a macro definition, the other module
-must export all bindings the macro expansion uses, too, because the
-expanded code would otherwise not be able to see these definitions and
-issue a ``variable unbound'' error, or worse, would use another binding
-which might be present in the scope of the expansion.
-
-@item
-When two or more used modules export bindings with the same names, the
-last accessed module wins, and the exported binding of that last module
-will silently be used.  This might lead to hard-to-find errors because
-wrong procedures or variables are used.  To avoid this kind of
-@dfn{name-clash} situation, use a custom interface specification
-(@pxref{Using Guile Modules}).  (We include this entry for the possible
-benefit of users of Guile versions previous to 1.5.0, when custom
-interfaces were added to the module system.)
-
-@item
-[Add other quirks here.]
-
-@end itemize
 
 
 @node Included Guile Modules
