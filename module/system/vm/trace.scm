@@ -23,54 +23,67 @@
   #:use-module (system vm vm)
   #:use-module (system vm frame)
   #:use-module (ice-9 format)
-  #:export (vm-trace vm-trace-on vm-trace-off))
+  #:export (vm-trace vm-trace-on! vm-trace-off!))
 
-(define (vm-trace vm objcode . opts)
+(define (vm-trace vm thunk . opts)
   (dynamic-wind
-      (lambda () (apply vm-trace-on vm opts))
-      (lambda () (vm-load vm objcode))
-      (lambda () (apply vm-trace-off vm opts))))
+      (lambda () (apply vm-trace-on! vm opts))
+      (lambda () (vm thunk))
+      (lambda () (apply vm-trace-off! vm opts))))
 
-(define (vm-trace-on vm . opts)
-  (set-vm-option! vm 'trace-first #t)
-  (if (memq #:b opts) (add-hook! (vm-next-hook vm) trace-next))
-  (set-vm-option! vm 'trace-options opts)
-  (add-hook! (vm-apply-hook vm) trace-apply)
-  (add-hook! (vm-return-hook vm) trace-return))
+(define* (vm-trace-on! vm #:key (calls? #t) (instructions? #f))
+  (if calls?
+      (begin
+        (add-hook! (vm-exit-hook vm) trace-exit)
+        (add-hook! (vm-enter-hook vm) trace-enter)
+        (add-hook! (vm-apply-hook vm) trace-apply)
+        (add-hook! (vm-return-hook vm) trace-return)))
+  
+  (if instructions?
+      (add-hook! (vm-next-hook vm) trace-next))
 
-(define (vm-trace-off vm . opts)
-  (if (memq #:b opts) (remove-hook! (vm-next-hook vm) trace-next))
-  (remove-hook! (vm-apply-hook vm) trace-apply)
-  (remove-hook! (vm-return-hook vm) trace-return))
+  ;; boot, halt, and break are the other ones
 
-(define (trace-next vm)
-  (define (puts x) (display #\tab) (write x))
-  (define (truncate! x n)
-    (if (> (length x) n)
-      (list-cdr-set! x (1- n) '(...))) x)
-  ;; main
-  (format #t "0x~8X  ~16S" (vm:ip vm) (vm-fetch-code vm))
-  (do ((opts (vm-option vm 'trace-options) (cdr opts)))
-      ((null? opts) (newline))
-    (case (car opts)
-      ((:s) (puts (truncate! (vm-fetch-stack vm) 3)))
-      ((:l) (puts (vm-fetch-locals vm))))))
+  (set-vm-trace-level! vm (1+ (vm-trace-level vm))))
 
-(define (trace-apply vm)
-  (if (vm-option vm 'trace-first)
-    (set-vm-option! vm 'trace-first #f)
-    (let ((chain (vm-current-frame-chain vm)))
-      (print-indent chain)
-      (print-frame-call (car chain))
-      (newline))))
+(define* (vm-trace-off! vm #:key (calls? #t) (instructions? #f))
+  (set-vm-trace-level! vm (1- (vm-trace-level vm)))
 
-(define (trace-return vm)
-  (let ((chain (vm-current-frame-chain vm)))
-    (print-indent chain)
-    (write (vm-return-value vm))
-    (newline)))
+  (if calls?
+      (begin
+        (remove-hook! (vm-exit-hook vm) trace-exit)
+        (remove-hook! (vm-enter-hook vm) trace-enter)
+        (remove-hook! (vm-apply-hook vm) trace-apply)
+        (remove-hook! (vm-return-hook vm) trace-return)))
+  
+  (if instructions?
+      (remove-hook! (vm-next-hook vm) trace-next)))
 
-(define (print-indent chain)
-  (cond ((pair? (cdr chain))
-	 (display "| ")
-	 (print-indent (cdr chain)))))
+(define (trace-next frame)
+  (format #t "0x~8X" (frame-instruction-pointer frame))
+  ;; should disassemble the thingy; could print stack, or stack trace,
+  ;; ...
+  )
+
+(define *call-depth* 0)
+(define *last-printed-call-depth* 0)
+
+(define (trace-enter frame)
+  (set! *call-depth* (1+ *call-depth*)))
+
+(define (trace-exit frame)
+  (set! *call-depth* (1- *call-depth*)))
+
+(define (trace-apply frame)
+  (if (< *call-depth* 0) (set! *call-depth* 0))
+  (let ((last-depth *last-printed-call-depth*))
+    (set! *last-printed-call-depth* *call-depth*)
+    (format (current-error-port) "~a ~a~{ ~a~}\n"
+            (make-string *call-depth* #\*)
+            (let ((p (frame-procedure frame)))
+              (or (procedure-name p) p))
+            (frame-arguments frame))))
+
+(define (trace-return frame)
+  ;; nop, though we could print the return i guess
+  #t)
