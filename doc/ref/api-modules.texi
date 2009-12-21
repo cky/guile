@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -152,6 +152,7 @@ there is still some flux.
 * Module System Reflection::    Accessing module objects at run-time.
 * Included Guile Modules::      Which modules come with Guile?
 * Accessing Modules from C::    How to work with modules with C code.
+* R6RS Version References::     Using version numbers with modules.
 @end menu
 
 @node General Information about Modules
@@ -193,6 +194,21 @@ then searched in all directories in the variable @code{%load-path}
 would result in the filename @code{ice-9/popen.scm} and searched in the
 installation directories of Guile and in all other directories in the
 load path.
+
+A slightly different search mechanism is used when a client module
+specifies a version reference as part of a request to load a module
+(@pxref{R6RS Version References}).  Instead of searching the directories
+in the load path for a single filename, Guile uses the elements of the 
+version reference to locate matching, numbered subdirectories of a 
+constructed base path.  For example, a request for the 
+@code{(rnrs base)} module with version reference @code{(6)} would cause
+Guile to discover the @code{rnrs/6} subdirectory (if it exists in any of
+the directories in the load path) and search its contents for the
+filename @code{base.scm}.
+
+When multiple modules are found that match a version reference, Guile
+sorts these modules by version number, followed by the length of their
+version specifications, in order to choose a ``best'' match.
 
 @c FIXME::martin:  Not sure about this, maybe someone knows better?
 Every module has a so-called syntax transformer associated with it.
@@ -318,6 +334,21 @@ The @code{:select} and @code{:renamer} clauses are optional.  If both are
 omitted, the returned interface has no bindings.  If the @code{:select}
 clause is omitted, @var{renamer} operates on the used module's public
 interface.
+
+In addition to the above, @var{spec} can also include a @code{:version} 
+clause, of the form:
+
+@lisp
+ :version VERSION-SPEC
+@end lisp
+
+where @var{version-spec} is an R6RS-compatible version reference.  The 
+presence of this clause changes Guile's search behavior as described in
+the section on module name resolution 
+(@pxref{General Information about Modules}).  An error will be signaled 
+in the case in which a module with the same name has already been 
+loaded, if that module specifies a version and that version is not 
+compatible with @var{version-spec}.
 
 Signal error if module name is not resolvable.
 @end deffn
@@ -479,6 +510,13 @@ instead of a comparison.
 
 The @code{#:duplicates} (see below) provides fine-grain control about
 duplicate binding handling on the module-user side.
+
+@item #:version @var{list}
+@cindex module version
+Specify a version for the module in the form of @var{list}, a list of
+zero or more exact, nonnegative integers.  The corresponding 
+@code{#:version} option in the @code{use-modules} form allows callers
+to restrict the value of this option in various ways.
 
 @item #:duplicates @var{list}
 @cindex duplicate binding handlers
@@ -854,6 +892,91 @@ Add the bindings designated by @var{name}, ... to the public interface
 of the current module.  The list of names is terminated by
 @code{NULL}.
 @end deftypefn
+
+
+@node R6RS Version References
+@subsubsection R6RS Version References
+
+Guile's module system includes support for locating modules based on
+a declared version specifier of the same form as the one described in
+R6RS (@pxref{Library form, R6RS Library Form,, r6rs, The Revised^6 
+Report on the Algorithmic Language Scheme}).  By using the 
+@code{#:version} keyword in a @code{define-module} form, a module may
+specify a version as a list of zero or more exact, nonnegative integers.
+
+This version can then be used to locate the module during the module
+search process.  Client modules and callers of the @code{use-modules} 
+function may specify constraints on the versions of target modules by
+providing a @dfn{version reference}, which has one of the following
+forms:
+
+@lisp
+ (@var{sub-version-reference} ...)
+ (and @var{version-reference} ...)
+ (or @var{version-reference} ...)
+ (not @var{version-reference})
+@end lisp
+
+in which @var{sub-version-reference} is in turn one of:
+
+@lisp
+ (@var{sub-version})
+ (>= @var{sub-version})
+ (<= @var{sub-version})
+ (and @var{sub-version-reference} ...)
+ (or @var{sub-version-reference} ...)
+ (not @var{sub-version-reference})
+@end lisp
+
+in which @var{sub-version} is an exact, nonnegative integer as above. A
+version reference matches a declared module version if each element of
+the version reference matches a corresponding element of the module 
+version, according to the following rules:
+
+@itemize @bullet
+@item
+The @code{and} sub-form matches a version or version element if every 
+element in the tail of the sub-form matches the specified version or 
+version element.
+
+@item
+The @code{or} sub-form matches a version or version element if any 
+element in the tail of the sub-form matches the specified version or
+version element.
+
+@item
+The @code{not} sub-form matches a version or version element if the tail
+of the sub-form does not match the version or version element.  
+
+@item
+The @code{>=} sub-form matches a version element if the element is 
+greater than or equal to the @var{sub-version} in the tail of the 
+sub-form.
+
+@item
+The @code{<=} sub-form matches a version element if the version is less
+than or equal to the @var{sub-version} in the tail of the sub-form.
+
+@item
+A @var{sub-version} matches a version element if one is @var{eqv?} to
+the other.
+@end itemize
+
+For example, a module declared as:
+
+@lisp
+ (define-module (mylib mymodule) #:version (1 2 0))
+@end lisp
+
+would be successfully loaded by any of the following @code{use-modules}
+expressions:
+
+@lisp
+ (use-modules ((mylib mymodule) #:version (1 2 (>= 0))))
+ (use-modules ((mylib mymodule) #:version (or (1 2 0) (1 2 1))))
+ (use-modules ((mylib mymodule) #:version ((and (>= 1) (not 2)) 2 0)))
+@end lisp
+
 
 @node Dynamic Libraries
 @subsection Dynamic Libraries

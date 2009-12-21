@@ -1253,7 +1253,7 @@
   (make-record-type 'module
                     '(obarray uses binder eval-closure transformer name kind
                       duplicates-handlers import-obarray
-                      observers weak-observers)
+                      observers weak-observers version)
                     %print-module))
 
 ;; make-module &opt size uses binder
@@ -1294,7 +1294,7 @@
                                           #f #f #f
                                           (make-hash-table %default-import-size)
                                           '()
-                                          (make-weak-key-hash-table 31))))
+                                          (make-weak-key-hash-table 31) #f)))
 
           ;; We can't pass this as an argument to module-constructor,
           ;; because we need it to close over a pointer to the module
@@ -1316,6 +1316,8 @@
 
 ;; (define module-transformer (record-accessor module-type 'transformer))
 (define set-module-transformer! (record-modifier module-type 'transformer))
+(define module-version (record-accessor module-type 'version))
+(define set-module-version! (record-modifier module-type 'version))
 ;; (define module-name (record-accessor module-type 'name)) wait until mods are booted
 (define set-module-name! (record-modifier module-type 'name))
 (define module-kind (record-accessor module-type 'kind))
@@ -1921,12 +1923,110 @@
             (eq? interface module))
         (let ((interface (make-module 31)))
           (set-module-name! interface (module-name module))
+          (set-module-version! interface (module-version module))
           (set-module-kind! interface 'interface)
           (set-module-public-interface! module interface))))
   (if (and (not (memq the-scm-module (module-uses module)))
            (not (eq? module the-root-module)))
       ;; Import the default set of bindings (from the SCM module) in MODULE.
       (module-use! module the-scm-module)))
+
+(define (version-matches? version-ref target)
+  (define (any pred lst)
+    (and (not (null? lst)) (or (pred (car lst)) (any pred (cdr lst)))))
+  (define (every pred lst) 
+    (or (null? lst) (and (pred (car lst)) (every pred (cdr lst)))))
+  (define (sub-versions-match? v-refs t)
+    (define (sub-version-matches? v-ref t)
+      (define (curried-sub-version-matches? v)
+        (sub-version-matches? v t))
+      (cond ((number? v-ref) (eqv? v-ref t))
+            ((list? v-ref)
+             (let ((cv (car v-ref)))
+               (cond ((eq? cv '>=) (>= t (cadr v-ref)))
+                     ((eq? cv '<=) (<= t (cadr v-ref)))
+                     ((eq? cv 'and) 
+                      (every curried-sub-version-matches? (cdr v-ref)))
+                     ((eq? cv 'or)
+                      (any curried-sub-version-matches? (cdr v-ref)))
+                     ((eq? cv 'not) (not (sub-version-matches? (cadr v-ref) t)))
+                     (else (error "Incompatible sub-version reference" cv)))))
+            (else (error "Incompatible sub-version reference" v-ref))))
+    (or (null? v-refs)
+        (and (not (null? t))
+             (sub-version-matches? (car v-refs) (car t))
+             (sub-versions-match? (cdr v-refs) (cdr t)))))
+  (define (curried-version-matches? v)
+    (version-matches? v target))
+  (or (null? version-ref)
+      (let ((cv (car version-ref)))
+        (cond ((eq? cv 'and) (every curried-version-matches? (cdr version-ref)))
+              ((eq? cv 'or) (any curried-version-matches? (cdr version-ref)))
+              ((eq? cv 'not) (not version-matches? (cadr version-ref) target))
+              (else (sub-versions-match? version-ref target))))))
+
+(define (find-versioned-module dir-hint name version-ref roots)
+  (define (subdir-pair-less pair1 pair2)
+    (define (numlist-less lst1 lst2)
+      (or (null? lst2) 
+          (and (not (null? lst1))
+               (cond ((> (car lst1) (car lst2)) #t)
+                     ((< (car lst1) (car lst2)) #f)
+                     (else (numlist-less (cdr lst1) (cdr lst2)))))))
+    (numlist-less (car pair1) (car pair2)))
+  (define (match-version-and-file pair)
+    (and (version-matches? version-ref (car pair))
+         (let ((filenames                            
+                (filter (lambda (file)
+                          (let ((s (false-if-exception (stat file))))
+                            (and s (eq? (stat:type s) 'regular))))
+                        (map (lambda (ext)
+                               (string-append (cdr pair) "/" name ext))
+                             %load-extensions))))
+           (and (not (null? filenames))
+                (cons (car pair) (car filenames))))))
+    
+  (define (match-version-recursive root-pairs leaf-pairs)
+    (define (filter-subdirs root-pairs ret)
+      (define (filter-subdir root-pair dstrm subdir-pairs)
+        (let ((entry (readdir dstrm)))
+          (if (eof-object? entry)
+              subdir-pairs
+              (let* ((subdir (string-append (cdr root-pair) "/" entry))
+                     (num (string->number entry))
+                     (num (and num (append (car root-pair) (list num)))))
+                (if (and num (eq? (stat:type (stat subdir)) 'directory))
+                    (filter-subdir 
+                     root-pair dstrm (cons (cons num subdir) subdir-pairs))
+                    (filter-subdir root-pair dstrm subdir-pairs))))))
+      
+      (or (and (null? root-pairs) ret)
+          (let* ((rp (car root-pairs))
+                 (dstrm (false-if-exception (opendir (cdr rp)))))
+            (if dstrm
+                (let ((subdir-pairs (filter-subdir rp dstrm '())))
+                  (closedir dstrm)
+                  (filter-subdirs (cdr root-pairs) 
+                                  (or (and (null? subdir-pairs) ret)
+                                      (append ret subdir-pairs))))
+                (filter-subdirs (cdr root-pairs) ret)))))
+    
+    (or (and (null? root-pairs) leaf-pairs)
+        (let ((matching-subdir-pairs (filter-subdirs root-pairs '())))
+          (match-version-recursive
+           matching-subdir-pairs
+           (append leaf-pairs (filter pair? (map match-version-and-file 
+                                                 matching-subdir-pairs)))))))
+  (define (make-root-pair root)
+    (cons '() (string-append root "/" dir-hint)))
+
+  (let* ((root-pairs (map make-root-pair roots))
+         (matches (if (null? version-ref) 
+                      (filter pair? (map match-version-and-file root-pairs))
+                      '()))
+         (matches (append matches (match-version-recursive root-pairs '()))))
+    (and (null? matches) (error "No matching modules found."))
+    (cdar (sort matches subdir-pair-less))))
 
 (define (make-fresh-user-module)
   (let ((m (make-module)))
@@ -1937,20 +2037,25 @@
 ;;
 (define resolve-module
   (let ((the-root-module the-root-module))
-    (lambda (name . maybe-autoload)
+    (lambda (name . args)
       (if (equal? name '(guile))
           the-root-module
           (let ((full-name (append '(%app modules) name)))
-            (let ((already (nested-ref the-root-module full-name))
-                  (autoload (or (null? maybe-autoload) (car maybe-autoload))))
+            (let* ((already (nested-ref the-root-module full-name))
+                   (numargs (length args))
+                   (autoload (or (= numargs 0) (car args)))
+                   (version (and (> numargs 1) (cadr args))))
               (cond
                ((and already (module? already)
                      (or (not autoload) (module-public-interface already)))
                 ;; A hit, a palpable hit.
+                (if (and version 
+                         (not (version-matches? version (module-version already))))
+                    (error "incompatible module version already loaded" name))
                 already)
                (autoload
                 ;; Try to autoload the module, and recurse.
-                (try-load-module name)
+                (try-load-module name version)
                 (resolve-module name #f))
                (else
                 ;; A module is not bound (but maybe something else is),
@@ -1996,8 +2101,8 @@
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
-(define (try-load-module name)
-  (try-module-autoload name))
+(define (try-load-module name version)
+  (try-module-autoload name version))
 
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
@@ -2057,7 +2162,8 @@
                       (let ((prefix (get-keyword-arg args #:prefix #f)))
                         (and prefix (symbol-prefix-proc prefix)))
                       identity))
-         (module (resolve-module name))
+         (version (get-keyword-arg args #:version #f))
+         (module (resolve-module name #t version))
          (public-i (and module (module-public-interface module))))
     (and (or (not module) (not public-i))
          (error "no code for module" name))
@@ -2178,6 +2284,14 @@
              (purify-module! module)
              (loop (cdr kws) reversed-interfaces exports re-exports
                    replacements autoloads))
+            ((#:version)
+             (or (pair? (cdr kws))
+                 (unrecognized kws))
+             (let ((version (cadr kws)))
+               (set-module-version! module version)
+               (set-module-version! (module-public-interface module) version))
+             (loop (cddr kws) reversed-interfaces exports re-exports
+                   replacements autoloads))
             ((#:duplicates)
              (if (not (pair? (cdr kws)))
                  (unrecognized kws))
@@ -2241,7 +2355,7 @@
                           (set-car! autoload i)))
                     (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
-                        (make-hash-table 0) '() (make-weak-value-hash-table 31))))
+                        (make-hash-table 0) '() (make-weak-value-hash-table 31) #f)))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one
@@ -2271,9 +2385,10 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; This function is called from "modules.c".  If you change it, be
 ;; sure to update "modules.c" as well.
 
-(define (try-module-autoload module-name)
+(define (try-module-autoload module-name . args)
   (let* ((reverse-name (reverse module-name))
          (name (symbol->string (car reverse-name)))
+         (version (and (not (null? args)) (car args)))
          (dir-hint-module-name (reverse (cdr reverse-name)))
          (dir-hint (apply string-append
                           (map (lambda (elt)
@@ -2289,7 +2404,10 @@ module '(ice-9 q) '(make-q q-length))}."
                 (lambda ()
                   (save-module-excursion
                    (lambda () 
-                     (primitive-load-path (in-vicinity dir-hint name) #f)
+                     (if version
+                         (load (find-versioned-module
+                                dir-hint name version %load-path))
+                         (primitive-load-path (in-vicinity dir-hint name) #f))
                      (set! didit #t))))))
             (lambda () (set-autoloaded! dir-hint name didit)))
            didit))))
@@ -2847,7 +2965,8 @@ module '(ice-9 q) '(make-q q-length))}."
     '((:select #:select #t)
       (:hide   #:hide   #t)
       (:prefix #:prefix #t)
-      (:renamer #:renamer #f)))
+      (:renamer #:renamer #f)
+      (:version #:version #t)))
   (if (not (pair? (car spec)))
       `(',spec)
       `(',(car spec)
