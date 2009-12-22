@@ -1962,7 +1962,7 @@
       (let ((cv (car version-ref)))
         (cond ((eq? cv 'and) (every curried-version-matches? (cdr version-ref)))
               ((eq? cv 'or) (any curried-version-matches? (cdr version-ref)))
-              ((eq? cv 'not) (not version-matches? (cadr version-ref) target))
+              ((eq? cv 'not) (not (version-matches? (cadr version-ref) target)))
               (else (sub-versions-match? version-ref target))))))
 
 (define (find-versioned-module dir-hint name version-ref roots)
