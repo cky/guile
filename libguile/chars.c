@@ -391,7 +391,6 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
 SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0, 
             (SCM chr),
 	    "Return @code{#t} iff @var{chr} is either uppercase or lowercase, else\n"
@@ -458,6 +457,16 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_char_titlecase, "char-titlecase", 1, 0, 0,
+	   (SCM chr),
+	    "Return the titlecase character version of @var{chr}.")
+#define FUNC_NAME s_scm_char_titlecase
+{
+  SCM_VALIDATE_CHAR (1, chr);
+  return SCM_MAKE_CHAR (scm_c_titlecase (SCM_CHAR(chr)));
+}
+#undef FUNC_NAME
+
 
 
 
@@ -478,6 +487,12 @@ scm_t_wchar
 scm_c_downcase (scm_t_wchar c)
 {
   return uc_tolower ((int) c);
+}
+
+scm_t_wchar
+scm_c_titlecase (scm_t_wchar c)
+{
+  return uc_totitle ((int) c);
 }
 
 

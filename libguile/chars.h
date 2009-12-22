@@ -80,8 +80,10 @@ SCM_API SCM scm_char_to_integer (SCM chr);
 SCM_API SCM scm_integer_to_char (SCM n);
 SCM_API SCM scm_char_upcase (SCM chr);
 SCM_API SCM scm_char_downcase (SCM chr);
+SCM_API SCM scm_char_titlecase (SCM chr);
 SCM_API scm_t_wchar scm_c_upcase (scm_t_wchar c);
 SCM_API scm_t_wchar scm_c_downcase (scm_t_wchar c);
+SCM_API scm_t_wchar scm_c_titlecase (scm_t_wchar c);
 SCM_INTERNAL const char *scm_i_charname (SCM chr);
 SCM_INTERNAL SCM scm_i_charname_to_char (const char *charname, 
                                          size_t charname_len);

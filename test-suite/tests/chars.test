@@ -245,7 +245,11 @@
       (eqv? (char-upcase #\a) #\A))
 
     (pass-if "char-downcase"
-      (eqv? (char-downcase #\A) #\a)))
+      (eqv? (char-downcase #\A) #\a))
+
+    (pass-if "char-titlecase"
+      (and (eqv? (char-titlecase #\a) #\A)
+           (eqv? (char-titlecase #\763) #\762))))
 
   (with-test-prefix "charnames"
 

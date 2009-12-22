@@ -148,6 +148,25 @@
       (string-any char-upper-case? "abCDE" 1 4))))
 
 ;;;
+;;; string-titlecase
+;;;
+
+(with-test-prefix "string-titlecase"
+
+  (pass-if "all-lower" 
+    (string=? "Foo" (string-titlecase "foo")))
+
+  (pass-if "all-upper"
+    (string=? "Foo" (string-titlecase "FOO")))
+
+  (pass-if "two-words"
+    (string=? "Hello, World!" (string-titlecase "hello, world!")))
+
+  (pass-if "titlecase-characters"
+    (string=? (list->string '(#\762)) 
+	      (string-titlecase (list->string '(#\763))))))
+
+;;;
 ;;; string-append/shared
 ;;;
 

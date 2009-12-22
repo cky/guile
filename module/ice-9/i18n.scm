@@ -42,8 +42,8 @@
            char-locale-ci<? char-locale-ci>? char-locale-ci=?
 
            ;; character mapping
-           char-locale-downcase char-locale-upcase
-           string-locale-downcase string-locale-upcase
+           char-locale-downcase char-locale-upcase char-locale-titlecase
+           string-locale-downcase string-locale-upcase string-locale-titlecase
 
            ;; reading numbers
            locale-string->integer locale-string->inexact

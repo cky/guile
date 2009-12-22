@@ -1901,6 +1901,19 @@ Return the uppercase character version of @var{chr}.
 Return the lowercase character version of @var{chr}.
 @end deffn
 
+@rnindex char-titlecase
+@deffn {Scheme Procedure} char-titlecase chr
+@deffnx {C Function} scm_char_titlecase (chr)
+Return the titlecase character version of @var{chr} if one exists;
+otherwise return the uppercase version.  
+
+For most characters these will be the same, but the Unicode Standard 
+includes certain digraph compatibility characters, such as @code{U+01F3}
+``dz'', for which the uppercase and titlecase characters are different 
+(@code{U+01F1} ``DZ'' and @code{U+01F2} ``Dz'' in this case, 
+respectively).
+@end deffn
+
 @node Character Sets
 @subsection Character Sets
 
