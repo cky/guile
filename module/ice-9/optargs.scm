@@ -343,7 +343,8 @@
               (pair? (cdr args-tail))
               allow-other-keys?)
          (permissive-keys slots slots-tail (cddr args-tail) inits))
-        (else (error "unrecognized keyword" args-tail))))
+        (else (scm-error 'keyword-argument-error #f "Unrecognized keyword"
+                         '() args-tail))))
      (define (key slots slots-tail args-tail inits)
        (cond
         ((null? args-tail)
@@ -357,7 +358,8 @@
          (if rest-idx
              ;; no error checking, everything goes to the rest..
              (key slots slots-tail '() inits)
-             (error "bad keyword argument list" args-tail)))
+             (scm-error 'keyword-argument-error #f "Invalid keyword"
+                        '() args-tail)))
         ((and (keyword? (car args-tail))
               (pair? (cdr args-tail))
               (assq-ref kw-indices (car args-tail)))
@@ -368,7 +370,8 @@
               (pair? (cdr args-tail))
               allow-other-keys?)
          (key slots slots-tail (cddr args-tail) inits))
-        (else (error "unrecognized keyword" args-tail))))
+        (else (scm-error 'keyword-argument-error #f "Unrecognized keyword"
+                         '() args-tail))))
      (let ((args (list-copy args)))
        (req args #f args nreq)))
     (else (error "unexpected spec" spec))))

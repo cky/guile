@@ -518,14 +518,11 @@
                 '(,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
                 (list ,@(map (lambda (i) `(lambda ,vars ,i)) inits))
                 %%args)
-               ;; FIXME: This _ is here to work around a bug in the
-               ;; memoizer. The %%% makes it different from %%, also a
-               ;; memoizer workaround. See the "interesting bug" mail from
-               ;; 23 oct 2009. As soon as we change the evaluator, this
-               ;; can be removed.
-               => (lambda (%%%args . _) (apply (lambda ,vars ,body) %%%args)))
+               => (lambda (%%args) (apply (lambda ,vars ,body) %%args)))
               ,@(or else-case
-                    `((%%args (error "wrong number of arguments" %%args)))))
+                    `((%%args (scm-error 'wrong-number-of-args #f
+                                         "Wrong number of arguments" '()
+                                         %%args)))))
             src))))))
 
   (define build-primref

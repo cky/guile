@@ -130,6 +130,8 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
   {
     SCM err_msg;
 
+    /* FIXME: need to sync regs before allocating anything, in each case. */
+
   vm_error_bad_instruction:
     err_msg  = scm_from_locale_string ("VM: Bad instruction: ~s");
     finish_args = scm_list_1 (scm_from_uchar (ip[-1]));
@@ -145,19 +147,24 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     goto vm_error;
 
   vm_error_kwargs_length_not_even:
-    err_msg  = scm_from_locale_string ("Bad keyword argument list: odd length");
-    finish_args = SCM_EOL;
-    goto vm_error;
+    SYNC_ALL ();
+    err_msg = scm_from_locale_string ("Odd length of keyword argument list");
+    scm_error_scm (sym_keyword_argument_error, program, err_msg,
+                   SCM_EOL, SCM_BOOL_F);
 
   vm_error_kwargs_invalid_keyword:
-    err_msg  = scm_from_locale_string ("Bad keyword argument list: expected keyword");
-    finish_args = SCM_EOL;
-    goto vm_error;
+    /* FIXME say which one it was */
+    SYNC_ALL ();
+    err_msg = scm_from_locale_string ("Invalid keyword");
+    scm_error_scm (sym_keyword_argument_error, program, err_msg,
+                   SCM_EOL, SCM_BOOL_F);
 
   vm_error_kwargs_unrecognized_keyword:
-    err_msg  = scm_from_locale_string ("Bad keyword argument list: unrecognized keyword");
-    finish_args = SCM_EOL;
-    goto vm_error;
+    /* FIXME say which one it was */
+    SYNC_ALL ();
+    err_msg = scm_from_locale_string ("Unrecognized keyword");
+    scm_error_scm (sym_keyword_argument_error, program, err_msg,
+                   SCM_EOL, SCM_BOOL_F);
 
   vm_error_too_many_args:
     err_msg  = scm_from_locale_string ("VM: Too many arguments");

@@ -169,9 +169,10 @@ vm_dispatch_hook (SCM vm, int hook_num)
  * VM Internal functions
  */
 
-static SCM sym_vm_run;
-static SCM sym_vm_error;
-static SCM sym_debug;
+SCM_SYMBOL (sym_vm_run, "vm-run");
+SCM_SYMBOL (sym_vm_error, "vm-error");
+SCM_SYMBOL (sym_keyword_argument_error, "keyword-argument-error");
+SCM_SYMBOL (sym_debug, "debug");
 
 static SCM
 really_make_boot_program (long nargs)
@@ -671,10 +672,6 @@ scm_bootstrap_vm (void)
   scm_c_define ("load-compiled",
                 scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
                                   scm_load_compiled_with_vm));
-
-  sym_vm_run = scm_from_locale_symbol ("vm-run");
-  sym_vm_error = scm_from_locale_symbol ("vm-error");
-  sym_debug = scm_from_locale_symbol ("debug");
 
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);

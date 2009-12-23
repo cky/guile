@@ -23,18 +23,13 @@
   #:use-module (ice-9 optargs))
 
 (define exception:unrecognized-keyword
-  ;; Can be `vm-error' or `misc-error' depending on whether we use the
-  ;; interpreter or VM:
-  ;;  (vm-error vm-run "Bad keyword argument list: unrecognized keyword" ())
-  ;;  (misc-error #f "~A ~S" ("unrecognized keyword" (#:y 2)) #f)
-  (cons #t ".*"))
+  '(keyword-argument-error . "Unrecognized keyword"))
 
 (define exception:extraneous-arguments
-  ;; Can be `vm-error' or `misc-error' depending on whether we use the
-  ;; interpreter or VM, and depending on the evenness of the number of extra
-  ;; arguments (!).
-  (cons #t ".*"))
-
+  ;; Message depends on whether we use the interpreter or VM, and on the
+  ;; evenness of the number of extra arguments (!).
+  ;'(keyword-argument-error . ".*")
+  '(#t . ".*"))
 
 (define-syntax c&e
   (syntax-rules (pass-if pass-if-exception)
