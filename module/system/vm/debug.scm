@@ -100,6 +100,7 @@
 
 (define (debugger-repl db frame)
   (let ((top frame)
+        (cur frame)
         (index 0)
         (level (debugger-level db)))
     (define (frame-index frame)
@@ -107,6 +108,18 @@
         (if (= (frame-return-address frame) (frame-return-address walk))
             idx
             (lp (1+ idx) (frame-previous walk)))))
+    (define (frame-at-index idx)
+      (let lp ((idx idx) (walk top))
+        (cond
+         ((not walk) #f)
+         ((zero? idx) walk)
+         (else (lp (1+ idx) (frame-previous walk))))))
+    (define (show-frame)
+;      #2  0x009600e0 in do_std_select (args=0xbfffd9e0) at threads.c:1668
+;      1668	    select (select_args->nfds,
+      (let ((p (frame-procedure cur)))
+        (format #t "#~2a 0x~8,'0x in ~s~%" index (frame-instruction-pointer cur)
+                (cons (or (procedure-name p) p) (frame-arguments cur)))))
 
     (define-syntax define-command
       (syntax-rules ()
@@ -138,42 +151,66 @@
 
       (define-command ((commands backtrace bt) #:optional count)
         "Print a backtrace of all stack frames, or innermost COUNT frames."
-        (display-backtrace (make-stack frame) (current-output-port)))
+        (display-backtrace (make-stack top) (current-output-port) #f count))
+      
+      (define-command ((commands up) #:optional (count 1))
+        "Select and print stack frames that called this one.
+An argument says how many frames up to go"
+        (if (or (not (integer? count)) (<= count 0))
+            (format #t "Invalid argument to `up': expected a positive integer for COUNT.~%")
+            (let lp ((n count))
+              (cond
+               ((zero? n) (show-frame))
+               ((frame-previous cur)
+                => (lambda (new)
+                     (set! cur new)
+                     (set! index (1+ index))
+                     (lp (1- n))))
+               ((= n count)
+                (format #t "Already at outermost frame.\n"))
+               (else
+                (format #t "Reached outermost frame after walking ~a frames.\n"
+                        (- count n))
+                (show-frame))))))
+      
+      (define-command ((commands down) #:optional (count 1))
+        "Select and print stack frames called by this one.
+An argument says how many frames down to go"
+        (cond
+         ((or (not (integer? count)) (<= count 0))
+          (format #t "Invalid argument to `down': expected a positive integer for COUNT.~%"))
+         ((= index 0)
+          (format #t "Already at innermost frame.~%"))
+         (else
+          (set! index (max (- index count) 0))
+          (set! cur (frame-at-index index))
+          (show-frame))))
+      
+      (define-command ((commands frame f) #:optional idx)
+        "Show the selected frame.
+With an argument, select a frame by index, then show it."
+        (cond
+         (idx
+          (cond
+           ((or (not (integer? idx)) (< idx 0))
+            (format #t "Invalid argument to `frame': expected a non-negative integer for IDX.~%"))
+           ((frame-at-index idx)
+            => (lambda (f)
+                 (set! cur f)
+                 (set! index idx)
+                 (show-frame)))
+           (else
+            (format #t "No such frame.~%"))))
+         (else (show-frame))))
+
+      (define-command ((commands bindings))
+        "Show some information about locally-bound variables in the selected frame."
+         (format #t "~a\n" (frame-bindings cur)))
       
       (define-command ((commands quit q continue cont c))
         "Quit the debugger and let the program continue executing."
         (throw 'quit))
       
-      #;
-      (case cmd
-        ((bt)
-         (display-backtrace (make-stack frame) (current-output-port)))
-        ((bindings)
-         (format #t "~a\n" (frame-bindings frame)))
-        ((frame f)
-         (format #t "~s\n" frame))
-        ((up)
-         (let ((prev (frame-previous frame)))
-           (if prev
-               (begin
-                 (set! index (1+ index))
-                 (set! frame prev)
-                 (format #t "~s\n" frame))
-               (format #t "Already at outermost frame.\n"))))
-        ((down)
-         (if (zero? index)
-             (format #t "Already at innermost frame.\n")
-             (begin
-               (set! frame (let lp ((n (1- index)) (frame top))
-                             (if (zero? n)
-                                 frame
-                                 (lp (1- n) (frame-previous top)))))
-               (format #t "~s\n" frame))))
-        ((help ?)
-         (format #t "Type `c' to continue.\n"))
-        (else
-         (format #t "Unknown command: ~A\n" cmd)))
-                
       (define-command ((commands help h ?) #:optional cmd)
         "Show this help message."
         (let ((rhash (reverse-hashq (module-obarray commands))))
@@ -217,9 +254,10 @@
                   (lambda ()
                     (apply (variable-ref var) args))
                   (lambda ()
-                    (format (current-error-port) "Invalid arguments to ~a~%"
-                            (procedure-name proc))
-                    (help cmd))))))
+                    (format (current-error-port)
+                            "Invalid arguments to ~a. Try `help ~a'.~%"
+                            (procedure-name proc) (procedure-name proc)))))))
+         
          #;
          ((and (integer? cmd) (exact? cmd))
           (nth cmd))
@@ -234,18 +272,16 @@
       (catch 'quit
         (lambda ()
           (let loop ()
-            (call-with-values
-                (lambda ()
-                  (apply
-                   handle
-                   (save-module-excursion
-                    (lambda ()
-                      (set-current-module commands)
-                      (read-args prompt)))))
-              print*)
+            (apply
+             handle
+             (save-module-excursion
+              (lambda ()
+                (set-current-module commands)
+                (read-args prompt))))
             (loop)))
         (lambda (k . args)
           (apply values args))))))
+
 
 ;; things this debugger should do:
 ;;
