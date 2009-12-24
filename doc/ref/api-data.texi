@@ -1875,6 +1875,81 @@ Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
 @code{#f}.
 @end deffn
 
+@deffn {Scheme Procedure} char-general-category chr
+@deffnx {C Function} scm_char_general_category (chr)
+Return a symbol giving the two-letter name of the Unicode general 
+category assigned to @var{chr} or @code{#f} if no named category is 
+assigned.  The following table provides a list of category names along
+with their meanings.
+
+@multitable @columnfractions .1 .4 .1 .4
+@item Lu
+ @tab Uppercase letter
+ @tab Pf
+ @tab Final quote punctuation
+@item Ll
+ @tab Lowercase letter
+ @tab Po
+ @tab Other punctuation
+@item Lt
+ @tab Titlecase letter
+ @tab Sm
+ @tab Math symbol
+@item Lm
+ @tab Modifier letter
+ @tab Sc
+ @tab Currency symbol
+@item Lo
+ @tab Other letter
+ @tab Sk
+ @tab Modifier symbol
+@item Mn
+ @tab Non-spacing mark
+ @tab So
+ @tab Other symbol
+@item Mc
+ @tab Combining spacing mark
+ @tab Zs
+ @tab Space separator
+@item Me
+ @tab Enclosing mark
+ @tab Zl
+ @tab Line separator
+@item Nd
+ @tab Decimal digit number
+ @tab Zp
+ @tab Paragraph separator
+@item Nl
+ @tab Letter number
+ @tab Cc
+ @tab Control
+@item No
+ @tab Other number
+ @tab Cf
+ @tab Format
+@item Pc
+ @tab Connector punctuation
+ @tab Cs
+ @tab Surrogate
+@item Pd
+ @tab Dash punctuation
+ @tab Co
+ @tab Private use
+@item Ps
+ @tab Open punctuation
+ @tab Cn
+ @tab Unassigned
+@item Pe
+ @tab Close punctuation
+ @tab
+ @tab
+@item Pi
+ @tab Initial quote punctuation
+ @tab
+ @tab
+@end multitable
+@end deffn
+
 @rnindex char->integer
 @deffn {Scheme Procedure} char->integer chr
 @deffnx {C Function} scm_char_to_integer (chr)

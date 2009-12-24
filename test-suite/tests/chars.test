@@ -210,7 +210,12 @@
        (not (char-is-both? #\newline))
        (char-is-both? #\a)
        (char-is-both? #\Z)
-       (not (char-is-both? #\1)))))
+       (not (char-is-both? #\1))))
+
+    (pass-if "char-general-category"
+      (and (eq? (char-general-category #\a) 'Ll)
+	   (eq? (char-general-category #\A) 'Lu)
+	   (eq? (char-general-category #\762) 'Lt))))
 
   (with-test-prefix "integer"
 

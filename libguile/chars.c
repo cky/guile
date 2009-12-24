@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <unicase.h>
+#include <unictype.h>
 
 #include "libguile/_scm.h"
 #include "libguile/validate.h"
@@ -464,6 +465,25 @@ SCM_DEFINE (scm_char_titlecase, "char-titlecase", 1, 0, 0,
 {
   SCM_VALIDATE_CHAR (1, chr);
   return SCM_MAKE_CHAR (scm_c_titlecase (SCM_CHAR(chr)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_char_general_category, "char-general-category", 1, 0, 0,
+           (SCM chr),
+            "Return a symbol representing the Unicode general category of "
+            "@var{chr} or @code{#f} if a named category cannot be found.")
+#define FUNC_NAME s_scm_char_general_category
+{
+  const char *sym;
+  uc_general_category_t cat;
+
+  SCM_VALIDATE_CHAR (1, chr);
+  cat = uc_general_category (SCM_CHAR (chr));
+  sym = uc_general_category_name (cat);
+
+  if (sym != NULL)
+    return scm_from_locale_symbol (sym);
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
