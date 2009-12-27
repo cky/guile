@@ -1054,10 +1054,9 @@ locale-dependent parsing).
 @rnindex magnitude
 @rnindex angle
 
-@deffn {Scheme Procedure} make-rectangular real imaginary
-@deffnx {C Function} scm_make_rectangular (real, imaginary)
-Return a complex number constructed of the given @var{real} and
-@var{imaginary} parts.
+@deffn {Scheme Procedure} make-rectangular real_part imaginary_part
+@deffnx {C Function} scm_make_rectangular (real_part, imaginary_part)
+Return a complex number constructed of the given @var{real-part} and @var{imaginary-part} parts.
 @end deffn
 
 @deffn {Scheme Procedure} make-polar x y
@@ -3072,7 +3071,8 @@ comparison.  See @xref{Text Collation, the @code{(ice-9
 i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
-@deffn {Scheme Procedure} string=? s1 s2
+@deffn {Scheme Procedure} string=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_equal_p (s1, s2, rest)
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
 the same positions, otherwise return @code{#f}.
@@ -3084,31 +3084,36 @@ characters.
 @end deffn
 
 @rnindex string<?
-@deffn {Scheme Procedure} string<? s1 s2
+@deffn {Scheme Procedure} string<? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_less_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than @var{s2}.
 @end deffn
 
 @rnindex string<=?
-@deffn {Scheme Procedure} string<=? s1 s2
+@deffn {Scheme Procedure} string<=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_leq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 @rnindex string>?
-@deffn {Scheme Procedure} string>? s1 s2
+@deffn {Scheme Procedure} string>? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_gr_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
 @rnindex string>=?
-@deffn {Scheme Procedure} string>=? s1 s2
+@deffn {Scheme Procedure} string>=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_geq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 @rnindex string-ci=?
-@deffn {Scheme Procedure} string-ci=? s1 s2
+@deffn {Scheme Procedure} string-ci=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_equal_p (s1, s2, rest)
 Case-insensitive string equality predicate; return @code{#t} if
 the two strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
@@ -3116,28 +3121,32 @@ return @code{#f}.
 @end deffn
 
 @rnindex string-ci<?
-@deffn {Scheme Procedure} string-ci<? s1 s2
+@deffn {Scheme Procedure} string-ci<? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_less_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
 regardless of case.
 @end deffn
 
 @rnindex string<=?
-@deffn {Scheme Procedure} string-ci<=? s1 s2
+@deffn {Scheme Procedure} string-ci<=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_leq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than or equal
 to @var{s2} regardless of case.
 @end deffn
 
 @rnindex string-ci>?
-@deffn {Scheme Procedure} string-ci>? s1 s2
+@deffn {Scheme Procedure} string-ci>? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_gr_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than
 @var{s2} regardless of case.
 @end deffn
 
 @rnindex string-ci>=?
-@deffn {Scheme Procedure} string-ci>=? s1 s2
+@deffn {Scheme Procedure} string-ci>=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_geq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than or
 equal to @var{s2} regardless of case.
@@ -3160,8 +3169,9 @@ mismatch index, depending upon whether @var{s1} is less than,
 equal to, or greater than @var{s2}.  The mismatch index is the
 largest index @var{i} such that for every 0 <= @var{j} <
 @var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
-@var{i} is the first position that does not match.  The
-character comparison is done case-insensitively.
+@var{i} is the first position where the lowercased letters 
+do not match.
+
 @end deffn
 
 @deffn {Scheme Procedure} string= s1 s2 [start1 [end1 [start2 [end2]]]]
@@ -3526,8 +3536,8 @@ concatenation of the given strings, @var{args}.
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} string-append/shared . ls
-@deffnx {C Function} scm_string_append_shared (ls)
+@deffn {Scheme Procedure} string-append/shared . rest
+@deffnx {C Function} scm_string_append_shared (rest)
 Like @code{string-append}, but the result may share memory
 with the argument strings.
 @end deffn

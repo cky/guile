@@ -1411,30 +1411,23 @@ be more convenient for binary input/output since they provide more
 flexibility in the interpretation of raw byte sequences
 (@pxref{Bytevectors}).
 
-@deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
-Fill the elements of @var{uvec} by reading
-raw bytes from @var{port-or-fdes}, using host byte order.
+@deffn {Scheme Procedure} uniform-array-read! ura [port_or_fd [start [end]]]
+@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]
+@deffnx {C Function} scm_uniform_array_read_x (ura, port_or_fd, start, end)
+Attempt to read all elements of @var{ura}, in lexicographic order, as
+binary objects from @var{port-or-fdes}.
+If an end of file is encountered,
+the objects up to that point are put into @var{ura}
+(starting at the beginning) and the remainder of the array is
+unchanged.
 
-The optional arguments @var{start} (inclusive) and @var{end}
-(exclusive) allow a specified region to be read,
+The optional arguments @var{start} and @var{end} allow
+a specified region of a vector (or linearized array) to be read,
 leaving the remainder of the vector unchanged.
 
-When @var{port-or-fdes} is a port, all specified elements
-of @var{uvec} are attempted to be read, potentially blocking
-while waiting formore input or end-of-file.
-When @var{port-or-fd} is an integer, a single call to
-read(2) is made.
-
-An error is signalled when the last element has only
-been partially filled before reaching end-of-file or in
-the single call to read(2).
-
-@code{uniform-vector-read!} returns the number of elements
-read.
-
-@var{port-or-fdes} may be omitted, in which case it defaults
-to the value returned by @code{(current-input-port)}.
+@code{uniform-array-read!} returns the number of objects read.
+@var{port-or-fdes} may be omitted, in which case it defaults to the value
+returned by @code{(current-input-port)}.
 @end deffn
 
 @deffn {Scheme Procedure} uniform-vector-write uvec [port_or_fd [start [end]]]

@@ -768,8 +768,8 @@ associated setter procedure.
 
 @deffn {Scheme Procedure} procedure proc
 @deffnx {C Function} scm_procedure (proc)
-Return the procedure of @var{proc}, which must be either a
-procedure with setter, or an operator struct.
+Return the procedure of @var{proc}, which must be an
+applicable struct.
 @end deffn
 
 @deffn {Scheme Procedure} setter proc
@@ -1031,17 +1031,17 @@ as @dfn{syntax transformers}.
 
 @deffn {Scheme Procedure} macro? obj
 @deffnx {C Function} scm_macro_p (obj)
-Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
-syntax transformer.
+Return @code{#t} if @var{obj} is a regular macro, a memoizing macro, a
+syntax transformer, or a syntax-case macro.
 @end deffn
 
 @deffn {Scheme Procedure} macro-type m
 @deffnx {C Function} scm_macro_type (m)
-Return one of the symbols @code{syntax}, @code{macro} or
-@code{macro!}, depending on whether @var{m} is a syntax
-transformer, a regular macro, or a memoizing macro,
-respectively.  If @var{m} is not a macro, @code{#f} is
-returned.
+Return one of the symbols @code{syntax}, @code{macro},
+@code{macro!}, or @code{syntax-case}, depending on whether
+@var{m} is a syntax transformer, a regular macro, a memoizing
+macro, or a syntax-case macro, respectively.  If @var{m} is
+not a macro, @code{#f} is returned.
 @end deffn
 
 @deffn {Scheme Procedure} macro-name m

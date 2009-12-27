@@ -155,7 +155,7 @@ has been passed to scm_register_module_xxx.
 
 @deffn {Scheme Procedure} module-import-interface module sym
 @deffnx {C Function} scm_module_import_interface (module, sym)
-
+Return the module or interface from which @var{sym} is imported in @var{module}.  If @var{sym} is not imported (i.e., it is not defined in @var{module} or it is a module-local binding instead of an imported one), then @code{#f} is returned.
 @end deffn
 
 
@@ -623,7 +623,7 @@ on the C level which depends on the loaded GOOPS modules.
 
 @deffn {Scheme Procedure} %method-more-specific? m1 m2 targs
 @deffnx {C Function} scm_sys_method_more_specific_p (m1, m2, targs)
-
+Return true if method @var{m1} is more specific than @var{m2} given the argument types (classes) listed in @var{targs}.
 @end deffn
 
 @deffn {Scheme Procedure} find-method . l
