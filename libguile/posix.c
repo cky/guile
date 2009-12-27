@@ -983,6 +983,18 @@ SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SETSID */
 
+#ifdef HAVE_GETSID
+SCM_DEFINE (scm_getsid, "getsid", 1, 0, 0,
+            (SCM pid),
+	    "Returns the session ID of process @var{pid}.  (The session\n"
+	    "ID of a process is the process group ID of its session leader.)")
+#define FUNC_NAME s_scm_getsid
+{
+  return scm_from_int (getsid (scm_to_int (pid)));
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETSID */
+
 
 /* ttyname returns its result in a single static buffer, hence
    scm_i_misc_mutex for thread safety.  In glibc 2.3.2 two threads
