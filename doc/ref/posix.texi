@@ -1596,6 +1596,12 @@ from its controlling terminal if it has one.
 The return value is an integer representing the new process group ID.
 @end deffn
 
+@deffn {Scheme Procedure} getsid pid
+@deffnx {C Function} scm_getsid (pid)
+Returns the session ID of process @var{pid}.  (The session
+ID of a process is the process group ID of its session leader.)
+@end deffn
+
 @deffn {Scheme Procedure} waitpid pid [options]
 @deffnx {C Function} scm_waitpid (pid, options)
 This procedure collects status information from a child process which

@@ -8,6 +8,13 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
+Changes in 1.9.7 (since the 1.9.6 prerelease):
+
+** New primitive `getsid'
+
+Scheme binding for the `getsid' C library call.
+
+
 Changes in 1.9.6 (since the 1.9.5 prerelease):
 
 ** New implementation of `primitive-eval'
