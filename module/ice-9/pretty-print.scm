@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2004, 2006, 2009 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,8 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ;;;; 
 (define-module (ice-9 pretty-print)
-  :use-module (ice-9 optargs)
-  :export (pretty-print))
+  #:export (pretty-print))
+
 
 ;; From SLIB.
 
@@ -250,7 +250,12 @@
 
   (rev-string-append l 0))
 
-(define (pretty-print obj . opts)
+(define* (pretty-print obj #:optional port
+                       #:key 
+                       (port* (or port (current-output-port)) #:port)
+                       (width 79)
+                       (display? #f)
+                       (per-line-prefix ""))
   "Pretty-print OBJ on PORT, which is a keyword argument defaulting to
 the current output port.  Formatting can be controlled by a number of
 keyword arguments: Each line in the output is preceded by the string
@@ -260,19 +265,7 @@ true, display rather than write representation will be used.
 
 Instead of with a keyword argument, you can also specify the output
 port directly after OBJ, like (pretty-print OBJ PORT)."
-  (if (pair? opts)
-      (if (keyword? (car opts))
-	  (apply pretty-print-with-keys obj opts)
-	  (apply pretty-print-with-keys obj #:port (car opts) (cdr opts)))
-      (pretty-print-with-keys obj)))
-
-(define* (pretty-print-with-keys obj
-				 #:key 
-				 (port (current-output-port))
-				 (width 79)
-				 (display? #f)
-				 (per-line-prefix ""))
   (generic-write obj display?
 		 (- width (string-length per-line-prefix))
 		 per-line-prefix
-		 (lambda (s) (display s port) #t)))
+		 (lambda (s) (display s port*) #t)))
