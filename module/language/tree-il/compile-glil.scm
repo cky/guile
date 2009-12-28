@@ -173,7 +173,7 @@
          (pmatch (hashq-ref (hashq-ref allocation v) proc)
            ((#t ,boxed? . ,n)
             (list id boxed? n))
-           (,x (error "badness" x))))
+           (,x (error "badness" id v x))))
        ids
        vars))
 

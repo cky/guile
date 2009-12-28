@@ -388,7 +388,7 @@
                             (allocate! body proc n)
                             ;; inits not logically at the end, but they
                             ;; are the list...
-                            (map (lambda (x) (allocate! x body n)) inits))))
+                            (map (lambda (x) (allocate! x proc n)) inits))))
                 ;; label and nlocs for the case
                 (hashq-set! allocation x (cons (gensym ":LCASE") nlocs))
                 nlocs)
