@@ -200,16 +200,12 @@ read_token (SCM port, SCM buf, size_t *read)
       chr = scm_getc (port);
 
       if (chr == EOF)
-	{
-	  scm_i_string_stop_writing ();
-	  return 0;
-	}
+        return 0;
 
       chr = (SCM_CASE_INSENSITIVE_P ? uc_tolower (chr) : chr);
 
       if (CHAR_IS_DELIMITER (chr))
 	{
-	  scm_i_string_stop_writing ();
 	  scm_ungetc (chr, port);
 	  return 0;
 	}
@@ -224,25 +220,27 @@ read_token (SCM port, SCM buf, size_t *read)
 static SCM
 read_complete_token (SCM port, size_t *read)
 {
-  SCM buffer, str = SCM_EOL;
-  size_t len;
+  SCM buffer;
   int overflow;
+  size_t overflow_read;
+  SCM tail = SCM_EOL;
 
   buffer = scm_i_make_string (READER_BUFFER_SIZE, NULL); 
   overflow = read_token (port, buffer, read);
-  if (!overflow)
-    return scm_i_substring (buffer, 0, *read);
-
-  str = scm_string_copy (buffer);
-  do
-    {
-      overflow = read_token (port, buffer, &len);
-      str = scm_string_append (scm_list_2 (str, buffer));
-      *read += len;
+  while (overflow)
+    { 
+      tail = scm_cons (buffer, tail);
+      buffer = scm_i_make_string (READER_BUFFER_SIZE, NULL); 
+      overflow = read_token (port, buffer, &overflow_read);
+      *read += overflow_read;
     }
-  while (overflow);
 
-  return scm_i_substring (str, 0, *read);
+  if (scm_is_null (tail))
+    return scm_i_substring (buffer, 0, *read);
+  else
+    return scm_string_append
+      (scm_reverse (scm_cons (scm_i_substring (buffer, 0, overflow_read),
+                              tail)));
 }
 
 /* Skip whitespace from PORT and return the first non-whitespace character
