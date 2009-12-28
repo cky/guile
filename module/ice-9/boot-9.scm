@@ -353,31 +353,30 @@
     "Define a defmacro."
     (syntax-case x ()
       ((_ (macro . args) doc body1 body ...)
-       (string? (syntax->datum (syntax doc)))
-       (syntax (define-macro macro doc (lambda args body1 body ...))))
+       (string? (syntax->datum #'doc))
+       #'(define-macro macro doc (lambda args body1 body ...)))
       ((_ (macro . args) body ...)
-       (syntax (define-macro macro #f (lambda args body ...))))
+       #'(define-macro macro #f (lambda args body ...)))
       ((_ macro doc transformer)
-       (or (string? (syntax->datum (syntax doc)))
-           (not (syntax->datum (syntax doc))))
-       (syntax
-        (define-syntax macro
-          (lambda (y)
-            doc
-            (syntax-case y ()
-              ((_ . args)
-               (let ((v (syntax->datum (syntax args))))
-                 (datum->syntax y (apply transformer v))))))))))))
+       (or (string? (syntax->datum #'doc))
+           (not (syntax->datum #'doc)))
+       #'(define-syntax macro
+           (lambda (y)
+             doc
+             (syntax-case y ()
+               ((_ . args)
+                (let ((v (syntax->datum #'args)))
+                  (datum->syntax y (apply transformer v)))))))))))
 
 (define-syntax defmacro
   (lambda (x)
     "Define a defmacro, with the old lispy defun syntax."
     (syntax-case x ()
       ((_ macro args doc body1 body ...)
-       (string? (syntax->datum (syntax doc)))
-       (syntax (define-macro macro doc (lambda args body1 body ...))))
+       (string? (syntax->datum #'doc))
+       #'(define-macro macro doc (lambda args body1 body ...)))
       ((_ macro args body ...)
-       (syntax (define-macro macro #f (lambda args body ...)))))))
+       #'(define-macro macro #f (lambda args body ...))))))
 
 (provide 'defmacro)
 
