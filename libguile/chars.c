@@ -577,9 +577,11 @@ scm_i_charname (SCM chr)
     if (scm_C0_control_charnums[c] == i)
       return scm_C0_control_charnames[c];
 
+  /* Since the characters in scm_alt_charnums is a subset of
+     scm_C0_control_charnums, this code is never reached.  */
   for (c = 0; c < SCM_N_ALT_CHARNAMES; c++)
     if (scm_alt_charnums[c] == i)
-      return scm_alt_charnames[i];
+      return scm_alt_charnames[c];
 
   return NULL;
 }
