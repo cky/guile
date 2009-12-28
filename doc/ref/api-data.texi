@@ -1988,6 +1988,17 @@ includes certain digraph compatibility characters, such as @code{U+01F3}
 respectively).
 @end deffn
 
+@tindex scm_t_wchar
+@deftypefn {C Function} scm_t_wchar scm_c_upcase (scm_t_wchar @var{c})
+@deftypefnx {C Function} scm_t_wchar scm_c_downcase (scm_t_wchar @var{c})
+@deftypefnx {C Function} scm_t_wchar scm_c_titlecase (scm_t_wchar @var{c})
+
+These C functions take an integer representation of a Unicode
+codepoint and return the codepoint corresponding to its uppercase,
+lowercase, and titlecase forms respectively.  The type
+@code{scm_t_wchar} is a signed, 32-bit integer.
+@end deftypefn
+
 @node Character Sets
 @subsection Character Sets
 
