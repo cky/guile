@@ -173,3 +173,18 @@
     (let ((f (lambda* (#:key x y z #:rest r) (list x y z r))))
       (equal? (f 1 2 3 #:x 'x #:z 'z)
               '(x #f z (1 2 3 #:x x #:z z))))))
+
+(with-test-prefix/c&e "defmacro*"
+  (pass-if "definition"
+    (begin
+      (defmacro* transmogrify (a #:optional (b 10))
+        `(,a ,b))
+      #t))
+  
+  (pass-if "explicit arg"
+    (equal? (transmogrify quote 5)
+            5))
+
+  (pass-if "default arg"
+    (equal? (transmogrify quote)
+            10)))

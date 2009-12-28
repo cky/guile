@@ -269,14 +269,17 @@
 ;;   (defmacro* transmorgify (a #:optional b)
 
 (define-syntax defmacro*
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (defmacro id (lambda* args b0 b1 ...)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ id args doc b0 b1 ...) (string? (syntax->datum #'doc))
+       #'(define-macro id doc (lambda* args b0 b1 ...)))
+      ((_ id args b0 b1 ...) 
+       #'(define-macro id #f (lambda* args b0 b1 ...))))))
 (define-syntax defmacro*-public
   (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
+    ((_ id args b0 b1 ...)
      (begin
-       (defmacro id (lambda* args b0 b1 ...))
+       (defmacro* id args b0 b1 ...)
        (export-syntax id)))))
 
 ;;; Support for optional & keyword args with the interpreter.
