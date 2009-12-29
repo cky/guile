@@ -97,24 +97,17 @@ SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_frame_source
+SCM
+scm_frame_source (SCM frame)
 {
-  SCM *fp;
-  struct scm_objcode *bp;
+  static SCM var = SCM_BOOL_F;
   
-  SCM_VALIDATE_VM_FRAME (1, frame);
+  if (scm_is_false (var))
+    var = scm_c_module_lookup (scm_c_resolve_module ("system vm frame"),
+                               "frame-source");
 
-  fp = SCM_VM_FRAME_FP (frame);
-  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
-
-  return scm_c_program_source (SCM_FRAME_PROGRAM (fp),
-                               SCM_VM_FRAME_IP (frame)
-			       - SCM_C_OBJCODE_BASE (bp));
+  return scm_call_1 (SCM_VARIABLE_REF (var), frame);
 }
-#undef FUNC_NAME
 
 /* The number of locals would be a simple thing to compute, if it weren't for
    the presence of not-yet-active frames on the stack. So we have a cheap
