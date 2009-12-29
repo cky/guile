@@ -113,7 +113,7 @@
         (cond
          ((not walk) #f)
          ((zero? idx) walk)
-         (else (lp (1+ idx) (frame-previous walk))))))
+         (else (lp (1- idx) (frame-previous walk))))))
     (define (show-frame)
       ;;      #2  0x009600e0 in do_std_select (args=0xbfffd9e0) at threads.c:1668
       ;;      1668	    select (select_args->nfds,
@@ -272,10 +272,8 @@ With an argument, select a frame by index, then show it."
                     (format (current-error-port)
                             "Invalid arguments to ~a. Try `help ~a'.~%"
                             (procedure-name proc) (procedure-name proc)))))))
-         
-         #;
          ((and (integer? cmd) (exact? cmd))
-          (nth cmd))
+          (frame cmd))
          ((eof-object? cmd)
           (newline)
           (throw 'quit))
