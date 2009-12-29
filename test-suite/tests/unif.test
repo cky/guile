@@ -31,6 +31,13 @@
   (cons 'read-error ".*array length must be non-negative.*"))
 
 
+(with-test-prefix "sanity"
+  ;; At the current time of writing, bignums have a tc7 that is one bit
+  ;; away from strings. It used to be that the vector implementation
+  ;; registered for strings had the TYP7S mask, not the TYP7 mask,
+  ;; making the system think that bignums were vectors. Doh!
+  (pass-if (not (uniform-vector? 12345678901234567890123456789))))
+
 (with-test-prefix "array?"
 
   (let ((bool     (make-typed-array 'b    #t  '(5 6)))

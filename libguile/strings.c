@@ -1891,7 +1891,7 @@ string_get_handle (SCM v, scm_t_array_handle *h)
   h->elements = h->writable_elements = NULL;
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_tc7_string, 0x7f & ~2,
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_string, 0x7f,
                           string_handle_ref, string_handle_set,
                           string_get_handle)
 SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_CHAR, scm_make_string)
