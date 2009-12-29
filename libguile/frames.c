@@ -304,15 +304,11 @@ scm_bootstrap_frames (void)
 {
   scm_tc16_frame = scm_make_smob_type ("frame", 0);
   scm_set_smob_print (scm_tc16_frame, frame_print);
-  scm_c_register_extension ("libguile", "scm_init_frames",
-                            (scm_t_extension_init_func)scm_init_frames, NULL);
 }
 
 void
 scm_init_frames (void)
 {
-  scm_bootstrap_vm ();
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/frames.x"
 #endif

@@ -115,11 +115,12 @@
          ((zero? idx) walk)
          (else (lp (1+ idx) (frame-previous walk))))))
     (define (show-frame)
-;      #2  0x009600e0 in do_std_select (args=0xbfffd9e0) at threads.c:1668
-;      1668	    select (select_args->nfds,
-      (let ((p (frame-procedure cur)))
-        (format #t "#~2a 0x~8,'0x in ~s~%" index (frame-instruction-pointer cur)
-                (cons (or (procedure-name p) p) (frame-arguments cur)))))
+      ;;      #2  0x009600e0 in do_std_select (args=0xbfffd9e0) at threads.c:1668
+      ;;      1668	    select (select_args->nfds,
+      (format #t "#~2a 0x~8,'0x in ~60@y~%"
+              index
+              (frame-instruction-pointer cur)
+              (frame-call-representation cur)))
 
     (define-syntax define-command
       (syntax-rules ()
@@ -206,6 +207,20 @@ With an argument, select a frame by index, then show it."
       (define-command ((commands bindings))
         "Show some information about locally-bound variables in the selected frame."
          (format #t "~a\n" (frame-bindings cur)))
+      
+      (define-command ((commands locals))
+        "Show locally-bound variables in the selected frame."
+        (for-each
+         (lambda (binding)
+           (format #t "~4d: ~a~:[~; (boxed)~]: ~20t~60@y\n"
+                   (binding:index binding)
+                   (binding:name binding)
+                   (binding:boxed? binding)
+                   (let ((x (frame-local-ref cur (binding:index binding))))
+                     (if (binding:boxed? binding)
+                         (variable-ref x)
+                         x))))
+         (frame-bindings cur)))
       
       (define-command ((commands quit q continue cont c))
         "Quit the debugger and let the program continue executing."
