@@ -263,10 +263,6 @@ With an argument, select a frame by index, then show it."
             (format #t "No such frame.~%"))))
          (else (show-frame))))
 
-      (define-command ((commands bindings))
-        "Show some information about locally-bound variables in the selected frame."
-         (format #t "~a\n" (frame-bindings cur)))
-      
       (define-command ((commands locals))
         "Show locally-bound variables in the selected frame."
         (print-locals cur))
@@ -345,12 +341,10 @@ With an argument, select a frame by index, then show it."
           (apply values args))))))
 
 
-;; things this debugger should do:
+;; TODO:
 ;;
 ;; eval expression in context of frame
 ;; set local variable in frame
-;; display backtrace
-;; display full backtrace
 ;; step until next instruction
 ;; step until next function call/return
 ;; step until return from frame
@@ -363,7 +357,6 @@ With an argument, select a frame by index, then show it."
 ;; display a truncated backtrace
 ;; go to a frame by index
 ;; (reuse gdb commands perhaps)
-;; help
 ;; disassemble a function
 ;; disassemble the current function
 ;; inspect any object
@@ -374,8 +367,7 @@ With an argument, select a frame by index, then show it."
   ;; herald
   (format #t "Throw to key `~a' with args `~s'.
 Entering the debugger. Type `bt' for a backtrace or `c' to continue.
-This debugger implementation is temporary. See system/vm/debug.scm for
-some ideas on how to make it better.\n" key args)
+" key args)
   (run-debugger (stack-ref (make-stack #t) 1))
   (save-stack 1)
   (apply throw key args))
