@@ -72,6 +72,62 @@
         (args (cons tok out) (next))))))
   (cmd (next)))
 
+(define* (print-locals frame #:optional (port (current-output-port))
+                       #:key (width 72) (per-line-prefix ""))
+  (let ((bindings (frame-bindings frame)))
+    (cond
+     ((null? bindings)
+      (format port "~aNo local variables.~%" per-line-prefix))
+     (else
+      (format port "~aLocal variables:~%" per-line-prefix)
+      (for-each
+       (lambda (binding)
+         (format port "~a~4d ~a~:[~; (boxed)~] = ~v:@y\n"
+                 per-line-prefix
+                 (binding:index binding)
+                 (binding:name binding)
+                 (binding:boxed? binding)
+                 width
+                 (let ((x (frame-local-ref frame (binding:index binding))))
+                   (if (binding:boxed? binding)
+                       (variable-ref x)
+                       x))))
+       (frame-bindings frame))))))
+
+(define* (collect-frames frame #:key count)
+  (cond
+   ((not count)
+    (let lp ((frame frame) (out '()))
+      (if (not frame)
+          out
+          (lp (frame-previous frame) (cons frame out)))))
+   ;; should also have a from-end option, either via negative count or
+   ;; another kwarg
+   ((>= count 0)
+    (let lp ((frame frame) (out '()) (count count))
+      (if (or (not frame) (zero? count))
+          out
+          (lp (frame-previous frame) (cons frame out) (1- count)))))))
+
+(define* (print-frames frames #:optional (port (current-output-port))
+                       #:key (start-index (1- (length frames))) (width 72)
+                       (full? #f))
+  (let lp ((frames frames) (i start-index) (last-file ""))
+    (if (pair? frames)
+        (let* ((frame (car frames))
+               (source (frame-source frame))
+               (file (and=> source source:file))
+               (line (and=> source source:line)))
+          (if (not (equal? file last-file))
+              (format port "~&In ~a:~&" (or file "current input")))
+          (format port "~:[~5_~;~5d~]:~3d ~v:@y~%" line line i
+                  width (frame-call-representation frame))
+          (if full?
+              (print-locals frame #:width width
+                            #:per-line-prefix "     "))
+          (lp (cdr frames) (1- i) file)))))
+
+
 ;;;
 ;;; Debugger
 ;;;
@@ -150,9 +206,12 @@
                            (unspecified? (car vals)))))
             (for-each print vals)))
 
-      (define-command ((commands backtrace bt) #:optional count)
+      (define-command ((commands backtrace bt) #:optional count
+                       #:key (width 72) full?)
         "Print a backtrace of all stack frames, or innermost COUNT frames."
-        (display-backtrace (make-stack top) (current-output-port) #f count))
+        (print-frames (collect-frames top #:count count)
+                      #:width width
+                      #:full? full?))
       
       (define-command ((commands up) #:optional (count 1))
         "Select and print stack frames that called this one.
@@ -210,17 +269,7 @@ With an argument, select a frame by index, then show it."
       
       (define-command ((commands locals))
         "Show locally-bound variables in the selected frame."
-        (for-each
-         (lambda (binding)
-           (format #t "~4d: ~a~:[~; (boxed)~]: ~20t~60@y\n"
-                   (binding:index binding)
-                   (binding:name binding)
-                   (binding:boxed? binding)
-                   (let ((x (frame-local-ref cur (binding:index binding))))
-                     (if (binding:boxed? binding)
-                         (variable-ref x)
-                         x))))
-         (frame-bindings cur)))
+        (print-locals cur))
       
       (define-command ((commands quit q continue cont c))
         "Quit the debugger and let the program continue executing."
@@ -299,9 +348,6 @@ With an argument, select a frame by index, then show it."
 ;; things this debugger should do:
 ;;
 ;; eval expression in context of frame
-;; up/down stack for inspecting
-;; print procedure and args for frame
-;; print local variables for frame
 ;; set local variable in frame
 ;; display backtrace
 ;; display full backtrace
