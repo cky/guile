@@ -13,7 +13,7 @@
 
 (define-module (ice-9 format)
   :use-module (ice-9 and-let-star)
-  :autoload (ice-9 pretty-print) (pretty-print)
+  :autoload (ice-9 pretty-print) (pretty-print truncated-print)
   :replace (format)
   :export (format:symbol-case-conv
 	   format:iobj-case-conv
@@ -482,10 +482,23 @@
 		      ((#\T)			; Tabulate
 		       (format:tabulate modifier params)
 		       (anychar-dispatch))
-		      ((#\Y)			; Pretty-print
-		       (pretty-print (next-arg) format:port)
-		       (set! format:output-col 0)
-		       (anychar-dispatch))
+		      ((#\Y)			; Structured print
+                       (let ((width (if (one-positive-integer? params)
+                                        (car params)
+                                        79)))
+                         (case modifier
+                           ((colon colon-at)
+                            (format:error "illegal modifier in ~~?"))
+                           ((at)
+                            (format:out-str
+                             (with-output-to-string 
+                               (lambda ()
+                                 (truncated-print (next-arg) #:width width)))))
+                           (else
+                            (pretty-print (next-arg) format:port
+                                          #:width width)
+                            (set! format:output-col 0))))
+                       (anychar-dispatch))
 		      ((#\? #\K)		; Indirection (is "~K" in T-Scheme)
 		       (cond
 			((memq modifier '(colon colon-at))
