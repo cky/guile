@@ -487,13 +487,23 @@
                                         (car params)
                                         79)))
                          (case modifier
-                           ((colon colon-at)
-                            (format:error "illegal modifier in ~~?"))
                            ((at)
                             (format:out-str
                              (with-output-to-string 
                                (lambda ()
-                                 (truncated-print (next-arg) #:width width)))))
+                                 (truncated-print (next-arg)
+                                                  #:width width)))))
+                           ((colon-at)
+                            (format:out-str
+                             (with-output-to-string 
+                               (lambda ()
+                                 (truncated-print (next-arg)
+                                                  #:width
+                                                  (max (- width
+                                                          format:output-col)
+                                                       1))))))
+                           ((colon)
+                            (format:error "illegal modifier in ~~?"))
                            (else
                             (pretty-print (next-arg) format:port
                                           #:width width)

@@ -648,6 +648,11 @@ necessary.
 within @var{width} columns (79 by default), on a single line. The
 output will be truncated if necessary.
 
+@nicode{~:@@y} is like @nicode{~@@y}, except the @var{width} parameter
+is interpreted to be the maximum column to which to output. That is to
+say, if you are at column 10, and @nicode{~60:@@y} is seen, the datum
+will be truncated to 50 columns.
+
 @item @nicode{~?}
 @itemx @nicode{~k}
 Sub-format.  No parameters.
