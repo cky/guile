@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -183,9 +183,9 @@
                (cons (make-glil-call 'mul 2)
                      (emit-constants (list-head stack 2) out))
                (+ pos 1)))
-          ((goto/args ,n)
+          ((tail-call ,n)
            (lp (cdr in) (list-tail stack (1+ n))
-               (cons (make-glil-call 'goto/args n)
+               (cons (make-glil-call 'tail-call n)
                      (emit-constants (list-head stack (1+ n)) out))
                (+ pos 2)))
           (else (error "unsupported decompilation" (car in)))))))))

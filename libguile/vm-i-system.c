@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -808,11 +808,11 @@ VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
 {
   register SCM x;
   nargs = FETCH ();
- vm_goto_args:
+ vm_tail_call:
   x = sp[-nargs];
 
   VM_HANDLE_INTERRUPTS;
@@ -850,7 +850,7 @@ VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
   if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
     {
       sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_goto_args;
+      goto vm_tail_call;
     }
   /*
    * Other interpreted or compiled call
@@ -886,13 +886,13 @@ VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (56, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (56, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
   nargs = scm_to_int (x);
   /* FIXME: should truncate values? */
-  goto vm_goto_args;
+  goto vm_tail_call;
 }
 
 VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
@@ -995,7 +995,7 @@ VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (60, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (60, tail_apply, "tail-apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -1011,7 +1011,7 @@ VM_DEFINE_INSTRUCTION (60, goto_apply, "goto/apply", 1, -1, 1)
   PUSH_LIST (ls, SCM_NULL_OR_NIL_P);
 
   nargs += len - 2;
-  goto vm_goto_args;
+  goto vm_tail_call;
 }
 
 VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
@@ -1051,7 +1051,7 @@ VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (62, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (62, tail_call_cc, "tail-call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -1065,7 +1065,7 @@ VM_DEFINE_INSTRUCTION (62, goto_cc, "goto/cc", 0, 1, 1)
       PUSH (proc);
       PUSH (cont);
       nargs = 1;
-      goto vm_goto_args;
+      goto vm_tail_call;
     }
   else if (SCM_VALUESP (cont))
     {

@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -277,7 +277,7 @@
                ((tail)
                 (comp-push proc)
                 (for-each comp-push args)
-                (emit-code src (make-glil-call 'goto/apply (1+ (length args)))))
+                (emit-code src (make-glil-call 'tail-apply (1+ (length args)))))
                ((push)
                 (emit-code src (make-glil-call 'new-frame 0))
                 (comp-push proc)
@@ -344,12 +344,12 @@
               (comp-push producer)
               (emit-code src (make-glil-mv-call 0 MV))
               (case context
-                ((tail) (emit-code src (make-glil-call 'goto/args 1)))
+                ((tail) (emit-code src (make-glil-call 'tail-call 1)))
                 (else   (emit-code src (make-glil-call 'call 1))
                         (emit-branch #f 'br POST)))
               (emit-label MV)
               (case context
-                ((tail) (emit-code src (make-glil-call 'goto/nargs 0)))
+                ((tail) (emit-code src (make-glil-call 'tail-call/nargs 0)))
                 (else   (emit-code src (make-glil-call 'call/nargs 0))
                         (emit-label POST)
                         (if (eq? context 'drop)
@@ -362,7 +362,7 @@
          (case context
            ((tail)
             (comp-push (car args))
-            (emit-code src (make-glil-call 'goto/cc 1)))
+            (emit-code src (make-glil-call 'tail-call/cc 1)))
            ((vals)
             (comp-vals
              (make-application
@@ -482,7 +482,7 @@
          (for-each comp-push args)
          (let ((len (length args)))
            (case context
-             ((tail) (emit-code src (make-glil-call 'goto/args len)))
+             ((tail) (emit-code src (make-glil-call 'tail-call len)))
              ((push) (emit-code src (make-glil-call 'call len))
                      (maybe-emit-return))
              ((vals) (emit-code src (make-glil-mv-call len MVRA))

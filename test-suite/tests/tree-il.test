@@ -1,7 +1,7 @@
 ;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
 ;;;; Andy Wingo <wingo@pobox.com> --- May 2009
 ;;;;
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,7 @@
 (with-test-prefix "application"
   (assert-tree-il->glil
    (apply (toplevel foo) (const 1))
-   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (const 1) (call goto/args 1)))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (const 1) (call tail-call 1)))
   (assert-tree-il->glil
    (begin (apply (toplevel foo) (const 1)) (void))
    (program () (std-prelude 0 0 #f) (label _) (call new-frame 0) (toplevel ref foo) (const 1) (mv-call 1 ,l1)
@@ -81,7 +81,7 @@
   (assert-tree-il->glil
    (apply (toplevel foo) (apply (toplevel bar)))
    (program ()  (std-prelude 0 0 #f) (label _) (toplevel ref foo) (call new-frame 0) (toplevel ref bar) (call call 0)
-            (call goto/args 1))))
+            (call tail-call 1))))
 
 (with-test-prefix "conditional"
   (assert-tree-il->glil
@@ -457,7 +457,7 @@
 (with-test-prefix "apply"
   (assert-tree-il->glil
    (apply (primitive @apply) (toplevel foo) (toplevel bar))
-   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (toplevel ref bar) (call goto/apply 2)))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (toplevel ref bar) (call tail-apply 2)))
   (assert-tree-il->glil
    (begin (apply (primitive @apply) (toplevel foo) (toplevel bar)) (void))
    (program () (std-prelude 0 0 #f) (label _)
@@ -471,12 +471,12 @@
    (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref foo)
             (call new-frame 0) (toplevel ref bar) (toplevel ref baz) (call apply 2)
-            (call goto/args 1))))
+            (call tail-call 1))))
 
 (with-test-prefix "call/cc"
   (assert-tree-il->glil
    (apply (primitive @call-with-current-continuation) (toplevel foo))
-   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (call goto/cc 1)))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (call tail-call/cc 1)))
   (assert-tree-il->glil
    (begin (apply (primitive @call-with-current-continuation) (toplevel foo)) (void))
    (program () (std-prelude 0 0 #f) (label _)
@@ -491,7 +491,7 @@
    (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref foo)
             (toplevel ref bar) (call call/cc 1)
-            (call goto/args 1))))
+            (call tail-call 1))))
 
 
 (with-test-prefix "tree-il-fold"
