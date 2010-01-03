@@ -1,7 +1,7 @@
 ;;;; srfi-4.test --- Test suite for Guile's SRFI-4 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-06-26
 ;;;;
-;;;; Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,11 @@
 
   (pass-if "u8vector->list/list->u8vector"
     (equal? (u8vector->list (u8vector 1 2 3 4))
-	    (u8vector->list (list->u8vector '(1 2 3 4))))))
+	    (u8vector->list (list->u8vector '(1 2 3 4)))))
+
+  (pass-if "u8vector->list/uniform-vector->list"
+    (equal? (u8vector->list (u8vector 1 2 3 4))
+	    (uniform-vector->list (u8vector 1 2 3 4)))))
 
 (with-test-prefix "s8 vectors"
 
@@ -76,7 +80,11 @@
 
   (pass-if "s8vector->list/list->s8vector"
     (equal? (s8vector->list (s8vector 1 2 3 4))
-	    (s8vector->list (list->s8vector '(1 2 3 4))))))
+	    (s8vector->list (list->s8vector '(1 2 3 4)))))
+
+  (pass-if "s8vector->list/uniform-vector->list"
+    (equal? (s8vector->list (s8vector 1 2 3 4))
+	    (uniform-vector->list (s8vector 1 2 3 4)))))
 
 
 (with-test-prefix "u16 vectors"
@@ -106,7 +114,11 @@
 
   (pass-if "u16vector->list/list->u16vector"
     (equal? (u16vector->list (u16vector 1 2 3 4))
-	    (u16vector->list (list->u16vector '(1 2 3 4))))))
+	    (u16vector->list (list->u16vector '(1 2 3 4)))))
+
+  (pass-if "u16vector->list/uniform-vector->list"
+    (equal? (u16vector->list (u16vector 1 2 3 4))
+	    (uniform-vector->list (u16vector 1 2 3 4)))))
 
 (with-test-prefix "s16 vectors"
 
@@ -135,7 +147,11 @@
 
   (pass-if "s16vector->list/list->s16vector"
     (equal? (s16vector->list (s16vector 1 2 3 4))
-	    (s16vector->list (list->s16vector '(1 2 3 4))))))
+	    (s16vector->list (list->s16vector '(1 2 3 4)))))
+
+  (pass-if "s16vector->list/uniform-vector->list"
+    (equal? (s16vector->list (s16vector 1 2 3 4))
+	    (uniform-vector->list (s16vector 1 2 3 4)))))
 
 (with-test-prefix "u32 vectors"
 
@@ -164,7 +180,11 @@
 
   (pass-if "u32vector->list/list->u32vector"
     (equal? (u32vector->list (u32vector 1 2 3 4))
-	    (u32vector->list (list->u32vector '(1 2 3 4))))))
+	    (u32vector->list (list->u32vector '(1 2 3 4)))))
+
+  (pass-if "u32vector->list/uniform-vector->list"
+    (equal? (u32vector->list (u32vector 1 2 3 4))
+	    (uniform-vector->list (u32vector 1 2 3 4)))))
 
 (with-test-prefix "s32 vectors"
 
@@ -193,7 +213,11 @@
 
   (pass-if "s32vector->list/list->s32vector"
     (equal? (s32vector->list (s32vector 1 2 3 4))
-	    (s32vector->list (list->s32vector '(1 2 3 4))))))
+	    (s32vector->list (list->s32vector '(1 2 3 4)))))
+
+  (pass-if "s32vector->list/uniform-vector->list"
+    (equal? (s32vector->list (s32vector 1 2 3 4))
+	    (uniform-vector->list (s32vector 1 2 3 4)))))
 
 (with-test-prefix "u64 vectors"
 
@@ -222,7 +246,11 @@
 
   (pass-if "u64vector->list/list->u64vector"
     (equal? (u64vector->list (u64vector 1 2 3 4))
-	    (u64vector->list (list->u64vector '(1 2 3 4))))))
+	    (u64vector->list (list->u64vector '(1 2 3 4)))))
+
+  (pass-if "u64vector->list/uniform-vector->list"
+    (equal? (u64vector->list (u64vector 1 2 3 4))
+	    (uniform-vector->list (u64vector 1 2 3 4)))))
 
 (with-test-prefix "s64 vectors"
 
@@ -251,7 +279,11 @@
 
   (pass-if "s64vector->list/list->s64vector"
     (equal? (s64vector->list (s64vector 1 2 3 4))
-	    (s64vector->list (list->s64vector '(1 2 3 4))))))
+	    (s64vector->list (list->s64vector '(1 2 3 4)))))
+
+  (pass-if "s64vector->list/uniform-vector->list"
+    (equal? (s64vector->list (s64vector 1 2 3 4))
+	    (uniform-vector->list (s64vector 1 2 3 4)))))
 
 (with-test-prefix "f32 vectors"
 
@@ -280,7 +312,11 @@
 
   (pass-if "f32vector->list/list->f32vector"
     (equal? (f32vector->list (f32vector 1 2 3 4))
-	    (f32vector->list (list->f32vector '(1 2 3 4))))))
+	    (f32vector->list (list->f32vector '(1 2 3 4)))))
+
+  (pass-if "f32vector->list/uniform-vector->list"
+    (equal? (f32vector->list (f32vector 1 2 3 4))
+	    (uniform-vector->list (f32vector 1 2 3 4)))))
 
 (with-test-prefix "f64 vectors"
 
@@ -309,4 +345,8 @@
 
   (pass-if "f64vector->list/list->f64vector"
     (equal? (f64vector->list (f64vector 1 2 3 4))
-	    (f64vector->list (list->f64vector '(1 2 3 4))))))
+	    (f64vector->list (list->f64vector '(1 2 3 4)))))
+
+  (pass-if "f64vector->list/uniform-vector->list"
+    (equal? (f64vector->list (f64vector 1 2 3 4))
+	    (uniform-vector->list (f64vector 1 2 3 4)))))
