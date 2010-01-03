@@ -1,6 +1,3 @@
-#!/usr/bin/env guile
-!#
-
 ;; make-texinfo.scm -- document a set of scheme modules as texinfo
 ;; Copyright (C) 2006,2007,2009  Andy Wingo <wingo at pobox dot com>
 
