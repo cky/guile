@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -77,7 +77,7 @@ line in which to do so.
 @print{} (a b #(c ...) . #)
 (truncated-print exp #:width 20) (newline)
 @print{} (a b #(c d e) f . g)
-(truncated-print "The quick brown fox" #:width 10) (newline)
+(truncated-print "The quick brown fox" #:width 20) (newline)
 @print{} "The quick brown..."
 (truncated-print (current-module) #:width 20) (newline)
 @print{} #<directory (gui...>
