@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <uninorm.h>
 #include <unistr.h>
 #include <uniconv.h>
 
@@ -1735,6 +1736,78 @@ scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
   scm_remember_upto_here_1 (str);
   return len;
 }
+
+/* This function is a partial clone of SCM_STRING_TO_U32_BUF from 
+   libguile/i18n.c.  It would be useful to have this factored out into a more
+   convenient location, but its use of alloca makes that tricky to do. */
+
+static SCM 
+normalize_str (SCM string, uninorm_t form)
+{
+  SCM ret;
+  scm_t_uint32 *w_str;
+  scm_t_wchar *cbuf;
+  size_t rlen, len = scm_i_string_length (string);
+  
+  if (scm_i_is_narrow_string (string))
+    {
+      size_t i;
+      const char *buf = scm_i_string_chars (string);
+      
+      w_str = alloca (sizeof (scm_t_wchar) * (len + 1));
+      
+      for (i = 0; i < len; i ++)
+	w_str[i] = (unsigned char) buf[i];
+      w_str[len] = 0;
+    }
+  else w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+  w_str = u32_normalize (form, w_str, len, NULL, &rlen);  
+  
+  ret = scm_i_make_wide_string (rlen, &cbuf);
+  u32_cpy ((scm_t_uint32 *) cbuf, w_str, rlen);
+  free (w_str);
+  return ret;
+}
+
+SCM_DEFINE (scm_string_normalize_nfc, "string-normalize-nfc", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFC normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfc
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFC);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_normalize_nfd, "string-normalize-nfd", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFD normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfd
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFD);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_normalize_nfkc, "string-normalize-nfkc", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFKC normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfkc
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFKC);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_normalize_nfkd, "string-normalize-nfkd", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFKD normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfkd
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFKD);
+}
+#undef FUNC_NAME
 
 /* converts C scm_array of strings to SCM scm_list of strings. */
 /* If argc < 0, a null terminated scm_array is assumed. */

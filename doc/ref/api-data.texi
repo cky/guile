@@ -3273,6 +3273,70 @@ Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-ne
 Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
 @end deffn
 
+Because the same visual appearance of an abstract Unicode character can 
+be obtained via multiple sequences of Unicode characters, even the 
+case-insensitive string comparison functions described above may return
+@code{#f} when presented with strings containing different 
+representations of the same character.  For example, the Unicode 
+character ``LATIN SMALL LETTER S WITH DOT BELOW AND DOT ABOVE'' can be 
+represented with a single character (U+1E69) or by the character ``LATIN
+SMALL LETTER S'' (U+0073) followed by the combining marks ``COMBINING 
+DOT BELOW'' (U+0323) and ``COMBINING DOT ABOVE'' (U+0307).
+
+For this reason, it is often desirable to ensure that the strings
+to be compared are using a mutually consistent representation for every 
+character.  The Unicode standard defines two methods of normalizing the
+contents of strings: Decomposition, which breaks composite characters 
+into a set of constituent characters with an ordering defined by the
+Unicode Standard; and composition, which performs the converse.
+
+There are two decomposition operations.  ``Canonical decomposition'' 
+produces character sequences that share the same visual appearance as
+the original characters, while ``compatiblity decomposition'' produces
+ones whose visual appearances may differ from the originals but which
+represent the same abstract character.
+
+These operations are encapsulated in the following set of normalization
+forms:
+
+@table @dfn
+@item NFD
+Characters are decomposed to their canonical forms.
+
+@item NFKD
+Characters are decomposed to their compatibility forms.
+
+@item NFC
+Characters are decomposed to their canonical forms, then composed.
+
+@item NFKC
+Characters are decomposed to their compatibility forms, then composed.
+
+@end table
+
+The functions below put their arguments into one of the forms described
+above.
+
+@deffn {Scheme Procedure} string-normalize-nfd s
+@deffnx {C Function} scm_string_normalize_nfd (s)
+Return the @code{NFD} normalized form of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfkd s
+@deffnx {C Function} scm_string_normalize_nfkd (s)
+Return the @code{NFKD} normalized form of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfc s
+@deffnx {C Function} scm_string_normalize_nfc (s)
+Return the @code{NFC} normalized form of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfkc s
+@deffnx {C Function} scm_string_normalize_nfkc (s)
+Return the @code{NFKC} normalized form of @var{s}.
+@end deffn
+
 @node String Searching
 @subsubsection String Searching
 

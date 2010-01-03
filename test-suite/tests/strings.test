@@ -386,6 +386,46 @@
 	 (string-ci>=? (string-ints 0) (string-ints 255)))))
 
 ;;
+;; Unicode string normalization forms
+;;
+
+;;
+;; string-normalize-nfd
+;;
+
+(with-test-prefix "string-normalize-nfd"
+
+  (pass-if "canonical decomposition is equal?"
+    (equal? (string-normalize-nfd "\xe9") "\x65\u0301")))
+
+;;
+;; string-normalize-nfkd
+;;
+
+(with-test-prefix "string-normalize-nfkd"
+  
+  (pass-if "compatibility decomposition is equal?"
+    (equal? (string-normalize-nfkd "\u1e9b\u0323") "s\u0323\u0307")))
+
+;;
+;; string-normalize-nfc
+;;
+
+(with-test-prefix "string-normalize-nfc"
+
+  (pass-if "canonical composition is equal?"
+    (equal? (string-normalize-nfc "\x65\u0301") "\xe9")))
+
+;;
+;; string-normalize-nfkc
+;;
+
+(with-test-prefix "string-normalize-nfkc"
+
+  (pass-if "compatibility composition is equal?"
+    (equal? (string-normalize-nfkc "\u1e9b\u0323") "\u1e69")))
+
+;;
 ;; string-ref
 ;;
 
