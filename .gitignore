@@ -111,6 +111,8 @@ INSTALL
 /lib/arpa/inet.h
 /lib/stdio.h
 /lib/sys/stat.h
+/lib/arg-nonnull.h
+/lib/link-warning.h
 /GPATH
 /GRTAGS
 /GSYMS
