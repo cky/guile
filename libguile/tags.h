@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -411,7 +411,7 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_stringbuf       39
 #define scm_tc7_bytevector	77
 
-#define scm_tc7_unused_1	31
+#define scm_tc7_foreign		31
 #define scm_tc7_hashtable	29
 #define scm_tc7_fluid		37
 #define scm_tc7_dynamic_state	45

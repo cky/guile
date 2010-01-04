@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -748,6 +748,8 @@ scm_i_tag_name (scm_t_bits tag)
       return "cons (immediate car)";
     case scm_tcs_cons_nimcar:
       return "cons (non-immediate car)";
+    case scm_tc7_foreign:
+      return "foreign";
     case scm_tc7_hashtable:
       return "hashtable";
     case scm_tc7_fluid:

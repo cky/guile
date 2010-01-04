@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -157,6 +157,7 @@ SCM scm_class_protected_hidden, scm_class_protected_opaque, scm_class_protected_
 SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
 
+static SCM class_foreign;
 static SCM class_hashtable;
 static SCM class_fluid;
 static SCM class_dynamic_state;
@@ -213,6 +214,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
 	  return scm_class_vector;
+	case scm_tc7_foreign:
+	  return class_foreign;
 	case scm_tc7_hashtable:
 	  return class_hashtable;
 	case scm_tc7_fluid:
@@ -2393,6 +2396,8 @@ create_standard_classes (void)
   make_stdcls (&scm_class_symbol,	   "<symbol>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_vector,	   "<vector>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_foreign,	           "<foreign>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&class_hashtable,	   "<hashtable>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);

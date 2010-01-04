@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -129,6 +129,7 @@ libguile_la_SOURCES =				\
 	extensions.c				\
 	feature.c				\
 	fluids.c				\
+	foreign.c				\
 	fports.c				\
 	frames.c				\
 	gc-malloc.c				\
@@ -230,6 +231,7 @@ DOT_X_FILES =					\
 	extensions.x				\
 	feature.x				\
 	fluids.x				\
+	foreign.x				\
 	fports.x				\
 	gc-malloc.x				\
 	gc.x					\
@@ -328,6 +330,7 @@ DOT_DOC_FILES = 				\
 	extensions.doc				\
 	feature.doc				\
 	fluids.doc				\
+	foreign.doc				\
 	fports.doc				\
 	gc-malloc.doc				\
 	gc.doc					\
@@ -487,6 +490,7 @@ modinclude_HEADERS =				\
 	feature.h				\
 	filesys.h				\
 	fluids.h				\
+	foreign.h				\
 	fports.h				\
 	frames.h				\
 	gc.h					\

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -707,6 +707,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 	case scm_tc7_program:
 	  scm_i_program_print (exp, port, pstate);
+	  break;
+	case scm_tc7_foreign:
+	  scm_i_foreign_print (exp, port, pstate);
 	  break;
 	case scm_tc7_hashtable:
 	  scm_i_hashtable_print (exp, port, pstate);
