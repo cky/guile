@@ -1,7 +1,7 @@
 /* dynl.c - dynamic linking
  *
  * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003, 2008, 2009 Free Software Foundation, Inc.
+ * 2003, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -58,6 +58,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/lang.h"
 #include "libguile/validate.h"
 #include "libguile/dynwind.h"
+#include "libguile/foreign.h"
 
 #include <ltdl.h>
 
@@ -225,10 +226,6 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 	    "since it will be added automatically when necessary.")
 #define FUNC_NAME s_scm_dynamic_func
 {
-  /* The returned handle is formed by casting the address of the function to a
-   * long value and converting this to a scheme number
-   */
-
   void (*func) ();
 
   SCM_VALIDATE_STRING (1, name);
@@ -245,7 +242,7 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
     func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
 					   FUNC_NAME);
     scm_dynwind_end ();
-    return scm_from_ulong ((unsigned long) func);
+    return scm_c_from_foreign (SCM_FOREIGN_TYPE_POINTER, &func, 0, NULL);
   }
 }
 #undef FUNC_NAME
@@ -275,7 +272,9 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
   
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  fptr = (void (*) ()) scm_to_ulong (func);
+  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, POINTER);
+
+  fptr = SCM_FOREIGN_OBJECT_REF (func, void*);
   fptr ();
   return SCM_UNSPECIFIED;
 }
@@ -303,8 +302,9 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
+  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, POINTER);
 
-  fptr = (int (*) (int, char **)) scm_to_ulong (func);
+  fptr = SCM_FOREIGN_OBJECT_REF (func, void*);
 
   argv = scm_i_allocate_string_pointers (args);
   for (argc = 0; argv[argc]; argc++)
