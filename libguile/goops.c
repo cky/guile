@@ -39,6 +39,7 @@
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
 #include "libguile/eval.h"
+#include "libguile/gsubr.h"
 #include "libguile/hashtab.h"
 #include "libguile/keywords.h"
 #include "libguile/macros.h"
@@ -1693,9 +1694,7 @@ SCM_DEFINE (scm_generic_capability_p, "generic-capability?", 1, 0, 0,
 {
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
-  return (scm_subr_p (proc) && SCM_SUBR_GENERIC (proc)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return (SCM_PRIMITIVE_GENERIC_P (proc) ? SCM_BOOL_T : SCM_BOOL_F);
 }
 #undef FUNC_NAME
 
@@ -1708,8 +1707,7 @@ SCM_DEFINE (scm_enable_primitive_generic_x, "enable-primitive-generic!", 0, 0, 1
   while (!scm_is_null (subrs))
     {
       SCM subr = SCM_CAR (subrs);
-      SCM_ASSERT (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr),
-		  subr, SCM_ARGn, FUNC_NAME);
+      SCM_ASSERT (SCM_PRIMITIVE_GENERIC_P (subr), subr, SCM_ARGn, FUNC_NAME);
       *SCM_SUBR_GENERIC (subr)
 	= scm_make (scm_list_3 (scm_class_generic,
 				k_name,
@@ -1725,8 +1723,7 @@ SCM_DEFINE (scm_set_primitive_generic_x, "set-primitive-generic!", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_set_primitive_generic_x
 {
-  SCM_ASSERT (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr),
-              subr, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_PRIMITIVE_GENERIC_P (subr), subr, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_PUREGENERICP (generic), generic, SCM_ARG2, FUNC_NAME);
   *SCM_SUBR_GENERIC (subr) = generic;
   return SCM_UNSPECIFIED;
@@ -1738,7 +1735,7 @@ SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_primitive_generic_generic
 {
-  if (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr))
+  if (SCM_PRIMITIVE_GENERIC_P (subr))
     {
       if (!*SCM_SUBR_GENERIC (subr))
 	scm_enable_primitive_generic_x (scm_list_1 (subr));

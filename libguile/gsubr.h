@@ -25,6 +25,32 @@
 
 #include "libguile/__scm.h"
 
+
+
+
+/* Subrs 
+ */
+
+#define SCM_PRIMITIVE_P(x) (SCM_NIMP (x) && SCM_TYP7 (x) == scm_tc7_gsubr)
+#define SCM_PRIMITIVE_GENERIC_P(x) (SCM_PRIMITIVE_P (x) && SCM_SUBR_GENERIC (x))
+
+#define SCM_SUBR_META_INFO(x)  ((SCM *) SCM_CELL_WORD_3 (x))
+#define SCM_SUBR_NAME(x) (SCM_SUBR_META_INFO (x) [0])
+#define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
+#define SCM_SUBR_PROPS(x) (SCM_SUBR_META_INFO (x) [1])
+#define SCM_SUBR_GENERIC(x) ((SCM *) SCM_CELL_WORD_2 (x))
+#define SCM_SET_SUBR_GENERIC(x, g) (*((SCM *) SCM_CELL_WORD_2 (x)) = (g))
+#define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SET_CELL_WORD_2 (x, (scm_t_bits) g))
+
+/* Return the most suitable subr type for a subr with REQ required arguments,
+   OPT optional arguments, and REST (0 or 1) arguments.  This has to be in
+   sync with `create_gsubr ()'.  */
+#define SCM_SUBR_ARITY_TO_TYPE(req, opt, rest)				\
+  (scm_tc7_gsubr | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U))
+
+
+
+
 
 
 /* Return an integer describing the arity of GSUBR, a subr of type

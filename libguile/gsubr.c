@@ -48,9 +48,11 @@ SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
 static SCM
 create_gsubr (int define, const char *name,
 	      unsigned int req, unsigned int opt, unsigned int rst,
-	      SCM (*fcn) ())
+	      SCM (*fcn) (), SCM *generic_loc)
 {
   SCM subr;
+  SCM sname;
+  SCM *meta_info;
   unsigned type;
 
   type = SCM_GSUBR_MAKTYPE (req, opt, rst);
@@ -59,11 +61,18 @@ create_gsubr (int define, const char *name,
       || SCM_GSUBR_REST (type) != rst)
     scm_out_of_range ("create_gsubr", scm_from_uint (req + opt + rst));
 
-  subr = scm_c_make_subr (name, scm_tc7_gsubr | (type << 8U),
-                          fcn);
+  meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
+  sname = scm_from_locale_symbol (name);
+  meta_info[0] = sname;
+  meta_info[1] = SCM_EOL;  /* properties */
+
+  subr = scm_double_cell ((scm_t_bits) scm_tc7_gsubr | (type << 8U),
+                          (scm_t_bits) fcn,
+                          (scm_t_bits) generic_loc,
+                          (scm_t_bits) meta_info);
 
   if (define)
-    scm_define (SCM_SUBR_NAME (subr), subr);
+    scm_define (sname, subr);
 
   return subr;
 }
@@ -71,40 +80,13 @@ create_gsubr (int define, const char *name,
 SCM
 scm_c_make_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
 {
-  return create_gsubr (0, name, req, opt, rst, fcn);
+  return create_gsubr (0, name, req, opt, rst, fcn, NULL);
 }
 
 SCM
 scm_c_define_gsubr (const char *name, int req, int opt, int rst, SCM (*fcn)())
 {
-  return create_gsubr (1, name, req, opt, rst, fcn);
-}
-
-static SCM
-create_gsubr_with_generic (int define,
-			   const char *name,
-			   int req,
-			   int opt,
-			   int rst,
-			   SCM (*fcn)(),
-			   SCM *gf)
-{
-  SCM subr;
-  unsigned type;
-
-  type = SCM_GSUBR_MAKTYPE (req, opt, rst);
-  if (SCM_GSUBR_REQ (type) != req
-      || SCM_GSUBR_OPT (type) != opt
-      || SCM_GSUBR_REST (type) != rst)
-    scm_out_of_range ("create_gsubr", scm_from_uint (req + opt + rst));
-
-  subr = scm_c_make_subr_with_generic (name, scm_tc7_gsubr | (type << 8U),
-                                       fcn, gf);
-
-  if (define)
-    scm_define (SCM_SUBR_NAME (subr), subr);
-
-  return subr;
+  return create_gsubr (1, name, req, opt, rst, fcn, NULL);
 }
 
 SCM
@@ -115,7 +97,7 @@ scm_c_make_gsubr_with_generic (const char *name,
 			       SCM (*fcn)(),
 			       SCM *gf)
 {
-  return create_gsubr_with_generic (0, name, req, opt, rst, fcn, gf);
+  return create_gsubr (0, name, req, opt, rst, fcn, gf);
 }
 
 SCM
@@ -126,7 +108,7 @@ scm_c_define_gsubr_with_generic (const char *name,
 				 SCM (*fcn)(),
 				 SCM *gf)
 {
-  return create_gsubr_with_generic (1, name, req, opt, rst, fcn, gf);
+  return create_gsubr (1, name, req, opt, rst, fcn, gf);
 }
 
 /* Apply PROC, a gsubr, to the ARGC arguments in ARGV.  ARGC is expected to
