@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,7 +28,6 @@
 #include <gc/gc_mark.h>
 
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "frames.h"
 #include "instructions.h"
 #include "objcodes.h"
@@ -654,29 +653,13 @@ SCM scm_load_compiled_with_vm (SCM file)
 void
 scm_bootstrap_vm (void)
 {
-  static int strappage = 0;
-  
-  if (strappage)
-    return;
-
-  scm_bootstrap_frames ();
-  scm_bootstrap_instructions ();
-  scm_bootstrap_objcodes ();
-  scm_bootstrap_programs ();
-
   scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
 
   scm_tc16_vm = scm_make_smob_type ("vm", 0);
   scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
 
-  scm_c_define ("load-compiled",
-                scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
-                                  scm_load_compiled_with_vm));
-
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
-
-  strappage = 1;
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
   vm_stack_gc_kind =
@@ -690,8 +673,6 @@ scm_bootstrap_vm (void)
 void
 scm_init_vm (void)
 {
-  scm_bootstrap_vm ();
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/vm.x"
 #endif

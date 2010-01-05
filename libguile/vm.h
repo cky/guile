@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -104,6 +104,7 @@ SCM_API void scm_vm_reinstate_continuations (SCM conts);
 
 SCM_API SCM scm_load_compiled_with_vm (SCM file);
 
+SCM_INTERNAL void scm_bootstrap_vm (void);
 SCM_INTERNAL void scm_init_vm (void);
 
 #endif /* _SCM_VM_H_ */

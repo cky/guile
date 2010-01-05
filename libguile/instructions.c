@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "instructions.h"
 
 struct scm_instruction {
@@ -205,8 +204,6 @@ scm_bootstrap_instructions (void)
 void
 scm_init_instructions (void)
 {
-  scm_bootstrap_vm ();
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/instructions.x"
 #endif

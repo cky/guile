@@ -908,6 +908,10 @@ scm_init_load ()
   scm_fluid_set_x (the_reader, SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);
 
+  scm_c_define ("load-compiled",
+                scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
+                                  scm_load_compiled_with_vm));
+
   init_build_info ();
 
 #include "libguile/load.x"

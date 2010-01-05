@@ -57,6 +57,7 @@
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
+#include "libguile/frames.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"
@@ -68,6 +69,7 @@
 #include "libguile/hooks.h"
 #include "libguile/gettext.h"
 #include "libguile/i18n.h"
+#include "libguile/instructions.h"
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
@@ -80,6 +82,7 @@
 #include "libguile/modules.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
+#include "libguile/objcodes.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
 #include "libguile/pairs.h"
@@ -91,6 +94,7 @@
 #include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
+#include "libguile/programs.h"
 #include "libguile/promises.h"
 #include "libguile/properties.h"
 #include "libguile/array-map.h"
@@ -122,7 +126,7 @@
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/version.h"
-#include "libguile/vm-bootstrap.h"
+#include "libguile/vm.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
@@ -518,7 +522,11 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_arrays ();    /* Requires smob_prehistory, array-handle */
   scm_init_array_map ();
 
-  scm_bootstrap_vm ();  /* requires smob_prehistory, gc_permanent_object */
+  scm_bootstrap_frames (); /* requires smob_prehistory */
+  scm_bootstrap_instructions ();
+  scm_bootstrap_objcodes (); /* requires smob_prehistory */
+  scm_bootstrap_programs ();
+  scm_bootstrap_vm ();  /* requires smob_prehistory */
 
   scm_init_frames ();   /* Requires smob_prehistory */
   scm_init_stacks ();   /* Requires strings, struct, frames */

@@ -22,7 +22,6 @@
 
 #include <string.h>
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "instructions.h"
 #include "modules.h"
 #include "programs.h"
@@ -338,8 +337,6 @@ scm_bootstrap_programs (void)
 void
 scm_init_programs (void)
 {
-  scm_bootstrap_vm ();
-  
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/programs.x"
 #endif

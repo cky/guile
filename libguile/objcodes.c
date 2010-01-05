@@ -30,7 +30,6 @@
 #include <alignof.h>
 
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "programs.h"
 #include "objcodes.h"
 
@@ -274,8 +273,6 @@ scm_bootstrap_objcodes (void)
 void
 scm_init_objcodes (void)
 {
-  scm_bootstrap_vm ();
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/objcodes.x"
 #endif
