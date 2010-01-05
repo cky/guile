@@ -27,32 +27,20 @@
 
 
 
-#define SCM_ASSYNT(_cond, _msg, _subr) \
-  if (!(_cond)) scm_misc_error (_subr, _msg, SCM_EOL);
+typedef SCM (*scm_t_macro_primitive) (SCM, SCM);
 
-#define SCM_MACRO_TYPE_BITS  (3)
-#define SCM_MACRO_TYPE_MASK  ((1<<SCM_MACRO_TYPE_BITS)-1)
-#define SCM_F_MACRO_EXTENDED (1<<SCM_MACRO_TYPE_BITS)
-
-#define SCM_MACROP(x) SCM_SMOB_PREDICATE (scm_tc16_macro, (x))
-#define SCM_MACRO_TYPE(m) (SCM_SMOB_FLAGS (m) & SCM_MACRO_TYPE_MASK)
-#define SCM_MACRO_IS_EXTENDED(m) (SCM_SMOB_FLAGS (m) & SCM_F_MACRO_EXTENDED)
-#define SCM_BUILTIN_MACRO_P(x) (SCM_MACROP (x) && SCM_MACRO_TYPE (x) == 3)
-#define SCM_SYNCASE_MACRO_P(x) (SCM_MACROP (x) && SCM_MACRO_TYPE (x) == 4)
-#define SCM_MACRO_CODE(m) SCM_SMOB_OBJECT (m)
-
-SCM_API scm_t_bits scm_tc16_macro;
-
-SCM_INTERNAL SCM scm_i_makbimacro (const char *name, SCM (*fn)(SCM,SCM));
-SCM_API SCM scm_make_syncase_macro (SCM type, SCM binding);
-SCM_API SCM scm_make_extended_syncase_macro (SCM builtin, SCM type,
-                                             SCM binding);
+SCM_API SCM scm_make_syntax_transformer (SCM name_or_existing_definition,
+                                         SCM type, SCM binding);
 SCM_API SCM scm_macro_p (SCM obj);
 SCM_API SCM scm_macro_type (SCM m);
 SCM_API SCM scm_macro_name (SCM m);
+SCM_API SCM scm_macro_binding (SCM m);
 SCM_API SCM scm_macro_transformer (SCM m);
-SCM_API SCM scm_syncase_macro_type (SCM m);
-SCM_API SCM scm_syncase_macro_binding (SCM m);
+
+SCM_INTERNAL SCM scm_i_make_primitive_macro (const char *name,
+                                             scm_t_macro_primitive fn);
+SCM_INTERNAL scm_t_macro_primitive scm_i_macro_primitive (SCM m);
+
 SCM_INTERNAL void scm_init_macros (void);
 
 

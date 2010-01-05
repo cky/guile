@@ -3,7 +3,7 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -176,7 +176,7 @@
 
 /* Major and minor versions must be single characters. */
 #define SCM_OBJCODE_MAJOR_VERSION 0
-#define SCM_OBJCODE_MINOR_VERSION M
+#define SCM_OBJCODE_MINOR_VERSION N
 #define SCM_OBJCODE_MAJOR_VERSION_STRING        \
   SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
 #define SCM_OBJCODE_MINOR_VERSION_STRING        \

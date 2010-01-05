@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -308,18 +308,10 @@
 
     (define put-global-definition-hook
       (lambda (symbol type val)
-        (let ((existing (let ((v (module-variable (current-module) symbol)))
-                          (and v (variable-bound? v)
-                               (let ((val (variable-ref v)))
-                                 (and (macro? val)
-                                      (not (syncase-macro-type val))
-                                      val))))))
-          (module-define! (current-module)
-                          symbol
-                          (if existing
-                              (make-extended-syncase-macro existing type val)
-                              (make-syncase-macro type val))))))
-
+        (module-define! (current-module)
+                        symbol
+                        (make-syntax-transformer symbol type val))))
+    
     (define get-global-definition-hook
       (lambda (symbol module)
         (if (and (not module) (current-module))
@@ -330,9 +322,9 @@
                                   symbol)))
           (and v (variable-bound? v)
                (let ((val (variable-ref v)))
-                 (and (macro? val) (syncase-macro-type val)
-                      (cons (syncase-macro-type val)
-                            (syncase-macro-binding val))))))))
+                 (and (macro? val) (macro-type val)
+                      (cons (macro-type val)
+                            (macro-binding val))))))))
 
     )
 
@@ -1036,49 +1028,22 @@
       (build-global-definition
        no-source
        name
-       ;; FIXME: seems nasty to call current-module here
-       (if (let ((v (module-variable (current-module) name)))
-             ;; FIXME use primitive-macro?
-             (and v (variable-bound? v) (macro? (variable-ref v))
-                  (not (eq? (macro-type (variable-ref v)) 'syncase-macro))))
-           (build-application
-            no-source
-            (build-primref no-source 'make-extended-syncase-macro)
-            (list (build-application
-                   no-source
-                   (build-primref no-source 'module-ref)
-                   (list (build-application 
-                          no-source
-                          (build-primref no-source 'current-module)
-                          '())
-                         (build-data no-source name)))
-                  (build-data no-source 'macro)
-                  (build-application
-                   no-source
-                   (build-primref no-source 'cons)
-                   (list e
-                         (build-application
-                          no-source
-                          (build-primref no-source 'module-name)
-                          (list (build-application
-                                 no-source
-                                 (build-primref no-source 'current-module)
-                                 '())))))))
-           (build-application
-            no-source
-            (build-primref no-source 'make-syncase-macro)
-            (list (build-data no-source 'macro)
-                  (build-application
-                   no-source
-                   (build-primref no-source 'cons)
-                   (list e
-                         (build-application
-                          no-source
-                          (build-primref no-source 'module-name)
-                          (list (build-application
-                                 no-source
-                                 (build-primref no-source 'current-module)
-                                 '())))))))))))
+       (build-application
+        no-source
+        (build-primref no-source 'make-syntax-transformer)
+        (list (build-data no-source name)
+              (build-data no-source 'macro)
+              (build-application
+               no-source
+               (build-primref no-source 'cons)
+               (list e
+                     (build-application
+                      no-source
+                      (build-primref no-source 'module-name)
+                      (list (build-application
+                             no-source
+                             (build-primref no-source 'current-module)
+                             '()))))))))))
   
   (define chi-when-list
     (lambda (e when-list w)

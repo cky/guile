@@ -275,9 +275,7 @@ static SCM scm_m_set_x (SCM xorig, SCM env);
 
 
 
-typedef SCM (*t_syntax_transformer) (SCM, SCM);
-
-static t_syntax_transformer
+static scm_t_macro_primitive
 memoize_env_ref_transformer (SCM env, SCM x)
 {
   SCM var;
@@ -287,15 +285,8 @@ memoize_env_ref_transformer (SCM env, SCM x)
 
   var = scm_module_variable (env, x);
   if (scm_is_true (var) && scm_is_true (scm_variable_bound_p (var))
-      && SCM_MACROP (scm_variable_ref (var)))
-    { 
-      SCM mac = scm_variable_ref (var);
-      if (SCM_IMP (SCM_MACRO_CODE (mac))
-          || (SCM_TYP7 (SCM_MACRO_CODE (mac)) != scm_tc7_gsubr))
-        syntax_error ("bad macro", x, SCM_UNDEFINED);
-      else
-        return (t_syntax_transformer)SCM_SUBRF (SCM_MACRO_CODE (mac)); /* global macro */
-    }
+      && scm_is_true (scm_macro_p (scm_variable_ref (var))))
+    return scm_i_macro_primitive (scm_variable_ref (var));
   else
     return NULL; /* anything else */
 }
@@ -331,7 +322,7 @@ memoize (SCM exp, SCM env)
   if (scm_is_pair (exp))
     {
       SCM CAR;
-      t_syntax_transformer trans;
+      scm_t_macro_primitive trans;
       
       CAR = CAR (exp);
       if (scm_is_symbol (CAR))
@@ -392,11 +383,8 @@ memoize_sequence (const SCM forms, const SCM env)
 
 #define SCM_SYNTAX(RANAME, STR, CFN)  \
 SCM_SNARF_HERE(static const char RANAME[]=STR)\
-SCM_SNARF_INIT(scm_c_define (RANAME, scm_i_makbimacro (RANAME, CFN)))
+SCM_SNARF_INIT(scm_c_define (RANAME, scm_i_make_primitive_macro (RANAME, CFN)))
 
-/* bimacros (built-in macros) have isym codes.
-   mmacros don't exist at runtime, they just expand out to more primitive
-   forms. */
 SCM_SYNTAX (s_at, "@", scm_m_at);
 SCM_SYNTAX (s_atat, "@@", scm_m_atat);
 SCM_SYNTAX (s_and, "and", scm_m_and);

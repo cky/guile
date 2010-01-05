@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugging traps) -- abstraction of libguile's traps interface
 
-;;; Copyright (C) 2002, 2004, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2004, 2009, 2010 Free Software Foundation, Inc.
 ;;; Copyright (C) 2005 Neil Jerram
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -81,7 +81,9 @@
 	    without-traps
             guile-trap-features)
   #:re-export (make)
-  #:export-syntax (trap-here))
+  ;; FIXME: see below
+  ;; #:export-syntax (trap-here)
+  )
 
 ;; How to debug the debugging infrastructure, when needed.  Grep for
 ;; "(trc " to find other symbols that can be passed to trc-add.
@@ -888,6 +890,7 @@ it twice."
 
 ;; (trap-here EXPRESSION . OPTIONS)
 ;; FIXME: no longer working due to no mmacros, no local-eval
+#;
 (define trap-here
   (procedure->memoizing-macro
    (lambda (expr env)
