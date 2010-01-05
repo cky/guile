@@ -42,8 +42,6 @@ verify (((sizeof (SCM_OBJCODE_COOKIE) - 1) & 7) == 0);
  * Objcode type
  */
 
-scm_t_bits scm_tc16_objcode;
-
 static SCM
 make_objcode_by_mmap (int fd)
 #define FUNC_NAME "make_objcode_by_mmap"
@@ -90,9 +88,10 @@ make_objcode_by_mmap (int fd)
 						   + data->metalen)));
     }
 
-  SCM_NEWSMOB3 (sret, scm_tc16_objcode, addr + strlen (SCM_OBJCODE_COOKIE),
-                SCM_PACK (SCM_BOOL_F), fd);
-  SCM_SET_SMOB_FLAGS (sret, SCM_F_OBJCODE_IS_MMAP);
+  sret = scm_double_cell (scm_tc7_objcode | (SCM_F_OBJCODE_IS_MMAP<<8),
+                          (scm_t_bits)(addr + strlen (SCM_OBJCODE_COOKIE)),
+                          SCM_UNPACK (SCM_BOOL_F),
+                          (scm_t_bits)fd);
 
   /* FIXME: we leak ourselves and the file descriptor. but then again so does
      dlopen(). */
@@ -106,7 +105,6 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
 {
   const struct scm_objcode *data, *parent_data;
   const scm_t_uint8 *parent_base;
-  SCM ret;
 
   SCM_VALIDATE_OBJCODE (1, parent);
   parent_data = SCM_OBJCODE_DATA (parent);
@@ -130,9 +128,8 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
   assert (SCM_C_OBJCODE_BASE (data) + data->len + data->metalen
 	  <= parent_base + parent_data->len + parent_data->metalen);
 
-  SCM_NEWSMOB2 (ret, scm_tc16_objcode, data, parent);
-  SCM_SET_SMOB_FLAGS (ret, SCM_F_OBJCODE_IS_SLICE);
-  return ret;
+  return scm_double_cell (scm_tc7_objcode | (SCM_F_OBJCODE_IS_SLICE<<8),
+                          (scm_t_bits)data, SCM_UNPACK (parent), 0);
 }
 #undef FUNC_NAME
 
@@ -173,7 +170,6 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
   size_t size;
   const scm_t_uint8 *c_bytecode;
   struct scm_objcode *data;
-  SCM objcode;
 
   if (!scm_is_bytevector (bytecode))
     scm_wrong_type_arg (FUNC_NAME, 1, bytecode);
@@ -189,13 +185,10 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
 		    scm_list_2 (scm_from_size_t (size),
 				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
 
-  SCM_NEWSMOB2 (objcode, scm_tc16_objcode, data, bytecode);
-  SCM_SET_SMOB_FLAGS (objcode, SCM_F_OBJCODE_IS_BYTEVECTOR);
-  
   /* foolishly, we assume that as long as bytecode is around, that c_bytecode
      will be of the same length; perhaps a bad assumption? */
-
-  return objcode;
+  return scm_double_cell (scm_tc7_objcode | (SCM_F_OBJCODE_IS_BYTEVECTOR<<8),
+                          (scm_t_bits)data, SCM_UNPACK (bytecode), 0);
 }
 #undef FUNC_NAME
 
@@ -253,11 +246,18 @@ SCM_DEFINE (scm_write_objcode, "write-objcode", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+void
+scm_i_objcode_print (SCM objcode, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<objcode ", port);
+  scm_uintprint ((scm_t_bits)SCM_OBJCODE_BASE (objcode), 16, port);
+  scm_puts (">", port);
+}
+
 
 void
 scm_bootstrap_objcodes (void)
 {
-  scm_tc16_objcode = scm_make_smob_type ("objcode", 0);
   scm_c_register_extension ("libguile", "scm_init_objcodes",
                             (scm_t_extension_init_func)scm_init_objcodes, NULL);
 }

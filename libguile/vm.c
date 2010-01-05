@@ -71,7 +71,13 @@
  * VM Continuation
  */
 
-scm_t_bits scm_tc16_vm_cont;
+void
+scm_i_vm_cont_print (SCM x, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<vm-continuation ", port);
+  scm_uintprint (SCM_UNPACK (x), 16, port);
+  scm_puts (">", port);
+}
 
 static SCM
 capture_vm_cont (struct scm_vm *vp)
@@ -91,7 +97,7 @@ capture_vm_cont (struct scm_vm *vp)
   p->fp = vp->fp;
   memcpy (p->stack_base, vp->stack_base, p->stack_size * sizeof (SCM));
   p->reloc = p->stack_base - vp->stack_base;
-  SCM_RETURN_NEWSMOB (scm_tc16_vm_cont, p);
+  return scm_cell (scm_tc7_vm_cont, (scm_t_bits)p);
 }
 
 static void
@@ -172,6 +178,14 @@ SCM_SYMBOL (sym_vm_run, "vm-run");
 SCM_SYMBOL (sym_vm_error, "vm-error");
 SCM_SYMBOL (sym_keyword_argument_error, "keyword-argument-error");
 SCM_SYMBOL (sym_debug, "debug");
+
+void
+scm_i_vm_print (SCM x, SCM port, scm_print_state *pstate)
+{
+  scm_puts ("#<vm ", port);
+  scm_uintprint (SCM_UNPACK (x), 16, port);
+  scm_puts (">", port);
+}
 
 static SCM
 really_make_boot_program (long nargs)
@@ -315,8 +329,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
 static const scm_t_vm_engine vm_engines[] = 
   { vm_regular_engine, vm_debug_engine };
 
-scm_t_bits scm_tc16_vm;
-
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
 
 /* The GC "kind" for the VM stack.  */
@@ -330,9 +342,6 @@ make_vm (void)
 {
   int i;
   struct scm_vm *vp;
-
-  if (!scm_tc16_vm)
-    return SCM_BOOL_F; /* not booted yet */
 
   vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
 
@@ -364,7 +373,7 @@ make_vm (void)
   vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
-  SCM_RETURN_NEWSMOB (scm_tc16_vm, vp);
+  return scm_cell (scm_tc7_vm, (scm_t_bits)vp);
 }
 #undef FUNC_NAME
 
@@ -407,9 +416,10 @@ scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
   return vm_engines[vp->engine](vm, program, argv, nargs);
 }
 
-SCM
-scm_vm_apply (SCM vm, SCM program, SCM args)
-#define FUNC_NAME "scm_vm_apply"
+SCM_DEFINE (scm_vm_apply, "vm-apply", 3, 0, 0,
+            (SCM vm, SCM program, SCM args),
+            "")
+#define FUNC_NAME s_scm_vm_apply
 {
   SCM *argv;
   int i, nargs;
@@ -653,11 +663,6 @@ SCM scm_load_compiled_with_vm (SCM file)
 void
 scm_bootstrap_vm (void)
 {
-  scm_tc16_vm_cont = scm_make_smob_type ("vm-cont", 0);
-
-  scm_tc16_vm = scm_make_smob_type ("vm", 0);
-  scm_set_smob_apply (scm_tc16_vm, scm_vm_apply, 1, 0, 1);
-
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
 

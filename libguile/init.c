@@ -522,11 +522,10 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_arrays ();    /* Requires smob_prehistory, array-handle */
   scm_init_array_map ();
 
-  scm_bootstrap_frames (); /* requires smob_prehistory */
   scm_bootstrap_instructions ();
-  scm_bootstrap_objcodes (); /* requires smob_prehistory */
+  scm_bootstrap_objcodes ();
   scm_bootstrap_programs ();
-  scm_bootstrap_vm ();  /* requires smob_prehistory */
+  scm_bootstrap_vm ();
 
   scm_init_frames ();   /* Requires smob_prehistory */
   scm_init_stacks ();   /* Requires strings, struct, frames */

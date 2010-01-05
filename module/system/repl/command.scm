@@ -1,6 +1,6 @@
 ;;; Repl commands
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -367,7 +367,7 @@ Profile execution."
   ;; FIXME opts
   (let ((vm (repl-vm repl))
         (proc (make-program (repl-compile repl (repl-parse repl form)))))
-    (with-statprof #:hz 100 (vm proc))))
+    (with-statprof #:hz 100 (vm-apply vm proc '()))))
 
 
 

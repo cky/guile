@@ -45,6 +45,7 @@
 #include "libguile/vectors.h"
 #include "libguile/lang.h"
 #include "libguile/numbers.h"
+#include "libguile/vm.h"
 
 #include "libguile/validate.h"
 #include "libguile/print.h"
@@ -719,6 +720,18 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  break;
 	case scm_tc7_dynamic_state:
 	  scm_i_dynamic_state_print (exp, port, pstate);
+	  break;
+	case scm_tc7_frame:
+	  scm_i_frame_print (exp, port, pstate);
+	  break;
+	case scm_tc7_objcode:
+	  scm_i_objcode_print (exp, port, pstate);
+	  break;
+	case scm_tc7_vm:
+	  scm_i_vm_print (exp, port, pstate);
+	  break;
+	case scm_tc7_vm_cont:
+	  scm_i_vm_cont_print (exp, port, pstate);
 	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);

@@ -162,6 +162,10 @@ static SCM class_foreign;
 static SCM class_hashtable;
 static SCM class_fluid;
 static SCM class_dynamic_state;
+static SCM class_frame;
+static SCM class_objcode;
+static SCM class_vm;
+static SCM class_vm_cont;
 
 /* Port classes.  Allocate 3 times the maximum number of port types so that
    input ports, output ports, and in/out ports can be stored at different
@@ -223,6 +227,14 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return class_fluid;
 	case scm_tc7_dynamic_state:
 	  return class_dynamic_state;
+        case scm_tc7_frame:
+	  return class_frame;
+        case scm_tc7_objcode:
+	  return class_objcode;
+        case scm_tc7_vm:
+	  return class_vm;
+        case scm_tc7_vm_cont:
+	  return class_vm_cont;
 	case scm_tc7_string:
 	  return scm_class_string;
         case scm_tc7_number:
@@ -2401,6 +2413,14 @@ create_standard_classes (void)
   make_stdcls (&class_fluid,		   "<fluid>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&class_dynamic_state,	   "<dynamic-state>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_frame,		   "<frame>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_objcode,		   "<objcode>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_vm,		   "<vm>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_vm_cont,		   "<vm-continuation>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_number,	   "<number>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);

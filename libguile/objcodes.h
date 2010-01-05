@@ -39,10 +39,8 @@ struct scm_objcode
 #define SCM_F_OBJCODE_IS_BYTEVECTOR (1<<1)
 #define SCM_F_OBJCODE_IS_SLICE      (1<<2)
 
-SCM_API scm_t_bits scm_tc16_objcode;
-
-#define SCM_OBJCODE_P(x)	(SCM_SMOB_PREDICATE (scm_tc16_objcode, x))
-#define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_SMOB_DATA (x))
+#define SCM_OBJCODE_P(x)	(SCM_NIMP (x) && SCM_TYP7 (x) == scm_tc7_objcode)
+#define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_CELL_WORD_1 (x))
 #define SCM_VALIDATE_OBJCODE(p,x) SCM_MAKE_VALIDATE (p, x, OBJCODE_P)
 
 #define SCM_OBJCODE_LEN(x)	(SCM_OBJCODE_DATA (x)->len)
@@ -50,9 +48,10 @@ SCM_API scm_t_bits scm_tc16_objcode;
 #define SCM_OBJCODE_TOTAL_LEN(x) (SCM_OBJCODE_LEN (x) + SCM_OBJCODE_META_LEN (x))
 #define SCM_OBJCODE_BASE(x)	(SCM_C_OBJCODE_BASE (SCM_OBJCODE_DATA (x)))
 
-#define SCM_OBJCODE_IS_MMAP(x)	(SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_MMAP)
-#define SCM_OBJCODE_IS_BYTEVECTOR(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_BYTEVECTOR)
-#define SCM_OBJCODE_IS_SLICE(x) (SCM_SMOB_FLAGS (x) & SCM_F_OBJCODE_IS_SLICE)
+#define SCM_OBJCODE_FLAGS(x)	(SCM_CELL_WORD_0 (x) >> 8)
+#define SCM_OBJCODE_IS_MMAP(x)	(SCM_OBJCODE_FLAGS (x) & SCM_F_OBJCODE_IS_MMAP)
+#define SCM_OBJCODE_IS_BYTEVECTOR(x) (SCM_OBJCODE_FLAGS (x) & SCM_F_OBJCODE_IS_BYTEVECTOR)
+#define SCM_OBJCODE_IS_SLICE(x) (SCM_OBJCODE_FLAGS (x) & SCM_F_OBJCODE_IS_SLICE)
 
 SCM scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr);
 SCM_API SCM scm_load_objcode (SCM file);
@@ -62,6 +61,8 @@ SCM_API SCM scm_bytecode_to_objcode (SCM bytecode);
 SCM_API SCM scm_objcode_to_bytecode (SCM objcode);
 SCM_API SCM scm_write_objcode (SCM objcode, SCM port);
 
+SCM_INTERNAL void scm_i_objcode_print (SCM objcode, SCM port,
+                                       scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_objcodes (void);
 SCM_INTERNAL void scm_init_objcodes (void);
 

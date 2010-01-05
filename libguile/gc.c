@@ -756,6 +756,14 @@ scm_i_tag_name (scm_t_bits tag)
       return "fluid";
     case scm_tc7_dynamic_state:
       return "dynamic state";
+    case scm_tc7_frame:
+      return "frame";
+    case scm_tc7_objcode:
+      return "objcode";
+    case scm_tc7_vm:
+      return "vm";
+    case scm_tc7_vm_cont:
+      return "vm continuation";
     case scm_tc7_wvect:
       return "weak vector";
     case scm_tc7_vector:

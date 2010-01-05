@@ -55,8 +55,8 @@ struct scm_vm {
 
 SCM_API SCM scm_the_vm_fluid;
 
-#define SCM_VM_P(x)		SCM_SMOB_PREDICATE (scm_tc16_vm, x)
-#define SCM_VM_DATA(vm)		((struct scm_vm *) SCM_SMOB_DATA (vm))
+#define SCM_VM_P(x)		(SCM_NIMP (x) && SCM_TYP7 (x) == scm_tc7_vm)
+#define SCM_VM_DATA(vm)		((struct scm_vm *) SCM_CELL_WORD_1 (vm))
 #define SCM_VALIDATE_VM(pos,x)	SCM_MAKE_VALIDATE (pos, x, VM_P)
 
 SCM_API SCM scm_the_vm ();
@@ -95,15 +95,18 @@ struct scm_vm_cont {
   scm_t_ptrdiff reloc;
 };
 
-SCM_API scm_t_bits scm_tc16_vm_cont;
-#define SCM_VM_CONT_P(OBJ)	SCM_SMOB_PREDICATE (scm_tc16_vm_cont, OBJ)
-#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_SMOB_DATA_1 (CONT))
+#define SCM_VM_CONT_P(OBJ)	(SCM_NIMP (OBJ) && SCM_TYP7 (OBJ) == scm_tc7_vm_cont)
+#define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
 
 SCM_API SCM scm_vm_capture_continuations (void);
 SCM_API void scm_vm_reinstate_continuations (SCM conts);
 
 SCM_API SCM scm_load_compiled_with_vm (SCM file);
 
+SCM_INTERNAL void scm_i_vm_print (SCM x, SCM port,
+                                  scm_print_state *pstate);
+SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,
+                                       scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_vm (void);
 SCM_INTERNAL void scm_init_vm (void);
 

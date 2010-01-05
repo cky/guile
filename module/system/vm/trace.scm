@@ -1,6 +1,6 @@
 ;;; Guile VM tracer
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@
 (define (vm-trace vm thunk . opts)
   (dynamic-wind
       (lambda () (apply vm-trace-on! vm opts))
-      (lambda () (vm thunk))
+      (lambda () (vm-apply vm thunk '()))
       (lambda () (apply vm-trace-off! vm opts))))
 
 (define* (vm-trace-on! vm #:key (calls? #t) (instructions? #f))

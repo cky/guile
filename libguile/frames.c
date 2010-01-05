@@ -26,8 +26,6 @@
 #include "frames.h"
 
 
-scm_t_bits scm_tc16_frame;
-
 #define RELOC(frame, val) (val + SCM_VM_FRAME_OFFSET (frame))
 
 SCM
@@ -41,11 +39,11 @@ scm_c_make_frame (SCM stack_holder, SCM *fp, SCM *sp,
   p->sp = sp;
   p->ip = ip;
   p->offset = offset;
-  SCM_RETURN_NEWSMOB (scm_tc16_frame, p);
+  return scm_cell (scm_tc7_frame, (scm_t_bits)p);
 }
 
-static int
-frame_print (SCM frame, SCM port, scm_print_state *pstate)
+void
+scm_i_frame_print (SCM frame, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<frame ", port);
   scm_uintprint (SCM_UNPACK (frame), 16, port);
@@ -53,8 +51,6 @@ frame_print (SCM frame, SCM port, scm_print_state *pstate)
   scm_write (scm_frame_procedure (frame), port);
   /* don't write args, they can get us into trouble. */
   scm_puts (">", port);
-
-  return 1;
 }
 
 
@@ -291,13 +287,6 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 #undef FUNC_NAME
 
 
-void
-scm_bootstrap_frames (void)
-{
-  scm_tc16_frame = scm_make_smob_type ("frame", 0);
-  scm_set_smob_print (scm_tc16_frame, frame_print);
-}
-
 void
 scm_init_frames (void)
 {

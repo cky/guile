@@ -416,10 +416,10 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_fluid		37
 #define scm_tc7_dynamic_state	45
 
-#define scm_tc7_unused_4	47
-#define scm_tc7_unused_5	53
-#define scm_tc7_unused_6	55
-#define scm_tc7_unused_7	71
+#define scm_tc7_frame		47
+#define scm_tc7_objcode		53
+#define scm_tc7_vm		55
+#define scm_tc7_vm_cont		71
 
 #define scm_tc7_unused_17	61
 #define scm_tc7_gsubr		63
