@@ -56,8 +56,6 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
   if (!SCM_PROGRAM_P (code))
     scm_puts ("primitive-", port);
 
-  if (SCM_MACRO_TYPE (macro) == 2)
-    scm_puts ("macro!", port);
   if (SCM_MACRO_TYPE (macro) == 3)
     scm_puts ("builtin-macro!", port);
   if (SCM_MACRO_TYPE (macro) == 4)
@@ -90,31 +88,10 @@ makmac (SCM code, scm_t_bits flags)
 
 /* Return a mmacro that is known to be one of guile's built in macros. */
 SCM
-scm_i_makbimacro (SCM code)
-#define FUNC_NAME "scm_i_makbimacro"
+scm_i_makbimacro (const char *name, SCM (*fn)(SCM, SCM))
 {
-  SCM_VALIDATE_PROC (1, code);
-  return makmac (code, 3);
+  return makmac (scm_c_make_gsubr (name, 2, 0, 0, fn), 3);
 }
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0, 
-           (SCM code),
-	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
-	    "appears as the first symbol in an expression, evaluates the\n"
-	    "result of applying @var{code} to the expression and the\n"
-	    "environment.\n\n"
-	    "@code{procedure->memoizing-macro} is the same as\n"
-	    "@code{procedure->macro}, except that the expression returned by\n"
-	    "@var{code} replaces the original macro expression in the memoized\n"
-	    "form of the containing code.")
-#define FUNC_NAME s_scm_makmmacro
-{
-  SCM_VALIDATE_PROC (1, code);
-  return makmac (code, 2);
-}
-#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_make_syncase_macro, "make-syncase-macro", 2, 0, 0,
@@ -163,7 +140,6 @@ SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_SYMBOL (scm_sym_mmacro, "macro!");
 SCM_SYMBOL (scm_sym_bimacro, "builtin-macro!");
 SCM_SYMBOL (scm_sym_syncase_macro, "syncase-macro");
 
@@ -180,7 +156,6 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
     return SCM_BOOL_F;
   switch (SCM_MACRO_TYPE (m))
     {
-    case 2: return scm_sym_mmacro;
     case 3: return scm_sym_bimacro;
     case 4: return scm_sym_syncase_macro;
     default: scm_wrong_type_arg (FUNC_NAME, 1, m);
@@ -246,15 +221,6 @@ SCM_DEFINE (scm_syncase_macro_binding, "syncase-macro-binding", 1, 0, 0,
     return SCM_BOOL_F;
 }
 #undef FUNC_NAME
-
-SCM
-scm_make_synt (const char *name, SCM (*macroizer) (), SCM (*fcn)() )
-{
-  SCM var = scm_c_define (name, SCM_UNDEFINED);
-  SCM transformer = scm_c_make_gsubr (name, 2, 0, 0, fcn);
-  SCM_VARIABLE_SET (var, macroizer (transformer));
-  return SCM_UNSPECIFIED;
-}
 
 void
 scm_init_macros ()

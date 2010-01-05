@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -390,27 +390,31 @@ memoize_sequence (const SCM forms, const SCM env)
 
 /* Memoization.  */
 
+#define SCM_SYNTAX(RANAME, STR, CFN)  \
+SCM_SNARF_HERE(static const char RANAME[]=STR)\
+SCM_SNARF_INIT(scm_c_define (RANAME, scm_i_makbimacro (RANAME, CFN)))
+
 /* bimacros (built-in macros) have isym codes.
    mmacros don't exist at runtime, they just expand out to more primitive
    forms. */
-SCM_SYNTAX (s_at, "@", scm_i_makbimacro, scm_m_at);
-SCM_SYNTAX (s_atat, "@@", scm_i_makbimacro, scm_m_atat);
-SCM_SYNTAX (s_and, "and", scm_makmmacro, scm_m_and);
-SCM_SYNTAX (s_begin, "begin", scm_i_makbimacro, scm_m_begin);
-SCM_SYNTAX (s_atcall_cc, "@call-with-current-continuation", scm_i_makbimacro, scm_m_cont);
-SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_i_makbimacro, scm_m_at_call_with_values);
-SCM_SYNTAX (s_cond, "cond", scm_makmmacro, scm_m_cond);
-SCM_SYNTAX (s_define, "define", scm_i_makbimacro, scm_m_define);
-SCM_SYNTAX (s_eval_when, "eval-when", scm_makmmacro, scm_m_eval_when);
-SCM_SYNTAX (s_if, "if", scm_i_makbimacro, scm_m_if);
-SCM_SYNTAX (s_lambda, "lambda", scm_i_makbimacro, scm_m_lambda);
-SCM_SYNTAX (s_let, "let", scm_i_makbimacro, scm_m_let);
-SCM_SYNTAX (s_letrec, "letrec", scm_makmmacro, scm_m_letrec);
-SCM_SYNTAX (s_letstar, "let*", scm_makmmacro, scm_m_letstar);
-SCM_SYNTAX (s_or, "or", scm_makmmacro, scm_m_or);
-SCM_SYNTAX (s_quote, "quote", scm_i_makbimacro, scm_m_quote);
-SCM_SYNTAX (s_set_x, "set!", scm_i_makbimacro, scm_m_set_x);
-SCM_SYNTAX (s_atapply, "@apply", scm_i_makbimacro, scm_m_apply);
+SCM_SYNTAX (s_at, "@", scm_m_at);
+SCM_SYNTAX (s_atat, "@@", scm_m_atat);
+SCM_SYNTAX (s_and, "and", scm_m_and);
+SCM_SYNTAX (s_begin, "begin", scm_m_begin);
+SCM_SYNTAX (s_atcall_cc, "@call-with-current-continuation", scm_m_cont);
+SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_m_at_call_with_values);
+SCM_SYNTAX (s_cond, "cond", scm_m_cond);
+SCM_SYNTAX (s_define, "define", scm_m_define);
+SCM_SYNTAX (s_eval_when, "eval-when", scm_m_eval_when);
+SCM_SYNTAX (s_if, "if", scm_m_if);
+SCM_SYNTAX (s_lambda, "lambda", scm_m_lambda);
+SCM_SYNTAX (s_let, "let", scm_m_let);
+SCM_SYNTAX (s_letrec, "letrec", scm_m_letrec);
+SCM_SYNTAX (s_letstar, "let*", scm_m_letstar);
+SCM_SYNTAX (s_or, "or", scm_m_or);
+SCM_SYNTAX (s_quote, "quote", scm_m_quote);
+SCM_SYNTAX (s_set_x, "set!", scm_m_set_x);
+SCM_SYNTAX (s_atapply, "@apply", scm_m_apply);
 
 
 SCM_GLOBAL_SYMBOL (scm_sym_apply, "apply");

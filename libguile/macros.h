@@ -43,8 +43,7 @@
 
 SCM_API scm_t_bits scm_tc16_macro;
 
-SCM_INTERNAL SCM scm_i_makbimacro (SCM code);
-SCM_API SCM scm_makmmacro (SCM code);
+SCM_INTERNAL SCM scm_i_makbimacro (const char *name, SCM (*fn)(SCM,SCM));
 SCM_API SCM scm_make_syncase_macro (SCM type, SCM binding);
 SCM_API SCM scm_make_extended_syncase_macro (SCM builtin, SCM type,
                                              SCM binding);
@@ -54,9 +53,6 @@ SCM_API SCM scm_macro_name (SCM m);
 SCM_API SCM scm_macro_transformer (SCM m);
 SCM_API SCM scm_syncase_macro_type (SCM m);
 SCM_API SCM scm_syncase_macro_binding (SCM m);
-SCM_API SCM scm_make_synt (const char *name,
-			   SCM (*macroizer) (SCM),
-			   SCM (*fcn) ());
 SCM_INTERNAL void scm_init_macros (void);
 
 

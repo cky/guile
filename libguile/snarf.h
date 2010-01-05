@@ -3,7 +3,7 @@
 #ifndef SCM_SNARF_H
 #define SCM_SNARF_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -210,10 +210,6 @@ GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
 scm_c_define_subr_with_generic (RANAME, TYPE, \
                                 (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
-
-#define SCM_SYNTAX(RANAME, STR, TYPE, CFN)  \
-SCM_SNARF_HERE(static const char RANAME[]=STR)\
-SCM_SNARF_INIT(scm_make_synt (RANAME, TYPE, CFN))
 
 #ifdef SCM_SUPPORT_STATIC_ALLOCATION
 
