@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -507,38 +507,6 @@ SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0,
   return scm_eval_x (form, scm_current_module ());
 }
 #undef FUNC_NAME
-
-SCM
-scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr_opt' is deprecated.  Use `scm_c_make_subr' or "
-     "`scm_c_define_subr' instead.");
-
-  if (set)
-    return scm_c_define_subr (name, type, fcn);
-  else
-    return scm_c_make_subr (name, type, fcn);
-}
-
-SCM 
-scm_make_subr (const char *name, int type, SCM (*fcn) ())
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr' is deprecated.  Use `scm_c_define_subr' instead.");
-
-  return scm_c_define_subr (name, type, fcn);
-}
-
-SCM
-scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr_with_generic' is deprecated.  Use "
-     "`scm_c_define_subr_with_generic' instead.");
-  
-  return scm_c_define_subr_with_generic (name, type, fcn, gf);
-}
 
 /* Call thunk(closure) underneath a top-level error handler.
  * If an error occurs, pass the exitval through err_filter and return it.

@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -171,16 +171,6 @@ SCM_DEPRECATED SCM scm_read_and_eval_x (SCM port);
 #define scm_subr_entry scm_t_subr_entry
 
 #define SCM_SUBR_DOC(x) SCM_BOOL_F
-
-SCM_DEPRECATED SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
-SCM_DEPRECATED SCM scm_make_subr_with_generic (const char *name,
-					       int type,
-					       SCM (*fcn) (),
-					       SCM *gf);
-SCM_DEPRECATED SCM scm_make_subr_opt (const char *name,
-				      int type,
-				      SCM (*fcn) (),
-				      int set);
 
 SCM_DEPRECATED SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(),
 					     void * closure);
