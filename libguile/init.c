@@ -443,9 +443,8 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_symbols_prehistory ();      /* requires weaks_prehistory */
   scm_modules_prehistory ();
   scm_init_array_handle ();
-  scm_init_generalized_arrays ();
-  scm_init_generalized_vectors ();
-  scm_init_strings ();            /* Requires array-handle, generalized-vectors */
+  scm_bootstrap_bytevectors ();   /* Requires array-handle */
+  scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */
   scm_smob_prehistory ();
   scm_init_variable ();
@@ -510,11 +509,12 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_srcprop ();     /* requires smob_prehistory */
   scm_init_stackchk ();
 
-  scm_init_vectors ();  /* Requires array-handle, generalized-vectors */
+  scm_init_generalized_arrays ();
+  scm_init_generalized_vectors ();
+  scm_init_vectors ();  /* Requires array-handle, */
   scm_init_uniform ();
-  scm_init_bitvectors ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
-  scm_bootstrap_bytevectors ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
-  scm_init_srfi_4 ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
+  scm_init_bitvectors ();  /* Requires smob_prehistory, array-handle */
+  scm_init_srfi_4 ();  /* Requires smob_prehistory, array-handle */
   scm_init_arrays ();    /* Requires smob_prehistory, array-handle */
   scm_init_array_map ();
 
