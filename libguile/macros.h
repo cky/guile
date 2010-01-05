@@ -3,7 +3,7 @@
 #ifndef SCM_MACROS_H
 #define SCM_MACROS_H
 
-/* Copyright (C) 1998,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,7 +45,6 @@ SCM_API scm_t_bits scm_tc16_macro;
 
 SCM_INTERNAL SCM scm_i_makbimacro (SCM code);
 SCM_API SCM scm_makmmacro (SCM code);
-SCM_API SCM scm_makacro (SCM code);
 SCM_API SCM scm_make_syncase_macro (SCM type, SCM binding);
 SCM_API SCM scm_make_extended_syncase_macro (SCM builtin, SCM type,
                                              SCM binding);
@@ -60,9 +59,6 @@ SCM_API SCM scm_make_synt (const char *name,
 			   SCM (*fcn) ());
 SCM_INTERNAL void scm_init_macros (void);
 
-#if SCM_ENABLE_DEPRECATED == 1
-SCM_DEPRECATED SCM scm_makmacro (SCM code);
-#endif
 
 #endif  /* SCM_MACROS_H */
 

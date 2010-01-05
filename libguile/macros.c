@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -56,12 +56,6 @@ macro_print (SCM macro, SCM port, scm_print_state *pstate)
   if (!SCM_PROGRAM_P (code))
     scm_puts ("primitive-", port);
 
-  if (SCM_MACRO_TYPE (macro) == 0)
-    scm_puts ("syntax", port);
-#if SCM_ENABLE_DEPRECATED == 1
-  if (SCM_MACRO_TYPE (macro) == 1)
-    scm_puts ("macro", port);
-#endif
   if (SCM_MACRO_TYPE (macro) == 2)
     scm_puts ("macro!", port);
   if (SCM_MACRO_TYPE (macro) == 3)
@@ -123,49 +117,6 @@ SCM_DEFINE (scm_makmmacro, "procedure->memoizing-macro", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_makacro, "procedure->syntax", 1, 0, 0,
-            (SCM code),
-	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
-	    "appears as the first symbol in an expression, returns the\n"
-	    "result of applying @var{code} to the expression and the\n"
-	    "environment.")
-#define FUNC_NAME s_scm_makacro
-{
-  SCM_VALIDATE_PROC (1, code);
-  return makmac (code, 0);
-}
-#undef FUNC_NAME
-
-
-#if SCM_ENABLE_DEPRECATED == 1
-
-SCM_DEFINE (scm_makmacro, "procedure->macro", 1, 0, 0, 
-           (SCM code),
-	    "Return a @dfn{macro} which, when a symbol defined to this value\n"
-	    "appears as the first symbol in an expression, evaluates the\n"
-	    "result of applying @var{code} to the expression and the\n"
-	    "environment.  For example:\n"
-	    "\n"
-	    "@lisp\n"
-	    "(define trace\n"
-	    "  (procedure->macro\n"
-	    "   (lambda (x env) `(set! ,(cadr x) (tracef ,(cadr x) ',(cadr x))))))\n\n"
-	    "(trace @i{foo}) @equiv{} (set! @i{foo} (tracef @i{foo} '@i{foo})).\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_makmacro
-{
-  scm_c_issue_deprecation_warning
-    ("The function procedure->macro is deprecated, and so are"
-     " non-memoizing macros in general.  Use memoizing macros"
-     " or r5rs macros instead.");
-
-  SCM_VALIDATE_PROC (1, code);
-  return makmac (code, 1);
-}
-#undef FUNC_NAME
-
-#endif
-
 SCM_DEFINE (scm_make_syncase_macro, "make-syncase-macro", 2, 0, 0,
             (SCM type, SCM binding),
 	    "Return a @dfn{macro} that requires expansion by syntax-case.\n"
@@ -212,10 +163,6 @@ SCM_DEFINE (scm_macro_p, "macro?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_SYMBOL (scm_sym_syntax, "syntax");
-#if SCM_ENABLE_DEPRECATED == 1
-SCM_SYMBOL (scm_sym_macro, "macro");
-#endif
 SCM_SYMBOL (scm_sym_mmacro, "macro!");
 SCM_SYMBOL (scm_sym_bimacro, "builtin-macro!");
 SCM_SYMBOL (scm_sym_syncase_macro, "syncase-macro");
@@ -233,10 +180,6 @@ SCM_DEFINE (scm_macro_type, "macro-type", 1, 0, 0,
     return SCM_BOOL_F;
   switch (SCM_MACRO_TYPE (m))
     {
-    case 0: return scm_sym_syntax;
-#if SCM_ENABLE_DEPRECATED == 1
-    case 1: return scm_sym_macro;
-#endif
     case 2: return scm_sym_mmacro;
     case 3: return scm_sym_bimacro;
     case 4: return scm_sym_syncase_macro;
