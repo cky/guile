@@ -448,6 +448,11 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_modules_prehistory ();
   scm_init_array_handle ();
   scm_bootstrap_bytevectors ();   /* Requires array-handle */
+  scm_bootstrap_instructions ();
+  scm_bootstrap_objcodes ();
+  scm_bootstrap_programs ();
+  scm_bootstrap_vm ();
+
   scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */
   scm_smob_prehistory ();
@@ -521,11 +526,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_srfi_4 ();  /* Requires smob_prehistory, array-handle */
   scm_init_arrays ();    /* Requires smob_prehistory, array-handle */
   scm_init_array_map ();
-
-  scm_bootstrap_instructions ();
-  scm_bootstrap_objcodes ();
-  scm_bootstrap_programs ();
-  scm_bootstrap_vm ();
 
   scm_init_frames ();   /* Requires smob_prehistory */
   scm_init_stacks ();   /* Requires strings, struct, frames */
