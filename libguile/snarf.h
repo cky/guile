@@ -152,26 +152,6 @@ scm_c_export (s_ ## FNAME, NULL); \
 )\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
-#define SCM_DEFINE1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
-SCM_SNARF_HERE(\
-static const char s_ ## FNAME [] = PRIMNAME; \
-SCM FNAME ARGLIST\
-)\
-SCM_SNARF_INIT(scm_c_define_subr (s_ ## FNAME, TYPE, FNAME); ) \
-SCM_SNARF_DOCS(1, FNAME, PRIMNAME, ARGLIST, 2, 0, 0, DOCSTRING)
-
-#define SCM_PRIMITIVE_GENERIC_1(FNAME, PRIMNAME, TYPE, ARGLIST, DOCSTRING) \
-SCM_SNARF_HERE(\
-static const char s_ ## FNAME [] = PRIMNAME; \
-static SCM g_ ## FNAME; \
-SCM FNAME ARGLIST\
-)\
-SCM_SNARF_INIT(\
-g_ ## FNAME = SCM_PACK (0); \
-scm_c_define_subr_with_generic (s_ ## FNAME, TYPE, FNAME, &g_ ## FNAME); \
-)\
-SCM_SNARF_DOCS(1, FNAME, PRIMNAME, ARGLIST, 2, 0, 0, DOCSTRING)
-
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
 SCM_SNARF_HERE(static const char RANAME[]=STR) \
 SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
@@ -192,23 +172,6 @@ static SCM GF \
 GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
 scm_c_define_gsubr_with_generic (RANAME, REQ, OPT, VAR, \
                                  (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
-)
-
-#define SCM_PROC1(RANAME, STR, TYPE, CFN) \
-SCM_SNARF_HERE(static const char RANAME[]=STR) \
-SCM_SNARF_INIT(\
-scm_c_define_subr (RANAME, TYPE, (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN) \
-)
-
-
-#define SCM_GPROC1(RANAME, STR, TYPE, CFN, GF) \
-SCM_SNARF_HERE(\
-static const char RANAME[]=STR; \
-static SCM GF \
-)SCM_SNARF_INIT(\
-GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
-scm_c_define_subr_with_generic (RANAME, TYPE, \
-                                (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN, &GF) \
 )
 
 #ifdef SCM_SUPPORT_STATIC_ALLOCATION

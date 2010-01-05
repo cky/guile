@@ -648,11 +648,6 @@ enum scm_tc8_tags
   case scm_tc3_struct + 112:\
   case scm_tc3_struct + 120
 
-/* For subrs
- */
-#define scm_tcs_subrs \
-  case scm_tc7_gsubr
-
 
 
 #if (SCM_ENABLE_DEPRECATED == 1)
