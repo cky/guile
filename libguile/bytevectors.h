@@ -130,6 +130,10 @@ SCM_API SCM scm_utf32_to_string (SCM, SCM);
 /* Hint that is passed to `scm_gc_malloc ()' and friends.  */
 #define SCM_GC_BYTEVECTOR "bytevector"
 
+SCM_INTERNAL SCM scm_i_make_typed_bytevector (size_t, scm_t_array_element_type);
+SCM_INTERNAL SCM scm_c_take_typed_bytevector (signed char *, size_t,
+                                              scm_t_array_element_type);
+
 SCM_INTERNAL void scm_bootstrap_bytevectors (void);
 SCM_INTERNAL void scm_init_bytevectors (void);
 
