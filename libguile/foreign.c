@@ -21,8 +21,8 @@
 #endif
 
 #include <string.h>
-#include "_scm.h"
-#include "foreign.h"
+#include "libguile/_scm.h"
+#include "libguile/foreign.h"
 
 
 
