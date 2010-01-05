@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -138,7 +138,8 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 
   metaobj = scm_objcode_meta (SCM_PROGRAM_OBJCODE (program));
   if (scm_is_true (metaobj))
-    return scm_make_program (metaobj, SCM_BOOL_F, SCM_BOOL_F);
+    return scm_make_program (metaobj, SCM_PROGRAM_OBJTABLE (program),
+                             SCM_BOOL_F);
   else
     return SCM_BOOL_F;
 }
