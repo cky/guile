@@ -886,6 +886,75 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
   goto vm_error_wrong_type_apply;
 }
 
+VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
+{
+  SCM foreign, ret;
+  SCM (*subr)();
+  nargs = FETCH ();
+  POP (foreign);
+
+  subr = SCM_FOREIGN_OBJECT_REF (foreign, void*);
+
+  VM_HANDLE_INTERRUPTS;
+  SYNC_REGISTER ();
+
+  switch (nargs)
+    {
+    case 0:
+      ret = subr ();
+      break;
+    case 1:
+      ret = subr (sp[0]);
+      break;
+    case 2:
+      ret = subr (sp[-1], sp[0]);
+      break;
+    case 3:
+      ret = subr (sp[-2], sp[-1], sp[0]);
+      break;
+    case 4:
+      ret = subr (sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 5:
+      ret = subr (sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 6:
+      ret = subr (sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 7:
+      ret = subr (sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 8:
+      ret = subr (sp[-7], sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 9:
+      ret = subr (sp[-8], sp[-7], sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 10:
+      ret = subr (sp[-9], sp[-8], sp[-7], sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    default:
+      abort ();
+    }
+  
+  NULLSTACK_FOR_NONLOCAL_EXIT ();
+  DROPN (nargs + 1); /* drop args and procedure */
+      
+  if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+    {
+      /* multiple values returned to continuation */
+      ret = scm_struct_ref (ret, SCM_INUM0);
+      nvalues = scm_ilength (ret);
+      PUSH_LIST (ret, scm_is_null);
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (ret);
+      goto vm_return;
+    }
+}
+
 VM_DEFINE_INSTRUCTION (56, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
