@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -35,6 +35,7 @@
 #include "libguile/throw.h"
 #include "libguile/macros.h"
 #include "libguile/smob.h"
+#include "libguile/struct.h"
 #include "libguile/procprop.h"
 #include "libguile/srcprop.h"
 #include "libguile/alist.h"
@@ -137,6 +138,8 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_name
 {
   SCM_VALIDATE_PROC (1, proc);
+  while (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc))
+    proc = SCM_STRUCT_PROCEDURE (proc);
   switch (SCM_TYP7 (proc)) {
   case scm_tc7_gsubr:
     return SCM_SUBR_NAME (proc);
