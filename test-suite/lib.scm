@@ -269,7 +269,7 @@ with-locale with-locale*
 (define exception:system-error
   (cons 'system-error ".*"))
 (define exception:encoding-error
-  (cons 'misc-error "(cannot convert to output locale|input locale conversion error)"))
+  (cons 'encoding-error "(cannot convert to output locale|input locale conversion error)"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
 (define exception:read-error

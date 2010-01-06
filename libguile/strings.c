@@ -35,6 +35,7 @@
 #include "libguile/chars.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/error.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
@@ -1386,6 +1387,16 @@ scm_is_string (SCM obj)
   return IS_STRING (obj);
 }
 
+
+/* Conversion to/from other encodings.  */
+
+SCM_SYMBOL (scm_encoding_error_key, "encoding-error");
+static void
+scm_encoding_error (const char *subr, const char *message, SCM args)
+{
+  scm_error (scm_encoding_error_key, subr, message, args, SCM_BOOL_F);
+}
+
 SCM
 scm_from_stringn (const char *str, size_t len, const char *encoding,
                   scm_t_string_failed_conversion_handler handler)
@@ -1426,9 +1437,10 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
           char *dst;
           errstr = scm_i_make_string (len, &dst);
           memcpy (dst, str, len);
-          scm_misc_error (NULL, "input locale conversion error from ~s: ~s",
-                          scm_list_2 (scm_from_locale_string (encoding),
-                                      errstr));
+          scm_encoding_error (NULL,
+			      "input locale conversion error from ~s: ~s",
+			      scm_list_2 (scm_from_locale_string (encoding),
+					  errstr));
           scm_remember_upto_here_1 (errstr);
         }
     }
@@ -1675,11 +1687,8 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
         unistring_escapes_to_guile_escapes (&buf, &len);
 
       if (ret != 0)
-        {
-          scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"", 
-                          scm_list_2 (scm_from_locale_string (enc),
-                                      str));
-        }
+	scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
+			    scm_list_2 (scm_from_locale_string (enc), str));
     }
   else
     {
@@ -1690,11 +1699,9 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                                   NULL,
                                   NULL, &len);
       if (buf == NULL)
-        {
-          scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"", 
-                          scm_list_2 (scm_from_locale_string (enc),
-                                      str));
-        }
+	scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
+			    scm_list_2 (scm_from_locale_string (enc), str));
+
       if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
         unistring_escapes_to_guile_escapes (&buf, &len);
     }
@@ -1739,6 +1746,9 @@ scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
   scm_remember_upto_here_1 (str);
   return len;
 }
+
+
+/* Unicode string normalization.  */
 
 /* This function is a partial clone of SCM_STRING_TO_U32_BUF from 
    libguile/i18n.c.  It would be useful to have this factored out into a more
