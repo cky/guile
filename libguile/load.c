@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -407,11 +407,12 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
   SCM extensions, require_exts;
   SCM result = SCM_BOOL_F;
 
-  if (scm_is_null (rest))
+  if (SCM_UNBNDP (rest) || scm_is_null (rest))
     {
       /* Called either by Scheme code that didn't provide the optional
          arguments, or C code that used the Guile 1.8 signature (2 required,
-         1 optional arg) and passed '() as the EXTENSIONS argument.  */
+         1 optional arg) and passed '() or nothing as the EXTENSIONS
+	 argument.  */
       extensions = SCM_EOL;
       require_exts = SCM_UNDEFINED;
     }
