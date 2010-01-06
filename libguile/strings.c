@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1605,7 +1605,10 @@ scm_to_locale_stringn (SCM str, size_t *lenp)
                          scm_i_get_conversion_strategy (SCM_BOOL_F));
 }
 
-/* Low-level scheme to C string conversion function.  */
+/* Return a malloc(3)-allocated buffer containing the contents of STR encoded
+   according to ENCODING.  If LENP is non-NULL, set it to the size in bytes of
+   the returned buffer.  If the conversion to ENCODING fails, apply the strategy
+   defined by HANDLER.  */
 char *
 scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                 scm_t_string_failed_conversion_handler handler)
