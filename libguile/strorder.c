@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 1999, 2000, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 1999, 2000, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -42,6 +42,7 @@ srfi13_cmp (SCM s1, SCM s2, SCM (*cmp) (SCM, SCM, SCM, SCM, SCM, SCM))
     return SCM_BOOL_F;
 }
 
+static SCM scm_i_string_equal_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_equal_p, "string=?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Lexicographic equality predicate; return @code{#t} if the two\n"
@@ -75,6 +76,7 @@ SCM scm_string_equal_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_ci_equal_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_ci_equal_p, "string-ci=?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Case-insensitive string equality predicate; return @code{#t} if\n"
@@ -104,6 +106,7 @@ SCM scm_string_ci_equal_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_less_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_less_p, "string<?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
@@ -131,6 +134,7 @@ SCM scm_string_less_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_leq_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_leq_p, "string<=?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
@@ -158,6 +162,7 @@ SCM scm_string_leq_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_gr_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_gr_p, "string>?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
@@ -185,6 +190,7 @@ SCM scm_string_gr_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_geq_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_geq_p, "string>=?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Lexicographic ordering predicate; return @code{#t} if @var{s1}\n"
@@ -212,6 +218,7 @@ SCM scm_string_geq_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_ci_less_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_ci_less_p, "string-ci<?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Case insensitive lexicographic ordering predicate; return\n"
@@ -240,6 +247,7 @@ SCM scm_string_ci_less_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_ci_leq_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_ci_leq_p, "string-ci<=?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Case insensitive lexicographic ordering predicate; return\n"
@@ -268,6 +276,7 @@ SCM scm_string_ci_leq_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_ci_gr_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_ci_gr_p, "string-ci>?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Case insensitive lexicographic ordering predicate; return\n"
@@ -296,6 +305,7 @@ SCM scm_string_ci_gr_p (SCM s1, SCM s2)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_string_ci_geq_p (SCM s1, SCM s2, SCM rest);
 SCM_DEFINE (scm_i_string_ci_geq_p, "string-ci>=?", 0, 2, 1,
             (SCM s1, SCM s2, SCM rest),
 	    "Case insensitive lexicographic ordering predicate; return\n"

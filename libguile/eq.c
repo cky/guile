@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -48,6 +48,7 @@
 #endif
 
 
+static SCM scm_i_eq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_eq_p, "eq?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
 	    "Return @code{#t} if @var{x} and @var{y} are the same object,\n"
@@ -120,6 +121,7 @@ real_eqv (double x, double y)
   return !memcmp (&x, &y, sizeof(double)) || (x != x && y != y);
 }
 
+static SCM scm_i_eqv_p (SCM x, SCM y, SCM rest);
 #include <stdio.h>
 SCM_DEFINE (scm_i_eqv_p, "eqv?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
@@ -212,7 +214,7 @@ SCM scm_eqv_p (SCM x, SCM y)
 #undef FUNC_NAME
 
 
-SCM scm_i_equal_p (SCM, SCM, SCM);
+static SCM scm_i_equal_p (SCM, SCM, SCM);
 SCM_PRIMITIVE_GENERIC (scm_i_equal_p, "equal?", 0, 2, 1,
                        (SCM x, SCM y, SCM rest),
                        "Return @code{#t} if @var{x} and @var{y} are the same type, and\n"

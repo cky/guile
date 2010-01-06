@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -921,6 +921,7 @@ scm_raequal (SCM ra0, SCM ra1)
   return scm_from_bool(raeql (ra0, SCM_BOOL_T, ra1));
 }
 
+static SCM scm_i_array_equal_p (SCM, SCM, SCM);
 SCM_DEFINE (scm_i_array_equal_p, "array-equal?", 0, 2, 1,
             (SCM ra0, SCM ra1, SCM rest),
 	    "Return @code{#t} iff all arguments are arrays with the same\n"

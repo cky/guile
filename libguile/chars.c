@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,6 +44,7 @@ SCM_DEFINE (scm_char_p, "char?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_eq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_eq_p, "char=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is equal to the\n"
@@ -74,6 +75,7 @@ SCM scm_char_eq_p (SCM x, SCM y)
 #undef FUNC_NAME
 
 
+static SCM scm_i_char_less_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_less_p, "char<?", 0, 2, 1, 
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the code point of @var{x} is less than the code\n"
@@ -103,6 +105,7 @@ SCM scm_char_less_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_leq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_leq_p, "char<=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is less than or\n"
@@ -132,6 +135,7 @@ SCM scm_char_leq_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_gr_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_gr_p, "char>?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is greater than\n"
@@ -161,6 +165,7 @@ SCM scm_char_gr_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_geq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_geq_p, "char>=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is greater than\n"
@@ -197,6 +202,7 @@ SCM scm_char_geq_p (SCM x, SCM y)
    implementation would be to use that table and make a char-foldcase
    function.  */
 
+static SCM scm_i_char_ci_eq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_eq_p, "char-ci=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the case-folded Unicode code point of @var{x} is\n"
@@ -226,6 +232,7 @@ SCM scm_char_ci_eq_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_less_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_less_p, "char-ci<?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the case-folded Unicode code point of @var{x} is\n"
@@ -255,6 +262,7 @@ SCM scm_char_ci_less_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_leq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_leq_p, "char-ci<=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the case-folded Unicodd code point of @var{x} is\n"
@@ -285,6 +293,7 @@ SCM scm_char_ci_leq_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_gr_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_gr_p, "char-ci>?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the case-folded code point of @var{x} is greater\n"
@@ -314,6 +323,7 @@ SCM scm_char_ci_gr_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_geq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_geq_p, "char-ci>=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the case-folded Unicode code point of @var{x} is\n"
