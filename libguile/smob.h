@@ -3,7 +3,7 @@
 #ifndef SCM_SMOB_H
 #define SCM_SMOB_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -216,6 +216,8 @@ SCM_API void scm_assert_smob_type (scm_t_bits tag, SCM val);
 /* Function for creating smobs */
 
 SCM_API SCM scm_make_smob (scm_t_bits tc);
+
+SCM_INTERNAL int scm_i_smob_arity (SCM proc, int *req, int *opt, int *rest);
 
 SCM_API void scm_smob_prehistory (void);
 

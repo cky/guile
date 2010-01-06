@@ -248,11 +248,6 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  case scm_tc16_fraction:
 	    return scm_class_fraction;
           }
-	case scm_tc7_gsubr:
-	  if (SCM_SUBR_GENERIC (x) && *SCM_SUBR_GENERIC (x))
-	    return scm_class_primitive_generic;
-	  else
-	    return scm_class_procedure;
 	case scm_tc7_program:
 	  if (SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x) && *SCM_SUBR_GENERIC (x))
 	    return scm_class_primitive_generic;
@@ -2048,7 +2043,9 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 #undef FUNC_NAME
 
 SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
-SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
+SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods",
+                   scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0,
+                                       scm_sys_compute_applicable_methods));
 
 /******************************************************************************
  *

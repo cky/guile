@@ -90,7 +90,6 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	case scm_tc7_smob:
 	case scm_tc7_program:
 	case scm_tc7_bytevector:
-	case scm_tc7_gsubr:
 	case scm_tcs_struct:
 	  return SCM_BOOL_T;
 	default:

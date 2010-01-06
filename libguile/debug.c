@@ -137,20 +137,15 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 	    "Return the name of the procedure @var{proc}")
 #define FUNC_NAME s_scm_procedure_name
 {
+  SCM name;
+
   SCM_VALIDATE_PROC (1, proc);
   while (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc))
     proc = SCM_STRUCT_PROCEDURE (proc);
-  switch (SCM_TYP7 (proc)) {
-  case scm_tc7_gsubr:
-    return SCM_SUBR_NAME (proc);
-  default:
-    {
-      SCM name = scm_procedure_property (proc, scm_sym_name);
-      if (scm_is_false (name) && SCM_PROGRAM_P (proc))
-        name = scm_program_name (proc);
-      return name;
-    }
-  }
+  name = scm_procedure_property (proc, scm_sym_name);
+  if (scm_is_false (name) && SCM_PROGRAM_P (proc))
+    name = scm_program_name (proc);
+  return name;
 }
 #undef FUNC_NAME
 

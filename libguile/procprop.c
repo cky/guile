@@ -56,24 +56,7 @@ scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
     case scm_tc7_program:
       return scm_i_program_arity (proc, req, opt, rest);
     case scm_tc7_smob:
-      if (SCM_SMOB_APPLICABLE_P (proc))
-	{
-	  int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
-	  *req = SCM_GSUBR_REQ (type);
-	  *opt = SCM_GSUBR_OPT (type);
-	  *rest = SCM_GSUBR_REST (type);
-          return 1;
-	}
-      else
-        return 0;
-    case scm_tc7_gsubr:
-      {
-	unsigned int type = SCM_GSUBR_TYPE (proc);
-	*req = SCM_GSUBR_REQ (type);
-	*opt = SCM_GSUBR_OPT (type);
-	*rest = SCM_GSUBR_REST (type);
-        return 1;
-      }
+      return scm_i_smob_arity (proc, req, opt, rest);
     case scm_tcs_struct:
       if (!SCM_STRUCT_APPLICABLE_P (proc))
         return 0;

@@ -299,8 +299,6 @@ apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
             return SCM_SMOB_APPLY_3 (proc, args[0], args[1], arglist);
           }
         }
-    case scm_tc7_gsubr:
-      return scm_i_gsubr_apply_array (proc, args, nargs, headroom);
     default:
     badproc:
       scm_wrong_type_arg ("apply", SCM_ARG1, proc);

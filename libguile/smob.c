@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -15,6 +15,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301 USA
  */
+
+
+#define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
+#define SCM_GSUBR_MAX    33
+#define SCM_GSUBR_REQ(x) ((long)(x)&0xf)
+#define SCM_GSUBR_OPT(x) (((long)(x)&0xf0)>>4)
+#define SCM_GSUBR_REST(x) ((long)(x)>>8)
 
 
 
@@ -584,6 +591,21 @@ scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
   free_smob = scm_smobs[SCM_SMOBNUM (smob)].free;
   if (free_smob)
     free_smob (smob);
+}
+
+int
+scm_i_smob_arity (SCM proc, int *req, int *opt, int *rest)
+{
+  if (SCM_SMOB_APPLICABLE_P (proc))
+    {
+      int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
+      *req = SCM_GSUBR_REQ (type);
+      *opt = SCM_GSUBR_OPT (type);
+      *rest = SCM_GSUBR_REST (type);
+      return 1;
+    }
+  else
+    return 0;
 }
 
 
