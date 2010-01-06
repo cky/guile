@@ -606,7 +606,8 @@ SCM_DEPRECATED scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
 
 
 /* Deprecated 2010-01-05, use SCM_PRIMITIVE_P instead */
-#define scm_subr_p(x) (SCM_PRIMITIVE_P (x))
+SCM_DEPRECATED int scm_i_subr_p (SCM x);
+#define scm_subr_p(x) (scm_i_subr_p (x))
 
 
 

@@ -1785,6 +1785,13 @@ scm_trampoline_2 (SCM proc)
   return scm_call_2;
 }
 
+int
+scm_i_subr_p (SCM x)
+{
+  scm_c_issue_deprecation_warning ("`scm_subr_p' is deprecated. Use SCM_PRIMITIVE_P instead.");
+  return SCM_PRIMITIVE_P (x);
+}
+
 
 void
 scm_i_init_deprecated ()
