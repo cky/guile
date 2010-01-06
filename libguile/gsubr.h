@@ -3,7 +3,7 @@
 #ifndef SCM_GSUBR_H
 #define SCM_GSUBR_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,28 +28,24 @@
 
 
 
+
+SCM_API SCM scm_subr_objcode_trampoline (unsigned int nreq,
+                                         unsigned int nopt,
+                                         unsigned int rest);
+
+
 /* Subrs 
  */
 
 #define SCM_PRIMITIVE_P(x) (SCM_NIMP (x) && SCM_TYP7 (x) == scm_tc7_gsubr)
-#define SCM_PRIMITIVE_GENERIC_P(x) (SCM_PRIMITIVE_P (x) && SCM_SUBR_GENERIC (x))
+#define SCM_PRIMITIVE_GENERIC_P(x) (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x))
 
-#define SCM_SUBR_META_INFO(x)  ((SCM *) SCM_CELL_WORD_3 (x))
-#define SCM_SUBR_NAME(x) (SCM_SUBR_META_INFO (x) [0])
-#define SCM_SUBRF(x) ((SCM (*)()) SCM_CELL_WORD_1 (x))
-#define SCM_SUBR_PROPS(x) (SCM_SUBR_META_INFO (x) [1])
-#define SCM_SUBR_GENERIC(x) ((SCM *) SCM_CELL_WORD_2 (x))
-#define SCM_SET_SUBR_GENERIC(x, g) (*((SCM *) SCM_CELL_WORD_2 (x)) = (g))
-#define SCM_SET_SUBR_GENERIC_LOC(x, g) (SCM_SET_CELL_WORD_2 (x, (scm_t_bits) g))
-
-/* Return the most suitable subr type for a subr with REQ required arguments,
-   OPT optional arguments, and REST (0 or 1) arguments.  This has to be in
-   sync with `create_gsubr ()'.  */
-#define SCM_SUBR_ARITY_TO_TYPE(req, opt, rest)				\
-  (scm_tc7_gsubr | (SCM_GSUBR_MAKTYPE (req, opt, rest) << 8U))
-
-
-
+#define SCM_SUBRF(x) ((SCM (*)()) (SCM_FOREIGN_OBJECT (SCM_SIMPLE_VECTOR_REF (SCM_PROGRAM_OBJTABLE (x), 0), void*)))
+#define SCM_SUBR_NAME(x) (SCM_SIMPLE_VECTOR_REF (SCM_PROGRAM_OBJTABLE (x), 1))
+#define SCM_SUBR_GENERIC(x) \
+  (SCM_FOREIGN_OBJECT_REF (SCM_SIMPLE_VECTOR_REF (SCM_PROGRAM_OBJTABLE (x), 2), SCM*))
+#define SCM_SET_SUBR_GENERIC(x, g) \
+  (*SCM_SUBR_GENERIC (x) = (g))
 
 
 

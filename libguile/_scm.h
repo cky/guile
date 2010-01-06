@@ -79,6 +79,8 @@
 #include "libguile/boolean.h"	/* Everyone wonders about the truth.  */
 #include "libguile/threads.h"	/* You are not alone. */
 #include "libguile/snarf.h"	/* Everyone snarfs. */
+#include "libguile/foreign.h"	/* Snarfing needs the foreign data structures. */
+#include "libguile/programs.h"	/* ... and program.h. */
 #include "libguile/variable.h"
 #include "libguile/modules.h"
 #include "libguile/inline.h"

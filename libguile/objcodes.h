@@ -38,6 +38,7 @@ struct scm_objcode
 #define SCM_F_OBJCODE_IS_MMAP       (1<<0)
 #define SCM_F_OBJCODE_IS_BYTEVECTOR (1<<1)
 #define SCM_F_OBJCODE_IS_SLICE      (1<<2)
+#define SCM_F_OBJCODE_IS_STATIC     (1<<3)
 
 #define SCM_OBJCODE_P(x)	(SCM_NIMP (x) && SCM_TYP7 (x) == scm_tc7_objcode)
 #define SCM_OBJCODE_DATA(x)	((struct scm_objcode *) SCM_CELL_WORD_1 (x))

@@ -99,22 +99,37 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 #ifdef SCM_SUPPORT_STATIC_ALLOCATION
 
 /* Static subr allocation.  */
+/* FIXME: how to verify that req + opt + rest < 11, all are positive, etc? */
 #define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
 SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
-SCM_SNARF_HERE(							\
+SCM_SNARF_HERE(							        \
   static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
   SCM_API SCM FNAME ARGLIST;						\
-  SCM_IMMUTABLE_SUBR (scm_i_paste (FNAME, __subr),			\
-		      scm_i_paste (FNAME, __name),			\
-		      REQ, OPT, VAR, &FNAME);				\
+  static const scm_t_bits scm_i_paste (FNAME, __subr_ptr) =             \
+    (scm_t_bits) &FNAME; /* the subr */                                 \
+  SCM_IMMUTABLE_FOREIGN (scm_i_paste (FNAME, __subr_foreign),           \
+                         scm_i_paste (FNAME, __subr_ptr));              \
+  SCM_STATIC_SUBR_OBJVECT (scm_i_paste (FNAME, __raw_objtable),         \
+                           /* FIXME: directly be the foreign */         \
+                           SCM_BOOL_F);                                 \
+  /* FIXME: be immutable. grr */                                        \
+  SCM_STATIC_PROGRAM (scm_i_paste (FNAME, __subr),			\
+                      SCM_BOOL_F,                                       \
+                      SCM_PACK (&scm_i_paste (FNAME, __raw_objtable)),  \
+                      SCM_BOOL_F);                                      \
   SCM FNAME ARGLIST							\
 )									\
 SCM_SNARF_INIT(							\
+  /* Initialize the foreign.  */                                        \
+  scm_i_paste (FNAME, __raw_objtable)[2] = scm_i_paste (FNAME, __subr_foreign); \
   /* Initialize the procedure name (an interned symbol).  */		\
-  scm_i_paste (FNAME, __subr_meta_info)[0] = scm_i_paste (FNAME, __name); \
+  scm_i_paste (FNAME, __raw_objtable)[3] = scm_i_paste (FNAME, __name); \
+  /* Initialize the objcode trampoline.  */                             \
+  SCM_SET_CELL_OBJECT (scm_i_paste (FNAME, __subr), 1,                  \
+                       scm_subr_objcode_trampoline (REQ, OPT, VAR));    \
 									\
   /* Define the subr.  */						\
-  scm_c_define (scm_i_paste (s_, FNAME), scm_i_paste (FNAME, __subr));	\
+  scm_define (scm_i_paste (FNAME, __name), scm_i_paste (FNAME, __subr)); \
 )									\
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
@@ -297,6 +312,15 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 
 #ifdef SCM_SUPPORT_STATIC_ALLOCATION
 
+#define SCM_IMMUTABLE_CELL(c_name, car, cdr)		\
+  static SCM_ALIGNED (8) SCM_UNUSED const scm_t_cell			\
+       c_name ## _raw_scell =						\
+  {                                                                     \
+    SCM_PACK (car),                                                     \
+    SCM_PACK (cdr)                                                      \
+  };                                                                    \
+  static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_scell)
+
 #define SCM_IMMUTABLE_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
   static SCM_ALIGNED (8) SCM_UNUSED const scm_t_cell			\
   c_name ## _raw_cell [2] =						\
@@ -305,6 +329,15 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
       { SCM_PACK (ccr), SCM_PACK (cdr) }				\
     };									\
   static SCM_UNUSED const SCM c_name = SCM_PACK (& c_name ## _raw_cell)
+
+#define SCM_STATIC_DOUBLE_CELL(c_name, car, cbr, ccr, cdr)		\
+  static SCM_ALIGNED (8) SCM_UNUSED scm_t_cell                          \
+  c_name ## _raw_cell [2] =						\
+    {									\
+      { SCM_PACK (car), SCM_PACK (cbr) },				\
+      { SCM_PACK (ccr), SCM_PACK (cdr) }				\
+    };									\
+  static SCM_UNUSED SCM c_name = SCM_PACK (& c_name ## _raw_cell)
 
 #define SCM_IMMUTABLE_STRINGBUF(c_name, contents)	\
   static SCM_UNUSED const				\
@@ -330,17 +363,27 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 			     (scm_t_bits) 0,				\
 			     (scm_t_bits) sizeof (contents) - 1)
 
-#define SCM_IMMUTABLE_SUBR(c_name, name, req, opt, rest, fcn)		\
-  static SCM_UNUSED SCM scm_i_paste (c_name, _meta_info)[2] =		\
-    {									\
-      SCM_BOOL_F,  /* The name, initialized at run-time.  */		\
-      SCM_EOL      /* The procedure properties.  */			\
-    };									\
-  SCM_IMMUTABLE_DOUBLE_CELL (c_name,					\
-			     SCM_SUBR_ARITY_TO_TYPE (req, opt, rest),	\
-			     (scm_t_bits) fcn,				\
-			     (scm_t_bits) 0 /* no generic */,		\
-			     (scm_t_bits) & scm_i_paste (c_name, _meta_info));
+#define SCM_IMMUTABLE_FOREIGN(c_name, loc)              \
+  SCM_IMMUTABLE_CELL (c_name,                                           \
+                      scm_tc7_foreign | (SCM_FOREIGN_TYPE_POINTER << 8), \
+                      &loc)
+
+/* for primitive-generics, add a foreign to the end */
+#define SCM_STATIC_SUBR_OBJVECT(c_name, foreign)                        \
+  static SCM_ALIGNED (8) SCM c_name[4] =                                \
+  {                                                                     \
+    SCM_PACK (scm_tc7_vector | (2 << 8)),                               \
+    SCM_PACK (0),                                                       \
+    foreign,                                                            \
+    SCM_BOOL_F, /* the name */                                          \
+  };									\
+
+#define SCM_STATIC_PROGRAM(c_name, objcode, objtable, freevars)         \
+  SCM_STATIC_DOUBLE_CELL (c_name,                                       \
+                          scm_tc7_program,                              \
+                          (scm_t_bits) objcode,                         \
+                          (scm_t_bits) objtable,                        \
+                          (scm_t_bits) freevars)
 
 #endif /* SCM_SUPPORT_STATIC_ALLOCATION */
 

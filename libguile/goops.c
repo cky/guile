@@ -254,7 +254,10 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  else
 	    return scm_class_procedure;
 	case scm_tc7_program:
-	  return scm_class_procedure;
+	  if (SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x) && *SCM_SUBR_GENERIC (x))
+	    return scm_class_primitive_generic;
+	  else
+	    return scm_class_procedure;
 
 	case scm_tc7_smob:
 	  {

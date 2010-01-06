@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -40,6 +40,7 @@
 
 SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
+SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
 
 static SCM props;
 static scm_i_pthread_mutex_t props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
