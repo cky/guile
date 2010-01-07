@@ -60,58 +60,59 @@ SCM
 scm_c_from_foreign (scm_t_foreign_type type, void *val, size_t size,
                     scm_t_foreign_finalizer finalizer)
 {
-  void *ret;
+  SCM ret;
   if (!size)
     size = sizeof_type (type);
     
-  ret = scm_gc_malloc_pointerless (sizeof (scm_t_bits) * 2 + size, "foreign");
-  SCM_SET_CELL_WORD_0 (PTR2SCM (ret), scm_tc7_foreign | (type<<8));
+  ret = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_bits) * 2 + size,
+                                            "foreign"));
+  SCM_SET_CELL_WORD_0 (ret, (scm_t_bits)(scm_tc7_foreign | (type<<8)));
 
   /* set SCM_FOREIGN_OBJECT to point to the third word of the object, which will
      be 8-byte aligned. Then copy *val into that space. */
-  SCM_SET_CELL_WORD_1 (PTR2SCM (ret),
-                       (scm_t_bits)SCM_CELL_OBJECT_LOC (PTR2SCM (ret), 2));
-  memcpy (SCM_FOREIGN_OBJECT (PTR2SCM (ret), void), val, size);
+  SCM_SET_CELL_WORD_1 (ret, (scm_t_bits)SCM_CELL_OBJECT_LOC (ret, 2));
+  memcpy (SCM_FOREIGN_OBJECT (ret, void), val, size);
 
   if (finalizer)
     {
       /* Register a finalizer for the newly created instance.  */
       GC_finalization_proc prev_finalizer;
       GC_PTR prev_finalizer_data;
-      GC_REGISTER_FINALIZER_NO_ORDER (ret,
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
                                       foreign_finalizer_trampoline,
                                       finalizer,
                                       &prev_finalizer,
                                       &prev_finalizer_data);
     }
 
-  return PTR2SCM (ret);
+  return ret;
 }
 
 SCM
 scm_c_take_foreign (scm_t_foreign_type type, void *val,
                     scm_t_foreign_finalizer finalizer)
 {
-  void *ret;
+  SCM ret;
     
-  ret = scm_gc_malloc_pointerless (sizeof (scm_t_bits) * 2, "foreign");
-  SCM_SET_CELL_WORD_0 (PTR2SCM (ret), scm_tc7_foreign | (type<<8));
+  ret = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_bits) * 2,
+                                            "foreign"));
+  SCM_SET_CELL_WORD_0 (ret, (scm_t_bits)(scm_tc7_foreign | (type<<8)));
   /* Set SCM_FOREIGN_OBJECT to the given pointer. */
-  SCM_SET_CELL_WORD_1 (PTR2SCM (ret), (scm_t_bits)val);
+  SCM_SET_CELL_WORD_1 (ret, (scm_t_bits)val);
 
   if (finalizer)
     {
       /* Register a finalizer for the newly created instance.  */
       GC_finalization_proc prev_finalizer;
       GC_PTR prev_finalizer_data;
-      GC_REGISTER_FINALIZER_NO_ORDER (ret,
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
                                       foreign_finalizer_trampoline,
                                       finalizer,
                                       &prev_finalizer,
                                       &prev_finalizer_data);
     }
 
-  return PTR2SCM (ret);
+  return ret;
 }
 
 SCM_DEFINE (scm_foreign_ref, "foreign-ref", 1, 0, 0,
