@@ -1,6 +1,6 @@
 ;;; open-coding primitive procedures
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
   #:use-module (rnrs bytevector)
   #:use-module (system base syntax)
   #:use-module (language tree-il)
+  #:use-module (srfi srfi-4)
   #:use-module (srfi srfi-16)
   #:export (resolve-primitives! add-interesting-primitive!
             expand-primitives! effect-free-primitive?))
@@ -61,26 +62,31 @@
 
     bytevector-u8-ref bytevector-u8-set!
     bytevector-s8-ref bytevector-s8-set!
-
+    u8vector-ref u8vector-set! s8vector-ref s8vector-set!
+    
     bytevector-u16-ref bytevector-u16-set!
     bytevector-u16-native-ref bytevector-u16-native-set!
     bytevector-s16-ref bytevector-s16-set!
     bytevector-s16-native-ref bytevector-s16-native-set!
+    u16vector-ref u16vector-set! s16vector-ref s16vector-set!
     
     bytevector-u32-ref bytevector-u32-set!
     bytevector-u32-native-ref bytevector-u32-native-set!
     bytevector-s32-ref bytevector-s32-set!
     bytevector-s32-native-ref bytevector-s32-native-set!
+    u32vector-ref u32vector-set! s32vector-ref s32vector-set!
     
     bytevector-u64-ref bytevector-u64-set!
     bytevector-u64-native-ref bytevector-u64-native-set!
     bytevector-s64-ref bytevector-s64-set!
     bytevector-s64-native-ref bytevector-s64-native-set!
+    u64vector-ref u64vector-set! s64vector-ref s64vector-set!
     
     bytevector-ieee-single-ref bytevector-ieee-single-set!
     bytevector-ieee-single-native-ref bytevector-ieee-single-native-set!
     bytevector-ieee-double-ref bytevector-ieee-double-set!
-    bytevector-ieee-double-native-ref bytevector-ieee-double-native-set!))
+    bytevector-ieee-double-native-ref bytevector-ieee-double-native-set!
+    f32vector-ref f32vector-set! f64vector-ref f64vector-set!))
 
 (define (add-interesting-primitive! name)
   (hashq-set! *interesting-primitive-vars*
@@ -301,3 +307,57 @@
 ;; swap args
 (define-primitive-expander variable-set! (var val)
   (variable-set val var))
+
+(define-primitive-expander u8vector-ref (vec i)
+  (bytevector-u8-ref vec i))
+(define-primitive-expander u8vector-set! (vec i x)
+  (bytevector-u8-set! vec i x))
+(define-primitive-expander s8vector-ref (vec i)
+  (bytevector-s8-ref vec i))
+(define-primitive-expander s8vector-set! (vec i x)
+  (bytevector-s8-set! vec i x))
+
+(define-primitive-expander u16vector-ref (vec i)
+  (bytevector-u16-native-ref vec (* i 2)))
+(define-primitive-expander u16vector-set! (vec i x)
+  (bytevector-u16-native-set! vec (* i 2) x))
+(define-primitive-expander s16vector-ref (vec i)
+  (bytevector-s16-native-ref vec (* i 2)))
+(define-primitive-expander s16vector-set! (vec i x)
+  (bytevector-s16-native-set! vec (* i 2) x))
+
+(define-primitive-expander u32vector-ref (vec i)
+  (bytevector-u32-native-ref vec (* i 4)))
+(define-primitive-expander u32vector-set! (vec i x)
+  (bytevector-u32-native-set! vec (* i 4) x))
+(define-primitive-expander s32vector-ref (vec i)
+  (bytevector-s32-native-ref vec (* i 4)))
+(define-primitive-expander s32vector-set! (vec i x)
+  (bytevector-s32-native-set! vec (* i 4) x))
+
+(define-primitive-expander u64vector-ref (vec i)
+  (bytevector-u64-native-ref vec (* i 8)))
+(define-primitive-expander u64vector-set! (vec i x)
+  (bytevector-u64-native-set! vec (* i 8) x))
+(define-primitive-expander s64vector-ref (vec i)
+  (bytevector-s64-native-ref vec (* i 8)))
+(define-primitive-expander s64vector-set! (vec i x)
+  (bytevector-s64-native-set! vec (* i 8) x))
+
+(define-primitive-expander f32vector-ref (vec i)
+  (bytevector-ieee-single-native-ref vec (* i 4)))
+(define-primitive-expander f32vector-set! (vec i x)
+  (bytevector-ieee-single-native-set! vec (* i 4) x))
+(define-primitive-expander f32vector-ref (vec i)
+  (bytevector-ieee-single-native-ref vec (* i 4)))
+(define-primitive-expander f32vector-set! (vec i x)
+  (bytevector-ieee-single-native-set! vec (* i 4) x))
+
+(define-primitive-expander f64vector-ref (vec i)
+  (bytevector-ieee-double-native-ref vec (* i 8)))
+(define-primitive-expander f64vector-set! (vec i x)
+  (bytevector-ieee-double-native-set! vec (* i 8) x))
+(define-primitive-expander f64vector-ref (vec i)
+  (bytevector-ieee-double-native-ref vec (* i 8)))
+(define-primitive-expander f64vector-set! (vec i x)
+  (bytevector-ieee-double-native-set! vec (* i 8) x))
