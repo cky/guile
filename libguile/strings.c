@@ -1760,12 +1760,17 @@ normalize_str (SCM string, uninorm_t form)
 	w_str[i] = (unsigned char) buf[i];
       w_str[len] = 0;
     }
-  else w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+  else 
+    w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+
   w_str = u32_normalize (form, w_str, len, NULL, &rlen);  
   
   ret = scm_i_make_wide_string (rlen, &cbuf);
   u32_cpy ((scm_t_uint32 *) cbuf, w_str, rlen);
   free (w_str);
+
+  scm_i_try_narrow_string (ret);
+
   return ret;
 }
 
