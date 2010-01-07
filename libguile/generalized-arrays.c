@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -243,14 +243,13 @@ array_to_list (scm_t_array_handle *h, size_t dim, unsigned long pos)
     {
       SCM res = SCM_EOL;
       long inc;
-      size_t i, lbnd;
+      size_t i;
 
-      i = h->dims[dim].ubnd;
-      lbnd = h->dims[dim].lbnd;
+      i = h->dims[dim].ubnd - h->dims[dim].lbnd + 1;
       inc = h->dims[dim].inc;
-      pos += (i - h->dims[dim].ubnd) * inc;
+      pos += (i - 1) * inc;
 
-      for (; i >= lbnd; i--, pos -= inc)
+      for (; i > 0; i--, pos -= inc)
         res = scm_cons (array_to_list (h, dim + 1, pos), res);
       return res;
     }
