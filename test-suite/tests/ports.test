@@ -1,7 +1,7 @@
-;;;; ports.test --- test suite for Guile I/O ports     -*- scheme -*-
+;;;; ports.test --- Guile I/O ports.    -*- coding: utf-8; mode: scheme; -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -307,7 +307,42 @@
     (string-set! text 0 #\a)
     (string-set! text (- len 1) #\b)
     (pass-if "output check"
-	     (string=? text result))))
+	     (string=? text result)))
+
+  (pass-if "%default-port-encoding is honored"
+    (let ((encodings '("UTF-8" "UTF-16" "ISO-8859-1" "ISO-8859-3")))
+      (equal? (map (lambda (e)
+                     (with-fluids ((%default-port-encoding e))
+                       (call-with-output-string
+                         (lambda (p)
+                           (display (port-encoding p) p)))))
+                   encodings)
+              encodings)))
+
+  (pass-if "suitable encoding [latin-1]"
+    (let ((str "hello, world"))
+      (with-fluids ((%default-port-encoding "ISO-8859-1"))
+        (equal? str
+                (with-output-to-string
+                  (lambda ()
+                    (display str)))))))
+
+  (pass-if "suitable encoding [latin-3]"
+    (let ((str "ĉu bone?"))
+      (with-fluids ((%default-port-encoding "ISO-8859-3"))
+        (equal? str
+                (with-output-to-string
+                  (lambda ()
+                    (display str)))))))
+
+  (pass-if-exception "wrong encoding"
+    exception:encoding-error
+    (let ((str "ĉu bone?"))
+      ;; Latin-1 cannot represent ‘ĉ’.
+      (with-fluids ((%default-port-encoding "ISO-8859-1"))
+        (with-output-to-string
+          (lambda ()
+            (display str)))))))
 
 (with-test-prefix "call-with-output-string"
 

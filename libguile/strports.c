@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -289,84 +289,60 @@ st_truncate (SCM port, scm_t_off length)
     pt->write_pos = pt->read_end;
 }
 
-SCM 
-scm_i_mkstrport (SCM pos, const char *utf8_str, size_t str_len, long modes, const char *caller)
+SCM
+scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 {
-  SCM z, str;
+  SCM z;
   scm_t_port *pt;
-  size_t c_pos;
-  char *buf;
+  size_t str_len, c_pos;
+  char *buf, *c_str;
 
-  /* Because ports are inherently 8-bit, strings need to be converted
-     to a locale representation for storage.  But, since string ports
-     rely on string functionality for their memory management, we need
-     to create a new string that has the 8-bit locale representation
-     of the underlying string.  
-
-     locale_str is already in the locale of the port.  */
-  str = scm_i_make_string (str_len, &buf);
-  memcpy (buf, utf8_str, str_len);
-
-  c_pos = scm_to_unsigned_integer (pos, 0, str_len);
+  SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
+  c_pos = scm_to_unsigned_integer (pos, 0, scm_i_string_length (str));
 
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
     scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
 
-  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
+  scm_dynwind_begin (0);
+  scm_i_dynwind_pthread_mutex_lock (&scm_i_port_table_mutex);
+
   z = scm_new_port_table_entry (scm_tc16_strport);
   pt = SCM_PTAB_ENTRY(z);
   SCM_SETSTREAM (z, SCM_UNPACK (str));
-  SCM_SET_CELL_TYPE(z, scm_tc16_strport|modes);
-  pt->write_buf = pt->read_buf = (unsigned char *) scm_i_string_chars (str);
+  SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
+
+  /* Create a copy of STR in the encoding of Z.  */
+  buf = scm_to_stringn (str, &str_len, pt->encoding,
+			SCM_FAILED_CONVERSION_ERROR);
+  c_str = scm_gc_malloc (str_len, "strport");
+  memcpy (c_str, buf, str_len);
+  free (buf);
+
+  pt->write_buf = pt->read_buf = (unsigned char *) c_str;
   pt->read_pos = pt->write_pos = pt->read_buf + c_pos;
   pt->write_buf_size = pt->read_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
 
   pt->rw_random = 1;
-  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
-  /* ensure write_pos is writable. */
+  scm_dynwind_end ();
+
+  /* Ensure WRITE_POS is writable.  */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
     st_flush (z);
 
-  scm_i_set_port_encoding_x (z, "UTF-8");
   scm_i_set_conversion_strategy_x (z, SCM_FAILED_CONVERSION_ERROR);
   return z;
 }
 
-SCM 
-scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
+/* Create a new string from the buffer of PORT, a string port, converting from
+   PORT's encoding to the standard string representation.  */
+SCM
+scm_strport_to_string (SCM port)
 {
-  SCM z;
-  size_t str_len;
-  char *buf;
-
-  SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
-
-  /* Because ports are inherently 8-bit, strings need to be converted
-     to a locale representation for storage.  But, since string ports
-     rely on string functionality for their memory management, we need
-     to create a new string that has the 8-bit locale representation
-     of the underlying string.  This violates the guideline that the
-     internal encoding of characters in strings is in unicode
-     codepoints. */
-
-  /* String ports are are always initialized with "UTF-8" as their
-     encoding.  */
-  buf = scm_to_stringn (str, &str_len, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
-  z = scm_i_mkstrport (pos, buf, str_len, modes, caller);
-  free (buf);
-  return z;
-}
-
-/* Create a new string from a string port's buffer, converting from
-   the port's 8-bit locale-specific representation to the standard
-   string representation.  */
-SCM scm_strport_to_string (SCM port)
-{
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
   SCM str;
-  
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
   if (pt->rw_active == SCM_PORT_WRITE)
     st_flush (port);
 

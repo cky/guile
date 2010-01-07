@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@
  exception:numerical-overflow
  exception:struct-set!-denied
  exception:system-error
+ exception:encoding-error
  exception:miscellaneous-error
  exception:string-contains-nul
  exception:read-error
@@ -267,6 +268,8 @@ with-locale with-locale*
   (cons 'misc-error "^set! denied for field"))
 (define exception:system-error
   (cons 'system-error ".*"))
+(define exception:encoding-error
+  (cons 'misc-error "(cannot convert to output locale|input locale conversion error)"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
 (define exception:read-error
@@ -389,15 +392,18 @@ with-locale with-locale*
 
 ;;;; Turn a test name into a nice human-readable string.
 (define (format-test-name name)
-  (call-with-output-string
-   (lambda (port)
-     (let loop ((name name)
-		(separator ""))
-       (if (pair? name)
-	   (begin
-	     (display separator port)
-	     (display (car name) port)
-	     (loop (cdr name) ": ")))))))
+  ;; Choose a Unicode-capable encoding so that the string port can contain any
+  ;; valid Unicode character.
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    (call-with-output-string
+     (lambda (port)
+       (let loop ((name name)
+                  (separator ""))
+         (if (pair? name)
+             (begin
+               (display separator port)
+               (display (car name) port)
+               (loop (cdr name) ": "))))))))
 
 ;;;; For a given test-name, deliver the full name including all prefixes.
 (define (full-name name)

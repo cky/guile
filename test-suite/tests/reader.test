@@ -1,6 +1,6 @@
-;;;; reader.test --- Exercise the reader.               -*- Scheme -*-
+;;;; reader.test --- Reader test.    -*- coding: iso-8859-1; mode: scheme -*-
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;;; Jim Blandy <jimb@red-bean.com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -41,7 +41,8 @@
 
 
 (define (read-string s)
-  (with-input-from-string s (lambda () (read))))
+  (with-fluids ((%default-port-encoding #f))
+    (with-input-from-string s (lambda () (read)))))
 
 (define (with-read-options opts thunk)
   (let ((saved-options (read-options)))
@@ -110,8 +111,8 @@
 
   (pass-if "unprintable symbol"
     ;; The reader tolerates unprintable characters for symbols.
-    (equal? (string->symbol "\001\002\003")
-            (read-string "\001\002\003")))
+    (equal? (string->symbol "\x01\x02\x03")
+            (read-string "\x01\x02\x03")))
 
   (pass-if "CR recognized as a token delimiter"
     ;; In 1.8.3, character 0x0d was not recognized as a delimiter.

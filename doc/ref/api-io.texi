@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -972,6 +972,28 @@ away from its default.
 Calls the one-argument procedure @var{proc} with a newly created output
 port.  When the function returns, the string composed of the characters
 written into the port is returned.  @var{proc} should not close the port.
+
+Note that which characters can be written to a string port depend on the port's
+encoding.  The default encoding of string ports is specified by the
+@code{%default-port-encoding} fluid (@pxref{Ports,
+@code{%default-port-encoding}}).  For instance, it is an error to write Greek
+letter alpha to an ISO-8859-1-encoded string port since this character cannot be
+represented with ISO-8859-1:
+
+@example
+(define alpha (integer->char #x03b1)) ; GREEK SMALL LETTER ALPHA
+
+(with-fluids ((%default-port-encoding "ISO-8859-1"))
+  (call-with-output-string
+    (lambda (p)
+      (display alpha p))))
+
+@result{}
+Throw to key `encoding-error'
+@end example
+
+Changing the string port's encoding to a Unicode-capable encoding such as UTF-8
+solves the problem.
 @end deffn
 
 @deffn {Scheme Procedure} call-with-input-string string proc
@@ -985,6 +1007,8 @@ read.  The value yielded by the @var{proc} is returned.
 Calls the zero-argument procedure @var{thunk} with the current output
 port set temporarily to a new string port.  It returns a string
 composed of the characters written to the current output.
+
+See @code{call-with-output-string} above for character encoding considerations.
 @end deffn
 
 @deffn {Scheme Procedure} with-input-from-string string thunk

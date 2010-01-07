@@ -1,6 +1,6 @@
-;;;; r6rs-ports.test --- Exercise the R6RS I/O port API.
+;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: iso-8859-1; -*-
 ;;;;
-;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -219,7 +219,25 @@
            (port (%make-void-port "w")))
 
       (close-port port)
-      (put-bytevector port bv))))
+      (put-bytevector port bv)))
+
+  (pass-if "put-bytevector with UTF-16 string port"
+    (let* ((str "hello, world")
+           (bv  (string->utf16 str)))
+      (equal? str
+              (with-fluids ((%default-port-encoding "UTF-16BE"))
+                (call-with-output-string
+                  (lambda (port)
+                    (put-bytevector port bv)))))))
+
+  (pass-if-exception "put-bytevector with wrong-encoding string port"
+    exception:encoding-error
+    (let* ((str "hello, world")
+           (bv  (string->utf16 str)))
+      (with-fluids ((%default-port-encoding "UTF-32"))
+        (call-with-output-string
+          (lambda (port)
+            (put-bytevector port bv)))))))
 
 
 (with-test-prefix "7.2.7 Input Ports"
@@ -452,8 +470,6 @@
            (not eof?)
            (bytevector=? sink source)))))
 
-
 ;;; Local Variables:
-;;; coding: latin-1
 ;;; mode: scheme
 ;;; End:
