@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -492,33 +492,47 @@
 (define-record-type <tree-analysis>
   (make-tree-analysis leaf down up post init)
   tree-analysis?
-  (leaf tree-analysis-leaf)  ;; (lambda (x result env) ...)
-  (down tree-analysis-down)  ;; (lambda (x result env) ...)
-  (up   tree-analysis-up)    ;; (lambda (x result env) ...)
+  (leaf tree-analysis-leaf)  ;; (lambda (x result env locs) ...)
+  (down tree-analysis-down)  ;; (lambda (x result env locs) ...)
+  (up   tree-analysis-up)    ;; (lambda (x result env locs) ...)
   (post tree-analysis-post)  ;; (lambda (result env) ...)
   (init tree-analysis-init)) ;; arbitrary value
 
 (define (analyze-tree analyses tree env)
   "Run all tree analyses listed in ANALYSES on TREE for ENV, using
-`tree-il-fold'.  Return TREE."
-  (define (traverse proc)
+`tree-il-fold'.  Return TREE.  The leaf/down/up procedures of each analysis are
+passed a ``location stack', which is the stack of `tree-il-src' values for each
+parent tree (a list); it can be used to approximate source location when
+accurate information is missing from a given `tree-il' element."
+
+  (define (traverse proc update-locs)
+    ;; Return a tree traversing procedure that returns a list of analysis
+    ;; results prepended by the location stack.
     (lambda (x results)
-      (map (lambda (analysis result)
-             ((proc analysis) x result env))
-           analyses
-           results)))
+      (let ((locs (update-locs x (car results))))
+        (cons locs ;; the location stack
+              (map (lambda (analysis result)
+                     ((proc analysis) x result env locs))
+                   analyses
+                   (cdr results))))))
+
+  ;; Keeping/extending/shrinking the location stack.
+  (define (keep-locs x locs)   locs)
+  (define (extend-locs x locs) (cons (tree-il-src x) locs))
+  (define (shrink-locs x locs) (cdr locs))
 
   (let ((results
-         (tree-il-fold (traverse tree-analysis-leaf)
-                       (traverse tree-analysis-down)
-                       (traverse tree-analysis-up)
-                       (map tree-analysis-init analyses)
+         (tree-il-fold (traverse tree-analysis-leaf keep-locs)
+                       (traverse tree-analysis-down extend-locs)
+                       (traverse tree-analysis-up   shrink-locs)
+                       (cons '() ;; empty location stack
+                             (map tree-analysis-init analyses))
                        tree)))
 
     (for-each (lambda (analysis result)
                 ((tree-analysis-post analysis) result env))
               analyses
-              results))
+              (cdr results)))
 
   tree)
 
@@ -528,35 +542,31 @@
 ;;;
 
 ;; <binding-info> records are used during tree traversals in
-;; `report-unused-variables'.  They contain a list of the local vars
-;; currently in scope, a list of locals vars that have been referenced, and a
-;; "location stack" (the stack of `tree-il-src' values for each parent tree).
+;; `unused-variable-analysis'.  They contain a list of the local vars
+;; currently in scope, and a list of locals vars that have been referenced.
 (define-record-type <binding-info>
-  (make-binding-info vars refs locs)
+  (make-binding-info vars refs)
   binding-info?
   (vars binding-info-vars)  ;; ((GENSYM NAME LOCATION) ...)
-  (refs binding-info-refs)  ;; (GENSYM ...)
-  (locs binding-info-locs)) ;; (LOCATION ...)
+  (refs binding-info-refs)) ;; (GENSYM ...)
 
 (define unused-variable-analysis
   ;; Report unused variables in the given tree.
   (make-tree-analysis
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; X is a leaf: extend INFO's refs accordingly.
      (let ((refs (binding-info-refs info))
-           (vars (binding-info-vars info))
-           (locs (binding-info-locs info)))
+           (vars (binding-info-vars info)))
        (record-case x
          ((<lexical-ref> gensym)
-          (make-binding-info vars (cons gensym refs) locs))
+          (make-binding-info vars (cons gensym refs)))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Going down into X: extend INFO's variable list
      ;; accordingly.
      (let ((refs (binding-info-refs info))
            (vars (binding-info-vars info))
-           (locs (binding-info-locs info))
            (src  (tree-il-src x)))
        (define (extend inner-vars inner-names)
          (append (map (lambda (var name)
@@ -566,32 +576,26 @@
                  vars))
        (record-case x
          ((<lexical-set> gensym)
-          (make-binding-info vars (cons gensym refs)
-                             (cons src locs)))
+          (make-binding-info vars (cons gensym refs)))
          ((<lambda-case> req opt inits rest kw vars)
           (let ((names `(,@req
                          ,@(or opt '())
                          ,@(if rest (list rest) '())
                          ,@(if kw (map cadr (cdr kw)) '()))))
-            (make-binding-info (extend vars names) refs
-                               (cons src locs))))
+            (make-binding-info (extend vars names) refs)))
          ((<let> vars names)
-          (make-binding-info (extend vars names) refs
-                             (cons src locs)))
+          (make-binding-info (extend vars names) refs))
          ((<letrec> vars names)
-          (make-binding-info (extend vars names) refs
-                             (cons src locs)))
+          (make-binding-info (extend vars names) refs))
          ((<fix> vars names)
-          (make-binding-info (extend vars names) refs
-                             (cons src locs)))
+          (make-binding-info (extend vars names) refs))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Leaving X's scope: shrink INFO's variable list
      ;; accordingly and reported unused nested variables.
      (let ((refs (binding-info-refs info))
-           (vars (binding-info-vars info))
-           (locs (binding-info-locs info)))
+           (vars (binding-info-vars info)))
        (define (shrink inner-vars refs)
          (for-each (lambda (var)
                      (let ((gensym (car var)))
@@ -619,21 +623,17 @@
        ;; makes REFS unnecessarily fat.
        (record-case x
          ((<lambda-case> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          ((<let> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          ((<letrec> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          ((<fix> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          (else info))))
 
    (lambda (result env) #t)
-   (make-binding-info '() '() '())))
+   (make-binding-info '() '())))
 
 
 ;;;
@@ -642,14 +642,13 @@
 
 ;; <toplevel-info> records are used during tree traversal in search of
 ;; possibly unbound variable.  They contain a list of references to
-;; potentially unbound top-level variables, a list of the top-level defines
-;; that have been encountered, and a "location stack" (see above).
+;; potentially unbound top-level variables, and a list of the top-level
+;; defines that have been encountered.
 (define-record-type <toplevel-info>
-  (make-toplevel-info refs defs locs)
+  (make-toplevel-info refs defs)
   toplevel-info?
   (refs  toplevel-info-refs)  ;; ((VARIABLE-NAME . LOCATION) ...)
-  (defs  toplevel-info-defs)  ;; (VARIABLE-NAME ...)
-  (locs  toplevel-info-locs)) ;; (LOCATION ...)
+  (defs  toplevel-info-defs)) ;; (VARIABLE-NAME ...)
 
 (define (goops-toplevel-definition proc args env)
   ;; If application of PROC to ARGS is a GOOPS top-level definition, return
@@ -679,11 +678,10 @@
 (define unbound-variable-analysis
   ;; Report possibly unbound variables in the given tree.
   (make-tree-analysis
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; X is a leaf: extend INFO's refs accordingly.
      (let ((refs (toplevel-info-refs info))
-           (defs (toplevel-info-defs info))
-           (locs (toplevel-info-locs info)))
+           (defs (toplevel-info-defs info)))
        (define (bound? name)
          (or (and (module? env)
                   (module-variable env name))
@@ -695,16 +693,14 @@
               info
               (let ((src (or src (find pair? locs))))
                 (make-toplevel-info (alist-cons name src refs)
-                                    defs
-                                    locs))))
+                                    defs))))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Going down into X.
      (let* ((refs (toplevel-info-refs info))
             (defs (toplevel-info-defs info))
-            (src  (tree-il-src x))
-            (locs (cons src (toplevel-info-locs info))))
+            (src  (tree-il-src x)))
        (define (bound? name)
          (or (and (module? env)
                   (module-variable env name))
@@ -713,15 +709,13 @@
        (record-case x
          ((<toplevel-set> name src)
           (if (bound? name)
-              (make-toplevel-info refs defs locs)
+              (make-toplevel-info refs defs)
               (let ((src (find pair? locs)))
                 (make-toplevel-info (alist-cons name src refs)
-                                    defs
-                                    locs))))
+                                    defs))))
          ((<toplevel-define> name)
           (make-toplevel-info (alist-delete name refs eq?)
-                              (cons name defs)
-                              locs))
+                              (cons name defs)))
 
          ((<application> proc args)
           ;; Check for a dynamic top-level definition, as is
@@ -731,18 +725,16 @@
             (if (symbol? name)
                 (make-toplevel-info (alist-delete name refs
                                                   eq?)
-                                    (cons name defs)
-                                    locs)
-                (make-toplevel-info refs defs locs))))
+                                    (cons name defs))
+                (make-toplevel-info refs defs))))
          (else
-          (make-toplevel-info refs defs locs)))))
+          (make-toplevel-info refs defs)))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Leaving X's scope.
      (let ((refs (toplevel-info-refs info))
-           (defs (toplevel-info-defs info))
-           (locs (toplevel-info-locs info)))
-       (make-toplevel-info refs defs (cdr locs))))
+           (defs (toplevel-info-defs info)))
+       (make-toplevel-info refs defs)))
 
    (lambda (toplevel env)
      ;; Post-process the result.
@@ -752,7 +744,7 @@
                    (warning 'unbound-variable loc name)))
                (reverse (toplevel-info-refs toplevel))))
 
-   (make-toplevel-info '() '() '())))
+   (make-toplevel-info '() '())))
 
 
 ;;;
@@ -860,10 +852,10 @@
 (define arity-analysis
   ;; Report arity mismatches in the given tree.
   (make-tree-analysis
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; X is a leaf.
      info)
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Down into X.
      (define (extend lexical-name val info)
        ;; If VAL is a lambda, add NAME to the lexical-lambdas of INFO.
@@ -947,7 +939,7 @@
             (else info)))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Up from X.
      (define (shrink name val info)
        ;; Remove NAME from the lexical-lambdas of INFO.
