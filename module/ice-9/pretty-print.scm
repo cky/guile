@@ -1,6 +1,6 @@
-;;;; -*-scheme-*-
+;;;; -*- coding: utf-8; mode: scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2004, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -271,6 +271,7 @@ port directly after OBJ, like (pretty-print OBJ PORT)."
 		 per-line-prefix
 		 (lambda (s) (display s port) #t)))
 
+
 ;; `truncated-print' was written in 2009 by Andy Wingo, and is not from
 ;; genwrite.scm.
 (define* (truncated-print x #:optional port*
@@ -285,123 +286,146 @@ into @var{width} characters. By default, @var{x} will be printed using
 @var{display?} keyword argument.
 
 The default behaviour is to print depth-first, meaning that the entire
-remaining width will be available to each sub-expressoin of @var{x} --
+remaining width will be available to each sub-expression of @var{x} --
 e.g., if @var{x} is a vector, each member of @var{x}. One can attempt to
 \"ration\" the available width, trying to allocate it equally to each
 sub-expression, via the @var{breadth-first?} keyword argument."
 
-  (define (print-sequence x width len ref next)
-    (let lp ((x x)
-             (width width)
-             (i 0))
-      (if (> i 0)
-          (display #\space))
-      (cond
-       ((= i len)) ; catches 0-length case
-       ((= i (1- len))
-        (print (ref x i) (if (zero? i) width (1- width))))
-       ((<= width 4)
-        (display "..."))
-       (else
-        (let ((str (with-output-to-string
-                     (lambda ()
-                       (print (ref x i)
-                              (if breadth-first?
-                                  (max 1
-                                       (1- (floor (/ width (- len i)))))
-                                  (- width 4)))))))
-          (display str)
-          (lp (next x) (- width 1 (string-length str)) (1+ i)))))))
+  ;; Make sure string ports are created with the right encoding.
+  (with-fluids ((%default-port-encoding (port-encoding port)))
 
-  (define (print-tree x width)
-    ;; width is >= the width of # . #, which is 5
-    (let lp ((x x)
-             (width width))
-      (cond
-       ((or (not (pair? x)) (<= width 4))
-        (display ". ")
-        (print x (- width 2)))
-       (else
-        ;; width >= 5
-        (let ((str (with-output-to-string
-                     (lambda ()
-                       (print (car x)
-                              (if breadth-first?
-                                  (floor (/ (- width 3) 2))
-                                  (- width 4)))))))
-          (display str)
-          (display " ")
-          (lp (cdr x) (- width 1 (string-length str))))))))
+    (define ellipsis
+      ;; Choose between `HORIZONTAL ELLIPSIS' (U+2026) and three dots, depending
+      ;; on the encoding of PORT.
+      (let ((e "…"))
+        (catch 'encoding-error
+          (lambda ()
+            (with-output-to-string
+              (lambda ()
+                (display e))))
+          (lambda (key . args)
+            "..."))))
 
-  (define (truncate-string str width)
-    ;; width is < (string-length str)
-    (let lp ((fixes '(("#<" . ">")
-                      ("#(" . ")")
-                      ("(" . ")")
-                      ("\"" . "\""))))
-      (cond
-       ((null? fixes)
-        "#")
-       ((and (string-prefix? (caar fixes) str)
-             (string-suffix? (cdar fixes) str)
-             (>= (string-length str)
-                 width
-                 (+ (string-length (caar fixes))
-                    (string-length (cdar fixes))
-                    3)))
-        (format #f "~a~a...~a"
-                (caar fixes)
-                (substring str (string-length (caar fixes))
-                           (- width (string-length (cdar fixes)) 3))
-                (cdar fixes)))
-       (else
-        (lp (cdr fixes))))))
+    (let ((ellipsis-width (string-length ellipsis)))
 
-  (define (print x width)
-    (cond
-     ((<= width 0)
-      (error "expected a positive width" width))
-     ((list? x)
-      (cond
-       ((>= width 5)
-        (display "(")
-        (print-sequence x (- width 2) (length x) (lambda (x i) (car x)) cdr)
-        (display ")"))
-       (else
-        (display "#"))))
-     ((vector? x)
-      (cond
-       ((>= width 6)
-        (display "#(")
-        (print-sequence x (- width 3) (vector-length x) vector-ref identity)
-        (display ")"))
-       (else
-        (display "#"))))
-     ((uniform-vector? x)
-      (cond
-       ((>= width 9)
-        (format #t  "#~a(" (uniform-vector-element-type x))
-        (print-sequence x (- width 6) (uniform-vector-length x)
-                        uniform-vector-ref identity)
-        (display ")"))
-       (else
-        (display "#"))))
-     ((pair? x)
-      (cond
-       ((>= width 7)
-        (display "(")
-        (print-tree x (- width 2))
-        (display ")"))
-       (else
-        (display "#"))))
-     (else
-      (let* ((str (with-output-to-string
-                    (lambda () (if display? (display x) (write x)))))
-             (len (string-length str)))
-        (display (if (<= (string-length str) width)
-                     str
-                     (truncate-string str width)))))))
+      (define (print-sequence x width len ref next)
+        (let lp ((x x)
+                 (width width)
+                 (i 0))
+          (if (> i 0)
+              (display #\space))
+          (cond
+           ((= i len)) ; catches 0-length case
+           ((= i (1- len))
+            (print (ref x i) (if (zero? i) width (1- width))))
+           ((<= width (+ 1 ellipsis-width))
+            (display "..."))
+           (else
+            (let ((str
+                   (with-fluids ((%default-port-encoding (port-encoding port)))
+                     (with-output-to-string
+                           (lambda ()
+                             (print (ref x i)
+                                    (if breadth-first?
+                                        (max 1
+                                             (1- (floor (/ width (- len i)))))
+                                        (- width (+ 1 ellipsis-width)))))))))
+              (display str)
+              (lp (next x) (- width 1 (string-length str)) (1+ i)))))))
 
-  (with-output-to-port port
-    (lambda ()
-      (print x width))))
+      (define (print-tree x width)
+        ;; width is >= the width of # . #, which is 5
+        (let lp ((x x)
+                 (width width))
+          (cond
+           ((or (not (pair? x)) (<= width 4))
+            (display ". ")
+            (print x (- width 2)))
+           (else
+            ;; width >= 5
+            (let ((str (with-output-to-string
+                         (lambda ()
+                           (print (car x)
+                                  (if breadth-first?
+                                      (floor (/ (- width 3) 2))
+                                      (- width 4)))))))
+              (display str)
+              (display " ")
+              (lp (cdr x) (- width 1 (string-length str))))))))
+
+      (define (truncate-string str width)
+        ;; width is < (string-length str)
+        (let lp ((fixes '(("#<" . ">")
+                          ("#(" . ")")
+                          ("(" . ")")
+                          ("\"" . "\""))))
+          (cond
+           ((null? fixes)
+            "#")
+           ((and (string-prefix? (caar fixes) str)
+                 (string-suffix? (cdar fixes) str)
+                 (>= (string-length str)
+                     width
+                     (+ (string-length (caar fixes))
+                        (string-length (cdar fixes))
+                        ellipsis-width)))
+            (format #f "~a~a~a~a"
+                    (caar fixes)
+                    (substring str (string-length (caar fixes))
+                               (- width (string-length (cdar fixes))
+                                  ellipsis-width))
+                    ellipsis
+                    (cdar fixes)))
+           (else
+            (lp (cdr fixes))))))
+
+      (define (print x width)
+        (cond
+         ((<= width 0)
+          (error "expected a positive width" width))
+         ((list? x)
+          (cond
+           ((>= width (+ 2 ellipsis-width))
+            (display "(")
+            (print-sequence x (- width 2) (length x)
+                            (lambda (x i) (car x)) cdr)
+            (display ")"))
+           (else
+            (display "#"))))
+         ((vector? x)
+          (cond
+           ((>= width (+ 3 ellipsis-width))
+            (display "#(")
+            (print-sequence x (- width 3) (vector-length x)
+                            vector-ref identity)
+            (display ")"))
+           (else
+            (display "#"))))
+         ((uniform-vector? x)
+          (cond
+           ((>= width 9)
+            (format #t  "#~a(" (uniform-vector-element-type x))
+            (print-sequence x (- width 6) (uniform-vector-length x)
+                            uniform-vector-ref identity)
+            (display ")"))
+           (else
+            (display "#"))))
+         ((pair? x)
+          (cond
+           ((>= width (+ 4 ellipsis-width))
+            (display "(")
+            (print-tree x (- width 2))
+            (display ")"))
+           (else
+            (display "#"))))
+         (else
+          (let* ((str (with-output-to-string
+                        (lambda () (if display? (display x) (write x)))))
+                 (len (string-length str)))
+            (display (if (<= (string-length str) width)
+                         str
+                         (truncate-string str width)))))))
+
+      (with-output-to-port port
+        (lambda ()
+          (print x width))))))

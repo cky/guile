@@ -1,4 +1,4 @@
-;;;; -*- scheme -*-
+;;;; -*- coding: utf-8; mode: scheme; -*-
 ;;;;
 ;;;; Copyright (C) 2010  Free Software Foundation, Inc.
 ;;;;
@@ -6,12 +6,12 @@
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -22,25 +22,33 @@
 
 (with-test-prefix "truncated-print"
   (define exp '(a b #(c d e) f . g))
-  (define (tprint x width)
-    (with-output-to-string
-      (lambda ()
-        (truncated-print x #:width width))))
-  
-  (pass-if (equal? (tprint exp 10)
-                   "(a b . #)"))
-  
-  (pass-if (equal? (tprint exp 15)
-                   "(a b # f . g)"))
-  
-  (pass-if (equal? (tprint exp 18)
-                   "(a b #(c ...) . #)"))
-  
-  (pass-if (equal? (tprint exp 20)
-                   "(a b #(c d e) f . g)"))
-  
-  (pass-if (equal? (tprint "The quick brown fox" 20)
-                   "\"The quick brown...\""))
 
-  (pass-if (equal? (tprint (current-module) 20)
-                   "#<directory (tes...>")))
+  (define (tprint x width encoding)
+    (with-fluids ((%default-port-encoding encoding))
+      (with-output-to-string
+	(lambda ()
+	  (truncated-print x #:width width)))))
+
+  (pass-if (equal? (tprint exp 10 "ISO-8859-1")
+		   "(a b . #)"))
+
+  (pass-if (equal? (tprint exp 15 "ISO-8859-1")
+		   "(a b # f . g)"))
+
+  (pass-if (equal? (tprint exp 18 "ISO-8859-1")
+		   "(a b #(c ...) . #)"))
+
+  (pass-if (equal? (tprint exp 20 "ISO-8859-1")
+		   "(a b #(c d e) f . g)"))
+
+  (pass-if (equal? (tprint "The quick brown fox" 20 "ISO-8859-1")
+		   "\"The quick brown...\""))
+
+  (pass-if (equal? (tprint "The quick brown fox" 20 "UTF-8")
+		   "\"The quick brown f…\""))
+
+  (pass-if (equal? (tprint (current-module) 20 "ISO-8859-1")
+		   "#<directory (tes...>"))
+
+  (pass-if (equal? (tprint (current-module) 20 "UTF-8")
+		   "#<directory (test-…>")))

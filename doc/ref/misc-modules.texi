@@ -83,9 +83,11 @@ line in which to do so.
 @print{} #<directory (gui...>
 @end lisp
 
-@code{truncated-print} will not output a trailing newline. If an
-expression does not fit in the given width, it will be truncated --
-possibly ellipsized, or in the worst case, displayed as @nicode{#}. 
+@code{truncated-print} will not output a trailing newline. If an expression does
+not fit in the given width, it will be truncated -- possibly
+ellipsized@footnote{On Unicode-capable ports, the ellipsis is represented by
+character `HORIZONTAL ELLIPSIS' (U+2026), otherwise it is represented by three
+dots.}, or in the worst case, displayed as @nicode{#}.
 
 @deffn {Scheme Procedure} truncated-print obj [port] [keyword-options]
 Print @var{obj}, truncating the output, if necessary, to make it fit
