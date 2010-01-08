@@ -1,6 +1,6 @@
 ;;; Guile VM debugging facilities
 
-;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -109,6 +109,13 @@
           out
           (lp (frame-previous frame) (cons frame out) (1- count)))))))
 
+(define (location-string file line)
+  (cond ((and file line)
+         (format #f "~:[~5_~;~5d~]" file line))
+        (file
+         (format #f "~:[~5_~" file))
+        (else "<unknown-location>")))
+
 (define* (print-frames frames #:optional (port (current-output-port))
                        #:key (start-index (1- (length frames))) (width 72)
                        (full? #f))
@@ -116,12 +123,14 @@
     (if (pair? frames)
         (let* ((frame (car frames))
                (source (frame-source frame))
-               (file (and=> source source:file))
-               (line (and=> source source:line)))
+               (file (and source
+                         (or (source:file source) "<stdin>")))
+               (line (and=> source source:line))
+               (loc  (location-string file line)))
           (if (not (equal? file last-file))
               (format port "~&In ~a:~&" (or file "current input")))
-          (format port "~:[~5_~;~5d~]:~3d ~v:@y~%" line line i
-                  width (frame-call-representation frame))
+          (format port "~a:~3d ~v:@y~%"
+                  loc i width (frame-call-representation frame))
           (if full?
               (print-locals frame #:width width
                             #:per-line-prefix "     "))
