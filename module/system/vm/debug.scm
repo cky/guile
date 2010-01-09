@@ -367,7 +367,7 @@ With an argument, select a frame by index, then show it."
 ;; (state associated with vm ?)
 
 (define (debug-pre-unwind-handler key . args)
-  (let ((stack (make-stack #t debug-pre-unwind-handler)))
+  (let ((stack (make-stack #t 2)))
     (pmatch args
       ((,subr ,msg ,args . ,rest)
        (format #t "Throw to key `~a':\n" key)
