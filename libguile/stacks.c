@@ -66,7 +66,7 @@ static SCM stack_id_with_fp (SCM frame, SCM **fp);
 static long
 stack_depth (SCM frame, SCM *fp)
 {
-  long n;
+  long n = 0;
   /* count frames, skipping boot frames */
   for (; scm_is_true (frame) && SCM_VM_FRAME_FP (frame) > fp;
        frame = scm_frame_previous (frame))
