@@ -18,7 +18,6 @@
 
 
 #define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
-#define SCM_GSUBR_MAX    33
 #define SCM_GSUBR_REQ(x) ((long)(x)&0xf)
 #define SCM_GSUBR_OPT(x) (((long)(x)&0xf0)>>4)
 #define SCM_GSUBR_REST(x) ((long)(x)>>8)

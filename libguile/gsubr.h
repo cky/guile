@@ -37,6 +37,9 @@ SCM_API SCM scm_subr_objcode_trampoline (unsigned int nreq,
 /* Subrs 
  */
 
+/* Max number of args to the C procedure backing a gsubr */
+#define SCM_GSUBR_MAX 10
+
 #define SCM_PRIMITIVE_P(x) (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_PRIMITIVE (x))
 #define SCM_PRIMITIVE_GENERIC_P(x) (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x))
 
