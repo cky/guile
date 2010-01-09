@@ -19,6 +19,7 @@
 ;;; Code:
 
 (define-module (system vm debug)
+  #:use-module (system base pmatch)
   #:use-module (system base syntax)
   #:use-module (system vm vm)
   #:use-module (system vm frame)
@@ -366,10 +367,14 @@ With an argument, select a frame by index, then show it."
 ;; (state associated with vm ?)
 
 (define (debug-pre-unwind-handler key . args)
-  ;; herald
-  (format #t "Throw to key `~a' with args `~s'.
-Entering the debugger. Type `bt' for a backtrace or `c' to continue.
-" key args)
-  (run-debugger (stack-ref (make-stack #t) 1))
+  (let ((stack (make-stack #t)))
+    (pmatch args
+      ((,subr ,msg ,args . ,rest)
+       (format #t "Throw to key `~a':\n" key)
+       (display-error stack (current-output-port) subr msg args rest))
+      (else
+       (format #t "Throw to key `~a' with args `~s'." key args)))
+    (format #t "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
+    (run-debugger (stack-ref stack 1)))
   (save-stack 1)
   (apply throw key args))
