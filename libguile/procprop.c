@@ -48,23 +48,27 @@ static scm_i_pthread_mutex_t props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 int
 scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
 {
-  if (SCM_IMP (proc))
-    return 0;
- loop:
-  switch (SCM_TYP7 (proc))
+  while (!SCM_PROGRAM_P (proc))
     {
-    case scm_tc7_program:
-      return scm_i_program_arity (proc, req, opt, rest);
-    case scm_tc7_smob:
-      return scm_i_smob_arity (proc, req, opt, rest);
-    case scm_tcs_struct:
-      if (!SCM_STRUCT_APPLICABLE_P (proc))
+      if (SCM_IMP (proc))
         return 0;
-      proc = SCM_STRUCT_PROCEDURE (proc);
-      goto loop;
-    default:
-      return 0;
+      switch (SCM_TYP7 (proc))
+        {
+        case scm_tc7_smob:
+          if (!SCM_SMOB_APPLICABLE_P (proc))
+            return 0;
+          proc = scm_i_smob_apply_trampoline (proc);
+          break;
+        case scm_tcs_struct:
+          if (!SCM_STRUCT_APPLICABLE_P (proc))
+            return 0;
+          proc = SCM_STRUCT_PROCEDURE (proc);
+          break;
+        default:
+          return 0;
+        }
     }
+  return scm_i_program_arity (proc, req, opt, rest);
 }
 
 /* FIXME: instead of the weak hash, perhaps for some kinds of procedures, use

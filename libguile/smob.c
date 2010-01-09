@@ -17,12 +17,6 @@
  */
 
 
-#define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
-#define SCM_GSUBR_REQ(x) ((long)(x)&0xf)
-#define SCM_GSUBR_OPT(x) (((long)(x)&0xf0)>>4)
-#define SCM_GSUBR_REST(x) ((long)(x)>>8)
-
-
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -35,7 +29,9 @@
 
 #include "libguile/async.h"
 #include "libguile/goops.h"
-#include "libguile/ports.h"
+#include "libguile/instructions.h"
+#include "libguile/objcodes.h"
+#include "libguile/programs.h"
 
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
@@ -123,159 +119,237 @@ scm_smob_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
+
 /* {Apply}
  */
 
-#define SCM_SMOB_APPLY0(SMOB) \
-  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB)
-#define SCM_SMOB_APPLY1(SMOB, A1) \
-  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1)
-#define SCM_SMOB_APPLY2(SMOB, A1, A2) \
-  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2)
-#define SCM_SMOB_APPLY3(SMOB, A1, A2, A3) \
-  SCM_SMOB_DESCRIPTOR (SMOB).apply (SMOB, A1, A2, A3)
+#ifdef WORDS_BIGENDIAN
+#define OBJCODE_HEADER 0, 0, 0, 16, 0, 0, 0, 40
+#define META_HEADER    0, 0, 0, 32, 0, 0, 0, 0
+#else
+#define OBJCODE_HEADER 16, 0, 0, 0, 40, 0, 0, 0
+#define META_HEADER    32, 0, 0, 0, 0, 0, 0, 0
+#endif
+
+/* This code is the same as in gsubr.c, except we use smob_call instead of
+   struct_call. */
+
+/* A: req; B: opt; C: rest */
+#define A(nreq)                                                         \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_assert_nargs_ee, 0, nreq, /* assert number of args */  \
+  /* 3 */ scm_op_object_ref, 0, /* push the foreign object wrapping the subr pointer */ \
+  /* 5 */ scm_op_smob_call, nreq, /* and call (will return value as well) */ \
+  /* 7 */ scm_op_nop,                                                   \
+  /* 8 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,               \
+  /* 12 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,              \
+  /* 16 */ META (3, 7, nreq, 0, 0)
+
+#define B(nopt)                                                         \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_bind_optionals, 0, nopt, /* bind optionals */          \
+  /* 3 */ scm_op_assert_nargs_ee, 0, nopt, /* assert number of args */  \
+  /* 6 */ scm_op_object_ref, 0, /* push the foreign object wrapping the smob pointer */ \
+  /* 8 */ scm_op_smob_call, nopt, /* and call (will return value as well) */ \
+  /* 10 */ scm_op_nop, scm_op_nop,                                      \
+  /* 12 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,              \
+  /* 16 */ META (6, 10, 0, nopt, 0)
+
+#define C()                                                             \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_push_rest, 0, 0, /* cons all args into a list */       \
+  /* 3 */ scm_op_object_ref, 0, /* push the foreign object wrapping the smob pointer */ \
+  /* 5 */ scm_op_smob_call, 1, /* and call (will return value as well) */ \
+  /* 7 */ scm_op_nop,                                                   \
+  /* 8 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,               \
+  /* 12 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,              \
+  /* 16 */ META (3, 7, 0, 0, 1)
+
+#define AB(nreq, nopt)                                                  \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_assert_nargs_ge, 0, nreq, /* assert number of args */  \
+  /* 3 */ scm_op_bind_optionals, 0, nreq+nopt, /* bind optionals */     \
+  /* 6 */ scm_op_assert_nargs_ee, 0, nreq+nopt, /* assert number of args */ \
+  /* 9 */ scm_op_object_ref, 0, /* push the foreign object wrapping the smob pointer */ \
+  /* 11 */ scm_op_smob_call, nreq+nopt, /* and call (will return value as well) */ \
+  /* 13 */ scm_op_nop, scm_op_nop, scm_op_nop,                          \
+  /* 16 */ META (9, 13, nreq, nopt, 0)
+
+#define AC(nreq)                                                        \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_assert_nargs_ge, 0, nreq, /* assert number of args */  \
+  /* 3 */ scm_op_push_rest, 0, nreq, /* cons rest list */               \
+  /* 6 */ scm_op_object_ref, 0, /* push the foreign object wrapping the smob pointer */ \
+  /* 8 */ scm_op_smob_call, nreq+1, /* and call (will return value as well) */ \
+  /* 10 */ scm_op_nop, scm_op_nop,                                      \
+  /* 12 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,              \
+  /* 16 */ META (6, 10, nreq, 0, 1)
+
+#define BC(nopt)                                                        \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_bind_optionals, 0, nopt, /* bind optionals */          \
+  /* 3 */ scm_op_push_rest, 0, nopt, /* cons rest list */               \
+  /* 6 */ scm_op_object_ref, 0, /* push the foreign object wrapping the smob pointer */ \
+  /* 8 */ scm_op_smob_call, nopt+1, /* and call (will return value as well) */ \
+  /* 10 */ scm_op_nop, scm_op_nop,                                      \
+  /* 12 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,              \
+  /* 16 */ META (6, 10, 0, nopt, 1)
+
+#define ABC(nreq, nopt)                                                 \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_assert_nargs_ge, 0, nreq, /* assert number of args */  \
+  /* 3 */ scm_op_bind_optionals, 0, nreq+nopt, /* bind optionals */     \
+  /* 6 */ scm_op_push_rest, 0, nreq+nopt, /* cons rest list */          \
+  /* 9 */ scm_op_object_ref, 0, /* push the foreign object wrapping the smob pointer */ \
+  /* 11 */ scm_op_smob_call, nreq+nopt+1, /* and call (will return value as well) */ \
+  /* 13 */ scm_op_nop, scm_op_nop, scm_op_nop,                          \
+  /* 16 */ META (9, 13, nreq, nopt, 1)
+  
+#define META(start, end, nreq, nopt, rest)                              \
+  META_HEADER,                                                          \
+  /* 0 */ scm_op_make_eol, /* bindings */                               \
+  /* 1 */ scm_op_make_eol, /* sources */                                \
+  /* 2 */ scm_op_make_int8, start, scm_op_make_int8, end, /* arity: from ip N to ip N */ \
+  /* 6 */ scm_op_make_int8, nreq, /* the arity is N required args */    \
+  /* 8 */ scm_op_make_int8, nopt, /* N optionals */                     \
+  /* 10 */ rest ? scm_op_make_true : scm_op_make_false, /* maybe a rest arg */ \
+  /* 11 */ scm_op_list, 0, 5, /* make a list of those 5 vals */         \
+  /* 14 */ scm_op_list, 0, 1, /* and the arities will be a list of that one list */ \
+  /* 17 */ scm_op_load_symbol, 0, 0, 4, 'n', 'a', 'm', 'e', /* `name' */ \
+  /* 25 */ scm_op_object_ref, 1, /* the name from the object table */   \
+  /* 27 */ scm_op_cons, /* make a pair for the properties */            \
+  /* 28 */ scm_op_list, 0, 4, /* pack bindings, sources, and arities into list */ \
+  /* 31 */ scm_op_return /* and return */                               \
+  /* 32 */
+
+static const struct
+{
+  scm_t_uint64 dummy; /* ensure 8-byte alignment; perhaps there's a better way */
+  const scm_t_uint8 bytes[16 * (sizeof (struct scm_objcode) + 16
+                                + sizeof (struct scm_objcode) + 32)];
+} raw_bytecode = {
+  0,
+  {
+    /* Use the elisp macros from gsubr.c */
+    /* C-u 3 M-x generate-bytecodes RET */
+    /* 0 arguments */
+    A(0), 
+    /* 1 arguments */
+    A(1), B(1), C(), 
+    /* 2 arguments */
+    A(2), AB(1,1), B(2), AC(1), BC(1), 
+    /* 3 arguments */
+    A(3), AB(2,1), AB(1,2), B(3), AC(2), ABC(1,1), BC(2)
+  }
+};
+
+#undef A
+#undef B
+#undef C
+#undef AB
+#undef AC
+#undef BC
+#undef ABC
+#undef OBJCODE_HEADER
+#undef META_HEADER
+#undef META
+
+#define STATIC_OBJCODE_TAG                                      \
+  SCM_PACK (scm_tc7_objcode | (SCM_F_OBJCODE_IS_STATIC << 8))
+
+static const struct
+{
+  scm_t_uint64 dummy; /* alignment */
+  scm_t_cell cells[16 * 2]; /* 4*4 double cells */
+} objcode_cells = {
+  0,
+  /* C-u 3 M-x generate-objcode-cells RET */
+  {
+    /* 0 arguments */
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 0) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+
+    /* 1 arguments */
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 64) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 128) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 192) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+
+    /* 2 arguments */
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 256) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 320) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 384) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 448) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 512) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+
+    /* 3 arguments */
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 576) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 640) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 704) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 768) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 832) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 896) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 960) },
+    { SCM_BOOL_F, SCM_PACK (0) }
+  }
+};
+  
+static const SCM scm_smob_objcode_trampolines[16] = {
+  /* C-u 3 M-x generate-objcodes RET */
+  /* 0 arguments */
+  SCM_PACK (objcode_cells.cells+0),
+
+  /* 1 arguments */
+  SCM_PACK (objcode_cells.cells+2),
+  SCM_PACK (objcode_cells.cells+4),
+  SCM_PACK (objcode_cells.cells+6),
+
+  /* 2 arguments */
+  SCM_PACK (objcode_cells.cells+8),
+  SCM_PACK (objcode_cells.cells+10),
+  SCM_PACK (objcode_cells.cells+12),
+  SCM_PACK (objcode_cells.cells+14),
+  SCM_PACK (objcode_cells.cells+16),
+
+  /* 3 arguments */
+  SCM_PACK (objcode_cells.cells+18),
+  SCM_PACK (objcode_cells.cells+20),
+  SCM_PACK (objcode_cells.cells+22),
+  SCM_PACK (objcode_cells.cells+24),
+  SCM_PACK (objcode_cells.cells+26),
+  SCM_PACK (objcode_cells.cells+28),
+  SCM_PACK (objcode_cells.cells+30)
+};
+
+/* (nargs * nargs) + nopt + rest * (nargs + 1) */
+#define SCM_SMOB_OBJCODE_TRAMPOLINE(nreq,nopt,rest)                     \
+  scm_smob_objcode_trampolines[(nreq + nopt + rest) * (nreq + nopt + rest) \
+                               + nopt + rest * (nreq + nopt + rest + 1)]
 
 static SCM
-scm_smob_apply_0_010 (SCM smob)
+scm_smob_objcode_trampoline (unsigned int nreq, unsigned int nopt,
+                             unsigned int rest)
 {
-  return SCM_SMOB_APPLY1 (smob, SCM_UNDEFINED);
-}
-
-static SCM
-scm_smob_apply_0_020 (SCM smob)
-{
-  return SCM_SMOB_APPLY2 (smob, SCM_UNDEFINED, SCM_UNDEFINED);
-}
-
-static SCM
-scm_smob_apply_0_030 (SCM smob)
-{
-  return SCM_SMOB_APPLY3 (smob, SCM_UNDEFINED, SCM_UNDEFINED, SCM_UNDEFINED);
-}
-
-static SCM
-scm_smob_apply_0_001 (SCM smob)
-{
-  return SCM_SMOB_APPLY1 (smob, SCM_EOL);
-}
-
-static SCM
-scm_smob_apply_0_011 (SCM smob)
-{
-  return SCM_SMOB_APPLY2 (smob, SCM_UNDEFINED, SCM_EOL);
-}
-
-static SCM
-scm_smob_apply_0_021 (SCM smob)
-{
-  return SCM_SMOB_APPLY3 (smob, SCM_UNDEFINED, SCM_UNDEFINED, SCM_EOL);
-}
-
-static SCM
-scm_smob_apply_0_error (SCM smob)
-{
-  scm_wrong_num_args (smob);
-}
-
-static SCM
-scm_smob_apply_1_020 (SCM smob, SCM a1)
-{
-  return SCM_SMOB_APPLY2 (smob, a1, SCM_UNDEFINED);
-}
-
-static SCM
-scm_smob_apply_1_030 (SCM smob, SCM a1)
-{
-  return SCM_SMOB_APPLY3 (smob, a1, SCM_UNDEFINED, SCM_UNDEFINED);
-}
-
-static SCM
-scm_smob_apply_1_001 (SCM smob, SCM a1)
-{
-  return SCM_SMOB_APPLY1 (smob, scm_list_1 (a1));
-}
-
-static SCM
-scm_smob_apply_1_011 (SCM smob, SCM a1)
-{
-  return SCM_SMOB_APPLY2 (smob, a1, SCM_EOL);
-}
-
-static SCM
-scm_smob_apply_1_021 (SCM smob, SCM a1)
-{
-  return SCM_SMOB_APPLY3 (smob, a1, SCM_UNDEFINED, SCM_EOL);
-}
-
-static SCM
-scm_smob_apply_1_error (SCM smob, SCM a1 SCM_UNUSED)
-{
-  scm_wrong_num_args (smob);
-}
-
-static SCM
-scm_smob_apply_2_030 (SCM smob, SCM a1, SCM a2)
-{
-  return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_UNDEFINED);
-}
-
-static SCM
-scm_smob_apply_2_001 (SCM smob, SCM a1, SCM a2)
-{
-  return SCM_SMOB_APPLY1 (smob, scm_list_2 (a1, a2));
-}
-
-static SCM
-scm_smob_apply_2_011 (SCM smob, SCM a1, SCM a2)
-{
-  return SCM_SMOB_APPLY2 (smob, a1, scm_list_1 (a2));
-}
-
-static SCM
-scm_smob_apply_2_021 (SCM smob, SCM a1, SCM a2)
-{
-  return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_EOL);
-}
-
-static SCM
-scm_smob_apply_2_error (SCM smob, SCM a1 SCM_UNUSED, SCM a2 SCM_UNUSED)
-{
-  scm_wrong_num_args (smob);
-}
-
-static SCM
-scm_smob_apply_3_030 (SCM smob, SCM a1, SCM a2, SCM rst)
-{
-  if (!scm_is_null (SCM_CDR (rst)))
-    scm_wrong_num_args (smob);
-  return SCM_SMOB_APPLY3 (smob, a1, a2, SCM_CAR (rst));
-}
-
-static SCM
-scm_smob_apply_3_001 (SCM smob, SCM a1, SCM a2, SCM rst)
-{
-  return SCM_SMOB_APPLY1 (smob, scm_cons2 (a1, a2, rst));
-}
-
-static SCM
-scm_smob_apply_3_011 (SCM smob, SCM a1, SCM a2, SCM rst)
-{
-  return SCM_SMOB_APPLY2 (smob, a1, scm_cons (a2, rst));
-}
-
-static SCM
-scm_smob_apply_3_021 (SCM smob, SCM a1, SCM a2, SCM rst)
-{
-  return SCM_SMOB_APPLY3 (smob, a1, a2, rst);
-}
-
-static SCM
-scm_smob_apply_3_error (SCM smob,
-			SCM a1 SCM_UNUSED,
-			SCM a2 SCM_UNUSED,
-			SCM rst SCM_UNUSED)
-{
-  scm_wrong_num_args (smob);
+  if (SCM_UNLIKELY (rest > 1 || nreq + nopt + rest > 3))
+    scm_out_of_range ("make-smob", scm_from_uint (nreq + nopt + rest));
+      
+  return SCM_SMOB_OBJCODE_TRAMPOLINE (nreq, nopt, rest);
 }
 
 
@@ -335,113 +409,40 @@ void
 scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
 		    unsigned int req, unsigned int opt, unsigned int rst)
 {
-  SCM (*apply_0) (SCM);
-  SCM (*apply_1) (SCM, SCM);
-  SCM (*apply_2) (SCM, SCM, SCM);
-  SCM (*apply_3) (SCM, SCM, SCM, SCM);
-  int type = SCM_GSUBR_MAKTYPE (req, opt, rst);
-
-  if (rst > 1 || req + opt + rst > 3)
-    {
-      puts ("Unsupported smob application type");
-      abort ();
-    }
-
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (0, 0, 0):
-      apply_0 = apply; break;
-    case SCM_GSUBR_MAKTYPE (0, 1, 0):
-      apply_0 = scm_smob_apply_0_010; break;
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      apply_0 = scm_smob_apply_0_020; break;
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      apply_0 = scm_smob_apply_0_030; break;
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      apply_0 = scm_smob_apply_0_001; break;
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      apply_0 = scm_smob_apply_0_011; break;
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      apply_0 = scm_smob_apply_0_021; break;
-    default:
-      apply_0 = scm_smob_apply_0_error; break;
-    }
-
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (1, 0, 0):
-    case SCM_GSUBR_MAKTYPE (0, 1, 0):
-      apply_1 = apply; break;
-    case SCM_GSUBR_MAKTYPE (1, 1, 0):
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      apply_1 = scm_smob_apply_1_020; break;
-    case SCM_GSUBR_MAKTYPE (1, 2, 0):
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      apply_1 = scm_smob_apply_1_030; break;
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      apply_1 = scm_smob_apply_1_001; break;
-    case SCM_GSUBR_MAKTYPE (1, 0, 1):
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      apply_1 = scm_smob_apply_1_011; break;
-    case SCM_GSUBR_MAKTYPE (1, 1, 1):
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      apply_1 = scm_smob_apply_1_021; break;
-    default:
-      apply_1 = scm_smob_apply_1_error; break;
-    }
-
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (2, 0, 0):
-    case SCM_GSUBR_MAKTYPE (1, 1, 0):
-    case SCM_GSUBR_MAKTYPE (0, 2, 0):
-      apply_2 = apply; break;
-    case SCM_GSUBR_MAKTYPE (2, 1, 0):
-    case SCM_GSUBR_MAKTYPE (1, 2, 0):
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      apply_2 = scm_smob_apply_2_030; break;
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      apply_2 = scm_smob_apply_2_001; break;
-    case SCM_GSUBR_MAKTYPE (1, 0, 1):
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      apply_2 = scm_smob_apply_2_011; break;
-    case SCM_GSUBR_MAKTYPE (2, 0, 1):
-    case SCM_GSUBR_MAKTYPE (1, 1, 1):
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      apply_2 = scm_smob_apply_2_021; break;
-    default:
-      apply_2 = scm_smob_apply_2_error; break;
-    }
-
-  switch (type)
-    {
-    case SCM_GSUBR_MAKTYPE (3, 0, 0):
-    case SCM_GSUBR_MAKTYPE (2, 1, 0):
-    case SCM_GSUBR_MAKTYPE (1, 2, 0):
-    case SCM_GSUBR_MAKTYPE (0, 3, 0):
-      apply_3 = scm_smob_apply_3_030; break;
-    case SCM_GSUBR_MAKTYPE (0, 0, 1):
-      apply_3 = scm_smob_apply_3_001; break;
-    case SCM_GSUBR_MAKTYPE (1, 0, 1):
-    case SCM_GSUBR_MAKTYPE (0, 1, 1):
-      apply_3 = scm_smob_apply_3_011; break;
-    case SCM_GSUBR_MAKTYPE (2, 0, 1):
-    case SCM_GSUBR_MAKTYPE (1, 1, 1):
-    case SCM_GSUBR_MAKTYPE (0, 2, 1):
-      apply_3 = scm_smob_apply_3_021; break;
-    default:
-      apply_3 = scm_smob_apply_3_error; break;
-    }
-
   scm_smobs[SCM_TC2SMOBNUM (tc)].apply   = apply;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_0 = apply_0;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_1 = apply_1;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_2 = apply_2;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_3 = apply_3;
-  scm_smobs[SCM_TC2SMOBNUM (tc)].gsubr_type = type;
+  scm_smobs[SCM_TC2SMOBNUM (tc)].apply_trampoline_objcode
+    = scm_smob_objcode_trampoline (req, opt, rst);
 
   if (SCM_UNPACK (scm_smob_class[0]) != 0)
     scm_i_inherit_applicable (scm_smob_class[SCM_TC2SMOBNUM (tc)]);
+}
+
+static SCM tramp_weak_map = SCM_BOOL_F;
+SCM
+scm_i_smob_apply_trampoline (SCM smob)
+{
+  /* could use hashq-create-handle!, but i don't know what to do if it returns a
+     weak pair */
+  SCM tramp = scm_hashq_ref (tramp_weak_map, smob, SCM_BOOL_F);
+
+  if (scm_is_true (tramp))
+    return tramp;
+  else
+    {
+      const char *name;
+      SCM objtable;
+
+      name = SCM_SMOBNAME (SCM_SMOBNUM (smob));
+      if (!name)
+        name = "smob-apply";
+      objtable = scm_c_make_vector (2, SCM_UNDEFINED);
+      SCM_SIMPLE_VECTOR_SET (objtable, 0, smob);
+      SCM_SIMPLE_VECTOR_SET (objtable, 1, scm_from_locale_symbol (name));
+      tramp = scm_make_program (SCM_SMOB_DESCRIPTOR (smob).apply_trampoline_objcode,
+                                objtable, SCM_BOOL_F);
+      scm_hashq_set_x (tramp_weak_map, smob, tramp);
+      return tramp;
+    }
 }
 
 SCM
@@ -592,21 +593,6 @@ scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
     free_smob (smob);
 }
 
-int
-scm_i_smob_arity (SCM proc, int *req, int *opt, int *rest)
-{
-  if (SCM_SMOB_APPLICABLE_P (proc))
-    {
-      int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
-      *req = SCM_GSUBR_REQ (type);
-      *opt = SCM_GSUBR_OPT (type);
-      *rest = SCM_GSUBR_REST (type);
-      return 1;
-    }
-  else
-    return 0;
-}
-
 
 void
 scm_smob_prehistory ()
@@ -630,12 +616,10 @@ scm_smob_prehistory ()
       scm_smobs[i].print      = scm_smob_print;
       scm_smobs[i].equalp     = 0;
       scm_smobs[i].apply      = 0;
-      scm_smobs[i].apply_0    = 0;
-      scm_smobs[i].apply_1    = 0;
-      scm_smobs[i].apply_2    = 0;
-      scm_smobs[i].apply_3    = 0;
-      scm_smobs[i].gsubr_type = 0;
+      scm_smobs[i].apply_trampoline_objcode = SCM_BOOL_F;
     }
+
+  tramp_weak_map = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 }
 
 /*

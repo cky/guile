@@ -744,83 +744,70 @@ VM_DEFINE_INSTRUCTION (53, new_frame, "new-frame", 0, 0, 3)
 
 VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
 {
-  SCM x;
   nargs = FETCH ();
 
  vm_call:
-  x = sp[-nargs];
+  program = sp[-nargs];
 
   VM_HANDLE_INTERRUPTS;
 
-  /*
-   * Subprogram call
-   */
-  if (SCM_PROGRAM_P (x))
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
     {
-      program = x;
-      CACHE_PROGRAM ();
-      fp = sp - nargs + 1;
-      ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-      ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-      SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-      SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
-      ip = SCM_C_OBJCODE_BASE (bp);
-      ENTER_HOOK ();
-      APPLY_HOOK ();
-      NEXT;
-    }
-  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
-    {
-      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_call;
-    }
-  /*
-   * Other interpreted or compiled call
-   */
-  if (!scm_is_false (scm_procedure_p (x)))
-    {
-      SCM ret;
-      /* At this point, the stack contains the frame, the procedure and each one
-	 of its arguments. */
-      SYNC_REGISTER ();
-      ret = apply_foreign (sp[-nargs],
-                           sp - nargs + 1,
-                           nargs,
-                           vp->stack_limit - sp + 1);
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROPN (nargs + 1); /* drop args and procedure */
-      DROP_FRAME ();
-      
-      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
         {
-          /* truncate values */
-          ret = scm_struct_ref (ret, SCM_INUM0);
-          if (scm_is_null (ret))
-            goto vm_error_not_enough_values;
-          PUSH (SCM_CAR (ret));
+          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
+          goto vm_call;
+        }
+      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
+               && SCM_SMOB_APPLICABLE_P (program))
+        {
+          SYNC_REGISTER ();
+          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          goto vm_call;
         }
       else
-        PUSH (ret);
-      NEXT;
+        goto vm_error_wrong_type_apply;
     }
 
-  program = x;
-  goto vm_error_wrong_type_apply;
+  CACHE_PROGRAM ();
+  fp = sp - nargs + 1;
+  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
+  ip = SCM_C_OBJCODE_BASE (bp);
+  ENTER_HOOK ();
+  APPLY_HOOK ();
+  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
 {
-  register SCM x;
   nargs = FETCH ();
+
  vm_tail_call:
-  x = sp[-nargs];
+  program = sp[-nargs];
 
   VM_HANDLE_INTERRUPTS;
 
-  /*
-   * Tail call
-   */
-  if (SCM_PROGRAM_P (x))
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
+    {
+      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
+        {
+          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
+          goto vm_tail_call;
+        }
+      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
+               && SCM_SMOB_APPLICABLE_P (program))
+        {
+          SYNC_REGISTER ();
+          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          goto vm_tail_call;
+        }
+      else
+        goto vm_error_wrong_type_apply;
+    }
+  else
     {
       int i;
 #ifdef VM_ENABLE_STACK_NULLING
@@ -831,7 +818,6 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
       EXIT_HOOK ();
 
       /* switch programs */
-      program = x;
       CACHE_PROGRAM ();
       /* shuffle down the program and the arguments */
       for (i = -1, sp = sp - nargs + 1; i < nargs; i++)
@@ -847,43 +833,6 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
       APPLY_HOOK ();
       NEXT;
     }
-  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
-    {
-      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_tail_call;
-    }
-  /*
-   * Other interpreted or compiled call
-   */
-  if (!scm_is_false (scm_procedure_p (x)))
-    {
-      SCM ret;
-      SYNC_REGISTER ();
-      ret = apply_foreign (sp[-nargs],
-                           sp - nargs + 1,
-                           nargs,
-                           vp->stack_limit - sp + 1);
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROPN (nargs + 1); /* drop args and procedure */
-      
-      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
-        {
-          /* multiple values returned to continuation */
-          ret = scm_struct_ref (ret, SCM_INUM0);
-          nvalues = scm_ilength (ret);
-          PUSH_LIST (ret, scm_is_null);
-          goto vm_return_values;
-        }
-      else
-        {
-          PUSH (ret);
-          goto vm_return;
-        }
-    }
-
-  program = x;
-
-  goto vm_error_wrong_type_apply;
 }
 
 VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
@@ -955,6 +904,54 @@ VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
     }
 }
 
+VM_DEFINE_INSTRUCTION (81, smob_call, "smob-call", 1, -1, -1)
+{
+  SCM smob, ret;
+  SCM (*subr)();
+  nargs = FETCH ();
+  POP (smob);
+
+  subr = SCM_SMOB_DESCRIPTOR (smob).apply;
+
+  VM_HANDLE_INTERRUPTS;
+  SYNC_REGISTER ();
+
+  switch (nargs)
+    {
+    case 0:
+      ret = subr (smob);
+      break;
+    case 1:
+      ret = subr (smob, sp[0]);
+      break;
+    case 2:
+      ret = subr (smob, sp[-1], sp[0]);
+      break;
+    case 3:
+      ret = subr (smob, sp[-2], sp[-1], sp[0]);
+      break;
+    default:
+      abort ();
+    }
+  
+  NULLSTACK_FOR_NONLOCAL_EXIT ();
+  DROPN (nargs + 1); /* drop args and procedure */
+      
+  if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+    {
+      /* multiple values returned to continuation */
+      ret = scm_struct_ref (ret, SCM_INUM0);
+      nvalues = scm_ilength (ret);
+      PUSH_LIST (ret, scm_is_null);
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (ret);
+      goto vm_return;
+    }
+}
+
 VM_DEFINE_INSTRUCTION (56, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
@@ -975,7 +972,6 @@ VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
 
 VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
 {
-  SCM x;
   scm_t_int32 offset;
   scm_t_uint8 *mvra;
   
@@ -984,65 +980,38 @@ VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
   mvra = ip + offset;
 
  vm_mv_call:
-  x = sp[-nargs];
+  program = sp[-nargs];
 
   VM_HANDLE_INTERRUPTS;
 
-  /*
-   * Subprogram call
-   */
-  if (SCM_PROGRAM_P (x))
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
     {
-      program = x;
-      CACHE_PROGRAM ();
-      fp = sp - nargs + 1;
-      ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-      ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-      SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-      SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
-      ip = SCM_C_OBJCODE_BASE (bp);
-      ENTER_HOOK ();
-      APPLY_HOOK ();
-      NEXT;
-    }
-  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
-    {
-      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_mv_call;
-    }
-  /*
-   * Other interpreted or compiled call
-   */
-  if (!scm_is_false (scm_procedure_p (x)))
-    {
-      SCM ret;
-      /* At this point, the stack contains the frame, the procedure and each one
-	 of its arguments. */
-      SYNC_REGISTER ();
-      ret = apply_foreign (sp[-nargs],
-                           sp - nargs + 1,
-                           nargs,
-                           vp->stack_limit - sp + 1);
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROPN (nargs + 1); /* drop args and procedure */
-      DROP_FRAME ();
-      
-      if (SCM_VALUESP (ret))
+      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
         {
-          SCM len;
-          ret = scm_struct_ref (ret, SCM_INUM0);
-          len = scm_length (ret);
-          PUSH_LIST (ret, scm_is_null);
-          PUSH (len);
-          ip = mvra;
+          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
+          goto vm_mv_call;
+        }
+      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
+               && SCM_SMOB_APPLICABLE_P (program))
+        {
+          SYNC_REGISTER ();
+          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          goto vm_mv_call;
         }
       else
-        PUSH (ret);
-      NEXT;
+        goto vm_error_wrong_type_apply;
     }
 
-  program = x;
-  goto vm_error_wrong_type_apply;
+  CACHE_PROGRAM ();
+  fp = sp - nargs + 1;
+  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
+  ip = SCM_C_OBJCODE_BASE (bp);
+  ENTER_HOOK ();
+  APPLY_HOOK ();
+  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)

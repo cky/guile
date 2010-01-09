@@ -273,39 +273,6 @@ resolve_variable (SCM what, SCM program_module)
     }
 }
   
-static SCM
-apply_foreign (SCM proc, SCM *args, int nargs, int headroom)
-{
-  SCM_ASRTGO (SCM_NIMP (proc), badproc);
-
-  switch (SCM_TYP7 (proc))
-    {
-    case scm_tc7_smob:
-      if (!SCM_SMOB_APPLICABLE_P (proc))
-        goto badproc;
-      switch (nargs)
-        {
-        case 0:
-          return SCM_SMOB_APPLY_0 (proc);
-        case 1:
-          return SCM_SMOB_APPLY_1 (proc, args[0]);
-        case 2:
-          return SCM_SMOB_APPLY_2 (proc, args[0], args[1]);
-        default:
-          {
-            SCM arglist = SCM_EOL;
-            while (nargs-- > 2)
-              arglist = scm_cons (args[nargs], arglist);
-            return SCM_SMOB_APPLY_3 (proc, args[0], args[1], arglist);
-          }
-        }
-    default:
-    badproc:
-      scm_wrong_type_arg ("apply", SCM_ARG1, proc);
-    }
-}
-
-
 #define VM_DEFAULT_STACK_SIZE	(64 * 1024)
 
 #define VM_NAME   vm_regular_engine
