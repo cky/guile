@@ -887,7 +887,6 @@ VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
     }
   
   NULLSTACK_FOR_NONLOCAL_EXIT ();
-  DROPN (nargs + 1); /* drop args and procedure */
       
   if (SCM_UNLIKELY (SCM_VALUESP (ret)))
     {
@@ -935,7 +934,6 @@ VM_DEFINE_INSTRUCTION (81, smob_call, "smob-call", 1, -1, -1)
     }
   
   NULLSTACK_FOR_NONLOCAL_EXIT ();
-  DROPN (nargs + 1); /* drop args and procedure */
       
   if (SCM_UNLIKELY (SCM_VALUESP (ret)))
     {
