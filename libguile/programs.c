@@ -42,13 +42,30 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
     objtable = SCM_BOOL_F;
   else if (scm_is_true (objtable))
     SCM_VALIDATE_VECTOR (2, objtable);
-  if (SCM_UNLIKELY (SCM_UNBNDP (free_variables)))
-    free_variables = SCM_BOOL_F;
-  else if (free_variables != SCM_BOOL_F)
-    SCM_VALIDATE_VECTOR (3, free_variables);
 
-  return scm_double_cell (scm_tc7_program, (scm_t_bits)objcode,
-                          (scm_t_bits)objtable, (scm_t_bits)free_variables);
+  if (SCM_UNBNDP (free_variables) || scm_is_false (free_variables))
+    {
+      SCM ret = scm_words (scm_tc7_program, 3);
+      SCM_SET_CELL_OBJECT_1 (ret, objcode);
+      SCM_SET_CELL_OBJECT_2 (ret, objtable);
+      return ret;
+    }
+  else
+    {
+      size_t i, len;
+      SCM ret;
+      SCM_VALIDATE_VECTOR (3, free_variables);
+      len = scm_c_vector_length (free_variables);
+      if (SCM_UNLIKELY (len >> 16))
+        SCM_OUT_OF_RANGE (3, free_variables);
+      ret = scm_words (scm_tc7_program | (len<<16), 3 + len);
+      SCM_SET_CELL_OBJECT_1 (ret, objcode);
+      SCM_SET_CELL_OBJECT_2 (ret, objtable);
+      for (i = 0; i < len; i++)
+        SCM_SET_CELL_OBJECT (ret, 3+i,
+                             SCM_SIMPLE_VECTOR_REF (free_variables, i));
+      return ret;
+    }
 }
 #undef FUNC_NAME
 
@@ -264,13 +281,42 @@ scm_c_program_source (SCM program, size_t ip)
   return source; /* (addr . (filename . (line . column))) */
 }
 
-SCM_DEFINE (scm_program_free_variables, "program-free-variables", 1, 0, 0,
+SCM_DEFINE (scm_program_num_free_variables, "program-num-free-variables", 1, 0, 0,
 	    (SCM program),
 	    "")
-#define FUNC_NAME s_scm_program_free_variables
+#define FUNC_NAME s_scm_program_num_free_variables
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_FREE_VARIABLES (program);
+  return scm_from_ulong (SCM_PROGRAM_NUM_FREE_VARIABLES (program));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_free_variable_ref, "program-free-variable-ref", 2, 0, 0,
+	    (SCM program, SCM i),
+	    "")
+#define FUNC_NAME s_scm_program_free_variable_ref
+{
+  unsigned long idx;
+  SCM_VALIDATE_PROGRAM (1, program);
+  SCM_VALIDATE_ULONG_COPY (2, i, idx);
+  if (idx >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))
+    SCM_OUT_OF_RANGE (2, i);
+  return SCM_PROGRAM_FREE_VARIABLE_REF (program, idx);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_free_variable_set_x, "program-free-variable-set!", 3, 0, 0,
+	    (SCM program, SCM i, SCM x),
+	    "")
+#define FUNC_NAME s_scm_program_free_variable_set_x
+{
+  unsigned long idx;
+  SCM_VALIDATE_PROGRAM (1, program);
+  SCM_VALIDATE_ULONG_COPY (2, i, idx);
+  if (idx >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))
+    SCM_OUT_OF_RANGE (2, i);
+  SCM_PROGRAM_FREE_VARIABLE_SET (program, idx, x);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 

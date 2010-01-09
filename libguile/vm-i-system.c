@@ -242,7 +242,7 @@ VM_DEFINE_INSTRUCTION (19, vector, "vector", 2, -1, 1)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
 
-#define FREE_VARIABLE_REF(i)	free_vars[i]
+#define FREE_VARIABLE_REF(i)	SCM_PROGRAM_FREE_VARIABLE_REF (program, i)
 
 /* ref */
 
@@ -1335,14 +1335,22 @@ VM_DEFINE_INSTRUCTION (73, free_boxed_set, "free-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (74, make_closure, "make-closure", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (74, make_closure, "make-closure", 2, -1, 1)
 {
-  SCM vect;
-  POP (vect);
+  size_t n, len;
+  SCM closure;
+
+  len = FETCH ();
+  len <<= 8;
+  len += FETCH ();
   SYNC_BEFORE_GC ();
-  /* fixme underflow */
-  *sp = scm_double_cell (scm_tc7_program, (scm_t_bits)SCM_PROGRAM_OBJCODE (*sp),
-                         (scm_t_bits)SCM_PROGRAM_OBJTABLE (*sp), (scm_t_bits)vect);
+  closure = scm_words (scm_tc7_program | (len<<16), len + 3);
+  SCM_SET_CELL_OBJECT_1 (closure, SCM_PROGRAM_OBJCODE (sp[-len]));
+  SCM_SET_CELL_OBJECT_2 (closure, SCM_PROGRAM_OBJTABLE (sp[-len]));
+  sp[-len] = closure;
+  for (n = 0; n < len; n++)
+    SCM_PROGRAM_FREE_VARIABLE_SET (closure, n, sp[-len + 1 + n]);
+  DROPN (len);
   NEXT;
 }
 
@@ -1354,17 +1362,20 @@ VM_DEFINE_INSTRUCTION (75, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (76, fix_closure, "fix-closure", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (76, fix_closure, "fix-closure", 2, -1, 0)
 {
-  SCM x, vect;
+  SCM x;
   unsigned int i = FETCH ();
+  size_t n, len;
   i <<= 8;
   i += FETCH ();
-  POP (vect);
   /* FIXME CHECK_LOCAL (i) */ 
   x = LOCAL_REF (i);
   /* FIXME ASSERT_PROGRAM (x); */
-  SCM_SET_CELL_WORD_3 (x, vect);
+  len = SCM_PROGRAM_NUM_FREE_VARIABLES (x);
+  for (n = 0; n < len; n++)
+    SCM_PROGRAM_FREE_VARIABLE_SET (x, n, sp[-len + 1 + n]);
+  DROPN (len);
   NEXT;
 }
 

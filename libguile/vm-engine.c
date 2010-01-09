@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,8 +44,6 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 
   /* Cache variables */
   struct scm_objcode *bp = NULL;	/* program base pointer */
-  SCM *free_vars = NULL;                /* free variables */
-  size_t free_vars_count = 0;           /* length of FREE_VARS */
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */

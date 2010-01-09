@@ -154,19 +154,6 @@
       object_count = 0;                                                 \
     }                                                                   \
   }                                                                     \
-  {                                                                     \
-    SCM c = SCM_PROGRAM_FREE_VARIABLES (program);                       \
-    if (SCM_I_IS_VECTOR (c))                                            \
-      {                                                                 \
-        free_vars = SCM_I_VECTOR_WELTS (c);                             \
-        free_vars_count = SCM_I_VECTOR_LENGTH (c);                      \
-      }                                                                 \
-    else                                                                \
-      {                                                                 \
-        free_vars = NULL;                                               \
-        free_vars_count = 0;                                            \
-      }                                                                 \
-  }                                                                     \
 }
 
 #define SYNC_BEFORE_GC()			\
@@ -193,8 +180,11 @@
 #endif
 
 #if VM_CHECK_FREE_VARIABLES
-#define CHECK_FREE_VARIABLE(_num) \
-  do { if (SCM_UNLIKELY ((_num) >= free_vars_count)) goto vm_error_free_variable; } while (0)
+#define CHECK_FREE_VARIABLE(_num)                                       \
+  do {                                                                  \
+    if (SCM_UNLIKELY ((_num) >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))) \
+      goto vm_error_free_variable;                                      \
+  } while (0)
 #else
 #define CHECK_FREE_VARIABLE(_num)
 #endif

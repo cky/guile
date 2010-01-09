@@ -663,8 +663,8 @@
                         (emit-code #f (make-glil-lexical local? #f 'ref n)))
                        (else (error "what" x loc))))
                    free-locs)
-                  (emit-code #f (make-glil-call 'vector (length free-locs)))
-                  (emit-code #f (make-glil-call 'make-closure 2)))))))
+                  (emit-code #f (make-glil-call 'make-closure
+                                                (length free-locs))))))))
        (maybe-emit-return))
       
       ((<lambda-case> src req opt rest kw inits vars alternate body)
@@ -812,13 +812,16 @@
              ((hashq-ref allocation x)
               ;; allocating a closure
               (emit-code #f (flatten-lambda x v allocation))
-              (if (not (null? (cdr (hashq-ref allocation x))))
-                  ;; Need to make-closure first, but with a temporary #f
-                  ;; free-variables vector, so we are mutating fresh
-                  ;; closures on the heap.
-                  (begin
-                    (emit-code #f (make-glil-const #f))
-                    (emit-code #f (make-glil-call 'make-closure 2))))
+              (let ((free-locs (cdr (hashq-ref allocation x))))
+                (if (not (null? free-locs))
+                    ;; Need to make-closure first, so we have a fresh closure on
+                    ;; the heap, but with a temporary free values.
+                    (begin
+                      (for-each (lambda (loc)
+                                  (emit-code #f (make-glil-const #f)))
+                                free-locs)
+                      (emit-code #f (make-glil-call 'make-closure
+                                                    (length free-locs))))))
               (pmatch (hashq-ref (hashq-ref allocation v) self)
                 ((#t #f . ,n)
                  (emit-code src (make-glil-lexical #t #f 'set n)))
@@ -868,7 +871,6 @@
                           (emit-code #f (make-glil-lexical local? #f 'ref n)))
                          (else (error "what" x loc))))
                      free-locs)
-                    (emit-code #f (make-glil-call 'vector (length free-locs)))
                     (pmatch (hashq-ref (hashq-ref allocation v) self)
                       ((#t #f . ,n)
                        (emit-code #f (make-glil-lexical #t #f 'fix n)))

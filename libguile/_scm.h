@@ -178,7 +178,7 @@
 
 /* Major and minor versions must be single characters. */
 #define SCM_OBJCODE_MAJOR_VERSION 0
-#define SCM_OBJCODE_MINOR_VERSION N
+#define SCM_OBJCODE_MINOR_VERSION O
 #define SCM_OBJCODE_MAJOR_VERSION_STRING        \
   SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
 #define SCM_OBJCODE_MINOR_VERSION_STRING        \
