@@ -50,16 +50,19 @@ names (where that is supported), makes it impossible to later move the
 built executables and libraries to an installation location other than
 the one that was specified at build time.
 
-Another possible approach is to set CPPFLAGS and LDFLAGS before
-running configure, so that they include -I options for all the
+Another possible approach is to set CPPFLAGS and LDFLAGS on the
+configure command-line, so that they include -I options for all the
 non-standard places where you have installed header files and -L
 options for all the non-standard places where you have installed
 libraries.  This will allow configure and make to find those headers
-and libraries during the build.  The locations found will not be
-hardcoded into the build executables and libraries, so with this
-approach you will probably also need to set LD_LIBRARY_PATH
-correspondingly, to allow Guile to find the necessary libraries again
-at runtime.
+and libraries during the build.  E.g.:
+
+  ../configure [...] CPPFLAGS='-I/my/include' LDFLAGS='-L/my/lib'
+
+The locations found will not be hardcoded into the build executables and
+libraries, so with this approach you will probably also need to set
+LD_LIBRARY_PATH correspondingly, to allow Guile to find the necessary
+libraries again at runtime.
 
 
 Required External Packages ================================================
@@ -93,8 +96,8 @@ Guile requires the following external packages:
     Guile's ./configure script uses pkg-config to discover the correct
     compile and link options for libgc.  If you don't have pkg-config
     installed, or you have a version of libgc that doesn't provide a
-    .pc file, you can work around this by setting some environment
-    variables before running ./configure:
+    .pc file, you can work around this by setting some variables as
+    part of the configure command-line:
 
     - PKG_CONFIG=true
 
