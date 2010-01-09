@@ -170,7 +170,7 @@ SCM_DEFINE (scm_macro_binding, "macro-binding", 1, 0, 0,
 	    "Return the binding of the syntax transformer @var{m}, as passed to\n"
             "@code{make-syntax-transformer}. If @var{m} is a primitive syntax\n"
             "transformer, @code{#f} will be returned.")
-#define FUNC_NAME s_scm_macro_transformer
+#define FUNC_NAME s_scm_macro_binding
 {
   SCM_VALIDATE_MACRO (1, m);
   return SCM_MACRO_BINDING (m);
