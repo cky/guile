@@ -313,8 +313,8 @@ make_vm (void)
   vp->stack_size  = VM_DEFAULT_STACK_SIZE;
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
-  vp->stack_base = GC_generic_malloc (vp->stack_size * sizeof (SCM),
-				      vm_stack_gc_kind);
+  vp->stack_base = (SCM *)
+    GC_generic_malloc (vp->stack_size * sizeof (SCM), vm_stack_gc_kind);
 
   /* Keep a pointer to VP so that `vm_stack_mark ()' can know what the stack
      top is.  */
