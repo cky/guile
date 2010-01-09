@@ -109,13 +109,6 @@
           out
           (lp (frame-previous frame) (cons frame out) (1- count)))))))
 
-(define (location-string file line)
-  (cond ((and file line)
-         (format #f "~:[~5_~;~5d~]" file line))
-        (file
-         (format #f "~:[~5_~" file))
-        (else "<unknown-location>")))
-
 (define* (print-frames frames #:optional (port (current-output-port))
                        #:key (start-index (1- (length frames))) (width 72)
                        (full? #f))
@@ -124,17 +117,17 @@
         (let* ((frame (car frames))
                (source (frame-source frame))
                (file (and source
-                         (or (source:file source) "<stdin>")))
-               (line (and=> source source:line))
-               (loc  (location-string file line)))
-          (if (not (equal? file last-file))
-              (format port "~&In ~a:~&" (or file "current input")))
-          (format port "~a:~3d ~v:@y~%"
-                  loc i width (frame-call-representation frame))
+                          (or (source:file source)
+                              "current input")))
+               (line (and=> source source:line)))
+          (if (and file (not (equal? file last-file)))
+              (format port "~&In ~a:~&" file))
+          (format port "~:[~*~6_~;~5d:~]~3d ~v:@y~%" line line
+                  i width (frame-call-representation frame))
           (if full?
               (print-locals frame #:width width
                             #:per-line-prefix "     "))
-          (lp (cdr frames) (1- i) file)))))
+          (lp (cdr frames) (1- i) (or file last-file))))))
 
 
 ;;;
