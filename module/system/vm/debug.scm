@@ -367,7 +367,7 @@ With an argument, select a frame by index, then show it."
 ;; (state associated with vm ?)
 
 (define (debug-pre-unwind-handler key . args)
-  (let ((stack (make-stack #t)))
+  (let ((stack (make-stack #t debug-pre-unwind-handler)))
     (pmatch args
       ((,subr ,msg ,args . ,rest)
        (format #t "Throw to key `~a':\n" key)
@@ -375,6 +375,6 @@ With an argument, select a frame by index, then show it."
       (else
        (format #t "Throw to key `~a' with args `~s'." key args)))
     (format #t "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
-    (run-debugger (stack-ref stack 1)))
-  (save-stack 1)
+    (run-debugger (stack-ref stack 0)))
+  (save-stack debug-pre-unwind-handler)
   (apply throw key args))
