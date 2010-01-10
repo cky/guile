@@ -2649,6 +2649,9 @@ Tab character (ASCII 9).
 @item @nicode{\v}
 Vertical tab character (ASCII 11).
 
+@item @nicode{\b}
+Backspace character (ASCII 8).
+
 @item @nicode{\xHH}
 Character code given by two hexadecimal digits.  For example
 @nicode{\x7f} for an ASCII DEL (127).

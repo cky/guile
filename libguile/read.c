@@ -477,6 +477,9 @@ scm_read_string (int chr, SCM port)
             case 'v':
               c = '\v';
               break;
+            case 'b':
+              c = '\010';
+              break;
             case 'x':
               {
                 scm_t_wchar a, b;

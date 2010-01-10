@@ -221,9 +221,13 @@
   (pass-if "R5RS backslash escapes"
     (string=? "\"\\" (string #\" #\\)))
 
+  (pass-if "R6RS backslash escapes"
+    (string=? "\a\b\t\n\v\f\r"
+              (string #\alarm #\backspace #\tab #\newline #\vtab
+                      #\page #\return)))
+
   (pass-if "Guile extensions backslash escapes"
-    (string=? "\0\a\f\n\r\t\v"
-              (apply string (map integer->char '(0 7 12 10 13 9 11))))))
+    (string=? "\0" (string #\nul))))
 
 ;;
 ;; string?
