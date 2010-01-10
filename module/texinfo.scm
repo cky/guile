@@ -1,6 +1,6 @@
 ;;;; (texinfo) -- parsing of texinfo into SXML
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
@@ -426,8 +426,6 @@ Examples:
         (if (and (eq? c #\return) (eq? (peek-char port) #\newline))
             (read-char port))		; skip \n that follows \r
         line)))
-
-(define ascii->char integer->char)
 
 (define (skip-whitespace port)
   (skip-while '(#\space #\tab #\return #\newline) port))

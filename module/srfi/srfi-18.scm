@@ -1,6 +1,6 @@
 ;;; srfi-18.scm --- Multithreading support
 
-;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -105,7 +105,6 @@
 (define terminated-thread-exception (list 'terminated-thread-exception))
 (define uncaught-exception (list 'uncaught-exception))
 
-(define mutex-owners (make-weak-key-hash-table))
 (define object-names (make-weak-key-hash-table))
 (define object-specifics (make-weak-key-hash-table))
 (define thread-start-conds (make-weak-key-hash-table))

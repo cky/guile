@@ -1,6 +1,6 @@
 ;;; High-level compiler interface
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -108,11 +108,6 @@
       (begin
         (ensure-writable-dir (dirname dir))
         (mkdir dir))))
-
-(define (dsu-sort list key less)
-  (map cdr
-       (stable-sort (map (lambda (x) (cons (key x) x)) list)
-                    (lambda (x y) (less (car x) (car y))))))
 
 ;;; This function is among the trickiest I've ever written. I tried many
 ;;; variants. In the end, simple is best, of course.

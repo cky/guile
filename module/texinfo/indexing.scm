@@ -1,6 +1,6 @@
 ;;;; (texinfo indexing) -- indexing stexinfo
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -31,9 +31,6 @@
   #:use-module (sxml simple)
   #:use-module (srfi srfi-13)
   #:export (stexi-extract-index))
-
-(define (def-name def)
-  (cadr (assq 'name (cdadr def))))
 
 (define defines
   '(deftp defcv defivar deftypeivar defop deftypeop defmethod

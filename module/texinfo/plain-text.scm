@@ -1,6 +1,6 @@
 ;;;; (texinfo plain-text) -- rendering stexinfo as plain text
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -207,9 +207,6 @@
 
 (define (passthrough tag . body)
   (stexi->plain-text body))
-
-(define (ignore . args)
-  "")
 
 (define (texinfo tag args . body)
   (let ((title (chapter 'foo (arg-req 'title args))))

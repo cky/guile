@@ -738,9 +738,6 @@
   (or (= (modulo year 400) 0)
       (and (= (modulo year 4) 0) (not (= (modulo year 100) 0)))))
 
-(define (leap-year? date)
-  (priv:leap-year? (date-year date)))
-
 ;; Map 1-based month number M to number of days in the year before the
 ;; start of month M (in a non-leap year).
 (define priv:month-assoc '((1 . 0)   (2 . 31)   (3 . 59)   (4 . 90)

@@ -1,6 +1,6 @@
 ;;;; (texinfo html) -- translating stexinfo into shtml
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009 Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -210,8 +210,6 @@ name, @code{#}, and the node name."
   '(page setfilename setchapternewpage iftex ifinfo ifplaintext ifxml sp vskip
     menu ignore syncodeindex comment c dircategory direntry top shortcontents
     cindex printindex))
-(define (ignored? tag)
-  (memq tag ignore-list))
 
 (define rules
   `((% *preorder* . ,(lambda args args)) ;; Keep these around...

@@ -88,13 +88,6 @@
     (else
      (error "bad load-program form" asm))))
 
-(define (disassemble-objects objs)
-  (display "Objects:\n\n")
-  (let ((len (vector-length objs)))
-    (do ((n 0 (1+ n)))
-	((= n len) (newline))
-      (print-info n (vector-ref objs n) #f #f))))
-
 (define (disassemble-free-vars free-vars)
   (display "Free variables:\n\n")
   (let lp ((i 0))
@@ -164,12 +157,3 @@
 ;; i am format's daddy.
 (define (print-info addr info extra src)
   (format #t "~4@S    ~32S~@[;; ~1{~@?~}~]~@[~61t at ~a~]\n" addr info extra src))
-
-(define (simplify x)
-  (cond ((string? x)
-	 (cond ((string-index x #\newline) =>
-		(lambda (i) (set! x (substring x 0 i)))))
-	 (cond ((> (string-length x) 16)
-		(set! x (string-append (substring x 0 13) "..."))))))
-  x)
-
