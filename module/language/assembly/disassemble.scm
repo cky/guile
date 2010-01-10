@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -110,7 +110,7 @@
 (define (disassemble-meta meta)
   (let ((props (filter (lambda (x)
                          (not (memq (car x) *uninteresting-props*)))
-                       (cddr meta))))
+                       (cdddr meta))))
     (unless (null? props)
       (display "Properties:\n\n")
       (for-each (lambda (x) (print-info #f x #f #f)) props)
