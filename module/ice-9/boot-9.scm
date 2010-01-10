@@ -3543,12 +3543,6 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;;
 
 (begin-deprecated
- (define (feature? sym)
-   (issue-deprecation-warning
-    "`feature?' is deprecated.  Use `provided?' instead.")
-   (provided? sym)))
-
-(begin-deprecated
  (module-use! the-scm-module (resolve-interface '(ice-9 deprecated))))
 
 

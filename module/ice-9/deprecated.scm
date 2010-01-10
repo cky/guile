@@ -19,7 +19,7 @@
   #:export (substring-move-left! substring-move-right!
             dynamic-maybe-call dynamic-maybe-link
             try-module-linked try-module-dynamic-link
-            list* eval-case unmemoize-expr
+            list* feature? eval-case unmemoize-expr
             $asinh
             $acosh
             $atanh
@@ -190,6 +190,11 @@
 (define (list* . args)
   (issue-deprecation-warning "'list*' is deprecated.  Use 'cons*' instead.")
   (apply cons* args))
+
+(define (feature? sym)
+  (issue-deprecation-warning
+   "`feature?' is deprecated.  Use `provided?' instead.")
+  (provided? sym))
 
 (define-macro (eval-case . clauses)
   (issue-deprecation-warning
