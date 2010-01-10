@@ -3549,7 +3549,7 @@ module '(ice-9 q) '(make-q q-length))}."
    (provided? sym)))
 
 (begin-deprecated
- (primitive-load-path "ice-9/deprecated"))
+ (module-use! the-scm-module (resolve-interface '(ice-9 deprecated))))
 
 
 

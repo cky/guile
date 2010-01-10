@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -15,11 +15,35 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ;;;;
 
+(define-module (ice-9 deprecated)
+  #:export (substring-move-left! substring-move-right!
+            dynamic-maybe-call dynamic-maybe-link
+            try-module-linked try-module-dynamic-link
+            list* eval-case unmemoize-expr
+            $asinh
+            $acosh
+            $atanh
+            $sqrt
+            $abs
+            $exp
+            $log
+            $sin
+            $cos
+            $tan
+            $asin
+            $acos
+            $atan
+            $sinh
+            $cosh
+            $tanh
+            closure?))
+
 ;;;; Deprecated definitions.
 
 (define substring-move-left! substring-move!)
 (define substring-move-right! substring-move!)
 
+
 ;; This method of dynamically linking Guile Extensions is deprecated.
 ;; Use `load-extension' explicitly from Scheme code instead.
 
@@ -162,12 +186,10 @@
   (and (find-and-link-dynamic-module module-name)
        (init-dynamic-module module-name)))
 
+
 (define (list* . args)
   (issue-deprecation-warning "'list*' is deprecated.  Use 'cons*' instead.")
   (apply cons* args))
-
-;; The strange prototype system for uniform arrays has been
-;; deprecated.
 
 (define-macro (eval-case . clauses)
   (issue-deprecation-warning
@@ -186,6 +208,8 @@
    (else
     `(begin))))
 
+;; The strange prototype system for uniform arrays has been
+;; deprecated.
 (read-hash-extend
  #\y
  (lambda (c port)
@@ -224,6 +248,7 @@
 (define ($sinh z) (sinh z))
 (define ($cosh z) (cosh z))
 (define ($tanh z) (tanh z))
+
 (define (closure? x)
   (issue-deprecation-warning
    "`closure?' is deprecated. Use `procedure?' instead.")
