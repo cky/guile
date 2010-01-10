@@ -1,6 +1,6 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001, 2005, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2005, 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -74,16 +74,21 @@
                          (frame-instruction-pointer frame))
     ;; case 1
     => (lambda (formals)
-         (let lp ((formals formals))
+         (let lp ((formals formals) (i 0))
            (pmatch formals
              (() '())
              ((,x . ,rest) (guard (symbol? x))
-              (cons (frame-binding-ref frame x) (lp rest)))
-             ((,x . ,rest)
-              ;; could be a keyword
-              (cons x (lp rest)))
+              (cons (frame-binding-ref frame x) (lp rest (1+ i))))
+             ((,x . ,rest) (guard (keyword? x))
+              (cons x (lp rest i)))
+             ((,x . ,rest) (guard (not x) (< i (frame-num-locals frame)))
+              ;; an arg, but we don't know the name. ref by index.
+              (cons (frame-local-ref frame i) (lp rest (1+ i))))
              (,rest (guard (symbol? rest))
               (frame-binding-ref frame rest))
+             (,rest (guard (not rest) (< i (frame-num-locals frame)))
+              ;; again, no name.
+              (frame-local-ref frame i))
              ;; let's not error here, as we are called during
              ;; backtraces...
              (else '???)))))
