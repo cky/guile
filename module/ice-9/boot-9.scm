@@ -3568,4 +3568,8 @@ module '(ice-9 q) '(make-q q-length))}."
 (define-module (guile-user)
   #:autoload (system base compile) (compile))
 
+;; Remain in the `(guile)' module at compilation-time so that the
+;; `-Wunused-toplevel' warning works as expected.
+(eval-when (compile) (set-current-module the-root-module))
+
 ;;; boot-9.scm ends here
