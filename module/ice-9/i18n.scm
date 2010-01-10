@@ -1,6 +1,6 @@
-;;;; i18n.scm --- internationalization support
+;;;; i18n.scm --- internationalization support    -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludo@gnu.org>
+;;; Author: Ludovic CourtÃ¨s <ludo@gnu.org>
 
 ;;; Commentary:
 ;;;
@@ -413,10 +413,5 @@ number of fractional digits to be displayed."
   NOEXPR               "^[nN]")
 
 ;; `YESSTR' and `NOSTR' are considered deprecated so we don't provide them.
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
 
 ;;; i18n.scm ends here

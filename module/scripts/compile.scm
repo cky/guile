@@ -1,6 +1,6 @@
-;;; Compile --- Command-line Guile Scheme compiler
+;;; Compile --- Command-line Guile Scheme compiler  -*- coding: iso-8859-1 -*-
 
-;; Copyright 2005,2008,2009 Free Software Foundation, Inc.
+;; Copyright 2005,2008,2009,2010 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -177,7 +177,3 @@ Report bugs to <~A>.~%"
               input-files)))
 
 (define main compile)
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
