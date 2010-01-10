@@ -536,10 +536,23 @@ static const char *const scm_r5rs_charnames[] = {
 };
 
 static const scm_t_uint32 const scm_r5rs_charnums[] = {
-  0x20, 0x0A
+  0x20, 0x0a
 };
 
 #define SCM_N_R5RS_CHARNAMES (sizeof (scm_r5rs_charnames) / sizeof (char *))
+
+static const char *const scm_r6rs_charnames[] = {
+  "nul", "alarm", "backspace", "tab", "linefeed", "vtab", "page",
+  "return", "esc", "delete"
+  /* 'space' and 'newline' are already included from the R5RS list.  */
+};
+
+static const scm_t_uint32 const scm_r6rs_charnums[] = {
+  0x00, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
+  0x0d, 0x1b, 0x7f
+};
+
+#define SCM_N_R6RS_CHARNAMES (sizeof (scm_r6rs_charnames) / sizeof (char *))
 
 /* The abbreviated names for control characters.  */
 static const char *const scm_C0_control_charnames[] = {
@@ -562,11 +575,11 @@ static const scm_t_uint32 const scm_C0_control_charnums[] = {
 #define SCM_N_C0_CONTROL_CHARNAMES (sizeof (scm_C0_control_charnames) / sizeof (char *))
 
 static const char *const scm_alt_charnames[] = {
-  "null", "backspace", "tab", "nl", "newline", "np", "page", "return",
+  "null", "nl", "np"
 };
 
 static const scm_t_uint32 const scm_alt_charnums[] = {
-  0x00, 0x08, 0x09, 0x0a, 0x0a, 0x0c, 0x0c, 0x0d
+  0x00, 0x0a, 0x0c
 };
 
 #define SCM_N_ALT_CHARNAMES (sizeof (scm_alt_charnames) / sizeof (char *))
@@ -582,6 +595,10 @@ scm_i_charname (SCM chr)
   for (c = 0; c < SCM_N_R5RS_CHARNAMES; c++)
     if (scm_r5rs_charnums[c] == i)
       return scm_r5rs_charnames[c];
+
+  for (c = 0; c < SCM_N_R6RS_CHARNAMES; c++)
+    if (scm_r6rs_charnums[c] == i)
+      return scm_r6rs_charnames[c];
 
   for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if (scm_C0_control_charnums[c] == i)
@@ -602,14 +619,21 @@ scm_i_charname_to_char (const char *charname, size_t charname_len)
 {
   size_t c;
 
-  /* The R5RS charnames.  These are supposed to be case
-     insensitive. */
+  /* The R5RS charnames.  These are supposed to be case insensitive. */
   for (c = 0; c < SCM_N_R5RS_CHARNAMES; c++)
     if ((strlen (scm_r5rs_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_r5rs_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_r5rs_charnums[c]);
 
-  /* Then come the controls.  These are not case sensitive.  */
+  /* The R6RS charnames.  R6RS says that these should be case-sensitive.  They
+     are left as case-insensitive to avoid confusion.  */
+  for (c = 0; c < SCM_N_R6RS_CHARNAMES; c++)
+    if ((strlen (scm_r6rs_charnames[c]) == charname_len)
+	&& (!strncasecmp (scm_r6rs_charnames[c], charname, charname_len)))
+      return SCM_MAKE_CHAR (scm_r6rs_charnums[c]);
+
+  /* Then come the controls.  By Guile convention, these are not case
+     sensitive.  */
   for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if ((strlen (scm_C0_control_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_C0_control_charnames[c], charname, charname_len)))

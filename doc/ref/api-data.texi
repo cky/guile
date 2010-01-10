@@ -1688,11 +1688,28 @@ the backslash of @code{#\}.
 Many of the non-printing characters, such as whitespace characters and
 control characters, also have names.
 
-The most commonly used non-printing characters are space and
-newline.  Their character names are @code{#\space} and
-@code{#\newline}.  There are also names for all of the ``C0 control
-characters'' (those with code points below 32).  The following table
-describes the names for each character.
+The most commonly used non-printing characters have long character
+names, described in the table below.
+
+@multitable {@code{#\backspace}} {Preferred}
+@item Character Name @tab Codepoint
+@item @code{#\nul} @tab U+0000
+@item @code{#\alarm} @tab u+0007
+@item @code{#\backspace} @tab U+0008
+@item @code{#\tab} @tab U+0009
+@item @code{#\linefeed} @tab U+000A
+@item @code{#\newline} @tab U+000A
+@item @code{#\vtab} @tab U+000B
+@item @code{#\page} @tab U+000C
+@item @code{#\return} @tab U+000D
+@item @code{#\esc} @tab U+001B
+@item @code{#\space} @tab U+0020
+@item @code{#\delete} @tab U+007F
+@end multitable
+
+There are also short names for all of the ``C0 control characters''
+(those with code points below 32).  The following table lists the short
+name for each character.
 
 @multitable @columnfractions .25 .25 .25 .25
 @item 0 = @code{#\nul}
@@ -1730,24 +1747,16 @@ describes the names for each character.
 @item 32 = @code{#\sp}
 @end multitable
 
-The ``delete'' character (code point U+007F) may be referred to with the
-name @code{#\del}.
+The short name for the ``delete'' character (code point U+007F) is
+@code{#\del}.
 
-One might note that the space character has two names --
-@code{#\space} and @code{#\sp} -- as does the newline character.
-Several other non-printing characters have more than one name, for the
-sake of compatibility with previous versions.
+There are also a few alternative names left over for compatibility with
+previous versions of Guile.
 
 @multitable {@code{#\backspace}} {Preferred}
 @item Alternate @tab Standard
-@item @code{#\sp} @tab @code{#\space}
 @item @code{#\nl} @tab @code{#\newline}
-@item @code{#\lf} @tab @code{#\newline}
-@item @code{#\tab} @tab @code{#\ht}
-@item @code{#\backspace} @tab @code{#\bs}
-@item @code{#\return} @tab @code{#\cr}
-@item @code{#\page} @tab @code{#\ff}
-@item @code{#\np} @tab @code{#\ff}
+@item @code{#\np} @tab @code{#\page}
 @item @code{#\null} @tab @code{#\nul}
 @end multitable
 

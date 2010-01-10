@@ -258,6 +258,24 @@
 
   (with-test-prefix "charnames"
 
+    (pass-if "R5RS character names"
+      (and (eqv? #\space (integer->char #x20))
+           (eqv? #\newline (integer->char #x0A))))
+
+    (pass-if "R6RS character names"
+      (and (eqv? #\nul (integer->char #x00))
+           (eqv? #\alarm (integer->char #x07))
+           (eqv? #\backspace (integer->char #x08))
+           (eqv? #\tab (integer->char #x09))
+           (eqv? #\linefeed (integer->char #x0A))
+           (eqv? #\newline (integer->char #x0A))
+           (eqv? #\vtab (integer->char #x0B))
+           (eqv? #\page (integer->char #x0C))
+           (eqv? #\return (integer->char #x0D))
+           (eqv? #\esc (integer->char #x1B))
+           (eqv? #\space (integer->char #x20))
+           (eqv? #\delete (integer->char #x7F))))
+
     (pass-if "R5RS character names are case insensitive"
       (and (eqv? #\space #\ )
            (eqv? #\SPACE #\ )
