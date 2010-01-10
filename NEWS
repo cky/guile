@@ -10,9 +10,192 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.7 (since the 1.9.6 prerelease):
 
+** Complete support for version information in Guile's `module' form
+    
+Guile modules now have a `#:version' field. They may be loaded by
+version as well. See "R6RS Version References", "General Information
+about Modules", "Using Guile Modules", and "Creating Guile Modules" in
+the manual for more information.
+
+** Support for renaming bindings on module export
+    
+Wherever Guile accepts a symbol as an argument to specify a binding to
+export, it now also accepts a pair of symbols, indicating that a binding
+should be renamed on export. See "Creating Guile Modules" in the manual
+for more information.
+
+** Imported statprof, SSAX, and texinfo modules from Guile-Lib
+    
+The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
+toolkit from Guile-Lib have been imported into Guile proper. See
+"Standard Library" in the manual for more details.
+
+** Function profiling and tracing at the REPL
+    
+The `,profile FORM' REPL meta-command can now be used to statistically
+profile execution of a form, to see which functions are taking the most
+time. See `,help profile' for more information.
+
+Similarly, `,trace FORM' traces all function applications that occur
+during the execution of `FORM'. See `,help trace' for more information.
+
+** New debugger
+
+By default, if an exception is raised at the REPL and not caught by user
+code, Guile will drop the user into a debugger. The user may request a
+backtrace, inspect frames, or continue raising the exception. Full
+documentation is available from within the debugger.
+
+** New function, `truncated-print', with `format' support
+
+`(ice-9 pretty-print)' now exports `truncated-print', a printer that
+will ensure that the output stays within a certain width, truncating the
+output in what is hopefully an intelligent manner. See the manual for
+more details.
+
+There is a new `format' specifier, `~@y', for doing a truncated
+print (as opposed to `~y', which does a pretty-print). See the `format'
+documentation for more details.
+
+** Primitive procedures are now VM trampoline procedures
+
+Guile's old evaluator used to have special cases for applying "gsubrs",
+primitive procedures with specified numbers of required, optional, and
+rest arguments. Now, however, Guile represents gsubrs as normal VM
+procedures, with appropriate bytecode to parse out the correct number of
+arguments, including optional and rest arguments, and then with a
+special bytecode to apply the gsubr.
+
+This allows primitive procedures to appear on the VM stack, allowing
+them to be accurately counted in profiles. Also they now have more
+debugging information attached to them -- their number of arguments, for
+example. In addition, the VM can completely inline the application
+mechanics, allowing for faster primitive calls.
+
+However there are some changes on the C level. There is no more
+`scm_tc7_gsubr' or `scm_tcs_subrs' typecode for primitive procedures, as
+they are just VM procedures. Likewise the macros `SCM_GSUBR_TYPE',
+`SCM_GSUBR_MAKTYPE', `SCM_GSUBR_REQ', `SCM_GSUBR_OPT', and
+`SCM_GSUBR_REST' are gone, as are `SCM_SUBR_META_INFO', `SCM_SUBR_PROPS'
+`SCM_SET_SUBR_GENERIC_LOC', and `SCM_SUBR_ARITY_TO_TYPE'.
+
+Perhaps more significantly, `scm_c_make_subr',
+`scm_c_make_subr_with_generic', `scm_c_define_subr', and
+`scm_c_define_subr_with_generic'. They all operated on subr typecodes,
+and there are no more subr typecodes. Use the scm_c_make_gsubr family
+instead.
+
+Normal users of gsubrs should not be affected, though, as the
+scm_c_make_gsubr family still is the correct way to create primitive
+procedures.
+
+** SRFI-4 vectors reimplemented in terms of R6RS bytevectors
+
+Guile now implements SRFI-4 vectors using bytevectors. Often when you
+have a numeric vector, you end up wanting to write its bytes somewhere,
+or have access to the underlying bytes, or read in bytes from somewhere
+else. Bytevectors are very good at this sort of thing. But the SRFI-4
+APIs are nicer to use when doing number-crunching, because they are
+addressed by element and not by byte.
+
+So as a compromise, Guile allows all bytevector functions to operate on
+numeric vectors. They address the underlying bytes in the native
+endianness, as one would expect.
+
+Following the same reasoning, that it's just bytes underneath, Guile
+also allows uniform vectors of a given type to be accessed as if they
+were of any type. One can fill a u32vector, and access its elements with
+u8vector-ref. One can use f64vector-ref on bytevectors. It's all the
+same to Guile.
+
+In this way, uniform numeric vectors may be written to and read from
+input/output ports using the procedures that operate on bytevectors.
+
+Calls to SRFI-4 accessors (ref and set functions) from Scheme are now
+inlined to the VM instructions for bytevector access.
+
+See "SRFI-4" in the manual, for more information.
+
+** Nonstandard SRFI-4 procedures now available from `(srfi srfi-4 gnu)'
+
+Guile's `(srfi srfi-4)' now only exports those srfi-4 procedures that
+are part of the standard. Complex uniform vectors and the
+`any->FOOvector' family are now available only from `(srfi srfi-4 gnu)'.
+
+Guile's default environment imports `(srfi srfi-4)', and probably should
+import `(srfi srfi-4 gnu)' as well.
+
+See "SRFI-4 Extensions" in the manual, for more information.
+
+** Unicode: String normalization, general categories, title case
+    
+Guile now exports the Unicode string normalization functions
+`string-normalize-nfc', `string-normalize-nfd', `string-normalize-nfkc',
+and `string-normalize-nfkd'. See "String Comparison" in the manual for
+more information. See "Characters" for information on the new
+`char-general-category', and "Character Case Mapping" for
+`char-titlecase', `char-locale-titlecase', and
+`string-locale-titlecase'.
+    
+** Faster access to the free variables of a closure
+
+Guile's old garbage collector limited the size of Scheme objects to be 2
+or 4 words. Now with the BDW collector, Guile can allocate
+variable-sized objects, allowing storage of the free variables of a
+closure inline to the closure itself.
+
 ** New primitive `getsid'
 
 Scheme binding for the `getsid' C library call.
+
+** Changed invocation mechanics of applicable SMOBs
+
+Guile's old evaluator used to have special cases for applying SMOB
+objects. Now, with the VM, when Guile sees a SMOB, it looks up a VM
+trampoline procedure for it, and use the normal mechanics to apply the
+trampoline. This simplifies procedure application in the normal,
+non-SMOB case.
+
+The upshot is that the mechanics used to apply a SMOB are different from
+1.8. Descriptors no longer have `apply_0', `apply_1', `apply_2', and
+`apply_3' functions, and the macros SCM_SMOB_APPLY_0 and friends are now
+deprecated. Just use the scm_call_0 family of procedures.
+
+** Remove deprecated array C interfaces
+
+Removed the deprecated array functions `scm_i_arrayp',
+`scm_i_array_ndim', `scm_i_array_mem', `scm_i_array_v',
+`scm_i_array_base', `scm_i_array_dims', and the deprecated macros
+`SCM_ARRAYP', `SCM_ARRAY_NDIM', `SCM_ARRAY_CONTP', `SCM_ARRAY_MEM',
+`SCM_ARRAY_V', `SCM_ARRAY_BASE', and `SCM_ARRAY_DIMS'.
+
+** String encoding errors throw to `encoding-error' instead of `misc-error'
+    
+** Keyword argument errors uniformly throw to `keyword-argument-error'
+
+** Remove unused snarf macros
+    
+`SCM_DEFINE1', `SCM_PRIMITIVE_GENERIC_1', `SCM_PROC1, and `SCM_GPROC1'
+are no more. Use SCM_DEFINE or SCM_PRIMITIVE_GENERIC instead.
+
+** Add foreign value wrapper
+    
+Guile now has a datatype for aliasing "foreign" values, such as native
+long values. This should be useful for making a proper foreign function
+interface. Interested hackers should see libguile/foreign.h.
+
+** New functions: `scm_call_n', `scm_c_run_hookn'
+    
+`scm_call_n' applies to apply a function to an array of arguments.
+`scm_c_run_hookn' runs a hook with an array of arguments.
+
+** Load path change: search in version-specific paths before site paths
+    
+When looking for a module, Guile now searches first in Guile's
+version-specific path (the library path), *then* in the site dir. This
+allows Guile's copy of SSAX to override any Guile-Lib copy the user has
+installed. Also it should cut the number of `stat' system calls by half,
+in the common case.
 
 ** And of course, the usual collection of bugfixes
  
@@ -29,6 +212,12 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(rnrs bytevector)', the R6RS bytevector API
 ** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
+
+** Imported statprof, SSAX, and texinfo modules from Guile-Lib
+    
+The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
+toolkit from Guile-Lib have been imported into Guile proper. See
+"Standard Library" in the manual for more details.
 
 * Changes to the stand-alone interpreter
 
@@ -57,6 +246,22 @@ Running Guile with no arguments drops the user into the new REPL. While
 it is self-documenting to an extent, the new REPL has not yet been
 documented in the manual. This will be fixed before 2.0.
 
+** Function profiling and tracing at the REPL
+    
+The `,profile FORM' REPL meta-command can now be used to statistically
+profile execution of a form, to see which functions are taking the most
+time. See `,help profile' for more information.
+
+Similarly, `,trace FORM' traces all function applications that occur
+during the execution of `FORM'. See `,help trace' for more information.
+
+** New debugger
+
+By default, if an exception is raised at the REPL and not caught by user
+code, Guile will drop the user into a debugger. The user may request a
+backtrace, inspect frames, or continue raising the exception. Full
+documentation is available from within the debugger.
+
 ** New `guile-tools' commands: `compile', `disassemble'
 
 Pass the `--help' command-line option to these commands for more
@@ -72,6 +277,15 @@ include `/path/to/lib'.
 
 Backtraces may now be disclosed with the keyboard in addition to the
 mouse.
+
+** Load path change: search in version-specific paths before site paths
+    
+When looking for a module, Guile now searches first in Guile's
+version-specific path (the library path), *then* in the site dir. This
+allows Guile's copy of SSAX to override any Guile-Lib copy the user has
+installed. Also it should cut the number of `stat' system calls by half,
+in the common case.
+
 
 * Changes to Scheme functions and syntax
 
@@ -191,11 +405,12 @@ combining arity and formals. For example:
 Additionally, `module-commentary' is now publically exported from
 `(ice-9 session).
 
-** Deprecated: `procedure->memoizing-macro', `procedure->syntax'
+** Removed: `procedure->memoizing-macro', `procedure->syntax'
 
-These procedures will not work with syncase expansion, and indeed are
-not used in the normal course of Guile. They are still used by the old
-Emacs Lisp support, however.
+These procedures created primitive fexprs for the old evaluator, and are
+no longer supported. If you feel that you need these functions, you
+probably need to write your own metacircular evaluator (which will
+probably be as fast as Guile's, anyway).
 
 ** New language: ECMAScript
 
@@ -245,11 +460,19 @@ like this works now:
 It used to be you had to export `helper' from `(foo)' as well.
 Thankfully, this has been fixed.
 
-** New function, `procedure-module'
+** Complete support for version information in Guile's `module' form
+    
+Guile modules now have a `#:version' field. They may be loaded by
+version as well. See "R6RS Version References", "General Information
+about Modules", "Using Guile Modules", and "Creating Guile Modules" in
+the manual for more information.
 
-While useful on its own, `procedure-module' is used by psyntax on syntax
-transformers to determine the module in which to scope introduced
-identifiers.
+** Support for renaming bindings on module export
+    
+Wherever Guile accepts a symbol as an argument to specify a binding to
+export, it now also accepts a pair of symbols, indicating that a binding
+should be renamed on export. See "Creating Guile Modules" in the manual
+for more information.
 
 ** `eval-case' has been deprecated, and replaced by `eval-when'.
 
@@ -582,6 +805,55 @@ compatibility purposes. No semantic change has been made (we hope).
 Optional and keyword arguments now dispatch via special VM operations,
 without the need to cons rest arguments, making them very fast.
 
+** New function, `truncated-print', with `format' support
+
+`(ice-9 pretty-print)' now exports `truncated-print', a printer that
+will ensure that the output stays within a certain width, truncating the
+output in what is hopefully an intelligent manner. See the manual for
+more details.
+
+There is a new `format' specifier, `~@y', for doing a truncated
+print (as opposed to `~y', which does a pretty-print). See the `format'
+documentation for more details.
+
+** SRFI-4 vectors reimplemented in terms of R6RS bytevectors
+
+Guile now implements SRFI-4 vectors using bytevectors. Often when you
+have a numeric vector, you end up wanting to write its bytes somewhere,
+or have access to the underlying bytes, or read in bytes from somewhere
+else. Bytevectors are very good at this sort of thing. But the SRFI-4
+APIs are nicer to use when doing number-crunching, because they are
+addressed by element and not by byte.
+
+So as a compromise, Guile allows all bytevector functions to operate on
+numeric vectors. They address the underlying bytes in the native
+endianness, as one would expect.
+
+Following the same reasoning, that it's just bytes underneath, Guile
+also allows uniform vectors of a given type to be accessed as if they
+were of any type. One can fill a u32vector, and access its elements with
+u8vector-ref. One can use f64vector-ref on bytevectors. It's all the
+same to Guile.
+
+In this way, uniform numeric vectors may be written to and read from
+input/output ports using the procedures that operate on bytevectors.
+
+Calls to SRFI-4 accessors (ref and set functions) from Scheme are now
+inlined to the VM instructions for bytevector access.
+
+See "SRFI-4" in the manual, for more information.
+
+** Nonstandard SRFI-4 procedures now available from `(srfi srfi-4 gnu)'
+
+Guile's `(srfi srfi-4)' now only exports those srfi-4 procedures that
+are part of the standard. Complex uniform vectors and the
+`any->FOOvector' family are now available only from `(srfi srfi-4 gnu)'.
+
+Guile's default environment imports `(srfi srfi-4)', and probably should
+import `(srfi srfi-4 gnu)' as well.
+
+See "SRFI-4 Extensions" in the manual, for more information.
+
 ** New syntax: include-from-path.
 
 `include-from-path' is like `include', except it looks for its file in
@@ -675,12 +947,6 @@ invocation.
 Guile can also warn when you pass the wrong number of arguments to a
 procedure, with -Warity-mismatch, or `arity-mismatch' in the
 `#:warnings' as above.
-
-** New macro type: syncase-macro
-
-XXX Need to decide whether to document this for 2.0, probably should:
-make-syncase-macro, make-extended-syncase-macro, macro-type,
-syncase-macro-type, syncase-macro-binding
 
 ** A new `memoize-symbol' evaluator trap has been added.
 
@@ -864,7 +1130,7 @@ procedure are now just regular VM closures. As a result, there is a
 newly free tc3, and a number of removed macros. See the ChangeLog for
 details.
 
-** Simplify representation of primitive procedures
+** Primitive procedures are now VM trampoline procedures
 
 It used to be that there were something like 12 different typecodes
 allocated to primitive procedures, each with its own calling convention.
@@ -872,6 +1138,60 @@ Now there is only one, the gsubr. This may affect user code if you were
 defining a procedure using scm_c_make_subr rather scm_c_make_gsubr. The
 solution is to switch to use scm_c_make_gsubr. This solution works well
 both with the old 1.8 and and with the current 1.9 branch.
+
+Guile's old evaluator used to have special cases for applying "gsubrs",
+primitive procedures with specified numbers of required, optional, and
+rest arguments. Now, however, Guile represents gsubrs as normal VM
+procedures, with appropriate bytecode to parse out the correct number of
+arguments, including optional and rest arguments, and then with a
+special bytecode to apply the gsubr.
+
+This allows primitive procedures to appear on the VM stack, allowing
+them to be accurately counted in profiles. Also they now have more
+debugging information attached to them -- their number of arguments, for
+example. In addition, the VM can completely inline the application
+mechanics, allowing for faster primitive calls.
+
+However there are some changes on the C level. There is no more
+`scm_tc7_gsubr' or `scm_tcs_subrs' typecode for primitive procedures, as
+they are just VM procedures. Likewise the macros `SCM_GSUBR_TYPE',
+`SCM_GSUBR_MAKTYPE', `SCM_GSUBR_REQ', `SCM_GSUBR_OPT', and
+`SCM_GSUBR_REST' are gone, as are `SCM_SUBR_META_INFO', `SCM_SUBR_PROPS'
+`SCM_SET_SUBR_GENERIC_LOC', and `SCM_SUBR_ARITY_TO_TYPE'.
+
+Perhaps more significantly, `scm_c_make_subr',
+`scm_c_make_subr_with_generic', `scm_c_define_subr', and
+`scm_c_define_subr_with_generic'. They all operated on subr typecodes,
+and there are no more subr typecodes. Use the scm_c_make_gsubr family
+instead.
+
+Normal users of gsubrs should not be affected, though, as the
+scm_c_make_gsubr family still is the correct way to create primitive
+procedures.
+
+** Remove deprecated array C interfaces
+
+Removed the deprecated array functions `scm_i_arrayp',
+`scm_i_array_ndim', `scm_i_array_mem', `scm_i_array_v',
+`scm_i_array_base', `scm_i_array_dims', and the deprecated macros
+`SCM_ARRAYP', `SCM_ARRAY_NDIM', `SCM_ARRAY_CONTP', `SCM_ARRAY_MEM',
+`SCM_ARRAY_V', `SCM_ARRAY_BASE', and `SCM_ARRAY_DIMS'.
+
+** Remove unused snarf macros
+    
+`SCM_DEFINE1', `SCM_PRIMITIVE_GENERIC_1', `SCM_PROC1, and `SCM_GPROC1'
+are no more. Use SCM_DEFINE or SCM_PRIMITIVE_GENERIC instead.
+
+** Add foreign value wrapper
+    
+Guile now has a datatype for aliasing "foreign" values, such as native
+long values. This should be useful for making a proper foreign function
+interface. Interested hackers should see libguile/foreign.h.
+
+** New functions: `scm_call_n', `scm_c_run_hookn'
+    
+`scm_call_n' applies to apply a function to an array of arguments.
+`scm_c_run_hookn' runs a hook with an array of arguments.
 
 ** Some SMOB types changed to have static typecodes
 
@@ -886,6 +1206,19 @@ the code meant SCM_SMOB_DATA_2(x); user code will need similar changes
 in the future. Code accessing SMOBs using SCM_CELL macros was never
 correct, but until now things still worked. Users should be aware of
 such changes.
+
+** Changed invocation mechanics of applicable SMOBs
+
+Guile's old evaluator used to have special cases for applying SMOB
+objects. Now, with the VM, when Guile sees a SMOB, it looks up a VM
+trampoline procedure for it, and use the normal mechanics to apply the
+trampoline. This simplifies procedure application in the normal,
+non-SMOB case.
+
+The upshot is that the mechanics used to apply a SMOB are different from
+1.8. Descriptors no longer have `apply_0', `apply_1', `apply_2', and
+`apply_3' functions, and the macros SCM_SMOB_APPLY_0 and friends are now
+deprecated. Just use the scm_call_0 family of procedures.
 
 ** New C function: scm_module_public_interface
 
