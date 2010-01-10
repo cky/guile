@@ -1,6 +1,6 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -43,15 +43,8 @@
   :use-module (srfi srfi-8)
   :use-module (srfi srfi-9)
   :autoload   (ice-9 rdelim) (read-line)
-  :use-module (ice-9 i18n))
-
-(begin-deprecated
- ;; Prevent `export' from re-exporting core bindings.  This behaviour
- ;; of `export' is deprecated and will disappear in one of the next
- ;; releases.
- (define current-time #f))
-
-(export ;; Constants
+  :use-module (ice-9 i18n)
+  :export (;; Constants
            time-duration
            time-monotonic
            time-process
@@ -116,6 +109,8 @@
            modified-julian-day->time-tai
            modified-julian-day->time-utc
            time-monotonic->date
+           time-monotonic->julian-day
+           time-monotonic->modified-julian-day
            time-monotonic->time-tai
            time-monotonic->time-tai!
            time-monotonic->time-utc
@@ -136,7 +131,7 @@
            time-utc->time-tai!
            ;; Date to string/string to date converters.
            date->string
-           string->date)
+           string->date))
 
 (cond-expand-provide (current-module) '(srfi-19))
 
