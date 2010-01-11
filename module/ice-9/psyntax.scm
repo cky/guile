@@ -2783,6 +2783,9 @@
               #'(e x (... ...)))))))))
 
 (define-syntax define*
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (define id (lambda* args b0 b1 ...)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (id . args) b0 b1 ...)
+       #'(define id (lambda* args b0 b1 ...)))
+      ((_ id val) (identifier? #'x)
+       #'(define id val)))))
