@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -274,14 +274,19 @@ OOP_SOURCES = \
   oop/goops/accessors.scm \
   oop/goops/simple.scm
 
-SYSTEM_SOURCES = \
-  system/vm/debug.scm system/vm/frame.scm system/vm/instruction.scm	\
-  system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
-  system/vm/trace.scm system/vm/vm.scm					\
-									\
-  system/xref.scm							\
-									\
-  system/repl/repl.scm system/repl/common.scm				\
+SYSTEM_SOURCES =				\
+  system/vm/inspect.scm				\
+  system/vm/debug.scm				\
+  system/vm/frame.scm				\
+  system/vm/instruction.scm			\
+  system/vm/objcode.scm				\
+  system/vm/profile.scm				\
+  system/vm/program.scm				\
+  system/vm/trace.scm				\
+  system/vm/vm.scm				\
+  system/xref.scm				\
+  system/repl/repl.scm				\
+  system/repl/common.scm			\
   system/repl/command.scm
 
 LIB_SOURCES =					\
