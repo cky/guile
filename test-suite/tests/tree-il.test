@@ -661,10 +661,6 @@
                                       #:opts %opts-w-unused-toplevel))))))
 
      (pass-if "unused but define-public"
-       ;; FIXME: We don't handle this case for now because `define-public'
-       ;; expands to a relatively complex statement that's hard to match.
-       (throw 'unresolved)
-
        (null? (call-with-warnings
                 (lambda ()
                   (compile '(define-public foo 2)

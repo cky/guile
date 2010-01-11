@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -3119,14 +3119,16 @@ module '(ice-9 q) '(make-q q-length))}."
               names)))
 
 (defmacro export names
-  `(call-with-deferred-observers
-    (lambda ()
-      (module-export! (current-module) ',names))))
+  `(eval-when (eval load compile)
+     (call-with-deferred-observers
+      (lambda ()
+        (module-export! (current-module) ',names)))))
 
 (defmacro re-export names
-  `(call-with-deferred-observers
-    (lambda ()
-      (module-re-export! (current-module) ',names))))
+  `(eval-when (eval load compile)
+     (call-with-deferred-observers
+       (lambda ()
+         (module-re-export! (current-module) ',names)))))
 
 (defmacro export-syntax names
   `(export ,@names))
