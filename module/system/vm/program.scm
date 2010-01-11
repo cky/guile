@@ -192,13 +192,14 @@
       . ,rest)))
 
 (define (write-program prog port)
-  (format port "#<program ~a~a>"
+  (format port "#<procedure ~a~a>"
           (or (program-name prog)
               (and=> (program-source prog 0)
                      (lambda (s)
                        (format #f "~a at ~a:~a:~a"
                                (number->string (object-address prog) 16)
-                               (or (source:file s) "<unknown port>")
+                               (or (source:file s)
+                                   (if s "<current input>" "<unknown port>"))
                                (source:line s) (source:column s))))
               (number->string (object-address prog) 16))
           (let ((arities (program-arities prog)))
