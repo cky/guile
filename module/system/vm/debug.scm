@@ -26,6 +26,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 pretty-print)
   #:use-module (ice-9 format)
+  #:use-module ((system vm inspect) #:select ((inspect . %inspect)))
   #:use-module (system vm program)
   #:export (run-debugger debug-pre-unwind-handler))
 
@@ -161,7 +162,8 @@
   (let ((top frame)
         (cur frame)
         (index 0)
-        (level (debugger-level db)))
+        (level (debugger-level db))
+        (last #f))
     (define (frame-index frame)
       (let lp ((idx 0) (walk top))
         (if (= (frame-return-address frame) (frame-return-address walk))
@@ -203,6 +205,7 @@
       (define (print* . vals)
         (define (print x)
           (run-hook before-print-hook x)
+          (set! last x)
           (pretty-print x))
         (if (and (pair? vals)
                  (not (and (null? (cdr vals))
@@ -266,6 +269,14 @@ With an argument, select a frame by index, then show it."
             (format #t "No such frame.~%"))))
          (else (show-frame))))
 
+      (define-command ((commands procedure proc))
+        "Print the procedure for the selected frame."
+        (print* (frame-procedure cur)))
+      
+      (define-command ((commands inspect i))
+        "Launch the inspector on the last-printed object."
+        (%inspect last))
+      
       (define-command ((commands locals))
         "Show locally-bound variables in the selected frame."
         (print-locals cur))
