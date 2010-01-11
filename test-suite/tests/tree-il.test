@@ -554,6 +554,9 @@
 (define %opts-w-unused
   '(#:warnings (unused-variable)))
 
+(define %opts-w-unused-toplevel
+  '(#:warnings (unused-toplevel)))
+
 (define %opts-w-unbound
   '(#:warnings (unbound-variable)))
 
@@ -614,6 +617,111 @@
                 (lambda ()
                   (compile '(lambda (x y z) #t)
                            #:opts %opts-w-unused))))))
+
+   (with-test-prefix "unused-toplevel"
+
+     (pass-if "used after definition"
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string
+                             "(define foo 2) foo")))
+                    (read-and-compile in
+                                      #:to 'assembly
+                                      #:opts %opts-w-unused-toplevel))))))
+
+     (pass-if "used before definition"
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string
+                             "(define (bar) foo) (define foo 2) (bar)")))
+                    (read-and-compile in
+                                      #:to 'assembly
+                                      #:opts %opts-w-unused-toplevel))))))
+
+     (pass-if "unused but public"
+       (let ((in (open-input-string
+                  "(define-module (test-suite tree-il x) #:export (bar))
+                   (define (bar) #t)")))
+         (null? (call-with-warnings
+                  (lambda ()
+                    (read-and-compile in
+                                      #:to 'assembly
+                                      #:opts %opts-w-unused-toplevel))))))
+
+     (pass-if "unused but public (more)"
+       (let ((in (open-input-string
+                  "(define-module (test-suite tree-il x) #:export (bar))
+                   (define (bar) (baz))
+                   (define (baz) (foo))
+                   (define (foo) #t)")))
+         (null? (call-with-warnings
+                  (lambda ()
+                    (read-and-compile in
+                                      #:to 'assembly
+                                      #:opts %opts-w-unused-toplevel))))))
+
+     (pass-if "unused but define-public"
+       ;; FIXME: We don't handle this case for now because `define-public'
+       ;; expands to a relatively complex statement that's hard to match.
+       (throw 'unresolved)
+
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(define-public foo 2)
+                           #:to 'assembly
+                           #:opts %opts-w-unused-toplevel)))))
+
+     (pass-if "used by macro"
+       ;; FIXME: See comment about macros at `unused-toplevel-analysis'.
+       (throw 'unresolved)
+
+       (null? (call-with-warnings
+                (lambda ()
+                  (let ((in (open-input-string
+                             "(define (bar) 'foo)
+                              (define-syntax baz
+                                (syntax-rules () ((_) (bar))))")))
+                    (read-and-compile in
+                                      #:to 'assembly
+                                      #:opts %opts-w-unused-toplevel))))))
+
+     (pass-if "unused"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(define foo 2)
+                             #:to 'assembly
+                             #:opts %opts-w-unused-toplevel)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        (format #f "top-level variable `~A'"
+                                                'foo))))))
+
+     (pass-if "unused recursive"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(define (foo) (foo))
+                             #:to 'assembly
+                             #:opts %opts-w-unused-toplevel)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        (format #f "top-level variable `~A'"
+                                                'foo))))))
+
+     (pass-if "unused mutually recursive"
+       (let* ((in (open-input-string
+                   "(define (foo) (bar)) (define (bar) (foo))"))
+              (w  (call-with-warnings
+                    (lambda ()
+                      (read-and-compile in
+                                        #:to 'assembly
+                                        #:opts %opts-w-unused-toplevel)))))
+         (and (= (length w) 2)
+              (number? (string-contains (car w)
+                                        (format #f "top-level variable `~A'"
+                                                'foo)))
+              (number? (string-contains (cadr w)
+                                        (format #f "top-level variable `~A'"
+                                                'bar)))))))
 
    (with-test-prefix "unbound variable"
 

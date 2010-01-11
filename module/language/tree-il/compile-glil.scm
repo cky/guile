@@ -45,6 +45,7 @@
 
 (define %warning-passes
   `((unused-variable     . ,unused-variable-analysis)
+    (unused-toplevel     . ,unused-toplevel-analysis)
     (unbound-variable    . ,unbound-variable-analysis)
     (arity-mismatch      . ,arity-analysis)))
 
