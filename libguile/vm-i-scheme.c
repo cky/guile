@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -651,8 +651,24 @@ VM_DEFINE_INSTRUCTION (176, make_struct, "make-struct", 2, -1, 1)
 
   sp -= n_args - 1;
 
+  SYNC_REGISTER ();
   RETURN (scm_c_make_structv (vtable, scm_to_size_t (n_tail),
 			      n_args - 2, (scm_t_bits *) inits));
+}
+
+VM_DEFINE_INSTRUCTION (177, make_array, "make-array", 3, -1, 1)
+{
+  scm_t_uint32 len;
+  SCM shape, ret;
+
+  len = FETCH ();
+  len = (len << 8) + FETCH ();
+  len = (len << 8) + FETCH ();
+  POP (shape);
+  SYNC_REGISTER ();
+  ret = scm_from_contiguous_array (shape, sp - len + 1, len);
+  DROPN (len);
+  RETURN (ret);
 }
 
 /*

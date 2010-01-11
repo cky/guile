@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -252,6 +252,41 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
     SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
   memcpy (elts, bytes, byte_len);
+
+  if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
+    if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
+      return SCM_I_ARRAY_V (ra);
+  return ra;
+}
+#undef FUNC_NAME
+
+SCM
+scm_from_contiguous_array (SCM bounds, const SCM *elts, size_t len)
+#define FUNC_NAME "scm_from_contiguous_array"
+{
+  size_t k, rlen = 1;
+  scm_t_array_dim *s;
+  SCM ra;
+  scm_t_array_handle h;
+  
+  ra = scm_i_shap2ra (bounds);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
+  s = SCM_I_ARRAY_DIMS (ra);
+  k = SCM_I_ARRAY_NDIM (ra);
+
+  while (k--)
+    {
+      s[k].inc = rlen;
+      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
+      rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
+    }
+  if (rlen != len)
+    SCM_MISC_ERROR ("element length and dimensions do not match", SCM_EOL);
+
+  SCM_I_ARRAY_V (ra) = scm_c_make_vector (rlen, SCM_UNDEFINED);
+  scm_array_get_handle (ra, &h);
+  memcpy (h.writable_elements, elts, rlen * sizeof(SCM));
+  scm_array_handle_release (&h);
 
   if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))

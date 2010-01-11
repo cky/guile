@@ -3,7 +3,7 @@
 #ifndef SCM_ARRAY_H
 #define SCM_ARRAY_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,8 @@
 /** Arrays */
 
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
+SCM_API SCM scm_from_contiguous_array (SCM bounds, const SCM *elts,
+                                       size_t len);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
 SCM_API SCM scm_from_contiguous_typed_array (SCM type, SCM bounds,
                                              const void *bytes,

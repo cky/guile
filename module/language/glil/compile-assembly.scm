@@ -580,6 +580,21 @@
            (addr+ (addr+ addr type) shape)
            8
            4))))
+   ((array? x)
+    ;; an array of generic scheme values
+    (let* ((contents (array-contents x))
+           (len (vector-length contents)))
+      (let dump-objects ((i 0) (codes '()) (addr addr))
+        (if (< i len)
+            (let ((code (dump-object (vector-ref x i) addr)))
+              (dump-objects (1+ i) (cons code codes)
+                            (addr+ addr code)))
+            (fold append
+                  `(,@(dump-object (array-shape x) addr)
+                    (make-array ,(quotient (ash len -16) 256)
+                                ,(logand #xff (ash len -8))
+                                ,(logand #xff len)))
+                  codes)))))
    (else
     (error "assemble: unrecognized object" x))))
 
