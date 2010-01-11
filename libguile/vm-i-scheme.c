@@ -668,7 +668,8 @@ VM_DEFINE_INSTRUCTION (177, make_array, "make-array", 3, -1, 1)
   SYNC_REGISTER ();
   ret = scm_from_contiguous_array (shape, sp - len + 1, len);
   DROPN (len);
-  RETURN (ret);
+  PUSH (ret);
+  NEXT;
 }
 
 /*
