@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -558,7 +558,8 @@
       `(,@kar
         ,@(dump-object (cdr x) (addr+ addr kar))
         (cons))))
-   ((vector? x)
+   ((and (vector? x)
+         (equal? (array-shape x) (list (list 0 (1- (vector-length x))))))
     (let* ((len (vector-length x))
            (tail (if (>= len 65536)
                      (too-long "vector")
