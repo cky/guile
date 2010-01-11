@@ -586,7 +586,7 @@
            (len (vector-length contents)))
       (let dump-objects ((i 0) (codes '()) (addr addr))
         (if (< i len)
-            (let ((code (dump-object (vector-ref x i) addr)))
+            (let ((code (dump-object (vector-ref contents i) addr)))
               (dump-objects (1+ i) (cons code codes)
                             (addr+ addr code)))
             (fold append
