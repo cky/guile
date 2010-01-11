@@ -642,20 +642,20 @@ accurate information is missing from a given `tree-il' element."
 ;;; Unused top-level variable analysis.
 ;;;
 
-;; <reference-dag> record top-level definitions that are made, references to
+;; <reference-graph> record top-level definitions that are made, references to
 ;; top-level definitions and their context (the top-level definition in which
 ;; the reference appears), as well as the current context (the top-level
 ;; definition we're currently in).  The second part (`refs' below) is
-;; effectively a DAG from which we can determine unused top-level definitions.
-(define-record-type <reference-dag>
-  (make-reference-dag refs defs toplevel-context)
-  reference-dag?
-  (defs             reference-dag-defs) ;; ((NAME . LOC) ...)
-  (refs             reference-dag-refs) ;; ((REF-CONTEXT REF ...) ...)
-  (toplevel-context reference-dag-toplevel-context)) ;; NAME | #f
+;; effectively a graph from which we can determine unused top-level definitions.
+(define-record-type <reference-graph>
+  (make-reference-graph refs defs toplevel-context)
+  reference-graph?
+  (defs             reference-graph-defs) ;; ((NAME . LOC) ...)
+  (refs             reference-graph-refs) ;; ((REF-CONTEXT REF ...) ...)
+  (toplevel-context reference-graph-toplevel-context)) ;; NAME | #f
 
-(define (dag-reachable-nodes root refs)
-  ;; Return the list of nodes reachable from ROOT in DAG REFS.  REFS is an alist
+(define (graph-reachable-nodes root refs)
+  ;; Return the list of nodes reachable from ROOT in graph REFS.  REFS is an alist
   ;; representing edges: ((A B C) (B A) (C)) corresponds to
   ;;
   ;;  ,-------.
@@ -681,26 +681,26 @@ accurate information is missing from a given `tree-il' element."
                               result
                               children))))))))
 
-(define (dag-reachable-nodes* roots refs)
+(define (graph-reachable-nodes* roots refs)
   ;; Return the list of nodes in REFS reachable from the nodes listed in ROOTS.
   ;; FIXME: Choose a more efficient algorithm.
   (apply lset-union eq?
          (map (lambda (node)
-                (cons node (dag-reachable-nodes node refs)))
+                (cons node (graph-reachable-nodes node refs)))
               roots)))
 
 (define unused-toplevel-analysis
   ;; Report unused top-level definitions that are not exported.
   (let ((add-ref-from-context
-         (lambda (dag name)
-           ;; Add an edge CTX -> NAME in DAG.
-           (let* ((refs     (reference-dag-refs dag))
-                  (defs     (reference-dag-defs dag))
-                  (ctx      (reference-dag-toplevel-context dag))
+         (lambda (graph name)
+           ;; Add an edge CTX -> NAME in GRAPH.
+           (let* ((refs     (reference-graph-refs graph))
+                  (defs     (reference-graph-defs graph))
+                  (ctx      (reference-graph-toplevel-context graph))
                   (ctx-refs (or (assoc-ref refs ctx) '())))
-             (make-reference-dag (alist-cons ctx (cons name ctx-refs)
-                                             (alist-delete ctx refs eq?))
-                                 defs ctx)))))
+             (make-reference-graph (alist-cons ctx (cons name ctx-refs)
+                                               (alist-delete ctx refs eq?))
+                                   defs ctx)))))
     (define (macro-variable? name env)
       (and (module? env)
            (let ((var (module-variable env name)))
@@ -708,44 +708,44 @@ accurate information is missing from a given `tree-il' element."
                   (macro? (variable-ref var))))))
 
     (make-tree-analysis
-     (lambda (x dag env locs)
+     (lambda (x graph env locs)
        ;; X is a leaf.
-       (let ((ctx (reference-dag-toplevel-context dag)))
+       (let ((ctx (reference-graph-toplevel-context graph)))
          (record-case x
            ((<toplevel-ref> name src)
-            (add-ref-from-context dag name))
-           (else dag))))
+            (add-ref-from-context graph name))
+           (else graph))))
 
-     (lambda (x dag env locs)
+     (lambda (x graph env locs)
        ;; Going down into X.
-       (let ((ctx  (reference-dag-toplevel-context dag))
-             (refs (reference-dag-refs dag))
-             (defs (reference-dag-defs dag)))
+       (let ((ctx  (reference-graph-toplevel-context graph))
+             (refs (reference-graph-refs graph))
+             (defs (reference-graph-defs graph)))
          (record-case x
            ((<toplevel-define> name src)
             (let ((refs refs)
                   (defs (alist-cons name (or src (find pair? locs))
                                     defs)))
-              (make-reference-dag refs defs name)))
+              (make-reference-graph refs defs name)))
            ((<toplevel-set> name src)
-            (add-ref-from-context dag name))
-           (else dag))))
+            (add-ref-from-context graph name))
+           (else graph))))
 
-     (lambda (x dag env locs)
+     (lambda (x graph env locs)
        ;; Leaving X's scope.
        (record-case x
          ((<toplevel-define>)
-          (let ((refs (reference-dag-refs dag))
-                (defs (reference-dag-defs dag)))
-            (make-reference-dag refs defs #f)))
-         (else dag)))
+          (let ((refs (reference-graph-refs graph))
+                (defs (reference-graph-defs graph)))
+            (make-reference-graph refs defs #f)))
+         (else graph)))
 
-     (lambda (dag env)
-       ;; Process the resulting reference DAG: determine all private definitions
+     (lambda (graph env)
+       ;; Process the resulting reference graph: determine all private definitions
        ;; not reachable from any public definition.  Macros
        ;; (syntax-transformers), which are globally bound, never considered
        ;; unused since we can't tell whether a macro is actually used; in
-       ;; addition, macros are considered roots of the DAG since they may use
+       ;; addition, macros are considered roots of the graph since they may use
        ;; private bindings.  FIXME: The `make-syntax-transformer' calls don't
        ;; contain any literal `toplevel-ref' of the global bindings they use so
        ;; this strategy fails.
@@ -759,10 +759,10 @@ accurate information is missing from a given `tree-il' element."
                                   (let ((name (car name+src)))
                                     (or (exported? name)
                                         (macro-variable? name env))))
-                                (reference-dag-defs dag))))
+                                (reference-graph-defs graph))))
          (let* ((roots     (cons #f (map car public-defs)))
-                (refs      (reference-dag-refs dag))
-                (reachable (dag-reachable-nodes* roots refs))
+                (refs      (reference-graph-refs graph))
+                (reachable (graph-reachable-nodes* roots refs))
                 (unused    (filter (lambda (name+src)
                                      ;; FIXME: This is inefficient when
                                      ;; REACHABLE is large (e.g., boot-9.scm);
@@ -775,7 +775,7 @@ accurate information is missing from a given `tree-il' element."
                          (warning 'unused-toplevel loc name)))
                      (reverse unused)))))
 
-     (make-reference-dag '() '() #f))))
+     (make-reference-graph '() '() #f))))
 
 
 ;;;
