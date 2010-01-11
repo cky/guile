@@ -410,6 +410,36 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
 }
 #undef FUNC_NAME
 
+
+/* Read a hexadecimal number NDIGITS in length.  Put its value into the variable
+   C.  */
+#define SCM_READ_HEX_ESCAPE(ndigits)            \
+  do                                            \
+    {                                           \
+      scm_t_wchar a;                            \
+      size_t i = 0;                             \
+      c = 0;                                    \
+      while (i < ndigits)                       \
+        {                                       \
+          a = scm_getc (port);                  \
+          if (a == EOF)                         \
+            goto str_eof;                       \
+          if ('0' <= a && a <= '9')             \
+            a -= '0';                           \
+          else if ('A' <= a && a <= 'F')        \
+            a = a - 'A' + 10;                   \
+          else if ('a' <= a && a <= 'f')        \
+            a = a - 'a' + 10;                   \
+          else                                  \
+            {                                   \
+              c = a;                            \
+              goto bad_escaped;                 \
+            }                                   \
+          c = c * 16 + a;                       \
+          i ++;                                 \
+        }                                       \
+    } while (0)
+
 static SCM
 scm_read_string (int chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
@@ -481,89 +511,14 @@ scm_read_string (int chr, SCM port)
               c = '\010';
               break;
             case 'x':
-              {
-                scm_t_wchar a, b;
-                a = scm_getc (port);
-                if (a == EOF)
-                  goto str_eof;
-                b = scm_getc (port);
-                if (b == EOF)
-                  goto str_eof;
-                if ('0' <= a && a <= '9')
-                  a -= '0';
-                else if ('A' <= a && a <= 'F')
-                  a = a - 'A' + 10;
-                else if ('a' <= a && a <= 'f')
-                  a = a - 'a' + 10;
-                else
-                  {
-                    c = a;
-                    goto bad_escaped;
-                  }
-                if ('0' <= b && b <= '9')
-                  b -= '0';
-                else if ('A' <= b && b <= 'F')
-                  b = b - 'A' + 10;
-                else if ('a' <= b && b <= 'f')
-                  b = b - 'a' + 10;
-                else
-                  {
-                    c = b;
-                    goto bad_escaped;
-                  }
-                c = a * 16 + b;
-                break;
-              }
+              SCM_READ_HEX_ESCAPE (2);
+              break;
             case 'u':
-              {
-                scm_t_wchar a;
-                int i;
-                c = 0;
-                for (i = 0; i < 4; i++)
-                  {
-                    a = scm_getc (port);
-                    if (a == EOF)
-                      goto str_eof;
-                    if ('0' <= a && a <= '9')
-                      a -= '0';
-                    else if ('A' <= a && a <= 'F')
-                      a = a - 'A' + 10;
-                    else if ('a' <= a && a <= 'f')
-                      a = a - 'a' + 10;
-                    else
-                      {
-                        c = a;
-                        goto bad_escaped;
-                      }
-                    c = c * 16 + a;
-                  }
-                break;
-              }
+              SCM_READ_HEX_ESCAPE (4);
+              break;
             case 'U':
-              {
-                scm_t_wchar a;
-                int i;
-                c = 0;
-                for (i = 0; i < 6; i++)
-                  {
-                    a = scm_getc (port);
-                    if (a == EOF)
-                      goto str_eof;
-                    if ('0' <= a && a <= '9')
-                      a -= '0';
-                    else if ('A' <= a && a <= 'F')
-                      a = a - 'A' + 10;
-                    else if ('a' <= a && a <= 'f')
-                      a = a - 'a' + 10;
-                    else
-                      {
-                        c = a;
-                        goto bad_escaped;
-                      }
-                    c = c * 16 + a;
-                  }
-                break;
-              }
+              SCM_READ_HEX_ESCAPE (6);
+              break;
             default:
             bad_escaped:
               scm_i_input_error (FUNC_NAME, port,
