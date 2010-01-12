@@ -1,6 +1,6 @@
 ;;;; (texinfo reflection) -- documenting Scheme as stexinfo
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -92,37 +92,35 @@
 
 (define (get-proc-args proc)
   (cond
-   ((procedure-property proc 'arglist)
-    => (lambda (arglist)
-         (let ((required-args (car arglist))
-	       (optional-args (cadr arglist))
-	       (keyword-args  (caddr arglist))
-	       (rest-arg (car (cddddr arglist))))
+   ((procedure-arguments proc)
+    => (lambda (args)
+         (let ((required-args (assq-ref args 'required))
+               (optional-args (assq-ref args 'optional))
+               (keyword-args  (assq-ref args 'keyword))
+               (rest-arg (assq-ref args 'rest)))
            (process-args 
             (append 
-                    ;; start with the required args...
-                    (map symbol->string required-args)
+             ;; start with the required args...
+             (map symbol->string required-args)
 
-                    ;; add any optional args if needed...
-                    (map (lambda (a)
-                           (if (list? a)
-                               (format #f "[~a = ~s]" (car a) (cadr a))
-                               (format #f "[~a]" a)))
-                         optional-args)
+             ;; add any optional args if needed...
+             (map (lambda (a)
+                    (if (list? a)
+                        (format #f "[~a = ~s]" (car a) (cadr a))
+                        (format #f "[~a]" a)))
+                  optional-args)
                     
-                    ;; now the keyword args..
-                    (map (lambda (a)
-                           (if (list? a)
-                               (format #f "[#:~a = ~s]" (car a) (cadr a))
-                               (format #f "[#:~a]" a)))
-                         keyword-args)
+             ;; now the keyword args..
+             (map (lambda (a)
+                    (if (pair? a)
+                        (format #f "[~a]" (car a))
+                        (format #f "[#:~a]" a)))
+                  keyword-args)
                     
-                    ;; now the rest arg...
-                    (if rest-arg
-                        (list "." (symbol->string rest-arg))
-                        '()))))))
-   (else
-    (process-args (and=> (procedure-source proc) cadr)))))
+             ;; now the rest arg...
+             (if rest-arg
+                 (list "." (symbol->string rest-arg))
+                 '()))))))))
 
 ;; like the normal false-if-exception, but doesn't affect the-last-stack
 (define-macro (false-if-exception exp)

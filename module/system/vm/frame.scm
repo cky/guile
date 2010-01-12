@@ -38,7 +38,7 @@
 (define (frame-lookup-binding frame var)
   (let lp ((bindings (frame-bindings frame)))
     (cond ((null? bindings)
-           (error "variable not bound in frame" var frame))
+           #f)
           ((eq? (binding:name (car bindings)) var)
            (car bindings))
           (else
@@ -46,13 +46,33 @@
 
 (define (frame-binding-set! frame var val)
   (frame-local-set! frame
-                    (binding:index (frame-lookup-binding frame var))
+                    (binding:index
+                     (or (frame-lookup-binding frame var)
+                         (error "variable not bound in frame" var frame)))
                     val))
 
 (define (frame-binding-ref frame var)
   (frame-local-ref frame
-                   (binding:index (frame-lookup-binding frame var))))
+                   (binding:index
+                    (or (frame-lookup-binding frame var)
+                        (error "variable not bound in frame" var frame)))))
 
+
+;; This function is always called to get some sort of representation of the
+;; frame to present to the user, so let's do the logical thing and dispatch to
+;; frame-call-representation.
+(define (frame-arguments frame)
+  (cdr (frame-call-representation frame)))
+
+
+
+;;;
+;;; Pretty printing
+;;;
+
+(define (frame-source frame)
+  (program-source (frame-procedure frame)
+                  (frame-instruction-pointer frame)))
 
 ;; Basically there are two cases to deal with here:
 ;;
@@ -68,48 +88,49 @@
 ;;      number of arguments, or perhaps we're doing a typed dispatch and
 ;;      the types don't match. In that case the arguments are all on the
 ;;      stack, and nothing else is on the stack.
-(define (frame-arguments frame)
-  (cond
-   ((program-lambda-list (frame-procedure frame)
-                         (frame-instruction-pointer frame))
-    ;; case 1
-    => (lambda (formals)
-         (let lp ((formals formals) (i 0))
-           (pmatch formals
-             (() '())
-             ((,x . ,rest) (guard (symbol? x))
-              (cons (frame-binding-ref frame x) (lp rest (1+ i))))
-             ((,x . ,rest) (guard (keyword? x))
-              (cons x (lp rest i)))
-             ((,x . ,rest) (guard (not x) (< i (frame-num-locals frame)))
-              ;; an arg, but we don't know the name. ref by index.
-              (cons (frame-local-ref frame i) (lp rest (1+ i))))
-             (,rest (guard (symbol? rest))
-              (frame-binding-ref frame rest))
-             (,rest (guard (not rest) (< i (frame-num-locals frame)))
-              ;; again, no name.
-              (frame-local-ref frame i))
-             ;; let's not error here, as we are called during
-             ;; backtraces...
-             (else '???)))))
-   (else
-    ;; case 2
-    (map (lambda (i)
-           (frame-local-ref frame i))
-         (iota (frame-num-locals frame))))))
-
-
-;;;
-;;; Pretty printing
-;;;
-
-(define (frame-source frame)
-  (program-source (frame-procedure frame)
-                  (frame-instruction-pointer frame)))
 
 (define (frame-call-representation frame)
   (let ((p (frame-procedure frame)))
-    (cons (or (procedure-name p) p) (frame-arguments frame))))
+    (cons
+     (or (procedure-name p) p)     
+     (cond
+      ((program-arguments-alist p (frame-instruction-pointer frame))
+       ;; case 1
+       => (lambda (arguments)
+            (define (binding-ref sym i)
+              (cond
+               ((frame-lookup-binding frame sym)
+                => (lambda (b) (frame-local-ref frame (binding:index b))))
+               ((< i (frame-num-locals frame))
+                (frame-local-ref frame i))
+               (else
+                ;; let's not error here, as we are called during backtraces...
+                '???)))
+            (let lp ((req (or (assq-ref arguments 'required) '()))
+                     (opt (or (assq-ref arguments 'optional) '()))
+                     (key (or (assq-ref arguments 'keyword) '()))
+                     (rest (or (assq-ref arguments 'rest) #f))
+                     (i 0))
+              (cond
+               ((pair? req)
+                (cons (binding-ref (car req) i)
+                      (lp (cdr req) opt key rest (1+ i))))
+               ((pair? opt)
+                (cons (binding-ref (car opt) i)
+                      (lp req (cdr opt) key rest (1+ i))))
+               ((pair? key)
+                (cons* (caar key)
+                       (frame-local-ref frame (cdar key))
+                       (lp req opt (cdr key) rest (1+ i))))
+               (rest
+                (binding-ref rest i))
+               (else
+                '())))))
+      (else
+       ;; case 2
+       (map (lambda (i)
+              (frame-local-ref frame i))
+            (iota (frame-num-locals frame))))))))
 
 
 

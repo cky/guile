@@ -36,7 +36,7 @@
 
             arity:nreq arity:nopt arity:rest? arity:kw arity:allow-other-keys?
 
-            program-arguments program-lambda-list
+            program-arguments-alist program-lambda-list
             
             program-meta
             program-objcode program? program-objects
@@ -129,7 +129,7 @@
                   (car arities))
                  (else (lp (cdr arities))))))))
 
-(define (arglist->arguments arglist)
+(define (arglist->arguments-alist arglist)
   (pmatch arglist
     ((,req ,opt ,keyword ,allow-other-keys? ,rest . ,extents)
      `((required . ,req)
@@ -140,14 +140,19 @@
        (extents . ,extents)))
     (else #f)))
 
-(define (arity->arguments prog arity)
+(define* (arity->arguments-alist prog arity
+                                 #:optional
+                                 (make-placeholder
+                                  (lambda (i) (string->symbol "_"))))
   (define var-by-index
     (let ((rbinds (map (lambda (x)
                          (cons (binding:index x) (binding:name x)))
                        (program-bindings-for-ip prog
                                                 (arity:start arity)))))
       (lambda (i)
-        (assv-ref rbinds i))))
+        (or (assv-ref rbinds i)
+            ;; if we don't know the name, return a placeholder
+            (make-placeholder i)))))
 
   (let lp ((nreq (arity:nreq arity)) (req '())
            (nopt (arity:nopt arity)) (opt '())
@@ -172,20 +177,21 @@
         (allow-other-keys? . ,(arity:allow-other-keys? arity))
         (rest . ,rest))))))
 
-(define* (program-arguments prog #:optional ip)
+;; the name "program-arguments" is taken by features.c...
+(define* (program-arguments-alist prog #:optional ip)
   (let ((arity (program-arity prog ip)))
     (and arity
-        (arity->arguments prog arity))))
+         (arity->arguments-alist prog arity))))
 
 (define* (program-lambda-list prog #:optional ip)
-  (and=> (program-arguments prog ip) arguments->lambda-list))
+  (and=> (program-arguments-alist prog ip) arguments-alist->lambda-list))
 
-(define (arguments->lambda-list arguments)
-  (let ((req (or (assq-ref arguments 'required) '()))
-        (opt (or (assq-ref arguments 'optional) '()))
+(define (arguments-alist->lambda-list arguments-alist)
+  (let ((req (or (assq-ref arguments-alist 'required) '()))
+        (opt (or (assq-ref arguments-alist 'optional) '()))
         (key (map keyword->symbol
-                  (map car (or (assq-ref arguments 'keyword) '()))))
-        (rest (or (assq-ref arguments 'rest) '())))
+                  (map car (or (assq-ref arguments-alist 'keyword) '()))))
+        (rest (or (assq-ref arguments-alist 'rest) '())))
     `(,@req
       ,@(if (pair? opt) (cons #:optional opt) '())
       ,@(if (pair? key) (cons #:key key) '())
@@ -208,8 +214,8 @@
                 (string-append
                  " " (string-join (map (lambda (a)
                                          (object->string
-                                          (arguments->lambda-list
-                                           (arity->arguments prog a))))
+                                          (arguments-alist->lambda-list
+                                           (arity->arguments-alist prog a))))
                                        arities)
                                   " | "))))))
 
