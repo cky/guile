@@ -1,6 +1,6 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -253,9 +253,12 @@
 ;; in the same way as lambda*.
 
 (define-syntax define*-public
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (define-public id (lambda* args b0 b1 ...)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (id . args) b0 b1 ...)
+       #'(define-public id (lambda* args b0 b1 ...)))
+      ((_ id val) (identifier? #'id)
+       #'(define-public id val)))))
 
 
 ;; defmacro* name args . body
