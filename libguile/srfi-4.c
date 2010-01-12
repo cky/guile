@@ -110,7 +110,7 @@
 #define ETYPE(TAG) \
   SCM_ARRAY_ELEMENT_TYPE_##TAG
 
-#define DEFINE_SRFI_4_C_FUNCS(TAG, tag, ctype)                          \
+#define DEFINE_SRFI_4_C_FUNCS(TAG, tag, ctype, width)                   \
   SCM scm_take_##tag##vector (ctype *data, size_t n)                    \
   {                                                                     \
     return scm_c_take_typed_bytevector ((scm_t_int8*)data, n, ETYPE (TAG));   \
@@ -119,13 +119,13 @@
   {                                                                     \
     if (h->element_type != ETYPE (TAG))                                 \
       scm_wrong_type_arg_msg (NULL, 0, h->array, #tag "vector");        \
-    return ((const ctype*) h->elements) + h->base;                      \
+    return ((const ctype*) h->elements) + h->base*width;                \
   }                                                                     \
   ctype* scm_array_handle_##tag##_writable_elements (scm_t_array_handle *h) \
   {                                                                     \
     if (h->element_type != ETYPE (TAG))                                 \
       scm_wrong_type_arg_msg (NULL, 0, h->array, #tag "vector");        \
-    return ((ctype*) h->writable_elements) + h->base;                   \
+    return ((ctype*) h->writable_elements) + h->base*width;             \
   }                                                                     \
   const ctype *scm_##tag##vector_elements (SCM uvec,                    \
                                            scm_t_array_handle *h,       \
@@ -139,7 +139,7 @@
   {                                                                     \
     scm_uniform_vector_elements (uvec, h, lenp, incp);                  \
     if (h->element_type == ETYPE (TAG))                                 \
-      return ((ctype*)h->writable_elements) + h->base;                  \
+      return ((ctype*)h->writable_elements) + h->base*width;            \
     /* otherwise... */                                                  \
     else                                                                \
       {                                                                 \
@@ -161,7 +161,7 @@
         h->dim0.ubnd = h->dim0.lbnd + lto;                              \
         h->base = h->base * sto / sfrom;                                \
         h->element_type = ETYPE (TAG);                                  \
-        return ((ctype*)h->writable_elements) + h->base;                \
+        return ((ctype*)h->writable_elements) + h->base*width;          \
       }                                                                 \
   }
 
@@ -169,47 +169,47 @@
 #define MOD "srfi srfi-4"
 
 DEFINE_SRFI_4_PROXIES (u8);
-DEFINE_SRFI_4_C_FUNCS (U8, u8, scm_t_uint8);
+DEFINE_SRFI_4_C_FUNCS (U8, u8, scm_t_uint8, 1);
 
 DEFINE_SRFI_4_PROXIES (s8);
-DEFINE_SRFI_4_C_FUNCS (S8, s8, scm_t_int8);
+DEFINE_SRFI_4_C_FUNCS (S8, s8, scm_t_int8, 1);
 
 DEFINE_SRFI_4_PROXIES (u16);
-DEFINE_SRFI_4_C_FUNCS (U16, u16, scm_t_uint16);
+DEFINE_SRFI_4_C_FUNCS (U16, u16, scm_t_uint16, 1);
 
 DEFINE_SRFI_4_PROXIES (s16);
-DEFINE_SRFI_4_C_FUNCS (S16, s16, scm_t_int16);
+DEFINE_SRFI_4_C_FUNCS (S16, s16, scm_t_int16, 1);
 
 DEFINE_SRFI_4_PROXIES (u32);
-DEFINE_SRFI_4_C_FUNCS (U32, u32, scm_t_uint32);
+DEFINE_SRFI_4_C_FUNCS (U32, u32, scm_t_uint32, 1);
 
 DEFINE_SRFI_4_PROXIES (s32);
-DEFINE_SRFI_4_C_FUNCS (S32, s32, scm_t_int32);
+DEFINE_SRFI_4_C_FUNCS (S32, s32, scm_t_int32, 1);
 
 DEFINE_SRFI_4_PROXIES (u64);
 #if SCM_HAVE_T_INT64
-DEFINE_SRFI_4_C_FUNCS (U64, u64, scm_t_uint64);
+DEFINE_SRFI_4_C_FUNCS (U64, u64, scm_t_uint64, 1);
 #endif
 
 DEFINE_SRFI_4_PROXIES (s64);
 #if SCM_HAVE_T_INT64
-DEFINE_SRFI_4_C_FUNCS (S64, s64, scm_t_int64);
+DEFINE_SRFI_4_C_FUNCS (S64, s64, scm_t_int64, 1);
 #endif
 
 DEFINE_SRFI_4_PROXIES (f32);
-DEFINE_SRFI_4_C_FUNCS (F32, f32, float);
+DEFINE_SRFI_4_C_FUNCS (F32, f32, float, 1);
 
 DEFINE_SRFI_4_PROXIES (f64);
-DEFINE_SRFI_4_C_FUNCS (F64, f64, double);
+DEFINE_SRFI_4_C_FUNCS (F64, f64, double, 1);
 
 #undef MOD
 #define MOD "srfi srfi-4 gnu"
 
 DEFINE_SRFI_4_PROXIES (c32);
-DEFINE_SRFI_4_C_FUNCS (C32, c32, float);
+DEFINE_SRFI_4_C_FUNCS (C32, c32, float, 2);
 
 DEFINE_SRFI_4_PROXIES (c64);
-DEFINE_SRFI_4_C_FUNCS (C64, c64, double);
+DEFINE_SRFI_4_C_FUNCS (C64, c64, double, 2);
 
 #define DEFINE_SRFI_4_GNU_PROXIES(tag)                              \
   DEFPROXY100 (scm_any_to_##tag##vector, "any->" #tag "vector")
