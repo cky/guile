@@ -76,6 +76,8 @@ scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "elisp-strings", 0,
     "Support `\\(' and `\\)' in strings."},
 #endif
+  { SCM_OPTION_BOOLEAN, "r6rs-hex-escapes", 0,
+    "Use R6RS variable-length character and string hex escapes."},
   { 0, },
 };
 
@@ -412,32 +414,37 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
 
 
 /* Read a hexadecimal number NDIGITS in length.  Put its value into the variable
-   C.  */
-#define SCM_READ_HEX_ESCAPE(ndigits)            \
-  do                                            \
-    {                                           \
-      scm_t_wchar a;                            \
-      size_t i = 0;                             \
-      c = 0;                                    \
-      while (i < ndigits)                       \
-        {                                       \
-          a = scm_getc (port);                  \
-          if (a == EOF)                         \
-            goto str_eof;                       \
-          if ('0' <= a && a <= '9')             \
-            a -= '0';                           \
-          else if ('A' <= a && a <= 'F')        \
-            a = a - 'A' + 10;                   \
-          else if ('a' <= a && a <= 'f')        \
-            a = a - 'a' + 10;                   \
-          else                                  \
-            {                                   \
-              c = a;                            \
-              goto bad_escaped;                 \
-            }                                   \
-          c = c * 16 + a;                       \
-          i ++;                                 \
-        }                                       \
+   C.  If TERMINATOR is non-null, terminate early if the TERMINATOR character is
+   found.  */
+#define SCM_READ_HEX_ESCAPE(ndigits, terminator)                   \
+  do                                                               \
+    {                                                              \
+      scm_t_wchar a;                                               \
+      size_t i = 0;                                                \
+      c = 0;                                                       \
+      while (i < ndigits)                                          \
+        {                                                          \
+          a = scm_getc (port);                                     \
+          if (a == EOF)                                            \
+            goto str_eof;                                          \
+          if (terminator                                           \
+              && (a == (scm_t_wchar) terminator)                   \
+              && (i > 0))                                          \
+            break;                                                 \
+          if ('0' <= a && a <= '9')                                \
+            a -= '0';                                              \
+          else if ('A' <= a && a <= 'F')                           \
+            a = a - 'A' + 10;                                      \
+          else if ('a' <= a && a <= 'f')                           \
+            a = a - 'a' + 10;                                      \
+          else                                                     \
+            {                                                      \
+              c = a;                                               \
+              goto bad_escaped;                                    \
+            }                                                      \
+          c = c * 16 + a;                                          \
+          i ++;                                                    \
+        }                                                          \
     } while (0)
 
 static SCM
@@ -511,13 +518,16 @@ scm_read_string (int chr, SCM port)
               c = '\010';
               break;
             case 'x':
-              SCM_READ_HEX_ESCAPE (2);
+              if (SCM_R6RS_ESCAPES_P)
+                SCM_READ_HEX_ESCAPE (10, ';');
+              else
+                SCM_READ_HEX_ESCAPE (2, '\0');
               break;
             case 'u':
-              SCM_READ_HEX_ESCAPE (4);
+              SCM_READ_HEX_ESCAPE (4, '\0');
               break;
             case 'U':
-              SCM_READ_HEX_ESCAPE (6);
+              SCM_READ_HEX_ESCAPE (6, '\0');
               break;
             default:
             bad_escaped:
@@ -824,6 +834,26 @@ scm_read_character (scm_t_wchar chr, SCM port)
           else
             scm_i_input_error (FUNC_NAME, port, 
                                "out-of-range octal character escape: ~a",
+                               scm_list_1 (charname));
+        }
+    }
+
+  if (cp == 'x' && (charname_len > 1) && SCM_R6RS_ESCAPES_P)
+    {
+      SCM p;
+      scm_t_wchar chr;
+      
+      /* Convert from hex, skipping the initial 'x' character in CHARNAME */
+      p = scm_string_to_number (scm_c_substring (charname, 1, charname_len),
+                                scm_from_uint (16));
+      if (SCM_I_INUMP (p))
+        {
+          scm_t_wchar c = SCM_I_INUM (p);
+          if (SCM_IS_UNICODE_CHAR (c))
+            return SCM_MAKE_CHAR (c);
+          else
+            scm_i_input_error (FUNC_NAME, port,
+                               "out-of-range hex character escape: ~a",
                                scm_list_1 (charname));
         }
     }

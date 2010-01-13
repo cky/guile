@@ -409,6 +409,22 @@ SCM_GPROC(s_display, "display", 1, 1, 0, scm_display, g_display);
 
 static void iprin1 (SCM exp, SCM port, scm_print_state *pstate);
 
+
+/* Print a character as an octal or hex escape.  */
+#define PRINT_CHAR_ESCAPE(i, port)              \
+  do                                            \
+    {                                           \
+      if (!SCM_R6RS_ESCAPES_P)                  \
+        scm_intprint (i, 8, port);              \
+      else                                      \
+        {                                       \
+          scm_puts ("x", port);                 \
+          scm_intprint (i, 16, port);           \
+        }                                       \
+    }                                           \
+  while (0)
+
+  
 void 
 scm_iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 {
@@ -488,7 +504,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                       else
                         /* Character is graphic but unrepresentable in
                            this port's encoding.  */
-                        scm_intprint (i, 8, port);
+                        PRINT_CHAR_ESCAPE (i, port);
                     }
                   else
                     {
@@ -507,12 +523,12 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                       else
                         /* Character is graphic but unrepresentable in
                            this port's encoding.  */
-                        scm_intprint (i, 8, port);
+                        PRINT_CHAR_ESCAPE (i, port);
                     }
                 }
               else
                 /* Character is a non-graphical character.  */
-                scm_intprint (i, 8, port);
+                PRINT_CHAR_ESCAPE (i, port);
 	    }
 	  else
 	    scm_i_charprint (i, port);
@@ -579,9 +595,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
         case scm_tc7_string:
           if (SCM_WRITINGP (pstate))
             {
-              size_t i, j, len;
+              size_t i, len;
               static char const hex[] = "0123456789abcdef";
-              char buf[8];
+              char buf[9];
 
 
               scm_putc ('"', port);
@@ -647,37 +663,61 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
                     {
                       /* Character is graphic but unrepresentable in
                          this port's encoding or is not graphic.  */
-                      if (ch <= 0xFF)
+                      if (!SCM_R6RS_ESCAPES_P)
                         {
-                          buf[0] = '\\';
-                          buf[1] = 'x';
-                          buf[2] = hex[ch / 16];
-                          buf[3] = hex[ch % 16];
-                          scm_lfwrite (buf, 4, port);
+                          if (ch <= 0xFF)
+                            {
+                              buf[0] = '\\';
+                              buf[1] = 'x';
+                              buf[2] = hex[ch / 16];
+                              buf[3] = hex[ch % 16];
+                              scm_lfwrite (buf, 4, port);
+                            }
+                          else if (ch <= 0xFFFF)
+                            {
+                              buf[0] = '\\';
+                              buf[1] = 'u';
+                              buf[2] = hex[(ch & 0xF000) >> 12];
+                              buf[3] = hex[(ch & 0xF00) >> 8];
+                              buf[4] = hex[(ch & 0xF0) >> 4];
+                              buf[5] = hex[(ch & 0xF)];
+                              scm_lfwrite (buf, 6, port);
+                            }
+                          else if (ch > 0xFFFF)
+                            {
+                              buf[0] = '\\';
+                              buf[1] = 'U';
+                              buf[2] = hex[(ch & 0xF00000) >> 20];
+                              buf[3] = hex[(ch & 0xF0000) >> 16];
+                              buf[4] = hex[(ch & 0xF000) >> 12];
+                              buf[5] = hex[(ch & 0xF00) >> 8];
+                              buf[6] = hex[(ch & 0xF0) >> 4];
+                              buf[7] = hex[(ch & 0xF)];
+                              scm_lfwrite (buf, 8, port);
+                            }
                         }
-                      else if (ch <= 0xFFFF)
+                      else
                         {
-                          buf[0] = '\\';
-                          buf[1] = 'u';
-                          buf[2] = hex[(ch & 0xF000) >> 12];
-                          buf[3] = hex[(ch & 0xF00) >> 8];
-                          buf[4] = hex[(ch & 0xF0) >> 4];
-                          buf[5] = hex[(ch & 0xF)];
-                          scm_lfwrite (buf, 6, port);
-                          j = i + 1;
-                        }
-                      else if (ch > 0xFFFF)
-                        {
-                          buf[0] = '\\';
-                          buf[1] = 'U';
-                          buf[2] = hex[(ch & 0xF00000) >> 20];
-                          buf[3] = hex[(ch & 0xF0000) >> 16];
-                          buf[4] = hex[(ch & 0xF000) >> 12];
-                          buf[5] = hex[(ch & 0xF00) >> 8];
-                          buf[6] = hex[(ch & 0xF0) >> 4];
-                          buf[7] = hex[(ch & 0xF)];
-                          scm_lfwrite (buf, 8, port);
-                          j = i + 1;
+                          scm_t_wchar ch2 = ch;
+                          
+                          /* Print an R6RS variable-length hex escape: "\xNNNN;"
+                          */
+                          int i = 8;
+                          buf[i] = ';';
+                          i --;
+                          if (ch == 0)
+                            buf[i--] = '0';
+                          else
+                            while (ch2 > 0)
+                              {
+                                buf[i] = hex[ch2 & 0xF];
+                                ch2 >>= 4;
+                                i --;
+                              }
+                          buf[i] = 'x';
+                          i --;
+                          buf[i] = '\\';
+                          scm_lfwrite (buf + i, 9 - i, port);
                         }
                     }
                 }
