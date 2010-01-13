@@ -1722,7 +1722,7 @@ name for each character.
  @tab 7 = @code{#\bel}
 @item 8 = @code{#\bs}
  @tab 9 = @code{#\ht}
- @tab 10 = @code{#\lf} 
+ @tab 10 = @code{#\lf}
  @tab 11 = @code{#\vt}
 @item 12 = @code{#\ff}
  @tab 13 = @code{#\cr}
@@ -1763,6 +1763,18 @@ previous versions of Guile.
 Characters may also be written using their code point values.  They can
 be written with as an octal number, such as @code{#\10} for
 @code{#\bs} or @code{#\177} for @code{#\del}.
+
+When the @code{r6rs-hex-escapes} reader option is enabled, there is an
+additional syntax for character escapes: @code{#\xHHHH} -- the letter 'x'
+followed by a hexadecimal number of one to eight digits.
+
+@lisp
+(read-enable 'r6rs-hex-escapes)
+@end lisp
+
+Enabling this option will also change the hex escape format for strings.  More
+on string escapes can be found at (@pxref{String Syntax}).  More on reader
+options in general can be found at (@pxref{Reader options}).
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -2675,6 +2687,20 @@ The following are examples of string literals:
 "\"Hi\", he said."
 @end lisp
 
+The three escape sequences @code{\xHH}, @code{\uHHHH} and @code{\UHHHHHH} were
+chosen to not break compatibility with code written for previous versions of
+Guile.  The R6RS specification suggests a different, incompatible syntax for hex
+escapes: @code{\xHHHH;} -- a character code followed by one to eight hexadecimal
+digits terminated with a semicolon.  If this escape format is desired instead,
+it can be enabled with the reader option @code{r6rs-hex-escapes}.
+
+@lisp
+(read-enable 'r6rs-hex-escapes)
+@end lisp
+
+Enabling this option will also change the hex escape format for characters.
+More on character escapes can be found at (@pxref{Characters}).  More on
+reader options in general can be found at (@pxref{Reader options}).
 
 @node String Predicates
 @subsubsection String Predicates
