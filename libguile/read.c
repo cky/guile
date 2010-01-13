@@ -524,11 +524,17 @@ scm_read_string (int chr, SCM port)
                 SCM_READ_HEX_ESCAPE (2, '\0');
               break;
             case 'u':
-              SCM_READ_HEX_ESCAPE (4, '\0');
-              break;
+              if (!SCM_R6RS_ESCAPES_P)
+                {
+                  SCM_READ_HEX_ESCAPE (4, '\0');
+                  break;
+                }
             case 'U':
-              SCM_READ_HEX_ESCAPE (6, '\0');
-              break;
+              if (!SCM_R6RS_ESCAPES_P)
+                {
+                  SCM_READ_HEX_ESCAPE (6, '\0');
+                  break;
+                }
             default:
             bad_escaped:
               scm_i_input_error (FUNC_NAME, port,
