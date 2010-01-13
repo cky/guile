@@ -210,7 +210,9 @@ check_ports ()
   strcpy (filename, tmpdir);
   strcat (filename, FILENAME_TEMPLATE);
 
-  if (mktemp (filename) == NULL)
+  /* Sanity check: Make sure that `filename' is actually writeable.
+     We used to use mktemp(3), but that is now considered a security risk.  */
+  if (0 > mkstemp (filename))
     exit (1);
 
   scm_dynwind_begin (0);
