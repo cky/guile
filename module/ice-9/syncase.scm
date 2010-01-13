@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2002, 2003, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,10 +17,13 @@
 
 
 (define-module (ice-9 syncase)
-  )
+  #:export (datum->syntax-object syntax-object->datum))
 
 (issue-deprecation-warning
  "Syntax-case macros are now a part of Guile core; importing (ice-9 syncase) is no longer necessary.")
+
+(define datum->syntax-object datum->syntax)
+(define syntax-object->datum syntax->datum)
 
 ;;; Hack to make syncase macros work in the slib module
 ;; FIXME wingo is this still necessary?
