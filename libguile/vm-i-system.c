@@ -1123,7 +1123,7 @@ VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
-  RETURN_HOOK ();
+  RETURN_HOOK (1);
 
   VM_HANDLE_INTERRUPTS;
 
@@ -1163,7 +1163,7 @@ VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
   nvalues = FETCH ();
  vm_return_values:
   EXIT_HOOK ();
-  RETURN_HOOK ();
+  RETURN_HOOK (nvalues);
 
   VM_HANDLE_INTERRUPTS;
 

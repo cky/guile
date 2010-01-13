@@ -195,6 +195,7 @@
  */
 
 #undef RUN_HOOK
+#undef RUN_HOOK1
 #if VM_USE_HOOKS
 #define RUN_HOOK(h)                                     \
   {                                                     \
@@ -204,8 +205,19 @@
         vm_dispatch_hook (vm, h);                       \
       }                                                 \
   }
+#define RUN_HOOK1(h, x)                                 \
+  {                                                     \
+    if (SCM_UNLIKELY (vp->trace_level > 0))             \
+      {                                                 \
+        PUSH (x);                                       \
+        SYNC_REGISTER ();				\
+        vm_dispatch_hook (vm, h);                       \
+        DROP();                                         \
+      }                                                 \
+  }
 #else
 #define RUN_HOOK(h)
+#define RUN_HOOK1(h, x)
 #endif
 
 #define BOOT_HOOK()	RUN_HOOK (SCM_VM_BOOT_HOOK)
@@ -215,7 +227,7 @@
 #define ENTER_HOOK()	RUN_HOOK (SCM_VM_ENTER_HOOK)
 #define APPLY_HOOK()	RUN_HOOK (SCM_VM_APPLY_HOOK)
 #define EXIT_HOOK()	RUN_HOOK (SCM_VM_EXIT_HOOK)
-#define RETURN_HOOK()	RUN_HOOK (SCM_VM_RETURN_HOOK)
+#define RETURN_HOOK(n)	RUN_HOOK1 (SCM_VM_RETURN_HOOK, SCM_I_MAKINUM (n))
 
 #define VM_HANDLE_INTERRUPTS                     \
   SCM_ASYNC_TICK_WITH_CODE (SYNC_REGISTER ())
