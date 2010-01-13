@@ -7,12 +7,12 @@
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -220,10 +220,117 @@
            (equal? (source-property sexp 'column) 0))))
   (pass-if "positions on quote"
     (let ((sexp (with-read-options '(positions)
-                  (lambda ()
+                   (lambda ()
                     (read-string "'abcde")))))
       (and (equal? (source-property sexp 'line) 0)
-           (equal? (source-property sexp 'column) 0)))))
+           (equal? (source-property sexp 'column) 0))))
+  (with-test-prefix "r6rs-hex-escapes"
+      (pass-if-exception "non-hex char in two-digit hex-escape"
+      exception:illegal-escape
+      (with-read-options '(r6rs-hex-escapes)
+        (lambda ()
+          (with-input-from-string "\"\\x0g;\"" read))))
+
+    (pass-if-exception "non-hex char in four-digit hex-escape"
+      exception:illegal-escape
+      (with-read-options '(r6rs-hex-escapes)
+        (lambda ()
+          (with-input-from-string "\"\\x000g;\"" read))))
+
+    (pass-if-exception "non-hex char in six-digit hex-escape"
+      exception:illegal-escape
+      (with-read-options '(r6rs-hex-escapes)
+        (lambda ()
+          (with-input-from-string "\"\\x00000g;\"" read))))
+
+    (pass-if-exception "no semicolon at termination of one-digit hex-escape"
+      exception:illegal-escape
+      (with-read-options '(r6rs-hex-escapes)
+        (lambda ()
+          (with-input-from-string "\"\\x0\"" read))))
+
+    (pass-if-exception "no semicolon at termination of three-digit hex-escape"
+      exception:illegal-escape
+      (with-read-options '(r6rs-hex-escapes)
+        (lambda ()
+          (with-input-from-string "\"\\x000\"" read))))
+
+    (pass-if "two-digit hex escape"
+      (eqv?
+       (with-read-options '(r6rs-hex-escapes)
+         (lambda ()
+           (string-ref (with-input-from-string "\"--\\xff;--\"" read) 2)))
+       (integer->char #xff)))
+
+    (pass-if "four-digit hex escape"
+      (eqv?
+       (with-read-options '(r6rs-hex-escapes)
+         (lambda ()
+           (string-ref (with-input-from-string "\"--\\x0100;--\"" read) 2)))
+       (integer->char #x0100)))
+
+    (pass-if "six-digit hex escape"
+      (eqv?
+       (with-read-options '(r6rs-hex-escapes)
+         (lambda ()
+           (string-ref (with-input-from-string "\"--\\x010300;--\"" read) 2)))
+       (integer->char #x010300)))
+
+    (pass-if "escaped characters match non-escaped ASCII characters"
+      (string=?
+       (with-read-options '(r6rs-hex-escapes)
+         (lambda ()
+           (with-input-from-string "\"\\x41;\\x0042;\\x000043;\"" read)))
+       "ABC"))
+
+    (pass-if "write R6RS escapes"
+
+       (let* ((s1 (apply string
+                         (map integer->char '(#x8 ; backspace
+                                              #x20 ; space
+                                              #x30 ; zero
+                                              #x40 ; at sign
+                                              ))))
+              (s2 (with-read-options '(r6rs-hex-escapes)
+                     (lambda ()
+                      (with-output-to-string
+                        (lambda () (write s1)))))))
+         (lset= eqv?
+                (string->list s2)
+                (list #\" #\\ #\x #\8 #\; #\space #\0 #\@ #\"))))
+    (pass-if "one-digit hex escape"
+      (eqv? (with-read-options '(r6rs-hex-escapes)
+              (lambda ()
+                (with-input-from-string "#\\xA" read)))
+            (integer->char #x0A)))
+
+    (pass-if "two-digit hex escape"
+      (eqv? (with-read-options '(r6rs-hex-escapes)
+              (lambda ()
+                (with-input-from-string "#\\xFF" read)))
+            (integer->char #xFF)))
+
+    (pass-if "four-digit hex escape"
+      (eqv? (with-read-options '(r6rs-hex-escapes)
+              (lambda ()
+                (with-input-from-string "#\\x00FF" read)))
+            (integer->char #xFF)))
+
+    (pass-if "eight-digit hex escape"
+      (eqv? (with-read-options '(r6rs-hex-escapes)
+              (lambda ()
+                (with-input-from-string "#\\x00006587" read)))
+            (integer->char #x6587)))
+    (pass-if "write R6RS escapes"
+      (string=?
+       (with-read-options '(r6rs-hex-escapes)
+         (lambda ()
+           (with-output-to-string
+             (lambda ()
+               (write (integer->char #x80))))))
+       "#\\x80"))))
+
+
 
 (with-test-prefix "#;"
   (for-each
@@ -235,10 +342,10 @@
      ("#;(10 20 30) foo" . foo)
      ("#;   (10 20 30) foo" . foo)
      ("#;\n10\n20" . 20)))
-  
+
   (pass-if "#;foo"
     (eof-object? (with-input-from-string "#;foo" read)))
-  
+
   (pass-if-exception "#;"
     exception:missing-expression
     (with-input-from-string "#;" read))
