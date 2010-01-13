@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -847,7 +847,6 @@ scm_read_character (scm_t_wchar chr, SCM port)
   if (cp == 'x' && (charname_len > 1) && SCM_R6RS_ESCAPES_P)
     {
       SCM p;
-      scm_t_wchar chr;
       
       /* Convert from hex, skipping the initial 'x' character in CHARNAME */
       p = scm_string_to_number (scm_c_substring (charname, 1, charname_len),
