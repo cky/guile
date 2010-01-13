@@ -25,10 +25,9 @@
   #:use-module (ice-9 format)
   #:export (vm-trace))
 
-(define* (vm-trace vm thunk #:key (calls? #t) (instructions? #f))
+(define* (vm-trace vm thunk #:key (calls? #t) (instructions? #f) (width 80))
   (define *call-depth* #f)
   (define *saved-call-depth* #f)
-  (define *last-printed-call-depth* 0)
 
   (define (trace-enter frame)
     (cond
@@ -38,29 +37,47 @@
   (define (trace-exit frame)
     (cond
      ((not *call-depth*))
-     ((< *call-depth* 0)
-      ;; leaving the thunk
-      (set! *call-depth* #f))
      (else
       (set! *call-depth* (1- *call-depth*)))))
   
   (define (trace-apply frame)
     (cond
      (*call-depth*
-      (let ((last-depth *last-printed-call-depth*))
-        (set! *last-printed-call-depth* *call-depth*)
-        (format (current-error-port) "~a ~a~{ ~a~}\n"
-                (make-string *call-depth* #\*)
-                (let ((p (frame-procedure frame)))
-                  (or (procedure-name p) p))
-                (frame-arguments frame))))
+      (format (current-error-port) "~a~v:@y\n"
+              (make-string (1- *call-depth*) #\|)
+              (max (- width *call-depth* 1) 1)
+              (frame-call-representation frame)))
      ((eq? (frame-procedure frame) thunk)
-      (set! *call-depth* 0))))
+      (set! *call-depth* 1))))
 
   (define (trace-return frame)
     ;; nop, though we could print the return i guess
-    #t)
-
+    (cond
+     ((and *call-depth* (< *call-depth* 0))
+      ;; leaving the thunk
+      (set! *call-depth* #f))
+     (*call-depth*
+      (let* ((len (frame-num-locals frame))
+             (nvalues (frame-local-ref frame (1- len))))
+        (cond
+         ((= nvalues 1)
+          (format (current-error-port) "~a~v:@y\n"
+                  (make-string *call-depth* #\|)
+                  width (frame-local-ref frame (- len 2))))
+         (else
+          ;; this should work, but there appears to be a bug
+          ;; "~a~d values:~:{ ~v:@y~}\n"
+          (format (current-error-port) "~a~d values:~{ ~a~}\n"
+                  (make-string *call-depth* #\|)
+                  nvalues
+                  (let lp ((vals '()) (i 0))
+                    (if (= i nvalues)
+                        vals
+                        (lp (cons (format #f "~v:@y" width
+                                          (frame-local-ref frame (- len 2 i)))
+                                  vals)
+                            (1+ i)))))))))))
+  
   (define (trace-next frame)
     (format #t "0x~8X" (frame-instruction-pointer frame))
     ;; should disassemble the thingy; could print stack, or stack trace,
