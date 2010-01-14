@@ -205,8 +205,8 @@ really_make_boot_program (long nargs)
   bp->len = sizeof(text);
   bp->metalen = 0;
 
-  u8vec = scm_take_u8vector ((scm_t_uint8*)bp,
-                             sizeof (struct scm_objcode) + sizeof (text));
+  u8vec = scm_c_take_bytevector ((scm_t_int8*)bp,
+                                 sizeof (struct scm_objcode) + sizeof (text));
   ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
                           SCM_BOOL_F, SCM_BOOL_F);
   SCM_SET_CELL_WORD_0 (ret, SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_BOOT);
