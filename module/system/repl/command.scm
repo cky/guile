@@ -360,7 +360,7 @@ Profile execution."
   ;; FIXME opts
   (let ((vm (repl-vm repl))
         (proc (make-program (repl-compile repl (repl-parse repl form)))))
-    (with-statprof #:hz 100 (vm-apply vm proc '()))))
+    (apply statprof (lambda () (vm-apply vm proc '())) opts)))
 
 
 

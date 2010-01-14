@@ -1,7 +1,7 @@
 ;;;; (statprof) -- a statistical profiler for Guile
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 ;;;; 
@@ -126,6 +126,9 @@
 (define-module (statprof)
   #:use-module (srfi srfi-1)
   #:autoload   (ice-9 format) (format)
+  #:use-module (system vm vm)
+  #:use-module (system vm frame)
+  #:use-module (system vm program)
   #:export (statprof-active?
             statprof-start
             statprof-stop
@@ -155,6 +158,7 @@
             statprof-fetch-stacks
             statprof-fetch-call-tree
 
+            statprof
             with-statprof))
 
 
@@ -285,7 +289,9 @@
               ;; and eliminate inside-profiler? because it seems to
               ;; confuse guile wrt re-enabling the trap when
               ;; count-call finishes.
-              (if %count-calls? (trap-disable 'apply-frame))
+              (if %count-calls?
+                  (set-vm-trace-level! (the-vm)
+                                       (1- (vm-trace-level (the-vm)))))
               (accumulate-time stop-time)))
         
         (setitimer ITIMER_PROF
@@ -296,19 +302,21 @@
         (if (not inside-apply-trap?)
             (begin
               (set! last-start-time (get-internal-run-time))
-              (if %count-calls? (trap-enable 'apply-frame))))))
-
+              (if %count-calls?
+                  (set-vm-trace-level! (the-vm)
+                                       (1+ (vm-trace-level (the-vm)))))))))
+  
   (set! inside-profiler? #f))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Count total calls.
 
-(define (count-call trap-name continuation tail)
+(define (count-call frame)
   (if (not inside-profiler?)
       (begin
         (accumulate-time (get-internal-run-time))
 
-        (and=> (frame-procedure (last-stack-frame continuation))
+        (and=> (frame-procedure frame)
                (lambda (proc)
                  (inc-call-data-call-count!
                   (get-call-data proc))))
@@ -343,7 +351,8 @@ than @code{statprof-stop}, @code{#f} otherwise."
                        0 0
                        (car sampling-frequency)
                        (cdr sampling-frequency)))
-        (trap-enable 'apply-frame)
+        (add-hook! (vm-apply-hook (the-vm)) count-call)
+        (set-vm-trace-level! (the-vm) (1+ (vm-trace-level (the-vm))))
         #t)))
   
 ;; Do not call this from statprof internal functions -- user only.
@@ -356,7 +365,8 @@ than @code{statprof-stop}, @code{#f} otherwise."
       (begin
         (set! gc-time-taken
               (- (cdr (assq 'gc-time-taken (gc-stats))) gc-time-taken))
-        (trap-disable 'apply-frame)
+        (set-vm-trace-level! (the-vm) (1- (vm-trace-level (the-vm))))
+        (remove-hook! (vm-apply-hook (the-vm)) count-call)
         ;; I believe that we need to do this before getting the time
         ;; (unless we want to make things even more complicated).
         (set! remaining-prof-time (setitimer ITIMER_PROF 0 0 0 0))
@@ -381,10 +391,6 @@ Enables traps and debugging as necessary."
   (set! sampling-frequency (cons sample-seconds sample-microseconds))
   (set! remaining-prof-time #f)
   (set! procedure-data (make-hash-table 131))
-  (if %count-calls?
-      (begin
-        (trap-set! apply-frame-handler count-call)
-        (trap-enable 'traps)))
   (set! record-full-stacks? (and (pair? full-stacks?) (car full-stacks?)))
   (set! stacks '())
   (debug-enable 'debug)
@@ -445,7 +451,11 @@ none is available."
                  (if (zero? self-samples) 0.0
                      (/ (* self-samples secs-per-sample) 1.0 num-calls)))
             (and num-calls ;; cum-samples must be positive
-                 (/ (* cum-samples secs-per-sample) 1.0 num-calls)))))
+                 (/ (* cum-samples secs-per-sample)
+                    1.0
+                    ;; num-calls might be 0 if we entered statprof during the
+                    ;; dynamic extent of the call
+                    (max num-calls 1))))))
 
 (define (statprof-stats-proc-name stats) (vector-ref stats 0))
 (define (statprof-stats-%-time-in-proc stats) (vector-ref stats 1))
@@ -484,7 +494,7 @@ optional @var{port} argument is passed, uses the current output port."
 
       (define (display-stats-line stats)
         (if %count-calls?
-            (format  port "~6,2f ~9,2f ~9,2f ~8r ~8,2f ~8,2f  "
+            (format  port "~6,2f ~9,2f ~9,2f ~7d ~8,2f ~8,2f  "
                      (statprof-stats-%-time-in-proc stats)
                      (statprof-stats-cum-secs-in-proc stats)
                      (statprof-stats-self-secs-in-proc stats)
@@ -565,14 +575,8 @@ to @code{statprof-reset} is true."
       (lambda (a b)
         (cond
          ((eq? a b))
-         ((and ((@ (system vm program) program?) a)
-               ((@ (system vm program) program?) b))
-          (eq? ((@ (system vm program) program-objcode) a)
-               ((@ (system vm program) program-objcode) b)))
-         ((and (closure? a) (closure? b)
-               (procedure-source a) (procedure-source b))
-          (and (eq? (procedure-name a) (procedure-name b))
-               (equal? (procedure-source a) (procedure-source b))))
+         ((and (program? a) (program? b))
+          (eq? (program-objcode a) (program-objcode b)))
          (else
           #f)))
       (lambda (a b)
@@ -629,6 +633,39 @@ The return value is a list of nodes, each of which is of the type:
 @end code"
   (cons #t (lists->trees (map stack->procedures stacks) procedure=?)))
 
+(define* (statprof thunk #:key (loop 1) (hz 100) (count-calls? #f)
+                   (full-stacks? #f))
+  "Profiles the execution of @var{thunk}.
+
+The stack will be sampled @var{hz} times per second, and the thunk itself will
+be called @var{loop} times.
+
+If @var{count-calls?} is true, all procedure calls will be recorded. This
+operation is somewhat expensive.
+
+If @var{full-stacks?} is true, at each sample, statprof will store away the
+whole call tree, for later analysis. Use @code{statprof-fetch-stacks} or
+@code{statprof-fetch-call-tree} to retrieve the last-stored stacks."
+  
+  (dynamic-wind
+    (lambda ()
+      (statprof-reset (inexact->exact (floor (/ 1 hz)))
+                      (inexact->exact (* 1e6 (- (/ 1 hz)
+                                                (floor (/ 1 hz)))))
+                      count-calls?
+                      full-stacks?)
+      (statprof-start))
+    (lambda ()
+      (let lp ((i loop))
+        (if (not (zero? i))
+            (begin
+              (thunk)
+              (lp (1- i))))))
+    (lambda ()
+      (statprof-stop)
+      (statprof-display)
+      (set! procedure-data #f))))
+
 (define-macro (with-statprof . args)
   "Profiles the expressions in its body.
 
@@ -662,29 +699,10 @@ default: @code{#f}
      ((eq? kw #f def) ;; asking for the body
       args)
      (else def))) ;; kw not found
-  (let ((loop (kw-arg-ref #:loop args #f))
-        (hz (kw-arg-ref #:hz args 20))
-        (count-calls? (kw-arg-ref #:count-calls? args #f))
-        (full-stacks? (kw-arg-ref #:full-stacks? args #f))
-        (body (kw-arg-ref #f args #f)))
-    `(dynamic-wind
-         (lambda ()
-            (statprof-reset (inexact->exact (floor (/ 1 ,hz)))
-                            (inexact->exact (* 1e6 (- (/ 1 ,hz)
-                                                      (floor (/ 1 ,hz)))))
-                            ,count-calls?
-                            ,full-stacks?)
-            (statprof-start))
-         (lambda ()
-           ,(if loop
-                (let ((lp (gensym "statprof ")) (x (gensym)))
-                  `(let ,lp ((,x ,loop))
-                        (if (not (zero? ,x))
-                            (begin ,@body (,lp (1- ,x))))))
-                `(begin ,@body)))
-         (lambda ()
-            (statprof-stop)
-            (statprof-display)
-            (set! (@@ (statprof) procedure-data) #f)))))
+  `((@ (statprof) statprof)
+    (lambda () ,@(kw-arg-ref #f args #f))
+    #:loop ,(kw-arg-ref #:loop args 1)
+    #:hz ,(kw-arg-ref #:hz args 100)
+    #:count-calls? ,(kw-arg-ref #:count-calls? args #f)
+    #:full-stacks? ,(kw-arg-ref #:full-stacks? args #f)))
 
-;;; arch-tag: 83969178-b576-4c52-a31c-6a9c2be85d10
