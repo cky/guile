@@ -166,6 +166,8 @@ static SCM class_frame;
 static SCM class_objcode;
 static SCM class_vm;
 static SCM class_vm_cont;
+static SCM class_bytevector;
+static SCM class_uvec;
 
 /* Port classes.  Allocate 3 times the maximum number of port types so that
    input ports, output ports, and in/out ports can be stored at different
@@ -235,6 +237,11 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  return class_vm;
         case scm_tc7_vm_cont:
 	  return class_vm_cont;
+	case scm_tc7_bytevector:
+          if (SCM_BYTEVECTOR_ELEMENT_TYPE (x) == SCM_ARRAY_ELEMENT_TYPE_VU8)
+            return class_bytevector;
+          else
+            return class_uvec;
 	case scm_tc7_string:
 	  return scm_class_string;
         case scm_tc7_number:
@@ -2422,6 +2429,10 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&class_vm_cont,		   "<vm-continuation>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_bytevector,	   "<bytevector>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_uvec,		   "<uvec>",
+	       scm_class_class, class_bytevector,	   SCM_EOL);
   make_stdcls (&scm_class_number,	   "<number>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_complex,	   "<complex>",
