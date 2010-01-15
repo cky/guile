@@ -78,6 +78,8 @@ scm_t_option scm_read_opts[] = {
 #endif
   { SCM_OPTION_BOOLEAN, "r6rs-hex-escapes", 0,
     "Use R6RS variable-length character and string hex escapes."},
+  { SCM_OPTION_BOOLEAN, "square-brackets", 1,
+    "Treat `[' and `]' as parentheses, for R6RS compatibility."},
   { 0, },
 };
 
@@ -173,7 +175,8 @@ static SCM *scm_read_hash_procedures;
    structure'').  */
 #define CHAR_IS_R5RS_DELIMITER(c)				\
   (CHAR_IS_BLANK (c)						\
-   || (c == ')') || (c == '(') || (c == ';') || (c == '"'))
+   || (c == ')') || (c == '(') || (c == ';') || (c == '"')      \
+   || (SCM_SQUARE_BRACKETS_P && ((c == '[') || (c == ']'))))
 
 #define CHAR_IS_DELIMITER  CHAR_IS_R5RS_DELIMITER
 
@@ -332,7 +335,7 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
   register SCM tmp;
   register SCM tl, ans = SCM_EOL;
   SCM tl2 = SCM_EOL, ans2 = SCM_EOL, copy = SCM_BOOL_F;
-  static const int terminating_char = ')';
+  const int terminating_char = ((chr == '[') ? ']' : ')');
 
   /* Need to capture line and column numbers here. */
   long line = SCM_LINUM (port);
@@ -1251,6 +1254,10 @@ scm_read_expression (SCM port)
 	case ';':
 	  (void) scm_read_semicolon_comment (chr, port);
 	  break;
+	case '[':
+          if (!SCM_SQUARE_BRACKETS_P)
+            return (scm_read_mixed_case_symbol (chr, port));
+          /* otherwise fall through */
 	case '(':
 	  return (scm_read_sexp (chr, port));
 	case '"':

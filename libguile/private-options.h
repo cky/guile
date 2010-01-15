@@ -4,7 +4,7 @@
  * We put this in a private header, since layout of data structures
  * is an implementation detail that we want to hide.
  * 
- * Copyright (C) 2007, 2009 Free Software Foundation, Inc.
+ * Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -96,6 +96,7 @@ SCM_API scm_t_option scm_read_opts[];
 #define SCM_ESCAPED_PARENS_P   scm_read_opts[5].val
 #endif
 #define SCM_R6RS_ESCAPES_P     scm_read_opts[6].val
+#define SCM_SQUARE_BRACKETS_P  scm_read_opts[7].val
 
 #if SCM_ENABLE_ELISP
 #define SCM_N_READ_OPTIONS 7
