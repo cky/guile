@@ -35,7 +35,7 @@ DEFAULT_INCLUDES =
 AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
-AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
+AM_CFLAGS = $(LIBFFI_CFLAGS) $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
 
 ## The Gnulib Libtool archive.
 gnulib_library = $(top_builddir)/lib/libgnu.la
@@ -442,7 +442,7 @@ libguile_la_LIBADD =				\
   @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP)	\
   $(LTLIBUNISTRING) $(LTLIBICONV)
 libguile_la_LDFLAGS =							\
-  @LTLIBINTL@ $(INET_NTOP_LIB) $(INET_PTON_LIB)				\
+  @LTLIBINTL@ $(LIBFFI_LIBS) $(INET_NTOP_LIB) $(INET_PTON_LIB)		\
   -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
   -export-dynamic -no-undefined						\
   $(GNU_LD_FLAGS)

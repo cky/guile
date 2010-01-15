@@ -4,7 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -878,6 +878,22 @@ if test "x$LTLIBUNISTRING" != "x"; then
 else
   AC_MSG_ERROR([GNU libunistring is required, please install it.])
 fi
+
+dnl Libffi is needed to compile Guile's foreign function interface, but its
+dnl interface isn't exposed in Guile's API.
+PKG_CHECK_MODULES(LIBFFI, libffi)
+AC_SUBST(LIBFFI_CFLAGS)
+AC_SUBST(LIBFFI_LIBS)
+
+dnl figure out approriate ffi type for size_t
+AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(ssize_t)
+ffi_size_type=uint$(($ac_cv_sizeof_size_t*8))
+ffi_ssize_type=sint$(($ac_cv_sizeof_ssize_t*8))
+AC_DEFINE_UNQUOTED(ffi_type_size_t, ffi_type_${ffi_size_type}, 
+		   [ffi type for size_t])
+AC_DEFINE_UNQUOTED(ffi_type_ssize_t, ffi_type_${ffi_ssize_type}, 
+		   [ffi type for ssize_t])
 
 dnl i18n tests
 #AC_CHECK_HEADERS([libintl.h])
