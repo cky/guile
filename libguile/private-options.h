@@ -94,14 +94,17 @@ SCM_API scm_t_option scm_read_opts[];
 #if SCM_ENABLE_ELISP
 #define SCM_ELISP_VECTORS_P    scm_read_opts[4].val
 #define SCM_ESCAPED_PARENS_P   scm_read_opts[5].val
-#endif
 #define SCM_R6RS_ESCAPES_P     scm_read_opts[6].val
 #define SCM_SQUARE_BRACKETS_P  scm_read_opts[7].val
+#else
+#define SCM_R6RS_ESCAPES_P     scm_read_opts[4].val
+#define SCM_SQUARE_BRACKETS_P  scm_read_opts[5].val
+#endif
 
 #if SCM_ENABLE_ELISP
-#define SCM_N_READ_OPTIONS 7
+#define SCM_N_READ_OPTIONS 8
 #else
-#define SCM_N_READ_OPTIONS 5
+#define SCM_N_READ_OPTIONS 6
 #endif
 
 #endif  /* PRIVATE_OPTIONS */ 
