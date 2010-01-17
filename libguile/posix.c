@@ -1373,13 +1373,18 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
-            (SCM pathname, SCM actime, SCM modtime),
+SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
+            (SCM pathname, SCM actime, SCM modtime, SCM actimens, SCM modtimens,
+             SCM flags),
 	    "@code{utime} sets the access and modification times for the\n"
 	    "file named by @var{path}.  If @var{actime} or @var{modtime} is\n"
 	    "not supplied, then the current time is used.  @var{actime} and\n"
 	    "@var{modtime} must be integer time values as returned by the\n"
-	    "@code{current-time} procedure.\n"
+	    "@code{current-time} procedure.\n\n"
+            "The optional @var{actimens} and @var{modtimens} are nanoseconds\n"
+            "to add @var{actime} and @var{modtime}. Nanosecond precision is\n"
+            "only supported on some combinations of filesystems and operating\n"
+            "systems.\n"
 	    "@lisp\n"
 	    "(utime \"foo\" (- (current-time) 3600))\n"
 	    "@end lisp\n"
@@ -1388,20 +1393,75 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
 #define FUNC_NAME s_scm_utime
 {
   int rv;
-  struct utimbuf utm_tmp;
-
+  time_t atim_sec, mtim_sec;
+  long atim_nsec, mtim_nsec;
+  int f;
+  
   if (SCM_UNBNDP (actime))
-    SCM_SYSCALL (time (&utm_tmp.actime));
+    {
+#if HAVE_UTIMENSAT
+      atim_sec = 0;
+      atim_nsec = UTIME_NOW;
+#else
+      SCM_SYSCALL (time (&atim_sec));
+      atim_nsec = 0;
+#endif
+    }
   else
-    utm_tmp.actime = SCM_NUM2ULONG (2, actime);
-
+    {
+      atim_sec = SCM_NUM2ULONG (2, actime);
+      if (SCM_UNBNDP (actimens))
+        atim_nsec = 0;
+      else
+        atim_nsec = SCM_NUM2LONG (4, actimens);
+    }
+  
   if (SCM_UNBNDP (modtime))
-    SCM_SYSCALL (time (&utm_tmp.modtime));
+    {
+#if HAVE_UTIMENSAT
+      mtim_sec = 0;
+      mtim_nsec = UTIME_NOW;
+#else
+      SCM_SYSCALL (time (&mtim_sec));
+      mtim_nsec = 0;
+#endif
+    }
   else
-    utm_tmp.modtime = SCM_NUM2ULONG (3, modtime);
+    {
+      mtim_sec = SCM_NUM2ULONG (3, modtime);
+      if (SCM_UNBNDP (modtimens))
+        mtim_nsec = 0;
+      else
+        mtim_nsec = SCM_NUM2LONG (5, modtimens);
+    }
+  
+  if (SCM_UNBNDP (flags))
+    f = 0;
+  else
+    f = SCM_NUM2INT (6, flags);
 
-  STRING_SYSCALL (pathname, c_pathname,
-		  rv = utime (c_pathname, &utm_tmp));
+#if HAVE_UTIMENSAT
+  {
+    struct timespec times[2];
+    times[0].tv_sec = atim_sec;
+    times[0].tv_nsec = atim_nsec;
+    times[1].tv_sec = mtim_sec;
+    times[1].tv_nsec = mtim_nsec;
+
+    STRING_SYSCALL (pathname, c_pathname,
+                    rv = utimensat (AT_FDCWD, c_pathname, &times, f));
+  }
+#else
+  {
+    struct utimbuf utm;
+    utm.actime = atim_sec;
+    utm.modtime = mtim_sec;
+
+    STRING_SYSCALL (pathname, c_pathname,
+                    rv = utime (c_pathname, &utm));
+  }
+#endif
+
   if (rv != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

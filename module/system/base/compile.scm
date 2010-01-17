@@ -88,7 +88,9 @@
            (close-port tmp)
            (if reference
                (let ((st (stat reference)))
-                 (utime template (stat:atime st) (stat:mtime st))))
+                 (utime template
+                        (stat:atime st) (stat:mtime st)
+                        (stat:atimensec st) (stat:mtimensec st))))
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))

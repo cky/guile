@@ -764,8 +764,9 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
 #   nl_langinfo - X/Open, not available on Windows.
+#   utimensat: posix.1-2008
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo])
+AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo utimensat])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
@@ -1157,7 +1158,10 @@ int main () { return (isnan(x) != 0); }]]),
 # Note AC_STRUCT_ST_BLOCKS is not used here because we don't want the
 # AC_LIBOBJ(fileblocks) replacement which that macro gives.
 #
-AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
+AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks, struct stat.st_atim, struct stat.st_mtim, struct stat.st_ctim],,,
+                 [#define _GNU_SOURCE
+AC_INCLUDES_DEFAULT
+])
 
 AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.tm_gmtoff],,,
