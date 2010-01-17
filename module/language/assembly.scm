@@ -106,7 +106,7 @@
 (define (object->assembly x)
   (cond ((eq? x #t) `(make-true))
 	((eq? x #f) `(make-false))
-        ((eq? x %nil) `(make-nil))
+        ((and (defined? '%nil) (eq? x %nil)) `(make-nil))
 	((null? x) `(make-eol))
 	((and (integer? x) (exact? x))
 	 (cond ((and (<= -128 x) (< x 128))
