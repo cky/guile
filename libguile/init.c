@@ -452,6 +452,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_bootstrap_objcodes ();
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
+  scm_register_foreign ();
 
   scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */
@@ -482,7 +483,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_ports ();
   scm_init_hash ();
   scm_init_hashtab ();
-  scm_init_foreign ();
   scm_init_deprecation ();
   scm_init_objprop ();
   scm_init_promises ();         /* requires smob_prehistory */

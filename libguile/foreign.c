@@ -26,6 +26,18 @@
 
 
 
+SCM_SYMBOL (sym_void, "void");
+SCM_SYMBOL (sym_float, "float");
+SCM_SYMBOL (sym_double, "double");
+SCM_SYMBOL (sym_uint8, "uint8");
+SCM_SYMBOL (sym_int8, "int8");
+SCM_SYMBOL (sym_uint16, "uint16");
+SCM_SYMBOL (sym_int16, "int16");
+SCM_SYMBOL (sym_uint32, "uint32");
+SCM_SYMBOL (sym_int32, "int32");
+SCM_SYMBOL (sym_uint64, "uint64");
+SCM_SYMBOL (sym_int64, "int64");
+
 static void
 foreign_finalizer_trampoline (GC_PTR ptr, GC_PTR data)
 {
@@ -308,12 +320,31 @@ scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
 
 
 
-void
+static void
 scm_init_foreign (void)
 {
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/foreign.x"
 #endif
+  scm_define (sym_void, scm_from_uint8 (SCM_FOREIGN_TYPE_VOID));
+  scm_define (sym_float, scm_from_uint8 (SCM_FOREIGN_TYPE_FLOAT));
+  scm_define (sym_double, scm_from_uint8 (SCM_FOREIGN_TYPE_DOUBLE));
+  scm_define (sym_uint8, scm_from_uint8 (SCM_FOREIGN_TYPE_UINT8));
+  scm_define (sym_int8, scm_from_uint8 (SCM_FOREIGN_TYPE_INT8));
+  scm_define (sym_uint16, scm_from_uint8 (SCM_FOREIGN_TYPE_UINT16));
+  scm_define (sym_int16, scm_from_uint8 (SCM_FOREIGN_TYPE_INT16));
+  scm_define (sym_uint32, scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32));
+  scm_define (sym_int32, scm_from_uint8 (SCM_FOREIGN_TYPE_INT32));
+  scm_define (sym_uint64, scm_from_uint8 (SCM_FOREIGN_TYPE_UINT64));
+  scm_define (sym_int64, scm_from_uint8 (SCM_FOREIGN_TYPE_INT64));
+}
+
+void
+scm_register_foreign (void)
+{
+  scm_c_register_extension ("libguile", "scm_init_foreign",
+                            (scm_t_extension_init_func)scm_init_foreign,
+                            NULL);
 }
 
 /*

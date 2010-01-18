@@ -95,7 +95,7 @@ SCM_API SCM scm_foreign_set_x (SCM foreign, SCM val, SCM type, SCM offset);
 
 SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,
                                        scm_print_state *pstate);
-SCM_INTERNAL void scm_init_foreign (void);
+SCM_INTERNAL void scm_register_foreign (void);
 
 
 #endif /* SCM_FOREIGN_H */
