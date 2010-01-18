@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1399,7 +1399,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
   
   if (SCM_UNBNDP (actime))
     {
-#if HAVE_UTIMENSAT
+#ifdef HAVE_UTIMENSAT
       atim_sec = 0;
       atim_nsec = UTIME_NOW;
 #else
@@ -1418,7 +1418,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
   
   if (SCM_UNBNDP (modtime))
     {
-#if HAVE_UTIMENSAT
+#ifdef HAVE_UTIMENSAT
       mtim_sec = 0;
       mtim_nsec = UTIME_NOW;
 #else
@@ -1440,7 +1440,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
   else
     f = SCM_NUM2INT (6, flags);
 
-#if HAVE_UTIMENSAT
+#ifdef HAVE_UTIMENSAT
   {
     struct timespec times[2];
     times[0].tv_sec = atim_sec;
@@ -1449,7 +1449,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
     times[1].tv_nsec = mtim_nsec;
 
     STRING_SYSCALL (pathname, c_pathname,
-                    rv = utimensat (AT_FDCWD, c_pathname, &times, f));
+                    rv = utimensat (AT_FDCWD, c_pathname, times, f));
   }
 #else
   {

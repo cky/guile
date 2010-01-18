@@ -1,6 +1,6 @@
 ;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2006, 2007, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -160,4 +160,23 @@
           (throw 'unsupported)
           (ttyname file)))))
 
+;;
+;; utimes
+;;
 
+(with-test-prefix "utime"
+
+  (pass-if "valid argument (second resolution)"
+    (let ((file "posix.test-utime"))
+      (dynamic-wind
+        (lambda ()
+          (close-port (open-output-file file)))
+        (lambda ()
+          (let* ((accessed (+ (current-time) 3600))
+                 (modified (- accessed 1000)))
+            (utime file accessed modified)
+            (let ((info (stat file)))
+              (and (= (stat:atime info) accessed)
+                   (= (stat:mtime info) modified)))))
+        (lambda ()
+          (delete-file file))))))
