@@ -2601,7 +2601,6 @@ If you want to prevent modifications, use @code{substring/read-only}.
 Guile provides all procedures of SRFI-13 and a few more.
 
 @menu
-* String Internals::                The storage strategy for strings.
 * String Syntax::                   Read syntax for strings.
 * String Predicates::               Testing strings for certain properties.
 * String Constructors::             Creating new string objects.
@@ -2615,72 +2614,8 @@ Guile provides all procedures of SRFI-13 and a few more.
 * Mapping Folding and Unfolding::   Iterating over strings.
 * Miscellaneous String Operations:: Replicating, insertion, parsing, ...
 * Conversion to/from C::
+* String Internals::                The storage strategy for strings.
 @end menu
-
-@node String Internals
-@subsubsection String Internals
-
-Guile stores each string in memory as a contiguous array of Unicode code
-points along with an associated set of attributes.  If all of the code
-points of a string have an integer range between 0 and 255 inclusive,
-the code point array is stored as one byte per code point: it is stored
-as an ISO-8859-1 (aka Latin-1) string.  If any of the code points of the
-string has an integer value greater that 255, the code point array is
-stored as four bytes per code point: it is stored as a UTF-32 string.
-
-Conversion between the one-byte-per-code-point and
-four-bytes-per-code-point representations happens automatically as
-necessary.
-
-No API is provided to set the internal representation of strings;
-however, there are pair of procedures available to query it.  These are
-debugging procedures.  Using them in production code is discouraged,
-since the details of Guile's internal representation of strings may
-change from release to release.
-
-@deffn {Scheme Procedure} string-bytes-per-char str
-@deffnx {C Function} scm_string_bytes_per_char (str)
-Return the number of bytes used to encode a Unicode code point in string
-@var{str}.  The result is one or four.
-@end deffn
-
-@deffn {Scheme Procedure} %string-dump str
-@deffnx {C Function} scm_sys_string_dump (str)
-Returns an association list containing debugging information for
-@var{str}. The association list has the following entries.
-@table @code 
-
-@item string 
-The string itself.
-
-@item start 
-The start index of the string into its stringbuf 
-
-@item length 
-The length of the string 
-
-@item shared 
-If this string is a substring, it returns its
-parent string.  Otherwise, it returns @code{#f} 
-
-@item read-only
-@code{#t} if the string is read-only 
-
-@item stringbuf-chars 
-A new string containing this string's stringbuf's characters 
-
-@item stringbuf-length
-The number of characters in this stringbuf 
-
-@item stringbuf-shared
-@code{#t} if this stringbuf is shared 
-
-@item stringbuf-wide 
-@code{#t} if this stringbuf's characters are stored in a 32-bit buffer,
-or @code{#f} if they are stored in an 8-bit buffer
-@end table
-@end deffn
-
 
 @node String Syntax
 @subsubsection String Read Syntax
@@ -4027,6 +3962,71 @@ bytes that are needed for all of @var{str}, regardless of whether
 is larger than @var{max_len}, only @var{max_len} bytes have been
 stored and you probably need to try again with a larger buffer.
 @end deftypefn
+
+@node String Internals
+@subsubsection String Internals
+
+Guile stores each string in memory as a contiguous array of Unicode code
+points along with an associated set of attributes.  If all of the code
+points of a string have an integer range between 0 and 255 inclusive,
+the code point array is stored as one byte per code point: it is stored
+as an ISO-8859-1 (aka Latin-1) string.  If any of the code points of the
+string has an integer value greater that 255, the code point array is
+stored as four bytes per code point: it is stored as a UTF-32 string.
+
+Conversion between the one-byte-per-code-point and
+four-bytes-per-code-point representations happens automatically as
+necessary.
+
+No API is provided to set the internal representation of strings;
+however, there are pair of procedures available to query it.  These are
+debugging procedures.  Using them in production code is discouraged,
+since the details of Guile's internal representation of strings may
+change from release to release.
+
+@deffn {Scheme Procedure} string-bytes-per-char str
+@deffnx {C Function} scm_string_bytes_per_char (str)
+Return the number of bytes used to encode a Unicode code point in string
+@var{str}.  The result is one or four.
+@end deffn
+
+@deffn {Scheme Procedure} %string-dump str
+@deffnx {C Function} scm_sys_string_dump (str)
+Returns an association list containing debugging information for
+@var{str}. The association list has the following entries.
+@table @code
+
+@item string
+The string itself.
+
+@item start
+The start index of the string into its stringbuf
+
+@item length
+The length of the string
+
+@item shared
+If this string is a substring, it returns its
+parent string.  Otherwise, it returns @code{#f}
+
+@item read-only
+@code{#t} if the string is read-only
+
+@item stringbuf-chars
+A new string containing this string's stringbuf's characters
+
+@item stringbuf-length
+The number of characters in this stringbuf
+
+@item stringbuf-shared
+@code{#t} if this stringbuf is shared
+
+@item stringbuf-wide
+@code{#t} if this stringbuf's characters are stored in a 32-bit buffer,
+or @code{#f} if they are stored in an 8-bit buffer
+@end table
+@end deffn
+
 
 @node Bytevectors
 @subsection Bytevectors
