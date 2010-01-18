@@ -90,8 +90,11 @@ SCM_API SCM scm_take_foreign_pointer (scm_t_foreign_type type, void *ptr,
                                       scm_t_foreign_finalizer finalizer);
 
 SCM_API SCM scm_foreign_type (SCM foreign);
-SCM_API SCM scm_foreign_ref (SCM foreign, SCM type, SCM offset, SCM len);
-SCM_API SCM scm_foreign_set_x (SCM foreign, SCM val, SCM type, SCM offset);
+SCM_API SCM scm_foreign_ref (SCM foreign);
+SCM_API SCM scm_foreign_set_x (SCM foreign, SCM val);
+SCM_API SCM scm_foreign_to_bytevector (SCM foreign, SCM type,
+                                       SCM offset, SCM len);
+SCM_API SCM scm_bytevector_to_foreign (SCM bv, SCM offset, SCM len);
 
 SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,
                                        scm_print_state *pstate);

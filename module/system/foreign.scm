@@ -24,6 +24,7 @@
             uint32 int32
             uint64 int64
 
-            foreign-ref foreign-set!))
+            foreign-ref foreign-set!
+            foreign->bytevector bytevector->foreign))
 
 (load-extension "libguile" "scm_init_foreign")
