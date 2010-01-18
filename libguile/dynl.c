@@ -100,7 +100,7 @@ sysdep_dynl_unlink (void *handle, const char *subr)
 }
    
 static void *
-sysdep_dynl_func (const char *symb, void *handle, const char *subr)
+sysdep_dynl_value (const char *symb, void *handle, const char *subr)
 {
   void *fptr;
 
@@ -214,6 +214,49 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 #undef FUNC_NAME
 
 
+SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 3, 1, 0, 
+            (SCM name, SCM type, SCM dobj, SCM len),
+	    "Return a ``handle'' for the pointer @var{name} in the\n"
+	    "shared object referred to by @var{dobj}.  The handle\n"
+	    "aliases a C value, and is declared to be of type\n"
+            "@var{type}. Valid types are defined in the\n"
+            "@code{(system vm ffi)} module.\n\n"
+            "This facility works by asking the operating system for\n"
+            "the address of a symbol, then assuming that it aliases a\n"
+            "value of a given type. Obviously, the user must be very\n"
+            "careful to ensure that the value actually is of the\n"
+            "declared type, or bad things will happen.\n\n"
+	    "Regardless whether your C compiler prepends an underscore\n"
+	    "@samp{_} to the global names in a program, you should\n"
+	    "@strong{not} include this underscore in @var{name}\n"
+	    "since it will be added automatically when necessary.")
+#define FUNC_NAME s_scm_dynamic_pointer
+{
+  void *val;
+  scm_t_foreign_type t;
+
+  SCM_VALIDATE_STRING (1, name);
+  t = scm_to_unsigned_integer (type, 0, SCM_FOREIGN_TYPE_LAST);
+  /*fixme* GC-problem */
+  SCM_VALIDATE_SMOB (SCM_ARG3, dobj, dynamic_obj);
+  if (DYNL_HANDLE (dobj) == NULL) {
+    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
+  } else {
+    char *chars;
+
+    scm_dynwind_begin (0);
+    chars = scm_to_locale_string (name);
+    scm_dynwind_free (chars);
+    val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
+    scm_dynwind_end ();
+    return scm_take_foreign_pointer (t, val,
+                                     SCM_UNBNDP (len) ? 0 : scm_to_size_t (len),
+                                     NULL);
+  }
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0, 
             (SCM name, SCM dobj),
 	    "Return a ``handle'' for the function @var{name} in the\n"
@@ -226,24 +269,10 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 	    "since it will be added automatically when necessary.")
 #define FUNC_NAME s_scm_dynamic_func
 {
-  void (*func) ();
-
-  SCM_VALIDATE_STRING (1, name);
-  /*fixme* GC-problem */
-  SCM_VALIDATE_SMOB (SCM_ARG2, dobj, dynamic_obj);
-  if (DYNL_HANDLE (dobj) == NULL) {
-    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
-  } else {
-    char *chars;
-
-    scm_dynwind_begin (0);
-    chars = scm_to_locale_string (name);
-    scm_dynwind_free (chars);
-    func = (void (*) ()) sysdep_dynl_func (chars, DYNL_HANDLE (dobj), 
-					   FUNC_NAME);
-    scm_dynwind_end ();
-    return scm_c_from_foreign (SCM_FOREIGN_TYPE_POINTER, &func, 0, NULL);
-  }
+  return scm_dynamic_pointer (name,
+                              scm_from_uint (SCM_FOREIGN_TYPE_VOID),
+                              dobj,
+                              SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -272,9 +301,9 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
   
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, POINTER);
+  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, VOID);
 
-  fptr = SCM_FOREIGN_OBJECT_REF (func, void*);
+  fptr = SCM_FOREIGN_POINTER (func, void);
   fptr ();
   return SCM_UNSPECIFIED;
 }
@@ -302,9 +331,9 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, POINTER);
+  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, VOID);
 
-  fptr = SCM_FOREIGN_OBJECT_REF (func, void*);
+  fptr = SCM_FOREIGN_POINTER (func, void);
 
   argv = scm_i_allocate_string_pointers (args);
   for (argc = 0; argv[argc]; argc++)

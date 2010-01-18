@@ -842,7 +842,7 @@ VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
   nargs = FETCH ();
   POP (foreign);
 
-  subr = SCM_FOREIGN_OBJECT_REF (foreign, void*);
+  subr = SCM_FOREIGN_POINTER (foreign, void);
 
   VM_HANDLE_INTERRUPTS;
   SYNC_REGISTER ();
