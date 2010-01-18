@@ -2614,7 +2614,7 @@ Guile provides all procedures of SRFI-13 and a few more.
 * Reversing and Appending Strings:: Appending strings to form a new string.
 * Mapping Folding and Unfolding::   Iterating over strings.
 * Miscellaneous String Operations:: Replicating, insertion, parsing, ...
-* Conversion to/from C::       
+* Conversion to/from C::
 @end menu
 
 @node String Internals
@@ -2693,10 +2693,10 @@ or @code{#f} if they are stored in an 8-bit buffer
 The read syntax for strings is an arbitrarily long sequence of
 characters enclosed in double quotes (@nicode{"}).
 
-Backslash is an escape character and can be used to insert the
-following special characters.  @nicode{\"} and @nicode{\\} are R5RS
-standard, the rest are Guile extensions, notice they follow C string
-syntax.
+Backslash is an escape character and can be used to insert the following
+special characters.  @nicode{\"} and @nicode{\\} are R5RS standard, the
+next seven are R6RS standard --- notice they follow C syntax --- and the
+remaining four are Guile extensions.
 
 @table @asis
 @item @nicode{\\}
@@ -2705,9 +2705,6 @@ Backslash character.
 @item @nicode{\"}
 Double quote character (an unescaped @nicode{"} is otherwise the end
 of the string).
-
-@item @nicode{\0}
-NUL character (ASCII 0).
 
 @item @nicode{\a}
 Bell character (ASCII 7).
@@ -2729,6 +2726,9 @@ Vertical tab character (ASCII 11).
 
 @item @nicode{\b}
 Backspace character (ASCII 8).
+
+@item @nicode{\0}
+NUL character (ASCII 0).
 
 @item @nicode{\xHH}
 Character code given by two hexadecimal digits.  For example
@@ -3176,7 +3176,7 @@ predicates (@pxref{Characters}), but are defined on character sequences.
 
 The first set is specified in R5RS and has names that end in @code{?}.
 The second set is specified in SRFI-13 and the names have not ending
-@code{?}.  
+@code{?}.
 
 The predicates ending in @code{-ci} ignore the character case
 when comparing strings.  For now, case-insensitive comparison is done
@@ -3615,6 +3615,13 @@ case-insensitively.
 These are procedures for mapping strings to their upper- or lower-case
 equivalents, respectively, or for capitalizing strings.
 
+They use the basic case mapping rules for Unicode characters.  No
+special language or context rules are considered.  The resulting strings
+are guaranteed to be the same length as the input strings.
+
+@xref{Character Case Mapping, the @code{(ice-9
+i18n)} module}, for locale-dependent case conversions.
+
 @deffn {Scheme Procedure} string-upcase str [start [end]]
 @deffnx {C Function} scm_substring_upcase (str, start, end)
 @deffnx {C Function} scm_string_upcase (str)
@@ -3936,12 +3943,19 @@ that make up the string.  For Scheme strings, character encoding is
 not an issue (most of the time), since in Scheme you never get to see
 the bytes, only the characters.
 
-Well, ideally, anyway.  Right now, Guile simply equates Scheme
-characters and bytes, ignoring the possibility of multi-byte encodings
-completely.  This will change in the future, where Guile will use
-Unicode codepoints as its characters and UTF-8 or some other encoding
-as its internal encoding.  When you exclusively use the functions
-listed in this section, you are `future-proof'.
+Converting to C and converting from C each have their own challenges.
+
+When converting from C to Scheme, it is important that the sequence of
+bytes in the C string be valid with respect to its encoding.  ASCII
+strings, for example, can't have any bytes greater than 127.  An ASCII
+byte greater than 127 is considered @emph{ill-formed} and cannot be
+converted into a Scheme character.
+
+Problems can occur in the reverse operation as well.  Not all character
+encodings can hold all possible Scheme characters.  Some encodings, like
+ASCII for example, can only describe a small subset of all possible
+characters.  So, when converting to C, one must first decide what to do
+with Scheme characters that can't be represented in the C string.
 
 Converting a Scheme string to a C string will often allocate fresh
 memory to hold the result.  You must take care that this memory is
@@ -3951,8 +3965,9 @@ using @code{scm_dynwind_free} inside an appropriate dynwind context,
 
 @deftypefn  {C Function} SCM scm_from_locale_string (const char *str)
 @deftypefnx {C Function} SCM scm_from_locale_stringn (const char *str, size_t len)
-Creates a new Scheme string that has the same contents as @var{str}
-when interpreted in the current locale character encoding.
+Creates a new Scheme string that has the same contents as @var{str} when
+interpreted in the locale character encoding of the
+@code{current-input-port}.
 
 For @code{scm_from_locale_string}, @var{str} must be null-terminated.
 
@@ -3960,6 +3975,8 @@ For @code{scm_from_locale_stringn}, @var{len} specifies the length of
 @var{str} in bytes, and @var{str} does not need to be null-terminated.
 If @var{len} is @code{(size_t)-1}, then @var{str} does need to be
 null-terminated and the real length will be found with @code{strlen}.
+
+If the C string is ill-formed, an error will be raised.
 @end deftypefn
 
 @deftypefn  {C Function} SCM scm_take_locale_string (char *str)
@@ -3973,10 +3990,10 @@ can then use @var{str} directly as its internal representation.
 
 @deftypefn  {C Function} {char *} scm_to_locale_string (SCM str)
 @deftypefnx {C Function} {char *} scm_to_locale_stringn (SCM str, size_t *lenp)
-Returns a C string in the current locale encoding with the same
-contents as @var{str}.  The C string must be freed with @code{free}
-eventually, maybe by using @code{scm_dynwind_free}, @xref{Dynamic
-Wind}.
+Returns a C string with the same contents as @var{str} in the locale
+encoding of the @code{current-output-port}.  The C string must be freed
+with @code{free} eventually, maybe by using @code{scm_dynwind_free},
+@xref{Dynamic Wind}.
 
 For @code{scm_to_locale_string}, the returned string is
 null-terminated and an error is signalled when @var{str} contains
@@ -3988,6 +4005,14 @@ returned string in bytes is stored in @code{*@var{lenp}}.  The
 returned string will not be null-terminated in this case.  If
 @var{lenp} is @code{NULL}, @code{scm_to_locale_stringn} behaves like
 @code{scm_to_locale_string}.
+
+If a character in @var{str} cannot be represented in the locale encoding
+of the current output port, the port conversion strategy of the current
+output port will determine the result, @xref{Ports}.  If output port's
+conversion strategy is @code{error}, an error will be raised.  If it is
+@code{subsitute}, a replacement character, such as a question mark, will
+be inserted in its place.  If it is @code{escape}, a hex escape will be
+inserted in its place.
 @end deftypefn
 
 @deftypefn {C Function} size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
