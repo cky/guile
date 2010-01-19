@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -460,8 +460,7 @@ Note that well-written Scheme programs will not typically call the
 procedures in this section, for the same reason that it is often bad
 taste to use @code{eval}. The normal interface to the compiler is the
 command-line file compiler, which can be invoked from the shell as
-@code{guile-tools compile @var{foo.scm}}. This interface needs more
-documentation.
+@code{guile-tools compile foo.scm}.
 
 (Why are calls to @code{eval} and @code{compile} usually in bad taste?
 Because they are limited, in that they can only really make sense for
@@ -473,6 +472,49 @@ from a port.)
 For more information on the compiler itself, see @ref{Compiling to the
 Virtual Machine}. For information on the virtual machine, see @ref{A
 Virtual Machine for Guile}.
+
+The command-line interface to Guile's compiler is the @command{guile-tools
+compile} command:
+
+@deffn {Command} {guile-tools compile} [@option{option}...] @var{file}...
+Compile @var{file}, a source file, and store bytecode in the compilation cache
+or in the file specified by the @option{-o} option.  The following options are
+available:
+
+@table @option
+
+@item -L @var{dir}
+@itemx --load-path=@var{dir}
+Add @var{dir} to the front of the module load path.
+
+@item -o @var{ofile}
+@itemx --output=@var{ofile}
+Write output bytecode to @var{ofile}.  By convention, bytecode file names end
+in @code{.go}.
+
+@item -W @var{warning}
+@itemx --warn=@var{warning}
+Emit warnings of type @var{warning}; use @code{--warn=help} for a list of
+available warnings.  Currently recognized warnings include
+@code{unused-variable}, @code{unused-toplevel}, @code{unbound-variable}, and
+@code{arity-mismatch}.
+
+@item -f @var{lang}
+@itemx --from=@var{lang}
+Use @var{lang} as the source language of @var{file}.  If this option is omitted,
+@code{scheme} is assumed.
+
+@item -t @var{lang}
+@itemx --to=@var{lang}
+Use @var{lang} as the target language of @var{file}.  If this option is omitted,
+@code{objcode} is assumed.
+
+@end table
+
+@end deffn
+
+The compiler can also be invoked directly by Scheme code using the procedures
+below:
 
 @deffn {Scheme Procedure} compile exp [env=#f] [from=(current-language)] [to=value] [opts=()]
 Compile the expression @var{exp} in the environment @var{env}. If
