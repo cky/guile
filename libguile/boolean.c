@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -85,6 +85,18 @@ scm_to_bool (SCM x)
     scm_wrong_type_arg (NULL, 0, x);
 }
 
+/* We keep this primitive as a function in addition to the same-named macro
+   because some applications (e.g., GNU LilyPond 2.13.9) expect it to be a
+   function.  */
+#undef scm_is_bool
+int
+scm_is_bool (SCM obj)
+{
+  /* This must match the macro definition of `scm_is_bool ()'.  */
+  return scm_is_bool_and_not_nil (obj);
+}
+
+
 void
 scm_init_boolean ()
 {

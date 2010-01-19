@@ -3,7 +3,7 @@
 #ifndef SCM_BOOLEAN_H
 #define SCM_BOOLEAN_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -87,6 +87,8 @@
 
 #define scm_is_bool_and_not_nil(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_F, SCM_BOOL_T))
+
+SCM_API int scm_is_bool (SCM);
 
 /* XXX Should scm_is_bool treat %nil as a boolean? */
 #define scm_is_bool(x)   (scm_is_bool_and_not_nil (x))
