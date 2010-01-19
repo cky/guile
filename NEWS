@@ -197,6 +197,26 @@ allows Guile's copy of SSAX to override any Guile-Lib copy the user has
 installed. Also it should cut the number of `stat' system calls by half,
 in the common case.
 
+** Compile-time warning: -Wunused-toplevel
+
+Guile can warn about potentially unused top-level (global)
+variables. Pass the -Wunused-toplevel on the `guile-tools compile'
+command line, or add
+`#:warnings '(unused-toplevel)' to your `compile' or `compile-file'
+invocation.
+
+** New reader options: `square-brackets' and `r6rs-hex-escapes'
+
+The reader supports a new option (changeable via `read-options'),
+`square-brackets', which instructs it to interpret square brackets as
+parenthesis.  This option is on by default.
+
+If this causes problems with your code, make sure to report it to
+bug-guile@gnu.org so we can change the default.
+
+When the new `r6rs-hex-escapes' reader option is enabled, the reader
+will recognize string escape sequences as defined in R6RS.
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
@@ -245,6 +265,15 @@ GUILE_SYSTEM_PATH.
 Running Guile with no arguments drops the user into the new REPL. While
 it is self-documenting to an extent, the new REPL has not yet been
 documented in the manual. This will be fixed before 2.0.
+
+** New reader options: `square-brackets' and `r6rs-hex-escapes'
+
+The reader supports a new option (changeable via `read-options'),
+`square-brackets', which instructs it to interpret square brackets as
+parenthesis.  This option is on by default.
+
+When the new `r6rs-hex-escapes' reader option is enabled, the reader
+will recognize string escape sequences as defined in R6RS.
 
 ** Function profiling and tracing at the REPL
     
@@ -937,7 +966,7 @@ There was an EBCDIC compile flag that altered some of the character
 processing.  It appeared that full EBCDIC support was never completed
 and was unmaintained.
 
-** Compile-time warnings: -Wunbound-variable, -Warity-mismatch. 
+** Compile-time warnings
 
 Guile can warn about potentially unbound free variables. Pass the
 -Wunbound-variable on the `guile-tools compile' command line, or add
@@ -947,6 +976,9 @@ invocation.
 Guile can also warn when you pass the wrong number of arguments to a
 procedure, with -Warity-mismatch, or `arity-mismatch' in the
 `#:warnings' as above.
+
+Other warnings include `-Wunused-variable' and `-Wunused-toplevel', to
+warn about unused local or global (top-level) variables.
 
 ** A new `memoize-symbol' evaluator trap has been added.
 
