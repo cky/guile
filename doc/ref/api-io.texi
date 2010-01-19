@@ -76,6 +76,12 @@ how characters and strings written to the port are converted to bytes.
 When ports are created, they inherit their character encoding from the
 current locale, but, that can be modified after the port is created.
 
+Currently, the ports only work with @emph{non-modal} encodings.  Most
+encodings are non-modal, meaning that the conversion of bytes to a
+string doesn't depend on its context: the same byte sequence will always
+return the same string.  A couple of modal encodings are in common use,
+like ISO-2022-JP and ISO-2022-KR, and they are not yet supported.
+
 Each port also has an associated conversion strategy: what to do when
 a Guile character can't be converted to the port's encoded character
 representation for output. There are three possible strategies: to
