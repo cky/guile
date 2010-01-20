@@ -483,14 +483,14 @@ SCM_DEPRECATED scm_t_array_dim *scm_i_array_dims (SCM a);
 #define SCM_ARRAY_BASE(a)  scm_i_array_base(a)
 #define SCM_ARRAY_DIMS(a)  scm_i_array_dims(a)
 
-SCM_API SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
-				       SCM start, SCM end);
-SCM_API SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
-				      SCM start, SCM end);
-SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
-				      SCM start, SCM end);
-SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
-				     SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
+					      SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
+					     SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
+					     SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
+					    SCM start, SCM end);
 
 /* Deprecated because they should not be lvalues and we want people to
    use the official interfaces.

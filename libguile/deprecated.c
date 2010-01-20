@@ -1354,20 +1354,34 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 	    "to the value returned by @code{(current-input-port)}.")
 #define FUNC_NAME s_scm_uniform_vector_read_x
 {
-  size_t width;
+  SCM result;
+  size_t c_width, c_start, c_end;
+
   SCM_VALIDATE_BYTEVECTOR (SCM_ARG1, uvec);
 
-  scm_c_issue_deprecation_warning 
+  scm_c_issue_deprecation_warning
     ("`uniform-vector-read!' is deprecated. Use `get-bytevector-n!' from\n"
      "`(rnrs io ports)' instead.");
 
-  width = scm_to_size_t (scm_uniform_vector_element_size (uvec));
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_current_input_port ();
 
-  return scm_get_bytevector_n_x (port_or_fd, uvec,
-                                 scm_from_size_t (scm_to_size_t (start)*width),
-                                 scm_from_size_t ((scm_to_size_t (end)
-                                                   - scm_to_size_t (start))
-                                                  * width));
+  c_width = scm_to_size_t (scm_uniform_vector_element_size (uvec));
+
+  c_start = SCM_UNBNDP (start) ? 0 : scm_to_size_t (start);
+  c_start *= c_width;
+
+  c_end = SCM_UNBNDP (end) ? SCM_BYTEVECTOR_LENGTH (uvec) : scm_to_size_t (end);
+  c_end *= c_width;
+
+  result = scm_get_bytevector_n_x (port_or_fd, uvec,
+				   scm_from_size_t (c_start),
+				   scm_from_size_t (c_end - c_start));
+
+  if (SCM_EOF_OBJECT_P (result))
+    result = SCM_INUM0;
+
+  return result;
 }
 #undef FUNC_NAME
 
@@ -1391,21 +1405,30 @@ SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
 	    "@code{(current-output-port)}.")
 #define FUNC_NAME s_scm_uniform_vector_write
 {
-  size_t width;
-  SCM_VALIDATE_BYTEVECTOR (SCM_ARG1, uvec);
-  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
+  size_t c_width, c_start, c_end;
 
-  scm_c_issue_deprecation_warning 
+  SCM_VALIDATE_BYTEVECTOR (SCM_ARG1, uvec);
+
+  scm_c_issue_deprecation_warning
     ("`uniform-vector-write' is deprecated. Use `put-bytevector' from\n"
      "`(rnrs io ports)' instead.");
 
-  width = scm_to_size_t (scm_uniform_vector_element_size (uvec));
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_current_output_port ();
+
+  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
+
+  c_width = scm_to_size_t (scm_uniform_vector_element_size (uvec));
+
+  c_start = SCM_UNBNDP (start) ? 0 : scm_to_size_t (start);
+  c_start *= c_width;
+
+  c_end = SCM_UNBNDP (end) ? SCM_BYTEVECTOR_LENGTH (uvec) : scm_to_size_t (end);
+  c_end *= c_width;
 
   return scm_put_bytevector (port_or_fd, uvec,
-                             scm_from_size_t (scm_to_size_t (start)*width),
-                             scm_from_size_t ((scm_to_size_t (end)
-                                               - scm_to_size_t (start))
-                                              * width));
+                             scm_from_size_t (c_start),
+                             scm_from_size_t (c_end - c_start));
 }
 #undef FUNC_NAME
 
