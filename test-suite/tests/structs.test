@@ -1,7 +1,7 @@
-;;;; structs.test --- Test suite for Guile's structures.   -*- Scheme -*-
-;;;; Ludovic Courtès <ludovic.courtes@laas.fr>, 2006-06-12.
+;;;; structs.test --- Structures.      -*- mode: scheme; coding: utf-8; -*-
+;;;; Ludovic CourtÃ¨s <ludo@gnu.org>, 2006-06-12.
 ;;;;
-;;;; Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -80,9 +80,33 @@
   (pass-if "struct-set!"
      (let ((ball (make-ball green "Bob")))
        (set-owner! ball "Bill")
-       (string=? (owner ball) "Bill"))))
+       (string=? (owner ball) "Bill")))
 
+  (pass-if "struct-ref"
+     (let ((ball (make-ball red "Alice")))
+       (equal? (struct-ref ball 0) "Alice")))
 
+  (pass-if "struct-set!"
+     (let* ((v (make-vtable "pw"))
+            (s (make-struct v 0))
+            (r (struct-set! s 0 'a)))
+       (eq? r
+            (struct-ref s 0)
+            'a)))
+
+  (pass-if-exception "struct-ref out-of-range"
+     exception:out-of-range
+     (let* ((v (make-vtable "prpr"))
+            (s (make-struct v 0 'a 'b)))
+       (struct-ref s 2)))
+
+  (pass-if-exception "struct-set! out-of-range"
+     exception:out-of-range
+     (let* ((v (make-vtable "pwpw"))
+            (s (make-struct v 0 'a 'b)))
+       (struct-set! s 2 'c))))
+
+
 (with-test-prefix "equal?"
 
   (pass-if "simple structs"
@@ -153,8 +177,3 @@
 		      (lambda (port)
 			(display struct port)))))
 	 (equal? str "hello")))))
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
