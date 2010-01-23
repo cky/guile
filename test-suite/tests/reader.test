@@ -283,8 +283,7 @@
            (with-input-from-string "\"\\x41;\\x0042;\\x000043;\"" read)))
        "ABC"))
 
-    (pass-if "write R6RS escapes"
-
+    (pass-if "write R6RS string escapes"
        (let* ((s1 (apply string
                          (map integer->char '(#x8 ; backspace
                                               #x20 ; space
@@ -298,6 +297,20 @@
          (lset= eqv?
                 (string->list s2)
                 (list #\" #\\ #\x #\8 #\; #\space #\0 #\@ #\"))))
+
+    (pass-if "display R6RS string escapes"
+      (string=?
+       (with-read-options '(r6rs-hex-escapes)
+         (lambda ()
+           (let ((pt (open-output-string))
+                 (s1 (apply string (map integer->char
+                                        '(#xFF #x100 #xFFF #x1000 #xFFFF #x10000)))))
+             (set-port-encoding! pt "ASCII")
+             (set-port-conversion-strategy! pt 'escape)
+             (display s1 pt)
+             (get-output-string pt))))
+       "\\xff;\\x100;\\xfff;\\x1000;\\xffff;\\x10000;"))
+
     (pass-if "one-digit hex escape"
       (eqv? (with-read-options '(r6rs-hex-escapes)
               (lambda ()

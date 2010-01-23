@@ -39,6 +39,7 @@
 #include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
+#include "libguile/private-options.h"
 
 
 
@@ -1596,6 +1597,80 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
   after = scm_realloc (after, j);
 }
 
+/* Change libunistring escapes (\uXXXX and \UXXXXXXXX) to \xXXXX; */
+static void
+unistring_escapes_to_r6rs_escapes (char **bufp, size_t *lenp)
+{
+  char *before, *after;
+  size_t i, j;
+  /* The worst case is if the input string contains all 4-digit hex escapes.
+     "\uXXXX" (six characters) becomes "\xXXXX;" (seven characters) */
+  size_t max_out_len = (*lenp * 7) / 6 + 1;
+  size_t nzeros, ndigits;
+
+  before = *bufp;
+  after = alloca (max_out_len);
+  i = 0;
+  j = 0;
+  while (i < *lenp)
+    {
+      if (((i <= *lenp - 6) && before[i] == '\\' && before[i + 1] == 'u')
+          || ((i <= *lenp - 10) && before[i] == '\\' && before[i + 1] == 'U'))
+        {
+          if (before[i + 1] == 'u')
+            ndigits = 4;
+          else if (before[i + 1] == 'U')
+            ndigits = 8;
+          else
+            abort ();
+
+          /* Add the R6RS hex escape initial sequence.  */
+          after[j] = '\\';
+          after[j + 1] = 'x';
+
+          /* Move string positions to the start of the hex numbers.  */
+          i += 2;
+          j += 2;
+
+          /* Find the number of initial zeros in this hex number.  */
+          nzeros = 0;
+          while (before[i + nzeros] == '0' && nzeros < ndigits)
+            nzeros++;
+
+          /* Copy the number, skipping initial zeros, and then move the string
+             positions.  */
+          if (nzeros == ndigits)
+            {
+              after[j] = '0';
+              i += ndigits;
+              j += 1;
+            }
+          else
+            {
+              int pos;
+              for (pos = 0; pos < ndigits - nzeros; pos++)
+                after[j + pos] = tolower ((int) before[i + nzeros + pos]);
+              i += ndigits;
+              j += (ndigits - nzeros);
+            }
+
+          /* Add terminating semicolon.  */
+          after[j] = ';';
+          j++;
+        }
+      else
+        {
+          after[j] = before[i];
+          i++;
+          j++;
+        }
+    }
+  *lenp = j;
+  before = scm_realloc (before, j);
+  memcpy (before, after, j);
+}
+
+
 char *
 scm_to_locale_stringn (SCM str, size_t *lenp)
 {
@@ -1683,26 +1758,27 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                          (enum iconv_ilseq_handler) handler, NULL,
                          &buf, &len);
 
-      if (ret == 0 && handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
-        unistring_escapes_to_guile_escapes (&buf, &len);
-
       if (ret != 0)
-	scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
-			    scm_list_2 (scm_from_locale_string (enc), str));
+        scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
+                            scm_list_2 (scm_from_locale_string (enc), str));
     }
   else
     {
-      buf = u32_conv_to_encoding (enc, 
+      buf = u32_conv_to_encoding (enc,
                                   (enum iconv_ilseq_handler) handler,
-                                  (scm_t_uint32 *) scm_i_string_wide_chars (str), 
+                                  (scm_t_uint32 *) scm_i_string_wide_chars (str),
                                   ilen,
                                   NULL,
                                   NULL, &len);
       if (buf == NULL)
-	scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
-			    scm_list_2 (scm_from_locale_string (enc), str));
-
-      if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+        scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
+                            scm_list_2 (scm_from_locale_string (enc), str));
+    }
+  if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+    {
+      if (SCM_R6RS_ESCAPES_P)
+        unistring_escapes_to_r6rs_escapes (&buf, &len);
+      else
         unistring_escapes_to_guile_escapes (&buf, &len);
     }
   if (lenp)
