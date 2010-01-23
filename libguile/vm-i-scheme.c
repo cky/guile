@@ -645,11 +645,31 @@ VM_DEFINE_INSTRUCTION (176, make_struct, "make-struct", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
-  int n_args = ((h << 8U) + l);
+  scm_t_bits n_args = ((h << 8U) + l);
   SCM vtable = sp[1 - n_args], n_tail = sp[2 - n_args];
   const SCM *inits = sp - n_args + 3;
 
   sp -= n_args - 1;
+
+  if (SCM_LIKELY (SCM_STRUCTP (vtable)
+  		  && SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
+		  && SCM_I_INUMP (n_tail)))
+    {
+      scm_t_bits n_inits, len;
+
+      n_inits = SCM_I_INUM (n_tail) + n_args - 2;
+      len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+
+      if (SCM_LIKELY (n_inits == len))
+	{
+	  SCM obj;
+
+	  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), n_inits);
+	  memcpy (SCM_STRUCT_DATA (obj), inits, n_inits * sizeof (SCM));
+
+	  RETURN (obj);
+	}
+    }
 
   SYNC_REGISTER ();
   RETURN (scm_c_make_structv (vtable, scm_to_size_t (n_tail),
@@ -670,6 +690,60 @@ VM_DEFINE_INSTRUCTION (177, make_array, "make-array", 3, -1, 1)
   DROPN (len);
   PUSH (ret);
   NEXT;
+}
+
+VM_DEFINE_FUNCTION (178, struct_ref, "struct-ref", 2)
+{
+  ARGS2 (obj, pos);
+
+  if (SCM_LIKELY (SCM_STRUCTP (obj)
+  		  && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
+  						    SCM_VTABLE_FLAG_SIMPLE)
+  		  && SCM_I_INUMP (pos)))
+    {
+      SCM vtable;
+      scm_t_bits index, len;
+
+      index = SCM_I_INUM (pos);
+      vtable = SCM_STRUCT_VTABLE (obj);
+      len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+
+      if (SCM_LIKELY (index < len))
+  	{
+  	  scm_t_bits *data = SCM_STRUCT_DATA (obj);
+  	  RETURN (SCM_PACK (data[index]));
+  	}
+    }
+
+  RETURN (scm_struct_ref (obj, pos));
+}
+
+VM_DEFINE_FUNCTION (179, struct_set, "struct-set", 3)
+{
+  ARGS3 (obj, pos, val);
+
+  if (SCM_LIKELY (SCM_STRUCTP (obj)
+  		  && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
+  						    SCM_VTABLE_FLAG_SIMPLE)
+  		  && SCM_STRUCT_VTABLE_FLAG_IS_SET (obj,
+  						    SCM_VTABLE_FLAG_SIMPLE_RW)
+  		  && SCM_I_INUMP (pos)))
+    {
+      SCM vtable;
+      scm_t_bits index, len;
+
+      index = SCM_I_INUM (pos);
+      vtable = SCM_STRUCT_VTABLE (obj);
+      len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
+      if (SCM_LIKELY (index < len))
+  	{
+  	  scm_t_bits *data = SCM_STRUCT_DATA (obj);
+  	  data[index] = SCM_UNPACK (val);
+  	  RETURN (val);
+  	}
+    }
+
+  RETURN (scm_struct_set_x (obj, pos, val));
 }
 
 /*

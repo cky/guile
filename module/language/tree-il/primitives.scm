@@ -58,7 +58,7 @@
     variable-ref variable-set!
     ;; args of variable-set are switched; it needs special help
 
-    struct? struct-vtable make-struct
+    struct? struct-vtable make-struct struct-ref struct-set!
 
     bytevector-u8-ref bytevector-u8-set!
     bytevector-s8-ref bytevector-s8-set!
@@ -112,7 +112,7 @@
     caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
     vector-ref
-    struct? struct-vtable make-struct
+    struct? struct-vtable make-struct struct-ref
     bytevector-u8-ref bytevector-s8-ref
     bytevector-u16-ref bytevector-u16-native-ref
     bytevector-s16-ref bytevector-s16-native-ref

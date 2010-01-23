@@ -118,6 +118,8 @@
    ((variable-set . 2) . variable-set)
    ((struct? . 1) . struct?)
    ((struct-vtable . 1) . struct-vtable)
+   ((struct-ref . 2) . struct-ref)
+   ((struct-set! . 3) . struct-set)
    (make-struct . make-struct)
 
    ;; hack for javascript
