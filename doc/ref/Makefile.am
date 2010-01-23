@@ -21,10 +21,9 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-BUILT_SOURCES = lib-version.texi
+BUILT_SOURCES = lib-version.texi standard-library.texi
 
 info_TEXINFOS = guile.texi
-nodist_info_TEXINFOS = standard-library.texi
 
 guile_TEXINFOS = preface.texi			\
                  intro.texi			\
