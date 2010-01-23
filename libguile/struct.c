@@ -992,9 +992,10 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_init_struct ()
 {
-  GC_REGISTER_DISPLACEMENT (2*sizeof(scm_t_bits)); /* for the self data pointer */
-  GC_REGISTER_DISPLACEMENT (2*sizeof(scm_t_bits)
-                            + scm_tc3_struct); /* for the vtable data pointer */
+  /* The first word of a struct is equal to `SCM_STRUCT_DATA (vtable) +
+     scm_tc3_struct', and `SCM_STRUCT_DATA (vtable)' is 2 words after VTABLE by
+     default.  */
+  GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits) + scm_tc3_struct);
 
   scm_struct_table = scm_make_weak_key_hash_table (scm_from_int (31));
   required_vtable_fields = scm_from_locale_string (SCM_VTABLE_BASE_LAYOUT);
