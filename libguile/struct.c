@@ -208,6 +208,8 @@ set_vtable_layout_flags (SCM vtable)
     }
 }
 
+/* Have OBJ, a newly created vtable, inherit flags from VTABLE.  VTABLE is a
+   vtable-vtable and OBJ is an instance of VTABLE.  */
 void
 scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
 #define FUNC_NAME "%inherit-vtable-magic"
@@ -218,19 +220,18 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
      Both of these questions also imply a certain layout of the structure. So
      instead of checking the layout at runtime, what we do is pre-verify the
      layout -- so that at runtime we can just check the applicable flag and
-     dispatch directly to the Scheme procedure in slot 0.
-  */
+     dispatch directly to the Scheme procedure in slot 0.  */
   SCM olayout;
 
-  /* verify that obj is a valid vtable */
+  /* Verify that OBJ is a valid vtable.  */
   if (scm_is_false (scm_symbol_p (SCM_VTABLE_LAYOUT (obj))))
     scm_misc_error (FUNC_NAME, "invalid layout for new vtable",
                     scm_list_1 (SCM_VTABLE_LAYOUT (obj)));
 
   set_vtable_layout_flags (obj);
 
-  /* if obj's vtable is compatible with the required vtable (class) layout, it
-     is a metaclass */
+  /* If OBJ's vtable is compatible with the required vtable (class) layout, it
+     is a metaclass.  */
   olayout = scm_symbol_to_string (SCM_VTABLE_LAYOUT (obj));
   if (scm_is_true (scm_leq_p (scm_string_length (required_vtable_fields),
                               scm_string_length (olayout)))
@@ -241,8 +242,8 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
                                      scm_string_length (required_vtable_fields))))
     SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
 
-  /* finally if obj is an applicable class, verify that its vtable is
-     compatible with the required applicable layout */
+  /* Finally, if OBJ is an applicable class, verify that its vtable is
+     compatible with the required applicable layout.  */
   if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SETTER_VTABLE))
     {
       if (scm_is_false (scm_string_eq (olayout, required_applicable_with_setter_fields,
@@ -576,11 +577,8 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "@end lisp")
 #define FUNC_NAME s_scm_make_vtable_vtable
 {
-  SCM fields;
-  SCM layout;
-  size_t basic_size;
-  size_t n_tail, i, n_init;
-  SCM obj;
+  SCM fields, layout, obj;
+  size_t basic_size, n_tail, i, n_init;
   long ilen;
   scm_t_bits *v;
 
@@ -611,11 +609,13 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 
   SCM_CRITICAL_SECTION_START;
   obj = scm_i_alloc_struct (NULL, basic_size + n_tail);
-  /* magic magic magic */
-  SCM_SET_CELL_WORD_0 (obj, (scm_t_bits)SCM_STRUCT_DATA (obj) | scm_tc3_struct);
+  /* Make it so that the vtable of OBJ is itself.  */
+  SCM_SET_CELL_WORD_0 (obj, (scm_t_bits) SCM_STRUCT_DATA (obj) | scm_tc3_struct);
   SCM_CRITICAL_SECTION_END;
+
   scm_struct_init (obj, layout, n_tail, n_init, v);
   SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
+
   return obj;
 }
 #undef FUNC_NAME
