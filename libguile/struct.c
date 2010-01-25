@@ -180,18 +180,13 @@ set_vtable_layout_flags (SCM vtable)
 	  {
 	  case 'w':
 	  case 'W':
-	    if (!(flags & SCM_VTABLE_FLAG_SIMPLE_RW) && field > 0)
-	      /* There's a mixture of `w' and `r' flags.  */
-	      flags = 0;
-	    else
+	    if (field == 0)
 	      flags |= SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
 
 	  case 'r':
 	  case 'R':
-	    if (flags & SCM_VTABLE_FLAG_SIMPLE_RW)
-	      /* There's a mixture of `w' and `r' flags.  */
-	      flags = 0;
+	    flags &= ~SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
 
 	  default:
@@ -711,10 +706,8 @@ SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
 
   if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
   		  && p < SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size)))
-    {
-      /* The fast path: HANDLE is a struct with only "p" fields.  */
-      answer = SCM_PACK (data[p]);
-    }
+    /* The fast path: HANDLE is a struct with only "p" fields.  */
+    answer = SCM_PACK (data[p]);
   else
     {
       SCM layout;
@@ -801,7 +794,7 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
   if (SCM_LIKELY (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
   		  && SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE_RW)
   		  && p < SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size)))
-    /* The fast path: HANDLE is a struct with only "p" fields.  */
+    /* The fast path: HANDLE is a struct with only "pw" fields.  */
     data[p] = SCM_UNPACK (val);
   else
     {

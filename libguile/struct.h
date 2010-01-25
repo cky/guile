@@ -107,7 +107,7 @@
 #define SCM_VTABLE_FLAG_APPLICABLE (1L << 2) /* instances of this vtable are applicable? */
 #define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 3) /* instances of this vtable are applicable-with-setter vtables? */
 #define SCM_VTABLE_FLAG_SETTER (1L << 4) /* instances of this vtable are applicable-with-setters? */
-#define SCM_VTABLE_FLAG_SIMPLE (1L << 5) /* instances of this vtable have only "pr" fields */
+#define SCM_VTABLE_FLAG_SIMPLE (1L << 5) /* instances of this vtable have only "p" fields */
 #define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 6) /* instances of this vtable have only "pw" fields */
 #define SCM_VTABLE_FLAG_SMOB_0 (1L << 7)
 #define SCM_VTABLE_FLAG_GOOPS_0 (1L << 8)
