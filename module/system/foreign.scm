@@ -25,6 +25,7 @@
             uint64 int64
 
             foreign-ref foreign-set!
-            foreign->bytevector bytevector->foreign))
+            foreign->bytevector bytevector->foreign
+            make-foreign-function))
 
 (load-extension "libguile" "scm_init_foreign")

@@ -20,9 +20,13 @@
 #  include <config.h>
 #endif
 
+#include <ffi.h>
+
+#include <alignof.h>
 #include <string.h>
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
+#include "libguile/instructions.h"
 #include "libguile/foreign.h"
 
 
@@ -38,6 +42,9 @@ SCM_SYMBOL (sym_uint32, "uint32");
 SCM_SYMBOL (sym_int32, "int32");
 SCM_SYMBOL (sym_uint64, "uint64");
 SCM_SYMBOL (sym_int64, "int64");
+
+static SCM cif_to_procedure (SCM cif, SCM func_ptr);
+
 
 static SCM foreign_weak_refs = SCM_BOOL_F;
 
@@ -63,7 +70,7 @@ scm_take_foreign_pointer (scm_t_foreign_type type, void *ptr, size_t len,
     
   word0 = (scm_t_bits)(scm_tc7_foreign | (type<<8)
                        | (finalizer ? (1<<16) : 0) | (len<<17));
-  if (SCM_UNLIKELY ((word0 >> 16) != len))
+  if (SCM_UNLIKELY ((word0 >> 17) != len))
     scm_out_of_range ("scm_take_foreign_pointer", scm_from_size_t (len));
     
   ret = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_bits) * 2,
@@ -363,6 +370,321 @@ scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
   scm_putc ('>', port);
 }
 
+
+
+#define ROUND_UP(len,align) (align?(((len-1)|(align-1))+1):len)
+
+/* return 1 on success, 0 on failure */
+static int
+parse_ffi_type (SCM type, int return_p, long *n_structs, long *n_struct_elts)
+{
+  if (SCM_I_INUMP (type))
+    {
+      if ((SCM_I_INUM (type) < 0 )
+          || (SCM_I_INUM (type) > SCM_FOREIGN_TYPE_LAST))
+        return 0;
+      else if (SCM_I_INUM (type) == SCM_FOREIGN_TYPE_VOID && !return_p)
+        return 0;
+      else
+        return 1;
+    }
+  else
+    {
+      long len;
+      
+      len = scm_ilength (type);
+      if (len < 1)
+        return 0;
+      while (len--)
+        {
+          if (!parse_ffi_type (scm_car (type), 0, n_structs, n_struct_elts))
+            return 0;
+          (*n_struct_elts)++;
+          type = scm_cdr (type);
+        }
+      (*n_structs)++;
+      return 1;
+    }
+}
+    
+static void
+fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
+               ffi_type **types)
+{
+  if (SCM_I_INUMP (type))
+    {
+      switch (SCM_I_INUM (type))
+        {
+        case SCM_FOREIGN_TYPE_FLOAT:
+          *ftype = ffi_type_float;
+          return;
+        case SCM_FOREIGN_TYPE_DOUBLE:
+          *ftype = ffi_type_double;
+          return;
+        case SCM_FOREIGN_TYPE_UINT8:
+          *ftype = ffi_type_uint8;
+          return;
+        case SCM_FOREIGN_TYPE_INT8:
+          *ftype = ffi_type_sint8;
+          return;
+        case SCM_FOREIGN_TYPE_UINT16:
+          *ftype = ffi_type_uint16;
+          return;
+        case SCM_FOREIGN_TYPE_INT16:
+          *ftype = ffi_type_sint16;
+          return;
+        case SCM_FOREIGN_TYPE_UINT32:
+          *ftype = ffi_type_uint32;
+          return;
+        case SCM_FOREIGN_TYPE_INT32:
+          *ftype = ffi_type_sint32;
+          return;
+        case SCM_FOREIGN_TYPE_UINT64:
+          *ftype = ffi_type_uint64;
+          return;
+        case SCM_FOREIGN_TYPE_INT64:
+          *ftype = ffi_type_sint64;
+          return;
+        case SCM_FOREIGN_TYPE_VOID:
+          *ftype = ffi_type_void;
+          return;
+        default:
+          abort ();
+        }
+    }
+  else
+    {
+      long i, len;
+      
+      len = scm_ilength (type);
+
+      ftype->size = 0;
+      ftype->alignment = 0;
+      ftype->type = FFI_TYPE_STRUCT;
+      ftype->elements = *type_ptrs;
+      *type_ptrs += len + 1;
+
+      for (i = 0; i < len; i++)
+        {
+          ftype->elements[i] = *(types++);
+          fill_ffi_type (scm_car (type), ftype->elements[i],
+                         type_ptrs, types);
+          type = scm_cdr (type);
+        }
+      ftype->elements[i] = NULL;
+    }
+}
+    
+SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
+            (SCM return_type, SCM func_ptr, SCM arg_types),
+            "foo")
+#define FUNC_NAME s_scm_make_foreign_function
+{
+  SCM walk, scm_cif;
+  long i, nargs, n_structs, n_struct_elts;
+  size_t cif_len;
+  char *mem;
+  ffi_cif *cif;
+  ffi_type **type_ptrs;
+  ffi_type *types;
+  
+  SCM_VALIDATE_FOREIGN_TYPED (2, func_ptr, VOID);
+  nargs = scm_ilength (arg_types);
+  SCM_ASSERT (nargs >= 0, arg_types, 3, FUNC_NAME);
+  /* fixme: assert nargs < 1<<32 */
+  n_structs = n_struct_elts = 0;
+
+  /* For want of talloc, we're going to have to do this in two passes: first we
+     figure out how much memory is needed for all types, then we allocate the
+     cif and the types all in one block. */
+  if (!parse_ffi_type (return_type, 1, &n_structs, &n_struct_elts))
+    scm_wrong_type_arg (FUNC_NAME, 1, return_type);
+  for (walk = arg_types; scm_is_pair (walk); walk = scm_cdr (walk))
+    if (!parse_ffi_type (scm_car (walk), 0, &n_structs, &n_struct_elts))
+      scm_wrong_type_arg (FUNC_NAME, 3, scm_car (walk));
+  
+  /* the memory: with space for the cif itself */
+  cif_len = sizeof (ffi_cif);
+
+  /* then ffi_type pointers: one for each arg, one for each struct
+     element, and one for each struct (for null-termination) */
+  cif_len = (ROUND_UP (cif_len, alignof(void*))
+             + (nargs + n_structs + n_struct_elts)*sizeof(void*));
+  
+  /* then the ffi_type structs themselves, one per arg and struct element, and
+     one for the return val */
+  cif_len = (ROUND_UP (cif_len, alignof(ffi_type))
+             + (nargs + n_struct_elts + 1)*sizeof(ffi_type));
+  
+  mem = scm_malloc (cif_len);
+  scm_cif = scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID, mem, cif_len, free);
+  cif = (ffi_cif*)mem;
+  /* reuse cif_len to walk through the mem */
+  cif_len = ROUND_UP (sizeof (ffi_cif), alignof(void*));
+  type_ptrs = (ffi_type**)(mem + cif_len);
+  cif_len = ROUND_UP (cif_len
+                      + (nargs + n_structs + n_struct_elts)*sizeof(void*),
+                      alignof(ffi_type));
+  types = (ffi_type*)(mem + cif_len);
+  
+  /* whew. now knit the pointers together. */
+  cif->rtype = types++;
+  fill_ffi_type (return_type, cif->rtype, &type_ptrs, &types);
+  cif->arg_types = type_ptrs;
+  type_ptrs += nargs;
+  for (walk = arg_types, i = 0; scm_is_pair (walk); walk = scm_cdr (walk), i++)
+    {
+      cif->arg_types[i] = types++;
+      fill_ffi_type (scm_car (walk), cif->arg_types[i], &type_ptrs, &types);
+    }
+
+  /* round out the cif, and we're done. */
+  cif->abi = FFI_DEFAULT_ABI;
+  cif->nargs = nargs;
+  cif->bytes = 0;
+  cif->flags = 0;
+  
+  if (FFI_OK != ffi_prep_cif (cif, FFI_DEFAULT_ABI, cif->nargs, cif->rtype,
+                              cif->arg_types))
+    scm_misc_error (FUNC_NAME, "ffi_prep_cif failed", SCM_EOL);
+
+  return cif_to_procedure (scm_cif, func_ptr);
+}
+#undef FUNC_NAME
+
+
+
+/* Pre-generate trampolines for less than 10 arguments. */
+
+#ifdef WORDS_BIGENDIAN
+#define OBJCODE_HEADER 0, 0, 0, 8, 0, 0, 0, 40
+#define META_HEADER    0, 0, 0, 32, 0, 0, 0, 0
+#else
+#define OBJCODE_HEADER 8, 0, 0, 0, 40, 0, 0, 0
+#define META_HEADER    32, 0, 0, 0, 0, 0, 0, 0
+#endif
+
+#define CODE(nreq)                                                      \
+  OBJCODE_HEADER,                                                       \
+  /* 0 */ scm_op_assert_nargs_ee, 0, nreq, /* assert number of args */  \
+  /* 3 */ scm_op_object_ref, 0, /* push the pair with the cif and the function pointer */ \
+  /* 5 */ scm_op_foreign_call, nreq, /* and call (will return value as well) */ \
+  /* 7 */ scm_op_nop,                                                   \
+  /* 8 */ META (3, 7, nreq)
+
+#define META(start, end, nreq)                              		\
+  META_HEADER,                                                          \
+  /* 0 */ scm_op_make_eol, /* bindings */                               \
+  /* 1 */ scm_op_make_eol, /* sources */                                \
+  /* 2 */ scm_op_make_int8, start, scm_op_make_int8, end, /* arity: from ip N to ip N */ \
+  /* 6 */ scm_op_make_int8, nreq, /* the arity is N required args */    \
+  /* 8 */ scm_op_list, 0, 3, /* make a list of those 3 vals */         \
+  /* 11 */ scm_op_list, 0, 1, /* and the arities will be a list of that one list */ \
+  /* 14 */ scm_op_load_symbol, 0, 0, 4, 'n', 'a', 'm', 'e', /* `name' */ \
+  /* 22 */ scm_op_object_ref, 1, /* the name from the object table */   \
+  /* 24 */ scm_op_cons, /* make a pair for the properties */            \
+  /* 25 */ scm_op_list, 0, 4, /* pack bindings, sources, and arities into list */ \
+  /* 28 */ scm_op_return, /* and return */                              \
+  /* 29 */ scm_op_nop, scm_op_nop, scm_op_nop                           \
+  /* 32 */
+
+static const struct
+{
+  scm_t_uint64 dummy; /* ensure 8-byte alignment; perhaps there's a better way */
+  const scm_t_uint8 bytes[10 * (sizeof (struct scm_objcode) + 8
+                                + sizeof (struct scm_objcode) + 32)];
+} raw_bytecode = {
+  0,
+  {
+    CODE (0), CODE (1), CODE (2), CODE (3), CODE (4),
+    CODE (5), CODE (6), CODE (7), CODE (8), CODE (9)
+  }
+};
+
+#undef CODE
+#undef META
+#undef OBJCODE_HEADER
+#undef META_HEADER
+
+/*
+ (defun generate-objcode-cells (n)
+   "Generate objcode cells for up to N arguments"
+   (interactive "p")
+   (let ((i 0))
+     (while (< i n)
+       (insert
+        (format "    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + %d) },\n"
+                (* (+ 4 4 8 4 4 32) i)))
+       (insert "    { SCM_BOOL_F, SCM_PACK (0) },\n")
+       (setq i (1+ i)))))
+*/
+#define STATIC_OBJCODE_TAG                                      \
+  SCM_PACK (scm_tc7_objcode | (SCM_F_OBJCODE_IS_STATIC << 8))
+
+static const struct
+{
+  scm_t_uint64 dummy; /* alignment */
+  scm_t_cell cells[10 * 2]; /* 10 double cells */
+} objcode_cells = {
+  0,
+  /* C-u 1 0 M-x generate-objcode-cells RET */
+  {
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 0) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 56) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 112) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 168) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 224) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 280) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 336) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 392) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 448) },
+    { SCM_BOOL_F, SCM_PACK (0) },
+    { STATIC_OBJCODE_TAG, SCM_PACK (raw_bytecode.bytes + 504) },
+    { SCM_BOOL_F, SCM_PACK (0) }
+  }
+};
+
+static const SCM objcode_trampolines[10] = {
+  SCM_PACK (objcode_cells.cells+0),
+  SCM_PACK (objcode_cells.cells+2),
+  SCM_PACK (objcode_cells.cells+4),
+  SCM_PACK (objcode_cells.cells+6),
+  SCM_PACK (objcode_cells.cells+8),
+  SCM_PACK (objcode_cells.cells+10),
+  SCM_PACK (objcode_cells.cells+12),
+  SCM_PACK (objcode_cells.cells+14),
+  SCM_PACK (objcode_cells.cells+16),
+  SCM_PACK (objcode_cells.cells+18),
+};
+
+static SCM
+cif_to_procedure (SCM cif, SCM func_ptr)
+{
+  unsigned nargs = SCM_FOREIGN_POINTER (cif, ffi_cif)->nargs;
+  SCM objcode, table, ret;
+  
+  if (nargs < 10)
+    objcode = objcode_trampolines[nargs];
+  else
+    abort ();
+  
+  table = scm_c_make_vector (2, SCM_UNDEFINED);
+  SCM_SIMPLE_VECTOR_SET (table, 0, scm_cons (cif, func_ptr));
+  SCM_SIMPLE_VECTOR_SET (table, 1, SCM_BOOL_F); /* name */
+  ret = scm_make_program (objcode, table, SCM_BOOL_F);
+  
+  return ret;
+}
+
+  
 
 
 static void

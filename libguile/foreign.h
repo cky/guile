@@ -98,6 +98,29 @@ SCM_API SCM scm_bytevector_to_foreign (SCM bv, SCM offset, SCM len);
 
 SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,
                                        scm_print_state *pstate);
+
+
+
+/* Foreign functions */
+
+/* The goal is to make it so that calling a foreign function doesn't cause any
+   heap allocation. That means we need native Scheme formats for all kinds of
+   arguments.
+
+   For "value" types like s64 or f32, we just use native Scheme value types.
+   (Note that in both these cases, allocation is possible / likely, as the
+   value might need to be boxed, but perhaps we won't worry about that. Hmm.)
+
+   For everything else, we use foreign pointers. This includes arrays, pointer
+   arguments and return vals, struct args and return vals, and out and in/out
+   arguments.
+ */
+
+SCM_API SCM scm_make_foreign_function (SCM return_type, SCM func_ptr,
+                                       SCM arg_types);
+
+
+
 SCM_INTERNAL void scm_register_foreign (void);
 
 
