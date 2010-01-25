@@ -997,6 +997,11 @@ scm_init_struct ()
      default.  */
   GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits) + scm_tc3_struct);
 
+  /* In the general case, `SCM_STRUCT_DATA (obj)' points 2 words after the
+     beginning of a GC-allocated region; that region is different from that of
+     OBJ once OBJ has undergone class redefinition.  */
+  GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits));
+
   scm_struct_table = scm_make_weak_key_hash_table (scm_from_int (31));
   required_vtable_fields = scm_from_locale_string (SCM_VTABLE_BASE_LAYOUT);
   required_applicable_fields = scm_from_locale_string (SCM_APPLICABLE_BASE_LAYOUT);
