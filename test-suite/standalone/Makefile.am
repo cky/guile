@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -86,6 +86,16 @@ libtest_asmobs_la_LIBADD = ${top_builddir}/libguile/libguile.la
 BUILT_SOURCES += test-asmobs-lib.x
 check_SCRIPTS += test-asmobs
 TESTS += test-asmobs
+
+# test-ffi
+noinst_LTLIBRARIES += libtest-ffi.la
+libtest_ffi_la_SOURCES = test-ffi-lib.c test-ffi-lib.x
+libtest_ffi_la_CFLAGS = ${test_cflags}
+libtest_ffi_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
+libtest_ffi_la_LIBADD = ${top_builddir}/libguile/libguile.la
+BUILT_SOURCES += test-ffi-lib.x
+check_SCRIPTS += test-ffi
+TESTS += test-ffi
 
 # test-list
 test_list_SOURCES = test-list.c
