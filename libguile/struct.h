@@ -33,9 +33,37 @@
    in turn means we need support for changing the "class" (vtable) of an
    "instance" (struct). This necessitates some indirection and trickery.
 
-   I would like to write this all up here, but for now:
+   To summarize, structs are laid out this way:
+
+                  .-------.
+                  |       |
+     .----------------+---v------------- -
+     | vtable | data  | slot0 | slot1 |
+     `----------------+----------------- -
+         |        .-------.
+         |        |       |
+     .---v------------+---v------------- -
+     | vtable | data  | slot0 | slot1 |
+     `----------------+----------------- -
+         |
+         v
+
+        ...
+                  .-------.
+         |        |       |
+     .---v------------+---v------------- -
+   .-| vtable | data  | slot0 | slot1 |
+   | `----------------+----------------- -
+   |     ^
+   `-----'
+
+   The DATA indirection (which corresponds to `SCM_STRUCT_DATA ()') is necessary
+   to implement class redefinition.
+
+   For more details, see:
 
      http://wingolog.org/archives/2009/11/09/class-redefinition-in-guile
+
  */
 
 /* All vtables have the following fields. */
