@@ -835,7 +835,7 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (56, subr_call, "subr-call", 1, -1, -1)
 {
   SCM foreign, ret;
   SCM (*subr)();
@@ -903,7 +903,7 @@ VM_DEFINE_INSTRUCTION (80, subr_call, "subr-call", 1, -1, -1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (81, smob_call, "smob-call", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (57, smob_call, "smob-call", 1, -1, -1)
 {
   SCM smob, ret;
   SCM (*subr)();
@@ -950,7 +950,35 @@ VM_DEFINE_INSTRUCTION (81, smob_call, "smob-call", 1, -1, -1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (56, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (58, foreign_call, "foreign-call", 1, -1, -1)
+{
+  SCM foreign, ret;
+  nargs = FETCH ();
+  POP (foreign);
+
+  VM_HANDLE_INTERRUPTS;
+  SYNC_REGISTER ();
+
+  ret = SCM_BOOL_F; /* scm_i_foreign_call (foreign, sp - nargs + 1); */
+
+  NULLSTACK_FOR_NONLOCAL_EXIT ();
+      
+  if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+    {
+      /* multiple values returned to continuation */
+      ret = scm_struct_ref (ret, SCM_INUM0);
+      nvalues = scm_ilength (ret);
+      PUSH_LIST (ret, scm_is_null);
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (ret);
+      goto vm_return;
+    }
+}
+
+VM_DEFINE_INSTRUCTION (59, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -959,7 +987,7 @@ VM_DEFINE_INSTRUCTION (56, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
   goto vm_tail_call;
 }
 
-VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (60, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -968,7 +996,7 @@ VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
+VM_DEFINE_INSTRUCTION (61, mv_call, "mv-call", 4, -1, 1)
 {
   scm_t_int32 offset;
   scm_t_uint8 *mvra;
@@ -1012,7 +1040,7 @@ VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (62, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -1031,7 +1059,7 @@ VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (60, tail_apply, "tail-apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (63, tail_apply, "tail-apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -1050,7 +1078,7 @@ VM_DEFINE_INSTRUCTION (60, tail_apply, "tail-apply", 1, -1, 1)
   goto vm_tail_call;
 }
 
-VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -1087,7 +1115,7 @@ VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (62, tail_call_cc, "tail-call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
 {
   int first;
   SCM proc, cont;
@@ -1119,7 +1147,7 @@ VM_DEFINE_INSTRUCTION (62, tail_call_cc, "tail-call/cc", 0, 1, 1)
     }
 }
 
-VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (66, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
@@ -1156,7 +1184,7 @@ VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (67, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
@@ -1213,7 +1241,7 @@ VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (65, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (68, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -1236,7 +1264,7 @@ VM_DEFINE_INSTRUCTION (65, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (66, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (69, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -1259,7 +1287,7 @@ VM_DEFINE_INSTRUCTION (66, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (67, box, "box", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (70, box, "box", 1, 1, 0)
 {
   SCM val;
   POP (val);
@@ -1273,7 +1301,7 @@ VM_DEFINE_INSTRUCTION (67, box, "box", 1, 1, 0)
      (set! a (lambda () (b ...)))
      ...)
  */
-VM_DEFINE_INSTRUCTION (68, empty_box, "empty-box", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (71, empty_box, "empty-box", 1, 0, 0)
 {
   SYNC_BEFORE_GC ();
   LOCAL_SET (FETCH (),
@@ -1281,7 +1309,7 @@ VM_DEFINE_INSTRUCTION (68, empty_box, "empty-box", 1, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (69, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (72, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
 {
   SCM v = LOCAL_REF (FETCH ());
   ASSERT_BOUND_VARIABLE (v);
@@ -1289,7 +1317,7 @@ VM_DEFINE_INSTRUCTION (69, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (70, local_boxed_set, "local-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (73, local_boxed_set, "local-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   v = LOCAL_REF (FETCH ());
@@ -1299,7 +1327,7 @@ VM_DEFINE_INSTRUCTION (70, local_boxed_set, "local-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (71, free_ref, "free-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (74, free_ref, "free-ref", 1, 0, 1)
 {
   scm_t_uint8 idx = FETCH ();
   
@@ -1310,7 +1338,7 @@ VM_DEFINE_INSTRUCTION (71, free_ref, "free-ref", 1, 0, 1)
 
 /* no free-set -- if a var is assigned, it should be in a box */
 
-VM_DEFINE_INSTRUCTION (72, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (75, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
 {
   SCM v;
   scm_t_uint8 idx = FETCH ();
@@ -1321,7 +1349,7 @@ VM_DEFINE_INSTRUCTION (72, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (73, free_boxed_set, "free-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (76, free_boxed_set, "free-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   scm_t_uint8 idx = FETCH ();
@@ -1333,7 +1361,7 @@ VM_DEFINE_INSTRUCTION (73, free_boxed_set, "free-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (74, make_closure, "make-closure", 2, -1, 1)
+VM_DEFINE_INSTRUCTION (77, make_closure, "make-closure", 2, -1, 1)
 {
   size_t n, len;
   SCM closure;
@@ -1352,7 +1380,7 @@ VM_DEFINE_INSTRUCTION (74, make_closure, "make-closure", 2, -1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (75, make_variable, "make-variable", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (78, make_variable, "make-variable", 0, 0, 1)
 {
   SYNC_BEFORE_GC ();
   /* fixme underflow */
@@ -1360,7 +1388,7 @@ VM_DEFINE_INSTRUCTION (75, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (76, fix_closure, "fix-closure", 2, -1, 0)
+VM_DEFINE_INSTRUCTION (79, fix_closure, "fix-closure", 2, -1, 0)
 {
   SCM x;
   unsigned int i = FETCH ();
@@ -1377,7 +1405,7 @@ VM_DEFINE_INSTRUCTION (76, fix_closure, "fix-closure", 2, -1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (77, define, "define", 0, 0, 2)
+VM_DEFINE_INSTRUCTION (80, define, "define", 0, 0, 2)
 {
   SCM sym, val;
   POP (sym);
@@ -1389,7 +1417,7 @@ VM_DEFINE_INSTRUCTION (77, define, "define", 0, 0, 2)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (78, make_keyword, "make-keyword", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (81, make_keyword, "make-keyword", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
@@ -1397,7 +1425,7 @@ VM_DEFINE_INSTRUCTION (78, make_keyword, "make-keyword", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (79, make_symbol, "make-symbol", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (82, make_symbol, "make-symbol", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();

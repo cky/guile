@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,7 +20,7 @@
 
 /* This file is included in vm_engine.c */
 
-VM_DEFINE_LOADER (82, load_number, "load-number")
+VM_DEFINE_LOADER (101, load_number, "load-number")
 {
   size_t len;
 
@@ -33,7 +33,7 @@ VM_DEFINE_LOADER (82, load_number, "load-number")
   NEXT;
 }
 
-VM_DEFINE_LOADER (83, load_string, "load-string")
+VM_DEFINE_LOADER (102, load_string, "load-string")
 {
   size_t len;
   char *buf;
@@ -46,7 +46,7 @@ VM_DEFINE_LOADER (83, load_string, "load-string")
   NEXT;
 }
 
-VM_DEFINE_LOADER (84, load_symbol, "load-symbol")
+VM_DEFINE_LOADER (103, load_symbol, "load-symbol")
 {
   size_t len;
   FETCH_LENGTH (len);
@@ -57,7 +57,7 @@ VM_DEFINE_LOADER (84, load_symbol, "load-symbol")
   NEXT;
 }
 
-VM_DEFINE_LOADER (86, load_program, "load-program")
+VM_DEFINE_LOADER (104, load_program, "load-program")
 {
   scm_t_uint32 len;
   SCM objs, objcode;
@@ -78,7 +78,7 @@ VM_DEFINE_LOADER (86, load_program, "load-program")
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (87, link_now, "link-now", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (105, link_now, "link-now", 0, 1, 1)
 {
   SCM what;
   POP (what);
@@ -87,7 +87,7 @@ VM_DEFINE_INSTRUCTION (87, link_now, "link-now", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_LOADER (89, load_array, "load-array")
+VM_DEFINE_LOADER (106, load_array, "load-array")
 {
   SCM type, shape;
   size_t len;
@@ -100,7 +100,7 @@ VM_DEFINE_LOADER (89, load_array, "load-array")
   NEXT;
 }
 
-VM_DEFINE_LOADER (90, load_wide_string, "load-wide-string")
+VM_DEFINE_LOADER (107, load_wide_string, "load-wide-string")
 {
   size_t len;
   scm_t_wchar *wbuf;
@@ -124,7 +124,7 @@ VM_DEFINE_LOADER (90, load_wide_string, "load-wide-string")
   "start from top of buffer and renumber 'VM_DEFINE_FOO (\n' sequences"
   (interactive "")
   (save-excursion
-    (let ((counter 79)) (goto-char (point-min))
+    (let ((counter 100)) (goto-char (point-min))
       (while (re-search-forward "^VM_DEFINE_[^ ]+ (\\([^,]+\\)," (point-max) t)
         (replace-match
          (number-to-string (setq counter (1+ counter)))
