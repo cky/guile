@@ -959,7 +959,7 @@ VM_DEFINE_INSTRUCTION (58, foreign_call, "foreign-call", 1, -1, -1)
   VM_HANDLE_INTERRUPTS;
   SYNC_REGISTER ();
 
-  ret = SCM_BOOL_F; /* scm_i_foreign_call (foreign, sp - nargs + 1); */
+  ret = scm_i_foreign_call (foreign, sp - nargs + 1);
 
   NULLSTACK_FOR_NONLOCAL_EXIT ();
       

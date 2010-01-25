@@ -118,6 +118,7 @@ SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,
 
 SCM_API SCM scm_make_foreign_function (SCM return_type, SCM func_ptr,
                                        SCM arg_types);
+SCM_INTERNAL SCM scm_i_foreign_call (SCM foreign, SCM *argv);
 
 
 
