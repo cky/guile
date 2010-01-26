@@ -143,6 +143,16 @@ exec guile -q -s "$0" "$@"
 (test (f-sum -1 2000 -30000 40000000000)
       (+ -1 2000 -30000 40000000000))
 
+;;
+;; Structs
+;;
+(define f-sum-struct
+  (make-foreign-function int64 (dynamic-func "test_ffi_sum_struct" lib)
+                         (list (list int8 int16 int32 int64))))
+(test (f-sum-struct (make-c-struct (list int8 int16 int32 int64)
+                                   (list -1 2000 -30000 40000000000)))
+      (+ -1 2000 -30000 40000000000))
+
 
 ;; Local Variables:
 ;; mode: scheme

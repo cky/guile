@@ -192,3 +192,17 @@ scm_t_int64 test_ffi_sum (scm_t_int8 a, scm_t_int16 b,
 {
   return d + c + b + a;
 }
+
+
+struct foo
+{
+  scm_t_int8 a;
+  scm_t_int16 b;
+  scm_t_int32 c;
+  scm_t_int64 d;
+};
+scm_t_int64 test_ffi_sum_struct (struct foo foo);
+scm_t_int64 test_ffi_sum_struct (struct foo foo)
+{
+  return foo.d + foo.c + foo.b + foo.a;
+}
