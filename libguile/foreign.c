@@ -133,7 +133,7 @@ SCM_DEFINE (scm_foreign_ref, "foreign-ref", 1, 0, 0,
     case SCM_FOREIGN_TYPE_INT64:
       return scm_from_int64 (*(scm_t_int64*)ptr);
     default:
-      abort ();
+      scm_wrong_type_arg_msg (FUNC_NAME, 1, foreign, "foreign");
     }
 }
 #undef FUNC_NAME
@@ -189,7 +189,7 @@ SCM_DEFINE (scm_foreign_set_x, "foreign-set!", 2, 0, 0,
       *(scm_t_int64*)ptr = scm_to_int64 (val);
       break;
     default:
-      abort ();
+      scm_wrong_type_arg_msg (FUNC_NAME, 1, val, "foreign");
     }
 
   return SCM_UNSPECIFIED;
@@ -364,7 +364,7 @@ scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
       scm_puts ("pointer ", port);
       break;
     default:
-      abort ();
+      scm_wrong_type_arg_msg ("%print-foreign", 1, foreign, "foreign");
     }
   scm_display (scm_foreign_ref (foreign), port);
   scm_putc ('>', port);
@@ -538,7 +538,8 @@ fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
           *ftype = ffi_type_void;
           return;
         default:
-          abort ();
+          scm_wrong_type_arg_msg ("make-foreign-function", 0, type,
+                                  "foreign type");
         }
     }
   else
@@ -764,7 +765,8 @@ cif_to_procedure (SCM cif, SCM func_ptr)
   if (nargs < 10)
     objcode = objcode_trampolines[nargs];
   else
-    abort ();
+    scm_misc_error ("make-foreign-function", "args >= 10 currently unimplemented",
+                    SCM_EOL);
   
   table = scm_c_make_vector (2, SCM_UNDEFINED);
   SCM_SIMPLE_VECTOR_SET (table, 0, scm_cons (cif, func_ptr));
@@ -811,14 +813,17 @@ unpack (ffi_type *type, void *loc, SCM x)
       break;
     case FFI_TYPE_STRUCT:
       if (!SCM_FOREIGN_TYPED_P (x, VOID))
-        abort ();
+        scm_wrong_type_arg_msg ("foreign-call", 0, x,
+                                "foreign void pointer");
       if (SCM_FOREIGN_LEN (x) && SCM_FOREIGN_LEN (x) != type->size)
-        abort ();
+        scm_wrong_type_arg_msg ("foreign-call", 0, x,
+                                "foreign void pointer of correct length");
       memcpy (loc, SCM_FOREIGN_POINTER (x, void), type->size);
       break;
     case FFI_TYPE_POINTER:
       if (!SCM_FOREIGN_TYPED_P (x, VOID))
-        abort ();
+        scm_wrong_type_arg_msg ("foreign-call", 0, x,
+                                "foreign void pointer");
       *(void**)loc = SCM_FOREIGN_POINTER (x, void);
       break;
     default:
