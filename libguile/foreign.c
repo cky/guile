@@ -372,7 +372,96 @@ scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
 
 
 
+
 #define ROUND_UP(len,align) (align?(((len-1)|(align-1))+1):len)
+
+SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type), "")
+#define FUNC_NAME s_scm_alignof
+{
+  if (SCM_I_INUMP (type))
+    {
+      switch (SCM_I_INUM (type))
+        {
+        case SCM_FOREIGN_TYPE_FLOAT:
+          return scm_from_size_t (alignof (float));
+        case SCM_FOREIGN_TYPE_DOUBLE:
+          return scm_from_size_t (alignof (double));
+        case SCM_FOREIGN_TYPE_UINT8:
+          return scm_from_size_t (alignof (scm_t_uint8));
+        case SCM_FOREIGN_TYPE_INT8:
+          return scm_from_size_t (alignof (scm_t_int8));
+        case SCM_FOREIGN_TYPE_UINT16:
+          return scm_from_size_t (alignof (scm_t_uint16));
+        case SCM_FOREIGN_TYPE_INT16:
+          return scm_from_size_t (alignof (scm_t_int16));
+        case SCM_FOREIGN_TYPE_UINT32:
+          return scm_from_size_t (alignof (scm_t_uint32));
+        case SCM_FOREIGN_TYPE_INT32:
+          return scm_from_size_t (alignof (scm_t_int32));
+        case SCM_FOREIGN_TYPE_UINT64:
+          return scm_from_size_t (alignof (scm_t_uint64));
+        case SCM_FOREIGN_TYPE_INT64:
+          return scm_from_size_t (alignof (scm_t_int64));
+        default:
+          scm_wrong_type_arg (FUNC_NAME, 1, type);
+        }
+    }
+  else if (scm_is_pair (type))
+    /* a struct, yo */
+    return scm_alignof (scm_car (type));
+  else
+    scm_wrong_type_arg (FUNC_NAME, 1, type);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_sizeof, "sizeof", 1, 0, 0, (SCM type), "")
+#define FUNC_NAME s_scm_sizeof
+{
+  if (SCM_I_INUMP (type))
+    {
+      switch (SCM_I_INUM (type))
+        {
+        case SCM_FOREIGN_TYPE_FLOAT:
+          return scm_from_size_t (sizeof (float));
+        case SCM_FOREIGN_TYPE_DOUBLE:
+          return scm_from_size_t (sizeof (double));
+        case SCM_FOREIGN_TYPE_UINT8:
+          return scm_from_size_t (sizeof (scm_t_uint8));
+        case SCM_FOREIGN_TYPE_INT8:
+          return scm_from_size_t (sizeof (scm_t_int8));
+        case SCM_FOREIGN_TYPE_UINT16:
+          return scm_from_size_t (sizeof (scm_t_uint16));
+        case SCM_FOREIGN_TYPE_INT16:
+          return scm_from_size_t (sizeof (scm_t_int16));
+        case SCM_FOREIGN_TYPE_UINT32:
+          return scm_from_size_t (sizeof (scm_t_uint32));
+        case SCM_FOREIGN_TYPE_INT32:
+          return scm_from_size_t (sizeof (scm_t_int32));
+        case SCM_FOREIGN_TYPE_UINT64:
+          return scm_from_size_t (sizeof (scm_t_uint64));
+        case SCM_FOREIGN_TYPE_INT64:
+          return scm_from_size_t (sizeof (scm_t_int64));
+        default:
+          scm_wrong_type_arg (FUNC_NAME, 1, type);
+        }
+    }
+  else if (scm_is_pair (type))
+    {
+      /* a struct */
+      size_t off = 0;
+      while (scm_is_pair (type))
+        {
+          off = ROUND_UP (off, scm_to_size_t (scm_alignof (scm_car (type))));
+          off += scm_to_size_t (scm_sizeof (scm_car (type)));
+          type = scm_cdr (type);
+        }
+      return scm_from_size_t (off);
+    }
+  else
+    scm_wrong_type_arg (FUNC_NAME, 1, type);
+}
+#undef FUNC_NAME
+
 
 /* return 1 on success, 0 on failure */
 static int
@@ -466,7 +555,8 @@ fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
 
       for (i = 0; i < len; i++)
         {
-          ftype->elements[i] = *(types++);
+          ftype->elements[i] = *types;
+          *types += 1;
           fill_ffi_type (scm_car (type), ftype->elements[i],
                          type_ptrs, types);
           type = scm_cdr (type);

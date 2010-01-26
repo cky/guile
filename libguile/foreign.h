@@ -89,6 +89,8 @@ SCM_API SCM scm_take_foreign_pointer (scm_t_foreign_type type, void *ptr,
                                       size_t len,
                                       scm_t_foreign_finalizer finalizer);
 
+SCM_API SCM scm_alignof (SCM type);
+SCM_API SCM scm_sizeof (SCM type);
 SCM_API SCM scm_foreign_type (SCM foreign);
 SCM_API SCM scm_foreign_ref (SCM foreign);
 SCM_API SCM scm_foreign_set_x (SCM foreign, SCM val);
