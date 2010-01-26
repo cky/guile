@@ -17,6 +17,7 @@
 
 
 (define-module (system foreign)
+  #:use-module (rnrs bytevector)
   #:export (void
             float double
             int8 uint8
@@ -24,8 +25,78 @@
             uint32 int32
             uint64 int64
 
+            sizeof alignof
+
             foreign-ref foreign-set!
             foreign->bytevector bytevector->foreign
-            make-foreign-function))
+            make-foreign-function
+            make-c-struct parse-c-struct))
 
 (load-extension "libguile" "scm_init_foreign")
+
+(define *writers*
+  `((,float . ,bytevector-ieee-single-native-set!)
+    (,double . ,bytevector-ieee-double-native-set!)
+    (,int8 . ,bytevector-s8-set!)
+    (,uint8 . ,bytevector-u8-set!)
+    (,int16 . ,bytevector-s16-native-set!)
+    (,uint16 . ,bytevector-u16-native-set!)
+    (,int32 . ,bytevector-s32-native-set!)
+    (,uint32 . ,bytevector-u32-native-set!)
+    (,int64 . ,bytevector-s64-native-set!)
+    (,uint64 . ,bytevector-u64-native-set!)))
+
+(define *readers*
+  `((,float . ,bytevector-ieee-single-native-ref)
+    (,double . ,bytevector-ieee-double-native-ref)
+    (,int8 . ,bytevector-s8-ref)
+    (,uint8 . ,bytevector-u8-ref)
+    (,int16 . ,bytevector-s16-native-ref)
+    (,uint16 . ,bytevector-u16-native-ref)
+    (,int32 . ,bytevector-s32-native-ref)
+    (,uint32 . ,bytevector-u32-native-ref)
+    (,int64 . ,bytevector-s64-native-ref)
+    (,uint64 . ,bytevector-u64-native-ref)))
+
+(define (align off alignment)
+  (1+ (logior (1- off) (1- alignment))))
+
+(define (write-c-struct bv offset types vals)
+  (let lp ((offset offset) (types types) (vals vals))
+    (cond
+     ((not (pair? types))
+      (or (null? vals)
+          (error "too many values" vals)))
+     ((not (pair? vals))
+      (error "too few values" types))
+     (else
+      ;; alignof will error-check
+      (let* ((type (car types))
+             (offset (align offset (alignof type))))
+        (if (pair? type)
+            (write-c-struct bv offset (car types) (car vals))
+            ((assv-ref *writers* type) bv offset (car vals)))
+        (lp (+ offset (sizeof type)) (cdr types) (cdr vals)))))))
+
+(define (read-c-struct bv offset types)
+  (let lp ((offset offset) (types types) (vals '()))
+    (cond
+     ((not (pair? types))
+      (reverse vals))
+     (else
+      ;; alignof will error-check
+      (let* ((type (car types))
+             (offset (align offset (alignof type))))
+        (lp (+ offset (sizeof type)) (cdr types)
+            (cons (if (pair? type)
+                      (read-c-struct bv offset (car types))
+                      ((assv-ref *readers* type) bv offset))
+                  vals)))))))
+
+(define (make-c-struct types vals)
+  (let ((bv (make-bytevector (sizeof types) 0)))
+    (write-c-struct bv 0 types vals)
+    (bytevector->foreign bv)))
+
+(define (parse-c-struct foreign types)
+  (read-c-struct (foreign->bytevector foreign) 0 types))
