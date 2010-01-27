@@ -206,3 +206,10 @@ scm_t_int64 test_ffi_sum_struct (struct foo foo)
 {
   return foo.d + foo.c + foo.b + foo.a;
 }
+
+
+void* test_ffi_memcpy (void *dest, void *src, scm_t_int32 n);
+void* test_ffi_memcpy (void *dest, void *src, scm_t_int32 n)
+{
+  return memcpy (dest, src, n);
+}

@@ -2,7 +2,8 @@
 exec guile -q -s "$0" "$@"
 !#
 
-(use-modules (system foreign))
+(use-modules (system foreign)
+             (rnrs bytevector))
 
 (define lib
   (dynamic-link (string-append (getenv "builddir") "/libtest-ffi")))
@@ -152,6 +153,20 @@ exec guile -q -s "$0" "$@"
 (test (f-sum-struct (make-c-struct (list int8 int16 int32 int64)
                                    (list -1 2000 -30000 40000000000)))
       (+ -1 2000 -30000 40000000000))
+;;
+;; Structs
+;;
+(define f-memcpy
+  (make-foreign-function '* (dynamic-func "test_ffi_memcpy" lib)
+                         (list '* '* int32)))
+(let* ((src (bytevector->foreign (u8-list->bytevector '(0 1 2 3 4 5 6 7))))
+       (dest (bytevector->foreign (make-bytevector 16 0)))
+       (res (f-memcpy dest src (bytevector-length (foreign->bytevector src)))))
+  (or (= (foreign-ref dest) (foreign-ref res))
+      (error "memcpy res not equal to dest"))
+  (or (equal? (bytevector->u8-list (foreign->bytevector dest))
+              '(0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0))
+      (error "unexpected dest")))
 
 
 ;; Local Variables:
