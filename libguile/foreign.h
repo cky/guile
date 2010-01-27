@@ -96,6 +96,7 @@ SCM_API SCM scm_foreign_ref (SCM foreign);
 SCM_API SCM scm_foreign_set_x (SCM foreign, SCM val);
 SCM_API SCM scm_foreign_to_bytevector (SCM foreign, SCM type,
                                        SCM offset, SCM len);
+SCM_API SCM scm_foreign_set_finalizer_x (SCM foreign, SCM finalizer);
 SCM_API SCM scm_bytevector_to_foreign (SCM bv, SCM offset, SCM len);
 
 SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,

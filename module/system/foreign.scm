@@ -29,6 +29,7 @@
 
             foreign-ref foreign-set!
             foreign->bytevector bytevector->foreign
+            foreign-set-finalizer!
             make-foreign-function
             make-c-struct parse-c-struct))
 

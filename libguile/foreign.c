@@ -43,6 +43,10 @@ SCM_SYMBOL (sym_int32, "int32");
 SCM_SYMBOL (sym_uint64, "uint64");
 SCM_SYMBOL (sym_int64, "int64");
 
+/* that's for pointers, you know. */
+SCM_SYMBOL (sym_asterisk, "*");
+
+
 static SCM cif_to_procedure (SCM cif, SCM func_ptr);
 
 
@@ -324,6 +328,37 @@ SCM_DEFINE (scm_bytevector_to_foreign, "bytevector->foreign", 1, 2, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_foreign_set_finalizer_x, "foreign-set-finalizer!", 2, 0, 0,
+            (SCM foreign, SCM finalizer),
+            "Arrange for the C procedure wrapped by @var{finalizer} to be\n"
+            "called on the pointer wrapped by @var{foreign} when @var{foreign}\n"
+            "becomes unreachable. Note: the C procedure should not call into\n"
+            "Scheme. If you need a Scheme finalizer, use guardians.")
+#define FUNC_NAME s_scm_foreign_set_finalizer_x
+{
+  void *c_finalizer;
+  GC_finalization_proc prev_finalizer;
+  GC_PTR prev_finalizer_data;
+
+  SCM_VALIDATE_FOREIGN_TYPED (1, foreign, VOID);
+  SCM_VALIDATE_FOREIGN_TYPED (2, finalizer, VOID);
+  
+  c_finalizer = SCM_FOREIGN_POINTER (finalizer, void);
+
+  SCM_SET_CELL_WORD_0 (foreign, SCM_CELL_WORD_0 (foreign) | (1<<16));
+
+  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (foreign),
+                                  foreign_finalizer_trampoline,
+                                  c_finalizer,
+                                  &prev_finalizer,
+                                  &prev_finalizer_data);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+
 void
 scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
 {
@@ -406,6 +441,9 @@ SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type), "")
           scm_wrong_type_arg (FUNC_NAME, 1, type);
         }
     }
+  else if (scm_is_eq (type, sym_asterisk))
+    /* a pointer */
+    return scm_from_size_t (alignof (void*));
   else if (scm_is_pair (type))
     /* a struct, yo */
     return scm_alignof (scm_car (type));
@@ -445,6 +483,9 @@ SCM_DEFINE (scm_sizeof, "sizeof", 1, 0, 0, (SCM type), "")
           scm_wrong_type_arg (FUNC_NAME, 1, type);
         }
     }
+  else if (scm_is_eq (type, sym_asterisk))
+    /* a pointer */
+    return scm_from_size_t (sizeof (void*));
   else if (scm_is_pair (type))
     {
       /* a struct */
@@ -477,6 +518,9 @@ parse_ffi_type (SCM type, int return_p, long *n_structs, long *n_struct_elts)
       else
         return 1;
     }
+  else if (scm_is_eq (type, sym_asterisk))
+    /* a pointer */
+    return 1;
   else
     {
       long len;
@@ -541,6 +585,12 @@ fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
           scm_wrong_type_arg_msg ("make-foreign-function", 0, type,
                                   "foreign type");
         }
+    }
+  else if (scm_is_eq (type, sym_asterisk))
+    /* a pointer */
+    {
+      *ftype = ffi_type_pointer;
+      return;
     }
   else
     {
