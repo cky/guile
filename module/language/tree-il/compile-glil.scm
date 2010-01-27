@@ -116,6 +116,7 @@
    ((variable-ref . 1) . variable-ref)
    ;; nb, *not* variable-set! -- the args are switched
    ((variable-set . 2) . variable-set)
+   ((variable-bound? . 1) . variable-bound?)
    ((struct? . 1) . struct?)
    ((struct-vtable . 1) . struct-vtable)
    ((struct-ref . 2) . struct-ref)

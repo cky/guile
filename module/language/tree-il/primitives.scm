@@ -56,6 +56,7 @@
 
     vector-ref vector-set!
     variable-ref variable-set!
+    variable-bound?
     ;; args of variable-set are switched; it needs special help
 
     struct? struct-vtable make-struct struct-ref struct-set!
