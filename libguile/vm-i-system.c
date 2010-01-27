@@ -322,7 +322,7 @@ VM_DEFINE_INSTRUCTION (26, variable_ref, "variable-ref", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (27, variable_bound, "variable-bound?", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (27, variable_bound, "variable-bound?", 0, 1, 1)
 {
   if (VARIABLE_BOUNDP (*sp))
     *sp = SCM_BOOL_T;
