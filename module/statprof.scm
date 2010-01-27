@@ -214,10 +214,14 @@
          (+ accumulated-time 0.0 (- ,stop-time last-start-time))))
 
 (define (get-call-data proc)
-  (or (hashq-ref procedure-data proc)
-      (let ((call-data (make-call-data proc 0 0 0)))
-        (hashq-set! procedure-data proc call-data)
-        call-data)))
+  (let ((k (if (or (not (program? proc))
+                   (zero? (program-num-free-variables proc)))
+               proc
+               (program-objcode proc))))
+    (or (hashq-ref procedure-data k)
+        (let ((call-data (make-call-data proc 0 0 0)))
+          (hashq-set! procedure-data k call-data)
+          call-data))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; SIGPROF handler
@@ -351,7 +355,8 @@ than @code{statprof-stop}, @code{#f} otherwise."
                        0 0
                        (car sampling-frequency)
                        (cdr sampling-frequency)))
-        (add-hook! (vm-apply-hook (the-vm)) count-call)
+        (if %count-calls?
+            (add-hook! (vm-apply-hook (the-vm)) count-call))
         (set-vm-trace-level! (the-vm) (1+ (vm-trace-level (the-vm))))
         #t)))
   
@@ -366,7 +371,8 @@ than @code{statprof-stop}, @code{#f} otherwise."
         (set! gc-time-taken
               (- (cdr (assq 'gc-time-taken (gc-stats))) gc-time-taken))
         (set-vm-trace-level! (the-vm) (1- (vm-trace-level (the-vm))))
-        (remove-hook! (vm-apply-hook (the-vm)) count-call)
+        (if %count-calls?
+            (remove-hook! (vm-apply-hook (the-vm)) count-call))
         ;; I believe that we need to do this before getting the time
         ;; (unless we want to make things even more complicated).
         (set! remaining-prof-time (setitimer ITIMER_PROF 0 0 0 0))
@@ -571,23 +577,13 @@ to @code{statprof-reset} is true."
   stacks)
 
 (define procedure=?
-  (if (false-if-exception (resolve-interface '(system base compile)))
-      (lambda (a b)
-        (cond
-         ((eq? a b))
-         ((and (program? a) (program? b))
-          (eq? (program-objcode a) (program-objcode b)))
-         (else
-          #f)))
-      (lambda (a b)
-        (cond
-         ((eq? a b))
-         ((and (closure? a) (closure? b)
-               (procedure-source a) (procedure-source b))
-          (and (eq? (procedure-name a) (procedure-name b))
-               (equal? (procedure-source a) (procedure-source b))))
-         (else
-          #f)))))
+  (lambda (a b)
+    (cond
+     ((eq? a b))
+     ((and (program? a) (program? b))
+      (eq? (program-objcode a) (program-objcode b)))
+     (else
+      #f))))
 
 ;; tree ::= (car n . tree*)
 
