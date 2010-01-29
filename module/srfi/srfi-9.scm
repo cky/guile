@@ -88,6 +88,7 @@
                    ((_ formals ...)
                     #'(begin body ...))
                    (_
+                    (identifier? x)
                     #'proc-name))))))))))
 
 (define-syntax define-record-type
