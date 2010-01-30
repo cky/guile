@@ -22,6 +22,7 @@
   :export (
 
  ;; Exceptions which are commonly being tested for.
+ exception:syntax-pattern-unmatched
  exception:bad-variable
  exception:missing-expression
  exception:out-of-range exception:unbound-var
@@ -248,6 +249,8 @@ with-locale with-locale*
 ;;;;
 
 ;;; Define some exceptions which are commonly being tested for.
+(define exception:syntax-pattern-unmatched
+  (cons 'syntax-error "source expression failed to match any pattern"))
 (define exception:bad-variable
   (cons 'syntax-error "Bad variable"))
 (define exception:missing-expression
