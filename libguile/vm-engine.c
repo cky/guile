@@ -214,6 +214,12 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     /* shouldn't get here */
     goto vm_error;
 
+  vm_error_not_a_thunk:
+    SYNC_ALL ();
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "thunk");
+    /* shouldn't get here */
+    goto vm_error;
+
   vm_error_no_values:
     err_msg  = scm_from_locale_string ("Zero values returned to single-valued continuation");
     finish_args = SCM_EOL;

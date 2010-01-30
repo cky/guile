@@ -1433,6 +1433,87 @@ VM_DEFINE_INSTRUCTION (82, make_symbol, "make-symbol", 0, 1, 1)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 5, 3, 0)
+{
+  scm_t_int32 offset;
+  scm_t_uint8 inline_handler_p, escape_only_p;
+  SCM k, handler, pre_unwind, jmpbuf;
+
+  inline_handler_p = FETCH ();
+  escape_only_p = FETCH ();
+  FETCH_OFFSET (offset);
+  POP (pre_unwind);
+  POP (handler);
+  POP (k);
+
+  SYNC_REGISTER ();
+  /* Push the prompt onto the dynamic stack. The setjmp itself has to be local
+     to this procedure. */
+  jmpbuf = vm_prepare_prompt_jmpbuf (vm, k, handler, pre_unwind,
+                                     inline_handler_p, escape_only_p);
+  if (VM_SETJMP (jmpbuf))
+    {
+      /* The prompt exited nonlocally. Cache the regs back from the vp, and go
+         to the handler or post-handler label. (The meaning of the label differs
+         depending on whether the prompt's handler is rendered inline or not.)
+         */
+      CACHE_REGISTER (); /* Really we only need SP. FP and IP should be
+                            unmodified. */
+      ip += offset;
+      NEXT;
+    }
+      
+  /* Otherwise setjmp returned for the first time, so we go to execute the
+     prompt's body. */
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (85, wind, "wind", 0, 2, 0)
+{
+  SCM wind, unwind;
+  POP (unwind);
+  POP (wind);
+  SYNC_REGISTER ();
+  /* Push wind and unwind procedures onto the dynamic stack. Note that neither
+     are actually called; the compiler should emit calls to wind and unwind for
+     the normal dynamic-wind control flow. */
+  if (SCM_UNLIKELY (scm_is_false (scm_thunk_p (wind))))
+    {
+      finish_args = wind;
+      goto vm_error_not_a_thunk;
+    }
+  if (SCM_UNLIKELY (scm_is_false (scm_thunk_p (unwind))))
+    {
+      finish_args = unwind;
+      goto vm_error_not_a_thunk;
+    }
+  scm_i_set_dynwinds (scm_cons (scm_cons (wind, unwind), scm_i_dynwinds ()));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (86, throw, "throw", 1, -1, -1)
+{
+  unsigned n = FETCH ();
+  SCM k;
+  SCM args;
+  POP_LIST (n);
+  POP (args);
+  POP (k);
+  SYNC_REGISTER ();
+  vm_throw (vm, k, args);
+  /* vm_throw should not return */
+  abort ();
+}
+
+VM_DEFINE_INSTRUCTION (87, unwind, "unwind", 0, 0, 0)
+{
+  /* A normal exit from the dynamic extent of an expression. Pop the top entry
+     off of the dynamic stack. */
+  scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
+  NEXT;
+}
+
+
 
 /*
 (defun renumber-ops ()
