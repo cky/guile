@@ -116,6 +116,7 @@ libguile_la_SOURCES =				\
 	bitvectors.c				\
 	bytevectors.c				\
 	chars.c					\
+	control.c				\
 	continuations.c				\
 	debug.c					\
 	deprecated.c				\
@@ -217,6 +218,7 @@ DOT_X_FILES =					\
 	bitvectors.x				\
 	bytevectors.x				\
 	chars.x					\
+	control.x				\
 	continuations.x				\
 	debug.x					\
 	deprecated.x				\
@@ -316,6 +318,7 @@ DOT_DOC_FILES = 				\
 	bitvectors.doc				\
 	bytevectors.doc				\
 	chars.doc				\
+	control.doc				\
 	continuations.doc			\
 	debug.doc				\
 	deprecated.doc				\
@@ -473,6 +476,7 @@ modinclude_HEADERS =				\
 	bitvectors.h				\
 	bytevectors.h				\
 	chars.h					\
+	control.h				\
 	continuations.h				\
 	debug-malloc.h				\
 	debug.h					\
