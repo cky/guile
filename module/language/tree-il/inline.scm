@@ -1,6 +1,6 @@
 ;;; a simple inliner
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -109,6 +109,16 @@
        
       ((<fix> vars body)
        (if (null? vars) body x))
+       
+      ((<prompt> src tag body handler pre-unwind-handler)
+       ;; If the handler is a simple lambda, inline it.
+       (if (and (lambda? handler)
+                (record-case (lambda-body handler)
+                  ((<lambda-case> req opt kw rest alternate)
+                   (and (pair? req) (not opt) (not kw) (not alternate)))
+                  (else #f)))
+           (make-prompt src tag body (lambda-body handler) pre-unwind-handler)
+           x))
        
       (else #f)))
   (post-order! inline1 x))

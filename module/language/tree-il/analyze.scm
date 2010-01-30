@@ -81,9 +81,9 @@
 ;; this specific case. A proper solution would be some sort of liveness
 ;; analysis, and not our linear allocation algorithm.
 ;;
-;; Closure variables are captured when a closure is created, and stored
-;; in a vector. Each closure variable has a unique index into that
-;; vector.
+;; Closure variables are captured when a closure is created, and stored in a
+;; vector inline to the closure object itself. Each closure variable has a
+;; unique index into that vector.
 ;;
 ;; There is one more complication. Procedures bound by <fix> may, in
 ;; some cases, be rendered inline to their parent procedure. That is to
@@ -124,11 +124,18 @@
 ;; generated code can skip argument checks at runtime if they match at
 ;; compile-time.
 ;;
+;; Also, while we're a-traversing and an-allocating, we check prompt
+;; handlers to see if the "continuation" argument is used. If not, we
+;; mark the prompt as being "escape-only". This allows us to implement
+;; `catch' and `throw' using `prompt' and `control', but without causing
+;; a continuation to be reified. Heh heh.
+;;
 ;; That is:
 ;;
 ;;  sym -> {lambda -> address}
 ;;  lambda -> (labels . free-locs)
 ;;  lambda-case -> (gensym . nlocs)
+;;  prompt -> escape-only?
 ;;
 ;; address ::= (local? boxed? . index)
 ;; labels ::= ((sym . lambda) ...)
@@ -328,6 +335,16 @@
       ((<let-values> exp body)
        (lset-union eq? (step exp) (step body)))
       
+      ((<dynamic-wind> body winder unwinder)
+       (lset-union eq? (step body) (step winder) (step unwinder)))
+      
+      ((<prompt> tag body handler pre-unwind-handler)
+       (lset-union eq? (step tag) (step handler)
+                   (if pre-unwind-handler (step pre-unwind-handler) '())))
+      
+      ((<control> tag type args)
+       (apply lset-union eq? (step tag) (map step args)))
+      
       (else '())))
   
   ;; allocation: sym -> {lambda -> address}
@@ -478,6 +495,21 @@
 
       ((<let-values> exp body)
        (max (recur exp) (recur body)))
+      
+      ((<dynamic-wind> body winder unwinder)
+       (max (recur body) (recur winder) (recur unwinder)))
+      
+      ((<prompt> tag body handler pre-unwind-handler)
+       (let ((cont-var (and (lambda-case? handler)
+                            (pair? (lambda-case-vars handler))
+                            (car (lambda-case-vars handler)))))
+         (hashq-set! allocation x
+                     (and cont-var (zero? (hashq-ref refcounts cont-var 0))))
+         (max (recur tag) (recur body) (recur handler)
+              (if pre-unwind-handler (recur pre-unwind-handler) 0))))
+      
+      ((<control> tag type args)
+       (apply max (recur tag) (map recur args)))
       
       (else n)))
 
