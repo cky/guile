@@ -179,13 +179,15 @@
             ((symbol? in) `(cons* ,@(reverse out) ,in))
             ((pair? (car in))
              (lp (cdr in)
-                 (cons `(make-application src (make-primitive-ref src ',(caar in))
-                                          ,(inline-args (cdar in)))
+                 (cons (if (eq? (caar in) 'quote)
+                           `(make-const src ,@(cdar in))
+                           `(make-application src (make-primitive-ref src ',(caar in))
+                                              ,(inline-args (cdar in))))
                        out)))
             ((symbol? (car in))
              ;; assume it's locally bound
              (lp (cdr in) (cons (car in) out)))
-            ((number? (car in))
+            ((self-evaluating? (car in))
              (lp (cdr in) (cons `(make-const src ,(car in)) out)))
             (else
              (error "what what" (car in))))))
@@ -398,4 +400,35 @@
                      (make-lexical-ref #f 'pre PRE)
                      (make-application #f (make-lexical-ref #f 'thunk THUNK) '())
                      (make-lexical-ref #f 'post POST)))))))
+              (else #f)))
+
+(hashq-set! *primitive-expand-table*
+            'prompt
+            (case-lambda
+              ((src tag thunk handler)
+               (make-prompt src tag (make-application #f thunk '())
+                            handler #f))
+              ((src tag thunk handler pre)
+               (make-prompt src tag (make-application #f thunk '())
+                            handler pre))
+              (else #f)))
+(hashq-set! *primitive-expand-table*
+            '@prompt
+            (case-lambda
+              ((src tag thunk handler pre)
+               (make-prompt src tag (make-application #f thunk '())
+                            handler pre))
+              (else #f)))
+
+(hashq-set! *primitive-expand-table*
+            'control
+            (case-lambda
+              ((src tag . args)
+               (make-control src tag 'throw args))
+              (else #f)))
+(hashq-set! *primitive-expand-table*
+            '@control
+            (case-lambda
+              ((src tag type . args)
+               (make-control src tag (if (const? type) (const-exp type) (error "what ho" type)) args))
               (else #f)))

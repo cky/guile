@@ -178,6 +178,7 @@ ICE_9_SOURCES = \
   ice-9/and-let-star.scm \
   ice-9/calling.scm \
   ice-9/common-list.scm \
+  ice-9/control.scm \
   ice-9/debug.scm \
   ice-9/debugger.scm \
   ice-9/documentation.scm \
