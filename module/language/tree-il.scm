@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,9 @@
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
             <fix> fix? make-fix fix-src fix-names fix-vars fix-vals fix-body
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
+            <dynamic-wind> dynamic-wind? make-dynamic-wind dynamic-wind-src dynamic-wind-winder dynamic-wind-body dynamic-wind-unwinder
+            <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler prompt-pre-unwind-handler 
+            <control> control? make-control control-src control-tag control-type control-args
 
             parse-tree-il
             unparse-tree-il
@@ -74,7 +77,10 @@
   (<let> names vars vals body)
   (<letrec> names vars vals body)
   (<fix> names vars vals body)
-  (<let-values> exp body))
+  (<let-values> exp body)
+  (<dynamic-wind> winder body unwinder)
+  (<prompt> tag body handler pre-unwind-handler)
+  (<control> tag type args))
   
 
 
@@ -165,6 +171,16 @@
      ((let-values ,exp ,body)
       (make-let-values loc (retrans exp) (retrans body)))
 
+     ((dynamic-wind ,winder ,body ,unwinder)
+      (make-dynamic-wind loc (retrans winder) (retrans body) (retrans unwinder)))
+     
+     ((prompt ,tag ,body ,handler ,pre-unwind-handler)
+      (make-prompt loc (retrans tag) (retrans body) (retrans handler)
+                   (and=> pre-unwind-handler retrans)))
+     
+     ((control ,tag ,type ,args)
+      (make-control loc (retrans tag) type (map retrans args)))
+
      (else
       (error "unrecognized tree-il" exp)))))
 
@@ -227,7 +243,18 @@
      `(fix ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
 
     ((<let-values> exp body)
-     `(let-values ,(unparse-tree-il exp) ,(unparse-tree-il body)))))
+     `(let-values ,(unparse-tree-il exp) ,(unparse-tree-il body)))
+
+    ((<dynamic-wind> body winder unwinder)
+     `(dynamic-wind ,(unparse-tree-il body)
+               ,(unparse-tree-il winder) ,(unparse-tree-il unwinder)))
+    
+    ((<prompt> tag body handler pre-unwind-handler)
+     `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)
+              ,(and=> pre-unwind-handler unparse-tree-il)))
+    
+    ((<control> tag type args)
+     `(control ,(unparse-tree-il tag) ,type ,(map unparse-tree-il args)))))
 
 (define (tree-il->scheme e)
   (record-case e
@@ -299,7 +326,23 @@
 
     ((<let-values> exp body)
      `(call-with-values (lambda () ,(tree-il->scheme exp))
-        ,(tree-il->scheme (make-lambda #f '() body))))))
+        ,(tree-il->scheme (make-lambda #f '() body))))
+
+    ((<dynamic-wind> body winder unwinder)
+     `(dynamic-wind ,(unparse-tree-il winder)
+                    (lambda () ,(unparse-tree-il body))
+                    ,(unparse-tree-il unwinder)))
+    
+    ((<prompt> tag body handler pre-unwind-handler)
+     `((@ (ice-9 control) prompt) 
+       ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
+       ,(tree-il->scheme handler) ,(and=> pre-unwind-handler tree-il->scheme)))
+    
+
+    ((<control> tag type args)
+     (case type
+       ((throw) `(throw ,(tree-il->scheme tag) ,@(map tree-il->scheme args)))
+       (else (error "bad control type" type))))))
 
 
 (define (tree-il-fold leaf down up seed tree)
@@ -352,6 +395,20 @@ This is an implementation of `foldts' as described by Andy Wingo in
                                 (down tree result)))))
           ((<let-values> exp body)
            (up tree (loop body (loop exp (down tree result)))))
+          ((<dynamic-wind> body winder unwinder)
+           (up tree (loop unwinder
+                          (loop winder
+                                (loop body (down tree result))))))
+          ((<prompt> tag body handler pre-unwind-handler)
+           (up tree (loop tag
+                          (loop body
+                                (loop handler
+                                      (if pre-unwind-handler
+                                          (loop pre-unwind-handler
+                                                (down tree result))
+                                          (down tree result)))))))
+          ((<control> tag type args)
+           (up tree (loop tag (loop args (down tree result)))))
           (else
            (leaf tree result))))))
 
@@ -407,6 +464,20 @@ This is an implementation of `foldts' as described by Andy Wingo in
                  ((<let-values> exp body)
                   (let*-values (((seed ...) (foldts exp seed ...)))
                     (foldts body seed ...)))
+                 ((<dynamic-wind> body winder unwinder)
+                  (let*-values (((seed ...) (foldts body seed ...))
+                                ((seed ...) (foldts winder seed ...)))
+                    (foldts unwinder seed ...)))
+                 ((<prompt> tag body handler pre-unwind-handler)
+                  (let*-values (((seed ...) (foldts tag seed ...))
+                                ((seed ...) (foldts body seed ...))
+                                ((seed ...) (foldts handler seed ...)))
+                    (if pre-unwind-handler
+                        (values seed ...)
+                        (foldts pre-unwind-handler seed ...))))
+                 ((<control> tag args)
+                  (let*-values (((seed ...) (foldts tag seed ...)))
+                    (fold-values foldts args seed ...)))
                  (else
                   (values seed ...)))))
            (up tree seed ...)))))))
@@ -462,6 +533,22 @@ This is an implementation of `foldts' as described by Andy Wingo in
       ((<let-values> exp body)
        (set! (let-values-exp x) (lp exp))
        (set! (let-values-body x) (lp body)))
+      
+      ((<dynamic-wind> body winder unwinder)
+       (set! (dynamic-wind-body x) (lp body))
+       (set! (dynamic-wind-winder x) (lp winder))
+       (set! (dynamic-wind-unwinder x) (lp unwinder)))
+      
+      ((<prompt> tag body handler pre-unwind-handler)
+       (set! (prompt-tag x) (lp tag))
+       (set! (prompt-body x) (lp body))
+       (set! (prompt-handler x) (lp handler))
+       (if pre-unwind-handler
+           (set! (prompt-pre-unwind-handler x) (lp pre-unwind-handler))))
+      
+      ((<control> tag args)
+       (set! (control-tag x) (lp tag))
+       (set! (control-args x) (map lp args)))
       
       (else #f))
     
@@ -519,5 +606,21 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (let-values-exp x) (lp exp))
          (set! (let-values-body x) (lp body)))
 
+        ((<dynamic-wind> body winder unwinder)
+         (set! (dynamic-wind-body x) (lp body))
+         (set! (dynamic-wind-winder x) (lp winder))
+         (set! (dynamic-wind-unwinder x) (lp unwinder)))
+        
+        ((<prompt> tag body handler pre-unwind-handler)
+         (set! (prompt-tag x) (lp tag))
+         (set! (prompt-body x) (lp body))
+         (set! (prompt-handler x) (lp handler))
+         (if pre-unwind-handler
+             (set! (prompt-pre-unwind-handler x) (lp pre-unwind-handler))))
+        
+        ((<control> tag args)
+         (set! (control-tag x) (lp tag))
+         (set! (control-args x) (map lp args)))
+        
         (else #f))
       x)))
