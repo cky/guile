@@ -909,4 +909,176 @@
                           (,loc (error "badness" x loc))))
                       (reverse vars))
             (comp-tail body)
-            (emit-code #f (make-glil-unbind)))))))))
+            (emit-code #f (make-glil-unbind))))))
+
+      ;; much trickier than i thought this would be, at first, due to the need
+      ;; to have body's return value(s) on the stack while the unwinder runs,
+      ;; then proceed with returning or dropping or what-have-you, interacting
+      ;; with RA and MVRA. What have you, I say.
+      ((<dynamic-wind> src body winder unwinder)
+       (comp-push winder)
+       (comp-push unwinder)
+       (comp-drop (make-application src winder '()))
+       (emit-code #f (make-glil-call 'wind 2))
+
+       (case context
+         ((tail)
+          (let ((MV (make-label)))
+            (comp-vals body MV)
+            ;; one value: unwind...
+            (emit-code #f (make-glil-call 'unwind 0))
+            (comp-drop (make-application src unwinder '()))
+            ;; ...and return the val
+            (emit-code #f (make-glil-call 'return 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind...
+            (emit-code #f (make-glil-call 'unwind 0))
+            (comp-drop (make-application src unwinder '()))
+            ;; and return the values.
+            (emit-code #f (make-glil-call 'return/nvalues 1))))
+         
+         ((push)
+          ;; we only want one value. so ask for one value
+          (comp-push body)
+          ;; and unwind, leaving the val on the stack
+          (emit-code #f (make-glil-call 'unwind 0))
+          (comp-drop (make-application src unwinder '())))
+         
+         ((vals)
+          (let ((MV (make-label)))
+            (comp-vals body MV)
+            ;; one value: push 1 and fall through to MV case
+            (emit-code #f (make-glil-const 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind...
+            (emit-code #f (make-glil-call 'unwind 0))
+            (comp-drop (make-application src unwinder '()))
+            ;; and goto the MVRA.
+            (emit-branch #f 'br MVRA)))
+         
+         ((drop)
+          ;; compile body, discarding values. then unwind...
+          (comp-drop body)
+          (emit-code #f (make-glil-call 'unwind 0))
+          (comp-drop (make-application src unwinder '()))
+          ;; and fall through, or goto RA if there is one.
+          (if RA
+              (emit-branch #f 'br RA)))))
+
+      ;; What's the deal here? The deal is that we are compiling the start of a
+      ;; delimited continuation. We try to avoid heap allocation in the normal
+      ;; case; so the body is an expression, not a thunk, and we try to render
+      ;; the handler inline. Also we did some analysis, in analyze.scm, so that
+      ;; if the continuation isn't referenced, we don't reify it. This makes it
+      ;; possible to implement catch and throw with delimited continuations,
+      ;; without any overhead.
+      ((<prompt> src tag body handler pre-unwind-handler)
+       (let ((H (make-label))
+             (POST (make-label))
+             (inline? (lambda-case? handler))
+             (escape-only? (hashq-ref allocation x)))
+         ;; First, set up the prompt.
+         (comp-push tag)
+         (if (not inline?)
+             ;; handler is not rendered inline, push it on the stack
+             (comp-push handler))
+         (if pre-unwind-handler
+             (comp-push pre-unwind-handler)
+             (emit-code #f (make-glil-const #f)))
+         (emit-code src (make-glil-prompt H inline? escape-only?))
+
+         ;; Then we compile the body, with its normal return path, unwinding
+         ;; before proceeding.
+         (case context
+           ((tail)
+            (let ((MV (make-label)))
+              (comp-vals body MV)
+              ;; one value: unwind and return
+              (emit-code #f (make-glil-call 'unwind 0))
+              (emit-code #f (make-glil-call 'return 1))
+              ;; multiple values: unwind and return
+              (emit-label MV)
+              (emit-code #f (make-glil-call 'unwind 0))
+              (emit-code #f (make-glil-call 'return/nvalues 1))))
+         
+           ((push)
+            ;; we only want one value. so ask for one value, unwind, and jump to
+            ;; post
+            (comp-push body)
+            (emit-code #f (make-glil-call 'unwind 0))
+            (emit-branch #f 'br POST))
+           
+           ((vals)
+            (let ((MV (make-label)))
+              (comp-vals body MV)
+              ;; one value: push 1 and fall through to MV case
+              (emit-code #f (make-glil-const 1))
+              ;; multiple values: unwind and goto MVRA
+              (emit-label MV)
+              (emit-code #f (make-glil-call 'unwind 0))
+              (emit-branch #f 'br MVRA)))
+         
+           ((drop)
+            ;; compile body, discarding values, then unwind & fall through.
+            (comp-drop body)
+            (emit-code #f (make-glil-call 'unwind 0))
+            (emit-branch #f 'br (or RA POST))))
+         
+         ;; Now the handler.
+         (emit-label H)
+         (cond
+          (inline?
+           ;; The inlined handler. The stack is now made up of the continuation,
+           ;; and then the args to the continuation (pushed separately), and
+           ;; then the number of args, including the continuation.
+           (record-case handler
+             ((<lambda-case> req opt kw rest vars body alternate)
+              (if (or opt kw alternate)
+                  (error "unexpected lambda-case in prompt" x))
+              (emit-code src (make-glil-mv-bind
+                              (vars->bind-list
+                               (append req (if rest (list rest) '()))
+                               vars allocation self)
+                              (and rest #t)))
+              (for-each (lambda (v)
+                          (pmatch (hashq-ref (hashq-ref allocation v) self)
+                            ((#t #f . ,n)
+                             (emit-code src (make-glil-lexical #t #f 'set n)))
+                            ((#t #t . ,n)
+                             (emit-code src (make-glil-lexical #t #t 'box n)))
+                            (,loc (error "badness" x loc))))
+                        (reverse vars))
+              (comp-tail body)
+              (emit-code #f (make-glil-unbind)))))
+          (else
+           ;; The handler was on the heap, so here we're just processing its
+           ;; return values.
+           (case context
+             ((tail)
+              (emit-code #f (make-glil-call 'return/nvalues 1)))
+             ((push)
+              ;; truncate to one value, leave on stack
+              (emit-code #f (make-glil-mv-bind '(handler-ret) #f))
+              (emit-code #f (make-glil-unbind)))
+             ((vals)
+              (emit-branch #f 'br MVRA))
+             ((drop)
+              ;; truncate to 0 vals
+              (emit-code #f (make-glil-mv-bind '() #f))
+              (emit-code #f (make-glil-unbind))
+              (if RA (emit-branch #f 'br RA))))))
+
+         ;; The POST label, if necessary.
+         (if (or (eq? context 'push)
+                 (and (eq? context 'drop) (not RA)))
+             (emit-label POST))))
+
+      ((<control> src tag type args)
+       (comp-push tag)
+       (case type
+         ((throw)
+          (for-each comp-push args)
+          (emit-code src (make-glil-call 'throw (length args))))
+         (else (error "bad control type" x)))))))
