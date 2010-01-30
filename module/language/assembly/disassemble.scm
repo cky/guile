@@ -150,6 +150,9 @@
                   (list "`~s'" v)))))
       ((mv-call)
        (list "MV -> ~A" (assq-ref labels (cadr args))))
+      ((prompt)
+       ;; the H is for handler
+       (list "H -> ~A" (assq-ref labels (caddr args))))
       (else
        (and=> (assembly->object code)
               (lambda (obj) (list "~s" obj)))))))

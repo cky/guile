@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -141,6 +141,8 @@
         ((br-if-nargs-lt ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
         ((br-if-nargs-gt ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
         ((mv-call ,n ,l) (write-byte n) (write-break l))
+        ((prompt ,inline-handler? ,escape-only? ,l)
+         (write-byte inline-handler?) (write-byte escape-only?) (write-break l))
         (else
          (cond
           ((< (instruction-length inst) 0)

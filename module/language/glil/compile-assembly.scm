@@ -512,7 +512,12 @@
               (error "Wrong number of stack arguments to instruction:" inst nargs)))))
 
     ((<glil-mv-call> nargs ra)
-     (emit-code `((mv-call ,nargs ,ra))))))
+     (emit-code `((mv-call ,nargs ,ra))))
+
+    ((<glil-prompt> label inline? escape-only?)
+     (emit-code `((prompt ,(if inline? 1 0)
+                          ,(if escape-only? 1 0)
+                          ,label))))))
 
 (define (dump-object x addr)
   (define (too-long x)
