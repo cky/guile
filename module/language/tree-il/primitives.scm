@@ -33,6 +33,7 @@
     call-with-values @call-with-values
     call-with-current-continuation @call-with-current-continuation
     call/cc
+    dynamic-wind
     values
     eq? eqv? equal?
     memq memv
@@ -362,3 +363,39 @@
   (bytevector-ieee-double-native-ref vec (* i 8)))
 (define-primitive-expander f64vector-set! (vec i x)
   (bytevector-ieee-double-native-set! vec (* i 8) x))
+
+(hashq-set! *primitive-expand-table*
+            'dynamic-wind
+            (case-lambda
+              ((src pre thunk post)
+               ;; Here we will make concessions to the fact that our inliner is
+               ;; lame, and add a hack.
+               (cond
+                ((lambda? thunk)
+                 (let ((PRE (gensym " pre"))
+                       (POST (gensym " post")))
+                   (make-let
+                    src
+                    '(pre post)
+                    (list PRE POST)
+                    (list pre post)
+                    (make-dynamic-wind
+                     src
+                     (make-lexical-ref #f 'pre PRE)
+                     (make-application #f thunk '())
+                     (make-lexical-ref #f 'post POST)))))
+                (else
+                 (let ((PRE (gensym " pre"))
+                       (THUNK (gensym " thunk"))
+                       (POST (gensym " post")))
+                   (make-let
+                    src
+                    '(pre thunk post)
+                    (list PRE THUNK POST)
+                    (list pre thunk post)
+                    (make-dynamic-wind
+                     src
+                     (make-lexical-ref #f 'pre PRE)
+                     (make-application #f (make-lexical-ref #f 'thunk THUNK) '())
+                     (make-lexical-ref #f 'post POST)))))))
+              (else #f)))
