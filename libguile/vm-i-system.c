@@ -1264,6 +1264,15 @@ VM_DEFINE_INSTRUCTION (68, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
+VM_DEFINE_INSTRUCTION (88, return_nvalues, "return/nvalues", 0, 1, -1)
+{
+  SCM n;
+  POP (n);
+  nvalues = scm_to_int (n);
+  ASSERT (nvalues >= 0);
+  goto vm_return_values;
+}
+
 VM_DEFINE_INSTRUCTION (69, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
