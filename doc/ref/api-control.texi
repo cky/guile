@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -606,8 +606,7 @@ more conveniently.
 @menu
 * Exception Terminology::       Different ways to say the same thing.
 * Catch::                       Setting up to catch exceptions.
-* Throw Handlers::              Adding extra handling to a throw.
-* Lazy Catch::                  Catch without unwinding the stack.
+* Throw Handlers::              Handling exceptions before unwinding the stack.
 * Throw::                       Throwing an exception.
 * Exception Implementation::    How Guile implements exceptions.
 @end menu
@@ -800,16 +799,52 @@ Operations}).
 @subsubsection Throw Handlers
 
 It's sometimes useful to be able to intercept an exception that is being
-thrown, but without changing where in the dynamic context that exception
-will eventually be caught.  This could be to clean up some related state
-or to pass information about the exception to a debugger, for example.
-The @code{with-throw-handler} procedure provides a way to do this.
+thrown before the stack is unwound. This could be to clean up some
+related state, to print a backtrace, or to pass information about the
+exception to a debugger, for example. The @code{with-throw-handler}
+procedure provides a way to do this.
 
 @deffn {Scheme Procedure} with-throw-handler key thunk handler
 @deffnx {C Function} scm_with_throw_handler (key, thunk, handler)
 Add @var{handler} to the dynamic context as a throw handler
 for key @var{key}, then invoke @var{thunk}.
+
+This behaves exactly like @code{catch}, except that it does not unwind
+the stack before invoking @var{handler}. If the @var{handler} procedure
+returns normally, Guile rethrows the same exception again to the next
+innermost catch or throw handler. @var{handler} may exit nonlocally, of
+course, via an explicit throw or via invoking a continuation.
 @end deffn
+
+Typically @var{handler} is used to display a backtrace of the stack at
+the point where the corresponding @code{throw} occurred, or to save off
+this information for possible display later.
+
+Not unwinding the stack means that throwing an exception that is handled
+via a throw handler is equivalent to calling the throw handler handler
+inline instead of each @code{throw}, and then omitting the surrounding
+@code{with-throw-handler}. In other words,
+
+@lisp
+(with-throw-handler 'key
+  (lambda () @dots{} (throw 'key args @dots{}) @dots{})
+  handler)
+@end lisp
+
+@noindent
+is mostly equivalent to
+
+@lisp
+((lambda () @dots{} (handler 'key args @dots{}) @dots{}))
+@end lisp
+
+In particular, the dynamic context when @var{handler} is invoked is that
+of the site where @code{throw} is called. The examples are not quite
+equivalent, because the body of a @code{with-throw-handler} is not in
+tail position with respect to the @code{with-throw-handler}, and if
+@var{handler} exits normally, Guile arranges to rethrow the error, but
+hopefully the intention is clear. (For an introduction to what is meant
+by dynamic context, @xref{Dynamic Wind}.)
 
 @deftypefn {C Function} SCM scm_c_with_throw_handler (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data, int lazy_catch_p)
 The above @code{scm_with_throw_handler} takes Scheme procedures as body
@@ -838,141 +873,13 @@ everything that a @code{catch} would do until the point where
 then it rethrows to the next innermost @code{catch} or throw handler
 instead.
 
+Note also that since the dynamic context is not unwound, if a
+@code{with-throw-handler} handler throws to a key that does not match
+the @code{with-throw-handler} expression's @var{key}, the new throw may
+be handled by a @code{catch} or throw handler that is @emph{closer} to
+the throw than the first @code{with-throw-handler}.
 
-@node Lazy Catch
-@subsubsection Catch Without Unwinding
-
-Before version 1.8, Guile's closest equivalent to
-@code{with-throw-handler} was @code{lazy-catch}.  From version 1.8
-onwards we recommend using @code{with-throw-handler} because its
-behaviour is more useful than that of @code{lazy-catch}, but
-@code{lazy-catch} is still supported as well.
-
-A @dfn{lazy catch} is used in the same way as a normal @code{catch},
-with @var{key}, @var{thunk} and @var{handler} arguments specifying the
-exception type, normal case code and handler procedure, but differs in
-one important respect: the handler procedure is executed without
-unwinding the call stack from the context of the @code{throw} expression
-that caused the handler to be invoked.
-
-@deffn {Scheme Procedure} lazy-catch key thunk handler
-@deffnx {C Function} scm_lazy_catch (key, thunk, handler)
-This behaves exactly like @code{catch}, except that it does
-not unwind the stack before invoking @var{handler}.
-If the @var{handler} procedure returns normally, Guile
-rethrows the same exception again to the next innermost catch,
-lazy-catch or throw handler.  If the @var{handler} exits
-non-locally, that exit determines the continuation.
-@end deffn
-
-@deftypefn {C Function} SCM scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
-The above @code{scm_lazy_catch} takes Scheme procedures as body and
-handler arguments.  @code{scm_internal_lazy_catch} is an equivalent
-taking C functions.  See @code{scm_internal_catch} (@pxref{Catch}) for
-a description of the parameters, the behaviour however of course
-follows @code{lazy-catch}.
-@end deftypefn
-
-Typically @var{handler} is used to display a backtrace of the stack at
-the point where the corresponding @code{throw} occurred, or to save off
-this information for possible display later.
-
-Not unwinding the stack means that throwing an exception that is caught
-by a @code{lazy-catch} is @emph{almost} equivalent to calling the
-@code{lazy-catch}'s handler inline instead of each @code{throw}, and
-then omitting the surrounding @code{lazy-catch}.  In other words,
-
-@lisp
-(lazy-catch 'key
-  (lambda () @dots{} (throw 'key args @dots{}) @dots{})
-  handler)
-@end lisp
-
-@noindent
-is @emph{almost} equivalent to
-
-@lisp
-((lambda () @dots{} (handler 'key args @dots{}) @dots{}))
-@end lisp
-
-@noindent
-But why only @emph{almost}?  The difference is that with
-@code{lazy-catch} (as with normal @code{catch}), the dynamic context is
-unwound back to just outside the @code{lazy-catch} expression before
-invoking the handler.  (For an introduction to what is meant by dynamic
-context, @xref{Dynamic Wind}.)
-
-Then, when the handler @emph{itself} throws an exception, that exception
-must be caught by some kind of @code{catch} (including perhaps another
-@code{lazy-catch}) higher up the call stack.
-
-The dynamic context also includes @code{with-fluids} blocks
-(@pxref{Fluids and Dynamic States}),
-so the effect of unwinding the dynamic context can also be seen in fluid
-variable values.  This is illustrated by the following code, in which
-the normal case thunk uses @code{with-fluids} to temporarily change the
-value of a fluid:
-
-@lisp
-(define f (make-fluid))
-(fluid-set! f "top level value")
-
-(define (handler . args)
-  (cons (fluid-ref f) args))
-
-(lazy-catch 'foo
-            (lambda ()
-              (with-fluids ((f "local value"))
-                (throw 'foo)))
-            handler)
-@result{}
-("top level value" foo)
-
-((lambda ()
-   (with-fluids ((f "local value"))
-     (handler 'foo))))
-@result{}
-("local value" foo)
-@end lisp
-
-@noindent
-In the @code{lazy-catch} version, the unwinding of dynamic context
-restores @code{f} to its value outside the @code{with-fluids} block
-before the handler is invoked, so the handler's @code{(fluid-ref f)}
-returns the external value.
-
-@code{lazy-catch} is useful because it permits the implementation of
-debuggers and other reflective programming tools that need to access the
-state of the call stack at the exact point where an exception or an
-error is thrown.  For an example of this, see REFFIXME:stack-catch.
-
-It should be obvious from the above that @code{lazy-catch} is very
-similar to @code{with-throw-handler}.  In fact Guile implements
-@code{lazy-catch} in exactly the same way as @code{with-throw-handler},
-except with a flag set to say ``where there are slight differences
-between what @code{with-throw-handler} and @code{lazy-catch} would do,
-do what @code{lazy-catch} has always done''.  There are two such
-differences:
-
-@enumerate
-@item
-@code{with-throw-handler} handlers execute in the full dynamic context
-of the originating @code{throw} call.  @code{lazy-catch} handlers
-execute in the dynamic context of the @code{lazy-catch} expression,
-excepting only that the stack has not yet been unwound from the point of
-the @code{throw} call.
-
-@item
-If a @code{with-throw-handler} handler throws to a key that does not
-match the @code{with-throw-handler} expression's @var{key}, the new
-throw may be handled by a @code{catch} or throw handler that is _closer_
-to the throw than the first @code{with-throw-handler}.  If a
-@code{lazy-catch} handler throws, it will always be handled by a
-@code{catch} or throw handler that is higher up the dynamic context than
-the first @code{lazy-catch}.
-@end enumerate
-
-Here is an example to illustrate the second difference:
+Here is an example to illustrate this behavior:
 
 @lisp
 (catch 'a
@@ -990,14 +897,7 @@ Here is an example to illustrate the second difference:
 
 @noindent
 This code will call @code{inner-handler} and then continue with the
-continuation of the inner @code{catch}.  If the
-@code{with-throw-handler} was changed to @code{lazy-catch}, however, the
-code would call @code{outer-handler} and then continue with the
-continuation of the outer @code{catch}.
-
-Modulo these two differences, any statements in the previous and
-following subsections about throw handlers apply to lazy catches as
-well.
+continuation of the inner @code{catch}.
 
 
 @node Throw

@@ -1816,6 +1816,56 @@ scm_i_subr_p (SCM x)
 }
 
 
+
+SCM
+scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_internal_lazy_catch' is no longer supported. Instead this call will\n"
+     "dispatch to `scm_c_with_throw_handler'. Your handler will be invoked from\n"
+     "within the dynamic context of the corresponding `throw'.\n"
+     "\nTHIS COULD CHANGE YOUR PROGRAM'S BEHAVIOR.\n\n"
+     "Please modify your program to use `scm_c_with_throw_handler' directly,\n"
+     "and adapt it (if necessary) to expect to be within the dynamic context\n"
+     "of the throw.");
+  return scm_c_with_throw_handler (tag, body, body_data, handler, handler_data, 0);
+}
+
+SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
+	    (SCM key, SCM thunk, SCM handler),
+	    "This behaves exactly like @code{catch}, except that it does\n"
+	    "not unwind the stack before invoking @var{handler}.\n"
+	    "If the @var{handler} procedure returns normally, Guile\n"
+	    "rethrows the same exception again to the next innermost catch,\n"
+	    "lazy-catch or throw handler.  If the @var{handler} exits\n"
+	    "non-locally, that exit determines the continuation.")
+#define FUNC_NAME s_scm_lazy_catch
+{
+  struct scm_body_thunk_data c;
+
+  SCM_ASSERT (scm_is_symbol (key) || scm_is_eq (key, SCM_BOOL_T),
+	      key, SCM_ARG1, FUNC_NAME);
+
+  c.tag = key;
+  c.body_proc = thunk;
+
+  scm_c_issue_deprecation_warning
+    ("`lazy-catch' is no longer supported. Instead this call will dispatch\n"
+     "to `with-throw-handler'. Your handler will be invoked from within the\n"
+     "dynamic context of the corresponding `throw'.\n"
+     "\nTHIS COULD CHANGE YOUR PROGRAM'S BEHAVIOR.\n\n"
+     "Please modify your program to use `with-throw-handler' directly, and\n"
+     "adapt it (if necessary) to expect to be within the dynamic context of\n"
+     "the throw.");
+
+  return scm_c_with_throw_handler (key,
+                                   scm_body_thunk, &c, 
+                                   scm_handle_by_proc, &handler, 0);
+}
+#undef FUNC_NAME
+
+
+
 void
 scm_i_init_deprecated ()
 {

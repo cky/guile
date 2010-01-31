@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -400,13 +400,12 @@ equivalent in C.  In Scheme, this means you need something like this:
 @end lisp
 
 @noindent
-The @code{catch} here can also be @code{lazy-catch} or
-@code{with-throw-handler}; see @ref{Throw Handlers} and @ref{Lazy Catch}
-for the details of how these differ from @code{catch}.  The @code{#t}
-means that the catch is applicable to all kinds of error; if you want to
-restrict your catch to just one kind of error, you can put the symbol
-for that kind of error instead of @code{#t}.  The equivalent to this in
-C would be something like this:
+The @code{catch} here can also be @code{with-throw-handler}; see @ref{Throw
+Handlers} for information on the when you might want to use
+@code{with-throw-handler} instead of @code{catch}. The @code{#t} means that the
+catch is applicable to all kinds of error; if you want to restrict your catch to
+just one kind of error, you can put the symbol for that kind of error instead of
+@code{#t}. The equivalent to this in C would be something like this:
 
 @lisp
 SCM my_body_proc (void *body_data)

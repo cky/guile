@@ -611,6 +611,16 @@ SCM_DEPRECATED int scm_i_subr_p (SCM x);
 
 
 
+/* Deprecated 2010-01-31, use with-throw-handler instead */
+SCM_DEPRECATED SCM scm_lazy_catch (SCM tag, SCM thunk, SCM handler);
+SCM_DEPRECATED SCM scm_internal_lazy_catch (SCM tag,
+                                            scm_t_catch_body body,
+                                            void *body_data,
+                                            scm_t_catch_handler handler,
+                                            void *handler_data);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

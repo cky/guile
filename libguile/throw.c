@@ -30,6 +30,7 @@
 #include "libguile/alist.h"
 #include "libguile/eval.h"
 #include "libguile/eq.h"
+#include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
 #include "libguile/backtrace.h"
 #include "libguile/debug.h"
@@ -93,12 +94,11 @@ struct jmp_buf_and_retval	/* use only on the stack, in scm_catch */
   SCM retval;
 };
 
-/* These are the structures we use to store pre-unwind handling (aka
-   "lazy") information for a regular catch, and put on the wind list
-   for a "lazy" catch.  They store the pre-unwind handler function to
-   call, and the data pointer to pass through to it.  It's not a
-   Scheme closure, but it is a function with data, so the term
-   "closure" is appropriate in its broader sense.
+/* These are the structures we use to store pre-unwind handling information for
+   a regular catch, and put on the wind list for a with-throw-handler. They
+   store the pre-unwind handler function to call, and the data pointer to pass
+   through to it. It's not a Scheme closure, but it is a function with data, so
+   the term "closure" is appropriate in its broader sense.
 
    (We don't need anything like this to run the normal (post-unwind)
    catch handler, because the same C frame runs both the body and the
@@ -108,7 +108,6 @@ struct pre_unwind_data {
   scm_t_catch_handler handler;
   void *handler_data;
   int running;
-  int lazy_catch_p;
 };
 
 
@@ -187,7 +186,6 @@ scm_c_catch (SCM tag,
   pre_unwind.handler = pre_unwind_handler;
   pre_unwind.handler_data = pre_unwind_handler_data;
   pre_unwind.running = 0;
-  pre_unwind.lazy_catch_p = 0;
   SCM_SETJBPREUNWIND(jmpbuf, &pre_unwind);
 
   if (SCM_I_SETJMP (jbr.buf))
@@ -303,8 +301,17 @@ scm_c_with_throw_handler (SCM tag,
   c.handler = handler;
   c.handler_data = handler_data;
   c.running = 0;
-  c.lazy_catch_p = lazy_catch_p;
   pre_unwind = make_pre_unwind_data (&c);
+
+  if (lazy_catch_p)
+    scm_c_issue_deprecation_warning
+      ("The LAZY_CATCH_P argument to `scm_c_with_throw_handler' is no longer.\n"
+       "supported. Instead the handler will be invoked from within the dynamic\n"
+       "context of the corresponding `throw'.\n"
+       "\nTHIS COULD CHANGE YOUR PROGRAM'S BEHAVIOR.\n\n"
+       "Please modify your program to pass 0 as the LAZY_CATCH_P argument,\n"
+       "and adapt it (if necessary) to expect to be within the dynamic context\n"
+       "of the throw.");
 
   SCM_CRITICAL_SECTION_START;
   scm_i_set_dynwinds (scm_acons (tag, pre_unwind, scm_i_dynwinds ()));
@@ -317,15 +324,6 @@ scm_c_with_throw_handler (SCM tag,
   SCM_CRITICAL_SECTION_END;
 
   return answer;
-}
-
-/* Exactly like scm_internal_catch, except:
-   - It does not unwind the stack (this is the major difference).
-   - The handler is not allowed to return.  */
-SCM
-scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
-{
-  return scm_c_with_throw_handler (tag, body, body_data, handler, handler_data, 1);
 }
 
 
@@ -354,7 +352,7 @@ static SCM
 cwss_body (void *data)
 {
   struct cwss_data *d = data;
-  return scm_internal_lazy_catch (d->tag, d->body, d->data, ss_handler, NULL);
+  return scm_c_with_throw_handler (d->tag, d->body, d->data, ss_handler, NULL, 0);
 }
 
 SCM
@@ -566,7 +564,7 @@ scm_handle_by_throw (void *handler_data SCM_UNUSED, SCM tag, SCM args)
 
 
 
-/* the Scheme-visible CATCH, WITH-THROW-HANDLER and LAZY-CATCH functions */
+/* the Scheme-visible CATCH and WITH-THROW-HANDLER functions */
 
 SCM_DEFINE (scm_catch_with_pre_unwind_handler, "catch", 3, 1, 0,
 	    (SCM key, SCM thunk, SCM handler, SCM pre_unwind_handler),
@@ -663,37 +661,6 @@ SCM_DEFINE (scm_with_throw_handler, "with-throw-handler", 3, 0, 0,
 				   0);
 }
 #undef FUNC_NAME
-
-SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
-	    (SCM key, SCM thunk, SCM handler),
-	    "This behaves exactly like @code{catch}, except that it does\n"
-	    "not unwind the stack before invoking @var{handler}.\n"
-	    "If the @var{handler} procedure returns normally, Guile\n"
-	    "rethrows the same exception again to the next innermost catch,\n"
-	    "lazy-catch or throw handler.  If the @var{handler} exits\n"
-	    "non-locally, that exit determines the continuation.")
-#define FUNC_NAME s_scm_lazy_catch
-{
-  struct scm_body_thunk_data c;
-
-  SCM_ASSERT (scm_is_symbol (key) || scm_is_eq (key, SCM_BOOL_T),
-	      key, SCM_ARG1, FUNC_NAME);
-
-  c.tag = key;
-  c.body_proc = thunk;
-
-  /* scm_internal_lazy_catch takes care of all the mechanics of
-     setting up a lazy catch key; we tell it to call scm_body_thunk to
-     run the body, and scm_handle_by_proc to deal with any throws to
-     this catch.  The former receives a pointer to c, telling it how
-     to behave.  The latter receives a pointer to HANDLER, so it knows
-     who to call.  */
-  return scm_internal_lazy_catch (key,
-				  scm_body_thunk, &c, 
-				  scm_handle_by_proc, &handler);
-}
-#undef FUNC_NAME
-
 
 
 /* throwing */
@@ -815,19 +782,7 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
     {
       struct pre_unwind_data *c =
 	(struct pre_unwind_data *) SCM_SMOB_DATA_1 (jmpbuf);
-      SCM handle, answer;
-
-      /* For old-style lazy-catch behaviour, we unwind the dynamic
-	 context before invoking the handler. */
-      if (c->lazy_catch_p)
-	{
-	  scm_dowinds (wind_goal, (scm_ilength (scm_i_dynwinds ())
-				   - scm_ilength (wind_goal)));
-	  SCM_CRITICAL_SECTION_START;
-	  handle = scm_i_dynwinds ();
-	  scm_i_set_dynwinds (SCM_CDR (handle));
-	  SCM_CRITICAL_SECTION_END;
-	}
+      SCM answer;
 
       /* Call the handler, with framing to set the pre-unwind
 	 structure's running field while the handler is running, so we

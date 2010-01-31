@@ -1,5 +1,5 @@
 ;;;; exceptions.test --- tests for Guile's exception handling  -*- scheme -*-
-;;;; Copyright (C) 2001, 2003, 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -75,9 +75,9 @@
 	(lambda () (throw 'a))
 	(lambda (x y . rest) #f))))
 
-  (with-test-prefix "with lazy handler"
+  (with-test-prefix "with pre-unwind handler"
 
-    (pass-if "lazy fluid state"
+    (pass-if "pre-unwind fluid state"
       (equal? '(inner outer arg)
        (let ((fluid-parm (make-fluid))
 	     (inner-val #f))
@@ -102,32 +102,34 @@
 		     (lambda (key . args)
 		       (push 2))))
 
-  (throw-test "catch and lazy catch"
+  (throw-test "catch and with-throw-handler"
 	      '(1 2 3 4)
 	      (catch 'a
 		     (lambda ()
 		       (push 1)
-		       (lazy-catch 'a
-				   (lambda ()
-				     (push 2)
-				     (throw 'a))
-				   (lambda (key . args)
-				     (push 3))))
+		       (with-throw-handler
+                        'a
+                        (lambda ()
+                          (push 2)
+                          (throw 'a))
+                        (lambda (key . args)
+                          (push 3))))
 		     (lambda (key . args)
 		       (push 4))))
 
-  (throw-test "catch with rethrowing lazy catch handler"
+  (throw-test "catch with rethrowing throw-handler"
 	      '(1 2 3 4)
 	      (catch 'a
 		     (lambda ()
 		       (push 1)
-		       (lazy-catch 'a
-				   (lambda ()
-				     (push 2)
-				     (throw 'a))
-				   (lambda (key . args)
-				     (push 3)
-				     (apply throw key args))))
+		       (with-throw-handler
+                        'a
+                        (lambda ()
+                          (push 2)
+                          (throw 'a))
+                        (lambda (key . args)
+                          (push 3)
+                          (apply throw key args))))
 		     (lambda (key . args)
 		       (push 4))))
 
@@ -183,27 +185,6 @@
 		     (lambda (key . args)
 		       (push 4))))
 
-  (throw-test "effect of lazy-catch unwinding on throw to another key"
-	      '(1 2 3 5 7)
-	      (catch 'a
-		     (lambda ()
-		       (push 1)
-		       (lazy-catch 'b
-				   (lambda ()
-				     (push 2)
-				     (catch 'a
-					    (lambda ()
-					      (push 3)
-					      (throw 'b))
-					    (lambda (key . args)
-					      (push 4))))
-				   (lambda (key . args)
-				     (push 5)
-				     (throw 'a)))
-		       (push 6))
-		     (lambda (key . args)
-		       (push 7))))
-
   (throw-test "effect of with-throw-handler not-unwinding on throw to another key"
 	      '(1 2 3 5 4 6)
 	      (catch 'a
@@ -225,27 +206,6 @@
 		     (lambda (key . args)
 		       (push 7))))
 
-  (throw-test "lazy-catch chaining"
-	      '(1 2 3 4 6 8)
-	      (catch 'a
-	        (lambda ()
-		  (push 1)
-		  (lazy-catch 'a
-		    (lambda ()
-		      (push 2)
-		      (lazy-catch 'a
-                        (lambda ()
-			  (push 3)
-			  (throw 'a))
-			(lambda (key . args)
-			  (push 4)))
-		      (push 5))
-		    (lambda (key . args)
-		      (push 6)))
-		  (push 7))
-		(lambda (key . args)
-		  (push 8))))
-
   (throw-test "with-throw-handler chaining"
 	      '(1 2 3 4 6 8)
 	      (catch 'a
@@ -255,48 +215,6 @@
 		    (lambda ()
 		      (push 2)
 		      (with-throw-handler 'a
-                        (lambda ()
-			  (push 3)
-			  (throw 'a))
-			(lambda (key . args)
-			  (push 4)))
-		      (push 5))
-		    (lambda (key . args)
-		      (push 6)))
-		  (push 7))
-		(lambda (key . args)
-		  (push 8))))
-
-  (throw-test "with-throw-handler inside lazy-catch"
-	      '(1 2 3 4 6 8)
-	      (catch 'a
-	        (lambda ()
-		  (push 1)
-		  (lazy-catch 'a
-		    (lambda ()
-		      (push 2)
-		      (with-throw-handler 'a
-                        (lambda ()
-			  (push 3)
-			  (throw 'a))
-			(lambda (key . args)
-			  (push 4)))
-		      (push 5))
-		    (lambda (key . args)
-		      (push 6)))
-		  (push 7))
-		(lambda (key . args)
-		  (push 8))))
-
-  (throw-test "lazy-catch inside with-throw-handler"
-	      '(1 2 3 4 6 8)
-	      (catch 'a
-	        (lambda ()
-		  (push 1)
-		  (with-throw-handler 'a
-		    (lambda ()
-		      (push 2)
-		      (lazy-catch 'a
                         (lambda ()
 			  (push 3)
 			  (throw 'a))
@@ -321,37 +239,6 @@
 		        (lambda ()
 			  (push 3)
 			  (with-throw-handler 'c
-			    (lambda ()
-			      (push 4)
-			      (throw 'b)
-			      (push 5))
-			    (lambda (key . args)
-			      (push 6)
-			      (throw 'a)))
-			  (push 7))
-			(lambda (key . args)
-			  (push 8)
-			  (throw 'c)))
-		      (push 9))
-		    (lambda (key . args)
-		      (push 10)
-		      (throw 'b)))
-		  (push 11))
-		(lambda (key . args)
-		  (push 12))))
-
-  (throw-test "repeat of previous test but with lazy-catch"
-	      '(1 2 3 4 8 12)
-	      (catch #t
-                (lambda ()
-		  (push 1)
-		  (lazy-catch 'a
-                    (lambda ()
-		      (push 2)
-		      (lazy-catch 'b
-		        (lambda ()
-			  (push 3)
-			  (lazy-catch 'c
 			    (lambda ()
 			      (push 4)
 			      (throw 'b)
