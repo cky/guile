@@ -40,6 +40,157 @@
 (eval-when (compile)
   (set-current-module (resolve-module '(guile))))
 
+
+
+;;; {Error handling}
+;;;
+
+;; Define delimited continuation operators, and implement catch and throw in
+;; terms of them.
+
+(define (prompt tag thunk handler)
+  (@prompt tag (thunk) handler))
+(define (abort tag . args)
+  (@abort tag args))
+
+
+
+;; Define catch and with-throw-handler, using some common helper routines and a
+;; shared fluid. Hide the helpers in a lexical contour.
+
+(let ()
+  ;; Ideally we'd like to be able to give these default values for all threads,
+  ;; even threads not created by Guile; but alack, that does not currently seem
+  ;; possible. So wrap the getters in thunks.
+  (define %running-exception-handlers (make-fluid))
+  (define %exception-handler (make-fluid))
+
+  (define (running-exception-handlers)
+    (or (fluid-ref %running-exception-handlers)
+        (begin
+          (fluid-set! %running-exception-handlers '())
+          '())))
+  (define (exception-handler)
+    (or (fluid-ref %exception-handler)
+        (begin
+          (fluid-set! %exception-handler default-exception-handler)
+          default-exception-handler)))
+
+  (define (default-exception-handler k . args)
+    (cond
+     ((eq? k 'quit)
+      (primitive-exit (cond
+                       ((not (pair? args)) 0)
+                       ((integer? (car args)) (car args))
+                       ((not (car args)) 1)
+                       (else 0))))
+     (else
+      (format (current-error-port) "guile: uncaught throw to ~a: ~a\n" k args)
+      (primitive-exit 1))))
+
+  (define (default-throw-handler prompt-tag catch-k)
+    (let ((prev (exception-handler)))
+      (lambda (thrown-k . args)
+        (if (or (eq? thrown-k catch-k) (eqv? catch-k #t))
+            (apply abort prompt-tag thrown-k args)
+            (apply prev thrown-k args)))))
+
+  (define (custom-throw-handler prompt-tag catch-k pre)
+    (let ((prev (exception-handler)))
+      (lambda (thrown-k . args)
+        (if (or (eq? thrown-k catch-k) (eqv? catch-k #t))
+            (let ((running (running-exception-handlers)))
+              (with-fluids ((%running-exception-handlers (cons pre running)))
+                (if (not (memq pre running))
+                    (apply pre thrown-k args))
+                ;; fall through
+                (if prompt-tag
+                    (apply abort prompt-tag thrown-k args)
+                    (apply prev thrown-k args))))
+            (apply prev thrown-k args)))))
+
+  (define! 'catch
+    ;; Until we get optargs support into Guile's C evaluator, we have to fake it
+    ;; here.
+    (lambda (k thunk handler . pre-unwind-handler)
+      "Invoke @var{thunk} in the dynamic context of @var{handler} for
+exceptions matching @var{key}.  If thunk throws to the symbol
+@var{key}, then @var{handler} is invoked this way:
+@lisp
+ (handler key args ...)
+@end lisp
+
+@var{key} is a symbol or @code{#t}.
+
+@var{thunk} takes no arguments.  If @var{thunk} returns
+normally, that is the return value of @code{catch}.
+
+Handler is invoked outside the scope of its own @code{catch}.
+If @var{handler} again throws to the same key, a new handler
+from further up the call chain is invoked.
+
+If the key is @code{#t}, then a throw to @emph{any} symbol will
+match this call to @code{catch}.
+
+If a @var{pre-unwind-handler} is given and @var{thunk} throws
+an exception that matches @var{key}, Guile calls the
+@var{pre-unwind-handler} before unwinding the dynamic state and
+invoking the main @var{handler}.  @var{pre-unwind-handler} should
+be a procedure with the same signature as @var{handler}, that
+is @code{(lambda (key . args))}.  It is typically used to save
+the stack at the point where the exception occurred, but can also
+query other parts of the dynamic state at that point, such as
+fluid values.
+
+A @var{pre-unwind-handler} can exit either normally or non-locally.
+If it exits normally, Guile unwinds the stack and dynamic context
+and then calls the normal (third argument) handler.  If it exits
+non-locally, that exit determines the continuation."
+      (if (not (or (symbol? k) (eqv? k #t)))
+          (scm-error "catch" 'wrong-type-arg
+                     "Wrong type argument in position ~a: ~a"
+                     (list 1 k) (list k)))
+      (let ((tag (gensym)))
+        (prompt tag
+                (lambda ()
+                  (with-fluids
+                      ((%exception-handler
+                        (if (null? pre-unwind-handler)
+                            (default-throw-handler tag k)
+                            (custom-throw-handler tag k
+                                                  (car pre-unwind-handler)))))
+                    (thunk)))
+                (lambda (cont k . args)
+                  (apply handler k args))))))
+
+  (define! 'with-throw-handler
+    (lambda (k thunk pre-unwind-handler)
+      "Add @var{handler} to the dynamic context as a throw handler
+for key @var{key}, then invoke @var{thunk}."
+      (if (not (or (symbol? k) (eqv? k #t)))
+          (scm-error "with-throw-handler" 'wrong-type-arg
+                     "Wrong type argument in position ~a: ~a"
+                     (list 1 k) (list k)))
+      (with-fluids ((%exception-handler
+                     (custom-throw-handler #f k pre-unwind-handler)))
+        (thunk))))
+
+  (define! 'throw
+    (lambda (key . args)
+      "Invoke the catch form matching @var{key}, passing @var{args} to the
+@var{handler}.
+
+@var{key} is a symbol. It will match catches of the same symbol or of @code{#t}.
+
+If there is no handler at all, Guile prints an error and then exits."
+      (if (not (symbol? key))
+          ((exception-handler) 'wrong-type-arg "throw"
+           "Wrong type argument in position ~a: ~a" (list 1 key) (list key))
+          (apply (exception-handler) key args)))))
+
+
+
+
 ;;; {R4RS compliance}
 ;;;
 
@@ -400,12 +551,6 @@
 (define (identity x) x)
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
-
-;;; Delimited continuations
-(define (prompt tag thunk handler)
-  (@prompt tag (thunk) handler))
-(define (abort tag . args)
-  (@abort tag args))
 
 ;;; apply-to-args is functionally redundant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
