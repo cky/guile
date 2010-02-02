@@ -22,6 +22,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
+  #:use-module (ice-9 vlist)
   #:use-module (system base syntax)
   #:use-module (system base message)
   #:use-module (system vm program)
@@ -686,9 +687,10 @@ accurate information is missing from a given `tree-il' element."
   (refs             reference-graph-refs) ;; ((REF-CONTEXT REF ...) ...)
   (toplevel-context reference-graph-toplevel-context)) ;; NAME | #f
 
-(define (graph-reachable-nodes root refs)
-  ;; Return the list of nodes reachable from ROOT in graph REFS.  REFS is an alist
-  ;; representing edges: ((A B C) (B A) (C)) corresponds to
+(define (graph-reachable-nodes root refs reachable)
+  ;; Add to REACHABLE the nodes reachable from ROOT in graph REFS.  REFS is a
+  ;; vhash mapping nodes to the list of their children: for instance,
+  ;; ((A -> (B C)) (B -> (A)) (C -> ())) corresponds to
   ;;
   ;;  ,-------.
   ;;  v       |
@@ -696,30 +698,49 @@ accurate information is missing from a given `tree-il' element."
   ;;  |
   ;;  v
   ;;  C
+  ;;
+  ;; REACHABLE is a vhash of nodes known to be otherwise reachable.
 
   (let loop ((root   root)
-             (path   '())
-             (result '()))
-    (if (or (memq root path)
-            (memq root result))
+             (path   vlist-null)
+             (result reachable))
+    (if (or (vhash-assq root path)
+            (vhash-assq root result))
         result
-        (let ((children (assoc-ref refs root)))
-          (if (not children)
-              result
-              (let ((path (cons root path)))
-                (append children
-                        (fold (lambda (child result)
-                                (loop child path result))
-                              result
-                              children))))))))
+        (let* ((children (or (and=> (vhash-assq root refs) cdr) '()))
+               (path     (vhash-consq root #t path))
+               (result   (fold (lambda (kid result)
+                                 (loop kid path result))
+                               result
+                               children)))
+          (fold (lambda (kid result)
+                  (vhash-consq kid #t result))
+                result
+                children)))))
 
 (define (graph-reachable-nodes* roots refs)
   ;; Return the list of nodes in REFS reachable from the nodes listed in ROOTS.
-  ;; FIXME: Choose a more efficient algorithm.
-  (apply lset-union eq?
-         (map (lambda (node)
-                (cons node (graph-reachable-nodes node refs)))
-              roots)))
+  (vlist-fold (lambda (root+true result)
+                (let* ((root      (car root+true))
+                       (reachable (graph-reachable-nodes root refs result)))
+                  (vhash-consq root #t reachable)))
+              vlist-null
+              roots))
+
+(define (partition* pred vhash)
+  ;; Partition VHASH according to PRED.  Return the two resulting vhashes.
+  (let ((result
+         (vlist-fold (lambda (k+v result)
+                       (let ((k  (car k+v))
+                             (v  (cdr k+v))
+                             (r1 (car result))
+                             (r2 (cdr result)))
+                         (if (pred k)
+                             (cons (vhash-consq k v r1) r2)
+                             (cons r1 (vhash-consq k v r2)))))
+                     (cons vlist-null vlist-null)
+                     vhash)))
+    (values (car result) (cdr result))))
 
 (define unused-toplevel-analysis
   ;; Report unused top-level definitions that are not exported.
@@ -729,9 +750,8 @@ accurate information is missing from a given `tree-il' element."
            (let* ((refs     (reference-graph-refs graph))
                   (defs     (reference-graph-defs graph))
                   (ctx      (reference-graph-toplevel-context graph))
-                  (ctx-refs (or (assoc-ref refs ctx) '())))
-             (make-reference-graph (alist-cons ctx (cons name ctx-refs)
-                                               (alist-delete ctx refs eq?))
+                  (ctx-refs (or (and=> (vhash-assq ctx refs) cdr) '())))
+             (make-reference-graph (vhash-consq ctx (cons name ctx-refs) refs)
                                    defs ctx)))))
     (define (macro-variable? name env)
       (and (module? env)
@@ -756,8 +776,8 @@ accurate information is missing from a given `tree-il' element."
          (record-case x
            ((<toplevel-define> name src)
             (let ((refs refs)
-                  (defs (alist-cons name (or src (find pair? locs))
-                                    defs)))
+                  (defs (vhash-consq name (or src (find pair? locs))
+                                     defs)))
               (make-reference-graph refs defs name)))
            ((<toplevel-set> name src)
             (add-ref-from-context graph name))
@@ -787,27 +807,24 @@ accurate information is missing from a given `tree-il' element."
              #t))
 
        (let-values (((public-defs private-defs)
-                     (partition (lambda (name+src)
-                                  (let ((name (car name+src)))
-                                    (or (exported? name)
-                                        (macro-variable? name env))))
-                                (reference-graph-defs graph))))
-         (let* ((roots     (cons #f (map car public-defs)))
+                     (partition* (lambda (name)
+                                   (or (exported? name)
+                                       (macro-variable? name env)))
+                                 (reference-graph-defs graph))))
+         (let* ((roots     (vhash-consq #f #t public-defs))
                 (refs      (reference-graph-refs graph))
                 (reachable (graph-reachable-nodes* roots refs))
-                (unused    (filter (lambda (name+src)
-                                     ;; FIXME: This is inefficient when
-                                     ;; REACHABLE is large (e.g., boot-9.scm);
-                                     ;; use a vhash or equivalent.
-                                     (not (memq (car name+src) reachable)))
-                                   private-defs)))
-           (for-each (lambda (name+loc)
-                       (let ((name (car name+loc))
-                             (loc  (cdr name+loc)))
-                         (warning 'unused-toplevel loc name)))
-                     (reverse unused)))))
+                (unused    (vlist-filter (lambda (name+src)
+                                           (not (vhash-assq (car name+src)
+                                                            reachable)))
+                                         private-defs)))
+           (vlist-for-each (lambda (name+loc)
+                             (let ((name (car name+loc))
+                                   (loc  (cdr name+loc)))
+                               (warning 'unused-toplevel loc name)))
+                           unused))))
 
-     (make-reference-graph '() '() #f))))
+     (make-reference-graph vlist-null vlist-null #f))))
 
 
 ;;;
