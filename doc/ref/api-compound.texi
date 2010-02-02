@@ -25,10 +25,12 @@ values can be looked up within them.
 * Bit Vectors::                 Vectors of bits.
 * Generalized Vectors::         Treating all vector-like things uniformly.
 * Arrays::                      Matrices, etc.
+* VLists::                      Vector-like lists.
 * Records::                     
 * Structures::                  
 * Dictionary Types::            About dictionary types in general.
 * Association Lists::           List-based dictionaries.
+* VHashes::                     VList-based dictionaries.   
 * Hash Tables::                 Table-based dictionaries.
 @end menu
 
@@ -2086,6 +2088,172 @@ reading and writing.  You must take care not to modify bits outside of
 the allowed index range of the array, even for contiguous arrays.
 @end deftypefn
 
+@node VLists
+@subsection VLists
+
+@cindex vlist
+
+The @code{(ice-9 vlist)} module provides an implementation of the @dfn{VList}
+data structure designed by Phil Bagwell in 2002.  VLists are immutable lists,
+which can contain any Scheme object.  They improve on standard Scheme linked
+lists in several areas:
+
+@itemize
+@item
+Random access has typically constant-time complexity.
+
+@item
+Computing the length of a VList has time complexity logarithmic in the number of
+elements.
+
+@item
+VLists use less storage space than standard lists.
+
+@item
+VList elements are stored in contiguous regions, which improves memory locality
+and leads to more efficient use of hardware caches.
+@end itemize
+
+The idea behind VLists is to store vlist elements in increasingly large
+contiguous blocks (implemented as vectors here).  These blocks are linked to one
+another using a pointer to the next block and an offset within that block.  The
+size of these blocks form a geometric series with ratio
+@code{block-growth-factor} (2 by default).
+
+The VList structure also serves as the basis for the @dfn{VList-based hash
+lists} or ``vhashes'', an immutable dictionary type (@pxref{VHashes}).
+
+However, the current implementation in @code{(ice-9 vlist)} has several
+noteworthy shortcomings:
+
+@itemize
+
+@item
+It is @emph{not} thread-safe.  Although operations on vlists are all
+@dfn{referentially transparent} (i.e., purely functional), adding elements to a
+vlist with @code{vlist-cons} mutates part of its internal structure, which makes
+it non-thread-safe.  This could be fixed, but it would slow down
+@code{vlist-cons}.
+
+@item
+@code{vlist-cons} always allocates at least as much memory as @code{cons}.
+Again, Phil Bagwell describes how to fix it, but that would require tuning the
+garbage collector in a way that may not be generally beneficial.
+
+@item
+@code{vlist-cons} is a Scheme procedure compiled to bytecode, and it does not
+compete with the straightforward C implementation of @code{cons}, and with the
+fact that the VM has a special @code{cons} instruction.
+
+@end itemize
+
+We hope to address these in the future.
+
+The programming interface exported by @code{(ice-9 vlist)} is defined below.
+Most of it is the same as SRFI-1 with an added @code{vlist-} prefix to function
+names.
+
+@deffn {Scheme Procedure} vlist? obj
+Return true if @var{obj} is a VList.
+@end deffn
+
+@defvr {Scheme Variable} vlist-null
+The empty VList.  Note that it's possible to create an empty VList not
+@code{eq?} to @code{vlist-null}; thus, callers should always use
+@code{vlist-null?} when testing whether a VList is empty.
+@end defvr
+
+@deffn {Scheme Procedure} vlist-null? vlist
+Return true if @var{vlist} is empty.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-cons item vlist
+Return a new vlist with @var{item} as its head and @var{vlist} as its tail.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-head vlist
+Return the head of @var{vlist}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-tail vlist
+Return the tail of @var{vlist}.
+@end deffn
+
+@defvr {Scheme Variable} block-growth-factor
+A fluid that defines the growth factor of VList blocks, 2 by default.
+@end defvr
+
+The functions below provide the usual set of higher-level list operations.
+
+@deffn {Scheme Procedure} vlist-fold proc init vlist
+@deffnx {Scheme Procedure} vlist-fold-right proc init vlist
+Fold over @var{vlist}, calling @var{proc} for each element, as for SRFI-1
+@code{fold} and @code{fold-right} (@pxref{SRFI-1, @code{fold}}).
+@end deffn
+
+@deffn {Scheme Procedure} vlist-ref vlist index
+Return the element at index @var{index} in @var{vlist}.  This is typically a
+constant-time operation.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-length vlist
+Return the length of @var{vlist}.  This is typically logarithmic in the number
+of elements in @var{vlist}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-reverse vlist
+Return a new @var{vlist} whose content are those of @var{vlist} in reverse
+order.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-map proc vlist
+Map @var{proc} over the elements of @var{vlist} and return a new vlist.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-for-each proc vlist
+Call @var{proc} on each element of @var{vlist}.  The result is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-drop vlist count
+Return a new vlist that does not contain the @var{count} first elements of
+@var{vlist}.  This is typically a constant-time operation.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-take vlist count
+Return a new vlist that contains only the @var{count} first elements of
+@var{vlist}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-filter pred vlist
+Return a new vlist containing all the elements from @var{vlist} that satisfy
+@var{pred}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-delete x vlist [equal?]
+Return a new vlist corresponding to @var{vlist} without the elements
+@var{equal?} to @var{x}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-unfold p f g seed [tail-gen]
+@deffnx {Scheme Procedure} vlist-unfold-right p f g seed [tail]
+Return a new vlist, as for SRFI-1 @code{unfold} and @code{unfold-right}
+(@pxref{SRFI-1, @code{unfold}}).
+@end deffn
+
+@deffn {Scheme Procedure} vlist-append vlists ...
+Append the given vlists and return the resulting vlist.
+@end deffn
+
+@deffn {Scheme Procedure} list->vlist lst
+Return a new vlist whose contents correspond to @var{lst}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist->list vlist
+Return a new list whose contents match those of @var{vlist}.
+@end deffn
+
+
+
 @node Records
 @subsection Records
 
@@ -3029,6 +3197,118 @@ capitals
     ("New York" . "Albany")
     ("Florida" . "Tallahassee"))
 @end lisp
+
+@node VHashes
+@subsection VList-Based Hash Lists or ``VHashes''
+
+@cindex VList-based hash lists
+@cindex VHash
+
+The @code{(ice-9 vlist)} module provides an implementation of @dfn{VList-based
+hash lists} (@pxref{VLists}).  VList-based hash lists, or @dfn{vhashes}, are an
+immutable dictionary type similar to association lists that maps @dfn{keys} to
+@dfn{values}.  However, unlike association lists, accessing a value given its
+key is typically a constant-time operation.
+
+The VHash programming interface of @code{(ice-9 vlist)} is mostly the same as
+that of association lists found in SRFI-1, with procedure names prefixed by
+@code{vhash-} instead of @code{vlist-} (@pxref{SRFI-1 Association Lists}).
+
+In addition, vhashes can be manipulated using VList operations:
+
+@example
+(vlist-head (vhash-consq 'a 1 vlist-null))
+@result{} (a . 1)
+
+(define vh1 (vhash-consq 'b 2 (vhash-consq 'a 1 vlist-null)))
+(define vh2 (vhash-consq 'c 3 (vlist-tail vh1)))
+
+(vhash-assq 'a vh2)
+@result{} (a . 1)
+(vhash-assq 'b vh2)
+@result{} #f
+(vhash-assq 'c vh2)
+@result{} (c . 3)
+(vlist->list vh2)
+@result{} ((c . 3) (a . 1))
+@end example
+
+However, keep in mind that procedures that construct new VLists
+(@code{vlist-map}, @code{vlist-filter}, etc.) return raw VLists, not vhashes:
+
+@example
+(define vh (alist->vhash '((a . 1) (b . 2) (c . 3)) hashq))
+(vhash-assq 'a vh)
+@result{} (a . 1)
+
+(define vl
+  ;; This will create a raw vlist.
+  (vlist-filter (lambda (key+value) (odd? (cdr key+value))) vh))
+(vhash-assq 'a vl)
+@result{} ERROR: Wrong type argument in position 2
+
+(vlist->list vl)
+@result{} ((a . 1) (c . 3))
+@end example
+
+@deffn {Scheme Procedure} vhash? obj
+Return true if @var{obj} is a vhash.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-cons key value vhash [hash-proc]
+@deffnx {Scheme Procedure} vhash-consq key value vhash
+@deffnx {Scheme Procedure} vhash-consv key value vhash
+Return a new hash list based on @var{vhash} where @var{key} is associated with
+@var{value}, using @var{hash-proc} to compute the hash of @var{key}.
+@var{vhash} must be either @code{vlist-null} or a vhash returned by a previous
+call to @code{vhash-cons}.  @var{hash-proc} defaults to @code{hash} (@pxref{Hash
+Table Reference, @code{hash} procedure}).  With @code{vhash-consq}, the
+@code{hashq} hash function is used; with @code{vhash-consv} the @code{hashv}
+hash function is used.
+
+All @code{vhash-cons} calls made to construct a vhash should use the same
+@var{hash-proc}.  Failing to do that, the result is undefined.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-assoc key vhash [equal? [hash-proc]]
+@deffnx {Scheme Procedure} vhash-assq key vhash
+@deffnx {Scheme Procedure} vhash-assv key vhash
+Return the first key/value pair from @var{vhash} whose key is equal to @var{key}
+according to the @var{equal?} equality predicate (which defaults to
+@code{equal?}), and using @var{hash-proc} (which defaults to @code{hash}) to
+compute the hash of @var{key}.  The second form uses @code{eq?} as the equality
+predicate and @code{hashq} as the hash function; the last form uses @code{eqv?}
+and @code{hashv}.
+
+Note that it is important to consistently use the same hash function for
+@var{hash-proc} as was passed to @code{vhash-cons}.  Failing to do that, the
+result is unpredictable.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-delete key vhash [equal? [hash-proc]]
+@deffnx {Scheme Procedure} vhash-delq key vhash
+@deffnx {Scheme Procedure} vhash-delv key vhash
+Remove all associations from @var{vhash} with @var{key}, comparing keys with
+@var{equal?} (which defaults to @code{equal?}), and computing the hash of
+@var{key} using @var{hash-proc} (which defaults to @code{hash}).  The second
+form uses @code{eq?} as the equality predicate and @code{hashq} as the hash
+function; the last one uses @code{eqv?} and @code{hashv}.
+
+Again the choice of @var{hash-proc} must be consistent with previous calls to
+@code{vhash-cons}.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-fold proc vhash
+Fold over the key/pair elements of @var{vhash}.  For each pair call @var{proc}
+as @code{(@var{proc} key value result)}.
+@end deffn
+
+@deffn {Scheme Procedure} alist->vhash alist [hash-proc]
+Return the vhash corresponding to @var{alist}, an association list, using
+@var{hash-proc} to compute key hashes.  When omitted, @var{hash-proc} defaults
+to @code{hash}.
+@end deffn
+
 
 @node Hash Tables
 @subsection Hash Tables

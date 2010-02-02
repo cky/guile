@@ -112,6 +112,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/tree-il.test			\
 	    tests/unif.test			\
 	    tests/version.test			\
+	    tests/vlist.test			\
 	    tests/weaks.test
 
 EXTRA_DIST = guile-test lib.scm $(SCM_TESTS) ChangeLog-2008

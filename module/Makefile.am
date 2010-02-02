@@ -225,7 +225,8 @@ ICE_9_SOURCES = \
   ice-9/deprecated.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
-  ice-9/gds-server.scm
+  ice-9/gds-server.scm \
+  ice-9/vlist.scm
 
 SRFI_SOURCES = \
   srfi/srfi-1.scm \
