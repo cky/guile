@@ -28,6 +28,7 @@
 #include <gc/gc_mark.h>
 
 #include "_scm.h"
+#include "control.h"
 #include "frames.h"
 #include "instructions.h"
 #include "objcodes.h"
@@ -173,14 +174,6 @@ vm_dispatch_hook (SCM vm, int hook_num)
 /*
  * The dynamic stack
  */
-static SCM
-vm_prepare_prompt_jmpbuf (SCM vm, SCM k, SCM handler, SCM pre_unwind,
-                          scm_t_uint8 inline_p, scm_t_uint8 escape_only_p)
-{
-  abort ();
-  return SCM_BOOL_F;
-}
-
 #define VM_SETJMP(jmpbuf) 0
 
 static void vm_throw (SCM vm, SCM k, SCM args) SCM_NORETURN;

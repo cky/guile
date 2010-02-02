@@ -1446,7 +1446,7 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 5, 3, 0)
 {
   scm_t_int32 offset;
   scm_t_uint8 inline_handler_p, escape_only_p;
-  SCM k, handler, pre_unwind, jmpbuf;
+  SCM k, handler, pre_unwind, prompt;
 
   inline_handler_p = FETCH ();
   escape_only_p = FETCH ();
@@ -1458,9 +1458,11 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 5, 3, 0)
   SYNC_REGISTER ();
   /* Push the prompt onto the dynamic stack. The setjmp itself has to be local
      to this procedure. */
-  jmpbuf = vm_prepare_prompt_jmpbuf (vm, k, handler, pre_unwind,
-                                     inline_handler_p, escape_only_p);
-  if (VM_SETJMP (jmpbuf))
+  /* FIXME: do more error checking */
+  prompt = scm_c_make_prompt (vm, k, handler, pre_unwind,
+                              inline_handler_p, escape_only_p);
+  scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
+  if (SCM_PROMPT_SETJMP (prompt))
     {
       /* The prompt exited nonlocally. Cache the regs back from the vp, and go
          to the handler or post-handler label. (The meaning of the label differs
