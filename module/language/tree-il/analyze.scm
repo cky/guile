@@ -876,14 +876,14 @@ accurate information is missing from a given `tree-il' element."
        (define (bound? name)
          (or (and (module? env)
                   (module-variable env name))
-             (memq name defs)))
+             (vhash-assq name defs)))
 
        (record-case x
          ((<toplevel-ref> name src)
           (if (bound? name)
               info
               (let ((src (or src (find pair? locs))))
-                (make-toplevel-info (alist-cons name src refs)
+                (make-toplevel-info (vhash-consq name src refs)
                                     defs))))
          (else info))))
 
@@ -895,18 +895,18 @@ accurate information is missing from a given `tree-il' element."
        (define (bound? name)
          (or (and (module? env)
                   (module-variable env name))
-             (memq name defs)))
+             (vhash-assq name defs)))
 
        (record-case x
          ((<toplevel-set> name src)
           (if (bound? name)
               (make-toplevel-info refs defs)
               (let ((src (find pair? locs)))
-                (make-toplevel-info (alist-cons name src refs)
+                (make-toplevel-info (vhash-consq name src refs)
                                     defs))))
          ((<toplevel-define> name)
-          (make-toplevel-info (alist-delete name refs eq?)
-                              (cons name defs)))
+          (make-toplevel-info (vhash-delete name refs eq?)
+                              (vhash-consq name #t defs)))
 
          ((<application> proc args)
           ;; Check for a dynamic top-level definition, as is
@@ -914,9 +914,9 @@ accurate information is missing from a given `tree-il' element."
           (let ((name (goops-toplevel-definition proc args
                                                  env)))
             (if (symbol? name)
-                (make-toplevel-info (alist-delete name refs
+                (make-toplevel-info (vhash-delete name refs
                                                   eq?)
-                                    (cons name defs))
+                                    (vhash-consq name #t defs))
                 (make-toplevel-info refs defs))))
          (else
           (make-toplevel-info refs defs)))))
@@ -927,13 +927,13 @@ accurate information is missing from a given `tree-il' element."
 
    (lambda (toplevel env)
      ;; Post-process the result.
-     (for-each (lambda (name+loc)
-                 (let ((name (car name+loc))
-                       (loc  (cdr name+loc)))
-                   (warning 'unbound-variable loc name)))
-               (reverse (toplevel-info-refs toplevel))))
+     (vlist-for-each (lambda (name+loc)
+                       (let ((name (car name+loc))
+                             (loc  (cdr name+loc)))
+                         (warning 'unbound-variable loc name)))
+                     (vlist-reverse (toplevel-info-refs toplevel))))
 
-   (make-toplevel-info '() '())))
+   (make-toplevel-info vlist-null vlist-null)))
 
 
 ;;;
