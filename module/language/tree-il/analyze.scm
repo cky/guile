@@ -1054,20 +1054,20 @@ accurate information is missing from a given `tree-il' element."
          (record-case val
            ((<lambda> body)
             (make-arity-info toplevel-calls
-                             (alist-cons lexical-name val
-                                         lexical-lambdas)
+                             (vhash-consq lexical-name val
+                                          lexical-lambdas)
                              toplevel-lambdas))
            ((<lexical-ref> gensym)
             ;; lexical alias
-            (let ((val* (assq gensym lexical-lambdas)))
+            (let ((val* (vhash-assq gensym lexical-lambdas)))
               (if (pair? val*)
                   (extend lexical-name (cdr val*) info)
                   info)))
            ((<toplevel-ref> name)
             ;; top-level alias
             (make-arity-info toplevel-calls
-                             (alist-cons lexical-name val
-                                         lexical-lambdas)
+                             (vhash-consq lexical-name val
+                                          lexical-lambdas)
                              toplevel-lambdas))
            (else info))))
 
@@ -1081,17 +1081,17 @@ accurate information is missing from a given `tree-il' element."
             ((<lambda> body)
              (make-arity-info toplevel-calls
                               lexical-lambdas
-                              (alist-cons name exp toplevel-lambdas)))
+                              (vhash-consq name exp toplevel-lambdas)))
             ((<toplevel-ref> name)
              ;; alias for another toplevel
-             (let ((proc (assq name toplevel-lambdas)))
+             (let ((proc (vhash-assq name toplevel-lambdas)))
                (make-arity-info toplevel-calls
                                 lexical-lambdas
-                                (alist-cons (toplevel-define-name x)
-                                            (if (pair? proc)
-                                                (cdr proc)
-                                                exp)
-                                            toplevel-lambdas))))
+                                (vhash-consq (toplevel-define-name x)
+                                             (if (pair? proc)
+                                                 (cdr proc)
+                                                 exp)
+                                             toplevel-lambdas))))
             (else info)))
          ((<let> vars vals)
           (fold extend info vars vals))
@@ -1106,16 +1106,16 @@ accurate information is missing from a given `tree-il' element."
              (validate-arity proc x #t)
              info)
             ((<toplevel-ref> name)
-             (make-arity-info (alist-cons name x toplevel-calls)
+             (make-arity-info (vhash-consq name x toplevel-calls)
                               lexical-lambdas
                               toplevel-lambdas))
             ((<lexical-ref> gensym)
-             (let ((proc (assq gensym lexical-lambdas)))
+             (let ((proc (vhash-assq gensym lexical-lambdas)))
                (if (pair? proc)
                    (record-case (cdr proc)
                      ((<toplevel-ref> name)
                       ;; alias to toplevel
-                      (make-arity-info (alist-cons name x toplevel-calls)
+                      (make-arity-info (vhash-consq name x toplevel-calls)
                                        lexical-lambdas
                                        toplevel-lambdas))
                      (else
@@ -1136,7 +1136,9 @@ accurate information is missing from a given `tree-il' element."
              (lexical-lambdas  (lexical-lambdas info))
              (toplevel-lambdas (toplevel-lambdas info)))
          (make-arity-info toplevel-calls
-                          (alist-delete name lexical-lambdas eq?)
+                          (if (vhash-assq name lexical-lambdas)
+                              (vlist-tail lexical-lambdas)
+                              lexical-lambdas)
                           toplevel-lambdas)))
 
      (let ((toplevel-calls   (toplevel-procedure-calls info))
@@ -1157,26 +1159,25 @@ accurate information is missing from a given `tree-il' element."
      ;; encountered.
      (let ((toplevel-calls   (toplevel-procedure-calls result))
            (toplevel-lambdas (toplevel-lambdas result)))
-       (for-each (lambda (name+application)
-                   (let* ((name        (car name+application))
-                          (application (cdr name+application))
-                          (proc
-                           (or (assoc-ref toplevel-lambdas name)
-                               (and (module? env)
-                                    (false-if-exception
-                                     (module-ref env name)))))
-                          (proc*
-                           ;; handle toplevel aliases
-                           (if (toplevel-ref? proc)
-                               (let ((name (toplevel-ref-name proc)))
-                                 (and (module? env)
-                                      (false-if-exception
-                                       (module-ref env name))))
-                               proc)))
-                     ;; (format #t "toplevel-call to ~A (~A) from ~A~%"
-                     ;;         name proc* application)
-                     (if (or (lambda? proc*) (procedure? proc*))
-                         (validate-arity proc* application (lambda? proc*)))))
-                 toplevel-calls)))
+       (vlist-for-each
+        (lambda (name+application)
+          (let* ((name        (car name+application))
+                 (application (cdr name+application))
+                 (proc
+                  (or (and=> (vhash-assq name toplevel-lambdas) cdr)
+                      (and (module? env)
+                           (false-if-exception
+                            (module-ref env name)))))
+                 (proc*
+                  ;; handle toplevel aliases
+                  (if (toplevel-ref? proc)
+                      (let ((name (toplevel-ref-name proc)))
+                        (and (module? env)
+                             (false-if-exception
+                              (module-ref env name))))
+                      proc)))
+            (if (or (lambda? proc*) (procedure? proc*))
+                (validate-arity proc* application (lambda? proc*)))))
+        toplevel-calls)))
 
-   (make-arity-info '() '() '())))
+   (make-arity-info vlist-null vlist-null vlist-null)))
