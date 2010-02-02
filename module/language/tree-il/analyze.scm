@@ -594,7 +594,7 @@ accurate information is missing from a given `tree-il' element."
            (vars (binding-info-vars info)))
        (record-case x
          ((<lexical-ref> gensym)
-          (make-binding-info vars (cons gensym refs)))
+          (make-binding-info vars (vhash-consq gensym #t refs)))
          (else info))))
 
    (lambda (x info env locs)
@@ -604,14 +604,15 @@ accurate information is missing from a given `tree-il' element."
            (vars (binding-info-vars info))
            (src  (tree-il-src x)))
        (define (extend inner-vars inner-names)
-         (append (map (lambda (var name)
-                        (list var name src))
-                      inner-vars
-                      inner-names)
-                 vars))
+         (fold (lambda (var name vars)
+                 (vhash-consq var (list name src) vars))
+               vars
+               inner-vars
+               inner-names))
+
        (record-case x
          ((<lexical-set> gensym)
-          (make-binding-info vars (cons gensym refs)))
+          (make-binding-info vars (vhash-consq gensym #t refs)))
          ((<lambda-case> req opt inits rest kw vars)
           (let ((names `(,@req
                          ,@(or opt '())
@@ -632,25 +633,21 @@ accurate information is missing from a given `tree-il' element."
      (let ((refs (binding-info-refs info))
            (vars (binding-info-vars info)))
        (define (shrink inner-vars refs)
-         (for-each (lambda (var)
-                     (let ((gensym (car var)))
-                       ;; Don't report lambda parameters as
-                       ;; unused.
-                       (if (and (not (memq gensym refs))
-                                (not (and (lambda-case? x)
-                                          (memq gensym
-                                                inner-vars))))
-                           (let ((name (cadr var))
-                                 ;; We can get approximate
-                                 ;; source location by going up
-                                 ;; the LOCS location stack.
-                                 (loc  (or (caddr var)
-                                           (find pair? locs))))
-                             (warning 'unused-variable loc name)))))
-                   (filter (lambda (var)
-                             (memq (car var) inner-vars))
-                           vars))
-         (fold alist-delete vars inner-vars))
+         (vlist-for-each
+          (lambda (var)
+            (let ((gensym (car var)))
+              ;; Don't report lambda parameters as unused.
+              (if (and (memq gensym inner-vars)
+                       (not (vhash-assq gensym refs))
+                       (not (lambda-case? x)))
+                  (let ((name (cadr var))
+                        ;; We can get approximate source location by going up
+                        ;; the LOCS location stack.
+                        (loc  (or (caddr var)
+                                  (find pair? locs))))
+                    (warning 'unused-variable loc name)))))
+          vars)
+         (vlist-drop vars (length inner-vars)))
 
        ;; For simplicity, we leave REFS untouched, i.e., with
        ;; names of variables that are now going out of scope.
@@ -668,7 +665,7 @@ accurate information is missing from a given `tree-il' element."
          (else info))))
 
    (lambda (result env) #t)
-   (make-binding-info '() '())))
+   (make-binding-info vlist-null vlist-null)))
 
 
 ;;;
