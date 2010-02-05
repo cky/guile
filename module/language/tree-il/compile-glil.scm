@@ -981,8 +981,8 @@
              (escape-only? (hashq-ref allocation x)))
          ;; First, set up the prompt.
          (comp-push tag)
-         (if (not inline?)
-             ;; handler is not rendered inline, push it on the stack
+         (if inline?
+             (emit-code #f (make-glil-const #f)) ;; push #f as handler
              (comp-push handler))
          (if pre-unwind-handler
              (comp-push pre-unwind-handler)
