@@ -73,7 +73,7 @@
      (define-syntax name
        (syntax-rules ()
          ((_ formals ...)
-          body ...))))))
+          (begin body ...)))))))
 
 (define-inline (make-block base offset size hash-tab?)
   ;; Return a block (and block descriptor) of SIZE elements pointing to BASE
@@ -408,55 +408,52 @@ with @var{value}.  Use @var{hash} to compute @var{key}'s hash."
 (define vhash-consq (cut vhash-cons <> <> <> hashq))
 (define vhash-consv (cut vhash-cons <> <> <> hashv))
 
-(define-syntax make-vhash-assoc
-  ;; This hack to make sure `vhash-assq' gets to use the `eq?' instruction
-  ;; instead of calling the `eq?' subr.
-  (syntax-rules ()
-    ((_ key vhash equal? hash)
-     (begin
-       (define khash
-         (let ((size (block-size (vlist-base vhash))))
-           (and (> size 0) (hash key size))))
+;; This hack to make sure `vhash-assq' gets to use the `eq?' instruction instead
+;; of calling the `eq?' subr.
+(define-inline (%vhash-assoc key vhash equal? hash)
+  (define khash
+    (let ((size (block-size (vlist-base vhash))))
+      (and (> size 0) (hash key size))))
 
-       (let loop ((base       (vlist-base vhash))
-                  (khash      khash)
-                  (offset     (and khash
-                                   (block-hash-table-ref (vlist-base vhash)
-                                                         khash)))
-                  (max-offset (vlist-offset vhash)))
-         (let ((answer (and offset (block-ref base offset))))
-           (cond ((and (pair? answer)
-                       (<= offset max-offset)
-                       (let ((answer-key (caar answer)))
-                         (equal? key answer-key)))
-                  (car answer))
-                 ((and (pair? answer) (cdr answer))
-                  =>
-                  (lambda (next-offset)
-                    (loop base khash next-offset max-offset)))
-                 (else
-                  (let ((next-base (block-base base)))
-                    (and next-base
-                         (> (block-size next-base) 0)
-                         (let* ((khash  (hash key (block-size next-base)))
-                                (offset (block-hash-table-ref next-base khash)))
-                           (loop next-base khash offset
-                                 (block-offset base)))))))))))))
+  (let loop ((base       (vlist-base vhash))
+             (khash      khash)
+             (offset     (and khash
+                              (block-hash-table-ref (vlist-base vhash)
+                                                    khash)))
+             (max-offset (vlist-offset vhash)))
+    (let ((answer (and offset (block-ref base offset))))
+      (cond ((and (pair? answer)
+                  (<= offset max-offset)
+                  (let ((answer-key (caar answer)))
+                    (equal? key answer-key)))
+             (car answer))
+            ((and (pair? answer) (cdr answer))
+             =>
+             (lambda (next-offset)
+               (loop base khash next-offset max-offset)))
+            (else
+             (let ((next-base (block-base base)))
+               (and next-base
+                    (> (block-size next-base) 0)
+                    (let* ((khash  (hash key (block-size next-base)))
+                           (offset (block-hash-table-ref next-base khash)))
+                      (loop next-base khash offset
+                            (block-offset base))))))))))
 
 (define* (vhash-assoc key vhash #:optional (equal? equal?) (hash hash))
   "Return the first key/value pair from @var{vhash} whose key is equal to
 @var{key} according to the @var{equal?} equality predicate."
-  (make-vhash-assoc key vhash equal? hash))
+  (%vhash-assoc key vhash equal? hash))
 
 (define (vhash-assq key vhash)
   "Return the first key/value pair from @var{vhash} whose key is @code{eq?} to
 @var{key}."
-  (make-vhash-assoc key vhash eq? hashq))
+  (%vhash-assoc key vhash eq? hashq))
 
 (define (vhash-assv key vhash)
   "Return the first key/value pair from @var{vhash} whose key is @code{eqv?} to
 @var{key}."
-  (make-vhash-assoc key vhash eqv? hashv))
+  (%vhash-assoc key vhash eqv? hashv))
 
 (define* (vhash-delete key vhash #:optional (equal? equal?) (hash hash))
   "Remove all associations from @var{vhash} with @var{key}, comparing keys
