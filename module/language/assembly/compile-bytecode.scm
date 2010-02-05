@@ -24,27 +24,32 @@
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
   #:use-module (rnrs bytevector)
+  #:use-module (rnrs io ports)
   #:use-module ((srfi srfi-1) #:select (fold))
+  #:use-module ((srfi srfi-26) #:select (cut))
   #:use-module ((system vm objcode) #:select (byte-order))
   #:export (compile-bytecode write-bytecode))
 
 (define (compile-bytecode assembly env . opts)
   (pmatch assembly
     ((load-program . _)
-     ;; the 1- and -1 are so that we drop the load-program byte
-     (letrec ((v (make-u8vector (1- (byte-length assembly))))
-              (i -1)
-              (write-byte (lambda (b)
-                            (if (>= i 0) (u8vector-set! v i b))
-                            (set! i (1+ i))))
-              (get-addr (lambda () i)))
-       (write-bytecode assembly write-byte get-addr '())
-       (if (= i (u8vector-length v))
-           (values v env env)
-           (error "incorrect length in assembly" i (u8vector-length v)))))
+     (call-with-values open-bytevector-output-port
+       (lambda (port get-bytevector)
+         ;; Don't emit the `load-program' byte.
+         (write-bytecode assembly port '() 0 #f)
+         (values (get-bytevector) env env))))
     (else (error "bad assembly" assembly))))
 
-(define (write-bytecode asm write-byte get-addr labels)
+(define (write-bytecode asm port labels address emit-opcode?)
+  ;; Write ASM's bytecode to PORT, a (binary) output port.  If EMIT-OPCODE? is
+  ;; false, don't emit bytecode for the first opcode encountered.  Assume code
+  ;; starts at ADDRESS (an integer).  LABELS is assumed to be an alist mapping
+  ;; labels to addresses.
+  (define write-byte (cut put-u8 port <>))
+  (define get-addr
+    (let ((start (port-position port)))
+      (lambda ()
+        (+ address (- (port-position port) start)))))
   (define (write-char c)
     (write-byte (char->integer c)))
   (define (write-string s)
@@ -102,28 +107,24 @@
                         (else (error "unknown endianness" byte-order)))))
     (let ((opcode (instruction->opcode inst))
           (len (instruction-length inst)))
-      (write-byte opcode)
+      (if emit-opcode?
+          (write-byte opcode))
       (pmatch asm
         ((load-program ,labels ,length ,meta . ,code)
          (write-uint32 length)
          (write-uint32 (if meta (1- (byte-length meta)) 0))
-         (letrec ((i 0)
-                  (write (lambda (x) (set! i (1+ i)) (write-byte x)))
-                  (get-addr (lambda () i)))
-           (for-each (lambda (asm)
-                       (write-bytecode asm write get-addr labels))
-                     code))
+         (fold (lambda (asm address)
+                 (let ((start (port-position port)))
+                   (write-bytecode asm port labels address #t)
+                   (+ address (- (port-position port) start))))
+               0
+               code)
          (if meta
-             ;; don't write the load-program byte for metadata
-             (letrec ((i -1)
-                      (write (lambda (x)
-                               (set! i (1+ i))
-                               (if (> i 0) (write-byte x))))
-                      (get-addr (lambda () i)))
-               ;; META's bytecode meets the alignment requirements of
-               ;; `scm_objcode', thanks to the alignment computed in
-               ;; `(language assembly)'.
-               (write-bytecode meta write get-addr '()))))
+             ;; Don't emit the `load-program' byte for metadata.  Note that
+             ;; META's bytecode meets the alignment requirements of
+             ;; `scm_objcode', thanks to the alignment computed in `(language
+             ;; assembly)'.
+             (write-bytecode meta port '() 0 #f)))
         ((make-char32 ,x) (write-uint32-be x))
         ((load-number ,str) (write-loader str))
         ((load-string ,str) (write-loader str))

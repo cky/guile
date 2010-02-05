@@ -16,6 +16,7 @@
 
 (define-module (test-suite tests asm-to-bytecode)
   #:use-module (rnrs bytevector)
+  #:use-module ((rnrs io ports) #:select (open-bytevector-output-port))
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)
   #:use-module (language assembly compile-bytecode))
@@ -32,7 +33,7 @@
 (define (munge-bytecode v)
   (let lp ((i 0) (out '()))
     (if (= i (vector-length v))
-        (list->u8vector (reverse out))
+        (u8-list->bytevector (reverse out))
         (let ((x (vector-ref v i)))
           (cond
            ((symbol? x)
@@ -44,16 +45,17 @@
            (else (error "bad test bytecode" x)))))))
 
 (define (comp-test x y)
-  (let* ((y (munge-bytecode y))
-         (len (u8vector-length y))
-         (v (make-u8vector len))
-         (i 0))
-    (define (write-byte b) (u8vector-set! v i b) (set! i (1+ i)))
-    (define (get-addr) i)
+  (let* ((y   (munge-bytecode y))
+         (len (bytevector-length y))
+         (v   #f))
+
     (run-test `(length ,x) #t
               (lambda ()
-                (write-bytecode x write-byte get-addr '())
-                (= i len)))
+                (call-with-values open-bytevector-output-port
+                  (lambda (port get-bytevector)
+                    (write-bytecode x port '() 0 #t)
+                    (set! v (get-bytevector))
+                    (= (bytevector-length v) len)))))
     (run-test `(compile-equal? ,x ,y) #t
               (lambda ()
                 (equal? v y)))))
