@@ -3399,6 +3399,8 @@ module '(ice-9 q) '(make-q q-length))}."
           "`use-syntax' is deprecated. Please contact guile-devel for more info."))
        (use-modules spec ...)))))
 
+(include-from-path "ice-9/r6rs-libraries")
+
 (define-syntax define-private
   (syntax-rules ()
     ((_ foo bar)
