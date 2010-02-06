@@ -1,5 +1,5 @@
 /* A stack holds a frame chain
- * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009 Free Software Foundation
+ * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009, 2010 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -209,21 +209,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   else if (SCM_VM_FRAME_P (obj))
     frame = obj;
   else if (SCM_CONTINUATIONP (obj))
-    {
-      scm_t_contregs *cont = SCM_CONTREGS (obj);
-      if (!scm_is_null (cont->vm_conts))
-        { SCM vm_cont;
-          struct scm_vm_cont *data;
-          vm_cont = scm_cdr (scm_car (cont->vm_conts));
-          data = SCM_VM_CONT_DATA (vm_cont);
-          frame = scm_c_make_frame (vm_cont,
-                                    data->fp + data->reloc,
-                                    data->sp + data->reloc,
-                                    data->ip,
-                                    data->reloc);
-        } else 
-        frame = SCM_BOOL_F;
-    }
+    frame = scm_i_continuation_to_frame (obj);
   else
     {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, obj);
@@ -301,21 +287,7 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
   else if (SCM_VM_FRAME_P (stack))
     frame = stack;
   else if (SCM_CONTINUATIONP (stack))
-    {
-      scm_t_contregs *cont = SCM_CONTREGS (stack);
-      if (!scm_is_null (cont->vm_conts))
-        { SCM vm_cont;
-          struct scm_vm_cont *data;
-          vm_cont = scm_cdr (scm_car (cont->vm_conts));
-          data = SCM_VM_CONT_DATA (vm_cont);
-          frame = scm_c_make_frame (vm_cont,
-                                    data->fp + data->reloc,
-                                    data->sp + data->reloc,
-                                    data->ip,
-                                    data->reloc);
-        } else 
-        frame = SCM_BOOL_F;
-    }
+    frame = scm_i_continuation_to_frame (stack);
   else
     {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, stack);

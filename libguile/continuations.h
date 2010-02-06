@@ -3,7 +3,7 @@
 #ifndef SCM_CONTINUATIONS_H
 #define SCM_CONTINUATIONS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,9 @@
 #endif /* __ia64__ */
 
 
+#define SCM_CONTINUATIONP(x) \
+  (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_CONTINUATION (x))
+
 /* a continuation SCM is a non-immediate pointing to a heap cell with:
    word 0: bits 0-15: smob type tag: scm_tc16_continuation.
            bits 16-31: unused.
@@ -38,8 +41,6 @@
            tail array of SCM_STACKITEM.  the size of the array is stored
 	   in the num_stack_items field of the structure.
 */
-
-SCM_API scm_t_bits scm_tc16_continuation;
 
 typedef struct 
 {
@@ -67,22 +68,12 @@ typedef struct
   SCM_STACKITEM stack[1];    /* copied stack of size num_stack_items.  */ 
 } scm_t_contregs;
 
-#define SCM_CONTINUATIONP(x)	SCM_TYP16_PREDICATE (scm_tc16_continuation, x)
-
-#define SCM_CONTREGS(x)		((scm_t_contregs *) SCM_SMOB_DATA_1 (x))
-
-#define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
-#define SCM_SET_CONTINUATION_LENGTH(x, n)\
-   (SCM_CONTREGS (x)->num_stack_items = (n))
-#define SCM_JMPBUF(x)		 ((SCM_CONTREGS (x))->jmpbuf)
-#define SCM_DYNENV(x)		 ((SCM_CONTREGS (x))->dynenv)
-#define SCM_THROW_VALUE(x)	 ((SCM_CONTREGS (x))->throw_value)
-#define SCM_CONTINUATION_ROOT(x) ((SCM_CONTREGS (x))->root)   
-#define SCM_DFRAME(x)		 ((SCM_CONTREGS (x))->dframe)
 
 
 
 SCM_API SCM scm_make_continuation (int *first);
+SCM_INTERNAL SCM scm_i_continuation_to_frame (SCM cont);
+SCM_INTERNAL void scm_i_continuation_call (SCM cont, size_t n, SCM *argv);
 
 SCM_API void *scm_c_with_continuation_barrier (void *(*func)(void*), void *);
 SCM_API SCM scm_with_continuation_barrier (SCM proc);

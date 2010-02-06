@@ -79,7 +79,14 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
       (scm_c_resolve_module ("system vm program"),
        scm_from_locale_symbol ("write-program"));
   
-  if (scm_is_false (write_program) || print_error)
+  if (SCM_PROGRAM_IS_CONTINUATION (program))
+    {
+      /* twingliness */
+      scm_puts ("#<continuation ", port);
+      scm_uintprint (SCM_CELL_WORD_1 (program), 16, port);
+      scm_putc ('>', port);
+    }
+  else if (scm_is_false (write_program) || print_error)
     {
       scm_puts ("#<program ", port);
       scm_uintprint (SCM_CELL_WORD_1 (program), 16, port);

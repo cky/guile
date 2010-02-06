@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,16 +37,117 @@
 #include "libguile/values.h"
 #include "libguile/eval.h"
 #include "libguile/vm.h"
+#include "libguile/instructions.h"
 
 #include "libguile/validate.h"
 #include "libguile/continuations.h"
 
 
 
-/* {Continuations}
+static scm_t_bits tc16_continuation;
+#define SCM_CONTREGSP(x)	SCM_TYP16_PREDICATE (tc16_continuation, x)
+
+#define SCM_CONTREGS(x)		((scm_t_contregs *) SCM_SMOB_DATA_1 (x))
+
+#define SCM_CONTINUATION_LENGTH(x) (SCM_CONTREGS (x)->num_stack_items)
+#define SCM_SET_CONTINUATION_LENGTH(x, n)\
+   (SCM_CONTREGS (x)->num_stack_items = (n))
+#define SCM_JMPBUF(x)		 ((SCM_CONTREGS (x))->jmpbuf)
+#define SCM_DYNENV(x)		 ((SCM_CONTREGS (x))->dynenv)
+#define SCM_THROW_VALUE(x)	 ((SCM_CONTREGS (x))->throw_value)
+#define SCM_CONTINUATION_ROOT(x) ((SCM_CONTREGS (x))->root)   
+#define SCM_DFRAME(x)		 ((SCM_CONTREGS (x))->dframe)
+
+
+
+/* scm_make_continuation will return a procedure whose objcode contains an
+   instruction to reinstate the continuation. Here, as in gsubr.c and smob.c, we
+   define the form of that trampoline function.
  */
 
-scm_t_bits scm_tc16_continuation;
+#ifdef WORDS_BIGENDIAN
+#define OBJCODE_HEADER 0, 0, 0, 8, 0, 0, 0, 27
+#define META_HEADER    0, 0, 0, 19, 0, 0, 0, 0
+#else
+#define OBJCODE_HEADER 8, 0, 0, 0, 27, 0, 0, 0
+#define META_HEADER    19, 0, 0, 0, 0, 0, 0, 0
+#endif
+
+#define ROUND_UP(len,align) (((len-1)|(align-1))+1)
+#define ALIGN_PTR(type,p,align) (type*)(ROUND_UP (((scm_t_bits)p), align))
+
+#ifdef SCM_ALIGNED
+#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)\
+static const type sym[]
+#define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)\
+static SCM_ALIGNED (alignment) const type sym[]
+#else
+#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)\
+static type *sym
+#define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)                  \
+SCM_SNARF_INIT(sym = scm_malloc (sizeof(sym##__unaligned) + alignment - 1); \
+               sym = ALIGN_PTR (type, sym, alignment);                  \
+               memcpy (sym, sym##__unaligned, sizeof(sym##__unaligned));) \
+static type *sym = NULL;                                                \
+static const type sym##__unaligned[]
+#endif
+
+#define STATIC_OBJCODE_TAG                                      \
+  SCM_PACK (scm_tc7_objcode | (SCM_F_OBJCODE_IS_STATIC << 8))
+
+#define SCM_STATIC_OBJCODE(sym)                                         \
+  SCM_DECLARE_STATIC_ALIGNED_ARRAY (scm_t_uint8, sym##__bytecode);      \
+  SCM_STATIC_ALIGNED_ARRAY (8, scm_t_cell, sym##__cells) = {            \
+    { STATIC_OBJCODE_TAG, SCM_PACK (sym##__bytecode) },                 \
+    { SCM_BOOL_F, SCM_PACK (0) }                                        \
+  };                                                                    \
+  static const SCM sym = SCM_PACK (sym##__cells);                       \
+  SCM_STATIC_ALIGNED_ARRAY (8, scm_t_uint8, sym##__bytecode)
+
+  
+SCM_STATIC_OBJCODE (cont_objcode) = {
+  /* This code is the same as in gsubr.c, except we use smob_call instead of
+     struct_call. */
+  OBJCODE_HEADER,
+  /* leave args on the stack */
+  /* 0 */ scm_op_object_ref, 0, /* push scm_t_contregs smob */
+  /* 2 */ scm_op_continuation_call, /* and longjmp (whee) */
+  /* 3 */ scm_op_nop, /* pad to 8 bytes */
+  /* 4 */ scm_op_nop, scm_op_nop, scm_op_nop, scm_op_nop,
+  /* 8 */
+
+  /* We could put some meta-info to say that this proc is a continuation. Not sure
+     how to do that, though. */
+  META_HEADER,
+  /* 0 */ scm_op_make_eol, /* bindings */
+  /* 1 */ scm_op_make_eol, /* sources */
+  /* 2 */ scm_op_make_int8, 0, scm_op_make_int8, 3, /* arity: from ip 0 to ip 3 */
+  /* 6 */ scm_op_make_int8_0, /* the arity is 0 required args */
+  /* 7 */ scm_op_make_int8_0, /* 0 optionals */
+  /* 8 */ scm_op_make_true, /* and a rest arg */
+  /* 9 */ scm_op_list, 0, 5, /* make a list of those 5 vals */
+  /* 12 */ scm_op_list, 0, 1, /* and the arities will be a list of that one list */
+  /* 15 */ scm_op_list, 0, 3, /* pack bindings, sources, and arities into list */
+  /* 18 */ scm_op_return /* and return */
+  /* 19 */
+};
+
+
+static SCM
+make_continuation_trampoline (SCM contregs)
+{
+  SCM ret = scm_make_program (cont_objcode,
+                              scm_c_make_vector (1, contregs),
+                              SCM_BOOL_F);
+  SCM_SET_CELL_WORD_0 (ret,
+                       SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_CONTINUATION);
+
+  return ret;
+}
+  
+
+/* {Continuations}
+ */
 
 
 static int
@@ -92,7 +193,7 @@ scm_make_continuation (int *first)
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
   continuation->vm_conts = scm_vm_capture_continuations ();
 
-  SCM_NEWSMOB (cont, scm_tc16_continuation, continuation);
+  SCM_NEWSMOB (cont, tc16_continuation, continuation);
 
   *first = !SCM_I_SETJMP (continuation->jmpbuf);
   if (*first)
@@ -110,7 +211,7 @@ scm_make_continuation (int *first)
               (void *) thread->register_backing_store_base, 
               continuation->backing_store_size);
 #endif /* __ia64__ */
-      return cont;
+      return make_continuation_trampoline (cont);
     }
   else
     {
@@ -121,6 +222,34 @@ scm_make_continuation (int *first)
 }
 #undef FUNC_NAME
 
+SCM
+scm_i_continuation_to_frame (SCM continuation)
+{
+  SCM contregs;
+  scm_t_contregs *cont;
+
+  contregs = scm_c_vector_ref (scm_program_objects (continuation), 0);
+  cont = SCM_CONTREGS (contregs);
+
+  if (!scm_is_null (cont->vm_conts))
+    {
+      SCM vm_cont;
+      struct scm_vm_cont *data;
+      vm_cont = scm_cdr (scm_car (cont->vm_conts));
+      data = SCM_VM_CONT_DATA (vm_cont);
+      return scm_c_make_frame (vm_cont,
+                               data->fp + data->reloc,
+                               data->sp + data->reloc,
+                               data->ip,
+                               data->reloc);
+    }
+  else
+    return SCM_BOOL_F;
+}
+
+
+/* {Apply}
+ */
 
 /* Invoking a continuation proceeds as follows:
  *
@@ -242,24 +371,25 @@ scm_dynthrow (SCM cont, SCM val)
 }
 
 
-static SCM
-continuation_apply (SCM cont, SCM args)
-#define FUNC_NAME "continuation_apply"
+void
+scm_i_continuation_call (SCM cont, size_t n, SCM *argv)
 {
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
+  SCM args = SCM_EOL;
+  
+  /* FIXME: shuffle args on VM stack instead of heap-allocating */
+  while (n--)
+    args = scm_cons (argv[n], args);
 
   if (continuation->root != thread->continuation_root)
-    {
-      SCM_MISC_ERROR 
-	("invoking continuation would cross continuation barrier: ~A",
-	 scm_list_1 (cont));
-    }
+    scm_misc_error
+      ("%continuation-call", 
+       "invoking continuation would cross continuation barrier: ~A",
+       scm_list_1 (cont));
   
   scm_dynthrow (cont, scm_values (args));
-  return SCM_UNSPECIFIED; /* not reached */
 }
-#undef FUNC_NAME
 
 SCM
 scm_i_with_continuation_barrier (scm_t_catch_body body,
@@ -374,9 +504,8 @@ SCM_DEFINE (scm_with_continuation_barrier, "with-continuation-barrier", 1,0,0,
 void
 scm_init_continuations ()
 {
-  scm_tc16_continuation = scm_make_smob_type ("continuation", 0);
-  scm_set_smob_print (scm_tc16_continuation, continuation_print);
-  scm_set_smob_apply (scm_tc16_continuation, continuation_apply, 0, 0, 1);
+  tc16_continuation = scm_make_smob_type ("continuation", 0);
+  scm_set_smob_print (tc16_continuation, continuation_print);
 #include "libguile/continuations.x"
 }
 

@@ -978,6 +978,15 @@ VM_DEFINE_INSTRUCTION (58, foreign_call, "foreign-call", 1, -1, -1)
     }
 }
 
+VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
+{
+  SCM contregs;
+  POP (contregs);
+  scm_i_continuation_call (contregs, sp - (fp - 1), fp);
+  /* no NEXT */
+  abort ();
+}
+
 VM_DEFINE_INSTRUCTION (59, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
