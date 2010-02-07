@@ -71,7 +71,7 @@ typedef struct
 
 
 
-SCM_API SCM scm_make_continuation (int *first);
+SCM_INTERNAL SCM scm_i_make_continuation (int *first);
 SCM_INTERNAL SCM scm_i_call_with_current_continuation (SCM proc);
 SCM_INTERNAL SCM scm_i_continuation_to_frame (SCM cont);
 SCM_INTERNAL void scm_i_continuation_call (SCM cont, size_t n, SCM *argv);

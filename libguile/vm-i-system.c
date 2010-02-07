@@ -1093,7 +1093,7 @@ VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
   SCM proc, cont;
   POP (proc);
   SYNC_ALL ();
-  cont = scm_make_continuation (&first);
+  cont = scm_i_make_continuation (&first);
   if (first) 
     {
       PUSH ((SCM)fp); /* dynamic link */
@@ -1130,7 +1130,7 @@ VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
   SCM proc, cont;
   POP (proc);
   SYNC_ALL ();
-  cont = scm_make_continuation (&first);
+  cont = scm_i_make_continuation (&first);
   ASSERT (sp == vp->sp);
   ASSERT (fp == vp->fp);
   if (first) 

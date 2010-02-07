@@ -1,4 +1,4 @@
-/* Copyright (C) 2004, 2005, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2005, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -137,12 +137,10 @@ SCM
 check_cont_body (void *data)
 {
   scm_t_dynwind_flags flags = (data? SCM_F_DYNWIND_REWINDABLE : 0);
-  int first;
   SCM val;
 
   scm_dynwind_begin (flags);
-
-  val = scm_make_continuation (&first);
+  val = scm_c_eval_string ("(call/cc (lambda (k) k))");
   scm_dynwind_end ();
   return val;
 }

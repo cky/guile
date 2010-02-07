@@ -410,15 +410,6 @@ invoke that continuation.
 This is in common use since the latter is rather long.
 @end deffn
 
-@deftypefn {C Function} SCM scm_make_continuation (int *first)
-Capture the current continuation as described above.  The return value
-is the new continuation, and @var{*first} is set to 1.
-
-When the continuation is invoked, @code{scm_make_continuation} will
-return again, this time returning the value (or set of multiple
-values) passed in that invocation, and with @var{*first} set to 0.
-@end deftypefn
-
 @sp 1
 @noindent
 Here is a simple example,

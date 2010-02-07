@@ -60,7 +60,7 @@ static scm_t_bits tc16_continuation;
 
 
 
-/* scm_make_continuation will return a procedure whose objcode contains an
+/* scm_i_make_continuation will return a procedure whose objcode contains an
    instruction to reinstate the continuation. Here, as in gsubr.c and smob.c, we
    define the form of that trampoline function.
  */
@@ -189,9 +189,9 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 /* this may return more than once: the first time with the escape
    procedure, then subsequently with the value to be passed to the
    continuation.  */
-#define FUNC_NAME "scm_make_continuation"
+#define FUNC_NAME "scm_i_make_continuation"
 SCM 
-scm_make_continuation (int *first)
+scm_i_make_continuation (int *first)
 {
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   SCM cont;
