@@ -53,7 +53,8 @@ typedef struct
 #endif /* __ia64__ */
   size_t num_stack_items;   /* size of the saved stack.  */
   SCM root;                 /* continuation root identifier.  */
-  SCM vm_conts;             /* vm continuations (they use separate stacks) */
+  SCM vm;                   /* vm */
+  SCM vm_cont;              /* vm's stack and regs */
 
   /* The offset from the live stack location to this copy.  This is
      used to adjust pointers from within the copied stack to the stack
@@ -71,7 +72,7 @@ typedef struct
 
 
 
-SCM_INTERNAL SCM scm_i_make_continuation (int *first);
+SCM_INTERNAL SCM scm_i_make_continuation (int *first, SCM vm, SCM vm_cont);
 SCM_INTERNAL SCM scm_i_call_with_current_continuation (SCM proc);
 SCM_INTERNAL SCM scm_i_continuation_to_frame (SCM cont);
 SCM_INTERNAL void scm_i_continuation_call (SCM cont, size_t n, SCM *argv);

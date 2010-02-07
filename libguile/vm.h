@@ -98,8 +98,8 @@ struct scm_vm_cont {
 #define SCM_VM_CONT_P(OBJ)	(SCM_NIMP (OBJ) && SCM_TYP7 (OBJ) == scm_tc7_vm_cont)
 #define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
 
-SCM_API SCM scm_vm_capture_continuations (void);
-SCM_API void scm_vm_reinstate_continuations (SCM conts);
+SCM_INTERNAL SCM scm_i_vm_capture_continuation (SCM vm);
+SCM_INTERNAL void scm_i_vm_reinstate_continuation (SCM vm, SCM cont);
 
 SCM_API SCM scm_load_compiled_with_vm (SCM file);
 

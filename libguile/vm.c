@@ -137,17 +137,15 @@ reinstate_vm_cont (struct scm_vm *vp, SCM cont)
    call to vm_run; but that's currently not implemented.
  */
 SCM
-scm_vm_capture_continuations (void)
+scm_i_vm_capture_continuation (SCM vm)
 {
-  SCM vm = scm_the_vm ();
-  return scm_acons (vm, capture_vm_cont (SCM_VM_DATA (vm)), SCM_EOL);
+  return capture_vm_cont (SCM_VM_DATA (vm));
 }
 
 void
-scm_vm_reinstate_continuations (SCM conts)
+scm_i_vm_reinstate_continuation (SCM vm, SCM cont)
 {
-  for (; conts != SCM_EOL; conts = SCM_CDR (conts))
-    reinstate_vm_cont (SCM_VM_DATA (SCM_CAAR (conts)), SCM_CDAR (conts));
+  reinstate_vm_cont (SCM_VM_DATA (vm), cont);
 }
 
 static void

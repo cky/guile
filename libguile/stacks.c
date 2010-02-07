@@ -199,7 +199,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       SCM cont;
       struct scm_vm_cont *c;
 
-      cont = scm_cdar (scm_vm_capture_continuations ());
+      cont = scm_i_vm_capture_continuation (scm_the_vm ());
       c = SCM_VM_CONT_DATA (cont);
 
       frame = scm_c_make_frame (cont, c->fp + c->reloc,

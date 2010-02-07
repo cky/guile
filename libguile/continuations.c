@@ -191,7 +191,7 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
    continuation.  */
 #define FUNC_NAME "scm_i_make_continuation"
 SCM 
-scm_i_make_continuation (int *first)
+scm_i_make_continuation (int *first, SCM vm, SCM vm_cont)
 {
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   SCM cont;
@@ -214,7 +214,8 @@ scm_i_make_continuation (int *first)
 #endif
   continuation->offset = continuation->stack - src;
   memcpy (continuation->stack, src, sizeof (SCM_STACKITEM) * stack_size);
-  continuation->vm_conts = scm_vm_capture_continuations ();
+  continuation->vm = vm;
+  continuation->vm_cont = vm_cont;
 
   SCM_NEWSMOB (cont, tc16_continuation, continuation);
 
@@ -265,13 +266,10 @@ scm_i_continuation_to_frame (SCM continuation)
   contregs = scm_c_vector_ref (scm_program_objects (continuation), 0);
   cont = SCM_CONTREGS (contregs);
 
-  if (!scm_is_null (cont->vm_conts))
+  if (scm_is_true (cont->vm_cont))
     {
-      SCM vm_cont;
-      struct scm_vm_cont *data;
-      vm_cont = scm_cdr (scm_car (cont->vm_conts));
-      data = SCM_VM_CONT_DATA (vm_cont);
-      return scm_c_make_frame (vm_cont,
+      struct scm_vm_cont *data = SCM_VM_CONT_DATA (cont->vm_cont);
+      return scm_c_make_frame (cont->vm_cont,
                                data->fp + data->reloc,
                                data->sp + data->reloc,
                                data->ip,
@@ -334,7 +332,8 @@ copy_stack (void *data)
   copy_stack_data *d = (copy_stack_data *)data;
   memcpy (d->dst, d->continuation->stack,
 	  sizeof (SCM_STACKITEM) * d->continuation->num_stack_items);
-  scm_vm_reinstate_continuations (d->continuation->vm_conts);
+  scm_i_vm_reinstate_continuation (d->continuation->vm,
+                                   d->continuation->vm_cont);
 #ifdef __ia64__
   SCM_I_CURRENT_THREAD->pending_rbs_continuation = d->continuation;
 #endif
