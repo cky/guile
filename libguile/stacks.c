@@ -203,7 +203,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       c = SCM_VM_CONT_DATA (cont);
 
       frame = scm_c_make_frame (cont, c->fp + c->reloc,
-                                c->sp + c->reloc, c->ip,
+                                c->sp + c->reloc, c->ra,
                                 c->reloc);
     }
   else if (SCM_VM_FRAME_P (obj))

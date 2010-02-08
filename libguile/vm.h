@@ -87,9 +87,9 @@ SCM_API SCM scm_vm_trace_level (SCM vm);
 SCM_API SCM scm_set_vm_trace_level_x (SCM vm, SCM level);
 
 struct scm_vm_cont {
-  scm_t_uint8 *ip;
   SCM *sp;
   SCM *fp;
+  scm_t_uint8 *ra, *mvra;
   scm_t_ptrdiff stack_size;
   SCM *stack_base;
   scm_t_ptrdiff reloc;
@@ -98,13 +98,11 @@ struct scm_vm_cont {
 #define SCM_VM_CONT_P(OBJ)	(SCM_NIMP (OBJ) && SCM_TYP7 (OBJ) == scm_tc7_vm_cont)
 #define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
 
-SCM_INTERNAL SCM scm_i_vm_capture_continuation (SCM vm);
-SCM_INTERNAL void scm_i_vm_reinstate_continuation (SCM vm, SCM cont);
-
 SCM_API SCM scm_load_compiled_with_vm (SCM file);
 
 SCM_INTERNAL void scm_i_vm_print (SCM x, SCM port,
                                   scm_print_state *pstate);
+SCM_INTERNAL SCM scm_i_vm_capture_continuation (SCM vm);
 SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,
                                        scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_vm (void);

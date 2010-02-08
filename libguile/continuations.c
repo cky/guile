@@ -34,7 +34,6 @@
 #include "libguile/smob.h"
 #include "libguile/ports.h"
 #include "libguile/dynwind.h"
-#include "libguile/values.h"
 #include "libguile/eval.h"
 #include "libguile/vm.h"
 #include "libguile/instructions.h"
@@ -54,7 +53,6 @@ static scm_t_bits tc16_continuation;
    (SCM_CONTREGS (x)->num_stack_items = (n))
 #define SCM_JMPBUF(x)		 ((SCM_CONTREGS (x))->jmpbuf)
 #define SCM_DYNENV(x)		 ((SCM_CONTREGS (x))->dynenv)
-#define SCM_THROW_VALUE(x)	 ((SCM_CONTREGS (x))->throw_value)
 #define SCM_CONTINUATION_ROOT(x) ((SCM_CONTREGS (x))->root)   
 #define SCM_DFRAME(x)		 ((SCM_CONTREGS (x))->dframe)
 
@@ -187,8 +185,8 @@ continuation_print (SCM obj, SCM port, scm_print_state *state SCM_UNUSED)
 }
 
 /* this may return more than once: the first time with the escape
-   procedure, then subsequently with the value to be passed to the
-   continuation.  */
+   procedure, then subsequently with SCM_UNDEFINED (the vals already having been
+   placed on the VM stack). */
 #define FUNC_NAME "scm_i_make_continuation"
 SCM 
 scm_i_make_continuation (int *first, SCM vm, SCM vm_cont)
@@ -206,7 +204,6 @@ scm_i_make_continuation (int *first, SCM vm, SCM vm_cont)
 				"continuation");
   continuation->num_stack_items = stack_size;
   continuation->dynenv = scm_i_dynwinds ();
-  continuation->throw_value = SCM_EOL;
   continuation->root = thread->continuation_root;
   src = thread->continuation_base;
 #if ! SCM_STACK_GROWS_UP
@@ -238,11 +235,7 @@ scm_i_make_continuation (int *first, SCM vm, SCM vm_cont)
       return make_continuation_trampoline (cont);
     }
   else
-    {
-      SCM ret = continuation->throw_value;
-      continuation->throw_value = SCM_BOOL_F;
-      return ret;
-    }
+    return SCM_UNDEFINED;
 }
 #undef FUNC_NAME
 
@@ -272,11 +265,23 @@ scm_i_continuation_to_frame (SCM continuation)
       return scm_c_make_frame (cont->vm_cont,
                                data->fp + data->reloc,
                                data->sp + data->reloc,
-                               data->ip,
+                               data->ra,
                                data->reloc);
     }
   else
     return SCM_BOOL_F;
+}
+
+SCM
+scm_i_contregs_vm (SCM contregs)
+{
+  return SCM_CONTREGS (contregs)->vm;
+}
+
+SCM
+scm_i_contregs_vm_cont (SCM contregs)
+{
+  return SCM_CONTREGS (contregs)->vm_cont;
 }
 
 
@@ -295,7 +300,7 @@ scm_i_continuation_to_frame (SCM continuation)
  * with their correct stack.
  */
 
-static void scm_dynthrow (SCM, SCM);
+static void scm_dynthrow (SCM);
 
 /* Grow the stack by a fixed amount to provide space to copy in the
  * continuation.  Possibly this function has to be called several times
@@ -307,12 +312,12 @@ static void scm_dynthrow (SCM, SCM);
 scm_t_bits scm_i_dummy;
 
 static void 
-grow_stack (SCM cont, SCM val)
+grow_stack (SCM cont)
 {
   scm_t_bits growth[100];
 
   scm_i_dummy = (scm_t_bits) growth;
-  scm_dynthrow (cont, val);
+  scm_dynthrow (cont);
 }
 
 
@@ -332,15 +337,13 @@ copy_stack (void *data)
   copy_stack_data *d = (copy_stack_data *)data;
   memcpy (d->dst, d->continuation->stack,
 	  sizeof (SCM_STACKITEM) * d->continuation->num_stack_items);
-  scm_i_vm_reinstate_continuation (d->continuation->vm,
-                                   d->continuation->vm_cont);
 #ifdef __ia64__
   SCM_I_CURRENT_THREAD->pending_rbs_continuation = d->continuation;
 #endif
 }
 
 static void
-copy_stack_and_call (scm_t_contregs *continuation, SCM val,
+copy_stack_and_call (scm_t_contregs *continuation,
 		     SCM_STACKITEM * dst)
 {
   long delta;
@@ -351,7 +354,6 @@ copy_stack_and_call (scm_t_contregs *continuation, SCM val,
   data.dst = dst;
   scm_i_dowinds (continuation->dynenv, delta, copy_stack, &data);
 
-  continuation->throw_value = val;
   SCM_I_LONGJMP (continuation->jmpbuf, 1);
 }
 
@@ -377,7 +379,7 @@ scm_ia64_longjmp (scm_i_jmp_buf *JB, int VAL)
  * actual copying and continuation calling.
  */
 static void 
-scm_dynthrow (SCM cont, SCM val)
+scm_dynthrow (SCM cont)
 {
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
@@ -392,36 +394,35 @@ scm_dynthrow (SCM cont, SCM val)
 
 #if SCM_STACK_GROWS_UP
   if (dst + continuation->num_stack_items >= &stack_top_element)
-    grow_stack (cont, val);
+    grow_stack (cont);
 #else
   dst -= continuation->num_stack_items;
   if (dst <= &stack_top_element)
-    grow_stack (cont, val);
+    grow_stack (cont);
 #endif /* def SCM_STACK_GROWS_UP */
 
   SCM_FLUSH_REGISTER_WINDOWS;
-  copy_stack_and_call (continuation, val, dst);
+  copy_stack_and_call (continuation, dst);
 }
 
 
 void
-scm_i_continuation_call (SCM cont, size_t n, SCM *argv)
+scm_i_check_continuation (SCM cont)
 {
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
-  SCM args = SCM_EOL;
-  
-  /* FIXME: shuffle args on VM stack instead of heap-allocating */
-  while (n--)
-    args = scm_cons (argv[n], args);
 
   if (continuation->root != thread->continuation_root)
     scm_misc_error
       ("%continuation-call", 
        "invoking continuation would cross continuation barrier: ~A",
        scm_list_1 (cont));
-  
-  scm_dynthrow (cont, scm_values (args));
+}
+
+void
+scm_i_reinstate_continuation (SCM cont)
+{
+  scm_dynthrow (cont);
 }
 
 SCM

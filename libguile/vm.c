@@ -80,72 +80,105 @@ scm_i_vm_cont_print (SCM x, SCM port, scm_print_state *pstate)
   scm_puts (">", port);
 }
 
+/* In theory, a number of vm instances can be active in the call trace, and we
+   only want to reify the continuations of those in the current continuation
+   root. I don't see a nice way to do this -- ideally it would involve dynwinds,
+   and previous values of the *the-vm* fluid within the current continuation
+   root. But we don't have access to continuation roots in the dynwind stack.
+   So, just punt for now, we just capture the continuation for the current VM.
+
+   While I'm on the topic, ideally we could avoid copying the C stack if the
+   continuation root is inside VM code, and call/cc was invoked within that same
+   call to vm_run; but that's currently not implemented.
+ */
 static SCM
-capture_vm_cont (struct scm_vm *vp)
+vm_capture_continuation (SCM *stack_base,
+                         SCM *fp, SCM *sp, scm_t_uint8 *ra, scm_t_uint8 *mvra)
 {
-  struct scm_vm_cont *p = scm_gc_malloc (sizeof (*p), "capture_vm_cont");
-  p->stack_size = vp->sp - vp->stack_base + 1;
+  struct scm_vm_cont *p;
+
+  p = scm_gc_malloc (sizeof (*p), "capture_vm_cont");
+  p->stack_size = sp - stack_base + 1;
   p->stack_base = scm_gc_malloc (p->stack_size * sizeof (SCM),
 				 "capture_vm_cont");
-#ifdef VM_ENABLE_STACK_NULLING
-  if (vp->sp >= vp->stack_base)
+#if defined(VM_ENABLE_STACK_NULLING) && 0
+  /* Tail continuations leave their frame on the stack for subsequent
+     application, but don't capture the frame -- so there are some elements on
+     the stack then, and this check doesn't work, so disable it for now. */
+  if (sp >= vp->stack_base)
     if (!vp->sp[0] || vp->sp[1])
       abort ();
   memset (p->stack_base, 0, p->stack_size * sizeof (SCM));
 #endif
-  p->ip = vp->ip;
-  p->sp = vp->sp;
-  p->fp = vp->fp;
-  memcpy (p->stack_base, vp->stack_base, p->stack_size * sizeof (SCM));
-  p->reloc = p->stack_base - vp->stack_base;
+  p->ra = ra;
+  p->mvra = mvra;
+  p->sp = sp;
+  p->fp = fp;
+  memcpy (p->stack_base, stack_base, (sp + 1 - stack_base) * sizeof (SCM));
+  p->reloc = p->stack_base - stack_base;
   return scm_cell (scm_tc7_vm_cont, (scm_t_bits)p);
 }
 
 static void
-reinstate_vm_cont (struct scm_vm *vp, SCM cont)
+vm_return_to_continuation (SCM vm, SCM cont, size_t n, SCM *argv)
 {
-  struct scm_vm_cont *p = SCM_VM_CONT_DATA (cont);
-  if (vp->stack_size < p->stack_size)
+  struct scm_vm *vp;
+  struct scm_vm_cont *cp;
+  SCM *argv_copy;
+
+  argv_copy = alloca (n * sizeof(SCM));
+  memcpy (argv_copy, argv, n * sizeof(SCM));
+
+  vp = SCM_VM_DATA (vm);
+  cp = SCM_VM_CONT_DATA (cont);
+
+  if (n == 0 && !cp->mvra)
+    scm_misc_error (NULL, "Too few values returned to continuation",
+                    SCM_EOL);
+
+  if (vp->stack_size < cp->stack_size + n + 1)
     {
       /* puts ("FIXME: Need to expand"); */
       abort ();
     }
 #ifdef VM_ENABLE_STACK_NULLING
   {
-    scm_t_ptrdiff nzero = (vp->sp - p->sp);
+    scm_t_ptrdiff nzero = (vp->sp - cp->sp);
     if (nzero > 0)
-      memset (vp->stack_base + p->stack_size, 0, nzero * sizeof (SCM));
+      memset (vp->stack_base + cp->stack_size, 0, nzero * sizeof (SCM));
     /* actually nzero should always be negative, because vm_reset_stack will
        unwind the stack to some point *below* this continuation */
   }
 #endif
-  vp->ip = p->ip;
-  vp->sp = p->sp;
-  vp->fp = p->fp;
-  memcpy (vp->stack_base, p->stack_base, p->stack_size * sizeof (SCM));
+  vp->sp = cp->sp;
+  vp->fp = cp->fp;
+  memcpy (vp->stack_base, cp->stack_base, cp->stack_size * sizeof (SCM));
+
+  if (n == 1 || !cp->mvra)
+    {
+      vp->ip = cp->ra;
+      vp->sp++;
+      *vp->sp = argv_copy[0];
+    }
+  else
+    {
+      size_t i;
+      for (i = 0; i < n; i++)
+        {
+          vp->sp++;
+          *vp->sp = argv_copy[i];
+        }
+      vp->sp++;
+      *vp->sp = scm_from_size_t (n);
+      vp->ip = cp->mvra;
+    }
 }
 
-/* In theory, a number of vm instances can be active in the call trace, and we
-   only want to reify the continuations of those in the current continuation
-   root. I don't see a nice way to do this -- ideally it would involve dynwinds,
-   and previous values of the *the-vm* fluid within the current continuation
-   root. But we don't have access to continuation roots in the dynwind stack.
-   So, just punt for now -- take the current value of *the-vm*.
-
-   While I'm on the topic, ideally we could avoid copying the C stack if the
-   continuation root is inside VM code, and call/cc was invoked within that same
-   call to vm_run; but that's currently not implemented.
- */
 SCM
 scm_i_vm_capture_continuation (SCM vm)
 {
-  return capture_vm_cont (SCM_VM_DATA (vm));
-}
-
-void
-scm_i_vm_reinstate_continuation (SCM vm, SCM cont)
-{
-  reinstate_vm_cont (SCM_VM_DATA (vm), cont);
+  struct scm_vm *vp = SCM_VM_DATA (vm);
+  return vm_capture_continuation (vp->stack_base, vp->fp, vp->sp, vp->ip, NULL);
 }
 
 static void

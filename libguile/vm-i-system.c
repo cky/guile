@@ -982,7 +982,13 @@ VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
 {
   SCM contregs;
   POP (contregs);
-  scm_i_continuation_call (contregs, sp - (fp - 1), fp);
+
+  scm_i_check_continuation (contregs);
+  vm_return_to_continuation (scm_i_contregs_vm (contregs),
+                             scm_i_contregs_vm_cont (contregs),
+                             sp - (fp - 1), fp);
+  scm_i_reinstate_continuation (contregs);
+
   /* no NEXT */
   abort ();
 }
@@ -1090,10 +1096,11 @@ VM_DEFINE_INSTRUCTION (63, tail_apply, "tail-apply", 1, -1, 1)
 VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
-  SCM proc, cont;
+  SCM proc, vm_cont, cont;
   POP (proc);
   SYNC_ALL ();
-  cont = scm_i_make_continuation (&first, vm, capture_vm_cont (vp));
+  vm_cont = vm_capture_continuation (vp->stack_base, fp, sp, ip, NULL);
+  cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
       PUSH ((SCM)fp); /* dynamic link */
@@ -1104,22 +1111,14 @@ VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
       nargs = 1;
       goto vm_call;
     }
-  ASSERT (sp == vp->sp);
-  ASSERT (fp == vp->fp);
-  else if (SCM_VALUESP (cont))
+  else 
     {
-      /* multiple values returned to continuation */
-      SCM values;
-      values = scm_struct_ref (cont, SCM_INUM0);
-      if (scm_is_null (values))
-        goto vm_error_no_values;
-      /* non-tail context does not accept multiple values? */
-      PUSH (SCM_CAR (values));
-      NEXT;
-    }
-  else
-    {
-      PUSH (cont);
+      /* otherwise, the vm continuation was reinstated, and
+         scm_i_vm_return_to_continuation pushed on one value. So pull our regs
+         back down from the vp, and march on to the next instruction. */
+      CACHE_REGISTER ();
+      program = SCM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
       NEXT;
     }
 }
@@ -1127,12 +1126,17 @@ VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
 VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
 {
   int first;
-  SCM proc, cont;
+  SCM proc, vm_cont, cont;
   POP (proc);
   SYNC_ALL ();
-  cont = scm_i_make_continuation (&first, vm, capture_vm_cont (vp));
-  ASSERT (sp == vp->sp);
-  ASSERT (fp == vp->fp);
+  /* In contrast to call/cc, tail-call/cc captures the continuation without the
+     stack frame. */
+  vm_cont = vm_capture_continuation (vp->stack_base,
+                                     SCM_FRAME_DYNAMIC_LINK (fp),
+                                     SCM_FRAME_LOWER_ADDRESS (fp) - 1,
+                                     SCM_FRAME_RETURN_ADDRESS (fp),
+                                     SCM_FRAME_MV_RETURN_ADDRESS (fp));
+  cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
       PUSH (proc);
@@ -1140,19 +1144,14 @@ VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
       nargs = 1;
       goto vm_tail_call;
     }
-  else if (SCM_VALUESP (cont))
-    {
-      /* multiple values returned to continuation */
-      SCM values;
-      values = scm_struct_ref (cont, SCM_INUM0);
-      nvalues = scm_ilength (values);
-      PUSH_LIST (values, scm_is_null);
-      goto vm_return_values;
-    }
   else
     {
-      PUSH (cont);
-      goto vm_return;
+      /* Otherwise, cache regs and NEXT, as above. Invoking the continuation
+         does a return from the frame, either to the RA or MVRA. */
+      CACHE_REGISTER ();
+      program = SCM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
+      NEXT;
     }
 }
 
