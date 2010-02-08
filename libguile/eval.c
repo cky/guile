@@ -295,19 +295,7 @@ eval (SCM x, SCM env)
         }
           
     case SCM_M_CONT:
-      {
-        int first;
-        SCM val = scm_make_continuation (&first);
-
-        if (!first)
-          return val;
-        else
-          {
-            proc = eval (mx, env);
-            args = scm_list_1 (val);
-            goto apply_proc;
-          }
-      }
+      return scm_i_call_with_current_continuation (eval (mx, env));
 
     case SCM_M_CALL_WITH_VALUES:
       {

@@ -66,11 +66,11 @@ static scm_t_bits tc16_continuation;
  */
 
 #ifdef WORDS_BIGENDIAN
-#define OBJCODE_HEADER 0, 0, 0, 8, 0, 0, 0, 27
-#define META_HEADER    0, 0, 0, 19, 0, 0, 0, 0
+#define OBJCODE_HEADER(main,meta) 0, 0, 0, main, 0, 0, 0, meta+8
+#define META_HEADER(meta)         0, 0, 0, meta, 0, 0, 0, 0
 #else
-#define OBJCODE_HEADER 8, 0, 0, 0, 27, 0, 0, 0
-#define META_HEADER    19, 0, 0, 0, 0, 0, 0, 0
+#define OBJCODE_HEADER(main,meta) main, 0, 0, 0, meta+8, 0, 0, 0
+#define META_HEADER(meta)         meta, 0, 0, 0, 0,      0, 0, 0
 #endif
 
 #define ROUND_UP(len,align) (((len-1)|(align-1))+1)
@@ -108,7 +108,7 @@ static const type sym##__unaligned[]
 SCM_STATIC_OBJCODE (cont_objcode) = {
   /* This code is the same as in gsubr.c, except we use smob_call instead of
      struct_call. */
-  OBJCODE_HEADER,
+  OBJCODE_HEADER (8, 19),
   /* leave args on the stack */
   /* 0 */ scm_op_object_ref, 0, /* push scm_t_contregs smob */
   /* 2 */ scm_op_continuation_call, /* and longjmp (whee) */
@@ -118,7 +118,7 @@ SCM_STATIC_OBJCODE (cont_objcode) = {
 
   /* We could put some meta-info to say that this proc is a continuation. Not sure
      how to do that, though. */
-  META_HEADER,
+  META_HEADER (19),
   /* 0 */ scm_op_make_eol, /* bindings */
   /* 1 */ scm_op_make_eol, /* sources */
   /* 2 */ scm_op_make_int8, 0, scm_op_make_int8, 3, /* arity: from ip 0 to ip 3 */
@@ -130,6 +130,29 @@ SCM_STATIC_OBJCODE (cont_objcode) = {
   /* 15 */ scm_op_list, 0, 3, /* pack bindings, sources, and arities into list */
   /* 18 */ scm_op_return /* and return */
   /* 19 */
+};
+
+
+SCM_STATIC_OBJCODE (call_cc_objcode) = {
+  /* Before Scheme's call/cc is compiled, eval.c will use this hand-coded
+     call/cc. */
+  OBJCODE_HEADER (8, 17),
+  /* 0 */ scm_op_assert_nargs_ee, 0, 1, /* assert that nargs==1 */
+  /* 3 */ scm_op_local_ref, 0, /* push the proc */
+  /* 5 */ scm_op_tail_call_cc, /* and call/cc */
+  /* 6 */ scm_op_nop, scm_op_nop, /* pad to 8 bytes */
+  /* 8 */
+
+  META_HEADER (17),
+  /* 0 */ scm_op_make_eol, /* bindings */
+  /* 1 */ scm_op_make_eol, /* sources */
+  /* 2 */ scm_op_make_int8, 3, scm_op_make_int8, 6, /* arity: from ip 0 to ip 6 */
+  /* 6 */ scm_op_make_int8_1, /* the arity is 0 required args */
+  /* 7 */ scm_op_list, 0, 3, /* make a list of those 5 vals */
+  /* 10 */ scm_op_list, 0, 1, /* and the arities will be a list of that one list */
+  /* 13 */ scm_op_list, 0, 3, /* pack bindings, sources, and arities into list */
+  /* 16 */ scm_op_return /* and return */
+  /* 17 */
 };
 
 
@@ -221,6 +244,17 @@ scm_make_continuation (int *first)
     }
 }
 #undef FUNC_NAME
+
+SCM
+scm_i_call_with_current_continuation (SCM proc)
+{
+  static SCM call_cc = SCM_BOOL_F;
+
+  if (scm_is_false (call_cc))
+    call_cc = scm_make_program (call_cc_objcode, SCM_BOOL_F, SCM_BOOL_F);
+  
+  return scm_call_1 (call_cc, proc);
+}
 
 SCM
 scm_i_continuation_to_frame (SCM continuation)
