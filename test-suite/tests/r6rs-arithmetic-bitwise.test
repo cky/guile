@@ -1,0 +1,97 @@
+;;; arithmetic-bitwise.test --- Test suite for R6RS (rnrs arithmetic bitwise)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-r6rs-arithmetic-bitwise)
+  :use-module ((rnrs arithmetic bitwise) :version (6))
+  :use-module (test-suite lib))
+
+(with-test-prefix "bitwise-not"
+  (pass-if "bitwise-not simple"
+    (eqv? (bitwise-not 3) -4)))
+
+(with-test-prefix "bitwise-and"
+  (pass-if "bitwise-and simple"
+    (eqv? (bitwise-and #b101 #b110) #b100)))
+
+(with-test-prefix "bitwise-ior"
+  (pass-if "bitwise-ior simple"
+    (eqv? (bitwise-ior #b010 #b100) #b110)))
+
+(with-test-prefix "bitwise-xor"
+  (pass-if "bitwise-xor simple"
+    (eqv? (bitwise-xor #b101 #b100) #b001)))
+
+(with-test-prefix "bitwise-if"
+  (pass-if "bitwise-if simple"
+    (eqv? (bitwise-if #b101 #b011 #b100) #b001)))
+
+(with-test-prefix "bitwise-bit-count"
+  (pass-if "bitwise-bit-count simple"
+    (eqv? (bitwise-bit-count #b101) 2)))
+
+(with-test-prefix "bitwise-length"
+  (pass-if "bitwise-length simple"
+    (eqv? (bitwise-length #b101) 3))
+  (pass-if "bitwise-length leading zeros"
+    (eqv? (bitwise-length #b001) 1)))
+
+(with-test-prefix "bitwise-first-bit-set"
+  (pass-if "bitwise-first-bit-set simple"
+    (and (eqv? (bitwise-first-bit-set 1) 0)
+         (eqv? (bitwise-first-bit-set -4) 2)))
+  (pass-if "bitwise-first-bit-set zero"
+    (and (eqv? (bitwise-first-bit-set 0) -1))))
+
+(with-test-prefix "bitwise-copy-bit"
+  (pass-if "bitwise-copy-bit simple"
+    (eqv? (bitwise-copy-bit #b010 2 #b111) #b110)))
+
+(with-test-prefix "bitwise-bit-field"
+  (pass-if "bitwise-bit-field simple"
+    (eqv? (bitwise-bit-field #b110010 1 4) #b001)))
+
+(with-test-prefix "bitwise-copy-bit-field"
+  (pass-if "bitwise-copy-bit-field simple"
+    (eqv? (bitwise-copy-bit-field #b11111111 2 6 #b1010) #b11101011)))
+
+(with-test-prefix "bitwise-arithmetic-shift"
+  (pass-if "bitwise-arithmetic-shift simple"
+    (and (eqv? (bitwise-arithmetic-shift -6 -1) -3)
+         (eqv? (bitwise-arithmetic-shift -5 -1) -3)
+	 (eqv? (bitwise-arithmetic-shift -4 -1) -2)
+	 (eqv? (bitwise-arithmetic-shift -3 -1) -2)
+	 (eqv? (bitwise-arithmetic-shift -2 -1) -1)
+	 (eqv? (bitwise-arithmetic-shift -1 -1) -1))))
+
+(with-test-prefix "bitwise-arithmetic-shift-left"
+  (pass-if "bitwise-arithmetic-shift-left simple"
+    (eqv? (bitwise-arithmetic-shift-left -6 -1) -3)))
+
+(with-test-prefix "bitwise-arithmetic-shift-right"
+  (pass-if "bitwise-arithmetic-shift-right simple"
+    (eqv? (bitwise-arithmetic-shift-right -6 1) -3)))
+
+(with-test-prefix "bitwise-rotate-bit-field"
+  (pass-if "bitwise-rotate-bit-field simple"
+    (eqv? (bitwise-rotate-bit-field #b11100011 2 6 2) #b11001011)))
+
+(with-test-prefix "bitwise-reverse-bit-field"
+  (pass-if "bitwise-reverse-bit-field simple"
+    (eqv? (bitwise-reverse-bit-field #b1010010 1 4) #b1011000)))
+
