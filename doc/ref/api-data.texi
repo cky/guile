@@ -4422,23 +4422,27 @@ assume that Guile strings are Latin-1-encoded.}.
 @end lisp
 
 @deffn {Scheme Procedure} string->utf8 str
-@deffnx {Scheme Procedure} string->utf16 str
-@deffnx {Scheme Procedure} string->utf32 str
+@deffnx {Scheme Procedure} string->utf16 str [endianness]
+@deffnx {Scheme Procedure} string->utf32 str [endianness]
 @deffnx {C Function} scm_string_to_utf8 (str)
-@deffnx {C Function} scm_string_to_utf16 (str)
-@deffnx {C Function} scm_string_to_utf32 (str)
+@deffnx {C Function} scm_string_to_utf16 (str, endianness)
+@deffnx {C Function} scm_string_to_utf32 (str, endianness)
 Return a newly allocated bytevector that contains the UTF-8, UTF-16, or
-UTF-32 (aka. UCS-4) encoding of @var{str}.
+UTF-32 (aka. UCS-4) encoding of @var{str}.  For UTF-16 and UTF-32,
+@var{endianness} should be the symbol @code{big} or @code{little}; when omitted,
+it defaults to big endian.
 @end deffn
 
 @deffn {Scheme Procedure} utf8->string utf
-@deffnx {Scheme Procedure} utf16->string utf
-@deffnx {Scheme Procedure} utf32->string utf
+@deffnx {Scheme Procedure} utf16->string utf [endianness]
+@deffnx {Scheme Procedure} utf32->string utf [endianness]
 @deffnx {C Function} scm_utf8_to_string (utf)
-@deffnx {C Function} scm_utf16_to_string (utf)
-@deffnx {C Function} scm_utf32_to_string (utf)
+@deffnx {C Function} scm_utf16_to_string (utf, endianness)
+@deffnx {C Function} scm_utf32_to_string (utf, endianness)
 Return a newly allocated string that contains from the UTF-8-, UTF-16-,
-or UTF-32-decoded contents of bytevector @var{utf}.
+or UTF-32-decoded contents of bytevector @var{utf}.  For UTF-16 and UTF-32,
+@var{endianness} should be the symbol @code{big} or @code{little}; when omitted,
+it defaults to big endian.
 @end deffn
 
 @node Bytevectors as Generalized Vectors
