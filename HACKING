@@ -230,7 +230,7 @@ When deprecating a definition, always follow this procedure:
 
 - Write commit messages for functions written in C using the
 functions' C names, and write entries for functions written in Scheme
-using the functions' Scheme names.  For example, 
+using the functions' Scheme names.  For example,
 
   * foo.c: Moved scm_procedure_documentation from eval.c.
 
@@ -278,6 +278,9 @@ the list of years in the copyright notice at the top of the file.
 - When you get bug reports or patches from people, be sure to list
 them in THANKS.
 
+- Do not introduce trailing whitespace (and feel free to clean it up
+opportunistically, that is, if doing so is part of some other change).
+The goal is to reduce (and over time, eliminate) spurious diffs.
 
 Naming conventions =================================================
 
