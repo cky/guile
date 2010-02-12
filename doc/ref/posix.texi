@@ -948,6 +948,15 @@ which is usual for ordinary file creation,
 @end example
 @end deffn
 
+@deffn {Scheme Procedure} tmpfile
+@deffnx {C Function} scm_tmpfile
+Return an input/output port to a unique temporary file
+named using the path prefix @code{P_tmpdir} defined in
+@file{stdio.h}.
+The file is automatically deleted when the port is closed
+or the program terminates.
+@end deffn
+
 @deffn {Scheme Procedure} dirname filename
 @deffnx {C Function} scm_dirname (filename)
 Return the directory name component of the file name

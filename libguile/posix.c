@@ -1372,6 +1372,23 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_tmpfile, "tmpfile", 0, 0, 0,
+            (void),
+            "Return an input/output port to a unique temporary file\n"
+            "named using the path prefix @code{P_tmpdir} defined in\n"
+            "@file{stdio.h}.\n"
+            "The file is automatically deleted when the port is closed\n"
+            "or the program terminates.")
+#define FUNC_NAME s_scm_tmpfile
+{
+  FILE *rv;
+
+  if (! (rv = tmpfile ()))
+    SCM_SYSERROR;
+  return scm_fdes_to_port (fileno (rv), "w+", SCM_BOOL_F);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
             (SCM pathname, SCM actime, SCM modtime, SCM actimens, SCM modtimens,
              SCM flags),

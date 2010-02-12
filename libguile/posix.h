@@ -68,6 +68,7 @@ SCM_API SCM scm_uname (void);
 SCM_API SCM scm_environ (SCM env);
 SCM_API SCM scm_tmpnam (void);
 SCM_API SCM scm_mkstemp (SCM tmpl);
+SCM_API SCM scm_tmpfile (void);
 SCM_API SCM scm_open_pipe (SCM pipestr, SCM modes);
 SCM_API SCM scm_close_pipe (SCM port);
 SCM_API SCM scm_utime (SCM pathname, SCM actime, SCM modtime,
