@@ -112,7 +112,7 @@ the given @var{name} but no environment binding will be created.  The
 arguments @var{req}, @var{opt} and @var{rst} specify the number of
 required, optional and ``rest'' arguments respectively.  The total
 number of these arguments should match the actual number of arguments
-to @var{fcn}.  The number of rest arguments should be 0 or 1.
+to @var{fcn}, but may not exceed 10.  The number of rest arguments should be 0 or 1.
 @code{scm_c_make_gsubr} returns a value of type @code{SCM} which is a
 ``handle'' for the procedure.
 @end deftypefun
