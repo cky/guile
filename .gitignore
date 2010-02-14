@@ -123,3 +123,7 @@ INSTALL
 /module/ice-9/eval.go.stamp
 /doc/ref/standard-library.texi
 /doc/ref/standard-libraryscmfiles
+/lib/wchar.h
+/lib/sys/socket.h
+/lib/warn-on-use.h
+/lib/unused-parameter.h
