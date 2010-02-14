@@ -55,6 +55,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/load.test			\
 	    tests/modules.test			\
 	    tests/multilingual.nottest		\
+	    tests/net-db.test			\
 	    tests/numbers.test			\
 	    tests/optargs.test			\
 	    tests/options.test			\

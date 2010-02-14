@@ -1,0 +1,74 @@
+;;;; net-db.test --- Test suite for `net-db' -*- mode: scheme; coding: utf-8; -*-
+;;;; Ludovic Courtès <ludo@gnu.org>
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-net-db)
+  #:use-module (srfi srfi-1)
+  #:use-module (test-suite lib))
+
+(if (provided? 'net-db)
+    (with-test-prefix "getaddrinfo"
+
+      (pass-if "127.0.0.1, any service"
+        (let ((ai (getaddrinfo "127.0.0.1" #f AI_NUMERICHOST)))
+          (and (> (length ai) 0)
+               (fold (lambda (sa ok?)
+                       (and ok?
+                            (= (sockaddr:addr sa) INADDR_LOOPBACK)))
+                     #t
+                     (map addrinfo:addr ai)))))
+
+      (pass-if "127.0.0.1:80"
+        (let ((ai (getaddrinfo "127.0.0.1" "80"
+                               (logior AI_NUMERICHOST AI_NUMERICSERV))))
+          (and (> (length ai) 0)
+               (fold (lambda (sa ok?)
+                       (and ok?
+                            (= (sockaddr:addr sa) INADDR_LOOPBACK)
+                            (= (sockaddr:port sa) 80)))
+                     #t
+                     (map addrinfo:addr ai)))))
+
+      (pass-if "port 80"
+        (let ((ai (getaddrinfo #f "80" (logior AI_ADDRCONFIG AI_NUMERICSERV))))
+          (and (> (length ai) 0)
+               (fold (lambda (ai ok?)
+                       (let ((sa (addrinfo:addr ai)))
+                         (and ok?
+                              (> (logand (addrinfo:flags ai) AI_ADDRCONFIG) 0)
+                              (= (sockaddr:port sa) 80))))
+                     #t
+                     ai))))
+
+      (pass-if "no name"
+        (catch 'getaddrinfo-error
+          (lambda ()
+            (getaddrinfo "does-not-exist")
+            #f)
+          (lambda (key errcode)
+            (and (= errcode EAI_NONAME)
+                 (string? (gai-strerror errcode))))))
+
+      (pass-if "wrong service name"
+        (catch 'getaddrinfo-error
+          (lambda ()
+            (getaddrinfo "127.0.0.1" "does-not-exist" AI_NUMERICHOST)
+            #f)
+          (lambda (key errcode)
+            (and (= errcode EAI_SERVICE)
+                 (string? (gai-strerror errcode))))))))
