@@ -61,7 +61,10 @@
             (getaddrinfo "does-not-exist")
             #f)
           (lambda (key errcode)
-            (and (= errcode EAI_NONAME)
+            ;; In some cases (e.g., in a chroot without
+            ;; /etc/{hosts,resolv.conf}), this can result in `EAI_EAGAIN'.
+            (and (or (= errcode EAI_NONAME)
+                     (= errcode EAI_AGAIN))
                  (string? (gai-strerror errcode))))))
 
       (pass-if "wrong service name"
