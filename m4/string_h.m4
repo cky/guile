@@ -1,11 +1,11 @@
 # Configure a GNU-like replacement for <string.h>.
 
-# Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+# Copyright (C) 2007-2010 Free Software Foundation, Inc.
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
 
-# serial 9
+# serial 11
 
 # Written by Paul Eggert.
 
@@ -21,6 +21,13 @@ AC_DEFUN([gl_HEADER_STRING_H_BODY],
   AC_REQUIRE([AC_C_RESTRICT])
   AC_REQUIRE([gl_HEADER_STRING_H_DEFAULTS])
   gl_CHECK_NEXT_HEADERS([string.h])
+
+  dnl Check for declarations of anything we want to poison if the
+  dnl corresponding gnulib module is not in use, and which is not
+  dnl guaranteed by C89.
+  gl_WARN_ON_USE_PREPARE([[#include <string.h>
+    ]], [memmem mempcpy memrchr rawmemchr stpcpy stpncpy strchrnul strdup
+    strndup strnlen strpbrk strsep strcasestr strtok_r strsignal strverscmp])
 ])
 
 AC_DEFUN([gl_STRING_MODULE_INDICATOR],
@@ -64,7 +71,8 @@ AC_DEFUN([gl_HEADER_STRING_H_DEFAULTS],
   GNULIB_MBSTOK_R=0;    AC_SUBST([GNULIB_MBSTOK_R])
   GNULIB_STRERROR=0;    AC_SUBST([GNULIB_STRERROR])
   GNULIB_STRSIGNAL=0;   AC_SUBST([GNULIB_STRSIGNAL])
-  GNULIB_STRVERSCMP=0;   AC_SUBST([GNULIB_STRVERSCMP])
+  GNULIB_STRVERSCMP=0;  AC_SUBST([GNULIB_STRVERSCMP])
+  HAVE_MBSLEN=0;        AC_SUBST([HAVE_MBSLEN])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_DECL_MEMMEM=1;           AC_SUBST([HAVE_DECL_MEMMEM])
   HAVE_MEMPCPY=1;               AC_SUBST([HAVE_MEMPCPY])

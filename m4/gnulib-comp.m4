@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2009 Free Software Foundation, Inc.
+# Copyright (C) 2002-2010 Free Software Foundation, Inc.
 #
 # This file is free software, distributed under the terms of the GNU
 # General Public License.  As a special exception to the GNU General
@@ -65,6 +65,8 @@ AC_DEFUN([gl_INIT],
   gl_FLOAT_H
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
+  gl_GETADDRINFO
+  gl_NETDB_MODULE_INDICATOR([getaddrinfo])
   AC_SUBST([LIBINTL])
   AC_SUBST([LTLIBINTL])
   # Autoconf 2.61a.99 and earlier don't support linking a file only
@@ -77,6 +79,7 @@ AC_DEFUN([gl_INIT],
   	m4_defn([m4_PACKAGE_VERSION])), [1], [],
         [AC_CONFIG_LINKS([$GNUmakefile:$GNUmakefile], [],
   	[GNUmakefile=$GNUmakefile])])
+  gl_HOSTENT
   AM_ICONV
   gl_ICONV_H
   gl_FUNC_ICONV_OPEN
@@ -95,6 +98,8 @@ AC_DEFUN([gl_INIT],
   gl_LOCALE_H
   gl_FUNC_LSTAT
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
+  AC_CONFIG_COMMANDS_PRE([m4_ifdef([AH_HEADER],
+    [AC_SUBST([CONFIG_INCLUDE], m4_defn([AH_HEADER]))])])
   gl_FUNC_MALLOC_POSIX
   gl_STDLIB_MODULE_INDICATOR([malloc-posix])
   gl_MALLOCA
@@ -107,6 +112,7 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_MEMCHR
   gl_STRING_MODULE_INDICATOR([memchr])
   gl_MULTIARCH
+  gl_HEADER_NETDB
   gl_HEADER_NETINET_IN
   AC_PROG_MKDIR_P
   gl_PATHMAX
@@ -116,7 +122,10 @@ AC_DEFUN([gl_INIT],
   gl_UNISTD_MODULE_INDICATOR([readlink])
   gl_SAFE_READ
   gl_SAFE_WRITE
+  gl_SERVENT
   gl_SIZE_MAX
+  gl_FUNC_SNPRINTF
+  gl_STDIO_MODULE_INDICATOR([snprintf])
   gl_TYPE_SOCKLEN_T
   gt_TYPE_SSIZE_T
   gl_FUNC_STAT
@@ -292,9 +301,10 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/gitlog-to-changelog
   build-aux/gnu-web-doc-update
   build-aux/gnupload
-  build-aux/link-warning.h
+  build-aux/unused-parameter.h
   build-aux/useless-if-before-free
   build-aux/vc-list-files
+  build-aux/warn-on-use.h
   doc/gendocs_template
   lib/alignof.h
   lib/alloca.in.h
@@ -318,6 +328,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/full-read.h
   lib/full-write.c
   lib/full-write.h
+  lib/gai_strerror.c
+  lib/getaddrinfo.c
   lib/gettext.h
   lib/iconv.c
   lib/iconv.in.h
@@ -344,6 +356,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mbsinit.c
   lib/memchr.c
   lib/memchr.valgrind
+  lib/netdb.in.h
   lib/netinet_in.in.h
   lib/pathmax.h
   lib/printf-args.c
@@ -359,6 +372,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.c
   lib/safe-write.h
   lib/size_max.h
+  lib/snprintf.c
   lib/stat.c
   lib/stdarg.in.h
   lib/stdbool.in.h
@@ -416,12 +430,14 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/environ.m4
   m4/errno_h.m4
   m4/extensions.m4
-  m4/fcntl_h.m4
+  m4/fcntl-o.m4
   m4/float_h.m4
   m4/flock.m4
   m4/fpieee.m4
+  m4/getaddrinfo.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
+  m4/hostent.m4
   m4/iconv.m4
   m4/iconv_h.m4
   m4/iconv_open.m4
@@ -452,6 +468,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/memchr.m4
   m4/mmap-anon.m4
   m4/multiarch.m4
+  m4/netdb_h.m4
   m4/netinet_in_h.m4
   m4/pathmax.m4
   m4/printf.m4
@@ -459,7 +476,9 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/readlink.m4
   m4/safe-read.m4
   m4/safe-write.m4
+  m4/servent.m4
   m4/size_max.m4
+  m4/snprintf.m4
   m4/socklen.m4
   m4/sockpfaf.m4
   m4/ssize_t.m4
@@ -486,6 +505,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/version-etc.m4
   m4/visibility.m4
   m4/vsnprintf.m4
+  m4/warn-on-use.m4
   m4/warnings.m4
   m4/wchar.m4
   m4/wchar_t.m4

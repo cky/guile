@@ -1,5 +1,5 @@
 /* A POSIX <locale.h>.
-   Copyright (C) 2007-2009 Free Software Foundation, Inc.
+   Copyright (C) 2007-2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,8 @@
 
 /* The definition of _GL_ARG_NONNULL is copied here.  */
 
+/* The definition of _GL_WARN_ON_USE is copied here.  */
+
 /* The LC_MESSAGES locale category is specified in POSIX, but not in ISO C.
    On systems that don't define it, use the same value as GNU libintl.  */
 #if !defined LC_MESSAGES
@@ -50,10 +52,10 @@ extern locale_t duplocale (locale_t locale) _GL_ARG_NONNULL ((1));
 # endif
 #elif defined GNULIB_POSIXCHECK
 # undef duplocale
-# define duplocale(l) \
-   (GL_LINK_WARNING ("duplocale is buggy on some glibc systems - " \
-                     "use gnulib module duplocale for portability"), \
-    duplocale (l))
+# if HAVE_RAW_DECL_DUPLOCALE
+_GL_WARN_ON_USE (duplocale, "duplocale is buggy on some glibc systems - "
+                 "use gnulib module duplocale for portability");
+# endif
 #endif
 
 #endif /* _GL_LOCALE_H */

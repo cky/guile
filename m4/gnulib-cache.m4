@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2009 Free Software Foundation, Inc.
+# Copyright (C) 2002-2010 Free Software Foundation, Inc.
 #
 # This file is free software, distributed under the terms of the GNU
 # General Public License.  As a special exception to the GNU General
@@ -15,7 +15,7 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files alignof alloca-opt announce-gen autobuild byteswap canonicalize-lgpl duplocale environ extensions flock fpieee full-read full-write gendocs gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton lib-symbol-versions lib-symbol-visibility libunistring locale maintainer-makefile putenv stdlib strcase strftime striconveh string sys_stat verify version-etc-fsf vsnprintf warnings
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files alignof alloca-opt announce-gen autobuild byteswap canonicalize-lgpl duplocale environ extensions flock fpieee full-read full-write gendocs getaddrinfo gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton lib-symbol-versions lib-symbol-visibility libunistring locale maintainer-makefile putenv stdlib strcase strftime striconveh string sys_stat verify version-etc-fsf vsnprintf warnings
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
@@ -34,6 +34,7 @@ gl_MODULES([
   full-read
   full-write
   gendocs
+  getaddrinfo
   gitlog-to-changelog
   gnu-web-doc-update
   gnupload

@@ -1,5 +1,5 @@
-# gnulib-common.m4 serial 11
-dnl Copyright (C) 2007-2009 Free Software Foundation, Inc.
+# gnulib-common.m4 serial 12
+dnl Copyright (C) 2007-2010 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -23,14 +23,17 @@ AC_DEFUN([gl_COMMON_BODY], [
 # define __GNUC_STDC_INLINE__ 1
 #endif])
   AH_VERBATIM([unused_parameter],
-[/* Define as a marker that can be attached to function parameter declarations
-   for parameters that are not used.  This helps to reduce warnings, such as
-   from GCC -Wunused-parameter.  */
+[/* Define as a marker that can be attached to declarations that might not
+    be used.  This helps to reduce warnings, such as from
+    GCC -Wunused-parameter.  */
 #if __GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7)
-# define _UNUSED_PARAMETER_ __attribute__ ((__unused__))
+# define _GL_UNUSED __attribute__ ((__unused__))
 #else
-# define _UNUSED_PARAMETER_
+# define _GL_UNUSED
 #endif
+/* The name _UNUSED_PARAMETER_ is an earlier spelling, although the name
+   is a misnomer outside of parameter lists.  */
+#define _UNUSED_PARAMETER_ _GL_UNUSED
 ])
 ])
 
@@ -48,6 +51,14 @@ AC_DEFUN([gl_MODULE_INDICATOR],
 m4_ifndef([m4_foreach_w],
   [m4_define([m4_foreach_w],
     [m4_foreach([$1], m4_split(m4_normalize([$2]), [ ]), [$3])])])
+
+# AS_VAR_IF(VAR, VALUE, [IF-MATCH], [IF-NOT-MATCH])
+# ----------------------------------------------------
+# Backport of autoconf-2.63b's macro.
+# Remove this macro when we can assume autoconf >= 2.64.
+m4_ifndef([AS_VAR_IF],
+[m4_define([AS_VAR_IF],
+[AS_IF([test x"AS_VAR_GET([$1])" = x""$2], [$3], [$4])])])
 
 # AC_PROG_MKDIR_P
 # is a backport of autoconf-2.60's AC_PROG_MKDIR_P.
