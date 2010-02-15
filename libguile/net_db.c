@@ -1,5 +1,5 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2009 Free Software Foundation, Inc.
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -493,7 +493,10 @@ scm_from_addrinfo (const struct addrinfo *c_ai)
   SCM_SIMPLE_VECTOR_SET (ai, 3, scm_from_int (c_ai->ai_protocol));
   SCM_SIMPLE_VECTOR_SET (ai, 4,
 			 scm_from_sockaddr (c_ai->ai_addr, c_ai->ai_addrlen));
-  SCM_SIMPLE_VECTOR_SET (ai, 5, scm_from_locale_string (c_ai->ai_canonname));
+  SCM_SIMPLE_VECTOR_SET (ai, 5,
+			 c_ai->ai_canonname != NULL
+			 ? scm_from_locale_string (c_ai->ai_canonname)
+			 : SCM_BOOL_F);
 
   return ai;
 }
