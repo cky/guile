@@ -54,6 +54,17 @@
                      #t
                      ai))))
 
+      (pass-if "port 80 with family and socket type"
+        (let ((ai (getaddrinfo #f "80" (logior AI_ADDRCONFIG AI_NUMERICSERV)
+                               AF_UNSPEC SOCK_STREAM)))
+          (and (> (length ai) 0)
+               (fold (lambda (ai ok?)
+                       (let ((sa (addrinfo:addr ai)))
+                         (and ok?
+                              (= (sockaddr:port sa) 80))))
+                     #t
+                     ai))))
+
       (pass-if "no name"
         (catch 'getaddrinfo-error
           (lambda ()
