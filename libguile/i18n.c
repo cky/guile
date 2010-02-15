@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1102,7 +1102,9 @@ static SCM
 chr_to_case (SCM chr, scm_t_locale c_locale, 
 	     scm_t_uint32 *(*func) (const scm_t_uint32 *, size_t, const char *,
 				    uninorm_t, scm_t_uint32 *, size_t *),
+	     const char *func_name,
 	     int *err)
+#define FUNC_NAME func_name
 {
   int ret;
   scm_t_wchar *buf;
@@ -1137,6 +1139,7 @@ chr_to_case (SCM chr, scm_t_locale c_locale,
 
   return convchar;
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
 	    (SCM chr, SCM locale),
@@ -1151,7 +1154,7 @@ SCM_DEFINE (scm_char_locale_downcase, "char-locale-downcase", 1, 1, 0,
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  ret = chr_to_case (chr, c_locale, u32_tolower, &err);
+  ret = chr_to_case (chr, c_locale, u32_tolower, FUNC_NAME, &err);
 
   if (err != 0)
     {
@@ -1175,7 +1178,7 @@ SCM_DEFINE (scm_char_locale_upcase, "char-locale-upcase", 1, 1, 0,
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  ret = chr_to_case (chr, c_locale, u32_toupper, &err);
+  ret = chr_to_case (chr, c_locale, u32_toupper, FUNC_NAME, &err);
 
   if (err != 0)
     {
@@ -1199,7 +1202,7 @@ SCM_DEFINE (scm_char_locale_titlecase, "char-locale-titlecase", 1, 1, 0,
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  ret = chr_to_case (chr, c_locale, u32_totitle, &err);
+  ret = chr_to_case (chr, c_locale, u32_totitle, FUNC_NAME, &err);
 
   if (err != 0)
     {
@@ -1214,7 +1217,9 @@ static SCM
 str_to_case (SCM str, scm_t_locale c_locale,
 	     scm_t_uint32 *(*func) (const scm_t_uint32 *, size_t, const char *,
 				    uninorm_t, scm_t_uint32 *, size_t *),
+	     const char *func_name,
 	     int *err)
+#define FUNC_NAME func_name
 {
   scm_t_wchar *c_str, *c_buf;
   scm_t_uint32 *c_convstr;
@@ -1253,6 +1258,7 @@ str_to_case (SCM str, scm_t_locale c_locale,
 
   return convstr;
 }
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_string_locale_upcase, "string-locale-upcase", 1, 1, 0,
 	    (SCM str, SCM locale),
@@ -1268,7 +1274,7 @@ SCM_DEFINE (scm_string_locale_upcase, "string-locale-upcase", 1, 1, 0,
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  ret = str_to_case (str, c_locale, u32_toupper, &err);
+  ret = str_to_case (str, c_locale, u32_toupper, FUNC_NAME, &err);
   
   if (err != 0)
     {
@@ -1293,7 +1299,7 @@ SCM_DEFINE (scm_string_locale_downcase, "string-locale-downcase", 1, 1, 0,
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  ret = str_to_case (str, c_locale, u32_tolower, &err);
+  ret = str_to_case (str, c_locale, u32_tolower, FUNC_NAME, &err);
 
   if (err != 0)
     {
@@ -1318,7 +1324,7 @@ SCM_DEFINE (scm_string_locale_titlecase, "string-locale-titlecase", 1, 1, 0,
   SCM_VALIDATE_STRING (1, str);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
 
-  ret = str_to_case (str, c_locale, u32_totitle, &err);
+  ret = str_to_case (str, c_locale, u32_totitle, FUNC_NAME, &err);
 
   if (err != 0)
     {
