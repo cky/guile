@@ -50,7 +50,6 @@
                (fold (lambda (ai ok?)
                        (let ((sa (addrinfo:addr ai)))
                          (and ok?
-                              (> (logand (addrinfo:flags ai) AI_ADDRCONFIG) 0)
                               (= (sockaddr:port sa) 80))))
                      #t
                      ai))))
@@ -73,5 +72,8 @@
             (getaddrinfo "127.0.0.1" "does-not-exist" AI_NUMERICHOST)
             #f)
           (lambda (key errcode)
-            (and (= errcode EAI_SERVICE)
+            ;; According to POSIX, both error codes are valid (glibc 2.11
+            ;; chooses `EAI_SERVICE'; Darwin chooses `EAI_NONAME'.)
+            (and (or (= errcode EAI_SERVICE)
+                     (= errcode EAI_NONAME))
                  (string? (gai-strerror errcode))))))))
