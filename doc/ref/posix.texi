@@ -2355,7 +2355,7 @@ which to address the specified service.
 @example
 (let* ((ai (car (getaddrinfo "www.gnu.org" "http")))
        (s  (socket (addrinfo:fam ai) (addrinfo:socktype ai)
-		   (addrinfo:protocol ai))))
+                   (addrinfo:protocol ai))))
   (connect s (addrinfo:addr ai))
   s)
 @end example

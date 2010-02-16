@@ -4,4 +4,5 @@
                      (tab-width   .  8)))
  (c-mode          . ((c-file-style . "gnu")))
  (scheme-mode     . ((indent-tabs-mode . nil)))
- (emacs-lisp-mode . ((indent-tabs-mode . nil))))
+ (emacs-lisp-mode . ((indent-tabs-mode . nil)))
+ (texinfo-mode    . ((indent-tabs-mode . nil))))
