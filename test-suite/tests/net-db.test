@@ -81,7 +81,15 @@
         (catch 'getaddrinfo-error
           (lambda ()
             (getaddrinfo "127.0.0.1" "does-not-exist" AI_NUMERICHOST)
-            #f)
+
+            ;; XXX: The call above unexpectedly suceeds on
+            ;; `i386-apple-darwin9.2.2', but not on `i386-apple-darwin9.6.0'.
+            ;; For now we just skip it until a better solution is found.  See
+            ;; http://lists.gnu.org/archive/html/bug-gnulib/2010-02/msg00061.html
+            ;; for details.
+            (if (string-contains %host-type "darwin9.2")
+                (throw 'unresolved)
+                #f))
           (lambda (key errcode)
             ;; According to POSIX, both error codes are valid (glibc 2.11
             ;; chooses `EAI_SERVICE'; Darwin chooses `EAI_NONAME'.)
