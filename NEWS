@@ -25,41 +25,63 @@ unavailable.
 
 ** Foreign function interface
 
-dynamic-link / dynamic-func still get the syms; we just added a libffi
-interface to call functions. integer, floating point, pointer, and
-struct types supported. simple finalization interface; complicated users
-to use guardians. (system foreign); high-level wrapper needed. vm
-integration. bytevector integration.
+This release comes with a new `(system foreign)' module.  Currently it
+provides a low level "foreign function interface" (FFI), which allows
+users to write Scheme code to invoke C code, without writing a single
+line of C code.
+
+The `dynamic-link' and `dynamic-func' procedures, which have been
+available for a long time, can be used to get the address of a C
+function as a "foreign" object at the Scheme level; using libffi, Guile
+can construct calls to these functions.
+
+The arguments to a C function may be integers, floating point numbers,
+pointers, and structs.  From Scheme they are all represented as foreign
+objects.  Foreign objects can be converted back and forth to/from a
+bytevector.  They can have an associated finalizer (e.g., a procedure
+that will reclaim any associated resources when the object becomes
+unreachable); alternatively, they can be finalized using a guardian.
+
+The `(system foreign)' API is currently low-level and possibly
+inconvenient.  It will be extended to provide higher-level constructs.
 
 ** Incompatible changes to the foreign value interface introduced in 1.9.7
 
-C extensions need recompilation
+The API in <libguile/foreign.h> changed since 1.9.7.  C extensions need
+recompilation.
 
-** dynamic-wind compilation
+** `dynamic-wind' compilation
 
-inline body thunk; wind/unwind via VM; add to tree-il
+`dynamic-wind' now has special support from the compiler and VM.  The
+compiler is able to inline the body of a `dynamic-wind', making it more
+efficient.  The run-time support is provided by the `wind' and `unwind'
+VM instructions.
 
-** vlists
+** New module: `(ice-9 vlist)'
 
-vlists and vhashes. used internally. composed of awesome.
+This module provides an implementation of Bagwell's VLists and
+VList-based hash lists ("VHashes").  VLists are a list data structure
+that provides constant-time random access and length computation
+logarithmic in the number of elements.  VLists also use less storage
+space than standard Scheme linked lists.
 
-** getaddrinfo
+VHashes are a functional dictionary type similar to association lists.
+However, unlike association lists, accessing a value given its key is
+typically a constant-time operation.  VHashes are now used in a few
+places of the compiler.
 
-    * libguile/net_db.c (sym_getaddrinfo_error, sym_ai_passive,
-      sym_ai_canonname, sym_ai_numerichost, sym_ai_numericserv,
-      sym_ai_v4mapped, sym_ai_all, sym_ai_addrconfig, sym_eai_badflags,
-      sym_eai_noname, sym_eai_again, sym_eai_fail, sym_eai_family,
-      sym_eai_socktype, sym_eai_service, sym_eai_memory, sym_eai_system,
-      sym_eai_overflow, sym_eai_nodata, sym_eai_addrfamily,
-      sym_eai_inprogress, sym_eai_canceled, sym_eai_notcanceled,
-      sym_eai_alldone, sym_eai_intr, sym_eai_idn_encode): New variables.
-      (scm_from_addrinfo, scm_getaddrinfo, scm_gai_strerror): New functions.
-    
-    * module/ice-9/networking.scm (addrinfo:flags, addrinfo:fam,
-      addrinfo:socktype, addrinfo:protocol, addrinfo:addr,
-      addrinfo:canonname): New procedures.
+** New procedures: `getaddrinfo' and family
 
-** tutorial deleted
+Bindings for the POSIX getaddrinfo(3) host name and service lookup
+function are available.  This function is now recommended over
+`gethostname' and friends as it's more expressive and can return a
+sorted list of addresses, as opposed to a single address.
+
+** Tutorial deleted
+
+The tutorial was removed.  It was incomplete, outdated, and contained C
+examples that were no longer valid.  The reference manual, on the other
+hand, contains up-to-date examples and documentation.
 
 ** And of course, the usual collection of bugfixes
  
@@ -76,6 +98,8 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(rnrs bytevector)', the R6RS bytevector API
 ** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
+** `(ice-9 vlist)', lists with constant-time random access; hash lists
+** `(system foreign)', foreign function interface (FIXME: undocumented)
 
 ** Imported statprof, SSAX, and texinfo modules from Guile-Lib
     
@@ -252,6 +276,10 @@ in the next prerelease.
 ** New POSIX procedure: `getsid'
 
 Scheme binding for the `getsid' C library call.
+
+** New POSIX procedure: `getaddrinfo'
+
+Scheme binding for the `getaddrinfo' C library function.
 
 ** New procedure in `(oops goops)': `method-formals'
 
@@ -1227,6 +1255,10 @@ See http://www.hpl.hp.com/personal/Hans_Boehm/gc/, for more information.
 
 See http://www.gnu.org/software/libunistring/, for more information. Our
 Unicode support uses routines from libunistring.
+
+** New dependency: libffi
+
+See http://sourceware.org/libffi/, for more information.
 
 
 
