@@ -1,7 +1,7 @@
 ;;;; r4rs.scm --- definitions needed for libguile to be R4RS compliant
 ;;;; Jim Blandy <jimb@cyclic.com> --- October 1996
 
-;;;; 	Copyright (C) 1996, 1997, 1998, 2000, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 2000, 2001, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -23,15 +23,71 @@
 
 ;;;; apply and call-with-current-continuation
 
-;;; We want these to be tail-recursive, so instead of using primitive
-;;; procedures, we define them as closures in terms of the primitive
-;;; macros @apply and @call-with-current-continuation.
-(set! apply (lambda (fun . args) (@apply fun (apply:nconc2last args))))
-(set-procedure-property! apply 'name 'apply)
+;;; The deal with these is that they are the procedural wrappers around the
+;;; primitives of Guile's language. There are about 20 different kinds of
+;;; expression in Guile, and e.g. @apply is one of them. (It has to be that way
+;;; to preserve tail recursion.)
+;;;
+;;; Usually we recognize (apply foo bar) to be an instance of @apply, but in the
+;;; case that apply is passed to apply, or we're bootstrapping, we need a
+;;; trampoline -- and here they are.
+(define (apply fun . args)
+  (@apply fun (apply:nconc2last args)))
 (define (call-with-current-continuation proc)
   (@call-with-current-continuation proc))
 (define (call-with-values producer consumer)
   (@call-with-values producer consumer))
+(define (dynamic-wind in thunk out)
+  "All three arguments must be 0-argument procedures.
+@var{in_guard} is called, then @var{thunk}, then
+@var{out_guard}.
+
+If, any time during the execution of @var{thunk}, the
+continuation of the @code{dynamic_wind} expression is escaped
+non-locally, @var{out_guard} is called.  If the continuation of
+the dynamic-wind is re-entered, @var{in_guard} is called.  Thus
+@var{in_guard} and @var{out_guard} may be called any number of
+times.
+@lisp
+ (define x 'normal-binding)
+@result{} x
+ (define a-cont
+   (call-with-current-continuation
+     (lambda (escape)
+       (let ((old-x x))
+         (dynamic-wind
+           ;; in-guard:
+           ;;
+           (lambda () (set! x 'special-binding))
+
+           ;; thunk
+           ;;
+           (lambda () (display x) (newline)
+                   (call-with-current-continuation escape)
+                   (display x) (newline)
+                   x)
+
+           ;; out-guard:
+           ;;
+           (lambda () (set! x old-x)))))))
+
+;; Prints:
+special-binding
+;; Evaluates to:
+@result{} a-cont
+x
+@result{} normal-binding
+ (a-cont #f)
+;; Prints:
+special-binding
+;; Evaluates to:
+@result{} a-cont  ;; the value of the (define a-cont...)
+x
+@result{} normal-binding
+a-cont
+@result{} special-binding
+@end lisp"
+  (@dynamic-wind in (thunk) out))
 
 
 ;;;; Basic Port Code

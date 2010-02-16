@@ -215,6 +215,20 @@ eval (SCM x, SCM env)
       scm_define (CAR (mx), eval (CDR (mx), env));
       return SCM_UNSPECIFIED;
 
+    case SCM_M_DYNWIND:
+      {
+        SCM in, out, res, old_winds;
+        in = eval (CAR (mx), env);
+        out = eval (CDDR (mx), env);
+        scm_call_0 (in);
+        old_winds = scm_i_dynwinds ();
+        scm_i_set_dynwinds (scm_acons (in, out, old_winds));
+        res = eval (CADR (mx), env);
+        scm_i_set_dynwinds (old_winds);
+        scm_call_0 (out);
+        return res;
+      }
+
     case SCM_M_APPLY:
       /* Evaluate the procedure to be applied.  */
       proc = eval (CAR (mx), env);

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,57 +50,9 @@
 
 
 
-SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
-           (SCM in_guard, SCM thunk, SCM out_guard),
-	    "All three arguments must be 0-argument procedures.\n"
-	    "@var{in_guard} is called, then @var{thunk}, then\n"
-	    "@var{out_guard}.\n"
-	    "\n"
-	    "If, any time during the execution of @var{thunk}, the\n"
-	    "continuation of the @code{dynamic_wind} expression is escaped\n"
-	    "non-locally, @var{out_guard} is called.  If the continuation of\n"
-	    "the dynamic-wind is re-entered, @var{in_guard} is called.  Thus\n"
-	    "@var{in_guard} and @var{out_guard} may be called any number of\n"
-	    "times.\n"
-	    "@lisp\n"
-	    "(define x 'normal-binding)\n"
-	    "@result{} x\n"
-	    "(define a-cont  (call-with-current-continuation\n"
-	    "		  (lambda (escape)\n"
-	    "		     (let ((old-x x))\n"
-	    "		       (dynamic-wind\n"
-	    "			  ;; in-guard:\n"
-	    "			  ;;\n"
-	    "			  (lambda () (set! x 'special-binding))\n"
-	    "\n"
-	    "			  ;; thunk\n"
-	    "			  ;;\n"
-	    "		 	  (lambda () (display x) (newline)\n"
-	    "				     (call-with-current-continuation escape)\n"
-	    "				     (display x) (newline)\n"
-	    "				     x)\n"
-	    "\n"
-	    "			  ;; out-guard:\n"
-	    "			  ;;\n"
-	    "			  (lambda () (set! x old-x)))))))\n"
-	    "\n"
-	    ";; Prints:\n"
-	    "special-binding\n"
-	    ";; Evaluates to:\n"
-	    "@result{} a-cont\n"
-	    "x\n"
-	    "@result{} normal-binding\n"
-	    "(a-cont #f)\n"
-	    ";; Prints:\n"
-	    "special-binding\n"
-	    ";; Evaluates to:\n"
-	    "@result{} a-cont  ;; the value of the (define a-cont...)\n"
-	    "x\n"
-	    "@result{} normal-binding\n"
-	    "a-cont\n"
-	    "@result{} special-binding\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_dynamic_wind
+SCM
+scm_dynamic_wind (SCM in_guard, SCM thunk, SCM out_guard)
+#define FUNC_NAME "dynamic-wind"
 {
   SCM ans, old_winds;
   SCM_ASSERT (scm_is_true (scm_thunk_p (out_guard)),

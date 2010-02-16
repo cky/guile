@@ -329,9 +329,9 @@
         ,(tree-il->scheme (make-lambda #f '() body))))
 
     ((<dynamic-wind> body winder unwinder)
-     `(dynamic-wind ,(unparse-tree-il winder)
-                    (lambda () ,(unparse-tree-il body))
-                    ,(unparse-tree-il unwinder)))
+     `(dynamic-wind ,(tree-il->scheme winder)
+                    (lambda () ,(tree-il->scheme body))
+                    ,(tree-il->scheme unwinder)))
     
     ((<prompt> tag body handler pre-unwind-handler)
      `((@ (ice-9 control) prompt) 

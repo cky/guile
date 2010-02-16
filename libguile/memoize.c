@@ -199,6 +199,8 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_QUOTE, exp)
 #define MAKMEMO_DEFINE(var, val) \
   MAKMEMO (SCM_M_DEFINE, scm_cons (var, val))
+#define MAKMEMO_DYNWIND(in, expr, out) \
+  MAKMEMO (SCM_M_DYNWIND, scm_cons (in, scm_cons (expr, out)))
 #define MAKMEMO_APPLY(exp) \
   MAKMEMO (SCM_M_APPLY, exp)
 #define MAKMEMO_CONT(proc) \
@@ -231,6 +233,7 @@ static const char *const memoized_tags[] =
   "let",
   "quote",
   "define",
+  "dynwind",
   "apply",
   "call/cc",
   "call-with-values",
@@ -261,6 +264,7 @@ static SCM scm_m_cont (SCM xorig, SCM env);
 static SCM scm_m_at_call_with_values (SCM xorig, SCM env);
 static SCM scm_m_cond (SCM xorig, SCM env);
 static SCM scm_m_define (SCM x, SCM env);
+static SCM scm_m_at_dynamic_wind (SCM xorig, SCM env);
 static SCM scm_m_eval_when (SCM xorig, SCM env);
 static SCM scm_m_if (SCM xorig, SCM env);
 static SCM scm_m_lambda (SCM xorig, SCM env);
@@ -393,6 +397,7 @@ SCM_SYNTAX (s_atcall_cc, "@call-with-current-continuation", scm_m_cont);
 SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_m_at_call_with_values);
 SCM_SYNTAX (s_cond, "cond", scm_m_cond);
 SCM_SYNTAX (s_define, "define", scm_m_define);
+SCM_SYNTAX (s_at_dynamic_wind, "@dynamic-wind", scm_m_at_dynamic_wind);
 SCM_SYNTAX (s_eval_when, "eval-when", scm_m_eval_when);
 SCM_SYNTAX (s_if, "if", scm_m_if);
 SCM_SYNTAX (s_lambda, "lambda", scm_m_lambda);
@@ -416,6 +421,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_begin, "begin");
 SCM_GLOBAL_SYMBOL (scm_sym_case, "case");
 SCM_GLOBAL_SYMBOL (scm_sym_cond, "cond");
 SCM_GLOBAL_SYMBOL (scm_sym_define, "define");
+SCM_GLOBAL_SYMBOL (scm_sym_at_dynamic_wind, "@dynamic-wind");
 SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 SCM_GLOBAL_SYMBOL (scm_sym_eval_when, "eval-when");
 SCM_GLOBAL_SYMBOL (scm_sym_if, "if");
@@ -613,6 +619,17 @@ scm_m_define (SCM expr, SCM env)
   ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
   ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
   return MAKMEMO_DEFINE (variable, memoize (CAR (body), env));
+}
+
+static SCM
+scm_m_at_dynamic_wind (SCM expr, SCM env)
+{
+  const SCM cdr_expr = CDR (expr);
+  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 3, s_bad_expression, expr);
+
+  return MAKMEMO_DYNWIND (memoize (CADR (expr), env),
+                          memoize (CADDR (expr), env),
+                          memoize (CADDDR (expr), env));
 }
 
 static SCM
@@ -1058,6 +1075,11 @@ unmemoize (const SCM expr)
                          unmemoize (CAR (args)), unmemoize (CDR (args)));
     case SCM_M_DEFINE:
       return scm_list_3 (scm_sym_define, CAR (args), unmemoize (CDR (args)));
+    case SCM_M_DYNWIND:
+      return scm_list_4 (scm_sym_at_dynamic_wind,
+                         unmemoize (CAR (args)),
+                         unmemoize (CADR (args)),
+                         unmemoize (CDDR (args)));
     case SCM_M_IF:
       return scm_list_4 (scm_sym_if, unmemoize (scm_car (args)),
                          unmemoize (scm_cadr (args)), unmemoize (scm_cddr (args)));

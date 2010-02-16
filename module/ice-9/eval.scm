@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 2009
+;;;; Copyright (C) 2009, 2010
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -222,6 +222,11 @@
         (('define (name . x))
          (define! name (eval x env)))
       
+        (('dynwind (in exp . out))
+         (dynamic-wind (eval in env)
+                       (lambda () (eval exp env))
+                       (eval out env)))
+        
         (('apply (f args))
          (apply (eval f env) (eval args env)))
 

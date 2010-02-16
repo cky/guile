@@ -34,6 +34,7 @@
     call-with-current-continuation @call-with-current-continuation
     call/cc
     dynamic-wind
+    @dynamic-wind
     values
     eq? eqv? equal?
     memq memv
@@ -401,6 +402,23 @@
                      (make-application #f (make-lexical-ref #f 'thunk THUNK) '())
                      (make-lexical-ref #f 'post POST)))))))
               (else #f)))
+
+(hashq-set! *primitive-expand-table*
+            '@dynamic-wind
+            (case-lambda
+              ((src pre expr post)
+               (let ((PRE (gensym " pre"))
+                     (POST (gensym " post")))
+                 (make-let
+                  src
+                  '(pre post)
+                  (list PRE POST)
+                  (list pre post)
+                  (make-dynamic-wind
+                   src
+                   (make-lexical-ref #f 'pre PRE)
+                   expr
+                   (make-lexical-ref #f 'post POST)))))))
 
 (hashq-set! *primitive-expand-table*
             'prompt
