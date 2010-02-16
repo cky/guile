@@ -860,7 +860,7 @@ scm_read_semicolon_comment (int chr, SCM port)
      always represents itself no matter what the encoding is.  */
   for (c = scm_get_byte_or_eof (port);
        (c != EOF) && (c != '\n');
-       c = scm_getc (port));
+       c = scm_get_byte_or_eof (port));
 
   return SCM_UNSPECIFIED;
 }
