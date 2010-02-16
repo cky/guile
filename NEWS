@@ -10,6 +10,57 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.8 (since the 1.9.7 prerelease):
 
+** Struct optimizations
+
+Structs underly many types in Guile, including records and objects. This
+release speeds up struct access and creation.
+
+** Add libffi dependency
+
+Libffi is now required, to build the foreign function interface. See
+http://sourceware.org/libffi/, for more information on libffi.
+
+We are not aware of a platform that Guile runs on for which libffi is
+unavailable.
+
+** Foreign function interface
+
+dynamic-link / dynamic-func still get the syms; we just added a libffi
+interface to call functions. integer, floating point, pointer, and
+struct types supported. simple finalization interface; complicated users
+to use guardians. (system foreign); high-level wrapper needed. vm
+integration. bytevector integration.
+
+** Incompatible changes to the foreign value interface introduced in 1.9.7
+
+C extensions need recompilation
+
+** dynamic-wind compilation
+
+inline body thunk; wind/unwind via VM; add to tree-il
+
+** vlists
+
+vlists and vhashes. used internally. composed of awesome.
+
+** getaddrinfo
+
+    * libguile/net_db.c (sym_getaddrinfo_error, sym_ai_passive,
+      sym_ai_canonname, sym_ai_numerichost, sym_ai_numericserv,
+      sym_ai_v4mapped, sym_ai_all, sym_ai_addrconfig, sym_eai_badflags,
+      sym_eai_noname, sym_eai_again, sym_eai_fail, sym_eai_family,
+      sym_eai_socktype, sym_eai_service, sym_eai_memory, sym_eai_system,
+      sym_eai_overflow, sym_eai_nodata, sym_eai_addrfamily,
+      sym_eai_inprogress, sym_eai_canceled, sym_eai_notcanceled,
+      sym_eai_alldone, sym_eai_intr, sym_eai_idn_encode): New variables.
+      (scm_from_addrinfo, scm_getaddrinfo, scm_gai_strerror): New functions.
+    
+    * module/ice-9/networking.scm (addrinfo:flags, addrinfo:fam,
+      addrinfo:socktype, addrinfo:protocol, addrinfo:addr,
+      addrinfo:canonname): New procedures.
+
+** tutorial deleted
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
