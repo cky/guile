@@ -34,6 +34,7 @@ Guile depends on the following external libraries.
 - libltdl
 - libunistring
 - libgc
+- libffi
 It will also use the libreadline library if it is available.  For each
 of these there is a corresponding --with-XXX-prefix option that you
 can use when invoking ./configure, if you have these libraries
@@ -90,6 +91,12 @@ Guile requires the following external packages:
     libgc (aka. the Boehm-Demers-Weiser garbage collector) is the
     conservative garbage collector used by Guile.  It is available
     from http://www.hpl.hp.com/personal/Hans_Boehm/gc/ .
+
+  - libffi
+
+    libffi provides a "foreign function interface", used by the
+    `(system foreign)' module.  It is available from
+    http://sourceware.org/libffi/ .
 
   - pkg-config
 
