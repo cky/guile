@@ -1,3 +1,6 @@
+#ifndef SCM_FOREIGN_H
+#define SCM_FOREIGN_H
+
 /* Copyright (C) 2010  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -16,10 +19,7 @@
  * 02110-1301 USA
  */
 
-#ifndef SCM_FOREIGN_H
-#define SCM_FOREIGN_H
-
-
+#include "libguile/__scm.h"
 
 /* A foreign value is some value that exists outside of Guile. It is represented
    by a cell whose second word is a pointer. The first word has the
