@@ -907,19 +907,34 @@
   ;; date, and autocompilation is enabled, will try autocompilation, just
   ;; as primitive-load-path does internally. primitive-load is
   ;; unaffected. Returns #f if autocompilation failed or was disabled.
-  (define (autocompiled-file-name name)
+  ;;
+  ;; NB: Unless we need to compile the file, this function should not cause
+  ;; (system base compile) to be loaded up. For that reason compiled-file-name
+  ;; partially duplicates functionality from (system base compile).
+  (define (compiled-file-name canon-path)
+    (and %compile-fallback-path
+         (string-append
+          %compile-fallback-path
+          ;; no need for '/' separator here, canon-path is absolute
+          canon-path
+          (cond ((or (null? %load-compiled-extensions)
+                     (string-null? (car %load-compiled-extensions)))
+                 (warn "invalid %load-compiled-extensions"
+                       %load-compiled-extensions)
+                 ".go")
+                (else (car %load-compiled-extensions))))))
+  (define (fresh-compiled-file-name go-path)
     (catch #t
       (lambda ()
-        (let* ((cfn ((@ (system base compile) compiled-file-name) name))
-               (scmstat (stat name))
-               (gostat (stat cfn #f)))
+        (let* ((scmstat (stat name))
+               (gostat (stat go-path #f)))
           (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
-              cfn
+              go-path
               (begin
                 (if gostat
                     (format (current-error-port)
                             ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                            name cfn))
+                            name go-path))
                 (cond
                  (%load-should-autocompile
                   (%warn-autocompilation-enabled)
@@ -936,7 +951,9 @@
         #f)))
   (with-fluid* current-reader (and (pair? reader) (car reader))
     (lambda ()
-      (let ((cfn (autocompiled-file-name name)))
+      (let ((cfn (and=> (and=> (false-if-exception (canonicalize-path name))
+                               compiled-file-name)
+                        fresh-compiled-file-name)))
         (if cfn
             (load-compiled cfn)
             (start-stack 'load-stack
