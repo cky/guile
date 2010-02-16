@@ -34,7 +34,7 @@
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1997, 1998, 2004, 2006 Free Software Foundation
+Copyright @copyright{} 1997, 1998, 2004, 2006, 2010 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -1203,6 +1203,7 @@ SCM c_sin(SCM s_x)
 SCM vector_test(SCM s_length)
 @{
   SCM xvec;
+  unsigned long c_length;
 
   c_length = gh_scm2ulong(s_length);
   printf("requested length for vector: %ld\n", gh_scm2ulong(s_length));
