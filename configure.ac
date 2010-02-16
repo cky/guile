@@ -1641,7 +1641,6 @@ AC_CONFIG_FILES([
   doc/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
-  doc/tutorial/Makefile
   emacs/Makefile
   examples/Makefile
   libguile/Makefile
