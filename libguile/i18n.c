@@ -59,9 +59,15 @@
 
 #include "libguile/posix.h"  /* for `scm_i_locale_mutex' */
 
-#if (defined HAVE_LANGINFO_H) && (defined HAVE_NL_TYPES_H)
+#ifdef HAVE_LANGINFO_H
 # include <langinfo.h>
+#endif
+#ifdef HAVE_NL_TYPES_H
 # include <nl_types.h>
+#endif
+#ifndef HAVE_NL_ITEM
+/* Cygwin has <langinfo.h> but lacks <nl_types.h> and `nl_item'.  */
+typedef int nl_item;
 #endif
 
 #ifndef HAVE_SETLOCALE
@@ -1459,7 +1465,10 @@ SCM_DEFINE (scm_locale_string_to_inexact, "locale-string->inexact",
       setting of the current locale.  If nl_langinfo supports CODESET,
       we can convert the string properly using scm_from_stringn.  If
       CODESET is not supported, we won't be able to make much sense of
-      the returned string. */
+      the returned string.
+
+   Note: We don't use Gnulib's `nl_langinfo' module because it's currently not
+   as complete as the compatibility hacks in `i18n.scm'.  */
 
 
 SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,

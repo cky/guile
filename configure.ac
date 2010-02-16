@@ -671,6 +671,16 @@ sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
 direct.h langinfo.h nl_types.h machine/fpu.h])
 
+# Reasons for testing:
+#   nl_item - lacking on Cygwin
+AC_CHECK_TYPES([nl_item], [], [],
+  [[#ifdef HAVE_LANGINFO_H
+    # include <langinfo.h>
+    #endif
+    #ifdef HAVE_NL_TYPES_H
+    # include <nl_types.h>
+    #endif]])
+
 # "complex double" is new in C99, and "complex" is only a keyword if
 # <complex.h> is included
 AC_CHECK_TYPES(complex double,,,
