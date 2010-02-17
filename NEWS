@@ -36,11 +36,13 @@ function as a "foreign" object at the Scheme level; using libffi, Guile
 can construct calls to these functions.
 
 The arguments to a C function may be integers, floating point numbers,
-pointers, and structs.  From Scheme they are all represented as foreign
+pointers, and structs.  Numbers are passed using their normal Scheme
+representations, and pointers and structs are represented as foreign
 objects.  Foreign objects can be converted back and forth to/from a
-bytevector.  They can have an associated finalizer (e.g., a procedure
-that will reclaim any associated resources when the object becomes
-unreachable); alternatively, they can be finalized using a guardian.
+bytevector.  They can have an associated foreign finalizer (e.g., a
+procedure that will reclaim any associated resources when the object
+becomes unreachable); alternatively, they can be finalized using a
+guardian.
 
 The `(system foreign)' API is currently low-level and possibly
 inconvenient.  It will be extended to provide higher-level constructs.
