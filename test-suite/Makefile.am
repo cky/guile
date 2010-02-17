@@ -38,6 +38,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/eval.test			\
 	    tests/exceptions.test		\
 	    tests/filesys.test			\
+	    tests/fluids.test			\
 	    tests/format.test			\
 	    tests/fractions.test		\
 	    tests/ftw.test			\
