@@ -125,7 +125,9 @@ local-checks-available = \
 
 # Arrange to print the name of each syntax-checking rule just before running it.
 $(syntax-check-rules): %: %.m
-$(patsubst %, %.m, $(syntax-check-rules)):
+sc_m_rules_ = $(patsubst %, %.m, $(syntax-check-rules))
+.PHONY: $(sc_m_rules_)
+$(sc_m_rules_):
 	@echo $(patsubst sc_%.m, %, $@)
 
 local-check := $(filter-out $(local-checks-to-skip), $(local-checks-available))
@@ -365,6 +367,22 @@ _xa2 = X([CZ]|N?M)ALLOC
 sc_prohibit_xalloc_without_use:
 	@h='"xalloc.h"' \
 	re='\<($(_xa1)|$(_xa2)) *\('\
+	  $(_header_without_use)
+
+# Extract function names:
+# perl -lne '/^(?:extern )?(?:void|char) \*?(\w+) \(/ and print $1' lib/hash.h
+_hash_re = \
+clear|delete|free|get_(first|next)|insert|lookup|print_statistics|reset_tuning
+_hash_fn = \<($(_hash_re)) *\(
+_hash_struct = (struct )?\<[Hh]ash_(table|tuning)\>
+sc_prohibit_hash_without_use:
+	@h='"hash.h"' \
+	re='$(_hash_fn)|$(_hash_struct)'\
+	  $(_header_without_use)
+
+sc_prohibit_hash_pjw_without_use:
+	@h='"hash-pjw.h"' \
+	re='\<hash_pjw *\(' \
 	  $(_header_without_use)
 
 sc_prohibit_safe_read_without_use:
@@ -787,11 +805,12 @@ announcement: NEWS ChangeLog $(rel-files)
 ftp-gnu = ftp://ftp.gnu.org/gnu
 www-gnu = http://www.gnu.org
 
+upload_dest_dir_ ?= $(PACKAGE)
 emit_upload_commands:
 	@echo =====================================
 	@echo =====================================
 	@echo "$(build_aux)/gnupload $(GNUPLOADFLAGS) \\"
-	@echo "    --to $(gnu_rel_host):$(PACKAGE) \\"
+	@echo "    --to $(gnu_rel_host):$(upload_dest_dir_) \\"
 	@echo "  $(rel-files)"
 	@echo '# send the ~/announce-$(my_distdir) e-mail'
 	@echo =====================================

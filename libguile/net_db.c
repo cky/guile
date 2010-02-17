@@ -73,17 +73,6 @@ extern int h_errno;
 extern const char *hstrerror (int);
 #endif
 
-/* NetBSD 5.0 lacks the following flags.  */
-#ifndef AI_ALL
-# define AI_ALL 0
-#endif
-#ifndef AI_V4MAPPED
-# define AI_V4MAPPED 0
-#endif
-#ifndef AI_ADDRCONFIG
-# define AI_ADDRCONFIG 0
-#endif
-
 
 
 SCM_SYMBOL (scm_host_not_found_key, "host-not-found");
