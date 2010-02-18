@@ -104,8 +104,8 @@ static const type sym##__unaligned[]
 
   
 SCM_STATIC_OBJCODE (cont_objcode) = {
-  /* This code is the same as in gsubr.c, except we use smob_call instead of
-     struct_call. */
+  /* This code is the same as in gsubr.c, except we use continuation_call
+     instead of subr_call. */
   OBJCODE_HEADER (8, 19),
   /* leave args on the stack */
   /* 0 */ scm_op_object_ref, 0, /* push scm_t_contregs smob */
