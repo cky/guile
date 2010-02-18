@@ -378,7 +378,10 @@ memoize_sequence (const SCM forms, const SCM env)
 {
   ASSERT_SYNTAX (scm_ilength (forms) >= 1, s_bad_expression,
                  scm_cons (scm_sym_begin, forms));
-  return MAKMEMO_BEGIN (memoize_exprs (forms, env));
+  if (scm_is_null (CDR (forms)))
+    return memoize (CAR (forms), env);
+  else
+    return MAKMEMO_BEGIN (memoize_exprs (forms, env));
 }
 
 
