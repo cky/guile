@@ -967,6 +967,52 @@
           (if RA
               (emit-branch #f 'br RA)))))
 
+      ((<dynlet> src fluids vals body)
+       (for-each comp-push fluids)
+       (for-each comp-push vals)
+       (emit-code #f (make-glil-call 'wind-fluids (length fluids)))
+
+       (case context
+         ((tail)
+          (let ((MV (make-label)))
+            ;; NB: in tail case, it is possible to preserve asymptotic tail
+            ;; recursion, via merging unwind-fluids structures -- but we'd need
+            ;; to compile in the body twice (once in tail context, assuming the
+            ;; caller unwinds, and once with this trampoline thing, unwinding
+            ;; ourselves).
+            (comp-vals body MV)
+            ;; one value: unwind and return
+            (emit-code #f (make-glil-call 'unwind-fluids 0))
+            (emit-code #f (make-glil-call 'return 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind and return values
+            (emit-code #f (make-glil-call 'unwind-fluids 0))
+            (emit-code #f (make-glil-call 'return/nvalues 1))))
+         
+         ((push)
+          (comp-push body)
+          (emit-code #f (make-glil-call 'unwind-fluids 0)))
+         
+         ((vals)
+          (let ((MV (make-label)))
+            (comp-vals body MV)
+            ;; one value: push 1 and fall through to MV case
+            (emit-code #f (make-glil-const 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind and goto MVRA
+            (emit-code #f (make-glil-call 'unwind-fluids 0))
+            (emit-branch #f 'br MVRA)))
+         
+         ((drop)
+          ;; compile body, discarding values. then unwind...
+          (comp-drop body)
+          (emit-code #f (make-glil-call 'unwind-fluids 0))
+          ;; and fall through, or goto RA if there is one.
+          (if RA
+              (emit-branch #f 'br RA)))))
+
       ;; What's the deal here? The deal is that we are compiling the start of a
       ;; delimited continuation. We try to avoid heap allocation in the normal
       ;; case; so the body is an expression, not a thunk, and we try to render
