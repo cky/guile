@@ -46,6 +46,7 @@
             <fix> fix? make-fix fix-src fix-names fix-vars fix-vals fix-body
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
             <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
+            <dynlet> dynlet? make-dynlet dynlet-src dynlet-fluids dynlet-vals dynlet-body
             <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler prompt-pre-unwind-handler 
             <control> control? make-control control-src control-tag control-type control-args
 
@@ -79,6 +80,7 @@
   (<fix> names vars vals body)
   (<let-values> exp body)
   (<dynwind> winder body unwinder)
+  (<dynlet> fluids vals body)
   (<prompt> tag body handler pre-unwind-handler)
   (<control> tag type args))
   
@@ -174,6 +176,9 @@
      ((dynwind ,winder ,body ,unwinder)
       (make-dynwind loc (retrans winder) (retrans body) (retrans unwinder)))
      
+     ((dynlet ,fluids ,vals ,body)
+      (make-dynlet loc (map retrans fluids) (map retrans vals) (retrans body)))
+     
      ((prompt ,tag ,body ,handler ,pre-unwind-handler)
       (make-prompt loc (retrans tag) (retrans body) (retrans handler)
                    (and=> pre-unwind-handler retrans)))
@@ -248,6 +253,10 @@
     ((<dynwind> body winder unwinder)
      `(dynwind ,(unparse-tree-il body)
                ,(unparse-tree-il winder) ,(unparse-tree-il unwinder)))
+    
+    ((<dynlet> fluids vals body)
+     `(dynlet ,(map unparse-tree-il fluids) ,(map unparse-tree-il vals)
+              ,(unparse-tree-il body)))
     
     ((<prompt> tag body handler pre-unwind-handler)
      `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)
@@ -333,6 +342,12 @@
                     (lambda () ,(tree-il->scheme body))
                     ,(tree-il->scheme unwinder)))
     
+    ((<dynlet> fluids vals body)
+     `(with-fluids ,(map list
+                         (map tree-il->scheme fluids)
+                         (map tree-il->scheme vals))
+        (lambda () ,(tree-il->scheme body))))
+    
     ((<prompt> tag body handler pre-unwind-handler)
      `((@ (ice-9 control) prompt) 
        ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
@@ -399,6 +414,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop unwinder
                           (loop winder
                                 (loop body (down tree result))))))
+          ((<dynlet> fluids vals body)
+           (up tree (loop body
+                          (loop vals
+                                (loop fluids (down tree result))))))
           ((<prompt> tag body handler pre-unwind-handler)
            (up tree (loop tag
                           (loop body
@@ -468,6 +487,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (let*-values (((seed ...) (foldts body seed ...))
                                 ((seed ...) (foldts winder seed ...)))
                     (foldts unwinder seed ...)))
+                 ((<dynlet> fluids vals body)
+                  (let*-values (((seed ...) (fold-values foldts fluids seed ...))
+                                ((seed ...) (fold-values foldts vals seed ...)))
+                    (foldts body seed ...)))
                  ((<prompt> tag body handler pre-unwind-handler)
                   (let*-values (((seed ...) (foldts tag seed ...))
                                 ((seed ...) (foldts body seed ...))
@@ -538,6 +561,11 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (dynwind-body x) (lp body))
        (set! (dynwind-winder x) (lp winder))
        (set! (dynwind-unwinder x) (lp unwinder)))
+      
+      ((<dynlet> fluids vals body)
+       (set! (dynlet-fluids x) (map lp fluids))
+       (set! (dynlet-vals x) (map lp vals))
+       (set! (dynlet-body x) (lp body)))
       
       ((<prompt> tag body handler pre-unwind-handler)
        (set! (prompt-tag x) (lp tag))
@@ -611,6 +639,11 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (dynwind-winder x) (lp winder))
          (set! (dynwind-unwinder x) (lp unwinder)))
         
+        ((<dynlet> fluids vals body)
+         (set! (dynlet-fluids x) (map lp fluids))
+         (set! (dynlet-vals x) (map lp vals))
+         (set! (dynlet-body x) (lp body)))
+      
         ((<prompt> tag body handler pre-unwind-handler)
          (set! (prompt-tag x) (lp tag))
          (set! (prompt-body x) (lp body))

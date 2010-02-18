@@ -339,6 +339,9 @@
       ((<dynwind> body winder unwinder)
        (lset-union eq? (step body) (step winder) (step unwinder)))
       
+      ((<dynlet> fluids vals body)
+       (apply lset-union eq? (step body) (map step (append fluids vals))))
+      
       ((<prompt> tag body handler pre-unwind-handler)
        (lset-union eq? (step tag) (step handler)
                    (if pre-unwind-handler (step pre-unwind-handler) '())))
@@ -499,6 +502,9 @@
       
       ((<dynwind> body winder unwinder)
        (max (recur body) (recur winder) (recur unwinder)))
+      
+      ((<dynlet> fluids vals body)
+       (apply max (recur body) (map recur (append fluids vals))))
       
       ((<prompt> tag body handler pre-unwind-handler)
        (let ((cont-var (and (lambda-case? handler)
