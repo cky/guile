@@ -1106,15 +1106,17 @@ unmemoize (const SCM expr)
     case SCM_M_TOPLEVEL_SET:
       return scm_list_3 (scm_sym_set_x, CAR (args), unmemoize (CDR (args)));
     case SCM_M_MODULE_REF:
-      return scm_list_3 (scm_is_true (CDDR (args)) ? scm_sym_at : scm_sym_atat,
-                         scm_i_finite_list_copy (CAR (args)),
-                         CADR (args));
+      return SCM_VARIABLEP (args) ? args
+        : scm_list_3 (scm_is_true (CDDR (args)) ? scm_sym_at : scm_sym_atat,
+                      scm_i_finite_list_copy (CAR (args)),
+                      CADR (args));
     case SCM_M_MODULE_SET:
       return scm_list_3 (scm_sym_set_x,
-                         scm_list_3 (scm_is_true (CDDDR (args))
-                                     ? scm_sym_at : scm_sym_atat,
-                                     scm_i_finite_list_copy (CADR (args)),
-                                     CADDR (args)),
+                         SCM_VARIABLEP (CDR (args)) ? CDR (args)
+                         : scm_list_3 (scm_is_true (CDDDR (args))
+                                       ? scm_sym_at : scm_sym_atat,
+                                       scm_i_finite_list_copy (CADR (args)),
+                                       CADDR (args)),
                          unmemoize (CAR (args)));
     default:
       abort ();
