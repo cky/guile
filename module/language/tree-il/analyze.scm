@@ -342,9 +342,8 @@
       ((<dynlet> fluids vals body)
        (apply lset-union eq? (step body) (map step (append fluids vals))))
       
-      ((<prompt> tag body handler pre-unwind-handler)
-       (lset-union eq? (step tag) (step handler)
-                   (if pre-unwind-handler (step pre-unwind-handler) '())))
+      ((<prompt> tag body handler)
+       (lset-union eq? (step tag) (step handler)))
       
       ((<control> tag type args)
        (apply lset-union eq? (step tag) (map step args)))
@@ -506,14 +505,13 @@
       ((<dynlet> fluids vals body)
        (apply max (recur body) (map recur (append fluids vals))))
       
-      ((<prompt> tag body handler pre-unwind-handler)
+      ((<prompt> tag body handler)
        (let ((cont-var (and (lambda-case? handler)
                             (pair? (lambda-case-vars handler))
                             (car (lambda-case-vars handler)))))
          (hashq-set! allocation x
                      (and cont-var (zero? (hashq-ref refcounts cont-var 0))))
-         (max (recur tag) (recur body) (recur handler)
-              (if pre-unwind-handler (recur pre-unwind-handler) 0))))
+         (max (recur tag) (recur body) (recur handler))))
       
       ((<control> tag type args)
        (apply max (recur tag) (map recur args)))

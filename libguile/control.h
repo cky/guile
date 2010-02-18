@@ -31,7 +31,6 @@
 #define SCM_PROMPT_REGISTERS(x)	((struct scm_prompt_registers*)SCM_CELL_WORD ((x), 2))
 #define SCM_PROMPT_DYNENV(x)	(SCM_CELL_OBJECT ((x), 3))
 #define SCM_PROMPT_HANDLER(x)	(SCM_CELL_OBJECT ((x), 4))
-#define SCM_PROMPT_PRE_UNWIND_HANDLER(x) (SCM_CELL_OBJECT ((x), 5))
 
 #define SCM_PROMPT_SETJMP(p)	(SCM_I_SETJMP (SCM_PROMPT_REGISTERS (p)->regs))
 
@@ -44,8 +43,9 @@ struct scm_prompt_registers
 };
 
 
-SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, SCM handler, SCM pre_unwind,
-                                    scm_t_uint8 inline_p, scm_t_uint8 escape_only_p);
+SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, SCM handler,
+                                    scm_t_uint8 inline_handler_p,
+                                    scm_t_uint8 escape_only_p);
 
 
 SCM_INTERNAL void scm_register_control (void);

@@ -426,16 +426,13 @@
               ((src tag thunk handler)
                (make-prompt src tag (make-application #f thunk '())
                             handler #f))
-              ((src tag thunk handler pre)
-               (make-prompt src tag (make-application #f thunk '())
-                            handler pre))
               (else #f)))
 (hashq-set! *primitive-expand-table*
             '@prompt
             (case-lambda
-              ((src tag thunk handler pre)
+              ((src tag thunk handler)
                (make-prompt src tag (make-application #f thunk '())
-                            handler pre))
+                            handler))
               (else #f)))
 
 (hashq-set! *primitive-expand-table*

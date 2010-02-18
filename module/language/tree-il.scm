@@ -47,7 +47,7 @@
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
             <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
             <dynlet> dynlet? make-dynlet dynlet-src dynlet-fluids dynlet-vals dynlet-body
-            <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler prompt-pre-unwind-handler 
+            <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler
             <control> control? make-control control-src control-tag control-type control-args
 
             parse-tree-il
@@ -81,7 +81,7 @@
   (<let-values> exp body)
   (<dynwind> winder body unwinder)
   (<dynlet> fluids vals body)
-  (<prompt> tag body handler pre-unwind-handler)
+  (<prompt> tag body handler)
   (<control> tag type args))
   
 
@@ -179,9 +179,8 @@
      ((dynlet ,fluids ,vals ,body)
       (make-dynlet loc (map retrans fluids) (map retrans vals) (retrans body)))
      
-     ((prompt ,tag ,body ,handler ,pre-unwind-handler)
-      (make-prompt loc (retrans tag) (retrans body) (retrans handler)
-                   (and=> pre-unwind-handler retrans)))
+     ((prompt ,tag ,body ,handler)
+      (make-prompt loc (retrans tag) (retrans body) (retrans handler)))
      
      ((control ,tag ,type ,args)
       (make-control loc (retrans tag) type (map retrans args)))
@@ -258,9 +257,8 @@
      `(dynlet ,(map unparse-tree-il fluids) ,(map unparse-tree-il vals)
               ,(unparse-tree-il body)))
     
-    ((<prompt> tag body handler pre-unwind-handler)
-     `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)
-              ,(and=> pre-unwind-handler unparse-tree-il)))
+    ((<prompt> tag body handler)
+     `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)))
     
     ((<control> tag type args)
      `(control ,(unparse-tree-il tag) ,type ,(map unparse-tree-il args)))))
@@ -348,10 +346,10 @@
                          (map tree-il->scheme vals))
         ,(tree-il->scheme body)))
     
-    ((<prompt> tag body handler pre-unwind-handler)
+    ((<prompt> tag body handler)
      `((@ (ice-9 control) prompt) 
        ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
-       ,(tree-il->scheme handler) ,(and=> pre-unwind-handler tree-il->scheme)))
+       ,(tree-il->scheme handler)))
     
 
     ((<control> tag type args)
@@ -418,14 +416,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop body
                           (loop vals
                                 (loop fluids (down tree result))))))
-          ((<prompt> tag body handler pre-unwind-handler)
-           (up tree (loop tag
-                          (loop body
-                                (loop handler
-                                      (if pre-unwind-handler
-                                          (loop pre-unwind-handler
-                                                (down tree result))
-                                          (down tree result)))))))
+          ((<prompt> tag body handler)
+           (up tree
+               (loop tag (loop body (loop handler
+                                          (down tree result))))))
           ((<control> tag type args)
            (up tree (loop tag (loop args (down tree result)))))
           (else
@@ -491,13 +485,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (let*-values (((seed ...) (fold-values foldts fluids seed ...))
                                 ((seed ...) (fold-values foldts vals seed ...)))
                     (foldts body seed ...)))
-                 ((<prompt> tag body handler pre-unwind-handler)
+                 ((<prompt> tag body handler)
                   (let*-values (((seed ...) (foldts tag seed ...))
-                                ((seed ...) (foldts body seed ...))
-                                ((seed ...) (foldts handler seed ...)))
-                    (if pre-unwind-handler
-                        (values seed ...)
-                        (foldts pre-unwind-handler seed ...))))
+                                ((seed ...) (foldts body seed ...)))
+                    (foldts handler seed ...)))
                  ((<control> tag args)
                   (let*-values (((seed ...) (foldts tag seed ...)))
                     (fold-values foldts args seed ...)))
@@ -567,12 +558,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (dynlet-vals x) (map lp vals))
        (set! (dynlet-body x) (lp body)))
       
-      ((<prompt> tag body handler pre-unwind-handler)
+      ((<prompt> tag body handler)
        (set! (prompt-tag x) (lp tag))
        (set! (prompt-body x) (lp body))
-       (set! (prompt-handler x) (lp handler))
-       (if pre-unwind-handler
-           (set! (prompt-pre-unwind-handler x) (lp pre-unwind-handler))))
+       (set! (prompt-handler x) (lp handler)))
       
       ((<control> tag args)
        (set! (control-tag x) (lp tag))
@@ -644,12 +633,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (dynlet-vals x) (map lp vals))
          (set! (dynlet-body x) (lp body)))
       
-        ((<prompt> tag body handler pre-unwind-handler)
+        ((<prompt> tag body handler)
          (set! (prompt-tag x) (lp tag))
          (set! (prompt-body x) (lp body))
-         (set! (prompt-handler x) (lp handler))
-         (if pre-unwind-handler
-             (set! (prompt-pre-unwind-handler x) (lp pre-unwind-handler))))
+         (set! (prompt-handler x) (lp handler)))
         
         ((<control> tag args)
          (set! (control-tag x) (lp tag))

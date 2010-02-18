@@ -110,14 +110,14 @@
       ((<fix> vars body)
        (if (null? vars) body x))
        
-      ((<prompt> src tag body handler pre-unwind-handler)
+      ((<prompt> src tag body handler)
        ;; If the handler is a simple lambda, inline it.
        (if (and (lambda? handler)
                 (record-case (lambda-body handler)
                   ((<lambda-case> req opt kw rest alternate)
                    (and (pair? req) (not opt) (not kw) (not alternate)))
                   (else #f)))
-           (make-prompt src tag body (lambda-body handler) pre-unwind-handler)
+           (make-prompt src tag body (lambda-body handler))
            x))
        
       (else #f)))

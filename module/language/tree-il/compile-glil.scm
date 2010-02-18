@@ -1020,7 +1020,7 @@
       ;; if the continuation isn't referenced, we don't reify it. This makes it
       ;; possible to implement catch and throw with delimited continuations,
       ;; without any overhead.
-      ((<prompt> src tag body handler pre-unwind-handler)
+      ((<prompt> src tag body handler)
        (let ((H (make-label))
              (POST (make-label))
              (inline? (lambda-case? handler))
@@ -1030,9 +1030,6 @@
          (if inline?
              (emit-code #f (make-glil-const #f)) ;; push #f as handler
              (comp-push handler))
-         (if pre-unwind-handler
-             (comp-push pre-unwind-handler)
-             (emit-code #f (make-glil-const #f)))
          (emit-code src (make-glil-prompt H inline? escape-only?))
 
          ;; Then we compile the body, with its normal return path, unwinding
