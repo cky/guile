@@ -422,7 +422,7 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_vm_cont		71
 
 #define scm_tc7_prompt		61
-#define scm_tc7_unused_21	63
+#define scm_tc7_with_fluids	63
 #define scm_tc7_unused_19	69
 #define scm_tc7_program		79
 #define scm_tc7_unused_9	85

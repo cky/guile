@@ -304,6 +304,11 @@
                        (lambda () (eval exp env))
                        (eval out env)))
         
+        (('with-fluids (fluids vals . exp))
+         (let* ((fluids (map (lambda (x) (eval x env)) fluids))
+                (vals (map (lambda (x) (eval x env)) vals)))
+           (with-fluids* fluids vals (lambda () (eval exp env)))))
+        
         (('call/cc proc)
          (call/cc (eval proc env)))
 

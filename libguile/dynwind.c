@@ -257,6 +257,11 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	  if (WINDER_REWIND_P (wind_elt))
 	    WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	}
+      else if (SCM_WITH_FLUIDS_P (wind_elt))
+	{
+          scm_i_swap_with_fluids (wind_elt,
+                                  SCM_I_CURRENT_THREAD->dynamic_state);
+	}
       else
 	{
 	  wind_key = SCM_CAR (wind_elt);
@@ -293,6 +298,11 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	{
 	  if (!WINDER_REWIND_P (wind_elt))
 	    WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
+	}
+      else if (SCM_WITH_FLUIDS_P (wind_elt))
+	{
+          scm_i_swap_with_fluids (wind_elt,
+                                  SCM_I_CURRENT_THREAD->dynamic_state);
 	}
       else
 	{

@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -263,53 +263,90 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-static void
-swap_fluids (SCM data)
-{
-  SCM fluids = SCM_CAR (data), vals = SCM_CDR (data);
-  
-  while (!SCM_NULL_OR_NIL_P (fluids))
-    {
-      SCM fl = SCM_CAR (fluids);
-      SCM old_val = scm_fluid_ref (fl);
-      scm_fluid_set_x (fl, SCM_CAR (vals));
-      SCM_SETCAR (vals, old_val);
-      fluids = SCM_CDR (fluids);
-      vals = SCM_CDR (vals);
-    }
-}
-
-/* Swap the fluid values in reverse order.  This is important when the
-   same fluid appears multiple times in the fluids list.
-*/
-
-static void
-swap_fluids_reverse_aux (SCM fluids, SCM vals)
-{
-  if (!SCM_NULL_OR_NIL_P (fluids))
-    {
-      SCM fl, old_val;
-
-      swap_fluids_reverse_aux (SCM_CDR (fluids), SCM_CDR (vals));
-      fl = SCM_CAR (fluids);
-      old_val = scm_fluid_ref (fl);
-      scm_fluid_set_x (fl, SCM_CAR (vals));
-      SCM_SETCAR (vals, old_val);
-    }
-}
-
-static void
-swap_fluids_reverse (SCM data)
-{
-  swap_fluids_reverse_aux (SCM_CAR (data), SCM_CDR (data));
-}
-
 static SCM
 apply_thunk (void *thunk)
 {
   return scm_call_0 (SCM_PACK (thunk));
 }
 
+SCM
+scm_i_make_with_fluids (size_t n, SCM *fluids, SCM *vals)
+{
+  SCM ret;
+
+  /* Ensure that there are no duplicates in the fluids set -- an N^2 operation,
+     but N will usually be small, so perhaps that's OK. */
+  {
+    size_t i, j = n;
+
+    while (j--)
+      for (i = 0; i < j; i++)
+        if (fluids[i] == fluids[j])
+          {
+            vals[i] = vals[j]; /* later bindings win */
+            n--;
+            break;
+          }
+  }
+        
+  ret = scm_words (scm_tc7_with_fluids | (n << 8), 1 + n*2);
+  SCM_SET_CELL_WORD_1 (ret, n);
+
+  while (n--)
+    {
+      if (SCM_UNLIKELY (!IS_FLUID (fluids[n])))
+        scm_wrong_type_arg ("with-fluids", 0, fluids[n]);
+      SCM_SET_CELL_OBJECT (ret, 1 + n * 2, fluids[n]);
+      SCM_SET_CELL_OBJECT (ret, 2 + n * 2, vals[n]);
+    }
+
+  return ret;
+}
+  
+void
+scm_i_swap_with_fluids (SCM wf, SCM dynstate)
+{
+  SCM fluids;
+  size_t i, max = 0;
+
+  fluids = DYNAMIC_STATE_FLUIDS (dynstate);
+
+  /* We could cache the max in the with-fluids, but that would take more mem,
+     and we're touching all the fluids anyway, so this per-swap traversal should
+     be OK. */
+  for (i = 0; i < SCM_WITH_FLUIDS_LEN (wf); i++)
+    {
+      size_t num = FLUID_NUM (SCM_WITH_FLUIDS_NTH_FLUID (wf, i));
+      max = (max > num) ? max : num;
+    }
+
+  if (SCM_UNLIKELY (max >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+    {
+      /* We should only get there when the current thread's dynamic state turns
+         out to be too small compared to the set of currently allocated
+         fluids. */
+      assert (SCM_SIMPLE_VECTOR_LENGTH (fluids) < allocated_fluids_num);
+
+      /* Lazily grow the current thread's dynamic state.  */
+      grow_dynamic_state (dynstate);
+
+      fluids = DYNAMIC_STATE_FLUIDS (dynstate);
+    }
+
+  /* Bind the fluids. Order doesn't matter, as all fluids are distinct. */
+  for (i = 0; i < SCM_WITH_FLUIDS_LEN (wf); i++)
+    {
+      size_t fluid_num;
+      SCM x;
+      
+      fluid_num = FLUID_NUM (SCM_WITH_FLUIDS_NTH_FLUID (wf, i));
+      x = SCM_SIMPLE_VECTOR_REF (fluids, fluid_num);
+      SCM_SIMPLE_VECTOR_SET (fluids, fluid_num,
+                             SCM_WITH_FLUIDS_NTH_VAL (wf, i));
+      SCM_WITH_FLUIDS_SET_NTH_VAL (wf, i, x);
+    }
+}
+  
 SCM_DEFINE (scm_with_fluids, "with-fluids*", 3, 0, 0, 
 	    (SCM fluids, SCM values, SCM thunk),
 	    "Set @var{fluids} to @var{values} temporary, and call @var{thunk}.\n"
@@ -327,26 +364,36 @@ SCM
 scm_c_with_fluids (SCM fluids, SCM values, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluids"
 {
-  SCM ans, data;
-  long flen, vlen;
+  SCM wf, ans;
+  long flen, vlen, i;
+  SCM *fluidsv, *valuesv;
 
   SCM_VALIDATE_LIST_COPYLEN (1, fluids, flen);
   SCM_VALIDATE_LIST_COPYLEN (2, values, vlen);
   if (flen != vlen)
     scm_out_of_range (s_scm_with_fluids, values);
 
-  if (flen == 1)
-    return scm_c_with_fluid (SCM_CAR (fluids), SCM_CAR (values),
-			     cproc, cdata);
+  if (SCM_UNLIKELY (flen == 0))
+    return cproc (cdata);
+
+  fluidsv = alloca (sizeof(SCM)*flen);
+  valuesv = alloca (sizeof(SCM)*flen);
   
-  data = scm_cons (fluids, values);
-  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
-  scm_dynwind_rewind_handler_with_scm (swap_fluids, data,
-				     SCM_F_WIND_EXPLICITLY);
-  scm_dynwind_unwind_handler_with_scm (swap_fluids_reverse, data,
-				     SCM_F_WIND_EXPLICITLY);
+  for (i = 0; i < flen; i++)
+    {
+      fluidsv[i] = SCM_CAR (fluids);
+      fluids = SCM_CDR (fluids);
+      valuesv[i] = SCM_CAR (values);
+      values = SCM_CDR (values);
+    }
+
+  wf = scm_i_make_with_fluids (flen, fluidsv, valuesv);
+  scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+  scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
   ans = cproc (cdata);
-  scm_dynwind_end ();
+  scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+  scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
+
   return ans;
 }
 #undef FUNC_NAME
@@ -366,12 +413,15 @@ SCM
 scm_c_with_fluid (SCM fluid, SCM value, SCM (*cproc) (), void *cdata)
 #define FUNC_NAME "scm_c_with_fluid"
 {
-  SCM ans;
+  SCM ans, wf;
 
-  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
-  scm_dynwind_fluid (fluid, value);
+  wf = scm_i_make_with_fluids (1, &fluid, &value);
+  scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+  scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
   ans = cproc (cdata);
-  scm_dynwind_end ();
+  scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+  scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
+
   return ans;
 }
 #undef FUNC_NAME

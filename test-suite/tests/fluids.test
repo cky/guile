@@ -35,7 +35,7 @@
     (with-fluids ((c #t))
       c))
   
-  (expect-fail "fluids not modified if nonfluid passed to with-fluids"
+  (pass-if "fluids not modified if nonfluid passed to with-fluids"
     (catch 'wrong-type-arg
       (lambda ()
         (with-fluids ((a #t)

@@ -201,6 +201,8 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_DEFINE, scm_cons (var, val))
 #define MAKMEMO_DYNWIND(in, expr, out) \
   MAKMEMO (SCM_M_DYNWIND, scm_cons (in, scm_cons (expr, out)))
+#define MAKMEMO_WITH_FLUIDS(fluids, vals, expr) \
+  MAKMEMO (SCM_M_WITH_FLUIDS, scm_cons (fluids, scm_cons (vals, expr)))
 #define MAKMEMO_APPLY(exp) \
   MAKMEMO (SCM_M_APPLY, exp)
 #define MAKMEMO_CONT(proc) \
@@ -234,6 +236,7 @@ static const char *const memoized_tags[] =
   "quote",
   "define",
   "dynwind",
+  "with-fluids",
   "apply",
   "call/cc",
   "call-with-values",
@@ -265,6 +268,7 @@ static SCM scm_m_at_call_with_values (SCM xorig, SCM env);
 static SCM scm_m_cond (SCM xorig, SCM env);
 static SCM scm_m_define (SCM x, SCM env);
 static SCM scm_m_at_dynamic_wind (SCM xorig, SCM env);
+static SCM scm_m_with_fluids (SCM xorig, SCM env);
 static SCM scm_m_eval_when (SCM xorig, SCM env);
 static SCM scm_m_if (SCM xorig, SCM env);
 static SCM scm_m_lambda (SCM xorig, SCM env);
@@ -401,6 +405,7 @@ SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_m_at_call_with_value
 SCM_SYNTAX (s_cond, "cond", scm_m_cond);
 SCM_SYNTAX (s_define, "define", scm_m_define);
 SCM_SYNTAX (s_at_dynamic_wind, "@dynamic-wind", scm_m_at_dynamic_wind);
+SCM_SYNTAX (s_with_fluids, "with-fluids", scm_m_with_fluids);
 SCM_SYNTAX (s_eval_when, "eval-when", scm_m_eval_when);
 SCM_SYNTAX (s_if, "if", scm_m_if);
 SCM_SYNTAX (s_lambda, "lambda", scm_m_lambda);
@@ -425,6 +430,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_case, "case");
 SCM_GLOBAL_SYMBOL (scm_sym_cond, "cond");
 SCM_GLOBAL_SYMBOL (scm_sym_define, "define");
 SCM_GLOBAL_SYMBOL (scm_sym_at_dynamic_wind, "@dynamic-wind");
+SCM_GLOBAL_SYMBOL (scm_sym_with_fluids, "with-fluids");
 SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
 SCM_GLOBAL_SYMBOL (scm_sym_eval_when, "eval-when");
 SCM_GLOBAL_SYMBOL (scm_sym_if, "if");
@@ -633,6 +639,29 @@ scm_m_at_dynamic_wind (SCM expr, SCM env)
   return MAKMEMO_DYNWIND (memoize (CADR (expr), env),
                           memoize (CADDR (expr), env),
                           memoize (CADDDR (expr), env));
+}
+
+static SCM
+scm_m_with_fluids (SCM expr, SCM env)
+{
+  SCM binds, fluids, vals;
+  ASSERT_SYNTAX (scm_ilength (expr) >= 3, s_bad_expression, expr);
+  binds = CADR (expr);
+  ASSERT_SYNTAX_2 (scm_ilength (binds) >= 0, s_bad_bindings, binds, expr);
+  for (fluids = SCM_EOL, vals = SCM_EOL;
+       scm_is_pair (binds);
+       binds = CDR (binds))
+    {
+      SCM binding = CAR (binds);
+      ASSERT_SYNTAX_2 (scm_ilength (CAR (binds)) == 2, s_bad_binding,
+                       binding, expr);
+      fluids = scm_cons (memoize (CAR (binding), env), fluids);
+      vals = scm_cons (memoize (CADR (binding), env), vals);
+    }
+
+  return MAKMEMO_WITH_FLUIDS (scm_reverse_x (fluids, SCM_UNDEFINED),
+                              scm_reverse_x (vals, SCM_UNDEFINED),
+                              memoize_sequence (CDDR (expr), env));
 }
 
 static SCM
@@ -1083,6 +1112,18 @@ unmemoize (const SCM expr)
                          unmemoize (CAR (args)),
                          unmemoize (CADR (args)),
                          unmemoize (CDDR (args)));
+    case SCM_M_WITH_FLUIDS:
+      {
+        SCM binds = SCM_EOL, fluids, vals;
+        for (fluids = CAR (args), vals = CADR (args); scm_is_pair (fluids);
+             fluids = CDR (fluids), vals = CDR (vals))
+          binds = scm_cons (scm_list_2 (unmemoize (CAR (fluids)),
+                                        unmemoize (CAR (vals))),
+                            binds);
+        return scm_list_3 (scm_sym_with_fluids,
+                           scm_reverse_x (binds, SCM_UNDEFINED),
+                           unmemoize (CDDR (args)));
+      }
     case SCM_M_IF:
       return scm_list_4 (scm_sym_if, unmemoize (scm_car (args)),
                          unmemoize (scm_cadr (args)), unmemoize (scm_cddr (args)));

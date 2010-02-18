@@ -44,6 +44,7 @@ SCM_API SCM scm_sym_quote;
 SCM_API SCM scm_sym_quasiquote;
 SCM_API SCM scm_sym_unquote;
 SCM_API SCM scm_sym_uq_splicing;
+SCM_API SCM scm_sym_with_fluids;
 
 SCM_API SCM scm_sym_at;
 SCM_API SCM scm_sym_atat;
@@ -77,6 +78,7 @@ enum
     SCM_M_QUOTE,
     SCM_M_DEFINE,
     SCM_M_DYNWIND,
+    SCM_M_WITH_FLUIDS,
     SCM_M_APPLY,
     SCM_M_CONT,
     SCM_M_CALL_WITH_VALUES,

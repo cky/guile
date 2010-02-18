@@ -229,6 +229,28 @@ eval (SCM x, SCM env)
         return res;
       }
 
+    case SCM_M_WITH_FLUIDS:
+      {
+        long i, len;
+        SCM *fluidv, *valuesv, walk, wf, res;
+        len = scm_ilength (CAR (mx));
+        fluidv = alloca (sizeof (SCM)*len);
+        for (i = 0, walk = CAR (mx); i < len; i++, walk = CDR (walk))
+          fluidv[i] = eval (CAR (walk), env);
+        valuesv = alloca (sizeof (SCM)*len);
+        for (i = 0, walk = CADR (mx); i < len; i++, walk = CDR (walk))
+          valuesv[i] = eval (CAR (walk), env);
+        
+        wf = scm_i_make_with_fluids (len, fluidv, valuesv);
+        scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+        scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
+        res = eval (CDDR (mx), env);
+        scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+        scm_i_set_dynwinds (CDR (scm_i_dynwinds ()));
+        
+        return res;
+      }
+
     case SCM_M_APPLY:
       /* Evaluate the procedure to be applied.  */
       proc = eval (CAR (mx), env);

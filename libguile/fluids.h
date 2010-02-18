@@ -3,7 +3,7 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +26,18 @@
 #include "libguile/__scm.h"
 #include "libguile/root.h"
 #include "libguile/vectors.h"
+
+/* These "with-fluids" objects live on the dynamic stack, and record previous
+   values of fluids. Guile uses shallow binding, so the current fluid values are
+   always in the same place for a given thread, in the dynamic-state vector.
+ */
+
+#define SCM_WITH_FLUIDS_P(x) (!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_with_fluids)
+#define SCM_WITH_FLUIDS_LEN(x) (SCM_CELL_WORD ((x), 0) >> 8)
+#define SCM_WITH_FLUIDS_NTH_FLUID(x,n) (SCM_CELL_OBJECT ((x), 1 + (n)*2))
+#define SCM_WITH_FLUIDS_NTH_VAL(x,n) (SCM_CELL_OBJECT ((x), 2 + (n)*2))
+#define SCM_WITH_FLUIDS_SET_NTH_VAL(x,n,v) (SCM_SET_CELL_OBJECT ((x), 2 + (n)*2, (v)))
+
 
 /* Fluids.
 
@@ -55,6 +67,9 @@ SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
 SCM_API SCM scm_fluid_ref (SCM fluid);
 SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
+
+SCM_INTERNAL SCM scm_i_make_with_fluids (size_t n, SCM *fluids, SCM *vals);
+SCM_INTERNAL void scm_i_swap_with_fluids (SCM with_fluids, SCM dynamic_state);
 
 SCM_API SCM scm_c_with_fluids (SCM fluids, SCM vals,
 			       SCM (*cproc)(void *), void *cdata);
