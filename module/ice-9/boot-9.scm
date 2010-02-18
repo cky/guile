@@ -2904,24 +2904,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
-;;; {with-fluids}
-;;;
-
-;; with-fluids is a convenience wrapper for the builtin procedure
-;; `with-fluids*'.  The syntax is just like `let':
-;;
-;;  (with-fluids ((fluid val)
-;;                ...)
-;;     body)
-
-(defmacro with-fluids (bindings . body)
-  (let ((fluids (map car bindings))
-        (values (map cadr bindings)))
-    (if (and (= (length fluids) 1) (= (length values) 1))
-        `(with-fluid* ,(car fluids) ,(car values) (lambda () ,@body))
-        `(with-fluids* (list ,@fluids) (list ,@values)
-                       (lambda () ,@body)))))
-
 ;;; {While}
 ;;;
 ;;; with `continue' and `break'.

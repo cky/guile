@@ -358,6 +358,13 @@
                    `(if ,test-exp ,then-exp ,else-exp))
                source)))))
 
+  (define build-dynlet
+    (lambda (source fluids vals body)
+      (case (fluid-ref *mode*)
+        ((c) ((@ (language tree-il) make-dynlet) source fluids vals body))
+        (else (decorate-source `(with-fluids ,(map list fluids vals) ,body)
+                               source)))))
+
   (define build-lexical-reference
     (lambda (type source name var)
       (case (fluid-ref *mode*)
@@ -2184,6 +2191,17 @@
                        (chi #'then r w mod)
                        (chi #'else r w mod))))))
 
+  (global-extend 'core 'with-fluids
+                 (lambda (e r w s mod)
+                   (syntax-case e ()
+                     ((_ ((fluid val) ...) b b* ...)
+                      (build-dynlet
+                       s
+                       (map (lambda (x) (chi x r w mod)) #'(fluid ...))
+                       (map (lambda (x) (chi x r w mod)) #'(val ...))
+                       (chi-body #'(b b* ...)
+                                 (source-wrap e w s mod) r w mod))))))
+  
   (global-extend 'begin 'begin '())
 
   (global-extend 'define 'define '())
@@ -2372,10 +2390,9 @@
                     (esew (if (or (null? rest) (null? (cdr rest)))
                               '(eval)
                               (cadr rest))))
-                (with-fluid* *mode* m
-                             (lambda ()
-                               (chi-top x null-env top-wrap m esew
-                                        (cons 'hygiene (module-name (current-module))))))))))
+                (with-fluids ((*mode* m))
+                  (chi-top x null-env top-wrap m esew
+                           (cons 'hygiene (module-name (current-module)))))))))
 
   (set! identifier?
         (lambda (x)
