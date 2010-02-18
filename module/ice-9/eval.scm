@@ -188,71 +188,48 @@
              (mx-match mx data tag c ...)))))))
 
 
+;;;
+;;; On 18 Feb 2010, I did a profile of how often the various memoized expression
+;;; types occur when getting to a prompt on a fresh build. Here are the numbers
+;;; I got:
+;;;
+;;;      lexical-ref: 32933054
+;;;             call: 20281547
+;;;     toplevel-ref: 13228724
+;;;               if: 9156156
+;;;            quote: 6610137
+;;;              let: 2619707
+;;;           lambda: 1010921
+;;;            begin: 948945
+;;;      lexical-set: 509862
+;;; call-with-values: 139668
+;;;            apply: 49402
+;;;       module-ref: 14468
+;;;           define: 1259
+;;;     toplevel-set: 328
+;;;          dynwind: 162
+;;;      with-fluids: 0
+;;;          call/cc: 0
+;;;       module-set: 0
+;;;
+;;; So until we compile `case' into a computed goto, we'll order the clauses in
+;;; `eval' in this order, to put the most frequent cases first.
+;;;
+
 (define primitive-eval
   (let ()
     ;; The "engine". EXP is a memoized expression.
     (define (eval exp env)
       (memoized-expression-case exp
-        (('begin (first . rest))
-         (let lp ((first first) (rest rest))
-           (if (null? rest)
-               (eval first env)
-               (begin
-                 (eval first env)
-                 (lp (car rest) (cdr rest))))))
-      
-        (('if (test consequent . alternate))
-         (if (eval test env)
-             (eval consequent env)
-             (eval alternate env)))
-      
-        (('let (inits . body))
-         (let lp ((inits inits) (new-env (capture-env env)))
-           (if (null? inits)
-               (eval body new-env)
-               (lp (cdr inits)
-                   (cons (eval (car inits) env) new-env)))))
-      
-        (('lambda (nreq rest? . body))
-         (make-closure eval nreq rest? body (capture-env env)))
-        
-        (('quote x)
-         x)
-
-        (('define (name . x))
-         (define! name (eval x env)))
-      
-        (('dynwind (in exp . out))
-         (dynamic-wind (eval in env)
-                       (lambda () (eval exp env))
-                       (eval out env)))
-        
-        (('apply (f args))
-         (apply (eval f env) (eval args env)))
-
-        (('call (f nargs . args))
-         (let ((proc (eval f env)))
-           (call eval proc nargs args env)))
-        
-        (('call/cc proc)
-         (call/cc (eval proc env)))
-
-        (('call-with-values (producer . consumer))
-         (call-with-values (eval producer env)
-           (eval consumer env)))
-
         (('lexical-ref n)
          (let lp ((n n) (env env))
            (if (zero? n)
                (car env)
                (lp (1- n) (cdr env)))))
       
-        (('lexical-set! (n . x))
-         (let ((val (eval x env)))
-           (let lp ((n n) (env env))
-             (if (zero? n)
-                 (set-car! env val)
-                 (lp (1- n) (cdr env))))))
+        (('call (f nargs . args))
+         (let ((proc (eval f env)))
+           (call eval proc nargs args env)))
         
         (('toplevel-ref var-or-sym)
          (variable-ref
@@ -263,6 +240,55 @@
                     (lp (cdr env))
                     (memoize-variable-access! exp (capture-env env)))))))
 
+        (('if (test consequent . alternate))
+         (if (eval test env)
+             (eval consequent env)
+             (eval alternate env)))
+      
+        (('quote x)
+         x)
+
+        (('let (inits . body))
+         (let lp ((inits inits) (new-env (capture-env env)))
+           (if (null? inits)
+               (eval body new-env)
+               (lp (cdr inits)
+                   (cons (eval (car inits) env) new-env)))))
+      
+        (('lambda (nreq rest? . body))
+         (make-closure eval nreq rest? body (capture-env env)))
+        
+        (('begin (first . rest))
+         (let lp ((first first) (rest rest))
+           (if (null? rest)
+               (eval first env)
+               (begin
+                 (eval first env)
+                 (lp (car rest) (cdr rest))))))
+      
+        (('lexical-set! (n . x))
+         (let ((val (eval x env)))
+           (let lp ((n n) (env env))
+             (if (zero? n)
+                 (set-car! env val)
+                 (lp (1- n) (cdr env))))))
+        
+        (('call-with-values (producer . consumer))
+         (call-with-values (eval producer env)
+           (eval consumer env)))
+
+        (('apply (f args))
+         (apply (eval f env) (eval args env)))
+
+        (('module-ref var-or-spec)
+         (variable-ref
+          (if (variable? var-or-spec)
+              var-or-spec
+              (memoize-variable-access! exp #f))))
+
+        (('define (name . x))
+         (define! name (eval x env)))
+      
         (('toplevel-set! (var-or-sym . x))
          (variable-set!
           (if (variable? var-or-sym)
@@ -273,11 +299,13 @@
                     (memoize-variable-access! exp (capture-env env)))))
           (eval x env)))
       
-        (('module-ref var-or-spec)
-         (variable-ref
-          (if (variable? var-or-spec)
-              var-or-spec
-              (memoize-variable-access! exp #f))))
+        (('dynwind (in exp . out))
+         (dynamic-wind (eval in env)
+                       (lambda () (eval exp env))
+                       (eval out env)))
+        
+        (('call/cc proc)
+         (call/cc (eval proc env)))
 
         (('module-set! (x . var-or-spec))
          (variable-set!
