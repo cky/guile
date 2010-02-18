@@ -356,7 +356,7 @@ eval (SCM x, SCM env)
       else
         {
           while (scm_is_pair (env))
-            env = scm_cdr (env);
+            env = CDR (env);
           return SCM_VARIABLE_REF
             (scm_memoize_variable_access_x (x, CAPTURE_ENV (env)));
         }
@@ -373,7 +373,7 @@ eval (SCM x, SCM env)
         else
           {
             while (scm_is_pair (env))
-              env = scm_cdr (env);
+              env = CDR (env);
             SCM_VARIABLE_SET
               (scm_memoize_variable_access_x (x, CAPTURE_ENV (env)),
                val);
