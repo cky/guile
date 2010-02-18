@@ -915,7 +915,7 @@
       ;; to have body's return value(s) on the stack while the unwinder runs,
       ;; then proceed with returning or dropping or what-have-you, interacting
       ;; with RA and MVRA. What have you, I say.
-      ((<dynamic-wind> src body winder unwinder)
+      ((<dynwind> src body winder unwinder)
        (comp-push winder)
        (comp-push unwinder)
        (comp-drop (make-application src winder '()))

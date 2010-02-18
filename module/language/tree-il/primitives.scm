@@ -382,7 +382,7 @@
                     '(pre post)
                     (list PRE POST)
                     (list pre post)
-                    (make-dynamic-wind
+                    (make-dynwind
                      src
                      (make-lexical-ref #f 'pre PRE)
                      (make-application #f thunk '())
@@ -396,7 +396,7 @@
                     '(pre thunk post)
                     (list PRE THUNK POST)
                     (list pre thunk post)
-                    (make-dynamic-wind
+                    (make-dynwind
                      src
                      (make-lexical-ref #f 'pre PRE)
                      (make-application #f (make-lexical-ref #f 'thunk THUNK) '())
@@ -414,7 +414,7 @@
                   '(pre post)
                   (list PRE POST)
                   (list pre post)
-                  (make-dynamic-wind
+                  (make-dynwind
                    src
                    (make-lexical-ref #f 'pre PRE)
                    expr

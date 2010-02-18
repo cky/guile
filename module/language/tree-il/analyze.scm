@@ -336,7 +336,7 @@
       ((<let-values> exp body)
        (lset-union eq? (step exp) (step body)))
       
-      ((<dynamic-wind> body winder unwinder)
+      ((<dynwind> body winder unwinder)
        (lset-union eq? (step body) (step winder) (step unwinder)))
       
       ((<prompt> tag body handler pre-unwind-handler)
@@ -497,7 +497,7 @@
       ((<let-values> exp body)
        (max (recur exp) (recur body)))
       
-      ((<dynamic-wind> body winder unwinder)
+      ((<dynwind> body winder unwinder)
        (max (recur body) (recur winder) (recur unwinder)))
       
       ((<prompt> tag body handler pre-unwind-handler)

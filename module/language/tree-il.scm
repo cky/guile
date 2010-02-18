@@ -45,7 +45,7 @@
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
             <fix> fix? make-fix fix-src fix-names fix-vars fix-vals fix-body
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
-            <dynamic-wind> dynamic-wind? make-dynamic-wind dynamic-wind-src dynamic-wind-winder dynamic-wind-body dynamic-wind-unwinder
+            <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
             <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler prompt-pre-unwind-handler 
             <control> control? make-control control-src control-tag control-type control-args
 
@@ -78,7 +78,7 @@
   (<letrec> names vars vals body)
   (<fix> names vars vals body)
   (<let-values> exp body)
-  (<dynamic-wind> winder body unwinder)
+  (<dynwind> winder body unwinder)
   (<prompt> tag body handler pre-unwind-handler)
   (<control> tag type args))
   
@@ -171,8 +171,8 @@
      ((let-values ,exp ,body)
       (make-let-values loc (retrans exp) (retrans body)))
 
-     ((dynamic-wind ,winder ,body ,unwinder)
-      (make-dynamic-wind loc (retrans winder) (retrans body) (retrans unwinder)))
+     ((dynwind ,winder ,body ,unwinder)
+      (make-dynwind loc (retrans winder) (retrans body) (retrans unwinder)))
      
      ((prompt ,tag ,body ,handler ,pre-unwind-handler)
       (make-prompt loc (retrans tag) (retrans body) (retrans handler)
@@ -245,8 +245,8 @@
     ((<let-values> exp body)
      `(let-values ,(unparse-tree-il exp) ,(unparse-tree-il body)))
 
-    ((<dynamic-wind> body winder unwinder)
-     `(dynamic-wind ,(unparse-tree-il body)
+    ((<dynwind> body winder unwinder)
+     `(dynwind ,(unparse-tree-il body)
                ,(unparse-tree-il winder) ,(unparse-tree-il unwinder)))
     
     ((<prompt> tag body handler pre-unwind-handler)
@@ -328,7 +328,7 @@
      `(call-with-values (lambda () ,(tree-il->scheme exp))
         ,(tree-il->scheme (make-lambda #f '() body))))
 
-    ((<dynamic-wind> body winder unwinder)
+    ((<dynwind> body winder unwinder)
      `(dynamic-wind ,(tree-il->scheme winder)
                     (lambda () ,(tree-il->scheme body))
                     ,(tree-il->scheme unwinder)))
@@ -395,7 +395,7 @@ This is an implementation of `foldts' as described by Andy Wingo in
                                 (down tree result)))))
           ((<let-values> exp body)
            (up tree (loop body (loop exp (down tree result)))))
-          ((<dynamic-wind> body winder unwinder)
+          ((<dynwind> body winder unwinder)
            (up tree (loop unwinder
                           (loop winder
                                 (loop body (down tree result))))))
@@ -464,7 +464,7 @@ This is an implementation of `foldts' as described by Andy Wingo in
                  ((<let-values> exp body)
                   (let*-values (((seed ...) (foldts exp seed ...)))
                     (foldts body seed ...)))
-                 ((<dynamic-wind> body winder unwinder)
+                 ((<dynwind> body winder unwinder)
                   (let*-values (((seed ...) (foldts body seed ...))
                                 ((seed ...) (foldts winder seed ...)))
                     (foldts unwinder seed ...)))
@@ -534,10 +534,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (let-values-exp x) (lp exp))
        (set! (let-values-body x) (lp body)))
       
-      ((<dynamic-wind> body winder unwinder)
-       (set! (dynamic-wind-body x) (lp body))
-       (set! (dynamic-wind-winder x) (lp winder))
-       (set! (dynamic-wind-unwinder x) (lp unwinder)))
+      ((<dynwind> body winder unwinder)
+       (set! (dynwind-body x) (lp body))
+       (set! (dynwind-winder x) (lp winder))
+       (set! (dynwind-unwinder x) (lp unwinder)))
       
       ((<prompt> tag body handler pre-unwind-handler)
        (set! (prompt-tag x) (lp tag))
@@ -606,10 +606,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (let-values-exp x) (lp exp))
          (set! (let-values-body x) (lp body)))
 
-        ((<dynamic-wind> body winder unwinder)
-         (set! (dynamic-wind-body x) (lp body))
-         (set! (dynamic-wind-winder x) (lp winder))
-         (set! (dynamic-wind-unwinder x) (lp unwinder)))
+        ((<dynwind> body winder unwinder)
+         (set! (dynwind-body x) (lp body))
+         (set! (dynwind-winder x) (lp winder))
+         (set! (dynwind-unwinder x) (lp unwinder)))
         
         ((<prompt> tag body handler pre-unwind-handler)
          (set! (prompt-tag x) (lp tag))
