@@ -65,11 +65,11 @@ static size_t allocated_fluids_len = 0;
 static size_t allocated_fluids_num = 0;
 static char *allocated_fluids = NULL;
 
-#define IS_FLUID(x)         (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
-#define FLUID_NUM(x)        ((size_t)SCM_CELL_WORD_1(x))
+#define IS_FLUID(x)         SCM_I_FLUID_P (x)
+#define FLUID_NUM(x)        SCM_I_FLUID_NUM (x)
 
-#define IS_DYNAMIC_STATE(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_dynamic_state)
-#define DYNAMIC_STATE_FLUIDS(x)        SCM_PACK (SCM_CELL_WORD_1 (x))
+#define IS_DYNAMIC_STATE(x) SCM_I_DYNAMIC_STATE_P (x)
+#define DYNAMIC_STATE_FLUIDS(x)        SCM_I_DYNAMIC_STATE_FLUIDS (x)
 #define SET_DYNAMIC_STATE_FLUIDS(x, y) SCM_SET_CELL_WORD_1 ((x), (SCM_UNPACK (y)))
 
 

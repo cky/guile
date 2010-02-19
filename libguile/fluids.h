@@ -54,13 +54,8 @@
    grow.
  */
 
-/* The fastest way to acces/modify the value of a fluid.  These macros
-   do no error checking at all.  The first argument is the index
-   number of the fluid, obtained via SCM_FLUID_NUM, not the fluid
-   itself.  You must make sure that the fluid remains protected as
-   long you use its number since numbers of unused fluids are reused
-   eventually.
-*/
+#define SCM_I_FLUID_P(x)          (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
+#define SCM_I_FLUID_NUM(x)        ((size_t)SCM_CELL_WORD_1(x))
 
 SCM_API SCM scm_make_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
@@ -79,6 +74,9 @@ SCM_API SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 SCM_API SCM scm_with_fluid (SCM fluid, SCM val, SCM thunk);
 
 SCM_API void scm_dynwind_fluid (SCM fluid, SCM value);
+
+#define SCM_I_DYNAMIC_STATE_P(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_dynamic_state)
+#define SCM_I_DYNAMIC_STATE_FLUIDS(x)        SCM_PACK (SCM_CELL_WORD_1 (x))
 
 SCM_API SCM scm_make_dynamic_state (SCM parent);
 SCM_API SCM scm_dynamic_state_p (SCM obj);
