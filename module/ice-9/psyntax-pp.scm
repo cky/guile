@@ -10243,15 +10243,15 @@
                                       #{mod\ 3384}#))
                                   #{val\ 3399}#)
                              (#{chi-body\ 333}#
-                              (cons #{b\ 3400}# #{b*\ 3401}#)
-                              (#{source-wrap\ 311}#
-                               #{e\ 3380}#
+                               (cons #{b\ 3400}# #{b*\ 3401}#)
+                               (#{source-wrap\ 311}#
+                                 #{e\ 3380}#
+                                 #{w\ 3382}#
+                                 #{s\ 3383}#
+                                 #{mod\ 3384}#)
+                               #{r\ 3381}#
                                #{w\ 3382}#
-                               #{s\ 3383}#
-                               #{mod\ 3384}#)
-                              #{r\ 3381}#
-                              #{w\ 3382}#
-                              #{mod\ 3384}#)))
+                               #{mod\ 3384}#)))
                          #{tmp\ 3391}#)
                   (syntax-violation
                     #f
@@ -11170,18 +11170,16 @@
                             (null? (cdr #{rest\ 3658}#))))
                       '(eval)
                       (cadr #{rest\ 3658}#))))
-              (with-fluid*
-                #{*mode*\ 139}#
-                #{m\ 3665}#
-                (lambda ()
-                  (#{chi-top\ 323}#
-                    #{x\ 3657}#
-                    '()
-                    '((top))
-                    #{m\ 3665}#
-                    #{esew\ 3666}#
-                    (cons 'hygiene
-                          (module-name (current-module))))))))))
+              (with-fluids
+                  ((#{*mode*\ 139}# #{m\ 3665}#))
+                (#{chi-top\ 323}#
+                 #{x\ 3657}#
+                 '()
+                 '((top))
+                 #{m\ 3665}#
+                 #{esew\ 3666}#
+                 (cons 'hygiene
+                       (module-name (current-module)))))))))
       (set! identifier?
         (lambda (#{x\ 3673}#)
           (#{nonsymbol-id?\ 238}# #{x\ 3673}#)))
