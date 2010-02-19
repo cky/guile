@@ -1553,6 +1553,47 @@ VM_DEFINE_INSTRUCTION (91, unwind_fluids, "unwind-fluids", 0, 0, 0)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (92, fluid_ref, "fluid-ref", 0, 1, 1)
+{
+  size_t num;
+  SCM fluids;
+  
+  CHECK_UNDERFLOW ();
+  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
+  if (SCM_UNLIKELY (!SCM_I_FLUID_P (*sp))
+      || ((num = SCM_I_FLUID_NUM (*sp)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+    {
+      /* Punt dynstate expansion and error handling to the C proc. */
+      SYNC_REGISTER ();
+      *sp = scm_fluid_ref (*sp);
+    }
+  else
+    *sp = SCM_SIMPLE_VECTOR_REF (fluids, num);
+  
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (93, fluid_set, "fluid-set", 0, 2, 0)
+{
+  size_t num;
+  SCM val, fluid, fluids;
+  
+  POP (val);
+  POP (fluid);
+  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
+  if (SCM_UNLIKELY (!SCM_I_FLUID_P (fluid))
+      || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+    {
+      /* Punt dynstate expansion and error handling to the C proc. */
+      SYNC_REGISTER ();
+      scm_fluid_set_x (fluid, val);
+    }
+  else
+    SCM_SIMPLE_VECTOR_SET (fluids, num, val);
+  
+  NEXT;
+}
+
 
 /*
 (defun renumber-ops ()
