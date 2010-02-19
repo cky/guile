@@ -346,7 +346,7 @@
      `(with-fluids ,(map list
                          (map tree-il->scheme fluids)
                          (map tree-il->scheme vals))
-        (lambda () ,(tree-il->scheme body))))
+        ,(tree-il->scheme body)))
     
     ((<prompt> tag body handler pre-unwind-handler)
      `((@ (ice-9 control) prompt) 
