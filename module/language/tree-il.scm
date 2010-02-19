@@ -47,6 +47,8 @@
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
             <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
             <dynlet> dynlet? make-dynlet dynlet-src dynlet-fluids dynlet-vals dynlet-body
+            <dynref> dynref? make-dynref dynref-src dynref-fluid 
+            <dynset> dynset? make-dynset dynset-src dynset-fluid dynset-exp
             <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler
             <abort> abort? make-abort abort-src abort-tag abort-args
 
@@ -81,6 +83,8 @@
   (<let-values> exp body)
   (<dynwind> winder body unwinder)
   (<dynlet> fluids vals body)
+  (<dynref> fluid)
+  (<dynset> fluid exp)
   (<prompt> tag body handler)
   (<abort> tag args))
   
@@ -179,6 +183,12 @@
      ((dynlet ,fluids ,vals ,body)
       (make-dynlet loc (map retrans fluids) (map retrans vals) (retrans body)))
      
+     ((dynref ,fluid)
+      (make-dynref loc (retrans fluid)))
+     
+     ((dynset ,fluid ,exp)
+      (make-dynset loc (retrans fluid) (retrans exp)))
+     
      ((prompt ,tag ,body ,handler)
       (make-prompt loc (retrans tag) (retrans body) (retrans handler)))
      
@@ -256,6 +266,12 @@
     ((<dynlet> fluids vals body)
      `(dynlet ,(map unparse-tree-il fluids) ,(map unparse-tree-il vals)
               ,(unparse-tree-il body)))
+    
+    ((<dynref> fluid)
+     `(dynref ,(unparse-tree-il fluid)))
+    
+    ((<dynset> fluid exp)
+     `(dynref ,(unparse-tree-il fluid) ,(unparse-tree-il exp)))
     
     ((<prompt> tag body handler)
      `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)))
@@ -346,6 +362,12 @@
                          (map tree-il->scheme vals))
         ,(tree-il->scheme body)))
     
+    ((<dynref> fluid)
+     `(fluid-ref ,(tree-il->scheme fluid)))
+    
+    ((<dynset> fluid exp)
+     `(fluid-set! ,(tree-il->scheme fluid) ,(tree-il->scheme exp)))
+    
     ((<prompt> tag body handler)
      `((@ (ice-9 control) prompt) 
        ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
@@ -414,6 +436,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree (loop body
                           (loop vals
                                 (loop fluids (down tree result))))))
+          ((<dynref> fluid)
+           (up tree (loop fluid (down tree result))))
+          ((<dynset> fluid exp)
+           (up tree (loop exp (loop fluid (down tree result)))))
           ((<prompt> tag body handler)
            (up tree
                (loop tag (loop body (loop handler
@@ -483,6 +509,11 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (let*-values (((seed ...) (fold-values foldts fluids seed ...))
                                 ((seed ...) (fold-values foldts vals seed ...)))
                     (foldts body seed ...)))
+                 ((<dynref> fluid)
+                  (foldts fluid seed ...))
+                 ((<dynset> fluid exp)
+                  (let*-values (((seed ...) (foldts fluid seed ...)))
+                    (foldts exp seed ...)))
                  ((<prompt> tag body handler)
                   (let*-values (((seed ...) (foldts tag seed ...))
                                 ((seed ...) (foldts body seed ...)))
@@ -555,6 +586,13 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (dynlet-fluids x) (map lp fluids))
        (set! (dynlet-vals x) (map lp vals))
        (set! (dynlet-body x) (lp body)))
+      
+      ((<dynref> fluid)
+       (set! (dynref-fluid x) (lp fluid)))
+      
+      ((<dynset> fluid exp)
+       (set! (dynset-fluid x) (lp fluid))
+       (set! (dynset-exp x) (lp exp)))
       
       ((<prompt> tag body handler)
        (set! (prompt-tag x) (lp tag))
@@ -631,6 +669,13 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (dynlet-vals x) (map lp vals))
          (set! (dynlet-body x) (lp body)))
       
+        ((<dynref> fluid)
+         (set! (dynref-fluid x) (lp fluid)))
+        
+        ((<dynset> fluid exp)
+         (set! (dynset-fluid x) (lp fluid))
+         (set! (dynset-exp x) (lp exp)))
+        
         ((<prompt> tag body handler)
          (set! (prompt-tag x) (lp tag))
          (set! (prompt-body x) (lp body))

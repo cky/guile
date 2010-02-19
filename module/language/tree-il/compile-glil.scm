@@ -1013,6 +1013,24 @@
           (if RA
               (emit-branch #f 'br RA)))))
 
+      ((<dynref> src fluid)
+       (case context
+         ((drop)
+          (comp-drop fluid))
+         ((push vals tail)
+          (comp-push fluid)
+          (emit-code #f (make-glil-call 'fluid-ref 1))))
+       (maybe-emit-return))
+      
+      ((<dynset> src fluid exp)
+       (comp-push fluid)
+       (comp-push exp)
+       (emit-code #f (make-glil-call 'fluid-set 2))
+       (case context
+         ((push vals tail)
+          (emit-code #f (make-glil-void))))
+       (maybe-emit-return))
+      
       ;; What's the deal here? The deal is that we are compiling the start of a
       ;; delimited continuation. We try to avoid heap allocation in the normal
       ;; case; so the body is an expression, not a thunk, and we try to render
