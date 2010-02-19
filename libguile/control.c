@@ -26,30 +26,8 @@
 
 
 
-SCM scm_atcontrol (SCM, SCM, SCM);
-SCM_DEFINE (scm_atcontrol, "@control", 3, 0, 0,
-            (SCM tag, SCM type, SCM args),
-            "Transfer control to the handler of a delimited continuation.")
-#define FUNC_NAME s_scm_atcontrol
-{
-  abort ();
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM scm_atprompt (SCM, SCM, SCM, SCM);
-SCM_DEFINE (scm_atprompt, "@prompt", 4, 0, 0,
-            (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler),
-            "Begin a delimited continuation.")
-#define FUNC_NAME s_scm_atprompt
-{
-  abort ();
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
 SCM
-scm_c_make_prompt (SCM vm, SCM k, SCM handler, scm_t_uint8 escape_only_p)
+scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p)
 {
   scm_t_bits tag;
   SCM ret;
@@ -68,7 +46,6 @@ scm_c_make_prompt (SCM vm, SCM k, SCM handler, scm_t_uint8 escape_only_p)
   SCM_SET_CELL_OBJECT (ret, 1, k);
   SCM_SET_CELL_WORD (ret, 2, (scm_t_bits)regs);
   SCM_SET_CELL_OBJECT (ret, 3, scm_i_dynwinds ());
-  SCM_SET_CELL_OBJECT (ret, 4, handler);
 
   return ret;
 }
@@ -132,22 +109,43 @@ scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv)
   abort ();
 }
 
-
-
-static void
-scm_init_control (void)
+SCM_DEFINE (scm_abort, "abort", 1, 0, 1, (SCM tag, SCM args),
+            "Abort to the nearest prompt with tag @var{tag}.")
+#define FUNC_NAME s_scm_abort
 {
-#ifndef SCM_MAGIC_SNARFER
-#include "libguile/control.x"
-#endif
+  SCM *argv;
+  size_t i, n;
+
+  SCM_VALIDATE_LIST_COPYLEN (SCM_ARG2, args, n);
+  argv = alloca (sizeof (SCM)*n);
+  for (i = 0; i < n; i++, args = scm_cdr (args))
+    argv[i] = scm_car (args);
+
+  scm_c_abort (scm_the_vm (), tag, n, argv);
+
+  /* Oh, what, you're still here? The abort must have been reinstated. OK, pull
+     args back from the stack, and keep going... */
+
+  {
+    SCM vals = SCM_EOL;
+    struct scm_vm *vp = SCM_VM_DATA (scm_the_vm ());
+    n = scm_to_size_t (vp->sp[0]);
+    for (i = 0; i < n; i++)
+      vals = scm_cons (vp->sp[-(i + 1)], vals);
+    /* The continuation call did reset the VM's registers, but then these values
+       were pushed on; so we need to pop them ourselves. */
+    vp->sp -= n + 1;
+    /* FIXME NULLSTACK */
+
+    return (scm_is_pair (vals) && scm_is_null (scm_cdr (vals)))
+      ? scm_car (vals) : scm_values (vals);
+  }
 }
+#undef FUNC_NAME
 
-void
-scm_register_control (void)
+void scm_init_control (void)
 {
-  scm_c_register_extension ("libguile", "scm_init_control",
-                            (scm_t_extension_init_func)scm_init_control,
-                            NULL);
+#include "control.x"
 }
 
 /*

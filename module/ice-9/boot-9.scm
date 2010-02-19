@@ -401,6 +401,10 @@
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 
+;;; Delimited continuations
+(define (prompt tag thunk handler)
+  (@prompt tag (thunk) handler))
+
 ;;; apply-to-args is functionally redundant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.
 ;;;

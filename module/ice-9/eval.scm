@@ -309,6 +309,11 @@
                 (vals (map (lambda (x) (eval x env)) vals)))
            (with-fluids* fluids vals (lambda () (eval exp env)))))
         
+        (('prompt (tag exp . handler))
+         (@prompt (eval tag env)
+                  (eval exp env)
+                  (eval handler env)))
+        
         (('call/cc proc)
          (call/cc (eval proc env)))
 

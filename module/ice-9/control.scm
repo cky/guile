@@ -19,24 +19,14 @@
 ;;; Code:
 
 (define-module (ice-9 control)
-  #:use-module (language tree-il primitives)
-  #:export (% prompt control))
+  #:re-export (prompt)
+  #:export (% control))
 
-(eval-when (eval load compile)
-  (load-extension "libguile" "scm_init_control")
-  (add-interesting-primitive! '@prompt)
-  (add-interesting-primitive! '@control)
+;; the same as abort.
+(define (control tag . args)
+  (apply abort tag args))
 
-  (define (prompt tag thunk handler)
-    (@prompt tag thunk handler #f))
-
-  (define (control tag . args)
-    (apply @control tag 'throw args))
-
-  (define-syntax %
-    (syntax-rules ()
-      ((_ expr handler)
-       (prompt (lambda () expr) handler))))
-
-  (add-interesting-primitive! 'prompt)
-  (add-interesting-primitive! 'control))
+(define-syntax %
+  (syntax-rules ()
+    ((_ expr handler)
+     (prompt (lambda () expr) handler))))

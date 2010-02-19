@@ -63,6 +63,8 @@
 
     fluid-ref fluid-set!
 
+    @prompt prompt
+
     struct? struct-vtable make-struct struct-ref struct-set!
 
     bytevector-u8-ref bytevector-u8-set!

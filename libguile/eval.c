@@ -31,6 +31,7 @@
 #include "libguile/alist.h"
 #include "libguile/async.h"
 #include "libguile/continuations.h"
+#include "libguile/control.h"
 #include "libguile/debug.h"
 #include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
@@ -423,6 +424,38 @@ eval (SCM x, SCM env)
              eval (CAR (mx), env));
           return SCM_UNSPECIFIED;
         }
+
+    case SCM_M_PROMPT:
+      {
+        SCM prompt, handler, res;
+
+        prompt = scm_c_make_prompt (scm_the_vm (), eval (CAR (mx), env), 0);
+        handler = eval (CDDR (mx), env);
+        scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
+
+        if (SCM_PROMPT_SETJMP (prompt))
+          {
+            /* The prompt exited nonlocally. The args are on the VM stack. */
+            size_t i, n;
+            SCM vals = SCM_EOL;
+            n = scm_to_size_t (SCM_PROMPT_REGISTERS (prompt)->sp[0]);
+            for (i = 0; i < n; i++)
+              vals = scm_cons (SCM_PROMPT_REGISTERS (prompt)->sp[-(i + 1)], vals);
+            /* The abort did reset the VM's registers, but then these values
+               were pushed on; so we need to pop them ourselves. */
+            SCM_VM_DATA (scm_the_vm ())->sp -= n + 1;
+            /* FIXME NULLSTACK */
+
+            /* FIXME mark cont as non-reentrant */
+            proc = handler;
+            args = vals;
+            goto apply_proc;
+          }
+        
+        res = eval (CADR (mx), env);
+        scm_i_set_dynwinds (CDR (scm_i_dynwinds ()));
+        return res;
+      }
 
     default:
       abort ();

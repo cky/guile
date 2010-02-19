@@ -51,6 +51,7 @@ SCM_API SCM scm_sym_atat;
 SCM_API SCM scm_sym_atapply;
 SCM_API SCM scm_sym_atcall_cc;
 SCM_API SCM scm_sym_at_call_with_values;
+SCM_API SCM scm_sym_at_prompt;
 SCM_API SCM scm_sym_delay;
 SCM_API SCM scm_sym_at_dynamic_wind;
 SCM_API SCM scm_sym_eval_when;
@@ -88,7 +89,8 @@ enum
     SCM_M_TOPLEVEL_REF,
     SCM_M_TOPLEVEL_SET,
     SCM_M_MODULE_REF,
-    SCM_M_MODULE_SET
+    SCM_M_MODULE_SET,
+    SCM_M_PROMPT
   };
 
 

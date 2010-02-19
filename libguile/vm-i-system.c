@@ -1454,18 +1454,17 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
 {
   scm_t_int32 offset;
   scm_t_uint8 escape_only_p;
-  SCM k, handler, prompt;
+  SCM k, prompt;
 
   escape_only_p = FETCH ();
   FETCH_OFFSET (offset);
-  POP (handler);
   POP (k);
 
   SYNC_REGISTER ();
   /* Push the prompt onto the dynamic stack. The setjmp itself has to be local
      to this procedure. */
   /* FIXME: do more error checking */
-  prompt = scm_c_make_prompt (vm, k, handler, escape_only_p);
+  prompt = scm_c_make_prompt (vm, k, escape_only_p);
   scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
   if (SCM_PROMPT_SETJMP (prompt))
     {

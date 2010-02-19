@@ -454,7 +454,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
   scm_register_foreign ();
-  scm_register_control ();
 
   scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */
@@ -471,6 +470,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_async ();              /* requires smob_prehistory */
   scm_init_boolean ();
   scm_init_chars ();
+  scm_init_control ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_init_debug_malloc ();
 #endif

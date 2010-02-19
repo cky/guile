@@ -223,6 +223,8 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_MODULE_REF, scm_cons (mod, scm_cons (var, public)))
 #define MAKMEMO_MOD_SET(val, mod, var, public) \
   MAKMEMO (SCM_M_MODULE_SET, scm_cons (val, scm_cons (mod, scm_cons (var, public))))
+#define MAKMEMO_PROMPT(tag, exp, handler) \
+  MAKMEMO (SCM_M_PROMPT, scm_cons (tag, scm_cons (exp, handler)))
 
 
 
@@ -247,6 +249,7 @@ static const char *const memoized_tags[] =
   "toplevel-set!",
   "module-ref",
   "module-set!",
+  "prompt",
 };
 
 static int
@@ -276,6 +279,7 @@ static SCM scm_m_let (SCM xorig, SCM env);
 static SCM scm_m_letrec (SCM xorig, SCM env);
 static SCM scm_m_letstar (SCM xorig, SCM env);
 static SCM scm_m_or (SCM xorig, SCM env);
+static SCM scm_m_at_prompt (SCM xorig, SCM env);
 static SCM scm_m_quote (SCM xorig, SCM env);
 static SCM scm_m_set_x (SCM xorig, SCM env);
 
@@ -413,6 +417,7 @@ SCM_SYNTAX (s_let, "let", scm_m_let);
 SCM_SYNTAX (s_letrec, "letrec", scm_m_letrec);
 SCM_SYNTAX (s_letstar, "let*", scm_m_letstar);
 SCM_SYNTAX (s_or, "or", scm_m_or);
+SCM_SYNTAX (s_at_prompt, "@prompt", scm_m_at_prompt);
 SCM_SYNTAX (s_quote, "quote", scm_m_quote);
 SCM_SYNTAX (s_set_x, "set!", scm_m_set_x);
 SCM_SYNTAX (s_atapply, "@apply", scm_m_apply);
@@ -439,6 +444,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_let, "let");
 SCM_GLOBAL_SYMBOL (scm_sym_letrec, "letrec");
 SCM_GLOBAL_SYMBOL (scm_sym_letstar, "let*");
 SCM_GLOBAL_SYMBOL (scm_sym_or, "or");
+SCM_GLOBAL_SYMBOL (scm_sym_at_prompt, "@prompt");
 SCM_GLOBAL_SYMBOL (scm_sym_quote, "quote");
 SCM_GLOBAL_SYMBOL (scm_sym_set_x, "set!");
 SCM_SYMBOL (sym_eval, "eval");
@@ -981,6 +987,17 @@ scm_m_or (SCM expr, SCM env SCM_UNUSED)
 }
 
 static SCM
+scm_m_at_prompt (SCM expr, SCM env)
+{
+  ASSERT_SYNTAX (scm_ilength (expr) >= 0, s_bad_expression, expr);
+  ASSERT_SYNTAX (scm_ilength (expr) == 4, s_expression, expr);
+
+  return MAKMEMO_PROMPT (memoize (CADR (expr), env),
+                         memoize (CADDR (expr), env),
+                         memoize (CADDDR (expr), env));
+}
+
+static SCM
 scm_m_quote (SCM expr, SCM env SCM_UNUSED)
 {
   SCM quotee;
@@ -1159,6 +1176,11 @@ unmemoize (const SCM expr)
                                        scm_i_finite_list_copy (CADR (args)),
                                        CADDR (args)),
                          unmemoize (CAR (args)));
+    case SCM_M_PROMPT:
+      return scm_list_4 (scm_sym_at_prompt,
+                         unmemoize (CAR (args)),
+                         unmemoize (CADR (args)),
+                         unmemoize (CDDR (args)));
     default:
       abort ();
     }

@@ -41,12 +41,11 @@ struct scm_prompt_registers
 };
 
 
-SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, SCM handler,
-                                    scm_t_uint8 escape_only_p);
+SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p);
 SCM_INTERNAL SCM scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv) SCM_NORETURN;
 
 
-SCM_INTERNAL void scm_register_control (void);
+SCM_INTERNAL void scm_init_control (void);
 
 
 #endif /* SCM_CONTROL_H */
