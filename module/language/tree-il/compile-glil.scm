@@ -1041,14 +1041,10 @@
       ((<prompt> src tag body handler)
        (let ((H (make-label))
              (POST (make-label))
-             (inline? (lambda-case? handler))
              (escape-only? (hashq-ref allocation x)))
          ;; First, set up the prompt.
          (comp-push tag)
-         (if inline?
-             (emit-code #f (make-glil-const #f)) ;; push #f as handler
-             (comp-push handler))
-         (emit-code src (make-glil-prompt H inline? escape-only?))
+         (emit-code src (make-glil-prompt H escape-only?))
 
          ;; Then we compile the body, with its normal return path, unwinding
          ;; before proceeding.
@@ -1087,51 +1083,30 @@
             (emit-code #f (make-glil-call 'unwind 0))
             (emit-branch #f 'br (or RA POST))))
          
-         ;; Now the handler.
          (emit-label H)
-         (cond
-          (inline?
-           ;; The inlined handler. The stack is now made up of the continuation,
-           ;; and then the args to the continuation (pushed separately), and
-           ;; then the number of args, including the continuation.
-           (record-case handler
-             ((<lambda-case> req opt kw rest vars body alternate)
-              (if (or opt kw alternate)
-                  (error "unexpected lambda-case in prompt" x))
-              (emit-code src (make-glil-mv-bind
-                              (vars->bind-list
-                               (append req (if rest (list rest) '()))
-                               vars allocation self)
-                              (and rest #t)))
-              (for-each (lambda (v)
-                          (pmatch (hashq-ref (hashq-ref allocation v) self)
-                            ((#t #f . ,n)
-                             (emit-code src (make-glil-lexical #t #f 'set n)))
-                            ((#t #t . ,n)
-                             (emit-code src (make-glil-lexical #t #t 'box n)))
-                            (,loc (error "badness" x loc))))
-                        (reverse vars))
-              (comp-tail body)
-              (emit-code #f (make-glil-unbind)))))
-          (else
-           ;; The handler was on the heap, so here we're just processing its
-           ;; return values.
-           (case context
-             ((tail)
-              (emit-code #f (make-glil-call 'return/nvalues 1)))
-             ((push)
-              ;; truncate to one value, leave on stack
-              (emit-code #f (make-glil-mv-bind '(handler-ret) #f))
-              (emit-code #f (make-glil-unbind)))
-             ((vals)
-              (emit-branch #f 'br MVRA))
-             ((drop)
-              ;; truncate to 0 vals
-              (emit-code #f (make-glil-mv-bind '() #f))
-              (emit-code #f (make-glil-unbind))
-              (if RA (emit-branch #f 'br RA))))))
+         ;; Now the handler. The stack is now made up of the continuation, and
+         ;; then the args to the continuation (pushed separately), and then the
+         ;; number of args, including the continuation.
+         (record-case handler
+           ((<lambda-case> req opt kw rest vars body alternate)
+            (if (or opt kw alternate)
+                (error "unexpected lambda-case in prompt" x))
+            (emit-code src (make-glil-mv-bind
+                            (vars->bind-list
+                             (append req (if rest (list rest) '()))
+                             vars allocation self)
+                            (and rest #t)))
+            (for-each (lambda (v)
+                        (pmatch (hashq-ref (hashq-ref allocation v) self)
+                          ((#t #f . ,n)
+                           (emit-code src (make-glil-lexical #t #f 'set n)))
+                          ((#t #t . ,n)
+                           (emit-code src (make-glil-lexical #t #t 'box n)))
+                          (,loc (error "badness" x loc))))
+                      (reverse vars))
+            (comp-tail body)
+            (emit-code #f (make-glil-unbind))))
 
-         ;; The POST label, if necessary.
          (if (or (eq? context 'push)
                  (and (eq? context 'drop) (not RA)))
              (emit-label POST))))

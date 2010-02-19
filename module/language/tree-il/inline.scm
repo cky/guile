@@ -110,15 +110,29 @@
       ((<fix> vars body)
        (if (null? vars) body x))
        
-      ((<prompt> src tag body handler)
-       ;; If the handler is a simple lambda, inline it.
-       (if (and (lambda? handler)
-                (record-case (lambda-body handler)
-                  ((<lambda-case> req opt kw rest alternate)
-                   (and (pair? req) (not opt) (not kw) (not alternate)))
-                  (else #f)))
-           (make-prompt src tag body (lambda-body handler))
-           x))
-       
+      ((<lambda-case> req opt rest kw vars body alternate)
+       (let ()
+         (define (args-compatible? args vars)
+           (let lp ((args args) (vars vars))
+             (cond
+              ((null? args) (null? vars))
+              ((null? vars) #f)
+              ((and (lexical-ref? (car args))
+                    (eq? (lexical-ref-gensym (car args)) (car vars)))
+               (lp (cdr args) (cdr vars)))
+              (else #f))))
+         
+         (and (not opt) (not kw) (not alternate)
+              (record-case body
+                ((<application> proc args)
+                 ;; (lambda args (apply (lambda ...) args)) => (lambda ...)
+                 (and (primitive-ref? proc)
+                      (eq? (primitive-ref-name proc) '@apply)
+                      (pair? args)
+                      (lambda? (car args))
+                      (args-compatible? (cdr args) vars)
+                      (lambda-body (car args))))
+                (else #f)))))
+      
       (else #f)))
   (post-order! inline1 x))

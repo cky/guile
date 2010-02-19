@@ -435,18 +435,20 @@
               (else #f)))
 
 (hashq-set! *primitive-expand-table*
-            'prompt
-            (case-lambda
-              ((src tag thunk handler)
-               (make-prompt src tag (make-application #f thunk '())
-                            handler #f))
-              (else #f)))
-(hashq-set! *primitive-expand-table*
             '@prompt
             (case-lambda
-              ((src tag thunk handler)
-               (make-prompt src tag (make-application #f thunk '())
-                            handler))
+              ((src tag exp handler)
+               (let ((args-sym (gensym)))
+                 (make-prompt
+                  src tag exp
+                  ;; If handler itself is a lambda, the inliner can do some
+                  ;; trickery here.
+                  (make-lambda-case
+                   (tree-il-src handler) '() #f 'args #f '() (list args-sym)
+                   (make-application #f (make-primitive-ref #f 'apply)
+                                     (list handler
+                                           (make-lexical-ref #f 'args args-sym)))
+                   #f))))
               (else #f)))
 
 (hashq-set! *primitive-expand-table*

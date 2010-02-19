@@ -49,16 +49,13 @@ SCM_DEFINE (scm_atprompt, "@prompt", 4, 0, 0,
 #undef FUNC_NAME
 
 SCM
-scm_c_make_prompt (SCM vm, SCM k, SCM handler, scm_t_uint8 inline_handler_p,
-                   scm_t_uint8 escape_only_p)
+scm_c_make_prompt (SCM vm, SCM k, SCM handler, scm_t_uint8 escape_only_p)
 {
   scm_t_bits tag;
   SCM ret;
   struct scm_prompt_registers *regs;
 
   tag = scm_tc7_prompt;
-  if (inline_handler_p)
-    tag |= SCM_F_PROMPT_INLINE;
   if (escape_only_p)
     tag |= SCM_F_PROMPT_ESCAPE;
   ret = scm_words (tag, 5);

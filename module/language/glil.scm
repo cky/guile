@@ -75,8 +75,7 @@
    <glil-mv-call> make-glil-mv-call glil-mv-call?
    glil-mv-call-nargs glil-mv-call-ra
 
-   <glil-prompt> make-glil-prompt glil-prompt?
-   glil-prompt-label glil-prompt-inline? glil-prompt-escape-only?
+   <glil-prompt> make-glil-prompt glil-prompt? glil-prompt-label glil-prompt-escape-only?
 
    parse-glil unparse-glil))
 
@@ -105,7 +104,7 @@
   (<glil-branch> inst label)
   (<glil-call> inst nargs)
   (<glil-mv-call> nargs ra)
-  (<glil-prompt> label inline? escape-only?))
+  (<glil-prompt> label escape-only?))
 
 
 
@@ -133,8 +132,8 @@
     ((branch ,inst ,label) (make-glil-branch inst label))
     ((call ,inst ,nargs) (make-glil-call inst nargs))
     ((mv-call ,nargs ,ra) (make-glil-mv-call nargs ra))
-    ((prompt ,label ,inline? ,escape-only?)
-     (make-glil-prompt label inline? escape-only?))
+    ((prompt ,label ,escape-only?)
+     (make-glil-prompt label escape-only?))
     (else (error "invalid glil" x))))
 
 (define (unparse-glil glil)
@@ -167,5 +166,5 @@
     ((<glil-branch> inst label) `(branch ,inst ,label))
     ((<glil-call> inst nargs) `(call ,inst ,nargs))
     ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,ra))
-    ((<glil-prompt> label inline? escape-only?)
-     `(prompt ,label ,inline? escape-only?))))
+    ((<glil-prompt> label escape-only?)
+     `(prompt ,label escape-only?))))

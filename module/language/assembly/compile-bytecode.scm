@@ -119,8 +119,7 @@
         ((br-if-nargs-lt ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
         ((br-if-nargs-gt ,hi ,lo ,l) (write-byte hi) (write-byte lo) (write-break l))
         ((mv-call ,n ,l) (write-byte n) (write-break l))
-        ((prompt ,inline-handler? ,escape-only? ,l)
-         (write-byte inline-handler?) (write-byte escape-only?) (write-break l))
+        ((prompt ,escape-only? ,l) (write-byte escape-only?) (write-break l))
         (else
          (cond
           ((< (instruction-length inst) 0)

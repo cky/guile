@@ -90,8 +90,8 @@
                   (lp (cons `(,br ,hi ,lo ,(ensure-label rel1 rel2 rel3)) out)))
                  ((mv-call ,n ,rel1 ,rel2 ,rel3)
                   (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2 rel3)) out)))
-                 ((prompt ,n0 ,n1 ,rel1 ,rel2 ,rel3)
-                  (lp (cons `(prompt ,n0 ,n1 ,(ensure-label rel1 rel2 rel3)) out)))
+                 ((prompt ,n0 ,rel1 ,rel2 ,rel3)
+                  (lp (cons `(prompt ,n0 ,(ensure-label rel1 rel2 rel3)) out)))
                  (else 
                   (lp (cons exp out))))))))))
 

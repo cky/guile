@@ -1450,13 +1450,12 @@ VM_DEFINE_INSTRUCTION (82, make_symbol, "make-symbol", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 5, 2, 0)
+VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
 {
   scm_t_int32 offset;
-  scm_t_uint8 inline_handler_p, escape_only_p;
+  scm_t_uint8 escape_only_p;
   SCM k, handler, prompt;
 
-  inline_handler_p = FETCH ();
   escape_only_p = FETCH ();
   FETCH_OFFSET (offset);
   POP (handler);
@@ -1466,14 +1465,13 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 5, 2, 0)
   /* Push the prompt onto the dynamic stack. The setjmp itself has to be local
      to this procedure. */
   /* FIXME: do more error checking */
-  prompt = scm_c_make_prompt (vm, k, handler, inline_handler_p, escape_only_p);
+  prompt = scm_c_make_prompt (vm, k, handler, escape_only_p);
   scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
   if (SCM_PROMPT_SETJMP (prompt))
     {
       /* The prompt exited nonlocally. Cache the regs back from the vp, and go
-         to the handler or post-handler label. (The meaning of the label differs
-         depending on whether the prompt's handler is rendered inline or not.)
-         */
+         to the handler.
+      */
       CACHE_REGISTER (); /* Really we only need SP. FP and IP should be
                             unmodified. */
       ip += offset;

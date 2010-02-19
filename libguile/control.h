@@ -20,14 +20,12 @@
 #define SCM_CONTROL_H
 
 
-#define SCM_F_PROMPT_INLINE 0x1
-#define SCM_F_PROMPT_ESCAPE 0x2
+#define SCM_F_PROMPT_ESCAPE 0x1
 
 #define SCM_PROMPT_P(x)		(!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_prompt)
 #define SCM_PROMPT_FLAGS(x)	(SCM_CELL_WORD ((x), 0) >> 8)
-#define SCM_PROMPT_INLINE_P(x)	(SCM_PROMPT_FLAGS (x) & SCM_F_PROMPT_INLINE)
 #define SCM_PROMPT_ESCAPE_P(x)	(SCM_PROMPT_FLAGS (x) & SCM_F_PROMPT_ESCAPE)
-#define SCM_PROMPT_TAG(x)	(SCM_CELL_OBJECT ((x), 1)
+#define SCM_PROMPT_TAG(x)	(SCM_CELL_OBJECT ((x), 1))
 #define SCM_PROMPT_REGISTERS(x)	((struct scm_prompt_registers*)SCM_CELL_WORD ((x), 2))
 #define SCM_PROMPT_DYNENV(x)	(SCM_CELL_OBJECT ((x), 3))
 #define SCM_PROMPT_HANDLER(x)	(SCM_CELL_OBJECT ((x), 4))
@@ -44,7 +42,6 @@ struct scm_prompt_registers
 
 
 SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, SCM handler,
-                                    scm_t_uint8 inline_handler_p,
                                     scm_t_uint8 escape_only_p);
 
 
