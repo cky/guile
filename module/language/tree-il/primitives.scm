@@ -61,6 +61,8 @@
     variable-bound?
     ;; args of variable-set are switched; it needs special help
 
+    fluid-ref fluid-set!
+
     struct? struct-vtable make-struct struct-ref struct-set!
 
     bytevector-u8-ref bytevector-u8-set!
@@ -419,6 +421,18 @@
                    (make-lexical-ref #f 'pre PRE)
                    expr
                    (make-lexical-ref #f 'post POST)))))))
+
+(hashq-set! *primitive-expand-table*
+            'fluid-ref
+            (case-lambda
+              ((src fluid) (make-dynref src fluid))
+              (else #f)))
+
+(hashq-set! *primitive-expand-table*
+            'fluid-set!
+            (case-lambda
+              ((src fluid exp) (make-dynset src fluid exp))
+              (else #f)))
 
 (hashq-set! *primitive-expand-table*
             'prompt
