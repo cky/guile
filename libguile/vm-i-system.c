@@ -1509,13 +1509,10 @@ VM_DEFINE_INSTRUCTION (85, wind, "wind", 0, 2, 0)
 VM_DEFINE_INSTRUCTION (86, abort, "abort", 1, -1, -1)
 {
   unsigned n = FETCH ();
-  SCM k;
-  SCM args;
-  POP_LIST (n);
-  POP (args);
-  POP (k);
   SYNC_REGISTER ();
-  vm_abort (vm, k, args);
+  if (sp - n - 1 <= SCM_FRAME_UPPER_ADDRESS (fp))
+    goto vm_error_stack_underflow;
+  vm_abort (vm, n);
   /* vm_abort should not return */
   abort ();
 }

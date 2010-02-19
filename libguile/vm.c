@@ -201,17 +201,20 @@ vm_dispatch_hook (SCM vm, int hook_num)
   vp->trace_level++;
 }
 
-
-/*
- * The dynamic stack
- */
-#define VM_SETJMP(jmpbuf) 0
-
-static void vm_abort (SCM vm, SCM tag, SCM args) SCM_NORETURN;
+static void vm_abort (SCM vm, size_t n) SCM_NORETURN;
 static void
-vm_abort (SCM vm, SCM tag, SCM args)
+vm_abort (SCM vm, size_t n)
 {
-  abort ();
+  size_t i;
+  SCM tag, *argv;
+  
+  tag = SCM_VM_DATA (vm)->sp[-n];
+  argv = alloca (n * sizeof (SCM));
+  for (i = 0; i < n; i++)
+    argv[i] = SCM_VM_DATA (vm)->sp[-(n-1-i)];
+  SCM_VM_DATA (vm)->sp -= n + 1;
+
+  scm_c_abort (vm, tag, n, argv);
 }
 
 

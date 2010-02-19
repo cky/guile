@@ -1114,4 +1114,21 @@
       ((<abort> src tag args)
        (comp-push tag)
        (for-each comp-push args)
-       (emit-code src (make-glil-call 'abort (length args)))))))
+       (emit-code src (make-glil-call 'abort (length args)))
+       ;; so, the abort can actually return. if it does, the values will be on
+       ;; the stack, then the MV marker, just as in an MV context.
+       (case context
+         ((tail)
+          ;; Return values.
+          (emit-code #f (make-glil-call 'return/nvalues 1)))
+         ((drop)
+          ;; Drop all values and goto RA, or otherwise fall through.
+          (emit-code #f (make-glil-mv-bind '() #f))
+          (emit-code #f (make-glil-unbind))
+          (if RA (emit-branch #f 'br RA)))
+         ((push)
+          ;; Truncate to one value.
+          (emit-code #f (make-glil-mv-bind '(val) #f)))
+         ((vals)
+          ;; Go to MVRA.
+          (emit-branch #f 'br MVRA)))))))
