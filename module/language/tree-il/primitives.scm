@@ -439,11 +439,11 @@
             'control
             (case-lambda
               ((src tag . args)
-               (make-control src tag 'throw args))
+               (make-abort src tag args))
               (else #f)))
 (hashq-set! *primitive-expand-table*
             '@control
             (case-lambda
-              ((src tag type . args)
-               (make-control src tag (if (const? type) (const-exp type) (error "what ho" type)) args))
+              ((src tag . args)
+               (make-abort src tag args))
               (else #f)))

@@ -1118,10 +1118,7 @@
                  (and (eq? context 'drop) (not RA)))
              (emit-label POST))))
 
-      ((<control> src tag type args)
+      ((<abort> src tag args)
        (comp-push tag)
-       (case type
-         ((throw)
-          (for-each comp-push args)
-          (emit-code src (make-glil-call 'throw (length args))))
-         (else (error "bad control type" x)))))))
+       (for-each comp-push args)
+       (emit-code src (make-glil-call 'abort (length args)))))))

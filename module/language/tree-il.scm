@@ -48,7 +48,7 @@
             <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
             <dynlet> dynlet? make-dynlet dynlet-src dynlet-fluids dynlet-vals dynlet-body
             <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler
-            <control> control? make-control control-src control-tag control-type control-args
+            <abort> abort? make-abort abort-src abort-tag abort-args
 
             parse-tree-il
             unparse-tree-il
@@ -82,7 +82,7 @@
   (<dynwind> winder body unwinder)
   (<dynlet> fluids vals body)
   (<prompt> tag body handler)
-  (<control> tag type args))
+  (<abort> tag args))
   
 
 
@@ -182,8 +182,8 @@
      ((prompt ,tag ,body ,handler)
       (make-prompt loc (retrans tag) (retrans body) (retrans handler)))
      
-     ((control ,tag ,type ,args)
-      (make-control loc (retrans tag) type (map retrans args)))
+     ((abort ,tag ,type ,args)
+      (make-abort loc (retrans tag) type (map retrans args)))
 
      (else
       (error "unrecognized tree-il" exp)))))
@@ -260,8 +260,8 @@
     ((<prompt> tag body handler)
      `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)))
     
-    ((<control> tag type args)
-     `(control ,(unparse-tree-il tag) ,type ,(map unparse-tree-il args)))))
+    ((<abort> tag args)
+     `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)))))
 
 (define (tree-il->scheme e)
   (record-case e
@@ -352,10 +352,8 @@
        ,(tree-il->scheme handler)))
     
 
-    ((<control> tag type args)
-     (case type
-       ((throw) `(throw ,(tree-il->scheme tag) ,@(map tree-il->scheme args)))
-       (else (error "bad control type" type))))))
+    ((<abort> tag args)
+     `(@abort ,(tree-il->scheme tag) ,@(map tree-il->scheme args)))))
 
 
 (define (tree-il-fold leaf down up seed tree)
@@ -420,7 +418,7 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree
                (loop tag (loop body (loop handler
                                           (down tree result))))))
-          ((<control> tag type args)
+          ((<abort> tag args)
            (up tree (loop tag (loop args (down tree result)))))
           (else
            (leaf tree result))))))
@@ -489,7 +487,7 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (let*-values (((seed ...) (foldts tag seed ...))
                                 ((seed ...) (foldts body seed ...)))
                     (foldts handler seed ...)))
-                 ((<control> tag args)
+                 ((<abort> tag args)
                   (let*-values (((seed ...) (foldts tag seed ...)))
                     (fold-values foldts args seed ...)))
                  (else
@@ -563,9 +561,9 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (prompt-body x) (lp body))
        (set! (prompt-handler x) (lp handler)))
       
-      ((<control> tag args)
-       (set! (control-tag x) (lp tag))
-       (set! (control-args x) (map lp args)))
+      ((<abort> tag args)
+       (set! (abort-tag x) (lp tag))
+       (set! (abort-args x) (map lp args)))
       
       (else #f))
     
@@ -638,9 +636,9 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (prompt-body x) (lp body))
          (set! (prompt-handler x) (lp handler)))
         
-        ((<control> tag args)
-         (set! (control-tag x) (lp tag))
-         (set! (control-args x) (map lp args)))
+        ((<abort> tag args)
+         (set! (abort-tag x) (lp tag))
+         (set! (abort-args x) (map lp args)))
         
         (else #f))
       x)))

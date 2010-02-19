@@ -1508,7 +1508,7 @@ VM_DEFINE_INSTRUCTION (85, wind, "wind", 0, 2, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (86, throw, "throw", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (86, abort, "abort", 1, -1, -1)
 {
   unsigned n = FETCH ();
   SCM k;
@@ -1517,8 +1517,8 @@ VM_DEFINE_INSTRUCTION (86, throw, "throw", 1, -1, -1)
   POP (args);
   POP (k);
   SYNC_REGISTER ();
-  vm_throw (vm, k, args);
-  /* vm_throw should not return */
+  vm_abort (vm, k, args);
+  /* vm_abort should not return */
   abort ();
 }
 

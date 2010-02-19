@@ -207,9 +207,9 @@ vm_dispatch_hook (SCM vm, int hook_num)
  */
 #define VM_SETJMP(jmpbuf) 0
 
-static void vm_throw (SCM vm, SCM k, SCM args) SCM_NORETURN;
+static void vm_abort (SCM vm, SCM tag, SCM args) SCM_NORETURN;
 static void
-vm_throw (SCM vm, SCM k, SCM args)
+vm_abort (SCM vm, SCM tag, SCM args)
 {
   abort ();
 }
