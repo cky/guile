@@ -1539,7 +1539,7 @@ VM_DEFINE_INSTRUCTION (90, wind_fluids, "wind-fluids", 1, -1, 0)
     goto vm_error_stack_underflow;
 
   wf = scm_i_make_with_fluids (n, sp + 1 - 2*n, sp + 1 - n);
-  scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+  scm_i_swap_with_fluids (wf, dynstate);
   scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
   NEXT;
 }
@@ -1549,7 +1549,7 @@ VM_DEFINE_INSTRUCTION (91, unwind_fluids, "unwind-fluids", 0, 0, 0)
   SCM wf;
   wf = scm_car (scm_i_dynwinds ());
   scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
-  scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+  scm_i_swap_with_fluids (wf, dynstate);
   NEXT;
 }
 
