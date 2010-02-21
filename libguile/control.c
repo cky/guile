@@ -276,7 +276,7 @@ SCM_DEFINE (scm_at_abort, "@abort", 2, 0, 0, (SCM tag, SCM args),
 void
 scm_init_control (void)
 {
-#include "control.x"
+#include "libguile/control.x"
   scm_sys_default_prompt_tag = scm_make_fluid ();
   scm_fluid_set_x (scm_sys_default_prompt_tag, scm_gensym (SCM_UNDEFINED));
   scm_c_define ("%default-prompt-tag", scm_sys_default_prompt_tag);
