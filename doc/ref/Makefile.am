@@ -150,7 +150,7 @@ include standard-library.am
 $(snarf_doc).texi: $(standard_library_scm_files)
 	GUILE_AUTO_COMPILE=0				\
 	"$(preinstguile)" "$(srcdir)/make-texinfo.scm"	\
-	  "$(srcdir)/$(snarf_doc).scm" > "$@.tmp"
+	  "$(abs_srcdir)/$(snarf_doc).scm" > "$@.tmp"
 	mv "$@.tmp" "$@"
 
 CLEANFILES += $(snarf_doc).texi
