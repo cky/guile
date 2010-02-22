@@ -37,12 +37,15 @@ struct scm_prompt_registers
   scm_t_uint8 *ip;
   SCM *sp;
   SCM *fp;
+  scm_t_int64 cookie;
   scm_i_jmp_buf regs;  
 };
 
 
-SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p);
+SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
+                                    scm_t_int64 cookie);
 SCM_INTERNAL SCM scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv) SCM_NORETURN;
+SCM_INTERNAL SCM scm_at_abort (SCM tag, SCM args) SCM_NORETURN;
 
 
 SCM_INTERNAL void scm_init_control (void);

@@ -63,7 +63,7 @@
 
     fluid-ref fluid-set!
 
-    @prompt prompt abort
+    @prompt prompt @abort abort
 
     struct? struct-vtable make-struct struct-ref struct-set!
 
@@ -476,8 +476,14 @@
               (else #f)))
 
 (hashq-set! *primitive-expand-table*
+            '@abort
+            (case-lambda
+              ((src tag tail-args)
+               (make-abort src tag '() tail-args))
+              (else #f)))
+(hashq-set! *primitive-expand-table*
             'abort
             (case-lambda
               ((src tag . args)
-               (make-abort src tag args))
+               (make-abort src tag args (make-const #f '())))
               (else #f)))

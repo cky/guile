@@ -429,7 +429,7 @@ eval (SCM x, SCM env)
       {
         SCM prompt, handler, res;
 
-        prompt = scm_c_make_prompt (scm_the_vm (), eval (CAR (mx), env), 0);
+        prompt = scm_c_make_prompt (scm_the_vm (), eval (CAR (mx), env), 0, -1);
         handler = eval (CDDR (mx), env);
         scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
 

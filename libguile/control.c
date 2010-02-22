@@ -27,7 +27,8 @@
 
 
 SCM
-scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p)
+scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
+                   scm_t_int64 vm_cookie)
 {
   scm_t_bits tag;
   SCM ret;
@@ -42,6 +43,7 @@ scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p)
   regs->fp = SCM_VM_DATA (vm)->fp;
   regs->sp = SCM_VM_DATA (vm)->sp;
   regs->ip = SCM_VM_DATA (vm)->ip;
+  regs->cookie = vm_cookie;
 
   SCM_SET_CELL_OBJECT (ret, 1, k);
   SCM_SET_CELL_WORD (ret, 2, (scm_t_bits)regs);
@@ -109,9 +111,9 @@ scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv)
   abort ();
 }
 
-SCM_DEFINE (scm_abort, "abort", 1, 0, 1, (SCM tag, SCM args),
+SCM_DEFINE (scm_at_abort, "@abort", 2, 0, 0, (SCM tag, SCM args),
             "Abort to the nearest prompt with tag @var{tag}.")
-#define FUNC_NAME s_scm_abort
+#define FUNC_NAME s_scm_at_abort
 {
   SCM *argv;
   size_t i, n;
@@ -123,23 +125,11 @@ SCM_DEFINE (scm_abort, "abort", 1, 0, 1, (SCM tag, SCM args),
 
   scm_c_abort (scm_the_vm (), tag, n, argv);
 
-  /* Oh, what, you're still here? The abort must have been reinstated. OK, pull
-     args back from the stack, and keep going... */
+  /* Oh, what, you're still here? The abort must have been reinstated. Actually,
+     that's quite impossible, given that we're already in C-land here, so...
+     abort! */
 
-  {
-    SCM vals = SCM_EOL;
-    struct scm_vm *vp = SCM_VM_DATA (scm_the_vm ());
-    n = scm_to_size_t (vp->sp[0]);
-    for (i = 0; i < n; i++)
-      vals = scm_cons (vp->sp[-(i + 1)], vals);
-    /* The continuation call did reset the VM's registers, but then these values
-       were pushed on; so we need to pop them ourselves. */
-    vp->sp -= n + 1;
-    /* FIXME NULLSTACK */
-
-    return (scm_is_pair (vals) && scm_is_null (scm_cdr (vals)))
-      ? scm_car (vals) : scm_values (vals);
-  }
+  abort ();
 }
 #undef FUNC_NAME
 

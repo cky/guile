@@ -50,7 +50,7 @@
             <dynref> dynref? make-dynref dynref-src dynref-fluid 
             <dynset> dynset? make-dynset dynset-src dynset-fluid dynset-exp
             <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler
-            <abort> abort? make-abort abort-src abort-tag abort-args
+            <abort> abort? make-abort abort-src abort-tag abort-args abort-tail
 
             parse-tree-il
             unparse-tree-il
@@ -86,7 +86,7 @@
   (<dynref> fluid)
   (<dynset> fluid exp)
   (<prompt> tag body handler)
-  (<abort> tag args))
+  (<abort> tag args tail))
   
 
 
@@ -192,8 +192,8 @@
      ((prompt ,tag ,body ,handler)
       (make-prompt loc (retrans tag) (retrans body) (retrans handler)))
      
-     ((abort ,tag ,type ,args)
-      (make-abort loc (retrans tag) type (map retrans args)))
+     ((abort ,tag ,args ,tail)
+      (make-abort loc (retrans tag) (map retrans args) (retrans tail)))
 
      (else
       (error "unrecognized tree-il" exp)))))
@@ -276,8 +276,9 @@
     ((<prompt> tag body handler)
      `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)))
     
-    ((<abort> tag args)
-     `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)))))
+    ((<abort> tag args tail)
+     `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)
+             ,(unparse-tree-il tail)))))
 
 (define (tree-il->scheme e)
   (record-case e
@@ -374,8 +375,9 @@
        ,(tree-il->scheme handler)))
     
 
-    ((<abort> tag args)
-     `(@abort ,(tree-il->scheme tag) ,@(map tree-il->scheme args)))))
+    ((<abort> tag args tail)
+     `(apply abort ,(tree-il->scheme tag) ,@(map tree-il->scheme args)
+             ,(tree-il->scheme tail)))))
 
 
 (define (tree-il-fold leaf down up seed tree)
@@ -444,8 +446,8 @@ This is an implementation of `foldts' as described by Andy Wingo in
            (up tree
                (loop tag (loop body (loop handler
                                           (down tree result))))))
-          ((<abort> tag args)
-           (up tree (loop tag (loop args (down tree result)))))
+          ((<abort> tag args tail)
+           (up tree (loop tail (loop args (loop tag (down tree result))))))
           (else
            (leaf tree result))))))
 
@@ -518,9 +520,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
                   (let*-values (((seed ...) (foldts tag seed ...))
                                 ((seed ...) (foldts body seed ...)))
                     (foldts handler seed ...)))
-                 ((<abort> tag args)
-                  (let*-values (((seed ...) (foldts tag seed ...)))
-                    (fold-values foldts args seed ...)))
+                 ((<abort> tag args tail)
+                  (let*-values (((seed ...) (foldts tag seed ...))
+                                ((seed ...) (fold-values foldts args seed ...)))
+                    (foldts tail seed ...)))
                  (else
                   (values seed ...)))))
            (up tree seed ...)))))))
@@ -599,9 +602,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (prompt-body x) (lp body))
        (set! (prompt-handler x) (lp handler)))
       
-      ((<abort> tag args)
+      ((<abort> tag args tail)
        (set! (abort-tag x) (lp tag))
-       (set! (abort-args x) (map lp args)))
+       (set! (abort-args x) (map lp args))
+       (set! (abort-tail x) (lp tail)))
       
       (else #f))
     
@@ -681,9 +685,10 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (prompt-body x) (lp body))
          (set! (prompt-handler x) (lp handler)))
         
-        ((<abort> tag args)
+        ((<abort> tag args tail)
          (set! (abort-tag x) (lp tag))
-         (set! (abort-args x) (map lp args)))
+         (set! (abort-args x) (map lp args))
+         (set! (abort-tail x) (lp tail)))
         
         (else #f))
       x)))

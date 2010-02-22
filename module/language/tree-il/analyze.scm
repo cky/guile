@@ -351,8 +351,8 @@
       ((<prompt> tag body handler)
        (lset-union eq? (step tag) (step body) (step handler)))
       
-      ((<abort> tag args)
-       (apply lset-union eq? (step tag) (map step args)))
+      ((<abort> tag args tail)
+       (apply lset-union eq? (step tag) (step tail) (map step args)))
       
       (else '())))
   
@@ -525,8 +525,8 @@
                      (and cont-var (zero? (hashq-ref refcounts cont-var 0))))
          (max (recur tag) (recur body) (recur handler))))
       
-      ((<abort> tag args)
-       (apply max (recur tag) (map recur args)))
+      ((<abort> tag args tail)
+       (apply max (recur tag) (recur tail) (map recur args)))
       
       (else n)))
 

@@ -404,6 +404,8 @@
 ;;; Delimited continuations
 (define (prompt tag thunk handler)
   (@prompt tag (thunk) handler))
+(define (abort tag . args)
+  (@abort tag args))
 
 ;;; apply-to-args is functionally redundant with apply and, worse,
 ;;; is less general than apply since it only takes two arguments.

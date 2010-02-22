@@ -47,7 +47,9 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
   SCM *objects = NULL;			/* constant objects */
   size_t object_count = 0;              /* length of OBJECTS */
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
+
   SCM dynstate = SCM_I_CURRENT_THREAD->dynamic_state;
+  scm_t_int64 vm_cookie = vp->cookie++;
 
   /* Internal variables */
   int nvalues = 0;

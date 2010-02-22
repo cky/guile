@@ -206,15 +206,25 @@ static void
 vm_abort (SCM vm, size_t n)
 {
   size_t i;
-  SCM tag, *argv;
+  ssize_t tail_len;
+  SCM tag, tail, *argv;
   
+  /* FIXME: VM_ENABLE_STACK_NULLING */
+  tail = *(SCM_VM_DATA (vm)->sp--);
+  /* NULLSTACK (1) */
+  tail_len = scm_ilength (tail);
+  if (tail_len < 0)
+    abort ();
   tag = SCM_VM_DATA (vm)->sp[-n];
-  argv = alloca (n * sizeof (SCM));
+  argv = alloca ((n + tail_len) * sizeof (SCM));
   for (i = 0; i < n; i++)
     argv[i] = SCM_VM_DATA (vm)->sp[-(n-1-i)];
+  for (; i < n + tail_len; i++, tail = scm_cdr (tail))
+    argv[i] = scm_car (tail);
+  /* NULLSTACK (n + 1) */
   SCM_VM_DATA (vm)->sp -= n + 1;
 
-  scm_c_abort (vm, tag, n, argv);
+  scm_c_abort (vm, tag, n + tail_len, argv);
 }
 
 
@@ -386,6 +396,7 @@ make_vm (void)
   vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
+  vp->cookie = 0;
   return scm_cell (scm_tc7_vm, (scm_t_bits)vp);
 }
 #undef FUNC_NAME

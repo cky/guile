@@ -51,6 +51,7 @@ struct scm_vm {
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
   SCM options;			/* options */
   int trace_level;              /* traces enabled if trace_level > 0 */
+  scm_t_int64 cookie;           /* used to detect unrewindable continuations */
 };
 
 SCM_API SCM scm_the_vm_fluid;

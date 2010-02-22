@@ -1464,7 +1464,7 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
   /* Push the prompt onto the dynamic stack. The setjmp itself has to be local
      to this procedure. */
   /* FIXME: do more error checking */
-  prompt = scm_c_make_prompt (vm, k, escape_only_p);
+  prompt = scm_c_make_prompt (vm, k, escape_only_p, vm_cookie);
   scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
   if (SCM_PROMPT_SETJMP (prompt))
     {
@@ -1509,7 +1509,7 @@ VM_DEFINE_INSTRUCTION (86, abort, "abort", 1, -1, -1)
 {
   unsigned n = FETCH ();
   SYNC_REGISTER ();
-  if (sp - n - 1 <= SCM_FRAME_UPPER_ADDRESS (fp))
+  if (sp - n - 2 <= SCM_FRAME_UPPER_ADDRESS (fp))
     goto vm_error_stack_underflow;
   vm_abort (vm, n);
   /* vm_abort should not return */

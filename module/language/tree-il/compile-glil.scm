@@ -1111,9 +1111,10 @@
                  (and (eq? context 'drop) (not RA)))
              (emit-label POST))))
 
-      ((<abort> src tag args)
+      ((<abort> src tag args tail)
        (comp-push tag)
        (for-each comp-push args)
+       (comp-push tail)
        (emit-code src (make-glil-call 'abort (length args)))
        ;; so, the abort can actually return. if it does, the values will be on
        ;; the stack, then the MV marker, just as in an MV context.
