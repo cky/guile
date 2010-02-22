@@ -87,6 +87,9 @@ SCM_API SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
 SCM_API SCM scm_vm_trace_level (SCM vm);
 SCM_API SCM scm_set_vm_trace_level_x (SCM vm, SCM level);
 
+#define SCM_F_VM_CONT_PARTIAL 0x1
+#define SCM_F_VM_CONT_REWINDABLE 0x2
+
 struct scm_vm_cont {
   SCM *sp;
   SCM *fp;
@@ -94,16 +97,22 @@ struct scm_vm_cont {
   scm_t_ptrdiff stack_size;
   SCM *stack_base;
   scm_t_ptrdiff reloc;
+  scm_t_uint32 flags;
 };
 
 #define SCM_VM_CONT_P(OBJ)	(SCM_NIMP (OBJ) && SCM_TYP7 (OBJ) == scm_tc7_vm_cont)
 #define SCM_VM_CONT_DATA(CONT)	((struct scm_vm_cont *) SCM_CELL_WORD_1 (CONT))
+#define SCM_VM_CONT_PARTIAL_P(CONT) (SCM_VM_CONT_DATA (CONT) & SCM_F_VM_CONT_PARTIAL)
+#define SCM_VM_CONT_REWINDABLE_P(CONT) (SCM_VM_CONT_DATA (CONT) & SCM_F_VM_CONT_REWINDABLE)
 
 SCM_API SCM scm_load_compiled_with_vm (SCM file);
 
 SCM_INTERNAL void scm_i_vm_print (SCM x, SCM port,
                                   scm_print_state *pstate);
 SCM_INTERNAL SCM scm_i_vm_capture_continuation (SCM vm);
+SCM_INTERNAL SCM scm_i_vm_capture_stack (SCM *stack_base, SCM *fp, SCM *sp,
+                                         scm_t_uint8 *ra, scm_t_uint8 *mvra,
+                                         scm_t_uint32 flags);
 SCM_INTERNAL void scm_i_vm_cont_print (SCM x, SCM port,
                                        scm_print_state *pstate);
 SCM_INTERNAL void scm_bootstrap_vm (void);

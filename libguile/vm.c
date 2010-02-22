@@ -91,9 +91,9 @@ scm_i_vm_cont_print (SCM x, SCM port, scm_print_state *pstate)
    continuation root is inside VM code, and call/cc was invoked within that same
    call to vm_run; but that's currently not implemented.
  */
-static SCM
-vm_capture_continuation (SCM *stack_base,
-                         SCM *fp, SCM *sp, scm_t_uint8 *ra, scm_t_uint8 *mvra)
+SCM
+scm_i_vm_capture_stack (SCM *stack_base, SCM *fp, SCM *sp, scm_t_uint8 *ra,
+                        scm_t_uint8 *mvra, scm_t_uint32 flags)
 {
   struct scm_vm_cont *p;
 
@@ -116,6 +116,7 @@ vm_capture_continuation (SCM *stack_base,
   p->fp = fp;
   memcpy (p->stack_base, stack_base, (sp + 1 - stack_base) * sizeof (SCM));
   p->reloc = p->stack_base - stack_base;
+  p->flags = flags;
   return scm_cell (scm_tc7_vm_cont, (scm_t_bits)p);
 }
 
@@ -178,7 +179,7 @@ SCM
 scm_i_vm_capture_continuation (SCM vm)
 {
   struct scm_vm *vp = SCM_VM_DATA (vm);
-  return vm_capture_continuation (vp->stack_base, vp->fp, vp->sp, vp->ip, NULL);
+  return scm_i_vm_capture_stack (vp->stack_base, vp->fp, vp->sp, vp->ip, NULL, 0);
 }
 
 static void
@@ -201,9 +202,9 @@ vm_dispatch_hook (SCM vm, int hook_num)
   vp->trace_level++;
 }
 
-static void vm_abort (SCM vm, size_t n) SCM_NORETURN;
+static void vm_abort (SCM vm, size_t n, scm_t_int64 cookie) SCM_NORETURN;
 static void
-vm_abort (SCM vm, size_t n)
+vm_abort (SCM vm, size_t n, scm_t_int64 vm_cookie)
 {
   size_t i;
   ssize_t tail_len;
@@ -224,7 +225,14 @@ vm_abort (SCM vm, size_t n)
   /* NULLSTACK (n + 1) */
   SCM_VM_DATA (vm)->sp -= n + 1;
 
-  scm_c_abort (vm, tag, n + tail_len, argv);
+  scm_c_abort (vm, tag, n + tail_len, argv, vm_cookie);
+}
+
+static void
+vm_reinstate_partial_continuation (SCM vm, SCM vm_cont, SCM intwinds,
+                                   SCM extwinds)
+{
+  abort ();
 }
 
 

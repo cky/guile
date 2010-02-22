@@ -44,7 +44,8 @@ struct scm_prompt_registers
 
 SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
                                     scm_t_int64 cookie);
-SCM_INTERNAL SCM scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv) SCM_NORETURN;
+SCM_INTERNAL SCM scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv,
+                              scm_t_int64 cookie) SCM_NORETURN;
 SCM_INTERNAL SCM scm_at_abort (SCM tag, SCM args) SCM_NORETURN;
 
 

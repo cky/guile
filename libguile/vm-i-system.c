@@ -993,6 +993,17 @@ VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
   abort ();
 }
 
+VM_DEFINE_INSTRUCTION (94, partial_cont_call, "partial-cont-call", 0, -1, 0)
+{
+  SCM vmcont, intwinds, extwinds;
+  POP (extwinds);
+  POP (intwinds);
+  POP (vmcont);
+
+  vm_reinstate_partial_continuation (vm, vmcont, intwinds, extwinds);
+  NEXT;
+}
+
 VM_DEFINE_INSTRUCTION (59, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
@@ -1099,7 +1110,7 @@ VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
   SCM proc, vm_cont, cont;
   POP (proc);
   SYNC_ALL ();
-  vm_cont = vm_capture_continuation (vp->stack_base, fp, sp, ip, NULL);
+  vm_cont = scm_i_vm_capture_stack (vp->stack_base, fp, sp, ip, NULL, 0);
   cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
@@ -1131,11 +1142,12 @@ VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
   SYNC_ALL ();
   /* In contrast to call/cc, tail-call/cc captures the continuation without the
      stack frame. */
-  vm_cont = vm_capture_continuation (vp->stack_base,
-                                     SCM_FRAME_DYNAMIC_LINK (fp),
-                                     SCM_FRAME_LOWER_ADDRESS (fp) - 1,
-                                     SCM_FRAME_RETURN_ADDRESS (fp),
-                                     SCM_FRAME_MV_RETURN_ADDRESS (fp));
+  vm_cont = scm_i_vm_capture_stack (vp->stack_base,
+                                    SCM_FRAME_DYNAMIC_LINK (fp),
+                                    SCM_FRAME_LOWER_ADDRESS (fp) - 1,
+                                    SCM_FRAME_RETURN_ADDRESS (fp),
+                                    SCM_FRAME_MV_RETURN_ADDRESS (fp),
+                                    0);
   cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
@@ -1511,7 +1523,7 @@ VM_DEFINE_INSTRUCTION (86, abort, "abort", 1, -1, -1)
   SYNC_REGISTER ();
   if (sp - n - 2 <= SCM_FRAME_UPPER_ADDRESS (fp))
     goto vm_error_stack_underflow;
-  vm_abort (vm, n);
+  vm_abort (vm, n, vm_cookie);
   /* vm_abort should not return */
   abort ();
 }
