@@ -349,7 +349,7 @@
        (lset-union eq? (step fluid) (step exp)))
       
       ((<prompt> tag body handler)
-       (lset-union eq? (step tag) (step handler)))
+       (lset-union eq? (step tag) (step body) (step handler)))
       
       ((<abort> tag args)
        (apply lset-union eq? (step tag) (map step args)))
