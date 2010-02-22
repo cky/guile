@@ -63,7 +63,7 @@
 
     fluid-ref fluid-set!
 
-    @prompt prompt
+    @prompt prompt abort
 
     struct? struct-vtable make-struct struct-ref struct-set!
 
@@ -454,13 +454,29 @@
               (else #f)))
 
 (hashq-set! *primitive-expand-table*
-            'control
+            'prompt
             (case-lambda
-              ((src tag . args)
-               (make-abort src tag args))
+              ((src tag thunk handler)
+               ;; Sigh. Until the inliner does its job, manually inline
+               ;; (let ((h (lambda ...))) (prompt k x h))
+               (cond
+                ((lambda? handler)
+                 (let ((args-sym (gensym)))
+                   (make-prompt
+                    src tag (make-application #f thunk '())
+                    ;; If handler itself is a lambda, the inliner can do some
+                    ;; trickery here.
+                    (make-lambda-case
+                     (tree-il-src handler) '() #f 'args #f '() (list args-sym)
+                     (make-application #f (make-primitive-ref #f 'apply)
+                                       (list handler
+                                             (make-lexical-ref #f 'args args-sym)))
+                     #f))))
+                (else #f)))
               (else #f)))
+
 (hashq-set! *primitive-expand-table*
-            '@control
+            'abort
             (case-lambda
               ((src tag . args)
                (make-abort src tag args))
