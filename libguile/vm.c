@@ -752,10 +752,10 @@ scm_bootstrap_vm (void)
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
 
-  sym_vm_run = scm_from_locale_string ("vm-run");
-  sym_vm_error = scm_from_locale_string ("vm-error");
-  sym_keyword_argument_error = scm_from_locale_string ("keyword-argument-error");
-  sym_debug = scm_from_locale_string ("debug");
+  sym_vm_run = scm_from_locale_symbol ("vm-run");
+  sym_vm_error = scm_from_locale_symbol ("vm-error");
+  sym_keyword_argument_error = scm_from_locale_symbol ("keyword-argument-error");
+  sym_debug = scm_from_locale_symbol ("debug");
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
   vm_stack_gc_kind =
