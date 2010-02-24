@@ -999,6 +999,10 @@ VM_DEFINE_INSTRUCTION (94, partial_cont_call, "partial-cont-call", 0, -1, 0)
   POP (intwinds);
   POP (vmcont);
   SYNC_REGISTER ();
+  if (SCM_UNLIKELY (!SCM_VM_CONT_REWINDABLE_P (vmcont)))
+    { finish_args = vmcont;
+      goto vm_error_continuation_not_rewindable;
+    }
   vm_reinstate_partial_continuation (vm, vmcont, intwinds, sp + 1 - fp, fp);
   CACHE_REGISTER ();
   program = SCM_FRAME_PROGRAM (fp);

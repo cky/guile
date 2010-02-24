@@ -233,6 +233,11 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     finish_args = SCM_EOL;
     goto vm_error;
 
+  vm_error_continuation_not_rewindable:
+    err_msg  = scm_from_locale_string ("Unrewindable partial continuation");
+    finish_args = scm_cons (finish_args, SCM_EOL);
+    goto vm_error;
+
   vm_error_bad_wide_string_length:
     err_msg  = scm_from_locale_string ("VM: Bad wide string length: ~S");
     goto vm_error;
