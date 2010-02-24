@@ -138,10 +138,9 @@ vm_return_to_continuation (SCM vm, SCM cont, size_t n, SCM *argv)
                     SCM_EOL);
 
   if (vp->stack_size < cp->stack_size + n + 1)
-    {
-      /* puts ("FIXME: Need to expand"); */
-      abort ();
-    }
+    scm_misc_error ("vm-engine", "not enough space to reinstate continuation",
+                    scm_list_2 (vm, cont));
+
 #ifdef VM_ENABLE_STACK_NULLING
   {
     scm_t_ptrdiff nzero = (vp->sp - cp->sp);
@@ -215,7 +214,9 @@ vm_abort (SCM vm, size_t n, scm_t_int64 vm_cookie)
   /* NULLSTACK (1) */
   tail_len = scm_ilength (tail);
   if (tail_len < 0)
-    abort ();
+    scm_misc_error ("vm-engine", "tail values to abort should be a list",
+                    scm_list_1 (tail));
+
   tag = SCM_VM_DATA (vm)->sp[-n];
   argv = alloca ((n + tail_len) * sizeof (SCM));
   for (i = 0; i < n; i++)
@@ -247,10 +248,9 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
 #define RELOC(scm_p) (scm_p + cp->reloc + (base - cp->stack_base))
 
   if ((base - vp->stack_base) + cp->stack_size + n + 1 > vp->stack_size)
-    {
-      /* puts ("FIXME: Need to expand"); */
-      abort ();
-    }
+    scm_misc_error ("vm-engine",
+                    "not enough space to instate partial continuation",
+                    scm_list_2 (vm, cont));
 
   memcpy (base, cp->stack_base, cp->stack_size * sizeof (SCM));
 
@@ -316,7 +316,9 @@ really_make_boot_program (long nargs)
   SCM ret;
 
   if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
-    abort ();
+    scm_misc_error ("vm-engine", "too many args when making boot procedure",
+                    scm_list_1 (scm_from_long (nargs)));
+
   text[1] = (scm_t_uint8)nargs;
 
   bp = scm_malloc (sizeof (struct scm_objcode) + sizeof (text));
