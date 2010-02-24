@@ -31,6 +31,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/c-api.test			\
 	    tests/chars.test			\
 	    tests/common-list.test		\
+	    tests/control.test			\
 	    tests/continuations.test		\
 	    tests/elisp.test			\
 	    tests/elisp-compiler.test		\
