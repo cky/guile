@@ -25,6 +25,9 @@
 (define default-tag (fluid-ref %default-prompt-tag))
 
 
+;; For these, the compiler should be able to prove that "k" is not referenced,
+;; so it avoids reifying the continuation. Since that's a slightly different
+;; codepath, we test them both.
 (with-test-prefix "escape-only continuations"
   (pass-if "no values, normal exit"
     (equal? '()
@@ -35,12 +38,169 @@
                      (lambda (k . args)
                        (error "unexpected exit" args))))
               list)))
-  (pass-if "no values, normal exit"
+
+  (pass-if "no values, abnormal exit"
     (equal? '()
             (% default-tag
                (begin
                  (abort default-tag)
                  (error "unexpected exit"))
                (lambda (k . args)
+                 args))))
+
+  (pass-if "single value, normal exit"
+    (equal? '(foo)
+            (call-with-values
+                (lambda ()
+                  (% default-tag
+                     'foo
+                     (lambda (k . args)
+                       (error "unexpected exit" args))))
+              list)))
+
+  (pass-if "single value, abnormal exit"
+    (equal? '(foo)
+            (% default-tag
+               (begin
+                 (abort default-tag 'foo)
+                 (error "unexpected exit"))
+               (lambda (k . args)
+                 args))))
+
+  (pass-if "multiple values, normal exit"
+    (equal? '(foo bar baz)
+            (call-with-values
+                (lambda ()
+                  (% default-tag
+                     (values 'foo 'bar 'baz)
+                     (lambda (k . args)
+                       (error "unexpected exit" args))))
+              list)))
+
+  (pass-if "multiple values, abnormal exit"
+    (equal? '(foo bar baz)
+            (% default-tag
+               (begin
+                 (abort default-tag 'foo 'bar 'baz)
+                 (error "unexpected exit"))
+               (lambda (k . args)
                  args)))))
 
+;;; And the case in which the compiler has to reify the continuation.
+(with-test-prefix "reified continuations"
+  (pass-if "no values, normal exit"
+    (equal? '()
+            (call-with-values
+                (lambda ()
+                  (% default-tag
+                     (values)
+                     (lambda (k . args)
+                       (error "unexpected exit" k args))))
+              list)))
+
+  (pass-if "no values, abnormal exit"
+    (equal? '()
+            (cdr
+             (% default-tag
+                (begin
+                  (abort default-tag)
+                  (error "unexpected exit"))
+                (lambda args
+                  args)))))
+
+  (pass-if "single value, normal exit"
+    (equal? '(foo)
+            (call-with-values
+                (lambda ()
+                  (% default-tag
+                     'foo
+                     (lambda (k . args)
+                       (error "unexpected exit" k args))))
+              list)))
+
+  (pass-if "single value, abnormal exit"
+    (equal? '(foo)
+            (cdr
+             (% default-tag
+                (begin
+                  (abort default-tag 'foo)
+                  (error "unexpected exit"))
+                (lambda args
+                  args)))))
+
+  (pass-if "multiple values, normal exit"
+    (equal? '(foo bar baz)
+            (call-with-values
+                (lambda ()
+                  (% default-tag
+                     (values 'foo 'bar 'baz)
+                     (lambda (k . args)
+                       (error "unexpected exit" k args))))
+              list)))
+
+  (pass-if "multiple values, abnormal exit"
+    (equal? '(foo bar baz)
+            (cdr
+             (% default-tag
+                (begin
+                  (abort default-tag 'foo 'bar 'baz)
+                  (error "unexpected exit"))
+                (lambda args
+                  args))))))
+
+;;; Here we test that instantiation works
+(with-test-prefix "restarting partial continuations"
+  (pass-if "simple"
+    (let ((k (% default-tag
+                (begin (abort default-tag) 'foo)
+                (lambda (k) k))))
+      (eq? (k)
+           'foo))))
+
+(define fl (make-fluid))
+(fluid-set! fl 0)
+
+(with-test-prefix "suspend/resume with fluids"
+  (pass-if "normal"
+    (zero? (% default-tag
+              (fluid-ref fl)
+              error)))
+  (pass-if "with-fluids normal"
+    (equal? (% default-tag
+              (with-fluids ((fl (1+ (fluid-ref fl))))
+                (fluid-ref fl))
+              error)
+            1))
+  (pass-if "normal (post)"
+    (zero? (fluid-ref fl)))
+  (pass-if "with-fluids and fluid-set!"
+    (equal? (% default-tag
+               (with-fluids ((fl (1+ (fluid-ref fl))))
+                 (fluid-set! fl (1+ (fluid-ref fl)))
+                 (fluid-ref fl))
+               error)
+            2))
+  (pass-if "normal (post2)"
+    (zero? (fluid-ref fl)))
+  (pass-if "normal fluid-set!"
+    (equal? (begin
+              (fluid-set! fl (1+ (fluid-ref fl)))
+              (fluid-ref fl))
+            1))
+  (pass-if "reset fluid-set!"
+    (equal? (begin
+              (fluid-set! fl (1- (fluid-ref fl)))
+              (fluid-ref fl))
+            0))
+
+  (let ((k (% default-tag
+              (with-fluids ((fl (1+ (fluid-ref fl))))
+                (abort default-tag)
+                (fluid-ref fl))
+              (lambda (k) k))))
+    (pass-if "pre"
+      (equal? (fluid-ref fl) 0))
+    (pass-if "res"
+      (equal? (k) 1))
+    (pass-if "post"
+      (equal? (fluid-ref fl) 0))))
