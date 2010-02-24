@@ -229,10 +229,54 @@ vm_abort (SCM vm, size_t n, scm_t_int64 vm_cookie)
 }
 
 static void
-vm_reinstate_partial_continuation (SCM vm, SCM vm_cont, SCM intwinds,
-                                   SCM extwinds)
+vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
+                                   SCM extwinds, size_t n, SCM *argv)
 {
-  abort ();
+  struct scm_vm *vp;
+  struct scm_vm_cont *cp;
+  SCM *argv_copy, *base;
+  size_t i;
+
+  argv_copy = alloca (n * sizeof(SCM));
+  memcpy (argv_copy, argv, n * sizeof(SCM));
+
+  vp = SCM_VM_DATA (vm);
+  cp = SCM_VM_CONT_DATA (cont);
+  base = SCM_FRAME_UPPER_ADDRESS (vp->fp) + 1;
+
+#define RELOC(scm_p) (scm_p + cp->reloc + (base - cp->stack_base))
+
+  if ((base - vp->stack_base) + cp->stack_size + n + 1 > vp->stack_size)
+    {
+      /* puts ("FIXME: Need to expand"); */
+      abort ();
+    }
+
+  memcpy (base, cp->stack_base, cp->stack_size * sizeof (SCM));
+
+  /* now relocate frame pointers */
+  {
+    SCM *fp;
+    for (fp = RELOC (cp->fp);
+         SCM_FRAME_LOWER_ADDRESS (fp) > base;
+         fp = SCM_FRAME_DYNAMIC_LINK (fp))
+      SCM_FRAME_SET_DYNAMIC_LINK (fp, RELOC (SCM_FRAME_DYNAMIC_LINK (fp)));
+  }
+
+  vp->sp = base - 1 + cp->stack_size;
+  vp->fp = RELOC (cp->fp);
+  vp->ip = cp->mvra;
+
+#undef RELOC
+
+  /* now push args. ip is in a MV context. */
+  for (i = 0; i < n; i++)
+    {
+      vp->sp++;
+      *vp->sp = argv_copy[i];
+    }
+  vp->sp++;
+  *vp->sp = scm_from_size_t (n);
 }
 
 
