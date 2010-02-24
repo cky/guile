@@ -41,7 +41,7 @@ scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
 
   tag = scm_tc7_prompt;
   if (escape_only_p)
-    tag |= SCM_F_PROMPT_ESCAPE;
+    tag |= (SCM_F_PROMPT_ESCAPE<<8);
   ret = scm_words (tag, 5);
 
   regs = scm_gc_malloc_pointerless (sizeof (*regs), "prompt registers");
