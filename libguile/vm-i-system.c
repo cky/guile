@@ -995,13 +995,11 @@ VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
 
 VM_DEFINE_INSTRUCTION (94, partial_cont_call, "partial-cont-call", 0, -1, 0)
 {
-  SCM vmcont, intwinds, extwinds;
-  POP (extwinds);
+  SCM vmcont, intwinds;
   POP (intwinds);
   POP (vmcont);
   SYNC_REGISTER ();
-  vm_reinstate_partial_continuation (vm, vmcont, intwinds, extwinds,
-                                     sp + 1 - fp, fp);
+  vm_reinstate_partial_continuation (vm, vmcont, intwinds, sp + 1 - fp, fp);
   CACHE_REGISTER ();
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();

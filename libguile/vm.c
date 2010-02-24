@@ -230,7 +230,7 @@ vm_abort (SCM vm, size_t n, scm_t_int64 vm_cookie)
 
 static void
 vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
-                                   SCM extwinds, size_t n, SCM *argv)
+                                   size_t n, SCM *argv)
 {
   struct scm_vm *vp;
   struct scm_vm_cont *cp;
@@ -277,6 +277,15 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
     }
   vp->sp++;
   *vp->sp = scm_from_size_t (n);
+
+  /* Finally, rewind the dynamic state. */
+  {
+    long delta = 0;
+    SCM newwinds = scm_i_dynwinds ();
+    for (; scm_is_pair (intwinds); intwinds = scm_cdr (intwinds), delta--)
+      newwinds = scm_cons (scm_car (intwinds), newwinds);
+    scm_dowinds (newwinds, delta);
+  }
 }
 
 

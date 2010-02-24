@@ -100,9 +100,8 @@ SCM_STATIC_OBJCODE (cont_objcode) = {
   /* leave args on the stack */
   /* 0 */ scm_op_object_ref, 0, /* push scm_vm_cont object */
   /* 2 */ scm_op_object_ref, 1, /* push internal winds */
-  /* 4 */ scm_op_object_ref, 2, /* push external winds */
-  /* 6 */ scm_op_partial_cont_call, /* and go! */
-  /* 7 */ scm_op_nop, /* pad to 8 bytes */
+  /* 4 */ scm_op_partial_cont_call, /* and go! */
+  /* 5 */ scm_op_nop, scm_op_nop, scm_op_nop, /* pad to 8 bytes */
   /* 8 */
 
   /* We could put some meta-info to say that this proc is a continuation. Not sure
@@ -110,7 +109,7 @@ SCM_STATIC_OBJCODE (cont_objcode) = {
   META_HEADER (19),
   /* 0 */ scm_op_make_eol, /* bindings */
   /* 1 */ scm_op_make_eol, /* sources */
-  /* 2 */ scm_op_make_int8, 0, scm_op_make_int8, 7, /* arity: from ip 0 to ip 7 */
+  /* 2 */ scm_op_make_int8, 0, scm_op_make_int8, 5, /* arity: from ip 0 to ip 7 */
   /* 6 */ scm_op_make_int8_0, /* the arity is 0 required args */
   /* 7 */ scm_op_make_int8_0, /* 0 optionals */
   /* 8 */ scm_op_make_true, /* and a rest arg */
@@ -161,7 +160,7 @@ reify_partial_continuation (SCM vm, SCM prompt, SCM extwinds,
                                     flags);
 
   ret = scm_make_program (cont_objcode,
-                          scm_vector (scm_list_3 (vm_cont, intwinds, extwinds)),
+                          scm_vector (scm_list_2 (vm_cont, intwinds)),
                           SCM_BOOL_F);
   SCM_SET_CELL_WORD_0 (ret,
                        SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_CONTINUATION);
