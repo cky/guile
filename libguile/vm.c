@@ -293,10 +293,9 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
  * VM Internal functions
  */
 
-SCM_SYMBOL (sym_vm_run, "vm-run");
-SCM_SYMBOL (sym_vm_error, "vm-error");
-SCM_SYMBOL (sym_keyword_argument_error, "keyword-argument-error");
-SCM_SYMBOL (sym_debug, "debug");
+/* Unfortunately we can't snarf these: snarfed things are only loaded up from
+   (system vm vm), which might not be loaded before an error happens. */
+static SCM sym_vm_run, sym_vm_error, sym_keyword_argument_error, sym_debug;
 
 void
 scm_i_vm_print (SCM x, SCM port, scm_print_state *pstate)
@@ -752,6 +751,11 @@ scm_bootstrap_vm (void)
 {
   scm_c_register_extension ("libguile", "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
+
+  sym_vm_run = scm_from_locale_string ("vm-run");
+  sym_vm_error = scm_from_locale_string ("vm-error");
+  sym_keyword_argument_error = scm_from_locale_string ("keyword-argument-error");
+  sym_debug = scm_from_locale_string ("debug");
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
   vm_stack_gc_kind =
