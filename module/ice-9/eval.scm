@@ -307,7 +307,11 @@
         (('with-fluids (fluids vals . exp))
          (let* ((fluids (map (lambda (x) (eval x env)) fluids))
                 (vals (map (lambda (x) (eval x env)) vals)))
-           (with-fluids* fluids vals (lambda () (eval exp env)))))
+           (let lp ((fluids fluids) (vals vals))
+             (if (null? fluids)
+                 (eval exp env)
+                 (with-fluids (((car fluids) (car vals)))
+                   (lp (cdr fluids) (cdr vals)))))))
         
         (('prompt (tag exp . handler))
          (@prompt (eval tag env)
