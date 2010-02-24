@@ -470,7 +470,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_async ();              /* requires smob_prehistory */
   scm_init_boolean ();
   scm_init_chars ();
-  scm_init_control ();
 #ifdef GUILE_DEBUG_MALLOC
   scm_init_debug_malloc ();
 #endif
@@ -478,6 +477,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_eq ();
   scm_init_error ();
   scm_init_fluids ();
+  scm_init_control ();            /* requires fluids */
   scm_init_feature ();
   scm_init_backtrace ();
   scm_init_fports ();

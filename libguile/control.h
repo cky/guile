@@ -42,6 +42,9 @@ struct scm_prompt_registers
 };
 
 
+SCM_INTERNAL SCM scm_sys_default_prompt_tag;
+
+
 SCM_INTERNAL SCM scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
                                     scm_t_int64 cookie);
 SCM_INTERNAL SCM scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv,

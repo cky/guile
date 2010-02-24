@@ -28,6 +28,9 @@
 
 
 
+SCM scm_sys_default_prompt_tag;
+
+
 SCM
 scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
                    scm_t_int64 vm_cookie)
@@ -193,9 +196,13 @@ scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv, scm_t_int64 cookie)
      any code that might throw up. */
   if (scm_is_false (prompt))
     {
-      /* FIXME: jump to default */
-      /* scm_handle_by_message (NULL, key, args); */
-      abort ();
+      if (scm_is_eq (tag, scm_fluid_ref (scm_sys_default_prompt_tag)))
+        {
+          fprintf (stderr, "No prompt found for abort to default prompt tag!\n");
+          abort ();
+        }
+      else
+        scm_misc_error ("abort", "abort to unknown tag", scm_list_1 (tag));
     }
 
   cont = reify_partial_continuation (vm, prompt, winds, cookie);
@@ -250,9 +257,13 @@ SCM_DEFINE (scm_at_abort, "@abort", 2, 0, 0, (SCM tag, SCM args),
 }
 #undef FUNC_NAME
 
-void scm_init_control (void)
+void
+scm_init_control (void)
 {
 #include "control.x"
+  scm_sys_default_prompt_tag = scm_make_fluid ();
+  scm_fluid_set_x (scm_sys_default_prompt_tag, scm_gensym (SCM_UNDEFINED));
+  scm_c_define ("%default-prompt-tag", scm_sys_default_prompt_tag);
 }
 
 /*
