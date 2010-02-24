@@ -19,7 +19,7 @@
 ;;; Code:
 
 (define-module (ice-9 control)
-  #:re-export (prompt)
+  #:re-export (prompt abort)
   #:export (% control))
 
 ;; the same as abort.
@@ -29,4 +29,10 @@
 (define-syntax %
   (syntax-rules ()
     ((_ expr handler)
-     (prompt (lambda () expr) handler))))
+     (prompt (fluid-ref %default-prompt-tag)
+             (lambda () expr)
+             handler))
+    ((_ tag expr handler)
+     (prompt tag
+             (lambda () expr)
+             handler))))
