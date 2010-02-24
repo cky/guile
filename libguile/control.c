@@ -144,11 +144,20 @@ reify_partial_continuation (SCM vm, SCM prompt, SCM extwinds,
   if (cookie >= 0 && SCM_PROMPT_REGISTERS (prompt)->cookie == cookie)
     flags |= SCM_F_VM_CONT_REWINDABLE;
 
-  /* NULL RA and MVRA, as those get set when the cont is reinstated */
-  vm_cont = scm_i_vm_capture_stack (SCM_PROMPT_REGISTERS (prompt)->sp,
+  /* Since non-escape continuations should begin with a thunk application, the
+     first bit of the stack should be a frame, with the saved fp equal to the fp
+     that was current when the prompt was made. */
+  if ((SCM*)(SCM_PROMPT_REGISTERS (prompt)->sp[1])
+      != SCM_PROMPT_REGISTERS (prompt)->fp)
+    abort ();
+
+  /* Capture from the top of the thunk application frame up to the end. Set an
+     MVRA only, as the post-abort code is in an MV context. */
+  vm_cont = scm_i_vm_capture_stack (SCM_PROMPT_REGISTERS (prompt)->sp + 4,
                                     SCM_VM_DATA (vm)->fp,
                                     SCM_VM_DATA (vm)->sp,
-                                    NULL, NULL,
+                                    NULL,
+                                    SCM_VM_DATA (vm)->ip,
                                     flags);
 
   ret = scm_make_program (cont_objcode,
