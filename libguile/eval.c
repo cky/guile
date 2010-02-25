@@ -427,9 +427,12 @@ eval (SCM x, SCM env)
 
     case SCM_M_PROMPT:
       {
-        SCM prompt, handler, res;
+        SCM vm, prompt, handler, res;
 
-        prompt = scm_c_make_prompt (scm_the_vm (), eval (CAR (mx), env), 0, -1);
+        vm = scm_the_vm ();
+        prompt = scm_c_make_prompt (eval (CAR (mx), env), SCM_VM_DATA (vm)->fp,
+                                    SCM_VM_DATA (vm)->sp, SCM_VM_DATA (vm)->ip,
+                                    0, -1);
         handler = eval (CDDR (mx), env);
         scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
 

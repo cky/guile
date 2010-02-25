@@ -32,8 +32,8 @@ SCM scm_sys_default_prompt_tag;
 
 
 SCM
-scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
-                   scm_t_int64 vm_cookie)
+scm_c_make_prompt (SCM k, SCM *fp, SCM *sp, scm_t_uint8 *abort_ip,
+                   scm_t_uint8 escape_only_p, scm_t_int64 vm_cookie)
 {
   scm_t_bits tag;
   SCM ret;
@@ -45,9 +45,9 @@ scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
   ret = scm_words (tag, 5);
 
   regs = scm_gc_malloc_pointerless (sizeof (*regs), "prompt registers");
-  regs->fp = SCM_VM_DATA (vm)->fp;
-  regs->sp = SCM_VM_DATA (vm)->sp;
-  regs->ip = SCM_VM_DATA (vm)->ip;
+  regs->fp = fp;
+  regs->sp = sp;
+  regs->ip = abort_ip;
   regs->cookie = vm_cookie;
 
   SCM_SET_CELL_OBJECT (ret, 1, k);
@@ -190,7 +190,7 @@ reify_partial_continuation (SCM vm, SCM prompt, SCM extwinds,
   return ret;
 }
 
-SCM
+void
 scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv, scm_t_int64 cookie)
 {
   SCM cont, winds, prompt = SCM_BOOL_F;

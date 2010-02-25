@@ -1479,19 +1479,21 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
   POP (k);
 
   SYNC_REGISTER ();
-  /* Push the prompt onto the dynamic stack. The setjmp itself has to be local
-     to this procedure. */
-  /* FIXME: do more error checking */
-  prompt = scm_c_make_prompt (vm, k, escape_only_p, vm_cookie);
+  /* Push the prompt onto the dynamic stack. */
+  prompt = scm_c_make_prompt (k, fp, sp, ip + offset, escape_only_p, vm_cookie);
   scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
   if (SCM_PROMPT_SETJMP (prompt))
     {
       /* The prompt exited nonlocally. Cache the regs back from the vp, and go
          to the handler.
+
+         Note, at this point, we must assume that any variable local to
+         vm_engine that can be assigned *has* been assigned. So we need to pull
+         all our state back from the ip/fp/sp.
       */
-      CACHE_REGISTER (); /* Really we only need SP. FP and IP should be
-                            unmodified. */
-      ip += offset;
+      CACHE_REGISTER ();
+      program = SCM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
       NEXT;
     }
       
