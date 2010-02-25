@@ -57,6 +57,26 @@ scm_c_make_prompt (SCM vm, SCM k, scm_t_uint8 escape_only_p,
   return ret;
 }
 
+/* Only to be called if the SCM_PROMPT_SETJMP returns 1 */
+SCM
+scm_i_prompt_pop_abort_args_x (SCM prompt)
+{
+  size_t i, n;
+  SCM vals = SCM_EOL;
+
+  n = scm_to_size_t (SCM_PROMPT_REGISTERS (prompt)->sp[0]);
+  for (i = 0; i < n; i++)
+    vals = scm_cons (SCM_PROMPT_REGISTERS (prompt)->sp[-(i + 1)], vals);
+
+  /* The abort did reset the VM's registers, but then these values
+     were pushed on; so we need to pop them ourselves. */
+  SCM_VM_DATA (scm_the_vm ())->sp -= n + 1;
+  /* FIXME NULLSTACK */
+
+  return vals;
+}
+
+
 #ifdef WORDS_BIGENDIAN
 #define OBJCODE_HEADER(main,meta) 0, 0, 0, main, 0, 0, 0, meta+8
 #define META_HEADER(meta)         0, 0, 0, meta, 0, 0, 0, 0
