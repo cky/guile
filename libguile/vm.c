@@ -231,7 +231,7 @@ vm_abort (SCM vm, size_t n, scm_t_int64 vm_cookie)
 
 static void
 vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
-                                   size_t n, SCM *argv)
+                                   size_t n, SCM *argv, scm_t_int64 vm_cookie)
 {
   struct scm_vm *vp;
   struct scm_vm_cont *cp;
@@ -267,8 +267,6 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
   vp->fp = RELOC (cp->fp);
   vp->ip = cp->mvra;
 
-#undef RELOC
-
   /* now push args. ip is in a MV context. */
   for (i = 0; i < n; i++)
     {
@@ -278,14 +276,32 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
   vp->sp++;
   *vp->sp = scm_from_size_t (n);
 
-  /* Finally, rewind the dynamic state. */
+  /* Finally, rewind the dynamic state.
+
+     We have to treat prompts specially, because we could be rewinding the
+     dynamic state from a different thread, or just a different position on the
+     C and/or VM stack -- so we need to reset the jump buffers so that an abort
+     comes back here, with appropriately adjusted sp and fp registers. */
   {
     long delta = 0;
     SCM newwinds = scm_i_dynwinds ();
     for (; scm_is_pair (intwinds); intwinds = scm_cdr (intwinds), delta--)
-      newwinds = scm_cons (scm_car (intwinds), newwinds);
+      {
+        SCM x = scm_car (intwinds);
+        if (SCM_PROMPT_P (x))
+          /* the jmpbuf will be reset by our caller */
+          x = scm_c_make_prompt (SCM_PROMPT_TAG (x),
+                                 RELOC (SCM_PROMPT_REGISTERS (x)->fp),
+                                 RELOC (SCM_PROMPT_REGISTERS (x)->sp),
+                                 SCM_PROMPT_REGISTERS (x)->ip,
+                                 SCM_PROMPT_ESCAPE_P (x),
+                                 vm_cookie,
+                                 newwinds);
+        newwinds = scm_cons (x, newwinds);
+      }
     scm_dowinds (newwinds, delta);
   }
+#undef RELOC
 }
 
 

@@ -27,8 +27,7 @@
 #define SCM_PROMPT_ESCAPE_P(x)	(SCM_PROMPT_FLAGS (x) & SCM_F_PROMPT_ESCAPE)
 #define SCM_PROMPT_TAG(x)	(SCM_CELL_OBJECT ((x), 1))
 #define SCM_PROMPT_REGISTERS(x)	((struct scm_prompt_registers*)SCM_CELL_WORD ((x), 2))
-#define SCM_PROMPT_DYNENV(x)	(SCM_CELL_OBJECT ((x), 3))
-#define SCM_PROMPT_HANDLER(x)	(SCM_CELL_OBJECT ((x), 4))
+#define SCM_PROMPT_DYNWINDS(x)	(SCM_CELL_OBJECT ((x), 3))
 
 #define SCM_PROMPT_SETJMP(p)	(SCM_I_SETJMP (SCM_PROMPT_REGISTERS (p)->regs))
 
@@ -48,7 +47,8 @@ SCM_INTERNAL SCM scm_sys_default_prompt_tag;
 SCM_INTERNAL SCM scm_c_make_prompt (SCM k, SCM *fp, SCM *sp,
                                     scm_t_uint8 *abort_ip,
                                     scm_t_uint8 escape_only_p,
-                                    scm_t_int64 vm_cookie);
+                                    scm_t_int64 vm_cookie,
+                                    SCM winds);
 SCM_INTERNAL SCM scm_i_prompt_pop_abort_args_x (SCM prompt);
 
 SCM_INTERNAL void scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv,

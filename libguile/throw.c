@@ -512,8 +512,8 @@ pre_init_catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   vm = scm_the_vm ();
   prompt = scm_c_make_prompt (scm_fluid_ref (scm_sys_default_prompt_tag),
                               SCM_VM_DATA (vm)->fp, SCM_VM_DATA (vm)->sp,
-                              SCM_VM_DATA (vm)->ip, 1, -1);
-  scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
+                              SCM_VM_DATA (vm)->ip, 1, -1, scm_i_dynwinds ());
+  scm_i_set_dynwinds (scm_cons (prompt, SCM_PROMPT_DYNWINDS (prompt)));
 
   if (SCM_PROMPT_SETJMP (prompt))
     {

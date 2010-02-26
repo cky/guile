@@ -995,7 +995,7 @@ VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
 
 VM_DEFINE_INSTRUCTION (94, partial_cont_call, "partial-cont-call", 0, -1, 0)
 {
-  SCM vmcont, intwinds;
+  SCM vmcont, intwinds, prevwinds;
   POP (intwinds);
   POP (vmcont);
   SYNC_REGISTER ();
@@ -1003,7 +1003,18 @@ VM_DEFINE_INSTRUCTION (94, partial_cont_call, "partial-cont-call", 0, -1, 0)
     { finish_args = vmcont;
       goto vm_error_continuation_not_rewindable;
     }
-  vm_reinstate_partial_continuation (vm, vmcont, intwinds, sp + 1 - fp, fp);
+  prevwinds = scm_i_dynwinds ();
+  vm_reinstate_partial_continuation (vm, vmcont, intwinds, sp + 1 - fp, fp,
+                                     vm_cookie);
+
+  /* Rewind prompt jmpbuffers, if any. */
+  {
+    SCM winds = scm_i_dynwinds ();
+    for (; !scm_is_eq (winds, prevwinds); winds = scm_cdr (winds))
+      if (SCM_PROMPT_P (scm_car (winds)) && SCM_PROMPT_SETJMP (scm_car (winds)))
+        break;
+  }
+    
   CACHE_REGISTER ();
   program = SCM_FRAME_PROGRAM (fp);
   CACHE_PROGRAM ();
@@ -1480,8 +1491,9 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
 
   SYNC_REGISTER ();
   /* Push the prompt onto the dynamic stack. */
-  prompt = scm_c_make_prompt (k, fp, sp, ip + offset, escape_only_p, vm_cookie);
-  scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
+  prompt = scm_c_make_prompt (k, fp, sp, ip + offset, escape_only_p, vm_cookie,
+                              scm_i_dynwinds ());
+  scm_i_set_dynwinds (scm_cons (prompt, SCM_PROMPT_DYNWINDS (prompt)));
   if (SCM_PROMPT_SETJMP (prompt))
     {
       /* The prompt exited nonlocally. Cache the regs back from the vp, and go

@@ -204,3 +204,14 @@
       (equal? (k) 1))
     (pass-if "post"
       (equal? (fluid-ref fl) 0))))
+
+(with-test-prefix "rewinding prompts"
+  (pass-if "nested prompts"
+    (let ((k (% 'a
+                (% 'b
+                   (begin
+                     (abort 'a)
+                     (abort 'b #t))
+                   (lambda (k x) x))
+                (lambda (k) k))))
+      (k))))

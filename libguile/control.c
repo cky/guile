@@ -33,16 +33,15 @@ SCM scm_sys_default_prompt_tag;
 
 SCM
 scm_c_make_prompt (SCM k, SCM *fp, SCM *sp, scm_t_uint8 *abort_ip,
-                   scm_t_uint8 escape_only_p, scm_t_int64 vm_cookie)
+                   scm_t_uint8 escape_only_p, scm_t_int64 vm_cookie,
+                   SCM winds)
 {
   scm_t_bits tag;
-  SCM ret;
   struct scm_prompt_registers *regs;
 
   tag = scm_tc7_prompt;
   if (escape_only_p)
     tag |= (SCM_F_PROMPT_ESCAPE<<8);
-  ret = scm_words (tag, 5);
 
   regs = scm_gc_malloc_pointerless (sizeof (*regs), "prompt registers");
   regs->fp = fp;
@@ -50,11 +49,8 @@ scm_c_make_prompt (SCM k, SCM *fp, SCM *sp, scm_t_uint8 *abort_ip,
   regs->ip = abort_ip;
   regs->cookie = vm_cookie;
 
-  SCM_SET_CELL_OBJECT (ret, 1, k);
-  SCM_SET_CELL_WORD (ret, 2, (scm_t_bits)regs);
-  SCM_SET_CELL_OBJECT (ret, 3, scm_i_dynwinds ());
-
-  return ret;
+  return scm_double_cell (tag, SCM_UNPACK (k), (scm_t_bits)regs, 
+                          SCM_UNPACK (winds));
 }
 
 /* Only to be called if the SCM_PROMPT_SETJMP returns 1 */
