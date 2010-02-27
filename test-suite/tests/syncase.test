@@ -106,3 +106,15 @@
   (pass-if "compiled macro-generating macro works"
     (eq? (eval '(kwote* foo) (current-module))
          'foo)))
+
+(with-test-prefix "changes to expansion environment"
+  (pass-if "expander detects changes to current-module"
+    (false-if-exception
+      (compile '(begin
+		  (define-module (new-module))
+		  (define-syntax new-module-macro
+		    (lambda (stx)
+		      (syntax-case stx () 
+			((_ arg) (syntax arg)))))
+		  (new-module-macro #t))
+	       #:env (current-module)))))
