@@ -1,7 +1,7 @@
-;;;; srfi-35.test --- Test suite for SRFI-35               -*- Scheme -*-
-;;;; Ludovic Courtès <ludo@gnu.org>
+;;;; srfi-35.test --- SRFI-35.             -*- mode: scheme; coding: utf-8; -*-
+;;;; Ludovic CourtÃ¨s <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -316,8 +316,3 @@
 
   (pass-if "(c2-b v5)"
     (equal? (c2-b v5) "b2")))
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:

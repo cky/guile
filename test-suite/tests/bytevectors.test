@@ -1,6 +1,6 @@
-;;;; bytevectors.test --- Exercise the R6RS bytevector API.
+;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: iso-8859-1; -*-
 ;;;;
-;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -696,9 +696,3 @@
   (pass-if "bitvector > 8"
     (let ((bv (uniform-array->bytevector (make-bitvector 9 #t))))
       (= (bytevector-length bv) 2))))
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; mode: scheme
-;;; End:
