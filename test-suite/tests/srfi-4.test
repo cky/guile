@@ -51,7 +51,11 @@
 
   (pass-if "u8vector->list/uniform-vector->list"
     (equal? (u8vector->list (u8vector 1 2 3 4))
-	    (uniform-vector->list (u8vector 1 2 3 4)))))
+	    (uniform-vector->list (u8vector 1 2 3 4))))
+
+  (pass-if "make-u8vector"
+    (equal? (list->u8vector '(7 7 7 7))
+            (make-u8vector 4 7))))
 
 (with-test-prefix "s8 vectors"
 
@@ -84,7 +88,11 @@
 
   (pass-if "s8vector->list/uniform-vector->list"
     (equal? (s8vector->list (s8vector 1 2 3 4))
-	    (uniform-vector->list (s8vector 1 2 3 4)))))
+	    (uniform-vector->list (s8vector 1 2 3 4))))
+
+  (pass-if "make-s8vector"
+    (equal? (list->s8vector '(7 7 7 7))
+            (make-s8vector 4 7))))
 
 
 (with-test-prefix "u16 vectors"
@@ -118,7 +126,11 @@
 
   (pass-if "u16vector->list/uniform-vector->list"
     (equal? (u16vector->list (u16vector 1 2 3 4))
-	    (uniform-vector->list (u16vector 1 2 3 4)))))
+	    (uniform-vector->list (u16vector 1 2 3 4))))
+
+  (pass-if "make-u16vector"
+    (equal? (list->u16vector '(7 7 7 7))
+            (make-u16vector 4 7))))
 
 (with-test-prefix "s16 vectors"
 
@@ -151,7 +163,11 @@
 
   (pass-if "s16vector->list/uniform-vector->list"
     (equal? (s16vector->list (s16vector 1 2 3 4))
-	    (uniform-vector->list (s16vector 1 2 3 4)))))
+	    (uniform-vector->list (s16vector 1 2 3 4))))
+
+  (pass-if "make-s16vector"
+    (equal? (list->s16vector '(7 7 7 7))
+            (make-s16vector 4 7))))
 
 (with-test-prefix "u32 vectors"
 
@@ -184,7 +200,11 @@
 
   (pass-if "u32vector->list/uniform-vector->list"
     (equal? (u32vector->list (u32vector 1 2 3 4))
-	    (uniform-vector->list (u32vector 1 2 3 4)))))
+	    (uniform-vector->list (u32vector 1 2 3 4))))
+
+  (pass-if "make-u32vector"
+    (equal? (list->u32vector '(7 7 7 7))
+            (make-u32vector 4 7))))
 
 (with-test-prefix "s32 vectors"
 
@@ -217,7 +237,11 @@
 
   (pass-if "s32vector->list/uniform-vector->list"
     (equal? (s32vector->list (s32vector 1 2 3 4))
-	    (uniform-vector->list (s32vector 1 2 3 4)))))
+	    (uniform-vector->list (s32vector 1 2 3 4))))
+
+  (pass-if "make-s32vector"
+    (equal? (list->s32vector '(7 7 7 7))
+            (make-s32vector 4 7))))
 
 (with-test-prefix "u64 vectors"
 
@@ -250,7 +274,11 @@
 
   (pass-if "u64vector->list/uniform-vector->list"
     (equal? (u64vector->list (u64vector 1 2 3 4))
-	    (uniform-vector->list (u64vector 1 2 3 4)))))
+	    (uniform-vector->list (u64vector 1 2 3 4))))
+
+  (pass-if "make-u64vector"
+    (equal? (list->u64vector '(7 7 7 7))
+            (make-u64vector 4 7))))
 
 (with-test-prefix "s64 vectors"
 
@@ -283,7 +311,11 @@
 
   (pass-if "s64vector->list/uniform-vector->list"
     (equal? (s64vector->list (s64vector 1 2 3 4))
-	    (uniform-vector->list (s64vector 1 2 3 4)))))
+	    (uniform-vector->list (s64vector 1 2 3 4))))
+
+  (pass-if "make-s64vector"
+    (equal? (list->s64vector '(7 7 7 7))
+            (make-s64vector 4 7))))
 
 (with-test-prefix "f32 vectors"
 
@@ -316,7 +348,11 @@
 
   (pass-if "f32vector->list/uniform-vector->list"
     (equal? (f32vector->list (f32vector 1 2 3 4))
-	    (uniform-vector->list (f32vector 1 2 3 4)))))
+	    (uniform-vector->list (f32vector 1 2 3 4))))
+
+  (pass-if "make-f32vector"
+    (equal? (list->f32vector '(7 7 7 7))
+            (make-f32vector 4 7))))
 
 (with-test-prefix "f64 vectors"
 
@@ -349,4 +385,8 @@
 
   (pass-if "f64vector->list/uniform-vector->list"
     (equal? (f64vector->list (f64vector 1 2 3 4))
-	    (uniform-vector->list (f64vector 1 2 3 4)))))
+	    (uniform-vector->list (f64vector 1 2 3 4))))
+
+  (pass-if "make-f64vector"
+    (equal? (list->f64vector '(7 7 7 7))
+            (make-f64vector 4 7))))

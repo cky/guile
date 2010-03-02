@@ -267,9 +267,15 @@ SCM_DEFINE (scm_make_srfi_4_vector, "make-srfi-4-vector", 2, 1, 0,
             scm_t_array_handle h;
             size_t len;
             ssize_t pos, inc;
+
             scm_uniform_vector_writable_elements (ret, &h, &len, &inc);
+
             for (pos = 0; pos != h.dims[0].ubnd; pos += inc)
               scm_array_handle_set (&h, pos, fill);
+
+	    /* Initialize the last element.  */
+	    scm_array_handle_set (&h, pos, fill);
+
             scm_array_handle_release (&h);
           }
         return ret;
