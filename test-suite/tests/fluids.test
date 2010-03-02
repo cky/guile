@@ -55,3 +55,15 @@
                        (a 2))
            (eqv? (fluid-ref a) 2))
          (eqv? (fluid-ref a) #f))))
+
+(pass-if "fluids are GC'd"
+
+  (let ((g (make-guardian)))
+    (g (make-fluid))
+    (let loop ((i 1000))
+      (and (> i 0)
+           (begin
+             (make-fluid)
+             (loop (1- i)))))
+    (gc)
+    (fluid? (g))))
