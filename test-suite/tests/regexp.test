@@ -1,7 +1,7 @@
 ;;;; regexp.test --- test Guile's regular expression functions -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,53 +22,10 @@
   #:use-module (srfi srfi-1)
   #:use-module (ice-9 regex))
 
-;; Set the locale to LOC, if possible.  Failing that, set the locale
-;; to C.  If that fails, force the port encoding to ASCII.
-(define (mysetlocale loc)
-  (or
-   (and (defined? 'setlocale) 
-        (false-if-exception (setlocale LC_ALL loc)))
-   (and (defined? 'setlocale)
-        (false-if-exception (setlocale LC_ALL "C")))      
-   (begin
-     (false-if-exception (set-port-encoding! (current-input-port) 
-                                             "ASCII"))
-     (false-if-exception (set-port-encoding! (current-output-port) 
-                                             "ASCII"))
-     #f)))
+(set-port-conversion-strategy! (current-output-port) 'escape)
 
-;; Set the locale to a Latin-1 friendly locale.  Failing that, force
-;; the port encoding to Latin-1.  Returns the encoding used.
-(define (set-latin-1)
-  (set-port-conversion-strategy! (current-output-port) 'escape)
-  (or
-   (any 
-    (lambda (loc)
-      (if (defined? 'setlocale)
-          (let ((ret (false-if-exception (setlocale LC_ALL loc))))
-            (if ret
-                loc
-                #f))
-          #f))
-    (append
-     (map (lambda (name)
-            (string-append name ".ISO-8859-1"))
-          '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
-     (map (lambda (name)
-            (string-append name ".iso88591"))
-          '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
-     (map (lambda (name)
-            (string-append name ".ISO8859-1"))
-          '("fr_FR" "es_MX" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT"))
-     ))
-   (begin
-     (false-if-exception (set-port-encoding! (current-input-port) 
-                                             "ISO-8859-1"))
-     (false-if-exception (set-port-encoding! (current-output-port) 
-                                             "ISO-8859-1"))
-     #f)))
-
-(mysetlocale "C")
+(if (defined? 'setlocale)
+    (setlocale LC_ALL "C"))
 
 
 ;;; Run a regexp-substitute or regexp-substitute/global test, once
@@ -204,15 +161,13 @@
 	   (do ((i 1 (1+ i)))
 	       ((>= i char-code-limit))
              (let* ((c (integer->char i))
-                    (s (string c))
-                    (q (regexp-quote s)))
-               (pass-if (list "char" i (format #f "~s ~s ~s" c s q))
-                 (set-latin-1)      ; set locale for regexp processing
-                                    ; on binary data
-                 (let ((m (regexp-exec (make-regexp q flag) s)))
-                   (mysetlocale "")     ; restore locale
-                   (and (= 0 (match:start m))
-                        (= 1 (match:end m)))))))
+                    (s (string c)))
+               (pass-if (list "char" i (format #f "~s ~s" c s))
+                 (with-latin1-locale
+                  (let* ((q (regexp-quote s))
+                         (m (regexp-exec (make-regexp q flag) s)))
+                    (and (= 0 (match:start m))
+                         (= 1 (match:end m))))))))
 
 	   ;; try on pattern "aX" where X is each character, except #\nul
 	   ;; this exposes things like "?" which are special only when they
@@ -223,24 +178,22 @@
                     (s (string #\a c))
                     (q (regexp-quote s)))
                (pass-if (list "string \"aX\"" i (format #f "~s ~s ~s" c s q))
-                  (set-latin-1)
+                 (with-latin1-locale
 		  (let* ((m (regexp-exec (make-regexp q flag) s)))
-                    (mysetlocale "")
                     (and (= 0 (match:start m))
-                         (= 2 (match:end m)))))))
+                         (= 2 (match:end m))))))))
 
 	   (pass-if "string of all chars"
-             (set-latin-1)
-             (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
-                                                flag) allchars)))
-               (and (= 0 (match:start m))
-                    (= (string-length allchars) (match:end m))))))))
+             (with-latin1-locale
+               (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
+                                                  flag) allchars)))
+                 (and (= 0 (match:start m))
+                      (= (string-length allchars) (match:end m)))))))))
      lst)))
 
 ;;;
 ;;; regexp-substitute
 ;;;
-(mysetlocale "C")
 
 (with-test-prefix "regexp-substitute"
   (let ((match
