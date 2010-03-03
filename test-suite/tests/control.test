@@ -19,6 +19,7 @@
 
 (define-module (test-suite test-control)
   #:use-module (ice-9 control)
+  #:use-module (srfi srfi-11)
   #:use-module (test-suite lib))
 
 
@@ -148,14 +149,43 @@
                 (lambda args
                   args))))))
 
-;;; Here we test that instantiation works
+;; The variants check different cases in the compiler.
 (with-test-prefix "restarting partial continuations"
-  (pass-if "simple"
+  (pass-if "in side-effect position"
     (let ((k (% default-tag
                 (begin (abort default-tag) 'foo)
                 (lambda (k) k))))
       (eq? (k)
-           'foo))))
+           'foo)))
+
+  (pass-if "passing values to side-effect abort"
+    (let ((k (% default-tag
+                (begin (abort default-tag) 'foo)
+                (lambda (k) k))))
+      (eq? (k 'qux 'baz 'hello)
+           'foo)))
+
+  (pass-if "called for one value"
+    (let ((k (% default-tag
+                (+ (abort default-tag) 3)
+                (lambda (k) k))))
+      (eqv? (k 39)
+            42)))
+
+  (pass-if "called for multiple values"
+    (let ((k (% default-tag
+                (let-values (((a b . c) (abort default-tag)))
+                  (list a b c))
+                (lambda (k) k))))
+      (equal? (k 1 2 3 4)
+              '(1 2 (3 4)))))
+
+  (pass-if "in tail position"
+    (let ((k (% default-tag
+                (abort default-tag)
+                (lambda (k) k))))
+      (eq? (k 'xyzzy)
+           'xyzzy))))
 
 (define fl (make-fluid))
 (fluid-set! fl 0)
