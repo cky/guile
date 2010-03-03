@@ -456,19 +456,21 @@ with-locale with-locale*
 	(lambda ()
           (if (defined? 'setlocale)
               (begin
-                (set! loc 
-                      (false-if-exception (setlocale LC_ALL nloc)))
-                (if (not loc)
+                (set! loc (false-if-exception (setlocale LC_ALL)))
+                (if (or (not loc)
+                        (not (false-if-exception (setlocale LC_ALL nloc))))
                     (throw 'unresolved)))
               (throw 'unresolved)))
 	thunk
 	(lambda ()
-          (if (defined? 'setlocale)
+          (if (and (defined? 'setlocale) loc)
               (setlocale LC_ALL loc))))))
 
 ;;; Evaluate BODY... using the given locale.
-(define-macro (with-locale loc . body)
-  `(with-locale* ,loc (lambda () ,@body)))
+(define-syntax with-locale
+  (syntax-rules ()
+    ((_ loc body ...)
+     (with-locale* loc (lambda () body ...)))))
 
 
 ;;;; REPORTERS
