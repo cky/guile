@@ -19,6 +19,7 @@
 (define-module (test-suite lib)
   :use-module (ice-9 stack-catch)
   :use-module (ice-9 regex)
+  :autoload   (srfi srfi-1)  (append-map)
   :export (
 
  ;; Exceptions which are commonly being tested for.
@@ -48,8 +49,8 @@
  ;; Using the debugging evaluator.
  with-debugging-evaluator with-debugging-evaluator*
 
-;; Using a given locale
-with-locale with-locale*
+ ;; Using a given locale
+ with-locale with-locale* with-latin1-locale with-latin1-locale*
 
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
@@ -471,6 +472,33 @@ with-locale with-locale*
   (syntax-rules ()
     ((_ loc body ...)
      (with-locale* loc (lambda () body ...)))))
+
+;;; Try out several ISO-8859-1 locales and run THUNK under the one that works
+;;; (if any).
+(define (with-latin1-locale* thunk)
+  (define %locales
+    (append-map (lambda (name)
+                  (list (string-append name ".ISO-8859-1")
+                        (string-append name ".iso88591")
+                        (string-append name ".ISO8859-1")))
+                '("ca_ES" "da_DK" "de_DE" "es_ES" "es_MX" "en_GB" "en_US"
+                  "fr_FR" "pt_PT" "nl_NL" "sv_SE")))
+
+  (let loop ((locales %locales))
+    (if (null? locales)
+        (throw 'unresolved)
+        (catch 'unresolved
+          (lambda ()
+            (with-locale* (car locales) thunk))
+          (lambda (key . args)
+            (loop (cdr locales)))))))
+
+;;; Evaluate BODY... using an ISO-8859-1 locale or throw `unresolved' if none
+;;; was found.
+(define-syntax with-latin1-locale
+  (syntax-rules ()
+    ((_ body ...)
+     (with-latin1-locale* (lambda () body ...)))))
 
 
 ;;;; REPORTERS
