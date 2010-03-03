@@ -333,13 +333,20 @@
              arities))
 
     ((<glil-mv-bind> vars rest)
-     (values `((truncate-values ,(length vars) ,(if rest 1 0)))
-             (open-binding bindings vars addr)
-             source-alist
-             label-alist
-             object-alist
-             arities))
-
+     (if (integer? vars)
+         (values `((truncate-values ,vars ,(if rest 1 0)))
+                 bindings
+                 source-alist
+                 label-alist
+                 object-alist
+                 arities)
+         (values `((truncate-values ,(length vars) ,(if rest 1 0)))
+                 (open-binding bindings vars addr)
+                 source-alist
+                 label-alist
+                 object-alist
+                 arities)))
+    
     ((<glil-unbind>)
      (values '()
              (close-binding bindings addr)
