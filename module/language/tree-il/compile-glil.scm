@@ -496,8 +496,7 @@
                        (emit-code #f (make-glil-call 'drop 1))
                        (emit-branch #f 'br (or RA POST))
                        (emit-label MV)
-                       (emit-code #f (make-glil-mv-bind '() #f))
-                       (emit-code #f (make-glil-unbind))
+                       (emit-code #f (make-glil-mv-bind 0 #f))
                        (if RA
                            (emit-branch #f 'br RA)
                            (emit-label POST)))))))))
@@ -1124,12 +1123,11 @@
           (emit-code #f (make-glil-call 'return/nvalues 1)))
          ((drop)
           ;; Drop all values and goto RA, or otherwise fall through.
-          (emit-code #f (make-glil-mv-bind '() #f))
-          (emit-code #f (make-glil-unbind))
+          (emit-code #f (make-glil-mv-bind 0 #f))
           (if RA (emit-branch #f 'br RA)))
          ((push)
           ;; Truncate to one value.
-          (emit-code #f (make-glil-mv-bind '(val) #f)))
+          (emit-code #f (make-glil-mv-bind 1 #f)))
          ((vals)
           ;; Go to MVRA.
           (emit-branch #f 'br MVRA)))))))
