@@ -257,7 +257,8 @@ SCM_DEFINE (scm_make_srfi_4_vector, "make-srfi-4-vector", 2, 1, 0,
     case SCM_ARRAY_ELEMENT_TYPE_C64:
       {
         SCM ret = scm_i_make_typed_bytevector (scm_to_size_t (len), i);
-        if (SCM_UNBNDP (fill))
+
+        if (SCM_UNBNDP (fill) || scm_is_eq (len, SCM_INUM0))
           ; /* pass */
         else if (scm_is_true (scm_zero_p (fill)))
           memset (SCM_BYTEVECTOR_CONTENTS (ret), 0,
