@@ -1023,12 +1023,34 @@
 
   (define chi-top-sequence
     (lambda (body r w s m esew mod)
+      ;; Expanding a sequence of toplevel expressions can affect the
+      ;; expansion-time environment in several ways -- by adding or changing
+      ;; top-level syntactic bindings, by defining new modules, and by changing
+      ;; the current module -- among other ways.
+      ;;
+      ;; Of all of these, changes to the current module need to be treated
+      ;; specially, as modules have specific support in the expander, for
+      ;; purposes of maintaining hygiene. (In contrast, changes to parts of the
+      ;; global state that are not specifically treated by the expander are
+      ;; visible by default, without special support.)
+      ;;
+      ;; So, the deal. In the expression, (begin (define-module (foo)) (bar)),
+      ;; we need to expand (bar) within the (foo) module. More generally, in a
+      ;; top-level sequence, if the module after expanding a form is not the
+      ;; same as the module before expanding the form, we expand subsequent
+      ;; forms in the new module.
       (build-sequence s
-                      (let dobody ((body body) (r r) (w w) (m m) (esew esew) (mod mod))
+                      (let dobody ((body body) (r r) (w w) (m m) (esew esew) (mod mod)
+                                   (module (current-module)) (out '()))
                         (if (null? body)
-                            '()
-                            (let ((first (chi-top (car body) r w m esew mod)))
-                              (cons first (dobody (cdr body) r w m esew mod))))))))
+                            (reverse out)
+                            (let* ((first (chi-top (car body) r w m esew mod))
+                                   (new-module (current-module)))
+                              (dobody (cdr body) r w m esew
+                                      (if (eq? module new-module)
+                                          mod
+                                          (cons 'hygiene (module-name new-module)))
+                                      new-module (cons first out))))))))
 
   (define chi-install-global
     (lambda (name e)
