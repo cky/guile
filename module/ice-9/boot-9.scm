@@ -570,8 +570,8 @@ If there is no handler at all, Guile prints an error and then exits."
   `(catch #t
      (lambda ()
        ;; avoid saving backtraces inside false-if-exception
-       (with-fluid* the-last-stack (fluid-ref the-last-stack)
-         (lambda () ,expr)))
+       (with-fluids ((the-last-stack (fluid-ref the-last-stack)))
+         ,expr))
      (lambda args #f)))
 
 
@@ -1100,15 +1100,14 @@ If there is no handler at all, Guile prints an error and then exits."
                 ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
                 name k args)
         #f)))
-  (with-fluid* current-reader (and (pair? reader) (car reader))
-    (lambda ()
-      (let ((cfn (and=> (and=> (false-if-exception (canonicalize-path name))
-                               compiled-file-name)
-                        fresh-compiled-file-name)))
-        (if cfn
-            (load-compiled cfn)
-            (start-stack 'load-stack
-                         (primitive-load name)))))))
+  (with-fluids ((current-reader (and (pair? reader) (car reader))))
+    (let ((cfn (and=> (and=> (false-if-exception (canonicalize-path name))
+                             compiled-file-name)
+                      fresh-compiled-file-name)))
+      (if cfn
+          (load-compiled cfn)
+          (start-stack 'load-stack
+                       (primitive-load name))))))
 
 
 
@@ -2567,15 +2566,14 @@ module '(ice-9 q) '(make-q q-length))}."
            (dynamic-wind
             (lambda () (autoload-in-progress! dir-hint name))
             (lambda ()
-              (with-fluid* current-reader #f
-                (lambda ()
-                  (save-module-excursion
-                   (lambda () 
-                     (if version
-                         (load (find-versioned-module
-                                dir-hint name version %load-path))
-                         (primitive-load-path (in-vicinity dir-hint name) #f))
-                     (set! didit #t))))))
+              (with-fluids ((current-reader #f))
+                (save-module-excursion
+                 (lambda () 
+                   (if version
+                       (load (find-versioned-module
+                              dir-hint name version %load-path))
+                       (primitive-load-path (in-vicinity dir-hint name) #f))
+                   (set! didit #t)))))
             (lambda () (set-autoloaded! dir-hint name didit)))
            didit))))
 

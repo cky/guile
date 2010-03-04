@@ -65,11 +65,10 @@
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
 
-    (with-fluid* *comp-module* e
-      (lambda ()
-        (values (flatten-lambda x #f allocation)
-                e
-                e)))))
+    (with-fluids ((*comp-module* e))
+      (values (flatten-lambda x #f allocation)
+              e
+              e))))
 
 
 
