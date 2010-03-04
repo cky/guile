@@ -208,6 +208,10 @@
         ;; Allow for arbitrary Unicode characters in the log file.
         (set-port-encoding! log-port "UTF-8")
 
+        ;; Don't fail if we can't display a test name to stdout/stderr.
+        (set-port-conversion-strategy! (current-output-port) 'escape)
+        (set-port-conversion-strategy! (current-error-port) 'escape)
+
 	;; Register some reporters.
 	(let ((global-pass #t)
 	      (counter (make-count-reporter)))
