@@ -24,6 +24,7 @@
 #endif
 
 #include <alloca.h>
+#include <assert.h>
 
 #include "libguile/__scm.h"
 
@@ -112,7 +113,6 @@ static scm_t_bits scm_tc16_boot_closure;
 
 
 
-#if 0
 #define CAR(x)   SCM_CAR(x)
 #define CDR(x)   SCM_CDR(x)
 #define CAAR(x)  SCM_CAAR(x)
@@ -121,16 +121,6 @@ static scm_t_bits scm_tc16_boot_closure;
 #define CDDR(x)  SCM_CDDR(x)
 #define CADDR(x) SCM_CADDR(x)
 #define CDDDR(x) SCM_CDDDR(x)
-#else
-#define CAR(x)   scm_car(x)
-#define CDR(x)   scm_cdr(x)
-#define CAAR(x)  scm_caar(x)
-#define CADR(x)  scm_cadr(x)
-#define CDAR(x)  scm_cdar(x)
-#define CDDR(x)  scm_cddr(x)
-#define CADDR(x) scm_caddr(x)
-#define CDDDR(x) scm_cdddr(x)
-#endif
 
 
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
@@ -173,6 +163,7 @@ eval (SCM x, SCM env)
 {
   SCM mx;
   SCM proc = SCM_UNDEFINED, args = SCM_EOL;
+  unsigned int argc;
 
  loop:
   SCM_TICK;
@@ -290,7 +281,7 @@ eval (SCM x, SCM env)
     case SCM_M_CALL:
       /* Evaluate the procedure to be applied.  */
       proc = eval (CAR (mx), env);
-      /* int nargs = CADR (mx); */
+      argc = SCM_I_INUM (CADR (mx));
       mx = CDDR (mx);
 
       if (BOOT_CLOSURE_P (proc))
@@ -299,7 +290,7 @@ eval (SCM x, SCM env)
           SCM new_env = BOOT_CLOSURE_ENV (proc);
           if (BOOT_CLOSURE_HAS_REST_ARGS (proc))
             {
-              if (SCM_UNLIKELY (scm_ilength (mx) < nreq))
+              if (SCM_UNLIKELY (argc < nreq))
                 scm_wrong_num_args (proc);
               for (; nreq; nreq--, mx = CDR (mx))
                 new_env = scm_cons (eval (CAR (mx), env), new_env);
@@ -324,13 +315,24 @@ eval (SCM x, SCM env)
         }
       else
         {
-          SCM rest = SCM_EOL;
-          /* FIXME: use alloca */
-          for (; scm_is_pair (mx); mx = CDR (mx))
-            rest = scm_cons (eval (CAR (mx), env), rest);
-          return scm_vm_apply (scm_the_vm (), proc, scm_reverse (rest));
+	  unsigned int i;
+
+	  /* Using `alloca' would make the stack grow until this function
+	     returns.  Thus we use C99 variable-length arrays where available,
+	     so that stack space is freed when ARGV goes out of scope.  */
+#if __STDC_VERSION__ >= 199901L
+	  SCM argv[argc];
+#else
+	  SCM argv[128];
+	  assert (argc < 128);
+#endif
+
+	  for (i = 0; i < argc; i++, mx = CDR (mx))
+	    argv[i] = eval (CAR (mx), env);
+
+	  return scm_c_vm_run (scm_the_vm (), proc, argv, argc);
         }
-          
+
     case SCM_M_CONT:
       return scm_i_call_with_current_continuation (eval (mx, env));
 

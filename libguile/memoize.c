@@ -42,7 +42,6 @@
 
 
 
-#if 0
 #define CAR(x)   SCM_CAR(x)
 #define CDR(x)   SCM_CDR(x)
 #define CAAR(x)  SCM_CAAR(x)
@@ -51,18 +50,7 @@
 #define CDDR(x)  SCM_CDDR(x)
 #define CADDR(x) SCM_CADDR(x)
 #define CDDDR(x) SCM_CDDDR(x)
-#define CADDDR(x) SCM_CDDDR(x)
-#else
-#define CAR(x)   scm_car(x)
-#define CDR(x)   scm_cdr(x)
-#define CAAR(x)  scm_caar(x)
-#define CADR(x)  scm_cadr(x)
-#define CDAR(x)  scm_cdar(x)
-#define CDDR(x)  scm_cddr(x)
-#define CADDR(x) scm_caddr(x)
-#define CDDDR(x) scm_cdddr(x)
-#define CADDDR(x) scm_cadddr(x)
-#endif
+#define CADDDR(x) SCM_CADDDR(x)
 
 
 static const char s_bad_expression[] = "Bad expression";
@@ -1211,7 +1199,9 @@ SCM_DEFINE (scm_memoized_expression_typecode, "memoized-expression-typecode", 1,
 #define FUNC_NAME s_scm_memoized_expression_typecode
 {
   SCM_VALIDATE_MEMOIZED (1, m);
-  return scm_from_uint16 (SCM_MEMOIZED_TAG (m));
+
+  /* The tag is a 16-bit integer so it fits in an inum.  */
+  return SCM_I_MAKINUM (SCM_MEMOIZED_TAG (m));
 }
 #undef FUNC_NAME
 
