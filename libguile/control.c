@@ -182,7 +182,7 @@ reify_partial_continuation (SCM vm, SCM prompt, SCM extwinds,
                           scm_vector (scm_list_2 (vm_cont, intwinds)),
                           SCM_BOOL_F);
   SCM_SET_CELL_WORD_0 (ret,
-                       SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_CONTINUATION);
+                       SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_PARTIAL_CONTINUATION);
   return ret;
 }
 
