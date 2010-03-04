@@ -26,6 +26,7 @@
 #include <assert.h>
 
 #include "libguile/_scm.h"
+#include "libguile/control.h"
 #include "libguile/eval.h"
 #include "libguile/alist.h"
 #include "libguile/fluids.h"
@@ -41,10 +42,9 @@
 
    #<frame>
    #<winder>
+   #<with-fluids>
+   #<prompt>
    (enter-proc . leave-proc)     dynamic-wind
-   (tag . jmpbuf)                catch
-   (tag . pre-unwind-data)       throw-handler / lazy-catch
-     tag is either a symbol or a boolean
 
 */
 
@@ -240,7 +240,6 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
   else if (delta < 0)
     {
       SCM wind_elt;
-      SCM wind_key;
 
       scm_i_dowinds (SCM_CDR (to), 1 + delta, turn_func, data);
       wind_elt = SCM_CAR (to);
@@ -262,21 +261,13 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
           scm_i_swap_with_fluids (wind_elt,
                                   SCM_I_CURRENT_THREAD->dynamic_state);
 	}
+      else if (SCM_PROMPT_P (wind_elt))
+        ; /* pass -- see vm_reinstate_partial_continuation */
+      else if (scm_is_pair (wind_elt))
+        scm_call_0 (SCM_CAR (wind_elt));
       else
-	{
-	  wind_key = SCM_CAR (wind_elt);
-	  /* key = #t | symbol | thunk | list of variables */
-	  if (SCM_NIMP (wind_key))
-	    {
-	      if (scm_is_pair (wind_key))
-		{
-		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		}
-	      else if (scm_is_true (scm_thunk_p (wind_key)))
-		scm_call_0 (wind_key);
-	    }
-	}
+        /* trash on the wind list */
+        abort ();
 
       scm_i_set_dynwinds (to);
     }
@@ -284,7 +275,6 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
     {
       SCM wind;
       SCM wind_elt;
-      SCM wind_key;
 
       wind = scm_i_dynwinds ();
       wind_elt = SCM_CAR (wind);
@@ -304,20 +294,13 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
           scm_i_swap_with_fluids (wind_elt,
                                   SCM_I_CURRENT_THREAD->dynamic_state);
 	}
+      else if (SCM_PROMPT_P (wind_elt))
+        ; /* pass -- though we could invalidate the prompt */
+      else if (scm_is_pair (wind_elt))
+        scm_call_0 (SCM_CDR (wind_elt));
       else
-	{
-	  wind_key = SCM_CAR (wind_elt);
-	  if (SCM_NIMP (wind_key))
-	    {
-	      if (scm_is_pair (wind_key))
-		{
-		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		}
-	      else if (scm_is_true (scm_thunk_p (wind_key)))
-		scm_call_0 (SCM_CDR (wind_elt));
-	    }
-	}
+        /* trash on the wind list */
+        abort ();
 
       delta--;
       goto tail;		/* scm_dowinds(to, delta-1); */
