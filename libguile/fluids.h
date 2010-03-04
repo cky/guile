@@ -92,6 +92,7 @@ SCM_INTERNAL SCM scm_i_make_initial_dynamic_state (void);
 
 SCM_INTERNAL void scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_i_dynamic_state_print (SCM exp, SCM port, scm_print_state *pstate);
+SCM_INTERNAL void scm_i_with_fluids_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */

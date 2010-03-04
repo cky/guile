@@ -56,6 +56,7 @@ SCM_INTERNAL void scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv,
 SCM_INTERNAL SCM scm_at_abort (SCM tag, SCM args) SCM_NORETURN;
 
 
+SCM_INTERNAL void scm_i_prompt_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_init_control (void);
 
 

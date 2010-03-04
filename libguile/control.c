@@ -274,6 +274,14 @@ SCM_DEFINE (scm_at_abort, "@abort", 2, 0, 0, (SCM tag, SCM args),
 #undef FUNC_NAME
 
 void
+scm_i_prompt_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+{
+  scm_puts ("#<prompt ", port);
+  scm_intprint (SCM_UNPACK (exp), 16, port);
+  scm_putc ('>', port);
+}
+
+void
 scm_init_control (void)
 {
 #include "libguile/control.x"
