@@ -219,14 +219,6 @@ main (int argc, char *argv[])
     pf ("#define GUILE_DEBUG 1 /* defined or undefined */\n");
   else
     pf ("/* #undef GUILE_DEBUG */\n");
-  
-  /*** GUILE_DEBUG_FREELIST (deined or undefined) ***/
-  pf ("\n");
-  pf ("/* Define this to debug the free list (helps w/ GC bugs). */\n");
-  if (SCM_I_GSC_GUILE_DEBUG_FREELIST)
-    pf ("#define GUILE_DEBUG_FREELIST 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef GUILE_DEBUG_FREELIST */\n");
 
   /*** SCM_ENABLE_DISCOURAGED (0 or 1) ***/
   pf ("\n");

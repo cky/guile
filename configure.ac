@@ -105,14 +105,6 @@ AC_ARG_ENABLE(error-on-warning,
      *) AC_MSG_ERROR(bad value ${enableval} for --enable-error-on-warning) ;;
    esac])
 
-SCM_I_GSC_GUILE_DEBUG_FREELIST=0
-AC_ARG_ENABLE(debug-freelist,
-  [  --enable-debug-freelist include garbage collector freelist debugging code],
-  if test "$enable_debug_freelist" = y \
-     || test "$enable_debug_freelist" = yes; then
-    SCM_I_GSC_GUILE_DEBUG_FREELIST=1
-  fi)
-
 AC_ARG_ENABLE(debug-malloc,
   [  --enable-debug-malloc   include malloc debugging code],
   if test "$enable_debug_malloc" = y || test "$enable_debug_malloc" = yes; then
@@ -1625,7 +1617,6 @@ AC_SUBST([sitedir])
 
 # Additional SCM_I_GSC definitions are above.
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
-AC_SUBST([SCM_I_GSC_GUILE_DEBUG_FREELIST])
 AC_SUBST([SCM_I_GSC_ENABLE_DISCOURAGED])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
 AC_SUBST([SCM_I_GSC_ENABLE_ELISP])
