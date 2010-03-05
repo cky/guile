@@ -315,18 +315,10 @@ eval (SCM x, SCM env)
         }
       else
         {
+	  SCM *argv;
 	  unsigned int i;
 
-	  /* Using `alloca' would make the stack grow until this function
-	     returns.  Thus we use C99 variable-length arrays where available,
-	     so that stack space is freed when ARGV goes out of scope.  */
-#if __STDC_VERSION__ >= 199901L
-	  SCM argv[argc];
-#else
-	  SCM argv[128];
-	  assert (argc < 128);
-#endif
-
+	  argv = alloca (argc * sizeof (SCM));
 	  for (i = 0; i < argc; i++, mx = CDR (mx))
 	    argv[i] = eval (CAR (mx), env);
 
