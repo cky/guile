@@ -27,7 +27,19 @@
 
 (with-test-prefix "initial fluid values"
   (pass-if "fluid-ref uninitialized fluid is #f"
-    (not (fluid-ref a))))
+    (not (fluid-ref a)))
+
+  (pass-if "initial value is inherited from parent thread"
+    (if (provided? 'threads)
+        (let ((f (make-fluid)))
+          (fluid-set! f 'initial)
+          (let ((child (call-with-new-thread
+                        (lambda ()
+                          (let ((init (fluid-ref f)))
+                            (fluid-set! f 'new)
+                            (list init (fluid-ref f)))))))
+            (equal? '(initial new) (join-thread child))))
+        (throw 'unresolved))))
 
 (with-test-prefix "with-fluids with non-fluid"
   (pass-if-exception "exception raised if nonfluid passed to with-fluids"
@@ -55,6 +67,18 @@
                        (a 2))
            (eqv? (fluid-ref a) 2))
          (eqv? (fluid-ref a) #f))))
+
+(pass-if "fluid values are thread-local"
+  (if (provided? 'threads)
+      (let ((f (make-fluid)))
+        (fluid-set! f 'parent)
+        (let ((child (call-with-new-thread
+                      (lambda ()
+                        (fluid-set! f 'child)
+                        (fluid-ref f)))))
+          (and (eq? (join-thread child) 'child)
+               (eq? (fluid-ref f) 'parent))))
+      (throw 'unresolved)))
 
 (pass-if "fluids are GC'd"
 
