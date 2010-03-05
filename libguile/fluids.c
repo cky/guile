@@ -22,7 +22,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #include "libguile/_scm.h"
 #include "libguile/print.h"
@@ -34,36 +33,17 @@
 #include "libguile/deprecation.h"
 #include "libguile/lang.h"
 #include "libguile/validate.h"
+#include "libguile/bdw-gc.h"
 
-#define FLUID_GROW 20
+/* Number of additional slots to allocate when ALLOCATED_FLUIDS is full.  */
+#define FLUID_GROW 128
 
-/* A lot of the complexity below stems from the desire to reuse fluid
-   slots.  Normally, fluids should be pretty global and long-lived
-   things, so that reusing their slots should not be overly critical,
-   but it is the right thing to do nevertheless.  The code therefore
-   puts the burdon on allocating and collection fluids and keeps
-   accessing fluids lock free.  This is achieved by manipulating the
-   global state of the fluid machinery mostly in single threaded
-   sections.
-
-   Reusing a fluid slot means that it must be reset to #f in all
-   dynamic states.  We do this by maintaining a weak list of all
-   dynamic states, which is used after a GC to do the resetting.
-
-   Also, the fluid vectors in the dynamic states need to grow from
-   time to time when more fluids are created.  We do this in a single
-   threaded section so that threads do not need to lock when accessing
-   a fluid in the normal way.
-*/
+/* Vector of allocated fluids indexed by fluid numbers.  Access is protected by
+   FLUID_ADMIN_MUTEX.  */
+static void **allocated_fluids = NULL;
+static size_t allocated_fluids_len = 0;
 
 static scm_i_pthread_mutex_t fluid_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-
-/* Protected by fluid_admin_mutex, but also accessed during GC.  See
-   next_fluid_num for a discussion of this.
- */
-static size_t allocated_fluids_len = 0;
-static size_t allocated_fluids_num = 0;
-static char *allocated_fluids = NULL;
 
 #define IS_FLUID(x)         SCM_I_FLUID_P (x)
 #define FLUID_NUM(x)        SCM_I_FLUID_NUM (x)
@@ -74,34 +54,26 @@ static char *allocated_fluids = NULL;
 
 
 
-/* Grow STATE so that it can hold up to ALLOCATED_FLUIDS_NUM fluids.  */
+/* Grow STATE so that it can hold up to ALLOCATED_FLUIDS_LEN fluids.  This may
+   be more than necessary since ALLOCATED_FLUIDS is sparse and the current
+   thread may not access all the fluids anyway.  Memory usage could be improved
+   by using a 2-level array as is done in glibc for pthread keys (TODO).  */
 static void
 grow_dynamic_state (SCM state)
 {
   SCM new_fluids;
   SCM old_fluids = DYNAMIC_STATE_FLUIDS (state);
-  size_t i, new_len, old_len = SCM_SIMPLE_VECTOR_LENGTH (old_fluids);
+  size_t i, len, old_len = SCM_SIMPLE_VECTOR_LENGTH (old_fluids);
 
- retry:
-  new_len = allocated_fluids_num;
-  new_fluids = scm_c_make_vector (new_len, SCM_BOOL_F);
+  /* Assume the assignment below is atomic.  */
+  len = allocated_fluids_len;
 
-  scm_i_pthread_mutex_lock (&fluid_admin_mutex);
-  if (new_len != allocated_fluids_num)
-    {
-      /* We lost the race.  */
-      scm_i_pthread_mutex_unlock (&fluid_admin_mutex);
-      goto retry;
-    }
-
-  assert (allocated_fluids_num > old_len);
+  new_fluids = scm_c_make_vector (len, SCM_BOOL_F);
 
   for (i = 0; i < old_len; i++)
     SCM_SIMPLE_VECTOR_SET (new_fluids, i,
 			   SCM_SIMPLE_VECTOR_REF (old_fluids, i));
   SET_DYNAMIC_STATE_FLUIDS (state, new_fluids);
-
-  scm_i_pthread_mutex_unlock (&fluid_admin_mutex);
 }
 
 void
@@ -128,45 +100,53 @@ scm_i_with_fluids_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   scm_putc ('>', port);
 }
 
-static size_t
-next_fluid_num ()
+
+/* Return a new fluid.  */
+static SCM
+new_fluid ()
 {
-  size_t n;
+  SCM fluid;
+  size_t trial, n;
+
+  /* Fluids are pointerless cells: the first word is the type tag; the second
+     word is the fluid number.  */
+  fluid = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_cell), "fluid"));
+  SCM_SET_CELL_TYPE (fluid, scm_tc7_fluid);
 
   scm_dynwind_begin (0);
   scm_i_dynwind_pthread_mutex_lock (&fluid_admin_mutex);
 
-  if ((allocated_fluids_len > 0) &&
-      (allocated_fluids_num == allocated_fluids_len))
+  for (trial = 0; trial < 2; trial++)
     {
-      /* All fluid numbers are in use.  Run a GC to try to free some
-	 up.
-      */
-      scm_gc ();
+      /* Look for a free fluid number.  */
+      for (n = 0; n < allocated_fluids_len; n++)
+	/* TODO: Use `__sync_bool_compare_and_swap' where available.  */
+	if (allocated_fluids[n] == NULL)
+	  break;
+
+      if (trial == 0 && n >= allocated_fluids_len)
+	/* All fluid numbers are in use.  Run a GC and retry.  Explicitly
+	   running the GC is costly and bad-style.  We only do this because
+	   dynamic state fluid vectors would grow unreasonably if fluid numbers
+	   weren't reused.  */
+	scm_i_gc ("fluids");
     }
 
-  if (allocated_fluids_num < allocated_fluids_len)
-    {
-      for (n = 0; n < allocated_fluids_len; n++)
-	if (allocated_fluids[n] == 0)
-	  break;
-    }
-  else
+  if (n >= allocated_fluids_len)
     {
       /* Grow the vector of allocated fluids.  */
-      /* FIXME: Since we use `scm_malloc ()', ALLOCATED_FLUIDS is scanned by
-	 the GC; therefore, all fluids remain reachable for the entire
-	 program lifetime.  Hopefully this is not a problem in practice.  */
-      char *new_allocated_fluids =
-	scm_gc_malloc (allocated_fluids_len + FLUID_GROW,
-		       "allocated fluids");
+      void **new_allocated_fluids =
+	scm_gc_malloc_pointerless ((allocated_fluids_len + FLUID_GROW)
+				   * sizeof (*allocated_fluids),
+				   "allocated fluids");
 
       /* Copy over old values and initialize rest.  GC can not run
 	 during these two operations since there is no safe point in
-	 them.
-      */
-      memcpy (new_allocated_fluids, allocated_fluids, allocated_fluids_len);
-      memset (new_allocated_fluids + allocated_fluids_len, 0, FLUID_GROW);
+	 them.  */
+      memcpy (new_allocated_fluids, allocated_fluids,
+	      allocated_fluids_len * sizeof (*allocated_fluids));
+      memset (new_allocated_fluids + allocated_fluids_len, 0,
+	      FLUID_GROW * sizeof (*allocated_fluids));
       n = allocated_fluids_len;
 
       /* Update the vector of allocated fluids.  Dynamic states will
@@ -175,12 +155,15 @@ next_fluid_num ()
       allocated_fluids = new_allocated_fluids;
       allocated_fluids_len += FLUID_GROW;
     }
-  
-  allocated_fluids_num += 1;
-  allocated_fluids[n] = 1;
-  
+
+  allocated_fluids[n] = SCM2PTR (fluid);
+  SCM_SET_CELL_WORD_1 (fluid, (scm_t_bits) n);
+
+  GC_GENERAL_REGISTER_DISAPPEARING_LINK (&allocated_fluids[n],
+					 SCM2PTR (fluid));
+
   scm_dynwind_end ();
-  return n;
+  return fluid;
 }
 
 SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0, 
@@ -194,7 +177,7 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 	    "with its own dynamic state, you can use fluids for thread local storage.")
 #define FUNC_NAME s_scm_make_fluid
 {
-  return scm_cell (scm_tc7_fluid, (scm_t_bits) next_fluid_num ());
+  return new_fluid ();
 }
 #undef FUNC_NAME
 
@@ -229,11 +212,6 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
 
   if (SCM_UNLIKELY (FLUID_NUM (fluid) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
-      /* We should only get there when the current thread's dynamic state
-	 turns out to be too small compared to the set of currently allocated
-	 fluids.  */
-      assert (SCM_SIMPLE_VECTOR_LENGTH (fluids) < allocated_fluids_num);
-
       /* Lazily grow the current thread's dynamic state.  */
       grow_dynamic_state (SCM_I_CURRENT_THREAD->dynamic_state);
 
@@ -255,11 +233,6 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 
   if (SCM_UNLIKELY (FLUID_NUM (fluid) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
-      /* We should only get there when the current thread's dynamic state
-	 turns out to be too small compared to the set of currently allocated
-	 fluids.  */
-      assert (SCM_SIMPLE_VECTOR_LENGTH (fluids) < allocated_fluids_num);
-
       /* Lazily grow the current thread's dynamic state.  */
       grow_dynamic_state (SCM_I_CURRENT_THREAD->dynamic_state);
 
@@ -330,11 +303,6 @@ scm_i_swap_with_fluids (SCM wf, SCM dynstate)
 
   if (SCM_UNLIKELY (max >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
-      /* We should only get there when the current thread's dynamic state turns
-         out to be too small compared to the set of currently allocated
-         fluids. */
-      assert (SCM_SIMPLE_VECTOR_LENGTH (fluids) < allocated_fluids_num);
-
       /* Lazily grow the current thread's dynamic state.  */
       grow_dynamic_state (dynstate);
 
