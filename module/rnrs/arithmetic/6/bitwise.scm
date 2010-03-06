@@ -40,12 +40,14 @@
 	  bitwise-rotate-bit-field
 	  bitwise-reverse-bit-field)
   (import (rnrs base (6))
+	  (rnrs control (6))
 	  (rename (only (guile) lognot 
 			        logand 
 				logior
 				logxor 
 				logcount 
-				logbit? 
+				logbit?
+				modulo
 				ash)
 		  (lognot bitwise-not)
 		  (logand bitwise-and) 

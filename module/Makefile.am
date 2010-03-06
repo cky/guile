@@ -258,6 +258,7 @@ SRFI_SOURCES = \
 RNRS_SOURCES =					\
   rnrs/6/base.scm				\
   rnrs/6/control.scm				\
+  rnrs/arithmetic/6/bitwise.scm			\
   rnrs/bytevector.scm				\
   rnrs/io/ports.scm
 
