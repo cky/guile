@@ -256,6 +256,8 @@ SRFI_SOURCES = \
   srfi/srfi-98.scm
 
 RNRS_SOURCES =					\
+  rnrs/6/base.scm				\
+  rnrs/6/control.scm				\
   rnrs/bytevector.scm				\
   rnrs/io/ports.scm
 
