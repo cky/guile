@@ -1,4 +1,4 @@
-;;;; Assembly to bytecode compilation -*- mode: scheme; coding: iso-8859-1; -*-
+;;;; Assembly to bytecode compilation -*- mode: scheme; coding: utf-8; -*-
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -79,8 +79,14 @@
                (vector 'load-symbol 0 0 3 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
 
-    (comp-test '(load-string "�") ;; a non-ASCII Latin-1 string
+    (comp-test '(load-string "æ") ;; a non-ASCII Latin-1 string
                (vector 'load-string 0 0 1 230))
+
+    (comp-test '(load-wide-string "λ")
+               (apply vector 'load-wide-string 0 0 4
+                      (if (eq? (native-endianness) (endianness little))
+                          '(187 3 0 0)
+                          '(0 0 3 187))))
 
     (comp-test '(load-program () 3 #f (make-int8 3) (return))
                #(load-program
