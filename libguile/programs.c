@@ -86,7 +86,7 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
       scm_uintprint (SCM_UNPACK (program), 16, port);
       scm_putc ('>', port);
     }
-  if (SCM_PROGRAM_IS_PARTIAL_CONTINUATION (program))
+  else if (SCM_PROGRAM_IS_PARTIAL_CONTINUATION (program))
     {
       /* twingliness */
       scm_puts ("#<partial-continuation ", port);
