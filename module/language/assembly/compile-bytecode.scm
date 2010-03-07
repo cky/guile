@@ -27,7 +27,7 @@
   #:use-module (rnrs io ports)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module ((srfi srfi-26) #:select (cut))
-  #:export (compile-bytecode write-bytecode))
+  #:export (compile-bytecode))
 
 (define (compile-bytecode assembly env . opts)
   (pmatch assembly

@@ -21,6 +21,9 @@
   #:use-module (system vm instruction)
   #:use-module (language assembly compile-bytecode))
 
+(define write-bytecode
+  (@@ (language assembly compile-bytecode) write-bytecode))
+
 (define (->u8-list sym val)
   (let ((entry (assq-ref `((uint16 2 ,bytevector-u16-native-set!)
                            (uint32 4 ,bytevector-u32-native-set!))
