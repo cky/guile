@@ -544,12 +544,6 @@ SCM_DEFINE (scm_vm_apply, "vm-apply", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_vm_call_with_new_stack (SCM vm, SCM thunk, SCM id)
-{
-  return scm_c_vm_run (vm, thunk, NULL, 0);
-}
-
 /* Scheme interface */
 
 SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,

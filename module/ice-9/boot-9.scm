@@ -1022,8 +1022,20 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {The interpreter stack}
 ;;;
 
-(defmacro start-stack (tag exp)
-  `(%start-stack ,tag (lambda () ,exp)))
+(define %stacks (make-fluid))
+(define (%start-stack tag thunk)
+  (let ((prompt-tag (gensym)))
+    (prompt prompt-tag
+            (lambda ()
+              (with-fluids ((%stacks (acons tag prompt-tag
+                                            (or (fluid-ref %stacks) '()))))
+                (thunk)))
+            (lambda (k . args)
+              (%start-stack tag (lambda () (apply k args)))))))
+(define-syntax start-stack
+  (syntax-rules ()
+    ((_ tag exp)
+     (%start-stack tag (lambda () exp)))))
 
 
 
