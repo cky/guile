@@ -1,4 +1,4 @@
-;;;; test assembly to bytecode compilation -*- scheme -*-
+;;;; Assembly to bytecode compilation -*- mode: scheme; coding: iso-8859-1; -*-
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -78,7 +78,10 @@
     (comp-test '(load-symbol "foo")
                (vector 'load-symbol 0 0 3 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
-    
+
+    (comp-test '(load-string "æ") ;; a non-ASCII Latin-1 string
+               (vector 'load-string 0 0 1 230))
+
     (comp-test '(load-program () 3 #f (make-int8 3) (return))
                #(load-program
                  (uint32 3)     ;; len
