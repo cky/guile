@@ -1,0 +1,213 @@
+;;; r6rs-control.test --- Test suite for R6RS (rnrs control)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-records-procedural)
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module ((rnrs records procedural) :version (6))
+  :use-module (test-suite lib))
+
+(define :point (make-record-type-descriptor 
+		'point #f #f #f #f '#((mutable x) (mutable y))))
+(define :point-cd (make-record-constructor-descriptor :point #f #f))
+
+(define :voxel (make-record-type-descriptor 
+		'voxel :point #f #f #f '#((mutable z))))
+(define :voxel-cd (make-record-constructor-descriptor :voxel :point-cd #f))
+
+(with-test-prefix "make-record-type-descriptor"
+  (pass-if "simple"
+    (let* ((:point-cd (make-record-constructor-descriptor :point #f #f))
+	   (make-point (record-constructor :point-cd))
+	   (point? (record-predicate :point))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1))
+	   (point-x-set! (record-mutator :point 0))
+	   (point-y-set! (record-mutator :point 1))
+	   (p1 (make-point 1 2)))
+      (point? p1)
+      (eqv? (point-x p1) 1)
+      (eqv? (point-y p1) 2)
+      (unspecified? (point-x-set! p1 5))
+      (eqv? (point-x p1) 5)))
+
+  (pass-if "sealed records cannot be subtyped"
+    (let* ((:sealed-point (make-record-type-descriptor 
+			   'sealed-point #f #f #t #f '#((mutable x) 
+							(mutable y))))
+	   (success #f))
+      (call/cc 
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition) 
+	    (set! success (assertion-violation? condition))
+	    (continuation))
+	  (lambda () (make-record-type-descriptor
+		      'sealed-point-subtype :sealed-point #f #f #f
+		      '#((mutable z)))))))
+      success))
+
+  (pass-if "non-generative records with same uid are eq"
+    (let* ((:rtd-1 (make-record-type-descriptor 
+		    'rtd1 #f 'my-uid #f #f '#((mutable foo) (immutable bar))))
+	   (:rtd-2 (make-record-type-descriptor
+		    'rtd1 #f 'my-uid #f #f '#((mutable foo) (immutable bar)))))
+      (eq? :rtd-1 :rtd-2)))
+
+  (pass-if "&assertion raised on conflicting non-generative types"
+    (let* ((:rtd-1 (make-record-type-descriptor
+		    'rtd1 #f 'my-uid-2 #f #f '#((mutable foo) (immutable bar))))
+	   (success 0)
+	   (check-definition
+	    (lambda (thunk)
+	      (call/cc 
+	       (lambda (continuation)
+		 (with-exception-handler
+		  (lambda (condition)
+		    (if (assertion-violation? condition)
+			(set! success (+ success 1)))
+		    (continuation))
+		  thunk))))))
+      (check-definition
+       (lambda () 
+	 (make-record-type-descriptor
+	  'rtd1a #f 'my-uid-2 #f #f '#((mutable foo) (immutable bar)))))
+      (check-definition
+       (lambda ()
+	 (make-record-type-descriptor
+	  'rtd1 :point 'my-uid-2 #f #f '#((mutable foo) (immutable bar)))))
+      (check-definition
+       (lambda ()
+	 (make-record-type-descriptor
+	  'rtd1 #f 'my-uid-2 #t #f '#((mutable foo) (immutable bar)))))
+      (check-definition
+       (lambda ()
+	 (make-record-type-descriptor
+	  'rtd1 #f 'my-uid-2 #f #t '#((mutable foo) (immutable bar)))))
+      (check-definition
+       (lambda () (make-record-type-descriptor 'rtd1 #f 'my-uid-2 #f #f '#())))
+      (check-definition
+       (lambda () 
+	 (make-record-type-descriptor 
+	  'rtd1 #f 'my-uid-2 #f #f '#((mutable foo) (immutable baz)))))
+      (check-definition
+       (lambda () 
+	 (make-record-type-descriptor 
+	  'rtd1 #f 'my-uid-2 #f #f '#((immutable foo) (immutable bar)))))
+      (eqv? success 7))))
+
+(with-test-prefix "record-type-descriptor?"
+  (pass-if "simple"
+    (record-type-descriptor? 
+     (make-record-type-descriptor 'test #f #f #f #f '#()))))
+
+(with-test-prefix "record-constructor"
+  (pass-if "simple"
+    (let* ((make-point (record-constructor :point-cd))
+	   (point? (record-predicate :point))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1))
+	   (point (make-point 1 2)))
+      (and (point? point)
+	   (eqv? (point-x point) 1)
+	   (eqv? (point-y point) 2))))
+
+  (pass-if "construct record subtype"
+    (let* ((make-voxel (record-constructor :voxel-cd))
+	   (voxel? (record-predicate :voxel))
+	   (voxel-z (record-accessor :voxel 0))
+	   (voxel (make-voxel 1 2 3)))
+      (and (voxel? voxel)
+	   (eqv? (voxel-z voxel) 3)))))
+
+(with-test-prefix "record-predicate"
+  (pass-if "simple"
+    (let* ((make-point (record-constructor :point-cd))
+	   (point (make-point 1 2))
+	   (point? (record-predicate :point)))
+      (point? point)))
+
+  (pass-if "predicate returns true on subtype"
+    (let* ((make-voxel (record-constructor :voxel-cd))
+	   (voxel (make-voxel 1 2 3))
+	   (point? (record-predicate :point)))
+      (point? voxel)))
+
+  (pass-if "predicate returns false on supertype"
+    (let* ((make-point (record-constructor :point-cd))
+	   (point (make-point 1 2))
+	   (voxel? (record-predicate :voxel)))
+      (not (voxel? point)))))
+
+(with-test-prefix "record-accessor"
+  (pass-if "simple"
+    (let* ((make-point (record-constructor :point-cd))
+	   (point (make-point 1 2))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1)))
+      (and (eqv? (point-x point) 1)
+	   (eqv? (point-y point) 2))))
+
+  (pass-if "accessor for supertype applied to subtype"
+    (let* ((make-voxel (record-constructor :voxel-cd))
+	   (voxel (make-voxel 1 2 3))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1)))
+      (and (eqv? (point-x voxel) 1)
+	   (eqv? (point-y voxel) 2)))))
+
+(with-test-prefix "record-mutator"
+  (pass-if "simple"
+    (let* ((make-point (record-constructor :point-cd))
+	   (point (make-point 1 2))
+	   (point-set-x! (record-mutator :point 0))
+	   (point-set-y! (record-mutator :point 1))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1)))
+      (point-set-x! point 3)
+      (point-set-y! point 4)
+      (and (eqv? (point-x point) 3)
+	   (eqv? (point-y point) 4))))
+
+  (pass-if "&assertion raised on request for immutable field"
+    (let* ((:immutable-point (make-record-type-descriptor 
+			      'point #f #f #f #f '#((immutable x) 
+						    (immutable y))))
+	   (success #f))
+      (call/cc 
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition) 
+	    (set! success (assertion-violation? condition))
+	    (continuation))
+	  (lambda () (record-mutator :immutable-point 0)))))
+      success))
+	 
+  (pass-if "mutator for supertype applied to subtype"
+    (let* ((make-voxel (record-constructor :voxel-cd))
+	   (voxel (make-voxel 1 2 3))
+	   (point-set-x! (record-mutator :point 0))
+	   (point-set-y! (record-mutator :point 1))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1)))
+      (point-set-x! voxel 3)
+      (point-set-y! voxel 4)
+      (and (eqv? (point-x voxel) 3)
+	   (eqv? (point-y voxel) 4)))))
+

@@ -79,6 +79,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/r6rs-arithmetic-bitwise.test	\
 	    tests/r6rs-control.test		\
 	    tests/r6rs-ports.test		\
+	    tests/r6rs-records-procedural.test	\
 	    tests/rnrs-libraries.test		\
 	    tests/ramap.test			\
 	    tests/reader.test			\
