@@ -48,11 +48,15 @@
 ;; Define delimited continuation operators, and implement catch and throw in
 ;; terms of them.
 
-(define (prompt tag thunk handler)
-  (@prompt tag (thunk) handler))
-(define (abort tag . args)
-  (@abort tag args))
+(define (default-prompt-tag)
+  (fluid-ref %default-prompt-tag))
+(define (make-prompt-tag . stem)
+  (gensym (if (pair? stem) (car stem) "prompt")))
 
+(define (call-with-prompt tag thunk handler)
+  (@prompt tag (thunk) handler))
+(define (abort-to-prompt tag . args)
+  (@abort tag args))
 
 
 ;; Define catch and with-throw-handler, using some common helper routines and a
@@ -92,7 +96,7 @@
     (let ((prev (exception-handler)))
       (lambda (thrown-k . args)
         (if (or (eq? thrown-k catch-k) (eqv? catch-k #t))
-            (apply abort prompt-tag thrown-k args)
+            (apply abort-to-prompt prompt-tag thrown-k args)
             (apply prev thrown-k args)))))
 
   (define (custom-throw-handler prompt-tag catch-k pre)
@@ -105,7 +109,7 @@
                     (apply pre thrown-k args))
                 ;; fall through
                 (if prompt-tag
-                    (apply abort prompt-tag thrown-k args)
+                    (apply abort-to-prompt prompt-tag thrown-k args)
                     (apply prev thrown-k args))))
             (apply prev thrown-k args)))))
 
@@ -150,18 +154,19 @@ non-locally, that exit determines the continuation."
           (scm-error "catch" 'wrong-type-arg
                      "Wrong type argument in position ~a: ~a"
                      (list 1 k) (list k)))
-      (let ((tag (gensym)))
-        (prompt tag
-                (lambda ()
-                  (with-fluids
-                      ((%exception-handler
-                        (if (null? pre-unwind-handler)
-                            (default-throw-handler tag k)
-                            (custom-throw-handler tag k
-                                                  (car pre-unwind-handler)))))
-                    (thunk)))
-                (lambda (cont k . args)
-                  (apply handler k args))))))
+      (let ((tag (make-prompt-tag "catch")))
+        (call-with-prompt
+         tag
+         (lambda ()
+           (with-fluids
+               ((%exception-handler
+                 (if (null? pre-unwind-handler)
+                     (default-throw-handler tag k)
+                     (custom-throw-handler tag k
+                                           (car pre-unwind-handler)))))
+             (thunk)))
+         (lambda (cont k . args)
+           (apply handler k args))))))
 
   (define! 'with-throw-handler
     (lambda (k thunk pre-unwind-handler)
@@ -1024,13 +1029,14 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define %stacks (make-fluid))
 (define (%start-stack tag thunk)
-  (let ((prompt-tag (gensym)))
-    (prompt prompt-tag
-            (lambda ()
-              (with-fluids ((%stacks (acons tag prompt-tag
-                                            (or (fluid-ref %stacks) '()))))
-                (thunk)))
-            (lambda (k . args)
+  (let ((prompt-tag (make-prompt-tag "start-stack")))
+    (call-with-prompt
+     prompt-tag
+     (lambda ()
+       (with-fluids ((%stacks (acons tag prompt-tag
+                                     (or (fluid-ref %stacks) '()))))
+         (thunk)))
+     (lambda (k . args)
               (%start-stack tag (lambda () (apply k args)))))))
 (define-syntax start-stack
   (syntax-rules ()

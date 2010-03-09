@@ -19,20 +19,20 @@
 ;;; Code:
 
 (define-module (ice-9 control)
-  #:re-export (prompt abort)
-  #:export (% control))
+  #:re-export (call-with-prompt abort-to-prompt
+               default-prompt-tag make-prompt-tag)
+  #:export (% abort))
 
-;; the same as abort.
-(define (control tag . args)
-  (apply abort tag args))
+(define (abort . args)
+  (apply abort-to-prompt (default-prompt-tag) args))
 
 (define-syntax %
   (syntax-rules ()
     ((_ expr handler)
-     (prompt (fluid-ref %default-prompt-tag)
-             (lambda () expr)
-             handler))
+     (call-with-prompt (default-prompt-tag)
+                       (lambda () expr)
+                       handler))
     ((_ tag expr handler)
-     (prompt tag
-             (lambda () expr)
-             handler))))
+     (call-with-prompt tag
+                       (lambda () expr)
+                       handler))))

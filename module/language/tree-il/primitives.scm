@@ -63,7 +63,7 @@
 
     fluid-ref fluid-set!
 
-    @prompt prompt @abort abort
+    @prompt call-with-prompt @abort abort-to-prompt
 
     struct? struct-vtable make-struct struct-ref struct-set!
 
@@ -454,7 +454,7 @@
               (else #f)))
 
 (hashq-set! *primitive-expand-table*
-            'prompt
+            'call-with-prompt
             (case-lambda
               ((src tag thunk handler)
                ;; Sigh. Until the inliner does its job, manually inline
@@ -482,7 +482,7 @@
                (make-abort src tag '() tail-args))
               (else #f)))
 (hashq-set! *primitive-expand-table*
-            'abort
+            'abort-to-prompt
             (case-lambda
               ((src tag . args)
                (make-abort src tag args (make-const #f '())))
