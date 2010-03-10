@@ -1,0 +1,148 @@
+;;; r6rs-control.test --- Test suite for R6RS (rnrs control)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-records-procedural)
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module ((rnrs records inspection) :version (6))
+  :use-module ((rnrs records procedural) :version (6))
+  :use-module (test-suite lib))
+
+(with-test-prefix "record?"
+  (pass-if "record? recognizes non-opaque records"
+    (let* ((rec (make-record-type-descriptor 'rec #f #f #f #f '#()))
+	   (make-rec (record-constructor 
+		      (make-record-constructor-descriptor rec #f #f))))
+      (record? (make-rec))))
+      
+  (pass-if "record? doesn't recognize opaque records"
+    (let* ((rec (make-record-type-descriptor 'rec #f #f #f #t '#()))
+	   (make-rec (record-constructor 
+		      (make-record-constructor-descriptor rec #f #f))))
+      (not (record? (make-rec)))))
+
+  (pass-if "record? doesn't recognize non-records" (not (record? 'foo))))
+
+(with-test-prefix "record-rtd"
+  (pass-if "simple"
+    (let* ((rtd (make-record-type-descriptor 'rec #f #f #f #f '#()))
+	   (make-rec (record-constructor
+		      (make-record-constructor-descriptor rtd #f #f))))
+      (eq? (record-rtd (make-rec)) rtd)))
+
+  (pass-if "&assertion on opaque record"
+    (let* ((rtd (make-record-type-descriptor 'rec #f #f #f #t '#()))
+	   (make-rec (record-constructor
+		      (make-record-constructor-descriptor rtd #f #f)))
+	   (success #f))
+      (call/cc 
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition) 
+	    (set! success (assertion-violation? condition))
+	    (continuation))
+	  (lambda () (record-rtd (make-rec))))))
+      success)))
+
+(with-test-prefix "record-type-name"
+  (pass-if "simple"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
+      (eq? (record-type-name rtd) 'foo))))
+
+(with-test-prefix "record-type-parent"
+  (pass-if "eq? to parent"
+    (let* ((rtd-parent (make-record-type-descriptor 'foo #f #f #f #f '#()))
+	   (rtd (make-record-type-descriptor 'bar rtd-parent #f #f #f '#())))
+      (eq? (record-type-parent rtd) rtd-parent)))
+
+  (pass-if "#f when parent not present"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
+      (not (record-type-parent rtd)))))
+
+(with-test-prefix "record-type-uid"
+  (pass-if "eq? to uid"	   
+    (let* ((uid (gensym))
+	   (rtd (make-record-type-descriptor uid #f uid #f #f '#())))
+      (eq? (record-type-uid rtd) uid)))
+
+  (pass-if "#f when uid not present"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
+      (not (record-type-uid rtd)))))
+
+(with-test-prefix "record-type-generative?"
+  (pass-if "#t when uid is not #f"
+    (let* ((uid (gensym))
+	   (rtd (make-record-type-descriptor uid #f uid #f #f '#())))
+      (record-type-generative? rtd)))
+
+  (pass-if "#f when uid is #f"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
+      (not (record-type-generative? rtd)))))
+
+(with-test-prefix "record-type-sealed?"
+  (pass-if "#t when sealed? is #t"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #t #f '#())))
+      (record-type-sealed? rtd)))
+
+  (pass-if "#f when sealed? is #f"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
+      (not (record-type-sealed? rtd)))))
+
+(with-test-prefix "record-type-opaque?"
+  (pass-if "#t when opaque? is #t"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #t '#())))
+      (record-type-opaque? rtd)))
+
+  (pass-if "#f when opaque? is #f"
+    (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
+      (not (record-type-opaque? rtd))))
+
+  (pass-if "#t when parent is opaque"
+    (let* ((parent-rtd (make-record-type-descriptor 'foo #f #f #f #t '#()))
+	   (rtd (make-record-type-descriptor 'bar parent-rtd #f #f #f '#())))
+      (record-type-opaque? rtd))))
+
+(with-test-prefix "record-type-field-names"
+  (pass-if "simple"
+    (let* ((rtd (make-record-type-descriptor 'foobar #f #f #f #f 
+					     '#((immutable foo) 
+						(mutable bar)))))
+      (equal? (record-type-field-names rtd) '#(foo bar))))
+
+  (pass-if "parent fields not included"
+    (let* ((parent-rtd (make-record-type-descriptor 'foo #f #f #f #f 
+						    '#((mutable foo))))
+	   (rtd (make-record-type-descriptor 'bar parent-rtd #f #f #f
+					     '#((immutable bar)))))
+      (equal? (record-type-field-names rtd) '#(bar))))
+
+  (pass-if "subtype fields not included"
+    (let* ((parent-rtd (make-record-type-descriptor 'foo #f #f #f #f 
+						    '#((mutable foo))))
+	   (rtd (make-record-type-descriptor 'bar parent-rtd #f #f #f
+					     '#((immutable bar)))))
+      (equal? (record-type-field-names parent-rtd) '#(foo)))))
+
+(with-test-prefix "record-field-mutable?"
+  (pass-if "simple"
+    (let* ((rtd (make-record-type-descriptor 'foobar #f #f #f #f
+					     '#((mutable foo) 
+						(immutable bar)))))
+      (and (record-field-mutable? rtd 0)
+	   (not (record-field-mutable? rtd 1))))))

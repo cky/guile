@@ -263,10 +263,11 @@ RNRS_SOURCES =					\
   rnrs/6/syntax-case.scm			\
   rnrs/arithmetic/6/bitwise.scm			\
   rnrs/bytevector.scm				\
+  rnrs/records/6/inspection.scm			\
   rnrs/records/6/procedural.scm			\
   rnrs/records/6/syntactic.scm			\
   rnrs/io/ports.scm				\
-  rnrs/io.simple.scm
+  rnrs/io/6/simple.scm
 
 EXTRA_DIST += scripts/ChangeLog-2008
 EXTRA_DIST += scripts/README
