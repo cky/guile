@@ -83,7 +83,6 @@
 	  make-undefined-violation
 	  undefined-violation?)
   (import (rnrs base (6))
-	  (rnrs io simple (6))
 	  (rnrs records procedural (6))
 	  (rnrs records syntactic (6))
 	  (rnrs syntax-case (6)))
