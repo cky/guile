@@ -221,3 +221,7 @@
                    (lambda (k x) x))
                 (lambda (k) k))))
       (k))))
+
+(with-test-prefix "abort to unknown prompt"
+  (pass-if-exception "foo" '(misc-error . "^Abort to unknown prompt")
+                     (abort-to-prompt 'does-not-exist)))

@@ -207,7 +207,7 @@ scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv, scm_t_int64 cookie)
   
   /* If we didn't find anything, raise an error. */
   if (scm_is_false (prompt))
-    scm_misc_error ("abort", "abort to unknown tag", scm_list_1 (tag));
+    scm_misc_error ("abort", "Abort to unknown prompt", scm_list_1 (tag));
 
   cont = reify_partial_continuation (vm, prompt, winds, cookie);
 
