@@ -498,6 +498,9 @@ scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
 /* Unfortunately we have to support catch and throw before boot-9 has, um,
    booted. So here are lame versions, which will get replaced with their scheme
    equivalents. */
+
+SCM_SYMBOL (sym_pre_init_catch_tag, "%pre-init-catch-tag");
+
 static SCM
 pre_init_catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
 {
@@ -510,7 +513,7 @@ pre_init_catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
     abort ();
 
   vm = scm_the_vm ();
-  prompt = scm_c_make_prompt (scm_fluid_ref (scm_sys_default_prompt_tag),
+  prompt = scm_c_make_prompt (sym_pre_init_catch_tag,
                               SCM_VM_DATA (vm)->fp, SCM_VM_DATA (vm)->sp,
                               SCM_VM_DATA (vm)->ip, 1, -1, scm_i_dynwinds ());
   scm_i_set_dynwinds (scm_cons (prompt, SCM_PROMPT_DYNWINDS (prompt)));
@@ -532,7 +535,7 @@ pre_init_catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
 static SCM
 pre_init_throw (SCM args)
 {
-  return scm_at_abort (scm_fluid_ref (scm_sys_default_prompt_tag), args);
+  return scm_at_abort (sym_pre_init_catch_tag, args);
 }
 
 void

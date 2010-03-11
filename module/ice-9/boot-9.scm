@@ -48,10 +48,13 @@
 ;; Define delimited continuation operators, and implement catch and throw in
 ;; terms of them.
 
-(define (default-prompt-tag)
-  (fluid-ref %default-prompt-tag))
 (define (make-prompt-tag . stem)
   (gensym (if (pair? stem) (car stem) "prompt")))
+(define default-prompt-tag
+  ;; not sure if we should expose this to the user as a fluid
+  (let ((%default-prompt-tag (make-prompt-tag)))
+    (lambda ()
+      %default-prompt-tag)))
 
 (define (call-with-prompt tag thunk handler)
   (@prompt tag (thunk) handler))

@@ -41,9 +41,6 @@ struct scm_prompt_registers
 };
 
 
-SCM_INTERNAL SCM scm_sys_default_prompt_tag;
-
-
 SCM_INTERNAL SCM scm_c_make_prompt (SCM k, SCM *fp, SCM *sp,
                                     scm_t_uint8 *abort_ip,
                                     scm_t_uint8 escape_only_p,

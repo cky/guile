@@ -28,8 +28,6 @@
 
 
 
-SCM scm_sys_default_prompt_tag;
-
 
 SCM
 scm_c_make_prompt (SCM k, SCM *fp, SCM *sp, scm_t_uint8 *abort_ip,
@@ -207,19 +205,9 @@ scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv, scm_t_int64 cookie)
         }
     }
   
-  /* If we didn't find anything, print a message and abort the process
-     right here.  If you don't want this, establish a catch-all around
-     any code that might throw up. */
+  /* If we didn't find anything, raise an error. */
   if (scm_is_false (prompt))
-    {
-      if (scm_is_eq (tag, scm_fluid_ref (scm_sys_default_prompt_tag)))
-        {
-          fprintf (stderr, "No prompt found for abort to default prompt tag!\n");
-          abort ();
-        }
-      else
-        scm_misc_error ("abort", "abort to unknown tag", scm_list_1 (tag));
-    }
+    scm_misc_error ("abort", "abort to unknown tag", scm_list_1 (tag));
 
   cont = reify_partial_continuation (vm, prompt, winds, cookie);
 
@@ -285,9 +273,6 @@ void
 scm_init_control (void)
 {
 #include "libguile/control.x"
-  scm_sys_default_prompt_tag = scm_make_fluid ();
-  scm_fluid_set_x (scm_sys_default_prompt_tag, scm_gensym (SCM_UNDEFINED));
-  scm_c_define ("%default-prompt-tag", scm_sys_default_prompt_tag);
 }
 
 /*
