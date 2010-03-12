@@ -28,6 +28,10 @@
 
 (define-syntax %
   (syntax-rules ()
+    ((_ expr)
+     (call-with-prompt (default-prompt-tag)
+                       (lambda () expr)
+                       default-prompt-handler))
     ((_ expr handler)
      (call-with-prompt (default-prompt-tag)
                        (lambda () expr)
@@ -36,3 +40,17 @@
      (call-with-prompt tag
                        (lambda () expr)
                        handler))))
+
+;; Each prompt tag has a type -- an expected set of arguments, and an unwritten
+;; contract of what its handler will do on an abort. In the case of the default
+;; prompt tag, we could choose to return values, exit nonlocally, or punt to the
+;; user.
+;;
+;; We choose the latter, by requiring that the user return one value, a
+;; procedure, to an abort to the prompt tag. That argument is then invoked with
+;; the continuation as an argument, within a reinstated default prompt. In this
+;; way the return value(s) from a default prompt are under the user's control.
+(define (default-prompt-handler k proc)
+  (% (default-prompt-tag)
+     (proc k)
+     default-prompt-handler))

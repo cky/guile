@@ -1,6 +1,6 @@
 ;;; Repl common routines
 
-;; Copyright (C) 2001, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
   #:use-module (system base compile)
   #:use-module (system base language)
   #:use-module (system vm vm)
+  #:use-module (ice-9 control)
   #:export (<repl> make-repl repl-vm repl-language repl-options
             repl-tm-stats repl-gc-stats
             repl-welcome repl-prompt repl-read repl-compile repl-eval
@@ -80,8 +81,9 @@
     (if (and eval
              (or (null? (language-compilers (repl-language repl)))
                  (assq-ref (repl-options repl) 'interp)))
-        (eval form (current-module))
-        (vm-load (repl-vm repl) (repl-compile repl form '())))))
+        (% (eval form (current-module)))
+        (let ((compiled (repl-compile repl form '())))
+          (% (vm-load (repl-vm repl) compiled))))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))
