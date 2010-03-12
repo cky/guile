@@ -28,7 +28,6 @@
   #:use-module (system vm program)
   #:use-module (system vm vm)
   #:autoload (system base language) (lookup-language language-reader)
-  #:autoload (system vm debug) (vm-debugger vm-backtrace)
   #:autoload (system vm trace) (vm-trace)
   #:autoload (system vm profile) (vm-profile)
   #:use-module (ice-9 format)
@@ -51,7 +50,7 @@
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr))
-    (debug    (backtrace bt) (debugger db) (trace tr) (step st))
+    (debug    (trace tr))
     (system   (gc) (statistics stat))))
 
 (define (group-name g) (car g))
@@ -358,9 +357,9 @@ Time execution."
   "profile FORM
 Profile execution."
   ;; FIXME opts
-  (let ((vm (repl-vm repl))
-        (proc (make-program (repl-compile repl (repl-parse repl form)))))
-    (apply statprof (lambda () (vm-apply vm proc '())) opts)))
+  (apply statprof
+         (make-program (repl-compile repl (repl-parse repl form)))
+         opts))
 
 
 
@@ -368,29 +367,15 @@ Profile execution."
 ;;; Debug commands
 ;;;
 
-(define-meta-command (backtrace repl)
-  "backtrace
-Display backtrace."
-  (vm-backtrace (repl-vm repl)))
-
-(define-meta-command (debugger repl)
-  "debugger
-Start debugger."
-  (vm-debugger (repl-vm repl)))
-
-(define-meta-command (trace repl form . opts)
+(define-meta-command (trace repl (form) . opts)
   "trace FORM
 Trace execution."
   ;; FIXME: doc options, or somehow deal with them better
   (apply vm-trace
-         (repl-vm repl)
+         (the-vm)
          (make-program (repl-compile repl (repl-parse repl form)))
          opts))
 
-(define-meta-command (step repl)
-  "step FORM
-Step execution."
-  (display "Not implemented yet\n"))
 
 
 ;;;

@@ -22,9 +22,9 @@
   #:use-module (system base syntax)
   #:use-module (system base compile)
   #:use-module (system base language)
-  #:use-module (system vm vm)
+  #:use-module (system vm program)
   #:use-module (ice-9 control)
-  #:export (<repl> make-repl repl-vm repl-language repl-options
+  #:export (<repl> make-repl repl-language repl-options
             repl-tm-stats repl-gc-stats
             repl-welcome repl-prompt repl-read repl-compile repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
@@ -35,7 +35,7 @@
 ;;; Repl type
 ;;;
 
-(define-record/keywords <repl> vm language options tm-stats gc-stats)
+(define-record/keywords <repl> language options tm-stats gc-stats)
 
 (define repl-default-options
   '((trace . #f)
@@ -43,8 +43,7 @@
 
 (define %make-repl make-repl)
 (define (make-repl lang)
-  (%make-repl #:vm (the-vm)
-              #:language (lookup-language lang)
+  (%make-repl #:language (lookup-language lang)
               #:options repl-default-options
               #:tm-stats (times)
               #:gc-stats (gc-stats)))
@@ -77,13 +76,13 @@
     (if parser (parser form) form)))
 
 (define (repl-eval repl form)
-  (let ((eval (language-evaluator (repl-language repl))))
-    (if (and eval
-             (or (null? (language-compilers (repl-language repl)))
-                 (assq-ref (repl-options repl) 'interp)))
-        (% (eval form (current-module)))
-        (let ((compiled (repl-compile repl form '())))
-          (% (vm-load (repl-vm repl) compiled))))))
+  (let* ((eval (language-evaluator (repl-language repl)))
+         (thunk (if (and eval
+                         (or (null? (language-compilers (repl-language repl)))
+                             (assq-ref (repl-options repl) 'interp)))
+                    (lambda () (eval form (current-module)))
+                    (make-program (repl-compile repl form '())))))
+    (% (thunk))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))
