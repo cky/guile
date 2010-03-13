@@ -24,6 +24,7 @@
 #endif
 
 #include "libguile/_scm.h"
+#include "libguile/control.h"
 #include "libguile/eval.h"
 #include "libguile/debug.h"
 #include "libguile/continuations.h"
@@ -40,6 +41,8 @@
 #include "libguile/stacks.h"
 #include "libguile/private-options.h"
 
+
+static SCM scm_sys_stacks;
 
 
 /* {Stacks}
@@ -59,17 +62,14 @@
 
 
 
-static SCM stack_id_with_fp (SCM frame, SCM **fp);
-
 /* Count number of debug info frames on a stack, beginning with FRAME.
  */
 static long
-stack_depth (SCM frame, SCM *fp)
+stack_depth (SCM frame)
 {
   long n = 0;
   /* count frames, skipping boot frames */
-  for (; scm_is_true (frame) && SCM_VM_FRAME_FP (frame) > fp;
-       frame = scm_frame_previous (frame))
+  for (; scm_is_true (frame); frame = scm_frame_previous (frame))
     ++n;
   return n;
 }
@@ -95,6 +95,21 @@ stack_depth (SCM frame, SCM *fp)
  * encountered.
  */
 
+static SCM
+find_prompt (SCM key)
+{
+  SCM winds;
+  for (winds = scm_i_dynwinds (); scm_is_pair (winds); winds = scm_cdr (winds))
+    {
+      SCM elt = scm_car (winds);
+      if (SCM_PROMPT_P (elt) && SCM_PROMPT_TAG (elt) == key)
+        return elt;
+    }
+  scm_misc_error ("make-stack", "Prompt tag not found while narrowing stack",
+                  scm_list_1 (key));
+  return SCM_BOOL_F; /* not reached */
+}
+
 static void
 narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
 {
@@ -105,16 +120,7 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
   frame = SCM_STACK_FRAME (stack);
 
   /* Cut inner part. */
-  if (scm_is_eq (inner_key, SCM_BOOL_T))
-    {
-      /* Cut specified number of frames. */
-      for (; inner && len; --inner)
-        {
-          len--;
-          frame = scm_frame_previous (frame);
-        }
-    }
-  else
+  if (scm_is_true (scm_procedure_p (inner_key)))
     {
       /* Cut until the given procedure is seen. */
       for (; inner && len ; --inner)
@@ -126,17 +132,63 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
             break;
         }
     }
+  else if (scm_is_symbol (inner_key))
+    {
+      /* Cut until the given prompt tag is seen. FIXME, assumes prompt tags are
+         symbols. */
+      SCM prompt = find_prompt (inner_key);
+      for (; len; len--, frame = scm_frame_previous (frame))
+        if (SCM_PROMPT_REGISTERS (prompt)->fp
+            == SCM_VM_FRAME_FP (frame) - SCM_VM_FRAME_OFFSET (frame))
+          break;
+    }
+  else
+    {
+      /* Cut specified number of frames. */
+      for (; inner && len; --inner)
+        {
+          len--;
+          frame = scm_frame_previous (frame);
+        }
+    }
 
   SCM_SET_STACK_LENGTH (stack, len);
   SCM_SET_STACK_FRAME (stack, frame);
 
   /* Cut outer part. */
-  for (; outer && len ; --outer)
+  if (scm_is_true (scm_procedure_p (outer_key)))
     {
-      frame = scm_stack_ref (stack, scm_from_long (len - 1));
-      len--;
-      if (scm_is_eq (scm_frame_procedure (frame), outer_key))
-        break;
+      /* Cut until the given procedure is seen. */
+      for (; outer && len ; --outer)
+        {
+          frame = scm_stack_ref (stack, scm_from_long (len - 1));
+          len--;
+          if (scm_is_eq (scm_frame_procedure (frame), outer_key))
+            break;
+        }
+    }
+  else if (scm_is_symbol (outer_key))
+    {
+      /* Cut until the given prompt tag is seen. FIXME, assumes prompt tags are
+         symbols. */
+      SCM prompt = find_prompt (outer_key);
+      while (len)
+        {
+          frame = scm_stack_ref (stack, scm_from_long (len - 1));
+          len--;
+          if (SCM_PROMPT_REGISTERS (prompt)->fp
+              == SCM_VM_FRAME_FP (frame) - SCM_VM_FRAME_OFFSET (frame))
+            break;
+        }
+    }
+  else
+    {
+      /* Cut specified number of frames. */
+      for (; outer && len ; --outer)
+        {
+          frame = scm_stack_ref (stack, scm_from_long (len - 1));
+          len--;
+        }
     }
 
   SCM_SET_STACK_LENGTH (stack, len);
@@ -163,24 +215,33 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	    "Create a new stack. If @var{obj} is @code{#t}, the current\n"
 	    "evaluation stack is used for creating the stack frames,\n"
 	    "otherwise the frames are taken from @var{obj} (which must be\n"
-	    "either a debug object or a continuation).\n\n"
+	    "a continuation or a frame object).\n"
+            "\n"
 	    "@var{args} should be a list containing any combination of\n"
-	    "integer, procedure and @code{#t} values.\n\n"
+	    "integer, procedure, prompt tag and @code{#t} values.\n"
+            "\n"
 	    "These values specify various ways of cutting away uninteresting\n"
 	    "stack frames from the top and bottom of the stack that\n"
 	    "@code{make-stack} returns.  They come in pairs like this:\n"
 	    "@code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}\n"
-	    "@var{outer_cut_2} @dots{})}.\n\n"
-	    "Each @var{inner_cut_N} can be @code{#t}, an integer, or a\n"
-	    "procedure.  @code{#t} means to cut away all frames up to but\n"
-	    "excluding the first user module frame.  An integer means to cut\n"
-	    "away exactly that number of frames.  A procedure means to cut\n"
-	    "away all frames up to but excluding the application frame whose\n"
-	    "procedure matches the specified one.\n\n"
-	    "Each @var{outer_cut_N} can be an integer or a procedure.  An\n"
-	    "integer means to cut away that number of frames.  A procedure\n"
-	    "means to cut away frames down to but excluding the application\n"
-	    "frame whose procedure matches the specified one.\n\n"
+	    "@var{outer_cut_2} @dots{})}.\n"
+            "\n"
+	    "Each @var{inner_cut_N} can be @code{#t}, an integer, a prompt\n"
+            "tag, or a procedure.  @code{#t} means to cut away all frames up\n"
+            "to but excluding the first user module frame.  An integer means\n"
+            "to cut away exactly that number of frames.  A prompt tag means\n"
+            "to cut away all frames that are inside a prompt with the given\n"
+            "tag. A procedure means to cut away all frames up to but\n"
+            "excluding the application frame whose procedure matches the\n"
+            "specified one.\n"
+            "\n"
+	    "Each @var{outer_cut_N} can be an integer, a prompt tag, or a\n"
+            "procedure.  An integer means to cut away that number of frames.\n"
+            "A prompt tag means to cut away all frames that are outside a\n"
+            "prompt with the given tag. A procedure means to cut away\n"
+            "frames down to but excluding the application frame whose\n"
+            "procedure matches the specified one.\n"
+            "\n"
 	    "If the @var{outer_cut_N} of the last pair is missing, it is\n"
 	    "taken as 0.")
 #define FUNC_NAME s_scm_make_stack
@@ -189,7 +250,6 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   int maxp;
   SCM frame;
   SCM stack;
-  SCM id, *id_fp;
   SCM inner_cut, outer_cut;
 
   /* Extract a pointer to the innermost frame of whatever object
@@ -209,6 +269,8 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   else if (SCM_VM_FRAME_P (obj))
     frame = obj;
   else if (SCM_CONTINUATIONP (obj))
+    /* FIXME: Narrowing to prompt tags should narrow with respect to the prompts
+       that were in place when the continuation was captured. */
     frame = scm_i_continuation_to_frame (obj);
   else
     {
@@ -224,20 +286,16 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   if (scm_is_false (frame))
     return SCM_BOOL_F;
 
-  /* Get ID of the stack corresponding to the given frame. */
-  id = stack_id_with_fp (frame, &id_fp);
-
   /* Count number of frames.  Also get stack id tag and check whether
      there are more stackframes than we want to record
      (SCM_BACKTRACE_MAXDEPTH). */
-  id = SCM_BOOL_F;
   maxp = 0;
-  n = stack_depth (frame, id_fp);
+  n = stack_depth (frame);
 
   /* Make the stack object. */
   stack = scm_make_struct (scm_stack_type, SCM_INUM0, SCM_EOL);
   SCM_SET_STACK_LENGTH (stack, n);
-  SCM_SET_STACK_ID (stack, id);
+  SCM_SET_STACK_ID (stack, scm_stack_id (obj));
   SCM_SET_STACK_FRAME (stack, frame);
   
   /* Narrow the stack according to the arguments given to scm_make_stack. */
@@ -258,9 +316,9 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
       
       narrow_stack (stack,
 		    scm_is_integer (inner_cut) ? scm_to_int (inner_cut) : n,
-		    scm_is_integer (inner_cut) ? 0 : inner_cut,
+		    scm_is_integer (inner_cut) ? SCM_BOOL_T : inner_cut,
 		    scm_is_integer (outer_cut) ? scm_to_int (outer_cut) : n,
-		    scm_is_integer (outer_cut) ? 0 : outer_cut);
+		    scm_is_integer (outer_cut) ? SCM_BOOL_T : outer_cut);
 
       n = SCM_STACK_LENGTH (stack);
     }
@@ -277,43 +335,25 @@ SCM_DEFINE (scm_stack_id, "stack-id", 1, 0, 0,
 	    "Return the identifier given to @var{stack} by @code{start-stack}.")
 #define FUNC_NAME s_scm_stack_id
 {
-  SCM frame, *id_fp;
-  
-  if (scm_is_eq (stack, SCM_BOOL_T))
+  if (scm_is_eq (stack, SCM_BOOL_T)
+      /* FIXME: frame case assumes frame still live on the stack, and no
+         intervening start-stack. Hmm... */
+      || SCM_VM_FRAME_P (stack))
     {
-      struct scm_vm *vp = SCM_VM_DATA (scm_the_vm ());
-      frame = scm_c_make_frame (scm_the_vm (), vp->fp, vp->sp, vp->ip, 0);
+      /* Fetch most recent start-stack tag. */
+      SCM stacks = scm_fluid_ref (scm_sys_stacks);
+      return scm_is_pair (stacks) ? scm_caar (stacks) : SCM_BOOL_F;
     }
-  else if (SCM_VM_FRAME_P (stack))
-    frame = stack;
   else if (SCM_CONTINUATIONP (stack))
-    frame = scm_i_continuation_to_frame (stack);
+    /* FIXME: implement me */
+    return SCM_BOOL_F;
   else
     {
       SCM_WRONG_TYPE_ARG (SCM_ARG1, stack);
       /* not reached */
     }
-
-  return stack_id_with_fp (frame, &id_fp);
 }
 #undef FUNC_NAME
-
-static SCM
-stack_id_with_fp (SCM frame, SCM **fp)
-{
-  SCM holder = SCM_VM_FRAME_STACK_HOLDER (frame);
-
-  if (SCM_VM_CONT_P (holder))
-    {
-      *fp = NULL;
-      return SCM_BOOL_F;
-    }
-  else
-    {
-      *fp = NULL;
-      return SCM_BOOL_F;
-    }
-}
 
 SCM_DEFINE (scm_stack_ref, "stack-ref", 2, 0, 0,
             (SCM stack, SCM index),
@@ -347,6 +387,9 @@ SCM_DEFINE (scm_stack_length, "stack-length", 1, 0, 0,
 void
 scm_init_stacks ()
 {
+  scm_sys_stacks = scm_make_fluid ();
+  scm_c_define ("%stacks", scm_sys_stacks);
+  
   scm_stack_type = scm_make_vtable (scm_from_locale_string (SCM_STACK_LAYOUT),
                                     SCM_UNDEFINED);
   scm_set_struct_vtable_name_x (scm_stack_type,

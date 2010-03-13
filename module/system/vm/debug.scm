@@ -96,40 +96,34 @@
                        x))))
        (frame-bindings frame))))))
 
-(define* (collect-frames frame #:key count)
-  (cond
-   ((not count)
-    (let lp ((frame frame) (out '()))
-      (if (not frame)
-          out
-          (lp (frame-previous frame) (cons frame out)))))
-   ;; should also have a from-end option, either via negative count or
-   ;; another kwarg
-   ((>= count 0)
-    (let lp ((frame frame) (out '()) (count count))
-      (if (or (not frame) (zero? count))
-          out
-          (lp (frame-previous frame) (cons frame out) (1- count)))))))
-
-(define* (print-frames frames #:optional (port (current-output-port))
-                       #:key (start-index (1- (length frames))) (width 72)
-                       (full? #f))
-  (let lp ((frames frames) (i start-index) (last-file ""))
-    (if (pair? frames)
-        (let* ((frame (car frames))
-               (source (frame-source frame))
-               (file (and source
-                          (or (source:file source)
-                              "current input")))
-               (line (and=> source source:line)))
-          (if (and file (not (equal? file last-file)))
-              (format port "~&In ~a:~&" file))
-          (format port "~:[~*~6_~;~5d:~]~3d ~v:@y~%" line line
-                  i width (frame-call-representation frame))
-          (if full?
-              (print-locals frame #:width width
-                            #:per-line-prefix "     "))
-          (lp (cdr frames) (1- i) (or file last-file))))))
+(define* (print-frames frames
+                       #:optional (port (current-output-port))
+                       #:key (width 72) (full? #f) (forward? #f) count)
+  (let* ((len (vector-length frames))
+         (lower-idx (if (or (not count) (positive? count))
+                        0
+                        (max 0 (+ len count))))
+         (upper-idx (if (and count (negative? count))
+                        (1- len)
+                        (1- (if count (min count len) len))))
+         (inc (if forward? 1 -1)))
+    (let lp ((i (if forward? lower-idx upper-idx))
+             (last-file ""))
+      (if (<= lower-idx i upper-idx)
+          (let* ((frame (vector-ref frames i))
+                 (source (frame-source frame))
+                 (file (and source
+                            (or (source:file source)
+                                "current input")))
+                 (line (and=> source source:line)))
+            (if (and file (not (equal? file last-file)))
+                (format port "~&In ~a:~&" file))
+            (format port "~:[~*~6_~;~5d:~]~3d ~v:@y~%" line line
+                    i width (frame-call-representation frame))
+            (if full?
+                (print-locals frame #:width width
+                              #:per-line-prefix "     "))
+            (lp (+ i inc) (or file last-file)))))))
 
 
 ;;;
@@ -150,31 +144,22 @@
             (set! (prop vm) debugger)
             debugger)))))
 
-(define* (run-debugger frame #:optional (vm (the-vm)))
+(define* (run-debugger stack frames i #:optional (vm (the-vm)))
   (let* ((db (vm-debugger vm))
          (level (debugger-level db)))
     (dynamic-wind
       (lambda () (set! (debugger-level db) (1+ level)))
-      (lambda () (debugger-repl db frame))
+      (lambda () (debugger-repl db stack frames i))
       (lambda () (set! (debugger-level db) level)))))
 
-(define (debugger-repl db frame)
-  (let ((top frame)
-        (cur frame)
-        (index 0)
+(define (debugger-repl db stack frames index)
+  (let ((top (vector-ref frames 0))
+        (cur (vector-ref frames index))
         (level (debugger-level db))
         (last #f))
-    (define (frame-index frame)
-      (let lp ((idx 0) (walk top))
-        (if (= (frame-return-address frame) (frame-return-address walk))
-            idx
-            (lp (1+ idx) (frame-previous walk)))))
     (define (frame-at-index idx)
-      (let lp ((idx idx) (walk top))
-        (cond
-         ((not walk) #f)
-         ((zero? idx) walk)
-         (else (lp (1- idx) (frame-previous walk))))))
+      (and (< idx (vector-length frames))
+           (vector-ref frames idx)))
     (define (show-frame)
       ;;      #2  0x009600e0 in do_std_select (args=0xbfffd9e0) at threads.c:1668
       ;;      1668	    select (select_args->nfds,
@@ -214,44 +199,51 @@
 
       (define-command ((commands backtrace bt) #:optional count
                        #:key (width 72) full?)
-        "Print a backtrace of all stack frames, or innermost COUNT frames."
-        (print-frames (collect-frames top #:count count)
+        "Print a backtrace of all stack frames, or innermost COUNT frames.
+If COUNT is negative, the last COUNT frames will be shown."
+        (print-frames frames 
+                      #:count count
                       #:width width
                       #:full? full?))
       
       (define-command ((commands up) #:optional (count 1))
         "Select and print stack frames that called this one.
 An argument says how many frames up to go"
-        (if (or (not (integer? count)) (<= count 0))
-            (format #t "Invalid argument to `up': expected a positive integer for COUNT.~%")
-            (let lp ((n count))
-              (cond
-               ((zero? n) (show-frame))
-               ((frame-previous cur)
-                => (lambda (new)
-                     (set! cur new)
-                     (set! index (1+ index))
-                     (lp (1- n))))
-               ((= n count)
-                (format #t "Already at outermost frame.\n"))
-               (else
-                (format #t "Reached outermost frame after walking ~a frames.\n"
-                        (- count n))
-                (show-frame))))))
-      
+        (cond
+         ((or (not (integer? count)) (<= count 0))
+          (format #t "Invalid argument to `up': expected a positive integer for COUNT.~%"))
+         ((>= (+ count index) (vector-length frames))
+          (cond
+           ((= index (1- (vector-length frames)))
+            (format #t "Already at outermost frame.\n"))
+           (else
+            (set! index (1- (vector-length frames)))
+            (set! cur (vector-ref frames index))
+            (show-frame))))
+         (else
+          (set! index (+ count index))
+          (set! cur (vector-ref frames index))
+          (show-frame))))
+
       (define-command ((commands down) #:optional (count 1))
         "Select and print stack frames called by this one.
 An argument says how many frames down to go"
         (cond
          ((or (not (integer? count)) (<= count 0))
           (format #t "Invalid argument to `down': expected a positive integer for COUNT.~%"))
-         ((= index 0)
-          (format #t "Already at innermost frame.~%"))
+         ((< (- index count) 0)
+          (cond
+           ((zero? index)
+            (format #t "Already at innermost frame.\n"))
+           (else
+            (set! index 0)
+            (set! cur (vector-ref frames index))
+            (show-frame))))
          (else
-          (set! index (max (- index count) 0))
-          (set! cur (frame-at-index index))
+          (set! index (- index count))
+          (set! cur (vector-ref frames index))
           (show-frame))))
-      
+
       (define-command ((commands frame f) #:optional idx)
         "Show the selected frame.
 With an argument, select a frame by index, then show it."
@@ -377,15 +369,36 @@ With an argument, select a frame by index, then show it."
 ;; hm, trace via reassigning global vars. tricksy.
 ;; (state associated with vm ?)
 
+(define (stack->vector stack)
+  (let* ((len (stack-length stack))
+         (v (make-vector len)))
+    (if (positive? len)
+        (let lp ((i 0) (frame (stack-ref stack 0)))
+          (if (< i len)
+              (begin
+                (vector-set! v i frame)
+                (lp (1+ i) (frame-previous frame))))))
+    v))
+
 (define (debug-pre-unwind-handler key . args)
-  (let ((stack (make-stack #t 2)))
-    (pmatch args
-      ((,subr ,msg ,args . ,rest)
-       (format #t "Throw to key `~a':\n" key)
-       (display-error stack (current-output-port) subr msg args rest))
-      (else
-       (format #t "Throw to key `~a' with args `~s'." key args)))
-    (format #t "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
-    (run-debugger (stack-ref stack 0)))
+  ;; Narrow the stack by three frames: make-stack, this one, and the throw
+  ;; handler.
+  (cond
+   ((make-stack #t 3) =>
+    (lambda (stack)
+      (pmatch args
+        ((,subr ,msg ,args . ,rest)
+         (format #t "Throw to key `~a':\n" key)
+         (display-error stack (current-output-port) subr msg args rest))
+        (else
+         (format #t "Throw to key `~a' with args `~s'." key args)))
+      (format #t "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
+      (run-debugger stack
+                    (stack->vector
+                     ;; by default, narrow to the most recent start-stack
+                     (make-stack (stack-ref stack 0) 0
+                                 (and (pair? (fluid-ref %stacks))
+                                      (cdar (fluid-ref %stacks)))))
+                    0))))
   (save-stack debug-pre-unwind-handler)
   (apply throw key args))

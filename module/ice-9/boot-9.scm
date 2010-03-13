@@ -1030,7 +1030,7 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {The interpreter stack}
 ;;;
 
-(define %stacks (make-fluid))
+;; %stacks defined in stacks.c
 (define (%start-stack tag thunk)
   (let ((prompt-tag (make-prompt-tag "start-stack")))
     (call-with-prompt
@@ -2742,7 +2742,8 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (set-repl-prompt! v) (set! scm-repl-prompt v))
 
 (define (default-pre-unwind-handler key . args)
-  (save-stack 1)
+  ;; Narrow by two more frames: this one, and the throw handler.
+  (save-stack 2)
   (apply throw key args))
 
 (begin-deprecated
@@ -2839,28 +2840,25 @@ module '(ice-9 q) '(make-q q-length))}."
 
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
 (define before-signal-stack (make-fluid))
+;; FIXME: stack-saved? is broken in the presence of threads.
 (define stack-saved? #f)
 
 (define (save-stack . narrowing)
-  (or stack-saved?
-      (cond ((not (memq 'debug (debug-options-interface)))
-             (fluid-set! the-last-stack #f)
-             (set! stack-saved? #t))
-            (else
-             (fluid-set!
-              the-last-stack
-              (case (stack-id #t)
-                ((repl-stack)
-                 (apply make-stack #t save-stack primitive-eval #t 0 narrowing))
-                ((load-stack)
-                 (apply make-stack #t save-stack 0 #t 0 narrowing))
-                ((#t)
-                 (apply make-stack #t save-stack 0 1 narrowing))
-                (else
-                 (let ((id (stack-id #t)))
-                   (and (procedure? id)
-                        (apply make-stack #t save-stack id #t 0 narrowing))))))
-             (set! stack-saved? #t)))))
+  (if (not stack-saved?)
+      (begin
+        (let ((stacks (fluid-ref %stacks)))
+          (fluid-set! the-last-stack
+                      ;; (make-stack obj inner outer inner outer ...)
+                      ;;
+                      ;; In this case, cut away the make-stack frame, the
+                      ;; save-stack frame, and then narrow as specified by the
+                      ;; user, delimited by the nearest start-stack invocation,
+                      ;; if any.
+                      (apply make-stack #t
+                             2
+                             (if (pair? stacks) (cdar stacks) 0)
+                             narrowing)))
+        (set! stack-saved? #t))))
 
 (define before-error-hook (make-hook))
 (define after-error-hook (make-hook))
