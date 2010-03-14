@@ -901,6 +901,15 @@ Accessors to a virtual machine's hooks. Usually you pass
 @code{(the-vm)} as the @var{vm}.
 @end deffn
 
+@deffn {Scheme Procedure} vm-trace-level vm
+Retrieve the ``trace level'' of the VM. If positive, the trace hooks associated
+with @var{vm} will be run. The initial trace level is 0.
+@end deffn
+
+@deffn {Scheme Procedure} set-vm-trace-level! vm level
+Set the ``trace level'' of the VM.
+@end deffn
+
 @xref{A Virtual Machine for Guile}, for more information on Guile's
 virtual machine.
 
