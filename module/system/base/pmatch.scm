@@ -1,14 +1,38 @@
+;;; pmatch
+
+;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc
+;;; Copyright (C) 2005,2006,2007 Oleg Kiselyov
+;;; Copyright (C) 2007 Daniel P. Friedman
+;;;
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
+;;;
+;;; This library is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;; Originally written by Oleg Kiselyov for LeanTAP in Kanren, which is
+;;; available under the MIT license.
+;;;
+;;; http://kanren.cvs.sourceforge.net/viewvc/kanren/kanren/mini/leanTAP.scm?view=log
+;;;
+;;; This version taken from:
+;;; αKanren: A Fresh Name in Nominal Logic Programming
+;;; by William E. Byrd and Daniel P. Friedman
+;;; Proceedings of the 2007 Workshop on Scheme and Functional Programming
+;;; Université Laval Technical Report DIUL-RT-0701
+
+;;; Code:
+
 (define-module (system base pmatch)
   #:export (pmatch))
-;; FIXME: shouldn't have to export ppat...
-
-;; Originally written by Oleg Kiselyov. Taken from:
-;; αKanren: A Fresh Name in Nominal Logic Programming
-;; by William E. Byrd and Daniel P. Friedman
-;; Proceedings of the 2007 Workshop on Scheme and Functional Programming
-;; Université Laval Technical Report DIUL-RT-0701
-
-;; Licensing unclear. Probably need to ask Oleg for a disclaimer.
 
 (define-syntax pmatch
   (syntax-rules (else guard)
