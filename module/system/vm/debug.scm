@@ -28,7 +28,7 @@
   #:use-module (ice-9 format)
   #:use-module ((system vm inspect) #:select ((inspect . %inspect)))
   #:use-module (system vm program)
-  #:export (run-debugger debug-pre-unwind-handler))
+  #:export (debug run-debugger debug-pre-unwind-handler))
 
 
 (define (reverse-hashq h)
@@ -144,19 +144,20 @@
             (set! (prop vm) debugger)
             debugger)))))
 
-(define* (run-debugger stack frames i #:optional (vm (the-vm)))
+(define* (run-debugger stack frames #:optional (vm (the-vm)))
   (let* ((db (vm-debugger vm))
          (level (debugger-level db)))
     (dynamic-wind
       (lambda () (set! (debugger-level db) (1+ level)))
-      (lambda () (debugger-repl db stack frames i))
+      (lambda () (debugger-repl db stack frames))
       (lambda () (set! (debugger-level db) level)))))
 
-(define (debugger-repl db stack frames index)
-  (let ((top (vector-ref frames 0))
-        (cur (vector-ref frames index))
-        (level (debugger-level db))
-        (last #f))
+(define (debugger-repl db stack frames)
+  (let* ((index 0)
+         (top (vector-ref frames index))
+         (cur top)
+         (level (debugger-level db))
+         (last #f))
     (define (frame-at-index idx)
       (and (< idx (vector-length frames))
            (vector-ref frames idx)))
@@ -402,3 +403,9 @@ With an argument, select a frame by index, then show it."
                     0))))
   (save-stack debug-pre-unwind-handler)
   (apply throw key args))
+
+(define (debug)
+  (let ((stack (fluid-ref the-last-stack)))
+    (if stack
+	(run-debugger stack (stack->vector stack))
+	(display "Nothing to debug.\n"))))

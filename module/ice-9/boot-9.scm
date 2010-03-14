@@ -3644,7 +3644,7 @@ module '(ice-9 q) '(make-q q-length))}."
           '(((ice-9 threads)))
           '())))
     ;; load debugger on demand
-    (module-autoload! guile-user-module '(ice-9 debugger) '(debug))
+    (module-autoload! guile-user-module '(system vm debug) '(debug))
 
     ;; Note: SIGFPE, SIGSEGV and SIGBUS are actually "query-only" (see
     ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
