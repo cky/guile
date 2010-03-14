@@ -4406,12 +4406,7 @@ the host's native endianness.
 @cindex Unicode string encoding
 
 Bytevector contents can also be interpreted as Unicode strings encoded
-in one of the most commonly available encoding formats@footnote{Guile
-1.8 does @emph{not} support Unicode strings.  Therefore, the procedures
-described here assume that Guile strings are internally encoded
-according to the current locale.  For instance, if @code{$LC_CTYPE} is
-@code{fr_FR.ISO-8859-1}, then @code{string->utf-8} @i{et al.} will
-assume that Guile strings are Latin-1-encoded.}.
+in one of the most commonly available encoding formats.
 
 @lisp
 (utf8->string (u8-list->bytevector '(99 97 102 101)))

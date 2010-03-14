@@ -1,7 +1,7 @@
-;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: iso-8859-1; -*-
+;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: utf-8; -*-
 ;;;;
 ;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
-;;;; Ludovic Court�s
+;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -394,12 +394,11 @@
                    (map integer->char (bytevector->u8-list utf8))))))
 
   (pass-if "string->utf8 [latin-1]"
-    (with-latin1-locale
-      (let* ((str  "h�, �a va bien ?")
-             (utf8 (string->utf8 str)))
-        (and (bytevector? utf8)
-             (= (bytevector-length utf8)
-                (+ 2 (string-length str)))))))
+    (let* ((str  "hé, ça va bien ?")
+           (utf8 (string->utf8 str)))
+      (and (bytevector? utf8)
+           (= (bytevector-length utf8)
+              (+ 2 (string-length str))))))
 
   (pass-if "string->utf16"
     (let* ((str   "hello, world")
@@ -435,6 +434,13 @@
                         (bytevector->uint-list utf32
                                                (endianness big) 4))))))
 
+  (pass-if "string->utf32 [Greek]"
+    (let* ((str   "Ἄνεμοι")
+           (utf32 (string->utf32 str)))
+      (and (bytevector? utf32)
+           (equal? (bytevector->uint-list utf32 (endianness big) 4)
+                   '(#x1f0c #x3bd #x3b5 #x3bc #x3bf #x3b9)))))
+
   (pass-if "string->utf32 [little]"
     (let* ((str   "hello, world")
            (utf32 (string->utf32 str (endianness little))))
@@ -457,12 +463,11 @@
                    (map integer->char (bytevector->u8-list utf8))))))
 
   (pass-if "utf8->string [latin-1]"
-    (with-latin1-locale
-      (let* ((utf8  (string->utf8 "h�, �a va bien ?"))
-             (str   (utf8->string utf8)))
-        (and (string? str)
-             (= (string-length str)
-                (- (bytevector-length utf8) 2))))))
+    (let* ((utf8  (string->utf8 "hé, ça va bien ?"))
+           (str   (utf8->string utf8)))
+      (and (string? str)
+           (= (string-length str)
+              (- (bytevector-length utf8) 2)))))
 
   (pass-if "utf16->string"
     (let* ((utf16  (uint-list->bytevector (map char->integer
