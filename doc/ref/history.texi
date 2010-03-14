@@ -202,7 +202,7 @@ user-space threading was removed in favor of POSIX pre-emptive
 threads, providing true multiprocessing. Gettext support was added,
 and Guile's C API was cleaned up and orthogonalized in a massive way.
 
-@item 2.0 --- March 2010
+@item 2.0 --- April 2010
 A virtual machine was added to Guile, along with the associated compiler
 and toolchain. Support for internationalization was finally
 reimplemented, in terms of unicode, locales, and libunistring. Running
