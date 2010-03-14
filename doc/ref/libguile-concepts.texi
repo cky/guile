@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -450,21 +450,15 @@ that are stored in local variables.  When a thread puts itself into
 guile mode for the first time, it gets a Scheme representation and is
 listed by @code{all-threads}, for example.
 
-While in guile mode, a thread promises to reach a safe point
-reasonably frequently (@pxref{Asynchronous Signals}).  In addition to
-running signal handlers, these points are also potential rendezvous
-points of all guile mode threads where Guile can orchestrate global
-things like garbage collection.  Consequently, when a thread in guile
-mode blocks and does no longer frequent safe points, it might cause
-all other guile mode threads to block as well.  To prevent this from
-happening, a guile mode thread should either only block in libguile
-functions (who know how to do it right), or should temporarily leave
-guile mode with @code{scm_without_guile}.
-
-For some common blocking operations, Guile provides convenience
-functions.  For example, if you want to lock a pthread mutex while in
-guile mode, you might want to use @code{scm_pthread_mutex_lock} which is
-just like @code{pthread_mutex_lock} except that it leaves guile mode
+Threads in guile mode can block (e.g., do blocking I/O) without causing any
+problems@footnote{In Guile 1.8, a thread blocking in guile mode would prevent
+garbage collection to occur.  Thus, threads had to leave guile mode whenever
+they could block.  This is no longer needed with Guile 2.0.}; temporarily
+leaving guile mode with @code{scm_without_guile} before blocking slightly
+improves GC performance, though.  For some common blocking operations, Guile
+provides convenience functions.  For example, if you want to lock a pthread
+mutex while in guile mode, you might want to use @code{scm_pthread_mutex_lock}
+which is just like @code{pthread_mutex_lock} except that it leaves guile mode
 while blocking.
 
 
