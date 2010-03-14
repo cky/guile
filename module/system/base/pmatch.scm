@@ -1,4 +1,4 @@
-;;; pmatch
+;;; pmatch, a simple matcher
 
 ;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc
 ;;; Copyright (C) 2005,2006,2007 Oleg Kiselyov
@@ -28,6 +28,9 @@
 ;;; by William E. Byrd and Daniel P. Friedman
 ;;; Proceedings of the 2007 Workshop on Scheme and Functional Programming
 ;;; Université Laval Technical Report DIUL-RT-0701
+
+;;; To be clear: the original code is MIT-licensed, and the modifications
+;;; made to it by Guile are under Guile's license (currently LGPL v3+).
 
 ;;; Code:
 
