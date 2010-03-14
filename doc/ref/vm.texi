@@ -7,9 +7,9 @@
 @node A Virtual Machine for Guile
 @section A Virtual Machine for Guile
 
-Guile has both an interpreter and a compiler. To a user, the
-difference is largely transparent---interpreted and compiled
-procedures can call each other as they please.
+Guile has both an interpreter and a compiler. To a user, the difference
+is transparent---interpreted and compiled procedures can call each other
+as they please.
 
 The difference is that the compiler creates and interprets bytecode
 for a custom virtual machine, instead of interpreting the
@@ -33,21 +33,19 @@ machine.
 @subsection Why a VM?
 
 @cindex interpreter
-@cindex evaluator
-For a long time, Guile only had an interpreter, called the
-@dfn{evaluator}. Guile's evaluator operates directly on the
-S-expression representation of Scheme source code.
+For a long time, Guile only had an interpreter. Guile's interpreter
+operated directly on the S-expression representation of Scheme source
+code.
 
-But while the evaluator is highly optimized and hand-tuned, and
-contains some extensive speed trickery (@pxref{Memoization}), it still
+But while the interpreter was highly optimized and hand-tuned, it still
 performs many needless computations during the course of evaluating an
 expression. For example, application of a function to arguments
-needlessly conses up the arguments in a list. Evaluation of an
-expression always has to figure out what the car of the expression is
--- a procedure, a memoized form, or something else. All values have to
-be allocated on the heap. Et cetera.
+needlessly consed up the arguments in a list. Evaluation of an
+expression always had to figure out what the car of the expression is --
+a procedure, a memoized form, or something else. All values have to be
+allocated on the heap. Et cetera.
 
-The solution to this problem is to compile the higher-level language,
+The solution to this problem was to compile the higher-level language,
 Scheme, into a lower-level language for which all of the checks and
 dispatching have already been done---the code is instead stripped to
 the bare minimum needed to ``do the job''.
@@ -71,7 +69,21 @@ for Guile (@code{cons}, @code{struct-ref}, etc.).
 So this is what Guile does. The rest of this section describes that VM
 that Guile implements, and the compiled procedures that run on it.
 
-Note that this decision to implement a bytecode compiler does not
+Before moving on, though, we should note that though we spoke of the
+interpreter in the past tense, Guile still has an interpreter. The
+difference is that before, it was Guile's main evaluator, and so was
+implemented in highly optimized C; now, it is actually implemented in
+Scheme, and compiled down to VM bytecode, just like any other program.
+(There is still a C interpreter around, used to bootstrap the compiler,
+but it is not normally used at runtime.)
+
+The upside of implementing the interpreter in Scheme is that we preserve
+tail calls and multiple-value handling between interpreted and compiled
+code. The downside is that the interpreter in Guile 2.0 is slower than
+the interpreter in 1.8. We hope the that the compiler's speed makes up
+for the loss!
+
+Also note that this decision to implement a bytecode compiler does not
 preclude native compilation. We can compile from bytecode to native
 code at runtime, or even do ahead of time compilation. More
 possibilities are discussed in @ref{Extending the Compiler}.
@@ -79,12 +91,9 @@ possibilities are discussed in @ref{Extending the Compiler}.
 @node VM Concepts
 @subsection VM Concepts
 
-A virtual machine (VM) is a Scheme object. Users may create virtual
-machines using the standard procedures described later in this manual,
-but that is usually unnecessary, as Guile ensures that there is one
-virtual machine per thread. When a VM-compiled procedure is run, Guile
-looks up the virtual machine for the current thread and executes the
-procedure using that VM.
+Compiled code is run by a virtual machine (VM). Each thread has its own
+VM. When a compiled procedure is run, Guile looks up the virtual machine
+for the current thread and executes the procedure using that VM.
 
 Guile's virtual machine is a stack machine---that is, it has few
 registers, and the instructions defined in the VM operate by pushing
@@ -112,12 +121,6 @@ In other architectures, the instruction pointer is sometimes called
 the ``program counter'' (pc). This set of registers is pretty typical
 for stack machines; their exact meanings in the context of Guile's VM
 are described in the next section.
-
-A virtual machine executes by loading a compiled procedure, and
-executing the object code associated with that procedure. Of course,
-that procedure may call other procedures, tail-call others, ad
-infinitum---indeed, within a guile whose modules have all been
-compiled to object code, one might never leave the virtual machine.
 
 @c wingo: The following is true, but I don't know in what context to
 @c describe it. A documentation FIXME.
@@ -241,8 +244,8 @@ prove statements about functions. It is especially good at describing
 scope relations, and it is for that reason that we mention it here.
 
 Guile allocates all variables on the stack. When a lexically enclosed
-procedure with free variables---a @dfn{closure}---is created, it
-copies those variables its free variable vector. References to free
+procedure with free variables---a @dfn{closure}---is created, it copies
+those variables into its free variable vector. References to free
 variables are then redirected through the free variable vector.
 
 If a variable is ever @code{set!}, however, it will need to be
@@ -551,8 +554,8 @@ All the conditional branch instructions described below work in the
 same way:
 
 @itemize
-@item They pop off the Scheme object located on the stack and use it as
-the branch condition;
+@item They pop off Scheme object(s) located on the stack for use in the
+branch condition
 @item If the condition is true, then the instruction pointer is
 increased by the offset passed as an argument to the branch
 instruction;
@@ -560,22 +563,20 @@ instruction;
 the one to which the instruction pointer points).
 @end itemize
 
-Note that the offset passed to the instruction is encoded on two 8-bit
-integers which are then combined by the VM as one 16-bit integer. Note
-also that jump targets in Guile are aligned on 8-byte boundaries, and
-that the offset refers to the @var{n}th 8-byte boundary, effectively
-giving Guile a 19-bit relative address space.
+Note that the offset passed to the instruction is encoded as three 8-bit
+integers, in big-endian order, effectively giving Guile a 24-bit
+relative address space.
 
 @deffn Instruction br offset
-Jump to @var{offset}.
+Jump to @var{offset}. No values are popped.
 @end deffn
 
 @deffn Instruction br-if offset
-Jump to @var{offset} if the condition on the stack is not false.
+Jump to @var{offset} if the object on the stack is not false.
 @end deffn
 
 @deffn Instruction br-if-not offset
-Jump to @var{offset} if the condition on the stack is false.
+Jump to @var{offset} if the object on the stack is false.
 @end deffn
 
 @deffn Instruction br-if-eq offset
