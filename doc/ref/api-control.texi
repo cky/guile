@@ -1393,6 +1393,42 @@ which is the name of the procedure incorrectly invoked.
 @end deftypefn
 
 
+@subsubsection Signalling Type Errors
+
+Every function visible at the Scheme level should aggressively check the
+types of its arguments, to avoid misinterpreting a value, and perhaps
+causing a segmentation fault.  Guile provides some macros to make this
+easier.
+
+@deftypefn Macro void SCM_ASSERT (int @var{test}, SCM @var{obj}, unsigned int @var{position}, const char *@var{subr})
+If @var{test} is zero, signal a ``wrong type argument'' error,
+attributed to the subroutine named @var{subr}, operating on the value
+@var{obj}, which is the @var{position}'th argument of @var{subr}.
+@end deftypefn
+
+@deftypefn Macro int SCM_ARG1
+@deftypefnx Macro int SCM_ARG2
+@deftypefnx Macro int SCM_ARG3
+@deftypefnx Macro int SCM_ARG4
+@deftypefnx Macro int SCM_ARG5
+@deftypefnx Macro int SCM_ARG6
+@deftypefnx Macro int SCM_ARG7
+One of the above values can be used for @var{position} to indicate the
+number of the argument of @var{subr} which is being checked.
+Alternatively, a positive integer number can be used, which allows to
+check arguments after the seventh.  However, for parameter numbers up to
+seven it is preferable to use @code{SCM_ARGN} instead of the
+corresponding raw number, since it will make the code easier to
+understand.
+@end deftypefn
+
+@deftypefn Macro int SCM_ARGn
+Passing a value of zero or @code{SCM_ARGn} for @var{position} allows to
+leave it unspecified which argument's type is incorrect.  Again,
+@code{SCM_ARGn} should be preferred over a raw zero constant.
+@end deftypefn
+
+
 @node Continuation Barriers
 @subsection Continuation Barriers
 
