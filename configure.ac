@@ -868,11 +868,14 @@ fi
 
 
 dnl GMP tests
-AC_LIB_HAVE_LINKFLAGS(gmp,
+AC_LIB_HAVE_LINKFLAGS([gmp],
   [],
   [#include <gmp.h>],
-  [mpz_import (0, 0, 0, 0, 0, 0, 0);],
-  AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README]))
+  [mpz_import (0, 0, 0, 0, 0, 0, 0);])
+
+if test "x$HAVE_LIBGMP" != "xyes"; then
+  AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README])
+fi
 
 dnl GNU libunistring is checked for by Gnulib's `libunistring' module.
 if test "x$LTLIBUNISTRING" != "x"; then
