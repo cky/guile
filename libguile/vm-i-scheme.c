@@ -413,6 +413,8 @@ VM_DEFINE_INSTRUCTION (166, make_struct, "make-struct", 2, -1, 1)
 
   sp -= n_args - 1;
 
+  SYNC_REGISTER ();
+
   if (SCM_LIKELY (SCM_STRUCTP (vtable)
   		  && SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
 		  && SCM_I_INUMP (n_tail)))
@@ -433,7 +435,6 @@ VM_DEFINE_INSTRUCTION (166, make_struct, "make-struct", 2, -1, 1)
 	}
     }
 
-  SYNC_REGISTER ();
   RETURN (scm_c_make_structv (vtable, scm_to_size_t (n_tail),
 			      n_args - 2, (scm_t_bits *) inits));
 }
@@ -461,6 +462,7 @@ VM_DEFINE_FUNCTION (167, struct_ref, "struct-ref", 2)
   	}
     }
 
+  SYNC_REGISTER ();
   RETURN (scm_struct_ref (obj, pos));
 }
 
@@ -489,6 +491,7 @@ VM_DEFINE_FUNCTION (168, struct_set, "struct-set", 3)
   	}
     }
 
+  SYNC_REGISTER ();
   RETURN (scm_struct_set_x (obj, pos, val));
 }
 
@@ -540,6 +543,7 @@ VM_DEFINE_INSTRUCTION (171, slot_set, "slot-set", 0, 3, 0)
     goto VM_LABEL (bv_##stem##_native_ref);                             \
   {                                                                     \
     ARGS2 (bv, idx);                                                    \
+    SYNC_REGISTER ();							\
     RETURN (scm_bytevector_##fn_stem##_ref (bv, idx, endianness));      \
   }                                                                     \
 }
@@ -563,52 +567,62 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #undef BV_REF_WITH_ENDIANNESS
 
-#define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)                   \
-{                                                                       \
-  long i = 0;                                                           \
-  ARGS2 (bv, idx);                                                      \
-  VM_VALIDATE_BYTEVECTOR (bv);                                          \
-  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
-                  && (i % size == 0)))                                  \
-    RETURN (SCM_I_MAKINUM (*(scm_t_##type*)                             \
-                           (SCM_BYTEVECTOR_CONTENTS (bv) + i)));        \
-  else                                                                  \
-    RETURN (scm_bytevector_##fn_stem##_ref (bv, idx));                  \
+#define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)			\
+{									\
+  long i = 0;								\
+  ARGS2 (bv, idx);							\
+  VM_VALIDATE_BYTEVECTOR (bv);						\
+  if (SCM_LIKELY (SCM_I_INUMP (idx)					\
+                  && ((i = SCM_I_INUM (idx)) >= 0)			\
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
+                  && (i % size == 0)))					\
+    RETURN (SCM_I_MAKINUM (*(scm_t_##type*)				\
+                           (SCM_BYTEVECTOR_CONTENTS (bv) + i)));	\
+  else									\
+    {									\
+      SYNC_REGISTER ();							\
+      RETURN (scm_bytevector_ ## fn_stem ## _ref (bv, idx));		\
+    }									\
 }
 
-#define BV_INT_REF(stem, type, size)                                    \
-{                                                                       \
-  long i = 0;                                                           \
-  ARGS2 (bv, idx);                                                      \
-  VM_VALIDATE_BYTEVECTOR (bv);                                          \
-  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
-                  && (i % size == 0)))                                  \
+#define BV_INT_REF(stem, type, size)					\
+{									\
+  long i = 0;								\
+  ARGS2 (bv, idx);							\
+  VM_VALIDATE_BYTEVECTOR (bv);						\
+  if (SCM_LIKELY (SCM_I_INUMP (idx)					\
+                  && ((i = SCM_I_INUM (idx)) >= 0)			\
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
+                  && (i % size == 0)))					\
     { scm_t_##type x = (*(scm_t_##type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)); \
-      if (SCM_FIXABLE (x))                                              \
-        RETURN (SCM_I_MAKINUM (x));                                     \
-      else                                                              \
-        RETURN (scm_from_##type (x));                                   \
-    }                                                                   \
-  else                                                                  \
-    RETURN (scm_bytevector_##stem##_native_ref (bv, idx));              \
+      if (SCM_FIXABLE (x))						\
+        RETURN (SCM_I_MAKINUM (x));					\
+      else								\
+	{								\
+	  SYNC_REGISTER ();						\
+	  RETURN (scm_from_ ## type (x));				\
+	}								\
+    }									\
+  else									\
+    {									\
+      SYNC_REGISTER ();							\
+      RETURN (scm_bytevector_ ## stem ## _native_ref (bv, idx));	\
+    }									\
 }
 
-#define BV_FLOAT_REF(stem, fn_stem, type, size)                         \
-{                                                                       \
-  long i = 0;                                                           \
-  ARGS2 (bv, idx);                                                      \
-  VM_VALIDATE_BYTEVECTOR (bv);                                          \
-  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                        \
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
-                  && (i % size == 0)))                                  \
+#define BV_FLOAT_REF(stem, fn_stem, type, size)				\
+{									\
+  long i = 0;								\
+  ARGS2 (bv, idx);							\
+  VM_VALIDATE_BYTEVECTOR (bv);						\
+  SYNC_REGISTER ();							\
+  if (SCM_LIKELY (SCM_I_INUMP (idx)					\
+                  && ((i = SCM_I_INUM (idx)) >= 0)			\
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
+                  && (i % size == 0)))					\
     RETURN (scm_from_double ((*(type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)))); \
-  else                                                                  \
-    RETURN (scm_bytevector_##fn_stem##_native_ref (bv, idx));           \
+  else									\
+    RETURN (scm_bytevector_ ## fn_stem ## _native_ref (bv, idx));	\
 }
 
 VM_DEFINE_FUNCTION (180, bv_u8_ref, "bv-u8-ref", 2)

@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -102,6 +102,7 @@
 #endif
 
 
+/* Cache the VM's instruction, stack, and frame pointer in local variables.  */
 #define CACHE_REGISTER()			\
 {						\
   ip = vp->ip;					\
@@ -109,6 +110,9 @@
   fp = vp->fp;					\
 }
 
+/* Update the registers in VP, a pointer to the current VM.  This must be done
+   at least before any GC invocation so that `vp->sp' is up-to-date and the
+   whole stack gets marked.  */
 #define SYNC_REGISTER()				\
 {						\
   vp->ip = ip;					\
