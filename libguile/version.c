@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 1999, 2000, 2001, 2006, 2008 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 1999, 2000, 2001, 2006, 2008, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -105,14 +105,7 @@ SCM_DEFINE (scm_effective_version, "effective-version", 0, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_effective_version
 {
-
-  char version_str[2 * 4 + 3];
-
-#if (SCM_MAJOR_VERSION > 9999 || SCM_MINOR_VERSION > 9999)
-# error version string may overflow buffer
-#endif
-  sprintf (version_str, "%d.%d", SCM_MAJOR_VERSION, SCM_MINOR_VERSION);
-  return scm_from_locale_string (version_str);
+  return scm_from_locale_string (SCM_EFFECTIVE_VERSION);
 }
 #undef FUNC_NAME
 

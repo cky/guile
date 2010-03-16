@@ -604,7 +604,8 @@ version.h: version.h.in $(top_builddir)/config.status
 	sed < $(srcdir)/version.h.in > $@.tmp \
 	  -e s:@-GUILE_MAJOR_VERSION-@:${GUILE_MAJOR_VERSION}: \
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
-	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}:
+	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}: \
+	  -e s:@-GUILE_EFFECTIVE_VERSION-@:${GUILE_EFFECTIVE_VERSION}:
 	mv $@.tmp $@
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
