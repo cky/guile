@@ -20,6 +20,7 @@
   #:use-module (rnrs bytevector)
   #:export (void
             float double
+            int unsigned-int long unsigned-long size_t
             int8 uint8
             uint16 int16
             uint32 int32

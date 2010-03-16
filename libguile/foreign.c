@@ -42,6 +42,11 @@ SCM_SYMBOL (sym_uint32, "uint32");
 SCM_SYMBOL (sym_int32, "int32");
 SCM_SYMBOL (sym_uint64, "uint64");
 SCM_SYMBOL (sym_int64, "int64");
+SCM_SYMBOL (sym_int, "int");
+SCM_SYMBOL (sym_long, "long");
+SCM_SYMBOL (sym_unsigned_int, "unsigned-int");
+SCM_SYMBOL (sym_unsigned_long, "unsigned-long");
+SCM_SYMBOL (sym_size_t, "size_t");
 
 /* that's for pointers, you know. */
 SCM_SYMBOL (sym_asterisk, "*");
@@ -984,6 +989,56 @@ scm_init_foreign (void)
   scm_define (sym_int32, scm_from_uint8 (SCM_FOREIGN_TYPE_INT32));
   scm_define (sym_uint64, scm_from_uint8 (SCM_FOREIGN_TYPE_UINT64));
   scm_define (sym_int64, scm_from_uint8 (SCM_FOREIGN_TYPE_INT64));
+
+  scm_define (sym_int,
+#if SIZEOF_INT == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT64)
+#elif SIZEOF_INT == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
+#else
+# error unsupported sizeof (int)
+#endif
+	      );
+
+  scm_define (sym_unsigned_int,
+#if SIZEOF_UNSIGNED_INT == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT64)
+#elif SIZEOF_UNSIGNED_INT == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32)
+#else
+# error unsupported sizeof (unsigned int)
+#endif
+	      );
+
+  scm_define (sym_long,
+#if SIZEOF_LONG == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT64)
+#elif SIZEOF_LONG == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
+#else
+# error unsupported sizeof (long)
+#endif
+	      );
+
+  scm_define (sym_unsigned_long,
+#if SIZEOF_UNSIGNED_LONG == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT64)
+#elif SIZEOF_UNSIGNED_LONG == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32)
+#else
+# error unsupported sizeof (unsigned long)
+#endif
+	      );
+
+  scm_define (sym_size_t,
+#if SIZEOF_SIZE_T == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT64)
+#elif SIZEOF_SIZE_T == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32)
+#else
+# error unsupported sizeof (size_t)
+#endif
+	      );
 }
 
 void
