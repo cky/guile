@@ -983,6 +983,7 @@ VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
   SCM contregs;
   POP (contregs);
 
+  SYNC_ALL ();
   scm_i_check_continuation (contregs);
   vm_return_to_continuation (scm_i_contregs_vm (contregs),
                              scm_i_contregs_vm_cont (contregs),
@@ -1564,6 +1565,7 @@ VM_DEFINE_INSTRUCTION (90, wind_fluids, "wind-fluids", 1, -1, 0)
   if (sp - 2*n < SCM_FRAME_UPPER_ADDRESS (fp))
     goto vm_error_stack_underflow;
 
+  SYNC_REGISTER ();
   wf = scm_i_make_with_fluids (n, sp + 1 - 2*n, sp + 1 - n);
   scm_i_swap_with_fluids (wf, dynstate);
   scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
