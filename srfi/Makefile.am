@@ -32,7 +32,8 @@ AM_CPPFLAGS = -I.. -I$(srcdir)/..				\
 AM_CFLAGS = $(GCC_CFLAGS)
 AM_LDFLAGS = $(GNU_LD_FLAGS)
 
-srfiincludedir = $(pkgincludedir)/srfi
+# FIXME: should be libguile/srfi
+srfiincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/srfi
 
 # These headers are visible as <guile/srfi/mumble.h>
 srfiinclude_HEADERS = srfi-1.h srfi-4.h srfi-13.h srfi-14.h srfi-60.h

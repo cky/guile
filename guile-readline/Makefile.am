@@ -54,7 +54,8 @@ libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS =	\
 
 BUILT_SOURCES = readline.x
 
-pkginclude_HEADERS = readline.h
+modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)
+modinclude_HEADERS = readline.h
 
 snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x

@@ -462,7 +462,7 @@ endif HAVE_LD_VERSION_SCRIPT
 pkginclude_HEADERS = 
 
 # These are headers visible as <libguile/mumble.h>.
-modincludedir = $(includedir)/libguile
+modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/libguile
 modinclude_HEADERS =				\
 	__scm.h					\
 	alist.h					\

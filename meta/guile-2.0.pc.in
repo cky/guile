@@ -5,6 +5,7 @@ includedir=@includedir@
 datarootdir=@datarootdir@
 datadir=@datadir@
 pkgdatadir=@datadir@/guile
+pkgincludedir=@includedir@/guile
 
 sitedir=@sitedir@
 extensionsdir=@libdir@/guile/@GUILE_EFFECTIVE_VERSION@/extensions
@@ -14,4 +15,4 @@ Name: GNU Guile
 Description: GNU's Ubiquitous Intelligent Language for Extension
 Version: @GUILE_VERSION@
 Libs: -L${libdir} -lguile-@GUILE_EFFECTIVE_VERSION@ @GUILE_LIBS@
-Cflags: -I${includedir} @GUILE_CFLAGS@ @BDW_GC_CFLAGS@
+Cflags: -I${pkgincludedir}/@GUILE_EFFECTIVE_VERSION@ @GUILE_CFLAGS@ @BDW_GC_CFLAGS@
