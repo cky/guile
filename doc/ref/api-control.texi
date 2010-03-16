@@ -16,7 +16,8 @@ flow of Scheme affects C code.
 * if cond case::                Simple conditional evaluation.
 * and or::                      Conditional evaluation of a sequence.
 * while do::                    Iteration mechanisms.
-* Continuations::               Continuations.
+* Prompts::                     Composable, delimited continuations.
+* Continuations::               Non-composable continuations.
 * Multiple Values::             Returning and accepting multiple values.
 * Exceptions::                  Throwing and catching exceptions.
 * Error Reporting::             Procedures for signaling errors.
@@ -344,6 +345,112 @@ times.
 @end deffn
 
 
+@node Prompts
+@subsection Prompts
+@cindex prompts
+@cindex delimited continuations
+@cindex composable continuations
+@cindex non-local exit
+
+Prompts are control-flow barriers between different parts of a program. In the
+same way that a user sees a shell prompt (e.g., the Bash prompt) as a barrier
+between the operating system and her programs, Scheme prompts allow the Scheme
+programmer to treat parts of programs as if they were running in different
+operating systems.
+
+We use this roundabout explanation because, unless you're a functional
+programming junkie, you probably haven't heard the term, ``delimited, composable
+continuation''. That's OK; it's a relatively recent topic, but a very useful
+one to know about.
+
+@deffn {Scheme Procedure} call-with-prompt tag thunk handler
+Set up a prompt, and call @var{thunk} within that prompt.
+
+During the dynamic extent of the call to @var{thunk}, a prompt named @var{tag}
+will be present in the dynamic context, such that if a user calls
+@code{abort-to-prompt} (see below) with that tag, control rewinds back to the
+prompt, and the @var{handler} is run.
+
+@var{handler} must be a procedure. The first argument to @var{handler} will be
+the state of the computation begun when @var{thunk} was called, and ending with
+the call to @code{abort-to-prompt}. The remaining arguments to @var{handler} are
+those passed to @code{abort-to-prompt}.
+@end deffn
+
+@deffn {Scheme Procedure} abort-to-prompt tag val ...
+Unwind the dynamic and control context to the nearest prompt named @var{tag},
+also passing the given values.
+@end deffn
+
+C programmers may recognize @code{call-with-prompt} and @code{abort-to-prompt}
+as a fancy kind of @code{setjmp} and @code{longjmp}, respectively. Prompts are
+indeed quite useful as non-local escape mechanisms. Guile's @code{catch} and
+@code{throw} are implemented in terms of prompts. Prompts are more convenient
+than @code{longjmp}, in that one has the opportunity to pass multiple values to
+the jump target.
+
+Also unlike @code{longjmp}, the prompt handler is given the full state of the
+process that was aborted, as the first argument to the prompt's handler. That
+state is the @dfn{continuation} of the computation wrapped by the prompt. It is
+a @dfn{delimited continuation}, because it is not the whole continuation of the
+program; rather, just the computation initiated by the call to
+@code{call-with-prompt}.
+
+The continuation is a procedure, and may be reinstated simply by invoking it,
+with any number of values. Here's where things get interesting, and complicated
+as well. Besides being described as delimited, continuations reified by prompts
+are also @dfn{composable}, because invoking a prompt-saved continuation composes
+that continuation with the current one.
+
+Imagine you have saved a continuation via call-with-prompt:
+
+@example
+(define cont
+  (call-with-prompt
+   ;; tag
+   'foo
+   ;; thunk
+   (lambda ()
+     (+ 34 (abort-to-prompt 'foo)))
+   ;; handler
+   (lambda (k) k)))
+@end example
+
+The resulting continuation is the addition of 34. It's as if you had written:
+
+@example
+(define cont
+  (lambda (x)
+    (+ 34 x)))
+@end example
+
+So, if we call @code{cont} with one numeric value, we get that number,
+incremented by 34:
+
+@example
+(cont 8)
+@result{} 42
+(* 2 (cont 8))
+@result{} 84
+@end example
+
+The last example illustrates what we mean when we say, "composes with the
+current continuation". We mean that there is a current continuation -- some
+remaining things to compute, like @code{(lambda (x) (* x 2))} -- and that
+calling the saved continuation doesn't wipe out the current continuation, it
+composes the saved continuation with the current one.
+
+We're belaboring the point here because traditional Scheme continuations, as
+discussed in the next section, aren't composable, and are actually less
+expressive than continuations captured by prompts. But there's a place for them
+both.
+
+Before moving on, we should mention that if the handler of a prompt is a
+@code{lambda} expression, and the first argument isn't referenced, an abort to
+that prompt will not cause a continuation to be reified. This can be an
+important efficiency consideration to keep in mind.
+
+
 @node Continuations
 @subsection Continuations
 @cindex continuations
@@ -467,13 +574,12 @@ with programs written in other languages, such as C, which do not know
 about continuations.  Basically continuations are captured by a block
 copy of the stack, and resumed by copying back.
 
-For this reason, generally continuations should be used only when
-there is no other simple way to achieve the desired result, or when
-the elegance of the continuation mechanism outweighs the need for
-performance.
+For this reason, continuations captured by @code{call/cc} should be used only
+when there is no other simple way to achieve the desired result, or when the
+elegance of the continuation mechanism outweighs the need for performance.
 
 Escapes upwards from loops or nested functions are generally best
-handled with exceptions (@pxref{Exceptions}).  Coroutines can be
+handled with prompts (@pxref{Prompts}).  Coroutines can be
 efficiently implemented with cooperating threads (a thread holds a
 full program stack but doesn't copy it around the way continuations
 do).
