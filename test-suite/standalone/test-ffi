@@ -168,6 +168,31 @@ exec guile -q -s "$0" "$@"
               '(0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0))
       (error "unexpected dest")))
 
+
+;;;
+;;; Global symbols.
+;;;
+
+(use-modules ((rnrs bytevector) #:select (utf8->string)))
+
+(if (defined? 'setlocale)
+    (setlocale LC_ALL "C"))
+
+(define global (dynamic-link))
+
+(define strerror
+  (make-foreign-function '* (dynamic-func "strerror" global)
+                         (list int)))
+
+(define strlen
+  (make-foreign-function size_t (dynamic-func "strlen" global)
+                         (list '*)))
+
+(let* ((ptr (strerror ENOENT))
+       (len (strlen ptr))
+       (bv  (foreign->bytevector ptr 'u8 0 len))
+       (str (utf8->string bv)))
+  (test #t (not (not (string-contains str "file")))))
 
 ;; Local Variables:
 ;; mode: scheme

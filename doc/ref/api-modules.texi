@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1029,7 +1029,7 @@ When using the low level procedures to do your dynamic linking, you have
 complete control over which library is loaded when and what gets done
 with it.
 
-@deffn {Scheme Procedure} dynamic-link library
+@deffn {Scheme Procedure} dynamic-link [library]
 @deffnx {C Function} scm_dynamic_link (library)
 Find the shared library denoted by @var{library} (a string) and link it
 into the running Guile application.  When everything works out, return a
@@ -1040,6 +1040,11 @@ dependent.
 Normally, @var{library} is just the name of some shared library file
 that will be searched for in the places where shared libraries usually
 reside, such as in @file{/usr/lib} and @file{/usr/local/lib}.
+
+When @var{library} is omitted, a @dfn{global symbol handle} is returned.  This
+handle provides access to the symbols available to the program at run-time,
+including those exported by the program itself and the shared libraries already
+loaded.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-object? obj

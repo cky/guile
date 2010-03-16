@@ -77,16 +77,23 @@ static void *
 sysdep_dynl_link (const char *fname, const char *subr)
 {
   lt_dlhandle handle;
-  handle = lt_dlopenext (fname);
+
+  if (fname != NULL)
+    handle = lt_dlopenext (fname);
+  else
+    /* Return a handle for the program as a whole.  */
+    handle = lt_dlopen (NULL);
+
   if (NULL == handle)
     {
       SCM fn;
       SCM msg;
 
-      fn = scm_from_locale_string (fname);
+      fn = fname != NULL ? scm_from_locale_string (fname) : SCM_BOOL_F;
       msg = scm_from_locale_string (lt_dlerror ());
       scm_misc_error (subr, "file: ~S, message: ~S", scm_list_2 (fn, msg));
     }
+
   return (void *) handle;
 }
 
@@ -155,7 +162,7 @@ dynl_obj_print (SCM exp, SCM port, scm_print_state *pstate)
 }
 
 
-SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0, 
+SCM_DEFINE (scm_dynamic_link, "dynamic-link", 0, 1, 0,
             (SCM filename),
 	    "Find the shared object (shared library) denoted by\n"
 	    "@var{filename} and link it into the running Guile\n"
@@ -165,18 +172,33 @@ SCM_DEFINE (scm_dynamic_link, "dynamic-link", 1, 0, 0,
 	    "Searching for object files is system dependent.  Normally,\n"
 	    "if @var{filename} does have an explicit directory it will\n"
 	    "be searched for in locations\n"
-	    "such as @file{/usr/lib} and @file{/usr/local/lib}.")
+	    "such as @file{/usr/lib} and @file{/usr/local/lib}.\n\n"
+	    "When @var{filename} is omitted, a @dfn{global symbol handle} is\n"
+	    "returned.  This handle provides access to the symbols\n"
+	    "available to the program at run-time, including those exported\n"
+	    "by the program itself and the shared libraries already loaded.\n")
 #define FUNC_NAME s_scm_dynamic_link
 {
   void *handle;
   char *file;
 
   scm_dynwind_begin (0);
-  file = scm_to_locale_string (filename);
-  scm_dynwind_free (file);
+
+  if (SCM_UNBNDP (filename))
+    file = NULL;
+  else
+    {
+      file = scm_to_locale_string (filename);
+      scm_dynwind_free (file);
+    }
+
   handle = sysdep_dynl_link (file, FUNC_NAME);
   scm_dynwind_end ();
-  SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj, SCM_UNPACK (filename), handle);
+
+  SCM_RETURN_NEWSMOB2 (scm_tc16_dynamic_obj,
+		       SCM_UNBNDP (filename)
+		       ? SCM_UNPACK (SCM_BOOL_F) : SCM_UNPACK (filename),
+		       handle);
 }
 #undef FUNC_NAME
 
