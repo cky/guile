@@ -10,6 +10,71 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.9 (since the 1.9.8 prerelease):
 
+** Faster dynamic binding with fluids
+
+`fluid-ref' and `fluid-set' now have dedicated bytecode instructions.
+Dynamic binding via `with-fluids' or `with-fluids*' no longer causes
+recursive VM invocations, nor closure allocation of the body. Unused
+fluid numbers are now garbage-collected.
+
+** Incompatible Tree-IL changes
+
+There were a number of incompatible changes made in the last cycle
+regarding Tree-IL, Guile's high-level intermediate language. See the
+change logs for details. If these affected you, clearly you need to
+submit your compiler patches upstream!
+
+** Prompts: Delimited, composable continuations
+
+Guile now has prompts as part of its primitive language. See "Prompts"
+in the manual, for more information.
+
+Expressions entered in at the REPL, or from the command line, are
+surrounded by a prompt with the default prompt tag.
+
+** Deprecated: `lazy-catch'
+
+`lazy-catch' was a form that captured the stack at the point of a
+`throw', but the dynamic state at the point of the `catch'. It was a bit
+crazy. Please change to use `catch', possibly with a throw-handler, or
+`with-throw-handler'.
+
+** `catch', `throw', `with-throw-handler' implemented in Scheme
+
+This doesn't have any end-user impact, but we're so proud of being able
+to implement these constructs in terms of prompts and fluids, while not
+changing the user API, that we need to mention it in the NEWS. Thanks
+for reading!
+
+** Current-module tracking in the syntax expander
+
+Expanding a `begin' expression that changed the current module via an
+`eval-when' wasn't working, due to a bug. This was fixed.
+
+** Backtraces at the REPL don't show REPL frames
+
+The 1.9 series has had overly verbose backtraces, which showed frames
+internal to the implementation of the REPL. This has been mostly fixed.
+Please report bugs to bug-guile@gnu.org.
+
+** Effective version bump to 2.0
+
+Guile has had an "effective version" for some time, typically generated
+as "MAJOR-VERSION.MINOR-VERSION". This release decouples the effective
+version from the actual version, setting it prematurely to 2.0. This
+should shake out any version-related distribution bugs.
+
+** Parallel installability fixes
+
+Guile now installs its header files to a effective-version-specific
+directory, and includes the effective version (e.g. 2.0) in the library
+name (e.g. libguile-2.0.so).
+
+This change should be transparent to users, who should detect Guile via
+the guile.m4 macro, or the guile-2.0.pc pkg-config file. It will allow
+parallel installs for multiple versions of Guile development
+environments.
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
@@ -422,6 +487,14 @@ actually used this, this behavior may be reinstated via the
 
 #; comments out an entire expression.  See SRFI-62 or the R6RS for more
 information.
+
+** Prompts: Delimited, composable continuations
+
+Guile now has prompts as part of its primitive language. See "Prompts"
+in the manual, for more information.
+
+Expressions entered in at the REPL, or from the command line, are
+surrounded by a prompt with the default prompt tag.
 
 ** `make-stack' with a tail-called procedural narrowing argument no longer
    works (with compiled procedures)
@@ -917,6 +990,13 @@ History library functions.
 Instead, use make-typed-array, list->typed-array, or array-type,
 respectively.
 
+** Deprecated: `lazy-catch'
+
+`lazy-catch' was a form that captured the stack at the point of a
+`throw', but the dynamic state at the point of the `catch'. It was a bit
+crazy. Please change to use `catch', possibly with a throw-handler, or
+`with-throw-handler'.
+
 ** Last but not least, the `λ' macro can be used in lieu of `lambda'
 
 * Changes to the C interface
@@ -1165,6 +1245,17 @@ macros should now require `guile-2.0' instead of `guile-1.8'.
 
 If $(libdir) is /usr/lib, for example, Guile will install its .go files
 to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
+
+** Parallel installability fixes
+
+Guile now installs its header files to a effective-version-specific
+directory, and includes the effective version (e.g. 2.0) in the library
+name (e.g. libguile-2.0.so).
+
+This change should be transparent to users, who should detect Guile via
+the guile.m4 macro, or the guile-2.0.pc pkg-config file. It will allow
+parallel installs for multiple versions of Guile development
+environments.
 
 ** Dynamically loadable extensions may be placed in a Guile-specific path
 
