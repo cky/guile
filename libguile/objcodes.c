@@ -258,7 +258,8 @@ scm_i_objcode_print (SCM objcode, SCM port, scm_print_state *pstate)
 void
 scm_bootstrap_objcodes (void)
 {
-  scm_c_register_extension ("libguile", "scm_init_objcodes",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_objcodes",
                             (scm_t_extension_init_func)scm_init_objcodes, NULL);
 }
 

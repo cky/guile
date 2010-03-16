@@ -1866,7 +1866,8 @@ scm_init_i18n ()
 void
 scm_bootstrap_i18n ()
 {
-  scm_c_register_extension ("libguile", "scm_init_i18n",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_i18n",
 			    (scm_t_extension_init_func) scm_init_i18n,
 			    NULL);
 

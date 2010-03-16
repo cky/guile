@@ -33,7 +33,8 @@
             make-foreign-function
             make-c-struct parse-c-struct))
 
-(load-extension "libguile" "scm_init_foreign")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_foreign")
 
 (define *writers*
   `((,float . ,bytevector-ieee-single-native-set!)

@@ -759,7 +759,8 @@ SCM scm_load_compiled_with_vm (SCM file)
 void
 scm_bootstrap_vm (void)
 {
-  scm_c_register_extension ("libguile", "scm_init_vm",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
 
   sym_vm_run = scm_from_locale_symbol ("vm-run");

@@ -43,7 +43,7 @@ gnulib_library = $(top_builddir)/lib/libgnu.la
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
-lib_LTLIBRARIES = libguile.la
+lib_LTLIBRARIES = libguile-@GUILE_EFFECTIVE_VERSION@.la
 bin_PROGRAMS = guile
 
 noinst_PROGRAMS = guile_filter_doc_snarfage gen-scmconfig
@@ -99,12 +99,12 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 
 guile_SOURCES = guile.c
 guile_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
-guile_LDADD = libguile.la
+guile_LDADD = libguile-@GUILE_EFFECTIVE_VERSION@.la
 guile_LDFLAGS = $(GUILE_CFLAGS)
 
-libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
+libguile_@GUILE_EFFECTIVE_VERSION@_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
-libguile_la_SOURCES =				\
+libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	alist.c					\
 	arbiters.c				\
 	array-handle.c				\
@@ -412,7 +412,7 @@ BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     version.h scmconfig.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
-EXTRA_libguile_la_SOURCES = _scm.h		\
+EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     memmove.c strerror.c			\
     dynl.c regex-posix.c			\
     filesys.c posix.c net_db.c socket.c		\
@@ -440,11 +440,11 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
 # vm instructions
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
-libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD =				\
+libguile_@GUILE_EFFECTIVE_VERSION@_la_DEPENDENCIES = @LIBLOBJS@
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LIBADD =				\
   @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP)	\
   $(LTLIBUNISTRING) $(LTLIBICONV) $(LTLIBINTL)
-libguile_la_LDFLAGS =											\
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =											\
   @LTLIBINTL@ $(LIBFFI_LIBS) $(INET_NTOP_LIB) $(INET_PTON_LIB)						\
   $(GETADDRINFO_LIB) $(HOSTENT_LIB) $(SERVENT_LIB)							\
   -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
@@ -453,7 +453,7 @@ libguile_la_LDFLAGS =											\
 
 if HAVE_LD_VERSION_SCRIPT
 
-libguile_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
 
 endif HAVE_LD_VERSION_SCRIPT
 

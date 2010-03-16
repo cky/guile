@@ -71,7 +71,8 @@
            utf8->string utf16->string utf32->string))
 
 
-(load-extension "libguile" "scm_init_bytevectors")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_bytevectors")
 
 (define-macro (endianness sym)
   (if (memq sym '(big little))

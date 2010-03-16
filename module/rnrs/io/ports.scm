@@ -52,7 +52,8 @@
            ;; binary output
            put-u8 put-bytevector))
 
-(load-extension "libguile" "scm_init_r6rs_ports")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_r6rs_ports")
 
 
 

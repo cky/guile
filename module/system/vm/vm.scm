@@ -31,7 +31,8 @@
             vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
             vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
 
-(load-extension "libguile" "scm_init_vm")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_vm")
 
 (define (vms:time stat) (vector-ref stat 0))
 (define (vms:clock stat) (vector-ref stat 1))

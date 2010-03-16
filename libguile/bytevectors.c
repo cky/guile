@@ -2223,7 +2223,8 @@ scm_bootstrap_bytevectors (void)
   scm_i_native_endianness = scm_from_locale_symbol ("little");
 #endif
 
-  scm_c_register_extension ("libguile", "scm_init_bytevectors",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_bytevectors",
 			    (scm_t_extension_init_func) scm_init_bytevectors,
 			    NULL);
 

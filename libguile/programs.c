@@ -390,7 +390,8 @@ scm_bootstrap_programs (void)
   /* arglist can't be snarfed, because snarfage is only loaded when (system vm
      program) is loaded. perhaps static-alloc will fix this. */
   sym_arglist = scm_from_locale_symbol ("arglist");
-  scm_c_register_extension ("libguile", "scm_init_programs",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_programs",
                             (scm_t_extension_init_func)scm_init_programs, NULL);
 }
 

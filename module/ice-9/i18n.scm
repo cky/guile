@@ -84,7 +84,8 @@
 
 
 (eval-when (eval load compile)
-  (load-extension "libguile" "scm_init_i18n"))
+  (load-extension (string-append "libguile-" (effective-version))
+                  "scm_init_i18n"))
 
 
 ;;;

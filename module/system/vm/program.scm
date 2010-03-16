@@ -44,7 +44,8 @@
             program-num-free-variables
             program-free-variable-ref program-free-variable-set!))
 
-(load-extension "libguile" "scm_init_programs")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_programs")
 
 (define (make-binding name boxed? index start end)
   (list name boxed? index start end))

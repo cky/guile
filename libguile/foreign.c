@@ -987,7 +987,8 @@ scm_init_foreign (void)
 void
 scm_register_foreign (void)
 {
-  scm_c_register_extension ("libguile", "scm_init_foreign",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_foreign",
                             (scm_t_extension_init_func)scm_init_foreign,
                             NULL);
   foreign_weak_refs = scm_make_weak_key_hash_table (SCM_UNDEFINED);
