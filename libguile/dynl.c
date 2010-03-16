@@ -220,8 +220,8 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 3, 1, 0,
 	    "shared object referred to by @var{dobj}.  The handle\n"
 	    "aliases a C value, and is declared to be of type\n"
             "@var{type}. Valid types are defined in the\n"
-            "@code{(system vm ffi)} module.\n\n"
-            "This facility works by asking the operating system for\n"
+            "@code{(system foreign)} module.\n\n"
+            "This facility works by asking the dynamic linker for\n"
             "the address of a symbol, then assuming that it aliases a\n"
             "value of a given type. Obviously, the user must be very\n"
             "careful to ensure that the value actually is of the\n"
@@ -237,22 +237,24 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 3, 1, 0,
 
   SCM_VALIDATE_STRING (1, name);
   t = scm_to_unsigned_integer (type, 0, SCM_FOREIGN_TYPE_LAST);
-  /*fixme* GC-problem */
   SCM_VALIDATE_SMOB (SCM_ARG3, dobj, dynamic_obj);
-  if (DYNL_HANDLE (dobj) == NULL) {
-    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
-  } else {
-    char *chars;
 
-    scm_dynwind_begin (0);
-    chars = scm_to_locale_string (name);
-    scm_dynwind_free (chars);
-    val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
-    scm_dynwind_end ();
-    return scm_take_foreign_pointer (t, val,
-                                     SCM_UNBNDP (len) ? 0 : scm_to_size_t (len),
-                                     NULL);
-  }
+  if (DYNL_HANDLE (dobj) == NULL)
+    SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
+  else
+    {
+      char *chars;
+
+      scm_dynwind_begin (0);
+      chars = scm_to_locale_string (name);
+      scm_dynwind_free (chars);
+      val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
+      scm_dynwind_end ();
+
+      return scm_take_foreign_pointer (t, val,
+				       SCM_UNBNDP (len) ? 0 : scm_to_size_t (len),
+				       NULL);
+    }
 }
 #undef FUNC_NAME
 
