@@ -656,10 +656,12 @@ SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
      one for the return val */
   cif_len = (ROUND_UP (cif_len, alignof(ffi_type))
              + (nargs + n_struct_elts + 1)*sizeof(ffi_type));
-  
-  mem = scm_malloc (cif_len);
-  scm_cif = scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID, mem, cif_len, free);
-  cif = (ffi_cif*)mem;
+
+  mem = scm_gc_malloc_pointerless (cif_len, "foreign");
+  scm_cif = scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID, mem,
+				      cif_len, NULL);
+  cif = (ffi_cif *) mem;
+
   /* reuse cif_len to walk through the mem */
   cif_len = ROUND_UP (sizeof (ffi_cif), alignof(void*));
   type_ptrs = (ffi_type**)(mem + cif_len);
@@ -910,10 +912,10 @@ pack (ffi_type *type, void *loc)
       return scm_from_int64 (*(scm_t_int64*)loc);
     case FFI_TYPE_STRUCT:
       {
-        void *mem = scm_malloc (type->size);
+        void *mem = scm_gc_malloc_pointerless (type->size, "foreign");
         memcpy (mem, loc, type->size);
         return scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID,
-                                         mem, type->size, free);
+                                         mem, type->size, NULL);
       }
     case FFI_TYPE_POINTER:
       return scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID,
