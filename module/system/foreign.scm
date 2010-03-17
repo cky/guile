@@ -25,6 +25,7 @@
             uint16 int16
             uint32 int32
             uint64 int64
+            %null-pointer
 
             sizeof alignof
 

@@ -51,6 +51,14 @@ SCM_SYMBOL (sym_size_t, "size_t");
 /* that's for pointers, you know. */
 SCM_SYMBOL (sym_asterisk, "*");
 
+SCM_SYMBOL (sym_null, "%null-pointer");
+
+/* The cell representing the null pointer.  */
+static const scm_t_bits null_pointer[2] =
+  {
+    scm_tc7_foreign | (SCM_FOREIGN_TYPE_VOID << 8UL),
+    0
+  };
 
 static SCM cif_to_procedure (SCM cif, SCM func_ptr);
 
@@ -231,7 +239,10 @@ SCM_DEFINE (scm_foreign_to_bytevector, "foreign->bytevector", 1, 3, 0,
 
   SCM_VALIDATE_FOREIGN_TYPED (1, foreign, VOID);
   ptr = SCM_FOREIGN_POINTER (foreign, scm_t_int8);
-  
+
+  if (SCM_UNLIKELY (ptr == NULL))
+    scm_misc_error (FUNC_NAME, "null pointer dereference", SCM_EOL);
+
   if (SCM_UNBNDP (uvec_type))
     btype = SCM_ARRAY_ELEMENT_TYPE_VU8;
   else
@@ -1039,6 +1050,8 @@ scm_init_foreign (void)
 # error unsupported sizeof (size_t)
 #endif
 	      );
+
+  scm_define (sym_null, PTR2SCM (&null_pointer));
 }
 
 void
