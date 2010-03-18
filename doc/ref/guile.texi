@@ -295,7 +295,8 @@ available through both Scheme and C interfaces.
 * Simple Data Types::           Numbers, strings, booleans and so on.
 * Compound Data Types::         Data types for holding other data.
 * Smobs::                       Defining new data types in C.
-* Procedures and Macros::       Procedures and macros.
+* Procedures::                  Procedures.
+* Macros::                      Extending the syntax of Scheme.
 * Utility Functions::           General utility functions.
 * Binding Constructs::          Definitions and variable bindings.
 * Control Mechanisms::          Controlling the flow of program execution.
@@ -319,6 +320,7 @@ available through both Scheme and C interfaces.
 @include api-compound.texi
 @include api-smobs.texi
 @include api-procedures.texi
+@include api-macros.texi
 @include api-utility.texi
 @include api-binding.texi
 @include api-control.texi

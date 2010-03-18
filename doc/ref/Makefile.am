@@ -35,6 +35,7 @@ guile_TEXINFOS = preface.texi			\
 		 scheme-ideas.texi		\
 		 api-data.texi			\
 		 api-procedures.texi		\
+		 api-macros.texi		\
 		 api-utility.texi		\
 		 api-binding.texi		\
 		 api-control.texi		\

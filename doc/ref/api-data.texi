@@ -5860,7 +5860,7 @@ Equivalent to @code{scm_symbol_to_keyword (scm_from_locale_symbol
 @subsection ``Functionality-Centric'' Data Types
 
 Procedures and macros are documented in their own chapter: see
-@ref{Procedures and Macros}.
+@ref{Procedures} and @ref{Macros}.
 
 Variable objects are documented as part of the description of Guile's
 module system: see @ref{Variables}.
