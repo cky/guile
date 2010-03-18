@@ -230,14 +230,19 @@
                   (lambda (port)
                     (put-bytevector port bv)))))))
 
-  (pass-if-exception "put-bytevector with wrong-encoding string port"
-    exception:encoding-error
+  (pass-if "put-bytevector with wrong-encoding string port"
     (let* ((str "hello, world")
            (bv  (string->utf16 str)))
-      (with-fluids ((%default-port-encoding "UTF-32"))
-        (call-with-output-string
-          (lambda (port)
-            (put-bytevector port bv)))))))
+      (catch 'encoding-error
+        (lambda ()
+          (with-fluids ((%default-port-encoding "UTF-32"))
+            (call-with-output-string
+              (lambda (port)
+                (put-bytevector port bv)))))
+        (lambda (key subr message errno from to faulty-bv)
+          (and (bytevector=? faulty-bv bv)
+               (string=? to "UTF-32")
+               (string? (strerror errno))))))))
 
 
 (with-test-prefix "7.2.7 Input Ports"

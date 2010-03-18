@@ -1393,9 +1393,21 @@ scm_is_string (SCM obj)
 
 SCM_SYMBOL (scm_encoding_error_key, "encoding-error");
 static void
-scm_encoding_error (const char *subr, const char *message, SCM args)
+scm_encoding_error (const char *subr, int err, const char *message,
+		    const char *from, const char *to, SCM string_or_bv)
 {
-  scm_error (scm_encoding_error_key, subr, message, args, SCM_BOOL_F);
+  /* Raise an exception that conveys all the information needed to debug the
+     problem.  Only perform locale conversions that are safe; in particular,
+     don't try to display STRING_OR_BV when it's a string since converting it to
+     the output locale may fail.  */
+  scm_throw (scm_encoding_error_key,
+	     scm_list_n (scm_from_locale_string (subr),
+			 scm_from_locale_string (message),
+			 scm_from_int (err),
+			 scm_from_locale_string (from),
+			 scm_from_locale_string (to),
+			 string_or_bv,
+			 SCM_UNDEFINED));
 }
 
 SCM
@@ -1427,23 +1439,20 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
                                                 NULL,
                                                 NULL, &u32len);
 
-  if (u32 == NULL)
+  if (SCM_UNLIKELY (u32 == NULL))
     {
-      if (errno == ENOMEM)
-        scm_memory_error ("locale string conversion");
-      else
-        {
-          /* There are invalid sequences in the input string.  */
-          SCM errstr;
-          char *dst;
-          errstr = scm_i_make_string (len, &dst);
-          memcpy (dst, str, len);
-          scm_encoding_error (NULL,
-			      "input locale conversion error from ~s: ~s",
-			      scm_list_2 (scm_from_locale_string (encoding),
-					  errstr));
-          scm_remember_upto_here_1 (errstr);
-        }
+      /* Raise an error and pass the raw C string as a bytevector to the `throw'
+	 handler.  */
+      SCM bv;
+      signed char *buf;
+
+      buf = scm_gc_malloc_pointerless (len, "bytevector");
+      memcpy (buf, str, len);
+      bv = scm_c_take_bytevector (buf, len);
+
+      scm_encoding_error (__func__, errno,
+			  "input locale conversion error",
+			  encoding, "UTF-32", bv);
     }
 
   i = 0;
@@ -1759,8 +1768,9 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                          &buf, &len);
 
       if (ret != 0)
-        scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
-                            scm_list_2 (scm_from_locale_string (enc), str));
+        scm_encoding_error (__func__, errno,
+			    "cannot convert to output locale",
+			    "ISO-8859-1", enc, str);
     }
   else
     {
@@ -1771,8 +1781,9 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                                   NULL,
                                   NULL, &len);
       if (buf == NULL)
-        scm_encoding_error (NULL, "cannot convert to output locale ~s: \"~s\"",
-                            scm_list_2 (scm_from_locale_string (enc), str));
+        scm_encoding_error (__func__, errno,
+			    "cannot convert to output locale",
+			    "UTF-32", enc, str);
     }
   if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
     {

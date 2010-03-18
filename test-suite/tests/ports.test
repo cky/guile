@@ -335,14 +335,20 @@
                   (lambda ()
                     (display str)))))))
 
-  (pass-if-exception "wrong encoding"
-    exception:encoding-error
+  (pass-if "wrong encoding"
     (let ((str "ĉu bone?"))
-      ;; Latin-1 cannot represent ‘ĉ’.
-      (with-fluids ((%default-port-encoding "ISO-8859-1"))
-        (with-output-to-string
-          (lambda ()
-            (display str)))))))
+      (catch 'encoding-error
+        (lambda ()
+          ;; Latin-1 cannot represent ‘ĉ’.
+          (with-fluids ((%default-port-encoding "ISO-8859-1"))
+            (with-output-to-string
+              (lambda ()
+                (display str)))))
+        (lambda (key subr message errno from to faulty-str)
+          (and (eq? faulty-str str)
+               (string=? from "UTF-32")
+               (string=? to "ISO-8859-1")
+               (string? (strerror errno))))))))
 
 (with-test-prefix "call-with-output-string"
 
