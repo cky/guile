@@ -1,4 +1,4 @@
-# locale_h.m4 serial 7
+# locale_h.m4 serial 9
 dnl Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -79,11 +79,14 @@ AC_DEFUN([gl_LOCALE_MODULE_INDICATOR],
   dnl Use AC_REQUIRE here, so that the default settings are expanded once only.
   AC_REQUIRE([gl_LOCALE_H_DEFAULTS])
   GNULIB_[]m4_translit([$1],[abcdefghijklmnopqrstuvwxyz./-],[ABCDEFGHIJKLMNOPQRSTUVWXYZ___])=1
+  dnl Define it also as a C macro, for the benefit of the unit tests.
+  gl_MODULE_INDICATOR([$1])
 ])
 
 AC_DEFUN([gl_LOCALE_H_DEFAULTS],
 [
   GNULIB_DUPLOCALE=0;  AC_SUBST([GNULIB_DUPLOCALE])
   dnl Assume proper GNU behavior unless another module says otherwise.
+  HAVE_DUPLOCALE=1;    AC_SUBST([HAVE_DUPLOCALE])
   REPLACE_DUPLOCALE=0; AC_SUBST([REPLACE_DUPLOCALE])
 ])
