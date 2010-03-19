@@ -2749,11 +2749,14 @@
     (define read-file
       (lambda (fn k)
         (let ((p (open-input-file fn)))
-          (let f ((x (read p)))
+          (let f ((x (read p))
+                  (result '()))
             (if (eof-object? x)
-                (begin (close-input-port p) '())
-                (cons (datum->syntax k x)
-                      (f (read p))))))))
+                (begin
+                  (close-input-port p)
+                  (reverse result))
+                (f (read p)
+                   (cons (datum->syntax k x) result)))))))
     (syntax-case x ()
       ((k filename)
        (let ((fn (syntax->datum #'filename)))
