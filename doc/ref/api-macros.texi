@@ -734,31 +734,125 @@ them.
 @node Identifier Macros
 @subsection Identifier Macros
 
+When the syntax expander sees a form in which the first element is a macro, the
+whole form gets passed to the macro's syntax transformer. One may visualize this
+as:
+
+@example
+(define-syntax foo foo-transformer)
+(foo @var{arg}...)
+;; expands via
+(foo-transformer #'(foo @var{arg}...))
+@end example
+
+If, on the other hand, a macro is referenced in some other part of a form, the
+syntax transformer is invoked with only the macro reference, not the whole form.
+
+@example
+(define-syntax foo foo-transformer)
+foo
+;; expands via
+(foo-transformer #'foo)
+@end example
+
+This allows bare identifier references to be replaced programmatically via a
+macro. @code{syntax-rules} provides some syntax to effect this transformation
+more easily.
+
+@deffn {Syntax} identifier-syntax exp
+Returns a macro transformer that will replace occurences of the macro with
+@var{exp}.
+@end deffn
+
+For example, if you are importing external code written in terms of @code{fx+},
+the fixnum addition operator, but Guile doesn't have @code{fx+}, you may use the
+following to replace @code{fx+} with @code{+}:
+
+@example
+(define-syntax fx+ (identifier-syntax +))
+@end example
+
+Later versions of the @code{psyntax} @code{syntax-case} expander, on which
+Guile's syntax expander is based, include @code{identifier-syntax} support for
+recognizing identifiers on the left-hand side of a @code{set!} expression as
+well. Guile should port that code to its expander.
+
 @node Eval When
 @subsection Eval-when
+
+As @code{syntax-case} macros have the whole power of Scheme available to them,
+they present a problem regarding time: when a macro runs, what parts of the
+program are available for the macro to use?
+
+The default answer to this question is that when you import a module (via
+@code{define-module} or @code{use-modules}), that module will be loaded up at
+expansion-time, as well as at run-time. Additionally, top-level syntactic
+definitions within one compilation unit made by @code{define-syntax} are also
+evaluated at expansion time, in the order that they appear in the compilation
+unit (file).
+
+But if a syntactic definition needs to call out to a normal procedure at
+expansion-time, it might well need need special declarations to indicate that
+the procedure should be made available at expansion-time.
+
+For example, the following code will work at a REPL, but not in a file:
+
+@example
+;; incorrect
+(use-modules (srfi srfi-19))
+(define (date) (date->string (current-date)))
+(define-syntax %date (identifier-syntax (date)))
+(define *compilation-date* %date)
+@end example
+
+It works at a REPL because the expressions are evaluated one-by-one, in order,
+but if placed in a file, the expressions are expanded one-by-one, but not
+evaluated until the compiled file is loaded.
+
+The fix is to use @code{eval-when}.
+
+@example
+;; correct: using eval-when
+(use-modules (srfi srfi-19))
+(eval-when (compile load eval)
+  (define (date) (date->string (current-date))))
+(define-syntax %date (identifier-syntax (date)))
+(define *compilation-date* %date)
+@end example
+
+@deffn {Syntax} eval-when conditions exp...
+Evaluate @var{exp...} under the given @var{conditions}. Valid conditions include
+@code{eval}, @code{load}, and @code{compile}. If you need to use
+@code{eval-when}, use it with all three conditions, as in the above example.
+Other uses of @code{eval-when} may void your warranty or poison your cat.
+@end deffn
 
 @node Internal Macros
 @subsection Internal Macros
 
-
-Internally, Guile represents macros using a disjoint type.
-
 @deffn {Scheme Procedure} make-syntax-transformer name type binding
+Construct a syntax transformer object. This is part of Guile's low-level support
+for syntax-case.
 @end deffn
 
 @deffn {Scheme Procedure} macro? obj
 @deffnx {C Function} scm_macro_p (obj)
-Return @code{#t} if @var{obj} is a regular macro, a memoizing macro, a
-syntax transformer, or a syntax-case macro.
+Return @code{#t} iff @var{obj} is a syntax transformer.
+
+Note that it's a bit difficult to actually get a macro as a first-class object;
+simply naming it (like @code{case}) will produce a syntax error. But it is
+possible to get these objects using @code{module-ref}:
+
+@example
+(macro? (module-ref (current-module) 'case))
+@result{} #t
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} macro-type m
 @deffnx {C Function} scm_macro_type (m)
-Return one of the symbols @code{syntax}, @code{macro},
-@code{macro!}, or @code{syntax-case}, depending on whether
-@var{m} is a syntax transformer, a regular macro, a memoizing
-macro, or a syntax-case macro, respectively.  If @var{m} is
-not a macro, @code{#f} is returned.
+Return the @var{type} that was given when @var{m} was constructed, via
+@code{make-syntax-transformer}.
 @end deffn
 
 @deffn {Scheme Procedure} macro-name m
@@ -766,14 +860,16 @@ not a macro, @code{#f} is returned.
 Return the name of the macro @var{m}.
 @end deffn
 
-@deffn {Scheme Procedure} macro-transformer m
-@deffnx {C Function} scm_macro_transformer (m)
-Return the transformer of the macro @var{m}.
-@end deffn
-
 @deffn {Scheme Procedure} macro-binding m
 @deffnx {C Function} scm_macro_binding (m)
 Return the binding of the macro @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} macro-transformer m
+@deffnx {C Function} scm_macro_transformer (m)
+Return the transformer of the macro @var{m}. This will return a procedure, for
+which one may ask the docstring. That's the whole reason this section is
+documented. Actually a part of the result of @code{macro-binding}.
 @end deffn
 
 
