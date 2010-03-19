@@ -1,6 +1,6 @@
 ;;; ECMAScript for Guile
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
 (define-module (language ecmascript tokenize)
   #:use-module (ice-9 rdelim)
   #:use-module ((srfi srfi-1) #:select (unfold-right))
+  #:use-module (system base lalr)
   #:export (next-token make-tokenizer make-tokenizer/1 tokenize tokenize/1))
 
 (define (syntax-error message . args)
@@ -75,8 +76,8 @@
           (lp (read-char port))))))
      (div?
       (case c1
-        ((#\=) (read-char port) `(/= . #f))
-        (else `(/ . #f))))
+        ((#\=) (read-char port) (make-lexical-token '/= #f #f))
+        (else (make-lexical-token '/ #f #f))))
      (else
       (read-regexp port)))))
 
@@ -95,7 +96,9 @@
                              (char-numeric? c)
                              (char=? c #\$)
                              (char=? c #\_))))
-                `(RegexpLiteral . (,(string-append head str) . ,(reverse flags)))
+                (make-lexical-token 'RegexpLiteral #f
+                                    (cons (string-append head str)
+                                          (reverse flags)))
                 (begin (read-char port)
                        (lp (peek-char port) (cons c flags))))))
          ((char=? terminator #\\)
@@ -216,7 +219,7 @@
     ("import" . import)
     ("public" . public)))
 
-(define (read-identifier port)
+(define (read-identifier port loc)
   (let lp ((c (peek-char port)) (chars '()))
     (if (or (eof-object? c)
             (not (or (char-alphabetic? c)
@@ -225,10 +228,11 @@
                      (char=? c #\_))))
         (let ((word (list->string (reverse chars))))
           (cond ((assoc-ref *keywords* word)
-                 => (lambda (x) `(,x . #f)))
+                 => (lambda (x) (make-lexical-token x loc #f)))
                 ((assoc-ref *future-reserved-words* word)
                  (syntax-error "word is reserved for the future, dude." word))
-                (else `(Identifier . ,(string->symbol word)))))
+                (else (make-lexical-token 'Identifier loc
+                                          (string->symbol word)))))
         (begin (read-char port)
                (lp (peek-char port) (cons c chars))))))
 
@@ -368,7 +372,7 @@
                            (else
                             (lp (cons (list (string-ref (caar puncs) 0) #f) nodes)
                                 puncs))))))
-    (lambda (port)
+    (lambda (port loc)
       (let lp ((c (peek-char port)) (tree punc-tree) (candidate #f))
         (cond
          ((assv-ref tree c)
@@ -376,15 +380,17 @@
                (read-char port)
                (lp (peek-char port) (cdr node-tail) (car node-tail))))
          (candidate
-          `(,candidate . #f))
+          (make-lexical-token candidate loc #f))
          (else
           (syntax-error "bad syntax: character not allowed" c)))))))
 
 (define (next-token port div?)
-  (let ((c (peek-char port))
-        (props `((filename . ,(port-filename port))
-                 (line . ,(port-line port))
-                 (column . ,(port-column port)))))
+  (let ((c   (peek-char port))
+        (loc (make-source-location (port-filename port)
+                                   (port-line port)
+                                   (port-column port)
+                                   (false-if-exception (seek port 0 SEEK_CUR))
+                                   #f)))
     (let ((tok 
            (case c
              ((#\ht #\vt #\np #\space)
@@ -400,7 +406,7 @@
               (read-slash port div?))
              ((#\" #\')
                                         ; string literal
-              `(StringLiteral . ,(read-string port)))
+              (make-lexical-token 'StringLiteral loc (read-string port)))
              (else
               (cond
                ((eof-object? c)
@@ -409,15 +415,14 @@
                     (char=? c #\$)
                     (char=? c #\_))
                 ;; reserved word or identifier
-                (read-identifier port))
+                (read-identifier port loc))
                ((char-numeric? c)
                 ;; numeric -- also accept . FIXME, requires lookahead
-                `(NumericLiteral . ,(read-numeric port)))
+                (make-lexical-token 'NumericLiteral loc (read-numeric port)))
                (else
                 ;; punctuation
-                (read-punctuation port)))))))
-      (if (pair? tok)
-          (set-source-properties! tok props))
+                (read-punctuation port loc)))))))
+
       tok)))
 
 (define (make-tokenizer port)
@@ -435,31 +440,32 @@
       (if eoi?
           '*eoi*
           (let ((tok (next-token port div?)))
-            (case (if (pair? tok) (car tok) tok)
+            (case (if (lexical-token? tok) (lexical-token-category tok) tok)
               ((lparen)
-               (set! stack (cons 'lparen stack)))
+               (set! stack (make-lexical-token 'lparen #f stack)))
               ((rparen)
                (if (and (pair? stack) (eq? (car stack) 'lparen))
                    (set! stack (cdr stack))
                    (syntax-error "unexpected right parenthesis")))
               ((lbracket)
-               (set! stack (cons 'lbracket stack)))
+               (set! stack (make-lexical-token 'lbracket #f stack)))
               ((rbracket)
                (if (and (pair? stack) (eq? (car stack) 'lbracket))
                    (set! stack (cdr stack))
                    (syntax-error "unexpected right bracket" stack)))
               ((lbrace)
-               (set! stack (cons 'lbrace stack)))
+               (set! stack (make-lexical-token 'lbrace #f stack)))
               ((rbrace)
                (if (and (pair? stack) (eq? (car stack) 'lbrace))
                    (set! stack (cdr stack))
                    (syntax-error "unexpected right brace" stack)))
               ((semicolon)
                (set! eoi? (null? stack))))
-            (set! div? (and (pair? tok)
-                            (or (eq? (car tok) 'Identifier)
-                                (eq? (car tok) 'NumericLiteral)
-                                (eq? (car tok) 'StringLiteral))))
+            (set! div? (and (lexical-token? tok)
+                            (let ((cat (lexical-token-category tok)))
+                              (or (eq? cat 'Identifier)
+                                  (eq? cat 'NumericLiteral)
+                                  (eq? cat 'StringLiteral)))))
             tok)))))
 
 (define (tokenize port)

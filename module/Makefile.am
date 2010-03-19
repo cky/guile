@@ -117,7 +117,6 @@ VALUE_LANG_SOURCES =				\
   language/value/spec.scm
 
 ECMASCRIPT_LANG_SOURCES =			\
-  language/ecmascript/parse-lalr.scm		\
   language/ecmascript/tokenize.scm		\
   language/ecmascript/parse.scm			\
   language/ecmascript/impl.scm			\
