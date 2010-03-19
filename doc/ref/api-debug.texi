@@ -256,6 +256,17 @@ If the @code{positions} reader option is enabled, each parenthesized
 expression will have values set for the @code{filename}, @code{line} and
 @code{column} properties.
 
+If you're stuck with defmacros (@pxref{Defmacros}), and want to preserve
+source information, the following helper function might be useful to
+you:
+
+@deffn {Scheme Procedure} cons-source xorig x y
+@deffnx {C Function} scm_cons_source (xorig, x, y)
+Create and return a new pair whose car and cdr are @var{x} and @var{y}.
+Any source properties associated with @var{xorig} are also associated
+with the new pair.
+@end deffn
+
 
 @node Starting a New Stack
 @subsubsection Starting a New Stack
