@@ -1,6 +1,6 @@
 ;;; Guile Scheme specification
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,6 @@
   (save-module-excursion
    (lambda ()
      (set-current-module e)
-     (let* ((x (sc-expand x 'c '(compile load eval)))
+     (let* ((x (macroexpand x 'c '(compile load eval)))
             (cenv (current-module)))
        (values x cenv cenv)))))

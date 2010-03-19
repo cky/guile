@@ -45,7 +45,7 @@
 ;;; Scheme, please read the notes below carefully.
 
 
-;;; This file defines the syntax-case expander, sc-expand, and a set
+;;; This file defines the syntax-case expander, macroexpand, and a set
 ;;; of associated syntactic forms and procedures.  Of these, the
 ;;; following are documented in The Scheme Programming Language,
 ;;; Second Edition (R. Kent Dybvig, Prentice Hall, 1996).  Most are
@@ -73,8 +73,8 @@
 
 ;;; The remaining exports are listed below:
 ;;;
-;;;   (sc-expand datum)
-;;;      if datum represents a valid expression, sc-expand returns an
+;;;   (macroexpand datum)
+;;;      if datum represents a valid expression, macroexpand returns an
 ;;;      expanded version of datum in a core language that includes no
 ;;;      syntactic abstractions.  The core language includes begin,
 ;;;      define, if, lambda, letrec, quote, and set!.
@@ -101,9 +101,9 @@
 ;;; eval will not be invoked during the loading of psyntax.pp.  After
 ;;; psyntax.pp has been loaded, the expansion of any macro definition,
 ;;; whether local or global, will result in a call to eval.  If, however,
-;;; sc-expand has already been registered as the expander to be used
+;;; macroexpand has already been registered as the expander to be used
 ;;; by eval, and eval accepts one argument, nothing special must be done
-;;; to support the "noexpand" flag, since it is handled by sc-expand.
+;;; to support the "noexpand" flag, since it is handled by macroexpand.
 ;;;
 ;;; (gensym)
 ;;; returns a unique symbol each time it's called
@@ -111,7 +111,7 @@
 ;;; When porting to a new Scheme implementation, you should define the
 ;;; procedures listed above, load the expanded version of psyntax.ss
 ;;; (psyntax.pp, which should be available whereever you found
-;;; psyntax.ss), and register sc-expand as the current expander (how
+;;; psyntax.ss), and register macroexpand as the current expander (how
 ;;; you do this depends upon your implementation of Scheme).  You may
 ;;; change the hooks and constructors defined toward the beginning of
 ;;; the code below, but to avoid bootstrapping problems, do so only
@@ -2395,7 +2395,7 @@
                                                    (list (chi #'val r empty-wrap mod))))
                               (syntax-violation 'syntax-case "invalid literals list" e))))))))
 
-;;; The portable sc-expand seeds chi-top's mode m with 'e (for
+;;; The portable macroexpand seeds chi-top's mode m with 'e (for
 ;;; evaluating) and esew (which stands for "eval syntax expanders
 ;;; when") with '(eval).  In Chez Scheme, m is set to 'c instead of e
 ;;; if we are compiling a file, and esew is set to
@@ -2404,7 +2404,7 @@
 ;;; syntactic definitions are evaluated immediately after they are
 ;;; expanded, and the expanded definitions are also residualized into
 ;;; the object file if we are compiling a file.
-  (set! sc-expand
+  (set! macroexpand
         (lambda (x . rest)
           (if (and (pair? x) (equal? (car x) noexpand))
               (cadr x)
@@ -2452,7 +2452,7 @@
           (arg-check (lambda (x) (or (not x) (string? x) (symbol? x)))
                      who 'syntax-violation)
           (arg-check string? message 'syntax-violation)
-          (scm-error 'syntax-error 'sc-expand
+          (scm-error 'syntax-error 'macroexpand
                      (string-append
                       (if who "~a: " "")
                       "~a "

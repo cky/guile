@@ -13,7 +13,7 @@
             (close-port in))
           (begin
             (pretty-print (tree-il->scheme
-                           (sc-expand x 'c '(compile load eval)))
+                           (macroexpand x 'c '(compile load eval)))
                           out)
             (newline out)
             (loop (read in))))))

@@ -357,9 +357,9 @@ If there is no handler at all, Guile prints an error and then exits."
 (define generate-temporaries #f)
 (define bound-identifier=? #f)
 (define free-identifier=? #f)
-(define sc-expand #f)
+(define macroexpand #f)
 
-;; $sc-expand is an implementation detail of psyntax. It is used by
+;; $sc-dispatch is an implementation detail of psyntax. It is used by
 ;; expanded macros, to dispatch an input against a set of patterns.
 (define $sc-dispatch #f)
 
@@ -368,7 +368,7 @@ If there is no handler at all, Guile prints an error and then exits."
 
 ;; %pre-modules-transformer is the Scheme expander from now until the
 ;; module system has booted up.
-(define %pre-modules-transformer sc-expand)
+(define %pre-modules-transformer macroexpand)
 
 (define-syntax and
   (syntax-rules ()
@@ -3723,7 +3723,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; (define (syncase exp)
 ;;   (with-fluids ((expansion-eval-closure
 ;;               (module-eval-closure (current-module))))
-;;     (deannotate/source-properties (sc-expand (annotate exp)))))
+;;     (deannotate/source-properties (macroexpand (annotate exp)))))
 
 ;; FIXME:
 (module-use! the-scm-module (resolve-interface '(srfi srfi-4)))
