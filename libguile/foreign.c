@@ -844,105 +844,106 @@ cif_to_procedure (SCM cif, SCM func_ptr)
   return ret;
 }
 
+/* Set *LOC to the foreign representation of X with TYPE.  */
 static void
-unpack (ffi_type *type, void *loc, SCM x)
+unpack (const ffi_type *type, void *loc, SCM x)
 {
   switch (type->type)
     {
     case FFI_TYPE_FLOAT:
-      *(float*)loc = scm_to_double (x);
+      *(float *) loc = scm_to_double (x);
       break;
     case FFI_TYPE_DOUBLE:
-      *(double*)loc = scm_to_double (x);
+      *(double *) loc = scm_to_double (x);
       break;
     case FFI_TYPE_UINT8:
-      *(scm_t_uint8*)loc = scm_to_uint8 (x);
+      *(scm_t_uint8 *) loc = scm_to_uint8 (x);
       break;
     case FFI_TYPE_SINT8:
-      *(scm_t_int8*)loc = scm_to_int8 (x);
+      *(scm_t_int8 *) loc = scm_to_int8 (x);
       break;
     case FFI_TYPE_UINT16:
-      *(scm_t_uint16*)loc = scm_to_uint16 (x);
+      *(scm_t_uint16 *) loc = scm_to_uint16 (x);
       break;
     case FFI_TYPE_SINT16:
-      *(scm_t_int16*)loc = scm_to_int16 (x);
+      *(scm_t_int16 *) loc = scm_to_int16 (x);
       break;
     case FFI_TYPE_UINT32:
-      *(scm_t_uint32*)loc = scm_to_uint32 (x);
+      *(scm_t_uint32 *) loc = scm_to_uint32 (x);
       break;
     case FFI_TYPE_SINT32:
-      *(scm_t_int32*)loc = scm_to_int32 (x);
+      *(scm_t_int32 *) loc = scm_to_int32 (x);
       break;
     case FFI_TYPE_UINT64:
-      *(scm_t_uint64*)loc = scm_to_uint64 (x);
+      *(scm_t_uint64 *) loc = scm_to_uint64 (x);
       break;
     case FFI_TYPE_SINT64:
-      *(scm_t_int64*)loc = scm_to_int64 (x);
+      *(scm_t_int64 *) loc = scm_to_int64 (x);
       break;
     case FFI_TYPE_STRUCT:
       if (!SCM_FOREIGN_TYPED_P (x, VOID))
-        scm_wrong_type_arg_msg ("foreign-call", 0, x,
-                                "foreign void pointer");
+	scm_wrong_type_arg_msg ("foreign-call", 0, x, "foreign void pointer");
       if (SCM_FOREIGN_LEN (x) && SCM_FOREIGN_LEN (x) != type->size)
-        scm_wrong_type_arg_msg ("foreign-call", 0, x,
-                                "foreign void pointer of correct length");
+	scm_wrong_type_arg_msg ("foreign-call", 0, x,
+				"foreign void pointer of correct length");
       memcpy (loc, SCM_FOREIGN_POINTER (x, void), type->size);
       break;
     case FFI_TYPE_POINTER:
       if (!SCM_FOREIGN_TYPED_P (x, VOID))
-        scm_wrong_type_arg_msg ("foreign-call", 0, x,
-                                "foreign void pointer");
-      *(void**)loc = SCM_FOREIGN_POINTER (x, void);
+	scm_wrong_type_arg_msg ("foreign-call", 0, x, "foreign void pointer");
+      *(void **) loc = SCM_FOREIGN_POINTER (x, void);
       break;
     default:
       abort ();
     }
 }
 
+/* Return a Scheme representation of the foreign value at LOC of type TYPE.  */
 static SCM
-pack (ffi_type *type, void *loc)
+pack (const ffi_type * type, const void *loc)
 {
   switch (type->type)
     {
     case FFI_TYPE_VOID:
       return SCM_UNSPECIFIED;
     case FFI_TYPE_FLOAT:
-      return scm_from_double (*(float*)loc);
+      return scm_from_double (*(float *) loc);
     case FFI_TYPE_DOUBLE:
-      return scm_from_double (*(double*)loc);
+      return scm_from_double (*(double *) loc);
     case FFI_TYPE_UINT8:
-      return scm_from_uint8 (*(scm_t_uint8*)loc);
+      return scm_from_uint8 (*(scm_t_uint8 *) loc);
     case FFI_TYPE_SINT8:
-      return scm_from_int8 (*(scm_t_int8*)loc);
+      return scm_from_int8 (*(scm_t_int8 *) loc);
     case FFI_TYPE_UINT16:
-      return scm_from_uint16 (*(scm_t_uint16*)loc);
+      return scm_from_uint16 (*(scm_t_uint16 *) loc);
     case FFI_TYPE_SINT16:
-      return scm_from_int16 (*(scm_t_int16*)loc);
+      return scm_from_int16 (*(scm_t_int16 *) loc);
     case FFI_TYPE_UINT32:
-      return scm_from_uint32 (*(scm_t_uint32*)loc);
+      return scm_from_uint32 (*(scm_t_uint32 *) loc);
     case FFI_TYPE_SINT32:
-      return scm_from_int32 (*(scm_t_int32*)loc);
+      return scm_from_int32 (*(scm_t_int32 *) loc);
     case FFI_TYPE_UINT64:
-      return scm_from_uint64 (*(scm_t_uint64*)loc);
+      return scm_from_uint64 (*(scm_t_uint64 *) loc);
     case FFI_TYPE_SINT64:
-      return scm_from_int64 (*(scm_t_int64*)loc);
+      return scm_from_int64 (*(scm_t_int64 *) loc);
     case FFI_TYPE_STRUCT:
       {
-        void *mem = scm_gc_malloc_pointerless (type->size, "foreign");
-        memcpy (mem, loc, type->size);
-        return scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID,
-                                         mem, type->size, NULL);
+	void *mem = scm_gc_malloc_pointerless (type->size, "foreign");
+	memcpy (mem, loc, type->size);
+	return scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID,
+					 mem, type->size, NULL);
       }
     case FFI_TYPE_POINTER:
       return scm_take_foreign_pointer (SCM_FOREIGN_TYPE_VOID,
-                                       *(void**)loc, 0, NULL);
+				       *(void **) loc, 0, NULL);
     default:
       abort ();
     }
 }
 
+
 SCM
-scm_i_foreign_call (SCM foreign, SCM *argv)
+scm_i_foreign_call (SCM foreign, const SCM *argv)
 {
   /* FOREIGN is the pair that cif_to_procedure set as the 0th element of the
      objtable. */
@@ -955,8 +956,8 @@ scm_i_foreign_call (SCM foreign, SCM *argv)
   size_t arg_size;
   scm_t_ptrdiff off;
 
-  cif = SCM_FOREIGN_POINTER (scm_car (foreign), ffi_cif);
-  func = SCM_FOREIGN_POINTER (scm_cdr (foreign), void);
+  cif = SCM_FOREIGN_POINTER (SCM_CAR (foreign), ffi_cif);
+  func = SCM_FOREIGN_POINTER (SCM_CDR (foreign), void);
 
   /* Argument pointers.  */
   args = alloca (sizeof(void*) * cif->nargs);
@@ -974,16 +975,17 @@ scm_i_foreign_call (SCM foreign, SCM *argv)
   data = alloca (arg_size
 		 + ROUND_UP (cif->rtype->size, cif->rtype->alignment));
 
-  /* unpack argv to native values, setting argv pointers */
-  off = 0;
-  for (i = 0; i < cif->nargs; i++)
+  /* Unpack ARGV to native values, setting ARGV pointers.  */
+  for (i = 0, off = 0;
+       i < cif->nargs;
+       off += cif->arg_types[i]->size, i++)
     {
       off = ROUND_UP (off, cif->arg_types[i]->alignment);
       args[i] = data + off;
       unpack (cif->arg_types[i], args[i], argv[i]);
-      off += cif->arg_types[i]->size;
     }
-  /* prep space for the return value */
+
+  /* Prepare space for the return value.  */
   off = ROUND_UP (off, cif->rtype->alignment);
   rvalue = data + off;
 
