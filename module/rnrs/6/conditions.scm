@@ -84,7 +84,6 @@
 	  undefined-violation?)
   (import (rnrs base (6))
 	  (rnrs records procedural (6))
-	  (rnrs records syntactic (6))
 	  (rnrs syntax-case (6)))
 	  
   (define &compound-condition (make-record-type-descriptor 
@@ -102,17 +101,33 @@
       (syntax-case stx ()
 	((_ condition-type supertype constructor predicate
 	    (field accessor) ...)
-	 (let
-	  ((fields (let* ((field-spec-syntax #'((field accessor) ...))
+	 (let*
+	   ((fields (let* ((field-spec-syntax #'((field accessor) ...))
 			  (field-specs (syntax->datum field-spec-syntax)))
-		     (datum->syntax stx
-				    (cons 'fields 
-					  (map (lambda (field-spec) 
-						 (cons 'immutable field-spec))
-					       field-specs))))))
-	  #`(define-record-type (condition-type constructor predicate)
-	      (parent supertype)
-	      #,fields))))))
+		     (list->vector (map (lambda (field-spec) 
+					  (cons 'immutable field-spec))
+					field-specs))))
+	    (fields-syntax (datum->syntax stx fields)))
+	  #`(begin
+	      (define condition-type 
+		(make-record-type-descriptor 
+		 #,(datum->syntax
+		    stx (list 'quote (syntax->datum #'condition-type)))
+		 supertype #f #f #f #,fields-syntax))
+	      (define constructor
+		(record-constructor 
+		 (make-record-constructor-descriptor condition-type #f #f)))
+	      (define predicate (record-predicate condition-type))
+	      #,@(let f ((accessors '())
+			 (counter 0))
+		   (if (>= counter (vector-length fields))
+		       accessors
+		       (f (cons #`(define #,(datum->syntax 
+					     stx (cadr (vector-ref fields 
+								   counter)))
+				    (record-accessor condition-type #,counter))
+				accessors)
+			  (+ counter 1))))))))))
 		       
   (define &condition (@@ (rnrs records procedural) &condition))
   (define &condition-constructor-descriptor
