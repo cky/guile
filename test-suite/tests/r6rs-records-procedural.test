@@ -68,7 +68,7 @@
 		    'rtd1 #f 'my-uid #f #f '#((mutable foo) (immutable bar))))
 	   (:rtd-2 (make-record-type-descriptor
 		    'rtd1 #f 'my-uid #f #f '#((mutable foo) (immutable bar)))))
-      (eq? :rtd-1 :rtd-2)))
+       (eq? :rtd-1 :rtd-2)))
 
   (pass-if "&assertion raised on conflicting non-generative types"
     (let* ((:rtd-1 (make-record-type-descriptor
@@ -111,6 +111,36 @@
 	 (make-record-type-descriptor 
 	  'rtd1 #f 'my-uid-2 #f #f '#((immutable foo) (immutable bar)))))
       (eqv? success 7))))
+
+(with-test-prefix "make-record-constructor-descriptor"
+  (pass-if "simple protocol"
+    (let* ((:point-protocol (lambda (p) (lambda (x y) (p (+ x 1) (+ y 1)))))
+	   (:point-protocol-cd (make-record-constructor-descriptor 
+				:point #f :point-protocol))
+	   (make-point (record-constructor :point-protocol-cd))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1))
+	   (point (make-point 1 2)))
+      (and (eqv? (point-x point) 2)
+	   (eqv? (point-y point) 3))))
+
+  (pass-if "protocol delegates to parent with protocol"
+    (let* ((:point-protocol (lambda (p) (lambda (x y) (p (+ x 1) (+ y 1)))))
+	   (:point-protocol-cd (make-record-constructor-descriptor
+				:point #f :point-protocol))
+	   (:voxel-protocol (lambda (n) 
+			      (lambda (x y z)
+				(let ((p (n x y))) (p (+ z 100))))))
+	   (:voxel-protocol-cd (make-record-constructor-descriptor
+				:voxel :point-protocol-cd :voxel-protocol))
+	   (make-voxel (record-constructor :voxel-protocol-cd))
+	   (point-x (record-accessor :point 0))
+	   (point-y (record-accessor :point 1))
+	   (voxel-z (record-accessor :voxel 0))
+	   (voxel (make-voxel 1 2 3)))
+      (and (eqv? (point-x voxel) 2)
+	   (eqv? (point-y voxel) 3)
+	   (eqv? (voxel-z voxel) 103)))))      
 
 (with-test-prefix "record-type-descriptor?"
   (pass-if "simple"
