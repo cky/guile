@@ -86,14 +86,14 @@
       (not (record-type-uid rtd)))))
 
 (with-test-prefix "record-type-generative?"
-  (pass-if "#t when uid is not #f"
+  (pass-if "#f when uid is not #f"
     (let* ((uid (gensym))
 	   (rtd (make-record-type-descriptor uid #f uid #f #f '#())))
-      (record-type-generative? rtd)))
+      (not (record-type-generative? rtd))))
 
-  (pass-if "#f when uid is #f"
+  (pass-if "#t when uid is #f"
     (let* ((rtd (make-record-type-descriptor 'foo #f #f #f #f '#())))
-      (not (record-type-generative? rtd)))))
+      (record-type-generative? rtd))))
 
 (with-test-prefix "record-type-sealed?"
   (pass-if "#t when sealed? is #t"

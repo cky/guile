@@ -67,7 +67,7 @@
     (ensure-rtd rtd) (struct-ref rtd rtd-index-parent))
   (define (record-type-uid rtd) (ensure-rtd rtd) (struct-ref rtd rtd-index-uid))
   (define (record-type-generative? rtd) 
-    (ensure-rtd rtd) (and (record-type-uid rtd) #t))
+    (ensure-rtd rtd) (not (record-type-uid rtd)))
   (define (record-type-sealed? rtd) 
     (ensure-rtd rtd) (struct-ref rtd rtd-index-sealed?))
   (define (record-type-opaque? rtd) 

@@ -1,0 +1,116 @@
+;;; r6rs-records-syntactic.test --- Test suite for R6RS (rnrs records syntactic)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-records-syntactic)
+  :use-module ((rnrs records syntactic) :version (6))
+  :use-module ((rnrs records procedural) :version (6))
+  :use-module ((rnrs records inspection) :version (6))
+  :use-module (test-suite lib))
+
+(define-record-type simple-rtd)
+(define-record-type 
+  (specified-rtd specified-rtd-constructor specified-rtd-predicate))
+(define-record-type parent-rtd (fields x y))
+(define-record-type child-parent-rtd-rtd 
+  (parent-rtd (record-type-descriptor parent-rtd) 
+	      (record-constructor-descriptor parent-rtd))
+  (fields z))
+(define-record-type child-parent-rtd (parent parent-rtd) (fields z))
+(define-record-type mutable-fields-rtd 
+  (fields (mutable mutable-bar) 
+	  (mutable mutable-baz mutable-baz-accessor mutable-baz-mutator)))
+(define-record-type immutable-fields-rtd
+  (fields immutable-foo
+	  (immutable immutable-bar)
+	  (immutable immutable-baz immutable-baz-accessor)))
+(define-record-type protocol-rtd 
+  (fields (immutable x) (immutable y))
+  (protocol (lambda (p) (lambda (x y) (p (+ x 1) (+ y 1))))))
+(define-record-type sealed-rtd (sealed #t))
+(define-record-type opaque-rtd (opaque #t))
+(define-record-type nongenerative-rtd (nongenerative))
+(define-record-type nongenerative-uid-rtd (nongenerative foo))
+
+(with-test-prefix "simple record names"
+  (pass-if "define-record-type defines record type"
+    (defined? 'simple-rtd))
+
+  (pass-if "define-record-type defines record predicate"
+    (defined? 'simple-rtd?))
+
+  (pass-if "define-record-type defines record-constructor"
+    (defined? 'make-simple-rtd)))
+
+(with-test-prefix "fully-specified record names"
+  (pass-if "define-record-type defines named predicate"
+    (defined? 'specified-rtd-predicate))
+
+  (pass-if "define-record-type defines named constructor"
+    (defined? 'specified-rtd-constructor)))
+
+(pass-if "parent-rtd clause includes specified parent"
+  (eq? (record-type-parent child-parent-rtd-rtd) parent-rtd))
+
+(pass-if "parent clause includes specified parent"
+  (eq? (record-type-parent child-parent-rtd) parent-rtd))
+
+(pass-if "protocol clause includes specified protocol"
+  (let ((protocol-record (make-protocol-rtd 1 2)))
+    (and (eqv? (protocol-rtd-x protocol-record) 2)
+	 (eqv? (protocol-rtd-y protocol-record) 3))))
+
+(pass-if "sealed clause produces sealed type"
+  (record-type-sealed? sealed-rtd))
+
+(pass-if "opaque clause produces opaque type"
+  (record-type-opaque? opaque-rtd))
+
+(with-test-prefix "nongenerative"
+  (pass-if "nongenerative clause produces nongenerative type"
+    (not (record-type-generative? nongenerative-rtd)))
+
+  (pass-if "nongenerative clause preserves specified uid"
+    (and (not (record-type-generative? nongenerative-uid-rtd))
+	 (eq? (record-type-uid nongenerative-uid-rtd) 'foo))))
+
+(with-test-prefix "fields"
+  (pass-if "raw symbol produces accessor only"
+    (and (defined? 'immutable-fields-rtd-immutable-foo)
+	 (not (defined? 'immutable-fields-rtd-immutable-foo-set!))))
+
+  (pass-if "(immutable x) form produces accessor only"
+    (and (defined? 'immutable-fields-rtd-immutable-bar)
+	 (not (defined? 'immutable-fields-rtd-immutable-bar-set!))))
+
+  (pass-if "(immutable x y) form produces named accessor"
+    (defined? 'immutable-baz-accessor))
+
+  (pass-if "(mutable x) form produces accessor and mutator"
+    (and (defined? 'mutable-fields-rtd-mutable-bar)
+	 (defined? 'mutable-fields-rtd-mutable-bar-set!)))
+
+  (pass-if "(mutable x y) form produces named accessor and mutator"
+    (and (defined? 'mutable-baz-accessor)
+	 (defined? 'mutable-baz-mutator))))
+
+(pass-if "record-type-descriptor returns rtd"
+  (eq? (record-type-descriptor simple-rtd) simple-rtd))
+
+(pass-if "record-constructor-descriptor returns rcd"
+  (procedure? (record-constructor (record-constructor-descriptor simple-rtd))))

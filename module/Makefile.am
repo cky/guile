@@ -260,6 +260,7 @@ RNRS_SOURCES =					\
   rnrs/6/conditions.scm				\
   rnrs/6/control.scm				\
   rnrs/6/exceptions.scm				\
+  rnrs/6/hashtables.scm				\
   rnrs/6/lists.scm				\
   rnrs/6/syntax-case.scm			\
   rnrs/arithmetic/6/bitwise.scm			\
