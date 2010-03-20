@@ -50,7 +50,7 @@
 
 	  list? list length append reverse list-tail list-ref map for-each
 
-	  symbol->string symbol->string symbol=?
+	  symbol->string string->symbol symbol=?
 
 	  char->integer integer->char char=? char<? char>? char<=? char>=?
 
@@ -72,6 +72,6 @@
 
 	  syntax-rules identifier-syntax)
  (import (guile)
-	 (rename (only (guile (6)) for-each map) (for-each vector-for-each) 
-		                                 (map vector-map))
+	 (rename (only (guile) for-each map)
+		 (for-each vector-for-each) (map vector-map))
 	 (srfi srfi-11)))
