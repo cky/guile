@@ -952,16 +952,28 @@ scm_i_foreign_call (SCM foreign, SCM *argv)
   void *rvalue;
   void **args;
   unsigned i;
+  size_t arg_size;
   scm_t_ptrdiff off;
 
   cif = SCM_FOREIGN_POINTER (scm_car (foreign), ffi_cif);
   func = SCM_FOREIGN_POINTER (scm_cdr (foreign), void);
-  
-  /* arg pointers */
+
+  /* Argument pointers.  */
   args = alloca (sizeof(void*) * cif->nargs);
-  /* arg values, then return type value */
-  data = alloca (ROUND_UP (cif->bytes, cif->rtype->alignment)
-                 + cif->rtype->size);
+
+  /* Compute the amount of memory needed to store all the argument values.
+     Note: as of libffi 3.0.9 `cif->bytes' is undocumented and is zero, so it
+     can't be used for that purpose.  */
+  for (i = 0, arg_size = 0;
+       i < cif->nargs;
+       i++, arg_size)
+    arg_size += ROUND_UP (cif->arg_types[i]->size,
+			  cif->arg_types[i]->alignment);
+
+  /* Space for argument values, followed by return value.  */
+  data = alloca (arg_size
+		 + ROUND_UP (cif->rtype->size, cif->rtype->alignment));
+
   /* unpack argv to native values, setting argv pointers */
   off = 0;
   for (i = 0; i < cif->nargs; i++)
