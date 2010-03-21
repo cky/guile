@@ -42,7 +42,7 @@
 	  string-hash
 	  string-ci-hash
 	  symbol-hash)
-  (import (rename (only (guile) string-hash-ci string-hash hashq)
+  (import (rename (only (guile) string-hash-ci string-hash hashq hashv)
 		  (string-hash-ci string-ci-hash))
 	  (only (ice-9 optargs) define*)
 	  (rename (only (srfi :69) make-hash-table
@@ -52,7 +52,7 @@
 				   hash-table-ref/default
 				   hash-table-set!
 				   hash-table-delete!
-				   hash-table-exists
+				   hash-table-exists?
 				   hash-table-update!/default
 				   hash-table-copy
 				   hash-table-equivalence-function
@@ -67,7 +67,9 @@
   (define r6rs:hashtable 
     (make-record-type-descriptor 
      'r6rs:hashtable #f #f #t #t 
-     '#((mutable wrapped-table) (immutable mutable))))
+     '#((mutable wrapped-table)
+	(immutable orig-hash-function)
+	(immutable mutable))))
 
   (define hashtable? (record-predicate r6rs:hashtable))
   (define make-r6rs-hashtable 
@@ -75,24 +77,34 @@
 			 r6rs:hashtable #f #f)))
   (define r6rs:hashtable-wrapped-table (record-accessor r6rs:hashtable 0))
   (define r6rs:hashtable-set-wrapped-table! (record-mutator r6rs:hashtable 0))
-  (define hashtable-mutable? (record-accessor r6rs:hashtable 1))
+  (define r6rs:hashtable-orig-hash-function (record-accessor r6rs:hashtable 1))
+  (define r6rs:hashtable-mutable? (record-accessor r6rs:hashtable 2))
+
+  (define hashtable-mutable? r6rs:hashtable-mutable?)
+
+  (define hash-by-value ((@@ (srfi srfi-69) caller-with-default-size) hashv))
+  (define (wrap-hash-function proc) (lambda (key obj) (proc key)))
 
   (define* (make-eq-hashtable #:optional k)
     (make-r6rs-hashtable 
-     (if k (make-hash-table eq? hashq k) (make-hash-table eq? hashq))
+     (if k (make-hash-table eq? hashq k) (make-hash-table eq? symbol-hash))
+     symbol-hash
      #t))
 
   (define* (make-eqv-hashtable #:optional k)
     (make-r6rs-hashtable 
-     (if k (make-hash-table eqv? hashv k) (make-hash-table eqv? hashv))
+     (if k (make-hash-table eqv? hashv k) (make-hash-table eqv? hash-by-value))
+     hash-by-value
      #t))
 
   (define* (make-hashtable hash-function equiv #:optional k)
-    (make-r6rs-hashtable
-     (if k 
-	 (make-hash-table equiv hash-function k)
-	 (make-hash-table equiv hash-function))
-     #t))
+    (let ((wrapped-hash-function (wrap-hash-function hash-function)))
+      (make-r6rs-hashtable
+       (if k 
+	   (make-hash-table equiv wrapped-hash-function k)
+	   (make-hash-table equiv wrapped-hash-function))
+       hash-function
+       #t)))
  
   (define (hashtable-size hashtable)
     (hash-table-size (r6rs:hashtable-wrapped-table hashtable)))
@@ -102,12 +114,12 @@
      (r6rs:hashtable-wrapped-table hashtable) key default))
 
   (define (hashtable-set! hashtable key obj)
-    (if (hashtable-mutable? hashtable)
+    (if (r6rs:hashtable-mutable? hashtable)
 	(hash-table-set! (r6rs:hashtable-wrapped-table hashtable) key obj))
     *unspecified*)
 
   (define (hashtable-delete! hashtable key)
-    (if (hashtable-mutable? hashtable)
+    (if (r6rs:hashtable-mutable? hashtable)
 	(hash-table-delete! (r6rs:hashtable-wrapped-table hashtable) key))
     *unspecified*)
 
@@ -115,7 +127,7 @@
     (hash-table-exists? (r6rs:hashtable-wrapped-table hashtable) key))
 
   (define (hashtable-update! hashtable key proc default)
-    (if (hashtable-mutable? hashtable)
+    (if (r6rs:hashtable-mutable? hashtable)
 	(hash-table-update!/default 
 	 (r6rs:hashtable-wrapped-table hashtable) key proc default))
     *unspecified*)
@@ -123,17 +135,20 @@
   (define* (hashtable-copy hashtable #:optional mutable)
     (make-r6rs-hashtable 
      (hash-table-copy (r6rs:hashtable-wrapped-table hashtable))
+     (r6rs:hashtable-orig-hash-function hashtable)
      (and mutable #t)))
 
   (define* (hashtable-clear! hashtable #:optional k)
-    (if (hashtable-mutable? hashtable)
+    (if (r6rs:hashtable-mutable? hashtable)
 	(let* ((ht (r6rs:hashtable-wrapped-table hashtable))
 	       (equiv (hash-table-equivalence-function ht))
-	       (hash-function (hash-table-hash-function ht)))
+	       (hash-function (r6rs:hashtable-orig-hash-function hashtable))
+	       (wrapped-hash-function (wrap-hash-function hash-function)))
 	  (r6rs:hashtable-set-wrapped-table!
+	   hashtable
 	   (if k 
-	       (make-hash-table equiv hash-function k)
-	       (make-hash-table equiv hash-function)))))
+	       (make-hash-table equiv wrapped-hash-function k)
+	       (make-hash-table equiv wrapped-hash-function)))))
     *unspecified*)
 
   (define (hashtable-keys hashtable)
@@ -156,4 +171,4 @@
     (hash-table-equivalence-function (r6rs:hashtable-wrapped-table hashtable)))
 
   (define (hashtable-hash-function hashtable)
-    (hash-table-hash-function (r6rs:hashtable-wrapped-table hashtable))))
+    (r6rs:hashtable-orig-hash-function hashtable)))
