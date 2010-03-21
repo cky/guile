@@ -1,0 +1,40 @@
+;;; r6rs-files.test --- Test suite for R6RS (rnrs unicode)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-files)
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module ((rnrs files) :version (6))
+  :use-module (test-suite lib))
+
+(with-test-prefix "delete-file"
+  (pass-if "delete-file deletes file"
+    (let ((filename (port-filename (mkstemp! "T-XXXXXX"))))
+      (delete-file filename)
+      (not (file-exists? filename))))
+
+  (pass-if "delete-file raises &i/o-filename on error"
+    (let ((success #f))
+      (call/cc
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition)
+	    (set! success (i/o-filename-error? condition))
+	    (continuation))
+	  (lambda () (delete-file "")))))
+      success)))

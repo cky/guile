@@ -1,4 +1,4 @@
-;;; simple.scm --- The R6RS simple I/O library
+;;; files.scm --- The R6RS file system library
 
 ;;      Copyright (C) 2010 Free Software Foundation, Inc.
 ;;
@@ -17,36 +17,9 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-(library (rnrs io simple (6))
-  (export eof-object 
-          eof-object?
-
-	  call-with-input-file
-	  call-with-output-file
-	  
-	  input-port?
-	  output-port?
-
-	  current-input-port
-	  current-output-port
-	  current-error-port
-
-	  with-input-from-file
-	  with-output-to-file
-
-	  open-input-file
-	  open-output-file
-
-	  close-input-port
-	  close-output-port
-
-	  read-char
-	  peek-char
-	  read
-	  write-char
-	  newline
-	  display
-	  write
+(library (rnrs files (6))
+  (export file-exists? 
+	  delete-file
 
 	  &i/o make-i/o-error i/o-error?
 	  &i/o-read make-i/o-read-error i/o-read-error?
@@ -81,38 +54,18 @@
 	  &i/o-port
 	  make-i/o-port-error
 	  i/o-port-error?
-	  i/o-error-port)	  
+	  i/o-error-port)
 
-  (import (only (rnrs io ports) eof-object 
-		                eof-object? 
- 
-                                input-port? 
-				output-port?)
-          (only (guile) call-with-input-file
-			call-with-output-file
-
-			current-input-port
-			current-output-port
-			current-error-port
-
-			with-input-file
-			with-output-file
-
-			open-input-file
-			open-output-file
-			
-			close-input-port
-			close-output-port
-
-			read-char
-			peek-char
-			read
-			write-char
-			newline
-			display
-			write)
+  (import (rename (only (guile) file-exists? delete-file catch) 
+		  (delete-file delete-file-internal))
 	  (rnrs base (6))
-	  (rnrs conditions (6)))
+	  (rnrs conditions (6))
+	  (rnrs exceptions (6)))
+
+  (define (delete-file filename)
+    (catch #t 
+	   (lambda () (delete-file-internal filename))
+	   (lambda (key . args) (raise (make-i/o-filename-error filename)))))
 
   (define &i/o (@@ (rnrs conditions) &i/o))
   (define make-i/o-error (@@ (rnrs conditions) make-i/o-error))

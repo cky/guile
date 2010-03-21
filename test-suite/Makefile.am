@@ -78,6 +78,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/r5rs_pitfall.test		\
 	    tests/r6rs-arithmetic-bitwise.test	\
 	    tests/r6rs-control.test		\
+	    tests/r6rs-files.test		\
 	    tests/r6rs-hashtables.test		\
 	    tests/r6rs-ports.test		\
 	    tests/r6rs-records-inspection.test	\
