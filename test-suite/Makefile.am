@@ -83,6 +83,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/r6rs-records-inspection.test	\
 	    tests/r6rs-records-procedural.test	\
 	    tests/r6rs-records-syntactic.test	\
+	    tests/r6rs-unicode.test		\
 	    tests/rnrs-libraries.test		\
 	    tests/ramap.test			\
 	    tests/reader.test			\

@@ -263,6 +263,7 @@ RNRS_SOURCES =					\
   rnrs/6/hashtables.scm				\
   rnrs/6/lists.scm				\
   rnrs/6/syntax-case.scm			\
+  rnrs/6/unicode.scm				\
   rnrs/arithmetic/6/bitwise.scm			\
   rnrs/bytevector.scm				\
   rnrs/io/6/simple.scm				\

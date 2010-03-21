@@ -1,0 +1,50 @@
+;;; r6rs-unicode.test --- Test suite for R6RS (rnrs unicode)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-unicode)
+  :use-module ((rnrs unicode) :version (6))
+  :use-module (test-suite lib))
+
+(with-test-prefix "char-foldcase"
+  (pass-if "basic case folding"
+    (and (eqv? (char-foldcase #\i) #\i)
+    	 (eqv? (char-foldcase #\337) #\337)
+	 (eqv? (char-foldcase #\1643) #\1703)
+	 (eqv? (char-foldcase #\1702) #\1703)))
+
+  (pass-if "Turkic characters"
+    (and (eqv? (char-foldcase #\460) #\460)
+    	 (eqv? (char-foldcase #\461) #\461))))
+
+(with-test-prefix "char-title-case?"
+  (pass-if "simple"
+    (and (not (char-title-case? #\I))
+	 (char-title-case? #\705))))
+
+(with-test-prefix "string-foldcase"
+  (pass-if "basic case folding"
+    (and (equal? (string-foldcase "Hi") "hi")
+	 (equal? (string-foldcase 
+		  (list->string '(#\1647 #\1621 #\1637 #\1643 #\1643)))
+		 (list->string '(#\1707 #\1661 #\1677 #\1703 #\1703)))))
+
+  (pass-if "case folding expands string"
+    (or (equal? (string-foldcase (list->string '(#\S #\t #\r #\a #\337 #\e)))
+		"strasse")
+	(throw 'unresolved))))
