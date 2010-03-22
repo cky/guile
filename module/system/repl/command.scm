@@ -44,7 +44,7 @@
 ;;;
 
 (define *command-table*
-  '((help     (help h) (apropos a) (describe d) (option o) (quit q))
+  '((help     (help h) (show s) (apropos a) (describe d) (option o) (quit q))
     (module   (module m) (import i) (load l) (binding b))
     (language (language L))
     (compile  (compile c) (compile-file cc)
@@ -53,16 +53,11 @@
     (debug    (trace tr))
     (system   (gc) (statistics stat))))
 
+(define *show-table*
+  '((show (warranty w) (copying c) (version v))))
+
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
-
-;; Hack, until core can be extended.
-(define procedure-documentation
-  (let ((old-definition procedure-documentation))
-    (lambda (p)
-      (if (program? p)
-          (program-documentation p)
-          (old-definition p)))))
 
 (define *command-module* (current-module))
 (define (command-name c) (car c))
@@ -84,19 +79,19 @@
 (define (lookup-group name)
   (assq name *command-table*))
 
-(define (lookup-command key)
-  (let loop ((groups *command-table*) (commands '()))
+(define* (lookup-command key #:optional (table *command-table*))
+  (let loop ((groups table) (commands '()))
     (cond ((and (null? groups) (null? commands)) #f)
 	  ((null? commands)
 	   (loop (cdr groups) (cdar groups)))
 	  ((memq key (car commands)) (car commands))
 	  (else (loop groups (cdr commands))))))
 
-(define (display-group group . opts)
+(define* (display-group group #:optional (abbrev? #t))
   (format #t "~:(~A~) Commands [abbrev]:~2%" (group-name group))
   (for-each (lambda (c)
 	      (display-summary (command-usage c)
-			       (command-abbrev c)
+			       (and abbrev? (command-abbrev c))
 			       (command-summary c)))
 	    (group-commands group))
   (newline))
@@ -203,6 +198,47 @@ are displayed."
     (else
      (user-error "Bad arguments: ~A" args))))
 
+(define-meta-command (show repl . args)
+  "show
+show TOPIC
+
+Gives information about Guile.
+
+With one argument, tries to show a particular piece of information;
+
+currently supported topics are `warranty' (or `w'), `copying' (or `c'),
+and `version' (or `v').
+
+Without any argument, a list of topics is displayed."
+  (pmatch args
+    (()
+     (display-group (car *show-table*) #f)
+     (newline))
+    ((,topic) (guard (lookup-command topic *show-table*))
+     ((command-procedure (lookup-command topic *show-table*)) repl))
+    ((,command)
+     (user-error "Unknown topic: ~A" command))
+    (else
+     (user-error "Bad arguments: ~A" args))))
+
+(define (warranty repl)
+  "show warranty
+Details on the lack of warranty."
+  (display *warranty*)
+  (newline))
+
+(define (copying repl)
+  "show copying
+Show the LGPLv3."
+  (display *copying*)
+  (newline))
+
+(define (version repl)
+  "show version
+Version information."
+  (display *version*)
+  (newline))
+
 (define guile:apropos apropos)
 (define-meta-command (apropos repl regexp)
   "apropos REGEXP
@@ -286,8 +322,11 @@ List current bindings."
 (define-meta-command (language repl name)
   "language LANGUAGE
 Change languages."
-  (set! (repl-language repl) (lookup-language name))
-  (repl-welcome repl))
+  (let ((lang (lookup-language name))
+        (cur (repl-language repl)))
+    (format #t "Have fun with ~a!  To switch back, type `,L ~a'.\n"
+            (language-title lang) (language-name cur))
+    (set! (repl-language repl) lang)))
 
 
 ;;;
