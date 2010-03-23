@@ -58,8 +58,8 @@
 # define scm_is_null_or_nil(x)  (scm_is_null_assume_not_nil (x))
 #endif
 
-/* XXX Should scm_is_null treat %nil as null by default? */
-#define scm_is_null(x)		(scm_is_null_and_not_nil(x))
+/* %nil is null. */
+#define scm_is_null(x)		(scm_is_null_or_nil(x))
 
 #define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))
 #define SCM_CDR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_1 (x)))

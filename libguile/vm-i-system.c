@@ -506,12 +506,12 @@ VM_DEFINE_INSTRUCTION (39, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 
 VM_DEFINE_INSTRUCTION (40, br_if_null, "br-if-null", 3, 0, 0)
 {
-  BR (scm_is_null_or_nil (*sp));
+  BR (scm_is_null (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (41, br_if_not_null, "br-if-not-null", 3, 0, 0)
 {
-  BR (!scm_is_null_or_nil (*sp));
+  BR (!scm_is_null (*sp));
 }
 
 
