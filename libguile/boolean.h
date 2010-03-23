@@ -27,7 +27,9 @@
 
 
 
-/* Boolean Values 
+/* Boolean Values. Obviously there are #t and #f, but there is also nil to deal
+ * with. We choose to treat nil as a false boolean. All options might silently
+ * break existing code, but this one seems most responsible.
  *
  */ 
 
@@ -58,8 +60,8 @@
 #endif
 #define scm_is_true_and_not_nil(x) (!scm_is_false_or_nil (x))
 
-/* XXX Should these macros treat %nil as false by default? */
-#define scm_is_false(x)  (scm_is_false_and_not_nil (x))
+/* %nil is false. */
+#define scm_is_false(x)  (scm_is_false_or_nil (x))
 #define scm_is_true(x)   (!scm_is_false (x))
 
 /*
@@ -90,8 +92,7 @@
 
 SCM_API int scm_is_bool (SCM);
 
-/* XXX Should scm_is_bool treat %nil as a boolean? */
-#define scm_is_bool(x)   (scm_is_bool_and_not_nil (x))
+#define scm_is_bool(x)   (scm_is_bool_or_nil (x))
 
 #define scm_from_bool(x) ((x) ? SCM_BOOL_T : SCM_BOOL_F)
 SCM_API int scm_to_bool (SCM x);

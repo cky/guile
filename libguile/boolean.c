@@ -56,28 +56,27 @@ verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
 
 SCM_DEFINE (scm_not, "not", 1, 0, 0, 
             (SCM x),
-            "Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.")
+            "Return @code{#t} iff @var{x} is false, else return @code{#f}.")
 #define FUNC_NAME s_scm_not
 {
-  return scm_from_bool (scm_is_false_or_nil (x));
+  return scm_from_bool (scm_is_false (x));
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0, 
            (SCM obj),
-            "Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.")
+            "Return @code{#t} iff @var{obj} is @code{#t} or false.")
 #define FUNC_NAME s_scm_boolean_p
 {
-  return scm_from_bool (scm_is_bool_or_nil (obj));
+  return scm_from_bool (scm_is_bool (obj));
 }
 #undef FUNC_NAME
 
 int
 scm_to_bool (SCM x)
 {
-  /* XXX Should this first test use scm_is_false_or_nil instead? */
-  if (scm_is_eq (x, SCM_BOOL_F))
+  if (scm_is_false (x))
     return 0;
   else if (scm_is_eq (x, SCM_BOOL_T))
     return 1;
@@ -93,7 +92,7 @@ int
 scm_is_bool (SCM obj)
 {
   /* This must match the macro definition of `scm_is_bool ()'.  */
-  return scm_is_bool_and_not_nil (obj);
+  return scm_is_bool_or_nil (obj);
 }
 
 
