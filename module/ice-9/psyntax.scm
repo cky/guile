@@ -453,29 +453,27 @@
   ;; This will come with the new interpreter, but for now we separate
   ;; the cases.
   (define build-simple-lambda
-    (lambda (src req rest vars docstring exp)
+    (lambda (src req rest vars meta exp)
       (case (fluid-ref *mode*)
         ((c) ((@ (language tree-il) make-lambda) src
-              (if docstring `((documentation . ,docstring)) '())
+              meta
               ;; hah, a case in which kwargs would be nice.
               ((@ (language tree-il) make-lambda-case)
                ;; src req opt rest kw inits vars body else
                src req #f rest #f '() vars exp #f)))
         (else (decorate-source
                `(lambda ,(if rest (apply cons* vars) vars)
-                  ,@(if docstring (list docstring) '())
                   ,exp)
                src)))))
   (define build-case-lambda
-    (lambda (src docstring body)
+    (lambda (src meta body)
       (case (fluid-ref *mode*)
         ((c) ((@ (language tree-il) make-lambda) src
-              (if docstring `((documentation . ,docstring)) '())
+              meta
               body))
         (else (decorate-source
                ;; really gross hack
                `(lambda %%args 
-                  ,@(if docstring (list docstring) '())
                   (cond ,@body))
                src)))))
 
@@ -571,7 +569,7 @@
             (ids (cdr ids)))
         (case (fluid-ref *mode*)
           ((c)
-           (let ((proc (build-simple-lambda src ids #f vars #f body-exp)))
+           (let ((proc (build-simple-lambda src ids #f vars '() body-exp)))
              (maybe-name-value! f-name proc)
              (for-each maybe-name-value! ids val-exps)
              ((@ (language tree-il) make-letrec) src
@@ -1599,14 +1597,14 @@
       (req orig-args '())))
 
   (define chi-simple-lambda
-    (lambda (e r w s mod req rest docstring body)
+    (lambda (e r w s mod req rest meta body)
       (let* ((ids (if rest (append req (list rest)) req))
              (vars (map gen-var ids))
              (labels (gen-labels ids)))
         (build-simple-lambda
          s
          (map syntax->datum req) (and rest (syntax->datum rest)) vars
-         docstring
+         meta
          (chi-body body (source-wrap e w s mod)
                    (extend-var-env labels vars r)
                    (make-binding-wrap ids labels w)
@@ -1750,33 +1748,34 @@
          (else
           (expand-body req opt rest
                        (if (or aok (pair? out)) (cons aok (reverse out)) #f)
-                       body (reverse vars) r* w* (reverse inits)))))
-      (define (expand-body req opt rest kw body vars r* w* inits)
+                       body (reverse vars) r* w* (reverse inits) '()))))
+      (define (expand-body req opt rest kw body vars r* w* inits meta)
         (syntax-case body ()
           ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
-           (values (syntax->datum #'docstring) req opt rest kw inits vars
-                   (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
-                             r* w* mod)))
+           (expand-body req opt rest kw #'(e1 e2 ...) vars r* w* inits
+                        (append meta 
+                                `((documentation
+                                   . ,(syntax->datum #'docstring))))))
           ((e1 e2 ...)
-           (values #f req opt rest kw inits vars
+           (values meta req opt rest kw inits vars
                    (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
                              r* w* mod)))))
 
       (syntax-case clauses ()
-        (() (values #f #f))
+        (() (values '() #f))
         (((args e1 e2 ...) (args* e1* e2* ...) ...)
          (call-with-values (lambda () (get-formals #'args))
            (lambda (req opt rest kw)
              (call-with-values (lambda ()
                                  (expand-req req opt rest kw #'(e1 e2 ...)))
-               (lambda (docstring req opt rest kw inits vars body)
+               (lambda (meta req opt rest kw inits vars body)
                  (call-with-values
                      (lambda ()
                        (chi-lambda-case e r w s mod get-formals
                                         #'((args* e1* e2* ...) ...)))
-                   (lambda (docstring* else*)
+                   (lambda (meta* else*)
                      (values
-                      (or docstring docstring*)
+                      (append meta meta*)
                       (build-lambda-case s req opt rest kw inits vars
                                          body else*))))))))))))
 
@@ -2020,7 +2019,7 @@
                          ((quote) (build-data no-source (cadr x)))
                          ((lambda)
                           (if (list? (cadr x))
-                              (build-simple-lambda no-source (cadr x) #f (cadr x) #f (regen (caddr x)))
+                              (build-simple-lambda no-source (cadr x) #f (cadr x) '() (regen (caddr x)))
                               (error "how did we get here" x)))
                          (else (build-application no-source
                                                   (build-primref no-source (car x))
@@ -2038,17 +2037,19 @@
   (global-extend 'core 'lambda
                  (lambda (e r w s mod)
                    (syntax-case e ()
-                     ((_ args docstring e1 e2 ...) (string? (syntax->datum #'docstring))
-                      (call-with-values (lambda () (lambda-formals #'args))
-                        (lambda (req opt rest kw)
-                          (chi-simple-lambda e r w s mod req rest (syntax->datum #'docstring)
-                                             #'(e1 e2 ...)))))
                      ((_ args e1 e2 ...)
                       (call-with-values (lambda () (lambda-formals #'args))
                         (lambda (req opt rest kw)
-                          (chi-simple-lambda e r w s mod req rest #f #'(e1 e2 ...)))))
+                          (let lp ((body #'(e1 e2 ...)) (meta '()))
+                            (syntax-case body ()
+                              ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
+                               (lp #'(e1 e2 ...)
+                                   (append meta
+                                           `((documentation
+                                              . ,(syntax->datum #'docstring))))))
+                              (_ (chi-simple-lambda e r w s mod req rest meta body)))))))
                      (_ (syntax-violation 'lambda "bad lambda" e)))))
-
+  
   (global-extend 'core 'lambda*
                  (lambda (e r w s mod)
                    (syntax-case e ()
@@ -2057,8 +2058,8 @@
                           (lambda ()
                             (chi-lambda-case e r w s mod
                                              lambda*-formals #'((args e1 e2 ...))))
-                        (lambda (docstring lcase)
-                          (build-case-lambda s docstring lcase))))
+                        (lambda (meta lcase)
+                          (build-case-lambda s meta lcase))))
                      (_ (syntax-violation 'lambda "bad lambda*" e)))))
 
   (global-extend 'core 'case-lambda
@@ -2070,8 +2071,8 @@
                             (chi-lambda-case e r w s mod
                                              lambda-formals
                                              #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
-                        (lambda (docstring lcase)
-                          (build-case-lambda s docstring lcase))))
+                        (lambda (meta lcase)
+                          (build-case-lambda s meta lcase))))
                      (_ (syntax-violation 'case-lambda "bad case-lambda" e)))))
 
   (global-extend 'core 'case-lambda*
@@ -2083,8 +2084,8 @@
                             (chi-lambda-case e r w s mod
                                              lambda*-formals
                                              #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
-                        (lambda (docstring lcase)
-                          (build-case-lambda s docstring lcase))))
+                        (lambda (meta lcase)
+                          (build-case-lambda s meta lcase))))
                      (_ (syntax-violation 'case-lambda "bad case-lambda*" e)))))
 
   (global-extend 'core 'let
@@ -2294,7 +2295,7 @@
                          (let ((labels (gen-labels ids)) (new-vars (map gen-var ids)))
                            (build-application no-source
                                               (build-primref no-source 'apply)
-                                              (list (build-simple-lambda no-source (map syntax->datum ids) #f new-vars #f
+                                              (list (build-simple-lambda no-source (map syntax->datum ids) #f new-vars '()
                                                                          (chi exp
                                                                               (extend-env
                                                                                labels
@@ -2321,7 +2322,7 @@
                              (let ((y (gen-var 'tmp)))
                                         ; fat finger binding and references to temp variable y
                                (build-application no-source
-                                                  (build-simple-lambda no-source (list 'tmp) #f (list y) #f
+                                                  (build-simple-lambda no-source (list 'tmp) #f (list y) '()
                                                                        (let ((y (build-lexical-reference 'value no-source
                                                                                                          'tmp y)))
                                                                          (build-conditional no-source
@@ -2360,7 +2361,7 @@
                                     (build-application no-source
                                                        (build-simple-lambda
                                                         no-source (list (syntax->datum #'pat)) #f (list var)
-                                                        #f
+                                                        '()
                                                         (chi #'exp
                                                              (extend-env labels
                                                                          (list (make-binding 'syntax `(,var . 0)))
@@ -2386,7 +2387,7 @@
                               (let ((x (gen-var 'tmp)))
                                         ; fat finger binding and references to temp variable x
                                 (build-application s
-                                                   (build-simple-lambda no-source (list 'tmp) #f (list x) #f
+                                                   (build-simple-lambda no-source (list 'tmp) #f (list x) '()
                                                                         (gen-syntax-case (build-lexical-reference 'value no-source
                                                                                                                   'tmp x)
                                                                                          #'(key ...) #'(m ...)
