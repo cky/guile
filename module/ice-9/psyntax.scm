@@ -1756,6 +1756,9 @@
                         (append meta 
                                 `((documentation
                                    . ,(syntax->datum #'docstring))))))
+          ((#((k . v) ...) e1 e2 ...) 
+           (expand-body req opt rest kw #'(e1 e2 ...) vars r* w* inits
+                        (append meta (syntax->datum #'((k . v) ...)))))
           ((e1 e2 ...)
            (values meta req opt rest kw inits vars
                    (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
@@ -2047,6 +2050,9 @@
                                    (append meta
                                            `((documentation
                                               . ,(syntax->datum #'docstring))))))
+                              ((#((k . v) ...) e1 e2 ...) 
+                               (lp #'(e1 e2 ...)
+                                   (append meta (syntax->datum #'((k . v) ...)))))
                               (_ (chi-simple-lambda e r w s mod req rest meta body)))))))
                      (_ (syntax-violation 'lambda "bad lambda" e)))))
   
