@@ -1,0 +1,98 @@
+;;; r6rs-exceptions.test --- Test suite for R6RS (rnrs exceptions)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-exceptions)
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module (test-suite lib))
+
+(with-test-prefix "with-exception-handler"
+  (pass-if "handler invoked on raise"
+    (let ((success #f))
+      (call/cc
+       (lambda (continuation)
+	 (with-exception-handler 
+	  (lambda (condition) (set! success #t) (continuation))
+	  (lambda () (raise (make-violation))))))
+      success))
+
+  (pass-if "handler not invoked unless raise"
+    (let ((success #f))
+      (call/cc 
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition) (continuation))
+	  (lambda () (set! success #t)))))
+      success)))
+
+(with-test-prefix "raise"
+  (pass-if "raise causes &non-continuable after handler"
+    (let ((success #f))
+      (call/cc 
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition)
+	    (set! success (non-continuable-violation? condition))
+	    (continuation))
+	  (lambda ()
+	    (with-exception-handler
+	     (lambda (condition) #f)
+	     (lambda () (raise (make-violation))))))))
+      success)))
+
+(with-test-prefix "raise-continuable"
+  (pass-if "raise-continuable invokes continuation after handler"
+    (let ((handled #f)
+	  (continued #f))
+      (call/cc
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition) (set! handled #t))
+	  (lambda ()
+	    (raise-continuable (make-violation))
+	    (set! continued #t)))))
+      (and handled continued))))
+
+(with-test-prefix "guard"
+  (pass-if "guard with matching cond without else"
+    (let ((success #f))
+      (guard (condition ((error? condition) (set! success #t)))
+	     (raise (make-error)))
+      success))
+
+  (pass-if "guard without matching cond without else"
+    (let ((success #f))
+      (call/cc 
+       (lambda (continuation)
+	 (with-exception-handler
+	  (lambda (condition) (set! success (error? condition)) (continuation))
+	  (lambda ()
+	    (guard (condition ((irritants-condition? condition) #f))
+		   (raise (make-error)))))))
+      success))
+	    
+  (pass-if "guard with else and without matching cond"
+    (let ((success #f))
+      (guard (condition ((irritants-condition? condition) #f)
+			(else (set! success #t)))
+	     (raise (make-error)))
+      success))
+
+  (pass-if "guard with cond => syntax"
+    (guard (condition (condition => error?)) (raise (make-error)))))

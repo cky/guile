@@ -273,6 +273,6 @@
     (throw 'r6rs:exception (make-raise-object-wrapper obj #f)))
   (define (r6rs-raise-continuable obj)
     (define (r6rs-raise-continuable-internal continuation)
-      (raise (make-raise-object-wrapper obj continuation)))
+      (throw 'r6rs:exception (make-raise-object-wrapper obj continuation)))
     (call/cc r6rs-raise-continuable-internal))
 )
