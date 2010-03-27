@@ -263,6 +263,8 @@ RNRS_SOURCES =					\
   rnrs/6/files.scm				\
   rnrs/6/hashtables.scm				\
   rnrs/6/lists.scm				\
+  rnrs/6/mutable-pairs.scm			\
+  rnrs/6/mutable-strings.scm			\
   rnrs/6/programs.scm				\
   rnrs/6/r5rs.scm				\
   rnrs/6/sorting.scm				\
