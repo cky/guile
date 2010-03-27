@@ -1,4 +1,5 @@
-;;; r6rs-control.test --- Test suite for R6RS (rnrs control)
+;;; r6rs-records-procedural.test --- Test suite for R6RS 
+;;; (rnrs records procedural)
 
 ;;      Copyright (C) 2010 Free Software Foundation, Inc.
 ;;
