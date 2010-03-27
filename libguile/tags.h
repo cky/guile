@@ -498,7 +498,7 @@ enum scm_tc8_tags
  *   must all be equal except for two bit positions.
  *   (used to implement scm_is_lisp_false)
  *
- * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T, SCM_XXX_ANOTHER_BOOLEAN_DONT_USE
+ * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T, SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0
  *   must all be equal except for two bit positions.
  *   (used to implement scm_is_bool_or_nil)
  *
@@ -519,12 +519,14 @@ enum scm_tc8_tags
 #define SCM_BOOL_T 		SCM_MAKIFLAG (4)
 
 #ifdef BUILDING_LIBGUILE
-#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE	SCM_MAKIFLAG (5)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0	SCM_MAKIFLAG (5)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_1	SCM_MAKIFLAG (6)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_2	SCM_MAKIFLAG (7)
 #endif
 
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG (6)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG (7)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG (8)
+#define SCM_UNSPECIFIED		SCM_MAKIFLAG (8)
+#define SCM_UNDEFINED	 	SCM_MAKIFLAG (9)
+#define SCM_EOF_VAL 		SCM_MAKIFLAG (10)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -534,7 +536,7 @@ enum scm_tc8_tags
  * the code which handles this value in C so that SCM_UNDEFINED can be
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (9)
+#define SCM_UNBOUND		SCM_MAKIFLAG (11)
 
 #define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 

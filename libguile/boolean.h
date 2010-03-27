@@ -75,7 +75,7 @@
  *
  * If SCM_ENABLE_ELISP is true, then scm_is_bool_or_nil(x)
  * returns 1 if and only if x is one of the following: SCM_BOOL_F,
- * SCM_BOOL_T, SCM_ELISP_NIL, or SCM_XXX_ANOTHER_BOOLEAN_DONT_USE.
+ * SCM_BOOL_T, SCM_ELISP_NIL, or SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0.
  * Otherwise, it returns 0.
  */
 #if SCM_ENABLE_ELISP
