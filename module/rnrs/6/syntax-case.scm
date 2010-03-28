@@ -50,6 +50,18 @@
 
 			quasisyntax
 			unsyntax
-			unsyntax-splicing
+			unsyntax-splicing)
+	  (ice-9 optargs)
+	  (rnrs base (6))
+	  (rnrs conditions (6))
+	  (rnrs exceptions (6))
+	  (rnrs records procedural (6)))
 
-			syntax-violation)))
+  (define* (syntax-violation who message form #:optional subform)
+    (let* ((conditions (list (make-message-condition message)
+			     (make-syntax-violation form subform)))
+	   (conditions (if who
+			   (cons (make-who-condition who) conditions)
+			   conditions)))
+      (raise (apply condition conditions))))
+)

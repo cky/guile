@@ -22,7 +22,6 @@
   (import (rnrs base (6))
           (rnrs conditions (6))
 	  (rnrs records procedural (6))
-	  (rnrs syntax-case (6))
 	  (only (guile) with-throw-handler))
 
   (define raise (@@ (rnrs records procedural) r6rs-raise))
@@ -51,22 +50,18 @@
 	   *unspecified*))))
 
   (define-syntax guard0
-    (lambda (stx)
-      (syntax-case stx ()
-	((_ (variable cond-clause ...) body)
-	 (syntax (call/cc (lambda (continuation)
-			    (with-exception-handler
-			     (lambda (variable)
-			       (continuation (cond cond-clause ...)))
-			     (lambda () body)))))))))
+    (syntax-rules ()
+      ((_ (variable cond-clause ...) body)
+       (call/cc (lambda (continuation)
+		  (with-exception-handler
+		   (lambda (variable)
+		     (continuation (cond cond-clause ...)))
+		   (lambda () body)))))))
 
   (define-syntax guard
-    (lambda (stx)
-      (syntax-case stx (else)
-	((_ (variable cond-clause ... . ((else else-clause ...))) body)
-	 (syntax (guard0 (variable cond-clause ... (else else-clause ...))
-			 body)))
-	((_ (variable cond-clause ...) body)
-	 (syntax (guard0 (variable cond-clause ... (else (raise variable)))
-			 body))))))
+    (syntax-rules (else)
+      ((_ (variable cond-clause ... . ((else else-clause ...))) body)
+       (guard0 (variable cond-clause ... (else else-clause ...)) body))
+      ((_ (variable cond-clause ...) body)
+       (guard0 (variable cond-clause ... (else (raise variable))) body))))
 )
