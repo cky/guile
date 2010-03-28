@@ -121,7 +121,7 @@
              (lp (cdr args) (cdr vars)))
             (else #f))))
          
-       (and (not opt) (not kw) (not alternate)
+       (and (not opt) (not kw) rest (not alternate)
             (record-case body
               ((<application> proc args)
                ;; (lambda args (apply (lambda ...) args)) => (lambda ...)
