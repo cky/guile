@@ -66,7 +66,7 @@
 	  non-continuable-violation?
 
 	  &implementation-restriction
-	  make-implementation-restriction
+	  make-implementation-restriction-violation
 	  implementation-restriction-violation?
 
 	  &lexical
@@ -82,10 +82,11 @@
 	  &undefined
 	  make-undefined-violation
 	  undefined-violation?)
-  (import (rnrs base (6))
-	  (rnrs records procedural (6))
-	  (rnrs syntax-case (6)))
-	  
+  (import (only (guile) and=>)
+	  (rnrs base (6))
+	  (rnrs lists (6))
+	  (rnrs records procedural (6)))
+
   (define &compound-condition (make-record-type-descriptor 
 			       '&compound-condition #f #f #f #f
 			       '#((immutable components))))
@@ -94,64 +95,64 @@
   (define make-compound-condition 
     (record-constructor (make-record-constructor-descriptor 
 			 &compound-condition #f #f)))
-  (define compound-condition-components (record-accessor &compound-condition 0))
+  (define simple-conditions (record-accessor &compound-condition 0))
 
+  (define (condition? obj) 
+    (or (compound-condition? obj) (condition-internal? obj)))
+
+  (define condition
+    (lambda conditions
+      (define (flatten cond)
+	(if (compound-condition? cond) (simple-conditions cond) (list cond)))
+      (or (for-all condition? conditions)
+	  (raise (make-assertion-violation)))
+      (if (or (null? conditions) (> (length conditions) 1))
+	  (make-compound-condition (apply append (map flatten conditions)))
+	  (car conditions))))
+  
   (define-syntax define-condition-type
-    (lambda (stx)
-      (syntax-case stx ()
-	((_ condition-type supertype constructor predicate
-	    (field accessor) ...)
-	 (let*
-	   ((fields (let* ((field-spec-syntax #'((field accessor) ...))
-			  (field-specs (syntax->datum field-spec-syntax)))
-		     (list->vector (map (lambda (field-spec)
-					  (cons 'immutable field-spec))
-					field-specs))))
-	    (fields-syntax (datum->syntax stx fields)))
-	  #`(begin
-	      (define condition-type 
-		(make-record-type-descriptor 
-		 #,(datum->syntax
-		    stx (list 'quote (syntax->datum #'condition-type)))
-		 supertype #f #f #f #,fields-syntax))
-	      (define constructor
-		(record-constructor 
-		 (make-record-constructor-descriptor condition-type #f #f)))
-	      (define predicate (record-predicate condition-type))
-	      #,@(let f ((accessors '())
-			 (counter 0))
-		   (if (>= counter (vector-length fields))
-		       accessors
-		       (f (cons #`(define #,(datum->syntax 
-					     stx (caddr (vector-ref fields 
-								    counter)))
-				    (record-accessor condition-type #,counter))
-				accessors)
-			  (+ counter 1))))))))))
-		       
+    (syntax-rules ()
+      ((_ condition-type supertype constructor predicate
+	  (field accessor) ...)
+       (letrec-syntax
+	   ((transform-fields
+	     (syntax-rules ()
+	       ((_ (f a) . rest)
+		(cons '(immutable f a) (transform-fields rest)))
+	       ((_ ((f a))) '((immutable f a)))
+	       ((_ ()) '())
+	       ((_) '())))
+
+	    (generate-accessors
+	     (syntax-rules ()
+	       ((_ counter (f a) . rest)
+		(begin (define a (record-accessor condition-type counter))
+		       (generate-accessors (+ counter 1) rest)))
+	       ((_ counter ((f a)))
+		(define a (record-accessor condition-type counter)))
+	       ((_ counter ()) (begin))
+	       ((_ counter) (begin)))))	 
+	 (begin
+	   (define condition-type 
+	     (make-record-type-descriptor 
+	      'condition-type supertype #f #f #f 
+	      (list->vector (transform-fields (field accessor) ...))))
+	   (define constructor
+	     (record-constructor 
+	      (make-record-constructor-descriptor condition-type #f #f)))
+	   (define predicate (condition-predicate condition-type))
+	   (generate-accessors 0 (field accessor) ...))))))
+
   (define &condition (@@ (rnrs records procedural) &condition))
   (define &condition-constructor-descriptor
     (make-record-constructor-descriptor &condition #f #f))
   (define condition-internal? (record-predicate &condition))
 
-  (define condition
-    (lambda conditions
-      (define (flatten cond)
-	(if (compound-condition? cond)
-	    (fold append '() (map flatten (compound-condition-components cond)))
-	    cond))
-      (or (for-all condition? conditions)
-	  (raise (make-assertion-violation)))
-      (make-compound-condition (flatten conditions))))
-
-  (define (simple-conditions condition) (record-accessor &compound-condition 0))
-  (define (condition? obj) 
-    (or (compound-condition? obj) (condition-internal? obj)))
   (define (condition-predicate rtd)
     (let ((rtd-predicate (record-predicate rtd)))
       (lambda (obj)
 	(cond ((compound-condition? obj) 
-	       (find rtd-predicate (compound-condition-components obj)))
+	       (exists rtd-predicate (simple-conditions obj)))
 	      ((condition-internal? obj) (rtd-predicate obj))
 	      (else #f)))))
 
@@ -160,7 +161,7 @@
       (lambda (obj)
 	(cond ((rtd-predicate obj) (proc obj))
 	      ((compound-condition? obj) 
-	       (and=> (find rtd-predicate simple-conditions obj) proc))
+	       (and=> (find rtd-predicate (simple-conditions obj)) proc))
 	      (else #f)))))
 
   (define-condition-type &message &condition 
@@ -172,19 +173,18 @@
   (define &serious (@@ (rnrs records procedural) &serious))
   (define make-serious-condition 
     (@@ (rnrs records procedural) make-serious-condition))
-  (define serious-condition? (@@ (rnrs records procedural) serious-condition?))
+  (define serious-condition? (condition-predicate &serious))
 
   (define-condition-type &error &serious make-error error?)
 
   (define &violation (@@ (rnrs records procedural) &violation))
   (define make-violation (@@ (rnrs records procedural) make-violation))
-  (define violation? (@@ (rnrs records procedural) violation?))
+  (define violation? (condition-predicate &violation))
 
   (define &assertion (@@ (rnrs records procedural) &assertion))
   (define make-assertion-violation 
     (@@ (rnrs records procedural) make-assertion-violation))
-  (define assertion-violation? 
-    (@@ (rnrs records procedural) assertion-violation?))
+  (define assertion-violation? (condition-predicate &assertion))
 
   (define-condition-type &irritants &condition 
     make-irritants-condition irritants-condition?

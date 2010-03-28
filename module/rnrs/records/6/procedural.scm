@@ -236,7 +236,6 @@
 
   (define make-serious-condition 
     (record-constructor &serious-constructor-descriptor))
-  (define serious-condition? (record-predicate &serious))
 
   (define &violation (make-record-type-descriptor
 		      '&violation &serious #f #f #f '#()))
@@ -244,7 +243,6 @@
     (make-record-constructor-descriptor 
      &violation &serious-constructor-descriptor #f))
   (define make-violation (record-constructor &violation-constructor-descriptor))
-  (define violation? (record-predicate &violation))
 
   (define &assertion (make-record-type-descriptor
 		      '&assertion &violation #f #f #f '#()))
@@ -252,7 +250,6 @@
     (record-constructor 
      (make-record-constructor-descriptor
       &assertion &violation-constructor-descriptor #f)))
-  (define assertion-violation? (record-predicate &assertion))
 
   ;; Exception wrapper type, along with a wrapping `throw' implementation.
   ;; These are used in the current library, and so they are defined here and not
