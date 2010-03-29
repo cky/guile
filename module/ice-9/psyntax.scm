@@ -2649,6 +2649,9 @@
     (syntax-case x ()
       ((_ (k ...) ((keyword . pattern) template) ...)
        #'(lambda (x)
+           ;; embed patterns as procedure metadata
+           #((macro-type . syntax-rules)
+             (patterns pattern ...))
            (syntax-case x (k ...)
              ((dummy . pattern) #'template)
              ...))))))
@@ -2824,6 +2827,7 @@
     (syntax-case x ()
       ((_ e)
        #'(lambda (x)
+           #((macro-type . identifier-syntax))
            (syntax-case x ()
              (id
               (identifier? #'id)

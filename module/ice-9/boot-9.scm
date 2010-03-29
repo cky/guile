@@ -522,6 +522,8 @@ If there is no handler at all, Guile prints an error and then exits."
        #'(define-syntax macro
            (lambda (y)
              doc
+             #((macro-type . defmacro)
+               (defmacro-args args))
              (syntax-case y ()
                ((_ . args)
                 (let ((v (syntax->datum #'args)))
