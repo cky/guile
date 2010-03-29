@@ -259,6 +259,7 @@ RNRS_SOURCES =					\
   rnrs/6/base.scm				\
   rnrs/6/conditions.scm				\
   rnrs/6/control.scm				\
+  rnrs/6/enums.scm				\
   rnrs/6/exceptions.scm				\
   rnrs/6/files.scm				\
   rnrs/6/hashtables.scm				\

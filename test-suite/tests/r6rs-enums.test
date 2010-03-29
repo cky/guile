@@ -1,0 +1,257 @@
+;;; r6rs-enums.test --- Test suite for R6RS (rnrs enums)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-rnrs-enums)
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs enums) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module (test-suite lib))
+
+(define-enumeration foo-enumeration (foo bar baz) make-foo-set)
+
+(with-test-prefix "enum-set-universe"
+  (pass-if "universe of an enumeration is itself"
+    (let ((et (make-enumeration '(a b c))))
+      (eq? (enum-set-universe et) et)))
+
+  (pass-if "enum-set-universe returns universe"
+    (let* ((et (make-enumeration '(a b c)))
+	   (es ((enum-set-constructor et) '(a b))))
+      (eq? (enum-set-universe es) et))))
+
+(with-test-prefix "enum-set-indexer"
+  (pass-if "indexer returns index of symbol in universe"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set ((enum-set-constructor universe) '(a c)))
+	   (indexer (enum-set-indexer set)))
+      (and (eqv? (indexer 'a) 0) (eqv? (indexer 'c) 2))))
+
+  (pass-if "indexer returns index of symbol in universe but not set"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set ((enum-set-constructor universe) '(a c)))
+	   (indexer (enum-set-indexer set)))
+      (eqv? (indexer 'b) 1)))
+
+  (pass-if "indexer returns #f for symbol not in universe"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set ((enum-set-constructor universe) '(a b c)))
+	   (indexer (enum-set-indexer set)))
+      (eqv? (indexer 'd) #f))))
+
+(with-test-prefix "enum-set->list"
+  (pass-if "enum-set->list returns members in universe order"
+    (let* ((universe (make-enumeration '(a b c d e)))
+	   (set ((enum-set-constructor universe) '(d a e c))))
+      (equal? (enum-set->list set) '(a c d e)))))
+
+(with-test-prefix "enum-set-member?"
+  (pass-if "enum-set-member? is #t for set members"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set ((enum-set-constructor universe) '(a b c))))
+      (enum-set-member? 'a set)))
+
+  (pass-if "enum-set-member? is #f for set non-members"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set ((enum-set-constructor universe) '(a b c))))
+      (not (enum-set-member? 'd set))))
+
+  (pass-if "enum-set-member? is #f for universe but not set members"
+    (let* ((universe (make-enumeration '(a b c d)))
+	   (set ((enum-set-constructor universe) '(a b c))))
+      (not (enum-set-member? 'd set)))))
+
+(with-test-prefix "enum-set-subset?"
+  (pass-if "enum-set-subset? is #t when set1 subset of set2"
+    (let* ((universe (make-enumeration '(a b c d e)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(a b c d))))
+      (enum-set-subset? set1 set2)))
+
+  (pass-if "enum-set-subset? is #t when universe and set are subsets"
+    (let* ((universe1 (make-enumeration '(a b c d)))
+	   (universe2 (make-enumeration '(a b c d e)))
+	   (set1 ((enum-set-constructor universe1) '(a b c)))
+	   (set2 ((enum-set-constructor universe2) '(a b c d))))
+      (enum-set-subset? set1 set2)))
+
+  (pass-if "enum-set-subset? is #f when set not subset"
+    (let* ((universe (make-enumeration '(a b c d e)))
+	   (set1 ((enum-set-constructor universe) '(a b c d)))
+	   (set2 ((enum-set-constructor universe) '(a b c))))
+      (not (enum-set-subset? set1 set2))))
+
+  (pass-if "enum-set-subset? is #f when universe not subset"
+    (let* ((universe1 (make-enumeration '(a b c d e)))
+	   (universe2 (make-enumeration '(a b c d)))
+	   (set1 ((enum-set-constructor universe1) '(a b c)))
+	   (set2 ((enum-set-constructor universe2) '(a b c d))))
+      (not (enum-set-subset? set1 set2)))))
+
+(with-test-prefix "enum-set=?"
+  (pass-if "enum-set=? is #t when sets are equal"
+    (let* ((universe1 (make-enumeration '(a b c)))
+	   (universe2 (make-enumeration '(a b c)))
+	   (set1 ((enum-set-constructor universe1) '(a b c)))
+	   (set2 ((enum-set-constructor universe2) '(a b c))))
+      (enum-set=? set1 set2)))
+
+  (pass-if "enum-set=? is #f when sets are not equal"
+    (let* ((universe (make-enumeration '(a b c d)))
+	   (set1 ((enum-set-constructor universe) '(a b)))
+	   (set2 ((enum-set-constructor universe) '(c d))))
+      (not (enum-set=? set1 set2))))
+
+  (pass-if "enum-set=? is #f when universes are not equal"
+    (let* ((universe1 (make-enumeration '(a b c d)))
+	   (universe2 (make-enumeration '(a b c d e)))
+	   (set1 ((enum-set-constructor universe1) '(a b c d)))
+	   (set2 ((enum-set-constructor universe2) '(a b c d))))
+      (not (enum-set=? set1 set2)))))
+
+(with-test-prefix "enum-set-union"
+  (pass-if "&assertion raised on different universes"
+    (guard (condition ((assertion-violation? condition) #t))
+	   (let* ((universe1 (make-enumeration '(a b c)))
+		  (universe2 (make-enumeration '(d e f)))
+		  (set1 ((enum-set-constructor universe1) '(a b c)))
+		  (set2 ((enum-set-constructor universe2) '(d e f))))
+	     (enum-set-union set1 set2)
+	     #f)))
+
+  (pass-if "enum-set-union creates union on overlapping sets"
+    (let* ((universe (make-enumeration '(a b c d e)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(c d e)))
+	   (union (enum-set-union set1 set2)))
+      (equal? (enum-set->list union) '(a b c d e))))
+
+  (pass-if "enum-set-union creates union on disjoint sets"
+    (let* ((universe (make-enumeration '(a b c d e f)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(d e f)))
+	   (union (enum-set-union set1 set2)))
+      (equal? (enum-set->list union) '(a b c d e f)))))
+
+(with-test-prefix "enum-set-intersection"
+  (pass-if "&assertion raised on different universes"
+    (guard (condition ((assertion-violation? condition) #t))
+	   (let* ((universe1 (make-enumeration '(a b c)))
+		  (universe2 (make-enumeration '(d e f)))
+		  (set1 ((enum-set-constructor universe1) '(a b c)))
+		  (set2 ((enum-set-constructor universe2) '(d e f))))
+	     (enum-set-intersection set1 set2)
+	     #f)))
+
+  (pass-if "enum-set-intersection on overlapping sets"
+    (let* ((universe (make-enumeration '(a b c d e)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(c d e)))
+	   (intersection (enum-set-intersection set1 set2)))
+      (equal? (enum-set->list intersection) '(c))))
+
+  (pass-if "enum-set-intersection on disjoint sets"
+    (let* ((universe (make-enumeration '(a b c d e f)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(d e f)))
+	   (intersection (enum-set-intersection set1 set2)))
+      (null? (enum-set->list intersection)))))
+
+(with-test-prefix "enum-set-difference"
+  (pass-if "&assertion raised on different universes"
+    (guard (condition ((assertion-violation? condition) #t))
+	   (let* ((universe1 (make-enumeration '(a b c)))
+		  (universe2 (make-enumeration '(d e f)))
+		  (set1 ((enum-set-constructor universe1) '(a b c)))
+		  (set2 ((enum-set-constructor universe2) '(d e f))))
+	     (enum-set-difference set1 set2)
+	     #f)))
+
+  (pass-if "enum-set-difference with subset"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(a)))
+	   (difference (enum-set-difference set1 set2)))
+      (equal? (enum-set->list difference) '(b c))))
+
+  (pass-if "enum-set-difference with superset is empty"
+    (let* ((universe (make-enumeration '(a b c d)))
+	   (set1 ((enum-set-constructor universe) '(a b c)))
+	   (set2 ((enum-set-constructor universe) '(a b c d)))
+	   (difference (enum-set-difference set1 set2)))
+      (null? (enum-set->list difference)))))
+
+(with-test-prefix "enum-set-complement"
+  (pass-if "complement of empty set is universe"
+    (let* ((universe (make-enumeration '(a b c)))
+	   (set ((enum-set-constructor universe) '()))
+	   (complement (enum-set-complement set)))
+      (equal? (enum-set->list complement) (enum-set->list universe))))
+
+  (pass-if "simple complement"
+    (let* ((universe (make-enumeration '(a b c d)))
+	   (set ((enum-set-constructor universe) '(a c)))
+	   (complement (enum-set-complement set)))
+      (equal? (enum-set->list complement) '(b d)))))
+
+(with-test-prefix "enum-set-projection"
+  (pass-if "projection onto subset universe"
+    (let* ((universe1 (make-enumeration '(a b c d)))
+	   (universe2 (make-enumeration '(a b c)))
+	   (set1 ((enum-set-constructor universe1) '(a d)))
+	   (set2 ((enum-set-constructor universe2) '(b c)))
+	   (projection (enum-set-projection set1 set2)))
+      (equal? (enum-set->list projection) '(a))))
+
+  (pass-if "projection onto superset universe"
+    (let* ((universe1 (make-enumeration '(a b c)))
+	   (universe2 (make-enumeration '(a b c d)))
+	   (set1 ((enum-set-constructor universe1) '(a c)))
+	   (set2 ((enum-set-constructor universe2) '(b d)))
+	   (projection (enum-set-projection set1 set2)))
+      (equal? (enum-set->list projection) '(a c))))
+
+  (pass-if "projection onto disjoint universe"
+    (let* ((universe1 (make-enumeration '(a b c)))
+	   (universe2 (make-enumeration '(d e f)))
+	   (set1 ((enum-set-constructor universe1) '(a c)))
+	   (set2 ((enum-set-constructor universe2) '(d f)))
+	   (projection (enum-set-projection set1 set2)))
+      (equal? (enum-set->list projection) '()))))
+
+(with-test-prefix "define-enumeration"
+  (pass-if "define-enumeration creates bindings"
+    (and (defined? 'foo-enumeration) (defined? 'make-foo-set)))
+
+  (pass-if "type-name syntax raises &syntax on non-member"
+    (guard (condition ((syntax-violation? condition) #t))
+	   (begin (eval '(foo-enumeration a) (current-module)) #f)))
+
+  (pass-if "type-name evaluates to quote on member"
+    (guard (condition ((syntax-violation? condition) #f))
+	   (eq? (eval '(foo-enumeration foo) (current-module)) 'foo)))
+
+  (pass-if "constructor-syntax raises &syntax on non-members"
+    (guard (condition ((syntax-violation? condition) #t))
+	   (begin (eval '(make-foo-set foo bar not-baz) (current-module)) #f)))
+
+  (pass-if "constructor-syntax evaluates to new set"
+    (guard (condition ((syntax-violation? condition) #f))
+	   (equal? (enum-set->list (eval '(make-foo-set foo bar) 
+					 (current-module))) 
+		   '(foo bar)))))

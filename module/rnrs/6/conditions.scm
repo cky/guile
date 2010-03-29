@@ -207,7 +207,7 @@
     make-lexical-violation lexical-violation?)
 
   (define-condition-type &syntax &violation
-    make-syntax-violation syntax-violation
+    make-syntax-violation syntax-violation?
     (form syntax-violation-form)
     (subform syntax-violation-subform))
 
