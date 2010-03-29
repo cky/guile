@@ -37,6 +37,7 @@
   #:use-module (ice-9 session)
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 optargs)
+  #:use-module (system vm program)
   #:use-module ((sxml transform) #:select (pre-post-order))
   #:export (module-stexi-documentation
             script-stexi-documentation
@@ -122,24 +123,35 @@
                  (list "." (symbol->string rest-arg))
                  '()))))))))
 
-;; like the normal false-if-exception, but doesn't affect the-last-stack
-(define-macro (false-if-exception exp)
-  `(catch #t
-          (lambda ()
-            (with-fluids ((the-last-stack (fluid-ref the-last-stack)))
-              ,exp))
-          (lambda args #f)))
-
-;; This is really nasty, I wish guile gave a better way to get this...
-(define (get-macro-args macro)
+(define (macro-arguments name type transformer)
   (process-args
-   (case (macro-type macro)
-     ((syncase-macro)
-      (case (syncase-macro-type macro)
-        ((macro)
-         (get-proc-args (car (syncase-macro-binding macro))))
-        (else #f)))
-     (else #f))))
+   (case type
+     ((syntax-rules)
+      (let ((patterns (program-property transformer 'patterns)))
+        (if (pair? patterns)
+            (car patterns)
+            '())))
+     ((identifier-syntax)
+      '())
+     ((defmacro)
+      (or (program-property transformer 'defmacro-args)
+          '()))
+     (else
+      ;; a procedural (syntax-case) macro. how to document these?
+      '()))))
+
+(define (macro-additional-stexi name type transformer)
+  (case type
+    ((syntax-rules)
+     (let ((patterns (program-property transformer 'patterns)))
+       (if (pair? patterns)
+           (map (lambda (x)
+                  `(defspecx (% (name ,name)
+                                (arguments ,@(process-args x)))))
+                (cdr patterns))
+           '())))
+    (else
+     '())))
 
 (define many-space? (make-regexp "[[:space:]][[:space:]][[:space:]]"))
 (define initial-space? (make-regexp "^[[:space:]]"))
@@ -215,8 +227,13 @@
       (make-def 'deftp `((name ,name)
                          (category "Class"))))
      ((is-a? object <macro>)
-      (make-def 'defspec `((name ,name)
-                           (arguments ,@(get-macro-args object)))))
+      (let* ((proc (macro-transformer object))
+             (type (and proc (program-property proc 'macro-type))))
+        `(defspec (% (name ,name)
+                     (arguments ,@(macro-arguments name type proc)))
+           ,@(macro-additional-stexi name type proc)
+           ,@(cdr stexi))))
+     
      ((is-a? object <procedure>)
       (make-def 'defun `((name ,name)
                          (arguments ,@(get-proc-args object)))))
