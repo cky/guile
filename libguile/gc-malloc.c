@@ -244,17 +244,11 @@ scm_gc_strdup (const char *str, const char *what)
  * scm_done_free
  *
  * These functions provide services comparable to malloc, realloc, and
- * free.  They should be used when allocating memory that will be under
- * control of the garbage collector, i.e., if the memory may be freed
- * during garbage collection.
+ * free.
  *
- * They are deprecated because they weren't really used the way
- * outlined above, and making sure to return the right amount from
- * smob free routines was sometimes difficult when dealing with nested
- * data structures.  We basically want everybody to review their code
- * and use the more symmetrical scm_gc_malloc/scm_gc_free functions
- * instead.  In some cases, where scm_must_malloc has been used
- * incorrectly (i.e. for non-GC-able memory), use scm_malloc/free.
+ * There has been a fair amount of confusion around the use of these functions;
+ * see "Memory Blocks" in the manual. They are totally unnecessary in 2.0 given
+ * the Boehm GC.
  */
 
 void *
@@ -312,7 +306,7 @@ scm_must_free (void *obj)
   scm_malloc_unregister (obj);
 #endif
 
-  free (obj);
+  GC_FREE (obj);
 }
 #undef FUNC_NAME
 
