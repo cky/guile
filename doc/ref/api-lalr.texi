@@ -1,0 +1,36 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@page
+@node LALR(1) Parsing
+@section LALR(1) Parsing
+
+The @code{(system base lalr)} module provides the
+@uref{http://code.google.com/p/lalr-scm/, @code{lalr-scm} LALR(1) parser
+generator by Dominique Boucher}.  @code{lalr-scm} uses the same algorithm as GNU
+Bison (@pxref{Introduction, Introduction to Bison,, bison, Bison@comma{} The
+Yacc-compatible Parser Generator}).  Parsers are defined using the
+@code{lalr-parser} macro.
+
+@deffn {Scheme Syntax} lalr-parser [@var{options}] @var{tokens} @var{rules}...
+Generate an LALR(1) syntax analyzer.  @var{tokens} is a list of symbols
+representing the terminal symbols of the grammar.  @var{rules} are the grammar
+production rules.
+
+Each rule has the form @code{(@var{non-terminal} (@var{rhs} ...) : @var{action}
+...)}, where @var{non-terminal} is the name of the rule, @var{rhs} are the
+right-hand sides, i.e., the production rule, and @var{action} is a semantic
+action associated with the rule.
+
+The generated parser is a two-argument procedure that takes a @dfn{tokenizer}
+and a @dfn{syntax error procedure}.  The tokenizer should be a unary procedure
+taking a port and returning a lexical token as produced by
+@code{make-lexical-token}.  The syntax error procedure may be called with at
+least an error message (a string), and optionally the lexical token that caused
+the error.
+@end deffn
+
+Please refer to the @code{lalr-scm} documentation for details.

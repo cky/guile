@@ -40,6 +40,7 @@ guile_TEXINFOS = preface.texi			\
 		 api-binding.texi		\
 		 api-control.texi		\
 		 api-io.texi			\
+		 api-lalr.texi			\
 		 api-evaluation.texi		\
 		 api-memory.texi		\
 		 api-modules.texi		\
