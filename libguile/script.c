@@ -720,13 +720,11 @@ scm_compile_shell_switches (int argc, char **argv)
       tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
     }
 
-  /* If GUILE_AUTO_COMPILE is not set and no args are given, default to
-     autocompilation. */
-  if (turn_on_autocompile || (scm_getenv_int ("GUILE_AUTO_COMPILE", 1)
-                              && !dont_turn_on_autocompile))
+  /* If we are given an autocompilation arg, set %load-should-autocompile. */
+  if (turn_on_autocompile || dont_turn_on_autocompile)
     {
       tail = scm_cons (scm_list_3 (sym_set_x, sym_sys_load_should_autocompile,
-                                   SCM_BOOL_T),
+                                   scm_from_bool (turn_on_autocompile)),
                        tail);
     }
 

@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include "libguile/_scm.h"
+#include "libguile/private-gc.h" /* scm_getenv_int */
 #include "libguile/libpath.h"
 #include "libguile/fports.h"
 #include "libguile/read.h"
@@ -901,9 +902,12 @@ scm_init_load ()
   scm_loc_compile_fallback_path
     = SCM_VARIABLE_LOC (scm_c_define ("%compile-fallback-path", SCM_BOOL_F));
 
-  scm_loc_load_should_autocompile
-    = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", SCM_BOOL_F));
-
+  {
+    SCM autocomp = scm_from_bool (scm_getenv_int ("GUILE_AUTO_COMPILE", 1));
+    scm_loc_load_should_autocompile
+      = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", autocomp));
+  }
+  
   the_reader = scm_make_fluid ();
   scm_fluid_set_x (the_reader, SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);
