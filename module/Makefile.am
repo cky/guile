@@ -165,11 +165,12 @@ SCRIPTS_SOURCES =				\
   scripts/read-rfc822.scm			\
   scripts/snarf-guile-m4-docs.scm
 
-SYSTEM_BASE_SOURCES = 				\
+SYSTEM_BASE_SOURCES =				\
   system/base/pmatch.scm			\
   system/base/syntax.scm			\
   system/base/compile.scm			\
   system/base/language.scm			\
+  system/base/lalr.scm				\
   system/base/message.scm
 
 ICE_9_SOURCES = \
@@ -316,6 +317,7 @@ NOCOMP_SOURCES =				\
   ice-9/gds-client.scm				\
   ice-9/psyntax.scm				\
   ice-9/quasisyntax.scm				\
+  system/base/lalr.upstream.scm			\
   system/repl/describe.scm			\
   ice-9/debugger/command-loop.scm		\
   ice-9/debugger/commands.scm			\

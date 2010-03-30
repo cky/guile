@@ -120,3 +120,46 @@ SCM_TESTS = tests/alist.test			\
 	    tests/weaks.test
 
 EXTRA_DIST = guile-test lib.scm $(SCM_TESTS) ChangeLog-2008
+
+
+# Test suite of Dominique Boucher's `lalr-scm'.
+# From http://code.google.com/p/lalr-scm/.
+
+LALR_TESTS =					\
+  lalr/test-glr-associativity.scm		\
+  lalr/test-glr-basics-01.scm			\
+  lalr/test-glr-basics-02.scm			\
+  lalr/test-glr-basics-03.scm			\
+  lalr/test-glr-basics-04.scm			\
+  lalr/test-glr-basics-05.scm			\
+  lalr/test-glr-script-expression.scm		\
+  lalr/test-glr-single-expressions.scm		\
+						\
+  lalr/test-lr-associativity-01.scm		\
+  lalr/test-lr-basics-01.scm			\
+  lalr/test-lr-basics-02.scm			\
+  lalr/test-lr-basics-03.scm			\
+  lalr/test-lr-basics-04.scm			\
+  lalr/test-lr-basics-05.scm			\
+  lalr/test-lr-error-recovery-01.scm		\
+  lalr/test-lr-error-recovery-02.scm		\
+  lalr/test-lr-no-clause.scm			\
+  lalr/test-lr-script-expression.scm		\
+  lalr/test-lr-single-expressions.scm
+
+# Tests not listed in `run-guile-test.sh' and which should not be run.
+LALR_EXTRA =					\
+  lalr/test-lr-associativity-02.scm		\
+  lalr/test-lr-associativity-03.scm		\
+  lalr/test-lr-associativity-04.scm
+
+# Test framework.
+LALR_EXTRA +=					\
+  lalr/common-test.scm				\
+  lalr/glr-test.scm				\
+  lalr/run-guile-test.sh
+
+TESTS = $(LALR_TESTS)
+TESTS_ENVIRONMENT = $(top_builddir)/meta/guile --no-autocompile
+
+EXTRA_DIST += $(LALR_EXTRA) $(LALR_TESTS)
