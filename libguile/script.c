@@ -457,8 +457,6 @@ scm_compile_shell_switches (int argc, char **argv)
   int use_emacs_interface = 0;
   int turn_on_debugging = 0;
   int dont_turn_on_debugging = 0;
-  int turn_on_autocompile = 0;
-  int dont_turn_on_autocompile = 0;
 
   int i;
   char *argv0 = guile;
@@ -595,17 +593,15 @@ scm_compile_shell_switches (int argc, char **argv)
 	  turn_on_debugging = 0;
 	}
 
+      /* Do autocompile on/off now, because the form itself might need this
+         decision. */
       else if (! strcmp (argv[i], "--autocompile"))
-	{
-	  turn_on_autocompile = 1;
-	  dont_turn_on_autocompile = 0;
-	}
+        scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
+                            SCM_BOOL_T);
 
       else if (! strcmp (argv[i], "--no-autocompile"))
-	{
-	  dont_turn_on_autocompile = 1;
-	  turn_on_autocompile = 0;
-	}
+        scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
+                            SCM_BOOL_F);
 
       else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
 	use_emacs_interface = 1;
@@ -718,14 +714,6 @@ scm_compile_shell_switches (int argc, char **argv)
   if (interactive && !inhibit_user_init)
     {
       tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
-    }
-
-  /* If we are given an autocompilation arg, set %load-should-autocompile. */
-  if (turn_on_autocompile || dont_turn_on_autocompile)
-    {
-      tail = scm_cons (scm_list_3 (sym_set_x, sym_sys_load_should_autocompile,
-                                   scm_from_bool (turn_on_autocompile)),
-                       tail);
     }
 
   /* If debugging was requested, or we are interactive and debugging

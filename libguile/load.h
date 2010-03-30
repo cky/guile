@@ -39,6 +39,7 @@ SCM_API SCM scm_c_primitive_load_path (const char *filename);
 SCM_INTERNAL SCM scm_sys_warn_autocompilation_enabled (void);
 SCM_INTERNAL void scm_init_load_path (void);
 SCM_INTERNAL void scm_init_load (void);
+SCM_INTERNAL void scm_init_load_should_autocompile (void);
 SCM_INTERNAL void scm_init_eval_in_scheme (void);
 
 #endif  /* SCM_LOAD_H */

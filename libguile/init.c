@@ -586,6 +586,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();
+  scm_init_load_should_autocompile ();
 }
 
 /*
