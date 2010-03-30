@@ -863,20 +863,29 @@ raeql (SCM ra0, SCM as_equal, SCM ra1)
   scm_t_array_dim *s0 = &dim0, *s1 = &dim1;
   unsigned long bas0 = 0, bas1 = 0;
   int k, unroll = 1, vlen = 1, ndim = 1;
+
   if (SCM_I_ARRAYP (ra0))
     {
+      if (SCM_I_ARRAY_NDIM (ra0) == 0)
+        return scm_is_true (scm_equal_p (scm_array_ref (ra0, SCM_EOL), ra1));
       ndim = SCM_I_ARRAY_NDIM (ra0);
       s0 = SCM_I_ARRAY_DIMS (ra0);
       bas0 = SCM_I_ARRAY_BASE (ra0);
       v0 = SCM_I_ARRAY_V (ra0);
     }
-  else
+  else if (scm_is_generalized_vector (v0))
     {
       s0->inc = 1;
       s0->lbnd = 0;
       s0->ubnd = scm_c_generalized_vector_length (v0) - 1;
       unroll = 0;
     }
+  else if (SCM_I_ARRAYP (ra1) && SCM_I_ARRAY_NDIM (ra1) == 0)
+    return scm_is_true (scm_equal_p (ra0, scm_array_ref (ra1, SCM_EOL)));
+  else
+    /* It's just not working out, dear. */
+    return 0;
+
   if (SCM_I_ARRAYP (ra1))
     {
       if (ndim != SCM_I_ARRAY_NDIM (ra1))
@@ -885,18 +894,17 @@ raeql (SCM ra0, SCM as_equal, SCM ra1)
       bas1 = SCM_I_ARRAY_BASE (ra1);
       v1 = SCM_I_ARRAY_V (ra1);
     }
-  else
+  else if (scm_is_generalized_vector (v1))
     {
-      /*
-	Huh ? Schizophrenic return type. --hwn
-      */
-      if (1 != ndim)
-	return 0;
       s1->inc = 1;
       s1->lbnd = 0;
       s1->ubnd = scm_c_generalized_vector_length (v1) - 1;
       unroll = 0;
     }
+  else
+    /* It's not you, it's me. */
+    return 0;
+
   if (SCM_TYP7 (v0) != SCM_TYP7 (v1))
     return 0;
   for (k = ndim; k--;)
