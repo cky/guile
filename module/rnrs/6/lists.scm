@@ -21,15 +21,24 @@
   (export find for-all exists filter partition fold-left fold-right remp remove 
 	  remv remq memp member memv memq assp assoc assv assq cons*)
   (import (rnrs base (6))
-          (only (guile) (filter member memv memq assoc assv assq cons*))
-	  (only (srfi srfi-1) (find partition fold-right filter-map))
-	  (rename (srfi srfi-1) (fold fold-left) 
-		                (any exists) 
-				(every for-all)
-				(remove remp)
-				
-				(member memp-internal)
-				(assoc assp-internal)))
+          (only (guile) filter member memv memq assoc assv assq cons*)
+	  (rename (only (srfi srfi-1) fold 
+			              any 
+				      every 
+				      remove 
+				      member 
+				      assoc 
+				      find 
+				      partition
+				      fold-right 
+				      filter-map)
+		  (fold fold-left) 
+		  (any exists) 
+		  (every for-all)
+		  (remove remp)
+		  
+		  (member memp-internal)
+		  (assoc assp-internal)))
 
   (define (remove obj list) (remp (lambda (elt) (equal? obj elt)) list))
   (define (remv obj list) (remp (lambda (elt) (eqv? obj elt)) list))
