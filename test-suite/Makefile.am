@@ -34,6 +34,7 @@ SCM_TESTS = tests/alist.test			\
 	    tests/common-list.test		\
 	    tests/control.test			\
 	    tests/continuations.test		\
+	    tests/ecmascript.test		\
 	    tests/elisp.test			\
 	    tests/elisp-compiler.test		\
 	    tests/elisp-reader.test		\
