@@ -287,10 +287,23 @@ VM_DEFINE_FUNCTION (157, ash, "ash", 2)
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
     {
       if (SCM_I_INUM (y) < 0)
+        /* Right shift, will be a fixnum. */
         RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) >> -SCM_I_INUM (y)));
-      else if ((SCM_I_INUM (x) << SCM_I_INUM (y)) >> SCM_I_INUM (y)
-               == SCM_I_INUM (x))
-        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) << SCM_I_INUM (y)));
+      else
+        /* Left shift. See comments in scm_ash. */
+        {
+          long nn, bits_to_shift;
+
+          nn = SCM_I_INUM (x);
+          bits_to_shift = SCM_I_INUM (y);
+
+          if (bits_to_shift < SCM_I_FIXNUM_BIT-1
+              && ((unsigned long)
+                  (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
+                  <= 1))
+            RETURN (SCM_I_MAKINUM (nn << bits_to_shift));
+          /* fall through */
+        }
       /* fall through */
     }
   SYNC_REGISTER ();
