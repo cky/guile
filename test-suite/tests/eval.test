@@ -302,10 +302,6 @@
       exception:wrong-type-arg
       (force 1))
 
-    (pass-if-exception "implicit forcing is not supported"
-      exception:wrong-type-arg
-      (+ (delay (* 3 7)) 13))
-
     (pass-if "unmemoizing a promise"
       (display-backtrace
        (let ((stack #f))

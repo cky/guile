@@ -41,4 +41,8 @@
 
     (pass-if-exception "2nd argument bool"
       exception:wrong-type-arg
-      (+ 1 #f))))
+      (+ 1 #f))
+
+    (pass-if-exception "implicit forcing is not supported"
+      exception:wrong-type-arg
+      (+ (delay (* 3 7)) 13))))
