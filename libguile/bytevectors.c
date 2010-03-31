@@ -511,7 +511,8 @@ SCM_DEFINE (scm_bytevector_eq_p, "bytevector=?", 2, 0, 0,
   c_len1 = SCM_BYTEVECTOR_LENGTH (bv1);
   c_len2 = SCM_BYTEVECTOR_LENGTH (bv2);
 
-  if (c_len1 == c_len2)
+  if (c_len1 == c_len2 && (SCM_BYTEVECTOR_ELEMENT_TYPE (bv1)
+                           == SCM_BYTEVECTOR_ELEMENT_TYPE (bv2)))
     {
       signed char *c_bv1, *c_bv2;
 

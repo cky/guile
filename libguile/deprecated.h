@@ -621,6 +621,11 @@ SCM_DEPRECATED SCM scm_internal_lazy_catch (SCM tag,
 
 
 
+/* Deprecated 2010-03-31, use array-equal? instead */
+SCM_DEPRECATED SCM scm_raequal (SCM ra0, SCM ra1);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

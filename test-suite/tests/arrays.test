@@ -569,6 +569,27 @@
   (pass-if "array and non-array"
     (not (equal? #2f64((0 1) (2 3)) 100)))
 
+  (pass-if "empty vectors of different types"
+    (not (equal? #s32() #f64())))
+
+  (pass-if "empty arrays of different types"
+    (not (equal? #2s32() #2f64())))
+
+  (pass-if "empty arrays of the same type"
+    (equal? #s32() #s32()))
+
+  (pass-if "identical uniform vectors of the same type"
+    (equal? #s32(1) #s32(1)))
+
+  (pass-if "nonidentical uniform vectors of the same type"
+    (not (equal? #s32(1) #s32(-1))))
+
+  (pass-if "identical uniform vectors of different types"
+    (not (equal? #s32(1) #s64(1))))
+
+  (pass-if "nonidentical uniform vectors of different types"
+    (not (equal? #s32(1) #s64(-1))))
+
   (pass-if "vector and one-dimensional array"
     (equal? (make-shared-array #2((a b c) (d e f) (g h i))
                                (lambda (i) (list i i))

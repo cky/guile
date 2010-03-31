@@ -1866,6 +1866,16 @@ SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
 
 
 
+
+
+SCM
+scm_raequal (SCM ra0, SCM ra1)
+{
+  return scm_array_equal_p (ra0, ra1);
+}
+
+
+
 void
 scm_i_init_deprecated ()
 {

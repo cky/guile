@@ -1551,9 +1551,7 @@ is unspecified.
 Return @code{#t} if all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?} or @code{array-equal?}.  This function differs from
-@code{equal?} (@pxref{Equality}) in that a one dimensional shared
-array may be @code{array-equal?} but not @code{equal?} to a vector or
-uniform vector.
+@code{equal?} (@pxref{Equality}) in that all arguments must be arrays.
 @end deffn
 
 @c  FIXME: array-map! accepts no source arrays at all, and in that

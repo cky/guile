@@ -321,7 +321,7 @@ scm_equal_p (SCM x, SCM y)
 
       /* Vectors can be equal to one-dimensional arrays.
        */
-      if (SCM_I_ARRAYP (x) || SCM_I_ARRAYP (y))
+      if (scm_is_array (x) && scm_is_array (y))
 	return scm_array_equal_p (x, y);
 
       return SCM_BOOL_F;
