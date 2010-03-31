@@ -1,0 +1,44 @@
+;;;; 00-initial-env.test --- Roots.      -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (the-initial-env)
+  #:use-module (test-suite lib))
+
+;;; A set of tests to run early.  The file name is to have `check-guile' pick
+;;; this test file first.
+
+
+;;;
+;;; Tests to be run when GOOPS is not loaded.
+;;;
+
+(with-test-prefix "goopsless"
+
+  (with-test-prefix "+ wrong type argument"
+
+    ;; The following tests assume that `+' hasn't been turned into a generic
+    ;; and extended.  Since the ECMAScript run-time library does exactly
+    ;; that, they must be run before `ecmascript.test'.
+
+    (pass-if-exception "1st argument string"
+      exception:wrong-type-arg
+      (+ "1" 2))
+
+    (pass-if-exception "2nd argument bool"
+      exception:wrong-type-arg
+      (+ 1 #f))))

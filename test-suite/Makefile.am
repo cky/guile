@@ -21,7 +21,8 @@
 
 SUBDIRS = standalone
 
-SCM_TESTS = tests/alist.test			\
+SCM_TESTS = tests/00-initial-env.test		\
+            tests/alist.test			\
 	    tests/and-let-star.test		\
 	    tests/arbiters.test			\
 	    tests/arrays.test			\
