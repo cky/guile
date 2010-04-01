@@ -1876,6 +1876,46 @@ scm_raequal (SCM ra0, SCM ra1)
 
 
 
+
+
+SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
+            (SCM func, SCM dobj, SCM args),
+	    "Call the C function indicated by @var{func} and @var{dobj},\n"
+	    "just like @code{dynamic-call}, but pass it some arguments and\n"
+	    "return its return value.  The C function is expected to take\n"
+	    "two arguments and return an @code{int}, just like @code{main}:\n"
+	    "@smallexample\n"
+	    "int c_func (int argc, char **argv);\n"
+	    "@end smallexample\n\n"
+	    "The parameter @var{args} must be a list of strings and is\n"
+	    "converted into an array of @code{char *}.  The array is passed\n"
+	    "in @var{argv} and its size in @var{argc}.  The return value is\n"
+	    "converted to a Scheme number and returned from the call to\n"
+	    "@code{dynamic-args-call}.")
+#define FUNC_NAME s_scm_dynamic_args_call
+{
+  int (*fptr) (int argc, char **argv);
+  int result, argc;
+  char **argv;
+
+  if (scm_is_string (func))
+    func = scm_dynamic_func (func, dobj);
+  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, VOID);
+
+  fptr = SCM_FOREIGN_POINTER (func, void);
+
+  argv = scm_i_allocate_string_pointers (args);
+  for (argc = 0; argv[argc]; argc++)
+    ;
+  result = (*fptr) (argc, argv);
+
+  return scm_from_int (result);
+}
+#undef FUNC_NAME
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

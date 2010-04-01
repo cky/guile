@@ -126,6 +126,10 @@ the above functions throw errors, but they are still available.
 @node Foreign Functions
 @subsection Foreign Functions
 
+The most natural thing to do with a dynamic library is to grovel around
+in it for a function pointer: a @dfn{foreign function}.
+@code{dynamic-func} exists for that purpose.
+
 @deffn {Scheme Procedure} dynamic-func name dobj
 @deffnx {C Function} scm_dynamic_func (name, dobj)
 Return a ``handle'' for the func @var{name} in the shared object referred to
@@ -136,6 +140,9 @@ Regardless whether your C compiler prepends an underscore @samp{_} to the global
 names in a program, you should @strong{not} include this underscore in
 @var{name} since it will be added automatically when necessary.
 @end deffn
+
+Guile has static support for calling functions with no arguments,
+@code{dynamic-call}.
 
 @deffn {Scheme Procedure} dynamic-call func dobj
 @deffnx {C Function} scm_dynamic_call (func, dobj)
@@ -153,43 +160,27 @@ Interrupts are deferred while the C function is executing (with
 @code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
 @end deffn
 
-@deffn {Scheme Procedure} dynamic-args-call func dobj args
-@deffnx {C Function} scm_dynamic_args_call (func, dobj, args)
-Call the C function indicated by @var{func} and @var{dobj},
-just like @code{dynamic-call}, but pass it some arguments and
-return its return value.  The C function is expected to take
-two arguments and return an @code{int}, just like @code{main}:
-@smallexample
-int c_func (int argc, char **argv);
-@end smallexample
-
-The parameter @var{args} must be a list of strings and is
-converted into an array of @code{char *}.  The array is passed
-in @var{argv} and its size in @var{argc}.  The return value is
-converted to a Scheme number and returned from the call to
-@code{dynamic-args-call}.
-@end deffn
-
-The functions to call a function from a dynamically linked library,
-@code{dynamic-call} and @code{dynamic-args-call}, are not very powerful.
-They are mostly intended to be used for calling specially written
-initialization functions that will then add new primitives to Guile.
-For example, we do not expect that you will dynamically link
-@file{libX11} with @code{dynamic-link} and then construct a beautiful
-graphical user interface just by using @code{dynamic-call} and
-@code{dynamic-args-call}.  Instead, the usual way would be to write a
-special Guile<->X11 glue library that has intimate knowledge about both
-Guile and X11 and does whatever is necessary to make them inter-operate
-smoothly.  This glue library could then be dynamically linked into a
+@code{dynamic-call} is not very powerful. It is mostly intended to be
+used for calling specially written initialization functions that will
+then add new primitives to Guile. For example, we do not expect that you
+will dynamically link @file{libX11} with @code{dynamic-link} and then
+construct a beautiful graphical user interface just by using
+@code{dynamic-call}. Instead, the usual way would be to write a special
+Guile<->X11 glue library that has intimate knowledge about both Guile
+and X11 and does whatever is necessary to make them inter-operate
+smoothly. This glue library could then be dynamically linked into a
 vanilla Guile interpreter and activated by calling its initialization
-function.  That function would add all the new types and primitives to
+function. That function would add all the new types and primitives to
 the Guile interpreter that it has to offer.
 
-From this setup the next logical step is to integrate these glue
-libraries into the module system of Guile so that you can load new
-primitives into a running system just as you can load new Scheme code.
+(There is actually another, better option: simply to create a
+@file{libX11} wrapper in Scheme via the dynamic FFI. @xref{Dynamic FFI},
+for more information.)
 
-[foreshadowing regarding dynamic ffi]
+Given some set of C extensions to Guile, the next logical step is to
+integrate these glue libraries into the module system of Guile so that
+you can load new primitives into a running system just as you can load
+new Scheme code.
 
 @deffn {Scheme Procedure} load-extension lib init
 @deffnx {C Function} scm_load_extension (lib, init)

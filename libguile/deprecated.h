@@ -624,6 +624,9 @@ SCM_DEPRECATED SCM scm_internal_lazy_catch (SCM tag,
 /* Deprecated 2010-03-31, use array-equal? instead */
 SCM_DEPRECATED SCM scm_raequal (SCM ra0, SCM ra1);
 
+/* Deprecated 2010-04-01, use the dynamic FFI instead */
+SCM_DEPRECATED SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
+
 
 
 void scm_i_init_deprecated (void);

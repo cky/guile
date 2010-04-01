@@ -33,7 +33,6 @@ SCM_API SCM scm_dynamic_object_p (SCM obj);
 SCM_API SCM scm_dynamic_pointer (SCM name, SCM type, SCM dobj, SCM len);
 SCM_API SCM scm_dynamic_func (SCM symb, SCM dobj);
 SCM_API SCM scm_dynamic_call (SCM symb, SCM dobj);
-SCM_API SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
 SCM_INTERNAL void scm_init_dynamic_linking (void);
 
