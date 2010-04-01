@@ -68,6 +68,7 @@ SCM_API SCM *scm_vector_writable_elements (SCM vec,
 #define SCM_I_VECTOR_HEADER_SIZE  2U
 
 #define SCM_I_IS_VECTOR(x)     (!SCM_IMP(x) && (SCM_TYP7S(x)==scm_tc7_vector))
+#define SCM_I_IS_NONWEAK_VECTOR(x) (!SCM_IMP(x) && (SCM_TYP7(x)==scm_tc7_vector))
 #define SCM_I_VECTOR_ELTS(x)   ((const SCM *) SCM_I_VECTOR_WELTS (x))
 #define SCM_I_VECTOR_WELTS(x)  (SCM_CELL_OBJECT_LOC (x, SCM_I_VECTOR_HEADER_SIZE))
 #define SCM_I_VECTOR_LENGTH(x) (((size_t) SCM_CELL_WORD_0 (x)) >> 8)

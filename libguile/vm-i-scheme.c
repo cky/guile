@@ -346,7 +346,7 @@ VM_DEFINE_FUNCTION (161, vector_ref, "vector-ref", 2)
 {
   long i = 0;
   ARGS2 (vect, idx);
-  if (SCM_LIKELY (SCM_I_IS_VECTOR (vect)
+  if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
                   && SCM_I_INUMP (idx)
                   && ((i = SCM_I_INUM (idx)) >= 0)
                   && i < SCM_I_VECTOR_LENGTH (vect)))
@@ -363,7 +363,7 @@ VM_DEFINE_INSTRUCTION (162, vector_set, "vector-set", 0, 3, 0)
   long i = 0;
   SCM vect, idx, val;
   POP (val); POP (idx); POP (vect);
-  if (SCM_LIKELY (SCM_I_IS_VECTOR (vect)
+  if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
                   && SCM_I_INUMP (idx)
                   && ((i = SCM_I_INUM (idx)) >= 0)
                   && i < SCM_I_VECTOR_LENGTH (vect)))
