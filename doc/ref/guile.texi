@@ -306,6 +306,7 @@ available through both Scheme and C interfaces.
 * Memory Management::           Memory management and garbage collection.
 * Objects::                     Low level object orientation support.
 * Modules::                     Designing reusable code libraries.
+* Foreign Function Interface::  Interacting with C procedures and data.
 * Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
 * Options and Config::          Configuration, features and runtime options.
 * Translation::                 Support for translating other languages.
@@ -330,6 +331,7 @@ available through both Scheme and C interfaces.
 @include api-evaluation.texi
 @include api-memory.texi
 @include api-modules.texi
+@include api-foreign.texi
 @include api-scheduling.texi
 @c object orientation support here
 @include api-options.texi

@@ -1,0 +1,512 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@page
+@node Foreign Function Interface
+@section Foreign Function Interface
+@cindex foreign function interface
+@cindex ffi
+
+The more one hacks in Scheme, the more one realizes that there are
+actually two computational worlds: one which is warm and alive, that
+land of parentheses, and one cold and dead, the land of C and its ilk.
+
+But yet we as programmers live in both worlds, and Guile itself is half
+implemented in C. So it is that Guile's living half pays respect to its
+dead counterpart, via a spectrum of interfaces to C ranging from dynamic
+loading of Scheme primitives to dynamic binding of stock C library
+prodedures.
+
+@menu
+* Foreign Libraries::           Dynamically linking to libraries.
+* Foreign Functions::           Simple calls to C procedures.
+* C Extensions::                Extending Guile in C with loadable modules.
+* Modules and Extensions::      Loading C extensions into modules.
+* Foreign Values::              Accessing global variables.
+* Dynamic FFI::                 Fu.
+@end menu
+
+
+@node Foreign Libraries
+@subsection Foreign Libraries
+
+Most modern Unices have something called @dfn{shared libraries}.  This
+ordinarily means that they have the capability to share the executable
+image of a library between several running programs to save memory and
+disk space.  But generally, shared libraries give a lot of additional
+flexibility compared to the traditional static libraries.  In fact,
+calling them `dynamic' libraries is as correct as calling them `shared'.
+
+Shared libraries really give you a lot of flexibility in addition to the
+memory and disk space savings.  When you link a program against a shared
+library, that library is not closely incorporated into the final
+executable.  Instead, the executable of your program only contains
+enough information to find the needed shared libraries when the program
+is actually run.  Only then, when the program is starting, is the final
+step of the linking process performed.  This means that you need not
+recompile all programs when you install a new, only slightly modified
+version of a shared library.  The programs will pick up the changes
+automatically the next time they are run.
+
+Now, when all the necessary machinery is there to perform part of the
+linking at run-time, why not take the next step and allow the programmer
+to explicitly take advantage of it from within his program?  Of course,
+many operating systems that support shared libraries do just that, and
+chances are that Guile will allow you to access this feature from within
+your Scheme programs.  As you might have guessed already, this feature
+is called @dfn{dynamic linking}.@footnote{Some people also refer to the
+final linking stage at program startup as `dynamic linking', so if you
+want to make yourself perfectly clear, it is probably best to use the
+more technical term @dfn{dlopening}, as suggested by Gordon Matzigkeit
+in his libtool documentation.}
+
+We titled this section ``foreign libraries'' because although the name
+``foreign'' doesn't leak into the API, the world of C really is foreign
+to Scheme -- and that estrangement extends to components of foreign
+libraries as well, as we see in future sections.
+
+@deffn {Scheme Procedure} dynamic-link [library]
+@deffnx {C Function} scm_dynamic_link (library)
+Find the shared library denoted by @var{library} (a string) and link it
+into the running Guile application.  When everything works out, return a
+Scheme object suitable for representing the linked object file.
+Otherwise an error is thrown.  How object files are searched is system
+dependent.
+
+Normally, @var{library} is just the name of some shared library file
+that will be searched for in the places where shared libraries usually
+reside, such as in @file{/usr/lib} and @file{/usr/local/lib}.
+
+When @var{library} is omitted, a @dfn{global symbol handle} is returned.  This
+handle provides access to the symbols available to the program at run-time,
+including those exported by the program itself and the shared libraries already
+loaded.
+@end deffn
+
+@deffn {Scheme Procedure} dynamic-object? obj
+@deffnx {C Function} scm_dynamic_object_p (obj)
+Return @code{#t} if @var{obj} is a dynamic library handle, or @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} dynamic-unlink dobj
+@deffnx {C Function} scm_dynamic_unlink (dobj)
+Unlink the indicated object file from the application.  The
+argument @var{dobj} must have been obtained by a call to
+@code{dynamic-link}.  After @code{dynamic-unlink} has been
+called on @var{dobj}, its content is no longer accessible.
+@end deffn
+
+@smallexample
+(define libc-obj (dynamic-link "libc.so"))
+libc-obj
+@result{} #<dynamic-object "libc.so">
+(dynamic-args-call 'rand libc-obj '())
+@result{} 269167349
+(dynamic-unlink libc-obj)
+libc-obj
+@result{} #<dynamic-object "libc.so" (unlinked)>
+@end smallexample
+
+As you can see, after calling @code{dynamic-unlink} on a dynamically
+linked library, it is marked as @samp{(unlinked)} and you are no longer
+able to use it with @code{dynamic-call}, etc.  Whether the library is
+really removed from you program is system-dependent and will generally
+not happen when some other parts of your program still use it.  In the
+example above, @code{libc} is almost certainly not removed from your
+program because it is badly needed by almost everything.
+
+When dynamic linking is disabled or not supported on your system,
+the above functions throw errors, but they are still available.
+
+
+@node Foreign Functions
+@subsection Foreign Functions
+
+@deffn {Scheme Procedure} dynamic-func name dobj
+@deffnx {C Function} scm_dynamic_func (name, dobj)
+Return a ``handle'' for the func @var{name} in the shared object referred to
+by @var{dobj}. The handle can be passed to @code{dynamic-call} to
+actually call the function.
+
+Regardless whether your C compiler prepends an underscore @samp{_} to the global
+names in a program, you should @strong{not} include this underscore in
+@var{name} since it will be added automatically when necessary.
+@end deffn
+
+@deffn {Scheme Procedure} dynamic-call func dobj
+@deffnx {C Function} scm_dynamic_call (func, dobj)
+Call the C function indicated by @var{func} and @var{dobj}.
+The function is passed no arguments and its return value is
+ignored.  When @var{function} is something returned by
+@code{dynamic-func}, call that function and ignore @var{dobj}.
+When @var{func} is a string , look it up in @var{dynobj}; this
+is equivalent to
+@smallexample
+(dynamic-call (dynamic-func @var{func} @var{dobj}) #f)
+@end smallexample
+
+Interrupts are deferred while the C function is executing (with
+@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
+@end deffn
+
+@deffn {Scheme Procedure} dynamic-args-call func dobj args
+@deffnx {C Function} scm_dynamic_args_call (func, dobj, args)
+Call the C function indicated by @var{func} and @var{dobj},
+just like @code{dynamic-call}, but pass it some arguments and
+return its return value.  The C function is expected to take
+two arguments and return an @code{int}, just like @code{main}:
+@smallexample
+int c_func (int argc, char **argv);
+@end smallexample
+
+The parameter @var{args} must be a list of strings and is
+converted into an array of @code{char *}.  The array is passed
+in @var{argv} and its size in @var{argc}.  The return value is
+converted to a Scheme number and returned from the call to
+@code{dynamic-args-call}.
+@end deffn
+
+The functions to call a function from a dynamically linked library,
+@code{dynamic-call} and @code{dynamic-args-call}, are not very powerful.
+They are mostly intended to be used for calling specially written
+initialization functions that will then add new primitives to Guile.
+For example, we do not expect that you will dynamically link
+@file{libX11} with @code{dynamic-link} and then construct a beautiful
+graphical user interface just by using @code{dynamic-call} and
+@code{dynamic-args-call}.  Instead, the usual way would be to write a
+special Guile<->X11 glue library that has intimate knowledge about both
+Guile and X11 and does whatever is necessary to make them inter-operate
+smoothly.  This glue library could then be dynamically linked into a
+vanilla Guile interpreter and activated by calling its initialization
+function.  That function would add all the new types and primitives to
+the Guile interpreter that it has to offer.
+
+From this setup the next logical step is to integrate these glue
+libraries into the module system of Guile so that you can load new
+primitives into a running system just as you can load new Scheme code.
+
+[foreshadowing regarding dynamic ffi]
+
+@deffn {Scheme Procedure} load-extension lib init
+@deffnx {C Function} scm_load_extension (lib, init)
+Load and initialize the extension designated by LIB and INIT.
+When there is no pre-registered function for LIB/INIT, this is
+equivalent to
+
+@lisp
+(dynamic-call INIT (dynamic-link LIB))
+@end lisp
+
+When there is a pre-registered function, that function is called
+instead.
+
+Normally, there is no pre-registered function.  This option exists
+only for situations where dynamic linking is unavailable or unwanted.
+In that case, you would statically link your program with the desired
+library, and register its init function right after Guile has been
+initialized.
+
+LIB should be a string denoting a shared library without any file type
+suffix such as ".so".  The suffix is provided automatically.  It
+should also not contain any directory components.  Libraries that
+implement Guile Extensions should be put into the normal locations for
+shared libraries.  We recommend to use the naming convention
+libguile-bla-blum for a extension related to a module `(bla blum)'.
+
+The normal way for a extension to be used is to write a small Scheme
+file that defines a module, and to load the extension into this
+module.  When the module is auto-loaded, the extension is loaded as
+well.  For example,
+
+@lisp
+(define-module (bla blum))
+
+(load-extension "libguile-bla-blum" "bla_init_blum")
+@end lisp
+@end deffn
+
+@node C Extensions
+@subsection C Extensions
+
+The most interesting application of dynamically linked libraries is
+probably to use them for providing @emph{compiled code modules} to
+Scheme programs.  As much fun as programming in Scheme is, every now and
+then comes the need to write some low-level C stuff to make Scheme even
+more fun.
+
+Not only can you put these new primitives into their own module (see the
+previous section), you can even put them into a shared library that is
+only then linked to your running Guile image when it is actually
+needed.
+
+An example will hopefully make everything clear.  Suppose we want to
+make the Bessel functions of the C library available to Scheme in the
+module @samp{(math bessel)}.  First we need to write the appropriate
+glue code to convert the arguments and return values of the functions
+from Scheme to C and back.  Additionally, we need a function that will
+add them to the set of Guile primitives.  Because this is just an
+example, we will only implement this for the @code{j0} function.
+
+@smallexample
+#include <math.h>
+#include <libguile.h>
+
+SCM
+j0_wrapper (SCM x)
+@{
+  return scm_from_double (j0 (scm_to_double (x, "j0")));
+@}
+
+void
+init_math_bessel ()
+@{
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
+@}
+@end smallexample
+
+We can already try to bring this into action by manually calling the low
+level functions for performing dynamic linking.  The C source file needs
+to be compiled into a shared library.  Here is how to do it on
+GNU/Linux, please refer to the @code{libtool} documentation for how to
+create dynamically linkable libraries portably.
+
+@smallexample
+gcc -shared -o libbessel.so -fPIC bessel.c
+@end smallexample
+
+Now fire up Guile:
+
+@lisp
+(define bessel-lib (dynamic-link "./libbessel.so"))
+(dynamic-call "init_math_bessel" bessel-lib)
+(j0 2)
+@result{} 0.223890779141236
+@end lisp
+
+The filename @file{./libbessel.so} should be pointing to the shared
+library produced with the @code{gcc} command above, of course.  The
+second line of the Guile interaction will call the
+@code{init_math_bessel} function which in turn will register the C
+function @code{j0_wrapper} with the Guile interpreter under the name
+@code{j0}.  This function becomes immediately available and we can call
+it from Scheme.
+
+Fun, isn't it?  But we are only half way there.  This is what
+@code{apropos} has to say about @code{j0}:
+
+@smallexample
+(apropos "j0")
+@print{} (guile-user): j0     #<primitive-procedure j0>
+@end smallexample
+
+As you can see, @code{j0} is contained in the root module, where all
+the other Guile primitives like @code{display}, etc live.  In general,
+a primitive is put into whatever module is the @dfn{current module} at
+the time @code{scm_c_define_gsubr} is called.
+
+A compiled module should have a specially named @dfn{module init
+function}.  Guile knows about this special name and will call that
+function automatically after having linked in the shared library.  For
+our example, we replace @code{init_math_bessel} with the following code in
+@file{bessel.c}:
+
+@smallexample
+void
+init_math_bessel (void *unused)
+@{
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
+  scm_c_export ("j0", NULL);
+@}
+
+void
+scm_init_math_bessel_module ()
+@{
+  scm_c_define_module ("math bessel", init_math_bessel, NULL);   
+@}
+@end smallexample
+
+The general pattern for the name of a module init function is:
+@samp{scm_init_}, followed by the name of the module where the
+individual hierarchical components are concatenated with underscores,
+followed by @samp{_module}.
+
+After @file{libbessel.so} has been rebuilt, we need to place the shared
+library into the right place.
+
+Once the module has been correctly installed, it should be possible to
+use it like this:
+
+@smallexample
+guile> (load-extension "./libbessel.so" "scm_init_math_bessel_module")
+guile> (use-modules (math bessel))
+guile> (j0 2)
+0.223890779141236
+guile> (apropos "j0")
+@print{} (math bessel): j0      #<primitive-procedure j0>
+@end smallexample
+
+That's it!
+
+@deffn {Scheme Procedure} load-extension lib init
+@deffnx {C Function} scm_load_extension (lib, init)
+Load and initialize the extension designated by LIB and INIT.
+When there is no pre-registered function for LIB/INIT, this is
+equivalent to
+
+@lisp
+(dynamic-call INIT (dynamic-link LIB))
+@end lisp
+
+When there is a pre-registered function, that function is called
+instead.
+
+Normally, there is no pre-registered function.  This option exists
+only for situations where dynamic linking is unavailable or unwanted.
+In that case, you would statically link your program with the desired
+library, and register its init function right after Guile has been
+initialized.
+
+LIB should be a string denoting a shared library without any file type
+suffix such as ".so".  The suffix is provided automatically.  It
+should also not contain any directory components.  Libraries that
+implement Guile Extensions should be put into the normal locations for
+shared libraries.  We recommend to use the naming convention
+libguile-bla-blum for a extension related to a module `(bla blum)'.
+
+The normal way for a extension to be used is to write a small Scheme
+file that defines a module, and to load the extension into this
+module.  When the module is auto-loaded, the extension is loaded as
+well.  For example,
+
+@lisp
+(define-module (bla blum))
+
+(load-extension "libguile-bla-blum" "bla_init_blum")
+@end lisp
+@end deffn
+
+@node Modules and Extensions
+@subsection Modules and Extensions
+
+The new primitives that you add to Guile with @code{scm_c_define_gsubr}
+(@pxref{Primitive Procedures}) or with any of the other mechanisms are
+placed into the module that is current when the
+@code{scm_c_define_gsubr} is executed. Extensions loaded from the REPL,
+for example, will be placed into the @code{(guile-user)} module, if the
+REPL module was not changed.
+
+To define C primitives within a specific module, the simplest way is:
+
+@example
+(define-module (foo bar))
+(load-extension "foobar-c-code" "foo_bar_init")
+@end example
+
+When loaded with @code{(use-modules (foo bar))}, the
+@code{load-extension} call looks for the @file{foobar-c-code.so} (etc)
+object file in the standard system locations, such as @file{/usr/lib}
+or @file{/usr/local/lib}.
+
+If someone installs your module to a non-standard location then the
+object file won't be found.  You can address this by inserting the
+install location in the @file{foo/bar.scm} file.  This is convenient
+for the user and also guarantees the intended object is read, even if
+stray older or newer versions are in the loader's path.
+
+The usual way to specify an install location is with a @code{prefix}
+at the configure stage, for instance @samp{./configure prefix=/opt}
+results in library files as say @file{/opt/lib/foobar-c-code.so}.
+When using Autoconf (@pxref{Top, , Introduction, autoconf, The GNU
+Autoconf Manual}), the library location is in a @code{libdir}
+variable.  Its value is intended to be expanded by @command{make}, and
+can by substituted into a source file like @file{foo.scm.in}
+
+@example
+(define-module (foo bar))
+(load-extension "XXlibdirXX/foobar-c-code" "foo_bar_init")
+@end example
+
+@noindent
+with the following in a @file{Makefile}, using @command{sed}
+(@pxref{Top, , Introduction, sed, SED, A Stream Editor}),
+
+@example
+foo.scm: foo.scm.in
+        sed 's|XXlibdirXX|$(libdir)|' <foo.scm.in >foo.scm
+@end example
+
+The actual pattern @code{XXlibdirXX} is arbitrary, it's only something
+which doesn't otherwise occur.  If several modules need the value, it
+can be easier to create one @file{foo/config.scm} with a define of the
+@code{libdir} location, and use that as required.
+
+@example
+(define-module (foo config))
+(define-public foo-config-libdir "XXlibdirXX"")
+@end example
+
+Such a file might have other locations too, for instance a data
+directory for auxiliary files, or @code{localedir} if the module has
+its own @code{gettext} message catalogue
+(@pxref{Internationalization}).
+
+When installing multiple C code objects, it can be convenient to put
+them in a subdirectory of @code{libdir}, thus giving for example
+@code{/usr/lib/foo/some-obj.so}.  If the objects are only meant to be
+used through the module, then a subdirectory keeps them out of sight.
+
+It will be noted all of the above requires that the Scheme code to be
+found in @code{%load-path} (@pxref{Build Config}).  Presently it's
+left up to the system administrator or each user to augment that path
+when installing Guile modules in non-default locations.  But having
+reached the Scheme code, that code should take care of hitting any of
+its own private files etc.
+
+Presently there's no convention for having a Guile version number in
+module C code filenames or directories.  This is primarily because
+there's no established principles for two versions of Guile to be
+installed under the same prefix (eg. two both under @file{/usr}).
+Assuming upward compatibility is maintained then this should be
+unnecessary, and if compatibility is not maintained then it's highly
+likely a package will need to be revisited anyway.
+
+The present suggestion is that modules should assume when they're
+installed under a particular @code{prefix} that there's a single
+version of Guile there, and the @code{guile-config} at build time has
+the necessary information about it.  C code or Scheme code might adapt
+itself accordingly (allowing for features not available in an older
+version for instance).
+
+
+@node Foreign Values
+@subsection Foreign Values
+
+@deffn {Scheme Procedure} dynamic-pointer name type dobj [len]
+@deffnx {C Function} scm_dynamic_pointer (name, type, dobj, len)
+Return a ``handle'' for the pointer @var{name} in the shared object referred to
+by @var{dobj}. The handle aliases a C value, and is declared to be of type
+@var{type}. Valid types are defined in the @code{(system foreign)} module.
+
+This facility works by asking the dynamic linker for the address of a symbol,
+then assuming that it aliases a value of a given type. Obviously, the user must
+be very careful to ensure that the value actually is of the declared type, or
+bad things will happen.
+
+Regardless whether your C compiler prepends an underscore @samp{_} to the global
+names in a program, you should @strong{not} include this underscore in
+@var{name} since it will be added automatically when necessary.
+@end deffn
+
+
+@node Dynamic FFI
+@subsection Dynamic FFI
+
+TBD
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
