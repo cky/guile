@@ -721,10 +721,14 @@
                                      (integer->char #x20))))
                  char-set:printing))
 
+  (pass-if "char-set:ASCII"
+     (char-set= (ucs-range->char-set 0 128)
+                char-set:ascii))
+
   (pass-if "char-set:iso-control"
-     (char-set<= (string->char-set 
-                  (apply string 
-                         (map integer->char (append 
+     (char-set<= (string->char-set
+                  (apply string
+                         (map integer->char (append
                                              ;; U+0000 to U+001F
                                              (iota #x20)
                                              (list #x7f)))))

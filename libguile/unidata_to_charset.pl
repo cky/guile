@@ -340,8 +340,9 @@ sub compute {
             $rend[$len] = $end;
             $len++;
         } elsif ($len == 0) {
-            $rstart[0] = $start;
-            $rend[0] = $end;
+	    $rstart[0] = $start;
+	    $rend[0] = $end;
+	    $len++;
         }
     }
 
