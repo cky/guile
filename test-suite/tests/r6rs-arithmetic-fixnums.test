@@ -1,0 +1,211 @@
+;;; arithmetic-fixnums.test --- Test suite for R6RS (rnrs arithmetic bitwise)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-r6rs-arithmetic-fixnums)
+  :use-module ((rnrs arithmetic fixnums) :version (6))
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module (test-suite lib))
+
+(with-test-prefix "fixnum?"
+  (pass-if "fixnum? is #t for fixnums" (fixnum? 0))
+
+  (pass-if "fixnum? is #f for non-fixnums" (not (fixnum? 'foo)))
+
+  (pass-if "fixnum? is #f for non-fixnum numbers"
+    (and (not (fixnum? 1.0)) (not (fixnum? (+ (greatest-fixnum) 1))))))
+
+(with-test-prefix "fx=?"
+  (pass-if "fx=? is #t for eqv inputs" (fx=? 3 3 3))
+ 
+  (pass-if "fx=? is #f for non-eqv inputs" (not (fx=? 1 2 3))))
+
+(with-test-prefix "fx>?"
+  (pass-if "fx>? is #t for monotonically > inputs" (fx>? 3 2 1))
+
+  (pass-if "fx>? is #f for non-monotonically > inputs" (not (fx>? 1 2 3))))
+
+(with-test-prefix "fx<?"
+  (pass-if "fx<? is #t for monotonically < inputs" (fx<? 1 2 3))
+
+  (pass-if "fx<? is #t for non-monotonically < inputs" (not (fx<? 3 2 1))))
+
+(with-test-prefix "fx>=?"
+  (pass-if "fx>=? is #t for monotonically > or = inputs" (fx>=? 3 2 2 1))
+
+  (pass-if "fx>=? is #f for non-monotonically > or = inputs" 
+    (not (fx>=? 1 2 3))))
+
+(with-test-prefix "fx<=?"
+  (pass-if "fx<=? is #t for monotonically < or = inputs" (fx<=? 1 2 2 3))
+
+  (pass-if "fx<=? is #f for non-monotonically < or = inputs" 
+    (not (fx<=? 3 2 1))))
+
+(with-test-prefix "fxzero?"
+  (pass-if "fxzero? is #t for zero" (fxzero? 0))
+
+  (pass-if "fxzero? is #f for non-zero fixnums" 
+    (and (not (fxzero? 1)) (not (fxzero? -1)))))
+
+(with-test-prefix "fxpositive?"
+  (pass-if "fxpositive? is #t for positive fixnums" (fxpositive? 1))
+
+  (pass-if "fxpositive? is #f for non-positive fixnums"
+    (and (not (fxpositive? -1))
+	 (not (fxpositive? 0)))))
+
+(with-test-prefix "fxnegative?"
+  (pass-if "fxnegative? is #t for negative fixnums" (fxnegative? -1))
+
+  (pass-if "fxnegative? is #f for non-negative fixnums"
+    (and (not (fxnegative? 1))
+	 (not (fxnegative? 0)))))
+
+(with-test-prefix "fxodd?"
+  (pass-if "fxodd? is #t for odd fixnums" (fxodd? 1))
+
+  (pass-if "fxodd? is #f for even fixnums" (not (fxodd? 2))))    
+
+(with-test-prefix "fxeven?"
+  (pass-if "fxeven? is #t for even fixnums" (fxeven? 2))
+
+  (pass-if "fxeven? is #f for odd fixnums" (not (fxeven? 1))))
+
+(with-test-prefix "fxmax" (pass-if "simple" (fx=? (fxmax 1 3 2) 3)))
+
+(with-test-prefix "fxmin" (pass-if "simple" (fx=? (fxmin -1 0 2) -1)))
+
+(with-test-prefix "fx+" 
+  (pass-if "simple" (fx=? (fx+ 1 2) 3))
+  
+  (pass-if "&implementation-restriction on non-fixnum result"
+    (guard (condition ((implementation-restriction-violation? condition) #t)
+		      (else #f))
+	   (begin (fx+ (greatest-fixnum) 1) #f))))
+
+(with-test-prefix "fx*" 
+  (pass-if "simple" (fx=? (fx* 2 3) 6))
+
+  (pass-if "&implementation-restriction on non-fixnum result"
+    (guard (condition ((implementation-restriction-violation? condition) #t)
+		      (else #f))
+	   (begin (fx* (greatest-fixnum) 2) #f))))
+
+(with-test-prefix "fx-" 
+  (pass-if "unary fx- negates argument" (fx=? (fx- 1) -1))
+
+  (pass-if "simple" (fx=? (fx- 3 2) 1))
+
+  (pass-if "&assertion on non-fixnum result"
+    (guard (condition ((assertion-violation? condition) #t) (else #f))
+	   (fx- (least-fixnum) 1))))
+
+(with-test-prefix "fxdiv-and-mod"
+  (pass-if "simple"
+    (call-with-values (lambda () (fxdiv-and-mod 123 10))
+      (lambda (d m) 
+	(or (and (fx=? d 12) (fx=? m 3))
+	    (throw 'unresolved))))))
+
+(with-test-prefix "fxdiv"
+  (pass-if "simple" (or (fx=? (fxdiv -123 10) -13) (throw 'unresolved))))
+
+(with-test-prefix "fxmod"
+  (pass-if "simple" (or (fx=? (fxmod -123 10) 7) (throw 'unresolved))))
+
+(with-test-prefix "fxdiv0-and-mod0"
+  (pass-if "simple"
+    (call-with-values (lambda () (fxdiv0-and-mod0 -123 10))
+      (lambda (d m)
+	(or (and (fx=? d 12) (fx=? m -3))
+	    (throw 'unresolved))))))
+
+(with-test-prefix "fxdiv0"
+  (pass-if "simple" (or (fx=? (fxdiv0 -123 10) 12) (throw 'unresolved))))
+
+(with-test-prefix "fxmod0"
+  (pass-if "simple" (or (fx=? (fxmod0 -123 10) -3) (throw 'unresolved))))
+
+
+;; Without working div and mod implementations and without any example results
+;; from the spec, I have no idea what the results of these functions should
+;; be.  -juliang
+
+(with-test-prefix "fx+/carry" (pass-if "simple" (throw 'unresolved)))
+
+(with-test-prefix "fx-/carry" (pass-if "simple" (throw 'unresolved)))
+
+(with-test-prefix "fx*/carry" (pass-if "simple" (throw 'unresolved)))
+
+(with-test-prefix "fxnot" (pass-if "simple" (fx=? (fxnot 3) -4)))    
+
+(with-test-prefix "fxand" (pass-if "simple" (fx=? (fxand 5 6) 4)))
+
+(with-test-prefix "fxior" (pass-if "simple" (fx=? (fxior 2 4) 6)))
+
+(with-test-prefix "fxxor" (pass-if "simple" (fx=? (fxxor 5 4) 1)))
+
+(with-test-prefix "fxif" (pass-if "simple" (fx=? (fxif 5 3 4) 1)))
+
+(with-test-prefix "fxbit-count" (pass-if "simple" (fx=? (fxbit-count 5) 2)))
+
+(with-test-prefix "fxlength" (pass-if "simple" (fx=? (fxlength 5) 3)))
+
+(with-test-prefix "fxfirst-bit-set"
+  (pass-if "simple"
+    (and (eqv? (fxfirst-bit-set 1) 0)
+         (eqv? (fxfirst-bit-set -4) 2)))
+
+  (pass-if "fxfirst-bit-set is -1 on zero"
+    (and (eqv? (fxfirst-bit-set 0) -1))))
+
+(with-test-prefix "fxbit-set?"
+  (pass-if "fxbit-set? is #t on index of set bit" (fxbit-set? 5 2))
+
+  (pass-if "fxbit-set? is #f on index of unset bit" (not (fxbit-set? 5 1))))
+
+(with-test-prefix "fxcopy-bit" (pass-if "simple" (fx=? (fxcopy-bit 2 2 7) 6)))
+
+(with-test-prefix "fxbit-field" 
+  (pass-if "simple" (fx=? (fxbit-field 50 1 4) 1)))
+
+(with-test-prefix "fxcopy-bit-field" 
+  (pass-if "simple" (fx=? (fxcopy-bit-field 255 2 6 10) 235)))
+
+(with-test-prefix "fxarithmetic-shift"
+  (pass-if "simple"
+    (and (fx=? (fxarithmetic-shift -6 -1) -3)
+         (fx=? (fxarithmetic-shift -5 -1) -3)
+	 (fx=? (fxarithmetic-shift -4 -1) -2)
+	 (fx=? (fxarithmetic-shift -3 -1) -2)
+	 (fx=? (fxarithmetic-shift -2 -1) -1)
+	 (fx=? (fxarithmetic-shift -1 -1) -1))))
+
+(with-test-prefix "fxarithmetic-shift-left"
+  (pass-if "simple" (fx=? (fxarithmetic-shift-left -6 -1) -3)))
+
+(with-test-prefix "fxarithmetic-shift-right"
+  (pass-if "simple" (fx=? (fxarithmetic-shift-right -6 1) -3)))
+
+(with-test-prefix "fxrotate-bit-field"
+  (pass-if "simple" (fx=? (fxrotate-bit-field 227 2 6 2) 203)))
+
+(with-test-prefix "fxreverse-bit-field"
+  (pass-if "simple" (fx=? (fxreverse-bit-field 82 1 4) 88)))

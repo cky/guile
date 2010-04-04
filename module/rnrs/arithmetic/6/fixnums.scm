@@ -54,6 +54,7 @@
 	  fx-/carry
 	  fx*/carry
 
+	  fxnot
 	  fxand
 	  fxior
 	  fxxor
@@ -73,34 +74,39 @@
 
 	  fxrotate-bit-field
 	  fxreverse-bit-field)
-  (import (rename (only (guile) logand
-			        logbit?
-			        logcount
-			        logior
-				lognot
-			        most-positive-fixnum 
-				most-negative-fixnum)
-		  (most-positive-fixnum greatest-fixnum)
-		  (most-negative-fixnum least-fixnum))
+  (import (only (guile) ash
+		        cons*
+			inexact->exact
+			logand
+			logbit?
+			logcount
+			logior
+			lognot
+			logxor
+			most-positive-fixnum 
+			most-negative-fixnum)
 	  (ice-9 optargs)
 	  (rnrs base (6))
 	  (rnrs arithmetic bitwise (6))
 	  (rnrs conditions (6))
-	  (rnrs exceptions (6)))
+	  (rnrs exceptions (6))
+	  (rnrs lists (6)))
 
-  (define fixnum-width (round (/ (log (+ greatest-fixnum 1)) (log 2))))
+  (define fixnum-width 
+    (let ((w (round (/ (log (+ most-positive-fixnum 1)) (log 2)))))
+      (lambda () w)))
+
+  (define (greatest-fixnum) most-positive-fixnum)
+  (define (least-fixnum) most-negative-fixnum)
   
   (define (fixnum? obj) 
-    (and (exact? obj) 
-	 (integer? obj) 
-	 (>= obj least-fixnum) 
-	 (<= obj greatest-fixnum)))
+    (and (integer? obj) 
+	 (exact? obj) 
+	 (>= obj most-negative-fixnum) 
+	 (<= obj most-positive-fixnum)))
 
   (define (assert-fixnum . args)
-    (or (every fixnum? args) (raise (make-assertion-violation))))
-  (define (assert-fixnum-result . args)
-    (or (every fixnum? args)
-	(raise (make-implementation-restriction-violation))))
+    (or (for-all fixnum? args) (raise (make-assertion-violation))))
 
   (define (fx=? fx1 fx2 . rst)
     (let ((args (cons* fx1 fx2 rst)))
@@ -135,67 +141,74 @@
 
   (define (fxmax fx1 fx2 . rst)
     (let ((args (cons* fx1 fx2 rst)))
-      (assert-fixnum args)
+      (apply assert-fixnum args)
       (apply max args)))
 
   (define (fxmin fx1 fx2 . rst)
     (let ((args (cons* fx1 fx2 rst)))
-      (assert-fixnum args)
+      (apply assert-fixnum args)
       (apply min args)))
  
   (define (fx+ fx1 fx2)
-    (assert-fixnum fx1 fx2) (let ((r (+ fx1 fx2))) (assert-fixnum-result r) r))
+    (assert-fixnum fx1 fx2) 
+    (let ((r (+ fx1 fx2))) 
+      (or (fixnum? r) (raise (make-implementation-restriction-violation)))
+      r))
 
   (define (fx* fx1 fx2)
-    (assert-fixnum fx1 fx2) (let ((r (* fx1 fx2))) (assert-fixnum-result r) r))
+    (assert-fixnum fx1 fx2) 
+    (let ((r (* fx1 fx2))) 
+      (or (fixnum? r) (raise (make-implementation-restriction-violation)))
+      r))
 
   (define* (fx- fx1 #:optional fx2)
     (assert-fixnum fx1)
     (if fx2 
 	(begin 
 	  (assert-fixnum fx2) 
-	  (let ((r (- fx1 fx2))) (assert-fixnum-result r) r))
-	(let ((r (- fx1))) (assert-fixnum-result r) r)))
+	  (let ((r (- fx1 fx2))) 
+	    (or (fixnum? r) (raise (make-assertion-violation)))
+	    r))
+	(let ((r (- fx1))) 
+	  (or (fixnum? r) (raise (make-assertion-violation)))
+	  r)))
 
-  (define (fxdiv x1 x2)
-    (assert-fixnum x1 x2)
+  (define (fxdiv fx1 fx2)
+    (assert-fixnum fx1 fx2)
     (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (quotient x1 x2))) (assert-fixnum-result r) r))
+    (let ((r (div fx1 fx2))) r))
 
-  (define (fxmod x1 x2)
-    (assert-fixnum x1 x2)
+  (define (fxmod fx1 fx2)
+    (assert-fixnum fx1 fx2)
     (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (modulo x1 x2))) (assert-fixnum-result r) r))
+    (let ((r (mod fx1 fx2))) r))
 
   (define (fxdiv-and-mod fx1 fx2)
     (assert-fixnum fx1 fx2)
     (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((q (quotient fx1 fx2))
-	  (m (modulo fx1 fx2)))
-      (assert-fixnum-result q m)
-      (values q m)))
+    (div-and-mod fx1 fx2))
 
   (define (fxdiv0 fx1 fx2)
     (assert-fixnum fx1 fx2)
     (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (div0 fx1 fx2))) (assert-fixnum-result r) r))
+    (let ((r (div0 fx1 fx2))) r))
   
   (define (fxmod0 fx1 fx2)
     (assert-fixnum fx1 fx2)
     (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (mod0 fx1 fx2))) (assert-fixnum-result r) r))    
+    (let ((r (mod0 fx1 fx2))) r))    
 
   (define (fxdiv0-and-mod0 fx1 fx2)
     (assert-fixnum fx1 fx2)
     (if (zero? fx2) (raise (make-assertion-violation)))
     (call-with-values (lambda () (div0-and-mod0 fx1 fx2))
-      (lambda (q r) (assert-fixnum-result q r) (values q r))))
+      (lambda (q r) (values q r))))
 
   (define (fx+/carry fx1 fx2 fx3)
     (assert-fixnum fx1 fx2 fx3)
     (let* ((s (+ fx1 fx2 fx3))
-	   (s0 (mod0 s (expt 2 (fixnum-width))))
-	   (s1 (div0 s (expt 2 (fixnum-width)))))
+	   (s0 (mod0 s (inexact->exact (expt 2 (fixnum-width)))))
+	   (s1 (div0 s (inexact->exact (expt 2 (fixnum-width))))))
       (values s0 s1)))
 
   (define (fx-/carry fx1 fx2 fx3)
@@ -219,12 +232,12 @@
 
   (define (fxif fx1 fx2 fx3) 
     (assert-fixnum fx1 fx2 fx3) 
-    (bitwise-if fx1 fx2 fx2))
+    (bitwise-if fx1 fx2 fx3))
 
   (define (fxbit-count fx) (assert-fixnum fx) (logcount fx))
   (define (fxlength fx) (assert-fixnum fx) (bitwise-length fx))
   (define (fxfirst-bit-set fx) (assert-fixnum fx) (bitwise-first-bit-set fx))
-  (define (fxbit-set? fx1 fx2) (assert-fixnum fx1 fx2) (logbit? fx1 fx2))
+  (define (fxbit-set? fx1 fx2) (assert-fixnum fx1 fx2) (logbit? fx2 fx1))
 
   (define (fxcopy-bit fx1 fx2 fx3) 
     (assert-fixnum fx1 fx2 fx3) 
@@ -242,7 +255,7 @@
   (define fxarithmetic-shift-left fxarithmetic-shift)
 
   (define (fxarithmetic-shift-right fx1 fx2)
-    (assert-fixnum fx1 fx2) (ash fx2 (- fx2)))
+    (assert-fixnum fx1 fx2) (ash fx1 (- fx2)))
 
   (define (fxrotate-bit-field fx1 fx2 fx3 fx4)
     (assert-fixnum fx1 fx2 fx3 fx4)
