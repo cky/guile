@@ -1,0 +1,310 @@
+;;; arithmetic-flonums.test --- Test suite for R6RS (rnrs arithmetic flonums)
+
+;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+;; 
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;; 
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite test-r6rs-arithmetic-flonums)
+  :use-module ((rnrs arithmetic flonums) :version (6))
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
+  :use-module (test-suite lib))
+
+(define fake-pi 3.14159265)
+(define (reasonably-close? x y) (< (abs (- x y)) 0.0000001))
+
+(with-test-prefix "flonum?"
+  (pass-if "flonum? is #t on flonum"
+    (flonum? 1.5))
+
+  (pass-if "flonum? is #f on non-flonum"
+    (not (flonum? 3))))
+
+(with-test-prefix "real->flonum"
+  (pass-if "simple"
+    (flonum? (real->flonum 3))))
+
+(with-test-prefix "fl=?"
+  (pass-if "fl=? is #t for eqv inputs"
+    (fl=? 3.0 3.0 3.0))
+
+  (pass-if "fl=? is #f for non-eqv inputs"
+    (not (fl=? 1.5 0.0 3.0)))
+
+  (pass-if "+inf.0 is fl= to itself"
+    (fl=? +inf.0 +inf.0))
+
+  (pass-if "0.0 and -0.0 are fl="
+    (fl=? 0.0 -0.0)))
+
+(with-test-prefix "fl<?"
+  (pass-if "fl<? is #t for monotonically < inputs"
+    (fl<? 1.0 2.0 3.0))
+
+  (pass-if "fl<? is #f for non-monotonically < inputs"
+    (not (fl<? 2.0 2.0 1.4))))
+
+(with-test-prefix "fl<=?"
+  (pass-if "fl<=? is #t for monotonically < or = inputs"
+    (fl<=? 1.0 1.2 1.2))
+
+  (pass-if "fl<=? is #f non-monotonically < or = inputs"
+    (not (fl<=? 2.0 1.0 0.9))))
+
+(with-test-prefix "fl>?"
+  (pass-if "fl>? is #t for monotonically > inputs"
+    (fl>? 3.0 2.0 1.0))
+
+  (pass-if "fl>? is #f for non-monotonically > inputs"
+    (not (fl>? 1.0 1.0 1.2))))
+
+(with-test-prefix "fl>=?"
+  (pass-if "fl>=? is #t for monotonically > or = inputs"
+    (fl>=? 3.0 2.0 2.0))
+
+  (pass-if "fl>=? is #f for non-monotonically > or = inputs"
+    (not (fl>=? 1.0 1.2 1.2))))
+
+(with-test-prefix "flinteger?"
+  (pass-if "flinteger? is #t on integer flomnums"
+    (flinteger? 1.0))
+
+  (pass-if "flinteger? is #f on non-integer flonums"
+    (not (flinteger? 1.5))))
+
+(with-test-prefix "flzero?"
+  (pass-if "flzero? is #t for 0.0 and -0.0"
+    (and (flzero? 0.0) (flzero? -0.0)))
+
+  (pass-if "flzero? is #f for non-zero flonums"
+    (not (flzero? 1.0))))
+
+(with-test-prefix "flpositive?"
+  (pass-if "flpositive? is #t on positive flonum"
+    (flpositive? 1.0))
+
+  (pass-if "flpositive? is #f on negative flonum"
+    (not (flpositive? -1.0)))
+
+  (pass-if "0.0 and -0.0 are not flpositive"
+    (and (not (flpositive? 0.0)) (not (flpositive? -0.0)))))
+
+(with-test-prefix "flnegative?"
+  (pass-if "flnegative? is #t on negative flonum"
+    (flnegative? -1.0))
+
+  (pass-if "flnegative? is #f on positive flonum"
+    (not (flnegative? 1.0)))
+
+  (pass-if "0.0 and -0.0 are not flnegative"
+    (and (not (flnegative? 0.0)) (not (flnegative? -0.0)))))
+
+(with-test-prefix "flodd?"
+  (pass-if "&assertion raised on non-integer flonum"
+    (guard (condition ((assertion-violation? condition) #t) (else #f))
+	   (begin (flodd? 1.5) #f)))
+
+  (pass-if "flodd? is #t on odd flonums"
+    (flodd? 3.0))
+
+  (pass-if "flodd? is #f on even flonums"
+    (not (flodd? 2.0))))
+
+(with-test-prefix "fleven?"
+  (pass-if "&assertion raised on non-integer flonum"
+    (guard (condition ((assertion-violation? condition) #t) (else #f))
+	   (begin (fleven? 1.5) #f)))
+
+  (pass-if "fleven? is #t on even flonums"
+    (fleven? 2.0))
+
+  (pass-if "fleven? is #f on odd flonums"
+    (not (fleven? 3.0))))
+
+(with-test-prefix "flfinite?"
+  (pass-if "flfinite? is #t on non-infinite flonums"
+    (flfinite? 2.0))
+
+  (pass-if "flfinite? is #f on infinities"
+    (and (not (flfinite? +inf.0)) (not (flfinite? -inf.0)))))
+
+(with-test-prefix "flinfinite?"
+  (pass-if "flinfinite? is #t on infinities"
+    (and (flinfinite? +inf.0) (flinfinite? -inf.0)))
+
+  (pass-if "flinfinite? is #f on non-infinite flonums"
+    (not (flinfinite? 2.0))))
+
+(with-test-prefix "flnan?"
+  (pass-if "flnan? is #t on NaN and -NaN"
+    (and (flnan? +nan.0) (flnan? -nan.0)))
+
+  (pass-if "flnan? is #f on non-NaN values"
+    (not (flnan? 1.5))))
+
+(with-test-prefix "flmax"
+  (pass-if "simple" (fl=? (flmax 1.0 3.0 2.0) 3.0)))
+
+(with-test-prefix "flmin"
+  (pass-if "simple" (fl=? (flmin -1.0 0.0 2.0) -1.0)))
+
+(with-test-prefix "fl+"
+  (pass-if "simple" (fl=? (fl+ 2.141 1.0 0.1) 3.241)))
+
+(with-test-prefix "fl*"
+  (pass-if "simple" (fl=? (fl* 1.0 2.0 3.0 1.5) 9.0)))
+
+(with-test-prefix "fl-"
+  (pass-if "unary fl- negates argument" (fl=? (fl- 2.0) -2.0))
+
+  (pass-if "simple" (fl=? (fl- 10.5 6.0 0.5) 4.0)))
+
+(with-test-prefix "fl/"
+  (pass-if "unary fl/ returns multiplicative inverse" (fl=? (fl/ 10.0) 0.1))
+  
+  (pass-if "simple" (fl=? (fl/ 10.0 2.0 2.0) 2.5)))
+
+(with-test-prefix "flabs"
+  (pass-if "simple" (and (fl=? (flabs -1.0) 1.0) (fl=? (flabs 1.23) 1.23))))
+
+(with-test-prefix "fldiv-and-mod"
+  (pass-if "simple"
+    (call-with-values (lambda () (fldiv-and-mod 5.0 2.0))
+      (lambda (div mod) (fl=? div 2.0) (fl=? mod 1.0)))))
+
+(with-test-prefix "fldiv"
+  (pass-if "simple" (fl=? (fldiv 5.0 2.0) 2.0)))
+
+(with-test-prefix "flmod"
+  (pass-if "simple" (fl=? (flmod 5.0 2.0) 1.0)))
+
+(with-test-prefix "fldiv0-and-mod0" 
+  (pass-if "simple"
+    (call-with-values (lambda () (fldiv0-and-mod0 -123.0 10.0))
+      (lambda (div mod) 
+	(or (and (fl=? div -12.0) (fl=? mod -3.0))
+	    (throw 'unresolved))))))
+
+(with-test-prefix "fldiv0" 
+  (pass-if "simple" (or (fl=? (fldiv0 -123.0 10.0) -12.0) (throw 'unresolved))))
+
+(with-test-prefix "flmod0" 
+  (pass-if "simple" (or (fl=? (flmod0 -123.0 10.0) -3.0) (throw 'unresolved))))
+
+(with-test-prefix "flnumerator"
+  (pass-if "simple" (fl=? (flnumerator 0.5) 1.0))
+
+  (pass-if "infinities"
+    (and (fl=? (flnumerator +inf.0) +inf.0)
+	 (fl=? (flnumerator -inf.0) -inf.0)))
+
+  (pass-if "negative zero" (fl=? (flnumerator -0.0) -0.0)))
+
+(with-test-prefix "fldenominator"
+  (pass-if "simple" (fl=? (fldenominator 0.5) 2.0))
+
+  (pass-if "infinities"
+    (and (fl=? (fldenominator +inf.0) 1.0)
+	 (fl=? (fldenominator -inf.0) 1.0)))
+
+  (pass-if "zero" (fl=? (fldenominator 0.0) 1.0)))
+
+(with-test-prefix "flfloor"
+  (pass-if "simple"
+    (and (fl=? (flfloor -4.3) -5.0) 
+	 (fl=? (flfloor 3.5) 3.0))))
+
+(with-test-prefix "flceiling"
+  (pass-if "simple"
+    (and (fl=? (flceiling -4.3) -4.0)
+	 (fl=? (flceiling 3.5) 4.0))))
+
+(with-test-prefix "fltruncate"
+  (pass-if "simple"
+    (and (fl=? (fltruncate -4.3) -4.0)
+	 (fl=? (fltruncate 3.5) 3.0))))
+
+(with-test-prefix "flround"
+  (pass-if "simple"
+    (and (fl=? (flround -4.3) -4.0)
+	 (fl=? (flround 3.5) 4.0))))
+
+(with-test-prefix "flexp"
+  (pass-if "infinities"
+    (and (fl=? (flexp +inf.0) +inf.0)
+	 (fl=? (flexp -inf.0) 0.0))))
+
+(with-test-prefix "fllog"
+  (pass-if "unary fllog returns natural log"
+    (let ((l (fllog 2.718281828459045)))
+      (and (fl<=? 0.9 l) (fl>=? 1.1 l))))
+  
+  (pass-if "infinities"
+    (and (fl=? (fllog +inf.0) +inf.0)
+	 (flnan? (fllog -inf.0))))
+
+  (pass-if "zeroes" (fl=? (fllog 0.0) -inf.0))
+
+  (pass-if "binary fllog returns log in specified base"
+    (fl=? (fllog 8.0 2.0) 3.0)))
+
+(with-test-prefix "flsin" 
+  (pass-if "simple"
+    (and (reasonably-close? (flsin (/ fake-pi 2)) 1.0)
+	 (reasonably-close? (flsin (/ fake-pi 6)) 0.5))))
+
+(with-test-prefix "flcos" 
+  (pass-if "simple"
+    (and (fl=? (flcos 0.0) 1.0) (reasonably-close? (flcos (/ fake-pi 3)) 0.5))))
+
+(with-test-prefix "fltan" 
+  (pass-if "simple"
+    (and (reasonably-close? (fltan (/ fake-pi 4)) 1.0)
+	 (reasonably-close? (fltan (/ (* 3 fake-pi) 4)) -1.0))))
+
+(with-test-prefix "flasin" 
+  (pass-if "simple"
+    (and (reasonably-close? (flasin 1.0) (/ fake-pi 2))
+	 (reasonably-close? (flasin 0.5) (/ fake-pi 6)))))
+
+(with-test-prefix "flacos" 
+  (pass-if "simple"
+    (and (fl=? (flacos 1.0) 0.0)
+	 (reasonably-close? (flacos 0.5) (/ fake-pi 3)))))
+
+(with-test-prefix "flatan"
+  (pass-if "unary flatan"
+    (and (reasonably-close? (flatan 1.0) (/ fake-pi 4))
+	 (reasonably-close? (flatan -1.0) (/ fake-pi -4))))
+
+  (pass-if "infinities"
+    (and (reasonably-close? (flatan -inf.0) -1.5707963267949)
+	 (reasonably-close? (flatan +inf.0) 1.5707963267949)))
+
+  (pass-if "binary flatan"
+    (and (reasonably-close? (flatan 3.5 3.5) (/ fake-pi 4)))))
+
+(with-test-prefix "flsqrt"
+  (pass-if "simple" (fl=? (flsqrt 4.0) 2.0))
+
+  (pass-if "infinity" (fl=? (flsqrt +inf.0) +inf.0))
+
+  (pass-if "negative zero" (fl=? (flsqrt -0.0) -0.0)))
+
+(with-test-prefix "flexpt" (pass-if "simple" (fl=? (flexpt 2.0 3.0) 8.0)))
+
+(with-test-prefix "fixnum->flonum"
+  (pass-if "simple" (fl=? (fixnum->flonum 100) 100.0)))

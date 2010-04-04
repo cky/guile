@@ -71,7 +71,24 @@
 	  let-syntax letrec-syntax
 
 	  syntax-rules identifier-syntax)
- (import (guile)
+ (import (rename (guile) (quotient div) (modulo mod))
 	 (rename (only (guile) for-each map)
 		 (for-each vector-for-each) (map vector-map))
-	 (srfi srfi-11)))
+	 (srfi srfi-11))
+
+ (define (div-and-mod x y) (let ((q (div x y)) (r (mod x y))) (values q r)))
+
+ (define (div0 x y)
+   (call-with-values (lambda () (div0-and-mod0 x y)) (lambda (q r) q)))
+
+ (define (mod0 x y)
+   (call-with-values (lambda () (div0-and-mod0 x y)) (lambda (q r) r)))
+
+ (define (div0-and-mod0 x y)
+   (call-with-values (lambda () (div-and-mod x y))
+     (lambda (q r)
+       (cond ((< r (abs (/ y 2))) (values q r))
+	     ((negative? y) (values (- q 1) (+ r y)))
+	     (else (values (+ q 1) (+ r y)))))))
+
+)

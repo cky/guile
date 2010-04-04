@@ -273,6 +273,8 @@ RNRS_SOURCES =					\
   rnrs/6/syntax-case.scm			\
   rnrs/6/unicode.scm				\
   rnrs/arithmetic/6/bitwise.scm			\
+  rnrs/arithmetic/6/fixnums.scm			\
+  rnrs/arithmetic/6/flonums.scm			\
   rnrs/bytevector.scm				\
   rnrs/io/6/simple.scm				\
   rnrs/io/ports.scm				\
