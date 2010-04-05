@@ -634,7 +634,13 @@ fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
     
 SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
             (SCM return_type, SCM func_ptr, SCM arg_types),
-            "foo")
+            "Make a foreign function.\n\n"
+            "Given the foreign void pointer @var{func_ptr}, its argument and\n"
+            "return types @var{arg_types} and @var{return_type}, return a\n"
+            "procedure that will pass arguments to the foreign function\n"
+            "and return appropriate values.\n\n"
+            "@var{arg_types} should be a list of foreign types.\n"
+            "@code{return_type} should be a foreign type.")
 #define FUNC_NAME s_scm_make_foreign_function
 {
   SCM walk, scm_cif;
