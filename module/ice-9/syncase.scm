@@ -17,13 +17,16 @@
 
 
 (define-module (ice-9 syncase)
-  #:export (datum->syntax-object syntax-object->datum))
+  ;; FIXME re-export other procs
+  #:export (datum->syntax-object syntax-object->datum
+            sc-expand))
 
 (issue-deprecation-warning
  "Syntax-case macros are now a part of Guile core; importing (ice-9 syncase) is no longer necessary.")
 
 (define datum->syntax-object datum->syntax)
 (define syntax-object->datum syntax->datum)
+(define sc-expand macroexpand)
 
 ;;; Hack to make syncase macros work in the slib module
 ;; FIXME wingo is this still necessary?
