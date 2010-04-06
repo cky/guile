@@ -26,7 +26,7 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
 ** `(ice-9 vlist)', lists with constant-time random access; hash lists
-** `(system foreign)', foreign function interface (FIXME: undocumented)
+** `(system foreign)', foreign function interface
 
 ** Imported statprof, SSAX, and texinfo modules from Guile-Lib
     
@@ -174,13 +174,6 @@ will be created if needed.
 To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
 variable to 0, or pass --no-autocompile on the Guile command line.
 
-Note that there is currently a bug here: automatic compilation will
-sometimes be attempted when it shouldn't.
-
-For example, the old (lang elisp) modules are meant to be interpreted,
-not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
-something here about module-transformer called for compile.
-
 ** Files loaded with `load' will now be compiled automatically.
 
 As with files loaded via `primitive-load-path', `load' will also compile
@@ -209,11 +202,6 @@ Scheme binding for the `getsid' C library call.
 Scheme binding for the `getaddrinfo' C library function.
 
 ** New procedure in `(oops goops)': `method-formals'
-
-** BUG: (procedure-property func 'arity) does not work on compiled
-   procedures
-
-This will be fixed one way or another before 2.0.
 
 ** New procedures in (ice-9 session): `add-value-help-handler!',
    `remove-value-help-handler!', `add-name-help-handler!'
