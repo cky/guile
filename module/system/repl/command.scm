@@ -324,7 +324,7 @@ List current bindings."
 Change languages."
   (let ((lang (lookup-language name))
         (cur (repl-language repl)))
-    (format #t "Have fun with ~a!  To switch back, type `,L ~a'.\n"
+    (format #t "Happy hacking with ~a!  To switch back, type `,L ~a'.\n"
             (language-title lang) (language-name cur))
     (set! (repl-language repl) lang)))
 
