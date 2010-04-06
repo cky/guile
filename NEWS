@@ -8,86 +8,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.9 (since the 1.9.8 prerelease):
-
-** Faster dynamic binding with fluids
-
-`fluid-ref' and `fluid-set' now have dedicated bytecode instructions.
-Dynamic binding via `with-fluids' or `with-fluids*' no longer causes
-recursive VM invocations, nor closure allocation of the body. Unused
-fluid numbers are now garbage-collected.
-
-** Incompatible Tree-IL changes
-
-There were a number of incompatible changes made in the last cycle
-regarding Tree-IL, Guile's high-level intermediate language. See the
-change logs for details. If these affected you, clearly you need to
-submit your compiler patches upstream!
-
-** Prompts: Delimited, composable continuations
-
-Guile now has prompts as part of its primitive language. See "Prompts"
-in the manual, for more information.
-
-Expressions entered in at the REPL, or from the command line, are
-surrounded by a prompt with the default prompt tag.
-
-** Deprecated: `lazy-catch'
-
-`lazy-catch' was a form that captured the stack at the point of a
-`throw', but the dynamic state at the point of the `catch'. It was a bit
-crazy. Please change to use `catch', possibly with a throw-handler, or
-`with-throw-handler'.
-
-** `catch', `throw', `with-throw-handler' implemented in Scheme
-
-This doesn't have any end-user impact, but we're so proud of being able
-to implement these constructs in terms of prompts and fluids, while not
-changing the user API, that we need to mention it in the NEWS. Thanks
-for reading!
-
-** Current-module tracking in the syntax expander
-
-Expanding a `begin' expression that changed the current module via an
-`eval-when' wasn't working, due to a bug. This was fixed.
-
-** Backtraces at the REPL don't show REPL frames
-
-The 1.9 series has had overly verbose backtraces, which showed frames
-internal to the implementation of the REPL. This has been mostly fixed.
-Please report bugs to bug-guile@gnu.org.
-
-** Additions to the foreign function interface (FFI)
-
-The `(system foreign)' module now provides additional foreign types
-corresponding to C's `int', `long', `size_t', etc.
-
-In addition, the `dynamic-link' procedure can now be called without any
-argument, in which case it returns a "global symbol handle", allowing
-symbols currently available to the program to be looked up.
-
-** Documentation of `syntax-rules' macros
-
-The documentation of macros in the manual is now separate from that of
-procedures.  A new section on `syntax-rules' macros has been added.
-
-** Effective version bump to 2.0
-
-Guile has had an "effective version" for some time, typically generated
-as "MAJOR-VERSION.MINOR-VERSION". This release decouples the effective
-version from the actual version, setting it prematurely to 2.0. This
-should shake out any version-related distribution bugs.
-
-** Parallel installability fixes
-
-Guile now installs its header files to a effective-version-specific
-directory, and includes the effective version (e.g. 2.0) in the library
-name (e.g. libguile-2.0.so).
-
-This change should be transparent to users, who should detect Guile via
-the guile.m4 macro, or the guile-2.0.pc pkg-config file. It will allow
-parallel installs for multiple versions of Guile development
-environments.
+Changes in 1.9.10 (since the 1.9.9 prerelease):
 
 ** And of course, the usual collection of bugfixes
  
@@ -641,6 +562,11 @@ Also, the helper routines for syntax-case are available in the default
 environment as well: `syntax->datum', `datum->syntax',
 `bound-identifier=?', `free-identifier=?', `generate-temporaries',
 `identifier?', and `syntax-violation'. See the R6RS for documentation.
+
+** Documentation of `syntax-rules' and `syntax-case' macros
+
+The documentation of macros in the manual is now separate from that of
+procedures.  A new section on hygienic macros has been added.
 
 ** Tail patterns in syntax-case
 
