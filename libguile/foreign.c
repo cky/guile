@@ -112,7 +112,7 @@ scm_take_foreign_pointer (scm_t_foreign_type type, void *ptr, size_t len,
 
 SCM_DEFINE (scm_foreign_ref, "foreign-ref", 1, 0, 0,
 	    (SCM foreign),
-	    "Reference the foreign value wrapped by @var{foreign}.\n\n"
+	    "Reference the foreign value pointed to by @var{foreign}.\n\n"
             "The value will be referenced according to its type.")
 #define FUNC_NAME s_scm_foreign_ref
 {
@@ -157,7 +157,7 @@ SCM_DEFINE (scm_foreign_ref, "foreign-ref", 1, 0, 0,
 
 SCM_DEFINE (scm_foreign_set_x, "foreign-set!", 2, 0, 0,
 	    (SCM foreign, SCM val),
-	    "Set the foreign value wrapped by @var{foreign}.\n\n"
+	    "Set the foreign value pointed to by @var{foreign}.\n\n"
             "The value will be set according to its type.")
 #define FUNC_NAME s_scm_foreign_set_x
 {
@@ -426,7 +426,13 @@ scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
 
 #define ROUND_UP(len,align) (align?(((len-1)|(align-1))+1):len)
 
-SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type), "")
+SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type),
+            "Return the alignment of @var{type}, in bytes.\n\n"
+            "@var{type} should be a valid C type, like @code{int}.\n"
+            "Alternately @var{type} may be the symbol @code{*}, in which\n"
+            "case the alignment of a pointer is returned. @var{type} may\n"
+            "also be a list of types, in which case the alignment of a\n"
+            "@code{struct} with ABI-conventional packing is returned.")
 #define FUNC_NAME s_scm_alignof
 {
   if (SCM_I_INUMP (type))
@@ -468,7 +474,13 @@ SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type), "")
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_sizeof, "sizeof", 1, 0, 0, (SCM type), "")
+SCM_DEFINE (scm_sizeof, "sizeof", 1, 0, 0, (SCM type),
+            "Return the size of @var{type}, in bytes.\n\n"
+            "@var{type} should be a valid C type, like @code{int}.\n"
+            "Alternately @var{type} may be the symbol @code{*}, in which\n"
+            "case the size of a pointer is returned. @var{type} may also\n"
+            "be a list of types, in which case the size of a @code{struct}\n"
+            "with ABI-conventional packing is returned.")
 #define FUNC_NAME s_scm_sizeof
 {
   if (SCM_I_INUMP (type))

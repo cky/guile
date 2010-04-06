@@ -442,9 +442,10 @@ section takes up the problem of accessing C values from Scheme, and the
 next discusses C functions.
 
 @menu
-* Foreign Types::  foo
-* Foreign Variables::  foo
-* Foreign Pointers and Values::  foo
+* Foreign Types::                  Expressing C types in Scheme.
+* Foreign Variables::              Typed pointers.
+* Void Pointers and Byte Access::  Pointers into the ether.
+* Foreign Structs::                Packing and unpacking structs.
 @end menu
 
 @node Foreign Types
@@ -454,9 +455,9 @@ The first impedance mismatch that one sees between C and Scheme is that
 in C, the storage locations (variables) are typed, but in Scheme types
 are associated with values, not variables. @xref{Values and Variables}.
 
-So when accessing a C value from Scheme, we must give the type of the
-value explicitly, as a parameter to any procedure that translates
-between Scheme and C values.
+So when accessing a C value through a Scheme pointer, we must give the
+type of the pointed-to value explicitly, as a parameter to any Scheme
+procedure that accesses the value.
 
 These ``C type values'' may be constructed using the constants and
 procedures from the @code{(system foreign)} module, which may be loaded
@@ -469,9 +470,7 @@ like this:
 @code{(system foreign)} exports a number of values expressing the basic
 C types:
 
-@defvr {Scheme Variable} float
-@defvrx {Scheme Variable} double
-@defvrx {Scheme Variable} int8
+@defvr {Scheme Variable} int8
 @defvrx {Scheme Variable} uint8
 @defvrx {Scheme Variable} uint16
 @defvrx {Scheme Variable} int16
@@ -479,6 +478,8 @@ C types:
 @defvrx {Scheme Variable} int32
 @defvrx {Scheme Variable} uint64
 @defvrx {Scheme Variable} int64
+@defvrx {Scheme Variable} float
+@defvrx {Scheme Variable} double
 Values exported by the @code{(system foreign)} module, representing C
 numeric types of the specified sizes and signednesses.
 @end defvr
@@ -499,7 +500,7 @@ numeric types. For example, @code{long} may be @code{equal?} to
 @node Foreign Variables
 @subsubsection Foreign Variables
 
-Given the types defined in the previous section, foreign values may be
+Given the types defined in the previous section, C pointers may be
 looked up dynamically using @code{dynamic-pointer}.
 
 @deffn {Scheme Procedure} dynamic-pointer name type dobj [len]
@@ -529,12 +530,52 @@ numptob
 @result{} #<foreign int32 8>
 @end example
 
-@noindent
-This example shows that a @code{long} on this platform is an
-@code{int32}, and that the value pointed to by @code{numptob} is 8.
+A value returned by @code{dynamic-pointer} is a Scheme wrapper for a C
+pointer, with additional type information. A foreign pointer prints
+according to its type. This example showed that a @code{long} on this
+platform is an @code{int32}, and that the value pointed to by
+@code{numptob} is 8.
 
-@node Foreign Pointers and Values
-@subsubsection Foreign Pointers and Values
+Typed pointers may be referenced using the @code{foreign-ref} and
+@code{foreign-set!} functions.
+
+@deffn {Scheme Procedure} foreign-ref foreign
+@deffnx {C Function} scm_foreign_ref foreign
+Reference the foreign value pointed to by @var{foreign}.
+
+The value will be referenced according to its type.
+
+@example
+(foreign-ref numptob) @result{} 8 ; YMMV
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} foreign-set! foreign val
+@deffnx {C Function} scm_foreign_set_x foreign val
+Set the foreign value pointed to by @var{foreign}.
+
+The value will be set according to its type.
+
+@example
+(foreign-set! numptob 120) ; Don't try this at home!
+@end example
+@end deffn
+
+If we wanted to corrupt Guile's internal state, we could set
+@code{scm_numptob} to another value; but we shouldn't, because that
+variable is not meant to be set. Indeed this point applies more widely:
+the C API is a dangerous place to be. Not only might setting a value
+crash your program, simply referencing a value with a wrong-sized type
+can prove equally disastrous.
+
+
+@node Void Pointers and Byte Access
+@subsubsection Void Pointers and Byte Access
+
+As a special case, a dynamic pointer may be declared to point to type
+@code{void}, in which case it is treated as a void pointer. A void
+pointer prints its value as a pointer, without dereferencing the
+pointer.
 
 It's important at this point to conceptually separate foreign values
 from foreign pointers. @code{dynamic-pointer} gives you a foreign
@@ -553,8 +594,12 @@ Guile can wrap such a pointer, by declaring that it points to
 @code{void}.
 
 @defvr {Scheme Variable} void
-A C type, used when wrapping C pointers. @code{void} represents the type
-to which the pointer points.
+A foreign type value representing nothing.
+
+@code{void} has two uses: for a foreign pointer, declaring it to be of
+type @code{void} is like having a @code{void*} in C. For a function, a
+return type of @code{void} indicates that the function returns no
+values. A function argument type of @code{void} is invalid.
 @end defvr
 
 As an example, @code{(dynamic-pointer "foo" void bar-lib)} links in the
@@ -588,44 +633,83 @@ Mutating the returned bytevector mutates the memory pointed to by
 @var{foreign}, so buckle your seatbelts.
 @end deffn
 
-@deffn {Scheme Procedure} foreign-set! foreign val
-@deffnx {C Function} scm_foreign_set_x foreign val
-Set the foreign value wrapped by @var{foreign}.
+@deffn {Scheme Procedure} bytevector->foreign bv [offset [len]]
+@deffnx {C Function} scm_bytevector_to_foreign bv offset len
+Return a foreign pointer aliasing the memory pointed to by
+@var{bv}.
 
-The value will be set according to its type.
+The resulting foreign will be a void pointer, a foreign whose
+type is @code{void}. By default it will alias all of the
+memory pointed to by @var{bv}, from beginning to end.
+
+Users may explicily specify that the foreign should only alias a
+subset of the memory, by specifying @var{offset} and @var{len}
+arguments.
 @end deffn
 
-Typed pointers may be referenced using the @code{foreign-ref} and
-@code{foreign-set!} functions.
 
-@deffn {Scheme Procedure} foreign-ref foreign
-@deffnx {C Function} scm_foreign_ref foreign
-Reference the foreign value wrapped by @var{foreign}.
+@node Foreign Structs
+@subsubsection Foreign Structs
 
-The value will be referenced according to its type.
+Finally, one last note on foreign values before moving on to actually
+calling foreign functions. Sometimes you need to deal with C structs,
+which requires interpreting each element of the struct according to the
+its type, offset, and alignment. Guile has some primitives to support
+this.
+
+@deffn {Scheme Procedure} sizeof type
+@deffnx {C Function} scm_sizeof type
+Return the size of @var{type}, in bytes.
+
+@var{type} should be a valid C type, like @code{int}.
+Alternately @var{type} may be the symbol @code{*}, in which
+case the size of a pointer is returned. @var{type} may
+also be a list of types, in which case the size of a
+@code{struct} with ABI-conventional packing is returned.
+@end deffn
+
+@deffn {Scheme Procedure} alignof type
+@deffnx {C Function} scm_alignof type
+Return the alignment of @var{type}, in bytes.
+
+@var{type} should be a valid C type, like @code{int}.
+Alternately @var{type} may be the symbol @code{*}, in which
+case the alignment of a pointer is returned. @var{type} may
+also be a list of types, in which case the alignment of a
+@code{struct} with ABI-conventional packing is returned.
+@end deffn
+
+Guile also provides some convenience methods to pack and unpack foreign
+pointers wrapping C structs.
+
+@deffn {Scheme Procedure} make-c-struct types vals
+Create a foreign pointer to a C struct containing @var{vals} with types
+@code{types}.
+
+@var{vals} and @code{types} should be lists of the same length.
+@end deffn
+
+@deffn {Scheme Procedure} parse-c-struct foreign types
+Parse a foreign pointer to a C struct, returning a list of values.
+
+@code{types} should be a list of C types.
+@end deffn
+
+For example, to create and parse the equivalent of a @code{struct @{
+int64_t a; uint8_t b; @}}:
 
 @example
-(foreign-ref numptob) @result{} 8 ; YMMV
+(parse-c-struct (make-c-struct (list int64 uint8)
+                               (list 300 43))
+                (list int64 uint8))
+@result{} (300 43)
 @end example
-@end deffn
 
-@deffn {Scheme Procedure} foreign-set! foreign val
-@deffnx {C Function} scm_foreign_set_x foreign val
-Set the foreign value wrapped by @var{foreign}.
-
-The value will be set according to its type.
-
-@example
-(foreign-set! numptob 120) ; Don't try this at home!
-@end example
-@end deffn
-
-If we wanted to corrupt Guile's internal state, we could set
-@code{scm_numptob} to another value; but we shouldn't, because that
-variable is not meant to be set. Indeed this point applies more widely:
-the C API is a dangerous place to be. Not only might setting a value
-crash your program, simply referencing a value with a wrong-sized type
-can prove equally disastrous.
+As yet, Guile only has convenience routines to support
+conventionally-packed structs. But given the @code{bytevector->foreign}
+and @code{foreign->bytevector} routines, one can create and parse
+tightly packed structs and unions by hand. See the code for
+@code{(system foreign)} for details.
 
 
 @node Dynamic FFI
@@ -644,52 +728,103 @@ procedure that will pass arguments to the foreign function
 and return appropriate values.
 
 @var{arg_types} should be a list of foreign types.
-@code{return_type} should be a foreign type.
+@code{return_type} should be a foreign type. @xref{Foreign Types}, for
+more information on foreign types.
 @end deffn
 
-TBD
-
-@menu
-* Foreign Structs::
-@end menu
-
-
-@node Foreign Structs
-@subsubsection Foreign Structs
-
-Compared to Scheme, C is a lower-level language, but it does have the
-ability to compose types into structs and unions, so Guile must support
-these as well.
-
-Oftentimes one only accesses structures through pointers. In that case,
-it's easy to use void pointers and the bytevector interface to access
-structures. However C allows functions to accept and return structures
-and unions by value, on the stack, so it's necessary to be able to
-express structure and union types as Scheme values.
-
-Conventionally-packed st
-
-As yet, Guile only has support for conventionally-packed structs.
-tightly-packed structs and unions will
-
-Note that the Scheme values for C types are just that, @emph{values},
-not names. @code{(quote int64 uint8)} won't do what you want.
-
-C does not only have numeric types; one other type that it has is the
-@dfn{struct}, which in Guile is represented as a list of C types, so
-that the following two type declarations are equivalent:
+Here is a better definition of @code{(math bessel)}:
 
 @example
-struct @{ int64_t foo; uint8_t bar; @}
-(list int64 uint8)
+(define-module (math bessel)
+  #:use-module (system foreign)
+  #:export (j0))
+
+(define libm (dynamic-link "libm"))
+
+(define j0
+  (make-foreign-function double
+                         (dynamic-func "j0" libm)
+                         (list double)))
 @end example
 
-Putting Scheme types in a list is the same as declaring a struct type
-with the default packing. Guile does not currently support
-tightly-packed structs; in that case you should declare the value as
-being a void pointer, and access the bytes as a bytevector.
+That's it! No C at all.
 
+Numeric arguments and return values from foreign functions are
+represented as Scheme values. For example, @code{j0} in the above
+example takes a Scheme number as its argument, and returns a Scheme
+number.
 
+Pointers may be passed to and returned from foreign functions as well.
+In that case the type of the argument or return value should be the
+symbol @code{*}, indicating a pointer. For example, the following
+code makes @code{memcpy} available to Scheme:
+
+@example
+(define memcpy
+  (let ((this (dynamic-link)))
+    (make-foreign-function '*
+                           (dynamic-func "memcpy" this)
+                           (list '* '* size_t))))
+@end example
+
+To invoke @code{memcpy}, one must pass it foreign pointers:
+
+@example
+(use-modules (rnrs bytevector))
+
+(define src
+  (bytevector->foreign (u8-list->bytevector '(0 1 2 3 4 5 6 7))))
+(define dest
+  (bytevector->foreign (make-bytevector 16 0)))
+
+(memcpy dest src (bytevector-length (foreign->bytevector src)))))
+
+(bytevector->u8-list (foreign->bytevector dest))
+@result{} (0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0)
+@end example
+
+One may also pass structs as values, passing structs as foreign
+pointers. @xref{Foreign Structs}, for more information on how to express
+struct types and struct values.
+
+``Out'' arguments are passed as foreign pointers. The memory pointed to
+by the foreign pointer is mutated in place.
+
+@example
+;; struct timeval @{
+;;      time_t      tv_sec;     /* seconds */
+;;      suseconds_t tv_usec;    /* microseconds */
+;; @};
+;; assuming fields are of type "long"
+
+(define gettimeofday
+  (let ((f (make-foreign-function
+            int
+            (dynamic-func "gettimeofday" (dynamic-link))
+            (list '* '*)))
+        (tv-type (list long long)))
+    (lambda ()
+      (let* ((timeval (make-c-struct tv-type (list 0 0)))
+             (ret (f timeval %null-pointer)))
+        (if (zero? ret)
+            (apply values (parse-c-struct timeval tv-type))
+            (error "gettimeofday returned an error" ret))))))
+
+(gettimeofday)    
+@result{} 1270587589
+@result{} 499553
+@end example
+
+This example also shows use of @code{%null-pointer}, which is a null
+foreign pointer, exported by @code{(system foreign)}.
+
+@defvr {Scheme Variable} %null-pointer
+A foreign pointer whose value is 0.
+@end defvr
+
+As you can see, this interface to foreign functions is at a very low,
+somewhat dangerous level. A contribution to Guile in the form of a
+high-level FFI would be most welcome.
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
