@@ -10,6 +10,83 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.10 (since the 1.9.9 prerelease):
 
+** Hygienic macros documented as the primary syntactic extension mechanism.
+
+The macro documentation was finally fleshed out with some documentation
+on `syntax-case' macros, and other parts of the macro expansion process.
+See "Macros" in the manual, for details.
+
+** Interactive Guile follows GNU conventions
+
+As recommended by the GPL, Guile now shows a brief copyright and
+warranty disclaimer on startup, along with pointers to more information.
+On the other hand, changing languages is more concise.
+
+** Support for arbitrary procedure metadata
+
+Building on its support for docstrings, Guile now supports multiple
+docstrings, adding them to the tail of a compiled procedure's
+properties. For example:
+
+  (define (foo)
+    "one"
+    "two"
+    3)
+  (use-modules (system vm program))
+  (program-properties foo)
+  => ((name . foo) (documentation . "one") (documentation . "two"))
+
+Also, vectors of pairs are now treated as additional metadata entries:
+
+  (define (bar)
+    #((quz . #f) (docstring . "xyzzy"))
+    3)
+  (use-modules (system vm program))
+  (program-properties bar)
+  => ((name . bar) (quz . #f) (docstring . "xyzzy"))
+
+This allows arbitrary literals to be embedded as metadata in a compiled
+procedure.
+
+** Better documentation infrastructure for macros
+
+It is now possible to introspect on the type of a macro, e.g.
+syntax-rules, identifier-syntax, etc, and extract information about that
+macro, such as the syntax-rules patterns or the defmacro arguments.
+`(texinfo reflection)' takes advantage of this to give better macro
+documentation.
+
+** Autocompilation for applications that use Guile as an extension language
+
+It used to be that only applications that ran Guile through the
+`scm_shell' function got the advantages of autocompilation. This has
+been changed so that all applications have autocompilation on by
+default.
+
+** Better integration of Lisp nil
+
+`scm_is_boolean', `scm_is_false', and `scm_is_null' all return true now
+for Lisp's `nil'. This shouldn't affect any Scheme code at this point,
+but when we start to integrate more with Emacs, it is possible that we
+break code that assumes that, for example, `(not x)' implies that `x' is
+`eq?' to `#f'. This is not a common assumption. Refactoring affected
+code to rely on properties instead of identities will improve code
+correctness.
+
+That is to say, user code should test falsity with `if', not with `eq?'.
+
+** Integration of lalr-scm, a parser generator
+
+Guile has included Dominique Boucher's fine `lalr-scm' parser generator
+as `(system base lalr)'. See "LALR(1) Parsing" in the manual, for more
+information.
+
+** Documentation for the dynamic foreign function interface (FFI).
+
+See "Foreign Function Interface" in the manual, for more information.
+
+** Unicode character set update to Unicode 5.2.
+    
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
