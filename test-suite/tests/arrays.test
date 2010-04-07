@@ -207,6 +207,17 @@
     (array-equal? #s16(1 2 3) #s16(1 2 3))))
 
 ;;;
+;;; array->list
+;;;
+
+(with-test-prefix "array->list"
+  (pass-if (equal? (array->list #s16(1 2 3)) '(1 2 3)))
+  (pass-if (equal? (array->list #(1 2 3)) '(1 2 3)))
+  (pass-if (equal? (array->list #2((1 2) (3 4) (5 6))) '((1 2) (3 4) (5 6))))
+  (pass-if (equal? (array->list #()) '())))
+
+
+;;;
 ;;; array-fill!
 ;;;
 

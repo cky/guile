@@ -250,8 +250,14 @@ array_to_list (scm_t_array_handle *h, size_t dim, unsigned long pos)
 
 SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0, 
             (SCM array),
-	    "FIXME description a list consisting of all the elements, in order, of\n"
-	    "@var{array}.")
+	    "Return a list representation of @var{array}.\n\n"
+            "It is easiest to specify the behavior of this function by\n"
+            "example:\n"
+            "@example\n"
+            "(array->list #0(a)) @result{} 1\n"
+            "(array->list #1(a b)) @result{} (a b)\n"
+            "(array->list #2((aa ab) (ba bb)) @result{} ((aa ab) (ba bb))\n"
+            "@end example\n")
 #define FUNC_NAME s_scm_array_to_list
 {
   scm_t_array_handle h;
