@@ -35,6 +35,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/common-list.test		\
 	    tests/control.test			\
 	    tests/continuations.test		\
+	    tests/curried-definitions.test	\
 	    tests/ecmascript.test		\
 	    tests/elisp.test			\
 	    tests/elisp-compiler.test		\
