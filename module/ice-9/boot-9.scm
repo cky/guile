@@ -1978,7 +1978,7 @@ If there is no handler at all, Guile prints an error and then exits."
                                                      (module-name interface))))
                                           (module-uses module))
                                   (list interface)))
-
+        (hash-clear! (module-import-obarray module))
         (module-modified module))))
 
 ;; MODULE-USE-INTERFACES! module interfaces
@@ -1988,6 +1988,7 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (module-use-interfaces! module interfaces)
   (set-module-uses! module
                     (append (module-uses module) interfaces))
+  (hash-clear! (module-import-obarray module))
   (module-modified module))
 
 
