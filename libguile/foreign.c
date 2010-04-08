@@ -89,12 +89,8 @@ scm_take_foreign_pointer (scm_t_foreign_type type, void *ptr, size_t len,
                        | (finalizer ? (1<<16) : 0) | (len<<17));
   if (SCM_UNLIKELY ((word0 >> 17) != len))
     scm_out_of_range ("scm_take_foreign_pointer", scm_from_size_t (len));
-    
-  ret = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_bits) * 2,
-                                            "foreign"));
-  SCM_SET_CELL_WORD_0 (ret, word0);
-  SCM_SET_CELL_WORD_1 (ret, (scm_t_bits)ptr);
 
+  ret = scm_cell (word0, (scm_t_bits) ptr);
   if (finalizer)
     {
       /* Register a finalizer for the newly created instance.  */
