@@ -1,6 +1,6 @@
 ;;;; (sxml fold) -- transformation of sxml via fold operations
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Written 2007 by Andy Wingo <wingo at pobox dot com>.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -28,8 +28,8 @@
 ;;; Code:
 
 (define-module (sxml fold)
+  #:use-module (srfi srfi-1)
   #:export (foldt
-            fold
             foldts
             foldts*
             fold-values
@@ -49,15 +49,6 @@
       (fup (map (lambda (kid)
                   (foldt fup fhere kid))
                 tree))))
-
-(define (fold proc seed list)
-  "The standard list fold.
-
-@var{proc} is of type a -> b -> b. @var{seed} is of type b. @var{list}
-is of type [a]."
-  (if (null? list)
-      seed
-      (fold proc (proc (car list) seed) (cdr list))))
 
 (define (foldts fdown fup fhere seed tree)
   "The single-threaded tree fold originally defined in SSAX.
@@ -89,7 +80,7 @@ tree rewrites. Originally defined in Andy Wingo's 2007 paper,
                tree)))))
 
 (define (fold-values proc list . seeds)
-  "A variant of @ref{sxml fold fold,,fold} that allows multi-valued
+  "A variant of @ref{SRFI-1 Fold and Map, fold} that allows multi-valued
 seeds. Note that the order of the arguments differs from that of
 @code{fold}."
   (if (null? list)

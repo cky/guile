@@ -24,6 +24,7 @@
 
 (define-module (test-suite sxml-fold)
   #:use-module (test-suite lib)
+  #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module (sxml fold))
 
 (define atom? (@@ (sxml fold) atom?))
