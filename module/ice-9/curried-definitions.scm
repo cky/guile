@@ -25,7 +25,9 @@
        (lambda rest body body* ...)))
     ((_ (head . rest) body body* ...)
      (define head
-       (lambda rest body body* ...)))))
+       (lambda rest body body* ...)))
+    ((_ . rest)
+     (define . rest))))
 
 (define-syntax cdefine*
   (syntax-rules ()
@@ -34,4 +36,6 @@
        (lambda* rest body body* ...)))
     ((_ (head . rest) body body* ...)
      (define* head
-       (lambda* rest body body* ...)))))
+       (lambda* rest body body* ...)))
+    ((_ . rest)
+     (define* . rest))))

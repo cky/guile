@@ -43,4 +43,42 @@
             (primitive-eval '(let ()
                                (define (((foo)) x)
                                  (+ x 34))
-                               (((foo)) 300))))))
+                               (((foo)) 300)))))
+
+  (pass-if "just a value"
+    (equal? 444
+            (primitive-eval '(let ()
+                               (define foo 444)
+                               foo)))))
+
+(with-test-prefix "define*"
+  (pass-if "define* works as usual"
+    (equal? 34
+            (primitive-eval '(let ()
+                               (define* (foo)
+                                 34)
+                               (foo)))))
+  (pass-if "define* works as usual (2)"
+    (equal? 134
+            (primitive-eval '(let ()
+                               (define* (foo x)
+                                 (+ x 34))
+                               (foo 100)))))
+  (pass-if "currying once"
+    (equal? 234
+            (primitive-eval '(let ()
+                               (define* ((foo) x)
+                                 (+ x 34))
+                               ((foo) 200)))))
+  (pass-if "currying twice"
+    (equal? 334
+            (primitive-eval '(let ()
+                               (define* (((foo)) x)
+                                 (+ x 34))
+                               (((foo)) 300)))))
+
+  (pass-if "just a value"
+    (equal? 444
+            (primitive-eval '(let ()
+                               (define* foo 444)
+                               foo)))))
