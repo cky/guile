@@ -515,7 +515,10 @@ VM_DEFINE_FUNCTION (168, struct_set, "struct-set", 3)
 VM_DEFINE_FUNCTION (169, class_of, "class-of", 1)
 {
   ARGS1 (obj);
-  RETURN (SCM_INSTANCEP (obj) ? SCM_CLASS_OF (obj) : scm_class_of (obj));
+  if (SCM_INSTANCEP (obj))
+    RETURN (SCM_CLASS_OF (obj));
+  SYNC_REGISTER ();
+  RETURN (scm_class_of (obj));
 }
 
 VM_DEFINE_FUNCTION (170, slot_ref, "slot-ref", 2)
