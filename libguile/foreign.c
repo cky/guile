@@ -966,7 +966,7 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
   /* FOREIGN is the pair that cif_to_procedure set as the 0th element of the
      objtable. */
   ffi_cif *cif;
-  void (*func)();
+  void (*func) (void);
   scm_t_uint8 *data;
   void *rvalue;
   void **args;
@@ -978,7 +978,7 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
   func = SCM_FOREIGN_POINTER (SCM_CDR (foreign), void);
 
   /* Argument pointers.  */
-  args = alloca (sizeof(void*) * cif->nargs);
+  args = alloca (sizeof (void *) * cif->nargs);
 
   /* Compute the amount of memory needed to store all the argument values.
      Note: as of libffi 3.0.9 `cif->bytes' is undocumented and is zero, so it
