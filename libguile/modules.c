@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -801,6 +801,8 @@ SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
       obarray = SCM_MODULE_OBARRAY (module);
     }
 
+  SCM_VALIDATE_VARIABLE (SCM_ARG2, variable);
+
   if (!SCM_HASHTABLE_P (obarray))
       return SCM_BOOL_F;
 
@@ -830,17 +832,18 @@ SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
 	}
     }
 
-  /* Try the `uses' list.  */
-  {
-    SCM uses = SCM_MODULE_USES (module);
-    while (scm_is_pair (uses))
-      {
-	SCM sym = scm_module_reverse_lookup (SCM_CAR (uses), variable);
-	if (scm_is_true (sym))
-	  return sym;
-	uses = SCM_CDR (uses);
-      }
-  }
+  if (!scm_is_false (module))
+    {
+      /* Try the `uses' list.  */
+      SCM uses = SCM_MODULE_USES (module);
+      while (scm_is_pair (uses))
+	{
+	  SCM sym = scm_module_reverse_lookup (SCM_CAR (uses), variable);
+	  if (scm_is_true (sym))
+	    return sym;
+	  uses = SCM_CDR (uses);
+	}
+    }
 
   return SCM_BOOL_F;
 }
