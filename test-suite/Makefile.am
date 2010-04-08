@@ -44,6 +44,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/exceptions.test		\
 	    tests/filesys.test			\
 	    tests/fluids.test			\
+	    tests/foreign.test			\
 	    tests/format.test			\
 	    tests/fractions.test		\
 	    tests/ftw.test			\

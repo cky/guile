@@ -52,6 +52,7 @@ SCM_SYMBOL (sym_size_t, "size_t");
 SCM_SYMBOL (sym_asterisk, "*");
 
 SCM_SYMBOL (sym_null, "%null-pointer");
+SCM_SYMBOL (sym_null_pointer_error, "null-pointer-error");
 
 /* The cell representing the null pointer.  */
 static const scm_t_bits null_pointer[2] =
@@ -60,6 +61,15 @@ static const scm_t_bits null_pointer[2] =
     0
   };
 
+/* Raise a null pointer dereference error.  */
+static void
+null_pointer_error (const char *func_name)
+{
+  scm_error (sym_null_pointer_error, func_name,
+	     "null pointer dereference", SCM_EOL, SCM_EOL);
+}
+
+
 static SCM cif_to_procedure (SCM cif, SCM func_ptr);
 
 
@@ -161,6 +171,12 @@ SCM_DEFINE (scm_foreign_set_x, "foreign-set!", 2, 0, 0,
   scm_t_uint8 *ptr;
 
   SCM_VALIDATE_FOREIGN (1, foreign);
+
+  if (SCM_UNLIKELY (scm_is_eq (foreign, PTR2SCM (&null_pointer))))
+    /* Attempting to modify the pointer value of NULL_POINTER (which is
+       read-only anyway), so raise an error.  */
+    null_pointer_error (FUNC_NAME);
+
   ptr = SCM_FOREIGN_POINTER (foreign, scm_t_uint8);
   ftype = SCM_FOREIGN_TYPE (foreign);
 
@@ -237,7 +253,7 @@ SCM_DEFINE (scm_foreign_to_bytevector, "foreign->bytevector", 1, 3, 0,
   ptr = SCM_FOREIGN_POINTER (foreign, scm_t_int8);
 
   if (SCM_UNLIKELY (ptr == NULL))
-    scm_misc_error (FUNC_NAME, "null pointer dereference", SCM_EOL);
+    null_pointer_error (FUNC_NAME);
 
   if (SCM_UNBNDP (uvec_type))
     btype = SCM_ARRAY_ELEMENT_TYPE_VU8;
