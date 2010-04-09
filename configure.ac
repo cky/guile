@@ -160,10 +160,6 @@ fi
 AC_DEFINE_UNQUOTED([SCM_WARN_DEPRECATED_DEFAULT], "$warn_default",
 [Define this to control the default warning level for deprecated features.])
 
-AC_ARG_ENABLE(elisp,
-  [  --disable-elisp         omit Emacs Lisp support],,
-  enable_elisp=yes)
-
 dnl  Added the following configure option in January 2008 following
 dnl  investigation of problems with "64" system and library calls on
 dnl  Darwin (MacOS X).  The libguile code (_scm.h) assumes that if a
@@ -254,11 +250,6 @@ if test "$enable_debug_malloc" = yes; then
    AC_LIBOBJ([debug-malloc])
 fi
 
-if test "$enable_elisp" = yes; then
-  SCM_I_GSC_ENABLE_ELISP=1
-else
-  SCM_I_GSC_ENABLE_ELISP=0
-fi
 AC_CHECK_LIB(uca, __uc_get_ar_bsp)
 
 AC_C_CONST
@@ -1622,7 +1613,6 @@ AC_SUBST([sitedir])
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
 AC_SUBST([SCM_I_GSC_ENABLE_DISCOURAGED])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
-AC_SUBST([SCM_I_GSC_ENABLE_ELISP])
 AC_SUBST([SCM_I_GSC_STACK_GROWS_UP])
 AC_SUBST([SCM_I_GSC_C_INLINE])
 AC_CONFIG_FILES([libguile/gen-scmconfig.h])

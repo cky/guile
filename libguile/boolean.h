@@ -52,12 +52,8 @@
  * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information on
  * how the following macro works.
  */
-#if SCM_ENABLE_ELISP
-# define scm_is_false_or_nil(x)    \
+#define scm_is_false_or_nil(x)    \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_BOOL_F))
-#else
-# define scm_is_false_or_nil(x)    (scm_is_false_assume_not_nil (x))
-#endif
 #define scm_is_true_and_not_nil(x) (!scm_is_false_or_nil (x))
 
 /* %nil is false. */
@@ -80,13 +76,8 @@
  * SCM_BOOL_T, SCM_ELISP_NIL, or SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0.
  * Otherwise, it returns 0.
  */
-#if SCM_ENABLE_ELISP
-# define scm_is_bool_or_nil(x)  \
+#define scm_is_bool_or_nil(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_T, SCM_ELISP_NIL))
-#else
-# define scm_is_bool_or_nil(x)  (scm_is_bool_and_not_nil (x))
-#endif
-
 #define scm_is_bool_and_not_nil(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_F, SCM_BOOL_T))
 
@@ -117,11 +108,8 @@ SCM_API int scm_to_bool (SCM x);
  * following: SCM_BOOL_F, SCM_ELISP_NIL, SCM_EOL or
  * SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE.  Otherwise, it returns 0.
  */
-#if SCM_ENABLE_ELISP
-# define scm_is_lisp_false(x)  \
+#define scm_is_lisp_false(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_F, SCM_EOL))
-# define scm_is_lisp_true(x)   (!scm_is_lisp_false(x))
-#endif
 
 
 

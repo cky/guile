@@ -232,11 +232,6 @@ main (int argc, char *argv[])
   pf ("/* (value will be 0 or 1). */\n");
   pf ("#define SCM_ENABLE_DEPRECATED %d\n", SCM_I_GSC_ENABLE_DEPRECATED);
 
-  /*** SCM_ENABLE_ELISP (0 or 1) ***/
-  pf ("\n");
-  pf ("/* Set to 1 to add Elisp support (in addition to Scheme). */\n");
-  pf ("#define SCM_ENABLE_ELISP %d /* 0 or 1 */\n", SCM_I_GSC_ENABLE_ELISP);
-
   /*** SCM_STACK_GROWS_UP (0 or 1) ***/
   pf ("\n");
   pf ("/* Set to 1 if the stack grows up, 0 otherwise. */\n");
