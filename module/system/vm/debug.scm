@@ -28,7 +28,21 @@
   #:use-module (ice-9 format)
   #:use-module ((system vm inspect) #:select ((inspect . %inspect)))
   #:use-module (system vm program)
-  #:export (debug run-debugger debug-pre-unwind-handler))
+  #:export (*debug-input-port*
+            *debug-output-port*
+            debug run-debugger debug-pre-unwind-handler))
+
+
+
+(define *debug-input-port* (make-fluid))
+(define *debug-output-port* (make-fluid))
+
+(define (debug-input-port)
+  (or (fluid-ref *debug-input-port*)
+      (current-input-port)))
+(define (debug-output-port)
+  (or (fluid-ref *debug-output-port*)
+      (current-error-port)))
 
 
 (define (reverse-hashq h)
@@ -144,13 +158,26 @@
             (set! (prop vm) debugger)
             debugger)))))
 
-(define* (run-debugger stack frames #:optional (vm (the-vm)))
+;; FIXME: Instead of dynamically binding the input and output ports in the
+;; context of the error, the debugger should really be a kind of coroutine,
+;; having its own dynamic input and output bindings. Delimited continuations can
+;; do this.
+(define* (run-debugger stack frames #:optional (vm (the-vm)) #:key
+                       (input (debug-input-port)) (output (debug-output-port)))
   (let* ((db (vm-debugger vm))
          (level (debugger-level db)))
     (dynamic-wind
-      (lambda () (set! (debugger-level db) (1+ level)))
-      (lambda () (debugger-repl db stack frames))
-      (lambda () (set! (debugger-level db) level)))))
+      (lambda ()
+        (set! (debugger-level db) (1+ level))
+        (set! input (set-current-input-port input)))
+      (lambda () 
+        (dynamic-wind
+          (lambda () (set! output (set-current-output-port output)))
+          (lambda () (debugger-repl db stack frames))
+          (lambda () (set! output (set-current-output-port output)))))
+      (lambda ()
+        (set! input (set-current-input-port input))
+        (set! (debugger-level db) level)))))
 
 (define (debugger-repl db stack frames)
   (let* ((index 0)
@@ -389,11 +416,12 @@ With an argument, select a frame by index, then show it."
     (lambda (stack)
       (pmatch args
         ((,subr ,msg ,args . ,rest)
-         (format #t "Throw to key `~a':\n" key)
-         (display-error stack (current-output-port) subr msg args rest))
+         (format (debug-output-port) "Throw to key `~a':\n" key)
+         (display-error stack (debug-output-port) subr msg args rest))
         (else
-         (format #t "Throw to key `~a' with args `~s'." key args)))
-      (format #t "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
+         (format (debug-output-port) "Throw to key `~a' with args `~s'." key args)))
+      (format (debug-output-port)
+              "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
       (run-debugger stack
                     (stack->vector
                      ;; by default, narrow to the most recent start-stack
@@ -407,5 +435,5 @@ With an argument, select a frame by index, then show it."
 (define (debug)
   (let ((stack (fluid-ref the-last-stack)))
     (if stack
-	(run-debugger stack (stack->vector stack))
-	(display "Nothing to debug.\n"))))
+        (run-debugger stack (stack->vector stack))
+        (display "Nothing to debug.\n" (debug-output-port)))))
