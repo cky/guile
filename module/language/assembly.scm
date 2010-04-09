@@ -106,7 +106,7 @@
 (define (object->assembly x)
   (cond ((eq? x #t) `(make-true))
 	((eq? x #f) `(make-false))
-        ((and (defined? '%nil) (eq? x %nil)) `(make-nil))
+        ((eq? x #nil) `(make-nil))
 	((null? x) `(make-eol))
 	((and (integer? x) (exact? x))
 	 (cond ((and (<= -128 x) (< x 128))
@@ -136,7 +136,7 @@
   (pmatch code
     ((make-true) #t)
     ((make-false) #f) ;; FIXME: Same as the `else' case!
-    ((make-nil) %nil)
+    ((make-nil) #nil)
     ((make-eol) '())
     ((make-int8 ,n)
      (if (< n 128) n (- n 256)))

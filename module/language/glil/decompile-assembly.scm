@@ -123,7 +123,7 @@
           ((make-false)
            (lp (cdr in) (cons #f stack) out (1+ pos)))
           ((make-nil)
-           (lp (cdr in) (cons %nil stack) out (1+ pos)))
+           (lp (cdr in) (cons #nil stack) out (1+ pos)))
           ((load-program ,labels ,sublen ,meta . ,body)
            (lp (cdr in)
                (cons (decompile-load-program (decompile-meta meta)
