@@ -78,7 +78,7 @@
       (= (length (cons 'a (cons 'b (cons 'c #nil)))) 3))
 
     (pass-if "length (with backquoted list)"
-      (= (length `(a b c . ,#nil)) 3))
+      (= (length '(a b c . #nil)) 3))
 
     (pass-if "write (#nil)"
       (string=? (with-output-to-string
@@ -101,21 +101,21 @@
                 "(a)"))
 
     (pass-if "assq"
-      (and (equal? (assq 1 `((1 one) (2 two) . ,#nil))
+      (and (equal? (assq 1 '((1 one) (2 two) . #nil))
                    '(1 one))
-           (equal? (assq 3 `((1 one) (2 two) . ,#nil))
+           (equal? (assq 3 '((1 one) (2 two) . #nil))
                    #f)))
 
     (pass-if "assv"
-      (and (equal? (assv 1 `((1 one) (2 two) . ,#nil))
+      (and (equal? (assv 1 '((1 one) (2 two) . #nil))
                    '(1 one))
-           (equal? (assv 3 `((1 one) (2 two) . ,#nil))
+           (equal? (assv 3 '((1 one) (2 two) . #nil))
                    #f)))
 
     (pass-if "assoc"
-      (and (equal? (assoc 1 `((1 one) (2 two) . ,#nil))
+      (and (equal? (assoc 1 '((1 one) (2 two) . #nil))
                    '(1 one))
-           (equal? (assoc 3 `((1 one) (2 two) . ,#nil))
+           (equal? (assoc 3 '((1 one) (2 two) . #nil))
                    #f)))
 
     (pass-if "with-fluids*"
@@ -129,108 +129,108 @@
 
     (pass-if "append!"
       (let ((a (copy-tree '(1 2 3)))
-            (b (copy-tree `(4 5 6 . ,#nil)))
+            (b (copy-tree '(4 5 6 . #nil)))
             (c (copy-tree '(7 8 9)))
-            (d (copy-tree `(a b c . ,#nil))))
+            (d (copy-tree '(a b c . #nil))))
         (equal? (append! a b c d)
-                `(1 2 3 4 5 6 7 8 9 a b c . ,#nil))))
+                '(1 2 3 4 5 6 7 8 9 a b c . #nil))))
 
     (pass-if "last-pair"
-      (equal? (last-pair `(1 2 3 4 5 . ,#nil))
+      (equal? (last-pair '(1 2 3 4 5 . #nil))
               (cons 5 #nil)))
 
     (pass-if "reverse"
-      (equal? (reverse `(1 2 3 4 5 . ,#nil))
+      (equal? (reverse '(1 2 3 4 5 . #nil))
               '(5 4 3 2 1)))            ; Hmmm... is this OK, or
 					; should it be
-					; `(5 4 3 2 1 . ,#nil) ?
+					; '(5 4 3 2 1 . #nil) ?
 
     (pass-if "reverse!"
-      (equal? (reverse! (copy-tree `(1 2 3 4 5 . ,#nil)))
+      (equal? (reverse! (copy-tree '(1 2 3 4 5 . #nil)))
               '(5 4 3 2 1)))            ; Ditto.
 
     (pass-if "list-ref"
-      (eq? (list-ref `(0 1 2 3 4 . ,#nil) 4) 4))
+      (eq? (list-ref '(0 1 2 3 4 . #nil) 4) 4))
 
     (pass-if-exception "list-ref"
                        exception:out-of-range
-                       (eq? (list-ref `(0 1 2 3 4 . ,#nil) 6) 6))
+                       (eq? (list-ref '(0 1 2 3 4 . #nil) 6) 6))
 
     (pass-if "list-set!"
-      (let ((l (copy-tree `(0 1 2 3 4 . ,#nil))))
+      (let ((l (copy-tree '(0 1 2 3 4 . #nil))))
         (list-set! l 4 44)
         (= (list-ref l 4) 44)))
 
     (pass-if-exception "list-set!"
                        exception:out-of-range
-                       (let ((l (copy-tree `(0 1 2 3 4 . ,#nil))))
+                       (let ((l (copy-tree '(0 1 2 3 4 . #nil))))
                          (list-set! l 6 44)
                          (= (list-ref l 6) 44)))
 
     (pass-if "list-cdr-set!"
-      (let ((l (copy-tree `(0 1 2 3 4 . ,#nil))))
+      (let ((l (copy-tree '(0 1 2 3 4 . #nil))))
         (and (begin
                (list-cdr-set! l 4 44)
                (equal? l '(0 1 2 3 4 . 44)))
              (begin
-               (list-cdr-set! l 3 `(new . ,#nil))
-               (equal? l `(0 1 2 3 new . ,#nil))))))
+               (list-cdr-set! l 3 '(new . #nil))
+               (equal? l '(0 1 2 3 new . #nil))))))
 
     (pass-if-exception "list-cdr-set!"
                        exception:out-of-range
-                       (let ((l (copy-tree `(0 1 2 3 4 . ,#nil))))
+                       (let ((l (copy-tree '(0 1 2 3 4 . #nil))))
                          (list-cdr-set! l 6 44)))
 
     (pass-if "memq"
-      (equal? (memq 'c `(a b c d . ,#nil)) `(c d . ,#nil)))
+      (equal? (memq 'c '(a b c d . #nil)) '(c d . #nil)))
 
     (pass-if "memv"
-      (equal? (memv 'c `(a b c d . ,#nil)) `(c d . ,#nil)))
+      (equal? (memv 'c '(a b c d . #nil)) '(c d . #nil)))
 
     (pass-if "member"
-      (equal? (member "c" `("a" "b" "c" "d" . ,#nil)) `("c" "d" . ,#nil)))
+      (equal? (member "c" '("a" "b" "c" "d" . #nil)) '("c" "d" . #nil)))
 
     (pass-if "list->vector"
-      (equal? '#(1 2 3) (list->vector `(1 2 3 . ,#nil))))
+      (equal? '#(1 2 3) (list->vector '(1 2 3 . #nil))))
 
     (pass-if "list->vector"
-      (equal? '#(1 2 3) (list->vector `(1 2 3 . ,#nil))))
+      (equal? '#(1 2 3) (list->vector '(1 2 3 . #nil))))
 
     (pass-if "list->weak-vector"
-      (equal? (weak-vector 1 2 3) (list->weak-vector `(1 2 3 . ,#nil))))
+      (equal? (weak-vector 1 2 3) (list->weak-vector '(1 2 3 . #nil))))
 
     (pass-if "sorted?"
-      (and (sorted? `(1 2 3 . ,#nil) <)
-           (not (sorted? `(1 6 3 . ,#nil) <))))
+      (and (sorted? '(1 2 3 . #nil) <)
+           (not (sorted? '(1 6 3 . #nil) <))))
 
     (pass-if "merge"
       (equal? (merge '(1 4 7 10)
-                     (merge `(2 5 8 11 . ,#nil)
-                            `(3 6 9 12 . ,#nil)
+                     (merge '(2 5 8 11 . #nil)
+                            '(3 6 9 12 . #nil)
                             <)
                      <)
-              `(1 2 3 4 5 6 7 8 9 10 11 12 . ,#nil)))
+              '(1 2 3 4 5 6 7 8 9 10 11 12 . #nil)))
 
     (pass-if "merge!"
       (equal? (merge! (copy-tree '(1 4 7 10))
-                      (merge! (copy-tree `(2 5 8 11 . ,#nil))
-                              (copy-tree `(3 6 9 12 . ,#nil))
+                      (merge! (copy-tree '(2 5 8 11 . #nil))
+                              (copy-tree '(3 6 9 12 . #nil))
                               <)
                       <)
-              `(1 2 3 4 5 6 7 8 9 10 11 12 . ,#nil)))
+              '(1 2 3 4 5 6 7 8 9 10 11 12 . #nil)))
 
     (pass-if "sort"
-      (equal? (sort `(1 5 3 8 4 . ,#nil) <) '(1 3 4 5 8)))
+      (equal? (sort '(1 5 3 8 4 . #nil) <) '(1 3 4 5 8)))
 
     (pass-if "stable-sort"
-      (equal? (stable-sort `(1 5 3 8 4 . ,#nil) <) '(1 3 4 5 8)))
+      (equal? (stable-sort '(1 5 3 8 4 . #nil) <) '(1 3 4 5 8)))
 
     (pass-if "sort!"
-      (equal? (sort! (copy-tree `(1 5 3 8 4 . ,#nil)) <)
+      (equal? (sort! (copy-tree '(1 5 3 8 4 . #nil)) <)
               '(1 3 4 5 8)))
 
     (pass-if "stable-sort!"
-      (equal? (stable-sort! (copy-tree `(1 5 3 8 4 . ,#nil)) <)
+      (equal? (stable-sort! (copy-tree '(1 5 3 8 4 . #nil)) <)
               '(1 3 4 5 8))))
   
 
