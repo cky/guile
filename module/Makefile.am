@@ -256,6 +256,7 @@ SRFI_SOURCES = \
   srfi/srfi-98.scm
 
 RNRS_SOURCES =					\
+  6/rnrs.scm					\
   rnrs/6/base.scm				\
   rnrs/6/conditions.scm				\
   rnrs/6/control.scm				\
