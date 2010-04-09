@@ -823,7 +823,7 @@ Push @code{#t} onto the stack.
 @end deffn
 
 @deffn Instruction make-nil
-Push @code{%nil} onto the stack.
+Push @code{#nil} onto the stack.
 @end deffn
 
 @deffn Instruction make-eol

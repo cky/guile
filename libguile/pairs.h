@@ -36,12 +36,13 @@
 
 /*
  * Use scm_is_null_and_not_nil if it's important (for correctness)
- * that %nil must NOT be considered null.
+ * that #nil must NOT be considered null.
  */
 #define scm_is_null_and_not_nil(x)     (scm_is_eq ((x), SCM_EOL))
 
 /*
- * Use scm_is_null_assume_not_nil if %nil will never be tested,
+ * Use scm_is_null_assume_not_nil if 
+#nil will never be tested,
  * for increased efficiency.
  */
 #define scm_is_null_assume_not_nil(x)  (scm_is_eq ((x), SCM_EOL))
@@ -60,7 +61,7 @@
 #define SCM_NULL_OR_NIL_P(x) (scm_is_null_or_nil (x))
 
 
-/* %nil is null. */
+/* #nil is null. */
 #define scm_is_null(x)		(scm_is_null_or_nil(x))
 
 #define SCM_CAR(x)		(SCM_VALIDATE_PAIR (x, SCM_CELL_OBJECT_0 (x)))

@@ -35,13 +35,13 @@
 
 /*
  * Use these macros if it's important (for correctness)
- * that %nil MUST be considered true
+ * that #nil MUST be considered true
  */
 #define scm_is_false_and_not_nil(x)     (scm_is_eq ((x), SCM_BOOL_F))
 #define scm_is_true_or_nil(x)          (!scm_is_eq ((x), SCM_BOOL_F))
 
 /*
- * Use these macros if %nil will never be tested,
+ * Use these macros if #nil will never be tested,
  * for increased efficiency.
  */
 #define scm_is_false_assume_not_nil(x)  (scm_is_eq ((x), SCM_BOOL_F))
@@ -56,7 +56,8 @@
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_BOOL_F))
 #define scm_is_true_and_not_nil(x) (!scm_is_false_or_nil (x))
 
-/* %nil is false. */
+/* 
+#nil is false. */
 #define scm_is_false(x)  (scm_is_false_or_nil (x))
 #define scm_is_true(x)   (!scm_is_false (x))
 
