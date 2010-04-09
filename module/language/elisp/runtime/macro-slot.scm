@@ -1,6 +1,6 @@
 ;;; Guile Emacs Lisp
 
-;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -84,27 +84,32 @@
 ; The and and or forms can also be easily defined with macros.
 
 (built-in-macro and
-  (lambda (. args)
-    (if (null? args)
-      't
-      (let iterate ((tail args))
-        (if (null? (cdr tail))
-          (car tail)
-          `(if ,(car tail)
-             ,(iterate (cdr tail))
-             nil))))))
+  (case-lambda
+    (() 't)
+    ((x) x)
+    ((x . args)
+     (let iterate ((x x) (tail args))
+       (if (null? tail)
+           x
+           `(if ,x
+                ,(iterate (car tail) (cdr tail))
+                nil))))))
 
 (built-in-macro or
-  (lambda (. args)
-    (let iterate ((tail args))
-      (if (null? tail)
-        'nil
-        (let ((var (gensym)))
-          `(without-void-checks (,var)
-             (lexical-let ((,var ,(car tail)))
-               (if ,var
-                 ,var
-                 ,(iterate (cdr tail))))))))))
+  (case-lambda
+    (() 'nil)
+    ((x) x)
+    ((x . args)
+     (let iterate ((x x) (tail args))
+       (if (null? tail)
+           x
+           (let ((var (gensym)))
+             `(without-void-checks
+               (,var)
+               (lexical-let ((,var ,x))
+                            (if ,var
+                                ,var
+                                ,(iterate (car tail) (cdr tail)))))))))))
 
 
 ; Define the dotimes and dolist iteration macros.
