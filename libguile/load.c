@@ -38,7 +38,6 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/modules.h"
-#include "libguile/lang.h"
 #include "libguile/chars.h"
 #include "libguile/srfi-13.h"
 

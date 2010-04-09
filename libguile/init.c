@@ -74,7 +74,6 @@
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
-#include "libguile/lang.h"
 #include "libguile/list.h"
 #include "libguile/load.h"
 #include "libguile/macros.h"
@@ -557,7 +556,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_simpos ();
   scm_init_dynamic_linking (); /* Requires smob_prehistory */
   scm_bootstrap_i18n ();
-  scm_init_lang ();
   scm_init_script ();
 
   scm_init_goops ();

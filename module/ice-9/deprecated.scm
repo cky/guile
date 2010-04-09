@@ -258,3 +258,5 @@
   (issue-deprecation-warning
    "`closure?' is deprecated. Use `procedure?' instead.")
   (procedure? x))
+
+(define %nil #nil)

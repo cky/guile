@@ -26,7 +26,6 @@
 
 #include "libguile/validate.h"
 #include "libguile/boolean.h"
-#include "libguile/lang.h"
 #include "libguile/tags.h"
 
 #include "verify.h"

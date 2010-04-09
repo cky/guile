@@ -33,7 +33,6 @@
 #include "instructions.h"
 #include "objcodes.h"
 #include "programs.h"
-#include "lang.h" /* NULL_OR_NIL_P */
 #include "vm.h"
 
 /* I sometimes use this for debugging. */

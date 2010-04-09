@@ -31,7 +31,6 @@
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/deprecation.h"
-#include "libguile/lang.h"
 #include "libguile/validate.h"
 #include "libguile/bdw-gc.h"
 

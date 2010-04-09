@@ -36,7 +36,6 @@
 #include "libguile/stacks.h"
 #include "libguile/fluids.h"
 #include "libguile/ports.h"
-#include "libguile/lang.h"
 #include "libguile/validate.h"
 #include "libguile/vm.h"
 #include "libguile/throw.h"

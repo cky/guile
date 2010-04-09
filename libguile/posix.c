@@ -37,7 +37,6 @@
 #include "libguile/srfi-14.h"
 #include "libguile/vectors.h"
 #include "libguile/values.h"
-#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"

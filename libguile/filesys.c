@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -43,7 +43,6 @@
 #include "libguile/iselect.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
-#include "libguile/lang.h"
 #include "libguile/dynwind.h"
 
 #include "libguile/validate.h"

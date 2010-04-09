@@ -44,7 +44,6 @@
 #include "libguile/strings.h"
 #include "libguile/strports.h"
 #include "libguile/vectors.h"
-#include "libguile/lang.h"
 #include "libguile/numbers.h"
 #include "libguile/vm.h"
 

@@ -151,7 +151,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	instructions.c				\
 	ioext.c					\
 	keywords.c				\
-	lang.c					\
 	list.c					\
 	load.c					\
 	macros.c				\
@@ -250,7 +249,6 @@ DOT_X_FILES =					\
 	init.x					\
 	ioext.x					\
 	keywords.x				\
-	lang.x					\
 	list.x					\
 	load.x					\
 	macros.x				\
@@ -350,7 +348,6 @@ DOT_DOC_FILES = 				\
 	init.doc				\
 	ioext.doc				\
 	keywords.doc				\
-	lang.doc				\
 	list.doc				\
 	load.doc				\
 	macros.doc				\
@@ -516,7 +513,6 @@ modinclude_HEADERS =				\
 	ioext.h					\
 	iselect.h				\
 	keywords.h				\
-	lang.h					\
 	list.h					\
 	load.h					\
 	macros.h				\

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009 Free Software Foundation
+/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,7 +24,6 @@
 #include "libguile/_scm.h"
 #include "libguile/mallocs.h"
 #include "libguile/strings.h"
-#include "libguile/lang.h"
 
 #include "libguile/options.h"
 

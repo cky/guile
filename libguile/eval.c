@@ -42,7 +42,6 @@
 #include "libguile/goops.h"
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
-#include "libguile/lang.h"
 #include "libguile/list.h"
 #include "libguile/macros.h"
 #include "libguile/memoize.h"
