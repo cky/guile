@@ -60,6 +60,7 @@
 SCM_GLOBAL_SYMBOL (scm_sym_dot, ".");
 SCM_SYMBOL (scm_keyword_prefix, "prefix");
 SCM_SYMBOL (scm_keyword_postfix, "postfix");
+SCM_SYMBOL (sym_nil, "nil");
 
 scm_t_option scm_read_opts[] = {
   { SCM_OPTION_BOOLEAN, "copy", 0,
@@ -847,6 +848,19 @@ scm_read_syntax (int chr, SCM port)
 }
 
 static inline SCM
+scm_read_nil (int chr, SCM port)
+{
+  SCM id = scm_read_mixed_case_symbol (chr, port);
+
+  if (!scm_is_eq (id, sym_nil))
+    scm_i_input_error ("scm_read_nil", port,
+                       "unexpected input while reading #nil: ~a",
+                       scm_list_1 (id));
+
+  return SCM_ELISP_NIL;
+}
+  
+static inline SCM
 scm_read_semicolon_comment (int chr, SCM port)
 {
   int c;
@@ -1316,6 +1330,8 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     case '\'':
     case ',':
       return (scm_read_syntax (chr, port));
+    case 'n':
+      return (scm_read_nil (chr, port));
     default:
       result = scm_read_sharp_extension (chr, port);
       if (scm_is_eq (result, SCM_UNSPECIFIED))

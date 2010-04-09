@@ -71,7 +71,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
       return SCM_BOOL_T;
     case scm_tc3_imm24:
 	/* characters, booleans, other immediates */
-      return scm_from_bool (!scm_is_null (obj));
+      return scm_from_bool (!scm_is_null_and_not_nil (obj));
     case scm_tc3_cons:
       switch (SCM_TYP7 (obj))
 	{
