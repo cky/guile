@@ -1,4 +1,4 @@
-;;;; test assembly to bytecode compilation -*- scheme -*-
+;;;; Assembly to bytecode compilation -*- mode: scheme; coding: utf-8; -*-
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,9 +16,13 @@
 
 (define-module (test-suite tests asm-to-bytecode)
   #:use-module (rnrs bytevector)
+  #:use-module ((rnrs io ports) #:select (open-bytevector-output-port))
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)
   #:use-module (language assembly compile-bytecode))
+
+(define write-bytecode
+  (@@ (language assembly compile-bytecode) write-bytecode))
 
 (define (->u8-list sym val)
   (let ((entry (assq-ref `((uint16 2 ,bytevector-u16-native-set!)
@@ -32,7 +36,7 @@
 (define (munge-bytecode v)
   (let lp ((i 0) (out '()))
     (if (= i (vector-length v))
-        (list->u8vector (reverse out))
+        (u8-list->bytevector (reverse out))
         (let ((x (vector-ref v i)))
           (cond
            ((symbol? x)
@@ -44,16 +48,17 @@
            (else (error "bad test bytecode" x)))))))
 
 (define (comp-test x y)
-  (let* ((y (munge-bytecode y))
-         (len (u8vector-length y))
-         (v (make-u8vector len))
-         (i 0))
-    (define (write-byte b) (u8vector-set! v i b) (set! i (1+ i)))
-    (define (get-addr) i)
+  (let* ((y   (munge-bytecode y))
+         (len (bytevector-length y))
+         (v   #f))
+
     (run-test `(length ,x) #t
               (lambda ()
-                (write-bytecode x write-byte get-addr '())
-                (= i len)))
+                (call-with-values open-bytevector-output-port
+                  (lambda (port get-bytevector)
+                    (write-bytecode x port '() 0 #t)
+                    (set! v (get-bytevector))
+                    (= (bytevector-length v) len)))))
     (run-test `(compile-equal? ,x ,y) #t
               (lambda ()
                 (equal? v y)))))
@@ -76,7 +81,16 @@
     (comp-test '(load-symbol "foo")
                (vector 'load-symbol 0 0 3 (char->integer #\f) (char->integer #\o)
                        (char->integer #\o)))
-    
+
+    (comp-test '(load-string "æ") ;; a non-ASCII Latin-1 string
+               (vector 'load-string 0 0 1 230))
+
+    (comp-test '(load-wide-string "λ")
+               (apply vector 'load-wide-string 0 0 4
+                      (if (eq? (native-endianness) (endianness little))
+                          '(187 3 0 0)
+                          '(0 0 3 187))))
+
     (comp-test '(load-program () 3 #f (make-int8 3) (return))
                #(load-program
                  (uint32 3)     ;; len

@@ -38,8 +38,10 @@ SCM_API SCM scm_char_locale_ci_gt (SCM c1, SCM c2, SCM locale);
 SCM_API SCM scm_char_locale_ci_eq (SCM c1, SCM c2, SCM locale);
 SCM_API SCM scm_char_locale_upcase (SCM chr, SCM locale);
 SCM_API SCM scm_char_locale_downcase (SCM chr, SCM locale);
+SCM_API SCM scm_char_locale_titlecase (SCM chr, SCM locale);
 SCM_API SCM scm_string_locale_upcase (SCM chr, SCM locale);
 SCM_API SCM scm_string_locale_downcase (SCM chr, SCM locale);
+SCM_API SCM scm_string_locale_titlecase (SCM chr, SCM locale);
 SCM_API SCM scm_locale_string_to_integer (SCM str, SCM base, SCM locale);
 SCM_API SCM scm_locale_string_to_inexact (SCM str, SCM locale);
 

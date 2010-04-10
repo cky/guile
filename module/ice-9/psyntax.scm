@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -45,7 +45,7 @@
 ;;; Scheme, please read the notes below carefully.
 
 
-;;; This file defines the syntax-case expander, sc-expand, and a set
+;;; This file defines the syntax-case expander, macroexpand, and a set
 ;;; of associated syntactic forms and procedures.  Of these, the
 ;;; following are documented in The Scheme Programming Language,
 ;;; Second Edition (R. Kent Dybvig, Prentice Hall, 1996).  Most are
@@ -73,8 +73,8 @@
 
 ;;; The remaining exports are listed below:
 ;;;
-;;;   (sc-expand datum)
-;;;      if datum represents a valid expression, sc-expand returns an
+;;;   (macroexpand datum)
+;;;      if datum represents a valid expression, macroexpand returns an
 ;;;      expanded version of datum in a core language that includes no
 ;;;      syntactic abstractions.  The core language includes begin,
 ;;;      define, if, lambda, letrec, quote, and set!.
@@ -101,9 +101,9 @@
 ;;; eval will not be invoked during the loading of psyntax.pp.  After
 ;;; psyntax.pp has been loaded, the expansion of any macro definition,
 ;;; whether local or global, will result in a call to eval.  If, however,
-;;; sc-expand has already been registered as the expander to be used
+;;; macroexpand has already been registered as the expander to be used
 ;;; by eval, and eval accepts one argument, nothing special must be done
-;;; to support the "noexpand" flag, since it is handled by sc-expand.
+;;; to support the "noexpand" flag, since it is handled by macroexpand.
 ;;;
 ;;; (gensym)
 ;;; returns a unique symbol each time it's called
@@ -111,7 +111,7 @@
 ;;; When porting to a new Scheme implementation, you should define the
 ;;; procedures listed above, load the expanded version of psyntax.ss
 ;;; (psyntax.pp, which should be available whereever you found
-;;; psyntax.ss), and register sc-expand as the current expander (how
+;;; psyntax.ss), and register macroexpand as the current expander (how
 ;;; you do this depends upon your implementation of Scheme).  You may
 ;;; change the hooks and constructors defined toward the beginning of
 ;;; the code below, but to avoid bootstrapping problems, do so only
@@ -308,18 +308,10 @@
 
     (define put-global-definition-hook
       (lambda (symbol type val)
-        (let ((existing (let ((v (module-variable (current-module) symbol)))
-                          (and v (variable-bound? v)
-                               (let ((val (variable-ref v)))
-                                 (and (macro? val)
-                                      (not (syncase-macro-type val))
-                                      val))))))
-          (module-define! (current-module)
-                          symbol
-                          (if existing
-                              (make-extended-syncase-macro existing type val)
-                              (make-syncase-macro type val))))))
-
+        (module-define! (current-module)
+                        symbol
+                        (make-syntax-transformer symbol type val))))
+    
     (define get-global-definition-hook
       (lambda (symbol module)
         (if (and (not module) (current-module))
@@ -330,9 +322,9 @@
                                   symbol)))
           (and v (variable-bound? v)
                (let ((val (variable-ref v)))
-                 (and (macro? val) (syncase-macro-type val)
-                      (cons (syncase-macro-type val)
-                            (syncase-macro-binding val))))))))
+                 (and (macro? val) (macro-type val)
+                      (cons (macro-type val)
+                            (macro-binding val))))))))
 
     )
 
@@ -365,6 +357,13 @@
                    `(if ,test-exp ,then-exp)
                    `(if ,test-exp ,then-exp ,else-exp))
                source)))))
+
+  (define build-dynlet
+    (lambda (source fluids vals body)
+      (case (fluid-ref *mode*)
+        ((c) ((@ (language tree-il) make-dynlet) source fluids vals body))
+        (else (decorate-source `(with-fluids ,(map list fluids vals) ,body)
+                               source)))))
 
   (define build-lexical-reference
     (lambda (type source name var)
@@ -454,29 +453,27 @@
   ;; This will come with the new interpreter, but for now we separate
   ;; the cases.
   (define build-simple-lambda
-    (lambda (src req rest vars docstring exp)
+    (lambda (src req rest vars meta exp)
       (case (fluid-ref *mode*)
         ((c) ((@ (language tree-il) make-lambda) src
-              (if docstring `((documentation . ,docstring)) '())
+              meta
               ;; hah, a case in which kwargs would be nice.
               ((@ (language tree-il) make-lambda-case)
                ;; src req opt rest kw inits vars body else
                src req #f rest #f '() vars exp #f)))
         (else (decorate-source
                `(lambda ,(if rest (apply cons* vars) vars)
-                  ,@(if docstring (list docstring) '())
                   ,exp)
                src)))))
   (define build-case-lambda
-    (lambda (src docstring body)
+    (lambda (src meta body)
       (case (fluid-ref *mode*)
         ((c) ((@ (language tree-il) make-lambda) src
-              (if docstring `((documentation . ,docstring)) '())
+              meta
               body))
         (else (decorate-source
                ;; really gross hack
                `(lambda %%args 
-                  ,@(if docstring (list docstring) '())
                   (cond ,@body))
                src)))))
 
@@ -518,14 +515,11 @@
                 '(,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
                 (list ,@(map (lambda (i) `(lambda ,vars ,i)) inits))
                 %%args)
-               ;; FIXME: This _ is here to work around a bug in the
-               ;; memoizer. The %%% makes it different from %%, also a
-               ;; memoizer workaround. See the "interesting bug" mail from
-               ;; 23 oct 2009. As soon as we change the evaluator, this
-               ;; can be removed.
-               => (lambda (%%%args . _) (apply (lambda ,vars ,body) %%%args)))
+               => (lambda (%%args) (apply (lambda ,vars ,body) %%args)))
               ,@(or else-case
-                    `((%%args (error "wrong number of arguments" %%args)))))
+                    `((%%args (scm-error 'wrong-number-of-args #f
+                                         "Wrong number of arguments" '()
+                                         %%args)))))
             src))))))
 
   (define build-primref
@@ -575,7 +569,7 @@
             (ids (cdr ids)))
         (case (fluid-ref *mode*)
           ((c)
-           (let ((proc (build-simple-lambda src ids #f vars #f body-exp)))
+           (let ((proc (build-simple-lambda src ids #f vars '() body-exp)))
              (maybe-name-value! f-name proc)
              (for-each maybe-name-value! ids val-exps)
              ((@ (language tree-il) make-letrec) src
@@ -787,9 +781,10 @@
     (syntax-rules ()
       ((_ old new marks) (vector old new marks))))
 
-;;; labels must be comparable with "eq?" and distinct from symbols.
+;;; labels must be comparable with "eq?", have read-write invariance,
+;;; and distinct from symbols.
   (define gen-label
-    (lambda () (string #\i)))
+    (lambda () (symbol->string (gensym "i"))))
 
   (define gen-labels
     (lambda (ls)
@@ -820,7 +815,7 @@
 
   (define-syntax new-mark
     (syntax-rules ()
-      ((_) (string #\m))))
+      ((_) (gensym "m"))))
 
 ;;; make-empty-ribcage and extend-ribcage maintain list-based ribcages for
 ;;; internal definitions, in which the ribcages are built incrementally
@@ -1026,61 +1021,56 @@
 
   (define chi-top-sequence
     (lambda (body r w s m esew mod)
+      ;; Expanding a sequence of toplevel expressions can affect the
+      ;; expansion-time environment in several ways -- by adding or changing
+      ;; top-level syntactic bindings, by defining new modules, and by changing
+      ;; the current module -- among other ways.
+      ;;
+      ;; Of all of these, changes to the current module need to be treated
+      ;; specially, as modules have specific support in the expander, for
+      ;; purposes of maintaining hygiene. (In contrast, changes to parts of the
+      ;; global state that are not specifically treated by the expander are
+      ;; visible by default, without special support.)
+      ;;
+      ;; So, the deal. In the expression, (begin (define-module (foo)) (bar)),
+      ;; we need to expand (bar) within the (foo) module. More generally, in a
+      ;; top-level sequence, if the module after expanding a form is not the
+      ;; same as the module before expanding the form, we expand subsequent
+      ;; forms in the new module.
       (build-sequence s
-                      (let dobody ((body body) (r r) (w w) (m m) (esew esew) (mod mod))
+                      (let dobody ((body body) (r r) (w w) (m m) (esew esew) (mod mod)
+                                   (module (current-module)) (out '()))
                         (if (null? body)
-                            '()
-                            (let ((first (chi-top (car body) r w m esew mod)))
-                              (cons first (dobody (cdr body) r w m esew mod))))))))
+                            (reverse out)
+                            (let* ((first (chi-top (car body) r w m esew mod))
+                                   (new-module (current-module)))
+                              (dobody (cdr body) r w m esew
+                                      (if (eq? module new-module)
+                                          mod
+                                          (cons 'hygiene (module-name new-module)))
+                                      new-module (cons first out))))))))
 
   (define chi-install-global
     (lambda (name e)
       (build-global-definition
        no-source
        name
-       ;; FIXME: seems nasty to call current-module here
-       (if (let ((v (module-variable (current-module) name)))
-             ;; FIXME use primitive-macro?
-             (and v (variable-bound? v) (macro? (variable-ref v))
-                  (not (eq? (macro-type (variable-ref v)) 'syncase-macro))))
-           (build-application
-            no-source
-            (build-primref no-source 'make-extended-syncase-macro)
-            (list (build-application
-                   no-source
-                   (build-primref no-source 'module-ref)
-                   (list (build-application 
-                          no-source
-                          (build-primref no-source 'current-module)
-                          '())
-                         (build-data no-source name)))
-                  (build-data no-source 'macro)
-                  (build-application
-                   no-source
-                   (build-primref no-source 'cons)
-                   (list e
-                         (build-application
-                          no-source
-                          (build-primref no-source 'module-name)
-                          (list (build-application
-                                 no-source
-                                 (build-primref no-source 'current-module)
-                                 '())))))))
-           (build-application
-            no-source
-            (build-primref no-source 'make-syncase-macro)
-            (list (build-data no-source 'macro)
-                  (build-application
-                   no-source
-                   (build-primref no-source 'cons)
-                   (list e
-                         (build-application
-                          no-source
-                          (build-primref no-source 'module-name)
-                          (list (build-application
-                                 no-source
-                                 (build-primref no-source 'current-module)
-                                 '())))))))))))
+       (build-application
+        no-source
+        (build-primref no-source 'make-syntax-transformer)
+        (list (build-data no-source name)
+              (build-data no-source 'macro)
+              (build-application
+               no-source
+               (build-primref no-source 'cons)
+               (list e
+                     (build-application
+                      no-source
+                      (build-primref no-source 'module-name)
+                      (list (build-application
+                             no-source
+                             (build-primref no-source 'current-module)
+                             '()))))))))))
   
   (define chi-when-list
     (lambda (e when-list w)
@@ -1607,14 +1597,14 @@
       (req orig-args '())))
 
   (define chi-simple-lambda
-    (lambda (e r w s mod req rest docstring body)
+    (lambda (e r w s mod req rest meta body)
       (let* ((ids (if rest (append req (list rest)) req))
              (vars (map gen-var ids))
              (labels (gen-labels ids)))
         (build-simple-lambda
          s
          (map syntax->datum req) (and rest (syntax->datum rest)) vars
-         docstring
+         meta
          (chi-body body (source-wrap e w s mod)
                    (extend-var-env labels vars r)
                    (make-binding-wrap ids labels w)
@@ -1758,33 +1748,37 @@
          (else
           (expand-body req opt rest
                        (if (or aok (pair? out)) (cons aok (reverse out)) #f)
-                       body (reverse vars) r* w* (reverse inits)))))
-      (define (expand-body req opt rest kw body vars r* w* inits)
+                       body (reverse vars) r* w* (reverse inits) '()))))
+      (define (expand-body req opt rest kw body vars r* w* inits meta)
         (syntax-case body ()
           ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
-           (values (syntax->datum #'docstring) req opt rest kw inits vars
-                   (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
-                             r* w* mod)))
+           (expand-body req opt rest kw #'(e1 e2 ...) vars r* w* inits
+                        (append meta 
+                                `((documentation
+                                   . ,(syntax->datum #'docstring))))))
+          ((#((k . v) ...) e1 e2 ...) 
+           (expand-body req opt rest kw #'(e1 e2 ...) vars r* w* inits
+                        (append meta (syntax->datum #'((k . v) ...)))))
           ((e1 e2 ...)
-           (values #f req opt rest kw inits vars
+           (values meta req opt rest kw inits vars
                    (chi-body #'(e1 e2 ...) (source-wrap e w s mod)
                              r* w* mod)))))
 
       (syntax-case clauses ()
-        (() (values #f #f))
+        (() (values '() #f))
         (((args e1 e2 ...) (args* e1* e2* ...) ...)
          (call-with-values (lambda () (get-formals #'args))
            (lambda (req opt rest kw)
              (call-with-values (lambda ()
                                  (expand-req req opt rest kw #'(e1 e2 ...)))
-               (lambda (docstring req opt rest kw inits vars body)
+               (lambda (meta req opt rest kw inits vars body)
                  (call-with-values
                      (lambda ()
                        (chi-lambda-case e r w s mod get-formals
                                         #'((args* e1* e2* ...) ...)))
-                   (lambda (docstring* else*)
+                   (lambda (meta* else*)
                      (values
-                      (or docstring docstring*)
+                      (append meta meta*)
                       (build-lambda-case s req opt rest kw inits vars
                                          body else*))))))))))))
 
@@ -2028,7 +2022,7 @@
                          ((quote) (build-data no-source (cadr x)))
                          ((lambda)
                           (if (list? (cadr x))
-                              (build-simple-lambda no-source (cadr x) #f (cadr x) #f (regen (caddr x)))
+                              (build-simple-lambda no-source (cadr x) #f (cadr x) '() (regen (caddr x)))
                               (error "how did we get here" x)))
                          (else (build-application no-source
                                                   (build-primref no-source (car x))
@@ -2046,17 +2040,22 @@
   (global-extend 'core 'lambda
                  (lambda (e r w s mod)
                    (syntax-case e ()
-                     ((_ args docstring e1 e2 ...) (string? (syntax->datum #'docstring))
-                      (call-with-values (lambda () (lambda-formals #'args))
-                        (lambda (req opt rest kw)
-                          (chi-simple-lambda e r w s mod req rest (syntax->datum #'docstring)
-                                             #'(e1 e2 ...)))))
                      ((_ args e1 e2 ...)
                       (call-with-values (lambda () (lambda-formals #'args))
                         (lambda (req opt rest kw)
-                          (chi-simple-lambda e r w s mod req rest #f #'(e1 e2 ...)))))
+                          (let lp ((body #'(e1 e2 ...)) (meta '()))
+                            (syntax-case body ()
+                              ((docstring e1 e2 ...) (string? (syntax->datum #'docstring))
+                               (lp #'(e1 e2 ...)
+                                   (append meta
+                                           `((documentation
+                                              . ,(syntax->datum #'docstring))))))
+                              ((#((k . v) ...) e1 e2 ...) 
+                               (lp #'(e1 e2 ...)
+                                   (append meta (syntax->datum #'((k . v) ...)))))
+                              (_ (chi-simple-lambda e r w s mod req rest meta body)))))))
                      (_ (syntax-violation 'lambda "bad lambda" e)))))
-
+  
   (global-extend 'core 'lambda*
                  (lambda (e r w s mod)
                    (syntax-case e ()
@@ -2065,8 +2064,8 @@
                           (lambda ()
                             (chi-lambda-case e r w s mod
                                              lambda*-formals #'((args e1 e2 ...))))
-                        (lambda (docstring lcase)
-                          (build-case-lambda s docstring lcase))))
+                        (lambda (meta lcase)
+                          (build-case-lambda s meta lcase))))
                      (_ (syntax-violation 'lambda "bad lambda*" e)))))
 
   (global-extend 'core 'case-lambda
@@ -2078,8 +2077,8 @@
                             (chi-lambda-case e r w s mod
                                              lambda-formals
                                              #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
-                        (lambda (docstring lcase)
-                          (build-case-lambda s docstring lcase))))
+                        (lambda (meta lcase)
+                          (build-case-lambda s meta lcase))))
                      (_ (syntax-violation 'case-lambda "bad case-lambda" e)))))
 
   (global-extend 'core 'case-lambda*
@@ -2091,8 +2090,8 @@
                             (chi-lambda-case e r w s mod
                                              lambda*-formals
                                              #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
-                        (lambda (docstring lcase)
-                          (build-case-lambda s docstring lcase))))
+                        (lambda (meta lcase)
+                          (build-case-lambda s meta lcase))))
                      (_ (syntax-violation 'case-lambda "bad case-lambda*" e)))))
 
   (global-extend 'core 'let
@@ -2221,6 +2220,17 @@
                        (chi #'then r w mod)
                        (chi #'else r w mod))))))
 
+  (global-extend 'core 'with-fluids
+                 (lambda (e r w s mod)
+                   (syntax-case e ()
+                     ((_ ((fluid val) ...) b b* ...)
+                      (build-dynlet
+                       s
+                       (map (lambda (x) (chi x r w mod)) #'(fluid ...))
+                       (map (lambda (x) (chi x r w mod)) #'(val ...))
+                       (chi-body #'(b b* ...)
+                                 (source-wrap e w s mod) r w mod))))))
+  
   (global-extend 'begin 'begin '())
 
   (global-extend 'define 'define '())
@@ -2291,7 +2301,7 @@
                          (let ((labels (gen-labels ids)) (new-vars (map gen-var ids)))
                            (build-application no-source
                                               (build-primref no-source 'apply)
-                                              (list (build-simple-lambda no-source (map syntax->datum ids) #f new-vars #f
+                                              (list (build-simple-lambda no-source (map syntax->datum ids) #f new-vars '()
                                                                          (chi exp
                                                                               (extend-env
                                                                                labels
@@ -2318,7 +2328,7 @@
                              (let ((y (gen-var 'tmp)))
                                         ; fat finger binding and references to temp variable y
                                (build-application no-source
-                                                  (build-simple-lambda no-source (list 'tmp) #f (list y) #f
+                                                  (build-simple-lambda no-source (list 'tmp) #f (list y) '()
                                                                        (let ((y (build-lexical-reference 'value no-source
                                                                                                          'tmp y)))
                                                                          (build-conditional no-source
@@ -2357,7 +2367,7 @@
                                     (build-application no-source
                                                        (build-simple-lambda
                                                         no-source (list (syntax->datum #'pat)) #f (list var)
-                                                        #f
+                                                        '()
                                                         (chi #'exp
                                                              (extend-env labels
                                                                          (list (make-binding 'syntax `(,var . 0)))
@@ -2383,7 +2393,7 @@
                               (let ((x (gen-var 'tmp)))
                                         ; fat finger binding and references to temp variable x
                                 (build-application s
-                                                   (build-simple-lambda no-source (list 'tmp) #f (list x) #f
+                                                   (build-simple-lambda no-source (list 'tmp) #f (list x) '()
                                                                         (gen-syntax-case (build-lexical-reference 'value no-source
                                                                                                                   'tmp x)
                                                                                          #'(key ...) #'(m ...)
@@ -2392,7 +2402,7 @@
                                                    (list (chi #'val r empty-wrap mod))))
                               (syntax-violation 'syntax-case "invalid literals list" e))))))))
 
-;;; The portable sc-expand seeds chi-top's mode m with 'e (for
+;;; The portable macroexpand seeds chi-top's mode m with 'e (for
 ;;; evaluating) and esew (which stands for "eval syntax expanders
 ;;; when") with '(eval).  In Chez Scheme, m is set to 'c instead of e
 ;;; if we are compiling a file, and esew is set to
@@ -2401,7 +2411,7 @@
 ;;; syntactic definitions are evaluated immediately after they are
 ;;; expanded, and the expanded definitions are also residualized into
 ;;; the object file if we are compiling a file.
-  (set! sc-expand
+  (set! macroexpand
         (lambda (x . rest)
           (if (and (pair? x) (equal? (car x) noexpand))
               (cadr x)
@@ -2409,10 +2419,9 @@
                     (esew (if (or (null? rest) (null? (cdr rest)))
                               '(eval)
                               (cadr rest))))
-                (with-fluid* *mode* m
-                             (lambda ()
-                               (chi-top x null-env top-wrap m esew
-                                        (cons 'hygiene (module-name (current-module))))))))))
+                (with-fluids ((*mode* m))
+                  (chi-top x null-env top-wrap m esew
+                           (cons 'hygiene (module-name (current-module)))))))))
 
   (set! identifier?
         (lambda (x)
@@ -2450,7 +2459,7 @@
           (arg-check (lambda (x) (or (not x) (string? x) (symbol? x)))
                      who 'syntax-violation)
           (arg-check string? message 'syntax-violation)
-          (scm-error 'syntax-error 'sc-expand
+          (scm-error 'syntax-error 'macroexpand
                      (string-append
                       (if who "~a: " "")
                       "~a "
@@ -2640,6 +2649,9 @@
     (syntax-case x ()
       ((_ (k ...) ((keyword . pattern) template) ...)
        #'(lambda (x)
+           ;; embed patterns as procedure metadata
+           #((macro-type . syntax-rules)
+             (patterns pattern ...))
            (syntax-case x (k ...)
              ((dummy . pattern) #'template)
              ...))))))
@@ -2747,11 +2759,14 @@
     (define read-file
       (lambda (fn k)
         (let ((p (open-input-file fn)))
-          (let f ((x (read p)))
+          (let f ((x (read p))
+                  (result '()))
             (if (eof-object? x)
-                (begin (close-input-port p) '())
-                (cons (datum->syntax k x)
-                      (f (read p))))))))
+                (begin
+                  (close-input-port p)
+                  (reverse result))
+                (f (read p)
+                   (cons (datum->syntax k x) result)))))))
     (syntax-case x ()
       ((k filename)
        (let ((fn (syntax->datum #'filename)))
@@ -2812,6 +2827,7 @@
     (syntax-case x ()
       ((_ e)
        #'(lambda (x)
+           #((macro-type . identifier-syntax))
            (syntax-case x ()
              (id
               (identifier? #'id)
@@ -2820,6 +2836,9 @@
               #'(e x (... ...)))))))))
 
 (define-syntax define*
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (define id (lambda* args b0 b1 ...)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (id . args) b0 b1 ...)
+       #'(define id (lambda* args b0 b1 ...)))
+      ((_ id val) (identifier? #'x)
+       #'(define id val)))))

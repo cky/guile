@@ -3,7 +3,7 @@
 #ifndef SCM_STRPORTS_H
 #define SCM_STRPORTS_H
 
-/* Copyright (C) 1995,1996,2000,2001,2002, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001,2002, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,8 +44,6 @@ SCM_API scm_t_bits scm_tc16_strport;
 
 
 SCM_API SCM scm_mkstrport (SCM pos, SCM str, long modes, const char * caller);
-SCM_INTERNAL SCM scm_i_mkstrport (SCM pos, const char *locale_str, size_t str_len, 
-				  long modes, const char *caller);
 SCM_API SCM scm_strport_to_string (SCM port);
 SCM_API SCM scm_object_to_string (SCM obj, SCM printer);
 SCM_API SCM scm_call_with_output_string (SCM proc);

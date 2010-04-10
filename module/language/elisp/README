@@ -31,7 +31,7 @@ Especially still missing:
   * anonymous macros
 
 Other ideas and things to think about:
-  * %nil vs. #f/'() handling in Guile
+  * #nil vs. #f/'() handling in Guile
 
 Compiler options implemented:
   * #:disable-void-check ['all / '(sym1 sym2 sym3)] to disable the check

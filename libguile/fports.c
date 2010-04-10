@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -688,29 +688,9 @@ fport_truncate (SCM port, scm_t_off length)
     scm_syserror ("ftruncate");
 }
 
-/* helper for fport_write: try to write data, using multiple system
-   calls if required.  */
-#define FUNC_NAME "write_all"
-static void write_all (SCM port, const void *data, size_t remaining)
-{
-  int fdes = SCM_FSTREAM (port)->fdes;
-
-  while (remaining > 0)
-    {
-      size_t done;
-
-      SCM_SYSCALL (done = write (fdes, data, remaining));
-
-      if (done == -1)
-	SCM_SYSERROR;
-      remaining -= done;
-      data = ((const char *) data) + done;
-    }
-}
-#undef FUNC_NAME
-
 static void
 fport_write (SCM port, const void *data, size_t size)
+#define FUNC_NAME "fport_write"
 {
   /* this procedure tries to minimize the number of writes/flushes.  */
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -718,9 +698,11 @@ fport_write (SCM port, const void *data, size_t size)
   if (pt->write_buf == &pt->shortbuf
       || (pt->write_pos == pt->write_buf && size >= pt->write_buf_size))
     {
-      /* "unbuffered" port, or
-	 port with empty buffer and data won't fit in buffer. */
-      write_all (port, data, size);
+      /* Unbuffered port, or port with empty buffer and data won't fit in
+	 buffer.  */
+      if (full_write (SCM_FPORT_FDES (port), data, size) < size)
+	SCM_SYSERROR;
+
       return;
     }
 
@@ -750,7 +732,9 @@ fport_write (SCM port, const void *data, size_t size)
 
 	  if (size >= pt->write_buf_size)
 	    {
-	      write_all (port, ptr, remaining);
+	      if (full_write (SCM_FPORT_FDES (port), ptr, remaining)
+		  < remaining)
+		SCM_SYSERROR;
 	      return;
 	    }
 	  else
@@ -766,6 +750,7 @@ fport_write (SCM port, const void *data, size_t size)
       fport_flush (port);
   }
 }
+#undef FUNC_NAME
 
 /* becomes 1 when process is exiting: normal exception handling won't
    work by this time.  */

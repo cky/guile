@@ -1,7 +1,7 @@
-;;;; procprop.test --- Procedure properties               -*- Scheme -*-
-;;;; Ludovic Courtès <ludo@gnu.org>
+;;;; procprop.test --- Procedure properties -*- mode: scheme; coding: utf-8; -*-
+;;;; Ludovic CourtÃ¨s <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -53,8 +53,3 @@
   (pass-if "list"
     (equal? (procedure-property list 'arity)
             '(0 0 #t))))
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:

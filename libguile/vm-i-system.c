@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -242,7 +242,7 @@ VM_DEFINE_INSTRUCTION (19, vector, "vector", 2, -1, 1)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
 #define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
 
-#define FREE_VARIABLE_REF(i)	free_vars[i]
+#define FREE_VARIABLE_REF(i)	SCM_PROGRAM_FREE_VARIABLE_REF (program, i)
 
 /* ref */
 
@@ -322,7 +322,7 @@ VM_DEFINE_INSTRUCTION (26, variable_ref, "variable-ref", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (27, variable_bound, "variable-bound?", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (27, variable_bound, "variable-bound?", 0, 1, 1)
 {
   if (VARIABLE_BOUNDP (*sp))
     *sp = SCM_BOOL_T;
@@ -484,12 +484,12 @@ VM_DEFINE_INSTRUCTION (35, br, "br", 3, 0, 0)
 
 VM_DEFINE_INSTRUCTION (36, br_if, "br-if", 3, 0, 0)
 {
-  BR (scm_is_true_and_not_nil (*sp));
+  BR (scm_is_true (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (37, br_if_not, "br-if-not", 3, 0, 0)
 {
-  BR (scm_is_false_or_nil (*sp));
+  BR (scm_is_false (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (38, br_if_eq, "br-if-eq", 3, 0, 0)
@@ -506,12 +506,12 @@ VM_DEFINE_INSTRUCTION (39, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 
 VM_DEFINE_INSTRUCTION (40, br_if_null, "br-if-null", 3, 0, 0)
 {
-  BR (scm_is_null_or_nil (*sp));
+  BR (scm_is_null (*sp));
 }
 
 VM_DEFINE_INSTRUCTION (41, br_if_not_null, "br-if-not-null", 3, 0, 0)
 {
-  BR (!scm_is_null_or_nil (*sp));
+  BR (!scm_is_null (*sp));
 }
 
 
@@ -744,83 +744,70 @@ VM_DEFINE_INSTRUCTION (53, new_frame, "new-frame", 0, 0, 3)
 
 VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
 {
-  SCM x;
   nargs = FETCH ();
 
  vm_call:
-  x = sp[-nargs];
+  program = sp[-nargs];
 
   VM_HANDLE_INTERRUPTS;
 
-  /*
-   * Subprogram call
-   */
-  if (SCM_PROGRAM_P (x))
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
     {
-      program = x;
-      CACHE_PROGRAM ();
-      fp = sp - nargs + 1;
-      ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-      ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-      SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-      SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
-      ip = SCM_C_OBJCODE_BASE (bp);
-      ENTER_HOOK ();
-      APPLY_HOOK ();
-      NEXT;
-    }
-  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
-    {
-      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_call;
-    }
-  /*
-   * Other interpreted or compiled call
-   */
-  if (!scm_is_false (scm_procedure_p (x)))
-    {
-      SCM ret;
-      /* At this point, the stack contains the frame, the procedure and each one
-	 of its arguments. */
-      SYNC_REGISTER ();
-      ret = apply_foreign (sp[-nargs],
-                           sp - nargs + 1,
-                           nargs,
-                           vp->stack_limit - sp + 1);
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROPN (nargs + 1); /* drop args and procedure */
-      DROP_FRAME ();
-      
-      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
         {
-          /* truncate values */
-          ret = scm_struct_ref (ret, SCM_INUM0);
-          if (scm_is_null (ret))
-            goto vm_error_not_enough_values;
-          PUSH (SCM_CAR (ret));
+          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
+          goto vm_call;
+        }
+      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
+               && SCM_SMOB_APPLICABLE_P (program))
+        {
+          SYNC_REGISTER ();
+          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          goto vm_call;
         }
       else
-        PUSH (ret);
-      NEXT;
+        goto vm_error_wrong_type_apply;
     }
 
-  program = x;
-  goto vm_error_wrong_type_apply;
+  CACHE_PROGRAM ();
+  fp = sp - nargs + 1;
+  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
+  ip = SCM_C_OBJCODE_BASE (bp);
+  ENTER_HOOK ();
+  APPLY_HOOK ();
+  NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
 {
-  register SCM x;
   nargs = FETCH ();
- vm_goto_args:
-  x = sp[-nargs];
+
+ vm_tail_call:
+  program = sp[-nargs];
 
   VM_HANDLE_INTERRUPTS;
 
-  /*
-   * Tail call
-   */
-  if (SCM_PROGRAM_P (x))
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
+    {
+      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
+        {
+          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
+          goto vm_tail_call;
+        }
+      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
+               && SCM_SMOB_APPLICABLE_P (program))
+        {
+          SYNC_REGISTER ();
+          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          goto vm_tail_call;
+        }
+      else
+        goto vm_error_wrong_type_apply;
+    }
+  else
     {
       int i;
 #ifdef VM_ENABLE_STACK_NULLING
@@ -831,7 +818,6 @@ VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
       EXIT_HOOK ();
 
       /* switch programs */
-      program = x;
       CACHE_PROGRAM ();
       /* shuffle down the program and the arguments */
       for (i = -1, sp = sp - nargs + 1; i < nargs; i++)
@@ -847,55 +833,205 @@ VM_DEFINE_INSTRUCTION (55, goto_args, "goto/args", 1, -1, 1)
       APPLY_HOOK ();
       NEXT;
     }
-  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
-    {
-      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_goto_args;
-    }
-  /*
-   * Other interpreted or compiled call
-   */
-  if (!scm_is_false (scm_procedure_p (x)))
-    {
-      SCM ret;
-      SYNC_REGISTER ();
-      ret = apply_foreign (sp[-nargs],
-                           sp - nargs + 1,
-                           nargs,
-                           vp->stack_limit - sp + 1);
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROPN (nargs + 1); /* drop args and procedure */
-      
-      if (SCM_UNLIKELY (SCM_VALUESP (ret)))
-        {
-          /* multiple values returned to continuation */
-          ret = scm_struct_ref (ret, SCM_INUM0);
-          nvalues = scm_ilength (ret);
-          PUSH_LIST (ret, scm_is_null);
-          goto vm_return_values;
-        }
-      else
-        {
-          PUSH (ret);
-          goto vm_return;
-        }
-    }
-
-  program = x;
-
-  goto vm_error_wrong_type_apply;
 }
 
-VM_DEFINE_INSTRUCTION (56, goto_nargs, "goto/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (56, subr_call, "subr-call", 1, -1, -1)
+{
+  SCM foreign, ret;
+  SCM (*subr)();
+  nargs = FETCH ();
+  POP (foreign);
+
+  subr = SCM_FOREIGN_POINTER (foreign, void);
+
+  VM_HANDLE_INTERRUPTS;
+  SYNC_REGISTER ();
+
+  switch (nargs)
+    {
+    case 0:
+      ret = subr ();
+      break;
+    case 1:
+      ret = subr (sp[0]);
+      break;
+    case 2:
+      ret = subr (sp[-1], sp[0]);
+      break;
+    case 3:
+      ret = subr (sp[-2], sp[-1], sp[0]);
+      break;
+    case 4:
+      ret = subr (sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 5:
+      ret = subr (sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 6:
+      ret = subr (sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 7:
+      ret = subr (sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 8:
+      ret = subr (sp[-7], sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 9:
+      ret = subr (sp[-8], sp[-7], sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    case 10:
+      ret = subr (sp[-9], sp[-8], sp[-7], sp[-6], sp[-5], sp[-4], sp[-3], sp[-2], sp[-1], sp[0]);
+      break;
+    default:
+      abort ();
+    }
+  
+  NULLSTACK_FOR_NONLOCAL_EXIT ();
+      
+  if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+    {
+      /* multiple values returned to continuation */
+      ret = scm_struct_ref (ret, SCM_INUM0);
+      nvalues = scm_ilength (ret);
+      PUSH_LIST (ret, scm_is_null);
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (ret);
+      goto vm_return;
+    }
+}
+
+VM_DEFINE_INSTRUCTION (57, smob_call, "smob-call", 1, -1, -1)
+{
+  SCM smob, ret;
+  SCM (*subr)();
+  nargs = FETCH ();
+  POP (smob);
+
+  subr = SCM_SMOB_DESCRIPTOR (smob).apply;
+
+  VM_HANDLE_INTERRUPTS;
+  SYNC_REGISTER ();
+
+  switch (nargs)
+    {
+    case 0:
+      ret = subr (smob);
+      break;
+    case 1:
+      ret = subr (smob, sp[0]);
+      break;
+    case 2:
+      ret = subr (smob, sp[-1], sp[0]);
+      break;
+    case 3:
+      ret = subr (smob, sp[-2], sp[-1], sp[0]);
+      break;
+    default:
+      abort ();
+    }
+  
+  NULLSTACK_FOR_NONLOCAL_EXIT ();
+      
+  if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+    {
+      /* multiple values returned to continuation */
+      ret = scm_struct_ref (ret, SCM_INUM0);
+      nvalues = scm_ilength (ret);
+      PUSH_LIST (ret, scm_is_null);
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (ret);
+      goto vm_return;
+    }
+}
+
+VM_DEFINE_INSTRUCTION (58, foreign_call, "foreign-call", 1, -1, -1)
+{
+  SCM foreign, ret;
+  nargs = FETCH ();
+  POP (foreign);
+
+  VM_HANDLE_INTERRUPTS;
+  SYNC_REGISTER ();
+
+  ret = scm_i_foreign_call (foreign, sp - nargs + 1);
+
+  NULLSTACK_FOR_NONLOCAL_EXIT ();
+      
+  if (SCM_UNLIKELY (SCM_VALUESP (ret)))
+    {
+      /* multiple values returned to continuation */
+      ret = scm_struct_ref (ret, SCM_INUM0);
+      nvalues = scm_ilength (ret);
+      PUSH_LIST (ret, scm_is_null);
+      goto vm_return_values;
+    }
+  else
+    {
+      PUSH (ret);
+      goto vm_return;
+    }
+}
+
+VM_DEFINE_INSTRUCTION (89, continuation_call, "continuation-call", 0, -1, 0)
+{
+  SCM contregs;
+  POP (contregs);
+
+  SYNC_ALL ();
+  scm_i_check_continuation (contregs);
+  vm_return_to_continuation (scm_i_contregs_vm (contregs),
+                             scm_i_contregs_vm_cont (contregs),
+                             sp - (fp - 1), fp);
+  scm_i_reinstate_continuation (contregs);
+
+  /* no NEXT */
+  abort ();
+}
+
+VM_DEFINE_INSTRUCTION (94, partial_cont_call, "partial-cont-call", 0, -1, 0)
+{
+  SCM vmcont, intwinds, prevwinds;
+  POP (intwinds);
+  POP (vmcont);
+  SYNC_REGISTER ();
+  if (SCM_UNLIKELY (!SCM_VM_CONT_REWINDABLE_P (vmcont)))
+    { finish_args = vmcont;
+      goto vm_error_continuation_not_rewindable;
+    }
+  prevwinds = scm_i_dynwinds ();
+  vm_reinstate_partial_continuation (vm, vmcont, intwinds, sp + 1 - fp, fp,
+                                     vm_cookie);
+
+  /* Rewind prompt jmpbuffers, if any. */
+  {
+    SCM winds = scm_i_dynwinds ();
+    for (; !scm_is_eq (winds, prevwinds); winds = scm_cdr (winds))
+      if (SCM_PROMPT_P (scm_car (winds)) && SCM_PROMPT_SETJMP (scm_car (winds)))
+        break;
+  }
+    
+  CACHE_REGISTER ();
+  program = SCM_FRAME_PROGRAM (fp);
+  CACHE_PROGRAM ();
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (59, tail_call_nargs, "tail-call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
   nargs = scm_to_int (x);
   /* FIXME: should truncate values? */
-  goto vm_goto_args;
+  goto vm_tail_call;
 }
 
-VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (60, call_nargs, "call/nargs", 0, 0, 1)
 {
   SCM x;
   POP (x);
@@ -904,9 +1040,8 @@ VM_DEFINE_INSTRUCTION (57, call_nargs, "call/nargs", 0, 0, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
+VM_DEFINE_INSTRUCTION (61, mv_call, "mv-call", 4, -1, 1)
 {
-  SCM x;
   scm_t_int32 offset;
   scm_t_uint8 *mvra;
   
@@ -915,66 +1050,41 @@ VM_DEFINE_INSTRUCTION (58, mv_call, "mv-call", 4, -1, 1)
   mvra = ip + offset;
 
  vm_mv_call:
-  x = sp[-nargs];
+  program = sp[-nargs];
 
-  /*
-   * Subprogram call
-   */
-  if (SCM_PROGRAM_P (x))
+  VM_HANDLE_INTERRUPTS;
+
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
     {
-      program = x;
-      CACHE_PROGRAM ();
-      fp = sp - nargs + 1;
-      ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-      ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-      SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-      SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
-      ip = SCM_C_OBJCODE_BASE (bp);
-      ENTER_HOOK ();
-      APPLY_HOOK ();
-      NEXT;
-    }
-  if (SCM_STRUCTP (x) && SCM_STRUCT_APPLICABLE_P (x))
-    {
-      sp[-nargs] = SCM_STRUCT_PROCEDURE (x);
-      goto vm_mv_call;
-    }
-  /*
-   * Other interpreted or compiled call
-   */
-  if (!scm_is_false (scm_procedure_p (x)))
-    {
-      SCM ret;
-      /* At this point, the stack contains the frame, the procedure and each one
-	 of its arguments. */
-      SYNC_REGISTER ();
-      ret = apply_foreign (sp[-nargs],
-                           sp - nargs + 1,
-                           nargs,
-                           vp->stack_limit - sp + 1);
-      NULLSTACK_FOR_NONLOCAL_EXIT ();
-      DROPN (nargs + 1); /* drop args and procedure */
-      DROP_FRAME ();
-      
-      if (SCM_VALUESP (ret))
+      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
         {
-          SCM len;
-          ret = scm_struct_ref (ret, SCM_INUM0);
-          len = scm_length (ret);
-          PUSH_LIST (ret, scm_is_null);
-          PUSH (len);
-          ip = mvra;
+          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
+          goto vm_mv_call;
+        }
+      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
+               && SCM_SMOB_APPLICABLE_P (program))
+        {
+          SYNC_REGISTER ();
+          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          goto vm_mv_call;
         }
       else
-        PUSH (ret);
-      NEXT;
+        goto vm_error_wrong_type_apply;
     }
 
-  program = x;
-  goto vm_error_wrong_type_apply;
+  CACHE_PROGRAM ();
+  fp = sp - nargs + 1;
+  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
+  ip = SCM_C_OBJCODE_BASE (bp);
+  ENTER_HOOK ();
+  APPLY_HOOK ();
+  NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (62, apply, "apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -993,7 +1103,7 @@ VM_DEFINE_INSTRUCTION (59, apply, "apply", 1, -1, 1)
   goto vm_call;
 }
 
-VM_DEFINE_INSTRUCTION (60, goto_apply, "goto/apply", 1, -1, 1)
+VM_DEFINE_INSTRUCTION (63, tail_apply, "tail-apply", 1, -1, 1)
 {
   int len;
   SCM ls;
@@ -1009,16 +1119,17 @@ VM_DEFINE_INSTRUCTION (60, goto_apply, "goto/apply", 1, -1, 1)
   PUSH_LIST (ls, SCM_NULL_OR_NIL_P);
 
   nargs += len - 2;
-  goto vm_goto_args;
+  goto vm_tail_call;
 }
 
-VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
 {
   int first;
-  SCM proc, cont;
+  SCM proc, vm_cont, cont;
   POP (proc);
   SYNC_ALL ();
-  cont = scm_make_continuation (&first);
+  vm_cont = scm_i_vm_capture_stack (vp->stack_base, fp, sp, ip, NULL, 0);
+  cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
       PUSH ((SCM)fp); /* dynamic link */
@@ -1029,63 +1140,56 @@ VM_DEFINE_INSTRUCTION (61, call_cc, "call/cc", 0, 1, 1)
       nargs = 1;
       goto vm_call;
     }
-  ASSERT (sp == vp->sp);
-  ASSERT (fp == vp->fp);
-  else if (SCM_VALUESP (cont))
+  else 
     {
-      /* multiple values returned to continuation */
-      SCM values;
-      values = scm_struct_ref (cont, SCM_INUM0);
-      if (scm_is_null (values))
-        goto vm_error_no_values;
-      /* non-tail context does not accept multiple values? */
-      PUSH (SCM_CAR (values));
-      NEXT;
-    }
-  else
-    {
-      PUSH (cont);
+      /* otherwise, the vm continuation was reinstated, and
+         scm_i_vm_return_to_continuation pushed on one value. So pull our regs
+         back down from the vp, and march on to the next instruction. */
+      CACHE_REGISTER ();
+      program = SCM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
       NEXT;
     }
 }
 
-VM_DEFINE_INSTRUCTION (62, goto_cc, "goto/cc", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
 {
   int first;
-  SCM proc, cont;
+  SCM proc, vm_cont, cont;
   POP (proc);
   SYNC_ALL ();
-  cont = scm_make_continuation (&first);
-  ASSERT (sp == vp->sp);
-  ASSERT (fp == vp->fp);
+  /* In contrast to call/cc, tail-call/cc captures the continuation without the
+     stack frame. */
+  vm_cont = scm_i_vm_capture_stack (vp->stack_base,
+                                    SCM_FRAME_DYNAMIC_LINK (fp),
+                                    SCM_FRAME_LOWER_ADDRESS (fp) - 1,
+                                    SCM_FRAME_RETURN_ADDRESS (fp),
+                                    SCM_FRAME_MV_RETURN_ADDRESS (fp),
+                                    0);
+  cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
       PUSH (proc);
       PUSH (cont);
       nargs = 1;
-      goto vm_goto_args;
-    }
-  else if (SCM_VALUESP (cont))
-    {
-      /* multiple values returned to continuation */
-      SCM values;
-      values = scm_struct_ref (cont, SCM_INUM0);
-      nvalues = scm_ilength (values);
-      PUSH_LIST (values, scm_is_null);
-      goto vm_return_values;
+      goto vm_tail_call;
     }
   else
     {
-      PUSH (cont);
-      goto vm_return;
+      /* Otherwise, cache regs and NEXT, as above. Invoking the continuation
+         does a return from the frame, either to the RA or MVRA. */
+      CACHE_REGISTER ();
+      program = SCM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
+      NEXT;
     }
 }
 
-VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (66, return, "return", 0, 1, 1)
 {
  vm_return:
   EXIT_HOOK ();
-  RETURN_HOOK ();
+  RETURN_HOOK (1);
 
   VM_HANDLE_INTERRUPTS;
 
@@ -1118,14 +1222,16 @@ VM_DEFINE_INSTRUCTION (63, return, "return", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (67, return_values, "return/values", 1, -1, -1)
 {
   /* nvalues declared at top level, because for some reason gcc seems to think
      that perhaps it might be used without declaration. Fooey to that, I say. */
   nvalues = FETCH ();
  vm_return_values:
   EXIT_HOOK ();
-  RETURN_HOOK ();
+  RETURN_HOOK (nvalues);
+
+  VM_HANDLE_INTERRUPTS;
 
   if (nvalues != 1 && SCM_FRAME_MV_RETURN_ADDRESS (fp)) 
     {
@@ -1173,7 +1279,7 @@ VM_DEFINE_INSTRUCTION (64, return_values, "return/values", 1, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (65, return_values_star, "return/values*", 1, -1, -1)
+VM_DEFINE_INSTRUCTION (68, return_values_star, "return/values*", 1, -1, -1)
 {
   SCM l;
 
@@ -1196,7 +1302,16 @@ VM_DEFINE_INSTRUCTION (65, return_values_star, "return/values*", 1, -1, -1)
   goto vm_return_values;
 }
 
-VM_DEFINE_INSTRUCTION (66, truncate_values, "truncate-values", 2, -1, -1)
+VM_DEFINE_INSTRUCTION (88, return_nvalues, "return/nvalues", 0, 1, -1)
+{
+  SCM n;
+  POP (n);
+  nvalues = scm_to_int (n);
+  ASSERT (nvalues >= 0);
+  goto vm_return_values;
+}
+
+VM_DEFINE_INSTRUCTION (69, truncate_values, "truncate-values", 2, -1, -1)
 {
   SCM x;
   int nbinds, rest;
@@ -1219,7 +1334,7 @@ VM_DEFINE_INSTRUCTION (66, truncate_values, "truncate-values", 2, -1, -1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (67, box, "box", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (70, box, "box", 1, 1, 0)
 {
   SCM val;
   POP (val);
@@ -1233,7 +1348,7 @@ VM_DEFINE_INSTRUCTION (67, box, "box", 1, 1, 0)
      (set! a (lambda () (b ...)))
      ...)
  */
-VM_DEFINE_INSTRUCTION (68, empty_box, "empty-box", 1, 0, 0)
+VM_DEFINE_INSTRUCTION (71, empty_box, "empty-box", 1, 0, 0)
 {
   SYNC_BEFORE_GC ();
   LOCAL_SET (FETCH (),
@@ -1241,7 +1356,7 @@ VM_DEFINE_INSTRUCTION (68, empty_box, "empty-box", 1, 0, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (69, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (72, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
 {
   SCM v = LOCAL_REF (FETCH ());
   ASSERT_BOUND_VARIABLE (v);
@@ -1249,7 +1364,7 @@ VM_DEFINE_INSTRUCTION (69, local_boxed_ref, "local-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (70, local_boxed_set, "local-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (73, local_boxed_set, "local-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   v = LOCAL_REF (FETCH ());
@@ -1259,7 +1374,7 @@ VM_DEFINE_INSTRUCTION (70, local_boxed_set, "local-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (71, free_ref, "free-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (74, free_ref, "free-ref", 1, 0, 1)
 {
   scm_t_uint8 idx = FETCH ();
   
@@ -1270,7 +1385,7 @@ VM_DEFINE_INSTRUCTION (71, free_ref, "free-ref", 1, 0, 1)
 
 /* no free-set -- if a var is assigned, it should be in a box */
 
-VM_DEFINE_INSTRUCTION (72, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
+VM_DEFINE_INSTRUCTION (75, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
 {
   SCM v;
   scm_t_uint8 idx = FETCH ();
@@ -1281,7 +1396,7 @@ VM_DEFINE_INSTRUCTION (72, free_boxed_ref, "free-boxed-ref", 1, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (73, free_boxed_set, "free-boxed-set", 1, 1, 0)
+VM_DEFINE_INSTRUCTION (76, free_boxed_set, "free-boxed-set", 1, 1, 0)
 {
   SCM v, val;
   scm_t_uint8 idx = FETCH ();
@@ -1293,18 +1408,26 @@ VM_DEFINE_INSTRUCTION (73, free_boxed_set, "free-boxed-set", 1, 1, 0)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (74, make_closure, "make-closure", 0, 2, 1)
+VM_DEFINE_INSTRUCTION (77, make_closure, "make-closure", 2, -1, 1)
 {
-  SCM vect;
-  POP (vect);
+  size_t n, len;
+  SCM closure;
+
+  len = FETCH ();
+  len <<= 8;
+  len += FETCH ();
   SYNC_BEFORE_GC ();
-  /* fixme underflow */
-  *sp = scm_double_cell (scm_tc7_program, (scm_t_bits)SCM_PROGRAM_OBJCODE (*sp),
-                         (scm_t_bits)SCM_PROGRAM_OBJTABLE (*sp), (scm_t_bits)vect);
+  closure = scm_words (scm_tc7_program | (len<<16), len + 3);
+  SCM_SET_CELL_OBJECT_1 (closure, SCM_PROGRAM_OBJCODE (sp[-len]));
+  SCM_SET_CELL_OBJECT_2 (closure, SCM_PROGRAM_OBJTABLE (sp[-len]));
+  sp[-len] = closure;
+  for (n = 0; n < len; n++)
+    SCM_PROGRAM_FREE_VARIABLE_SET (closure, n, sp[-len + 1 + n]);
+  DROPN (len);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (75, make_variable, "make-variable", 0, 0, 1)
+VM_DEFINE_INSTRUCTION (78, make_variable, "make-variable", 0, 0, 1)
 {
   SYNC_BEFORE_GC ();
   /* fixme underflow */
@@ -1312,21 +1435,24 @@ VM_DEFINE_INSTRUCTION (75, make_variable, "make-variable", 0, 0, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (76, fix_closure, "fix-closure", 2, 0, 1)
+VM_DEFINE_INSTRUCTION (79, fix_closure, "fix-closure", 2, -1, 0)
 {
-  SCM x, vect;
+  SCM x;
   unsigned int i = FETCH ();
+  size_t n, len;
   i <<= 8;
   i += FETCH ();
-  POP (vect);
   /* FIXME CHECK_LOCAL (i) */ 
   x = LOCAL_REF (i);
   /* FIXME ASSERT_PROGRAM (x); */
-  SCM_SET_CELL_WORD_3 (x, vect);
+  len = SCM_PROGRAM_NUM_FREE_VARIABLES (x);
+  for (n = 0; n < len; n++)
+    SCM_PROGRAM_FREE_VARIABLE_SET (x, n, sp[-len + 1 + n]);
+  DROPN (len);
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (77, define, "define", 0, 0, 2)
+VM_DEFINE_INSTRUCTION (80, define, "define", 0, 0, 2)
 {
   SCM sym, val;
   POP (sym);
@@ -1338,7 +1464,7 @@ VM_DEFINE_INSTRUCTION (77, define, "define", 0, 0, 2)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (78, make_keyword, "make-keyword", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (81, make_keyword, "make-keyword", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
@@ -1346,11 +1472,153 @@ VM_DEFINE_INSTRUCTION (78, make_keyword, "make-keyword", 0, 1, 1)
   NEXT;
 }
 
-VM_DEFINE_INSTRUCTION (79, make_symbol, "make-symbol", 0, 1, 1)
+VM_DEFINE_INSTRUCTION (82, make_symbol, "make-symbol", 0, 1, 1)
 {
   CHECK_UNDERFLOW ();
   SYNC_REGISTER ();
   *sp = scm_string_to_symbol (*sp);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
+{
+  scm_t_int32 offset;
+  scm_t_uint8 escape_only_p;
+  SCM k, prompt;
+
+  escape_only_p = FETCH ();
+  FETCH_OFFSET (offset);
+  POP (k);
+
+  SYNC_REGISTER ();
+  /* Push the prompt onto the dynamic stack. */
+  prompt = scm_c_make_prompt (k, fp, sp, ip + offset, escape_only_p, vm_cookie,
+                              scm_i_dynwinds ());
+  scm_i_set_dynwinds (scm_cons (prompt, SCM_PROMPT_DYNWINDS (prompt)));
+  if (SCM_PROMPT_SETJMP (prompt))
+    {
+      /* The prompt exited nonlocally. Cache the regs back from the vp, and go
+         to the handler.
+
+         Note, at this point, we must assume that any variable local to
+         vm_engine that can be assigned *has* been assigned. So we need to pull
+         all our state back from the ip/fp/sp.
+      */
+      CACHE_REGISTER ();
+      program = SCM_FRAME_PROGRAM (fp);
+      CACHE_PROGRAM ();
+      NEXT;
+    }
+      
+  /* Otherwise setjmp returned for the first time, so we go to execute the
+     prompt's body. */
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (85, wind, "wind", 0, 2, 0)
+{
+  SCM wind, unwind;
+  POP (unwind);
+  POP (wind);
+  SYNC_REGISTER ();
+  /* Push wind and unwind procedures onto the dynamic stack. Note that neither
+     are actually called; the compiler should emit calls to wind and unwind for
+     the normal dynamic-wind control flow. */
+  if (SCM_UNLIKELY (scm_is_false (scm_thunk_p (wind))))
+    {
+      finish_args = wind;
+      goto vm_error_not_a_thunk;
+    }
+  if (SCM_UNLIKELY (scm_is_false (scm_thunk_p (unwind))))
+    {
+      finish_args = unwind;
+      goto vm_error_not_a_thunk;
+    }
+  scm_i_set_dynwinds (scm_cons (scm_cons (wind, unwind), scm_i_dynwinds ()));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (86, abort, "abort", 1, -1, -1)
+{
+  unsigned n = FETCH ();
+  SYNC_REGISTER ();
+  if (sp - n - 2 <= SCM_FRAME_UPPER_ADDRESS (fp))
+    goto vm_error_stack_underflow;
+  vm_abort (vm, n, vm_cookie);
+  /* vm_abort should not return */
+  abort ();
+}
+
+VM_DEFINE_INSTRUCTION (87, unwind, "unwind", 0, 0, 0)
+{
+  /* A normal exit from the dynamic extent of an expression. Pop the top entry
+     off of the dynamic stack. */
+  scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (90, wind_fluids, "wind-fluids", 1, -1, 0)
+{
+  unsigned n = FETCH ();
+  SCM wf;
+  
+  if (sp - 2*n < SCM_FRAME_UPPER_ADDRESS (fp))
+    goto vm_error_stack_underflow;
+
+  SYNC_REGISTER ();
+  wf = scm_i_make_with_fluids (n, sp + 1 - 2*n, sp + 1 - n);
+  scm_i_swap_with_fluids (wf, dynstate);
+  scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (91, unwind_fluids, "unwind-fluids", 0, 0, 0)
+{
+  SCM wf;
+  wf = scm_car (scm_i_dynwinds ());
+  scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
+  scm_i_swap_with_fluids (wf, dynstate);
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (92, fluid_ref, "fluid-ref", 0, 1, 1)
+{
+  size_t num;
+  SCM fluids;
+  
+  CHECK_UNDERFLOW ();
+  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
+  if (SCM_UNLIKELY (!SCM_I_FLUID_P (*sp))
+      || ((num = SCM_I_FLUID_NUM (*sp)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+    {
+      /* Punt dynstate expansion and error handling to the C proc. */
+      SYNC_REGISTER ();
+      *sp = scm_fluid_ref (*sp);
+    }
+  else
+    *sp = SCM_SIMPLE_VECTOR_REF (fluids, num);
+  
+  NEXT;
+}
+
+VM_DEFINE_INSTRUCTION (93, fluid_set, "fluid-set", 0, 2, 0)
+{
+  size_t num;
+  SCM val, fluid, fluids;
+  
+  POP (val);
+  POP (fluid);
+  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
+  if (SCM_UNLIKELY (!SCM_I_FLUID_P (fluid))
+      || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
+    {
+      /* Punt dynstate expansion and error handling to the C proc. */
+      SYNC_REGISTER ();
+      scm_fluid_set_x (fluid, val);
+    }
+  else
+    SCM_SIMPLE_VECTOR_SET (fluids, num, val);
+  
   NEXT;
 }
 

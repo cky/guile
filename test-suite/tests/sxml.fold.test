@@ -1,0 +1,210 @@
+;;;; sxml.fold.test                 -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;; Commentary:
+;;
+;; Unit tests for (sxml fold).
+;;
+;;; Code:
+
+(define-module (test-suite sxml-fold)
+  #:use-module (test-suite lib)
+  #:use-module ((srfi srfi-1) #:select (fold))
+  #:use-module (sxml fold))
+
+(define atom? (@@ (sxml fold) atom?))
+(define (id x) x)
+(define-syntax accept
+  (syntax-rules ()
+    ((_ expr)
+     (call-with-values (lambda () expr) list))))
+
+(with-test-prefix "test-fold"
+  (define test-doc
+    '(presentation
+      (@ (width 1024)
+         (height 768)
+         (title-style "font-family:Georgia")
+         (title-height 72)
+         (title-baseline-y 96)
+         (title-x 48)
+         (text-height 64)
+         (text-style "font-family:Georgia")
+         (text-upper-left-x 96)
+         (text-upper-left-y 216))
+      (slide
+       (@ (title "Declarative interface"))
+       (p "The declarative interface"
+          "lets you be more concise"
+          "when making the slides."))
+      (slide
+       (@ (title "Still cumbersome"))
+       (p "Parentheses are still"
+          "cumbersome."))))
+
+  (pass-if (atom? 'foo))
+  (pass-if (atom? '()))
+  (pass-if (not (atom? '(1 2 3))))
+
+  (pass-if "foldt identity"
+    (equal? (foldt id id test-doc) test-doc))
+
+  (pass-if "fold cons == reverse"
+    (equal? (fold cons '() test-doc)
+            (reverse test-doc)))
+
+  (pass-if "foldts identity"
+    (equal? (foldts (lambda (seed tree) '())
+                    (lambda (seed kid-seed tree)
+                      (cons (reverse kid-seed) seed))
+                    (lambda (seed tree)
+                      (cons tree seed))
+                    '()
+                    test-doc)
+            (cons test-doc '())))
+
+  (pass-if "foldts* identity"
+    (equal? (foldts* (lambda (seed tree) (values '() tree))
+                     (lambda (seed kid-seed tree)
+                       (cons (reverse kid-seed) seed))
+                     (lambda (seed tree)
+                       (cons tree seed))
+                     '()
+                     test-doc)
+            (cons test-doc '())))
+
+  (pass-if "fold-values == fold"
+    (equal? (fold-values cons test-doc '())
+            (fold cons '() test-doc)))
+
+  (pass-if "foldts*-values == foldts*"
+    (equal? (foldts*-values
+             (lambda (tree seed) (values tree '()))
+             (lambda (tree seed kid-seed)
+               (cons (reverse kid-seed) seed))
+             (lambda (tree seed)
+               (cons tree seed))
+             test-doc
+             '())
+            (foldts* (lambda (seed tree) (values '() tree))
+                     (lambda (seed kid-seed tree)
+                       (cons (reverse kid-seed) seed))
+                     (lambda (seed tree)
+                       (cons tree seed))
+                     '()
+                     test-doc)))
+
+  (let () 
+    (define (replace pred val list)
+      (reverse
+       (fold
+        (lambda (x xs)
+          (cons (if (pred x) val x) xs))
+        '()
+        list)))
+
+    (define (car-eq? x what)
+      (and (pair? x) (eq? (car x) what)))
+
+    ;; avoid entering <slide>
+    (pass-if "foldts* *pre* behaviour"
+      (equal? (foldts*-values
+               (lambda (tree seed)
+                 (values (if (car-eq? tree 'slide) '() tree) '()))
+               (lambda (tree seed kid-seed)
+                 (cons (reverse kid-seed) seed))
+               (lambda (tree seed)
+                 (cons tree seed))
+               test-doc
+               '())
+              (cons
+               (replace (lambda (x) (car-eq? x 'slide))
+                        '()
+                        test-doc)
+               '()))))
+
+  (let ()
+    (define (all-elts tree)
+      (reverse!
+       (foldts*-values
+        (lambda (tree seed)
+          (values tree seed))
+        (lambda (tree seed kid-seed)
+          kid-seed)
+        (lambda (tree seed)
+          (cons tree seed))
+        tree
+        '())))
+
+    (define (len tree)
+      (foldts*-values
+       (lambda (tree seed)
+         (values tree seed))
+       (lambda (tree seed kid-seed)
+         kid-seed)
+       (lambda (tree seed)
+         (1+ seed))
+       tree
+       0))
+
+    (pass-if "foldts length"
+      (equal? (length (all-elts test-doc))
+              (len test-doc)))))
+
+(with-test-prefix "test-fold-layout"
+  (define test-doc
+    '(presentation
+      (@ (width 1024)
+         (height 768)
+         (title-style "font-family:Georgia")
+         (title-height 72)
+         (title-baseline-y 96)
+         (title-x 48)
+         (text-height 64)
+         (text-style "font-family:Georgia")
+         (text-upper-left-x 96)
+         (text-upper-left-y 216))
+      (slide
+       (@ (title "Declarative interface"))
+       (p "The declarative interface"
+          "lets you be more concise"
+          "when making the slides."))
+      (slide
+       (@ (title "Still cumbersome"))
+       (p "Parentheses are still"
+          "cumbersome."))))
+
+  (define (identity-layout tree)
+    (fold-layout
+     tree
+     `((*default*
+        . ,(lambda (tag params old-layout layout kids)
+             (values layout
+                     (if (null? (car params))
+                         (cons tag kids)
+                         (cons* tag (cons '@ (car params)) kids)))))
+       (*text*
+        . ,(lambda (text params layout)
+             (values layout text))))
+     '()
+     (cons 0 0)
+     '()))
+
+  (pass-if "fold-layout"
+    (equal? (accept (identity-layout test-doc))
+            (list test-doc (cons 0 0)))))

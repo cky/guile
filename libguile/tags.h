@@ -3,7 +3,7 @@
 #ifndef SCM_TAGS_H
 #define SCM_TAGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -411,18 +411,18 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_stringbuf       39
 #define scm_tc7_bytevector	77
 
-#define scm_tc7_unused_1	31
+#define scm_tc7_foreign		31
 #define scm_tc7_hashtable	29
 #define scm_tc7_fluid		37
 #define scm_tc7_dynamic_state	45
 
-#define scm_tc7_unused_4	47
-#define scm_tc7_unused_5	53
-#define scm_tc7_unused_6	55
-#define scm_tc7_unused_7	71
+#define scm_tc7_frame		47
+#define scm_tc7_objcode		53
+#define scm_tc7_vm		55
+#define scm_tc7_vm_cont		71
 
-#define scm_tc7_unused_17	61
-#define scm_tc7_gsubr		63
+#define scm_tc7_prompt		61
+#define scm_tc7_with_fluids	63
 #define scm_tc7_unused_19	69
 #define scm_tc7_program		79
 #define scm_tc7_unused_9	85
@@ -498,7 +498,7 @@ enum scm_tc8_tags
  *   must all be equal except for two bit positions.
  *   (used to implement scm_is_lisp_false)
  *
- * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T, SCM_XXX_ANOTHER_BOOLEAN_DONT_USE
+ * - SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T, SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0
  *   must all be equal except for two bit positions.
  *   (used to implement scm_is_bool_or_nil)
  *
@@ -519,12 +519,14 @@ enum scm_tc8_tags
 #define SCM_BOOL_T 		SCM_MAKIFLAG (4)
 
 #ifdef BUILDING_LIBGUILE
-#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE	SCM_MAKIFLAG (5)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0	SCM_MAKIFLAG (5)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_1	SCM_MAKIFLAG (6)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_2	SCM_MAKIFLAG (7)
 #endif
 
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG (6)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG (7)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG (8)
+#define SCM_UNSPECIFIED		SCM_MAKIFLAG (8)
+#define SCM_UNDEFINED	 	SCM_MAKIFLAG (9)
+#define SCM_EOF_VAL 		SCM_MAKIFLAG (10)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -534,7 +536,7 @@ enum scm_tc8_tags
  * the code which handles this value in C so that SCM_UNDEFINED can be
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (9)
+#define SCM_UNBOUND		SCM_MAKIFLAG (11)
 
 #define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 
@@ -647,11 +649,6 @@ enum scm_tc8_tags
   case scm_tc3_struct + 104:\
   case scm_tc3_struct + 112:\
   case scm_tc3_struct + 120
-
-/* For subrs
- */
-#define scm_tcs_subrs \
-  case scm_tc7_gsubr
 
 
 

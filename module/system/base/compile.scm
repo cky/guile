@@ -1,6 +1,6 @@
 ;;; High-level compiler interface
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -88,7 +88,9 @@
            (close-port tmp)
            (if reference
                (let ((st (stat reference)))
-                 (utime template (stat:atime st) (stat:mtime st))))
+                 (utime template
+                        (stat:atime st) (stat:mtime st)
+                        (stat:atimensec st) (stat:mtimensec st))))
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))
@@ -109,11 +111,6 @@
         (ensure-writable-dir (dirname dir))
         (mkdir dir))))
 
-(define (dsu-sort list key less)
-  (map cdr
-       (stable-sort (map (lambda (x) (cons (key x) x)) list)
-                    (lambda (x y) (less (car x) (car y))))))
-
 ;;; This function is among the trickiest I've ever written. I tried many
 ;;; variants. In the end, simple is best, of course.
 ;;;
@@ -124,6 +121,8 @@
 ;;; compile-file explicitly, as in the srcdir != builddir case; or you
 ;;; don't know, in which case this function is called, and we just put
 ;;; them in your own ccache dir in ~/.guile-ccache.
+;;;
+;;; See also boot-9.scm:load.
 (define (compiled-file-name file)
   (define (compiled-extension)
     (cond ((or (null? %load-compiled-extensions)

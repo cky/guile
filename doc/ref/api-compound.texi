@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -21,14 +21,15 @@ values can be looked up within them.
 * Pairs::                       Scheme's basic building block.
 * Lists::                       Special list functions supported by Guile.
 * Vectors::                     One-dimensional arrays of Scheme objects.
-* Uniform Numeric Vectors::     Vectors with elements of a single numeric type.
 * Bit Vectors::                 Vectors of bits.
 * Generalized Vectors::         Treating all vector-like things uniformly.
 * Arrays::                      Matrices, etc.
+* VLists::                      Vector-like lists.
 * Records::                     
 * Structures::                  
 * Dictionary Types::            About dictionary types in general.
 * Association Lists::           List-based dictionaries.
+* VHashes::                     VList-based dictionaries.   
 * Hash Tables::                 Table-based dictionaries.
 @end menu
 
@@ -670,6 +671,7 @@ and that most array procedures operate happily on vectors
 * Vector Creation::             Dynamic vector creation and validation.
 * Vector Accessors::            Accessing and modifying vector contents.
 * Vector Accessing from C::     Ways to work with vectors from C.
+* Uniform Numeric Vectors::     Vectors of unboxed numeric values.
 @end menu
 
 
@@ -958,508 +960,17 @@ scm_array_handle_release (&handle);
 @end deftypefn
 
 @node Uniform Numeric Vectors
-@subsection Uniform Numeric Vectors
+@subsubsection Uniform Numeric Vectors
 
 A uniform numeric vector is a vector whose elements are all of a single
 numeric type.  Guile offers uniform numeric vectors for signed and
 unsigned 8-bit, 16-bit, 32-bit, and 64-bit integers, two sizes of
 floating point values, and complex floating-point numbers of these two
-sizes.
+sizes. @xref{SRFI-4}, for more information.
 
-Strings could be regarded as uniform vectors of characters,
-@xref{Strings}.  Likewise, bit vectors could be regarded as uniform
-vectors of bits, @xref{Bit Vectors}.  Both are sufficiently different
-from uniform numeric vectors that the procedures described here do not
-apply to these two data types.  However, both strings and bit vectors
-are generalized vectors, @xref{Generalized Vectors}, and arrays,
-@xref{Arrays}.
-
-Uniform numeric vectors are the special case of one dimensional uniform
-numeric arrays.
-
-Uniform numeric vectors can be useful since they consume less memory
-than the non-uniform, general vectors.  Also, since the types they can
-store correspond directly to C types, it is easier to work with them
-efficiently on a low level.  Consider image processing as an example,
-where you want to apply a filter to some image.  While you could store
-the pixels of an image in a general vector and write a general
-convolution function, things are much more efficient with uniform
-vectors: the convolution function knows that all pixels are unsigned
-8-bit values (say), and can use a very tight inner loop.
-
-That is, when it is written in C.  Functions for efficiently working
-with uniform numeric vectors from C are listed at the end of this
-section.
-
-Procedures similar to the vector procedures (@pxref{Vectors}) are
-provided for handling these uniform vectors, but they are distinct
-datatypes and the two cannot be inter-mixed.  If you want to work
-primarily with uniform numeric vectors, but want to offer support for
-general vectors as a convenience, you can use one of the
-@code{scm_any_to_*} functions.  They will coerce lists and vectors to
-the given type of uniform vector.  Alternatively, you can write two
-versions of your code: one that is fast and works only with uniform
-numeric vectors, and one that works with any kind of vector but is
-slower.
-
-One set of the procedures listed below is a generic one: it works with
-all types of uniform numeric vectors.  In addition to that, there is a
-set of procedures for each type that only works with that type.  Unless
-you really need to the generality of the first set, it is best to use
-the more specific functions.  They might not be that much faster, but
-their use can serve as a kind of declaration and makes it easier to
-optimize later on.
-
-The generic set of procedures uses @code{uniform} in its names, the
-specific ones use the tag from the following table.
-
-@table @nicode
-@item u8
-unsigned 8-bit integers
-
-@item s8
-signed 8-bit integers
-
-@item u16
-unsigned 16-bit integers
-
-@item s16
-signed 16-bit integers
-
-@item u32
-unsigned 32-bit integers
-
-@item s32
-signed 32-bit integers
-
-@item u64
-unsigned 64-bit integers
-
-@item s64
-signed 64-bit integers
-
-@item f32
-the C type @code{float}
-
-@item f64
-the C type @code{double}
-
-@item c32
-complex numbers in rectangular form with the real and imaginary part
-being a @code{float}
-
-@item c64
-complex numbers in rectangular form with the real and imaginary part
-being a @code{double}
-
-@end table
-
-The external representation (ie.@: read syntax) for these vectors is
-similar to normal Scheme vectors, but with an additional tag from the
-table above indicating the vector's type.  For example,
-
-@lisp
-#u16(1 2 3)
-#f64(3.1415 2.71)
-@end lisp
-
-Note that the read syntax for floating-point here conflicts with
-@code{#f} for false.  In Standard Scheme one can write @code{(1 #f3)}
-for a three element list @code{(1 #f 3)}, but for Guile @code{(1 #f3)}
-is invalid.  @code{(1 #f 3)} is almost certainly what one should write
-anyway to make the intention clear, so this is rarely a problem.
-
-@deffn  {Scheme Procedure} uniform-vector? obj
-@deffnx {Scheme Procedure} u8vector? obj
-@deffnx {Scheme Procedure} s8vector? obj
-@deffnx {Scheme Procedure} u16vector? obj
-@deffnx {Scheme Procedure} s16vector? obj
-@deffnx {Scheme Procedure} u32vector? obj
-@deffnx {Scheme Procedure} s32vector? obj
-@deffnx {Scheme Procedure} u64vector? obj
-@deffnx {Scheme Procedure} s64vector? obj
-@deffnx {Scheme Procedure} f32vector? obj
-@deffnx {Scheme Procedure} f64vector? obj
-@deffnx {Scheme Procedure} c32vector? obj
-@deffnx {Scheme Procedure} c64vector? obj
-@deffnx {C Function} scm_uniform_vector_p (obj)
-@deffnx {C Function} scm_u8vector_p (obj)
-@deffnx {C Function} scm_s8vector_p (obj)
-@deffnx {C Function} scm_u16vector_p (obj)
-@deffnx {C Function} scm_s16vector_p (obj)
-@deffnx {C Function} scm_u32vector_p (obj)
-@deffnx {C Function} scm_s32vector_p (obj)
-@deffnx {C Function} scm_u64vector_p (obj)
-@deffnx {C Function} scm_s64vector_p (obj)
-@deffnx {C Function} scm_f32vector_p (obj)
-@deffnx {C Function} scm_f64vector_p (obj)
-@deffnx {C Function} scm_c32vector_p (obj)
-@deffnx {C Function} scm_c64vector_p (obj)
-Return @code{#t} if @var{obj} is a homogeneous numeric vector of the
-indicated type.
-@end deffn
-
-@deffn  {Scheme Procedure} make-u8vector n [value]
-@deffnx {Scheme Procedure} make-s8vector n [value]
-@deffnx {Scheme Procedure} make-u16vector n [value]
-@deffnx {Scheme Procedure} make-s16vector n [value]
-@deffnx {Scheme Procedure} make-u32vector n [value]
-@deffnx {Scheme Procedure} make-s32vector n [value]
-@deffnx {Scheme Procedure} make-u64vector n [value]
-@deffnx {Scheme Procedure} make-s64vector n [value]
-@deffnx {Scheme Procedure} make-f32vector n [value]
-@deffnx {Scheme Procedure} make-f64vector n [value]
-@deffnx {Scheme Procedure} make-c32vector n [value]
-@deffnx {Scheme Procedure} make-c64vector n [value]
-@deffnx {C Function} scm_make_u8vector n [value]
-@deffnx {C Function} scm_make_s8vector n [value]
-@deffnx {C Function} scm_make_u16vector n [value]
-@deffnx {C Function} scm_make_s16vector n [value]
-@deffnx {C Function} scm_make_u32vector n [value]
-@deffnx {C Function} scm_make_s32vector n [value]
-@deffnx {C Function} scm_make_u64vector n [value]
-@deffnx {C Function} scm_make_s64vector n [value]
-@deffnx {C Function} scm_make_f32vector n [value]
-@deffnx {C Function} scm_make_f64vector n [value]
-@deffnx {C Function} scm_make_c32vector n [value]
-@deffnx {C Function} scm_make_c64vector n [value]
-Return a newly allocated homogeneous numeric vector holding @var{n}
-elements of the indicated type.  If @var{value} is given, the vector
-is initialized with that value, otherwise the contents are
-unspecified.
-@end deffn
-
-@deffn  {Scheme Procedure} u8vector value @dots{}
-@deffnx {Scheme Procedure} s8vector value @dots{}
-@deffnx {Scheme Procedure} u16vector value @dots{}
-@deffnx {Scheme Procedure} s16vector value @dots{}
-@deffnx {Scheme Procedure} u32vector value @dots{}
-@deffnx {Scheme Procedure} s32vector value @dots{}
-@deffnx {Scheme Procedure} u64vector value @dots{}
-@deffnx {Scheme Procedure} s64vector value @dots{}
-@deffnx {Scheme Procedure} f32vector value @dots{}
-@deffnx {Scheme Procedure} f64vector value @dots{}
-@deffnx {Scheme Procedure} c32vector value @dots{}
-@deffnx {Scheme Procedure} c64vector value @dots{}
-@deffnx {C Function} scm_u8vector (values)
-@deffnx {C Function} scm_s8vector (values)
-@deffnx {C Function} scm_u16vector (values)
-@deffnx {C Function} scm_s16vector (values)
-@deffnx {C Function} scm_u32vector (values)
-@deffnx {C Function} scm_s32vector (values)
-@deffnx {C Function} scm_u64vector (values)
-@deffnx {C Function} scm_s64vector (values)
-@deffnx {C Function} scm_f32vector (values)
-@deffnx {C Function} scm_f64vector (values)
-@deffnx {C Function} scm_c32vector (values)
-@deffnx {C Function} scm_c64vector (values)
-Return a newly allocated homogeneous numeric vector of the indicated
-type, holding the given parameter @var{value}s.  The vector length is
-the number of parameters given.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector-length vec
-@deffnx {Scheme Procedure} u8vector-length vec
-@deffnx {Scheme Procedure} s8vector-length vec
-@deffnx {Scheme Procedure} u16vector-length vec
-@deffnx {Scheme Procedure} s16vector-length vec
-@deffnx {Scheme Procedure} u32vector-length vec
-@deffnx {Scheme Procedure} s32vector-length vec
-@deffnx {Scheme Procedure} u64vector-length vec
-@deffnx {Scheme Procedure} s64vector-length vec
-@deffnx {Scheme Procedure} f32vector-length vec
-@deffnx {Scheme Procedure} f64vector-length vec
-@deffnx {Scheme Procedure} c32vector-length vec
-@deffnx {Scheme Procedure} c64vector-length vec
-@deffnx {C Function} scm_uniform_vector_length (vec)
-@deffnx {C Function} scm_u8vector_length (vec)
-@deffnx {C Function} scm_s8vector_length (vec)
-@deffnx {C Function} scm_u16vector_length (vec)
-@deffnx {C Function} scm_s16vector_length (vec)
-@deffnx {C Function} scm_u32vector_length (vec)
-@deffnx {C Function} scm_s32vector_length (vec)
-@deffnx {C Function} scm_u64vector_length (vec)
-@deffnx {C Function} scm_s64vector_length (vec)
-@deffnx {C Function} scm_f32vector_length (vec)
-@deffnx {C Function} scm_f64vector_length (vec)
-@deffnx {C Function} scm_c32vector_length (vec)
-@deffnx {C Function} scm_c64vector_length (vec)
-Return the number of elements in @var{vec}.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector-ref vec i
-@deffnx {Scheme Procedure} u8vector-ref vec i
-@deffnx {Scheme Procedure} s8vector-ref vec i
-@deffnx {Scheme Procedure} u16vector-ref vec i
-@deffnx {Scheme Procedure} s16vector-ref vec i
-@deffnx {Scheme Procedure} u32vector-ref vec i
-@deffnx {Scheme Procedure} s32vector-ref vec i
-@deffnx {Scheme Procedure} u64vector-ref vec i
-@deffnx {Scheme Procedure} s64vector-ref vec i
-@deffnx {Scheme Procedure} f32vector-ref vec i
-@deffnx {Scheme Procedure} f64vector-ref vec i
-@deffnx {Scheme Procedure} c32vector-ref vec i
-@deffnx {Scheme Procedure} c64vector-ref vec i
-@deffnx {C Function} scm_uniform_vector_ref (vec i)
-@deffnx {C Function} scm_u8vector_ref (vec i)
-@deffnx {C Function} scm_s8vector_ref (vec i)
-@deffnx {C Function} scm_u16vector_ref (vec i)
-@deffnx {C Function} scm_s16vector_ref (vec i)
-@deffnx {C Function} scm_u32vector_ref (vec i)
-@deffnx {C Function} scm_s32vector_ref (vec i)
-@deffnx {C Function} scm_u64vector_ref (vec i)
-@deffnx {C Function} scm_s64vector_ref (vec i)
-@deffnx {C Function} scm_f32vector_ref (vec i)
-@deffnx {C Function} scm_f64vector_ref (vec i)
-@deffnx {C Function} scm_c32vector_ref (vec i)
-@deffnx {C Function} scm_c64vector_ref (vec i)
-Return the element at index @var{i} in @var{vec}.  The first element
-in @var{vec} is index 0.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector-set! vec i value
-@deffnx {Scheme Procedure} u8vector-set! vec i value
-@deffnx {Scheme Procedure} s8vector-set! vec i value
-@deffnx {Scheme Procedure} u16vector-set! vec i value
-@deffnx {Scheme Procedure} s16vector-set! vec i value
-@deffnx {Scheme Procedure} u32vector-set! vec i value
-@deffnx {Scheme Procedure} s32vector-set! vec i value
-@deffnx {Scheme Procedure} u64vector-set! vec i value
-@deffnx {Scheme Procedure} s64vector-set! vec i value
-@deffnx {Scheme Procedure} f32vector-set! vec i value
-@deffnx {Scheme Procedure} f64vector-set! vec i value
-@deffnx {Scheme Procedure} c32vector-set! vec i value
-@deffnx {Scheme Procedure} c64vector-set! vec i value
-@deffnx {C Function} scm_uniform_vector_set_x (vec i value)
-@deffnx {C Function} scm_u8vector_set_x (vec i value)
-@deffnx {C Function} scm_s8vector_set_x (vec i value)
-@deffnx {C Function} scm_u16vector_set_x (vec i value)
-@deffnx {C Function} scm_s16vector_set_x (vec i value)
-@deffnx {C Function} scm_u32vector_set_x (vec i value)
-@deffnx {C Function} scm_s32vector_set_x (vec i value)
-@deffnx {C Function} scm_u64vector_set_x (vec i value)
-@deffnx {C Function} scm_s64vector_set_x (vec i value)
-@deffnx {C Function} scm_f32vector_set_x (vec i value)
-@deffnx {C Function} scm_f64vector_set_x (vec i value)
-@deffnx {C Function} scm_c32vector_set_x (vec i value)
-@deffnx {C Function} scm_c64vector_set_x (vec i value)
-Set the element at index @var{i} in @var{vec} to @var{value}.  The
-first element in @var{vec} is index 0.  The return value is
-unspecified.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector->list vec
-@deffnx {Scheme Procedure} u8vector->list vec
-@deffnx {Scheme Procedure} s8vector->list vec
-@deffnx {Scheme Procedure} u16vector->list vec
-@deffnx {Scheme Procedure} s16vector->list vec
-@deffnx {Scheme Procedure} u32vector->list vec
-@deffnx {Scheme Procedure} s32vector->list vec
-@deffnx {Scheme Procedure} u64vector->list vec
-@deffnx {Scheme Procedure} s64vector->list vec
-@deffnx {Scheme Procedure} f32vector->list vec
-@deffnx {Scheme Procedure} f64vector->list vec
-@deffnx {Scheme Procedure} c32vector->list vec
-@deffnx {Scheme Procedure} c64vector->list vec
-@deffnx {C Function} scm_uniform_vector_to_list (vec)
-@deffnx {C Function} scm_u8vector_to_list (vec)
-@deffnx {C Function} scm_s8vector_to_list (vec)
-@deffnx {C Function} scm_u16vector_to_list (vec)
-@deffnx {C Function} scm_s16vector_to_list (vec)
-@deffnx {C Function} scm_u32vector_to_list (vec)
-@deffnx {C Function} scm_s32vector_to_list (vec)
-@deffnx {C Function} scm_u64vector_to_list (vec)
-@deffnx {C Function} scm_s64vector_to_list (vec)
-@deffnx {C Function} scm_f32vector_to_list (vec)
-@deffnx {C Function} scm_f64vector_to_list (vec)
-@deffnx {C Function} scm_c32vector_to_list (vec)
-@deffnx {C Function} scm_c64vector_to_list (vec)
-Return a newly allocated list holding all elements of @var{vec}.
-@end deffn
-
-@deffn  {Scheme Procedure} list->u8vector lst
-@deffnx {Scheme Procedure} list->s8vector lst
-@deffnx {Scheme Procedure} list->u16vector lst
-@deffnx {Scheme Procedure} list->s16vector lst
-@deffnx {Scheme Procedure} list->u32vector lst
-@deffnx {Scheme Procedure} list->s32vector lst
-@deffnx {Scheme Procedure} list->u64vector lst
-@deffnx {Scheme Procedure} list->s64vector lst
-@deffnx {Scheme Procedure} list->f32vector lst
-@deffnx {Scheme Procedure} list->f64vector lst
-@deffnx {Scheme Procedure} list->c32vector lst
-@deffnx {Scheme Procedure} list->c64vector lst
-@deffnx {C Function} scm_list_to_u8vector (lst)
-@deffnx {C Function} scm_list_to_s8vector (lst)
-@deffnx {C Function} scm_list_to_u16vector (lst)
-@deffnx {C Function} scm_list_to_s16vector (lst)
-@deffnx {C Function} scm_list_to_u32vector (lst)
-@deffnx {C Function} scm_list_to_s32vector (lst)
-@deffnx {C Function} scm_list_to_u64vector (lst)
-@deffnx {C Function} scm_list_to_s64vector (lst)
-@deffnx {C Function} scm_list_to_f32vector (lst)
-@deffnx {C Function} scm_list_to_f64vector (lst)
-@deffnx {C Function} scm_list_to_c32vector (lst)
-@deffnx {C Function} scm_list_to_c64vector (lst)
-Return a newly allocated homogeneous numeric vector of the indicated type,
-initialized with the elements of the list @var{lst}.
-@end deffn
-
-@deffn  {Scheme Procedure} any->u8vector obj
-@deffnx {Scheme Procedure} any->s8vector obj
-@deffnx {Scheme Procedure} any->u16vector obj
-@deffnx {Scheme Procedure} any->s16vector obj
-@deffnx {Scheme Procedure} any->u32vector obj
-@deffnx {Scheme Procedure} any->s32vector obj
-@deffnx {Scheme Procedure} any->u64vector obj
-@deffnx {Scheme Procedure} any->s64vector obj
-@deffnx {Scheme Procedure} any->f32vector obj
-@deffnx {Scheme Procedure} any->f64vector obj
-@deffnx {Scheme Procedure} any->c32vector obj
-@deffnx {Scheme Procedure} any->c64vector obj
-@deffnx {C Function} scm_any_to_u8vector (obj)
-@deffnx {C Function} scm_any_to_s8vector (obj)
-@deffnx {C Function} scm_any_to_u16vector (obj)
-@deffnx {C Function} scm_any_to_s16vector (obj)
-@deffnx {C Function} scm_any_to_u32vector (obj)
-@deffnx {C Function} scm_any_to_s32vector (obj)
-@deffnx {C Function} scm_any_to_u64vector (obj)
-@deffnx {C Function} scm_any_to_s64vector (obj)
-@deffnx {C Function} scm_any_to_f32vector (obj)
-@deffnx {C Function} scm_any_to_f64vector (obj)
-@deffnx {C Function} scm_any_to_c32vector (obj)
-@deffnx {C Function} scm_any_to_c64vector (obj)
-Return a (maybe newly allocated) uniform numeric vector of the indicated
-type, initialized with the elements of @var{obj}, which must be a list,
-a vector, or a uniform vector.  When @var{obj} is already a suitable
-uniform numeric vector, it is returned unchanged.
-@end deffn
-
-@deftypefn {C Function} int scm_is_uniform_vector (SCM uvec)
-Return non-zero when @var{uvec} is a uniform numeric vector, zero
-otherwise.
-@end deftypefn
-
-@deftypefn  {C Function} SCM scm_take_u8vector (const scm_t_uint8 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s8vector (const scm_t_int8 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_u16vector (const scm_t_uint16 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s16vector (const scm_t_int16 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_u32vector (const scm_t_uint32 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s32vector (const scm_t_int32 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_u64vector (const scm_t_uint64 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_s64vector (const scm_t_int64 *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_f32vector (const float *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_f64vector (const double *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_c32vector (const float *data, size_t len)
-@deftypefnx {C Function} SCM scm_take_c64vector (const double *data, size_t len)
-Return a new uniform numeric vector of the indicated type and length
-that uses the memory pointed to by @var{data} to store its elements.
-This memory will eventually be freed with @code{free}.  The argument
-@var{len} specifies the number of elements in @var{data}, not its size
-in bytes.
-
-The @code{c32} and @code{c64} variants take a pointer to a C array of
-@code{float}s or @code{double}s.  The real parts of the complex numbers
-are at even indices in that array, the corresponding imaginary parts are
-at the following odd index.
-@end deftypefn
-
-@deftypefn {C Function} size_t scm_c_uniform_vector_length (SCM uvec)
-Return the number of elements of @var{uvec} as a @code{size_t}.
-@end deftypefn
-
-@deftypefn  {C Function} {const void *} scm_uniform_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint8 *} scm_u8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int8 *} scm_s8vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint16 *} scm_u16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int16 *} scm_s16vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint32 *} scm_u32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int32 *} scm_s32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_uint64 *} scm_u64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const scm_t_int64 *} scm_s64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const float *} scm_f23vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const double *} scm_f64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const float *} scm_c32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const double *} scm_c64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_elements} (@pxref{Vector Accessing from C}), but
-returns a pointer to the elements of a uniform numeric vector of the
-indicated kind.
-@end deftypefn
-
-@deftypefn  {C Function} {void *} scm_uniform_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_uint8 *} scm_u8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_int8 *} scm_s8vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_uint16 *} scm_u16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_int16 *} scm_s16vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_uint32 *} scm_u32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {float *} scm_f23vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {double *} scm_f64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {float *} scm_c32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {double *} scm_c64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
-C}), but returns a pointer to the elements of a uniform numeric vector
-of the indicated kind.
-@end deftypefn
-
-Uniform numeric vectors can be written to and read from input/output
-ports using the procedures listed below.  However, bytevectors may often
-be more convenient for binary input/output since they provide more
-flexibility in the interpretation of raw byte sequences
-(@pxref{Bytevectors}).
-
-@deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
-Fill the elements of @var{uvec} by reading
-raw bytes from @var{port-or-fdes}, using host byte order.
-
-The optional arguments @var{start} (inclusive) and @var{end}
-(exclusive) allow a specified region to be read,
-leaving the remainder of the vector unchanged.
-
-When @var{port-or-fdes} is a port, all specified elements
-of @var{uvec} are attempted to be read, potentially blocking
-while waiting formore input or end-of-file.
-When @var{port-or-fd} is an integer, a single call to
-read(2) is made.
-
-An error is signalled when the last element has only
-been partially filled before reaching end-of-file or in
-the single call to read(2).
-
-@code{uniform-vector-read!} returns the number of elements
-read.
-
-@var{port-or-fdes} may be omitted, in which case it defaults
-to the value returned by @code{(current-input-port)}.
-@end deffn
-
-@deffn {Scheme Procedure} uniform-vector-write uvec [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_vector_write (uvec, port_or_fd, start, end)
-Write the elements of @var{uvec} as raw bytes to
-@var{port-or-fdes}, in the host byte order.
-
-The optional arguments @var{start} (inclusive)
-and @var{end} (exclusive) allow
-a specified region to be written.
-
-When @var{port-or-fdes} is a port, all specified elements
-of @var{uvec} are attempted to be written, potentially blocking
-while waiting for more room.
-When @var{port-or-fd} is an integer, a single call to
-write(2) is made.
-
-An error is signalled when the last element has only
-been partially written in the single call to write(2).
-
-The number of objects actually written is returned.
-@var{port-or-fdes} may be
-omitted, in which case it defaults to the value returned by
-@code{(current-output-port)}.
-@end deffn
-
+For many purposes, bytevectors work just as well as uniform vectors, and have
+the advantage that they integrate well with binary input and output.
+@xref{Bytevectors}, for more information on bytevectors.
 
 @node Bit Vectors
 @subsection Bit Vectors
@@ -1982,45 +1493,6 @@ a @result{} #2((#f #f) (#f #t))
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} enclose-array array dim1 @dots{}
-@deffnx {C Function} scm_enclose_array (array, dimlist)
-@var{dim1}, @var{dim2} @dots{} should be nonnegative integers less than
-the rank of @var{array}.  @code{enclose-array} returns an array
-resembling an array of shared arrays.  The dimensions of each shared
-array are the same as the @var{dim}th dimensions of the original array,
-the dimensions of the outer array are the same as those of the original
-array that did not match a @var{dim}.
-
-An enclosed array is not a general Scheme array.  Its elements may not
-be set using @code{array-set!}.  Two references to the same element of
-an enclosed array will be @code{equal?} but will not in general be
-@code{eq?}.  The value returned by @code{array-prototype} when given an
-enclosed array is unspecified.
-
-For example,
-
-@lisp
-(enclose-array '#3(((a b c)
-                    (d e f))
-                   ((1 2 3)
-                    (4 5 6)))
-               1)
-@result{}
-#<enclosed-array (#1(a d) #1(b e) #1(c f))
-                 (#1(1 4) #1(2 5) #1(3 6))>
-
-(enclose-array '#3(((a b c)
-                    (d e f))
-                   ((1 2 3)
-                    (4 5 6)))
-               1 0)
-@result{}
-#<enclosed-array #2((a 1) (d 4))
-                 #2((b 2) (e 5))
-                 #2((c 3) (f 6))>
-@end lisp
-@end deffn
-
 @deffn {Scheme Procedure} array-shape array
 @deffnx {Scheme Procedure} array-dimensions array
 @deffnx {C Function} scm_array_dimensions (array)
@@ -2078,9 +1550,7 @@ is unspecified.
 Return @code{#t} if all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?} or @code{array-equal?}.  This function differs from
-@code{equal?} (@pxref{Equality}) in that a one dimensional shared
-array may be @code{array-equal?} but not @code{equal?} to a vector or
-uniform vector.
+@code{equal?} (@pxref{Equality}) in that all arguments must be arrays.
 @end deffn
 
 @c  FIXME: array-map! accepts no source arrays at all, and in that
@@ -2614,6 +2084,172 @@ Like @code{scm_array_handle_bit_elements} but the pointer is good for
 reading and writing.  You must take care not to modify bits outside of
 the allowed index range of the array, even for contiguous arrays.
 @end deftypefn
+
+@node VLists
+@subsection VLists
+
+@cindex vlist
+
+The @code{(ice-9 vlist)} module provides an implementation of the @dfn{VList}
+data structure designed by Phil Bagwell in 2002.  VLists are immutable lists,
+which can contain any Scheme object.  They improve on standard Scheme linked
+lists in several areas:
+
+@itemize
+@item
+Random access has typically constant-time complexity.
+
+@item
+Computing the length of a VList has time complexity logarithmic in the number of
+elements.
+
+@item
+VLists use less storage space than standard lists.
+
+@item
+VList elements are stored in contiguous regions, which improves memory locality
+and leads to more efficient use of hardware caches.
+@end itemize
+
+The idea behind VLists is to store vlist elements in increasingly large
+contiguous blocks (implemented as vectors here).  These blocks are linked to one
+another using a pointer to the next block and an offset within that block.  The
+size of these blocks form a geometric series with ratio
+@code{block-growth-factor} (2 by default).
+
+The VList structure also serves as the basis for the @dfn{VList-based hash
+lists} or ``vhashes'', an immutable dictionary type (@pxref{VHashes}).
+
+However, the current implementation in @code{(ice-9 vlist)} has several
+noteworthy shortcomings:
+
+@itemize
+
+@item
+It is @emph{not} thread-safe.  Although operations on vlists are all
+@dfn{referentially transparent} (i.e., purely functional), adding elements to a
+vlist with @code{vlist-cons} mutates part of its internal structure, which makes
+it non-thread-safe.  This could be fixed, but it would slow down
+@code{vlist-cons}.
+
+@item
+@code{vlist-cons} always allocates at least as much memory as @code{cons}.
+Again, Phil Bagwell describes how to fix it, but that would require tuning the
+garbage collector in a way that may not be generally beneficial.
+
+@item
+@code{vlist-cons} is a Scheme procedure compiled to bytecode, and it does not
+compete with the straightforward C implementation of @code{cons}, and with the
+fact that the VM has a special @code{cons} instruction.
+
+@end itemize
+
+We hope to address these in the future.
+
+The programming interface exported by @code{(ice-9 vlist)} is defined below.
+Most of it is the same as SRFI-1 with an added @code{vlist-} prefix to function
+names.
+
+@deffn {Scheme Procedure} vlist? obj
+Return true if @var{obj} is a VList.
+@end deffn
+
+@defvr {Scheme Variable} vlist-null
+The empty VList.  Note that it's possible to create an empty VList not
+@code{eq?} to @code{vlist-null}; thus, callers should always use
+@code{vlist-null?} when testing whether a VList is empty.
+@end defvr
+
+@deffn {Scheme Procedure} vlist-null? vlist
+Return true if @var{vlist} is empty.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-cons item vlist
+Return a new vlist with @var{item} as its head and @var{vlist} as its tail.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-head vlist
+Return the head of @var{vlist}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-tail vlist
+Return the tail of @var{vlist}.
+@end deffn
+
+@defvr {Scheme Variable} block-growth-factor
+A fluid that defines the growth factor of VList blocks, 2 by default.
+@end defvr
+
+The functions below provide the usual set of higher-level list operations.
+
+@deffn {Scheme Procedure} vlist-fold proc init vlist
+@deffnx {Scheme Procedure} vlist-fold-right proc init vlist
+Fold over @var{vlist}, calling @var{proc} for each element, as for SRFI-1
+@code{fold} and @code{fold-right} (@pxref{SRFI-1, @code{fold}}).
+@end deffn
+
+@deffn {Scheme Procedure} vlist-ref vlist index
+Return the element at index @var{index} in @var{vlist}.  This is typically a
+constant-time operation.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-length vlist
+Return the length of @var{vlist}.  This is typically logarithmic in the number
+of elements in @var{vlist}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-reverse vlist
+Return a new @var{vlist} whose content are those of @var{vlist} in reverse
+order.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-map proc vlist
+Map @var{proc} over the elements of @var{vlist} and return a new vlist.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-for-each proc vlist
+Call @var{proc} on each element of @var{vlist}.  The result is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-drop vlist count
+Return a new vlist that does not contain the @var{count} first elements of
+@var{vlist}.  This is typically a constant-time operation.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-take vlist count
+Return a new vlist that contains only the @var{count} first elements of
+@var{vlist}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-filter pred vlist
+Return a new vlist containing all the elements from @var{vlist} that satisfy
+@var{pred}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-delete x vlist [equal?]
+Return a new vlist corresponding to @var{vlist} without the elements
+@var{equal?} to @var{x}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist-unfold p f g seed [tail-gen]
+@deffnx {Scheme Procedure} vlist-unfold-right p f g seed [tail]
+Return a new vlist, as for SRFI-1 @code{unfold} and @code{unfold-right}
+(@pxref{SRFI-1, @code{unfold}}).
+@end deffn
+
+@deffn {Scheme Procedure} vlist-append vlists ...
+Append the given vlists and return the resulting vlist.
+@end deffn
+
+@deffn {Scheme Procedure} list->vlist lst
+Return a new vlist whose contents correspond to @var{lst}.
+@end deffn
+
+@deffn {Scheme Procedure} vlist->list vlist
+Return a new list whose contents match those of @var{vlist}.
+@end deffn
+
+
 
 @node Records
 @subsection Records
@@ -3558,6 +3194,118 @@ capitals
     ("New York" . "Albany")
     ("Florida" . "Tallahassee"))
 @end lisp
+
+@node VHashes
+@subsection VList-Based Hash Lists or ``VHashes''
+
+@cindex VList-based hash lists
+@cindex VHash
+
+The @code{(ice-9 vlist)} module provides an implementation of @dfn{VList-based
+hash lists} (@pxref{VLists}).  VList-based hash lists, or @dfn{vhashes}, are an
+immutable dictionary type similar to association lists that maps @dfn{keys} to
+@dfn{values}.  However, unlike association lists, accessing a value given its
+key is typically a constant-time operation.
+
+The VHash programming interface of @code{(ice-9 vlist)} is mostly the same as
+that of association lists found in SRFI-1, with procedure names prefixed by
+@code{vhash-} instead of @code{vlist-} (@pxref{SRFI-1 Association Lists}).
+
+In addition, vhashes can be manipulated using VList operations:
+
+@example
+(vlist-head (vhash-consq 'a 1 vlist-null))
+@result{} (a . 1)
+
+(define vh1 (vhash-consq 'b 2 (vhash-consq 'a 1 vlist-null)))
+(define vh2 (vhash-consq 'c 3 (vlist-tail vh1)))
+
+(vhash-assq 'a vh2)
+@result{} (a . 1)
+(vhash-assq 'b vh2)
+@result{} #f
+(vhash-assq 'c vh2)
+@result{} (c . 3)
+(vlist->list vh2)
+@result{} ((c . 3) (a . 1))
+@end example
+
+However, keep in mind that procedures that construct new VLists
+(@code{vlist-map}, @code{vlist-filter}, etc.) return raw VLists, not vhashes:
+
+@example
+(define vh (alist->vhash '((a . 1) (b . 2) (c . 3)) hashq))
+(vhash-assq 'a vh)
+@result{} (a . 1)
+
+(define vl
+  ;; This will create a raw vlist.
+  (vlist-filter (lambda (key+value) (odd? (cdr key+value))) vh))
+(vhash-assq 'a vl)
+@result{} ERROR: Wrong type argument in position 2
+
+(vlist->list vl)
+@result{} ((a . 1) (c . 3))
+@end example
+
+@deffn {Scheme Procedure} vhash? obj
+Return true if @var{obj} is a vhash.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-cons key value vhash [hash-proc]
+@deffnx {Scheme Procedure} vhash-consq key value vhash
+@deffnx {Scheme Procedure} vhash-consv key value vhash
+Return a new hash list based on @var{vhash} where @var{key} is associated with
+@var{value}, using @var{hash-proc} to compute the hash of @var{key}.
+@var{vhash} must be either @code{vlist-null} or a vhash returned by a previous
+call to @code{vhash-cons}.  @var{hash-proc} defaults to @code{hash} (@pxref{Hash
+Table Reference, @code{hash} procedure}).  With @code{vhash-consq}, the
+@code{hashq} hash function is used; with @code{vhash-consv} the @code{hashv}
+hash function is used.
+
+All @code{vhash-cons} calls made to construct a vhash should use the same
+@var{hash-proc}.  Failing to do that, the result is undefined.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-assoc key vhash [equal? [hash-proc]]
+@deffnx {Scheme Procedure} vhash-assq key vhash
+@deffnx {Scheme Procedure} vhash-assv key vhash
+Return the first key/value pair from @var{vhash} whose key is equal to @var{key}
+according to the @var{equal?} equality predicate (which defaults to
+@code{equal?}), and using @var{hash-proc} (which defaults to @code{hash}) to
+compute the hash of @var{key}.  The second form uses @code{eq?} as the equality
+predicate and @code{hashq} as the hash function; the last form uses @code{eqv?}
+and @code{hashv}.
+
+Note that it is important to consistently use the same hash function for
+@var{hash-proc} as was passed to @code{vhash-cons}.  Failing to do that, the
+result is unpredictable.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-delete key vhash [equal? [hash-proc]]
+@deffnx {Scheme Procedure} vhash-delq key vhash
+@deffnx {Scheme Procedure} vhash-delv key vhash
+Remove all associations from @var{vhash} with @var{key}, comparing keys with
+@var{equal?} (which defaults to @code{equal?}), and computing the hash of
+@var{key} using @var{hash-proc} (which defaults to @code{hash}).  The second
+form uses @code{eq?} as the equality predicate and @code{hashq} as the hash
+function; the last one uses @code{eqv?} and @code{hashv}.
+
+Again the choice of @var{hash-proc} must be consistent with previous calls to
+@code{vhash-cons}.
+@end deffn
+
+@deffn {Scheme Procedure} vhash-fold proc vhash
+Fold over the key/pair elements of @var{vhash}.  For each pair call @var{proc}
+as @code{(@var{proc} key value result)}.
+@end deffn
+
+@deffn {Scheme Procedure} alist->vhash alist [hash-proc]
+Return the vhash corresponding to @var{alist}, an association list, using
+@var{hash-proc} to compute key hashes.  When omitted, @var{hash-proc} defaults
+to @code{hash}.
+@end deffn
+
 
 @node Hash Tables
 @subsection Hash Tables

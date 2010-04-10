@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,12 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "frames.h"
 
 
-scm_t_bits scm_tc16_frame;
-
 #define RELOC(frame, val) (val + SCM_VM_FRAME_OFFSET (frame))
 
 SCM
@@ -42,11 +39,11 @@ scm_c_make_frame (SCM stack_holder, SCM *fp, SCM *sp,
   p->sp = sp;
   p->ip = ip;
   p->offset = offset;
-  SCM_RETURN_NEWSMOB (scm_tc16_frame, p);
+  return scm_cell (scm_tc7_frame, (scm_t_bits)p);
 }
 
-static int
-frame_print (SCM frame, SCM port, scm_print_state *pstate)
+void
+scm_i_frame_print (SCM frame, SCM port, scm_print_state *pstate)
 {
   scm_puts ("#<frame ", port);
   scm_uintprint (SCM_UNPACK (frame), 16, port);
@@ -54,8 +51,6 @@ frame_print (SCM frame, SCM port, scm_print_state *pstate)
   scm_write (scm_frame_procedure (frame), port);
   /* don't write args, they can get us into trouble. */
   scm_puts (">", port);
-
-  return 1;
 }
 
 
@@ -97,24 +92,17 @@ SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
-	    (SCM frame),
-	    "")
-#define FUNC_NAME s_scm_frame_source
+SCM
+scm_frame_source (SCM frame)
 {
-  SCM *fp;
-  struct scm_objcode *bp;
+  static SCM var = SCM_BOOL_F;
   
-  SCM_VALIDATE_VM_FRAME (1, frame);
+  if (scm_is_false (var))
+    var = scm_c_module_lookup (scm_c_resolve_module ("system vm frame"),
+                               "frame-source");
 
-  fp = SCM_VM_FRAME_FP (frame);
-  bp = SCM_PROGRAM_DATA (SCM_FRAME_PROGRAM (fp));
-
-  return scm_c_program_source (SCM_FRAME_PROGRAM (fp),
-                               SCM_VM_FRAME_IP (frame)
-			       - SCM_C_OBJCODE_BASE (bp));
+  return scm_call_1 (SCM_VARIABLE_REF (var), frame);
 }
-#undef FUNC_NAME
 
 /* The number of locals would be a simple thing to compute, if it weren't for
    the presence of not-yet-active frames on the stack. So we have a cheap
@@ -300,19 +288,8 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 
 
 void
-scm_bootstrap_frames (void)
-{
-  scm_tc16_frame = scm_make_smob_type ("frame", 0);
-  scm_set_smob_print (scm_tc16_frame, frame_print);
-  scm_c_register_extension ("libguile", "scm_init_frames",
-                            (scm_t_extension_init_func)scm_init_frames, NULL);
-}
-
-void
 scm_init_frames (void)
 {
-  scm_bootstrap_vm ();
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/frames.x"
 #endif

@@ -3,7 +3,7 @@
 #ifndef SCM_MEMOIZE_H
 #define SCM_MEMOIZE_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008,2009
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -44,13 +44,16 @@ SCM_API SCM scm_sym_quote;
 SCM_API SCM scm_sym_quasiquote;
 SCM_API SCM scm_sym_unquote;
 SCM_API SCM scm_sym_uq_splicing;
+SCM_API SCM scm_sym_with_fluids;
 
 SCM_API SCM scm_sym_at;
 SCM_API SCM scm_sym_atat;
 SCM_API SCM scm_sym_atapply;
 SCM_API SCM scm_sym_atcall_cc;
 SCM_API SCM scm_sym_at_call_with_values;
+SCM_API SCM scm_sym_at_prompt;
 SCM_API SCM scm_sym_delay;
+SCM_API SCM scm_sym_at_dynamic_wind;
 SCM_API SCM scm_sym_eval_when;
 SCM_API SCM scm_sym_arrow;
 SCM_API SCM scm_sym_else;
@@ -75,6 +78,8 @@ enum
     SCM_M_LET,
     SCM_M_QUOTE,
     SCM_M_DEFINE,
+    SCM_M_DYNWIND,
+    SCM_M_WITH_FLUIDS,
     SCM_M_APPLY,
     SCM_M_CONT,
     SCM_M_CALL_WITH_VALUES,
@@ -84,7 +89,8 @@ enum
     SCM_M_TOPLEVEL_REF,
     SCM_M_TOPLEVEL_SET,
     SCM_M_MODULE_REF,
-    SCM_M_MODULE_SET
+    SCM_M_MODULE_SET,
+    SCM_M_PROMPT
   };
 
 

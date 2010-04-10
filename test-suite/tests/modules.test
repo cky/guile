@@ -1,6 +1,6 @@
 ;;;; modules.test --- exercise some of guile's module stuff -*- scheme -*-
 
-;;;; Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -125,7 +125,15 @@
               (map module-variable
                    (map resolve-interface mods)
                    syms)
-              locals))))
+              locals)))
+
+  (pass-if "module-reverse-lookup [pre-module-obarray]"
+    (let ((var (module-variable (current-module) 'string?)))
+      (eq? 'string? (module-reverse-lookup #f var))))
+
+  (pass-if-exception "module-reverse-lookup [wrong-type-arg]"
+    exception:wrong-type-arg
+    (module-reverse-lookup (current-module) 'foo)))
 
 
 

@@ -1,6 +1,6 @@
 ;;; User interface messages
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -79,6 +79,12 @@
           "report unused variables"
           ,(lambda (port loc name)
              (format port "~A: warning: unused variable `~A'~%"
+                     loc name)))
+
+         (unused-toplevel
+          "report unused local top-level variables"
+          ,(lambda (port loc name)
+             (format port "~A: warning: possibly unused local top-level variable `~A'~%"
                      loc name)))
 
          (unbound-variable

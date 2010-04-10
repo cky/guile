@@ -1,6 +1,6 @@
 ;;; srfi-9.scm --- define-record-type
 
-;; 	Copyright (C) 2001, 2002, 2006, 2009 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -88,6 +88,7 @@
                    ((_ formals ...)
                     #'(begin body ...))
                    (_
+                    (identifier? x)
                     #'proc-name))))))))))
 
 (define-syntax define-record-type
@@ -118,7 +119,7 @@
                (ctor-args   (map (lambda (field)
                                    (cons (syntax->datum field) field))
                                  #'(field ...))))
-           #`(define #,constructor-spec
+           #`(define-inlinable #,constructor-spec
                (make-struct #,type-name 0
                             #,@(unfold
                                 (lambda (field-num)

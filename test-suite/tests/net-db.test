@@ -1,0 +1,98 @@
+;;;; net-db.test --- Test suite for `net-db' -*- mode: scheme; coding: utf-8; -*-
+;;;; Ludovic Courtès <ludo@gnu.org>
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-net-db)
+  #:use-module (srfi srfi-1)
+  #:use-module (test-suite lib))
+
+(if (provided? 'net-db)
+    (with-test-prefix "getaddrinfo"
+
+      (pass-if "127.0.0.1, any service"
+        (let ((ai (getaddrinfo "127.0.0.1" #f AI_NUMERICHOST)))
+          (and (> (length ai) 0)
+               (fold (lambda (sa ok?)
+                       (and ok?
+                            (= (sockaddr:addr sa) INADDR_LOOPBACK)))
+                     #t
+                     (map addrinfo:addr ai)))))
+
+      (pass-if "127.0.0.1:80"
+        (let ((ai (getaddrinfo "127.0.0.1" "80"
+                               (logior AI_NUMERICHOST AI_NUMERICSERV))))
+          (and (> (length ai) 0)
+               (fold (lambda (sa ok?)
+                       (and ok?
+                            (= (sockaddr:addr sa) INADDR_LOOPBACK)
+                            (= (sockaddr:port sa) 80)))
+                     #t
+                     (map addrinfo:addr ai)))))
+
+      (pass-if "port 80"
+        (let ((ai (getaddrinfo #f "80" (logior AI_ADDRCONFIG AI_NUMERICSERV))))
+          (and (> (length ai) 0)
+               (fold (lambda (ai ok?)
+                       (let ((sa (addrinfo:addr ai)))
+                         (and ok?
+                              (= (sockaddr:port sa) 80))))
+                     #t
+                     ai))))
+
+      (pass-if "port 80 with family and socket type"
+        (let ((ai (getaddrinfo #f "80" (logior AI_ADDRCONFIG AI_NUMERICSERV)
+                               AF_UNSPEC SOCK_STREAM)))
+          (and (> (length ai) 0)
+               (fold (lambda (ai ok?)
+                       (let ((sa (addrinfo:addr ai)))
+                         (and ok?
+                              (= (sockaddr:port sa) 80))))
+                     #t
+                     ai))))
+
+      (pass-if "no name"
+        (catch 'getaddrinfo-error
+          (lambda ()
+            (getaddrinfo "does-not-exist")
+            #f)
+          (lambda (key errcode)
+            ;; In some cases (e.g., in a chroot without
+            ;; /etc/{hosts,resolv.conf}), this can result in `EAI_EAGAIN'.
+            (and (or (= errcode EAI_NONAME)
+                     (= errcode EAI_AGAIN))
+                 (string? (gai-strerror errcode))))))
+
+      (pass-if "wrong service name"
+        (catch 'getaddrinfo-error
+          (lambda ()
+            (getaddrinfo "127.0.0.1" "does-not-exist" AI_NUMERICHOST)
+
+            ;; XXX: The call above unexpectedly suceeds on
+            ;; `i386-apple-darwin9.2.2', but not on `i386-apple-darwin9.6.0'.
+            ;; For now we just skip it until a better solution is found.  See
+            ;; http://lists.gnu.org/archive/html/bug-gnulib/2010-02/msg00061.html
+            ;; for details.
+            (if (string-contains %host-type "darwin9.2")
+                (throw 'unresolved)
+                #f))
+          (lambda (key errcode)
+            ;; According to POSIX, both error codes are valid (glibc 2.11
+            ;; chooses `EAI_SERVICE'; Darwin chooses `EAI_NONAME'.)
+            (and (or (= errcode EAI_SERVICE)
+                     (= errcode EAI_NONAME))
+                 (string? (gai-strerror errcode))))))))

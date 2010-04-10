@@ -142,6 +142,11 @@ SCM_INTERNAL char *scm_to_stringn (SCM str, size_t *lenp,
 SCM_INTERNAL scm_t_uint8 *scm_i_to_utf8_string (SCM str);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
+SCM_API SCM scm_string_normalize_nfd (SCM str);
+SCM_API SCM scm_string_normalize_nfkd (SCM str);
+SCM_API SCM scm_string_normalize_nfc (SCM str);
+SCM_API SCM scm_string_normalize_nfkc (SCM str);
+
 SCM_API SCM scm_makfromstrs (int argc, char **argv);
 
 

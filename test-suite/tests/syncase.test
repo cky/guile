@@ -1,6 +1,6 @@
 ;;;; syncase.test --- test suite for (ice-9 syncase)            -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,8 +20,9 @@
 ;; affect code outside of this file.
 ;;
 (define-module (test-suite test-syncase)
-  :use-module (test-suite lib)
-  :use-module ((srfi srfi-1) :select (member)))
+  #:use-module (test-suite lib)
+  #:use-module (system base compile)
+  #:use-module ((srfi srfi-1) :select (member)))
 
 (define-syntax plus
   (syntax-rules ()
@@ -82,3 +83,37 @@
     (pass-if "tail invocation"
       (equal? (alist ((foo 42) (tail '((bar . 66)))))
               '((foo . 42) (bar . 66))))))
+
+(with-test-prefix "serializable labels and marks"
+  (compile '(begin
+              (define-syntax duplicate-macro
+                (syntax-rules ()
+                  ((_ new-name old-name)
+                   (define-syntax new-name
+                     (syntax-rules ()
+                       ((_ . vals)
+                        (letrec-syntax ((apply (syntax-rules ()
+                                                 ((_ macro args)
+                                                  (macro . args)))))
+                          (apply old-name vals))))))))
+
+              (define-syntax kwote
+                (syntax-rules ()
+                  ((_ arg1) 'arg1)))
+
+              (duplicate-macro kwote* kwote))
+           #:env (current-module))
+  (pass-if "compiled macro-generating macro works"
+    (eq? (eval '(kwote* foo) (current-module))
+         'foo)))
+
+(with-test-prefix "changes to expansion environment"
+  (pass-if "expander detects changes to current-module"
+    (compile '(begin
+                (define-module (new-module))
+                (define-syntax new-module-macro
+                  (lambda (stx)
+                    (syntax-case stx () 
+                      ((_ arg) (syntax arg)))))
+                (new-module-macro #t))
+             #:env (current-module))))

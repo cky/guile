@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -24,6 +24,7 @@
 #endif
 
 #include <alloca.h>
+#include <assert.h>
 
 #include "libguile/__scm.h"
 
@@ -31,6 +32,7 @@
 #include "libguile/alist.h"
 #include "libguile/async.h"
 #include "libguile/continuations.h"
+#include "libguile/control.h"
 #include "libguile/debug.h"
 #include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
@@ -40,7 +42,6 @@
 #include "libguile/goops.h"
 #include "libguile/hash.h"
 #include "libguile/hashtab.h"
-#include "libguile/lang.h"
 #include "libguile/list.h"
 #include "libguile/macros.h"
 #include "libguile/memoize.h"
@@ -111,7 +112,6 @@ static scm_t_bits scm_tc16_boot_closure;
 
 
 
-#if 0
 #define CAR(x)   SCM_CAR(x)
 #define CDR(x)   SCM_CDR(x)
 #define CAAR(x)  SCM_CAAR(x)
@@ -120,16 +120,6 @@ static scm_t_bits scm_tc16_boot_closure;
 #define CDDR(x)  SCM_CDDR(x)
 #define CADDR(x) SCM_CADDR(x)
 #define CDDDR(x) SCM_CDDDR(x)
-#else
-#define CAR(x)   scm_car(x)
-#define CDR(x)   scm_cdr(x)
-#define CAAR(x)  scm_caar(x)
-#define CADR(x)  scm_cadr(x)
-#define CDAR(x)  scm_cdar(x)
-#define CDDR(x)  scm_cddr(x)
-#define CADDR(x) scm_caddr(x)
-#define CDDDR(x) scm_cdddr(x)
-#endif
 
 
 SCM_SYMBOL (scm_unbound_variable_key, "unbound-variable");
@@ -172,6 +162,7 @@ eval (SCM x, SCM env)
 {
   SCM mx;
   SCM proc = SCM_UNDEFINED, args = SCM_EOL;
+  unsigned int argc;
 
  loop:
   SCM_TICK;
@@ -215,6 +206,42 @@ eval (SCM x, SCM env)
       scm_define (CAR (mx), eval (CDR (mx), env));
       return SCM_UNSPECIFIED;
 
+    case SCM_M_DYNWIND:
+      {
+        SCM in, out, res, old_winds;
+        in = eval (CAR (mx), env);
+        out = eval (CDDR (mx), env);
+        scm_call_0 (in);
+        old_winds = scm_i_dynwinds ();
+        scm_i_set_dynwinds (scm_acons (in, out, old_winds));
+        res = eval (CADR (mx), env);
+        scm_i_set_dynwinds (old_winds);
+        scm_call_0 (out);
+        return res;
+      }
+
+    case SCM_M_WITH_FLUIDS:
+      {
+        long i, len;
+        SCM *fluidv, *valuesv, walk, wf, res;
+        len = scm_ilength (CAR (mx));
+        fluidv = alloca (sizeof (SCM)*len);
+        for (i = 0, walk = CAR (mx); i < len; i++, walk = CDR (walk))
+          fluidv[i] = eval (CAR (walk), env);
+        valuesv = alloca (sizeof (SCM)*len);
+        for (i = 0, walk = CADR (mx); i < len; i++, walk = CDR (walk))
+          valuesv[i] = eval (CAR (walk), env);
+        
+        wf = scm_i_make_with_fluids (len, fluidv, valuesv);
+        scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+        scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
+        res = eval (CDDR (mx), env);
+        scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
+        scm_i_set_dynwinds (CDR (scm_i_dynwinds ()));
+        
+        return res;
+      }
+
     case SCM_M_APPLY:
       /* Evaluate the procedure to be applied.  */
       proc = eval (CAR (mx), env);
@@ -253,7 +280,7 @@ eval (SCM x, SCM env)
     case SCM_M_CALL:
       /* Evaluate the procedure to be applied.  */
       proc = eval (CAR (mx), env);
-      /* int nargs = CADR (mx); */
+      argc = SCM_I_INUM (CADR (mx));
       mx = CDDR (mx);
 
       if (BOOT_CLOSURE_P (proc))
@@ -262,7 +289,7 @@ eval (SCM x, SCM env)
           SCM new_env = BOOT_CLOSURE_ENV (proc);
           if (BOOT_CLOSURE_HAS_REST_ARGS (proc))
             {
-              if (SCM_UNLIKELY (scm_ilength (mx) < nreq))
+              if (SCM_UNLIKELY (argc < nreq))
                 scm_wrong_num_args (proc);
               for (; nreq; nreq--, mx = CDR (mx))
                 new_env = scm_cons (eval (CAR (mx), env), new_env);
@@ -287,27 +314,18 @@ eval (SCM x, SCM env)
         }
       else
         {
-          SCM rest = SCM_EOL;
-          /* FIXME: use alloca */
-          for (; scm_is_pair (mx); mx = CDR (mx))
-            rest = scm_cons (eval (CAR (mx), env), rest);
-          return scm_vm_apply (scm_the_vm (), proc, scm_reverse (rest));
-        }
-          
-    case SCM_M_CONT:
-      {
-        int first;
-        SCM val = scm_make_continuation (&first);
+	  SCM *argv;
+	  unsigned int i;
 
-        if (!first)
-          return val;
-        else
-          {
-            proc = eval (mx, env);
-            args = scm_list_1 (val);
-            goto apply_proc;
-          }
-      }
+	  argv = alloca (argc * sizeof (SCM));
+	  for (i = 0; i < argc; i++, mx = CDR (mx))
+	    argv[i] = eval (CAR (mx), env);
+
+	  return scm_c_vm_run (scm_the_vm (), proc, argv, argc);
+        }
+
+    case SCM_M_CONT:
+      return scm_i_call_with_current_continuation (eval (mx, env));
 
     case SCM_M_CALL_WITH_VALUES:
       {
@@ -354,7 +372,7 @@ eval (SCM x, SCM env)
       else
         {
           while (scm_is_pair (env))
-            env = scm_cdr (env);
+            env = CDR (env);
           return SCM_VARIABLE_REF
             (scm_memoize_variable_access_x (x, CAPTURE_ENV (env)));
         }
@@ -371,7 +389,7 @@ eval (SCM x, SCM env)
         else
           {
             while (scm_is_pair (env))
-              env = scm_cdr (env);
+              env = CDR (env);
             SCM_VARIABLE_SET
               (scm_memoize_variable_access_x (x, CAPTURE_ENV (env)),
                val);
@@ -399,6 +417,30 @@ eval (SCM x, SCM env)
              eval (CAR (mx), env));
           return SCM_UNSPECIFIED;
         }
+
+    case SCM_M_PROMPT:
+      {
+        SCM vm, prompt, handler, res;
+
+        vm = scm_the_vm ();
+        prompt = scm_c_make_prompt (eval (CAR (mx), env), SCM_VM_DATA (vm)->fp,
+                                    SCM_VM_DATA (vm)->sp, SCM_VM_DATA (vm)->ip,
+                                    0, -1, scm_i_dynwinds ());
+        handler = eval (CDDR (mx), env);
+        scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
+
+        if (SCM_PROMPT_SETJMP (prompt))
+          {
+            /* The prompt exited nonlocally. */
+            proc = handler;
+            args = scm_i_prompt_pop_abort_args_x (prompt);
+            goto apply_proc;
+          }
+        
+        res = eval (CADR (mx), env);
+        scm_i_set_dynwinds (CDR (scm_i_dynwinds ()));
+        return res;
+      }
 
     default:
       abort ();
@@ -550,6 +592,12 @@ scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4)
 {
   SCM args[] = { arg1, arg2, arg3, arg4 };
   return scm_c_vm_run (scm_the_vm (), proc, args, 4);
+}
+
+SCM
+scm_call_n (SCM proc, SCM *argv, size_t nargs)
+{
+  return scm_c_vm_run (scm_the_vm (), proc, argv, nargs);
 }
 
 /* Simple procedure applies

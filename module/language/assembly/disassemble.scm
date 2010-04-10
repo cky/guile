@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -88,13 +88,6 @@
     (else
      (error "bad load-program form" asm))))
 
-(define (disassemble-objects objs)
-  (display "Objects:\n\n")
-  (let ((len (vector-length objs)))
-    (do ((n 0 (1+ n)))
-	((= n len) (newline))
-      (print-info n (vector-ref objs n) #f #f))))
-
 (define (disassemble-free-vars free-vars)
   (display "Free variables:\n\n")
   (let lp ((i 0))
@@ -110,7 +103,7 @@
 (define (disassemble-meta meta)
   (let ((props (filter (lambda (x)
                          (not (memq (car x) *uninteresting-props*)))
-                       (cddr meta))))
+                       (cdddr meta))))
     (unless (null? props)
       (display "Properties:\n\n")
       (for-each (lambda (x) (print-info #f x #f #f)) props)
@@ -157,6 +150,9 @@
                   (list "`~s'" v)))))
       ((mv-call)
        (list "MV -> ~A" (assq-ref labels (cadr args))))
+      ((prompt)
+       ;; the H is for handler
+       (list "H -> ~A" (assq-ref labels (cadr args))))
       (else
        (and=> (assembly->object code)
               (lambda (obj) (list "~s" obj)))))))
@@ -164,12 +160,3 @@
 ;; i am format's daddy.
 (define (print-info addr info extra src)
   (format #t "~4@S    ~32S~@[;; ~1{~@?~}~]~@[~61t at ~a~]\n" addr info extra src))
-
-(define (simplify x)
-  (cond ((string? x)
-	 (cond ((string-index x #\newline) =>
-		(lambda (i) (set! x (substring x 0 i)))))
-	 (cond ((> (string-length x) 16)
-		(set! x (string-append (substring x 0 13) "..."))))))
-  x)
-

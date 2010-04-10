@@ -13,7 +13,7 @@
 @copying
 This manual documents Guile version @value{VERSION}.
 
-Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2009 Free
+Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2009, 2010 Free
 Software Foundation.
 
 Permission is granted to copy, distribute and/or modify this document
@@ -175,6 +175,7 @@ x
 * API Reference::
 
 * Guile Modules::
+* Standard Library::
 
 * GOOPS::
 
@@ -253,13 +254,10 @@ musings and guidelines about programming with Guile.  It explores
 different ways to design a program around Guile, or how to embed Guile
 into existing programs.
 
-There is also a pedagogical yet detailed explanation of how the data
-representation of Guile is implemented, see @ref{Data Representation in
-Scheme} and @ref{The Libguile Runtime Environment}.
-
-You don't need to know the details given there to use Guile from C,
-but they are useful when you want to modify Guile itself or when you
-are just curious about how it is all done.
+For a pedagogical yet detailed explanation of how the data representation of
+Guile is implemented, @xref{Data Representation}. You don't need to know the
+details given there to use Guile from C, but they are useful when you want to
+modify Guile itself or when you are just curious about how it is all done.
 
 For detailed reference information on the variables, functions
 etc. that make up Guile's application programming interface (API),
@@ -298,15 +296,18 @@ available through both Scheme and C interfaces.
 * Simple Data Types::           Numbers, strings, booleans and so on.
 * Compound Data Types::         Data types for holding other data.
 * Smobs::                       Defining new data types in C.
-* Procedures and Macros::       Procedures and macros.
+* Procedures::                  Procedures.
+* Macros::                      Extending the syntax of Scheme.
 * Utility Functions::           General utility functions.
 * Binding Constructs::          Definitions and variable bindings.
 * Control Mechanisms::          Controlling the flow of program execution.
 * Input and Output::            Ports, reading and writing.
+* LALR(1) Parsing::             Generating LALR(1) parsers.		
 * Read/Load/Eval/Compile::      Reading and evaluating Scheme code.
 * Memory Management::           Memory management and garbage collection.
 * Objects::                     Low level object orientation support.
 * Modules::                     Designing reusable code libraries.
+* Foreign Function Interface::  Interacting with C procedures and data.
 * Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
 * Options and Config::          Configuration, features and runtime options.
 * Translation::                 Support for translating other languages.
@@ -323,13 +324,16 @@ available through both Scheme and C interfaces.
 @include api-compound.texi
 @include api-smobs.texi
 @include api-procedures.texi
+@include api-macros.texi
 @include api-utility.texi
 @include api-binding.texi
 @include api-control.texi
 @include api-io.texi
+@include api-lalr.texi
 @include api-evaluation.texi
 @include api-memory.texi
 @include api-modules.texi
+@include api-foreign.texi
 @include api-scheduling.texi
 @c object orientation support here
 @include api-options.texi
@@ -368,6 +372,13 @@ available through both Scheme and C interfaces.
 @include scsh.texi
 @include scheme-debugging.texi
 
+@node Standard Library
+@chapter Standard Library
+
+@lowersections
+@include standard-library.texi
+@raisesections
+
 @include goops.texi
 
 @node Guile Implementation
@@ -393,13 +404,10 @@ This knowledge can help you to make that step from being one who is
 merely familiar with Scheme to being a real hacker.
 
 @menu
-* History::                             A brief history of Guile.
-* Data Representation in Scheme::       Why things aren't just totally
-                                        straightforward, in general terms.
-* The Libguile Runtime Environment::    Low-level details on Guile's C
-                                        runtime library.
-* A Virtual Machine for Guile::         How compiled procedures work.
-* Compiling to the Virtual Machine::    Not as hard as you might think.
+* History::                          A brief history of Guile.
+* Data Representation::              How Guile represents Scheme data.
+* A Virtual Machine for Guile::      How compiled procedures work.
+* Compiling to the Virtual Machine:: Not as hard as you might think.
 @end menu
 
 @include history.texi

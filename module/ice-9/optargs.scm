@@ -1,6 +1,6 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -253,9 +253,12 @@
 ;; in the same way as lambda*.
 
 (define-syntax define*-public
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (define-public id (lambda* args b0 b1 ...)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (id . args) b0 b1 ...)
+       #'(define-public id (lambda* args b0 b1 ...)))
+      ((_ id val) (identifier? #'id)
+       #'(define-public id val)))))
 
 
 ;; defmacro* name args . body
@@ -269,14 +272,17 @@
 ;;   (defmacro* transmorgify (a #:optional b)
 
 (define-syntax defmacro*
-  (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
-     (defmacro id (lambda* args b0 b1 ...)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ id args doc b0 b1 ...) (string? (syntax->datum #'doc))
+       #'(define-macro id doc (lambda* args b0 b1 ...)))
+      ((_ id args b0 b1 ...) 
+       #'(define-macro id #f (lambda* args b0 b1 ...))))))
 (define-syntax defmacro*-public
   (syntax-rules ()
-    ((_ (id . args) b0 b1 ...)
+    ((_ id args b0 b1 ...)
      (begin
-       (defmacro id (lambda* args b0 b1 ...))
+       (defmacro* id args b0 b1 ...)
        (export-syntax id)))))
 
 ;;; Support for optional & keyword args with the interpreter.
@@ -343,7 +349,8 @@
               (pair? (cdr args-tail))
               allow-other-keys?)
          (permissive-keys slots slots-tail (cddr args-tail) inits))
-        (else (error "unrecognized keyword" args-tail))))
+        (else (scm-error 'keyword-argument-error #f "Unrecognized keyword"
+                         '() args-tail))))
      (define (key slots slots-tail args-tail inits)
        (cond
         ((null? args-tail)
@@ -357,7 +364,8 @@
          (if rest-idx
              ;; no error checking, everything goes to the rest..
              (key slots slots-tail '() inits)
-             (error "bad keyword argument list" args-tail)))
+             (scm-error 'keyword-argument-error #f "Invalid keyword"
+                        '() args-tail)))
         ((and (keyword? (car args-tail))
               (pair? (cdr args-tail))
               (assq-ref kw-indices (car args-tail)))
@@ -368,7 +376,8 @@
               (pair? (cdr args-tail))
               allow-other-keys?)
          (key slots slots-tail (cddr args-tail) inits))
-        (else (error "unrecognized keyword" args-tail))))
+        (else (scm-error 'keyword-argument-error #f "Unrecognized keyword"
+                         '() args-tail))))
      (let ((args (list-copy args)))
        (req args #f args nreq)))
     (else (error "unexpected spec" spec))))

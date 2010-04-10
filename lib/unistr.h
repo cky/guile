@@ -1,5 +1,5 @@
 /* Elementary Unicode string functions.
-   Copyright (C) 2001-2002, 2005-2009 Free Software Foundation, Inc.
+   Copyright (C) 2001-2002, 2005-2010 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify it
    under the terms of the GNU Lesser General Public License as published
@@ -18,6 +18,9 @@
 #define _UNISTR_H
 
 #include "unitypes.h"
+
+/* Get common macros for C.  */
+#include "unused-parameter.h"
 
 /* Get bool.  */
 #include <stdbool.h>
@@ -183,7 +186,8 @@ extern int
        u32_mbtouc_unsafe (ucs4_t *puc, const uint32_t *s, size_t n);
 # else
 static inline int
-u32_mbtouc_unsafe (ucs4_t *puc, const uint32_t *s, size_t n _UNUSED_PARAMETER_)
+u32_mbtouc_unsafe (ucs4_t *puc,
+                   const uint32_t *s, size_t n _GL_UNUSED_PARAMETER)
 {
   uint32_t c = *s;
 
@@ -253,7 +257,7 @@ extern int
        u32_mbtouc (ucs4_t *puc, const uint32_t *s, size_t n);
 # else
 static inline int
-u32_mbtouc (ucs4_t *puc, const uint32_t *s, size_t n _UNUSED_PARAMETER_)
+u32_mbtouc (ucs4_t *puc, const uint32_t *s, size_t n _GL_UNUSED_PARAMETER)
 {
   uint32_t c = *s;
 
@@ -525,8 +529,8 @@ extern uint16_t *
 extern uint32_t *
        u32_strncpy (uint32_t *dest, const uint32_t *src, size_t n);
 
-/* Copy no more than N units of SRC to DEST, returning the address of
-   the last unit written into DEST.  */
+/* Copy no more than N units of SRC to DEST.  Return a pointer past the last
+   non-NUL unit written into DEST.  */
 /* Similar to stpncpy().  */
 extern uint8_t *
        u8_stpncpy (uint8_t *dest, const uint8_t *src, size_t n);

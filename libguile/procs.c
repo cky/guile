@@ -41,53 +41,6 @@
  */
 
 
-SCM
-scm_c_make_subr (const char *name, long type, SCM (*fcn) ())
-{
-  register SCM z;
-  SCM sname;
-  SCM *meta_info;
-
-  meta_info = scm_gc_malloc (2 * sizeof (*meta_info), "subr meta-info");
-  sname = scm_from_locale_symbol (name);
-  meta_info[0] = sname;
-  meta_info[1] = SCM_EOL;  /* properties */
-
-  z = scm_double_cell ((scm_t_bits) type, (scm_t_bits) fcn,
-		       0 /* generic */, (scm_t_bits) meta_info);
-
-  scm_remember_upto_here_1 (sname);
-
-  return z;
-}
-
-SCM
-scm_c_define_subr (const char *name, long type, SCM (*fcn) ())
-{
-  SCM subr = scm_c_make_subr (name, type, fcn);
-  scm_define (SCM_SUBR_NAME (subr), subr);
-  return subr;
-}
-
-SCM
-scm_c_make_subr_with_generic (const char *name, 
-			      long type, SCM (*fcn) (), SCM *gf)
-{
-  SCM subr = scm_c_make_subr (name, type, fcn);
-  SCM_SET_SUBR_GENERIC_LOC (subr, gf);
-  return subr;
-}
-
-SCM
-scm_c_define_subr_with_generic (const char *name, 
-				long type, SCM (*fcn) (), SCM *gf)
-{
-  SCM subr = scm_c_make_subr_with_generic (name, type, fcn, gf);
-  scm_define (SCM_SUBR_NAME (subr), subr);
-  return subr;
-}
-
-
 SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0, 
 	    (SCM obj),
 	    "Return @code{#t} if @var{obj} is a procedure.")
@@ -100,7 +53,6 @@ SCM_DEFINE (scm_procedure_p, "procedure?", 1, 0, 0,
 	if (!((SCM_OBJ_CLASS_FLAGS (obj) & SCM_CLASSF_PURE_GENERIC)
               || SCM_STRUCT_APPLICABLE_P (obj)))
 	  break;
-      case scm_tc7_gsubr:
       case scm_tc7_program:
 	return SCM_BOOL_T;
       case scm_tc7_smob:
@@ -122,21 +74,6 @@ SCM_DEFINE (scm_thunk_p, "thunk?", 1, 0, 0,
                         && req == 0);
 }
 #undef FUNC_NAME
-
-/* Only used internally. */
-int
-scm_subr_p (SCM obj)
-{
-  if (SCM_NIMP (obj))
-    switch (SCM_TYP7 (obj))
-      {
-      case scm_tc7_gsubr:
-	return 1;
-      default:
-	;
-      }
-  return 0;
-}
 
 SCM_SYMBOL (sym_documentation, "documentation");
 
@@ -187,14 +124,7 @@ SCM_DEFINE (scm_make_procedure_with_setter, "make-procedure-with-setter", 2, 0, 
 
   /* don't use procedure_name, because don't care enough to do a reverse
      lookup */
-  switch (SCM_TYP7 (procedure)) {
-  case scm_tc7_gsubr:
-    name = SCM_SUBR_NAME (procedure);
-    break;
-  default:
-    name = scm_procedure_property (procedure, scm_sym_name);
-    break;
-  }
+  name = scm_procedure_property (procedure, scm_sym_name);
   if (scm_is_true (name))
     scm_set_procedure_property_x (ret, scm_sym_name, name);
   return ret;

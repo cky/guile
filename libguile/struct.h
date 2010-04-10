@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,20 +33,48 @@
    in turn means we need support for changing the "class" (vtable) of an
    "instance" (struct). This necessitates some indirection and trickery.
 
-   I would like to write this all up here, but for now:
+   To summarize, structs are laid out this way:
+
+                  .-------.
+                  |       |
+     .----------------+---v------------- -
+     | vtable | data  | slot0 | slot1 |
+     `----------------+----------------- -
+         |        .-------.
+         |        |       |
+     .---v------------+---v------------- -
+     | vtable | data  | slot0 | slot1 |
+     `----------------+----------------- -
+         |
+         v
+
+        ...
+                  .-------.
+         |        |       |
+     .---v------------+---v------------- -
+   .-| vtable | data  | slot0 | slot1 |
+   | `----------------+----------------- -
+   |     ^
+   `-----'
+
+   The DATA indirection (which corresponds to `SCM_STRUCT_DATA ()') is necessary
+   to implement class redefinition.
+
+   For more details, see:
 
      http://wingolog.org/archives/2009/11/09/class-redefinition-in-guile
+
  */
 
 /* All vtables have the following fields. */
 #define SCM_VTABLE_BASE_LAYOUT                                          \
   "pr" /* layout */                                                     \
-  "uh" /* flags */                                                      \
+  "uh" /* flags */							\
   "sr" /* self */                                                       \
   "uh" /* finalizer */                                                  \
   "pw" /* printer */                                                    \
   "ph" /* name (hidden from make-struct for back-compat reasons) */     \
-  "uh" /* reserved */                                                   \
+  "uh" /* size */							\
   "uh" /* reserved */
 
 #define scm_vtable_index_layout            0 /* A symbol describing the physical arrangement of this type. */
@@ -55,7 +83,7 @@
 #define scm_vtable_index_instance_finalize 3 /* Finalizer for instances of this struct type. */
 #define scm_vtable_index_instance_printer  4 /* A printer for this struct type. */
 #define scm_vtable_index_name              5 /* Name of this vtable. */
-#define scm_vtable_index_reserved_6        6
+#define scm_vtable_index_size              6 /* Number of fields, for simple structs.  */
 #define scm_vtable_index_reserved_7        7
 #define scm_vtable_offset_user             8 /* Where do user fields start in the vtable? */
 
@@ -79,8 +107,8 @@
 #define SCM_VTABLE_FLAG_APPLICABLE (1L << 2) /* instances of this vtable are applicable? */
 #define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 3) /* instances of this vtable are applicable-with-setter vtables? */
 #define SCM_VTABLE_FLAG_SETTER (1L << 4) /* instances of this vtable are applicable-with-setters? */
-#define SCM_VTABLE_FLAG_RESERVED_0 (1L << 5)
-#define SCM_VTABLE_FLAG_RESERVED_1 (1L << 6)
+#define SCM_VTABLE_FLAG_SIMPLE (1L << 5) /* instances of this vtable have only "p" fields */
+#define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 6) /* instances of this vtable have only "pw" fields */
 #define SCM_VTABLE_FLAG_SMOB_0 (1L << 7)
 #define SCM_VTABLE_FLAG_GOOPS_0 (1L << 8)
 #define SCM_VTABLE_FLAG_GOOPS_1 (1L << 9)

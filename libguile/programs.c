@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,7 +22,6 @@
 
 #include <string.h>
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "instructions.h"
 #include "modules.h"
 #include "programs.h"
@@ -43,13 +42,30 @@ SCM_DEFINE (scm_make_program, "make-program", 1, 2, 0,
     objtable = SCM_BOOL_F;
   else if (scm_is_true (objtable))
     SCM_VALIDATE_VECTOR (2, objtable);
-  if (SCM_UNLIKELY (SCM_UNBNDP (free_variables)))
-    free_variables = SCM_BOOL_F;
-  else if (free_variables != SCM_BOOL_F)
-    SCM_VALIDATE_VECTOR (3, free_variables);
 
-  return scm_double_cell (scm_tc7_program, (scm_t_bits)objcode,
-                          (scm_t_bits)objtable, (scm_t_bits)free_variables);
+  if (SCM_UNBNDP (free_variables) || scm_is_false (free_variables))
+    {
+      SCM ret = scm_words (scm_tc7_program, 3);
+      SCM_SET_CELL_OBJECT_1 (ret, objcode);
+      SCM_SET_CELL_OBJECT_2 (ret, objtable);
+      return ret;
+    }
+  else
+    {
+      size_t i, len;
+      SCM ret;
+      SCM_VALIDATE_VECTOR (3, free_variables);
+      len = scm_c_vector_length (free_variables);
+      if (SCM_UNLIKELY (len >> 16))
+        SCM_OUT_OF_RANGE (3, free_variables);
+      ret = scm_words (scm_tc7_program | (len<<16), 3 + len);
+      SCM_SET_CELL_OBJECT_1 (ret, objcode);
+      SCM_SET_CELL_OBJECT_2 (ret, objtable);
+      for (i = 0; i < len; i++)
+        SCM_SET_CELL_OBJECT (ret, 3+i,
+                             SCM_SIMPLE_VECTOR_REF (free_variables, i));
+      return ret;
+    }
 }
 #undef FUNC_NAME
 
@@ -63,10 +79,24 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
       (scm_c_resolve_module ("system vm program"),
        scm_from_locale_symbol ("write-program"));
   
-  if (scm_is_false (write_program) || print_error)
+  if (SCM_PROGRAM_IS_CONTINUATION (program))
+    {
+      /* twingliness */
+      scm_puts ("#<continuation ", port);
+      scm_uintprint (SCM_UNPACK (program), 16, port);
+      scm_putc ('>', port);
+    }
+  else if (SCM_PROGRAM_IS_PARTIAL_CONTINUATION (program))
+    {
+      /* twingliness */
+      scm_puts ("#<partial-continuation ", port);
+      scm_uintprint (SCM_UNPACK (program), 16, port);
+      scm_putc ('>', port);
+    }
+  else if (scm_is_false (write_program) || print_error)
     {
       scm_puts ("#<program ", port);
-      scm_uintprint (SCM_CELL_WORD_1 (program), 16, port);
+      scm_uintprint (SCM_UNPACK (program), 16, port);
       scm_putc ('>', port);
     }
   else
@@ -138,7 +168,8 @@ SCM_DEFINE (scm_program_meta, "program-meta", 1, 0, 0,
 
   metaobj = scm_objcode_meta (SCM_PROGRAM_OBJCODE (program));
   if (scm_is_true (metaobj))
-    return scm_make_program (metaobj, SCM_BOOL_F, SCM_BOOL_F);
+    return scm_make_program (metaobj, SCM_PROGRAM_OBJTABLE (program),
+                             SCM_BOOL_F);
   else
     return SCM_BOOL_F;
 }
@@ -264,13 +295,42 @@ scm_c_program_source (SCM program, size_t ip)
   return source; /* (addr . (filename . (line . column))) */
 }
 
-SCM_DEFINE (scm_program_free_variables, "program-free-variables", 1, 0, 0,
+SCM_DEFINE (scm_program_num_free_variables, "program-num-free-variables", 1, 0, 0,
 	    (SCM program),
 	    "")
-#define FUNC_NAME s_scm_program_free_variables
+#define FUNC_NAME s_scm_program_num_free_variables
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return SCM_PROGRAM_FREE_VARIABLES (program);
+  return scm_from_ulong (SCM_PROGRAM_NUM_FREE_VARIABLES (program));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_free_variable_ref, "program-free-variable-ref", 2, 0, 0,
+	    (SCM program, SCM i),
+	    "")
+#define FUNC_NAME s_scm_program_free_variable_ref
+{
+  unsigned long idx;
+  SCM_VALIDATE_PROGRAM (1, program);
+  SCM_VALIDATE_ULONG_COPY (2, i, idx);
+  if (idx >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))
+    SCM_OUT_OF_RANGE (2, i);
+  return SCM_PROGRAM_FREE_VARIABLE_REF (program, idx);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_program_free_variable_set_x, "program-free-variable-set!", 3, 0, 0,
+	    (SCM program, SCM i, SCM x),
+	    "")
+#define FUNC_NAME s_scm_program_free_variable_set_x
+{
+  unsigned long idx;
+  SCM_VALIDATE_PROGRAM (1, program);
+  SCM_VALIDATE_ULONG_COPY (2, i, idx);
+  if (idx >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))
+    SCM_OUT_OF_RANGE (2, i);
+  SCM_PROGRAM_FREE_VARIABLE_SET (program, idx, x);
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -330,15 +390,14 @@ scm_bootstrap_programs (void)
   /* arglist can't be snarfed, because snarfage is only loaded when (system vm
      program) is loaded. perhaps static-alloc will fix this. */
   sym_arglist = scm_from_locale_symbol ("arglist");
-  scm_c_register_extension ("libguile", "scm_init_programs",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_programs",
                             (scm_t_extension_init_func)scm_init_programs, NULL);
 }
 
 void
 scm_init_programs (void)
 {
-  scm_bootstrap_vm ();
-  
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/programs.x"
 #endif

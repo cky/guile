@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -180,17 +180,6 @@ scm_gc_malloc_pointerless (size_t size, const char *what)
 void *
 scm_gc_malloc (size_t size, const char *what)
 {
-  /*
-    The straightforward implementation below has the problem
-     that it might call the GC twice, once in scm_malloc and then
-     again in scm_gc_register_collectable_memory.  We don't really
-     want the second GC since it will not find new garbage.
-
-     Note: this is a theoretical peeve. In reality, malloc () never
-     returns NULL. Usually, memory is overcommitted, and when you try
-     to write it the program is killed with signal 11. --hwn
-  */
-
   void *ptr;
 
   if (size == 0)
@@ -255,17 +244,11 @@ scm_gc_strdup (const char *str, const char *what)
  * scm_done_free
  *
  * These functions provide services comparable to malloc, realloc, and
- * free.  They should be used when allocating memory that will be under
- * control of the garbage collector, i.e., if the memory may be freed
- * during garbage collection.
+ * free.
  *
- * They are deprecated because they weren't really used the way
- * outlined above, and making sure to return the right amount from
- * smob free routines was sometimes difficult when dealing with nested
- * data structures.  We basically want everybody to review their code
- * and use the more symmetrical scm_gc_malloc/scm_gc_free functions
- * instead.  In some cases, where scm_must_malloc has been used
- * incorrectly (i.e. for non-GC-able memory), use scm_malloc/free.
+ * There has been a fair amount of confusion around the use of these functions;
+ * see "Memory Blocks" in the manual. They are totally unnecessary in 2.0 given
+ * the Boehm GC.
  */
 
 void *
@@ -323,7 +306,7 @@ scm_must_free (void *obj)
   scm_malloc_unregister (obj);
 #endif
 
-  free (obj);
+  GC_FREE (obj);
 }
 #undef FUNC_NAME
 

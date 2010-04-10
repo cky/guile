@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -71,21 +71,25 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
       return SCM_BOOL_T;
     case scm_tc3_imm24:
 	/* characters, booleans, other immediates */
-      return scm_from_bool (!scm_is_null (obj));
+      return scm_from_bool (!scm_is_null_and_not_nil (obj));
     case scm_tc3_cons:
       switch (SCM_TYP7 (obj))
 	{
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
+	case scm_tc7_foreign:
 	case scm_tc7_hashtable:
 	case scm_tc7_fluid:
 	case scm_tc7_dynamic_state:
+        case scm_tc7_frame:
+        case scm_tc7_objcode:
+        case scm_tc7_vm:
+        case scm_tc7_vm_cont:
 	case scm_tc7_number:
 	case scm_tc7_string:
 	case scm_tc7_smob:
 	case scm_tc7_program:
 	case scm_tc7_bytevector:
-	case scm_tc7_gsubr:
 	case scm_tcs_struct:
 	  return SCM_BOOL_T;
 	default:

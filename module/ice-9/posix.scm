@@ -33,6 +33,9 @@
 (define (stat:ctime f) (vector-ref f 10))
 (define (stat:blksize f) (vector-ref f 11))
 (define (stat:blocks f) (vector-ref f 12))
+(define (stat:atimensec f) (vector-ref f 15))
+(define (stat:mtimensec f) (vector-ref f 16))
+(define (stat:ctimensec f) (vector-ref f 17))
 
 ;; derived from stat mode.
 (define (stat:type f) (vector-ref f 13))

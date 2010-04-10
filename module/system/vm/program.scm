@@ -1,6 +1,6 @@
 ;;; Guile VM program functions
 
-;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -36,13 +36,16 @@
 
             arity:nreq arity:nopt arity:rest? arity:kw arity:allow-other-keys?
 
-            program-arguments program-lambda-list
+            program-arguments-alist program-lambda-list
             
             program-meta
             program-objcode program? program-objects
-            program-module program-base program-free-variables))
+            program-module program-base
+            program-num-free-variables
+            program-free-variable-ref program-free-variable-set!))
 
-(load-extension "libguile" "scm_init_programs")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_programs")
 
 (define (make-binding name boxed? index start end)
   (list name boxed? index start end))
@@ -127,7 +130,7 @@
                   (car arities))
                  (else (lp (cdr arities))))))))
 
-(define (arglist->arguments arglist)
+(define (arglist->arguments-alist arglist)
   (pmatch arglist
     ((,req ,opt ,keyword ,allow-other-keys? ,rest . ,extents)
      `((required . ,req)
@@ -138,14 +141,19 @@
        (extents . ,extents)))
     (else #f)))
 
-(define (arity->arguments prog arity)
+(define* (arity->arguments-alist prog arity
+                                 #:optional
+                                 (make-placeholder
+                                  (lambda (i) (string->symbol "_"))))
   (define var-by-index
     (let ((rbinds (map (lambda (x)
                          (cons (binding:index x) (binding:name x)))
                        (program-bindings-for-ip prog
                                                 (arity:start arity)))))
       (lambda (i)
-        (assv-ref rbinds i))))
+        (or (assv-ref rbinds i)
+            ;; if we don't know the name, return a placeholder
+            (make-placeholder i)))))
 
   (let lp ((nreq (arity:nreq arity)) (req '())
            (nopt (arity:nopt arity)) (opt '())
@@ -170,33 +178,35 @@
         (allow-other-keys? . ,(arity:allow-other-keys? arity))
         (rest . ,rest))))))
 
-(define* (program-arguments prog #:optional ip)
+;; the name "program-arguments" is taken by features.c...
+(define* (program-arguments-alist prog #:optional ip)
   (let ((arity (program-arity prog ip)))
     (and arity
-        (arity->arguments prog arity))))
+         (arity->arguments-alist prog arity))))
 
 (define* (program-lambda-list prog #:optional ip)
-  (and=> (program-arguments prog ip) arguments->lambda-list))
+  (and=> (program-arguments-alist prog ip) arguments-alist->lambda-list))
 
-(define (arguments->lambda-list arguments)
-  (let ((req (or (assq-ref arguments 'required) '()))
-        (opt (or (assq-ref arguments 'optional) '()))
+(define (arguments-alist->lambda-list arguments-alist)
+  (let ((req (or (assq-ref arguments-alist 'required) '()))
+        (opt (or (assq-ref arguments-alist 'optional) '()))
         (key (map keyword->symbol
-                  (map car (or (assq-ref arguments 'keyword) '()))))
-        (rest (or (assq-ref arguments 'rest) '())))
+                  (map car (or (assq-ref arguments-alist 'keyword) '()))))
+        (rest (or (assq-ref arguments-alist 'rest) '())))
     `(,@req
       ,@(if (pair? opt) (cons #:optional opt) '())
       ,@(if (pair? key) (cons #:key key) '())
       . ,rest)))
 
 (define (write-program prog port)
-  (format port "#<program ~a~a>"
+  (format port "#<procedure ~a~a>"
           (or (program-name prog)
               (and=> (program-source prog 0)
                      (lambda (s)
                        (format #f "~a at ~a:~a:~a"
                                (number->string (object-address prog) 16)
-                               (or (source:file s) "<unknown port>")
+                               (or (source:file s)
+                                   (if s "<current input>" "<unknown port>"))
                                (source:line s) (source:column s))))
               (number->string (object-address prog) 16))
           (let ((arities (program-arities prog)))
@@ -205,8 +215,8 @@
                 (string-append
                  " " (string-join (map (lambda (a)
                                          (object->string
-                                          (arguments->lambda-list
-                                           (arity->arguments prog a))))
+                                          (arguments-alist->lambda-list
+                                           (arity->arguments-alist prog a))))
                                        arities)
                                   " | "))))))
 

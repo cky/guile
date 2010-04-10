@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -15,7 +15,8 @@ flow of Scheme affects C code.
 * if cond case::                Simple conditional evaluation.
 * and or::                      Conditional evaluation of a sequence.
 * while do::                    Iteration mechanisms.
-* Continuations::               Continuations.
+* Prompts::                     Composable, delimited continuations.
+* Continuations::               Non-composable continuations.
 * Multiple Values::             Returning and accepting multiple values.
 * Exceptions::                  Throwing and catching exceptions.
 * Error Reporting::             Procedures for signaling errors.
@@ -343,6 +344,112 @@ times.
 @end deffn
 
 
+@node Prompts
+@subsection Prompts
+@cindex prompts
+@cindex delimited continuations
+@cindex composable continuations
+@cindex non-local exit
+
+Prompts are control-flow barriers between different parts of a program. In the
+same way that a user sees a shell prompt (e.g., the Bash prompt) as a barrier
+between the operating system and her programs, Scheme prompts allow the Scheme
+programmer to treat parts of programs as if they were running in different
+operating systems.
+
+We use this roundabout explanation because, unless you're a functional
+programming junkie, you probably haven't heard the term, ``delimited, composable
+continuation''. That's OK; it's a relatively recent topic, but a very useful
+one to know about.
+
+@deffn {Scheme Procedure} call-with-prompt tag thunk handler
+Set up a prompt, and call @var{thunk} within that prompt.
+
+During the dynamic extent of the call to @var{thunk}, a prompt named @var{tag}
+will be present in the dynamic context, such that if a user calls
+@code{abort-to-prompt} (see below) with that tag, control rewinds back to the
+prompt, and the @var{handler} is run.
+
+@var{handler} must be a procedure. The first argument to @var{handler} will be
+the state of the computation begun when @var{thunk} was called, and ending with
+the call to @code{abort-to-prompt}. The remaining arguments to @var{handler} are
+those passed to @code{abort-to-prompt}.
+@end deffn
+
+@deffn {Scheme Procedure} abort-to-prompt tag val ...
+Unwind the dynamic and control context to the nearest prompt named @var{tag},
+also passing the given values.
+@end deffn
+
+C programmers may recognize @code{call-with-prompt} and @code{abort-to-prompt}
+as a fancy kind of @code{setjmp} and @code{longjmp}, respectively. Prompts are
+indeed quite useful as non-local escape mechanisms. Guile's @code{catch} and
+@code{throw} are implemented in terms of prompts. Prompts are more convenient
+than @code{longjmp}, in that one has the opportunity to pass multiple values to
+the jump target.
+
+Also unlike @code{longjmp}, the prompt handler is given the full state of the
+process that was aborted, as the first argument to the prompt's handler. That
+state is the @dfn{continuation} of the computation wrapped by the prompt. It is
+a @dfn{delimited continuation}, because it is not the whole continuation of the
+program; rather, just the computation initiated by the call to
+@code{call-with-prompt}.
+
+The continuation is a procedure, and may be reinstated simply by invoking it,
+with any number of values. Here's where things get interesting, and complicated
+as well. Besides being described as delimited, continuations reified by prompts
+are also @dfn{composable}, because invoking a prompt-saved continuation composes
+that continuation with the current one.
+
+Imagine you have saved a continuation via call-with-prompt:
+
+@example
+(define cont
+  (call-with-prompt
+   ;; tag
+   'foo
+   ;; thunk
+   (lambda ()
+     (+ 34 (abort-to-prompt 'foo)))
+   ;; handler
+   (lambda (k) k)))
+@end example
+
+The resulting continuation is the addition of 34. It's as if you had written:
+
+@example
+(define cont
+  (lambda (x)
+    (+ 34 x)))
+@end example
+
+So, if we call @code{cont} with one numeric value, we get that number,
+incremented by 34:
+
+@example
+(cont 8)
+@result{} 42
+(* 2 (cont 8))
+@result{} 84
+@end example
+
+The last example illustrates what we mean when we say, "composes with the
+current continuation". We mean that there is a current continuation -- some
+remaining things to compute, like @code{(lambda (x) (* x 2))} -- and that
+calling the saved continuation doesn't wipe out the current continuation, it
+composes the saved continuation with the current one.
+
+We're belaboring the point here because traditional Scheme continuations, as
+discussed in the next section, aren't composable, and are actually less
+expressive than continuations captured by prompts. But there's a place for them
+both.
+
+Before moving on, we should mention that if the handler of a prompt is a
+@code{lambda} expression, and the first argument isn't referenced, an abort to
+that prompt will not cause a continuation to be reified. This can be an
+important efficiency consideration to keep in mind.
+
+
 @node Continuations
 @subsection Continuations
 @cindex continuations
@@ -409,15 +516,6 @@ invoke that continuation.
 This is in common use since the latter is rather long.
 @end deffn
 
-@deftypefn {C Function} SCM scm_make_continuation (int *first)
-Capture the current continuation as described above.  The return value
-is the new continuation, and @var{*first} is set to 1.
-
-When the continuation is invoked, @code{scm_make_continuation} will
-return again, this time returning the value (or set of multiple
-values) passed in that invocation, and with @var{*first} set to 0.
-@end deftypefn
-
 @sp 1
 @noindent
 Here is a simple example,
@@ -475,13 +573,12 @@ with programs written in other languages, such as C, which do not know
 about continuations.  Basically continuations are captured by a block
 copy of the stack, and resumed by copying back.
 
-For this reason, generally continuations should be used only when
-there is no other simple way to achieve the desired result, or when
-the elegance of the continuation mechanism outweighs the need for
-performance.
+For this reason, continuations captured by @code{call/cc} should be used only
+when there is no other simple way to achieve the desired result, or when the
+elegance of the continuation mechanism outweighs the need for performance.
 
 Escapes upwards from loops or nested functions are generally best
-handled with exceptions (@pxref{Exceptions}).  Coroutines can be
+handled with prompts (@pxref{Prompts}).  Coroutines can be
 efficiently implemented with cooperating threads (a thread holds a
 full program stack but doesn't copy it around the way continuations
 do).
@@ -614,8 +711,7 @@ more conveniently.
 @menu
 * Exception Terminology::       Different ways to say the same thing.
 * Catch::                       Setting up to catch exceptions.
-* Throw Handlers::              Adding extra handling to a throw.
-* Lazy Catch::                  Catch without unwinding the stack.
+* Throw Handlers::              Handling exceptions before unwinding the stack.
 * Throw::                       Throwing an exception.
 * Exception Implementation::    How Guile implements exceptions.
 @end menu
@@ -808,16 +904,52 @@ Operations}).
 @subsubsection Throw Handlers
 
 It's sometimes useful to be able to intercept an exception that is being
-thrown, but without changing where in the dynamic context that exception
-will eventually be caught.  This could be to clean up some related state
-or to pass information about the exception to a debugger, for example.
-The @code{with-throw-handler} procedure provides a way to do this.
+thrown before the stack is unwound. This could be to clean up some
+related state, to print a backtrace, or to pass information about the
+exception to a debugger, for example. The @code{with-throw-handler}
+procedure provides a way to do this.
 
 @deffn {Scheme Procedure} with-throw-handler key thunk handler
 @deffnx {C Function} scm_with_throw_handler (key, thunk, handler)
 Add @var{handler} to the dynamic context as a throw handler
 for key @var{key}, then invoke @var{thunk}.
+
+This behaves exactly like @code{catch}, except that it does not unwind
+the stack before invoking @var{handler}. If the @var{handler} procedure
+returns normally, Guile rethrows the same exception again to the next
+innermost catch or throw handler. @var{handler} may exit nonlocally, of
+course, via an explicit throw or via invoking a continuation.
 @end deffn
+
+Typically @var{handler} is used to display a backtrace of the stack at
+the point where the corresponding @code{throw} occurred, or to save off
+this information for possible display later.
+
+Not unwinding the stack means that throwing an exception that is handled
+via a throw handler is equivalent to calling the throw handler handler
+inline instead of each @code{throw}, and then omitting the surrounding
+@code{with-throw-handler}. In other words,
+
+@lisp
+(with-throw-handler 'key
+  (lambda () @dots{} (throw 'key args @dots{}) @dots{})
+  handler)
+@end lisp
+
+@noindent
+is mostly equivalent to
+
+@lisp
+((lambda () @dots{} (handler 'key args @dots{}) @dots{}))
+@end lisp
+
+In particular, the dynamic context when @var{handler} is invoked is that
+of the site where @code{throw} is called. The examples are not quite
+equivalent, because the body of a @code{with-throw-handler} is not in
+tail position with respect to the @code{with-throw-handler}, and if
+@var{handler} exits normally, Guile arranges to rethrow the error, but
+hopefully the intention is clear. (For an introduction to what is meant
+by dynamic context, @xref{Dynamic Wind}.)
 
 @deftypefn {C Function} SCM scm_c_with_throw_handler (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data, int lazy_catch_p)
 The above @code{scm_with_throw_handler} takes Scheme procedures as body
@@ -846,141 +978,13 @@ everything that a @code{catch} would do until the point where
 then it rethrows to the next innermost @code{catch} or throw handler
 instead.
 
+Note also that since the dynamic context is not unwound, if a
+@code{with-throw-handler} handler throws to a key that does not match
+the @code{with-throw-handler} expression's @var{key}, the new throw may
+be handled by a @code{catch} or throw handler that is @emph{closer} to
+the throw than the first @code{with-throw-handler}.
 
-@node Lazy Catch
-@subsubsection Catch Without Unwinding
-
-Before version 1.8, Guile's closest equivalent to
-@code{with-throw-handler} was @code{lazy-catch}.  From version 1.8
-onwards we recommend using @code{with-throw-handler} because its
-behaviour is more useful than that of @code{lazy-catch}, but
-@code{lazy-catch} is still supported as well.
-
-A @dfn{lazy catch} is used in the same way as a normal @code{catch},
-with @var{key}, @var{thunk} and @var{handler} arguments specifying the
-exception type, normal case code and handler procedure, but differs in
-one important respect: the handler procedure is executed without
-unwinding the call stack from the context of the @code{throw} expression
-that caused the handler to be invoked.
-
-@deffn {Scheme Procedure} lazy-catch key thunk handler
-@deffnx {C Function} scm_lazy_catch (key, thunk, handler)
-This behaves exactly like @code{catch}, except that it does
-not unwind the stack before invoking @var{handler}.
-If the @var{handler} procedure returns normally, Guile
-rethrows the same exception again to the next innermost catch,
-lazy-catch or throw handler.  If the @var{handler} exits
-non-locally, that exit determines the continuation.
-@end deffn
-
-@deftypefn {C Function} SCM scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
-The above @code{scm_lazy_catch} takes Scheme procedures as body and
-handler arguments.  @code{scm_internal_lazy_catch} is an equivalent
-taking C functions.  See @code{scm_internal_catch} (@pxref{Catch}) for
-a description of the parameters, the behaviour however of course
-follows @code{lazy-catch}.
-@end deftypefn
-
-Typically @var{handler} is used to display a backtrace of the stack at
-the point where the corresponding @code{throw} occurred, or to save off
-this information for possible display later.
-
-Not unwinding the stack means that throwing an exception that is caught
-by a @code{lazy-catch} is @emph{almost} equivalent to calling the
-@code{lazy-catch}'s handler inline instead of each @code{throw}, and
-then omitting the surrounding @code{lazy-catch}.  In other words,
-
-@lisp
-(lazy-catch 'key
-  (lambda () @dots{} (throw 'key args @dots{}) @dots{})
-  handler)
-@end lisp
-
-@noindent
-is @emph{almost} equivalent to
-
-@lisp
-((lambda () @dots{} (handler 'key args @dots{}) @dots{}))
-@end lisp
-
-@noindent
-But why only @emph{almost}?  The difference is that with
-@code{lazy-catch} (as with normal @code{catch}), the dynamic context is
-unwound back to just outside the @code{lazy-catch} expression before
-invoking the handler.  (For an introduction to what is meant by dynamic
-context, @xref{Dynamic Wind}.)
-
-Then, when the handler @emph{itself} throws an exception, that exception
-must be caught by some kind of @code{catch} (including perhaps another
-@code{lazy-catch}) higher up the call stack.
-
-The dynamic context also includes @code{with-fluids} blocks
-(@pxref{Fluids and Dynamic States}),
-so the effect of unwinding the dynamic context can also be seen in fluid
-variable values.  This is illustrated by the following code, in which
-the normal case thunk uses @code{with-fluids} to temporarily change the
-value of a fluid:
-
-@lisp
-(define f (make-fluid))
-(fluid-set! f "top level value")
-
-(define (handler . args)
-  (cons (fluid-ref f) args))
-
-(lazy-catch 'foo
-            (lambda ()
-              (with-fluids ((f "local value"))
-                (throw 'foo)))
-            handler)
-@result{}
-("top level value" foo)
-
-((lambda ()
-   (with-fluids ((f "local value"))
-     (handler 'foo))))
-@result{}
-("local value" foo)
-@end lisp
-
-@noindent
-In the @code{lazy-catch} version, the unwinding of dynamic context
-restores @code{f} to its value outside the @code{with-fluids} block
-before the handler is invoked, so the handler's @code{(fluid-ref f)}
-returns the external value.
-
-@code{lazy-catch} is useful because it permits the implementation of
-debuggers and other reflective programming tools that need to access the
-state of the call stack at the exact point where an exception or an
-error is thrown.  For an example of this, see REFFIXME:stack-catch.
-
-It should be obvious from the above that @code{lazy-catch} is very
-similar to @code{with-throw-handler}.  In fact Guile implements
-@code{lazy-catch} in exactly the same way as @code{with-throw-handler},
-except with a flag set to say ``where there are slight differences
-between what @code{with-throw-handler} and @code{lazy-catch} would do,
-do what @code{lazy-catch} has always done''.  There are two such
-differences:
-
-@enumerate
-@item
-@code{with-throw-handler} handlers execute in the full dynamic context
-of the originating @code{throw} call.  @code{lazy-catch} handlers
-execute in the dynamic context of the @code{lazy-catch} expression,
-excepting only that the stack has not yet been unwound from the point of
-the @code{throw} call.
-
-@item
-If a @code{with-throw-handler} handler throws to a key that does not
-match the @code{with-throw-handler} expression's @var{key}, the new
-throw may be handled by a @code{catch} or throw handler that is _closer_
-to the throw than the first @code{with-throw-handler}.  If a
-@code{lazy-catch} handler throws, it will always be handled by a
-@code{catch} or throw handler that is higher up the dynamic context than
-the first @code{lazy-catch}.
-@end enumerate
-
-Here is an example to illustrate the second difference:
+Here is an example to illustrate this behavior:
 
 @lisp
 (catch 'a
@@ -998,14 +1002,7 @@ Here is an example to illustrate the second difference:
 
 @noindent
 This code will call @code{inner-handler} and then continue with the
-continuation of the inner @code{catch}.  If the
-@code{with-throw-handler} was changed to @code{lazy-catch}, however, the
-code would call @code{outer-handler} and then continue with the
-continuation of the outer @code{catch}.
-
-Modulo these two differences, any statements in the previous and
-following subsections about throw handlers apply to lazy catches as
-well.
+continuation of the inner @code{catch}.
 
 
 @node Throw
@@ -1498,6 +1495,42 @@ Throw an error with the various keys described above.
 
 For @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
 which is the name of the procedure incorrectly invoked.
+@end deftypefn
+
+
+@subsubsection Signalling Type Errors
+
+Every function visible at the Scheme level should aggressively check the
+types of its arguments, to avoid misinterpreting a value, and perhaps
+causing a segmentation fault.  Guile provides some macros to make this
+easier.
+
+@deftypefn Macro void SCM_ASSERT (int @var{test}, SCM @var{obj}, unsigned int @var{position}, const char *@var{subr})
+If @var{test} is zero, signal a ``wrong type argument'' error,
+attributed to the subroutine named @var{subr}, operating on the value
+@var{obj}, which is the @var{position}'th argument of @var{subr}.
+@end deftypefn
+
+@deftypefn Macro int SCM_ARG1
+@deftypefnx Macro int SCM_ARG2
+@deftypefnx Macro int SCM_ARG3
+@deftypefnx Macro int SCM_ARG4
+@deftypefnx Macro int SCM_ARG5
+@deftypefnx Macro int SCM_ARG6
+@deftypefnx Macro int SCM_ARG7
+One of the above values can be used for @var{position} to indicate the
+number of the argument of @var{subr} which is being checked.
+Alternatively, a positive integer number can be used, which allows to
+check arguments after the seventh.  However, for parameter numbers up to
+seven it is preferable to use @code{SCM_ARGN} instead of the
+corresponding raw number, since it will make the code easier to
+understand.
+@end deftypefn
+
+@deftypefn Macro int SCM_ARGn
+Passing a value of zero or @code{SCM_ARGn} for @var{position} allows to
+leave it unspecified which argument's type is incorrect.  Again,
+@code{SCM_ARGn} should be preferred over a raw zero constant.
 @end deftypefn
 
 

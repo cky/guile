@@ -1,0 +1,140 @@
+;;;; sxml.ssax.test                 -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2002,2003,2004 Oleg Kiselyov <oleg at pobox dot com>
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;; Commentary:
+;;
+;; Unit tests for (sxml ssax). You can tweak this harness to get more
+;; debugging information, but in the end I just wanted to keep Oleg's
+;; tests in the file and see if we could work with them directly.
+;;
+;;; Code:
+
+(define-module (test-suite sxml-ssax)
+  #:use-module (sxml ssax input-parse)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-13)
+  #:use-module (sxml ssax)
+  #:use-module (ice-9 pretty-print))
+
+(define pp pretty-print)
+
+(define-macro (import module . symbols)
+  `(begin
+     ,@(map (lambda (sym)
+              `(module-define! (current-module) ',sym (module-ref (resolve-module ',module) ',sym)))
+            symbols)))
+
+;; This list was arrived at over time. See the problem is that SSAX's
+;; test cases are inline with its text, and written in the private
+;; language of SSAX. That is to say, they use procedures that (sxml
+;; ssax) doesn't export. So here we test that the procedures from (sxml
+;; ssax) actually work, but in order to do so we have to pull in private
+;; definitions. It's not the greatest solution, but it's what we got.
+(import (sxml ssax)
+        ssax:read-NCName
+        ssax:read-QName
+        ssax:largest-unres-name
+        ssax:Prefix-XML
+        ssax:resolve-name
+        ssax:scan-Misc
+        ssax:assert-token
+        ssax:handle-parsed-entity
+        ssax:warn
+        ssax:skip-pi
+        ssax:S-chars
+        ssax:skip-S
+        ssax:ncname-starting-char?
+        ssax:define-labeled-arg-macro
+        let*-values
+        ssax:make-parser/positional-args
+        when
+        make-xml-token
+        nl
+        ;unesc-string
+        parser-error
+        ascii->char
+        char->ascii
+        char-newline
+        char-return
+        char-tab
+        name-compare)
+
+(define (cout . args)
+  "Similar to @code{cout << arguments << args}, where @var{argument} can
+be any Scheme object. If it's a procedure (e.g. @code{newline}), it's
+called without args rather than printed."
+  (for-each (lambda (x)
+              (if (procedure? x) (x) (display x)))
+            args))
+
+(define (cerr . args)
+  "Similar to @code{cerr << arguments << args}, where @var{argument} can
+be any Scheme object. If it's a procedure (e.g. @code{newline}), it's
+called without args rather than printed."
+  (format (current-ssax-error-port)
+          ";;; SSAX warning: ~a\n" args))
+
+(define (list-intersperse src-l elem)
+  (if (null? src-l) src-l
+      (let loop ((l (cdr src-l)) (dest (cons (car src-l) '())))
+        (if (null? l) (reverse dest)
+            (loop (cdr l) (cons (car l) (cons elem dest)))))))
+
+(define-syntax failed?
+  (syntax-rules ()
+    ((_ e ...)
+     (not (false-if-exception (begin e ... #t))))))
+
+(define *saved-port* (current-output-port))
+
+(define-syntax assert
+  (syntax-rules ()
+    ((assert expr ...)
+     (with-output-to-port *saved-port*
+       (lambda ()
+         (pass-if '(and expr ...)
+           (let* ((out (open-output-string))
+                  (res (with-output-to-port out
+                         (lambda ()
+                           (with-ssax-error-to-port (current-output-port)
+                                                    (lambda ()
+                                                      (and expr ...)))))))
+             ;; (get-output-string out)
+             res)))))))
+
+(define (load-tests file)
+  (with-input-from-file (%search-load-path file)
+    (lambda ()
+      (let loop ((sexp (read)))
+        (cond
+         ((eof-object? sexp))
+         ((and (pair? sexp) (pair? (cdr sexp))
+               (eq? (cadr sexp) 'run-test))
+          (primitive-eval sexp)
+          (loop (read)))
+         ((and (pair? sexp) (eq? (car sexp) 'run-test))
+          (primitive-eval sexp)
+          (loop (read)))
+         (else
+          (loop (read))))))))
+
+(with-output-to-string
+  (lambda ()
+    (load-tests "sxml/upstream/SSAX.scm")))

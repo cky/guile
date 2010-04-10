@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,7 +24,6 @@
  */
 
 #include "libguile/__scm.h"
-#include "libguile/arrays.h"
 #include "libguile/strings.h"
 #include "libguile/eval.h"
 
@@ -172,16 +171,6 @@ SCM_DEPRECATED SCM scm_read_and_eval_x (SCM port);
 
 #define SCM_SUBR_DOC(x) SCM_BOOL_F
 
-SCM_DEPRECATED SCM scm_make_subr (const char *name, int type, SCM (*fcn) ());
-SCM_DEPRECATED SCM scm_make_subr_with_generic (const char *name,
-					       int type,
-					       SCM (*fcn) (),
-					       SCM *gf);
-SCM_DEPRECATED SCM scm_make_subr_opt (const char *name,
-				      int type,
-				      SCM (*fcn) (),
-				      int set);
-
 SCM_DEPRECATED SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(),
 					     void * closure);
 
@@ -242,7 +231,6 @@ SCM_DEPRECATED SCM scm_gentemp (SCM prefix, SCM obarray);
 #define scm_srcprops_chunk scm_t_srcprops_chunk
 #define scm_array scm_t_array
 #define scm_array_dim scm_t_array_dim
-#define SCM_ARRAY_CONTIGUOUS SCM_ARRAY_FLAG_CONTIGUOUS
 #define SCM_FUNC_NAME (scm_makfrom0str (FUNC_NAME))
 
 #define SCM_WTA(pos, scm) \
@@ -495,6 +483,15 @@ SCM_DEPRECATED scm_t_array_dim *scm_i_array_dims (SCM a);
 #define SCM_ARRAY_BASE(a)  scm_i_array_base(a)
 #define SCM_ARRAY_DIMS(a)  scm_i_array_dims(a)
 
+SCM_DEPRECATED SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
+					      SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
+					     SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
+					     SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
+					    SCM start, SCM end);
+
 /* Deprecated because they should not be lvalues and we want people to
    use the official interfaces.
  */
@@ -605,6 +602,30 @@ SCM_DEPRECATED scm_t_trampoline_2 scm_trampoline_2 (SCM proc);
 #define SCM_PROCEDURE_WITH_SETTER_P(obj) (scm_is_true (scm_procedure_with_setter_p (obj)))
 #define SCM_PROCEDURE(obj) SCM_STRUCT_PROCEDURE (obj, 0)
 #define SCM_SETTER(obj) SCM_STRUCT_SETTER (obj, 1)
+
+
+
+/* Deprecated 2010-01-05, use SCM_PRIMITIVE_P instead */
+SCM_DEPRECATED int scm_i_subr_p (SCM x);
+#define scm_subr_p(x) (scm_i_subr_p (x))
+
+
+
+/* Deprecated 2010-01-31, use with-throw-handler instead */
+SCM_DEPRECATED SCM scm_lazy_catch (SCM tag, SCM thunk, SCM handler);
+SCM_DEPRECATED SCM scm_internal_lazy_catch (SCM tag,
+                                            scm_t_catch_body body,
+                                            void *body_data,
+                                            scm_t_catch_handler handler,
+                                            void *handler_data);
+
+
+
+/* Deprecated 2010-03-31, use array-equal? instead */
+SCM_DEPRECATED SCM scm_raequal (SCM ra0, SCM ra1);
+
+/* Deprecated 2010-04-01, use the dynamic FFI instead */
+SCM_DEPRECATED SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
 
 

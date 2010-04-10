@@ -23,6 +23,9 @@
 
 #include "libguile/__scm.h"
 
+SCM_API SCM scm_make_srfi_4_vector (SCM type, SCM len, SCM fill);
+
+
 /* Specific procedures.
  */
 

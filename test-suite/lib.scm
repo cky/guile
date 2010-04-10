@@ -1,5 +1,5 @@
 ;;;; test-suite/lib.scm --- generic support for testing
-;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,9 +19,11 @@
 (define-module (test-suite lib)
   :use-module (ice-9 stack-catch)
   :use-module (ice-9 regex)
+  :autoload   (srfi srfi-1)  (append-map)
   :export (
 
  ;; Exceptions which are commonly being tested for.
+ exception:syntax-pattern-unmatched
  exception:bad-variable
  exception:missing-expression
  exception:out-of-range exception:unbound-var
@@ -30,9 +32,11 @@
  exception:numerical-overflow
  exception:struct-set!-denied
  exception:system-error
+ exception:encoding-error
  exception:miscellaneous-error
  exception:string-contains-nul
  exception:read-error
+ exception:null-pointer-error
 
  ;; Reporting passes and failures.
  run-test
@@ -46,8 +50,8 @@
  ;; Using the debugging evaluator.
  with-debugging-evaluator with-debugging-evaluator*
 
-;; Using a given locale
-with-locale with-locale*
+ ;; Using a given locale
+ with-locale with-locale* with-latin1-locale with-latin1-locale*
 
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
@@ -247,6 +251,8 @@ with-locale with-locale*
 ;;;;
 
 ;;; Define some exceptions which are commonly being tested for.
+(define exception:syntax-pattern-unmatched
+  (cons 'syntax-error "source expression failed to match any pattern"))
 (define exception:bad-variable
   (cons 'syntax-error "Bad variable"))
 (define exception:missing-expression
@@ -267,10 +273,14 @@ with-locale with-locale*
   (cons 'misc-error "^set! denied for field"))
 (define exception:system-error
   (cons 'system-error ".*"))
+(define exception:encoding-error
+  (cons 'encoding-error "(cannot convert to output locale|input locale conversion error)"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
 (define exception:read-error
   (cons 'read-error "^.*$"))
+(define exception:null-pointer-error
+  (cons 'null-pointer-error "^.*$"))
 
 ;; as per throw in scm_to_locale_stringn()
 (define exception:string-contains-nul
@@ -389,15 +399,18 @@ with-locale with-locale*
 
 ;;;; Turn a test name into a nice human-readable string.
 (define (format-test-name name)
-  (call-with-output-string
-   (lambda (port)
-     (let loop ((name name)
-		(separator ""))
-       (if (pair? name)
-	   (begin
-	     (display separator port)
-	     (display (car name) port)
-	     (loop (cdr name) ": ")))))))
+  ;; Choose a Unicode-capable encoding so that the string port can contain any
+  ;; valid Unicode character.
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    (call-with-output-string
+     (lambda (port)
+       (let loop ((name name)
+                  (separator ""))
+         (if (pair? name)
+             (begin
+               (display separator port)
+               (display (car name) port)
+               (loop (cdr name) ": "))))))))
 
 ;;;; For a given test-name, deliver the full name including all prefixes.
 (define (full-name name)
@@ -447,19 +460,48 @@ with-locale with-locale*
 	(lambda ()
           (if (defined? 'setlocale)
               (begin
-                (set! loc 
-                      (false-if-exception (setlocale LC_ALL nloc)))
-                (if (not loc)
+                (set! loc (false-if-exception (setlocale LC_ALL)))
+                (if (or (not loc)
+                        (not (false-if-exception (setlocale LC_ALL nloc))))
                     (throw 'unresolved)))
               (throw 'unresolved)))
 	thunk
 	(lambda ()
-          (if (defined? 'setlocale)
+          (if (and (defined? 'setlocale) loc)
               (setlocale LC_ALL loc))))))
 
 ;;; Evaluate BODY... using the given locale.
-(define-macro (with-locale loc . body)
-  `(with-locale* ,loc (lambda () ,@body)))
+(define-syntax with-locale
+  (syntax-rules ()
+    ((_ loc body ...)
+     (with-locale* loc (lambda () body ...)))))
+
+;;; Try out several ISO-8859-1 locales and run THUNK under the one that works
+;;; (if any).
+(define (with-latin1-locale* thunk)
+  (define %locales
+    (append-map (lambda (name)
+                  (list (string-append name ".ISO-8859-1")
+                        (string-append name ".iso88591")
+                        (string-append name ".ISO8859-1")))
+                '("ca_ES" "da_DK" "de_DE" "es_ES" "es_MX" "en_GB" "en_US"
+                  "fr_FR" "pt_PT" "nl_NL" "sv_SE")))
+
+  (let loop ((locales %locales))
+    (if (null? locales)
+        (throw 'unresolved)
+        (catch 'unresolved
+          (lambda ()
+            (with-locale* (car locales) thunk))
+          (lambda (key . args)
+            (loop (cdr locales)))))))
+
+;;; Evaluate BODY... using an ISO-8859-1 locale or throw `unresolved' if none
+;;; was found.
+(define-syntax with-latin1-locale
+  (syntax-rules ()
+    ((_ body ...)
+     (with-latin1-locale* (lambda () body ...)))))
 
 
 ;;;; REPORTERS

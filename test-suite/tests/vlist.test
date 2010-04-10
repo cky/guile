@@ -1,0 +1,303 @@
+;;;; vlist.test --- VLists.       -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; Ludovic Courtès <ludo@gnu.org>
+;;;;
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-vlist)
+  :use-module (test-suite lib)
+  :use-module (ice-9 vlist)
+  :use-module (srfi srfi-1))
+
+
+;;;
+;;; VLists.
+;;;
+
+(with-test-prefix "vlist"
+
+  (pass-if "vlist?"
+    (and (vlist? vlist-null)
+         (vlist? (vlist-cons 'a vlist-null))))
+
+  (pass-if "vlist-null?"
+    (vlist-null? vlist-null))
+
+  (pass-if "vlist-cons"
+    (let* ((v1 (vlist-cons 1 vlist-null))
+           (v2 (vlist-cons 2 v1))
+           (v3 (vlist-cons 3 v2))
+           (v4 (vlist-cons 4 v3)))
+      (every vlist? (list v1 v2 v3 v4))))
+
+  (pass-if "vlist-head"
+    (let* ((v1 (vlist-cons 1 vlist-null))
+           (v2 (vlist-cons 2 v1))
+           (v3 (vlist-cons 3 v2))
+           (v4 (vlist-cons 4 v3)))
+      (equal? (map vlist-head (list v1 v2 v3 v4))
+              '(1 2 3 4))))
+
+  (pass-if "vlist-tail"
+    (let* ((v1 (vlist-cons 1 vlist-null))
+           (v2 (vlist-cons 2 v1))
+           (v3 (vlist-cons 3 v2))
+           (v4 (vlist-cons 4 v3)))
+      (equal? (map vlist-head
+                   (map vlist-tail (list v2 v3 v4)))
+              '(1 2 3))))
+
+  (pass-if "vlist->list"
+    (let* ((v1 (vlist-cons 1 vlist-null))
+           (v2 (vlist-cons 2 v1))
+           (v3 (vlist-cons 3 v2))
+           (v4 (vlist-cons 4 v3)))
+      (equal? '(4 3 2 1)
+              (vlist->list v4))))
+
+  (pass-if "list->vlist"
+    (equal? (vlist->list (list->vlist '(1 2 3 4 5)))
+            '(1 2 3 4 5)))
+
+  (pass-if "vlist-drop"
+    (equal? (vlist->list (vlist-drop (list->vlist (iota 77)) 7))
+            (drop (iota 77) 7)))
+
+  (pass-if "vlist-cons2"
+    ;; Example from Bagwell's paper, Figure 2.
+    (let* ((top  (list->vlist '(8 7 6 5 4 3)))
+           (part (vlist-tail (vlist-tail top)))
+           (test (vlist-cons 9 part)))
+      (equal? (vlist->list test)
+              '(9 6 5 4 3))))
+
+  (pass-if "vlist-cons3"
+    (let ((vlst (vlist-cons 'a
+                            (vlist-cons 'b
+                                        (vlist-drop (list->vlist (iota 5))
+                                                    3)))))
+      (equal? (vlist->list vlst)
+              '(a b 3 4))))
+
+  (pass-if "vlist-map"
+    (equal? (vlist->list (vlist-map 1+ (list->vlist '(1 2 3 4 5))))
+            '(2 3 4 5 6)))
+
+  (pass-if "vlist-length"
+    (= (vlist-length (list->vlist (iota 77)))
+       77))
+
+  (pass-if "vlist-length complex"
+    (= (vlist-length (fold vlist-cons
+                           (vlist-drop (list->vlist (iota 77)) 33)
+                           (iota (- 33 7))))
+       70))
+
+  (pass-if "vlist-ref"
+    (let* ((indices (iota 111))
+           (vlst    (list->vlist indices)))
+      (equal? (map (lambda (i)
+                     (vlist-ref vlst i))
+                   indices)
+              indices)))
+
+  (pass-if "vlist-ref degenerate"
+    ;; Degenerate case where VLST contains only 1-element blocks.
+    (let* ((indices (iota 111))
+           (vlst    (fold (lambda (i vl)
+                            (let ((vl (vlist-cons 'x vl)))
+                              (vlist-cons i (vlist-tail vl))))
+                          vlist-null
+                          indices)))
+      (equal? (map (lambda (i)
+                     (vlist-ref vlst i))
+                   (reverse indices))
+              indices)))
+
+  (pass-if "vlist-filter"
+    (let* ((lst  (iota 33))
+           (vlst (fold-right vlist-cons vlist-null lst)))
+      (equal? (vlist->list (vlist-filter even? vlst))
+              (filter even? lst))))
+
+  (pass-if "vlist-delete"
+    (let* ((lst  '(a b c d e))
+           (vlst (fold-right vlist-cons vlist-null lst)))
+      (equal? (vlist->list (vlist-delete 'c vlst))
+              (delete 'c lst))))
+
+  (pass-if "vlist-take"
+    (let* ((lst  (iota 77))
+           (vlst (fold-right vlist-cons vlist-null lst)))
+      (equal? (vlist->list (vlist-take vlst 44))
+              (take lst 44))))
+
+  (pass-if "vlist-unfold"
+    (let ((results (map (lambda (unfold)
+                          (unfold (lambda (i) (> i 100))
+                                  (lambda (i) i)
+                                  (lambda (i) (+ i 1))
+                                  0))
+                        (list unfold vlist-unfold))))
+      (equal? (car results)
+              (vlist->list (cadr results)))))
+
+  (pass-if "vlist-append"
+    (let* ((lists '((a) (b c) (d e f) (g)))
+           (vlst  (apply vlist-append (map list->vlist lists)))
+           (lst   (apply append lists)))
+      (equal? lst (vlist->list vlst)))))
+
+
+;;;
+;;; VHash.
+;;;
+
+(with-test-prefix "vhash"
+
+  (pass-if "vhash?"
+    (vhash? (vhash-cons "hello" "world" vlist-null)))
+
+  (pass-if "vhash-assoc vlist-null"
+    (not (vhash-assq 'a vlist-null)))
+
+  (pass-if "vhash-assoc simple"
+    (let ((vh (vhash-cons "hello" "world" vlist-null)))
+      (equal? (cons "hello" "world")
+              (vhash-assoc "hello" vh))))
+
+  (pass-if "vhash-assoc regular"
+    (let* ((keys   '(a b c d e f g h i))
+           (values '(1 2 3 4 5 6 7 8 9))
+           (vh     (fold vhash-cons vlist-null keys values)))
+      (fold (lambda (k v result)
+              (and result
+                   (equal? (cons k v)
+                           (vhash-assoc k vh eq?))))
+            #t
+            keys
+            values)))
+
+  (pass-if "vhash-assoc tail"
+    (let* ((keys   '(a b c d e f g h i))
+           (values '(1 2 3 4 5 6 7 8 9))
+           (vh1    (fold vhash-consq vlist-null keys values))
+           (vh2    (vhash-consq 'x 'x (vlist-tail vh1))))
+      (and (fold (lambda (k v result)
+                   (and result
+                        (equal? (cons k v)
+                                (vhash-assq k vh2))))
+                 #t
+                 (cons 'x (delq 'i keys))
+                 (cons 'x (delv 9 values)))
+           (not (vhash-assq 'i  vh2)))))
+
+  (pass-if "vhash-assoc degenerate"
+    (let* ((keys   '(a b c d e f g h i))
+           (values '(1 2 3 4 5 6 7 8 9))
+           (vh     (fold (lambda (k v vh)
+                           ;; Degenerate case where VH2 contains only
+                           ;; 1-element blocks.
+                           (let* ((vh1 (vhash-cons 'x 'x vh))
+                                  (vh2 (vlist-tail vh1)))
+                             (vhash-cons k v vh2)))
+                         vlist-null keys values)))
+      (and (fold (lambda (k v result)
+                   (and result
+                        (equal? (cons k v)
+                                (vhash-assq k vh))))
+                 #t
+                 keys
+                 values)
+           (not (vhash-assq 'x vh)))))
+
+  (pass-if "vhash as vlist"
+    (let* ((keys   '(a b c d e f g h i))
+           (values '(1 2 3 4 5 6 7 8 9))
+           (vh     (fold vhash-cons vlist-null keys values))
+           (alist  (fold alist-cons '() keys values)))
+      (and (equal? (vlist->list vh) alist)
+           (= (length alist) (vlist-length vh))
+           (fold (lambda (i result)
+                   (and result
+                        (equal? (list-ref alist i)
+                                (vlist-ref vh i))))
+                 #t
+                 (iota (vlist-length vh))))))
+
+  (pass-if "vhash entry shadowed"
+    (let* ((a (vhash-consq 'a 1 vlist-null))
+           (b (vhash-consq 'a 2 a)))
+      (and (= 1 (cdr (vhash-assq 'a a)))
+           (= 2 (cdr (vhash-assq 'a b)))
+           (= 1 (cdr (vhash-assq 'a (vlist-tail b)))))))
+
+  (pass-if "vlist-filter"
+    (let* ((keys   '(a b c d e f g h i))
+           (values '(1 2 3 4 5 6 7 8 9))
+           (vh     (fold vhash-cons vlist-null keys values))
+           (alist  (fold alist-cons '() keys values))
+           (pred   (lambda (k+v)
+                     (case (car k+v)
+                       ((c f) #f)
+                       (else  #t)))))
+      (let ((vh    (vlist-filter pred vh))
+            (alist (filter pred alist)))
+        (and (equal? (vlist->list vh) alist)
+             (= (length alist) (vlist-length vh))
+             (fold (lambda (i result)
+                     (and result
+                          (equal? (list-ref alist i)
+                                  (vlist-ref vh i))))
+                   #t
+                   (iota (vlist-length vh)))))))
+
+  (pass-if "vhash-delete"
+    (let* ((keys   '(a b c d e f g d h i))
+           (values '(1 2 3 4 5 6 7 0 8 9))
+           (vh     (fold vhash-cons vlist-null keys values))
+           (alist  (fold alist-cons '() keys values)))
+      (let ((vh    (vhash-delete 'd vh))
+            (alist (alist-delete 'd alist)))
+        (and (= (length alist) (vlist-length vh))
+             (fold (lambda (k result)
+                     (and result
+                          (equal? (assq k alist)
+                                  (vhash-assoc k vh eq?))))
+                   #t
+                   keys)))))
+
+  (pass-if "vhash-fold"
+    (let* ((keys   '(a b c d e f g d h i))
+           (values '(1 2 3 4 5 6 7 0 8 9))
+           (vh     (fold vhash-cons vlist-null keys values))
+           (alist  (fold alist-cons '() keys values)))
+      (equal? alist (reverse (vhash-fold alist-cons '() vh)))))
+
+  (pass-if "alist->vhash"
+    (let* ((keys   '(a b c d e f g d h i))
+           (values '(1 2 3 4 5 6 7 0 8 9))
+           (alist  (fold alist-cons '() keys values))
+           (vh     (alist->vhash alist))
+           (alist2 (vlist-fold cons '() vh)))
+      (and (equal? alist (reverse alist2))
+           (fold (lambda (k result)
+                   (and result
+                        (equal? (assq k alist)
+                                (vhash-assoc k vh eq?))))
+                 #t
+                 keys)))))

@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -333,13 +333,20 @@
              arities))
 
     ((<glil-mv-bind> vars rest)
-     (values `((truncate-values ,(length vars) ,(if rest 1 0)))
-             (open-binding bindings vars addr)
-             source-alist
-             label-alist
-             object-alist
-             arities))
-
+     (if (integer? vars)
+         (values `((truncate-values ,vars ,(if rest 1 0)))
+                 bindings
+                 source-alist
+                 label-alist
+                 object-alist
+                 arities)
+         (values `((truncate-values ,(length vars) ,(if rest 1 0)))
+                 (open-binding bindings vars addr)
+                 source-alist
+                 label-alist
+                 object-alist
+                 arities)))
+    
     ((<glil-unbind>)
      (values '()
              (close-binding bindings addr)
@@ -512,7 +519,10 @@
               (error "Wrong number of stack arguments to instruction:" inst nargs)))))
 
     ((<glil-mv-call> nargs ra)
-     (emit-code `((mv-call ,nargs ,ra))))))
+     (emit-code `((mv-call ,nargs ,ra))))
+
+    ((<glil-prompt> label escape-only?)
+     (emit-code `((prompt ,(if escape-only? 1 0) ,label))))))
 
 (define (dump-object x addr)
   (define (too-long x)
@@ -558,7 +568,8 @@
       `(,@kar
         ,@(dump-object (cdr x) (addr+ addr kar))
         (cons))))
-   ((vector? x)
+   ((and (vector? x)
+         (equal? (array-shape x) (list (list 0 (1- (vector-length x))))))
     (let* ((len (vector-length x))
            (tail (if (>= len 65536)
                      (too-long "vector")
@@ -579,6 +590,21 @@
            (addr+ (addr+ addr type) shape)
            8
            4))))
+   ((array? x)
+    ;; an array of generic scheme values
+    (let* ((contents (array-contents x))
+           (len (vector-length contents)))
+      (let dump-objects ((i 0) (codes '()) (addr addr))
+        (if (< i len)
+            (let ((code (dump-object (vector-ref contents i) addr)))
+              (dump-objects (1+ i) (cons code codes)
+                            (addr+ addr code)))
+            (fold append
+                  `(,@(dump-object (array-shape x) addr)
+                    (make-array ,(quotient (ash len -16) 256)
+                                ,(logand #xff (ash len -8))
+                                ,(logand #xff len)))
+                  codes)))))
    (else
     (error "assemble: unrecognized object" x))))
 

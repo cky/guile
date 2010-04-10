@@ -1,4 +1,4 @@
-/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -457,8 +457,6 @@ scm_compile_shell_switches (int argc, char **argv)
   int use_emacs_interface = 0;
   int turn_on_debugging = 0;
   int dont_turn_on_debugging = 0;
-  int turn_on_autocompile = 0;
-  int dont_turn_on_autocompile = 0;
 
   int i;
   char *argv0 = guile;
@@ -595,17 +593,15 @@ scm_compile_shell_switches (int argc, char **argv)
 	  turn_on_debugging = 0;
 	}
 
+      /* Do autocompile on/off now, because the form itself might need this
+         decision. */
       else if (! strcmp (argv[i], "--autocompile"))
-	{
-	  turn_on_autocompile = 1;
-	  dont_turn_on_autocompile = 0;
-	}
+        scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
+                            SCM_BOOL_T);
 
       else if (! strcmp (argv[i], "--no-autocompile"))
-	{
-	  dont_turn_on_autocompile = 1;
-	  turn_on_autocompile = 0;
-	}
+        scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
+                            SCM_BOOL_F);
 
       else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
 	use_emacs_interface = 1;
@@ -720,16 +716,6 @@ scm_compile_shell_switches (int argc, char **argv)
       tail = scm_cons (scm_cons (sym_load_user_init, SCM_EOL), tail);
     }
 
-  /* If GUILE_AUTO_COMPILE is not set and no args are given, default to
-     autocompilation. */
-  if (turn_on_autocompile || (scm_getenv_int ("GUILE_AUTO_COMPILE", 1)
-                              && !dont_turn_on_autocompile))
-    {
-      tail = scm_cons (scm_list_3 (sym_set_x, sym_sys_load_should_autocompile,
-                                   SCM_BOOL_T),
-                       tail);
-    }
-
   /* If debugging was requested, or we are interactive and debugging
      was not explicitly turned off, turn on debugging. */
   if (turn_on_debugging || (interactive && !dont_turn_on_debugging))
@@ -739,6 +725,13 @@ scm_compile_shell_switches (int argc, char **argv)
 
   {
     SCM val = scm_cons (sym_begin, tail);
+
+    /* Wrap the expression in a prompt. */
+    val = scm_list_2 (scm_list_3 (scm_sym_at,
+                                      scm_list_2 (scm_from_locale_symbol ("ice-9"),
+                                                  scm_from_locale_symbol ("control")),
+                                      scm_from_locale_symbol ("%")),
+                      val);
 
 #if 0
     scm_write (val, SCM_UNDEFINED);

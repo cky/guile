@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Software Foundation, Inc.
+## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -21,9 +21,11 @@
 
 SUBDIRS = standalone
 
-SCM_TESTS = tests/alist.test			\
+SCM_TESTS = tests/00-initial-env.test		\
+            tests/alist.test			\
 	    tests/and-let-star.test		\
 	    tests/arbiters.test			\
+	    tests/arrays.test			\
 	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
 	    tests/brainfuck.test		\
@@ -31,13 +33,18 @@ SCM_TESTS = tests/alist.test			\
 	    tests/c-api.test			\
 	    tests/chars.test			\
 	    tests/common-list.test		\
+	    tests/control.test			\
 	    tests/continuations.test		\
+	    tests/curried-definitions.test	\
+	    tests/ecmascript.test		\
 	    tests/elisp.test			\
 	    tests/elisp-compiler.test		\
 	    tests/elisp-reader.test		\
 	    tests/eval.test			\
 	    tests/exceptions.test		\
 	    tests/filesys.test			\
+	    tests/fluids.test			\
+	    tests/foreign.test			\
 	    tests/format.test			\
 	    tests/fractions.test		\
 	    tests/ftw.test			\
@@ -55,9 +62,11 @@ SCM_TESTS = tests/alist.test			\
 	    tests/load.test			\
 	    tests/modules.test			\
 	    tests/multilingual.nottest		\
+	    tests/net-db.test			\
 	    tests/numbers.test			\
 	    tests/optargs.test			\
 	    tests/options.test			\
+	    tests/print.test			\
 	    tests/procprop.test			\
 	    tests/poe.test			\
 	    tests/popen.test			\
@@ -92,16 +101,68 @@ SCM_TESTS = tests/alist.test			\
 	    tests/srfi-88.test			\
 	    tests/srfi-4.test			\
 	    tests/srfi-9.test			\
+	    tests/statprof.test			\
 	    tests/strings.test			\
 	    tests/structs.test			\
+	    tests/sxml.fold.test		\
+	    tests/sxml.ssax.test		\
+	    tests/sxml.transform.test		\
+	    tests/sxml.xpath.test		\
 	    tests/symbols.test			\
 	    tests/syncase.test			\
 	    tests/syntax.test			\
+	    tests/texinfo.test			\
+	    tests/texinfo.docbook.test		\
+	    tests/texinfo.serialize.test	\
+	    tests/texinfo.string-utils.test	\
 	    tests/threads.test			\
 	    tests/time.test			\
 	    tests/tree-il.test			\
-	    tests/unif.test			\
 	    tests/version.test			\
+	    tests/vlist.test			\
 	    tests/weaks.test
 
 EXTRA_DIST = guile-test lib.scm $(SCM_TESTS) ChangeLog-2008
+
+
+# Test suite of Dominique Boucher's `lalr-scm'.
+# From http://code.google.com/p/lalr-scm/.
+
+LALR_TESTS =					\
+  lalr/test-glr-associativity.scm		\
+  lalr/test-glr-basics-01.scm			\
+  lalr/test-glr-basics-02.scm			\
+  lalr/test-glr-basics-03.scm			\
+  lalr/test-glr-basics-04.scm			\
+  lalr/test-glr-basics-05.scm			\
+  lalr/test-glr-script-expression.scm		\
+  lalr/test-glr-single-expressions.scm		\
+						\
+  lalr/test-lr-associativity-01.scm		\
+  lalr/test-lr-basics-01.scm			\
+  lalr/test-lr-basics-02.scm			\
+  lalr/test-lr-basics-03.scm			\
+  lalr/test-lr-basics-04.scm			\
+  lalr/test-lr-basics-05.scm			\
+  lalr/test-lr-error-recovery-01.scm		\
+  lalr/test-lr-error-recovery-02.scm		\
+  lalr/test-lr-no-clause.scm			\
+  lalr/test-lr-script-expression.scm		\
+  lalr/test-lr-single-expressions.scm
+
+# Tests not listed in `run-guile-test.sh' and which should not be run.
+LALR_EXTRA =					\
+  lalr/test-lr-associativity-02.scm		\
+  lalr/test-lr-associativity-03.scm		\
+  lalr/test-lr-associativity-04.scm
+
+# Test framework.
+LALR_EXTRA +=					\
+  lalr/common-test.scm				\
+  lalr/glr-test.scm				\
+  lalr/run-guile-test.sh
+
+TESTS = $(LALR_TESTS)
+TESTS_ENVIRONMENT = $(top_builddir)/meta/guile --no-autocompile
+
+EXTRA_DIST += $(LALR_EXTRA) $(LALR_TESTS)

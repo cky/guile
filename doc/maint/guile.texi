@@ -2130,7 +2130,7 @@ all necessary initialization information.
 @c snarfed from goops.c:2318
 @deffn {Scheme Procedure} %method-more-specific? m1 m2 targs
 @deffnx {C Function} scm_sys_method_more_specific_p (m1, m2, targs)
-
+Return true if method @var{m1} is more specific than @var{m2} given the argument types (classes) listed in @var{targs}.
 @end deffn
 
 %goops-loaded
@@ -3220,19 +3220,19 @@ environment.  For example:
 @c snarfed from macros.c:165
 @deffn {Scheme Procedure} macro? obj
 @deffnx {C Function} scm_macro_p (obj)
-Return @code{#t} if @var{obj} is a regular macro, a memoizing macro or a
-syntax transformer.
+Return @code{#t} if @var{obj} is a regular macro, a memoizing macro, a
+syntax transformer, or a syntax-case macro.
 @end deffn
 
 macro-type
 @c snarfed from macros.c:186
 @deffn {Scheme Procedure} macro-type m
 @deffnx {C Function} scm_macro_type (m)
-Return one of the symbols @code{syntax}, @code{macro} or
-@code{macro!}, depending on whether @var{m} is a syntax
-transformer, a regular macro, or a memoizing macro,
-respectively.  If @var{m} is not a macro, @code{#f} is
-returned.
+Return one of the symbols @code{syntax}, @code{macro},
+@code{macro!}, or @code{syntax-case}, depending on whether
+@var{m} is a syntax transformer, a regular macro, a memoizing
+macro, or a syntax-case macro, respectively.  If @var{m} is
+not a macro, @code{#f} is returned.
 @end deffn
 
 macro-name
@@ -3300,7 +3300,7 @@ Return a interface eval closure for the module @var{module}. Such a closure does
 @c snarfed from modules.c:399
 @deffn {Scheme Procedure} module-import-interface module sym
 @deffnx {C Function} scm_module_import_interface (module, sym)
-
+Return the module or interface from which @var{sym} is imported in @var{module}.  If @var{sym} is not imported (i.e., it is not defined in @var{module} or it is a module-local binding instead of an imported one), then @code{#f} is returned.
 @end deffn
 
 %get-pre-modules-obarray
@@ -3689,10 +3689,9 @@ procedure does not accept complex arguments.
 
 make-rectangular
 @c snarfed from numbers.c:5286
-@deffn {Scheme Procedure} make-rectangular real imaginary
-@deffnx {C Function} scm_make_rectangular (real, imaginary)
-Return a complex number constructed of the given @var{real} and
-@var{imaginary} parts.
+@deffn {Scheme Procedure} make-rectangular real_part imaginary_part
+@deffnx {C Function} scm_make_rectangular (real_part, imaginary_part)
+Return a complex number constructed of the given @var{real-part} and @var{imaginary-part} parts.
 @end deffn
 
 make-polar
@@ -4361,8 +4360,8 @@ with the associated setter @var{setter}.
 @c snarfed from procs.c:308
 @deffn {Scheme Procedure} procedure proc
 @deffnx {C Function} scm_procedure (proc)
-Return the procedure of @var{proc}, which must be either a
-procedure with setter, or an operator struct.
+Return the procedure of @var{proc}, which must be an
+applicable struct.
 @end deffn
 
 primitive-make-property
@@ -4566,7 +4565,9 @@ Install the procedure @var{proc} for reading expressions
 starting with the character sequence @code{#} and @var{chr}.
 @var{proc} will be called with two arguments:  the character
 @var{chr} and the port to read further data from. The object
-returned will be the return value of @code{read}.
+returned will be the return value of @code{read}. 
+Passing @code{#f} for @var{proc} will remove a previous setting. 
+
 @end deffn
 
 call-with-dynamic-root
@@ -5438,30 +5439,23 @@ Return the number of elements in the uniform vector @var{v}.
 
 uniform-vector-read!
 @c snarfed from srfi-4.c:845
-@deffn {Scheme Procedure} uniform-vector-read! uvec [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_vector_read_x (uvec, port_or_fd, start, end)
-Fill the elements of @var{uvec} by reading
-raw bytes from @var{port-or-fdes}, using host byte order.
+@deffn {Scheme Procedure} uniform-array-read! ura [port_or_fd [start [end]]]
+@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]
+@deffnx {C Function} scm_uniform_array_read_x (ura, port_or_fd, start, end)
+Attempt to read all elements of @var{ura}, in lexicographic order, as
+binary objects from @var{port-or-fdes}.
+If an end of file is encountered,
+the objects up to that point are put into @var{ura}
+(starting at the beginning) and the remainder of the array is
+unchanged.
 
-The optional arguments @var{start} (inclusive) and @var{end}
-(exclusive) allow a specified region to be read,
+The optional arguments @var{start} and @var{end} allow
+a specified region of a vector (or linearized array) to be read,
 leaving the remainder of the vector unchanged.
 
-When @var{port-or-fdes} is a port, all specified elements
-of @var{uvec} are attempted to be read, potentially blocking
-while waiting formore input or end-of-file.
-When @var{port-or-fd} is an integer, a single call to
-read(2) is made.
-
-An error is signalled when the last element has only
-been partially filled before reaching end-of-file or in
-the single call to read(2).
-
-@code{uniform-vector-read!} returns the number of elements
-read.
-
-@var{port-or-fdes} may be omitted, in which case it defaults
-to the value returned by @code{(current-input-port)}.
+@code{uniform-array-read!} returns the number of objects read.
+@var{port-or-fdes} may be omitted, in which case it defaults to the value
+returned by @code{(current-input-port)}.
 @end deffn
 
 uniform-vector-write
@@ -6671,8 +6665,9 @@ mismatch index, depending upon whether @var{s1} is less than,
 equal to, or greater than @var{s2}.  The mismatch index is the
 largest index @var{i} such that for every 0 <= @var{j} <
 @var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
-@var{i} is the first position that does not match.  The
-character comparison is done case-insensitively.
+@var{i} is the first position where the lowercased letters 
+do not match.
+
 @end deffn
 
 string=
@@ -7090,8 +7085,8 @@ operate on.  The return value is unspecified.
 
 string-append/shared
 @c snarfed from srfi-13.c:2635
-@deffn {Scheme Procedure} string-append/shared . ls
-@deffnx {C Function} scm_string_append_shared (ls)
+@deffn {Scheme Procedure} string-append/shared . rest
+@deffnx {C Function} scm_string_append_shared (rest)
 Like @code{string-append}, but the result may share memory
 with the argument strings.
 @end deffn
@@ -7749,7 +7744,8 @@ character sets.
 
 string=?
 @c snarfed from strorder.c:50
-@deffn {Scheme Procedure} string=? s1 s2
+@deffn {Scheme Procedure} string=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_equal_p (s1, s2, rest)
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
 the same positions, otherwise return @code{#f}.
@@ -7762,7 +7758,8 @@ characters.
 
 string-ci=?
 @c snarfed from strorder.c:62
-@deffn {Scheme Procedure} string-ci=? s1 s2
+@deffn {Scheme Procedure} string-ci=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_equal_p (s1, s2, rest)
 Case-insensitive string equality predicate; return @code{#t} if
 the two strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
@@ -7771,35 +7768,40 @@ return @code{#f}.
 
 string<?
 @c snarfed from strorder.c:72
-@deffn {Scheme Procedure} string<? s1 s2
+@deffn {Scheme Procedure} string<? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_less_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than @var{s2}.
 @end deffn
 
 string<=?
 @c snarfed from strorder.c:82
-@deffn {Scheme Procedure} string<=? s1 s2
+@deffn {Scheme Procedure} string<=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_leq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 string>?
 @c snarfed from strorder.c:92
-@deffn {Scheme Procedure} string>? s1 s2
+@deffn {Scheme Procedure} string>? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_gr_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
 string>=?
 @c snarfed from strorder.c:102
-@deffn {Scheme Procedure} string>=? s1 s2
+@deffn {Scheme Procedure} string>=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_geq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 string-ci<?
 @c snarfed from strorder.c:113
-@deffn {Scheme Procedure} string-ci<? s1 s2
+@deffn {Scheme Procedure} string-ci<? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_less_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
 regardless of case.
@@ -7807,7 +7809,8 @@ regardless of case.
 
 string-ci<=?
 @c snarfed from strorder.c:124
-@deffn {Scheme Procedure} string-ci<=? s1 s2
+@deffn {Scheme Procedure} string-ci<=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_leq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than or equal
 to @var{s2} regardless of case.
@@ -7815,7 +7818,8 @@ to @var{s2} regardless of case.
 
 string-ci>?
 @c snarfed from strorder.c:135
-@deffn {Scheme Procedure} string-ci>? s1 s2
+@deffn {Scheme Procedure} string-ci>? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_gr_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than
 @var{s2} regardless of case.
@@ -7823,7 +7827,8 @@ Case insensitive lexicographic ordering predicate; return
 
 string-ci>=?
 @c snarfed from strorder.c:146
-@deffn {Scheme Procedure} string-ci>=? s1 s2
+@deffn {Scheme Procedure} string-ci>=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_geq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than or
 equal to @var{s2} regardless of case.

@@ -1,0 +1,74 @@
+;;;; ecmascript.test --- ECMAScript.      -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-ecmascript)
+  #:use-module (test-suite lib)
+  #:use-module (language ecmascript parse)
+  #:use-module ((system base compile) #:select (compile)))
+
+
+(define (eread str)
+  (call-with-input-string str read-ecmascript))
+
+(define-syntax parse
+  (syntax-rules ()
+    ((_ expression expected)
+     (pass-if expression
+       (equal? expected (eread expression))))))
+
+(with-test-prefix "parser"
+
+  (parse "true;" 'true)
+  (parse "2 + 2;" '(+ (number 2) (number 2)))
+  (parse "\"hello\";" '(string "hello"))
+  (parse "function square(x) { return x * x; }"
+         '(var (square (lambda (x) (return (* (ref x) (ref x)))))))
+  (parse "document.write('Hello, world!');"
+         '(call (pref (ref document) write) ((string "Hello, world!"))))
+  (parse "var x = { foo: 12, bar: \"hello\" };"
+         '(begin (var (x (object (foo (number 12))
+                                 (bar (string "hello")))))
+                 (begin))))
+
+
+(define-syntax ecompile
+  (syntax-rules ()
+    ((_ expression expected)
+     (pass-if expression
+       (equal? expected
+               (compile (call-with-input-string expression read-ecmascript)
+                        #:from 'ecmascript
+                        #:to 'value))))))
+
+(with-test-prefix "compiler"
+
+  (ecompile "true;" #t)
+  (ecompile "2 + 2;" 4)
+  (ecompile "\"hello\";" "hello")
+
+  ;; FIXME: Broken!
+  ;; (ecompile "[1,2,3,4].map(function(x) { return x * x; });"
+  ;;           '(1 4 9 16))
+
+  ;; Examples from
+  ;; <http://wingolog.org/archives/2009/02/22/ecmascript-for-guile>.
+
+  (ecompile "42 + \" good times!\";"
+            "42 good times!")
+  (ecompile "[0,1,2,3,4,5].length * 7;"
+            42))

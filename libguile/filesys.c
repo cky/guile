@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -43,7 +43,6 @@
 #include "libguile/iselect.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
-#include "libguile/lang.h"
 #include "libguile/dynwind.h"
 
 #include "libguile/validate.h"
@@ -405,7 +404,7 @@ SCM_SYMBOL (scm_sym_unknown, "unknown");
 static SCM 
 scm_stat2scm (struct stat_or_stat64 *stat_temp)
 {
-  SCM ans = scm_c_make_vector (15, SCM_UNSPECIFIED);
+  SCM ans = scm_c_make_vector (18, SCM_UNSPECIFIED);
   
   SCM_SIMPLE_VECTOR_SET(ans, 0, scm_from_ulong (stat_temp->st_dev));
   SCM_SIMPLE_VECTOR_SET(ans, 1, scm_from_ino_t_or_ino64_t (stat_temp->st_ino));
@@ -490,6 +489,21 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
        
        */
   }  
+#ifdef HAVE_STRUCT_STAT_ST_ATIM
+  SCM_SIMPLE_VECTOR_SET(ans, 15, scm_from_long (stat_temp->st_atim.tv_nsec));
+#else
+  SCM_SIMPLE_VECTOR_SET(ans, 15, SCM_I_MAKINUM (0));
+#endif
+#ifdef HAVE_STRUCT_STAT_ST_MTIM
+  SCM_SIMPLE_VECTOR_SET(ans, 16, scm_from_long (stat_temp->st_mtim.tv_nsec));
+#else
+  SCM_SIMPLE_VECTOR_SET(ans, 16, SCM_I_MAKINUM (0));
+#endif
+#ifdef HAVE_STRUCT_STAT_ST_CTIM
+  SCM_SIMPLE_VECTOR_SET(ans, 17, scm_from_ulong (stat_temp->st_ctim.tv_sec));
+#else
+  SCM_SIMPLE_VECTOR_SET(ans, 17, SCM_I_MAKINUM (0));
+#endif
 
   return ans;
 }

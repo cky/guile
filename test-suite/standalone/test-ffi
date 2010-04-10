@@ -1,0 +1,199 @@
+#!/bin/sh
+exec guile -q -s "$0" "$@"
+!#
+
+(use-modules (system foreign)
+             (rnrs bytevector))
+
+(define lib
+  (dynamic-link (string-append (getenv "builddir") "/libtest-ffi")))
+
+(define-syntax test
+  (syntax-rules ()
+    ((_ exp res)
+     (let ((expected res)
+           (actual exp))
+       (if (not (equal? actual expected))
+           (error "Bad return from expression" 'exp actual expected))))))
+
+;;;
+;;; No args
+;;;
+(define f-v-
+  (make-foreign-function void (dynamic-func "test_ffi_v_" lib) '()))
+(test (f-v-) *unspecified*)
+
+(define f-s8-
+  (make-foreign-function int8 (dynamic-func "test_ffi_s8_" lib) '()))
+(test (f-s8-) -100)
+
+(define f-u8-
+  (make-foreign-function uint8 (dynamic-func "test_ffi_u8_" lib) '()))
+(test (f-u8-) 200)
+
+(define f-s16-
+  (make-foreign-function int16 (dynamic-func "test_ffi_s16_" lib) '()))
+(test (f-s16-) -20000)
+
+(define f-u16-
+  (make-foreign-function uint16 (dynamic-func "test_ffi_u16_" lib) '()))
+(test (f-u16-) 40000)
+
+(define f-s32-
+  (make-foreign-function int32 (dynamic-func "test_ffi_s32_" lib) '()))
+(test (f-s32-) -2000000000)
+
+(define f-u32-
+  (make-foreign-function uint32 (dynamic-func "test_ffi_u32_" lib) '()))
+(test (f-u32-) 4000000000)
+
+(define f-s64-
+  (make-foreign-function int64 (dynamic-func "test_ffi_s64_" lib) '()))
+(test (f-s64-) -2000000000)
+
+(define f-u64-
+  (make-foreign-function uint64 (dynamic-func "test_ffi_u64_" lib) '()))
+(test (f-u64-) 4000000000)
+
+;;;
+;;; One u8 arg
+;;;
+(define f-v-u8
+  (make-foreign-function void (dynamic-func "test_ffi_v_u8" lib) (list uint8)))
+(test (f-v-u8 10) *unspecified*)
+
+(define f-s8-u8
+  (make-foreign-function int8 (dynamic-func "test_ffi_s8_u8" lib) (list uint8)))
+(test (f-s8-u8 10) -90)
+
+(define f-u8-u8
+  (make-foreign-function uint8 (dynamic-func "test_ffi_u8_u8" lib) (list uint8)))
+(test (f-u8-u8 10) 210)
+
+(define f-s16-u8
+  (make-foreign-function int16 (dynamic-func "test_ffi_s16_u8" lib) (list uint8)))
+(test (f-s16-u8 10) -19990)
+
+(define f-u16-u8
+  (make-foreign-function uint16 (dynamic-func "test_ffi_u16_u8" lib) (list uint8)))
+(test (f-u16-u8 10) 40010)
+
+(define f-s32-u8
+  (make-foreign-function int32 (dynamic-func "test_ffi_s32_u8" lib) (list uint8)))
+(test (f-s32-u8 10) -1999999990)
+
+(define f-u32-u8
+  (make-foreign-function uint32 (dynamic-func "test_ffi_u32_u8" lib) (list uint8)))
+(test (f-u32-u8 10) 4000000010)
+
+(define f-s64-u8
+  (make-foreign-function int64 (dynamic-func "test_ffi_s64_u8" lib) (list uint8)))
+(test (f-s64-u8 10) -1999999990)
+
+(define f-u64-u8
+  (make-foreign-function uint64 (dynamic-func "test_ffi_u64_u8" lib) (list uint8)))
+(test (f-u64-u8 10) 4000000010)
+
+
+;;;
+;;; One s64 arg
+;;;
+(define f-v-s64
+  (make-foreign-function void (dynamic-func "test_ffi_v_s64" lib) (list int64)))
+(test (f-v-s64 10) *unspecified*)
+
+(define f-s8-s64
+  (make-foreign-function int8 (dynamic-func "test_ffi_s8_s64" lib) (list int64)))
+(test (f-s8-s64 10) -90)
+
+(define f-u8-s64
+  (make-foreign-function uint8 (dynamic-func "test_ffi_u8_s64" lib) (list int64)))
+(test (f-u8-s64 10) 210)
+
+(define f-s16-s64
+  (make-foreign-function int16 (dynamic-func "test_ffi_s16_s64" lib) (list int64)))
+(test (f-s16-s64 10) -19990)
+
+(define f-u16-s64
+  (make-foreign-function uint16 (dynamic-func "test_ffi_u16_s64" lib) (list int64)))
+(test (f-u16-s64 10) 40010)
+
+(define f-s32-s64
+  (make-foreign-function int32 (dynamic-func "test_ffi_s32_s64" lib) (list int64)))
+(test (f-s32-s64 10) -1999999990)
+
+(define f-u32-s64
+  (make-foreign-function uint32 (dynamic-func "test_ffi_u32_s64" lib) (list int64)))
+(test (f-u32-s64 10) 4000000010)
+
+(define f-s64-s64
+  (make-foreign-function int64 (dynamic-func "test_ffi_s64_s64" lib) (list int64)))
+(test (f-s64-s64 10) -1999999990)
+
+(define f-u64-s64
+  (make-foreign-function uint64 (dynamic-func "test_ffi_u64_s64" lib) (list int64)))
+(test (f-u64-s64 10) 4000000010)
+
+
+;;
+;; Multiple int args of differing types
+;;
+(define f-sum
+  (make-foreign-function int64 (dynamic-func "test_ffi_sum" lib)
+                         (list int8 int16 int32 int64)))
+(test (f-sum -1 2000 -30000 40000000000)
+      (+ -1 2000 -30000 40000000000))
+
+;;
+;; Structs
+;;
+(define f-sum-struct
+  (make-foreign-function int64 (dynamic-func "test_ffi_sum_struct" lib)
+                         (list (list int8 int16 int32 int64))))
+(test (f-sum-struct (make-c-struct (list int8 int16 int32 int64)
+                                   (list -1 2000 -30000 40000000000)))
+      (+ -1 2000 -30000 40000000000))
+;;
+;; Structs
+;;
+(define f-memcpy
+  (make-foreign-function '* (dynamic-func "test_ffi_memcpy" lib)
+                         (list '* '* int32)))
+(let* ((src (bytevector->foreign (u8-list->bytevector '(0 1 2 3 4 5 6 7))))
+       (dest (bytevector->foreign (make-bytevector 16 0)))
+       (res (f-memcpy dest src (bytevector-length (foreign->bytevector src)))))
+  (or (= (foreign-ref dest) (foreign-ref res))
+      (error "memcpy res not equal to dest"))
+  (or (equal? (bytevector->u8-list (foreign->bytevector dest))
+              '(0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0))
+      (error "unexpected dest")))
+
+
+;;;
+;;; Global symbols.
+;;;
+
+(use-modules ((rnrs bytevector) #:select (utf8->string)))
+
+(if (defined? 'setlocale)
+    (setlocale LC_ALL "C"))
+
+(define global (dynamic-link))
+
+(define strerror
+  (make-foreign-function '* (dynamic-func "strerror" global)
+                         (list int)))
+
+(define strlen
+  (make-foreign-function size_t (dynamic-func "strlen" global)
+                         (list '*)))
+
+(let* ((ptr (strerror ENOENT))
+       (len (strlen ptr))
+       (bv  (foreign->bytevector ptr 'u8 0 len))
+       (str (utf8->string bv)))
+  (test #t (not (not (string-contains str "file")))))
+
+;; Local Variables:
+;; mode: scheme
+;; End:

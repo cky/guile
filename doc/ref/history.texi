@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008
+@c Copyright (C)  2008, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -134,7 +134,8 @@ Since then, Guile has had a group maintainership. The first group was
 Maciej Stachowiak, Mikael Djurfeldt, and Marius Vollmer, with Vollmer
 staying on the longest. By late 2007, Vollmer had mostly moved on to
 other things, so Neil Jerram and Ludovic Courtès stepped up to take on
-the primary maintenance responsibility.
+the primary maintenance responsibility. Jerram and Courtès were joined
+by Andy Wingo in late 2009.
 
 Of course, a large part of the actual work on Guile has come from
 other contributors too numerous to mention, but without whom the world
@@ -167,18 +168,17 @@ less the same form.
 @itemx 1.2 --- 24 June 1997
 Support for Tcl/Tk and ctax were split off as separate packages, and
 have remained there since. Guile became more compatible with SCSH, and
-more useful as a UNIX scripting language. Libguile can now be built as
+more useful as a UNIX scripting language. Libguile could now be built as
 a shared library, and third-party extensions written in C became
 loadable via dynamic linking.
 
 @item 1.3.0 --- 19 October 1998
 Command-line editing became much more pleasant through the use of the
 readline library. The initial support for internationalization via
-multi-byte strings was removed, and has yet to be added back, though
-UTF-8 hacks are common. Modules gained the ability to have custom
-expanders, which is still used for syntax-case macros. Initial Emacs
-Lisp support landed, ports gained better support for file descriptors,
-and fluids were added.
+multi-byte strings was removed; 10 years were to pass before proper
+internationalization would land again. Initial Emacs Lisp support
+landed, ports gained better support for file descriptors, and fluids
+were added.
 
 @item 1.3.2 --- 20 August 1999
 @itemx 1.3.4 --- 25 September 1999
@@ -186,8 +186,8 @@ and fluids were added.
 A long list of lispy features were added: hooks, Common Lisp's
 @code{format}, optional and keyword procedure arguments,
 @code{getopt-long}, sorting, random numbers, and many other fixes and
-enhancements. Guile now has an interactive debugger, interactive help,
-and gives better backtraces.
+enhancements. Guile also gained an interactive debugger, interactive
+help, and better backtraces.
 
 @item 1.6 --- 6 September 2002
 Guile gained support for the R5RS standard, and added a number of SRFI
@@ -202,12 +202,15 @@ user-space threading was removed in favor of POSIX pre-emptive
 threads, providing true multiprocessing. Gettext support was added,
 and Guile's C API was cleaned up and orthogonalized in a massive way.
 
-@item 2.0 --- thus far, only unstable snapshots available
-A virtual machine was added to Guile, along with the associated
-compiler and toolchain. Support for internationalization was added.
-Running Guile instances became controllable and debuggable from within
-Emacs, via GDS, which was also backported to 1.8.5. An SRFI-18
-interface to multithreading was added, including thread cancellation.
+@item 2.0 --- April 2010
+A virtual machine was added to Guile, along with the associated compiler
+and toolchain. Support for internationalization was finally
+reimplemented, in terms of unicode, locales, and libunistring. Running
+Guile instances became controllable and debuggable from within Emacs,
+via GDS and Geiser. Guile caught up to features found in a number of
+other Schemes: SRFI-18 threads, including thread cancellation,
+module-hygienic macros, a profiler, tracer, and debugger, SSAX XML
+integration, bytevectors, module versions, and partial support for R6RS.
 @end table
 
 @node Status
@@ -267,12 +270,12 @@ language with a syntax that is closer to C, or to Python. Another
 interesting idea to consider is compiling e.g. Python to Guile. It's
 not that far-fetched of an idea: see for example IronPython or JRuby.
 
-And then there's Emacs itself. Though there is a somewhat-working
-Emacs Lisp translator for Guile, it cannot yet execute all of Emacs
-Lisp. A serious integration of Guile with Emacs would replace the
-Elisp virtual machine with Guile, and provide the necessary C shims so
-that Guile could emulate Emacs' C API. This would give lots of
-exciting things to Emacs: native threads, a real object system, more
+And then there's Emacs itself. Though there is a somewhat-working Emacs
+Lisp language frontend for Guile, it cannot yet execute all of Emacs
+Lisp. A serious integration of Guile with Emacs would replace the Elisp
+virtual machine with Guile, and provide the necessary C shims so that
+Guile could emulate Emacs' C API. This would give lots of exciting
+things to Emacs: native threads, a real object system, more
 sophisticated types, cleaner syntax, and access to all of the Guile
 extensions.
 

@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include <unicase.h>
+#include <unictype.h>
 
 #include "libguile/_scm.h"
 #include "libguile/validate.h"
@@ -43,6 +44,7 @@ SCM_DEFINE (scm_char_p, "char?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_eq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_eq_p, "char=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is equal to the\n"
@@ -73,6 +75,7 @@ SCM scm_char_eq_p (SCM x, SCM y)
 #undef FUNC_NAME
 
 
+static SCM scm_i_char_less_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_less_p, "char<?", 0, 2, 1, 
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the code point of @var{x} is less than the code\n"
@@ -102,6 +105,7 @@ SCM scm_char_less_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_leq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_leq_p, "char<=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is less than or\n"
@@ -131,6 +135,7 @@ SCM scm_char_leq_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_gr_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_gr_p, "char>?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is greater than\n"
@@ -160,6 +165,7 @@ SCM scm_char_gr_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_geq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_geq_p, "char>=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the Unicode code point of @var{x} is greater than\n"
@@ -196,6 +202,7 @@ SCM scm_char_geq_p (SCM x, SCM y)
    implementation would be to use that table and make a char-foldcase
    function.  */
 
+static SCM scm_i_char_ci_eq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_eq_p, "char-ci=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the case-folded Unicode code point of @var{x} is\n"
@@ -225,6 +232,7 @@ SCM scm_char_ci_eq_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_less_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_less_p, "char-ci<?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} if the case-folded Unicode code point of @var{x} is\n"
@@ -254,6 +262,7 @@ SCM scm_char_ci_less_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_leq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_leq_p, "char-ci<=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the case-folded Unicodd code point of @var{x} is\n"
@@ -284,6 +293,7 @@ SCM scm_char_ci_leq_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_gr_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_gr_p, "char-ci>?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the case-folded code point of @var{x} is greater\n"
@@ -313,6 +323,7 @@ SCM scm_char_ci_gr_p (SCM x, SCM y)
 }
 #undef FUNC_NAME
 
+static SCM scm_i_char_ci_geq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_geq_p, "char-ci>=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
             "Return @code{#t} iff the case-folded Unicode code point of @var{x} is\n"
@@ -391,7 +402,6 @@ SCM_DEFINE (scm_char_lower_case_p, "char-lower-case?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
 SCM_DEFINE (scm_char_is_both_p, "char-is-both?", 1, 0, 0, 
             (SCM chr),
 	    "Return @code{#t} iff @var{chr} is either uppercase or lowercase, else\n"
@@ -458,6 +468,35 @@ SCM_DEFINE (scm_char_downcase, "char-downcase", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_char_titlecase, "char-titlecase", 1, 0, 0,
+	   (SCM chr),
+	    "Return the titlecase character version of @var{chr}.")
+#define FUNC_NAME s_scm_char_titlecase
+{
+  SCM_VALIDATE_CHAR (1, chr);
+  return SCM_MAKE_CHAR (scm_c_titlecase (SCM_CHAR(chr)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_char_general_category, "char-general-category", 1, 0, 0,
+           (SCM chr),
+            "Return a symbol representing the Unicode general category of "
+            "@var{chr} or @code{#f} if a named category cannot be found.")
+#define FUNC_NAME s_scm_char_general_category
+{
+  const char *sym;
+  uc_general_category_t cat;
+
+  SCM_VALIDATE_CHAR (1, chr);
+  cat = uc_general_category (SCM_CHAR (chr));
+  sym = uc_general_category_name (cat);
+
+  if (sym != NULL)
+    return scm_from_locale_symbol (sym);
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 
 
 
@@ -480,6 +519,12 @@ scm_c_downcase (scm_t_wchar c)
   return uc_tolower ((int) c);
 }
 
+scm_t_wchar
+scm_c_titlecase (scm_t_wchar c)
+{
+  return uc_totitle ((int) c);
+}
+
 
 
 /* There are a few sets of character names: R5RS, Guile
@@ -491,10 +536,23 @@ static const char *const scm_r5rs_charnames[] = {
 };
 
 static const scm_t_uint32 const scm_r5rs_charnums[] = {
-  0x20, 0x0A
+  0x20, 0x0a
 };
 
 #define SCM_N_R5RS_CHARNAMES (sizeof (scm_r5rs_charnames) / sizeof (char *))
+
+static const char *const scm_r6rs_charnames[] = {
+  "nul", "alarm", "backspace", "tab", "linefeed", "vtab", "page",
+  "return", "esc", "delete"
+  /* 'space' and 'newline' are already included from the R5RS list.  */
+};
+
+static const scm_t_uint32 const scm_r6rs_charnums[] = {
+  0x00, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
+  0x0d, 0x1b, 0x7f
+};
+
+#define SCM_N_R6RS_CHARNAMES (sizeof (scm_r6rs_charnames) / sizeof (char *))
 
 /* The abbreviated names for control characters.  */
 static const char *const scm_C0_control_charnames[] = {
@@ -517,11 +575,11 @@ static const scm_t_uint32 const scm_C0_control_charnums[] = {
 #define SCM_N_C0_CONTROL_CHARNAMES (sizeof (scm_C0_control_charnames) / sizeof (char *))
 
 static const char *const scm_alt_charnames[] = {
-  "null", "backspace", "tab", "nl", "newline", "np", "page", "return",
+  "null", "nl", "np"
 };
 
 static const scm_t_uint32 const scm_alt_charnums[] = {
-  0x00, 0x08, 0x09, 0x0a, 0x0a, 0x0c, 0x0c, 0x0d
+  0x00, 0x0a, 0x0c
 };
 
 #define SCM_N_ALT_CHARNAMES (sizeof (scm_alt_charnames) / sizeof (char *))
@@ -538,13 +596,19 @@ scm_i_charname (SCM chr)
     if (scm_r5rs_charnums[c] == i)
       return scm_r5rs_charnames[c];
 
+  for (c = 0; c < SCM_N_R6RS_CHARNAMES; c++)
+    if (scm_r6rs_charnums[c] == i)
+      return scm_r6rs_charnames[c];
+
   for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if (scm_C0_control_charnums[c] == i)
       return scm_C0_control_charnames[c];
 
+  /* Since the characters in scm_alt_charnums is a subset of
+     scm_C0_control_charnums, this code is never reached.  */
   for (c = 0; c < SCM_N_ALT_CHARNAMES; c++)
     if (scm_alt_charnums[c] == i)
-      return scm_alt_charnames[i];
+      return scm_alt_charnames[c];
 
   return NULL;
 }
@@ -555,14 +619,21 @@ scm_i_charname_to_char (const char *charname, size_t charname_len)
 {
   size_t c;
 
-  /* The R5RS charnames.  These are supposed to be case
-     insensitive. */
+  /* The R5RS charnames.  These are supposed to be case insensitive. */
   for (c = 0; c < SCM_N_R5RS_CHARNAMES; c++)
     if ((strlen (scm_r5rs_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_r5rs_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_r5rs_charnums[c]);
 
-  /* Then come the controls.  These are not case sensitive.  */
+  /* The R6RS charnames.  R6RS says that these should be case-sensitive.  They
+     are left as case-insensitive to avoid confusion.  */
+  for (c = 0; c < SCM_N_R6RS_CHARNAMES; c++)
+    if ((strlen (scm_r6rs_charnames[c]) == charname_len)
+	&& (!strncasecmp (scm_r6rs_charnames[c], charname, charname_len)))
+      return SCM_MAKE_CHAR (scm_r6rs_charnums[c]);
+
+  /* Then come the controls.  By Guile convention, these are not case
+     sensitive.  */
   for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if ((strlen (scm_C0_control_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_C0_control_charnames[c], charname, charname_len)))

@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -39,6 +39,7 @@
 #include "libguile/dynl.h"
 #include "libguile/dynwind.h"
 #include "libguile/eval.h"
+#include "libguile/gsubr.h"
 #include "libguile/hashtab.h"
 #include "libguile/keywords.h"
 #include "libguile/macros.h"
@@ -157,9 +158,16 @@ SCM scm_class_protected_hidden, scm_class_protected_opaque, scm_class_protected_
 SCM scm_class_scm;
 SCM scm_class_int, scm_class_float, scm_class_double;
 
+static SCM class_foreign;
 static SCM class_hashtable;
 static SCM class_fluid;
 static SCM class_dynamic_state;
+static SCM class_frame;
+static SCM class_objcode;
+static SCM class_vm;
+static SCM class_vm_cont;
+static SCM class_bytevector;
+static SCM class_uvec;
 
 /* Port classes.  Allocate 3 times the maximum number of port types so that
    input ports, output ports, and in/out ports can be stored at different
@@ -213,12 +221,27 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
 	  return scm_class_vector;
+	case scm_tc7_foreign:
+	  return class_foreign;
 	case scm_tc7_hashtable:
 	  return class_hashtable;
 	case scm_tc7_fluid:
 	  return class_fluid;
 	case scm_tc7_dynamic_state:
 	  return class_dynamic_state;
+        case scm_tc7_frame:
+	  return class_frame;
+        case scm_tc7_objcode:
+	  return class_objcode;
+        case scm_tc7_vm:
+	  return class_vm;
+        case scm_tc7_vm_cont:
+	  return class_vm_cont;
+	case scm_tc7_bytevector:
+          if (SCM_BYTEVECTOR_ELEMENT_TYPE (x) == SCM_ARRAY_ELEMENT_TYPE_VU8)
+            return class_bytevector;
+          else
+            return class_uvec;
 	case scm_tc7_string:
 	  return scm_class_string;
         case scm_tc7_number:
@@ -232,13 +255,11 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	  case scm_tc16_fraction:
 	    return scm_class_fraction;
           }
-	case scm_tc7_gsubr:
-	  if (SCM_SUBR_GENERIC (x) && *SCM_SUBR_GENERIC (x))
+	case scm_tc7_program:
+	  if (SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x) && *SCM_SUBR_GENERIC (x))
 	    return scm_class_primitive_generic;
 	  else
 	    return scm_class_procedure;
-	case scm_tc7_program:
-	  return scm_class_procedure;
 
 	case scm_tc7_smob:
 	  {
@@ -1690,9 +1711,7 @@ SCM_DEFINE (scm_generic_capability_p, "generic-capability?", 1, 0, 0,
 {
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)),
 	      proc, SCM_ARG1, FUNC_NAME);
-  return (scm_subr_p (proc) && SCM_SUBR_GENERIC (proc)
-	  ? SCM_BOOL_T
-	  : SCM_BOOL_F);
+  return (SCM_PRIMITIVE_GENERIC_P (proc) ? SCM_BOOL_T : SCM_BOOL_F);
 }
 #undef FUNC_NAME
 
@@ -1705,12 +1724,11 @@ SCM_DEFINE (scm_enable_primitive_generic_x, "enable-primitive-generic!", 0, 0, 1
   while (!scm_is_null (subrs))
     {
       SCM subr = SCM_CAR (subrs);
-      SCM_ASSERT (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr),
-		  subr, SCM_ARGn, FUNC_NAME);
-      *SCM_SUBR_GENERIC (subr)
-	= scm_make (scm_list_3 (scm_class_generic,
-				k_name,
-				SCM_SUBR_NAME (subr)));
+      SCM_ASSERT (SCM_PRIMITIVE_GENERIC_P (subr), subr, SCM_ARGn, FUNC_NAME);
+      SCM_SET_SUBR_GENERIC (subr,
+                            scm_make (scm_list_3 (scm_class_generic,
+                                                  k_name,
+                                                  SCM_SUBR_NAME (subr))));
       subrs = SCM_CDR (subrs);
     }
   return SCM_UNSPECIFIED;
@@ -1722,10 +1740,9 @@ SCM_DEFINE (scm_set_primitive_generic_x, "set-primitive-generic!", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_set_primitive_generic_x
 {
-  SCM_ASSERT (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr),
-              subr, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_PRIMITIVE_GENERIC_P (subr), subr, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (SCM_PUREGENERICP (generic), generic, SCM_ARG2, FUNC_NAME);
-  *SCM_SUBR_GENERIC (subr) = generic;
+  SCM_SET_SUBR_GENERIC (subr, generic);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1735,7 +1752,7 @@ SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_primitive_generic_generic
 {
-  if (scm_subr_p (subr) && SCM_SUBR_GENERIC (subr))
+  if (SCM_PRIMITIVE_GENERIC_P (subr))
     {
       if (!*SCM_SUBR_GENERIC (subr))
 	scm_enable_primitive_generic_x (scm_list_1 (subr));
@@ -2033,7 +2050,9 @@ scm_sys_compute_applicable_methods (SCM gf, SCM args)
 #undef FUNC_NAME
 
 SCM_SYMBOL (sym_compute_applicable_methods, "compute-applicable-methods");
-SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods", scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0, scm_sys_compute_applicable_methods));
+SCM_VARIABLE_INIT (var_compute_applicable_methods, "compute-applicable-methods",
+                   scm_c_define_gsubr (s_sys_compute_applicable_methods, 2, 0, 0,
+                                       scm_sys_compute_applicable_methods));
 
 /******************************************************************************
  *
@@ -2394,12 +2413,26 @@ create_standard_classes (void)
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_vector,	   "<vector>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_foreign,	           "<foreign>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&class_hashtable,	   "<hashtable>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&class_fluid,		   "<fluid>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&class_dynamic_state,	   "<dynamic-state>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_frame,		   "<frame>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_objcode,		   "<objcode>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_vm,		   "<vm>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_vm_cont,		   "<vm-continuation>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_bytevector,	   "<bytevector>",
+	       scm_class_class, scm_class_top,		   SCM_EOL);
+  make_stdcls (&class_uvec,		   "<uvec>",
+	       scm_class_class, class_bytevector,	   SCM_EOL);
   make_stdcls (&scm_class_number,	   "<number>",
 	       scm_class_class, scm_class_top,		   SCM_EOL);
   make_stdcls (&scm_class_complex,	   "<complex>",
@@ -2646,14 +2679,6 @@ scm_ensure_accessor (SCM name)
 				 k_name, name, k_setter, gf));
     }
   return gf;
-}
-
-SCM_SYMBOL (sym_internal_add_method_x, "internal-add-method!");
-
-void
-scm_add_method (SCM gf, SCM m)
-{
-  scm_eval (scm_list_3 (sym_internal_add_method_x, gf, m), scm_module_goops);
 }
 
 #ifdef GUILE_DEBUG

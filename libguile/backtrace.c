@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,7 +45,6 @@
 #include "libguile/frames.h"
 
 #include "libguile/validate.h"
-#include "libguile/lang.h"
 #include "libguile/backtrace.h"
 #include "libguile/filesys.h"
 #include "libguile/private-options.h"

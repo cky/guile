@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +26,7 @@
 #include <assert.h>
 
 #include "libguile/_scm.h"
+#include "libguile/control.h"
 #include "libguile/eval.h"
 #include "libguile/alist.h"
 #include "libguile/fluids.h"
@@ -41,66 +42,17 @@
 
    #<frame>
    #<winder>
+   #<with-fluids>
+   #<prompt>
    (enter-proc . leave-proc)     dynamic-wind
-   (tag . jmpbuf)                catch
-   (tag . pre-unwind-data)       throw-handler / lazy-catch
-     tag is either a symbol or a boolean
 
 */
 
 
 
-SCM_DEFINE (scm_dynamic_wind, "dynamic-wind", 3, 0, 0,
-           (SCM in_guard, SCM thunk, SCM out_guard),
-	    "All three arguments must be 0-argument procedures.\n"
-	    "@var{in_guard} is called, then @var{thunk}, then\n"
-	    "@var{out_guard}.\n"
-	    "\n"
-	    "If, any time during the execution of @var{thunk}, the\n"
-	    "continuation of the @code{dynamic_wind} expression is escaped\n"
-	    "non-locally, @var{out_guard} is called.  If the continuation of\n"
-	    "the dynamic-wind is re-entered, @var{in_guard} is called.  Thus\n"
-	    "@var{in_guard} and @var{out_guard} may be called any number of\n"
-	    "times.\n"
-	    "@lisp\n"
-	    "(define x 'normal-binding)\n"
-	    "@result{} x\n"
-	    "(define a-cont  (call-with-current-continuation\n"
-	    "		  (lambda (escape)\n"
-	    "		     (let ((old-x x))\n"
-	    "		       (dynamic-wind\n"
-	    "			  ;; in-guard:\n"
-	    "			  ;;\n"
-	    "			  (lambda () (set! x 'special-binding))\n"
-	    "\n"
-	    "			  ;; thunk\n"
-	    "			  ;;\n"
-	    "		 	  (lambda () (display x) (newline)\n"
-	    "				     (call-with-current-continuation escape)\n"
-	    "				     (display x) (newline)\n"
-	    "				     x)\n"
-	    "\n"
-	    "			  ;; out-guard:\n"
-	    "			  ;;\n"
-	    "			  (lambda () (set! x old-x)))))))\n"
-	    "\n"
-	    ";; Prints:\n"
-	    "special-binding\n"
-	    ";; Evaluates to:\n"
-	    "@result{} a-cont\n"
-	    "x\n"
-	    "@result{} normal-binding\n"
-	    "(a-cont #f)\n"
-	    ";; Prints:\n"
-	    "special-binding\n"
-	    ";; Evaluates to:\n"
-	    "@result{} a-cont  ;; the value of the (define a-cont...)\n"
-	    "x\n"
-	    "@result{} normal-binding\n"
-	    "a-cont\n"
-	    "@result{} special-binding\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_dynamic_wind
+SCM
+scm_dynamic_wind (SCM in_guard, SCM thunk, SCM out_guard)
+#define FUNC_NAME "dynamic-wind"
 {
   SCM ans, old_winds;
   SCM_ASSERT (scm_is_true (scm_thunk_p (out_guard)),
@@ -288,7 +240,6 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
   else if (delta < 0)
     {
       SCM wind_elt;
-      SCM wind_key;
 
       scm_i_dowinds (SCM_CDR (to), 1 + delta, turn_func, data);
       wind_elt = SCM_CAR (to);
@@ -305,21 +256,18 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	  if (WINDER_REWIND_P (wind_elt))
 	    WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	}
-      else
+      else if (SCM_WITH_FLUIDS_P (wind_elt))
 	{
-	  wind_key = SCM_CAR (wind_elt);
-	  /* key = #t | symbol | thunk | list of variables */
-	  if (SCM_NIMP (wind_key))
-	    {
-	      if (scm_is_pair (wind_key))
-		{
-		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		}
-	      else if (scm_is_true (scm_thunk_p (wind_key)))
-		scm_call_0 (wind_key);
-	    }
+          scm_i_swap_with_fluids (wind_elt,
+                                  SCM_I_CURRENT_THREAD->dynamic_state);
 	}
+      else if (SCM_PROMPT_P (wind_elt))
+        ; /* pass -- see vm_reinstate_partial_continuation */
+      else if (scm_is_pair (wind_elt))
+        scm_call_0 (SCM_CAR (wind_elt));
+      else
+        /* trash on the wind list */
+        abort ();
 
       scm_i_set_dynwinds (to);
     }
@@ -327,7 +275,6 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
     {
       SCM wind;
       SCM wind_elt;
-      SCM wind_key;
 
       wind = scm_i_dynwinds ();
       wind_elt = SCM_CAR (wind);
@@ -342,20 +289,18 @@ scm_i_dowinds (SCM to, long delta, void (*turn_func) (void *), void *data)
 	  if (!WINDER_REWIND_P (wind_elt))
 	    WINDER_PROC (wind_elt) (WINDER_DATA (wind_elt));
 	}
-      else
+      else if (SCM_WITH_FLUIDS_P (wind_elt))
 	{
-	  wind_key = SCM_CAR (wind_elt);
-	  if (SCM_NIMP (wind_key))
-	    {
-	      if (scm_is_pair (wind_key))
-		{
-		  if (SCM_VARIABLEP (SCM_CAR (wind_key)))
-		    scm_swap_bindings (wind_key, SCM_CDR (wind_elt));
-		}
-	      else if (scm_is_true (scm_thunk_p (wind_key)))
-		scm_call_0 (SCM_CDR (wind_elt));
-	    }
+          scm_i_swap_with_fluids (wind_elt,
+                                  SCM_I_CURRENT_THREAD->dynamic_state);
 	}
+      else if (SCM_PROMPT_P (wind_elt))
+        ; /* pass -- though we could invalidate the prompt */
+      else if (scm_is_pair (wind_elt))
+        scm_call_0 (SCM_CDR (wind_elt));
+      else
+        /* trash on the wind list */
+        abort ();
 
       delta--;
       goto tail;		/* scm_dowinds(to, delta-1); */

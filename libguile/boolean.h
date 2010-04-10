@@ -3,7 +3,7 @@
 #ifndef SCM_BOOLEAN_H
 #define SCM_BOOLEAN_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,19 +27,21 @@
 
 
 
-/* Boolean Values 
+/* Boolean Values. Obviously there are #t and #f, but there is also nil to deal
+ * with. We choose to treat nil as a false boolean. All options might silently
+ * break existing code, but this one seems most responsible.
  *
  */ 
 
 /*
  * Use these macros if it's important (for correctness)
- * that %nil MUST be considered true
+ * that #nil MUST be considered true
  */
 #define scm_is_false_and_not_nil(x)     (scm_is_eq ((x), SCM_BOOL_F))
 #define scm_is_true_or_nil(x)          (!scm_is_eq ((x), SCM_BOOL_F))
 
 /*
- * Use these macros if %nil will never be tested,
+ * Use these macros if #nil will never be tested,
  * for increased efficiency.
  */
 #define scm_is_false_assume_not_nil(x)  (scm_is_eq ((x), SCM_BOOL_F))
@@ -50,16 +52,13 @@
  * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information on
  * how the following macro works.
  */
-#if SCM_ENABLE_ELISP
-# define scm_is_false_or_nil(x)    \
+#define scm_is_false_or_nil(x)    \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_BOOL_F))
-#else
-# define scm_is_false_or_nil(x)    (scm_is_false_assume_not_nil (x))
-#endif
 #define scm_is_true_and_not_nil(x) (!scm_is_false_or_nil (x))
 
-/* XXX Should these macros treat %nil as false by default? */
-#define scm_is_false(x)  (scm_is_false_and_not_nil (x))
+/* 
+#nil is false. */
+#define scm_is_false(x)  (scm_is_false_or_nil (x))
 #define scm_is_true(x)   (!scm_is_false (x))
 
 /*
@@ -75,21 +74,17 @@
  *
  * If SCM_ENABLE_ELISP is true, then scm_is_bool_or_nil(x)
  * returns 1 if and only if x is one of the following: SCM_BOOL_F,
- * SCM_BOOL_T, SCM_ELISP_NIL, or SCM_XXX_ANOTHER_BOOLEAN_DONT_USE.
+ * SCM_BOOL_T, SCM_ELISP_NIL, or SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0.
  * Otherwise, it returns 0.
  */
-#if SCM_ENABLE_ELISP
-# define scm_is_bool_or_nil(x)  \
+#define scm_is_bool_or_nil(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_T, SCM_ELISP_NIL))
-#else
-# define scm_is_bool_or_nil(x)  (scm_is_bool_and_not_nil (x))
-#endif
-
 #define scm_is_bool_and_not_nil(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_F, SCM_BOOL_T))
 
-/* XXX Should scm_is_bool treat %nil as a boolean? */
-#define scm_is_bool(x)   (scm_is_bool_and_not_nil (x))
+SCM_API int scm_is_bool (SCM);
+
+#define scm_is_bool(x)   (scm_is_bool_or_nil (x))
 
 #define scm_from_bool(x) ((x) ? SCM_BOOL_T : SCM_BOOL_F)
 SCM_API int scm_to_bool (SCM x);
@@ -114,11 +109,8 @@ SCM_API int scm_to_bool (SCM x);
  * following: SCM_BOOL_F, SCM_ELISP_NIL, SCM_EOL or
  * SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE.  Otherwise, it returns 0.
  */
-#if SCM_ENABLE_ELISP
-# define scm_is_lisp_false(x)  \
+#define scm_is_lisp_false(x)  \
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_BOOL_F, SCM_EOL))
-# define scm_is_lisp_true(x)   (!scm_is_lisp_false(x))
-#endif
 
 
 

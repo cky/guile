@@ -1,0 +1,878 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@page
+@node Macros
+@section Macros
+
+At its best, programming in Lisp is an iterative process of building up a
+language appropriate to the problem at hand, and then solving the problem in
+that language. Defining new procedures is part of that, but Lisp also allows
+the user to extend its syntax, with its famous @dfn{macros}.
+
+@cindex macros
+@cindex transformation
+Macros are syntactic extensions which cause the expression that they appear in
+to be transformed in some way @emph{before} being evaluated. In expressions that
+are intended for macro transformation, the identifier that names the relevant
+macro must appear as the first element, like this:
+
+@lisp
+(@var{macro-name} @var{macro-args} @dots{})
+@end lisp
+
+@cindex macro expansion
+Macro expansion is a separate phase of evaluation, run before code is
+interpreted or compiled. A macro is a program that runs on programs, translating
+an embedded language into core Scheme.
+
+@menu
+* Defining Macros::             Binding macros, globally and locally.
+* Syntax Rules::                Pattern-driven macros.
+* Syntax Case::                 Procedural, hygienic macros.
+* Defmacros::                   Lisp-style macros.
+* Identifier Macros::           Identifier macros.
+* Eval When::                   Affecting the expand-time environment.
+* Internal Macros::             Macros as first-class values.
+@end menu
+
+@node Defining Macros
+@subsection Defining Macros
+
+A macro is a binding between a keyword and a syntax transformer. Since it's
+difficult to discuss @code{define-syntax} without discussing the format of
+transformers, consider the following example macro definition:
+
+@example
+(define-syntax when
+  (syntax-rules ()
+    ((when condition exp ...)
+     (if condition
+         (begin exp ...)))))
+
+(when #t
+  (display "hey ho\n") 
+  (display "let's go\n"))
+@print{} hey ho
+@print{} let's go
+@end example
+
+In this example, the @code{when} binding is bound with @code{define-syntax}.
+Syntax transformers are discussed in more depth in @ref{Syntax Rules} and
+@ref{Syntax Case}.
+
+@deffn {Syntax} define-syntax keyword transformer
+Bind @var{keyword} to the syntax transformer obtained by evaluating
+@var{transformer}.
+
+After a macro has been defined, further instances of @var{keyword} in Scheme
+source code will invoke the syntax transformer defined by @var{transformer}.
+@end deffn
+
+One can also establish local syntactic bindings with @code{let-syntax}.
+
+@deffn {Syntax} let-syntax ((keyword transformer) ...) exp...
+Bind @var{keyword...} to @var{transformer...} while expanding @var{exp...}.
+
+A @code{let-syntax} binding only exists at expansion-time. 
+
+@example
+(let-syntax ((unless
+              (syntax-rules ()
+                ((unless condition exp ...)
+                 (if (not condition)
+                     (begin exp ...))))))
+  (unless #t
+    (primitive-exit 1))
+  "rock rock rock")
+@result{} "rock rock rock"
+@end example
+@end deffn
+
+A @code{define-syntax} form is valid anywhere a definition may appear: at the
+top-level, or locally. Just as a local @code{define} expands out to an instance
+of @code{letrec}, a local @code{define-syntax} expands out to
+@code{letrec-syntax}.
+
+@deffn {Syntax} letrec-syntax ((keyword transformer) ...) exp...
+Bind @var{keyword...} to @var{transformer...} while expanding @var{exp...}.
+
+In the spirit of @code{letrec} versus @code{let}, an expansion produced by
+@var{transformer} may reference a @var{keyword} bound by the
+same @var{letrec-syntax}.
+
+@example
+(letrec-syntax ((my-or
+                 (syntax-rules ()
+                   ((my-or)
+                    #t)
+                   ((my-or exp)
+                    exp)
+                   ((my-or exp rest ...)
+                    (let ((t exp))
+                      (if exp
+                          exp
+                          (my-or rest ...)))))))
+  (my-or #f "rockaway beach"))
+@result{} "rockaway beach"
+@end example
+@end deffn
+
+@node Syntax Rules
+@subsection Syntax-rules Macros
+
+@code{syntax-rules} macros are simple, pattern-driven syntax transformers, with
+a beauty worthy of Scheme.
+
+@deffn {Syntax} syntax-rules literals (pattern template)...
+Create a syntax transformer that will rewrite an expression using the rules
+embodied in the @var{pattern} and @var{template} clauses.
+@end deffn
+
+A @code{syntax-rules} macro consists of three parts: the literals (if any), the
+patterns, and as many templates as there are patterns.
+
+When the syntax expander sees the invocation of a @code{syntax-rules} macro, it
+matches the expression against the patterns, in order, and rewrites the
+expression using the template from the first matching pattern. If no pattern
+matches, a syntax error is signalled.
+
+@subsubsection Patterns
+
+We have already seen some examples of patterns in the previous section:
+@code{(unless condition exp ...)}, @code{(my-or exp)}, and so on. A pattern is
+structured like the expression that it is to match. It can have nested structure
+as well, like @code{(let ((var val) ...) exp exp* ...)}. Broadly speaking,
+patterns are made of lists, improper lists, vectors, identifiers, and datums.
+Users can match a sequence of patterns using the ellipsis (@code{...}).
+
+Identifiers in a pattern are called @dfn{literals} if they are present in the
+@code{syntax-rules} literals list, and @dfn{pattern variables} otherwise. When
+building up the macro output, the expander replaces instances of a pattern
+variable in the template with the matched subexpression.
+
+@example
+(define-syntax kwote
+  (syntax-rules ()
+    ((kwote exp)
+     (quote exp))))
+(kwote (foo . bar))
+@result{} (foo . bar)
+@end example
+
+An improper list of patterns matches as rest arguments do:
+
+@example
+(define-syntax let1
+  (syntax-rules ()
+    ((_ (var val) . exps)
+     (let ((var val)) . exps))))
+@end example
+
+However this definition of @code{let1} probably isn't what you want, as the tail
+pattern @var{exps} will match non-lists, like @code{(let1 (foo 'bar) . baz)}. So
+often instead of using improper lists as patterns, ellipsized patterns are
+better. Instances of a pattern variable in the template must be followed by an
+ellipsis.
+
+@example
+(define-syntax let1
+  (syntax-rules ()
+    ((_ (var val) exp ...)
+     (let ((var val)) exp ...))))
+@end example
+
+This @code{let1} probably still doesn't do what we want, because the body
+matches sequences of zero expressions, like @code{(let1 (foo 'bar))}. In this
+case we need to assert we have at least one body expression. A common idiom for
+this is to name the ellipsized pattern variable with an asterisk:
+
+@example
+(define-syntax let1
+  (syntax-rules ()
+    ((_ (var val) exp exp* ...)
+     (let ((var val)) exp exp* ...))))
+@end example
+
+A vector of patterns matches a vector whose contents match the patterns,
+including ellipsizing and tail patterns.
+
+@example
+(define-syntax letv
+  (syntax-rules ()
+    ((_ #((var val) ...) exp exp* ...)
+     (let ((var val) ...) exp exp* ...))))
+(letv #((foo 'bar)) foo)
+@result{} foo
+@end example
+
+Literals are used to match specific datums in an expression, like the use of
+@code{=>} and @code{else} in @code{cond} expressions.
+
+@example
+(define-syntax cond1
+  (syntax-rules (=> else)
+    ((cond1 test => fun)
+     (let ((exp test))
+       (if exp (fun exp) #f)))
+    ((cond1 test exp exp* ...)
+     (if test (begin exp exp* ...)))
+    ((cond1 else exp exp* ...)
+     (begin exp exp* ...))))
+
+(define (square x) (* x x))
+(cond1 10 => square)
+@result{} 100
+(let ((=> #t))
+  (cond1 10 => square))
+@result{} #<procedure square (x)>
+@end example
+
+A literal matches an input expression if the input expression is an identifier
+with the same name as the literal, and both are unbound@footnote{Language
+lawyers probably see the need here for use of @code{literal-identifier=?} rather
+than @code{free-identifier=?}, and would probably be correct. Patches
+accepted.}.
+
+If a pattern is not a list, vector, or an identifier, it matches as a literal,
+with @code{equal?}.
+
+@example
+(define-syntax define-matcher-macro
+  (syntax-rules ()
+    ((_ name lit)
+     (define-syntax name
+       (syntax-rules ()
+        ((_ lit) #t)
+        ((_ else) #f))))))
+
+(define-matcher-macro is-literal-foo? "foo")
+
+(is-literal-foo? "foo")
+@result{} #t
+(is-literal-foo? "bar")
+@result{} #f
+(let ((foo "foo"))
+  (is-literal-foo? foo))
+@result{} #f
+@end example
+
+The last example indicates that matching happens at expansion-time, not
+at run-time.
+
+Syntax-rules macros are always used as @code{(@var{macro} . @var{args})}, and
+the @var{macro} will always be a symbol. Correspondingly, a @code{syntax-rules}
+pattern must be a list (proper or improper), and the first pattern in that list
+must be an identifier. Incidentally it can be any identifier -- it doesn't have
+to actually be the name of the macro. Thus the following three are equivalent:
+
+@example
+(define-syntax when
+  (syntax-rules ()
+    ((when c e ...)
+     (if c (begin e ...)))))
+
+(define-syntax when
+  (syntax-rules ()
+    ((_ c e ...)
+     (if c (begin e ...)))))
+
+(define-syntax when
+  (syntax-rules ()
+    ((something-else-entirely c e ...)
+     (if c (begin e ...)))))
+@end example
+
+For clarity, use one of the first two variants. Also note that since the pattern
+variable will always match the macro itself (e.g., @code{cond1}), it is actually
+left unbound in the template.
+
+@subsubsection Hygiene
+
+@code{syntax-rules} macros have a magical property: they preserve referential
+transparency. When you read a macro definition, any free bindings in that macro
+are resolved relative to the macro definition; and when you read a macro
+instantiation, all free bindings in that expression are resolved relative to the
+expression.
+
+This property is sometimes known as @dfn{hygiene}, and it does aid in code
+cleanliness. In your macro definitions, you can feel free to introduce temporary
+variables, without worrying about inadvertantly introducing bindings into the
+macro expansion.
+
+Consider the definition of @code{my-or} from the previous section:
+
+@example
+(define-syntax my-or
+  (syntax-rules ()
+    ((my-or)
+     #t)
+    ((my-or exp)
+     exp)
+    ((my-or exp rest ...)
+     (let ((t exp))
+       (if exp
+           exp
+           (my-or rest ...))))))
+@end example
+
+A naive expansion of @code{(let ((t #t)) (my-or #f t))} would yield:
+
+@example
+(let ((t #t))
+  (let ((t #f))
+    (if t t t)))
+@result{} #f
+@end example
+
+@noindent
+Which clearly is not what we want. Somehow the @code{t} in the definition is
+distinct from the @code{t} at the site of use; and it is indeed this distinction
+that is maintained by the syntax expander, when expanding hygienic macros.
+
+This discussion is mostly relevant in the context of traditional Lisp macros
+(@pxref{Defmacros}), which do not preserve referential transparency. Hygiene
+adds to the expressive power of Scheme.
+
+@subsubsection Further Information
+
+For a formal definition of @code{syntax-rules} and its pattern language, see
+@xref{Macros, , Macros, r5rs, Revised(5) Report on the Algorithmic Language
+Scheme}.
+
+@code{syntax-rules} macros are simple and clean, but do they have limitations.
+They do not lend themselves to expressive error messages: patterns either match
+or they don't. Their ability to generate code is limited to template-driven
+expansion; often one needs to define a number of helper macros to get real work
+done. Sometimes one wants to introduce a binding into the lexical context of the
+generated code; this is impossible with @code{syntax-rules}. Relatedly, they
+cannot programmatically generate identifiers.
+
+The solution to all of these problems is to use @code{syntax-case} if you need
+its features. But if for some reason you're stuck with @code{syntax-rules}, you
+might enjoy Joe Marshall's
+@uref{http://sites.google.com/site/evalapply/eccentric.txt,@code{syntax-rules}
+Primer for the Merely Eccentric}.
+
+@node Syntax Case
+@subsection Support for the @code{syntax-case} System
+
+@code{syntax-case} macros are procedural syntax transformers, with a power
+worthy of Scheme.
+
+@deffn {Syntax} syntax-case syntax literals (pattern [guard] exp)...
+Match the syntax object @var{syntax} against the given patterns, in order. If a
+@var{pattern} matches, return the result of evaluating the associated @var{exp}.
+@end deffn
+
+Compare the following definitions of @code{when}:
+
+@example
+(define-syntax when
+  (syntax-rules ()
+    ((_ test e e* ...)
+     (if test (begin e e* ...)))))
+
+(define-syntax when
+  (lambda (x)
+    (syntax-case x ()
+      ((_ test e e* ...)
+       #'(if test (begin e e* ...))))))
+@end example
+
+Clearly, the @code{syntax-case} definition is similar to its @code{syntax-rules}
+counterpart, and equally clearly there are some differences. The
+@code{syntax-case} definition is wrapped in a @code{lambda}, a function of one
+argument; that argument is passed to the @code{syntax-case} invocation; and the
+``return value'' of the macro has a @code{#'} prefix.
+
+All of these differences stem from the fact that @code{syntax-case} does not
+define a syntax transformer itself -- instead, @code{syntax-case} expressions
+provide a way to destructure a @dfn{syntax object}, and to rebuild syntax
+objects as output.
+
+So the @code{lambda} wrapper is simply a leaky implementation detail, that
+syntax transformers are just functions that transform syntax to syntax. This
+should not be surprising, given that we have already described macros as
+``programs that write programs''. @code{syntax-case} is simply a way to take
+apart and put together program text, and to be a valid syntax transformer it
+needs to be wrapped in a procedure.
+
+Unlike traditional Lisp macros (@pxref{Defmacros}), @code{syntax-case} macros
+transform syntax objects, not raw Scheme forms. Recall the naive expansion of
+@code{my-or} given in the previous section:
+
+@example
+(let ((t #t))
+  (my-or #f t))
+;; naive expansion:
+(let ((t #t))
+  (let ((t #f))
+    (if t t t)))
+@end example
+
+Raw Scheme forms simply don't have enough information to distinguish the first
+two @code{t} instances in @code{(if t t t)} from the third @code{t}. So instead
+of representing identifiers as symbols, the syntax expander represents
+identifiers as annotated syntax objects, attaching such information to those
+syntax objects as is needed to maintain referential transparency.
+
+@deffn {Syntax} syntax form
+Create a syntax object wrapping @var{form} within the current lexical context.
+@end deffn
+
+Syntax objects are typically created internally to the process of expansion, but
+it is possible to create them outside of syntax expansion:
+
+@example
+(syntax (foo bar baz))
+@result{} #<some representation of that syntax>
+@end example
+
+@noindent
+However it is more common, and useful, to create syntax objects when building
+output from a @code{syntax-case} expression.
+
+@example
+(define-syntax add1
+  (lambda (x)
+    (syntax-case x ()
+      ((_ exp)
+       (syntax (+ exp 1))))))
+@end example
+
+It is not strictly necessary for a @code{syntax-case} expression to return a
+syntax object, because @code{syntax-case} expressions can be used in helper
+functions, or otherwise used outside of syntax expansion itself. However a
+syntax transformer procedure  must return a syntax object, so most uses of
+@code{syntax-case} do end up returning syntax objects.
+
+Here in this case, the form that built the return value was @code{(syntax (+ exp
+1))}. The interesting thing about this is that within a @code{syntax}
+expression, any appearance of a pattern variable is substitued into the
+resulting syntax object, carrying with it all relevant metadata from the source
+expression, such as lexical identity and source location.
+
+Indeed, a pattern variable may only be referenced from inside a @code{syntax}
+form. The syntax expander would raise an error when defining @code{add1} if it
+found @var{exp} referenced outside a @code{syntax} form.
+
+Since @code{syntax} appears frequently in macro-heavy code, it has a special
+reader macro: @code{#'}. @code{#'foo} is transformed by the reader into
+@code{(syntax foo)}, just as @code{'foo} is tranformed into @code{(quote foo)}.
+
+The pattern language used by @code{syntax-case} is conveniently the same
+language used by @code{syntax-rules}. Given this, Guile actually defines
+@code{syntax-rules} in terms of @code{syntax-case}:
+
+@example
+(define-syntax syntax-rules
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (k ...) ((keyword . pattern) template) ...)
+       #'(lambda (x)
+           (syntax-case x (k ...)
+             ((dummy . pattern) #'template)
+             ...))))))
+@end example
+
+And that's that.
+
+@subsubsection Why @code{syntax-case}?
+
+The examples we have shown thus far could just as well have been expressed with
+@code{syntax-rules}, and have just shown that @code{syntax-case} is more
+verbose, which is true. But there is a difference: @code{syntax-case} creates
+@emph{procedural} macros, giving the full power of Scheme to the macro expander.
+This has many practical applications.
+
+A common desire is to be able to match a form only if it is an identifier. This
+is impossible with @code{syntax-rules}, given the datum matching forms. But with
+@code{syntax-case} it is easy:
+
+@deffn {Scheme Procedure} identifier? syntax-object
+Returns @code{#t} iff @var{syntax-object} is an identifier.
+@end deffn
+
+@example
+(define-syntax add1!
+  (lambda (x)
+    (syntax-case x ()
+      ((_ var) (identifier? #'var)
+       #'(set! var (add1 var))))))
+
+(define foo 0)
+(add1! foo)
+foo @result{} 1
+(add1! "not-an-identifier") @result{} error
+@end example
+
+With @code{syntax-rules}, the error for @code{(add1! "not-an-identifier")} would
+be something like ``invalid @code{set!}''. With @code{syntax-case}, it will say
+something like ``invalid @code{add1!}'', because we attach the @dfn{guard
+clause} to the pattern: @code{(identifier? #'var)}. This becomes more important
+with more complicated macros. It is necessary to use @code{identifier?}, because
+to the expander, an identifier is more than a bare symbol.
+
+Note that even in the guard clause, we reference the @var{var} pattern variable
+within a @code{syntax} form, via @code{#'var}.
+
+Another common desire is to introduce bindings into the lexical context of the
+output expression. One example would be in the so-called ``anaphoric macros'',
+like @code{aif}. Anaphoric macros bind some expression to a well-known
+identifier, often @code{it}, within their bodies. For example, in @code{(aif
+(foo) (bar it))}, @code{it} would be bound to the result of @code{(foo)}.
+
+To begin with, we should mention a solution that doesn't work:
+
+@example
+;; doesn't work
+(define-syntax aif
+  (lambda (x)
+    (syntax-case x ()
+      ((_ test then else)
+       #'(let ((it test))
+           (if it then else))))))
+@end example
+
+The reason that this doesn't work is that, by default, the expander will
+preserve referential transparency; the @var{then} and @var{else} expressions
+won't have access to the binding of @code{it}.
+
+But they can, if we explicitly introduce a binding via @code{datum->syntax}.
+
+@deffn {Scheme Procedure} datum->syntax for-syntax datum
+Create a syntax object that wraps @var{datum}, within the lexical context
+corresponding to the syntax object @var{for-syntax}.
+@end deffn
+
+For completeness, we should mention that it is possible to strip the metadata
+from a syntax object, returning a raw Scheme datum:
+
+@deffn {Scheme Procedure} syntax->datum syntax-object
+Strip the metadata from @var{syntax-object}, returning its contents as a raw
+Scheme datum.
+@end deffn
+
+In this case we want to introduce @code{it} in the context of the whole
+expression, so we can create a syntax object as @code{(datum->syntax x 'it)},
+where @code{x} is the whole expression, as passed to the transformer procedure.
+
+Here's another solution that doesn't work:
+
+@example
+;; doesn't work either
+(define-syntax aif
+  (lambda (x)
+    (syntax-case x ()
+      ((_ test then else)
+       (let ((it (datum->syntax x 'it)))
+         #'(let ((it test))
+             (if it then else)))))))
+@end example
+
+The reason that this one doesn't work is that there are really two environments
+at work here -- the environment of pattern variables, as bound by
+@code{syntax-case}, and the environment of lexical variables, as bound by normal
+Scheme. Here we need to introduce a piece of Scheme's environment into that of
+the syntax expander, and we can do so using @code{syntax-case} itself:
+
+@example
+;; works, but is obtuse
+(define-syntax aif
+  (lambda (x)
+    (syntax-case x ()
+      ((_ test then else)
+       ;; invoking syntax-case on the generated
+       ;; syntax object to expose it to `syntax'
+       (syntax-case (datum->syntax x 'it) ()
+         (it
+           #'(let ((it test))
+               (if it then else))))))))
+
+(aif (getuid) (display it) (display "none")) (newline)
+@print{} 500
+@end example
+
+However there are easier ways to write this. @code{with-syntax} is often
+convenient:
+
+@deffn {Syntax} with-syntax ((pat val)...) exp...
+Bind patterns @var{pat} from their corresponding values @var{val}, within the
+lexical context of @var{exp...}.
+
+@example
+;; better
+(define-syntax aif
+  (lambda (x)
+    (syntax-case x ()
+      ((_ test then else)
+       (with-syntax ((it (datum->syntax x 'it)))
+         #'(let ((it test))
+             (if it then else)))))))
+@end example
+@end deffn
+
+As you might imagine, @code{with-syntax} is defined in terms of
+@code{syntax-case}. But even that might be off-putting to you if you are an old
+Lisp macro hacker, used to building macro output with @code{quasiquote}. The
+issue is that @code{with-syntax} creates a separation between the point of
+definition of a value and its point of substitution.
+
+@pindex quasisyntax
+@pindex unsyntax
+@pindex unsyntax-splicing
+So for cases in which a @code{quasiquote} style makes more sense,
+@code{syntax-case} also defines @code{quasisyntax}, and the related
+@code{unsyntax} and @code{unsyntax-splicing}, abbreviated by the reader as
+@code{#`}, @code{#,}, and @code{#,@@}, respectively.
+
+For example, to define a macro that inserts a compile-time timestamp into a
+source file, one may write:
+
+@example
+(define-syntax display-compile-timestamp
+  (lambda (x)
+    (syntax-case x ()
+      ((_)
+       #`(begin
+          (display "The compile timestamp was: ")
+          (display #,(current-time))
+          (newline))))))
+@end example
+
+Finally, we should mention the following helper procedures defined by the core
+of @code{syntax-case}:
+
+@deffn {Scheme Procedure} bound-identifier=? a b
+Returns @code{#t} iff the syntax objects @var{a} and @var{b} refer to the same
+lexically-bound identifier.
+@end deffn
+
+@deffn {Scheme Procedure} free-identifier=? a b
+Returns @code{#t} iff the syntax objects @var{a} and @var{b} refer to the same
+free identifier.
+@end deffn
+
+@deffn {Scheme Procedure} generate-temporaries ls
+Return a list of temporary identifiers as long as @var{ls} is long.
+@end deffn
+
+Readers interested in further information on @code{syntax-case} macros should
+see R. Kent Dybvig's excellent @cite{The Scheme Programming Language}, either
+edition 3 or 4, in the chapter on syntax. Dybvig was the primary author of the
+@code{syntax-case} system. The book itself is available online at
+@uref{http://scheme.com/tspl4/}.
+
+@node Defmacros
+@subsection Lisp-style Macro Definitions
+
+The traditional way to define macros in Lisp is very similar to procedure
+definitions. The key differences are that the macro definition body should
+return a list that describes the transformed expression, and that the definition
+is marked as a macro definition (rather than a procedure definition) by the use
+of a different definition keyword: in Lisp, @code{defmacro} rather than
+@code{defun}, and in Scheme, @code{define-macro} rather than @code{define}.
+
+@fnindex defmacro
+@fnindex define-macro
+Guile supports this style of macro definition using both @code{defmacro}
+and @code{define-macro}.  The only difference between them is how the
+macro name and arguments are grouped together in the definition:
+
+@lisp
+(defmacro @var{name} (@var{args} @dots{}) @var{body} @dots{})
+@end lisp
+
+@noindent
+is the same as
+
+@lisp
+(define-macro (@var{name} @var{args} @dots{}) @var{body} @dots{})
+@end lisp
+
+@noindent
+The difference is analogous to the corresponding difference between
+Lisp's @code{defun} and Scheme's @code{define}.
+
+Having read the previous section on @code{syntax-case}, it's probably clear that
+Guile actually implements defmacros in terms of @code{syntax-case}, applying the
+transformer on the expression between invocations of @code{syntax->datum} and
+@code{datum->syntax}. This realization leads us to the problem with defmacros,
+that they do not preserve referential transparency. One can be careful to not
+introduce bindings into expanded code, via liberal use of @code{gensym}, but
+there is no getting around the lack of referential transparency for free
+bindings in the macro itself.
+
+Even a macro as simple as our @code{when} from before is difficult to get right:
+
+@example
+(define-macro (when cond exp . rest)
+  `(if ,cond
+       (begin ,exp . ,rest)))
+
+(when #f (display "Launching missiles!\n"))
+@result{} #f
+
+(let ((if list))
+  (when #f (display "Launching missiles!\n")))
+@print{} Launching missiles!
+@result{} (#f #<unspecified>)
+@end example
+
+Guile's perspective is that defmacros have had a good run, but that modern
+macros should be written with @code{syntax-rules} or @code{syntax-case}. There
+are still many uses of defmacros within Guile itself, but we will be phasing
+them out over time. Of course we won't take away @code{defmacro} or
+@code{define-macro} themselves, as there is lots of code out there that uses
+them.
+
+
+@node Identifier Macros
+@subsection Identifier Macros
+
+When the syntax expander sees a form in which the first element is a macro, the
+whole form gets passed to the macro's syntax transformer. One may visualize this
+as:
+
+@example
+(define-syntax foo foo-transformer)
+(foo @var{arg}...)
+;; expands via
+(foo-transformer #'(foo @var{arg}...))
+@end example
+
+If, on the other hand, a macro is referenced in some other part of a form, the
+syntax transformer is invoked with only the macro reference, not the whole form.
+
+@example
+(define-syntax foo foo-transformer)
+foo
+;; expands via
+(foo-transformer #'foo)
+@end example
+
+This allows bare identifier references to be replaced programmatically via a
+macro. @code{syntax-rules} provides some syntax to effect this transformation
+more easily.
+
+@deffn {Syntax} identifier-syntax exp
+Returns a macro transformer that will replace occurences of the macro with
+@var{exp}.
+@end deffn
+
+For example, if you are importing external code written in terms of @code{fx+},
+the fixnum addition operator, but Guile doesn't have @code{fx+}, you may use the
+following to replace @code{fx+} with @code{+}:
+
+@example
+(define-syntax fx+ (identifier-syntax +))
+@end example
+
+Later versions of the @code{psyntax} @code{syntax-case} expander, on which
+Guile's syntax expander is based, include @code{identifier-syntax} support for
+recognizing identifiers on the left-hand side of a @code{set!} expression as
+well. Guile should port that code to its expander.
+
+@node Eval When
+@subsection Eval-when
+
+As @code{syntax-case} macros have the whole power of Scheme available to them,
+they present a problem regarding time: when a macro runs, what parts of the
+program are available for the macro to use?
+
+The default answer to this question is that when you import a module (via
+@code{define-module} or @code{use-modules}), that module will be loaded up at
+expansion-time, as well as at run-time. Additionally, top-level syntactic
+definitions within one compilation unit made by @code{define-syntax} are also
+evaluated at expansion time, in the order that they appear in the compilation
+unit (file).
+
+But if a syntactic definition needs to call out to a normal procedure at
+expansion-time, it might well need need special declarations to indicate that
+the procedure should be made available at expansion-time.
+
+For example, the following code will work at a REPL, but not in a file:
+
+@example
+;; incorrect
+(use-modules (srfi srfi-19))
+(define (date) (date->string (current-date)))
+(define-syntax %date (identifier-syntax (date)))
+(define *compilation-date* %date)
+@end example
+
+It works at a REPL because the expressions are evaluated one-by-one, in order,
+but if placed in a file, the expressions are expanded one-by-one, but not
+evaluated until the compiled file is loaded.
+
+The fix is to use @code{eval-when}.
+
+@example
+;; correct: using eval-when
+(use-modules (srfi srfi-19))
+(eval-when (compile load eval)
+  (define (date) (date->string (current-date))))
+(define-syntax %date (identifier-syntax (date)))
+(define *compilation-date* %date)
+@end example
+
+@deffn {Syntax} eval-when conditions exp...
+Evaluate @var{exp...} under the given @var{conditions}. Valid conditions include
+@code{eval}, @code{load}, and @code{compile}. If you need to use
+@code{eval-when}, use it with all three conditions, as in the above example.
+Other uses of @code{eval-when} may void your warranty or poison your cat.
+@end deffn
+
+@node Internal Macros
+@subsection Internal Macros
+
+@deffn {Scheme Procedure} make-syntax-transformer name type binding
+Construct a syntax transformer object. This is part of Guile's low-level support
+for syntax-case.
+@end deffn
+
+@deffn {Scheme Procedure} macro? obj
+@deffnx {C Function} scm_macro_p (obj)
+Return @code{#t} iff @var{obj} is a syntax transformer.
+
+Note that it's a bit difficult to actually get a macro as a first-class object;
+simply naming it (like @code{case}) will produce a syntax error. But it is
+possible to get these objects using @code{module-ref}:
+
+@example
+(macro? (module-ref (current-module) 'case))
+@result{} #t
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} macro-type m
+@deffnx {C Function} scm_macro_type (m)
+Return the @var{type} that was given when @var{m} was constructed, via
+@code{make-syntax-transformer}.
+@end deffn
+
+@deffn {Scheme Procedure} macro-name m
+@deffnx {C Function} scm_macro_name (m)
+Return the name of the macro @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} macro-binding m
+@deffnx {C Function} scm_macro_binding (m)
+Return the binding of the macro @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} macro-transformer m
+@deffnx {C Function} scm_macro_transformer (m)
+Return the transformer of the macro @var{m}. This will return a procedure, for
+which one may ask the docstring. That's the whole reason this section is
+documented. Actually a part of the result of @code{macro-binding}.
+@end deffn
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

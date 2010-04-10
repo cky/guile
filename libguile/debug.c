@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009 Free Software Foundation
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -35,6 +35,7 @@
 #include "libguile/throw.h"
 #include "libguile/macros.h"
 #include "libguile/smob.h"
+#include "libguile/struct.h"
 #include "libguile/procprop.h"
 #include "libguile/srcprop.h"
 #include "libguile/alist.h"
@@ -136,18 +137,15 @@ SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0,
 	    "Return the name of the procedure @var{proc}")
 #define FUNC_NAME s_scm_procedure_name
 {
+  SCM name;
+
   SCM_VALIDATE_PROC (1, proc);
-  switch (SCM_TYP7 (proc)) {
-  case scm_tc7_gsubr:
-    return SCM_SUBR_NAME (proc);
-  default:
-    {
-      SCM name = scm_procedure_property (proc, scm_sym_name);
-      if (scm_is_false (name) && SCM_PROGRAM_P (proc))
-        name = scm_program_name (proc);
-      return name;
-    }
-  }
+  while (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc))
+    proc = SCM_STRUCT_PROCEDURE (proc);
+  name = scm_procedure_property (proc, scm_sym_name);
+  if (scm_is_false (name) && SCM_PROGRAM_P (proc))
+    name = scm_program_name (proc);
+  return name;
 }
 #undef FUNC_NAME
 
@@ -209,15 +207,6 @@ scm_reverse_lookup (SCM env, SCM data)
     }
   return SCM_BOOL_F;
 }
-
-SCM_DEFINE (scm_sys_start_stack, "%start-stack", 2, 0, 0,
-            (SCM id, SCM thunk),
-	    "Call @var{thunk} on an evaluator stack tagged with @var{id}.")
-#define FUNC_NAME s_scm_sys_start_stack
-{
-  return scm_vm_call_with_new_stack (scm_the_vm (), thunk, id);
-}
-#undef FUNC_NAME
 
 
 

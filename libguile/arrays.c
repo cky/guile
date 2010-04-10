@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -252,6 +252,41 @@ scm_from_contiguous_typed_array (SCM type, SCM bounds, const void *bytes,
     SCM_MISC_ERROR ("uniform elements larger than 8 bits must fill whole bytes", SCM_EOL);
 
   memcpy (elts, bytes, byte_len);
+
+  if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
+    if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
+      return SCM_I_ARRAY_V (ra);
+  return ra;
+}
+#undef FUNC_NAME
+
+SCM
+scm_from_contiguous_array (SCM bounds, const SCM *elts, size_t len)
+#define FUNC_NAME "scm_from_contiguous_array"
+{
+  size_t k, rlen = 1;
+  scm_t_array_dim *s;
+  SCM ra;
+  scm_t_array_handle h;
+  
+  ra = scm_i_shap2ra (bounds);
+  SCM_SET_ARRAY_CONTIGUOUS_FLAG (ra);
+  s = SCM_I_ARRAY_DIMS (ra);
+  k = SCM_I_ARRAY_NDIM (ra);
+
+  while (k--)
+    {
+      s[k].inc = rlen;
+      SCM_ASSERT_RANGE (1, bounds, s[k].lbnd <= s[k].ubnd + 1);
+      rlen = (s[k].ubnd - s[k].lbnd + 1) * s[k].inc;
+    }
+  if (rlen != len)
+    SCM_MISC_ERROR ("element length and dimensions do not match", SCM_EOL);
+
+  SCM_I_ARRAY_V (ra) = scm_c_make_vector (rlen, SCM_UNDEFINED);
+  scm_array_get_handle (ra, &h);
+  memcpy (h.writable_elements, elts, rlen * sizeof(SCM));
+  scm_array_handle_release (&h);
 
   if (1 == SCM_I_ARRAY_NDIM (ra) && 0 == SCM_I_ARRAY_BASE (ra))
     if (s->ubnd < s->lbnd || (0 == s->lbnd && 1 == s->inc))
@@ -566,150 +601,6 @@ SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
     }
   else
     scm_wrong_type_arg_msg (NULL, 0, ra, "array");
-}
-#undef FUNC_NAME
-
-
-SCM 
-scm_ra2contig (SCM ra, int copy)
-{
-  SCM ret;
-  long inc = 1;
-  size_t k, len = 1;
-  for (k = SCM_I_ARRAY_NDIM (ra); k--;)
-    len *= SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd + 1;
-  k = SCM_I_ARRAY_NDIM (ra);
-  if (SCM_I_ARRAY_CONTP (ra) && ((0 == k) || (1 == SCM_I_ARRAY_DIMS (ra)[k - 1].inc)))
-    {
-      if (!scm_is_bitvector (SCM_I_ARRAY_V (ra)))
-	return ra;
-      if ((len == scm_c_bitvector_length (SCM_I_ARRAY_V (ra)) &&
-	   0 == SCM_I_ARRAY_BASE (ra) % SCM_LONG_BIT &&
-	   0 == len % SCM_LONG_BIT))
-	return ra;
-    }
-  ret = scm_i_make_array (k);
-  SCM_I_ARRAY_BASE (ret) = 0;
-  while (k--)
-    {
-      SCM_I_ARRAY_DIMS (ret)[k].lbnd = SCM_I_ARRAY_DIMS (ra)[k].lbnd;
-      SCM_I_ARRAY_DIMS (ret)[k].ubnd = SCM_I_ARRAY_DIMS (ra)[k].ubnd;
-      SCM_I_ARRAY_DIMS (ret)[k].inc = inc;
-      inc *= SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd + 1;
-    }
-  SCM_I_ARRAY_V (ret) = scm_make_generalized_vector (scm_array_type (ra),
-                                                     scm_from_long (inc),
-                                                     SCM_UNDEFINED);
-  if (copy)
-    scm_array_copy_x (ra, ret);
-  return ret;
-}
-
-
-
-SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
-           (SCM ura, SCM port_or_fd, SCM start, SCM end),
-	    "@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]\n"
-	    "Attempt to read all elements of @var{ura}, in lexicographic order, as\n"
-	    "binary objects from @var{port-or-fdes}.\n"
-	    "If an end of file is encountered,\n"
-	    "the objects up to that point are put into @var{ura}\n"
-	    "(starting at the beginning) and the remainder of the array is\n"
-	    "unchanged.\n\n"
-	    "The optional arguments @var{start} and @var{end} allow\n"
-	    "a specified region of a vector (or linearized array) to be read,\n"
-	    "leaving the remainder of the vector unchanged.\n\n"
-	    "@code{uniform-array-read!} returns the number of objects read.\n"
-	    "@var{port-or-fdes} may be omitted, in which case it defaults to the value\n"
-	    "returned by @code{(current-input-port)}.")
-#define FUNC_NAME s_scm_uniform_array_read_x
-{
-  if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_current_input_port ();
-
-  if (scm_is_uniform_vector (ura))
-    {
-      return scm_uniform_vector_read_x (ura, port_or_fd, start, end);
-    }
-  else if (SCM_I_ARRAYP (ura))
-    {
-      size_t base, vlen, cstart, cend;
-      SCM cra, ans;
-      
-      cra = scm_ra2contig (ura, 0);
-      base = SCM_I_ARRAY_BASE (cra);
-      vlen = SCM_I_ARRAY_DIMS (cra)->inc *
-	(SCM_I_ARRAY_DIMS (cra)->ubnd - SCM_I_ARRAY_DIMS (cra)->lbnd + 1);
-
-      cstart = 0;
-      cend = vlen;
-      if (!SCM_UNBNDP (start))
-	{
-	  cstart = scm_to_unsigned_integer (start, 0, vlen);
-	  if (!SCM_UNBNDP (end))
-	    cend = scm_to_unsigned_integer (end, cstart, vlen);
-	}
-
-      ans = scm_uniform_vector_read_x (SCM_I_ARRAY_V (cra), port_or_fd,
-				       scm_from_size_t (base + cstart),
-				       scm_from_size_t (base + cend));
-
-      if (!scm_is_eq (cra, ura))
-	scm_array_copy_x (cra, ura);
-      return ans;
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, ura, "array");
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
-           (SCM ura, SCM port_or_fd, SCM start, SCM end),
-	    "Writes all elements of @var{ura} as binary objects to\n"
-	    "@var{port-or-fdes}.\n\n"
-	    "The optional arguments @var{start}\n"
-	    "and @var{end} allow\n"
-	    "a specified region of a vector (or linearized array) to be written.\n\n"
-	    "The number of objects actually written is returned.\n"
-	    "@var{port-or-fdes} may be\n"
-	    "omitted, in which case it defaults to the value returned by\n"
-	    "@code{(current-output-port)}.")
-#define FUNC_NAME s_scm_uniform_array_write
-{
-  if (SCM_UNBNDP (port_or_fd))
-    port_or_fd = scm_current_output_port ();
-
-  if (scm_is_uniform_vector (ura))
-    {
-      return scm_uniform_vector_write (ura, port_or_fd, start, end);
-    }
-  else if (SCM_I_ARRAYP (ura))
-    {
-      size_t base, vlen, cstart, cend;
-      SCM cra, ans;
-      
-      cra = scm_ra2contig (ura, 1);
-      base = SCM_I_ARRAY_BASE (cra);
-      vlen = SCM_I_ARRAY_DIMS (cra)->inc *
-	(SCM_I_ARRAY_DIMS (cra)->ubnd - SCM_I_ARRAY_DIMS (cra)->lbnd + 1);
-
-      cstart = 0;
-      cend = vlen;
-      if (!SCM_UNBNDP (start))
-	{
-	  cstart = scm_to_unsigned_integer (start, 0, vlen);
-	  if (!SCM_UNBNDP (end))
-	    cend = scm_to_unsigned_integer (end, cstart, vlen);
-	}
-
-      ans = scm_uniform_vector_write (SCM_I_ARRAY_V (cra), port_or_fd,
-				      scm_from_size_t (base + cstart),
-				      scm_from_size_t (base + cend));
-
-      return ans;
-    }
-  else
-    scm_wrong_type_arg_msg (NULL, 0, ura, "array");
 }
 #undef FUNC_NAME
 

@@ -3,7 +3,7 @@
 #ifndef SCM_ARRAY_H
 #define SCM_ARRAY_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,8 @@
 /** Arrays */
 
 SCM_API SCM scm_make_array (SCM fill, SCM bounds);
+SCM_API SCM scm_from_contiguous_array (SCM bounds, const SCM *elts,
+                                       size_t len);
 SCM_API SCM scm_make_typed_array (SCM type, SCM fill, SCM bounds);
 SCM_API SCM scm_from_contiguous_typed_array (SCM type, SCM bounds,
                                              const void *bytes,
@@ -46,14 +48,8 @@ SCM_API SCM scm_shared_array_increments (SCM ra);
 SCM_API SCM scm_make_shared_array (SCM oldra, SCM mapfunc, SCM dims);
 SCM_API SCM scm_transpose_array (SCM ra, SCM args);
 SCM_API SCM scm_array_contents (SCM ra, SCM strict);
-SCM_API SCM scm_uniform_array_read_x (SCM ra, SCM port_or_fd,
-				      SCM start, SCM end);
-SCM_API SCM scm_uniform_array_write (SCM v, SCM port_or_fd,
-				     SCM start, SCM end);
 SCM_API SCM scm_list_to_array (SCM ndim, SCM lst);
 SCM_API SCM scm_list_to_typed_array (SCM type, SCM ndim, SCM lst);
-
-SCM_API SCM scm_ra2contig (SCM ra, int copy);
 
 /* internal. */
 

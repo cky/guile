@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -102,6 +102,7 @@
 #endif
 
 
+/* Cache the VM's instruction, stack, and frame pointer in local variables.  */
 #define CACHE_REGISTER()			\
 {						\
   ip = vp->ip;					\
@@ -109,6 +110,9 @@
   fp = vp->fp;					\
 }
 
+/* Update the registers in VP, a pointer to the current VM.  This must be done
+   at least before any GC invocation so that `vp->sp' is up-to-date and the
+   whole stack gets marked.  */
 #define SYNC_REGISTER()				\
 {						\
   vp->ip = ip;					\
@@ -154,19 +158,6 @@
       object_count = 0;                                                 \
     }                                                                   \
   }                                                                     \
-  {                                                                     \
-    SCM c = SCM_PROGRAM_FREE_VARIABLES (program);                       \
-    if (SCM_I_IS_VECTOR (c))                                            \
-      {                                                                 \
-        free_vars = SCM_I_VECTOR_WELTS (c);                             \
-        free_vars_count = SCM_I_VECTOR_LENGTH (c);                      \
-      }                                                                 \
-    else                                                                \
-      {                                                                 \
-        free_vars = NULL;                                               \
-        free_vars_count = 0;                                            \
-      }                                                                 \
-  }                                                                     \
 }
 
 #define SYNC_BEFORE_GC()			\
@@ -193,8 +184,11 @@
 #endif
 
 #if VM_CHECK_FREE_VARIABLES
-#define CHECK_FREE_VARIABLE(_num) \
-  do { if (SCM_UNLIKELY ((_num) >= free_vars_count)) goto vm_error_free_variable; } while (0)
+#define CHECK_FREE_VARIABLE(_num)                                       \
+  do {                                                                  \
+    if (SCM_UNLIKELY ((_num) >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))) \
+      goto vm_error_free_variable;                                      \
+  } while (0)
 #else
 #define CHECK_FREE_VARIABLE(_num)
 #endif
@@ -205,18 +199,29 @@
  */
 
 #undef RUN_HOOK
+#undef RUN_HOOK1
 #if VM_USE_HOOKS
-#define RUN_HOOK(h)				\
-{						\
-  if (SCM_UNLIKELY (scm_is_true (vp->hooks[h])))\
-    {						\
-      SYNC_REGISTER ();				\
-      vm_dispatch_hook (vp, vp->hooks[h], hook_args);      \
-      CACHE_REGISTER ();			\
-    }						\
-}
+#define RUN_HOOK(h)                                     \
+  {                                                     \
+    if (SCM_UNLIKELY (vp->trace_level > 0))             \
+      {                                                 \
+        SYNC_REGISTER ();				\
+        vm_dispatch_hook (vm, h);                       \
+      }                                                 \
+  }
+#define RUN_HOOK1(h, x)                                 \
+  {                                                     \
+    if (SCM_UNLIKELY (vp->trace_level > 0))             \
+      {                                                 \
+        PUSH (x);                                       \
+        SYNC_REGISTER ();				\
+        vm_dispatch_hook (vm, h);                       \
+        DROP();                                         \
+      }                                                 \
+  }
 #else
 #define RUN_HOOK(h)
+#define RUN_HOOK1(h, x)
 #endif
 
 #define BOOT_HOOK()	RUN_HOOK (SCM_VM_BOOT_HOOK)
@@ -226,7 +231,7 @@
 #define ENTER_HOOK()	RUN_HOOK (SCM_VM_ENTER_HOOK)
 #define APPLY_HOOK()	RUN_HOOK (SCM_VM_APPLY_HOOK)
 #define EXIT_HOOK()	RUN_HOOK (SCM_VM_EXIT_HOOK)
-#define RETURN_HOOK()	RUN_HOOK (SCM_VM_RETURN_HOOK)
+#define RETURN_HOOK(n)	RUN_HOOK1 (SCM_VM_RETURN_HOOK, SCM_I_MAKINUM (n))
 
 #define VM_HANDLE_INTERRUPTS                     \
   SCM_ASYNC_TICK_WITH_CODE (SYNC_REGISTER ())

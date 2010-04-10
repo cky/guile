@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,16 +26,11 @@
 #include "libguile/eq.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
-#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/vectors.h"
+#include "libguile/arrays.h" /* Hit me with the ugly stick */
 #include "libguile/generalized-vectors.h"
-#include "libguile/arrays.h"
-#include "libguile/bitvectors.h"
-#include "libguile/bytevectors.h"
-#include "libguile/array-map.h"
-#include "libguile/srfi-4.h"
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/dynwind.h"
@@ -625,10 +620,9 @@ vector_get_handle (SCM v, scm_t_array_handle *h)
   h->elements = h->writable_elements = SCM_I_VECTOR_WELTS (v);
 }
 
+/* the & ~2 allows catching scm_tc7_wvect as well. needs changing if you change
+   tags.h. */
 SCM_ARRAY_IMPLEMENTATION (scm_tc7_vector, 0x7f & ~2,
-                          vector_handle_ref, vector_handle_set,
-                          vector_get_handle)
-SCM_ARRAY_IMPLEMENTATION (scm_tc7_wvect, 0x7f & ~2,
                           vector_handle_ref, vector_handle_set,
                           vector_get_handle)
 SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_SCM, scm_make_vector)

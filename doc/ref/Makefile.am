@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2004, 2006, 2008 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-BUILT_SOURCES = lib-version.texi
+BUILT_SOURCES = lib-version.texi standard-library.texi
 
 info_TEXINFOS = guile.texi
 
@@ -35,10 +35,13 @@ guile_TEXINFOS = preface.texi			\
 		 scheme-ideas.texi		\
 		 api-data.texi			\
 		 api-procedures.texi		\
+		 api-macros.texi		\
 		 api-utility.texi		\
 		 api-binding.texi		\
 		 api-control.texi		\
 		 api-io.texi			\
+		 api-foreign.texi		\
+		 api-lalr.texi			\
 		 api-evaluation.texi		\
 		 api-memory.texi		\
 		 api-modules.texi		\
@@ -128,3 +131,30 @@ EXTRA_DIST += lib-version.texi
 # But when we want to get back to a clean tree, lib-version.texi
 # should be cleaned.
 CLEANFILES = lib-version.texi
+
+# Support for snarfing docs out of Scheme modules.
+snarf_doc = standard-library
+
+$(snarf_doc).am: $(snarf_doc).scm
+	GUILE_AUTO_COMPILE=0 ;							\
+	variable="`echo $(snarf_doc) | tr - _`_scm_files" ;			\
+	"$(preinstguile)" -l "$(srcdir)/$(snarf_doc).scm" -c "			\
+	 (format #t \"# Automatically generated, do not edit.~%\")		\
+	 (format #t \"$$variable = \")						\
+	 (for-each (lambda (m)							\
+	             (format #t \"$$""(top_srcdir)/module/~a.scm \"		\
+	                     (string-join (map symbol->string m) \"/\")))	\
+	           (map car *modules*))" > "$@.tmp"
+	mv "$@.tmp" "$@"
+
+# The following line leads to the definition of $(standard_library_scm_files).
+include standard-library.am
+
+$(snarf_doc).texi: $(standard_library_scm_files)
+	GUILE_AUTO_COMPILE=0				\
+	"$(preinstguile)" "$(srcdir)/make-texinfo.scm"	\
+	  "$(abs_srcdir)/$(snarf_doc).scm" > "$@.tmp"
+	mv "$@.tmp" "$@"
+
+CLEANFILES += $(snarf_doc).texi
+EXTRA_DIST += $(snarf_doc).scm make-texinfo.scm $(snarf_doc).texi $(snarf_doc).am

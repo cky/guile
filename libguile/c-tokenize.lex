@@ -24,20 +24,6 @@ INTQUAL		(l|L|ll|LL|lL|Ll|u|U)
    an error for that. */
 #define YY_NO_INPUT
 
-int yylex(void);
-
-int yyget_lineno (void);
-FILE *yyget_in (void);
-FILE *yyget_out (void);
-int yyget_leng (void);
-char *yyget_text (void);
-void yyset_lineno (int line_number);
-void yyset_in (FILE * in_str);
-void yyset_out (FILE * out_str);
-int yyget_debug (void);
-void yyset_debug (int  bdebug);
-int yylex_destroy (void);
- 
 int filter_snarfage = 0;
 int print = 1; 
 

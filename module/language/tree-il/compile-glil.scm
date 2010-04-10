@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,7 @@
 
 (define %warning-passes
   `((unused-variable     . ,unused-variable-analysis)
+    (unused-toplevel     . ,unused-toplevel-analysis)
     (unbound-variable    . ,unbound-variable-analysis)
     (arity-mismatch      . ,arity-analysis)))
 
@@ -64,11 +65,10 @@
          (x (optimize! x e opts))
          (allocation (analyze-lexicals x)))
 
-    (with-fluid* *comp-module* e
-      (lambda ()
-        (values (flatten-lambda x #f allocation)
-                e
-                e)))))
+    (with-fluids ((*comp-module* e))
+      (values (flatten-lambda x #f allocation)
+              e
+              e))))
 
 
 
@@ -115,8 +115,11 @@
    ((variable-ref . 1) . variable-ref)
    ;; nb, *not* variable-set! -- the args are switched
    ((variable-set . 2) . variable-set)
+   ((variable-bound? . 1) . variable-bound?)
    ((struct? . 1) . struct?)
    ((struct-vtable . 1) . struct-vtable)
+   ((struct-ref . 2) . struct-ref)
+   ((struct-set! . 3) . struct-set)
    (make-struct . make-struct)
 
    ;; hack for javascript
@@ -173,7 +176,7 @@
          (pmatch (hashq-ref (hashq-ref allocation v) proc)
            ((#t ,boxed? . ,n)
             (list id boxed? n))
-           (,x (error "badness" x))))
+           (,x (error "badness" id v x))))
        ids
        vars))
 
@@ -277,7 +280,7 @@
                ((tail)
                 (comp-push proc)
                 (for-each comp-push args)
-                (emit-code src (make-glil-call 'goto/apply (1+ (length args)))))
+                (emit-code src (make-glil-call 'tail-apply (1+ (length args)))))
                ((push)
                 (emit-code src (make-glil-call 'new-frame 0))
                 (comp-push proc)
@@ -344,12 +347,12 @@
               (comp-push producer)
               (emit-code src (make-glil-mv-call 0 MV))
               (case context
-                ((tail) (emit-code src (make-glil-call 'goto/args 1)))
+                ((tail) (emit-code src (make-glil-call 'tail-call 1)))
                 (else   (emit-code src (make-glil-call 'call 1))
                         (emit-branch #f 'br POST)))
               (emit-label MV)
               (case context
-                ((tail) (emit-code src (make-glil-call 'goto/nargs 0)))
+                ((tail) (emit-code src (make-glil-call 'tail-call/nargs 0)))
                 (else   (emit-code src (make-glil-call 'call/nargs 0))
                         (emit-label POST)
                         (if (eq? context 'drop)
@@ -362,7 +365,7 @@
          (case context
            ((tail)
             (comp-push (car args))
-            (emit-code src (make-glil-call 'goto/cc 1)))
+            (emit-code src (make-glil-call 'tail-call/cc 1)))
            ((vals)
             (comp-vals
              (make-application
@@ -482,7 +485,7 @@
          (for-each comp-push args)
          (let ((len (length args)))
            (case context
-             ((tail) (emit-code src (make-glil-call 'goto/args len)))
+             ((tail) (emit-code src (make-glil-call 'tail-call len)))
              ((push) (emit-code src (make-glil-call 'call len))
                      (maybe-emit-return))
              ((vals) (emit-code src (make-glil-mv-call len MVRA))
@@ -492,8 +495,7 @@
                        (emit-code #f (make-glil-call 'drop 1))
                        (emit-branch #f 'br (or RA POST))
                        (emit-label MV)
-                       (emit-code #f (make-glil-mv-bind '() #f))
-                       (emit-code #f (make-glil-unbind))
+                       (emit-code #f (make-glil-mv-bind 0 #f))
                        (if RA
                            (emit-branch #f 'br RA)
                            (emit-label POST)))))))))
@@ -663,8 +665,8 @@
                         (emit-code #f (make-glil-lexical local? #f 'ref n)))
                        (else (error "what" x loc))))
                    free-locs)
-                  (emit-code #f (make-glil-call 'vector (length free-locs)))
-                  (emit-code #f (make-glil-call 'make-closure 2)))))))
+                  (emit-code #f (make-glil-call 'make-closure
+                                                (length free-locs))))))))
        (maybe-emit-return))
       
       ((<lambda-case> src req opt rest kw inits vars alternate body)
@@ -812,13 +814,16 @@
              ((hashq-ref allocation x)
               ;; allocating a closure
               (emit-code #f (flatten-lambda x v allocation))
-              (if (not (null? (cdr (hashq-ref allocation x))))
-                  ;; Need to make-closure first, but with a temporary #f
-                  ;; free-variables vector, so we are mutating fresh
-                  ;; closures on the heap.
-                  (begin
-                    (emit-code #f (make-glil-const #f))
-                    (emit-code #f (make-glil-call 'make-closure 2))))
+              (let ((free-locs (cdr (hashq-ref allocation x))))
+                (if (not (null? free-locs))
+                    ;; Need to make-closure first, so we have a fresh closure on
+                    ;; the heap, but with a temporary free values.
+                    (begin
+                      (for-each (lambda (loc)
+                                  (emit-code #f (make-glil-const #f)))
+                                free-locs)
+                      (emit-code #f (make-glil-call 'make-closure
+                                                    (length free-locs))))))
               (pmatch (hashq-ref (hashq-ref allocation v) self)
                 ((#t #f . ,n)
                  (emit-code src (make-glil-lexical #t #f 'set n)))
@@ -868,7 +873,6 @@
                           (emit-code #f (make-glil-lexical local? #f 'ref n)))
                          (else (error "what" x loc))))
                      free-locs)
-                    (emit-code #f (make-glil-call 'vector (length free-locs)))
                     (pmatch (hashq-ref (hashq-ref allocation v) self)
                       ((#t #f . ,n)
                        (emit-code #f (make-glil-lexical #t #f 'fix n)))
@@ -903,4 +907,226 @@
                           (,loc (error "badness" x loc))))
                       (reverse vars))
             (comp-tail body)
-            (emit-code #f (make-glil-unbind)))))))))
+            (emit-code #f (make-glil-unbind))))))
+
+      ;; much trickier than i thought this would be, at first, due to the need
+      ;; to have body's return value(s) on the stack while the unwinder runs,
+      ;; then proceed with returning or dropping or what-have-you, interacting
+      ;; with RA and MVRA. What have you, I say.
+      ((<dynwind> src body winder unwinder)
+       (comp-push winder)
+       (comp-push unwinder)
+       (comp-drop (make-application src winder '()))
+       (emit-code #f (make-glil-call 'wind 2))
+
+       (case context
+         ((tail)
+          (let ((MV (make-label)))
+            (comp-vals body MV)
+            ;; one value: unwind...
+            (emit-code #f (make-glil-call 'unwind 0))
+            (comp-drop (make-application src unwinder '()))
+            ;; ...and return the val
+            (emit-code #f (make-glil-call 'return 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind...
+            (emit-code #f (make-glil-call 'unwind 0))
+            (comp-drop (make-application src unwinder '()))
+            ;; and return the values.
+            (emit-code #f (make-glil-call 'return/nvalues 1))))
+         
+         ((push)
+          ;; we only want one value. so ask for one value
+          (comp-push body)
+          ;; and unwind, leaving the val on the stack
+          (emit-code #f (make-glil-call 'unwind 0))
+          (comp-drop (make-application src unwinder '())))
+         
+         ((vals)
+          (let ((MV (make-label)))
+            (comp-vals body MV)
+            ;; one value: push 1 and fall through to MV case
+            (emit-code #f (make-glil-const 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind...
+            (emit-code #f (make-glil-call 'unwind 0))
+            (comp-drop (make-application src unwinder '()))
+            ;; and goto the MVRA.
+            (emit-branch #f 'br MVRA)))
+         
+         ((drop)
+          ;; compile body, discarding values. then unwind...
+          (comp-drop body)
+          (emit-code #f (make-glil-call 'unwind 0))
+          (comp-drop (make-application src unwinder '()))
+          ;; and fall through, or goto RA if there is one.
+          (if RA
+              (emit-branch #f 'br RA)))))
+
+      ((<dynlet> src fluids vals body)
+       (for-each comp-push fluids)
+       (for-each comp-push vals)
+       (emit-code #f (make-glil-call 'wind-fluids (length fluids)))
+
+       (case context
+         ((tail)
+          (let ((MV (make-label)))
+            ;; NB: in tail case, it is possible to preserve asymptotic tail
+            ;; recursion, via merging unwind-fluids structures -- but we'd need
+            ;; to compile in the body twice (once in tail context, assuming the
+            ;; caller unwinds, and once with this trampoline thing, unwinding
+            ;; ourselves).
+            (comp-vals body MV)
+            ;; one value: unwind and return
+            (emit-code #f (make-glil-call 'unwind-fluids 0))
+            (emit-code #f (make-glil-call 'return 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind and return values
+            (emit-code #f (make-glil-call 'unwind-fluids 0))
+            (emit-code #f (make-glil-call 'return/nvalues 1))))
+         
+         ((push)
+          (comp-push body)
+          (emit-code #f (make-glil-call 'unwind-fluids 0)))
+         
+         ((vals)
+          (let ((MV (make-label)))
+            (comp-vals body MV)
+            ;; one value: push 1 and fall through to MV case
+            (emit-code #f (make-glil-const 1))
+            
+            (emit-label MV)
+            ;; multiple values: unwind and goto MVRA
+            (emit-code #f (make-glil-call 'unwind-fluids 0))
+            (emit-branch #f 'br MVRA)))
+         
+         ((drop)
+          ;; compile body, discarding values. then unwind...
+          (comp-drop body)
+          (emit-code #f (make-glil-call 'unwind-fluids 0))
+          ;; and fall through, or goto RA if there is one.
+          (if RA
+              (emit-branch #f 'br RA)))))
+
+      ((<dynref> src fluid)
+       (case context
+         ((drop)
+          (comp-drop fluid))
+         ((push vals tail)
+          (comp-push fluid)
+          (emit-code #f (make-glil-call 'fluid-ref 1))))
+       (maybe-emit-return))
+      
+      ((<dynset> src fluid exp)
+       (comp-push fluid)
+       (comp-push exp)
+       (emit-code #f (make-glil-call 'fluid-set 2))
+       (case context
+         ((push vals tail)
+          (emit-code #f (make-glil-void))))
+       (maybe-emit-return))
+      
+      ;; What's the deal here? The deal is that we are compiling the start of a
+      ;; delimited continuation. We try to avoid heap allocation in the normal
+      ;; case; so the body is an expression, not a thunk, and we try to render
+      ;; the handler inline. Also we did some analysis, in analyze.scm, so that
+      ;; if the continuation isn't referenced, we don't reify it. This makes it
+      ;; possible to implement catch and throw with delimited continuations,
+      ;; without any overhead.
+      ((<prompt> src tag body handler)
+       (let ((H (make-label))
+             (POST (make-label))
+             (escape-only? (hashq-ref allocation x)))
+         ;; First, set up the prompt.
+         (comp-push tag)
+         (emit-code src (make-glil-prompt H escape-only?))
+
+         ;; Then we compile the body, with its normal return path, unwinding
+         ;; before proceeding.
+         (case context
+           ((tail)
+            (let ((MV (make-label)))
+              (comp-vals body MV)
+              ;; one value: unwind and return
+              (emit-code #f (make-glil-call 'unwind 0))
+              (emit-code #f (make-glil-call 'return 1))
+              ;; multiple values: unwind and return
+              (emit-label MV)
+              (emit-code #f (make-glil-call 'unwind 0))
+              (emit-code #f (make-glil-call 'return/nvalues 1))))
+         
+           ((push)
+            ;; we only want one value. so ask for one value, unwind, and jump to
+            ;; post
+            (comp-push body)
+            (emit-code #f (make-glil-call 'unwind 0))
+            (emit-branch #f 'br POST))
+           
+           ((vals)
+            (let ((MV (make-label)))
+              (comp-vals body MV)
+              ;; one value: push 1 and fall through to MV case
+              (emit-code #f (make-glil-const 1))
+              ;; multiple values: unwind and goto MVRA
+              (emit-label MV)
+              (emit-code #f (make-glil-call 'unwind 0))
+              (emit-branch #f 'br MVRA)))
+         
+           ((drop)
+            ;; compile body, discarding values, then unwind & fall through.
+            (comp-drop body)
+            (emit-code #f (make-glil-call 'unwind 0))
+            (emit-branch #f 'br (or RA POST))))
+         
+         (emit-label H)
+         ;; Now the handler. The stack is now made up of the continuation, and
+         ;; then the args to the continuation (pushed separately), and then the
+         ;; number of args, including the continuation.
+         (record-case handler
+           ((<lambda-case> req opt kw rest vars body alternate)
+            (if (or opt kw alternate)
+                (error "unexpected lambda-case in prompt" x))
+            (emit-code src (make-glil-mv-bind
+                            (vars->bind-list
+                             (append req (if rest (list rest) '()))
+                             vars allocation self)
+                            (and rest #t)))
+            (for-each (lambda (v)
+                        (pmatch (hashq-ref (hashq-ref allocation v) self)
+                          ((#t #f . ,n)
+                           (emit-code src (make-glil-lexical #t #f 'set n)))
+                          ((#t #t . ,n)
+                           (emit-code src (make-glil-lexical #t #t 'box n)))
+                          (,loc (error "badness" x loc))))
+                      (reverse vars))
+            (comp-tail body)
+            (emit-code #f (make-glil-unbind))))
+
+         (if (or (eq? context 'push)
+                 (and (eq? context 'drop) (not RA)))
+             (emit-label POST))))
+
+      ((<abort> src tag args tail)
+       (comp-push tag)
+       (for-each comp-push args)
+       (comp-push tail)
+       (emit-code src (make-glil-call 'abort (length args)))
+       ;; so, the abort can actually return. if it does, the values will be on
+       ;; the stack, then the MV marker, just as in an MV context.
+       (case context
+         ((tail)
+          ;; Return values.
+          (emit-code #f (make-glil-call 'return/nvalues 1)))
+         ((drop)
+          ;; Drop all values and goto RA, or otherwise fall through.
+          (emit-code #f (make-glil-mv-bind 0 #f))
+          (if RA (emit-branch #f 'br RA)))
+         ((push)
+          ;; Truncate to one value.
+          (emit-code #f (make-glil-mv-bind 1 #f)))
+         ((vals)
+          ;; Go to MVRA.
+          (emit-branch #f 'br MVRA)))))))

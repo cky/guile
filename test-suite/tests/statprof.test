@@ -1,0 +1,111 @@
+;; guile-lib                    -*- scheme -*-
+;; Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
+;; Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
+
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 2.1 of the License, or (at your option) any later version.
+;;
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+;;
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this program; if not, contact:
+;;
+;; Free Software Foundation           Voice:  +1-617-542-5942
+;; 59 Temple Place - Suite 330        Fax:    +1-617-542-2652
+;; Boston, MA  02111-1307,  USA       gnu@gnu.org
+
+;;; Commentary:
+;;
+;; Unit tests for (debugging statprof).
+;;
+;;; Code:
+
+(define-module (test-suite test-statprof)
+  #:use-module (test-suite lib)
+  #:use-module (system base compile)
+  #:use-module (srfi srfi-1)
+  #:use-module (statprof))
+
+;; FIXME
+(debug-enable 'debug)
+(trap-enable 'traps)
+
+(pass-if "statistical sample counts within expected range"
+  (let ()
+    ;; test to see that if we call 3 identical functions equally, they
+    ;; show up equally in the call count, +/- 30%. it's a big range, and
+    ;; I tried to do something more statistically valid, but failed (for
+    ;; the moment).
+
+    ;; make sure these are compiled so we're not swamped in `eval'
+    (define (make-func)
+      (compile '(lambda (n)
+                  (do ((i 0 (+ i 1))) ((= 200 i)) (+ i i)))))
+    (define run-test
+      (compile '(lambda (num-calls funcs)
+                  (let loop ((x num-calls) (funcs funcs))
+                    (cond
+                     ((positive? x)
+                      ((car funcs) x)
+                      (loop (- x 1) (cdr funcs))))))))
+    
+    (let ((num-calls 40000)
+          (funcs (circular-list (make-func) (make-func) (make-func))))
+
+      ;; Run test. 10000 us == 100 Hz.
+      (statprof-reset 0 10000 #f #f)
+      (statprof-start)
+      (run-test num-calls funcs)
+      (statprof-stop)
+
+      (let* ((a-data (statprof-proc-call-data (car funcs)))
+             (b-data (statprof-proc-call-data (cadr funcs)))
+             (c-data (statprof-proc-call-data (caddr funcs)))
+             (samples (map statprof-call-data-cum-samples
+                           (list a-data b-data c-data)))
+             (average (/ (apply + samples) 3))
+             (max-allowed-drift 0.30) ; 30%
+             (diffs (map (lambda (x) (abs (- x average)))
+                         samples))
+             (max-diff (apply max diffs)))
+
+        (let ((drift-fraction (/ max-diff average)))
+          (or (< drift-fraction max-allowed-drift)
+              ;; don't stop the the test suite for what statistically is
+              ;; bound to happen.
+              (throw 'unresolved (pk average drift-fraction))))))))
+
+(pass-if "accurate call counting"
+  (let ()
+    ;; Test to see that if we call a function N times while the profiler
+    ;; is active, it shows up N times.
+    (let ((num-calls 200))
+
+      (define (do-nothing n)
+        (simple-format #f "FOO ~A\n" (+ n n)))
+    
+      (throw 'unresolved) ;; need to fix VM tracing.
+
+      ;; Run test.
+      (statprof-reset 0 50000 #t #f)
+      (statprof-start)
+      (let loop ((x num-calls))
+        (cond
+         ((positive? x)
+          (do-nothing x)
+          (loop (- x 1))
+          #t)))
+      (statprof-stop)
+    
+      ;;(statprof-display)
+
+      ;; Check result.
+      (let ((proc-data (statprof-proc-call-data do-nothing)))
+        (and proc-data
+             (= (statprof-call-data-calls proc-data)
+                num-calls))))))

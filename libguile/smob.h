@@ -3,7 +3,7 @@
 #ifndef SCM_SMOB_H
 #define SCM_SMOB_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,11 +41,7 @@ typedef struct scm_smob_descriptor
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
   SCM (*apply) ();
-  SCM (*apply_0) (SCM);
-  SCM (*apply_1) (SCM, SCM);
-  SCM (*apply_2) (SCM, SCM, SCM);
-  SCM (*apply_3) (SCM, SCM, SCM, SCM);
-  int gsubr_type; /* Used in procprop.c */
+  SCM apply_trampoline_objcode;
 } scm_smob_descriptor;
 
 
@@ -170,10 +166,10 @@ while (0)
 #define SCM_SMOB_PREDICATE(tag, obj)	SCM_TYP16_PREDICATE (tag, obj)
 #define SCM_SMOB_DESCRIPTOR(x)		(scm_smobs[SCM_SMOBNUM (x)])
 #define SCM_SMOB_APPLICABLE_P(x)	(SCM_SMOB_DESCRIPTOR (x).apply)
-#define SCM_SMOB_APPLY_0(x)		(SCM_SMOB_DESCRIPTOR (x).apply_0 (x))
-#define SCM_SMOB_APPLY_1(x, a1)		(SCM_SMOB_DESCRIPTOR (x).apply_1 (x, (a1)))
-#define SCM_SMOB_APPLY_2(x, a1, a2)	(SCM_SMOB_DESCRIPTOR (x).apply_2 (x, (a1), (a2)))
-#define SCM_SMOB_APPLY_3(x, a1, a2, rst)	(SCM_SMOB_DESCRIPTOR (x).apply_3 (x, (a1), (a2), (rst)))
+#define SCM_SMOB_APPLY_0(x)		(scm_call_0 (x))
+#define SCM_SMOB_APPLY_1(x, a1)		(scm_call_1 (x, a1))
+#define SCM_SMOB_APPLY_2(x, a1, a2)	(scm_call_2 (x, a1, a2))
+#define SCM_SMOB_APPLY_3(x, a1, a2, rst) (scm_call_3 (x, a1, a2, a3))
 
 /* Maximum number of SMOB types.  */
 #define SCM_I_MAX_SMOB_TYPE_COUNT  256
@@ -216,6 +212,8 @@ SCM_API void scm_assert_smob_type (scm_t_bits tag, SCM val);
 /* Function for creating smobs */
 
 SCM_API SCM scm_make_smob (scm_t_bits tc);
+
+SCM_INTERNAL SCM scm_i_smob_apply_trampoline (SCM smob);
 
 SCM_API void scm_smob_prehistory (void);
 

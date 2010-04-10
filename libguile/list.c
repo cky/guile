@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008,2009
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -25,7 +25,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/eq.h"
-#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/list.h"

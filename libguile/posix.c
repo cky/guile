@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,7 +37,6 @@
 #include "libguile/srfi-14.h"
 #include "libguile/vectors.h"
 #include "libguile/values.h"
-#include "libguile/lang.h"
 
 #include "libguile/validate.h"
 #include "libguile/posix.h"
@@ -983,6 +982,18 @@ SCM_DEFINE (scm_setsid, "setsid", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SETSID */
 
+#ifdef HAVE_GETSID
+SCM_DEFINE (scm_getsid, "getsid", 1, 0, 0,
+            (SCM pid),
+	    "Returns the session ID of process @var{pid}.  (The session\n"
+	    "ID of a process is the process group ID of its session leader.)")
+#define FUNC_NAME s_scm_getsid
+{
+  return scm_from_int (getsid (scm_to_int (pid)));
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETSID */
+
 
 /* ttyname returns its result in a single static buffer, hence
    scm_i_misc_mutex for thread safety.  In glibc 2.3.2 two threads
@@ -1361,13 +1372,18 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
-            (SCM pathname, SCM actime, SCM modtime),
+SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
+            (SCM pathname, SCM actime, SCM modtime, SCM actimens, SCM modtimens,
+             SCM flags),
 	    "@code{utime} sets the access and modification times for the\n"
 	    "file named by @var{path}.  If @var{actime} or @var{modtime} is\n"
 	    "not supplied, then the current time is used.  @var{actime} and\n"
 	    "@var{modtime} must be integer time values as returned by the\n"
-	    "@code{current-time} procedure.\n"
+	    "@code{current-time} procedure.\n\n"
+            "The optional @var{actimens} and @var{modtimens} are nanoseconds\n"
+            "to add @var{actime} and @var{modtime}. Nanosecond precision is\n"
+            "only supported on some combinations of filesystems and operating\n"
+            "systems.\n"
 	    "@lisp\n"
 	    "(utime \"foo\" (- (current-time) 3600))\n"
 	    "@end lisp\n"
@@ -1376,20 +1392,75 @@ SCM_DEFINE (scm_utime, "utime", 1, 2, 0,
 #define FUNC_NAME s_scm_utime
 {
   int rv;
-  struct utimbuf utm_tmp;
-
+  time_t atim_sec, mtim_sec;
+  long atim_nsec, mtim_nsec;
+  int f;
+  
   if (SCM_UNBNDP (actime))
-    SCM_SYSCALL (time (&utm_tmp.actime));
+    {
+#ifdef HAVE_UTIMENSAT
+      atim_sec = 0;
+      atim_nsec = UTIME_NOW;
+#else
+      SCM_SYSCALL (time (&atim_sec));
+      atim_nsec = 0;
+#endif
+    }
   else
-    utm_tmp.actime = SCM_NUM2ULONG (2, actime);
-
+    {
+      atim_sec = SCM_NUM2ULONG (2, actime);
+      if (SCM_UNBNDP (actimens))
+        atim_nsec = 0;
+      else
+        atim_nsec = SCM_NUM2LONG (4, actimens);
+    }
+  
   if (SCM_UNBNDP (modtime))
-    SCM_SYSCALL (time (&utm_tmp.modtime));
+    {
+#ifdef HAVE_UTIMENSAT
+      mtim_sec = 0;
+      mtim_nsec = UTIME_NOW;
+#else
+      SCM_SYSCALL (time (&mtim_sec));
+      mtim_nsec = 0;
+#endif
+    }
   else
-    utm_tmp.modtime = SCM_NUM2ULONG (3, modtime);
+    {
+      mtim_sec = SCM_NUM2ULONG (3, modtime);
+      if (SCM_UNBNDP (modtimens))
+        mtim_nsec = 0;
+      else
+        mtim_nsec = SCM_NUM2LONG (5, modtimens);
+    }
+  
+  if (SCM_UNBNDP (flags))
+    f = 0;
+  else
+    f = SCM_NUM2INT (6, flags);
 
-  STRING_SYSCALL (pathname, c_pathname,
-		  rv = utime (c_pathname, &utm_tmp));
+#ifdef HAVE_UTIMENSAT
+  {
+    struct timespec times[2];
+    times[0].tv_sec = atim_sec;
+    times[0].tv_nsec = atim_nsec;
+    times[1].tv_sec = mtim_sec;
+    times[1].tv_nsec = mtim_nsec;
+
+    STRING_SYSCALL (pathname, c_pathname,
+                    rv = utimensat (AT_FDCWD, c_pathname, times, f));
+  }
+#else
+  {
+    struct utimbuf utm;
+    utm.actime = atim_sec;
+    utm.modtime = mtim_sec;
+
+    STRING_SYSCALL (pathname, c_pathname,
+                    rv = utime (c_pathname, &utm));
+  }
+#endif
+
   if (rv != 0)
     SCM_SYSERROR;
   return SCM_UNSPECIFIED;

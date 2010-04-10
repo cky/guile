@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2008, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -509,6 +509,7 @@ keywords         #f      Style of keyword recognition: #f, 'prefix or 'postfix
 case-insensitive no      Convert symbols to lower case.
 positions        yes     Record positions of source code expressions.
 copy             no      Copy source code expressions.
+r6rs-hex-escapes no      Use R6RS-style string and character hex escapes
 @end smalllisp
 
 Notice that while Standard Scheme is case insensitive, to ease
@@ -520,6 +521,9 @@ To make Guile case insensitive, you can type
 @lisp
 (read-enable 'case-insensitive)
 @end lisp
+
+For more information on the effect of the @code{r6rs-hex-escapes} option, see
+(@pxref{Characters}) and (@pxref{String Syntax}).
 
 @node Printing options
 @subsubsection Printing options

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include "libguile/_scm.h"
+#include "libguile/private-gc.h" /* scm_getenv_int */
 #include "libguile/libpath.h"
 #include "libguile/fports.h"
 #include "libguile/read.h"
@@ -37,7 +38,6 @@
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/modules.h"
-#include "libguile/lang.h"
 #include "libguile/chars.h"
 #include "libguile/srfi-13.h"
 
@@ -239,8 +239,8 @@ scm_init_load_path ()
   else if (env)
     path = scm_parse_path (scm_from_locale_string (env), path);
   else
-    path = scm_list_3 (scm_from_locale_string (SCM_SITE_DIR),
-                       scm_from_locale_string (SCM_LIBRARY_DIR),
+    path = scm_list_3 (scm_from_locale_string (SCM_LIBRARY_DIR),
+                       scm_from_locale_string (SCM_SITE_DIR),
                        scm_from_locale_string (SCM_PKGDATA_DIR));
 
   env = getenv ("GUILE_SYSTEM_COMPILED_PATH");
@@ -407,11 +407,12 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
   SCM extensions, require_exts;
   SCM result = SCM_BOOL_F;
 
-  if (scm_is_null (rest))
+  if (SCM_UNBNDP (rest) || scm_is_null (rest))
     {
       /* Called either by Scheme code that didn't provide the optional
          arguments, or C code that used the Guile 1.8 signature (2 required,
-         1 optional arg) and passed '() as the EXTENSIONS argument.  */
+         1 optional arg) and passed '() or nothing as the EXTENSIONS
+	 argument.  */
       extensions = SCM_EOL;
       require_exts = SCM_UNDEFINED;
     }
@@ -899,7 +900,6 @@ scm_init_load ()
 
   scm_loc_compile_fallback_path
     = SCM_VARIABLE_LOC (scm_c_define ("%compile-fallback-path", SCM_BOOL_F));
-
   scm_loc_load_should_autocompile
     = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", SCM_BOOL_F));
 
@@ -907,10 +907,23 @@ scm_init_load ()
   scm_fluid_set_x (the_reader, SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);
 
+  scm_c_define ("load-compiled",
+                scm_c_make_gsubr ("load-compiled/vm", 1, 0, 0,
+                                  scm_load_compiled_with_vm));
+
   init_build_info ();
 
 #include "libguile/load.x"
 }
+
+void
+scm_init_load_should_autocompile ()
+{
+  *scm_loc_load_should_autocompile =
+    scm_from_bool (scm_getenv_int ("GUILE_AUTO_COMPILE", 1));
+}
+  
+  
 
 /*
   Local Variables:

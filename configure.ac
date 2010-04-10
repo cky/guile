@@ -4,7 +4,7 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -105,14 +105,6 @@ AC_ARG_ENABLE(error-on-warning,
      *) AC_MSG_ERROR(bad value ${enableval} for --enable-error-on-warning) ;;
    esac])
 
-SCM_I_GSC_GUILE_DEBUG_FREELIST=0
-AC_ARG_ENABLE(debug-freelist,
-  [  --enable-debug-freelist include garbage collector freelist debugging code],
-  if test "$enable_debug_freelist" = y \
-     || test "$enable_debug_freelist" = yes; then
-    SCM_I_GSC_GUILE_DEBUG_FREELIST=1
-  fi)
-
 AC_ARG_ENABLE(debug-malloc,
   [  --enable-debug-malloc   include malloc debugging code],
   if test "$enable_debug_malloc" = y || test "$enable_debug_malloc" = yes; then
@@ -167,10 +159,6 @@ else
 fi
 AC_DEFINE_UNQUOTED([SCM_WARN_DEPRECATED_DEFAULT], "$warn_default",
 [Define this to control the default warning level for deprecated features.])
-
-AC_ARG_ENABLE(elisp,
-  [  --disable-elisp         omit Emacs Lisp support],,
-  enable_elisp=yes)
 
 dnl  Added the following configure option in January 2008 following
 dnl  investigation of problems with "64" system and library calls on
@@ -262,11 +250,6 @@ if test "$enable_debug_malloc" = yes; then
    AC_LIBOBJ([debug-malloc])
 fi
 
-if test "$enable_elisp" = yes; then
-  SCM_I_GSC_ENABLE_ELISP=1
-else
-  SCM_I_GSC_ENABLE_ELISP=0
-fi
 AC_CHECK_LIB(uca, __uc_get_ar_bsp)
 
 AC_C_CONST
@@ -671,6 +654,16 @@ sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
 direct.h langinfo.h nl_types.h machine/fpu.h])
 
+# Reasons for testing:
+#   nl_item - lacking on Cygwin
+AC_CHECK_TYPES([nl_item], [], [],
+  [[#ifdef HAVE_LANGINFO_H
+    # include <langinfo.h>
+    #endif
+    #ifdef HAVE_NL_TYPES_H
+    # include <nl_types.h>
+    #endif]])
+
 # "complex double" is new in C99, and "complex" is only a keyword if
 # <complex.h> is included
 AC_CHECK_TYPES(complex double,,,
@@ -764,8 +757,9 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
 #   nl_langinfo - X/Open, not available on Windows.
+#   utimensat: posix.1-2008
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo])
+AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo utimensat])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
@@ -865,11 +859,14 @@ fi
 
 
 dnl GMP tests
-AC_LIB_HAVE_LINKFLAGS(gmp,
+AC_LIB_HAVE_LINKFLAGS([gmp],
   [],
   [#include <gmp.h>],
-  [mpz_import (0, 0, 0, 0, 0, 0, 0);],
-  AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README]))
+  [mpz_import (0, 0, 0, 0, 0, 0, 0);])
+
+if test "x$HAVE_LIBGMP" != "xyes"; then
+  AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README])
+fi
 
 dnl GNU libunistring is checked for by Gnulib's `libunistring' module.
 if test "x$LTLIBUNISTRING" != "x"; then
@@ -877,6 +874,22 @@ if test "x$LTLIBUNISTRING" != "x"; then
 else
   AC_MSG_ERROR([GNU libunistring is required, please install it.])
 fi
+
+dnl Libffi is needed to compile Guile's foreign function interface, but its
+dnl interface isn't exposed in Guile's API.
+PKG_CHECK_MODULES(LIBFFI, libffi)
+AC_SUBST(LIBFFI_CFLAGS)
+AC_SUBST(LIBFFI_LIBS)
+
+dnl figure out approriate ffi type for size_t
+AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(ssize_t)
+ffi_size_type=uint$(($ac_cv_sizeof_size_t*8))
+ffi_ssize_type=sint$(($ac_cv_sizeof_ssize_t*8))
+AC_DEFINE_UNQUOTED(ffi_type_size_t, ffi_type_${ffi_size_type}, 
+		   [ffi type for size_t])
+AC_DEFINE_UNQUOTED(ffi_type_ssize_t, ffi_type_${ffi_ssize_type}, 
+		   [ffi type for ssize_t])
 
 dnl i18n tests
 #AC_CHECK_HEADERS([libintl.h])
@@ -1157,7 +1170,10 @@ int main () { return (isnan(x) != 0); }]]),
 # Note AC_STRUCT_ST_BLOCKS is not used here because we don't want the
 # AC_LIBOBJ(fileblocks) replacement which that macro gives.
 #
-AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks])
+AC_CHECK_MEMBERS([struct stat.st_rdev, struct stat.st_blksize, struct stat.st_blocks, struct stat.st_atim, struct stat.st_mtim, struct stat.st_ctim],,,
+                 [#define _GNU_SOURCE
+AC_INCLUDES_DEFAULT
+])
 
 AC_STRUCT_TIMEZONE
 AC_CHECK_MEMBERS([struct tm.tm_gmtoff],,,
@@ -1595,10 +1611,8 @@ AC_SUBST([sitedir])
 
 # Additional SCM_I_GSC definitions are above.
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
-AC_SUBST([SCM_I_GSC_GUILE_DEBUG_FREELIST])
 AC_SUBST([SCM_I_GSC_ENABLE_DISCOURAGED])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
-AC_SUBST([SCM_I_GSC_ENABLE_ELISP])
 AC_SUBST([SCM_I_GSC_STACK_GROWS_UP])
 AC_SUBST([SCM_I_GSC_C_INLINE])
 AC_CONFIG_FILES([libguile/gen-scmconfig.h])
@@ -1611,7 +1625,6 @@ AC_CONFIG_FILES([
   doc/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
-  doc/tutorial/Makefile
   emacs/Makefile
   examples/Makefile
   libguile/Makefile

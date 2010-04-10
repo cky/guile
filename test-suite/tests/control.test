@@ -1,0 +1,227 @@
+;;;;                                                          -*- scheme -*-
+;;;; control.test --- test suite for delimited continuations
+;;;;
+;;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-control)
+  #:use-module (ice-9 control)
+  #:use-module (srfi srfi-11)
+  #:use-module (test-suite lib))
+
+
+;; For these, the compiler should be able to prove that "k" is not referenced,
+;; so it avoids reifying the continuation. Since that's a slightly different
+;; codepath, we test them both.
+(with-test-prefix "escape-only continuations"
+  (pass-if "no values, normal exit"
+    (equal? '()
+            (call-with-values
+                (lambda ()
+                  (% (values)
+                     (lambda (k . args)
+                       (error "unexpected exit" args))))
+              list)))
+
+  (pass-if "no values, abnormal exit"
+    (equal? '()
+            (% (begin
+                 (abort)
+                 (error "unexpected exit"))
+               (lambda (k . args)
+                 args))))
+
+  (pass-if "single value, normal exit"
+    (equal? '(foo)
+            (call-with-values
+                (lambda ()
+                  (% 'foo
+                     (lambda (k . args)
+                       (error "unexpected exit" args))))
+              list)))
+
+  (pass-if "single value, abnormal exit"
+    (equal? '(foo)
+            (% (begin
+                 (abort 'foo)
+                 (error "unexpected exit"))
+               (lambda (k . args)
+                 args))))
+
+  (pass-if "multiple values, normal exit"
+    (equal? '(foo bar baz)
+            (call-with-values
+                (lambda ()
+                  (% (values 'foo 'bar 'baz)
+                     (lambda (k . args)
+                       (error "unexpected exit" args))))
+              list)))
+
+  (pass-if "multiple values, abnormal exit"
+    (equal? '(foo bar baz)
+            (% (begin
+                 (abort 'foo 'bar 'baz)
+                 (error "unexpected exit"))
+               (lambda (k . args)
+                 args)))))
+
+;;; And the case in which the compiler has to reify the continuation.
+(with-test-prefix "reified continuations"
+  (pass-if "no values, normal exit"
+    (equal? '()
+            (call-with-values
+                (lambda ()
+                  (% (values)
+                     (lambda (k . args)
+                       (error "unexpected exit" k args))))
+              list)))
+
+  (pass-if "no values, abnormal exit"
+    (equal? '()
+            (cdr
+             (% (begin
+                  (abort)
+                  (error "unexpected exit"))
+                (lambda args
+                  args)))))
+
+  (pass-if "single value, normal exit"
+    (equal? '(foo)
+            (call-with-values
+                (lambda ()
+                  (% 'foo
+                     (lambda (k . args)
+                       (error "unexpected exit" k args))))
+              list)))
+
+  (pass-if "single value, abnormal exit"
+    (equal? '(foo)
+            (cdr
+             (% (begin
+                  (abort 'foo)
+                  (error "unexpected exit"))
+                (lambda args
+                  args)))))
+
+  (pass-if "multiple values, normal exit"
+    (equal? '(foo bar baz)
+            (call-with-values
+                (lambda ()
+                  (% (values 'foo 'bar 'baz)
+                     (lambda (k . args)
+                       (error "unexpected exit" k args))))
+              list)))
+
+  (pass-if "multiple values, abnormal exit"
+    (equal? '(foo bar baz)
+            (cdr
+             (% (begin
+                  (abort 'foo 'bar 'baz)
+                  (error "unexpected exit"))
+                (lambda args
+                  args))))))
+
+;; The variants check different cases in the compiler.
+(with-test-prefix "restarting partial continuations"
+  (pass-if "in side-effect position"
+    (let ((k (% (begin (abort) 'foo)
+                (lambda (k) k))))
+      (eq? (k)
+           'foo)))
+
+  (pass-if "passing values to side-effect abort"
+    (let ((k (% (begin (abort) 'foo)
+                (lambda (k) k))))
+      (eq? (k 'qux 'baz 'hello)
+           'foo)))
+
+  (pass-if "called for one value"
+    (let ((k (% (+ (abort) 3)
+                (lambda (k) k))))
+      (eqv? (k 39)
+            42)))
+
+  (pass-if "called for multiple values"
+    (let ((k (% (let-values (((a b . c) (abort)))
+                  (list a b c))
+                (lambda (k) k))))
+      (equal? (k 1 2 3 4)
+              '(1 2 (3 4)))))
+
+  (pass-if "in tail position"
+    (let ((k (% (abort)
+                (lambda (k) k))))
+      (eq? (k 'xyzzy)
+           'xyzzy))))
+
+(define fl (make-fluid))
+(fluid-set! fl 0)
+
+(with-test-prefix "suspend/resume with fluids"
+  (pass-if "normal"
+    (zero? (% (fluid-ref fl)
+              error)))
+  (pass-if "with-fluids normal"
+    (equal? (% (with-fluids ((fl (1+ (fluid-ref fl))))
+                (fluid-ref fl))
+              error)
+            1))
+  (pass-if "normal (post)"
+    (zero? (fluid-ref fl)))
+  (pass-if "with-fluids and fluid-set!"
+    (equal? (% (with-fluids ((fl (1+ (fluid-ref fl))))
+                 (fluid-set! fl (1+ (fluid-ref fl)))
+                 (fluid-ref fl))
+               error)
+            2))
+  (pass-if "normal (post2)"
+    (zero? (fluid-ref fl)))
+  (pass-if "normal fluid-set!"
+    (equal? (begin
+              (fluid-set! fl (1+ (fluid-ref fl)))
+              (fluid-ref fl))
+            1))
+  (pass-if "reset fluid-set!"
+    (equal? (begin
+              (fluid-set! fl (1- (fluid-ref fl)))
+              (fluid-ref fl))
+            0))
+
+  (let ((k (% (with-fluids ((fl (1+ (fluid-ref fl))))
+                (abort)
+                (fluid-ref fl))
+              (lambda (k) k))))
+    (pass-if "pre"
+      (equal? (fluid-ref fl) 0))
+    (pass-if "res"
+      (equal? (k) 1))
+    (pass-if "post"
+      (equal? (fluid-ref fl) 0))))
+
+(with-test-prefix "rewinding prompts"
+  (pass-if "nested prompts"
+    (let ((k (% 'a
+                (% 'b
+                   (begin
+                     (abort-to-prompt 'a)
+                     (abort-to-prompt 'b #t))
+                   (lambda (k x) x))
+                (lambda (k) k))))
+      (k))))
+
+(with-test-prefix "abort to unknown prompt"
+  (pass-if-exception "foo" '(misc-error . "^Abort to unknown prompt")
+                     (abort-to-prompt 'does-not-exist)))

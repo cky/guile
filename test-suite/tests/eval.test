@@ -1,5 +1,5 @@
 ;;;; eval.test --- tests guile's evaluator     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -302,25 +302,19 @@
       exception:wrong-type-arg
       (force 1))
 
-    (pass-if-exception "implicit forcing is not supported"
-      exception:wrong-type-arg
-      (+ (delay (* 3 7)) 13))
-
-    ;; Tests that require the debugging evaluator...
-    (with-debugging-evaluator
-
-      (pass-if "unmemoizing a promise"
-        (display-backtrace
-	 (let ((stack #f))
-	   (false-if-exception (lazy-catch #t
-					   (lambda ()
-					     (let ((f (lambda (g) (delay (g)))))
-					       (force (f error))))
-					   (lambda _
-					     (set! stack (make-stack #t)))))
-	   stack)
-	 (%make-void-port "w"))
-	#t))))
+    (pass-if "unmemoizing a promise"
+      (display-backtrace
+       (let ((stack #f))
+         (false-if-exception
+          (with-throw-handler #t
+                              (lambda ()
+                                (let ((f (lambda (g) (delay (g)))))
+                                  (force (f error))))
+                              (lambda _
+                                (set! stack (make-stack #t)))))
+         stack)
+       (%make-void-port "w"))
+      #t)))
 
 
 ;;;

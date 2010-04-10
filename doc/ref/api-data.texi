@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1053,10 +1053,9 @@ locale-dependent parsing).
 @rnindex magnitude
 @rnindex angle
 
-@deffn {Scheme Procedure} make-rectangular real imaginary
-@deffnx {C Function} scm_make_rectangular (real, imaginary)
-Return a complex number constructed of the given @var{real} and
-@var{imaginary} parts.
+@deffn {Scheme Procedure} make-rectangular real_part imaginary_part
+@deffnx {C Function} scm_make_rectangular (real_part, imaginary_part)
+Return a complex number constructed of the given @var{real-part} and @var{imaginary-part} parts.
 @end deffn
 
 @deffn {Scheme Procedure} make-polar x y
@@ -1688,11 +1687,28 @@ the backslash of @code{#\}.
 Many of the non-printing characters, such as whitespace characters and
 control characters, also have names.
 
-The most commonly used non-printing characters are space and
-newline.  Their character names are @code{#\space} and
-@code{#\newline}.  There are also names for all of the ``C0 control
-characters'' (those with code points below 32).  The following table
-describes the names for each character.
+The most commonly used non-printing characters have long character
+names, described in the table below.
+
+@multitable {@code{#\backspace}} {Preferred}
+@item Character Name @tab Codepoint
+@item @code{#\nul} @tab U+0000
+@item @code{#\alarm} @tab u+0007
+@item @code{#\backspace} @tab U+0008
+@item @code{#\tab} @tab U+0009
+@item @code{#\linefeed} @tab U+000A
+@item @code{#\newline} @tab U+000A
+@item @code{#\vtab} @tab U+000B
+@item @code{#\page} @tab U+000C
+@item @code{#\return} @tab U+000D
+@item @code{#\esc} @tab U+001B
+@item @code{#\space} @tab U+0020
+@item @code{#\delete} @tab U+007F
+@end multitable
+
+There are also short names for all of the ``C0 control characters''
+(those with code points below 32).  The following table lists the short
+name for each character.
 
 @multitable @columnfractions .25 .25 .25 .25
 @item 0 = @code{#\nul}
@@ -1705,7 +1721,7 @@ describes the names for each character.
  @tab 7 = @code{#\bel}
 @item 8 = @code{#\bs}
  @tab 9 = @code{#\ht}
- @tab 10 = @code{#\lf} 
+ @tab 10 = @code{#\lf}
  @tab 11 = @code{#\vt}
 @item 12 = @code{#\ff}
  @tab 13 = @code{#\cr}
@@ -1730,30 +1746,34 @@ describes the names for each character.
 @item 32 = @code{#\sp}
 @end multitable
 
-The ``delete'' character (code point U+007F) may be referred to with the
-name @code{#\del}.
+The short name for the ``delete'' character (code point U+007F) is
+@code{#\del}.
 
-One might note that the space character has two names --
-@code{#\space} and @code{#\sp} -- as does the newline character.
-Several other non-printing characters have more than one name, for the
-sake of compatibility with previous versions.
+There are also a few alternative names left over for compatibility with
+previous versions of Guile.
 
 @multitable {@code{#\backspace}} {Preferred}
 @item Alternate @tab Standard
-@item @code{#\sp} @tab @code{#\space}
 @item @code{#\nl} @tab @code{#\newline}
-@item @code{#\lf} @tab @code{#\newline}
-@item @code{#\tab} @tab @code{#\ht}
-@item @code{#\backspace} @tab @code{#\bs}
-@item @code{#\return} @tab @code{#\cr}
-@item @code{#\page} @tab @code{#\ff}
-@item @code{#\np} @tab @code{#\ff}
+@item @code{#\np} @tab @code{#\page}
 @item @code{#\null} @tab @code{#\nul}
 @end multitable
 
 Characters may also be written using their code point values.  They can
 be written with as an octal number, such as @code{#\10} for
 @code{#\bs} or @code{#\177} for @code{#\del}.
+
+When the @code{r6rs-hex-escapes} reader option is enabled, there is an
+additional syntax for character escapes: @code{#\xHHHH} -- the letter 'x'
+followed by a hexadecimal number of one to eight digits.
+
+@lisp
+(read-enable 'r6rs-hex-escapes)
+@end lisp
+
+Enabling this option will also change the hex escape format for strings.  More
+on string escapes can be found at (@pxref{String Syntax}).  More on reader
+options in general can be found at (@pxref{Reader options}).
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -1874,6 +1894,81 @@ Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
 @code{#f}.
 @end deffn
 
+@deffn {Scheme Procedure} char-general-category chr
+@deffnx {C Function} scm_char_general_category (chr)
+Return a symbol giving the two-letter name of the Unicode general 
+category assigned to @var{chr} or @code{#f} if no named category is 
+assigned.  The following table provides a list of category names along
+with their meanings.
+
+@multitable @columnfractions .1 .4 .1 .4
+@item Lu
+ @tab Uppercase letter
+ @tab Pf
+ @tab Final quote punctuation
+@item Ll
+ @tab Lowercase letter
+ @tab Po
+ @tab Other punctuation
+@item Lt
+ @tab Titlecase letter
+ @tab Sm
+ @tab Math symbol
+@item Lm
+ @tab Modifier letter
+ @tab Sc
+ @tab Currency symbol
+@item Lo
+ @tab Other letter
+ @tab Sk
+ @tab Modifier symbol
+@item Mn
+ @tab Non-spacing mark
+ @tab So
+ @tab Other symbol
+@item Mc
+ @tab Combining spacing mark
+ @tab Zs
+ @tab Space separator
+@item Me
+ @tab Enclosing mark
+ @tab Zl
+ @tab Line separator
+@item Nd
+ @tab Decimal digit number
+ @tab Zp
+ @tab Paragraph separator
+@item Nl
+ @tab Letter number
+ @tab Cc
+ @tab Control
+@item No
+ @tab Other number
+ @tab Cf
+ @tab Format
+@item Pc
+ @tab Connector punctuation
+ @tab Cs
+ @tab Surrogate
+@item Pd
+ @tab Dash punctuation
+ @tab Co
+ @tab Private use
+@item Ps
+ @tab Open punctuation
+ @tab Cn
+ @tab Unassigned
+@item Pe
+ @tab Close punctuation
+ @tab
+ @tab
+@item Pi
+ @tab Initial quote punctuation
+ @tab
+ @tab
+@end multitable
+@end deffn
+
 @rnindex char->integer
 @deffn {Scheme Procedure} char->integer chr
 @deffnx {C Function} scm_char_to_integer (chr)
@@ -1899,6 +1994,30 @@ Return the uppercase character version of @var{chr}.
 @deffnx {C Function} scm_char_downcase (chr)
 Return the lowercase character version of @var{chr}.
 @end deffn
+
+@rnindex char-titlecase
+@deffn {Scheme Procedure} char-titlecase chr
+@deffnx {C Function} scm_char_titlecase (chr)
+Return the titlecase character version of @var{chr} if one exists;
+otherwise return the uppercase version.  
+
+For most characters these will be the same, but the Unicode Standard 
+includes certain digraph compatibility characters, such as @code{U+01F3}
+``dz'', for which the uppercase and titlecase characters are different 
+(@code{U+01F1} ``DZ'' and @code{U+01F2} ``Dz'' in this case, 
+respectively).
+@end deffn
+
+@tindex scm_t_wchar
+@deftypefn {C Function} scm_t_wchar scm_c_upcase (scm_t_wchar @var{c})
+@deftypefnx {C Function} scm_t_wchar scm_c_downcase (scm_t_wchar @var{c})
+@deftypefnx {C Function} scm_t_wchar scm_c_titlecase (scm_t_wchar @var{c})
+
+These C functions take an integer representation of a Unicode
+codepoint and return the codepoint corresponding to its uppercase,
+lowercase, and titlecase forms respectively.  The type
+@code{scm_t_wchar} is a signed, 32-bit integer.
+@end deftypefn
 
 @node Character Sets
 @subsection Character Sets
@@ -2493,7 +2612,8 @@ Guile provides all procedures of SRFI-13 and a few more.
 * Reversing and Appending Strings:: Appending strings to form a new string.
 * Mapping Folding and Unfolding::   Iterating over strings.
 * Miscellaneous String Operations:: Replicating, insertion, parsing, ...
-* Conversion to/from C::       
+* Conversion to/from C::
+* String Internals::                The storage strategy for strings.
 @end menu
 
 @node String Syntax
@@ -2507,10 +2627,10 @@ Guile provides all procedures of SRFI-13 and a few more.
 The read syntax for strings is an arbitrarily long sequence of
 characters enclosed in double quotes (@nicode{"}).
 
-Backslash is an escape character and can be used to insert the
-following special characters.  @nicode{\"} and @nicode{\\} are R5RS
-standard, the rest are Guile extensions, notice they follow C string
-syntax.
+Backslash is an escape character and can be used to insert the following
+special characters.  @nicode{\"} and @nicode{\\} are R5RS standard, the
+next seven are R6RS standard --- notice they follow C syntax --- and the
+remaining four are Guile extensions.
 
 @table @asis
 @item @nicode{\\}
@@ -2519,9 +2639,6 @@ Backslash character.
 @item @nicode{\"}
 Double quote character (an unescaped @nicode{"} is otherwise the end
 of the string).
-
-@item @nicode{\0}
-NUL character (ASCII 0).
 
 @item @nicode{\a}
 Bell character (ASCII 7).
@@ -2540,6 +2657,12 @@ Tab character (ASCII 9).
 
 @item @nicode{\v}
 Vertical tab character (ASCII 11).
+
+@item @nicode{\b}
+Backspace character (ASCII 8).
+
+@item @nicode{\0}
+NUL character (ASCII 0).
 
 @item @nicode{\xHH}
 Character code given by two hexadecimal digits.  For example
@@ -2564,6 +2687,20 @@ The following are examples of string literals:
 "\"Hi\", he said."
 @end lisp
 
+The three escape sequences @code{\xHH}, @code{\uHHHH} and @code{\UHHHHHH} were
+chosen to not break compatibility with code written for previous versions of
+Guile.  The R6RS specification suggests a different, incompatible syntax for hex
+escapes: @code{\xHHHH;} -- a character code followed by one to eight hexadecimal
+digits terminated with a semicolon.  If this escape format is desired instead,
+it can be enabled with the reader option @code{r6rs-hex-escapes}.
+
+@lisp
+(read-enable 'r6rs-hex-escapes)
+@end lisp
+
+Enabling this option will also change the hex escape format for characters.
+More on character escapes can be found at (@pxref{Characters}).  More on
+reader options in general can be found at (@pxref{Reader options}).
 
 @node String Predicates
 @subsubsection String Predicates
@@ -2973,7 +3110,7 @@ predicates (@pxref{Characters}), but are defined on character sequences.
 
 The first set is specified in R5RS and has names that end in @code{?}.
 The second set is specified in SRFI-13 and the names have not ending
-@code{?}.  
+@code{?}.
 
 The predicates ending in @code{-ci} ignore the character case
 when comparing strings.  For now, case-insensitive comparison is done
@@ -2983,7 +3120,8 @@ comparison.  See @xref{Text Collation, the @code{(ice-9
 i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
-@deffn {Scheme Procedure} string=? s1 s2
+@deffn {Scheme Procedure} string=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_equal_p (s1, s2, rest)
 Lexicographic equality predicate; return @code{#t} if the two
 strings are the same length and contain the same characters in
 the same positions, otherwise return @code{#f}.
@@ -2995,31 +3133,36 @@ characters.
 @end deffn
 
 @rnindex string<?
-@deffn {Scheme Procedure} string<? s1 s2
+@deffn {Scheme Procedure} string<? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_less_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than @var{s2}.
 @end deffn
 
 @rnindex string<=?
-@deffn {Scheme Procedure} string<=? s1 s2
+@deffn {Scheme Procedure} string<=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_leq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically less than or equal to @var{s2}.
 @end deffn
 
 @rnindex string>?
-@deffn {Scheme Procedure} string>? s1 s2
+@deffn {Scheme Procedure} string>? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_gr_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than @var{s2}.
 @end deffn
 
 @rnindex string>=?
-@deffn {Scheme Procedure} string>=? s1 s2
+@deffn {Scheme Procedure} string>=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_geq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if @var{s1}
 is lexicographically greater than or equal to @var{s2}.
 @end deffn
 
 @rnindex string-ci=?
-@deffn {Scheme Procedure} string-ci=? s1 s2
+@deffn {Scheme Procedure} string-ci=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_equal_p (s1, s2, rest)
 Case-insensitive string equality predicate; return @code{#t} if
 the two strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
@@ -3027,28 +3170,32 @@ return @code{#f}.
 @end deffn
 
 @rnindex string-ci<?
-@deffn {Scheme Procedure} string-ci<? s1 s2
+@deffn {Scheme Procedure} string-ci<? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_less_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than @var{s2}
 regardless of case.
 @end deffn
 
 @rnindex string<=?
-@deffn {Scheme Procedure} string-ci<=? s1 s2
+@deffn {Scheme Procedure} string-ci<=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_leq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically less than or equal
 to @var{s2} regardless of case.
 @end deffn
 
 @rnindex string-ci>?
-@deffn {Scheme Procedure} string-ci>? s1 s2
+@deffn {Scheme Procedure} string-ci>? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_gr_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than
 @var{s2} regardless of case.
 @end deffn
 
 @rnindex string-ci>=?
-@deffn {Scheme Procedure} string-ci>=? s1 s2
+@deffn {Scheme Procedure} string-ci>=? [s1 [s2 . rest]]
+@deffnx {C Function} scm_i_string_ci_geq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return
 @code{#t} if @var{s1} is lexicographically greater than or
 equal to @var{s2} regardless of case.
@@ -3071,8 +3218,9 @@ mismatch index, depending upon whether @var{s1} is less than,
 equal to, or greater than @var{s2}.  The mismatch index is the
 largest index @var{i} such that for every 0 <= @var{j} <
 @var{i}, @var{s1}[@var{j}] = @var{s2}[@var{j}] -- that is,
-@var{i} is the first position that does not match.  The
-character comparison is done case-insensitively.
+@var{i} is the first position where the lowercased letters 
+do not match.
+
 @end deffn
 
 @deffn {Scheme Procedure} string= s1 s2 [start1 [end1 [start2 [end2]]]]
@@ -3161,6 +3309,70 @@ Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-ne
 @deffn {Scheme Procedure} string-hash-ci s [bound [start [end]]]
 @deffnx {C Function} scm_substring_hash_ci (s, bound, start, end)
 Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+@end deffn
+
+Because the same visual appearance of an abstract Unicode character can 
+be obtained via multiple sequences of Unicode characters, even the 
+case-insensitive string comparison functions described above may return
+@code{#f} when presented with strings containing different 
+representations of the same character.  For example, the Unicode 
+character ``LATIN SMALL LETTER S WITH DOT BELOW AND DOT ABOVE'' can be 
+represented with a single character (U+1E69) or by the character ``LATIN
+SMALL LETTER S'' (U+0073) followed by the combining marks ``COMBINING 
+DOT BELOW'' (U+0323) and ``COMBINING DOT ABOVE'' (U+0307).
+
+For this reason, it is often desirable to ensure that the strings
+to be compared are using a mutually consistent representation for every 
+character.  The Unicode standard defines two methods of normalizing the
+contents of strings: Decomposition, which breaks composite characters 
+into a set of constituent characters with an ordering defined by the
+Unicode Standard; and composition, which performs the converse.
+
+There are two decomposition operations.  ``Canonical decomposition'' 
+produces character sequences that share the same visual appearance as
+the original characters, while ``compatiblity decomposition'' produces
+ones whose visual appearances may differ from the originals but which
+represent the same abstract character.
+
+These operations are encapsulated in the following set of normalization
+forms:
+
+@table @dfn
+@item NFD
+Characters are decomposed to their canonical forms.
+
+@item NFKD
+Characters are decomposed to their compatibility forms.
+
+@item NFC
+Characters are decomposed to their canonical forms, then composed.
+
+@item NFKC
+Characters are decomposed to their compatibility forms, then composed.
+
+@end table
+
+The functions below put their arguments into one of the forms described
+above.
+
+@deffn {Scheme Procedure} string-normalize-nfd s
+@deffnx {C Function} scm_string_normalize_nfd (s)
+Return the @code{NFD} normalized form of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfkd s
+@deffnx {C Function} scm_string_normalize_nfkd (s)
+Return the @code{NFKD} normalized form of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfc s
+@deffnx {C Function} scm_string_normalize_nfc (s)
+Return the @code{NFC} normalized form of @var{s}.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfkc s
+@deffnx {C Function} scm_string_normalize_nfkc (s)
+Return the @code{NFKC} normalized form of @var{s}.
 @end deffn
 
 @node String Searching
@@ -3337,6 +3549,13 @@ case-insensitively.
 These are procedures for mapping strings to their upper- or lower-case
 equivalents, respectively, or for capitalizing strings.
 
+They use the basic case mapping rules for Unicode characters.  No
+special language or context rules are considered.  The resulting strings
+are guaranteed to be the same length as the input strings.
+
+@xref{Character Case Mapping, the @code{(ice-9
+i18n)} module}, for locale-dependent case conversions.
+
 @deffn {Scheme Procedure} string-upcase str [start [end]]
 @deffnx {C Function} scm_substring_upcase (str, start, end)
 @deffnx {C Function} scm_string_upcase (str)
@@ -3437,8 +3656,8 @@ concatenation of the given strings, @var{args}.
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} string-append/shared . ls
-@deffnx {C Function} scm_string_append_shared (ls)
+@deffn {Scheme Procedure} string-append/shared . rest
+@deffnx {C Function} scm_string_append_shared (rest)
 Like @code{string-append}, but the result may share memory
 with the argument strings.
 @end deffn
@@ -3658,12 +3877,19 @@ that make up the string.  For Scheme strings, character encoding is
 not an issue (most of the time), since in Scheme you never get to see
 the bytes, only the characters.
 
-Well, ideally, anyway.  Right now, Guile simply equates Scheme
-characters and bytes, ignoring the possibility of multi-byte encodings
-completely.  This will change in the future, where Guile will use
-Unicode codepoints as its characters and UTF-8 or some other encoding
-as its internal encoding.  When you exclusively use the functions
-listed in this section, you are `future-proof'.
+Converting to C and converting from C each have their own challenges.
+
+When converting from C to Scheme, it is important that the sequence of
+bytes in the C string be valid with respect to its encoding.  ASCII
+strings, for example, can't have any bytes greater than 127.  An ASCII
+byte greater than 127 is considered @emph{ill-formed} and cannot be
+converted into a Scheme character.
+
+Problems can occur in the reverse operation as well.  Not all character
+encodings can hold all possible Scheme characters.  Some encodings, like
+ASCII for example, can only describe a small subset of all possible
+characters.  So, when converting to C, one must first decide what to do
+with Scheme characters that can't be represented in the C string.
 
 Converting a Scheme string to a C string will often allocate fresh
 memory to hold the result.  You must take care that this memory is
@@ -3673,8 +3899,9 @@ using @code{scm_dynwind_free} inside an appropriate dynwind context,
 
 @deftypefn  {C Function} SCM scm_from_locale_string (const char *str)
 @deftypefnx {C Function} SCM scm_from_locale_stringn (const char *str, size_t len)
-Creates a new Scheme string that has the same contents as @var{str}
-when interpreted in the current locale character encoding.
+Creates a new Scheme string that has the same contents as @var{str} when
+interpreted in the locale character encoding of the
+@code{current-input-port}.
 
 For @code{scm_from_locale_string}, @var{str} must be null-terminated.
 
@@ -3682,6 +3909,8 @@ For @code{scm_from_locale_stringn}, @var{len} specifies the length of
 @var{str} in bytes, and @var{str} does not need to be null-terminated.
 If @var{len} is @code{(size_t)-1}, then @var{str} does need to be
 null-terminated and the real length will be found with @code{strlen}.
+
+If the C string is ill-formed, an error will be raised.
 @end deftypefn
 
 @deftypefn  {C Function} SCM scm_take_locale_string (char *str)
@@ -3695,10 +3924,10 @@ can then use @var{str} directly as its internal representation.
 
 @deftypefn  {C Function} {char *} scm_to_locale_string (SCM str)
 @deftypefnx {C Function} {char *} scm_to_locale_stringn (SCM str, size_t *lenp)
-Returns a C string in the current locale encoding with the same
-contents as @var{str}.  The C string must be freed with @code{free}
-eventually, maybe by using @code{scm_dynwind_free}, @xref{Dynamic
-Wind}.
+Returns a C string with the same contents as @var{str} in the locale
+encoding of the @code{current-output-port}.  The C string must be freed
+with @code{free} eventually, maybe by using @code{scm_dynwind_free},
+@xref{Dynamic Wind}.
 
 For @code{scm_to_locale_string}, the returned string is
 null-terminated and an error is signalled when @var{str} contains
@@ -3710,6 +3939,14 @@ returned string in bytes is stored in @code{*@var{lenp}}.  The
 returned string will not be null-terminated in this case.  If
 @var{lenp} is @code{NULL}, @code{scm_to_locale_stringn} behaves like
 @code{scm_to_locale_string}.
+
+If a character in @var{str} cannot be represented in the locale encoding
+of the current output port, the port conversion strategy of the current
+output port will determine the result, @xref{Ports}.  If output port's
+conversion strategy is @code{error}, an error will be raised.  If it is
+@code{subsitute}, a replacement character, such as a question mark, will
+be inserted in its place.  If it is @code{escape}, a hex escape will be
+inserted in its place.
 @end deftypefn
 
 @deftypefn {C Function} size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
@@ -3724,6 +3961,71 @@ bytes that are needed for all of @var{str}, regardless of whether
 is larger than @var{max_len}, only @var{max_len} bytes have been
 stored and you probably need to try again with a larger buffer.
 @end deftypefn
+
+@node String Internals
+@subsubsection String Internals
+
+Guile stores each string in memory as a contiguous array of Unicode code
+points along with an associated set of attributes.  If all of the code
+points of a string have an integer range between 0 and 255 inclusive,
+the code point array is stored as one byte per code point: it is stored
+as an ISO-8859-1 (aka Latin-1) string.  If any of the code points of the
+string has an integer value greater that 255, the code point array is
+stored as four bytes per code point: it is stored as a UTF-32 string.
+
+Conversion between the one-byte-per-code-point and
+four-bytes-per-code-point representations happens automatically as
+necessary.
+
+No API is provided to set the internal representation of strings;
+however, there are pair of procedures available to query it.  These are
+debugging procedures.  Using them in production code is discouraged,
+since the details of Guile's internal representation of strings may
+change from release to release.
+
+@deffn {Scheme Procedure} string-bytes-per-char str
+@deffnx {C Function} scm_string_bytes_per_char (str)
+Return the number of bytes used to encode a Unicode code point in string
+@var{str}.  The result is one or four.
+@end deffn
+
+@deffn {Scheme Procedure} %string-dump str
+@deffnx {C Function} scm_sys_string_dump (str)
+Returns an association list containing debugging information for
+@var{str}. The association list has the following entries.
+@table @code
+
+@item string
+The string itself.
+
+@item start
+The start index of the string into its stringbuf
+
+@item length
+The length of the string
+
+@item shared
+If this string is a substring, it returns its
+parent string.  Otherwise, it returns @code{#f}
+
+@item read-only
+@code{#t} if the string is read-only
+
+@item stringbuf-chars
+A new string containing this string's stringbuf's characters
+
+@item stringbuf-length
+The number of characters in this stringbuf
+
+@item stringbuf-shared
+@code{#t} if this stringbuf is shared
+
+@item stringbuf-wide
+@code{#t} if this stringbuf's characters are stored in a 32-bit buffer,
+or @code{#f} if they are stored in an 8-bit buffer
+@end table
+@end deffn
+
 
 @node Bytevectors
 @subsection Bytevectors
@@ -3768,6 +4070,7 @@ R6RS (@pxref{R6RS I/O Ports}).
 * Bytevectors as Floats::       Interpreting bytes as real numbers.
 * Bytevectors as Strings::      Interpreting bytes as Unicode strings.
 * Bytevectors as Generalized Vectors::  Guile extension to the bytevector API.
+* Bytevectors as Uniform Vectors::  Bytevectors and SRFI-4.
 @end menu
 
 @node Bytevector Endianness
@@ -4102,12 +4405,7 @@ the host's native endianness.
 @cindex Unicode string encoding
 
 Bytevector contents can also be interpreted as Unicode strings encoded
-in one of the most commonly available encoding formats@footnote{Guile
-1.8 does @emph{not} support Unicode strings.  Therefore, the procedures
-described here assume that Guile strings are internally encoded
-according to the current locale.  For instance, if @code{$LC_CTYPE} is
-@code{fr_FR.ISO-8859-1}, then @code{string->utf-8} @i{et al.} will
-assume that Guile strings are Latin-1-encoded.}.
+in one of the most commonly available encoding formats.
 
 @lisp
 (utf8->string (u8-list->bytevector '(99 97 102 101)))
@@ -4118,23 +4416,27 @@ assume that Guile strings are Latin-1-encoded.}.
 @end lisp
 
 @deffn {Scheme Procedure} string->utf8 str
-@deffnx {Scheme Procedure} string->utf16 str
-@deffnx {Scheme Procedure} string->utf32 str
+@deffnx {Scheme Procedure} string->utf16 str [endianness]
+@deffnx {Scheme Procedure} string->utf32 str [endianness]
 @deffnx {C Function} scm_string_to_utf8 (str)
-@deffnx {C Function} scm_string_to_utf16 (str)
-@deffnx {C Function} scm_string_to_utf32 (str)
+@deffnx {C Function} scm_string_to_utf16 (str, endianness)
+@deffnx {C Function} scm_string_to_utf32 (str, endianness)
 Return a newly allocated bytevector that contains the UTF-8, UTF-16, or
-UTF-32 (aka. UCS-4) encoding of @var{str}.
+UTF-32 (aka. UCS-4) encoding of @var{str}.  For UTF-16 and UTF-32,
+@var{endianness} should be the symbol @code{big} or @code{little}; when omitted,
+it defaults to big endian.
 @end deffn
 
 @deffn {Scheme Procedure} utf8->string utf
-@deffnx {Scheme Procedure} utf16->string utf
-@deffnx {Scheme Procedure} utf32->string utf
+@deffnx {Scheme Procedure} utf16->string utf [endianness]
+@deffnx {Scheme Procedure} utf32->string utf [endianness]
 @deffnx {C Function} scm_utf8_to_string (utf)
-@deffnx {C Function} scm_utf16_to_string (utf)
-@deffnx {C Function} scm_utf32_to_string (utf)
+@deffnx {C Function} scm_utf16_to_string (utf, endianness)
+@deffnx {C Function} scm_utf32_to_string (utf, endianness)
 Return a newly allocated string that contains from the UTF-8-, UTF-16-,
-or UTF-32-decoded contents of bytevector @var{utf}.
+or UTF-32-decoded contents of bytevector @var{utf}.  For UTF-16 and UTF-32,
+@var{endianness} should be the symbol @code{big} or @code{little}; when omitted,
+it defaults to big endian.
 @end deffn
 
 @node Bytevectors as Generalized Vectors
@@ -4162,6 +4464,13 @@ these APIs, bytes are accessed one at a time as 8-bit unsigned integers:
 (array-type bv)
 @result{} vu8
 @end example
+
+
+@node Bytevectors as Uniform Vectors
+@subsubsection Accessing Bytevectors with the SRFI-4 API
+
+Bytevectors may also be accessed with the SRFI-4 API. @xref{SRFI-4 and
+Bytevectors}, for more information.
 
 
 @node Regular Expressions
@@ -5550,7 +5859,7 @@ Equivalent to @code{scm_symbol_to_keyword (scm_from_locale_symbol
 @subsection ``Functionality-Centric'' Data Types
 
 Procedures and macros are documented in their own chapter: see
-@ref{Procedures and Macros}.
+@ref{Procedures} and @ref{Macros}.
 
 Variable objects are documented as part of the description of Guile's
 module system: see @ref{Variables}.

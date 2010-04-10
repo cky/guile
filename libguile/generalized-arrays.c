@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -138,9 +138,6 @@ SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* HACK*/
-#include "libguile/bytevectors.h"
-
 SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0, 
            (SCM ra),
 	    "")
@@ -148,10 +145,6 @@ SCM_DEFINE (scm_array_type, "array-type", 1, 0, 0,
 {
   scm_t_array_handle h;
   SCM type;
-
-  /* a hack, until srfi-4 and bytevectors are reunited */
-  if (scm_is_bytevector (ra))
-    return scm_from_locale_symbol ("vu8");
 
   scm_array_get_handle (ra, &h);
   type = scm_array_handle_element_type (&h);
@@ -243,14 +236,13 @@ array_to_list (scm_t_array_handle *h, size_t dim, unsigned long pos)
     {
       SCM res = SCM_EOL;
       long inc;
-      size_t i, lbnd;
+      size_t i;
 
-      i = h->dims[dim].ubnd;
-      lbnd = h->dims[dim].lbnd;
+      i = h->dims[dim].ubnd - h->dims[dim].lbnd + 1;
       inc = h->dims[dim].inc;
-      pos += (i - h->dims[dim].ubnd) * inc;
+      pos += (i - 1) * inc;
 
-      for (; i >= lbnd; i--, pos -= inc)
+      for (; i > 0; i--, pos -= inc)
         res = scm_cons (array_to_list (h, dim + 1, pos), res);
       return res;
     }
@@ -258,8 +250,14 @@ array_to_list (scm_t_array_handle *h, size_t dim, unsigned long pos)
 
 SCM_DEFINE (scm_array_to_list, "array->list", 1, 0, 0, 
             (SCM array),
-	    "FIXME description a list consisting of all the elements, in order, of\n"
-	    "@var{array}.")
+	    "Return a list representation of @var{array}.\n\n"
+            "It is easiest to specify the behavior of this function by\n"
+            "example:\n"
+            "@example\n"
+            "(array->list #0(a)) @result{} 1\n"
+            "(array->list #1(a b)) @result{} (a b)\n"
+            "(array->list #2((aa ab) (ba bb)) @result{} ((aa ab) (ba bb))\n"
+            "@end example\n")
 #define FUNC_NAME s_scm_array_to_list
 {
   scm_t_array_handle h;

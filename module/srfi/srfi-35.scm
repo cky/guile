@@ -1,6 +1,6 @@
-;;; srfi-35.scm --- Conditions
+;;; srfi-35.scm --- Conditions                 -*- coding: utf-8 -*-
 
-;; Copyright (C) 2007, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 ;; License along with this library; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludo@gnu.org>
+;;; Author: Ludovic CourtÃ¨s <ludo@gnu.org>
 
 ;;; Commentary:
 
@@ -351,10 +351,5 @@ by C."
 
 (define-condition-type &error &serious
   error?)
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
 
 ;;; srfi-35.scm ends here

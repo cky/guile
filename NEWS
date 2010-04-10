@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -8,214 +8,85 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.6 (since the 1.9.5 prerelease):
+Changes in 1.9.10 (since the 1.9.9 prerelease):
 
-** New implementation of `primitive-eval'
+** Hygienic macros documented as the primary syntactic extension mechanism.
 
-Guile's `primitive-eval' is now implemented in Scheme. Actually there is
-still a C evaluator, used when building a fresh Guile to interpret the
-compiler, so we can compile eval.scm. Thereafter all calls to
-primitive-eval are implemented by VM-compiled code.
+The macro documentation was finally fleshed out with some documentation
+on `syntax-case' macros, and other parts of the macro expansion process.
+See "Macros" in the manual, for details.
 
-This allows all of Guile's procedures, be they interpreted or compiled,
-to execute on the same stack, unifying multiple-value return semantics,
-providing for proper tail recursion between interpreted and compiled
-code, and simplifying debugging.
+** Interactive Guile follows GNU conventions
 
-As part of this change, the evaluator no longer mutates the internal
-representation of the code being evaluated in a thread-unsafe manner.
+As recommended by the GPL, Guile now shows a brief copyright and
+warranty disclaimer on startup, along with pointers to more information.
+On the other hand, changing languages is more concise.
 
-There are two negative aspects of this change, however. First, Guile
-takes a lot longer to compile now. Also, there is less debugging
-information available for debugging interpreted code. We hope to improve
-both of these situations.
+** Support for arbitrary procedure metadata
 
-There are many changes to the internal C evalator interface, but all
-public interfaces should be the same. See the ChangeLog for details. If
-we have inadvertantly changed an interface that you were using, please
-contact bug-guile@gnu.org.
+Building on its support for docstrings, Guile now supports multiple
+docstrings, adding them to the tail of a compiled procedure's
+properties. For example:
 
-** Elisp compiler
+  (define (foo)
+    "one"
+    "two"
+    3)
+  (use-modules (system vm program))
+  (program-properties foo)
+  => ((name . foo) (documentation . "one") (documentation . "two"))
 
-The derelict Guile maintainers finally got around to merging Daniel
-Kraft's excellent Emacs Lisp compiler. You can now switch to Elisp at
-the repl: `,language elisp'. All kudos to Daniel, and all bugs to
-bug-guile@gnu.org.
+Also, vectors of pairs are now treated as additional metadata entries:
 
-** Faster SRFI-9 record access
+  (define (bar)
+    #((quz . #f) (docstring . "xyzzy"))
+    3)
+  (use-modules (system vm program))
+  (program-properties bar)
+  => ((name . bar) (quz . #f) (docstring . "xyzzy"))
 
-SRFI-9 records are now implemented directly on top of Guile's structs,
-and their accessors are defined in such a way that normal call-sites
-inline to special VM opcodes, while still allowing for the general case
-(e.g. passing a record accessor to `apply').
+This allows arbitrary literals to be embedded as metadata in a compiled
+procedure.
 
-** Some VM metadata removed
+** Better documentation infrastructure for macros
 
-It used to be that the standard virtual machine counted the number of
-instructions it executed. This capability has been removed, as it was
-not very useful, and had some overhead. Also it used to try to record
-the time spent in the VM, but these calculations were borked, so we
-removed them too.
+It is now possible to introspect on the type of a macro, e.g.
+syntax-rules, identifier-syntax, etc, and extract information about that
+macro, such as the syntax-rules patterns or the defmacro arguments.
+`(texinfo reflection)' takes advantage of this to give better macro
+documentation.
 
-** Inline memq/memv of a key in a constant list
+** Autocompilation for applications that use Guile as an extension language
 
-The impoverished Guile inliner is slightly less lame now that it does
-`(memv k '(foo))' => `(eq? k 'foo)'. 
+It used to be that only applications that ran Guile through the
+`scm_shell' function got the advantages of autocompilation. This has
+been changed so that all applications have autocompilation on by
+default.
 
-** Rename "else" fields of <conditional> and <lambda-case>
+** Better integration of Lisp nil
 
-Having a field named "else" just didn't sit right with "cond", and
-everything else. So now Tree-IL's <conditional> has "consequent" and
-"alternate", and <lambda-case> has "alternate".
+`scm_is_boolean', `scm_is_false', and `scm_is_null' all return true now
+for Lisp's `nil'. This shouldn't affect any Scheme code at this point,
+but when we start to integrate more with Emacs, it is possible that we
+break code that assumes that, for example, `(not x)' implies that `x' is
+`eq?' to `#f'. This is not a common assumption. Refactoring affected
+code to rely on properties instead of identities will improve code
+correctness.
 
-** Allow interrupts in tail loops
+That is to say, user code should test falsity with `if', not with `eq?'.
 
-Tail-recursive loops that compile to tight, procedure-less jumps
-previously were uninterruptible. Now the VM handle interrupts whenever
-it jumps backwards.
+** Integration of lalr-scm, a parser generator
 
-** Tail patterns in syntax-case
+Guile has included Dominique Boucher's fine `lalr-scm' parser generator
+as `(system base lalr)'. See "LALR(1) Parsing" in the manual, for more
+information.
 
-Guile has pulled in some more recent changes from the psyntax portable
-syntax expander, to implement support for "tail patterns". Such patterns
-are supported by syntax-rules and syntax-case. This allows a syntax-case
-match clause to have ellipses, then a pattern at the end. For example:
+** Documentation for the dynamic foreign function interface (FFI).
 
-  (define-syntax case
-    (syntax-rules (else)
-      ((_ val match-clause ... (else e e* ...))
-       [...])))
+See "Foreign Function Interface" in the manual, for more information.
 
-Note how there is MATCH-CLAUSE, which is ellipsized, then there is a
-tail pattern for the else clause. Thanks to Andreas Rottmann for the
-patch, and Kent Dybvig for the code.
-
-** New struct constructors that don't involve making lists
-
-`scm_c_make_struct' and `scm_c_make_structv' are new varargs and array
-constructors, respectively, for structs. You might find them useful.
-
-** Applicable struct support
-
-One may now make structs from Scheme that may be applied as procedures.
-To do so, make a struct whose vtable is `<applicable-struct-vtable>'.
-That struct will be the vtable of your applicable structs; instances of
-that new struct are assumed to have the procedure in their first slot.
-`<applicable-struct-vtable>' is like Common Lisp's
-`funcallable-standard-class'. Likewise there is
-`<applicable-struct-with-setter-vtable>', which looks for the setter in
-the second slot. This needs to be better documented.
-
-** GOOPS dispatch in scheme
-
-As an implementation detail, GOOPS dispatch is no longer implemented by
-special evaluator bytecodes, but rather directly via a Scheme function
-associated with an applicable struct. There is some VM support for the
-underlying primitives, like `class-of'.
-
-This change will in the future allow users to customize generic function
-dispatch without incurring a performance penalty, and allow us to
-implement method combinations.
-
-** Procedures-with-setters are now implemented using applicable structs
-
-From a user's perspective this doesn't mean very much. But if, for some
-odd reason, you used the SCM_PROCEDURE_WITH_SETTER_P, SCM_PROCEDURE, or
-SCM_SETTER macros, know that they're deprecated now. Also, scm_tc7_pws
-is gone.
-
-** No more `local-eval'
-
-`local-eval' used to exist so that one could evaluate code in the
-lexical context of a function. Since there is no way to get the lexical
-environment any more, as that concept has no meaning for the compiler,
-and a different meaning for the interpreter, we have removed the
-function.
-
-If you think you need `local-eval', you should probably implement your
-own metacircular evaluator. It will probably be as fast as Guile's
-anyway.
-
-** Bit twiddlings
-
-*** Remove old evaluator closures
-
-There used to be ranges of typecodes allocated to interpreted data
-structures, but that it no longer the case, given that interpreted
-procedure are now just regular VM closures. As a result, there is a
-newly free tc3, and a number of removed macros. See the ChangeLog for
-details.
-
-*** Simplify representation of primitive procedures
-
-It used to be that there were something like 12 different typecodes
-allocated to primitive procedures, each with its own calling convention.
-Now there is only one, the gsubr. This may affect user code if you were
-defining a procedure using scm_c_make_subr rather scm_c_make_gsubr. The
-solution is to switch to use scm_c_make_gsubr. This solution works well
-both with the old 1.8 and and with the current 1.9 branch.
-
-*** Some SMOB types changed to have static typecodes
-
-Fluids, dynamic states, and hash tables used to be SMOB objects, but now
-they have statically allocated tc7 typecodes.
-
-*** Preparations for changing SMOB representation
-
-If things go right, we'll be changing the SMOB representation soon. To
-that end, we did a lot of cleanups to calls to e.g. SCM_CELL_WORD_2(x) when
-the code meant SCM_SMOB_DATA_2(x); user code will need similar changes
-in the future. Code accessing SMOBs using SCM_CELL macros was never
-correct, but until now things still worked. Users should be aware of
-such changes.
-
-** Stack refactor
-
-It used to be that Guile had debugging frames on the C stack and on the
-VM stack. Now Guile's procedures only run on the VM stack, simplifying
-much of the C API. See the ChangeLog for details. The Scheme API has not
-been changed significantly.
-
-** New procedure, `define!'
-
-`define!' is a procedure that takes two arguments, a symbol and a value,
-and binds the value to the symbol in the current module. It's useful to
-programmatically make definitions in the current module, and is slightly
-less verbose than `module-define!'.
-
-** eqv? not a generic
-
-One used to be able to extend `eqv?' as a primitive-generic, but no
-more. Because `eqv?' is in the expansion of `case' (via `memv'), which
-should be able to compile to static dispatch tables, it doesn't make
-sense to allow extensions that would subvert this optimization.
-
-** Deprecate trampolines
-
-There used to be C functions `scm_trampoline_0', `scm_trampoline_1', and
-so on. The point was to do some precomputation on the type of the
-procedure, then return a specialized "call" procedure. However this
-optimization wasn't actually an optimization, so it is now deprecated.
-Just use `scm_call_0', etc instead.
-
-** Undeprecate `scm_the_root_module ()'
-
-It's useful to be able to get the root module from C without doing a
-full module lookup.
-
-** New struct slot allocation: "hidden"
-
-A hidden slot is readable and writable, but will not be initialized by a
-call to make-struct. For example in your layout you would say "ph"
-instead of "pw". Hidden slots are useful for adding new slots to a
-vtable without breaking existing invocations to make-struct.
-
-** New type definitions for `scm_t_intptr' and friends.
-
-`SCM_T_UINTPTR_MAX', `SCM_T_INTPTR_MIN', `SCM_T_INTPTR_MAX',
-`SIZEOF_SCM_T_BITS', `scm_t_intptr' and `scm_t_uintptr' are now
-available to C. Have fun!
-
+** Unicode character set update to Unicode 5.2.
+    
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
@@ -231,6 +102,14 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(rnrs bytevector)', the R6RS bytevector API
 ** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
+** `(ice-9 vlist)', lists with constant-time random access; hash lists
+** `(system foreign)', foreign function interface
+
+** Imported statprof, SSAX, and texinfo modules from Guile-Lib
+    
+The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
+toolkit from Guile-Lib have been imported into Guile proper. See
+"Standard Library" in the manual for more details.
 
 * Changes to the stand-alone interpreter
 
@@ -259,6 +138,31 @@ Running Guile with no arguments drops the user into the new REPL. While
 it is self-documenting to an extent, the new REPL has not yet been
 documented in the manual. This will be fixed before 2.0.
 
+** New reader options: `square-brackets' and `r6rs-hex-escapes'
+
+The reader supports a new option (changeable via `read-options'),
+`square-brackets', which instructs it to interpret square brackets as
+parenthesis.  This option is on by default.
+
+When the new `r6rs-hex-escapes' reader option is enabled, the reader
+will recognize string escape sequences as defined in R6RS.
+
+** Function profiling and tracing at the REPL
+    
+The `,profile FORM' REPL meta-command can now be used to statistically
+profile execution of a form, to see which functions are taking the most
+time. See `,help profile' for more information.
+
+Similarly, `,trace FORM' traces all function applications that occur
+during the execution of `FORM'. See `,help trace' for more information.
+
+** New debugger
+
+By default, if an exception is raised at the REPL and not caught by user
+code, Guile will drop the user into a debugger. The user may request a
+backtrace, inspect frames, or continue raising the exception. Full
+documentation is available from within the debugger.
+
 ** New `guile-tools' commands: `compile', `disassemble'
 
 Pass the `--help' command-line option to these commands for more
@@ -275,12 +179,58 @@ include `/path/to/lib'.
 Backtraces may now be disclosed with the keyboard in addition to the
 mouse.
 
+** Load path change: search in version-specific paths before site paths
+    
+When looking for a module, Guile now searches first in Guile's
+version-specific path (the library path), *then* in the site dir. This
+allows Guile's copy of SSAX to override any Guile-Lib copy the user has
+installed. Also it should cut the number of `stat' system calls by half,
+in the common case.
+
+
 * Changes to Scheme functions and syntax
+
+** New implementation of `primitive-eval'
+
+Guile's `primitive-eval' is now implemented in Scheme. Actually there is
+still a C evaluator, used when building a fresh Guile to interpret the
+compiler, so we can compile eval.scm. Thereafter all calls to
+primitive-eval are implemented by VM-compiled code.
+
+This allows all of Guile's procedures, be they interpreted or compiled,
+to execute on the same stack, unifying multiple-value return semantics,
+providing for proper tail recursion between interpreted and compiled
+code, and simplifying debugging.
+
+As part of this change, the evaluator no longer mutates the internal
+representation of the code being evaluated in a thread-unsafe manner.
+
+There are two negative aspects of this change, however. First, Guile
+takes a lot longer to compile now. Also, there is less debugging
+information available for debugging interpreted code. We hope to improve
+both of these situations.
+
+There are many changes to the internal C evalator interface, but all
+public interfaces should be the same. See the ChangeLog for details. If
+we have inadvertantly changed an interface that you were using, please
+contact bug-guile@gnu.org.
 
 ** Procedure removed: `the-environment'
 
 This procedure was part of the interpreter's execution model, and does
 not apply to the compiler.
+
+** No more `local-eval'
+
+`local-eval' used to exist so that one could evaluate code in the
+lexical context of a function. Since there is no way to get the lexical
+environment any more, as that concept has no meaning for the compiler,
+and a different meaning for the interpreter, we have removed the
+function.
+
+If you think you need `local-eval', you should probably implement your
+own metacircular evaluator. It will probably be as fast as Guile's
+anyway.
 
 ** Files loaded with `primitive-load-path' will now be compiled
    automatically.
@@ -301,13 +251,6 @@ will be created if needed.
 To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
 variable to 0, or pass --no-autocompile on the Guile command line.
 
-Note that there is currently a bug here: automatic compilation will
-sometimes be attempted when it shouldn't.
-
-For example, the old (lang elisp) modules are meant to be interpreted,
-not compiled. This bug will be fixed before 2.0. FIXME 2.0: Should say
-something here about module-transformer called for compile.
-
 ** Files loaded with `load' will now be compiled automatically.
 
 As with files loaded via `primitive-load-path', `load' will also compile
@@ -327,12 +270,15 @@ the first time they run a Guile script, as the script is autocompiled.
 Note however that the interface of these functions is likely to change
 in the next prerelease.
 
+** New POSIX procedure: `getsid'
+
+Scheme binding for the `getsid' C library call.
+
+** New POSIX procedure: `getaddrinfo'
+
+Scheme binding for the `getaddrinfo' C library function.
+
 ** New procedure in `(oops goops)': `method-formals'
-
-** BUG: (procedure-property func 'arity) does not work on compiled
-   procedures
-
-This will be fixed one way or another before 2.0.
 
 ** New procedures in (ice-9 session): `add-value-help-handler!',
    `remove-value-help-handler!', `add-name-help-handler!'
@@ -352,11 +298,12 @@ combining arity and formals. For example:
 Additionally, `module-commentary' is now publically exported from
 `(ice-9 session).
 
-** Deprecated: `procedure->memoizing-macro', `procedure->syntax'
+** Removed: `procedure->memoizing-macro', `procedure->syntax'
 
-These procedures will not work with syncase expansion, and indeed are
-not used in the normal course of Guile. They are still used by the old
-Emacs Lisp support, however.
+These procedures created primitive fexprs for the old evaluator, and are
+no longer supported. If you feel that you need these functions, you
+probably need to write your own metacircular evaluator (which will
+probably be as fast as Guile's, anyway).
 
 ** New language: ECMAScript
 
@@ -372,6 +319,12 @@ brainfuck compiler is meant to be an example of implementing other
 languages. See the manual for details, or
 http://en.wikipedia.org/wiki/Brainfuck for more information about the
 Brainfuck language itself.
+
+** New language: Elisp
+
+Guile now has an experimental Emacs Lisp compiler and runtime. You can
+now switch to Elisp at the repl: `,language elisp'. All kudos to Daniel
+Kraft, and all bugs to bug-guile@gnu.org.
 
 ** Defmacros may now have docstrings.
 
@@ -400,11 +353,19 @@ like this works now:
 It used to be you had to export `helper' from `(foo)' as well.
 Thankfully, this has been fixed.
 
-** New function, `procedure-module'
+** Complete support for version information in Guile's `module' form
+    
+Guile modules now have a `#:version' field. They may be loaded by
+version as well. See "R6RS Version References", "General Information
+about Modules", "Using Guile Modules", and "Creating Guile Modules" in
+the manual for more information.
 
-While useful on its own, `procedure-module' is used by psyntax on syntax
-transformers to determine the module in which to scope introduced
-identifiers.
+** Support for renaming bindings on module export
+    
+Wherever Guile accepts a symbol as an argument to specify a binding to
+export, it now also accepts a pair of symbols, indicating that a binding
+should be renamed on export. See "Creating Guile Modules" in the manual
+for more information.
 
 ** `eval-case' has been deprecated, and replaced by `eval-when'.
 
@@ -527,6 +488,14 @@ actually used this, this behavior may be reinstated via the
 #; comments out an entire expression.  See SRFI-62 or the R6RS for more
 information.
 
+** Prompts: Delimited, composable continuations
+
+Guile now has prompts as part of its primitive language. See "Prompts"
+in the manual, for more information.
+
+Expressions entered in at the REPL, or from the command line, are
+surrounded by a prompt with the default prompt tag.
+
 ** `make-stack' with a tail-called procedural narrowing argument no longer
    works (with compiled procedures)
 
@@ -563,6 +532,13 @@ Before, `(define ((f a) b) (* a b))' would translate to
 Now a syntax error is signaled, as this syntax is not supported by
 default. If there is sufficient demand, this syntax can be supported
 again by default.
+
+** New procedure, `define!'
+
+`define!' is a procedure that takes two arguments, a symbol and a value,
+and binds the value to the symbol in the current module. It's useful to
+programmatically make definitions in the current module, and is slightly
+less verbose than `module-define!'.
 
 ** All modules have names now
 
@@ -652,6 +628,27 @@ environment as well: `syntax->datum', `datum->syntax',
 `bound-identifier=?', `free-identifier=?', `generate-temporaries',
 `identifier?', and `syntax-violation'. See the R6RS for documentation.
 
+** Documentation of `syntax-rules' and `syntax-case' macros
+
+The documentation of macros in the manual is now separate from that of
+procedures.  A new section on hygienic macros has been added.
+
+** Tail patterns in syntax-case
+
+Guile has pulled in some more recent changes from the psyntax portable
+syntax expander, to implement support for "tail patterns". Such patterns
+are supported by syntax-rules and syntax-case. This allows a syntax-case
+match clause to have ellipses, then a pattern at the end. For example:
+
+  (define-syntax case
+    (syntax-rules (else)
+      ((_ val match-clause ... (else e e* ...))
+       [...])))
+
+Note how there is MATCH-CLAUSE, which is ellipsized, then there is a
+tail pattern for the else clause. Thanks to Andreas Rottmann for the
+patch, and Kent Dybvig for the code.
+
 ** Lexical bindings introduced by hygienic macros may not be referenced
    by nonhygienic macros.
 
@@ -713,6 +710,55 @@ As with `case-lambda', `(ice-9 optargs)' continues to be supported, for
 compatibility purposes. No semantic change has been made (we hope).
 Optional and keyword arguments now dispatch via special VM operations,
 without the need to cons rest arguments, making them very fast.
+
+** New function, `truncated-print', with `format' support
+
+`(ice-9 pretty-print)' now exports `truncated-print', a printer that
+will ensure that the output stays within a certain width, truncating the
+output in what is hopefully an intelligent manner. See the manual for
+more details.
+
+There is a new `format' specifier, `~@y', for doing a truncated
+print (as opposed to `~y', which does a pretty-print). See the `format'
+documentation for more details.
+
+** SRFI-4 vectors reimplemented in terms of R6RS bytevectors
+
+Guile now implements SRFI-4 vectors using bytevectors. Often when you
+have a numeric vector, you end up wanting to write its bytes somewhere,
+or have access to the underlying bytes, or read in bytes from somewhere
+else. Bytevectors are very good at this sort of thing. But the SRFI-4
+APIs are nicer to use when doing number-crunching, because they are
+addressed by element and not by byte.
+
+So as a compromise, Guile allows all bytevector functions to operate on
+numeric vectors. They address the underlying bytes in the native
+endianness, as one would expect.
+
+Following the same reasoning, that it's just bytes underneath, Guile
+also allows uniform vectors of a given type to be accessed as if they
+were of any type. One can fill a u32vector, and access its elements with
+u8vector-ref. One can use f64vector-ref on bytevectors. It's all the
+same to Guile.
+
+In this way, uniform numeric vectors may be written to and read from
+input/output ports using the procedures that operate on bytevectors.
+
+Calls to SRFI-4 accessors (ref and set functions) from Scheme are now
+inlined to the VM instructions for bytevector access.
+
+See "SRFI-4" in the manual, for more information.
+
+** Nonstandard SRFI-4 procedures now available from `(srfi srfi-4 gnu)'
+
+Guile's `(srfi srfi-4)' now only exports those srfi-4 procedures that
+are part of the standard. Complex uniform vectors and the
+`any->FOOvector' family are now available only from `(srfi srfi-4 gnu)'.
+
+Guile's default environment imports `(srfi srfi-4)', and probably should
+import `(srfi srfi-4 gnu)' as well.
+
+See "SRFI-4 Extensions" in the manual, for more information.
 
 ** New syntax: include-from-path.
 
@@ -797,7 +843,7 @@ There was an EBCDIC compile flag that altered some of the character
 processing.  It appeared that full EBCDIC support was never completed
 and was unmaintained.
 
-** Compile-time warnings: -Wunbound-variable, -Warity-mismatch. 
+** Compile-time warnings
 
 Guile can warn about potentially unbound free variables. Pass the
 -Wunbound-variable on the `guile-tools compile' command line, or add
@@ -808,11 +854,8 @@ Guile can also warn when you pass the wrong number of arguments to a
 procedure, with -Warity-mismatch, or `arity-mismatch' in the
 `#:warnings' as above.
 
-** New macro type: syncase-macro
-
-XXX Need to decide whether to document this for 2.0, probably should:
-make-syncase-macro, make-extended-syncase-macro, macro-type,
-syncase-macro-type, syncase-macro-binding
+Other warnings include `-Wunused-variable' and `-Wunused-toplevel', to
+warn about unused local or global (top-level) variables.
 
 ** A new `memoize-symbol' evaluator trap has been added.
 
@@ -827,6 +870,17 @@ This slightly improves program startup times.
 
 See `cancel-thread', `set-thread-cleanup!', and `thread-cleanup'.
 
+** GOOPS dispatch in scheme
+
+As an implementation detail, GOOPS dispatch is no longer implemented by
+special evaluator bytecodes, but rather directly via a Scheme function
+associated with an applicable struct. There is some VM support for the
+underlying primitives, like `class-of'.
+
+This change will in the future allow users to customize generic function
+dispatch without incurring a performance penalty, and allow us to
+implement method combinations.
+
 ** GOOPS cleanups.
 
 GOOPS had a number of concepts that were relevant to the days of Tcl,
@@ -835,6 +889,31 @@ never documented, and it is unlikely that they were ever used. Operators
 were a kind of generic specific to the Tcl support. Entities were
 applicable structures, but were unusable; entities will come back in the
 next alpha release, but with a less stupid name.
+
+** Applicable struct support
+
+One may now make structs from Scheme that may be applied as procedures.
+To do so, make a struct whose vtable is `<applicable-struct-vtable>'.
+That struct will be the vtable of your applicable structs; instances of
+that new struct are assumed to have the procedure in their first slot.
+`<applicable-struct-vtable>' is like Common Lisp's
+`funcallable-standard-class'. Likewise there is
+`<applicable-struct-with-setter-vtable>', which looks for the setter in
+the second slot. This needs to be better documented.
+
+** New struct slot allocation: "hidden"
+
+A hidden slot is readable and writable, but will not be initialized by a
+call to make-struct. For example in your layout you would say "ph"
+instead of "pw". Hidden slots are useful for adding new slots to a
+vtable without breaking existing invocations to make-struct.
+
+** eqv? not a generic
+
+One used to be able to extend `eqv?' as a primitive-generic, but no
+more. Because `eqv?' is in the expansion of `case' (via `memv'), which
+should be able to compile to static dispatch tables, it doesn't make
+sense to allow extensions that would subvert this optimization.
 
 ** `inet-ntop' and `inet-pton' are always available.
 
@@ -847,6 +926,13 @@ functions are deprecated.
 The bit-twiddling operations `ash', `logand', `logior', and `logxor' now
 have dedicated bytecodes. Guile is not just for symbolic computation,
 it's for number crunching too.
+
+** Faster SRFI-9 record access
+
+SRFI-9 records are now implemented directly on top of Guile's structs,
+and their accessors are defined in such a way that normal call-sites
+inline to special VM opcodes, while still allowing for the general case
+(e.g. passing a record accessor to `apply').
 
 ** R6RS block comment support
 
@@ -909,6 +995,13 @@ History library functions.
 Instead, use make-typed-array, list->typed-array, or array-type,
 respectively.
 
+** Deprecated: `lazy-catch'
+
+`lazy-catch' was a form that captured the stack at the point of a
+`throw', but the dynamic state at the point of the `catch'. It was a bit
+crazy. Please change to use `catch', possibly with a throw-handler, or
+`with-throw-handler'.
+
 ** Last but not least, the `λ' macro can be used in lieu of `lambda'
 
 * Changes to the C interface
@@ -922,6 +1015,12 @@ backward-compatible way.  A new allocation routine,
 Libgc is a conservative GC, which we hope will make interaction with C
 code easier and less error-prone.
 
+** New type definitions for `scm_t_intptr' and friends.
+
+`SCM_T_UINTPTR_MAX', `SCM_T_INTPTR_MIN', `SCM_T_INTPTR_MAX',
+`SIZEOF_SCM_T_BITS', `scm_t_intptr' and `scm_t_uintptr' are now
+available to C. Have fun!
+
 ** The GH interface (deprecated in version 1.6, 2001) was removed.
 
 ** Internal `scm_i_' functions now have "hidden" linkage with GCC/ELF
@@ -932,11 +1031,119 @@ application code.
 ** Functions for handling `scm_option' now no longer require an argument
 indicating length of the `scm_t_option' array.
 
-** scm_primitive_load_path has additional argument, exception_on_error
+** Procedures-with-setters are now implemented using applicable structs
+
+From a user's perspective this doesn't mean very much. But if, for some
+odd reason, you used the SCM_PROCEDURE_WITH_SETTER_P, SCM_PROCEDURE, or
+SCM_SETTER macros, know that they're deprecated now. Also, scm_tc7_pws
+is gone.
+
+** Remove old evaluator closures
+
+There used to be ranges of typecodes allocated to interpreted data
+structures, but that it no longer the case, given that interpreted
+procedure are now just regular VM closures. As a result, there is a
+newly free tc3, and a number of removed macros. See the ChangeLog for
+details.
+
+** Primitive procedures are now VM trampoline procedures
+
+It used to be that there were something like 12 different typecodes
+allocated to primitive procedures, each with its own calling convention.
+Now there is only one, the gsubr. This may affect user code if you were
+defining a procedure using scm_c_make_subr rather scm_c_make_gsubr. The
+solution is to switch to use scm_c_make_gsubr. This solution works well
+both with the old 1.8 and and with the current 1.9 branch.
+
+Guile's old evaluator used to have special cases for applying "gsubrs",
+primitive procedures with specified numbers of required, optional, and
+rest arguments. Now, however, Guile represents gsubrs as normal VM
+procedures, with appropriate bytecode to parse out the correct number of
+arguments, including optional and rest arguments, and then with a
+special bytecode to apply the gsubr.
+
+This allows primitive procedures to appear on the VM stack, allowing
+them to be accurately counted in profiles. Also they now have more
+debugging information attached to them -- their number of arguments, for
+example. In addition, the VM can completely inline the application
+mechanics, allowing for faster primitive calls.
+
+However there are some changes on the C level. There is no more
+`scm_tc7_gsubr' or `scm_tcs_subrs' typecode for primitive procedures, as
+they are just VM procedures. Likewise the macros `SCM_GSUBR_TYPE',
+`SCM_GSUBR_MAKTYPE', `SCM_GSUBR_REQ', `SCM_GSUBR_OPT', and
+`SCM_GSUBR_REST' are gone, as are `SCM_SUBR_META_INFO', `SCM_SUBR_PROPS'
+`SCM_SET_SUBR_GENERIC_LOC', and `SCM_SUBR_ARITY_TO_TYPE'.
+
+Perhaps more significantly, `scm_c_make_subr',
+`scm_c_make_subr_with_generic', `scm_c_define_subr', and
+`scm_c_define_subr_with_generic'. They all operated on subr typecodes,
+and there are no more subr typecodes. Use the scm_c_make_gsubr family
+instead.
+
+Normal users of gsubrs should not be affected, though, as the
+scm_c_make_gsubr family still is the correct way to create primitive
+procedures.
+
+** Remove deprecated array C interfaces
+
+Removed the deprecated array functions `scm_i_arrayp',
+`scm_i_array_ndim', `scm_i_array_mem', `scm_i_array_v',
+`scm_i_array_base', `scm_i_array_dims', and the deprecated macros
+`SCM_ARRAYP', `SCM_ARRAY_NDIM', `SCM_ARRAY_CONTP', `SCM_ARRAY_MEM',
+`SCM_ARRAY_V', `SCM_ARRAY_BASE', and `SCM_ARRAY_DIMS'.
+
+** Remove unused snarf macros
+    
+`SCM_DEFINE1', `SCM_PRIMITIVE_GENERIC_1', `SCM_PROC1, and `SCM_GPROC1'
+are no more. Use SCM_DEFINE or SCM_PRIMITIVE_GENERIC instead.
+
+** Add foreign value wrapper
+    
+Guile now has a datatype for aliasing "foreign" values, such as native
+long values. This should be useful for making a proper foreign function
+interface. Interested hackers should see libguile/foreign.h.
+
+** New functions: `scm_call_n', `scm_c_run_hookn'
+    
+`scm_call_n' applies to apply a function to an array of arguments.
+`scm_c_run_hookn' runs a hook with an array of arguments.
+
+** Some SMOB types changed to have static typecodes
+
+Fluids, dynamic states, and hash tables used to be SMOB objects, but now
+they have statically allocated tc7 typecodes.
+
+** Preparations for changing SMOB representation
+
+If things go right, we'll be changing the SMOB representation soon. To
+that end, we did a lot of cleanups to calls to e.g. SCM_CELL_WORD_2(x) when
+the code meant SCM_SMOB_DATA_2(x); user code will need similar changes
+in the future. Code accessing SMOBs using SCM_CELL macros was never
+correct, but until now things still worked. Users should be aware of
+such changes.
+
+** Changed invocation mechanics of applicable SMOBs
+
+Guile's old evaluator used to have special cases for applying SMOB
+objects. Now, with the VM, when Guile sees a SMOB, it looks up a VM
+trampoline procedure for it, and use the normal mechanics to apply the
+trampoline. This simplifies procedure application in the normal,
+non-SMOB case.
+
+The upshot is that the mechanics used to apply a SMOB are different from
+1.8. Descriptors no longer have `apply_0', `apply_1', `apply_2', and
+`apply_3' functions, and the macros SCM_SMOB_APPLY_0 and friends are now
+deprecated. Just use the scm_call_0 family of procedures.
 
 ** New C function: scm_module_public_interface
 
 This procedure corresponds to Scheme's `module-public-interface'.
+
+** Undeprecate `scm_the_root_module ()'
+
+It's useful to be able to get the root module from C without doing a
+full module lookup.
 
 ** Inline vector allocation
 
@@ -945,6 +1152,19 @@ data is now allocated inline to the vector object itself. The same is
 true for bytevectors, by default, though there is an indirection
 available which should allow for making a bytevector from an existing
 memory region.
+
+** New struct constructors that don't involve making lists
+
+`scm_c_make_struct' and `scm_c_make_structv' are new varargs and array
+constructors, respectively, for structs. You might find them useful.
+
+** Stack refactor
+
+In Guile 1.8, there were debugging frames on the C stack. Now there is
+no more need to explicitly mark the stack in this way, because Guile has
+a VM stack that it knows how to walk, which simplifies the C API
+considerably. See the ChangeLog for details; the relevant interface is
+in libguile/stacks.h. The Scheme API has not been changed significantly.
 
 ** Removal of Guile's primitive object system.
 
@@ -961,6 +1181,14 @@ Actually the future is still in the state that it was, is, and ever
 shall be, Amen, except that `futures.c' and `futures.h' are no longer a
 part of it. These files were experimental, never compiled, and would be
 better implemented in Scheme anyway. In the future, that is.
+
+** Deprecate trampolines
+
+There used to be C functions `scm_trampoline_0', `scm_trampoline_1', and
+so on. The point was to do some precomputation on the type of the
+procedure, then return a specialized "call" procedure. However this
+optimization wasn't actually an optimization, so it is now deprecated.
+Just use `scm_call_0', etc instead.
 
 ** Better support for Lisp `nil'.
 
@@ -1023,6 +1251,17 @@ macros should now require `guile-2.0' instead of `guile-1.8'.
 If $(libdir) is /usr/lib, for example, Guile will install its .go files
 to /usr/lib/guile/1.9/ccache. These files are architecture-specific.
 
+** Parallel installability fixes
+
+Guile now installs its header files to a effective-version-specific
+directory, and includes the effective version (e.g. 2.0) in the library
+name (e.g. libguile-2.0.so).
+
+This change should be transparent to users, who should detect Guile via
+the guile.m4 macro, or the guile-2.0.pc pkg-config file. It will allow
+parallel installs for multiple versions of Guile development
+environments.
+
 ** Dynamically loadable extensions may be placed in a Guile-specific path
 
 Before, Guile only searched the system library paths for extensions
@@ -1039,6 +1278,10 @@ See http://www.hpl.hp.com/personal/Hans_Boehm/gc/, for more information.
 
 See http://www.gnu.org/software/libunistring/, for more information. Our
 Unicode support uses routines from libunistring.
+
+** New dependency: libffi
+
+See http://sourceware.org/libffi/, for more information.
 
 
 

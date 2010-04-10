@@ -1,6 +1,6 @@
 ;;; Repl common routines
 
-;; Copyright (C) 2001, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -22,19 +22,83 @@
   #:use-module (system base syntax)
   #:use-module (system base compile)
   #:use-module (system base language)
-  #:use-module (system vm vm)
-  #:export (<repl> make-repl repl-vm repl-language repl-options
+  #:use-module (system vm program)
+  #:use-module (ice-9 control)
+  #:export (<repl> make-repl repl-language repl-options
             repl-tm-stats repl-gc-stats
             repl-welcome repl-prompt repl-read repl-compile repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
-            puts ->string user-error))
+            puts ->string user-error
+            *warranty* *copying* *version*))
+
+(define *version*
+  (format #f "GNU Guile ~A
+Copyright (C) 1995-2010 Free Software Foundation, Inc.
+
+Guile comes with ABSOLUTELY NO WARRANTY; for details type `,show w'.
+This program is free software, and you are welcome to redistribute it
+under certain conditions; type `,show c' for details." (version)))
+
+(define *copying*
+"Guile is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of
+the License, or (at your option) any later version.
+
+Guile is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this program. If not, see
+<http://www.gnu.org/licenses/lgpl.html>.")
+
+(define *warranty*
+"Guile is distributed WITHOUT ANY WARRANTY. The following
+sections from the GNU General Public License, version 3, should
+make that clear.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 
 
 ;;;
 ;;; Repl type
 ;;;
 
-(define-record/keywords <repl> vm language options tm-stats gc-stats)
+(define-record/keywords <repl> language options tm-stats gc-stats)
 
 (define repl-default-options
   '((trace . #f)
@@ -42,17 +106,15 @@
 
 (define %make-repl make-repl)
 (define (make-repl lang)
-  (%make-repl #:vm (the-vm)
-              #:language (lookup-language lang)
+  (%make-repl #:language (lookup-language lang)
               #:options repl-default-options
               #:tm-stats (times)
               #:gc-stats (gc-stats)))
 
 (define (repl-welcome repl)
-  (let ((language (repl-language repl)))
-    (format #t "~A interpreter ~A on Guile ~A\n"
-            (language-title language) (language-version language) (version)))
-  (display "Copyright (C) 2001-2008 Free Software Foundation, Inc.\n\n")
+  (display *version*)
+  (newline)
+  (newline)
   (display "Enter `,help' for help.\n"))
 
 (define (repl-prompt repl)
@@ -76,12 +138,13 @@
     (if parser (parser form) form)))
 
 (define (repl-eval repl form)
-  (let ((eval (language-evaluator (repl-language repl))))
-    (if (and eval
-             (or (null? (language-compilers (repl-language repl)))
-                 (assq-ref (repl-options repl) 'interp)))
-        (eval form (current-module))
-        (vm-load (repl-vm repl) (repl-compile repl form '())))))
+  (let* ((eval (language-evaluator (repl-language repl)))
+         (thunk (if (and eval
+                         (or (null? (language-compilers (repl-language repl)))
+                             (assq-ref (repl-options repl) 'interp)))
+                    (lambda () (eval form (current-module)))
+                    (make-program (repl-compile repl form '())))))
+    (% (thunk))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))

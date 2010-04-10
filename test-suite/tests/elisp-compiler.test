@@ -1,6 +1,6 @@
-;;;; elisp-compiler.test --- Test the compiler for Elisp.
+;;;; elisp-compiler.test --- Test the compiler for Elisp.  -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; Daniel Kraft
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or

@@ -1,15 +1,15 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008,2009
+@c Copyright (C)  2008,2009,2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node A Virtual Machine for Guile
 @section A Virtual Machine for Guile
 
-Guile has both an interpreter and a compiler. To a user, the
-difference is largely transparent---interpreted and compiled
-procedures can call each other as they please.
+Guile has both an interpreter and a compiler. To a user, the difference
+is transparent---interpreted and compiled procedures can call each other
+as they please.
 
 The difference is that the compiler creates and interprets bytecode
 for a custom virtual machine, instead of interpreting the
@@ -33,21 +33,19 @@ machine.
 @subsection Why a VM?
 
 @cindex interpreter
-@cindex evaluator
-For a long time, Guile only had an interpreter, called the
-@dfn{evaluator}. Guile's evaluator operates directly on the
-S-expression representation of Scheme source code.
+For a long time, Guile only had an interpreter. Guile's interpreter
+operated directly on the S-expression representation of Scheme source
+code.
 
-But while the evaluator is highly optimized and hand-tuned, and
-contains some extensive speed trickery (@pxref{Memoization}), it still
+But while the interpreter was highly optimized and hand-tuned, it still
 performs many needless computations during the course of evaluating an
 expression. For example, application of a function to arguments
-needlessly conses up the arguments in a list. Evaluation of an
-expression always has to figure out what the car of the expression is
--- a procedure, a memoized form, or something else. All values have to
-be allocated on the heap. Et cetera.
+needlessly consed up the arguments in a list. Evaluation of an
+expression always had to figure out what the car of the expression is --
+a procedure, a memoized form, or something else. All values have to be
+allocated on the heap. Et cetera.
 
-The solution to this problem is to compile the higher-level language,
+The solution to this problem was to compile the higher-level language,
 Scheme, into a lower-level language for which all of the checks and
 dispatching have already been done---the code is instead stripped to
 the bare minimum needed to ``do the job''.
@@ -71,7 +69,21 @@ for Guile (@code{cons}, @code{struct-ref}, etc.).
 So this is what Guile does. The rest of this section describes that VM
 that Guile implements, and the compiled procedures that run on it.
 
-Note that this decision to implement a bytecode compiler does not
+Before moving on, though, we should note that though we spoke of the
+interpreter in the past tense, Guile still has an interpreter. The
+difference is that before, it was Guile's main evaluator, and so was
+implemented in highly optimized C; now, it is actually implemented in
+Scheme, and compiled down to VM bytecode, just like any other program.
+(There is still a C interpreter around, used to bootstrap the compiler,
+but it is not normally used at runtime.)
+
+The upside of implementing the interpreter in Scheme is that we preserve
+tail calls and multiple-value handling between interpreted and compiled
+code. The downside is that the interpreter in Guile 2.0 is slower than
+the interpreter in 1.8. We hope the that the compiler's speed makes up
+for the loss!
+
+Also note that this decision to implement a bytecode compiler does not
 preclude native compilation. We can compile from bytecode to native
 code at runtime, or even do ahead of time compilation. More
 possibilities are discussed in @ref{Extending the Compiler}.
@@ -79,12 +91,9 @@ possibilities are discussed in @ref{Extending the Compiler}.
 @node VM Concepts
 @subsection VM Concepts
 
-A virtual machine (VM) is a Scheme object. Users may create virtual
-machines using the standard procedures described later in this manual,
-but that is usually unnecessary, as Guile ensures that there is one
-virtual machine per thread. When a VM-compiled procedure is run, Guile
-looks up the virtual machine for the current thread and executes the
-procedure using that VM.
+Compiled code is run by a virtual machine (VM). Each thread has its own
+VM. When a compiled procedure is run, Guile looks up the virtual machine
+for the current thread and executes the procedure using that VM.
 
 Guile's virtual machine is a stack machine---that is, it has few
 registers, and the instructions defined in the VM operate by pushing
@@ -112,12 +121,6 @@ In other architectures, the instruction pointer is sometimes called
 the ``program counter'' (pc). This set of registers is pretty typical
 for stack machines; their exact meanings in the context of Guile's VM
 are described in the next section.
-
-A virtual machine executes by loading a compiled procedure, and
-executing the object code associated with that procedure. Of course,
-that procedure may call other procedures, tail-call others, ad
-infinitum---indeed, within a guile whose modules have all been
-compiled to object code, one might never leave the virtual machine.
 
 @c wingo: The following is true, but I don't know in what context to
 @c describe it. A documentation FIXME.
@@ -241,8 +244,8 @@ prove statements about functions. It is especially good at describing
 scope relations, and it is for that reason that we mention it here.
 
 Guile allocates all variables on the stack. When a lexically enclosed
-procedure with free variables---a @dfn{closure}---is created, it
-copies those variables its free variable vector. References to free
+procedure with free variables---a @dfn{closure}---is created, it copies
+those variables into its free variable vector. References to free
 variables are then redirected through the free variable vector.
 
 If a variable is ever @code{set!}, however, it will need to be
@@ -306,42 +309,45 @@ We can see how these concepts tie together by disassembling the
 @smallexample
 scheme@@(guile-user)> (define (foo a) (lambda (b) (list foo a b)))
 scheme@@(guile-user)> ,x foo
-Disassembly of #<program foo (a)>:
+Disassembly of #<procedure foo (a)>:
 
-   0    (object-ref 1)          ;; #<program b7e478b0 at <unknown port>:0:16 (b)>
-   2    (local-ref 0)           ;; `a' (arg)
-   4    (vector 0 1)            ;; 1 element
-   7    (make-closure)                  
-   8    (return)                        
+   0    (assert-nargs-ee 0 1)           
+   3    (reserve-locals 0 1)            
+   6    (object-ref 1)                  ;; #<procedure 85bfec0 at <current input>:0:16 (b)>
+   8    (local-ref 0)                   ;; `a'
+  10    (make-closure 0 1)              
+  13    (return)                        
 
 ----------------------------------------
-Disassembly of #<program b7e478b0 at <unknown port>:0:16 (b)>:
+Disassembly of #<procedure 85bfec0 at <current input>:0:16 (b)>:
 
-   0    (toplevel-ref 1)        ;; `foo'
-   2    (free-ref 0)            ;; (closure variable)
-   4    (local-ref 0)           ;; `b' (arg)
-   6    (list 0 3)              ;; 3 elements         at (unknown file):0:28
-   9    (return)                        
+   0    (assert-nargs-ee 0 1)           
+   3    (reserve-locals 0 1)            
+   6    (toplevel-ref 1)                ;; `foo'
+   8    (free-ref 0)                    ;; (closure variable)
+  10    (local-ref 0)                   ;; `b'
+  12    (list 0 3)                      ;; 3 elements         at (unknown file):0:28
+  15    (return)                        
 @end smallexample
 
-At @code{ip} 0, we load up the compiled lambda. @code{Ip} 2 and 4
-create the free variables vector, and @code{ip} 7 makes the
-closure---binding code (from the compiled lambda) with data (the
-free-variable vector). Finally we return the closure.
+First there's some prelude, where @code{foo} checks that it was called with only
+1 argument. Then at @code{ip} 6, we load up the compiled lambda. @code{Ip} 8
+loads up `a', so that it can be captured into a closure by at @code{ip}
+10---binding code (from the compiled lambda) with data (the free-variable
+vector). Finally we return the closure.
 
-The second stanza disassembles the compiled lambda. Toplevel variables
-are resolved relative to the module that was current when the
-procedure was created. This lookup occurs lazily, at the first time
-the variable is actually referenced, and the location of the lookup is
-cached so that future references are very cheap. @xref{Environment
-Control Instructions}, for more details.
+The second stanza disassembles the compiled lambda. After the prelude, we note
+that toplevel variables are resolved relative to the module that was current
+when the procedure was created. This lookup occurs lazily, at the first time the
+variable is actually referenced, and the location of the lookup is cached so
+that future references are very cheap. @xref{Environment Control Instructions},
+for more details.
 
-Then we see a reference to an external variable, corresponding to
-@code{a}. The disassembler doesn't have enough information to give a
-name to that variable, so it just marks it as being a ``closure
-variable''. Finally we see the reference to @code{b}, then the
-@code{list} opcode, an inline implementation of the @code{list} scheme
-routine.
+Then we see a reference to a free variable, corresponding to @code{a}. The
+disassembler doesn't have enough information to give a name to that variable, so
+it just marks it as being a ``closure variable''. Finally we see the reference
+to @code{b}, then the @code{list} opcode, an inline implementation of the
+@code{list} scheme routine.
 
 @node Instruction Set
 @subsection Instruction Set
@@ -548,8 +554,8 @@ All the conditional branch instructions described below work in the
 same way:
 
 @itemize
-@item They pop off the Scheme object located on the stack and use it as
-the branch condition;
+@item They pop off Scheme object(s) located on the stack for use in the
+branch condition
 @item If the condition is true, then the instruction pointer is
 increased by the offset passed as an argument to the branch
 instruction;
@@ -557,22 +563,20 @@ instruction;
 the one to which the instruction pointer points).
 @end itemize
 
-Note that the offset passed to the instruction is encoded on two 8-bit
-integers which are then combined by the VM as one 16-bit integer. Note
-also that jump targets in Guile are aligned on 8-byte boundaries, and
-that the offset refers to the @var{n}th 8-byte boundary, effectively
-giving Guile a 19-bit relative address space.
+Note that the offset passed to the instruction is encoded as three 8-bit
+integers, in big-endian order, effectively giving Guile a 24-bit
+relative address space.
 
 @deffn Instruction br offset
-Jump to @var{offset}.
+Jump to @var{offset}. No values are popped.
 @end deffn
 
 @deffn Instruction br-if offset
-Jump to @var{offset} if the condition on the stack is not false.
+Jump to @var{offset} if the object on the stack is not false.
 @end deffn
 
 @deffn Instruction br-if-not offset
-Jump to @var{offset} if the condition on the stack is false.
+Jump to @var{offset} if the object on the stack is false.
 @end deffn
 
 @deffn Instruction br-if-eq offset
@@ -678,14 +682,12 @@ and arguments off the stack, and push the result of calling
 @code{scm_apply}.
 @end deffn
 
-@deffn Instruction goto/args nargs
+@deffn Instruction tail-call nargs
 Like @code{call}, but reusing the current continuation. This
 instruction implements tail calls as required by RnRS.
 
-For compiled procedures, that means that @code{goto/args} simply
+For compiled procedures, that means that @code{tail-call} simply
 shuffles down the procedure and arguments to the current stack frame.
-The @code{goto/*} instruction family is named as it is because tail
-calls are equivalent to @code{goto}, along with relabeled variables.
 
 For non-VM procedures, the result is the same, but the current VM
 invocation remains on the C stack. True tail calls are not currently
@@ -693,16 +695,16 @@ possible between compiled and non-compiled procedures.
 @end deffn
 
 @deffn Instruction apply nargs
-@deffnx Instruction goto/apply nargs
-Like @code{call} and @code{goto/args}, except that the top item on the
+@deffnx Instruction tail-apply nargs
+Like @code{call} and @code{tail-call}, except that the top item on the
 stack must be a list. The elements of that list are then pushed on the
 stack and treated as additional arguments, replacing the list itself,
 then the procedure is invoked as usual.
 @end deffn
 
 @deffn Instruction call/nargs
-@deffnx Instruction goto/nargs
-These are like @code{call} and @code{goto/args}, except they take the
+@deffnx Instruction tail-call/nargs
+These are like @code{call} and @code{tail-call}, except they take the
 number of arguments from the stack instead of the instruction stream.
 These instructions are used in the implementation of multiple value
 returns, where the actual number of values is pushed on the stack.
@@ -767,7 +769,7 @@ Signals an error if there is an insufficient number of values.
 @end deffn
 
 @deffn Instruction call/cc
-@deffnx Instruction goto/cc
+@deffnx Instruction tail-call/cc
 Capture the current continuation, and then call (or tail-call) the
 procedure on the top of the stack, with the continuation as the
 argument.
@@ -821,7 +823,7 @@ Push @code{#t} onto the stack.
 @end deffn
 
 @deffn Instruction make-nil
-Push @code{%nil} onto the stack.
+Push @code{#nil} onto the stack.
 @end deffn
 
 @deffn Instruction make-eol

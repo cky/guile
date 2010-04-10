@@ -1,6 +1,6 @@
 ;;; Guile Emacs Lisp
 
-;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -39,10 +39,9 @@
 (define void (list 42))
 
 
-; Values for t and nil.
+; Values for t and nil. (FIXME remove this abstraction)
 
-; FIXME: Use real nil.
-(define nil-value #f)
+(define nil-value #nil)
 (define t-value #t)
 
 

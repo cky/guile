@@ -1,6 +1,6 @@
 ;;; a simple inliner
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -110,5 +110,55 @@
       ((<fix> vars body)
        (if (null? vars) body x))
        
+      ((<lambda-case> req opt rest kw vars body alternate)
+       (define (args-compatible? args vars)
+         (let lp ((args args) (vars vars))
+           (cond
+            ((null? args) (null? vars))
+            ((null? vars) #f)
+            ((and (lexical-ref? (car args))
+                  (eq? (lexical-ref-gensym (car args)) (car vars)))
+             (lp (cdr args) (cdr vars)))
+            (else #f))))
+         
+       (and (not opt) (not kw) rest (not alternate)
+            (record-case body
+              ((<application> proc args)
+               ;; (lambda args (apply (lambda ...) args)) => (lambda ...)
+               (and (primitive-ref? proc)
+                    (eq? (primitive-ref-name proc) '@apply)
+                    (pair? args)
+                    (lambda? (car args))
+                    (args-compatible? (cdr args) vars)
+                    (lambda-body (car args))))
+              (else #f))))
+
+      ;; Actually the opposite of inlining -- if the prompt cannot be proven to
+      ;; be escape-only, ensure that its body is the application of a thunk.
+      ((<prompt> src tag body handler)
+       (define (escape-only? handler)
+         (and (pair? (lambda-case-req handler))
+              (let ((cont (car (lambda-case-vars handler))))
+                (tree-il-fold (lambda (leaf escape-only?)
+                                (and escape-only?
+                                     (not
+                                      (and (lexical-ref? leaf)
+                                           (eq? (lexical-ref-gensym leaf) cont)))))
+                              (lambda (down escape-only?) escape-only?)
+                              (lambda (up escape-only?) escape-only?)
+                              #t
+                              (lambda-case-body handler)))))
+       (define (make-thunk body)
+         (make-lambda #f '() (make-lambda-case #f '() #f #f #f '() '() body #f)))
+
+       (if (or (and (application? body)
+                    (lambda? (application-proc body))
+                    (null? (application-args body)))
+               (escape-only? handler))
+           x
+           (make-prompt src tag
+                        (make-application #f (make-thunk body) '())
+                        handler)))
+      
       (else #f)))
   (post-order! inline1 x))

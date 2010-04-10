@@ -221,9 +221,13 @@
   (pass-if "R5RS backslash escapes"
     (string=? "\"\\" (string #\" #\\)))
 
+  (pass-if "R6RS backslash escapes"
+    (string=? "\a\b\t\n\v\f\r"
+              (string #\alarm #\backspace #\tab #\newline #\vtab
+                      #\page #\return)))
+
   (pass-if "Guile extensions backslash escapes"
-    (string=? "\0\a\f\n\r\t\v"
-              (apply string (map integer->char '(0 7 12 10 13 9 11))))))
+    (string=? "\0" (string #\nul))))
 
 ;;
 ;; string?
@@ -384,6 +388,46 @@
   (pass-if "same as char-ci>=?"
     (eq? (char-ci>=? (integer->char 0) (integer->char 255))
 	 (string-ci>=? (string-ints 0) (string-ints 255)))))
+
+;;
+;; Unicode string normalization forms
+;;
+
+;;
+;; string-normalize-nfd
+;;
+
+(with-test-prefix "string-normalize-nfd"
+
+  (pass-if "canonical decomposition is equal?"
+    (equal? (string-normalize-nfd "\xe9") "\x65\u0301")))
+
+;;
+;; string-normalize-nfkd
+;;
+
+(with-test-prefix "string-normalize-nfkd"
+  
+  (pass-if "compatibility decomposition is equal?"
+    (equal? (string-normalize-nfkd "\u1e9b\u0323") "s\u0323\u0307")))
+
+;;
+;; string-normalize-nfc
+;;
+
+(with-test-prefix "string-normalize-nfc"
+
+  (pass-if "canonical composition is equal?"
+    (equal? (string-normalize-nfc "\x65\u0301") "\xe9")))
+
+;;
+;; string-normalize-nfkc
+;;
+
+(with-test-prefix "string-normalize-nfkc"
+
+  (pass-if "compatibility composition is equal?"
+    (equal? (string-normalize-nfkc "\u1e9b\u0323") "\u1e69")))
 
 ;;
 ;; string-ref

@@ -262,6 +262,17 @@
       (set! *file* file)
       (set! *line* line))
 
+     ;; newer gccs like to throw around more location markers into the
+     ;; preprocessed source; these (hash . hash) bits are what they translate to
+     ;; in snarfy terms.
+     (('location ('string . file) ('int . line) ('hash . 'hash))
+      (set! *file* file)
+      (set! *line* line))
+
+     (('location ('hash . 'hash) ('string . file) ('int . line) ('hash . 'hash))
+      (set! *file* file)
+      (set! *line* line))
+
      (('arglist rest ...)
       (set! *args* (do-arglist rest)))
 

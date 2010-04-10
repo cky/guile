@@ -31,6 +31,7 @@ For fixes or providing information which led to a fix:
          Adrian Bunk
         Michael Carmack
               R Clayton
+        Tristan Colgate
         Stephen Compall
           Brian Crowder
     Christopher Cramer
@@ -49,6 +50,7 @@ For fixes or providing information which led to a fix:
   Panicz Maciej Godek
            John Goerzen
            Mike Gran
+         Raimon Grau
          Szavai Gyula
          Roland Haeder
 	   Sven Hartrumpf
@@ -69,14 +71,17 @@ For fixes or providing information which led to a fix:
            Matt Kraai
          Daniel Kraft
        Miroslav Lichvar
+         Daniel Llorens del Río
            Jeff Long
 	  Marco Maggi
         Gregory Marton
       Kjetil S. Matheussen
         Antoine Mathys
+        Patrick McCarty
             Dan McMahill
           Roger Mc Murtrie
           Scott McPeak
+         Andrew Milkowski
             Tim Mooney
         Han-Wen Nienhuys
             Jan Nieuwenhuizen
@@ -91,6 +96,7 @@ For fixes or providing information which led to a fix:
 	    Ron Peterson
           David Pirotte
          Carlos Pita
+         Sergey Poznyakoff
             Ken Raeburn
          Juhani Rantanen
         Andreas Rottmann
@@ -100,6 +106,7 @@ For fixes or providing information which led to a fix:
 	  Frank Schwidom
     John Steele Scott
          Thiemo Seufer
+           Ivan Shcherbakov
           Scott Shedden
            Alex Shinn
          Daniel Skarda

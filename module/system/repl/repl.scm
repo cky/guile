@@ -87,7 +87,7 @@
   (catch #t
          (lambda () (%start-stack #t thunk))
          default-catch-handler
-         default-pre-unwind-handler))
+         debug-pre-unwind-handler))
 
 (define-macro (with-backtrace form)
   `(call-with-backtrace (lambda () ,form)))

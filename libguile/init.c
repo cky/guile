@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,6 +41,7 @@
 #include "libguile/boolean.h"
 #include "libguile/bytevectors.h"
 #include "libguile/chars.h"
+#include "libguile/control.h"
 #include "libguile/continuations.h"
 #include "libguile/debug.h"
 #ifdef GUILE_DEBUG_MALLOC
@@ -57,6 +58,7 @@
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
+#include "libguile/frames.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
 #include "libguile/generalized-arrays.h"
@@ -68,10 +70,10 @@
 #include "libguile/hooks.h"
 #include "libguile/gettext.h"
 #include "libguile/i18n.h"
+#include "libguile/instructions.h"
 #include "libguile/iselect.h"
 #include "libguile/ioext.h"
 #include "libguile/keywords.h"
-#include "libguile/lang.h"
 #include "libguile/list.h"
 #include "libguile/load.h"
 #include "libguile/macros.h"
@@ -80,6 +82,7 @@
 #include "libguile/modules.h"
 #include "libguile/net_db.h"
 #include "libguile/numbers.h"
+#include "libguile/objcodes.h"
 #include "libguile/objprop.h"
 #include "libguile/options.h"
 #include "libguile/pairs.h"
@@ -91,6 +94,7 @@
 #include "libguile/print.h"
 #include "libguile/procprop.h"
 #include "libguile/procs.h"
+#include "libguile/programs.h"
 #include "libguile/promises.h"
 #include "libguile/properties.h"
 #include "libguile/array-map.h"
@@ -122,7 +126,7 @@
 #include "libguile/variable.h"
 #include "libguile/vectors.h"
 #include "libguile/version.h"
-#include "libguile/vm-bootstrap.h"
+#include "libguile/vm.h"
 #include "libguile/vports.h"
 #include "libguile/weaks.h"
 #include "libguile/guardians.h"
@@ -443,9 +447,14 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_symbols_prehistory ();      /* requires weaks_prehistory */
   scm_modules_prehistory ();
   scm_init_array_handle ();
-  scm_init_generalized_arrays ();
-  scm_init_generalized_vectors ();
-  scm_init_strings ();            /* Requires array-handle, generalized-vectors */
+  scm_bootstrap_bytevectors ();   /* Requires array-handle */
+  scm_bootstrap_instructions ();
+  scm_bootstrap_objcodes ();
+  scm_bootstrap_programs ();
+  scm_bootstrap_vm ();
+  scm_register_foreign ();
+
+  scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */
   scm_smob_prehistory ();
   scm_init_variable ();
@@ -467,6 +476,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_eq ();
   scm_init_error ();
   scm_init_fluids ();
+  scm_init_control ();            /* requires fluids */
   scm_init_feature ();
   scm_init_backtrace ();
   scm_init_fports ();
@@ -509,15 +519,14 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_srcprop ();     /* requires smob_prehistory */
   scm_init_stackchk ();
 
-  scm_init_vectors ();  /* Requires array-handle, generalized-vectors */
+  scm_init_generalized_arrays ();
+  scm_init_generalized_vectors ();
+  scm_init_vectors ();  /* Requires array-handle, */
   scm_init_uniform ();
-  scm_init_bitvectors ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
-  scm_bootstrap_bytevectors ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
-  scm_init_srfi_4 ();  /* Requires smob_prehistory, array-handle, generalized-vectors */
+  scm_init_bitvectors ();  /* Requires smob_prehistory, array-handle */
+  scm_init_srfi_4 ();  /* Requires smob_prehistory, array-handle */
   scm_init_arrays ();    /* Requires smob_prehistory, array-handle */
   scm_init_array_map ();
-
-  scm_bootstrap_vm ();  /* requires smob_prehistory, gc_permanent_object */
 
   scm_init_frames ();   /* Requires smob_prehistory */
   scm_init_stacks ();   /* Requires strings, struct, frames */
@@ -547,9 +556,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_simpos ();
   scm_init_dynamic_linking (); /* Requires smob_prehistory */
   scm_bootstrap_i18n ();
-#if SCM_ENABLE_ELISP
-  scm_init_lang ();
-#endif /* SCM_ENABLE_ELISP */
   scm_init_script ();
 
   scm_init_goops ();
@@ -576,6 +582,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();
+  scm_init_load_should_autocompile ();
 }
 
 /*

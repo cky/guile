@@ -219,14 +219,6 @@ main (int argc, char *argv[])
     pf ("#define GUILE_DEBUG 1 /* defined or undefined */\n");
   else
     pf ("/* #undef GUILE_DEBUG */\n");
-  
-  /*** GUILE_DEBUG_FREELIST (deined or undefined) ***/
-  pf ("\n");
-  pf ("/* Define this to debug the free list (helps w/ GC bugs). */\n");
-  if (SCM_I_GSC_GUILE_DEBUG_FREELIST)
-    pf ("#define GUILE_DEBUG_FREELIST 1 /* defined or undefined */\n");
-  else
-    pf ("/* #undef GUILE_DEBUG_FREELIST */\n");
 
   /*** SCM_ENABLE_DISCOURAGED (0 or 1) ***/
   pf ("\n");
@@ -239,11 +231,6 @@ main (int argc, char *argv[])
   pf ("/* Set to 1 if you want to enable deprecated features. */\n");
   pf ("/* (value will be 0 or 1). */\n");
   pf ("#define SCM_ENABLE_DEPRECATED %d\n", SCM_I_GSC_ENABLE_DEPRECATED);
-
-  /*** SCM_ENABLE_ELISP (0 or 1) ***/
-  pf ("\n");
-  pf ("/* Set to 1 to add Elisp support (in addition to Scheme). */\n");
-  pf ("#define SCM_ENABLE_ELISP %d /* 0 or 1 */\n", SCM_I_GSC_ENABLE_ELISP);
 
   /*** SCM_STACK_GROWS_UP (0 or 1) ***/
   pf ("\n");

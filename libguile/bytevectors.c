@@ -1,4 +1,4 @@
-/* Copyright (C) 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -275,12 +275,26 @@ scm_c_make_bytevector (size_t len)
   return make_bytevector (len, SCM_ARRAY_ELEMENT_TYPE_VU8);
 }
 
+/* Return a new bytevector of size LEN elements.  */
+SCM
+scm_i_make_typed_bytevector (size_t len, scm_t_array_element_type element_type)
+{
+  return make_bytevector (len, element_type);
+}
+
 /* Return a bytevector of size LEN made up of CONTENTS.  The area pointed to
    by CONTENTS must have been allocated using `scm_gc_malloc ()'.  */
 SCM
 scm_c_take_bytevector (signed char *contents, size_t len)
 {
   return make_bytevector_from_buffer (len, contents, SCM_ARRAY_ELEMENT_TYPE_VU8);
+}
+
+SCM
+scm_c_take_typed_bytevector (signed char *contents, size_t len,
+                             scm_t_array_element_type element_type)
+{
+  return make_bytevector_from_buffer (len, contents, element_type);
 }
 
 /* Shrink BV to C_NEW_LEN (which is assumed to be smaller than its current
@@ -497,7 +511,8 @@ SCM_DEFINE (scm_bytevector_eq_p, "bytevector=?", 2, 0, 0,
   c_len1 = SCM_BYTEVECTOR_LENGTH (bv1);
   c_len2 = SCM_BYTEVECTOR_LENGTH (bv2);
 
-  if (c_len1 == c_len2)
+  if (c_len1 == c_len2 && (SCM_BYTEVECTOR_ELEMENT_TYPE (bv1)
+                           == SCM_BYTEVECTOR_ELEMENT_TYPE (bv2)))
     {
       signed char *c_bv1, *c_bv2;
 
@@ -2081,7 +2096,7 @@ bytevector_ref_c32 (SCM bv, SCM idx)
 { /* FIXME add some checks */
   const float *contents = (const float*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  return scm_c_make_rectangular (contents[i/8], contents[i/8 + 1]);
+  return scm_c_make_rectangular (contents[i/4], contents[i/4 + 1]);
 }
 
 static SCM
@@ -2089,7 +2104,7 @@ bytevector_ref_c64 (SCM bv, SCM idx)
 { /* FIXME add some checks */
   const double *contents = (const double*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  return scm_c_make_rectangular (contents[i/16], contents[i/16 + 1]);
+  return scm_c_make_rectangular (contents[i/8], contents[i/8 + 1]);
 }
 
 typedef SCM (*scm_t_bytevector_ref_fn)(SCM, SCM);
@@ -2126,23 +2141,22 @@ bv_handle_ref (scm_t_array_handle *h, size_t index)
   return ref_fn (h->array, byte_index);
 }
 
+/* FIXME add checks!!! */
 static SCM
 bytevector_set_c32 (SCM bv, SCM idx, SCM val)
-{ /* checks are unnecessary here */
-  float *contents = (float*)SCM_BYTEVECTOR_CONTENTS (bv);
+{ float *contents = (float*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  contents[i/8] = scm_c_real_part (val);
-  contents[i/8 + 1] = scm_c_imag_part (val);
+  contents[i/4] = scm_c_real_part (val);
+  contents[i/4 + 1] = scm_c_imag_part (val);
   return SCM_UNSPECIFIED;
 }
 
 static SCM
 bytevector_set_c64 (SCM bv, SCM idx, SCM val)
-{ /* checks are unnecessary here */
-  double *contents = (double*)SCM_BYTEVECTOR_CONTENTS (bv);
+{ double *contents = (double*)SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  contents[i/16] = scm_c_real_part (val);
-  contents[i/16 + 1] = scm_c_imag_part (val);
+  contents[i/8] = scm_c_real_part (val);
+  contents[i/8 + 1] = scm_c_imag_part (val);
   return SCM_UNSPECIFIED;
 }
 
@@ -2210,7 +2224,8 @@ scm_bootstrap_bytevectors (void)
   scm_i_native_endianness = scm_from_locale_symbol ("little");
 #endif
 
-  scm_c_register_extension ("libguile", "scm_init_bytevectors",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_bytevectors",
 			    (scm_t_extension_init_func) scm_init_bytevectors,
 			    NULL);
 

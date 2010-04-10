@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -52,6 +52,11 @@
            (else
             (lp (acons (binding:index b) (list b) ret)
                 (cdr locs))))))))
+
+(define (program-free-variables program)
+  (list->vector
+   (map (lambda (i) (program-free-variable-ref program i))
+        (iota (program-num-free-variables program)))))
 
 (define (decompile-value x env opts)
   (cond

@@ -6,7 +6,7 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 ;;;; guile-tools --- running scripts bundled with Guile
 ;;;; Andy Wingo <wingo@pobox.com> --- April 2009
 ;;;; 
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -109,6 +109,7 @@ PROGRAM is run with ARGS.
          m)))
 
 (define (main args)
+  (setlocale LC_ALL "")
   (if (or (equal? (cdr args) '())
           (equal? (cdr args) '("list")))
       (list-scripts)

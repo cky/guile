@@ -3,7 +3,7 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,6 +27,18 @@
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 
+/* These "with-fluids" objects live on the dynamic stack, and record previous
+   values of fluids. Guile uses shallow binding, so the current fluid values are
+   always in the same place for a given thread, in the dynamic-state vector.
+ */
+
+#define SCM_WITH_FLUIDS_P(x) (!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_with_fluids)
+#define SCM_WITH_FLUIDS_LEN(x) (SCM_CELL_WORD ((x), 0) >> 8)
+#define SCM_WITH_FLUIDS_NTH_FLUID(x,n) (SCM_CELL_OBJECT ((x), 1 + (n)*2))
+#define SCM_WITH_FLUIDS_NTH_VAL(x,n) (SCM_CELL_OBJECT ((x), 2 + (n)*2))
+#define SCM_WITH_FLUIDS_SET_NTH_VAL(x,n,v) (SCM_SET_CELL_OBJECT ((x), 2 + (n)*2, (v)))
+
+
 /* Fluids.
 
    Fluids are objects of a certain type that can hold one SCM value per
@@ -42,19 +54,17 @@
    grow.
  */
 
-/* The fastest way to acces/modify the value of a fluid.  These macros
-   do no error checking at all.  The first argument is the index
-   number of the fluid, obtained via SCM_FLUID_NUM, not the fluid
-   itself.  You must make sure that the fluid remains protected as
-   long you use its number since numbers of unused fluids are reused
-   eventually.
-*/
+#define SCM_I_FLUID_P(x)          (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
+#define SCM_I_FLUID_NUM(x)        ((size_t)SCM_CELL_WORD_1(x))
 
 SCM_API SCM scm_make_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
 SCM_API SCM scm_fluid_ref (SCM fluid);
 SCM_API SCM scm_fluid_set_x (SCM fluid, SCM value);
+
+SCM_INTERNAL SCM scm_i_make_with_fluids (size_t n, SCM *fluids, SCM *vals);
+SCM_INTERNAL void scm_i_swap_with_fluids (SCM with_fluids, SCM dynamic_state);
 
 SCM_API SCM scm_c_with_fluids (SCM fluids, SCM vals,
 			       SCM (*cproc)(void *), void *cdata);
@@ -64,6 +74,9 @@ SCM_API SCM scm_with_fluids (SCM fluids, SCM vals, SCM thunk);
 SCM_API SCM scm_with_fluid (SCM fluid, SCM val, SCM thunk);
 
 SCM_API void scm_dynwind_fluid (SCM fluid, SCM value);
+
+#define SCM_I_DYNAMIC_STATE_P(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_dynamic_state)
+#define SCM_I_DYNAMIC_STATE_FLUIDS(x)        SCM_PACK (SCM_CELL_WORD_1 (x))
 
 SCM_API SCM scm_make_dynamic_state (SCM parent);
 SCM_API SCM scm_dynamic_state_p (SCM obj);
@@ -79,6 +92,7 @@ SCM_INTERNAL SCM scm_i_make_initial_dynamic_state (void);
 
 SCM_INTERNAL void scm_i_fluid_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_i_dynamic_state_print (SCM exp, SCM port, scm_print_state *pstate);
+SCM_INTERNAL void scm_i_with_fluids_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_init_fluids (void);
 
 #endif  /* SCM_FLUIDS_H */

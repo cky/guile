@@ -1,6 +1,6 @@
 ;;; Guile VM core
 
-;;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -21,20 +21,21 @@
 (define-module (system vm vm)
   #:use-module (system vm frame)
   #:use-module (system vm program)
-  #:export (vm? the-vm make-vm vm-version
+  #:export (vm? the-vm make-vm vm-version vm-apply
             vm:ip vm:sp vm:fp vm:last-ip
 
             vm-load vm-option set-vm-option! vm-version
             vms:time vms:clock
 
-            vm-trace-frame
+            vm-trace-level set-vm-trace-level!
             vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
             vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
 
-(load-extension "libguile" "scm_init_vm")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_vm")
 
 (define (vms:time stat) (vector-ref stat 0))
 (define (vms:clock stat) (vector-ref stat 1))
 
 (define (vm-load vm objcode)
-  (vm (make-program objcode)))
+  (vm-apply vm (make-program objcode) '()))

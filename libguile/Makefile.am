@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -33,7 +33,7 @@ DEFAULT_INCLUDES =
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
 ## building.  Also look for Gnulib headers in `lib'.
 AM_CPPFLAGS = -DBUILDING_LIBGUILE=1 -I$(top_srcdir) -I$(top_builddir) \
-	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
+	      -I$(top_srcdir)/lib -I$(top_builddir)/lib $(LIBFFI_CFLAGS)
 
 AM_CFLAGS = $(GCC_CFLAGS) $(CFLAG_VISIBILITY)
 
@@ -43,7 +43,7 @@ gnulib_library = $(top_builddir)/lib/libgnu.la
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
-lib_LTLIBRARIES = libguile.la
+lib_LTLIBRARIES = libguile-@GUILE_EFFECTIVE_VERSION@.la
 bin_PROGRAMS = guile
 
 noinst_PROGRAMS = guile_filter_doc_snarfage gen-scmconfig
@@ -99,12 +99,12 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 
 guile_SOURCES = guile.c
 guile_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
-guile_LDADD = libguile.la
+guile_LDADD = libguile-@GUILE_EFFECTIVE_VERSION@.la
 guile_LDFLAGS = $(GUILE_CFLAGS)
 
-libguile_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
+libguile_@GUILE_EFFECTIVE_VERSION@_la_CFLAGS = $(GUILE_CFLAGS) $(AM_CFLAGS)
 
-libguile_la_SOURCES =				\
+libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	alist.c					\
 	arbiters.c				\
 	array-handle.c				\
@@ -116,6 +116,7 @@ libguile_la_SOURCES =				\
 	bitvectors.c				\
 	bytevectors.c				\
 	chars.c					\
+	control.c				\
 	continuations.c				\
 	debug.c					\
 	deprecated.c				\
@@ -129,6 +130,7 @@ libguile_la_SOURCES =				\
 	extensions.c				\
 	feature.c				\
 	fluids.c				\
+	foreign.c				\
 	fports.c				\
 	frames.c				\
 	gc-malloc.c				\
@@ -149,7 +151,6 @@ libguile_la_SOURCES =				\
 	instructions.c				\
 	ioext.c					\
 	keywords.c				\
-	lang.c					\
 	list.c					\
 	load.c					\
 	macros.c				\
@@ -216,6 +217,7 @@ DOT_X_FILES =					\
 	bitvectors.x				\
 	bytevectors.x				\
 	chars.x					\
+	control.x				\
 	continuations.x				\
 	debug.x					\
 	deprecated.x				\
@@ -230,6 +232,7 @@ DOT_X_FILES =					\
 	extensions.x				\
 	feature.x				\
 	fluids.x				\
+	foreign.x				\
 	fports.x				\
 	gc-malloc.x				\
 	gc.x					\
@@ -246,7 +249,6 @@ DOT_X_FILES =					\
 	init.x					\
 	ioext.x					\
 	keywords.x				\
-	lang.x					\
 	list.x					\
 	load.x					\
 	macros.x				\
@@ -314,6 +316,7 @@ DOT_DOC_FILES = 				\
 	bitvectors.doc				\
 	bytevectors.doc				\
 	chars.doc				\
+	control.doc				\
 	continuations.doc			\
 	debug.doc				\
 	deprecated.doc				\
@@ -328,6 +331,7 @@ DOT_DOC_FILES = 				\
 	extensions.doc				\
 	feature.doc				\
 	fluids.doc				\
+	foreign.doc				\
 	fports.doc				\
 	gc-malloc.doc				\
 	gc.doc					\
@@ -344,7 +348,6 @@ DOT_DOC_FILES = 				\
 	init.doc				\
 	ioext.doc				\
 	keywords.doc				\
-	lang.doc				\
 	list.doc				\
 	load.doc				\
 	macros.doc				\
@@ -406,7 +409,7 @@ BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
     version.h scmconfig.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
-EXTRA_libguile_la_SOURCES = _scm.h		\
+EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     memmove.c strerror.c			\
     dynl.c regex-posix.c			\
     filesys.c posix.c net_db.c socket.c		\
@@ -426,7 +429,6 @@ install-exec-hook:
 ## working.
 noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  ieee-754.h					\
-                 srfi-4.i.c					\
                  srfi-14.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h win32-dirent.h win32-socket.h	\
@@ -435,19 +437,20 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
 # vm instructions
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
-libguile_la_DEPENDENCIES = @LIBLOBJS@
-libguile_la_LIBADD =				\
+libguile_@GUILE_EFFECTIVE_VERSION@_la_DEPENDENCIES = @LIBLOBJS@
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LIBADD =				\
   @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP)	\
-  $(LTLIBUNISTRING) $(LTLIBICONV)
-libguile_la_LDFLAGS =							\
-  @LTLIBINTL@ $(INET_NTOP_LIB) $(INET_PTON_LIB)				\
+  $(LTLIBUNISTRING) $(LTLIBICONV) $(LTLIBINTL)
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =											\
+  @LTLIBINTL@ $(LIBFFI_LIBS) $(INET_NTOP_LIB) $(INET_PTON_LIB)						\
+  $(GETADDRINFO_LIB) $(HOSTENT_LIB) $(SERVENT_LIB)							\
   -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
-  -export-dynamic -no-undefined						\
+  -export-dynamic -no-undefined										\
   $(GNU_LD_FLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
 
-libguile_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS += -Wl,--version-script="$(srcdir)/libguile.map"
 
 endif HAVE_LD_VERSION_SCRIPT
 
@@ -456,7 +459,7 @@ endif HAVE_LD_VERSION_SCRIPT
 pkginclude_HEADERS = 
 
 # These are headers visible as <libguile/mumble.h>.
-modincludedir = $(includedir)/libguile
+modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/libguile
 modinclude_HEADERS =				\
 	__scm.h					\
 	alist.h					\
@@ -471,6 +474,7 @@ modinclude_HEADERS =				\
 	bitvectors.h				\
 	bytevectors.h				\
 	chars.h					\
+	control.h				\
 	continuations.h				\
 	debug-malloc.h				\
 	debug.h					\
@@ -487,6 +491,7 @@ modinclude_HEADERS =				\
 	feature.h				\
 	filesys.h				\
 	fluids.h				\
+	foreign.h				\
 	fports.h				\
 	frames.h				\
 	gc.h					\
@@ -508,7 +513,6 @@ modinclude_HEADERS =				\
 	ioext.h					\
 	iselect.h				\
 	keywords.h				\
-	lang.h					\
 	list.h					\
 	load.h					\
 	macros.h				\
@@ -566,7 +570,6 @@ modinclude_HEADERS =				\
 	values.h				\
 	variable.h				\
 	vectors.h				\
-	vm-bootstrap.h				\
 	vm-engine.h				\
 	vm-expand.h				\
 	vm.h					\
@@ -593,11 +596,12 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
 ## We use @-...-@ as the substitution brackets here, instead of the
 ## usual @...@, so autoconf doesn't go and substitute the values
 ## directly into the left-hand sides of the sed substitutions.  *sigh*
-version.h: version.h.in
+version.h: version.h.in $(top_builddir)/config.status
 	sed < $(srcdir)/version.h.in > $@.tmp \
 	  -e s:@-GUILE_MAJOR_VERSION-@:${GUILE_MAJOR_VERSION}: \
 	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
-	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}:
+	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}: \
+	  -e s:@-GUILE_EFFECTIVE_VERSION-@:${GUILE_EFFECTIVE_VERSION}:
 	mv $@.tmp $@
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.

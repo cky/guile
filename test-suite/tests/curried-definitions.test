@@ -1,0 +1,84 @@
+;;;; curried-definitions.test          -*- scheme -*-
+;;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-curried-definitions)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 curried-definitions))
+
+(with-test-prefix "define"
+  (pass-if "define works as usual"
+    (equal? 34
+            (primitive-eval '(let ()
+                               (define (foo)
+                                 34)
+                               (foo)))))
+  (pass-if "define works as usual (2)"
+    (equal? 134
+            (primitive-eval '(let ()
+                               (define (foo x)
+                                 (+ x 34))
+                               (foo 100)))))
+  (pass-if "currying once"
+    (equal? 234
+            (primitive-eval '(let ()
+                               (define ((foo) x)
+                                 (+ x 34))
+                               ((foo) 200)))))
+  (pass-if "currying twice"
+    (equal? 334
+            (primitive-eval '(let ()
+                               (define (((foo)) x)
+                                 (+ x 34))
+                               (((foo)) 300)))))
+
+  (pass-if "just a value"
+    (equal? 444
+            (primitive-eval '(let ()
+                               (define foo 444)
+                               foo)))))
+
+(with-test-prefix "define*"
+  (pass-if "define* works as usual"
+    (equal? 34
+            (primitive-eval '(let ()
+                               (define* (foo)
+                                 34)
+                               (foo)))))
+  (pass-if "define* works as usual (2)"
+    (equal? 134
+            (primitive-eval '(let ()
+                               (define* (foo x)
+                                 (+ x 34))
+                               (foo 100)))))
+  (pass-if "currying once"
+    (equal? 234
+            (primitive-eval '(let ()
+                               (define* ((foo) x)
+                                 (+ x 34))
+                               ((foo) 200)))))
+  (pass-if "currying twice"
+    (equal? 334
+            (primitive-eval '(let ()
+                               (define* (((foo)) x)
+                                 (+ x 34))
+                               (((foo)) 300)))))
+
+  (pass-if "just a value"
+    (equal? 444
+            (primitive-eval '(let ()
+                               (define* foo 444)
+                               foo)))))

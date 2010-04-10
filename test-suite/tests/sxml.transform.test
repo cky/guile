@@ -1,0 +1,99 @@
+;;;; sxml.transform.test                 -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2002,2003,2004 Oleg Kiselyov <oleg at pobox dot com>
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;; Commentary:
+;;
+;; Unit tests for (sxml transform).
+;;
+;;; Code:
+
+(define-module (test-suite sxml-transform)
+  #:use-module (test-suite lib)
+  #:use-module (sxml transform))
+
+(let* ((tree '(root (n1 (n11) "s12" (n13))
+                "s2"
+                (n2 (n21) "s22")
+                (n3 (n31 (n311))
+                    "s32"
+                    (n33 (n331) "s332" (n333))
+                    "s34"))))
+  (define (test pred-begin pred-end expected)
+    (pass-if expected
+      (equal? expected (car (replace-range pred-begin pred-end (list tree))))))
+
+  ;; Remove one node, "s2"
+  (test
+   (lambda (node)
+     (and (equal? node "s2") '()))
+   (lambda (node) (list node))
+   '(root (n1 (n11) "s12" (n13))
+      (n2 (n21) "s22")
+      (n3 (n31 (n311)) "s32" (n33 (n331) "s332" (n333)) "s34")))
+
+  ;; Replace one node, "s2" with "s2-new"
+  (test 
+   (lambda (node)
+     (and (equal? node "s2") '("s2-new")))
+   (lambda (node) (list node))
+   '(root (n1 (n11) "s12" (n13))
+      "s2-new"
+      (n2 (n21) "s22")
+      (n3 (n31 (n311)) "s32" (n33 (n331) "s332" (n333)) "s34")))
+
+  ;; Replace one node, "s2" with "s2-new" and its brother (n-new "s")
+  (test 
+   (lambda (node)
+     (and (equal? node "s2") '("s2-new" (n-new "s"))))
+   (lambda (node) (list node))
+   '(root (n1 (n11) "s12" (n13))
+      "s2-new" (n-new "s")
+      (n2 (n21) "s22")
+      (n3 (n31 (n311)) "s32" (n33 (n331) "s332" (n333)) "s34")))
+
+  ;; Remove everything from "s2" onward
+  (test 
+   (lambda (node)
+     (and (equal? node "s2") '()))
+   (lambda (node) #f)
+   '(root (n1 (n11) "s12" (n13))))
+   
+  ;; Remove everything from "n1" onward
+  (test 
+   (lambda (node)
+     (and (pair? node) (eq? 'n1 (car node)) '()))
+   (lambda (node) #f)
+   '(root))
+
+  ;; Replace from n1 through n33
+  (test 
+   (lambda (node)
+     (and (pair? node)
+          (eq? 'n1 (car node))
+          (list node '(n1* "s12*"))))
+   (lambda (node)
+     (and (pair? node)
+          (eq? 'n33 (car node))
+          (list node)))
+   '(root
+        (n1 (n11) "s12" (n13))
+      (n1* "s12*")
+      (n3 
+       (n33 (n331) "s332" (n333))
+       "s34"))))

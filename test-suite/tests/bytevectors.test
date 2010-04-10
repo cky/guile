@@ -1,7 +1,7 @@
-;;;; bytevectors.test --- Exercise the R6RS bytevector API.
+;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009 Free Software Foundation, Inc.
-;;;; Ludovic Court�s
+;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -377,39 +377,6 @@
               (bytevector-ieee-double-ref b 8 (endianness big))))))
 
 
-(define (with-locale locale thunk)
-  ;; Run THUNK under LOCALE.
-  (let ((original-locale (setlocale LC_ALL)))
-    (catch 'system-error
-      (lambda ()
-        (setlocale LC_ALL locale))
-      (lambda (key . args)
-        (throw 'unresolved)))
-
-    (dynamic-wind
-        (lambda ()
-          #t)
-        thunk
-        (lambda ()
-          (setlocale LC_ALL original-locale)))))
-
-(define (with-latin1-locale thunk)
-  ;; Try out several ISO-8859-1 locales and run THUNK under the one that
-  ;; works (if any).
-  (define %locales
-    (map (lambda (name)
-           (string-append name ".ISO-8859-1"))
-         '("fr_FR" "es_ES" "en_GB" "en_US" "de_DE" "pt_PT")))
-
-  (let loop ((locales %locales))
-    (if (null? locales)
-        (throw 'unresolved)
-        (catch 'unresolved
-          (lambda ()
-            (with-locale (car locales) thunk))
-          (lambda (key . args)
-            (loop (cdr locales)))))))
-
 
 ;; Default to the C locale for the following tests.
 (setlocale LC_ALL "C")
@@ -427,13 +394,11 @@
                    (map integer->char (bytevector->u8-list utf8))))))
 
   (pass-if "string->utf8 [latin-1]"
-    (with-latin1-locale
-      (lambda ()
-        (let* ((str  "h�, �a va bien ?")
-               (utf8 (string->utf8 str)))
-          (and (bytevector? utf8)
-               (= (bytevector-length utf8)
-                  (+ 2 (string-length str))))))))
+    (let* ((str  "hé, ça va bien ?")
+           (utf8 (string->utf8 str)))
+      (and (bytevector? utf8)
+           (= (bytevector-length utf8)
+              (+ 2 (string-length str))))))
 
   (pass-if "string->utf16"
     (let* ((str   "hello, world")
@@ -469,6 +434,13 @@
                         (bytevector->uint-list utf32
                                                (endianness big) 4))))))
 
+  (pass-if "string->utf32 [Greek]"
+    (let* ((str   "Ἄνεμοι")
+           (utf32 (string->utf32 str)))
+      (and (bytevector? utf32)
+           (equal? (bytevector->uint-list utf32 (endianness big) 4)
+                   '(#x1f0c #x3bd #x3b5 #x3bc #x3bf #x3b9)))))
+
   (pass-if "string->utf32 [little]"
     (let* ((str   "hello, world")
            (utf32 (string->utf32 str (endianness little))))
@@ -491,13 +463,11 @@
                    (map integer->char (bytevector->u8-list utf8))))))
 
   (pass-if "utf8->string [latin-1]"
-    (with-latin1-locale
-      (lambda ()
-        (let* ((utf8  (string->utf8 "h�, �a va bien ?"))
-               (str   (utf8->string utf8)))
-          (and (string? str)
-               (= (string-length str)
-                  (- (bytevector-length utf8) 2)))))))
+    (let* ((utf8  (string->utf8 "hé, ça va bien ?"))
+           (str   (utf8->string utf8)))
+      (and (string? str)
+           (= (string-length str)
+              (- (bytevector-length utf8) 2)))))
 
   (pass-if "utf16->string"
     (let* ((utf16  (uint-list->bytevector (map char->integer
@@ -696,9 +666,3 @@
   (pass-if "bitvector > 8"
     (let ((bv (uniform-array->bytevector (make-bitvector 9 #t))))
       (= (bytevector-length bv) 2))))
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; mode: scheme
-;;; End:

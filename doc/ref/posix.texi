@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -687,13 +687,21 @@ case @code{stat:rdev} returns @code{#f}.
 The size of a regular file in bytes.
 @end deffn
 @deffn {Scheme Procedure} stat:atime st
-The last access time for the file.
+The last access time for the file, in seconds.
 @end deffn
 @deffn {Scheme Procedure} stat:mtime st
-The last modification time for the file.
+The last modification time for the file, in seconds.
 @end deffn
 @deffn {Scheme Procedure} stat:ctime st
-The last modification time for the attributes of the file.
+The last modification time for the attributes of the file, in seconds.
+@end deffn
+@deffn {Scheme Procedure} stat:atimensec st
+@deffnx {Scheme Procedure} stat:mtimensec st
+@deffnx {Scheme Procedure} stat:ctimensec st
+The fractional part of a file's access, modification, or attribute modification
+time, in nanoseconds. Nanosecond timestamps are only available on some operating
+systems and filesystems. If Guile cannot retrieve nanosecond-level timestamps
+for a file, these fields will be set to 0.
 @end deffn
 @deffn {Scheme Procedure} stat:blksize st
 The optimal block size for reading or writing the file, in bytes.  On
@@ -763,14 +771,18 @@ the new permissions as a decimal number, e.g., @code{(chmod "foo" #o755)}.
 The return value is unspecified.
 @end deffn
 
-@deffn {Scheme Procedure} utime pathname [actime [modtime]]
-@deffnx {C Function} scm_utime (pathname, actime, modtime)
-@cindex file times
+@deffn {Scheme Procedure} utime pathname [actime [modtime [actimens [modtimens [flags]]]]]
+@deffnx {C Function} scm_utime (pathname, actime, modtime, actimens, modtimens, flags)
 @code{utime} sets the access and modification times for the
 file named by @var{path}.  If @var{actime} or @var{modtime} is
 not supplied, then the current time is used.  @var{actime} and
 @var{modtime} must be integer time values as returned by the
 @code{current-time} procedure.
+
+The optional @var{actimens} and @var{modtimens} are nanoseconds
+to add @var{actime} and @var{modtime}. Nanosecond precision is
+only supported on some combinations of filesystems and operating
+systems.
 @lisp
 (utime "foo" (- (current-time) 3600))
 @end lisp
@@ -1596,6 +1608,12 @@ from its controlling terminal if it has one.
 The return value is an integer representing the new process group ID.
 @end deffn
 
+@deffn {Scheme Procedure} getsid pid
+@deffnx {C Function} scm_getsid (pid)
+Returns the session ID of process @var{pid}.  (The session
+ID of a process is the process group ID of its session leader.)
+@end deffn
+
 @deffn {Scheme Procedure} waitpid pid [options]
 @deffnx {C Function} scm_waitpid (pid, options)
 This procedure collects status information from a child process which
@@ -2318,6 +2336,164 @@ This section describes procedures which query various network databases.
 Care should be taken when using the database routines since they are not
 reentrant.
 
+@subsubheading @code{getaddrinfo}
+
+@cindex @code{addrinfo} object type
+@cindex host name lookup
+@cindex service name lookup
+
+The @code{getaddrinfo} procedure maps host and service names to socket addresses
+and associated information in a protocol-independent way.
+
+@deffn {Scheme Procedure} getaddrinfo name service [hint_flags [hint_family [hint_socktype [hint_protocol]]]]
+@deffnx {C Function} scm_getaddrinfo (name, service, hint_flags, hint_family, hint_socktype, hint_protocol)
+Return a list of @code{addrinfo} structures containing
+a socket address and associated information for host @var{name}
+and/or @var{service} to be used in creating a socket with
+which to address the specified service.
+
+@example
+(let* ((ai (car (getaddrinfo "www.gnu.org" "http")))
+       (s  (socket (addrinfo:fam ai) (addrinfo:socktype ai)
+                   (addrinfo:protocol ai))))
+  (connect s (addrinfo:addr ai))
+  s)
+@end example
+
+When @var{service} is omitted or is @code{#f}, return
+network-level addresses for @var{name}.  When @var{name}
+is @code{#f} @var{service} must be provided and service
+locations local to the caller are returned.
+
+Additional hints can be provided.  When specified,
+@var{hint_flags} should be a bitwise-or of zero or more
+constants among the following:
+
+@table @code
+@item AI_PASSIVE
+Socket address is intended for @code{bind}.
+
+@item AI_CANONNAME
+Request for canonical host name, available via
+@code{addrinfo:canonname}.  This makes sense mainly when
+DNS lookups are involved.
+
+@item AI_NUMERICHOST
+Specifies that @var{name} is a numeric host address string
+(e.g., @code{"127.0.0.1"}), meaning that name resolution
+will not be used.
+
+@item AI_NUMERICSERV
+Likewise, specifies that @var{service} is a numeric port
+string (e.g., @code{"80"}).
+
+@item AI_ADDRCONFIG
+Return only addresses configured on the local system  It is
+highly recommended to provide this flag when the returned
+socket addresses are to be used to make connections;
+otherwise, some of the returned addresses could be unreachable
+or use a protocol that is not supported.
+
+@item AI_V4MAPPED
+When looking up IPv6 addresses, return mapped IPv4 addresses if
+there is no IPv6 address available at all.
+
+@item AI_ALL
+If this flag is set along with @code{AI_V4MAPPED} when looking up IPv6
+addresses, return all IPv6 addresses as well as all IPv4 addresses, the latter
+mapped to IPv6 format.
+@end table
+
+When given, @var{hint_family} should specify the requested
+address family, e.g., @code{AF_INET6}.  Similarly,
+@var{hint_socktype} should specify the requested socket type
+(e.g., @code{SOCK_DGRAM}), and @var{hint_protocol} should
+specify the requested protocol (its value is interpretered
+as in calls to @code{socket}).
+
+On error, an exception with key @code{getaddrinfo-error} is
+thrown, with an error code (an integer) as its argument:
+
+@example
+(catch 'getaddrinfo-error
+  (lambda ()
+    (getaddrinfo "www.gnu.org" "gopher"))
+  (lambda (key errcode)
+    (cond ((= errcode EAI_SERVICE)
+	   (display "doesn't know about Gopher!\n"))
+	  ((= errcode EAI_NONAME)
+	   (display "www.gnu.org not found\\n"))
+	  (else
+	   (format #t "something wrong: ~a\n"
+		   (gai-strerror errcode))))))
+@end example
+
+Error codes are:
+
+@table @code
+@item EAI_AGAIN
+The name or service could not be resolved at this time. Future
+attempts may succeed.
+
+@item EAI_BADFLAGS
+@var{hint_flags} contains an invalid value.
+
+@item EAI_FAIL
+A non-recoverable error occurred when attempting to
+resolve the name.
+
+@item EAI_FAMILY
+@var{hint_family} was not recognized.
+
+@item EAI_NONAME
+Either @var{name} does not resolve for the supplied parameters,
+or neither @var{name} nor @var{service} were supplied.
+
+@item EAI_SERVICE
+@var{service} was not recognized for the specified socket type.
+
+@item EAI_SOCKTYPE
+@var{hint_socktype} was not recognized.
+
+@item EAI_SYSTEM
+A system error occurred; the error code can be found in
+@code{errno}.
+@end table
+
+Users are encouraged to read the
+@url{http://www.opengroup.org/onlinepubs/9699919799/functions/getaddrinfo.html,
+"POSIX specification} for more details.
+@end deffn
+
+The following procedures take an @code{addrinfo} object as returned by
+@code{getaddrinfo}:
+
+@deffn {Scheme Procedure} addrinfo:flags ai
+Return flags for @var{ai} as a bitwise or of @code{AI_} values (see above).
+@end deffn
+
+@deffn {Scheme Procedure} addrinfo:fam ai
+Return the address family of @var{ai} (a @code{AF_} value).
+@end deffn
+
+@deffn {Scheme Procedure} addrinfo:socktype ai
+Return the socket type for @var{ai} (a @code{SOCK_} value).
+@end deffn
+
+@deffn {Scheme Procedure} addrinfo:protocol ai
+Return the protocol of @var{ai}.
+@end deffn
+
+@deffn {Scheme Procedure} addrinfo:addr ai
+Return the socket address associated with @var{ai} as a @code{sockaddr}
+object (@pxref{Network Socket Address}).
+@end deffn
+
+@deffn {Scheme Procedure} addrinfo:canonname ai
+Return a string for the canonical name associated with @var{ai} if
+the @code{AI_CANONNAME} flag was supplied.
+@end deffn
+
 @subsubheading The Host Database
 @cindex @file{/etc/hosts}
 @cindex network database
@@ -2348,7 +2524,9 @@ The list of network addresses associated with @var{host}.  For
 Conversion}).
 @end deffn
 
-The following procedures are used to search the host database:
+The following procedures can be used to search the host database.  However,
+@code{getaddrinfo} should be preferred over them since it's more generic and
+thread-safe.
 
 @deffn {Scheme Procedure} gethost [host]
 @deffnx {Scheme Procedure} gethostbyname hostname

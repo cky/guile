@@ -3,7 +3,7 @@
 #ifndef SCM_DEBUG_H
 #define SCM_DEBUG_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008,2009
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -42,7 +42,6 @@ typedef union scm_t_debug_info
 
 
 SCM_API SCM scm_reverse_lookup (SCM env, SCM data);
-SCM_API SCM scm_sys_start_stack (SCM info_id, SCM thunk);
 SCM_API SCM scm_procedure_source (SCM proc);
 SCM_API SCM scm_procedure_name (SCM proc);
 SCM_API SCM scm_with_traps (SCM thunk);

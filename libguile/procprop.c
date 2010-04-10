@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -40,6 +40,7 @@
 
 SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
+SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
 
 static SCM props;
 static scm_i_pthread_mutex_t props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
@@ -47,40 +48,27 @@ static scm_i_pthread_mutex_t props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 int
 scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
 {
-  if (SCM_IMP (proc))
-    return 0;
- loop:
-  switch (SCM_TYP7 (proc))
+  while (!SCM_PROGRAM_P (proc))
     {
-    case scm_tc7_program:
-      return scm_i_program_arity (proc, req, opt, rest);
-    case scm_tc7_smob:
-      if (SCM_SMOB_APPLICABLE_P (proc))
-	{
-	  int type = SCM_SMOB_DESCRIPTOR (proc).gsubr_type;
-	  *req = SCM_GSUBR_REQ (type);
-	  *opt = SCM_GSUBR_OPT (type);
-	  *rest = SCM_GSUBR_REST (type);
-          return 1;
-	}
-      else
+      if (SCM_IMP (proc))
         return 0;
-    case scm_tc7_gsubr:
-      {
-	unsigned int type = SCM_GSUBR_TYPE (proc);
-	*req = SCM_GSUBR_REQ (type);
-	*opt = SCM_GSUBR_OPT (type);
-	*rest = SCM_GSUBR_REST (type);
-        return 1;
-      }
-    case scm_tcs_struct:
-      if (!SCM_STRUCT_APPLICABLE_P (proc))
-        return 0;
-      proc = SCM_STRUCT_PROCEDURE (proc);
-      goto loop;
-    default:
-      return 0;
+      switch (SCM_TYP7 (proc))
+        {
+        case scm_tc7_smob:
+          if (!SCM_SMOB_APPLICABLE_P (proc))
+            return 0;
+          proc = scm_i_smob_apply_trampoline (proc);
+          break;
+        case scm_tcs_struct:
+          if (!SCM_STRUCT_APPLICABLE_P (proc))
+            return 0;
+          proc = SCM_STRUCT_PROCEDURE (proc);
+          break;
+        default:
+          return 0;
+        }
     }
+  return scm_i_program_arity (proc, req, opt, rest);
 }
 
 /* FIXME: instead of the weak hash, perhaps for some kinds of procedures, use

@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -45,6 +45,12 @@
             <letrec> letrec? make-letrec letrec-src letrec-names letrec-vars letrec-vals letrec-body
             <fix> fix? make-fix fix-src fix-names fix-vars fix-vals fix-body
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
+            <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
+            <dynlet> dynlet? make-dynlet dynlet-src dynlet-fluids dynlet-vals dynlet-body
+            <dynref> dynref? make-dynref dynref-src dynref-fluid 
+            <dynset> dynset? make-dynset dynset-src dynset-fluid dynset-exp
+            <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler
+            <abort> abort? make-abort abort-src abort-tag abort-args abort-tail
 
             parse-tree-il
             unparse-tree-il
@@ -74,7 +80,13 @@
   (<let> names vars vals body)
   (<letrec> names vars vals body)
   (<fix> names vars vals body)
-  (<let-values> exp body))
+  (<let-values> exp body)
+  (<dynwind> winder body unwinder)
+  (<dynlet> fluids vals body)
+  (<dynref> fluid)
+  (<dynset> fluid exp)
+  (<prompt> tag body handler)
+  (<abort> tag args tail))
   
 
 
@@ -165,6 +177,24 @@
      ((let-values ,exp ,body)
       (make-let-values loc (retrans exp) (retrans body)))
 
+     ((dynwind ,winder ,body ,unwinder)
+      (make-dynwind loc (retrans winder) (retrans body) (retrans unwinder)))
+     
+     ((dynlet ,fluids ,vals ,body)
+      (make-dynlet loc (map retrans fluids) (map retrans vals) (retrans body)))
+     
+     ((dynref ,fluid)
+      (make-dynref loc (retrans fluid)))
+     
+     ((dynset ,fluid ,exp)
+      (make-dynset loc (retrans fluid) (retrans exp)))
+     
+     ((prompt ,tag ,body ,handler)
+      (make-prompt loc (retrans tag) (retrans body) (retrans handler)))
+     
+     ((abort ,tag ,args ,tail)
+      (make-abort loc (retrans tag) (map retrans args) (retrans tail)))
+
      (else
       (error "unrecognized tree-il" exp)))))
 
@@ -227,7 +257,28 @@
      `(fix ,names ,vars ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
 
     ((<let-values> exp body)
-     `(let-values ,(unparse-tree-il exp) ,(unparse-tree-il body)))))
+     `(let-values ,(unparse-tree-il exp) ,(unparse-tree-il body)))
+
+    ((<dynwind> body winder unwinder)
+     `(dynwind ,(unparse-tree-il body)
+               ,(unparse-tree-il winder) ,(unparse-tree-il unwinder)))
+    
+    ((<dynlet> fluids vals body)
+     `(dynlet ,(map unparse-tree-il fluids) ,(map unparse-tree-il vals)
+              ,(unparse-tree-il body)))
+    
+    ((<dynref> fluid)
+     `(dynref ,(unparse-tree-il fluid)))
+    
+    ((<dynset> fluid exp)
+     `(dynref ,(unparse-tree-il fluid) ,(unparse-tree-il exp)))
+    
+    ((<prompt> tag body handler)
+     `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)))
+    
+    ((<abort> tag args tail)
+     `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)
+             ,(unparse-tree-il tail)))))
 
 (define (tree-il->scheme e)
   (record-case e
@@ -299,7 +350,34 @@
 
     ((<let-values> exp body)
      `(call-with-values (lambda () ,(tree-il->scheme exp))
-        ,(tree-il->scheme (make-lambda #f '() body))))))
+        ,(tree-il->scheme (make-lambda #f '() body))))
+
+    ((<dynwind> body winder unwinder)
+     `(dynamic-wind ,(tree-il->scheme winder)
+                    (lambda () ,(tree-il->scheme body))
+                    ,(tree-il->scheme unwinder)))
+    
+    ((<dynlet> fluids vals body)
+     `(with-fluids ,(map list
+                         (map tree-il->scheme fluids)
+                         (map tree-il->scheme vals))
+        ,(tree-il->scheme body)))
+    
+    ((<dynref> fluid)
+     `(fluid-ref ,(tree-il->scheme fluid)))
+    
+    ((<dynset> fluid exp)
+     `(fluid-set! ,(tree-il->scheme fluid) ,(tree-il->scheme exp)))
+    
+    ((<prompt> tag body handler)
+     `((@ (ice-9 control) prompt) 
+       ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
+       ,(tree-il->scheme handler)))
+    
+
+    ((<abort> tag args tail)
+     `(apply abort ,(tree-il->scheme tag) ,@(map tree-il->scheme args)
+             ,(tree-il->scheme tail)))))
 
 
 (define (tree-il-fold leaf down up seed tree)
@@ -352,6 +430,24 @@ This is an implementation of `foldts' as described by Andy Wingo in
                                 (down tree result)))))
           ((<let-values> exp body)
            (up tree (loop body (loop exp (down tree result)))))
+          ((<dynwind> body winder unwinder)
+           (up tree (loop unwinder
+                          (loop winder
+                                (loop body (down tree result))))))
+          ((<dynlet> fluids vals body)
+           (up tree (loop body
+                          (loop vals
+                                (loop fluids (down tree result))))))
+          ((<dynref> fluid)
+           (up tree (loop fluid (down tree result))))
+          ((<dynset> fluid exp)
+           (up tree (loop exp (loop fluid (down tree result)))))
+          ((<prompt> tag body handler)
+           (up tree
+               (loop tag (loop body (loop handler
+                                          (down tree result))))))
+          ((<abort> tag args tail)
+           (up tree (loop tail (loop args (loop tag (down tree result))))))
           (else
            (leaf tree result))))))
 
@@ -407,6 +503,27 @@ This is an implementation of `foldts' as described by Andy Wingo in
                  ((<let-values> exp body)
                   (let*-values (((seed ...) (foldts exp seed ...)))
                     (foldts body seed ...)))
+                 ((<dynwind> body winder unwinder)
+                  (let*-values (((seed ...) (foldts body seed ...))
+                                ((seed ...) (foldts winder seed ...)))
+                    (foldts unwinder seed ...)))
+                 ((<dynlet> fluids vals body)
+                  (let*-values (((seed ...) (fold-values foldts fluids seed ...))
+                                ((seed ...) (fold-values foldts vals seed ...)))
+                    (foldts body seed ...)))
+                 ((<dynref> fluid)
+                  (foldts fluid seed ...))
+                 ((<dynset> fluid exp)
+                  (let*-values (((seed ...) (foldts fluid seed ...)))
+                    (foldts exp seed ...)))
+                 ((<prompt> tag body handler)
+                  (let*-values (((seed ...) (foldts tag seed ...))
+                                ((seed ...) (foldts body seed ...)))
+                    (foldts handler seed ...)))
+                 ((<abort> tag args tail)
+                  (let*-values (((seed ...) (foldts tag seed ...))
+                                ((seed ...) (fold-values foldts args seed ...)))
+                    (foldts tail seed ...)))
                  (else
                   (values seed ...)))))
            (up tree seed ...)))))))
@@ -462,6 +579,33 @@ This is an implementation of `foldts' as described by Andy Wingo in
       ((<let-values> exp body)
        (set! (let-values-exp x) (lp exp))
        (set! (let-values-body x) (lp body)))
+      
+      ((<dynwind> body winder unwinder)
+       (set! (dynwind-body x) (lp body))
+       (set! (dynwind-winder x) (lp winder))
+       (set! (dynwind-unwinder x) (lp unwinder)))
+      
+      ((<dynlet> fluids vals body)
+       (set! (dynlet-fluids x) (map lp fluids))
+       (set! (dynlet-vals x) (map lp vals))
+       (set! (dynlet-body x) (lp body)))
+      
+      ((<dynref> fluid)
+       (set! (dynref-fluid x) (lp fluid)))
+      
+      ((<dynset> fluid exp)
+       (set! (dynset-fluid x) (lp fluid))
+       (set! (dynset-exp x) (lp exp)))
+      
+      ((<prompt> tag body handler)
+       (set! (prompt-tag x) (lp tag))
+       (set! (prompt-body x) (lp body))
+       (set! (prompt-handler x) (lp handler)))
+      
+      ((<abort> tag args tail)
+       (set! (abort-tag x) (lp tag))
+       (set! (abort-args x) (map lp args))
+       (set! (abort-tail x) (lp tail)))
       
       (else #f))
     
@@ -519,5 +663,32 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (let-values-exp x) (lp exp))
          (set! (let-values-body x) (lp body)))
 
+        ((<dynwind> body winder unwinder)
+         (set! (dynwind-body x) (lp body))
+         (set! (dynwind-winder x) (lp winder))
+         (set! (dynwind-unwinder x) (lp unwinder)))
+        
+        ((<dynlet> fluids vals body)
+         (set! (dynlet-fluids x) (map lp fluids))
+         (set! (dynlet-vals x) (map lp vals))
+         (set! (dynlet-body x) (lp body)))
+      
+        ((<dynref> fluid)
+         (set! (dynref-fluid x) (lp fluid)))
+        
+        ((<dynset> fluid exp)
+         (set! (dynset-fluid x) (lp fluid))
+         (set! (dynset-exp x) (lp exp)))
+        
+        ((<prompt> tag body handler)
+         (set! (prompt-tag x) (lp tag))
+         (set! (prompt-body x) (lp body))
+         (set! (prompt-handler x) (lp handler)))
+        
+        ((<abort> tag args tail)
+         (set! (abort-tag x) (lp tag))
+         (set! (abort-args x) (map lp args))
+         (set! (abort-tail x) (lp tail)))
+        
         (else #f))
       x)))

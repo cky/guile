@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,6 +28,11 @@
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
+#include "libguile/arrays.h"
+#include "libguile/array-map.h"
+#include "libguile/generalized-arrays.h"
+#include "libguile/bytevectors.h"
+#include "libguile/bitvectors.h"
 #include "libguile/deprecated.h"
 #include "libguile/discouraged.h"
 #include "libguile/deprecation.h"
@@ -36,7 +41,6 @@
 #include "libguile/strings.h"
 #include "libguile/srfi-13.h"
 #include "libguile/modules.h"
-#include "libguile/generalized-arrays.h"
 #include "libguile/eval.h"
 #include "libguile/smob.h"
 #include "libguile/procprop.h"
@@ -48,12 +52,14 @@
 #include "libguile/ports.h"
 #include "libguile/eq.h"
 #include "libguile/read.h"
+#include "libguile/r6rs-ports.h"
 #include "libguile/strports.h"
 #include "libguile/smob.h"
 #include "libguile/alist.h"
 #include "libguile/keywords.h"
 #include "libguile/socket.h"
 #include "libguile/feature.h"
+#include "libguile/uniform.h"
 
 #include <math.h>
 #include <stdio.h>
@@ -507,38 +513,6 @@ SCM_DEFINE (scm_read_and_eval_x, "read-and-eval!", 0, 1, 0,
   return scm_eval_x (form, scm_current_module ());
 }
 #undef FUNC_NAME
-
-SCM
-scm_make_subr_opt (const char *name, int type, SCM (*fcn) (), int set)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr_opt' is deprecated.  Use `scm_c_make_subr' or "
-     "`scm_c_define_subr' instead.");
-
-  if (set)
-    return scm_c_define_subr (name, type, fcn);
-  else
-    return scm_c_make_subr (name, type, fcn);
-}
-
-SCM 
-scm_make_subr (const char *name, int type, SCM (*fcn) ())
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr' is deprecated.  Use `scm_c_define_subr' instead.");
-
-  return scm_c_define_subr (name, type, fcn);
-}
-
-SCM
-scm_make_subr_with_generic (const char *name, int type, SCM (*fcn) (), SCM *gf)
-{
-  scm_c_issue_deprecation_warning 
-    ("`scm_make_subr_with_generic' is deprecated.  Use "
-     "`scm_c_define_subr_with_generic' instead.");
-  
-  return scm_c_define_subr_with_generic (name, type, fcn, gf);
-}
 
 /* Call thunk(closure) underneath a top-level error handler.
  * If an error occurs, pass the exitval through err_filter and return it.
@@ -1359,65 +1333,245 @@ scm_vector_equal_p (SCM x, SCM y)
   return scm_equal_p (x, y);
 }
 
-int
-scm_i_arrayp (SCM a)
+SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
+           (SCM uvec, SCM port_or_fd, SCM start, SCM end),
+	    "Fill the elements of @var{uvec} by reading\n"
+	    "raw bytes from @var{port-or-fdes}, using host byte order.\n\n"
+	    "The optional arguments @var{start} (inclusive) and @var{end}\n"
+	    "(exclusive) allow a specified region to be read,\n"
+	    "leaving the remainder of the vector unchanged.\n\n"
+	    "When @var{port-or-fdes} is a port, all specified elements\n"
+	    "of @var{uvec} are attempted to be read, potentially blocking\n"
+	    "while waiting formore input or end-of-file.\n"
+	    "When @var{port-or-fd} is an integer, a single call to\n"
+	    "read(2) is made.\n\n"
+	    "An error is signalled when the last element has only\n"
+	    "been partially filled before reaching end-of-file or in\n"
+	    "the single call to read(2).\n\n"
+	    "@code{uniform-vector-read!} returns the number of elements\n"
+	    "read.\n\n"
+	    "@var{port-or-fdes} may be omitted, in which case it defaults\n"
+	    "to the value returned by @code{(current-input-port)}.")
+#define FUNC_NAME s_scm_uniform_vector_read_x
 {
+  SCM result;
+  size_t c_width, c_start, c_end;
+
+  SCM_VALIDATE_BYTEVECTOR (SCM_ARG1, uvec);
+
   scm_c_issue_deprecation_warning
-    ("SCM_ARRAYP is deprecated.  Use scm_is_array instead.");
-  return SCM_I_ARRAYP(a);
+    ("`uniform-vector-read!' is deprecated. Use `get-bytevector-n!' from\n"
+     "`(rnrs io ports)' instead.");
+
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_current_input_port ();
+
+  c_width = scm_to_size_t (scm_uniform_vector_element_size (uvec));
+
+  c_start = SCM_UNBNDP (start) ? 0 : scm_to_size_t (start);
+  c_start *= c_width;
+
+  c_end = SCM_UNBNDP (end) ? SCM_BYTEVECTOR_LENGTH (uvec) : scm_to_size_t (end);
+  c_end *= c_width;
+
+  result = scm_get_bytevector_n_x (port_or_fd, uvec,
+				   scm_from_size_t (c_start),
+				   scm_from_size_t (c_end - c_start));
+
+  if (SCM_EOF_OBJECT_P (result))
+    result = SCM_INUM0;
+
+  return result;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_uniform_vector_write, "uniform-vector-write", 1, 3, 0,
+           (SCM uvec, SCM port_or_fd, SCM start, SCM end),
+	    "Write the elements of @var{uvec} as raw bytes to\n"
+	    "@var{port-or-fdes}, in the host byte order.\n\n"
+	    "The optional arguments @var{start} (inclusive)\n"
+	    "and @var{end} (exclusive) allow\n"
+	    "a specified region to be written.\n\n"
+	    "When @var{port-or-fdes} is a port, all specified elements\n"
+	    "of @var{uvec} are attempted to be written, potentially blocking\n"
+	    "while waiting for more room.\n"
+	    "When @var{port-or-fd} is an integer, a single call to\n"
+	    "write(2) is made.\n\n"
+	    "An error is signalled when the last element has only\n"
+	    "been partially written in the single call to write(2).\n\n"
+	    "The number of objects actually written is returned.\n"
+	    "@var{port-or-fdes} may be\n"
+	    "omitted, in which case it defaults to the value returned by\n"
+	    "@code{(current-output-port)}.")
+#define FUNC_NAME s_scm_uniform_vector_write
+{
+  size_t c_width, c_start, c_end;
+
+  SCM_VALIDATE_BYTEVECTOR (SCM_ARG1, uvec);
+
+  scm_c_issue_deprecation_warning
+    ("`uniform-vector-write' is deprecated. Use `put-bytevector' from\n"
+     "`(rnrs io ports)' instead.");
+
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_current_output_port ();
+
+  port_or_fd = SCM_COERCE_OUTPORT (port_or_fd);
+
+  c_width = scm_to_size_t (scm_uniform_vector_element_size (uvec));
+
+  c_start = SCM_UNBNDP (start) ? 0 : scm_to_size_t (start);
+  c_start *= c_width;
+
+  c_end = SCM_UNBNDP (end) ? SCM_BYTEVECTOR_LENGTH (uvec) : scm_to_size_t (end);
+  c_end *= c_width;
+
+  return scm_put_bytevector (port_or_fd, uvec,
+                             scm_from_size_t (c_start),
+                             scm_from_size_t (c_end - c_start));
+}
+#undef FUNC_NAME
+
+static SCM 
+scm_ra2contig (SCM ra, int copy)
+{
+  SCM ret;
+  long inc = 1;
+  size_t k, len = 1;
+  for (k = SCM_I_ARRAY_NDIM (ra); k--;)
+    len *= SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd + 1;
+  k = SCM_I_ARRAY_NDIM (ra);
+  if (SCM_I_ARRAY_CONTP (ra) && ((0 == k) || (1 == SCM_I_ARRAY_DIMS (ra)[k - 1].inc)))
+    {
+      if (!scm_is_bitvector (SCM_I_ARRAY_V (ra)))
+	return ra;
+      if ((len == scm_c_bitvector_length (SCM_I_ARRAY_V (ra)) &&
+	   0 == SCM_I_ARRAY_BASE (ra) % SCM_LONG_BIT &&
+	   0 == len % SCM_LONG_BIT))
+	return ra;
+    }
+  ret = scm_i_make_array (k);
+  SCM_I_ARRAY_BASE (ret) = 0;
+  while (k--)
+    {
+      SCM_I_ARRAY_DIMS (ret)[k].lbnd = SCM_I_ARRAY_DIMS (ra)[k].lbnd;
+      SCM_I_ARRAY_DIMS (ret)[k].ubnd = SCM_I_ARRAY_DIMS (ra)[k].ubnd;
+      SCM_I_ARRAY_DIMS (ret)[k].inc = inc;
+      inc *= SCM_I_ARRAY_DIMS (ra)[k].ubnd - SCM_I_ARRAY_DIMS (ra)[k].lbnd + 1;
+    }
+  SCM_I_ARRAY_V (ret) =
+    scm_make_generalized_vector (scm_array_type (ra), scm_from_size_t (inc),
+                                 SCM_UNDEFINED);
+  if (copy)
+    scm_array_copy_x (ra, ret);
+  return ret;
 }
 
-size_t
-scm_i_array_ndim (SCM a)
+SCM_DEFINE (scm_uniform_array_read_x, "uniform-array-read!", 1, 3, 0,
+           (SCM ura, SCM port_or_fd, SCM start, SCM end),
+	    "@deffnx {Scheme Procedure} uniform-vector-read! uve [port-or-fdes] [start] [end]\n"
+	    "Attempt to read all elements of @var{ura}, in lexicographic order, as\n"
+	    "binary objects from @var{port-or-fdes}.\n"
+	    "If an end of file is encountered,\n"
+	    "the objects up to that point are put into @var{ura}\n"
+	    "(starting at the beginning) and the remainder of the array is\n"
+	    "unchanged.\n\n"
+	    "The optional arguments @var{start} and @var{end} allow\n"
+	    "a specified region of a vector (or linearized array) to be read,\n"
+	    "leaving the remainder of the vector unchanged.\n\n"
+	    "@code{uniform-array-read!} returns the number of objects read.\n"
+	    "@var{port-or-fdes} may be omitted, in which case it defaults to the value\n"
+	    "returned by @code{(current-input-port)}.")
+#define FUNC_NAME s_scm_uniform_array_read_x
 {
-  scm_c_issue_deprecation_warning
-    ("SCM_ARRAY_NDIM is deprecated.  "
-     "Use scm_c_array_rank or scm_array_handle_rank instead.");
-  return scm_c_array_rank (a);
-}
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_current_input_port ();
 
-int
-scm_i_array_contp (SCM a)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_ARRAY_CONTP is deprecated.  Do not use it.");
-  return SCM_I_ARRAY_CONTP (a);
-}
+  if (scm_is_uniform_vector (ura))
+    {
+      return scm_uniform_vector_read_x (ura, port_or_fd, start, end);
+    }
+  else if (SCM_I_ARRAYP (ura))
+    {
+      size_t base, vlen, cstart, cend;
+      SCM cra, ans;
+      
+      cra = scm_ra2contig (ura, 0);
+      base = SCM_I_ARRAY_BASE (cra);
+      vlen = SCM_I_ARRAY_DIMS (cra)->inc *
+	(SCM_I_ARRAY_DIMS (cra)->ubnd - SCM_I_ARRAY_DIMS (cra)->lbnd + 1);
 
-scm_t_array *
-scm_i_array_mem (SCM a)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_ARRAY_MEM is deprecated.  Do not use it.");
-  return (scm_t_array *)SCM_I_ARRAY_MEM (a);
-}
+      cstart = 0;
+      cend = vlen;
+      if (!SCM_UNBNDP (start))
+	{
+	  cstart = scm_to_unsigned_integer (start, 0, vlen);
+	  if (!SCM_UNBNDP (end))
+	    cend = scm_to_unsigned_integer (end, cstart, vlen);
+	}
 
-SCM
-scm_i_array_v (SCM a)
-{
-  /* We could use scm_shared_array_root here, but it is better to move
-     them away from expecting vectors as the basic storage for arrays.
-  */
-  scm_c_issue_deprecation_warning
-    ("SCM_ARRAY_V is deprecated.  Do not use it.");
-  return SCM_I_ARRAY_V (a);
-}
+      ans = scm_uniform_vector_read_x (SCM_I_ARRAY_V (cra), port_or_fd,
+				       scm_from_size_t (base + cstart),
+				       scm_from_size_t (base + cend));
 
-size_t
-scm_i_array_base (SCM a)
-{
-  scm_c_issue_deprecation_warning
-    ("SCM_ARRAY_BASE is deprecated.  Do not use it.");
-  return SCM_I_ARRAY_BASE (a);
+      if (!scm_is_eq (cra, ura))
+	scm_array_copy_x (cra, ura);
+      return ans;
+    }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, ura, "array");
 }
+#undef FUNC_NAME
 
-scm_t_array_dim *
-scm_i_array_dims (SCM a)
+SCM_DEFINE (scm_uniform_array_write, "uniform-array-write", 1, 3, 0,
+           (SCM ura, SCM port_or_fd, SCM start, SCM end),
+	    "Writes all elements of @var{ura} as binary objects to\n"
+	    "@var{port-or-fdes}.\n\n"
+	    "The optional arguments @var{start}\n"
+	    "and @var{end} allow\n"
+	    "a specified region of a vector (or linearized array) to be written.\n\n"
+	    "The number of objects actually written is returned.\n"
+	    "@var{port-or-fdes} may be\n"
+	    "omitted, in which case it defaults to the value returned by\n"
+	    "@code{(current-output-port)}.")
+#define FUNC_NAME s_scm_uniform_array_write
 {
-  scm_c_issue_deprecation_warning
-    ("SCM_ARRAY_DIMS is deprecated.  Use scm_array_handle_dims instead.");
-  return SCM_I_ARRAY_DIMS (a);
+  if (SCM_UNBNDP (port_or_fd))
+    port_or_fd = scm_current_output_port ();
+
+  if (scm_is_uniform_vector (ura))
+    {
+      return scm_uniform_vector_write (ura, port_or_fd, start, end);
+    }
+  else if (SCM_I_ARRAYP (ura))
+    {
+      size_t base, vlen, cstart, cend;
+      SCM cra, ans;
+      
+      cra = scm_ra2contig (ura, 1);
+      base = SCM_I_ARRAY_BASE (cra);
+      vlen = SCM_I_ARRAY_DIMS (cra)->inc *
+	(SCM_I_ARRAY_DIMS (cra)->ubnd - SCM_I_ARRAY_DIMS (cra)->lbnd + 1);
+
+      cstart = 0;
+      cend = vlen;
+      if (!SCM_UNBNDP (start))
+	{
+	  cstart = scm_to_unsigned_integer (start, 0, vlen);
+	  if (!SCM_UNBNDP (end))
+	    cend = scm_to_unsigned_integer (end, cstart, vlen);
+	}
+
+      ans = scm_uniform_vector_write (SCM_I_ARRAY_V (cra), port_or_fd,
+				      scm_from_size_t (base + cstart),
+				      scm_from_size_t (base + cend));
+
+      return ans;
+    }
+  else
+    scm_wrong_type_arg_msg (NULL, 0, ura, "array");
 }
+#undef FUNC_NAME
 
 SCM
 scm_i_cur_inp (void)
@@ -1654,7 +1808,114 @@ scm_trampoline_2 (SCM proc)
   return scm_call_2;
 }
 
+int
+scm_i_subr_p (SCM x)
+{
+  scm_c_issue_deprecation_warning ("`scm_subr_p' is deprecated. Use SCM_PRIMITIVE_P instead.");
+  return SCM_PRIMITIVE_P (x);
+}
+
 
+
+SCM
+scm_internal_lazy_catch (SCM tag, scm_t_catch_body body, void *body_data, scm_t_catch_handler handler, void *handler_data)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_internal_lazy_catch' is no longer supported. Instead this call will\n"
+     "dispatch to `scm_c_with_throw_handler'. Your handler will be invoked from\n"
+     "within the dynamic context of the corresponding `throw'.\n"
+     "\nTHIS COULD CHANGE YOUR PROGRAM'S BEHAVIOR.\n\n"
+     "Please modify your program to use `scm_c_with_throw_handler' directly,\n"
+     "and adapt it (if necessary) to expect to be within the dynamic context\n"
+     "of the throw.");
+  return scm_c_with_throw_handler (tag, body, body_data, handler, handler_data, 0);
+}
+
+SCM_DEFINE (scm_lazy_catch, "lazy-catch", 3, 0, 0,
+	    (SCM key, SCM thunk, SCM handler),
+	    "This behaves exactly like @code{catch}, except that it does\n"
+	    "not unwind the stack before invoking @var{handler}.\n"
+	    "If the @var{handler} procedure returns normally, Guile\n"
+	    "rethrows the same exception again to the next innermost catch,\n"
+	    "lazy-catch or throw handler.  If the @var{handler} exits\n"
+	    "non-locally, that exit determines the continuation.")
+#define FUNC_NAME s_scm_lazy_catch
+{
+  struct scm_body_thunk_data c;
+
+  SCM_ASSERT (scm_is_symbol (key) || scm_is_eq (key, SCM_BOOL_T),
+	      key, SCM_ARG1, FUNC_NAME);
+
+  c.tag = key;
+  c.body_proc = thunk;
+
+  scm_c_issue_deprecation_warning
+    ("`lazy-catch' is no longer supported. Instead this call will dispatch\n"
+     "to `with-throw-handler'. Your handler will be invoked from within the\n"
+     "dynamic context of the corresponding `throw'.\n"
+     "\nTHIS COULD CHANGE YOUR PROGRAM'S BEHAVIOR.\n\n"
+     "Please modify your program to use `with-throw-handler' directly, and\n"
+     "adapt it (if necessary) to expect to be within the dynamic context of\n"
+     "the throw.");
+
+  return scm_c_with_throw_handler (key,
+                                   scm_body_thunk, &c, 
+                                   scm_handle_by_proc, &handler, 0);
+}
+#undef FUNC_NAME
+
+
+
+
+
+SCM
+scm_raequal (SCM ra0, SCM ra1)
+{
+  return scm_array_equal_p (ra0, ra1);
+}
+
+
+
+
+
+SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0, 
+            (SCM func, SCM dobj, SCM args),
+	    "Call the C function indicated by @var{func} and @var{dobj},\n"
+	    "just like @code{dynamic-call}, but pass it some arguments and\n"
+	    "return its return value.  The C function is expected to take\n"
+	    "two arguments and return an @code{int}, just like @code{main}:\n"
+	    "@smallexample\n"
+	    "int c_func (int argc, char **argv);\n"
+	    "@end smallexample\n\n"
+	    "The parameter @var{args} must be a list of strings and is\n"
+	    "converted into an array of @code{char *}.  The array is passed\n"
+	    "in @var{argv} and its size in @var{argc}.  The return value is\n"
+	    "converted to a Scheme number and returned from the call to\n"
+	    "@code{dynamic-args-call}.")
+#define FUNC_NAME s_scm_dynamic_args_call
+{
+  int (*fptr) (int argc, char **argv);
+  int result, argc;
+  char **argv;
+
+  if (scm_is_string (func))
+    func = scm_dynamic_func (func, dobj);
+  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, VOID);
+
+  fptr = SCM_FOREIGN_POINTER (func, void);
+
+  argv = scm_i_allocate_string_pointers (args);
+  for (argc = 0; argv[argc]; argc++)
+    ;
+  result = (*fptr) (argc, argv);
+
+  return scm_from_int (result);
+}
+#undef FUNC_NAME
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

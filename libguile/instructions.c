@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include "_scm.h"
-#include "vm-bootstrap.h"
 #include "instructions.h"
 
 struct scm_instruction {
@@ -197,7 +196,8 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 void
 scm_bootstrap_instructions (void)
 {
-  scm_c_register_extension ("libguile", "scm_init_instructions",
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_instructions",
                             (scm_t_extension_init_func)scm_init_instructions,
                             NULL);
 }
@@ -205,8 +205,6 @@ scm_bootstrap_instructions (void)
 void
 scm_init_instructions (void)
 {
-  scm_bootstrap_vm ();
-
 #ifndef SCM_MAGIC_SNARFER
 #include "libguile/instructions.x"
 #endif

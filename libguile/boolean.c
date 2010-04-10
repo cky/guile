@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,7 +26,6 @@
 
 #include "libguile/validate.h"
 #include "libguile/boolean.h"
-#include "libguile/lang.h"
 #include "libguile/tags.h"
 
 #include "verify.h"
@@ -49,35 +48,34 @@ verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
 		(SCM_ELISP_NIL, SCM_EOL));
 verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
 		(SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T,		\
-		 SCM_XXX_ANOTHER_BOOLEAN_DONT_USE));
+		 SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0));
 verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
 		(SCM_ELISP_NIL, SCM_BOOL_F, SCM_EOL,		\
 		 SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE));
 
 SCM_DEFINE (scm_not, "not", 1, 0, 0, 
             (SCM x),
-            "Return @code{#t} iff @var{x} is @code{#f}, else return @code{#f}.")
+            "Return @code{#t} iff @var{x} is false, else return @code{#f}.")
 #define FUNC_NAME s_scm_not
 {
-  return scm_from_bool (scm_is_false_or_nil (x));
+  return scm_from_bool (scm_is_false (x));
 }
 #undef FUNC_NAME
 
 
 SCM_DEFINE (scm_boolean_p, "boolean?", 1, 0, 0, 
            (SCM obj),
-            "Return @code{#t} iff @var{obj} is either @code{#t} or @code{#f}.")
+            "Return @code{#t} iff @var{obj} is @code{#t} or false.")
 #define FUNC_NAME s_scm_boolean_p
 {
-  return scm_from_bool (scm_is_bool_or_nil (obj));
+  return scm_from_bool (scm_is_bool (obj));
 }
 #undef FUNC_NAME
 
 int
 scm_to_bool (SCM x)
 {
-  /* XXX Should this first test use scm_is_false_or_nil instead? */
-  if (scm_is_eq (x, SCM_BOOL_F))
+  if (scm_is_false (x))
     return 0;
   else if (scm_is_eq (x, SCM_BOOL_T))
     return 1;
@@ -85,6 +83,18 @@ scm_to_bool (SCM x)
     scm_wrong_type_arg (NULL, 0, x);
 }
 
+/* We keep this primitive as a function in addition to the same-named macro
+   because some applications (e.g., GNU LilyPond 2.13.9) expect it to be a
+   function.  */
+#undef scm_is_bool
+int
+scm_is_bool (SCM obj)
+{
+  /* This must match the macro definition of `scm_is_bool ()'.  */
+  return scm_is_bool_or_nil (obj);
+}
+
+
 void
 scm_init_boolean ()
 {

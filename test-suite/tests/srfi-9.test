@@ -1,7 +1,7 @@
 ;;;; srfi-9.test --- Test suite for Guile's SRFI-9 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-10
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2007 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2007, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 
 (define-module (test-suite test-numbers)
   #:use-module (test-suite lib)
+  #:use-module ((system base compile) #:select (compile))
   #:use-module (srfi srfi-9))
 
 
@@ -35,10 +36,21 @@
 
 (with-test-prefix "constructor"
 
+  ;; Constructors are defined using `define-integrable', meaning that direct
+  ;; calls as in `(make-foo)' lead to a compile-time psyntax error, hence the
+  ;; distinction below.
+
+  (pass-if-exception "foo 0 args (inline)" exception:syntax-pattern-unmatched
+     (compile '(make-foo) #:env (current-module)))
+  (pass-if-exception "foo 2 args (inline)" exception:syntax-pattern-unmatched
+     (compile '(make-foo 1 2) #:env (current-module)))
+
   (pass-if-exception "foo 0 args" exception:wrong-num-args
-     (make-foo))
+     (let ((make-foo make-foo))
+       (make-foo)))
   (pass-if-exception "foo 2 args" exception:wrong-num-args
-     (make-foo 1 2)))
+     (let ((make-foo make-foo))
+       (make-foo 1 2))))
 
 (with-test-prefix "predicate"
 

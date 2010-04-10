@@ -1,6 +1,6 @@
 ;;; Guile Low Intermediate Language
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -75,6 +75,8 @@
    <glil-mv-call> make-glil-mv-call glil-mv-call?
    glil-mv-call-nargs glil-mv-call-ra
 
+   <glil-prompt> make-glil-prompt glil-prompt? glil-prompt-label glil-prompt-escape-only?
+
    parse-glil unparse-glil))
 
 (define (print-glil x port)
@@ -101,7 +103,8 @@
   (<glil-label> label)
   (<glil-branch> inst label)
   (<glil-call> inst nargs)
-  (<glil-mv-call> nargs ra))
+  (<glil-mv-call> nargs ra)
+  (<glil-prompt> label escape-only?))
 
 
 
@@ -129,6 +132,8 @@
     ((branch ,inst ,label) (make-glil-branch inst label))
     ((call ,inst ,nargs) (make-glil-call inst nargs))
     ((mv-call ,nargs ,ra) (make-glil-mv-call nargs ra))
+    ((prompt ,label ,escape-only?)
+     (make-glil-prompt label escape-only?))
     (else (error "invalid glil" x))))
 
 (define (unparse-glil glil)
@@ -160,4 +165,6 @@
     ((<glil-label> label) `(label ,label))
     ((<glil-branch> inst label) `(branch ,inst ,label))
     ((<glil-call> inst nargs) `(call ,inst ,nargs))
-    ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,ra))))
+    ((<glil-mv-call> nargs ra) `(mv-call ,nargs ,ra))
+    ((<glil-prompt> label escape-only?)
+     `(prompt ,label escape-only?))))

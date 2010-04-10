@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##   Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -32,7 +32,8 @@ AM_CPPFLAGS = -I.. -I$(srcdir)/..				\
 AM_CFLAGS = $(GCC_CFLAGS)
 AM_LDFLAGS = $(GNU_LD_FLAGS)
 
-srfiincludedir = $(pkgincludedir)/srfi
+# FIXME: should be libguile/srfi
+srfiincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/srfi
 
 # These headers are visible as <guile/srfi/mumble.h>
 srfiinclude_HEADERS = srfi-1.h srfi-4.h srfi-13.h srfi-14.h srfi-60.h
@@ -47,22 +48,22 @@ BUILT_SOURCES = srfi-1.x srfi-4.x srfi-13.x srfi-14.x srfi-60.x
 
 libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_SOURCES = srfi-1.x srfi-1.c
 libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_LIBADD =		\
-   $(top_builddir)/libguile/libguile.la $(top_builddir)/lib/libgnu.la
+   $(top_builddir)/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la $(top_builddir)/lib/libgnu.la
 libguile_srfi_srfi_1_v_@LIBGUILE_SRFI_SRFI_1_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_1_INTERFACE@
 
 libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_SOURCES = srfi-4.x srfi-4.c
 libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_LIBADD =		\
-   $(top_builddir)/libguile/libguile.la $(top_builddir)/lib/libgnu.la
+   $(top_builddir)/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la $(top_builddir)/lib/libgnu.la
 libguile_srfi_srfi_4_v_@LIBGUILE_SRFI_SRFI_4_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_4_INTERFACE@
 
 libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_SOURCES = srfi-13.x srfi-13.c srfi-14.x srfi-14.c
 libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LIBADD =	\
-   $(top_builddir)/libguile/libguile.la $(top_builddir)/lib/libgnu.la
+   $(top_builddir)/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la $(top_builddir)/lib/libgnu.la
 libguile_srfi_srfi_13_14_v_@LIBGUILE_SRFI_SRFI_13_14_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_13_14_INTERFACE@
 
 libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_SOURCES = srfi-60.x srfi-60.c
 libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_LIBADD =	\
-   $(top_builddir)/libguile/libguile.la $(top_builddir)/lib/libgnu.la
+   $(top_builddir)/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la $(top_builddir)/lib/libgnu.la
 libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_LDFLAGS = -no-undefined -export-dynamic -version-info @LIBGUILE_SRFI_SRFI_60_INTERFACE@
 
 EXTRA_DIST = ChangeLog-2008

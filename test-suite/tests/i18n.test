@@ -202,6 +202,14 @@
     (and (eq? #\Z (char-locale-upcase #\z))
          (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL "C")))))
 
+  (pass-if "char-locale-titlecase"
+    (and (eq? #\T (char-locale-titlecase #\t))
+	 (eq? #\T (char-locale-titlecase #\t (make-locale LC_ALL "C")))))
+
+  (pass-if "char-locale-titlecase Dž"
+    (and (eq? #\762 (char-locale-titlecase #\763))
+	 (eq? #\762 (char-locale-titlecase #\763 (make-locale LC_ALL "C")))))
+
   (pass-if "char-locale-upcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
@@ -228,6 +236,11 @@
   (pass-if "string-locale-upcase"
     (and (string=? "Z" (string-locale-upcase "z"))
          (string=? "Z" (string-locale-upcase "z" (make-locale LC_ALL "C")))))
+
+  (pass-if "string-locale-titlecase"
+    (and (string=? "Hello, World" (string-locale-titlecase "hello, world"))
+	 (string=? "Hello, World" (string-locale-titlecase 
+				   "hello, world" (make-locale LC_ALL "C")))))
 
   (pass-if "string-locale-upcase Turkish"
     (under-turkish-utf8-locale-or-unresolved

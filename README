@@ -34,6 +34,7 @@ Guile depends on the following external libraries.
 - libltdl
 - libunistring
 - libgc
+- libffi
 It will also use the libreadline library if it is available.  For each
 of these there is a corresponding --with-XXX-prefix option that you
 can use when invoking ./configure, if you have these libraries
@@ -50,16 +51,19 @@ names (where that is supported), makes it impossible to later move the
 built executables and libraries to an installation location other than
 the one that was specified at build time.
 
-Another possible approach is to set CPPFLAGS and LDFLAGS before
-running configure, so that they include -I options for all the
+Another possible approach is to set CPPFLAGS and LDFLAGS on the
+configure command-line, so that they include -I options for all the
 non-standard places where you have installed header files and -L
 options for all the non-standard places where you have installed
 libraries.  This will allow configure and make to find those headers
-and libraries during the build.  The locations found will not be
-hardcoded into the build executables and libraries, so with this
-approach you will probably also need to set LD_LIBRARY_PATH
-correspondingly, to allow Guile to find the necessary libraries again
-at runtime.
+and libraries during the build.  E.g.:
+
+  ../configure [...] CPPFLAGS='-I/my/include' LDFLAGS='-L/my/lib'
+
+The locations found will not be hardcoded into the build executables and
+libraries, so with this approach you will probably also need to set
+LD_LIBRARY_PATH correspondingly, to allow Guile to find the necessary
+libraries again at runtime.
 
 
 Required External Packages ================================================
@@ -87,6 +91,26 @@ Guile requires the following external packages:
     libgc (aka. the Boehm-Demers-Weiser garbage collector) is the
     conservative garbage collector used by Guile.  It is available
     from http://www.hpl.hp.com/personal/Hans_Boehm/gc/ .
+
+  - libffi
+
+    libffi provides a "foreign function interface", used by the
+    `(system foreign)' module.  It is available from
+    http://sourceware.org/libffi/ .
+
+  - pkg-config
+
+    Guile's ./configure script uses pkg-config to discover the correct
+    compile and link options for libgc.  If you don't have pkg-config
+    installed, or you have a version of libgc that doesn't provide a
+    .pc file, you can work around this by setting some variables as
+    part of the configure command-line:
+
+    - PKG_CONFIG=true
+
+    - BDW_GC_CFLAGS=<compile flags for picking up libgc headers>
+
+    - BDW_GC_LIBS=<linker flags for picking up the libgc library>
 
 
 Special Instructions For Some Systems =====================================

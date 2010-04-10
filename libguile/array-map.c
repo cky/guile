@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -812,123 +812,63 @@ SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 
 
 static int
-raeql_1 (SCM ra0, SCM as_equal, SCM ra1)
+array_compare (scm_t_array_handle *hx, scm_t_array_handle *hy,
+               size_t dim, unsigned long posx, unsigned long posy)
 {
-  unsigned long i0 = 0, i1 = 0;
-  long inc0 = 1, inc1 = 1;
-  unsigned long n;
-  ra1 = SCM_CAR (ra1);
-  if (SCM_I_ARRAYP(ra0))
-    {
-      n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-      i0 = SCM_I_ARRAY_BASE (ra0);
-      inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
-      ra0 = SCM_I_ARRAY_V (ra0);
-    }
+  if (dim == scm_array_handle_rank (hx))
+    return scm_is_true (scm_equal_p (scm_array_handle_ref (hx, posx),
+                                     scm_array_handle_ref (hy, posy)));
   else
-    n = scm_c_generalized_vector_length (ra0);
-
-  if (SCM_I_ARRAYP (ra1))
     {
-      i1 = SCM_I_ARRAY_BASE (ra1);
-      inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-      ra1 = SCM_I_ARRAY_V (ra1);
-    }
+      long incx, incy;
+      size_t i;
 
-  if (scm_is_generalized_vector (ra0))
-    {
-      for (; n--; i0 += inc0, i1 += inc1)
-	{
-	  if (scm_is_false (as_equal))
-	    {
-	      if (scm_is_false (scm_array_equal_p (GVREF (ra0, i0), GVREF (ra1, i1))))
-		return 0;
-	    }
-	  else if (scm_is_false (scm_equal_p (GVREF (ra0, i0), GVREF (ra1, i1))))
-	    return 0;
-	}
+      if (hx->dims[dim].lbnd != hy->dims[dim].lbnd
+          || hx->dims[dim].ubnd != hy->dims[dim].ubnd)
+        return 0;
+
+      i = hx->dims[dim].ubnd - hx->dims[dim].lbnd + 1;
+      
+      incx = hx->dims[dim].inc;
+      incy = hy->dims[dim].inc;
+      posx += (i - 1) * incx;
+      posy += (i - 1) * incy;
+
+      for (; i > 0; i--, posx -= incx, posy -= incy)
+        if (!array_compare (hx, hy, dim + 1, posx, posy))
+          return 0;
       return 1;
     }
-  else
-    return 0;
 }
-
-
-
-static int
-raeql (SCM ra0, SCM as_equal, SCM ra1)
-{
-  SCM v0 = ra0, v1 = ra1;
-  scm_t_array_dim dim0, dim1;
-  scm_t_array_dim *s0 = &dim0, *s1 = &dim1;
-  unsigned long bas0 = 0, bas1 = 0;
-  int k, unroll = 1, vlen = 1, ndim = 1;
-  if (SCM_I_ARRAYP (ra0))
-    {
-      ndim = SCM_I_ARRAY_NDIM (ra0);
-      s0 = SCM_I_ARRAY_DIMS (ra0);
-      bas0 = SCM_I_ARRAY_BASE (ra0);
-      v0 = SCM_I_ARRAY_V (ra0);
-    }
-  else
-    {
-      s0->inc = 1;
-      s0->lbnd = 0;
-      s0->ubnd = scm_c_generalized_vector_length (v0) - 1;
-      unroll = 0;
-    }
-  if (SCM_I_ARRAYP (ra1))
-    {
-      if (ndim != SCM_I_ARRAY_NDIM (ra1))
-	return 0;
-      s1 = SCM_I_ARRAY_DIMS (ra1);
-      bas1 = SCM_I_ARRAY_BASE (ra1);
-      v1 = SCM_I_ARRAY_V (ra1);
-    }
-  else
-    {
-      /*
-	Huh ? Schizophrenic return type. --hwn
-      */
-      if (1 != ndim)
-	return 0;
-      s1->inc = 1;
-      s1->lbnd = 0;
-      s1->ubnd = scm_c_generalized_vector_length (v1) - 1;
-      unroll = 0;
-    }
-  if (SCM_TYP7 (v0) != SCM_TYP7 (v1))
-    return 0;
-  for (k = ndim; k--;)
-    {
-      if (s0[k].lbnd != s1[k].lbnd || s0[k].ubnd != s1[k].ubnd)
-	return 0;
-      if (unroll)
-	{
-	  unroll = (s0[k].inc == s1[k].inc);
-	  vlen *= s0[k].ubnd - s1[k].lbnd + 1;
-	}
-    }
-  if (unroll && bas0 == bas1 && scm_is_eq (v0, v1))
-    return 1;
-  return scm_ramapc (raeql_1, as_equal, ra0, scm_cons (ra1, SCM_EOL), "");
-}
-
 
 SCM
-scm_raequal (SCM ra0, SCM ra1)
+scm_array_equal_p (SCM x, SCM y)
 {
-  return scm_from_bool(raeql (ra0, SCM_BOOL_T, ra1));
+  scm_t_array_handle hx, hy;
+  SCM res;  
+  
+  scm_array_get_handle (x, &hx);
+  scm_array_get_handle (y, &hy);
+  
+  res = scm_from_bool (hx.ndims == hy.ndims
+                       && hx.element_type == hy.element_type);
+
+  if (scm_is_true (res))
+    res = scm_from_bool (array_compare (&hx, &hy, 0, 0, 0));
+
+  scm_array_handle_release (&hy);
+  scm_array_handle_release (&hx);
+
+  return res;
 }
 
+static SCM scm_i_array_equal_p (SCM, SCM, SCM);
 SCM_DEFINE (scm_i_array_equal_p, "array-equal?", 0, 2, 1,
             (SCM ra0, SCM ra1, SCM rest),
 	    "Return @code{#t} iff all arguments are arrays with the same\n"
 	    "shape, the same type, and have corresponding elements which are\n"
 	    "either @code{equal?}  or @code{array-equal?}.  This function\n"
-	    "differs from @code{equal?} in that a one dimensional shared\n"
-	    "array may be @var{array-equal?} but not @var{equal?} to a\n"
-	    "vector or uniform vector.")
+	    "differs from @code{equal?} in that all arguments must be arrays.")
 #define FUNC_NAME s_scm_i_array_equal_p
 {
   if (SCM_UNBNDP (ra0) || SCM_UNBNDP (ra1))
@@ -946,19 +886,10 @@ SCM_DEFINE (scm_i_array_equal_p, "array-equal?", 0, 2, 1,
 #undef FUNC_NAME
 
 
-SCM
-scm_array_equal_p (SCM ra0, SCM ra1)
-{
-  if (SCM_I_ARRAYP (ra0) || SCM_I_ARRAYP (ra1))
-    return scm_from_bool(raeql (ra0, SCM_BOOL_F, ra1));
-  return scm_equal_p (ra0, ra1);
-}
-
-
 void
 scm_init_array_map (void)
 {
-  scm_smobs[SCM_TC2SMOBNUM (scm_i_tc16_array)].equalp = scm_raequal;
+  scm_smobs[SCM_TC2SMOBNUM (scm_i_tc16_array)].equalp = scm_array_equal_p;
 #include "libguile/array-map.x"
   scm_add_feature (s_scm_array_for_each);
 }

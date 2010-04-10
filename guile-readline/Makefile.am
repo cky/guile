@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of guile-readline.
 ##
@@ -45,7 +45,7 @@ lib_LTLIBRARIES = libguilereadline-v-@LIBGUILEREADLINE_MAJOR@.la
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES = readline.c
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LIBADD =	\
   $(READLINE_LIBS)					\
-  ../libguile/libguile.la ../lib/libgnu.la
+  ../libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la ../lib/libgnu.la
 
 libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS =	\
   -version-info @LIBGUILEREADLINE_INTERFACE@ -export-dynamic	\
@@ -54,7 +54,8 @@ libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_LDFLAGS =	\
 
 BUILT_SOURCES = readline.x
 
-pkginclude_HEADERS = readline.h
+modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)
+modinclude_HEADERS = readline.h
 
 snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x

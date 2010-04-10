@@ -1,17 +1,17 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -21,6 +21,8 @@
 (define-module (language tree-il analyze)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-11)
+  #:use-module (ice-9 vlist)
   #:use-module (system base syntax)
   #:use-module (system base message)
   #:use-module (system vm program)
@@ -29,6 +31,7 @@
   #:export (analyze-lexicals
             analyze-tree
             unused-variable-analysis
+            unused-toplevel-analysis
             unbound-variable-analysis
             arity-analysis))
 
@@ -79,9 +82,9 @@
 ;; this specific case. A proper solution would be some sort of liveness
 ;; analysis, and not our linear allocation algorithm.
 ;;
-;; Closure variables are captured when a closure is created, and stored
-;; in a vector. Each closure variable has a unique index into that
-;; vector.
+;; Closure variables are captured when a closure is created, and stored in a
+;; vector inline to the closure object itself. Each closure variable has a
+;; unique index into that vector.
 ;;
 ;; There is one more complication. Procedures bound by <fix> may, in
 ;; some cases, be rendered inline to their parent procedure. That is to
@@ -122,11 +125,18 @@
 ;; generated code can skip argument checks at runtime if they match at
 ;; compile-time.
 ;;
+;; Also, while we're a-traversing and an-allocating, we check prompt
+;; handlers to see if the "continuation" argument is used. If not, we
+;; mark the prompt as being "escape-only". This allows us to implement
+;; `catch' and `throw' using `prompt' and `control', but without causing
+;; a continuation to be reified. Heh heh.
+;;
 ;; That is:
 ;;
 ;;  sym -> {lambda -> address}
 ;;  lambda -> (labels . free-locs)
 ;;  lambda-case -> (gensym . nlocs)
+;;  prompt -> escape-only?
 ;;
 ;; address ::= (local? boxed? . index)
 ;; labels ::= ((sym . lambda) ...)
@@ -326,6 +336,24 @@
       ((<let-values> exp body)
        (lset-union eq? (step exp) (step body)))
       
+      ((<dynwind> body winder unwinder)
+       (lset-union eq? (step body) (step winder) (step unwinder)))
+      
+      ((<dynlet> fluids vals body)
+       (apply lset-union eq? (step body) (map step (append fluids vals))))
+      
+      ((<dynref> fluid)
+       (step fluid))
+      
+      ((<dynset> fluid exp)
+       (lset-union eq? (step fluid) (step exp)))
+      
+      ((<prompt> tag body handler)
+       (lset-union eq? (step tag) (step body) (step handler)))
+      
+      ((<abort> tag args tail)
+       (apply lset-union eq? (step tag) (step tail) (map step args)))
+      
       (else '())))
   
   ;; allocation: sym -> {lambda -> address}
@@ -388,7 +416,7 @@
                             (allocate! body proc n)
                             ;; inits not logically at the end, but they
                             ;; are the list...
-                            (map (lambda (x) (allocate! x body n)) inits))))
+                            (map (lambda (x) (allocate! x proc n)) inits))))
                 ;; label and nlocs for the case
                 (hashq-set! allocation x (cons (gensym ":LCASE") nlocs))
                 nlocs)
@@ -477,6 +505,29 @@
       ((<let-values> exp body)
        (max (recur exp) (recur body)))
       
+      ((<dynwind> body winder unwinder)
+       (max (recur body) (recur winder) (recur unwinder)))
+      
+      ((<dynlet> fluids vals body)
+       (apply max (recur body) (map recur (append fluids vals))))
+      
+      ((<dynref> fluid)
+       (recur fluid))
+      
+      ((<dynset> fluid exp)
+       (max (recur fluid) (recur exp)))
+      
+      ((<prompt> tag body handler)
+       (let ((cont-var (and (lambda-case? handler)
+                            (pair? (lambda-case-vars handler))
+                            (car (lambda-case-vars handler)))))
+         (hashq-set! allocation x
+                     (and cont-var (zero? (hashq-ref refcounts cont-var 0))))
+         (max (recur tag) (recur body) (recur handler))))
+      
+      ((<abort> tag args tail)
+       (apply max (recur tag) (recur tail) (map recur args)))
+      
       (else n)))
 
   (analyze! x #f '() #t #f)
@@ -492,33 +543,47 @@
 (define-record-type <tree-analysis>
   (make-tree-analysis leaf down up post init)
   tree-analysis?
-  (leaf tree-analysis-leaf)  ;; (lambda (x result env) ...)
-  (down tree-analysis-down)  ;; (lambda (x result env) ...)
-  (up   tree-analysis-up)    ;; (lambda (x result env) ...)
+  (leaf tree-analysis-leaf)  ;; (lambda (x result env locs) ...)
+  (down tree-analysis-down)  ;; (lambda (x result env locs) ...)
+  (up   tree-analysis-up)    ;; (lambda (x result env locs) ...)
   (post tree-analysis-post)  ;; (lambda (result env) ...)
   (init tree-analysis-init)) ;; arbitrary value
 
 (define (analyze-tree analyses tree env)
   "Run all tree analyses listed in ANALYSES on TREE for ENV, using
-`tree-il-fold'.  Return TREE."
-  (define (traverse proc)
+`tree-il-fold'.  Return TREE.  The leaf/down/up procedures of each analysis are
+passed a ``location stack', which is the stack of `tree-il-src' values for each
+parent tree (a list); it can be used to approximate source location when
+accurate information is missing from a given `tree-il' element."
+
+  (define (traverse proc update-locs)
+    ;; Return a tree traversing procedure that returns a list of analysis
+    ;; results prepended by the location stack.
     (lambda (x results)
-      (map (lambda (analysis result)
-             ((proc analysis) x result env))
-           analyses
-           results)))
+      (let ((locs (update-locs x (car results))))
+        (cons locs ;; the location stack
+              (map (lambda (analysis result)
+                     ((proc analysis) x result env locs))
+                   analyses
+                   (cdr results))))))
+
+  ;; Keeping/extending/shrinking the location stack.
+  (define (keep-locs x locs)   locs)
+  (define (extend-locs x locs) (cons (tree-il-src x) locs))
+  (define (shrink-locs x locs) (cdr locs))
 
   (let ((results
-         (tree-il-fold (traverse tree-analysis-leaf)
-                       (traverse tree-analysis-down)
-                       (traverse tree-analysis-up)
-                       (map tree-analysis-init analyses)
+         (tree-il-fold (traverse tree-analysis-leaf keep-locs)
+                       (traverse tree-analysis-down extend-locs)
+                       (traverse tree-analysis-up   shrink-locs)
+                       (cons '() ;; empty location stack
+                             (map tree-analysis-init analyses))
                        tree)))
 
     (for-each (lambda (analysis result)
                 ((tree-analysis-post analysis) result env))
               analyses
-              results))
+              (cdr results)))
 
   tree)
 
@@ -528,90 +593,77 @@
 ;;;
 
 ;; <binding-info> records are used during tree traversals in
-;; `report-unused-variables'.  They contain a list of the local vars
-;; currently in scope, a list of locals vars that have been referenced, and a
-;; "location stack" (the stack of `tree-il-src' values for each parent tree).
+;; `unused-variable-analysis'.  They contain a list of the local vars
+;; currently in scope, and a list of locals vars that have been referenced.
 (define-record-type <binding-info>
-  (make-binding-info vars refs locs)
+  (make-binding-info vars refs)
   binding-info?
   (vars binding-info-vars)  ;; ((GENSYM NAME LOCATION) ...)
-  (refs binding-info-refs)  ;; (GENSYM ...)
-  (locs binding-info-locs)) ;; (LOCATION ...)
+  (refs binding-info-refs)) ;; (GENSYM ...)
 
 (define unused-variable-analysis
   ;; Report unused variables in the given tree.
   (make-tree-analysis
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; X is a leaf: extend INFO's refs accordingly.
      (let ((refs (binding-info-refs info))
-           (vars (binding-info-vars info))
-           (locs (binding-info-locs info)))
+           (vars (binding-info-vars info)))
        (record-case x
          ((<lexical-ref> gensym)
-          (make-binding-info vars (cons gensym refs) locs))
+          (make-binding-info vars (vhash-consq gensym #t refs)))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Going down into X: extend INFO's variable list
      ;; accordingly.
      (let ((refs (binding-info-refs info))
            (vars (binding-info-vars info))
-           (locs (binding-info-locs info))
            (src  (tree-il-src x)))
        (define (extend inner-vars inner-names)
-         (append (map (lambda (var name)
-                        (list var name src))
-                      inner-vars
-                      inner-names)
-                 vars))
+         (fold (lambda (var name vars)
+                 (vhash-consq var (list name src) vars))
+               vars
+               inner-vars
+               inner-names))
+
        (record-case x
          ((<lexical-set> gensym)
-          (make-binding-info vars (cons gensym refs)
-                             (cons src locs)))
+          (make-binding-info vars (vhash-consq gensym #t refs)))
          ((<lambda-case> req opt inits rest kw vars)
           (let ((names `(,@req
                          ,@(or opt '())
                          ,@(if rest (list rest) '())
                          ,@(if kw (map cadr (cdr kw)) '()))))
-            (make-binding-info (extend vars names) refs
-                               (cons src locs))))
+            (make-binding-info (extend vars names) refs)))
          ((<let> vars names)
-          (make-binding-info (extend vars names) refs
-                             (cons src locs)))
+          (make-binding-info (extend vars names) refs))
          ((<letrec> vars names)
-          (make-binding-info (extend vars names) refs
-                             (cons src locs)))
+          (make-binding-info (extend vars names) refs))
          ((<fix> vars names)
-          (make-binding-info (extend vars names) refs
-                             (cons src locs)))
+          (make-binding-info (extend vars names) refs))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Leaving X's scope: shrink INFO's variable list
      ;; accordingly and reported unused nested variables.
      (let ((refs (binding-info-refs info))
-           (vars (binding-info-vars info))
-           (locs (binding-info-locs info)))
+           (vars (binding-info-vars info)))
        (define (shrink inner-vars refs)
-         (for-each (lambda (var)
-                     (let ((gensym (car var)))
-                       ;; Don't report lambda parameters as
-                       ;; unused.
-                       (if (and (not (memq gensym refs))
-                                (not (and (lambda-case? x)
-                                          (memq gensym
-                                                inner-vars))))
-                           (let ((name (cadr var))
-                                 ;; We can get approximate
-                                 ;; source location by going up
-                                 ;; the LOCS location stack.
-                                 (loc  (or (caddr var)
-                                           (find pair? locs))))
-                             (warning 'unused-variable loc name)))))
-                   (filter (lambda (var)
-                             (memq (car var) inner-vars))
-                           vars))
-         (fold alist-delete vars inner-vars))
+         (vlist-for-each
+          (lambda (var)
+            (let ((gensym (car var)))
+              ;; Don't report lambda parameters as unused.
+              (if (and (memq gensym inner-vars)
+                       (not (vhash-assq gensym refs))
+                       (not (lambda-case? x)))
+                  (let ((name (cadr var))
+                        ;; We can get approximate source location by going up
+                        ;; the LOCS location stack.
+                        (loc  (or (caddr var)
+                                  (find pair? locs))))
+                    (warning 'unused-variable loc name)))))
+          vars)
+         (vlist-drop vars (length inner-vars)))
 
        ;; For simplicity, we leave REFS untouched, i.e., with
        ;; names of variables that are now going out of scope.
@@ -619,21 +671,173 @@
        ;; makes REFS unnecessarily fat.
        (record-case x
          ((<lambda-case> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          ((<let> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          ((<letrec> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          ((<fix> vars)
-          (make-binding-info (shrink vars refs) refs
-                             (cdr locs)))
+          (make-binding-info (shrink vars refs) refs))
          (else info))))
 
    (lambda (result env) #t)
-   (make-binding-info '() '() '())))
+   (make-binding-info vlist-null vlist-null)))
+
+
+;;;
+;;; Unused top-level variable analysis.
+;;;
+
+;; <reference-graph> record top-level definitions that are made, references to
+;; top-level definitions and their context (the top-level definition in which
+;; the reference appears), as well as the current context (the top-level
+;; definition we're currently in).  The second part (`refs' below) is
+;; effectively a graph from which we can determine unused top-level definitions.
+(define-record-type <reference-graph>
+  (make-reference-graph refs defs toplevel-context)
+  reference-graph?
+  (defs             reference-graph-defs) ;; ((NAME . LOC) ...)
+  (refs             reference-graph-refs) ;; ((REF-CONTEXT REF ...) ...)
+  (toplevel-context reference-graph-toplevel-context)) ;; NAME | #f
+
+(define (graph-reachable-nodes root refs reachable)
+  ;; Add to REACHABLE the nodes reachable from ROOT in graph REFS.  REFS is a
+  ;; vhash mapping nodes to the list of their children: for instance,
+  ;; ((A -> (B C)) (B -> (A)) (C -> ())) corresponds to
+  ;;
+  ;;  ,-------.
+  ;;  v       |
+  ;;  A ----> B
+  ;;  |
+  ;;  v
+  ;;  C
+  ;;
+  ;; REACHABLE is a vhash of nodes known to be otherwise reachable.
+
+  (let loop ((root   root)
+             (path   vlist-null)
+             (result reachable))
+    (if (or (vhash-assq root path)
+            (vhash-assq root result))
+        result
+        (let* ((children (or (and=> (vhash-assq root refs) cdr) '()))
+               (path     (vhash-consq root #t path))
+               (result   (fold (lambda (kid result)
+                                 (loop kid path result))
+                               result
+                               children)))
+          (fold (lambda (kid result)
+                  (vhash-consq kid #t result))
+                result
+                children)))))
+
+(define (graph-reachable-nodes* roots refs)
+  ;; Return the list of nodes in REFS reachable from the nodes listed in ROOTS.
+  (vlist-fold (lambda (root+true result)
+                (let* ((root      (car root+true))
+                       (reachable (graph-reachable-nodes root refs result)))
+                  (vhash-consq root #t reachable)))
+              vlist-null
+              roots))
+
+(define (partition* pred vhash)
+  ;; Partition VHASH according to PRED.  Return the two resulting vhashes.
+  (let ((result
+         (vlist-fold (lambda (k+v result)
+                       (let ((k  (car k+v))
+                             (v  (cdr k+v))
+                             (r1 (car result))
+                             (r2 (cdr result)))
+                         (if (pred k)
+                             (cons (vhash-consq k v r1) r2)
+                             (cons r1 (vhash-consq k v r2)))))
+                     (cons vlist-null vlist-null)
+                     vhash)))
+    (values (car result) (cdr result))))
+
+(define unused-toplevel-analysis
+  ;; Report unused top-level definitions that are not exported.
+  (let ((add-ref-from-context
+         (lambda (graph name)
+           ;; Add an edge CTX -> NAME in GRAPH.
+           (let* ((refs     (reference-graph-refs graph))
+                  (defs     (reference-graph-defs graph))
+                  (ctx      (reference-graph-toplevel-context graph))
+                  (ctx-refs (or (and=> (vhash-assq ctx refs) cdr) '())))
+             (make-reference-graph (vhash-consq ctx (cons name ctx-refs) refs)
+                                   defs ctx)))))
+    (define (macro-variable? name env)
+      (and (module? env)
+           (let ((var (module-variable env name)))
+             (and var (variable-bound? var)
+                  (macro? (variable-ref var))))))
+
+    (make-tree-analysis
+     (lambda (x graph env locs)
+       ;; X is a leaf.
+       (let ((ctx (reference-graph-toplevel-context graph)))
+         (record-case x
+           ((<toplevel-ref> name src)
+            (add-ref-from-context graph name))
+           (else graph))))
+
+     (lambda (x graph env locs)
+       ;; Going down into X.
+       (let ((ctx  (reference-graph-toplevel-context graph))
+             (refs (reference-graph-refs graph))
+             (defs (reference-graph-defs graph)))
+         (record-case x
+           ((<toplevel-define> name src)
+            (let ((refs refs)
+                  (defs (vhash-consq name (or src (find pair? locs))
+                                     defs)))
+              (make-reference-graph refs defs name)))
+           ((<toplevel-set> name src)
+            (add-ref-from-context graph name))
+           (else graph))))
+
+     (lambda (x graph env locs)
+       ;; Leaving X's scope.
+       (record-case x
+         ((<toplevel-define>)
+          (let ((refs (reference-graph-refs graph))
+                (defs (reference-graph-defs graph)))
+            (make-reference-graph refs defs #f)))
+         (else graph)))
+
+     (lambda (graph env)
+       ;; Process the resulting reference graph: determine all private definitions
+       ;; not reachable from any public definition.  Macros
+       ;; (syntax-transformers), which are globally bound, never considered
+       ;; unused since we can't tell whether a macro is actually used; in
+       ;; addition, macros are considered roots of the graph since they may use
+       ;; private bindings.  FIXME: The `make-syntax-transformer' calls don't
+       ;; contain any literal `toplevel-ref' of the global bindings they use so
+       ;; this strategy fails.
+       (define (exported? name)
+         (if (module? env)
+             (module-variable (module-public-interface env) name)
+             #t))
+
+       (let-values (((public-defs private-defs)
+                     (partition* (lambda (name)
+                                   (or (exported? name)
+                                       (macro-variable? name env)))
+                                 (reference-graph-defs graph))))
+         (let* ((roots     (vhash-consq #f #t public-defs))
+                (refs      (reference-graph-refs graph))
+                (reachable (graph-reachable-nodes* roots refs))
+                (unused    (vlist-filter (lambda (name+src)
+                                           (not (vhash-assq (car name+src)
+                                                            reachable)))
+                                         private-defs)))
+           (vlist-for-each (lambda (name+loc)
+                             (let ((name (car name+loc))
+                                   (loc  (cdr name+loc)))
+                               (warning 'unused-toplevel loc name)))
+                           unused))))
+
+     (make-reference-graph vlist-null vlist-null #f))))
 
 
 ;;;
@@ -642,14 +846,13 @@
 
 ;; <toplevel-info> records are used during tree traversal in search of
 ;; possibly unbound variable.  They contain a list of references to
-;; potentially unbound top-level variables, a list of the top-level defines
-;; that have been encountered, and a "location stack" (see above).
+;; potentially unbound top-level variables, and a list of the top-level
+;; defines that have been encountered.
 (define-record-type <toplevel-info>
-  (make-toplevel-info refs defs locs)
+  (make-toplevel-info refs defs)
   toplevel-info?
   (refs  toplevel-info-refs)  ;; ((VARIABLE-NAME . LOCATION) ...)
-  (defs  toplevel-info-defs)  ;; (VARIABLE-NAME ...)
-  (locs  toplevel-info-locs)) ;; (LOCATION ...)
+  (defs  toplevel-info-defs)) ;; (VARIABLE-NAME ...)
 
 (define (goops-toplevel-definition proc args env)
   ;; If application of PROC to ARGS is a GOOPS top-level definition, return
@@ -679,49 +882,44 @@
 (define unbound-variable-analysis
   ;; Report possibly unbound variables in the given tree.
   (make-tree-analysis
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; X is a leaf: extend INFO's refs accordingly.
      (let ((refs (toplevel-info-refs info))
-           (defs (toplevel-info-defs info))
-           (locs (toplevel-info-locs info)))
+           (defs (toplevel-info-defs info)))
        (define (bound? name)
          (or (and (module? env)
                   (module-variable env name))
-             (memq name defs)))
+             (vhash-assq name defs)))
 
        (record-case x
          ((<toplevel-ref> name src)
           (if (bound? name)
               info
               (let ((src (or src (find pair? locs))))
-                (make-toplevel-info (alist-cons name src refs)
-                                    defs
-                                    locs))))
+                (make-toplevel-info (vhash-consq name src refs)
+                                    defs))))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Going down into X.
      (let* ((refs (toplevel-info-refs info))
             (defs (toplevel-info-defs info))
-            (src  (tree-il-src x))
-            (locs (cons src (toplevel-info-locs info))))
+            (src  (tree-il-src x)))
        (define (bound? name)
          (or (and (module? env)
                   (module-variable env name))
-             (memq name defs)))
+             (vhash-assq name defs)))
 
        (record-case x
          ((<toplevel-set> name src)
           (if (bound? name)
-              (make-toplevel-info refs defs locs)
+              (make-toplevel-info refs defs)
               (let ((src (find pair? locs)))
-                (make-toplevel-info (alist-cons name src refs)
-                                    defs
-                                    locs))))
+                (make-toplevel-info (vhash-consq name src refs)
+                                    defs))))
          ((<toplevel-define> name)
-          (make-toplevel-info (alist-delete name refs eq?)
-                              (cons name defs)
-                              locs))
+          (make-toplevel-info (vhash-delete name refs eq?)
+                              (vhash-consq name #t defs)))
 
          ((<application> proc args)
           ;; Check for a dynamic top-level definition, as is
@@ -729,30 +927,26 @@
           (let ((name (goops-toplevel-definition proc args
                                                  env)))
             (if (symbol? name)
-                (make-toplevel-info (alist-delete name refs
+                (make-toplevel-info (vhash-delete name refs
                                                   eq?)
-                                    (cons name defs)
-                                    locs)
-                (make-toplevel-info refs defs locs))))
+                                    (vhash-consq name #t defs))
+                (make-toplevel-info refs defs))))
          (else
-          (make-toplevel-info refs defs locs)))))
+          (make-toplevel-info refs defs)))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Leaving X's scope.
-     (let ((refs (toplevel-info-refs info))
-           (defs (toplevel-info-defs info))
-           (locs (toplevel-info-locs info)))
-       (make-toplevel-info refs defs (cdr locs))))
+     info)
 
    (lambda (toplevel env)
      ;; Post-process the result.
-     (for-each (lambda (name+loc)
-                 (let ((name (car name+loc))
-                       (loc  (cdr name+loc)))
-                   (warning 'unbound-variable loc name)))
-               (reverse (toplevel-info-refs toplevel))))
+     (vlist-for-each (lambda (name+loc)
+                       (let ((name (car name+loc))
+                             (loc  (cdr name+loc)))
+                         (warning 'unbound-variable loc name)))
+                     (vlist-reverse (toplevel-info-refs toplevel))))
 
-   (make-toplevel-info '() '() '())))
+   (make-toplevel-info vlist-null vlist-null)))
 
 
 ;;;
@@ -860,10 +1054,10 @@
 (define arity-analysis
   ;; Report arity mismatches in the given tree.
   (make-tree-analysis
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; X is a leaf.
      info)
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Down into X.
      (define (extend lexical-name val info)
        ;; If VAL is a lambda, add NAME to the lexical-lambdas of INFO.
@@ -873,20 +1067,20 @@
          (record-case val
            ((<lambda> body)
             (make-arity-info toplevel-calls
-                             (alist-cons lexical-name val
-                                         lexical-lambdas)
+                             (vhash-consq lexical-name val
+                                          lexical-lambdas)
                              toplevel-lambdas))
            ((<lexical-ref> gensym)
             ;; lexical alias
-            (let ((val* (assq gensym lexical-lambdas)))
+            (let ((val* (vhash-assq gensym lexical-lambdas)))
               (if (pair? val*)
                   (extend lexical-name (cdr val*) info)
                   info)))
            ((<toplevel-ref> name)
             ;; top-level alias
             (make-arity-info toplevel-calls
-                             (alist-cons lexical-name val
-                                         lexical-lambdas)
+                             (vhash-consq lexical-name val
+                                          lexical-lambdas)
                              toplevel-lambdas))
            (else info))))
 
@@ -900,17 +1094,17 @@
             ((<lambda> body)
              (make-arity-info toplevel-calls
                               lexical-lambdas
-                              (alist-cons name exp toplevel-lambdas)))
+                              (vhash-consq name exp toplevel-lambdas)))
             ((<toplevel-ref> name)
              ;; alias for another toplevel
-             (let ((proc (assq name toplevel-lambdas)))
+             (let ((proc (vhash-assq name toplevel-lambdas)))
                (make-arity-info toplevel-calls
                                 lexical-lambdas
-                                (alist-cons (toplevel-define-name x)
-                                            (if (pair? proc)
-                                                (cdr proc)
-                                                exp)
-                                            toplevel-lambdas))))
+                                (vhash-consq (toplevel-define-name x)
+                                             (if (pair? proc)
+                                                 (cdr proc)
+                                                 exp)
+                                             toplevel-lambdas))))
             (else info)))
          ((<let> vars vals)
           (fold extend info vars vals))
@@ -925,16 +1119,16 @@
              (validate-arity proc x #t)
              info)
             ((<toplevel-ref> name)
-             (make-arity-info (alist-cons name x toplevel-calls)
+             (make-arity-info (vhash-consq name x toplevel-calls)
                               lexical-lambdas
                               toplevel-lambdas))
             ((<lexical-ref> gensym)
-             (let ((proc (assq gensym lexical-lambdas)))
+             (let ((proc (vhash-assq gensym lexical-lambdas)))
                (if (pair? proc)
                    (record-case (cdr proc)
                      ((<toplevel-ref> name)
                       ;; alias to toplevel
-                      (make-arity-info (alist-cons name x toplevel-calls)
+                      (make-arity-info (vhash-consq name x toplevel-calls)
                                        lexical-lambdas
                                        toplevel-lambdas))
                      (else
@@ -947,7 +1141,7 @@
             (else info)))
          (else info))))
 
-   (lambda (x info env)
+   (lambda (x info env locs)
      ;; Up from X.
      (define (shrink name val info)
        ;; Remove NAME from the lexical-lambdas of INFO.
@@ -955,7 +1149,9 @@
              (lexical-lambdas  (lexical-lambdas info))
              (toplevel-lambdas (toplevel-lambdas info)))
          (make-arity-info toplevel-calls
-                          (alist-delete name lexical-lambdas eq?)
+                          (if (vhash-assq name lexical-lambdas)
+                              (vlist-tail lexical-lambdas)
+                              lexical-lambdas)
                           toplevel-lambdas)))
 
      (let ((toplevel-calls   (toplevel-procedure-calls info))
@@ -976,26 +1172,25 @@
      ;; encountered.
      (let ((toplevel-calls   (toplevel-procedure-calls result))
            (toplevel-lambdas (toplevel-lambdas result)))
-       (for-each (lambda (name+application)
-                   (let* ((name        (car name+application))
-                          (application (cdr name+application))
-                          (proc
-                           (or (assoc-ref toplevel-lambdas name)
-                               (and (module? env)
-                                    (false-if-exception
-                                     (module-ref env name)))))
-                          (proc*
-                           ;; handle toplevel aliases
-                           (if (toplevel-ref? proc)
-                               (let ((name (toplevel-ref-name proc)))
-                                 (and (module? env)
-                                      (false-if-exception
-                                       (module-ref env name))))
-                               proc)))
-                     ;; (format #t "toplevel-call to ~A (~A) from ~A~%"
-                     ;;         name proc* application)
-                     (if (or (lambda? proc*) (procedure? proc*))
-                         (validate-arity proc* application (lambda? proc*)))))
-                 toplevel-calls)))
+       (vlist-for-each
+        (lambda (name+application)
+          (let* ((name        (car name+application))
+                 (application (cdr name+application))
+                 (proc
+                  (or (and=> (vhash-assq name toplevel-lambdas) cdr)
+                      (and (module? env)
+                           (false-if-exception
+                            (module-ref env name)))))
+                 (proc*
+                  ;; handle toplevel aliases
+                  (if (toplevel-ref? proc)
+                      (let ((name (toplevel-ref-name proc)))
+                        (and (module? env)
+                             (false-if-exception
+                              (module-ref env name))))
+                      proc)))
+            (if (or (lambda? proc*) (procedure? proc*))
+                (validate-arity proc* application (lambda? proc*)))))
+        toplevel-calls)))
 
-   (make-arity-info '() '() '())))
+   (make-arity-info vlist-null vlist-null vlist-null)))

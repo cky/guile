@@ -1,6 +1,6 @@
 ;;; ECMAScript for Guile
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -63,12 +63,12 @@
   (cond ((and (integer? p) (exact? p) (>= 0 p))
          (let ((vect (js-array-vector o)))
            (if (< p (vector-length vect))
-               (vector-set! vect p)
+               (vector-set! vect p v)
                ;; Fixme: round up to powers of 2?
                (let ((new (make-vector (1+ p) 0)))
                  (vector-move-left! vect 0 (vector-length vect) new 0)
                  (set! (js-array-vector o) new)
-                 (vector-set! new p)))))
+                 (vector-set! new p v)))))
         ((or (and (symbol? p) (eq? p 'length))
              (and (string? p) (string=? p "length")))
          (let ((vect (js-array-vector o)))
@@ -93,7 +93,7 @@
             ((is-a? (car objs) <js-array-object>)
              (let ((v (js-array-vector (car objs))))
                (vector-move-left! v 0 (vector-length v)
-                                  rv i (+ i (vector-length v)))
+                                  rv i)
                (lp (cdr objs) (+ i (vector-length v)))))
             (else
              (error "generic array concats not yet implemented"))))))

@@ -1,0 +1,103 @@
+;;; -*- mode: scheme; coding: iso-8859-1; -*-
+;;; VLists.
+;;;
+;;; Copyright 2009 Free Software Foundation, Inc.
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public License
+;;; as published by the Free Software Foundation; either version 3, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this software; see the file COPYING.LESSER.  If
+;;; not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (benchmarks vlists)
+  :use-module (srfi srfi-1)
+  :use-module (ice-9 vlist)
+  :use-module (benchmark-suite lib))
+
+;; Note: Use `--iteration-factor' to change this.
+(define iterations 2000000)
+
+;; The size of large lists.
+(define %list-size 700000)
+
+(define %big-list (make-list %list-size))
+(define %big-vlist (list->vlist %big-list))
+
+(define-syntax comparative-benchmark
+  (syntax-rules ()
+    ((_ benchmark-name iterations
+        ((api ((name value) ...)))
+        body ...)
+     (benchmark (format #f "~A (~A)" benchmark-name 'api)
+                iterations
+                (let ((name value) ...)
+                  body ...)))
+    ((_ benchmark-name iterations
+        ((api bindings) apis ...)
+        body ...)
+     (begin
+       (comparative-benchmark benchmark-name iterations
+                              ((api bindings))
+                              body ...)
+       (comparative-benchmark benchmark-name iterations
+                              (apis ...)
+                              body ...)))))
+
+
+(with-benchmark-prefix "constructors"
+
+  (comparative-benchmark "cons" 2
+    ((srfi-1 ((cons cons)       (null '())))
+     (vlist  ((cons vlist-cons) (null vlist-null))))
+    (let loop ((i %list-size)
+               (r null))
+         (and (> i 0)
+              (loop (1- i) (cons #t r)))))
+
+
+  (comparative-benchmark "acons" 2
+    ((srfi-1 ((acons alist-cons) (null '())))
+     (vlist  ((acons vhash-cons) (null vlist-null))))
+    (let loop ((i %list-size)
+               (r null))
+      (if (zero? i)
+          r
+          (loop (1- i) (acons i i r))))))
+
+
+(define %big-alist
+  (let loop ((i %list-size) (res '()))
+    (if (zero? i)
+        res
+        (loop (1- i) (alist-cons i i res)))))
+(define %big-vhash
+  (let loop ((i %list-size) (res vlist-null))
+    (if (zero? i)
+        res
+        (loop (1- i) (vhash-cons i i res)))))
+
+
+(with-benchmark-prefix "iteration"
+
+  (comparative-benchmark "fold" 2
+    ((srfi-1 ((fold fold)       (lst %big-list)))
+     (vlist  ((fold vlist-fold) (lst %big-vlist))))
+    (fold (lambda (x y) y) #t lst))
+
+  (comparative-benchmark "assoc" 70
+    ((srfi-1 ((assoc assoc)       (alst %big-alist)))
+     (vhash  ((assoc vhash-assoc) (alst %big-vhash))))
+    (let loop ((i (quotient %list-size 3)))
+      (and (> i 0)
+           (begin
+             (assoc i alst)
+             (loop (- i 5000)))))))

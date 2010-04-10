@@ -1,6 +1,6 @@
-;;;; ports.scm --- R6RS port API
+;;;; ports.scm --- R6RS port API                    -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludo@gnu.org>
+;;; Author: Ludovic CourtÃ¨s <ludo@gnu.org>
 
 ;;; Commentary:
 ;;;
@@ -52,7 +52,8 @@
            ;; binary output
            put-u8 put-bytevector))
 
-(load-extension "libguile" "scm_init_r6rs_ports")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_r6rs_ports")
 
 
 
@@ -103,9 +104,5 @@ read from/written to in @var{port}."
         (proc port))
       (lambda ()
         (close-port port))))
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
 
 ;;; ports.scm ends here

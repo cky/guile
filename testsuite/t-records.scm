@@ -11,5 +11,4 @@
 
 (and (stuff? (%make-stuff 12))
      (= 7 (stuff:chbouib (%make-stuff 7)))
-     (not (stuff? 12))
-     (not (false-if-exception (%make-stuff))))
+     (not (stuff? 12)))

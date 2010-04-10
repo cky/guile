@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -63,7 +63,8 @@ SOURCES =					\
   $(SCRIPTS_SOURCES)				\
   $(ECMASCRIPT_LANG_SOURCES)			\
   $(ELISP_LANG_SOURCES)				\
-  $(BRAINFUCK_LANG_SOURCES)
+  $(BRAINFUCK_LANG_SOURCES)			\
+  $(LIB_SOURCES)
 
 ## test.scm is not currently installed.
 EXTRA_DIST +=					\
@@ -116,7 +117,6 @@ VALUE_LANG_SOURCES =				\
   language/value/spec.scm
 
 ECMASCRIPT_LANG_SOURCES =			\
-  language/ecmascript/parse-lalr.scm		\
   language/ecmascript/tokenize.scm		\
   language/ecmascript/parse.scm			\
   language/ecmascript/impl.scm			\
@@ -164,11 +164,12 @@ SCRIPTS_SOURCES =				\
   scripts/read-rfc822.scm			\
   scripts/snarf-guile-m4-docs.scm
 
-SYSTEM_BASE_SOURCES = 				\
+SYSTEM_BASE_SOURCES =				\
   system/base/pmatch.scm			\
   system/base/syntax.scm			\
   system/base/compile.scm			\
   system/base/language.scm			\
+  system/base/lalr.scm				\
   system/base/message.scm
 
 ICE_9_SOURCES = \
@@ -177,6 +178,8 @@ ICE_9_SOURCES = \
   ice-9/and-let-star.scm \
   ice-9/calling.scm \
   ice-9/common-list.scm \
+  ice-9/control.scm \
+  ice-9/curried-definitions.scm \
   ice-9/debug.scm \
   ice-9/debugger.scm \
   ice-9/documentation.scm \
@@ -223,7 +226,8 @@ ICE_9_SOURCES = \
   ice-9/deprecated.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
-  ice-9/gds-server.scm
+  ice-9/gds-server.scm \
+  ice-9/vlist.scm
 
 SRFI_SOURCES = \
   srfi/srfi-1.scm \
@@ -273,30 +277,60 @@ OOP_SOURCES = \
   oop/goops/accessors.scm \
   oop/goops/simple.scm
 
-SYSTEM_SOURCES = \
-  system/vm/debug.scm system/vm/frame.scm system/vm/instruction.scm	\
-  system/vm/objcode.scm system/vm/profile.scm system/vm/program.scm	\
-  system/vm/trace.scm system/vm/vm.scm					\
-									\
-  system/xref.scm							\
-									\
-  system/repl/repl.scm system/repl/common.scm				\
+SYSTEM_SOURCES =				\
+  system/vm/inspect.scm				\
+  system/vm/debug.scm				\
+  system/vm/frame.scm				\
+  system/vm/instruction.scm			\
+  system/vm/objcode.scm				\
+  system/vm/profile.scm				\
+  system/vm/program.scm				\
+  system/vm/trace.scm				\
+  system/vm/vm.scm				\
+  system/foreign.scm				\
+  system/xref.scm				\
+  system/repl/repl.scm				\
+  system/repl/common.scm			\
   system/repl/command.scm
+
+LIB_SOURCES =					\
+  statprof.scm					\
+  sxml/apply-templates.scm			\
+  sxml/fold.scm					\
+  sxml/simple.scm				\
+  sxml/ssax/input-parse.scm			\
+  sxml/ssax.scm					\
+  sxml/transform.scm				\
+  sxml/xpath.scm				\
+  texinfo.scm					\
+  texinfo/docbook.scm				\
+  texinfo/html.scm				\
+  texinfo/indexing.scm				\
+  texinfo/string-utils.scm			\
+  texinfo/plain-text.scm			\
+  texinfo/reflection.scm			\
+  texinfo/serialize.scm
 
 EXTRA_DIST += oop/ChangeLog-2008
 
 NOCOMP_SOURCES =				\
-  ice-9/gds-client.scm \
-  ice-9/psyntax.scm \
-  ice-9/quasisyntax.scm \
-  system/repl/describe.scm \
-  ice-9/debugger/command-loop.scm \
-  ice-9/debugger/commands.scm \
-  ice-9/debugger/state.scm \
-  ice-9/debugger/trc.scm \
-  ice-9/debugger/utils.scm \
-  ice-9/debugging/example-fns.scm \
-  ice-9/debugging/steps.scm \
-  ice-9/debugging/trace.scm \
-  ice-9/debugging/traps.scm \
-  ice-9/debugging/trc.scm
+  ice-9/gds-client.scm				\
+  ice-9/psyntax.scm				\
+  ice-9/quasisyntax.scm				\
+  system/base/lalr.upstream.scm			\
+  system/repl/describe.scm			\
+  ice-9/debugger/command-loop.scm		\
+  ice-9/debugger/commands.scm			\
+  ice-9/debugger/state.scm			\
+  ice-9/debugger/trc.scm			\
+  ice-9/debugger/utils.scm			\
+  ice-9/debugging/example-fns.scm		\
+  ice-9/debugging/steps.scm			\
+  ice-9/debugging/trace.scm			\
+  ice-9/debugging/traps.scm			\
+  ice-9/debugging/trc.scm			\
+  sxml/upstream/SSAX.scm			\
+  sxml/upstream/SXML-tree-trans.scm		\
+  sxml/upstream/SXPath-old.scm			\
+  sxml/upstream/assert.scm			\
+  sxml/upstream/input-parse.scm

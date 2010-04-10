@@ -1,6 +1,6 @@
-;;;; i18n.scm --- internationalization support
+;;;; i18n.scm --- internationalization support    -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludo@gnu.org>
+;;; Author: Ludovic CourtÃ¨s <ludo@gnu.org>
 
 ;;; Commentary:
 ;;;
@@ -42,8 +42,8 @@
            char-locale-ci<? char-locale-ci>? char-locale-ci=?
 
            ;; character mapping
-           char-locale-downcase char-locale-upcase
-           string-locale-downcase string-locale-upcase
+           char-locale-downcase char-locale-upcase char-locale-titlecase
+           string-locale-downcase string-locale-upcase string-locale-titlecase
 
            ;; reading numbers
            locale-string->integer locale-string->inexact
@@ -84,7 +84,8 @@
 
 
 (eval-when (eval load compile)
-  (load-extension "libguile" "scm_init_i18n"))
+  (load-extension (string-append "libguile-" (effective-version))
+                  "scm_init_i18n"))
 
 
 ;;;
@@ -413,10 +414,5 @@ number of fractional digits to be displayed."
   NOEXPR               "^[nN]")
 
 ;; `YESSTR' and `NOSTR' are considered deprecated so we don't provide them.
-
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
 
 ;;; i18n.scm ends here

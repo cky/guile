@@ -1,6 +1,6 @@
 ;;;; encoding-utf8.test --- test suite for Guile's string encodings    -*- mode: scheme; coding: utf-8 -*-
 ;;;;
-;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,9 +19,6 @@
 (define-module (test-strings)
   #:use-module (test-suite lib)
   #:use-module (srfi srfi-1))
-
-(define exception:conversion
-  (cons 'misc-error "^cannot convert to output locale"))
 
 ;; Create a string from integer char values, eg. (string-ints 65) => "A"
 (define (string-ints . args)

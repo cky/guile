@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -178,10 +178,9 @@ SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
   ssize_t pos, i = 0;
   scm_t_array_handle h;
   scm_generalized_vector_get_handle (v, &h);
-  /* FIXME CHECKME */
-  for (pos = h.dims[0].ubnd, i = (h.dims[0].ubnd - h.dims[0].lbnd + 1);
+  for (pos = h.dims[0].ubnd, i = (h.dims[0].ubnd - h.dims[0].lbnd);
        i >= 0;
-       pos += h.dims[0].inc)
+       pos -= h.dims[0].inc, i--)
     ret = scm_cons (h.impl->vref (&h, pos), ret);
   scm_array_handle_release (&h);
   return ret;

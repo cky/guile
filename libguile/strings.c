@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <uninorm.h>
 #include <unistr.h>
 #include <uniconv.h>
 
@@ -34,9 +35,11 @@
 #include "libguile/chars.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
+#include "libguile/error.h"
 #include "libguile/generalized-vectors.h"
 #include "libguile/deprecation.h"
 #include "libguile/validate.h"
+#include "libguile/private-options.h"
 
 
 
@@ -1385,6 +1388,28 @@ scm_is_string (SCM obj)
   return IS_STRING (obj);
 }
 
+
+/* Conversion to/from other encodings.  */
+
+SCM_SYMBOL (scm_encoding_error_key, "encoding-error");
+static void
+scm_encoding_error (const char *subr, int err, const char *message,
+		    const char *from, const char *to, SCM string_or_bv)
+{
+  /* Raise an exception that conveys all the information needed to debug the
+     problem.  Only perform locale conversions that are safe; in particular,
+     don't try to display STRING_OR_BV when it's a string since converting it to
+     the output locale may fail.  */
+  scm_throw (scm_encoding_error_key,
+	     scm_list_n (scm_from_locale_string (subr),
+			 scm_from_locale_string (message),
+			 scm_from_int (err),
+			 scm_from_locale_string (from),
+			 scm_from_locale_string (to),
+			 string_or_bv,
+			 SCM_UNDEFINED));
+}
+
 SCM
 scm_from_stringn (const char *str, size_t len, const char *encoding,
                   scm_t_string_failed_conversion_handler handler)
@@ -1414,22 +1439,20 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
                                                 NULL,
                                                 NULL, &u32len);
 
-  if (u32 == NULL)
+  if (SCM_UNLIKELY (u32 == NULL))
     {
-      if (errno == ENOMEM)
-        scm_memory_error ("locale string conversion");
-      else
-        {
-          /* There are invalid sequences in the input string.  */
-          SCM errstr;
-          char *dst;
-          errstr = scm_i_make_string (len, &dst);
-          memcpy (dst, str, len);
-          scm_misc_error (NULL, "input locale conversion error from ~s: ~s",
-                          scm_list_2 (scm_from_locale_string (encoding),
-                                      errstr));
-          scm_remember_upto_here_1 (errstr);
-        }
+      /* Raise an error and pass the raw C string as a bytevector to the `throw'
+	 handler.  */
+      SCM bv;
+      signed char *buf;
+
+      buf = scm_gc_malloc_pointerless (len, "bytevector");
+      memcpy (buf, str, len);
+      bv = scm_c_take_bytevector (buf, len);
+
+      scm_encoding_error (__func__, errno,
+			  "input locale conversion error",
+			  encoding, "UTF-32", bv);
     }
 
   i = 0;
@@ -1583,6 +1606,80 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
   after = scm_realloc (after, j);
 }
 
+/* Change libunistring escapes (\uXXXX and \UXXXXXXXX) to \xXXXX; */
+static void
+unistring_escapes_to_r6rs_escapes (char **bufp, size_t *lenp)
+{
+  char *before, *after;
+  size_t i, j;
+  /* The worst case is if the input string contains all 4-digit hex escapes.
+     "\uXXXX" (six characters) becomes "\xXXXX;" (seven characters) */
+  size_t max_out_len = (*lenp * 7) / 6 + 1;
+  size_t nzeros, ndigits;
+
+  before = *bufp;
+  after = alloca (max_out_len);
+  i = 0;
+  j = 0;
+  while (i < *lenp)
+    {
+      if (((i <= *lenp - 6) && before[i] == '\\' && before[i + 1] == 'u')
+          || ((i <= *lenp - 10) && before[i] == '\\' && before[i + 1] == 'U'))
+        {
+          if (before[i + 1] == 'u')
+            ndigits = 4;
+          else if (before[i + 1] == 'U')
+            ndigits = 8;
+          else
+            abort ();
+
+          /* Add the R6RS hex escape initial sequence.  */
+          after[j] = '\\';
+          after[j + 1] = 'x';
+
+          /* Move string positions to the start of the hex numbers.  */
+          i += 2;
+          j += 2;
+
+          /* Find the number of initial zeros in this hex number.  */
+          nzeros = 0;
+          while (before[i + nzeros] == '0' && nzeros < ndigits)
+            nzeros++;
+
+          /* Copy the number, skipping initial zeros, and then move the string
+             positions.  */
+          if (nzeros == ndigits)
+            {
+              after[j] = '0';
+              i += ndigits;
+              j += 1;
+            }
+          else
+            {
+              int pos;
+              for (pos = 0; pos < ndigits - nzeros; pos++)
+                after[j + pos] = tolower ((int) before[i + nzeros + pos]);
+              i += ndigits;
+              j += (ndigits - nzeros);
+            }
+
+          /* Add terminating semicolon.  */
+          after[j] = ';';
+          j++;
+        }
+      else
+        {
+          after[j] = before[i];
+          i++;
+          j++;
+        }
+    }
+  *lenp = j;
+  before = scm_realloc (before, j);
+  memcpy (before, after, j);
+}
+
+
 char *
 scm_to_locale_stringn (SCM str, size_t *lenp)
 {
@@ -1604,7 +1701,10 @@ scm_to_locale_stringn (SCM str, size_t *lenp)
                          scm_i_get_conversion_strategy (SCM_BOOL_F));
 }
 
-/* Low-level scheme to C string conversion function.  */
+/* Return a malloc(3)-allocated buffer containing the contents of STR encoded
+   according to ENCODING.  If LENP is non-NULL, set it to the size in bytes of
+   the returned buffer.  If the conversion to ENCODING fails, apply the strategy
+   defined by HANDLER.  */
 char *
 scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                 scm_t_string_failed_conversion_handler handler)
@@ -1667,31 +1767,29 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                          (enum iconv_ilseq_handler) handler, NULL,
                          &buf, &len);
 
-      if (ret == 0 && handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
-        unistring_escapes_to_guile_escapes (&buf, &len);
-
       if (ret != 0)
-        {
-          scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"", 
-                          scm_list_2 (scm_from_locale_string (enc),
-                                      str));
-        }
+        scm_encoding_error (__func__, errno,
+			    "cannot convert to output locale",
+			    "ISO-8859-1", enc, str);
     }
   else
     {
-      buf = u32_conv_to_encoding (enc, 
+      buf = u32_conv_to_encoding (enc,
                                   (enum iconv_ilseq_handler) handler,
-                                  (scm_t_uint32 *) scm_i_string_wide_chars (str), 
+                                  (scm_t_uint32 *) scm_i_string_wide_chars (str),
                                   ilen,
                                   NULL,
                                   NULL, &len);
       if (buf == NULL)
-        {
-          scm_misc_error (NULL, "cannot convert to output locale ~s: \"~s\"", 
-                          scm_list_2 (scm_from_locale_string (enc),
-                                      str));
-        }
-      if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+        scm_encoding_error (__func__, errno,
+			    "cannot convert to output locale",
+			    "UTF-32", enc, str);
+    }
+  if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+    {
+      if (SCM_R6RS_ESCAPES_P)
+        unistring_escapes_to_r6rs_escapes (&buf, &len);
+      else
         unistring_escapes_to_guile_escapes (&buf, &len);
     }
   if (lenp)
@@ -1735,6 +1833,86 @@ scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
   scm_remember_upto_here_1 (str);
   return len;
 }
+
+
+/* Unicode string normalization.  */
+
+/* This function is a partial clone of SCM_STRING_TO_U32_BUF from 
+   libguile/i18n.c.  It would be useful to have this factored out into a more
+   convenient location, but its use of alloca makes that tricky to do. */
+
+static SCM 
+normalize_str (SCM string, uninorm_t form)
+{
+  SCM ret;
+  scm_t_uint32 *w_str;
+  scm_t_wchar *cbuf;
+  size_t rlen, len = scm_i_string_length (string);
+  
+  if (scm_i_is_narrow_string (string))
+    {
+      size_t i;
+      const char *buf = scm_i_string_chars (string);
+      
+      w_str = alloca (sizeof (scm_t_wchar) * (len + 1));
+      
+      for (i = 0; i < len; i ++)
+	w_str[i] = (unsigned char) buf[i];
+      w_str[len] = 0;
+    }
+  else 
+    w_str = (scm_t_uint32 *) scm_i_string_wide_chars (string);
+
+  w_str = u32_normalize (form, w_str, len, NULL, &rlen);  
+  
+  ret = scm_i_make_wide_string (rlen, &cbuf);
+  u32_cpy ((scm_t_uint32 *) cbuf, w_str, rlen);
+  free (w_str);
+
+  scm_i_try_narrow_string (ret);
+
+  return ret;
+}
+
+SCM_DEFINE (scm_string_normalize_nfc, "string-normalize-nfc", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFC normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfc
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFC);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_normalize_nfd, "string-normalize-nfd", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFD normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfd
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFD);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_normalize_nfkc, "string-normalize-nfkc", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFKC normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfkc
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFKC);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_normalize_nfkd, "string-normalize-nfkd", 1, 0, 0,
+	    (SCM string),
+	    "Returns the NFKD normalized form of @var{string}.")
+#define FUNC_NAME s_scm_string_normalize_nfkd
+{
+  SCM_VALIDATE_STRING (1, string);
+  return normalize_str (string, UNINORM_NFKD);
+}
+#undef FUNC_NAME
 
 /* converts C scm_array of strings to SCM scm_list of strings. */
 /* If argc < 0, a null terminated scm_array is assumed. */
@@ -1891,7 +2069,7 @@ string_get_handle (SCM v, scm_t_array_handle *h)
   h->elements = h->writable_elements = NULL;
 }
 
-SCM_ARRAY_IMPLEMENTATION (scm_tc7_string, 0x7f & ~2,
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_string, 0x7f,
                           string_handle_ref, string_handle_set,
                           string_get_handle)
 SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_CHAR, scm_make_string)

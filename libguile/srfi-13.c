@@ -2198,7 +2198,7 @@ string_titlecase_x (SCM str, size_t start, size_t end)
 	{
 	  if (!in_word)
 	    {
-	      scm_i_string_set_x (str, i, uc_toupper (SCM_CHAR (ch)));
+	      scm_i_string_set_x (str, i, uc_totitle (SCM_CHAR (ch)));
 	      in_word = 1;
 	    }
 	  else

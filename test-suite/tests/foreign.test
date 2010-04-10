@@ -1,0 +1,57 @@
+;;;; foreign.test --- FFI.           -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;;
+;;; See also ../standalone/test-ffi for FFI tests.
+;;;
+
+(define-module (test-foreign)
+  #:use-module (system foreign)
+  #:use-module (rnrs bytevector)
+  #:use-module (test-suite lib))
+
+
+(with-test-prefix "null pointer"
+
+  (pass-if "zero"
+    (= 0 (foreign-ref %null-pointer)))
+
+  (pass-if-exception "foreign-set! %null-pointer"
+    exception:null-pointer-error
+    (foreign-set! %null-pointer 2))
+
+  (pass-if "foreign-set! other-null-pointer"
+    (let ((f (bytevector->foreign (make-bytevector 2))))
+      (and (not (= 0 (foreign-ref f)))
+           (begin
+             (foreign-set! f 0)
+             (= 0 (foreign-ref f)))
+           (begin
+             ;; Here changing the pointer value of F is perfectly valid.
+             (foreign-set! f 777)
+             (= 777 (foreign-ref f))))))
+
+  (pass-if-exception "foreign->bytevector %null-pointer"
+    exception:null-pointer-error
+    (foreign->bytevector %null-pointer))
+
+  (pass-if-exception "foreign->bytevector other-null-pointer"
+    exception:null-pointer-error
+    (let ((f (bytevector->foreign (make-bytevector 2))))
+      (foreign-set! f 0)
+      (foreign->bytevector f))))

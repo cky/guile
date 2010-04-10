@@ -52,12 +52,6 @@ SCM_API SCM scm_internal_catch (SCM tag,
 				scm_t_catch_handler handler,
 				void *handler_data);
 
-SCM_API SCM scm_internal_lazy_catch (SCM tag,
-				     scm_t_catch_body body,
-				     void *body_data,
-				     scm_t_catch_handler handler,
-				     void *handler_data);
-
 SCM_API SCM scm_internal_stack_catch (SCM tag,
 				      scm_t_catch_body body,
 				      void *body_data,
@@ -91,7 +85,6 @@ SCM_API int scm_exit_status (SCM args);
 SCM_API SCM scm_catch_with_pre_unwind_handler (SCM tag, SCM thunk, SCM handler, SCM lazy_handler);
 SCM_API SCM scm_catch (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_with_throw_handler (SCM tag, SCM thunk, SCM handler);
-SCM_API SCM scm_lazy_catch (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_ithrow (SCM key, SCM args, int noreturn);
 
 SCM_API SCM scm_throw (SCM key, SCM args);

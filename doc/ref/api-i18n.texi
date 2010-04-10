@@ -196,6 +196,12 @@ Return the uppercase character that corresponds to @var{chr} according
 to either @var{locale} or the current locale.
 @end deffn
 
+@deffn {Scheme Procedure} char-locale-titlecase chr [locale]
+@deffnx {C Function} scm_char_locale_titlecase (chr, locale)
+Return the titlecase character that corresponds to @var{chr} according
+to either @var{locale} or the current locale.
+@end deffn
+
 @deffn {Scheme Procedure} string-locale-upcase str [locale]
 @deffnx {C Function} scm_string_locale_upcase (str, locale)
 Return a new string that is the uppercase version of @var{str}
@@ -205,6 +211,12 @@ according to either @var{locale} or the current locale.
 @deffn {Scheme Procedure} string-locale-downcase str [locale]
 @deffnx {C Function} scm_string_locale_downcase (str, locale)
 Return a new string that is the down-case version of @var{str}
+according to either @var{locale} or the current locale.
+@end deffn
+
+@deffn {Scheme Procedure} string-locale-titlecase str [locale]
+@deffnx {C Function} scm_string_locale_titlecase (str, locale)
+Return a new string that is the titlecase version of @var{str}
 according to either @var{locale} or the current locale.
 @end deffn
 

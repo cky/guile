@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,14 +27,25 @@
  */
 
 #define SCM_F_PROGRAM_IS_BOOT 0x100
+#define SCM_F_PROGRAM_IS_PRIMITIVE 0x200
+#define SCM_F_PROGRAM_IS_PRIMITIVE_GENERIC 0x400
+#define SCM_F_PROGRAM_IS_CONTINUATION 0x800
+#define SCM_F_PROGRAM_IS_PARTIAL_CONTINUATION 0x1000
 
 #define SCM_PROGRAM_P(x)	(!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_program)
 #define SCM_PROGRAM_OBJCODE(x)	(SCM_CELL_OBJECT_1 (x))
 #define SCM_PROGRAM_OBJTABLE(x)	(SCM_CELL_OBJECT_2 (x))
-#define SCM_PROGRAM_FREE_VARIABLES(x) (SCM_CELL_OBJECT_3 (x))
+#define SCM_PROGRAM_FREE_VARIABLES(x) (SCM_CELL_OBJECT_LOC (x, 3))
+#define SCM_PROGRAM_FREE_VARIABLE_REF(x,i) (SCM_PROGRAM_FREE_VARIABLES (x)[i])
+#define SCM_PROGRAM_FREE_VARIABLE_SET(x,i,v) (SCM_PROGRAM_FREE_VARIABLES (x)[i]=(v))
+#define SCM_PROGRAM_NUM_FREE_VARIABLES(x) (SCM_CELL_WORD_0 (x) >> 16)
 #define SCM_PROGRAM_DATA(x)	(SCM_OBJCODE_DATA (SCM_PROGRAM_OBJCODE (x)))
 #define SCM_VALIDATE_PROGRAM(p,x) SCM_MAKE_VALIDATE (p, x, PROGRAM_P)
 #define SCM_PROGRAM_IS_BOOT(x)	(SCM_CELL_WORD_0 (x) & SCM_F_PROGRAM_IS_BOOT)
+#define SCM_PROGRAM_IS_PRIMITIVE(x) (SCM_CELL_WORD_0 (x) & SCM_F_PROGRAM_IS_PRIMITIVE)
+#define SCM_PROGRAM_IS_PRIMITIVE_GENERIC(x) (SCM_CELL_WORD_0 (x) & SCM_F_PROGRAM_IS_PRIMITIVE_GENERIC)
+#define SCM_PROGRAM_IS_CONTINUATION(x) (SCM_CELL_WORD_0 (x) & SCM_F_PROGRAM_IS_CONTINUATION)
+#define SCM_PROGRAM_IS_PARTIAL_CONTINUATION(x) (SCM_CELL_WORD_0 (x) & SCM_F_PROGRAM_IS_PARTIAL_CONTINUATION)
 
 SCM_API SCM scm_make_program (SCM objcode, SCM objtable, SCM free_variables);
 
@@ -49,7 +60,9 @@ SCM_API SCM scm_program_properties (SCM program);
 SCM_API SCM scm_program_name (SCM program);
 SCM_API SCM scm_program_objects (SCM program);
 SCM_API SCM scm_program_module (SCM program);
-SCM_API SCM scm_program_free_variables (SCM program);
+SCM_API SCM scm_program_num_free_variables (SCM program);
+SCM_API SCM scm_program_free_variable_ref (SCM program, SCM i);
+SCM_API SCM scm_program_free_variable_set_x (SCM program, SCM i, SCM x);
 SCM_API SCM scm_program_objcode (SCM program);
 
 SCM_API SCM scm_c_program_source (SCM program, size_t ip);

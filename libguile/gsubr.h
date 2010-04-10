@@ -3,7 +3,7 @@
 #ifndef SCM_GSUBR_H
 #define SCM_GSUBR_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,18 +25,32 @@
 
 #include "libguile/__scm.h"
 
+
 
 
-/* Return an integer describing the arity of GSUBR, a subr of type
-   `scm_tc7_gsubr'.  The result can be interpreted with `SCM_GSUBR_REQ ()'
-   and similar.  */
-#define SCM_GSUBR_TYPE(gsubr)  (SCM_CELL_TYPE (gsubr) >> 8)
 
-#define SCM_GSUBR_MAKTYPE(req, opt, rst) ((req)|((opt)<<4)|((rst)<<8))
-#define SCM_GSUBR_MAX    33
-#define SCM_GSUBR_REQ(x) ((long)(x)&0xf)
-#define SCM_GSUBR_OPT(x) (((long)(x)&0xf0)>>4)
-#define SCM_GSUBR_REST(x) ((long)(x)>>8)
+SCM_API SCM scm_subr_objcode_trampoline (unsigned int nreq,
+                                         unsigned int nopt,
+                                         unsigned int rest);
+
+
+/* Subrs 
+ */
+
+/* Max number of args to the C procedure backing a gsubr */
+#define SCM_GSUBR_MAX 10
+
+#define SCM_PRIMITIVE_P(x) (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_PRIMITIVE (x))
+#define SCM_PRIMITIVE_GENERIC_P(x) (SCM_PROGRAM_P (x) && SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x))
+
+#define SCM_SUBRF(x) ((SCM (*)()) (SCM_FOREIGN_POINTER (SCM_SIMPLE_VECTOR_REF (SCM_PROGRAM_OBJTABLE (x), 0), void)))
+#define SCM_SUBR_NAME(x) (SCM_SIMPLE_VECTOR_REF (SCM_PROGRAM_OBJTABLE (x), 1))
+#define SCM_SUBR_GENERIC(x) \
+  (SCM_FOREIGN_POINTER (SCM_SIMPLE_VECTOR_REF (SCM_PROGRAM_OBJTABLE (x), 2), SCM))
+#define SCM_SET_SUBR_GENERIC(x, g) \
+  (*SCM_SUBR_GENERIC (x) = (g))
+
+
 
 SCM_API SCM scm_c_make_gsubr (const char *name, 
 			      int req, int opt, int rst, SCM (*fcn) ());
@@ -49,10 +63,6 @@ SCM_API SCM scm_c_define_gsubr_with_generic (const char *name,
 					     int req, int opt, int rst,
 					     SCM (*fcn) (), SCM *gf);
 
-SCM_INTERNAL SCM scm_i_gsubr_apply (SCM proc, SCM arg, ...);
-SCM_INTERNAL SCM scm_i_gsubr_apply_list (SCM proc, SCM args);
-SCM_INTERNAL SCM scm_i_gsubr_apply_array (SCM proc, SCM *args, int nargs,
-                                          int headroom);
 SCM_INTERNAL void scm_init_gsubr (void);
 
 #endif  /* SCM_GSUBR_H */

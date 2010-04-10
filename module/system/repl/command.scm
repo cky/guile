@@ -1,6 +1,6 @@
 ;;; Repl commands
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -28,14 +28,14 @@
   #:use-module (system vm program)
   #:use-module (system vm vm)
   #:autoload (system base language) (lookup-language language-reader)
-  #:autoload (system vm debug) (vm-debugger vm-backtrace)
-  #:autoload (system vm trace) (vm-trace vm-trace-on vm-trace-off)
+  #:autoload (system vm trace) (vm-trace)
   #:autoload (system vm profile) (vm-profile)
   #:use-module (ice-9 format)
   #:use-module (ice-9 session)
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 and-let-star)
   #:use-module (ice-9 rdelim)
+  #:use-module (statprof)
   #:export (meta-command))
 
 
@@ -44,25 +44,20 @@
 ;;;
 
 (define *command-table*
-  '((help     (help h) (apropos a) (describe d) (option o) (quit q))
+  '((help     (help h) (show s) (apropos a) (describe d) (option o) (quit q))
     (module   (module m) (import i) (load l) (binding b))
     (language (language L))
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr))
-    (debug    (backtrace bt) (debugger db) (trace tr) (step st))
+    (debug    (trace tr))
     (system   (gc) (statistics stat))))
+
+(define *show-table*
+  '((show (warranty w) (copying c) (version v))))
 
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
-
-;; Hack, until core can be extended.
-(define procedure-documentation
-  (let ((old-definition procedure-documentation))
-    (lambda (p)
-      (if (program? p)
-          (program-documentation p)
-          (old-definition p)))))
 
 (define *command-module* (current-module))
 (define (command-name c) (car c))
@@ -84,19 +79,19 @@
 (define (lookup-group name)
   (assq name *command-table*))
 
-(define (lookup-command key)
-  (let loop ((groups *command-table*) (commands '()))
+(define* (lookup-command key #:optional (table *command-table*))
+  (let loop ((groups table) (commands '()))
     (cond ((and (null? groups) (null? commands)) #f)
 	  ((null? commands)
 	   (loop (cdr groups) (cdar groups)))
 	  ((memq key (car commands)) (car commands))
 	  (else (loop groups (cdr commands))))))
 
-(define (display-group group . opts)
+(define* (display-group group #:optional (abbrev? #t))
   (format #t "~:(~A~) Commands [abbrev]:~2%" (group-name group))
   (for-each (lambda (c)
 	      (display-summary (command-usage c)
-			       (command-abbrev c)
+			       (and abbrev? (command-abbrev c))
 			       (command-summary c)))
 	    (group-commands group))
   (newline))
@@ -203,6 +198,47 @@ are displayed."
     (else
      (user-error "Bad arguments: ~A" args))))
 
+(define-meta-command (show repl . args)
+  "show
+show TOPIC
+
+Gives information about Guile.
+
+With one argument, tries to show a particular piece of information;
+
+currently supported topics are `warranty' (or `w'), `copying' (or `c'),
+and `version' (or `v').
+
+Without any argument, a list of topics is displayed."
+  (pmatch args
+    (()
+     (display-group (car *show-table*) #f)
+     (newline))
+    ((,topic) (guard (lookup-command topic *show-table*))
+     ((command-procedure (lookup-command topic *show-table*)) repl))
+    ((,command)
+     (user-error "Unknown topic: ~A" command))
+    (else
+     (user-error "Bad arguments: ~A" args))))
+
+(define (warranty repl)
+  "show warranty
+Details on the lack of warranty."
+  (display *warranty*)
+  (newline))
+
+(define (copying repl)
+  "show copying
+Show the LGPLv3."
+  (display *copying*)
+  (newline))
+
+(define (version repl)
+  "show version
+Version information."
+  (display *version*)
+  (newline))
+
 (define guile:apropos apropos)
 (define-meta-command (apropos repl regexp)
   "apropos REGEXP
@@ -227,13 +263,7 @@ List/show/set options."
      (display (repl-option-ref repl key))
      (newline))
     ((,key ,val)
-     (repl-option-set! repl key val)
-     (case key
-       ((trace)
-        (let ((vm (repl-vm repl)))
-          (if val
-              (apply vm-trace-on vm val)
-              (vm-trace-off vm))))))))
+     (repl-option-set! repl key val))))
 
 (define-meta-command (quit repl)
   "quit
@@ -292,8 +322,11 @@ List current bindings."
 (define-meta-command (language repl name)
   "language LANGUAGE
 Change languages."
-  (set! (repl-language repl) (lookup-language name))
-  (repl-welcome repl))
+  (let ((lang (lookup-language name))
+        (cur (repl-language repl)))
+    (format #t "Happy hacking with ~a!  To switch back, type `,L ~a'.\n"
+            (language-title lang) (language-name cur))
+    (set! (repl-language repl) lang)))
 
 
 ;;;
@@ -359,44 +392,29 @@ Time execution."
 	    (get identity gc-start gc-end))
     result))
 
-(define-meta-command (profile repl form . opts)
+(define-meta-command (profile repl (form) . opts)
   "profile FORM
 Profile execution."
-  (apply vm-profile
-         (repl-vm repl)
-         (repl-compile repl (repl-parse repl form))
+  ;; FIXME opts
+  (apply statprof
+         (make-program (repl-compile repl (repl-parse repl form)))
          opts))
+
 
 
 ;;;
 ;;; Debug commands
 ;;;
 
-(define-meta-command (backtrace repl)
-  "backtrace
-Display backtrace."
-  (vm-backtrace (repl-vm repl)))
-
-(define-meta-command (debugger repl)
-  "debugger
-Start debugger."
-  (vm-debugger (repl-vm repl)))
-
-(define-meta-command (trace repl form . opts)
+(define-meta-command (trace repl (form) . opts)
   "trace FORM
-Trace execution.
-
-  -s    Display stack
-  -l    Display local variables
-  -b    Bytecode level trace"
-  (apply vm-trace (repl-vm repl)
-         (repl-compile repl (repl-parse repl form))
+Trace execution."
+  ;; FIXME: doc options, or somehow deal with them better
+  (apply vm-trace
+         (the-vm)
+         (make-program (repl-compile repl (repl-parse repl form)))
          opts))
 
-(define-meta-command (step repl)
-  "step FORM
-Step execution."
-  (display "Not implemented yet\n"))
 
 
 ;;;

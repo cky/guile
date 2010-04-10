@@ -1,6 +1,6 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001, 2005, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2005, 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -24,45 +24,55 @@
   #:use-module (system vm instruction)
   #:use-module (system vm objcode)
   #:use-module ((srfi srfi-1) #:select (fold))
-  #:export (frame-local-ref frame-local-set!
-            frame-instruction-pointer
-            frame-return-address frame-mv-return-address
-            frame-dynamic-link
-            frame-num-locals
-
-            frame-bindings frame-binding-ref frame-binding-set!
-            ; frame-arguments
-
-            frame-number frame-address
-            make-frame-chain
-            print-frame print-frame-chain-as-backtrace
-            frame-local-variables
+  #:export (frame-bindings
+            frame-lookup-binding
+            frame-binding-ref frame-binding-set!
+            frame-source frame-call-representation
             frame-environment
-            frame-variable-exists? frame-variable-ref frame-variable-set!
-            frame-object-name
-            frame-local-ref frame-local-set!
-            frame-return-address frame-program
-            frame-dynamic-link heap-frame?))
-
-(load-extension "libguile" "scm_init_frames")
+            frame-object-binding frame-object-name))
 
 (define (frame-bindings frame)
-  (map (lambda (b)
-         (cons (binding:name b) (binding:index b)))
-       (program-bindings-for-ip (frame-procedure frame)
-                                (frame-instruction-pointer frame))))
+  (program-bindings-for-ip (frame-procedure frame)
+                           (frame-instruction-pointer frame)))
+
+(define (frame-lookup-binding frame var)
+  (let lp ((bindings (frame-bindings frame)))
+    (cond ((null? bindings)
+           #f)
+          ((eq? (binding:name (car bindings)) var)
+           (car bindings))
+          (else
+           (lp (cdr bindings))))))
 
 (define (frame-binding-set! frame var val)
-  (let ((i (assq-ref (frame-bindings frame) var)))
-    (if i
-        (frame-local-set! frame i val)
-        (error "variable not bound in frame" var frame))))
+  (frame-local-set! frame
+                    (binding:index
+                     (or (frame-lookup-binding frame var)
+                         (error "variable not bound in frame" var frame)))
+                    val))
 
 (define (frame-binding-ref frame var)
-  (let ((i (assq-ref (frame-bindings frame) var)))
-    (if i
-        (frame-local-ref frame i)
-        (error "variable not bound in frame" var frame))))
+  (frame-local-ref frame
+                   (binding:index
+                    (or (frame-lookup-binding frame var)
+                        (error "variable not bound in frame" var frame)))))
+
+
+;; This function is always called to get some sort of representation of the
+;; frame to present to the user, so let's do the logical thing and dispatch to
+;; frame-call-representation.
+(define (frame-arguments frame)
+  (cdr (frame-call-representation frame)))
+
+
+
+;;;
+;;; Pretty printing
+;;;
+
+(define (frame-source frame)
+  (program-source (frame-procedure frame)
+                  (frame-instruction-pointer frame)))
 
 ;; Basically there are two cases to deal with here:
 ;;
@@ -78,163 +88,65 @@
 ;;      number of arguments, or perhaps we're doing a typed dispatch and
 ;;      the types don't match. In that case the arguments are all on the
 ;;      stack, and nothing else is on the stack.
-(define (frame-arguments frame)
-  (cond
-   ((program-lambda-list (frame-procedure frame)
-                         (frame-instruction-pointer frame))
-    ;; case 1
-    => (lambda (formals)
-         (let lp ((formals formals))
-           (pmatch formals
-             (() '())
-             ((,x . ,rest) (guard (symbol? x))
-              (cons (frame-binding-ref frame x) (lp rest)))
-             ((,x . ,rest)
-              ;; could be a keyword
-              (cons x (lp rest)))
-             (,rest (guard (symbol? rest))
-              (frame-binding-ref frame rest))
-             ;; let's not error here, as we are called during
-             ;; backtraces...
-             (else '???)))))
-   (else
-    ;; case 2
-    (map (lambda (i)
-           (frame-local-ref frame i))
-         (iota (frame-num-locals frame))))))
-
-;;;
-;;; Frame chain
-;;;
-
-(define frame-number (make-object-property))
-(define frame-address (make-object-property))
-
-;; FIXME: the header.
-(define (bootstrap-frame? frame)
-  (let ((code (objcode->bytecode (program-objcode (frame-program frame)))))
-    (and (= (uniform-vector-ref code (1- (uniform-vector-length code)))
-            (instruction->opcode 'halt)))))
-
-(define (make-frame-chain frame addr)
-  (define (make-rest)
-    (make-frame-chain (frame-dynamic-link frame)
-                      (frame-return-address frame)))
-  (cond
-   ((or (eq? frame #t) (eq? frame #f))
-    ;; handle #f or #t dynamic links
-    '())
-   ((bootstrap-frame? frame)
-    (make-rest))
-   (else
-    (let ((chain (make-rest)))
-      (set! (frame-number frame) (length chain))
-      (set! (frame-address frame)
-            (- addr (program-base (frame-program frame))))
-      (cons frame chain)))))
-
-
-;;;
-;;; Pretty printing
-;;;
-
-(define (frame-line-number frame)
-  (let ((addr (frame-address frame)))
-    (cond ((assv addr (program-sources (frame-program frame)))
-           => source:line)
-          (else (format #f "@~a" addr)))))
-
-(define (frame-file frame prev)
-  (let ((sources (program-sources (frame-program frame))))
-    (if (null? sources)
-        prev
-        (or (source:file (car sources))
-            "current input"))))
-
-(define (print-frame frame)
-  (format #t "~4@a: ~a   ~s\n" (frame-line-number frame) (frame-number frame)
-          (frame-call-representation frame)))
-
 
 (define (frame-call-representation frame)
-  (define (abbrev x)
-    (cond ((list? x)
-           (if (> (length x) 4)
-               (list (abbrev (car x)) (abbrev (cadr x)) '...)
-               (map abbrev x)))
-	  ((pair? x)
-           (cons (abbrev (car x)) (abbrev (cdr x))))
-	  ((vector? x)
-           (case (vector-length x)
-             ((0) x)
-             ((1) (vector (abbrev (vector-ref x 0))))
-             (else (vector (abbrev (vector-ref x 0)) '...))))
-	  (else x)))
-  (abbrev (cons (frame-program-name frame) (frame-arguments frame))))
+  (let ((p (frame-procedure frame)))
+    (cons
+     (or (procedure-name p) p)     
+     (cond
+      ((program-arguments-alist p (frame-instruction-pointer frame))
+       ;; case 1
+       => (lambda (arguments)
+            (define (binding-ref sym i)
+              (cond
+               ((frame-lookup-binding frame sym)
+                => (lambda (b) (frame-local-ref frame (binding:index b))))
+               ((< i (frame-num-locals frame))
+                (frame-local-ref frame i))
+               (else
+                ;; let's not error here, as we are called during backtraces...
+                '???)))
+            (let lp ((req (or (assq-ref arguments 'required) '()))
+                     (opt (or (assq-ref arguments 'optional) '()))
+                     (key (or (assq-ref arguments 'keyword) '()))
+                     (rest (or (assq-ref arguments 'rest) #f))
+                     (i 0))
+              (cond
+               ((pair? req)
+                (cons (binding-ref (car req) i)
+                      (lp (cdr req) opt key rest (1+ i))))
+               ((pair? opt)
+                (cons (binding-ref (car opt) i)
+                      (lp req (cdr opt) key rest (1+ i))))
+               ((pair? key)
+                (cons* (caar key)
+                       (frame-local-ref frame (cdar key))
+                       (lp req opt (cdr key) rest (1+ i))))
+               (rest
+                (binding-ref rest i))
+               (else
+                '())))))
+      (else
+       ;; case 2
+       (map (lambda (i)
+              (frame-local-ref frame i))
+            (iota (frame-num-locals frame))))))))
 
-(define (print-frame-chain-as-backtrace frames)
-  (if (null? frames)
-      (format #t "No backtrace available.\n")
-      (begin
-        (format #t "VM backtrace:\n")
-        (fold (lambda (frame file)
-                (let ((new-file (frame-file frame file)))
-                  (if (not (equal? new-file file))
-                      (format #t "In ~a:\n" new-file))
-                  (print-frame frame)
-                  new-file))
-              'no-file
-              frames))))
-
-(define (frame-program-name frame)
-  (let ((prog (frame-program frame))
-	(link (frame-dynamic-link frame)))
-    (or (program-name prog)
-        (object-property prog 'name)
-        (and (heap-frame? link) (frame-address link)
-             (frame-object-name link (1- (frame-address link)) prog))
-	(hash-fold (lambda (s v d) (if (and (variable-bound? v)
-                                            (eq? prog (variable-ref v)))
-                                       s d))
-		   prog (module-obarray (current-module))))))
 
 
-;;; Frames
+;;; Misc
 ;;;
 
-(define (frame-local-variables frame)
-  (let* ((prog (frame-program frame))
-	 (arity (program-arity prog)))
-    (do ((n (+ (arity:nargs arity) (arity:nlocs arity) -1) (1- n))
-	 (l '() (cons (frame-local-ref frame n) l)))
-	((< n 0) l))))
+(define (frame-environment frame)
+  (map (lambda (binding)
+	 (cons (binding:name binding) (frame-binding-ref frame binding)))
+       (frame-bindings frame)))
 
-(define (frame-lookup-binding frame addr sym)
-  (assq sym (reverse (frame-bindings frame addr))))
-
-(define (frame-object-binding frame addr obj)
-  (do ((bs (frame-bindings frame addr) (cdr bs)))
+(define (frame-object-binding frame obj)
+  (do ((bs (frame-bindings frame) (cdr bs)))
       ((or (null? bs) (eq? obj (frame-binding-ref frame (car bs))))
        (and (pair? bs) (car bs)))))
 
-(define (frame-environment frame addr)
-  (map (lambda (binding)
-	 (cons (binding:name binding) (frame-binding-ref frame binding)))
-       (frame-bindings frame addr)))
-
-(define (frame-variable-exists? frame addr sym)
-  (if (frame-lookup-binding frame addr sym) #t #f))
-
-(define (frame-variable-ref frame addr sym)
-  (cond ((frame-lookup-binding frame addr sym) =>
-	 (lambda (binding) (frame-binding-ref frame binding)))
-	(else (error "Unknown variable:" sym))))
-
-(define (frame-variable-set! frame addr sym val)
-  (cond ((frame-lookup-binding frame addr sym) =>
-	 (lambda (binding) (frame-binding-set! frame binding val)))
-	(else (error "Unknown variable:" sym))))
-
-(define (frame-object-name frame addr obj)
-  (cond ((frame-object-binding frame addr obj) => binding:name)
+(define (frame-object-name frame obj)
+  (cond ((frame-object-binding frame obj) => binding:name)
 	(else #f)))

@@ -1,6 +1,6 @@
-;;;; bytevector.scm --- R6RS bytevector API
+;;;; bytevector.scm --- R6RS bytevector API           -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-;;; Author: Ludovic Courtès <ludo@gnu.org>
+;;; Author: Ludovic CourtÃ¨s <ludo@gnu.org>
 
 ;;; Commentary:
 ;;;
@@ -71,15 +71,12 @@
            utf8->string utf16->string utf32->string))
 
 
-(load-extension "libguile" "scm_init_bytevectors")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_bytevectors")
 
 (define-macro (endianness sym)
   (if (memq sym '(big little))
       `(quote ,sym)
       (error "unsupported endianness" sym)))
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:
 
 ;;; bytevector.scm ends here

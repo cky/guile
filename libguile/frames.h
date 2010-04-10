@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
  * * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -87,8 +87,6 @@
  * Heap frames
  */
 
-SCM_API scm_t_bits scm_tc16_frame;
-
 struct scm_frame 
 {
   SCM stack_holder;
@@ -98,8 +96,8 @@ struct scm_frame
   scm_t_ptrdiff offset;
 };
 
-#define SCM_VM_FRAME_P(x)	SCM_SMOB_PREDICATE (scm_tc16_frame, x)
-#define SCM_VM_FRAME_DATA(x)	((struct scm_frame*)SCM_SMOB_DATA (x))
+#define SCM_VM_FRAME_P(x)	(SCM_NIMP (x) && SCM_TYP7 (x) == scm_tc7_frame)
+#define SCM_VM_FRAME_DATA(x)	((struct scm_frame*)SCM_CELL_WORD_1 (x))
 #define SCM_VM_FRAME_STACK_HOLDER(f)	SCM_VM_FRAME_DATA(f)->stack_holder
 #define SCM_VM_FRAME_FP(f)	SCM_VM_FRAME_DATA(f)->fp
 #define SCM_VM_FRAME_SP(f)	SCM_VM_FRAME_DATA(f)->sp
@@ -122,7 +120,8 @@ SCM_API SCM scm_frame_mv_return_address (SCM frame);
 SCM_API SCM scm_frame_dynamic_link (SCM frame);
 SCM_API SCM scm_frame_previous (SCM frame);
 
-SCM_INTERNAL void scm_bootstrap_frames (void);
+SCM_INTERNAL void scm_i_frame_print (SCM frame, SCM port,
+                                     scm_print_state *pstate);
 SCM_INTERNAL void scm_init_frames (void);
 
 #endif /* _SCM_FRAMES_H_ */

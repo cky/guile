@@ -1,6 +1,6 @@
-;;;; keywords.test --- Keywords                  -*- Scheme -*-
+;;;; keywords.test --- Keywords.           -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,3 @@
   (pass-if "printing"
     (string=? (with-output-to-string (lambda () (write #:this)))
 	      "#:this")))
-
-;;; Local Variables:
-;;; coding: latin-1
-;;; End:

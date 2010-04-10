@@ -1,3 +1,274 @@
 @c module-for-docstring (guile)
 
 
+
+@deffn {Scheme Procedure} uniform-array->bytevector array
+@deffnx {C Function} scm_uniform_array_to_bytevector (array)
+Return a newly allocated bytevector whose contents
+will be copied from the uniform array @var{array}.
+@end deffn
+
+@deffn {Scheme Procedure} %start-stack id thunk
+@deffnx {C Function} scm_sys_start_stack (id, thunk)
+Call @var{thunk} on an evaluator stack tagged with @var{id}.
+@end deffn
+
+@deffn {Scheme Procedure} guardian-destroyed? guardian
+@deffnx {C Function} scm_guardian_destroyed_p (guardian)
+Return @code{#t} if @var{guardian} has been destroyed, otherwise @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} guardian-greedy? guardian
+@deffnx {C Function} scm_guardian_greedy_p (guardian)
+Return @code{#t} if @var{guardian} is a greedy guardian, otherwise @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} destroy-guardian! guardian
+@deffnx {C Function} scm_destroy_guardian_x (guardian)
+Destroys @var{guardian}, by making it impossible to put any more
+objects in it or get any objects from it.  It also unguards any
+objects guarded by @var{guardian}.
+@end deffn
+
+@deffn {Scheme Procedure} gc-dump
+@deffnx {C Function} scm_gc_dump ()
+Dump information about the garbage collector's internal data structures and memory usage to the standard output.
+@end deffn
+
+@deffn {Scheme Procedure} gc-disable
+@deffnx {C Function} scm_gc_disable ()
+Disables the garbage collector.  Nested calls are permitted.  GC is re-enabled once @code{gc-enable} has been called the same number of times @code{gc-disable} was called.
+@end deffn
+
+@deffn {Scheme Procedure} gc-enable
+@deffnx {C Function} scm_gc_enable ()
+Enables the garbage collector.
+@end deffn
+
+@deffn {Scheme Procedure} make-generalized-vector type len [fill]
+@deffnx {C Function} scm_make_generalized_vector (type, len, fill)
+Make a generalized vector
+@end deffn
+
+@deffn {Scheme Procedure} set-primitive-generic! subr generic
+@deffnx {C Function} scm_set_primitive_generic_x (subr, generic)
+
+@end deffn
+
+@deffn {Scheme Procedure} nl-langinfo item [locale]
+@deffnx {C Function} scm_nl_langinfo (item, locale)
+Return a string denoting locale information for @var{item} in the current locale or that specified by @var{locale}.  The semantics and arguments are the same as those of the X/Open @code{nl_langinfo} function (@pxref{The Elegant and Fast Way, @code{nl_langinfo},, libc, The GNU C Library Reference Manual}).
+@end deffn
+
+@deffn {Scheme Procedure} %warn-autocompilation-enabled
+@deffnx {C Function} scm_sys_warn_autocompilation_enabled ()
+
+@end deffn
+
+@deffn {Scheme Procedure} make-syncase-macro type binding
+@deffnx {C Function} scm_make_syncase_macro (type, binding)
+Return a @dfn{macro} that requires expansion by syntax-case.
+While users should not call this function, it is useful to know
+that syntax-case macros are represented as Guile primitive macros.
+@end deffn
+
+@deffn {Scheme Procedure} make-extended-syncase-macro m type binding
+@deffnx {C Function} scm_make_extended_syncase_macro (m, type, binding)
+Extend a core macro @var{m} with a syntax-case binding.
+@end deffn
+
+@deffn {Scheme Procedure} syncase-macro-type m
+@deffnx {C Function} scm_syncase_macro_type (m)
+Return the type of the macro @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} syncase-macro-binding m
+@deffnx {C Function} scm_syncase_macro_binding (m)
+Return the binding of the macro @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} memoize-expression exp
+@deffnx {C Function} scm_memoize_expression (exp)
+Memoize the expression @var{exp}.
+@end deffn
+
+@deffn {Scheme Procedure} unmemoize-expression m
+@deffnx {C Function} scm_unmemoize_expression (m)
+Unmemoize the memoized expression @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} memoized-expression-typecode m
+@deffnx {C Function} scm_memoized_expression_typecode (m)
+Return the typecode from the memoized expression @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} memoized-expression-data m
+@deffnx {C Function} scm_memoized_expression_data (m)
+Return the data from the memoized expression @var{m}.
+@end deffn
+
+@deffn {Scheme Procedure} memoized-typecode sym
+@deffnx {C Function} scm_memoized_typecode (sym)
+Return the memoized typecode corresponding to the symbol @var{sym}.
+@end deffn
+
+@deffn {Scheme Procedure} memoize-variable-access! m mod
+@deffnx {C Function} scm_memoize_variable_access_x (m, mod)
+Look up and cache the variable that @var{m} will access, returning the variable.
+@end deffn
+
+@deffn {Scheme Procedure} module-local-variable module sym
+@deffnx {C Function} scm_module_local_variable (module, sym)
+Return the variable bound to @var{sym} in @var{module}.  Return @code{#f} is @var{sym} is not bound locally in @var{module}.
+@end deffn
+
+@deffn {Scheme Procedure} module-variable module sym
+@deffnx {C Function} scm_module_variable (module, sym)
+Return the variable bound to @var{sym} in @var{module}.  This may be both a local variable or an imported variable.  Return @code{#f} is @var{sym} is not bound in @var{module}.
+@end deffn
+
+@deffn {Scheme Procedure} eval-closure-module eval_closure
+@deffnx {C Function} scm_eval_closure_module (eval_closure)
+Return the module associated with this eval closure.
+@end deffn
+
+@deffn {Scheme Procedure} module-transformer module
+@deffnx {C Function} scm_module_transformer (module)
+Returns the syntax expander for the given module.
+@end deffn
+
+@deffn {Scheme Procedure} module-public-interface module
+@deffnx {C Function} scm_module_public_interface (module)
+Return the public interface of @var{module}.
+
+If @var{module} has no public interface, @code{#f} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} define! sym value
+@deffnx {C Function} scm_define (sym, value)
+Define @var{sym} to be @var{value} in the current module.Returns the variable itself. Note that this is a procedure, not a macro.
+@end deffn
+
+@deffn {Scheme Procedure} module-reverse-lookup module variable
+@deffnx {C Function} scm_module_reverse_lookup (module, variable)
+Return the symbol under which @var{variable} is bound in @var{module} or @var{#f} if @var{variable} is not visible from @var{module}.  If @var{module} is @code{#f}, then the pre-module obarray is used.
+@end deffn
+
+@deffn {Scheme Procedure} cddr x
+@deffnx {C Function} scm_cddr (x)
+
+@end deffn
+
+@deffn {Scheme Procedure} make-promise thunk
+@deffnx {C Function} scm_make_promise (thunk)
+Create a new promise object.
+
+@code{make-promise} is a procedural form of @code{delay}.
+These two expressions are equivalent:
+@lisp
+(delay @var{exp})
+(make-promise (lambda () @var{exp}))
+@end lisp
+
+@end deffn
+
+@deffn {Scheme Procedure} %get-stack-size
+@deffnx {C Function} scm_sys_get_stack_size ()
+Return the current thread's C stack size (in Scheme objects).
+@end deffn
+
+@deffn {Scheme Procedure} %string-dump str
+@deffnx {C Function} scm_sys_string_dump (str)
+Returns an association list containing debugging information
+for @var{str}. The association list has the following entries.@table @code
+@item string
+The string itself.
+@item start
+The start index of the string into its stringbuf
+@item length
+The length of the string
+@item shared
+If this string is a substring, it returns its parent string.
+Otherwise, it returns @code{#f}
+@item read-only
+@code{#t} if the string is read-only
+@item stringbuf-chars
+A new string containing this string's stringbuf's characters
+@item stringbuf-length
+The number of characters in this stringbuf
+@item stringbuf-shared
+@code{#t} if this stringbuf is shared
+@item stringbuf-wide
+@code{#t} if this stringbuf's characters are stored in a
+32-bit buffer, or @code{#f} if they are stored in an 8-bit
+buffer
+@end table
+@end deffn
+
+@deffn {Scheme Procedure} %symbol-dump sym
+@deffnx {C Function} scm_sys_symbol_dump (sym)
+Returns an association list containing debugging information
+for @var{sym}. The association list has the following entries.@table @code
+@item symbol
+The symbol itself
+@item hash
+Its hash value
+@item interned
+@code{#t} if it is an interned symbol
+@item stringbuf-chars
+A new string containing this symbols's stringbuf's characters
+@item stringbuf-length
+The number of characters in this stringbuf
+@item stringbuf-shared
+@code{#t} if this stringbuf is shared
+@item stringbuf-wide
+@code{#t} if this stringbuf's characters are stored in a
+32-bit buffer, or @code{#f} if they are stored in an 8-bit
+buffer
+@end table
+@end deffn
+
+@deffn {Scheme Procedure} string-bytes-per-char string
+@deffnx {C Function} scm_string_bytes_per_char (string)
+Return the bytes used to represent a character in @var{string}.This will return 1 or 4.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-element-type v
+@deffnx {C Function} scm_uniform_vector_element_type (v)
+Return the type of the elements in the uniform vector, @var{v}.
+@end deffn
+
+@deffn {Scheme Procedure} uniform-vector-element-size v
+@deffnx {C Function} scm_uniform_vector_element_size (v)
+Return the number of bytes allocated to each element in the
+uniform vector, @var{v}.
+@end deffn
+
+@deffn {Scheme Procedure} canonicalize-path path
+@deffnx {C Function} scm_canonicalize_path (path)
+Return the canonical path of @var{path}. A canonical path has
+no @code{.} or @code{..} components, nor any repeated path
+separators (@code{/}) nor symlinks.
+
+Raises an error if any component of @var{path} does not exist.
+@end deffn
+
+@deffn {Scheme Procedure} getrlimit resource
+@deffnx {C Function} scm_getrlimit (resource)
+Get a resource limit for this process. @var{resource} identifies the resource,
+either as an integer or as a symbol. For example, @code{(getrlimit 'stack)}
+gets the limits associated with @code{RLIMIT_STACK}.
+
+@code{getrlimit} returns two values, the soft and the hard limit. If no
+limit is set for the resource in question, the returned limit will be @code{#f}.
+@end deffn
+
+@deffn {Scheme Procedure} setrlimit resource soft hard
+@deffnx {C Function} scm_setrlimit (resource, soft, hard)
+Set a resource limit for this process. @var{resource} identifies the resource,
+either as an integer or as a symbol. @var{soft} and @var{hard} should be integers,
+or @code{#f} to indicate no limit (i.e., @code{RLIM_INFINITY}).
+
+For example, @code{(setrlimit 'stack 150000 300000)} sets the @code{RLIMIT_STACK}
+limit to 150 kilobytes, with a hard limit of 300 kB.
+@end deffn

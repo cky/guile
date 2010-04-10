@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -15,7 +15,7 @@ The module @code{(ice-9 pretty-print)} provides the procedure
 objects.  This is especially useful for deeply nested or complex data
 structures, such as lists and vectors.
 
-The module is loaded by simply saying.
+The module is loaded by entering the following:
 
 @lisp
 (use-modules (ice-9 pretty-print))
@@ -55,6 +55,67 @@ no prefix.
 
 @item @nicode{#:width} @var{columns}
 Print within the given @var{columns}.  The default is 79.
+@end table
+@end deffn
+
+
+@cindex truncated printing
+Also exported by the @code{(ice-9 pretty-print)} module is
+@code{truncated-print}, a procedure to print Scheme datums, truncating
+the output to a certain number of characters. This is useful when you
+need to present an arbitrary datum to the user, but you only have one
+line in which to do so.
+
+@lisp
+(define exp '(a b #(c d e) f . g))
+(truncated-print exp #:width 10) (newline)
+@print{} (a b . #)
+(truncated-print exp #:width 15) (newline)
+@print{} (a b # f . g)
+(truncated-print exp #:width 18) (newline)
+@print{} (a b #(c ...) . #)
+(truncated-print exp #:width 20) (newline)
+@print{} (a b #(c d e) f . g)
+(truncated-print "The quick brown fox" #:width 20) (newline)
+@print{} "The quick brown..."
+(truncated-print (current-module) #:width 20) (newline)
+@print{} #<directory (gui...>
+@end lisp
+
+@code{truncated-print} will not output a trailing newline. If an expression does
+not fit in the given width, it will be truncated -- possibly
+ellipsized@footnote{On Unicode-capable ports, the ellipsis is represented by
+character `HORIZONTAL ELLIPSIS' (U+2026), otherwise it is represented by three
+dots.}, or in the worst case, displayed as @nicode{#}.
+
+@deffn {Scheme Procedure} truncated-print obj [port] [keyword-options]
+Print @var{obj}, truncating the output, if necessary, to make it fit
+into @var{width} characters. By default, @var{x} will be printed using
+@code{write}, though that behavior can be overriden via the
+@var{display?} keyword argument.
+
+The default behaviour is to print depth-first, meaning that the entire
+remaining width will be available to each sub-expressoin of @var{x} --
+e.g., if @var{x} is a vector, each member of @var{x}. One can attempt to
+``ration'' the available width, trying to allocate it equally to each
+sub-expression, via the @var{breadth-first?} keyword argument.
+
+The further @var{keyword-options} are keywords and parameters as
+follows,
+
+@table @asis
+@item @nicode{#:display?} @var{flag}
+If @var{flag} is true then print using @code{display}.  The default is
+@code{#f} which means use @code{write} style.  (@pxref{Writing})
+
+@item @nicode{#:width} @var{columns}
+Print within the given @var{columns}.  The default is 79.
+
+@item @nicode{#:breadth-first?} @var{flag}
+If @var{flag} is true, then allocate the available width breadth-first
+among elements of a compound data structure (list, vector, pair,
+etc.). The default is @code{#f} which means that any element is
+allowed to consume all of the available width.
 @end table
 @end deffn
 
@@ -575,9 +636,22 @@ to help.  When using @code{gettext} to translate messages
 (@pxref{Internationalization}).
 
 @item @nicode{~y}
-Pretty print.  No parameters.
+Structured printing.  Parameters: @var{width}.
 
-Output an argument with @code{pretty-print} (@pxref{Pretty Printing}).
+@nicode{~y} outputs an argument using @code{pretty-print}
+(@pxref{Pretty Printing}). The result will be formatted to fit within
+@var{width} columns (79 by default), consuming multiple lines if
+necessary.
+
+@nicode{~@@y} outputs an argument using @code{truncated-print}
+(@pxref{Pretty Printing}). The resulting code will be formatted to fit
+within @var{width} columns (79 by default), on a single line. The
+output will be truncated if necessary.
+
+@nicode{~:@@y} is like @nicode{~@@y}, except the @var{width} parameter
+is interpreted to be the maximum column to which to output. That is to
+say, if you are at column 10, and @nicode{~60:@@y} is seen, the datum
+will be truncated to 50 columns.
 
 @item @nicode{~?}
 @itemx @nicode{~k}

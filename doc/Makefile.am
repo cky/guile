@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2002, 2006, 2008, 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2002, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-SUBDIRS = ref tutorial r5rs
+SUBDIRS = ref r5rs
 
 dist_man1_MANS = guile.1
 

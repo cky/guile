@@ -33,6 +33,7 @@ SCM_API SCM scm_tcsetpgrp (SCM port, SCM pgid);
 SCM_API SCM scm_tcgetpgrp (SCM port);
 SCM_API SCM scm_ctermid (void);
 SCM_API SCM scm_setsid (void);
+SCM_API SCM scm_getsid (SCM pid);
 SCM_API SCM scm_setpgid (SCM pid, SCM pgid);
 SCM_API SCM scm_pipe (void);
 SCM_API SCM scm_getgroups (void);
@@ -69,7 +70,8 @@ SCM_API SCM scm_tmpnam (void);
 SCM_API SCM scm_mkstemp (SCM tmpl);
 SCM_API SCM scm_open_pipe (SCM pipestr, SCM modes);
 SCM_API SCM scm_close_pipe (SCM port);
-SCM_API SCM scm_utime (SCM pathname, SCM actime, SCM modtime);
+SCM_API SCM scm_utime (SCM pathname, SCM actime, SCM modtime,
+                       SCM actimens, SCM modtimens, SCM flags);
 SCM_API SCM scm_access (SCM path, SCM how);
 SCM_API SCM scm_getpid (void);
 SCM_API SCM scm_putenv (SCM str);

@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -25,10 +25,11 @@
 AUTOMAKE_OPTIONS = 1.10
 
 SUBDIRS = lib meta libguile guile-readline emacs \
-	  srfi doc examples test-suite benchmark-suite am \
-	  module testsuite
+	  srfi examples test-suite benchmark-suite am \
+	  module doc testsuite
 
-include_HEADERS = libguile.h
+libguileincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)
+libguileinclude_HEADERS = libguile.h
 
 EXTRA_DIST = LICENSE HACKING GUILE-VERSION		\
 	     m4/ChangeLog-2008 \
@@ -46,6 +47,8 @@ dist-hook: gen-ChangeLog
 
 clean-local:
 	rm -rf cache/
+
+CONFIG_STATUS_DEPENDENCIES = GUILE-VERSION
 
 gen_start_rev = 61db429e251bfd2f75cb4632972e0238056eb24b
 .PHONY: gen-ChangeLog

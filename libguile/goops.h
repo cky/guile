@@ -237,7 +237,6 @@ SCM_API void scm_load_goops (void);
 SCM_API SCM scm_make_extended_class (char const *type_name, int applicablep);
 SCM_API void scm_make_port_classes (long ptobnum, char *type_name);
 SCM_API SCM scm_ensure_accessor (SCM name);
-SCM_API void scm_add_method (SCM gf, SCM m);
 SCM_API SCM scm_class_of (SCM obj);
 
 /* Low level functions exported */

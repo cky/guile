@@ -1,5 +1,5 @@
 ;;;; bit-operations.test --- bitwise operations on numbers -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -362,3 +362,7 @@
             (+ fixnum-bit fixnum-bit  1) (- (ash 1 (+ fixnum-bit 1)) 1))
       (list (- fixnum-min 1) (+ fixnum-bit  1)
             (+ fixnum-bit fixnum-bit  2) (- (ash 1 (+ fixnum-bit 1)) 1))))))
+
+(with-test-prefix "bitshifts on word boundaries"
+  (pass-if (= (ash 1 32) 4294967296))
+  (pass-if (= (ash 1 64) 18446744073709551616)))

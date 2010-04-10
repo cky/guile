@@ -1,6 +1,6 @@
 ;;; Guile Virtual Machine Assembly
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -58,8 +58,6 @@
 
 (define *program-alignment* 8)
 
-(define *block-alignment* 8)
-
 (define (addr+ addr code)
   (fold (lambda (x len) (+ (byte-length x) len))
         addr
@@ -108,7 +106,7 @@
 (define (object->assembly x)
   (cond ((eq? x #t) `(make-true))
 	((eq? x #f) `(make-false))
-        ((eq? x %nil) `(make-nil))
+        ((eq? x #nil) `(make-nil))
 	((null? x) `(make-eol))
 	((and (integer? x) (exact? x))
 	 (cond ((and (<= -128 x) (< x 128))
@@ -138,7 +136,7 @@
   (pmatch code
     ((make-true) #t)
     ((make-false) #f) ;; FIXME: Same as the `else' case!
-    ((make-nil) %nil)
+    ((make-nil) #nil)
     ((make-eol) '())
     ((make-int8 ,n)
      (if (< n 128) n (- n 256)))
