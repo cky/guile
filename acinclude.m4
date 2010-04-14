@@ -378,7 +378,7 @@ dnl
 dnl Check all the things needed by `guile-readline', the Readline
 dnl bindings.
 AC_DEFUN([GUILE_READLINE], [
-  for termlib in ncurses curses termcap terminfo termlib ; do
+  for termlib in ncurses curses termcap terminfo termlib pdcurses ; do
      AC_CHECK_LIB(${termlib}, [tgoto],
        [READLINE_LIBS="-l${termlib} $READLINE_LIBS"; break])
   done
