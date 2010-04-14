@@ -315,7 +315,24 @@ static SCM sym_vm_run, sym_vm_error, sym_keyword_argument_error, sym_debug;
 void
 scm_i_vm_print (SCM x, SCM port, scm_print_state *pstate)
 {
+  const struct scm_vm *vm;
+
+  vm = SCM_VM_DATA (x);
+
   scm_puts ("#<vm ", port);
+  switch (vm->engine)
+    {
+    case SCM_VM_REGULAR_ENGINE:
+      scm_puts ("regular-engine ", port);
+      break;
+
+    case SCM_VM_DEBUG_ENGINE:
+      scm_puts ("debug-engine ", port);
+      break;
+
+    default:
+      scm_puts ("unknown-engine ", port);
+    }
   scm_uintprint (SCM_UNPACK (x), 16, port);
   scm_puts (">", port);
 }
