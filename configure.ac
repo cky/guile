@@ -1410,39 +1410,43 @@ AM_CONDITIONAL([BUILD_PTHREAD_SUPPORT],
 
 if test "$with_threads" = pthreads; then
 
-AC_MSG_CHECKING(whether pthread_attr_getstack works for the main thread)
+AC_MSG_CHECKING([whether pthread_attr_getstack works for the main thread])
 old_CFLAGS="$CFLAGS"
 CFLAGS="$PTHREAD_CFLAGS $CFLAGS"
-AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#if HAVE_PTHREAD_ATTR_GETSTACK
-#include <pthread.h>
+if test "$cross_compiling" = "no"; then
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  #if HAVE_PTHREAD_ATTR_GETSTACK
+  #include <pthread.h>
 
-int main ()
-{
-  pthread_attr_t attr;
-  void *start, *end;
-  size_t size;
+  int main ()
+  {
+    pthread_attr_t attr;
+    void *start, *end;
+    size_t size;
 
-  pthread_getattr_np (pthread_self (), &attr);
-  pthread_attr_getstack (&attr, &start, &size);
-  end = (char *)start + size;
+    pthread_getattr_np (pthread_self (), &attr);
+    pthread_attr_getstack (&attr, &start, &size);
+    end = (char *)start + size;
 
-  if ((void *)&attr < start || (void *)&attr >= end)
+    if ((void *)&attr < start || (void *)&attr >= end)
+      return 1;
+    else
+      return 0;
+  }
+  #else
+  int main ()
+  {
     return 1;
-  else
-    return 0;
-}
-#else
-int main ()
-{
-  return 1;
-}
-#endif
-]])],
-[works=yes
-AC_DEFINE([PTHREAD_ATTR_GETSTACK_WORKS], [1], [Define when pthread_att_get_stack works for the main thread])],
-[works=no],
-[])
+  }
+  #endif
+  ]])],
+  [works=yes
+   AC_DEFINE([PTHREAD_ATTR_GETSTACK_WORKS], [1], [Define when pthread_att_get_stack works for the main thread])],
+  [works=no],
+  [])
+else
+  works="assuming it doesn't"
+fi
 CFLAGS="$old_CFLAGS"
 AC_MSG_RESULT($works)
 
