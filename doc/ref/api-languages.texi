@@ -97,6 +97,103 @@ section focuses on addressing these concerns of the Elisp elect.
 @node Nil
 @subsubsection Nil
 
+@code{nil} in ELisp is an amalgam of Scheme's @code{#f} and @code{'()}.
+It is false, and it is the end-of-list; thus it is a boolean, and a list
+as well.
+
+Guile has chosen to support @code{nil} as a separate value, distinct
+from @code{#f} and @code{'()}. This allows existing Scheme and Elisp
+code to maintain their current semantics. @code{nil}, which in Elisp
+would just be written and read as @code{nil}, in Scheme has the external
+representation @code{#nil}.
+
+This decision to have @code{nil} as a low-level distinct value does
+complicate interoperability between the two languages. Guile has chosen
+to have Scheme deal with @code{nil} as follows:
+
+@example
+(boolean? #nil) @result{} #t
+(not #nil) @result{} #t
+(null? #nil) @result{} #t
+@end example
+
+Since Scheme's @code{equal?} must be transitive, and @code{'()}
+is not @code{equal?} to @code{#f}, to Scheme @code{nil} is not
+@code{equal?} to @code{#f} or @code{'()}.
+
+However, in Elisp, @code{'()}, @code{#f}, and @code{nil} are all
+@code{eqv} (though not @code{eq}).
+
+These choices facilitate interoperability between Elisp and Scheme code,
+but they are not perfect. Some code that is historically correct
+standard Scheme is not correct in the presence of a second false and
+null value. For example:
+
+@example
+(define (truthiness x)
+  (if (eq? x #f)
+      #f
+      #t))
+@end example
+
+This code seems to be meant to test a value for truth, but now that
+there are two false values, @code{#f} and @code{nil}, it is no longer
+correct.
+
+Similarly, there is the loop:
+
+@example
+(define (my-length l)
+  (let lp ((l l) (len 0))
+    (if (eq? l '())
+        len
+        (lp (cdr l) (1+ len)))))
+@end example
+
+Here, @code{my-length} will raise an error if @var{l} is a
+@code{nil}-terminated list.
+
+Both of these examples are correct standard Scheme, but, depending on
+what they really want to do, they are not correct Guile Scheme.
+Correctly written, they would test the @emph{properties} of falsehood or
+nullity, not the individual members of that set. That is to say, use
+@code{not} or @code{null?} to test for falsehood or nullity, not
+@code{eq?} or @code{memv} or the like.
+
+Here are correct versions of the above examples:
+
+@example
+(define (truthiness* x)
+  (if (not x)
+      #f
+      #t))
+;; or: (define (t* x) (not (not x)))
+;; or: (define (t** x) x)
+
+(define (my-length* l)
+  (let lp ((l l) (len 0))
+    (if (null? l)
+        len
+        (lp (cdr l) (1+ len)))))
+@end example
+
+This problem has a mirror-image case in Elisp:
+
+@example
+(deffn my-falsep (x)
+  (if (eq x nil)
+      t
+      nil))
+@end example
+
+Guile can warn when compiling code that has equality comparisons with
+@code{#f}, @code{'()}, or @code{nil}. @xref{Compilation}, for details.
+
+On a low level, the bit representations for @code{#f}, @code{#t},
+@code{nil}, and @code{'()} are made in such a way that the differ by
+only one bit, and so a test for, for example, @code{#f}-or-@code{nil}
+may be made very efficiently.
+
 @node Dynamic Binding
 @subsubsection Dynamic Binding
 
