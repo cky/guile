@@ -309,7 +309,7 @@ available through both Scheme and C interfaces.
 * Foreign Function Interface::  Interacting with C procedures and data.
 * Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
 * Options and Config::          Configuration, features and runtime options.
-* Translation::                 Support for translating other languages.
+* Other Languages::             Emacs Lisp, ECMAScript, and more.
 * Internationalization::        Support for gettext, etc.
 * Debugging::                   Debugging infrastructure and Scheme interface.
 @end menu
@@ -335,7 +335,7 @@ available through both Scheme and C interfaces.
 @include api-scheduling.texi
 @c object orientation support here
 @include api-options.texi
-@include api-translation.texi
+@include api-languages.texi
 @include api-i18n.texi
 @include api-debug.texi
 

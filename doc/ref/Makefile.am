@@ -42,12 +42,12 @@ guile_TEXINFOS = preface.texi			\
 		 api-io.texi			\
 		 api-foreign.texi		\
 		 api-lalr.texi			\
+		 api-languages.texi		\
 		 api-evaluation.texi		\
 		 api-memory.texi		\
 		 api-modules.texi		\
 		 api-scheduling.texi		\
 		 api-options.texi		\
-		 api-translation.texi		\
 		 api-i18n.texi			\
 		 api-debug.texi			\
 		 scheme-reading.texi		\

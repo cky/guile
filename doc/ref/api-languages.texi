@@ -1,0 +1,125 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@page
+@node Other Languages
+@section Support for Other Languages
+
+In addition to Scheme, a user may write a Guile program in an increasing
+number of other languages. Currently supported languages include Emacs
+Lisp and ECMAScript.
+
+Guile is still fundamentally a Scheme, but it tries to support a wide
+variety of language building-blocks, so that a user can implement other
+languages on top of Guile. This section describes the languages that
+have been implemented.
+
+(For details on how to implement a language, @xref{Compiling to the
+Virtual Machine}.)
+
+@menu
+* Using Other Languages::       How to use other languages.
+* Emacs Lisp::                  The dialect of Lisp used in Emacs.
+* ECMAScript::                  As seen on television.
+@end menu
+
+
+@node Using Other Languages
+@subsection Using Other Languages
+
+There are currently only two ways to access other languages from within
+Guile: at the REPL, and via @code{compile} or @code{compile-file}.
+
+The REPL is Guile's command prompt (@pxref{Using Guile Interactively}).
+The REPL has a concept of the ``current language'', which defaults to
+Scheme. The user may change that language, via the meta-command
+@code{,language}.
+
+For example, the following meta-command enables Emacs Lisp input:
+
+@example
+scheme@@(guile-user)> ,language elisp
+Happy hacking with Emacs Lisp!  To switch back, type `,L scheme'.
+elisp@@(guile-user)> (eq 1 2)
+$1 = #nil
+@end example
+
+Each language has its short name: for example, @code{elisp}, for Elisp.
+The same short name may be used to compile source code programmatically,
+via @code{compile}:
+
+@example
+elisp@@(guile-user)> ,L scheme
+Happy hacking with Guile Scheme!  To switch back, type `,L elisp'.
+scheme@@(guile-user)> (compile '(eq 1 2) #:from 'elisp)
+$2 = #nil
+@end example
+
+Granted, as the input to @code{compile} is a datum, this works best for
+Lispy languages, which have a straightforward datum representation.
+Other languages that need more parsing are better dealt with as strings.
+
+The easiest way to deal with syntax-heavy language is with files, via
+@code{compile-file} and friends. However it is possible to invoke a
+language's reader on a port, and then compile the resulting expression
+(which is a datum at that point). For more information,
+@xref{Compilation}.
+
+For more details on introspecting aspects of different languages,
+@xref{Compiler Tower}.
+
+@node Emacs Lisp
+@subsection Emacs Lisp
+
+Emacs Lisp (Elisp) is a dynamically-scoped Lisp dialect used in the
+Emacs editor. @xref{top,,Overview,elisp,Emacs Lisp}, for more
+information on Emacs Lisp.
+
+We hope that eventually Guile's implementation of Elisp will be good
+enough to replace Emacs' own implementation of Elisp. For that reason,
+we have thought long and hard about how to support the various features
+of Elisp in a performant and compatible manner.
+
+Readers familiar with Emacs Lisp might be curious about how exactly
+these various Elisp features are supported in Guile. The rest of this
+section focuses on addressing these concerns of the Elisp elect.
+
+@menu
+* Nil::                         A third boolean.
+* Dynamic Binding::             Threadsafe bindings with fluids.
+* Other Elisp Features::        Miscellany.
+@end menu
+
+
+@node Nil
+@subsubsection Nil
+
+@node Dynamic Binding
+@subsubsection Dynamic Binding
+
+@node Other Elisp Features
+@subsubsection Other Elisp Features
+
+
+@node ECMAScript
+@subsection ECMAScript
+
+ECMAScript was not the first non-Schemey language implemented by Guile,
+but it was the first implemented for Guile's bytecode compiler. The goal
+was to support ECMAScript version 3.1, a relatively small language, but
+the implementor was completely irresponsible and got distracted by other
+things before finishing the standard library, and even some bits of the
+syntax. So, ECMAScript does deserve a mention in the manual, but it
+doesn't deserve an endorsement until its implementation is completed,
+perhaps by some more responsible hacker.
+
+In the meantime, the charitable user might investigate such invocations
+as @code{,L ecmascript} and @code{cat test-suite/tests/ecmascript.test}.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
