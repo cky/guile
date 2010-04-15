@@ -450,14 +450,17 @@ For the C locale, the default values are typically @code{"^[yY]"} and
 Here is an example:
 
 @example
+(use-modules (ice-9 rdelim))
 (format #t "Does Guile rock?~%")
-(let ((answer (read-line)))
+(let lp ((answer (read-line)))
   (cond ((string-match (locale-yes-regexp) answer)
-         "Yes it does.")
+         (format #t "High fives!~%"))
         ((string-match (locale-no-regexp) answer)
-         "No it doesn't.")
+         (format #t "How about now? Does it rock yet?~%")
+         (lp (read-line)))
         (else
-         "What do you mean?")))
+         (format #t "What do you mean?~%")
+         (lp (read-line)))))
 @end example
 
 For an internationalized yes/no string output, @code{gettext} should
