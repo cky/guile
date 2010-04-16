@@ -71,9 +71,7 @@ but when we start to integrate more with Emacs, it is possible that we
 break code that assumes that, for example, `(not x)' implies that `x' is
 `eq?' to `#f'. This is not a common assumption. Refactoring affected
 code to rely on properties instead of identities will improve code
-correctness.
-
-That is to say, user code should test falsity with `if', not with `eq?'.
+correctness. See "Nil" in the manual, for more details.
 
 ** Integration of lalr-scm, a parser generator
 
@@ -1195,8 +1193,7 @@ Just use `scm_call_0', etc instead.
 The bit representation of `nil' has been tweaked so that it is now very
 efficient to check e.g. if a value is equal to Scheme's end-of-list or
 Lisp's nil. Additionally there are a heap of new, specific predicates
-like scm_is_null_or_nil. Probably in the future we will #define
-scm_is_null to scm_is_null_or_nil.
+like scm_is_null_or_nil.
 
 ** Support for static allocation of strings, symbols, and subrs.
 
