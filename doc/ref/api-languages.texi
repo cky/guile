@@ -13,9 +13,10 @@ number of other languages. Currently supported languages include Emacs
 Lisp and ECMAScript.
 
 Guile is still fundamentally a Scheme, but it tries to support a wide
-variety of language building-blocks, so that a user can implement other
-languages on top of Guile. This section describes the languages that
-have been implemented.
+variety of language building-blocks, so that other languages can be
+implemented on top of Guile. This allows users to write or extend
+applications in languages other than Scheme, too. This section describes
+the languages that have been implemented.
 
 (For details on how to implement a language, @xref{Compiling to the
 Virtual Machine}.)
@@ -31,7 +32,8 @@ Virtual Machine}.)
 @subsection Using Other Languages
 
 There are currently only two ways to access other languages from within
-Guile: at the REPL, and via @code{compile} or @code{compile-file}.
+Guile: at the REPL, and programmatically, via @code{compile},
+@code{read-and-compile}, and @code{compile-file}.
 
 The REPL is Guile's command prompt (@pxref{Using Guile Interactively}).
 The REPL has a concept of the ``current language'', which defaults to
@@ -132,7 +134,7 @@ version of @code{fold} written in Elisp can fold over a
 @code{'()}-terminated list, as made by Scheme.
 
 On a low level, the bit representations for @code{#f}, @code{#t},
-@code{nil}, and @code{'()} are made in such a way that the differ by
+@code{nil}, and @code{'()} are made in such a way that they differ by
 only one bit, and so a test for, for example, @code{#f}-or-@code{nil}
 may be made very efficiently. See @code{libguile/boolean.h}, for more
 information.
@@ -240,17 +242,27 @@ Guile can warn when compiling code that has equality comparisons with
 @node Dynamic Binding
 @subsubsection Dynamic Binding
 
+In contrast to Scheme, which uses ``lexical scoping'', Emacs Lisp scopes
+its variables dynamically. Guile supports dynamic scoping with its
+``fluids'' facility. @xref{Fluids and Dynamic States}, for more
+information.
+
 @node Other Elisp Features
 @subsubsection Other Elisp Features
 
+Buffer-local and mode-local variables should be mentioned here, along
+with buckybits on characters, Emacs primitive data types, the
+Lisp-2-ness of Elisp, and other things. Contributions to the
+documentation are most welcome!
 
 @node ECMAScript
 @subsection ECMAScript
 
-ECMAScript was not the first non-Schemey language implemented by Guile,
-but it was the first implemented for Guile's bytecode compiler. The goal
-was to support ECMAScript version 3.1, a relatively small language, but
-the implementor was completely irresponsible and got distracted by other
+@url{http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf,ECMAScript}
+was not the first non-Schemey language implemented by Guile, but it was
+the first implemented for Guile's bytecode compiler. The goal was to
+support ECMAScript version 3.1, a relatively small language, but the
+implementor was completely irresponsible and got distracted by other
 things before finishing the standard library, and even some bits of the
 syntax. So, ECMAScript does deserve a mention in the manual, but it
 doesn't deserve an endorsement until its implementation is completed,
