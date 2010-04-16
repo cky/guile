@@ -4,7 +4,6 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@page
 @node Scheduling
 @section Threads, Mutexes, Asyncs and Dynamic Roots
 

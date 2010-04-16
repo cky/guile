@@ -4,50 +4,121 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@node Introduction to Guile
-@chapter Introduction to Guile
+@node Introduction
+@chapter Introduction
+
+Guile is an implementation of the Scheme programming language.  Scheme
+(@url{schemers.org}) is an elegant and conceptually simple dialect of
+Lisp, originated by Guy Steele and Gerald Sussman, and since evolved
+by the series of reports known as RnRS (the
+@tex
+Revised$^n$
+@end tex
+@ifnottex
+Revised^n
+@end ifnottex
+Reports on Scheme).
+
+Unlike -- for example -- Python or Perl, Scheme has no benevolent
+dictator.  There are many Scheme implementations, with different
+characteristics and with communities and academic activities around
+them, and the language develops as a result of the interplay between
+these.  Guile's particular characteristics are that
+
+@itemize
+@item
+it is easy to combine with other code written in C
+@item
+it has a historical and continuing connection with the GNU Project
+@item
+it emphasizes interactive and incremental programming
+@item
+it actually supports several languages, not just Scheme.
+@end itemize
+
+@noindent
+The next few sections explain what we mean by these points.  The
+sections after that cover how you can obtain and install Guile, a tour
+of the ways that you can use it, how to report any problems that you
+encounter, and the typographical conventions that we use in this
+manual.
 
 @menu
-* What is Guile?::              
+* Guile and Scheme::              
+* Combining with C::              
+* Guile and the GNU Project::
+* Interactive Programming::
+* Supporting Multiple Languages::
 * Obtaining and Installing Guile::  
 * Whirlwind Tour::              
-* Discouraged and Deprecated::
 * Reporting Bugs::              
+* Typographical Conventions::          
 @end menu
 
-@node What is Guile?
-@section What is Guile?
+@node Guile and Scheme
+@section Guile and Scheme
 
-Guile is an interpreter for the Scheme programming language, packaged
-for use in a wide variety of environments.  Guile implements Scheme as
-described in the
+Guile implements Scheme as described in the
 @tex
 Revised$^5$
 @end tex
 @ifnottex
 Revised^5
 @end ifnottex
-Report on the Algorithmic Language Scheme (usually known as @acronym{R5RS}),
-providing clean and general data and control structures.  Guile goes
-beyond the rather austere language presented in @acronym{R5RS}, extending it with
-a module system, full access to @acronym{POSIX} system calls, networking support,
-multiple threads, dynamic linking, a foreign function call interface,
-powerful string processing, and many other features needed for
-programming in the real world.
+Report on the Algorithmic Language Scheme (usually known as
+@acronym{R5RS}), providing clean and general data and control
+structures.  Guile goes beyond the rather austere language presented
+in @acronym{R5RS}, extending it with a module system, full access to
+@acronym{POSIX} system calls, networking support, multiple threads,
+dynamic linking, a foreign function call interface, powerful string
+processing, and many other features needed for programming in the real
+world.
 
-Like a shell, Guile can run interactively, reading expressions from the
-user, evaluating them, and displaying the results, or as a script
-interpreter, reading and executing Scheme code from a file.  However,
-Guile is also packaged as an object library, allowing other applications
-to easily incorporate a complete Scheme interpreter.  An application can
-then use Guile as an extension language, a clean and powerful configuration
-language, or as multi-purpose ``glue'', connecting primitives provided
-by the application.  It is easy to call Scheme code from C code and vice
-versa, giving the application designer full control of how and when to
-invoke the interpreter.  Applications can add new functions, data types,
-control structures, and even syntax to Guile, creating a domain-specific
-language tailored to the task at hand, but based on a robust language
-design.
+The Scheme community has recently agreed and published R6RS, the
+latest installment in the RnRS series.  R6RS significantly expands the
+core Scheme language, and standardises many non-core functions that
+implementations -- including Guile -- have previously done in
+different ways.  Guile has been updated to incorporate some of the
+features of R6RS, and to adjust some existing features to conform to
+the R6RS specification, but it is by no means a complete R6RS
+implementation.
+
+Between R5RS and R6RS, the SRFI process (@url{http://srfi.schemers.org/})
+standardised interfaces for many practical needs, such as multithreaded
+programming and multidimensional arrays.  Guile supports many SRFIs, as
+documented in detail in @ref{SRFI Support}.
+
+In summary, so far as relationship to the Scheme standards is
+concerned, Guile is an R5RS implementation with many extensions, some
+of which conform to SRFIs or to the relevant parts of R6RS.
+
+@node Combining with C
+@section Combining with C Code
+
+Like a shell, Guile can run interactively --- reading expressions from the user,
+evaluating them, and displaying the results --- or as a script interpreter,
+reading and executing Scheme code from a file.  Guile also provides an object
+library, @dfn{libguile}, that allows other applications to easily incorporate a
+complete Scheme interpreter.  An application can then use Guile as an extension
+language, a clean and powerful configuration language, or as multi-purpose
+``glue'', connecting primitives provided by the application.  It is easy to call
+Scheme code from C code and vice versa, giving the application designer full
+control of how and when to invoke the interpreter.  Applications can add new
+functions, data types, control structures, and even syntax to Guile, creating a
+domain-specific language tailored to the task at hand, but based on a robust
+language design.
+
+This kind of combination is helped by four aspects of Guile's design
+and history.  First is that Guile has always been targeted as an
+extension language.  Hence its C API has always been of great
+importance, and has been developed accordingly.  Second and third are
+rather technical points -- that Guile uses conservative garbage
+collection, and that it implements the Scheme concept of continuations
+by copying and reinstating the C stack -- but whose practical
+consequence is that most existing C code can be glued into Guile as
+is, without needing modifications to cope with strange Scheme
+execution flows.  Last is the module system, which helps extensions to
+coexist without stepping on each others' toes.
 
 Guile's module system allows one to break up a large program into
 manageable sections with well-defined interfaces between them.
@@ -58,10 +129,57 @@ routines for general distribution; as of this writing, one can find
 Emacs interfaces, database access routines, compilers, @acronym{GUI}
 toolkit interfaces, and @acronym{HTTP} client functions, among others.
 
-In the future, we hope to expand Guile to support other languages like
-Tcl and Perl by translating them to Scheme code.  This means that users
-can program applications which use Guile in the language of their
-choice, rather than having the tastes of the application's author
+@node Guile and the GNU Project
+@section Guile and the GNU Project
+
+Guile was conceived by the GNU Project following the fantastic success
+of Emacs Lisp as an extension language within Emacs.  Just as Emacs
+Lisp allowed complete and unanticipated applications to be written
+within the Emacs environment, the idea was that Guile should do the
+same for other GNU Project applications.  This remains true today.
+
+Guile is now used by GNU project applications such as AutoGen, Lilypond, Denemo,
+Mailutils, TeXmacs and Gnucash, and we hope that there will be many more in
+future.
+
+@node Interactive Programming
+@section Interactive Programming
+
+Non-free software has no interest in its users being able to see how it works.
+They are supposed to just accept it, or to report problems and hope that the
+source code owners will choose to work on them.
+
+Free software aims to work reliably just as much as non-free software does, but
+it should also empower its users by making its workings available.  This is
+useful for many reasons, including education, auditing and enhancements, as well
+as for debugging problems.
+
+The ideal free software system achieves this by making it easy for interested
+users to see the source code for a feature that they are using, and to follow
+through that source code step-by-step, as it runs.  In Emacs, good examples of
+this are the source code hyperlinks in the help system, and @code{edebug}.
+Then, for bonus points and maximising the ability for the user to experiment
+quickly with code changes, the system should allow parts of the source code to
+be modified and reloaded into the running program, to take immediate effect.
+
+Guile allows this kind of interactive programming, and this distinguishes it
+from many Scheme implementations that instead prioritise running a fixed Scheme
+program as fast as possible --- because there are tradeoffs between performance
+and the ability to modify parts of an already running program.  There are faster
+Schemes than Guile, but Guile is a GNU project and so prioritises the GNU vision
+of programming freedom and experimentation.
+
+@node Supporting Multiple Languages
+@section Supporting Multiple Languages
+
+Since the 2.0 release, Guile's architecture supports compiling any language to
+its core virtual machine bytecode, and Scheme is just one of the supported
+languages.  Other supported languages are Emacs Lisp, ECMAScript (commonly known
+as Javascript) and Brainfuck, and work is under discussion for Lua, Ruby and
+Python.
+
+This means that users can program applications which use Guile in the language
+of their choice, rather than having the tastes of the application's author
 imposed on them.
 
 @node Obtaining and Installing Guile
@@ -69,7 +187,7 @@ imposed on them.
 
 Guile can be obtained from the main GNU archive site
 @url{ftp://ftp.gnu.org} or any of its mirrors.  The file will be named
-guile-version.tar.gz.  The current version is @value{VERSION}, so the
+guile-@var{version}.tar.gz.  The current version is @value{VERSION}, so the
 file you should grab is:
 
 @url{ftp://ftp.gnu.org/pub/gnu/guile/guile-@value{VERSION}.tar.gz}
@@ -94,9 +212,8 @@ make install
 @end example
 
 This will install the Guile executable @file{guile}, the Guile library
-@file{libguile} and various associated header files and support
-libraries. It will also install the Guile tutorial and reference
-manual.
+@file{libguile} and various associated header files and support libraries. It
+will also install the Guile reference manual.
 
 @c [[include instructions for getting R5RS]]
 
@@ -385,39 +502,6 @@ There is also a way to manipulate the module system from C but only
 Scheme files can be autoloaded.  Thus, we recommend that you define
 your modules in Scheme.
 
-@node Discouraged and Deprecated
-@section Discouraged and Deprecated
-
-From time to time functions and other features of Guile become
-obsolete.  Guile has some mechanisms in place that can help you cope
-with this.
-
-Guile has two levels of obsoleteness: things can be @emph{deprecated},
-meaning that their use is considered harmful and should be avoided,
-even in old code; or they can be merely @emph{discouraged}, meaning
-that they are fine in and of themselves, but that there are better
-alternatives that should be used in new code.
-
-When you use a feature that is deprecated, you will likely get a
-warning message at run-time.  Also, deprecated features are not ready
-for production use: they might be very slow.  When something is merely
-discouraged, it performs normally and you wont get any messages at
-run-time.
-
-The primary source for information about just what things are
-discouraged or deprecated in a given release is the file
-@file{NEWS}.  That file also documents what you should use instead
-of the obsoleted things.
-
-The file @file{README} contains instructions on how to control the
-inclusion or removal of the deprecated and/or discouraged features
-from the public API of Guile, and how to control the warning messages
-for deprecated features.
-
-The idea behind those mechanisms is that normally all deprecated and
-discouraged features are available, but that you can omit them on
-purpose to check whether your code still relies on them.
-
 @node Reporting Bugs
 @section Reporting Bugs
 
@@ -585,6 +669,53 @@ matters is the contents of the objects they point to (and most of the
 contents are themselves pointers).
 @end itemize
 
+
+@node Typographical Conventions
+@section Typographical Conventions
+
+We use some conventions in this manual.
+
+@itemize @bullet
+
+@item
+For some procedures, notably type predicates, we use ``iff'' to mean
+``if and only if''.  The construct is usually something like: `Return
+@var{val} iff @var{condition}', where @var{val} is usually
+``@nicode{#t}'' or ``non-@nicode{#f}''.  This typically means that
+@var{val} is returned if @var{condition} holds, and that @samp{#f} is
+returned otherwise.  To clarify: @var{val} will @strong{only} be
+returned when @var{condition} is true.
+@cindex iff
+
+@item
+In examples and procedure descriptions and all other places where the
+evaluation of Scheme expression is shown, we use some notation for
+denoting the output and evaluation results of expressions.
+
+The symbol @samp{@result{}} is used to tell which value is returned by
+an evaluation:
+
+@lisp
+(+ 1 2)
+@result{} 3
+@end lisp
+
+Some procedures produce some output besides returning a value.  This
+is denoted by the symbol @samp{@print{}}.
+
+@lisp
+(begin (display 1) (newline) 'hooray)
+@print{} 1
+@result{} hooray
+@end lisp
+
+As you can see, this code prints @samp{1} (denoted by
+@samp{@print{}}), and returns @code{hooray} (denoted by
+@samp{@result{}}).  Do not confuse the two.
+
+@c Add other conventions here.
+
+@end itemize
 
 
 @c Local Variables:

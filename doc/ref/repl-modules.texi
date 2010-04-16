@@ -4,7 +4,6 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@page
 @node Readline Support
 @section Readline Support
 
@@ -255,7 +254,6 @@ possibilities in @var{string-list}.  Matching is case-sensitive.
 @end defun
 
 
-@page
 @node Value History
 @section Value History
 

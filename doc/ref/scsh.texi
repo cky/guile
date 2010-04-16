@@ -4,7 +4,6 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@page
 @node The Scheme shell (scsh)
 @section The Scheme shell (scsh)
 @cindex SCSH

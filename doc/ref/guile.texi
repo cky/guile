@@ -167,7 +167,7 @@ x
 @menu
 
 * Preface::
-* Introduction to Guile::
+* Introduction::
 
 * Programming in Scheme::
 * Programming in C::
@@ -289,6 +289,7 @@ available through both Scheme and C interfaces.
 
 @menu
 * API Overview::                Overview of the Guile API.
+* Discouraged and Deprecated::  Obsolete back-compatible APIs.
 * The SCM Type::                The fundamental data type for C code.
 * Initialization::              Initializing Guile.
 * Snarfing Macros::             Macros for snarfing initialization actions.
@@ -315,6 +316,7 @@ available through both Scheme and C interfaces.
 @end menu
 
 @include api-overview.texi
+@include api-discdepr.texi
 @include api-scm.texi
 @include api-init.texi
 @include api-snarf.texi

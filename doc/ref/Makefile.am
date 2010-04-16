@@ -56,9 +56,9 @@ guile_TEXINFOS = preface.texi			\
 		 posix.texi			\
 		 expect.texi			\
 		 scsh.texi			\
-		 tcltk.texi			\
 		 scheme-scripts.texi		\
 		 api-overview.texi		\
+		 api-discdepr.texi		\
 		 scheme-debugging.texi		\
 		 scheme-using.texi		\
 		 indices.texi			\

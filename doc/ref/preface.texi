@@ -5,27 +5,14 @@
 @c See the file guile.texi for copying conditions.
 
 @node Preface
-@chapter Preface
+@unnumbered Preface
 
-This manual documents version @value{VERSION} of Guile, GNU's
-Ubiquitous Intelligent Language for Extensions.  It describes how to
-use Guile in many useful and interesting ways.
-
-@menu
-* Manual Layout::               
-* Manual Conventions::          
-* Contributors::                
-* Guile License::               
-@end menu
-
-
-@node Manual Layout
-@section Layout of this Manual
-
-The manual is divided into the following chapters.
+This manual describes how to use Guile, GNU's Ubiquitous Intelligent
+Language for Extensions.  It relates particularly to Guile version
+@value{VERSION}.  The manual is divided into the following chapters.
 
 @table @strong
-@item Chapter 1: Introduction to Guile
+@item Chapter 1: Introduction
 This part provides an overview of what Guile is and how you can use
 it.  A whirlwind tour shows how Guile can be used interactively and as
 a script interpreter, how to link Guile into your own applications,
@@ -64,56 +51,13 @@ classes, multiple inheritance and generic functions.
 
 @end table
 
-
-@node Manual Conventions
-@section Conventions used in this Manual
-
-We use some conventions in this manual.
-
-@itemize @bullet
-
-@item
-For some procedures, notably type predicates, we use ``iff'' to mean
-``if and only if''.  The construct is usually something like: `Return
-@var{val} iff @var{condition}', where @var{val} is usually
-``@nicode{#t}'' or ``non-@nicode{#f}''.  This typically means that
-@var{val} is returned if @var{condition} holds, and that @samp{#f} is
-returned otherwise.  To clarify: @var{val} will @strong{only} be
-returned when @var{condition} is true.
-@cindex iff
-
-@item
-In examples and procedure descriptions and all other places where the
-evaluation of Scheme expression is shown, we use some notation for
-denoting the output and evaluation results of expressions.
-
-The symbol @samp{@result{}} is used to tell which value is returned by
-an evaluation:
-
-@lisp
-(+ 1 2)
-@result{} 3
-@end lisp
-
-Some procedures produce some output besides returning a value.  This
-is denoted by the symbol @samp{@print{}}.
-
-@lisp
-(begin (display 1) (newline) 'hooray)
-@print{} 1
-@result{} hooray
-@end lisp
-
-As you can see, this code prints @samp{1} (denoted by
-@samp{@print{}}), and returns @code{hooray} (denoted by
-@samp{@result{}}).  Do not confuse the two.
-
-@c Add other conventions here.
-
-@end itemize
+@menu
+* Contributors::                
+* Guile License::               
+@end menu
 
 @node Contributors
-@section Contributors to this Manual
+@unnumberedsec Contributors to this Manual
 
 The Guile reference and tutorial manuals were written and edited
 largely by Mark Galassi and Jim Blandy.  In particular, Jim wrote the
@@ -149,7 +93,7 @@ The chapter on GOOPS was written by Christian Lynbech, Mikael
 Djurfeldt and Neil Jerram.
 
 @node Guile License
-@section The Guile License
+@unnumberedsec The Guile License
 @cindex copying
 @cindex GPL
 @cindex LGPL

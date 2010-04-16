@@ -4,7 +4,6 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@page
 @node Pretty Printing
 @section Pretty Printing
 
@@ -121,7 +120,6 @@ allowed to consume all of the available width.
 @end deffn
 
 
-@page
 @node Formatted Output
 @section Formatted Output
 @cindex formatted output
