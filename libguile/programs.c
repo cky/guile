@@ -334,21 +334,12 @@ SCM_DEFINE (scm_program_objcode, "program-objcode", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* This one is a shim to pre-case-lambda internal interfaces. Avoid it if you
-   can -- use program-arguments or the like. */
-static SCM sym_arglist;
-int
-scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
+/* procedure-minimum-arity support. */
+static void
+parse_arity (SCM arity, int *req, int *opt, int *rest)
 {
-  SCM arities, x;
+  SCM x = scm_cddr (arity);
   
-  arities = scm_program_arities (program);
-  if (!scm_is_pair (arities))
-    return 0;
-  /* take the last arglist, it will be least specific */
-  while (scm_is_pair (scm_cdr (arities)))
-    arities = scm_cdr (arities);
-  x = scm_cddar (arities);
   if (scm_is_pair (x))
     {
       *req = scm_to_int (scm_car (x));
@@ -367,7 +358,37 @@ scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
     }
   else
     *req = *opt = *rest = 0;
-          
+}
+  
+int
+scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
+{
+  SCM arities;
+  
+  arities = scm_program_arities (program);
+  if (!scm_is_pair (arities))
+    return 0;
+
+  parse_arity (scm_car (arities), req, opt, rest);
+  arities = scm_cdr (arities);
+  
+  for (; scm_is_pair (arities); arities = scm_cdr (arities))
+    {
+      int thisreq, thisopt, thisrest;
+
+      parse_arity (scm_car (arities), &thisreq, &thisopt, &thisrest);
+
+      if (thisreq < *req
+          || (thisreq == *req
+              && ((thisrest && (!*rest || thisopt > *opt))
+                  || (!thisrest && !*rest && thisopt > *opt))))
+        {
+          *req = thisreq;
+          *opt = thisopt;
+          *rest = thisrest;
+        }
+    }
+
   return 1;
 }
 
@@ -376,9 +397,6 @@ scm_i_program_arity (SCM program, int *req, int *opt, int *rest)
 void
 scm_bootstrap_programs (void)
 {
-  /* arglist can't be snarfed, because snarfage is only loaded when (system vm
-     program) is loaded. perhaps static-alloc will fix this. */
-  sym_arglist = scm_from_locale_symbol ("arglist");
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_programs",
                             (scm_t_extension_init_func)scm_init_programs, NULL);

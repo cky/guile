@@ -71,6 +71,31 @@ scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
   return scm_i_program_arity (proc, req, opt, rest);
 }
 
+SCM_DEFINE (scm_procedure_minimum_arity, "procedure-minimum-arity", 1, 0, 0, 
+           (SCM proc),
+	    "Return the \"minimum arity\" of a procedure.\n\n"
+            "If the procedure has only one arity, that arity is returned\n"
+            "as a list of three values: the number of required arguments,\n"
+            "the number of optional arguments, and a boolean indicating\n"
+            "whether or not the procedure takes rest arguments.\n\n"
+            "For a case-lambda procedure, the arity returned is the one\n"
+            "with the lowest minimum number of arguments, and the highest\n"
+            "maximum number of arguments.\n\n"
+            "If it was not possible to determine the arity of the procedure,\n"
+            "@code{#f} is returned.")
+#define FUNC_NAME s_scm_procedure_minimum_arity
+{
+  int req, opt, rest;
+  
+  if (scm_i_procedure_arity (proc, &req, &opt, &rest))
+    return scm_list_3 (scm_from_int (req),
+                       scm_from_int (opt),
+                       scm_from_bool (rest));
+  else
+    return SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0, 
            (SCM proc),
 	    "Return @var{obj}'s property list.")
