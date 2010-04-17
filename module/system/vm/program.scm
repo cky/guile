@@ -28,7 +28,6 @@
 
             source:addr source:line source:column source:file
             program-sources program-source
-            program-documentation program-name
 
             program-bindings program-bindings-by-index program-bindings-for-ip
             program-arities program-arity arity:start arity:end
@@ -62,9 +61,6 @@
   (caddr source))
 (define (source:column source)
   (cdddr source))
-
-(define (program-documentation prog)
-  (procedure-property prog 'documentation))
 
 (define (collapse-locals locs)
   (let lp ((ret '()) (locs locs))
@@ -196,7 +192,7 @@
 
 (define (write-program prog port)
   (format port "#<procedure ~a~a>"
-          (or (program-name prog)
+          (or (procedure-name prog)
               (and=> (program-source prog 0)
                      (lambda (s)
                        (format #f "~a at ~a:~a:~a"

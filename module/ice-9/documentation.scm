@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000,2001, 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000,2001, 2002, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -80,7 +80,6 @@
 
 (define-module (ice-9 documentation)
   :use-module (ice-9 rdelim)
-  :use-module ((system vm program) :select (program? program-documentation))
   :export (file-commentary
            documentation-files search-documentation-files
            object-documentation)
@@ -184,20 +183,13 @@
           (cond ((null? files) documentation-files)
                 (else files))))
 
-;; helper until the procedure documentation property is cleaned up
-(define (proc-doc proc)
-  (or (procedure-documentation proc)
-      (procedure-property proc 'documentation)))
-
 (define (object-documentation object)
   "Return the docstring for OBJECT.
 OBJECT can be a procedure, macro or any object that has its
 `documentation' property set."
   (or (and (procedure? object)
-	   (proc-doc object))
+	   (procedure-documentation object))
       (object-property object 'documentation)
-      (and (program? object)
-           (program-documentation object))
       (and (macro? object)
            (object-documentation (macro-transformer object)))
       (and (procedure? object)

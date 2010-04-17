@@ -56,7 +56,6 @@ SCM_API SCM scm_program_bindings (SCM program);
 SCM_API SCM scm_program_sources (SCM program);
 SCM_API SCM scm_program_source (SCM program, SCM ip);
 SCM_API SCM scm_program_arities (SCM program);
-SCM_API SCM scm_program_name (SCM program);
 SCM_API SCM scm_program_objects (SCM program);
 SCM_API SCM scm_program_module (SCM program);
 SCM_API SCM scm_program_num_free_variables (SCM program);

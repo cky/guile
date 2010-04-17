@@ -996,7 +996,7 @@ accurate information is missing from a given `tree-il' element."
                (length x))
           0))
     (cond ((program? proc)
-           (values (program-name proc)
+           (values (procedure-name proc)
                    (map (lambda (a)
                           (list (arity:nreq a) (arity:nopt a) (arity:rest? a)
                                 (map car (arity:kw a))

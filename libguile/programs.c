@@ -260,16 +260,6 @@ scm_i_program_properties (SCM program)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_program_name, "program-name", 1, 0, 0,
-	    (SCM program),
-	    "")
-#define FUNC_NAME s_scm_program_name
-{
-  SCM_VALIDATE_PROGRAM (1, program);
-  return scm_assq_ref (scm_i_program_properties (program), scm_sym_name);
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_program_source, "program-source", 2, 0, 0,
 	    (SCM program, SCM ip),
 	    "")
