@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -86,10 +86,7 @@ SCM_DEFINE (scm_procedure_documentation, "procedure-documentation", 1, 0, 0,
 #define FUNC_NAME s_scm_procedure_documentation
 {
   SCM_VALIDATE_PROC (SCM_ARG1, proc);
-  if (SCM_PROGRAM_P (proc))
-    return scm_assq_ref (scm_program_properties (proc), sym_documentation);
-  else
-    return SCM_BOOL_F;
+  return scm_procedure_property (proc, sym_documentation);
 }
 #undef FUNC_NAME
 

@@ -88,7 +88,7 @@ SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0,
   if (scm_is_false (ret))
     {
       if (SCM_PROGRAM_P (proc))
-        ret = scm_program_properties (proc);
+        ret = scm_i_program_properties (proc);
       else
         ret = SCM_EOL;
     }

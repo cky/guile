@@ -37,7 +37,6 @@
   #:use-module (ice-9 session)
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 optargs)
-  #:use-module (system vm program)
   #:use-module ((sxml transform) #:select (pre-post-order))
   #:export (module-stexi-documentation
             script-stexi-documentation
@@ -127,14 +126,14 @@
   (process-args
    (case type
      ((syntax-rules)
-      (let ((patterns (program-property transformer 'patterns)))
+      (let ((patterns (procedure-property transformer 'patterns)))
         (if (pair? patterns)
             (car patterns)
             '())))
      ((identifier-syntax)
       '())
      ((defmacro)
-      (or (program-property transformer 'defmacro-args)
+      (or (procedure-property transformer 'defmacro-args)
           '()))
      (else
       ;; a procedural (syntax-case) macro. how to document these?
@@ -143,7 +142,7 @@
 (define (macro-additional-stexi name type transformer)
   (case type
     ((syntax-rules)
-     (let ((patterns (program-property transformer 'patterns)))
+     (let ((patterns (procedure-property transformer 'patterns)))
        (if (pair? patterns)
            (map (lambda (x)
                   `(defspecx (% (name ,name)
@@ -228,7 +227,7 @@
                          (category "Class"))))
      ((is-a? object <macro>)
       (let* ((proc (macro-transformer object))
-             (type (and proc (program-property proc 'macro-type))))
+             (type (and proc (procedure-property proc 'macro-type))))
         `(defspec (% (name ,name)
                      (arguments ,@(macro-arguments name type proc)))
            ,@(macro-additional-stexi name type proc)

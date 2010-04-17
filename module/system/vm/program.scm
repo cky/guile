@@ -28,8 +28,7 @@
 
             source:addr source:line source:column source:file
             program-sources program-source
-            program-properties program-property program-documentation
-            program-name
+            program-documentation program-name
 
             program-bindings program-bindings-by-index program-bindings-for-ip
             program-arities program-arity arity:start arity:end
@@ -64,11 +63,8 @@
 (define (source:column source)
   (cdddr source))
 
-(define (program-property prog prop)
-  (assq-ref (program-properties prog) prop))
-
 (define (program-documentation prog)
-  (assq-ref (program-properties prog) 'documentation))
+  (procedure-property prog 'documentation))
 
 (define (collapse-locals locs)
   (let lp ((ret '()) (locs locs))
