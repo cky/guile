@@ -42,8 +42,8 @@ SCM_GLOBAL_SYMBOL (scm_sym_system_procedure, "system-procedure");
 SCM_GLOBAL_SYMBOL (scm_sym_arity, "arity");
 SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
 
-static SCM props;
-static scm_i_pthread_mutex_t props_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+static SCM overrides;
+static scm_i_pthread_mutex_t overrides_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 int
 scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
@@ -71,10 +71,6 @@ scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
   return scm_i_program_arity (proc, req, opt, rest);
 }
 
-/* FIXME: instead of the weak hash, perhaps for some kinds of procedures, use
-   other means; for example subrs have their own property slot, which is unused
-   at present. */
-
 SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0, 
            (SCM proc),
 	    "Return @var{obj}'s property list.")
@@ -85,10 +81,18 @@ SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0,
   
   SCM_VALIDATE_PROC (1, proc);
 
-  scm_i_pthread_mutex_lock (&props_lock);
-  ret = scm_hashq_ref (props, proc, SCM_EOL);
-  scm_i_pthread_mutex_unlock (&props_lock);
+  scm_i_pthread_mutex_lock (&overrides_lock);
+  ret = scm_hashq_ref (overrides, proc, SCM_BOOL_F);
+  scm_i_pthread_mutex_unlock (&overrides_lock);
 
+  if (scm_is_false (ret))
+    {
+      if (SCM_PROGRAM_P (proc))
+        ret = scm_program_properties (proc);
+      else
+        ret = SCM_EOL;
+    }
+  
   scm_i_procedure_arity (proc, &req, &opt, &rest);
 
   return scm_acons (scm_sym_arity,
@@ -106,9 +110,12 @@ SCM_DEFINE (scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0
 {
   SCM_VALIDATE_PROC (1, proc);
 
-  scm_i_pthread_mutex_lock (&props_lock);
-  scm_hashq_set_x (props, proc, alist);
-  scm_i_pthread_mutex_unlock (&props_lock);
+  if (scm_assq (alist, scm_sym_arity))
+    SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
+
+  scm_i_pthread_mutex_lock (&overrides_lock);
+  scm_hashq_set_x (overrides, proc, alist);
+  scm_i_pthread_mutex_unlock (&overrides_lock);
 
   return SCM_UNSPECIFIED;
 }
@@ -132,13 +139,9 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
     }
   else
     {
-      SCM ret;
-
-      scm_i_pthread_mutex_lock (&props_lock);
-      ret = scm_hashq_ref (props, proc, SCM_EOL);
-      scm_i_pthread_mutex_unlock (&props_lock);
-
-      return scm_assq_ref (ret, key);
+      SCM alist;
+      alist = scm_procedure_properties (proc);
+      return scm_assq_ref (alist, key);
     }
 }
 #undef FUNC_NAME
@@ -149,17 +152,16 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 	    "@var{val}.")
 #define FUNC_NAME s_scm_set_procedure_property_x
 {
-  SCM_VALIDATE_PROC (1, proc);
+  SCM alist;
 
+  SCM_VALIDATE_PROC (1, proc);
   if (scm_is_eq (key, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
 
-  scm_i_pthread_mutex_lock (&props_lock);
-  scm_hashq_set_x (props, proc,
-                   scm_assq_set_x (scm_hashq_ref (props, proc,
-                                                  SCM_EOL),
-                                   key, val));
-  scm_i_pthread_mutex_unlock (&props_lock);
+  alist = scm_procedure_properties (proc);
+  scm_i_pthread_mutex_lock (&overrides_lock);
+  scm_hashq_set_x (overrides, proc, scm_assq_set_x (alist, key, val));
+  scm_i_pthread_mutex_unlock (&overrides_lock);
 
   return SCM_UNSPECIFIED;
 }
@@ -171,7 +173,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 void
 scm_init_procprop ()
 {
-  props = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  overrides = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/procprop.x"
 }
 
