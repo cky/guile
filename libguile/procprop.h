@@ -28,7 +28,9 @@
 
 
 SCM_API SCM scm_sym_name;
-SCM_API SCM scm_sym_arity;
+#if (SCM_ENABLE_DEPRECATED == 1)
+SCM_DEPRECATED SCM scm_sym_arity;
+#endif
 SCM_API SCM scm_sym_system_procedure;
 
 

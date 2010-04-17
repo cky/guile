@@ -1003,7 +1003,7 @@ accurate information is missing from a given `tree-il' element."
                                 (arity:allow-other-keys? a)))
                         (program-arities proc))))
           ((procedure? proc)
-           (let ((arity (procedure-property proc 'arity)))
+           (let ((arity (procedure-minimum-arity proc)))
              (values (procedure-name proc)
                      (list (list (car arity) (cadr arity) (caddr arity)
                                  #f #f)))))

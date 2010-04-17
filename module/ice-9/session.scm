@@ -484,7 +484,7 @@ It is an image under the mapping EXTRACT."
 		  (display rest-arg)
 		  (display "'"))))))
    (else
-    (let ((arity (procedure-property obj 'arity)))
+    (let ((arity (procedure-minimum-arity obj)))
       (display (car arity))
       (cond ((caddr arity)
 	     (display " or more"))

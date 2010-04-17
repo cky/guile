@@ -1,6 +1,6 @@
 ;;; guile-emacs.scm --- Guile Emacs interface
 
-;; Copyright (C) 2001 Keisuke Nishida <kxn30@po.cwru.edu>
+;; Copyright (C) 2001, 2010 Keisuke Nishida <kxn30@po.cwru.edu>
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,9 +59,6 @@
 ;;;
 
 (define (guile-emacs-export-procedure name proc docs)
-  (define (procedure-arity proc)
-    (assq-ref (procedure-properties proc) 'arity))
-
   (define (procedure-args proc)
     (let ((source (procedure-source proc)))
       (if source
@@ -72,7 +69,7 @@
 	    ((symbol? formals) `(&rest ,formals))
 	    (else (cons (car formals) (loop (cdr formals))))))
 	;; arity -> emacs args
-	(let* ((arity (procedure-arity proc))
+	(let* ((arity (procedure-minimum-arity proc))
 	       (nreqs (car arity))
 	       (nopts (cadr arity))
 	       (restp (caddr arity)))
