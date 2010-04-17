@@ -138,11 +138,7 @@ SCM_DEFINE (scm_procedure_property, "procedure-property", 2, 0, 0,
                          scm_from_bool (rest));
     }
   else
-    {
-      SCM alist;
-      alist = scm_procedure_properties (proc);
-      return scm_assq_ref (alist, key);
-    }
+    return scm_assq_ref (scm_procedure_properties (proc), key);
 }
 #undef FUNC_NAME
 
@@ -152,15 +148,15 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
 	    "@var{val}.")
 #define FUNC_NAME s_scm_set_procedure_property_x
 {
-  SCM alist;
+  SCM props;
 
   SCM_VALIDATE_PROC (1, proc);
   if (scm_is_eq (key, scm_sym_arity))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
 
-  alist = scm_procedure_properties (proc);
+  props = scm_procedure_properties (proc);
   scm_i_pthread_mutex_lock (&overrides_lock);
-  scm_hashq_set_x (overrides, proc, scm_assq_set_x (alist, key, val));
+  scm_hashq_set_x (overrides, proc, scm_assq_set_x (props, key, val));
   scm_i_pthread_mutex_unlock (&overrides_lock);
 
   return SCM_UNSPECIFIED;
