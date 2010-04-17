@@ -1,6 +1,6 @@
 ;;; read.bm --- Exercise the reader.               -*- Scheme -*-
 ;;;
-;;; Copyright (C) 2008 Free Software Foundation, Inc.
+;;; Copyright (C) 2008, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -27,7 +27,7 @@
        '("ice-9/boot-9.scm"  "ice-9/common-list.scm"
 	 "ice-9/format.scm"  "ice-9/optargs.scm"
 	 "ice-9/session.scm" "ice-9/getopt-long.scm"
-         "ice-9/psyntax.pp")))
+         "ice-9/psyntax-pp.scm")))
 
 (define (load-file-with-reader file-name reader buffering)
   (with-input-from-file file-name
