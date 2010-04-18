@@ -378,7 +378,7 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 
 #define SCM_STATIC_PROGRAM(c_name, objcode, objtable, freevars)         \
   SCM_STATIC_DOUBLE_CELL (c_name,                                       \
-                          scm_tc7_program | (SCM_F_PROGRAM_IS_PRIMITIVE<<8), \
+                          scm_tc7_program | SCM_F_PROGRAM_IS_PRIMITIVE,	\
                           (scm_t_bits) objcode,                         \
                           (scm_t_bits) objtable,                        \
                           (scm_t_bits) freevars)
