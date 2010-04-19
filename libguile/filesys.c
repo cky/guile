@@ -1638,7 +1638,8 @@ SCM_DEFINE (scm_canonicalize_path, "canonicalize-path", 1, 0, 0,
             "separators (@code{/}) nor symlinks.\n\n"
             "Raises an error if any component of @var{path} does not exist.")
 #define FUNC_NAME s_scm_canonicalize_path
-{ char *str, *canon;
+{
+  char *str, *canon;
   
   SCM_VALIDATE_STRING (1, path);
 
