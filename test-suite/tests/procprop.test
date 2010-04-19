@@ -31,25 +31,25 @@
 
 (with-test-prefix "procedure-arity"
   (pass-if "simple subr"
-    (equal? (procedure-property display 'arity)
+    (equal? (procedure-minimum-arity display)
             '(1 1 #f)))
 
   (pass-if "gsubr"
-    (equal? (procedure-property hashq-ref 'arity)
+    (equal? (procedure-minimum-arity hashq-ref)
             '(2 1 #f)))
 
   (pass-if "port-closed?"
-    (equal? (procedure-property port-closed? 'arity)
+    (equal? (procedure-minimum-arity port-closed?)
             '(1 0 #f)))
 
   (pass-if "apply"
-    (equal? (procedure-property apply 'arity)
+    (equal? (procedure-minimum-arity apply)
             '(1 0 #t)))
 
   (pass-if "cons*"
-    (equal? (procedure-property cons* 'arity)
+    (equal? (procedure-minimum-arity cons*)
             '(1 0 #t)))
 
   (pass-if "list"
-    (equal? (procedure-property list 'arity)
+    (equal? (procedure-minimum-arity list)
             '(0 0 #t))))
