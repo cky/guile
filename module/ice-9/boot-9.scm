@@ -649,33 +649,34 @@ If there is no handler at all, Guile prints an error and then exits."
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
 
 (define (make-record-type type-name fields . opt)
-  (let ((printer-fn (and (pair? opt) (car opt))))
-    (let ((struct (make-struct record-type-vtable 0
-                               (make-struct-layout
-                                (apply string-append
-                                       (map (lambda (f) "pw") fields)))
-                               (or printer-fn
-                                   (lambda (s p)
-                                     (display "#<" p)
-                                     (display type-name p)
-                                     (let loop ((fields fields)
-                                                (off 0))
-                                       (cond
-                                        ((not (null? fields))
-                                         (display " " p)
-                                         (display (car fields) p)
-                                         (display ": " p)
-                                         (display (struct-ref s off) p)
-                                         (loop (cdr fields) (+ 1 off)))))
-                                     (display ">" p)))
-                               type-name
-                               (copy-tree fields))))
-      ;; Temporary solution: Associate a name to the record type descriptor
-      ;; so that the object system can create a wrapper class for it.
-      (set-struct-vtable-name! struct (if (symbol? type-name)
-                                          type-name
-                                          (string->symbol type-name)))
-      struct)))
+  (define (default-record-printer s p)
+    (display "#<" p)
+    (display (record-type-name (record-type-descriptor s)) p)
+    (let loop ((fields (record-type-fields (record-type-descriptor s)))
+               (off 0))
+      (cond
+       ((not (null? fields))
+        (display " " p)
+        (display (car fields) p)
+        (display ": " p)
+        (display (struct-ref s off) p)
+        (loop (cdr fields) (+ 1 off)))))
+    (display ">" p))
+
+  (let ((struct (make-struct record-type-vtable 0
+                             (make-struct-layout
+                              (apply string-append
+                                     (map (lambda (f) "pw") fields)))
+                             (or (and (pair? opt) (car opt))
+                                 default-record-printer)
+                             type-name
+                             (copy-tree fields))))
+    ;; Temporary solution: Associate a name to the record type descriptor
+    ;; so that the object system can create a wrapper class for it.
+    (set-struct-vtable-name! struct (if (symbol? type-name)
+                                        type-name
+                                        (string->symbol type-name)))
+    struct))
 
 (define (record-type-name obj)
   (if (record-type? obj)

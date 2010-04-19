@@ -1,6 +1,6 @@
 ;;;; records.test --- Test suite for Guile's records. -*- mode: scheme; coding: utf-8 -*-
 ;;;;
-;;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,10 +17,13 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-records)
+  #:use-module (ice-9 format)
   #:use-module (test-suite lib))
 
-;; ascii names and symbols
-(define rtd-foo (make-record-type "foo" '(x y)))
+;; ascii names and symbols, custom printer
+(define rtd-foo (make-record-type "foo" '(x y)
+                                  (lambda (s p)
+                                    (display "#<it is a foo>" p))))
 (define make-foo (record-constructor rtd-foo))
 (define foo? (record-predicate rtd-foo))
 (define get-foo-x (record-accessor rtd-foo 'x))
@@ -28,7 +31,7 @@
 (define set-foo-x! (record-modifier rtd-foo 'x))
 (define set-foo-y! (record-modifier rtd-foo 'y))
 
-;; non-Latin-1 names and symbols
+;; non-Latin-1 names and symbols, default printer
 (define rtd-fŏŏ (make-record-type "fŏŏ" '(x ȳ)))
 (define make-fŏŏ (record-constructor rtd-fŏŏ))
 (define fŏŏ? (record-predicate rtd-fŏŏ))
@@ -71,4 +74,17 @@
       (string=? "foo" (record-type-name rtd-foo)))
 
     (pass-if "fŏŏ"
-      (string=? "fŏŏ" (record-type-name rtd-fŏŏ)))))
+      (string=? "fŏŏ" (record-type-name rtd-fŏŏ))))
+
+  (with-test-prefix "printer"
+
+    (pass-if "foo"
+      (string=? "#<it is a foo>"
+                (with-output-to-string
+                  (lambda () (display (make-foo 1 2))))))
+
+    (pass-if "fŏŏ"
+      (with-locale "en_US.utf8"
+        (string-prefix? "#<fŏŏ"
+                        (with-output-to-string
+                          (lambda () (display (make-fŏŏ 1 2)))))))))
