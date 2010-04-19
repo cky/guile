@@ -634,9 +634,11 @@ If there is no handler at all, Guile prints an error and then exits."
       (port-with-print-state new-port (get-print-state old-port))
       new-port))
 
-;; 0: type-name, 1: fields
+;; 0: type-name, 1: fields, 2: constructor
 (define record-type-vtable
-  (make-vtable-vtable "prpr" 0
+  ;; FIXME: This should just call make-vtable, not make-vtable-vtable; but for
+  ;; that we need to expose the bare vtable-vtable to Scheme.
+  (make-vtable-vtable "prprpw" 0
                       (lambda (s p)
                         (cond ((eq? s record-type-vtable)
                                (display "#<record-type-vtable>" p))
@@ -649,6 +651,41 @@ If there is no handler at all, Guile prints an error and then exits."
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
 
 (define (make-record-type type-name fields . opt)
+  (define-syntax make-constructor
+    (lambda (x)
+      (define *max-static-argument-count* 20)
+      (define (make-formals n)
+        (let lp ((i 0))
+          (if (< i n)
+              (cons (datum->syntax
+                     x 
+                     (string->symbol
+                      (string (integer->char (+ (char->integer #\a) i)))))
+                    (lp (1+ i)))
+              '())))
+      (syntax-case x ()
+        ((_ rtd exp) (not (identifier? #'exp))
+         #'(let ((n exp))
+             (make-constructor rtd n)))
+        ((_ rtd nfields)
+         #`(case nfields
+             #,@(let lp ((n 0))
+                  (if (< n *max-static-argument-count*)
+                      (cons (with-syntax (((formal ...) (make-formals n))
+                                          (n n))
+                              #'((n)
+                                 (lambda (formal ...)
+                                   (make-struct rtd 0 formal ...))))
+                            (lp (1+ n)))
+                      '()))
+             (else
+              (lambda args
+                (if (= (length args) nfields)
+                    (apply make-struct rtd 0 args)
+                    (scm-error 'wrong-number-of-args
+                               (format #f "make-~a" type-name)
+                               "Wrong number of arguments" '() #f)))))))))
+
   (define (default-record-printer s p)
     (display "#<" p)
     (display (record-type-name (record-type-descriptor s)) p)
@@ -663,20 +700,22 @@ If there is no handler at all, Guile prints an error and then exits."
         (loop (cdr fields) (+ 1 off)))))
     (display ">" p))
 
-  (let ((struct (make-struct record-type-vtable 0
-                             (make-struct-layout
-                              (apply string-append
-                                     (map (lambda (f) "pw") fields)))
-                             (or (and (pair? opt) (car opt))
-                                 default-record-printer)
-                             type-name
-                             (copy-tree fields))))
+  (let ((rtd (make-struct record-type-vtable 0
+                          (make-struct-layout
+                           (apply string-append
+                                  (map (lambda (f) "pw") fields)))
+                          (or (and (pair? opt) (car opt))
+                              default-record-printer)
+                          type-name
+                          (copy-tree fields))))
+    (struct-set! rtd (+ vtable-offset-user 2)
+                 (make-constructor rtd (length fields)))
     ;; Temporary solution: Associate a name to the record type descriptor
     ;; so that the object system can create a wrapper class for it.
-    (set-struct-vtable-name! struct (if (symbol? type-name)
-                                        type-name
-                                        (string->symbol type-name)))
-    struct))
+    (set-struct-vtable-name! rtd (if (symbol? type-name)
+                                     type-name
+                                     (string->symbol type-name)))
+    rtd))
 
 (define (record-type-name obj)
   (if (record-type? obj)
@@ -689,14 +728,16 @@ If there is no handler at all, Guile prints an error and then exits."
       (error 'not-a-record-type obj)))
 
 (define (record-constructor rtd . opt)
-  (let ((field-names (if (pair? opt) (car opt) (record-type-fields rtd))))
-    (primitive-eval
-     `(lambda ,field-names
-        (make-struct ',rtd 0 ,@(map (lambda (f)
-                                      (if (memq f field-names)
-                                          f
-                                          #f))
-                                    (record-type-fields rtd)))))))
+  (if (null? opt)
+      (struct-ref rtd (+ 2 vtable-offset-user))
+      (let ((field-names (car opt)))
+        (primitive-eval
+         `(lambda ,field-names
+            (make-struct ',rtd 0 ,@(map (lambda (f)
+                                          (if (memq f field-names)
+                                              f
+                                              #f))
+                                        (record-type-fields rtd))))))))
           
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
