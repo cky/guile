@@ -76,6 +76,7 @@
         thunk
         (lambda () #t))))
 
+;; (put 'call-with-output-file/atomic 'scheme-indent-function 1)
 (define* (call-with-output-file/atomic filename proc #:optional reference)
   (let* ((template (string-append filename ".XXXXXX"))
          (tmp (mkstemp! template)))
@@ -146,26 +147,30 @@
                        (from (current-language))
                        (to 'objcode)
                        (env (default-environment from))
-                       (opts '()))
-  (let* ((comp (or output-file (compiled-file-name file)))
-         (in (open-input-file file))
-         (enc (file-encoding in)))
-    (if enc
-        (set-port-encoding! in enc))
-    (ensure-writable-dir (dirname comp))
-    (call-with-output-file/atomic comp
-      (lambda (port)
-        ((language-printer (ensure-language to))
-         (read-and-compile in #:env env #:from from #:to to #:opts opts)
-         port))
-      file)
-    comp))
+                       (opts '())
+                       (canonicalization 'relative))
+  (with-fluids ((%file-port-name-canonicalization canonicalization))
+    (let* ((comp (or output-file (compiled-file-name file)))
+           (in (open-input-file file))
+           (enc (file-encoding in)))
+      (if enc
+          (set-port-encoding! in enc))
+      (ensure-writable-dir (dirname comp))
+      (call-with-output-file/atomic comp
+        (lambda (port)
+          ((language-printer (ensure-language to))
+           (read-and-compile in #:env env #:from from #:to to #:opts opts)
+           port))
+        file)
+      comp)))
 
 (define* (compile-and-load file #:key (from 'scheme) (to 'value)
-                           (env (current-module)) (opts '()))
-  (read-and-compile (open-input-file file)
-                    #:from from #:to to #:opts opts
-                    #:env env))
+                           (env (current-module)) (opts '())
+                           (canonicalization 'relative))
+  (with-fluids ((%file-port-name-canonicalization canonicalization))
+    (read-and-compile (open-input-file file)
+                      #:from from #:to to #:opts opts
+                      #:env env)))
 
 
 ;;;
