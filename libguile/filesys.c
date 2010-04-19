@@ -1654,6 +1654,52 @@ SCM_DEFINE (scm_canonicalize_path, "canonicalize-path", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_i_relativize_path (SCM path, SCM in_path)
+{
+  char *str, *canon;
+  SCM scanon;
+  
+  str = scm_to_locale_string (path);
+  canon = canonicalize_file_name (str);
+  free (str);
+  
+  if (!canon)
+    return SCM_BOOL_F;
+
+  scanon = scm_take_locale_string (canon);
+
+  for (; scm_is_pair (in_path); in_path = scm_cdr (in_path))
+    if (scm_is_true (scm_string_prefix_p (scm_car (in_path),
+                                          scanon,
+                                          SCM_UNDEFINED, SCM_UNDEFINED,
+                                          SCM_UNDEFINED, SCM_UNDEFINED)))
+      {
+        size_t len = scm_c_string_length (scm_car (in_path));
+
+        /* The path either has a trailing delimiter or doesn't. scanon will be
+           delimited by single delimiters. In the case in which the path does
+           not have a trailing delimiter, add one to the length to strip off the
+           delimiter within scanon. */
+        if (!len
+#ifdef __MINGW32__
+            || (scm_i_string_ref (scm_car (in_path), len - 1) != '/'
+                && scm_i_string_ref (scm_car (in_path), len - 1) != '\\')
+#else
+            || scm_i_string_ref (scm_car (in_path), len - 1) != '/'
+#endif
+            )
+          len++;
+
+        if (scm_c_string_length (scanon) > len)
+          return scm_substring (scanon, scm_from_size_t (len), SCM_UNDEFINED);
+        else
+          return SCM_BOOL_F;
+      }
+
+  return SCM_BOOL_F;
+}
+
 
 
 

@@ -281,30 +281,13 @@ fport_canonicalize_filename (SCM filename)
     }
   else if (scm_is_eq (mode, sym_relative))
     {
-      char *str, *canon;
-      SCM scanon, load_path;
-  
-      str = scm_to_locale_string (filename);
-      canon = canonicalize_file_name (str);
-      free (str);
-  
-      if (!canon)
-        return filename;
+      SCM path, rel;
 
-      scanon = scm_take_locale_string (canon);
+      path = scm_variable_ref (scm_c_module_lookup (scm_the_root_module (),
+                                                    "%load-path"));
+      rel = scm_i_relativize_path (filename, path);
 
-      for (load_path = scm_variable_ref
-             (scm_c_module_lookup (scm_the_root_module (), "%load-path"));
-           scm_is_pair (load_path);
-           load_path = scm_cdr (load_path))
-        if (scm_is_true (scm_string_prefix_p (scm_car (load_path),
-                                              scanon,
-                                              SCM_UNDEFINED, SCM_UNDEFINED,
-                                              SCM_UNDEFINED, SCM_UNDEFINED)))
-          return scm_substring (scanon,
-                                scm_string_length (scm_car (load_path)),
-                                SCM_UNDEFINED);
-      return filename;
+      return scm_is_true (rel) ? rel : filename;
     }
   else if (scm_is_eq (mode, sym_absolute))
     {
