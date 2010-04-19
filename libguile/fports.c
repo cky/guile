@@ -266,18 +266,20 @@ SCM_DEFINE (scm_file_port_p, "file-port?", 1, 0, 0,
 #undef FUNC_NAME
 
 
-static SCM* loc_file_port_name_canonicalization;
+static SCM sys_file_port_name_canonicalization;
 SCM_SYMBOL (sym_relative, "relative");
 SCM_SYMBOL (sym_absolute, "absolute");
 
 static SCM
 fport_canonicalize_filename (SCM filename)
 {
+  SCM mode = scm_fluid_ref (sys_file_port_name_canonicalization);
+
   if (!scm_is_string (filename))
     {
       return filename;
     }
-  else if (scm_is_eq (*loc_file_port_name_canonicalization, sym_relative))
+  else if (scm_is_eq (mode, sym_relative))
     {
       char *str, *canon;
       SCM scanon, load_path;
@@ -304,7 +306,7 @@ fport_canonicalize_filename (SCM filename)
                                 SCM_UNDEFINED);
       return filename;
     }
-  else if (scm_is_eq (*loc_file_port_name_canonicalization, sym_absolute))
+  else if (scm_is_eq (mode, sym_absolute))
     {
       char *str, *canon;
   
@@ -950,10 +952,10 @@ scm_init_fports ()
   scm_c_define ("_IOLBF", scm_from_int (_IOLBF));
   scm_c_define ("_IONBF", scm_from_int (_IONBF));
 
-  loc_file_port_name_canonicalization =
-    SCM_VARIABLE_LOC (scm_c_define ("%file-port-name-canonicalization",
-                                    SCM_BOOL_F));
-
+  sys_file_port_name_canonicalization = scm_make_fluid ();
+  scm_c_define ("%file-port-name-canonicalization",
+                sys_file_port_name_canonicalization);
+                                    
 #include "libguile/fports.x"
 }
 
