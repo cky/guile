@@ -266,6 +266,61 @@ SCM_DEFINE (scm_file_port_p, "file-port?", 1, 0, 0,
 #undef FUNC_NAME
 
 
+static SCM* loc_file_port_name_canonicalization;
+SCM_SYMBOL (sym_relative, "relative");
+SCM_SYMBOL (sym_absolute, "absolute");
+
+static SCM
+fport_canonicalize_filename (SCM filename)
+{
+  if (!scm_is_string (filename))
+    {
+      return filename;
+    }
+  else if (scm_is_eq (*loc_file_port_name_canonicalization, sym_relative))
+    {
+      char *str, *canon;
+      SCM scanon, load_path;
+  
+      str = scm_to_locale_string (filename);
+      canon = canonicalize_file_name (str);
+      free (str);
+  
+      if (!canon)
+        return filename;
+
+      scanon = scm_take_locale_string (canon);
+
+      for (load_path = scm_variable_ref
+             (scm_c_module_lookup (scm_the_root_module (), "%load-path"));
+           scm_is_pair (load_path);
+           load_path = scm_cdr (load_path))
+        if (scm_is_true (scm_string_prefix_p (scm_car (load_path),
+                                              scanon,
+                                              SCM_UNDEFINED, SCM_UNDEFINED,
+                                              SCM_UNDEFINED, SCM_UNDEFINED)))
+          return scm_substring (scanon,
+                                scm_string_length (scm_car (load_path)),
+                                SCM_UNDEFINED);
+      return filename;
+    }
+  else if (scm_is_eq (*loc_file_port_name_canonicalization, sym_absolute))
+    {
+      char *str, *canon;
+  
+      str = scm_to_locale_string (filename);
+      canon = canonicalize_file_name (str);
+      free (str);
+  
+      return canon ? scm_take_locale_string (canon) : filename;
+    }
+  else
+    {
+      return filename;
+    }
+}
+
+
 /* scm_open_file
  * Return a new port open on a given file.
  *
@@ -386,7 +441,8 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	}
     }
 
-  port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode), filename);
+  port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode),
+                             fport_canonicalize_filename (filename));
 
   scm_dynwind_end ();
 
@@ -893,6 +949,10 @@ scm_init_fports ()
   scm_c_define ("_IOFBF", scm_from_int (_IOFBF));
   scm_c_define ("_IOLBF", scm_from_int (_IOLBF));
   scm_c_define ("_IONBF", scm_from_int (_IONBF));
+
+  loc_file_port_name_canonicalization =
+    SCM_VARIABLE_LOC (scm_c_define ("%file-port-name-canonicalization",
+                                    SCM_BOOL_F));
 
 #include "libguile/fports.x"
 }
