@@ -470,38 +470,6 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (include-from-path "ice-9/quasisyntax")
 
-;;; @bind is used by the old elisp code as a dynamic scoping mechanism.
-;;; Please let the Guile developers know if you are using this macro.
-;;;
-(define-syntax @bind
-  (lambda (x)
-    (define (bound-member id ids)
-      (cond ((null? ids) #f)
-            ((bound-identifier=? id (car ids)) #t)
-            ((bound-member (car ids) (cdr ids)))))
-    
-    (syntax-case x ()
-      ((_ () b0 b1 ...)
-       #'(let () b0 b1 ...))
-      ((_ ((id val) ...) b0 b1 ...)
-       (and-map identifier? #'(id ...))
-       (if (let lp ((ids #'(id ...)))
-             (cond ((null? ids) #f)
-                   ((bound-member (car ids) (cdr ids)) #t)
-                   (else (lp (cdr ids)))))
-           (syntax-violation '@bind "duplicate bound identifier" x)
-           (with-syntax (((old-v ...) (generate-temporaries #'(id ...)))
-                         ((v ...) (generate-temporaries #'(id ...))))
-             #'(let ((old-v id) ...
-                     (v val) ...)
-                 (dynamic-wind
-                   (lambda ()
-                     (set! id v) ...)
-                   (lambda () b0 b1 ...)
-                   (lambda ()
-                     (set! id old-v) ...)))))))))
-
-
 
 
 ;;; {Defmacros}

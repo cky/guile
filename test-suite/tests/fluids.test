@@ -21,9 +21,30 @@
   :use-module (test-suite lib))
 
 
+(define exception:syntax-error
+  (cons 'syntax-error "failed to match"))
+(define exception:duplicate-binding
+  (cons 'syntax-error "duplicate"))
+
 (define a (make-fluid))
 (define b (make-fluid))
 (define c #f)
+
+(with-test-prefix "syntax"
+  (pass-if-exception "with-fluids missing expression"
+    exception:syntax-error
+    (eval '(with-fluids ((a 1)))
+	  (interaction-environment)))
+
+  (pass-if-exception "with-fluids bad bindings"
+    exception:syntax-error
+    (eval '(with-fluids (a) #f)
+	  (interaction-environment)))
+
+  (pass-if-exception "with-fluids bad bindings"
+    exception:syntax-error
+    (eval '(with-fluids ((a)) #f)
+	  (interaction-environment))))
 
 (with-test-prefix "initial fluid values"
   (pass-if "fluid-ref uninitialized fluid is #f"
@@ -91,3 +112,38 @@
              (loop (1- i)))))
     (gc)
     (fluid? (g))))
+
+(with-test-prefix "with-fluids"
+
+  (pass-if "with-fluids binds"
+    (= (with-fluids ((a 1)) (fluid-ref a)) 1))
+
+  (pass-if "with-fluids unbinds"
+    (begin
+      (fluid-set! a 0)
+      (with-fluids ((a 1)) (fluid-ref a))
+      (= (fluid-ref a) 0)))
+  
+  (pass-if "with-fluids and dynamic-wind"
+    (letrec ((co-routine #f)
+	     (spawn (lambda (proc)
+		      (set! co-routine proc)))
+	     (yield (lambda (val)
+		      (call-with-current-continuation
+		       (lambda (k)
+			 (let ((next co-routine))
+			   (set! co-routine k)
+			   (next val)))))))
+      
+      (spawn (lambda (val)
+	       (with-fluids ((a 'inside))
+	         (yield (fluid-ref a))
+		 (yield (fluid-ref a)))))
+
+      (fluid-set! a 'outside)
+      (let ((inside-a (yield #f)))
+	(let ((outside-a (fluid-ref a)))
+	  (let ((inside-a2 (yield #f)))
+	    (and (eq? inside-a 'inside)
+		 (eq? outside-a 'outside)
+		 (eq? inside-a2 'inside))))))))
