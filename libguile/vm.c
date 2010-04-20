@@ -185,7 +185,9 @@ vm_dispatch_hook (SCM vm, int hook_num)
 {
   struct scm_vm *vp;
   SCM hook;
-  SCM frame;
+  struct scm_frame c_frame;
+  scm_t_cell frame;
+  SCM args[1];
 
   vp = SCM_VM_DATA (vm);
   hook = vp->hooks[hook_num];
@@ -193,10 +195,28 @@ vm_dispatch_hook (SCM vm, int hook_num)
   if (SCM_LIKELY (scm_is_false (hook))
       || scm_is_null (SCM_HOOK_PROCEDURES (hook)))
     return;
-  
+
   vp->trace_level--;
-  frame = scm_c_make_frame (vm, vp->fp, vp->sp, vp->ip, 0);
-  scm_c_run_hookn (hook, &frame, 1);
+
+  /* Allocate a frame object on the stack.  This is more efficient than calling
+     `scm_c_make_frame ()' to allocate on the heap, but it forces hooks to not
+     capture frame objects.
+
+     At the same time, procedures such as `frame-procedure' make sense only
+     while the stack frame represented by the frame object is visible, so it
+     seems reasonable to limit the lifetime of frame objects.  */
+
+  c_frame.stack_holder = vm;
+  c_frame.fp = vp->fp;
+  c_frame.sp = vp->sp;
+  c_frame.ip = vp->ip;
+  c_frame.offset = 0;
+  frame.word_0 = SCM_PACK (scm_tc7_frame);
+  frame.word_1 = PTR2SCM (&c_frame);
+  args[0] = PTR2SCM (&frame);
+
+  scm_c_run_hookn (hook, args, 1);
+
   vp->trace_level++;
 }
 
