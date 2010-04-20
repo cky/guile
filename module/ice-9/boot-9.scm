@@ -651,6 +651,7 @@ If there is no handler at all, Guile prints an error and then exits."
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
 
 (define (make-record-type type-name fields . opt)
+  ;; Pre-generate constructors for nfields < 20.
   (define-syntax make-constructor
     (lambda (x)
       (define *max-static-argument-count* 20)
@@ -1423,12 +1424,7 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;;
 
 ;; This is how modules are printed.  You can re-define it.
-;; (Redefining is actually more complicated than simply redefining
-;; %print-module because that would only change the binding and not
-;; the value stored in the vtable that determines how record are
-;; printed. Sigh.)
-
-(define (%print-module mod port)  ; unused args: depth length style table)
+(define (%print-module mod port)
   (display "#<" port)
   (display (or (module-kind mod) "module") port)
   (display " " port)
@@ -1437,23 +1433,140 @@ If there is no handler at all, Guile prints an error and then exits."
   (display (number->string (object-address mod) 16) port)
   (display ">" port))
 
-;; module-type
-;;
-;; A module is characterized by an obarray in which local symbols
-;; are interned, a list of modules, "uses", from which non-local
-;; bindings can be inherited, and an optional lazy-binder which
-;; is a (CLOSURE module symbol) which, as a last resort, can provide
-;; bindings that would otherwise not be found locally in the module.
-;;
-;; NOTE: If you change anything here, you also need to change
-;; libguile/modules.h.
-;;
-(define module-type
-  (make-record-type 'module
-                    '(obarray uses binder eval-closure transformer name kind
-                      duplicates-handlers import-obarray
-                      observers weak-observers version)
-                    %print-module))
+(letrec-syntax
+     ;; Locally extend the syntax to allow record accessors to be defined at
+     ;; compile-time. Cache the rtd locally to the constructor, the getters and
+     ;; the setters, in order to allow for redefinition of the record type; not
+     ;; relevant in the case of modules, but perhaps if we make this public, it
+     ;; could matter.
+
+    ((define-record-type
+       (lambda (x)
+         (define (make-id scope . fragments)
+           (datum->syntax #'scope
+                          (apply symbol-append
+                                 (map (lambda (x)
+                                        (if (symbol? x) x (syntax->datum x)))
+                                      fragments))))
+         
+         (define (getter rtd type-name field slot)
+           #`(define #,(make-id rtd type-name '- field)
+               (let ((rtd #,rtd))
+                 (lambda (#,type-name)
+                   (if (eq? (struct-vtable #,type-name) rtd)
+                       (struct-ref #,type-name #,slot)
+                       (%record-type-error rtd #,type-name))))))
+
+         (define (setter rtd type-name field slot)
+           #`(define #,(make-id rtd 'set- type-name '- field '!)
+               (let ((rtd #,rtd))
+                 (lambda (#,type-name val)
+                   (if (eq? (struct-vtable #,type-name) rtd)
+                       (struct-set! #,type-name #,slot val)
+                       (%record-type-error rtd #,type-name))))))
+
+         (define (accessors rtd type-name fields n exp)
+           (syntax-case fields ()
+             (() exp)
+             (((field #:no-accessors) field* ...) (identifier? #'field)
+              (accessors rtd type-name #'(field* ...) (1+ n)
+                         exp))
+             (((field #:no-setter) field* ...) (identifier? #'field)
+              (accessors rtd type-name #'(field* ...) (1+ n)
+                         #`(begin #,exp
+                                  #,(getter rtd type-name #'field n))))
+             (((field #:no-getter) field* ...) (identifier? #'field)
+              (accessors rtd type-name #'(field* ...) (1+ n)
+                         #`(begin #,exp
+                                  #,(setter rtd type-name #'field n))))
+             ((field field* ...) (identifier? #'field)
+              (accessors rtd type-name #'(field* ...) (1+ n)
+                         #`(begin #,exp
+                                  #,(getter rtd type-name #'field n)
+                                  #,(setter rtd type-name #'field n))))))
+
+         (define (predicate rtd type-name fields exp)
+           (accessors
+            rtd type-name fields 0
+            #`(begin
+                #,exp
+                (define (#,(make-id rtd type-name '?) obj)
+                  (and (struct? obj) (eq? (struct-vtable obj) #,rtd))))))
+
+         (define (field-list fields)
+           (syntax-case fields ()
+             (() '())
+             (((f . opts) . rest) (identifier? #'f)
+              (cons #'f (field-list #'rest)))
+             ((f . rest) (identifier? #'f)
+              (cons #'f (field-list #'rest)))))
+
+         (define (constructor rtd type-name fields exp)
+           (let ((ctor (make-id rtd type-name '-constructor))
+                 (args (field-list fields)))
+             (predicate rtd type-name fields
+                        #`(begin #,exp
+                                 (define #,ctor
+                                   (let ((rtd #,rtd))
+                                     (lambda #,args
+                                       (make-struct rtd 0 #,@args))))
+                                 (struct-set! #,rtd (+ vtable-offset-user 2)
+                                              #,ctor)))))
+
+         (define (type type-name printer fields)
+           (define (make-layout)
+             (let lp ((fields fields) (slots '()))
+               (syntax-case fields ()
+                 (() (datum->syntax #'here
+                                    (make-struct-layout
+                                     (apply string-append slots))))
+                 ((_ . rest) (lp #'rest (cons "pw" slots))))))
+
+           (let ((rtd (make-id type-name type-name '-type)))
+             (constructor rtd type-name fields
+                          #`(begin
+                              (define #,rtd
+                                (make-struct record-type-vtable 0
+                                             '#,(make-layout)
+                                             #,printer
+                                             '#,type-name
+                                             '#,(field-list fields)))
+                              (set-struct-vtable-name! #,rtd '#,type-name)))))
+
+         (syntax-case x ()
+           ((_ type-name printer (field ...))
+            (type #'type-name #'printer #'(field ...)))))))
+
+  ;; module-type
+  ;;
+  ;; A module is characterized by an obarray in which local symbols
+  ;; are interned, a list of modules, "uses", from which non-local
+  ;; bindings can be inherited, and an optional lazy-binder which
+  ;; is a (CLOSURE module symbol) which, as a last resort, can provide
+  ;; bindings that would otherwise not be found locally in the module.
+  ;;
+  ;; NOTE: If you change the set of fields or their order, you also need to
+  ;; change the constants in libguile/modules.h.
+  ;;
+  ;; NOTE: The getter `module-eval-closure' is used in libguile/modules.c.
+  ;; NOTE: The getter `module-transfomer' is defined libguile/modules.c.
+  ;; NOTE: The getter `module-name' is defined later, due to boot reasons.
+  ;;
+  (define-record-type module
+    (lambda (obj port) (%print-module obj port))
+    (obarray
+     uses
+     binder
+     eval-closure
+     (transformer #:no-getter)
+     (name #:no-getter)
+     kind
+     duplicates-handlers
+     (import-obarray #:no-setter)
+     observers
+     (weak-observers #:no-setter)
+     version)))
+
 
 ;; make-module &opt size uses binder
 ;;
@@ -1502,55 +1615,6 @@ If there is no handler at all, Guile prints an error and then exits."
 
           module))))
 
-(define module-constructor (record-constructor module-type))
-(define module-obarray  (record-accessor module-type 'obarray))
-(define set-module-obarray! (record-modifier module-type 'obarray))
-(define module-uses  (record-accessor module-type 'uses))
-(define set-module-uses! (record-modifier module-type 'uses))
-(define module-binder (record-accessor module-type 'binder))
-(define set-module-binder! (record-modifier module-type 'binder))
-
-;; NOTE: This binding is used in libguile/modules.c.
-(define module-eval-closure (record-accessor module-type 'eval-closure))
-
-;; (define module-transformer (record-accessor module-type 'transformer))
-(define set-module-transformer! (record-modifier module-type 'transformer))
-(define module-version (record-accessor module-type 'version))
-(define set-module-version! (record-modifier module-type 'version))
-;; (define module-name (record-accessor module-type 'name)) wait until mods are booted
-(define set-module-name! (record-modifier module-type 'name))
-(define module-kind (record-accessor module-type 'kind))
-(define set-module-kind! (record-modifier module-type 'kind))
-(define module-duplicates-handlers
-  (record-accessor module-type 'duplicates-handlers))
-(define set-module-duplicates-handlers!
-  (record-modifier module-type 'duplicates-handlers))
-(define module-observers (record-accessor module-type 'observers))
-(define set-module-observers! (record-modifier module-type 'observers))
-(define module-weak-observers (record-accessor module-type 'weak-observers))
-(define module? (record-predicate module-type))
-
-(define module-import-obarray (record-accessor module-type 'import-obarray))
-
-(define set-module-eval-closure!
-  (let ((setter (record-modifier module-type 'eval-closure)))
-    (lambda (module closure)
-      (setter module closure)
-      ;; Make it possible to lookup the module from the environment.
-      ;; This implementation is correct since an eval closure can belong
-      ;; to maximally one module.
-
-      ;; XXX: The following line introduces a circular reference that
-      ;; precludes garbage collection of modules with the current weak hash
-      ;; table semantics (see
-      ;; http://lists.gnu.org/archive/html/guile-devel/2009-01/msg00102.html and
-      ;; http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2465
-      ;; for details).  Since it doesn't appear to be used (only in
-      ;; `scm_lookup_closure_module ()', which has 1 caller), we just comment
-      ;; it out.
-
-      ;(set-procedure-property! closure 'module module)
-      )))
 
 
 

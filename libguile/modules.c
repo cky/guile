@@ -242,8 +242,14 @@ scm_lookup_closure_module (SCM proc)
     {
       SCM mod;
 
-      /* FIXME: The `module' property is no longer set.  See
-	 `set-module-eval-closure!' in `boot-9.scm'.  */
+      /* FIXME: The `module' property is no longer set on eval closures, as it
+	 introduced a circular reference that precludes garbage collection of
+	 modules with the current weak hash table semantics (see
+	 http://lists.gnu.org/archive/html/guile-devel/2009-01/msg00102.html and
+	 http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2465
+	 for details). Since it doesn't appear to be used (only in this
+	 function, which has 1 caller), we no longer extend
+	 `set-module-eval-closure!' to set the `module' property. */
       abort ();
 
       mod = scm_procedure_property (proc, sym_module);
