@@ -2301,10 +2301,14 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;
 (define resolve-module
   (let ((the-root-module the-root-module))
-    (lambda (name . args)
+    (lambda (name . args) ;; #:optional (autoload #t) (version #f)
       (if (equal? name '(guile))
+          ;; During boot, avoid recursion when looking for the root module.
           the-root-module
           (let ((full-name (append '(%app modules) name)))
+            ;; This is pretty strange that '(guile) is the same as '(guile %app
+            ;; modules guile), is the same as '(guile %app modules guile %app
+            ;; modules guile).
             (let* ((already (nested-ref the-root-module full-name))
                    (numargs (length args))
                    (autoload (or (= numargs 0) (car args)))
