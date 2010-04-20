@@ -2149,6 +2149,13 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; The directory of all modules and the standard root module.
 ;;;
 
+;; Define '(%app) and '(%app modules).
+(define %app (make-module 31))
+(set-module-name! %app '(%app))
+(let ((m (make-module 31)))
+  (set-module-name! m '())
+  (local-define '(%app modules) m))
+
 ;; module-public-interface is defined in C.
 (define (set-module-public-interface! m i)
   (module-define! m '%module-public-interface i))
@@ -2163,8 +2170,51 @@ If there is no handler at all, Guile prints an error and then exits."
 (set-system-module! the-root-module #t)
 (set-system-module! the-scm-module #t)
 
-;; NOTE: This binding is used in libguile/modules.c.
+;; Define the-root-module as '(%app modules guile).
+(local-define '(%app modules guile) the-root-module)
+
+
+
+
+;; Now that we have a root module, even though modules aren't fully booted,
+;; expand the definition of resolve-module.
 ;;
+(define (resolve-module name . args)
+  (if (equal? name '(guile))
+      the-root-module
+      (error "unexpected module to resolve during module boot" name)))
+
+;; Cheat.  These bindings are needed by modules.c, but we don't want
+;; to move their real definition here because that would be unnatural.
+;;
+(define process-define-module #f)
+(define process-use-modules #f)
+(define module-export! #f)
+(define default-duplicate-binding-procedures #f)
+
+;; This boots the module system.  All bindings needed by modules.c
+;; must have been defined by now.
+;;
+(set-current-module the-root-module)
+
+
+
+
+;; Now that modules are booted, give module-name its final definition.
+;;
+(define module-name
+  (let ((accessor (record-accessor module-type 'name)))
+    (lambda (mod)
+      (or (accessor mod)
+          (let ((name (list (gensym))))
+            ;; Name MOD and bind it in THE-ROOT-MODULE so that it's visible
+            ;; to `resolve-module'.  This is important as `psyntax' stores
+            ;; module names and relies on being able to `resolve-module'
+            ;; them.
+            (set-module-name! mod name)
+            (nested-define! the-root-module `(%app modules ,@name) mod)
+            (accessor mod))))))
+
 (define (make-modules-in module name)
   (if (null? name)
       module
@@ -2302,69 +2352,31 @@ If there is no handler at all, Guile prints an error and then exits."
 (define resolve-module
   (let ((the-root-module the-root-module))
     (lambda (name . args) ;; #:optional (autoload #t) (version #f)
-      (if (equal? name '(guile))
-          ;; During boot, avoid recursion when looking for the root module.
-          the-root-module
-          (let ((full-name (append '(%app modules) name)))
-            ;; This is pretty strange that '(guile) is the same as '(guile %app
-            ;; modules guile), is the same as '(guile %app modules guile %app
-            ;; modules guile).
-            (let* ((already (nested-ref the-root-module full-name))
-                   (numargs (length args))
-                   (autoload (or (= numargs 0) (car args)))
-                   (version (and (> numargs 1) (cadr args))))
-              (cond
-               ((and already (module? already)
-                     (or (not autoload) (module-public-interface already)))
-                ;; A hit, a palpable hit.
-                (if (and version 
-                         (not (version-matches? version (module-version already))))
-                    (error "incompatible module version already loaded" name))
-                already)
-               (autoload
-                ;; Try to autoload the module, and recurse.
-                (try-load-module name version)
-                (resolve-module name #f))
-               (else
-                ;; A module is not bound (but maybe something else is),
-                ;; we're not autoloading -- here's the weird semantics,
-                ;; we create an empty module.
-                (make-modules-in the-root-module full-name)))))))))
-
-;; Cheat.  These bindings are needed by modules.c, but we don't want
-;; to move their real definition here because that would be unnatural.
-;;
-(define try-module-autoload #f)
-(define process-define-module #f)
-(define process-use-modules #f)
-(define module-export! #f)
-(define default-duplicate-binding-procedures #f)
-
-(define %app (make-module 31))
-(set-module-name! %app '(%app))
-
-(let ((m (make-module 31)))
-  (set-module-name! m '())
-  (local-define '(%app modules) m))
-(local-define '(%app modules guile) the-root-module)
-
-;; This boots the module system.  All bindings needed by modules.c
-;; must have been defined by now.
-;;
-(set-current-module the-root-module)
-;; definition deferred for syncase's benefit.
-(define module-name
-  (let ((accessor (record-accessor module-type 'name)))
-    (lambda (mod)
-      (or (accessor mod)
-          (let ((name (list (gensym))))
-            ;; Name MOD and bind it in THE-ROOT-MODULE so that it's visible
-            ;; to `resolve-module'.  This is important as `psyntax' stores
-            ;; module names and relies on being able to `resolve-module'
-            ;; them.
-            (set-module-name! mod name)
-            (nested-define! the-root-module `(%app modules ,@name) mod)
-            (accessor mod))))))
+      (let ((full-name (append '(%app modules) name)))
+        ;; This is pretty strange that '(guile) is the same as '(guile %app
+        ;; modules guile), is the same as '(guile %app modules guile %app
+        ;; modules guile).
+        (let* ((already (nested-ref the-root-module full-name))
+               (numargs (length args))
+               (autoload (or (= numargs 0) (car args)))
+               (version (and (> numargs 1) (cadr args))))
+          (cond
+           ((and already (module? already)
+                 (or (not autoload) (module-public-interface already)))
+            ;; A hit, a palpable hit.
+            (if (and version 
+                     (not (version-matches? version (module-version already))))
+                (error "incompatible module version already loaded" name))
+            already)
+           (autoload
+            ;; Try to autoload the module, and recurse.
+            (try-load-module name version)
+            (resolve-module name #f))
+           (else
+            ;; A module is not bound (but maybe something else is),
+            ;; we're not autoloading -- here's the weird semantics,
+            ;; we create an empty module.
+            (make-modules-in the-root-module full-name))))))))
 
 ;; (define-special-value '(%app modules new-ws) (lambda () (make-scm-module)))
 
