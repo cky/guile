@@ -2097,8 +2097,8 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;;
 ;;;     local-ref name          ==      nested-ref (current-module) name
 ;;;     local-set! name val     ==      nested-set! (current-module) name val
-;;;     local-define! name val  ==      nested-define! (current-module) name val
-;;;     local-remove! name      ==      nested-remove! (current-module) name
+;;;     local-define name val   ==      nested-define! (current-module) name val
+;;;     local-remove name       ==      nested-remove! (current-module) name
 ;;;
 
 
