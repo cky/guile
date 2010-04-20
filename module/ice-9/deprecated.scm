@@ -38,7 +38,8 @@
             $tanh
             closure?
             %nil
-            @bind))
+            @bind
+            app))
 
 ;;;; Deprecated definitions.
 
@@ -296,3 +297,5 @@
                    (lambda () b0 b1 ...)
                    (lambda ()
                      (set! id old-v) ...)))))))))
+
+(define app %app)

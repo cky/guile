@@ -2338,7 +2338,6 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define %app (make-module 31))
 (set-module-name! %app '(%app))
-(define app %app) ;; for backwards compatability
 
 (let ((m (make-module 31)))
   (set-module-name! m '())
