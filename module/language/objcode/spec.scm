@@ -53,11 +53,6 @@
             (lp (acons (binding:index b) (list b) ret)
                 (cdr locs))))))))
 
-(define (program-free-variables program)
-  (list->vector
-   (map (lambda (i) (program-free-variable-ref program i))
-        (iota (program-num-free-variables program)))))
-
 (define (decompile-value x env opts)
   (cond
    ((program? x)

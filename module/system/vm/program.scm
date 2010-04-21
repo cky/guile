@@ -20,7 +20,8 @@
 
 (define-module (system vm program)
   #:use-module (system base pmatch)
-  #:use-module (ice-9 optargs)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26)
   #:export (make-program
 
             make-binding binding:name binding:boxed? binding:index
@@ -35,10 +36,11 @@
             arity:nreq arity:nopt arity:rest? arity:kw arity:allow-other-keys?
 
             program-arguments-alist program-lambda-list
-            
+
             program-meta
             program-objcode program? program-objects
             program-module program-base
+            program-free-variables
             program-num-free-variables
             program-free-variable-ref program-free-variable-set!))
 
@@ -189,6 +191,14 @@
       ,@(if (pair? opt) (cons #:optional opt) '())
       ,@(if (pair? key) (cons #:key key) '())
       . ,rest)))
+
+(define (program-free-variables prog)
+  "Return the list of free variables of PROG."
+  (let ((count (program-num-free-variables prog)))
+    (unfold (lambda (i) (>= i count))
+            (cut program-free-variable-ref prog <>)
+            1+
+            0)))
 
 (define (write-program prog port)
   (format port "#<procedure ~a~a>"
