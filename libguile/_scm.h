@@ -120,7 +120,7 @@
 
 
 
-#if GUILE_USE_64_CALLS && HAVE_STAT64
+#if GUILE_USE_64_CALLS && defined(HAVE_STAT64)
 #define CHOOSE_LARGEFILE(foo,foo64)     foo64
 #else
 #define CHOOSE_LARGEFILE(foo,foo64)     foo
