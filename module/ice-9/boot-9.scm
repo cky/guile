@@ -1565,7 +1565,8 @@ If there is no handler at all, Guile prints an error and then exits."
      (import-obarray #:no-setter)
      observers
      (weak-observers #:no-setter)
-     version)))
+     version
+     submodules)))
 
 
 ;; make-module &opt size uses binder
@@ -1606,7 +1607,8 @@ If there is no handler at all, Guile prints an error and then exits."
                                           #f #f #f
                                           (make-hash-table %default-import-size)
                                           '()
-                                          (make-weak-key-hash-table 31) #f)))
+                                          (make-weak-key-hash-table 31) #f
+                                          (make-hash-table 7))))
 
           ;; We can't pass this as an argument to module-constructor,
           ;; because we need it to close over a pointer to the module
@@ -2680,7 +2682,8 @@ If there is no handler at all, Guile prints an error and then exits."
                           (set-car! autoload i)))
                     (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
-                        (make-hash-table 0) '() (make-weak-value-hash-table 31) #f)))
+                        (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
+                        (make-hash-table 0))))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one
