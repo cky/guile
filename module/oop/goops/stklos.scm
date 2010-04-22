@@ -1,4 +1,4 @@
-;;;; Copyright (C) 1999,2002, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999,2002, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -35,7 +35,7 @@
 ;; Export all bindings that are exported from (oop goops)...
 (module-for-each (lambda (sym var)
 		   (module-add! %module-public-interface sym var))
-		 (nested-ref the-root-module '(app modules oop goops
+		 (nested-ref the-root-module '(%app modules oop goops
 						   %module-public-interface)))
 
 ;; ...but replace the following bindings:

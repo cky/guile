@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugging breakpoints) -- practical breakpoints
 
-;;; Copyright (C) 2005 Neil Jerram
+;;; Copyright (C) 2005, 2010 Neil Jerram
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -253,7 +253,7 @@
 ;; If a module named MODULE-NAME has been loaded, return its module
 ;; object; otherwise return #f.
 (define (module-if-already-loaded module-name)
-  (nested-ref the-root-module (append '(app modules) module-name)))
+  (nested-ref the-root-module (append '(%app modules) module-name)))
 
 ;; Construct and return a list of all loaded modules.
 (define (all-loaded-modules)
@@ -290,7 +290,7 @@
        ds)))
   ;; Add submodules recursively, starting from the root of all
   ;; modules.
-  (add-submodules-of '(app modules))
+  (add-submodules-of '(%app modules))
   ;; Return the result.
   known-modules)
 
