@@ -39,6 +39,7 @@
             closure?
             %nil
             @bind
+            %app
             app))
 
 ;;;; Deprecated definitions.
@@ -298,4 +299,10 @@
                    (lambda ()
                      (set! id old-v) ...)))))))))
 
+;; Define (%app modules)
+(define %app (make-module 31))
+(set-module-name! %app '(%app))
+(nested-define! %app '(modules) (resolve-module '() #f))
+
+;; app aliases %app
 (define app %app)
