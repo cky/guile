@@ -1551,6 +1551,7 @@ If there is no handler at all, Guile prints an error and then exits."
   ;; NOTE: The getter `module-eval-closure' is used in libguile/modules.c.
   ;; NOTE: The getter `module-transfomer' is defined libguile/modules.c.
   ;; NOTE: The getter `module-name' is defined later, due to boot reasons.
+  ;; NOTE: The getter `module-public-interface' is used in libguile/modules.c.
   ;;
   (define-record-type module
     (lambda (obj port) (%print-module obj port))
@@ -1567,7 +1568,8 @@ If there is no handler at all, Guile prints an error and then exits."
      (weak-observers #:no-setter)
      version
      submodules
-     submodule-binder)))
+     submodule-binder
+     public-interface)))
 
 
 ;; make-module &opt size uses binder
@@ -1609,7 +1611,7 @@ If there is no handler at all, Guile prints an error and then exits."
                                           (make-hash-table %default-import-size)
                                           '()
                                           (make-weak-key-hash-table 31) #f
-                                          (make-hash-table 7) #f)))
+                                          (make-hash-table 7) #f #f)))
 
           ;; We can't pass this as an argument to module-constructor,
           ;; because we need it to close over a pointer to the module
@@ -2218,11 +2220,6 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; better thought of as a root.
 ;;;
 
-(define (module-public-interface m)
-  (let ((var (module-local-variable m '%module-public-interface)))
-    (and var (variable-ref var))))
-(define (set-module-public-interface! m i)
-  (module-define! m '%module-public-interface i))
 (define (set-system-module! m s)
   (set-procedure-property! (module-eval-closure m) 'system-module s))
 (define the-root-module (make-root-module))
@@ -2686,7 +2683,7 @@ If there is no handler at all, Guile prints an error and then exits."
                     (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
-                        (make-hash-table 0) #f)))
+                        (make-hash-table 0) #f #f)))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one

@@ -327,3 +327,26 @@
   (module-define-submodule! the-root-module '%app %app)
   (module-define-submodule! the-root-module 'app %app)
   (module-define-submodule! %app 'modules (resolve-module '() #f)))
+
+;; Allow code that poked %module-public-interface to keep on working.
+;;
+(set! module-public-interface
+      (let ((getter module-public-interface))
+        (lambda (mod)
+          (or (getter mod)
+              (cond
+               ((and=> (module-local-variable mod '%module-public-interface)
+                       variable-ref)
+                => (lambda (iface)
+                     (issue-deprecation-warning 
+"Setting a module's public interface via munging %module-public-interface is
+deprecated. Use set-module-public-interface! instead.")
+                     (set-module-public-interface! mod iface)
+                     iface))
+               (else #f))))))
+
+(set! set-module-public-interface!
+      (let ((setter set-module-public-interface!))
+        (lambda (mod iface)
+          (setter mod iface)
+          (module-define! mod '%module-public-interface iface))))
