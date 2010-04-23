@@ -302,6 +302,8 @@
 
 (define (module-ref-submodule module name)
   (or (hashq-ref (module-submodules module) name)
+      (and (module-submodule-binder module)
+           ((module-submodule-binder module) module name))
       (let ((var (module-local-variable module name)))
         (and (variable-bound? var)
              (module? (variable-ref var))

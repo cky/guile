@@ -1566,7 +1566,8 @@ If there is no handler at all, Guile prints an error and then exits."
      observers
      (weak-observers #:no-setter)
      version
-     submodules)))
+     submodules
+     submodule-binder)))
 
 
 ;; make-module &opt size uses binder
@@ -1608,7 +1609,7 @@ If there is no handler at all, Guile prints an error and then exits."
                                           (make-hash-table %default-import-size)
                                           '()
                                           (make-weak-key-hash-table 31) #f
-                                          (make-hash-table 7))))
+                                          (make-hash-table 7) #f)))
 
           ;; We can't pass this as an argument to module-constructor,
           ;; because we need it to close over a pointer to the module
@@ -1925,7 +1926,9 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; with local variables that happen to be named the same as the submodule.
 ;;
 (define (module-ref-submodule module name)
-  (hashq-ref (module-submodules module) name))
+  (or (hashq-ref (module-submodules module) name)
+      (and (module-submodule-binder module)
+           ((module-submodule-binder module) module name))))
 
 (define (module-define-submodule! module name submodule)
   (hashq-set! (module-submodules module) name submodule))
@@ -2681,7 +2684,7 @@ If there is no handler at all, Guile prints an error and then exits."
                     (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
-                        (make-hash-table 0))))
+                        (make-hash-table 0) #f)))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one
