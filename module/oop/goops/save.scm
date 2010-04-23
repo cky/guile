@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 2000,2001,2002, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000,2001,2002, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -848,10 +848,12 @@
     (close-port port)
     objects))
 
+(define iface (module-public-interface (current-module)))
+
 (define-method (load-objects (file <input-port>))
   (let ((m (make-module)))
     (module-use! m the-scm-module)
-    (module-use! m %module-public-interface)
+    (module-use! m iface)
     (save-module-excursion
      (lambda ()
        (set-current-module m)

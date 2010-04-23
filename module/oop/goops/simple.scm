@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2005, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -28,4 +28,5 @@
     ((_ arg ...)
      (define-class-with-accessors-keywords arg ...))))
 
-(module-use! %module-public-interface (resolve-interface '(oop goops)))
+(module-use! (module-public-interface (current-module))
+             (resolve-interface '(oop goops)))

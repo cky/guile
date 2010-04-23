@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001, 2004, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -129,7 +129,8 @@
 
 (define null-interface (resolve-interface '(ice-9 null)))
 
-(module-use! %module-public-interface null-interface)
+(module-use! (module-public-interface (current-module))
+             null-interface)
 
 (define (null-environment n)
   (if (not (= n 5))
