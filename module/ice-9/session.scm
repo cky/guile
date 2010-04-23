@@ -404,8 +404,7 @@ It is an image under the mapping EXTRACT."
 		     identity))
 
 (define (root-modules)
-  (cons the-root-module
-	(submodules (nested-ref the-root-module '(app modules)))))
+  (submodules (resolve-module '() #f)))
 
 (define (submodules m)
   (hash-fold (lambda (name var data)
