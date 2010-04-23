@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -62,8 +62,8 @@
                            (lp (1+ i) (if v (cons-uniq v out) out))))
                         ((,mod ,sym ,public?)
                          ;; hm, hacky.
-                         (let* ((m (nested-ref the-root-module
-                                               (append '(%app modules) mod)))
+                         (let* ((m (nested-ref-module (resolve-module '() #f)
+                                                      mod))
                                 (v (and m
                                         (module-variable
                                          (if public?
