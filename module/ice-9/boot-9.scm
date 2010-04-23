@@ -2360,10 +2360,10 @@ If there is no handler at all, Guile prints an error and then exits."
           (try-load-module name version)
           (resolve-module name #f))
          (else
-          ;; A module is not bound (but maybe something else is),
-          ;; we're not autoloading -- here's the weird semantics,
-          ;; we create an empty module.
-          (make-modules-in root name)))))))
+          ;; No module found (or if one was, it had no public interface), and
+          ;; we're not autoloading. Here's the weird semantics: we ensure
+          ;; there's an empty module.
+          (or already (make-modules-in root name))))))))
 
 
 (define (try-load-module name version)
