@@ -38,9 +38,8 @@
             $tanh
             closure?
             %nil
-            @bind
-            %app
-            app))
+            @bind))
+
 
 ;;;; Deprecated definitions.
 
@@ -299,10 +298,12 @@
                    (lambda ()
                      (set! id old-v) ...)))))))))
 
-;; Define (%app modules)
-(define %app (make-module 31))
-(set-module-name! %app '(%app))
-(nested-define! %app '(modules) (resolve-module '() #f))
-
-;; app aliases %app
-(define app %app)
+;; Define (%app) and (%app modules), and have (app) alias (%app). This
+;; side-effects the-root-module, both to the submodules table and (through
+;; module-define-submodule! above) the obarray.
+;;
+(let ((%app (make-module 31)))
+  (set-module-name! %app '(%app))
+  (module-define-submodule! the-root-module '%app %app)
+  (module-define-submodule! the-root-module 'app %app)
+  (module-define-submodule! %app 'modules (resolve-module '() #f)))
