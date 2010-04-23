@@ -1925,12 +1925,10 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; with local variables that happen to be named the same as the submodule.
 ;;
 (define (module-ref-submodule module name)
-  (let ((m (module-ref module name)))
-    (and m (module? m) m)))
+  (hashq-ref (module-submodules module) name))
 
 (define (module-define-submodule! module name submodule)
-  (module-define! module name submodule))
-
+  (hashq-set! (module-submodules module) name submodule))
 
 
 

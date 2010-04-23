@@ -38,7 +38,9 @@
             $tanh
             closure?
             %nil
-            @bind))
+            @bind)
+
+  #:replace (module-ref-submodule module-define-submodule!))
 
 
 ;;;; Deprecated definitions.
@@ -297,6 +299,22 @@
                    (lambda () b0 b1 ...)
                    (lambda ()
                      (set! id old-v) ...)))))))))
+
+(define (module-ref-submodule module name)
+  (or (hashq-ref (module-submodules module) name)
+      (let ((var (module-local-variable module name)))
+        (and (variable-bound? var)
+             (module? (variable-ref var))
+             (begin
+               (warn "module" module "not in submodules table")
+               (variable-ref var))))))
+
+(define (module-define-submodule! module name submodule)
+  (let ((var (module-local-variable module name)))
+    (if (and var (variable-bound? var) (not (module? (variable-ref var))))
+        (warn "defining module" module ": not overriding local definition" var)
+        (module-define! module name submodule)))
+  (hashq-set! (module-submodules module) name submodule))
 
 ;; Define (%app) and (%app modules), and have (app) alias (%app). This
 ;; side-effects the-root-module, both to the submodules table and (through
