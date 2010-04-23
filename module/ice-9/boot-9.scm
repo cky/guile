@@ -1916,6 +1916,20 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (module-map proc module)
   (hash-map->list proc (module-obarray module)))
 
+;; Submodules
+;;
+;; Modules exist in a separate namespace from values, because you generally do
+;; not want the name of a submodule, which you might not even use, to collide
+;; with local variables that happen to be named the same as the submodule.
+;;
+(define (module-ref-submodule module name)
+  (let ((m (module-ref module name)))
+    (and m (module? m) m)))
+
+(define (module-define-submodule! module name submodule)
+  (module-define! module name submodule))
+
+
 
 
 ;;; {Low Level Bootstrapping}
