@@ -2218,7 +2218,9 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; better thought of as a root.
 ;;;
 
-;; module-public-interface is defined in C.
+(define (module-public-interface m)
+  (let ((var (module-local-variable m '%module-public-interface)))
+    (and var (variable-ref var))))
 (define (set-module-public-interface! m i)
   (module-define! m '%module-public-interface i))
 (define (set-system-module! m s)

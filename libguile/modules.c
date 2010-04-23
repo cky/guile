@@ -44,7 +44,16 @@ scm_t_bits scm_module_tag;
 
 static SCM the_module;
 
+static SCM module_make_local_var_x_var;
+
 static SCM the_root_module_var;
+static SCM process_define_module_var;
+static SCM process_use_modules_var;
+static SCM resolve_module_var;
+static SCM module_public_interface_var;
+static SCM module_export_x_var;
+static SCM default_duplicate_binding_procedures_var;
+
 
 static SCM unbound_variable (const char *func, SCM sym)
 {
@@ -149,10 +158,6 @@ convert_module_name (const char *name)
   return list;
 }
 
-static SCM process_define_module_var;
-static SCM process_use_modules_var;
-static SCM resolve_module_var;
-
 SCM
 scm_c_resolve_module (const char *name)
 {
@@ -182,8 +187,6 @@ scm_c_use_module (const char *name)
   scm_call_1 (SCM_VARIABLE_REF (process_use_modules_var),
 	      scm_list_1 (scm_list_1 (convert_module_name (name))));
 }
-
-static SCM module_export_x_var;
 
 SCM
 scm_module_export (SCM module, SCM namelist)
@@ -266,12 +269,6 @@ scm_lookup_closure_module (SCM proc)
  * replaced by something based on environments.[ch], in a future
  * release.
  */
-
-/* The `module-make-local-var!' variable.  */
-static SCM module_make_local_var_x_var = SCM_UNSPECIFIED;
-
-/* The `default-duplicate-binding-procedures' variable.  */
-static SCM default_duplicate_binding_procedures_var = SCM_UNSPECIFIED;
 
 /* Return the list of default duplicate binding handlers (procedures).  */
 static inline SCM
@@ -638,24 +635,11 @@ SCM_DEFINE (scm_module_import_interface, "module-import-interface", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_SYMBOL (sym_sys_module_public_interface, "%module-public-interface");
-
-SCM_DEFINE (scm_module_public_interface, "module-public-interface", 1, 0, 0,
-	    (SCM module),
-	    "Return the public interface of @var{module}.\n\n"
-            "If @var{module} has no public interface, @code{#f} is returned.")
-#define FUNC_NAME s_scm_module_public_interface
+SCM
+scm_module_public_interface (SCM module)
 {
-  SCM var;
-
-  SCM_VALIDATE_MODULE (1, module);
-  var = scm_module_local_variable (module, sym_sys_module_public_interface);
-  if (scm_is_true (var))
-    return SCM_VARIABLE_REF (var);
-  else
-    return SCM_BOOL_F;
+  return scm_call_1 (SCM_VARIABLE_REF (module_public_interface_var), module);
 }
-#undef FUNC_NAME
 
 /* scm_sym2var
  *
@@ -899,6 +883,7 @@ scm_post_boot_init_modules ()
   the_root_module_var = scm_c_lookup ("the-root-module");
   default_duplicate_binding_procedures_var = 
     scm_c_lookup ("default-duplicate-binding-procedures");
+  module_public_interface_var = scm_c_lookup ("module-public-interface");
 
   scm_module_system_booted_p = 1;
 }
