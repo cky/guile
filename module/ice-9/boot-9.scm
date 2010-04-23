@@ -2267,24 +2267,16 @@ If there is no handler at all, Guile prints an error and then exits."
             ;; `resolve-module'. This is important as `psyntax' stores module
             ;; names and relies on being able to `resolve-module' them.
             (set-module-name! mod name)
-            (nested-define! (resolve-module '() #f) name mod)
+            (nested-define-module! (resolve-module '() #f) name mod)
             (accessor mod))))))
 
 (define (make-modules-in module name)
-  (if (null? name)
-      module
-      (make-modules-in
-       (let* ((var (module-local-variable module (car name)))
-              (val (and var (variable-bound? var) (variable-ref var))))
-         (if (module? val)
-             val
-             (let ((m (make-module 31)))
-               (set-module-kind! m 'directory)
-               (set-module-name! m (append (module-name module)
-                                           (list (car name))))
-               (module-define! module (car name) m)
-               m)))
-       (cdr name))))
+  (or (nested-ref-module module name)
+      (let ((m (make-module 31)))
+        (set-module-kind! m 'directory)
+        (set-module-name! m (append (module-name module) name))
+        (nested-define-module! module name m)
+        m)))
 
 (define (beautify-user-module! module)
   (let ((interface (module-public-interface module)))
