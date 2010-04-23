@@ -2400,15 +2400,15 @@ If there is no handler at all, Guile prints an error and then exits."
   (let ((root (make-module)))
     (set-module-name! root '())
     ;; Define the-root-module as '(guile).
-    (module-define! root 'guile the-root-module)
+    (module-define-submodule! root 'guile the-root-module)
 
     (lambda (name . args) ;; #:optional (autoload #t) (version #f)
-      (let* ((already (nested-ref root name))
+      (let* ((already (nested-ref-module root name))
              (numargs (length args))
              (autoload (or (= numargs 0) (car args)))
              (version (and (> numargs 1) (cadr args))))
         (cond
-         ((and already (module? already)
+         ((and already
                (or (not autoload) (module-public-interface already)))
           ;; A hit, a palpable hit.
           (if (and version 
