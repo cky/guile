@@ -169,6 +169,8 @@ x
 * Preface::
 * Introduction::
 
+* Hello Scheme!::
+
 * Programming in Scheme::
 * Programming in C::
 
@@ -203,6 +205,11 @@ Indices
 
 @include intro.texi
 
+@raisesections
+@include scheme-ideas.texi
+@lowersections
+@include scheme-reading.texi
+
 @node Programming in Scheme
 @chapter Programming in Scheme
 
@@ -222,19 +229,15 @@ etc. that make up Guile's application programming interface (API),
 @xref{API Reference}.
 
 @menu
-* Basic Ideas::                 Basic ideas in Scheme.
 * Guile Scheme::                Guile's implementation of Scheme.
 * Guile Scripting::             How to write Guile scripts.
 * Using Guile Interactively::   Guile's REPL features.
 * Using Guile in Emacs::        Guile and Emacs.
-* Further Reading::             Where to find out more about Scheme.
 @end menu
 
-@include scheme-ideas.texi
 @include scheme-intro.texi
 @include scheme-scripts.texi
 @include scheme-using.texi
-@include scheme-reading.texi
 
 @node Programming in C
 @chapter Programming in C

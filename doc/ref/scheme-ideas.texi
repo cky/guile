@@ -4,8 +4,8 @@
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
-@node Basic Ideas
-@section Basic Ideas in Scheme
+@node Hello Scheme!
+@chapter Hello Scheme!
 
 In this chapter, we introduce the basic concepts that underpin the
 elegance and power of the Scheme language.
@@ -25,6 +25,7 @@ tutorial.
 * About Procedures::            The representation and use of procedures.
 * About Expressions::           All kinds of expressions and their meaning.
 * About Closure::               Closure, scoping and environments.
+* Further Reading::             Where to find out more about Scheme.
 @end menu
 
 
