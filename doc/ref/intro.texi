@@ -38,8 +38,8 @@ it actually supports several languages, not just Scheme.
 
 @noindent
 The next few sections explain what we mean by these points.  The sections after
-that cover how you can obtain and install Guile, how to report any problems that
-you encounter, and the typographical conventions that we use in this manual.
+that cover how you can obtain and install Guile, and the typographical
+conventions that we use in this manual.
 
 @menu
 * Guile and Scheme::              
@@ -48,7 +48,6 @@ you encounter, and the typographical conventions that we use in this manual.
 * Interactive Programming::
 * Supporting Multiple Languages::
 * Obtaining and Installing Guile::  
-* Reporting Bugs::              
 * Typographical Conventions::          
 @end menu
 
@@ -226,174 +225,6 @@ we have included the report in the Guile distribution; see
 @ref{Top, , Introduction, r5rs, Revised(5) Report on the Algorithmic
 Language Scheme}.
 This will also be installed in your info directory.
-
-@node Reporting Bugs
-@section Reporting Bugs
-
-Any problems with the installation should be reported to
-@email{bug-guile@@gnu.org}.
-
-Whenever you have found a bug in Guile you are encouraged to report it
-to the Guile developers, so they can fix it.  They may also be able to
-suggest workarounds when it is not possible for you to apply the bug-fix
-or install a new version of Guile yourself.
-
-Before sending in bug reports, please check with the following list that
-you really have found a bug.
-
-@itemize @bullet
-@item
-Whenever documentation and actual behavior differ, you have certainly
-found a bug, either in the documentation or in the program.
-
-@item
-When Guile crashes, it is a bug.
-
-@item
-When Guile hangs or takes forever to complete a task, it is a bug.
-
-@item
-When calculations produce wrong results, it is a bug.
-
-@item
-When Guile signals an error for valid Scheme programs, it is a bug.
-
-@item
-When Guile does not signal an error for invalid Scheme programs, it may
-be a bug, unless this is explicitly documented.
-
-@item
-When some part of the documentation is not clear and does not make sense
-to you even after re-reading the section, it is a bug.
-@end itemize
-
-When you write a bug report, please make sure to include as much of the
-information described below in the report.  If you can't figure out some
-of the items, it is not a problem, but the more information we get, the
-more likely we can diagnose and fix the bug.
-
-@itemize @bullet
-@item
-The version number of Guile.  Without this, we won't know whether there
-is any point in looking for the bug in the current version of Guile.
-
-You can get the version number by invoking the command
-
-@example
-$ guile --version
-Guile 1.9.0
-Copyright (c) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009 Free Software Foundation
-Guile may be distributed under the terms of the GNU Lesser General
-Public Licence.  For details, see the files `COPYING.LESSER' and
-`COPYING', which are included in the Guile distribution.  There is
-no warranty, to the extent permitted by law.
-@end example
-
-@item
-The type of machine you are using, and the operating system name and
-version number.  On GNU systems, you can get it with @file{uname}.
-
-@example
-$ uname -a
-Linux tortoise 2.2.17 #1 Thu Dec 21 17:29:05 CET 2000 i586 unknown
-@end example
-
-@item
-The operands given to the @file{configure} command when Guile was
-installed.  It's often useful to augment this with the output of the
-command @code{guile-config info}.
-
-@item
-A complete list of any modifications you have made to the Guile source.
-(We may not have time to investigate the bug unless it happens in an
-unmodified Guile.  But if you've made modifications and you don't tell
-us, you are sending us on a wild goose chase.)
-
-Be precise about these changes.  A description in English is not
-enough---send a context diff for them.
-
-Adding files of your own, or porting to another machine, is a
-modification of the source.
-
-@item
-Details of any other deviations from the standard procedure for
-installing Guile.
-
-@item
-The complete text of any source files needed to reproduce the bug.
-
-If you can tell us a way to cause the problem without loading any source
-files, please do so.  This makes it much easier to debug.  If you do
-need files, make sure you arrange for us to see their exact contents.
-
-@item
-The precise Guile invocation command line we need to type to reproduce
-the bug.
-
-@item
-A description of what behavior you observe that you believe is
-incorrect.  For example, "The Guile process gets a fatal signal," or,
-"The resulting output is as follows, which I think is wrong."
-
-Of course, if the bug is that Guile gets a fatal signal, then one can't
-miss it.  But if the bug is incorrect results, the maintainer might fail
-to notice what is wrong.  Why leave it to chance?
-
-If the manifestation of the bug is a Guile error message, it is
-important to report the precise text of the error message, and a
-backtrace showing how the Scheme program arrived at the error.
-
-This can be done using the procedure @code{backtrace} in the REPL.
-
-@item
-Check whether any programs you have loaded into Guile, including your
-@file{.guile} file, set any variables that may affect the functioning of
-Guile.  Also, see whether the problem happens in a freshly started Guile
-without loading your @file{.guile} file (start Guile with the @code{-q}
-switch to prevent loading the init file).  If the problem does
-@emph{not} occur then, you must report the precise contents of any
-programs that you must load into Guile in order to cause the problem to
-occur.
-
-@item
-If the problem does depend on an init file or other Scheme programs that
-are not part of the standard Guile distribution, then you should make
-sure it is not a bug in those programs by complaining to their
-maintainers first.  After they verify that they are using Guile in a way
-that is supposed to work, they should report the bug.
-
-@item
-If you wish to mention something in the Guile source, show the line of
-code with a few lines of context.  Don't just give a line number.
-
-The line numbers in the development sources might not match those in your
-sources.  It would take extra work for the maintainers to determine what
-code is in your version at a given line number, and we could not be
-certain.
-
-@item
-Additional information from a C debugger such as GDB might enable
-someone to find a problem on a machine which he does not have available.
-If you don't know how to use GDB, please read the GDB manual---it is not
-very long, and using GDB is easy.  You can find the GDB distribution,
-including the GDB manual in online form, in most of the same places you
-can find the Guile distribution.  To run Guile under GDB, you should
-switch to the @file{libguile} subdirectory in which Guile was compiled, then
-do @code{gdb guile} or @code{gdb .libs/guile} (if using GNU Libtool).
-
-However, you need to think when you collect the additional information
-if you want it to show what causes the bug.
-
-For example, many people send just a backtrace, but that is not very
-useful by itself.  A simple backtrace with arguments often conveys
-little about what is happening inside Guile, because most of the
-arguments listed in the backtrace are pointers to Scheme objects.  The
-numeric values of these pointers have no significance whatever; all that
-matters is the contents of the objects they point to (and most of the
-contents are themselves pointers).
-@end itemize
-
 
 @node Typographical Conventions
 @section Typographical Conventions

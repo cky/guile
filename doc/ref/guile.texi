@@ -206,9 +206,7 @@ Indices
 
 @include intro.texi
 
-@raisesections
 @include tour.texi
-@lowersections
 
 @raisesections
 @include scheme-ideas.texi
