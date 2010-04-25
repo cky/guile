@@ -267,7 +267,7 @@ is denoted by the symbol @samp{@print{}}.
 
 As you can see, this code prints @samp{1} (denoted by
 @samp{@print{}}), and returns @code{hooray} (denoted by
-@samp{@result{}}).  Do not confuse the two.
+@samp{@result{}}).
 
 @c Add other conventions here.
 
