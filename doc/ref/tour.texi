@@ -1,0 +1,282 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Hello Guile!
+@section Hello Guile!
+
+This chapter presents a quick tour of all the ways that Guile can be
+used.  There are additional examples in the @file{examples/}
+directory in the Guile source distribution.
+
+The following examples assume that Guile has been installed in
+@code{/usr/local/}.
+
+@menu
+* Running Guile Interactively::
+* Running Guile Scripts::
+* Linking Guile into Programs::
+* Writing Guile Extensions::
+* Using the Guile Module System::
+@end menu
+
+
+@node Running Guile Interactively
+@subsection Running Guile Interactively
+
+In its simplest form, Guile acts as an interactive interpreter for the
+Scheme programming language, reading and evaluating Scheme expressions
+the user enters from the terminal.  Here is a sample interaction between
+Guile and a user; the user's input appears after the @code{$} and
+@code{guile>} prompts:
+
+@example
+$ guile
+guile> (+ 1 2 3)                ; add some numbers
+6
+guile> (define (factorial n)    ; define a function
+         (if (zero? n) 1 (* n (factorial (- n 1)))))
+guile> (factorial 20)
+2432902008176640000
+guile> (getpwnam "jimb")        ; find my entry in /etc/passwd
+#("jimb" ".0krIpK2VqNbU" 4008 10 "Jim Blandy" "/u/jimb"
+  "/usr/local/bin/bash")
+guile> @kbd{C-d}
+$
+@end example
+
+
+@node Running Guile Scripts
+@subsection Running Guile Scripts
+
+Like AWK, Perl, or any shell, Guile can interpret script files.  A Guile
+script is simply a file of Scheme code with some extra information at
+the beginning which tells the operating system how to invoke Guile, and
+then tells Guile how to handle the Scheme code.
+
+Here is a trivial Guile script, for more details @xref{Guile Scripting}.
+
+@example
+#!/usr/local/bin/guile -s
+!#
+(display "Hello, world!")
+(newline)
+@end example
+
+
+@node Linking Guile into Programs
+@subsection Linking Guile into Programs
+
+The Guile interpreter is available as an object library, to be linked
+into applications using Scheme as a configuration or extension
+language.
+
+Here is @file{simple-guile.c}, source code for a program that will
+produce a complete Guile interpreter.  In addition to all usual
+functions provided by Guile, it will also offer the function
+@code{my-hostname}.
+
+@example
+#include <stdlib.h>
+#include <libguile.h>
+
+static SCM
+my_hostname (void)
+@{
+  char *s = getenv ("HOSTNAME");
+  if (s == NULL)
+    return SCM_BOOL_F;
+  else
+    return scm_from_locale_string (s);
+@}
+
+static void
+inner_main (void *data, int argc, char **argv)
+@{
+  scm_c_define_gsubr ("my-hostname", 0, 0, 0, my_hostname);
+  scm_shell (argc, argv);
+@}
+
+int
+main (int argc, char **argv)
+@{
+  scm_boot_guile (argc, argv, inner_main, 0);
+  return 0; /* never reached */
+@}
+@end example
+
+When Guile is correctly installed on your system, the above program
+can be compiled and linked like this:
+
+@example
+$ gcc -o simple-guile simple-guile.c \
+    `pkg-config --cflags --libs guile-2.0`
+@end example
+
+When it is run, it behaves just like the @code{guile} program except
+that you can also call the new @code{my-hostname} function.
+
+@example
+$ ./simple-guile
+guile> (+ 1 2 3)
+6
+guile> (my-hostname)
+"burns"
+@end example
+
+@node Writing Guile Extensions
+@subsection Writing Guile Extensions
+
+You can link Guile into your program and make Scheme available to the
+users of your program.  You can also link your library into Guile and
+make its functionality available to all users of Guile.
+
+A library that is linked into Guile is called an @dfn{extensions}, but
+it really just is an ordinary object library.
+
+The following example shows how to write a simple extension for Guile
+that makes the @code{j0} function available to Scheme code.
+
+@smallexample
+#include <math.h>
+#include <libguile.h>
+
+SCM
+j0_wrapper (SCM x)
+@{
+  return scm_make_real (j0 (scm_num2dbl (x, "j0")));
+@}
+
+void
+init_bessel ()
+@{
+  scm_c_define_gsubr ("j0", 1, 0, 0, j0_wrapper);
+@}
+@end smallexample
+
+This C source file needs to be compiled into a shared library.  Here is
+how to do it on GNU/Linux:
+
+@smallexample
+gcc -shared -o libguile-bessel.so -fPIC bessel.c
+@end smallexample
+
+For creating shared libraries portably, we recommend the use of GNU
+Libtool (@pxref{Top, , Introduction, libtool, GNU Libtool}).
+
+A shared library can be loaded into a running Guile process with the
+function @code{load-extension}.  The @code{j0} is then immediately
+available:
+
+@smallexample
+$ guile
+guile> (load-extension "./libguile-bessel" "init_bessel")
+guile> (j0 2)
+0.223890779141236
+@end smallexample
+
+
+@node Using the Guile Module System
+@subsection Using the Guile Module System
+
+Guile has support for dividing a program into @dfn{modules}.  By using
+modules, you can group related code together and manage the
+composition of complete programs from largely independent parts.
+
+(Although the module system implementation is in flux, feel free to use it
+anyway.  Guile will provide reasonable backwards compatibility.)
+
+Details on the module system beyond this introductory material can be found in
+@xref{Modules}.
+
+@menu
+* Using Modules::
+* Writing new Modules::
+* Putting Extensions into Modules::
+@end menu
+
+
+@node Using Modules
+@subsubsection Using Modules
+
+Guile comes with a lot of useful modules, for example for string
+processing or command line parsing.  Additionally, there exist many
+Guile modules written by other Guile hackers, but which have to be
+installed manually.
+
+Here is a sample interactive session that shows how to use the
+@code{(ice-9 popen)} module which provides the means for communicating
+with other processes over pipes together with the @code{(ice-9
+rdelim)} module that provides the function @code{read-line}.
+
+@smallexample
+$ guile
+guile> (use-modules (ice-9 popen))
+guile> (use-modules (ice-9 rdelim))
+guile> (define p (open-input-pipe "ls -l"))
+guile> (read-line p)
+"total 30"
+guile> (read-line p)
+"drwxr-sr-x    2 mgrabmue mgrabmue     1024 Mar 29 19:57 CVS"
+@end smallexample
+
+@node Writing new Modules
+@subsubsection Writing new Modules
+
+You can create new modules using the syntactic form
+@code{define-module}.  All definitions following this form until the
+next @code{define-module} are placed into the new module.
+
+One module is usually placed into one file, and that file is installed
+in a location where Guile can automatically find it.  The following
+session shows a simple example.
+
+@smallexample
+$ cat /usr/local/share/guile/foo/bar.scm
+
+(define-module (foo bar))
+(export frob)
+
+(define (frob x) (* 2 x))
+
+$ guile
+guile> (use-modules (foo bar))
+guile> (frob 12)
+24
+@end smallexample
+
+@node Putting Extensions into Modules
+@subsubsection Putting Extensions into Modules
+
+In addition to Scheme code you can also put things that are defined in
+C into a module.
+
+You do this by writing a small Scheme file that defines the module and
+call @code{load-extension} directly in the body of the module.
+
+@smallexample
+$ cat /usr/local/share/guile/math/bessel.scm
+
+(define-module (math bessel))
+(export j0)
+
+(load-extension "libguile-bessel" "init_bessel")
+
+$ file /usr/local/lib/libguile-bessel.so
+@dots{} ELF 32-bit LSB shared object @dots{}
+$ guile
+guile> (use-modules (math bessel))
+guile> (j0 2)
+0.223890779141236
+@end smallexample
+
+There is also a way to manipulate the module system from C but only
+Scheme files can be autoloaded.  Thus, we recommend that you define
+your modules in Scheme.
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:
