@@ -723,7 +723,7 @@ Returns @code{#f} iff @var{obj} is object code, @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} bytecode->objcode bytecode
-@deffnx {C Function} scm_bytecode_to_objcode (bytecode,)
+@deffnx {C Function} scm_bytecode_to_objcode (bytecode)
 Makes a bytecode object from @var{bytecode}, which should be a
 @code{u8vector}.
 @end deffn
