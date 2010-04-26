@@ -208,9 +208,7 @@ Indices
 
 @include tour.texi
 
-@raisesections
 @include scheme-ideas.texi
-@lowersections
 @include scheme-reading.texi
 
 @node Programming in Scheme
