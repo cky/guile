@@ -244,40 +244,42 @@ This will also be installed in your info directory.
 The rest of this manual is organised into the following chapters.
 
 @table @strong
-@item Chapter 1: Introduction
-This part provides an overview of what Guile is and how you can use
-it.  A whirlwind tour shows how Guile can be used interactively and as
+@item Chapter 2: Hello Guile!
+A whirlwind tour shows how Guile can be used interactively and as
 a script interpreter, how to link Guile into your own applications,
 and how to write modules of interpreted and compiled code for use with
 Guile.  Everything introduced here is documented again and in full by
-the later parts of the manual.  This part also explains how to obtain
-and install new versions of Guile, and how to report bugs effectively.
+the later parts of the manual.
 
-@item Chapter 2: Programming in Scheme
-This part provides an overview of programming in Scheme with Guile.
-It covers how to invoke the @code{guile} program from the command-line
-and how to write scripts in Scheme.  It also gives an introduction
-into the basic ideas of Scheme itself and to the various extensions
-that Guile offers beyond standard Scheme.
+@item Chapter 3: Hello Scheme!
+For readers new to Scheme, this chapter provides an introduction to the basic
+ideas of the Scheme language.  This material would apply to any Scheme
+implementation and so does not make reference to anything Guile-specific.
 
-@item Chapter 3: Programming in C
-This part provides an overview of how to use Guile in a C program.  It
+@item Chapter 4: Programming in Scheme
+Provides an overview of programming in Scheme with Guile.  It covers how to
+invoke the @code{guile} program from the command-line and how to write scripts
+in Scheme.  It also introduces the extensions that Guile offers beyond standard
+Scheme.
+
+@item Chapter 5: Programming in C
+Provides an overview of how to use Guile in a C program.  It
 discusses the fundamental concepts that you need to understand to
 access the features of Guile, such as dynamic types and the garbage
 collector.  It explains in a tutorial like manner how to define new
 data types and functions for the use by Scheme programs.
 
-@item Chapter 4: Guile API Reference
+@item Chapter 6: Guile API Reference
 This part of the manual documents the Guile @acronym{API} in
 functionality-based groups with the Scheme and C interfaces presented
 side by side.
 
-@item Chapter 5: Guile Modules
+@item Chapter 7: Guile Modules
 Describes some important modules, distributed as part of the Guile
 distribution, that extend the functionality provided by the Guile
 Scheme core.
 
-@item Chapter 6: GOOPS
+@item Chapter 8: GOOPS
 Describes GOOPS, an object oriented extension to Guile that provides
 classes, multiple inheritance and generic functions.
 
