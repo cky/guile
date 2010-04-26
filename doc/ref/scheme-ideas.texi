@@ -14,11 +14,12 @@ Readers who already possess a background knowledge of Scheme may happily
 skip this chapter.  For the reader who is new to the language, however,
 the following discussions on data, procedures, expressions and closure
 are designed to provide a minimum level of Scheme understanding that is
-more or less assumed by the reference chapters that follow.
+more or less assumed by the chapters that follow.
 
-The style of this introductory material aims about halfway between the
-terse precision of R5RS and the discursive randomness of a Scheme
-tutorial.
+The style of this introductory material aims about halfway between the terse
+precision of R5RS and the discursiveness of existing Scheme tutorials.  For
+pointers to useful Scheme resources on the web, please see @ref{Further
+Reading}.
 
 @menu
 * About Data::                  Latent typing, types, values and variables.

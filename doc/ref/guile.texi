@@ -216,16 +216,11 @@ Indices
 @node Programming in Scheme
 @chapter Programming in Scheme
 
-Guile's core language is Scheme, and an awful lot can be achieved simply
-by using Guile to write and run Scheme programs.  In this part of the
-manual, we explain how to use Guile in this mode, and describe the tools
-that Guile provides to help you with script writing, debugging and
-packaging your programs for distribution.
-
-For readers who are not yet familiar with the Scheme language, this part
-includes a chapter that presents the basic concepts of the language, and
-gives references to freely available Scheme tutorial material on the
-web.
+Guile's core language is Scheme, and a lot can be achieved simply by using Guile
+to write and run Scheme programs --- as opposed to having to dive into C code.
+In this part of the manual, we explain how to use Guile in this mode, and
+describe the tools that Guile provides to help you with script writing,
+debugging and packaging your programs for distribution.
 
 For detailed reference information on the variables, functions
 etc. that make up Guile's application programming interface (API),

@@ -169,12 +169,13 @@ Then, for bonus points and maximising the ability for the user to experiment
 quickly with code changes, the system should allow parts of the source code to
 be modified and reloaded into the running program, to take immediate effect.
 
-Guile allows this kind of interactive programming, and this distinguishes it
-from many Scheme implementations that instead prioritise running a fixed Scheme
-program as fast as possible --- because there are tradeoffs between performance
-and the ability to modify parts of an already running program.  There are faster
-Schemes than Guile, but Guile is a GNU project and so prioritises the GNU vision
-of programming freedom and experimentation.
+Guile is designed for this kind of interactive programming, and this
+distinguishes it from many Scheme implementations that instead prioritise
+running a fixed Scheme program as fast as possible --- because there are
+tradeoffs between performance and the ability to modify parts of an already
+running program.  There are faster Schemes than Guile, but Guile is a GNU
+project and so prioritises the GNU vision of programming freedom and
+experimentation.
 
 @node Supporting Multiple Languages
 @section Supporting Multiple Languages
