@@ -42,11 +42,13 @@ int scm_module_system_booted_p = 0;
 
 scm_t_bits scm_module_tag;
 
+/* The current module, a fluid. */
 static SCM the_module;
 
-static SCM module_make_local_var_x_var;
-
+/* Most of the module system is implemented in Scheme. These bindings from
+   boot-9 are needed to provide the Scheme interface. */
 static SCM the_root_module_var;
+static SCM module_make_local_var_x_var;
 static SCM process_define_module_var;
 static SCM process_use_modules_var;
 static SCM resolve_module_var;
