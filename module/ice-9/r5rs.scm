@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -31,9 +31,10 @@
 
 	      load))  
 
-(module-use! %module-public-interface (resolve-interface '(ice-9 safe-r5rs)))
+(module-use! (module-public-interface (current-module))
+             (resolve-interface '(ice-9 safe-r5rs)))
 
-(define scheme-report-interface %module-public-interface)
+(define scheme-report-interface (module-public-interface (current-module)))
 
 (define (scheme-report-environment n)
   (if (not (= n 5))

@@ -34,9 +34,9 @@
 
 ;; Export all bindings that are exported from (oop goops)...
 (module-for-each (lambda (sym var)
-		   (module-add! %module-public-interface sym var))
-		 (nested-ref the-root-module '(%app modules oop goops
-						   %module-public-interface)))
+		   (module-add! (module-public-interface (current-module))
+                                sym var))
+		 (resolve-interface '(oop goops)))
 
 ;; ...but replace the following bindings:
 (export define-class define-method)

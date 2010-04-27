@@ -1,6 +1,6 @@
 ;;;; ls.scm --- functions for browsing modules
 ;;;;
-;;;; 	Copyright (C) 1995, 1996, 1997, 1999, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1995, 1996, 1997, 1999, 2001, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -54,21 +54,19 @@
 ;;;		Analogous to `ls', but with local definitions only.
 
 (define (local-definitions-in root names)
-  (let ((m (nested-ref root names))
-	(answer '()))
-    (if (not (module? m))
-	(set! answer m)
-	(module-for-each (lambda (k v) (set! answer (cons k answer))) m))
-    answer))
+  (let ((m (nested-ref-module root names)))
+    (if m
+        (module-map (lambda (k v) k) m)
+        (nested-ref root names))))
 
 (define (definitions-in root names)
-  (let ((m (nested-ref root names)))
-    (if (not (module? m))
-	m
+  (let ((m (nested-ref-module root names)))
+    (if m
 	(reduce union
-		(cons (local-definitions-in m  '())
+		(cons (local-definitions-in m '())
 		      (map (lambda (m2) (definitions-in m2 '()))
-			   (module-uses m)))))))
+			   (module-uses m))))
+        (nested-ref root names))))
 
 (define (ls . various-refs)
   (if (pair? various-refs)
@@ -90,7 +88,7 @@
 
 (define (recursive-local-define name value)
   (let ((parent (reverse! (cdr (reverse name)))))
-    (and parent (make-modules-in (current-module) parent))
-    (local-define name value)))
+    (module-define! (make-modules-in (current-module) parent)
+                    name value)))
 
 ;;; ls.scm ends here

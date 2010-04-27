@@ -1551,6 +1551,7 @@ If there is no handler at all, Guile prints an error and then exits."
   ;; NOTE: The getter `module-eval-closure' is used in libguile/modules.c.
   ;; NOTE: The getter `module-transfomer' is defined libguile/modules.c.
   ;; NOTE: The getter `module-name' is defined later, due to boot reasons.
+  ;; NOTE: The getter `module-public-interface' is used in libguile/modules.c.
   ;;
   (define-record-type module
     (lambda (obj port) (%print-module obj port))
@@ -1565,7 +1566,10 @@ If there is no handler at all, Guile prints an error and then exits."
      (import-obarray #:no-setter)
      observers
      (weak-observers #:no-setter)
-     version)))
+     version
+     submodules
+     submodule-binder
+     public-interface)))
 
 
 ;; make-module &opt size uses binder
@@ -1606,7 +1610,8 @@ If there is no handler at all, Guile prints an error and then exits."
                                           #f #f #f
                                           (make-hash-table %default-import-size)
                                           '()
-                                          (make-weak-key-hash-table 31) #f)))
+                                          (make-weak-key-hash-table 31) #f
+                                          (make-hash-table 7) #f #f)))
 
           ;; We can't pass this as an argument to module-constructor,
           ;; because we need it to close over a pointer to the module
@@ -1916,6 +1921,20 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (module-map proc module)
   (hash-map->list proc (module-obarray module)))
 
+;; Submodules
+;;
+;; Modules exist in a separate namespace from values, because you generally do
+;; not want the name of a submodule, which you might not even use, to collide
+;; with local variables that happen to be named the same as the submodule.
+;;
+(define (module-ref-submodule module name)
+  (or (hashq-ref (module-submodules module) name)
+      (and (module-submodule-binder module)
+           ((module-submodule-binder module) module name))))
+
+(define (module-define-submodule! module name submodule)
+  (hashq-set! (module-submodules module) name submodule))
+
 
 
 ;;; {Low Level Bootstrapping}
@@ -2070,15 +2089,15 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {Recursive Namespaces}
 ;;;
 ;;; A hierarchical namespace emerges if we consider some module to be
-;;; root, and variables bound to modules as nested namespaces.
+;;; root, and submodules of that module to be nested namespaces.
 ;;;
-;;; The routines in this file manage variable names in hierarchical namespace.
+;;; The routines here manage variable names in hierarchical namespace.
 ;;; Each variable name is a list of elements, looked up in successively nested
 ;;; modules.
 ;;;
 ;;;             (nested-ref some-root-module '(foo bar baz))
-;;;             => <value of a variable named baz in the module bound to bar in
-;;;                 the module bound to foo in some-root-module>
+;;;             => <value of a variable named baz in the submodule bar of
+;;;                 the submodule foo of some-root-module>
 ;;;
 ;;;
 ;;; There are:
@@ -2091,50 +2110,104 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;;     nested-define! a-root name val
 ;;;     nested-remove! a-root name
 ;;;
+;;; These functions manipulate values in namespaces. For referencing the
+;;; namespaces themselves, use the following:
 ;;;
-;;; (current-module) is a natural choice for a-root so for convenience there are
+;;;     nested-ref-module a-root name
+;;;     nested-define-module! a-root name mod
+;;;
+;;; (current-module) is a natural choice for a root so for convenience there are
 ;;; also:
 ;;;
-;;;     local-ref name          ==      nested-ref (current-module) name
-;;;     local-set! name val     ==      nested-set! (current-module) name val
-;;;     local-define name val   ==      nested-define! (current-module) name val
-;;;     local-remove name       ==      nested-remove! (current-module) name
+;;;     local-ref name                ==  nested-ref (current-module) name
+;;;     local-set! name val           ==  nested-set! (current-module) name val
+;;;     local-define name val         ==  nested-define! (current-module) name val
+;;;     local-remove name             ==  nested-remove! (current-module) name
+;;;     local-ref-module name         ==  nested-ref-module (current-module) name
+;;;     local-define-module! name m   ==  nested-define-module! (current-module) name m
 ;;;
 
 
 (define (nested-ref root names)
-  (let loop ((cur root)
-             (elts names))
-    (cond
-     ((null? elts)              cur)
-     ((not (module? cur))       #f)
-     (else (loop (module-ref cur (car elts) #f) (cdr elts))))))
+  (if (null? names)
+      root
+      (let loop ((cur root)
+                 (head (car names))
+                 (tail (cdr names)))
+        (if (null? tail)
+            (module-ref cur head #f)
+            (let ((cur (module-ref-submodule cur head)))
+              (and cur
+                   (loop cur (car tail) (cdr tail))))))))
 
 (define (nested-set! root names val)
   (let loop ((cur root)
-             (elts names))
-    (if (null? (cdr elts))
-        (module-set! cur (car elts) val)
-        (loop (module-ref cur (car elts)) (cdr elts)))))
+             (head (car names))
+             (tail (cdr names)))
+    (if (null? tail)
+        (module-set! cur head val)
+        (let ((cur (module-ref-submodule cur head)))
+          (if (not cur)
+              (error "failed to resolve module" names)
+              (loop cur (car tail) (cdr tail)))))))
 
 (define (nested-define! root names val)
   (let loop ((cur root)
-             (elts names))
-    (if (null? (cdr elts))
-        (module-define! cur (car elts) val)
-        (loop (module-ref cur (car elts)) (cdr elts)))))
+             (head (car names))
+             (tail (cdr names)))
+    (if (null? tail)
+        (module-define! cur head val)
+        (let ((cur (module-ref-submodule cur head)))
+          (if (not cur)
+              (error "failed to resolve module" names)
+              (loop cur (car tail) (cdr tail)))))))
 
 (define (nested-remove! root names)
   (let loop ((cur root)
-             (elts names))
-    (if (null? (cdr elts))
-        (module-remove! cur (car elts))
-        (loop (module-ref cur (car elts)) (cdr elts)))))
+             (head (car names))
+             (tail (cdr names)))
+    (if (null? tail)
+        (module-remove! cur head)
+        (let ((cur (module-ref-submodule cur head)))
+          (if (not cur)
+              (error "failed to resolve module" names)
+              (loop cur (car tail) (cdr tail)))))))
+
+
+(define (nested-ref-module root names)
+  (let loop ((cur root)
+             (names names))
+    (if (null? names)
+        cur
+        (let ((cur (module-ref-submodule cur (car names))))
+          (and cur
+               (loop cur (cdr names)))))))
+
+(define (nested-define-module! root names module)
+  (if (null? names)
+      (error "can't redefine root module" root module)
+      (let loop ((cur root)
+                 (head (car names))
+                 (tail (cdr names)))
+        (if (null? tail)
+            (module-define-submodule! cur head module)
+            (let ((cur (or (module-ref-submodule cur head)
+                           (let ((m (make-module 31)))
+                             (set-module-kind! m 'directory)
+                             (set-module-name! m (append (module-name cur)
+                                                         (list head)))
+                             (module-define-submodule! cur head m)
+                             m))))
+              (loop cur (car tail) (cdr tail)))))))
+
 
 (define (local-ref names) (nested-ref (current-module) names))
 (define (local-set! names val) (nested-set! (current-module) names val))
 (define (local-define names val) (nested-define! (current-module) names val))
 (define (local-remove names) (nested-remove! (current-module) names))
+(define (local-ref-module names) (nested-ref-module (current-module) names))
+(define (local-define-module names mod) (nested-define-module! (current-module) names mod))
+
 
 
 
@@ -2147,9 +2220,6 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; better thought of as a root.
 ;;;
 
-;; module-public-interface is defined in C.
-(define (set-module-public-interface! m i)
-  (module-define! m '%module-public-interface i))
 (define (set-system-module! m s)
   (set-procedure-property! (module-eval-closure m) 'system-module s))
 (define the-root-module (make-root-module))
@@ -2199,24 +2269,16 @@ If there is no handler at all, Guile prints an error and then exits."
             ;; `resolve-module'. This is important as `psyntax' stores module
             ;; names and relies on being able to `resolve-module' them.
             (set-module-name! mod name)
-            (nested-define! (resolve-module '() #f) name mod)
+            (nested-define-module! (resolve-module '() #f) name mod)
             (accessor mod))))))
 
 (define (make-modules-in module name)
-  (if (null? name)
-      module
-      (make-modules-in
-       (let* ((var (module-local-variable module (car name)))
-              (val (and var (variable-bound? var) (variable-ref var))))
-         (if (module? val)
-             val
-             (let ((m (make-module 31)))
-               (set-module-kind! m 'directory)
-               (set-module-name! m (append (module-name module)
-                                           (list (car name))))
-               (module-define! module (car name) m)
-               m)))
-       (cdr name))))
+  (or (nested-ref-module module name)
+      (let ((m (make-module 31)))
+        (set-module-kind! m 'directory)
+        (set-module-name! m (append (module-name module) name))
+        (nested-define-module! module name m)
+        m)))
 
 (define (beautify-user-module! module)
   (let ((interface (module-public-interface module)))
@@ -2340,15 +2402,15 @@ If there is no handler at all, Guile prints an error and then exits."
   (let ((root (make-module)))
     (set-module-name! root '())
     ;; Define the-root-module as '(guile).
-    (module-define! root 'guile the-root-module)
+    (module-define-submodule! root 'guile the-root-module)
 
     (lambda (name . args) ;; #:optional (autoload #t) (version #f)
-      (let* ((already (nested-ref root name))
+      (let* ((already (nested-ref-module root name))
              (numargs (length args))
              (autoload (or (= numargs 0) (car args)))
              (version (and (> numargs 1) (cadr args))))
         (cond
-         ((and already (module? already)
+         ((and already
                (or (not autoload) (module-public-interface already)))
           ;; A hit, a palpable hit.
           (if (and version 
@@ -2360,10 +2422,10 @@ If there is no handler at all, Guile prints an error and then exits."
           (try-load-module name version)
           (resolve-module name #f))
          (else
-          ;; A module is not bound (but maybe something else is),
-          ;; we're not autoloading -- here's the weird semantics,
-          ;; we create an empty module.
-          (make-modules-in root name)))))))
+          ;; No module found (or if one was, it had no public interface), and
+          ;; we're not autoloading. Here's the weird semantics: we ensure
+          ;; there's an empty module.
+          (or already (make-modules-in root name))))))))
 
 
 (define (try-load-module name version)
@@ -2620,7 +2682,8 @@ If there is no handler at all, Guile prints an error and then exits."
                           (set-car! autoload i)))
                     (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
-                        (make-hash-table 0) '() (make-weak-value-hash-table 31) #f)))
+                        (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
+                        (make-hash-table 0) #f #f)))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one

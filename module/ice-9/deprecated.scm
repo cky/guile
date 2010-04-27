@@ -38,9 +38,10 @@
             $tanh
             closure?
             %nil
-            @bind
-            %app
-            app))
+            @bind)
+
+  #:replace (module-ref-submodule module-define-submodule!))
+
 
 ;;;; Deprecated definitions.
 
@@ -299,10 +300,53 @@
                    (lambda ()
                      (set! id old-v) ...)))))))))
 
-;; Define (%app modules)
-(define %app (make-module 31))
-(set-module-name! %app '(%app))
-(nested-define! %app '(modules) (resolve-module '() #f))
+(define (module-ref-submodule module name)
+  (or (hashq-ref (module-submodules module) name)
+      (and (module-submodule-binder module)
+           ((module-submodule-binder module) module name))
+      (let ((var (module-local-variable module name)))
+        (and (variable-bound? var)
+             (module? (variable-ref var))
+             (begin
+               (warn "module" module "not in submodules table")
+               (variable-ref var))))))
 
-;; app aliases %app
-(define app %app)
+(define (module-define-submodule! module name submodule)
+  (let ((var (module-local-variable module name)))
+    (if (and var (variable-bound? var) (not (module? (variable-ref var))))
+        (warn "defining module" module ": not overriding local definition" var)
+        (module-define! module name submodule)))
+  (hashq-set! (module-submodules module) name submodule))
+
+;; Define (%app) and (%app modules), and have (app) alias (%app). This
+;; side-effects the-root-module, both to the submodules table and (through
+;; module-define-submodule! above) the obarray.
+;;
+(let ((%app (make-module 31)))
+  (set-module-name! %app '(%app))
+  (module-define-submodule! the-root-module '%app %app)
+  (module-define-submodule! the-root-module 'app %app)
+  (module-define-submodule! %app 'modules (resolve-module '() #f)))
+
+;; Allow code that poked %module-public-interface to keep on working.
+;;
+(set! module-public-interface
+      (let ((getter module-public-interface))
+        (lambda (mod)
+          (or (getter mod)
+              (cond
+               ((and=> (module-local-variable mod '%module-public-interface)
+                       variable-ref)
+                => (lambda (iface)
+                     (issue-deprecation-warning 
+"Setting a module's public interface via munging %module-public-interface is
+deprecated. Use set-module-public-interface! instead.")
+                     (set-module-public-interface! mod iface)
+                     iface))
+               (else #f))))))
+
+(set! set-module-public-interface!
+      (let ((setter set-module-public-interface!))
+        (lambda (mod iface)
+          (setter mod iface)
+          (module-define! mod '%module-public-interface iface))))
