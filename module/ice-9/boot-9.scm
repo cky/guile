@@ -3411,6 +3411,20 @@ module '(ice-9 q) '(make-q q-length))}."
                   (module-add! public-i external-name var)))
               names)))
 
+;; Export all local variables from a module
+;;
+(define (module-export-all! mod)
+  (define (fresh-interface!)
+    (let ((iface (make-module)))
+      (set-module-name! iface (module-name mod))
+      ;; for guile 2: (set-module-version! iface (module-version mod))
+      (set-module-kind! iface 'interface)
+      (set-module-public-interface! mod iface)
+      iface))
+  (let ((iface (or (module-public-interface mod)
+                   (fresh-interface!))))
+    (set-module-obarray! iface (module-obarray mod))))
+
 ;; Re-export a imported variable
 ;;
 (define (module-re-export! m names)
