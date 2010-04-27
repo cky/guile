@@ -123,7 +123,7 @@
    (make-struct . make-struct)
 
    ;; hack for javascript
-   ((return . 1) return)
+   ((return . 1) . return)
 
    ((bytevector-u8-ref . 2) . bv-u8-ref)
    ((bytevector-u8-set! . 3) . bv-u8-set)
