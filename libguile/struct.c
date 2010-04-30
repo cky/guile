@@ -391,11 +391,10 @@ struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
 SCM
 scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words)
 {
-  scm_t_bits ret;
-  ret = (scm_t_bits)scm_gc_malloc (sizeof (scm_t_bits) * (n_words + 2), "struct");
-  SCM_SET_CELL_WORD_0 (SCM_PACK (ret), (scm_t_bits)vtable_data | scm_tc3_struct);
-  SCM_SET_CELL_WORD_1 (SCM_PACK (ret),
-                       (scm_t_bits)SCM_CELL_OBJECT_LOC (SCM_PACK (ret), 2));
+  SCM ret;
+
+  ret = scm_words ((scm_t_bits)vtable_data | scm_tc3_struct, n_words + 2);
+  SCM_SET_CELL_WORD_1 (ret, (scm_t_bits)SCM_CELL_OBJECT_LOC (ret, 2));
 
   /* vtable_data can be null when making a vtable vtable */
   if (vtable_data && vtable_data[scm_vtable_index_instance_finalize])
@@ -403,14 +402,14 @@ scm_i_alloc_struct (scm_t_bits *vtable_data, int n_words)
       /* Register a finalizer for the newly created instance.  */
       GC_finalization_proc prev_finalizer;
       GC_PTR prev_finalizer_data;
-      GC_REGISTER_FINALIZER_NO_ORDER ((void*)ret,
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
 				      struct_finalizer_trampoline,
 				      NULL,
 				      &prev_finalizer,
 				      &prev_finalizer_data);
     }
 
-  return SCM_PACK (ret);
+  return ret;
 }
 
 

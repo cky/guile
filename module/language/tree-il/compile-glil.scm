@@ -120,7 +120,7 @@
    ((struct-vtable . 1) . struct-vtable)
    ((struct-ref . 2) . struct-ref)
    ((struct-set! . 3) . struct-set)
-   (make-struct . make-struct)
+   (make-struct/no-tail . make-struct)
 
    ;; hack for javascript
    ((return . 1) . return)

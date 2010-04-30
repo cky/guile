@@ -420,36 +420,34 @@ VM_DEFINE_INSTRUCTION (166, make_struct, "make-struct", 2, -1, 1)
 {
   unsigned h = FETCH ();
   unsigned l = FETCH ();
-  scm_t_bits n_args = ((h << 8U) + l);
-  SCM vtable = sp[1 - n_args], n_tail = sp[2 - n_args];
-  const SCM *inits = sp - n_args + 3;
-
-  sp -= n_args - 1;
+  scm_t_bits n = ((h << 8U) + l);
+  SCM vtable = sp[-(n - 1)];
+  const SCM *inits = sp - n + 2;
+  SCM ret;
 
   SYNC_REGISTER ();
 
   if (SCM_LIKELY (SCM_STRUCTP (vtable)
   		  && SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_SIMPLE)
-		  && SCM_I_INUMP (n_tail)))
+                  && (SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size) + 1
+                      == n)
+                  && !SCM_VTABLE_INSTANCE_FINALIZER (vtable)))
     {
-      scm_t_bits n_inits, len;
-
-      n_inits = SCM_I_INUM (n_tail) + n_args - 2;
-      len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
-
-      if (SCM_LIKELY (n_inits == len))
-	{
-	  SCM obj;
-
-	  obj = scm_i_alloc_struct (SCM_STRUCT_DATA (vtable), n_inits);
-	  memcpy (SCM_STRUCT_DATA (obj), inits, n_inits * sizeof (SCM));
-
-	  RETURN (obj);
-	}
+      /* Verily, we are making a simple struct with the right number of
+         initializers, and no finalizer. */
+      ret = scm_words ((scm_t_bits)SCM_STRUCT_DATA (vtable) | scm_tc3_struct,
+                       n + 1);
+      SCM_SET_CELL_WORD_1 (ret, (scm_t_bits)SCM_CELL_OBJECT_LOC (ret, 2));
+      memcpy (SCM_STRUCT_DATA (ret), inits, (n - 1) * sizeof (SCM));
     }
+  else
+    ret = scm_c_make_structv (vtable, 0, n - 1, (scm_t_bits *) inits);
 
-  RETURN (scm_c_make_structv (vtable, scm_to_size_t (n_tail),
-			      n_args - 2, (scm_t_bits *) inits));
+  sp -= n;
+  NULLSTACK (n);
+  PUSH (ret);
+
+  NEXT;
 }
 
 VM_DEFINE_FUNCTION (167, struct_ref, "struct-ref", 2)

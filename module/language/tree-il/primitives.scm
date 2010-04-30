@@ -212,6 +212,9 @@
       exp)
      ((number? exp)
       `(make-const src ,exp))
+     ((not exp)
+      ;; failed match
+      #f)
      (else (error "bad consequent yall" exp))))
   `(hashq-set! *primitive-expand-table*
                ',sym
@@ -316,6 +319,13 @@
 ;; swap args
 (define-primitive-expander variable-set! (var val)
   (variable-set val var))
+
+(define-primitive-expander make-struct (vtable tail-size . args)
+  (if (and (const? tail-size)
+           (let ((n (const-exp tail-size)))
+             (and (number? n) (exact? n) (zero? n))))
+      (make-struct/no-tail vtable . args)
+      #f))
 
 (define-primitive-expander u8vector-ref (vec i)
   (bytevector-u8-ref vec i))
