@@ -443,8 +443,7 @@ VM_DEFINE_INSTRUCTION (166, make_struct, "make-struct", 2, -1, 1)
   else
     ret = scm_c_make_structv (vtable, 0, n - 1, (scm_t_bits *) inits);
 
-  sp -= n;
-  NULLSTACK (n);
+  DROPN (n);
   PUSH (ret);
 
   NEXT;
