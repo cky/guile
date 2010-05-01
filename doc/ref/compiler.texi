@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008, 2009
+@c Copyright (C)  2008, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -500,8 +500,8 @@ a rest argument.
 In addition to pushing a binding annotation on the stack, like
 @code{<glil-bind>}, an expression is emitted at compilation time to
 make sure that there are enough values available to bind. See the
-notes on @code{truncate-values} in @ref{Procedural Instructions}, for
-more information.
+notes on @code{truncate-values} in @ref{Procedure Call and Return
+Instructions}, for more information.
 @end deftp
 @deftp {Scheme Variable} <glil-unbind>
 Closes the liveness extent of the most recently encountered
@@ -562,8 +562,8 @@ the stack afterwards depends on the instruction.
 @deftp {Scheme Variable} <glil-mv-call> nargs ra
 Performs a multiple-value call. @var{ra} is a @code{<glil-label>}
 corresponding to the multiple-value return address for the call. See
-the notes on @code{mv-call} in @ref{Procedural Instructions}, for more
-information.
+the notes on @code{mv-call} in @ref{Procedure Call and Return
+Instructions}, for more information.
 @end deftp
 
 Users may enter in GLIL at the REPL as well, though there is a bit

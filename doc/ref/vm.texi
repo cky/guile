@@ -340,7 +340,7 @@ The second stanza disassembles the compiled lambda. After the prelude, we note
 that toplevel variables are resolved relative to the module that was current
 when the procedure was created. This lookup occurs lazily, at the first time the
 variable is actually referenced, and the location of the lookup is cached so
-that future references are very cheap. @xref{Environment Control Instructions},
+that future references are very cheap. @xref{Top-Level Environment Instructions},
 for more details.
 
 Then we see a reference to a free variable, corresponding to @code{a}. The
@@ -352,7 +352,7 @@ to @code{b}, then the @code{list} opcode, an inline implementation of the
 @node Instruction Set
 @subsection Instruction Set
 
-There are about 150 instructions in Guile's virtual machine. These
+There are about 180 instructions in Guile's virtual machine. These
 instructions represent atomic units of a program's execution. Ideally,
 they perform one task without conditional branches, then dispatch to
 the next instruction in the stream.
@@ -384,27 +384,33 @@ is not concerned with making a minimal, orthogonal set of
 instructions. More instructions may be added over time.
 
 @menu
-* Environment Control Instructions::  
+* Lexical Environment Instructions::  
+* Top-Level Environment Instructions::  
+* Procedure Call and Return Instructions::  
+* Function Prologue Instructions::  
+* Trampoline Instructions::  
 * Branch Instructions::         
+* Data Constructor Instructions::   
 * Loading Instructions::  
-* Procedural Instructions::  
-* Data Control Instructions::   
+* Dynamic Environment Instructions::  
 * Miscellaneous Instructions::  
 * Inlined Scheme Instructions::  
 * Inlined Mathematical Instructions::  
 * Inlined Bytevector Instructions::  
 @end menu
 
-@node Environment Control Instructions
-@subsubsection Environment Control Instructions
 
-These instructions access and mutate the environment of a compiled
-procedure---the local bindings, the free (captured) bindings, and the
-toplevel bindings.
+@node Lexical Environment Instructions
+@subsubsection Lexical Environment Instructions
+
+These instructions access and mutate the lexical environment of a
+compiled procedure---its free and bound variables.
 
 Some of these instructions have @code{long-} variants, the difference
 being that they take 16-bit arguments, encoded in big-endianness,
 instead of the normal 8-bit range.
+
+@xref{Stack Layout}, for more information on the format of stack frames.
 
 @deffn Instruction local-ref index
 @deffnx Instruction long-local-ref index
@@ -417,49 +423,10 @@ arguments.
 @end deffn
 
 @deffn Instruction local-set index
-@deffnx Instruction long-local-ref index
+@deffnx Instruction long-local-set index
 Pop the Scheme object located on top of the stack and make it the new
 value of the local variable located at @var{index} within the current
 stack frame.
-@end deffn
-
-@deffn Instruction free-ref index
-Push the value of the captured variable located at position
-@var{index} within the program's vector of captured variables.
-@end deffn
-
-@deffn Instruction free-boxed-ref index
-@deffnx Instruction free-boxed-set index
-Get or set a boxed free variable. Note that there is no free-set
-instruction, as variables that are @code{set!} must be boxed.
-
-These instructions assume that the value at position @var{index} in
-the free variables vector is a variable.
-@end deffn
-
-@deffn Instruction make-closure
-Pop a vector and a program object off the stack, in that order, and
-push a new program object with the given free variables vector. The
-new program object shares state with the original program.
-
-At the time of this writing, the space overhead of closures is 4 words
-per closure.
-@end deffn
-
-@deffn Instruction fix-closure index
-Pop a vector off the stack, and set it as the @var{index}th local
-variable's free variable vector. The @var{index}th local variable is
-assumed to be a procedure.
-
-This instruction is part of a hack for allocating mutually recursive
-procedures. The hack is to first perform a @code{local-set} for all of
-the recursive procedures, then fix up the procedures' free variable
-bindings in place. This allows most @code{letrec}-bound procedures to
-be allocated unboxed on the stack.
-
-One could of course do a @code{local-ref}, then @code{make-closure},
-then @code{local-set}, but this macroinstruction helps to speed up the
-common case.
 @end deffn
 
 @deffn Instruction box index
@@ -474,14 +441,89 @@ whose value is unbound. Used when compiling some @code{letrec}
 expressions.
 @end deffn
 
+@deffn Instruction local-boxed-ref index
+@deffnx Instruction local-boxed-ref index
+Get or set the value of the variable located at @var{index} within the
+current stack frame. A shortcut for @code{local-ref} then
+@code{variable-ref} or @code{variable-set}, respectively.
+@end deffn
+
+@deffn Instruction free-ref index
+Push the value of the captured variable located at position
+@var{index} within the program's vector of captured variables.
+@end deffn
+
+@deffn Instruction free-boxed-ref index
+@deffnx Instruction free-boxed-set index
+Get or set a boxed free variable. A shortcut for @code{free-ref} then
+@code{variable-ref} or @code{variable-set}, respectively.
+
+Note that there is no @code{free-set} instruction, as variables that are
+@code{set!} must be boxed.
+@end deffn
+
+@deffn Instruction make-closure num-free-vars
+Pop @var{num-free-vars} values and a program object off the stack in
+that order, and push a new program object closing over the given free
+variables. @var{num-free-vars} is encoded as a two-byte big-endian
+value.
+
+The free variables are stored in an array, inline to the new program
+object, in the order that they were on the stack (not the order they are
+popped off). The new closure shares state with the original program. At
+the time of this writing, the space overhead of closures is 3 words,
+plus one word for each free variable.
+@end deffn
+
+@deffn Instruction fix-closure index
+Fix up the free variables array of the closure stored in the
+@var{index}th local variable. @var{index} is a two-byte big-endian
+integer.
+
+This instruction will pop as many values from the stack as are in the
+corresponding closure's free variables array. The topmost value on the
+stack will be stored as the closure's last free variable, with other
+values filling in free variable slots in order.
+
+@code{fix-closure} is part of a hack for allocating mutually recursive
+procedures. The hack is to store the procedures in their corresponding
+local variable slots, with space already allocated for free variables.
+Then once they are all in place, this instruction fixes up their
+procedures' free variable bindings in place. This allows most
+@code{letrec}-bound procedures to be allocated unboxed on the stack.
+@end deffn
+
+@deffn Instruction local-bound? index
+@deffnx Instruction long-local-bound? index
+Push @code{#t} on the stack if the @code{index}th local variable has
+been assigned, or @code{#f} otherwise. Mostly useful for handling
+optional arguments in procedure prologues.
+@end deffn
+
+
+@node Top-Level Environment Instructions
+@subsubsection Top-Level Environment Instructions
+
+These instructions access values in the top-level environment: bindings
+that were not lexically apparent at the time that the code in question
+was compiled.
+
+The location in which a toplevel binding is stored can be looked up once
+and cached for later. The binding itself may change over time, but its
+location will stay constant.
+
+Currently only toplevel references within procedures are cached, as only
+procedures have a place to cache them, in their object tables.
+
 @deffn Instruction toplevel-ref index
 @deffnx Instruction long-toplevel-ref index
 Push the value of the toplevel binding whose location is stored in at
-position @var{index} in the object table.
+position @var{index} in the current procedure's object table. The
+@code{long-} variant encodes the index over two bytes.
 
-Initially, a cell in the object table that is used by
-@code{toplevel-ref} is initialized to one of two forms. The normal
-case is that the cell holds a symbol, whose binding will be looked up
+Initially, a cell in a procedure's object table that is used by
+@code{toplevel-ref} is initialized to one of two forms. The normal case
+is that the cell holds a symbol, whose binding will be looked up
 relative to the module that was current when the current program was
 created.
 
@@ -523,7 +565,7 @@ according to the rules for @code{toplevel-ref}, and push that variable
 on the stack. If the lookup fails, an error will be signalled.
 
 This instruction is mostly used when loading programs, because it can
-do toplevel variable lookups without an object vector.
+do toplevel variable lookups without an object table.
 @end deffn
 
 @deffn Instruction variable-ref
@@ -536,16 +578,307 @@ Pop off two objects from the stack, a variable and a value, and set
 the variable to the value.
 @end deffn
 
+@deffn Instruction variable-bound?
+Pop off the variable object from top of the stack and push @code{#t} if
+it is bound, or @code{#f} otherwise. Mostly useful in procedure
+prologues for defining default values for boxed optional variables.
+@end deffn
+
 @deffn Instruction make-variable
 Replace the top object on the stack with a variable containing it.
 Used in some circumstances when compiling @code{letrec} expressions.
 @end deffn
 
-@deffn Instruction object-ref n
-@deffnx Instruction long-object-ref n
-Push @var{n}th value from the current program's object vector. The
-``long'' variant has a 16-bit index instead of an 8-bit index.
+
+@node Procedure Call and Return Instructions
+@subsubsection Procedure Call and Return Instructions
+
+@c something about the calling convention here?
+
+@deffn Instruction new-frame
+Push a new frame on the stack, reserving space for the dynamic link,
+return address, and the multiple-values return address. The frame
+pointer is not yet updated, because the frame is not yet active -- it
+has to be patched by a @code{call} instruction to get the return
+address.
 @end deffn
+
+@deffn Instruction call nargs
+Call the procedure located at @code{sp[-nargs]} with the @var{nargs}
+arguments located from @code{sp[-nargs + 1]} to @code{sp[0]}.
+
+This instruction requires that a new frame be pushed on the stack before
+the procedure, via @code{new-frame}. @xref{Stack Layout}, for more
+information. It patches up that frame with the current @code{ip} as the
+return address, then dispatches to the first instruction in the called
+procedure, relying on the called procedure to return one value to the
+newly-created continuation. Because the new frame pointer will point to
+@code{sp[-nargs + 1]}, the arguments don't have to be shuffled around --
+they are already in place.
+@end deffn
+
+@deffn Instruction tail-call nargs
+Transfer control to the procedure located at @code{sp[-nargs]} with the
+@var{nargs} arguments located from @code{sp[-nargs + 1]} to
+@code{sp[0]}.
+
+Unlike @code{call}, which requires a new frame to be pushed onto the
+stack, @code{tail-call} simply shuffles down the procedure and arguments
+to the current stack frame. This instruction implements tail calls as
+required by RnRS.
+@end deffn
+
+@deffn Instruction apply nargs
+@deffnx Instruction tail-apply nargs
+Like @code{call} and @code{tail-call}, except that the top item on the
+stack must be a list. The elements of that list are then pushed on the
+stack and treated as additional arguments, replacing the list itself,
+then the procedure is invoked as usual.
+@end deffn
+
+@deffn Instruction call/nargs
+@deffnx Instruction tail-call/nargs
+These are like @code{call} and @code{tail-call}, except they take the
+number of arguments from the stack instead of the instruction stream.
+These instructions are used in the implementation of multiple value
+returns, where the actual number of values is pushed on the stack.
+@end deffn
+
+@deffn Instruction mv-call nargs offset
+Like @code{call}, except that a multiple-value continuation is created
+in addition to a single-value continuation.
+
+The offset (a three-byte value) is an offset within the instruction
+stream; the multiple-value return address in the new frame (@pxref{Stack
+Layout}) will be set to the normal return address plus this offset.
+Instructions at that offset will expect the top value of the stack to be
+the number of values, and below that values themselves, pushed
+separately.
+@end deffn
+
+@deffn Instruction return
+Free the program's frame, returning the top value from the stack to
+the current continuation. (The stack should have exactly one value on
+it.)
+
+Specifically, the @code{sp} is decremented to one below the current
+@code{fp}, the @code{ip} is reset to the current return address, the
+@code{fp} is reset to the value of the current dynamic link, and then
+the returned value is pushed on the stack.
+@end deffn
+
+@deffn Instruction return/values nvalues
+@deffnx Instruction return/nvalues
+Return the top @var{nvalues} to the current continuation. In the case of
+@code{return/nvalues}, @var{nvalues} itself is first popped from the top
+of the stack.
+
+If the current continuation is a multiple-value continuation,
+@code{return/values} pushes the number of values on the stack, then
+returns as in @code{return}, but to the multiple-value return address.
+
+Otherwise if the current continuation accepts only one value, i.e. the
+multiple-value return address is @code{NULL}, then we assume the user
+only wants one value, and we give them the first one. If there are no
+values, an error is signaled.
+@end deffn
+
+@deffn Instruction return/values* nvalues
+Like a combination of @code{apply} and @code{return/values}, in which
+the top value on the stack is interpreted as a list of additional
+values. This is an optimization for the common @code{(apply values
+...)} case.
+@end deffn
+
+@deffn Instruction truncate-values nbinds nrest
+Used in multiple-value continuations, this instruction takes the
+values that are on the stack (including the number-of-values marker)
+and truncates them for a binding construct.
+
+For example, a call to @code{(receive (x y . z) (foo) ...)} would,
+logically speaking, pop off the values returned from @code{(foo)} and
+push them as three values, corresponding to @code{x}, @code{y}, and
+@code{z}. In that case, @var{nbinds} would be 3, and @var{nrest} would
+be 1 (to indicate that one of the bindings was a rest argument).
+
+Signals an error if there is an insufficient number of values.
+@end deffn
+
+@deffn Instruction call/cc
+@deffnx Instruction tail-call/cc
+Capture the current continuation, and then call (or tail-call) the
+procedure on the top of the stack, with the continuation as the
+argument.
+
+@code{call/cc} does not require a @code{new-frame} to be pushed on the
+stack, as @code{call} does, because it needs to capture the stack
+before the frame is pushed.
+
+Both the VM continuation and the C continuation are captured.
+@end deffn
+
+
+@node Function Prologue Instructions
+@subsubsection Function Prologue Instructions
+
+A function call in Guile is very cheap: the VM simply hands control to
+the procedure. The procedure itself is responsible for asserting that it
+has been passed an appropriate number of arguments. This strategy allows
+arbitrarily complex argument parsing idioms to be developed, without
+harming the common case.
+
+For example, only calls to keyword-argument procedures ``pay'' for the
+cost of parsing keyword arguments. (At the time of this writing, calling
+procedures with keyword arguments is typically two to four times as
+costly as calling procedures with a fixed set of arguments.)
+
+@deffn Instruction assert-nargs-ee n
+@deffnx Instruction assert-nargs-ge n
+Assert that the current procedure has been passed exactly @var{n}
+arguments, for the @code{-ee} case, or @var{n} or more arguments, for
+the @code{-ge} case. @var{n} is encoded over two bytes.
+
+The number of arguments is determined by subtracting the frame pointer
+from the stack pointer (@code{sp - (fp -1)}). @xref{Stack Layout}, for
+more details on stack frames.
+@end deffn
+
+@deffn Instruction br-if-nargs-ne n offset
+@deffnx Instruction br-if-nargs-gt n offset
+@deffnx Instruction br-if-nargs-lt n offset
+Jump to @var{offset} if the number of arguments is not equal to, greater
+than, or less than @var{n}. @var{n} is encoded over two bytes, and
+@var{offset} has the normal three-byte encoding.
+
+These instructions are used to implement muliple arities, as in
+@code{case-lambda}. @xref{Case-lambda}, for more information.
+@end deffn
+
+@deffn Instruction bind-optionals n
+If the procedure has been called with fewer than @var{n} arguments, fill
+in the remaining arguments with an unbound value (@code{SCM_UNDEFINED}).
+@var{n} is encoded over two bytes.
+
+The optionals can be later initialized conditionally via the
+@code{local-bound?} instruction.
+@end deffn
+
+@deffn Instruction push-rest n
+Pop off excess arguments (more than @var{n}), collecting them into a
+list, and push that list. Used to bind a rest argument, if the procedure
+has no keyword arguments. Procedures with keyword arguments use
+@code{bind-rest} instead.
+@end deffn
+
+@deffn Instruction bind-rest n idx
+Pop off excess arguments (more than @var{n}), collecting them into a
+list. The list is then assigned to the @var{idx}th local variable.
+@end deffn
+
+@deffn Instruction bind-optionals/shuffle nreq nreq-and-opt ntotal
+Shuffle keyword arguments to the top of the stack, filling in the holes
+with @code{SCM_UNDEFINED}. Each argument is encoded over two bytes.
+
+This instruction is used by procedures with keyword arguments.
+@var{nreq} is the number of required arguments to the procedure, and
+@var{nreq-and-opt} is the total number of positional arguments (required
+plus optional). @code{bind-optionals/shuffle} will scan the stack from
+the @var{nreq}th argument up to the @var{nreq-and-opt}th, and start
+shuffling when it sees the first keyword argument or runs out of
+positional arguments.
+
+Shuffling simply moves the keyword arguments past the total number of
+arguments, @var{ntotal}, which includes keyword and rest arguments. The
+free slots created by the shuffle are filled in with
+@code{SCM_UNDEFINED}, so they may be conditionally initialized later in
+the function's prologue.
+@end deffn
+
+@deffn Instruction bind-kwargs idx ntotal flags
+Parse keyword arguments, assigning their values to the corresponding
+local variables. The keyword arguments should already have been shuffled
+above the @var{ntotal}th stack slot by @code{bind-optionals/shuffle}.
+
+The parsing is driven by a keyword arguments association list, looked up
+from the @var{idx}th element of the procedures object array. The alist
+is a list of pairs of the form @code{(@var{kw} . @var{index})}, mapping
+keyword arguments to their local variable indices.
+
+There are two bitflags that affect the parser, @code{allow-other-keys?}
+(@code{0x1}) and @code{rest?} (@code{0x2}). Unless
+@code{allow-other-keys?} is set, the parser will signal an error if an
+unknown key is found. If @code{rest?} is set, errors parsing the the
+keyword arguments will be ignored, as a later @code{bind-rest}
+instruction will collect all of the tail arguments, including the
+keywords, into a list. Otherwise if the keyword arguments are invalid,
+an error is signalled.
+
+@var{idx} and @var{ntotal} are encoded over two bytes each, and
+@var{flags} is encoded over one byte.
+@end deffn
+
+@deffn Instruction reserve-locals n
+Resets the stack pointer to have space for @var{n} local variables,
+including the arguments. If this operation increments the stack pointer,
+as in a push, the new slots are filled with @code{SCM_UNBOUND}. If this
+operation decrements the stack pointer, any excess values are dropped.
+
+@code{reserve-locals} is typically used after argument parsing to
+reserve space for local variables.
+@end deffn
+
+
+@node Trampoline Instructions
+@subsubsection Trampoline Instructions
+
+Though most applicable objects in Guile are procedures implemented
+in bytecode, not all are. There are primitives, continuations, and other
+procedure-like objects that have their own calling convention. Instead
+of adding special cases to the @code{call} instruction, Guile wraps
+these other applicable objects in VM trampoline procedures, then
+provides special support for these objects in bytecode.
+
+Trampoline procedures are typically generated by Guile at runtime, for
+example in response to a call to @code{scm_c_make_gsubr}. As such, a
+compiler probably shouldn't emit code with these instructions. However,
+it's still interesting to know how these things work, so we document
+these trampoline instructions here.
+
+@deffn Instruction subr-call nargs
+Pop off a foreign pointer (which should have been pushed on by the
+trampoline), and call it directly, with the @var{nargs} arguments from
+the stack. Return the resulting value or values to the calling
+procedure.
+@end deffn
+
+@deffn Instruction foreign-call nargs
+Pop off an internal foreign object (which should have been pushed on by
+the trampoline), and call that foreign function with the @var{nargs}
+arguments from the stack. Return the resulting value to the calling
+procedure.
+@end deffn
+
+@deffn Instruction smob-call nargs
+Pop off the smob object from the stack (which should have been pushed on
+by the trampoline), and call its descriptor's @code{apply} function with
+the @var{nargs} arguments from the stack. Return the resulting value or
+values to the calling procedure.
+@end deffn
+
+@deffn Instruction continuation-call
+Pop off an internal continuation object (which should have been pushed
+on by the trampoline), and reinstate that continuation. All of the
+procedure's arguments are passed to the continuation. Does not return.
+@end deffn
+
+@deffn Instruction partial-cont-call
+Pop off two objects from the stack: the dynamic winds associated with
+the partial continuation, and the VM continuation object. Unroll the
+continuation onto the stack, rewinding the dynamic environment and
+overwriting the current frame, and pass all arguments to the
+continuation. Control flow proceeds where the continuation was captured.
+@end deffn
+
 
 @node Branch Instructions
 @subsubsection Branch Instructions
@@ -599,193 +932,11 @@ Jump to @var{offset} if the object on the stack is not @code{'()}.
 @end deffn
 
 
-@node Loading Instructions
-@subsubsection Loading Instructions
+@node Data Constructor Instructions
+@subsubsection Data Constructor Instructions
 
-In addition to VM instructions, an instruction stream may contain
-variable-length data embedded within it. This data is always preceded
-by special loading instructions, which interpret the data and advance
-the instruction pointer to the next VM instruction.
-
-All of these loading instructions have a @code{length} parameter,
-indicating the size of the embedded data, in bytes. The length itself
-is encoded in 3 bytes.
-
-@deffn Instruction load-number length
-Load an arbitrary number from the instruction stream. The number is
-embedded in the stream as a string.
-@end deffn
-@deffn Instruction load-string length
-Load a string from the instruction stream. The string is assumed to be
-encoded in the ``latin1'' locale.
-@end deffn
-@deffn Instruction load-wide-string length
-Load a UTF-32 string from the instruction stream. @var{length} is the
-length in bytes, not in codepoints
-@end deffn
-@deffn Instruction load-symbol length
-Load a symbol from the instruction stream. The symbol is assumed to be
-encoded in the ``latin1'' locale. Symbols backed by wide strings may
-be loaded via @code{load-wide-string} then @code{make-symbol}.
-@end deffn
-@deffn Instruction load-array length
-Load a uniform array from the instruction stream. The shape and type
-of the array are popped off the stack, in that order.
-@end deffn
-
-@deffn Instruction load-program
-Load bytecode from the instruction stream, and push a compiled
-procedure.
-
-This instruction pops one value from the stack: the program's object
-table, as a vector, or @code{#f} in the case that the program has no
-object table. A program that does not reference toplevel bindings and
-does not use @code{object-ref} does not need an object table.
-
-This instruction is unlike the rest of the loading instructions,
-because instead of parsing its data, it directly maps the instruction
-stream onto a C structure, @code{struct scm_objcode}. @xref{Bytecode
-and Objcode}, for more information.
-
-The resulting compiled procedure will not have any free variables
-captured, so it may be loaded only once but used many times to create
-closures.
-@end deffn
-
-@node Procedural Instructions
-@subsubsection Procedural Instructions
-
-@deffn Instructions new-frame
-Push a new frame on the stack, reserving space for the dynamic link,
-return address, and the multiple-values return address. The frame
-pointer is not yet updated, because the frame is not yet active -- it
-has to be patched by a @code{call} instruction to get the return
-address.
-@end deffn
-
-@deffn Instruction call nargs
-Call the procedure located at @code{sp[-nargs]} with the @var{nargs}
-arguments located from @code{sp[-nargs + 1]} to @code{sp[0]}.
-
-This instruction requires that a new frame be pushed on the stack
-before the procedure, via @code{new-frame}. @xref{Stack Layout}, for
-more information. It patches up that frame with the current @code{ip}
-as the return address, then dispatches to the first instruction in the
-called procedure, relying on the called procedure to return one value
-to the newly-created continuation. Because the new frame pointer will
-point to sp[-nargs + 1], the arguments don't have to be shuffled
-around -- they are already in place.
-
-For non-compiled procedures (continuations, primitives, and
-interpreted procedures), @code{call} will pop the frame, procedure,
-and arguments off the stack, and push the result of calling
-@code{scm_apply}.
-@end deffn
-
-@deffn Instruction tail-call nargs
-Like @code{call}, but reusing the current continuation. This
-instruction implements tail calls as required by RnRS.
-
-For compiled procedures, that means that @code{tail-call} simply
-shuffles down the procedure and arguments to the current stack frame.
-
-For non-VM procedures, the result is the same, but the current VM
-invocation remains on the C stack. True tail calls are not currently
-possible between compiled and non-compiled procedures.
-@end deffn
-
-@deffn Instruction apply nargs
-@deffnx Instruction tail-apply nargs
-Like @code{call} and @code{tail-call}, except that the top item on the
-stack must be a list. The elements of that list are then pushed on the
-stack and treated as additional arguments, replacing the list itself,
-then the procedure is invoked as usual.
-@end deffn
-
-@deffn Instruction call/nargs
-@deffnx Instruction tail-call/nargs
-These are like @code{call} and @code{tail-call}, except they take the
-number of arguments from the stack instead of the instruction stream.
-These instructions are used in the implementation of multiple value
-returns, where the actual number of values is pushed on the stack.
-@end deffn
-
-@deffn Instruction mv-call nargs offset
-Like @code{call}, except that a multiple-value continuation is created
-in addition to a single-value continuation.
-
-The offset (a two-byte value) is an offset within the instruction
-stream; the multiple-value return address in the new frame
-(@pxref{Stack Layout}) will be set to the normal return address plus
-this offset. Instructions at that offset will expect the top value of
-the stack to be the number of values, and below that values
-themselves, pushed separately.
-@end deffn
-
-@deffn Instruction return
-Free the program's frame, returning the top value from the stack to
-the current continuation. (The stack should have exactly one value on
-it.)
-
-Specifically, the @code{sp} is decremented to one below the current
-@code{fp}, the @code{ip} is reset to the current return address, the
-@code{fp} is reset to the value of the current dynamic link, and then
-the top item on the stack (formerly the procedure being applied) is
-set to the returned value.
-@end deffn
-
-@deffn Instruction return/values nvalues
-Return the top @var{nvalues} to the current continuation.
-
-If the current continuation is a multiple-value continuation,
-@code{return/values} pushes the number of values on the stack, then
-returns as in @code{return}, but to the multiple-value return address.
-
-Otherwise if the current continuation accepts only one value, i.e. the
-multiple-value return address is @code{NULL}, then we assume the user
-only wants one value, and we give them the first one. If there are no
-values, an error is signaled.
-@end deffn
-
-@deffn Instruction return/values* nvalues
-Like a combination of @code{apply} and @code{return/values}, in which
-the top value on the stack is interpreted as a list of additional
-values. This is an optimization for the common @code{(apply values
-...)} case.
-@end deffn
-
-@deffn Instruction truncate-values nbinds nrest
-Used in multiple-value continuations, this instruction takes the
-values that are on the stack (including the number-of-values marker)
-and truncates them for a binding construct.
-
-For example, a call to @code{(receive (x y . z) (foo) ...)} would,
-logically speaking, pop off the values returned from @code{(foo)} and
-push them as three values, corresponding to @code{x}, @code{y}, and
-@code{z}. In that case, @var{nbinds} would be 3, and @var{nrest} would
-be 1 (to indicate that one of the bindings was a rest argument).
-
-Signals an error if there is an insufficient number of values.
-@end deffn
-
-@deffn Instruction call/cc
-@deffnx Instruction tail-call/cc
-Capture the current continuation, and then call (or tail-call) the
-procedure on the top of the stack, with the continuation as the
-argument.
-
-@code{call/cc} does not require a @code{new-frame} to be pushed on the
-stack, as @code{call} does, because it needs to capture the stack
-before the frame is pushed.
-
-Both the VM continuation and the C continuation are captured.
-@end deffn
-
-@node Data Control Instructions
-@subsubsection Data Control Instructions
-
-These instructions push simple immediate values onto the stack, or
-manipulate lists and vectors on the stack.
+These instructions push simple immediate values onto the stack,
+or constructo compound data structures from values the stack.
 
 @deffn Instruction make-int8 value
 Push @var{value}, an 8-bit integer, onto the stack.
@@ -860,6 +1011,174 @@ popping off those values and pushing on the resulting vector. @var{n}
 is a two-byte value, like in @code{vector}.
 @end deffn
 
+@deffn Instruction make-struct n
+Make a new struct from the top @var{n} values on the stack. The values
+are popped, and the new struct is pushed.
+
+The deepest value is used as the vtable for the struct, and the rest are
+used in order as the field initializers. Tail arrays are not supported
+by this instruction.
+@end deffn
+
+@deffn Instruction make-array n
+Pop an array shape from the stack, then pop the remaining @var{n}
+values, pushing a new array. @var{n} is encoded over three bytes.
+
+The array shape should be appropriate to store @var{n} values.
+@xref{Array Procedures}, for more information on array shapes.
+@end deffn
+
+Many of these data structures are constant, never changing over the
+course of the different invocations of the procedure. In that case it is
+often advantageous to make them once when the procedure is created, and
+just reference them from the object table thereafter. @xref{Variables
+and the VM}, for more information on the object table.
+
+@deffn Instruction object-ref n
+@deffnx Instruction long-object-ref n
+Push @var{n}th value from the current program's object vector. The
+``long'' variant has a 16-bit index instead of an 8-bit index.
+@end deffn
+
+
+@node Loading Instructions
+@subsubsection Loading Instructions
+
+In addition to VM instructions, an instruction stream may contain
+variable-length data embedded within it. This data is always preceded
+by special loading instructions, which interpret the data and advance
+the instruction pointer to the next VM instruction.
+
+All of these loading instructions have a @code{length} parameter,
+indicating the size of the embedded data, in bytes. The length itself
+is encoded in 3 bytes.
+
+@deffn Instruction load-number length
+Load an arbitrary number from the instruction stream. The number is
+embedded in the stream as a string.
+@end deffn
+@deffn Instruction load-string length
+Load a string from the instruction stream. The string is assumed to be
+encoded in the ``latin1'' locale.
+@end deffn
+@deffn Instruction load-wide-string length
+Load a UTF-32 string from the instruction stream. @var{length} is the
+length in bytes, not in codepoints
+@end deffn
+@deffn Instruction load-symbol length
+Load a symbol from the instruction stream. The symbol is assumed to be
+encoded in the ``latin1'' locale. Symbols backed by wide strings may
+be loaded via @code{load-wide-string} then @code{make-symbol}.
+@end deffn
+@deffn Instruction load-array length
+Load a uniform array from the instruction stream. The shape and type
+of the array are popped off the stack, in that order.
+@end deffn
+
+@deffn Instruction load-program
+Load bytecode from the instruction stream, and push a compiled
+procedure.
+
+This instruction pops one value from the stack: the program's object
+table, as a vector, or @code{#f} in the case that the program has no
+object table. A program that does not reference toplevel bindings and
+does not use @code{object-ref} does not need an object table.
+
+This instruction is unlike the rest of the loading instructions,
+because instead of parsing its data, it directly maps the instruction
+stream onto a C structure, @code{struct scm_objcode}. @xref{Bytecode
+and Objcode}, for more information.
+
+The resulting compiled procedure will not have any free variables
+captured, so it may be loaded only once but used many times to create
+closures.
+@end deffn
+
+@node Dynamic Environment Instructions
+@subsubsection Dynamic Environment Instructions
+
+Guile's virtual machine has low-level support for @code{dynamic-wind},
+dynamic binding, and composable prompts and aborts.
+
+@deffn Instruction wind
+Pop an unwind thunk and a wind thunk from the stack, in that order, and
+push them onto the ``dynamic stack''. The unwind thunk will be called on
+nonlocal exits, and the wind thunk on reentries. Used to implement
+@code{dynamic-wind}.
+
+Note that neither thunk is actually called; the compiler should emit
+calls to wind and unwind for the normal dynamic-wind control flow.
+@xref{Dynamic Wind}.
+@end deffn
+
+@deffn Instruction unwind
+Pop off the top entry from the ``dynamic stack'', for example, a
+wind/unwind thunk pair. @code{unwind} instructions should be properly
+paired with their winding instructions, like @code{wind}.
+@end deffn
+
+@deffn Instruction wind-fluids n
+Pop off @var{n} values and @var{n} fluids from the stack, in that order.
+Set the fluids to the values by creating a with-fluids object and
+pushing that object on the dynamic stack. @xref{Fluids and Dynamic
+States}.
+@end deffn
+
+@deffn Instruction unwind-fluids
+Pop a with-fluids object from the dynamic stack, and swap the current
+values of its fluids with the saved values of its fluids. In this way,
+the dynamic environment is left as it was before the corresponding
+@code{wind-fluids} instruction was processed.
+@end deffn
+
+@deffn Instruction fluid-ref
+Pop a fluid from the stack, and push its current value.
+@end deffn
+
+@deffn Instruction fluid-set
+Pop a value and a fluid from the stack, in that order, and set the fluid
+to the value.
+@end deffn
+
+@deffn Instruction prompt escape-only? offset
+Establish a dynamic prompt. @xref{Prompts}, for more information on
+prompts.
+
+The prompt will be pushed on the dynamic stack. The normal control flow
+should ensure that the prompt is popped off at the end, via
+@code{unwind}.
+
+If an abort is made to this prompt, control will jump to @var{offset}, a
+three-byte relative address. The continuation and all arguments to the
+abort will be pushed on the stack, along with the total number of
+arguments (including the continuation. If control returns to the
+handler, the prompt is already popped off by the abort mechanism.
+(Guile's @code{prompt} implements Felleisen's @dfn{--F--} operator.)
+
+If @var{escape-only?} is nonzero, the prompt will be marked as
+escape-only, which allows an abort to this prompt to avoid reifying the
+continuation.
+@end deffn
+
+@deffn Instruction abort n
+Abort to a dynamic prompt.
+
+This instruction pops one tail argument list, @var{n} arguments, and a
+prompt tag from the stack. The dynamic environment is then searched for
+a prompt having the given tag. If none is found, an error is signalled.
+Otherwise all arguments are passed to the prompt's handler, along with
+the captured continuation, if necessary.
+
+If the prompt's handler can be proven to not reference the captured
+continuation, no continuation is allocated. This decision happens
+dynamically, at run-time; the general case is that the continuation may
+be captured, and thus resumed. A reinstated continuation will have its
+arguments pushed on the stack, along with the number of arguments, as in
+the multiple-value return convention. Therefore an @code{abort}
+instruction should be followed by code ready to handle the equivalent of
+a multiply-valued return.
+@end deffn
+
 @node Miscellaneous Instructions
 @subsubsection Miscellaneous Instructions
 
@@ -926,13 +1245,18 @@ stream.
 @deffnx Instruction list? x
 @deffnx Instruction set-car! pair x
 @deffnx Instruction set-cdr! pair x
-@deffnx Instruction slot-ref struct n
-@deffnx Instruction slot-set struct n x
 @deffnx Instruction cons x y
 @deffnx Instruction car x
 @deffnx Instruction cdr x
 @deffnx Instruction vector-ref x y
 @deffnx Instruction vector-set x n y
+@deffnx Instruction struct? x
+@deffnx Instruction struct-ref x n
+@deffnx Instruction struct-set x n v
+@deffnx Instruction struct-vtable x
+@deffnx Instruction class-of x
+@deffnx Instruction slot-ref struct n
+@deffnx Instruction slot-set struct n x
 Inlined implementations of their Scheme equivalents.
 @end deffn
 
@@ -966,6 +1290,10 @@ parameters instead of instruction stream parameters.
 @deffnx Instruction gt? x y
 @deffnx Instruction le? x y
 @deffnx Instruction ge? x y
+@deffnx Instruction ash x n
+@deffnx Instruction logand x y
+@deffnx Instruction logior x y
+@deffnx Instruction logxor x y
 Inlined implementations of the corresponding mathematical operations.
 @end deffn
 
