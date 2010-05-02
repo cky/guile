@@ -70,7 +70,6 @@ SOURCES =					\
 EXTRA_DIST +=					\
   ice-9/test.scm				\
   ice-9/compile-psyntax.scm			\
-  ice-9/quasisyntax.scm				\
   ice-9/ChangeLog-2008
 
 # We expect this to never be invoked when there is not already
