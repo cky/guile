@@ -259,17 +259,21 @@
 #endif
 
 #define CHECK_OVERFLOW()			\
-  if (sp >= stack_limit)			\
+  if (SCM_UNLIKELY (sp >= stack_limit))         \
     goto vm_error_stack_overflow
 
 #define CHECK_UNDERFLOW()                       \
-  if (sp < SCM_FRAME_UPPER_ADDRESS (fp))        \
+  if (SCM_UNLIKELY (sp <= SCM_FRAME_UPPER_ADDRESS (fp)))        \
+    goto vm_error_stack_underflow;
+
+#define PRE_CHECK_UNDERFLOW(N)                  \
+  if (SCM_UNLIKELY (sp - N <= SCM_FRAME_UPPER_ADDRESS (fp)))    \
     goto vm_error_stack_underflow;
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
 #define DROP()	do { sp--; CHECK_UNDERFLOW (); NULLSTACK (1); } while (0)
-#define DROPN(_n)	do { sp -= (_n); CHECK_UNDERFLOW (); NULLSTACK (_n); } while (0)
-#define POP(x)	do { x = *sp; DROP (); } while (0)
+#define DROPN(_n) do { sp -= (_n); CHECK_UNDERFLOW (); NULLSTACK (_n); } while (0)
+#define POP(x)	do { PRE_CHECK_UNDERFLOW (1); x = *sp--; NULLSTACK (1); } while (0)
 
 /* A fast CONS.  This has to be fast since its used, for instance, by
    POP_LIST when fetching a function's argument list.  Note: `scm_cell' is an
