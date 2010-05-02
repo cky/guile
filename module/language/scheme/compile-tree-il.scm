@@ -22,8 +22,7 @@
   #:use-module (language tree-il)
   #:export (compile-tree-il))
 
-;;; environment := #f
-;;;                | MODULE
+;;; environment := MODULE
 
 (define (compile-tree-il x e opts)
   (save-module-excursion
