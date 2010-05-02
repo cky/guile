@@ -428,7 +428,7 @@
                             ;; new box
                             (emit-code #f (make-glil-lexical #t #t 'box index)))
                            (,x (error "what" x))))
-                       (reverse (lambda-case-vars lcase)))
+                       (reverse (lambda-case-gensyms lcase)))
              (emit-branch src 'br (car (hashq-ref allocation lcase))))
             ((lambda-case? lcase)
              ;; no match, try next case
@@ -465,7 +465,7 @@
                            ((#t #t . ,index) ; boxed
                             (emit-code #f (make-glil-lexical #t #t 'box index)))
                            (,x (error "what" x))))
-                       (reverse (lambda-case-vars lcase)))
+                       (reverse (lambda-case-gensyms lcase)))
              (emit-branch src 'br (car (hashq-ref allocation lcase))))
             ((lambda-case? lcase)
              ;; no match, try next case
@@ -669,15 +669,15 @@
                                                 (length free-locs))))))))
        (maybe-emit-return))
       
-      ((<lambda-case> src req opt rest kw inits vars alternate body)
+      ((<lambda-case> src req opt rest kw inits gensyms alternate body)
        ;; o/~ feature on top of feature o/~
        ;; req := (name ...)
        ;; opt := (name ...) | #f
        ;; rest := name | #f
        ;; kw: (allow-other-keys? (keyword name var) ...) | #f
-       ;; vars: (sym ...)
-       ;; init: tree-il in context of vars
-       ;; vars map to named arguments in the following order:
+       ;; gensyms: (sym ...)
+       ;; init: tree-il in context of gensyms
+       ;; gensyms map to named arguments in the following order:
        ;;  required, optional (positional), rest, keyword.
        (let* ((nreq (length req))
               (nopt (if opt (length opt) 0))
@@ -687,7 +687,7 @@
               (kw-indices (map (lambda (x)
                                  (pmatch x
                                    ((,key ,name ,var)
-                                    (cons key (list-index vars var)))
+                                    (cons key (list-index gensyms var)))
                                    (else (error "bad kwarg" x))))
                                (if kw (cdr kw) '())))
               (nargs (apply max (+ nreq nopt (if rest 1 0))
@@ -695,10 +695,10 @@
               (nlocs (cdr (hashq-ref allocation x)))
               (alternate-label (and alternate (make-label))))
          (or (= nargs
-                (length vars)
+                (length gensyms)
                 (+ nreq (length inits) (if rest 1 0)))
              (error "something went wrong"
-                    req opt rest kw inits vars nreq nopt kw-indices nargs))
+                    req opt rest kw inits gensyms nreq nopt kw-indices nargs))
          ;; the prelude, to check args & reset the stack pointer,
          ;; allowing room for locals
          (emit-code
@@ -718,33 +718,33 @@
               ((#t #t . ,n)
                (emit-code #f (make-glil-lexical #t #f 'ref n))
                (emit-code #f (make-glil-lexical #t #t 'box n)))))
-          vars)
+          gensyms)
          ;; write bindings info
-         (if (not (null? vars))
+         (if (not (null? gensyms))
              (emit-bindings
               #f
               (let lp ((kw (if kw (cdr kw) '()))
                        (names (append (reverse opt-names) (reverse req)))
-                       (vars (list-tail vars (+ nreq nopt
+                       (gensyms (list-tail gensyms (+ nreq nopt
                                                 (if rest 1 0)))))
                 (pmatch kw
                   (()
-                   ;; fixme: check that vars is empty
+                   ;; fixme: check that gensyms is empty
                    (reverse (if rest (cons rest names) names)))
                   (((,key ,name ,var) . ,kw)
-                   (if (memq var vars)
-                       (lp kw (cons name names) (delq var vars))
-                       (lp kw names vars)))
+                   (if (memq var gensyms)
+                       (lp kw (cons name names) (delq var gensyms))
+                       (lp kw names gensyms)))
                   (,kw (error "bad keywords, yo" kw))))
-              vars allocation self emit-code))
+              gensyms allocation self emit-code))
          ;; init optional/kw args
-         (let lp ((inits inits) (n nreq) (vars (list-tail vars nreq)))
+         (let lp ((inits inits) (n nreq) (gensyms (list-tail gensyms nreq)))
            (cond
             ((null? inits))             ; done
             ((and rest-idx (= n rest-idx))
-             (lp inits (1+ n) (cdr vars)))
+             (lp inits (1+ n) (cdr gensyms)))
             (#t
-             (pmatch (hashq-ref (hashq-ref allocation (car vars)) self)
+             (pmatch (hashq-ref (hashq-ref allocation (car gensyms)) self)
                ((#t ,boxed? . ,n*) (guard (= n* n))
                 (let ((L (make-label)))
                   (emit-code #f (make-glil-lexical #t boxed? 'bound? n))
@@ -752,21 +752,21 @@
                   (comp-push (car inits))
                   (emit-code #f (make-glil-lexical #t boxed? 'set n))
                   (emit-label L)
-                  (lp (cdr inits) (1+ n) (cdr vars))))
+                  (lp (cdr inits) (1+ n) (cdr gensyms))))
                (#t (error "what" inits))))))
          ;; post-prelude case label for label calls
          (emit-label (car (hashq-ref allocation x)))
          (comp-tail body)
-         (if (not (null? vars))
+         (if (not (null? gensyms))
              (emit-code #f (make-glil-unbind)))
          (if alternate-label
              (begin
                (emit-label alternate-label)
                (comp-tail alternate)))))
       
-      ((<let> src names vars vals body)
+      ((<let> src names gensyms vals body)
        (for-each comp-push vals)
-       (emit-bindings src names vars allocation self emit-code)
+       (emit-bindings src names gensyms allocation self emit-code)
        (for-each (lambda (v)
                    (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #f . ,n)
@@ -774,29 +774,29 @@
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'box n)))
                      (,loc (error "badness" x loc))))
-                 (reverse vars))
+                 (reverse gensyms))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 
-      ((<letrec> src names vars vals body)
+      ((<letrec> src names gensyms vals body)
        (for-each (lambda (v)
                    (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'empty-box n)))
                      (,loc (error "badness" x loc))))
-                 vars)
+                 gensyms)
        (for-each comp-push vals)
-       (emit-bindings src names vars allocation self emit-code)
+       (emit-bindings src names gensyms allocation self emit-code)
        (for-each (lambda (v)
                    (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'set n)))
                      (,loc (error "badness" x loc))))
-                 (reverse vars))
+                 (reverse gensyms))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 
-      ((<fix> src names vars vals body)
+      ((<fix> src names gensyms vals body)
        ;; The ideal here is to just render the lambda bodies inline, and
        ;; wire the code together with gotos. We can do that if
        ;; analyze-lexicals has determined that a given var has "label"
@@ -835,10 +835,10 @@
                 (let lp ((lcase (lambda-body x)))
                   (if lcase
                       (record-case lcase
-                        ((<lambda-case> src req vars body alternate)
+                        ((<lambda-case> src req gensyms body alternate)
                          (emit-label (car (hashq-ref allocation lcase)))
                          ;; FIXME: opt & kw args in the bindings
-                         (emit-bindings #f req vars allocation self emit-code)
+                         (emit-bindings #f req gensyms allocation self emit-code)
                          (if src
                              (emit-code #f (make-glil-source src)))
                          (comp-fix body (or RA new-RA))
@@ -846,15 +846,15 @@
                          (lp alternate)))
                       (emit-label POST)))))))
           vals
-          vars)
+          gensyms)
          ;; Emit bindings metadata for closures
-         (let ((binds (let lp ((out '()) (vars vars) (names names))
-                        (cond ((null? vars) (reverse! out))
-                              ((assq (car vars) fix-labels)
-                               (lp out (cdr vars) (cdr names)))
+         (let ((binds (let lp ((out '()) (gensyms gensyms) (names names))
+                        (cond ((null? gensyms) (reverse! out))
+                              ((assq (car gensyms) fix-labels)
+                               (lp out (cdr gensyms) (cdr names)))
                               (else
-                               (lp (acons (car vars) (car names) out)
-                                   (cdr vars) (cdr names)))))))
+                               (lp (acons (car gensyms) (car names) out)
+                                   (cdr gensyms) (cdr names)))))))
            (emit-bindings src (map cdr binds) (map car binds)
                           allocation self emit-code))
          ;; Now go back and fix up the bindings for closures.
@@ -878,7 +878,7 @@
                        (emit-code #f (make-glil-lexical #t #f 'fix n)))
                       (,loc (error "badness" x loc)))))))
           vals
-          vars)
+          gensyms)
          (comp-tail body)
          (if new-RA
              (emit-label new-RA))
@@ -886,7 +886,7 @@
 
       ((<let-values> src exp body)
        (record-case body
-         ((<lambda-case> req opt kw rest vars body alternate)
+         ((<lambda-case> req opt kw rest gensyms body alternate)
           (if (or opt kw alternate)
               (error "unexpected lambda-case in let-values" x))
           (let ((MV (make-label)))
@@ -896,7 +896,7 @@
             (emit-code src (make-glil-mv-bind
                             (vars->bind-list
                              (append req (if rest (list rest) '()))
-                             vars allocation self)
+                             gensyms allocation self)
                             (and rest #t)))
             (for-each (lambda (v)
                         (pmatch (hashq-ref (hashq-ref allocation v) self)
@@ -905,7 +905,7 @@
                           ((#t #t . ,n)
                            (emit-code src (make-glil-lexical #t #t 'box n)))
                           (,loc (error "badness" x loc))))
-                      (reverse vars))
+                      (reverse gensyms))
             (comp-tail body)
             (emit-code #f (make-glil-unbind))))))
 
@@ -1086,13 +1086,13 @@
          ;; then the args to the continuation (pushed separately), and then the
          ;; number of args, including the continuation.
          (record-case handler
-           ((<lambda-case> req opt kw rest vars body alternate)
+           ((<lambda-case> req opt kw rest gensyms body alternate)
             (if (or opt kw alternate)
                 (error "unexpected lambda-case in prompt" x))
             (emit-code src (make-glil-mv-bind
                             (vars->bind-list
                              (append req (if rest (list rest) '()))
-                             vars allocation self)
+                             gensyms allocation self)
                             (and rest #t)))
             (for-each (lambda (v)
                         (pmatch (hashq-ref (hashq-ref allocation v) self)
@@ -1101,7 +1101,7 @@
                           ((#t #t . ,n)
                            (emit-code src (make-glil-lexical #t #t 'box n)))
                           (,loc (error "badness" x loc))))
-                      (reverse vars))
+                      (reverse gensyms))
             (comp-tail body)
             (emit-code #f (make-glil-unbind))))
 

@@ -44,9 +44,9 @@
           (let lp ((lcase body))
             (and lcase
                  (record-case lcase
-                   ((<lambda-case> req opt rest kw inits vars body alternate)
-                    (if (and (= (length vars) (length req) (length args)))
-                        (let ((x (make-let src req vars args body)))
+                   ((<lambda-case> req opt rest kw inits gensyms body alternate)
+                    (if (and (= (length gensyms) (length req) (length args)))
+                        (let ((x (make-let src req gensyms args body)))
                           (or (inline1 x) x))
                         (lp alternate)))))))
 
@@ -101,24 +101,24 @@
 
          (else #f)))
        
-      ((<let> vars body)
-       (if (null? vars) body x))
+      ((<let> gensyms body)
+       (if (null? gensyms) body x))
        
-      ((<letrec> vars body)
-       (if (null? vars) body x))
+      ((<letrec> gensyms body)
+       (if (null? gensyms) body x))
        
-      ((<fix> vars body)
-       (if (null? vars) body x))
+      ((<fix> gensyms body)
+       (if (null? gensyms) body x))
        
-      ((<lambda-case> req opt rest kw vars body alternate)
-       (define (args-compatible? args vars)
-         (let lp ((args args) (vars vars))
+      ((<lambda-case> req opt rest kw gensyms body alternate)
+       (define (args-compatible? args gensyms)
+         (let lp ((args args) (gensyms gensyms))
            (cond
-            ((null? args) (null? vars))
-            ((null? vars) #f)
+            ((null? args) (null? gensyms))
+            ((null? gensyms) #f)
             ((and (lexical-ref? (car args))
-                  (eq? (lexical-ref-gensym (car args)) (car vars)))
-             (lp (cdr args) (cdr vars)))
+                  (eq? (lexical-ref-gensym (car args)) (car gensyms)))
+             (lp (cdr args) (cdr gensyms)))
             (else #f))))
          
        (and (not opt) (not kw) rest (not alternate)
@@ -129,7 +129,7 @@
                     (eq? (primitive-ref-name proc) '@apply)
                     (pair? args)
                     (lambda? (car args))
-                    (args-compatible? (cdr args) vars)
+                    (args-compatible? (cdr args) gensyms)
                     (lambda-body (car args))))
               (else #f))))
 
@@ -138,7 +138,7 @@
       ((<prompt> src tag body handler)
        (define (escape-only? handler)
          (and (pair? (lambda-case-req handler))
-              (let ((cont (car (lambda-case-vars handler))))
+              (let ((cont (car (lambda-case-gensyms handler))))
                 (tree-il-fold (lambda (leaf escape-only?)
                                 (and escape-only?
                                      (not

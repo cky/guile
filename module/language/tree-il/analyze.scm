@@ -235,39 +235,39 @@
          (hashq-set! free-vars x free)
          free))
       
-      ((<lambda-case> opt kw inits vars body alternate)
+      ((<lambda-case> opt kw inits gensyms body alternate)
        (hashq-set! bound-vars proc
-                   (append (reverse vars) (hashq-ref bound-vars proc)))
+                   (append (reverse gensyms) (hashq-ref bound-vars proc)))
        (lset-union
         eq?
         (lset-difference eq?
                          (lset-union eq?
                                      (apply lset-union eq? (map step inits))
                                      (step-tail body))
-                         vars)
+                         gensyms)
         (if alternate (step-tail alternate) '())))
       
-      ((<let> vars vals body)
+      ((<let> gensyms vals body)
        (hashq-set! bound-vars proc
-                   (append (reverse vars) (hashq-ref bound-vars proc)))
+                   (append (reverse gensyms) (hashq-ref bound-vars proc)))
        (lset-difference eq?
                         (apply lset-union eq? (step-tail body) (map step vals))
-                        vars))
+                        gensyms))
       
-      ((<letrec> vars vals body)
+      ((<letrec> gensyms vals body)
        (hashq-set! bound-vars proc
-                   (append (reverse vars) (hashq-ref bound-vars proc)))
-       (for-each (lambda (sym) (hashq-set! assigned sym #t)) vars)
+                   (append (reverse gensyms) (hashq-ref bound-vars proc)))
+       (for-each (lambda (sym) (hashq-set! assigned sym #t)) gensyms)
        (lset-difference eq?
                         (apply lset-union eq? (step-tail body) (map step vals))
-                        vars))
+                        gensyms))
       
-      ((<fix> vars vals body)
+      ((<fix> gensyms vals body)
        ;; Try to allocate these procedures as labels.
        (for-each (lambda (sym val) (hashq-set! labels sym val))
-                 vars vals)
+                 gensyms vals)
        (hashq-set! bound-vars proc
-                   (append (reverse vars) (hashq-ref bound-vars proc)))
+                   (append (reverse gensyms) (hashq-ref bound-vars proc)))
        ;; Step into subexpressions.
        (let* ((var-refs
                (map
@@ -282,13 +282,13 @@
                      ;; just like the closure case, except here we use
                      ;; recur/labels instead of recur
                      (hashq-set! bound-vars x '())
-                     (let ((free (recur/labels body x vars)))
+                     (let ((free (recur/labels body x gensyms)))
                        (hashq-set! bound-vars x (reverse! (hashq-ref bound-vars x)))
                        (hashq-set! free-vars x free)
                        free))))
                 vals))
-              (vars-with-refs (map cons vars var-refs))
-              (body-refs (recur/labels body proc vars)))
+              (vars-with-refs (map cons gensyms var-refs))
+              (body-refs (recur/labels body proc gensyms)))
          (define (delabel-dependents! sym)
            (let ((refs (assq-ref vars-with-refs sym)))
              (if refs
@@ -314,7 +314,7 @@
          (for-each (lambda (sym)
                      (if (not (hashq-ref labels sym))
                          (delabel-dependents! sym)))
-                   vars)
+                   gensyms)
          ;; Now lift bound variables with label-allocated lambdas to the
          ;; parent procedure.
          (for-each
@@ -328,10 +328,10 @@
                                       (hashq-ref bound-vars proc)))
                   (hashq-remove! bound-vars val)
                   (hashq-remove! free-vars val))))
-          vars vals)
+          gensyms vals)
          (lset-difference eq?
                           (apply lset-union eq? body-refs var-refs)
-                          vars)))
+                          gensyms)))
       
       ((<let-values> exp body)
        (lset-union eq? (step exp) (step body)))
@@ -407,10 +407,10 @@
          (hashq-set! allocation x (cons labels free-addresses)))
        n)
 
-      ((<lambda-case> opt kw inits vars body alternate)
+      ((<lambda-case> opt kw inits gensyms body alternate)
        (max
-        (let lp ((vars vars) (n n))
-          (if (null? vars)
+        (let lp ((gensyms gensyms) (n n))
+          (if (null? gensyms)
               (let ((nlocs (apply
                             max
                             (allocate! body proc n)
@@ -421,72 +421,72 @@
                 (hashq-set! allocation x (cons (gensym ":LCASE") nlocs))
                 nlocs)
               (begin
-                (hashq-set! allocation (car vars)
+                (hashq-set! allocation (car gensyms)
                             (make-hashq
-                             proc `(#t ,(hashq-ref assigned (car vars)) . ,n)))
-                (lp (cdr vars) (1+ n)))))
+                             proc `(#t ,(hashq-ref assigned (car gensyms)) . ,n)))
+                (lp (cdr gensyms) (1+ n)))))
         (if alternate (allocate! alternate proc n) n)))
       
-      ((<let> vars vals body)
+      ((<let> gensyms vals body)
        (let ((nmax (apply max (map recur vals))))
          (cond
           ;; the `or' hack
           ((and (conditional? body)
-                (= (length vars) 1)
-                (let ((v (car vars)))
+                (= (length gensyms) 1)
+                (let ((v (car gensyms)))
                   (and (not (hashq-ref assigned v))
                        (= (hashq-ref refcounts v 0) 2)
                        (lexical-ref? (conditional-test body))
                        (eq? (lexical-ref-gensym (conditional-test body)) v)
                        (lexical-ref? (conditional-consequent body))
                        (eq? (lexical-ref-gensym (conditional-consequent body)) v))))
-           (hashq-set! allocation (car vars)
+           (hashq-set! allocation (car gensyms)
                        (make-hashq proc `(#t #f . ,n)))
            ;; the 1+ for this var
            (max nmax (1+ n) (allocate! (conditional-alternate body) proc n)))
           (else
-           (let lp ((vars vars) (n n))
-             (if (null? vars)
+           (let lp ((gensyms gensyms) (n n))
+             (if (null? gensyms)
                  (max nmax (allocate! body proc n))
-                 (let ((v (car vars)))
+                 (let ((v (car gensyms)))
                    (hashq-set!
                     allocation v
                     (make-hashq proc
                                 `(#t ,(hashq-ref assigned v) . ,n)))
-                   (lp (cdr vars) (1+ n)))))))))
+                   (lp (cdr gensyms) (1+ n)))))))))
       
-      ((<letrec> vars vals body)
-       (let lp ((vars vars) (n n))
-         (if (null? vars)
+      ((<letrec> gensyms vals body)
+       (let lp ((gensyms gensyms) (n n))
+         (if (null? gensyms)
              (let ((nmax (apply max
                                 (map (lambda (x)
                                        (allocate! x proc n))
                                      vals))))
                (max nmax (allocate! body proc n)))
-             (let ((v (car vars)))
+             (let ((v (car gensyms)))
                (hashq-set!
                 allocation v
                 (make-hashq proc
                             `(#t ,(hashq-ref assigned v) . ,n)))
-               (lp (cdr vars) (1+ n))))))
+               (lp (cdr gensyms) (1+ n))))))
 
-      ((<fix> vars vals body)
-       (let lp ((in vars) (n n))
+      ((<fix> gensyms vals body)
+       (let lp ((in gensyms) (n n))
          (if (null? in)
-             (let lp ((vars vars) (vals vals) (nmax n))
+             (let lp ((gensyms gensyms) (vals vals) (nmax n))
                (cond
-                ((null? vars)
+                ((null? gensyms)
                  (max nmax (allocate! body proc n)))
-                ((hashq-ref labels (car vars))                 
+                ((hashq-ref labels (car gensyms))                 
                  ;; allocate lambda body inline to proc
-                 (lp (cdr vars)
+                 (lp (cdr gensyms)
                      (cdr vals)
                      (record-case (car vals)
                        ((<lambda> body)
                         (max nmax (allocate! body proc n))))))
                 (else
                  ;; allocate closure
-                 (lp (cdr vars)
+                 (lp (cdr gensyms)
                      (cdr vals)
                      (max nmax (allocate! (car vals) proc n))))))
              
@@ -519,8 +519,8 @@
       
       ((<prompt> tag body handler)
        (let ((cont-var (and (lambda-case? handler)
-                            (pair? (lambda-case-vars handler))
-                            (car (lambda-case-vars handler)))))
+                            (pair? (lambda-case-gensyms handler))
+                            (car (lambda-case-gensyms handler)))))
          (hashq-set! allocation x
                      (and cont-var (zero? (hashq-ref refcounts cont-var 0))))
          (max (recur tag) (recur body) (recur handler))))
@@ -629,18 +629,18 @@ accurate information is missing from a given `tree-il' element."
        (record-case x
          ((<lexical-set> gensym)
           (make-binding-info vars (vhash-consq gensym #t refs)))
-         ((<lambda-case> req opt inits rest kw vars)
+         ((<lambda-case> req opt inits rest kw gensyms)
           (let ((names `(,@req
                          ,@(or opt '())
                          ,@(if rest (list rest) '())
                          ,@(if kw (map cadr (cdr kw)) '()))))
-            (make-binding-info (extend vars names) refs)))
-         ((<let> vars names)
-          (make-binding-info (extend vars names) refs))
-         ((<letrec> vars names)
-          (make-binding-info (extend vars names) refs))
-         ((<fix> vars names)
-          (make-binding-info (extend vars names) refs))
+            (make-binding-info (extend gensyms names) refs)))
+         ((<let> gensyms names)
+          (make-binding-info (extend gensyms names) refs))
+         ((<letrec> gensyms names)
+          (make-binding-info (extend gensyms names) refs))
+         ((<fix> gensyms names)
+          (make-binding-info (extend gensyms names) refs))
          (else info))))
 
    (lambda (x info env locs)
@@ -670,14 +670,14 @@ accurate information is missing from a given `tree-il' element."
        ;; It doesn't hurt as these are unique names, it just
        ;; makes REFS unnecessarily fat.
        (record-case x
-         ((<lambda-case> vars)
-          (make-binding-info (shrink vars refs) refs))
-         ((<let> vars)
-          (make-binding-info (shrink vars refs) refs))
-         ((<letrec> vars)
-          (make-binding-info (shrink vars refs) refs))
-         ((<fix> vars)
-          (make-binding-info (shrink vars refs) refs))
+         ((<lambda-case> gensyms)
+          (make-binding-info (shrink gensyms refs) refs))
+         ((<let> gensyms)
+          (make-binding-info (shrink gensyms refs) refs))
+         ((<letrec> gensyms)
+          (make-binding-info (shrink gensyms refs) refs))
+         ((<fix> gensyms)
+          (make-binding-info (shrink gensyms refs) refs))
          (else info))))
 
    (lambda (result env) #t)
@@ -1106,12 +1106,12 @@ accurate information is missing from a given `tree-il' element."
                                                  exp)
                                              toplevel-lambdas))))
             (else info)))
-         ((<let> vars vals)
-          (fold extend info vars vals))
-         ((<letrec> vars vals)
-          (fold extend info vars vals))
-         ((<fix> vars vals)
-          (fold extend info vars vals))
+         ((<let> gensyms vals)
+          (fold extend info gensyms vals))
+         ((<letrec> gensyms vals)
+          (fold extend info gensyms vals))
+         ((<fix> gensyms vals)
+          (fold extend info gensyms vals))
 
          ((<application> proc args src)
           (record-case proc
@@ -1158,12 +1158,12 @@ accurate information is missing from a given `tree-il' element."
            (lexical-lambdas  (lexical-lambdas info))
            (toplevel-lambdas (toplevel-lambdas info)))
        (record-case x
-         ((<let> vars vals)
-          (fold shrink info vars vals))
-         ((<letrec> vars vals)
-          (fold shrink info vars vals))
-         ((<fix> vars vals)
-          (fold shrink info vars vals))
+         ((<let> gensyms vals)
+          (fold shrink info gensyms vals))
+         ((<letrec> gensyms vals)
+          (fold shrink info gensyms vals))
+         ((<fix> gensyms vals)
+          (fold shrink info gensyms vals))
 
          (else info))))
 

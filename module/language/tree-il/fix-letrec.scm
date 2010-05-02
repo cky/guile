@@ -1,6 +1,6 @@
 ;;; transformation of letrec into simpler forms
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -71,15 +71,15 @@
                                simple
                                lambda*
                                complex))
-                      ((<letrec> vars)
-                       (values (append vars unref)
+                      ((<letrec> gensyms)
+                       (values (append gensyms unref)
                                ref
                                set
                                simple
                                lambda*
                                complex))
-                      ((<let> vars)
-                       (values (append vars unref)
+                      ((<let> gensyms)
+                       (values (append gensyms unref)
                                ref
                                set
                                simple
@@ -89,65 +89,65 @@
                        (values unref ref set simple lambda* complex))))
                   (lambda (x unref ref set simple lambda* complex)
                     (record-case x
-                      ((<letrec> (orig-vars vars) vals)
-                       (let lp ((vars orig-vars) (vals vals)
+                      ((<letrec> (orig-gensyms gensyms) vals)
+                       (let lp ((gensyms orig-gensyms) (vals vals)
                                 (s '()) (l '()) (c '()))
                          (cond
-                          ((null? vars)
+                          ((null? gensyms)
                            (values unref
                                    ref
                                    set
                                    (append s simple)
                                    (append l lambda*)
                                    (append c complex)))
-                          ((memq (car vars) unref)
-                           (lp (cdr vars) (cdr vals)
+                          ((memq (car gensyms) unref)
+                           (lp (cdr gensyms) (cdr vals)
                                s l c))
-                          ((memq (car vars) set)
-                           (lp (cdr vars) (cdr vals)
-                               s l (cons (car vars) c)))
+                          ((memq (car gensyms) set)
+                           (lp (cdr gensyms) (cdr vals)
+                               s l (cons (car gensyms) c)))
                           ((lambda? (car vals))
-                           (lp (cdr vars) (cdr vals)
-                               s (cons (car vars) l) c))
-                          ((simple-expression? (car vals) orig-vars)
-                           (lp (cdr vars) (cdr vals)
-                               (cons (car vars) s) l c))
+                           (lp (cdr gensyms) (cdr vals)
+                               s (cons (car gensyms) l) c))
+                          ((simple-expression? (car vals) orig-gensyms)
+                           (lp (cdr gensyms) (cdr vals)
+                               (cons (car gensyms) s) l c))
                           (else
-                           (lp (cdr vars) (cdr vals)
-                               s l (cons (car vars) c))))))
-                      ((<let> (orig-vars vars) vals)
+                           (lp (cdr gensyms) (cdr vals)
+                               s l (cons (car gensyms) c))))))
+                      ((<let> (orig-gensyms gensyms) vals)
                        ;; The point is to compile let-bound lambdas as
                        ;; efficiently as we do letrec-bound lambdas, so
                        ;; we use the same algorithm for analyzing the
-                       ;; vars. There is no problem recursing into the
+                       ;; gensyms. There is no problem recursing into the
                        ;; bindings after the let, because all variables
                        ;; have been renamed.
-                       (let lp ((vars orig-vars) (vals vals)
+                       (let lp ((gensyms orig-gensyms) (vals vals)
                                 (s '()) (l '()) (c '()))
                          (cond
-                          ((null? vars)
+                          ((null? gensyms)
                            (values unref
                                    ref
                                    set
                                    (append s simple)
                                    (append l lambda*)
                                    (append c complex)))
-                          ((memq (car vars) unref)
-                           (lp (cdr vars) (cdr vals)
+                          ((memq (car gensyms) unref)
+                           (lp (cdr gensyms) (cdr vals)
                                s l c))
-                          ((memq (car vars) set)
-                           (lp (cdr vars) (cdr vals)
-                               s l (cons (car vars) c)))
+                          ((memq (car gensyms) set)
+                           (lp (cdr gensyms) (cdr vals)
+                               s l (cons (car gensyms) c)))
                           ((and (lambda? (car vals))
-                                (not (memq (car vars) set)))
-                           (lp (cdr vars) (cdr vals)
-                               s (cons (car vars) l) c))
+                                (not (memq (car gensyms) set)))
+                           (lp (cdr gensyms) (cdr vals)
+                               s (cons (car gensyms) l) c))
                           ;; There is no difference between simple and
                           ;; complex, for the purposes of let. Just lump
                           ;; them all into complex.
                           (else
-                           (lp (cdr vars) (cdr vals)
-                               s l (cons (car vars) c))))))
+                           (lp (cdr gensyms) (cdr vals)
+                               s l (cons (car gensyms) c))))))
                       (else
                        (values unref ref set simple lambda* complex))))
                   '()
@@ -171,11 +171,11 @@
               (make-sequence #f (list exp (make-void #f)))
               x))
 
-         ((<letrec> src names vars vals body)
-          (let ((binds (map list vars names vals)))
+         ((<letrec> src names gensyms vals body)
+          (let ((binds (map list gensyms names vals)))
             (define (lookup set)
               (map (lambda (v) (assq v binds))
-                   (lset-intersection eq? vars set)))
+                   (lset-intersection eq? gensyms set)))
             (let ((u (lookup unref))
                   (s (lookup simple))
                   (l (lookup lambda*))
@@ -216,11 +216,11 @@
                        ;; Finally, the body.
                        body)))))))))
 
-         ((<let> src names vars vals body)
-          (let ((binds (map list vars names vals)))
+         ((<let> src names gensyms vals body)
+          (let ((binds (map list gensyms names vals)))
             (define (lookup set)
               (map (lambda (v) (assq v binds))
-                   (lset-intersection eq? vars set)))
+                   (lset-intersection eq? gensyms set)))
             (let ((u (lookup unref))
                   (l (lookup lambda*))
                   (c (lookup complex)))
