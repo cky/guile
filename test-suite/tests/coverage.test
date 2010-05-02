@@ -1,0 +1,201 @@
+;;;; coverage.test --- Code coverage.    -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-coverage)
+  #:use-module (test-suite lib)
+  #:use-module (system vm coverage)
+  #:use-module (system vm vm)
+  #:use-module (system base compile)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-11))
+
+(define-syntax code
+  (syntax-rules ()
+    ((_ filename snippet)
+     (let ((input (open-input-string snippet)))
+       (set-port-filename! input filename)
+       (read-enable 'positions)
+       (compile (read input))))))
+
+(define %test-vm (make-vm))
+
+
+(with-test-prefix "instrumented/executed-lines"
+
+  (pass-if "instr = exec"
+    (let ((proc (code "foo.scm" "(lambda (x y)  ;; 0
+                                   (+ x y))     ;; 1")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 1 2)))))
+        (and (coverage-data? data)
+             (= 3 result)
+             (let-values (((instr exec)
+                           (instrumented/executed-lines data "foo.scm")))
+               (and (= 2 instr) (= 2 exec)))))))
+
+  (pass-if "instr >= exec"
+    (let ((proc (code "foo.scm" "(lambda (x y)       ;; 0
+                                   (if (> x y)       ;; 1
+                                       (begin        ;; 2
+                                         (display x) ;; 3
+                                         (+ x y))))  ;; 4")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 1 2)))))
+        (and (coverage-data? data)
+             (let-values (((instr exec)
+                           (instrumented/executed-lines data "foo.scm")))
+               (and (> instr 0) (>= instr exec))))))))
+
+
+(with-test-prefix "line-execution-counts"
+
+  (pass-if "once"
+    (let ((proc (code "bar.scm" "(lambda (x y)   ;; 0
+                                   (+ (/ x y)    ;; 1
+                                      (* x y)))  ;; 2")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 1 2)))))
+        (let ((counts (line-execution-counts data "bar.scm")))
+          (and (pair? counts)
+               (every (lambda (line+count)
+                        (let ((line  (car line+count))
+                              (count (cdr line+count)))
+                          (and (>= line 0)
+                               (<= line 2)
+                               (= count 1))))
+                      counts))))))
+
+  (pass-if "several times"
+    (let ((proc (code "fooz.scm" "(lambda (x)                   ;; 0
+                                    (format #f \"hello\")       ;; 1
+                                    (let loop ((x x))           ;; 2
+                                      (cond ((> x 0)            ;; 3
+                                             (begin             ;; 4
+                                               (format #f \"~a\" x)
+                                               (loop (1- x))))  ;; 6
+                                            ((= x 0) #t)        ;; 7
+                                            ((< x 0) 'never))))")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 77)))))
+        (let ((counts (line-execution-counts data "fooz.scm")))
+          (and (pair? counts)
+               (every (lambda (line+count)
+                        (let ((line  (car line+count))
+                              (count (cdr line+count)))
+                          (case line
+                            ((0 1)   (= count 1))
+                            ((2 3)   (= count 78))
+                            ((4 5 6) (= count 77))
+                            ((7)     (= count 1))
+                            ((8)     (= count 0)))))
+                      counts))))))
+
+  (pass-if "some"
+    (let ((proc (code "baz.scm" "(lambda (x y)       ;; 0
+                                   (if (> x y)       ;; 1
+                                       (begin        ;; 2
+                                         (display x) ;; 3
+                                         (+ x y))    ;; 4
+                                       (+ x y)))     ;; 5")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 1 2)))))
+        (let ((counts (line-execution-counts data "baz.scm")))
+          (and (pair? counts)
+               (every (lambda (line+count)
+                        (let ((line  (car line+count))
+                              (count (cdr line+count)))
+                          (case line
+                            ((0 1 5) (= count 1))
+                            ((2 3)   (= count 0))
+                            ((4)     #t) ;; the start of the `else' branch is
+                                         ;; attributed to line 4
+                            (else    #f))))
+                      counts))))))
+
+  (pass-if "one proc hit, one proc unused"
+    (let ((proc (code "baz.scm" "(letrec ((even? (lambda (x)               ;; 0
+                                                   (or (= x 0)             ;; 1
+                                                       (not (odd? (1- x))))))
+                                          (odd?  (lambda (x)               ;; 3
+                                                   (not (even? (1- x)))))) ;; 4
+                                   even?)")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 0)))))
+        (let ((counts (line-execution-counts data "baz.scm")))
+          (and (pair? counts)
+               (every (lambda (line+count)
+                        (let ((line  (car line+count))
+                              (count (cdr line+count)))
+                          (case line
+                            ((0 1)   (= count 1))
+                            ((2 3 4) (= count 0))
+                            ((5)     (= count 1))
+                            (else    #f))))
+                      counts))))))
+
+  (pass-if "all code on one line"
+    ;; There are several proc/IP pairs pointing to this source line, yet the hit
+    ;; count for the line should be 1.
+    (let ((proc (code "one-liner.scm"
+            "(lambda (x y) (+ x y (* x y) (if (> x y) 1 2) (quotient y x)))")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 451 1884)))))
+        (let ((counts (line-execution-counts data "one-liner.scm")))
+          (equal? counts '((0 . 1))))))))
+
+
+(with-test-prefix "procedure-execution-count"
+
+  (pass-if "several times"
+    (let ((proc (code "foo.scm" "(lambda (x y) x)")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (+ (proc 1 2) (proc 2 3))))))
+        (and (coverage-data? data)
+             (= 3 result)
+             (= (procedure-execution-count data proc) 2)))))
+
+  (pass-if "never"
+    (let ((proc (code "foo.scm" "(lambda (x y) x)")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (+ 1 2)))))
+        (and (coverage-data? data)
+             (= 3 result)
+             (not (procedure-execution-count data proc)))))))
+
+
+(with-test-prefix "instrumented-source-files"
+
+  (pass-if "source files are listed as expected"
+    (let ((proc (code "chbouib.scm" "(lambda (x y) x)")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda () (proc 1 2)))))
+
+        (let ((files (map basename (instrumented-source-files data))))
+          (and (member "boot-9.scm" files)
+               (member "chbouib.scm" files)
+               (not (member "foo.scm" files))))))))

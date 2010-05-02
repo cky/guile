@@ -85,6 +85,9 @@
   :use-module (ice-9 getopt-long)
   :use-module (ice-9 and-let-star)
   :use-module (ice-9 rdelim)
+  :use-module (system vm coverage)
+  :use-module (srfi srfi-11)
+  :use-module (system vm vm)
   :export (main data-file-name test-file-name))
 
 
@@ -175,6 +178,8 @@
 				(log-file
 				 (single-char #\l)
 				 (value #t))
+                                (coverage
+                                 (single-char #\c))
 				(debug
 				 (single-char #\d))))))
     (define (opt tag default)
@@ -227,11 +232,20 @@
 				  (set! global-pass #f)))))
 
 	  ;; Run the tests.
-	  (for-each (lambda (test)
-                      (display (string-append "Running " test "\n"))
-		      (with-test-prefix test
-			(load (test-file-name test))))
-		    tests)
+          (let ((run-tests
+                 (lambda ()
+                   (for-each (lambda (test)
+                               (display (string-append "Running " test "\n"))
+                               (with-test-prefix test
+                                                 (load (test-file-name test))))
+                             tests))))
+            (if (opt 'coverage #f)
+                (let-values (((coverage-data _)
+                              (with-code-coverage (the-vm) run-tests)))
+                  (let ((out (open-output-file "guile.info")))
+                    (coverage-data->lcov coverage-data out)
+                    (close out)))
+                (run-tests)))
 
 	  ;; Display the final counts, both to the user and in the log
 	  ;; file.

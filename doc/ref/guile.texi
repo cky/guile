@@ -312,6 +312,7 @@ available through both Scheme and C interfaces.
 * Other Languages::             Emacs Lisp, ECMAScript, and more.
 * Internationalization::        Support for gettext, etc.
 * Debugging::                   Debugging infrastructure and Scheme interface.
+* Code Coverage::               Gathering code coverage data.
 @end menu
 
 @include api-overview.texi
@@ -339,6 +340,7 @@ available through both Scheme and C interfaces.
 @include api-languages.texi
 @include api-i18n.texi
 @include api-debug.texi
+@include api-coverage.texi
 
 @node Guile Modules
 @chapter Guile Modules

@@ -51,6 +51,7 @@ guile_TEXINFOS = preface.texi			\
 		 api-options.texi		\
 		 api-i18n.texi			\
 		 api-debug.texi			\
+		 api-coverage.texi		\
 		 scheme-reading.texi		\
 		 scheme-indices.texi		\
 		 slib.texi			\

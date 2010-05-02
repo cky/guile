@@ -1,0 +1,81 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C) 2010  Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+
+@page
+@node Code Coverage
+@section Code Coverage Reports
+
+@cindex code coverage
+@cindex coverage
+When writing a test suite for a program or library, it is desirable to know what
+part of the code is @dfn{covered} by the test suite.  The @code{(system vm
+coverage)} module provides tools to gather code coverage data and to present
+them, as detailed below.
+
+@deffn {Scheme Procedure} with-code-coverage vm thunk
+Run @var{thunk}, a zero-argument procedure, using @var{vm}; instrument @var{vm}
+to collect code coverage data.  Return code coverage data and the values
+returned by @var{thunk}.
+@end deffn
+
+@deffn {Scheme Procedure} coverage-data? obj
+Return @code{#t} if @var{obj} is a @dfn{coverage data} object as returned by
+@code{with-code-coverage}.
+@end deffn
+
+@deffn {Scheme Procedure} coverage-data->lcov data port #:key modules
+Traverse code coverage information @var{data}, as obtained with
+@code{with-code-coverage}, and write coverage information to port in the
+@code{.info} format used by @url{http://ltp.sourceforge.net/coverage/lcov.php,
+LCOV}.  The report will include all of @var{modules} (or, by default, all the
+currently loaded modules) even if their code was not executed.
+
+The generated data can be fed to LCOV's @command{genhtml} command to produce an
+HTML report, which aids coverage data visualization.
+@end deffn
+
+Here's an example use:
+
+@example
+(use-modules (system vm coverage)
+             (system vm vm))
+
+(call-with-values (lambda ()
+                    (with-code-coverage (the-vm)
+                      (lambda ()
+                        (do-something-tricky))))
+  (lambda (data result)
+    (let ((port (open-output-file "lcov.info")))
+      (coverage-data->lcov data port)
+      (close file))))
+@end example
+
+In addition, the module provides low-level procedures that would make it
+possible to write other user interfaces to the coverage data.
+
+@deffn {Scheme Procedures} instrumented-source-files data
+Return the list of ``instrumented'' source files, i.e., source files whose
+code was loaded at the time @var{data} was collected.
+@end deffn
+
+@deffn {Scheme Procedures} line-execution-counts data file
+Return a list of line number/execution count pairs for @var{file}, or
+@code{#f} if @var{file} is not among the files covered by @var{data}.  This
+includes lines with zero count.
+@end deffn
+
+@deffn {Scheme Procedures} instrumented/executed-lines data file
+Return the number of instrumented and the number of executed source lines
+in @var{file} according to @var{data}.
+@end deffn
+
+@deffn {Scheme Procedures} procedure-execution-count data proc
+Return the number of times @var{proc}'s code was executed, according to
+@var{data}, or @code{#f} if @var{proc} was not executed.  When @var{proc}
+is a closure, the number of times its code was executed is returned, not
+the number of times this code associated with this particular closure was
+executed.
+@end deffn
