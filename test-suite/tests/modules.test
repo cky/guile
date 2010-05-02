@@ -330,3 +330,22 @@
 	       (current-module)))
 	(lambda (key . args)
 	  #f))))
+
+
+;;;
+;;; R6RS compatibility
+;;;
+
+(with-test-prefix "module versions"
+
+  (pass-if "version-matches? for matching versions"
+    (version-matches? '(1 2 3) '(1 2 3)))
+
+  (pass-if "version-matches? for non-matching versions"
+    (not (version-matches? '(3 2 1) '(1 2 3))))
+
+  (pass-if "version-matches? against more specified version"
+    (version-matches? '(1 2) '(1 2 3)))
+
+  (pass-if "version-matches? against less specified version"
+    (not (version-matches? '(1 2 3) '(1 2)))))
