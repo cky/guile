@@ -1,6 +1,6 @@
 ;;; Multi-language support
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,7 @@
 (define-module (system base language)
   #:use-module (system base syntax)
   #:export (define-language language? lookup-language make-language
-            language-name language-title language-version language-reader
+            language-name language-title language-reader
             language-printer language-parser 
             language-compilers language-decompilers language-evaluator
             language-joiner language-make-default-environment
@@ -38,7 +38,6 @@
 (define-record/keywords <language>
   name
   title
-  version
   reader
   printer
   (parser #f)

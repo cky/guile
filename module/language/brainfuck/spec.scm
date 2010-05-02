@@ -1,6 +1,6 @@
 ;;; Brainfuck for GNU Guile.
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -35,8 +35,7 @@
 ; language.
 
 (define-language brainfuck
-  #:title	"Guile Brainfuck"
-  #:version	"1.0"
+  #:title	"Brainfuck"
   #:reader	(lambda (port env) (read-brainfuck port))
   #:compilers	`((tree-il . ,compile-tree-il)
                   (scheme . ,compile-scheme))

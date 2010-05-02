@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,7 @@
   #:export (value))
 
 (define-language value
-  #:title	"Guile Values"
-  #:version	"0.3"
+  #:title	"Values"
   #:reader	#f
   #:printer	write
   )

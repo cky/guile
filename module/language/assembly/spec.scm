@@ -1,6 +1,6 @@
 ;;; Guile Virtual Machine Assembly
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,6 @@
 
 (define-language assembly
   #:title	"Guile Virtual Machine Assembly Language"
-  #:version	"2.0"
   #:reader	(lambda (port env) (read port))
   #:printer	write
   #:parser      read ;; fixme: make a verifier?

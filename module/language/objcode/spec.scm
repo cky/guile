@@ -80,7 +80,6 @@
 
 (define-language objcode
   #:title	"Guile Object Code"
-  #:version	"0.3"
   #:reader	#f
   #:printer	write-objcode
   #:compilers   `((value . ,objcode->value))

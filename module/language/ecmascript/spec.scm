@@ -1,6 +1,6 @@
 ;;; ECMAScript specification for Guile
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -29,8 +29,7 @@
 ;;;
 
 (define-language ecmascript
-  #:title	"Guile ECMAScript"
-  #:version	"3.0"
+  #:title	"ECMAScript"
   #:reader	(lambda (port env) (read-ecmascript/1 port))
   #:compilers   `((tree-il . ,compile-tree-il))
   ;; a pretty-printer would be interesting.

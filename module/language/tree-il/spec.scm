@@ -1,6 +1,6 @@
 ;;; Tree Intermediate Language
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,7 +37,6 @@
 
 (define-language tree-il
   #:title	"Tree Intermediate Language"
-  #:version	"1.0"
   #:reader	(lambda (port env) (read port))
   #:printer	write-tree-il
   #:parser      parse-tree-il

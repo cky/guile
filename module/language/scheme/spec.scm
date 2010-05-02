@@ -1,6 +1,6 @@
 ;;; Guile Scheme specification
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -36,8 +36,7 @@
 ;;;
 
 (define-language scheme
-  #:title	"Guile Scheme"
-  #:version	"0.5"
+  #:title	"Scheme"
   #:reader      (lambda (port env)
                   ;; Use the binding of current-reader from the environment.
                   ;; FIXME: Handle `read-options' as well?
