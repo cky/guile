@@ -709,33 +709,28 @@ to play around with it at the REPL, as can be seen in this annotated
 example:
 
 @example
-scheme@@(guile-user)> (compile '(+ 32 10) #:to 'assembly)
+scheme@@(guile-user)> (pp (compile '(+ 32 10) #:to 'assembly))
 (load-program
-  ((:LCASE104 . 6)) ; Labels, unused in this case.
-  16                ; Length of the thunk that was compiled.
+  ((:LCASE16 . 2))  ; Labels, unused in this case.
+  8                 ; Length of the thunk that was compiled.
   (load-program     ; Metadata thunk.
     ()
     17
     #f              ; No metadata thunk for the metadata thunk.
     (make-eol)
     (make-eol)
-    (make-int8 6)
-    (make-int8 12)  ; Liveness extents, source info, and arities,
-    (make-int8:0)   ; in a format that Guile knows how to parse.
+    (make-int8 2)   ; Liveness extents, source info, and arities,
+    (make-int8 8)   ; in a format that Guile knows how to parse.
+    (make-int8:0)
     (list 0 3)
     (list 0 1)
     (list 0 3)
     (return))
-  (assert-nargs-ee 0 0) ; Prologue.
-  (reserve-locals 0 0)
+  (assert-nargs-ee/locals 0)  ; Prologue.
   (make-int8 32)    ; Actual code starts here.
   (make-int8 10)
   (add)
-  (return)
-  (nop)
-  (nop)             ; Padding; the metadata thunk is actually
-  (nop)             ; written after the main text.
-  (nop))
+  (return))
 @end example
 
 Of course you can switch the REPL to assembly and enter in assembly
@@ -754,12 +749,11 @@ the next step down from assembly:
 
 @example
 scheme@@(guile-user)> (compile '(+ 32 10) #:to 'bytecode)
-@result{} #vu8(16 0 0 0 25 0 0 0       ; Header.
-       45 0 0 52 0 0                   ; Prologue.
-       10 32 10 10 148 66              ; Actual code.
-       0 0 0 0                         ; Padding.
-       17 0 0 0 0 0 0 0 9 9 10 6 10    ; Metadata thunk.
-       12 11 18 0 3 18 0 1 18 0 3 66)
+@result{} #vu8(8 0 0 0 25 0 0 0            ; Header.
+       95 0                            ; Prologue.
+       10 32 10 10 148 66 17           ; Actual code.
+       0 0 0 0 0 0 0 9                 ; Metadata thunk.
+       9 10 2 10 8 11 18 0 3 18 0 1 18 0 3 66)
 @end example
 
 ``Objcode'' is bytecode, but mapped directly to a C structure,
