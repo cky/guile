@@ -386,6 +386,7 @@ VM_DEFINE_INSTRUCTION (163, make_array, "make-array", 3, -1, 1)
   len = (len << 8) + FETCH ();
   POP (shape);
   SYNC_REGISTER ();
+  PRE_CHECK_UNDERFLOW (len);
   ret = scm_from_contiguous_array (shape, sp - len + 1, len);
   DROPN (len);
   PUSH (ret);
