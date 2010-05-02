@@ -1622,6 +1622,26 @@ VM_DEFINE_INSTRUCTION (93, fluid_set, "fluid-set", 0, 2, 0)
   NEXT;
 }
 
+VM_DEFINE_INSTRUCTION (95, assert_nargs_ee_locals, "assert-nargs-ee/locals", 1, 0, 0)
+{
+  scm_t_ptrdiff n;
+  SCM *old_sp;
+
+  /* nargs = n & 0x7, nlocs = nargs + (n >> 3) */
+  n = FETCH ();
+
+  if (SCM_UNLIKELY (sp - (fp - 1) != (n & 0x7)))
+    goto vm_error_wrong_num_args;
+
+  old_sp = sp;
+  sp += (n >> 3);
+  CHECK_OVERFLOW ();
+  while (old_sp < sp)
+    *++old_sp = SCM_UNDEFINED;
+  
+  NEXT;
+}
+
 
 /*
 (defun renumber-ops ()

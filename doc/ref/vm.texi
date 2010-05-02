@@ -827,6 +827,14 @@ operation decrements the stack pointer, any excess values are dropped.
 reserve space for local variables.
 @end deffn
 
+@deffn Instruction assert-nargs-ee/locals n
+@deffnx Instruction assert-nargs-ge/locals n
+A combination of @code{assert-nargs-ee} and @code{reserve-locals}. The
+number of arguments is encoded in the lower three bits of @var{n}, a
+one-byte value. The number of additional local variables is take from
+the upper 5 bits of @var{n}.
+@end deffn
+
 
 @node Trampoline Instructions
 @subsubsection Trampoline Instructions

@@ -231,14 +231,16 @@
     
     ((<glil-std-prelude> nreq nlocs else-label)
      (emit-code/arity
-      `(,(if else-label
-             `(br-if-nargs-ne ,(quotient nreq 256)
-                              ,(modulo nreq 256)
-                              ,else-label)
-             `(assert-nargs-ee ,(quotient nreq 256)
-                               ,(modulo nreq 256)))
-        (reserve-locals ,(quotient nlocs 256)
-                        ,(modulo nlocs 256)))
+      (if (and (< nreq 8) (< nlocs (+ nreq 32)) (not else-label))
+          `((assert-nargs-ee/locals ,(logior nreq (ash (- nlocs nreq) 3))))
+          `(,(if else-label
+                 `(br-if-nargs-ne ,(quotient nreq 256)
+                                  ,(modulo nreq 256)
+                                  ,else-label)
+                 `(assert-nargs-ee ,(quotient nreq 256)
+                                   ,(modulo nreq 256)))
+            (reserve-locals ,(quotient nlocs 256)
+                            ,(modulo nlocs 256))))
       nreq #f #f #f))
 
     ((<glil-opt-prelude> nreq nopt rest nlocs else-label)
