@@ -3256,30 +3256,6 @@ module '(ice-9 q) '(make-q q-length))}."
  (if (memq 'prefix (read-options))
      (error "boot-9 must be compiled with #:kw, not :kw")))
 
-(define (compile-interface-spec spec)
-  (define (make-keyarg sym key quote?)
-    (cond ((or (memq sym spec)
-               (memq key spec))
-           => (lambda (rest)
-                (if quote?
-                    (list key (list 'quote (cadr rest)))
-                    (list key (cadr rest)))))
-          (else
-           '())))
-  (define (map-apply func list)
-    (map (lambda (args) (apply func args)) list))
-  (define keys
-    ;; sym     key      quote?
-    '((:select #:select #t)
-      (:hide   #:hide   #t)
-      (:prefix #:prefix #t)
-      (:renamer #:renamer #f)
-      (:version #:version #t)))
-  (if (not (pair? (car spec)))
-      `(',spec)
-      `(',(car spec)
-        ,@(apply append (map-apply make-keyarg keys)))))
-
 (define (keyword-like-symbol->keyword sym)
   (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
 
@@ -3371,22 +3347,57 @@ module '(ice-9 q) '(make-q q-length))}."
      (lambda ()
        (module-use-interfaces! (current-module) interfaces)))))
 
-(defmacro use-modules modules
-  `(eval-when
-    (eval load compile)
-    (process-use-modules
-     (list ,@(map (lambda (m)
-                    `(list ,@(compile-interface-spec m)))
-                  modules)))
-    *unspecified*))
+(define-syntax use-modules
+  (lambda (x)
+    (define (keyword-like? stx)
+      (let ((dat (syntax->datum stx)))
+        (and (symbol? dat)
+             (eqv? (string-ref (symbol->string dat) 0) #\:))))
+    (define (->keyword sym)
+      (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
+    
+    (define (quotify-iface args)
+      (let loop ((in args) (out '()))
+        (syntax-case in ()
+          (() (reverse! out))
+          ;; The user wanted #:foo, but wrote :foo. Fix it.
+          ((sym . in) (keyword-like? #'sym)
+           (loop #`(#,(->keyword (syntax->datum #'sym)) . in) out))
+          ((kw . in) (not (keyword? (syntax->datum #'kw)))
+           (syntax-violation 'define-module "expected keyword arg" x #'kw))
+          ((#:renamer renamer . in)
+           (loop #'in (cons* #'renamer #:renamer out)))
+          ((kw val . in)
+           (loop #'in (cons* #''val #'kw out))))))
 
-(defmacro use-syntax (spec)
-  `(eval-when
-    (eval load compile)
-    (issue-deprecation-warning
-     "`use-syntax' is deprecated. Please contact guile-devel for more info.")
-    (process-use-modules (list (list ,@(compile-interface-spec spec))))
-    *unspecified*))
+    (define (quotify specs)
+      (let lp ((in specs) (out '()))
+        (syntax-case in ()
+          (() (reverse out))
+          (((name name* ...) . in)
+           (and-map symbol? (syntax->datum #'(name name* ...)))
+           (lp #'in (cons #''((name name* ...)) out)))
+          ((((name name* ...) arg ...) . in)
+           (and-map symbol? (syntax->datum #'(name name* ...)))
+           (with-syntax (((quoted-arg ...) (quotify-iface #'(arg ...))))
+             (lp #'in (cons #`(list '(name name* ...) quoted-arg ...)
+                            out)))))))
+    
+    (syntax-case x ()
+      ((_ spec ...)
+       (with-syntax (((quoted-args ...) (quotify #'(spec ...))))
+         #'(eval-when (eval load compile)
+             (process-use-modules (list quoted-args ...))
+             *unspecified*))))))
+
+(define-syntax use-syntax
+  (syntax-rules ()
+    ((_ spec ...)
+     (begin
+       (eval-when (eval load compile)
+         (issue-deprecation-warning
+          "`use-syntax' is deprecated. Please contact guile-devel for more info."))
+       (use-modules spec ...)))))
 
 (define-syntax define-private
   (syntax-rules ()
