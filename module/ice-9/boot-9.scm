@@ -3283,49 +3283,78 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (keyword-like-symbol->keyword sym)
   (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
 
-(define (compile-define-module-args args)
-  ;; Just quote everything except #:use-module and #:use-syntax.  We
-  ;; need to know about all arguments regardless since we want to turn
-  ;; symbols that look like keywords into real keywords, and the
-  ;; keyword args in a define-module form are not regular
-  ;; (i.e. no-backtrace doesn't take a value).
-  (let loop ((compiled-args `((quote ,(car args))))
-             (args (cdr args)))
-    (cond ((null? args)
-           (reverse! compiled-args))
-          ;; symbol in keyword position
-          ((symbol? (car args))
-           (loop compiled-args
-                 (cons (keyword-like-symbol->keyword (car args)) (cdr args))))
-          ((memq (car args) '(#:no-backtrace #:pure))
-           (loop (cons (car args) compiled-args)
-                 (cdr args)))
-          ((null? (cdr args))
-           (error "keyword without value:" (car args)))
-          ((memq (car args) '(#:use-module #:use-syntax))
-           (loop (cons* `(list ,@(compile-interface-spec (cadr args)))
-                        (car args)
-                        compiled-args)
-                 (cddr args)))
-          ((eq? (car args) #:autoload)
-           (loop (cons* `(quote ,(caddr args))
-                        `(quote ,(cadr args))
-                        (car args)
-                        compiled-args)
-                 (cdddr args)))
-          (else
-           (loop (cons* `(quote ,(cadr args))
-                        (car args)
-                        compiled-args)
-                 (cddr args))))))
+;; FIXME: we really need to clean up the guts of the module system.
+;; We can compile to something better than process-define-module.
+(define-syntax define-module
+  (lambda (x)
+    (define (keyword-like? stx)
+      (let ((dat (syntax->datum stx)))
+        (and (symbol? dat)
+             (eqv? (string-ref (symbol->string dat) 0) #\:))))
+    (define (->keyword sym)
+      (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
+    
+    (define (quotify-iface args)
+      (let loop ((in args) (out '()))
+        (syntax-case in ()
+          (() (reverse! out))
+          ;; The user wanted #:foo, but wrote :foo. Fix it.
+          ((sym . in) (keyword-like? #'sym)
+           (loop #`(#,(->keyword (syntax->datum #'sym)) . in) out))
+          ((kw . in) (not (keyword? (syntax->datum #'kw)))
+           (syntax-violation 'define-module "expected keyword arg" x #'kw))
+          ((#:renamer renamer . in)
+           (loop #'in (cons* #'renamer #:renamer out)))
+          ((kw val . in)
+           (loop #'in (cons* #''val #'kw out))))))
 
-(defmacro define-module args
-  `(eval-when
-    (eval load compile)
-    (let ((m (process-define-module
-              (list ,@(compile-define-module-args args)))))
-      (set-current-module m)
-      m)))
+    (define (quotify args)
+      ;; Just quote everything except #:use-module and #:use-syntax.  We
+      ;; need to know about all arguments regardless since we want to turn
+      ;; symbols that look like keywords into real keywords, and the
+      ;; keyword args in a define-module form are not regular
+      ;; (i.e. no-backtrace doesn't take a value).
+      (let loop ((in args) (out '()))
+        (syntax-case in ()
+          (() (reverse! out))
+          ;; The user wanted #:foo, but wrote :foo. Fix it.
+          ((sym . in) (keyword-like? #'sym)
+           (loop #`(#,(->keyword (syntax->datum #'sym)) . in) out))
+          ((kw . in) (not (keyword? (syntax->datum #'kw)))
+           (syntax-violation 'define-module "expected keyword arg" x #'kw))
+          ((#:no-backtrace . in)
+           (loop #'in (cons #:no-backtrace out)))
+          ((#:pure . in)
+           (loop #'in (cons #:pure out)))
+          ((kw)
+           (syntax-violation 'define-module "keyword arg without value" x #'kw))
+          ((use-module (name name* ...) . in)
+           (and (memq (syntax->datum #'use-module) '(#:use-module #:use-syntax))
+                (and-map symbol? (syntax->datum #'(name name* ...))))
+           (loop #'in
+                 (cons* #''((name name* ...))
+                        #'use-module
+                        out)))
+          ((use-module ((name name* ...) arg ...) . in)
+           (and (memq (syntax->datum #'use-module) '(#:use-module #:use-syntax))
+                (and-map symbol? (syntax->datum #'(name name* ...))))
+           (loop #'in
+                 (cons* #`(list '(name name* ...) #,@(quotify-iface #'(arg ...)))
+                        #'use-module
+                        out)))
+          ((#:autoload name bindings . in)
+           (loop #'in (cons* #''bindings #''name #:autoload out)))
+          ((kw val . in)
+           (loop #'in (cons* #''val #'kw out))))))
+    
+    (syntax-case x ()
+      ((_ (name name* ...) arg ...)
+       (with-syntax (((quoted-arg ...) (quotify #'(arg ...))))
+         #'(eval-when (eval load compile)
+             (let ((m (process-define-module
+                       (list '(name name* ...) quoted-arg ...))))
+               (set-current-module m)
+               m)))))))
 
 ;; The guts of the use-modules macro.  Add the interfaces of the named
 ;; modules to the use-list of the current module, in order.
