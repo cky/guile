@@ -3481,23 +3481,31 @@ module '(ice-9 q) '(make-q q-length))}."
                          (module-add! public-i external-name var)))))
               names)))
 
-(defmacro export names
-  `(eval-when (eval load compile)
-     (call-with-deferred-observers
-      (lambda ()
-        (module-export! (current-module) ',names)))))
+(define-syntax export
+  (syntax-rules ()
+    ((_ name ...)
+     (eval-when (eval load compile)
+       (call-with-deferred-observers
+        (lambda ()
+          (module-export! (current-module) '(name ...))))))))
 
-(defmacro re-export names
-  `(eval-when (eval load compile)
-     (call-with-deferred-observers
-       (lambda ()
-         (module-re-export! (current-module) ',names)))))
+(define-syntax re-export
+  (syntax-rules ()
+    ((_ name ...)
+     (eval-when (eval load compile)
+       (call-with-deferred-observers
+        (lambda ()
+          (module-re-export! (current-module) '(name ...))))))))
 
-(defmacro export-syntax names
-  `(export ,@names))
+(define-syntax export-syntax
+  (syntax-rules ()
+    ((_ name ...)
+     (export name ...))))
 
-(defmacro re-export-syntax names
-  `(re-export ,@names))
+(define-syntax re-export-syntax
+  (syntax-rules ()
+    ((_ name ...)
+     (re-export name ...))))
 
 (define load load-module)
 
