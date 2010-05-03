@@ -1277,7 +1277,8 @@
                (case type
                  ((global core macro module-ref)
                   ;; affect compile-time environment (once we have booted)
-                  (if (and (not (module-local-variable (current-module) n))
+                  (if (and (memq m '(c c&e))
+                           (not (module-local-variable (current-module) n))
                            (current-module))
                       (let ((old (module-variable (current-module) n)))
                         ;; use value of the same-named imported variable, if
