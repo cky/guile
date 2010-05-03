@@ -1,0 +1,171 @@
+;;;; rnrs-libraries.test --- test library and import forms    -*- scheme -*-
+;;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite tests rnrs-libraries)
+  #:use-module (test-suite lib))
+
+;; First, check that Guile modules are r6rs modules.
+;;
+(with-test-prefix "ice-9 receive"
+  (define iface #f)
+
+  (pass-if "import"
+    (eval '(begin
+             (import (ice-9 receive))
+             #t)
+          (current-module)))
+
+  (pass-if "resolve-interface"
+    (module? (resolve-interface '(ice-9 receive))))
+
+  (set! iface (resolve-interface '(ice-9 receive)))
+
+  (pass-if "resolve-r6rs-interface"
+    (eq? iface (resolve-r6rs-interface '(ice-9 receive))))
+
+  (pass-if "resolve-r6rs-interface (2)"
+    (eq? iface (resolve-r6rs-interface '(library (ice-9 receive)))))
+
+  (pass-if "module uses"
+    (and (memq iface (module-uses (current-module))) #t))
+
+  (pass-if "interface contents"
+    (equal? '(receive)
+            (hash-map->list (lambda (sym var) sym) (module-obarray iface))))
+
+  (pass-if "interface uses"
+    (null? (module-uses iface)))
+
+  (pass-if "version"
+    (or (not (module-version iface))
+        (null? (module-version iface))))
+
+  (pass-if "calling receive from current env"
+    (equal? (eval '(receive (a b) (values 10 32)
+                     (+ a b))
+                  (current-module))
+            42)))
+
+
+;; And check that r6rs modules are guile modules.
+;;
+(with-test-prefix "rnrs-test-a"
+  (define iface #f)
+
+  (pass-if "no double"
+    (not (module-local-variable (current-module) 'double)))
+
+  (pass-if "import"
+    (eval '(begin
+             (import (test-suite tests rnrs-test-a))
+             #t)
+          (current-module)))
+
+  (pass-if "still no double"
+    (not (module-local-variable (current-module) 'double)))
+  
+  (pass-if "resolve-interface"
+    (module? (resolve-interface '(test-suite tests rnrs-test-a))))
+
+  (set! iface (resolve-interface '(test-suite tests rnrs-test-a)))
+
+  (pass-if "resolve-interface (2)"
+    (eq? iface (resolve-interface '(test-suite tests rnrs-test-a))))
+
+  (pass-if "resolve-r6rs-interface"
+    (eq? iface (resolve-r6rs-interface '(test-suite tests rnrs-test-a))))
+
+  (pass-if "resolve-r6rs-interface (2)"
+    (eq? iface (resolve-r6rs-interface '(library (test-suite tests rnrs-test-a)))))
+
+  (pass-if "module uses"
+    (and (memq iface (module-uses (current-module))) #t))
+
+  (pass-if "interface contents"
+    (equal? '(double)
+            (hash-map->list (lambda (sym var) sym) (module-obarray iface))))
+
+  (pass-if "interface uses"
+    (null? (module-uses iface)))
+
+  (pass-if "version"
+    (or (not (module-version iface))
+        (null? (module-version iface))))
+
+  (pass-if "calling double"
+    (equal? ((module-ref iface 'double) 10)
+            20))
+
+  (pass-if "calling double from current env"
+    (equal? (eval '(double 20) (current-module))
+            40)))
+
+
+;; Now import features.
+;;
+(with-test-prefix "import features"
+  (define iface #f)
+  
+  (with-test-prefix "only"
+    (pass-if "contents"
+      (equal? '(+)
+              (hash-map->list
+               (lambda (sym var) sym)
+               (module-obarray (resolve-r6rs-interface '(only (guile) +)))))))
+  
+  (with-test-prefix "except"
+    (let ((bindings (hash-map->list
+                     (lambda (sym var) sym)
+                     (module-obarray
+                      (resolve-r6rs-interface '(except (guile) +))))))
+      (pass-if "contains"
+        (equal? (length bindings)
+                (1- (hash-fold
+                     (lambda (sym var n) (1+ n))
+                     0
+                     (module-obarray (resolve-interface '(guile)))))))
+      (pass-if "does not contain"
+        (not (memq '+ bindings)))))
+
+  (with-test-prefix "prefix"
+    (let ((iface (resolve-r6rs-interface '(prefix (ice-9 q) q:))))
+      (pass-if "contains"
+        ((module-ref iface 'q:q?) ((module-ref iface 'q:make-q))))
+      (pass-if "does not contain"
+        (not (module-local-variable iface 'make-q)))))
+
+  (with-test-prefix "rename"
+    (let ((iface (resolve-r6rs-interface
+                  '(rename (only (guile) cons car cdr)
+                           (cons snoc)
+                           (car rac)
+                           (cdr rdc)))))
+      (pass-if "contents"
+        (equal? '("rac" "rdc" "snoc")
+                (sort
+                 (hash-map->list
+                  (lambda (sym var) (symbol->string sym))
+                  (module-obarray iface))
+                 string<)))
+      (pass-if "contains"
+        (equal? 3 ((module-ref iface 'rac)
+                   ((module-ref iface 'snoc) 3 4))))))
+
+  (with-test-prefix "srfi"
+    (pass-if "renaming works"
+      (eq? (resolve-interface '(srfi srfi-1))
+           (resolve-r6rs-interface '(srfi :1))))))

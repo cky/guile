@@ -76,6 +76,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/r4rs.test			\
 	    tests/r5rs_pitfall.test		\
 	    tests/r6rs-ports.test		\
+	    tests/rnrs-libraries.test		\
 	    tests/ramap.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
@@ -122,7 +123,12 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/vlist.test			\
 	    tests/weaks.test
 
-EXTRA_DIST = guile-test lib.scm $(SCM_TESTS) ChangeLog-2008
+EXTRA_DIST = \
+	guile-test \
+	lib.scm \
+	$(SCM_TESTS) \
+	tests/rnrs-test-a.scm
+	ChangeLog-2008
 
 
 # Test suite of Dominique Boucher's `lalr-scm'.
