@@ -1366,6 +1366,31 @@
          (build-application s x
                             (map (lambda (e) (chi e r w mod)) #'(e1 ...)))))))
 
+  ;; (What follows is my interpretation of what's going on here -- Andy)
+  ;;
+  ;; A macro takes an expression, a tree, the leaves of which are identifiers
+  ;; and datums. Identifiers are symbols along with a wrap and a module. For
+  ;; efficiency, subtrees that share wraps and modules may be grouped as one
+  ;; syntax object.
+  ;;
+  ;; Going into the expansion, the expression is given an anti-mark, which
+  ;; logically propagates to all leaves. Then, in the new expression returned
+  ;; from the transfomer, if we see an expression with an anti-mark, we know it
+  ;; pertains to the original expression; conversely, expressions without the
+  ;; anti-mark are known to be introduced by the transformer.
+  ;;
+  ;; OK, good until now. We know this algorithm does lexical scoping
+  ;; appropriately because it's widely known in the literature, and psyntax is
+  ;; widely used. But what about modules? Here we're on our own. What we do is
+  ;; to mark the module of expressions produced by a macro as pertaining to the
+  ;; module that was current when the macro was defined -- that is, free
+  ;; identifiers introduced by a macro are scoped in the macro's module, not in
+  ;; the expansion's module. Seems to work well.
+  ;;
+  ;; The only wrinkle is when we want a macro to expand to code in another
+  ;; module, as is the case for the r6rs `library' form -- the body expressions
+  ;; should be scoped relative the the new module, the one defined by the macro.
+  ;; For that, use `(@@ mod-name body)'.
   (define chi-macro
     (lambda (p e r w rib mod)
       ;; p := (procedure . module-name)
