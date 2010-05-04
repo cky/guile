@@ -203,6 +203,46 @@ set_vtable_layout_flags (SCM vtable)
     }
 }
 
+static int
+scm_is_valid_vtable_layout (SCM layout)
+{
+  size_t len, n;
+  const char *c_layout;
+
+  c_layout = scm_i_symbol_chars (layout);
+  len = scm_i_symbol_length (layout);
+
+  if (len % 2)
+    return 0;
+  
+  for (n = 0; n < len; n += 2)
+    switch (c_layout[n])
+      {
+      case 'u':
+      case 'p':
+      case 's':
+        switch (c_layout[n+1])
+          {
+          case 'W':
+          case 'R':
+          case 'O':
+            if (n + 2 != len)
+              return 0;
+          case 'w':
+          case 'h':
+          case 'r':
+          case 'o':
+            break;
+          default:
+            return 0;
+          }
+        break;
+      default:        
+        return 0;
+      }
+  return 1;
+}
+
 /* Have OBJ, a newly created vtable, inherit flags from VTABLE.  VTABLE is a
    vtable-vtable and OBJ is an instance of VTABLE.  */
 void
@@ -219,8 +259,8 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
   SCM olayout;
 
   /* Verify that OBJ is a valid vtable.  */
-  if (scm_is_false (scm_symbol_p (SCM_VTABLE_LAYOUT (obj))))
-    scm_misc_error (FUNC_NAME, "invalid layout for new vtable",
+  if (! scm_is_valid_vtable_layout (SCM_VTABLE_LAYOUT (obj)))
+    scm_misc_error (FUNC_NAME, "invalid layout for new vtable: ~a",
                     scm_list_1 (SCM_VTABLE_LAYOUT (obj)));
 
   set_vtable_layout_flags (obj);
