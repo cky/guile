@@ -1084,6 +1084,7 @@
                         ((free-id=? x #'compile) 'compile)
                         ((free-id=? x #'load) 'load)
                         ((free-id=? x #'eval) 'eval)
+                        ((free-id=? x #'expand) 'expand)
                         (else (syntax-violation 'eval-when
                                                 "invalid situation"
                                                 e (wrap x w #f)))))
@@ -1234,16 +1235,26 @@
                   (cond
                    ((eq? m 'e)
                     (if (memq 'eval when-list)
-                        (chi-top-sequence body r w s 'e '(eval) mod)
-                        (chi-void)))
+                        (chi-top-sequence body r w s
+                                          (if (memq 'expand when-list) 'c&e 'e)
+                                          '(eval)
+                                          mod)
+                        (begin
+                          (if (memq 'expand when-list)
+                              (top-level-eval-hook
+                               (chi-top-sequence body r w s 'e '(eval) mod)
+                               mod))
+                          (chi-void))))
                    ((memq 'load when-list)
                     (if (or (memq 'compile when-list)
+                            (memq 'expand when-list)
                             (and (eq? m 'c&e) (memq 'eval when-list)))
                         (chi-top-sequence body r w s 'c&e '(compile load) mod)
                         (if (memq m '(c c&e))
                             (chi-top-sequence body r w s 'c '(load) mod)
                             (chi-void))))
                    ((or (memq 'compile when-list)
+                        (memq 'expand when-list)
                         (and (eq? m 'c&e) (memq 'eval when-list)))
                     (top-level-eval-hook
                      (chi-top-sequence body r w s 'e '(eval) mod)
