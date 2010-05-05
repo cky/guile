@@ -1160,9 +1160,9 @@
                  (syntax-type (chi-macro fval e r w rib mod)
                               r empty-wrap s rib mod for-car?))
                 ((module-ref)
-                 (call-with-values (lambda () (fval e))
-                   (lambda (sym mod)
-                     (syntax-type sym r w s rib mod for-car?))))
+                 (call-with-values (lambda () (fval e r w))
+                   (lambda (e r w s mod)
+                     (syntax-type e r w s rib mod for-car?))))
                 ((core)
                  (values 'core-form fval e w s mod))
                 ((local-syntax)
@@ -1325,9 +1325,9 @@
          ;; apply transformer
          (value e r w s mod))
         ((module-ref)
-         (call-with-values (lambda () (value e))
-           ;; we could add a public? arg here
-           (lambda (id mod) (build-global-reference s id mod))))
+         (call-with-values (lambda () (value e r w))
+           (lambda (e r w s mod)
+             (chi e r w mod))))
         ((lexical-call)
          (chi-application
           (build-lexical-reference 'fun (source-annotation (car e))
@@ -2213,9 +2213,12 @@
                           (case type
                             ((module-ref)
                              (let ((val (chi #'val r w mod)))
-                               (call-with-values (lambda () (value #'(head tail ...)))
-                                 (lambda (id mod)
-                                   (build-global-assignment s id val mod)))))
+                               (call-with-values (lambda () (value #'(head tail ...) r w))
+                                 (lambda (e r w s* mod)
+                                   (syntax-case e ()
+                                     (e (id? #'e)
+                                      (build-global-assignment s (syntax->datum #'e)
+                                                               val mod)))))))
                             (else
                              (build-application s
                                                 (chi #'(setter head) r w mod)
@@ -2224,23 +2227,23 @@
                      (_ (syntax-violation 'set! "bad set!" (source-wrap e w s mod))))))
 
   (global-extend 'module-ref '@
-                 (lambda (e)
+                 (lambda (e r w)
                    (syntax-case e ()
                      ((_ (mod ...) id)
                       (and (and-map id? #'(mod ...)) (id? #'id))
-                      (values (syntax->datum #'id)
+                      (values (syntax->datum #'id) r w #f
                               (syntax->datum
                                #'(public mod ...)))))))
 
   (global-extend 'module-ref '@@
-                 (lambda (e)
+                 (lambda (e r w)
                    (syntax-case e ()
                      ((_ (mod ...) id)
                       (and (and-map id? #'(mod ...)) (id? #'id))
-                      (values (syntax->datum #'id)
+                      (values (syntax->datum #'id) r w #f
                               (syntax->datum
                                #'(private mod ...)))))))
-
+  
   (global-extend 'core 'if
                  (lambda (e r w s mod)
                    (syntax-case e ()
