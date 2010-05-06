@@ -3326,7 +3326,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (syntax-case x ()
       ((_ (name name* ...) arg ...)
        (with-syntax (((quoted-arg ...) (quotify #'(arg ...))))
-         #'(eval-when (eval load compile)
+         #'(eval-when (eval load compile expand)
              (let ((m (process-define-module
                        (list '(name name* ...) quoted-arg ...))))
                (set-current-module m)

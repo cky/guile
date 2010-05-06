@@ -178,7 +178,8 @@
                  ...
                  (re-export r ...)
                  (export e ...)
-                 body ...))))))))
+                 (@@ (name name* ...) body)
+                 ...))))))))
     
 (define-syntax import
   (lambda (stx)
