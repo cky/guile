@@ -2237,12 +2237,30 @@
 
   (global-extend 'module-ref '@@
                  (lambda (e r w)
+                   (define remodulate
+                     (lambda (x mod)
+                       (cond ((pair? x)
+                              (cons (remodulate (car x) mod)
+                                    (remodulate (cdr x) mod)))
+                             ((syntax-object? x)
+                              (make-syntax-object
+                               (remodulate (syntax-object-expression x) mod)
+                               (syntax-object-wrap x)
+                               ;; hither the remodulation
+                               mod))
+                             ((vector? x)
+                              (let* ((n (vector-length x)) (v (make-vector n)))
+                                (do ((i 0 (fx+ i 1)))
+                                    ((fx= i n) v)
+                                  (vector-set! v i (remodulate (vector-ref x i) mod)))))
+                             (else x))))
                    (syntax-case e ()
-                     ((_ (mod ...) id)
-                      (and (and-map id? #'(mod ...)) (id? #'id))
-                      (values (syntax->datum #'id) r w #f
-                              (syntax->datum
-                               #'(private mod ...)))))))
+                     ((_ (mod ...) exp)
+                      (and-map id? #'(mod ...))
+                      (let ((mod (syntax->datum #'(private mod ...))))
+                        (values (remodulate #'exp mod)
+                                r w (source-annotation #'exp)
+                                mod))))))
   
   (global-extend 'core 'if
                  (lambda (e r w s mod)
