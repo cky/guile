@@ -1084,6 +1084,154 @@ SCM_DEFINE (scm_memoizer, "memoizer", 1, 0, 0,
 
 
 
+#define SCM_VALIDATE_MEMOIZED_LIST(n, exps)                             \
+  {                                                                     \
+    SCM walk;                                                           \
+    for (walk = exps; scm_is_pair (walk); walk = scm_cdr (walk))        \
+      SCM_ASSERT (SCM_MEMOIZED_P (scm_car (walk)), exps, n, FUNC_NAME); \
+    SCM_ASSERT (scm_is_null (walk), exps, n, FUNC_NAME);                \
+  }
+
+SCM_DEFINE (scm_memoize_begin, "memoize-begin", 1, 0, 0,
+            (SCM exps), "")
+#define FUNC_NAME s_scm_memoize_begin
+{
+  SCM_VALIDATE_MEMOIZED_LIST (1, exps);
+  return MAKMEMO_BEGIN (exps);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_if, "memoize-if", 3, 0, 0,
+            (SCM test, SCM then, SCM else_), "")
+#define FUNC_NAME s_scm_memoize_if
+{
+  SCM_VALIDATE_MEMOIZED (1, test);
+  SCM_VALIDATE_MEMOIZED (2, then);
+  SCM_VALIDATE_MEMOIZED (3, else_);
+  return MAKMEMO_IF (test, then, else_);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_lambda, "memoize-lambda", 3, 0, 0,
+            (SCM nreq, SCM rest, SCM body), "")
+#define FUNC_NAME s_scm_memoize_lambda
+{
+  SCM_VALIDATE_BOOL (2, rest);
+  SCM_VALIDATE_MEMOIZED (3, body);
+  return MAKMEMO_LAMBDA (scm_to_uint16 (nreq), rest, body);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_let, "memoize-let", 2, 0, 0,
+            (SCM inits, SCM body), "")
+#define FUNC_NAME s_scm_memoize_let
+{
+  SCM_VALIDATE_MEMOIZED_LIST (1, inits);
+  SCM_VALIDATE_MEMOIZED (2, body);
+  return MAKMEMO_LET (inits, body);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_quote, "memoize-quote", 1, 0, 0,
+            (SCM exp), "")
+#define FUNC_NAME s_scm_memoize_quote
+{
+  return MAKMEMO_QUOTE (exp);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_define, "memoize-define", 2, 0, 0,
+            (SCM var, SCM val), "")
+#define FUNC_NAME s_scm_memoize_define
+{
+  SCM_VALIDATE_SYMBOL (1, var);
+  SCM_VALIDATE_MEMOIZED (2, val);
+  return MAKMEMO_DEFINE (var, val);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_with_fluids, "memoize-with-fluids", 3, 0, 0,
+            (SCM fluids, SCM vals, SCM expr), "")
+#define FUNC_NAME s_scm_memoize_with_fluids
+{
+  SCM_VALIDATE_MEMOIZED_LIST (1, fluids);
+  SCM_VALIDATE_MEMOIZED_LIST (2, vals);
+  SCM_ASSERT (scm_ilength (fluids) == scm_ilength (vals), vals, 2, FUNC_NAME);
+  SCM_VALIDATE_MEMOIZED (3, expr);
+  return MAKMEMO_WITH_FLUIDS (fluids, vals, expr);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_call, "memoize-call", 3, 0, 0,
+            (SCM proc, SCM nargs, SCM args), "")
+#define FUNC_NAME s_scm_memoize_call
+{
+  SCM_VALIDATE_MEMOIZED (1, proc);
+  SCM_VALIDATE_MEMOIZED_LIST (3, args);
+  return MAKMEMO_CALL (proc, scm_to_uint16 (nargs), args);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_lexical_ref, "memoize-lexical-ref", 1, 0, 0,
+            (SCM n), "")
+#define FUNC_NAME s_scm_memoize_lexical_ref
+{
+  return MAKMEMO_LEX_REF (scm_to_uint16 (n));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_lexical_set, "memoize-lexical-set!", 2, 0, 0,
+            (SCM n, SCM val), "")
+#define FUNC_NAME s_scm_memoize_lexical_set
+{
+  SCM_VALIDATE_MEMOIZED (1, val);
+  return MAKMEMO_LEX_SET (n, val);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_toplevel_ref, "memoize-toplevel-ref", 1, 0, 0,
+            (SCM var), "")
+#define FUNC_NAME s_scm_memoize_toplevel_ref
+{
+  SCM_VALIDATE_SYMBOL (1, var);
+  return MAKMEMO_TOP_REF (var);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_toplevel_set, "memoize-toplevel-set!", 2, 0, 0,
+            (SCM var, SCM val), "")
+#define FUNC_NAME s_scm_memoize_toplevel_set
+{
+  SCM_VALIDATE_SYMBOL (1, var);
+  SCM_VALIDATE_MEMOIZED (2, val);
+  return MAKMEMO_TOP_SET (var, val);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_module_ref, "memoize-module-ref", 3, 0, 0,
+            (SCM mod, SCM var, SCM public), "")
+#define FUNC_NAME s_scm_memoize_module_ref
+{
+  SCM_VALIDATE_SYMBOL (2, var);
+  SCM_VALIDATE_BOOL (3, public);
+  return MAKMEMO_MOD_REF (mod, var, public);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoize_module_set, "memoize-module-set!", 4, 0, 0,
+            (SCM val, SCM mod, SCM var, SCM public), "")
+#define FUNC_NAME s_scm_memoize_module_set
+{
+  SCM_VALIDATE_MEMOIZED (1, val);
+  SCM_VALIDATE_SYMBOL (3, var);
+  SCM_VALIDATE_BOOL (4, public);
+  return MAKMEMO_MOD_SET (val, mod, var, public);
+}
+#undef FUNC_NAME
+
+
+
+
 SCM_SYMBOL (sym_placeholder, "_");
 
 static SCM unmemoize (SCM expr);

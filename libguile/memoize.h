@@ -107,6 +107,21 @@ SCM_API SCM scm_memoized_p (SCM obj);
 SCM_INTERNAL SCM scm_memoizer_p (SCM obj);
 SCM_INTERNAL SCM scm_memoizer (SCM obj);
 
+SCM_INTERNAL SCM scm_memoize_begin (SCM exps);
+SCM_INTERNAL SCM scm_memoize_if (SCM test, SCM then, SCM else_);
+SCM_INTERNAL SCM scm_memoize_lambda (SCM nreq, SCM rest, SCM body);
+SCM_INTERNAL SCM scm_memoize_let (SCM inits, SCM body);
+SCM_INTERNAL SCM scm_memoize_quote (SCM exp);
+SCM_INTERNAL SCM scm_memoize_define (SCM var, SCM val);
+SCM_INTERNAL SCM scm_memoize_with_fluids (SCM fluids, SCM vals, SCM expr);
+SCM_INTERNAL SCM scm_memoize_call (SCM proc, SCM nargs, SCM args);
+SCM_INTERNAL SCM scm_memoize_lexical_ref (SCM n);
+SCM_INTERNAL SCM scm_memoize_lexical_set (SCM n, SCM val);
+SCM_INTERNAL SCM scm_memoize_toplevel_ref (SCM var);
+SCM_INTERNAL SCM scm_memoize_toplevel_set (SCM var, SCM val);
+SCM_INTERNAL SCM scm_memoize_module_ref (SCM mod, SCM var, SCM public);
+SCM_INTERNAL SCM scm_memoize_module_set (SCM val, SCM mod, SCM var, SCM public);
+
 SCM_INTERNAL void scm_init_memoize (void);
 
 
