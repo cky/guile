@@ -564,7 +564,7 @@ scm_current_module_lookup_closure ()
     return SCM_BOOL_F;
 }
 
-SCM_SYMBOL (sym_sys_pre_modules_transformer, "%pre-modules-transformer");
+SCM_SYMBOL (sym_macroexpand, "macroexpand");
 
 SCM_DEFINE (scm_module_transformer, "module-transformer", 1, 0, 0,
 	    (SCM module),
@@ -572,13 +572,13 @@ SCM_DEFINE (scm_module_transformer, "module-transformer", 1, 0, 0,
 #define FUNC_NAME s_scm_module_transformer
 {
   if (SCM_UNLIKELY (scm_is_false (module)))
-    { SCM v = scm_hashq_ref (scm_pre_modules_obarray,
-                             sym_sys_pre_modules_transformer,
+    {
+      SCM v = scm_hashq_ref (scm_pre_modules_obarray,
+                             sym_macroexpand,
                              SCM_BOOL_F);
       if (scm_is_false (v))
-        return SCM_BOOL_F;
-      else
-        return SCM_VARIABLE_REF (v);
+        SCM_MISC_ERROR ("no module, and `macroexpand' unbound", SCM_EOL);
+      return SCM_VARIABLE_REF (v);
     }
   else
     {

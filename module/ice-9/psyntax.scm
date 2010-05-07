@@ -276,7 +276,6 @@
              ...))))))
 
 (let ()
-  (define noexpand "noexpand")
   (define *mode* (make-fluid))
 
 ;;; hooks to nonportable run-time helpers
@@ -289,18 +288,18 @@
     (define top-level-eval-hook
       (lambda (x mod)
         (primitive-eval
-         `(,noexpand
-           ,(case (fluid-ref *mode*)
-              ((c) ((@ (language tree-il) tree-il->scheme) x))
-              (else x))))))
+         (memoize-expression
+          (case (fluid-ref *mode*)
+            ((c) ((@ (language tree-il) tree-il->scheme) x))
+            (else x))))))
 
     (define local-eval-hook
       (lambda (x mod)
         (primitive-eval
-         `(,noexpand
-           ,(case (fluid-ref *mode*)
-              ((c) ((@ (language tree-il) tree-il->scheme) x))
-              (else x))))))
+         (memoize-expression
+          (case (fluid-ref *mode*)
+            ((c) ((@ (language tree-il) tree-il->scheme) x))
+            (else x))))))
 
     (define-syntax gensym-hook
       (syntax-rules ()
@@ -2450,16 +2449,17 @@
 ;;; the object file if we are compiling a file.
   (set! macroexpand
         (lambda (x . rest)
-          (if (and (pair? x) (equal? (car x) noexpand))
-              (cadr x)
-              (let ((m (if (null? rest) 'e (car rest)))
-                    (esew (if (or (null? rest) (null? (cdr rest)))
-                              '(eval)
-                              (cadr rest))))
-                (with-fluids ((*mode* m))
-                  (chi-top x null-env top-wrap m esew
-                           (cons 'hygiene (module-name (current-module)))))))))
-
+          (let ((m (if (null? rest) 'e (car rest)))
+                (esew (if (or (null? rest) (null? (cdr rest)))
+                          '(eval)
+                          (cadr rest)))
+                (mod (cons 'hygiene (module-name (current-module)))))
+            (with-fluids ((*mode* m))
+              (if (eq? m 'e)
+                  (memoize-expression
+                   (chi-top x null-env top-wrap m esew mod))
+                  (chi-top x null-env top-wrap m esew mod))))))
+  
   (set! identifier?
         (lambda (x)
           (nonsymbol-id? x)))

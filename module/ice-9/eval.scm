@@ -332,8 +332,7 @@
     (lambda (exp)
       "Evaluate @var{exp} in the current module."
       (eval 
-       (memoize-expression ((or (module-transformer (current-module))
-                                (lambda (x) x))
-                            exp))
+       (if (memoized? exp)
+           exp
+           ((module-transformer (current-module)) exp))
        '()))))
-

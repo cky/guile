@@ -1326,6 +1326,9 @@ scm_init_memoize ()
   scm_set_smob_print (scm_tc16_memoized, scm_print_memoized);
 
 #include "libguile/memoize.x"
+
+  scm_c_define ("macroexpand",
+                scm_variable_ref (scm_c_lookup ("memoize-expression")));
 }
 
 /*

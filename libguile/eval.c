@@ -844,10 +844,12 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 static SCM
 scm_c_primitive_eval (SCM exp)
 {
-  SCM transformer = scm_current_module_transformer ();
-  if (scm_is_true (transformer))
-    exp = scm_call_1 (transformer, exp);
-  exp = scm_memoize_expression (exp);
+  if (!SCM_MEMOIZED_P (exp))
+    exp = scm_call_1 (scm_current_module_transformer (), exp);
+  if (!SCM_MEMOIZED_P (exp))
+    scm_misc_error ("primitive-eval",
+                    "expander did not return a memoized expression",
+                    scm_list_1 (exp));
   return eval (exp, SCM_EOL);
 }
 

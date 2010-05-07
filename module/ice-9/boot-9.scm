@@ -357,7 +357,6 @@ If there is no handler at all, Guile prints an error and then exits."
 (define generate-temporaries #f)
 (define bound-identifier=? #f)
 (define free-identifier=? #f)
-(define macroexpand #f)
 
 ;; $sc-dispatch is an implementation detail of psyntax. It is used by
 ;; expanded macros, to dispatch an input against a set of patterns.
@@ -365,10 +364,8 @@ If there is no handler at all, Guile prints an error and then exits."
 
 ;; Load it up!
 (primitive-load-path "ice-9/psyntax-pp")
-
-;; %pre-modules-transformer is the Scheme expander from now until the
-;; module system has booted up.
-(define %pre-modules-transformer macroexpand)
+;; The binding for `macroexpand' has now been overridden, making psyntax the
+;; expander now.
 
 (define-syntax and
   (syntax-rules ()
@@ -1606,7 +1603,7 @@ If there is no handler at all, Guile prints an error and then exits."
              "Lazy-binder expected to be a procedure or #f." binder))
 
         (let ((module (module-constructor (make-hash-table size)
-                                          uses binder #f %pre-modules-transformer
+                                          uses binder #f macroexpand
                                           #f #f #f
                                           (make-hash-table %default-import-size)
                                           '()
