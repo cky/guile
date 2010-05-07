@@ -186,7 +186,11 @@ vm_dispatch_hook (SCM vm, int hook_num)
   struct scm_vm *vp;
   SCM hook;
   struct scm_frame c_frame;
-  scm_t_cell frame;
+  union
+  {
+    double alignment;
+    scm_t_cell cell;
+  } frame;
   SCM args[1];
 
   vp = SCM_VM_DATA (vm);
@@ -211,8 +215,8 @@ vm_dispatch_hook (SCM vm, int hook_num)
   c_frame.sp = vp->sp;
   c_frame.ip = vp->ip;
   c_frame.offset = 0;
-  frame.word_0 = SCM_PACK (scm_tc7_frame);
-  frame.word_1 = PTR2SCM (&c_frame);
+  frame.cell.word_0 = SCM_PACK (scm_tc7_frame);
+  frame.cell.word_1 = PTR2SCM (&c_frame);
   args[0] = PTR2SCM (&frame);
 
   scm_c_run_hookn (hook, args, 1);
