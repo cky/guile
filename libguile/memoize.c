@@ -191,8 +191,8 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_DYNWIND, scm_cons (in, scm_cons (expr, out)))
 #define MAKMEMO_WITH_FLUIDS(fluids, vals, expr) \
   MAKMEMO (SCM_M_WITH_FLUIDS, scm_cons (fluids, scm_cons (vals, expr)))
-#define MAKMEMO_APPLY(exp) \
-  MAKMEMO (SCM_M_APPLY, exp)
+#define MAKMEMO_APPLY(proc, args)\
+  MAKMEMO (SCM_M_APPLY, scm_list_2 (proc, args))
 #define MAKMEMO_CONT(proc) \
   MAKMEMO (SCM_M_CONT, proc)
 #define MAKMEMO_CALL_WITH_VALUES(prod, cons) \
@@ -213,6 +213,12 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_MODULE_SET, scm_cons (val, scm_cons (mod, scm_cons (var, public))))
 #define MAKMEMO_PROMPT(tag, exp, handler) \
   MAKMEMO (SCM_M_PROMPT, scm_cons (tag, scm_cons (exp, handler)))
+
+
+/* Primitives for the evaluator */
+scm_t_bits scm_tc16_memoizer;
+#define SCM_MEMOIZER_P(x) (SCM_SMOB_PREDICATE (scm_tc16_memoizer, (x)))
+#define SCM_MEMOIZER(M) (SCM_SMOB_OBJECT_1 (M))
 
 
 
@@ -252,13 +258,9 @@ scm_print_memoized (SCM memoized, SCM port, scm_print_state *pstate)
 static SCM scm_m_at (SCM xorig, SCM env);
 static SCM scm_m_atat (SCM xorig, SCM env);
 static SCM scm_m_and (SCM xorig, SCM env);
-static SCM scm_m_apply (SCM xorig, SCM env);
 static SCM scm_m_begin (SCM xorig, SCM env);
-static SCM scm_m_cont (SCM xorig, SCM env);
-static SCM scm_m_at_call_with_values (SCM xorig, SCM env);
 static SCM scm_m_cond (SCM xorig, SCM env);
 static SCM scm_m_define (SCM x, SCM env);
-static SCM scm_m_at_dynamic_wind (SCM xorig, SCM env);
 static SCM scm_m_with_fluids (SCM xorig, SCM env);
 static SCM scm_m_eval_when (SCM xorig, SCM env);
 static SCM scm_m_if (SCM xorig, SCM env);
@@ -267,28 +269,27 @@ static SCM scm_m_let (SCM xorig, SCM env);
 static SCM scm_m_letrec (SCM xorig, SCM env);
 static SCM scm_m_letstar (SCM xorig, SCM env);
 static SCM scm_m_or (SCM xorig, SCM env);
-static SCM scm_m_at_prompt (SCM xorig, SCM env);
 static SCM scm_m_quote (SCM xorig, SCM env);
 static SCM scm_m_set_x (SCM xorig, SCM env);
-
 
 
 
 
-static scm_t_macro_primitive
-memoize_env_ref_transformer (SCM env, SCM x)
+static SCM
+memoize_env_ref_macro (SCM env, SCM x)
 {
   SCM var;
   for (; scm_is_pair (env); env = CDR (env))
     if (scm_is_eq (x, CAR (env)))
-      return NULL; /* lexical */
+      return SCM_BOOL_F; /* lexical */
 
   var = scm_module_variable (env, x);
   if (scm_is_true (var) && scm_is_true (scm_variable_bound_p (var))
-      && scm_is_true (scm_macro_p (scm_variable_ref (var))))
-    return scm_i_macro_primitive (scm_variable_ref (var));
+      && (scm_is_true (scm_macro_p (scm_variable_ref (var)))
+          || SCM_MEMOIZER_P (scm_variable_ref (var))))
+    return scm_variable_ref (var);
   else
-    return NULL; /* anything else */
+    return SCM_BOOL_F; /* anything else */
 }
 
 static int
@@ -321,28 +322,40 @@ memoize (SCM exp, SCM env)
 {
   if (scm_is_pair (exp))
     {
-      SCM CAR;
-      scm_t_macro_primitive trans;
+      SCM car;
+      scm_t_macro_primitive trans = NULL;
+      SCM macro = SCM_BOOL_F, memoizer = SCM_BOOL_F;
       
-      CAR = CAR (exp);
-      if (scm_is_symbol (CAR))
-        trans = memoize_env_ref_transformer (env, CAR);
-      else
-        trans = NULL;
+      car = CAR (exp);
+      if (scm_is_symbol (car))
+        macro = memoize_env_ref_macro (env, car);
       
+      if (scm_is_true (scm_macro_p (macro)))
+        trans = scm_i_macro_primitive (macro);
+      else if (SCM_MEMOIZER_P (macro))
+        memoizer = SCM_MEMOIZER (macro);
+
       if (trans)
         return trans (exp, env);
       else
         {
-          SCM proc;
           SCM args = SCM_EOL;
           int nargs = 0;
-          proc = memoize (CAR (exp), env);
+          SCM proc = CAR (exp);
+          
           for (exp = CDR (exp); scm_is_pair (exp); exp = CDR (exp), nargs++)
             args = scm_cons (memoize (CAR (exp), env), args);
           if (scm_is_null (exp))
-            return MAKMEMO_CALL (proc, nargs,
-                                 scm_reverse_x (args, SCM_UNDEFINED));
+            {
+              if (scm_is_true (memoizer))
+                return scm_apply (memoizer, scm_reverse_x (args, SCM_UNDEFINED),
+                                  SCM_EOL);
+              else
+                return MAKMEMO_CALL (memoize (proc, env),
+                                     nargs,
+                                     scm_reverse_x (args, SCM_UNDEFINED));
+            }
+        
           else
             syntax_error ("expected a proper list", exp, SCM_UNDEFINED);
         }
@@ -388,28 +401,27 @@ memoize_sequence (const SCM forms, const SCM env)
 SCM_SNARF_HERE(static const char RANAME[]=STR)\
 SCM_SNARF_INIT(scm_c_define (RANAME, scm_i_make_primitive_macro (RANAME, CFN)))
 
+
+/* True primitive syntax */
 SCM_SYNTAX (s_at, "@", scm_m_at);
 SCM_SYNTAX (s_atat, "@@", scm_m_atat);
-SCM_SYNTAX (s_and, "and", scm_m_and);
 SCM_SYNTAX (s_begin, "begin", scm_m_begin);
-SCM_SYNTAX (s_atcall_cc, "@call-with-current-continuation", scm_m_cont);
-SCM_SYNTAX (s_at_call_with_values, "@call-with-values", scm_m_at_call_with_values);
-SCM_SYNTAX (s_cond, "cond", scm_m_cond);
 SCM_SYNTAX (s_define, "define", scm_m_define);
-SCM_SYNTAX (s_at_dynamic_wind, "@dynamic-wind", scm_m_at_dynamic_wind);
 SCM_SYNTAX (s_with_fluids, "with-fluids", scm_m_with_fluids);
 SCM_SYNTAX (s_eval_when, "eval-when", scm_m_eval_when);
 SCM_SYNTAX (s_if, "if", scm_m_if);
 SCM_SYNTAX (s_lambda, "lambda", scm_m_lambda);
 SCM_SYNTAX (s_let, "let", scm_m_let);
+SCM_SYNTAX (s_quote, "quote", scm_m_quote);
+SCM_SYNTAX (s_set_x, "set!", scm_m_set_x);
+
+/* Convenient syntax during boot, expands to primitive syntax. Replaced after
+   psyntax boots. */
+SCM_SYNTAX (s_and, "and", scm_m_and);
+SCM_SYNTAX (s_cond, "cond", scm_m_cond);
 SCM_SYNTAX (s_letrec, "letrec", scm_m_letrec);
 SCM_SYNTAX (s_letstar, "let*", scm_m_letstar);
 SCM_SYNTAX (s_or, "or", scm_m_or);
-SCM_SYNTAX (s_at_prompt, "@prompt", scm_m_at_prompt);
-SCM_SYNTAX (s_quote, "quote", scm_m_quote);
-SCM_SYNTAX (s_set_x, "set!", scm_m_set_x);
-SCM_SYNTAX (s_atapply, "@apply", scm_m_apply);
-
 
 SCM_GLOBAL_SYMBOL (scm_sym_apply, "apply");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
@@ -481,42 +493,11 @@ scm_m_and (SCM expr, SCM env)
 }
 
 static SCM
-scm_m_apply (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_missing_expression, expr);
-
-  return MAKMEMO_APPLY (memoize_exprs (cdr_expr, env));
-}
-
-static SCM
 scm_m_begin (SCM expr, SCM env)
 {
   const SCM cdr_expr = CDR (expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 1, s_bad_expression, expr);
   return MAKMEMO_BEGIN (memoize_exprs (cdr_expr, env));
-}
-
-static SCM
-scm_m_cont (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
-
-  return MAKMEMO_CONT (memoize (CADR (expr), env));
-}
-
-static SCM
-scm_m_at_call_with_values (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
-
-  return MAKMEMO_CALL_WITH_VALUES (memoize (CADR (expr), env),
-                                   memoize (CADDR (expr), env));
 }
 
 static SCM
@@ -622,17 +603,6 @@ scm_m_define (SCM expr, SCM env)
   ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
   ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
   return MAKMEMO_DEFINE (variable, memoize (CAR (body), env));
-}
-
-static SCM
-scm_m_at_dynamic_wind (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 3, s_bad_expression, expr);
-
-  return MAKMEMO_DYNWIND (memoize (CADR (expr), env),
-                          memoize (CADDR (expr), env),
-                          memoize (CADDDR (expr), env));
 }
 
 static SCM
@@ -975,17 +945,6 @@ scm_m_or (SCM expr, SCM env SCM_UNUSED)
 }
 
 static SCM
-scm_m_at_prompt (SCM expr, SCM env)
-{
-  ASSERT_SYNTAX (scm_ilength (expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (expr) == 4, s_expression, expr);
-
-  return MAKMEMO_PROMPT (memoize (CADR (expr), env),
-                         memoize (CADDR (expr), env),
-                         memoize (CADDDR (expr), env));
-}
-
-static SCM
 scm_m_quote (SCM expr, SCM env SCM_UNUSED)
 {
   SCM quotee;
@@ -1039,8 +998,91 @@ SCM_DEFINE (scm_memoize_expression, "memoize-expression", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
 
 
+#define SCM_MAKE_MEMOIZER(STR, MEMOIZER, N)                             \
+  (scm_cell (scm_tc16_memoizer,                                         \
+             (scm_t_bits)(scm_c_make_gsubr (STR, N, 0, 0, MEMOIZER))))
+#define SCM_DEFINE_MEMOIZER(STR, MEMOIZER, N)                           \
+SCM_SNARF_INIT(scm_c_define (STR, SCM_MAKE_MEMOIZER (STR, MEMOIZER, N)))
+
+static SCM m_apply (SCM proc, SCM args);
+static SCM m_call_cc (SCM proc);
+static SCM m_call_values (SCM prod, SCM cons);
+static SCM m_dynamic_wind (SCM pre, SCM exp, SCM post);
+static SCM m_prompt (SCM tag, SCM exp, SCM handler);
+
+SCM_DEFINE_MEMOIZER ("@apply", m_apply, 2);
+SCM_DEFINE_MEMOIZER ("@call-with-current-continuation", m_call_cc, 1);
+SCM_DEFINE_MEMOIZER ("@call-with-values", m_call_values, 2);
+SCM_DEFINE_MEMOIZER ("@dynamic-wind", m_dynamic_wind, 3);
+SCM_DEFINE_MEMOIZER ("@prompt", m_prompt, 3);
+
+
+
+
+static SCM m_apply (SCM proc, SCM args)
+#define FUNC_NAME "@apply"
+{
+  SCM_VALIDATE_MEMOIZED (1, proc);
+  SCM_VALIDATE_MEMOIZED (2, args);
+  return MAKMEMO_APPLY (proc, args);
+}
+#undef FUNC_NAME
+
+static SCM m_call_cc (SCM proc)
+#define FUNC_NAME "@call-with-current-continuation"
+{
+  SCM_VALIDATE_MEMOIZED (1, proc);
+  return MAKMEMO_CONT (proc);
+}
+#undef FUNC_NAME
+
+static SCM m_call_values (SCM prod, SCM cons)
+#define FUNC_NAME "@call-with-values"
+{
+  SCM_VALIDATE_MEMOIZED (1, prod);
+  SCM_VALIDATE_MEMOIZED (2, cons);
+  return MAKMEMO_CALL_WITH_VALUES (prod, cons);
+}
+#undef FUNC_NAME
+
+static SCM m_dynamic_wind (SCM in, SCM expr, SCM out)
+#define FUNC_NAME "memoize-dynwind"
+{
+  SCM_VALIDATE_MEMOIZED (1, in);
+  SCM_VALIDATE_MEMOIZED (2, expr);
+  SCM_VALIDATE_MEMOIZED (3, out);
+  return MAKMEMO_DYNWIND (in, expr, out);
+}
+#undef FUNC_NAME
+
+static SCM m_prompt (SCM tag, SCM exp, SCM handler)
+#define FUNC_NAME "@prompt"
+{
+  SCM_VALIDATE_MEMOIZED (1, tag);
+  SCM_VALIDATE_MEMOIZED (2, exp);
+  SCM_VALIDATE_MEMOIZED (3, handler);
+  return MAKMEMO_PROMPT (tag, exp, handler);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_memoizer_p, "memoizer?", 1, 0, 0,
+            (SCM x), "")
+{
+  return scm_from_bool (SCM_MEMOIZER_P (x));
+}
+
+SCM_DEFINE (scm_memoizer, "memoizer", 1, 0, 0,
+            (SCM memoizer), "")
+{
+  SCM_ASSERT (SCM_MEMOIZER_P (memoizer), memoizer, 1, "memoizer?");
+  return SCM_MEMOIZER (memoizer);
+}
+
+
+
 
 SCM_SYMBOL (sym_placeholder, "_");
 
@@ -1173,6 +1215,9 @@ unmemoize (const SCM expr)
       abort ();
     }
 }
+
+
+
 
 SCM_DEFINE (scm_memoized_p, "memoized?", 1, 0, 0, 
             (SCM obj),
@@ -1324,6 +1369,8 @@ scm_init_memoize ()
   scm_tc16_memoized = scm_make_smob_type ("%memoized", 0);
   scm_set_smob_mark (scm_tc16_memoized, scm_markcdr);
   scm_set_smob_print (scm_tc16_memoized, scm_print_memoized);
+
+  scm_tc16_memoizer = scm_make_smob_type ("memoizer", 0);
 
 #include "libguile/memoize.x"
 
