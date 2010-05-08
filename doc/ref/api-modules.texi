@@ -47,6 +47,7 @@ be used for interacting with the module system.
 * Module System Reflection::    Accessing module objects at run-time.
 * Included Guile Modules::      Which modules come with Guile?
 * R6RS Version References::     Using version numbers with modules.
+* R6RS Libraries::              The library and import forms.
 * Accessing Modules from C::    How to work with modules with C code.
 * Variables::                   First-class variables.
 * provide and require::         The SLIB feature mechanism.
@@ -776,6 +777,144 @@ expressions:
  (use-modules ((mylib mymodule) #:version (or (1 2 0) (1 2 1))))
  (use-modules ((mylib mymodule) #:version ((and (>= 1) (not 2)) 2 0)))
 @end lisp
+
+
+@node R6RS Libraries
+@subsection R6RS Libraries
+
+In addition to the API described in the previous sections, you also
+have the option to create modules using the portable ``library'' form
+described in R6RS (@pxref{Library form, R6RS Library Form,, r6rs, The
+Revised^6 Report on the Algorithmic Language Scheme}), and to import 
+libraries created in this format by other programmers.  Guile's R6RS 
+libraries implementation takes advantage of the flexibility built 
+into the module system by expanding the R6RS library form into a 
+corresponding Guile ``define-module'' form that specifies equivalent
+import and export requirements and includes the same body 
+expressions.  The library expression:
+
+@lisp
+  (library (mylib (1 2))
+    (import (otherlib (3)))
+    (export mybinding))
+@end lisp
+
+is equivalent to the module definition:
+
+@lisp
+  (define-module (mylib)
+    #:version (1 2)
+    #:use-module ((otherlib) #:version (3))
+    #:export (mybinding))
+@end lisp
+
+Central to the mechanics of R6RS libraries is the concept of import
+and export ``levels,'' which control the visibility of bindings at
+various phases of a library's lifecycle --- macros necessary to 
+expand forms in the library's body need to be available at expand 
+time; variables used in the body of a procedure exported by the
+library must be available at runtime.  R6RS specifies the optional
+@code{for} sub-form of an @emph{import set} specification (see below)
+as a mechanism by which a library author can indicate that a
+particular library import should take place at a particular phase 
+with respect to the lifecycle of the importing library.  
+
+Guile's libraries implementation uses a technique called ``implicit 
+phasing'' (see @cite{Implicit Phasing for R6RS Libraries} by 
+Abdulaziz Ghuloum and R. Kent Dybvig), which allows the expander and
+compiler to automatically determine the necessary visibility of a 
+binding imported from another library.  As such, the @code{for} 
+sub-form described below is ignored by Guile (but may be required by
+Schemes in which phasing is explicit).
+
+@deffn syntax library name (export export-spec ...) (import import-spec ...) body ...
+Defines a new library with the specified name, exports, and imports,
+and evaluates the specified body expressions in this library's 
+environment.
+
+The library @var{name} is a non-empty list of identifiers, optionally
+ending with a version specification of the form described above
+(@pxref{Creating Guile Modules}).
+
+Each @var{export-spec} is the name of a variable defined or imported
+by the library, or must take the form 
+@code{(rename (internal-name external-name) ...)}, where the 
+identifier @var{internal-name} names a variable defined or imported 
+by the library and @var{external-name} is the name by which the
+variable is seen by importing libraries.
+
+Each @var{import-spec} must be either an ``import set'' (see below) 
+or must be of the form @code{(for import-set import-level ...)}, 
+where each @var{import-level} is one of:
+
+@lisp
+  run
+  expand
+  (meta @var{level})
+@end lisp
+
+where @var{level} is an integer.  Note that since Guile does not
+require explicit phase specification, any @var{import-set}s found 
+inside of @code{for} sub-forms will be ``unwrapped'' during 
+expansion and processed as if they had been specified directly.
+
+Import sets in turn take one of the following forms:
+
+@lisp
+  @var{library-reference}
+  (library @var{library-reference})
+  (only @var{import-set} @var{identifier} ...)
+  (except @var{import-set} @var{identifier} ...)
+  (prefix @var{import-set} @var{identifier})
+  (rename @var{import-set} (@var{internal-identifier} @var{external-identifier}) ...)
+@end lisp
+
+where @var{library-reference} is a non-empty list of identifiers
+ending with an optional version reference (@pxref{R6RS Version 
+References}), and the other sub-forms have the following semantics,
+defined recursively on nested @var{import-set}s:
+
+@itemize @bullet
+
+@item
+The @code{library} sub-form is used to specify libraries for import
+whose names begin with the identifier ``library.''
+
+@item
+The @code{only} sub-form imports only the specified @var{identifier}s
+from the given @var{import-set}.
+
+@item
+The @code{except} sub-form imports all of the bindings exported by 
+@var{import-set} except for those that appear in the specified list
+of @var{identifier}s.
+
+@item
+The @code{prefix} sub-form imports all of the bindings exported
+by @var{import-set}, first prefixing them with the specified
+@var{identifier}.
+
+@item
+The @code{rename} sub-form imports all of the identifiers exported
+by @var{import-set}.  The binding for each @var{internal-identifier}
+among these identifiers is made visible to the importing library as
+the corresponding @var{external-identifier}; all other bindings are
+imported using the names provided by @var{import-set}.
+
+@end itemize
+
+Note that because Guile translates R6RS libraries into module 
+definitions, an import specification may be used to declare a
+dependency on a native Guile module --- although doing so may make 
+your libraries less portable to other Schemes.
+
+@end deffn
+
+@deffn syntax import import-spec ...
+Import into the current environment the libraries specified by the
+given import specifications, where each @var{import-spec} takes the
+same form as in the ``library'' form described above.
+@end deffn
 
 
 @node Accessing Modules from C
