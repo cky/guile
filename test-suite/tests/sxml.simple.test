@@ -1,0 +1,52 @@
+;;;; sxml.simple.test --- (sxml simple)  -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-sxml-simple)
+  #:use-module (test-suite lib)
+  #:use-module (sxml simple))
+
+(define %xml-sample
+  ;; An XML sample without any space in between tags, to make it easier.
+  (string-append "<?xml version='1.0' encoding='utf-8'?>"
+                 "<foo chbouib=\"yes\">"
+                   "<bar/>"
+                   "<baz>"
+                     "<smurf one=\"1\"/>"
+                   "</baz>"
+                 "</foo>"))
+
+
+(with-test-prefix "simple"
+
+  (pass-if "xml->sxml"
+    (equal?  (xml->sxml (open-input-string %xml-sample))
+            '(*TOP*
+              (*PI* xml "version='1.0' encoding='utf-8'")
+              (foo (@ (chbouib "yes"))
+                   (bar)
+                   (baz (smurf (@ (one "1"))))))))
+
+  (pass-if "xml->sxml->xml->sxml"
+    ;; Regression test for bug #29260.
+    (equal? (xml->sxml (open-input-string %xml-sample))
+            (xml->sxml
+             (open-input-string
+              (with-output-to-string
+                (lambda ()
+                  (sxml->xml
+                   (xml->sxml (open-input-string %xml-sample))))))))))

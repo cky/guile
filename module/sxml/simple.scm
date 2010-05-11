@@ -1,6 +1,6 @@
 ;;;; (sxml simple) -- a simple interface to the SSAX parser
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Modified 2004 by Andy Wingo <wingo at pobox dot com>.
 ;;;;    Originally written by Oleg Kiselyov <oleg at pobox dot com> as SXML-to-HTML.scm.
 ;;;; 
@@ -46,6 +46,7 @@ into a form suitable for XML serialization by @code{(sxml transform)}'s
   `((@ 
      ((*default* . ,(lambda (attr-key . value) ((enattr attr-key) value))))
      . ,(lambda (trigger . value) (list '@ value)))
+    (*TOP*       . ,(lambda (tag . xml) xml))
     (*ENTITY*    . ,(lambda (tag name) (list "&" name ";")))
     (*PI*    . ,(lambda (pi tag str) (list "<?" tag " " str "?>")))
     ;; Is this right for entities? I don't have a reference for

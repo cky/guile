@@ -107,6 +107,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/strings.test			\
 	    tests/structs.test			\
 	    tests/sxml.fold.test		\
+	    tests/sxml.simple.test		\
 	    tests/sxml.ssax.test		\
 	    tests/sxml.transform.test		\
 	    tests/sxml.xpath.test		\
