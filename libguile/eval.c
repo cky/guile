@@ -130,21 +130,6 @@ static void error_used_before_defined (void)
              "Variable used before given a value", SCM_EOL, SCM_BOOL_F);
 }
 
-int
-scm_badargsp (SCM formals, SCM args)
-{
-  while (!scm_is_null (formals))
-    {
-      if (!scm_is_pair (formals)) 
-        return 0;
-      if (scm_is_null (args)) 
-        return 1;
-      formals = CDR (formals);
-      args = CDR (args);
-    }
-  return !scm_is_null (args) ? 1 : 0;
-}
-
 /* the environment:
    (VAL ... . MOD)
    If MOD is #f, it means the environment was captured before modules were

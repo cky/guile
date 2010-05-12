@@ -627,6 +627,9 @@ SCM_DEPRECATED SCM scm_raequal (SCM ra0, SCM ra1);
 /* Deprecated 2010-04-01, use the dynamic FFI instead */
 SCM_DEPRECATED SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
+/* Deprecated 2010-05-12, no replacement */
+SCM_DEPRECATED int scm_badargsp (SCM formals, SCM args);
+
 
 
 void scm_i_init_deprecated (void);

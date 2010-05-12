@@ -3,7 +3,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008,2009
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -63,7 +63,6 @@ typedef SCM (*scm_t_trampoline_2) (SCM proc, SCM arg1, SCM arg2);
 
 
 
-SCM_API int scm_badargsp (SCM formals, SCM args);
 SCM_API SCM scm_call_0 (SCM proc);
 SCM_API SCM scm_call_1 (SCM proc, SCM arg1);
 SCM_API SCM scm_call_2 (SCM proc, SCM arg1, SCM arg2);

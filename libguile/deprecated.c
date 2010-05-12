@@ -1916,6 +1916,27 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 
 
 
+
+int
+scm_badargsp (SCM formals, SCM args)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_badargsp' is deprecated. Copy it into your project if you need it.");
+
+  while (!scm_is_null (formals))
+    {
+      if (!scm_is_pair (formals)) 
+        return 0;
+      if (scm_is_null (args)) 
+        return 1;
+      formals = scm_cdr (formals);
+      args = scm_cdr (args);
+    }
+  return !scm_is_null (args) ? 1 : 0;
+}
+
+
+
 void
 scm_i_init_deprecated ()
 {
