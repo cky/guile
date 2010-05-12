@@ -255,8 +255,9 @@
                (lp (cdr inits)
                    (cons (eval (car inits) env) new-env)))))
       
-        (('lambda (nreq rest? . body))
-         (make-closure eval nreq rest? body (capture-env env)))
+        (('lambda (body nreq . tail))
+         (make-closure eval nreq (and (pair? tail) (car tail))
+                       body (capture-env env)))
         
         (('begin (first . rest))
          (let lp ((first first) (rest rest))

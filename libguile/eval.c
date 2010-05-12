@@ -106,10 +106,19 @@ static scm_t_bits scm_tc16_boot_closure;
 #define BOOT_CLOSURE_P(obj) SCM_TYP16_PREDICATE (scm_tc16_boot_closure, (obj))
 #define BOOT_CLOSURE_CODE(x) SCM_SMOB_OBJECT (x)
 #define BOOT_CLOSURE_ENV(x) SCM_SMOB_OBJECT_2 (x)
-#define BOOT_CLOSURE_NUM_REQUIRED_ARGS(x) SCM_I_INUM (CAR (BOOT_CLOSURE_CODE (x)))
-#define BOOT_CLOSURE_HAS_REST_ARGS(x) scm_is_true (CADR (BOOT_CLOSURE_CODE (x)))
-#define BOOT_CLOSURE_BODY(x) CDDR (BOOT_CLOSURE_CODE (x))
-
+#define BOOT_CLOSURE_BODY(x) CAR (BOOT_CLOSURE_CODE (x))
+#define BOOT_CLOSURE_NUM_REQUIRED_ARGS(x) SCM_I_INUM (CADR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_IS_FIXED(x) scm_is_null (CDDR (BOOT_CLOSURE_CODE (x)))
+/* NB: One may only call the following accessors if the closure is not FIXED. */
+#define BOOT_CLOSURE_HAS_REST_ARGS(x) scm_is_true (CADDR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_IS_REST(x) scm_is_null (CDDDR (BOOT_CLOSURE_CODE (x)))
+/* NB: One may only call the following accessors if the closure is not REST. */
+#define BOOT_CLOSURE_IS_FULL(x) (1)
+#define BOOT_CLOSURE_OPT(x) CAR (CDDDR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_ALT(x) CADR (CDDDR (BOOT_CLOSURE_CODE (x)))
+static SCM prepare_boot_closure_env_for_apply (SCM proc, SCM args);
+static SCM prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
+                                              SCM exps, SCM env);
 
 
 #define CAR(x)   SCM_CAR(x)
@@ -238,25 +247,8 @@ eval (SCM x, SCM env)
        * ARGS is the list of arguments. */
       if (BOOT_CLOSURE_P (proc))
         {
-          int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
-          SCM new_env = BOOT_CLOSURE_ENV (proc);
-          if (BOOT_CLOSURE_HAS_REST_ARGS (proc))
-            {
-              if (SCM_UNLIKELY (scm_ilength (args) < nreq))
-                scm_wrong_num_args (proc);
-              for (; nreq; nreq--, args = CDR (args))
-                new_env = scm_cons (CAR (args), new_env);
-              new_env = scm_cons (args, new_env);
-            }
-          else
-            {
-              if (SCM_UNLIKELY (scm_ilength (args) != nreq))
-                scm_wrong_num_args (proc);
-              for (; scm_is_pair (args); args = CDR (args))
-                new_env = scm_cons (CAR (args), new_env);
-            }
           x = BOOT_CLOSURE_BODY (proc);
-          env = new_env;
+          env = prepare_boot_closure_env_for_apply (proc, args);
           goto loop;
         }
       else
@@ -270,31 +262,8 @@ eval (SCM x, SCM env)
 
       if (BOOT_CLOSURE_P (proc))
         {
-          int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
-          SCM new_env = BOOT_CLOSURE_ENV (proc);
-          if (BOOT_CLOSURE_HAS_REST_ARGS (proc))
-            {
-              if (SCM_UNLIKELY (argc < nreq))
-                scm_wrong_num_args (proc);
-              for (; nreq; nreq--, mx = CDR (mx))
-                new_env = scm_cons (eval (CAR (mx), env), new_env);
-              {
-                SCM rest = SCM_EOL;
-                for (; scm_is_pair (mx); mx = CDR (mx))
-                  rest = scm_cons (eval (CAR (mx), env), rest);
-                new_env = scm_cons (scm_reverse (rest),
-                                    new_env);
-              }
-            }
-          else
-            {
-              for (; scm_is_pair (mx); mx = CDR (mx), nreq--)
-                new_env = scm_cons (eval (CAR (mx), env), new_env);
-              if (SCM_UNLIKELY (nreq != 0))
-                scm_wrong_num_args (proc);
-            }
           x = BOOT_CLOSURE_BODY (proc);
-          env = new_env;
+          env = prepare_boot_closure_env_for_eval (proc, argc, mx, env);
           goto loop;
         }
       else
@@ -908,28 +877,73 @@ scm_apply (SCM proc, SCM arg1, SCM args)
   return scm_vm_apply (scm_the_vm (), proc, args);
 }
 
+static SCM
+prepare_boot_closure_env_for_apply (SCM proc, SCM args)
+{
+  int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
+  SCM env = BOOT_CLOSURE_ENV (proc);
+  if (BOOT_CLOSURE_IS_FIXED (proc)
+      || (BOOT_CLOSURE_IS_REST (proc)
+          && !BOOT_CLOSURE_HAS_REST_ARGS (proc)))
+    {
+      if (SCM_UNLIKELY (scm_ilength (args) != nreq))
+        scm_wrong_num_args (proc);
+      for (; scm_is_pair (args); args = CDR (args))
+        env = scm_cons (CAR (args), env);
+    }
+  else if (BOOT_CLOSURE_IS_REST (proc))
+    {
+      if (SCM_UNLIKELY (scm_ilength (args) < nreq))
+        scm_wrong_num_args (proc);
+      for (; nreq; nreq--, args = CDR (args))
+        env = scm_cons (CAR (args), env);
+      env = scm_cons (args, env);
+    }
+  else
+    abort ();
+
+  return env;
+}
+
+static SCM
+prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
+                                   SCM exps, SCM env)
+{
+  int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
+  SCM new_env = BOOT_CLOSURE_ENV (proc);
+  if (BOOT_CLOSURE_IS_FIXED (proc)
+      || (BOOT_CLOSURE_IS_REST (proc)
+          && !BOOT_CLOSURE_HAS_REST_ARGS (proc)))
+    {
+      for (; scm_is_pair (exps); exps = CDR (exps), nreq--)
+        new_env = scm_cons (eval (CAR (exps), env), new_env);
+      if (SCM_UNLIKELY (nreq != 0))
+        scm_wrong_num_args (proc);
+    }
+  else if (BOOT_CLOSURE_IS_REST (proc))
+    {
+      if (SCM_UNLIKELY (argc < nreq))
+        scm_wrong_num_args (proc);
+      for (; nreq; nreq--, exps = CDR (exps))
+        new_env = scm_cons (eval (CAR (exps), env), new_env);
+      {
+        SCM rest = SCM_EOL;
+        for (; scm_is_pair (exps); exps = CDR (exps))
+          rest = scm_cons (eval (CAR (exps), env), rest);
+        new_env = scm_cons (scm_reverse (rest),
+                            new_env);
+      }
+    }
+  else
+    abort ();
+  return new_env;
+}
 
 static SCM
 boot_closure_apply (SCM closure, SCM args)
 {
-  int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (closure);
-  SCM new_env = BOOT_CLOSURE_ENV (closure);
-  if (BOOT_CLOSURE_HAS_REST_ARGS (closure))
-    {
-      if (SCM_UNLIKELY (scm_ilength (args) < nreq))
-        scm_wrong_num_args (closure);
-      for (; nreq; nreq--, args = CDR (args))
-        new_env = scm_cons (CAR (args), new_env);
-      new_env = scm_cons (args, new_env);
-    }
-  else
-    {
-      if (SCM_UNLIKELY (scm_ilength (args) != nreq))
-        scm_wrong_num_args (closure);
-      for (; scm_is_pair (args); args = CDR (args))
-        new_env = scm_cons (CAR (args), new_env);
-    }
-  return eval (BOOT_CLOSURE_BODY (closure), new_env);
+  return eval (BOOT_CLOSURE_BODY (closure),
+               prepare_boot_closure_env_for_apply (closure, args));
 }
 
 static int
@@ -941,7 +955,7 @@ boot_closure_print (SCM closure, SCM port, scm_print_state *pstate)
   scm_putc (' ', port);
   args = scm_make_list (scm_from_int (BOOT_CLOSURE_NUM_REQUIRED_ARGS (closure)),
                         scm_from_locale_symbol ("_"));
-  if (BOOT_CLOSURE_HAS_REST_ARGS (closure))
+  if (!BOOT_CLOSURE_IS_FIXED (closure) && BOOT_CLOSURE_HAS_REST_ARGS (closure))
     args = scm_cons_star (scm_from_locale_symbol ("_"), args);
   scm_display (args, port);
   scm_putc ('>', port);

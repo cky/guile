@@ -179,8 +179,15 @@ scm_t_bits scm_tc16_memoized;
   MAKMEMO (SCM_M_BEGIN, exps)
 #define MAKMEMO_IF(test, then, else_) \
   MAKMEMO (SCM_M_IF, scm_cons (test, scm_cons (then, else_)))
-#define MAKMEMO_LAMBDA(nreq, rest, body) \
-  MAKMEMO (SCM_M_LAMBDA, scm_cons (SCM_I_MAKINUM (nreq), scm_cons (rest, body)))
+#define FIXED_ARITY(nreq) \
+  scm_list_1 (SCM_I_MAKINUM (nreq))
+#define REST_ARITY(nreq, rest) \
+  scm_list_2 (SCM_I_MAKINUM (nreq), rest)
+/* opts := #f | (aok? (pos? kw init) ...) */
+#define FULL_ARITY(nreq, rest, opts, alt) \
+  scm_list_4 (SCM_I_MAKINUM (nreq), rest, opts, alt)
+#define MAKMEMO_LAMBDA(body, arity) \
+  MAKMEMO (SCM_M_LAMBDA, (scm_cons (body, arity)))
 #define MAKMEMO_LET(inits, body) \
   MAKMEMO (SCM_M_LET, scm_cons (inits, body))
 #define MAKMEMO_QUOTE(exp) \
@@ -676,6 +683,7 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
   SCM formals;
   SCM formals_idx;
   SCM formal_vars = SCM_EOL;
+  SCM body;
   int nreq = 0;
 
   const SCM cdr_expr = CDR (expr);
@@ -715,9 +723,13 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
                    s_bad_formal, formals_idx, expr);
   if (scm_is_symbol (formals_idx))
     formal_vars = scm_cons (formals_idx, formal_vars);
-  return MAKMEMO_LAMBDA (nreq, scm_symbol_p (formals_idx),
-                         memoize_sequence (CDDR (expr),
-                                           memoize_env_extend (env, formal_vars)));
+
+  body = memoize_sequence (CDDR (expr), memoize_env_extend (env, formal_vars));
+
+  if (scm_is_symbol (formals_idx))
+    return MAKMEMO_LAMBDA (body, REST_ARITY (nreq, SCM_BOOL_T));
+  else
+    return MAKMEMO_LAMBDA (body, FIXED_ARITY (nreq));
 }
 
 /* Check if the format of the bindings is ((<symbol> <init-form>) ...).  */
@@ -796,10 +808,10 @@ memoize_named_let (const SCM expr, SCM env)
      MAKMEMO_BEGIN
      (scm_list_2 (MAKMEMO_LEX_SET
                   (0,
-                   MAKMEMO_LAMBDA
-                   (nreq, SCM_BOOL_F,
-                    memoize_sequence (CDDDR (expr),
-                                      memoize_env_extend (env, rvariables)))),
+                   MAKMEMO_LAMBDA (memoize_sequence
+                                   (CDDDR (expr),
+                                    memoize_env_extend (env, rvariables)),
+                                   FIXED_ARITY (nreq))),
                   MAKMEMO_CALL (MAKMEMO_LEX_REF (0),
                                 nreq,
                                 memoize_exprs (inits, env)))));
@@ -1118,7 +1130,7 @@ SCM_DEFINE (scm_memoize_lambda, "memoize-lambda", 3, 0, 0,
 {
   SCM_VALIDATE_BOOL (2, rest);
   SCM_VALIDATE_MEMOIZED (3, body);
-  return MAKMEMO_LAMBDA (scm_to_uint16 (nreq), rest, body);
+  return MAKMEMO_LAMBDA (body, REST_ARITY (scm_to_uint16 (nreq), rest));
 }
 #undef FUNC_NAME
 
@@ -1323,9 +1335,21 @@ unmemoize (const SCM expr)
       return scm_list_4 (scm_sym_if, unmemoize (scm_car (args)),
                          unmemoize (scm_cadr (args)), unmemoize (scm_cddr (args)));
     case SCM_M_LAMBDA:
-      return scm_list_3 (scm_sym_lambda,
-                         scm_make_list (CAR (args), sym_placeholder),
-                         unmemoize (CDDR (args)));
+      if (scm_is_null (CDDR (args)))
+        return scm_list_3 (scm_sym_lambda,
+                           scm_make_list (CADR (args), sym_placeholder),
+                           unmemoize (CAR (args)));
+      else if (scm_is_null (CDDDR (args)))
+        {
+          SCM formals = scm_make_list (CADR (args), sym_placeholder);
+          return scm_list_3 (scm_sym_lambda,
+                             scm_is_true (CADDR (args))
+                             ? scm_cons_star (sym_placeholder, formals)
+                             : formals,
+                             unmemoize (CAR (args)));
+        }
+      else
+        abort ();
     case SCM_M_LET:
       return scm_list_3 (scm_sym_let,
                          unmemoize_bindings (CAR (args)),
