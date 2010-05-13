@@ -124,9 +124,11 @@ static scm_t_bits scm_tc16_boot_closure;
     inits = CAR (mx); mx = CDR (mx);                            \
     alt = CAR (mx);                                             \
   } while (0)
-static SCM prepare_boot_closure_env_for_apply (SCM proc, SCM args);
-static SCM prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
-                                              SCM exps, SCM env);
+static void prepare_boot_closure_env_for_apply (SCM proc, SCM args,
+                                                SCM *out_body, SCM *out_env);
+static void prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
+                                               SCM exps, SCM *out_body,
+                                               SCM *inout_env);
 
 
 #define CAR(x)   SCM_CAR(x)
@@ -270,8 +272,7 @@ eval (SCM x, SCM env)
        * ARGS is the list of arguments. */
       if (BOOT_CLOSURE_P (proc))
         {
-          x = BOOT_CLOSURE_BODY (proc);
-          env = prepare_boot_closure_env_for_apply (proc, args);
+          prepare_boot_closure_env_for_apply (proc, args, &x, &env);
           goto loop;
         }
       else
@@ -285,8 +286,7 @@ eval (SCM x, SCM env)
 
       if (BOOT_CLOSURE_P (proc))
         {
-          x = BOOT_CLOSURE_BODY (proc);
-          env = prepare_boot_closure_env_for_eval (proc, argc, mx, env);
+          prepare_boot_closure_env_for_eval (proc, argc, mx, &x, &env);
           goto loop;
         }
       else
@@ -900,8 +900,9 @@ scm_apply (SCM proc, SCM arg1, SCM args)
   return scm_vm_apply (scm_the_vm (), proc, args);
 }
 
-static SCM
-prepare_boot_closure_env_for_apply (SCM proc, SCM args)
+static void
+prepare_boot_closure_env_for_apply (SCM proc, SCM args,
+                                    SCM *out_body, SCM *out_env)
 {
   int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
   SCM env = BOOT_CLOSURE_ENV (proc);
@@ -913,6 +914,8 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args)
         scm_wrong_num_args (proc);
       for (; scm_is_pair (args); args = CDR (args))
         env = scm_cons (CAR (args), env);
+      *out_body = BOOT_CLOSURE_BODY (proc);
+      *out_env = env;
     }
   else if (BOOT_CLOSURE_IS_REST (proc))
     {
@@ -921,26 +924,35 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args)
       for (; nreq; nreq--, args = CDR (args))
         env = scm_cons (CAR (args), env);
       env = scm_cons (args, env);
+      *out_body = BOOT_CLOSURE_BODY (proc);
+      *out_env = env;
     }
   else
     {
       int i, argc, nreq, nopt;
       SCM body, rest, kw, inits, alt;
       
+    loop:
       BOOT_CLOSURE_PARSE_FULL (proc, body, nargs, rest, nopt, kw, inits, alt);
 
       argc = scm_ilength (args);
       if (argc < nreq)
         {
           if (scm_is_true (alt))
-            abort ();
+            {
+              proc = alt;
+              goto loop;
+            }
           else
             scm_wrong_num_args (proc);
         }
       if (scm_is_false (kw) && argc > nreq + nopt && scm_is_false (rest))
         {
           if (scm_is_true (alt))
-            abort ();
+            {
+              proc = alt;
+              goto loop;
+            }
           else
             scm_wrong_num_args (proc);
         }
@@ -1035,14 +1047,15 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args)
               }
           }
         }
-    }
 
-  return env;
+      *out_body = BOOT_CLOSURE_BODY (proc);
+      *out_env = env;
+    }
 }
 
-static SCM
+static void
 prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
-                                   SCM exps, SCM env)
+                                   SCM exps, SCM *out_body, SCM *inout_env)
 {
   int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
   SCM new_env = BOOT_CLOSURE_ENV (proc);
@@ -1051,40 +1064,44 @@ prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
           && !BOOT_CLOSURE_HAS_REST_ARGS (proc)))
     {
       for (; scm_is_pair (exps); exps = CDR (exps), nreq--)
-        new_env = scm_cons (eval (CAR (exps), env), new_env);
+        new_env = scm_cons (eval (CAR (exps), *inout_env), new_env);
       if (SCM_UNLIKELY (nreq != 0))
         scm_wrong_num_args (proc);
+      *out_body = BOOT_CLOSURE_BODY (proc);
+      *inout_env = new_env;
     }
   else if (BOOT_CLOSURE_IS_REST (proc))
     {
       if (SCM_UNLIKELY (argc < nreq))
         scm_wrong_num_args (proc);
       for (; nreq; nreq--, exps = CDR (exps))
-        new_env = scm_cons (eval (CAR (exps), env), new_env);
+        new_env = scm_cons (eval (CAR (exps), *inout_env), new_env);
       {
         SCM rest = SCM_EOL;
         for (; scm_is_pair (exps); exps = CDR (exps))
-          rest = scm_cons (eval (CAR (exps), env), rest);
+          rest = scm_cons (eval (CAR (exps), *inout_env), rest);
         new_env = scm_cons (scm_reverse (rest),
                             new_env);
       }
+      *out_body = BOOT_CLOSURE_BODY (proc);
+      *inout_env = new_env;
     }
   else
     {
       SCM args = SCM_EOL;
       for (; scm_is_pair (exps); exps = CDR (exps))
-        args = scm_cons (eval (CAR (exps), env), args);
-      scm_reverse_x (args, SCM_UNDEFINED);
-      new_env = prepare_boot_closure_env_for_apply (proc, args);
+        args = scm_cons (eval (CAR (exps), *inout_env), args);
+      args = scm_reverse_x (args, SCM_UNDEFINED);
+      prepare_boot_closure_env_for_apply (proc, args, out_body, inout_env);
     }
-  return new_env;
 }
 
 static SCM
 boot_closure_apply (SCM closure, SCM args)
 {
-  return eval (BOOT_CLOSURE_BODY (closure),
-               prepare_boot_closure_env_for_apply (closure, args));
+  SCM body, env;
+  prepare_boot_closure_env_for_apply (closure, args, &body, &env);
+  return eval (body, env);
 }
 
 static int
@@ -1098,6 +1115,7 @@ boot_closure_print (SCM closure, SCM port, scm_print_state *pstate)
                         scm_from_locale_symbol ("_"));
   if (!BOOT_CLOSURE_IS_FIXED (closure) && BOOT_CLOSURE_HAS_REST_ARGS (closure))
     args = scm_cons_star (scm_from_locale_symbol ("_"), args);
+  /* FIXME: optionals and rests */
   scm_display (args, port);
   scm_putc ('>', port);
   return 1;

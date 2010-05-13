@@ -273,6 +273,8 @@ static SCM scm_m_eval_when (SCM xorig, SCM env);
 static SCM scm_m_if (SCM xorig, SCM env);
 static SCM scm_m_lambda (SCM xorig, SCM env);
 static SCM scm_m_lambda_star (SCM xorig, SCM env);
+static SCM scm_m_case_lambda (SCM xorig, SCM env);
+static SCM scm_m_case_lambda_star (SCM xorig, SCM env);
 static SCM scm_m_let (SCM xorig, SCM env);
 static SCM scm_m_letrec (SCM xorig, SCM env);
 static SCM scm_m_letstar (SCM xorig, SCM env);
@@ -431,6 +433,8 @@ SCM_SYNTAX (s_letrec, "letrec", scm_m_letrec);
 SCM_SYNTAX (s_letstar, "let*", scm_m_letstar);
 SCM_SYNTAX (s_or, "or", scm_m_or);
 SCM_SYNTAX (s_lambda_star, "lambda*", scm_m_lambda_star);
+SCM_SYNTAX (s_case_lambda, "case-lambda", scm_m_case_lambda);
+SCM_SYNTAX (s_case_lambda_star, "case-lambda*", scm_m_case_lambda_star);
 
 SCM_GLOBAL_SYMBOL (scm_sym_apply, "apply");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
@@ -457,6 +461,8 @@ SCM_GLOBAL_SYMBOL (scm_sym_at_prompt, "@prompt");
 SCM_GLOBAL_SYMBOL (scm_sym_quote, "quote");
 SCM_GLOBAL_SYMBOL (scm_sym_set_x, "set!");
 SCM_SYMBOL (sym_lambda_star, "lambda*");
+SCM_SYMBOL (sym_case_lambda, "case-lambda");
+SCM_SYMBOL (sym_case_lambda_star, "case-lambda*");
 SCM_SYMBOL (sym_eval, "eval");
 SCM_SYMBOL (sym_load, "load");
 
@@ -901,6 +907,83 @@ scm_m_lambda_star (SCM expr, SCM env)
   else
     return MAKMEMO_LAMBDA (body, FULL_ARITY (nreq, rest, nopt, kw_indices, inits,
                                              SCM_BOOL_F));
+}
+
+static SCM
+patch_case_lambda (SCM a, SCM b)
+{
+  SCM mx, body, rest, kw_indices, inits;
+  int nreq, nopt;
+
+  mx = SCM_SMOB_OBJECT_1 (a);
+  body = CAR (mx);
+  mx = CDR (mx);
+
+  if (scm_is_null (CDR (mx)))
+    {
+      nreq = scm_to_int16 (CAR (mx));
+      rest = SCM_BOOL_F;
+      nopt = 0;
+      kw_indices = SCM_BOOL_F;
+      inits = SCM_EOL;
+    }
+  else if (scm_is_null (CDDR (mx)))
+    {
+      nreq = scm_to_int16 (CAR (mx));
+      rest = CADR (mx);
+      nopt = 0;
+      kw_indices = SCM_BOOL_F;
+      inits = SCM_EOL;
+    }
+  else
+    {
+      nreq = scm_to_int16 (CAR (mx));
+      rest = CADR (mx);
+      nopt = scm_to_int16 (CADDR (mx));
+      kw_indices = CADDDR (mx);
+      inits = CADR (CDDDR (mx));
+    }
+
+  return MAKMEMO_LAMBDA
+    (body, FULL_ARITY (nreq, rest, nopt, kw_indices, inits, b));
+}
+
+static SCM
+scm_m_case_lambda (SCM expr, SCM env)
+{
+  SCM ret, clauses;
+
+  const long length = scm_ilength (expr);
+  ASSERT_SYNTAX (length >= 1, s_bad_expression, expr);
+  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
+
+  clauses = scm_reverse (CDR (expr));
+  ret = SCM_BOOL_F;
+  
+  for (; scm_is_pair (clauses); clauses = CDR (clauses))
+    ret = patch_case_lambda
+      (scm_m_lambda (scm_cons (scm_sym_lambda, CAR (clauses)), env), ret);
+  
+  return ret;
+}
+
+static SCM
+scm_m_case_lambda_star (SCM expr, SCM env)
+{
+  SCM ret, clauses;
+
+  const long length = scm_ilength (expr);
+  ASSERT_SYNTAX (length >= 1, s_bad_expression, expr);
+  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
+
+  clauses = scm_reverse (CDR (expr));
+  ret = SCM_BOOL_F;
+  
+  for (; scm_is_pair (clauses); clauses = CDR (clauses))
+    ret = patch_case_lambda
+      (scm_m_lambda_star (scm_cons (sym_lambda_star, CAR (clauses)), env), ret);
+  
+  return ret;
 }
 
 /* Check if the format of the bindings is ((<symbol> <init-form>) ...).  */
@@ -1521,19 +1604,23 @@ unmemoize (const SCM expr)
         }
       else
         {
-          SCM body = CAR (args), spec = CDR (args), alt;
+          SCM body = CAR (args), spec = CDR (args), alt, tail;
           
           alt = CADDR (CDDDR (spec));
           if (scm_is_true (alt))
-            abort ();
+            tail = CDR (unmemoize (alt));
+          else
+            tail = SCM_EOL;
           
-          return scm_list_3 (sym_lambda_star,
-                             scm_list_5 (CAR (spec),
-                                         CADR (spec),
-                                         CADDR (spec),
-                                         CADDDR (spec),
-                                         unmemoize_exprs (CADR (CDDDR (spec)))),
-                             unmemoize (body));
+          return scm_cons
+            (sym_case_lambda_star,
+             scm_cons (scm_list_2 (scm_list_5 (CAR (spec),
+                                               CADR (spec),
+                                               CADDR (spec),
+                                               CADDDR (spec),
+                                               unmemoize_exprs (CADR (CDDDR (spec)))),
+                                   unmemoize (body)),
+                       tail));
         }
     case SCM_M_LET:
       return scm_list_3 (scm_sym_let,

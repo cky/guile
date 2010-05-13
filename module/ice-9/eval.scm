@@ -218,20 +218,26 @@
     ;; A unique marker for unbound keywords.
     (define unbound-arg (list 'unbound-arg))
 
-    ;; Procedures with rest, optional, or keyword arguments.
+    ;; Procedures with rest, optional, or keyword arguments, potentially with
+    ;; multiple arities, as with case-lambda.
     (define (make-general-closure env body nreq rest? nopt kw inits alt)
-      (lambda args
+      (define alt-proc
+        (and alt
+             (apply make-general-closure env (memoized-expression-data alt))))
+      (lambda %args
         (let lp ((env env)
-                 (nreq nreq)
-                 (args args))
-          (if (> nreq 0)
+                 (nreq* nreq)
+                 (args %args))
+          (if (> nreq* 0)
               ;; First, bind required arguments.
               (if (null? args)
-                  (scm-error 'wrong-number-of-args
-                             "eval" "Wrong number of arguments"
-                             '() #f)
+                  (if alt
+                      (apply alt-proc %args)
+                      (scm-error 'wrong-number-of-args
+                                 "eval" "Wrong number of arguments"
+                                 '() #f))
                   (lp (cons (car args) env)
-                      (1- nreq)
+                      (1- nreq*)
                       (cdr args)))
               ;; Move on to optional arguments.
               (if (not kw)
@@ -245,9 +251,11 @@
                             (eval body (cons args env))
                             (if (null? args)
                                 (eval body env)
-                                (scm-error 'wrong-number-of-args
-                                           "eval" "Wrong number of arguments"
-                                           '() #f)))
+                                (if alt
+                                    (apply alt-proc %args)
+                                    (scm-error 'wrong-number-of-args
+                                               "eval" "Wrong number of arguments"
+                                               '() #f))))
                         (if (null? args)
                             (lp (cons (eval (car inits) env) env)
                                 (1- nopt) args (cdr inits))
