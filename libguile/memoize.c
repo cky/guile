@@ -183,9 +183,9 @@ scm_t_bits scm_tc16_memoized;
   scm_list_1 (SCM_I_MAKINUM (nreq))
 #define REST_ARITY(nreq, rest) \
   scm_list_2 (SCM_I_MAKINUM (nreq), rest)
-/* opts := #f | (aok? (pos? kw init) ...) */
-#define FULL_ARITY(nreq, rest, opts, alt) \
-  scm_list_4 (SCM_I_MAKINUM (nreq), rest, opts, alt)
+#define FULL_ARITY(nreq, rest, nopt, kw, inits, alt) \
+  scm_list_n (SCM_I_MAKINUM (nreq), rest, SCM_I_MAKINUM (nopt), kw, inits, \
+              alt, SCM_UNDEFINED)
 #define MAKMEMO_LAMBDA(body, arity) \
   MAKMEMO (SCM_M_LAMBDA, (scm_cons (body, arity)))
 #define MAKMEMO_LET(inits, body) \
@@ -1349,7 +1349,21 @@ unmemoize (const SCM expr)
                              unmemoize (CAR (args)));
         }
       else
-        abort ();
+        {
+          SCM body = CAR (args), spec = CDR (args), alt;
+          
+          alt = CADDR (CDDDR (spec));
+          if (scm_is_true (alt))
+            abort ();
+          
+          return scm_list_3 (sym_lambda_star,
+                             scm_list_5 (CAR (spec),
+                                         CADR (spec),
+                                         CADDR (spec),
+                                         CADDDR (spec),
+                                         unmemoize_exprs (CADR (CDDDR (spec)))),
+                             unmemoize (body));
+        }
     case SCM_M_LET:
       return scm_list_3 (scm_sym_let,
                          unmemoize_bindings (CAR (args)),
