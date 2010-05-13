@@ -114,8 +114,16 @@ static scm_t_bits scm_tc16_boot_closure;
 #define BOOT_CLOSURE_IS_REST(x) scm_is_null (CDDDR (BOOT_CLOSURE_CODE (x)))
 /* NB: One may only call the following accessors if the closure is not REST. */
 #define BOOT_CLOSURE_IS_FULL(x) (1)
-#define BOOT_CLOSURE_OPT(x) CAR (CDDDR (BOOT_CLOSURE_CODE (x)))
-#define BOOT_CLOSURE_ALT(x) CADR (CDDDR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_PARSE_FULL(x,body,nargs,rest,nopt,kw,inits,alt)    \
+  do { SCM mx = BOOT_CLOSURE_CODE (x);                          \
+    body = CAR (mx); mx = CDR (mx);                             \
+    nreq = SCM_I_INUM (CAR (mx)); mx = CDR (mx);                \
+    rest = CAR (mx); mx = CDR (mx);                             \
+    nopt = SCM_I_INUM (CAR (mx)); mx = CDR (mx);                \
+    kw = CAR (mx); mx = CDR (mx);                               \
+    inits = CAR (mx); mx = CDR (mx);                            \
+    alt = CAR (mx);                                             \
+  } while (0)
 static SCM prepare_boot_closure_env_for_apply (SCM proc, SCM args);
 static SCM prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
                                               SCM exps, SCM env);
@@ -138,6 +146,21 @@ static void error_used_before_defined (void)
   scm_error (scm_unbound_variable_key, NULL,
              "Variable used before given a value", SCM_EOL, SCM_BOOL_F);
 }
+
+static void error_invalid_keyword (SCM proc)
+{
+  scm_error_scm (scm_from_locale_symbol ("keyword-argument-error"), proc,
+                 scm_from_locale_string ("Invalid keyword"), SCM_EOL,
+                 SCM_BOOL_F);
+}
+
+static void error_unrecognized_keyword (SCM proc)
+{
+  scm_error_scm (scm_from_locale_symbol ("keyword-argument-error"), proc,
+                 scm_from_locale_string ("Unrecognized keyword"), SCM_EOL,
+                 SCM_BOOL_F);
+}
+
 
 /* the environment:
    (VAL ... . MOD)
@@ -900,7 +923,119 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args)
       env = scm_cons (args, env);
     }
   else
-    abort ();
+    {
+      int i, argc, nreq, nopt;
+      SCM body, rest, kw, inits, alt;
+      
+      BOOT_CLOSURE_PARSE_FULL (proc, body, nargs, rest, nopt, kw, inits, alt);
+
+      argc = scm_ilength (args);
+      if (argc < nreq)
+        {
+          if (scm_is_true (alt))
+            abort ();
+          else
+            scm_wrong_num_args (proc);
+        }
+      if (scm_is_false (kw) && argc > nreq + nopt && scm_is_false (rest))
+        {
+          if (scm_is_true (alt))
+            abort ();
+          else
+            scm_wrong_num_args (proc);
+        }
+
+      for (i = 0; i < nreq; i++, args = CDR (args))
+        env = scm_cons (CAR (args), env);
+
+      if (scm_is_false (kw))
+        {
+          /* Optional args (possibly), but no keyword args. */
+          for (; i < argc && i < nreq + nopt;
+               i++, args = CDR (args))
+            {
+              env = scm_cons (CAR (args), env);
+              inits = CDR (inits);
+            }
+              
+          for (; i < nreq + nopt; i++, inits = CDR (inits))
+            env = scm_cons (eval (CAR (inits), env), env);
+
+          if (scm_is_true (rest))
+            env = scm_cons (args, env);
+        }
+      else
+        {
+          SCM aok;
+
+          aok = CAR (kw);
+          kw = CDR (kw);
+
+          /* Keyword args. As before, but stop at the first keyword. */
+          for (; i < argc && i < nreq + nopt && !scm_is_keyword (CAR (args));
+               i++, args = CDR (args), inits = CDR (inits))
+            env = scm_cons (CAR (args), env);
+              
+          for (; i < nreq + nopt; i++, inits = CDR (inits))
+            env = scm_cons (eval (CAR (inits), env), env);
+
+          if (scm_is_true (rest))
+            {
+              env = scm_cons (args, env);
+              i++;
+            }
+
+          /* Now fill in env with unbound values, limn the rest of the args for
+             keywords, and fill in unbound values with their inits. */
+          {
+            int imax = i - 1;
+            int kw_start_idx = i;
+            SCM walk, k, v;
+            for (walk = kw; scm_is_pair (walk); walk = CDR (walk))
+              if (SCM_I_INUM (CDAR (walk)) > imax)
+                imax = SCM_I_INUM (CDAR (walk));
+            for (; i <= imax; i++)
+              env = scm_cons (SCM_UNDEFINED, env);
+
+            if (scm_is_pair (args) && scm_is_pair (CDR (args)))
+              for (; scm_is_pair (args) && scm_is_pair (CDR (args));
+                   args = CDR (args))
+                {
+                  k = CAR (args); v = CADR (args);
+                  if (!scm_is_keyword (k))
+                    {
+                      if (scm_is_true (rest))
+                        continue;
+                      else
+                        break;
+                    }
+                  for (walk = kw; scm_is_pair (walk); walk = CDR (walk))
+                    if (scm_is_eq (k, CAAR (walk)))
+                      {
+                        /* Well... ok, list-set! isn't the nicest interface, but
+                           hey. */
+                        int iset = imax - SCM_I_INUM (CDAR (walk));
+                        scm_list_set_x (env, SCM_I_MAKINUM (iset), v);
+                        args = CDR (args);
+                        break;
+                      }
+                  if (scm_is_null (walk) && scm_is_false (aok))
+                    error_unrecognized_keyword (proc);
+                }
+            if (scm_is_pair (args) && scm_is_false (rest))
+              error_invalid_keyword (proc);
+
+            /* Now fill in unbound values, evaluating init expressions in their
+               appropriate environment. */
+            for (i = imax - kw_start_idx; scm_is_pair (inits); i--, inits = CDR (inits))
+              {
+                SCM tail = scm_list_tail (env, SCM_I_MAKINUM (i));
+                if (SCM_UNBNDP (CAR (tail)))
+                  SCM_SETCAR (tail, eval (CAR (inits), CDR (tail)));
+              }
+          }
+        }
+    }
 
   return env;
 }
@@ -935,7 +1070,13 @@ prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
       }
     }
   else
-    abort ();
+    {
+      SCM args = SCM_EOL;
+      for (; scm_is_pair (exps); exps = CDR (exps))
+        args = scm_cons (eval (CAR (exps), env), args);
+      scm_reverse_x (args, SCM_UNDEFINED);
+      new_env = prepare_boot_closure_env_for_apply (proc, args);
+    }
   return new_env;
 }
 

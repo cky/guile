@@ -272,6 +272,7 @@ static SCM scm_m_with_fluids (SCM xorig, SCM env);
 static SCM scm_m_eval_when (SCM xorig, SCM env);
 static SCM scm_m_if (SCM xorig, SCM env);
 static SCM scm_m_lambda (SCM xorig, SCM env);
+static SCM scm_m_lambda_star (SCM xorig, SCM env);
 static SCM scm_m_let (SCM xorig, SCM env);
 static SCM scm_m_letrec (SCM xorig, SCM env);
 static SCM scm_m_letstar (SCM xorig, SCM env);
@@ -429,6 +430,7 @@ SCM_SYNTAX (s_cond, "cond", scm_m_cond);
 SCM_SYNTAX (s_letrec, "letrec", scm_m_letrec);
 SCM_SYNTAX (s_letstar, "let*", scm_m_letstar);
 SCM_SYNTAX (s_or, "or", scm_m_or);
+SCM_SYNTAX (s_lambda_star, "lambda*", scm_m_lambda_star);
 
 SCM_GLOBAL_SYMBOL (scm_sym_apply, "apply");
 SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
@@ -454,12 +456,18 @@ SCM_GLOBAL_SYMBOL (scm_sym_or, "or");
 SCM_GLOBAL_SYMBOL (scm_sym_at_prompt, "@prompt");
 SCM_GLOBAL_SYMBOL (scm_sym_quote, "quote");
 SCM_GLOBAL_SYMBOL (scm_sym_set_x, "set!");
+SCM_SYMBOL (sym_lambda_star, "lambda*");
 SCM_SYMBOL (sym_eval, "eval");
 SCM_SYMBOL (sym_load, "load");
 
 SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
 SCM_GLOBAL_SYMBOL (scm_sym_quasiquote, "quasiquote");
 SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
+
+SCM_KEYWORD (kw_allow_other_keys, "allow-other-keys");
+SCM_KEYWORD (kw_optional, "optional");
+SCM_KEYWORD (kw_key, "key");
+SCM_KEYWORD (kw_rest, "rest");
 
 
 static SCM
@@ -730,6 +738,169 @@ scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
     return MAKMEMO_LAMBDA (body, REST_ARITY (nreq, SCM_BOOL_T));
   else
     return MAKMEMO_LAMBDA (body, FIXED_ARITY (nreq));
+}
+
+static SCM
+scm_m_lambda_star (SCM expr, SCM env)
+{
+  SCM req, opt, kw, allow_other_keys, rest, formals, body;
+  SCM inits, kw_indices;
+  int nreq, nopt;
+
+  const long length = scm_ilength (expr);
+  ASSERT_SYNTAX (length >= 1, s_bad_expression, expr);
+  ASSERT_SYNTAX (length >= 3, s_missing_expression, expr);
+
+  formals = CADR (expr);
+  body = CDDR (expr);
+
+  nreq = nopt = 0;
+  req = opt = kw = SCM_EOL;
+  rest = allow_other_keys = SCM_BOOL_F;
+
+  while (scm_is_pair (formals) && scm_is_symbol (CAR (formals)))
+    {
+      nreq++;
+      req = scm_cons (CAR (formals), req);
+      formals = scm_cdr (formals);
+    }
+
+  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_optional))
+    {
+      formals = CDR (formals);
+      while (scm_is_pair (formals)
+             && (scm_is_symbol (CAR (formals)) || scm_is_pair (CAR (formals))))
+        {
+          nopt++;
+          opt = scm_cons (CAR (formals), opt);
+          formals = scm_cdr (formals);
+        }
+    }
+  
+  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_key))
+    {
+      formals = CDR (formals);
+      while (scm_is_pair (formals)
+             && (scm_is_symbol (CAR (formals)) || scm_is_pair (CAR (formals))))
+        {
+          kw = scm_cons (CAR (formals), kw);
+          formals = scm_cdr (formals);
+        }
+    }
+  
+  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_allow_other_keys))
+    {
+      formals = CDR (formals);
+      allow_other_keys = SCM_BOOL_T;
+    }
+  
+  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_rest))
+    {
+      if (scm_ilength (formals) != 2)
+        syntax_error (s_bad_formals, CADR (expr), expr);
+      else
+        rest = CADR (formals);
+    }
+  else if (scm_is_symbol (formals))
+    rest = formals;
+  else if (!scm_is_null (formals))
+    syntax_error (s_bad_formals, CADR (expr), expr);
+  else
+    rest = SCM_BOOL_F;
+  
+  /* Now, iterate through them a second time, building up an expansion-time
+     environment, checking, expanding and canonicalizing the opt/kw init forms,
+     and eventually memoizing the body as well. Note that the rest argument, if
+     any, is expanded before keyword args, thus necessitating the second
+     pass.
+
+     Also note that the specific environment during expansion of init
+     expressions here needs to coincide with the environment when psyntax
+     expands. A lot of effort for something that is only used in the bootstrap
+     memoizer, you say? Yes. Yes it is.
+  */
+
+  inits = SCM_EOL;
+
+  /* nreq is already set, and req is already reversed: simply extend. */
+  env = memoize_env_extend (env, req);
+  
+  /* Build up opt inits and env */
+  opt = scm_reverse_x (opt, SCM_EOL);
+  while (scm_is_pair (opt))
+    {
+      SCM x = CAR (opt);
+      if (scm_is_symbol (x))
+        inits = scm_cons (MAKMEMO_QUOTE (SCM_BOOL_F), inits);
+      else if (scm_ilength (x) == 2 && scm_is_symbol (CAR (x)))
+        inits = scm_cons (memoize (CADR (x), env), inits);
+      else
+        syntax_error (s_bad_formals, CADR (expr), expr);
+      env = scm_cons (scm_is_symbol (x) ? x : CAR (x), env);
+      opt = CDR (opt);
+    }
+      
+  /* Process rest before keyword args */
+  if (scm_is_true (rest))
+    env = scm_cons (rest, env);
+
+  /* Build up kw inits, env, and kw-indices alist */
+  if (scm_is_null (kw))
+    kw_indices = SCM_BOOL_F;
+  else
+    {
+      int idx = nreq + nopt + (scm_is_true (rest) ? 1 : 0);
+
+      kw_indices = SCM_EOL;
+      kw = scm_reverse_x (kw, SCM_EOL);
+      while (scm_is_pair (kw))
+        {
+          SCM x, sym, k, init;
+          x = CAR (kw);
+          if (scm_is_symbol (x))
+            {
+              sym = x;
+              init = SCM_BOOL_F;
+              k = scm_symbol_to_keyword (sym);
+            }
+          else if (scm_ilength (x) == 2 && scm_is_symbol (CAR (x)))
+            {
+              sym = CAR (x);
+              init = CADR (x);
+              k = scm_symbol_to_keyword (sym);
+            }
+          else if (scm_ilength (x) == 3 && scm_is_symbol (CAR (x))
+                   && scm_is_keyword (CADDR (x)))
+            {
+              sym = CAR (x);
+              init = CADR (x);
+              k = CADDR (x);
+            }
+          else
+            syntax_error (s_bad_formals, CADR (expr), expr);
+
+          kw_indices = scm_acons (k, SCM_I_MAKINUM (idx++), kw_indices);
+          inits = scm_cons (memoize (init, env), inits);
+          env = scm_cons (sym, env);
+          kw = CDR (kw);
+        }
+      kw_indices = scm_cons (allow_other_keys,
+                             scm_reverse_x (kw_indices, SCM_UNDEFINED));
+    }
+
+  /* We should check for no duplicates, but given that psyntax does this
+     already, we can punt on it here... */
+
+  inits = scm_reverse_x (inits, SCM_UNDEFINED);
+  body = memoize_sequence (body, env);
+
+  if (scm_is_false (kw_indices) && scm_is_false (rest) && !nopt)
+    return MAKMEMO_LAMBDA (body, FIXED_ARITY (nreq));
+  if (scm_is_false (kw_indices) && !nopt)
+    return MAKMEMO_LAMBDA (body, REST_ARITY (nreq, SCM_BOOL_T));
+  else
+    return MAKMEMO_LAMBDA (body, FULL_ARITY (nreq, rest, nopt, kw_indices, inits,
+                                             SCM_BOOL_F));
 }
 
 /* Check if the format of the bindings is ((<symbol> <init-form>) ...).  */
