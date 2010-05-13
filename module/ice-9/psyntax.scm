@@ -471,16 +471,14 @@
               meta
               body))
         (else (decorate-source
-               ;; really gross hack
-               `(lambda %%args 
-                  (cond ,@body))
+               `(case-lambda* ,@body)
                src)))))
 
   (define build-lambda-case
     ;; req := (name ...)
     ;; opt := (name ...) | #f
     ;; rest := name | #f
-    ;; kw := (allow-other-keys? (keyword name var [init]) ...) | #f
+    ;; kw := (allow-other-keys? (keyword name var) ...) | #f
     ;; inits: (init ...)
     ;; vars: (sym ...)
     ;; vars map to named arguments in the following order:
@@ -510,15 +508,24 @@
                (error "something went wrong"
                       req opt rest kw inits vars nreq nopt kw-indices nargs))
            (decorate-source
-            `((((@@ (ice-9 optargs) parse-lambda-case)
-                '(,nreq ,nopt ,rest-idx ,nargs ,allow-other-keys? ,kw-indices)
-                (list ,@(map (lambda (i) `(lambda ,vars ,i)) inits))
-                %%args)
-               => (lambda (%%args) (apply (lambda ,vars ,body) %%args)))
-              ,@(or else-case
-                    `((%%args (scm-error 'wrong-number-of-args #f
-                                         "Wrong number of arguments" '()
-                                         %%args)))))
+            `(((,@(list-head vars nreq)
+                ,@(if opt
+                      `(#:optional ,@(map list
+                                          (list-head (list-tail vars nreq) nopt)
+                                          (list-head inits nopt)))
+                      '())
+                ,@(if kw
+                      `(#:key ,@(map (lambda (x init)
+                                       (list (caddr x)
+                                             init
+                                             (car x)))
+                                     (cdr kw)
+                                     (list-tail inits nopt)))
+                      '())
+                ,@(if allow-other-keys? '(#:allow-other-keys) '())
+                ,@(if rest (list-ref vars rest-idx) '()))
+               ,body)
+              ,@(or else-case '()))
             src))))))
 
   (define build-primref
