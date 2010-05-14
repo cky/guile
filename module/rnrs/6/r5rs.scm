@@ -29,6 +29,6 @@
 			
 			quotient remainder modulo
 			
-			delay force
-
-			null-environment scheme-report-environment)))
+			delay force)
+          (only (ice-9 r5rs) scheme-report-environment)
+          (only (ice-9 safe-r5rs) null-environment)))
