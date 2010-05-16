@@ -1378,13 +1378,30 @@ SCM_DEFINE (scm_memoize_if, "memoize-if", 3, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_memoize_lambda, "memoize-lambda", 3, 0, 0,
-            (SCM nreq, SCM rest, SCM body), "")
+SCM_DEFINE (scm_memoize_lambda, "memoize-lambda", 3, 4, 0,
+            (SCM body, SCM nreq, SCM rest, SCM nopt, SCM kw, SCM inits, SCM alt), "")
 #define FUNC_NAME s_scm_memoize_lambda
 {
-  SCM_VALIDATE_BOOL (2, rest);
-  SCM_VALIDATE_MEMOIZED (3, body);
-  return MAKMEMO_LAMBDA (body, REST_ARITY (scm_to_uint16 (nreq), rest));
+  SCM_VALIDATE_MEMOIZED (1, body);
+  if (SCM_UNBNDP (nopt))
+    {
+      if (scm_is_true (rest))
+        return MAKMEMO_LAMBDA (body, FIXED_ARITY (scm_to_uint16 (nreq)));
+      else
+        MAKMEMO_LAMBDA (body, REST_ARITY (scm_to_uint16 (nreq), rest));
+    }
+  if (SCM_UNBNDP (kw))
+    kw = SCM_BOOL_F;
+  if (SCM_UNBNDP (inits))
+    inits = SCM_EOL;
+  if (SCM_UNBNDP (alt))
+    alt = SCM_BOOL_F;
+  else
+    SCM_VALIDATE_MEMOIZED (7, alt);
+  return MAKMEMO_LAMBDA (body,
+                         FULL_ARITY (scm_to_uint16 (nreq), rest,
+                                     scm_to_uint16 (nopt), kw, inits, alt));
+  
 }
 #undef FUNC_NAME
 

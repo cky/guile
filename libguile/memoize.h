@@ -109,7 +109,8 @@ SCM_INTERNAL SCM scm_memoizer (SCM obj);
 
 SCM_INTERNAL SCM scm_memoize_begin (SCM exps);
 SCM_INTERNAL SCM scm_memoize_if (SCM test, SCM then, SCM else_);
-SCM_INTERNAL SCM scm_memoize_lambda (SCM nreq, SCM rest, SCM body);
+SCM_INTERNAL SCM scm_memoize_lambda (SCM body, SCM nreq, SCM rest, SCM nopt,
+                                     SCM kw, SCM inits, SCM alt);
 SCM_INTERNAL SCM scm_memoize_let (SCM inits, SCM body);
 SCM_INTERNAL SCM scm_memoize_quote (SCM exp);
 SCM_INTERNAL SCM scm_memoize_define (SCM var, SCM val);
