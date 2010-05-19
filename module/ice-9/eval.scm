@@ -223,7 +223,15 @@
     (define (make-general-closure env body nreq rest? nopt kw inits alt)
       (define alt-proc
         (and alt
-             (apply make-general-closure env (memoized-expression-data alt))))
+             (let* ((body (car alt))
+                    (nreq (cadr alt))
+                    (rest (if (null? (cddr alt)) #f (caddr alt)))
+                    (tail (and (pair? (cddr alt)) (pair? (cdddr alt)) (cdddr alt)))
+                    (nopt (if tail (car tail) 0))
+                    (kw (and tail (cadr tail)))
+                    (inits (if tail (caddr tail) '()))
+                    (alt (and tail (cadddr tail))))
+               (make-general-closure env body nreq rest nopt kw inits alt))))
       (lambda %args
         (let lp ((env env)
                  (nreq* nreq)

@@ -114,15 +114,26 @@ static scm_t_bits scm_tc16_boot_closure;
 #define BOOT_CLOSURE_IS_REST(x) scm_is_null (CDDDR (BOOT_CLOSURE_CODE (x)))
 /* NB: One may only call the following accessors if the closure is not REST. */
 #define BOOT_CLOSURE_IS_FULL(x) (1)
-#define BOOT_CLOSURE_PARSE_FULL(x,body,nargs,rest,nopt,kw,inits,alt)    \
-  do { SCM mx = BOOT_CLOSURE_CODE (x);                          \
-    body = CAR (mx); mx = CDR (mx);                             \
-    nreq = SCM_I_INUM (CAR (mx)); mx = CDR (mx);                \
-    rest = CAR (mx); mx = CDR (mx);                             \
-    nopt = SCM_I_INUM (CAR (mx)); mx = CDR (mx);                \
-    kw = CAR (mx); mx = CDR (mx);                               \
-    inits = CAR (mx); mx = CDR (mx);                            \
-    alt = CAR (mx);                                             \
+#define BOOT_CLOSURE_PARSE_FULL(fu_,body,nargs,rest,nopt,kw,inits,alt)    \
+  do { SCM fu = fu_;                                            \
+    body = CAR (fu); fu = CDR (fu);                             \
+                                                                \
+    rest = kw = alt = SCM_BOOL_F;                               \
+    inits = SCM_EOL;                                            \
+    nopt = 0;                                                   \
+                                                                \
+    nreq = SCM_I_INUM (CAR (fu)); fu = CDR (fu);                \
+    if (scm_is_pair (fu))                                       \
+      {                                                         \
+        rest = CAR (fu); fu = CDR (fu);                         \
+        if (scm_is_pair (fu))                                   \
+          {                                                     \
+            nopt = SCM_I_INUM (CAR (fu)); fu = CDR (fu);        \
+            kw = CAR (fu); fu = CDR (fu);                       \
+            inits = CAR (fu); fu = CDR (fu);                    \
+            alt = CAR (fu);                                     \
+          }                                                     \
+      }                                                         \
   } while (0)
 static void prepare_boot_closure_env_for_apply (SCM proc, SCM args,
                                                 SCM *out_body, SCM *out_env);
@@ -906,6 +917,7 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
 {
   int nreq = BOOT_CLOSURE_NUM_REQUIRED_ARGS (proc);
   SCM env = BOOT_CLOSURE_ENV (proc);
+  
   if (BOOT_CLOSURE_IS_FIXED (proc)
       || (BOOT_CLOSURE_IS_REST (proc)
           && !BOOT_CLOSURE_HAS_REST_ARGS (proc)))
@@ -931,16 +943,17 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
     {
       int i, argc, nreq, nopt;
       SCM body, rest, kw, inits, alt;
+      SCM mx = BOOT_CLOSURE_CODE (proc);
       
     loop:
-      BOOT_CLOSURE_PARSE_FULL (proc, body, nargs, rest, nopt, kw, inits, alt);
+      BOOT_CLOSURE_PARSE_FULL (mx, body, nargs, rest, nopt, kw, inits, alt);
 
       argc = scm_ilength (args);
       if (argc < nreq)
         {
           if (scm_is_true (alt))
             {
-              proc = alt;
+              mx = alt;
               goto loop;
             }
           else
@@ -950,7 +963,7 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
         {
           if (scm_is_true (alt))
             {
-              proc = alt;
+              mx = alt;
               goto loop;
             }
           else
@@ -1048,7 +1061,7 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
           }
         }
 
-      *out_body = BOOT_CLOSURE_BODY (proc);
+      *out_body = body;
       *out_env = env;
     }
 }

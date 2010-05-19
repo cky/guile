@@ -27,6 +27,7 @@
 #include "libguile/_scm.h"
 #include "libguile/continuations.h"
 #include "libguile/eq.h"
+#include "libguile/expand.h"
 #include "libguile/list.h"
 #include "libguile/macros.h"
 #include "libguile/memoize.h"
@@ -53,117 +54,7 @@
 #define CADDDR(x) SCM_CADDDR(x)
 
 
-static const char s_bad_expression[] = "Bad expression";
-static const char s_expression[] = "Missing or extra expression in";
-static const char s_missing_expression[] = "Missing expression in";
-static const char s_extra_expression[] = "Extra expression in";
-static const char s_empty_combination[] = "Illegal empty combination";
-static const char s_missing_body_expression[] = "Missing body expression in";
-static const char s_mixed_body_forms[] = "Mixed definitions and expressions in";
-static const char s_bad_define[] = "Bad define placement";
-static const char s_missing_clauses[] = "Missing clauses";
-static const char s_misplaced_else_clause[] = "Misplaced else clause";
-static const char s_bad_case_clause[] = "Bad case clause";
-static const char s_bad_case_labels[] = "Bad case labels";
-static const char s_duplicate_case_label[] = "Duplicate case label";
-static const char s_bad_cond_clause[] = "Bad cond clause";
-static const char s_missing_recipient[] = "Missing recipient in";
-static const char s_bad_variable[] = "Bad variable";
-static const char s_bad_bindings[] = "Bad bindings";
-static const char s_bad_binding[] = "Bad binding";
-static const char s_duplicate_binding[] = "Duplicate binding";
-static const char s_bad_exit_clause[] = "Bad exit clause";
-static const char s_bad_formals[] = "Bad formals";
-static const char s_bad_formal[] = "Bad formal";
-static const char s_duplicate_formal[] = "Duplicate formal";
-static const char s_splicing[] = "Non-list result for unquote-splicing";
-static const char s_bad_slot_number[] = "Bad slot number";
-
-
-/* Signal a syntax error.  We distinguish between the form that caused the
- * error and the enclosing expression.  The error message will print out as
- * shown in the following pattern.  The file name and line number are only
- * given when they can be determined from the erroneous form or from the
- * enclosing expression.
- *
- * <filename>: In procedure memoization:
- * <filename>: In file <name>, line <nr>: <error-message> in <expression>.  */
-
-SCM_SYMBOL (syntax_error_key, "syntax-error");
-
-/* The prototype is needed to indicate that the function does not return.  */
-static void
-syntax_error (const char* const, const SCM, const SCM) SCM_NORETURN;
-
-static void 
-syntax_error (const char* const msg, const SCM form, const SCM expr)
-{
-  SCM msg_string = scm_from_locale_string (msg);
-  SCM filename = SCM_BOOL_F;
-  SCM linenr = SCM_BOOL_F;
-  const char *format;
-  SCM args;
-
-  if (scm_is_pair (form))
-    {
-      filename = scm_source_property (form, scm_sym_filename);
-      linenr = scm_source_property (form, scm_sym_line);
-    }
-
-  if (scm_is_false (filename) && scm_is_false (linenr) && scm_is_pair (expr))
-    {
-      filename = scm_source_property (expr, scm_sym_filename);
-      linenr = scm_source_property (expr, scm_sym_line);
-    }
-
-  if (!SCM_UNBNDP (expr))
-    {
-      if (scm_is_true (filename))
-	{
-	  format = "In file ~S, line ~S: ~A ~S in expression ~S.";
-	  args = scm_list_5 (filename, linenr, msg_string, form, expr);
-	}
-      else if (scm_is_true (linenr))
-	{
-	  format = "In line ~S: ~A ~S in expression ~S.";
-	  args = scm_list_4 (linenr, msg_string, form, expr);
-	}
-      else
-	{
-	  format = "~A ~S in expression ~S.";
-	  args = scm_list_3 (msg_string, form, expr);
-	}
-    }
-  else
-    {
-      if (scm_is_true (filename))
-	{
-	  format = "In file ~S, line ~S: ~A ~S.";
-	  args = scm_list_4 (filename, linenr, msg_string, form);
-	}
-      else if (scm_is_true (linenr))
-	{
-	  format = "In line ~S: ~A ~S.";
-	  args = scm_list_3 (linenr, msg_string, form);
-	}
-      else
-	{
-	  format = "~A ~S.";
-	  args = scm_list_2 (msg_string, form);
-	}
-    }
-
-  scm_error (syntax_error_key, "memoization", format, args, SCM_BOOL_F);
-}
-
-
-/* Shortcut macros to simplify syntax error handling. */
-#define ASSERT_SYNTAX(cond, message, form)		\
-  { if (SCM_UNLIKELY (!(cond)))			\
-      syntax_error (message, form, SCM_UNDEFINED); }
-#define ASSERT_SYNTAX_2(cond, message, form, expr)	\
-  { if (SCM_UNLIKELY (!(cond)))			\
-      syntax_error (message, form, expr); }
+SCM_SYMBOL (sym_case_lambda_star, "case-lambda*");
 
 
 
@@ -262,993 +153,246 @@ scm_print_memoized (SCM memoized, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static SCM scm_m_at (SCM xorig, SCM env);
-static SCM scm_m_atat (SCM xorig, SCM env);
-static SCM scm_m_and (SCM xorig, SCM env);
-static SCM scm_m_begin (SCM xorig, SCM env);
-static SCM scm_m_cond (SCM xorig, SCM env);
-static SCM scm_m_define (SCM x, SCM env);
-static SCM scm_m_with_fluids (SCM xorig, SCM env);
-static SCM scm_m_eval_when (SCM xorig, SCM env);
-static SCM scm_m_if (SCM xorig, SCM env);
-static SCM scm_m_lambda (SCM xorig, SCM env);
-static SCM scm_m_lambda_star (SCM xorig, SCM env);
-static SCM scm_m_case_lambda (SCM xorig, SCM env);
-static SCM scm_m_case_lambda_star (SCM xorig, SCM env);
-static SCM scm_m_let (SCM xorig, SCM env);
-static SCM scm_m_letrec (SCM xorig, SCM env);
-static SCM scm_m_letstar (SCM xorig, SCM env);
-static SCM scm_m_or (SCM xorig, SCM env);
-static SCM scm_m_quote (SCM xorig, SCM env);
-static SCM scm_m_set_x (SCM xorig, SCM env);
 
 
 
 
-static SCM
-memoize_env_ref_macro (SCM env, SCM x)
-{
-  SCM var;
-  for (; scm_is_pair (env); env = CDR (env))
-    if (scm_is_eq (x, CAR (env)))
-      return SCM_BOOL_F; /* lexical */
-
-  var = scm_module_variable (env, x);
-  if (scm_is_true (var) && scm_is_true (scm_variable_bound_p (var))
-      && (scm_is_true (scm_macro_p (scm_variable_ref (var)))
-          || SCM_MEMOIZER_P (scm_variable_ref (var))))
-    return scm_variable_ref (var);
-  else
-    return SCM_BOOL_F; /* anything else */
-}
-
 static int
-memoize_env_var_is_free (SCM env, SCM x)
-{
-  for (; scm_is_pair (env); env = CDR (env))
-    if (scm_is_eq (x, CAR (env)))
-      return 0; /* bound */
-  return 1; /* free */
-}
-
-static int
-memoize_env_lexical_index (SCM env, SCM x)
+lookup (SCM x, SCM env)
 {
   int i = 0;
   for (; scm_is_pair (env); env = CDR (env), i++)
     if (scm_is_eq (x, CAR (env)))
       return i; /* bound */
-  return -1; /* free */
+  abort ();
 }
+
+
+/* Abbreviate SCM_EXPANDED_REF. Copied because I'm not sure about symbol pasting */
+#define REF(x,type,field) \
+  (scm_struct_ref (x, SCM_I_MAKINUM (SCM_EXPANDED_##type##_##field)))
+
+static SCM list_of_guile = SCM_BOOL_F;
+
+static SCM memoize (SCM exp, SCM env);
 
 static SCM
-memoize_env_extend (SCM env, SCM vars)
+memoize_exps (SCM exps, SCM env)
 {
-  return scm_append (scm_list_2 (vars, env));
+  SCM ret;
+  for (ret = SCM_EOL; scm_is_pair (exps); exps = CDR (exps))
+    ret = scm_cons (memoize (CAR (exps), env), ret);
+  return scm_reverse_x (ret, SCM_UNDEFINED);
 }
-
+  
 static SCM
 memoize (SCM exp, SCM env)
 {
-  if (scm_is_pair (exp))
-    {
-      SCM car;
-      scm_t_macro_primitive trans = NULL;
-      SCM macro = SCM_BOOL_F, memoizer = SCM_BOOL_F;
-      
-      car = CAR (exp);
-      if (scm_is_symbol (car))
-        macro = memoize_env_ref_macro (env, car);
-      
-      if (scm_is_true (scm_macro_p (macro)))
-        trans = scm_i_macro_primitive (macro);
-      else if (SCM_MEMOIZER_P (macro))
-        memoizer = SCM_MEMOIZER (macro);
+  if (!SCM_EXPANDED_P (exp))
+    abort ();
 
-      if (trans)
-        return trans (exp, env);
+  switch (SCM_EXPANDED_TYPE (exp))
+    {
+    case SCM_EXPANDED_VOID:
+      return MAKMEMO_QUOTE (SCM_UNSPECIFIED);
+      
+    case SCM_EXPANDED_CONST:
+      return MAKMEMO_QUOTE (REF (exp, CONST, EXP));
+
+    case SCM_EXPANDED_PRIMITIVE_REF:
+      if (scm_is_eq (scm_current_module (), scm_the_root_module ()))
+        return MAKMEMO_TOP_REF (REF (exp, PRIMITIVE_REF, NAME));
       else
-        {
-          SCM args = SCM_EOL;
-          int nargs = 0;
-          SCM proc = CAR (exp);
-          
-          for (exp = CDR (exp); scm_is_pair (exp); exp = CDR (exp), nargs++)
-            args = scm_cons (memoize (CAR (exp), env), args);
-          if (scm_is_null (exp))
-            {
-              if (scm_is_true (memoizer))
-                return scm_apply (memoizer, scm_reverse_x (args, SCM_UNDEFINED),
-                                  SCM_EOL);
-              else
-                return MAKMEMO_CALL (memoize (proc, env),
-                                     nargs,
-                                     scm_reverse_x (args, SCM_UNDEFINED));
-            }
+        return MAKMEMO_MOD_REF (list_of_guile, REF (exp, PRIMITIVE_REF, NAME),
+                                SCM_BOOL_F);
+                                
+    case SCM_EXPANDED_LEXICAL_REF:
+      return MAKMEMO_LEX_REF (lookup (REF (exp, LEXICAL_REF, GENSYM), env));
+
+    case SCM_EXPANDED_LEXICAL_SET:
+      return MAKMEMO_LEX_SET (lookup (REF (exp, LEXICAL_SET, GENSYM), env),
+                              memoize (REF (exp, LEXICAL_SET, EXP), env));
+
+    case SCM_EXPANDED_MODULE_REF:
+      return MAKMEMO_MOD_REF (REF (exp, MODULE_REF, MOD),
+                              REF (exp, MODULE_REF, NAME),
+                              REF (exp, MODULE_REF, PUBLIC));
+
+    case SCM_EXPANDED_MODULE_SET:
+      return MAKMEMO_MOD_SET (memoize (REF (exp, MODULE_SET, EXP), env),
+                              REF (exp, MODULE_SET, MOD),
+                              REF (exp, MODULE_SET, NAME),
+                              REF (exp, MODULE_SET, PUBLIC));
+
+    case SCM_EXPANDED_TOPLEVEL_REF:
+      return MAKMEMO_TOP_REF (REF (exp, TOPLEVEL_REF, NAME));
+
+    case SCM_EXPANDED_TOPLEVEL_SET:
+      return MAKMEMO_TOP_SET (REF (exp, TOPLEVEL_SET, NAME),
+                              memoize (REF (exp, TOPLEVEL_SET, EXP), env));
+
+    case SCM_EXPANDED_TOPLEVEL_DEFINE:
+      return MAKMEMO_DEFINE (REF (exp, TOPLEVEL_DEFINE, NAME),
+                             memoize (REF (exp, TOPLEVEL_DEFINE, EXP), env));
+
+    case SCM_EXPANDED_CONDITIONAL:
+      return MAKMEMO_IF (memoize (REF (exp, CONDITIONAL, TEST), env),
+                         memoize (REF (exp, CONDITIONAL, CONSEQUENT), env),
+                         memoize (REF (exp, CONDITIONAL, ALTERNATE), env));
+
+    case SCM_EXPANDED_APPLICATION:
+      {
+        SCM proc, args;
+
+        proc = REF (exp, APPLICATION, PROC);
+        args = memoize_exps (REF (exp, APPLICATION, EXPS), env);
+
+        if (SCM_EXPANDED_TYPE (proc) == SCM_EXPANDED_TOPLEVEL_REF)
+          {
+            SCM var = scm_module_variable (scm_current_module (),
+                                           REF (proc, TOPLEVEL_REF, NAME));
+            if (SCM_VARIABLEP (var))
+              {
+                SCM val = SCM_VARIABLE_REF (var);
+                if (SCM_MEMOIZER_P (val))
+                  return scm_apply (SCM_SMOB_OBJECT_1 (val), args, SCM_EOL);
+              }
+          }
+        /* otherwise we all fall down here */
+        return MAKMEMO_CALL (memoize (proc, env), scm_ilength (args), args);
+      }
+
+    case SCM_EXPANDED_SEQUENCE:
+      return MAKMEMO_BEGIN (memoize_exps (REF (exp, SEQUENCE, EXPS), env));
+
+    case SCM_EXPANDED_LAMBDA:
+      /* The body will be a lambda-case. */
+      return memoize (REF (exp, LAMBDA, BODY), env);
+
+    case SCM_EXPANDED_LAMBDA_CASE:
+      {
+        SCM req, rest, opt, kw, inits, vars, body, alt;
+        SCM walk, minits, arity, new_env;
+        int nreq, nopt;
+
+        req = REF (exp, LAMBDA_CASE, REQ);
+        rest = REF (exp, LAMBDA_CASE, REST);
+        opt = REF (exp, LAMBDA_CASE, OPT);
+        kw = REF (exp, LAMBDA_CASE, KW);
+        inits = REF (exp, LAMBDA_CASE, INITS);
+        vars = REF (exp, LAMBDA_CASE, GENSYMS);
+        body = REF (exp, LAMBDA_CASE, BODY);
+        alt = REF (exp, LAMBDA_CASE, ALTERNATE);
+
+        nreq = scm_ilength (req);
+        nopt = scm_is_pair (opt) ? scm_ilength (opt) : 0;
+
+        /* The vars are the gensyms, according to the divine plan. But we need
+           to memoize the inits within their appropriate environment,
+           complicating things. */
+        new_env = env;
+        for (walk = req; scm_is_pair (walk);
+             walk = CDR (walk), vars = CDR (vars))
+          new_env = scm_cons (CAR (vars), new_env);
+
+        minits = SCM_EOL;
+        for (walk = opt; scm_is_pair (walk);
+             walk = CDR (walk), vars = CDR (vars), inits = CDR (inits))
+          {
+            minits = scm_cons (memoize (CAR (inits), new_env), minits);
+            new_env = scm_cons (CAR (vars), new_env);
+          }
+
+        if (scm_is_true (rest))
+          {
+            new_env = scm_cons (CAR (vars), new_env);
+            vars = CDR (vars);
+          }
+
+        for (; scm_is_pair (inits); vars = CDR (vars), inits = CDR (inits))
+          {
+            minits = scm_cons (memoize (CAR (inits), new_env), minits);
+            new_env = scm_cons (CAR (vars), new_env);
+          }
+        if (!scm_is_null (vars))
+          abort ();
+
+        minits = scm_reverse_x (minits, SCM_UNDEFINED);
+
+        if (scm_is_false (alt) && scm_is_false (kw) && scm_is_false (opt))
+          {
+            if (scm_is_false (rest))
+              arity = FIXED_ARITY (nreq);
+            else
+              arity = REST_ARITY (nreq, SCM_BOOL_T);
+          }
+        else if (scm_is_true (alt))
+          arity = FULL_ARITY (nreq, rest, nopt, kw, minits,
+                              SCM_MEMOIZED_ARGS (memoize (alt, env)));
+        else
+          arity = FULL_ARITY (nreq, rest, nopt, kw, minits, SCM_BOOL_F);
+
+        return MAKMEMO_LAMBDA (memoize (body, new_env), arity);
+      }
+
+    case SCM_EXPANDED_LET:
+      {
+        SCM vars, exps, body, inits, new_env;
         
-          else
-            syntax_error ("expected a proper list", exp, SCM_UNDEFINED);
-        }
-    }
-  else if (scm_is_symbol (exp))
-    {
-      int i = memoize_env_lexical_index (env, exp);
-      if (i < 0)
-        return MAKMEMO_TOP_REF (exp);
-      else
-        return MAKMEMO_LEX_REF (i);
-    }
-  else
-    return MAKMEMO_QUOTE (exp);
-}
+        vars = REF (exp, LET, GENSYMS);
+        exps = REF (exp, LET, VALS);
+        body = REF (exp, LET, BODY);
+        
+        inits = SCM_EOL;
+        new_env = env;
+        for (; scm_is_pair (vars); vars = CDR (vars), exps = CDR (exps))
+          {
+            new_env = scm_cons (CAR (vars), new_env);
+            inits = scm_cons (memoize (CAR (exps), env), inits);
+          }
+
+        return MAKMEMO_LET (scm_reverse_x (inits, SCM_UNDEFINED),
+                            memoize (body, new_env));
+      }
+
+    case SCM_EXPANDED_LETREC:
+      {
+        SCM vars, exps, body, undefs, inits, sets, new_env;
+        int i, nvars;
+        
+        vars = REF (exp, LET, GENSYMS);
+        exps = REF (exp, LET, VALS);
+        body = REF (exp, LET, BODY);
+        nvars = i = scm_ilength (vars);
+        inits = undefs = sets = SCM_EOL;
+        new_env = env;
+
+        for (; scm_is_pair (vars); vars = CDR (vars), i--)
+          {
+            new_env = scm_cons (CAR (vars), new_env);
+            undefs = scm_cons (MAKMEMO_QUOTE (SCM_UNDEFINED), undefs);
+            sets = scm_cons (MAKMEMO_LEX_SET ((i-1) + nvars,
+                                              MAKMEMO_LEX_REF (i-1)),
+                             sets);
+          }
+
+        for (; scm_is_pair (exps); exps = CDR (exps))
+          inits = scm_cons (memoize (CAR (exps), new_env), inits);
+        inits = scm_reverse_x (inits, SCM_UNDEFINED);
+
+        return MAKMEMO_LET
+          (undefs,
+           MAKMEMO_BEGIN (scm_list_2 (MAKMEMO_LET (inits, MAKMEMO_BEGIN (sets)),
+                                      memoize (body, new_env))));
+      }
+
+    case SCM_EXPANDED_DYNLET:
+      return MAKMEMO_WITH_FLUIDS (memoize_exps (REF (exp, DYNLET, FLUIDS), env),
+                                  memoize_exps (REF (exp, DYNLET, VALS), env),
+                                  memoize (REF (exp, DYNLET, BODY), env));
 
-static SCM
-memoize_exprs (SCM forms, const SCM env)
-{
-  SCM ret = SCM_EOL;
-
-  for (; !scm_is_null (forms); forms = CDR (forms))
-    ret = scm_cons (memoize (CAR (forms), env), ret);
-  return scm_reverse_x (ret, SCM_UNDEFINED);
-}
-
-static SCM
-memoize_sequence (const SCM forms, const SCM env)
-{
-  ASSERT_SYNTAX (scm_ilength (forms) >= 1, s_bad_expression,
-                 scm_cons (scm_sym_begin, forms));
-  if (scm_is_null (CDR (forms)))
-    return memoize (CAR (forms), env);
-  else
-    return MAKMEMO_BEGIN (memoize_exprs (forms, env));
-}
-
-
-
-/* Memoization.  */
-
-#define SCM_SYNTAX(RANAME, STR, CFN)  \
-SCM_SNARF_HERE(static const char RANAME[]=STR)\
-SCM_SNARF_INIT(scm_c_define (RANAME, scm_i_make_primitive_macro (RANAME, CFN)))
-
-
-/* True primitive syntax */
-SCM_SYNTAX (s_at, "@", scm_m_at);
-SCM_SYNTAX (s_atat, "@@", scm_m_atat);
-SCM_SYNTAX (s_begin, "begin", scm_m_begin);
-SCM_SYNTAX (s_define, "define", scm_m_define);
-SCM_SYNTAX (s_with_fluids, "with-fluids", scm_m_with_fluids);
-SCM_SYNTAX (s_eval_when, "eval-when", scm_m_eval_when);
-SCM_SYNTAX (s_if, "if", scm_m_if);
-SCM_SYNTAX (s_lambda, "lambda", scm_m_lambda);
-SCM_SYNTAX (s_let, "let", scm_m_let);
-SCM_SYNTAX (s_quote, "quote", scm_m_quote);
-SCM_SYNTAX (s_set_x, "set!", scm_m_set_x);
-
-/* Convenient syntax during boot, expands to primitive syntax. Replaced after
-   psyntax boots. */
-SCM_SYNTAX (s_and, "and", scm_m_and);
-SCM_SYNTAX (s_cond, "cond", scm_m_cond);
-SCM_SYNTAX (s_letrec, "letrec", scm_m_letrec);
-SCM_SYNTAX (s_letstar, "let*", scm_m_letstar);
-SCM_SYNTAX (s_or, "or", scm_m_or);
-SCM_SYNTAX (s_lambda_star, "lambda*", scm_m_lambda_star);
-SCM_SYNTAX (s_case_lambda, "case-lambda", scm_m_case_lambda);
-SCM_SYNTAX (s_case_lambda_star, "case-lambda*", scm_m_case_lambda_star);
-
-SCM_GLOBAL_SYMBOL (scm_sym_apply, "apply");
-SCM_GLOBAL_SYMBOL (scm_sym_arrow, "=>");
-SCM_GLOBAL_SYMBOL (scm_sym_at, "@");
-SCM_GLOBAL_SYMBOL (scm_sym_atat, "@@");
-SCM_GLOBAL_SYMBOL (scm_sym_at_call_with_values, "@call-with-values");
-SCM_GLOBAL_SYMBOL (scm_sym_atapply, "@apply");
-SCM_GLOBAL_SYMBOL (scm_sym_atcall_cc, "@call-with-current-continuation");
-SCM_GLOBAL_SYMBOL (scm_sym_begin, "begin");
-SCM_GLOBAL_SYMBOL (scm_sym_case, "case");
-SCM_GLOBAL_SYMBOL (scm_sym_cond, "cond");
-SCM_GLOBAL_SYMBOL (scm_sym_define, "define");
-SCM_GLOBAL_SYMBOL (scm_sym_at_dynamic_wind, "@dynamic-wind");
-SCM_GLOBAL_SYMBOL (scm_sym_with_fluids, "with-fluids");
-SCM_GLOBAL_SYMBOL (scm_sym_else, "else");
-SCM_GLOBAL_SYMBOL (scm_sym_eval_when, "eval-when");
-SCM_GLOBAL_SYMBOL (scm_sym_if, "if");
-SCM_GLOBAL_SYMBOL (scm_sym_lambda, "lambda");
-SCM_GLOBAL_SYMBOL (scm_sym_let, "let");
-SCM_GLOBAL_SYMBOL (scm_sym_letrec, "letrec");
-SCM_GLOBAL_SYMBOL (scm_sym_letstar, "let*");
-SCM_GLOBAL_SYMBOL (scm_sym_or, "or");
-SCM_GLOBAL_SYMBOL (scm_sym_at_prompt, "@prompt");
-SCM_GLOBAL_SYMBOL (scm_sym_quote, "quote");
-SCM_GLOBAL_SYMBOL (scm_sym_set_x, "set!");
-SCM_SYMBOL (sym_lambda_star, "lambda*");
-SCM_SYMBOL (sym_case_lambda, "case-lambda");
-SCM_SYMBOL (sym_case_lambda_star, "case-lambda*");
-SCM_SYMBOL (sym_eval, "eval");
-SCM_SYMBOL (sym_load, "load");
-
-SCM_GLOBAL_SYMBOL (scm_sym_unquote, "unquote");
-SCM_GLOBAL_SYMBOL (scm_sym_quasiquote, "quasiquote");
-SCM_GLOBAL_SYMBOL (scm_sym_uq_splicing, "unquote-splicing");
-
-SCM_KEYWORD (kw_allow_other_keys, "allow-other-keys");
-SCM_KEYWORD (kw_optional, "optional");
-SCM_KEYWORD (kw_key, "key");
-SCM_KEYWORD (kw_rest, "rest");
-
-
-static SCM
-scm_m_at (SCM expr, SCM env SCM_UNUSED)
-{
-  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (CADR (expr)) > 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_is_symbol (CADDR (expr)), s_bad_expression, expr);
-
-  return MAKMEMO_MOD_REF (CADR (expr), CADDR (expr), SCM_BOOL_T);
-}
-
-static SCM
-scm_m_atat (SCM expr, SCM env SCM_UNUSED)
-{
-  ASSERT_SYNTAX (scm_ilength (expr) == 3, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (CADR (expr)) > 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_is_symbol (CADDR (expr)), s_bad_expression, expr);
-
-  return MAKMEMO_MOD_REF (CADR (expr), CADDR (expr), SCM_BOOL_F);
-}
-
-static SCM
-scm_m_and (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-
-  if (scm_is_null (cdr_expr))
-    return MAKMEMO_QUOTE (SCM_BOOL_T);
-  ASSERT_SYNTAX (scm_is_pair (cdr_expr), s_bad_expression, expr);
-
-  if (scm_is_null (CDR (cdr_expr)))
-    return memoize (CAR (cdr_expr), env);
-  else
-    return MAKMEMO_IF (memoize (CAR (cdr_expr), env),
-                       scm_m_and (cdr_expr, env),
-                       MAKMEMO_QUOTE (SCM_BOOL_F));
-}
-
-static SCM
-scm_m_begin (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 1, s_bad_expression, expr);
-  return MAKMEMO_BEGIN (memoize_exprs (cdr_expr, env));
-}
-
-static SCM
-scm_m_cond (SCM expr, SCM env)
-{
-  /* Check, whether 'else or '=> is a literal, i. e. not bound to a value. */
-  const int else_literal_p = memoize_env_var_is_free (env, scm_sym_else);
-  const int arrow_literal_p = memoize_env_var_is_free (env, scm_sym_arrow);
-
-  const SCM clauses = CDR (expr);
-  SCM clause_idx;
-  SCM ret, loc;
-
-  ASSERT_SYNTAX (scm_ilength (clauses) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (clauses) >= 1, s_missing_clauses, expr);
-
-  ret = scm_cons (SCM_UNDEFINED, MAKMEMO_QUOTE (SCM_UNSPECIFIED));
-  loc = ret;
-
-  for (clause_idx = clauses;
-       !scm_is_null (clause_idx);
-       clause_idx = CDR (clause_idx))
-    {
-      SCM test;
-
-      const SCM clause = CAR (clause_idx);
-      const long length = scm_ilength (clause);
-      ASSERT_SYNTAX_2 (length >= 1, s_bad_cond_clause, clause, expr);
-
-      test = CAR (clause);
-      if (scm_is_eq (test, scm_sym_else) && else_literal_p)
-	{
-	  const int last_clause_p = scm_is_null (CDR (clause_idx));
-          ASSERT_SYNTAX_2 (length >= 2,
-                           s_bad_cond_clause, clause, expr);
-          ASSERT_SYNTAX_2 (last_clause_p,
-                           s_misplaced_else_clause, clause, expr);
-          SCM_SETCDR (loc,
-                      memoize (scm_cons (scm_sym_begin, CDR (clause)), env));
-	}
-      else if (length >= 2
-               && scm_is_eq (CADR (clause), scm_sym_arrow)
-               && arrow_literal_p)
-        {
-          SCM tmp = scm_gensym (scm_from_locale_string ("cond "));
-          SCM i;
-          SCM new_env = scm_cons (tmp, env);
-          ASSERT_SYNTAX_2 (length > 2, s_missing_recipient, clause, expr);
-          ASSERT_SYNTAX_2 (length == 3, s_extra_expression, clause, expr);
-          i = MAKMEMO_IF (MAKMEMO_LEX_REF (0),
-                          MAKMEMO_CALL (memoize (CADDR (clause),
-                                                 scm_cons (tmp, new_env)),
-                                        1,
-                                        scm_list_1 (MAKMEMO_LEX_REF (0))),
-                          MAKMEMO_QUOTE (SCM_UNSPECIFIED));
-          SCM_SETCDR (loc, 
-                      MAKMEMO_LET (scm_list_1 (memoize (CAR (clause), env)),
-                                   i));
-          env = new_env;
-          loc = scm_last_pair (SCM_MEMOIZED_ARGS (i));
-	}
-      /* FIXME length == 1 case */
-      else
-        {
-          SCM i = MAKMEMO_IF (memoize (CAR (clause), env),
-                              memoize (scm_cons (scm_sym_begin, CDR (clause)), env),
-                              MAKMEMO_QUOTE (SCM_UNSPECIFIED));
-          SCM_SETCDR (loc, i);
-          loc = scm_last_pair (SCM_MEMOIZED_ARGS (i));
-        }
-    }
-
-  return CDR (ret);
-}
-
-/* According to Section 5.2.1 of R5RS we first have to make sure that the
-   variable is bound, and then perform the `(set! variable expression)'
-   operation.  However, EXPRESSION _can_ be evaluated before VARIABLE is
-   bound.  This means that EXPRESSION won't necessarily be able to assign
-   values to VARIABLE as in `(define foo (begin (set! foo 1) (+ foo 1)))'.  */
-static SCM
-scm_m_define (SCM expr, SCM env)
-{
-  const SCM cdr_expr = CDR (expr);
-  SCM body;
-  SCM variable;
-
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
-  ASSERT_SYNTAX (!scm_is_pair (env), s_bad_define, expr);
-
-  body = CDR (cdr_expr);
-  variable = CAR (cdr_expr);
-
-  if (scm_is_pair (variable))
-    {
-      ASSERT_SYNTAX_2 (scm_is_symbol (CAR (variable)), s_bad_variable, variable, expr);
-      return MAKMEMO_DEFINE (CAR (variable),
-                             memoize (scm_cons (scm_sym_lambda,
-                                                scm_cons (CDR (variable), body)),
-                                      env));
-    }
-  ASSERT_SYNTAX_2 (scm_is_symbol (variable), s_bad_variable, variable, expr);
-  ASSERT_SYNTAX (scm_ilength (body) == 1, s_expression, expr);
-  return MAKMEMO_DEFINE (variable, memoize (CAR (body), env));
-}
-
-static SCM
-scm_m_with_fluids (SCM expr, SCM env)
-{
-  SCM binds, fluids, vals;
-  ASSERT_SYNTAX (scm_ilength (expr) >= 3, s_bad_expression, expr);
-  binds = CADR (expr);
-  ASSERT_SYNTAX_2 (scm_ilength (binds) >= 0, s_bad_bindings, binds, expr);
-  for (fluids = SCM_EOL, vals = SCM_EOL;
-       scm_is_pair (binds);
-       binds = CDR (binds))
-    {
-      SCM binding = CAR (binds);
-      ASSERT_SYNTAX_2 (scm_ilength (CAR (binds)) == 2, s_bad_binding,
-                       binding, expr);
-      fluids = scm_cons (memoize (CAR (binding), env), fluids);
-      vals = scm_cons (memoize (CADR (binding), env), vals);
-    }
-
-  return MAKMEMO_WITH_FLUIDS (scm_reverse_x (fluids, SCM_UNDEFINED),
-                              scm_reverse_x (vals, SCM_UNDEFINED),
-                              memoize_sequence (CDDR (expr), env));
-}
-
-static SCM
-scm_m_eval_when (SCM expr, SCM env)
-{
-  ASSERT_SYNTAX (scm_ilength (expr) >= 3, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (CADR (expr)) > 0, s_bad_expression, expr);
-
-  if (scm_is_true (scm_memq (sym_eval, CADR (expr)))
-      || scm_is_true (scm_memq (sym_load, CADR (expr))))
-    return MAKMEMO_BEGIN (memoize_exprs (CDDR (expr), env));
-  else
-    return MAKMEMO_QUOTE (SCM_UNSPECIFIED);
-}
-
-static SCM
-scm_m_if (SCM expr, SCM env SCM_UNUSED)
-{
-  const SCM cdr_expr = CDR (expr);
-  const long length = scm_ilength (cdr_expr);
-  ASSERT_SYNTAX (length == 2 || length == 3, s_expression, expr);
-  return MAKMEMO_IF (memoize (CADR (expr), env),
-                     memoize (CADDR (expr), env),
-                     ((length == 3)
-                      ? memoize (CADDDR (expr), env)
-                      : MAKMEMO_QUOTE (SCM_UNSPECIFIED)));
-}
-
-/* A helper function for memoize_lambda to support checking for duplicate
- * formal arguments: Return true if OBJ is `eq?' to one of the elements of
- * LIST or to the CDR of the last cons.  Therefore, LIST may have any of the
- * forms that a formal argument can have:
- *   <rest>, (<arg1> ...), (<arg1> ...  .  <rest>) */
-static int
-c_improper_memq (SCM obj, SCM list)
-{
-  for (; scm_is_pair (list); list = CDR (list))
-    {
-      if (scm_is_eq (CAR (list), obj))
-        return 1;
-    }
-  return scm_is_eq (list, obj);
-}
-
-static SCM
-scm_m_lambda (SCM expr, SCM env SCM_UNUSED)
-{
-  SCM formals;
-  SCM formals_idx;
-  SCM formal_vars = SCM_EOL;
-  SCM body;
-  int nreq = 0;
-
-  const SCM cdr_expr = CDR (expr);
-  const long length = scm_ilength (cdr_expr);
-  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
-
-  /* Before iterating the list of formal arguments, make sure the formals
-   * actually are given as either a symbol or a non-cyclic list.  */
-  formals = CAR (cdr_expr);
-  if (scm_is_pair (formals))
-    {
-      /* Dirk:FIXME:: We should check for a cyclic list of formals, and if
-       * detected, report a 'Bad formals' error.  */
-    }
-  else
-    {
-      ASSERT_SYNTAX_2 (scm_is_symbol (formals) || scm_is_null (formals),
-                       s_bad_formals, formals, expr);
-    }
-
-  /* Now iterate the list of formal arguments to check if all formals are
-   * symbols, and that there are no duplicates.  */
-  formals_idx = formals;
-  while (scm_is_pair (formals_idx))
-    {
-      const SCM formal = CAR (formals_idx);
-      const SCM next_idx = CDR (formals_idx);
-      ASSERT_SYNTAX_2 (scm_is_symbol (formal), s_bad_formal, formal, expr);
-      ASSERT_SYNTAX_2 (!c_improper_memq (formal, next_idx),
-                       s_duplicate_formal, formal, expr);
-      nreq++;
-      formal_vars = scm_cons (formal, formal_vars);
-      formals_idx = next_idx;
-    }
-  ASSERT_SYNTAX_2 (scm_is_null (formals_idx) || scm_is_symbol (formals_idx),
-                   s_bad_formal, formals_idx, expr);
-  if (scm_is_symbol (formals_idx))
-    formal_vars = scm_cons (formals_idx, formal_vars);
-
-  body = memoize_sequence (CDDR (expr), memoize_env_extend (env, formal_vars));
-
-  if (scm_is_symbol (formals_idx))
-    return MAKMEMO_LAMBDA (body, REST_ARITY (nreq, SCM_BOOL_T));
-  else
-    return MAKMEMO_LAMBDA (body, FIXED_ARITY (nreq));
-}
-
-static SCM
-scm_m_lambda_star (SCM expr, SCM env)
-{
-  SCM req, opt, kw, allow_other_keys, rest, formals, body;
-  SCM inits, kw_indices;
-  int nreq, nopt;
-
-  const long length = scm_ilength (expr);
-  ASSERT_SYNTAX (length >= 1, s_bad_expression, expr);
-  ASSERT_SYNTAX (length >= 3, s_missing_expression, expr);
-
-  formals = CADR (expr);
-  body = CDDR (expr);
-
-  nreq = nopt = 0;
-  req = opt = kw = SCM_EOL;
-  rest = allow_other_keys = SCM_BOOL_F;
-
-  while (scm_is_pair (formals) && scm_is_symbol (CAR (formals)))
-    {
-      nreq++;
-      req = scm_cons (CAR (formals), req);
-      formals = scm_cdr (formals);
-    }
-
-  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_optional))
-    {
-      formals = CDR (formals);
-      while (scm_is_pair (formals)
-             && (scm_is_symbol (CAR (formals)) || scm_is_pair (CAR (formals))))
-        {
-          nopt++;
-          opt = scm_cons (CAR (formals), opt);
-          formals = scm_cdr (formals);
-        }
-    }
-  
-  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_key))
-    {
-      formals = CDR (formals);
-      while (scm_is_pair (formals)
-             && (scm_is_symbol (CAR (formals)) || scm_is_pair (CAR (formals))))
-        {
-          kw = scm_cons (CAR (formals), kw);
-          formals = scm_cdr (formals);
-        }
-    }
-  
-  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_allow_other_keys))
-    {
-      formals = CDR (formals);
-      allow_other_keys = SCM_BOOL_T;
-    }
-  
-  if (scm_is_pair (formals) && scm_is_eq (CAR (formals), kw_rest))
-    {
-      if (scm_ilength (formals) != 2)
-        syntax_error (s_bad_formals, CADR (expr), expr);
-      else
-        rest = CADR (formals);
-    }
-  else if (scm_is_symbol (formals))
-    rest = formals;
-  else if (!scm_is_null (formals))
-    syntax_error (s_bad_formals, CADR (expr), expr);
-  else
-    rest = SCM_BOOL_F;
-  
-  /* Now, iterate through them a second time, building up an expansion-time
-     environment, checking, expanding and canonicalizing the opt/kw init forms,
-     and eventually memoizing the body as well. Note that the rest argument, if
-     any, is expanded before keyword args, thus necessitating the second
-     pass.
-
-     Also note that the specific environment during expansion of init
-     expressions here needs to coincide with the environment when psyntax
-     expands. A lot of effort for something that is only used in the bootstrap
-     memoizer, you say? Yes. Yes it is.
-  */
-
-  inits = SCM_EOL;
-
-  /* nreq is already set, and req is already reversed: simply extend. */
-  env = memoize_env_extend (env, req);
-  
-  /* Build up opt inits and env */
-  opt = scm_reverse_x (opt, SCM_EOL);
-  while (scm_is_pair (opt))
-    {
-      SCM x = CAR (opt);
-      if (scm_is_symbol (x))
-        inits = scm_cons (MAKMEMO_QUOTE (SCM_BOOL_F), inits);
-      else if (scm_ilength (x) == 2 && scm_is_symbol (CAR (x)))
-        inits = scm_cons (memoize (CADR (x), env), inits);
-      else
-        syntax_error (s_bad_formals, CADR (expr), expr);
-      env = scm_cons (scm_is_symbol (x) ? x : CAR (x), env);
-      opt = CDR (opt);
-    }
-      
-  /* Process rest before keyword args */
-  if (scm_is_true (rest))
-    env = scm_cons (rest, env);
-
-  /* Build up kw inits, env, and kw-indices alist */
-  if (scm_is_null (kw))
-    kw_indices = SCM_BOOL_F;
-  else
-    {
-      int idx = nreq + nopt + (scm_is_true (rest) ? 1 : 0);
-
-      kw_indices = SCM_EOL;
-      kw = scm_reverse_x (kw, SCM_EOL);
-      while (scm_is_pair (kw))
-        {
-          SCM x, sym, k, init;
-          x = CAR (kw);
-          if (scm_is_symbol (x))
-            {
-              sym = x;
-              init = SCM_BOOL_F;
-              k = scm_symbol_to_keyword (sym);
-            }
-          else if (scm_ilength (x) == 2 && scm_is_symbol (CAR (x)))
-            {
-              sym = CAR (x);
-              init = CADR (x);
-              k = scm_symbol_to_keyword (sym);
-            }
-          else if (scm_ilength (x) == 3 && scm_is_symbol (CAR (x))
-                   && scm_is_keyword (CADDR (x)))
-            {
-              sym = CAR (x);
-              init = CADR (x);
-              k = CADDR (x);
-            }
-          else
-            syntax_error (s_bad_formals, CADR (expr), expr);
-
-          kw_indices = scm_acons (k, SCM_I_MAKINUM (idx++), kw_indices);
-          inits = scm_cons (memoize (init, env), inits);
-          env = scm_cons (sym, env);
-          kw = CDR (kw);
-        }
-      kw_indices = scm_cons (allow_other_keys,
-                             scm_reverse_x (kw_indices, SCM_UNDEFINED));
-    }
-
-  /* We should check for no duplicates, but given that psyntax does this
-     already, we can punt on it here... */
-
-  inits = scm_reverse_x (inits, SCM_UNDEFINED);
-  body = memoize_sequence (body, env);
-
-  if (scm_is_false (kw_indices) && scm_is_false (rest) && !nopt)
-    return MAKMEMO_LAMBDA (body, FIXED_ARITY (nreq));
-  if (scm_is_false (kw_indices) && !nopt)
-    return MAKMEMO_LAMBDA (body, REST_ARITY (nreq, SCM_BOOL_T));
-  else
-    return MAKMEMO_LAMBDA (body, FULL_ARITY (nreq, rest, nopt, kw_indices, inits,
-                                             SCM_BOOL_F));
-}
-
-static SCM
-patch_case_lambda (SCM a, SCM b)
-{
-  SCM mx, body, rest, kw_indices, inits;
-  int nreq, nopt;
-
-  mx = SCM_SMOB_OBJECT_1 (a);
-  body = CAR (mx);
-  mx = CDR (mx);
-
-  if (scm_is_null (CDR (mx)))
-    {
-      nreq = scm_to_int16 (CAR (mx));
-      rest = SCM_BOOL_F;
-      nopt = 0;
-      kw_indices = SCM_BOOL_F;
-      inits = SCM_EOL;
-    }
-  else if (scm_is_null (CDDR (mx)))
-    {
-      nreq = scm_to_int16 (CAR (mx));
-      rest = CADR (mx);
-      nopt = 0;
-      kw_indices = SCM_BOOL_F;
-      inits = SCM_EOL;
-    }
-  else
-    {
-      nreq = scm_to_int16 (CAR (mx));
-      rest = CADR (mx);
-      nopt = scm_to_int16 (CADDR (mx));
-      kw_indices = CADDDR (mx);
-      inits = CADR (CDDDR (mx));
-    }
-
-  return MAKMEMO_LAMBDA
-    (body, FULL_ARITY (nreq, rest, nopt, kw_indices, inits, b));
-}
-
-static SCM
-scm_m_case_lambda (SCM expr, SCM env)
-{
-  SCM ret, clauses;
-
-  const long length = scm_ilength (expr);
-  ASSERT_SYNTAX (length >= 1, s_bad_expression, expr);
-  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
-
-  clauses = scm_reverse (CDR (expr));
-  ret = SCM_BOOL_F;
-  
-  for (; scm_is_pair (clauses); clauses = CDR (clauses))
-    ret = patch_case_lambda
-      (scm_m_lambda (scm_cons (scm_sym_lambda, CAR (clauses)), env), ret);
-  
-  return ret;
-}
-
-static SCM
-scm_m_case_lambda_star (SCM expr, SCM env)
-{
-  SCM ret, clauses;
-
-  const long length = scm_ilength (expr);
-  ASSERT_SYNTAX (length >= 1, s_bad_expression, expr);
-  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
-
-  clauses = scm_reverse (CDR (expr));
-  ret = SCM_BOOL_F;
-  
-  for (; scm_is_pair (clauses); clauses = CDR (clauses))
-    ret = patch_case_lambda
-      (scm_m_lambda_star (scm_cons (sym_lambda_star, CAR (clauses)), env), ret);
-  
-  return ret;
-}
-
-/* Check if the format of the bindings is ((<symbol> <init-form>) ...).  */
-static void
-check_bindings (const SCM bindings, const SCM expr)
-{
-  SCM binding_idx;
-
-  ASSERT_SYNTAX_2 (scm_ilength (bindings) >= 0,
-                   s_bad_bindings, bindings, expr);
-
-  binding_idx = bindings;
-  for (; !scm_is_null (binding_idx); binding_idx = CDR (binding_idx))
-    {
-      SCM name;         /* const */
-
-      const SCM binding = CAR (binding_idx);
-      ASSERT_SYNTAX_2 (scm_ilength (binding) == 2,
-                       s_bad_binding, binding, expr);
-
-      name = CAR (binding);
-      ASSERT_SYNTAX_2 (scm_is_symbol (name), s_bad_variable, name, expr);
-    }
-}
-
-/* The bindings, which must have the format ((v1 i1) (v2 i2) ... (vn in)), are
- * transformed to the lists (vn .. v2 v1) and (i1 i2 ... in). If a duplicate
- * variable name is detected, an error is signalled. */
-static int
-transform_bindings (const SCM bindings, const SCM expr,
-                    SCM *const rvarptr, SCM *const initptr)
-{
-  SCM rvariables = SCM_EOL;
-  SCM rinits = SCM_EOL;
-  SCM binding_idx = bindings;
-  int n = 0;
-  for (; !scm_is_null (binding_idx); binding_idx = CDR (binding_idx))
-    {
-      const SCM binding = CAR (binding_idx);
-      const SCM CDR_binding = CDR (binding);
-      const SCM name = CAR (binding);
-      ASSERT_SYNTAX_2 (scm_is_false (scm_c_memq (name, rvariables)),
-                       s_duplicate_binding, name, expr);
-      rvariables = scm_cons (name, rvariables);
-      rinits = scm_cons (CAR (CDR_binding), rinits);
-      n++;
-    }
-  *rvarptr = rvariables;
-  *initptr = scm_reverse_x (rinits, SCM_UNDEFINED);
-  return n;
-}
-
-/* This function is a helper function for memoize_let.  It transforms
- * (let name ((var init) ...) body ...) into
- * ((letrec ((name (lambda (var ...) body ...))) name) init ...)
- * and memoizes the expression.  It is assumed that the caller has checked
- * that name is a symbol and that there are bindings and a body.  */
-static SCM
-memoize_named_let (const SCM expr, SCM env)
-{
-  SCM rvariables;
-  SCM inits;
-  int nreq;
-
-  const SCM cdr_expr = CDR (expr);
-  const SCM name = CAR (cdr_expr);
-  const SCM cddr_expr = CDR (cdr_expr);
-  const SCM bindings = CAR (cddr_expr);
-  check_bindings (bindings, expr);
-
-  nreq = transform_bindings (bindings, expr, &rvariables, &inits);
-
-  env = scm_cons (name, env);
-  return MAKMEMO_LET
-    (scm_list_1 (MAKMEMO_QUOTE (SCM_UNDEFINED)),
-     MAKMEMO_BEGIN
-     (scm_list_2 (MAKMEMO_LEX_SET
-                  (0,
-                   MAKMEMO_LAMBDA (memoize_sequence
-                                   (CDDDR (expr),
-                                    memoize_env_extend (env, rvariables)),
-                                   FIXED_ARITY (nreq))),
-                  MAKMEMO_CALL (MAKMEMO_LEX_REF (0),
-                                nreq,
-                                memoize_exprs (inits, env)))));
-}
-
-/* (let ((v1 i1) (v2 i2) ...) body) with variables v1 .. vn and initializers
- * i1 .. in is transformed to (#@let (vn ... v2 v1) (i1 i2 ...) body).  */
-static SCM
-scm_m_let (SCM expr, SCM env)
-{
-  SCM bindings;
-
-  const SCM cdr_expr = CDR (expr);
-  const long length = scm_ilength (cdr_expr);
-  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (length >= 2, s_missing_expression, expr);
-
-  bindings = CAR (cdr_expr);
-  if (scm_is_symbol (bindings))
-    {
-      ASSERT_SYNTAX (length >= 3, s_missing_expression, expr);
-      return memoize_named_let (expr, env);
-    }
-
-  check_bindings (bindings, expr);
-  if (scm_is_null (bindings))
-    return memoize_sequence (CDDR (expr), env);
-  else
-    {
-      SCM rvariables;
-      SCM inits;
-      transform_bindings (bindings, expr, &rvariables, &inits);
-      return MAKMEMO_LET (memoize_exprs (inits, env),
-                          memoize_sequence (CDDR (expr),
-                                            memoize_env_extend (env, rvariables)));
-    }
-}
-
-static SCM
-scm_m_letrec (SCM expr, SCM env)
-{
-  SCM bindings;
-
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
-
-  bindings = CAR (cdr_expr);
-  if (scm_is_null (bindings))
-    return memoize_sequence (CDDR (expr), env);
-  else
-    {
-      SCM rvariables;
-      SCM inits;
-      SCM v, i;
-      SCM undefs = SCM_EOL;
-      SCM vals = SCM_EOL;
-      SCM sets = SCM_EOL;
-      SCM new_env;
-      int offset;
-      int n = transform_bindings (bindings, expr, &rvariables, &inits);
-      offset = n;
-      new_env = memoize_env_extend (env, rvariables);
-      for (v = scm_reverse (rvariables), i = inits; scm_is_pair (v);
-           v = CDR (v), i = CDR (i), n--)
-        {
-          undefs = scm_cons (MAKMEMO_QUOTE (SCM_UNDEFINED), undefs);
-          vals = scm_cons (memoize (CAR (i), new_env), vals);
-          sets = scm_cons (MAKMEMO_LEX_SET ((n-1) + offset,
-                                            MAKMEMO_LEX_REF (n-1)),
-                           sets);
-        }
-      return MAKMEMO_LET
-        (undefs,
-         MAKMEMO_BEGIN (scm_list_2 (MAKMEMO_LET (scm_reverse (vals),
-                                                 MAKMEMO_BEGIN (sets)),
-                                    memoize_sequence (CDDR (expr),
-                                                      new_env))));
-    }
-}
-
-static SCM
-scm_m_letstar (SCM expr, SCM env SCM_UNUSED)
-{
-  SCM bindings;
-
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 2, s_missing_expression, expr);
-
-  bindings = CAR (cdr_expr);
-  if (scm_is_null (bindings))
-    return memoize_sequence (CDDR (expr), env);
-  else
-    {
-      SCM rvariables;
-      SCM variables;
-      SCM inits;
-      SCM ret, loc;
-      transform_bindings (bindings, expr, &rvariables, &inits);
-      variables = scm_reverse (rvariables);
-      ret = scm_cons (SCM_UNDEFINED, SCM_UNSPECIFIED);
-      loc = ret;
-      for (; scm_is_pair (variables);
-           variables = CDR (variables), inits = CDR (inits))
-        { SCM x = MAKMEMO_LET (scm_list_1 (memoize (CAR (inits), env)),
-                               MAKMEMO_QUOTE (SCM_UNSPECIFIED));
-          SCM_SETCDR (loc, x);
-          loc = scm_last_pair (SCM_MEMOIZED_ARGS (x));
-          env = scm_cons (CAR (variables), env);
-        }
-      SCM_SETCDR (loc, memoize_sequence (CDDR (expr), env));
-      return CDR (ret);
-    }
-}
-
-static SCM
-scm_m_or (SCM expr, SCM env SCM_UNUSED)
-{
-  SCM tail = CDR (expr);
-  SCM ret, loc;
-  const long length = scm_ilength (tail);
-
-  ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
-
-  ret = scm_cons (SCM_UNDEFINED, SCM_UNSPECIFIED);
-  loc = ret;
-  for (; scm_is_pair (tail); tail = CDR (tail))
-    {
-      SCM tmp = scm_gensym (scm_from_locale_string ("cond "));
-      SCM x = MAKMEMO_IF (MAKMEMO_LEX_REF (0),
-                          MAKMEMO_LEX_REF (0),
-                          MAKMEMO_QUOTE (SCM_UNSPECIFIED));
-      SCM new_env = scm_cons (tmp, env);
-      SCM_SETCDR (loc, MAKMEMO_LET (scm_list_1 (memoize (CAR (tail),
-                                                         env)),
-                                    x));
-      env = new_env;
-      loc = scm_last_pair (SCM_MEMOIZED_ARGS (x));
-    }
-  SCM_SETCDR (loc, MAKMEMO_QUOTE (SCM_BOOL_F));
-  return CDR (ret);
-}
-
-static SCM
-scm_m_quote (SCM expr, SCM env SCM_UNUSED)
-{
-  SCM quotee;
-
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
-  quotee = CAR (cdr_expr);
-  return MAKMEMO_QUOTE (quotee);
-}
-
-static SCM
-scm_m_set_x (SCM expr, SCM env)
-{
-  SCM variable;
-  SCM vmem;
-
-  const SCM cdr_expr = CDR (expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
-  ASSERT_SYNTAX (scm_ilength (cdr_expr) == 2, s_expression, expr);
-  variable = CAR (cdr_expr);
-  vmem = memoize (variable, env);
-  
-  switch (SCM_MEMOIZED_TAG (vmem))
-    {
-    case SCM_M_LEXICAL_REF:
-      return MAKMEMO_LEX_SET (SCM_I_INUM (SCM_MEMOIZED_ARGS (vmem)),
-                              memoize (CADDR (expr), env));
-    case SCM_M_TOPLEVEL_REF:
-      return MAKMEMO_TOP_SET (variable,
-                              memoize (CADDR (expr), env));
-    case SCM_M_MODULE_REF:
-      return MAKMEMO_MOD_SET (memoize (CADDR (expr), env),
-                              CAR (SCM_MEMOIZED_ARGS (vmem)),
-                              CADR (SCM_MEMOIZED_ARGS (vmem)),
-                              CDDR (SCM_MEMOIZED_ARGS (vmem)));
     default:
-      syntax_error (s_bad_variable, variable, expr);
+      abort ();
     }
 }
 
@@ -1260,6 +404,8 @@ SCM_DEFINE (scm_memoize_expression, "memoize-expression", 1, 0, 0,
 	    "Memoize the expression @var{exp}.")
 #define FUNC_NAME s_scm_memoize_expression
 {
+  if (!SCM_EXPANDED_P (exp))
+    exp = scm_macroexpand (exp);
   return memoize (exp, scm_current_module ());
 }
 #undef FUNC_NAME
@@ -1333,19 +479,6 @@ static SCM m_prompt (SCM tag, SCM exp, SCM handler)
   return MAKMEMO_PROMPT (tag, exp, handler);
 }
 #undef FUNC_NAME
-
-SCM_DEFINE (scm_memoizer_p, "memoizer?", 1, 0, 0,
-            (SCM x), "")
-{
-  return scm_from_bool (SCM_MEMOIZER_P (x));
-}
-
-SCM_DEFINE (scm_memoizer, "memoizer", 1, 0, 0,
-            (SCM memoizer), "")
-{
-  SCM_ASSERT (SCM_MEMOIZER_P (memoizer), memoizer, 1, "memoizer?");
-  return SCM_MEMOIZER (memoizer);
-}
 
 
 
@@ -1672,6 +805,7 @@ scm_init_memoize ()
 
   scm_c_define ("macroexpand",
                 scm_variable_ref (scm_c_lookup ("memoize-expression")));
+  list_of_guile = scm_list_1 (scm_from_locale_symbol ("guile"));
 }
 
 /*

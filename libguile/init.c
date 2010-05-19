@@ -54,6 +54,7 @@
 #include "libguile/error.h"
 #include "libguile/eval.h"
 #include "libguile/evalext.h"
+#include "libguile/expand.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
 #include "libguile/fluids.h"
@@ -546,6 +547,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_guardians (); /* requires smob_prehistory */
   scm_init_vports ();
   scm_init_standard_ports ();  /* Requires fports */
+  scm_init_expand ();   /* Requires structs */
   scm_init_memoize ();  /* Requires smob_prehistory */
   scm_init_eval ();     /* Requires smob_prehistory */
   scm_init_load_path ();

@@ -127,6 +127,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	error.c					\
 	eval.c					\
 	evalext.c				\
+	expand.c				\
 	extensions.c				\
 	feature.c				\
 	fluids.c				\
@@ -229,6 +230,7 @@ DOT_X_FILES =					\
 	error.x					\
 	eval.x					\
 	evalext.x				\
+	expand.x				\
 	extensions.x				\
 	feature.x				\
 	fluids.x				\
@@ -328,6 +330,7 @@ DOT_DOC_FILES = 				\
 	error.doc				\
 	eval.doc				\
 	evalext.doc				\
+	expand.doc				\
 	extensions.doc				\
 	feature.doc				\
 	fluids.doc				\
@@ -487,6 +490,7 @@ modinclude_HEADERS =				\
 	error.h					\
 	eval.h					\
 	evalext.h				\
+	expand.h				\
 	extensions.h				\
 	feature.h				\
 	filesys.h				\
