@@ -224,6 +224,24 @@
                     (apply f (cons x xr))
                     (and (apply f (cons x xr)) (andmap first rest)))))))))
 
+(define-syntax define-expansion-constructors
+  (lambda (x)
+    (syntax-case x ()
+      ((_)
+       (let lp ((n 0) (out '()))
+         (if (< n (vector-length %expanded-vtables))
+             (lp (1+ n)
+                 (let* ((vtable (vector-ref %expanded-vtables n))
+                        (stem (struct-ref vtable (+ vtable-offset-user 0)))
+                        (fields (struct-ref vtable (+ vtable-offset-user 2)))
+                        (sfields (map (lambda (f) (datum->syntax x f)) fields))
+                        (ctor (datum->syntax x (symbol-append 'make- stem))))
+                   (cons #`(define (#,ctor #,@sfields)
+                             (make-struct (vector-ref %expanded-vtables #,n) 0
+                                          #,@sfields))
+                         out)))
+             #`(begin #,@(reverse out))))))))
+
 (define-syntax define-structure
   (lambda (x)
     (define construct-name
@@ -277,6 +295,8 @@
 
 (let ()
   (define *mode* (make-fluid))
+
+  (define-expansion-constructors)
 
 ;;; hooks to nonportable run-time helpers
   (begin
