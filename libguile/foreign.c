@@ -55,11 +55,7 @@ SCM_SYMBOL (sym_null, "%null-pointer");
 SCM_SYMBOL (sym_null_pointer_error, "null-pointer-error");
 
 /* The cell representing the null pointer.  */
-static const scm_t_bits null_pointer[2] =
-  {
-    scm_tc7_foreign | (SCM_FOREIGN_TYPE_VOID << 8UL),
-    0
-  };
+static SCM null_pointer;
 
 /* Raise a null pointer dereference error.  */
 static void
@@ -172,7 +168,7 @@ SCM_DEFINE (scm_foreign_set_x, "foreign-set!", 2, 0, 0,
 
   SCM_VALIDATE_FOREIGN (1, foreign);
 
-  if (SCM_UNLIKELY (scm_is_eq (foreign, PTR2SCM (&null_pointer))))
+  if (SCM_UNLIKELY (scm_is_eq (foreign, null_pointer)))
     /* Attempting to modify the pointer value of NULL_POINTER (which is
        read-only anyway), so raise an error.  */
     null_pointer_error (FUNC_NAME);
@@ -1095,7 +1091,9 @@ scm_init_foreign (void)
 #endif
 	      );
 
-  scm_define (sym_null, PTR2SCM (&null_pointer));
+  null_pointer = scm_cell (scm_tc7_foreign | (SCM_FOREIGN_TYPE_VOID << 8UL),
+                           0);
+  scm_define (sym_null, null_pointer);
 }
 
 void
