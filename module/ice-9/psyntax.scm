@@ -307,20 +307,12 @@
 
     (define top-level-eval-hook
       (lambda (x mod)
-        (primitive-eval
-         (memoize-expression
-          (case (fluid-ref *mode*)
-            ((c) ((@ (language tree-il) tree-il->scheme) x))
-            (else x))))))
+        (primitive-eval (memoize-expression x))))
 
     (define local-eval-hook
       (lambda (x mod)
-        (primitive-eval
-         (memoize-expression
-          (case (fluid-ref *mode*)
-            ((c) ((@ (language tree-il) tree-il->scheme) x))
-            (else x))))))
-
+        (primitive-eval (memoize-expression x))))
+    
     (define-syntax gensym-hook
       (syntax-rules ()
         ((_) (gensym))))
@@ -356,46 +348,28 @@
 ;;; output constructors
   (define build-void
     (lambda (source)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-void) source))
-        (else (decorate-source '(if #f #f) source)))))
+      (make-void source)))
 
   (define build-application
     (lambda (source fun-exp arg-exps)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-application) source fun-exp arg-exps))
-        (else (decorate-source `(,fun-exp . ,arg-exps) source)))))
-
+      (make-application source fun-exp arg-exps)))
+  
   (define build-conditional
     (lambda (source test-exp then-exp else-exp)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-conditional)
-              source test-exp then-exp else-exp))
-        (else (decorate-source
-               (if (equal? else-exp '(if #f #f))
-                   `(if ,test-exp ,then-exp)
-                   `(if ,test-exp ,then-exp ,else-exp))
-               source)))))
-
+      (make-conditional source test-exp then-exp else-exp)))
+  
   (define build-dynlet
     (lambda (source fluids vals body)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-dynlet) source fluids vals body))
-        (else (decorate-source `(with-fluids ,(map list fluids vals) ,body)
-                               source)))))
-
+      (make-dynlet source fluids vals body)))
+  
   (define build-lexical-reference
     (lambda (type source name var)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-lexical-ref) source name var))
-        (else (decorate-source var source)))))
-
+      (make-lexical-ref source name var)))
+  
   (define build-lexical-assignment
     (lambda (source name var exp)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-lexical-set) source name var exp))
-        (else (decorate-source `(set! ,var ,exp) source)))))
-
+      (make-lexical-set source name var exp)))
+  
   ;; Before modules are booted, we can't expand into data structures from
   ;; (language tree-il) -- we need to give the evaluator the
   ;; s-expressions that it understands natively. Actually the real truth
@@ -426,26 +400,18 @@
       (analyze-variable
        mod var
        (lambda (mod var public?) 
-         (case (fluid-ref *mode*)
-           ((c) ((@ (language tree-il) make-module-ref) source mod var public?))
-           (else (decorate-source (list (if public? '@ '@@) mod var) source))))
+         (make-module-ref source mod var public?))
        (lambda (var)
-         (case (fluid-ref *mode*)
-           ((c) ((@ (language tree-il) make-toplevel-ref) source var))
-           (else (decorate-source var source)))))))
+         (make-toplevel-ref source var)))))
 
   (define build-global-assignment
     (lambda (source var exp mod)
       (analyze-variable
        mod var
        (lambda (mod var public?) 
-         (case (fluid-ref *mode*)
-           ((c) ((@ (language tree-il) make-module-set) source mod var public? exp))
-           (else (decorate-source `(set! ,(list (if public? '@ '@@) mod var) ,exp) source))))
+         (make-module-set source mod var public? exp))
        (lambda (var)
-         (case (fluid-ref *mode*)
-           ((c) ((@ (language tree-il) make-toplevel-set) source var exp))
-           (else (decorate-source `(set! ,var ,exp) source)))))))
+         (make-toplevel-set source var exp)))))
 
   ;; FIXME: there is a bug that prevents (set! ((@ (foo) bar) baz) quz)
   ;; from working. Hack around it.
@@ -460,11 +426,9 @@
 
   (define build-global-definition
     (lambda (source var exp)
-      (case (fluid-ref *mode*)
-        ((c)
-         (maybe-name-value! var exp)
-         ((@ (language tree-il) make-toplevel-define) source var exp))
-        (else (decorate-source `(define ,var ,exp) source)))))
+      ;; FIXME:
+      ;; (maybe-name-value! var exp)
+      (make-toplevel-define source var exp)))
 
   ;; Ideally we would have all lambdas be case lambdas, but that would
   ;; need special support in the interpreter for the full capabilities
@@ -473,26 +437,16 @@
   ;; the cases.
   (define build-simple-lambda
     (lambda (src req rest vars meta exp)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-lambda) src
-              meta
-              ;; hah, a case in which kwargs would be nice.
-              ((@ (language tree-il) make-lambda-case)
-               ;; src req opt rest kw inits vars body else
-               src req #f rest #f '() vars exp #f)))
-        (else (decorate-source
-               `(lambda ,(if rest (apply cons* vars) vars)
-                  ,exp)
-               src)))))
+      (make-lambda src
+                   meta
+                   ;; hah, a case in which kwargs would be nice.
+                   (make-lambda-case
+                    ;; src req opt rest kw inits vars body else
+                    src req #f rest #f '() vars exp #f))))
+
   (define build-case-lambda
     (lambda (src meta body)
-      (case (fluid-ref *mode*)
-        ((c) ((@ (language tree-il) make-lambda) src
-              meta
-              body))
-        (else (decorate-source
-               `(case-lambda* ,@body)
-               src)))))
+      (make-lambda src meta body)))
 
   (define build-lambda-case
     ;; req := (name ...)
@@ -506,6 +460,7 @@
     ;; the body of a lambda: anything, already expanded
     ;; else: lambda-case | #f
     (lambda (src req opt rest kw inits vars body else-case)
+      ;; FIXME!!!
       (case (fluid-ref *mode*)
         ((c)
          ((@ (language tree-il) make-lambda-case)
@@ -527,65 +482,32 @@
                   (+ nreq (length inits) (if rest 1 0)))
                (error "something went wrong"
                       req opt rest kw inits vars nreq nopt kw-indices nargs))
-           (decorate-source
-            `(((,@(list-head vars nreq)
-                ,@(if opt
-                      `(#:optional ,@(map list
-                                          (list-head (list-tail vars nreq) nopt)
-                                          (list-head inits nopt)))
-                      '())
-                ,@(if kw
-                      `(#:key ,@(map (lambda (x init)
-                                       (list (caddr x)
-                                             init
-                                             (car x)))
-                                     (cdr kw)
-                                     (list-tail inits nopt)))
-                      '())
-                ,@(if allow-other-keys? '(#:allow-other-keys) '())
-                ,@(if rest (list-ref vars rest-idx) '()))
-               ,body)
-              ,@(or else-case '()))
-            src))))))
+           (make-lambda-case src req opt rest
+                             (and kw (cons allow-other-keys? kw-indices))
+                             inits vars body else-case))))))
 
   (define build-primref
     (lambda (src name)
       (if (equal? (module-name (current-module)) '(guile))
-          (case (fluid-ref *mode*)
-            ((c) ((@ (language tree-il) make-toplevel-ref) src name))
-            (else (decorate-source name src)))
-          (case (fluid-ref *mode*)
-            ((c) ((@ (language tree-il) make-module-ref) src '(guile) name #f))
-            (else (decorate-source `(@@ (guile) ,name) src))))))
+          (make-toplevel-ref src name)
+          (make-module-ref src '(guile) name #f))))
 
   (define (build-data src exp)
-    (case (fluid-ref *mode*)
-      ((c) ((@ (language tree-il) make-const) src exp))
-      (else (decorate-source
-             (if (and (self-evaluating? exp) (not (vector? exp)))
-                 exp
-                 (list 'quote exp))
-             src))))
+    (make-const src exp))
 
   (define build-sequence
     (lambda (src exps)
       (if (null? (cdr exps))
           (car exps)
-          (case (fluid-ref *mode*)
-            ((c) ((@ (language tree-il) make-sequence) src exps))
-            (else (decorate-source `(begin ,@exps) src))))))
+          (make-sequence src exps))))
 
   (define build-let
     (lambda (src ids vars val-exps body-exp)
+      ;; FIXME
+      ;; (for-each maybe-name-value! ids val-exps)
       (if (null? vars)
           body-exp
-          (case (fluid-ref *mode*)
-            ((c)
-             (for-each maybe-name-value! ids val-exps)
-             ((@ (language tree-il) make-let) src ids vars val-exps body-exp))
-            (else (decorate-source
-                   `(let ,(map list vars val-exps) ,body-exp)
-                   src))))))
+          (make-let src ids vars val-exps body-exp))))
 
   (define build-named-let
     (lambda (src ids vars val-exps body-exp)
@@ -593,31 +515,24 @@
             (f-name (car ids))
             (vars (cdr vars))
             (ids (cdr ids)))
-        (case (fluid-ref *mode*)
-          ((c)
-           (let ((proc (build-simple-lambda src ids #f vars '() body-exp)))
-             (maybe-name-value! f-name proc)
-             (for-each maybe-name-value! ids val-exps)
-             ((@ (language tree-il) make-letrec) src
-              (list f-name) (list f) (list proc)
-              (build-application src (build-lexical-reference 'fun src f-name f)
-                                 val-exps))))
-          (else (decorate-source
-                 `(letrec ((,f (lambda ,vars ,body-exp)))
-                    (,f ,@val-exps))
-                 src))))))
+        (let ((proc (build-simple-lambda src ids #f vars '() body-exp)))
+          ;; FIXME
+          ;; (maybe-name-value! f-name proc)
+          ;; (for-each maybe-name-value! ids val-exps)
+          (make-letrec
+           src
+           (list f-name) (list f) (list proc)
+           (build-application src (build-lexical-reference 'fun src f-name f)
+                              val-exps))))))
 
   (define build-letrec
     (lambda (src ids vars val-exps body-exp)
       (if (null? vars)
           body-exp
-          (case (fluid-ref *mode*)
-            ((c)
-             (for-each maybe-name-value! ids val-exps)
-             ((@ (language tree-il) make-letrec) src ids vars val-exps body-exp))
-            (else (decorate-source
-                   `(letrec ,(map list vars val-exps) ,body-exp)
-                   src))))))
+          ;; FIXME
+          ;; (for-each maybe-name-value! ids val-exps)
+          (make-letrec src ids vars val-exps body-exp))))
+
 
   ;; FIXME: use a faster gensym
   (define-syntax build-lexical-var
