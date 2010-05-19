@@ -148,7 +148,7 @@ enum
 
 #define SCM_EXPANDED_MODULE_REF_TYPE_NAME "module-ref"
 #define SCM_EXPANDED_MODULE_REF_FIELD_NAMES     \
-  { "src", "mod", "name", "public", }
+  { "src", "mod", "name", "public?", }
 enum
   {
     SCM_EXPANDED_MODULE_REF_SRC,
@@ -162,7 +162,7 @@ enum
 
 #define SCM_EXPANDED_MODULE_SET_TYPE_NAME "module-set"
 #define SCM_EXPANDED_MODULE_SET_FIELD_NAMES     \
-  { "src", "mod", "name", "public", "exp", }
+  { "src", "mod", "name", "public?", "exp", }
 enum
   {
     SCM_EXPANDED_MODULE_SET_SRC,
@@ -229,16 +229,16 @@ enum
 
 #define SCM_EXPANDED_APPLICATION_TYPE_NAME "application"
 #define SCM_EXPANDED_APPLICATION_FIELD_NAMES    \
-  { "src", "proc", "exps", }
+  { "src", "proc", "args", }
 enum
   {
     SCM_EXPANDED_APPLICATION_SRC,
     SCM_EXPANDED_APPLICATION_PROC,
-    SCM_EXPANDED_APPLICATION_EXPS,
+    SCM_EXPANDED_APPLICATION_ARGS,
     SCM_NUM_EXPANDED_APPLICATION_FIELDS,
   };
-#define SCM_MAKE_EXPANDED_APPLICATION(src, proc, exps) \
-  scm_c_make_struct (exp_vtables[SCM_EXPANDED_APPLICATION], 0, SCM_NUM_EXPANDED_APPLICATION_FIELDS, SCM_UNPACK (src), SCM_UNPACK (proc), SCM_UNPACK (exps))
+#define SCM_MAKE_EXPANDED_APPLICATION(src, proc, args) \
+  scm_c_make_struct (exp_vtables[SCM_EXPANDED_APPLICATION], 0, SCM_NUM_EXPANDED_APPLICATION_FIELDS, SCM_UNPACK (src), SCM_UNPACK (proc), SCM_UNPACK (args))
 
 #define SCM_EXPANDED_SEQUENCE_TYPE_NAME "sequence"
 #define SCM_EXPANDED_SEQUENCE_FIELD_NAMES       \

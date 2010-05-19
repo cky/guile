@@ -245,7 +245,7 @@ memoize (SCM exp, SCM env)
         SCM proc, args;
 
         proc = REF (exp, APPLICATION, PROC);
-        args = memoize_exps (REF (exp, APPLICATION, EXPS), env);
+        args = memoize_exps (REF (exp, APPLICATION, ARGS), env);
 
         if (SCM_EXPANDED_TYPE (proc) == SCM_EXPANDED_TOPLEVEL_REF)
           {
