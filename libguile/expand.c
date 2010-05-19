@@ -1241,7 +1241,7 @@ scm_init_expand ()
   while (n--)
     exp_vtable_list = scm_cons (exp_vtables[n], exp_vtable_list);
 
-  scm_c_define ("%expanded-vtables", exp_vtable_list);
+  scm_c_define ("%expanded-vtables", scm_vector (exp_vtable_list));
   
 #include "libguile/expand.x"
 }
