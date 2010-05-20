@@ -32,7 +32,7 @@
 	  (rnrs conditions (6))
           (rnrs exceptions (6))
 	  (rnrs records procedural (6))
-	  (only (guile) struct-ref vtable-index-layout))
+	  (only (guile) struct-ref vtable-index-layout @@))
 
   (define record-internal? (@@ (rnrs records procedural) record-internal?))
 

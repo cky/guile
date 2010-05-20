@@ -82,7 +82,7 @@
 	  &undefined
 	  make-undefined-violation
 	  undefined-violation?)
-  (import (only (guile) and=>)
+  (import (only (guile) and=> @@)
 	  (rnrs base (6))
 	  (rnrs lists (6))
 	  (rnrs records procedural (6)))

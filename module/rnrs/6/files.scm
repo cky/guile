@@ -56,7 +56,7 @@
 	  i/o-port-error?
 	  i/o-error-port)
 
-  (import (rename (only (guile) file-exists? delete-file catch) 
+  (import (rename (only (guile) file-exists? delete-file catch @@) 
 		  (delete-file delete-file-internal))
 	  (rnrs base (6))
 	  (rnrs conditions (6))

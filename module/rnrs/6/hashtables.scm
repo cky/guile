@@ -42,7 +42,7 @@
 	  string-hash
 	  string-ci-hash
 	  symbol-hash)
-  (import (rename (only (guile) string-hash-ci string-hash hashq hashv)
+  (import (rename (only (guile) string-hash-ci string-hash hashq hashv @@)
 		  (string-hash-ci string-ci-hash))
 	  (only (ice-9 optargs) define*)
 	  (rename (only (srfi :69) make-hash-table

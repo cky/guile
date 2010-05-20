@@ -22,7 +22,7 @@
   (import (rnrs base (6))
           (rnrs conditions (6))
 	  (rnrs records procedural (6))
-	  (only (guile) with-throw-handler))
+	  (only (guile) with-throw-handler @@))
 
   (define raise (@@ (rnrs records procedural) r6rs-raise))
   (define raise-continuable 

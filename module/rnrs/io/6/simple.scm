@@ -88,7 +88,8 @@
  
                                 input-port? 
 				output-port?)
-          (only (guile) call-with-input-file
+          (only (guile) @@
+                        call-with-input-file
 			call-with-output-file
 
 			current-input-port
