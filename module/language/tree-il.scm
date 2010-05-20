@@ -361,17 +361,64 @@
     
     ((<lambda> meta body)
      ;; fixme: put in docstring
-     (if (and (lambda-case? body)
-              (not (lambda-case-alternate body)))
-         `(lambda ,@(car (tree-il->scheme body)))
-         `(case-lambda ,@(tree-il->scheme body))))
+     (tree-il->scheme body))
     
     ((<lambda-case> req opt rest kw inits gensyms body alternate)
-     ;; FIXME! use parse-lambda-case?
-     `((,(if rest (apply cons* gensyms) gensyms)
-        ,(tree-il->scheme body))
-       ,@(if alternate (tree-il->scheme alternate) '())))
-    
+     (cond
+      ((and (not opt) (not kw) (not alternate))
+       `(lambda ,(if rest (apply cons* gensyms) gensyms)
+          ,(tree-il->scheme body)))
+      ((and (not opt) (not kw))
+       (let ((alt-expansion (tree-il->scheme alternate))
+             (formals (if rest (apply cons* gensyms) gensyms)))
+         (case (car alt-expansion)
+           ((lambda)
+            `(case-lambda (,formals ,(tree-il->scheme body))
+                          ,@(cdr alt-expansion)))
+           ((lambda*)
+            `(case-lambda* (,formals ,(tree-il->scheme body))
+                           ,(cdr alt-expansion)))
+           ((case-lambda)
+            `(case-lambda (,formals ,(tree-il->scheme body))
+                          ,@(cdr alt-expansion)))
+           ((case-lambda*)
+            `(case-lambda* (,formals ,(tree-il->scheme body))
+                           ,@(cdr alt-expansion))))))
+      (else
+       (let* ((alt-expansion (and alternate (tree-il->scheme alternate)))
+              (nreq (length req))
+              (nopt (if opt (length opt) 0))
+              (restargs (if rest (list-ref gensyms (+ nreq nopt)) '()))
+              (reqargs (list-head gensyms nreq))
+              (optargs (if opt
+                           `(#:optional 
+                             ,@(map list
+                                    (list-head (list-tail gensyms nreq) nopt)
+                                    (map tree-il->scheme
+                                         (list-head inits nopt))))
+                           '()))
+              (kwargs (if kw
+                          `(#:key
+                            ,@(map list
+                                   (map caddr (cdr kw))
+                                   (map tree-il->scheme
+                                        (list-tail inits nopt))
+                                   (map car (cdr kw)))
+                            ,@(if (car kw)
+                                  '(#:allow-other-keys)
+                                  '()))
+                          '()))
+              (formals `(,@reqargs ,@optargs ,@kwargs . ,restargs)))
+         (if (not alt-expansion)
+             `(lambda* ,formals ,(tree-il->scheme body))
+             (case (car alt-expansion)
+               ((lambda lambda*)
+                `(case-lambda* (,formals ,(tree-il->scheme body))
+                               ,(cdr alt-expansion)))
+               ((case-lambda case-lambda*)
+                `(case-lambda* (,formals ,(tree-il->scheme body))
+                               ,@(cdr alt-expansion)))))))))
+
     ((<const> exp)
      (if (and (self-evaluating? exp) (not (vector? exp)))
          exp
