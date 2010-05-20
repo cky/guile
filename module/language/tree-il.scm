@@ -61,6 +61,9 @@
             post-order!
             pre-order!))
 
+(define (print-tree-il exp port)
+  (format port "#<tree-il ~a>" (unparse-tree-il exp)))
+
 (define-syntax borrow-core-vtables
   (lambda (x)
     (syntax-case x ()
@@ -84,6 +87,8 @@
                                   #`(define (#,pred x)
                                       (and (struct? x)
                                            (eq? (struct-vtable x) #,type)))
+                                  #`(struct-set! #,type vtable-index-printer
+                                                 print-tree-il)
                                   #`(define #,type
                                            (vector-ref %expanded-vtables #,n))
                                        out)))
@@ -121,7 +126,7 @@
   ;; (<letrec> names gensyms vals body)
   ;; (<dynlet> fluids vals body)
 
-(define-type (<tree-il> #:common-slots (src))
+(define-type (<tree-il> #:common-slots (src) #:printer print-tree-il)
   (<fix> names gensyms vals body)
   (<let-values> exp body)
   (<dynwind> winder body unwinder)
