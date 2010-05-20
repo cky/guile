@@ -460,31 +460,7 @@
     ;; the body of a lambda: anything, already expanded
     ;; else: lambda-case | #f
     (lambda (src req opt rest kw inits vars body else-case)
-      ;; FIXME!!!
-      (case (fluid-ref *mode*)
-        ((c)
-         ((@ (language tree-il) make-lambda-case)
-          src req opt rest kw inits vars body else-case))
-        (else
-         ;; Very much like the logic of (language tree-il compile-glil).
-         (let* ((nreq (length req))
-                (nopt (if opt (length opt) 0))
-                (rest-idx (and rest (+ nreq nopt)))
-                (allow-other-keys? (if kw (car kw) #f))
-                (kw-indices (map (lambda (x)
-                                   ;; (,key ,name ,var)
-                                   (cons (car x) (list-index vars (caddr x))))
-                                 (if kw (cdr kw) '())))
-                (nargs (apply max (+ nreq nopt (if rest 1 0))
-                              (map 1+ (map cdr kw-indices)))))
-           (or (= nargs
-                  (length vars)
-                  (+ nreq (length inits) (if rest 1 0)))
-               (error "something went wrong"
-                      req opt rest kw inits vars nreq nopt kw-indices nargs))
-           (make-lambda-case src req opt rest
-                             (and kw (cons allow-other-keys? kw-indices))
-                             inits vars body else-case))))))
+      (make-lambda-case src req opt rest kw inits vars body else-case)))
 
   (define build-primref
     (lambda (src name)

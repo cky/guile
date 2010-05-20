@@ -273,7 +273,7 @@ memoize (SCM exp, SCM env)
       {
         SCM req, rest, opt, kw, inits, vars, body, alt;
         SCM walk, minits, arity, new_env;
-        int nreq, nopt;
+        int nreq, nopt, ntotal;
 
         req = REF (exp, LAMBDA_CASE, REQ);
         rest = REF (exp, LAMBDA_CASE, REST);
@@ -286,6 +286,7 @@ memoize (SCM exp, SCM env)
 
         nreq = scm_ilength (req);
         nopt = scm_is_pair (opt) ? scm_ilength (opt) : 0;
+        ntotal = scm_ilength (vars);
 
         /* The vars are the gensyms, according to the divine plan. But we need
            to memoize the inits within their appropriate environment,
@@ -318,6 +319,22 @@ memoize (SCM exp, SCM env)
           abort ();
 
         minits = scm_reverse_x (minits, SCM_UNDEFINED);
+
+        if (scm_is_true (kw))
+          {
+            /* (aok? (kw name sym) ...) -> (aok? (kw . index) ...) */
+            SCM aok = CAR (kw), indices = SCM_EOL;
+            for (kw = CDR (kw); scm_is_pair (kw); kw = CDR (kw))
+              {
+                SCM k;
+                int idx;
+
+                k = CAR (CAR (kw));
+                idx = ntotal - 1 - lookup (CADDR (CAR (kw)), new_env);
+                indices = scm_acons (k, SCM_I_MAKINUM (idx), indices);
+              }
+            kw = scm_cons (aok, scm_reverse_x (indices, SCM_UNDEFINED));
+          }
 
         if (scm_is_false (alt) && scm_is_false (kw) && scm_is_false (opt))
           {

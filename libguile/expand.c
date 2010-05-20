@@ -693,7 +693,7 @@ static SCM
 expand_lambda_star_case (SCM clause, SCM alternate, SCM env)
 {
   SCM req, opt, kw, allow_other_keys, rest, formals, vars, body, tmp;
-  SCM inits, kw_indices;
+  SCM inits;
   int nreq, nopt;
 
   const long length = scm_ilength (clause);
@@ -807,14 +807,12 @@ expand_lambda_star_case (SCM clause, SCM alternate, SCM env)
       env = scm_acons (rest, CAR (vars), env);
     }
 
-  /* Build up kw inits, env, and kw-indices alist */
+  /* Build up kw inits, env, and kw-canon list */
   if (scm_is_null (kw))
     kw = SCM_BOOL_F;
   else
     {
-      int idx = nreq + nopt + (scm_is_true (rest) ? 1 : 0);
-
-      kw_indices = SCM_EOL;
+      SCM kw_canon = SCM_EOL;
       kw = scm_reverse_x (kw, SCM_UNDEFINED);
       for (tmp = kw; scm_is_pair (tmp); tmp = scm_cdr (tmp))
         {
@@ -842,13 +840,13 @@ expand_lambda_star_case (SCM clause, SCM alternate, SCM env)
           else
             syntax_error (s_bad_formals, CAR (clause), SCM_UNDEFINED);
 
-          kw_indices = scm_acons (k, SCM_I_MAKINUM (idx++), kw_indices);
           inits = scm_cons (expand (init, env), inits);
           vars = scm_cons (scm_gensym (SCM_UNDEFINED), vars);
+          kw_canon = scm_cons (scm_list_3 (k, sym, CAR (vars)), kw_canon);
           env = scm_acons (sym, CAR (vars), env);
         }
-      kw_indices = scm_reverse_x (kw_indices, SCM_UNDEFINED);
-      kw = scm_cons (allow_other_keys, kw_indices);
+      kw_canon = scm_reverse_x (kw_canon, SCM_UNDEFINED);
+      kw = scm_cons (allow_other_keys, kw_canon);
     }
 
   /* We should check for no duplicates, but given that psyntax does this
