@@ -294,8 +294,6 @@
              ...))))))
 
 (let ()
-  (define *mode* (make-fluid))
-
   (define-expansion-constructors)
 
 ;;; hooks to nonportable run-time helpers
@@ -2372,8 +2370,7 @@
                           '(eval)
                           (cadr rest)))
                 (mod (cons 'hygiene (module-name (current-module)))))
-            (with-fluids ((*mode* m))
-              (chi-top x null-env top-wrap m esew mod)))))
+            (chi-top x null-env top-wrap m esew mod))))
   
   (set! identifier?
         (lambda (x)
