@@ -1162,12 +1162,22 @@ expand_set_x (SCM expr, SCM env)
 
 
 
-SCM_DEFINE (scm_macroexpand, "macroexpand*", 1, 0, 0, 
+/* This is the boot expander. It is later replaced with psyntax's sc-expand. */
+SCM_DEFINE (scm_macroexpand, "macroexpand", 1, 0, 0, 
             (SCM exp),
 	    "Expand the expression @var{exp}.")
 #define FUNC_NAME s_scm_macroexpand
 {
   return expand (exp, scm_current_module ());
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_macroexpanded_p, "macroexpanded?", 1, 0, 0, 
+            (SCM exp),
+	    "Return @code{#t} if @var{exp} is an expanded expression.")
+#define FUNC_NAME s_scm_macroexpanded_p
+{
+  return scm_from_bool (SCM_EXPANDED_P (exp));
 }
 #undef FUNC_NAME
 

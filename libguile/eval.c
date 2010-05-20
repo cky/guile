@@ -37,6 +37,7 @@
 #include "libguile/deprecation.h"
 #include "libguile/dynwind.h"
 #include "libguile/eq.h"
+#include "libguile/expand.h"
 #include "libguile/feature.h"
 #include "libguile/fluids.h"
 #include "libguile/goops.h"
@@ -832,13 +833,9 @@ scm_for_each (SCM proc, SCM arg1, SCM args)
 static SCM
 scm_c_primitive_eval (SCM exp)
 {
-  if (!SCM_MEMOIZED_P (exp))
+  if (!SCM_EXPANDED_P (exp))
     exp = scm_call_1 (scm_current_module_transformer (), exp);
-  if (!SCM_MEMOIZED_P (exp))
-    scm_misc_error ("primitive-eval",
-                    "expander did not return a memoized expression",
-                    scm_list_1 (exp));
-  return eval (exp, SCM_EOL);
+  return eval (scm_memoize_expression (exp), SCM_EOL);
 }
 
 static SCM var_primitive_eval;

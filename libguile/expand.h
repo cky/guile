@@ -333,6 +333,7 @@ enum
 
 
 SCM_INTERNAL SCM scm_macroexpand (SCM exp);
+SCM_INTERNAL SCM scm_macroexpanded_p (SCM exp);
 
 SCM_INTERNAL void scm_init_expand (void);
 

@@ -404,8 +404,7 @@ SCM_DEFINE (scm_memoize_expression, "memoize-expression", 1, 0, 0,
 	    "Memoize the expression @var{exp}.")
 #define FUNC_NAME s_scm_memoize_expression
 {
-  if (!SCM_EXPANDED_P (exp))
-    exp = scm_macroexpand (exp);
+  SCM_ASSERT_TYPE (SCM_EXPANDED_P (exp), exp, 1, FUNC_NAME, "expanded");
   return memoize (exp, scm_current_module ());
 }
 #undef FUNC_NAME
@@ -803,8 +802,6 @@ scm_init_memoize ()
 
 #include "libguile/memoize.x"
 
-  scm_c_define ("macroexpand",
-                scm_variable_ref (scm_c_lookup ("memoize-expression")));
   list_of_guile = scm_list_1 (scm_from_locale_symbol ("guile"));
 }
 

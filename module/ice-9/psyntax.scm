@@ -307,11 +307,11 @@
 
     (define top-level-eval-hook
       (lambda (x mod)
-        (primitive-eval (memoize-expression x))))
+        (primitive-eval x)))
 
     (define local-eval-hook
       (lambda (x mod)
-        (primitive-eval (memoize-expression x))))
+        (primitive-eval x)))
     
     (define-syntax gensym-hook
       (syntax-rules ()
@@ -2397,10 +2397,7 @@
                           (cadr rest)))
                 (mod (cons 'hygiene (module-name (current-module)))))
             (with-fluids ((*mode* m))
-              (if (eq? m 'e)
-                  (memoize-expression
-                   (chi-top x null-env top-wrap m esew mod))
-                  (chi-top x null-env top-wrap m esew mod))))))
+              (chi-top x null-env top-wrap m esew mod)))))
   
   (set! identifier?
         (lambda (x)

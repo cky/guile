@@ -45,33 +45,10 @@
                                exc (compile 'exp #:to 'value
                                             #:env (current-module)))))))
 
-(define-syntax c&m&e
-  (syntax-rules (pass-if pass-if-exception)
-    ((_ (pass-if test-name exp))
-     (begin (pass-if (string-append test-name " (eval)")
-                     (primitive-eval 'exp))
-            (pass-if (string-append test-name " (memoized eval)")
-                     (primitive-eval (memoize-expression 'exp)))
-            (pass-if (string-append test-name " (compile)")
-                     (compile 'exp #:to 'value #:env (current-module)))))
-    ((_ (pass-if-exception test-name exc exp))
-     (begin (pass-if-exception (string-append test-name " (eval)")
-                               exc (primitive-eval 'exp))
-            (pass-if-exception (string-append test-name " (memoized eval)")
-                               exc (primitive-eval (memoize-expression 'exp)))
-            (pass-if-exception (string-append test-name " (compile)")
-                               exc (compile 'exp #:to 'value
-                                            #:env (current-module)))))))
-
 (define-syntax with-test-prefix/c&e
   (syntax-rules ()
     ((_ section-name exp ...)
      (with-test-prefix section-name (c&e exp) ...))))
-
-(define-syntax with-test-prefix/c&m&e
-  (syntax-rules ()
-    ((_ section-name exp ...)
-     (with-test-prefix section-name (c&m&e exp) ...))))
 
 (with-test-prefix/c&e "optional argument processing"
   (pass-if "local defines work with optional arguments"
@@ -197,7 +174,7 @@
       (equal? (f 1 2 3 #:x 'x #:z 'z)
               '(x #f z (1 2 3 #:x x #:z z))))))
 
-(with-test-prefix/c&m&e "lambda* inits"
+(with-test-prefix/c&e "lambda* inits"
   (pass-if "can bind lexicals within inits"
     (begin
       (define qux
