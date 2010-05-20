@@ -3383,7 +3383,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (syntax-case x ()
       ((_ spec ...)
        (with-syntax (((quoted-args ...) (quotify #'(spec ...))))
-         #'(eval-when (eval load compile)
+         #'(eval-when (eval load compile expand)
              (process-use-modules (list quoted-args ...))
              *unspecified*))))))
 
@@ -3391,7 +3391,7 @@ module '(ice-9 q) '(make-q q-length))}."
   (syntax-rules ()
     ((_ spec ...)
      (begin
-       (eval-when (eval load compile)
+       (eval-when (eval load compile expand)
          (issue-deprecation-warning
           "`use-syntax' is deprecated. Please contact guile-devel for more info."))
        (use-modules spec ...)))))
@@ -3483,7 +3483,7 @@ module '(ice-9 q) '(make-q q-length))}."
 (define-syntax export
   (syntax-rules ()
     ((_ name ...)
-     (eval-when (eval load compile)
+     (eval-when (eval load compile expand)
        (call-with-deferred-observers
         (lambda ()
           (module-export! (current-module) '(name ...))))))))
@@ -3491,7 +3491,7 @@ module '(ice-9 q) '(make-q q-length))}."
 (define-syntax re-export
   (syntax-rules ()
     ((_ name ...)
-     (eval-when (eval load compile)
+     (eval-when (eval load compile expand)
        (call-with-deferred-observers
         (lambda ()
           (module-re-export! (current-module) '(name ...))))))))
