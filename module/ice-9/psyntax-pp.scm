@@ -12387,448 +12387,439 @@
                     '(any any each-any . each-any))))
                #{e\ 3745}#)))))
       (set! macroexpand
-        (lambda (#{x\ 3768}# . #{rest\ 3769}#)
-          (let ((#{m\ 3775}#
-                  (if (null? #{rest\ 3769}#)
-                    'e
-                    (car #{rest\ 3769}#)))
-                (#{esew\ 3776}#
-                  (if (let ((#{t\ 3780}# (null? #{rest\ 3769}#)))
-                        (if #{t\ 3780}#
-                          #{t\ 3780}#
-                          (null? (cdr #{rest\ 3769}#))))
-                    '(eval)
-                    (cadr #{rest\ 3769}#)))
-                (#{mod\ 3777}#
-                  (cons 'hygiene
-                        (module-name (current-module)))))
-            (#{chi-top\ 390}#
-              #{x\ 3768}#
-              '()
-              '((top))
-              #{m\ 3775}#
-              #{esew\ 3776}#
-              #{mod\ 3777}#))))
+        (lambda*
+          (#{x\ 3768}#
+            #:optional
+            (#{m\ 3770}# (quote e))
+            (#{esew\ 3772}# (quote (eval))))
+          (#{chi-top\ 390}#
+            #{x\ 3768}#
+            '()
+            '((top))
+            #{m\ 3770}#
+            #{esew\ 3772}#
+            (cons 'hygiene
+                  (module-name (current-module))))))
       (set! identifier?
-        (lambda (#{x\ 3784}#)
-          (#{nonsymbol-id?\ 305}# #{x\ 3784}#)))
+        (lambda (#{x\ 3776}#)
+          (#{nonsymbol-id?\ 305}# #{x\ 3776}#)))
       (set! datum->syntax
-        (lambda (#{id\ 3786}# #{datum\ 3787}#)
+        (lambda (#{id\ 3778}# #{datum\ 3779}#)
           (#{make-syntax-object\ 269}#
-            #{datum\ 3787}#
-            (#{syntax-object-wrap\ 275}# #{id\ 3786}#)
+            #{datum\ 3779}#
+            (#{syntax-object-wrap\ 275}# #{id\ 3778}#)
             #f)))
       (set! syntax->datum
-        (lambda (#{x\ 3790}#)
-          (#{strip\ 418}# #{x\ 3790}# (quote (())))))
+        (lambda (#{x\ 3782}#)
+          (#{strip\ 418}# #{x\ 3782}# (quote (())))))
       (set! generate-temporaries
-        (lambda (#{ls\ 3793}#)
+        (lambda (#{ls\ 3785}#)
           (begin
-            (let ((#{x\ 3797}# #{ls\ 3793}#))
-              (if (not (list? #{x\ 3797}#))
+            (let ((#{x\ 3789}# #{ls\ 3785}#))
+              (if (not (list? #{x\ 3789}#))
                 (syntax-violation
                   'generate-temporaries
                   "invalid argument"
-                  #{x\ 3797}#)))
-            (map (lambda (#{x\ 3798}#)
+                  #{x\ 3789}#)))
+            (map (lambda (#{x\ 3790}#)
                    (#{wrap\ 376}# (gensym) (quote ((top))) #f))
-                 #{ls\ 3793}#))))
+                 #{ls\ 3785}#))))
       (set! free-identifier=?
-        (lambda (#{x\ 3802}# #{y\ 3803}#)
+        (lambda (#{x\ 3794}# #{y\ 3795}#)
           (begin
-            (let ((#{x\ 3808}# #{x\ 3802}#))
-              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3808}#))
+            (let ((#{x\ 3800}# #{x\ 3794}#))
+              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3800}#))
                 (syntax-violation
                   'free-identifier=?
                   "invalid argument"
-                  #{x\ 3808}#)))
-            (let ((#{x\ 3811}# #{y\ 3803}#))
-              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3811}#))
+                  #{x\ 3800}#)))
+            (let ((#{x\ 3803}# #{y\ 3795}#))
+              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3803}#))
                 (syntax-violation
                   'free-identifier=?
                   "invalid argument"
-                  #{x\ 3811}#)))
-            (#{free-id=?\ 366}# #{x\ 3802}# #{y\ 3803}#))))
+                  #{x\ 3803}#)))
+            (#{free-id=?\ 366}# #{x\ 3794}# #{y\ 3795}#))))
       (set! bound-identifier=?
-        (lambda (#{x\ 3812}# #{y\ 3813}#)
+        (lambda (#{x\ 3804}# #{y\ 3805}#)
           (begin
-            (let ((#{x\ 3818}# #{x\ 3812}#))
-              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3818}#))
+            (let ((#{x\ 3810}# #{x\ 3804}#))
+              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3810}#))
                 (syntax-violation
                   'bound-identifier=?
                   "invalid argument"
-                  #{x\ 3818}#)))
-            (let ((#{x\ 3821}# #{y\ 3813}#))
-              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3821}#))
+                  #{x\ 3810}#)))
+            (let ((#{x\ 3813}# #{y\ 3805}#))
+              (if (not (#{nonsymbol-id?\ 305}# #{x\ 3813}#))
                 (syntax-violation
                   'bound-identifier=?
                   "invalid argument"
-                  #{x\ 3821}#)))
-            (#{bound-id=?\ 368}# #{x\ 3812}# #{y\ 3813}#))))
+                  #{x\ 3813}#)))
+            (#{bound-id=?\ 368}# #{x\ 3804}# #{y\ 3805}#))))
       (set! syntax-violation
-        (lambda (#{who\ 3822}#
-                 #{message\ 3823}#
-                 #{form\ 3824}#
+        (lambda (#{who\ 3814}#
+                 #{message\ 3815}#
+                 #{form\ 3816}#
                  .
-                 #{subform\ 3825}#)
+                 #{subform\ 3817}#)
           (begin
-            (let ((#{x\ 3832}# #{who\ 3822}#))
-              (if (not ((lambda (#{x\ 3833}#)
-                          (let ((#{t\ 3837}# (not #{x\ 3833}#)))
-                            (if #{t\ 3837}#
-                              #{t\ 3837}#
-                              (let ((#{t\ 3840}# (string? #{x\ 3833}#)))
-                                (if #{t\ 3840}#
-                                  #{t\ 3840}#
-                                  (symbol? #{x\ 3833}#))))))
-                        #{x\ 3832}#))
+            (let ((#{x\ 3824}# #{who\ 3814}#))
+              (if (not ((lambda (#{x\ 3825}#)
+                          (let ((#{t\ 3829}# (not #{x\ 3825}#)))
+                            (if #{t\ 3829}#
+                              #{t\ 3829}#
+                              (let ((#{t\ 3832}# (string? #{x\ 3825}#)))
+                                (if #{t\ 3832}#
+                                  #{t\ 3832}#
+                                  (symbol? #{x\ 3825}#))))))
+                        #{x\ 3824}#))
                 (syntax-violation
                   'syntax-violation
                   "invalid argument"
-                  #{x\ 3832}#)))
-            (let ((#{x\ 3844}# #{message\ 3823}#))
-              (if (not (string? #{x\ 3844}#))
+                  #{x\ 3824}#)))
+            (let ((#{x\ 3836}# #{message\ 3815}#))
+              (if (not (string? #{x\ 3836}#))
                 (syntax-violation
                   'syntax-violation
                   "invalid argument"
-                  #{x\ 3844}#)))
+                  #{x\ 3836}#)))
             (scm-error
               'syntax-error
               'macroexpand
               (string-append
-                (if #{who\ 3822}# "~a: " "")
+                (if #{who\ 3814}# "~a: " "")
                 "~a "
-                (if (null? #{subform\ 3825}#)
+                (if (null? #{subform\ 3817}#)
                   "in ~a"
                   "in subform `~s' of `~s'"))
-              (let ((#{tail\ 3846}#
-                      (cons #{message\ 3823}#
-                            (map (lambda (#{x\ 3847}#)
-                                   (#{strip\ 418}# #{x\ 3847}# (quote (()))))
+              (let ((#{tail\ 3838}#
+                      (cons #{message\ 3815}#
+                            (map (lambda (#{x\ 3839}#)
+                                   (#{strip\ 418}# #{x\ 3839}# (quote (()))))
                                  (append
-                                   #{subform\ 3825}#
-                                   (list #{form\ 3824}#))))))
-                (if #{who\ 3822}#
-                  (cons #{who\ 3822}# #{tail\ 3846}#)
-                  #{tail\ 3846}#))
+                                   #{subform\ 3817}#
+                                   (list #{form\ 3816}#))))))
+                (if #{who\ 3814}#
+                  (cons #{who\ 3814}# #{tail\ 3838}#)
+                  #{tail\ 3838}#))
               #f))))
-      (letrec ((#{match\ 3863}#
-                 (lambda (#{e\ 3864}#
-                          #{p\ 3865}#
-                          #{w\ 3866}#
-                          #{r\ 3867}#
-                          #{mod\ 3868}#)
-                   (if (not #{r\ 3867}#)
+      (letrec ((#{match\ 3855}#
+                 (lambda (#{e\ 3856}#
+                          #{p\ 3857}#
+                          #{w\ 3858}#
+                          #{r\ 3859}#
+                          #{mod\ 3860}#)
+                   (if (not #{r\ 3859}#)
                      #f
-                     (if (eq? #{p\ 3865}# (quote any))
+                     (if (eq? #{p\ 3857}# (quote any))
                        (cons (#{wrap\ 376}#
-                               #{e\ 3864}#
-                               #{w\ 3866}#
-                               #{mod\ 3868}#)
-                             #{r\ 3867}#)
-                       (if (#{syntax-object?\ 271}# #{e\ 3864}#)
-                         (#{match*\ 3861}#
-                           (#{syntax-object-expression\ 273}# #{e\ 3864}#)
-                           #{p\ 3865}#
+                               #{e\ 3856}#
+                               #{w\ 3858}#
+                               #{mod\ 3860}#)
+                             #{r\ 3859}#)
+                       (if (#{syntax-object?\ 271}# #{e\ 3856}#)
+                         (#{match*\ 3853}#
+                           (#{syntax-object-expression\ 273}# #{e\ 3856}#)
+                           #{p\ 3857}#
                            (#{join-wraps\ 358}#
-                             #{w\ 3866}#
-                             (#{syntax-object-wrap\ 275}# #{e\ 3864}#))
-                           #{r\ 3867}#
-                           (#{syntax-object-module\ 277}# #{e\ 3864}#))
-                         (#{match*\ 3861}#
-                           #{e\ 3864}#
-                           #{p\ 3865}#
-                           #{w\ 3866}#
-                           #{r\ 3867}#
-                           #{mod\ 3868}#))))))
-               (#{match*\ 3861}#
-                 (lambda (#{e\ 3881}#
-                          #{p\ 3882}#
-                          #{w\ 3883}#
-                          #{r\ 3884}#
-                          #{mod\ 3885}#)
-                   (if (null? #{p\ 3882}#)
-                     (if (null? #{e\ 3881}#) #{r\ 3884}# #f)
-                     (if (pair? #{p\ 3882}#)
-                       (if (pair? #{e\ 3881}#)
-                         (#{match\ 3863}#
-                           (car #{e\ 3881}#)
-                           (car #{p\ 3882}#)
-                           #{w\ 3883}#
-                           (#{match\ 3863}#
-                             (cdr #{e\ 3881}#)
-                             (cdr #{p\ 3882}#)
-                             #{w\ 3883}#
-                             #{r\ 3884}#
-                             #{mod\ 3885}#)
-                           #{mod\ 3885}#)
+                             #{w\ 3858}#
+                             (#{syntax-object-wrap\ 275}# #{e\ 3856}#))
+                           #{r\ 3859}#
+                           (#{syntax-object-module\ 277}# #{e\ 3856}#))
+                         (#{match*\ 3853}#
+                           #{e\ 3856}#
+                           #{p\ 3857}#
+                           #{w\ 3858}#
+                           #{r\ 3859}#
+                           #{mod\ 3860}#))))))
+               (#{match*\ 3853}#
+                 (lambda (#{e\ 3873}#
+                          #{p\ 3874}#
+                          #{w\ 3875}#
+                          #{r\ 3876}#
+                          #{mod\ 3877}#)
+                   (if (null? #{p\ 3874}#)
+                     (if (null? #{e\ 3873}#) #{r\ 3876}# #f)
+                     (if (pair? #{p\ 3874}#)
+                       (if (pair? #{e\ 3873}#)
+                         (#{match\ 3855}#
+                           (car #{e\ 3873}#)
+                           (car #{p\ 3874}#)
+                           #{w\ 3875}#
+                           (#{match\ 3855}#
+                             (cdr #{e\ 3873}#)
+                             (cdr #{p\ 3874}#)
+                             #{w\ 3875}#
+                             #{r\ 3876}#
+                             #{mod\ 3877}#)
+                           #{mod\ 3877}#)
                          #f)
-                       (if (eq? #{p\ 3882}# (quote each-any))
-                         (let ((#{l\ 3902}#
-                                 (#{match-each-any\ 3855}#
-                                   #{e\ 3881}#
-                                   #{w\ 3883}#
-                                   #{mod\ 3885}#)))
-                           (if #{l\ 3902}#
-                             (cons #{l\ 3902}# #{r\ 3884}#)
+                       (if (eq? #{p\ 3874}# (quote each-any))
+                         (let ((#{l\ 3894}#
+                                 (#{match-each-any\ 3847}#
+                                   #{e\ 3873}#
+                                   #{w\ 3875}#
+                                   #{mod\ 3877}#)))
+                           (if #{l\ 3894}#
+                             (cons #{l\ 3894}# #{r\ 3876}#)
                              #f))
-                         (let ((#{atom-key\ 3908}# (vector-ref #{p\ 3882}# 0)))
-                           (if (memv #{atom-key\ 3908}# (quote (each)))
-                             (if (null? #{e\ 3881}#)
-                               (#{match-empty\ 3857}#
-                                 (vector-ref #{p\ 3882}# 1)
-                                 #{r\ 3884}#)
-                               (let ((#{l\ 3911}#
-                                       (#{match-each\ 3851}#
-                                         #{e\ 3881}#
-                                         (vector-ref #{p\ 3882}# 1)
-                                         #{w\ 3883}#
-                                         #{mod\ 3885}#)))
-                                 (if #{l\ 3911}#
-                                   (letrec ((#{collect\ 3916}#
-                                              (lambda (#{l\ 3917}#)
-                                                (if (null? (car #{l\ 3917}#))
-                                                  #{r\ 3884}#
-                                                  (cons (map car #{l\ 3917}#)
-                                                        (#{collect\ 3916}#
+                         (let ((#{atom-key\ 3900}# (vector-ref #{p\ 3874}# 0)))
+                           (if (memv #{atom-key\ 3900}# (quote (each)))
+                             (if (null? #{e\ 3873}#)
+                               (#{match-empty\ 3849}#
+                                 (vector-ref #{p\ 3874}# 1)
+                                 #{r\ 3876}#)
+                               (let ((#{l\ 3903}#
+                                       (#{match-each\ 3843}#
+                                         #{e\ 3873}#
+                                         (vector-ref #{p\ 3874}# 1)
+                                         #{w\ 3875}#
+                                         #{mod\ 3877}#)))
+                                 (if #{l\ 3903}#
+                                   (letrec ((#{collect\ 3908}#
+                                              (lambda (#{l\ 3909}#)
+                                                (if (null? (car #{l\ 3909}#))
+                                                  #{r\ 3876}#
+                                                  (cons (map car #{l\ 3909}#)
+                                                        (#{collect\ 3908}#
                                                           (map cdr
-                                                               #{l\ 3917}#)))))))
-                                     (#{collect\ 3916}# #{l\ 3911}#))
+                                                               #{l\ 3909}#)))))))
+                                     (#{collect\ 3908}# #{l\ 3903}#))
                                    #f)))
-                             (if (memv #{atom-key\ 3908}# (quote (each+)))
+                             (if (memv #{atom-key\ 3900}# (quote (each+)))
                                (call-with-values
                                  (lambda ()
-                                   (#{match-each+\ 3853}#
-                                     #{e\ 3881}#
-                                     (vector-ref #{p\ 3882}# 1)
-                                     (vector-ref #{p\ 3882}# 2)
-                                     (vector-ref #{p\ 3882}# 3)
-                                     #{w\ 3883}#
-                                     #{r\ 3884}#
-                                     #{mod\ 3885}#))
-                                 (lambda (#{xr*\ 3919}#
-                                          #{y-pat\ 3920}#
-                                          #{r\ 3921}#)
-                                   (if #{r\ 3921}#
-                                     (if (null? #{y-pat\ 3920}#)
-                                       (if (null? #{xr*\ 3919}#)
-                                         (#{match-empty\ 3857}#
-                                           (vector-ref #{p\ 3882}# 1)
-                                           #{r\ 3921}#)
-                                         (#{combine\ 3859}#
-                                           #{xr*\ 3919}#
-                                           #{r\ 3921}#))
+                                   (#{match-each+\ 3845}#
+                                     #{e\ 3873}#
+                                     (vector-ref #{p\ 3874}# 1)
+                                     (vector-ref #{p\ 3874}# 2)
+                                     (vector-ref #{p\ 3874}# 3)
+                                     #{w\ 3875}#
+                                     #{r\ 3876}#
+                                     #{mod\ 3877}#))
+                                 (lambda (#{xr*\ 3911}#
+                                          #{y-pat\ 3912}#
+                                          #{r\ 3913}#)
+                                   (if #{r\ 3913}#
+                                     (if (null? #{y-pat\ 3912}#)
+                                       (if (null? #{xr*\ 3911}#)
+                                         (#{match-empty\ 3849}#
+                                           (vector-ref #{p\ 3874}# 1)
+                                           #{r\ 3913}#)
+                                         (#{combine\ 3851}#
+                                           #{xr*\ 3911}#
+                                           #{r\ 3913}#))
                                        #f)
                                      #f)))
-                               (if (memv #{atom-key\ 3908}# (quote (free-id)))
-                                 (if (#{id?\ 307}# #{e\ 3881}#)
+                               (if (memv #{atom-key\ 3900}# (quote (free-id)))
+                                 (if (#{id?\ 307}# #{e\ 3873}#)
                                    (if (#{free-id=?\ 366}#
                                          (#{wrap\ 376}#
-                                           #{e\ 3881}#
-                                           #{w\ 3883}#
-                                           #{mod\ 3885}#)
-                                         (vector-ref #{p\ 3882}# 1))
-                                     #{r\ 3884}#
+                                           #{e\ 3873}#
+                                           #{w\ 3875}#
+                                           #{mod\ 3877}#)
+                                         (vector-ref #{p\ 3874}# 1))
+                                     #{r\ 3876}#
                                      #f)
                                    #f)
-                                 (if (memv #{atom-key\ 3908}# (quote (atom)))
+                                 (if (memv #{atom-key\ 3900}# (quote (atom)))
                                    (if (equal?
-                                         (vector-ref #{p\ 3882}# 1)
+                                         (vector-ref #{p\ 3874}# 1)
                                          (#{strip\ 418}#
-                                           #{e\ 3881}#
-                                           #{w\ 3883}#))
-                                     #{r\ 3884}#
+                                           #{e\ 3873}#
+                                           #{w\ 3875}#))
+                                     #{r\ 3876}#
                                      #f)
-                                   (if (memv #{atom-key\ 3908}#
+                                   (if (memv #{atom-key\ 3900}#
                                              '(vector))
-                                     (if (vector? #{e\ 3881}#)
-                                       (#{match\ 3863}#
-                                         (vector->list #{e\ 3881}#)
-                                         (vector-ref #{p\ 3882}# 1)
-                                         #{w\ 3883}#
-                                         #{r\ 3884}#
-                                         #{mod\ 3885}#)
+                                     (if (vector? #{e\ 3873}#)
+                                       (#{match\ 3855}#
+                                         (vector->list #{e\ 3873}#)
+                                         (vector-ref #{p\ 3874}# 1)
+                                         #{w\ 3875}#
+                                         #{r\ 3876}#
+                                         #{mod\ 3877}#)
                                        #f))))))))))))
-               (#{combine\ 3859}#
-                 (lambda (#{r*\ 3938}# #{r\ 3939}#)
-                   (if (null? (car #{r*\ 3938}#))
-                     #{r\ 3939}#
-                     (cons (map car #{r*\ 3938}#)
-                           (#{combine\ 3859}#
-                             (map cdr #{r*\ 3938}#)
-                             #{r\ 3939}#)))))
-               (#{match-empty\ 3857}#
-                 (lambda (#{p\ 3942}# #{r\ 3943}#)
-                   (if (null? #{p\ 3942}#)
-                     #{r\ 3943}#
-                     (if (eq? #{p\ 3942}# (quote any))
-                       (cons (quote ()) #{r\ 3943}#)
-                       (if (pair? #{p\ 3942}#)
-                         (#{match-empty\ 3857}#
-                           (car #{p\ 3942}#)
-                           (#{match-empty\ 3857}#
-                             (cdr #{p\ 3942}#)
-                             #{r\ 3943}#))
-                         (if (eq? #{p\ 3942}# (quote each-any))
-                           (cons (quote ()) #{r\ 3943}#)
-                           (let ((#{atom-key\ 3957}#
-                                   (vector-ref #{p\ 3942}# 0)))
-                             (if (memv #{atom-key\ 3957}# (quote (each)))
-                               (#{match-empty\ 3857}#
-                                 (vector-ref #{p\ 3942}# 1)
-                                 #{r\ 3943}#)
-                               (if (memv #{atom-key\ 3957}# (quote (each+)))
-                                 (#{match-empty\ 3857}#
-                                   (vector-ref #{p\ 3942}# 1)
-                                   (#{match-empty\ 3857}#
-                                     (reverse (vector-ref #{p\ 3942}# 2))
-                                     (#{match-empty\ 3857}#
-                                       (vector-ref #{p\ 3942}# 3)
-                                       #{r\ 3943}#)))
-                                 (if (memv #{atom-key\ 3957}#
+               (#{combine\ 3851}#
+                 (lambda (#{r*\ 3930}# #{r\ 3931}#)
+                   (if (null? (car #{r*\ 3930}#))
+                     #{r\ 3931}#
+                     (cons (map car #{r*\ 3930}#)
+                           (#{combine\ 3851}#
+                             (map cdr #{r*\ 3930}#)
+                             #{r\ 3931}#)))))
+               (#{match-empty\ 3849}#
+                 (lambda (#{p\ 3934}# #{r\ 3935}#)
+                   (if (null? #{p\ 3934}#)
+                     #{r\ 3935}#
+                     (if (eq? #{p\ 3934}# (quote any))
+                       (cons (quote ()) #{r\ 3935}#)
+                       (if (pair? #{p\ 3934}#)
+                         (#{match-empty\ 3849}#
+                           (car #{p\ 3934}#)
+                           (#{match-empty\ 3849}#
+                             (cdr #{p\ 3934}#)
+                             #{r\ 3935}#))
+                         (if (eq? #{p\ 3934}# (quote each-any))
+                           (cons (quote ()) #{r\ 3935}#)
+                           (let ((#{atom-key\ 3949}#
+                                   (vector-ref #{p\ 3934}# 0)))
+                             (if (memv #{atom-key\ 3949}# (quote (each)))
+                               (#{match-empty\ 3849}#
+                                 (vector-ref #{p\ 3934}# 1)
+                                 #{r\ 3935}#)
+                               (if (memv #{atom-key\ 3949}# (quote (each+)))
+                                 (#{match-empty\ 3849}#
+                                   (vector-ref #{p\ 3934}# 1)
+                                   (#{match-empty\ 3849}#
+                                     (reverse (vector-ref #{p\ 3934}# 2))
+                                     (#{match-empty\ 3849}#
+                                       (vector-ref #{p\ 3934}# 3)
+                                       #{r\ 3935}#)))
+                                 (if (memv #{atom-key\ 3949}#
                                            '(free-id atom))
-                                   #{r\ 3943}#
-                                   (if (memv #{atom-key\ 3957}#
+                                   #{r\ 3935}#
+                                   (if (memv #{atom-key\ 3949}#
                                              '(vector))
-                                     (#{match-empty\ 3857}#
-                                       (vector-ref #{p\ 3942}# 1)
-                                       #{r\ 3943}#))))))))))))
-               (#{match-each-any\ 3855}#
-                 (lambda (#{e\ 3962}# #{w\ 3963}# #{mod\ 3964}#)
-                   (if (pair? #{e\ 3962}#)
-                     (let ((#{l\ 3971}#
-                             (#{match-each-any\ 3855}#
-                               (cdr #{e\ 3962}#)
-                               #{w\ 3963}#
-                               #{mod\ 3964}#)))
-                       (if #{l\ 3971}#
+                                     (#{match-empty\ 3849}#
+                                       (vector-ref #{p\ 3934}# 1)
+                                       #{r\ 3935}#))))))))))))
+               (#{match-each-any\ 3847}#
+                 (lambda (#{e\ 3954}# #{w\ 3955}# #{mod\ 3956}#)
+                   (if (pair? #{e\ 3954}#)
+                     (let ((#{l\ 3963}#
+                             (#{match-each-any\ 3847}#
+                               (cdr #{e\ 3954}#)
+                               #{w\ 3955}#
+                               #{mod\ 3956}#)))
+                       (if #{l\ 3963}#
                          (cons (#{wrap\ 376}#
-                                 (car #{e\ 3962}#)
-                                 #{w\ 3963}#
-                                 #{mod\ 3964}#)
-                               #{l\ 3971}#)
+                                 (car #{e\ 3954}#)
+                                 #{w\ 3955}#
+                                 #{mod\ 3956}#)
+                               #{l\ 3963}#)
                          #f))
-                     (if (null? #{e\ 3962}#)
+                     (if (null? #{e\ 3954}#)
                        '()
-                       (if (#{syntax-object?\ 271}# #{e\ 3962}#)
-                         (#{match-each-any\ 3855}#
-                           (#{syntax-object-expression\ 273}# #{e\ 3962}#)
+                       (if (#{syntax-object?\ 271}# #{e\ 3954}#)
+                         (#{match-each-any\ 3847}#
+                           (#{syntax-object-expression\ 273}# #{e\ 3954}#)
                            (#{join-wraps\ 358}#
-                             #{w\ 3963}#
-                             (#{syntax-object-wrap\ 275}# #{e\ 3962}#))
-                           #{mod\ 3964}#)
+                             #{w\ 3955}#
+                             (#{syntax-object-wrap\ 275}# #{e\ 3954}#))
+                           #{mod\ 3956}#)
                          #f)))))
-               (#{match-each+\ 3853}#
-                 (lambda (#{e\ 3979}#
-                          #{x-pat\ 3980}#
-                          #{y-pat\ 3981}#
-                          #{z-pat\ 3982}#
-                          #{w\ 3983}#
-                          #{r\ 3984}#
-                          #{mod\ 3985}#)
-                   (letrec ((#{f\ 3996}#
-                              (lambda (#{e\ 3997}# #{w\ 3998}#)
-                                (if (pair? #{e\ 3997}#)
+               (#{match-each+\ 3845}#
+                 (lambda (#{e\ 3971}#
+                          #{x-pat\ 3972}#
+                          #{y-pat\ 3973}#
+                          #{z-pat\ 3974}#
+                          #{w\ 3975}#
+                          #{r\ 3976}#
+                          #{mod\ 3977}#)
+                   (letrec ((#{f\ 3988}#
+                              (lambda (#{e\ 3989}# #{w\ 3990}#)
+                                (if (pair? #{e\ 3989}#)
                                   (call-with-values
                                     (lambda ()
-                                      (#{f\ 3996}#
-                                        (cdr #{e\ 3997}#)
-                                        #{w\ 3998}#))
-                                    (lambda (#{xr*\ 4001}#
-                                             #{y-pat\ 4002}#
-                                             #{r\ 4003}#)
-                                      (if #{r\ 4003}#
-                                        (if (null? #{y-pat\ 4002}#)
-                                          (let ((#{xr\ 4008}#
-                                                  (#{match\ 3863}#
-                                                    (car #{e\ 3997}#)
-                                                    #{x-pat\ 3980}#
-                                                    #{w\ 3998}#
+                                      (#{f\ 3988}#
+                                        (cdr #{e\ 3989}#)
+                                        #{w\ 3990}#))
+                                    (lambda (#{xr*\ 3993}#
+                                             #{y-pat\ 3994}#
+                                             #{r\ 3995}#)
+                                      (if #{r\ 3995}#
+                                        (if (null? #{y-pat\ 3994}#)
+                                          (let ((#{xr\ 4000}#
+                                                  (#{match\ 3855}#
+                                                    (car #{e\ 3989}#)
+                                                    #{x-pat\ 3972}#
+                                                    #{w\ 3990}#
                                                     '()
-                                                    #{mod\ 3985}#)))
-                                            (if #{xr\ 4008}#
+                                                    #{mod\ 3977}#)))
+                                            (if #{xr\ 4000}#
                                               (values
-                                                (cons #{xr\ 4008}#
-                                                      #{xr*\ 4001}#)
-                                                #{y-pat\ 4002}#
-                                                #{r\ 4003}#)
+                                                (cons #{xr\ 4000}#
+                                                      #{xr*\ 3993}#)
+                                                #{y-pat\ 3994}#
+                                                #{r\ 3995}#)
                                               (values #f #f #f)))
                                           (values
                                             '()
-                                            (cdr #{y-pat\ 4002}#)
-                                            (#{match\ 3863}#
-                                              (car #{e\ 3997}#)
-                                              (car #{y-pat\ 4002}#)
-                                              #{w\ 3998}#
-                                              #{r\ 4003}#
-                                              #{mod\ 3985}#)))
+                                            (cdr #{y-pat\ 3994}#)
+                                            (#{match\ 3855}#
+                                              (car #{e\ 3989}#)
+                                              (car #{y-pat\ 3994}#)
+                                              #{w\ 3990}#
+                                              #{r\ 3995}#
+                                              #{mod\ 3977}#)))
                                         (values #f #f #f))))
-                                  (if (#{syntax-object?\ 271}# #{e\ 3997}#)
-                                    (#{f\ 3996}#
+                                  (if (#{syntax-object?\ 271}# #{e\ 3989}#)
+                                    (#{f\ 3988}#
                                       (#{syntax-object-expression\ 273}#
-                                        #{e\ 3997}#)
+                                        #{e\ 3989}#)
                                       (#{join-wraps\ 358}#
-                                        #{w\ 3998}#
-                                        #{e\ 3997}#))
+                                        #{w\ 3990}#
+                                        #{e\ 3989}#))
                                     (values
                                       '()
-                                      #{y-pat\ 3981}#
-                                      (#{match\ 3863}#
-                                        #{e\ 3997}#
-                                        #{z-pat\ 3982}#
-                                        #{w\ 3998}#
-                                        #{r\ 3984}#
-                                        #{mod\ 3985}#)))))))
-                     (#{f\ 3996}# #{e\ 3979}# #{w\ 3983}#))))
-               (#{match-each\ 3851}#
-                 (lambda (#{e\ 4012}#
-                          #{p\ 4013}#
-                          #{w\ 4014}#
-                          #{mod\ 4015}#)
-                   (if (pair? #{e\ 4012}#)
-                     (let ((#{first\ 4023}#
-                             (#{match\ 3863}#
-                               (car #{e\ 4012}#)
-                               #{p\ 4013}#
-                               #{w\ 4014}#
+                                      #{y-pat\ 3973}#
+                                      (#{match\ 3855}#
+                                        #{e\ 3989}#
+                                        #{z-pat\ 3974}#
+                                        #{w\ 3990}#
+                                        #{r\ 3976}#
+                                        #{mod\ 3977}#)))))))
+                     (#{f\ 3988}# #{e\ 3971}# #{w\ 3975}#))))
+               (#{match-each\ 3843}#
+                 (lambda (#{e\ 4004}#
+                          #{p\ 4005}#
+                          #{w\ 4006}#
+                          #{mod\ 4007}#)
+                   (if (pair? #{e\ 4004}#)
+                     (let ((#{first\ 4015}#
+                             (#{match\ 3855}#
+                               (car #{e\ 4004}#)
+                               #{p\ 4005}#
+                               #{w\ 4006}#
                                '()
-                               #{mod\ 4015}#)))
-                       (if #{first\ 4023}#
-                         (let ((#{rest\ 4027}#
-                                 (#{match-each\ 3851}#
-                                   (cdr #{e\ 4012}#)
-                                   #{p\ 4013}#
-                                   #{w\ 4014}#
-                                   #{mod\ 4015}#)))
-                           (if #{rest\ 4027}#
-                             (cons #{first\ 4023}# #{rest\ 4027}#)
+                               #{mod\ 4007}#)))
+                       (if #{first\ 4015}#
+                         (let ((#{rest\ 4019}#
+                                 (#{match-each\ 3843}#
+                                   (cdr #{e\ 4004}#)
+                                   #{p\ 4005}#
+                                   #{w\ 4006}#
+                                   #{mod\ 4007}#)))
+                           (if #{rest\ 4019}#
+                             (cons #{first\ 4015}# #{rest\ 4019}#)
                              #f))
                          #f))
-                     (if (null? #{e\ 4012}#)
+                     (if (null? #{e\ 4004}#)
                        '()
-                       (if (#{syntax-object?\ 271}# #{e\ 4012}#)
-                         (#{match-each\ 3851}#
-                           (#{syntax-object-expression\ 273}# #{e\ 4012}#)
-                           #{p\ 4013}#
+                       (if (#{syntax-object?\ 271}# #{e\ 4004}#)
+                         (#{match-each\ 3843}#
+                           (#{syntax-object-expression\ 273}# #{e\ 4004}#)
+                           #{p\ 4005}#
                            (#{join-wraps\ 358}#
-                             #{w\ 4014}#
-                             (#{syntax-object-wrap\ 275}# #{e\ 4012}#))
-                           (#{syntax-object-module\ 277}# #{e\ 4012}#))
+                             #{w\ 4006}#
+                             (#{syntax-object-wrap\ 275}# #{e\ 4004}#))
+                           (#{syntax-object-module\ 277}# #{e\ 4004}#))
                          #f))))))
         (set! $sc-dispatch
-          (lambda (#{e\ 4035}# #{p\ 4036}#)
-            (if (eq? #{p\ 4036}# (quote any))
-              (list #{e\ 4035}#)
-              (if (#{syntax-object?\ 271}# #{e\ 4035}#)
-                (#{match*\ 3861}#
-                  (#{syntax-object-expression\ 273}# #{e\ 4035}#)
-                  #{p\ 4036}#
-                  (#{syntax-object-wrap\ 275}# #{e\ 4035}#)
+          (lambda (#{e\ 4027}# #{p\ 4028}#)
+            (if (eq? #{p\ 4028}# (quote any))
+              (list #{e\ 4027}#)
+              (if (#{syntax-object?\ 271}# #{e\ 4027}#)
+                (#{match*\ 3853}#
+                  (#{syntax-object-expression\ 273}# #{e\ 4027}#)
+                  #{p\ 4028}#
+                  (#{syntax-object-wrap\ 275}# #{e\ 4027}#)
                   '()
-                  (#{syntax-object-module\ 277}# #{e\ 4035}#))
-                (#{match*\ 3861}#
-                  #{e\ 4035}#
-                  #{p\ 4036}#
+                  (#{syntax-object-module\ 277}# #{e\ 4027}#))
+                (#{match*\ 3853}#
+                  #{e\ 4027}#
+                  #{p\ 4028}#
                   '(())
                   '()
                   #f)))))))))
@@ -12837,50 +12828,50 @@
   (make-syntax-transformer
     'with-syntax
     'macro
-    (cons (lambda (#{x\ 4045}#)
-            ((lambda (#{tmp\ 4047}#)
-               ((lambda (#{tmp\ 4048}#)
-                  (if #{tmp\ 4048}#
-                    (apply (lambda (#{_\ 4052}# #{e1\ 4053}# #{e2\ 4054}#)
+    (cons (lambda (#{x\ 4037}#)
+            ((lambda (#{tmp\ 4039}#)
+               ((lambda (#{tmp\ 4040}#)
+                  (if #{tmp\ 4040}#
+                    (apply (lambda (#{_\ 4044}# #{e1\ 4045}# #{e2\ 4046}#)
                              (cons '#(syntax-object
                                       begin
                                       ((top)
                                        #(ribcage
                                          #(_ e1 e2)
                                          #((top) (top) (top))
-                                         #("i4049" "i4050" "i4051"))
+                                         #("i4041" "i4042" "i4043"))
                                        #(ribcage () () ())
-                                       #(ribcage #(x) #((top)) #("i4046")))
+                                       #(ribcage #(x) #((top)) #("i4038")))
                                       (hygiene guile))
-                                   (cons #{e1\ 4053}# #{e2\ 4054}#)))
-                           #{tmp\ 4048}#)
-                    ((lambda (#{tmp\ 4056}#)
-                       (if #{tmp\ 4056}#
-                         (apply (lambda (#{_\ 4062}#
-                                         #{out\ 4063}#
-                                         #{in\ 4064}#
-                                         #{e1\ 4065}#
-                                         #{e2\ 4066}#)
+                                   (cons #{e1\ 4045}# #{e2\ 4046}#)))
+                           #{tmp\ 4040}#)
+                    ((lambda (#{tmp\ 4048}#)
+                       (if #{tmp\ 4048}#
+                         (apply (lambda (#{_\ 4054}#
+                                         #{out\ 4055}#
+                                         #{in\ 4056}#
+                                         #{e1\ 4057}#
+                                         #{e2\ 4058}#)
                                   (list '#(syntax-object
                                            syntax-case
                                            ((top)
                                             #(ribcage
                                               #(_ out in e1 e2)
                                               #((top) (top) (top) (top) (top))
-                                              #("i4057"
-                                                "i4058"
-                                                "i4059"
-                                                "i4060"
-                                                "i4061"))
+                                              #("i4049"
+                                                "i4050"
+                                                "i4051"
+                                                "i4052"
+                                                "i4053"))
                                             #(ribcage () () ())
                                             #(ribcage
                                               #(x)
                                               #((top))
-                                              #("i4046")))
+                                              #("i4038")))
                                            (hygiene guile))
-                                        #{in\ 4064}#
+                                        #{in\ 4056}#
                                         '()
-                                        (list #{out\ 4063}#
+                                        (list #{out\ 4055}#
                                               (cons '#(syntax-object
                                                        begin
                                                        ((top)
@@ -12891,27 +12882,27 @@
                                                             (top)
                                                             (top)
                                                             (top))
-                                                          #("i4057"
-                                                            "i4058"
-                                                            "i4059"
-                                                            "i4060"
-                                                            "i4061"))
+                                                          #("i4049"
+                                                            "i4050"
+                                                            "i4051"
+                                                            "i4052"
+                                                            "i4053"))
                                                         #(ribcage () () ())
                                                         #(ribcage
                                                           #(x)
                                                           #((top))
-                                                          #("i4046")))
+                                                          #("i4038")))
                                                        (hygiene guile))
-                                                    (cons #{e1\ 4065}#
-                                                          #{e2\ 4066}#)))))
-                                #{tmp\ 4056}#)
-                         ((lambda (#{tmp\ 4068}#)
-                            (if #{tmp\ 4068}#
-                              (apply (lambda (#{_\ 4074}#
-                                              #{out\ 4075}#
-                                              #{in\ 4076}#
-                                              #{e1\ 4077}#
-                                              #{e2\ 4078}#)
+                                                    (cons #{e1\ 4057}#
+                                                          #{e2\ 4058}#)))))
+                                #{tmp\ 4048}#)
+                         ((lambda (#{tmp\ 4060}#)
+                            (if #{tmp\ 4060}#
+                              (apply (lambda (#{_\ 4066}#
+                                              #{out\ 4067}#
+                                              #{in\ 4068}#
+                                              #{e1\ 4069}#
+                                              #{e2\ 4070}#)
                                        (list '#(syntax-object
                                                 syntax-case
                                                 ((top)
@@ -12922,16 +12913,16 @@
                                                      (top)
                                                      (top)
                                                      (top))
-                                                   #("i4069"
-                                                     "i4070"
-                                                     "i4071"
-                                                     "i4072"
-                                                     "i4073"))
+                                                   #("i4061"
+                                                     "i4062"
+                                                     "i4063"
+                                                     "i4064"
+                                                     "i4065"))
                                                  #(ribcage () () ())
                                                  #(ribcage
                                                    #(x)
                                                    #((top))
-                                                   #("i4046")))
+                                                   #("i4038")))
                                                 (hygiene guile))
                                              (cons '#(syntax-object
                                                       list
@@ -12943,20 +12934,20 @@
                                                            (top)
                                                            (top)
                                                            (top))
-                                                         #("i4069"
-                                                           "i4070"
-                                                           "i4071"
-                                                           "i4072"
-                                                           "i4073"))
+                                                         #("i4061"
+                                                           "i4062"
+                                                           "i4063"
+                                                           "i4064"
+                                                           "i4065"))
                                                        #(ribcage () () ())
                                                        #(ribcage
                                                          #(x)
                                                          #((top))
-                                                         #("i4046")))
+                                                         #("i4038")))
                                                       (hygiene guile))
-                                                   #{in\ 4076}#)
+                                                   #{in\ 4068}#)
                                              '()
-                                             (list #{out\ 4075}#
+                                             (list #{out\ 4067}#
                                                    (cons '#(syntax-object
                                                             begin
                                                             ((top)
@@ -12971,11 +12962,11 @@
                                                                  (top)
                                                                  (top)
                                                                  (top))
-                                                               #("i4069"
-                                                                 "i4070"
-                                                                 "i4071"
-                                                                 "i4072"
-                                                                 "i4073"))
+                                                               #("i4061"
+                                                                 "i4062"
+                                                                 "i4063"
+                                                                 "i4064"
+                                                                 "i4065"))
                                                              #(ribcage
                                                                ()
                                                                ()
@@ -12983,53 +12974,53 @@
                                                              #(ribcage
                                                                #(x)
                                                                #((top))
-                                                               #("i4046")))
+                                                               #("i4038")))
                                                             (hygiene guile))
-                                                         (cons #{e1\ 4077}#
-                                                               #{e2\ 4078}#)))))
-                                     #{tmp\ 4068}#)
+                                                         (cons #{e1\ 4069}#
+                                                               #{e2\ 4070}#)))))
+                                     #{tmp\ 4060}#)
                               (syntax-violation
                                 #f
                                 "source expression failed to match any pattern"
-                                #{tmp\ 4047}#)))
+                                #{tmp\ 4039}#)))
                           ($sc-dispatch
-                            #{tmp\ 4047}#
+                            #{tmp\ 4039}#
                             '(any #(each (any any)) any . each-any)))))
                      ($sc-dispatch
-                       #{tmp\ 4047}#
+                       #{tmp\ 4039}#
                        '(any ((any any)) any . each-any)))))
                 ($sc-dispatch
-                  #{tmp\ 4047}#
+                  #{tmp\ 4039}#
                   '(any () any . each-any))))
-             #{x\ 4045}#))
+             #{x\ 4037}#))
           (module-name (current-module)))))
 
 (define syntax-rules
   (make-syntax-transformer
     'syntax-rules
     'macro
-    (cons (lambda (#{x\ 4082}#)
-            ((lambda (#{tmp\ 4084}#)
-               ((lambda (#{tmp\ 4085}#)
-                  (if #{tmp\ 4085}#
-                    (apply (lambda (#{_\ 4091}#
-                                    #{k\ 4092}#
-                                    #{keyword\ 4093}#
-                                    #{pattern\ 4094}#
-                                    #{template\ 4095}#)
+    (cons (lambda (#{x\ 4074}#)
+            ((lambda (#{tmp\ 4076}#)
+               ((lambda (#{tmp\ 4077}#)
+                  (if #{tmp\ 4077}#
+                    (apply (lambda (#{_\ 4083}#
+                                    #{k\ 4084}#
+                                    #{keyword\ 4085}#
+                                    #{pattern\ 4086}#
+                                    #{template\ 4087}#)
                              (list '#(syntax-object
                                       lambda
                                       ((top)
                                        #(ribcage
                                          #(_ k keyword pattern template)
                                          #((top) (top) (top) (top) (top))
-                                         #("i4086"
-                                           "i4087"
-                                           "i4088"
-                                           "i4089"
-                                           "i4090"))
+                                         #("i4078"
+                                           "i4079"
+                                           "i4080"
+                                           "i4081"
+                                           "i4082"))
                                        #(ribcage () () ())
-                                       #(ribcage #(x) #((top)) #("i4083")))
+                                       #(ribcage #(x) #((top)) #("i4075")))
                                       (hygiene guile))
                                    '(#(syntax-object
                                        x
@@ -13037,13 +13028,13 @@
                                         #(ribcage
                                           #(_ k keyword pattern template)
                                           #((top) (top) (top) (top) (top))
-                                          #("i4086"
-                                            "i4087"
-                                            "i4088"
-                                            "i4089"
-                                            "i4090"))
+                                          #("i4078"
+                                            "i4079"
+                                            "i4080"
+                                            "i4081"
+                                            "i4082"))
                                         #(ribcage () () ())
-                                        #(ribcage #(x) #((top)) #("i4083")))
+                                        #(ribcage #(x) #((top)) #("i4075")))
                                        (hygiene guile)))
                                    (vector
                                      '(#(syntax-object
@@ -13052,13 +13043,13 @@
                                           #(ribcage
                                             #(_ k keyword pattern template)
                                             #((top) (top) (top) (top) (top))
-                                            #("i4086"
-                                              "i4087"
-                                              "i4088"
-                                              "i4089"
-                                              "i4090"))
+                                            #("i4078"
+                                              "i4079"
+                                              "i4080"
+                                              "i4081"
+                                              "i4082"))
                                           #(ribcage () () ())
-                                          #(ribcage #(x) #((top)) #("i4083")))
+                                          #(ribcage #(x) #((top)) #("i4075")))
                                          (hygiene guile))
                                        .
                                        #(syntax-object
@@ -13067,13 +13058,13 @@
                                           #(ribcage
                                             #(_ k keyword pattern template)
                                             #((top) (top) (top) (top) (top))
-                                            #("i4086"
-                                              "i4087"
-                                              "i4088"
-                                              "i4089"
-                                              "i4090"))
+                                            #("i4078"
+                                              "i4079"
+                                              "i4080"
+                                              "i4081"
+                                              "i4082"))
                                           #(ribcage () () ())
-                                          #(ribcage #(x) #((top)) #("i4083")))
+                                          #(ribcage #(x) #((top)) #("i4075")))
                                          (hygiene guile)))
                                      (cons '#(syntax-object
                                               patterns
@@ -13089,34 +13080,34 @@
                                                    (top)
                                                    (top)
                                                    (top))
-                                                 #("i4086"
-                                                   "i4087"
-                                                   "i4088"
-                                                   "i4089"
-                                                   "i4090"))
+                                                 #("i4078"
+                                                   "i4079"
+                                                   "i4080"
+                                                   "i4081"
+                                                   "i4082"))
                                                #(ribcage () () ())
                                                #(ribcage
                                                  #(x)
                                                  #((top))
-                                                 #("i4083")))
+                                                 #("i4075")))
                                               (hygiene guile))
-                                           #{pattern\ 4094}#))
+                                           #{pattern\ 4086}#))
                                    (cons '#(syntax-object
                                             syntax-case
                                             ((top)
                                              #(ribcage
                                                #(_ k keyword pattern template)
                                                #((top) (top) (top) (top) (top))
-                                               #("i4086"
-                                                 "i4087"
-                                                 "i4088"
-                                                 "i4089"
-                                                 "i4090"))
+                                               #("i4078"
+                                                 "i4079"
+                                                 "i4080"
+                                                 "i4081"
+                                                 "i4082"))
                                              #(ribcage () () ())
                                              #(ribcage
                                                #(x)
                                                #((top))
-                                               #("i4083")))
+                                               #("i4075")))
                                             (hygiene guile))
                                          (cons '#(syntax-object
                                                   x
@@ -13132,20 +13123,20 @@
                                                        (top)
                                                        (top)
                                                        (top))
-                                                     #("i4086"
-                                                       "i4087"
-                                                       "i4088"
-                                                       "i4089"
-                                                       "i4090"))
+                                                     #("i4078"
+                                                       "i4079"
+                                                       "i4080"
+                                                       "i4081"
+                                                       "i4082"))
                                                    #(ribcage () () ())
                                                    #(ribcage
                                                      #(x)
                                                      #((top))
-                                                     #("i4083")))
+                                                     #("i4075")))
                                                   (hygiene guile))
-                                               (cons #{k\ 4092}#
-                                                     (map (lambda (#{tmp\ 4099}#
-                                                                   #{tmp\ 4098}#)
+                                               (cons #{k\ 4084}#
+                                                     (map (lambda (#{tmp\ 4091}#
+                                                                   #{tmp\ 4090}#)
                                                             (list (cons '#(syntax-object
                                                                            dummy
                                                                            ((top)
@@ -13160,11 +13151,11 @@
                                                                                 (top)
                                                                                 (top)
                                                                                 (top))
-                                                                              #("i4086"
-                                                                                "i4087"
-                                                                                "i4088"
-                                                                                "i4089"
-                                                                                "i4090"))
+                                                                              #("i4078"
+                                                                                "i4079"
+                                                                                "i4080"
+                                                                                "i4081"
+                                                                                "i4082"))
                                                                             #(ribcage
                                                                               ()
                                                                               ()
@@ -13172,10 +13163,10 @@
                                                                             #(ribcage
                                                                               #(x)
                                                                               #((top))
-                                                                              #("i4083")))
+                                                                              #("i4075")))
                                                                            (hygiene
                                                                              guile))
-                                                                        #{tmp\ 4098}#)
+                                                                        #{tmp\ 4090}#)
                                                                   (list '#(syntax-object
                                                                            syntax
                                                                            ((top)
@@ -13190,11 +13181,11 @@
                                                                                 (top)
                                                                                 (top)
                                                                                 (top))
-                                                                              #("i4086"
-                                                                                "i4087"
-                                                                                "i4088"
-                                                                                "i4089"
-                                                                                "i4090"))
+                                                                              #("i4078"
+                                                                                "i4079"
+                                                                                "i4080"
+                                                                                "i4081"
+                                                                                "i4082"))
                                                                             #(ribcage
                                                                               ()
                                                                               ()
@@ -13202,47 +13193,47 @@
                                                                             #(ribcage
                                                                               #(x)
                                                                               #((top))
-                                                                              #("i4083")))
+                                                                              #("i4075")))
                                                                            (hygiene
                                                                              guile))
-                                                                        #{tmp\ 4099}#)))
-                                                          #{template\ 4095}#
-                                                          #{pattern\ 4094}#))))))
-                           #{tmp\ 4085}#)
+                                                                        #{tmp\ 4091}#)))
+                                                          #{template\ 4087}#
+                                                          #{pattern\ 4086}#))))))
+                           #{tmp\ 4077}#)
                     (syntax-violation
                       #f
                       "source expression failed to match any pattern"
-                      #{tmp\ 4084}#)))
+                      #{tmp\ 4076}#)))
                 ($sc-dispatch
-                  #{tmp\ 4084}#
+                  #{tmp\ 4076}#
                   '(any each-any . #(each ((any . any) any))))))
-             #{x\ 4082}#))
+             #{x\ 4074}#))
           (module-name (current-module)))))
 
 (define let*
   (make-syntax-transformer
     'let*
     'macro
-    (cons (lambda (#{x\ 4100}#)
-            ((lambda (#{tmp\ 4102}#)
-               ((lambda (#{tmp\ 4103}#)
-                  (if (if #{tmp\ 4103}#
-                        (apply (lambda (#{let*\ 4109}#
-                                        #{x\ 4110}#
-                                        #{v\ 4111}#
-                                        #{e1\ 4112}#
-                                        #{e2\ 4113}#)
-                                 (and-map identifier? #{x\ 4110}#))
-                               #{tmp\ 4103}#)
+    (cons (lambda (#{x\ 4092}#)
+            ((lambda (#{tmp\ 4094}#)
+               ((lambda (#{tmp\ 4095}#)
+                  (if (if #{tmp\ 4095}#
+                        (apply (lambda (#{let*\ 4101}#
+                                        #{x\ 4102}#
+                                        #{v\ 4103}#
+                                        #{e1\ 4104}#
+                                        #{e2\ 4105}#)
+                                 (and-map identifier? #{x\ 4102}#))
+                               #{tmp\ 4095}#)
                         #f)
-                    (apply (lambda (#{let*\ 4120}#
-                                    #{x\ 4121}#
-                                    #{v\ 4122}#
-                                    #{e1\ 4123}#
-                                    #{e2\ 4124}#)
-                             (letrec ((#{f\ 4127}#
-                                        (lambda (#{bindings\ 4128}#)
-                                          (if (null? #{bindings\ 4128}#)
+                    (apply (lambda (#{let*\ 4112}#
+                                    #{x\ 4113}#
+                                    #{v\ 4114}#
+                                    #{e1\ 4115}#
+                                    #{e2\ 4116}#)
+                             (letrec ((#{f\ 4119}#
+                                        (lambda (#{bindings\ 4120}#)
+                                          (if (null? #{bindings\ 4120}#)
                                             (cons '#(syntax-object
                                                      let
                                                      ((top)
@@ -13250,7 +13241,7 @@
                                                       #(ribcage
                                                         #(f bindings)
                                                         #((top) (top))
-                                                        #("i4125" "i4126"))
+                                                        #("i4117" "i4118"))
                                                       #(ribcage
                                                         #(let* x v e1 e2)
                                                         #((top)
@@ -13258,25 +13249,25 @@
                                                           (top)
                                                           (top)
                                                           (top))
-                                                        #("i4115"
-                                                          "i4116"
-                                                          "i4117"
-                                                          "i4118"
-                                                          "i4119"))
+                                                        #("i4107"
+                                                          "i4108"
+                                                          "i4109"
+                                                          "i4110"
+                                                          "i4111"))
                                                       #(ribcage () () ())
                                                       #(ribcage
                                                         #(x)
                                                         #((top))
-                                                        #("i4101")))
+                                                        #("i4093")))
                                                      (hygiene guile))
                                                   (cons '()
-                                                        (cons #{e1\ 4123}#
-                                                              #{e2\ 4124}#)))
-                                            ((lambda (#{tmp\ 4133}#)
-                                               ((lambda (#{tmp\ 4134}#)
-                                                  (if #{tmp\ 4134}#
-                                                    (apply (lambda (#{body\ 4137}#
-                                                                    #{binding\ 4138}#)
+                                                        (cons #{e1\ 4115}#
+                                                              #{e2\ 4116}#)))
+                                            ((lambda (#{tmp\ 4125}#)
+                                               ((lambda (#{tmp\ 4126}#)
+                                                  (if #{tmp\ 4126}#
+                                                    (apply (lambda (#{body\ 4129}#
+                                                                    #{binding\ 4130}#)
                                                              (list '#(syntax-object
                                                                       let
                                                                       ((top)
@@ -13285,8 +13276,8 @@
                                                                            binding)
                                                                          #((top)
                                                                            (top))
-                                                                         #("i4135"
-                                                                           "i4136"))
+                                                                         #("i4127"
+                                                                           "i4128"))
                                                                        #(ribcage
                                                                          ()
                                                                          ()
@@ -13296,8 +13287,8 @@
                                                                            bindings)
                                                                          #((top)
                                                                            (top))
-                                                                         #("i4125"
-                                                                           "i4126"))
+                                                                         #("i4117"
+                                                                           "i4118"))
                                                                        #(ribcage
                                                                          #(let*
                                                                            x
@@ -13309,11 +13300,11 @@
                                                                            (top)
                                                                            (top)
                                                                            (top))
-                                                                         #("i4115"
-                                                                           "i4116"
-                                                                           "i4117"
-                                                                           "i4118"
-                                                                           "i4119"))
+                                                                         #("i4107"
+                                                                           "i4108"
+                                                                           "i4109"
+                                                                           "i4110"
+                                                                           "i4111"))
                                                                        #(ribcage
                                                                          ()
                                                                          ()
@@ -13321,57 +13312,57 @@
                                                                        #(ribcage
                                                                          #(x)
                                                                          #((top))
-                                                                         #("i4101")))
+                                                                         #("i4093")))
                                                                       (hygiene
                                                                         guile))
-                                                                   (list #{binding\ 4138}#)
-                                                                   #{body\ 4137}#))
-                                                           #{tmp\ 4134}#)
+                                                                   (list #{binding\ 4130}#)
+                                                                   #{body\ 4129}#))
+                                                           #{tmp\ 4126}#)
                                                     (syntax-violation
                                                       #f
                                                       "source expression failed to match any pattern"
-                                                      #{tmp\ 4133}#)))
+                                                      #{tmp\ 4125}#)))
                                                 ($sc-dispatch
-                                                  #{tmp\ 4133}#
+                                                  #{tmp\ 4125}#
                                                   '(any any))))
-                                             (list (#{f\ 4127}#
-                                                     (cdr #{bindings\ 4128}#))
-                                                   (car #{bindings\ 4128}#)))))))
-                               (#{f\ 4127}#
-                                 (map list #{x\ 4121}# #{v\ 4122}#))))
-                           #{tmp\ 4103}#)
+                                             (list (#{f\ 4119}#
+                                                     (cdr #{bindings\ 4120}#))
+                                                   (car #{bindings\ 4120}#)))))))
+                               (#{f\ 4119}#
+                                 (map list #{x\ 4113}# #{v\ 4114}#))))
+                           #{tmp\ 4095}#)
                     (syntax-violation
                       #f
                       "source expression failed to match any pattern"
-                      #{tmp\ 4102}#)))
+                      #{tmp\ 4094}#)))
                 ($sc-dispatch
-                  #{tmp\ 4102}#
+                  #{tmp\ 4094}#
                   '(any #(each (any any)) any . each-any))))
-             #{x\ 4100}#))
+             #{x\ 4092}#))
           (module-name (current-module)))))
 
 (define do
   (make-syntax-transformer
     'do
     'macro
-    (cons (lambda (#{orig-x\ 4139}#)
-            ((lambda (#{tmp\ 4141}#)
-               ((lambda (#{tmp\ 4142}#)
-                  (if #{tmp\ 4142}#
-                    (apply (lambda (#{_\ 4150}#
-                                    #{var\ 4151}#
-                                    #{init\ 4152}#
-                                    #{step\ 4153}#
-                                    #{e0\ 4154}#
-                                    #{e1\ 4155}#
-                                    #{c\ 4156}#)
-                             ((lambda (#{tmp\ 4158}#)
-                                ((lambda (#{tmp\ 4159}#)
-                                   (if #{tmp\ 4159}#
-                                     (apply (lambda (#{step\ 4161}#)
-                                              ((lambda (#{tmp\ 4162}#)
-                                                 ((lambda (#{tmp\ 4163}#)
-                                                    (if #{tmp\ 4163}#
+    (cons (lambda (#{orig-x\ 4131}#)
+            ((lambda (#{tmp\ 4133}#)
+               ((lambda (#{tmp\ 4134}#)
+                  (if #{tmp\ 4134}#
+                    (apply (lambda (#{_\ 4142}#
+                                    #{var\ 4143}#
+                                    #{init\ 4144}#
+                                    #{step\ 4145}#
+                                    #{e0\ 4146}#
+                                    #{e1\ 4147}#
+                                    #{c\ 4148}#)
+                             ((lambda (#{tmp\ 4150}#)
+                                ((lambda (#{tmp\ 4151}#)
+                                   (if #{tmp\ 4151}#
+                                     (apply (lambda (#{step\ 4153}#)
+                                              ((lambda (#{tmp\ 4154}#)
+                                                 ((lambda (#{tmp\ 4155}#)
+                                                    (if #{tmp\ 4155}#
                                                       (apply (lambda ()
                                                                (list '#(syntax-object
                                                                         let
@@ -13379,7 +13370,7 @@
                                                                          #(ribcage
                                                                            #(step)
                                                                            #((top))
-                                                                           #("i4160"))
+                                                                           #("i4152"))
                                                                          #(ribcage
                                                                            #(_
                                                                              var
@@ -13395,13 +13386,13 @@
                                                                              (top)
                                                                              (top)
                                                                              (top))
-                                                                           #("i4143"
-                                                                             "i4144"
-                                                                             "i4145"
-                                                                             "i4146"
-                                                                             "i4147"
-                                                                             "i4148"
-                                                                             "i4149"))
+                                                                           #("i4135"
+                                                                             "i4136"
+                                                                             "i4137"
+                                                                             "i4138"
+                                                                             "i4139"
+                                                                             "i4140"
+                                                                             "i4141"))
                                                                          #(ribcage
                                                                            ()
                                                                            ()
@@ -13409,7 +13400,7 @@
                                                                          #(ribcage
                                                                            #(orig-x)
                                                                            #((top))
-                                                                           #("i4140")))
+                                                                           #("i4132")))
                                                                         (hygiene
                                                                           guile))
                                                                      '#(syntax-object
@@ -13418,7 +13409,7 @@
                                                                          #(ribcage
                                                                            #(step)
                                                                            #((top))
-                                                                           #("i4160"))
+                                                                           #("i4152"))
                                                                          #(ribcage
                                                                            #(_
                                                                              var
@@ -13434,13 +13425,13 @@
                                                                              (top)
                                                                              (top)
                                                                              (top))
-                                                                           #("i4143"
-                                                                             "i4144"
-                                                                             "i4145"
-                                                                             "i4146"
-                                                                             "i4147"
-                                                                             "i4148"
-                                                                             "i4149"))
+                                                                           #("i4135"
+                                                                             "i4136"
+                                                                             "i4137"
+                                                                             "i4138"
+                                                                             "i4139"
+                                                                             "i4140"
+                                                                             "i4141"))
                                                                          #(ribcage
                                                                            ()
                                                                            ()
@@ -13448,19 +13439,19 @@
                                                                          #(ribcage
                                                                            #(orig-x)
                                                                            #((top))
-                                                                           #("i4140")))
+                                                                           #("i4132")))
                                                                         (hygiene
                                                                           guile))
                                                                      (map list
-                                                                          #{var\ 4151}#
-                                                                          #{init\ 4152}#)
+                                                                          #{var\ 4143}#
+                                                                          #{init\ 4144}#)
                                                                      (list '#(syntax-object
                                                                               if
                                                                               ((top)
                                                                                #(ribcage
                                                                                  #(step)
                                                                                  #((top))
-                                                                                 #("i4160"))
+                                                                                 #("i4152"))
                                                                                #(ribcage
                                                                                  #(_
                                                                                    var
@@ -13476,13 +13467,13 @@
                                                                                    (top)
                                                                                    (top)
                                                                                    (top))
-                                                                                 #("i4143"
-                                                                                   "i4144"
-                                                                                   "i4145"
-                                                                                   "i4146"
-                                                                                   "i4147"
-                                                                                   "i4148"
-                                                                                   "i4149"))
+                                                                                 #("i4135"
+                                                                                   "i4136"
+                                                                                   "i4137"
+                                                                                   "i4138"
+                                                                                   "i4139"
+                                                                                   "i4140"
+                                                                                   "i4141"))
                                                                                #(ribcage
                                                                                  ()
                                                                                  ()
@@ -13490,7 +13481,7 @@
                                                                                #(ribcage
                                                                                  #(orig-x)
                                                                                  #((top))
-                                                                                 #("i4140")))
+                                                                                 #("i4132")))
                                                                               (hygiene
                                                                                 guile))
                                                                            (list '#(syntax-object
@@ -13499,7 +13490,7 @@
                                                                                      #(ribcage
                                                                                        #(step)
                                                                                        #((top))
-                                                                                       #("i4160"))
+                                                                                       #("i4152"))
                                                                                      #(ribcage
                                                                                        #(_
                                                                                          var
@@ -13515,13 +13506,13 @@
                                                                                          (top)
                                                                                          (top)
                                                                                          (top))
-                                                                                       #("i4143"
-                                                                                         "i4144"
-                                                                                         "i4145"
-                                                                                         "i4146"
-                                                                                         "i4147"
-                                                                                         "i4148"
-                                                                                         "i4149"))
+                                                                                       #("i4135"
+                                                                                         "i4136"
+                                                                                         "i4137"
+                                                                                         "i4138"
+                                                                                         "i4139"
+                                                                                         "i4140"
+                                                                                         "i4141"))
                                                                                      #(ribcage
                                                                                        ()
                                                                                        ()
@@ -13529,17 +13520,17 @@
                                                                                      #(ribcage
                                                                                        #(orig-x)
                                                                                        #((top))
-                                                                                       #("i4140")))
+                                                                                       #("i4132")))
                                                                                     (hygiene
                                                                                       guile))
-                                                                                 #{e0\ 4154}#)
+                                                                                 #{e0\ 4146}#)
                                                                            (cons '#(syntax-object
                                                                                     begin
                                                                                     ((top)
                                                                                      #(ribcage
                                                                                        #(step)
                                                                                        #((top))
-                                                                                       #("i4160"))
+                                                                                       #("i4152"))
                                                                                      #(ribcage
                                                                                        #(_
                                                                                          var
@@ -13555,13 +13546,13 @@
                                                                                          (top)
                                                                                          (top)
                                                                                          (top))
-                                                                                       #("i4143"
-                                                                                         "i4144"
-                                                                                         "i4145"
-                                                                                         "i4146"
-                                                                                         "i4147"
-                                                                                         "i4148"
-                                                                                         "i4149"))
+                                                                                       #("i4135"
+                                                                                         "i4136"
+                                                                                         "i4137"
+                                                                                         "i4138"
+                                                                                         "i4139"
+                                                                                         "i4140"
+                                                                                         "i4141"))
                                                                                      #(ribcage
                                                                                        ()
                                                                                        ()
@@ -13569,18 +13560,18 @@
                                                                                      #(ribcage
                                                                                        #(orig-x)
                                                                                        #((top))
-                                                                                       #("i4140")))
+                                                                                       #("i4132")))
                                                                                     (hygiene
                                                                                       guile))
                                                                                  (append
-                                                                                   #{c\ 4156}#
+                                                                                   #{c\ 4148}#
                                                                                    (list (cons '#(syntax-object
                                                                                                   doloop
                                                                                                   ((top)
                                                                                                    #(ribcage
                                                                                                      #(step)
                                                                                                      #((top))
-                                                                                                     #("i4160"))
+                                                                                                     #("i4152"))
                                                                                                    #(ribcage
                                                                                                      #(_
                                                                                                        var
@@ -13596,13 +13587,13 @@
                                                                                                        (top)
                                                                                                        (top)
                                                                                                        (top))
-                                                                                                     #("i4143"
-                                                                                                       "i4144"
-                                                                                                       "i4145"
-                                                                                                       "i4146"
-                                                                                                       "i4147"
-                                                                                                       "i4148"
-                                                                                                       "i4149"))
+                                                                                                     #("i4135"
+                                                                                                       "i4136"
+                                                                                                       "i4137"
+                                                                                                       "i4138"
+                                                                                                       "i4139"
+                                                                                                       "i4140"
+                                                                                                       "i4141"))
                                                                                                    #(ribcage
                                                                                                      ()
                                                                                                      ()
@@ -13610,15 +13601,15 @@
                                                                                                    #(ribcage
                                                                                                      #(orig-x)
                                                                                                      #((top))
-                                                                                                     #("i4140")))
+                                                                                                     #("i4132")))
                                                                                                   (hygiene
                                                                                                     guile))
-                                                                                               #{step\ 4161}#)))))))
-                                                             #{tmp\ 4163}#)
-                                                      ((lambda (#{tmp\ 4168}#)
-                                                         (if #{tmp\ 4168}#
-                                                           (apply (lambda (#{e1\ 4171}#
-                                                                           #{e2\ 4172}#)
+                                                                                               #{step\ 4153}#)))))))
+                                                             #{tmp\ 4155}#)
+                                                      ((lambda (#{tmp\ 4160}#)
+                                                         (if #{tmp\ 4160}#
+                                                           (apply (lambda (#{e1\ 4163}#
+                                                                           #{e2\ 4164}#)
                                                                     (list '#(syntax-object
                                                                              let
                                                                              ((top)
@@ -13627,12 +13618,12 @@
                                                                                   e2)
                                                                                 #((top)
                                                                                   (top))
-                                                                                #("i4169"
-                                                                                  "i4170"))
+                                                                                #("i4161"
+                                                                                  "i4162"))
                                                                               #(ribcage
                                                                                 #(step)
                                                                                 #((top))
-                                                                                #("i4160"))
+                                                                                #("i4152"))
                                                                               #(ribcage
                                                                                 #(_
                                                                                   var
@@ -13648,13 +13639,13 @@
                                                                                   (top)
                                                                                   (top)
                                                                                   (top))
-                                                                                #("i4143"
-                                                                                  "i4144"
-                                                                                  "i4145"
-                                                                                  "i4146"
-                                                                                  "i4147"
-                                                                                  "i4148"
-                                                                                  "i4149"))
+                                                                                #("i4135"
+                                                                                  "i4136"
+                                                                                  "i4137"
+                                                                                  "i4138"
+                                                                                  "i4139"
+                                                                                  "i4140"
+                                                                                  "i4141"))
                                                                               #(ribcage
                                                                                 ()
                                                                                 ()
@@ -13662,7 +13653,7 @@
                                                                               #(ribcage
                                                                                 #(orig-x)
                                                                                 #((top))
-                                                                                #("i4140")))
+                                                                                #("i4132")))
                                                                              (hygiene
                                                                                guile))
                                                                           '#(syntax-object
@@ -13673,12 +13664,12 @@
                                                                                   e2)
                                                                                 #((top)
                                                                                   (top))
-                                                                                #("i4169"
-                                                                                  "i4170"))
+                                                                                #("i4161"
+                                                                                  "i4162"))
                                                                               #(ribcage
                                                                                 #(step)
                                                                                 #((top))
-                                                                                #("i4160"))
+                                                                                #("i4152"))
                                                                               #(ribcage
                                                                                 #(_
                                                                                   var
@@ -13694,13 +13685,13 @@
                                                                                   (top)
                                                                                   (top)
                                                                                   (top))
-                                                                                #("i4143"
-                                                                                  "i4144"
-                                                                                  "i4145"
-                                                                                  "i4146"
-                                                                                  "i4147"
-                                                                                  "i4148"
-                                                                                  "i4149"))
+                                                                                #("i4135"
+                                                                                  "i4136"
+                                                                                  "i4137"
+                                                                                  "i4138"
+                                                                                  "i4139"
+                                                                                  "i4140"
+                                                                                  "i4141"))
                                                                               #(ribcage
                                                                                 ()
                                                                                 ()
@@ -13708,12 +13699,12 @@
                                                                               #(ribcage
                                                                                 #(orig-x)
                                                                                 #((top))
-                                                                                #("i4140")))
+                                                                                #("i4132")))
                                                                              (hygiene
                                                                                guile))
                                                                           (map list
-                                                                               #{var\ 4151}#
-                                                                               #{init\ 4152}#)
+                                                                               #{var\ 4143}#
+                                                                               #{init\ 4144}#)
                                                                           (list '#(syntax-object
                                                                                    if
                                                                                    ((top)
@@ -13722,12 +13713,12 @@
                                                                                         e2)
                                                                                       #((top)
                                                                                         (top))
-                                                                                      #("i4169"
-                                                                                        "i4170"))
+                                                                                      #("i4161"
+                                                                                        "i4162"))
                                                                                     #(ribcage
                                                                                       #(step)
                                                                                       #((top))
-                                                                                      #("i4160"))
+                                                                                      #("i4152"))
                                                                                     #(ribcage
                                                                                       #(_
                                                                                         var
@@ -13743,13 +13734,13 @@
                                                                                         (top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4143"
-                                                                                        "i4144"
-                                                                                        "i4145"
-                                                                                        "i4146"
-                                                                                        "i4147"
-                                                                                        "i4148"
-                                                                                        "i4149"))
+                                                                                      #("i4135"
+                                                                                        "i4136"
+                                                                                        "i4137"
+                                                                                        "i4138"
+                                                                                        "i4139"
+                                                                                        "i4140"
+                                                                                        "i4141"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -13757,10 +13748,10 @@
                                                                                     #(ribcage
                                                                                       #(orig-x)
                                                                                       #((top))
-                                                                                      #("i4140")))
+                                                                                      #("i4132")))
                                                                                    (hygiene
                                                                                      guile))
-                                                                                #{e0\ 4154}#
+                                                                                #{e0\ 4146}#
                                                                                 (cons '#(syntax-object
                                                                                          begin
                                                                                          ((top)
@@ -13769,12 +13760,12 @@
                                                                                               e2)
                                                                                             #((top)
                                                                                               (top))
-                                                                                            #("i4169"
-                                                                                              "i4170"))
+                                                                                            #("i4161"
+                                                                                              "i4162"))
                                                                                           #(ribcage
                                                                                             #(step)
                                                                                             #((top))
-                                                                                            #("i4160"))
+                                                                                            #("i4152"))
                                                                                           #(ribcage
                                                                                             #(_
                                                                                               var
@@ -13790,13 +13781,13 @@
                                                                                               (top)
                                                                                               (top)
                                                                                               (top))
-                                                                                            #("i4143"
-                                                                                              "i4144"
-                                                                                              "i4145"
-                                                                                              "i4146"
-                                                                                              "i4147"
-                                                                                              "i4148"
-                                                                                              "i4149"))
+                                                                                            #("i4135"
+                                                                                              "i4136"
+                                                                                              "i4137"
+                                                                                              "i4138"
+                                                                                              "i4139"
+                                                                                              "i4140"
+                                                                                              "i4141"))
                                                                                           #(ribcage
                                                                                             ()
                                                                                             ()
@@ -13804,11 +13795,11 @@
                                                                                           #(ribcage
                                                                                             #(orig-x)
                                                                                             #((top))
-                                                                                            #("i4140")))
+                                                                                            #("i4132")))
                                                                                          (hygiene
                                                                                            guile))
-                                                                                      (cons #{e1\ 4171}#
-                                                                                            #{e2\ 4172}#))
+                                                                                      (cons #{e1\ 4163}#
+                                                                                            #{e2\ 4164}#))
                                                                                 (cons '#(syntax-object
                                                                                          begin
                                                                                          ((top)
@@ -13817,12 +13808,12 @@
                                                                                               e2)
                                                                                             #((top)
                                                                                               (top))
-                                                                                            #("i4169"
-                                                                                              "i4170"))
+                                                                                            #("i4161"
+                                                                                              "i4162"))
                                                                                           #(ribcage
                                                                                             #(step)
                                                                                             #((top))
-                                                                                            #("i4160"))
+                                                                                            #("i4152"))
                                                                                           #(ribcage
                                                                                             #(_
                                                                                               var
@@ -13838,13 +13829,13 @@
                                                                                               (top)
                                                                                               (top)
                                                                                               (top))
-                                                                                            #("i4143"
-                                                                                              "i4144"
-                                                                                              "i4145"
-                                                                                              "i4146"
-                                                                                              "i4147"
-                                                                                              "i4148"
-                                                                                              "i4149"))
+                                                                                            #("i4135"
+                                                                                              "i4136"
+                                                                                              "i4137"
+                                                                                              "i4138"
+                                                                                              "i4139"
+                                                                                              "i4140"
+                                                                                              "i4141"))
                                                                                           #(ribcage
                                                                                             ()
                                                                                             ()
@@ -13852,11 +13843,11 @@
                                                                                           #(ribcage
                                                                                             #(orig-x)
                                                                                             #((top))
-                                                                                            #("i4140")))
+                                                                                            #("i4132")))
                                                                                          (hygiene
                                                                                            guile))
                                                                                       (append
-                                                                                        #{c\ 4156}#
+                                                                                        #{c\ 4148}#
                                                                                         (list (cons '#(syntax-object
                                                                                                        doloop
                                                                                                        ((top)
@@ -13865,12 +13856,12 @@
                                                                                                             e2)
                                                                                                           #((top)
                                                                                                             (top))
-                                                                                                          #("i4169"
-                                                                                                            "i4170"))
+                                                                                                          #("i4161"
+                                                                                                            "i4162"))
                                                                                                         #(ribcage
                                                                                                           #(step)
                                                                                                           #((top))
-                                                                                                          #("i4160"))
+                                                                                                          #("i4152"))
                                                                                                         #(ribcage
                                                                                                           #(_
                                                                                                             var
@@ -13886,13 +13877,13 @@
                                                                                                             (top)
                                                                                                             (top)
                                                                                                             (top))
-                                                                                                          #("i4143"
-                                                                                                            "i4144"
-                                                                                                            "i4145"
-                                                                                                            "i4146"
-                                                                                                            "i4147"
-                                                                                                            "i4148"
-                                                                                                            "i4149"))
+                                                                                                          #("i4135"
+                                                                                                            "i4136"
+                                                                                                            "i4137"
+                                                                                                            "i4138"
+                                                                                                            "i4139"
+                                                                                                            "i4140"
+                                                                                                            "i4141"))
                                                                                                         #(ribcage
                                                                                                           ()
                                                                                                           ()
@@ -13900,107 +13891,107 @@
                                                                                                         #(ribcage
                                                                                                           #(orig-x)
                                                                                                           #((top))
-                                                                                                          #("i4140")))
+                                                                                                          #("i4132")))
                                                                                                        (hygiene
                                                                                                          guile))
-                                                                                                    #{step\ 4161}#)))))))
-                                                                  #{tmp\ 4168}#)
+                                                                                                    #{step\ 4153}#)))))))
+                                                                  #{tmp\ 4160}#)
                                                            (syntax-violation
                                                              #f
                                                              "source expression failed to match any pattern"
-                                                             #{tmp\ 4162}#)))
+                                                             #{tmp\ 4154}#)))
                                                        ($sc-dispatch
-                                                         #{tmp\ 4162}#
+                                                         #{tmp\ 4154}#
                                                          '(any . each-any)))))
                                                   ($sc-dispatch
-                                                    #{tmp\ 4162}#
+                                                    #{tmp\ 4154}#
                                                     '())))
-                                               #{e1\ 4155}#))
-                                            #{tmp\ 4159}#)
+                                               #{e1\ 4147}#))
+                                            #{tmp\ 4151}#)
                                      (syntax-violation
                                        #f
                                        "source expression failed to match any pattern"
-                                       #{tmp\ 4158}#)))
+                                       #{tmp\ 4150}#)))
                                  ($sc-dispatch
-                                   #{tmp\ 4158}#
+                                   #{tmp\ 4150}#
                                    'each-any)))
-                              (map (lambda (#{v\ 4179}# #{s\ 4180}#)
-                                     ((lambda (#{tmp\ 4183}#)
-                                        ((lambda (#{tmp\ 4184}#)
-                                           (if #{tmp\ 4184}#
-                                             (apply (lambda () #{v\ 4179}#)
-                                                    #{tmp\ 4184}#)
-                                             ((lambda (#{tmp\ 4185}#)
-                                                (if #{tmp\ 4185}#
-                                                  (apply (lambda (#{e\ 4187}#)
-                                                           #{e\ 4187}#)
-                                                         #{tmp\ 4185}#)
-                                                  ((lambda (#{_\ 4189}#)
+                              (map (lambda (#{v\ 4171}# #{s\ 4172}#)
+                                     ((lambda (#{tmp\ 4175}#)
+                                        ((lambda (#{tmp\ 4176}#)
+                                           (if #{tmp\ 4176}#
+                                             (apply (lambda () #{v\ 4171}#)
+                                                    #{tmp\ 4176}#)
+                                             ((lambda (#{tmp\ 4177}#)
+                                                (if #{tmp\ 4177}#
+                                                  (apply (lambda (#{e\ 4179}#)
+                                                           #{e\ 4179}#)
+                                                         #{tmp\ 4177}#)
+                                                  ((lambda (#{_\ 4181}#)
                                                      (syntax-violation
                                                        'do
                                                        "bad step expression"
-                                                       #{orig-x\ 4139}#
-                                                       #{s\ 4180}#))
-                                                   #{tmp\ 4183}#)))
+                                                       #{orig-x\ 4131}#
+                                                       #{s\ 4172}#))
+                                                   #{tmp\ 4175}#)))
                                               ($sc-dispatch
-                                                #{tmp\ 4183}#
+                                                #{tmp\ 4175}#
                                                 '(any)))))
                                          ($sc-dispatch
-                                           #{tmp\ 4183}#
+                                           #{tmp\ 4175}#
                                            '())))
-                                      #{s\ 4180}#))
-                                   #{var\ 4151}#
-                                   #{step\ 4153}#)))
-                           #{tmp\ 4142}#)
+                                      #{s\ 4172}#))
+                                   #{var\ 4143}#
+                                   #{step\ 4145}#)))
+                           #{tmp\ 4134}#)
                     (syntax-violation
                       #f
                       "source expression failed to match any pattern"
-                      #{tmp\ 4141}#)))
+                      #{tmp\ 4133}#)))
                 ($sc-dispatch
-                  #{tmp\ 4141}#
+                  #{tmp\ 4133}#
                   '(any #(each (any any . any))
                         (any . each-any)
                         .
                         each-any))))
-             #{orig-x\ 4139}#))
+             #{orig-x\ 4131}#))
           (module-name (current-module)))))
 
 (define quasiquote
   (make-syntax-transformer
     'quasiquote
     'macro
-    (cons (letrec ((#{quasicons\ 4196}#
-                     (lambda (#{x\ 4200}# #{y\ 4201}#)
-                       ((lambda (#{tmp\ 4205}#)
-                          ((lambda (#{tmp\ 4206}#)
-                             (if #{tmp\ 4206}#
-                               (apply (lambda (#{x\ 4209}# #{y\ 4210}#)
-                                        ((lambda (#{tmp\ 4211}#)
-                                           ((lambda (#{tmp\ 4212}#)
-                                              (if #{tmp\ 4212}#
-                                                (apply (lambda (#{dy\ 4214}#)
-                                                         ((lambda (#{tmp\ 4215}#)
-                                                            ((lambda (#{tmp\ 4216}#)
-                                                               (if #{tmp\ 4216}#
-                                                                 (apply (lambda (#{dx\ 4218}#)
+    (cons (letrec ((#{quasicons\ 4188}#
+                     (lambda (#{x\ 4192}# #{y\ 4193}#)
+                       ((lambda (#{tmp\ 4197}#)
+                          ((lambda (#{tmp\ 4198}#)
+                             (if #{tmp\ 4198}#
+                               (apply (lambda (#{x\ 4201}# #{y\ 4202}#)
+                                        ((lambda (#{tmp\ 4203}#)
+                                           ((lambda (#{tmp\ 4204}#)
+                                              (if #{tmp\ 4204}#
+                                                (apply (lambda (#{dy\ 4206}#)
+                                                         ((lambda (#{tmp\ 4207}#)
+                                                            ((lambda (#{tmp\ 4208}#)
+                                                               (if #{tmp\ 4208}#
+                                                                 (apply (lambda (#{dx\ 4210}#)
                                                                           (list '#(syntax-object
                                                                                    quote
                                                                                    ((top)
                                                                                     #(ribcage
                                                                                       #(dx)
                                                                                       #((top))
-                                                                                      #("i4217"))
+                                                                                      #("i4209"))
                                                                                     #(ribcage
                                                                                       #(dy)
                                                                                       #((top))
-                                                                                      #("i4213"))
+                                                                                      #("i4205"))
                                                                                     #(ribcage
                                                                                       #(x
                                                                                         y)
                                                                                       #((top)
                                                                                         (top))
-                                                                                      #("i4207"
-                                                                                        "i4208"))
+                                                                                      #("i4199"
+                                                                                        "i4200"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -14014,8 +14005,8 @@
                                                                                         y)
                                                                                       #((top)
                                                                                         (top))
-                                                                                      #("i4202"
-                                                                                        "i4203"))
+                                                                                      #("i4194"
+                                                                                        "i4195"))
                                                                                     #(ribcage
                                                                                       #(quasicons
                                                                                         quasiappend
@@ -14025,35 +14016,35 @@
                                                                                         (top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4192"
-                                                                                        "i4193"
-                                                                                        "i4194"
-                                                                                        "i4195")))
+                                                                                      #("i4184"
+                                                                                        "i4185"
+                                                                                        "i4186"
+                                                                                        "i4187")))
                                                                                    (hygiene
                                                                                      guile))
-                                                                                (cons #{dx\ 4218}#
-                                                                                      #{dy\ 4214}#)))
-                                                                        #{tmp\ 4216}#)
-                                                                 ((lambda (#{_\ 4220}#)
-                                                                    (if (null? #{dy\ 4214}#)
+                                                                                (cons #{dx\ 4210}#
+                                                                                      #{dy\ 4206}#)))
+                                                                        #{tmp\ 4208}#)
+                                                                 ((lambda (#{_\ 4212}#)
+                                                                    (if (null? #{dy\ 4206}#)
                                                                       (list '#(syntax-object
                                                                                list
                                                                                ((top)
                                                                                 #(ribcage
                                                                                   #(_)
                                                                                   #((top))
-                                                                                  #("i4219"))
+                                                                                  #("i4211"))
                                                                                 #(ribcage
                                                                                   #(dy)
                                                                                   #((top))
-                                                                                  #("i4213"))
+                                                                                  #("i4205"))
                                                                                 #(ribcage
                                                                                   #(x
                                                                                     y)
                                                                                   #((top)
                                                                                     (top))
-                                                                                  #("i4207"
-                                                                                    "i4208"))
+                                                                                  #("i4199"
+                                                                                    "i4200"))
                                                                                 #(ribcage
                                                                                   ()
                                                                                   ()
@@ -14067,8 +14058,8 @@
                                                                                     y)
                                                                                   #((top)
                                                                                     (top))
-                                                                                  #("i4202"
-                                                                                    "i4203"))
+                                                                                  #("i4194"
+                                                                                    "i4195"))
                                                                                 #(ribcage
                                                                                   #(quasicons
                                                                                     quasiappend
@@ -14078,31 +14069,31 @@
                                                                                     (top)
                                                                                     (top)
                                                                                     (top))
-                                                                                  #("i4192"
-                                                                                    "i4193"
-                                                                                    "i4194"
-                                                                                    "i4195")))
+                                                                                  #("i4184"
+                                                                                    "i4185"
+                                                                                    "i4186"
+                                                                                    "i4187")))
                                                                                (hygiene
                                                                                  guile))
-                                                                            #{x\ 4209}#)
+                                                                            #{x\ 4201}#)
                                                                       (list '#(syntax-object
                                                                                cons
                                                                                ((top)
                                                                                 #(ribcage
                                                                                   #(_)
                                                                                   #((top))
-                                                                                  #("i4219"))
+                                                                                  #("i4211"))
                                                                                 #(ribcage
                                                                                   #(dy)
                                                                                   #((top))
-                                                                                  #("i4213"))
+                                                                                  #("i4205"))
                                                                                 #(ribcage
                                                                                   #(x
                                                                                     y)
                                                                                   #((top)
                                                                                     (top))
-                                                                                  #("i4207"
-                                                                                    "i4208"))
+                                                                                  #("i4199"
+                                                                                    "i4200"))
                                                                                 #(ribcage
                                                                                   ()
                                                                                   ()
@@ -14116,8 +14107,8 @@
                                                                                     y)
                                                                                   #((top)
                                                                                     (top))
-                                                                                  #("i4202"
-                                                                                    "i4203"))
+                                                                                  #("i4194"
+                                                                                    "i4195"))
                                                                                 #(ribcage
                                                                                   #(quasicons
                                                                                     quasiappend
@@ -14127,17 +14118,17 @@
                                                                                     (top)
                                                                                     (top)
                                                                                     (top))
-                                                                                  #("i4192"
-                                                                                    "i4193"
-                                                                                    "i4194"
-                                                                                    "i4195")))
+                                                                                  #("i4184"
+                                                                                    "i4185"
+                                                                                    "i4186"
+                                                                                    "i4187")))
                                                                                (hygiene
                                                                                  guile))
-                                                                            #{x\ 4209}#
-                                                                            #{y\ 4210}#)))
-                                                                  #{tmp\ 4215}#)))
+                                                                            #{x\ 4201}#
+                                                                            #{y\ 4202}#)))
+                                                                  #{tmp\ 4207}#)))
                                                              ($sc-dispatch
-                                                               #{tmp\ 4215}#
+                                                               #{tmp\ 4207}#
                                                                '(#(free-id
                                                                    #(syntax-object
                                                                      quote
@@ -14145,13 +14136,13 @@
                                                                       #(ribcage
                                                                         #(dy)
                                                                         #((top))
-                                                                        #("i4213"))
+                                                                        #("i4205"))
                                                                       #(ribcage
                                                                         #(x y)
                                                                         #((top)
                                                                           (top))
-                                                                        #("i4207"
-                                                                          "i4208"))
+                                                                        #("i4199"
+                                                                          "i4200"))
                                                                       #(ribcage
                                                                         ()
                                                                         ()
@@ -14164,8 +14155,8 @@
                                                                         #(x y)
                                                                         #((top)
                                                                           (top))
-                                                                        #("i4202"
-                                                                          "i4203"))
+                                                                        #("i4194"
+                                                                          "i4195"))
                                                                       #(ribcage
                                                                         #(quasicons
                                                                           quasiappend
@@ -14175,32 +14166,32 @@
                                                                           (top)
                                                                           (top)
                                                                           (top))
-                                                                        #("i4192"
-                                                                          "i4193"
-                                                                          "i4194"
-                                                                          "i4195")))
+                                                                        #("i4184"
+                                                                          "i4185"
+                                                                          "i4186"
+                                                                          "i4187")))
                                                                      (hygiene
                                                                        guile)))
                                                                  any))))
-                                                          #{x\ 4209}#))
-                                                       #{tmp\ 4212}#)
-                                                ((lambda (#{tmp\ 4221}#)
-                                                   (if #{tmp\ 4221}#
-                                                     (apply (lambda (#{stuff\ 4223}#)
+                                                          #{x\ 4201}#))
+                                                       #{tmp\ 4204}#)
+                                                ((lambda (#{tmp\ 4213}#)
+                                                   (if #{tmp\ 4213}#
+                                                     (apply (lambda (#{stuff\ 4215}#)
                                                               (cons '#(syntax-object
                                                                        list
                                                                        ((top)
                                                                         #(ribcage
                                                                           #(stuff)
                                                                           #((top))
-                                                                          #("i4222"))
+                                                                          #("i4214"))
                                                                         #(ribcage
                                                                           #(x
                                                                             y)
                                                                           #((top)
                                                                             (top))
-                                                                          #("i4207"
-                                                                            "i4208"))
+                                                                          #("i4199"
+                                                                            "i4200"))
                                                                         #(ribcage
                                                                           ()
                                                                           ()
@@ -14214,8 +14205,8 @@
                                                                             y)
                                                                           #((top)
                                                                             (top))
-                                                                          #("i4202"
-                                                                            "i4203"))
+                                                                          #("i4194"
+                                                                            "i4195"))
                                                                         #(ribcage
                                                                           #(quasicons
                                                                             quasiappend
@@ -14225,29 +14216,29 @@
                                                                             (top)
                                                                             (top)
                                                                             (top))
-                                                                          #("i4192"
-                                                                            "i4193"
-                                                                            "i4194"
-                                                                            "i4195")))
+                                                                          #("i4184"
+                                                                            "i4185"
+                                                                            "i4186"
+                                                                            "i4187")))
                                                                        (hygiene
                                                                          guile))
-                                                                    (cons #{x\ 4209}#
-                                                                          #{stuff\ 4223}#)))
-                                                            #{tmp\ 4221}#)
-                                                     ((lambda (#{else\ 4225}#)
+                                                                    (cons #{x\ 4201}#
+                                                                          #{stuff\ 4215}#)))
+                                                            #{tmp\ 4213}#)
+                                                     ((lambda (#{else\ 4217}#)
                                                         (list '#(syntax-object
                                                                  cons
                                                                  ((top)
                                                                   #(ribcage
                                                                     #(else)
                                                                     #((top))
-                                                                    #("i4224"))
+                                                                    #("i4216"))
                                                                   #(ribcage
                                                                     #(x y)
                                                                     #((top)
                                                                       (top))
-                                                                    #("i4207"
-                                                                      "i4208"))
+                                                                    #("i4199"
+                                                                      "i4200"))
                                                                   #(ribcage
                                                                     ()
                                                                     ()
@@ -14260,8 +14251,8 @@
                                                                     #(x y)
                                                                     #((top)
                                                                       (top))
-                                                                    #("i4202"
-                                                                      "i4203"))
+                                                                    #("i4194"
+                                                                      "i4195"))
                                                                   #(ribcage
                                                                     #(quasicons
                                                                       quasiappend
@@ -14271,17 +14262,17 @@
                                                                       (top)
                                                                       (top)
                                                                       (top))
-                                                                    #("i4192"
-                                                                      "i4193"
-                                                                      "i4194"
-                                                                      "i4195")))
+                                                                    #("i4184"
+                                                                      "i4185"
+                                                                      "i4186"
+                                                                      "i4187")))
                                                                  (hygiene
                                                                    guile))
-                                                              #{x\ 4209}#
-                                                              #{y\ 4210}#))
-                                                      #{tmp\ 4211}#)))
+                                                              #{x\ 4201}#
+                                                              #{y\ 4202}#))
+                                                      #{tmp\ 4203}#)))
                                                  ($sc-dispatch
-                                                   #{tmp\ 4211}#
+                                                   #{tmp\ 4203}#
                                                    '(#(free-id
                                                        #(syntax-object
                                                          list
@@ -14289,13 +14280,13 @@
                                                           #(ribcage
                                                             #(x y)
                                                             #((top) (top))
-                                                            #("i4207" "i4208"))
+                                                            #("i4199" "i4200"))
                                                           #(ribcage () () ())
                                                           #(ribcage () () ())
                                                           #(ribcage
                                                             #(x y)
                                                             #((top) (top))
-                                                            #("i4202" "i4203"))
+                                                            #("i4194" "i4195"))
                                                           #(ribcage
                                                             #(quasicons
                                                               quasiappend
@@ -14305,15 +14296,15 @@
                                                               (top)
                                                               (top)
                                                               (top))
-                                                            #("i4192"
-                                                              "i4193"
-                                                              "i4194"
-                                                              "i4195")))
+                                                            #("i4184"
+                                                              "i4185"
+                                                              "i4186"
+                                                              "i4187")))
                                                          (hygiene guile)))
                                                      .
                                                      any)))))
                                             ($sc-dispatch
-                                              #{tmp\ 4211}#
+                                              #{tmp\ 4203}#
                                               '(#(free-id
                                                   #(syntax-object
                                                     quote
@@ -14321,13 +14312,13 @@
                                                      #(ribcage
                                                        #(x y)
                                                        #((top) (top))
-                                                       #("i4207" "i4208"))
+                                                       #("i4199" "i4200"))
                                                      #(ribcage () () ())
                                                      #(ribcage () () ())
                                                      #(ribcage
                                                        #(x y)
                                                        #((top) (top))
-                                                       #("i4202" "i4203"))
+                                                       #("i4194" "i4195"))
                                                      #(ribcage
                                                        #(quasicons
                                                          quasiappend
@@ -14337,44 +14328,44 @@
                                                          (top)
                                                          (top)
                                                          (top))
-                                                       #("i4192"
-                                                         "i4193"
-                                                         "i4194"
-                                                         "i4195")))
+                                                       #("i4184"
+                                                         "i4185"
+                                                         "i4186"
+                                                         "i4187")))
                                                     (hygiene guile)))
                                                 any))))
-                                         #{y\ 4210}#))
-                                      #{tmp\ 4206}#)
+                                         #{y\ 4202}#))
+                                      #{tmp\ 4198}#)
                                (syntax-violation
                                  #f
                                  "source expression failed to match any pattern"
-                                 #{tmp\ 4205}#)))
-                           ($sc-dispatch #{tmp\ 4205}# (quote (any any)))))
-                        (list #{x\ 4200}# #{y\ 4201}#))))
-                   (#{quasiappend\ 4197}#
-                     (lambda (#{x\ 4226}# #{y\ 4227}#)
-                       ((lambda (#{tmp\ 4231}#)
-                          ((lambda (#{tmp\ 4232}#)
-                             (if #{tmp\ 4232}#
-                               (apply (lambda (#{x\ 4235}# #{y\ 4236}#)
-                                        ((lambda (#{tmp\ 4237}#)
-                                           ((lambda (#{tmp\ 4238}#)
-                                              (if #{tmp\ 4238}#
-                                                (apply (lambda () #{x\ 4235}#)
-                                                       #{tmp\ 4238}#)
-                                                ((lambda (#{_\ 4240}#)
+                                 #{tmp\ 4197}#)))
+                           ($sc-dispatch #{tmp\ 4197}# (quote (any any)))))
+                        (list #{x\ 4192}# #{y\ 4193}#))))
+                   (#{quasiappend\ 4189}#
+                     (lambda (#{x\ 4218}# #{y\ 4219}#)
+                       ((lambda (#{tmp\ 4223}#)
+                          ((lambda (#{tmp\ 4224}#)
+                             (if #{tmp\ 4224}#
+                               (apply (lambda (#{x\ 4227}# #{y\ 4228}#)
+                                        ((lambda (#{tmp\ 4229}#)
+                                           ((lambda (#{tmp\ 4230}#)
+                                              (if #{tmp\ 4230}#
+                                                (apply (lambda () #{x\ 4227}#)
+                                                       #{tmp\ 4230}#)
+                                                ((lambda (#{_\ 4232}#)
                                                    (list '#(syntax-object
                                                             append
                                                             ((top)
                                                              #(ribcage
                                                                #(_)
                                                                #((top))
-                                                               #("i4239"))
+                                                               #("i4231"))
                                                              #(ribcage
                                                                #(x y)
                                                                #((top) (top))
-                                                               #("i4233"
-                                                                 "i4234"))
+                                                               #("i4225"
+                                                                 "i4226"))
                                                              #(ribcage
                                                                ()
                                                                ()
@@ -14386,8 +14377,8 @@
                                                              #(ribcage
                                                                #(x y)
                                                                #((top) (top))
-                                                               #("i4228"
-                                                                 "i4229"))
+                                                               #("i4220"
+                                                                 "i4221"))
                                                              #(ribcage
                                                                #(quasicons
                                                                  quasiappend
@@ -14397,16 +14388,16 @@
                                                                  (top)
                                                                  (top)
                                                                  (top))
-                                                               #("i4192"
-                                                                 "i4193"
-                                                                 "i4194"
-                                                                 "i4195")))
+                                                               #("i4184"
+                                                                 "i4185"
+                                                                 "i4186"
+                                                                 "i4187")))
                                                             (hygiene guile))
-                                                         #{x\ 4235}#
-                                                         #{y\ 4236}#))
-                                                 #{tmp\ 4237}#)))
+                                                         #{x\ 4227}#
+                                                         #{y\ 4228}#))
+                                                 #{tmp\ 4229}#)))
                                             ($sc-dispatch
-                                              #{tmp\ 4237}#
+                                              #{tmp\ 4229}#
                                               '(#(free-id
                                                   #(syntax-object
                                                     quote
@@ -14414,13 +14405,13 @@
                                                      #(ribcage
                                                        #(x y)
                                                        #((top) (top))
-                                                       #("i4233" "i4234"))
+                                                       #("i4225" "i4226"))
                                                      #(ribcage () () ())
                                                      #(ribcage () () ())
                                                      #(ribcage
                                                        #(x y)
                                                        #((top) (top))
-                                                       #("i4228" "i4229"))
+                                                       #("i4220" "i4221"))
                                                      #(ribcage
                                                        #(quasicons
                                                          quasiappend
@@ -14430,45 +14421,45 @@
                                                          (top)
                                                          (top)
                                                          (top))
-                                                       #("i4192"
-                                                         "i4193"
-                                                         "i4194"
-                                                         "i4195")))
+                                                       #("i4184"
+                                                         "i4185"
+                                                         "i4186"
+                                                         "i4187")))
                                                     (hygiene guile)))
                                                 ()))))
-                                         #{y\ 4236}#))
-                                      #{tmp\ 4232}#)
+                                         #{y\ 4228}#))
+                                      #{tmp\ 4224}#)
                                (syntax-violation
                                  #f
                                  "source expression failed to match any pattern"
-                                 #{tmp\ 4231}#)))
-                           ($sc-dispatch #{tmp\ 4231}# (quote (any any)))))
-                        (list #{x\ 4226}# #{y\ 4227}#))))
-                   (#{quasivector\ 4198}#
-                     (lambda (#{x\ 4241}#)
-                       ((lambda (#{tmp\ 4244}#)
-                          ((lambda (#{x\ 4246}#)
-                             ((lambda (#{tmp\ 4247}#)
-                                ((lambda (#{tmp\ 4248}#)
-                                   (if #{tmp\ 4248}#
-                                     (apply (lambda (#{x\ 4250}#)
+                                 #{tmp\ 4223}#)))
+                           ($sc-dispatch #{tmp\ 4223}# (quote (any any)))))
+                        (list #{x\ 4218}# #{y\ 4219}#))))
+                   (#{quasivector\ 4190}#
+                     (lambda (#{x\ 4233}#)
+                       ((lambda (#{tmp\ 4236}#)
+                          ((lambda (#{x\ 4238}#)
+                             ((lambda (#{tmp\ 4239}#)
+                                ((lambda (#{tmp\ 4240}#)
+                                   (if #{tmp\ 4240}#
+                                     (apply (lambda (#{x\ 4242}#)
                                               (list '#(syntax-object
                                                        quote
                                                        ((top)
                                                         #(ribcage
                                                           #(x)
                                                           #((top))
-                                                          #("i4249"))
+                                                          #("i4241"))
                                                         #(ribcage
                                                           #(x)
                                                           #((top))
-                                                          #("i4245"))
+                                                          #("i4237"))
                                                         #(ribcage () () ())
                                                         #(ribcage () () ())
                                                         #(ribcage
                                                           #(x)
                                                           #((top))
-                                                          #("i4242"))
+                                                          #("i4234"))
                                                         #(ribcage
                                                           #(quasicons
                                                             quasiappend
@@ -14478,29 +14469,29 @@
                                                             (top)
                                                             (top)
                                                             (top))
-                                                          #("i4192"
-                                                            "i4193"
-                                                            "i4194"
-                                                            "i4195")))
+                                                          #("i4184"
+                                                            "i4185"
+                                                            "i4186"
+                                                            "i4187")))
                                                        (hygiene guile))
                                                     (list->vector
-                                                      #{x\ 4250}#)))
-                                            #{tmp\ 4248}#)
-                                     ((lambda (#{tmp\ 4252}#)
-                                        (if #{tmp\ 4252}#
-                                          (apply (lambda (#{x\ 4254}#)
+                                                      #{x\ 4242}#)))
+                                            #{tmp\ 4240}#)
+                                     ((lambda (#{tmp\ 4244}#)
+                                        (if #{tmp\ 4244}#
+                                          (apply (lambda (#{x\ 4246}#)
                                                    (cons '#(syntax-object
                                                             vector
                                                             ((top)
                                                              #(ribcage
                                                                #(x)
                                                                #((top))
-                                                               #("i4253"))
-                                                             #(ribcage
-                                                               #(x)
-                                                               #((top))
                                                                #("i4245"))
                                                              #(ribcage
+                                                               #(x)
+                                                               #((top))
+                                                               #("i4237"))
+                                                             #(ribcage
                                                                ()
                                                                ()
                                                                ())
@@ -14511,7 +14502,7 @@
                                                              #(ribcage
                                                                #(x)
                                                                #((top))
-                                                               #("i4242"))
+                                                               #("i4234"))
                                                              #(ribcage
                                                                #(quasicons
                                                                  quasiappend
@@ -14521,31 +14512,31 @@
                                                                  (top)
                                                                  (top)
                                                                  (top))
-                                                               #("i4192"
-                                                                 "i4193"
-                                                                 "i4194"
-                                                                 "i4195")))
+                                                               #("i4184"
+                                                                 "i4185"
+                                                                 "i4186"
+                                                                 "i4187")))
                                                             (hygiene guile))
-                                                         #{x\ 4254}#))
-                                                 #{tmp\ 4252}#)
-                                          ((lambda (#{_\ 4257}#)
+                                                         #{x\ 4246}#))
+                                                 #{tmp\ 4244}#)
+                                          ((lambda (#{_\ 4249}#)
                                              (list '#(syntax-object
                                                       list->vector
                                                       ((top)
                                                        #(ribcage
                                                          #(_)
                                                          #((top))
-                                                         #("i4256"))
+                                                         #("i4248"))
                                                        #(ribcage
                                                          #(x)
                                                          #((top))
-                                                         #("i4245"))
+                                                         #("i4237"))
                                                        #(ribcage () () ())
                                                        #(ribcage () () ())
                                                        #(ribcage
                                                          #(x)
                                                          #((top))
-                                                         #("i4242"))
+                                                         #("i4234"))
                                                        #(ribcage
                                                          #(quasicons
                                                            quasiappend
@@ -14555,15 +14546,15 @@
                                                            (top)
                                                            (top)
                                                            (top))
-                                                         #("i4192"
-                                                           "i4193"
-                                                           "i4194"
-                                                           "i4195")))
+                                                         #("i4184"
+                                                           "i4185"
+                                                           "i4186"
+                                                           "i4187")))
                                                       (hygiene guile))
-                                                   #{x\ 4246}#))
-                                           #{tmp\ 4247}#)))
+                                                   #{x\ 4238}#))
+                                           #{tmp\ 4239}#)))
                                       ($sc-dispatch
-                                        #{tmp\ 4247}#
+                                        #{tmp\ 4239}#
                                         '(#(free-id
                                             #(syntax-object
                                               list
@@ -14571,82 +14562,82 @@
                                                #(ribcage
                                                  #(x)
                                                  #((top))
-                                                 #("i4245"))
+                                                 #("i4237"))
                                                #(ribcage () () ())
                                                #(ribcage () () ())
                                                #(ribcage
                                                  #(x)
                                                  #((top))
-                                                 #("i4242"))
+                                                 #("i4234"))
                                                #(ribcage
                                                  #(quasicons
                                                    quasiappend
                                                    quasivector
                                                    quasi)
                                                  #((top) (top) (top) (top))
-                                                 #("i4192"
-                                                   "i4193"
-                                                   "i4194"
-                                                   "i4195")))
+                                                 #("i4184"
+                                                   "i4185"
+                                                   "i4186"
+                                                   "i4187")))
                                               (hygiene guile)))
                                           .
                                           each-any)))))
                                  ($sc-dispatch
-                                   #{tmp\ 4247}#
+                                   #{tmp\ 4239}#
                                    '(#(free-id
                                        #(syntax-object
                                          quote
                                          ((top)
-                                          #(ribcage #(x) #((top)) #("i4245"))
+                                          #(ribcage #(x) #((top)) #("i4237"))
                                           #(ribcage () () ())
                                           #(ribcage () () ())
-                                          #(ribcage #(x) #((top)) #("i4242"))
+                                          #(ribcage #(x) #((top)) #("i4234"))
                                           #(ribcage
                                             #(quasicons
                                               quasiappend
                                               quasivector
                                               quasi)
                                             #((top) (top) (top) (top))
-                                            #("i4192"
-                                              "i4193"
-                                              "i4194"
-                                              "i4195")))
+                                            #("i4184"
+                                              "i4185"
+                                              "i4186"
+                                              "i4187")))
                                          (hygiene guile)))
                                      each-any))))
-                              #{x\ 4246}#))
-                           #{tmp\ 4244}#))
-                        #{x\ 4241}#)))
-                   (#{quasi\ 4199}#
-                     (lambda (#{p\ 4258}# #{lev\ 4259}#)
-                       ((lambda (#{tmp\ 4262}#)
-                          ((lambda (#{tmp\ 4263}#)
-                             (if #{tmp\ 4263}#
-                               (apply (lambda (#{p\ 4265}#)
-                                        (if (= #{lev\ 4259}# 0)
-                                          #{p\ 4265}#
-                                          (#{quasicons\ 4196}#
+                              #{x\ 4238}#))
+                           #{tmp\ 4236}#))
+                        #{x\ 4233}#)))
+                   (#{quasi\ 4191}#
+                     (lambda (#{p\ 4250}# #{lev\ 4251}#)
+                       ((lambda (#{tmp\ 4254}#)
+                          ((lambda (#{tmp\ 4255}#)
+                             (if #{tmp\ 4255}#
+                               (apply (lambda (#{p\ 4257}#)
+                                        (if (= #{lev\ 4251}# 0)
+                                          #{p\ 4257}#
+                                          (#{quasicons\ 4188}#
                                             '(#(syntax-object
                                                 quote
                                                 ((top)
                                                  #(ribcage
                                                    #(p)
                                                    #((top))
-                                                   #("i4264"))
+                                                   #("i4256"))
                                                  #(ribcage () () ())
                                                  #(ribcage
                                                    #(p lev)
                                                    #((top) (top))
-                                                   #("i4260" "i4261"))
+                                                   #("i4252" "i4253"))
                                                  #(ribcage
                                                    #(quasicons
                                                      quasiappend
                                                      quasivector
                                                      quasi)
                                                    #((top) (top) (top) (top))
-                                                   #("i4192"
-                                                     "i4193"
-                                                     "i4194"
-                                                     "i4195")))
+                                                   #("i4184"
+                                                     "i4185"
+                                                     "i4186"
+                                                     "i4187")))
                                                 (hygiene guile))
                                               #(syntax-object
                                                 unquote
@@ -14654,50 +14645,50 @@
                                                  #(ribcage
                                                    #(p)
                                                    #((top))
-                                                   #("i4264"))
+                                                   #("i4256"))
                                                  #(ribcage () () ())
                                                  #(ribcage
                                                    #(p lev)
                                                    #((top) (top))
-                                                   #("i4260" "i4261"))
+                                                   #("i4252" "i4253"))
                                                  #(ribcage
                                                    #(quasicons
                                                      quasiappend
                                                      quasivector
                                                      quasi)
                                                    #((top) (top) (top) (top))
-                                                   #("i4192"
-                                                     "i4193"
-                                                     "i4194"
-                                                     "i4195")))
+                                                   #("i4184"
+                                                     "i4185"
+                                                     "i4186"
+                                                     "i4187")))
                                                 (hygiene guile)))
-                                            (#{quasi\ 4199}#
-                                              (list #{p\ 4265}#)
-                                              (- #{lev\ 4259}# 1)))))
-                                      #{tmp\ 4263}#)
-                               ((lambda (#{tmp\ 4266}#)
-                                  (if (if #{tmp\ 4266}#
-                                        (apply (lambda (#{args\ 4268}#)
-                                                 (= #{lev\ 4259}# 0))
-                                               #{tmp\ 4266}#)
+                                            (#{quasi\ 4191}#
+                                              (list #{p\ 4257}#)
+                                              (- #{lev\ 4251}# 1)))))
+                                      #{tmp\ 4255}#)
+                               ((lambda (#{tmp\ 4258}#)
+                                  (if (if #{tmp\ 4258}#
+                                        (apply (lambda (#{args\ 4260}#)
+                                                 (= #{lev\ 4251}# 0))
+                                               #{tmp\ 4258}#)
                                         #f)
-                                    (apply (lambda (#{args\ 4270}#)
+                                    (apply (lambda (#{args\ 4262}#)
                                              (syntax-violation
                                                'unquote
                                                "unquote takes exactly one argument"
-                                               #{p\ 4258}#
+                                               #{p\ 4250}#
                                                (cons '#(syntax-object
                                                         unquote
                                                         ((top)
                                                          #(ribcage
                                                            #(args)
                                                            #((top))
-                                                           #("i4269"))
+                                                           #("i4261"))
                                                          #(ribcage () () ())
                                                          #(ribcage
                                                            #(p lev)
                                                            #((top) (top))
-                                                           #("i4260" "i4261"))
+                                                           #("i4252" "i4253"))
                                                          #(ribcage
                                                            #(quasicons
                                                              quasiappend
@@ -14707,33 +14698,33 @@
                                                              (top)
                                                              (top)
                                                              (top))
-                                                           #("i4192"
-                                                             "i4193"
-                                                             "i4194"
-                                                             "i4195")))
+                                                           #("i4184"
+                                                             "i4185"
+                                                             "i4186"
+                                                             "i4187")))
                                                         (hygiene guile))
-                                                     #{args\ 4270}#)))
-                                           #{tmp\ 4266}#)
-                                    ((lambda (#{tmp\ 4271}#)
-                                       (if #{tmp\ 4271}#
-                                         (apply (lambda (#{p\ 4274}#
-                                                         #{q\ 4275}#)
-                                                  (if (= #{lev\ 4259}# 0)
-                                                    (#{quasiappend\ 4197}#
-                                                      #{p\ 4274}#
-                                                      (#{quasi\ 4199}#
-                                                        #{q\ 4275}#
-                                                        #{lev\ 4259}#))
-                                                    (#{quasicons\ 4196}#
-                                                      (#{quasicons\ 4196}#
+                                                     #{args\ 4262}#)))
+                                           #{tmp\ 4258}#)
+                                    ((lambda (#{tmp\ 4263}#)
+                                       (if #{tmp\ 4263}#
+                                         (apply (lambda (#{p\ 4266}#
+                                                         #{q\ 4267}#)
+                                                  (if (= #{lev\ 4251}# 0)
+                                                    (#{quasiappend\ 4189}#
+                                                      #{p\ 4266}#
+                                                      (#{quasi\ 4191}#
+                                                        #{q\ 4267}#
+                                                        #{lev\ 4251}#))
+                                                    (#{quasicons\ 4188}#
+                                                      (#{quasicons\ 4188}#
                                                         '(#(syntax-object
                                                             quote
                                                             ((top)
                                                              #(ribcage
                                                                #(p q)
                                                                #((top) (top))
-                                                               #("i4272"
-                                                                 "i4273"))
+                                                               #("i4264"
+                                                                 "i4265"))
                                                              #(ribcage
                                                                ()
                                                                ()
@@ -14741,8 +14732,8 @@
                                                              #(ribcage
                                                                #(p lev)
                                                                #((top) (top))
-                                                               #("i4260"
-                                                                 "i4261"))
+                                                               #("i4252"
+                                                                 "i4253"))
                                                              #(ribcage
                                                                #(quasicons
                                                                  quasiappend
@@ -14752,10 +14743,10 @@
                                                                  (top)
                                                                  (top)
                                                                  (top))
-                                                               #("i4192"
-                                                                 "i4193"
-                                                                 "i4194"
-                                                                 "i4195")))
+                                                               #("i4184"
+                                                                 "i4185"
+                                                                 "i4186"
+                                                                 "i4187")))
                                                             (hygiene guile))
                                                           #(syntax-object
                                                             unquote-splicing
@@ -14763,8 +14754,8 @@
                                                              #(ribcage
                                                                #(p q)
                                                                #((top) (top))
-                                                               #("i4272"
-                                                                 "i4273"))
+                                                               #("i4264"
+                                                                 "i4265"))
                                                              #(ribcage
                                                                ()
                                                                ()
@@ -14772,8 +14763,8 @@
                                                              #(ribcage
                                                                #(p lev)
                                                                #((top) (top))
-                                                               #("i4260"
-                                                                 "i4261"))
+                                                               #("i4252"
+                                                                 "i4253"))
                                                              #(ribcage
                                                                #(quasicons
                                                                  quasiappend
@@ -14783,31 +14774,31 @@
                                                                  (top)
                                                                  (top)
                                                                  (top))
-                                                               #("i4192"
-                                                                 "i4193"
-                                                                 "i4194"
-                                                                 "i4195")))
+                                                               #("i4184"
+                                                                 "i4185"
+                                                                 "i4186"
+                                                                 "i4187")))
                                                             (hygiene guile)))
-                                                        (#{quasi\ 4199}#
-                                                          (list #{p\ 4274}#)
-                                                          (- #{lev\ 4259}# 1)))
-                                                      (#{quasi\ 4199}#
-                                                        #{q\ 4275}#
-                                                        #{lev\ 4259}#))))
-                                                #{tmp\ 4271}#)
-                                         ((lambda (#{tmp\ 4276}#)
-                                            (if (if #{tmp\ 4276}#
-                                                  (apply (lambda (#{args\ 4279}#
-                                                                  #{q\ 4280}#)
-                                                           (= #{lev\ 4259}# 0))
-                                                         #{tmp\ 4276}#)
+                                                        (#{quasi\ 4191}#
+                                                          (list #{p\ 4266}#)
+                                                          (- #{lev\ 4251}# 1)))
+                                                      (#{quasi\ 4191}#
+                                                        #{q\ 4267}#
+                                                        #{lev\ 4251}#))))
+                                                #{tmp\ 4263}#)
+                                         ((lambda (#{tmp\ 4268}#)
+                                            (if (if #{tmp\ 4268}#
+                                                  (apply (lambda (#{args\ 4271}#
+                                                                  #{q\ 4272}#)
+                                                           (= #{lev\ 4251}# 0))
+                                                         #{tmp\ 4268}#)
                                                   #f)
-                                              (apply (lambda (#{args\ 4283}#
-                                                              #{q\ 4284}#)
+                                              (apply (lambda (#{args\ 4275}#
+                                                              #{q\ 4276}#)
                                                        (syntax-violation
                                                          'unquote-splicing
                                                          "unquote-splicing takes exactly one argument"
-                                                         #{p\ 4258}#
+                                                         #{p\ 4250}#
                                                          (cons '#(syntax-object
                                                                   unquote-splicing
                                                                   ((top)
@@ -14815,8 +14806,8 @@
                                                                      #(args q)
                                                                      #((top)
                                                                        (top))
-                                                                     #("i4281"
-                                                                       "i4282"))
+                                                                     #("i4273"
+                                                                       "i4274"))
                                                                    #(ribcage
                                                                      ()
                                                                      ()
@@ -14825,8 +14816,8 @@
                                                                      #(p lev)
                                                                      #((top)
                                                                        (top))
-                                                                     #("i4260"
-                                                                       "i4261"))
+                                                                     #("i4252"
+                                                                       "i4253"))
                                                                    #(ribcage
                                                                      #(quasicons
                                                                        quasiappend
@@ -14836,25 +14827,25 @@
                                                                        (top)
                                                                        (top)
                                                                        (top))
-                                                                     #("i4192"
-                                                                       "i4193"
-                                                                       "i4194"
-                                                                       "i4195")))
+                                                                     #("i4184"
+                                                                       "i4185"
+                                                                       "i4186"
+                                                                       "i4187")))
                                                                   (hygiene
                                                                     guile))
-                                                               #{args\ 4283}#)))
-                                                     #{tmp\ 4276}#)
-                                              ((lambda (#{tmp\ 4285}#)
-                                                 (if #{tmp\ 4285}#
-                                                   (apply (lambda (#{p\ 4287}#)
-                                                            (#{quasicons\ 4196}#
+                                                               #{args\ 4275}#)))
+                                                     #{tmp\ 4268}#)
+                                              ((lambda (#{tmp\ 4277}#)
+                                                 (if #{tmp\ 4277}#
+                                                   (apply (lambda (#{p\ 4279}#)
+                                                            (#{quasicons\ 4188}#
                                                               '(#(syntax-object
                                                                   quote
                                                                   ((top)
                                                                    #(ribcage
                                                                      #(p)
                                                                      #((top))
-                                                                     #("i4286"))
+                                                                     #("i4278"))
                                                                    #(ribcage
                                                                      ()
                                                                      ()
@@ -14863,8 +14854,8 @@
                                                                      #(p lev)
                                                                      #((top)
                                                                        (top))
-                                                                     #("i4260"
-                                                                       "i4261"))
+                                                                     #("i4252"
+                                                                       "i4253"))
                                                                    #(ribcage
                                                                      #(quasicons
                                                                        quasiappend
@@ -14874,10 +14865,10 @@
                                                                        (top)
                                                                        (top)
                                                                        (top))
-                                                                     #("i4192"
-                                                                       "i4193"
-                                                                       "i4194"
-                                                                       "i4195")))
+                                                                     #("i4184"
+                                                                       "i4185"
+                                                                       "i4186"
+                                                                       "i4187")))
                                                                   (hygiene
                                                                     guile))
                                                                 #(syntax-object
@@ -14886,7 +14877,7 @@
                                                                    #(ribcage
                                                                      #(p)
                                                                      #((top))
-                                                                     #("i4286"))
+                                                                     #("i4278"))
                                                                    #(ribcage
                                                                      ()
                                                                      ()
@@ -14895,8 +14886,8 @@
                                                                      #(p lev)
                                                                      #((top)
                                                                        (top))
-                                                                     #("i4260"
-                                                                       "i4261"))
+                                                                     #("i4252"
+                                                                       "i4253"))
                                                                    #(ribcage
                                                                      #(quasicons
                                                                        quasiappend
@@ -14906,45 +14897,45 @@
                                                                        (top)
                                                                        (top)
                                                                        (top))
-                                                                     #("i4192"
-                                                                       "i4193"
-                                                                       "i4194"
-                                                                       "i4195")))
+                                                                     #("i4184"
+                                                                       "i4185"
+                                                                       "i4186"
+                                                                       "i4187")))
                                                                   (hygiene
                                                                     guile)))
-                                                              (#{quasi\ 4199}#
-                                                                (list #{p\ 4287}#)
-                                                                (+ #{lev\ 4259}#
+                                                              (#{quasi\ 4191}#
+                                                                (list #{p\ 4279}#)
+                                                                (+ #{lev\ 4251}#
                                                                    1))))
-                                                          #{tmp\ 4285}#)
-                                                   ((lambda (#{tmp\ 4288}#)
-                                                      (if #{tmp\ 4288}#
-                                                        (apply (lambda (#{p\ 4291}#
-                                                                        #{q\ 4292}#)
-                                                                 (#{quasicons\ 4196}#
-                                                                   (#{quasi\ 4199}#
-                                                                     #{p\ 4291}#
-                                                                     #{lev\ 4259}#)
-                                                                   (#{quasi\ 4199}#
-                                                                     #{q\ 4292}#
-                                                                     #{lev\ 4259}#)))
-                                                               #{tmp\ 4288}#)
-                                                        ((lambda (#{tmp\ 4293}#)
-                                                           (if #{tmp\ 4293}#
-                                                             (apply (lambda (#{x\ 4295}#)
-                                                                      (#{quasivector\ 4198}#
-                                                                        (#{quasi\ 4199}#
-                                                                          #{x\ 4295}#
-                                                                          #{lev\ 4259}#)))
-                                                                    #{tmp\ 4293}#)
-                                                             ((lambda (#{p\ 4298}#)
+                                                          #{tmp\ 4277}#)
+                                                   ((lambda (#{tmp\ 4280}#)
+                                                      (if #{tmp\ 4280}#
+                                                        (apply (lambda (#{p\ 4283}#
+                                                                        #{q\ 4284}#)
+                                                                 (#{quasicons\ 4188}#
+                                                                   (#{quasi\ 4191}#
+                                                                     #{p\ 4283}#
+                                                                     #{lev\ 4251}#)
+                                                                   (#{quasi\ 4191}#
+                                                                     #{q\ 4284}#
+                                                                     #{lev\ 4251}#)))
+                                                               #{tmp\ 4280}#)
+                                                        ((lambda (#{tmp\ 4285}#)
+                                                           (if #{tmp\ 4285}#
+                                                             (apply (lambda (#{x\ 4287}#)
+                                                                      (#{quasivector\ 4190}#
+                                                                        (#{quasi\ 4191}#
+                                                                          #{x\ 4287}#
+                                                                          #{lev\ 4251}#)))
+                                                                    #{tmp\ 4285}#)
+                                                             ((lambda (#{p\ 4290}#)
                                                                 (list '#(syntax-object
                                                                          quote
                                                                          ((top)
                                                                           #(ribcage
                                                                             #(p)
                                                                             #((top))
-                                                                            #("i4297"))
+                                                                            #("i4289"))
                                                                           #(ribcage
                                                                             ()
                                                                             ()
@@ -14954,8 +14945,8 @@
                                                                               lev)
                                                                             #((top)
                                                                               (top))
-                                                                            #("i4260"
-                                                                              "i4261"))
+                                                                            #("i4252"
+                                                                              "i4253"))
                                                                           #(ribcage
                                                                             #(quasicons
                                                                               quasiappend
@@ -14965,23 +14956,23 @@
                                                                               (top)
                                                                               (top)
                                                                               (top))
-                                                                            #("i4192"
-                                                                              "i4193"
-                                                                              "i4194"
-                                                                              "i4195")))
+                                                                            #("i4184"
+                                                                              "i4185"
+                                                                              "i4186"
+                                                                              "i4187")))
                                                                          (hygiene
                                                                            guile))
-                                                                      #{p\ 4298}#))
-                                                              #{tmp\ 4262}#)))
+                                                                      #{p\ 4290}#))
+                                                              #{tmp\ 4254}#)))
                                                          ($sc-dispatch
-                                                           #{tmp\ 4262}#
+                                                           #{tmp\ 4254}#
                                                            '#(vector
                                                               each-any)))))
                                                     ($sc-dispatch
-                                                      #{tmp\ 4262}#
+                                                      #{tmp\ 4254}#
                                                       '(any . any)))))
                                                ($sc-dispatch
-                                                 #{tmp\ 4262}#
+                                                 #{tmp\ 4254}#
                                                  '(#(free-id
                                                      #(syntax-object
                                                        quasiquote
@@ -14990,7 +14981,7 @@
                                                         #(ribcage
                                                           #(p lev)
                                                           #((top) (top))
-                                                          #("i4260" "i4261"))
+                                                          #("i4252" "i4253"))
                                                         #(ribcage
                                                           #(quasicons
                                                             quasiappend
@@ -15000,14 +14991,14 @@
                                                             (top)
                                                             (top)
                                                             (top))
-                                                          #("i4192"
-                                                            "i4193"
-                                                            "i4194"
-                                                            "i4195")))
+                                                          #("i4184"
+                                                            "i4185"
+                                                            "i4186"
+                                                            "i4187")))
                                                        (hygiene guile)))
                                                    any)))))
                                           ($sc-dispatch
-                                            #{tmp\ 4262}#
+                                            #{tmp\ 4254}#
                                             '((#(free-id
                                                  #(syntax-object
                                                    unquote-splicing
@@ -15016,7 +15007,7 @@
                                                     #(ribcage
                                                       #(p lev)
                                                       #((top) (top))
-                                                      #("i4260" "i4261"))
+                                                      #("i4252" "i4253"))
                                                     #(ribcage
                                                       #(quasicons
                                                         quasiappend
@@ -15026,17 +15017,17 @@
                                                         (top)
                                                         (top)
                                                         (top))
-                                                      #("i4192"
-                                                        "i4193"
-                                                        "i4194"
-                                                        "i4195")))
+                                                      #("i4184"
+                                                        "i4185"
+                                                        "i4186"
+                                                        "i4187")))
                                                    (hygiene guile)))
                                                .
                                                any)
                                               .
                                               any)))))
                                      ($sc-dispatch
-                                       #{tmp\ 4262}#
+                                       #{tmp\ 4254}#
                                        '((#(free-id
                                             #(syntax-object
                                               unquote-splicing
@@ -15045,23 +15036,23 @@
                                                #(ribcage
                                                  #(p lev)
                                                  #((top) (top))
-                                                 #("i4260" "i4261"))
+                                                 #("i4252" "i4253"))
                                                #(ribcage
                                                  #(quasicons
                                                    quasiappend
                                                    quasivector
                                                    quasi)
                                                  #((top) (top) (top) (top))
-                                                 #("i4192"
-                                                   "i4193"
-                                                   "i4194"
-                                                   "i4195")))
+                                                 #("i4184"
+                                                   "i4185"
+                                                   "i4186"
+                                                   "i4187")))
                                               (hygiene guile)))
                                           any)
                                          .
                                          any)))))
                                 ($sc-dispatch
-                                  #{tmp\ 4262}#
+                                  #{tmp\ 4254}#
                                   '(#(free-id
                                       #(syntax-object
                                         unquote
@@ -15070,19 +15061,19 @@
                                          #(ribcage
                                            #(p lev)
                                            #((top) (top))
-                                           #("i4260" "i4261"))
+                                           #("i4252" "i4253"))
                                          #(ribcage
                                            #(quasicons
                                              quasiappend
                                              quasivector
                                              quasi)
                                            #((top) (top) (top) (top))
-                                           #("i4192" "i4193" "i4194" "i4195")))
+                                           #("i4184" "i4185" "i4186" "i4187")))
                                         (hygiene guile)))
                                     .
                                     any)))))
                            ($sc-dispatch
-                             #{tmp\ 4262}#
+                             #{tmp\ 4254}#
                              '(#(free-id
                                  #(syntax-object
                                    unquote
@@ -15091,170 +15082,192 @@
                                     #(ribcage
                                       #(p lev)
                                       #((top) (top))
-                                      #("i4260" "i4261"))
+                                      #("i4252" "i4253"))
                                     #(ribcage
                                       #(quasicons
                                         quasiappend
                                         quasivector
                                         quasi)
                                       #((top) (top) (top) (top))
-                                      #("i4192" "i4193" "i4194" "i4195")))
+                                      #("i4184" "i4185" "i4186" "i4187")))
                                    (hygiene guile)))
                                any))))
-                        #{p\ 4258}#))))
-            (lambda (#{x\ 4299}#)
-              ((lambda (#{tmp\ 4301}#)
-                 ((lambda (#{tmp\ 4302}#)
-                    (if #{tmp\ 4302}#
-                      (apply (lambda (#{_\ 4305}# #{e\ 4306}#)
-                               (#{quasi\ 4199}# #{e\ 4306}# 0))
-                             #{tmp\ 4302}#)
+                        #{p\ 4250}#))))
+            (lambda (#{x\ 4291}#)
+              ((lambda (#{tmp\ 4293}#)
+                 ((lambda (#{tmp\ 4294}#)
+                    (if #{tmp\ 4294}#
+                      (apply (lambda (#{_\ 4297}# #{e\ 4298}#)
+                               (#{quasi\ 4191}# #{e\ 4298}# 0))
+                             #{tmp\ 4294}#)
                       (syntax-violation
                         #f
                         "source expression failed to match any pattern"
-                        #{tmp\ 4301}#)))
-                  ($sc-dispatch #{tmp\ 4301}# (quote (any any)))))
-               #{x\ 4299}#)))
+                        #{tmp\ 4293}#)))
+                  ($sc-dispatch #{tmp\ 4293}# (quote (any any)))))
+               #{x\ 4291}#)))
           (module-name (current-module)))))
 
 (define include
   (make-syntax-transformer
     'include
     'macro
-    (cons (lambda (#{x\ 4307}#)
-            (letrec ((#{read-file\ 4310}#
-                       (lambda (#{fn\ 4311}# #{k\ 4312}#)
-                         (let ((#{p\ 4316}# (open-input-file #{fn\ 4311}#)))
-                           (letrec ((#{f\ 4320}#
-                                      (lambda (#{x\ 4321}# #{result\ 4322}#)
-                                        (if (eof-object? #{x\ 4321}#)
+    (cons (lambda (#{x\ 4299}#)
+            (letrec ((#{read-file\ 4302}#
+                       (lambda (#{fn\ 4303}# #{k\ 4304}#)
+                         (let ((#{p\ 4308}# (open-input-file #{fn\ 4303}#)))
+                           (letrec ((#{f\ 4312}#
+                                      (lambda (#{x\ 4313}# #{result\ 4314}#)
+                                        (if (eof-object? #{x\ 4313}#)
                                           (begin
-                                            (close-input-port #{p\ 4316}#)
-                                            (reverse #{result\ 4322}#))
-                                          (#{f\ 4320}#
-                                            (read #{p\ 4316}#)
+                                            (close-input-port #{p\ 4308}#)
+                                            (reverse #{result\ 4314}#))
+                                          (#{f\ 4312}#
+                                            (read #{p\ 4308}#)
                                             (cons (datum->syntax
-                                                    #{k\ 4312}#
-                                                    #{x\ 4321}#)
-                                                  #{result\ 4322}#))))))
-                             (#{f\ 4320}# (read #{p\ 4316}#) (quote ())))))))
-              ((lambda (#{tmp\ 4323}#)
-                 ((lambda (#{tmp\ 4324}#)
-                    (if #{tmp\ 4324}#
-                      (apply (lambda (#{k\ 4327}# #{filename\ 4328}#)
-                               (let ((#{fn\ 4330}#
-                                       (syntax->datum #{filename\ 4328}#)))
-                                 ((lambda (#{tmp\ 4332}#)
-                                    ((lambda (#{tmp\ 4333}#)
-                                       (if #{tmp\ 4333}#
-                                         (apply (lambda (#{exp\ 4335}#)
+                                                    #{k\ 4304}#
+                                                    #{x\ 4313}#)
+                                                  #{result\ 4314}#))))))
+                             (#{f\ 4312}# (read #{p\ 4308}#) (quote ())))))))
+              ((lambda (#{tmp\ 4315}#)
+                 ((lambda (#{tmp\ 4316}#)
+                    (if #{tmp\ 4316}#
+                      (apply (lambda (#{k\ 4319}# #{filename\ 4320}#)
+                               (let ((#{fn\ 4322}#
+                                       (syntax->datum #{filename\ 4320}#)))
+                                 ((lambda (#{tmp\ 4324}#)
+                                    ((lambda (#{tmp\ 4325}#)
+                                       (if #{tmp\ 4325}#
+                                         (apply (lambda (#{exp\ 4327}#)
                                                   (cons '#(syntax-object
                                                            begin
                                                            ((top)
                                                             #(ribcage
                                                               #(exp)
                                                               #((top))
-                                                              #("i4334"))
+                                                              #("i4326"))
                                                             #(ribcage () () ())
                                                             #(ribcage () () ())
                                                             #(ribcage
                                                               #(fn)
                                                               #((top))
-                                                              #("i4329"))
+                                                              #("i4321"))
                                                             #(ribcage
                                                               #(k filename)
                                                               #((top) (top))
-                                                              #("i4325"
-                                                                "i4326"))
+                                                              #("i4317"
+                                                                "i4318"))
                                                             #(ribcage
                                                               (read-file)
                                                               ((top))
-                                                              ("i4309"))
+                                                              ("i4301"))
                                                             #(ribcage
                                                               #(x)
                                                               #((top))
-                                                              #("i4308")))
+                                                              #("i4300")))
                                                            (hygiene guile))
-                                                        #{exp\ 4335}#))
-                                                #{tmp\ 4333}#)
+                                                        #{exp\ 4327}#))
+                                                #{tmp\ 4325}#)
                                          (syntax-violation
                                            #f
                                            "source expression failed to match any pattern"
-                                           #{tmp\ 4332}#)))
+                                           #{tmp\ 4324}#)))
                                      ($sc-dispatch
-                                       #{tmp\ 4332}#
+                                       #{tmp\ 4324}#
                                        'each-any)))
-                                  (#{read-file\ 4310}#
-                                    #{fn\ 4330}#
-                                    #{k\ 4327}#))))
-                             #{tmp\ 4324}#)
+                                  (#{read-file\ 4302}#
+                                    #{fn\ 4322}#
+                                    #{k\ 4319}#))))
+                             #{tmp\ 4316}#)
                       (syntax-violation
                         #f
                         "source expression failed to match any pattern"
-                        #{tmp\ 4323}#)))
-                  ($sc-dispatch #{tmp\ 4323}# (quote (any any)))))
-               #{x\ 4307}#)))
+                        #{tmp\ 4315}#)))
+                  ($sc-dispatch #{tmp\ 4315}# (quote (any any)))))
+               #{x\ 4299}#)))
           (module-name (current-module)))))
 
 (define include-from-path
   (make-syntax-transformer
     'include-from-path
     'macro
-    (cons (lambda (#{x\ 4337}#)
-            ((lambda (#{tmp\ 4339}#)
-               ((lambda (#{tmp\ 4340}#)
-                  (if #{tmp\ 4340}#
-                    (apply (lambda (#{k\ 4343}# #{filename\ 4344}#)
-                             (let ((#{fn\ 4346}#
-                                     (syntax->datum #{filename\ 4344}#)))
-                               ((lambda (#{tmp\ 4348}#)
-                                  ((lambda (#{fn\ 4350}#)
+    (cons (lambda (#{x\ 4329}#)
+            ((lambda (#{tmp\ 4331}#)
+               ((lambda (#{tmp\ 4332}#)
+                  (if #{tmp\ 4332}#
+                    (apply (lambda (#{k\ 4335}# #{filename\ 4336}#)
+                             (let ((#{fn\ 4338}#
+                                     (syntax->datum #{filename\ 4336}#)))
+                               ((lambda (#{tmp\ 4340}#)
+                                  ((lambda (#{fn\ 4342}#)
                                      (list '#(syntax-object
                                               include
                                               ((top)
                                                #(ribcage
                                                  #(fn)
                                                  #((top))
-                                                 #("i4349"))
+                                                 #("i4341"))
                                                #(ribcage () () ())
                                                #(ribcage () () ())
                                                #(ribcage
                                                  #(fn)
                                                  #((top))
-                                                 #("i4345"))
+                                                 #("i4337"))
                                                #(ribcage
                                                  #(k filename)
                                                  #((top) (top))
-                                                 #("i4341" "i4342"))
+                                                 #("i4333" "i4334"))
                                                #(ribcage () () ())
                                                #(ribcage
                                                  #(x)
                                                  #((top))
-                                                 #("i4338")))
+                                                 #("i4330")))
                                               (hygiene guile))
-                                           #{fn\ 4350}#))
-                                   #{tmp\ 4348}#))
-                                (let ((#{t\ 4353}#
-                                        (%search-load-path #{fn\ 4346}#)))
-                                  (if #{t\ 4353}#
-                                    #{t\ 4353}#
+                                           #{fn\ 4342}#))
+                                   #{tmp\ 4340}#))
+                                (let ((#{t\ 4345}#
+                                        (%search-load-path #{fn\ 4338}#)))
+                                  (if #{t\ 4345}#
+                                    #{t\ 4345}#
                                     (syntax-violation
                                       'include-from-path
                                       "file not found in path"
-                                      #{x\ 4337}#
-                                      #{filename\ 4344}#))))))
-                           #{tmp\ 4340}#)
+                                      #{x\ 4329}#
+                                      #{filename\ 4336}#))))))
+                           #{tmp\ 4332}#)
                     (syntax-violation
                       #f
                       "source expression failed to match any pattern"
-                      #{tmp\ 4339}#)))
-                ($sc-dispatch #{tmp\ 4339}# (quote (any any)))))
-             #{x\ 4337}#))
+                      #{tmp\ 4331}#)))
+                ($sc-dispatch #{tmp\ 4331}# (quote (any any)))))
+             #{x\ 4329}#))
           (module-name (current-module)))))
 
 (define unquote
   (make-syntax-transformer
     'unquote
+    'macro
+    (cons (lambda (#{x\ 4347}#)
+            ((lambda (#{tmp\ 4349}#)
+               ((lambda (#{tmp\ 4350}#)
+                  (if #{tmp\ 4350}#
+                    (apply (lambda (#{_\ 4353}# #{e\ 4354}#)
+                             (syntax-violation
+                               'unquote
+                               "expression not valid outside of quasiquote"
+                               #{x\ 4347}#))
+                           #{tmp\ 4350}#)
+                    (syntax-violation
+                      #f
+                      "source expression failed to match any pattern"
+                      #{tmp\ 4349}#)))
+                ($sc-dispatch #{tmp\ 4349}# (quote (any any)))))
+             #{x\ 4347}#))
+          (module-name (current-module)))))
+
+(define unquote-splicing
+  (make-syntax-transformer
+    'unquote-splicing
     'macro
     (cons (lambda (#{x\ 4355}#)
             ((lambda (#{tmp\ 4357}#)
@@ -15262,7 +15275,7 @@
                   (if #{tmp\ 4358}#
                     (apply (lambda (#{_\ 4361}# #{e\ 4362}#)
                              (syntax-violation
-                               'unquote
+                               'unquote-splicing
                                "expression not valid outside of quasiquote"
                                #{x\ 4355}#))
                            #{tmp\ 4358}#)
@@ -15274,61 +15287,39 @@
              #{x\ 4355}#))
           (module-name (current-module)))))
 
-(define unquote-splicing
+(define case
   (make-syntax-transformer
-    'unquote-splicing
+    'case
     'macro
     (cons (lambda (#{x\ 4363}#)
             ((lambda (#{tmp\ 4365}#)
                ((lambda (#{tmp\ 4366}#)
                   (if #{tmp\ 4366}#
-                    (apply (lambda (#{_\ 4369}# #{e\ 4370}#)
-                             (syntax-violation
-                               'unquote-splicing
-                               "expression not valid outside of quasiquote"
-                               #{x\ 4363}#))
-                           #{tmp\ 4366}#)
-                    (syntax-violation
-                      #f
-                      "source expression failed to match any pattern"
-                      #{tmp\ 4365}#)))
-                ($sc-dispatch #{tmp\ 4365}# (quote (any any)))))
-             #{x\ 4363}#))
-          (module-name (current-module)))))
-
-(define case
-  (make-syntax-transformer
-    'case
-    'macro
-    (cons (lambda (#{x\ 4371}#)
-            ((lambda (#{tmp\ 4373}#)
-               ((lambda (#{tmp\ 4374}#)
-                  (if #{tmp\ 4374}#
-                    (apply (lambda (#{_\ 4379}#
-                                    #{e\ 4380}#
-                                    #{m1\ 4381}#
-                                    #{m2\ 4382}#)
-                             ((lambda (#{tmp\ 4384}#)
-                                ((lambda (#{body\ 4386}#)
+                    (apply (lambda (#{_\ 4371}#
+                                    #{e\ 4372}#
+                                    #{m1\ 4373}#
+                                    #{m2\ 4374}#)
+                             ((lambda (#{tmp\ 4376}#)
+                                ((lambda (#{body\ 4378}#)
                                    (list '#(syntax-object
                                             let
                                             ((top)
                                              #(ribcage
                                                #(body)
                                                #((top))
-                                               #("i4385"))
+                                               #("i4377"))
                                              #(ribcage
                                                #(_ e m1 m2)
                                                #((top) (top) (top) (top))
-                                               #("i4375"
-                                                 "i4376"
-                                                 "i4377"
-                                                 "i4378"))
+                                               #("i4367"
+                                                 "i4368"
+                                                 "i4369"
+                                                 "i4370"))
                                              #(ribcage () () ())
                                              #(ribcage
                                                #(x)
                                                #((top))
-                                               #("i4372")))
+                                               #("i4364")))
                                             (hygiene guile))
                                          (list (list '#(syntax-object
                                                         t
@@ -15336,35 +15327,35 @@
                                                          #(ribcage
                                                            #(body)
                                                            #((top))
-                                                           #("i4385"))
+                                                           #("i4377"))
                                                          #(ribcage
                                                            #(_ e m1 m2)
                                                            #((top)
                                                              (top)
                                                              (top)
                                                              (top))
-                                                           #("i4375"
-                                                             "i4376"
-                                                             "i4377"
-                                                             "i4378"))
+                                                           #("i4367"
+                                                             "i4368"
+                                                             "i4369"
+                                                             "i4370"))
                                                          #(ribcage () () ())
                                                          #(ribcage
                                                            #(x)
                                                            #((top))
-                                                           #("i4372")))
+                                                           #("i4364")))
                                                         (hygiene guile))
-                                                     #{e\ 4380}#))
-                                         #{body\ 4386}#))
-                                 #{tmp\ 4384}#))
-                              (letrec ((#{f\ 4390}#
-                                         (lambda (#{clause\ 4391}#
-                                                  #{clauses\ 4392}#)
-                                           (if (null? #{clauses\ 4392}#)
-                                             ((lambda (#{tmp\ 4394}#)
-                                                ((lambda (#{tmp\ 4395}#)
-                                                   (if #{tmp\ 4395}#
-                                                     (apply (lambda (#{e1\ 4398}#
-                                                                     #{e2\ 4399}#)
+                                                     #{e\ 4372}#))
+                                         #{body\ 4378}#))
+                                 #{tmp\ 4376}#))
+                              (letrec ((#{f\ 4382}#
+                                         (lambda (#{clause\ 4383}#
+                                                  #{clauses\ 4384}#)
+                                           (if (null? #{clauses\ 4384}#)
+                                             ((lambda (#{tmp\ 4386}#)
+                                                ((lambda (#{tmp\ 4387}#)
+                                                   (if #{tmp\ 4387}#
+                                                     (apply (lambda (#{e1\ 4390}#
+                                                                     #{e2\ 4391}#)
                                                               (cons '#(syntax-object
                                                                        begin
                                                                        ((top)
@@ -15373,8 +15364,8 @@
                                                                             e2)
                                                                           #((top)
                                                                             (top))
-                                                                          #("i4396"
-                                                                            "i4397"))
+                                                                          #("i4388"
+                                                                            "i4389"))
                                                                         #(ribcage
                                                                           ()
                                                                           ()
@@ -15386,9 +15377,9 @@
                                                                           #((top)
                                                                             (top)
                                                                             (top))
-                                                                          #("i4387"
-                                                                            "i4388"
-                                                                            "i4389"))
+                                                                          #("i4379"
+                                                                            "i4380"
+                                                                            "i4381"))
                                                                         #(ribcage
                                                                           #(_
                                                                             e
@@ -15398,10 +15389,10 @@
                                                                             (top)
                                                                             (top)
                                                                             (top))
-                                                                          #("i4375"
-                                                                            "i4376"
-                                                                            "i4377"
-                                                                            "i4378"))
+                                                                          #("i4367"
+                                                                            "i4368"
+                                                                            "i4369"
+                                                                            "i4370"))
                                                                         #(ribcage
                                                                           ()
                                                                           ()
@@ -15409,17 +15400,17 @@
                                                                         #(ribcage
                                                                           #(x)
                                                                           #((top))
-                                                                          #("i4372")))
+                                                                          #("i4364")))
                                                                        (hygiene
                                                                          guile))
-                                                                    (cons #{e1\ 4398}#
-                                                                          #{e2\ 4399}#)))
-                                                            #{tmp\ 4395}#)
-                                                     ((lambda (#{tmp\ 4401}#)
-                                                        (if #{tmp\ 4401}#
-                                                          (apply (lambda (#{k\ 4405}#
-                                                                          #{e1\ 4406}#
-                                                                          #{e2\ 4407}#)
+                                                                    (cons #{e1\ 4390}#
+                                                                          #{e2\ 4391}#)))
+                                                            #{tmp\ 4387}#)
+                                                     ((lambda (#{tmp\ 4393}#)
+                                                        (if #{tmp\ 4393}#
+                                                          (apply (lambda (#{k\ 4397}#
+                                                                          #{e1\ 4398}#
+                                                                          #{e2\ 4399}#)
                                                                    (list '#(syntax-object
                                                                             if
                                                                             ((top)
@@ -15430,9 +15421,9 @@
                                                                                #((top)
                                                                                  (top)
                                                                                  (top))
-                                                                               #("i4402"
-                                                                                 "i4403"
-                                                                                 "i4404"))
+                                                                               #("i4394"
+                                                                                 "i4395"
+                                                                                 "i4396"))
                                                                              #(ribcage
                                                                                ()
                                                                                ()
@@ -15444,9 +15435,9 @@
                                                                                #((top)
                                                                                  (top)
                                                                                  (top))
-                                                                               #("i4387"
-                                                                                 "i4388"
-                                                                                 "i4389"))
+                                                                               #("i4379"
+                                                                                 "i4380"
+                                                                                 "i4381"))
                                                                              #(ribcage
                                                                                #(_
                                                                                  e
@@ -15456,10 +15447,10 @@
                                                                                  (top)
                                                                                  (top)
                                                                                  (top))
-                                                                               #("i4375"
-                                                                                 "i4376"
-                                                                                 "i4377"
-                                                                                 "i4378"))
+                                                                               #("i4367"
+                                                                                 "i4368"
+                                                                                 "i4369"
+                                                                                 "i4370"))
                                                                              #(ribcage
                                                                                ()
                                                                                ()
@@ -15467,7 +15458,7 @@
                                                                              #(ribcage
                                                                                #(x)
                                                                                #((top))
-                                                                               #("i4372")))
+                                                                               #("i4364")))
                                                                             (hygiene
                                                                               guile))
                                                                          (list '#(syntax-object
@@ -15480,9 +15471,9 @@
                                                                                      #((top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4402"
-                                                                                       "i4403"
-                                                                                       "i4404"))
+                                                                                     #("i4394"
+                                                                                       "i4395"
+                                                                                       "i4396"))
                                                                                    #(ribcage
                                                                                      ()
                                                                                      ()
@@ -15494,9 +15485,9 @@
                                                                                      #((top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4387"
-                                                                                       "i4388"
-                                                                                       "i4389"))
+                                                                                     #("i4379"
+                                                                                       "i4380"
+                                                                                       "i4381"))
                                                                                    #(ribcage
                                                                                      #(_
                                                                                        e
@@ -15506,10 +15497,10 @@
                                                                                        (top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4375"
-                                                                                       "i4376"
-                                                                                       "i4377"
-                                                                                       "i4378"))
+                                                                                     #("i4367"
+                                                                                       "i4368"
+                                                                                       "i4369"
+                                                                                       "i4370"))
                                                                                    #(ribcage
                                                                                      ()
                                                                                      ()
@@ -15517,7 +15508,7 @@
                                                                                    #(ribcage
                                                                                      #(x)
                                                                                      #((top))
-                                                                                     #("i4372")))
+                                                                                     #("i4364")))
                                                                                   (hygiene
                                                                                     guile))
                                                                                '#(syntax-object
@@ -15530,9 +15521,9 @@
                                                                                      #((top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4402"
-                                                                                       "i4403"
-                                                                                       "i4404"))
+                                                                                     #("i4394"
+                                                                                       "i4395"
+                                                                                       "i4396"))
                                                                                    #(ribcage
                                                                                      ()
                                                                                      ()
@@ -15544,9 +15535,9 @@
                                                                                      #((top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4387"
-                                                                                       "i4388"
-                                                                                       "i4389"))
+                                                                                     #("i4379"
+                                                                                       "i4380"
+                                                                                       "i4381"))
                                                                                    #(ribcage
                                                                                      #(_
                                                                                        e
@@ -15556,10 +15547,10 @@
                                                                                        (top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4375"
-                                                                                       "i4376"
-                                                                                       "i4377"
-                                                                                       "i4378"))
+                                                                                     #("i4367"
+                                                                                       "i4368"
+                                                                                       "i4369"
+                                                                                       "i4370"))
                                                                                    #(ribcage
                                                                                      ()
                                                                                      ()
@@ -15567,7 +15558,7 @@
                                                                                    #(ribcage
                                                                                      #(x)
                                                                                      #((top))
-                                                                                     #("i4372")))
+                                                                                     #("i4364")))
                                                                                   (hygiene
                                                                                     guile))
                                                                                (list '#(syntax-object
@@ -15580,9 +15571,9 @@
                                                                                            #((top)
                                                                                              (top)
                                                                                              (top))
-                                                                                           #("i4402"
-                                                                                             "i4403"
-                                                                                             "i4404"))
+                                                                                           #("i4394"
+                                                                                             "i4395"
+                                                                                             "i4396"))
                                                                                          #(ribcage
                                                                                            ()
                                                                                            ()
@@ -15594,9 +15585,9 @@
                                                                                            #((top)
                                                                                              (top)
                                                                                              (top))
-                                                                                           #("i4387"
-                                                                                             "i4388"
-                                                                                             "i4389"))
+                                                                                           #("i4379"
+                                                                                             "i4380"
+                                                                                             "i4381"))
                                                                                          #(ribcage
                                                                                            #(_
                                                                                              e
@@ -15606,10 +15597,10 @@
                                                                                              (top)
                                                                                              (top)
                                                                                              (top))
-                                                                                           #("i4375"
-                                                                                             "i4376"
-                                                                                             "i4377"
-                                                                                             "i4378"))
+                                                                                           #("i4367"
+                                                                                             "i4368"
+                                                                                             "i4369"
+                                                                                             "i4370"))
                                                                                          #(ribcage
                                                                                            ()
                                                                                            ()
@@ -15617,10 +15608,10 @@
                                                                                          #(ribcage
                                                                                            #(x)
                                                                                            #((top))
-                                                                                           #("i4372")))
+                                                                                           #("i4364")))
                                                                                         (hygiene
                                                                                           guile))
-                                                                                     #{k\ 4405}#))
+                                                                                     #{k\ 4397}#))
                                                                          (cons '#(syntax-object
                                                                                   begin
                                                                                   ((top)
@@ -15631,9 +15622,9 @@
                                                                                      #((top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4402"
-                                                                                       "i4403"
-                                                                                       "i4404"))
+                                                                                     #("i4394"
+                                                                                       "i4395"
+                                                                                       "i4396"))
                                                                                    #(ribcage
                                                                                      ()
                                                                                      ()
@@ -15645,9 +15636,9 @@
                                                                                      #((top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4387"
-                                                                                       "i4388"
-                                                                                       "i4389"))
+                                                                                     #("i4379"
+                                                                                       "i4380"
+                                                                                       "i4381"))
                                                                                    #(ribcage
                                                                                      #(_
                                                                                        e
@@ -15657,10 +15648,10 @@
                                                                                        (top)
                                                                                        (top)
                                                                                        (top))
-                                                                                     #("i4375"
-                                                                                       "i4376"
-                                                                                       "i4377"
-                                                                                       "i4378"))
+                                                                                     #("i4367"
+                                                                                       "i4368"
+                                                                                       "i4369"
+                                                                                       "i4370"))
                                                                                    #(ribcage
                                                                                      ()
                                                                                      ()
@@ -15668,27 +15659,27 @@
                                                                                    #(ribcage
                                                                                      #(x)
                                                                                      #((top))
-                                                                                     #("i4372")))
+                                                                                     #("i4364")))
                                                                                   (hygiene
                                                                                     guile))
-                                                                               (cons #{e1\ 4406}#
-                                                                                     #{e2\ 4407}#))))
-                                                                 #{tmp\ 4401}#)
-                                                          ((lambda (#{_\ 4411}#)
+                                                                               (cons #{e1\ 4398}#
+                                                                                     #{e2\ 4399}#))))
+                                                                 #{tmp\ 4393}#)
+                                                          ((lambda (#{_\ 4403}#)
                                                              (syntax-violation
                                                                'case
                                                                "bad clause"
-                                                               #{x\ 4371}#
-                                                               #{clause\ 4391}#))
-                                                           #{tmp\ 4394}#)))
+                                                               #{x\ 4363}#
+                                                               #{clause\ 4383}#))
+                                                           #{tmp\ 4386}#)))
                                                       ($sc-dispatch
-                                                        #{tmp\ 4394}#
+                                                        #{tmp\ 4386}#
                                                         '(each-any
                                                            any
                                                            .
                                                            each-any)))))
                                                  ($sc-dispatch
-                                                   #{tmp\ 4394}#
+                                                   #{tmp\ 4386}#
                                                    '(#(free-id
                                                        #(syntax-object
                                                          else
@@ -15699,37 +15690,37 @@
                                                             #((top)
                                                               (top)
                                                               (top))
-                                                            #("i4387"
-                                                              "i4388"
-                                                              "i4389"))
+                                                            #("i4379"
+                                                              "i4380"
+                                                              "i4381"))
                                                           #(ribcage
                                                             #(_ e m1 m2)
                                                             #((top)
                                                               (top)
                                                               (top)
                                                               (top))
-                                                            #("i4375"
-                                                              "i4376"
-                                                              "i4377"
-                                                              "i4378"))
+                                                            #("i4367"
+                                                              "i4368"
+                                                              "i4369"
+                                                              "i4370"))
                                                           #(ribcage () () ())
                                                           #(ribcage
                                                             #(x)
                                                             #((top))
-                                                            #("i4372")))
+                                                            #("i4364")))
                                                          (hygiene guile)))
                                                      any
                                                      .
                                                      each-any))))
-                                              #{clause\ 4391}#)
-                                             ((lambda (#{tmp\ 4413}#)
-                                                ((lambda (#{rest\ 4415}#)
-                                                   ((lambda (#{tmp\ 4416}#)
-                                                      ((lambda (#{tmp\ 4417}#)
-                                                         (if #{tmp\ 4417}#
-                                                           (apply (lambda (#{k\ 4421}#
-                                                                           #{e1\ 4422}#
-                                                                           #{e2\ 4423}#)
+                                              #{clause\ 4383}#)
+                                             ((lambda (#{tmp\ 4405}#)
+                                                ((lambda (#{rest\ 4407}#)
+                                                   ((lambda (#{tmp\ 4408}#)
+                                                      ((lambda (#{tmp\ 4409}#)
+                                                         (if #{tmp\ 4409}#
+                                                           (apply (lambda (#{k\ 4413}#
+                                                                           #{e1\ 4414}#
+                                                                           #{e2\ 4415}#)
                                                                     (list '#(syntax-object
                                                                              if
                                                                              ((top)
@@ -15740,13 +15731,13 @@
                                                                                 #((top)
                                                                                   (top)
                                                                                   (top))
-                                                                                #("i4418"
-                                                                                  "i4419"
-                                                                                  "i4420"))
+                                                                                #("i4410"
+                                                                                  "i4411"
+                                                                                  "i4412"))
                                                                               #(ribcage
                                                                                 #(rest)
                                                                                 #((top))
-                                                                                #("i4414"))
+                                                                                #("i4406"))
                                                                               #(ribcage
                                                                                 ()
                                                                                 ()
@@ -15758,9 +15749,9 @@
                                                                                 #((top)
                                                                                   (top)
                                                                                   (top))
-                                                                                #("i4387"
-                                                                                  "i4388"
-                                                                                  "i4389"))
+                                                                                #("i4379"
+                                                                                  "i4380"
+                                                                                  "i4381"))
                                                                               #(ribcage
                                                                                 #(_
                                                                                   e
@@ -15770,10 +15761,10 @@
                                                                                   (top)
                                                                                   (top)
                                                                                   (top))
-                                                                                #("i4375"
-                                                                                  "i4376"
-                                                                                  "i4377"
-                                                                                  "i4378"))
+                                                                                #("i4367"
+                                                                                  "i4368"
+                                                                                  "i4369"
+                                                                                  "i4370"))
                                                                               #(ribcage
                                                                                 ()
                                                                                 ()
@@ -15781,7 +15772,7 @@
                                                                               #(ribcage
                                                                                 #(x)
                                                                                 #((top))
-                                                                                #("i4372")))
+                                                                                #("i4364")))
                                                                              (hygiene
                                                                                guile))
                                                                           (list '#(syntax-object
@@ -15794,13 +15785,13 @@
                                                                                       #((top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4418"
-                                                                                        "i4419"
-                                                                                        "i4420"))
+                                                                                      #("i4410"
+                                                                                        "i4411"
+                                                                                        "i4412"))
                                                                                     #(ribcage
                                                                                       #(rest)
                                                                                       #((top))
-                                                                                      #("i4414"))
+                                                                                      #("i4406"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -15812,9 +15803,9 @@
                                                                                       #((top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4387"
-                                                                                        "i4388"
-                                                                                        "i4389"))
+                                                                                      #("i4379"
+                                                                                        "i4380"
+                                                                                        "i4381"))
                                                                                     #(ribcage
                                                                                       #(_
                                                                                         e
@@ -15824,10 +15815,10 @@
                                                                                         (top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4375"
-                                                                                        "i4376"
-                                                                                        "i4377"
-                                                                                        "i4378"))
+                                                                                      #("i4367"
+                                                                                        "i4368"
+                                                                                        "i4369"
+                                                                                        "i4370"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -15835,7 +15826,7 @@
                                                                                     #(ribcage
                                                                                       #(x)
                                                                                       #((top))
-                                                                                      #("i4372")))
+                                                                                      #("i4364")))
                                                                                    (hygiene
                                                                                      guile))
                                                                                 '#(syntax-object
@@ -15848,13 +15839,13 @@
                                                                                       #((top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4418"
-                                                                                        "i4419"
-                                                                                        "i4420"))
+                                                                                      #("i4410"
+                                                                                        "i4411"
+                                                                                        "i4412"))
                                                                                     #(ribcage
                                                                                       #(rest)
                                                                                       #((top))
-                                                                                      #("i4414"))
+                                                                                      #("i4406"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -15866,9 +15857,9 @@
                                                                                       #((top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4387"
-                                                                                        "i4388"
-                                                                                        "i4389"))
+                                                                                      #("i4379"
+                                                                                        "i4380"
+                                                                                        "i4381"))
                                                                                     #(ribcage
                                                                                       #(_
                                                                                         e
@@ -15878,10 +15869,10 @@
                                                                                         (top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4375"
-                                                                                        "i4376"
-                                                                                        "i4377"
-                                                                                        "i4378"))
+                                                                                      #("i4367"
+                                                                                        "i4368"
+                                                                                        "i4369"
+                                                                                        "i4370"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -15889,7 +15880,7 @@
                                                                                     #(ribcage
                                                                                       #(x)
                                                                                       #((top))
-                                                                                      #("i4372")))
+                                                                                      #("i4364")))
                                                                                    (hygiene
                                                                                      guile))
                                                                                 (list '#(syntax-object
@@ -15902,13 +15893,13 @@
                                                                                             #((top)
                                                                                               (top)
                                                                                               (top))
-                                                                                            #("i4418"
-                                                                                              "i4419"
-                                                                                              "i4420"))
+                                                                                            #("i4410"
+                                                                                              "i4411"
+                                                                                              "i4412"))
                                                                                           #(ribcage
                                                                                             #(rest)
                                                                                             #((top))
-                                                                                            #("i4414"))
+                                                                                            #("i4406"))
                                                                                           #(ribcage
                                                                                             ()
                                                                                             ()
@@ -15920,9 +15911,9 @@
                                                                                             #((top)
                                                                                               (top)
                                                                                               (top))
-                                                                                            #("i4387"
-                                                                                              "i4388"
-                                                                                              "i4389"))
+                                                                                            #("i4379"
+                                                                                              "i4380"
+                                                                                              "i4381"))
                                                                                           #(ribcage
                                                                                             #(_
                                                                                               e
@@ -15932,10 +15923,10 @@
                                                                                               (top)
                                                                                               (top)
                                                                                               (top))
-                                                                                            #("i4375"
-                                                                                              "i4376"
-                                                                                              "i4377"
-                                                                                              "i4378"))
+                                                                                            #("i4367"
+                                                                                              "i4368"
+                                                                                              "i4369"
+                                                                                              "i4370"))
                                                                                           #(ribcage
                                                                                             ()
                                                                                             ()
@@ -15943,10 +15934,10 @@
                                                                                           #(ribcage
                                                                                             #(x)
                                                                                             #((top))
-                                                                                            #("i4372")))
+                                                                                            #("i4364")))
                                                                                          (hygiene
                                                                                            guile))
-                                                                                      #{k\ 4421}#))
+                                                                                      #{k\ 4413}#))
                                                                           (cons '#(syntax-object
                                                                                    begin
                                                                                    ((top)
@@ -15957,13 +15948,13 @@
                                                                                       #((top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4418"
-                                                                                        "i4419"
-                                                                                        "i4420"))
+                                                                                      #("i4410"
+                                                                                        "i4411"
+                                                                                        "i4412"))
                                                                                     #(ribcage
                                                                                       #(rest)
                                                                                       #((top))
-                                                                                      #("i4414"))
+                                                                                      #("i4406"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -15975,9 +15966,9 @@
                                                                                       #((top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4387"
-                                                                                        "i4388"
-                                                                                        "i4389"))
+                                                                                      #("i4379"
+                                                                                        "i4380"
+                                                                                        "i4381"))
                                                                                     #(ribcage
                                                                                       #(_
                                                                                         e
@@ -15987,10 +15978,10 @@
                                                                                         (top)
                                                                                         (top)
                                                                                         (top))
-                                                                                      #("i4375"
-                                                                                        "i4376"
-                                                                                        "i4377"
-                                                                                        "i4378"))
+                                                                                      #("i4367"
+                                                                                        "i4368"
+                                                                                        "i4369"
+                                                                                        "i4370"))
                                                                                     #(ribcage
                                                                                       ()
                                                                                       ()
@@ -15998,61 +15989,61 @@
                                                                                     #(ribcage
                                                                                       #(x)
                                                                                       #((top))
-                                                                                      #("i4372")))
+                                                                                      #("i4364")))
                                                                                    (hygiene
                                                                                      guile))
-                                                                                (cons #{e1\ 4422}#
-                                                                                      #{e2\ 4423}#))
-                                                                          #{rest\ 4415}#))
-                                                                  #{tmp\ 4417}#)
-                                                           ((lambda (#{_\ 4427}#)
+                                                                                (cons #{e1\ 4414}#
+                                                                                      #{e2\ 4415}#))
+                                                                          #{rest\ 4407}#))
+                                                                  #{tmp\ 4409}#)
+                                                           ((lambda (#{_\ 4419}#)
                                                               (syntax-violation
                                                                 'case
                                                                 "bad clause"
-                                                                #{x\ 4371}#
-                                                                #{clause\ 4391}#))
-                                                            #{tmp\ 4416}#)))
+                                                                #{x\ 4363}#
+                                                                #{clause\ 4383}#))
+                                                            #{tmp\ 4408}#)))
                                                        ($sc-dispatch
-                                                         #{tmp\ 4416}#
+                                                         #{tmp\ 4408}#
                                                          '(each-any
                                                             any
                                                             .
                                                             each-any))))
-                                                    #{clause\ 4391}#))
-                                                 #{tmp\ 4413}#))
-                                              (#{f\ 4390}#
-                                                (car #{clauses\ 4392}#)
-                                                (cdr #{clauses\ 4392}#)))))))
-                                (#{f\ 4390}# #{m1\ 4381}# #{m2\ 4382}#))))
-                           #{tmp\ 4374}#)
+                                                    #{clause\ 4383}#))
+                                                 #{tmp\ 4405}#))
+                                              (#{f\ 4382}#
+                                                (car #{clauses\ 4384}#)
+                                                (cdr #{clauses\ 4384}#)))))))
+                                (#{f\ 4382}# #{m1\ 4373}# #{m2\ 4374}#))))
+                           #{tmp\ 4366}#)
                     (syntax-violation
                       #f
                       "source expression failed to match any pattern"
-                      #{tmp\ 4373}#)))
+                      #{tmp\ 4365}#)))
                 ($sc-dispatch
-                  #{tmp\ 4373}#
+                  #{tmp\ 4365}#
                   '(any any any . each-any))))
-             #{x\ 4371}#))
+             #{x\ 4363}#))
           (module-name (current-module)))))
 
 (define identifier-syntax
   (make-syntax-transformer
     'identifier-syntax
     'macro
-    (cons (lambda (#{x\ 4428}#)
-            ((lambda (#{tmp\ 4430}#)
-               ((lambda (#{tmp\ 4431}#)
-                  (if #{tmp\ 4431}#
-                    (apply (lambda (#{_\ 4434}# #{e\ 4435}#)
+    (cons (lambda (#{x\ 4420}#)
+            ((lambda (#{tmp\ 4422}#)
+               ((lambda (#{tmp\ 4423}#)
+                  (if #{tmp\ 4423}#
+                    (apply (lambda (#{_\ 4426}# #{e\ 4427}#)
                              (list '#(syntax-object
                                       lambda
                                       ((top)
                                        #(ribcage
                                          #(_ e)
                                          #((top) (top))
-                                         #("i4432" "i4433"))
+                                         #("i4424" "i4425"))
                                        #(ribcage () () ())
-                                       #(ribcage #(x) #((top)) #("i4429")))
+                                       #(ribcage #(x) #((top)) #("i4421")))
                                       (hygiene guile))
                                    '(#(syntax-object
                                        x
@@ -16060,9 +16051,9 @@
                                         #(ribcage
                                           #(_ e)
                                           #((top) (top))
-                                          #("i4432" "i4433"))
+                                          #("i4424" "i4425"))
                                         #(ribcage () () ())
-                                        #(ribcage #(x) #((top)) #("i4429")))
+                                        #(ribcage #(x) #((top)) #("i4421")))
                                        (hygiene guile)))
                                    '#((#(syntax-object
                                          macro-type
@@ -16070,9 +16061,9 @@
                                           #(ribcage
                                             #(_ e)
                                             #((top) (top))
-                                            #("i4432" "i4433"))
+                                            #("i4424" "i4425"))
                                           #(ribcage () () ())
-                                          #(ribcage #(x) #((top)) #("i4429")))
+                                          #(ribcage #(x) #((top)) #("i4421")))
                                          (hygiene guile))
                                        .
                                        #(syntax-object
@@ -16081,9 +16072,9 @@
                                           #(ribcage
                                             #(_ e)
                                             #((top) (top))
-                                            #("i4432" "i4433"))
+                                            #("i4424" "i4425"))
                                           #(ribcage () () ())
-                                          #(ribcage #(x) #((top)) #("i4429")))
+                                          #(ribcage #(x) #((top)) #("i4421")))
                                          (hygiene guile))))
                                    (list '#(syntax-object
                                             syntax-case
@@ -16091,12 +16082,12 @@
                                              #(ribcage
                                                #(_ e)
                                                #((top) (top))
-                                               #("i4432" "i4433"))
+                                               #("i4424" "i4425"))
                                              #(ribcage () () ())
                                              #(ribcage
                                                #(x)
                                                #((top))
-                                               #("i4429")))
+                                               #("i4421")))
                                             (hygiene guile))
                                          '#(syntax-object
                                             x
@@ -16104,12 +16095,12 @@
                                              #(ribcage
                                                #(_ e)
                                                #((top) (top))
-                                               #("i4432" "i4433"))
+                                               #("i4424" "i4425"))
                                              #(ribcage () () ())
                                              #(ribcage
                                                #(x)
                                                #((top))
-                                               #("i4429")))
+                                               #("i4421")))
                                             (hygiene guile))
                                          '()
                                          (list '#(syntax-object
@@ -16118,12 +16109,12 @@
                                                    #(ribcage
                                                      #(_ e)
                                                      #((top) (top))
-                                                     #("i4432" "i4433"))
+                                                     #("i4424" "i4425"))
                                                    #(ribcage () () ())
                                                    #(ribcage
                                                      #(x)
                                                      #((top))
-                                                     #("i4429")))
+                                                     #("i4421")))
                                                   (hygiene guile))
                                                '(#(syntax-object
                                                    identifier?
@@ -16131,12 +16122,12 @@
                                                     #(ribcage
                                                       #(_ e)
                                                       #((top) (top))
-                                                      #("i4432" "i4433"))
+                                                      #("i4424" "i4425"))
                                                     #(ribcage () () ())
                                                     #(ribcage
                                                       #(x)
                                                       #((top))
-                                                      #("i4429")))
+                                                      #("i4421")))
                                                    (hygiene guile))
                                                  (#(syntax-object
                                                     syntax
@@ -16144,12 +16135,12 @@
                                                      #(ribcage
                                                        #(_ e)
                                                        #((top) (top))
-                                                       #("i4432" "i4433"))
+                                                       #("i4424" "i4425"))
                                                      #(ribcage () () ())
                                                      #(ribcage
                                                        #(x)
                                                        #((top))
-                                                       #("i4429")))
+                                                       #("i4421")))
                                                     (hygiene guile))
                                                   #(syntax-object
                                                     id
@@ -16157,12 +16148,12 @@
                                                      #(ribcage
                                                        #(_ e)
                                                        #((top) (top))
-                                                       #("i4432" "i4433"))
+                                                       #("i4424" "i4425"))
                                                      #(ribcage () () ())
                                                      #(ribcage
                                                        #(x)
                                                        #((top))
-                                                       #("i4429")))
+                                                       #("i4421")))
                                                     (hygiene guile))))
                                                (list '#(syntax-object
                                                         syntax
@@ -16170,27 +16161,27 @@
                                                          #(ribcage
                                                            #(_ e)
                                                            #((top) (top))
-                                                           #("i4432" "i4433"))
+                                                           #("i4424" "i4425"))
                                                          #(ribcage () () ())
                                                          #(ribcage
                                                            #(x)
                                                            #((top))
-                                                           #("i4429")))
+                                                           #("i4421")))
                                                         (hygiene guile))
-                                                     #{e\ 4435}#))
-                                         (list (cons #{_\ 4434}#
+                                                     #{e\ 4427}#))
+                                         (list (cons #{_\ 4426}#
                                                      '(#(syntax-object
                                                          x
                                                          ((top)
                                                           #(ribcage
                                                             #(_ e)
                                                             #((top) (top))
-                                                            #("i4432" "i4433"))
+                                                            #("i4424" "i4425"))
                                                           #(ribcage () () ())
                                                           #(ribcage
                                                             #(x)
                                                             #((top))
-                                                            #("i4429")))
+                                                            #("i4421")))
                                                          (hygiene guile))
                                                        #(syntax-object
                                                          ...
@@ -16198,12 +16189,12 @@
                                                           #(ribcage
                                                             #(_ e)
                                                             #((top) (top))
-                                                            #("i4432" "i4433"))
+                                                            #("i4424" "i4425"))
                                                           #(ribcage () () ())
                                                           #(ribcage
                                                             #(x)
                                                             #((top))
-                                                            #("i4429")))
+                                                            #("i4421")))
                                                          (hygiene guile))))
                                                (list '#(syntax-object
                                                         syntax
@@ -16211,14 +16202,14 @@
                                                          #(ribcage
                                                            #(_ e)
                                                            #((top) (top))
-                                                           #("i4432" "i4433"))
+                                                           #("i4424" "i4425"))
                                                          #(ribcage () () ())
                                                          #(ribcage
                                                            #(x)
                                                            #((top))
-                                                           #("i4429")))
+                                                           #("i4421")))
                                                         (hygiene guile))
-                                                     (cons #{e\ 4435}#
+                                                     (cons #{e\ 4427}#
                                                            '(#(syntax-object
                                                                x
                                                                ((top)
@@ -16226,8 +16217,8 @@
                                                                   #(_ e)
                                                                   #((top)
                                                                     (top))
-                                                                  #("i4432"
-                                                                    "i4433"))
+                                                                  #("i4424"
+                                                                    "i4425"))
                                                                 #(ribcage
                                                                   ()
                                                                   ()
@@ -16235,7 +16226,7 @@
                                                                 #(ribcage
                                                                   #(x)
                                                                   #((top))
-                                                                  #("i4429")))
+                                                                  #("i4421")))
                                                                (hygiene guile))
                                                              #(syntax-object
                                                                ...
@@ -16244,8 +16235,8 @@
                                                                   #(_ e)
                                                                   #((top)
                                                                     (top))
-                                                                  #("i4432"
-                                                                    "i4433"))
+                                                                  #("i4424"
+                                                                    "i4425"))
                                                                 #(ribcage
                                                                   ()
                                                                   ()
@@ -16253,72 +16244,72 @@
                                                                 #(ribcage
                                                                   #(x)
                                                                   #((top))
-                                                                  #("i4429")))
+                                                                  #("i4421")))
                                                                (hygiene
                                                                  guile)))))))))
-                           #{tmp\ 4431}#)
+                           #{tmp\ 4423}#)
                     (syntax-violation
                       #f
                       "source expression failed to match any pattern"
-                      #{tmp\ 4430}#)))
-                ($sc-dispatch #{tmp\ 4430}# (quote (any any)))))
-             #{x\ 4428}#))
+                      #{tmp\ 4422}#)))
+                ($sc-dispatch #{tmp\ 4422}# (quote (any any)))))
+             #{x\ 4420}#))
           (module-name (current-module)))))
 
 (define define*
   (make-syntax-transformer
     'define*
     'macro
-    (cons (lambda (#{x\ 4436}#)
-            ((lambda (#{tmp\ 4438}#)
-               ((lambda (#{tmp\ 4439}#)
-                  (if #{tmp\ 4439}#
-                    (apply (lambda (#{_\ 4445}#
-                                    #{id\ 4446}#
-                                    #{args\ 4447}#
-                                    #{b0\ 4448}#
-                                    #{b1\ 4449}#)
+    (cons (lambda (#{x\ 4428}#)
+            ((lambda (#{tmp\ 4430}#)
+               ((lambda (#{tmp\ 4431}#)
+                  (if #{tmp\ 4431}#
+                    (apply (lambda (#{_\ 4437}#
+                                    #{id\ 4438}#
+                                    #{args\ 4439}#
+                                    #{b0\ 4440}#
+                                    #{b1\ 4441}#)
                              (list '#(syntax-object
                                       define
                                       ((top)
                                        #(ribcage
                                          #(_ id args b0 b1)
                                          #((top) (top) (top) (top) (top))
-                                         #("i4440"
-                                           "i4441"
-                                           "i4442"
-                                           "i4443"
-                                           "i4444"))
+                                         #("i4432"
+                                           "i4433"
+                                           "i4434"
+                                           "i4435"
+                                           "i4436"))
                                        #(ribcage () () ())
-                                       #(ribcage #(x) #((top)) #("i4437")))
+                                       #(ribcage #(x) #((top)) #("i4429")))
                                       (hygiene guile))
-                                   #{id\ 4446}#
+                                   #{id\ 4438}#
                                    (cons '#(syntax-object
                                             lambda*
                                             ((top)
                                              #(ribcage
                                                #(_ id args b0 b1)
                                                #((top) (top) (top) (top) (top))
-                                               #("i4440"
-                                                 "i4441"
-                                                 "i4442"
-                                                 "i4443"
-                                                 "i4444"))
+                                               #("i4432"
+                                                 "i4433"
+                                                 "i4434"
+                                                 "i4435"
+                                                 "i4436"))
                                              #(ribcage () () ())
                                              #(ribcage
                                                #(x)
                                                #((top))
-                                               #("i4437")))
+                                               #("i4429")))
                                             (hygiene guile))
-                                         (cons #{args\ 4447}#
-                                               (cons #{b0\ 4448}#
-                                                     #{b1\ 4449}#)))))
-                           #{tmp\ 4439}#)
-                    ((lambda (#{tmp\ 4451}#)
-                       (if (if #{tmp\ 4451}#
-                             (apply (lambda (#{_\ 4455}#
-                                             #{id\ 4456}#
-                                             #{val\ 4457}#)
+                                         (cons #{args\ 4439}#
+                                               (cons #{b0\ 4440}#
+                                                     #{b1\ 4441}#)))))
+                           #{tmp\ 4431}#)
+                    ((lambda (#{tmp\ 4443}#)
+                       (if (if #{tmp\ 4443}#
+                             (apply (lambda (#{_\ 4447}#
+                                             #{id\ 4448}#
+                                             #{val\ 4449}#)
                                       (identifier?
                                         '#(syntax-object
                                            x
@@ -16326,44 +16317,44 @@
                                             #(ribcage
                                               #(_ id val)
                                               #((top) (top) (top))
-                                              #("i4452" "i4453" "i4454"))
+                                              #("i4444" "i4445" "i4446"))
                                             #(ribcage () () ())
                                             #(ribcage
                                               #(x)
                                               #((top))
-                                              #("i4437")))
+                                              #("i4429")))
                                            (hygiene guile))))
-                                    #{tmp\ 4451}#)
+                                    #{tmp\ 4443}#)
                              #f)
-                         (apply (lambda (#{_\ 4461}#
-                                         #{id\ 4462}#
-                                         #{val\ 4463}#)
+                         (apply (lambda (#{_\ 4453}#
+                                         #{id\ 4454}#
+                                         #{val\ 4455}#)
                                   (list '#(syntax-object
                                            define
                                            ((top)
                                             #(ribcage
                                               #(_ id val)
                                               #((top) (top) (top))
-                                              #("i4458" "i4459" "i4460"))
+                                              #("i4450" "i4451" "i4452"))
                                             #(ribcage () () ())
                                             #(ribcage
                                               #(x)
                                               #((top))
-                                              #("i4437")))
+                                              #("i4429")))
                                            (hygiene guile))
-                                        #{id\ 4462}#
-                                        #{val\ 4463}#))
-                                #{tmp\ 4451}#)
+                                        #{id\ 4454}#
+                                        #{val\ 4455}#))
+                                #{tmp\ 4443}#)
                          (syntax-violation
                            #f
                            "source expression failed to match any pattern"
-                           #{tmp\ 4438}#)))
+                           #{tmp\ 4430}#)))
                      ($sc-dispatch
-                       #{tmp\ 4438}#
+                       #{tmp\ 4430}#
                        '(any any any)))))
                 ($sc-dispatch
-                  #{tmp\ 4438}#
+                  #{tmp\ 4430}#
                   '(any (any . any) any . each-any))))
-             #{x\ 4436}#))
+             #{x\ 4428}#))
           (module-name (current-module)))))
 

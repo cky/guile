@@ -2364,14 +2364,10 @@
 ;;; expanded, and the expanded definitions are also residualized into
 ;;; the object file if we are compiling a file.
   (set! macroexpand
-        (lambda (x . rest)
-          (let ((m (if (null? rest) 'e (car rest)))
-                (esew (if (or (null? rest) (null? (cdr rest)))
-                          '(eval)
-                          (cadr rest)))
-                (mod (cons 'hygiene (module-name (current-module)))))
-            (chi-top x null-env top-wrap m esew mod))))
-  
+        (lambda* (x #:optional (m 'e) (esew '(eval)))
+          (chi-top x null-env top-wrap m esew
+                   (cons 'hygiene (module-name (current-module))))))
+
   (set! identifier?
         (lambda (x)
           (nonsymbol-id? x)))
