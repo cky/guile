@@ -173,6 +173,7 @@
              ;; welcome!
              #'(begin
                  (define-module (name name* ...)
+                   #:pure
                    #:version (version ...))
                  (import ispec)
                  ...
@@ -187,7 +188,7 @@
       ((_ (for import-set import-level ...))
        #'(import import-set))
       ((_ import-set)
-       #'(eval-when (eval load compile)
+       #'(eval-when (eval load compile expand)
            (let ((iface (resolve-r6rs-interface 'import-set)))
              (call-with-deferred-observers
               (lambda ()
