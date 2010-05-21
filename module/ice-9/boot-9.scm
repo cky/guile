@@ -640,7 +640,7 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (record-type? obj)
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
 
-(define (make-record-type type-name fields . opt)
+(define* (make-record-type type-name fields #:optional printer)
   ;; Pre-generate constructors for nfields < 20.
   (define-syntax make-constructor
     (lambda (x)
@@ -695,8 +695,7 @@ If there is no handler at all, Guile prints an error and then exits."
                           (make-struct-layout
                            (apply string-append
                                   (map (lambda (f) "pw") fields)))
-                          (or (and (pair? opt) (car opt))
-                              default-record-printer)
+                          (or printer default-record-printer)
                           type-name
                           (copy-tree fields))))
     (struct-set! rtd (+ vtable-offset-user 2)
