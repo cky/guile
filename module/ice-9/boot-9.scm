@@ -1089,7 +1089,7 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (set! %load-hook %load-announce)
 
-(define (load name . reader)
+(define* (load name #:optional reader)
   ;; Returns the .go file corresponding to `name'. Does not search load
   ;; paths, only the fallback path. If the .go file is missing or out of
   ;; date, and autocompilation is enabled, will try autocompilation, just
@@ -1137,7 +1137,7 @@ If there is no handler at all, Guile prints an error and then exits."
                 ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
                 name k args)
         #f)))
-  (with-fluids ((current-reader (and (pair? reader) (car reader))))
+  (with-fluids ((current-reader reader))
     (let ((cfn (and=> (and=> (false-if-exception (canonicalize-path name))
                              compiled-file-name)
                       fresh-compiled-file-name)))
