@@ -1987,19 +1987,18 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define basic-load load)
 
-(define (load-module filename . reader)
+(define* (load-module filename #:optional reader)
   (save-module-excursion
    (lambda ()
      (let ((oldname (and (current-load-port)
                          (port-filename (current-load-port)))))
-       (apply basic-load
-              (if (and oldname
-                       (> (string-length filename) 0)
-                       (not (char=? (string-ref filename 0) #\/))
-                       (not (string=? (dirname oldname) ".")))
-                  (string-append (dirname oldname) "/" filename)
-                  filename)
-              reader)))))
+       (basic-load (if (and oldname
+                            (> (string-length filename) 0)
+                            (not (char=? (string-ref filename 0) #\/))
+                            (not (string=? (dirname oldname) ".")))
+                       (string-append (dirname oldname) "/" filename)
+                       filename)
+                   reader)))))
 
 
 
