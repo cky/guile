@@ -2700,10 +2700,9 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; This function is called from "modules.c".  If you change it, be
 ;; sure to update "modules.c" as well.
 
-(define (try-module-autoload module-name . args)
+(define* (try-module-autoload module-name #:optional version)
   (let* ((reverse-name (reverse module-name))
          (name (symbol->string (car reverse-name)))
-         (version (and (not (null? args)) (car args)))
          (dir-hint-module-name (reverse (cdr reverse-name)))
          (dir-hint (apply string-append
                           (map (lambda (elt)
