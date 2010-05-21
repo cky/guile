@@ -1633,7 +1633,7 @@ If there is no handler at all, Guile prints an error and then exits."
   (set-module-observers! module (cons proc (module-observers module)))
   (cons module proc))
 
-(define (module-observe-weak module observer-id . proc)
+(define* (module-observe-weak module observer-id #:optional (proc observer-id))
   ;; Register PROC as an observer of MODULE under name OBSERVER-ID (which can
   ;; be any Scheme object).  PROC is invoked and passed MODULE any time
   ;; MODULE is modified.  PROC gets unregistered when OBSERVER-ID gets GC'd
@@ -1643,9 +1643,7 @@ If there is no handler at all, Guile prints an error and then exits."
   ;; The two-argument version is kept for backward compatibility: when called
   ;; with two arguments, the observer gets unregistered when closure PROC
   ;; gets GC'd (making it impossible to use an anonymous lambda for PROC).
-
-  (let ((proc (if (null? proc) observer-id (car proc))))
-    (hashq-set! (module-weak-observers module) observer-id proc)))
+  (hashq-set! (module-weak-observers module) observer-id proc))
 
 (define (module-unobserve token)
   (let ((module (car token))
