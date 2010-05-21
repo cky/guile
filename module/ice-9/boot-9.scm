@@ -717,17 +717,16 @@ If there is no handler at all, Guile prints an error and then exits."
       (struct-ref obj (+ 1 vtable-offset-user))
       (error 'not-a-record-type obj)))
 
-(define (record-constructor rtd . opt)
-  (if (null? opt)
+(define* (record-constructor rtd #:optional field-names)
+  (if (not field-names)
       (struct-ref rtd (+ 2 vtable-offset-user))
-      (let ((field-names (car opt)))
-        (primitive-eval
-         `(lambda ,field-names
-            (make-struct ',rtd 0 ,@(map (lambda (f)
-                                          (if (memq f field-names)
-                                              f
-                                              #f))
-                                        (record-type-fields rtd))))))))
+      (primitive-eval
+       `(lambda ,field-names
+          (make-struct ',rtd 0 ,@(map (lambda (f)
+                                        (if (memq f field-names)
+                                            f
+                                            #f))
+                                      (record-type-fields rtd)))))))
           
 (define (record-predicate rtd)
   (lambda (obj) (and (struct? obj) (eq? rtd (struct-vtable obj)))))
