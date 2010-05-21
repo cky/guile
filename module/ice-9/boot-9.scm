@@ -294,11 +294,8 @@ If there is no handler at all, Guile prints an error and then exits."
 
 ;; this is scheme wrapping the C code so the final pred call is a tail call,
 ;; per SRFI-13 spec
-(define (string-any char_pred s . rest)
-  (let ((start (if (null? rest)
-                   0 (car rest)))
-        (end   (if (or (null? rest) (null? (cdr rest)))
-                   (string-length s) (cadr rest))))
+(define string-any
+  (lambda* (char_pred s #:optional (start 0) (end (string-length s)))
     (if (and (procedure? char_pred)
              (> end start)
              (<= end (string-length s))) ;; let c-code handle range error
@@ -308,11 +305,8 @@ If there is no handler at all, Guile prints an error and then exits."
 
 ;; this is scheme wrapping the C code so the final pred call is a tail call,
 ;; per SRFI-13 spec
-(define (string-every char_pred s . rest)
-  (let ((start (if (null? rest)
-                   0 (car rest)))
-        (end   (if (or (null? rest) (null? (cdr rest)))
-                   (string-length s) (cadr rest))))
+(define string-every
+  (lambda* (char_pred s #:optional (start 0) (end (string-length s)))
     (if (and (procedure? char_pred)
              (> end start)
              (<= end (string-length s))) ;; let c-code handle range error
