@@ -47,11 +47,11 @@ information.
 Compiled code loads much faster than Scheme source code, and runs around
 3 or 4 times as fast, generating much less garbage in the process.
 
-** The stack limit is now initialized from the environment.
+** Evaluating Scheme code does not use the C stack.
 
-If getrlimit(2) is available and a stack limit is set, Guile will set
-its stack limit to 80% of the rlimit. Otherwise the limit is 160000
-words, a four-fold increase from the earlier default limit.
+Besides when compiling Guile itself, Guile no longer uses a recursive C
+function as an evaluator. This obviates the need to check the C stack
+pointer for overflow. Continuations still capture the C stack, however.
 
 ** New environment variables: GUILE_LOAD_COMPILED_PATH,
    GUILE_SYSTEM_LOAD_COMPILED_PATH
@@ -71,7 +71,7 @@ documented in the manual. This will be fixed before 2.0.
 
 The reader supports a new option (changeable via `read-options'),
 `square-brackets', which instructs it to interpret square brackets as
-parenthesis.  This option is on by default.
+parentheses.  This option is on by default.
 
 When the new `r6rs-hex-escapes' reader option is enabled, the reader
 will recognize string escape sequences as defined in R6RS.
@@ -200,7 +200,7 @@ Scheme binding for the `getaddrinfo' C library function.
 
 ** New procedures in (ice-9 session): `add-value-help-handler!',
    `remove-value-help-handler!', `add-name-help-handler!'
-   `remove-name-help-handler!', `procedure-arguments',
+   `remove-name-help-handler!', `procedure-arguments'
 
 The value and name help handlers provide some minimal extensibility to
 the help interface. Guile-lib's `(texinfo reflection)' uses them, for
@@ -252,13 +252,6 @@ macro, such as the syntax-rules patterns or the defmacro arguments.
 `(texinfo reflection)' takes advantage of this to give better macro
 documentation.
 
-** Defmacros may now have docstrings.
-
-Indeed, any macro may have a docstring. `object-documentation' from
-`(ice-9 documentation)' may be used to retrieve the docstring, once you
-have a macro value -- but see the above note about first-class macros.
-Docstrings are associated with the syntax transformer procedures.
-
 ** Support for arbitrary procedure metadata
 
 Building on its support for docstrings, Guile now supports multiple
@@ -269,8 +262,7 @@ properties. For example:
     "one"
     "two"
     3)
-  (use-modules (system vm program))
-  (program-properties foo)
+  (procedure-properties foo)
   => ((name . foo) (documentation . "one") (documentation . "two"))
 
 Also, vectors of pairs are now treated as additional metadata entries:
@@ -278,8 +270,7 @@ Also, vectors of pairs are now treated as additional metadata entries:
   (define (bar)
     #((quz . #f) (docstring . "xyzzy"))
     3)
-  (use-modules (system vm program))
-  (program-properties bar)
+  (procedure-properties bar)
   => ((name . bar) (quz . #f) (docstring . "xyzzy"))
 
 This allows arbitrary literals to be embedded as metadata in a compiled
@@ -321,8 +312,8 @@ for more information.
 
 ** `eval-case' has been deprecated, and replaced by `eval-when'.
 
-The semantics of `eval-when' are easier to understand. It is still
-missing documentation, however.
+The semantics of `eval-when' are easier to understand. See "Eval When"
+in the manual, for more information.
 
 ** Guile is now more strict about prohibiting definitions in expression
    contexts.
@@ -409,18 +400,20 @@ the definition of `double-helper' in `eval-when':
   (define-macro (double-literal x) (double-helper x))
   (double-literal 2) => 4
 
-See the (currently missing) documentation for eval-when for more
-information.
+See the documentation for eval-when for more information.
 
-** New variable, %pre-modules-transformer
+** `macroexpand' produces structures, not S-expressions.
 
-Need to document this one some more.
+Given the need to maintain referential transparency, both lexically and
+modular, the result of expanding Scheme expressions is no longer itself
+an s-expression. If you want a human-readable approximation of the
+result of `macroexpand', call `tree-il->scheme' from `(language
+tree-il)'.
 
-** Temporarily removed functions: `macroexpand', `macroexpand-1'
+** Removed function: `macroexpand-1'
 
-`macroexpand' will be added back before 2.0. It is unclear how to
-implement `macroexpand-1' with syntax-case, though PLT Scheme does prove
-that it is possible.
+It is unclear how to implement `macroexpand-1' with syntax-case, though
+PLT Scheme does prove that it is possible.
 
 ** New reader macros: #' #` #, #,@
 
@@ -462,7 +455,7 @@ stack will result in an empty stack. To fix this, narrow to a procedure
 that is active in the current continuation, or narrow to a specific
 number of stack frames.
 
-** backtraces through compiled procedures only show procedures that are
+** Backtraces through compiled procedures only show procedures that are
    active in the current continuation
 
 Similarly to the previous issue, backtraces in compiled code may be
@@ -482,8 +475,8 @@ Before, `(define ((f a) b) (* a b))' would translate to
   (define f (lambda (a) (lambda (b) (* a b))))
 
 Now a syntax error is signaled, as this syntax is not supported by
-default. If there is sufficient demand, this syntax can be supported
-again by default.
+default. Use the `(ice-9 curried-definitions)' module to get back the
+old behavior.
 
 ** New procedure, `define!'
 
@@ -551,8 +544,8 @@ you to contact the Guile developers.
 ** Hygienic macros documented as the primary syntactic extension mechanism.
 
 The macro documentation was finally fleshed out with some documentation
-on `syntax-case' macros, and other parts of the macro expansion process.
-See "Macros" in the manual, for details.
+on `syntax-rules' and `syntax-case' macros, and other parts of the macro
+expansion process. See "Macros" in the manual, for details.
 
 ** psyntax is now the default expander
 
@@ -578,18 +571,13 @@ in psyntax since then. If you find one, please notify bug-guile@gnu.org.
 
 There is no longer any need to import the `(ice-9 syncase)' module
 (which is now deprecated). The expander may be invoked directly via
-`sc-expand', though it is normally searched for via the current module
+`macroexpand', though it is normally searched for via the current module
 transformer.
 
 Also, the helper routines for syntax-case are available in the default
 environment as well: `syntax->datum', `datum->syntax',
 `bound-identifier=?', `free-identifier=?', `generate-temporaries',
 `identifier?', and `syntax-violation'. See the R6RS for documentation.
-
-** Documentation of `syntax-rules' and `syntax-case' macros
-
-The documentation of macros in the manual is now separate from that of
-procedures.  A new section on hygienic macros has been added.
 
 ** Tail patterns in syntax-case
 
@@ -645,9 +633,12 @@ Macros still /exist/ as first-class values, but they must be
 /referenced/ via the module system, e.g. `(module-ref (current-module)
 'if)'.
 
-This decision may be revisited before the 2.0 release. Feedback welcome
-to guile-devel@gnu.org (subscription required) or bug-guile@gnu.org (no
-subscription required).
+** Macros may now have docstrings.
+
+`object-documentation' from `(ice-9 documentation)' may be used to
+retrieve the docstring, once you have a macro value -- but see the above
+note about first-class macros. Docstrings are associated with the syntax
+transformer procedures.
 
 ** `case-lambda' is now available in the default environment.
 
@@ -655,7 +646,7 @@ The binding in the default environment is equivalent to the one from the
 `(srfi srfi-16)' module. Use the srfi-16 module explicitly if you wish
 to maintain compatibility with Guile 1.8 and earlier.
 
-** Compiled procedures may now have more than one arity.
+** Procedures may now have more than one arity.
 
 This can be the case, for example, in case-lambda procedures. The
 arities of compiled procedures may be accessed via procedures from the
@@ -839,15 +830,6 @@ This change will in the future allow users to customize generic function
 dispatch without incurring a performance penalty, and allow us to
 implement method combinations.
 
-** GOOPS cleanups.
-
-GOOPS had a number of concepts that were relevant to the days of Tcl,
-but not any more: operators and entities, mainly. These objects were
-never documented, and it is unlikely that they were ever used. Operators
-were a kind of generic specific to the Tcl support. Entities were
-applicable structures, but were unusable; entities will come back in the
-next alpha release, but with a less stupid name.
-
 ** Applicable struct support
 
 One may now make structs from Scheme that may be applied as procedures.
@@ -858,6 +840,14 @@ that new struct are assumed to have the procedure in their first slot.
 `funcallable-standard-class'. Likewise there is
 `<applicable-struct-with-setter-vtable>', which looks for the setter in
 the second slot. This needs to be better documented.
+
+** GOOPS cleanups.
+
+GOOPS had a number of concepts that were relevant to the days of Tcl,
+but not any more: operators and entities, mainly. These objects were
+never documented, and it is unlikely that they were ever used. Operators
+were a kind of generic specific to the Tcl support. Entities were
+replaced by applicable structs, mentioned above.
 
 ** New struct slot allocation: "hidden"
 
@@ -1055,12 +1045,6 @@ Removed the deprecated array functions `scm_i_arrayp',
     
 `SCM_DEFINE1', `SCM_PRIMITIVE_GENERIC_1', `SCM_PROC1, and `SCM_GPROC1'
 are no more. Use SCM_DEFINE or SCM_PRIMITIVE_GENERIC instead.
-
-** Add foreign value wrapper
-    
-Guile now has a datatype for aliasing "foreign" values, such as native
-long values. This should be useful for making a proper foreign function
-interface. Interested hackers should see libguile/foreign.h.
 
 ** New functions: `scm_call_n', `scm_c_run_hookn'
     
