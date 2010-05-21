@@ -119,9 +119,7 @@
             (apply prev thrown-k args)))))
 
   (define! 'catch
-    ;; Until we get optargs support into Guile's C evaluator, we have to fake it
-    ;; here.
-    (lambda (k thunk handler . pre-unwind-handler)
+    (lambda* (k thunk handler #:optional pre-unwind-handler)
       "Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol
 @var{key}, then @var{handler} is invoked this way:
@@ -165,10 +163,9 @@ non-locally, that exit determines the continuation."
          (lambda ()
            (with-fluids
                ((%exception-handler
-                 (if (null? pre-unwind-handler)
-                     (default-throw-handler tag k)
-                     (custom-throw-handler tag k
-                                           (car pre-unwind-handler)))))
+                 (if pre-unwind-handler
+                     (custom-throw-handler tag k pre-unwind-handler)
+                     (default-throw-handler tag k))))
              (thunk)))
          (lambda (cont k . args)
            (apply handler k args))))))
