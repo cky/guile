@@ -2404,11 +2404,8 @@ If there is no handler at all, Guile prints an error and then exits."
     ;; Define the-root-module as '(guile).
     (module-define-submodule! root 'guile the-root-module)
 
-    (lambda (name . args) ;; #:optional (autoload #t) (version #f)
-      (let* ((already (nested-ref-module root name))
-             (numargs (length args))
-             (autoload (or (= numargs 0) (car args)))
-             (version (and (> numargs 1) (cadr args))))
+    (lambda* (name #:optional (autoload #t) (version #f))
+      (let ((already (nested-ref-module root name)))
         (cond
          ((and already
                (or (not autoload) (module-public-interface already)))
