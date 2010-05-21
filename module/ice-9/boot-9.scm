@@ -917,23 +917,39 @@ If there is no handler at all, Guile prints an error and then exits."
     (if (> revealed 0)
         (set-port-revealed! port (- revealed 1)))))
 
-(define (dup->port port/fd mode . maybe-fd)
-  (let ((port (fdopen (apply dup->fdes port/fd maybe-fd)
-                      mode)))
-    (if (pair? maybe-fd)
-        (set-port-revealed! port 1))
-    port))
+(define dup->port
+  (case-lambda
+    ((port/fd mode)
+     (fdopen (dup->fdes port/fd) mode))
+    ((port/fd mode new-fd)
+     (let ((port (fdopen (dup->fdes port/fd new-fd) mode)))
+       (set-port-revealed! port 1)
+       port))))
 
-(define (dup->inport port/fd . maybe-fd)
-  (apply dup->port port/fd "r" maybe-fd))
+(define dup->inport
+  (case-lambda
+    ((port/fd)
+     (dup->port port/fd "r"))
+    ((port/fd new-fd)
+     (dup->port port/fd "r" new-fd))))
 
-(define (dup->outport port/fd . maybe-fd)
-  (apply dup->port port/fd "w" maybe-fd))
+(define dup->outport
+  (case-lambda
+    ((port/fd)
+     (dup->port port/fd "w"))
+    ((port/fd new-fd)
+     (dup->port port/fd "w" new-fd))))
 
-(define (dup port/fd . maybe-fd)
-  (if (integer? port/fd)
-      (apply dup->fdes port/fd maybe-fd)
-      (apply dup->port port/fd (port-mode port/fd) maybe-fd)))
+(define dup
+  (case-lambda
+    ((port/fd)
+     (if (integer? port/fd)
+         (dup->fdes port/fd)
+         (dup->port port/fd (port-mode port/fd))))
+    ((port/fd new-fd)
+     (if (integer? port/fd)
+         (dup->fdes port/fd new-fd)
+         (dup->port port/fd (port-mode port/fd) new-fd)))))
 
 (define (duplicate-port port modes)
   (dup->port port modes))
