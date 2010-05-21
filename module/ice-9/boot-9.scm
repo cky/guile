@@ -3505,11 +3505,8 @@ module '(ice-9 q) '(make-q q-length))}."
                   (if (null? args)
                       (fluid-ref fluid)
                       (fluid-set! fluid (converter (car args))))))))
-    (lambda (init . converter)
-      (let ((fluid (make-fluid))
-            (converter (if (null? converter)
-                           identity
-                           (car converter))))
+    (lambda* (init #:optional (converter identity))
+      (let ((fluid (make-fluid)))
         (fluid-set! fluid (converter init))
         (make fluid converter)))))
 
