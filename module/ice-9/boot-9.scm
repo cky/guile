@@ -899,9 +899,8 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (tms:cstime obj) (vector-ref obj 4))
 
 (define file-position ftell)
-(define (file-set-position port offset . whence)
-  (let ((whence (if (eq? whence '()) SEEK_SET (car whence))))
-    (seek port offset whence)))
+(define* (file-set-position port offset #:optional (whence SEEK_SET))
+  (seek port offset whence))
 
 (define (move->fdes fd/port fd)
   (cond ((integer? fd/port)
