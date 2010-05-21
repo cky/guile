@@ -3905,12 +3905,6 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; Place the user in the guile-user module.
 ;;;
 
-;;; FIXME: annotate ?
-;; (define (syncase exp)
-;;   (with-fluids ((expansion-eval-closure
-;;               (module-eval-closure (current-module))))
-;;     (deannotate/source-properties (macroexpand (annotate exp)))))
-
 ;; FIXME:
 (module-use! the-scm-module (resolve-interface '(srfi srfi-4)))
 
