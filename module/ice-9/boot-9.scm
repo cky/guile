@@ -2469,25 +2469,15 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; or its public interface is not available.  Signal "no binding"
 ;; error if selected binding does not exist in the used module.
 ;;
-(define (resolve-interface name . args)
-
-  (define (get-keyword-arg args kw def)
-    (cond ((memq kw args)
-           => (lambda (kw-arg)
-                (if (null? (cdr kw-arg))
-                    (error "keyword without value: " kw))
-                (cadr kw-arg)))
-          (else
-           def)))
-
-  (let* ((select (get-keyword-arg args #:select #f))
-         (hide (get-keyword-arg args #:hide '()))
-         (renamer (or (get-keyword-arg args #:renamer #f)
-                      (let ((prefix (get-keyword-arg args #:prefix #f)))
-                        (and prefix (symbol-prefix-proc prefix)))
-                      identity))
-         (version (get-keyword-arg args #:version #f))
-         (module (resolve-module name #t version))
+(define* (resolve-interface name #:key
+                            (select #f)
+                            (hide '())
+                            (prefix #f)
+                            (renamer (if prefix
+                                         (symbol-prefix-proc prefix)
+                                         identity))
+                            version)
+  (let* ((module (resolve-module name #t version))
          (public-i (and module (module-public-interface module))))
     (and (or (not module) (not public-i))
          (error "no code for module" name))
