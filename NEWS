@@ -8,83 +8,8 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
-Changes in 1.9.10 (since the 1.9.9 prerelease):
+Changes in 1.9.11 (since the 1.9.10 prerelease):
 
-** Hygienic macros documented as the primary syntactic extension mechanism.
-
-The macro documentation was finally fleshed out with some documentation
-on `syntax-case' macros, and other parts of the macro expansion process.
-See "Macros" in the manual, for details.
-
-** Interactive Guile follows GNU conventions
-
-As recommended by the GPL, Guile now shows a brief copyright and
-warranty disclaimer on startup, along with pointers to more information.
-On the other hand, changing languages is more concise.
-
-** Support for arbitrary procedure metadata
-
-Building on its support for docstrings, Guile now supports multiple
-docstrings, adding them to the tail of a compiled procedure's
-properties. For example:
-
-  (define (foo)
-    "one"
-    "two"
-    3)
-  (use-modules (system vm program))
-  (program-properties foo)
-  => ((name . foo) (documentation . "one") (documentation . "two"))
-
-Also, vectors of pairs are now treated as additional metadata entries:
-
-  (define (bar)
-    #((quz . #f) (docstring . "xyzzy"))
-    3)
-  (use-modules (system vm program))
-  (program-properties bar)
-  => ((name . bar) (quz . #f) (docstring . "xyzzy"))
-
-This allows arbitrary literals to be embedded as metadata in a compiled
-procedure.
-
-** Better documentation infrastructure for macros
-
-It is now possible to introspect on the type of a macro, e.g.
-syntax-rules, identifier-syntax, etc, and extract information about that
-macro, such as the syntax-rules patterns or the defmacro arguments.
-`(texinfo reflection)' takes advantage of this to give better macro
-documentation.
-
-** Autocompilation for applications that use Guile as an extension language
-
-It used to be that only applications that ran Guile through the
-`scm_shell' function got the advantages of autocompilation. This has
-been changed so that all applications have autocompilation on by
-default.
-
-** Better integration of Lisp nil
-
-`scm_is_boolean', `scm_is_false', and `scm_is_null' all return true now
-for Lisp's `nil'. This shouldn't affect any Scheme code at this point,
-but when we start to integrate more with Emacs, it is possible that we
-break code that assumes that, for example, `(not x)' implies that `x' is
-`eq?' to `#f'. This is not a common assumption. Refactoring affected
-code to rely on properties instead of identities will improve code
-correctness. See "Nil" in the manual, for more details.
-
-** Integration of lalr-scm, a parser generator
-
-Guile has included Dominique Boucher's fine `lalr-scm' parser generator
-as `(system base lalr)'. See "LALR(1) Parsing" in the manual, for more
-information.
-
-** Documentation for the dynamic foreign function interface (FFI).
-
-See "Foreign Function Interface" in the manual, for more information.
-
-** Unicode character set update to Unicode 5.2.
-    
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
@@ -108,6 +33,12 @@ Changes in 1.9.x (since the 1.8.x series):
 The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
 toolkit from Guile-Lib have been imported into Guile proper. See
 "Standard Library" in the manual for more details.
+
+** Integration of lalr-scm, a parser generator
+
+Guile has included Dominique Boucher's fine `lalr-scm' parser generator
+as `(system base lalr)'. See "LALR(1) Parsing" in the manual, for more
+information.
 
 * Changes to the stand-alone interpreter
 
@@ -185,6 +116,10 @@ allows Guile's copy of SSAX to override any Guile-Lib copy the user has
 installed. Also it should cut the number of `stat' system calls by half,
 in the common case.
 
+** Interactive Guile follows GNU conventions
+
+As recommended by the GPL, Guile now shows a brief copyright and
+warranty disclaimer on startup, along with pointers to more information.
 
 * Changes to Scheme functions and syntax
 
@@ -230,8 +165,7 @@ If you think you need `local-eval', you should probably implement your
 own metacircular evaluator. It will probably be as fast as Guile's
 anyway.
 
-** Files loaded with `primitive-load-path' will now be compiled
-   automatically.
+** Scheme source files will now be compiled automatically.
 
 If a compiled .go file corresponding to a .scm file is not found or is
 not fresh, the .scm file will be compiled on the fly, and the resulting
@@ -248,20 +182,6 @@ will be created if needed.
 
 To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
 variable to 0, or pass --no-autocompile on the Guile command line.
-
-** Files loaded with `load' will now be compiled automatically.
-
-As with files loaded via `primitive-load-path', `load' will also compile
-its target if autocompilation is enabled, and a fresh compiled file is
-not found.
-
-There are two points of difference to note, however. First, `load' does
-not search `GUILE_LOAD_COMPILED_PATH' for the file; it only looks in the
-autocompilation directory, normally a subdirectory of ~/.cache/guile.
-
-Secondly, autocompilation also applies to files loaded via the -l
-command-line argument -- so the user may experience a slight slowdown
-the first time they run a Guile script, as the script is autocompiled.
 
 ** New POSIX procedures: `getrlimit' and `setrlimit'
 
@@ -324,12 +244,46 @@ Guile now has an experimental Emacs Lisp compiler and runtime. You can
 now switch to Elisp at the repl: `,language elisp'. All kudos to Daniel
 Kraft, and all bugs to bug-guile@gnu.org.
 
+** Better documentation infrastructure for macros
+
+It is now possible to introspect on the type of a macro, e.g.
+syntax-rules, identifier-syntax, etc, and extract information about that
+macro, such as the syntax-rules patterns or the defmacro arguments.
+`(texinfo reflection)' takes advantage of this to give better macro
+documentation.
+
 ** Defmacros may now have docstrings.
 
 Indeed, any macro may have a docstring. `object-documentation' from
 `(ice-9 documentation)' may be used to retrieve the docstring, once you
 have a macro value -- but see the above note about first-class macros.
 Docstrings are associated with the syntax transformer procedures.
+
+** Support for arbitrary procedure metadata
+
+Building on its support for docstrings, Guile now supports multiple
+docstrings, adding them to the tail of a compiled procedure's
+properties. For example:
+
+  (define (foo)
+    "one"
+    "two"
+    3)
+  (use-modules (system vm program))
+  (program-properties foo)
+  => ((name . foo) (documentation . "one") (documentation . "two"))
+
+Also, vectors of pairs are now treated as additional metadata entries:
+
+  (define (bar)
+    #((quz . #f) (docstring . "xyzzy"))
+    3)
+  (use-modules (system vm program))
+  (program-properties bar)
+  => ((name . bar) (quz . #f) (docstring . "xyzzy"))
+
+This allows arbitrary literals to be embedded as metadata in a compiled
+procedure.
 
 ** The psyntax expander now knows how to interpret the @ and @@ special
    forms.
@@ -593,6 +547,12 @@ been removed, along with `defmacro-transformer', `macro-table',
 `defmacro:transformer'. This is because defmacros are simply macros. If
 any of these procedures provided useful facilities to you, we encourage
 you to contact the Guile developers.
+
+** Hygienic macros documented as the primary syntactic extension mechanism.
+
+The macro documentation was finally fleshed out with some documentation
+on `syntax-case' macros, and other parts of the macro expansion process.
+See "Macros" in the manual, for details.
 
 ** psyntax is now the default expander
 
@@ -1194,6 +1154,16 @@ The bit representation of `nil' has been tweaked so that it is now very
 efficient to check e.g. if a value is equal to Scheme's end-of-list or
 Lisp's nil. Additionally there are a heap of new, specific predicates
 like scm_is_null_or_nil.
+
+** Better integration of Lisp `nil'.
+
+`scm_is_boolean', `scm_is_false', and `scm_is_null' all return true now
+for Lisp's `nil'. This shouldn't affect any Scheme code at this point,
+but when we start to integrate more with Emacs, it is possible that we
+break code that assumes that, for example, `(not x)' implies that `x' is
+`eq?' to `#f'. This is not a common assumption. Refactoring affected
+code to rely on properties instead of identities will improve code
+correctness. See "Nil" in the manual, for more details.
 
 ** Support for static allocation of strings, symbols, and subrs.
 
