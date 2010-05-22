@@ -783,15 +783,15 @@ expressions:
 @subsection R6RS Libraries
 
 In addition to the API described in the previous sections, you also
-have the option to create modules using the portable ``library'' form
+have the option to create modules using the portable @code{library} form
 described in R6RS (@pxref{Library form, R6RS Library Form,, r6rs, The
 Revised^6 Report on the Algorithmic Language Scheme}), and to import 
 libraries created in this format by other programmers.  Guile's R6RS 
-libraries implementation takes advantage of the flexibility built 
-into the module system by expanding the R6RS library form into a 
-corresponding Guile ``define-module'' form that specifies equivalent
-import and export requirements and includes the same body 
-expressions.  The library expression:
+library implementation takes advantage of the flexibility built into the
+module system by expanding the R6RS library form into a corresponding 
+Guile @code{define-module} form that specifies equivalent import and 
+export requirements and includes the same body expressions.  The library
+expression:
 
 @lisp
   (library (mylib (1 2))
@@ -809,7 +809,7 @@ is equivalent to the module definition:
 @end lisp
 
 Central to the mechanics of R6RS libraries is the concept of import
-and export ``levels,'' which control the visibility of bindings at
+and export @dfn{levels}, which control the visibility of bindings at
 various phases of a library's lifecycle --- macros necessary to 
 expand forms in the library's body need to be available at expand 
 time; variables used in the body of a procedure exported by the
@@ -819,15 +819,14 @@ as a mechanism by which a library author can indicate that a
 particular library import should take place at a particular phase 
 with respect to the lifecycle of the importing library.  
 
-Guile's libraries implementation uses a technique called ``implicit 
-phasing'' (see @cite{Implicit Phasing for R6RS Libraries} by 
-Abdulaziz Ghuloum and R. Kent Dybvig), which allows the expander and
-compiler to automatically determine the necessary visibility of a 
-binding imported from another library.  As such, the @code{for} 
-sub-form described below is ignored by Guile (but may be required by
-Schemes in which phasing is explicit).
+Guile's libraries implementation uses a technique called 
+@dfn{implicit phasing} (first described by Abdulaziz Ghuloum and R. 
+Kent Dybvig), which allows the expander and compiler to automatically 
+determine the necessary visibility of a binding imported from another 
+library.  As such, the @code{for} sub-form described below is ignored by
+Guile (but may be required by Schemes in which phasing is explicit).
 
-@deffn syntax library name (export export-spec ...) (import import-spec ...) body ...
+@deffn {Scheme Syntax} library name (export export-spec ...) (import import-spec ...) body ...
 Defines a new library with the specified name, exports, and imports,
 and evaluates the specified body expressions in this library's 
 environment.
@@ -843,7 +842,7 @@ identifier @var{internal-name} names a variable defined or imported
 by the library and @var{external-name} is the name by which the
 variable is seen by importing libraries.
 
-Each @var{import-spec} must be either an ``import set'' (see below) 
+Each @var{import-spec} must be either an @dfn{import set} (see below)
 or must be of the form @code{(for import-set import-level ...)}, 
 where each @var{import-level} is one of:
 
@@ -910,10 +909,10 @@ your libraries less portable to other Schemes.
 
 @end deffn
 
-@deffn syntax import import-spec ...
+@deffn {Scheme Syntax} import import-spec ...
 Import into the current environment the libraries specified by the
 given import specifications, where each @var{import-spec} takes the
-same form as in the ``library'' form described above.
+same form as in the @code{library} form described above.
 @end deffn
 
 
