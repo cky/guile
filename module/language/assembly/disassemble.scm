@@ -20,6 +20,7 @@
 
 (define-module (language assembly disassemble)
   #:use-module (ice-9 format)
+  #:use-module (srfi srfi-1)
   #:use-module (system vm instruction)
   #:use-module (system vm program)
   #:use-module (system base pmatch)
@@ -90,10 +91,11 @@
 
 (define (disassemble-free-vars free-vars)
   (display "Free variables:\n\n")
-  (let lp ((i 0))
-    (cond ((< i (vector-length free-vars))
-           (print-info i (vector-ref free-vars i) #f #f)
-           (lp (1+ i))))))
+  (fold (lambda (free-var i)
+          (print-info i free-var #f #f)
+          (+ 1 i))
+        0
+        free-vars))
 
 (define-macro (unless test . body)
   `(if (not ,test) (begin ,@body)))
