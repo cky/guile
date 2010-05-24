@@ -359,6 +359,7 @@ available through both Scheme and C interfaces.
 * Streams::                     Sequences of values.
 * Buffered Input::              Ports made from a reader function.
 * Expect::			Controlling interactive programs with Guile.
+* sxml-match::                  Pattern matching of SXML.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
 * Tracing::                     Tracing program execution.
 @end menu
@@ -370,6 +371,10 @@ available through both Scheme and C interfaces.
 @include repl-modules.texi
 @include misc-modules.texi
 @include expect.texi
+
+@c XXX: Would be nicer if it were close to the (sxml simple) documentation.
+@include sxml-match.texi
+
 @include scsh.texi
 @include scheme-debugging.texi
 

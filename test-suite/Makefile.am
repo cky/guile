@@ -121,6 +121,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/strings.test			\
 	    tests/structs.test			\
 	    tests/sxml.fold.test		\
+	    tests/sxml.match.test		\
 	    tests/sxml.simple.test		\
 	    tests/sxml.ssax.test		\
 	    tests/sxml.transform.test		\
@@ -187,4 +188,4 @@ LALR_EXTRA +=					\
 TESTS = $(LALR_TESTS)
 TESTS_ENVIRONMENT = $(top_builddir)/meta/guile --no-autocompile
 
-EXTRA_DIST += $(LALR_EXTRA) $(LALR_TESTS)
+EXTRA_DIST += $(LALR_EXTRA) $(LALR_TESTS) tests/sxml-match-tests.ss
