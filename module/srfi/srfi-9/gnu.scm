@@ -23,9 +23,7 @@
 ;;; Code:
 
 (define-module (srfi srfi-9 gnu)
-  #:export (define-record-printer))
+  #:export (set-record-printer!))
 
-(define-syntax define-record-printer
-  (syntax-rules ()
-    ((_ type thunk)
-     (struct-set! type vtable-index-printer thunk))))
+(define (set-record-printer! type thunk)
+  (struct-set! type vtable-index-printer thunk))
