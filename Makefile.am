@@ -26,7 +26,7 @@ AUTOMAKE_OPTIONS = 1.10
 
 SUBDIRS = lib meta libguile guile-readline emacs \
 	  srfi examples test-suite benchmark-suite am \
-	  module doc testsuite
+	  module doc
 
 libguileincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)
 libguileinclude_HEADERS = libguile.h

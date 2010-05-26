@@ -1632,9 +1632,9 @@ AC_CONFIG_FILES([
   guile-readline/Makefile
   test-suite/Makefile
   test-suite/standalone/Makefile
+  test-suite/vm/Makefile
   meta/Makefile
   module/Makefile
-  testsuite/Makefile
 ])
 
 AC_CONFIG_FILES([meta/guile-2.0.pc])

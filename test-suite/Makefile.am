@@ -19,7 +19,7 @@
 ##   write to the Free Software Foundation, Inc., 51 Franklin Street,
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
-SUBDIRS = standalone
+SUBDIRS = standalone vm
 
 SCM_TESTS = tests/00-initial-env.test		\
             tests/alist.test			\
