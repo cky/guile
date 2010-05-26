@@ -65,6 +65,10 @@
    for a discussion.  */
 #define VM_ENABLE_PRECISE_STACK_GC_SCAN
 
+/* Size in SCM objects of the stack reserve.  The reserve is used to run
+   exception handling code in case of a VM stack overflow.  */
+#define VM_STACK_RESERVE_SIZE  512
+
 
 
 /*
@@ -505,7 +509,7 @@ make_vm (void)
 #ifdef VM_ENABLE_STACK_NULLING
   memset (vp->stack_base, 0, vp->stack_size * sizeof (SCM));
 #endif
-  vp->stack_limit = vp->stack_base + vp->stack_size;
+  vp->stack_limit = vp->stack_base + vp->stack_size - VM_STACK_RESERVE_SIZE;
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;
@@ -534,8 +538,7 @@ vm_stack_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
   vm = * ((struct scm_vm **) addr);
 
   if (vm == NULL
-      || (SCM *) addr != vm->stack_base - 1
-      || vm->stack_limit - vm->stack_base != vm->stack_size)
+      || (SCM *) addr != vm->stack_base - 1)
     /* ADDR must be a pointer to a free-list element, which we must ignore
        (see warning in <gc/gc_mark.h>).  */
     return mark_stack_ptr;

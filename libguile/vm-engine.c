@@ -188,6 +188,10 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
   vm_error_stack_overflow:
     err_msg  = scm_from_locale_string ("VM: Stack overflow");
     finish_args = SCM_EOL;
+    if (stack_limit < vp->stack_base + vp->stack_size)
+      /* There are VM_STACK_RESERVE_SIZE bytes left.  Make them available so
+	 that `throw' below can run on this VM.  */
+      vp->stack_limit = vp->stack_base + vp->stack_size;
     goto vm_error;
 
   vm_error_stack_underflow:

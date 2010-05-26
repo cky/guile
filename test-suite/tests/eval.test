@@ -18,6 +18,7 @@
 (define-module (test-suite test-eval)
   :use-module (test-suite lib)
   :use-module ((srfi srfi-1) :select (unfold count))
+  :use-module ((system vm vm) :select (make-vm vm-apply))
   :use-module (ice-9 documentation))
 
 
@@ -438,5 +439,17 @@
 
   (pass-if "equal?"
     (equal? (values 1 2 3 4) (values 1 2 3 4))))
+
+;;;
+;;; stack overflow handling
+;;;
+
+(with-test-prefix "stack overflow"
+
+  (pass-if-exception "exception raised"
+    exception:vm-error
+    (let ((vm    (make-vm))
+          (thunk (let loop () (cons 's (loop)))))
+      (vm-apply vm thunk))))
 
 ;;; eval.test ends here

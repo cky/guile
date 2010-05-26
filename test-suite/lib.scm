@@ -37,6 +37,7 @@
  exception:string-contains-nul
  exception:read-error
  exception:null-pointer-error
+ exception:vm-error
 
  ;; Reporting passes and failures.
  run-test
@@ -281,6 +282,8 @@
   (cons 'read-error "^.*$"))
 (define exception:null-pointer-error
   (cons 'null-pointer-error "^.*$"))
+(define exception:vm-error
+  (cons 'vm-error "^.*$"))
 
 ;; as per throw in scm_to_locale_stringn()
 (define exception:string-contains-nul
