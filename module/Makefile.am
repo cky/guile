@@ -321,6 +321,7 @@ LIB_SOURCES =					\
   statprof.scm					\
   sxml/apply-templates.scm			\
   sxml/fold.scm					\
+  sxml/match.scm				\
   sxml/simple.scm				\
   sxml/ssax/input-parse.scm			\
   sxml/ssax.scm					\
@@ -354,6 +355,7 @@ NOCOMP_SOURCES =				\
   ice-9/debugging/trace.scm			\
   ice-9/debugging/traps.scm			\
   ice-9/debugging/trc.scm			\
+  sxml/sxml-match.ss				\
   sxml/upstream/SSAX.scm			\
   sxml/upstream/SXML-tree-trans.scm		\
   sxml/upstream/SXPath-old.scm			\

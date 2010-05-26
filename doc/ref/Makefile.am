@@ -58,6 +58,7 @@ guile_TEXINFOS = preface.texi			\
 		 posix.texi			\
 		 expect.texi			\
 		 scsh.texi			\
+		 sxml-match.texi		\
 		 scheme-scripts.texi		\
 		 api-overview.texi		\
 		 api-discdepr.texi		\
