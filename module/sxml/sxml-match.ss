@@ -1124,7 +1124,10 @@
       [(sxml-match1 exp cata-fun clause0 clause ...)
        (let/ec escape
          (compile-clause clause0 exp cata-fun
-                         (lambda () (escape (sxml-match1 exp cata-fun clause ...)))))]))
+                         (lambda () (call-with-values
+                                        (lambda () (sxml-match1 exp cata-fun
+                                                                clause ...))
+                                      escape))))]))
   
   (define-syntax sxml-match
     (syntax-rules ()

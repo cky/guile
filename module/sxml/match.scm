@@ -81,11 +81,14 @@
 ;;; Include upstream source file.
 ;;;
 
-;; This file was taken unmodified from
+;; This file was taken from
 ;; <http://planet.plt-scheme.org/package-source/jim/sxml-match.plt/1/1/> on
 ;; 2010-05-24.  It was written by Jim Bender <benderjg2@aol.com> and released
 ;; under the MIT/X11 license
 ;; <http://www.gnu.org/licenses/license-list.html#X11License>.
+;;
+;; Modified the `sxml-match1' macro to allow multiple-value returns (upstream
+;; was notified.)
 
 (include-from-path "sxml/sxml-match.ss")
 

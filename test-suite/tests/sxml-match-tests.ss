@@ -299,3 +299,12 @@
                       [(a (@ . ,qqq) ,t ...)
                        (list qqq t ...)])
           '(((z 1) (y 2) (x 3)) 4 5 6))
+
+(run-test "test multiple value returns"
+           (call-with-values
+               (lambda ()
+                 (sxml-match '(foo)
+                   ((foo) (values 'x 'y))))
+             (lambda (x y)
+               (cons x y)))
+           '(x . y))
