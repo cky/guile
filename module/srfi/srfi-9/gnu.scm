@@ -23,7 +23,8 @@
 ;;; Code:
 
 (define-module (srfi srfi-9 gnu)
-  #:export (set-record-printer!))
+  #:export (set-record-type-printer!))
 
-(define (set-record-printer! type thunk)
+(define (set-record-type-printer! type thunk)
+  "Set a custom printer THUNK for TYPE."
   (struct-set! type vtable-index-printer thunk))
