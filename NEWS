@@ -10,6 +10,169 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.11 (since the 1.9.10 prerelease):
 
+** New module: (sxml match)
+    
+Guile has incorporated Jim Bender's `sxml-match' library. See
+"sxml-match' in the manual for more information. Thanks, Jim!
+
+** New module: (srfi srfi-9 gnu)
+
+This module adds an extension to srfi-9, `set-record-type-printer!'. See
+... in the manual for more information.
+
+** Support for R6RS libraries
+
+The `library' and `import' forms from the latest Scheme report have been
+added to Guile, in such a way that R6RS libraries share a namespace with
+Guile modules. R6RS modules may import Guile modules, and are available
+for Guile modules to import via use-modules and all the rest. See "R6RS
+Libraries" in the manual for more information.
+
+** Implementations of R6RS libraries
+
+Guile now has implementations for all of the libraries defined in the
+R6RS. Thanks to Julian Graham for this excellent hack. See ... in the
+manual for a full list of libraries.
+
+** Partial R6RS compatibility
+
+Guile now has enough support for R6RS to run a reasonably large subset
+of R6RS programs. Guile is not fully R6RS compatible. Many
+incompatibilities are simply bugs, though some parts of Guile will
+remain R6RS-incompatible for the foreseeable future. See ... in the
+manual Please contact bug-guile@gnu.org if you have found an issue not
+mentioned in that compatibility list.
+
+FIXME: put this list in the manual:
+ (rnrs)
+ (rnrs arithmetic bitwise)
+ (rnrs arithmetic flonums)
+ (rnrs control)
+ (rnrs enums)
+ (rnrs eval)
+ (rnrs files)
+ (rnrs hashtables)
+ (rnrs lists)
+ (rnrs mutable-pairs)
+ (rnrs mutable-strings)
+ (rnrs programs)
+ (rnrs r5rs)
+ (rnrs record syntactic)
+ (rnrs records inspection)
+ (rnrs records procedural)
+ (rnrs sorting)
+ (rnrs unicode)
+    
+** Macro expansion produces structures instead of s-expressions
+
+In the olden days, macroexpanding an s-expression would yield another
+s-expression. Though the lexical variables were renamed, expansions of
+core forms like `if' and `begin' were still non-hygienic, as they relied
+on the toplevel definitions of `if' et al being the conventional ones.
+
+The solution is to expand to structures instead of s-expressions. There
+is an `if' structure, a `begin' structure, a `toplevel-ref' structure,
+etc. The expander already did this for compilation, producing Tree-IL
+directly; it has been changed now to do so when expanding for the
+evaluator as well.
+
+The real truth is somewhat more involved: Tree-IL doesn't exist until
+modules have been booted, but we need the expander to boot modules, and
+additionally we need a boot expander before psyntax is loaded. So a
+subset of Tree-IL is defined in C, and the boot expander produces these
+"macroexpanded" structures. Psyntax has been modified to produce those
+structures as well. When Tree-IL loads, it incorporates those structures
+directly as part of its language.
+
+Finally, the evaluator has been adapted to accept these "expanded"
+structures, and enhanced to better support the gamut of this subset of
+Tree-IL, including `lambda*' and `case-lambda'. This was a much-needed
+harmonization between the compiler, expander, and evaluator.
+
+** Deprecated `scm_badargsp'
+
+This function is unused in Guile, but was part of its API.
+
+** `sxml->xml' enhancement
+    
+`sxml->xml' from `(sxml simple)' can now handle the result of
+`xml->sxml'. See bug #29260 for more information.
+
+** New module: (system vm coverage)
+
+This new module can produce code coverage reports for compiled Scheme
+code on a line-by-line level. See "Code Coverage" in the manual for more
+information.
+
+** Faster VM hooks.
+
+The frame objects passed to VM hook procedures are now allocated on the
+stack instead of the heap, making the next-instruction hook practical to
+use.
+
+** Add `program-free-variables' to `(system vm program)'.
+    
+(revise docs?)
+
+** New `eval-when' situation: `expand'
+
+Sometimes it's important to cause side-effects while expanding an
+expression, even in eval mode. This situation is used in
+`define-module', `use-modules', et al, in order to affect the current
+module and its set of syntax expanders.
+
+** Better module-level hygiene
+
+Instead of attempting to track changes to the current module when
+expanding toplevel sequences, we instead preserve referential
+transparency relative to where the macro itself was defined. If the
+macro should expand to expressions in the context of the new module, it
+should wrap those expressions in `@@', which has been enhanced to accept
+generic expressions, not just identifier references. For example, part
+of the definition of the R6RS `library' form:
+
+  #'(begin
+      (define-module (name name* ...) #:pure #:version (version ...))
+      (import ispec) ...
+      (re-export r ...) (export e ...)
+      (@@ (name name* ...) body)
+      ...)
+
+In this example the `import' refers to the `import' definition in the
+module where the `library' macro is defined, not in the new module.
+
+** Module system macros rewritten as hygienic macros
+
+`define-module', `use-modules', `export', and other such macros have
+been rewritten as hygienic macros. This allows the necessary referential
+transparency for the R6RS `library' for to do the right thing.
+    
+** Compiler and VM documentation updated
+
+The documentation for the compiler and VM had slipped out of date; it
+has been brought back... to the future!
+
+** Tree-IL field renaming: `vars' -> `gensyms'
+    
+The `vars' fields of <let>, <letrec>, <fix>, and <lambda-case> has been
+renamed to `gensyms', for clarity, and to match <lexical-ref>.
+
+** Removed `version' field from <language>
+    
+Language versions weren't being updated or used in any worthwhile way;
+they have been removed, for now at least.
+
+** New procedure: `module-export-all!'
+
+This procedure exports all current and future bindings from a module.
+Use as `(module-export-all! (current-module))'.
+    
+** Updates to manual
+
+The introductory sections of the manual have been reorganized
+significantly, making it more accessible to new users of Guile. Check it
+out!
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
