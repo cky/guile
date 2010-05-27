@@ -104,9 +104,6 @@ SCM_INTERNAL SCM scm_memoized_typecode (SCM sym);
 SCM_INTERNAL SCM scm_memoize_variable_access_x (SCM memoized, SCM module);
 SCM_API SCM scm_memoized_p (SCM obj);
 
-SCM_INTERNAL SCM scm_memoizer_p (SCM obj);
-SCM_INTERNAL SCM scm_memoizer (SCM obj);
-
 SCM_INTERNAL void scm_init_memoize (void);
 
 
