@@ -85,6 +85,14 @@
     (equal? '(+ 2)
             (read-string "(+ 2 #! a comment\n!#\n) ")))
 
+  (pass-if "R6RS lexeme comment"
+    (equal? '(+ 1 2 3)
+            (read-string "(+ 1 #!r6rs 2 3)")))
+
+  (pass-if "partial R6RS lexeme comment"
+    (equal? '(+ 1 2 3)
+            (read-string "(+ 1 #!r6r !# 2 3)")))
+
   (pass-if "R6RS/SRFI-30 block comment"
     (equal? '(+ 1 2 3)
             (read-string "(+ 1 #| this is a\ncomment |# 2 3)")))

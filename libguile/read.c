@@ -189,6 +189,7 @@ static SCM *scm_read_hash_procedures;
 static inline SCM scm_read_scsh_block_comment (scm_t_wchar, SCM);
 static SCM scm_read_r6rs_block_comment (scm_t_wchar, SCM);
 static SCM scm_read_commented_expression (scm_t_wchar, SCM);
+static SCM scm_read_shebang (scm_t_wchar, SCM);
 static SCM scm_get_hash_procedure (int);
 
 /* Read from PORT until a delimiter (e.g., a whitespace) is read.  Put the
@@ -309,7 +310,7 @@ flush_ws (SCM port, const char *eoferr)
 	    eoferr = "read_sharp";
 	    goto goteof;
 	  case '!':
-	    scm_read_scsh_block_comment (c, port);
+	    scm_read_shebang (c, port);
 	    break;
 	  case ';':
 	    scm_read_commented_expression (c, port);
@@ -1109,6 +1110,40 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
   return SCM_UNSPECIFIED;
 }
 
+static inline SCM
+scm_read_shebang (scm_t_wchar chr, SCM port)
+{
+  int c = 0;
+  if ((c = scm_get_byte_or_eof (port)) != 'r')
+    {
+      scm_ungetc (c, port);
+      return scm_read_scsh_block_comment (chr, port);
+    }
+  if ((c = scm_get_byte_or_eof (port)) != '6')
+    {
+      scm_ungetc (c, port);
+      scm_ungetc ('r', port);
+      return scm_read_scsh_block_comment (chr, port);
+    }
+  if ((c = scm_get_byte_or_eof (port)) != 'r')
+    {
+      scm_ungetc (c, port);
+      scm_ungetc ('6', port);
+      scm_ungetc ('r', port);
+      return scm_read_scsh_block_comment (chr, port);
+    }
+  if ((c = scm_get_byte_or_eof (port)) != 's')
+    {
+      scm_ungetc (c, port);
+      scm_ungetc ('r', port);
+      scm_ungetc ('6', port);
+      scm_ungetc ('r', port);
+      return scm_read_scsh_block_comment (chr, port);
+    }
+  
+  return SCM_UNSPECIFIED;
+}
+
 static SCM
 scm_read_r6rs_block_comment (scm_t_wchar chr, SCM port)
 {
@@ -1323,7 +1358,7 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     case '{':
       return (scm_read_extended_symbol (chr, port));
     case '!':
-      return (scm_read_scsh_block_comment (chr, port));
+      return (scm_read_shebang (chr, port));
     case ';':
       return (scm_read_commented_expression (chr, port));
     case '`':
