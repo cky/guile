@@ -236,6 +236,7 @@ SRFI_SOURCES = \
   srfi/srfi-6.scm \
   srfi/srfi-8.scm \
   srfi/srfi-9.scm \
+  srfi/srfi-9/gnu.scm \
   srfi/srfi-10.scm \
   srfi/srfi-11.scm \
   srfi/srfi-13.scm \
