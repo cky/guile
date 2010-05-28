@@ -1382,7 +1382,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
 	    "@code{current-time} procedure.\n\n"
             "The optional @var{actimens} and @var{modtimens} are nanoseconds\n"
             "to add @var{actime} and @var{modtime}. Nanosecond precision is\n"
-            "only supported on some combinations of filesystems and operating\n"
+            "only supported on some combinations of file systems and operating\n"
             "systems.\n"
 	    "@lisp\n"
 	    "(utime \"foo\" (- (current-time) 3600))\n"

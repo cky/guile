@@ -700,7 +700,7 @@ The last modification time for the attributes of the file, in seconds.
 @deffnx {Scheme Procedure} stat:ctimensec st
 The fractional part of a file's access, modification, or attribute modification
 time, in nanoseconds. Nanosecond timestamps are only available on some operating
-systems and filesystems. If Guile cannot retrieve nanosecond-level timestamps
+systems and file systems. If Guile cannot retrieve nanosecond-level timestamps
 for a file, these fields will be set to 0.
 @end deffn
 @deffn {Scheme Procedure} stat:blksize st
@@ -781,7 +781,7 @@ not supplied, then the current time is used.  @var{actime} and
 
 The optional @var{actimens} and @var{modtimens} are nanoseconds
 to add @var{actime} and @var{modtime}. Nanosecond precision is
-only supported on some combinations of filesystems and operating
+only supported on some combinations of file systems and operating
 systems.
 @lisp
 (utime "foo" (- (current-time) 3600))
