@@ -309,7 +309,7 @@ static void scm_dynthrow (SCM);
  * variable.
  */
 
-scm_t_bits scm_i_dummy;
+static scm_t_bits scm_i_dummy;
 
 static void 
 grow_stack (SCM cont)

@@ -59,7 +59,7 @@ typedef struct scm_i_t_array
   unsigned long base;
 } scm_i_t_array;
 
-SCM_API scm_t_bits scm_i_tc16_array;
+SCM_INTERNAL scm_t_bits scm_i_tc16_array;
 
 #define SCM_I_ARRAY_FLAG_CONTIGUOUS (1 << 0)
 

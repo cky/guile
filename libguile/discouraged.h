@@ -13,7 +13,7 @@
 #ifndef SCM_DISCOURAGED_H
 #define SCM_DISCOURAGED_H
 
-/* Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2006, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -177,7 +177,7 @@ SCM_API SCM scm_c_make_keyword (const char *s);
 #define scm_thread_sleep    scm_std_sleep
 #define scm_thread_usleep   scm_std_usleep
 
-void scm_i_init_discouraged (void);
+SCM_INTERNAL void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */
 

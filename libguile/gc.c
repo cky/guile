@@ -83,12 +83,6 @@ int scm_expensive_debug_cell_accesses_p = 0;
  */
 int scm_debug_cells_gc_interval = 0;
 
-/*
-  Global variable, so you can switch it off at runtime by setting
-  scm_i_cell_validation_already_running.
- */
-int scm_i_cell_validation_already_running ;
-
 /* Hash table that keeps a reference to objects the user wants to protect from
    garbage collection.  It could arguably be private but applications have come
    to rely on it (e.g., Lilypond 2.13.9).  */
@@ -130,6 +124,9 @@ scm_i_expensive_validation_check (SCM cell)
 	}
     }
 }
+
+/* Whether cell validation is already running.  */
+static int scm_i_cell_validation_already_running = 0;
 
 void
 scm_assert_cell_valid (SCM cell)

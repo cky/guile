@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -3552,7 +3552,7 @@ scm_num_eq_p (SCM x, SCM y)
    mpq_cmp.  flonum/frac compares likewise, but with the slight complication
    of the float exponent to take into account.  */
 
-SCM scm_i_num_less_p (SCM, SCM, SCM);
+SCM_INTERNAL SCM scm_i_num_less_p (SCM, SCM, SCM);
 SCM_PRIMITIVE_GENERIC (scm_i_num_less_p, "<", 0, 2, 1,
                        (SCM x, SCM y, SCM rest),
                        "Return @code{#t} if the list of parameters is monotonically\n"
