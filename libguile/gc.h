@@ -182,23 +182,28 @@ SCM_API void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
 SCM_API void scm_gc_sweep (void);
 
-SCM_API void *scm_malloc (size_t size);
-SCM_API void *scm_calloc (size_t size);
+SCM_API void *scm_malloc (size_t size) SCM_MALLOC;
+SCM_API void *scm_calloc (size_t size) SCM_MALLOC;
 SCM_API void *scm_realloc (void *mem, size_t size);
-SCM_API char *scm_strdup (const char *str);
-SCM_API char *scm_strndup (const char *str, size_t n);
+SCM_API char *scm_strdup (const char *str) SCM_MALLOC;
+SCM_API char *scm_strndup (const char *str, size_t n) SCM_MALLOC;
 SCM_API void scm_gc_register_collectable_memory (void *mem, size_t size,
 						 const char *what);
 SCM_API void scm_gc_unregister_collectable_memory (void *mem, size_t size,
 						   const char *what);
-SCM_API void *scm_gc_malloc_pointerless (size_t size, const char *what);
-SCM_API void *scm_gc_calloc (size_t size, const char *what);
-SCM_API void *scm_gc_malloc (size_t size, const char *what);
+SCM_API void *scm_gc_malloc_pointerless (size_t size, const char *what)
+  SCM_MALLOC;
+SCM_API void *scm_gc_calloc (size_t size, const char *what)
+  SCM_MALLOC;
+SCM_API void *scm_gc_malloc (size_t size, const char *what)
+  SCM_MALLOC;
 SCM_API void *scm_gc_realloc (void *mem, size_t old_size, 
 			      size_t new_size, const char *what);
 SCM_API void scm_gc_free (void *mem, size_t size, const char *what);
-SCM_API char *scm_gc_strdup (const char *str, const char *what);
-SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what);
+SCM_API char *scm_gc_strdup (const char *str, const char *what)
+  SCM_MALLOC;
+SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what)
+  SCM_MALLOC;
 
 SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);

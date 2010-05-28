@@ -3,7 +3,7 @@
 #ifndef SCM___SCM_H
 #define SCM___SCM_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -124,6 +124,15 @@
 #else
 /* Don't know how to align things.  */
 # undef SCM_ALIGNED
+#endif
+
+/* The SCM_MALLOC macro can be used in function declarations to tell the
+ * compiler that a function may be treated as if any non-NULL pointer it returns
+ * cannot alias any other pointer valid when the function returns.  */
+#if defined (__GNUC__) && (__GNUC__ >= 3)
+# define SCM_MALLOC  __attribute__ ((__malloc__))
+#else
+# define SCM_MALLOC
 #endif
 
 
