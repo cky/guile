@@ -114,6 +114,21 @@
     (equal? (eval '(double 20) (current-module))
             40)))
 
+;; Guile should ignore explicit phase specifications
+;;
+(with-test-prefix "implicit phasing"
+  (with-test-prefix "in library form"
+    (pass-if "explicit phasing ignored"
+      (import (for (guile) (meta -1))) #t))
+
+  (with-test-prefix "in library form"
+    (pass-if "explicit phasing ignored"
+      (save-module-excursion
+       (lambda () 
+         (library (test) 
+           (export) 
+           (import (for (guile) (meta -1)))) 
+         #t)))))
 
 ;; Now import features.
 ;;

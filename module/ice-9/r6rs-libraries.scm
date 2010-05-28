@@ -161,8 +161,14 @@
        (and-map identifier? #'(name name* ...))
        (call-with-values
            (lambda ()
-             (compute-exports (map resolve-r6rs-interface #'(ispec ...))
-                              #'(espec ...)))
+             (compute-exports 
+              (map (lambda (im)
+                     (syntax-case im (for)
+                       ((for import-set import-level ...)
+                        (resolve-r6rs-interface #'import-set))
+                       (import-set (resolve-r6rs-interface #'import-set))))
+                   #'(ispec ...))
+              #'(espec ...)))
          (lambda (exports re-exports)
            (with-syntax (((e ...) exports)
                          ((r ...) re-exports))
