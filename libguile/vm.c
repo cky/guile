@@ -190,11 +190,7 @@ vm_dispatch_hook (SCM vm, int hook_num)
   struct scm_vm *vp;
   SCM hook;
   struct scm_frame c_frame;
-  union
-  {
-    double alignment;
-    scm_t_cell cell;
-  } frame;
+  scm_t_aligned_cell frame;
   SCM args[1];
 
   vp = SCM_VM_DATA (vm);
