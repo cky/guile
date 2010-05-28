@@ -886,9 +886,9 @@ AC_CHECK_SIZEOF(size_t)
 AC_CHECK_SIZEOF(ssize_t)
 ffi_size_type=uint$(($ac_cv_sizeof_size_t*8))
 ffi_ssize_type=sint$(($ac_cv_sizeof_ssize_t*8))
-AC_DEFINE_UNQUOTED(ffi_type_size_t, ffi_type_${ffi_size_type}, 
+AC_DEFINE_UNQUOTED([ffi_type_size_t], ffi_type_${ffi_size_type}, 
 		   [ffi type for size_t])
-AC_DEFINE_UNQUOTED(ffi_type_ssize_t, ffi_type_${ffi_ssize_type}, 
+AC_DEFINE_UNQUOTED([ffi_type_ssize_t], ffi_type_${ffi_ssize_type}, 
 		   [ffi type for ssize_t])
 
 dnl i18n tests
