@@ -793,10 +793,6 @@ fport_write (SCM port, const void *data, size_t size)
 }
 #undef FUNC_NAME
 
-/* becomes 1 when process is exiting: normal exception handling won't
-   work by this time.  */
-extern int scm_i_terminating; 
-
 static void
 fport_flush (SCM port)
 {
@@ -827,18 +823,7 @@ fport_flush (SCM port)
 		}
 	      pt->write_pos = pt->write_buf + remaining;
 	    }
-	  if (scm_i_terminating)
-	    {
-	      const char *msg = "Error: could not flush file-descriptor ";
-	      char buf[11];
-
-	      full_write (2, msg, strlen (msg));
-	      sprintf (buf, "%d\n", fp->fdes);
-	      full_write (2, buf, strlen (buf));
-
-	      count = remaining;
-	    }
-	  else if (scm_gc_running_p)
+	  if (scm_gc_running_p)
 	    {
 	      /* silently ignore the error.  scm_error would abort if we
 		 called it now.  */

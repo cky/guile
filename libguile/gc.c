@@ -587,8 +587,6 @@ scm_gc_unregister_roots (SCM *b, unsigned long n)
     scm_gc_unregister_root (p);
 }
 
-int scm_i_terminating;
-
 
 
 
