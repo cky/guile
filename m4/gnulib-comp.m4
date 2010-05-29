@@ -55,6 +55,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module gendocs:
   # Code from module getaddrinfo:
   # Code from module gettext-h:
+  # Code from module git-version-gen:
   # Code from module gitlog-to-changelog:
   # Code from module gnu-web-doc-update:
   # Code from module gnumakefile:
@@ -203,6 +204,7 @@ AC_DEFUN([gl_INIT],
   # Code from module gettext-h:
   AC_SUBST([LIBINTL])
   AC_SUBST([LTLIBINTL])
+  # Code from module git-version-gen:
   # Code from module gitlog-to-changelog:
   # Code from module gnu-web-doc-update:
   # Code from module gnumakefile:
@@ -529,6 +531,7 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/c++defs.h
   build-aux/config.rpath
   build-aux/gendocs.sh
+  build-aux/git-version-gen
   build-aux/gitlog-to-changelog
   build-aux/gnu-web-doc-update
   build-aux/gnupload
