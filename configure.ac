@@ -27,25 +27,22 @@ Floor, Boston, MA 02110-1301, USA.
 
 AC_PREREQ(2.61)
 
-dnl  `patsubst' here deletes the newline which "echo" prints.  We can't use
-dnl  "echo -n" since -n is not portable (see autoconf manual "Limitations of
-dnl  Builtins"), in particular on solaris it results in a literal "-n" in
-dnl  the output.
-dnl
 AC_INIT([GNU Guile],
-        patsubst(m4_esyscmd(. ./GUILE-VERSION && echo ${GUILE_VERSION}),[
-]),
+        m4_esyscmd([build-aux/git-version-gen					\
+          .tarball-version							\
+          's/^release_\([0-9]\+\)-\([0-9]\+\)-\([0-9]\+\)-/v\1.\2\.\3-/g']),
         [bug-guile@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
 
-AM_INIT_AUTOMAKE([gnu no-define check-news -Wall -Wno-override])
+AM_INIT_AUTOMAKE([gnu no-define -Wall -Wno-override])
 
 AC_COPYRIGHT(GUILE_CONFIGURE_COPYRIGHT)
 AC_CONFIG_SRCDIR([GUILE-VERSION])
 
 . $srcdir/GUILE-VERSION
+GUILE_VERSION="$PACKAGE_VERSION"
 
 AC_CONFIG_HEADERS([config.h])
 AH_TOP(/*GUILE_CONFIGURE_COPYRIGHT*/)

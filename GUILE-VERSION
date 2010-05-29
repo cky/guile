@@ -1,11 +1,12 @@
 # -*-shell-script-*-
 
+# Note: `GUILE_VERSION' is defined in `configure.ac' using `git-version-gen'.
 GUILE_MAJOR_VERSION=1
 GUILE_MINOR_VERSION=9
 GUILE_MICRO_VERSION=10
 
 GUILE_EFFECTIVE_VERSION=2.0
-GUILE_VERSION=${GUILE_MAJOR_VERSION}.${GUILE_MINOR_VERSION}.${GUILE_MICRO_VERSION}
+
 
 # All of the shared lib versioning info.  Right now, for this to work
 # properly, you'll also need to add AC_SUBST calls to the right place

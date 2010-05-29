@@ -43,7 +43,7 @@ DISTCLEANFILES = check-guile.log
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-error-on-warning
 
-dist-hook: gen-ChangeLog
+dist-hook: gen-ChangeLog gen-tarball-version
 
 clean-local:
 	rm -rf cache/
@@ -59,5 +59,11 @@ gen-ChangeLog:
 	  rm -f $(distdir)/ChangeLog;					\
 	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
 	fi
+
+BUILT_SOURCES = $(top_srcdir)/.version
+$(top_srcdir)/.version:
+	echo $(VERSION) > $@-t && mv $@-t $@
+gen-tarball-version:
+	echo $(VERSION) > $(distdir)/.tarball-version
 
 # Makefile.am ends here
