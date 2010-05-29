@@ -56,7 +56,8 @@
 /* Before doing "#define mkdir rpl_mkdir" below, we need to include all
    headers that may declare mkdir().  */
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-# include <io.h>
+# include <io.h>     /* mingw32, mingw64 */
+# include <direct.h> /* mingw64 */
 #endif
 
 #ifndef S_IFMT
@@ -390,7 +391,10 @@ _GL_WARN_ON_USE (futimens, "futimens is not portable - "
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #   define lchmod chmod
 #  endif
-_GL_CXXALIAS_RPL_1 (lchmod, chmod, int, (const char *filename, mode_t mode));
+/* Need to cast, because on mingw, the second parameter of chmod is
+                                                int mode.  */
+_GL_CXXALIAS_RPL_CAST_1 (lchmod, chmod, int,
+                         (const char *filename, mode_t mode));
 # else
 #  if 0 /* assume already declared */
 _GL_FUNCDECL_SYS (lchmod, int, (const char *filename, mode_t mode)
@@ -398,7 +402,9 @@ _GL_FUNCDECL_SYS (lchmod, int, (const char *filename, mode_t mode)
 #  endif
 _GL_CXXALIAS_SYS (lchmod, int, (const char *filename, mode_t mode));
 # endif
+# if @HAVE_LCHMOD@
 _GL_CXXALIASWARN (lchmod);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef lchmod
 # if HAVE_RAW_DECL_LCHMOD
@@ -427,7 +433,9 @@ _GL_CXXALIAS_RPL (lstat, int, (const char *name, struct stat *buf));
 # else
 _GL_CXXALIAS_SYS (lstat, int, (const char *name, struct stat *buf));
 # endif
+# if @HAVE_LSTAT@
 _GL_CXXALIASWARN (lstat);
+# endif
 #elif defined GNULIB_POSIXCHECK
 # undef lstat
 # if HAVE_RAW_DECL_LSTAT
@@ -448,7 +456,8 @@ _GL_CXXALIAS_RPL (mkdir, int, (char const *name, mode_t mode));
 #else
 /* mingw's _mkdir() function has 1 argument, but we pass 2 arguments.
    Additionally, it declares _mkdir (and depending on compile flags, an
-   alias mkdir), only in the nonstandard <io.h>, which is included above.  */
+   alias mkdir), only in the nonstandard includes <direct.h> and <io.h>,
+   which are included above.  */
 # if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 
 static inline int

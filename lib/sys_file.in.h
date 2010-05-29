@@ -17,16 +17,17 @@
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 /* Written by Richard W.M. Jones.  */
+
 #ifndef _GL_SYS_FILE_H
 
-# if __GNUC__ >= 3
+#if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
-# endif
+#endif
 
 /* The include_next requires a split double-inclusion guard.  */
-# if @HAVE_SYS_FILE_H@
-#  @INCLUDE_NEXT@ @NEXT_SYS_FILE_H@
-# endif
+#if @HAVE_SYS_FILE_H@
+# @INCLUDE_NEXT@ @NEXT_SYS_FILE_H@
+#endif
 
 #ifndef _GL_SYS_FILE_H
 #define _GL_SYS_FILE_H

@@ -148,6 +148,7 @@ AC_DEFUN([gl_INIT],
 [
   AM_CONDITIONAL([GL_COND_LIBTOOL], [true])
   gl_cond_libtool=true
+  gl_m4_base='m4'
   m4_pushdef([AC_LIBOBJ], m4_defn([gl_LIBOBJ]))
   m4_pushdef([AC_REPLACE_FUNCS], m4_defn([gl_REPLACE_FUNCS]))
   m4_pushdef([AC_LIBSOURCES], m4_defn([gl_LIBSOURCES]))
@@ -230,10 +231,10 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_ICONV_OPEN_UTF
   # Code from module include_next:
   # Code from module inet_ntop:
-  gl_INET_NTOP
+  gl_FUNC_INET_NTOP
   gl_ARPA_INET_MODULE_INDICATOR([inet_ntop])
   # Code from module inet_pton:
-  gl_INET_PTON
+  gl_FUNC_INET_PTON
   gl_ARPA_INET_MODULE_INDICATOR([inet_pton])
   # Code from module inline:
   gl_INLINE
@@ -348,16 +349,23 @@ AC_DEFUN([gl_INIT],
   # Code from module unistd:
   gl_UNISTD_H
   # Code from module unistr/base:
+  gl_LIBUNISTRING_LIBHEADER([0.9.2], [unistr.h])
   # Code from module unistr/u8-mbtouc:
   gl_MODULE_INDICATOR([unistr/u8-mbtouc])
+  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-mbtouc.c unistr/u8-mbtouc-aux.c])
   # Code from module unistr/u8-mbtouc-unsafe:
   gl_MODULE_INDICATOR([unistr/u8-mbtouc-unsafe])
+  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-mbtouc-unsafe.c unistr/u8-mbtouc-unsafe-aux.c])
   # Code from module unistr/u8-mbtoucr:
   gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
+  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-mbtoucr.c])
   # Code from module unistr/u8-prev:
+  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-prev.c])
   # Code from module unistr/u8-uctomb:
   gl_MODULE_INDICATOR([unistr/u8-uctomb])
+  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-uctomb.c unistr/u8-uctomb-aux.c])
   # Code from module unitypes:
+  gl_LIBUNISTRING_LIBHEADER([0.9], [unitypes.h])
   # Code from module unused-parameter:
   # Code from module useless-if-before-free:
   # Code from module vasnprintf:
@@ -420,6 +428,13 @@ AC_DEFUN([gl_INIT],
   m4_pushdef([gltests_LIBSOURCES_DIR], [])
   gl_COMMON
   gl_source_base='tests'
+changequote(,)dnl
+  gltests_WITNESS=IN_`echo "${PACKAGE-$PACKAGE_TARNAME}" | LC_ALL=C tr abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ | LC_ALL=C sed -e 's/[^A-Z0-9_]/_/g'`_GNULIB_TESTS
+changequote([, ])dnl
+  AC_SUBST([gltests_WITNESS])
+  gl_module_indicator_condition=$gltests_WITNESS
+  m4_pushdef([gl_MODULE_INDICATOR_CONDITION], [$gl_module_indicator_condition])
+  m4_popdef([gl_MODULE_INDICATOR_CONDITION])
   m4_ifval(gltests_LIBSOURCES_LIST, [
     m4_syscmd([test ! -d ]m4_defn([gltests_LIBSOURCES_DIR])[ ||
       for gl_file in ]gltests_LIBSOURCES_LIST[ ; do
@@ -559,6 +574,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/iconveh.h
   lib/inet_ntop.c
   lib/inet_pton.c
+  lib/libunistring.valgrind
   lib/localcharset.c
   lib/localcharset.h
   lib/locale.in.h
@@ -612,7 +628,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/time.in.h
   lib/time_r.c
   lib/unistd.in.h
-  lib/unistr.h
+  lib/unistr.in.h
   lib/unistr/u8-mbtouc-aux.c
   lib/unistr/u8-mbtouc-unsafe-aux.c
   lib/unistr/u8-mbtouc-unsafe.c
@@ -621,7 +637,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/unistr/u8-prev.c
   lib/unistr/u8-uctomb-aux.c
   lib/unistr/u8-uctomb.c
-  lib/unitypes.h
+  lib/unitypes.in.h
   lib/vasnprintf.c
   lib/vasnprintf.h
   lib/verify.h
@@ -633,8 +649,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/write.c
   lib/xsize.h
   m4/00gnulib.m4
+  m4/absolute-header.m4
   m4/alloca.m4
   m4/arpa_inet_h.m4
+  m4/asm-underscore.m4
   m4/autobuild.m4
   m4/byteswap.m4
   m4/canonicalize.m4
@@ -668,6 +686,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lib-ld.m4
   m4/lib-link.m4
   m4/lib-prefix.m4
+  m4/libunistring-base.m4
   m4/libunistring.m4
   m4/localcharset.m4
   m4/locale-fr.m4
