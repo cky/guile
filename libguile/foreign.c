@@ -24,6 +24,8 @@
 
 #include <alignof.h>
 #include <string.h>
+#include <assert.h>
+
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
 #include "libguile/instructions.h"
@@ -985,32 +987,35 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
   /* Argument pointers.  */
   args = alloca (sizeof (void *) * cif->nargs);
 
-  /* Compute the amount of memory needed to store all the argument values.
-     Note: as of libffi 3.0.9 `cif->bytes' is undocumented and is zero, so it
-     can't be used for that purpose.  */
-  for (i = 0, arg_size = 0;
-       i < cif->nargs;
-       i++, arg_size)
-    arg_size += ROUND_UP (cif->arg_types[i]->size,
-			  cif->arg_types[i]->alignment);
+  /* Compute the worst-case amount of memory needed to store all the argument
+     values.  Note: as of libffi 3.0.9 `cif->bytes' is undocumented and is zero,
+     so it can't be used for that purpose.  */
+  for (i = 0, arg_size = 0; i < cif->nargs; i++)
+    arg_size += cif->arg_types[i]->size + cif->arg_types[i]->alignment - 1;
 
   /* Space for argument values, followed by return value.  */
-  data = alloca (arg_size
-		 + ROUND_UP (cif->rtype->size, cif->rtype->alignment));
+  data = alloca (arg_size + cif->rtype->size
+		 + max (sizeof (void *), cif->rtype->alignment));
 
   /* Unpack ARGV to native values, setting ARGV pointers.  */
   for (i = 0, off = 0;
        i < cif->nargs;
-       off += cif->arg_types[i]->size, i++)
+       off = (scm_t_uint8 *) args[i] - data + cif->arg_types[i]->size,
+	 i++)
     {
-      off = ROUND_UP (off, cif->arg_types[i]->alignment);
-      args[i] = data + off;
+      /* Suitably align the storage area for argument I.  */
+      args[i] = (void *) ROUND_UP ((scm_t_uintptr) data + off,
+				   cif->arg_types[i]->alignment);
+      assert ((scm_t_uintptr) args[i] % cif->arg_types[i]->alignment == 0);
       unpack (cif->arg_types[i], args[i], argv[i]);
     }
 
-  /* Prepare space for the return value.  */
-  off = ROUND_UP (off, cif->rtype->alignment);
-  rvalue = data + off;
+  /* Prepare space for the return value.  On some platforms, such as
+     `armv5tel-*-linux-gnueabi', the return value has to be at least
+     word-aligned, even if its type doesn't have any alignment requirement as is
+     the case with `char'.  */
+  rvalue = (void *) ROUND_UP ((scm_t_uintptr) data + off,
+			      max (sizeof (void *), cif->rtype->alignment));
 
   /* off we go! */
   ffi_call (cif, func, rvalue, args);
