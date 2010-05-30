@@ -8,13 +8,19 @@ exec guile -q -s "$0" "$@"
 (define lib
   (dynamic-link (string-append (getenv "builddir") "/libtest-ffi")))
 
+(define failed? #f)
+
 (define-syntax test
   (syntax-rules ()
     ((_ exp res)
      (let ((expected res)
            (actual exp))
        (if (not (equal? actual expected))
-           (error "Bad return from expression" 'exp actual expected))))))
+           (begin
+             (set! failed? #t)
+             (format (current-error-port)
+                     "bad return from expression `~a': expected ~A; got ~A~%"
+                     'exp expected actual)))))))
 
 ;;;
 ;;; No args
@@ -193,6 +199,8 @@ exec guile -q -s "$0" "$@"
        (bv  (foreign->bytevector ptr 'u8 0 len))
        (str (utf8->string bv)))
   (test #t (not (not (string-contains str "file")))))
+
+(exit (not failed?))
 
 ;; Local Variables:
 ;; mode: scheme
