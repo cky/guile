@@ -79,7 +79,6 @@ scm_i_prompt_pop_abort_args_x (SCM prompt)
 #define META_HEADER(meta)         meta, 0, 0, 0, 0,      0, 0, 0
 #endif
 
-#define ROUND_UP(len,align) (((len-1)|(align-1))+1)
 #define ALIGN_PTR(type,p,align) (type*)(ROUND_UP (((scm_t_bits)p), align))
 
 #ifdef SCM_ALIGNED

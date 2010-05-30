@@ -431,9 +431,6 @@ scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
 
 
 
-
-#define ROUND_UP(len,align) (align?(((len-1)|(align-1))+1):len)
-
 SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type),
             "Return the alignment of @var{type}, in bytes.\n\n"
             "@var{type} should be a valid C type, like @code{int}.\n"

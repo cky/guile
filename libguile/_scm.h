@@ -118,6 +118,10 @@
 #define max(A, B) ((A) >= (B) ? (A) : (B))
 #endif
 
+/* Return the first integer greater than or equal to LEN such that
+   LEN % ALIGN == 0.  Return LEN if ALIGN is zero.  */
+#define ROUND_UP(len, align)					\
+  ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 
 #if GUILE_USE_64_CALLS && defined(HAVE_STAT64)

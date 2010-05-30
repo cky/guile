@@ -71,7 +71,6 @@ static scm_t_bits tc16_continuation;
 #define META_HEADER(meta)         meta, 0, 0, 0, 0,      0, 0, 0
 #endif
 
-#define ROUND_UP(len,align) (((len-1)|(align-1))+1)
 #define ALIGN_PTR(type,p,align) (type*)(ROUND_UP (((scm_t_bits)p), align))
 
 #ifdef SCM_ALIGNED
