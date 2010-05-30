@@ -127,3 +127,4 @@ INSTALL
 /lib/sys/socket.h
 /lib/warn-on-use.h
 /lib/unused-parameter.h
+/.version
