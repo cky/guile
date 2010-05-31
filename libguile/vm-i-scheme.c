@@ -543,11 +543,16 @@ VM_DEFINE_INSTRUCTION (171, slot_set, "slot-set", 0, 3, 0)
 /*
  * Bytevectors
  */
-#define VM_VALIDATE_BYTEVECTOR(x)               \
-  if (SCM_UNLIKELY (!SCM_BYTEVECTOR_P (x)))     \
-    { finish_args = x;                          \
-      goto vm_error_not_a_bytevector;           \
-    }
+#define VM_VALIDATE_BYTEVECTOR(x)		\
+  do						\
+    {						\
+      if (SCM_UNLIKELY (!SCM_BYTEVECTOR_P (x)))	\
+	{					\
+	  finish_args = x;			\
+	  goto vm_error_not_a_bytevector;	\
+	}					\
+    }						\
+  while (0)
 
 #define BV_REF_WITH_ENDIANNESS(stem, fn_stem)                           \
 {                                                                       \
