@@ -562,6 +562,10 @@ VM_DEFINE_INSTRUCTION (171, slot_set, "slot-set", 0, 3, 0)
   }                                                                     \
 }
 
+/* Return true (non-zero) if PTR has suitable alignment for TYPE.  */
+#define ALIGNED_P(ptr, type)			\
+  ((scm_t_uintptr) (ptr) % alignof (type) == 0)
+
 VM_DEFINE_FUNCTION (172, bv_u16_ref, "bv-u16-ref", 3)
 BV_REF_WITH_ENDIANNESS (u16, u16)
 VM_DEFINE_FUNCTION (173, bv_s16_ref, "bv-s16-ref", 3)
@@ -583,15 +587,19 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)			\
 {									\
-  long i = 0;								\
+  long i;								\
+  const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
+									\
   VM_VALIDATE_BYTEVECTOR (bv);						\
+  i = SCM_I_INUM (idx);							\
+  int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
+									\
   if (SCM_LIKELY (SCM_I_INUMP (idx)					\
-                  && ((i = SCM_I_INUM (idx)) >= 0)			\
+                  && (i >= 0)						\
                   && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
-                  && (i % size == 0)))					\
-    RETURN (SCM_I_MAKINUM (*(scm_t_##type*)				\
-                           (SCM_BYTEVECTOR_CONTENTS (bv) + i)));	\
+                  && (ALIGNED_P (int_ptr, scm_t_ ## type))))		\
+    RETURN (SCM_I_MAKINUM (*int_ptr));					\
   else									\
     {									\
       SYNC_REGISTER ();							\
@@ -601,14 +609,20 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_REF(stem, type, size)					\
 {									\
-  long i = 0;								\
+  long i;								\
+  const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
+									\
   VM_VALIDATE_BYTEVECTOR (bv);						\
+  i = SCM_I_INUM (idx);							\
+  int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
+									\
   if (SCM_LIKELY (SCM_I_INUMP (idx)					\
-                  && ((i = SCM_I_INUM (idx)) >= 0)			\
+                  && (i >= 0)						\
                   && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
-                  && (i % size == 0)))					\
-    { scm_t_##type x = (*(scm_t_##type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)); \
+                  && (ALIGNED_P (int_ptr, scm_t_ ## type))))		\
+    {									\
+      scm_t_ ## type x = *int_ptr;					\
       if (SCM_FIXABLE (x))						\
         RETURN (SCM_I_MAKINUM (x));					\
       else								\
@@ -626,15 +640,20 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_REF(stem, fn_stem, type, size)				\
 {									\
-  long i = 0;								\
+  long i;								\
+  const type *float_ptr;						\
   ARGS2 (bv, idx);							\
+									\
   VM_VALIDATE_BYTEVECTOR (bv);						\
+  i = SCM_I_INUM (idx);							\
+  float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);		\
+									\
   SYNC_REGISTER ();							\
   if (SCM_LIKELY (SCM_I_INUMP (idx)					\
-                  && ((i = SCM_I_INUM (idx)) >= 0)			\
+                  && (i >= 0)						\
                   && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
-                  && (i % size == 0)))					\
-    RETURN (scm_from_double ((*(type*)(SCM_BYTEVECTOR_CONTENTS (bv) + i)))); \
+                  && (ALIGNED_P (float_ptr, type))))			\
+    RETURN (scm_from_double (*float_ptr));				\
   else									\
     RETURN (scm_bytevector_ ## fn_stem ## _native_ref (bv, idx));	\
 }
@@ -706,52 +725,70 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #undef BV_SET_WITH_ENDIANNESS
 
-#define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)         \
-{                                                                       \
-  long i = 0, j = 0;                                                    \
-  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
-  VM_VALIDATE_BYTEVECTOR (bv);                                          \
-  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
-                  && (i % size == 0)                                    \
-                  && (SCM_I_INUMP (val))                                \
-                  && ((j = SCM_I_INUM (val)) >= min)                    \
-                  && (j <= max)))                                       \
-    *(scm_t_##type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = (scm_t_##type)j; \
-  else                                                                  \
-    scm_bytevector_##fn_stem##_set_x (bv, idx, val);                    \
-  NEXT;                                                                 \
+#define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)		\
+{									\
+  long i, j = 0;							\
+  SCM bv, idx, val;							\
+  scm_t_ ## type *int_ptr;						\
+									\
+  POP (val); POP (idx); POP (bv);					\
+  VM_VALIDATE_BYTEVECTOR (bv);						\
+  i = SCM_I_INUM (idx);							\
+  int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
+									\
+  if (SCM_LIKELY (SCM_I_INUMP (idx)					\
+                  && (i >= 0)						\
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
+                  && (ALIGNED_P (int_ptr, scm_t_ ## type))		\
+                  && (SCM_I_INUMP (val))				\
+                  && ((j = SCM_I_INUM (val)) >= min)			\
+                  && (j <= max)))					\
+    *int_ptr = (scm_t_ ## type) j;					\
+  else									\
+    scm_bytevector_ ## fn_stem ## _set_x (bv, idx, val);		\
+  NEXT;									\
 }
 
-#define BV_INT_SET(stem, type, size)                                    \
-{                                                                       \
-  long i = 0;                                                           \
-  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
-  VM_VALIDATE_BYTEVECTOR (bv);                                          \
-  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
-                  && (i % size == 0)))                                  \
-    *(scm_t_##type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_##type (val); \
-  else                                                                  \
-    scm_bytevector_##stem##_native_set_x (bv, idx, val);                \
-  NEXT;                                                                 \
+#define BV_INT_SET(stem, type, size)					\
+{									\
+  long i = 0;								\
+  SCM bv, idx, val;							\
+  scm_t_ ## type *int_ptr;						\
+									\
+  POP (val); POP (idx); POP (bv);					\
+  VM_VALIDATE_BYTEVECTOR (bv);						\
+  i = SCM_I_INUM (idx);							\
+  int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
+									\
+  if (SCM_LIKELY (SCM_I_INUMP (idx)					\
+                  && (i >= 0)						\
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
+                  && (ALIGNED_P (int_ptr, scm_t_ ## type))))		\
+    *int_ptr = scm_to_ ## type (val);					\
+  else									\
+    scm_bytevector_ ## stem ## _native_set_x (bv, idx, val);		\
+  NEXT;									\
 }
 
-#define BV_FLOAT_SET(stem, fn_stem, type, size)                         \
-{                                                                       \
-  long i = 0;                                                           \
-  SCM bv, idx, val; POP (val); POP (idx); POP (bv);                     \
-  VM_VALIDATE_BYTEVECTOR (bv);                                          \
-  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
-                  && ((i = SCM_I_INUM (idx)) >= 0)                      \
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
-                  && (i % size == 0)))                                  \
-    *(type*) (SCM_BYTEVECTOR_CONTENTS (bv) + i) = scm_to_double (val);  \
-  else                                                                  \
-    scm_bytevector_##fn_stem##_native_set_x (bv, idx, val);             \
-  NEXT;                                                                 \
+#define BV_FLOAT_SET(stem, fn_stem, type, size)			\
+{								\
+  long i = 0;							\
+  SCM bv, idx, val;						\
+  type *float_ptr;						\
+								\
+  POP (val); POP (idx); POP (bv);				\
+  VM_VALIDATE_BYTEVECTOR (bv);					\
+  i = SCM_I_INUM (idx);						\
+  float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
+								\
+  if (SCM_LIKELY (SCM_I_INUMP (idx)				\
+                  && (i >= 0)					\
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))	\
+                  && (ALIGNED_P (float_ptr, type))))		\
+    *float_ptr = scm_to_double (val);				\
+  else								\
+    scm_bytevector_ ## fn_stem ## _native_set_x (bv, idx, val);	\
+  NEXT;								\
 }
 
 VM_DEFINE_INSTRUCTION (198, bv_u8_set, "bv-u8-set", 0, 3, 0)

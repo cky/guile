@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <alloca.h>
+#include <alignof.h>
 #include <string.h>
 
 #include "libguile/bdw-gc.h"
