@@ -29,7 +29,8 @@
             repl-welcome repl-prompt repl-read repl-compile repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
             puts ->string user-error
-            *warranty* *copying* *version*))
+            *warranty* *copying* *version*
+            *repl-level*))
 
 (define *version*
   (format #f "GNU Guile ~A
@@ -93,6 +94,8 @@ copy of the Program in return for a fee.
 
 See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 
+(define *repl-level* (make-fluid))
+
 
 ;;;
 ;;; Repl type
@@ -118,8 +121,10 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   (display "Enter `,help' for help.\n"))
 
 (define (repl-prompt repl)
-  (format #f "~A@~A> " (language-name (repl-language repl))
-          (module-name (current-module))))
+  (format #f "~A@~A~A> " (language-name (repl-language repl))
+          (module-name (current-module))
+          (let ((level (or (fluid-ref *repl-level*) 0)))
+            (if (zero? level) "" (format #f " [~a]" level)))))
 
 (define (repl-read repl)
   ((language-reader (repl-language repl)) (current-input-port)

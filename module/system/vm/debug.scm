@@ -21,6 +21,7 @@
 (define-module (system vm debug)
   #:use-module (system base pmatch)
   #:use-module (system base syntax)
+  #:use-module (system base language)
   #:use-module (system vm vm)
   #:use-module (system vm frame)
   #:use-module (ice-9 rdelim)
@@ -138,6 +139,15 @@
                 (print-locals frame #:width width
                               #:per-line-prefix "     "))
             (lp (+ i inc) (or file last-file)))))))
+
+(define (frame->module frame)
+  (let ((proc (frame-procedure frame)))
+    (if (program? proc)
+        (let* ((mod (or (program-module proc) (current-module )))
+               (mod* (make-module)))
+          (module-use! mod* mod)
+          mod*)
+        (current-module))))
 
 
 ;;;
@@ -288,6 +298,13 @@ With an argument, select a frame by index, then show it."
            (else
             (format #t "No such frame.~%"))))
          (else (show-frame))))
+
+      (define-command ((commands repl r))
+        "Run a new REPL in the context of the current frame."
+        (save-module-excursion
+         (lambda ()
+           (set-current-module (frame->module cur))
+           ((@ (system repl repl) start-repl)))))
 
       (define-command ((commands procedure proc))
         "Print the procedure for the selected frame."

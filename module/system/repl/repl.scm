@@ -1,6 +1,6 @@
 ;;; Read-Eval-Print Loop
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -92,42 +92,47 @@
 (define-macro (with-backtrace form)
   `(call-with-backtrace (lambda () ,form)))
 
-(define (start-repl lang)
+(define* (start-repl #:optional (lang (current-language)) #:key
+                     (level (1+ (or (fluid-ref *repl-level*) -1)))
+                     (welcome (equal? level 0)))
   (let ((repl (make-repl lang))
         (status #f))
-    (repl-welcome repl)
-    (let prompt-loop ()
-      (let ((exp (with-backtrace (prompting-meta-read repl))))
-        (cond
-         ((eqv? exp (if #f #f))) ; read error, pass
-         ((eq? exp meta-command-token)
-          (with-backtrace (meta-command repl)))
-         ((eof-object? exp)
-          (newline)
-          (set! status '()))
-         (else
-          ;; since the input port is line-buffered, consume up to the
-          ;; newline
-          (flush-to-newline)
-          (with-backtrace
-           (catch 'quit
-                  (lambda ()
-                    (call-with-values
-                        (lambda ()
-                          (run-hook before-eval-hook exp)
-                          (start-stack #t
-                                       (repl-eval repl (repl-parse repl exp))))
-                      (lambda l
-                        (for-each (lambda (v)
-                                    (run-hook before-print-hook v)
-                                    (repl-print repl v))
-                                  l))))
-                  (lambda (k . args)
-                    (set! status args))))))
-        (or status
-            (begin
-              (next-char #f) ;; consume trailing whitespace
-              (prompt-loop)))))))
+    (if welcome
+        (repl-welcome repl))
+    (with-fluids ((*repl-level* level)
+                  (the-last-stack #f))
+      (let prompt-loop ()
+        (let ((exp (with-backtrace (prompting-meta-read repl))))
+          (cond
+           ((eqv? exp (if #f #f)))      ; read error, pass
+           ((eq? exp meta-command-token)
+            (with-backtrace (meta-command repl)))
+           ((eof-object? exp)
+            (newline)
+            (set! status '()))
+           (else
+            ;; since the input port is line-buffered, consume up to the
+            ;; newline
+            (flush-to-newline)
+            (with-backtrace
+             (catch 'quit
+               (lambda ()
+                 (call-with-values
+                     (lambda ()
+                       (run-hook before-eval-hook exp)
+                       (start-stack #t
+                                    (repl-eval repl (repl-parse repl exp))))
+                   (lambda l
+                     (for-each (lambda (v)
+                                 (run-hook before-print-hook v)
+                                 (repl-print repl v))
+                               l))))
+               (lambda (k . args)
+                 (set! status args))))))
+          (or status
+              (begin
+                (next-char #f) ;; consume trailing whitespace
+                (prompt-loop))))))))
 
 (define (next-char wait)
   (if (or wait (char-ready?))
