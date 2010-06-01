@@ -28,7 +28,9 @@
             language-joiner language-make-default-environment
 
             lookup-compilation-order lookup-decompilation-order
-            invalidate-compilation-cache! default-environment))
+            invalidate-compilation-cache! default-environment
+
+            *current-language* current-language))
 
 
 ;;;
@@ -102,3 +104,15 @@
   "Return the default compilation environment for source language LANG."
   ((language-make-default-environment
     (if (language? lang) lang (lookup-language lang)))))
+
+
+
+;;;
+;;; Current language
+;;;
+
+(define *current-language* (make-fluid))
+(fluid-set! *current-language* 'scheme)
+
+(define (current-language)
+  (fluid-ref *current-language*))

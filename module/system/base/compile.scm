@@ -27,7 +27,6 @@
   #:use-module (ice-9 optargs)
   #:use-module (ice-9 receive)
   #:export (syntax-error 
-            *current-language*
             compiled-file-name
             compile-file
             compile-and-load
@@ -60,11 +59,6 @@
 ;;;
 ;;; Compiler
 ;;;
-
-(define *current-language* (make-fluid))
-(fluid-set! *current-language* 'scheme)
-(define (current-language)
-  (fluid-ref *current-language*))
 
 (define (call-once thunk)
   (let ((entered #f))
