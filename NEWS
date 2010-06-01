@@ -132,7 +132,7 @@ module where the `library' macro is defined, not in the new module.
 
 `define-module', `use-modules', `export', and other such macros have
 been rewritten as hygienic macros. This allows the necessary referential
-transparency for the R6RS `library' for to do the right thing.
+transparency for the R6RS `library' form to do the right thing.
     
 ** Compiler and VM documentation updated
 
@@ -164,8 +164,8 @@ out!
 
 It was a little-known implementation detail of Guile's module system
 that it was built on a single hierarchical namespace of values -- that
-if there was a module named `(foo bar)', then there was a also module
-named `(foo)' with a binding from `bar' to the `(foo bar)' module.
+if there was a module named `(foo bar)', then in the module named
+`(foo)' there was a binding from `bar' to the `(foo bar)' module.
 
 This was a neat trick, but presented a number of problems. One problem
 was that the bindings in a module were not apparent from the module
