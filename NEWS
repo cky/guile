@@ -173,6 +173,98 @@ The introductory sections of the manual have been reorganized
 significantly, making it more accessible to new users of Guile. Check it
 out!
 
+** The module namespace is now separate from the value namespace
+
+It was a little-known implementation detail of Guile's module system
+that it was built on a single hierarchical namespace of values -- that
+if there was a module named `(foo bar)', then there was a also module
+named `(foo)' with a binding from `bar' to the `(foo bar)' module.
+
+This was a neat trick, but presented a number of problems. One problem
+was that the bindings in a module were not apparent from the module
+itself; perhaps the `(foo)' module had a private binding for `bar', and
+then an external contributor defined `(foo bar)'. In the end there can
+be only one binding, so one of the two will see the wrong thing, and
+produce an obtuse error of unclear provenance.
+
+Also, the public interface of a module was also bound in the value
+namespace, as `%module-public-interface'. This was a hack from the early
+days of Guile's modules.
+
+Both of these warts have been fixed by the addition of fields in the
+`module' data type. Access to modules and their interfaces from the
+value namespace has been deprecated, and all accessors use the new
+record accessors appropriately.
+
+When Guile is built with support for deprecated code, as is the default,
+the value namespace is still searched for modules and public interfaces,
+and a deprecation warning is raised as appropriate.
+
+Finally, to support lazy loading of modules as one used to be able to do
+with module binder procedures, Guile now has submodule binders, called
+if a given submodule is not found. See boot-9.scm for more information.
+    
+** New procedures: module-ref-submodule, module-define-submodule,
+   nested-ref-module, nested-define-module!, local-ref-module,
+   local-define-module
+
+These new accessors are like their bare variants, but operate on
+namespaces instead of values.
+
+** The (app modules) module tree is officially deprecated
+
+It used to be that one could access a module named `(foo bar)' via
+`(nested-ref the-root-module '(app modules foo bar))'. The `(app
+modules)' bit was a never-used and never-documented abstraction, and has
+been deprecated. See the following mail for a full discussion:
+
+    http://lists.gnu.org/archive/html/guile-devel/2010-04/msg00168.html
+
+The `%app' binding is also deprecated.
+
+** Deprecated `@bind' syntax
+
+`@bind' was part of an older implementation of the Emacs Lisp language,
+and is no longer used.
+    
+** New fluid: `%file-port-name-canonicalization'
+    
+This fluid parameterizes the file names that are associated with file
+ports. If %file-port-name-canonicalization is 'absolute, then file names
+are canonicalized to be absolute paths. If it is 'relative, then the
+name is canonicalized, but any prefix corresponding to a member of
+`%load-path' is stripped off. Otherwise the names are passed through
+unchanged.
+
+** Source file name canonicalization in `compile-file', `compile-and-load'
+    
+These file-compiling procedures now bind
+%file-port-name-canonicalization to their `#:canonicalization' keyword
+argument, which defaults to 'relative. In this way, one might compile
+"../module/ice-9/boot-9.scm", but the path that gets residualized into
+the .go is "ice-9/boot-9.scm".
+
+** Deprecate arity access via (procedure-properties proc 'arity)
+
+Instead of accessing a procedure's arity as a property, use the new
+`procedure-minimum-arity' function, which gives the most permissive
+arity that the the function has, in the same format as the old arity
+accessor.
+
+** Remove redundant accessors: program-name, program-documentation,
+   program-properties, program-property
+    
+Instead, just use procedure-name, procedure-documentation,
+procedure-properties, and procedure-property.
+
+** Enhance documentation for support of Emacs Lisp's `nil'
+
+See "Nil" in the manual, for more details.
+    
+** Enhance documentation for support of other languages
+
+See "Other Languages" in the manual, for more details.
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
