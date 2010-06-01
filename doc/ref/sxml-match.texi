@@ -30,7 +30,7 @@ illustration, transforming a music album catalog language into HTML.
 @lisp
 (define (album->html x)
   (sxml-match x
-    [(album (@ (title ,t)) (catalog (num ,n) (fmt ,f)) ...)
+    [(album (@@ (title ,t)) (catalog (num ,n) (fmt ,f)) ...)
      `(ul (li ,t)
           (li (b ,n) (i ,f)) ...)]))
 @end lisp
@@ -137,8 +137,8 @@ matcher.
 The example below illustrates the pattern matching of an XML element:
 
 @lisp
-(sxml-match '(e (@ (i 1)) 3 4 5)
-  [(e (@ (i ,d)) ,a ,b ,c) (list d a b c)]
+(sxml-match '(e (@@ (i 1)) 3 4 5)
+  [(e (@@ (i ,d)) ,a ,b ,c) (list d a b c)]
   [,otherwise #f])
 @end lisp
 
@@ -232,8 +232,8 @@ matched, but which do not appear in the pattern.  This is achieved by using a
 illustrated in the example below:
 
 @lisp
-(sxml-match '(a (@ (z 1) (y 2) (x 3)) 4 5 6)
-  [(a (@ (y ,www) . ,qqq) ,t ,u ,v)
+(sxml-match '(a (@@ (z 1) (y 2) (x 3)) 4 5 6)
+  [(a (@@ (y ,www) . ,qqq) ,t ,u ,v)
    (list www qqq t u v)])
 @end lisp
 
@@ -244,8 +244,8 @@ expression is @code{(2 ((z 1) (x 3)) 4 5 6)}.
 This type of pattern also allows the binding of all attributes:
 
 @lisp
-(sxml-match '(a (@ (z 1) (y 2) (x 3)))
-  [(a (@ . ,qqq))
+(sxml-match '(a (@@ (z 1) (y 2) (x 3)))
+  [(a (@@ . ,qqq))
    qqq])
 @end lisp
 
@@ -257,7 +257,7 @@ the following example:
 
 @lisp
 (sxml-match '(e 3 4 5)
-  [(e (@ (z (,d 1))) ,a ,b ,c) (list d a b c)])
+  [(e (@@ (z (,d 1))) ,a ,b ,c) (list d a b c)])
 @end lisp
 
 The value @code{1} is used when the attribute @code{z} is absent from the
@@ -323,7 +323,7 @@ identifiers following @code{->}.
 
 Named catamorphism patterns allow processing to be split into multiple, mutually
 recursive procedures.  This is illustrated in the example below: a
-transformation that formats a "TV Guide" into HTML.
+transformation that formats a ``TV Guide'' into HTML.
 
 @lisp
 (define (tv-guide->html g)
@@ -346,7 +346,7 @@ transformation that formats a "TV Guide" into HTML.
                 (br) ,desc ...)
              ,cl)]))
   (sxml-match g
-    [(TVGuide (@ (start ,start-date)
+    [(TVGuide (@@ (start ,start-date)
                  (end ,end-date))
               (Channel (Name ,nm) ,[prog -> p] ...) ...)
      `(html (head (title "TV Guide"))
