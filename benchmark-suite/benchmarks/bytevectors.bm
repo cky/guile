@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: iso-8859-1; -*-
 ;;; R6RS Byte Vectors.
 ;;;
-;;; Copyright 2009 Free Software Foundation, Inc.
+;;; Copyright 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -19,9 +19,9 @@
 ;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (benchmarks bytevector)
-  :use-module (rnrs bytevector)
-  :use-module (srfi srfi-4)
-  :use-module (benchmark-suite lib))
+  #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-4)
+  #:use-module (benchmark-suite lib))
 
 (define bv (make-bytevector 16384))
 

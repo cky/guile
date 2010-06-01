@@ -27,7 +27,7 @@
   #:use-module ((system vm program) #:select (make-binding))
   #:use-module (ice-9 receive)
   #:use-module ((srfi srfi-1) #:select (fold))
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:export (compile-assembly))
 
 ;; Variable cache cells go in the object table, and serialize as their

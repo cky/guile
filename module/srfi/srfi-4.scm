@@ -27,7 +27,7 @@
 ;;; Code:
 
 (define-module (srfi srfi-4)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:export (;; Unsigned 8-bit vectors.
             u8vector? make-u8vector u8vector u8vector-length u8vector-ref
             u8vector-set! u8vector->list list->u8vector

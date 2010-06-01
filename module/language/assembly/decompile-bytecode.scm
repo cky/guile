@@ -22,7 +22,7 @@
   #:use-module (system vm instruction)
   #:use-module (system base pmatch)
   #:use-module (srfi srfi-4)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module (language assembly)
   #:use-module ((system vm objcode) #:select (byte-order))
   #:export (decompile-bytecode))

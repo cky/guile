@@ -75,7 +75,7 @@
 	  values apply quasiquote unquote unquote-splicing let-syntax 
 	  letrec-syntax syntax-rules identifier-syntax
 
-	  ;; (rnrs bytevector)
+	  ;; (rnrs bytevectors)
 	  
 	  endianness native-endianness bytevector? make-bytevector 
 	  bytevector-length bytevector=? bytevector-fill! bytevector-copy! 
@@ -218,7 +218,7 @@
 	  (rnrs arithmetic flonums (6))
 	  (rnrs base (6))
 
-	  (rnrs bytevector)
+	  (rnrs bytevectors)
 
 	  (rnrs conditions (6))
 	  (rnrs control (6))

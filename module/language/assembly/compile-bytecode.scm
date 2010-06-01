@@ -23,7 +23,7 @@
   #:use-module (language assembly)
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module ((srfi srfi-26) #:select (cut))

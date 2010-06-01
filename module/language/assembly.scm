@@ -19,7 +19,7 @@
 ;;; Code:
 
 (define-module (language assembly)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module (system base pmatch)
   #:use-module (system vm instruction)
   #:use-module ((srfi srfi-1) #:select (fold))

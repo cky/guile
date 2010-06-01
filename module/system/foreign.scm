@@ -17,7 +17,7 @@
 
 
 (define-module (system foreign)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:export (void
             float double
             int unsigned-int long unsigned-long size_t

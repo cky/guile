@@ -22,7 +22,7 @@
 
 (define-module (test-foreign)
   #:use-module (system foreign)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module (test-suite lib))
 
 

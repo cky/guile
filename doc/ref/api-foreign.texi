@@ -770,7 +770,7 @@ code makes @code{memcpy} available to Scheme:
 To invoke @code{memcpy}, one must pass it foreign pointers:
 
 @example
-(use-modules (rnrs bytevector))
+(use-modules (rnrs bytevectors))
 
 (define src
   (bytevector->foreign (u8-list->bytevector '(0 1 2 3 4 5 6 7))))

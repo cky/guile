@@ -20,7 +20,7 @@
 (define-module (test-bytevector)
   :use-module (test-suite lib)
   :use-module (system base compile)
-  :use-module (rnrs bytevector))
+  :use-module (rnrs bytevectors))
 
 ;;; Some of the tests in here are examples taken from the R6RS Standard
 ;;; Libraries document.

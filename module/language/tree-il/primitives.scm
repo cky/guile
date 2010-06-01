@@ -20,7 +20,7 @@
 
 (define-module (language tree-il primitives)
   #:use-module (system base pmatch)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module (system base syntax)
   #:use-module (language tree-il)
   #:use-module (srfi srfi-4)

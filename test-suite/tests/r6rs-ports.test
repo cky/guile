@@ -22,7 +22,7 @@
   :use-module (srfi srfi-1)
   :use-module (srfi srfi-11)
   :use-module (rnrs io ports)
-  :use-module (rnrs bytevector))
+  :use-module (rnrs bytevectors))
 
 ;;; All these tests assume Guile 1.8's port system, where characters are
 ;;; treated as octets.

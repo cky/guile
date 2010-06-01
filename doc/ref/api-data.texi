@@ -4033,7 +4033,7 @@ or @code{#f} if they are stored in an 8-bit buffer
 @cindex bytevector
 @cindex R6RS
 
-A @dfn{bytevector} is a raw bit string.  The @code{(rnrs bytevector)}
+A @dfn{bytevector} is a raw bit string.  The @code{(rnrs bytevectors)}
 module provides the programming interface specified by the
 @uref{http://www.r6rs.org/, Revised^6 Report on the Algorithmic Language
 Scheme (R6RS)}.  It contains procedures to manipulate bytevectors and

@@ -15,7 +15,7 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite tests asm-to-bytecode)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module ((rnrs io ports) #:select (open-bytevector-output-port))
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)

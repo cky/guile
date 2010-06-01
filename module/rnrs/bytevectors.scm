@@ -1,4 +1,4 @@
-;;;; bytevector.scm --- R6RS bytevector API           -*- coding: utf-8 -*-
+;;;; bytevectors.scm --- R6RS bytevector API           -*- coding: utf-8 -*-
 
 ;;;;	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;;
@@ -28,9 +28,9 @@
 ;;;
 ;;; Code:
 
-(define-module (rnrs bytevector)
-  :export-syntax (endianness)
-  :export (native-endianness bytevector?
+(define-module (rnrs bytevectors)
+  #:export-syntax (endianness)
+  #:export (native-endianness bytevector?
            make-bytevector bytevector-length bytevector=? bytevector-fill!
            bytevector-copy! bytevector-copy
            uniform-array->bytevector

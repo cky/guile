@@ -1,6 +1,6 @@
 ;;; Extensions to SRFI-4
 
-;; 	Copyright (C) 2009 Free Software Foundation, Inc.
+;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -23,7 +23,7 @@
 ;;; Code:
 
 (define-module (srfi srfi-4 gnu)
-  #:use-module (rnrs bytevector)
+  #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-4)
   #:export (;; Complex numbers with 32- and 64-bit components.
             c32vector? make-c32vector c32vector c32vector-length c32vector-ref

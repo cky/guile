@@ -2214,7 +2214,7 @@ void
 scm_bootstrap_bytevectors (void)
 {
   /* This must be instantiated here because the generalized-vector API may
-     want to access bytevectors even though `(rnrs bytevector)' hasn't been
+     want to access bytevectors even though `(rnrs bytevectors)' hasn't been
      loaded.  */
   scm_null_bytevector = make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8);
 

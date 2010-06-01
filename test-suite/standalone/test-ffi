@@ -3,7 +3,7 @@ exec guile -q -s "$0" "$@"
 !#
 
 (use-modules (system foreign)
-             (rnrs bytevector))
+             (rnrs bytevectors))
 
 (define lib
   (dynamic-link (string-append (getenv "builddir") "/libtest-ffi")))
@@ -179,7 +179,7 @@ exec guile -q -s "$0" "$@"
 ;;; Global symbols.
 ;;;
 
-(use-modules ((rnrs bytevector) #:select (utf8->string)))
+(use-modules ((rnrs bytevectors) #:select (utf8->string)))
 
 (if (defined? 'setlocale)
     (setlocale LC_ALL "C"))
