@@ -10,6 +10,13 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.11 (since the 1.9.10 prerelease):
 
+** Renamed module: (rnrs bytevectors)
+    
+This module was called (rnrs bytevector), its name from earlier drafts
+of the R6RS. Its name has been changed. Users of previous 1.9 preleases
+may want to search for any stale rnrs/bytevector .go or .scm file, and
+delete them.
+
 ** New module: (sxml match)
     
 Guile has incorporated Jim Bender's `sxml-match' library. See
@@ -31,37 +38,21 @@ Libraries" in the manual for more information.
 ** Implementations of R6RS libraries
 
 Guile now has implementations for all of the libraries defined in the
-R6RS. Thanks to Julian Graham for this excellent hack. See ... in the
-manual for a full list of libraries.
+R6RS. Thanks to Julian Graham for this excellent hack. See "R6RS
+Standard Libraries" in the manual for a full list of libraries.
 
 ** Partial R6RS compatibility
 
 Guile now has enough support for R6RS to run a reasonably large subset
-of R6RS programs. Guile is not fully R6RS compatible. Many
-incompatibilities are simply bugs, though some parts of Guile will
-remain R6RS-incompatible for the foreseeable future. See ... in the
-manual Please contact bug-guile@gnu.org if you have found an issue not
-mentioned in that compatibility list.
+of R6RS programs.
 
-FIXME: put this list in the manual:
- (rnrs)
- (rnrs arithmetic bitwise)
- (rnrs arithmetic flonums)
- (rnrs control)
- (rnrs enums)
- (rnrs eval)
- (rnrs files)
- (rnrs hashtables)
- (rnrs lists)
- (rnrs mutable-pairs)
- (rnrs mutable-strings)
- (rnrs programs)
- (rnrs r5rs)
- (rnrs record syntactic)
- (rnrs records inspection)
- (rnrs records procedural)
- (rnrs sorting)
- (rnrs unicode)
+Guile is not fully R6RS compatible. Many incompatibilities are simply
+bugs, though some parts of Guile will remain R6RS-incompatible for the
+foreseeable future. See "R6RS Incompatibilities" in the manual, for more
+information.
+
+Please contact bug-guile@gnu.org if you have found an issue not
+mentioned in that compatibility list.
     
 ** Macro expansion produces structures instead of s-expressions
 
