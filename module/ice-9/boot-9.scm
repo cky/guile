@@ -3836,8 +3836,7 @@ module '(ice-9 q) '(make-q q-length))}."
     ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
     ;; no effect.
     (let ((old-handlers #f)
-          (start-repl (module-ref (resolve-interface '(system repl repl))
-                                  'start-repl))
+          (start-repl (@ (system repl repl) start-repl))
           (signals (if (provided? 'posix)
                        `((,SIGINT . "User interrupt")
                          (,SIGFPE . "Arithmetic error")
