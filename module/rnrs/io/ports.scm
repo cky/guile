@@ -27,8 +27,9 @@
 ;;; Code:
 
 (define-module (rnrs io ports)
-  :re-export (eof-object? port? input-port? output-port?)
-  :export (eof-object
+  #:version (6)
+  #:re-export (eof-object? port? input-port? output-port?)
+  #:export (eof-object
 
            ;; input & output ports
            port-transcoder binary-port? transcoded-port

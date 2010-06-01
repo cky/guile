@@ -29,6 +29,7 @@
 ;;; Code:
 
 (define-module (rnrs bytevectors)
+  #:version (6)
   #:export-syntax (endianness)
   #:export (native-endianness bytevector?
            make-bytevector bytevector-length bytevector=? bytevector-fill!

@@ -218,8 +218,8 @@
 	  (rnrs arithmetic flonums (6))
 	  (rnrs base (6))
 
-	  (rnrs bytevectors)
-
+	  (rnrs bytevectors (6))
+          
 	  (rnrs conditions (6))
 	  (rnrs control (6))
 	  (rnrs enums (6))
@@ -227,7 +227,7 @@
 	  (rnrs files (6))
 	  (rnrs hashtables (6))
 
-	  (rnrs io ports)
+	  (rnrs io ports (6))
 
 	  (rnrs io simple (6))
 	  (rnrs lists (6))
