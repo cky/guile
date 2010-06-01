@@ -18,7 +18,7 @@ Guile has incorporated Jim Bender's `sxml-match' library. See
 ** New module: (srfi srfi-9 gnu)
 
 This module adds an extension to srfi-9, `set-record-type-printer!'. See
-... in the manual for more information.
+"SRFI-9" in the manual for more information.
 
 ** Support for R6RS libraries
 
@@ -277,7 +277,7 @@ Changes in 1.9.x (since the 1.8.x series):
 
 ** `(srfi srfi-18)', more sophisticated multithreading support
 ** `(ice-9 i18n)', internationalization support
-** `(rnrs bytevector)', the R6RS bytevector API
+** `(rnrs bytevectors)', the R6RS bytevector API
 ** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
 ** `(ice-9 vlist)', lists with constant-time random access; hash lists
