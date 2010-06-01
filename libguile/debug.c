@@ -128,8 +128,6 @@ SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_SYMBOL (scm_sym_procname, "procname");
-SCM_SYMBOL (scm_sym_dots, "...");
 SCM_SYMBOL (scm_sym_source, "source");
 
 SCM_DEFINE (scm_procedure_name, "procedure-name", 1, 0, 0, 
