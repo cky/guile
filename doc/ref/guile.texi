@@ -350,6 +350,7 @@ available through both Scheme and C interfaces.
 * POSIX::                       POSIX system calls and networking.
 * getopt-long::                 Command line handling.
 * SRFI Support::                Support for various SRFIs.
+* R6RS Support::                Modules defined by the R6RS.
 * Readline Support::            Module for using the readline library.
 * Value History::               Maintaining a value history in the REPL.
 * Pretty Printing::             Nicely formatting Scheme objects for output.
@@ -368,6 +369,7 @@ available through both Scheme and C interfaces.
 @include posix.texi
 @include mod-getopt-long.texi
 @include srfi-modules.texi
+@include r6rs.texi
 @include repl-modules.texi
 @include misc-modules.texi
 @include expect.texi

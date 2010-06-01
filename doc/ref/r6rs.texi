@@ -1,0 +1,131 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node R6RS Support
+@section R6RS Support
+@cindex R6RS
+
+@xref{R6RS Libraries}, for more information on how to define R6RS libraries, and
+their integration with Guile modules.
+
+@menu
+* R6RS Incompatibilities::              Guile mostly implements R6RS.
+* R6RS Standard Libraries::             Modules defined by the R6RS.
+@end menu
+
+@node R6RS Incompatibilities
+@subsection Incompatibilities with the R6RS
+
+There are some incompatibilities between Guile and the R6RS. Some of them are
+intentional, some of them are bugs, and some are simply unimplemented features.
+Please let the Guile developers know if you find one that is not on this list.
+
+@itemize
+@item
+In the R6RS, internal definitions expand to @code{letrec*}, not @code{letrec}.
+Guile does not support @code{letrec*}, though that would be nice.
+
+@item
+The R6RS specifies many situations in which a conforming implementation must
+signal a specific error. Guile doesn't really care about that too much -- if a
+correct R6RS program would not hit that error, we don't bother checking for it.
+
+@item
+Multiple @code{library} forms in one file are not yet supported. This is because
+the expansion of @code{library} sets the current module, but does not restore
+it. This is a bug.
+@end itemize
+
+
+@node R6RS Standard Libraries
+@subsection R6RS Standard Libraries
+
+The R6RS standard defines a core language and a number of standard libraries.
+Here we briefly list the libraries that have been implemented for Guile.
+
+All of these libraries are available as Guile modules, for use in standard Guile
+code, via @code{use-modules}, or for use in portable R6RS code, via the
+@code{library} and @code{import} forms. @xref{R6RS Libraries}, for more
+information.
+
+We do not attempt to document these libraries fully here, as most of their
+functionality is already available in Guile itself. The expectation is that most
+Guile users will use the well-known and well-documented Guile modules. These
+R6RS libraries are mostly useful to users who want to port their code to other
+R6RS systems, in which case a copy of the R6RS report itself is necessary. It
+may be found at the R6RS web page, @url{http://r6rs.org/}.
+
+First, there is the base library, defined in the base R6RS report:
+
+@example
+(use-modules (rnrs base))
+@end example
+
+One may also import it to the current module using the R6RS @code{import} form:
+
+@example
+(import (rnrs base))
+@end example
+
+All of the @code{rnrs} modules have the version of @code{(6)}, which may be
+specified when importing the module:
+
+@example
+(import (rnrs base (6)))
+(use-modules ((rnrs base) #:version (6)))
+@end example
+
+@xref{R6RS Version References}, for more information on versions.
+
+Next there is a set of libraries that collectively form the @code{(rnrs)}
+composite library. The following statements are equivalent:
+
+@example
+(import (rnrs))
+
+(use-modules (rnrs))
+
+(import (rnrs arithmetic bitwise (6))
+        (rnrs arithmetic fixnums (6))
+        (rnrs arithmetic flonums (6))
+        (rnrs base (6))
+        (rnrs bytevectors)
+        (rnrs conditions (6))
+        (rnrs control (6))
+        (rnrs enums (6))
+        (rnrs exceptions (6))
+        (rnrs files (6))
+        (rnrs hashtables (6))
+        (rnrs io ports)
+        (rnrs io simple (6))
+        (rnrs lists (6))
+        (rnrs programs (6))
+        (rnrs records inspection (6))
+        (rnrs records procedural (6))
+        (rnrs records syntactic (6))
+        (rnrs sorting (6))
+        (rnrs syntax-case (6)))
+@end example
+
+Finally there are a number of modules that the @code{(rnrs)} module does not
+re-export:
+
+@example
+(import (rnrs mutable-pairs (6))
+        (rnrs mutable-strings (6))
+        (rnrs r5rs (6))
+        (rnrs eval (6))
+        (rnrs unicode (6)))
+@end example
+
+See the R6RS Standard Libraries specification, for more information on these
+modules.
+
+@c r6rs.texi ends here
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

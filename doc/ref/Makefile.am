@@ -69,6 +69,7 @@ guile_TEXINFOS = preface.texi			\
 		 data-rep.texi			\
 		 repl-modules.texi		\
 		 srfi-modules.texi		\
+		 r6rs.texi			\
 		 misc-modules.texi		\
 		 api-compound.texi		\
 		 autoconf.texi			\

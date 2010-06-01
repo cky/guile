@@ -78,7 +78,7 @@ implementations -- including Guile -- have previously done in
 different ways.  Guile has been updated to incorporate some of the
 features of R6RS, and to adjust some existing features to conform to
 the R6RS specification, but it is by no means a complete R6RS
-implementation.
+implementation. @xref{R6RS Support}.
 
 Between R5RS and R6RS, the SRFI process (@url{http://srfi.schemers.org/})
 standardised interfaces for many practical needs, such as multithreaded
