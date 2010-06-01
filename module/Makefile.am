@@ -277,7 +277,7 @@ RNRS_SOURCES =					\
   rnrs/arithmetic/6/bitwise.scm			\
   rnrs/arithmetic/6/fixnums.scm			\
   rnrs/arithmetic/6/flonums.scm			\
-  rnrs/bytevector.scm				\
+  rnrs/bytevectors.scm				\
   rnrs/io/6/simple.scm				\
   rnrs/io/ports.scm				\
   rnrs/records/6/inspection.scm			\
