@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2006
+@c Copyright (C) 2006, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -14,11 +14,11 @@ Guile will evaluate them and print the results for you.  Here are some
 simple examples.
 
 @lisp
-guile> (+ 3 4 5)
+scheme@@(guile-user)> (+ 3 4 5)
 12
-guile> (display "Hello world!\n")
+scheme@@(guile-user)> (display "Hello world!\n")
 Hello world!
-guile> (values 'a 'b)
+scheme@@(guile-user)> (values 'a 'b)
 a
 b
 @end lisp
@@ -28,6 +28,11 @@ This mode of use is called a @dfn{REPL}, which is short for
 ``Read-Eval-Print Loop'', because the Guile interpreter first reads the
 expression that you have typed, then evaluates it, and then prints the
 result.
+
+The prompt shows you what language and module you are in. In this case, the
+current language is @code{scheme}, and the current module is
+@code{(guile-user)}. @xref{Other Languages}, for more information on Guile's
+support for languages other than Scheme.
 
 @menu
 * Readline::
@@ -47,14 +52,14 @@ because of licensing reasons, but all you need to activate Readline is
 the following pair of lines.
 
 @lisp
-guile> (use-modules (ice-9 readline))
-guile> (activate-readline)
+scheme@@(guile-user)> (use-modules (ice-9 readline))
+scheme@@(guile-user)> (activate-readline)
 @end lisp
 
-It's a good idea to put these two lines (without the ``guile>''
+It's a good idea to put these two lines (without the ``scheme@@(guile-user)>''
 prompts) in your @file{.guile} file.  Guile reads this file when it
 starts up interactively, so anything in this file has the same effect
-as if you type it in by hand at the ``guile>'' prompt.
+as if you type it in by hand at the ``scheme@@(guile-user)>'' prompt.
 
 
 @node Value Historyx
@@ -68,13 +73,13 @@ variables @code{$1}, @code{$2}, @dots{}, and you can then use these
 variables in subsequent expressions.
 
 @lisp
-guile> (iota 10)
+scheme@@(guile-user)> (iota 10)
 $1 = (0 1 2 3 4 5 6 7 8 9)
-guile> (apply * (cdr $1))
+scheme@@(guile-user)> (apply * (cdr $1))
 $2 = 362880
-guile> (sqrt $2)
+scheme@@(guile-user)> (sqrt $2)
 $3 = 602.3952191045344
-guile> (cons $2 $1)
+scheme@@(guile-user)> (cons $2 $1)
 $4 = (362880 0 1 2 3 4 5 6 7 8 9)
 @end lisp
 

@@ -399,7 +399,7 @@ If the manifestation of the bug is a Guile error message, it is
 important to report the precise text of the error message, and a
 backtrace showing how the Scheme program arrived at the error.
 
-This can be done using the procedure @code{backtrace} in the REPL.
+This can be done using the @code{backtrace} command in Guile's debugger.
 
 @item
 Check whether any programs you have loaded into Guile, including your
