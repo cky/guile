@@ -272,25 +272,6 @@ sense at certain points in the program, delimited by these
 @code{arity:start} and @code{arity:end} values.
 @end deffn
 
-@deffn {Scheme Procedure} program-properties program
-Return the properties of a @code{program} as an association list,
-keyed by property name (a symbol). 
-
-Some interesting properties include:
-@itemize
-@item @code{name}, the name of the procedure
-@item @code{documentation}, the procedure's docstring
-@end itemize
-@end deffn
-
-@deffn {Scheme Procedure} program-property program name
-Access a program's property by name, returning @code{#f} if not found.
-@end deffn
-
-@deffn {Scheme Procedure} program-documentation program
-@deffnx {Scheme Procedure} program-name program
-Accessors for specific properties.
-@end deffn
 
 @node Optional Arguments
 @subsection Optional Arguments
