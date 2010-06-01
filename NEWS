@@ -101,10 +101,6 @@ The frame objects passed to VM hook procedures are now allocated on the
 stack instead of the heap, making the next-instruction hook practical to
 use.
 
-** Add `program-free-variables' to `(system vm program)'.
-    
-(revise docs?)
-
 ** New `eval-when' situation: `expand'
 
 Sometimes it's important to cause side-effects while expanding an
