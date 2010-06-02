@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -554,7 +554,7 @@ scm_init_readline ()
 #else  
   rl_completion_entry_function = (Function*) completion_function;
 #endif
-  rl_basic_word_break_characters = "\t\n\"'`;()";
+  rl_basic_word_break_characters = " \t\n\"'`;()";
   rl_readline_name = "Guile";
 
   reentry_barrier_mutex = scm_make_mutex ();
