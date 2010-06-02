@@ -147,18 +147,19 @@
 (define (frame->module frame)
   (let ((proc (frame-procedure frame)))
     (if (program? proc)
-        (let* ((mod (or (program-module proc) (current-module )))
+        (let* ((mod (or (program-module proc) (current-module)))
                (mod* (make-module)))
           (module-use! mod* mod)
           (for-each
            (lambda (binding)
-             (module-add!
-              mod*
-              (binding:name binding)
-              (let ((x (frame-local-ref frame (binding:index binding))))
-                (if (binding:boxed? binding)
-                    x
-                    (make-variable x)))))
+             (let* ((x (frame-local-ref frame (binding:index binding)))
+                    (var (if (binding:boxed? binding) x (make-variable x))))
+               (format (debug-output-port)
+                       "~:[Read-only~;Mutable~] local variable ~a = ~70:@y\n"
+                       (binding:boxed? binding)
+                       (binding:name binding)
+                       (if (variable-bound? var) (variable-ref var) var))
+               (module-add! mod* (binding:name binding) var)))
            (frame-bindings frame))
           mod*)
         (current-module))))
