@@ -242,6 +242,34 @@
                          out)))
              #`(begin #,@(reverse out))))))))
 
+(define-syntax define-expansion-accessors
+  (lambda (x)
+    (syntax-case x ()
+      ((_ stem field ...)
+       (let lp ((n 0))
+         (let ((vtable (vector-ref %expanded-vtables n))
+               (stem (syntax->datum #'stem)))
+           (if (eq? (struct-ref vtable (+ vtable-offset-user 0)) stem)
+               #`(begin
+                   (define (#,(datum->syntax x (symbol-append stem '?)) x)
+                     (and (struct? x)
+                          (eq? (struct-vtable x)
+                               (vector-ref %expanded-vtables #,n))))
+                   #,@(map
+                       (lambda (f)
+                         (let ((get (datum->syntax x (symbol-append stem '- f)))
+                               (set (datum->syntax x (symbol-append 'set- stem '- f '!)))
+                               (idx (list-index (struct-ref vtable
+                                                            (+ vtable-offset-user 2))
+                                                f)))
+                           #`(begin
+                               (define (#,get x)
+                                 (struct-ref x #,idx))
+                               (define (#,set x v)
+                                 (struct-set! x #,idx v)))))
+                           (syntax->datum #'(field ...))))
+               (lp (1+ n)))))))))
+
 (define-syntax define-structure
   (lambda (x)
     (define construct-name
@@ -295,6 +323,7 @@
 
 (let ()
   (define-expansion-constructors)
+  (define-expansion-accessors lambda meta)
 
 ;;; hooks to nonportable run-time helpers
   (begin
@@ -411,21 +440,15 @@
        (lambda (var)
          (make-toplevel-set source var exp)))))
 
-  ;; FIXME: there is a bug that prevents (set! ((@ (foo) bar) baz) quz)
-  ;; from working. Hack around it.
   (define (maybe-name-value! name val)
-    (cond
-     (((@ (language tree-il) lambda?) val)
-      (let ((meta ((@ (language tree-il) lambda-meta) val)))
-        (if (not (assq 'name meta))
-            ((setter (@ (language tree-il) lambda-meta))
-             val
-             (acons 'name name meta)))))))
+    (if (lambda? val)
+        (let ((meta (lambda-meta val)))
+          (if (not (assq 'name meta))
+              (set-lambda-meta! val (acons 'name name meta))))))
 
   (define build-global-definition
     (lambda (source var exp)
-      ;; FIXME:
-      ;; (maybe-name-value! var exp)
+      (maybe-name-value! var exp)
       (make-toplevel-define source var exp)))
 
   ;; Ideally we would have all lambdas be case lambdas, but that would
@@ -477,8 +500,7 @@
 
   (define build-let
     (lambda (src ids vars val-exps body-exp)
-      ;; FIXME
-      ;; (for-each maybe-name-value! ids val-exps)
+      (for-each maybe-name-value! ids val-exps)
       (if (null? vars)
           body-exp
           (make-let src ids vars val-exps body-exp))))
@@ -490,9 +512,8 @@
             (vars (cdr vars))
             (ids (cdr ids)))
         (let ((proc (build-simple-lambda src ids #f vars '() body-exp)))
-          ;; FIXME
-          ;; (maybe-name-value! f-name proc)
-          ;; (for-each maybe-name-value! ids val-exps)
+          (maybe-name-value! f-name proc)
+          (for-each maybe-name-value! ids val-exps)
           (make-letrec
            src
            (list f-name) (list f) (list proc)
@@ -503,9 +524,9 @@
     (lambda (src ids vars val-exps body-exp)
       (if (null? vars)
           body-exp
-          ;; FIXME
-          ;; (for-each maybe-name-value! ids val-exps)
-          (make-letrec src ids vars val-exps body-exp))))
+          (begin
+            (for-each maybe-name-value! ids val-exps)
+            (make-letrec src ids vars val-exps body-exp)))))
 
 
   ;; FIXME: use a faster gensym
