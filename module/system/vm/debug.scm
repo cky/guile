@@ -140,12 +140,26 @@
                               #:per-line-prefix "     "))
             (lp (+ i inc) (or file last-file)))))))
 
+;; Ideally here we would have something much more syntactic, in that a set! to a
+;; local var that is not settable would raise an error, and export etc forms
+;; would modify the module in question: but alack, this is what we have now.
+;; Patches welcome!
 (define (frame->module frame)
   (let ((proc (frame-procedure frame)))
     (if (program? proc)
         (let* ((mod (or (program-module proc) (current-module )))
                (mod* (make-module)))
           (module-use! mod* mod)
+          (for-each
+           (lambda (binding)
+             (module-add!
+              mod*
+              (binding:name binding)
+              (let ((x (frame-local-ref frame (binding:index binding))))
+                (if (binding:boxed? binding)
+                    x
+                    (make-variable x)))))
+           (frame-bindings frame))
           mod*)
         (current-module))))
 
