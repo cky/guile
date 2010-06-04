@@ -19,6 +19,8 @@
 ##   to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
 ##   Floor, Boston, MA 02110-1301 USA
 
+include $(top_srcdir)/am/snarf
+
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@ @EXTRA_DEFS@
 
@@ -37,8 +39,6 @@ AM_CPPFLAGS = -I. -I.. -I$(srcdir)/..			\
 	      -I$(top_srcdir)/lib -I$(top_builddir)/lib
 
 AM_CFLAGS = $(GCC_CFLAGS)
-
-GUILE_SNARF = ../libguile/guile-snarf
 
 lib_LTLIBRARIES = libguilereadline-v-@LIBGUILEREADLINE_MAJOR@.la
 
@@ -60,7 +60,7 @@ modinclude_HEADERS = readline.h
 snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 SUFFIXES = .x
 .c.x:
-	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
+	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 EXTRA_DIST += LIBGUILEREADLINE-VERSION ChangeLog-2008
 

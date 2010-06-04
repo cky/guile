@@ -19,6 +19,7 @@
 ##   write to the Free Software Foundation, Inc., 51 Franklin Street,
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
+include $(top_srcdir)/am/snarf
 
 # initializations so we can use += below.
 TESTS =
@@ -49,7 +50,7 @@ snarfcppopts =								      \
 
 SUFFIXES = .x
 .c.x:
-	${top_builddir}/libguile/guile-snarf -o $@ $< $(snarfcppopts)
+	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 CLEANFILES = *.x
 

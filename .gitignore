@@ -113,6 +113,9 @@ INSTALL
 /lib/sys/stat.h
 /lib/arg-nonnull.h
 /lib/link-warning.h
+/lib/c++defs.h
+/lib/iconv.h
+/lib/netdb.h
 /GPATH
 /GRTAGS
 /GSYMS

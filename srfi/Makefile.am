@@ -19,6 +19,8 @@
 ##   write to the Free Software Foundation, Inc., 51 Franklin Street,
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
+include $(top_srcdir)/am/snarf
+
 AUTOMAKE_OPTIONS = gnu
 
 ## Prevent automake from adding extra -I options
@@ -68,14 +70,13 @@ libguile_srfi_srfi_60_v_@LIBGUILE_SRFI_SRFI_60_MAJOR@_la_LDFLAGS = -no-undefined
 
 EXTRA_DIST = ChangeLog-2008
 
-GUILE_SNARF = ../libguile/guile-snarf
-
 MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x
+
 .c.x:
-	$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
+	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 CLEANFILES = *.x

@@ -30,8 +30,12 @@ install-data-hook:
 	  touch -r "$$d$$p" "$(DESTDIR)$(ccachedir)/$$f"; \
 	done
 
+AM_V_GUILEC = $(AM_V_GUILEC_$(V))
+AM_V_GUILEC_ = $(AM_V_GUILEC_$(AM_DEFAULT_VERBOSITY))
+AM_V_GUILEC_0 = @echo "  GUILEC" $@;
+
 SUFFIXES = .scm .go
 .scm.go:
-	GUILE_AUTO_COMPILE=0					\
+	$(AM_V_GUILEC)GUILE_AUTO_COMPILE=0				\
 	$(top_builddir)/meta/uninstalled-env			\
 	guile-tools compile $(GUILE_WARNINGS) -o "$@" "$<"
