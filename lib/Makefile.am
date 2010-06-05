@@ -1400,6 +1400,7 @@ time.h: time.in.h $(CXXDEFS_H) $(ARG_NONNULL_H) $(WARN_ON_USE_H)
 	      -e 's|@''REPLACE_MKTIME''@|$(REPLACE_MKTIME)|g' \
 	      -e 's|@''REPLACE_NANOSLEEP''@|$(REPLACE_NANOSLEEP)|g' \
 	      -e 's|@''REPLACE_TIMEGM''@|$(REPLACE_TIMEGM)|g' \
+	      -e 's|@''PTHREAD_H_DEFINES_STRUCT_TIMESPEC''@|$(PTHREAD_H_DEFINES_STRUCT_TIMESPEC)|g' \
 	      -e 's|@''SYS_TIME_H_DEFINES_STRUCT_TIMESPEC''@|$(SYS_TIME_H_DEFINES_STRUCT_TIMESPEC)|g' \
 	      -e 's|@''TIME_H_DEFINES_STRUCT_TIMESPEC''@|$(TIME_H_DEFINES_STRUCT_TIMESPEC)|g' \
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
@@ -1566,46 +1567,41 @@ EXTRA_DIST += unistr.in.h
 
 ## begin gnulib module unistr/u8-mbtouc
 
-
-EXTRA_DIST += unistr/u8-mbtouc-aux.c unistr/u8-mbtouc.c
-
-EXTRA_libgnu_la_SOURCES += unistr/u8-mbtouc-aux.c unistr/u8-mbtouc.c
+if LIBUNISTRING_COMPILE_UNISTR_U8_MBTOUC
+libgnu_la_SOURCES += unistr/u8-mbtouc.c unistr/u8-mbtouc-aux.c
+endif
 
 ## end   gnulib module unistr/u8-mbtouc
 
 ## begin gnulib module unistr/u8-mbtouc-unsafe
 
-
-EXTRA_DIST += unistr/u8-mbtouc-unsafe-aux.c unistr/u8-mbtouc-unsafe.c
-
-EXTRA_libgnu_la_SOURCES += unistr/u8-mbtouc-unsafe-aux.c unistr/u8-mbtouc-unsafe.c
+if LIBUNISTRING_COMPILE_UNISTR_U8_MBTOUC_UNSAFE
+libgnu_la_SOURCES += unistr/u8-mbtouc-unsafe.c unistr/u8-mbtouc-unsafe-aux.c
+endif
 
 ## end   gnulib module unistr/u8-mbtouc-unsafe
 
 ## begin gnulib module unistr/u8-mbtoucr
 
-
-EXTRA_DIST += unistr/u8-mbtoucr.c
-
-EXTRA_libgnu_la_SOURCES += unistr/u8-mbtoucr.c
+if LIBUNISTRING_COMPILE_UNISTR_U8_MBTOUCR
+libgnu_la_SOURCES += unistr/u8-mbtoucr.c
+endif
 
 ## end   gnulib module unistr/u8-mbtoucr
 
 ## begin gnulib module unistr/u8-prev
 
-
-EXTRA_DIST += unistr/u8-prev.c
-
-EXTRA_libgnu_la_SOURCES += unistr/u8-prev.c
+if LIBUNISTRING_COMPILE_UNISTR_U8_PREV
+libgnu_la_SOURCES += unistr/u8-prev.c
+endif
 
 ## end   gnulib module unistr/u8-prev
 
 ## begin gnulib module unistr/u8-uctomb
 
-
-EXTRA_DIST += unistr/u8-uctomb-aux.c unistr/u8-uctomb.c
-
-EXTRA_libgnu_la_SOURCES += unistr/u8-uctomb-aux.c unistr/u8-uctomb.c
+if LIBUNISTRING_COMPILE_UNISTR_U8_UCTOMB
+libgnu_la_SOURCES += unistr/u8-uctomb.c unistr/u8-uctomb-aux.c
+endif
 
 ## end   gnulib module unistr/u8-uctomb
 

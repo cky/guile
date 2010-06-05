@@ -354,18 +354,18 @@ AC_DEFUN([gl_INIT],
   gl_LIBUNISTRING_LIBHEADER([0.9.2], [unistr.h])
   # Code from module unistr/u8-mbtouc:
   gl_MODULE_INDICATOR([unistr/u8-mbtouc])
-  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-mbtouc.c unistr/u8-mbtouc-aux.c])
+  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtouc])
   # Code from module unistr/u8-mbtouc-unsafe:
   gl_MODULE_INDICATOR([unistr/u8-mbtouc-unsafe])
-  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-mbtouc-unsafe.c unistr/u8-mbtouc-unsafe-aux.c])
+  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtouc-unsafe])
   # Code from module unistr/u8-mbtoucr:
   gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
-  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-mbtoucr.c])
+  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtoucr])
   # Code from module unistr/u8-prev:
-  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-prev.c])
+  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-prev])
   # Code from module unistr/u8-uctomb:
   gl_MODULE_INDICATOR([unistr/u8-uctomb])
-  gl_LIBUNISTRING_LIBSOURCE([0.9], [unistr/u8-uctomb.c unistr/u8-uctomb-aux.c])
+  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-uctomb])
   # Code from module unitypes:
   gl_LIBUNISTRING_LIBHEADER([0.9], [unitypes.h])
   # Code from module unused-parameter:
