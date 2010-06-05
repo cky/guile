@@ -128,3 +128,8 @@ INSTALL
 /lib/warn-on-use.h
 /lib/unused-parameter.h
 /.version
+/lib/iconv.h
+/lib/netdb.h
+/lib/unistr.h
+/lib/unitypes.h
+/lib/c++defs.h
