@@ -191,6 +191,11 @@
 ;;; The implementation of generate-temporaries assumes that it is possible
 ;;; to generate globally unique symbols (gensyms).
 
+;;; The source location associated with incoming expressions is tracked via the
+;;; source-properties mechanism, a weak map from expression to source
+;;; information. At times the source is separated from the expression; see the
+;;; note below about "efficiency and confusion".
+
 
 ;;; Bootstrapping:
 
@@ -1054,7 +1059,7 @@
             ((macro)
              (if for-car?
                  (values type (binding-value b) e w s mod)
-                 (syntax-type (chi-macro (binding-value b) e r w rib mod)
+                 (syntax-type (chi-macro (binding-value b) e r w s rib mod)
                               r empty-wrap s rib mod #f)))
             (else (values type (binding-value b) e w s mod)))))
        ((pair? e)
@@ -1072,7 +1077,7 @@
                  (values 'global-call (make-syntax-object fval w fmod)
                          e w s mod))
                 ((macro)
-                 (syntax-type (chi-macro fval e r w rib mod)
+                 (syntax-type (chi-macro fval e r w s rib mod)
                               r empty-wrap s rib mod for-car?))
                 ((module-ref)
                  (call-with-values (lambda () (fval e r w))
@@ -1117,7 +1122,8 @@
         (syntax-type (syntax-object-expression e)
                      r
                      (join-wraps w (syntax-object-wrap e))
-                     s rib (or (syntax-object-module e) mod) for-car?))
+                     (or (source-annotation e) s) rib
+                     (or (syntax-object-module e) mod) for-car?))
        ((self-evaluating? e) (values 'constant #f e w s mod))
        (else (values 'other #f e w s mod)))))
 
@@ -1317,14 +1323,24 @@
   ;; module, as is the case for the r6rs `library' form -- the body expressions
   ;; should be scoped relative the the new module, the one defined by the macro.
   ;; For that, use `(@@ mod-name body)'.
+  ;;
+  ;; Part of the macro output will be from the site of the macro use and part
+  ;; from the macro definition. We allow source information from the macro use
+  ;; to pass through, but we annotate the parts coming from the macro with the
+  ;; source location information corresponding to the macro use. It would be
+  ;; really nice if we could also annotate introduced expressions with the
+  ;; locations corresponding to the macro definition, but that is not yet
+  ;; possible.
   (define chi-macro
-    (lambda (p e r w rib mod)
+    (lambda (p e r w s rib mod)
       ;; p := (procedure . module-name)
       (define rebuild-macro-output
         (lambda (x m)
           (cond ((pair? x)
-                 (cons (rebuild-macro-output (car x) m)
-                       (rebuild-macro-output (cdr x) m)))
+                 (decorate-source 
+                  (cons (rebuild-macro-output (car x) m)
+                        (rebuild-macro-output (cdr x) m))
+                  s))
                 ((syntax-object? x)
                  (let ((w (syntax-object-wrap x)))
                    (let ((ms (wrap-marks w)) (s (wrap-subst w)))
@@ -1336,7 +1352,7 @@
                           (syntax-object-module x))
                          ;; output introduced by macro
                          (make-syntax-object
-                          (syntax-object-expression x)
+                          (decorate-source (syntax-object-expression x) s)
                           (make-wrap (cons m ms)
                                      (if rib
                                          (cons rib (cons 'shift s))
@@ -1345,7 +1361,8 @@
                           (cons 'hygiene (cdr p)))))))
                 
                 ((vector? x)
-                 (let* ((n (vector-length x)) (v (make-vector n)))
+                 (let* ((n (vector-length x))
+                        (v (decorate-source (make-vector n) x)))
                    (do ((i 0 (fx+ i 1)))
                        ((fx= i n) v)
                      (vector-set! v i
@@ -1353,8 +1370,9 @@
                 ((symbol? x)
                  (syntax-violation #f "encountered raw symbol in macro output"
                                    (source-wrap e w (wrap-subst w) mod) x))
-                (else x))))
-      (rebuild-macro-output ((car p) (wrap e (anti-mark w) mod)) (new-mark))))
+                (else (decorate-source x s)))))
+      (rebuild-macro-output ((car p) (source-wrap e (anti-mark w) s mod))
+                            (new-mark))))
 
   (define chi-body
     ;; In processing the forms of the body, we create a new, empty wrap.
