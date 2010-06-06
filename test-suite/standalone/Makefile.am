@@ -79,7 +79,7 @@ TESTS += test-round
 
 # test-asmobs
 noinst_LTLIBRARIES += libtest-asmobs.la
-libtest_asmobs_la_SOURCES = test-asmobs-lib.c test-asmobs-lib.x
+libtest_asmobs_la_SOURCES = test-asmobs-lib.c
 libtest_asmobs_la_CFLAGS = ${test_cflags}
 libtest_asmobs_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
 libtest_asmobs_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
@@ -89,11 +89,10 @@ TESTS += test-asmobs
 
 # test-ffi
 noinst_LTLIBRARIES += libtest-ffi.la
-libtest_ffi_la_SOURCES = test-ffi-lib.c test-ffi-lib.x
+libtest_ffi_la_SOURCES = test-ffi-lib.c
 libtest_ffi_la_CFLAGS = ${test_cflags}
 libtest_ffi_la_LDFLAGS = -no-undefined -rpath `pwd` # so libtool will really build an .so
 libtest_ffi_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
-BUILT_SOURCES += test-ffi-lib.x
 check_SCRIPTS += test-ffi
 TESTS += test-ffi
 
