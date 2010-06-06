@@ -1,6 +1,6 @@
 ;;; srfi-34.scm --- Exception handling for programs
 
-;; Copyright (C) 2003, 2006, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2006, 2008, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -27,8 +27,8 @@
 ;;; Code:
 
 (define-module (srfi srfi-34)
-  #:export (with-exception-handler
-	    raise)
+  #:export (with-exception-handler)
+  #:replace (raise)
   #:export-syntax (guard))
 
 (cond-expand-provide (current-module) '(srfi-34))
