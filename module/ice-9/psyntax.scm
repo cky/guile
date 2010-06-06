@@ -2411,6 +2411,9 @@
         (lambda (x)
           (strip x empty-wrap)))
 
+  (set! syntax-source
+        (lambda (x) (source-annotation x)))
+
   (set! generate-temporaries
         (lambda (ls)
           (arg-check list? ls 'generate-temporaries)
