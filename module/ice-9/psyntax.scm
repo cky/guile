@@ -980,17 +980,7 @@
         (build-primref no-source 'make-syntax-transformer)
         (list (build-data no-source name)
               (build-data no-source 'macro)
-              (build-application
-               no-source
-               (build-primref no-source 'cons)
-               (list e
-                     (build-application
-                      no-source
-                      (build-primref no-source 'module-name)
-                      (list (build-application
-                             no-source
-                             (build-primref no-source 'current-module)
-                             '()))))))))))
+              e)))))
   
   (define chi-when-list
     (lambda (e when-list w)
@@ -1370,7 +1360,7 @@
                  (syntax-violation #f "encountered raw symbol in macro output"
                                    (source-wrap e w (wrap-subst w) mod) x))
                 (else (decorate-source x s)))))
-      (rebuild-macro-output ((car p) (source-wrap e (anti-mark w) s mod))
+      (rebuild-macro-output (p (source-wrap e (anti-mark w) s mod))
                             (new-mark))))
 
   (define chi-body
@@ -1532,7 +1522,7 @@
     (lambda (expanded mod)
       (let ((p (local-eval-hook expanded mod)))
         (if (procedure? p)
-            (cons p (module-name (current-module)))
+            p
             (syntax-violation #f "nonprocedure transformer" p)))))
 
   (define chi-void

@@ -157,9 +157,8 @@ SCM_DEFINE (scm_macro_transformer, "macro-transformer", 1, 0, 0,
   /* here we rely on knowledge of how psyntax represents macro bindings, but
      hey, there is code out there that calls this function, and expects to get
      a procedure in return... */
-  if (scm_is_pair (SCM_MACRO_BINDING (m))
-      && scm_is_true (scm_procedure_p (scm_car (SCM_MACRO_BINDING (m)))))
-    return scm_car (SCM_MACRO_BINDING (m));
+  if (scm_is_true (scm_procedure_p (SCM_MACRO_BINDING (m))))
+    return SCM_MACRO_BINDING (m);
   else
     return SCM_BOOL_F;
 }
