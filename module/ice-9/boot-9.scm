@@ -461,6 +461,14 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (include-from-path "ice-9/quasisyntax")
 
+(define-syntax current-source-location
+  (lambda (x)
+    (syntax-case x ()
+      ((_)
+       (with-syntax ((s (datum->syntax x (syntax-source x))))
+         #''s)))))
+
+
 
 
 ;;; {Defmacros}
