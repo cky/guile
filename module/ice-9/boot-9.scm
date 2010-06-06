@@ -1581,7 +1581,8 @@ If there is no handler at all, Guile prints an error and then exits."
      version
      submodules
      submodule-binder
-     public-interface)))
+     public-interface
+     filename)))
 
 
 ;; make-module &opt size uses binder
@@ -1623,7 +1624,7 @@ If there is no handler at all, Guile prints an error and then exits."
                                           (make-hash-table %default-import-size)
                                           '()
                                           (make-weak-key-hash-table 31) #f
-                                          (make-hash-table 7) #f #f)))
+                                          (make-hash-table 7) #f #f #f)))
 
           ;; We can't pass this as an argument to module-constructor,
           ;; because we need it to close over a pointer to the module
@@ -2650,6 +2651,16 @@ If there is no handler at all, Guile prints an error and then exits."
                    re-exports
                    (append (cadr kws) replacements)
                    autoloads))
+            ((#:filename)
+             (or (pair? (cdr kws))
+                 (unrecognized kws))
+             (set-module-filename! module (cadr kws))
+             (loop (cddr kws)
+                   reversed-interfaces
+                   exports
+                   re-exports
+                   replacements
+                   autoloads))
             (else
              (unrecognized kws)))))
     (run-hook module-defined-hook module)
@@ -2679,7 +2690,7 @@ If there is no handler at all, Guile prints an error and then exits."
                     (module-local-variable i sym))))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
-                        (make-hash-table 0) #f #f)))
+                        (make-hash-table 0) #f #f #f)))
 
 (define (module-autoload! module . args)
   "Have @var{module} automatically load the module named @var{name} when one
@@ -3320,7 +3331,11 @@ module '(ice-9 q) '(make-q q-length))}."
        (with-syntax (((quoted-arg ...) (quotify #'(arg ...))))
          #'(eval-when (eval load compile expand)
              (let ((m (process-define-module
-                       (list '(name name* ...) quoted-arg ...))))
+                       (list '(name name* ...)
+                             #:filename (assq-ref
+                                         (or (current-source-location) '())
+                                         'filename)
+                             quoted-arg ...))))
                (set-current-module m)
                m)))))))
 
