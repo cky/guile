@@ -1206,8 +1206,7 @@
 		(format:out-inf-nan number width digits #f overch padch))
 
 	       (digits
-		(format:parse-float 
-		 (if (string? number) number (number->string number)) #t scale)
+		(format:parse-float number #t scale)
 		(if (<= (- format:fn-len format:fn-dot) digits)
 		    (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
 		    (format:fn-round digits))
@@ -1225,8 +1224,7 @@
 		    (format:fn-out modifier #t)))
 
 	       (else
-		(format:parse-float
-		 (if (string? number) number (number->string number)) #t scale)
+		(format:parse-float number #t scale)
 		(format:fn-strip)
 		(if width
 		    (let ((numlen (+ format:fn-len 1)))
@@ -1276,8 +1274,7 @@
 				      (+ (- digits scale) 1)
 				      0)
 				  digits)))
-		  (format:parse-float 
-		   (if (string? number) number (number->string number)) #f scale)
+		  (format:parse-float number #f scale)
 		  (if (<= (- format:fn-len format:fn-dot) digits)
 		      (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
 		      (format:fn-round digits))
@@ -1307,8 +1304,7 @@
 			(format:en-out edigits expch)))))
 
 	       (else
-		(format:parse-float
-		 (if (string? number) number (number->string number)) #f scale)
+		(format:parse-float number #f scale)
 		(format:fn-strip)
 		(if width
 		    (if (and edigits overch (> format:en-len edigits))
@@ -1364,8 +1360,7 @@
 		;; FIXME: this isn't right.
 		(format:out-inf-nan number width digits edigits overch padch))
 	       (else
-		(format:parse-float
-		 (if (string? number) number (number->string number)) #t 0)
+		(format:parse-float number #t 0)
 		(format:fn-strip)
 		(let* ((ee (if edigits (+ edigits 2) 4)) ; for the following algorithm
 		       (ww (if width (- width ee) #f))   ; see Steele's CL book p.395
@@ -1400,8 +1395,7 @@
 		(format:out-inf-nan number width digits #f #f padch))
 
 	       (else
-		(format:parse-float
-		 (if (string? number) number (number->string number)) #t 0)
+		(format:parse-float number #t 0)
 		(if (<= (- format:fn-len format:fn-dot) digits)
 		    (format:fn-zfill #f (- digits (- format:fn-len format:fn-dot)))
 		    (format:fn-round digits))
@@ -1452,120 +1446,123 @@
        (format:en-pos? #t)		; exponent positive?
 
        (format:parse-float
-	(lambda (num-str fixed? scale)
-		 (set! format:fn-pos? #t)
-		 (set! format:fn-len 0)
-		 (set! format:fn-dot #f)
-		 (set! format:en-pos? #t)
-		 (set! format:en-len 0)
-		 (do ((i 0 (+ i 1))
-		      (left-zeros 0)
-		      (mantissa? #t)
-		      (all-zeros? #t)
-		      (num-len (string-length num-str))
-		      (c #f))			; current exam. character in num-str
-		     ((= i num-len)
-		      (if (not format:fn-dot)
-			  (set! format:fn-dot format:fn-len))
+	(lambda (num fixed? scale)
+          (let ((num-str (if (string? num)
+                             num
+                             (number->string (exact->inexact num)))))
+            (set! format:fn-pos? #t)
+            (set! format:fn-len 0)
+            (set! format:fn-dot #f)
+            (set! format:en-pos? #t)
+            (set! format:en-len 0)
+            (do ((i 0 (+ i 1))
+                 (left-zeros 0)
+                 (mantissa? #t)
+                 (all-zeros? #t)
+                 (num-len (string-length num-str))
+                 (c #f))                ; current exam. character in num-str
+                ((= i num-len)
+                 (if (not format:fn-dot)
+                     (set! format:fn-dot format:fn-len))
 
-		      (if all-zeros?
-			  (begin
-			    (set! left-zeros 0)
-			    (set! format:fn-dot 0)
-			    (set! format:fn-len 1)))
+                 (if all-zeros?
+                     (begin
+                       (set! left-zeros 0)
+                       (set! format:fn-dot 0)
+                       (set! format:fn-len 1)))
 
-		      ;; now format the parsed values according to format's need
+                 ;; now format the parsed values according to format's need
 
-		      (if fixed?
+                 (if fixed?
 
-			  (begin			; fixed format m.nnn or .nnn
-			    (if (and (> left-zeros 0) (> format:fn-dot 0))
-				(if (> format:fn-dot left-zeros) 
-				    (begin		; norm 0{0}nn.mm to nn.mm
-				      (format:fn-shiftleft left-zeros)
-				      (set! format:fn-dot (- format:fn-dot left-zeros))
-				      (set! left-zeros 0))
-				    (begin		; normalize 0{0}.nnn to .nnn
-				      (format:fn-shiftleft format:fn-dot)
-				      (set! left-zeros (- left-zeros format:fn-dot))
-				      (set! format:fn-dot 0))))
-			    (if (or (not (= scale 0)) (> format:en-len 0))
-				(let ((shift (+ scale (format:en-int))))
-				  (cond
-				   (all-zeros? #t)
-				   ((> (+ format:fn-dot shift) format:fn-len)
-				    (format:fn-zfill
-				     #f (- shift (- format:fn-len format:fn-dot)))
-				    (set! format:fn-dot format:fn-len))
-				   ((< (+ format:fn-dot shift) 0)
-				    (format:fn-zfill #t (- (- shift) format:fn-dot))
-				    (set! format:fn-dot 0))
-				   (else
-				    (if (> left-zeros 0)
-					(if (<= left-zeros shift) ; shift always > 0 here
-					    (format:fn-shiftleft shift) ; shift out 0s
-					    (begin
-					      (format:fn-shiftleft left-zeros)
-					      (set! format:fn-dot (- shift left-zeros))))
-					(set! format:fn-dot (+ format:fn-dot shift))))))))
+                     (begin             ; fixed format m.nnn or .nnn
+                       (if (and (> left-zeros 0) (> format:fn-dot 0))
+                           (if (> format:fn-dot left-zeros) 
+                               (begin   ; norm 0{0}nn.mm to nn.mm
+                                 (format:fn-shiftleft left-zeros)
+                                 (set! format:fn-dot (- format:fn-dot left-zeros))
+                                 (set! left-zeros 0))
+                               (begin   ; normalize 0{0}.nnn to .nnn
+                                 (format:fn-shiftleft format:fn-dot)
+                                 (set! left-zeros (- left-zeros format:fn-dot))
+                                 (set! format:fn-dot 0))))
+                       (if (or (not (= scale 0)) (> format:en-len 0))
+                           (let ((shift (+ scale (format:en-int))))
+                             (cond
+                              (all-zeros? #t)
+                              ((> (+ format:fn-dot shift) format:fn-len)
+                               (format:fn-zfill
+                                #f (- shift (- format:fn-len format:fn-dot)))
+                               (set! format:fn-dot format:fn-len))
+                              ((< (+ format:fn-dot shift) 0)
+                               (format:fn-zfill #t (- (- shift) format:fn-dot))
+                               (set! format:fn-dot 0))
+                              (else
+                               (if (> left-zeros 0)
+                                   (if (<= left-zeros shift) ; shift always > 0 here
+                                       (format:fn-shiftleft shift) ; shift out 0s
+                                       (begin
+                                         (format:fn-shiftleft left-zeros)
+                                         (set! format:fn-dot (- shift left-zeros))))
+                                   (set! format:fn-dot (+ format:fn-dot shift))))))))
 
-			  (let ((negexp		; expon format m.nnnEee
-				 (if (> left-zeros 0)
-				     (- left-zeros format:fn-dot -1)
-				     (if (= format:fn-dot 0) 1 0))))
-			    (if (> left-zeros 0)
-				(begin			; normalize 0{0}.nnn to n.nn
-				  (format:fn-shiftleft left-zeros)
-				  (set! format:fn-dot 1))
-				(if (= format:fn-dot 0)
-				    (set! format:fn-dot 1)))
-			    (format:en-set (- (+ (- format:fn-dot scale) (format:en-int))
-					      negexp))
-			    (cond 
-			     (all-zeros?
-			      (format:en-set 0)
-			      (set! format:fn-dot 1))
-			     ((< scale 0)		; leading zero
-			      (format:fn-zfill #t (- scale))
-			      (set! format:fn-dot 0))
-			     ((> scale format:fn-dot)
-			      (format:fn-zfill #f (- scale format:fn-dot))
-			      (set! format:fn-dot scale))
-			     (else
-			      (set! format:fn-dot scale)))))
-		      #t)
+                     (let ((negexp      ; expon format m.nnnEee
+                            (if (> left-zeros 0)
+                                (- left-zeros format:fn-dot -1)
+                                (if (= format:fn-dot 0) 1 0))))
+                       (if (> left-zeros 0)
+                           (begin       ; normalize 0{0}.nnn to n.nn
+                             (format:fn-shiftleft left-zeros)
+                             (set! format:fn-dot 1))
+                           (if (= format:fn-dot 0)
+                               (set! format:fn-dot 1)))
+                       (format:en-set (- (+ (- format:fn-dot scale) (format:en-int))
+                                         negexp))
+                       (cond 
+                        (all-zeros?
+                         (format:en-set 0)
+                         (set! format:fn-dot 1))
+                        ((< scale 0)    ; leading zero
+                         (format:fn-zfill #t (- scale))
+                         (set! format:fn-dot 0))
+                        ((> scale format:fn-dot)
+                         (format:fn-zfill #f (- scale format:fn-dot))
+                         (set! format:fn-dot scale))
+                        (else
+                         (set! format:fn-dot scale)))))
+                 #t)
 
-		   ;; do body      
-		   (set! c (string-ref num-str i))	; parse the output of number->string
-		   (cond				; which can be any valid number
-		    ((char-numeric? c)			; representation of R4RS except 
-		     (if mantissa?			; complex numbers
-			 (begin
-			   (if (char=? c #\0)
-			       (if all-zeros?
-				   (set! left-zeros (+ left-zeros 1)))
-			       (begin
-				 (set! all-zeros? #f)))
-			   (string-set! format:fn-str format:fn-len c)
-			   (set! format:fn-len (+ format:fn-len 1)))
-			 (begin
-			   (string-set! format:en-str format:en-len c)
-			   (set! format:en-len (+ format:en-len 1)))))
-		    ((or (char=? c #\-) (char=? c #\+))
-		     (if mantissa?
-			 (set! format:fn-pos? (char=? c #\+))
-			 (set! format:en-pos? (char=? c #\+))))
-		    ((char=? c #\.)
-		     (set! format:fn-dot format:fn-len))
-		    ((char=? c #\e)
-		     (set! mantissa? #f))
-		    ((char=? c #\E)
-		     (set! mantissa? #f))
-		    ((char-whitespace? c) #t)
-		    ((char=? c #\d) #t)		; decimal radix prefix
-		    ((char=? c #\#) #t)
-		    (else
-		     (format:error "illegal character `~c' in number->string" c))))))
+              ;; do body      
+              (set! c (string-ref num-str i)) ; parse the output of number->string
+              (cond                           ; which can be any valid number
+               ((char-numeric? c)             ; representation of R4RS except 
+                (if mantissa?                 ; complex numbers
+                    (begin
+                      (if (char=? c #\0)
+                          (if all-zeros?
+                              (set! left-zeros (+ left-zeros 1)))
+                          (begin
+                            (set! all-zeros? #f)))
+                      (string-set! format:fn-str format:fn-len c)
+                      (set! format:fn-len (+ format:fn-len 1)))
+                    (begin
+                      (string-set! format:en-str format:en-len c)
+                      (set! format:en-len (+ format:en-len 1)))))
+               ((or (char=? c #\-) (char=? c #\+))
+                (if mantissa?
+                    (set! format:fn-pos? (char=? c #\+))
+                    (set! format:en-pos? (char=? c #\+))))
+               ((char=? c #\.)
+                (set! format:fn-dot format:fn-len))
+               ((char=? c #\e)
+                (set! mantissa? #f))
+               ((char=? c #\E)
+                (set! mantissa? #f))
+               ((char-whitespace? c) #t)
+               ((char=? c #\d) #t)      ; decimal radix prefix
+               ((char=? c #\#) #t)
+               (else
+                (format:error "illegal character `~c' in number->string" c)))))))
 
        (format:en-int
 	(lambda ()			; convert exponent string to integer
