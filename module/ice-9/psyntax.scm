@@ -1357,8 +1357,7 @@
                                      (if rib
                                          (cons rib (cons 'shift s))
                                          (cons 'shift s)))
-                          ;; hither the hygiene
-                          (cons 'hygiene (cdr p)))))))
+                          (syntax-object-module x))))))
                 
                 ((vector? x)
                  (let* ((n (vector-length x))
@@ -2413,7 +2412,8 @@
 
   (set! datum->syntax
         (lambda (id datum)
-          (make-syntax-object datum (syntax-object-wrap id) #f)))
+          (make-syntax-object datum (syntax-object-wrap id)
+                              (syntax-object-module id))))
 
   (set! syntax->datum
                                         ; accepts any object, since syntax objects may consist partially
@@ -2754,7 +2754,7 @@
     (syntax-case x ()
       ((k filename)
        (let ((fn (syntax->datum #'filename)))
-         (with-syntax (((exp ...) (read-file fn #'k)))
+         (with-syntax (((exp ...) (read-file fn #'filename)))
            #'(begin exp ...)))))))
 
 (define-syntax include-from-path
@@ -2762,10 +2762,12 @@
     (syntax-case x ()
       ((k filename)
        (let ((fn (syntax->datum #'filename)))
-         (with-syntax ((fn (or (%search-load-path fn)
-                               (syntax-violation 'include-from-path
-                                                 "file not found in path"
-                                                 x #'filename))))
+         (with-syntax ((fn (datum->syntax
+                            #'filename
+                            (or (%search-load-path fn)
+                                (syntax-violation 'include-from-path
+                                                  "file not found in path"
+                                                  x #'filename)))))
            #'(include fn)))))))
 
 (define-syntax unquote

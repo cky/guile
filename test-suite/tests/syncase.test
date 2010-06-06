@@ -119,3 +119,25 @@
                 (@@ (new-module)
                     (new-module-macro #t)))
              #:env (current-module))))
+
+(define-module (test-suite test-syncase-2)
+  #:export (make-the-macro))
+
+(define (hello)
+  'hello)
+
+(define-syntax make-the-macro
+  (syntax-rules ()
+    ((_ name)
+     (define-syntax name
+       (syntax-rules ()
+         ((_) (hello)))))))
+
+(define-module (test-suite test-syncase)) ;; back to main module
+(use-modules (test-suite test-syncase-2))
+
+(make-the-macro foo)
+
+(with-test-prefix "macro-generating macro"
+  (pass-if "module hygiene"
+    (eq? (foo) 'hello)))

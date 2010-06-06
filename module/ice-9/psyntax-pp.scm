@@ -2969,8 +2969,8 @@
                                                   (cons 'shift
                                                         #{s\ 1509}#))
                                             (cons (quote shift) #{s\ 1509}#)))
-                                        (cons 'hygiene
-                                              (cdr #{p\ 1480}#))))))
+                                        (#{syntax-object-module\ 342}#
+                                          #{x\ 1496}#)))))
                                 (if (vector? #{x\ 1496}#)
                                   (let ((#{n\ 1517}#
                                           (vector-length #{x\ 1496}#)))
@@ -12640,7 +12640,7 @@
           (#{make-syntax-object\ 334}#
             #{datum\ 3858}#
             (#{syntax-object-wrap\ 340}# #{id\ 3857}#)
-            #f)))
+            (#{syntax-object-module\ 342}# #{id\ 3857}#))))
       (set! syntax->datum
         (lambda (#{x\ 3861}#)
           (#{strip\ 483}# #{x\ 3861}# (quote (())))))
@@ -15409,7 +15409,7 @@
                                        'each-any)))
                                   (#{read-file\ 4381}#
                                     #{fn\ 4401}#
-                                    #{k\ 4398}#))))
+                                    #{filename\ 4399}#))))
                              #{tmp\ 4395}#)
                       (syntax-violation
                         #f
@@ -15457,15 +15457,17 @@
                                               (hygiene guile))
                                            #{fn\ 4421}#))
                                    #{tmp\ 4419}#))
-                                (let ((#{t\ 4424}#
-                                        (%search-load-path #{fn\ 4417}#)))
-                                  (if #{t\ 4424}#
-                                    #{t\ 4424}#
-                                    (syntax-violation
-                                      'include-from-path
-                                      "file not found in path"
-                                      #{x\ 4408}#
-                                      #{filename\ 4415}#))))))
+                                (datum->syntax
+                                  #{filename\ 4415}#
+                                  (let ((#{t\ 4424}#
+                                          (%search-load-path #{fn\ 4417}#)))
+                                    (if #{t\ 4424}#
+                                      #{t\ 4424}#
+                                      (syntax-violation
+                                        'include-from-path
+                                        "file not found in path"
+                                        #{x\ 4408}#
+                                        #{filename\ 4415}#)))))))
                            #{tmp\ 4411}#)
                     (syntax-violation
                       #f
