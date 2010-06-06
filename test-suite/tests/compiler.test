@@ -16,10 +16,11 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite tests compiler)
-  :use-module (test-suite lib)
-  :use-module (test-suite guile-test)
-  :use-module (system base compile)
-  :use-module ((system vm vm) #:select (the-vm vm-load)))
+  #:use-module (test-suite lib)
+  #:use-module (test-suite guile-test)
+  #:use-module (system base compile)
+  #:use-module ((system vm vm) #:select (the-vm vm-load))
+  #:use-module ((system vm program) #:select (program-sources source:addr)))
 
 (define read-and-compile
   (@@ (system base compile) read-and-compile))
@@ -123,3 +124,28 @@
 
   (pass-if "subr"
     (eq? (procedure-name waitpid) 'waitpid)))
+
+
+(with-test-prefix "program-sources"
+
+  (with-test-prefix "source info associated with IP 0"
+
+    ;; Tools like `(system vm coverage)' like it when source info is associated
+    ;; with IP 0 of a VM program, which corresponds to the entry point.  See
+    ;; also <http://savannah.gnu.org/bugs/?29817> for details.
+
+    (pass-if "lambda"
+      (let ((s (program-sources (compile '(lambda (x) x)))))
+        (not (not (memv 0 (map source:addr s))))))
+
+    (pass-if "lambda*"
+      (let ((s (program-sources
+                (compile '(lambda* (x #:optional y) x)))))
+        (not (not (memv 0 (map source:addr s))))))
+
+    (pass-if "case-lambda"
+      (let ((s (program-sources
+                (compile '(case-lambda (()    #t)
+                                       ((y)   y)
+                                       ((y z) (list y z)))))))
+        (not (not (memv 0 (map source:addr s))))))))
