@@ -1,5 +1,5 @@
 ;;;; compiler.test --- tests for the compiler      -*- scheme -*-
-;;;; Copyright (C) 2008, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -105,3 +105,21 @@
       (compile '(eval-when (compile eval)
                   (fluid-set! current-reader (lambda args 'chbouib))))
       (eq? (fluid-ref current-reader) r))))
+
+
+(with-test-prefix "procedure-name"
+
+  (pass-if "program"
+    (let ((m  (make-module)))
+      (beautify-user-module! m)
+      (compile '(define (foo x) x) #:env m)
+      (eq? (procedure-name (module-ref m 'foo)) 'foo)))
+
+  (pass-if "program with lambda"
+    (let ((m  (make-module)))
+      (beautify-user-module! m)
+      (compile '(define foo (lambda (x) x)) #:env m)
+      (eq? (procedure-name (module-ref m 'foo)) 'foo)))
+
+  (pass-if "subr"
+    (eq? (procedure-name waitpid) 'waitpid)))
