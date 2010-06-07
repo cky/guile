@@ -20,12 +20,17 @@
 
 (define-module (language elisp runtime)
   #:export (void
-            nil-value t-value
-            value-slot-module function-slot-module
+            nil-value
+            t-value
+            value-slot-module
+            function-slot-module
             elisp-bool
-            ensure-fluid! reference-variable reference-variable-with-check
+            ensure-fluid!
+            reference-variable
+            reference-variable-with-check
             set-variable!
-            runtime-error macro-error)
+            runtime-error
+            macro-error)
   #:export-syntax (built-in-func built-in-macro prim))
 
 ;;; This module provides runtime support for the Elisp front-end.
@@ -61,8 +66,8 @@
 
 (define (elisp-bool b)
   (if b
-    t-value
-    nil-value))
+      t-value
+      nil-value))
 
 ;;; Routines for access to elisp dynamically bound symbols.  This is
 ;;; used for runtime access using functions like symbol-value or set,
@@ -74,10 +79,10 @@
   (let ((intf (resolve-interface module))
         (resolved (resolve-module module)))
     (if (not (module-defined? intf sym))
-      (let ((fluid (make-fluid)))
-        (fluid-set! fluid void)
-        (module-define! resolved sym fluid)
-        (module-export! resolved `(,sym))))))
+        (let ((fluid (make-fluid)))
+          (fluid-set! fluid void)
+          (module-define! resolved sym fluid)
+          (module-export! resolved `(,sym))))))
 
 (define (reference-variable module sym)
   (ensure-fluid! module sym)
@@ -87,8 +92,8 @@
 (define (reference-variable-with-check module sym)
   (let ((value (reference-variable module sym)))
     (if (eq? value void)
-      (runtime-error "variable is void:" sym)
-      value)))
+        (runtime-error "variable is void:" sym)
+        value)))
 
 (define (set-variable! module sym value)
   (ensure-fluid! module sym)

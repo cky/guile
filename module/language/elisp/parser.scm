@@ -54,12 +54,12 @@
 
 (define (circular-ref token)
   (if (not (eq? (car token) 'circular-ref))
-    (error "invalid token for circular-ref" token))
+      (error "invalid token for circular-ref" token))
   (let* ((id (cdr token))
          (value (hashq-ref (fluid-ref circular-definitions) id)))
     (if value
-      value
-      (parse-error token "undefined circular reference" id))))
+        value
+        (parse-error token "undefined circular reference" id))))
 
 ;;; Returned is a closure that, when invoked, will set the final value.
 ;;; This means both the variable the promise will return and the
@@ -67,7 +67,7 @@
 
 (define (circular-define! token)
   (if (not (eq? (car token) 'circular-def))
-    (error "invalid token for circular-define!" token))
+      (error "invalid token for circular-define!" token))
   (let ((value #f)
         (table (fluid-ref circular-definitions))
         (id (cdr token)))
@@ -85,25 +85,25 @@
 
 (define (force-promises! data)
   (cond
-    ((pair? data)
-     (begin
-       (if (promise? (car data))
-         (set-car! data (force (car data)))
-         (force-promises! (car data)))
-       (if (promise? (cdr data))
-         (set-cdr! data (force (cdr data)))
-         (force-promises! (cdr data)))))
-    ((vector? data)
-     (let ((len (vector-length data)))
-       (let iterate ((i 0))
-         (if (< i len)
-           (let ((el (vector-ref data i)))
-             (if (promise? el)
-               (vector-set! data i (force el))
-               (force-promises! el))
-             (iterate (1+ i)))))))
-    ;; Else nothing needs to be done.
-  ))
+   ((pair? data)
+    (begin
+      (if (promise? (car data))
+          (set-car! data (force (car data)))
+          (force-promises! (car data)))
+      (if (promise? (cdr data))
+          (set-cdr! data (force (cdr data)))
+          (force-promises! (cdr data)))))
+   ((vector? data)
+    (let ((len (vector-length data)))
+      (let iterate ((i 0))
+        (if (< i len)
+            (let ((el (vector-ref data i)))
+              (if (promise? el)
+                  (vector-set! data i (force el))
+                  (force-promises! el))
+              (iterate (1+ i)))))))
+   ;; Else nothing needs to be done.
+   ))
 
 ;;; We need peek-functionality for the next lexer token, this is done
 ;;; with some single token look-ahead storage.  This is handled by a
@@ -116,19 +116,19 @@
   (let ((look-ahead #f))
     (lambda (action)
       (if (eq? action 'finish)
-        (if look-ahead
-          (error "lexer-buffer is not empty when finished")
-          #f)
-        (begin
-          (if (not look-ahead)
-            (set! look-ahead (lex)))
-          (case action
-            ((peek) look-ahead)
-            ((get)
-             (let ((result look-ahead))
-               (set! look-ahead #f)
-               result))
-            (else (error "invalid lexer-buffer action" action))))))))
+          (if look-ahead
+              (error "lexer-buffer is not empty when finished")
+              #f)
+          (begin
+            (if (not look-ahead)
+                (set! look-ahead (lex)))
+            (case action
+              ((peek) look-ahead)
+              ((get)
+               (let ((result look-ahead))
+                 (set! look-ahead #f)
+                 result))
+              (else (error "invalid lexer-buffer action" action))))))))
 
 ;;; Get the contents of a list, where the opening parentheses has
 ;;; already been found.  The same code is used for vectors and lists,
@@ -141,24 +141,25 @@
   (let* ((next (lex 'peek))
          (type (car next)))
     (cond
-      ((eq? type (if close-square 'square-close 'paren-close))
-       (begin
-         (if (not (eq? (car (lex 'get)) type))
-           (error "got different token than peeked"))
-         '()))
-      ((and allow-dot (eq? type 'dot))
-       (begin
-         (if (not (eq? (car (lex 'get)) type))
-           (error "got different token than peeked"))
-         (let ((tail (get-list lex #f close-square)))
-           (if (not (= (length tail) 1))
-             (parse-error next "expected exactly one element after dot"))
-           (car tail))))
-      (else
-        ;; Do both parses in exactly this sequence!
-        (let* ((head (get-expression lex))
-               (tail (get-list lex allow-dot close-square)))
-          (cons head tail))))))
+     ((eq? type (if close-square 'square-close 'paren-close))
+      (begin
+        (if (not (eq? (car (lex 'get)) type))
+            (error "got different token than peeked"))
+        '()))
+     ((and allow-dot (eq? type 'dot))
+      (begin
+        (if (not (eq? (car (lex 'get)) type))
+            (error "got different token than peeked"))
+        (let ((tail (get-list lex #f close-square)))
+          (if (not (= (length tail) 1))
+              (parse-error next
+                           "expected exactly one element after dot"))
+          (car tail))))
+     (else
+      ;; Do both parses in exactly this sequence!
+      (let* ((head (get-expression lex))
+             (tail (get-list lex allow-dot close-square)))
+        (cons head tail))))))
 
 ;;; Parse a single expression from a lexer-buffer.  This is the main
 ;;; routine in our recursive-descent parser.
@@ -173,13 +174,16 @@
          (type (car token))
          (return (lambda (result)
                    (if (pair? result)
-                     (set-source-properties! result (source-properties token)))
+                       (set-source-properties!
+                        result
+                        (source-properties token)))
                    result)))
     (case type
       ((integer float symbol character string)
        (return (cdr token)))
       ((quote backquote unquote unquote-splicing)
-       (return (list (assq-ref quotation-symbols type) (get-expression lex))))
+       (return (list (assq-ref quotation-symbols type)
+                     (get-expression lex))))
       ((paren-open)
        (return (get-list lex #t #f)))
       ((square-open)
@@ -194,7 +198,7 @@
          (force-promises! expr)
          expr))
       (else
-        (parse-error token "expected expression, got" token)))))
+       (parse-error token "expected expression, got" token)))))
 
 ;;; Define the reader function based on this; build a lexer, a
 ;;; lexer-buffer, and then parse a single expression to return.  We also

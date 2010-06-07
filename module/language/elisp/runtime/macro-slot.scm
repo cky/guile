@@ -61,23 +61,23 @@
   (lambda (. clauses)
     (let iterate ((tail clauses))
       (if (null? tail)
-        'nil
-        (let ((cur (car tail))
-              (rest (iterate (cdr tail))))
-          (prim cond
-            ((prim or (not (list? cur)) (null? cur))
-             (macro-error "invalid clause in cond" cur))
-            ((null? (cdr cur))
-             (let ((var (gensym)))
-               `(without-void-checks (,var)
-                  (lexical-let ((,var ,(car cur)))
-                    (if ,var
-                      ,var
-                      ,rest)))))
-            (else
-              `(if ,(car cur)
-                 (progn ,@(cdr cur))
-                 ,rest))))))))
+          'nil
+          (let ((cur (car tail))
+                (rest (iterate (cdr tail))))
+            (prim cond
+                  ((prim or (not (list? cur)) (null? cur))
+                   (macro-error "invalid clause in cond" cur))
+                  ((null? (cdr cur))
+                   (let ((var (gensym)))
+                     `(without-void-checks (,var)
+                        (lexical-let ((,var ,(car cur)))
+                          (if ,var
+                              ,var
+                              ,rest)))))
+                  (else
+                   `(if ,(car cur)
+                        (progn ,@(cdr cur))
+                        ,rest))))))))
 
 ;;; The and and or forms can also be easily defined with macros.
 
@@ -103,54 +103,56 @@
            x
            (let ((var (gensym)))
              `(without-void-checks
-               (,var)
-               (lexical-let ((,var ,x))
-                            (if ,var
-                                ,var
-                                ,(iterate (car tail) (cdr tail)))))))))))
+                  (,var)
+                (lexical-let ((,var ,x))
+                  (if ,var
+                      ,var
+                      ,(iterate (car tail) (cdr tail)))))))))))
 
 ;;; Define the dotimes and dolist iteration macros.
 
 (built-in-macro dotimes
   (lambda (args . body)
-    (if (prim or (not (list? args))
-                 (< (length args) 2)
-                 (> (length args) 3))
-      (macro-error "invalid dotimes arguments" args)
-      (let ((var (car args))
-            (count (cadr args)))
-        (if (not (symbol? var))
-          (macro-error "expected symbol as dotimes variable"))
-        `(let ((,var 0))
-           (while ((guile-primitive <) ,var ,count)
-             ,@body
-             (setq ,var ((guile-primitive 1+) ,var)))
-           ,@(if (= (length args) 3)
-               (list (caddr args))
-               '()))))))
+    (if (prim or
+              (not (list? args))
+              (< (length args) 2)
+              (> (length args) 3))
+        (macro-error "invalid dotimes arguments" args)
+        (let ((var (car args))
+              (count (cadr args)))
+          (if (not (symbol? var))
+              (macro-error "expected symbol as dotimes variable"))
+          `(let ((,var 0))
+             (while ((guile-primitive <) ,var ,count)
+               ,@body
+               (setq ,var ((guile-primitive 1+) ,var)))
+             ,@(if (= (length args) 3)
+                   (list (caddr args))
+                   '()))))))
 
 (built-in-macro dolist
   (lambda (args . body)
-    (if (prim or (not (list? args))
-                 (< (length args) 2)
-                 (> (length args) 3))
-      (macro-error "invalid dolist arguments" args)
-      (let ((var (car args))
-            (iter-list (cadr args))
-            (tailvar (gensym)))
-        (if (not (symbol? var))
-          (macro-error "expected symbol as dolist variable")
-          `(let (,var)
-             (without-void-checks (,tailvar)
-               (lexical-let ((,tailvar ,iter-list))
-                 (while ((guile-primitive not)
-                           ((guile-primitive null?) ,tailvar))
-                   (setq ,var ((guile-primitive car) ,tailvar))
-                   ,@body
-                   (setq ,tailvar ((guile-primitive cdr) ,tailvar)))
-                 ,@(if (= (length args) 3)
-                     (list (caddr args))
-                     '())))))))))
+    (if (prim or
+              (not (list? args))
+              (< (length args) 2)
+              (> (length args) 3))
+        (macro-error "invalid dolist arguments" args)
+        (let ((var (car args))
+              (iter-list (cadr args))
+              (tailvar (gensym)))
+          (if (not (symbol? var))
+              (macro-error "expected symbol as dolist variable")
+              `(let (,var)
+                 (without-void-checks (,tailvar)
+                   (lexical-let ((,tailvar ,iter-list))
+                     (while ((guile-primitive not)
+                             ((guile-primitive null?) ,tailvar))
+                       (setq ,var ((guile-primitive car) ,tailvar))
+                       ,@body
+                       (setq ,tailvar ((guile-primitive cdr) ,tailvar)))
+                     ,@(if (= (length args) 3)
+                           (list (caddr args))
+                           '())))))))))
 
 ;;; Exception handling.  unwind-protect and catch are implemented as
 ;;; macros (throw is a built-in function).
@@ -165,22 +167,23 @@
 (built-in-macro catch
   (lambda (tag . body)
     (if (null? body)
-      (macro-error "catch with empty body"))
+        (macro-error "catch with empty body"))
     (let ((tagsym (gensym)))
       `(lexical-let ((,tagsym ,tag))
          ((guile-primitive catch)
-           #t
-           (lambda () ,@body)
-           ,(let* ((dummy-key (gensym))
-                   (elisp-key (gensym))
-                   (value (gensym))
-                   (arglist `(,dummy-key ,elisp-key ,value)))
-              `(with-always-lexical ,arglist
-                 (lambda ,arglist
-                   (if (eq ,elisp-key ,tagsym)
+          #t
+          (lambda () ,@body)
+          ,(let* ((dummy-key (gensym))
+                  (elisp-key (gensym))
+                  (value (gensym))
+                  (arglist `(,dummy-key ,elisp-key ,value)))
+             `(with-always-lexical
+               ,arglist
+               (lambda ,arglist
+                 (if (eq ,elisp-key ,tagsym)
                      ,value
                      ((guile-primitive throw) ,dummy-key ,elisp-key
-                                              ,value))))))))))
+                      ,value))))))))))
 
 ;;; unwind-protect is just some weaker construct as dynamic-wind, so
 ;;; straight-forward to implement.
@@ -188,11 +191,11 @@
 (built-in-macro unwind-protect
   (lambda (body . clean-ups)
     (if (null? clean-ups)
-      (macro-error "unwind-protect without cleanup code"))
+        (macro-error "unwind-protect without cleanup code"))
     `((guile-primitive dynamic-wind)
-       (lambda () nil)
-       (lambda () ,body)
-       (lambda () ,@clean-ups))))
+      (lambda () nil)
+      (lambda () ,body)
+      (lambda () ,@clean-ups))))
 
 ;;; Pop off the first element from a list or push one to it.
 

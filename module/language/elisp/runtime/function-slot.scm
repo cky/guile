@@ -28,68 +28,85 @@
 
 ;;; Equivalence and equalness predicates.
 
-(built-in-func eq (lambda (a b)
-                    (elisp-bool (eq? a b))))
+(built-in-func eq
+  (lambda (a b)
+    (elisp-bool (eq? a b))))
 
-(built-in-func equal (lambda (a b)
-                       (elisp-bool (equal? a b))))
+(built-in-func equal
+  (lambda (a b)
+    (elisp-bool (equal? a b))))
 
 ;;; Number predicates.
 
-(built-in-func floatp (lambda (num)
-                        (elisp-bool (and (real? num)
-                                         (or (inexact? num)
-                                             (prim not (integer? num)))))))
+(built-in-func floatp
+  (lambda (num)
+    (elisp-bool (and (real? num)
+                     (or (inexact? num)
+                         (prim not (integer? num)))))))
 
-(built-in-func integerp (lambda (num)
-                          (elisp-bool (and (exact? num)
-                                           (integer? num)))))
+(built-in-func integerp
+  (lambda (num)
+    (elisp-bool (and (exact? num)
+                     (integer? num)))))
 
-(built-in-func numberp (lambda (num)
-                         (elisp-bool (real? num))))
+(built-in-func numberp
+  (lambda (num)
+    (elisp-bool (real? num))))
 
-(built-in-func wholenump (lambda (num)
-                           (elisp-bool (and (exact? num)
-                                            (integer? num)
-                                            (prim >= num 0)))))
+(built-in-func wholenump
+  (lambda (num)
+    (elisp-bool (and (exact? num)
+                     (integer? num)
+                     (prim >= num 0)))))
 
-(built-in-func zerop (lambda (num)
-                       (elisp-bool (prim = num 0))))
+(built-in-func zerop
+  (lambda (num)
+    (elisp-bool (prim = num 0))))
 
 ;;; Number comparisons.
 
-(built-in-func = (lambda (num1 num2)
-                   (elisp-bool (prim = num1 num2))))
+(built-in-func =
+  (lambda (num1 num2)
+    (elisp-bool (prim = num1 num2))))
 
-(built-in-func /= (lambda (num1 num2)
-                    (elisp-bool (prim not (prim = num1 num2)))))
+(built-in-func /=
+  (lambda (num1 num2)
+    (elisp-bool (prim not (prim = num1 num2)))))
 
-(built-in-func < (lambda (num1 num2)
-                   (elisp-bool (prim < num1 num2))))
+(built-in-func <
+  (lambda (num1 num2)
+    (elisp-bool (prim < num1 num2))))
 
-(built-in-func <= (lambda (num1 num2)
-                    (elisp-bool (prim <= num1 num2))))
+(built-in-func <=
+  (lambda (num1 num2)
+    (elisp-bool (prim <= num1 num2))))
 
-(built-in-func > (lambda (num1 num2)
-                   (elisp-bool (prim > num1 num2))))
+(built-in-func >
+  (lambda (num1 num2)
+    (elisp-bool (prim > num1 num2))))
 
-(built-in-func >= (lambda (num1 num2)
-                    (elisp-bool (prim >= num1 num2))))
+(built-in-func >=
+  (lambda (num1 num2)
+    (elisp-bool (prim >= num1 num2))))
 
-(built-in-func max (lambda (. nums)
-                     (prim apply (@ (guile) max) nums)))
+(built-in-func max
+  (lambda (. nums)
+    (prim apply (@ (guile) max) nums)))
 
-(built-in-func min (lambda (. nums)
-                     (prim apply (@ (guile) min) nums)))
+(built-in-func min
+  (lambda (. nums)
+    (prim apply (@ (guile) min) nums)))
 
-(built-in-func abs (@ (guile) abs))
+(built-in-func abs
+  (@ (guile) abs))
 
 ;;; Number conversion.
 
-(built-in-func float (lambda (num)
-                       (if (exact? num)
-                         (exact->inexact num)
-                         num)))
+(built-in-func float
+  (lambda (num)
+    (if (exact? num)
+        (exact->inexact num)
+        num)))
 
 ;;; TODO: truncate, floor, ceiling, round.
 
@@ -148,48 +165,48 @@
 (built-in-func car
   (lambda (el)
     (if (null? el)
-      nil-value
-      (prim car el))))
+        nil-value
+        (prim car el))))
 
 (built-in-func cdr
   (lambda (el)
     (if (null? el)
-      nil-value
-      (prim cdr el))))
+        nil-value
+        (prim cdr el))))
 
 (built-in-func car-safe
   (lambda (el)
     (if (pair? el)
-      (prim car el)
-      nil-value)))
+        (prim car el)
+        nil-value)))
 
 (built-in-func cdr-safe
   (lambda (el)
     (if (pair? el)
-      (prim cdr el)
-      nil-value)))
+        (prim cdr el)
+        nil-value)))
 
 (built-in-func nth
   (lambda (n lst)
     (if (negative? n)
-      (prim car lst)
-      (let iterate ((i n)
-                    (tail lst))
-        (cond
-          ((null? tail) nil-value)
-          ((zero? i) (prim car tail))
-          (else (iterate (prim 1- i) (prim cdr tail))))))))
+        (prim car lst)
+        (let iterate ((i n)
+                      (tail lst))
+          (cond
+           ((null? tail) nil-value)
+           ((zero? i) (prim car tail))
+           (else (iterate (prim 1- i) (prim cdr tail))))))))
 
 (built-in-func nthcdr
   (lambda (n lst)
     (if (negative? n)
-      lst
-      (let iterate ((i n)
-                    (tail lst))
-        (cond
-          ((null? tail) nil-value)
-          ((zero? i) tail)
-          (else (iterate (prim 1- i) (prim cdr tail))))))))
+        lst
+        (let iterate ((i n)
+                      (tail lst))
+          (cond
+           ((null? tail) nil-value)
+           ((zero? i) tail)
+           (else (iterate (prim 1- i) (prim cdr tail))))))))
 
 (built-in-func length (@ (guile) length))
 
@@ -212,31 +229,36 @@
 (built-in-func number-sequence
   (lambda (from . rest)
     (if (prim > (prim length rest) 2)
-      (runtime-error "too many arguments for number-sequence"
-                     (prim cdddr rest))
-      (if (null? rest)
-        `(,from)
-        (let ((to (prim car rest))
-              (sep (if (or (null? (prim cdr rest))
-                           (eq? nil-value (prim cadr rest)))
-                     1
-                     (prim cadr rest))))
-          (cond
-            ((or (eq? nil-value to) (prim = to from)) `(,from))
-            ((and (zero? sep) (prim not (prim = from to)))
-             (runtime-error "infinite list in number-sequence"))
-            ((prim < (prim * to sep) (prim * from sep)) '())
-            (else
-              (let iterate ((i (prim +
-                                  from
-                                  (prim * sep
-                                          (prim quotient
-                                            (prim abs (prim - to from))
-                                            (prim abs sep)))))
-                            (result '()))
-                (if (prim = i from)
-                  (prim cons i result)
-                  (iterate (prim - i sep) (prim cons i result)))))))))))
+        (runtime-error "too many arguments for number-sequence"
+                       (prim cdddr rest))
+        (if (null? rest)
+            `(,from)
+            (let ((to (prim car rest))
+                  (sep (if (or (null? (prim cdr rest))
+                               (eq? nil-value (prim cadr rest)))
+                           1
+                           (prim cadr rest))))
+              (cond
+               ((or (eq? nil-value to) (prim = to from)) `(,from))
+               ((and (zero? sep) (prim not (prim = from to)))
+                (runtime-error "infinite list in number-sequence"))
+               ((prim < (prim * to sep) (prim * from sep)) '())
+               (else
+                (let iterate ((i (prim +
+                                       from
+                                       (prim *
+                                             sep
+                                             (prim quotient
+                                                   (prim abs
+                                                         (prim -
+                                                               to
+                                                               from))
+                                                   (prim abs sep)))))
+                              (result '()))
+                  (if (prim = i from)
+                      (prim cons i result)
+                      (iterate (prim - i sep)
+                               (prim cons i result)))))))))))
 
 ;;; Changing lists.
 
@@ -281,12 +303,16 @@
 (built-in-func boundp
   (lambda (sym)
     (elisp-bool (prim not
-                  (eq? void (reference-variable value-slot-module sym))))))
+                      (eq? void
+                           (reference-variable value-slot-module
+                                               sym))))))
 
 (built-in-func fboundp
   (lambda (sym)
     (elisp-bool (prim not
-                  (eq? void (reference-variable function-slot-module sym))))))
+                      (eq? void
+                           (reference-variable function-slot-module
+                                               sym))))))
 
 ;;; Function calls. These must take care of special cases, like using
 ;;; symbols or raw lambda-lists as functions!
@@ -294,15 +320,17 @@
 (built-in-func apply
   (lambda (func . args)
     (let ((real-func (cond
-                       ((symbol? func)
-                        (reference-variable-with-check function-slot-module
-                                                       func))
-                       ((list? func)
-                        (if (and (prim not (null? func))
-                                 (eq? (prim car func) 'lambda))
-                          (compile func #:from 'elisp #:to 'value)
-                          (runtime-error "list is not a function" func)))
-                       (else func))))
+                      ((symbol? func)
+                       (reference-variable-with-check
+                        function-slot-module
+                        func))
+                      ((list? func)
+                       (if (and (prim not (null? func))
+                                (eq? (prim car func) 'lambda))
+                           (compile func #:from 'elisp #:to 'value)
+                           (runtime-error "list is not a function"
+                                          func)))
+                      (else func))))
       (prim apply (@ (guile) apply) real-func args))))
 
 (built-in-func funcall

@@ -25,7 +25,7 @@
   #:export (elisp))
 
 (define-language elisp
-  #:title	"Emacs Lisp"
-  #:reader	(lambda (port env) (read-elisp port))
-  #:printer	write
-  #:compilers	`((tree-il . ,compile-tree-il)))
+  #:title     "Emacs Lisp"
+  #:reader    (lambda (port env) (read-elisp port))
+  #:printer   write
+  #:compilers `((tree-il . ,compile-tree-il)))

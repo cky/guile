@@ -60,8 +60,8 @@
 
 (define (real-character chr)
   (if (< chr 256)
-    (integer->char chr)
-    #\nul))
+      (integer->char chr)
+      #\nul))
 
 ;;; Return the control modified version of a character.  This is not
 ;;; just setting a modifier bit, because ASCII conrol characters must be
@@ -71,11 +71,11 @@
 (define (add-control chr)
   (let ((real (real-character chr)))
     (if (char-alphabetic? real)
-      (- (char->integer (char-upcase real)) (char->integer #\@))
-      (case real
-        ((#\?) 127)
-        ((#\@) 0)
-        (else (set-char-bit chr 26))))))
+        (- (char->integer (char-upcase real)) (char->integer #\@))
+        (case real
+          ((#\?) 127)
+          ((#\@) 0)
+          (else (set-char-bit chr 26))))))
 
 ;;; Parse a charcode given in some base, basically octal or hexadecimal
 ;;; are needed.  A requested number of digits can be given (#f means it
@@ -88,26 +88,29 @@
   (let iterate ((result 0)
                 (procdigs 0))
     (if (and digits (>= procdigs digits))
-      result
-      (let* ((cur (read-char port))
-             (value (cond
-                      ((char-numeric? cur)
-                       (- (char->integer cur) (char->integer #\0)))
-                      ((char-alphabetic? cur)
-                       (let ((code (- (char->integer (char-upcase cur))
-                                      (char->integer #\A))))
-                         (if (< code 0)
-                           #f
-                           (+ code 10))))
-                      (else #f)))
-             (valid (and value (< value base))))
-        (if (not valid)
-          (if (or (not digits) early-return)
-            (begin
-              (unread-char cur port)
-              result)
-            (lexer-error port "invalid digit in escape-code" base cur))
-          (iterate (+ (* result base) value) (1+ procdigs)))))))
+        result
+        (let* ((cur (read-char port))
+               (value (cond
+                       ((char-numeric? cur)
+                        (- (char->integer cur) (char->integer #\0)))
+                       ((char-alphabetic? cur)
+                        (let ((code (- (char->integer (char-upcase cur))
+                                       (char->integer #\A))))
+                          (if (< code 0)
+                              #f
+                              (+ code 10))))
+                       (else #f)))
+               (valid (and value (< value base))))
+          (if (not valid)
+              (if (or (not digits) early-return)
+                  (begin
+                    (unread-char cur port)
+                    result)
+                  (lexer-error port
+                               "invalid digit in escape-code"
+                               base
+                               cur))
+              (iterate (+ (* result base) value) (1+ procdigs)))))))
 
 ;;; Read a character and process escape-sequences when necessary.  The
 ;;; special in-string argument defines if this character is part of a
@@ -116,53 +119,63 @@
 ;;; characters.
 
 (define basic-escape-codes
-  '((#\a . 7) (#\b . 8) (#\t . 9)
-    (#\n . 10) (#\v . 11) (#\f . 12) (#\r . 13)
-    (#\e . 27) (#\s . 32) (#\d . 127)))
+  '((#\a . 7)
+    (#\b . 8)
+    (#\t . 9)
+    (#\n . 10)
+    (#\v . 11)
+    (#\f . 12)
+    (#\r . 13)
+    (#\e . 27)
+    (#\s . 32)
+    (#\d . 127)))
 
 (define (get-character port in-string)
-  (let ((meta-bits `((#\A . 22) (#\s . 23) (#\H . 24)
-                     (#\S . 25) (#\M . ,(if in-string 7 27))))
+  (let ((meta-bits `((#\A . 22)
+                     (#\s . 23)
+                     (#\H . 24)
+                     (#\S . 25)
+                     (#\M . ,(if in-string 7 27))))
         (cur (read-char port)))
     (if (char=? cur #\\)
-      ;; Handle an escape-sequence.
-      (let* ((escaped (read-char port))
-             (esc-code (assq-ref basic-escape-codes escaped))
-             (meta (assq-ref meta-bits escaped)))
-        (cond
-          ;; Meta-check must be before esc-code check because \s- must
-          ;; be recognized as the super-meta modifier if a - follows.
-          ;; If not, it will be caught as \s -> space escape code.
-          ((and meta (is-char? (peek-char port) #\-))
-           (if (not (char=? (read-char port) #\-))
-             (error "expected - after control sequence"))
-           (set-char-bit (get-character port in-string) meta))
-          ;; One of the basic control character escape names?
-          (esc-code esc-code)
-          ;; Handle \ddd octal code if it is one.
-          ((and (char>=? escaped #\0) (char<? escaped #\8))
-           (begin
-             (unread-char escaped port)
-             (charcode-escape port 8 3 #t)))
-          ;; Check for some escape-codes directly or otherwise use the
-          ;; escaped character literally.
-          (else
+        ;; Handle an escape-sequence.
+        (let* ((escaped (read-char port))
+               (esc-code (assq-ref basic-escape-codes escaped))
+               (meta (assq-ref meta-bits escaped)))
+          (cond
+           ;; Meta-check must be before esc-code check because \s- must
+           ;; be recognized as the super-meta modifier if a - follows.
+           ;; If not, it will be caught as \s -> space escape code.
+           ((and meta (is-char? (peek-char port) #\-))
+            (if (not (char=? (read-char port) #\-))
+                (error "expected - after control sequence"))
+            (set-char-bit (get-character port in-string) meta))
+           ;; One of the basic control character escape names?
+           (esc-code esc-code)
+           ;; Handle \ddd octal code if it is one.
+           ((and (char>=? escaped #\0) (char<? escaped #\8))
+            (begin
+              (unread-char escaped port)
+              (charcode-escape port 8 3 #t)))
+           ;; Check for some escape-codes directly or otherwise use the
+           ;; escaped character literally.
+           (else
             (case escaped
               ((#\^) (add-control (get-character port in-string)))
               ((#\C)
                (if (is-char? (peek-char port) #\-)
-                 (begin
-                   (if (not (char=? (read-char port) #\-))
-                     (error "expected - after control sequence"))
-                   (add-control (get-character port in-string)))
-                 escaped))
+                   (begin
+                     (if (not (char=? (read-char port) #\-))
+                         (error "expected - after control sequence"))
+                     (add-control (get-character port in-string)))
+                   escaped))
               ((#\x) (charcode-escape port 16 #f #t))
               ((#\u) (charcode-escape port 16 4 #f))
               ((#\U) (charcode-escape port 16 8 #f))
               (else (char->integer escaped))))))
-      ;; No escape-sequence, just the literal character.
-      ;; But remember to get the code instead!
-      (char->integer cur))))
+        ;; No escape-sequence, just the literal character.  But remember
+        ;; to get the code instead!
+        (char->integer cur))))
 
 ;;; Read a symbol or number from a port until something follows that
 ;;; marks the start of a new token (like whitespace or parentheses).
@@ -176,7 +189,8 @@
 (define integer-regex (make-regexp "^[+-]?[0-9]+\\.?$"))
 
 (define float-regex
-  (make-regexp "^[+-]?([0-9]+\\.?[0-9]*|[0-9]*\\.?[0-9]+)(e[+-]?[0-9]+)?$"))
+  (make-regexp
+   "^[+-]?([0-9]+\\.?[0-9]*|[0-9]*\\.?[0-9]+)(e[+-]?[0-9]+)?$"))
 
 ;;; A dot is also allowed literally, only a single dort alone is parsed
 ;;; as the 'dot' terminal for dotted lists.
@@ -188,29 +202,31 @@
                 (had-escape #f))
     (let* ((c (read-char port))
            (finish (lambda ()
-                     (let ((result (list->string (reverse result-chars))))
+                     (let ((result (list->string
+                                    (reverse result-chars))))
                        (values
-                         (cond
-                           ((and (not had-escape)
-                                 (regexp-exec integer-regex result))
-                            'integer)
-                           ((and (not had-escape)
-                                 (regexp-exec float-regex result))
-                            'float)
-                           (else 'symbol))
-                         result))))
+                        (cond
+                         ((and (not had-escape)
+                               (regexp-exec integer-regex result))
+                          'integer)
+                         ((and (not had-escape)
+                               (regexp-exec float-regex result))
+                          'float)
+                         (else 'symbol))
+                        result))))
            (need-no-escape? (lambda (c)
                               (or (char-numeric? c)
                                   (char-alphabetic? c)
-                                  (char-set-contains? no-escape-punctuation
-                                                      c)))))
+                                  (char-set-contains?
+                                   no-escape-punctuation
+                                   c)))))
       (cond
-        ((eof-object? c) (finish))
-        ((need-no-escape? c) (iterate (cons c result-chars) had-escape))
-        ((char=? c #\\) (iterate (cons (read-char port) result-chars) #t))
-        (else
-          (unread-char c port)
-          (finish))))))
+       ((eof-object? c) (finish))
+       ((need-no-escape? c) (iterate (cons c result-chars) had-escape))
+       ((char=? c #\\) (iterate (cons (read-char port) result-chars) #t))
+       (else
+        (unread-char c port)
+        (finish))))))
 
 ;;; Parse a circular structure marker without the leading # (which was
 ;;; already read and recognized), that is, a number as identifier and
@@ -218,24 +234,28 @@
 
 (define (get-circular-marker port)
   (call-with-values
-    (lambda ()
-      (let iterate ((result 0))
-        (let ((cur (read-char port)))
-          (if (char-numeric? cur)
-            (let ((val (- (char->integer cur) (char->integer #\0))))
-              (iterate (+ (* result 10) val)))
-            (values result cur)))))
+      (lambda ()
+        (let iterate ((result 0))
+          (let ((cur (read-char port)))
+            (if (char-numeric? cur)
+                (let ((val (- (char->integer cur) (char->integer #\0))))
+                  (iterate (+ (* result 10) val)))
+                (values result cur)))))
     (lambda (id type)
       (case type
         ((#\#) `(circular-ref . ,id))
         ((#\=) `(circular-def . ,id))
-        (else (lexer-error port "invalid circular marker character" type))))))
+        (else (lexer-error port
+                           "invalid circular marker character"
+                           type))))))
 
 ;;; Main lexer routine, which is given a port and does look for the next
 ;;; token.
 
 (define (lex port)
-  (let ((return (let ((file (if (file-port? port) (port-filename port) #f))
+  (let ((return (let ((file (if (file-port? port)
+                                (port-filename port)
+                                #f))
                       (line (1+ (port-line port)))
                       (column (1+ (port-column port))))
                   (lambda (token value)
@@ -248,114 +268,116 @@
         ;; and actually point to the very character to be read.
         (c (read-char port)))
     (cond
-      ;; End of input must be specially marked to the parser.
-      ((eof-object? c) '*eoi*)
-      ;; Whitespace, just skip it.
-      ((char-whitespace? c) (lex port))
-      ;; The dot is only the one for dotted lists if followed by
-      ;; whitespace.  Otherwise it is considered part of a number of
-      ;; symbol.
-      ((and (char=? c #\.)
-            (char-whitespace? (peek-char port)))
-       (return 'dot #f))
-      ;; Continue checking for literal character values.
-      (else
-        (case c
-          ;; A line comment, skip until end-of-line is found.
-          ((#\;)
-           (let iterate ()
-             (let ((cur (read-char port)))
-               (if (or (eof-object? cur) (char=? cur #\newline))
+     ;; End of input must be specially marked to the parser.
+     ((eof-object? c) '*eoi*)
+     ;; Whitespace, just skip it.
+     ((char-whitespace? c) (lex port))
+     ;; The dot is only the one for dotted lists if followed by
+     ;; whitespace.  Otherwise it is considered part of a number of
+     ;; symbol.
+     ((and (char=? c #\.)
+           (char-whitespace? (peek-char port)))
+      (return 'dot #f))
+     ;; Continue checking for literal character values.
+     (else
+      (case c
+        ;; A line comment, skip until end-of-line is found.
+        ((#\;)
+         (let iterate ()
+           (let ((cur (read-char port)))
+             (if (or (eof-object? cur) (char=? cur #\newline))
                  (lex port)
                  (iterate)))))
-          ;; A character literal.
-          ((#\?)
-           (return 'character (get-character port #f)))
-          ;; A literal string.  This is mainly a sequence of characters
-          ;; just as in the character literals, the only difference is
-          ;; that escaped newline and space are to be completely ignored
-          ;; and that meta-escapes set bit 7 rather than bit 27.
-          ((#\")
-           (let iterate ((result-chars '()))
-             (let ((cur (read-char port)))
-               (case cur
-                 ((#\")
-                  (return 'string (list->string (reverse result-chars))))
-                 ((#\\)
-                  (let ((escaped (read-char port)))
-                    (case escaped
-                      ((#\newline #\space)
-                       (iterate result-chars))
-                      (else
-                        (unread-char escaped port)
-                        (unread-char cur port)
-                        (iterate (cons (integer->char (get-character port #t))
-                                       result-chars))))))
-                 (else (iterate (cons cur result-chars)))))))
-          ;; Circular markers (either reference or definition).
-          ((#\#)
-           (let ((mark (get-circular-marker port)))
-             (return (car mark) (cdr mark))))
-          ;; Parentheses and other special-meaning single characters.
-          ((#\() (return 'paren-open #f))
-          ((#\)) (return 'paren-close #f))
-          ((#\[) (return 'square-open #f))
-          ((#\]) (return 'square-close #f))
-          ((#\') (return 'quote #f))
-          ((#\`) (return 'backquote #f))
-          ;; Unquote and unquote-splicing.
-          ((#\,)
-           (if (is-char? (peek-char port) #\@)
+        ;; A character literal.
+        ((#\?)
+         (return 'character (get-character port #f)))
+        ;; A literal string.  This is mainly a sequence of characters
+        ;; just as in the character literals, the only difference is
+        ;; that escaped newline and space are to be completely ignored
+        ;; and that meta-escapes set bit 7 rather than bit 27.
+        ((#\")
+         (let iterate ((result-chars '()))
+           (let ((cur (read-char port)))
+             (case cur
+               ((#\")
+                (return 'string (list->string (reverse result-chars))))
+               ((#\\)
+                (let ((escaped (read-char port)))
+                  (case escaped
+                    ((#\newline #\space)
+                     (iterate result-chars))
+                    (else
+                     (unread-char escaped port)
+                     (unread-char cur port)
+                     (iterate
+                      (cons (integer->char (get-character port #t))
+                            result-chars))))))
+               (else (iterate (cons cur result-chars)))))))
+        ;; Circular markers (either reference or definition).
+        ((#\#)
+         (let ((mark (get-circular-marker port)))
+           (return (car mark) (cdr mark))))
+        ;; Parentheses and other special-meaning single characters.
+        ((#\() (return 'paren-open #f))
+        ((#\)) (return 'paren-close #f))
+        ((#\[) (return 'square-open #f))
+        ((#\]) (return 'square-close #f))
+        ((#\') (return 'quote #f))
+        ((#\`) (return 'backquote #f))
+        ;; Unquote and unquote-splicing.
+        ((#\,)
+         (if (is-char? (peek-char port) #\@)
              (if (not (char=? (read-char port) #\@))
-               (error "expected @ in unquote-splicing")
-               (return 'unquote-splicing #f))
+                 (error "expected @ in unquote-splicing")
+                 (return 'unquote-splicing #f))
              (return 'unquote #f)))
-          ;; Remaining are numbers and symbols.  Process input until next
-          ;; whitespace is found, and see if it looks like a number
-          ;; (float/integer) or symbol and return accordingly.
-          (else
-            (unread-char c port)
-            (call-with-values
-              (lambda ()
-                (get-symbol-or-number port))
-              (lambda (type str)
-                (case type
-                  ((symbol)
-                   ;; str could be empty if the first character is
-                   ;; already something not allowed in a symbol (and not
-                   ;; escaped)! Take care about that, it is an error
-                   ;; because that character should have been handled
-                   ;; elsewhere or is invalid in the input.
-                   (if (zero? (string-length str))
-                     (begin
-                       ;; Take it out so the REPL might not get into an
-                       ;; infinite loop with further reading attempts.
-                       (read-char port)
-                       (error "invalid character in input" c))
-                     (return 'symbol (string->symbol str))))
-                  ((integer)
-                   ;; In elisp, something like "1." is an integer, while
-                   ;; string->number returns an inexact real.  Thus we
-                   ;; need a conversion here, but it should always
-                   ;; result in an integer!
-                   (return 'integer
-                           (let ((num (inexact->exact (string->number str))))
-                             (if (not (integer? num))
-                               (error "expected integer" str num))
-                             num)))
-                  ((float)
-                   (return 'float (let ((num (string->number str)))
-                                    (if (exact? num)
-                                      (error "expected inexact float" str num))
-                                    num)))
-                  (else (error "wrong number/symbol type" type)))))))))))
+        ;; Remaining are numbers and symbols.  Process input until next
+        ;; whitespace is found, and see if it looks like a number
+        ;; (float/integer) or symbol and return accordingly.
+        (else
+         (unread-char c port)
+         (call-with-values
+             (lambda () (get-symbol-or-number port))
+           (lambda (type str)
+             (case type
+               ((symbol)
+                ;; str could be empty if the first character is already
+                ;; something not allowed in a symbol (and not escaped)!
+                ;; Take care about that, it is an error because that
+                ;; character should have been handled elsewhere or is
+                ;; invalid in the input.
+                (if (zero? (string-length str))
+                    (begin
+                      ;; Take it out so the REPL might not get into an
+                      ;; infinite loop with further reading attempts.
+                      (read-char port)
+                      (error "invalid character in input" c))
+                    (return 'symbol (string->symbol str))))
+               ((integer)
+                ;; In elisp, something like "1." is an integer, while
+                ;; string->number returns an inexact real.  Thus we need
+                ;; a conversion here, but it should always result in an
+                ;; integer!
+                (return
+                 'integer
+                 (let ((num (inexact->exact (string->number str))))
+                   (if (not (integer? num))
+                       (error "expected integer" str num))
+                   num)))
+               ((float)
+                (return 'float (let ((num (string->number str)))
+                                 (if (exact? num)
+                                     (error "expected inexact float"
+                                            str
+                                            num))
+                                 num)))
+               (else (error "wrong number/symbol type" type)))))))))))
 
 ;;; Build a lexer thunk for a port.  This is the exported routine which
 ;;; can be used to create a lexer for the parser to use.
 
 (define (get-lexer port)
-  (lambda ()
-    (lex port)))
+  (lambda () (lex port)))
 
 ;;; Build a special lexer that will only read enough for one expression
 ;;; and then always return end-of-input.  If we find one of the quotation
@@ -367,16 +389,16 @@
         (paren-level 0))
     (lambda ()
       (if finished
-        '*eoi*
-        (let ((next (lex))
-              (quotation #f))
-          (case (car next)
-            ((paren-open square-open)
-             (set! paren-level (1+ paren-level)))
-            ((paren-close square-close)
-             (set! paren-level (1- paren-level)))
-            ((quote backquote unquote unquote-splicing circular-def)
-             (set! quotation #t)))
-          (if (and (not quotation) (<= paren-level 0))
-            (set! finished #t))
-          next)))))
+          '*eoi*
+          (let ((next (lex))
+                (quotation #f))
+            (case (car next)
+              ((paren-open square-open)
+               (set! paren-level (1+ paren-level)))
+              ((paren-close square-close)
+               (set! paren-level (1- paren-level)))
+              ((quote backquote unquote unquote-splicing circular-def)
+               (set! quotation #t)))
+            (if (and (not quotation) (<= paren-level 0))
+                (set! finished #t))
+            next)))))
