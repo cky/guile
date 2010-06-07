@@ -5466,7 +5466,7 @@ SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
 	    "Return @var{x} raised to the power of @var{y}.") 
 #define FUNC_NAME s_scm_expt
 {
-  if (!SCM_INEXACTP (y) && scm_is_integer (y))
+  if ((SCM_I_INUMP (x) || SCM_BIGP (x)) && scm_is_integer (y))
     return scm_integer_expt (x, y);
   else if (scm_is_real (x) && scm_is_real (y) && scm_to_double (x) >= 0.0)
     {

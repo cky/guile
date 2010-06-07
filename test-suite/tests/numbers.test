@@ -2875,6 +2875,8 @@
 ;;;
 
 (with-test-prefix "expt"
+  (pass-if-exception "non-numeric base" exception:wrong-type-arg
+                     (expt #t 0))
   (pass-if "(= 1 (expt 0 0))" (= 1 (expt 0 0)))
   (pass-if "(= 1 (expt 0 0.0))" (= 1 (expt 0 0.0)))
   (pass-if "(= 1 (expt 0.0 0))" (= 1 (expt 0.0 0)))
