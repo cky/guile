@@ -26,7 +26,6 @@
 ; course, so not really in runtime.  But I think it fits well to the others
 ; here.
 
-
 ; The prog1 and prog2 constructs can easily be defined as macros using progn
 ; and some lexical-let's to save the intermediate value to return at the end.
 
@@ -42,7 +41,6 @@
   (lambda (form1 form2 . rest)
     `(progn ,form1 (prog1 ,form2 ,@rest))))
 
-
 ; Define the conditionals when and unless as macros.
 
 (built-in-macro when
@@ -52,7 +50,6 @@
 (built-in-macro unless
   (lambda (condition . elses)
     `(if ,condition nil (progn ,@elses))))
-
 
 ; Impement the cond form as nested if's.  A special case is a (condition)
 ; subform, in which case we need to return the condition itself if it is true
@@ -79,7 +76,6 @@
               `(if ,(car cur)
                  (progn ,@(cdr cur))
                  ,rest))))))))
-
 
 ; The and and or forms can also be easily defined with macros.
 
@@ -110,7 +106,6 @@
                             (if ,var
                                 ,var
                                 ,(iterate (car tail) (cdr tail)))))))))))
-
 
 ; Define the dotimes and dolist iteration macros.
 
@@ -155,7 +150,6 @@
                      (list (caddr args))
                      '())))))))))
 
-
 ; Exception handling.  unwind-protect and catch are implemented as macros (throw
 ; is a built-in function).
 
@@ -165,6 +159,7 @@
 ; for matches using eq (eq?).  We handle this by using always #t as key
 ; for the Guile primitives and check for matches inside the handler; if
 ; the elisp keys are not eq?, we rethrow the exception.
+
 (built-in-macro catch
   (lambda (tag . body)
     (if (null? body)
@@ -185,8 +180,9 @@
                      ((guile-primitive throw) ,dummy-key ,elisp-key
                                               ,value))))))))))
 
-; unwind-protect is just some weaker construct as dynamic-wind, so 
+; unwind-protect is just some weaker construct as dynamic-wind, so
 ; straight-forward to implement.
+
 (built-in-macro unwind-protect
   (lambda (body . clean-ups)
     (if (null? clean-ups)
@@ -195,7 +191,6 @@
        (lambda () nil)
        (lambda () ,body)
        (lambda () ,@clean-ups))))
-
 
 ; Pop off the first element from a list or push one to it.
 

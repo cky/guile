@@ -36,20 +36,17 @@
 ; with-dynamic-binding routines to associate symbols to different bindings
 ; over a dynamic extent.
 
-
 ; Record type used to hold the data necessary.
 
 (define bindings-type
   (make-record-type 'bindings
                     '(needed-globals lexical-bindings)))
 
-
 ; Construct an 'empty' instance of the bindings data structure to be used
 ; at the start of a fresh compilation.
 
 (define (make-bindings)
   ((record-constructor bindings-type) '() (make-hash-table)))
-
 
 ; Mark that a given symbol is needed as global in the specified slot-module.
 
@@ -61,7 +58,6 @@
                           (cons sym old-in-module)))
          (new-needed (assoc-set! old-needed module new-in-module)))
     ((record-modifier bindings-type 'needed-globals) bindings new-needed)))
-
 
 ; Cycle through all globals needed in order to generate the code for their
 ; creation or some other analysis.
@@ -85,7 +81,6 @@
                                  (cons (proc module (car sym-tail))
                                        sym-result))))))))))
 
-
 ; Get the current lexical binding (gensym it should refer to in the current
 ; scope) for a symbol or #f if it is dynamically bound.
 
@@ -95,7 +90,6 @@
     (if slot
       (fluid-ref slot)
       #f)))
-
 
 ; Establish a binding or mark a symbol as dynamically bound for the extent of
 ; calling proc.

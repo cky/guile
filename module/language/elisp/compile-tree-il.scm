@@ -6,12 +6,12 @@
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -27,21 +27,22 @@
   #:use-module (srfi srfi-1)
   #:export (compile-tree-il))
 
-
 ; Certain common parameters (like the bindings data structure or compiler
 ; options) are not always passed around but accessed using fluids to simulate
 ; dynamic binding (hey, this is about elisp).
 
 ; The bindings data structure to keep track of symbol binding related data.
+
 (define bindings-data (make-fluid))
 
 ; Store for which symbols (or all/none) void checks are disabled.
+
 (define disable-void-check (make-fluid))
 
 ; Store which symbols (or all/none) should always be bound lexically, even
 ; with ordinary let and as lambda arguments.
-(define always-lexical (make-fluid))
 
+(define always-lexical (make-fluid))
 
 ; Find the source properties of some parsed expression if there are any
 ; associated with it.
@@ -52,20 +53,21 @@
          (and (not (null? props))
               props))))
 
-
 ; Values to use for Elisp's nil and t.
 
 (define (nil-value loc) (make-const loc (@ (language elisp runtime) nil-value)))
-(define (t-value loc) (make-const loc (@ (language elisp runtime) t-value)))
 
+(define (t-value loc) (make-const loc (@ (language elisp runtime) t-value)))
 
 ; Modules that contain the value and function slot bindings.
 
 (define runtime '(language elisp runtime))
-(define macro-slot '(language elisp runtime macro-slot))
-(define value-slot (@ (language elisp runtime) value-slot-module))
-(define function-slot (@ (language elisp runtime) function-slot-module))
 
+(define macro-slot '(language elisp runtime macro-slot))
+
+(define value-slot (@ (language elisp runtime) value-slot-module))
+
+(define function-slot (@ (language elisp runtime) function-slot-module))
 
 ; The backquoting works the same as quasiquotes in Scheme, but the forms are
 ; named differently; to make easy adaptions, we define these predicates checking
@@ -80,12 +82,10 @@
 (define (unquote-splicing? sym)
   (and (symbol? sym) (eq? sym '\,@)))
 
-
 ; Build a call to a primitive procedure nicely.
 
 (define (call-primitive loc sym . args)
   (make-application loc (make-primitive-ref loc sym) args))
-
 
 ; Error reporting routine for syntax/compilation problems or build code for
 ; a runtime-error output.
@@ -97,7 +97,6 @@
   (make-application loc (make-primitive-ref loc 'error)
     (cons (make-const loc msg) args)))
 
-
 ; Generate code to ensure a global symbol is there for further use of a given
 ; symbol.  In general during the compilation, those needed are only tracked with
 ; the bindings data structure.  Afterwards, however, for all those needed
@@ -108,7 +107,6 @@
     (list (make-const loc module)
           (make-const loc sym))))
 
-
 ; See if we should do a void-check for a given variable.  That means, check
 ; that this check is not disabled via the compiler options for this symbol.
 ; Disabling of void check is only done for the value-slot module!
@@ -118,7 +116,6 @@
     (or (not (equal? module value-slot))
         (and (not (eq? disabled 'all))
              (not (memq sym disabled))))))
-
 
 ; Build a construct that establishes dynamic bindings for certain variables.
 ; We may want to choose between binding with fluids and with-fluids* and
@@ -135,7 +132,6 @@
     (make-lambda loc '()
                  (make-lambda-case #f '() #f #f #f '() '() body #f))))
 
-
 ; Handle access to a variable (reference/setting) correctly depending on
 ; whether it is currently lexically or dynamically bound.
 ; lexical access is done only for references to the value-slot module!
@@ -145,7 +141,6 @@
     (if (and lexical (equal? module value-slot))
       (handle-lexical lexical)
       (handle-dynamic))))
-
 
 ; Generate code to reference a variable.
 ; For references in the value-slot module, we may want to generate a lexical
@@ -159,7 +154,6 @@
                      (mark-global-needed! (fluid-ref bindings-data) sym module)
                      (call-primitive loc 'fluid-ref
                                      (make-module-ref loc module sym #t)))))
-
 
 ; Reference a variable and error if the value is void.
 
@@ -175,7 +169,6 @@
           (make-lexical-ref loc 'value var))))
     (reference-variable loc sym module)))
 
-
 ; Generate code to set a variable.
 ; Just as with reference-variable, in case of a reference to value-slot,
 ; we want to generate a lexical set when the variable has a lexical binding.
@@ -189,7 +182,6 @@
                      (call-primitive loc 'fluid-set!
                                      (make-module-ref loc module sym #t)
                                      value))))
-
 
 ; Process the bindings part of a let or let* expression; that is, check for
 ; correctness and bring it to the form ((sym1 . val1) (sym2 . val2) ...).
@@ -205,7 +197,6 @@
                (report-error loc "expected symbol in let")
                (cons (car b) (cadr b))))))
        bindings))
-
 
 ; Split the let bindings into a list to be done lexically and one dynamically.
 ; A symbol will be bound lexically if and only if:
@@ -231,7 +222,6 @@
         (iterate (cdr tail) (cons (car tail) lexical) dynamic)
         (iterate (cdr tail) lexical (cons (car tail) dynamic))))))
 
-
 ; Compile let and let* expressions.  The code here is used both for let/let*
 ; and flet/flet*, just with a different bindings module.
 ;
@@ -244,6 +234,7 @@
 ; among the bindings, we first do a let for all of them to evaluate all
 ; values before any bindings take place, and then call let-dynamic for the
 ; variables to bind dynamically.
+
 (define (generate-let loc module bindings body)
   (let ((bind (process-let-bindings loc bindings)))
     (call-with-values
@@ -278,9 +269,9 @@
                                         dynamic-syms)
                                    (make-body)))))))))))))
 
-
 ; Let* is compiled to a cascaded set of "small lets" for each binding in turn
 ; so that each one already sees the preceding bindings.
+
 (define (generate-let* loc module bindings body)
   (let ((bind (process-let-bindings loc bindings)))
     (begin
@@ -304,7 +295,6 @@
                            `(,(caar tail)) module `(,value)
                            (iterate (cdr tail))))))))))
 
-
 ; Split the argument list of a lambda expression into required, optional and
 ; rest arguments and also check it is actually valid.
 ; Additionally, we create a list of all "local variables" (that is, required,
@@ -325,7 +315,6 @@
                 (lexical '())
                 (dynamic '()))
     (cond
-
       ((null? tail)
        (let ((final-required (reverse required))
              (final-optional (reverse optional))
@@ -333,11 +322,9 @@
              (final-dynamic (reverse dynamic)))
          (values final-required final-optional #f
                  final-lexical final-dynamic)))
-
       ((and (eq? mode 'required)
             (eq? (car tail) '&optional))
        (iterate (cdr tail) 'optional required optional lexical dynamic))
-
       ((eq? (car tail) '&rest)
        (if (or (null? (cdr tail))
                (not (null? (cddr tail))))
@@ -354,7 +341,6 @@
                                           (cons rest dynamic)))))
            (values final-required final-optional rest
                    final-lexical final-dynamic))))
-
       (else
         (if (not (symbol? (car tail)))
           (report-error loc "expected symbol in argument list, got" (car tail))
@@ -375,7 +361,6 @@
                                    new-lexical new-dynamic))
               (else
                 (error "invalid mode in split-lambda-arguments" mode)))))))))
-
 
 ; Compile a lambda expression.  Things get a little complicated because TreeIL
 ; does not allow optional arguments but only one rest argument, and also the
@@ -486,6 +471,7 @@
 
 ; Build the code to handle setting of optional arguments that are present
 ; and updating the rest list.
+
 (define (process-optionals loc optional rest-name rest-sym)
   (let iterate ((tail optional))
     (if (null? tail)
@@ -503,6 +489,7 @@
                 (iterate (cdr tail))))))))
 
 ; This builds the code to set the rest variable to nil if it is empty.
+
 (define (process-rest loc rest rest-name rest-sym)
   (let ((rest-empty (call-primitive loc 'null?
                                     (make-lexical-ref loc rest-name rest-sym))))
@@ -518,7 +505,6 @@
          (runtime-error loc "too many arguments and no rest argument")))
       (else (make-void loc)))))
 
-
 ; Handle the common part of defconst and defvar, that is, checking for a correct
 ; doc string and arguments as well as maybe in the future handling the docstring
 ; somehow.
@@ -532,7 +518,6 @@
                    (car doc)))
     ; TODO: Handle doc string if present.
     (else #t)))
-
 
 ; Handle macro bindings.
 
@@ -550,7 +535,6 @@
 (define (get-macro sym)
   (module-ref (resolve-module macro-slot) sym))
 
-
 ; See if a (backquoted) expression contains any unquotes.
 
 (define (contains-unquotes? expr)
@@ -561,15 +545,15 @@
           (contains-unquotes? (cdr expr))))
     #f))
 
-
 ; Process a backquoted expression by building up the needed cons/append calls.
-; For splicing, it is assumed that the expression spliced in evaluates to a 
+; For splicing, it is assumed that the expression spliced in evaluates to a
 ; list.  The emacs manual does not really state either it has to or what to do
 ; if it does not, but Scheme explicitly forbids it and this seems reasonable
 ; also for elisp.
 
 (define (unquote-cell? expr)
   (and (list? expr) (= (length expr) 2) (unquote? (car expr))))
+
 (define (unquote-splicing-cell? expr)
   (and (list? expr) (= (length expr) 2) (unquote-splicing? (car expr))))
 
@@ -595,7 +579,6 @@
       (report-error loc "non-pair expression contains unquotes" expr))
     (make-const loc expr)))
 
-
 ; Temporarily update a list of symbols that are handled specially (disabled
 ; void check or always lexical) for compiling body.
 ; We need to handle special cases for already all / set to all and the like.
@@ -617,7 +600,6 @@
         (with-fluids ((fluid new))
           (make-body))))))
 
-
 ; Compile a symbol expression.  This is a variable reference or maybe some
 ; special value like nil.
 
@@ -627,12 +609,10 @@
     ((t) (t-value loc))
     (else (reference-with-check loc sym value-slot))))
 
-
 ; Compile a pair-expression (that is, any structure-like construct).
 
 (define (compile-pair loc expr)
   (pmatch expr
-
     ((progn . ,forms)
      (make-sequence loc (map compile-expr forms)))
 
@@ -640,10 +620,12 @@
      (make-conditional loc (compile-expr condition)
                            (compile-expr ifclause)
                            (nil-value loc)))
+
     ((if ,condition ,ifclause ,elseclause)
      (make-conditional loc (compile-expr condition)
                            (compile-expr ifclause)
                            (compile-expr elseclause)))
+
     ((if ,condition ,ifclause . ,elses)
      (make-conditional loc (compile-expr condition)
                            (compile-expr ifclause)
@@ -659,6 +641,7 @@
                (make-const loc sym)))))
 
     ((defvar ,sym) (make-const loc sym))
+
     ((defvar ,sym ,value . ,doc)
      (if (handle-var-def loc sym doc)
        (make-sequence loc
@@ -674,6 +657,7 @@
     ; Build a set form for possibly multiple values.  The code is not formulated
     ; tail recursive because it is clearer this way and large lists of symbol
     ; expression pairs are very unlikely.
+
     ((setq . ,args) (guard (not (null? args)))
      (make-sequence loc
        (let iterate ((tail args))
@@ -702,10 +686,12 @@
                                          (not (null? bindings))
                                          (not (null? body))))
      (generate-let loc value-slot bindings body))
+
     ((lexical-let ,bindings . ,body) (guard (and (list? bindings)
                                                  (not (null? bindings))
                                                  (not (null? body))))
      (generate-let loc 'lexical bindings body))
+
     ((flet ,bindings . ,body) (guard (and (list? bindings)
                                           (not (null? bindings))
                                           (not (null? body))))
@@ -715,10 +701,12 @@
                                           (not (null? bindings))
                                           (not (null? body))))
      (generate-let* loc value-slot bindings body))
+
     ((lexical-let* ,bindings . ,body) (guard (and (list? bindings)
                                                   (not (null? bindings))
                                                   (not (null? body))))
      (generate-let* loc 'lexical bindings body))
+
     ((flet* ,bindings . ,body) (guard (and (list? bindings)
                                            (not (null? bindings))
                                            (not (null? body))))
@@ -737,11 +725,13 @@
     ; elisp as a way to access data within
     ; the Guile universe.  The module and symbol referenced are static values,
     ; just like (@ module symbol) does!
+
     ((guile-ref ,module ,sym) (guard (and (list? module) (symbol? sym)))
      (make-module-ref loc module sym #t))
 
     ; guile-primitive allows to create primitive references, which are still
     ; a little faster.
+
     ((guile-primitive ,sym) (guard (symbol? sym))
      (make-primitive-ref loc sym))
 
@@ -755,6 +745,7 @@
     ;
     ; As letrec is not directly accessible from elisp, while is implemented here
     ; instead of with a macro.
+
     ((while ,condition . ,body)
      (let* ((itersym (gensym))
             (compiled-body (map compile-expr body))
@@ -775,14 +766,17 @@
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression
     ; that should be compiled.
+
     ((lambda ,args . ,body)
      (compile-lambda loc args body))
+
     ((function (lambda ,args . ,body))
      (compile-lambda loc args body))
 
     ; Build a lambda and also assign it to the function cell of some symbol.
     ; This is no macro as we might want to honour the docstring at some time;
     ; just as with defvar/defconst.
+
     ((defun ,name ,args . ,body)
      (if (not (symbol? name))
        (report-error loc "expected symbol as function name" name)
@@ -793,6 +787,7 @@
 
     ; Define a macro (this is done directly at compile-time!).
     ; FIXME: Recursive macros don't work!
+
     ((defmacro ,name ,args . ,body)
      (if (not (symbol? name))
        (report-error loc "expected symbol as macro name" name)
@@ -803,14 +798,17 @@
          (make-const loc name))))
 
     ; XXX: Maybe we could implement backquotes in macros, too.
+
     ((,backq ,val) (guard (backquote? backq))
      (process-backquote loc val))
 
     ; XXX: Why do we need 'quote here instead of quote?
+
     (('quote ,val)
      (make-const loc val))
 
     ; Macro calls are simply expanded and recursively compiled.
+
     ((,macro . ,args) (guard (and (symbol? macro) (is-macro? macro)))
      (let ((expander (get-macro macro)))
        (compile-expr (apply expander args))))
@@ -819,6 +817,7 @@
     ; take the function value of a symbol if it is one.  It seems that functions
     ; in form of uncompiled lists are not supported in this syntax, so we don't
     ; have to care for them.
+
     ((,func . ,args)
      (make-application loc
        (if (symbol? func)
@@ -828,7 +827,6 @@
 
     (else
       (report-error loc "unrecognized elisp" expr))))
-
 
 ; Compile a single expression to TreeIL.
 
@@ -840,7 +838,6 @@
       ((pair? expr)
        (compile-pair loc expr))
       (else (make-const loc expr)))))
-
 
 ; Process the compiler options.
 ; FIXME: Why is '(()) passed as options by the REPL?
@@ -866,7 +863,6 @@
              (fluid-set! always-lexical value)
              (report-error #f "Invalid value for #:always-lexical" value)))
           (else (report-error #f "Invalid compiler option" key)))))))
-
 
 ; Entry point for compilation to TreeIL.
 ; This creates the bindings data structure, and after compiling the main

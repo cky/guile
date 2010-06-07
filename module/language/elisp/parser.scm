@@ -28,13 +28,11 @@
 ; lexer ((text parse-lalr) seems not to allow access to the original lexer
 ; token-pair) and is easy enough anyways.
 
-
 ; Report a parse error.  The first argument is some current lexer token
 ; where source information is available should it be useful.
 
 (define (parse-error token msg . args)
   (apply error msg args))
-
 
 ; For parsing circular structures, we keep track of definitions in a
 ; hash-map that maps the id's to their values.
@@ -64,6 +62,7 @@
 ; Returned is a closure that, when invoked, will set the final value.
 ; This means both the variable the promise will return and the hash-table
 ; slot so we don't generate promises any longer.
+
 (define (circular-define! token)
   (if (not (eq? (car token) 'circular-def))
     (error "invalid token for circular-define!" token))
@@ -80,6 +79,7 @@
 ; this may lead to infinite recursion with a circular structure, and
 ; additionally this value was already processed when it was defined.
 ; All deep data structures that can be parsed must be handled here!
+
 (define (force-promises! data)
   (cond
     ((pair? data)
@@ -101,7 +101,6 @@
              (iterate (1+ i)))))))
     ; Else nothing needs to be done.
   ))
-
 
 ; We need peek-functionality for the next lexer token, this is done with some
 ; single token look-ahead storage.  This is handled by a closure which allows
@@ -127,7 +126,6 @@
                (set! look-ahead #f)
                result))
             (else (error "invalid lexer-buffer action" action))))))))
-
 
 ; Get the contents of a list, where the opening parentheses has already been
 ; found.  The same code is used for vectors and lists, where lists allow the
@@ -158,8 +156,6 @@
         (let* ((head (get-expression lex))
                (tail (get-list lex allow-dot close-square)))
           (cons head tail))))))
-
-
 
 ; Parse a single expression from a lexer-buffer.  This is the main routine in
 ; our recursive-descent parser.
@@ -196,7 +192,6 @@
          expr))
       (else
         (parse-error token "expected expression, got" token)))))
-
 
 ; Define the reader function based on this; build a lexer, a lexer-buffer,
 ; and then parse a single expression to return.

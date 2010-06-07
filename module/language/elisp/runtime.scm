@@ -22,36 +22,31 @@
   #:export (void
             nil-value t-value
             value-slot-module function-slot-module
-
             elisp-bool
-
             ensure-fluid! reference-variable reference-variable-with-check
             set-variable!
-
             runtime-error macro-error)
   #:export-syntax (built-in-func built-in-macro prim))
 
 ; This module provides runtime support for the Elisp front-end.
 
-
 ; The reserved value to mean (when eq?) void.
 
 (define void (list 42))
 
-
 ; Values for t and nil. (FIXME remove this abstraction)
 
 (define nil-value #nil)
-(define t-value #t)
 
+(define t-value #t)
 
 ; Modules for the binding slots.
 ; Note: Naming those value-slot and/or function-slot clashes with the
 ; submodules of these names!
 
 (define value-slot-module '(language elisp runtime value-slot))
-(define function-slot-module '(language elisp runtime function-slot))
 
+(define function-slot-module '(language elisp runtime function-slot))
 
 ; Report an error during macro compilation, that means some special compilation
 ; (syntax) error; or report a simple runtime-error from a built-in function.
@@ -61,14 +56,12 @@
 
 (define runtime-error macro-error)
 
-
 ; Convert a scheme boolean to Elisp.
 
 (define (elisp-bool b)
   (if b
     t-value
     nil-value))
-
 
 ; Routines for access to elisp dynamically bound symbols.
 ; This is used for runtime access using functions like symbol-value or set,
@@ -101,7 +94,6 @@
     (fluid-set! (module-ref resolved sym) value)
     value))
 
-
 ; Define a predefined function or predefined macro for use in the function-slot
 ; and macro-slot modules, respectively.
 
@@ -116,7 +108,6 @@
   (syntax-rules ()
     ((_ name value)
      (define-public name value))))
-
 
 ; Call a guile-primitive that may be rebound for elisp and thus needs absolute
 ; addressing.

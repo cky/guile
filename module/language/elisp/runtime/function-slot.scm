@@ -25,7 +25,6 @@
 ; This module contains the function-slots of elisp symbols.  Elisp built-in
 ; functions are implemented as predefined function bindings here.
 
-
 ; Equivalence and equalness predicates.
 
 (built-in-func eq (lambda (a b)
@@ -33,7 +32,6 @@
 
 (built-in-func equal (lambda (a b)
                        (elisp-bool (equal? a b))))
-
 
 ; Number predicates.
 
@@ -57,30 +55,33 @@
 (built-in-func zerop (lambda (num)
                        (elisp-bool (prim = num 0))))
 
-
 ; Number comparisons.
 
 (built-in-func = (lambda (num1 num2)
                    (elisp-bool (prim = num1 num2))))
+
 (built-in-func /= (lambda (num1 num2)
                     (elisp-bool (prim not (prim = num1 num2)))))
 
 (built-in-func < (lambda (num1 num2)
                    (elisp-bool (prim < num1 num2))))
+
 (built-in-func <= (lambda (num1 num2)
                     (elisp-bool (prim <= num1 num2))))
+
 (built-in-func > (lambda (num1 num2)
                    (elisp-bool (prim > num1 num2))))
+
 (built-in-func >= (lambda (num1 num2)
                     (elisp-bool (prim >= num1 num2))))
 
 (built-in-func max (lambda (. nums)
                      (prim apply (@ (guile) max) nums)))
+
 (built-in-func min (lambda (. nums)
                      (prim apply (@ (guile) min) nums)))
 
 (built-in-func abs (@ (guile) abs))
-
 
 ; Number conversion.
 
@@ -91,32 +92,38 @@
 
 ; TODO: truncate, floor, ceiling, round.
 
-
 ; Arithmetic functions.
 
 (built-in-func 1+ (@ (guile) 1+))
+
 (built-in-func 1- (@ (guile) 1-))
+
 (built-in-func + (@ (guile) +))
+
 (built-in-func - (@ (guile) -))
+
 (built-in-func * (@ (guile) *))
+
 (built-in-func % (@ (guile) modulo))
 
 ; TODO: / with correct integer/real behaviour, mod (for floating-piont values).
 
-
 ; Floating-point rounding operations.
 
 (built-in-func ffloor (@ (guile) floor))
-(built-in-func fceiling (@ (guile) ceiling))
-(built-in-func ftruncate (@ (guile) truncate))
-(built-in-func fround (@ (guile) round))
 
+(built-in-func fceiling (@ (guile) ceiling))
+
+(built-in-func ftruncate (@ (guile) truncate))
+
+(built-in-func fround (@ (guile) round))
 
 ; List predicates.
 
 (built-in-func consp
   (lambda (el)
     (elisp-bool (pair? el))))
+
 (built-in-func atomp
   (lambda (el)
     (elisp-bool (prim not (pair? el)))))
@@ -124,6 +131,7 @@
 (built-in-func listp
   (lambda (el)
     (elisp-bool (or (pair? el) (null? el)))))
+
 (built-in-func nlistp
   (lambda (el)
     (elisp-bool (and (prim not (pair? el))
@@ -133,7 +141,6 @@
   (lambda (el)
     (elisp-bool (null? el))))
 
-
 ; Accessing list elements.
 
 (built-in-func car
@@ -141,6 +148,7 @@
     (if (null? el)
       nil-value
       (prim car el))))
+
 (built-in-func cdr
   (lambda (el)
     (if (null? el)
@@ -152,6 +160,7 @@
     (if (pair? el)
       (prim car el)
       nil-value)))
+
 (built-in-func cdr-safe
   (lambda (el)
     (if (pair? el)
@@ -168,6 +177,7 @@
           ((null? tail) nil-value)
           ((zero? i) (prim car tail))
           (else (iterate (prim 1- i) (prim cdr tail))))))))
+
 (built-in-func nthcdr
   (lambda (n lst)
     (if (negative? n)
@@ -181,17 +191,20 @@
 
 (built-in-func length (@ (guile) length))
 
-
 ; Building lists.
 
 (built-in-func cons (@ (guile) cons))
+
 (built-in-func list (@ (guile) list))
+
 (built-in-func make-list
   (lambda (len obj)
     (prim make-list len obj)))
 
 (built-in-func append (@ (guile) append))
+
 (built-in-func reverse (@ (guile) reverse))
+
 (built-in-func copy-tree (@ (guile) copy-tree))
 
 (built-in-func number-sequence
@@ -223,7 +236,6 @@
                   (prim cons i result)
                   (iterate (prim - i sep) (prim cons i result)))))))))))
 
-
 ; Changing lists.
 
 (built-in-func setcar
@@ -236,12 +248,12 @@
     (prim set-cdr! cell val)
     val))
 
-
 ; Accessing symbol bindings for symbols known only at runtime.
 
 (built-in-func symbol-value
   (lambda (sym)
     (reference-variable-with-check value-slot-module sym)))
+
 (built-in-func symbol-function
   (lambda (sym)
     (reference-variable-with-check function-slot-module sym)))
@@ -249,6 +261,7 @@
 (built-in-func set
   (lambda (sym value)
     (set-variable! value-slot-module sym value)))
+
 (built-in-func fset
   (lambda (sym value)
     (set-variable! function-slot-module sym value)))
@@ -257,6 +270,7 @@
   (lambda (sym)
     (set-variable! value-slot-module sym void)
     sym))
+
 (built-in-func fmakunbound
   (lambda (sym)
     (set-variable! function-slot-module sym void)
@@ -266,11 +280,11 @@
   (lambda (sym)
     (elisp-bool (prim not
                   (eq? void (reference-variable value-slot-module sym))))))
+
 (built-in-func fboundp
   (lambda (sym)
     (elisp-bool (prim not
                   (eq? void (reference-variable function-slot-module sym))))))
-
 
 ; Function calls.  These must take care of special cases, like using symbols
 ; or raw lambda-lists as functions!
@@ -294,13 +308,11 @@
     (lambda (func . args)
       (myapply func args))))
 
-
 ; Throw can be implemented as built-in function.
 
 (built-in-func throw
   (lambda (tag value)
     (prim throw 'elisp-exception tag value)))
-
 
 ; Miscellaneous.
 
