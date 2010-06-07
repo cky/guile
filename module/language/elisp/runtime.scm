@@ -28,45 +28,47 @@
             runtime-error macro-error)
   #:export-syntax (built-in-func built-in-macro prim))
 
-; This module provides runtime support for the Elisp front-end.
+;;; This module provides runtime support for the Elisp front-end.
 
-; The reserved value to mean (when eq?) void.
+;;; The reserved value to mean (when eq?) void.
 
 (define void (list 42))
 
-; Values for t and nil. (FIXME remove this abstraction)
+;;; Values for t and nil. (FIXME remove this abstraction)
 
 (define nil-value #nil)
 
 (define t-value #t)
 
-; Modules for the binding slots.
-; Note: Naming those value-slot and/or function-slot clashes with the
-; submodules of these names!
+;;; Modules for the binding slots.
+;;; Note: Naming those value-slot and/or function-slot clashes with the
+;;; submodules of these names!
 
 (define value-slot-module '(language elisp runtime value-slot))
 
 (define function-slot-module '(language elisp runtime function-slot))
 
-; Report an error during macro compilation, that means some special compilation
-; (syntax) error; or report a simple runtime-error from a built-in function.
+;;; Report an error during macro compilation, that means some special
+;;; compilation (syntax) error; or report a simple runtime-error from a
+;;; built-in function.
 
 (define (macro-error msg . args)
   (apply error msg args))
 
 (define runtime-error macro-error)
 
-; Convert a scheme boolean to Elisp.
+;;; Convert a scheme boolean to Elisp.
 
 (define (elisp-bool b)
   (if b
     t-value
     nil-value))
 
-; Routines for access to elisp dynamically bound symbols.
-; This is used for runtime access using functions like symbol-value or set,
-; where the symbol accessed might not be known at compile-time.
-; These always access the dynamic binding and can not be used for the lexical!
+;;; Routines for access to elisp dynamically bound symbols.  This is
+;;; used for runtime access using functions like symbol-value or set,
+;;; where the symbol accessed might not be known at compile-time.  These
+;;; always access the dynamic binding and can not be used for the
+;;; lexical!
 
 (define (ensure-fluid! module sym)
   (let ((intf (resolve-interface module))
@@ -94,8 +96,8 @@
     (fluid-set! (module-ref resolved sym) value)
     value))
 
-; Define a predefined function or predefined macro for use in the function-slot
-; and macro-slot modules, respectively.
+;;; Define a predefined function or predefined macro for use in the
+;;; function-slot and macro-slot modules, respectively.
 
 (define-syntax built-in-func
   (syntax-rules ()
@@ -109,8 +111,8 @@
     ((_ name value)
      (define-public name value))))
 
-; Call a guile-primitive that may be rebound for elisp and thus needs absolute
-; addressing.
+;;; Call a guile-primitive that may be rebound for elisp and thus needs
+;;; absolute addressing.
 
 (define-syntax prim
   (syntax-rules ()

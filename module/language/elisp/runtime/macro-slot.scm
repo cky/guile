@@ -21,13 +21,14 @@
 (define-module (language elisp runtime macro-slot)
   #:use-module (language elisp runtime))
 
-; This module contains the macro definitions of elisp symbols.  In contrast to
-; the other runtime modules, those are used directly during compilation, of
-; course, so not really in runtime.  But I think it fits well to the others
-; here.
-
-; The prog1 and prog2 constructs can easily be defined as macros using progn
-; and some lexical-let's to save the intermediate value to return at the end.
+;;; This module contains the macro definitions of elisp symbols.  In
+;;; contrast to the other runtime modules, those are used directly
+;;; during compilation, of course, so not really in runtime.  But I
+;;; think it fits well to the others here.
+ 
+;;; The prog1 and prog2 constructs can easily be defined as macros using
+;;; progn and some lexical-let's to save the intermediate value to
+;;; return at the end.
 
 (built-in-macro prog1
   (lambda (form1 . rest)
@@ -41,7 +42,7 @@
   (lambda (form1 form2 . rest)
     `(progn ,form1 (prog1 ,form2 ,@rest))))
 
-; Define the conditionals when and unless as macros.
+;;; Define the conditionals when and unless as macros.
 
 (built-in-macro when
   (lambda (condition . thens)
@@ -51,9 +52,10 @@
   (lambda (condition . elses)
     `(if ,condition nil (progn ,@elses))))
 
-; Impement the cond form as nested if's.  A special case is a (condition)
-; subform, in which case we need to return the condition itself if it is true
-; and thus save it in a local variable before testing it.
+;;; Impement the cond form as nested if's.  A special case is a
+;;; (condition) subform, in which case we need to return the condition
+;;; itself if it is true and thus save it in a local variable before
+;;; testing it.
 
 (built-in-macro cond
   (lambda (. clauses)
@@ -77,7 +79,7 @@
                  (progn ,@(cdr cur))
                  ,rest))))))))
 
-; The and and or forms can also be easily defined with macros.
+;;; The and and or forms can also be easily defined with macros.
 
 (built-in-macro and
   (case-lambda
@@ -107,7 +109,7 @@
                                 ,var
                                 ,(iterate (car tail) (cdr tail)))))))))))
 
-; Define the dotimes and dolist iteration macros.
+;;; Define the dotimes and dolist iteration macros.
 
 (built-in-macro dotimes
   (lambda (args . body)
@@ -150,15 +152,15 @@
                      (list (caddr args))
                      '())))))))))
 
-; Exception handling.  unwind-protect and catch are implemented as macros (throw
-; is a built-in function).
+;;; Exception handling.  unwind-protect and catch are implemented as
+;;; macros (throw is a built-in function).
 
-; catch and throw can mainly be implemented directly using Guile's
-; primitives for exceptions, the only difficulty is that the keys used
-; within Guile must be symbols, while elisp allows any value and checks
-; for matches using eq (eq?).  We handle this by using always #t as key
-; for the Guile primitives and check for matches inside the handler; if
-; the elisp keys are not eq?, we rethrow the exception.
+;;; catch and throw can mainly be implemented directly using Guile's
+;;; primitives for exceptions, the only difficulty is that the keys used
+;;; within Guile must be symbols, while elisp allows any value and
+;;; checks for matches using eq (eq?).  We handle this by using always #t
+;;; as key for the Guile primitives and check for matches inside the
+;;; handler; if the elisp keys are not eq?, we rethrow the exception.
 
 (built-in-macro catch
   (lambda (tag . body)
@@ -180,8 +182,8 @@
                      ((guile-primitive throw) ,dummy-key ,elisp-key
                                               ,value))))))))))
 
-; unwind-protect is just some weaker construct as dynamic-wind, so
-; straight-forward to implement.
+;;; unwind-protect is just some weaker construct as dynamic-wind, so
+;;; straight-forward to implement.
 
 (built-in-macro unwind-protect
   (lambda (body . clean-ups)
@@ -192,7 +194,7 @@
        (lambda () ,body)
        (lambda () ,@clean-ups))))
 
-; Pop off the first element from a list or push one to it.
+;;; Pop off the first element from a list or push one to it.
 
 (built-in-macro pop
   (lambda (list-name)

@@ -1,6 +1,6 @@
 ;;; Guile Emacs Lisp
 
-;;; Copyright (C) 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -22,10 +22,11 @@
   #:use-module (language elisp runtime)
   #:use-module (system base compile))
 
-; This module contains the function-slots of elisp symbols.  Elisp built-in
-; functions are implemented as predefined function bindings here.
+;;; This module contains the function-slots of elisp symbols.  Elisp
+;;; built-in functions are implemented as predefined function bindings
+;;; here.
 
-; Equivalence and equalness predicates.
+;;; Equivalence and equalness predicates.
 
 (built-in-func eq (lambda (a b)
                     (elisp-bool (eq? a b))))
@@ -33,7 +34,7 @@
 (built-in-func equal (lambda (a b)
                        (elisp-bool (equal? a b))))
 
-; Number predicates.
+;;; Number predicates.
 
 (built-in-func floatp (lambda (num)
                         (elisp-bool (and (real? num)
@@ -55,7 +56,7 @@
 (built-in-func zerop (lambda (num)
                        (elisp-bool (prim = num 0))))
 
-; Number comparisons.
+;;; Number comparisons.
 
 (built-in-func = (lambda (num1 num2)
                    (elisp-bool (prim = num1 num2))))
@@ -83,16 +84,16 @@
 
 (built-in-func abs (@ (guile) abs))
 
-; Number conversion.
+;;; Number conversion.
 
 (built-in-func float (lambda (num)
                        (if (exact? num)
                          (exact->inexact num)
                          num)))
 
-; TODO: truncate, floor, ceiling, round.
+;;; TODO: truncate, floor, ceiling, round.
 
-; Arithmetic functions.
+;;; Arithmetic functions.
 
 (built-in-func 1+ (@ (guile) 1+))
 
@@ -106,9 +107,10 @@
 
 (built-in-func % (@ (guile) modulo))
 
-; TODO: / with correct integer/real behaviour, mod (for floating-piont values).
+;;; TODO: / with correct integer/real behaviour, mod (for floating-piont
+;;; values).
 
-; Floating-point rounding operations.
+;;; Floating-point rounding operations.
 
 (built-in-func ffloor (@ (guile) floor))
 
@@ -118,7 +120,7 @@
 
 (built-in-func fround (@ (guile) round))
 
-; List predicates.
+;;; List predicates.
 
 (built-in-func consp
   (lambda (el)
@@ -141,7 +143,7 @@
   (lambda (el)
     (elisp-bool (null? el))))
 
-; Accessing list elements.
+;;; Accessing list elements.
 
 (built-in-func car
   (lambda (el)
@@ -191,7 +193,7 @@
 
 (built-in-func length (@ (guile) length))
 
-; Building lists.
+;;; Building lists.
 
 (built-in-func cons (@ (guile) cons))
 
@@ -236,7 +238,7 @@
                   (prim cons i result)
                   (iterate (prim - i sep) (prim cons i result)))))))))))
 
-; Changing lists.
+;;; Changing lists.
 
 (built-in-func setcar
   (lambda (cell val)
@@ -248,7 +250,7 @@
     (prim set-cdr! cell val)
     val))
 
-; Accessing symbol bindings for symbols known only at runtime.
+;;; Accessing symbol bindings for symbols known only at runtime.
 
 (built-in-func symbol-value
   (lambda (sym)
@@ -286,8 +288,8 @@
     (elisp-bool (prim not
                   (eq? void (reference-variable function-slot-module sym))))))
 
-; Function calls.  These must take care of special cases, like using symbols
-; or raw lambda-lists as functions!
+;;; Function calls. These must take care of special cases, like using
+;;; symbols or raw lambda-lists as functions!
 
 (built-in-func apply
   (lambda (func . args)
@@ -308,13 +310,13 @@
     (lambda (func . args)
       (myapply func args))))
 
-; Throw can be implemented as built-in function.
+;;; Throw can be implemented as built-in function.
 
 (built-in-func throw
   (lambda (tag value)
     (prim throw 'elisp-exception tag value)))
 
-; Miscellaneous.
+;;; Miscellaneous.
 
 (built-in-func not
   (lambda (x)
