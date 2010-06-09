@@ -190,13 +190,19 @@
     
 (define-syntax import
   (lambda (stx)
-    (syntax-case stx (for)
-      ((_ (for import-set import-level ...))
-       #'(import import-set))
-      ((_ import-set)
-       #'(eval-when (eval load compile expand)
-           (let ((iface (resolve-r6rs-interface 'import-set)))
-             (call-with-deferred-observers
-              (lambda ()
-                (module-use-interfaces! (current-module) (list iface))))
+    (define (strip-for import-set)
+      (syntax-case import-set (for)
+        ((for import-set import-level ...)
+         #'import-set)
+        (import-set
+         #'import-set)))
+    (syntax-case stx ()
+      ((_ import-set ...)
+       (with-syntax (((library-reference ...) (map strip-for #'(import-set ...))))
+         #'(eval-when (eval load compile expand)
+             (let ((iface (resolve-r6rs-interface 'library-reference)))
+               (call-with-deferred-observers
+                 (lambda ()
+                   (module-use-interfaces! (current-module) (list iface)))))
+             ...
              (if #f #f)))))))

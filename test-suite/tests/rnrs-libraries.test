@@ -183,4 +183,11 @@
   (with-test-prefix "srfi"
     (pass-if "renaming works"
       (eq? (resolve-interface '(srfi srfi-1))
-           (resolve-r6rs-interface '(srfi :1))))))
+           (resolve-r6rs-interface '(srfi :1)))))
+
+  (with-test-prefix "macro"
+    (pass-if "multiple clauses"
+      (eval '(begin
+               (import (rnrs) (for (rnrs) expand) (rnrs))
+               #t)
+            (current-module)))))
