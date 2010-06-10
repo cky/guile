@@ -68,6 +68,10 @@
     (if welcome
         (repl-welcome repl))
     (with-fluids ((*repl-level* level)
+                  (*debug-input-port*
+                   (or (fluid-ref *debug-input-port*) (current-input-port)))
+                  (*debug-output-port*
+                   (or (fluid-ref *debug-output-port*) (current-output-port)))
                   (the-last-stack #f))
       (let prompt-loop ()
         (let ((exp (prompting-meta-read repl)))
