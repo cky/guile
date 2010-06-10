@@ -337,11 +337,6 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (resolve-module . args)
   #f)
 
-;; Input hook to syncase -- so that we might be able to pass annotated
-;; expressions in. Currently disabled. Maybe we should just use
-;; source-properties directly.
-(define (annotation? x) #f)
-
 ;; API provided by psyntax
 (define syntax-violation #f)
 (define datum->syntax #f)
