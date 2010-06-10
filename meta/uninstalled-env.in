@@ -102,15 +102,19 @@ if ( env | grep -v '^GUILE_SYSTEM_EXTENSIONS_PATH=' > /dev/null ); then
 fi
 
 # handle LTDL_LIBRARY_PATH (no clobber)
-ltdl_prefix=""
-dyld_prefix=""
 for dir in $subdirs_with_ltlibs ; do
-    ltdl_prefix="${top_builddir}/${dir}:${ltdl_prefix}"
-    dyld_prefix="${top_builddir}/${dir}/.libs:${dyld_prefix}"
+    if test -z "$LTDL_LIBRARY_PATH"; then
+      LTDL_LIBRARY_PATH="${top_builddir}/${dir}"
+    else
+      LTDL_LIBRARY_PATH="${top_builddir}/${dir}:${LTDL_LIBRARY_PATH}"
+    fi
+    if test -z "$DYLD_LIBRARY_PATH"; then
+      DYLD_LIBRARY_PATH="${top_builddir}/${dir}/.libs"
+    else
+      DYLD_LIBRARY_PATH="${top_builddir}/${dir}/.libs:${DYLD_LIBRARY_PATH}"
+    fi
 done
-LTDL_LIBRARY_PATH="${ltdl_prefix}$LTDL_LIBRARY_PATH"
 export LTDL_LIBRARY_PATH
-DYLD_LIBRARY_PATH="${dyld_prefix}$DYLD_LIBRARY_PATH"
 export DYLD_LIBRARY_PATH
 
 if [ x"$PKG_CONFIG_PATH" = x ]
@@ -124,7 +128,9 @@ export PKG_CONFIG_PATH
 # handle PATH (no clobber)
 PATH="${top_builddir}/libguile:${PATH}"
 PATH="${top_srcdir}/meta:${PATH}"
-PATH="${top_builddir}/meta:${PATH}"
+if "x${top_srcdir}" != "x${top_builddir}"; then
+  PATH="${top_builddir}/meta:${PATH}"
+fi
 export PATH
 
 exec "$@"
