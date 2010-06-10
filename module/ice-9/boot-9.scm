@@ -2346,7 +2346,7 @@ If there is no handler at all, Guile prints an error and then exits."
                (cond ((> (car lst1) (car lst2)) #t)
                      ((< (car lst1) (car lst2)) #f)
                      (else (numlist-less (cdr lst1) (cdr lst2)))))))
-    (numlist-less (car pair1) (car pair2)))
+    (not (numlist-less (car pair2) (car pair1))))
   (define (match-version-and-file pair)
     (and (version-matches? version-ref (car pair))
          (let ((filenames                            
@@ -2354,7 +2354,7 @@ If there is no handler at all, Guile prints an error and then exits."
                           (let ((s (false-if-exception (stat file))))
                             (and s (eq? (stat:type s) 'regular))))
                         (map (lambda (ext)
-                               (string-append (cdr pair) "/" name ext))
+                               (string-append (cdr pair) name ext))
                              %load-extensions))))
            (and (not (null? filenames))
                 (cons (car pair) (car filenames))))))
@@ -2365,12 +2365,14 @@ If there is no handler at all, Guile prints an error and then exits."
         (let ((entry (readdir dstrm)))
           (if (eof-object? entry)
               subdir-pairs
-              (let* ((subdir (string-append (cdr root-pair) "/" entry))
+              (let* ((subdir (string-append (cdr root-pair) entry))
                      (num (string->number entry))
-                     (num (and num (append (car root-pair) (list num)))))
+                     (num (and num (exact? num) (append (car root-pair) 
+                                                        (list num)))))
                 (if (and num (eq? (stat:type (stat subdir)) 'directory))
-                    (filter-subdir 
-                     root-pair dstrm (cons (cons num subdir) subdir-pairs))
+                    (filter-subdir
+                     root-pair dstrm (cons (cons num (string-append subdir "/"))
+                                           subdir-pairs))
                     (filter-subdir root-pair dstrm subdir-pairs))))))
       
       (or (and (null? root-pairs) ret)
