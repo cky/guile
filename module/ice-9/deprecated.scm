@@ -352,6 +352,97 @@ deprecated. Use set-module-public-interface! instead.")
           (setter mod iface)
           (module-define! mod '%module-public-interface iface))))
 
+(define (error-catching-loop thunk)
+  (issue-deprecation-warning 
+   "`error-catching-loop' is deprecated. Use the repl from `(system repl repl)' instead.")
+  (let ((status #f)
+        (interactive #t))
+    (define (loop first)
+      (let ((next
+             (catch #t
+
+                    (lambda ()
+                      (call-with-unblocked-asyncs
+                       (lambda ()
+                         (with-traps
+                          (lambda ()
+                            (first)
+
+                            ;; This line is needed because mark
+                            ;; doesn't do closures quite right.
+                            ;; Unreferenced locals should be
+                            ;; collected.
+                            (set! first #f)
+                            (let loop ((v (thunk)))
+                              (loop (thunk)))
+                            #f)))))
+
+                    (lambda (key . args)
+                      (case key
+                        ((quit)
+                         (set! status args)
+                         #f)
+
+                        ((switch-repl)
+                         (apply throw 'switch-repl args))
+
+                        ((abort)
+                         ;; This is one of the closures that require
+                         ;; (set! first #f) above
+                         ;;
+                         (lambda ()
+                           (run-hook abort-hook)
+                           (force-output (current-output-port))
+                           (display "ABORT: "  (current-error-port))
+                           (write args (current-error-port))
+                           (newline (current-error-port))
+                           (if interactive
+                               (begin
+                                 (if (and
+                                      (not has-shown-debugger-hint?)
+                                      (not (memq 'backtrace
+                                                 (debug-options-interface)))
+                                      (stack? (fluid-ref the-last-stack)))
+                                     (begin
+                                       (newline (current-error-port))
+                                       (display
+                                        "Type \"(backtrace)\" to get more information or \"(debug)\" to enter the debugger.\n"
+                                        (current-error-port))
+                                       (set! has-shown-debugger-hint? #t)))
+                                 (force-output (current-error-port)))
+                               (begin
+                                 (primitive-exit 1)))
+                           (set! stack-saved? #f)))
+
+                        (else
+                         ;; This is the other cons-leak closure...
+                         (lambda ()
+                           (cond ((= (length args) 4)
+                                  (apply handle-system-error key args))
+                                 (else
+                                  (apply bad-throw key args)))))))
+
+                    default-pre-unwind-handler)))
+
+        (if next (loop next) status)))
+    (set! set-batch-mode?! (lambda (arg)
+                             (cond (arg
+                                    (set! interactive #f)
+                                    (restore-signals))
+                                   (#t
+                                    (error "sorry, not implemented")))))
+    (set! batch-mode? (lambda () (not interactive)))
+    (call-with-blocked-asyncs
+     (lambda () (loop (lambda () #t))))))
+
+(define (error-catching-repl r e p)
+  (issue-deprecation-warning 
+   "`error-catching-repl' is deprecated. Use the repl from `(system repl repl)' instead.")
+  (error-catching-loop
+   (lambda ()
+     (call-with-values (lambda () (e (r)))
+       (lambda the-values (for-each p the-values))))))
+
 (define (scm-style-repl)
   (issue-deprecation-warning 
    "`scm-style-repl' is deprecated. Use the repl from `(system repl repl)' instead.")

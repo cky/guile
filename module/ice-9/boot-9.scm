@@ -2906,87 +2906,6 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (set-batch-mode?! arg) #t)
 (define (batch-mode?) #t)
 
-(define (error-catching-loop thunk)
-  (let ((status #f)
-        (interactive #t))
-    (define (loop first)
-      (let ((next
-             (catch #t
-
-                    (lambda ()
-                      (call-with-unblocked-asyncs
-                       (lambda ()
-                         (with-traps
-                          (lambda ()
-                            (first)
-
-                            ;; This line is needed because mark
-                            ;; doesn't do closures quite right.
-                            ;; Unreferenced locals should be
-                            ;; collected.
-                            (set! first #f)
-                            (let loop ((v (thunk)))
-                              (loop (thunk)))
-                            #f)))))
-
-                    (lambda (key . args)
-                      (case key
-                        ((quit)
-                         (set! status args)
-                         #f)
-
-                        ((switch-repl)
-                         (apply throw 'switch-repl args))
-
-                        ((abort)
-                         ;; This is one of the closures that require
-                         ;; (set! first #f) above
-                         ;;
-                         (lambda ()
-                           (run-hook abort-hook)
-                           (force-output (current-output-port))
-                           (display "ABORT: "  (current-error-port))
-                           (write args (current-error-port))
-                           (newline (current-error-port))
-                           (if interactive
-                               (begin
-                                 (if (and
-                                      (not has-shown-debugger-hint?)
-                                      (not (memq 'backtrace
-                                                 (debug-options-interface)))
-                                      (stack? (fluid-ref the-last-stack)))
-                                     (begin
-                                       (newline (current-error-port))
-                                       (display
-                                        "Type \"(backtrace)\" to get more information or \"(debug)\" to enter the debugger.\n"
-                                        (current-error-port))
-                                       (set! has-shown-debugger-hint? #t)))
-                                 (force-output (current-error-port)))
-                               (begin
-                                 (primitive-exit 1)))
-                           (set! stack-saved? #f)))
-
-                        (else
-                         ;; This is the other cons-leak closure...
-                         (lambda ()
-                           (cond ((= (length args) 4)
-                                  (apply handle-system-error key args))
-                                 (else
-                                  (apply bad-throw key args)))))))
-
-                    default-pre-unwind-handler)))
-
-        (if next (loop next) status)))
-    (set! set-batch-mode?! (lambda (arg)
-                             (cond (arg
-                                    (set! interactive #f)
-                                    (restore-signals))
-                                   (#t
-                                    (error "sorry, not implemented")))))
-    (set! batch-mode? (lambda () (not interactive)))
-    (call-with-blocked-asyncs
-     (lambda () (loop (lambda () #t))))))
-
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
 (define before-signal-stack (make-fluid))
 ;; FIXME: stack-saved? is broken in the presence of threads.
@@ -3041,12 +2960,6 @@ module '(ice-9 q) '(make-q q-length))}."
   (apply throw 'quit args))
 
 (define exit quit)
-
-(define (error-catching-repl r e p)
-  (error-catching-loop
-   (lambda ()
-     (call-with-values (lambda () (e (r)))
-       (lambda the-values (for-each p the-values))))))
 
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
