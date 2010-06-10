@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#	Copyright (C) 2003, 2006, 2008, 2009 Free Software Foundation
+#	Copyright (C) 2003, 2006, 2008, 2009, 2010 Free Software Foundation
 #
 #   This file is part of GUILE.
 #
@@ -85,6 +85,10 @@ fi
 export GUILE_LOAD_COMPILED_PATH
 
 # Don't look in installed dirs for guile modules
+if ( env | grep -v '^GUILE_SYSTEM_PATH=' > /dev/null ); then
+  GUILE_SYSTEM_PATH=
+  export GUILE_SYSTEM_PATH
+fi
 if ( env | grep -v '^GUILE_SYSTEM_COMPILED_PATH=' > /dev/null ); then
   GUILE_SYSTEM_COMPILED_PATH=
   export GUILE_SYSTEM_COMPILED_PATH
