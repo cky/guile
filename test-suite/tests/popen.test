@@ -167,8 +167,9 @@
     (let* ((c2p (pipe))
 	   (port (with-error-to-port (cdr c2p)
 		   (lambda ()
-		     (open-output-pipe
-		      "exec 0</dev/null; while true; do echo closed 1>&2; done")))))
+		     (open-output-pipe (format #f
+                                               "guile -s ~a/tests/popen-child.scm"
+                                               (getenv "TEST_SUITE_DIR")))))))
       (close-port (cdr c2p))   ;; write side
       (with-epipe
        (lambda ()
