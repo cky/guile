@@ -397,11 +397,16 @@ With an argument, select a frame by index, then show it."
       (catch 'quit
         (lambda ()
           (let loop ()
-            (let ((args (save-module-excursion
+            (let ((args (call-with-error-handling
                          (lambda ()
-                           (set-current-module commands)
-                           (read-args prompt)))))
-              (apply handle args)
+                           (save-module-excursion
+                            (lambda ()
+                              (set-current-module commands)
+                              (read-args prompt))))
+                         #:on-error 'pass)))
+              ;; args will be unspecified if there was a read error.
+              (if (not (unspecified? args))
+                  (apply handle args))
               (loop))))
         (lambda (k . args)
           (apply values args))))))
