@@ -1802,6 +1802,8 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   int i2_is_big = 0;
   SCM acc = SCM_I_MAKINUM (1L);
 
+  SCM_VALIDATE_NUMBER (SCM_ARG1, n);
+
   /* 0^0 == 1 according to R5RS */
   if (scm_is_eq (n, SCM_INUM0) || scm_is_eq (n, acc))
     return scm_is_false (scm_zero_p(k)) ? n : acc;
@@ -5466,7 +5468,7 @@ SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
 	    "Return @var{x} raised to the power of @var{y}.") 
 #define FUNC_NAME s_scm_expt
 {
-  if ((SCM_I_INUMP (x) || SCM_BIGP (x)) && scm_is_integer (y))
+  if (scm_is_true (scm_exact_p (x)) && scm_is_integer (y))
     return scm_integer_expt (x, y);
   else if (scm_is_real (x) && scm_is_real (y) && scm_to_double (x) >= 0.0)
     {

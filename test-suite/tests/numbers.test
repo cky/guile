@@ -2995,6 +2995,8 @@
 
 (with-test-prefix "integer-expt"
 
+  (pass-if-exception "non-numeric base" exception:wrong-type-arg
+                     (integer-expt #t 0))
   (pass-if-exception "2^+inf" exception:wrong-type-arg
     (integer-expt 2 +inf.0))
   (pass-if-exception "2^-inf" exception:wrong-type-arg
