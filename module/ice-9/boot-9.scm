@@ -537,8 +537,16 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {General Properties}
 ;;;
 
-;; This is a more modern interface to properties.  It will replace all
-;; other property-like things eventually.
+;; Properties are a lispy way to associate random info with random objects.
+;; Traditionally properties are implemented as an alist or a plist actually
+;; pertaining to the object in question.
+;;
+;; These "object properties" have the advantage that they can be associated with
+;; any object, even if the object has no plist. Object properties are good when
+;; you are extending pre-existing objects in unexpected ways. They also present
+;; a pleasing, uniform procedure-with-setter interface. But if you have a data
+;; type that always has properties, it's often still best to store those
+;; properties within the object itself.
 
 (define (make-object-property)
   (let ((prop (primitive-make-property #f)))
@@ -550,6 +558,10 @@ If there is no handler at all, Guile prints an error and then exits."
 
 ;;; {Symbol Properties}
 ;;;
+
+;;; Symbol properties are something you see in old Lisp code. In most current
+;;; Guile code, symbols are not used as a data structure -- they are used as
+;;; keys into other data structures.
 
 (define (symbol-property sym prop)
   (let ((pair (assoc prop (symbol-pref sym))))
