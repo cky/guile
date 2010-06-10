@@ -3042,24 +3042,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define exit quit)
 
-;;(define has-shown-backtrace-hint? #f) Defined by scm_init_backtrace ()
-
-;; Replaced by C code:
-;;(define (backtrace)
-;;  (if (fluid-ref the-last-stack)
-;;      (begin
-;;      (newline)
-;;      (display-backtrace (fluid-ref the-last-stack) (current-output-port))
-;;      (newline)
-;;      (if (and (not has-shown-backtrace-hint?)
-;;               (not (memq 'backtrace (debug-options-interface))))
-;;          (begin
-;;            (display
-;;"Type \"(debug-enable 'backtrace)\" if you would like a backtrace
-;;automatically if an error occurs in the future.\n")
-;;            (set! has-shown-backtrace-hint? #t))))
-;;      (display "No backtrace available.\n")))
-
 (define (error-catching-repl r e p)
   (error-catching-loop
    (lambda ()
