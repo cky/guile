@@ -31,7 +31,8 @@
   #:use-module (system vm program)
   #:export (*debug-input-port*
             *debug-output-port*
-            debug run-debugger debug-pre-unwind-handler))
+            debug run-debugger
+            call-with-error-handling with-error-handling))
 
 
 
@@ -187,7 +188,7 @@
 ;; context of the error, the debugger should really be a kind of coroutine,
 ;; having its own dynamic input and output bindings. Delimited continuations can
 ;; do this.
-(define* (run-debugger stack frames #:optional (vm (the-vm)) #:key
+(define* (run-debugger frames #:optional (vm (the-vm)) #:key
                        (input (debug-input-port)) (output (debug-output-port)))
   (let* ((db (vm-debugger vm))
          (level (debugger-level db)))
@@ -198,13 +199,13 @@
       (lambda () 
         (dynamic-wind
           (lambda () (set! output (set-current-output-port output)))
-          (lambda () (debugger-repl db stack frames))
+          (lambda () (debugger-repl db frames))
           (lambda () (set! output (set-current-output-port output)))))
       (lambda ()
         (set! input (set-current-input-port input))
         (set! (debugger-level db) level)))))
 
-(define (debugger-repl db stack frames)
+(define (debugger-repl db frames)
   (let* ((index 0)
          (top (vector-ref frames index))
          (cur top)
@@ -396,13 +397,12 @@ With an argument, select a frame by index, then show it."
       (catch 'quit
         (lambda ()
           (let loop ()
-            (apply
-             handle
-             (save-module-excursion
-              (lambda ()
-                (set-current-module commands)
-                (read-args prompt))))
-            (loop)))
+            (let ((args (save-module-excursion
+                         (lambda ()
+                           (set-current-module commands)
+                           (read-args prompt)))))
+              (apply handle args)
+              (loop))))
         (lambda (k . args)
           (apply values args))))))
 
@@ -440,32 +440,69 @@ With an argument, select a frame by index, then show it."
                 (lp (1+ i) (frame-previous frame))))))
     v))
 
-(define (debug-pre-unwind-handler key . args)
-  ;; Narrow the stack by three frames: make-stack, this one, and the throw
-  ;; handler.
-  (cond
-   ((make-stack #t 3) =>
-    (lambda (stack)
-      (pmatch args
-        ((,subr ,msg ,args . ,rest)
-         (format (debug-output-port) "Throw to key `~a':\n" key)
-         (display-error stack (debug-output-port) subr msg args rest))
-        (else
-         (format (debug-output-port) "Throw to key `~a' with args `~s'." key args)))
-      (format (debug-output-port)
-              "Entering the debugger. Type `bt' for a backtrace or `c' to continue.\n")
-      (run-debugger stack
-                    (stack->vector
-                     ;; by default, narrow to the most recent start-stack
-                     (make-stack (stack-ref stack 0) 0
-                                 (and (pair? (fluid-ref %stacks))
-                                      (cdar (fluid-ref %stacks)))))
-                    0))))
-  (save-stack debug-pre-unwind-handler)
-  (apply throw key args))
-
 (define (debug)
   (let ((stack (fluid-ref the-last-stack)))
     (if stack
-        (run-debugger stack (stack->vector stack))
+        (run-debugger (stack->vector stack))
         (display "Nothing to debug.\n" (debug-output-port)))))
+
+(define (narrow-stack->vector stack . args)
+  (stack->vector (apply make-stack (stack-ref stack 0) args)))
+
+(define* (call-with-error-handling thunk #:key
+                                   (on-error 'debug) (post-error 'catch)
+                                   (pass-keys '(quit)))
+  (catch #t
+    (lambda () (%start-stack #t thunk))
+
+    (case post-error
+      ((catch)
+       (lambda (key . args)
+         (if (memq key pass-keys)
+             (apply throw key args)
+             (let ((cep (current-error-port)))
+               (pmatch args
+                 ((,subr ,msg ,args . ,rest)
+                  (run-hook before-error-hook)
+                  (display-error #f cep subr msg args rest)
+                  (run-hook after-error-hook)
+                  (force-output cep))
+                 (else
+                  (format cep "\nERROR: uncaught throw to `~a', args: ~a\n"
+                          key args)))))))
+      (else
+       (if (procedure? post-error)
+           post-error
+           (error "Unknown post-error strategy" post-error))))
+    
+    (case on-error
+      ((debug)
+       (lambda (key . args)
+         (let ((stack (make-stack #t))
+               (dep (debug-output-port)))
+           (pmatch args
+             ((,subr ,msg ,args . ,rest)
+              (format dep "Throw to key `~a':\n" key)
+              (display-error stack dep subr msg args rest))
+             (else
+              (format dep "Throw to key `~a' with args `~s'." key args)))
+           (format dep "Entering the debugger. Type `bt' for a backtrace")
+           (format dep " or `c' to continue.\n")
+           (run-debugger
+            (narrow-stack->vector
+             stack
+             ;; Cut three frames from the top of the stack: make-stack, this
+             ;; one, and the throw handler.
+             3 
+             ;; Narrow the end of the stack to the most recent start-stack.
+             (and (pair? (fluid-ref %stacks))
+                  (cdar (fluid-ref %stacks))))))))
+      (else
+       (if (procedure? on-error)
+           on-error
+           (error "Unknown on-error strategy" on-error))))))
+
+(define-syntax with-error-handling
+  (syntax-rules ()
+    ((_ form)
+     (call-with-error-handling (lambda () form)))))

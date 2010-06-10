@@ -28,7 +28,7 @@
   #:use-module (system repl command)
   #:use-module (system vm vm)
   #:use-module (system vm debug)
-  #:export (start-repl call-with-backtrace))
+  #:export (start-repl))
 
 (define meta-command-token (cons 'meta 'command))
 
@@ -50,49 +50,29 @@
 ;; repl-reader is a function defined in boot-9.scm, and is replaced by
 ;; something else if readline has been activated. much of this hoopla is
 ;; to be able to re-use the existing readline machinery.
+;;
+;; Catches read errors, returning *unspecified* in that case.
 (define (prompting-meta-read repl)
-  (repl-reader (lambda () (repl-prompt repl))
-               (meta-reader (language-reader (repl-language repl))
-                            (current-module))))
-
-(define (default-catch-handler . args)
-  (pmatch args
-    ((quit . _)
-     (apply throw args))
-    ((,key ,subr ,msg ,args . ,rest)
-     (let ((cep (current-error-port)))
-       (cond ((not (stack? (fluid-ref the-last-stack))))
-             ((memq 'backtrace (debug-options-interface))
-              (let ((highlights (if (or (eq? key 'wrong-type-arg)
-                                        (eq? key 'out-of-range))
-                                    (car rest)
-                                    '())))
-                (run-hook before-backtrace-hook)
-                (newline cep)
-                (display "Backtrace:\n")
-                (display-backtrace (fluid-ref the-last-stack) cep
-                                   #f #f highlights)
-                (newline cep)
-                (run-hook after-backtrace-hook))))
-       (run-hook before-error-hook)
-       (display-error (fluid-ref the-last-stack) cep subr msg args rest)
-       (run-hook after-error-hook)
-       (set! stack-saved? #f)
-       (force-output cep)))
-    (else
-     (format (current-error-port) "\nERROR: uncaught throw to `~a', args: ~a\n"
-             (car args) (cdr args)))))
-
-(define (call-with-backtrace thunk)
   (catch #t
-         (lambda () (%start-stack #t thunk))
-         default-catch-handler
-         debug-pre-unwind-handler))
-
-(define-syntax with-backtrace
-  (syntax-rules ()
-    ((_ form)
-     (call-with-backtrace (lambda () form)))))
+    (lambda ()
+      (repl-reader (lambda () (repl-prompt repl))
+                   (meta-reader (language-reader (repl-language repl))
+                                (current-module))))
+    ;; FIXME: This catch handler should be factored out somewhere.
+    (lambda args
+      (pmatch args
+        ((quit . _)
+         (apply throw args))
+        ((,key ,subr ,msg ,args . ,rest)
+         (let ((cep (current-error-port)))
+           (run-hook before-error-hook)
+           (display-error #f cep subr msg args rest)
+           (run-hook after-error-hook)
+           (force-output cep)))
+        (else
+         (format (current-error-port) "\nERROR: uncaught throw to `~a', args: ~a\n"
+                 (car args) (cdr args))))
+      (if #f #f))))
 
 (define* (start-repl #:optional (lang (current-language)) #:key
                      (level (1+ (or (fluid-ref *repl-level*) -1)))
@@ -104,11 +84,11 @@
     (with-fluids ((*repl-level* level)
                   (the-last-stack #f))
       (let prompt-loop ()
-        (let ((exp (with-backtrace (prompting-meta-read repl))))
+        (let ((exp (prompting-meta-read repl)))
           (cond
            ((eqv? exp (if #f #f)))      ; read error, pass
            ((eq? exp meta-command-token)
-            (with-backtrace (meta-command repl)))
+            (with-error-handling (meta-command repl)))
            ((eof-object? exp)
             (newline)
             (set! status '()))
@@ -116,7 +96,7 @@
             ;; since the input port is line-buffered, consume up to the
             ;; newline
             (flush-to-newline)
-            (with-backtrace
+            (with-error-handling
              (catch 'quit
                (lambda ()
                  (call-with-values
