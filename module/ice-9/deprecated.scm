@@ -42,7 +42,8 @@
             error-catching-loop
             error-catching-repl
             scm-style-repl
-            apply-to-args)
+            apply-to-args
+            has-suffix?)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -395,3 +396,8 @@ better yet, use the repl from `(system repl repl)'.")
   (issue-deprecation-warning 
    "`apply-to-args' is deprecated. Include a local copy in your program.")
   (apply fn args))
+
+(define (has-suffix? str suffix)
+  (issue-deprecation-warning 
+   "`has-suffix?' is deprecated. Use `string-suffix?' instead (args reversed).")
+  (string-suffix? suffix str))

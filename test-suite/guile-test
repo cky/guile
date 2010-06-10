@@ -155,7 +155,7 @@
   (let ((root-len (+ 1 (string-length test-dir)))
 	(tests '()))
     (for-each-file (lambda (file)
-		     (if (has-suffix? file ".test")
+		     (if (string-suffix? ".test" file)
 			 (let ((short-name
 				(substring file root-len)))
 			   (set! tests (cons short-name tests))))

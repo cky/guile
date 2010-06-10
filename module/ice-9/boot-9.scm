@@ -592,6 +592,8 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {Keywords}
 ;;;
 
+;;; It's much better if you can use lambda* / define*, of course.
+
 (define (kw-arg-ref args kw)
   (let ((rem (member kw args)))
     (and rem (pair? (cdr rem)) (cadr rem))))
@@ -832,9 +834,6 @@ If there is no handler at all, Guile prints an error and then exits."
                            (lambda args #f))))
           (if port (begin (close-port port) #t)
               #f)))))
-
-(define (has-suffix? str suffix)
-  (string-suffix? suffix str))
 
 (define (system-error-errno args)
   (if (eq? (car args) 'system-error)
