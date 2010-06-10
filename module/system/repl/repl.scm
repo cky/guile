@@ -89,8 +89,10 @@
          default-catch-handler
          debug-pre-unwind-handler))
 
-(define-macro (with-backtrace form)
-  `(call-with-backtrace (lambda () ,form)))
+(define-syntax with-backtrace
+  (syntax-rules ()
+    ((_ form)
+     (call-with-backtrace (lambda () form)))))
 
 (define* (start-repl #:optional (lang (current-language)) #:key
                      (level (1+ (or (fluid-ref *repl-level*) -1)))
