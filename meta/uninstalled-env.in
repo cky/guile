@@ -48,20 +48,22 @@ top_builddir="@top_builddir_absolute@"
 
 if [ x"$GUILE_LOAD_PATH" = x ]
 then
+    GUILE_LOAD_PATH="${top_srcdir}/module:${top_srcdir}:${top_srcdir}/guile-readline"
     if test "${top_srcdir}" != "${top_builddir}"; then
-        GUILE_LOAD_PATH="${top_builddir}/guile-readline:${top_srcdir}/guile-readline:${top_builddir}:${top_srcdir}:${top_builddir}/module:${top_srcdir}/module"
-    else
-        GUILE_LOAD_PATH="${top_srcdir}/guile-readline:${top_srcdir}:${top_srcdir}/module:${top_srcdir}/module"
+        GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}:${top_builddir}/guile-readline"
     fi
 else
-  for d in "${top_srcdir}" "${top_srcdir}/guile-readline" \
-           "${top_srcdir}/module" "${top_builddir}/module"
+  for d in "/module" "" "/guile-readline"
   do
     # This hair prevents double inclusion.
     # The ":" prevents prefix aliasing.
     case x"$GUILE_LOAD_PATH" in
-      x*${d}:*) ;;
-      *) GUILE_LOAD_PATH="${d}:$GUILE_LOAD_PATH" ;;
+      x*${top_srcdir}${d}:*) ;;
+      *) GUILE_LOAD_PATH="${top_srcdir}${d}:$GUILE_LOAD_PATH" ;;
+    esac
+    case x"$GUILE_LOAD_PATH" in
+      x*${top_builddir}${d}:*) ;;
+      *) GUILE_LOAD_PATH="${top_builddir}${d}:$GUILE_LOAD_PATH" ;;
     esac
   done
 fi
@@ -69,16 +71,15 @@ export GUILE_LOAD_PATH
 
 if [ x"$GUILE_LOAD_COMPILED_PATH" = x ]
 then
-  GUILE_LOAD_COMPILED_PATH="${top_builddir}/guile-readline:${top_builddir}:${top_builddir}/module"
+  GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}:${top_builddir}/guile-readline"
 else
-  for d in "${top_builddir}" "${top_builddir}/guile-readline" \
-           "${top_builddir}/module"
+  for d in "/module" "" "/guile-readline"
   do
     # This hair prevents double inclusion.
     # The ":" prevents prefix aliasing.
     case x"$GUILE_LOAD_COMPILED_PATH" in
-      x*${d}:*) ;;
-      *) GUILE_LOAD_COMPILED_PATH="${d}:$GUILE_LOAD_COMPILED_PATH" ;;
+      x*${top_builddir}${d}:*) ;;
+      *) GUILE_LOAD_COMPILED_PATH="${top_builddir}${d}:$GUILE_LOAD_COMPILED_PATH" ;;
     esac
   done
 fi
@@ -89,6 +90,7 @@ if ( env | grep -v '^GUILE_SYSTEM_PATH=' > /dev/null ); then
   GUILE_SYSTEM_PATH=
   export GUILE_SYSTEM_PATH
 fi
+# Don't look in installed dirs for compiled guile modules
 if ( env | grep -v '^GUILE_SYSTEM_COMPILED_PATH=' > /dev/null ); then
   GUILE_SYSTEM_COMPILED_PATH=
   export GUILE_SYSTEM_COMPILED_PATH
