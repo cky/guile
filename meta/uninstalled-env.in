@@ -128,7 +128,7 @@ export PKG_CONFIG_PATH
 # handle PATH (no clobber)
 PATH="${top_builddir}/libguile:${PATH}"
 PATH="${top_srcdir}/meta:${PATH}"
-if "x${top_srcdir}" != "x${top_builddir}"; then
+if test "x${top_srcdir}" != "x${top_builddir}"; then
   PATH="${top_builddir}/meta:${PATH}"
 fi
 export PATH
