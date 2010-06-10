@@ -138,6 +138,23 @@
 
 
 ;;;
+;;; Resolve-module.
+;;;
+
+(with-test-prefix "resolve-module"
+
+  (pass-if "#:ensure #t by default"
+    (module? (resolve-module (list (gensym)))))
+
+  (pass-if "#:ensure #t explicitly"
+    (module? (resolve-module (list (gensym)) #:ensure #t)))
+
+  (pass-if "#:ensure #f"
+    (not (resolve-module (list (gensym)) #:ensure #f))))
+
+
+
+;;;
 ;;; Observers.
 ;;;
 

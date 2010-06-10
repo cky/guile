@@ -2420,7 +2420,7 @@ If there is no handler at all, Guile prints an error and then exits."
     ;; Define the-root-module as '(guile).
     (module-define-submodule! root 'guile the-root-module)
 
-    (lambda* (name #:optional (autoload #t) (version #f))
+    (lambda* (name #:optional (autoload #t) (version #f) #:key (ensure #t))
       (let ((already (nested-ref-module root name)))
         (cond
          ((and already
@@ -2433,12 +2433,13 @@ If there is no handler at all, Guile prints an error and then exits."
          (autoload
           ;; Try to autoload the module, and recurse.
           (try-load-module name version)
-          (resolve-module name #f))
+          (resolve-module name #f #:ensure ensure))
          (else
           ;; No module found (or if one was, it had no public interface), and
-          ;; we're not autoloading. Here's the weird semantics: we ensure
-          ;; there's an empty module.
-          (or already (make-modules-in root name))))))))
+          ;; we're not autoloading. Make an empty module if #:ensure is true.
+          (or already
+              (and ensure
+                   (make-modules-in root name)))))))))
 
 
 (define (try-load-module name version)
