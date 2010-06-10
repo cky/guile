@@ -39,6 +39,8 @@
             closure?
             %nil
             @bind
+            error-catching-loop
+            error-catching-repl
             scm-style-repl)
 
   #:replace (module-ref-submodule module-define-submodule!))
@@ -354,199 +356,19 @@ deprecated. Use set-module-public-interface! instead.")
 
 (define (error-catching-loop thunk)
   (issue-deprecation-warning 
-   "`error-catching-loop' is deprecated. Use the repl from `(system repl repl)' instead.")
-  (let ((status #f)
-        (interactive #t))
-    (define (loop first)
-      (let ((next
-             (catch #t
-
-                    (lambda ()
-                      (call-with-unblocked-asyncs
-                       (lambda ()
-                         (with-traps
-                          (lambda ()
-                            (first)
-
-                            ;; This line is needed because mark
-                            ;; doesn't do closures quite right.
-                            ;; Unreferenced locals should be
-                            ;; collected.
-                            (set! first #f)
-                            (let loop ((v (thunk)))
-                              (loop (thunk)))
-                            #f)))))
-
-                    (lambda (key . args)
-                      (case key
-                        ((quit)
-                         (set! status args)
-                         #f)
-
-                        ((switch-repl)
-                         (apply throw 'switch-repl args))
-
-                        ((abort)
-                         ;; This is one of the closures that require
-                         ;; (set! first #f) above
-                         ;;
-                         (lambda ()
-                           (run-hook abort-hook)
-                           (force-output (current-output-port))
-                           (display "ABORT: "  (current-error-port))
-                           (write args (current-error-port))
-                           (newline (current-error-port))
-                           (if interactive
-                               (begin
-                                 (if (and
-                                      (not has-shown-debugger-hint?)
-                                      (not (memq 'backtrace
-                                                 (debug-options-interface)))
-                                      (stack? (fluid-ref the-last-stack)))
-                                     (begin
-                                       (newline (current-error-port))
-                                       (display
-                                        "Type \"(backtrace)\" to get more information or \"(debug)\" to enter the debugger.\n"
-                                        (current-error-port))
-                                       (set! has-shown-debugger-hint? #t)))
-                                 (force-output (current-error-port)))
-                               (begin
-                                 (primitive-exit 1)))
-                           (set! stack-saved? #f)))
-
-                        (else
-                         ;; This is the other cons-leak closure...
-                         (lambda ()
-                           (cond ((= (length args) 4)
-                                  (apply handle-system-error key args))
-                                 (else
-                                  (apply bad-throw key args)))))))
-
-                    default-pre-unwind-handler)))
-
-        (if next (loop next) status)))
-    (set! set-batch-mode?! (lambda (arg)
-                             (cond (arg
-                                    (set! interactive #f)
-                                    (restore-signals))
-                                   (#t
-                                    (error "sorry, not implemented")))))
-    (set! batch-mode? (lambda () (not interactive)))
-    (call-with-blocked-asyncs
-     (lambda () (loop (lambda () #t))))))
+   "`error-catching-loop' in the default environment is deprecated.
+Find it in the `(ice-9 scm-style-repl)' module instead.")
+  ((@ (ice-9 scm-style-repl) error-catching-loop) thunk))
 
 (define (error-catching-repl r e p)
   (issue-deprecation-warning 
-   "`error-catching-repl' is deprecated. Use the repl from `(system repl repl)' instead.")
-  (error-catching-loop
-   (lambda ()
-     (call-with-values (lambda () (e (r)))
-       (lambda the-values (for-each p the-values))))))
+   "`error-catching-repl' in the default environment is deprecated.
+Find it in the `(ice-9 scm-style-repl)' module instead.")
+  ((@ (ice-9 scm-style-repl) error-catching-repl) r e p))
 
 (define (scm-style-repl)
   (issue-deprecation-warning 
-   "`scm-style-repl' is deprecated. Use the repl from `(system repl repl)' instead.")
-  (letrec (
-           (start-gc-rt #f)
-           (start-rt #f)
-           (repl-report-start-timing (lambda ()
-                                       (set! start-gc-rt (gc-run-time))
-                                       (set! start-rt (get-internal-run-time))))
-           (repl-report (lambda ()
-                          (display ";;; ")
-                          (display (inexact->exact
-                                    (* 1000 (/ (- (get-internal-run-time) start-rt)
-                                               internal-time-units-per-second))))
-                          (display "  msec  (")
-                          (display  (inexact->exact
-                                     (* 1000 (/ (- (gc-run-time) start-gc-rt)
-                                                internal-time-units-per-second))))
-                          (display " msec in gc)\n")))
-
-           (consume-trailing-whitespace
-            (lambda ()
-              (let ((ch (peek-char)))
-                (cond
-                 ((eof-object? ch))
-                 ((or (char=? ch #\space) (char=? ch #\tab))
-                  (read-char)
-                  (consume-trailing-whitespace))
-                 ((char=? ch #\newline)
-                  (read-char))))))
-           (-read (lambda ()
-                    (let ((val
-                           (let ((prompt (cond ((string? scm-repl-prompt)
-                                                scm-repl-prompt)
-                                               ((thunk? scm-repl-prompt)
-                                                (scm-repl-prompt))
-                                               (scm-repl-prompt "> ")
-                                               (else ""))))
-                             (repl-reader prompt))))
-
-                      ;; As described in R4RS, the READ procedure updates the
-                      ;; port to point to the first character past the end of
-                      ;; the external representation of the object.  This
-                      ;; means that it doesn't consume the newline typically
-                      ;; found after an expression.  This means that, when
-                      ;; debugging Guile with GDB, GDB gets the newline, which
-                      ;; it often interprets as a "continue" command, making
-                      ;; breakpoints kind of useless.  So, consume any
-                      ;; trailing newline here, as well as any whitespace
-                      ;; before it.
-                      ;; But not if EOF, for control-D.
-                      (if (not (eof-object? val))
-                          (consume-trailing-whitespace))
-                      (run-hook after-read-hook)
-                      (if (eof-object? val)
-                          (begin
-                            (repl-report-start-timing)
-                            (if scm-repl-verbose
-                                (begin
-                                  (newline)
-                                  (display ";;; EOF -- quitting")
-                                  (newline)))
-                            (quit 0)))
-                      val)))
-
-           (-eval (lambda (sourc)
-                    (repl-report-start-timing)
-                    (run-hook before-eval-hook sourc)
-                    (let ((val (start-stack 'repl-stack
-                                            ;; If you change this procedure
-                                            ;; (primitive-eval), please also
-                                            ;; modify the repl-stack case in
-                                            ;; save-stack so that stack cutting
-                                            ;; continues to work.
-                                            (primitive-eval sourc))))
-                      (run-hook after-eval-hook sourc)
-                      val)))
-
-
-           (-print (let ((maybe-print (lambda (result)
-                                        (if (or scm-repl-print-unspecified
-                                                (not (unspecified? result)))
-                                            (begin
-                                              (write result)
-                                              (newline))))))
-                     (lambda (result)
-                       (if (not scm-repl-silent)
-                           (begin
-                             (run-hook before-print-hook result)
-                             (maybe-print result)
-                             (run-hook after-print-hook result)
-                             (if scm-repl-verbose
-                                 (repl-report))
-                             (force-output))))))
-
-           (-quit (lambda (args)
-                    (if scm-repl-verbose
-                        (begin
-                          (display ";;; QUIT executed, repl exitting")
-                          (newline)
-                          (repl-report)))
-                    args)))
-
-    (let ((status (error-catching-repl -read
-                                       -eval
-                                       -print)))
-      (-quit status))))
+   "`scm-style-repl' in the default environment is deprecated.
+Find it in the `(ice-9 scm-style-repl)' module instead, or
+better yet, use the repl from `(system repl repl)'.")
+  ((@ (ice-9 scm-style-repl) scm-style-repl)))
