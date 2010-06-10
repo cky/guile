@@ -524,20 +524,6 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 
-;;; apply-to-args is functionally redundant with apply and, worse,
-;;; is less general than apply since it only takes two arguments.
-;;;
-;;; On the other hand, apply-to-args is a syntacticly convenient way to
-;;; perform binding in many circumstances when the "let" family of
-;;; of forms don't cut it.  E.g.:
-;;;
-;;;     (apply-to-args (return-3d-mouse-coords)
-;;;       (lambda (x y z)
-;;;             ...))
-;;;
-
-(define (apply-to-args args fn) (apply fn args))
-
 (defmacro false-if-exception (expr)
   `(catch #t
      (lambda ()

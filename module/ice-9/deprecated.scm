@@ -41,7 +41,8 @@
             @bind
             error-catching-loop
             error-catching-repl
-            scm-style-repl)
+            scm-style-repl
+            apply-to-args)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -372,3 +373,25 @@ Find it in the `(ice-9 scm-style-repl)' module instead.")
 Find it in the `(ice-9 scm-style-repl)' module instead, or
 better yet, use the repl from `(system repl repl)'.")
   ((@ (ice-9 scm-style-repl) scm-style-repl)))
+
+
+;;; Apply-to-args had the following comment attached to it in boot-9, but it's
+;;; wrong-headed: in the mentioned case, a point should either be a record or
+;;; multiple values.
+;;;
+;;; apply-to-args is functionally redundant with apply and, worse,
+;;; is less general than apply since it only takes two arguments.
+;;;
+;;; On the other hand, apply-to-args is a syntacticly convenient way to
+;;; perform binding in many circumstances when the "let" family of
+;;; of forms don't cut it.  E.g.:
+;;;
+;;;     (apply-to-args (return-3d-mouse-coords)
+;;;       (lambda (x y z)
+;;;             ...))
+;;;
+
+(define (apply-to-args args fn)
+  (issue-deprecation-warning 
+   "`apply-to-args' is deprecated. Include a local copy in your program.")
+  (apply fn args))
