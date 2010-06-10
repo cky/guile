@@ -1136,6 +1136,10 @@ If there is no handler at all, Guile prints an error and then exits."
                  (%load-should-autocompile
                   (%warn-autocompilation-enabled)
                   (format (current-error-port) ";;; compiling ~a\n" name)
+                  ;; This use of @ is (ironically?) boot-safe, as modules have
+                  ;; not been booted yet, so the resolve-module call in psyntax
+                  ;; doesn't try to load a module, and compile-file will be
+                  ;; treated as a function, not a macro.
                   (let ((cfn ((@ (system base compile) compile-file) name
                               #:env (current-module))))
                     (format (current-error-port) ";;; compiled ~a\n" cfn)
@@ -3650,7 +3654,12 @@ module '(ice-9 q) '(make-q q-length))}."
     ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
     ;; no effect.
     (let ((old-handlers #f)
-          (start-repl (@ (system repl repl) start-repl))
+          ;; We can't use @ here, as modules have been booted, but in Guile's
+          ;; build the srfi-1 helper lib hasn't been built yet, which will
+          ;; result in an error when (system repl repl) is loaded at compile
+          ;; time (to see if it is a macro or not).
+          (start-repl (module-ref (resolve-module '(system repl repl))
+                                  'start-repl))
           (signals (if (provided? 'posix)
                        `((,SIGINT . "User interrupt")
                          (,SIGFPE . "Arithmetic error")
