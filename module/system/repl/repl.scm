@@ -53,26 +53,12 @@
 ;;
 ;; Catches read errors, returning *unspecified* in that case.
 (define (prompting-meta-read repl)
-  (catch #t
-    (lambda ()
-      (repl-reader (lambda () (repl-prompt repl))
-                   (meta-reader (language-reader (repl-language repl))
-                                (current-module))))
-    ;; FIXME: This catch handler should be factored out somewhere.
-    (lambda args
-      (pmatch args
-        ((quit . _)
-         (apply throw args))
-        ((,key ,subr ,msg ,args . ,rest)
-         (let ((cep (current-error-port)))
-           (run-hook before-error-hook)
-           (display-error #f cep subr msg args rest)
-           (run-hook after-error-hook)
-           (force-output cep)))
-        (else
-         (format (current-error-port) "\nERROR: uncaught throw to `~a', args: ~a\n"
-                 (car args) (cdr args))))
-      (if #f #f))))
+  (call-with-error-handling
+   (lambda ()
+     (repl-reader (lambda () (repl-prompt repl))
+                  (meta-reader (language-reader (repl-language repl))
+                               (current-module))))
+   #:on-error 'pass))
 
 (define* (start-repl #:optional (lang (current-language)) #:key
                      (level (1+ (or (fluid-ref *repl-level*) -1)))

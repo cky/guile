@@ -469,7 +469,8 @@ With an argument, select a frame by index, then show it."
                   (force-output cep))
                  (else
                   (format cep "\nERROR: uncaught throw to `~a', args: ~a\n"
-                          key args)))))))
+                          key args)))
+               (if #f #f)))))
       (else
        (if (procedure? post-error)
            post-error
@@ -497,6 +498,10 @@ With an argument, select a frame by index, then show it."
              ;; Narrow the end of the stack to the most recent start-stack.
              (and (pair? (fluid-ref %stacks))
                   (cdar (fluid-ref %stacks))))))))
+      ((pass)
+       (lambda (key . args)
+         ;; fall through to rethrow
+         #t))
       (else
        (if (procedure? on-error)
            on-error
