@@ -1241,8 +1241,12 @@
              (chi e r w mod))))
         ((lexical-call)
          (chi-application
-          (build-lexical-reference 'fun (source-annotation (car e))
-                                   (car e) value)
+          (let ((id (car e)))
+            (build-lexical-reference 'fun (source-annotation id)
+                                     (if (syntax-object? id)
+                                         (syntax->datum id)
+                                         id)
+                                     value))
           e r w s mod))
         ((global-call)
          (chi-application
