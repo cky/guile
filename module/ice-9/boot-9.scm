@@ -857,6 +857,9 @@ If there is no handler at all, Guile prints an error and then exits."
 
 
 
+;;; {Time Structures}
+;;;
+
 (define (tm:sec obj) (vector-ref obj 0))
 (define (tm:min obj) (vector-ref obj 1))
 (define (tm:hour obj) (vector-ref obj 2))
@@ -886,6 +889,11 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (tms:stime obj) (vector-ref obj 2))
 (define (tms:cutime obj) (vector-ref obj 3))
 (define (tms:cstime obj) (vector-ref obj 4))
+
+
+
+;;; {File Descriptors and Ports}
+;;;
 
 (define file-position ftell)
 (define* (file-set-position port offset #:optional (whence SEEK_SET))
