@@ -49,7 +49,8 @@
             get-option
             for-next-option
             display-usage-report
-            transform-usage-lambda)
+            transform-usage-lambda
+            collect)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -548,3 +549,21 @@ better yet, use the repl from `(system repl repl)'.")
                        (lambda (%opt %arg %new-argv)
                          (case %opt
                            ,@ transmogrified-cases))))))))
+
+
+
+;;; {collect}
+;;;
+;;; Similar to `begin' but returns a list of the results of all constituent
+;;; forms instead of the result of the last form.
+;;;
+
+(define-syntax collect
+  (lambda (x)
+    (issue-deprecation-warning
+     "`collect' is deprecated. Define it yourself.")
+    (syntax-case x ()
+      ((_) #''())
+      ((_ x x* ...)
+       #''(let ((val x))
+            (cons val (collect x* ...)))))))
