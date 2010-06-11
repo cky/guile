@@ -174,6 +174,7 @@ SYSTEM_BASE_SOURCES =				\
 ICE_9_SOURCES = \
   ice-9/r4rs.scm \
   ice-9/r5rs.scm \
+  ice-9/deprecated.scm \
   ice-9/and-let-star.scm \
   ice-9/calling.scm \
   ice-9/common-list.scm \
@@ -223,7 +224,6 @@ ICE_9_SOURCES = \
   ice-9/ftw.scm \
   ice-9/gap-buffer.scm \
   ice-9/weak-vector.scm \
-  ice-9/deprecated.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
   ice-9/gds-server.scm \
