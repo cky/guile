@@ -995,10 +995,6 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {Load Paths}
 ;;;
 
-;;; Here for backward compatability
-;;
-(define scheme-file-suffix (lambda () ".scm"))
-
 (define (in-vicinity vicinity file)
   (let ((tail (let ((len (string-length vicinity)))
                 (if (zero? len)

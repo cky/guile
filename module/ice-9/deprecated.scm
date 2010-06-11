@@ -44,7 +44,8 @@
             error-catching-repl
             scm-style-repl
             apply-to-args
-            has-suffix?)
+            has-suffix?
+            scheme-file-suffix)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -408,3 +409,9 @@ better yet, use the repl from `(system repl repl)'.")
   (issue-deprecation-warning 
    "`has-suffix?' is deprecated. Use `string-suffix?' instead (args reversed).")
   (string-suffix? suffix str))
+
+(define scheme-file-suffix
+  (lambda ()
+    (issue-deprecation-warning
+     "`scheme-file-suffix' is deprecated. Use `%load-extensions' instead.")
+    ".scm"))
