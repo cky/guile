@@ -47,6 +47,7 @@
     ((<application> proc args)
      (and (primitive-ref? proc)
           (effect-free-primitive? (primitive-ref-name proc))
+          ;; FIXME: check arity?
           (and-map (lambda (x) (simple-expression? x bound-vars))
                    args)))
     (else #f)))
