@@ -64,6 +64,7 @@
     fluid-ref fluid-set!
 
     @prompt call-with-prompt @abort abort-to-prompt
+    make-prompt-tag
 
     struct? struct-vtable make-struct struct-ref struct-set!
 
