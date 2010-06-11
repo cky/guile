@@ -845,16 +845,15 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;; {Error Handling}
 ;;;
 
-(define (error . args)
-  (save-stack)
-  (if (null? args)
-      (scm-error 'misc-error #f "?" #f #f)
-      (let loop ((msg "~A")
-                 (rest (cdr args)))
-        (if (not (null? rest))
-            (loop (string-append msg " ~S")
-                  (cdr rest))
-            (scm-error 'misc-error #f msg args #f)))))
+(define error
+  (case-lambda
+    (()
+     (save-stack)
+     (scm-error 'misc-error #f "?" #f #f))
+    ((message . args)
+     (save-stack)
+     (let ((msg (string-join (cons "~A" (make-list (length args) "~S")))))
+       (scm-error 'misc-error #f msg (cons message args) #f)))))
 
 ;; bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key (unless the throw has four arguments, in which case
