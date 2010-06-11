@@ -321,7 +321,7 @@
      `(dynref ,(unparse-tree-il fluid) ,(unparse-tree-il exp)))
     
     ((<prompt> tag body handler)
-     `(prompt ,tag ,(unparse-tree-il body) ,(unparse-tree-il handler)))
+     `(prompt ,(unparse-tree-il tag) ,(unparse-tree-il body) ,(unparse-tree-il handler)))
     
     ((<abort> tag args tail)
      `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)
