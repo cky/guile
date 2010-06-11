@@ -32,6 +32,30 @@
 ;; * degenerate case optimizations
 ;; * "fixing letrec"
 
+(define (boolean-value x)
+  (let ((src (tree-il-src x)))
+    (record-case x
+      ((<void>)
+       (make-const src #t))
+
+      ((<conditional> test consequent alternate)
+       (record-case (boolean-value test)
+         ((<const> exp)
+          (case exp
+            ((#t) (boolean-value consequent))
+            ((#f) (boolean-value alternate))
+            (else x)))
+         (else x)))
+      
+      ((<lambda> meta body)
+       (make-const src #t))
+
+      ((<const> exp)
+       (make-const src (not (not exp))))
+
+      (else
+       x))))
+
 ;; This is a completely brain-dead optimization pass whose sole claim to
 ;; fame is ((lambda () x)) => x.
 (define (inline! x)
@@ -101,6 +125,20 @@
 
          (else #f)))
        
+      ((<conditional> test consequent alternate)
+       (let ((btest (boolean-value test)))
+         (or (record-case btest
+               ((<const> exp)
+                (case exp
+                  ((#t) consequent)
+                  ((#f) alternate)
+                  (else #f)))
+               (else #f))
+             (if (eq? test btest)
+                 x
+                 (make-conditional (conditional-src x)
+                                   btest consequent alternate)))))
+
       ((<let> gensyms body)
        (if (null? gensyms) body x))
        

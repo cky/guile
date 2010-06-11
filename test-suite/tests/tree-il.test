@@ -85,21 +85,21 @@
 
 (with-test-prefix "conditional"
   (assert-tree-il->glil
-   (if (const #t) (const 1) (const 2))
-   (program () (std-prelude 0 0 #f) (label _) (const #t) (branch br-if-not ,l1)
+   (if (toplevel foo) (const 1) (const 2))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (branch br-if-not ,l1)
             (const 1) (call return 1)
             (label ,l2) (const 2) (call return 1))
    (eq? l1 l2))
   
   (assert-tree-il->glil
-   (begin (if (const #t) (const 1) (const 2)) (const #f))
-   (program () (std-prelude 0 0 #f) (label _) (const #t) (branch br-if-not ,l1) (branch br ,l2)
+   (begin (if (toplevel foo) (const 1) (const 2)) (const #f))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (branch br-if-not ,l1) (branch br ,l2)
             (label ,l3) (label ,l4) (const #f) (call return 1))
    (eq? l1 l3) (eq? l2 l4))
 
   (assert-tree-il->glil
-   (apply (primitive null?) (if (const #t) (const 1) (const 2)))
-   (program () (std-prelude 0 0 #f) (label _) (const #t) (branch br-if-not ,l1)
+   (apply (primitive null?) (if (toplevel foo) (const 1) (const 2)))
+   (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (branch br-if-not ,l1)
             (const 1) (branch br ,l2)
                     (label ,l3) (const 2) (label ,l4)
                     (call null? 1) (call return 1))
