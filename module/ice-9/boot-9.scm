@@ -2348,7 +2348,7 @@ If there is no handler at all, Guile prints an error and then exits."
                                          (symbol-prefix-proc prefix)
                                          identity))
                             version)
-  (let* ((module (resolve-module name #t version))
+  (let* ((module (resolve-module name #t version #:ensure #f))
          (public-i (and module (module-public-interface module))))
     (and (or (not module) (not public-i))
          (error "no code for module" name))
