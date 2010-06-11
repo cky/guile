@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugger commands) -- debugger commands
 
-;;; Copyright (C) 2002, 2006, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 
 (define-module (ice-9 debugger commands)
   #:use-module (ice-9 debug)
+  #:use-module ((ice-9 scm-style-repl) #:select (bad-throw))
   #:use-module (ice-9 debugger)
   #:use-module (ice-9 debugger state)
   #:use-module (ice-9 debugger utils)

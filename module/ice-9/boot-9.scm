@@ -855,17 +855,6 @@ If there is no handler at all, Guile prints an error and then exits."
      (let ((msg (string-join (cons "~A" (make-list (length args) "~S")))))
        (scm-error 'misc-error #f msg (cons message args) #f)))))
 
-;; bad-throw is the hook that is called upon a throw to a an unhandled
-;; key (unless the throw has four arguments, in which case
-;; it's usually interpreted as an error throw.)
-;; If the key has a default handler (a throw-handler-default property),
-;; it is applied to the throw.
-;;
-(define (bad-throw key . args)
-  (let ((default (symbol-property key 'throw-handler-default)))
-    (or (and default (apply default key args))
-        (apply error "unhandled-exception:" key args))))
-
 
 
 (define (tm:sec obj) (vector-ref obj 0))

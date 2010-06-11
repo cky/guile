@@ -39,6 +39,7 @@
             closure?
             %nil
             @bind
+            bad-throw
             error-catching-loop
             error-catching-repl
             scm-style-repl
@@ -355,6 +356,12 @@ deprecated. Use set-module-public-interface! instead.")
         (lambda (mod iface)
           (setter mod iface)
           (module-define! mod '%module-public-interface iface))))
+
+(define (bad-throw key . args)
+  (issue-deprecation-warning 
+   "`bad-throw' in the default environment is deprecated.
+Find it in the `(ice-9 scm-style-repl)' module instead.")
+  (apply (@ (ice-9 scm-style-repl) bad-throw) key args))
 
 (define (error-catching-loop thunk)
   (issue-deprecation-warning 

@@ -18,9 +18,23 @@
 
 (define-module (ice-9 scm-style-repl)
   ;; #:replace, as with deprecated code enabled these will be in the root env
-  #:replace (error-catching-loop
+  #:replace (bad-throw
+             error-catching-loop
              error-catching-repl
              scm-style-repl))
+
+;; bad-throw is the hook that is called upon a throw to a an unhandled
+;; key (unless the throw has four arguments, in which case
+;; it's usually interpreted as an error throw.)
+;; If the key has a default handler (a throw-handler-default property),
+;; it is applied to the throw.
+;;
+(define (bad-throw key . args)
+  (let ((default (symbol-property key 'throw-handler-default)))
+    (or (and default (apply default key args))
+        (apply error "unhandled-exception:" key args))))
+
+
 
 (define (error-catching-loop thunk)
   (let ((status #f)
