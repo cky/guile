@@ -45,7 +45,11 @@
             scm-style-repl
             apply-to-args
             has-suffix?
-            scheme-file-suffix)
+            scheme-file-suffix
+            get-option
+            for-next-option
+            display-usage-report
+            transform-usage-lambda)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -415,3 +419,132 @@ better yet, use the repl from `(system repl repl)'.")
     (issue-deprecation-warning
      "`scheme-file-suffix' is deprecated. Use `%load-extensions' instead.")
     ".scm"))
+
+
+
+;;; {Command Line Options}
+;;;
+
+(define (get-option argv kw-opts kw-args return)
+  (issue-deprecation-warning
+   "`get-option' is deprecated. Use `(ice-9 getopt-long)' instead.")
+  (cond
+   ((null? argv)
+    (return #f #f argv))
+
+   ((or (not (eq? #\- (string-ref (car argv) 0)))
+        (eq? (string-length (car argv)) 1))
+    (return 'normal-arg (car argv) (cdr argv)))
+
+   ((eq? #\- (string-ref (car argv) 1))
+    (let* ((kw-arg-pos (or (string-index (car argv) #\=)
+                           (string-length (car argv))))
+           (kw (symbol->keyword (substring (car argv) 2 kw-arg-pos)))
+           (kw-opt? (member kw kw-opts))
+           (kw-arg? (member kw kw-args))
+           (arg (or (and (not (eq? kw-arg-pos (string-length (car argv))))
+                         (substring (car argv)
+                                    (+ kw-arg-pos 1)
+                                    (string-length (car argv))))
+                    (and kw-arg?
+                         (begin (set! argv (cdr argv)) (car argv))))))
+      (if (or kw-opt? kw-arg?)
+          (return kw arg (cdr argv))
+          (return 'usage-error kw (cdr argv)))))
+
+   (else
+    (let* ((char (substring (car argv) 1 2))
+           (kw (symbol->keyword char)))
+      (cond
+
+       ((member kw kw-opts)
+        (let* ((rest-car (substring (car argv) 2 (string-length (car argv))))
+               (new-argv (if (= 0 (string-length rest-car))
+                             (cdr argv)
+                             (cons (string-append "-" rest-car) (cdr argv)))))
+          (return kw #f new-argv)))
+
+       ((member kw kw-args)
+        (let* ((rest-car (substring (car argv) 2 (string-length (car argv))))
+               (arg (if (= 0 (string-length rest-car))
+                        (cadr argv)
+                        rest-car))
+               (new-argv (if (= 0 (string-length rest-car))
+                             (cddr argv)
+                             (cdr argv))))
+          (return kw arg new-argv)))
+
+       (else (return 'usage-error kw argv)))))))
+
+(define (for-next-option proc argv kw-opts kw-args)
+  (issue-deprecation-warning
+   "`for-next-option' is deprecated. Use `(ice-9 getopt-long)' instead.")
+  (let loop ((argv argv))
+    (get-option argv kw-opts kw-args
+                (lambda (opt opt-arg argv)
+                  (and opt (proc opt opt-arg argv loop))))))
+
+(define (display-usage-report kw-desc)
+  (issue-deprecation-warning
+   "`display-usage-report' is deprecated. Use `(ice-9 getopt-long)' instead.")
+  (for-each
+   (lambda (kw)
+     (or (eq? (car kw) #t)
+         (eq? (car kw) 'else)
+         (let* ((opt-desc kw)
+                (help (cadr opt-desc))
+                (opts (car opt-desc))
+                (opts-proper (if (string? (car opts)) (cdr opts) opts))
+                (arg-name (if (string? (car opts))
+                              (string-append "<" (car opts) ">")
+                              ""))
+                (left-part (string-append
+                            (with-output-to-string
+                              (lambda ()
+                                (map (lambda (x) (display (keyword->symbol x)) (display " "))
+                                     opts-proper)))
+                            arg-name))
+                (middle-part (if (and (< (string-length left-part) 30)
+                                      (< (string-length help) 40))
+                                 (make-string (- 30 (string-length left-part)) #\ )
+                                 "\n\t")))
+           (display left-part)
+           (display middle-part)
+           (display help)
+           (newline))))
+   kw-desc))
+
+(define (transform-usage-lambda cases)
+  (issue-deprecation-warning
+   "`display-usage-report' is deprecated. Use `(ice-9 getopt-long)' instead.")
+  (let* ((raw-usage (delq! 'else (map car cases)))
+         (usage-sans-specials (map (lambda (x)
+                                    (or (and (not (list? x)) x)
+                                        (and (symbol? (car x)) #t)
+                                        (and (boolean? (car x)) #t)
+                                        x))
+                                  raw-usage))
+         (usage-desc (delq! #t usage-sans-specials))
+         (kw-desc (map car usage-desc))
+         (kw-opts (apply append (map (lambda (x) (and (not (string? (car x))) x)) kw-desc)))
+         (kw-args (apply append (map (lambda (x) (and (string? (car x)) (cdr x))) kw-desc)))
+         (transmogrified-cases (map (lambda (case)
+                                      (cons (let ((opts (car case)))
+                                              (if (or (boolean? opts) (eq? 'else opts))
+                                                  opts
+                                                  (cond
+                                                   ((symbol? (car opts))  opts)
+                                                   ((boolean? (car opts)) opts)
+                                                   ((string? (caar opts)) (cdar opts))
+                                                   (else (car opts)))))
+                                            (cdr case)))
+                                    cases)))
+    `(let ((%display-usage (lambda () (display-usage-report ',usage-desc))))
+       (lambda (%argv)
+         (let %next-arg ((%argv %argv))
+           (get-option %argv
+                       ',kw-opts
+                       ',kw-args
+                       (lambda (%opt %arg %new-argv)
+                         (case %opt
+                           ,@ transmogrified-cases))))))))
