@@ -2643,58 +2643,42 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Run-time options}
 ;;;
 
-(defmacro define-option-interface (option-group)
-  (let* ((option-name 'car)
-         (option-value 'cadr)
-         (option-documentation 'caddr)
-
-         ;; Below follow the macros defining the run-time option interfaces.
-
-         (make-options (lambda (interface)
-                         `(lambda args
-                            (cond ((null? args) (,interface))
-                                  ((list? (car args))
-                                   (,interface (car args)) (,interface))
-                                  (else (for-each
-                                         (lambda (option)
-                                           (display (,option-name option))
-                                           (if (< (string-length
-                                                   (symbol->string (,option-name option)))
-                                                  8)
-                                               (display #\tab))
-                                           (display #\tab)
-                                           (display (,option-value option))
-                                           (display #\tab)
-                                           (display (,option-documentation option))
-                                           (newline))
-                                         (,interface #t)))))))
-
-         (make-enable (lambda (interface)
-                        `(lambda flags
-                           (,interface (append flags (,interface)))
-                           (,interface))))
-
-         (make-disable (lambda (interface)
-                         `(lambda flags
-                            (let ((options (,interface)))
-                              (for-each (lambda (flag)
-                                          (set! options (delq! flag options)))
-                                        flags)
-                              (,interface options)
-                              (,interface))))))
-    (let* ((interface (car option-group))
-           (options/enable/disable (cadr option-group)))
-      `(begin
-         (define ,(car options/enable/disable)
-           ,(make-options interface))
-         (define ,(cadr options/enable/disable)
-           ,(make-enable interface))
-         (define ,(caddr options/enable/disable)
-           ,(make-disable interface))
-         (defmacro ,(caaddr option-group) (opt val)
-           `(,',(car options/enable/disable)
-             (append (,',(car options/enable/disable))
-                     (list ',opt ,val))))))))
+(define-syntax define-option-interface
+  (syntax-rules ()
+    ((_ (interface (options enable disable) (option-set!)))
+     (begin
+       (define options
+        (case-lambda
+          (() (interface))
+          ((arg)
+           (if (list? arg)
+               (begin (interface arg) (interface))
+               (for-each
+                (lambda (option)
+                  (apply (lambda (name value documentation)
+                           (display name)
+                           (if (< (string-length (symbol->string name)) 8)
+                               (display #\tab))
+                           (display #\tab)
+                           (display value)
+                           (display #\tab)
+                           (display documentation)
+                           (newline))
+                         option))
+                (interface #t))))))
+       (define (enable . flags)
+         (interface (append flags (interface)))
+         (interface))
+       (define (disable . flags)
+         (let ((options (interface)))
+           (for-each (lambda (flag) (set! options (delq! flag options)))
+                     flags)
+           (interface options)
+           (interface)))
+       (define-syntax option-set!
+         (syntax-rules ()
+           ((_ opt val)
+            (options (append (options) (list 'opt val))))))))))
 
 (define-option-interface
   (eval-options-interface
