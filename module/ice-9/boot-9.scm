@@ -2842,28 +2842,46 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; with `continue' and `break'.
 ;;;
 
-;; The inner `do' loop avoids re-establishing a catch every iteration,
-;; that's only necessary if continue is actually used.  A new key is
-;; generated every time, so break and continue apply to their originating
-;; `while' even when recursing.
+;; The inliner will remove the prompts at compile-time if it finds that
+;; `continue' or `break' are not used.
 ;;
-;; FIXME: This macro is unintentionally unhygienic with respect to let,
-;; make-symbol, do, throw, catch, lambda, and not.
-;;
-(define-macro (while cond . body)
-  (let ((keyvar (make-symbol "while-keyvar")))
-    `(let ((,keyvar (make-symbol "while-key")))
-       (do ()
-           ((catch ,keyvar
-                   (lambda ()
-                     (let ((break (lambda () (throw ,keyvar #t)))
-                           (continue (lambda () (throw ,keyvar #f))))
-                       (do ()
-                           ((not ,cond))
-                         ,@body)
-                       #t))
-                   (lambda (key arg)
-                     arg)))))))
+(define-syntax while
+  (lambda (x)
+    (syntax-case x ()
+      ((while cond body ...)
+       #`(let ((break-tag (make-prompt-tag "break"))
+               (continue-tag (make-prompt-tag "continue")))
+           (call-with-prompt
+            break-tag
+            (lambda ()
+              (define-syntax #,(datum->syntax #'while 'break)
+                (lambda (x)
+                  (syntax-case x ()
+                    ((_)
+                     #'(abort-to-prompt break-tag))
+                    ((_ . args)
+                     (syntax-violation 'break "too many arguments" x))
+                    (_
+                     #'(lambda ()
+                         (abort-to-prompt break-tag))))))
+              (let lp ()
+                (call-with-prompt
+                 continue-tag
+                 (lambda () 
+                   (define-syntax #,(datum->syntax #'while 'continue)
+                     (lambda (x)
+                       (syntax-case x ()
+                         ((_)
+                          #'(abort-to-prompt continue-tag))
+                         ((_ . args)
+                          (syntax-violation 'continue "too many arguments" x))
+                         (_
+                          #'(lambda args 
+                              (apply abort-to-prompt continue-tag args))))))
+                   (do () ((not cond)) body ...))
+                 (lambda (k) (lp)))))
+            (lambda (k)
+              #t)))))))
 
 
 

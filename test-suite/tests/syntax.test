@@ -1,6 +1,6 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -74,6 +74,9 @@
   (cons 'syntax-error "Bad case labels"))
 (define exception:bad-cond-clause
   (cons 'syntax-error "Bad cond clause"))
+
+(define exception:too-many-args
+  (cons 'syntax-error "too many arguments"))
 
 
 (with-test-prefix "expressions"
@@ -832,7 +835,7 @@
 	     #t))))
   
 
-  (pass-if-exception "too few args" exception:wrong-num-args
+  (pass-if-exception "too few args" exception:generic-syncase-error
     (eval '(while) (interaction-environment)))
   
   (with-test-prefix "empty body"
@@ -872,7 +875,7 @@
   
   (with-test-prefix "break"
     
-    (pass-if-exception "too many args" exception:wrong-num-args
+    (pass-if-exception "too many args" exception:too-many-args
       (eval '(while #t
                (break 1))
             (interaction-environment)))
@@ -945,7 +948,7 @@
   
   (with-test-prefix "continue"
     
-    (pass-if-exception "too many args" exception:wrong-num-args
+    (pass-if-exception "too many args" exception:too-many-args
       (eval '(while #t
                (continue 1))
             (interaction-environment)))
