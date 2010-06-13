@@ -46,6 +46,9 @@
 (eval-when (compile)
   (define-syntax capture-env
     (syntax-rules ()
+      ((_ (exp ...))
+       (let ((env (exp ...)))
+         (capture-env env)))
       ((_ env)
        (if (null? env)
            (current-module)
@@ -340,11 +343,8 @@
     (define (eval exp env)
       (memoized-expression-case exp
         (('lexical-ref n)
-         (let lp ((n n) (env env))
-           (if (zero? n)
-               (car env)
-               (lp (1- n) (cdr env)))))
-      
+         (list-ref env n))
+        
         (('call (f nargs . args))
          (let ((proc (eval f env)))
            (call eval proc nargs args env)))
@@ -353,10 +353,10 @@
          (variable-ref
           (if (variable? var-or-sym)
               var-or-sym
-              (let lp ((env env))
-                (if (pair? env)
-                    (lp (cdr env))
-                    (memoize-variable-access! exp (capture-env env)))))))
+              (memoize-variable-access! exp
+                                        (capture-env (if (pair? env)
+                                                         (cdr (last-pair env))
+                                                         env))))))
 
         (('if (test consequent . alternate))
          (if (eval test env)
@@ -391,10 +391,7 @@
       
         (('lexical-set! (n . x))
          (let ((val (eval x env)))
-           (let lp ((n n) (env env))
-             (if (zero? n)
-                 (set-car! env val)
-                 (lp (1- n) (cdr env))))))
+           (list-set! env n val)))
         
         (('call-with-values (producer . consumer))
          (call-with-values (eval producer env)
@@ -416,10 +413,10 @@
          (variable-set!
           (if (variable? var-or-sym)
               var-or-sym
-              (let lp ((env env))
-                (if (pair? env)
-                    (lp (cdr env))
-                    (memoize-variable-access! exp (capture-env env)))))
+              (memoize-variable-access! exp
+                                        (capture-env (if (pair? env)
+                                                         (cdr (last-pair env))
+                                                         env))))
           (eval x env)))
       
         (('dynwind (in exp . out))
