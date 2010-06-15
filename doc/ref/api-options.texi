@@ -176,7 +176,7 @@ by @code{(version)}.  The value for @code{libguileinterface} is
 libtool compatible and has form CURRENT:REVISION:AGE
 (@pxref{Versioning,, Library interface versions, libtool, GNU
 Libtool}).  The value for @code{buildstamp} is the output of the
-date(1) command.
+command @samp{date -u +'%Y-%m-%d %T'} (UTC).
 
 In the source, @code{%guile-build-info} is initialized from
 libguile/libpath.h, which is completely generated, so deleting this file
