@@ -1640,25 +1640,25 @@ AC_CONFIG_FILES([
 
 AC_CONFIG_FILES([meta/guile-2.0.pc])
 AC_CONFIG_FILES([meta/guile-2.0-uninstalled.pc])
-AC_CONFIG_FILES([check-guile], [chmod +x check-guile])
-AC_CONFIG_FILES([benchmark-guile], [chmod +x benchmark-guile])
-AC_CONFIG_FILES([meta/guile], [chmod +x meta/guile])
-AC_CONFIG_FILES([meta/uninstalled-env], [chmod +x meta/uninstalled-env])
-AC_CONFIG_FILES([meta/gdb-uninstalled-guile], [chmod +x meta/gdb-uninstalled-guile])
-AC_CONFIG_FILES([meta/guile-tools], [chmod +x meta/guile-tools])
-AC_CONFIG_FILES([libguile/guile-snarf],
-                [chmod +x libguile/guile-snarf])
-AC_CONFIG_FILES([libguile/guile-doc-snarf],
-                [chmod +x libguile/guile-doc-snarf])
-AC_CONFIG_FILES([libguile/guile-func-name-check],
-                [chmod +x libguile/guile-func-name-check])
-AC_CONFIG_FILES([libguile/guile-snarf-docs],
-                [chmod +x libguile/guile-snarf-docs])
-AC_CONFIG_FILES([test-suite/standalone/test-use-srfi],
-                [chmod +x test-suite/standalone/test-use-srfi])
-AC_CONFIG_FILES([test-suite/standalone/test-fast-slot-ref],
-                [chmod +x test-suite/standalone/test-fast-slot-ref])
 AC_CONFIG_FILES([doc/ref/effective-version.texi])
+
+dnl We can get fancy with m4sugar (m4_foreach et al) later.
+dnl NB: We don't jam everything into one GUILE_CONFIG_SCRIPT call
+dnl since that expands "chmod +x LONG-LIST-OF-FILES" multiply.  --ttn
+AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
+
+GUILE_CONFIG_SCRIPT([check-guile])
+GUILE_CONFIG_SCRIPT([benchmark-guile])
+GUILE_CONFIG_SCRIPT([meta/guile])
+GUILE_CONFIG_SCRIPT([meta/uninstalled-env])
+GUILE_CONFIG_SCRIPT([meta/gdb-uninstalled-guile])
+GUILE_CONFIG_SCRIPT([meta/guile-tools])
+GUILE_CONFIG_SCRIPT([libguile/guile-snarf])
+GUILE_CONFIG_SCRIPT([libguile/guile-doc-snarf])
+GUILE_CONFIG_SCRIPT([libguile/guile-func-name-check])
+GUILE_CONFIG_SCRIPT([libguile/guile-snarf-docs])
+GUILE_CONFIG_SCRIPT([test-suite/standalone/test-use-srfi])
+GUILE_CONFIG_SCRIPT([test-suite/standalone/test-fast-slot-ref])
 
 AC_OUTPUT
 
