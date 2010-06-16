@@ -342,6 +342,7 @@ EXTRA_DIST += oop/ChangeLog-2008
 
 NOCOMP_SOURCES =				\
   ice-9/gds-client.scm				\
+  ice-9/match.upstream.scm			\
   ice-9/psyntax.scm				\
   ice-9/r6rs-libraries.scm			\
   ice-9/quasisyntax.scm				\

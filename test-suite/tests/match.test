@@ -1,0 +1,82 @@
+;;;; match.test --- (ice-9 match)  -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-match)
+  #:use-module (ice-9 match)
+  #:use-module (test-suite lib))
+
+(define exception:match-error
+  (cons 'match-error "^.*$"))
+
+
+(with-test-prefix "matches"
+
+  (pass-if "wildcard"
+    (match "hello" (_ #t)))
+
+  (pass-if "symbol"
+    (match 'foo ('foo #t)))
+
+  (pass-if "string"
+    (match "bar" ("bar" #t)))
+
+  (pass-if "number"
+    (match 777 (777 #t)))
+
+  (pass-if "char"
+    (match #\g (#\g #t)))
+
+  (pass-if "sexp"
+    (match '(a b c) ('(a b c) #t)))
+
+  (pass-if "predicate"
+    (match '(a 1 2)
+      (('a (and (? odd?) one) (? even?))
+       (= one 1))))
+
+  (pass-if "list"
+    (let ((lst '(a b c)))
+      (match lst
+        ((x y z)
+         (equal? (list x y z) lst)))))
+
+  (pass-if "list rest..."
+    (let ((lst '(a b c)))
+      (match lst
+        ((x rest ...)
+         (and (eq? x 'a) (equal? rest '(b c)))))))
+
+  (pass-if "list . rest"
+    (let ((lst '(a b c)))
+      (match lst
+        ((x . rest)
+         (and (eq? x 'a) (equal? rest '(b c)))))))
+
+  (pass-if "tree"
+    (let ((tree '(one (two 2) (three 3 (and 4 (and 5))))))
+      (match tree
+        (('one ('two x) ('three y ('and z '(and 5))))
+         (equal? (list x y z) '(2 3 4)))))))
+
+
+(with-test-prefix "doesn't match"
+
+  (pass-if-exception "tree"
+    exception:match-error
+    (match '(a (b c))
+      ((foo (bar)) #t))))

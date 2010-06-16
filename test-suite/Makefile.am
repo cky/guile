@@ -61,6 +61,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/keywords.test			\
 	    tests/list.test			\
 	    tests/load.test			\
+	    tests/match.test			\
 	    tests/modules.test			\
 	    tests/multilingual.nottest		\
 	    tests/net-db.test			\
