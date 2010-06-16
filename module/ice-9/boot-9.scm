@@ -3107,7 +3107,7 @@ module '(ice-9 q) '(make-q q-length))}."
   (define (fresh-interface!)
     (let ((iface (make-module)))
       (set-module-name! iface (module-name mod))
-      ;; for guile 2: (set-module-version! iface (module-version mod))
+      (set-module-version! iface (module-version mod))
       (set-module-kind! iface 'interface)
       (set-module-public-interface! mod iface)
       iface))
