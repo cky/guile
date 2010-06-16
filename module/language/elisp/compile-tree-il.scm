@@ -25,6 +25,9 @@
   #:use-module (system base pmatch)
   #:use-module (system base compile)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-8)
+  #:use-module (srfi srfi-11)
+  #:use-module (srfi srfi-26)
   #:export (compile-tree-il))
 
 ;;; Certain common parameters (like the bindings data structure or
@@ -417,202 +420,111 @@
                (error "invalid mode in split-lambda-arguments"
                       mode)))))))))
 
-;;; Compile a lambda expression.  Things get a little complicated because
-;;; TreeIL does not allow optional arguments but only one rest argument,
-;;; and also the rest argument should be nil instead of '() for no
-;;; values given.  Because of this, we have to do a little preprocessing
-;;; to get everything done before the real body is called.
-;;;
-;;; (lambda (a &optional b &rest c) body) should become:
-;;; (lambda (a_ . rest_)
-;;;   (with-fluids* (list a b c) (list a_ nil nil)
-;;;     (lambda ()
-;;;       (if (not (null? rest_))
-;;;         (begin
-;;;           (fluid-set! b (car rest_))
-;;;           (set! rest_ (cdr rest_))
-;;;           (if (not (null? rest_))
-;;;             (fluid-set! c rest_))))
-;;;       body)))
-;;;
-;;; This is formulated very imperatively, but I think in this case that
-;;; is quite clear and better than creating a lot of nested let's.
-;;;
-;;; Another thing we have to be aware of is that lambda arguments are
-;;; usually dynamically bound, even when a lexical binding is in tact
-;;; for a symbol.  For symbols that are marked as 'always lexical'
-;;; however, we bind them here lexically, too -- and thus we get them
-;;; out of the let-dynamic call and register a lexical binding for them
-;;; (the lexical target variable is already there, namely the real
-;;; lambda argument from TreeIL).  For optional arguments that are
-;;; lexically bound we need to create the lexical bindings though with
-;;; an additional let, as those arguments are not part of the ordinary
-;;; argument list.
+;;; Compile a lambda expression.  One thing we have to be aware of is
+;;; that lambda arguments are usually dynamically bound, even when a
+;;; lexical binding is intact for a symbol.  For symbols that are marked
+;;; as 'always lexical,' however, we lexically bind here as well, and
+;;; thus we get them out of the let-dynamic call and register a lexical
+;;; binding for them (the lexical target variable is already there,
+;;; namely the real lambda argument from TreeIL).
 
 (define (compile-lambda loc args body)
   (if (not (list? args))
       (report-error loc "expected list for argument-list" args))
   (if (null? body)
-      (report-error loc "function body might not be empty"))
-  (call-with-values
-      (lambda ()
-        (split-lambda-arguments loc args))
-    (lambda (required optional rest lexical dynamic)
-      (let* ((make-sym (lambda (sym) (gensym)))
-             (required-sym (map make-sym required))
-             (required-pairs (map cons required required-sym))
-             (have-real-rest (or rest (not (null? optional))))
-             (rest-sym (if have-real-rest (gensym) '()))
-             (rest-name (if rest rest rest-sym))
-             (rest-lexical (and rest (memq rest lexical)))
-             (rest-dynamic (and rest (not rest-lexical)))
-             (real-args (append required-sym rest-sym))
-             (arg-names (append required rest-name))
-             (lex-optionals (lset-intersection eq? optional lexical))
-             (dyn-optionals (lset-intersection eq? optional dynamic))
-             (optional-sym (map make-sym lex-optionals))
-             (optional-lex-pairs (map cons lex-optionals optional-sym))
-             (find-required-pairs (lambda (filter)
-                                    (lset-intersection
-                                     (lambda (name-sym el)
-                                       (eq? (car name-sym) el))
-                                     required-pairs
-                                     filter)))
-             (required-lex-pairs (find-required-pairs lexical))
-             (rest-pair (if rest-lexical `((,rest . ,rest-sym)) '()))
-             (all-lex-pairs (append required-lex-pairs
-                                    optional-lex-pairs
-                                    rest-pair)))
-        (for-each (lambda (sym)
-                    (mark-global-needed! (fluid-ref bindings-data)
-                                         sym
-                                         value-slot))
-                  dynamic)
-        (with-dynamic-bindings
-         (fluid-ref bindings-data)
-         dynamic
-         (lambda ()
-           (with-lexical-bindings
-            (fluid-ref bindings-data)
-            (map car all-lex-pairs)
-            (map cdr all-lex-pairs)
-            (lambda ()
-              (make-lambda loc
-                           '()
-                           (make-lambda-case
-                            #f
-                            required
-                            #f
-                            (if have-real-rest rest-name #f)
-                            #f
-                            '()
-                            (if have-real-rest
-                                (append required-sym (list rest-sym))
-                                required-sym)
-                            (let* ((init-req
-                                    (map (lambda (name-sym)
-                                           (make-lexical-ref
-                                            loc
-                                            (car name-sym)
-                                            (cdr name-sym)))
-                                         (find-required-pairs dynamic)))
-                                   (init-nils
-                                    (map (lambda (sym) (nil-value loc))
-                                         (if rest-dynamic
-                                             `(,@dyn-optionals ,rest-sym)
-                                             dyn-optionals)))
-                                   (init (append init-req init-nils))
-                                   (func-body
-                                    (make-sequence
-                                     loc
-                                     `(,(process-optionals loc
-                                                           optional
-                                                           rest-name
-                                                           rest-sym)
-                                       ,(process-rest loc
-                                                      rest
-                                                      rest-name
-                                                      rest-sym)
-                                       ,@(map compile-expr body))))
-                                   (dynlet (let-dynamic loc
-                                                        dynamic
-                                                        value-slot
-                                                        init
-                                                        func-body))
-                                   (full-body (if (null? dynamic)
-                                                  func-body
-                                                  dynlet)))
-                              (if (null? optional-sym)
-                                  full-body
-                                  (make-let loc
-                                            optional-sym
-                                            optional-sym
-                                            (map (lambda (sym)
-                                                   (nil-value loc))
-                                                 optional-sym)
-                                            full-body)))
-                            #f))))))))))
-
-;;; Build the code to handle setting of optional arguments that are
-;;; present and updating the rest list.
-
-(define (process-optionals loc optional rest-name rest-sym)
-  (let iterate ((tail optional))
-    (if (null? tail)
-        (make-void loc)
-        (make-conditional
-         loc
-         (call-primitive loc
-                         'null?
-                         (make-lexical-ref loc rest-name rest-sym))
-         (make-void loc)
-         (make-sequence
-          loc
-          (list (set-variable! loc
-                               (car tail)
-                               value-slot
-                               (call-primitive loc
-                                               'car
-                                               (make-lexical-ref
-                                                loc
-                                                rest-name
-                                                rest-sym)))
-                (make-lexical-set
+      (report-error loc "function body must not be empty"))
+  (receive (required optional rest lexical dynamic)
+           (split-lambda-arguments loc args)
+    (define (process-args args)
+      (define (find-pairs pairs filter)
+        (lset-intersection (lambda (name+sym x)
+                             (eq? (car name+sym) x))
+                           pairs
+                           filter))
+      (let* ((syms (map (lambda (x) (gensym)) args))
+             (pairs (map cons args syms))
+             (lexical-pairs (find-pairs pairs lexical))
+             (dynamic-pairs (find-pairs pairs dynamic)))
+        (values syms pairs lexical-pairs dynamic-pairs)))
+    (let*-values (((required-syms
+                    required-pairs
+                    required-lex-pairs
+                    required-dyn-pairs)
+                   (process-args required))
+                  ((optional-syms
+                    optional-pairs
+                    optional-lex-pairs
+                    optional-dyn-pairs)
+                   (process-args optional))
+                  ((rest-syms rest-pairs rest-lex-pairs rest-dyn-pairs)
+                   (process-args (if rest (list rest) '())))
+                  ((the-rest-sym) (if rest (car rest-syms) #f))
+                  ((all-syms) (append required-syms
+                                      optional-syms
+                                      rest-syms))
+                  ((all-lex-pairs) (append required-lex-pairs
+                                           optional-lex-pairs
+                                           rest-lex-pairs))
+                  ((all-dyn-pairs) (append required-dyn-pairs
+                                           optional-dyn-pairs
+                                           rest-dyn-pairs)))
+      (for-each (lambda (sym)
+                  (mark-global-needed! (fluid-ref bindings-data)
+                                       sym
+                                       value-slot))
+                dynamic)
+      (with-dynamic-bindings
+       (fluid-ref bindings-data)
+       dynamic
+       (lambda ()
+         (with-lexical-bindings
+          (fluid-ref bindings-data)
+          (map car all-lex-pairs)
+          (map cdr all-lex-pairs)
+          (lambda ()
+            (make-lambda
+             loc
+             '()
+             (make-lambda-case
+              #f
+              required
+              optional
+              rest
+              #f
+              (map (lambda (x) (nil-value loc)) optional)
+              all-syms
+              (let ((compiled-body
+                     (make-sequence loc (map compile-expr body))))
+                (make-sequence
                  loc
-                 rest-name
-                 rest-sym
-                 (call-primitive
-                  loc
-                  'cdr
-                  (make-lexical-ref loc rest-name rest-sym)))
-                (iterate (cdr tail))))))))
-
-;;; This builds the code to set the rest variable to nil if it is empty.
-
-(define (process-rest loc rest rest-name rest-sym)
-  (let ((rest-empty (call-primitive loc
-                                    'null?
-                                    (make-lexical-ref loc
-                                                      rest-name
-                                                      rest-sym))))
-    (cond
-     (rest
-      (make-conditional loc
-                        rest-empty
-                        (make-void loc)
-                        (set-variable! loc
-                                       rest
-                                       value-slot
+                 (list
+                  (if rest
+                      (make-conditional
+                       loc
+                       (call-primitive loc
+                                       'null?
                                        (make-lexical-ref loc
-                                                         rest-name
-                                                         rest-sym))))
-     ((not (null? rest-sym))
-      (make-conditional loc rest-empty
-                        (make-void loc)
-                        (runtime-error
-                         loc
-                         "too many arguments and no rest argument")))
-     (else (make-void loc)))))
+                                                         rest
+                                                         the-rest-sym))
+                       (make-lexical-set loc
+                                         rest
+                                         the-rest-sym
+                                         (nil-value loc))
+                       (make-void loc))
+                      (make-void loc))
+                  (if (null? dynamic)
+                      compiled-body
+                      (let-dynamic loc
+                                   dynamic
+                                   value-slot
+                                   (map (lambda (name-sym)
+                                          (make-lexical-ref
+                                           loc
+                                           (car name-sym)
+                                           (cdr name-sym)))
+                                        all-dyn-pairs)
+                                   compiled-body)))))
+              #f)))))))))
 
 ;;; Handle the common part of defconst and defvar, that is, checking for
 ;;; a correct doc string and arguments as well as maybe in the future
