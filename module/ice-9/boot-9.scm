@@ -2598,6 +2598,9 @@ module '(ice-9 q) '(make-q q-length))}."
               (with-fluids ((current-reader #f))
                 (save-module-excursion
                  (lambda () 
+                   ;; The initial environment when loading a module is a fresh
+                   ;; user module.
+                   (set-current-module (make-fresh-user-module))
                    (if version
                        (load (find-versioned-module
                               dir-hint name version %load-path))
