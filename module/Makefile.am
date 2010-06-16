@@ -258,32 +258,32 @@ SRFI_SOURCES = \
   srfi/srfi-98.scm
 
 RNRS_SOURCES =					\
-  6/rnrs.scm					\
-  rnrs/6/base.scm				\
-  rnrs/6/conditions.scm				\
-  rnrs/6/control.scm				\
-  rnrs/6/enums.scm				\
-  rnrs/6/eval.scm				\
-  rnrs/6/exceptions.scm				\
-  rnrs/6/files.scm				\
-  rnrs/6/hashtables.scm				\
-  rnrs/6/lists.scm				\
-  rnrs/6/mutable-pairs.scm			\
-  rnrs/6/mutable-strings.scm			\
-  rnrs/6/programs.scm				\
-  rnrs/6/r5rs.scm				\
-  rnrs/6/sorting.scm				\
-  rnrs/6/syntax-case.scm			\
-  rnrs/6/unicode.scm				\
-  rnrs/arithmetic/6/bitwise.scm			\
-  rnrs/arithmetic/6/fixnums.scm			\
-  rnrs/arithmetic/6/flonums.scm			\
+  rnrs.scm					\
+  rnrs/base.scm					\
+  rnrs/conditions.scm				\
+  rnrs/control.scm				\
+  rnrs/enums.scm				\
+  rnrs/eval.scm					\
+  rnrs/exceptions.scm				\
+  rnrs/files.scm				\
+  rnrs/hashtables.scm				\
+  rnrs/lists.scm				\
+  rnrs/mutable-pairs.scm			\
+  rnrs/mutable-strings.scm			\
+  rnrs/programs.scm				\
+  rnrs/r5rs.scm					\
+  rnrs/sorting.scm				\
+  rnrs/syntax-case.scm				\
+  rnrs/unicode.scm				\
+  rnrs/arithmetic/bitwise.scm			\
+  rnrs/arithmetic/fixnums.scm			\
+  rnrs/arithmetic/flonums.scm			\
   rnrs/bytevectors.scm				\
-  rnrs/io/6/simple.scm				\
+  rnrs/io/simple.scm				\
   rnrs/io/ports.scm				\
-  rnrs/records/6/inspection.scm			\
-  rnrs/records/6/procedural.scm			\
-  rnrs/records/6/syntactic.scm
+  rnrs/records/inspection.scm			\
+  rnrs/records/procedural.scm			\
+  rnrs/records/syntactic.scm
 
 EXTRA_DIST += scripts/ChangeLog-2008
 EXTRA_DIST += scripts/README

@@ -2196,71 +2196,6 @@ If there is no handler at all, Guile prints an error and then exits."
           ((not) (not (matches? (cadr version-ref))))
           (else  (sub-versions-match? version-ref target))))))
 
-(define (find-versioned-module dir-hint name version-ref roots)
-  (define (subdir-pair-less pair1 pair2)
-    (define (numlist-less lst1 lst2)
-      (or (null? lst2) 
-          (and (not (null? lst1))
-               (cond ((> (car lst1) (car lst2)) #t)
-                     ((< (car lst1) (car lst2)) #f)
-                     (else (numlist-less (cdr lst1) (cdr lst2)))))))
-    (not (numlist-less (car pair2) (car pair1))))
-  (define (match-version-and-file pair)
-    (and (version-matches? version-ref (car pair))
-         (let ((filenames                            
-                (filter (lambda (file)
-                          (let ((s (false-if-exception (stat file))))
-                            (and s (eq? (stat:type s) 'regular))))
-                        (map (lambda (ext)
-                               (string-append (cdr pair) name ext))
-                             %load-extensions))))
-           (and (not (null? filenames))
-                (cons (car pair) (car filenames))))))
-    
-  (define (match-version-recursive root-pairs leaf-pairs)
-    (define (filter-subdirs root-pairs ret)
-      (define (filter-subdir root-pair dstrm subdir-pairs)
-        (let ((entry (readdir dstrm)))
-          (if (eof-object? entry)
-              subdir-pairs
-              (let* ((subdir (string-append (cdr root-pair) entry))
-                     (num (string->number entry))
-                     (num (and num (exact? num) (append (car root-pair) 
-                                                        (list num)))))
-                (if (and num (eq? (stat:type (stat subdir)) 'directory))
-                    (filter-subdir
-                     root-pair dstrm (cons (cons num (string-append subdir "/"))
-                                           subdir-pairs))
-                    (filter-subdir root-pair dstrm subdir-pairs))))))
-      
-      (or (and (null? root-pairs) ret)
-          (let* ((rp (car root-pairs))
-                 (dstrm (false-if-exception (opendir (cdr rp)))))
-            (if dstrm
-                (let ((subdir-pairs (filter-subdir rp dstrm '())))
-                  (closedir dstrm)
-                  (filter-subdirs (cdr root-pairs) 
-                                  (or (and (null? subdir-pairs) ret)
-                                      (append ret subdir-pairs))))
-                (filter-subdirs (cdr root-pairs) ret)))))
-    
-    (or (and (null? root-pairs) leaf-pairs)
-        (let ((matching-subdir-pairs (filter-subdirs root-pairs '())))
-          (match-version-recursive
-           matching-subdir-pairs
-           (append leaf-pairs (filter pair? (map match-version-and-file 
-                                                 matching-subdir-pairs)))))))
-  (define (make-root-pair root)
-    (cons '() (string-append root "/" dir-hint)))
-
-  (let* ((root-pairs (map make-root-pair roots))
-         (matches (if (null? version-ref) 
-                      (filter pair? (map match-version-and-file root-pairs))
-                      '()))
-         (matches (append matches (match-version-recursive root-pairs '()))))
-    (and (null? matches) (error "No matching modules found."))
-    (cdar (sort matches subdir-pair-less))))
-
 (define (make-fresh-user-module)
   (let ((m (make-module)))
     (beautify-user-module! m)
@@ -2280,7 +2215,7 @@ If there is no handler at all, Guile prints an error and then exits."
          ((and already
                (or (not autoload) (module-public-interface already)))
           ;; A hit, a palpable hit.
-          (if (and version 
+          (if (and version
                    (not (version-matches? version (module-version already))))
               (error "incompatible module version already loaded" name))
           already)
@@ -2601,10 +2536,13 @@ module '(ice-9 q) '(make-q q-length))}."
                    ;; The initial environment when loading a module is a fresh
                    ;; user module.
                    (set-current-module (make-fresh-user-module))
-                   (if version
-                       (load (find-versioned-module
-                              dir-hint name version %load-path))
-                       (primitive-load-path (in-vicinity dir-hint name) #f))
+                   ;; Here we could allow some other search strategy (other than
+                   ;; primitive-load-path), for example using versions encoded
+                   ;; into the file system -- but then we would have to figure
+                   ;; out how to locate the compiled file, do autocompilation,
+                   ;; etc. Punt for now, and don't use versions when locating
+                   ;; the file.
+                   (primitive-load-path (in-vicinity dir-hint name) #f)
                    (set! didit #t)))))
             (lambda () (set-autoloaded! dir-hint name didit)))
            didit))))
