@@ -163,6 +163,7 @@ SCM_SYNTAX ("set!", expand_set_x);
 SCM_SYNTAX ("and", expand_and);
 SCM_SYNTAX ("cond", expand_cond);
 SCM_SYNTAX ("letrec", expand_letrec);
+SCM_SYNTAX ("letrec*", expand_letrec_star);
 SCM_SYNTAX ("let*", expand_letstar);
 SCM_SYNTAX ("or", expand_or);
 SCM_SYNTAX ("lambda*", expand_lambda_star);
@@ -1030,7 +1031,7 @@ expand_let (SCM expr, SCM env)
 }
 
 static SCM
-expand_letrec (SCM expr, SCM env)
+expand_letrec_helper (SCM expr, SCM env, SCM in_order_p)
 {
   SCM bindings;
 
@@ -1048,10 +1049,22 @@ expand_letrec (SCM expr, SCM env)
       SCM var_names, var_syms, inits;
       transform_bindings (bindings, expr, &var_names, &var_syms, &inits);
       env = expand_env_extend (env, var_names, var_syms);
-      return LETREC (SCM_BOOL_F, SCM_BOOL_F,
+      return LETREC (SCM_BOOL_F, in_order_p,
                      var_names, var_syms, expand_exprs (inits, env),
                      expand_sequence (CDDR (expr), env));
     }
+}
+
+static SCM
+expand_letrec (SCM expr, SCM env)
+{
+  return expand_letrec_helper (expr, env, SCM_BOOL_F);
+}
+
+static SCM
+expand_letrec_star (SCM expr, SCM env)
+{
+  return expand_letrec_helper (expr, env, SCM_BOOL_T);
 }
 
 static SCM

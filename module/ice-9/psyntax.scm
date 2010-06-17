@@ -526,12 +526,12 @@
                               val-exps))))))
 
   (define build-letrec
-    (lambda (src ids vars val-exps body-exp)
+    (lambda (src in-order? ids vars val-exps body-exp)
       (if (null? vars)
           body-exp
           (begin
             (for-each maybe-name-value! ids val-exps)
-            (make-letrec src #f ids vars val-exps body-exp)))))
+            (make-letrec src in-order? ids vars val-exps body-exp)))))
 
 
   ;; FIXME: use a faster gensym
@@ -1483,7 +1483,7 @@
                                            (loop (cdr bs) er r-cache))
                                          (loop (cdr bs) er-cache r-cache)))))
                              (set-cdr! r (extend-env labels bindings (cdr r)))
-                             (build-letrec no-source
+                             (build-letrec no-source #f
                                            (map syntax->datum var-ids)
                                            vars
                                            (map (lambda (x)
@@ -2103,13 +2103,34 @@
                                   (new-vars (map gen-var ids)))
                               (let ((w (make-binding-wrap ids labels w))
                                     (r (extend-var-env labels new-vars r)))
-                                (build-letrec s
+                                (build-letrec s #f
                                               (map syntax->datum ids)
                                               new-vars
                                               (map (lambda (x) (chi x r w mod)) #'(val ...))
                                               (chi-body #'(e1 e2 ...) 
                                                         (source-wrap e w s mod) r w mod)))))))
                      (_ (syntax-violation 'letrec "bad letrec" (source-wrap e w s mod))))))
+
+
+  (global-extend 'core 'letrec*
+                 (lambda (e r w s mod)
+                   (syntax-case e ()
+                     ((_ ((id val) ...) e1 e2 ...)
+                      (and-map id? #'(id ...))
+                      (let ((ids #'(id ...)))
+                        (if (not (valid-bound-ids? ids))
+                            (syntax-violation 'letrec* "duplicate bound variable" e)
+                            (let ((labels (gen-labels ids))
+                                  (new-vars (map gen-var ids)))
+                              (let ((w (make-binding-wrap ids labels w))
+                                    (r (extend-var-env labels new-vars r)))
+                                (build-letrec s #t
+                                              (map syntax->datum ids)
+                                              new-vars
+                                              (map (lambda (x) (chi x r w mod)) #'(val ...))
+                                              (chi-body #'(e1 e2 ...) 
+                                                        (source-wrap e w s mod) r w mod)))))))
+                     (_ (syntax-violation 'letrec* "bad letrec*" (source-wrap e w s mod))))))
 
 
   (global-extend 'core 'set!

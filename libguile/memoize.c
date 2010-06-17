@@ -374,33 +374,50 @@ memoize (SCM exp, SCM env)
 
     case SCM_EXPANDED_LETREC:
       {
-        SCM vars, exps, body, undefs, inits, sets, new_env;
-        int i, nvars;
+        SCM vars, exps, body, undefs, new_env;
+        int i, nvars, in_order_p;
         
         vars = REF (exp, LETREC, GENSYMS);
         exps = REF (exp, LETREC, VALS);
         body = REF (exp, LETREC, BODY);
+        in_order_p = scm_is_true (REF (exp, LETREC, IN_ORDER_P));
         nvars = i = scm_ilength (vars);
-        inits = undefs = sets = SCM_EOL;
+        undefs = SCM_EOL;
         new_env = env;
 
-        for (; scm_is_pair (vars); vars = CDR (vars), i--)
+        for (; scm_is_pair (vars); vars = CDR (vars))
           {
             new_env = scm_cons (CAR (vars), new_env);
             undefs = scm_cons (MAKMEMO_QUOTE (SCM_UNDEFINED), undefs);
-            sets = scm_cons (MAKMEMO_LEX_SET ((i-1) + nvars,
-                                              MAKMEMO_LEX_REF (i-1)),
-                             sets);
           }
 
-        for (; scm_is_pair (exps); exps = CDR (exps))
-          inits = scm_cons (memoize (CAR (exps), new_env), inits);
-        inits = scm_reverse_x (inits, SCM_UNDEFINED);
-
-        return MAKMEMO_LET
-          (undefs,
-           MAKMEMO_BEGIN (scm_list_2 (MAKMEMO_LET (inits, MAKMEMO_BEGIN (sets)),
-                                      memoize (body, new_env))));
+        if (in_order_p)
+          {
+            SCM body_exps = SCM_EOL;
+            for (; scm_is_pair (exps); exps = CDR (exps), i--)
+              body_exps = scm_cons (MAKMEMO_LEX_SET (i-1,
+                                                     memoize (CAR (exps), new_env)),
+                                    body_exps);
+            body_exps = scm_cons (memoize (body, new_env), body_exps);
+            body_exps = scm_reverse_x (body_exps, SCM_UNDEFINED);
+            return MAKMEMO_LET (undefs, MAKMEMO_BEGIN (body_exps));
+          }
+        else
+          {
+            SCM sets = SCM_EOL, inits = SCM_EOL;
+            for (; scm_is_pair (exps); exps = CDR (exps), i--)
+              {
+                sets = scm_cons (MAKMEMO_LEX_SET ((i-1) + nvars,
+                                                  MAKMEMO_LEX_REF (i-1)),
+                                 sets);
+                inits = scm_cons (memoize (CAR (exps), new_env), inits);
+              }
+            inits = scm_reverse_x (inits, SCM_UNDEFINED);
+            return MAKMEMO_LET
+              (undefs,
+               MAKMEMO_BEGIN (scm_list_2 (MAKMEMO_LET (inits, MAKMEMO_BEGIN (sets)),
+                                          memoize (body, new_env))));
+          }
       }
 
     case SCM_EXPANDED_DYNLET:
