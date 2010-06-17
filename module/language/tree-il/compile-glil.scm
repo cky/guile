@@ -114,7 +114,6 @@
    ((vector-set! . 3) . vector-set)
    ((variable-ref . 1) . variable-ref)
    ;; nb, *not* variable-set! -- the args are switched
-   ((variable-set . 2) . variable-set)
    ((variable-bound? . 1) . variable-bound?)
    ((struct? . 1) . struct?)
    ((struct-vtable . 1) . struct-vtable)
@@ -385,6 +384,18 @@
               args))
             (maybe-emit-return))))
 
+        ;; A hack for variable-set, the opcode for which takes its args
+        ;; reversed, relative to the variable-set! function
+        ((and (primitive-ref? proc)
+              (eq? (primitive-ref-name proc) 'variable-set!)
+              (= (length args) 2))
+         (comp-push (cadr args))
+         (comp-push (car args))
+         (emit-code src (make-glil-call 'variable-set 2))
+         (case context
+           ((tail push vals) (emit-code #f (make-glil-void))))
+         (maybe-emit-return))
+        
         ((and (primitive-ref? proc)
               (or (hash-ref *primcall-ops*
                             (cons (primitive-ref-name proc) (length args)))

@@ -60,7 +60,6 @@
     vector-ref vector-set!
     variable-ref variable-set!
     variable-bound?
-    ;; args of variable-set are switched; it needs special help
 
     fluid-ref fluid-set!
 
@@ -121,7 +120,7 @@
     caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
     vector-ref
-    struct? struct-vtable make-struct struct-ref
+    struct? struct-vtable make-struct make-struct/no-tail struct-ref
     bytevector-u8-ref bytevector-s8-ref
     bytevector-u16-ref bytevector-u16-native-ref
     bytevector-s16-ref bytevector-s16-native-ref
@@ -140,7 +139,7 @@
     not
     pair? null? list? acons cons cons*
     list vector
-    struct? make-struct))
+    struct?))
 
 (define *effect-free-primitive-table* (make-hash-table))
 (define *effect+exceptions-free-primitive-table* (make-hash-table))
@@ -333,10 +332,6 @@
   (@call-with-current-continuation proc))
 
 (define-primitive-expander values (x) x)
-
-;; swap args
-(define-primitive-expander variable-set! (var val)
-  (variable-set val var))
 
 (define-primitive-expander make-struct (vtable tail-size . args)
   (if (and (const? tail-size)

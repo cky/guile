@@ -254,6 +254,14 @@ If there is no handler at all, Guile prints an error and then exits."
 
 
 
+;;; {Structs}
+;;;
+
+(define (make-struct/no-tail vtable . args)
+  (apply make-struct vtable 0 args))
+
+
+
 ;;; {and-map and or-map}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
