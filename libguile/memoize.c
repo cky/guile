@@ -377,9 +377,9 @@ memoize (SCM exp, SCM env)
         SCM vars, exps, body, undefs, inits, sets, new_env;
         int i, nvars;
         
-        vars = REF (exp, LET, GENSYMS);
-        exps = REF (exp, LET, VALS);
-        body = REF (exp, LET, BODY);
+        vars = REF (exp, LETREC, GENSYMS);
+        exps = REF (exp, LETREC, VALS);
+        body = REF (exp, LETREC, BODY);
         nvars = i = scm_ilength (vars);
         inits = undefs = sets = SCM_EOL;
         new_env = env;
