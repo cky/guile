@@ -26,7 +26,8 @@
   #:use-module (srfi srfi-4)
   #:use-module (srfi srfi-16)
   #:export (resolve-primitives! add-interesting-primitive!
-            expand-primitives! effect-free-primitive?))
+            expand-primitives!
+            effect-free-primitive? effect+exception-free-primitive?))
 
 (define *interesting-primitive-names* 
   '(apply @apply
@@ -131,14 +132,30 @@
     bytevector-ieee-single-ref bytevector-ieee-single-native-ref
     bytevector-ieee-double-ref bytevector-ieee-double-native-ref))
 
+;; Like *effect-free-primitives* above, but further restricted in that they
+;; cannot raise exceptions.
+(define *effect+exception-free-primitives*
+  '(values
+    eq? eqv? equal?
+    not
+    pair? null? list? acons cons cons*
+    list vector
+    struct? make-struct))
 
 (define *effect-free-primitive-table* (make-hash-table))
+(define *effect+exceptions-free-primitive-table* (make-hash-table))
 
-(for-each (lambda (x) (hashq-set! *effect-free-primitive-table* x #t))
+(for-each (lambda (x)
+            (hashq-set! *effect-free-primitive-table* x #t))
           *effect-free-primitives*)
+(for-each (lambda (x) 
+            (hashq-set! *effect+exceptions-free-primitive-table* x #t))
+          *effect+exception-free-primitives*)
 
 (define (effect-free-primitive? prim)
   (hashq-ref *effect-free-primitive-table* prim))
+(define (effect+exception-free-primitive? prim)
+  (hashq-ref *effect+exceptions-free-primitive-table* prim))
 
 (define (resolve-primitives! x mod)
   (post-order!
