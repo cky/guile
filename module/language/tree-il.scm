@@ -444,8 +444,10 @@
        ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
 
     ((<fix> gensyms vals body)
-     ;; not a typo, we really do translate back to letrec
-     `(letrec ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
+     ;; not a typo, we really do translate back to letrec. use letrec* since it
+     ;; doesn't matter, and the naive letrec* transformation does not require an
+     ;; inner let.
+     `(letrec* ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
 
     ((<let-values> exp body)
      `(call-with-values (lambda () ,(tree-il->scheme exp))
