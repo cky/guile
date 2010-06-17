@@ -778,21 +778,35 @@
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 
-      ((<letrec> src names gensyms vals body)
+      ((<letrec> src in-order? names gensyms vals body)
+       ;; First prepare heap storage slots.
        (for-each (lambda (v)
                    (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'empty-box n)))
                      (,loc (error "badness" x loc))))
                  gensyms)
-       (for-each comp-push vals)
+       ;; Even though the slots are empty, the bindings are valid.
        (emit-bindings src names gensyms allocation self emit-code)
-       (for-each (lambda (v)
-                   (pmatch (hashq-ref (hashq-ref allocation v) self)
-                     ((#t #t . ,n)
-                      (emit-code src (make-glil-lexical #t #t 'set n)))
-                     (,loc (error "badness" x loc))))
-                 (reverse gensyms))
+       (cond
+        (in-order?
+         ;; For letrec*, bind values in order.
+         (for-each (lambda (name v val)
+                     (pmatch (hashq-ref (hashq-ref allocation v) self)
+                       ((#t #t . ,n)
+                        (comp-push val)
+                        (emit-code src (make-glil-lexical #t #t 'set n)))
+                       (,loc (error "badness" x loc))))
+                   names gensyms vals))
+        (else
+         ;; But for letrec, eval all values, then bind.
+         (for-each comp-push vals)
+         (for-each (lambda (v)
+                     (pmatch (hashq-ref (hashq-ref allocation v) self)
+                       ((#t #t . ,n)
+                        (emit-code src (make-glil-lexical #t #t 'set n)))
+                       (,loc (error "badness" x loc))))
+                   (reverse gensyms))))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
 

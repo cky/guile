@@ -319,6 +319,52 @@
    (program () (std-prelude 0 0 #f) (label _)
             (const 2) (call null? 1) (call return 1))))
 
+(with-test-prefix "letrec"
+  ;; simple bindings -> let
+  (assert-tree-il->glil
+   (letrec (x y) (x1 y1) ((const 10) (const 20))
+           (apply (toplevel foo) (lexical x x1) (lexical y y1)))
+   (program () (std-prelude 0 2 #f) (label _)
+            (const 10) (const 20)
+            (bind (x #f 0) (y #f 1))
+            (lexical #t #f set 1) (lexical #t #f set 0)
+            (toplevel ref foo)
+            (lexical #t #f ref 0) (lexical #t #f ref 1)
+            (call tail-call 2)
+            (unbind)))
+
+  ;; complex bindings -> box and set! within let
+  (assert-tree-il->glil
+   (letrec (x y) (x1 y1) ((apply (toplevel foo)) (apply (toplevel bar)))
+           (apply (primitive +) (lexical x x1) (lexical y y1)))
+   (program () (std-prelude 0 4 #f) (label _)
+            (void) (void) ;; what are these?
+            (bind (x #t 0) (y #t 1))
+            (lexical #t #t box 1) (lexical #t #t box 0)
+            (call new-frame 0) (toplevel ref foo) (call call 0)
+            (call new-frame 0) (toplevel ref bar) (call call 0)
+            (bind (x #f 2) (y #f 3)) (lexical #t #f set 3) (lexical #t #f set 2)
+            (lexical #t #f ref 2) (lexical #t #t set 0)
+            (lexical #t #f ref 3) (lexical #t #t set 1) (unbind)
+            (lexical #t #t ref 0) (lexical #t #t ref 1)
+            (call add 2) (call return 1) (unbind)))
+  
+  ;; complex bindings in letrec* -> box and set! in order
+  (assert-tree-il->glil
+   (letrec* (x y) (x1 y1) ((apply (toplevel foo)) (apply (toplevel bar)))
+            (apply (primitive +) (lexical x x1) (lexical y y1)))
+   (program () (std-prelude 0 2 #f) (label _)
+            (void) (void) ;; what are these?
+            (bind (x #t 0) (y #t 1))
+            (lexical #t #t box 1) (lexical #t #t box 0)
+            (call new-frame 0) (toplevel ref foo) (call call 0)
+            (lexical #t #t set 0)
+            (call new-frame 0) (toplevel ref bar) (call call 0)
+            (lexical #t #t set 1)
+            (lexical #t #t ref 0)
+            (lexical #t #t ref 1)
+            (call add 2) (call return 1) (unbind))))
+
 (with-test-prefix "lambda"
   (assert-tree-il->glil
    (lambda ()
