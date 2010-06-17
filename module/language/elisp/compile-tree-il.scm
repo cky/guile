@@ -770,7 +770,7 @@
             (iter-thunk (make-lambda loc '()
                           (make-lambda-case #f '() #f #f #f '() '()
                                             lambda-body #f))))
-       (make-letrec loc '(iterate) (list itersym) (list iter-thunk)
+       (make-letrec loc #f '(iterate) (list itersym) (list iter-thunk)
          iter-call)))
 
     ; Either (lambda ...) or (function (lambda ...)) denotes a lambda-expression

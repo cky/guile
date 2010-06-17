@@ -81,8 +81,8 @@ static const char** exp_field_names[SCM_NUM_EXPANDED_TYPES];
   SCM_MAKE_EXPANDED_LAMBDA_CASE(src, req, opt, rest, kw, inits, gensyms, body, alternate)
 #define LET(src, names, gensyms, vals, body) \
   SCM_MAKE_EXPANDED_LET(src, names, gensyms, vals, body)
-#define LETREC(src, names, gensyms, vals, body) \
-  SCM_MAKE_EXPANDED_LETREC(src, names, gensyms, vals, body)
+#define LETREC(src, in_order_p, names, gensyms, vals, body) \
+  SCM_MAKE_EXPANDED_LETREC(src, in_order_p, names, gensyms, vals, body)
 #define DYNLET(src, fluids, vals, body) \
   SCM_MAKE_EXPANDED_DYNLET(src, fluids, vals, body)
 
@@ -984,7 +984,7 @@ expand_named_let (const SCM expr, SCM env)
   inner_env = expand_env_extend (inner_env, var_names, var_syms);
 
   return LETREC
-    (scm_source_properties (expr),
+    (scm_source_properties (expr), SCM_BOOL_F,
      scm_list_1 (name), scm_list_1 (name_sym),
      scm_list_1 (LAMBDA (SCM_BOOL_F,
                          SCM_EOL,
@@ -1048,7 +1048,7 @@ expand_letrec (SCM expr, SCM env)
       SCM var_names, var_syms, inits;
       transform_bindings (bindings, expr, &var_names, &var_syms, &inits);
       env = expand_env_extend (env, var_names, var_syms);
-      return LETREC (SCM_BOOL_F,
+      return LETREC (SCM_BOOL_F, SCM_BOOL_F,
                      var_names, var_syms, expand_exprs (inits, env),
                      expand_sequence (CDDR (expr), env));
     }

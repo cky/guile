@@ -42,7 +42,7 @@
                           lambda-case-inits lambda-case-gensyms
                           lambda-case-body lambda-case-alternate
             <let> let? make-let let-src let-names let-gensyms let-vals let-body
-            <letrec> letrec? make-letrec letrec-src letrec-names letrec-gensyms letrec-vals letrec-body
+            <letrec> letrec? make-letrec letrec-src letrec-in-order? letrec-names letrec-gensyms letrec-vals letrec-body
             <fix> fix? make-fix fix-src fix-names fix-gensyms fix-vals fix-body
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
             <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
@@ -123,7 +123,7 @@
   ;; (<lambda> meta body)
   ;; (<lambda-case> req opt rest kw inits gensyms body alternate)
   ;; (<let> names gensyms vals body)
-  ;; (<letrec> names gensyms vals body)
+  ;; (<letrec> in-order? names gensyms vals body)
   ;; (<dynlet> fluids vals body)
 
 (define-type (<tree-il> #:common-slots (src) #:printer print-tree-il)
@@ -216,7 +216,10 @@
       (make-let loc names gensyms (map retrans vals) (retrans body)))
 
      ((letrec ,names ,gensyms ,vals ,body)
-      (make-letrec loc names gensyms (map retrans vals) (retrans body)))
+      (make-letrec loc #f names gensyms (map retrans vals) (retrans body)))
+
+     ((letrec* ,names ,gensyms ,vals ,body)
+      (make-letrec loc #t names gensyms (map retrans vals) (retrans body)))
 
      ((fix ,names ,gensyms ,vals ,body)
       (make-fix loc names gensyms (map retrans vals) (retrans body)))
@@ -297,8 +300,9 @@
     ((<let> names gensyms vals body)
      `(let ,names ,gensyms ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
 
-    ((<letrec> names gensyms vals body)
-     `(letrec ,names ,gensyms ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
+    ((<letrec> in-order? names gensyms vals body)
+     `(,(if in-order? 'letrec* 'letrec) ,names ,gensyms
+       ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
 
     ((<fix> names gensyms vals body)
      `(fix ,names ,gensyms ,(map unparse-tree-il vals) ,(unparse-tree-il body)))
@@ -435,8 +439,9 @@
     ((<let> gensyms vals body)
      `(let ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
     
-    ((<letrec> gensyms vals body)
-     `(letrec ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
+    ((<letrec> in-order? gensyms vals body)
+     `(,(if in-order? 'letrec* 'letrec)
+       ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
 
     ((<fix> gensyms vals body)
      ;; not a typo, we really do translate back to letrec

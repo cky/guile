@@ -301,18 +301,19 @@ enum
 
 #define SCM_EXPANDED_LETREC_TYPE_NAME "letrec"
 #define SCM_EXPANDED_LETREC_FIELD_NAMES         \
-  { "src", "names", "gensyms", "vals", "body", }
+  { "src", "in-order?", "names", "gensyms", "vals", "body", }
 enum
   {
     SCM_EXPANDED_LETREC_SRC,
+    SCM_EXPANDED_LETREC_IN_ORDER_P,
     SCM_EXPANDED_LETREC_NAMES,
     SCM_EXPANDED_LETREC_GENSYMS,
     SCM_EXPANDED_LETREC_VALS,
     SCM_EXPANDED_LETREC_BODY,
     SCM_NUM_EXPANDED_LETREC_FIELDS,
   };
-#define SCM_MAKE_EXPANDED_LETREC(src, names, gensyms, vals, body) \
-  scm_c_make_struct (exp_vtables[SCM_EXPANDED_LETREC], 0, SCM_NUM_EXPANDED_LETREC_FIELDS, SCM_UNPACK (src), SCM_UNPACK (names), SCM_UNPACK (gensyms), SCM_UNPACK (vals), SCM_UNPACK (body))
+#define SCM_MAKE_EXPANDED_LETREC(src, in_order_p, names, gensyms, vals, body) \
+  scm_c_make_struct (exp_vtables[SCM_EXPANDED_LETREC], 0, SCM_NUM_EXPANDED_LETREC_FIELDS, SCM_UNPACK (src), SCM_UNPACK (in_order_p), SCM_UNPACK (names), SCM_UNPACK (gensyms), SCM_UNPACK (vals), SCM_UNPACK (body))
 
 #define SCM_EXPANDED_DYNLET_TYPE_NAME "dynlet"
 #define SCM_EXPANDED_DYNLET_FIELD_NAMES         \

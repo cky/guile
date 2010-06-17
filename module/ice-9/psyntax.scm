@@ -520,7 +520,7 @@
           (maybe-name-value! f-name proc)
           (for-each maybe-name-value! ids val-exps)
           (make-letrec
-           src
+           src #f
            (list f-name) (list f) (list proc)
            (build-application src (build-lexical-reference 'fun src f-name f)
                               val-exps))))))
@@ -531,7 +531,7 @@
           body-exp
           (begin
             (for-each maybe-name-value! ids val-exps)
-            (make-letrec src ids vars val-exps body-exp)))))
+            (make-letrec src #f ids vars val-exps body-exp)))))
 
 
   ;; FIXME: use a faster gensym
