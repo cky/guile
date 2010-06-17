@@ -1483,7 +1483,7 @@
                                            (loop (cdr bs) er r-cache))
                                          (loop (cdr bs) er-cache r-cache)))))
                              (set-cdr! r (extend-env labels bindings (cdr r)))
-                             (build-letrec no-source #f
+                             (build-letrec no-source #t
                                            (map syntax->datum var-ids)
                                            vars
                                            (map (lambda (x)
