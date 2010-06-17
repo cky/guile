@@ -17,6 +17,7 @@
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (use-modules (language tree-il)
+             (language tree-il optimize)
              (ice-9 pretty-print))
 
 (let ((source (list-ref (command-line) 1))
@@ -33,7 +34,10 @@
             (close-port in))
           (begin
             (pretty-print (tree-il->scheme
-                           (macroexpand x 'c '(compile load eval)))
+                           (optimize!
+                            (macroexpand x 'c '(compile load eval))
+                            (current-module)
+                            '()))
                           out)
             (newline out)
             (loop (read in))))))
