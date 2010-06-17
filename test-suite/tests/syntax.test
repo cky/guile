@@ -45,6 +45,8 @@
   '(syntax-error . "bad let "))
 (define exception:bad-letrec
   '(syntax-error . "bad letrec "))
+(define exception:bad-letrec*
+  '(syntax-error . "bad letrec\\* "))
 (define exception:bad-set!
   '(syntax-error . "bad set!"))
 (define exception:bad-quote
@@ -462,6 +464,96 @@
       exception:bad-letrec
       (eval '(letrec ((x 1)))
 	    (interaction-environment)))))
+
+(with-test-prefix "letrec*"
+
+  (with-test-prefix "bindings"
+
+    (pass-if-exception "initial bindings are undefined"
+      exception:used-before-defined
+      (begin
+        ;; FIXME: the memoizer does initialize the var to undefined, but
+        ;; the Scheme evaluator has no way of checking what's an
+        ;; undefined value. Not sure how to do this.
+        (throw 'unresolved)
+	(letrec* ((x y) (y 1)) y))))
+
+  (with-test-prefix "bad bindings"
+
+    (pass-if-exception "(letrec*)"
+      exception:bad-letrec*
+      (eval '(letrec*)
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* 1)"
+      exception:bad-letrec*
+      (eval '(letrec* 1)
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* (x))"
+      exception:bad-letrec*
+      (eval '(letrec* (x))
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* (x) 1)"
+      exception:bad-letrec*
+      (eval '(letrec* (x) 1)
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* ((x)) 3)"
+      exception:bad-letrec*
+      (eval '(letrec* ((x)) 3)
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* ((x 1) y) x)"
+      exception:bad-letrec*
+      (eval '(letrec* ((x 1) y) x)
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* x ())"
+      exception:bad-letrec*
+      (eval '(letrec* x ())
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* x (y))"
+      exception:bad-letrec*
+      (eval '(letrec* x (y))
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* ((1 2)) 3)"
+      exception:bad-letrec*
+      (eval '(letrec* ((1 2)) 3)
+	    (interaction-environment))))
+
+  (with-test-prefix "duplicate bindings"
+
+    (pass-if-exception "(letrec* ((x 1) (x 2)) x)"
+      exception:duplicate-binding
+      (eval '(letrec* ((x 1) (x 2)) x)
+	    (interaction-environment))))
+
+  (with-test-prefix "bad body"
+
+    (pass-if-exception "(letrec* ())"
+      exception:bad-letrec*
+      (eval '(letrec* ())
+	    (interaction-environment)))
+
+    (pass-if-exception "(letrec* ((x 1)))"
+      exception:bad-letrec*
+      (eval '(letrec* ((x 1)))
+	    (interaction-environment))))
+
+  (with-test-prefix "referencing previous values"
+    (pass-if (equal? (letrec ((a (cons 'foo 'bar))
+                              (b a))
+                       b)
+                     '(foo . bar)))
+    (pass-if (equal? (let ()
+                       (define a (cons 'foo 'bar))
+                       (define b a)
+                       b)
+                     '(foo . bar)))))
 
 (with-test-prefix "if"
 

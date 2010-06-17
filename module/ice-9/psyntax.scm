@@ -23,7 +23,7 @@
 ;;; Authors: R. Kent Dybvig, Oscar Waddell, Bob Hieb, Carl Bruggeman
 
 ;;; Modified by Andy Wingo <wingo@pobox.com> according to the Git
-;;; revision control logs corresponding to this file: 2009.
+;;; revision control logs corresponding to this file: 2009, 2010.
 
 ;;; Modified by Mikael Djurfeldt <djurfeldt@nada.kth.se> according
 ;;; to the ChangeLog distributed in the same directory as this file:
@@ -1484,11 +1484,11 @@
                                          (loop (cdr bs) er-cache r-cache)))))
                              (set-cdr! r (extend-env labels bindings (cdr r)))
                              (build-letrec no-source #t
-                                           (map syntax->datum var-ids)
-                                           vars
+                                           (reverse (map syntax->datum var-ids))
+                                           (reverse vars)
                                            (map (lambda (x)
                                                   (chi (cdr x) (car x) empty-wrap mod))
-                                                vals)
+                                                (reverse vals))
                                            (build-sequence no-source
                                                            (map (lambda (x)
                                                                   (chi (cdr x) (car x) empty-wrap mod))
