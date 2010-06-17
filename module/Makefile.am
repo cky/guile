@@ -72,15 +72,17 @@ EXTRA_DIST +=					\
   ice-9/compile-psyntax.scm			\
   ice-9/ChangeLog-2008
 
-# We expect this to never be invoked when there is not already
-# ice-9/psyntax-pp.scm in %load-path, since compile-psyntax.scm depends
-# on ice-9/syncase.scm, which does `(load-from-path "ice-9/psyntax-pp.scm")'.
-# In other words, to bootstrap this file, you need to do something like:
-#    GUILE_LOAD_PATH=/usr/local/share/guile/1.5.4 make psyntax-pp.scm
 include $(top_srcdir)/am/pre-inst-guile
 ice-9/psyntax-pp.scm: ice-9/psyntax.scm
 	$(preinstguile) --no-autocompile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
+	touch -r "$(srcdir)/ice-9/psyntax.scm" "$(srcdir)/ice-9/psyntax-pp.scm"
+	rm -f ice-9/psyntax-pp.go
+
+ice-9/psyntax-pp.go: ice-9/psyntax-pp.scm
+	GUILE_AUTO_COMPILE=0					\
+	$(top_builddir)/meta/uninstalled-env			\
+	guile-tools compile $(GUILE_WARNINGS) -o "ice-9/psyntax-pp.go" "$(srcdir)/ice-9/psyntax.scm"
 
 SCHEME_LANG_SOURCES =						\
   language/scheme/spec.scm					\
