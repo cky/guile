@@ -1682,7 +1682,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 static inline void
 define_langinfo_items (void)
 {
-#if (defined HAVE_NL_TYPES_H) && (defined HAVE_LANGINFO_H)
+#ifdef HAVE_LANGINFO_H
 
 #define DEFINE_NLITEM_CONSTANT(_item)		\
   scm_c_define (# _item, scm_from_int (_item))
