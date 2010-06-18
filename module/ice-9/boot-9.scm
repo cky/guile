@@ -2711,8 +2711,6 @@ module '(ice-9 q) '(make-q q-length))}."
                              narrowing)))
         (set! stack-saved? #t))))
 
-(define has-shown-debugger-hint? #f)
-
 (define (handle-system-error key . args)
   (let ((cep (current-error-port)))
     (cond ((not (stack? (fluid-ref the-last-stack))))

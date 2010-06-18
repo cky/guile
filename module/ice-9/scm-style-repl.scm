@@ -66,6 +66,8 @@
 
 
 
+(define has-shown-debugger-hint? #f)
+
 (define (error-catching-loop thunk)
   (let ((status #f)
         (interactive #t))
