@@ -27,6 +27,7 @@
              assert-repl-print-unspecified
              assert-repl-verbosity
 
+             default-pre-unwind-handler
              bad-throw
              error-catching-loop
              error-catching-repl
@@ -55,6 +56,13 @@
   (let ((default (symbol-property key 'throw-handler-default)))
     (or (and default (apply default key args))
         (apply error "unhandled-exception:" key args))))
+
+
+
+(define (default-pre-unwind-handler key . args)
+  ;; Narrow by two more frames: this one, and the throw handler.
+  (save-stack 2)
+  (apply throw key args))
 
 
 

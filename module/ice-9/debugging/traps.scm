@@ -26,6 +26,7 @@
 (define-module (ice-9 debugging traps)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 weak-vector)
+  #:use-module (ice-9 scm-style-repl)
   #:use-module (oop goops)
   #:use-module (oop goops describe)
   #:use-module (ice-9 debugging trc)

@@ -2674,11 +2674,6 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Running Repls}
 ;;;
 
-(define (default-pre-unwind-handler key . args)
-  ;; Narrow by two more frames: this one, and the throw handler.
-  (save-stack 2)
-  (apply throw key args))
-
 (define abort-hook (make-hook))
 
 ;; Programs can call `batch-mode?' to see if they are running as part of a

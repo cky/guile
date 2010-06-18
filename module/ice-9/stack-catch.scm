@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,7 @@
 ;;;; 
 
 (define-module (ice-9 stack-catch)
-  :export (stack-catch))
+  #:export (stack-catch))
 
 (define (stack-catch key thunk handler)
   "Like @code{catch}, invoke @var{thunk} in the dynamic context of
@@ -40,4 +40,7 @@ this call to @code{catch}."
   (catch key
 	 thunk
 	 handler
-	 default-pre-unwind-handler))
+	 (lambda (key . args)
+           ;; Narrow by two more frames: this one, and the throw handler.
+           (save-stack 2)
+           (apply throw key args))))
