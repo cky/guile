@@ -2656,6 +2656,20 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
+;;; {The Unspecified Value}
+;;;
+;;; Currently Guile represents unspecified values via one particular value,
+;;; which may be obtained by evaluating (if #f #f). It would be nice in the
+;;; future if we could replace this with a return of 0 values, though.
+
+(define-syntax *unspecified*
+  (identifier-syntax (if #f #f)))
+
+(define (unspecified? v) (eq? v *unspecified*))
+
+
+
+
 ;;; {Running Repls}
 ;;;
 
@@ -2666,9 +2680,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 ;; A provisional repl that acts like the SCM repl:
 ;;
-(define *unspecified* (if #f #f))
-(define (unspecified? v) (eq? v *unspecified*))
-
 (define (default-pre-unwind-handler key . args)
   ;; Narrow by two more frames: this one, and the throw handler.
   (save-stack 2)
