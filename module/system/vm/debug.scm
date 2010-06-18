@@ -446,10 +446,14 @@ With an argument, select a frame by index, then show it."
     v))
 
 (define (debug)
-  (let ((stack (fluid-ref the-last-stack)))
-    (if stack
-        (run-debugger (stack->vector stack))
-        (display "Nothing to debug.\n" (debug-output-port)))))
+  (run-debugger
+   (narrow-stack->vector
+    (make-stack #t)
+    ;; Narrow the `make-stack' frame and the `debug' frame
+    2
+    ;; Narrow the end of the stack to the most recent start-stack.
+    (and (pair? (fluid-ref %stacks))
+         (cdar (fluid-ref %stacks))))))
 
 (define (narrow-stack->vector stack . args)
   (stack->vector (apply make-stack (stack-ref stack 0) args)))
