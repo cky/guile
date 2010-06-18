@@ -2690,7 +2690,6 @@ module '(ice-9 q) '(make-q q-length))}."
   (restore-signals))
 
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
-(define before-signal-stack (make-fluid))
 ;; FIXME: stack-saved? is broken in the presence of threads.
 (define stack-saved? #f)
 
@@ -3460,9 +3459,6 @@ module '(ice-9 q) '(make-q q-length))}."
           (lambda ()
             (let ((make-handler (lambda (msg)
                                   (lambda (sig)
-                                    ;; Make a backup copy of the stack
-                                    (fluid-set! before-signal-stack
-                                                (fluid-ref the-last-stack))
                                     (save-stack 2)
                                     (scm-error 'signal
                                                #f
