@@ -122,5 +122,3 @@
               (read-char)
               (if (not (char=? ch #\newline))
                   (flush-to-newline)))))))
-          
-          
