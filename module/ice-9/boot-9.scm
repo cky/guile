@@ -2674,13 +2674,6 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Running Repls}
 ;;;
 
-(define (repl read evaler print)
-  (let loop ((source (read (current-input-port))))
-    (print (evaler source))
-    (loop (read (current-input-port)))))
-
-;; A provisional repl that acts like the SCM repl:
-;;
 (define (default-pre-unwind-handler key . args)
   ;; Narrow by two more frames: this one, and the throw handler.
   (save-stack 2)

@@ -55,7 +55,8 @@
             assert-repl-print-unspecified
             assert-repl-verbosity
             set-repl-prompt!
-            set-batch-mode?!)
+            set-batch-mode?!
+            repl)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -608,3 +609,10 @@ the `(system repl common)' module.")
      "`set-batch-mode?!' with an argument of `#f' is deprecated. Use the
 `*repl-level*' fluid instead.")
     #t)))
+
+(define (repl read evaler print)
+  (issue-deprecation-warning
+   "`repl' is deprecated. Define it yourself.")
+  (let loop ((source (read (current-input-port))))
+    (print (evaler source))
+    (loop (read (current-input-port)))))
