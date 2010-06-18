@@ -21,6 +21,9 @@
   :use-module ((rnrs conditions) :version (6))
   :use-module (test-suite lib))
 
+(define-condition-type &a &condition make-a-condition a-condition? (foo a-foo))
+(define-condition-type &b &condition make-b-condition b-condition? (bar b-bar))
+
 (with-test-prefix "condition?"
   (pass-if "condition? is #t for simple conditions"
     (condition? (make-error)))
@@ -89,3 +92,8 @@
 	   (vc (make-violation))
 	   (c (condition vc mc)))
       (equal? (ma c) "foo"))))
+
+(with-test-prefix "define-condition-type"
+  (pass-if "define-condition-type produces proper accessors"
+    (let ((c (condition (make-a-condition 'foo) (make-b-condition 'bar))))
+      (and (eq? (a-foo c) 'foo) (eq? (b-bar c) 'bar)))))

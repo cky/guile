@@ -126,10 +126,15 @@
 	    (generate-accessors
 	     (syntax-rules ()
 	       ((_ counter (f a) . rest)
-		(begin (define a (record-accessor condition-type counter))
+		(begin (define a 
+                         (condition-accessor 
+                          condition-type
+                          (record-accessor condition-type counter)))
 		       (generate-accessors (+ counter 1) rest)))
 	       ((_ counter ((f a)))
-		(define a (record-accessor condition-type counter)))
+		(define a 
+                  (condition-accessor 
+                   condition-type (record-accessor condition-type counter))))
 	       ((_ counter ()) (begin))
 	       ((_ counter) (begin)))))	 
 	 (begin
