@@ -17,11 +17,33 @@
 ;;;;
 
 (define-module (ice-9 scm-style-repl)
+  #:export (scm-repl-silent
+            scm-repl-print-unspecified
+            scm-repl-verbose
+            scm-repl-prompt)
+  
   ;; #:replace, as with deprecated code enabled these will be in the root env
-  #:replace (bad-throw
+  #:replace (assert-repl-silence
+             assert-repl-print-unspecified
+             assert-repl-verbosity
+
+             bad-throw
              error-catching-loop
              error-catching-repl
              scm-style-repl))
+
+(define scm-repl-silent #f)
+(define (assert-repl-silence v) (set! scm-repl-silent v))
+
+(define scm-repl-print-unspecified #f)
+(define (assert-repl-print-unspecified v) (set! scm-repl-print-unspecified v))
+
+(define scm-repl-verbose #f)
+(define (assert-repl-verbosity v) (set! scm-repl-verbose v))
+
+(define scm-repl-prompt "guile> ")
+
+
 
 ;; bad-throw is the hook that is called upon a throw to a an unhandled
 ;; key (unless the throw has four arguments, in which case

@@ -50,7 +50,10 @@
             for-next-option
             display-usage-report
             transform-usage-lambda
-            collect)
+            collect
+            assert-repl-silence
+            assert-repl-print-unspecified
+            assert-repl-verbosity)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -567,3 +570,21 @@ better yet, use the repl from `(system repl repl)'.")
       ((_ x x* ...)
        #'(let ((val x))
            (cons val (collect x* ...)))))))
+
+
+
+
+(define (assert-repl-silence v)
+  (issue-deprecation-warning
+   "`assert-repl-silence' has moved to `(ice-9 scm-style-repl)'.")
+  ((@ (ice-9 scm-style-repl) assert-repl-silence) v))
+
+(define (assert-repl-print-unspecified v)
+  (issue-deprecation-warning
+   "`assert-repl-print-unspecified' has moved to `(ice-9 scm-style-repl)'.")
+  ((@ (ice-9 scm-style-repl) assert-repl-print-unspecified) v))
+
+(define (assert-repl-verbosity v)
+  (issue-deprecation-warning
+   "`assert-repl-verbosity' has moved to `(ice-9 scm-style-repl)'.")
+  ((@ (ice-9 scm-style-repl) assert-repl-verbosity) v))

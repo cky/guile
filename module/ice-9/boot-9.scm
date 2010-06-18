@@ -2666,19 +2666,8 @@ module '(ice-9 q) '(make-q q-length))}."
 
 ;; A provisional repl that acts like the SCM repl:
 ;;
-(define scm-repl-silent #f)
-(define (assert-repl-silence v) (set! scm-repl-silent v))
-
 (define *unspecified* (if #f #f))
 (define (unspecified? v) (eq? v *unspecified*))
-
-(define scm-repl-print-unspecified #f)
-(define (assert-repl-print-unspecified v) (set! scm-repl-print-unspecified v))
-
-(define scm-repl-verbose #f)
-(define (assert-repl-verbosity v) (set! scm-repl-verbose v))
-
-(define scm-repl-prompt "guile> ")
 
 (define (set-repl-prompt! v) (set! scm-repl-prompt v))
 
