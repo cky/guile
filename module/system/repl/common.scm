@@ -28,6 +28,7 @@
             repl-tm-stats repl-gc-stats
             repl-welcome repl-prompt repl-read repl-compile repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
+            repl-default-option-set! repl-default-prompt-set!
             puts ->string user-error
             *warranty* *copying* *version*
             *repl-level*))
@@ -121,10 +122,14 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   (display "Enter `,help' for help.\n"))
 
 (define (repl-prompt repl)
-  (format #f "~A@~A~A> " (language-name (repl-language repl))
-          (module-name (current-module))
-          (let ((level (or (fluid-ref *repl-level*) 0)))
-            (if (zero? level) "" (format #f " [~a]" level)))))
+  (cond
+   ((repl-option-ref repl 'prompt)
+    => (lambda (prompt) (prompt repl)))
+   (else
+    (format #f "~A@~A~A> " (language-name (repl-language repl))
+            (module-name (current-module))
+            (let ((level (or (fluid-ref *repl-level*) 0)))
+              (if (zero? level) "" (format #f " [~a]" level)))))))
 
 (define (repl-read repl)
   ((language-reader (repl-language repl)) (current-input-port)
@@ -166,6 +171,18 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 
 (define (repl-option-set! repl key val)
   (set! (repl-options repl) (assq-set! (repl-options repl) key val)))
+
+(define (repl-default-option-set! key val)
+  (set! repl-default-options (assq-set! repl-default-options key val)))
+
+(define (repl-default-prompt-set! prompt)
+  (repl-default-option-set!
+   'prompt
+   (cond
+    ((string? prompt) (lambda (repl) prompt))
+    ((thunk? prompt) (lambda (repl) (prompt)))
+    ((procedure? prompt) prompt)
+    (else (error "Invalid prompt" prompt)))))
 
 
 ;;;
