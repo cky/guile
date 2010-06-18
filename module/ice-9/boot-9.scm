@@ -2669,8 +2669,6 @@ module '(ice-9 q) '(make-q q-length))}."
 (define *unspecified* (if #f #f))
 (define (unspecified? v) (eq? v *unspecified*))
 
-(define (set-repl-prompt! v) (set! scm-repl-prompt v))
-
 (define (default-pre-unwind-handler key . args)
   ;; Narrow by two more frames: this one, and the throw handler.
   (save-stack 2)

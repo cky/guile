@@ -53,7 +53,8 @@
             collect
             assert-repl-silence
             assert-repl-print-unspecified
-            assert-repl-verbosity)
+            assert-repl-verbosity
+            set-repl-prompt!)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -588,3 +589,9 @@ better yet, use the repl from `(system repl repl)'.")
   (issue-deprecation-warning
    "`assert-repl-verbosity' has moved to `(ice-9 scm-style-repl)'.")
   ((@ (ice-9 scm-style-repl) assert-repl-verbosity) v))
+
+(define (set-repl-prompt! v)
+  (issue-deprecation-warning
+   "`set-repl-prompt!' is deprecated. Use `repl-default-prompt-set!' from
+the `(system repl common)' module.")
+  ((@ (system repl common) repl-default-prompt-set!) v))
