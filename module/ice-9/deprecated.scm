@@ -54,7 +54,8 @@
             assert-repl-silence
             assert-repl-print-unspecified
             assert-repl-verbosity
-            set-repl-prompt!)
+            set-repl-prompt!
+            set-batch-mode?!)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -595,3 +596,15 @@ better yet, use the repl from `(system repl repl)'.")
    "`set-repl-prompt!' is deprecated. Use `repl-default-prompt-set!' from
 the `(system repl common)' module.")
   ((@ (system repl common) repl-default-prompt-set!) v))
+
+(define (set-batch-mode?! arg)
+  (cond
+   (arg
+    (issue-deprecation-warning
+     "`set-batch-mode?!' is deprecated. Use `ensure-batch-mode!' instead.")
+    (ensure-batch-mode!))
+   (else
+    (issue-deprecation-warning
+     "`set-batch-mode?!' with an argument of `#f' is deprecated. Use the
+`*repl-level*' fluid instead.")
+    #t)))

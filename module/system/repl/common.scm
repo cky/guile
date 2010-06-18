@@ -30,8 +30,7 @@
             repl-parse repl-print repl-option-ref repl-option-set!
             repl-default-option-set! repl-default-prompt-set!
             puts ->string user-error
-            *warranty* *copying* *version*
-            *repl-level*))
+            *warranty* *copying* *version*))
 
 (define *version*
   (format #f "GNU Guile ~A
@@ -94,8 +93,6 @@ Program, unless a warranty or assumption of liability accompanies a
 copy of the Program in return for a fee.
 
 See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
-
-(define *repl-level* (make-fluid))
 
 
 ;;;

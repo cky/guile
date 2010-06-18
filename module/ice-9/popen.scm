@@ -1,6 +1,6 @@
 ;; popen emulation, for non-stdio based ports.
 
-;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,7 +59,7 @@
     (let ((pid (primitive-fork)))
       (cond ((= pid 0)
 	     ;; child
-	     (set-batch-mode?! #t)
+	     (ensure-batch-mode!)
 
 	     ;; select the three file descriptors to be used as
 	     ;; standard descriptors 0, 1, 2 for the new

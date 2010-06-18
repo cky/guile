@@ -2661,6 +2661,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; Currently Guile represents unspecified values via one particular value,
 ;;; which may be obtained by evaluating (if #f #f). It would be nice in the
 ;;; future if we could replace this with a return of 0 values, though.
+;;;
 
 (define-syntax *unspecified*
   (identifier-syntax (if #f #f)))
@@ -2691,10 +2692,20 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define abort-hook (make-hook))
 
-;; these definitions are used if running a script.
-;; otherwise redefined in error-catching-loop.
-(define (set-batch-mode?! arg) #t)
-(define (batch-mode?) #t)
+;; Programs can call `batch-mode?' to see if they are running as part of a
+;; script or if they are running interactively. REPL implementations ensure that
+;; `batch-mode?' returns #f during their extent.
+;;
+;; Programs can re-enter batch mode, for example after a fork, by calling
+;; `ensure-batch-mode!'. This will also restore signal handlers. It's not a
+;; great interface, though; it would be better to abort to the outermost prompt,
+;; and call a thunk there.
+(define *repl-level* (make-fluid))
+(define (batch-mode?)
+  (negative? (or (fluid-ref *repl-level*) -1)))
+(define (ensure-batch-mode!)
+  (fluid-set! *repl-level* #f)
+  (restore-signals))
 
 ;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
 (define before-signal-stack (make-fluid))

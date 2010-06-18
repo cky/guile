@@ -129,12 +129,9 @@
                     default-pre-unwind-handler)))
 
         (if next (loop next) status)))
-    (set! set-batch-mode?! (lambda (arg)
-                             (cond (arg
-                                    (set! interactive #f)
-                                    (restore-signals))
-                                   (#t
-                                    (error "sorry, not implemented")))))
+    (set! ensure-batch-mode! (lambda ()
+                               (set! interactive #f)
+                               (restore-signals)))
     (set! batch-mode? (lambda () (not interactive)))
     (call-with-blocked-asyncs
      (lambda () (loop (lambda () #t))))))
