@@ -167,6 +167,7 @@
 	  lookahead-u8 get-bytevector-n get-bytevector-n! get-bytevector-some 
 	  get-bytevector-all open-bytevector-output-port
 	  make-custom-binary-output-port put-u8 put-bytevector
+          open-string-input-port open-string-output-port
 
 	  ;; (rnrs io simple)
 	  

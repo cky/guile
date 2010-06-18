@@ -39,6 +39,7 @@
 
            ;; input ports
            open-bytevector-input-port
+           open-string-input-port
            make-custom-binary-input-port
 
            ;; binary input
@@ -48,6 +49,7 @@
 
            ;; output ports
            open-bytevector-output-port
+           open-string-output-port
            make-custom-binary-output-port
 
            ;; binary output
@@ -105,5 +107,16 @@ read from/written to in @var{port}."
         (proc port))
       (lambda ()
         (close-port port))))
+
+(define (open-string-input-port str)
+  "Open an input port that will read from @var{str}."
+  (open-input-string str))
+
+(define (open-string-output-port)
+  "Return two values: an output port that will collect characters written to it
+as a string, and a thunk to retrieve the characters associated with that port."
+  (let ((port (open-output-string)))
+    (values port
+            (lambda () (get-output-string port)))))
 
 ;;; ports.scm ends here
