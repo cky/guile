@@ -2674,8 +2674,6 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Running Repls}
 ;;;
 
-(define abort-hook (make-hook))
-
 ;; Programs can call `batch-mode?' to see if they are running as part of a
 ;; script or if they are running interactively. REPL implementations ensure that
 ;; `batch-mode?' returns #f during their extent.
@@ -2713,11 +2711,6 @@ module '(ice-9 q) '(make-q q-length))}."
                              narrowing)))
         (set! stack-saved? #t))))
 
-(define before-error-hook (make-hook))
-(define after-error-hook (make-hook))
-(define before-backtrace-hook (make-hook))
-(define after-backtrace-hook (make-hook))
-
 (define has-shown-debugger-hint? #f)
 
 (define (handle-system-error key . args)
@@ -2748,6 +2741,12 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define (gc-run-time)
   (cdr (assq 'gc-time-taken (gc-stats))))
+
+(define abort-hook (make-hook))
+(define before-error-hook (make-hook))
+(define after-error-hook (make-hook))
+(define before-backtrace-hook (make-hook))
+(define after-backtrace-hook (make-hook))
 
 (define before-read-hook (make-hook))
 (define after-read-hook (make-hook))
