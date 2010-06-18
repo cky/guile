@@ -1,6 +1,6 @@
 ;;;; Guile Debugger
 
-;;; Copyright (C) 1999, 2001, 2002, 2006 Free Software Foundation, Inc.
+;;; Copyright (C) 1999, 2001, 2002, 2006, 2010 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -132,12 +132,12 @@ Indicates that the debugger should display an introductory message.
 
 (define (debug-on-error syms)
   "Enable or disable debug on error."
-  (set! pre-unwind-handler-dispatch
-	(if syms
+  (set! default-pre-unwind-handler
+        (if syms
 	    (lambda (key . args)
 	      (if (memq key syms)
 		  (begin
-		    (debug-stack (make-stack #t pre-unwind-handler-dispatch)
+		    (debug-stack (make-stack #t default-pre-unwind-handler)
 				 #:with-introduction
 				 #:continuable)
 		    (throw 'abort key)))

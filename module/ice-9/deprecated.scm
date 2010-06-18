@@ -56,7 +56,8 @@
             assert-repl-verbosity
             set-repl-prompt!
             set-batch-mode?!
-            repl)
+            repl
+            pre-unwind-handler-dispatch)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -616,3 +617,9 @@ the `(system repl common)' module.")
   (let loop ((source (read (current-input-port))))
     (print (evaler source))
     (loop (read (current-input-port)))))
+
+(define (pre-unwind-handler-dispatch key . args)
+  (issue-deprecation-warning
+   "`pre-unwind-handler-dispatch' is deprecated. Use
+`default-pre-unwind-handler' directly.")
+  (apply default-pre-unwind-handler key args))

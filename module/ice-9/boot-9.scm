@@ -2679,10 +2679,6 @@ module '(ice-9 q) '(make-q q-length))}."
   (save-stack 2)
   (apply throw key args))
 
-(begin-deprecated
- (define (pre-unwind-handler-dispatch key . args)
-   (apply default-pre-unwind-handler key args)))
-
 (define abort-hook (make-hook))
 
 ;; Programs can call `batch-mode?' to see if they are running as part of a

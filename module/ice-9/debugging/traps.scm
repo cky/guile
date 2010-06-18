@@ -494,7 +494,7 @@ it twice."
 	      (or (memq key ignored-keys)
 		  (behaviour (throw->trap-context key
 						  args
-						  pre-unwind-handler-dispatch)))
+						  default-pre-unwind-handler)))
 	      (apply default-default-pre-unwind-handler key args))
 	    default-default-pre-unwind-handler)))
 
