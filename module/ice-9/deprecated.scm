@@ -58,7 +58,8 @@
             set-batch-mode?!
             repl
             pre-unwind-handler-dispatch
-            default-pre-unwind-handler)
+            default-pre-unwind-handler
+            handle-system-error)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -630,3 +631,9 @@ the `(system repl common)' module.")
    "`default-pre-unwind-handler' is deprecated. Use it from 
 `(ice-9 scm-style-repl)' if you need it.")
   (apply (@ (ice-9 scm-style-repl) default-pre-unwind-handler) key args))
+
+(define (handle-system-error key . args)
+  (issue-deprecation-warning
+   "`handle-system-error' is deprecated. Use it from 
+`(ice-9 scm-style-repl)' if you need it.")
+  (apply (@ (ice-9 scm-style-repl) handle-system-error) key args))

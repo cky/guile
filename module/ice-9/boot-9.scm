@@ -2710,27 +2710,6 @@ module '(ice-9 q) '(make-q q-length))}."
                              narrowing)))
         (set! stack-saved? #t))))
 
-(define (handle-system-error key . args)
-  (let ((cep (current-error-port)))
-    (cond ((not (stack? (fluid-ref the-last-stack))))
-          ((memq 'backtrace (debug-options-interface))
-           (let ((highlights (if (or (eq? key 'wrong-type-arg)
-                                     (eq? key 'out-of-range))
-                                 (list-ref args 3)
-                                 '())))
-             (run-hook before-backtrace-hook)
-             (newline cep)
-             (display "Backtrace:\n")
-             (display-backtrace (fluid-ref the-last-stack) cep
-                                #f #f highlights)
-             (newline cep)
-             (run-hook after-backtrace-hook))))
-    (run-hook before-error-hook)
-    (apply display-error (fluid-ref the-last-stack) cep args)
-    (run-hook after-error-hook)
-    (force-output cep)
-    (throw 'abort key)))
-
 (define (quit . args)
   (apply throw 'quit args))
 
