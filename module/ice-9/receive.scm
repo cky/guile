@@ -1,6 +1,6 @@
 ;;;; SRFI-8
 
-;;; Copyright (C) 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;; Copyright (C) 2000, 2001, 2004, 2006, 2010 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,8 +21,10 @@
   :no-backtrace
   )
 
-(define-macro (receive vars vals . body)
-  `(call-with-values (lambda () ,vals)
-     (lambda ,vars ,@body)))
+(define-syntax receive
+  (syntax-rules ()
+    ((receive vars vals . body)
+     (call-with-values (lambda () vals)
+       (lambda vars . body)))))
 
 (cond-expand-provide (current-module) '(srfi-8))
