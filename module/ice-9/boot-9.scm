@@ -67,6 +67,7 @@
 ;; Define catch and with-throw-handler, using some common helper routines and a
 ;; shared fluid. Hide the helpers in a lexical contour.
 
+(define with-throw-handler #f)
 (let ()
   ;; Ideally we'd like to be able to give these default values for all threads,
   ;; even threads not created by Guile; but alack, that does not currently seem
@@ -118,9 +119,9 @@
                     (apply prev thrown-k args))))
             (apply prev thrown-k args)))))
 
-  (define! 'catch
-    (lambda* (k thunk handler #:optional pre-unwind-handler)
-      "Invoke @var{thunk} in the dynamic context of @var{handler} for
+  (set! catch
+        (lambda* (k thunk handler #:optional pre-unwind-handler)
+          "Invoke @var{thunk} in the dynamic context of @var{handler} for
 exceptions matching @var{key}.  If thunk throws to the symbol
 @var{key}, then @var{handler} is invoked this way:
 @lisp
@@ -153,47 +154,47 @@ A @var{pre-unwind-handler} can exit either normally or non-locally.
 If it exits normally, Guile unwinds the stack and dynamic context
 and then calls the normal (third argument) handler.  If it exits
 non-locally, that exit determines the continuation."
-      (if (not (or (symbol? k) (eqv? k #t)))
-          (scm-error "catch" 'wrong-type-arg
-                     "Wrong type argument in position ~a: ~a"
-                     (list 1 k) (list k)))
-      (let ((tag (make-prompt-tag "catch")))
-        (call-with-prompt
-         tag
-         (lambda ()
-           (with-fluids
-               ((%exception-handler
-                 (if pre-unwind-handler
-                     (custom-throw-handler tag k pre-unwind-handler)
-                     (default-throw-handler tag k))))
-             (thunk)))
-         (lambda (cont k . args)
-           (apply handler k args))))))
+          (if (not (or (symbol? k) (eqv? k #t)))
+              (scm-error "catch" 'wrong-type-arg
+                         "Wrong type argument in position ~a: ~a"
+                         (list 1 k) (list k)))
+          (let ((tag (make-prompt-tag "catch")))
+            (call-with-prompt
+             tag
+             (lambda ()
+               (with-fluids
+                   ((%exception-handler
+                     (if pre-unwind-handler
+                         (custom-throw-handler tag k pre-unwind-handler)
+                         (default-throw-handler tag k))))
+                 (thunk)))
+             (lambda (cont k . args)
+               (apply handler k args))))))
 
-  (define! 'with-throw-handler
-    (lambda (k thunk pre-unwind-handler)
-      "Add @var{handler} to the dynamic context as a throw handler
+  (set! with-throw-handler
+        (lambda (k thunk pre-unwind-handler)
+          "Add @var{handler} to the dynamic context as a throw handler
 for key @var{key}, then invoke @var{thunk}."
-      (if (not (or (symbol? k) (eqv? k #t)))
-          (scm-error "with-throw-handler" 'wrong-type-arg
-                     "Wrong type argument in position ~a: ~a"
-                     (list 1 k) (list k)))
-      (with-fluids ((%exception-handler
-                     (custom-throw-handler #f k pre-unwind-handler)))
-        (thunk))))
+          (if (not (or (symbol? k) (eqv? k #t)))
+              (scm-error "with-throw-handler" 'wrong-type-arg
+                         "Wrong type argument in position ~a: ~a"
+                         (list 1 k) (list k)))
+          (with-fluids ((%exception-handler
+                         (custom-throw-handler #f k pre-unwind-handler)))
+            (thunk))))
 
-  (define! 'throw
-    (lambda (key . args)
-      "Invoke the catch form matching @var{key}, passing @var{args} to the
+  (set! throw
+        (lambda (key . args)
+          "Invoke the catch form matching @var{key}, passing @var{args} to the
 @var{handler}.
 
 @var{key} is a symbol. It will match catches of the same symbol or of @code{#t}.
 
 If there is no handler at all, Guile prints an error and then exits."
-      (if (not (symbol? key))
-          ((exception-handler) 'wrong-type-arg "throw"
-           "Wrong type argument in position ~a: ~a" (list 1 key) (list key))
-          (apply (exception-handler) key args)))))
+          (if (not (symbol? key))
+              ((exception-handler) 'wrong-type-arg "throw"
+               "Wrong type argument in position ~a: ~a" (list 1 key) (list key))
+              (apply (exception-handler) key args)))))
 
 
 

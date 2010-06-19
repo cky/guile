@@ -377,7 +377,13 @@
         (set-source-properties! e s))
     e)
 
-;;; output constructors
+  (define (maybe-name-value! name val)
+    (if (lambda? val)
+        (let ((meta (lambda-meta val)))
+          (if (not (assq 'name meta))
+              (set-lambda-meta! val (acons 'name name meta))))))
+
+  ;;; output constructors
   (define build-void
     (lambda (source)
       (make-void source)))
@@ -400,6 +406,7 @@
   
   (define build-lexical-assignment
     (lambda (source name var exp)
+      (maybe-name-value! name exp)
       (make-lexical-set source name var exp)))
   
   ;; Before modules are booted, we can't expand into data structures from
@@ -438,18 +445,13 @@
 
   (define build-global-assignment
     (lambda (source var exp mod)
+      (maybe-name-value! var exp)
       (analyze-variable
        mod var
        (lambda (mod var public?) 
          (make-module-set source mod var public? exp))
        (lambda (var)
          (make-toplevel-set source var exp)))))
-
-  (define (maybe-name-value! name val)
-    (if (lambda? val)
-        (let ((meta (lambda-meta val)))
-          (if (not (assq 'name meta))
-              (set-lambda-meta! val (acons 'name name meta))))))
 
   (define build-global-definition
     (lambda (source var exp)
