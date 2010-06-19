@@ -2677,15 +2677,13 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; `batch-mode?' returns #f during their extent.
 ;;
 ;; Programs can re-enter batch mode, for example after a fork, by calling
-;; `ensure-batch-mode!'. This will also restore signal handlers. It's not a
-;; great interface, though; it would be better to abort to the outermost prompt,
-;; and call a thunk there.
+;; `ensure-batch-mode!'. It's not a great interface, though; it would be better
+;; to abort to the outermost prompt, and call a thunk there.
 (define *repl-level* (make-fluid))
 (define (batch-mode?)
   (negative? (or (fluid-ref *repl-level*) -1)))
 (define (ensure-batch-mode!)
-  (fluid-set! *repl-level* #f)
-  (restore-signals))
+  (fluid-set! *repl-level* #f))
 
 (define (quit . args)
   (apply throw 'quit args))
