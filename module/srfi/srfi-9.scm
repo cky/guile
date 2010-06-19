@@ -95,6 +95,8 @@
   (lambda (x)
     (define (field-identifiers field-specs)
       (syntax-case field-specs ()
+        (()
+         '())
         ((field-spec)
          (syntax-case #'field-spec ()
            ((name accessor) #'(name))
@@ -138,6 +140,8 @@
 
     (define (accessors type-name field-specs indices)
       (syntax-case field-specs ()
+        (()
+         #'())
         ((field-spec)
          (syntax-case #'field-spec ()
            ((name accessor)

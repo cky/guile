@@ -23,6 +23,8 @@
   #:use-module (srfi srfi-9))
 
 
+(define-record-type :qux (make-qux) qux?)
+
 (define-record-type :foo (make-foo x) foo? 
   (x get-x) (y get-y set-y!))
 
