@@ -1327,7 +1327,6 @@
   ;; possible.
   (define chi-macro
     (lambda (p e r w s rib mod)
-      ;; p := (procedure . module-name)
       (define rebuild-macro-output
         (lambda (x m)
           (cond ((pair? x)
@@ -2138,16 +2137,23 @@
                    (syntax-case e ()
                      ((_ id val)
                       (id? #'id)
-                      (let ((val (chi #'val r w mod))
-                            (n (id-var-name #'id w)))
+                      (let ((n (id-var-name #'id w)))
                         (let ((b (lookup n r mod)))
                           (case (binding-type b)
                             ((lexical)
                              (build-lexical-assignment s
                                                        (syntax->datum #'id)
                                                        (binding-value b)
-                                                       val))
-                            ((global) (build-global-assignment s n val mod))
+                                                       (chi #'val r w mod)))
+                            ((global)
+                             (build-global-assignment s n (chi #'val r w mod) mod))
+                            ((macro)
+                             (let ((p (binding-value b)))
+                               (if (procedure-property p 'variable-transformer)
+                                   (chi (chi-macro p e r w s #f mod) r w mod)
+                                   (syntax-violation 'set! "not a variable transformer"
+                                                     (wrap e w mod)
+                                                     (wrap #'id w mod)))))
                             ((displaced-lexical)
                              (syntax-violation 'set! "identifier out of context"
                                                (wrap #'id w mod)))
@@ -2826,9 +2832,18 @@
                                                  clause))))))))
          #'(let ((t e)) body))))))
 
+(define (make-variable-transformer proc)
+  (if (procedure? proc)
+      (let ((trans (lambda (x)
+                     #((macro-type . variable-transformer))
+                     (proc x))))
+        (set-procedure-property! trans 'variable-transformer #t)
+        trans)
+      (error "variable transformer not a procedure" proc)))
+
 (define-syntax identifier-syntax
   (lambda (x)
-    (syntax-case x ()
+    (syntax-case x (set!)
       ((_ e)
        #'(lambda (x)
            #((macro-type . identifier-syntax))
@@ -2837,7 +2852,16 @@
               (identifier? #'id)
               #'e)
              ((_ x (... ...))
-              #'(e x (... ...)))))))))
+              #'(e x (... ...))))))
+      ((_ (id exp1) ((set! var val) exp2))
+       (and (identifier? #'id) (identifier? #'var))
+       #'(make-variable-transformer
+          (lambda (x)
+            #((macro-type . variable-transformer))
+            (syntax-case x (set!)
+              ((set! var val) #'exp2)
+              ((id x (... ...)) #'(exp1 x (... ...)))
+              (id (identifier? #'id) #'exp1))))))))
 
 (define-syntax define*
   (lambda (x)

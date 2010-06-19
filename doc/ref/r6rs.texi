@@ -25,10 +25,6 @@ Please let the Guile developers know if you find one that is not on this list.
 
 @itemize
 @item
-In the R6RS, internal definitions expand to @code{letrec*}, not @code{letrec}.
-Guile does not support @code{letrec*}, though that would be nice.
-
-@item
 The R6RS specifies many situations in which a conforming implementation must
 signal a specific error. Guile doesn't really care about that too much -- if a
 correct R6RS program would not hit that error, we don't bother checking for it.
@@ -37,8 +33,12 @@ correct R6RS program would not hit that error, we don't bother checking for it.
 Multiple @code{library} forms in one file are not yet supported. This is because
 the expansion of @code{library} sets the current module, but does not restore
 it. This is a bug.
-@end itemize
 
+@item
+A @code{set!} to a variable transformer may only expand to an expression, not a
+definition -- even if the original @code{set!} expression was in definition
+context.
+@end itemize
 
 @node R6RS Standard Libraries
 @subsection R6RS Standard Libraries
