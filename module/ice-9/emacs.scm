@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
   :use-module (ice-9 debug)
   :use-module (ice-9 threads)
   :use-module (ice-9 session)
+  :use-module (ice-9 save-stack)
   :no-backtrace)
 
 (define emacs-escape-character #\sub)

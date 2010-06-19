@@ -59,7 +59,9 @@
             repl
             pre-unwind-handler-dispatch
             default-pre-unwind-handler
-            handle-system-error)
+            handle-system-error
+            stack-saved?
+            save-stack)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -637,3 +639,23 @@ the `(system repl common)' module.")
    "`handle-system-error' is deprecated. Use it from 
 `(ice-9 scm-style-repl)' if you need it.")
   (apply (@ (ice-9 scm-style-repl) handle-system-error) key args))
+
+(define-syntax stack-saved?
+  (make-variable-transformer
+   (lambda (x)
+     (issue-deprecation-warning
+      "`stack-saved?' is deprecated. Use it from
+`(ice-9 save-stack)' if you need it.")
+     (syntax-case x (set!)
+       ((set! id val)
+        (identifier? #'id)
+        #'(set! (@ (ice-9 save-stack) stack-saved?) val))
+       (id
+        (identifier? #'id)
+        #'(@ (ice-9 save-stack) stack-saved?))))))
+
+(define (save-stack . args)
+  (issue-deprecation-warning
+   "`save-stack' is deprecated. Use it from `(ice-9 save-stack)' if you need
+it.")
+  (apply (@ (ice-9 save-stack) save-stack) args))

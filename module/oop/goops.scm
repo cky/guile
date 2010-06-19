@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -105,7 +105,6 @@
 ;; goops-error
 ;;
 (define (goops-error format-string . args)
-  (save-stack)
   (scm-error 'goops-error #f format-string args '()))
 
 ;;

@@ -17,6 +17,8 @@
 ;;;;
 
 (define-module (ice-9 scm-style-repl)
+  #:use-module (ice-9 save-stack)
+
   #:export (scm-repl-silent
             scm-repl-print-unspecified
             scm-repl-verbose

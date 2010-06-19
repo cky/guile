@@ -21,6 +21,7 @@
   #:use-module (ice-9 debugger)
   #:use-module (ice-9 debugger state)
   #:use-module (ice-9 debugging traps)
+  #:use-module (ice-9 save-stack)
   #:export (debugger-command-loop
 	    debugger-command-loop-error
 	    debugger-command-loop-quit)

@@ -210,6 +210,7 @@ ICE_9_SOURCES = \
   ice-9/rw.scm \
   ice-9/safe-r5rs.scm \
   ice-9/safe.scm \
+  ice-9/save-stack.scm \
   ice-9/scm-style-repl.scm \
   ice-9/session.scm \
   ice-9/slib.scm \

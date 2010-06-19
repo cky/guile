@@ -18,6 +18,7 @@
 ;;;; 
 
 (define-module (ice-9 stack-catch)
+  #:use-module (ice-9 save-stack)
   #:export (stack-catch))
 
 (define (stack-catch key thunk handler)
