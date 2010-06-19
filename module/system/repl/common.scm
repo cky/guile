@@ -102,7 +102,8 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 (define-record/keywords <repl> language options tm-stats gc-stats)
 
 (define repl-default-options
-  '((trace . #f)
+  '((compile-options . (#:warnings (unbound-variable arity-mismatch)))
+    (trace . #f)
     (interp . #f)))
 
 (define %make-repl make-repl)
@@ -132,13 +133,14 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   ((language-reader (repl-language repl)) (current-input-port)
                                           (current-module)))
 
-(define (repl-compile repl form . opts)
-  (let ((to (lookup-language (cond ((memq #:e opts) 'scheme)
-                                   ((memq #:t opts) 'ghil)
-                                   ((memq #:c opts) 'glil)
-                                   (else 'objcode))))
-        (from (repl-language repl)))
-    (compile form #:from from #:to to #:opts opts #:env (current-module))))
+(define (repl-compile-options repl)
+  (repl-option-ref repl 'compile-options))
+
+(define (repl-compile repl form)
+  (let ((from (repl-language repl))
+        (opts (repl-compile-options repl)))
+    (compile form #:from from #:to 'objcode #:opts opts
+             #:env (current-module))))
 
 (define (repl-parse repl form)
   (let ((parser (language-parser (repl-language repl))))
@@ -150,7 +152,7 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
                          (or (null? (language-compilers (repl-language repl)))
                              (assq-ref (repl-options repl) 'interp)))
                     (lambda () (eval form (current-module)))
-                    (make-program (repl-compile repl form '())))))
+                    (make-program (repl-compile repl form)))))
     (% (thunk))))
 
 (define (repl-print repl val)

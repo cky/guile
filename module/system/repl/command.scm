@@ -333,17 +333,10 @@ Change languages."
 ;;; Compile commands
 ;;;
 
-(define-meta-command (compile repl (form) . opts)
+(define-meta-command (compile repl (form))
   "compile FORM
-Generate compiled code.
-
-  -e    Stop after expanding syntax/macro
-  -t    Stop after translating into GHIL
-  -c    Stop after generating GLIL
-
-  -O    Enable optimization
-  -D    Add debug information"
-  (let ((x (apply repl-compile repl (repl-parse repl form) opts)))
+Generate compiled code."
+  (let ((x (repl-compile repl (repl-parse repl form))))
     (cond ((objcode? x) (guile:disassemble x))
           (else (repl-print repl x)))))
 
