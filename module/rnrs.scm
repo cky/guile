@@ -212,7 +212,18 @@
 	  make-variable-transformer syntax syntax-case identifier?
 	  bound-identifier=? free-identifier=? syntax->datum datum->syntax
 	  generate-temporaries with-syntax quasisyntax unsyntax
-	  unsyntax-splicing syntax-violation)
+	  unsyntax-splicing syntax-violation
+
+	  ;; (rnrs unicode)
+	  
+	  char-upcase char-downcase char-titlecase char-foldcase
+	  char-ci=? char-ci<? char-ci>? char-ci<=? char-ci>=?
+	  char-alphabetic? char-numeric? char-whitespace? char-upper-case?
+	  char-lower-case? char-title-case? char-general-category
+	  string-upcase string-downcase string-titlecase string-foldcase
+	  string-ci=? string-ci<? string-ci>? string-ci<=? string-ci>=?
+	  string-normalize-nfd string-normalize-nfkd string-normalize-nfc
+	  string-normalize-nfkc)
 
   (import (rnrs arithmetic bitwise (6))
 	  (rnrs arithmetic fixnums (6))
@@ -237,4 +248,5 @@
 	  (rnrs records procedural (6))
 	  (rnrs records syntactic (6))
 	  (rnrs sorting (6))
-	  (rnrs syntax-case (6))))
+	  (rnrs syntax-case (6))
+	  (rnrs unicode (6))))
