@@ -1,3 +1,4 @@
+;;; -*- scheme -*-
 ;;; r6rs-records-syntactic.test --- Test suite for R6RS (rnrs records syntactic)
 
 ;;      Copyright (C) 2010 Free Software Foundation, Inc.
