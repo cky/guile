@@ -32,10 +32,13 @@
 (define-module (ice-9 save-stack)
   ;; Replace deprecated root-module bindings, if present.
   #:replace (stack-saved?
+             the-last-stack
              save-stack))
 
 ;; FIXME: stack-saved? is broken in the presence of threads.
 (define stack-saved? #f)
+
+(define the-last-stack (make-fluid))
 
 (define (save-stack . narrowing)
   (if (not stack-saved?)

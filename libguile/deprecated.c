@@ -1937,6 +1937,55 @@ scm_badargsp (SCM formals, SCM args)
 
 
 
+/* scm_internal_stack_catch
+   Use this one if you want debugging information to be stored in
+   the-last-stack on error. */
+
+static SCM
+ss_handler (void *data SCM_UNUSED, SCM tag, SCM throw_args)
+{
+  /* In the stack */
+  scm_fluid_set_x (scm_variable_ref
+                   (scm_c_module_lookup
+                    (scm_c_resolve_module ("ice-9 save-stack"),
+                     "the-last-stack")),
+		   scm_make_stack (SCM_BOOL_T, SCM_EOL));
+  /* Throw the error */
+  return scm_throw (tag, throw_args);
+}
+
+struct cwss_data
+{
+  SCM tag;
+  scm_t_catch_body body;
+  void *data;
+};
+
+static SCM
+cwss_body (void *data)
+{
+  struct cwss_data *d = data;
+  return scm_c_with_throw_handler (d->tag, d->body, d->data, ss_handler, NULL, 0);
+}
+
+SCM
+scm_internal_stack_catch (SCM tag,
+			  scm_t_catch_body body,
+			  void *body_data,
+			  scm_t_catch_handler handler,
+			  void *handler_data)
+{
+  struct cwss_data d;
+  d.tag = tag;
+  d.body = body;
+  d.data = body_data;
+  scm_c_issue_deprecation_warning
+    ("`scm_internal_stack_catch' is deprecated. Talk to guile-devel if you see this message.");
+  return scm_internal_catch (tag, cwss_body, &d, handler, handler_data);
+}
+
+
+
 void
 scm_i_init_deprecated ()
 {

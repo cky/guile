@@ -3,7 +3,7 @@
 #ifndef SCM_THROW_H
 #define SCM_THROW_H
 
-/* Copyright (C) 1995,1996,1998,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -51,12 +51,6 @@ SCM_API SCM scm_internal_catch (SCM tag,
 				void *body_data,
 				scm_t_catch_handler handler,
 				void *handler_data);
-
-SCM_API SCM scm_internal_stack_catch (SCM tag,
-				      scm_t_catch_body body,
-				      void *body_data,
-				      scm_t_catch_handler handler,
-				      void *handler_data);
 
 /* The first argument to scm_body_thunk should be a pointer to one of
    these.  See the implementation of catch in throw.c.  */

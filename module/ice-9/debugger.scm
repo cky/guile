@@ -22,6 +22,7 @@
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 debugging traps)
   #:use-module (ice-9 scm-style-repl)
+  #:use-module (ice-9 save-stack)
   #:use-module (ice-9 format)
   #:export (debug-stack
 	    debug

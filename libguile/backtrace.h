@@ -3,7 +3,7 @@
 #ifndef SCM_BACKTRACE_H
 #define SCM_BACKTRACE_H
 
-/* Copyright (C) 1996,1998,1999,2000,2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,1999,2000,2001, 2004, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,8 +24,6 @@
 
 
 #include "libguile/__scm.h"
-
-SCM_API SCM scm_the_last_stack_fluid_var;
 
 SCM_API void scm_display_error_message (SCM message, SCM args, SCM port);
 SCM_INTERNAL void scm_i_display_error (SCM stack, SCM port, SCM subr,

@@ -61,6 +61,7 @@
             default-pre-unwind-handler
             handle-system-error
             stack-saved?
+            the-last-stack
             save-stack)
 
   #:replace (module-ref-submodule module-define-submodule!))
@@ -653,6 +654,16 @@ the `(system repl common)' module.")
        (id
         (identifier? #'id)
         #'(@ (ice-9 save-stack) stack-saved?))))))
+
+(define-syntax the-last-stack
+  (lambda (x)
+    (issue-deprecation-warning
+     "`the-last-stack' is deprecated. Use it from `(ice-9 save-stack)'
+if you need it.")
+    (syntax-case x ()
+      (id
+       (identifier? #'id)
+       #'(@ (ice-9 save-stack) the-last-stack)))))
 
 (define (save-stack . args)
   (issue-deprecation-warning

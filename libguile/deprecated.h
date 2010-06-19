@@ -26,6 +26,7 @@
 #include "libguile/__scm.h"
 #include "libguile/strings.h"
 #include "libguile/eval.h"
+#include "libguile/throw.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -629,6 +630,13 @@ SCM_DEPRECATED SCM scm_dynamic_args_call (SCM symb, SCM dobj, SCM args);
 
 /* Deprecated 2010-05-12, no replacement */
 SCM_DEPRECATED int scm_badargsp (SCM formals, SCM args);
+
+/* Deprecated 2010-06-19, use call-with-error-handling instead */
+SCM_DEPRECATED SCM scm_internal_stack_catch (SCM tag,
+                                             scm_t_catch_body body,
+                                             void *body_data,
+                                             scm_t_catch_handler handler,
+                                             void *handler_data);
 
 
 

@@ -71,8 +71,6 @@
 	if (!(_cond)) \
           return SCM_BOOL_F;
 
-SCM scm_the_last_stack_fluid_var;
-
 static void
 display_header (SCM source, SCM port)
 {
@@ -662,43 +660,24 @@ SCM_VARIABLE (scm_has_shown_backtrace_hint_p_var, "has-shown-backtrace-hint?");
 
 SCM_DEFINE (scm_backtrace_with_highlights, "backtrace", 0, 1, 0, 
 	    (SCM highlights),
-	    "Display a backtrace of the stack saved by the last error\n"
-	    "to the current output port.  If @var{highlights} is given\n"
-	    "it should be a list; the elements of this list will be\n"
-	    "highlighted wherever they appear in the backtrace.")
+	    "Display a backtrace of the current stack to the current\n"
+            "output port.  If @var{highlights} is given, it should be\n"
+	    "a list; the elements of this list will be highlighted\n"
+	    "wherever they appear in the backtrace.")
 #define FUNC_NAME s_scm_backtrace_with_highlights
 {
   SCM port = scm_current_output_port ();
-  SCM the_last_stack =
-    scm_fluid_ref (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var));
-
+  SCM stack = scm_make_stack (SCM_BOOL_T, SCM_EOL);
+  
   if (SCM_UNBNDP (highlights))
     highlights = SCM_EOL;
 
-  if (scm_is_true (the_last_stack))
-    {
-      scm_newline (port);
-      scm_puts ("Backtrace:\n", port);
-      scm_display_backtrace_with_highlights (the_last_stack,
-					     port,
-					     SCM_BOOL_F,
-					     SCM_BOOL_F,
-					     highlights);
-      scm_newline (port);
-      if (scm_is_false (SCM_VARIABLE_REF (scm_has_shown_backtrace_hint_p_var))
-	  && !SCM_BACKTRACE_P)
-	{
-	  scm_puts ("Type \"(debug-enable 'backtrace)\" if you would like "
-		    "a backtrace\n"
-		    "automatically if an error occurs in the future.\n",
-		    port);
-	  SCM_VARIABLE_SET (scm_has_shown_backtrace_hint_p_var, SCM_BOOL_T);
-	}
-    }
-  else
-    {
-      scm_puts ("No backtrace available.\n", port);
-    }
+  scm_newline (port);
+  scm_puts ("Backtrace:\n", port);
+  scm_display_backtrace_with_highlights (stack, port, SCM_BOOL_F, SCM_BOOL_F,
+                                         highlights);
+  scm_newline (port);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -714,9 +693,6 @@ scm_backtrace (void)
 void
 scm_init_backtrace ()
 {
-  SCM f = scm_make_fluid ();
-  scm_the_last_stack_fluid_var = scm_c_define ("the-last-stack", f);
-
 #include "libguile/backtrace.x"
 }
 

@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2001, 2006 Free Software Foundation
+;;;; 	Copyright (C) 1996, 1997, 1998, 1999, 2001, 2006, 2010 Free Software Foundation
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,7 +20,8 @@
 
 
 (define-module (ice-9 debug)
-  :export (frame-number->index trace untrace trace-stack untrace-stack))
+  #:use-module (ice-9 save-stack)
+  #:export (frame-number->index trace untrace trace-stack untrace-stack))
 
 
 ;;; {Misc}

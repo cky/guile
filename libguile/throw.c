@@ -253,50 +253,6 @@ scm_c_with_throw_handler (SCM tag,
 }
 
 
-/* scm_internal_stack_catch
-   Use this one if you want debugging information to be stored in
-   scm_the_last_stack_fluid_var on error. */
-
-static SCM
-ss_handler (void *data SCM_UNUSED, SCM tag, SCM throw_args)
-{
-  /* Save the stack */
-  scm_fluid_set_x (SCM_VARIABLE_REF (scm_the_last_stack_fluid_var),
-		   scm_make_stack (SCM_BOOL_T, SCM_EOL));
-  /* Throw the error */
-  return scm_throw (tag, throw_args);
-}
-
-struct cwss_data
-{
-  SCM tag;
-  scm_t_catch_body body;
-  void *data;
-};
-
-static SCM
-cwss_body (void *data)
-{
-  struct cwss_data *d = data;
-  return scm_c_with_throw_handler (d->tag, d->body, d->data, ss_handler, NULL, 0);
-}
-
-SCM
-scm_internal_stack_catch (SCM tag,
-			  scm_t_catch_body body,
-			  void *body_data,
-			  scm_t_catch_handler handler,
-			  void *handler_data)
-{
-  struct cwss_data d;
-  d.tag = tag;
-  d.body = body;
-  d.data = body_data;
-  return scm_internal_catch (tag, cwss_body, &d, handler, handler_data);
-}
-
-
-
 /* body and handler functions for use with any of the above catch variants */
 
 /* This is a body function you can pass to scm_internal_catch if you
