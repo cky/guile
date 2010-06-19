@@ -532,13 +532,12 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 
-(defmacro false-if-exception (expr)
-  `(catch #t
-     (lambda ()
-       ;; avoid saving backtraces inside false-if-exception
-       (with-fluids ((the-last-stack (fluid-ref the-last-stack)))
-         ,expr))
-     (lambda args #f)))
+(define-syntax false-if-exception
+  (syntax-rules ()
+    ((_ expr)
+     (catch #t
+       (lambda () expr)
+       (lambda (k . args) #f)))))
 
 
 
@@ -2686,8 +2685,6 @@ module '(ice-9 q) '(make-q q-length))}."
 (define (ensure-batch-mode!)
   (fluid-set! *repl-level* #f)
   (restore-signals))
-
-;;(define the-last-stack (make-fluid)) Defined by scm_init_backtrace ()
 
 (define (quit . args)
   (apply throw 'quit args))
