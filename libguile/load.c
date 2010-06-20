@@ -761,6 +761,9 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
     exception_on_not_found = SCM_BOOL_T;
 
   full_filename = scm_sys_search_load_path (filename);
+  if (scm_is_string (full_filename))
+    full_filename = scm_canonicalize_path (full_filename);
+
   compiled_filename =
     scm_search_path (*scm_loc_load_compiled_path,
 		     filename,
