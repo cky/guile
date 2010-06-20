@@ -3036,6 +3036,14 @@ module '(ice-9 q) '(make-q q-length))}."
         (lambda ()
           (module-re-export! (current-module) '(name ...))))))))
 
+(define-syntax export!
+  (syntax-rules ()
+    ((_ name ...)
+     (eval-when (eval load compile expand)
+       (call-with-deferred-observers
+        (lambda ()
+          (module-replace! (current-module) '(name ...))))))))
+
 (define-syntax export-syntax
   (syntax-rules ()
     ((_ name ...)

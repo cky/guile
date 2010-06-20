@@ -121,26 +121,36 @@
     (define (compute-exports ifaces specs)
       (define (re-export? sym)
         (or-map (lambda (iface) (module-local-variable iface sym)) ifaces))
+      (define (replace? sym)
+        (module-local-variable the-scm-module sym))
       
-      (let lp ((specs specs) (e '()) (r '()))
+      (let lp ((specs specs) (e '()) (r '()) (x '()))
         (syntax-case specs (rename)
-          (() (values e r))
+          (() (values e r x))
           (((rename (from to) ...) . rest)
            (and (and-map identifier? #'(from ...))
                 (and-map identifier? #'(to ...)))
-           (let lp2 ((in #'((from . to) ...)) (e e) (r r))
+           (let lp2 ((in #'((from . to) ...)) (e e) (r r) (x x))
              (syntax-case in ()
-               (() (lp #'rest e r))
+               (() (lp #'rest e r x))
                (((from . to) . in)
-                (if (re-export? (syntax->datum #'from))
-                    (lp2 #'in e (cons #'(from . to) r))
-                    (lp2 #'in (cons #'(from . to) e) r))))))
+                (cond
+                 ((re-export? (syntax->datum #'from))
+                  (lp2 #'in e (cons #'(from . to) r) x))
+                 ((replace? (syntax->datum #'from))
+                  (lp2 #'in e r (cons #'(from . to) x)))
+                 (else
+                  (lp2 #'in (cons #'(from . to) e) r x)))))))
           ((id . rest)
            (identifier? #'id)
            (let ((sym (syntax->datum #'id)))
-             (if (re-export? sym)
-                 (lp #'rest e (cons #'id r))
-                 (lp #'rest (cons #'id e) r)))))))
+             (cond
+              ((re-export? sym)
+               (lp #'rest e (cons #'id r) x))
+              ((replace? sym)
+               (lp #'rest e r (cons #'id x)))
+              (else
+               (lp #'rest (cons #'id e) r x))))))))
 
     (syntax-case stx (export import)
       ((_ (name name* ...)
@@ -169,9 +179,10 @@
                        (import-set (resolve-r6rs-interface #'import-set))))
                    #'(ispec ...))
               #'(espec ...)))
-         (lambda (exports re-exports)
+         (lambda (exports re-exports replacements)
            (with-syntax (((e ...) exports)
-                         ((r ...) re-exports))
+                         ((r ...) re-exports)
+                         ((x ...) replacements))
              ;; It would be nice to push the module that was current before the
              ;; definition, and pop it after the library definition, but I
              ;; actually can't see a way to do that. Helper procedures perhaps,
@@ -183,8 +194,9 @@
                    #:version (version ...))
                  (import ispec)
                  ...
-                 (re-export r ...)
                  (export e ...)
+                 (re-export r ...)
+                 (export! x ...)
                  (@@ (name name* ...) body)
                  ...))))))))
     
