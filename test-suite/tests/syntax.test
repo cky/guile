@@ -139,14 +139,14 @@
     (eval '(begin (if #t (begin)) #t) (interaction-environment))))
 
 (define-syntax matches?
-  (syntax-rules (_)
+  (syntax-rules (<>)
     ((_ (op arg ...) pat)   (let ((x (op arg ...)))
                               (matches? x pat)))
     ((_ x ())               (null? x))
     ((_ x (a . b))          (and (pair? x)
                                  (matches? (car x) a)
                                  (matches? (cdr x) b)))
-    ((_ x _)                #t) 
+    ((_ x <>)                #t) 
     ((_ x pat)              (equal? x 'pat))))
 
 (with-test-prefix "lambda"
