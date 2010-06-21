@@ -1539,6 +1539,11 @@
       (and (nonsymbol-id? x)
            (free-id=? x #'(... ...)))))
 
+  (define underscore?
+    (lambda (x)
+      (and (nonsymbol-id? x)
+           (free-id=? x #'_))))
+
   (define lambda-formals
     (lambda (orig-args)
       (define (req args rreq)
@@ -2272,9 +2277,13 @@
                        (define cvt
                          (lambda (p n ids)
                            (if (id? p)
-                               (if (bound-id-member? p keys)
-                                   (values (vector 'free-id p) ids)
-                                   (values 'any (cons (cons p n) ids)))
+                               (cond
+                                ((bound-id-member? p keys)
+                                 (values (vector 'free-id p) ids))
+                                ((free-id=? p #'_)
+                                 (values '_ ids))
+                                (else
+                                 (values 'any (cons (cons p n) ids))))
                                (syntax-case p ()
                                  ((x dots)
                                   (ellipsis? (syntax dots))
@@ -2375,20 +2384,22 @@
                               (if (and (id? #'pat)
                                        (and-map (lambda (x) (not (free-id=? #'pat x)))
                                                 (cons #'(... ...) keys)))
-                                  (let ((labels (list (gen-label)))
-                                        (var (gen-var #'pat)))
-                                    (build-application no-source
-                                                       (build-simple-lambda
-                                                        no-source (list (syntax->datum #'pat)) #f (list var)
-                                                        '()
-                                                        (chi #'exp
-                                                             (extend-env labels
-                                                                         (list (make-binding 'syntax `(,var . 0)))
-                                                                         r)
-                                                             (make-binding-wrap #'(pat)
-                                                                                labels empty-wrap)
-                                                             mod))
-                                                       (list x)))
+                                  (if (free-id=? #'pad #'_)
+                                      (chi #'exp r empty-wrap mod)
+                                      (let ((labels (list (gen-label)))
+                                            (var (gen-var #'pat)))
+                                        (build-application no-source
+                                                           (build-simple-lambda
+                                                            no-source (list (syntax->datum #'pat)) #f (list var)
+                                                            '()
+                                                            (chi #'exp
+                                                                 (extend-env labels
+                                                                             (list (make-binding 'syntax `(,var . 0)))
+                                                                             r)
+                                                                 (make-binding-wrap #'(pat)
+                                                                                    labels empty-wrap)
+                                                                 mod))
+                                                           (list x))))
                                   (gen-clause x keys (cdr clauses) r
                                               #'pat #t #'exp mod)))
                              ((pat fender exp)
@@ -2401,7 +2412,8 @@
                      (let ((e (source-wrap e w s mod)))
                        (syntax-case e ()
                          ((_ val (key ...) m ...)
-                          (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x))))
+                          (if (and-map (lambda (x)
+                                         (and (id? x) (not (ellipsis? x)) (not (underscore? x))))
                                        #'(key ...))
                               (let ((x (gen-var 'tmp)))
                                         ; fat finger binding and references to temp variable x
@@ -2561,6 +2573,7 @@
       (lambda (p r)
         (cond
          ((null? p) r)
+         ((eq? p '_) r)
          ((eq? p 'any) (cons '() r))
          ((pair? p) (match-empty (car p) (match-empty (cdr p) r)))
          ((eq? p 'each-any) (cons '() r))
@@ -2621,6 +2634,7 @@
       (lambda (e p w r mod)
         (cond
          ((not r) #f)
+         ((eq? p '_) r)
          ((eq? p 'any) (cons (wrap e w mod) r))
          ((syntax-object? e)
           (match*
@@ -2635,6 +2649,7 @@
           (lambda (e p)
             (cond
              ((eq? p 'any) (list e))
+             ((eq? p '_) '())
              ((syntax-object? e)
               (match* (syntax-object-expression e)
                       p (syntax-object-wrap e) '() (syntax-object-module e)))

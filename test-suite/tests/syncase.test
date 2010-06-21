@@ -141,3 +141,14 @@
 (with-test-prefix "macro-generating macro"
   (pass-if "module hygiene"
     (eq? (foo) 'hello)))
+
+(pass-if "_ is a placeholder"
+  (equal? (eval '(begin
+                   (define-syntax ciao
+                     (lambda (stx)
+                       (syntax-case stx ()
+                         ((_ _)
+                          "ciao"))))
+                   (ciao 1))
+                (current-module))
+          "ciao"))
