@@ -1539,11 +1539,6 @@
       (and (nonsymbol-id? x)
            (free-id=? x #'(... ...)))))
 
-  (define underscore?
-    (lambda (x)
-      (and (nonsymbol-id? x)
-           (free-id=? x #'_))))
-
   (define lambda-formals
     (lambda (orig-args)
       (define (req args rreq)
@@ -2412,8 +2407,7 @@
                      (let ((e (source-wrap e w s mod)))
                        (syntax-case e ()
                          ((_ val (key ...) m ...)
-                          (if (and-map (lambda (x)
-                                         (and (id? x) (not (ellipsis? x)) (not (underscore? x))))
+                          (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x))))
                                        #'(key ...))
                               (let ((x (gen-var 'tmp)))
                                         ; fat finger binding and references to temp variable x
