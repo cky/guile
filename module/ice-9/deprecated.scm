@@ -64,7 +64,8 @@
             the-last-stack
             save-stack
             named-module-use!
-            load-emacs-interface)
+            load-emacs-interface
+            top-repl)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -685,3 +686,8 @@ Use Geiser.")
   (and (provided? 'debug-extensions)
        (debug-enable 'backtrace))
   (named-module-use! '(guile-user) '(ice-9 emacs)))
+
+(define (top-repl)
+  (issue-deprecation-warning
+   "`top-repl' has moved to the `(ice-9 top-repl)' module.")
+  ((module-ref (resolve-module '(ice-9 top-repl)) 'top-repl)))

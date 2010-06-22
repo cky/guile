@@ -406,6 +406,7 @@ SCM_SYMBOL (sym_command_line, "command-line");
 SCM_SYMBOL (sym_begin, "begin");
 SCM_SYMBOL (sym_turn_on_debugging, "turn-on-debugging");
 SCM_SYMBOL (sym_load_user_init, "load-user-init");
+SCM_SYMBOL (sym_ice_9, "ice-9");
 SCM_SYMBOL (sym_top_repl, "top-repl");
 SCM_SYMBOL (sym_quit, "quit");
 SCM_SYMBOL (sym_use_srfis, "use-srfis");
@@ -681,7 +682,11 @@ scm_compile_shell_switches (int argc, char **argv)
   /* If we didn't end with a -c or a -s, start the repl.  */
   if (interactive)
     {
-      tail = scm_cons (scm_cons (sym_top_repl, SCM_EOL), tail);
+      tail = scm_cons (scm_list_1 (scm_list_3
+                                   (sym_at,
+                                    scm_list_2 (sym_ice_9, sym_top_repl),
+                                    sym_top_repl)),
+                       tail);
     }
   else
     {

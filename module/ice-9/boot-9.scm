@@ -3341,57 +3341,6 @@ module '(ice-9 q) '(make-q q-length))}."
       (lambda () (fluid-ref using-readline?))
       (lambda (v) (fluid-set! using-readline? v)))))
 
-(define (top-repl)
-  (define (call-with-sigint thunk)
-    (if (not (provided? 'posix))
-        (thunk)
-        (let ((handler #f))
-          (dynamic-wind
-            (lambda ()
-              (set! handler
-                    (sigaction SIGINT
-                      (lambda (sig)
-                        (scm-error 'signal #f "User interrupt" #f
-                                   (list sig))))))
-            thunk
-            (lambda ()
-              (if handler
-                  ;; restore Scheme handler, SIG_IGN or SIG_DFL.
-                  (sigaction SIGINT (car handler) (cdr handler))
-                  ;; restore original C handler.
-                  (sigaction SIGINT #f)))))))
-
-  (let ((guile-user-module (resolve-module '(guile-user))))
-
-    ;; Use some convenient modules (in reverse order)
-
-    (set-current-module guile-user-module)
-    (process-use-modules 
-     (append
-      '(((ice-9 r5rs))
-        ((ice-9 session))
-        ((ice-9 debug)))
-      (if (provided? 'regex)
-          '(((ice-9 regex)))
-          '())
-      (if (provided? 'threads)
-          '(((ice-9 threads)))
-          '())))
-    ;; load debugger on demand
-    (module-autoload! guile-user-module '(system vm debug) '(debug))
-
-    (let (;; We can't use @ here, as modules have been booted, but in Guile's
-          ;; build the srfi-1 helper lib hasn't been built yet, which will
-          ;; result in an error when (system repl repl) is loaded at compile
-          ;; time (to see if it is a macro or not).
-          (start-repl (module-ref (resolve-module '(system repl repl))
-                                  'start-repl)))
-      (call-with-sigint
-       (lambda ()
-         (let ((status (start-repl 'scheme)))
-           (run-hook exit-hook)
-           status))))))
-
 
 
 ;;; {Deprecated stuff}
