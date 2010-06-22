@@ -3342,6 +3342,25 @@ module '(ice-9 q) '(make-q q-length))}."
       (lambda (v) (fluid-set! using-readline? v)))))
 
 (define (top-repl)
+  (define (call-with-sigint thunk)
+    (if (not (provided? 'posix))
+        (thunk)
+        (let ((handler #f))
+          (dynamic-wind
+            (lambda ()
+              (set! handler
+                    (sigaction SIGINT
+                      (lambda (sig)
+                        (scm-error 'signal #f "User interrupt" #f
+                                   (list sig))))))
+            thunk
+            (lambda ()
+              (if handler
+                  ;; restore Scheme handler, SIG_IGN or SIG_DFL.
+                  (sigaction SIGINT (car handler) (cdr handler))
+                  ;; restore original C handler.
+                  (sigaction SIGINT #f)))))))
+
   (let ((guile-user-module (resolve-module '(guile-user))))
 
     ;; Use some convenient modules (in reverse order)
@@ -3361,51 +3380,17 @@ module '(ice-9 q) '(make-q q-length))}."
     ;; load debugger on demand
     (module-autoload! guile-user-module '(system vm debug) '(debug))
 
-    (let ((old-handlers #f)
-          ;; We can't use @ here, as modules have been booted, but in Guile's
+    (let (;; We can't use @ here, as modules have been booted, but in Guile's
           ;; build the srfi-1 helper lib hasn't been built yet, which will
           ;; result in an error when (system repl repl) is loaded at compile
           ;; time (to see if it is a macro or not).
           (start-repl (module-ref (resolve-module '(system repl repl))
-                                  'start-repl))
-          (signals (if (provided? 'posix)
-                       `((,SIGINT . "User interrupt"))
-                       '())))
-
-      (dynamic-wind
-
-          ;; call at entry
-          (lambda ()
-            (let ((make-handler (lambda (msg)
-                                  (lambda (sig)
-                                    (scm-error 'signal
-                                               #f
-                                               msg
-                                               #f
-                                               (list sig))))))
-              (set! old-handlers
-                    (map (lambda (sig-msg)
-                           (sigaction (car sig-msg)
-                                      (make-handler (cdr sig-msg))))
-                         signals))))
-
-          ;; the protected thunk.
-          (lambda ()
-            (let ((status (start-repl 'scheme)))
-              (run-hook exit-hook)
-              status))
-
-          ;; call at exit.
-          (lambda ()
-            (map (lambda (sig-msg old-handler)
-                   (if (not (car old-handler))
-                       ;; restore original C handler.
-                       (sigaction (car sig-msg) #f)
-                       ;; restore Scheme handler, SIG_IGN or SIG_DFL.
-                       (sigaction (car sig-msg)
-                                  (car old-handler)
-                                  (cdr old-handler))))
-                 signals old-handlers))))))
+                                  'start-repl)))
+      (call-with-sigint
+       (lambda ()
+         (let ((status (start-repl 'scheme)))
+           (run-hook exit-hook)
+           status))))))
 
 
 
