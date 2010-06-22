@@ -2082,12 +2082,23 @@ If there is no handler at all, Guile prints an error and then exits."
               (loop cur (car tail) (cdr tail)))))))
 
 
-(define (local-ref names) (nested-ref (current-module) names))
-(define (local-set! names val) (nested-set! (current-module) names val))
-(define (local-define names val) (nested-define! (current-module) names val))
-(define (local-remove names) (nested-remove! (current-module) names))
-(define (local-ref-module names) (nested-ref-module (current-module) names))
-(define (local-define-module names mod) (nested-define-module! (current-module) names mod))
+(define (local-ref names)
+  (nested-ref (current-module) names))
+
+(define (local-set! names val)
+  (nested-set! (current-module) names val))
+
+(define (local-define names val)
+  (nested-define! (current-module) names val))
+
+(define (local-remove names)
+  (nested-remove! (current-module) names))
+
+(define (local-ref-module names)
+  (nested-ref-module (current-module) names))
+
+(define (local-define-module names mod)
+  (nested-define-module! (current-module) names mod))
 
 
 
