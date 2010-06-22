@@ -2684,16 +2684,19 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Running Repls}
 ;;;
 
+(define *repl-level* (make-fluid))
+
 ;; Programs can call `batch-mode?' to see if they are running as part of a
 ;; script or if they are running interactively. REPL implementations ensure that
 ;; `batch-mode?' returns #f during their extent.
 ;;
+(define (batch-mode?)
+  (negative? (or (fluid-ref *repl-level*) -1)))
+
 ;; Programs can re-enter batch mode, for example after a fork, by calling
 ;; `ensure-batch-mode!'. It's not a great interface, though; it would be better
 ;; to abort to the outermost prompt, and call a thunk there.
-(define *repl-level* (make-fluid))
-(define (batch-mode?)
-  (negative? (or (fluid-ref *repl-level*) -1)))
+;;
 (define (ensure-batch-mode!)
   (fluid-set! *repl-level* #f))
 
@@ -2796,16 +2799,16 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; Return a list of expressions that evaluate to the appropriate
 ;; arguments for resolve-interface according to SPEC.
 
-(eval-when
- (compile)
- (if (memq 'prefix (read-options))
-     (error "boot-9 must be compiled with #:kw, not :kw")))
+(eval-when (compile)
+  (if (memq 'prefix (read-options))
+      (error "boot-9 must be compiled with #:kw, not :kw")))
 
 (define (keyword-like-symbol->keyword sym)
   (symbol->keyword (string->symbol (substring (symbol->string sym) 1))))
 
 ;; FIXME: we really need to clean up the guts of the module system.
 ;; We can compile to something better than process-define-module.
+;;
 (define-syntax define-module
   (lambda (x)
     (define (keyword-like? stx)
@@ -3254,66 +3257,45 @@ module '(ice-9 q) '(make-q q-length))}."
                      (append (hashq-ref %cond-expand-table mod '())
                              features)))))
 
-(define-macro (cond-expand . clauses)
-  (let ((syntax-error (lambda (cl)
-                        (error "invalid clause in `cond-expand'" cl))))
-    (letrec
-        ((test-clause
-          (lambda (clause)
-            (cond
-             ((symbol? clause)
-              (or (memq clause %cond-expand-features)
-                  (let lp ((uses (module-uses (current-module))))
-                    (if (pair? uses)
-                        (or (memq clause
-                                  (hashq-ref %cond-expand-table
-                                             (car uses) '()))
-                            (lp (cdr uses)))
-                        #f))))
-             ((pair? clause)
-              (cond
-               ((eq? 'and (car clause))
-                (let lp ((l (cdr clause)))
-                  (cond ((null? l)
-                         #t)
-                        ((pair? l)
-                         (and (test-clause (car l)) (lp (cdr l))))
-                        (else
-                         (syntax-error clause)))))
-               ((eq? 'or (car clause))
-                (let lp ((l (cdr clause)))
-                  (cond ((null? l)
-                         #f)
-                        ((pair? l)
-                         (or (test-clause (car l)) (lp (cdr l))))
-                        (else
-                         (syntax-error clause)))))
-               ((eq? 'not (car clause))
-                (cond ((not (pair? (cdr clause)))
-                       (syntax-error clause))
-                      ((pair? (cddr clause))
-                       ((syntax-error clause))))
-                (not (test-clause (cadr clause))))
-               (else
-                (syntax-error clause))))
-             (else
-              (syntax-error clause))))))
-      (let lp ((c clauses))
-        (cond
-         ((null? c)
-          (error "Unfulfilled `cond-expand'"))
-         ((not (pair? c))
-          (syntax-error c))
-         ((not (pair? (car c)))
-          (syntax-error (car c)))
-         ((test-clause (caar c))
-          `(begin ,@(cdar c)))
-         ((eq? (caar c) 'else)
-          (if (pair? (cdr c))
-              (syntax-error c))
-          `(begin ,@(cdar c)))
-         (else
-          (lp (cdr c))))))))
+(define-syntax cond-expand
+  (lambda (x)
+    (define (module-has-feature? mod sym)
+      (or-map (lambda (mod)
+                (memq sym (hashq-ref %cond-expand-table mod '())))
+              (module-uses mod)))
+
+    (define (condition-matches? condition)
+      (syntax-case condition (and or not)
+        ((and c ...)
+         (and-map condition-matches? #'(c ...)))
+        ((or c ...)
+         (or-map condition-matches? #'(c ...)))
+        ((not c)
+         (if (condition-matches? #'c) #f #t))
+        (c
+         (identifier? #'c)
+         (let ((sym (syntax->datum #'c)))
+           (if (memq sym %cond-expand-features)
+               #t
+               (module-has-feature? (current-module) sym))))))
+
+    (define (match clauses alternate)
+      (syntax-case clauses ()
+        (((condition form ...) . rest)
+         (if (condition-matches? #'condition)
+             #'(begin form ...)
+             (match #'rest alternate)))
+        (() (alternate))))
+
+    (syntax-case x (else)
+      ((_ clause ... (else form ...))
+       (match #'(clause ...)
+         (lambda ()
+           #'(begin form ...))))
+      ((_ clause ...)
+       (match #'(clause ...)
+         (lambda ()
+           (syntax-violation 'cond-expand "unfulfilled cond-expand" x)))))))
 
 ;; This procedure gets called from the startup code with a list of
 ;; numbers, which are the numbers of the SRFIs to be loaded on startup.
