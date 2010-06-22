@@ -19,110 +19,2200 @@ their integration with Guile modules.
 @node R6RS Incompatibilities
 @subsection Incompatibilities with the R6RS
 
-There are some incompatibilities between Guile and the R6RS. Some of them are
-intentional, some of them are bugs, and some are simply unimplemented features.
-Please let the Guile developers know if you find one that is not on this list.
+There are some incompatibilities between Guile and the R6RS.  Some of 
+them are intentional, some of them are bugs, and some are simply 
+unimplemented features.  Please let the Guile developers know if you 
+find one that is not on this list.
 
 @itemize
 @item
-The R6RS specifies many situations in which a conforming implementation must
-signal a specific error. Guile doesn't really care about that too much -- if a
-correct R6RS program would not hit that error, we don't bother checking for it.
+The R6RS specifies many situations in which a conforming implementation
+must signal a specific error.  Guile doesn't really care about that too
+much --- if a correct R6RS program would not hit that error, we don't 
+bother checking for it.
 
 @item
-Multiple @code{library} forms in one file are not yet supported. This is because
-the expansion of @code{library} sets the current module, but does not restore
-it. This is a bug.
+Multiple @code{library} forms in one file are not yet supported.  This 
+is because the expansion of @code{library} sets the current module, but
+does not restore it.  This is a bug.
 
 @item
-A @code{set!} to a variable transformer may only expand to an expression, not a
-definition -- even if the original @code{set!} expression was in definition
-context.
+A @code{set!} to a variable transformer may only expand to an 
+expression, not a definition --- even if the original @code{set!} 
+expression was in definition context.
 @end itemize
 
 @node R6RS Standard Libraries
 @subsection R6RS Standard Libraries
 
-The R6RS standard defines a core language and a number of standard libraries.
-Here we briefly list the libraries that have been implemented for Guile.
+In contrast with earlier versions of the Revised Report, the R6RS 
+organizes the procedures and syntactic forms required of conforming
+implementations into a set of ``standard libraries'' which can be
+imported as necessary by user programs and libraries.  Here we briefly 
+list the libraries that have been implemented for Guile.
 
-All of these libraries are available as Guile modules, for use in standard Guile
-code, via @code{use-modules}, or for use in portable R6RS code, via the
-@code{library} and @code{import} forms. @xref{R6RS Libraries}, for more
-information.
+We do not attempt to document these libraries fully here, as most of 
+their functionality is already available in Guile itself.  The 
+expectation is that most Guile users will use the well-known and 
+well-documented Guile modules.  These R6RS libraries are mostly useful
+to users who want to port their code to other R6RS systems.
 
-We do not attempt to document these libraries fully here, as most of their
-functionality is already available in Guile itself. The expectation is that most
-Guile users will use the well-known and well-documented Guile modules. These
-R6RS libraries are mostly useful to users who want to port their code to other
-R6RS systems, in which case a copy of the R6RS report itself is necessary. It
-may be found at the R6RS web page, @url{http://r6rs.org/}.
+The documentation in the following sections reproduces some of the 
+content of the library section of the Report, but is mostly intended to
+provide supplementary information about Guile's implementation of the
+R6RS standard libraries.  For complete documentation, design rationales
+and further examples, we advise you to consult the ``Standard 
+Libraries'' section of the Report (@pxref{Standard Libraries,
+R6RS Standard Libraries,, r6rs, The Revised^6 Report on the Algorithmic
+Language Scheme}).
 
-First, there is the base library, defined in the base R6RS report:
+@menu
+* Library Usage::               What to know about Guile's library support.
+* rnrs base::                   The base library.
+* rnrs unicode::                Access to Unicode operations.
+* rnrs bytevectors::            Functions for working with binary data.
+* rnrs lists::                  List utilities.
+* rnrs sorting::                Sorting for lists and vectors.
+* rnrs control::                Additional control structures.
 
-@example
-(use-modules (rnrs base))
-@end example
+* R6RS Records::                A note about R6RS records.
+* rnrs records syntactic::      Syntactic API for R6RS records.
+* rnrs records procedural::     Procedural API for R6RS records.
+* rnrs records inspection::     Reflection on R6RS records.
 
-One may also import it to the current module using the R6RS @code{import} form:
+* rnrs exceptions::             Handling exceptional situations.
+* rnrs conditions::             Data structures for exceptions.
 
-@example
-(import (rnrs base))
-@end example
+* I/O Conditions::              Predefined I/O error types.
+* rnrs io ports::               Support for port-based I/O.
+* rnrs io simple::              High-level I/O API.
 
-All of the @code{rnrs} modules have the version of @code{(6)}, which may be
-specified when importing the module:
+* rnrs files::                  Functions for working with files.
+* rnrs programs::               Functions for working with processes.
+* rnrs arithmetic fixnums::     Fixed-precision arithmetic operations.
+* rnrs arithmetic flonums::     Floating-point arithmetic operations.
+* rnrs arithmetic bitwise::     Exact bitwise arithmetic operations.
+* rnrs syntax-case::            Support for `syntax-case' macros.
+* rnrs hashtables::             Hashtables.
+* rnrs enums::                  Enumerations.
+* rnrs::                        The composite library.
+* rnrs eval::                   Support for on-the-fly evaluation.
+* rnrs mutable-pairs::          Support for mutable pairs.
+* rnrs mutable-strings::        Support for mutable strings.
+* rnrs r5rs::                   Compatibility layer for R5RS Scheme.
 
-@example
-(import (rnrs base (6)))
-(use-modules ((rnrs base) #:version (6)))
-@end example
+@end menu
 
-@xref{R6RS Version References}, for more information on versions.
+@node Library Usage
+@subsubsection Library Usage
 
-Next there is a set of libraries that collectively form the @code{(rnrs)}
-composite library. The following statements are equivalent:
+Guile implements the R6RS `library' form as a transformation to a native
+Guile module definition.  As a consequence of this, all of the libraries
+described in the following subsections, in addition to being available
+for use by R6RS libraries and top-level programs, can also be imported 
+as if they were normal Guile modules --- for example, via a 
+@code{use-modules} form.  For example, the R6RS ``composite'' library
+can be imported by:
 
-@example
-(import (rnrs))
+@lisp
+  (import (rnrs (6)))
+@end lisp
 
-(use-modules (rnrs))
+@lisp
+  (use-modules ((rnrs) :version (6)))
+@end lisp
 
-(import (rnrs arithmetic bitwise (6))
-        (rnrs arithmetic fixnums (6))
-        (rnrs arithmetic flonums (6))
-        (rnrs base (6))
-        (rnrs bytevectors)
-        (rnrs conditions (6))
-        (rnrs control (6))
-        (rnrs enums (6))
-        (rnrs exceptions (6))
-        (rnrs files (6))
-        (rnrs hashtables (6))
-        (rnrs io ports)
-        (rnrs io simple (6))
-        (rnrs lists (6))
-        (rnrs programs (6))
-        (rnrs records inspection (6))
-        (rnrs records procedural (6))
-        (rnrs records syntactic (6))
-        (rnrs sorting (6))
-        (rnrs syntax-case (6)))
-@end example
+For more information on Guile's library implementation, see 
+(@pxref{R6RS Libraries}).
 
-Finally there are a number of modules that the @code{(rnrs)} module does not
-re-export:
+@node rnrs base
+@subsubsection rnrs base
 
-@example
-(import (rnrs mutable-pairs (6))
-        (rnrs mutable-strings (6))
-        (rnrs r5rs (6))
-        (rnrs eval (6))
-        (rnrs unicode (6)))
-@end example
+The @code{(rnrs base (6))} library exports the procedures and syntactic
+forms described in the main section of the Report 
+(@pxref{Base library, R6RS Base library,, r6rs, 
+The Revised^6 Report on the Algorithmic Language Scheme}).  They are
+grouped below by the existing manual sections to which they correspond.
 
-See the R6RS Standard Libraries specification, for more information on these
-modules.
+@deffn {Scheme Procedure} boolean? obj
+@deffnx {Scheme Procedure} not x
+@xref{Booleans}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} symbol? obj
+@deffnx {Scheme Procedure} symbol->string sym
+@deffnx {Scheme Procedure} string->symbol str
+@xref{Symbol Primitives}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} char? obj
+@deffnx {Scheme Procedure} char=? 
+@deffnx {Scheme Procedure} char<? 
+@deffnx {Scheme Procedure} char>? 
+@deffnx {Scheme Procedure} char<=? 
+@deffnx {Scheme Procedure} char>=?
+@deffnx {Scheme Procedure} integer->char n
+@deffnx {Scheme Procedure} char->integer chr
+@xref{Characters}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} list? x
+@deffnx {Scheme Procedure} null? x
+@xref{List Predicates}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} pair? x
+@deffnx {Scheme Procedure} cons x y
+@deffnx {Scheme Procedure} car pair
+@deffnx {Scheme Procedure} cdr pair
+@deffnx {Scheme Procedure} caar pair
+@deffnx {Scheme Procedure} cadr pair
+@deffnx {Scheme Procedure} cdar pair
+@deffnx {Scheme Procedure} cddr pair
+@deffnx {Scheme Procedure} caaar pair
+@deffnx {Scheme Procedure} caadr pair
+@deffnx {Scheme Procedure} cadar pair
+@deffnx {Scheme Procedure} cdaar pair
+@deffnx {Scheme Procedure} caddr pair
+@deffnx {Scheme Procedure} cdadr pair
+@deffnx {Scheme Procedure} cddar pair
+@deffnx {Scheme Procedure} cdddr pair
+@deffnx {Scheme Procedure} caaaar pair
+@deffnx {Scheme Procedure} caaadr pair
+@deffnx {Scheme Procedure} caadar pair
+@deffnx {Scheme Procedure} cadaar pair
+@deffnx {Scheme Procedure} cdaaar pair
+@deffnx {Scheme Procedure} cddaar pair
+@deffnx {Scheme Procedure} cdadar pair
+@deffnx {Scheme Procedure} cdaadr pair
+@deffnx {Scheme Procedure} cadadr pair
+@deffnx {Scheme Procedure} caaddr pair
+@deffnx {Scheme Procedure} caddar pair
+@deffnx {Scheme Procedure} cadddr pair
+@deffnx {Scheme Procedure} cdaddr pair
+@deffnx {Scheme Procedure} cddadr pair
+@deffnx {Scheme Procedure} cdddar pair
+@deffnx {Scheme Procedure} cddddr pair
+@xref{Pairs}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} number? obj
+@xref{Numerical Tower}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string? obj
+@xref{String Predicates}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} procedure? obj
+@xref{Procedure Properties}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} define name value
+@deffnx {Scheme Syntax} set! variable-name value
+@xref{Definition}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} define-syntax keyword expression
+@deffnx {Scheme Syntax} let-syntax ((keyword transformer) ...) exp ...
+@deffnx {Scheme Syntax} letrec-syntax ((keyword transformer) ...) exp ...
+@xref{Defining Macros}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} identifier-syntax exp
+@xref{Identifier Macros}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} syntax-rules literals (pattern template) ...
+@xref{Syntax Rules}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} lambda formals body
+@xref{Lambda}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} let bindings body
+@deffnx {Scheme Syntax} let* bindings body
+@deffnx {Scheme Syntax} letrec bindings body
+@xref{Local Bindings}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} let-values bindings body
+@deffnx {Scheme Syntax} let*-values bindings body
+@xref{SRFI-11}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} begin expr1 expr2 ...
+@xref{begin}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} quote expr
+@deffnx {Scheme Syntax} quasiquote expr
+@deffnx {Scheme Syntax} unquote expr
+@deffnx {Scheme Syntax} unquote-splicing expr
+@xref{Expression Syntax}, for documentation.
+@end deffn
+	 
+@deffn {Scheme Syntax} if test consequence [alternate]
+@deffnx {Scheme Syntax} cond clause1 clause2 ...
+@deffnx {Scheme Syntax} case key clause1 clause2 ...
+@xref{if cond case}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} and expr ...
+@deffnx {Scheme Syntax} or expr ...
+@xref{and or}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} eq? x y
+@deffnx {Scheme Procedure} eqv? x y
+@deffnx {Scheme Procedure} equal? x y
+@deffnx {Scheme Procedure} symbol=? symbol1 symbol2 ...
+@xref{Equality}, for documentation.
+
+@code{symbol=?} is identical to @code{eq?}.
+@end deffn
+
+@deffn {Scheme Procedure} complex? z
+@xref{Complex Numbers}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} real-part z
+@deffnx {Scheme Procedure} imag-part z
+@deffnx {Scheme Procedure} make-rectangular real_part imaginary_part
+@deffnx {Scheme Procedure} make-polar x y
+@deffnx {Scheme Procedure} magnitude z
+@deffnx {Scheme Procedure} angle z
+@xref{Complex}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} sqrt z
+@deffnx {Scheme Procedure} exp z
+@deffnx {Scheme Procedure} expt z1 z2
+@deffnx {Scheme Procedure} log z
+@deffnx {Scheme Procedure} sin z
+@deffnx {Scheme Procedure} cos z
+@deffnx {Scheme Procedure} tan z
+@deffnx {Scheme Procedure} asin z
+@deffnx {Scheme Procedure} acos z
+@deffnx {Scheme Procedure} atan z
+@xref{Scientific}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} real? x
+@deffnx {Scheme Procedure} rational? x
+@deffnx {Scheme Procedure} nan? x
+@deffnx {Scheme Procedure} numerator x
+@deffnx {Scheme Procedure} denominator x
+@deffnx {Scheme Procedure} rationalize x eps
+@xref{Reals and Rationals}, for documentation.
+@end deffn
+	 
+@deffn {Scheme Procedure} exact? x
+@deffnx {Scheme Procedure} inexact? x
+@deffnx {Scheme Procedure} exact z
+@deffnx {Scheme Procedure} inexact z
+@xref{Exactness}, for documentation.  The @code{exact} and 
+@code{inexact} procedures are identical to the @code{inexact->exact} and
+@code{exact->inexact} procedures provided by Guile's code library.
+@end deffn
+
+@deffn {Scheme Procedure} integer? x
+@xref{Integers}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} odd? n
+@deffnx {Scheme Procedure} even? n
+@deffnx {Scheme Procedure} gcd x ...
+@deffnx {Scheme Procedure} lcm x ...
+@xref{Integer Operations}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} =
+@deffnx {Scheme Procedure} < 
+@deffnx {Scheme Procedure} >
+@deffnx {Scheme Procedure} <= 
+@deffnx {Scheme Procedure} >=
+@deffnx {Scheme Procedure} zero? x
+@deffnx {Scheme Procedure} positive? x
+@deffnx {Scheme Procedure} negative? x
+@xref{Comparison}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} fold f lst1 lst2 ...
+@deffnx {Scheme Procedure} for-each f lst1 lst2 ...
+@xref{SRFI-1 Fold and Map}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} list elem1 ... elemN
+@xref{List Constructors}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} length lst
+@deffnx {Scheme Procedure} list-ref lst k
+@deffnx {Scheme Procedure} list-tail lst k
+@xref{List Selection}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} append lst1 ... lstN
+@deffnx {Scheme Procedure} reverse lst
+@xref{Append/Reverse}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} number->string n [radix]
+@deffnx {Scheme Procedure} string->number str [radix]
+@xref{Conversion}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string char ...
+@deffnx {Scheme Procedure} make-string k [chr]
+@deffnx {Scheme Procedure} list->string lst
+@xref{String Constructors}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string->list str [start [end]]
+@xref{List/String Conversion}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-length str
+@deffnx {Scheme Procedure} string-ref str k
+@deffnx {Scheme Procedure} string-copy str [start [end]]
+@deffnx {Scheme Procedure} substring str start [end]
+@xref{String Selection}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string=? [s1 [s2 . rest]]
+@deffnx {Scheme Procedure} string<? [s1 [s2 . rest]]
+@deffnx {Scheme Procedure} string>? [s1 [s2 . rest]]
+@deffnx {Scheme Procedure} string<=? [s1 [s2 . rest]]
+@deffnx {Scheme Procedure} string>=? [s1 [s2 . rest]]
+@xref{String Comparison}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-append . args
+@xref{Reversing and Appending Strings}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-for-each proc s [start [end]]
+@xref{Mapping Folding and Unfolding}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} + z1 ...
+@deffnx {Scheme Procedure} - z1 z2 ...
+@deffnx {Scheme Procedure} * z1 ...
+@deffnx {Scheme Procedure} / z1 z2 ...
+@deffnx {Scheme Procedure} max x1 x2 ...
+@deffnx {Scheme Procedure} min x1 x2 ...
+@deffnx {Scheme Procedure} abs x
+@deffnx {Scheme Procedure} truncate x
+@deffnx {Scheme Procedure} floor x
+@deffnx {Scheme Procedure} ceiling x
+@deffnx {Scheme Procedure} round x
+@xref{Arithmetic}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} div x1 x2
+@deffnx {Scheme Procedure} mod x1 x2
+@deffnx {Scheme Procedure} div-and-mod x1 x2
+These procedures implement number-theoretic division.
+
+@code{div-and-mod} returns two values, the respective results of
+@code{(div x1 x2)} and @code{(mod x1 x2)}.
+@end deffn
+
+@deffn {Scheme Procedure} div0 x1 x2
+@deffnx {Scheme Procedure} mod0 x1 x2
+@deffnx {Scheme Procedure} div0-and-mod0 x1 x2
+These procedures are similar to @code{div}, @code{mod}, and 
+@code{div-and-mod}, except that @code{mod0} returns values that lie
+within a half-open interval centered on zero.
+@end deffn
+
+@deffn {Scheme Procedure} exact-integer-sqrt k
+This procedure returns two nonnegative integer objects @code{s} and 
+@code{r} such that k = s^2 + r and k < (s + 1)^2.
+@end deffn
+
+@deffn {Scheme Procedure} real-valued? obj
+@deffnx {Scheme Procedure} rational-valued? obj
+@deffnx {Scheme Procedure} integer-valued? obj
+These procedures return @code{#t} if and only if their arguments can,
+respectively, be coerced to a real, rational, or integer value without a
+loss of numerical precision. 
+
+@code{real-valued?} will return @code{#t} for complex numbers whose 
+imaginary parts are zero.
+@end deffn
+
+@deffn {Scheme Procedure} finite? x 
+@deffnx {Scheme Procedure} infinite? x
+@code{infinite?} returns @code{#t} if @var{x} is an infinite value,
+@code{#f} otherwise.  @code{finite?} returns the negation of 
+@code{infinite?}.
+@end deffn
+
+@deffn {Scheme Syntax} assert expr 
+Raises an @code{&assertion} condition if @var{expr} evaluates to 
+@code{#f}; otherwise evaluates to the value of @var{expr}.
+@end deffn
+
+@deffn {Scheme Procedure} error who message irritant1 ...
+@deffnx {Scheme Procedure} assertion-violation who message irritant1 ...
+These procedures raise compound conditions based on their arguments:
+If @var{who} is not @code{#f}, the condition will include a @code{&who}
+condition whose @code{who} field is set to @var{who}; a @code{&message}
+condition will be included with a @code{message} field equal to 
+@var{message}; an @code{&irritants} condition will be included with its
+@code{irritants} list given by @code{irritant1 ...}.
+
+@code{error} produces a compound condition with the simple conditions
+described above, as well as an @code{&error} condition;
+@code{assertion-violation} produces one that includes an 
+@code{&assertion} condition.
+@end deffn
+
+@deffn {Scheme Procedure} vector-map proc v
+@deffnx {Scheme Procedure} vector-for-each proc v
+These procedures implement the @code{map} and @code{for-each} contracts
+over vectors.
+@end deffn
+
+@deffn {Scheme Procedure} vector . l
+@deffnx {Scheme Procedure} vector? obj
+@deffnx {Scheme Procedure} make-vector len
+@deffnx {Scheme Procedure} make-vector len fill
+@deffnx {Scheme Procedure} list->vector l
+@deffnx {Scheme Procedure} vector->list v
+@xref{Vector Creation}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} vector-length vector
+@deffnx {Scheme Procedure} vector-ref vector k
+@deffnx {Scheme Procedure} vector-set! vector k obj
+@deffnx {Scheme Procedure} vector-fill! v fill
+@xref{Vector Accessors}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} call-with-current-continuation proc
+@deffnx {Scheme Procedure} call/cc proc
+@xref{Continuations}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} values arg1 ... argN
+@deffnx {Scheme Procedure} call-with-values producer consumer
+@xref{Multiple Values}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} dynamic-wind in_guard thunk out_guard
+@xref{Dynamic Wind}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} apply proc arg1 ... argN arglst
+@xref{Fly Evaluation}, for documentation.
+@end deffn
+
+@node rnrs unicode
+@subsubsection rnrs unicode
+
+The @code{(rnrs unicode (6))} library provides procedures for 
+manipulating Unicode characters and strings.
+
+@deffn {Scheme Procedure} char-upcase char
+@deffnx {Scheme Procedure} char-downcase char
+@deffnx {Scheme Procedure} char-titlecase char
+@deffnx {Scheme Procedure} char-foldcase char
+These procedures translate their arguments from one Unicode character
+set to another.  @code{char-upcase}, @code{char-downcase}, and
+@code{char-titlecase} are identical to their counterparts in the
+Guile core library; see (@pxref{Characters}) for documentation.
+
+@code{char-foldcase} returns the result of applying @code{char-upcase}
+to its argument, followed by @code{char-downcase} --- except in the case
+of the Turkic characters @code{U+0130} and @code{U+0131}, for which the
+procedure acts as the identity function.
+@end deffn
+
+@deffn {Scheme Procedure} char-ci=? char1 char2 char3 ...
+@deffnx {Scheme Procedure} char-ci<? char1 char2 char3 ...
+@deffnx {Scheme Procedure} char-ci>? char1 char2 char3 ...
+@deffnx {Scheme Procedure} char-ci<=? char1 char2 char3 ...
+@deffnx {Scheme Procedure} char-ci>=? char1 char2 char3 ...
+These procedures facilitate case-insensitive comparison of Unicode
+characters.  They are identical to the procedures provided by Guile's
+core library.  @xref{Characters}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} char-alphabetic? char
+@deffnx {Scheme Procedure} char-numeric? char
+@deffnx {Scheme Procedure} char-whitespace? char
+@deffnx {Scheme Procedure} char-upper-case? char
+@deffnx {Scheme Procedure} char-lower-case? char
+@deffnx {Scheme Procedure} char-title-case? char
+These procedures implement various Unicode character set predicates.  
+They are identical to the procedures provided by Guile's core library.
+@xref{Characters}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} char-general-category char
+@xref{Characters}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-upcase string
+@deffnx {Scheme Procedure} string-downcase string
+@deffnx {Scheme Procedure} string-titlecase string
+@deffnx {Scheme Procedure} string-foldcase string
+These procedures perform Unicode case folding operations on their input.
+@xref{Alphabetic Case Mapping}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci=? string1 string2 string3 ...
+@deffnx {Scheme Procedure} string-ci<? string1 string2 string3 ...
+@deffnx {Scheme Procedure} string-ci>? string1 string2 string3 ...
+@deffnx {Scheme Procedure} string-ci<=? string1 string2 string3 ...
+@deffnx {Scheme Procedure} string-ci>=? string1 string2 string3 ...
+These procedures perform case-insensitive comparison on their input.
+@xref{String Comparison}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-normalize-nfd string
+@deffnx {Scheme Procedure} string-normalize-nfkd string
+@deffnx {Scheme Procedure} string-normalize-nfc string
+@deffnx {Scheme Procedure} string-normalize-nfkc string
+These procedures perform Unicode string normalization operations on 
+their input.  @xref{String Comparison}, for documentation.
+@end deffn
+
+@node rnrs bytevectors
+@subsubsection rnrs bytevectors
+
+The @code{(rnrs bytevectors (6))} library provides procedures for 
+working with blocks of binary data.  This functionality is documented
+in its own section of the manual; @xref{Bytevectors}.
+
+@node rnrs lists
+@subsubsection rnrs lists
+
+The @code{(rnrs lists (6))} library provides procedures additional
+procedures for working with lists.
+
+@deffn {Scheme Procedure} find proc list
+This procedure is identical to the one defined in Guile's SRFI-1
+implementation.  @xref{SRFI-1 Searching}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} for-all proc list1 list2 ...
+@deffnx {Scheme Procedure} exists proc list1 list2 ...
+
+The @code{for-all} procedure is identical to the @code{every} procedure
+defined by SRFI-1; the @code{exists} procedure is identical to SRFI-1's 
+@code{any}.  @xref{SRFI-1 Searching}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} filter proc list
+@deffnx {Scheme Procedure} partition proc list
+These procedures are identical to the ones provided by SRFI-1.  
+@xref{List Modification}, for a description of @code{filter};
+(@pxref{SRFI-1 Filtering and Partitioning}) for @code{partition}.
+@end deffn
+
+@deffn {Scheme Procedure} fold-left combine nil list1 list2 ... listn
+@deffnx {Scheme Procedure} fold-right combine nil list1 list2 ... listn
+These procedures are identical to the @code{fold} and @code{fold-right}
+procedures provided by SRFI-1.  @xref{SRFI-1 Fold and Map}, for
+documentation.
+@end deffn
+
+@deffn {Scheme Procedure} remp proc list
+@deffnx {Scheme Procedure} remove obj list
+@deffnx {Scheme Procedure} remv obj list
+@deffnx {Scheme Procedure} remq obj list
+@code{remove}, @code{remv}, and @code{remq} are identical to the
+@code{delete}, @code{delv}, and @code{delq} procedures provided by
+Guile's core library; (@pxref{List Modification}) for their
+documentation.  @code{remp} is identical to the alternate @code{remove}
+procedure provided by SRFI-1; @xref{SRFI-1 Deleting}.
+@end deffn
+
+@deffn {Scheme Procedure} memp proc list
+@deffnx {Scheme Procedure} member obj list
+@deffnx {Scheme Procedure} memv obj list
+@deffnx {Scheme Procedure} memq obj list
+@code{member}, @code{memv}, and @code{memq} are identical to the 
+procedures provided by Guile's core library; (@pxref{List Searching}) 
+for their documentation.  @code{memp} uses the specified predicate 
+function @code{proc} to test elements of the list @var{list} --- it 
+behaves similarly to @code{find}, except that it returns the first 
+sublist of @var{list} whose @code{car} satisfies @var{proc}.
+@end deffn
+
+@deffn {Scheme Procedure} assp proc alist
+@deffnx {Scheme Procedure} assoc obj alist
+@deffnx {Scheme Procedure} assv obj alist
+@deffnx {Scheme Procedure} assq obj alist
+@code{assoc}, @code{assv}, and @code{assq} are identical to the 
+procedures provided by Guile's core library; 
+(@pxref{Alist Key Equality}) for their documentation.  @code{assp} uses
+the specified predicate function @code{proc} to test keys in the
+association list @var{alist}.
+@end deffn
+
+@deffn {Scheme Procedure} cons* obj1 ... obj
+@deffnx {Scheme Procedure} cons* obj
+This procedure is identical to the one exported by Guile's core
+library.  @xref{List Constructors}, for documentation.
+@end deffn
+
+@node rnrs sorting
+@subsubsection rnrs sorting
+
+The @code{(rnrs sorting (6))} library provides procedures for sorting
+lists and vectors.
+
+@deffn {Scheme Procedure} list-sort proc list
+@deffnx {Scheme Procedure} vector-sort proc vector
+These procedures return their input sorted in ascending order, without
+modifying the original data.  @var{proc} must be a procedure that takes
+two elements from the input list or vector as arguments, and returns a
+true value if the first is ``less'' than the second, @code{#f} 
+otherwise.  @code{list-sort} returns a list; @code{vector-sort} returns 
+a vector.
+
+Both @code{list-sort} and @code{vector-sort} are implemented in terms of
+the @code{stable-sort} procedure from Guile's core library.  
+@xref{Sorting}, for a discussion of the behavior of that procedure.
+@end deffn
+
+@deffn {Scheme Procedure} vector-sort! proc vector
+Performs a destructive, ``in-place'' sort of @var{vector}, using 
+@var{proc} as described above to determine an ascending ordering of
+elements.  @code{vector-sort!} returns an unspecified value.
+
+This procedure is implemented in terms of the @code{sort!} procedure
+from Guile's core library.  @xref{Sorting}, for more information.
+@end deffn
+
+@node rnrs control
+@subsubsection rnrs control
+
+The @code{(rnrs control (6))} library provides syntactic forms useful 
+for constructing conditional expressions and controlling the flow of
+execution.
+
+@deffn {Scheme Syntax} when test expression1 expression2 ...
+@deffnx {Scheme Syntax} unless test expression1 expression2 ...
+The @code{when} form is evaluated by evaluating the specified @var{test}
+expression; if the result is a true value, the @var{expression}s that
+follow it are evaluated in order, and the value of the final 
+@var{expression} becomes the value of the entire @code{when} expression.
+
+The @code{unless} form behaves similarly, with the exception that the 
+specified @var{expression}s are only evaluated if the value of 
+@var{test} is false.
+@end deffn
+
+@deffn {Scheme Syntax} do ((variable init step) ...) (test expression ...) command ...
+This form is identical to the one provided by Guile's core library.
+@xref{while do}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} case-lambda clause ...
+This form is identical to the one provided by Guile's core library.
+@xref{Case-lambda}, for documentation.
+@end deffn
+
+@node R6RS Records
+@subsubsection R6RS Records
+
+The manual sections below describe Guile's implementation of R6RS 
+records, which provide support for user-defined data types.  The R6RS
+records API provides a superset of the features provided by Guile's
+``native'' records, as well as those of the SRFI-9 records API;
+(@pxref{Records}) and (@pxref{SRFI-9}) for a description of those
+interfaces.
+
+As with SRFI-9 and Guile's native records, R6RS records are constructed
+using a record-type descriptor that specifies attributes like the
+record's name, its fields, and the mutability of those fields.
+
+R6RS records extend this framework to support single inheritance via the
+specification of a ``parent'' type for a record type at definition time.
+Accessors and mutator procedures for the fields of a parent type may be 
+applied to records of a subtype of this parent.  A record type may be 
+@dfn{sealed}, in which case it cannot be used as the parent of another 
+record type.
+
+The inheritance mechanism for record types also informs the process of
+initializing the fields of a record and its parents.  Constructor
+procedures that generate new instances of a record type are obtained
+from a record constructor descriptor, which encapsulates the record-type
+descriptor of the record to be constructed along with a @dfn{protocol}
+procedure that defines how constructors for record subtypes delegate to
+the constructors of their parent types.
+
+A protocol is a procedure used by the record system at construction time
+to bind arguments to the fields of the record being constructed.  The 
+protocol procedure is passed a procedure @var{n} that accepts the 
+arguments required to construct the record's parent type; this 
+procedure, when invoked, will return a procedure @var{p} that accepts 
+the arguments required to construct a new instance of the record type 
+itself and returns a new instance of the record type.
+
+The protocol should in turn return a procedure that uses @var{n} and
+@var{p} to initialize the fields of the record type and its parent
+type(s).  This procedure will be the constructor returned by 
+
+As a trivial example, consider the hypothetical record type 
+@code{pixel}, which encapsulates an x-y location on a screen, and
+@code{voxel}, which has @code{pixel} as its parent type and stores an
+additional coordinate.  The following protocol produces a constructor
+procedure that accepts all three coordinates, uses the first two to 
+initialize the fields of @code{pixel}, and binds the third to the single
+field of @code{voxel}.
+
+@lisp
+  (lambda (n)
+    (lambda (x y z)
+      (let ((p (n x y)))
+        (p z))))
+@end lisp
+
+It may be helpful to think of protocols as ``constructor factories''
+that produce chains of delegating constructors glued together by the
+helper procedure @var{n}.
+
+An R6RS record type may be declared to be @dfn{nongenerative} via the
+use of a unique generated or user-supplied symbol --- or @dfn{uid} --- 
+such that subsequent record type declarations with the same uid and 
+attributes will return the previously-declared record-type descriptor.
+
+R6RS record types may also be declared to be @dfn{opaque}, in which case
+the various predicates and introspection procedures defined in
+@code{(rnrs records introspection)} will behave as if records of this
+type are not records at all.
+
+Note that while the R6RS records API shares much of its namespace with
+both the SRFI-9 and native Guile records APIs, it is not currently
+compatible with either.
+
+@node rnrs records syntactic
+@subsubsection rnrs records syntactic
+
+The @code{(rnrs records syntactic (6))} library exports the syntactic
+API for working with R6RS records.
+
+@deffn {Scheme Syntax} define-record-type name-spec record-clause*
+Defines a new record type, introducing bindings for a record-type
+descriptor, a record constructor descriptor, a constructor procedure,
+a record predicate, and accessor and mutator procedures for the new
+record type's fields.
+
+@var{name-spec} must either be an identifier or must take the form
+@code{(record-name constructor-name predicate-name)}, where 
+@var{record-name}, @var{constructor-name}, and @var{predicate-name} are
+all identifiers and specify the names to which, respectively, the 
+record-type descriptor, constructor, and predicate procedures will be
+bound.  If @var{name-spec} is only an identifier, it specifies the name
+to which the generated record-type descriptor will be bound.
+
+Each @var{record-clause} must be one of the following:
+
+@itemize @bullet
+@item
+@code{(fields field-spec*)}, where each @var{field-spec} specifies a
+field of the new record type and takes one of the following forms:
+@itemize @bullet
+@item
+@code{(immutable field-name accessor-name)}, which specifies an 
+immutable field with the name @var{field-name} and binds an accessor 
+procedure for it to the name given by @var{accessor-name}
+@item
+@code{(mutable field-name accessor-name mutator-name)}, which specifies
+a mutable field with the name @var{field-name} and binds accessor and 
+mutator procedures to @var{accessor-name} and @var{mutator-name},
+respectively
+@item
+@code{(immutable field-name)}, which specifies an immutable field with
+the name @var{field-name}; an accessor procedure for it will be created
+and named by appending record name and @var{field-name} with a hyphen
+separator
+@item
+@code{(mutable field-name}), which specifies a mutable field with the
+name @var{field-name}; an accessor procedure for it will be created and
+named as described above; a mutator procedure will also be created and
+named by appending @code{-set!} to the accessor name
+@item
+@code{field-name}, which specifies an immutable field with the name
+@var{field-name}; an access procedure for it will be created and named
+as described above
+@end itemize
+@item
+@code{(parent parent-name)}, where @var{parent-name} is a symbol giving
+the name of the record type to be used as the parent of the new record
+type
+@item
+@code{(protocol expression)}, where @var{expression} evaluates to a
+protocol procedure which behaves as described above, and is used to
+create a record constructor descriptor for the new record type
+@item
+@code{(sealed sealed?)}, where @var{sealed?} is a boolean value that
+specifies whether or not the new record type is sealed
+@item
+@code{(opaque opaque?)}, where @var{opaque?} is a boolean value that
+specifies whether or not the new record type is opaque
+@item
+@code{(nongenerative [uid])}, which specifies that the record type is
+nongenerative via the optional uid @var{uid}.  If @var{uid} is not 
+specified, a unique uid will be generated at expansion time
+@item
+@code{(parent-rtd parent-rtd parent-cd)}, a more explicit form of the
+@code{parent} form above; @var{parent-rtd} and @var{parent-cd} should
+evaluate to a record-type descriptor and a record constructor 
+descriptor, respectively
+@end itemize
+@end deffn
+
+@deffn {Scheme Syntax} record-type-descriptor record-name
+Evaluates to the record-type descriptor associated with the type
+specified by @var{record-name}.
+@end deffn
+
+@deffn {Scheme Syntax} record-constructor-descriptor record-name
+Evaluates to the record-constructor descriptor associated with the type
+specified by @var{record-name}.
+@end deffn
+
+@node rnrs records procedural
+@subsubsection rnrs records procedural
+
+The @code{(rnrs records procedural (6))} library exports the procedural
+API for working with R6RS records.
+
+@deffn {Scheme Procedure} make-record-type-descriptor name parent uid sealed? opaque? fields
+Returns a new record-type descriptor with the specified characteristics:
+@var{name} must be a symbol giving the name of the new record type; 
+@var{parent} must be either @code{#f} or a non-sealed record-type 
+descriptor for the returned record type to extend; @var{uid} must be
+either @code{#f}, indicating that the record type is generative, or 
+a symbol giving the type's nongenerative uid; @var{sealed?} and  
+@var{opaque?} must be boolean values that specify the sealedness and
+opaqueness of the record type; @var{fields} must be a vector of zero or
+more field specifiers of the form @code{(mutable name)} or
+@code{(immutable name)}, where name is a symbol giving a name for the
+field.
+
+If @var{uid} is not @code{#f}, it must be a symbol
+@end deffn
+
+@deffn {Scheme Procedure} record-type-descriptor? obj
+Returns @code{#t} if @var{obj} is a record-type descriptor, @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} make-record-constructor-descriptor rtd parent-constructor-descriptor protocol
+Returns a new record constructor descriptor that can be used to produce
+constructors for the record type specified by the record-type descriptor
+@var{rtd} and whose delegation and binding behavior are specified by the
+protocol procedure @var{protocol}.
+
+@var{parent-constructor-descriptor} specifies a record constructor 
+descriptor for the parent type of @var{rtd}, if one exists.  If 
+@var{rtd} represents a base type, then 
+@var{parent-constructor-descriptor} must be @code{#f}.  If @var{rtd}
+is an extension of another type, @var{parent-constructor-descriptor} may
+still be @code{#f}, but protocol must also be @code{#f} in this case.
+@end deffn
+
+@deffn {Scheme Procedure} record-constructor rcd
+Returns a record constructor procedure by invoking the protocol
+defined by the record-constructor descriptor @var{rcd}.
+@end deffn
+
+@deffn {Scheme Procedure} record-predicate rtd
+Returns the record predicate procedure for the record-type descriptor
+@var{rtd}.
+@end deffn 
+
+@deffn {Scheme Procedure} record-accessor rtd k
+Returns the record field accessor procedure for the @var{k}th field of
+the record-type descriptor @var{rtd}.
+@end deffn
+
+@deffn {Scheme Procedure} record-mutator rtd k
+Returns the record field mutator procedure for the @var{k}th field of
+the record-type descriptor @var{rtd}.  An @code{&assertion} condition
+will be raised if this field is not mutable.
+@end deffn
+
+@node rnrs records inspection
+@subsubsection rnrs records inspection
+
+The @code{(rnrs records inspection (6))} library provides procedures
+useful for accessing metadata about R6RS records.
+
+@deffn {Scheme Procedure} record? obj
+Return @code{#t} if the specified object is a non-opaque R6RS record,
+@code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} record-rtd record
+Returns the record-type descriptor for @var{record}.  An
+@code{&assertion} is raised if @var{record} is opaque.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-name rtd
+Returns the name of the record-type descriptor @var{rtd}.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-parent rtd
+Returns the parent of the record-type descriptor @var{rtd}, or @code{#f}
+if it has none.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-uid rtd
+Returns the uid of the record-type descriptor @var{rtd}, or @code{#f} if
+it has none.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-generative? rtd
+Returns @code{#t} if the record-type descriptor @var{rtd} is generative,
+@code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-sealed? rtd
+Returns @code{#t} if the record-type descriptor @var{rtd} is sealed,
+@code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-opaque? rtd
+Returns @code{#t} if the record-type descriptor @var{rtd} is opaque,
+@code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} record-type-field-names rtd
+Returns a vector of symbols giving the names of the fields defined by
+the record-type descriptor @var{rtd} (and not any of its sub- or
+supertypes).
+@end deffn
+
+@deffn {Scheme Procedure} record-field-mutable? rtd k
+Returns @code{#t} if the field at index @var{k} of the record-type
+descriptor @var{rtd} (and not any of its sub- or supertypes) is mutable.
+@end deffn
+
+@node rnrs exceptions
+@subsubsection rnrs exceptions
+
+The @code{(rnrs exceptions (6))} library provides functionality related
+to signaling and handling exceptional situations.  This functionality is
+similar to the exception handling systems provided by Guile's core 
+library (@pxref{Exceptions}) and by the SRFI-18 and SRFI-34 
+modules --- (@pxref{SRFI-18 Exceptions}) and (@pxref{SRFI-34}), 
+respectively --- but there are some key differences in concepts and 
+behavior.
+
+A raised exception may be @dfn{continuable} or @dfn{non-continuable}.
+When an exception is raised non-continuably, another exception, with the
+condition type @code{&non-continuable}, will be raised when the
+exception handler returns locally.  Raising an exception continuably
+captures the current continuation and invokes it after a local return
+from the exception handler.
+
+Like SRFI-18 and SRFI-34, R6RS exceptions are implemented on top of
+Guile's native @code{throw} and @code{catch} forms, and use custom
+``throw keys'' to identify their exception types.  As a consequence,
+Guile's @code{catch} form can handle exceptions thrown by these APIs,
+but the reverse is not true: Handlers registered by the
+@code{with-exception-handler} procedure described below will only be
+called on exceptions thrown by the corresponding @code{raise} procedure.
+
+@deffn {Scheme Procedure} with-exception-handler handler thunk
+Installs @var{handler}, which must be a procedure taking one argument,
+as the current exception handler during the invokation of @var{thunk}, a
+procedure taking zero arguments.  The handler in place at the time
+@code{with-exception-handler} is called is made current again once 
+either @var{thunk} returns or @var{handler} is invoked after an 
+exception is thrown from within @var{thunk}.
+
+This procedure is similar to the @code{with-throw-handler} procedure
+provided by Guile's code library; (@pxref{Throw Handlers}).
+@end deffn
+
+@deffn {Scheme Syntax} guard (variable clause1 clause2 ...) body
+Evaluates the expression given by @var{body}, first creating an ad hoc 
+exception handler that binds a raised exception to @var{variable} and
+then evaluates the specified @var{clause}s as if they were part of a 
+@code{cond} expression (@pxref{if cond case}), with the value of the
+first matching clause becoming the value of the @code{guard} expression.
+If none of the clause's test expressions evaluates to @code{#t}, the 
+exception is re-raised, with the exception handler that was current 
+before the evaluation of the @code{guard} form.
+
+For example, the expression
+
+@lisp
+(guard (ex ((eq? ex 'foo) 'bar) ((eq? ex 'bar) 'baz)) 
+  (raise 'bar))
+@end lisp
+
+evaluates to @code{baz}.
+@end deffn
+
+@deffn {Scheme Procedure} raise obj
+Raises a non-continuable exception by invoking the currently-installed
+exception handler on @var{obj}.  If the handler returns, a
+@code{&non-continuable} exception will be raised in the dynamic context
+in which the handler was installed.
+@end deffn
+
+@deffn {Scheme Procedure} raise-continuable obj
+Raises a continuable exception by invoking currently-installed exception
+handler on @var{obj}.
+@end deffn
+
+@node rnrs conditions
+@subsubsection rnrs conditions
+
+The @code{(rnrs condition (6))} library provides forms and procedures
+for constructing new condition types, as well as a library of 
+pre-defined condition types that represent a variety of common 
+exceptional situations.  Conditions are records of a subtype of the
+@code{&condition} record type, which is neither sealed nor opaque.
+@xref{R6RS Records}.
+
+Conditions may be manipulated singly, as @dfn{simple conditions}, or 
+when composed with other conditions to form @dfn{compound conditions}.
+Compound conditions do not ``nest'' --- constructing a new compound
+condition out of existing compound conditions will ``flatten'' them
+into their component simple conditions.  For example, making a new
+condition out of a @code{&message} condition and a compound condition
+that contains an @code{&assertion} condition and another @code{&message} 
+condition will produce a compound condition that contains two 
+@code{&message} conditions and one @code{&assertion} condition.
+
+The record type predicates and field accessors described below can
+operate on either simple or compound conditions.  In the latter case,
+the predicate returns @code{#t} if the compound condition contains a
+component simple condition of the appropriate type; the field accessors
+return the requisite fields from the first component simple condition 
+found to be of the appropriate type.
+
+@deffn &condition
+@deffnx condition? obj
+The base record type for conditions.
+@end deffn
+
+@deffn {Scheme Procedure} condition condition1 ...
+@deffnx {Scheme Procedure} simple-conditions condition
+The @code{condition} procedure creates a new compound condition out of
+its condition arguments, flattening any specified compound conditions 
+into their component simple conditions as described above.
+
+@code{simple-conditions} returns a list of the component simple 
+conditions of the compound condition @code{condition}, in the order in
+which they were specified at construction time.
+@end deffn
+
+@deffn {Scheme Procedure} condition-predicate rtd
+@deffnx {Scheme Procedure} condition-accessor rtd proc
+These procedures return condition predicate and accessor procedures for
+the specified condition record type @var{rtd}.
+@end deffn
+
+@deffn {Scheme Syntax} define-condition-type condition-type supertype constructor predicate field-spec ...
+Evaluates to a new record type definition for a condition type with the
+name @var{condition-type} that has the condition type @var{supertype} as
+its parent.  A default constructor, which binds its arguments to the 
+fields of this type and its parent types, will be bound to the 
+identifier @var{constructor}; a condition predicate will be bound to
+@var{predicate}.  The fields of the new type, which are immutable, are 
+specified by the @var{field-spec}s, each of which must be of the form:
+@lisp
+(field accessor)
+@end lisp
+where @var{field} gives the name of the field and @var{accessor} gives
+the name for a binding to an accessor procedure created for this field.
+@end deffn
+
+@deffn &message
+@deffnx {Scheme Procedure} make-message-condition message
+@deffnx {Scheme Procedure} message-condition? obj
+@deffnx {Scheme Procedure} condition-message condition
+A type that includes a message describing the condition that occurred.
+@end deffn
+
+@deffn &warning
+@deffnx {Scheme Procedure} make-warning
+@deffnx {Scheme Procedure} warning? obj
+A base type for representing non-fatal conditions during execution.
+@end deffn
+
+@deffn &serious
+@deffnx {Scheme Procedure} make-serious-condition
+@deffnx {Scheme Procedure} serious-condition? obj
+A base type for conditions representing errors serious enough that
+cannot be ignored.
+@end deffn
+
+@deffn &error
+@deffnx {Scheme Procedure} make-error
+@deffnx {Scheme Procedure} error? obj
+A base type for conditions representing errors.
+@end deffn
+
+@deffn &violation
+@deffnx {Scheme Procedure} make-violation
+@deffnx {Scheme Procedure} violation?
+A subtype of @code{&serious} that can be used to represent violations
+of a language or library standard.
+@end deffn
+
+@deffn &assertion
+@deffnx {Scheme Procedure} make-assertion-violation
+@deffnx {Scheme Procedure} assertion-violation? obj
+A subtype of @code{&violation} that indicates an invalid call to a
+procedure.
+@end deffn
+
+@deffn &irritants
+@deffnx {Scheme Procedure} make-irritants-condition irritants
+@deffnx {Scheme Procedure} irritants-condition? obj
+@deffnx {Scheme Procedure} condition-irritants condition
+A base type used for storing information about the causes of another
+condition in a compound condition.
+@end deffn
+
+@deffn &who
+@deffnx {Scheme Procedure} make-who-condition who
+@deffnx {Scheme Procedure} who-condition? obj
+@deffnx {Scheme Procedure} condiction-who condition
+A base type used for storing the identity, a string or symbol, of the
+entity responsible for another condition in a compound condition.
+@end deffn
+
+@deffn &non-continuable
+@deffnx {Scheme Procedure} make-non-continuable-violation
+@deffnx {Scheme Procedure} non-continuable-violation? obj
+A subtype of @code{&violation} used to indicate that an exception 
+handler invoked by @code{raise} has returned locally.
+@end deffn
+
+@deffn &implementation-restriction
+@deffnx {Scheme Procedure} make-implementation-restriction-violation
+@deffnx {Scheme Procedure} implementation-restriction-violation? obj
+A subtype of @code{&violation} used to indicate a violation of an
+implementation restriction.
+@end deffn
+
+@deffn &lexical
+@deffnx {Scheme Procedure} make-lexical-violation
+@deffnx {Scheme Procedure} lexical-violation? obj
+A subtype of @code{&violation} used to indicate a syntax violation at
+the level of the datum syntax.
+@end deffn
+
+@deffn &syntax
+@deffnx {Scheme Procedure} make-syntax-violation form subform
+@deffnx {Scheme Procedure} syntax-violation? obj
+@deffnx {Scheme Procedure} syntax-violation-form condition
+@deffnx {Scheme Procedure} syntax-violation-subform condition
+A subtype of @code{&violation} that indicates a syntax violation.  The
+@var{form} and @var{subform} fields, which must be datum values,
+indicate the syntactic form responsible for the condition.
+@end deffn
+
+@deffn &undefined
+@deffnx {Scheme Procedure} make-undefined-violation
+@deffnx {Scheme Procedure} undefined-violation? obj
+A subtype of @code{&violation} that indicates a reference to an unbound
+identifier.
+@end deffn
+
+@node I/O Conditions
+@subsubsection I/O Conditions
+
+These condition types are exported by both the 
+@code{(rnrs io ports (6))} and @code{(rnrs io simple (6))} libraries.
+
+@deffn &i/o
+@deffnx {Scheme Procedure} make-i/o-error
+@deffnx {Scheme Procedure} i/o-error? obj
+A condition supertype for more specific I/O errors.
+@end deffn
+
+@deffn &i/o-read
+@deffnx {Scheme Procedure} make-i/o-read-error
+@deffnx {Scheme Procedure} i/o-read-error? obj
+A subtype of @code{&i/o}; represents read-related I/O errors.
+@end deffn
+
+@deffn &i/o-write
+@deffnx {Scheme Procedure} make-i/o-write-error
+@deffnx {Scheme Procedure} i/o-write-error? obj
+A subtype of @code{&i/o}; represents write-related I/O errors.
+@end deffn
+
+@deffn &i/o-invalid-position
+@deffnx {Scheme Procedure} make-i/o-invalid-position-error position
+@deffnx {Scheme Procedure} i/o-invalid-position-error? obj
+@deffnx {Scheme Procedure} i/o-error-position condition
+A subtype of @code{&i/o}; represents an error related to an attempt to
+set the file position to an invalid position.
+@end deffn
+
+@deffn &i/o-filename
+@deffnx {Scheme Procedure} make-io-filename-error filename
+@deffnx {Scheme Procedure} i/o-filename-error? obj
+@deffnx {Scheme Procedure} i/o-error-filename condition
+A subtype of @code{&i/o}; represents an error related to an operation on
+a named file.
+@end deffn
+
+@deffn &i/o-file-protection
+@deffnx {Scheme Procedure} make-i/o-file-protection-error filename
+@deffnx {Scheme Procedure} i/o-file-protection-error? obj
+A subtype of @code{&i/o-filename}; represents an error resulting from an
+attempt to access a named file for which the caller had insufficient 
+permissions.
+@end deffn
+
+@deffn &i/o-file-is-read-only
+@deffnx {Scheme Procedure} make-i/o-file-is-read-only-error filename
+@deffnx {Scheme Procedure} i/o-file-is-read-only-error? obj
+A subtype of @code{&i/o-file-protection}; represents an error related to
+an attempt to write to a read-only file.
+@end deffn
+
+@deffn &i/o-file-already-exists
+@deffnx {Scheme Procedure} make-i/o-file-already-exists-error filename
+@deffnx {Scheme Procedure} i/o-file-already-exists-error? obj
+A subtype of @code{&i/o-filename}; represents an error related to an
+operation on an existing file that was assumed not to exist.
+@end deffn
+
+@deffn &i/o-file-does-not-exist
+@deffnx {Scheme Procedure} make-i/o-file-does-not-exist-error
+@deffnx {Scheme Procedure} i/o-file-does-not-exist-error? obj
+A subtype of @code{&i/o-filename}; represents an error related to an
+operation on a non-existent file that was assumed to exist.
+@end deffn
+
+@deffn &i/o-port
+@deffnx {Scheme Procedure} make-i/o-port-error port
+@deffnx {Scheme Procedure} i/o-port-error? obj
+@deffnx {Scheme Procedure} i/o-error-port condition
+A subtype of @code{&i/o}; represents an error related to an operation on
+the port @var{port}.
+@end deffn
+
+@node rnrs io ports
+@subsubsection rnrs io ports
+
+The @code{(rnrs io ports (6))} library provides various procedures and
+syntactic forms for use in writing to and reading from ports.  This 
+functionality is documented in its own section of the manual;
+(@pxref{R6RS I/O Ports}).
+
+@node rnrs io simple
+@subsubsection rnrs io simple
+
+The @code{(rnrs io simple (6))} library provides convenience functions
+for performing textual I/O on ports.  This library also exports all of
+the condition types and associated procedures described in
+(@pxref{I/O Conditions}).
+
+@deffn {Scheme Procedure} eof-object
+@deffnx {Scheme Procedure} eof-object? obj
+These procedures are identical to the ones provided by the
+@code{(rnrs io ports (6))} library.  @xref{R6RS I/O Ports}, for
+documentation.
+@end deffn
+
+@deffn {Scheme Procedure} input-port? obj
+@deffnx {Scheme Procedure} output-port? obj
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{Ports}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} call-with-input-file filename proc
+@deffnx {Scheme Procedure} call-with-output-file filename proc
+@deffnx {Scheme Procedure} open-input-file filename
+@deffnx {Scheme Procedure} open-output-file filename
+@deffnx {Scheme Procedure} with-input-from-file filename thunk
+@deffnx {Scheme Procedure} with-output-to-file filename thunk
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{File Ports}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} close-input-port input-port
+@deffnx {Scheme Procedure} close-output-port output-port
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{Closing}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} peek-char
+@deffnx {Scheme Procedure} peek-char textual-input-port
+@deffnx {Scheme Procedure} read-char
+@deffnx {Scheme Procedure} read-char textual-input-port
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{Reading}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} read
+@deffnx {Scheme Procedure} read textual-input-port
+This procedure is identical to the one provided by Guile's core library.
+@xref{Scheme Read}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} display obj
+@deffnx {Scheme Procedure} display obj textual-output-port
+@deffnx {Scheme Procedure} newline
+@deffnx {Scheme Procedure} newline textual-output-port
+@deffnx {Scheme Procedure} write obj
+@deffnx {Scheme Procedure} write obj textual-output-port
+@deffnx {Scheme Procedure} write-char char
+@deffnx {Scheme Procedure} write-char char textual-output-port
+These procedures are identical to the ones provided by Guile's core 
+library.  @xref{Writing}, for documentation.
+@end deffn
+
+@node rnrs files
+@subsubsection rnrs files
+
+The @code{(rnrs files (6))} library provides the @code{file-exists?} and
+@code{delete-file} procedures, which test for the existence of a file
+and allow the deletion of files from the filesystem, respectively.
+
+These procedures are identical to the ones provided by Guile's core 
+library.  @xref{File System}, for documentation.
+
+@node rnrs programs
+@subsubsection rnrs programs
+
+The @code{(rnrs programs (6))} library provides procedures for 
+process management and introspection.
+
+@deffn {Scheme Procedure} command-line
+This procedure is identical to the one provided by Guile's core library.
+@xref{Runtime Environment}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} exit
+@deffnx {Scheme Procedure} exit obj
+This procedure is identical to the one provided by Guile's core library.
+@end deffn
+
+@node rnrs arithmetic fixnums
+@subsubsection rnrs arithmetic fixnums
+
+The @code{(rnrs arithmetic fixnums (6))} library provides procedures for
+performing arithmetic operations on an implementation-dependent range of
+exact integer values, which R6RS refers to as @dfn{fixnums}.  In Guile,
+the size of a fixnum is determined by the size of the @code{SCM} type; a
+single SCM struct is guaranteed to be able to hold an entire fixnum, 
+making fixnum computations particularly efficient ---
+(@pxref{The SCM Type}).  On 32-bit systems, the most negative and most
+positive fixnum values are, respectively, -536870912 and 536870911.
+
+Unless otherwise specified, all of the procedures below take fixnums as
+arguments, and will raise an @code{&assertion} condition if passed a 
+non-fixnum argument or an @code{&implementation-restriction} condition 
+if their result is not itself a fixnum.
+
+@deffn {Scheme Procedure} fixnum? obj
+Returns @code{#t} if @var{obj} is a fixnum, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} fixnum-width
+@deffnx {Scheme Procedure} least-fixnum
+@deffnx {Scheme Procedure} greatest-fixnum
+These procedures return, respectively, the maximum number of bits 
+necessary to represent a fixnum value in Guile, the minimum fixnum
+value, and the maximum fixnum value.
+@end deffn
+
+@deffn {Scheme Procedure} fx=? fx1 fx2 fx3 ...
+@deffnx {Scheme Procedure} fx>? fx1 fx2 fx3 ...
+@deffnx {Scheme Procedure} fx<? fx1 fx2 fx3 ...
+@deffnx {Scheme Procedure} fx>=? fx1 fx2 fx3 ...
+@deffnx {Scheme Procedure} fx<=? fx1 fx2 fx3 ...
+These procedures return @code{#t} if their fixnum arguments are
+(respectively): equal, monotonically increasing, monotonically
+decreasing, monotonically nondecreasing, or monotonically nonincrasing;
+@code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} fxzero? fx
+@deffnx {Scheme Procedure} fxpositive? fx
+@deffnx {Scheme Procedure} fxnegative? fx
+@deffnx {Scheme Procedure} fxodd? fx
+@deffnx {Scheme Procedure} fxeven? fx
+These numerical predicates return @code{#t} if @var{fx} is,
+respectively, zero, greater than zero, less than zero, odd, or even;
+@code{#f} otherwise. 
+@end deffn
+
+@deffn {Scheme Procedure} fxmax fx1 fx2 ...
+@deffnx {Scheme Procedure} fxmin fx1 fx2 ...
+These procedures return the maximum or minimum of their arguments.
+@end deffn
+
+@deffn {Scheme Procedure} fx+ fx1 fx2
+@deffnx {Scheme Procedure} fx* fx1 fx2
+These procedures return the sum or product of their arguments.
+@end deffn
+
+@deffn {Scheme Procedure} fx- fx1 fx2
+@deffnx {Scheme Procedure} fx- fx
+Returns the difference of @var{fx1} and @var{fx2}, or the negation of
+@var{fx}, if called with a single argument.
+
+An @code{&assertion} condition is raised if the result is not itself a
+fixnum.
+@end deffn
+
+@deffn {Scheme Procedure} fxdiv-and-mod fx1 fx2
+@deffnx {Scheme Procedure} fxdiv fx1 fx2
+@deffnx {Scheme Procedure} fxmod fx1 fx2
+@deffnx {Scheme Procedure} fxdiv0-and-mod0 fx1 fx2
+@deffnx {Scheme Procedure} fxdiv0 fx1 fx2
+@deffnx {Scheme Procedure} fxmod0 fx1 fx2
+These procedures implement number-theoretic division on fixnums;
+(@pxref{(rnrs base)}) for a description for their semantics.
+@end deffn
+
+@deffn {Scheme Procedure} fx+/carry fx1 fx2 fx3
+Returns the two fixnum results of the following computation:
+@lisp
+(let* ((s (+ fx1 fx2 fx3))
+       (s0 (mod0 s (expt 2 (fixnum-width))))
+       (s1 (div0 s (expt 2 (fixnum-width)))))
+  (values s0 s1))
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} fx-/carry fx1 fx2 fx3
+Returns the two fixnum results of the following computation:
+@lisp
+(let* ((d (- fx1 fx2 fx3))
+       (d0 (mod0 d (expt 2 (fixnum-width))))
+       (d1 (div0 d (expt 2 (fixnum-width)))))
+  (values d0 d1))
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} fx*/carry fx1 fx2 fx3
+@lisp
+Returns the two fixnum results of the following computation:
+(let* ((s (+ (* fx1 fx2) fx3))
+       (s0 (mod0 s (expt 2 (fixnum-width))))
+       (s1 (div0 s (expt 2 (fixnum-width)))))
+  (values s0 s1))
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} fxnot fx
+@deffnx {Scheme Procedure} fxand fx1 ...
+@deffnx {Scheme Procedure} fxior fx1 ...
+@deffnx {Scheme Procedure} fxxor fx1 ...
+These procedures are identical to the @code{lognot}, @code{logand},
+@code{logior}, and @code{logxor} procedures provided by Guile's core
+library.  @xref{Bitwise Operations}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} fxif fx1 fx2 fx3
+Returns the bitwise ``if'' of its fixnum arguments.  The bit at position
+@code{i} in the return value will be the @code{i}th bit from @var{fx2}
+if the @code{i}th bit of @var{fx1} is 1, the @code{i}th bit from 
+@var{fx3}.
+@end deffn
+
+@deffn {Scheme Procedure} fxbit-count fx
+Returns the number of 1 bits in the two's complement representation of
+@var{fx}.
+@end deffn
+
+@deffn {Scheme Procedure} fxlength fx
+Returns the number of bits necessary to represent @var{fx}.
+@end deffn
+
+@deffn {Scheme Procedure} fxfirst-bit-set fx
+Returns the index of the least significant 1 bit in the two's complement
+representation of @var{fx}.
+@end deffn
+
+@deffn {Scheme Procedure} fxbit-set? fx1 fx2
+Returns @code{#t} if the @var{fx2}th bit in the two's complement
+representation of @var{fx1} is 1, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} fxcopy-bit fx1 fx2 fx3
+Returns the result of setting the @var{fx2}th bit of @var{fx1} to the
+@var{fx2}th bit of @var{fx3}.
+@end deffn 
+
+@deffn {Scheme Procedure} fxbit-field fx1 fx2 fx3
+Returns the integer representation of the contiguous sequence of bits in
+@var{fx1} that starts at position @var{fx2} (inclusive) and ends at
+position @var{fx3} (exclusive).
+@end deffn
+
+@deffn {Scheme Procedure} fxcopy-bit-field fx1 fx2 fx3 fx4
+Returns the result of replacing the bit field in @var{fx1} with start
+and end positions @var{fx2} and @var{fx3} with the corresponding bit
+field from @var{fx4}.
+@end deffn
+
+@deffn {Scheme Procedure} fxarithmetic-shift fx1 fx2
+@deffnx {Scheme Procedure} fxarithmetic-shift-left fx1 fx2
+@deffnx {Scheme Procedure} fxarithmetic-shift-right fx1 fx2
+Returns the result of shifting the bits of @var{fx1} right or left by
+the @var{fx2} positions.  @code{fxarithmetic-shift} is identical
+to @code{fxarithmetic-shift-left}.
+@end deffn
+
+@deffn {Scheme Procedure} fxrotate-bit-field fx1 fx2 fx3 fx4
+Returns the result of cyclically permuting the bit field in @var{fx1}
+with start and end positions @var{fx2} and @var{fx3} by @var{fx4} bits
+in the direction of more significant bits.
+@end deffn
+
+@deffn {Scheme Procedure} fxreverse-bit-field fx1 fx2 fx3
+Returns the result of reversing the order of the bits of @var{fx1} 
+between position @var{fx2} (inclusive) and position @var{fx3} 
+(exclusive).
+@end deffn
+
+@node rnrs arithmetic flonums
+@subsubsection rnrs arithmetic flonums
+
+The @code{(rnrs arithmetic flonums (6))} library provides procedures for
+performing arithmetic operations on inexact representations of real
+numbers, which R6RS refers to as @dfn{flonums}.
+
+Unless otherwise specified, all of the procedures below take flonums as
+arguments, and will raise an @code{&assertion} condition if passed a 
+non-flonum argument.
+
+@deffn {Scheme Procedure} flonum? obj
+Returns @code{#t} if @var{obj} is a flonum, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} real->flonum x
+Returns the flonum that is numerically closest to the real number 
+@var{x}.
+@end deffn
+
+@deffn {Scheme Procedure} fl=? fl1 fl2 fl3 ...
+@deffnx {Scheme Procedure} fl<? fl1 fl2 fl3 ...
+@deffnx {Scheme Procedure} fl<=? fl1 fl2 fl3 ...
+@deffnx {Scheme Procedure} fl>? fl1 fl2 fl3 ...
+@deffnx {Scheme Procedure} fl>=? fl1 fl2 fl3 ...
+These procedures return @code{#t} if their flonum arguments are
+(respectively): equal, monotonically increasing, monotonically
+decreasing, monotonically nondecreasing, or monotonically nonincrasing;
+@code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} flinteger? fl
+@deffnx {Scheme Procedure} flzero? fl
+@deffnx {Scheme Procedure} flpositive? fl
+@deffnx {Scheme Procedure} flnegative? fl
+@deffnx {Scheme Procedure} flodd? fl
+@deffnx {Scheme Procedure} fleven? fl
+These numerical predicates return @code{#t} if @var{fl} is,
+respectively, an integer, zero, greater than zero, less than zero, odd,
+even, @code{#f} otherwise.  In the case of @code{flodd?} and 
+@code{fleven?}, @var{fl} must be an integer-valued flonum.
+@end deffn
+
+@deffn {Scheme Procedure} flfinite? fl
+@deffnx {Scheme Procedure} flinfinite? fl
+@deffnx {Scheme Procedure} flnan? fl
+These numerical predicates return @code{#t} if @var{fl} is, 
+respectively, not infinite, infinite, or a @code{NaN} value.
+@end deffn
+
+@deffn {Scheme Procedure} flmax fl1 fl2 ...
+@deffnx {Scheme Procedure} flmin fl1 fl2 ...
+These procedures return the maximum or minimum of their arguments.
+@end deffn
+
+@deffn {Scheme Procedure} fl+ fl1 ...
+@deffnx {Scheme Procedure} fl* fl ...
+These procedures return the sum or product of their arguments.
+@end deffn
+
+@deffn {Scheme Procedure} fl- fl1 fl2 ...
+@deffnx {Scheme Procedure} fl- fl
+@deffnx {Scheme Procedure} fl/ fl1 fl2 ...
+@deffnx {Scheme Procedure} fl/ fl
+These procedures return, respectively, the difference or quotient of
+their arguments when called with two arguments; when called with a
+single argument, they return the additive or multiplicative inverse of
+@var{fl}.
+@end deffn
+
+@deffn {Scheme Procedure} flabs fl
+Returns the absolute value of @var{fl}.
+@end deffn
+
+@deffn {Scheme Procedure} fldiv-and-mod fl1 fl2
+@deffnx {Scheme Procedure} fldiv fl1 fl2
+@deffnx {Scheme Procedure} fldmod fl1 fl2
+@deffnx {Scheme Procedure} fldiv0-and-mod0 fl1 fl2
+@deffnx {Scheme Procedure} fldiv0 fl1 fl2
+@deffnx {Scheme Procedure} flmod0 fl1 fl2
+These procedures implement number-theoretic division on flonums;
+(@pxref{(rnrs base)}) for a description for their semantics.
+@end deffn
+
+@deffn {Scheme Procedure} flnumerator fl
+@deffnx {Scheme Procedure} fldenominator fl
+These procedures return the numerator or denominator of @var{fl} as a
+flonum.
+@end deffn
+
+@deffn {Scheme Procedure} flfloor fl1
+@deffnx {Scheme Procedure} flceiling fl
+@deffnx {Scheme Procedure} fltruncate fl
+@deffnx {Scheme Procedure} flround fl
+These procedures are identical to the @code{floor}, @code{ceiling},
+@code{truncate}, and @code{round} procedures provided by Guile's core
+library.  @xref{Arithmetic}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} flexp fl
+@deffnx {Scheme Procedure} fllog fl
+@deffnx {Scheme Procedure} fllog fl1 fl2 
+@deffnx {Scheme Procedure} flsin fl
+@deffnx {Scheme Procedure} flcos fl
+@deffnx {Scheme Procedure} fltan fl
+@deffnx {Scheme Procedure} flasin fl
+@deffnx {Scheme Procedure} flacos fl
+@deffnx {Scheme Procedure} flatan fl
+@deffnx {Scheme Procedure} flatan fl1 fl2
+These procedures, which compute the usual transcendental functions, are
+the flonum variants of the procedures provided by the R6RS base library
+(@pxref{(rnrs base)}).
+@end deffn
+
+@deffn {Scheme Procedure} flsqrt fl
+Returns the square root of @var{fl}.  If @var{fl} is @code{-0.0}, 
+@var{-0.0} is returned; for other negative values, a @code{NaN} value
+is returned.
+@end deffn
+
+@deffn {Scheme Procedure} flexpt fl1 fl2
+Returns the value of @var{fl1} raised to the power of @var{fl2}.
+@end deffn
+
+The following condition types are provided to allow Scheme 
+implementations that do not support infinities or @code{NaN} values
+to indicate that a computation resulted in such a value.  Guile supports
+both of these, so these conditions will never be raised by Guile's 
+standard libraries implementation.
+
+@deffn &no-infinities
+@deffnx {Scheme Procedure} make-no-infinities-violation obj
+@deffnx {Scheme Procedure} no-infinities-violation?
+A condition type indicating that a computation resulted in an infinite
+value on a Scheme implementation incapable of representing infinities.
+@end deffn
+
+@deffn &no-nans
+@deffnx {Scheme Procedure} make-no-nans-violation obj
+@deffnx {Scheme Procedure} no-nans-violation? obj
+A condition type indicating that a computation resulted in a @code{NaN}
+value on a Scheme implementation incapable of representing @code{NaN}s.
+@end deffn
+
+@deffn {Scheme Procedure} fixnum->flonum fx
+Returns the flonum that is numerically closest to the fixnum @var{fx}.
+@end deffn
+
+@node rnrs arithmetic bitwise
+@subsubsection rnrs arithmetic bitwise
+
+The @code{(rnrs arithmetic bitwise (6))} library provides procedures for
+performing bitwise arithmetic operations on the two's complement
+representations of fixnums.
+
+@deffn {Scheme Procedure} bitwise-not ei
+@deffnx {Scheme Procedure} bitwise-and ei1 ...
+@deffnx {Scheme Procedure} bitwise-ior ei1 ...
+@deffnx {Scheme Procedure} bitwise-xor ei1 ...
+These procedures are identical to the @code{lognot}, @code{logand},
+@code{logior}, and @code{logxor} procedures provided by Guile's core
+library.  @xref{Bitwise Operations}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-if ei1 ei2 ei3
+Returns the bitwise ``if'' of its arguments.  The bit at position
+@code{i} in the return value will be the @code{i}th bit from @var{ei2}
+if the @code{i}th bit of @var{ei1} is 1, the @code{i}th bit from 
+@var{ei3}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-bit-count ei
+Returns the number of 1 bits in the two's complement representation of
+@var{ei}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-length ei
+Returns the number of bits necessary to represent @var{ei}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-first-bit-set ei
+Returns the index of the least significant 1 bit in the two's complement
+representation of @var{ei}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-bit-set? ei1 ei2
+Returns @code{#t} if the @var{ei2}th bit in the two's complement
+representation of @var{ei1} is 1, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-copy-bit ei1 ei2 ei3
+Returns the result of setting the @var{ei2}th bit of @var{ei1} to the
+@var{ei2}th bit of @var{ei3}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-bit-field ei1 ei2 ei3
+Returns the integer representation of the contiguous sequence of bits in
+@var{ei1} that starts at position @var{ei2} (inclusive) and ends at
+position @var{ei3} (exclusive).
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-copy-bit-field ei1 ei2 ei3 ei4
+Returns the result of replacing the bit field in @var{ei1} with start
+and end positions @var{ei2} and @var{ei3} with the corresponding bit
+field from @var{ei4}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-arithmetic-shift ei1 ei2
+@deffnx {Scheme Procedure} bitwise-arithmetic-shift-left ei1 ei2
+@deffnx {Scheme Procedure} bitwise-arithmetic-shift-right ei1 ei2
+Returns the result of shifting the bits of @var{ei1} right or left by
+the @var{ei2} positions.  @code{bitwise-arithmetic-shift} is identical
+to @code{bitwise-arithmetic-shift-left}.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-rotate-bit-field ei1 ei2 ei3 ei4
+Returns the result of cyclically permuting the bit field in @var{ei1}
+with start and end positions @var{ei2} and @var{ei3} by @var{ei4} bits
+in the direction of more significant bits.
+@end deffn
+
+@deffn {Scheme Procedure} bitwise-reverse-bit-field ei1 ei2 ei3
+Returns the result of reversing the order of the bits of @var{e1} 
+between position @var{ei2} (inclusive) and position @var{ei3} 
+(exclusive).
+@end deffn
+
+@node rnrs syntax-case
+@subsubsection rnrs syntax-case
+
+The @code{(rnrs syntax-case (6))} library provides access to the 
+@code{syntax-case} system for writing hygienic macros.  With one
+exception, all of the forms and procedures exported by this library
+are ``re-exports'' of Guile's native support for @code{syntax-case};
+(@pxref{Syntax Case}) for documentation, examples, and rationale. 
+
+@deffn {Scheme Procedure} make-variable-transformer proc
+Creates a new variable transformer out of @var{proc}, a procedure that
+takes a syntax object as input and returns a syntax object.  If an
+identifier to which the result of this procedure is bound appears on the
+left-hand side of a @code{set!} expression, @var{proc} will be called
+with a syntax object representing the entire @code{set!} expression,
+and its return value will replace that @code{set!} expression. 
+@end deffn
+
+@deffn {Scheme Syntax} syntax-case expression (literal ...) clause ...
+The @code{syntax-case} pattern matching form.
+@end deffn
+
+@deffn {Scheme Syntax} syntax template
+@deffnx {Scheme Syntax} quasisyntax template
+@deffnx {Scheme Syntax} unsyntax template
+@deffnx {Scheme Syntax} unsyntax-splicing template
+These forms allow references to be made in the body of a syntax-case 
+output expression subform to datum and non-datum values.  They are 
+identical to the forms provided by Guile's core library;
+(@pxref{Syntax Case}) for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} identifier? obj
+@deffnx {Scheme Procedure} bound-identifier=? id1 id2
+@deffnx {Scheme Procedure} free-identifier=? id1 id2
+These predicate procedures operate on syntax objects representing
+Scheme identifiers.  @code{identifier?} returns @code{#t} if @var{obj}
+represents an identifier, @code{#f} otherwise.  
+@code{bound-identifier=?} returns @code{#t} if and only if a binding for
+@var{id1} would capture a reference to @var{id2} in the transformer's 
+output, or vice-versa.  @code{free-identifier=?} returns @code{#t} if
+and only @var{id1} and @var{id2} would refer to the same binding in the
+output of the transformer, independent of any bindings introduced by the
+transformer.
+@end deffn
+
+@deffn {Scheme Procedure} generate-temporaries l
+Returns a list, of the same length as @var{l}, which must be a list or
+a syntax object representing a list, of globally unique symbols.
+@end deffn
+
+@deffn {Scheme Procedure} syntax->datum syntax-object
+@deffnx {Scheme Procedure} datum->syntax template-id datum
+These procedures convert wrapped syntax objects to and from Scheme datum
+values.  The syntax object returned by @code{datum->syntax} shares
+contextual information with the syntax object @var{template-id}.
+@end deffn
+
+@deffn {Scheme Procedure} syntax-violation whom message form
+@deffnx {Scheme Procedure} syntax-violation whom message form subform
+Constructs a new compound condition that includes the following
+simple conditions:
+@itemize @bullet
+@item
+If @var{whom} is not @code{#f}, a @code{&who} condition with the
+@var{whom} as its field
+@item
+A @code{&message} condition with the specified @var{message}
+@item
+A @code{&syntax} condition with the specified @var{form} and optional
+@var{subform} fields
+@end itemize
+@end deffn
+
+@node rnrs hashtables
+@subsubsection rnrs hashtables
+
+The @code{(rnrs hashtables (6))} library provides structures and
+procedures for creating and accessing hash tables.  The hash tables API
+defined by R6RS is substantially similar to both Guile's native hash 
+tables implementation (@pxref{Hash Tables}) as well as the one 
+provided by SRFI-69 (@pxref{SRFI-69}).  Note that you can write
+portable R6RS library code that manipulates SRFI-69 hash tables (by 
+importing the @code{(srfi :69)} library); however, hash tables created
+by one API cannot be used by another.
+
+Like SRFI-69 hash tables --- and unlike Guile's native ones --- R6RS
+hash tables associate hash and equality functions with a hash table at
+the time of its creation.  Additionally, R6RS allows for the creation
+(via @code{hashtable-copy}; see below) of immutable hash tables.
+
+@deffn {Scheme Procedure} make-eq-hashtable
+@deffnx {Scheme Procedure} make-eq-hashtable k
+Returns a new hash table that uses @code{eq?} to compare keys and 
+Guile's @code{hashq} procedure as a hash function.  If @var{k} is given,
+it specifies the initial capacity of the hash table.
+@end deffn
+
+@deffn {Scheme Procedure} make-eqv-hashtable
+@deffnx {Scheme Procedure} make-eqv-hashtable k
+Returns a new hash table that uses @code{eqv?} to compare keys and
+Guile's @code{hashv} procedure as a hash function.  If @var{k} is given,
+it specifies the initial capacity of the hash table.
+@end deffn
+
+@deffn {Scheme Procedure} make-hashtable hash-function equiv
+@deffnx {Scheme Procedure} make-hashtable hash-function equiv k
+Returns a new hash table that uses @var{equiv} to compare keys and
+@var{hash-function} as a hash function.  @var{equiv} must be a procedure
+that accepts two arguments and returns a true value if they are 
+equivalent, @code{#f} otherwise; @var{hash-function} must be a procedure
+that accepts one argument and returns a non-negative integer.
+
+If @var{k} is given, it specifies the initial capacity of the hash 
+table.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable? obj
+Returns @code{#t} if @var{obj} is an R6RS hash table, @code{#f} 
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-size hashtable
+Returns the number of keys currently in the hash table @var{hashtable}.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-ref hashtable key default
+Returns the value associated with @var{key} in the hash table
+@var{hashtable}, or @var{default} if none is found.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-set! hashtable key obj
+Associates the key @var{key} with the value @var{obj} in the hash table
+@var{hashtable}, and returns an unspecified value.  An @code{&assertion}
+condition is raised if @var{hashtable} is immutable.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-delete! hashtable key
+Removes any association found for the key @var{key} in the hash table
+@var{hashtable}, and returns an unspecified value.  An @code{&assertion}
+condition is raised if @var{hashtable} is immutable.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-contains? hashtable key
+Returns @code{#t} if the hash table @var{hashtable} contains an
+association for the key @var{key}, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-update! hashtable key proc default
+Associates with @var{key} in the hash table @var{hashtable} the result 
+of calling @var{proc}, which must be a procedure that takes one 
+argument, on the value currently associated @var{key} in 
+@var{hashtable} --- or on @var{default} if no such association exists.
+An @code{&assertion} condition is raised if @var{hashtable} is
+immutable.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-copy hashtable
+@deffnx {Scheme Procedure} hashtable-copy hashtable mutable
+Returns a copy of the hash table @var{hashtable}.  If the optional
+argument @var{mutable} is a true value, the new hash table will be
+immutable.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-clear! hashtable
+@deffnx {Scheme Procedure} hashtable-clear! hashtable k
+Removes all of the associations from the hash table @var{hashtable}.
+The optional argument @var{k}, which specifies a new capacity for the
+hash table, is accepted by Guile's @code{(rnrs hashtables)} 
+implementation, but is ignored.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-keys hashtable
+Returns a vector of the keys with associations in the hash table 
+@var{hashtable}, in an unspecified order.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-entries hashtable
+Return two values --- a vector of the keys with associations in the
+hash table @var{hashtable}, and a vector of the values to which these
+keys are mapped, in corresponding but unspecified order.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-equivalence-function hashtable
+Returns the equivalence predicated use by @var{hashtable}.  This
+procedure returns @code{eq?} and @code{eqv?}, respectively, for hash
+tables created by @code{make-eq-hashtable} and 
+@code{make-eqv-hashtable}.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-hash-function hashtable
+Returns the hash function used by @var{hashtable}.  For hash tables
+created by @code{make-eq-hashtable} or @code{make-eqv-hashtable}, 
+@code{#f} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} hashtable-mutable? hashtable
+Returns @code{#t} if @var{hashtable} is mutable, @code{#f} otherwise.
+@end deffn
+
+A number of hash functions are provided for convenience:
+
+@deffn {Scheme Procedure} equal-hash obj
+Returns an integer hash value for @var{obj}, based on its structure and 
+current contents. This hash function is suitable for use with 
+@code{equal?} as an equivalence function.
+@end deffn
+
+@deffn {Scheme Procedure} string-hash string
+@deffnx {Scheme Procedure} symbol-hash symbol
+These procedures are identical to the ones provided by Guile's core 
+library.  @xref{Hash Table Reference}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} string-ci-hash string
+Returns an integer hash value for @var{string} based on its contents,
+ignoring case.  This hash function is suitable for use with 
+@code{string-ci=?} as an equivalence function.
+@end deffn
+
+@node rnrs enums
+@subsubsection rnrs enums
+
+The @code{(rnrs enums (6))} library provides structures and procedures
+for working with enumerable sets of symbols.  Guile's implementation 
+defines an @dfn{enum-set} record type that encapsulates a finite set of
+distinct symbols, the @dfn{universe}, and a subset of these symbols, 
+which define the enumeration set.
+
+The SRFI-1 list library provides a number of procedures for performing
+set operations on lists; Guile's @code{(rnrs enums)} implementation 
+makes use of several of them.  @xref{SRFI-1 Set Operations}, for
+more information.
+
+@deffn {Scheme Procedure} make-enumeration symbol-list
+Returns a new enum-set whose universe and enumeration set are both equal
+to @var{symbol-list}, a list of symbols.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-universe enum-set
+Returns an enum-set representing the universe of @var{enum-set},
+an enum-set.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-indexer enum-set
+Returns a procedure that takes a single argument and returns the
+zero-indexed position of that argument in the universe of 
+@var{enum-set}, or @code{#f} if its argument is not a member of that
+universe.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-constructor enum-set
+Returns a procedure that takes a single argument, a list of symbols
+from the universe of @var{enum-set}, an enum-set, and returns a new
+enum-set with the same universe that represents a subset containing the
+specified symbols.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set->list enum-set
+Returns a list containing the symbols of the set represented by
+@var{enum-set}, an enum-set, in the order that they appear in the 
+universe of @var{enum-set}.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-member? symbol enum-set
+@deffnx {Scheme Procedure} enum-set-subset? enum-set1 enum-set2
+@deffnx {Scheme Procedure} enum-set=? enum-set1 enum-set2
+These procedures test for membership of symbols and enum-sets in other
+enum-sets.  @code{enum-set-member?} returns @code{#t} if and only if
+@var{symbol} is a member of the subset specified by @var{enum-set}.
+@code{enum-set-subset?} returns @code{#t} if and only if the universe of
+@var{enum-set1} is a subset of the universe of @var{enum-set2} and
+every symbol in @var{enum-set1} is present in @var{enum-set2}.
+@code{enum-set=?} returns @code{#t} if and only if @var{enum-set1} is a
+subset, as per @code{enum-set-subset?} of @var{enum-set2} and vice
+versa.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-union enum-set1 enum-set2
+@deffnx {Scheme Procedure} enum-set-intersection enum-set1 enum-set2
+@deffnx {Scheme Procedure} enum-set-difference enum-set1 enum-set2
+These procedures return, respectively, the union, intersection, and
+difference of their enum-set arguments.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-complement enum-set
+Returns @var{enum-set}'s complement (an enum-set), with regard to its
+universe.
+@end deffn
+
+@deffn {Scheme Procedure} enum-set-projection enum-set1 enum-set2
+Returns the projection of the enum-set @var{enum-set1} onto the universe
+of the enum-set @var{enum-set2}.
+@end deffn
+
+@deffn {Scheme Syntax} define-enumeration type-name (symbol ...) constructor-syntax
+Evaluates to two new definitions: A constructor bound to 
+@var{constructor-syntax} that behaves similarly to constructors created
+by @code{enum-set-constructor}, above, and creates new @var{enum-set}s
+in the universe specified by @code{(symbol ...)}; and a ``predicate 
+macro'' bound to @var{type-name}, which has the following form:
+
+@lisp
+(@var{type-name} sym)
+@end lisp
+ 
+If @var{sym} is a member of the universe specified by the @var{symbol}s
+above, this form evaluates to @var{sym}.  Otherwise, a @code{&syntax} 
+condition is raised.
+@end deffn
+
+@node rnrs
+@subsubsection rnrs
+
+The @code{(rnrs (6))} library is a composite of all of the other R6RS
+standard libraries --- it imports and re-exports all of their exported
+procedures and syntactic forms --- with the exception of the following
+libraries:
+
+@itemize @bullet
+@item @code{(rnrs eval (6))}
+@item @code{(rnrs mutable-pairs (6))}
+@item @code{(rnrs mutable-strings (6))}
+@item @code{(rnrs r5rs (6))}
+@end itemize
+
+@node rnrs eval
+@subsubsection rnrs eval
+
+The @code{(rnrs eval (6)} library provides procedures for performing 
+``on-the-fly'' evaluation of expressions.
+
+@deffn {Scheme Procedure} eval expression environment
+Evaluates @var{expression}, which must be a datum representation of a
+valid Scheme expression, in the environment specified by 
+@var{environment}.  This procedure is identical to the one provided by
+Guile's code library; (@pxref{Fly Evaluation}) for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} environment import-spec ...
+Constructs and returns a new environment based on the specified
+@var{import-spec}s, which must be datum representations of the import
+specifications used with the @code{import} form.  @xref{R6RS Libraries},
+for documentation.
+@end deffn
+
+@node rnrs mutable-pairs
+@subsubsection rnrs mutable-pairs
+
+The @code{(rnrs mutable-pairs (6))} library provides the @code{set-car!}
+and @code{set-cdr!} procedures, which allow the @code{car} and 
+@code{cdr} fields of a pair to be modified.
+
+These procedures are identical to the ones provide by Guile's core
+library.  @xref{Pairs}, for documentation.  All pairs in Guile are
+mutable; consequently, these procedures will never throw the
+@code{&assertion} condition described in the R6RS libraries 
+specification.
+
+@node rnrs mutable-strings
+@subsubsection rnrs mutable-strings
+
+The @code{(rnrs mutable-strings (6))} library provides the 
+@code{string-set!} and @code{string-fill!} procedures, which allow the
+content of strings to be modified ``in-place.''
+
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{String Modification}, for documentation.  All strings in
+Guile are mutable; consequently, these procedures will never throw the 
+@code{&assertion} condition described in the R6RS libraries 
+specification.
+
+@node rnrs r5rs
+@subsubsection rnrs r5rs
+
+The @code{(rnrs r5rs (6))} library exports bindings for some procedures
+present in R5RS but omitted from the R6RS base library specification.
+
+@deffn {Scheme Procedure} exact->inexact z
+@deffnx {Scheme Procedure} inexact->exact z
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{Exactness}, for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} quotient n1 n2
+@deffnx {Scheme Procedure} remainder n1 n2
+@deffnx {Scheme Procedure} modulo n1 n2
+These procedures are identical to the ones provided by Guile's core
+library.  @xref{Integer Operations}, for documentation.
+@end deffn
+
+@deffn {Scheme Syntax} delay expr
+@deffnx {Scheme Procedure} force promise
+The @code{delay} form and the @code{force} procedure are identical to 
+their counterparts in Guile's core library.  @xref{Delayed Evaluation},
+for documentation.
+@end deffn
+
+@deffn {Scheme Procedure} null-environment n
+@deffnx {Scheme Procedure} scheme-report-environment n
+These procedures are identical to the ones provided by the 
+@code{(ice-9 r5rs)} Guile module.  @xref{Environments}, for 
+documentation.
+@end deffn
 
 @c r6rs.texi ends here
 
