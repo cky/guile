@@ -3331,19 +3331,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
-;;; {Load emacs interface support if emacs option is given.}
-;;;
-
-(define (named-module-use! user usee)
-  (module-use! (resolve-module user) (resolve-interface usee)))
-
-(define (load-emacs-interface)
-  (and (provided? 'debug-extensions)
-       (debug-enable 'backtrace))
-  (named-module-use! '(guile-user) '(ice-9 emacs)))
-
-
-
 (define using-readline?
   (let ((using-readline? (make-fluid)))
      (make-procedure-with-setter
@@ -3352,11 +3339,6 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define (top-repl)
   (let ((guile-user-module (resolve-module '(guile-user))))
-
-    ;; Load emacs interface support if emacs option is given.
-    (if (and (module-defined? guile-user-module 'use-emacs-interface)
-             (module-ref guile-user-module 'use-emacs-interface))
-        (load-emacs-interface))
 
     ;; Use some convenient modules (in reverse order)
 

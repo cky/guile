@@ -62,7 +62,9 @@
             handle-system-error
             stack-saved?
             the-last-stack
-            save-stack)
+            save-stack
+            named-module-use!
+            load-emacs-interface)
 
   #:replace (module-ref-submodule module-define-submodule!))
 
@@ -670,3 +672,16 @@ if you need it.")
    "`save-stack' is deprecated. Use it from `(ice-9 save-stack)' if you need
 it.")
   (apply (@ (ice-9 save-stack) save-stack) args))
+
+(define (named-module-use! user usee)
+  (issue-deprecation-warning
+   "`named-module-use!' is deprecated. Define it yourself if you need it.")
+  (module-use! (resolve-module user) (resolve-interface usee)))
+
+(define (load-emacs-interface)
+  (issue-deprecation-warning
+   "`load-emacs-interface' and the old emacs interface itself are deprecated.
+Use Geiser.")
+  (and (provided? 'debug-extensions)
+       (debug-enable 'backtrace))
+  (named-module-use! '(guile-user) '(ice-9 emacs)))

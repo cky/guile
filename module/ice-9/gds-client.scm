@@ -504,7 +504,8 @@ Thanks!\n\n"
   (write (getpid))
   (newline)
   (force-output)
-  (named-module-use! '(guile-user) '(ice-9 session))
+  (module-use! (resolve-module '(guile-user))
+               (resolve-interface '(ice-9 session)))
   (gds-accept-input #f))
 
 (define-method (trap-description (trap <trap>))

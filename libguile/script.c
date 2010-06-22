@@ -385,7 +385,6 @@ scm_shell_usage (int fatal, char *message)
            "                 Default is to enable autocompilation of source\n"
            "                 files.\n"
 	   "  -q             inhibit loading of user init file\n"
-           "  --emacs        enable Emacs protocol (experimental)\n"
 	   "  --use-srfi=LS  load SRFI modules for the SRFIs in LS,\n"
 	   "                 which is a list of numbers like \"2,13,14\"\n"
            "  -h, --help     display this help and exit\n"
@@ -454,7 +453,6 @@ scm_compile_shell_switches (int argc, char **argv)
   SCM user_load_path = SCM_EOL; /* for -L switch */
   int interactive = 1;		/* Should we go interactive when done? */
   int inhibit_user_init = 0;	/* Don't load user init file */
-  int use_emacs_interface = 0;
   int turn_on_debugging = 0;
   int dont_turn_on_debugging = 0;
 
@@ -603,9 +601,6 @@ scm_compile_shell_switches (int argc, char **argv)
         scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
                             SCM_BOOL_F);
 
-      else if (! strcmp (argv[i], "--emacs")) /* use emacs protocol */ 
-	use_emacs_interface = 1;
-
       else if (! strcmp (argv[i], "-q")) /* don't load user init */ 
 	inhibit_user_init = 1;
 
@@ -676,9 +671,6 @@ scm_compile_shell_switches (int argc, char **argv)
      script/command/whatever.  */
   scm_set_program_arguments (argc ? argc - i : 0, argv + i, argv0);
   
-  /* If the --emacs switch was set, now is when we process it.  */
-  scm_c_define ("use-emacs-interface", scm_from_bool (use_emacs_interface));
-
   /* Handle the `-e' switch, if it was specified.  */
   if (!scm_is_null (entry_point))
     tail = scm_cons (scm_cons2 (entry_point,
