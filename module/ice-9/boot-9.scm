@@ -516,13 +516,14 @@ If there is no handler at all, Guile prints an error and then exits."
 
 ;;; {Deprecation}
 ;;;
-;;; Depends on: defmacro
-;;;
 
-(defmacro begin-deprecated forms
-  (if (include-deprecated-features)
-      `(begin ,@forms)
-      `(begin)))
+(define-syntax begin-deprecated
+  (lambda (x)
+    (syntax-case x ()
+      ((_ form form* ...)
+       (if (include-deprecated-features)
+           #'(begin form form* ...)
+           #'(begin))))))
 
 
 
