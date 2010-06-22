@@ -3312,35 +3312,22 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; srfi-55: require-extension
 ;;;
 
-(define-macro (require-extension extension-spec)
-  ;; This macro only handles the srfi extension, which, at present, is
-  ;; the only one defined by the standard.
-  (if (not (pair? extension-spec))
-      (scm-error 'wrong-type-arg "require-extension"
-                 "Not an extension: ~S" (list extension-spec) #f))
-  (let ((extension (car extension-spec))
-        (extension-args (cdr extension-spec)))
-    (case extension
-      ((srfi)
-       (let ((use-list '()))
-         (for-each
-          (lambda (i)
-            (if (not (integer? i))
-                (scm-error 'wrong-type-arg "require-extension"
-                           "Invalid srfi name: ~S" (list i) #f))
-            (let ((srfi-sym (string->symbol
-                             (string-append "srfi-" (number->string i)))))
-              (if (not (memq srfi-sym %cond-expand-features))
-                  (set! use-list (cons `(use-modules (srfi ,srfi-sym))
-                                       use-list)))))
-          extension-args)
-         (if (pair? use-list)
-             ;; i.e. (begin (use-modules x) (use-modules y) (use-modules z))
-             `(begin ,@(reverse! use-list)))))
-      (else
-       (scm-error
-        'wrong-type-arg "require-extension"
-        "Not a recognized extension type: ~S" (list extension) #f)))))
+(define-syntax require-extension
+  (lambda (x)
+    (syntax-case x (srfi)
+      ((_ (srfi n ...))
+       (and-map integer? (syntax->datum #'(n ...)))
+       (with-syntax
+           (((srfi-n ...)
+             (map (lambda (n)
+                    (datum->syntax x (symbol-append 'srfi- n)))
+                  (map string->symbol
+                       (map number->string (syntax->datum #'(n ...)))))))
+         #'(use-modules (srfi srfi-n) ...)))
+      ((_ (type arg ...))
+       (identifier? #'type)
+       (syntax-violation 'require-extension "Not a recognized extension type"
+                         x)))))
 
 
 
