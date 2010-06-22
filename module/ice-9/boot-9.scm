@@ -2721,6 +2721,10 @@ module '(ice-9 q) '(make-q q-length))}."
 (define before-print-hook (make-hook 1))
 (define after-print-hook (make-hook 1))
 
+;;; This hook is run at the very end of an interactive session.
+;;;
+(define exit-hook (make-hook))
+
 ;;; The default repl-reader function.  We may override this if we've
 ;;; the readline library.
 (define repl-reader
@@ -3357,9 +3361,6 @@ module '(ice-9 q) '(make-q q-length))}."
     ;; load debugger on demand
     (module-autoload! guile-user-module '(system vm debug) '(debug))
 
-    ;; Note: SIGFPE, SIGSEGV and SIGBUS are actually "query-only" (see
-    ;; scmsigs.c scm_sigaction_for_thread), so the handlers setup here have
-    ;; no effect.
     (let ((old-handlers #f)
           ;; We can't use @ here, as modules have been booted, but in Guile's
           ;; build the srfi-1 helper lib hasn't been built yet, which will
@@ -3368,15 +3369,8 @@ module '(ice-9 q) '(make-q q-length))}."
           (start-repl (module-ref (resolve-module '(system repl repl))
                                   'start-repl))
           (signals (if (provided? 'posix)
-                       `((,SIGINT . "User interrupt")
-                         (,SIGFPE . "Arithmetic error")
-                         (,SIGSEGV
-                          . "Bad memory access (Segmentation violation)"))
+                       `((,SIGINT . "User interrupt"))
                        '())))
-      ;; no SIGBUS on mingw
-      (if (defined? 'SIGBUS)
-          (set! signals (acons SIGBUS "Bad memory access (bus error)"
-                               signals)))
 
       (dynamic-wind
 
@@ -3412,10 +3406,6 @@ module '(ice-9 q) '(make-q q-length))}."
                                   (car old-handler)
                                   (cdr old-handler))))
                  signals old-handlers))))))
-
-;;; This hook is run at the very end of an interactive session.
-;;;
-(define exit-hook (make-hook))
 
 
 
