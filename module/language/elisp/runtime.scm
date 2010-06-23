@@ -114,7 +114,7 @@
 (define-syntax built-in-macro
   (syntax-rules ()
     ((_ name value)
-     (define-public name value))))
+     (define-public name (cons 'macro value)))))
 
 ;;; Call a guile-primitive that may be rebound for elisp and thus needs
 ;;; absolute addressing.

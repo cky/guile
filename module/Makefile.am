@@ -135,8 +135,9 @@ ELISP_LANG_SOURCES =				\
   language/elisp/compile-tree-il.scm		\
   language/elisp/runtime.scm			\
   language/elisp/runtime/function-slot.scm	\
-  language/elisp/runtime/macro-slot.scm		\
   language/elisp/runtime/value-slot.scm		\
+  language/elisp/runtime/macros.scm		\
+  language/elisp/runtime/subrs.scm		\
   language/elisp/spec.scm
 
 BRAINFUCK_LANG_SOURCES =			\

@@ -69,8 +69,6 @@
 
 (define runtime '(language elisp runtime))
 
-(define macro-slot '(language elisp runtime macro-slot))
-
 (define value-slot (@ (language elisp runtime) value-slot-module))
 
 (define function-slot (@ (language elisp runtime) function-slot-module))
@@ -543,18 +541,21 @@
 ;;; Handle macro bindings.
 
 (define (is-macro? sym)
-  (module-defined? (resolve-interface macro-slot) sym))
+  (and
+   (symbol? sym)
+   (module-defined? (resolve-interface function-slot) sym)
+   (let ((macro (module-ref (resolve-module function-slot) sym)))
+     (and (pair? macro) (eq? (car macro) 'macro)))))
 
 (define (define-macro! loc sym definition)
-  (let ((resolved (resolve-module macro-slot)))
-    (if (is-macro? sym)
-        (report-error loc "macro is already defined" sym)
-        (begin
-          (module-define! resolved sym definition)
-          (module-export! resolved (list sym))))))
+  (let ((resolved (resolve-module function-slot)))
+    (module-define! resolved sym (cons 'macro definition))
+    (module-export! resolved (list sym))))
 
 (define (get-macro sym)
-  (module-ref (resolve-module macro-slot) sym))
+  (and
+   (is-macro? sym)
+   (cdr (module-ref (resolve-module function-slot) sym))))
 
 ;;; See if a (backquoted) expression contains any unquotes.
 
@@ -876,9 +877,8 @@
 
     ;; Macro calls are simply expanded and recursively compiled.
 
-    ((,macro . ,args) (guard (and (symbol? macro) (is-macro? macro)))
-     (let ((expander (get-macro macro)))
-       (compile-expr (apply expander args))))
+    ((,macro . ,args) (guard (is-macro? macro))
+     (compile-expr (apply (get-macro macro) args)))
 
     ;; Function calls using (function args) standard notation; here, we
     ;; have to take the function value of a symbol if it is one.  It

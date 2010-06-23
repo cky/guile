@@ -18,7 +18,7 @@
 
 ;;; Code:
 
-(define-module (language elisp runtime macro-slot)
+(define-module (language elisp runtime macros)
   #:use-module (language elisp runtime))
 
 ;;; This module contains the macro definitions of elisp symbols.  In
