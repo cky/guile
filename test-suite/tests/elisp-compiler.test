@@ -26,7 +26,7 @@
 ; Macros to handle the compilation conveniently.
 
 (define-syntax compile-test
-  (syntax-rules (pass-if pass-if-exception)
+  (syntax-rules (pass-if pass-if-equal pass-if-exception)
     ((_ (pass-if test-name exp))
      (pass-if test-name (compile 'exp #:from 'elisp #:to 'value)))
     ((_ (pass-if test-name exp #:opts opts))
