@@ -28,7 +28,7 @@ find one that is not on this list.
 @item
 The R6RS specifies many situations in which a conforming implementation
 must signal a specific error.  Guile doesn't really care about that too
-much --- if a correct R6RS program would not hit that error, we don't 
+much---if a correct R6RS program would not hit that error, we don't 
 bother checking for it.
 
 @item
@@ -38,7 +38,7 @@ does not restore it.  This is a bug.
 
 @item
 A @code{set!} to a variable transformer may only expand to an 
-expression, not a definition --- even if the original @code{set!} 
+expression, not a definition---even if the original @code{set!} 
 expression was in definition context.
 @end itemize
 
@@ -110,9 +110,8 @@ Guile implements the R6RS `library' form as a transformation to a native
 Guile module definition.  As a consequence of this, all of the libraries
 described in the following subsections, in addition to being available
 for use by R6RS libraries and top-level programs, can also be imported 
-as if they were normal Guile modules --- for example, via a 
-@code{use-modules} form.  For example, the R6RS ``composite'' library
-can be imported by:
+as if they were normal Guile modules---via a @code{use-modules} form, 
+say.  For example, the R6RS ``composite'' library can be imported by:
 
 @lisp
   (import (rnrs (6)))
@@ -339,8 +338,7 @@ grouped below by the existing manual sections to which they correspond.
 @xref{Comparison}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} fold f lst1 lst2 ...
-@deffnx {Scheme Procedure} for-each f lst1 lst2 ...
+@deffn {Scheme Procedure} for-each f lst1 lst2 ...
 @xref{SRFI-1 Fold and Map}, for documentation.
 @end deffn
 
@@ -524,10 +522,10 @@ manipulating Unicode characters and strings.
 These procedures translate their arguments from one Unicode character
 set to another.  @code{char-upcase}, @code{char-downcase}, and
 @code{char-titlecase} are identical to their counterparts in the
-Guile core library; see (@pxref{Characters}) for documentation.
+Guile core library; @xref{Characters}, for documentation.
 
 @code{char-foldcase} returns the result of applying @code{char-upcase}
-to its argument, followed by @code{char-downcase} --- except in the case
+to its argument, followed by @code{char-downcase}---except in the case
 of the Turkic characters @code{U+0130} and @code{U+0131}, for which the
 procedure acts as the identity function.
 @end deffn
@@ -612,7 +610,7 @@ defined by SRFI-1; the @code{exists} procedure is identical to SRFI-1's
 @deffnx {Scheme Procedure} partition proc list
 These procedures are identical to the ones provided by SRFI-1.  
 @xref{List Modification}, for a description of @code{filter};
-(@pxref{SRFI-1 Filtering and Partitioning}) for @code{partition}.
+@xref{SRFI-1 Filtering and Partitioning}, for @code{partition}.
 @end deffn
 
 @deffn {Scheme Procedure} fold-left combine nil list1 list2 ... listn
@@ -628,9 +626,9 @@ documentation.
 @deffnx {Scheme Procedure} remq obj list
 @code{remove}, @code{remv}, and @code{remq} are identical to the
 @code{delete}, @code{delv}, and @code{delq} procedures provided by
-Guile's core library; (@pxref{List Modification}) for their
-documentation.  @code{remp} is identical to the alternate @code{remove}
-procedure provided by SRFI-1; @xref{SRFI-1 Deleting}.
+Guile's core library, (@pxref{List Modification}).  @code{remp} is
+identical to the alternate @code{remove} procedure provided by SRFI-1;
+@xref{SRFI-1 Deleting}.
 @end deffn
 
 @deffn {Scheme Procedure} memp proc list
@@ -638,9 +636,9 @@ procedure provided by SRFI-1; @xref{SRFI-1 Deleting}.
 @deffnx {Scheme Procedure} memv obj list
 @deffnx {Scheme Procedure} memq obj list
 @code{member}, @code{memv}, and @code{memq} are identical to the 
-procedures provided by Guile's core library; (@pxref{List Searching}) 
-for their documentation.  @code{memp} uses the specified predicate 
-function @code{proc} to test elements of the list @var{list} --- it 
+procedures provided by Guile's core library; @xref{List Searching}, 
+for their documentation.  @code{memp} uses the specified predicate
+function @code{proc} to test elements of the list @var{list}---it 
 behaves similarly to @code{find}, except that it returns the first 
 sublist of @var{list} whose @code{car} satisfies @var{proc}.
 @end deffn
@@ -651,7 +649,7 @@ sublist of @var{list} whose @code{car} satisfies @var{proc}.
 @deffnx {Scheme Procedure} assq obj alist
 @code{assoc}, @code{assv}, and @code{assq} are identical to the 
 procedures provided by Guile's core library; 
-(@pxref{Alist Key Equality}) for their documentation.  @code{assp} uses
+@xref{Alist Key Equality}, for their documentation.  @code{assp} uses
 the specified predicate function @code{proc} to test keys in the
 association list @var{alist}.
 @end deffn
@@ -727,7 +725,7 @@ The manual sections below describe Guile's implementation of R6RS
 records, which provide support for user-defined data types.  The R6RS
 records API provides a superset of the features provided by Guile's
 ``native'' records, as well as those of the SRFI-9 records API;
-(@pxref{Records}) and (@pxref{SRFI-9}) for a description of those
+@xref{Records}, and @ref{SRFI-9}, for a description of those
 interfaces.
 
 As with SRFI-9 and Guile's native records, R6RS records are constructed
@@ -781,9 +779,10 @@ that produce chains of delegating constructors glued together by the
 helper procedure @var{n}.
 
 An R6RS record type may be declared to be @dfn{nongenerative} via the
-use of a unique generated or user-supplied symbol --- or @dfn{uid} --- 
-such that subsequent record type declarations with the same uid and 
-attributes will return the previously-declared record-type descriptor.
+use of a unique generated or user-supplied symbol---or 
+@dfn{uid}---such that subsequent record type declarations with the same
+uid and attributes will return the previously-declared record-type 
+descriptor.
 
 R6RS record types may also be declared to be @dfn{opaque}, in which case
 the various predicates and introspection procedures defined in
@@ -1005,9 +1004,9 @@ descriptor @var{rtd} (and not any of its sub- or supertypes) is mutable.
 The @code{(rnrs exceptions (6))} library provides functionality related
 to signaling and handling exceptional situations.  This functionality is
 similar to the exception handling systems provided by Guile's core 
-library (@pxref{Exceptions}) and by the SRFI-18 and SRFI-34 
-modules --- (@pxref{SRFI-18 Exceptions}) and (@pxref{SRFI-34}), 
-respectively --- but there are some key differences in concepts and 
+library @xref{Exceptions}, and by the SRFI-18 and SRFI-34 
+modules---@xref{SRFI-18 Exceptions}, and @ref{SRFI-34}, 
+respectively---but there are some key differences in concepts and 
 behavior.
 
 A raised exception may be @dfn{continuable} or @dfn{non-continuable}.
@@ -1041,11 +1040,11 @@ provided by Guile's code library; (@pxref{Throw Handlers}).
 Evaluates the expression given by @var{body}, first creating an ad hoc 
 exception handler that binds a raised exception to @var{variable} and
 then evaluates the specified @var{clause}s as if they were part of a 
-@code{cond} expression (@pxref{if cond case}), with the value of the
-first matching clause becoming the value of the @code{guard} expression.
-If none of the clause's test expressions evaluates to @code{#t}, the 
-exception is re-raised, with the exception handler that was current 
-before the evaluation of the @code{guard} form.
+@code{cond} expression, with the value of the first matching clause 
+becoming the value of the @code{guard} expression 
+(@pxref{if cond case}).  If none of the clause's test expressions 
+evaluates to @code{#t}, the exception is re-raised, with the exception
+handler that was current before the evaluation of the @code{guard} form.
 
 For example, the expression
 
@@ -1081,7 +1080,7 @@ exceptional situations.  Conditions are records of a subtype of the
 
 Conditions may be manipulated singly, as @dfn{simple conditions}, or 
 when composed with other conditions to form @dfn{compound conditions}.
-Compound conditions do not ``nest'' --- constructing a new compound
+Compound conditions do not ``nest''---constructing a new compound
 condition out of existing compound conditions will ``flatten'' them
 into their component simple conditions.  For example, making a new
 condition out of a @code{&message} condition and a compound condition
@@ -1095,6 +1094,14 @@ the predicate returns @code{#t} if the compound condition contains a
 component simple condition of the appropriate type; the field accessors
 return the requisite fields from the first component simple condition 
 found to be of the appropriate type.
+
+This library is quite similar to the SRFI-35 conditions module
+(@pxref{SRFI-35}).  Among other minor differences, the 
+@code{(rnrs conditions)} library features slightly different semantics
+around condition field accessors, and comes with a larger number of
+pre-defined condition types.  The two APIs are not currently compatible,
+however; the @code{condition?} predicate from one API will return 
+@code{#f} when applied to a condition object created in the other.
 
 @deffn &condition
 @deffnx condition? obj
@@ -1409,9 +1416,10 @@ performing arithmetic operations on an implementation-dependent range of
 exact integer values, which R6RS refers to as @dfn{fixnums}.  In Guile,
 the size of a fixnum is determined by the size of the @code{SCM} type; a
 single SCM struct is guaranteed to be able to hold an entire fixnum, 
-making fixnum computations particularly efficient ---
-(@pxref{The SCM Type}).  On 32-bit systems, the most negative and most
-positive fixnum values are, respectively, -536870912 and 536870911.
+making fixnum computations particularly 
+efficient---(@pxref{The SCM Type}).  On 32-bit systems, the most 
+negative and most positive fixnum values are, respectively, -536870912 
+and 536870911.
 
 Unless otherwise specified, all of the procedures below take fixnums as
 arguments, and will raise an @code{&assertion} condition if passed a 
@@ -1477,7 +1485,7 @@ fixnum.
 @deffnx {Scheme Procedure} fxdiv0 fx1 fx2
 @deffnx {Scheme Procedure} fxmod0 fx1 fx2
 These procedures implement number-theoretic division on fixnums;
-(@pxref{(rnrs base)}) for a description for their semantics.
+@xref{(rnrs base)}, for a description of their semantics.
 @end deffn
 
 @deffn {Scheme Procedure} fx+/carry fx1 fx2 fx3
@@ -1663,7 +1671,7 @@ Returns the absolute value of @var{fl}.
 @deffnx {Scheme Procedure} fldiv0 fl1 fl2
 @deffnx {Scheme Procedure} flmod0 fl1 fl2
 These procedures implement number-theoretic division on flonums;
-(@pxref{(rnrs base)}) for a description for their semantics.
+@xref{(rnrs base)}, for a description for their semantics.
 @end deffn
 
 @deffn {Scheme Procedure} flnumerator fl
@@ -1735,7 +1743,11 @@ Returns the flonum that is numerically closest to the fixnum @var{fx}.
 
 The @code{(rnrs arithmetic bitwise (6))} library provides procedures for
 performing bitwise arithmetic operations on the two's complement
-representations of fixnums.
+representations of fixnums.  
+
+This library and the procedures it exports share functionality with 
+SRFI-60, which provides support for bitwise manipulation of integers 
+(@pxref{SRFI-60}).
 
 @deffn {Scheme Procedure} bitwise-not ei
 @deffnx {Scheme Procedure} bitwise-and ei1 ...
@@ -1816,7 +1828,7 @@ The @code{(rnrs syntax-case (6))} library provides access to the
 @code{syntax-case} system for writing hygienic macros.  With one
 exception, all of the forms and procedures exported by this library
 are ``re-exports'' of Guile's native support for @code{syntax-case};
-(@pxref{Syntax Case}) for documentation, examples, and rationale. 
+@xref{Syntax Case}, for documentation, examples, and rationale. 
 
 @deffn {Scheme Procedure} make-variable-transformer proc
 Creates a new variable transformer out of @var{proc}, a procedure that
@@ -1838,7 +1850,7 @@ The @code{syntax-case} pattern matching form.
 These forms allow references to be made in the body of a syntax-case 
 output expression subform to datum and non-datum values.  They are 
 identical to the forms provided by Guile's core library;
-(@pxref{Syntax Case}) for documentation.
+@xref{Syntax Case}, for documentation.
 @end deffn
 
 @deffn {Scheme Procedure} identifier? obj
@@ -1889,15 +1901,15 @@ A @code{&syntax} condition with the specified @var{form} and optional
 The @code{(rnrs hashtables (6))} library provides structures and
 procedures for creating and accessing hash tables.  The hash tables API
 defined by R6RS is substantially similar to both Guile's native hash 
-tables implementation (@pxref{Hash Tables}) as well as the one 
-provided by SRFI-69 (@pxref{SRFI-69}).  Note that you can write
-portable R6RS library code that manipulates SRFI-69 hash tables (by 
-importing the @code{(srfi :69)} library); however, hash tables created
-by one API cannot be used by another.
+tables implementation as well as the one provided by SRFI-69; 
+@xref{Hash Tables}, and @ref{SRFI-69}, respectively.  Note that you can
+write portable R6RS library code that manipulates SRFI-69 hash tables 
+(by importing the @code{(srfi :69)} library); however, hash tables 
+created by one API cannot be used by another.
 
-Like SRFI-69 hash tables --- and unlike Guile's native ones --- R6RS
-hash tables associate hash and equality functions with a hash table at
-the time of its creation.  Additionally, R6RS allows for the creation
+Like SRFI-69 hash tables---and unlike Guile's native ones---R6RS hash 
+tables associate hash and equality functions with a hash table at the 
+time of its creation.  Additionally, R6RS allows for the creation
 (via @code{hashtable-copy}; see below) of immutable hash tables.
 
 @deffn {Scheme Procedure} make-eq-hashtable
@@ -1961,7 +1973,7 @@ association for the key @var{key}, @code{#f} otherwise.
 Associates with @var{key} in the hash table @var{hashtable} the result 
 of calling @var{proc}, which must be a procedure that takes one 
 argument, on the value currently associated @var{key} in 
-@var{hashtable} --- or on @var{default} if no such association exists.
+@var{hashtable}---or on @var{default} if no such association exists.
 An @code{&assertion} condition is raised if @var{hashtable} is
 immutable.
 @end deffn
@@ -1987,9 +1999,9 @@ Returns a vector of the keys with associations in the hash table
 @end deffn
 
 @deffn {Scheme Procedure} hashtable-entries hashtable
-Return two values --- a vector of the keys with associations in the
-hash table @var{hashtable}, and a vector of the values to which these
-keys are mapped, in corresponding but unspecified order.
+Return two values---a vector of the keys with associations in the hash
+table @var{hashtable}, and a vector of the values to which these keys
+are mapped, in corresponding but unspecified order.
 @end deffn
 
 @deffn {Scheme Procedure} hashtable-equivalence-function hashtable
@@ -2124,8 +2136,8 @@ condition is raised.
 @subsubsection rnrs
 
 The @code{(rnrs (6))} library is a composite of all of the other R6RS
-standard libraries --- it imports and re-exports all of their exported
-procedures and syntactic forms --- with the exception of the following
+standard libraries---it imports and re-exports all of their exported
+procedures and syntactic forms---with the exception of the following
 libraries:
 
 @itemize @bullet
@@ -2145,7 +2157,7 @@ The @code{(rnrs eval (6)} library provides procedures for performing
 Evaluates @var{expression}, which must be a datum representation of a
 valid Scheme expression, in the environment specified by 
 @var{environment}.  This procedure is identical to the one provided by
-Guile's code library; (@pxref{Fly Evaluation}) for documentation.
+Guile's code library; @xref{Fly Evaluation}, for documentation.
 @end deffn
 
 @deffn {Scheme Procedure} environment import-spec ...
