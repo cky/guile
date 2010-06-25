@@ -282,6 +282,9 @@ them in THANKS.
 opportunistically, that is, if doing so is part of some other change).
 The goal is to reduce (and over time, eliminate) spurious diffs.
 
+For Emacs users:
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+
 Naming conventions =================================================
 
 We use certain naming conventions to structure the considerable number
