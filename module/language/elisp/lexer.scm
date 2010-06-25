@@ -269,7 +269,7 @@
         (c (read-char port)))
     (cond
      ;; End of input must be specially marked to the parser.
-     ((eof-object? c) '*eoi*)
+     ((eof-object? c) (return 'eof c))
      ;; Whitespace, just skip it.
      ((char-whitespace? c) (lex port))
      ;; The dot is only the one for dotted lists if followed by
@@ -389,7 +389,7 @@
         (paren-level 0))
     (lambda ()
       (if finished
-          '*eoi*
+          (cons 'eof ((@ (rnrs io ports) eof-object)))
           (let ((next (lex))
                 (quotation #f))
             (case (car next)
