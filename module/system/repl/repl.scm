@@ -60,18 +60,23 @@
                                (current-module))))
    #:on-error 'pass))
 
-(define* (start-repl #:optional (lang (current-language)) #:key
-                     (level (1+ (or (fluid-ref *repl-level*) -1)))
-                     (welcome (equal? level 0)))
+
+
+;;;
+;;; The repl
+;;;
+
+(define* (start-repl #:optional (lang (current-language)))
   (let ((repl (make-repl lang))
         (status #f))
-    (if welcome
-        (repl-welcome repl))
-    (with-fluids ((*repl-level* level)
+    (with-fluids ((*repl-stack* (cons repl
+                                      (or (fluid-ref *repl-stack*) '())))
                   (*debug-input-port*
                    (or (fluid-ref *debug-input-port*) (current-input-port)))
                   (*debug-output-port*
                    (or (fluid-ref *debug-output-port*) (current-output-port))))
+      (if (null? (cdr (fluid-ref *repl-stack*)))
+          (repl-welcome repl))
       (let prompt-loop ()
         (let ((exp (prompting-meta-read repl)))
           (cond

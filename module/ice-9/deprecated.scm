@@ -616,7 +616,7 @@ the `(system repl common)' module.")
    (else
     (issue-deprecation-warning
      "`set-batch-mode?!' with an argument of `#f' is deprecated. Use the
-`*repl-level*' fluid instead.")
+`*repl-stack*' fluid instead.")
     #t)))
 
 (define (repl read evaler print)

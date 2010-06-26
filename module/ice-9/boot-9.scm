@@ -2684,14 +2684,14 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Running Repls}
 ;;;
 
-(define *repl-level* (make-fluid))
+(define *repl-stack* (make-fluid))
 
 ;; Programs can call `batch-mode?' to see if they are running as part of a
 ;; script or if they are running interactively. REPL implementations ensure that
 ;; `batch-mode?' returns #f during their extent.
 ;;
 (define (batch-mode?)
-  (negative? (or (fluid-ref *repl-level*) -1)))
+  (null? (or (fluid-ref *repl-stack*) '())))
 
 ;; Programs can re-enter batch mode, for example after a fork, by calling
 ;; `ensure-batch-mode!'. It's not a great interface, though; it would be better
