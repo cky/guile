@@ -106,12 +106,12 @@
     (format #t " ,~24A ~8@A - ~A\n" usage abbrev summary)))
 
 (define (read-datum repl)
-  (read))
+  (read (repl-inport repl)))
 
 (define read-line
   (let ((orig-read-line read-line))
     (lambda (repl)
-      (orig-read-line))))
+      (orig-read-line (repl-inport repl)))))
 
 (define (meta-command repl)
   (let ((command (read-datum repl)))
@@ -129,14 +129,13 @@
        docstring
        (let* ((expression0
                (repl-reader ""
-                            (lambda args
-                              (let ((port (if (pair? args)
-                                              (car args)
-                                              (current-input-port))))
-                                ((language-reader (repl-language repl))
-                                 port (current-module))))))
+                            (lambda* (#:optional (port (repl-inport repl)))
+                              ((language-reader (repl-language repl))
+                               port (current-module)))))
               ...)
-         (apply (lambda* datums b0 b1 ...)
+         (apply (lambda* datums
+                  (with-output-to-port (repl-outport repl)
+                    (lambda () b0 b1 ...)))
                 (let ((port (open-input-string (read-line repl))))
                   (let lp ((out '()))
                     (let ((x (read port)))

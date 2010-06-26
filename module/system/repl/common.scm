@@ -25,7 +25,7 @@
   #:use-module (system vm program)
   #:use-module (ice-9 control)
   #:export (<repl> make-repl repl-language repl-options
-            repl-tm-stats repl-gc-stats
+            repl-tm-stats repl-gc-stats repl-inport repl-outport repl-debug
             repl-welcome repl-prompt repl-read repl-compile repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
             repl-default-option-set! repl-default-prompt-set!
@@ -99,7 +99,8 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 ;;; Repl type
 ;;;
 
-(define-record/keywords <repl> language options tm-stats gc-stats)
+(define-record/keywords <repl>
+  language options tm-stats gc-stats inport outport debug)
 
 (define repl-default-options
   '((compile-options . (#:warnings (unbound-variable arity-mismatch)))
@@ -107,11 +108,14 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
     (interp . #f)))
 
 (define %make-repl make-repl)
-(define (make-repl lang)
+(define* (make-repl lang #:optional debug)
   (%make-repl #:language (lookup-language lang)
               #:options repl-default-options
               #:tm-stats (times)
-              #:gc-stats (gc-stats)))
+              #:gc-stats (gc-stats)
+              #:inport (current-input-port)
+              #:outport (current-output-port)
+              #:debug debug))
 
 (define (repl-welcome repl)
   (display *version*)
@@ -130,7 +134,7 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
               (if (zero? level) "" (format #f " [~a]" level)))))))
 
 (define (repl-read repl)
-  ((language-reader (repl-language repl)) (current-input-port)
+  ((language-reader (repl-language repl)) (repl-inport repl)
                                           (current-module)))
 
 (define (repl-compile-options repl)
@@ -162,8 +166,8 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
         ;; should be printed with the generic printer, `write'. The
         ;; language-printer is something else: it prints expressions of
         ;; a given language, not the result of evaluation.
-	(write val)
-	(newline))))
+	(write val (repl-outport repl))
+	(newline (repl-outport repl)))))
 
 (define (repl-option-ref repl key)
   (assq-ref (repl-options repl) key))
