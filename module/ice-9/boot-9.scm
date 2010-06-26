@@ -2698,7 +2698,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; to abort to the outermost prompt, and call a thunk there.
 ;;
 (define (ensure-batch-mode!)
-  (fluid-set! *repl-level* #f))
+  (set! batch-mode? (lambda () #t)))
 
 (define (quit . args)
   (apply throw 'quit args))
