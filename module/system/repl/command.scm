@@ -136,7 +136,7 @@
                                 ((language-reader (repl-language repl))
                                  port (current-module))))))
               ...)
-         (apply (lambda datums b0 b1 ...)
+         (apply (lambda* datums b0 b1 ...)
                 (let ((port (open-input-string (read-line repl))))
                   (let lp ((out '()))
                     (let ((x (read port)))
