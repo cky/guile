@@ -1453,9 +1453,9 @@
   (let ((proc (get-keyword #:procedure initargs #f)))
     (cond ((not proc))
 	  ((pair? proc)
-	   (apply set-object-procedure! object proc))
+	   (apply slot-set! object 'procedure proc))
 	  (else
-           (set-object-procedure! object proc)))))
+           (slot-set! object 'procedure proc)))))
 
 (define-method (initialize (applicable-struct <applicable-struct>) initargs)
   (next-method)
