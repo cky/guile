@@ -130,7 +130,9 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
    (else
     (format #f "~A@~A~A> " (language-name (repl-language repl))
             (module-name (current-module))
-            (let ((level (length (or (fluid-ref *repl-stack*) '()))))
+            (let ((level (length (cond
+                                  ((fluid-ref *repl-stack*) => cdr)
+                                  (else '())))))
               (if (zero? level) "" (format #f " [~a]" level)))))))
 
 (define (repl-read repl)
