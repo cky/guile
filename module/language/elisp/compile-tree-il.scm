@@ -544,7 +544,8 @@
   (and
    (symbol? sym)
    (module-defined? (resolve-interface function-slot) sym)
-   (let ((macro (module-ref (resolve-module function-slot) sym)))
+   (let* ((macro (module-ref (resolve-module function-slot) sym))
+          (macro (if (fluid? macro) (fluid-ref macro) macro)))
      (and (pair? macro) (eq? (car macro) 'macro)))))
 
 (define (define-macro! loc sym definition)
@@ -555,7 +556,8 @@
 (define (get-macro sym)
   (and
    (is-macro? sym)
-   (cdr (module-ref (resolve-module function-slot) sym))))
+   (let ((macro (module-ref (resolve-module function-slot) sym)))
+    (cdr (if (fluid? macro) (fluid-ref macro) macro)))))
 
 ;;; See if a (backquoted) expression contains any unquotes.
 
