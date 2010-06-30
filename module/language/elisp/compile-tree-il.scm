@@ -115,6 +115,14 @@
                     (list (make-const loc module)
                           (make-const loc sym))))
 
+(define (ensuring-globals loc bindings body)
+  (make-sequence
+   loc
+   `(,@(map-globals-needed (fluid-ref bindings)
+                           (lambda (mod sym)
+                             (generate-ensure-global loc sym mod)))
+     ,body)))
+
 ;;; See if we should do a void-check for a given variable.  That means,
 ;;; check that this check is not disabled via the compiler options for
 ;;; this symbol.  Disabling of void check is only done for the value-slot
@@ -548,11 +556,6 @@
           (macro (if (fluid? macro) (fluid-ref macro) macro)))
      (and (pair? macro) (eq? (car macro) 'macro)))))
 
-(define (define-macro! loc sym definition)
-  (let ((resolved (resolve-module function-slot)))
-    (module-define! resolved sym (cons 'macro definition))
-    (module-export! resolved (list sym))))
-
 (define (get-macro sym)
   (and
    (is-macro? sym)
@@ -856,16 +859,27 @@
                                                              body))
                               (make-const loc name)))))
 
-    ;; Define a macro (this is done directly at compile-time!).  FIXME:
-    ;; Recursive macros don't work!
-
     ((defmacro ,name ,args . ,body)
      (if (not (symbol? name))
          (report-error loc "expected symbol as macro name" name)
-         (let* ((tree-il (compile-lambda loc args body))
-                (object (compile tree-il #:from 'tree-il #:to 'value)))
-           (define-macro! loc name object)
-           (make-const loc name))))
+         (let* ((tree-il
+                 (make-sequence
+                  loc
+                  (list
+                   (set-variable!
+                    loc
+                    name
+                    function-slot
+                    (make-application
+                     loc
+                     (make-module-ref loc '(guile) 'cons #t)
+                     (list (make-const loc 'macro)
+                           (compile-lambda loc args body))))
+                   (make-const loc name)))))
+           (compile (ensuring-globals loc bindings-data tree-il)
+                    #:from 'tree-il
+                    #:to 'value)
+           tree-il)))
 
     ;; XXX: Maybe we could implement backquotes in macros, too.
 
@@ -952,13 +966,7 @@
                  (disable-void-check '())
                  (always-lexical '()))
      (process-options! opts)
-     (let ((loc (location expr))
-           (compiled (compile-expr expr)))
-       (make-sequence loc
-                      `(,@(map-globals-needed
-                           (fluid-ref bindings-data)
-                           (lambda (mod sym)
-                             (generate-ensure-global loc sym mod)))
-                        ,compiled))))
+     (let ((compiled (compile-expr expr)))
+      (ensuring-globals (location expr) bindings-data compiled)))
    env
    env))
