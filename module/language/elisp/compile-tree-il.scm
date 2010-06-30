@@ -921,6 +921,8 @@
           (let ((key (car opt))
                 (value (cadr opt)))
             (case key
+              ((#:warnings)             ; ignore
+               #f)
               ((#:disable-void-check)
                (if (valid-symbol-list-arg? value)
                    (fluid-set! disable-void-check value)
