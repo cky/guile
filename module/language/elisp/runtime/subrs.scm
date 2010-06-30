@@ -354,3 +354,8 @@
 (built-in-func eval
   (lambda (form)
     (compile form #:from 'elisp #:to 'value)))
+
+(built-in-func load
+  (lambda* (file)
+    (compile-file file #:from 'elisp #:to 'value)
+    #t))

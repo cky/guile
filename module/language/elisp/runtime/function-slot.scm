@@ -81,7 +81,8 @@
                funcall
                throw
                not
-               eval)
+               eval
+               load)
   ;; macros
   #:re-export (prog1
                prog2
