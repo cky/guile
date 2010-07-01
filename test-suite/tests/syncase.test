@@ -152,3 +152,71 @@
                    (ciao 1))
                 (current-module))
           "ciao"))
+
+(define qux 30)
+
+(with-test-prefix "identifier-syntax"
+  
+  (pass-if "global reference"
+    (let-syntax ((baz (identifier-syntax qux)))
+      (equal? baz qux)))
+
+  (pass-if "lexical hygienic reference"
+    (let-syntax ((baz (identifier-syntax qux)))
+      (let ((qux 20))
+        (equal? (+ baz qux)
+                50))))
+  
+  (pass-if "lexical hygienic reference (bound)"
+    (let ((qux 20))
+      (let-syntax ((baz (identifier-syntax qux)))
+        (equal? (+ baz qux)
+                40))))
+  
+  (pass-if "global reference (settable)"
+    (let-syntax ((baz (identifier-syntax
+                       (id qux)
+                       ((set! id expr) (set! qux expr)))))
+      (equal? baz qux)))
+
+  (pass-if "lexical hygienic reference (settable)"
+    (let-syntax ((baz (identifier-syntax
+                       (id qux)
+                       ((set! id expr) (set! qux expr)))))
+      (let ((qux 20))
+        (equal? (+ baz qux)
+                50))))
+  
+  (pass-if "lexical hygienic reference (bound, settable)"
+    (let ((qux 20))
+      (let-syntax ((baz (identifier-syntax
+                         (id qux)
+                         ((set! id expr) (set! qux expr)))))
+        (equal? (+ baz qux)
+                40))))
+
+  (pass-if "global set!"
+    (let-syntax ((baz (identifier-syntax
+                       (id qux)
+                       ((set! id expr) (set! qux expr)))))
+      (set! baz 10)
+      (equal? (+ baz qux) 20)))
+
+  (pass-if "lexical hygienic set!"
+    (let-syntax ((baz (identifier-syntax
+                       (id qux)
+                       ((set! id expr) (set! qux expr)))))
+      (and (let ((qux 20))
+             (set! baz 5)
+             (equal? (+ baz qux)
+                     25))
+           (equal? qux 5))))
+  
+  (pass-if "lexical hygienic set! (bound)"
+    (let ((qux 20))
+      (let-syntax ((baz (identifier-syntax
+                         (id qux)
+                         ((set! id expr) (set! qux expr)))))
+        (set! baz 50)
+        (equal? (+ baz qux)
+                100)))))

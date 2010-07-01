@@ -656,10 +656,10 @@
                 (macros-only-env (cdr r)))))))
 
   (define lookup
-                                        ; x may be a label or a symbol
-                                        ; although symbols are usually global, we check the environment first
-                                        ; anyway because a temporary binding may have been established by
-                                        ; fluid-let-syntax
+    ;; x may be a label or a symbol
+    ;; although symbols are usually global, we check the environment first
+    ;; anyway because a temporary binding may have been established by
+    ;; fluid-let-syntax
     (lambda (x r mod)
       (cond
        ((assq x r) => cdr)
@@ -1197,6 +1197,7 @@
                   (chi-void)))))
             ((define-form)
              (let* ((n (id-var-name value w))
+                    ;; Lookup the name in the module of the define form.
                     (type (binding-type (lookup n r mod))))
                (case type
                  ((global core macro module-ref)
@@ -1847,6 +1848,8 @@
                      (lambda (src e r maps ellipsis? mod)
                        (if (id? e)
                            (let ((label (id-var-name e empty-wrap)))
+                             ;; Mod does not matter, we are looking to see if
+                             ;; the id is lexical syntax.
                              (let ((b (lookup label r mod)))
                                (if (eq? (binding-type b) 'syntax)
                                    (call-with-values
@@ -2139,8 +2142,12 @@
                    (syntax-case e ()
                      ((_ id val)
                       (id? #'id)
-                      (let ((n (id-var-name #'id w)))
-                        (let ((b (lookup n r mod)))
+                      (let ((n (id-var-name #'id w))
+                            ;; Lookup id in its module
+                            (id-mod (if (syntax-object? #'id)
+                                        (syntax-object-module #'id)
+                                        mod)))
+                        (let ((b (lookup n r id-mod)))
                           (case (binding-type b)
                             ((lexical)
                              (build-lexical-assignment s
@@ -2148,14 +2155,16 @@
                                                        (binding-value b)
                                                        (chi #'val r w mod)))
                             ((global)
-                             (build-global-assignment s n (chi #'val r w mod) mod))
+                             (build-global-assignment s n (chi #'val r w mod) id-mod))
                             ((macro)
                              (let ((p (binding-value b)))
                                (if (procedure-property p 'variable-transformer)
-                                   (chi (chi-macro p e r w s #f mod) r w mod)
+                                   ;; As syntax-type does, call chi-macro with
+                                   ;; the mod of the expression. Hmm.
+                                   (chi (chi-macro p e r w s #f mod) r empty-wrap mod)
                                    (syntax-violation 'set! "not a variable transformer"
                                                      (wrap e w mod)
-                                                     (wrap #'id w mod)))))
+                                                     (wrap #'id w id-mod)))))
                             ((displaced-lexical)
                              (syntax-violation 'set! "identifier out of context"
                                                (wrap #'id w mod)))
@@ -2172,8 +2181,8 @@
                                  (lambda (e r w s* mod)
                                    (syntax-case e ()
                                      (e (id? #'e)
-                                      (build-global-assignment s (syntax->datum #'e)
-                                                               val mod)))))))
+                                        (build-global-assignment s (syntax->datum #'e)
+                                                                 val mod)))))))
                             (else
                              (build-application s
                                                 (chi #'(setter head) r w mod)
