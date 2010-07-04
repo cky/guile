@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -172,6 +172,8 @@ SCM_INTERNAL size_t scm_i_string_length (SCM str);
 SCM_API /* FIXME: not internal */ const char *scm_i_string_chars (SCM str);
 SCM_API /* FIXME: not internal */ char *scm_i_string_writable_chars (SCM str);
 SCM_INTERNAL const scm_t_wchar *scm_i_string_wide_chars (SCM str);
+SCM_INTERNAL const void *scm_i_string_data (SCM str);
+
 SCM_INTERNAL SCM scm_i_string_start_writing (SCM str);
 SCM_INTERNAL void scm_i_string_stop_writing (void);
 SCM_INTERNAL int scm_i_is_narrow_string (SCM str);

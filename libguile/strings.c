@@ -82,12 +82,13 @@
 #define STRINGBUF_SHARED(buf)   (SCM_CELL_WORD_0(buf) & STRINGBUF_F_SHARED)
 #define STRINGBUF_WIDE(buf)     (SCM_CELL_WORD_0(buf) & STRINGBUF_F_WIDE)
 
-#define STRINGBUF_CHARS(buf)    ((unsigned char *)			\
+#define STRINGBUF_CONTENTS(buf) ((void *)				\
                                  SCM_CELL_OBJECT_LOC (buf,		\
 						      STRINGBUF_HEADER_SIZE))
-#define STRINGBUF_LENGTH(buf)   (SCM_CELL_WORD_1 (buf))
+#define STRINGBUF_CHARS(buf)    ((unsigned char *) STRINGBUF_CONTENTS (buf))
+#define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *) STRINGBUF_CONTENTS (buf))
 
-#define STRINGBUF_WIDE_CHARS(buf) ((scm_t_wchar *) STRINGBUF_CHARS (buf))
+#define STRINGBUF_LENGTH(buf)   (SCM_CELL_WORD_1 (buf))
 
 #define SET_STRINGBUF_SHARED(buf)					\
   do									\
@@ -443,6 +444,23 @@ scm_i_try_narrow_string (SCM str)
   SET_STRING_STRINGBUF (str, narrow_stringbuf (STRING_STRINGBUF (str)));
 
   return scm_i_is_narrow_string (str);
+}
+
+/* Return a pointer to the raw data of the string, which can be either Latin-1
+   or UCS-4 encoded data, depending on `scm_i_is_narrow_string (STR)'.  */
+const void *
+scm_i_string_data (SCM str)
+{
+  SCM buf;
+  size_t start;
+  const char *data;
+
+  get_str_buf_start (&str, &buf, &start);
+
+  data = STRINGBUF_CONTENTS (buf);
+  data += start * (scm_i_is_narrow_string (str) ? 1 : 4);
+
+  return data;
 }
 
 /* Returns a pointer to the 8-bit Latin-1 encoded character array of
