@@ -1103,8 +1103,8 @@ pre-defined condition types.  The two APIs are not currently compatible,
 however; the @code{condition?} predicate from one API will return 
 @code{#f} when applied to a condition object created in the other.
 
-@deffn &condition
-@deffnx condition? obj
+@deffn {Condition Type} &condition
+@deffnx {Scheme Procedure} condition? obj
 The base record type for conditions.
 @end deffn
 
@@ -1140,47 +1140,47 @@ where @var{field} gives the name of the field and @var{accessor} gives
 the name for a binding to an accessor procedure created for this field.
 @end deffn
 
-@deffn &message
+@deffn {Condition Type} &message
 @deffnx {Scheme Procedure} make-message-condition message
 @deffnx {Scheme Procedure} message-condition? obj
 @deffnx {Scheme Procedure} condition-message condition
 A type that includes a message describing the condition that occurred.
 @end deffn
 
-@deffn &warning
+@deffn {Condition Type} &warning
 @deffnx {Scheme Procedure} make-warning
 @deffnx {Scheme Procedure} warning? obj
 A base type for representing non-fatal conditions during execution.
 @end deffn
 
-@deffn &serious
+@deffn {Condition Type} &serious
 @deffnx {Scheme Procedure} make-serious-condition
 @deffnx {Scheme Procedure} serious-condition? obj
 A base type for conditions representing errors serious enough that
 cannot be ignored.
 @end deffn
 
-@deffn &error
+@deffn {Condition Type} &error
 @deffnx {Scheme Procedure} make-error
 @deffnx {Scheme Procedure} error? obj
 A base type for conditions representing errors.
 @end deffn
 
-@deffn &violation
+@deffn {Condition Type} &violation
 @deffnx {Scheme Procedure} make-violation
 @deffnx {Scheme Procedure} violation?
 A subtype of @code{&serious} that can be used to represent violations
 of a language or library standard.
 @end deffn
 
-@deffn &assertion
+@deffn {Condition Type} &assertion
 @deffnx {Scheme Procedure} make-assertion-violation
 @deffnx {Scheme Procedure} assertion-violation? obj
 A subtype of @code{&violation} that indicates an invalid call to a
 procedure.
 @end deffn
 
-@deffn &irritants
+@deffn {Condition Type} &irritants
 @deffnx {Scheme Procedure} make-irritants-condition irritants
 @deffnx {Scheme Procedure} irritants-condition? obj
 @deffnx {Scheme Procedure} condition-irritants condition
@@ -1188,7 +1188,7 @@ A base type used for storing information about the causes of another
 condition in a compound condition.
 @end deffn
 
-@deffn &who
+@deffn {Condition Type} &who
 @deffnx {Scheme Procedure} make-who-condition who
 @deffnx {Scheme Procedure} who-condition? obj
 @deffnx {Scheme Procedure} condiction-who condition
@@ -1196,28 +1196,28 @@ A base type used for storing the identity, a string or symbol, of the
 entity responsible for another condition in a compound condition.
 @end deffn
 
-@deffn &non-continuable
+@deffn {Condition Type} &non-continuable
 @deffnx {Scheme Procedure} make-non-continuable-violation
 @deffnx {Scheme Procedure} non-continuable-violation? obj
 A subtype of @code{&violation} used to indicate that an exception 
 handler invoked by @code{raise} has returned locally.
 @end deffn
 
-@deffn &implementation-restriction
+@deffn {Condition Type} &implementation-restriction
 @deffnx {Scheme Procedure} make-implementation-restriction-violation
 @deffnx {Scheme Procedure} implementation-restriction-violation? obj
 A subtype of @code{&violation} used to indicate a violation of an
 implementation restriction.
 @end deffn
 
-@deffn &lexical
+@deffn {Condition Type} &lexical
 @deffnx {Scheme Procedure} make-lexical-violation
 @deffnx {Scheme Procedure} lexical-violation? obj
 A subtype of @code{&violation} used to indicate a syntax violation at
 the level of the datum syntax.
 @end deffn
 
-@deffn &syntax
+@deffn {Condition Type} &syntax
 @deffnx {Scheme Procedure} make-syntax-violation form subform
 @deffnx {Scheme Procedure} syntax-violation? obj
 @deffnx {Scheme Procedure} syntax-violation-form condition
@@ -1227,7 +1227,7 @@ A subtype of @code{&violation} that indicates a syntax violation.  The
 indicate the syntactic form responsible for the condition.
 @end deffn
 
-@deffn &undefined
+@deffn {Condition Type} &undefined
 @deffnx {Scheme Procedure} make-undefined-violation
 @deffnx {Scheme Procedure} undefined-violation? obj
 A subtype of @code{&violation} that indicates a reference to an unbound
@@ -1240,25 +1240,25 @@ identifier.
 These condition types are exported by both the 
 @code{(rnrs io ports (6))} and @code{(rnrs io simple (6))} libraries.
 
-@deffn &i/o
+@deffn {Condition Type} &i/o
 @deffnx {Scheme Procedure} make-i/o-error
 @deffnx {Scheme Procedure} i/o-error? obj
 A condition supertype for more specific I/O errors.
 @end deffn
 
-@deffn &i/o-read
+@deffn {Condition Type} &i/o-read
 @deffnx {Scheme Procedure} make-i/o-read-error
 @deffnx {Scheme Procedure} i/o-read-error? obj
 A subtype of @code{&i/o}; represents read-related I/O errors.
 @end deffn
 
-@deffn &i/o-write
+@deffn {Condition Type} &i/o-write
 @deffnx {Scheme Procedure} make-i/o-write-error
 @deffnx {Scheme Procedure} i/o-write-error? obj
 A subtype of @code{&i/o}; represents write-related I/O errors.
 @end deffn
 
-@deffn &i/o-invalid-position
+@deffn {Condition Type} &i/o-invalid-position
 @deffnx {Scheme Procedure} make-i/o-invalid-position-error position
 @deffnx {Scheme Procedure} i/o-invalid-position-error? obj
 @deffnx {Scheme Procedure} i/o-error-position condition
@@ -1266,7 +1266,7 @@ A subtype of @code{&i/o}; represents an error related to an attempt to
 set the file position to an invalid position.
 @end deffn
 
-@deffn &i/o-filename
+@deffn {Condition Type} &i/o-filename
 @deffnx {Scheme Procedure} make-io-filename-error filename
 @deffnx {Scheme Procedure} i/o-filename-error? obj
 @deffnx {Scheme Procedure} i/o-error-filename condition
@@ -1274,7 +1274,7 @@ A subtype of @code{&i/o}; represents an error related to an operation on
 a named file.
 @end deffn
 
-@deffn &i/o-file-protection
+@deffn {Condition Type} &i/o-file-protection
 @deffnx {Scheme Procedure} make-i/o-file-protection-error filename
 @deffnx {Scheme Procedure} i/o-file-protection-error? obj
 A subtype of @code{&i/o-filename}; represents an error resulting from an
@@ -1282,28 +1282,28 @@ attempt to access a named file for which the caller had insufficient
 permissions.
 @end deffn
 
-@deffn &i/o-file-is-read-only
+@deffn {Condition Type} &i/o-file-is-read-only
 @deffnx {Scheme Procedure} make-i/o-file-is-read-only-error filename
 @deffnx {Scheme Procedure} i/o-file-is-read-only-error? obj
 A subtype of @code{&i/o-file-protection}; represents an error related to
 an attempt to write to a read-only file.
 @end deffn
 
-@deffn &i/o-file-already-exists
+@deffn {Condition Type} &i/o-file-already-exists
 @deffnx {Scheme Procedure} make-i/o-file-already-exists-error filename
 @deffnx {Scheme Procedure} i/o-file-already-exists-error? obj
 A subtype of @code{&i/o-filename}; represents an error related to an
 operation on an existing file that was assumed not to exist.
 @end deffn
 
-@deffn &i/o-file-does-not-exist
+@deffn {Condition Type} &i/o-file-does-not-exist
 @deffnx {Scheme Procedure} make-i/o-file-does-not-exist-error
 @deffnx {Scheme Procedure} i/o-file-does-not-exist-error? obj
 A subtype of @code{&i/o-filename}; represents an error related to an
 operation on a non-existent file that was assumed to exist.
 @end deffn
 
-@deffn &i/o-port
+@deffn {Condition Type} &i/o-port
 @deffnx {Scheme Procedure} make-i/o-port-error port
 @deffnx {Scheme Procedure} i/o-port-error? obj
 @deffnx {Scheme Procedure} i/o-error-port condition
@@ -1720,14 +1720,14 @@ to indicate that a computation resulted in such a value.  Guile supports
 both of these, so these conditions will never be raised by Guile's 
 standard libraries implementation.
 
-@deffn &no-infinities
+@deffn {Condition Type} &no-infinities
 @deffnx {Scheme Procedure} make-no-infinities-violation obj
 @deffnx {Scheme Procedure} no-infinities-violation?
 A condition type indicating that a computation resulted in an infinite
 value on a Scheme implementation incapable of representing infinities.
 @end deffn
 
-@deffn &no-nans
+@deffn {Condition Type} &no-nans
 @deffnx {Scheme Procedure} make-no-nans-violation obj
 @deffnx {Scheme Procedure} no-nans-violation? obj
 A condition type indicating that a computation resulted in a @code{NaN}
