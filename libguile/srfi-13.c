@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1168,6 +1168,28 @@ SCM_DEFINE (scm_string_eq, "string=", 2, 4, 0,
 	    "value otherwise.")
 #define FUNC_NAME s_scm_string_eq
 {
+  if (SCM_LIKELY (scm_i_is_narrow_string (s1) == scm_i_is_narrow_string (s2)
+		  && SCM_UNBNDP (start1) && SCM_UNBNDP (end1)
+		  && SCM_UNBNDP (start2) && SCM_UNBNDP (end2)))
+    {
+      /* Fast path for this common case, which avoids the repeated calls to
+	 `scm_i_string_ref'.  */
+      size_t len1, len2;
+
+      len1 = scm_i_string_length (s1);
+      len2 = scm_i_string_length (s2);
+
+      if (SCM_LIKELY (len1 == len2))
+	{
+	  if (!scm_i_is_narrow_string (s1))
+	    len1 *= 4;
+
+	  return scm_from_bool (memcmp (scm_i_string_data (s1),
+					scm_i_string_data (s2),
+					len1) == 0);
+	}
+    }
+
   return compare_strings (FUNC_NAME, 0, 
 			  s1, s2, start1, end1, start2, end2,
 			  SCM_BOOL_F, SCM_BOOL_F, SCM_BOOL_F, SCM_BOOL_F, SCM_BOOL_T);
