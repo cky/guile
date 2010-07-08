@@ -114,26 +114,17 @@
                            (write-char c p))))
                       string))))
 
-(define (match:start match . args)
-  (let* ((matchnum (if (pair? args)
-                       (+ 1 (car args))
-                       1))
-         (start (car (vector-ref match matchnum))))
+(define* (match:start match #:optional (n 0))
+  (let ((start (car (vector-ref match (1+ n)))))
     (if (= start -1) #f start)))
 
-(define (match:end match . args)
-  (let* ((matchnum (if (pair? args)
-                       (+ 1 (car args))
-                       1))
-         (end (cdr (vector-ref match matchnum))))
+(define* (match:end match #:optional (n 0))
+  (let* ((end (cdr (vector-ref match (1+ n)))))
     (if (= end -1) #f end)))
 
-(define (match:substring match . args)
-  (let* ((matchnum (if (pair? args)
-                       (car args)
-                       0))
-         (start (match:start match matchnum))
-         (end   (match:end match matchnum)))
+(define* (match:substring match #:optional (n 0))
+  (let* ((start (match:start match n))
+         (end   (match:end match n)))
     (and start end (substring (match:string match) start end))))
 
 (define (string-match pattern str . args)
@@ -176,9 +167,8 @@
 ;;; `b'.  Around or within `xxx', only the match covering all three
 ;;; x's counts, because the rest are not maximal.
 
-(define (fold-matches regexp string init proc . flags)
-  (let ((regexp (if (regexp? regexp) regexp (make-regexp regexp)))
-        (flags (if (null? flags) 0 (car flags))))
+(define* (fold-matches regexp string init proc #:optional (flags 0))
+  (let ((regexp (if (regexp? regexp) regexp (make-regexp regexp))))
     (let loop ((start 0)
                (value init)
                (abuts #f))              ; True if start abuts a previous match.
@@ -194,8 +184,8 @@
          (else
           (loop (match:end m) (proc m value) #t)))))))
 
-(define (list-matches regexp string . flags)
-  (reverse! (apply fold-matches regexp string '() cons flags)))
+(define* (list-matches regexp string #:optional (flags 0))
+  (reverse! (fold-matches regexp string '() cons flags)))
 
 (define (regexp-substitute/global port regexp string . items)
 
