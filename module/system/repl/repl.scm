@@ -28,7 +28,8 @@
   #:use-module (system repl error-handling)
   #:use-module (system repl common)
   #:use-module (system repl command)
-  #:export (start-repl))
+  #:use-module (ice-9 control)
+  #:export (start-repl run-repl))
 
 
 
@@ -89,49 +90,45 @@
   (run-repl (make-repl lang debug)))
 
 (define (run-repl repl)
-  (let ((tag (make-prompt-tag "repl ")))
-    (call-with-prompt
-     tag
-     (lambda ()
-       (with-fluids ((*repl-stack*
-                      (cons repl (or (fluid-ref *repl-stack*) '()))))
-         (if (null? (cdr (fluid-ref *repl-stack*)))
-             (repl-welcome repl))
-         (let prompt-loop ()
-           (let ((exp (prompting-meta-read repl)))
-             (cond
-              ((eqv? exp *unspecified*))   ; read error, pass
-              ((eq? exp meta-command-token)
-               (catch 'quit
-                 (lambda () (meta-command repl))
-                 (lambda (k . args)
-                   (abort-to-prompt tag args))))
-              ((eof-object? exp)
-               (newline)
-               (abort-to-prompt tag '()))
-              (else
-               ;; since the input port is line-buffered, consume up to the
-               ;; newline
-               (flush-to-newline)
-               (call-with-error-handling
-                (lambda ()
-                  (catch 'quit
-                    (lambda ()
-                      (call-with-values
-                          (lambda ()
-                            (run-hook before-eval-hook exp)
-                            (start-stack #t
-                                         (repl-eval repl (repl-parse repl exp))))
-                        (lambda l
-                          (for-each (lambda (v)
-                                      (repl-print repl v))
-                                    l))))
-                    (lambda (k . args)
-                      (abort-to-prompt tag args)))))))
-             (next-char #f) ;; consume trailing whitespace
-             (prompt-loop)))))
+  (% (with-fluids ((*repl-stack*
+                    (cons repl (or (fluid-ref *repl-stack*) '()))))
+       (if (null? (cdr (fluid-ref *repl-stack*)))
+           (repl-welcome repl))
+       (let prompt-loop ()
+         (let ((exp (prompting-meta-read repl)))
+           (cond
+            ((eqv? exp *unspecified*))  ; read error, pass
+            ((eq? exp meta-command-token)
+             (catch 'quit
+               (lambda () (meta-command repl))
+               (lambda (k . args)
+                 (abort args))))
+            ((eof-object? exp)
+             (newline)
+             (abort '()))
+            (else
+             ;; since the input port is line-buffered, consume up to the
+             ;; newline
+             (flush-to-newline)
+             (call-with-error-handling
+              (lambda ()
+                (catch 'quit
+                  (lambda ()
+                    (call-with-values
+                        (lambda ()
+                          (run-hook before-eval-hook exp)
+                          (start-stack #t
+                                       (repl-eval repl (repl-parse repl exp))))
+                      (lambda l
+                        (for-each (lambda (v)
+                                    (repl-print repl v))
+                                  l))))
+                  (lambda (k . args)
+                    (abort args)))))))
+           (next-char #f) ;; consume trailing whitespace
+           (prompt-loop))))
      (lambda (k status)
-       status))))
+       status)))
 
 (define (next-char wait)
   (if (or wait (char-ready?))

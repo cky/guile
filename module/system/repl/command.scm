@@ -128,7 +128,7 @@
 
 (define (read-command repl)
   (catch #t
-    (lambda () (read (pk (repl-inport repl))))
+    (lambda () (read (repl-inport repl)))
     (lambda (key . args)
       (pmatch args
         ((,subr ,msg ,args . ,rest)
