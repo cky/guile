@@ -89,6 +89,22 @@
 (define* (start-repl #:optional (lang (current-language)) #:key debug)
   (run-repl (make-repl lang debug)))
 
+;; (put 'abort-on-error 'scheme-indent-function 1)
+(define-syntax abort-on-error
+  (syntax-rules ()
+    ((_ string exp)
+     (catch #t
+       (lambda () exp)
+       (lambda (key . args)
+         (format #t "While ~A:~%" string)
+         (pmatch args
+           ((,subr ,msg ,args . ,rest)
+            (display-error #f (current-output-port) subr msg args rest))
+           (else
+            (format #t "ERROR: Throw to key `~a' with args `~s'.\n" key args)))
+         (force-output)
+         (abort))))))
+
 (define (run-repl repl)
   (% (with-fluids ((*repl-stack*
                     (cons repl (or (fluid-ref *repl-stack*) '()))))
@@ -116,9 +132,16 @@
                   (lambda ()
                     (call-with-values
                         (lambda ()
-                          (run-hook before-eval-hook exp)
-                          (start-stack #t
-                                       (repl-eval repl (repl-parse repl exp))))
+                          (% (let ((thunk
+                                    (abort-on-error "compiling expression"
+                                      (repl-prepare-eval-thunk
+                                       repl
+                                       (abort-on-error "parsing expression"
+                                         (repl-parse repl exp))))))
+                               (run-hook before-eval-hook exp)
+                               (with-error-handling
+                                 (start-stack #t (% (thunk)))))
+                             (lambda (k) (values))))
                       (lambda l
                         (for-each (lambda (v)
                                     (repl-print repl v))
