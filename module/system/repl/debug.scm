@@ -57,7 +57,7 @@
     ret))
 
 (define* (print-locals frame #:optional (port (current-output-port))
-                       #:key (width 72) (per-line-prefix ""))
+                       #:key (width 72) (per-line-prefix "  "))
   (let ((bindings (frame-bindings frame)))
     (cond
      ((null? bindings)
@@ -66,16 +66,14 @@
       (format port "~aLocal variables:~%" per-line-prefix)
       (for-each
        (lambda (binding)
-         (format port "~a~4d ~a~:[~; (boxed)~] = ~v:@y\n"
-                 per-line-prefix
-                 (binding:index binding)
-                 (binding:name binding)
-                 (binding:boxed? binding)
-                 width
-                 (let ((x (frame-local-ref frame (binding:index binding))))
-                   (if (binding:boxed? binding)
-                       (variable-ref x)
-                       x))))
+         (let ((v (let ((x (frame-local-ref frame (binding:index binding))))
+                    (if (binding:boxed? binding)
+                        (variable-ref x)
+                        x))))
+           (display per-line-prefix port)
+           (run-hook before-print-hook v)
+           (format port "~a~:[~; (boxed)~] = ~v:@y\n"
+                   (binding:name binding) (binding:boxed? binding) width v)))
        (frame-bindings frame))))))
 
 (define* (print-frame frame #:optional (port (current-output-port))
