@@ -550,9 +550,7 @@ With an argument, select a frame by index, then show it."
 
 (define-stack-command (procedure repl)
   "procedure
-Print the procedure for the selected frame.
-
-Foo."
+Print the procedure for the selected frame."
   (repl-print repl (frame-procedure cur)))
       
 (define-stack-command (locals repl)
