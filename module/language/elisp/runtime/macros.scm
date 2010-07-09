@@ -26,6 +26,10 @@
 ;;; during compilation, of course, so not really in runtime.  But I
 ;;; think it fits well to the others here.
  
+(built-in-macro lambda
+  (lambda cdr
+    `(function (lambda ,@cdr))))
+
 ;;; The prog1 and prog2 constructs can easily be defined as macros using
 ;;; progn and some lexical-let's to save the intermediate value to
 ;;; return at the end.

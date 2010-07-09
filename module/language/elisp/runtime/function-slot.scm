@@ -18,8 +18,83 @@
 
 (define-module (language elisp runtime function-slot)
   #:use-module (language elisp runtime subrs)
-  #:use-module (language elisp runtime macros)
+  #:use-module ((language elisp runtime macros)
+                #:select
+                ((macro-lambda . lambda)
+                 (macro-prog1 . prog1)
+                 (macro-prog2 . prog2)
+                 (macro-when . when)
+                 (macro-unless . unless)
+                 (macro-cond . cond)
+                 (macro-and . and)
+                 (macro-or . or)
+                 (macro-dotimes . dotimes)
+                 (macro-dolist . dolist)
+                 (macro-catch . catch)
+                 (macro-unwind-protect . unwind-protect)
+                 (macro-pop . pop)
+                 (macro-push . push)))
+  #:use-module ((language elisp compile-tree-il)
+                #:select
+                ((compile-progn . progn)
+                 (compile-if . if)
+                 (compile-defconst . defconst)
+                 (compile-defvar . defvar)
+                 (compile-setq . setq)
+                 (compile-let . let)
+                 (compile-lexical-let . lexical-let)
+                 (compile-flet . flet)
+                 (compile-let* . let*)
+                 (compile-lexical-let* . lexical-let*)
+                 (compile-flet* . flet*)
+                 (compile-without-void-checks . without-void-checks)
+                 (compile-with-always-lexical . with-always-lexical)
+                 (compile-guile-ref . guile-ref)
+                 (compile-guile-primitive . guile-primitive)
+                 (compile-while . while)
+                 (compile-function . function)
+                 (compile-defun . defun)
+                 (compile-defmacro . defmacro)
+                 (compile-\` . \`)
+                 (compile-quote . quote)))
   #:duplicates (last)
+  ;; special operators
+  #:re-export (progn
+               if
+               defconst
+               defvar
+               setq
+               let
+               lexical-let
+               flet
+               let*
+               lexical-let*
+               flet*
+               without-void-checks
+               with-always-lexical
+               guile-ref
+               guile-primitive
+               while
+               function
+               defun
+               defmacro
+               \`
+               quote)
+  ;; macros
+  #:re-export (lambda
+               prog1
+               prog2
+               when
+               unless
+               cond
+               and
+               or
+               dotimes
+               dolist
+               catch
+               unwind-protect
+               pop
+               push)
   ;; functions
   #:re-export (eq
                equal
@@ -82,18 +157,4 @@
                throw
                not
                eval
-               load)
-  ;; macros
-  #:re-export (prog1
-               prog2
-               when
-               unless
-               cond
-               and
-               or
-               dotimes
-               dolist
-               catch
-               unwind-protect
-               pop
-               push))
+               load))

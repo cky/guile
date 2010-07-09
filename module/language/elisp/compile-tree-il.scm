@@ -21,6 +21,7 @@
 
 (define-module (language elisp compile-tree-il)
   #:use-module (language elisp bindings)
+  #:use-module (language elisp runtime)
   #:use-module (language tree-il)
   #:use-module (system base pmatch)
   #:use-module (system base compile)
@@ -28,7 +29,28 @@
   #:use-module (srfi srfi-8)
   #:use-module (srfi srfi-11)
   #:use-module (srfi srfi-26)
-  #:export (compile-tree-il))
+  #:export (compile-tree-il
+            compile-progn
+            compile-if
+            compile-defconst
+            compile-defvar
+            compile-setq
+            compile-let
+            compile-lexical-let
+            compile-flet
+            compile-let*
+            compile-lexical-let*
+            compile-flet*
+            compile-without-void-checks
+            compile-with-always-lexical
+            compile-guile-ref
+            compile-guile-primitive
+            compile-while
+            compile-function
+            compile-defmacro
+            compile-defun
+            compile-\`
+            compile-quote))
 
 ;;; Certain common parameters (like the bindings data structure or
 ;;; compiler options) are not always passed around but accessed using
@@ -77,9 +99,6 @@
 ;;; forms are named differently; to make easy adaptions, we define these
 ;;; predicates checking for a symbol being the car of an
 ;;; unquote/unquote-splicing/backquote form.
-
-(define (backquote? sym)
-  (and (symbol? sym) (eq? sym '\`)))
 
 (define (unquote? sym)
   (and (symbol? sym) (eq? sym '\,)))
@@ -546,21 +565,17 @@
    ;; TODO: Handle doc string if present.
    (else #t)))
 
-;;; Handle macro bindings.
+;;; Handle macro and special operator bindings.
 
-(define (is-macro? sym)
+(define (find-operator sym type)
   (and
    (symbol? sym)
    (module-defined? (resolve-interface function-slot) sym)
-   (let* ((macro (module-ref (resolve-module function-slot) sym))
-          (macro (if (fluid? macro) (fluid-ref macro) macro)))
-     (and (pair? macro) (eq? (car macro) 'macro)))))
-
-(define (get-macro sym)
-  (and
-   (is-macro? sym)
-   (let ((macro (module-ref (resolve-module function-slot) sym)))
-    (cdr (if (fluid? macro) (fluid-ref macro) macro)))))
+   (let* ((op (module-ref (resolve-module function-slot) sym))
+          (op (if (fluid? op) (fluid-ref op) op)))
+     (if (and (pair? op) (eq? (car op) type))
+         (cdr op)
+         #f))))
 
 ;;; See if a (backquoted) expression contains any unquotes.
 
@@ -634,56 +649,37 @@
           (with-fluids ((fluid new))
             (make-body))))))
 
-;;; Compile a symbol expression.  This is a variable reference or maybe
-;;; some special value like nil.
+;;; Special operators
 
-(define (compile-symbol loc sym)
-  (case sym
-    ((nil) (nil-value loc))
-    ((t) (t-value loc))
-    (else (reference-with-check loc sym value-slot))))
+(defspecial progn (loc args)
+  (make-sequence loc (map compile-expr args)))
 
-;;; Compile a pair-expression (that is, any structure-like construct).
-
-(define (compile-pair loc expr)
-  (pmatch expr
-    ((progn . ,forms)
-     (make-sequence loc (map compile-expr forms)))
-
-    ((if ,condition ,ifclause)
+(defspecial if (loc args)
+  (pmatch args
+    ((,cond ,then . ,else)
      (make-conditional loc
-                       (compile-expr condition)
-                       (compile-expr ifclause)
-                       (nil-value loc)))
+                       (compile-expr cond)
+                       (compile-expr then)
+                       (if (null? else)
+                           (nil-value loc)
+                           (make-sequence loc
+                                          (map compile-expr else)))))))
 
-    ((if ,condition ,ifclause ,elseclause)
-     (make-conditional loc
-                       (compile-expr condition)
-                       (compile-expr ifclause)
-                       (compile-expr elseclause)))
-
-    ((if ,condition ,ifclause . ,elses)
-     (make-conditional loc
-                       (compile-expr condition)
-                       (compile-expr ifclause)
-                       (make-sequence loc (map compile-expr elses))))
-
-    ;; defconst and defvar are kept here in the compiler (rather than
-    ;; doing them as macros) for if we may want to handle the docstring
-    ;; somehow.
-
-    ((defconst ,sym ,value . ,doc)
+(defspecial defconst (loc args)
+  (pmatch args
+    ((,sym ,value . ,doc)
      (if (handle-var-def loc sym doc)
          (make-sequence loc
                         (list (set-variable! loc
                                              sym
                                              value-slot
                                              (compile-expr value))
-                              (make-const loc sym)))))
+                              (make-const loc sym)))))))
 
-    ((defvar ,sym) (make-const loc sym))
-
-    ((defvar ,sym ,value . ,doc)
+(defspecial defvar (loc args)
+  (pmatch args
+    ((,sym) (make-const loc sym))
+    ((,sym ,value . ,doc)
      (if (handle-var-def loc sym doc)
          (make-sequence
           loc
@@ -695,114 +691,117 @@
                                  (reference-variable loc sym value-slot))
                  (set-variable! loc sym value-slot (compile-expr value))
                  (make-void loc))
-                (make-const loc sym)))))
+                (make-const loc sym)))))))
 
-    ;; Build a set form for possibly multiple values.  The code is not
-    ;; formulated tail recursive because it is clearer this way and
-    ;; large lists of symbol expression pairs are very unlikely.
+(defspecial setq (loc args)
+  (make-sequence
+   loc
+   (let iterate ((tail args))
+     (let ((sym (car tail))
+           (tailtail (cdr tail)))
+       (if (not (symbol? sym))
+           (report-error loc "expected symbol in setq")
+           (if (null? tailtail)
+               (report-error loc
+                             "missing value for symbol in setq"
+                             sym)
+               (let* ((val (compile-expr (car tailtail)))
+                      (op (set-variable! loc sym value-slot val)))
+                 (if (null? (cdr tailtail))
+                     (let* ((temp (gensym))
+                            (ref (make-lexical-ref loc temp temp)))
+                       (list (make-let
+                              loc
+                              `(,temp)
+                              `(,temp)
+                              `(,val)
+                              (make-sequence
+                               loc
+                               (list (set-variable! loc
+                                                    sym
+                                                    value-slot
+                                                    ref)
+                                     ref)))))
+                     (cons (set-variable! loc sym value-slot val)
+                           (iterate (cdr tailtail)))))))))))
 
-    ((setq . ,args) (guard (not (null? args)))
-     (make-sequence
-      loc
-      (let iterate ((tail args))
-        (let ((sym (car tail))
-              (tailtail (cdr tail)))
-          (if (not (symbol? sym))
-              (report-error loc "expected symbol in setq")
-              (if (null? tailtail)
-                  (report-error loc
-                                "missing value for symbol in setq"
-                                sym)
-                  (let* ((val (compile-expr (car tailtail)))
-                         (op (set-variable! loc sym value-slot val)))
-                    (if (null? (cdr tailtail))
-                        (let* ((temp (gensym))
-                               (ref (make-lexical-ref loc temp temp)))
-                          (list (make-let
-                                 loc
-                                 `(,temp)
-                                 `(,temp)
-                                 `(,val)
-                                 (make-sequence
-                                  loc
-                                  (list (set-variable! loc
-                                                       sym
-                                                       value-slot
-                                                       ref)
-                                        ref)))))
-                        (cons (set-variable! loc sym value-slot val)
-                              (iterate (cdr tailtail)))))))))))
+(defspecial let (loc args)
+  (pmatch args
+    ((,bindings . ,body)
+     (generate-let loc value-slot bindings body))))
 
-    ;; All lets (let, flet, lexical-let and let* forms) are done using
-    ;; the generate-let/generate-let* methods.
+(defspecial lexical-let (loc args)
+  (pmatch args
+    ((,bindings . ,body)
+     (generate-let loc 'lexical bindings body))))
 
-    ((let ,bindings . ,body) (guard (and (list? bindings)
-                                         (not (null? bindings))
-                                         (not (null? body))))
-     (generate-let loc value-slot bindings body))
+(defspecial flet (loc args)
+  (pmatch args
+    ((,bindings . ,body)
+     (generate-let loc function-slot bindings body))))
 
-    ((lexical-let ,bindings . ,body) (guard (and (list? bindings)
-                                                 (not (null? bindings))
-                                                 (not (null? body))))
-     (generate-let loc 'lexical bindings body))
+(defspecial let* (loc args)
+  (pmatch args
+    ((,bindings . ,body)
+     (generate-let* loc value-slot bindings body))))
 
-    ((flet ,bindings . ,body) (guard (and (list? bindings)
-                                          (not (null? bindings))
-                                          (not (null? body))))
-     (generate-let loc function-slot bindings body))
+(defspecial lexical-let* (loc args)
+  (pmatch args
+    ((,bindings . ,body)
+     (generate-let* loc 'lexical bindings body))))
 
-    ((let* ,bindings . ,body) (guard (and (list? bindings)
-                                          (not (null? bindings))
-                                          (not (null? body))))
-     (generate-let* loc value-slot bindings body))
+(defspecial flet* (loc args)
+  (pmatch args
+    ((,bindings . ,body)
+     (generate-let* loc function-slot bindings body))))
 
-    ((lexical-let* ,bindings . ,body) (guard (and (list? bindings)
-                                                  (not (null? bindings))
-                                                  (not (null? body))))
-     (generate-let* loc 'lexical bindings body))
+;;; Temporarily disable void checks or set symbols as always lexical
+;;; only for the lexical scope of a construct.
 
-    ((flet* ,bindings . ,body) (guard (and (list? bindings)
-                                           (not (null? bindings))
-                                           (not (null? body))))
-     (generate-let* loc function-slot bindings body))
+(defspecial without-void-checks (loc args)
+  (pmatch args
+    ((,syms . ,body)
+     (with-added-symbols loc disable-void-check syms body))))
 
-    ;; Temporarily disable void checks or set symbols as always lexical
-    ;; only for the lexical scope of a construct.
+(defspecial with-always-lexical (loc args)
+  (pmatch args
+    ((,syms . ,body)
+     (with-added-symbols loc always-lexical syms body))))
 
-    ((without-void-checks ,syms . ,body)
-     (with-added-symbols loc disable-void-check syms body))
+;;; guile-ref allows building TreeIL's module references from within
+;;; elisp as a way to access data within the Guile universe.  The module
+;;; and symbol referenced are static values, just like (@ module symbol)
+;;; does!
 
-    ((with-always-lexical ,syms . ,body)
-     (with-added-symbols loc always-lexical syms body))
+(defspecial guile-ref (loc args)
+  (pmatch args
+    ((,module ,sym) (guard (and (list? module) (symbol? sym)))
+     (make-module-ref loc module sym #t))))
 
-    ;; guile-ref allows building TreeIL's module references from within
-    ;; elisp as a way to access data within the Guile universe.  The
-    ;; module and symbol referenced are static values, just like (@
-    ;; module symbol) does!
+;;; guile-primitive allows to create primitive references, which are
+;;; still a little faster.
 
-    ((guile-ref ,module ,sym) (guard (and (list? module) (symbol? sym)))
-     (make-module-ref loc module sym #t))
+(defspecial guile-primitive (loc args)
+  (pmatch args
+    ((,sym)
+     (make-primitive-ref loc sym))))
 
-    ;; guile-primitive allows to create primitive references, which are
-    ;; still a little faster.
+;;; A while construct is transformed into a tail-recursive loop like
+;;; this:
+;;;
+;;; (letrec ((iterate (lambda ()
+;;;                     (if condition
+;;;                       (begin body
+;;;                              (iterate))
+;;;                       #nil))))
+;;;   (iterate))
+;;;
+;;; As letrec is not directly accessible from elisp, while is
+;;; implemented here instead of with a macro.
 
-    ((guile-primitive ,sym) (guard (symbol? sym))
-     (make-primitive-ref loc sym))
-
-    ;; A while construct is transformed into a tail-recursive loop like
-    ;; this:
-    ;;
-    ;; (letrec ((iterate (lambda ()
-    ;;                     (if condition
-    ;;                       (begin body
-    ;;                              (iterate))
-    ;;                       #nil))))
-    ;;   (iterate))
-    ;;
-    ;; As letrec is not directly accessible from elisp, while is
-    ;; implemented here instead of with a macro.
-
-    ((while ,condition . ,body)
+(defspecial while (loc args)
+  (pmatch args
+    ((,condition . ,body)
      (let* ((itersym (gensym))
             (compiled-body (map compile-expr body))
             (iter-call (make-application loc
@@ -832,34 +831,16 @@
                     '(iterate)
                     (list itersym)
                     (list iter-thunk)
-                    iter-call)))
+                    iter-call)))))
 
-    ;; Either (lambda ...) or (function (lambda ...)) denotes a
-    ;; lambda-expression that should be compiled.
+(defspecial function (loc args)
+  (pmatch args
+    (((lambda ,args . ,body))
+     (compile-lambda loc args body))))
 
-    ((lambda ,args . ,body)
-     (compile-lambda loc args body))
-
-    ((function (lambda ,args . ,body))
-     (compile-lambda loc args body))
-
-    ;; Build a lambda and also assign it to the function cell of some
-    ;; symbol.  This is no macro as we might want to honour the docstring
-    ;; at some time; just as with defvar/defconst.
-
-    ((defun ,name ,args . ,body)
-     (if (not (symbol? name))
-         (report-error loc "expected symbol as function name" name)
-         (make-sequence loc
-                        (list (set-variable! loc
-                                             name
-                                             function-slot
-                                             (compile-lambda loc
-                                                             args
-                                                             body))
-                              (make-const loc name)))))
-
-    ((defmacro ,name ,args . ,body)
+(defspecial defmacro (loc args)
+  (pmatch args
+    ((,name ,args . ,body)
      (if (not (symbol? name))
          (report-error loc "expected symbol as macro name" name)
          (let* ((tree-il
@@ -879,37 +860,61 @@
            (compile (ensuring-globals loc bindings-data tree-il)
                     #:from 'tree-il
                     #:to 'value)
-           tree-il)))
+           tree-il)))))
 
-    ;; XXX: Maybe we could implement backquotes in macros, too.
+(defspecial defun (loc args)
+  (pmatch args
+    ((,name ,args . ,body)
+     (if (not (symbol? name))
+         (report-error loc "expected symbol as function name" name)
+         (make-sequence loc
+                        (list (set-variable! loc
+                                             name
+                                             function-slot
+                                             (compile-lambda loc
+                                                             args
+                                                             body))
+                              (make-const loc name)))))))
 
-    ((,backq ,val) (guard (backquote? backq))
-     (process-backquote loc val))
+(defspecial \` (loc args)
+  (pmatch args
+    ((,val)
+     (process-backquote loc val))))
 
-    ;; XXX: Why do we need 'quote here instead of quote?
+(defspecial quote (loc args)
+  (pmatch args
+    ((,val)
+     (make-const loc val))))
 
-    (('quote ,val)
-     (make-const loc val))
+;;; Compile a compound expression to Tree-IL.
 
-    ;; Macro calls are simply expanded and recursively compiled.
+(define (compile-pair loc expr)
+  (let ((operator (car expr))
+        (arguments (cdr expr)))
+    (cond
+     ((find-operator operator 'special-operator)
+      => (lambda (special-operator-function)
+           (special-operator-function loc arguments)))
+     ((find-operator operator 'macro)
+      => (lambda (macro-function)
+           (compile-expr (apply macro-function arguments))))
+     (else
+      (make-application loc
+                        (if (symbol? operator)
+                            (reference-with-check loc
+                                                  operator
+                                                  function-slot)
+                            (compile-expr operator))
+                        (map compile-expr arguments))))))
 
-    ((,macro . ,args) (guard (is-macro? macro))
-     (compile-expr (apply (get-macro macro) args)))
+;;; Compile a symbol expression.  This is a variable reference or maybe
+;;; some special value like nil.
 
-    ;; Function calls using (function args) standard notation; here, we
-    ;; have to take the function value of a symbol if it is one.  It
-    ;; seems that functions in form of uncompiled lists are not
-    ;; supported in this syntax, so we don't have to care for them.
-
-    ((,func . ,args)
-     (make-application loc
-                       (if (symbol? func)
-                           (reference-with-check loc func function-slot)
-                           (compile-expr func))
-                       (map compile-expr args)))
-
-    (else
-     (report-error loc "unrecognized elisp" expr))))
+(define (compile-symbol loc sym)
+  (case sym
+    ((nil) (nil-value loc))
+    ((t) (t-value loc))
+    (else (reference-with-check loc sym value-slot))))
 
 ;;; Compile a single expression to TreeIL.
 

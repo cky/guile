@@ -31,7 +31,7 @@
             set-variable!
             runtime-error
             macro-error)
-  #:export-syntax (built-in-func built-in-macro prim))
+  #:export-syntax (built-in-func built-in-macro defspecial prim))
 
 ;;; This module provides runtime support for the Elisp front-end.
 
@@ -111,10 +111,39 @@
        (define-public name (make-fluid))
        (fluid-set! name value)))))
 
+(define (make-id template-id . data)
+  (let ((append-symbols
+         (lambda (symbols)
+           (string->symbol
+            (apply string-append (map symbol->string symbols))))))
+    (datum->syntax template-id
+                   (append-symbols
+                    (map (lambda (datum)
+                           ((if (identifier? datum)
+                                syntax->datum
+                                identity)
+                            datum))
+                         data)))))
+
 (define-syntax built-in-macro
-  (syntax-rules ()
-    ((_ name value)
-     (define-public name (cons 'macro value)))))
+  (lambda (x)
+    (syntax-case x ()
+      ((_ name value)
+       (with-syntax ((scheme-name (make-id #'name 'macro- #'name)))
+        #'(begin
+            (define-public scheme-name (make-fluid))
+            (fluid-set! scheme-name (cons 'macro value))))))))
+
+(define-syntax defspecial
+  (lambda (x)
+    (syntax-case x ()
+      ((_ name args body ...)
+       (with-syntax ((scheme-name (make-id #'name 'compile- #'name)))
+         #'(begin
+             (define scheme-name (make-fluid))
+             (fluid-set! scheme-name
+                         (cons 'special-operator
+                               (lambda args body ...)))))))))
 
 ;;; Call a guile-primitive that may be rebound for elisp and thus needs
 ;;; absolute addressing.
