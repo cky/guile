@@ -146,7 +146,7 @@ static int in_readline = 0;
 static SCM reentry_barrier_mutex;
 
 static SCM internal_readline (SCM text);
-static SCM handle_error (void *data, SCM tag, SCM args);
+static void unwind_readline (void *unused);
 static void reentry_barrier (void);
 
 
@@ -200,10 +200,12 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 
   scm_readline_init_ports (inp, outp);
 
-  ans = scm_internal_catch (SCM_BOOL_T,
-			    (scm_t_catch_body) internal_readline,
-			    (void *) SCM_UNPACK (text),
-			    handle_error, 0);
+  scm_dynwind_begin (0);
+  scm_dynwind_unwind_handler (unwind_readline, NULL, 0);
+  
+  ans = internal_readline (text);
+
+  scm_dynwind_end ();
 
 #ifndef __MINGW32__
   fclose (rl_instream);
@@ -231,8 +233,9 @@ reentry_barrier ()
     scm_misc_error (s_scm_readline, "readline is not reentrant", SCM_EOL);
 }
 
-static SCM
-handle_error (void *data, SCM tag, SCM args)
+/* This function is only called on nonlocal exit from readline(). */
+static void
+unwind_readline (void *unused)
 {
   rl_free_line_state ();
   rl_cleanup_after_signal ();
@@ -242,8 +245,6 @@ handle_error (void *data, SCM tag, SCM args)
   fclose (rl_outstream);
 #endif
   --in_readline;
-  scm_handle_by_throw (data, tag, args);
-  return SCM_UNSPECIFIED; /* never reached */
 }
 
 static SCM
@@ -557,6 +558,16 @@ scm_init_readline ()
   rl_basic_word_break_characters = " \t\n\"'`;()";
   rl_readline_name = "Guile";
 
+  /* Let Guile handle signals. */
+#if defined (HAVE_DECL_RL_CATCH_SIGNALS) && HAVE_DECL_RL_CATCH_SIGNALS
+  rl_catch_signals = 0;
+#endif
+  
+  /* But let readline handle SIGWINCH. */
+#if defined (HAVE_DECL_RL_CATCH_SIGWINCH) && HAVE_DECL_RL_CATCH_SIGWINCH
+  rl_catch_sigwinch = 1;
+#endif
+  
   reentry_barrier_mutex = scm_make_mutex ();
   scm_init_opts (scm_readline_options,
 		 scm_readline_opts);

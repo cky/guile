@@ -395,6 +395,9 @@ AC_DEFUN([GUILE_READLINE], [
 
     dnl Check for modern readline naming
     AC_CHECK_FUNCS([rl_filename_completion_function])
+    AC_CHECK_DECLS([rl_catch_signals, rl_catch_sigwinch], [], [],
+                   [[#include <stdio.h>]
+                    [#include <readline/readline.h>]])
 
     dnl Check for rl_get_keymap.  We only use this for deciding whether to
     dnl install paren matching on the Guile command line (when using
