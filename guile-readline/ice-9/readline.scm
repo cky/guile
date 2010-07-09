@@ -1,6 +1,6 @@
 ;;;; readline.scm --- support functions for command-line editing
 ;;;;
-;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -201,10 +201,7 @@
 	  (set! *readline-completion-function* old-completer)))))
 
 (define-public (activate-readline)
-  (if (and (isatty? (current-input-port))
-	   (not (let ((guile-user-module (resolve-module '(guile-user))))
-		  (and (module-defined? guile-user-module 'use-emacs-interface)
-		       (module-ref guile-user-module 'use-emacs-interface)))))
+  (if (isatty? (current-input-port))
       (let ((repl-read-hook (lambda () (run-hook before-read-hook))))
 	(set-current-input-port (readline-port))
 	(set! repl-reader
@@ -213,16 +210,16 @@
 		      (outer-continuation-prompt continuation-prompt)
 		      (outer-read-hook read-hook))
 		  (dynamic-wind
-		      (lambda ()
-			(set-buffered-input-continuation?! (readline-port) #f)
-			(set-readline-prompt! repl-prompt "... ")
-			(set-readline-read-hook! repl-read-hook))
-		      (lambda () ((or (and (pair? reader) (car reader))
-                                      (fluid-ref current-reader)
-                                      read)))
-		      (lambda ()
-			(set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
-			(set-readline-read-hook! outer-read-hook))))))
+                    (lambda ()
+                      (set-buffered-input-continuation?! (readline-port) #f)
+                      (set-readline-prompt! repl-prompt "... ")
+                      (set-readline-read-hook! repl-read-hook))
+                    (lambda () ((or (and (pair? reader) (car reader))
+                                    (fluid-ref current-reader)
+                                    read)))
+                    (lambda ()
+                      (set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
+                      (set-readline-read-hook! outer-read-hook))))))
 	(set! (using-readline?) #t))))
 
 (define-public (make-completion-function strings)
