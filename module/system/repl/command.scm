@@ -24,6 +24,7 @@
   #:use-module (system base pmatch)
   #:use-module (system base compile)
   #:use-module (system repl common)
+  #:use-module (system repl debug)
   #:use-module (system vm objcode)
   #:use-module (system vm program)
   #:use-module (system vm vm)
@@ -35,6 +36,9 @@
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 and-let-star)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 control)
+  #:use-module ((ice-9 pretty-print) #:select ((pretty-print . pp)))
+  #:use-module ((system vm inspect) #:select ((inspect . %inspect)))
   #:use-module (statprof)
   #:export (meta-command))
 
@@ -44,14 +48,17 @@
 ;;;
 
 (define *command-table*
-  '((help     (help h) (show s) (apropos a) (describe d) (option o) (quit q))
-    (module   (module m) (import i) (load l) (binding b))
+  '((help     (help h) (show s) (apropos a) (describe d))
+    (module   (module m) (import use) (load l) (binding b))
     (language (language L))
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
-    (profile  (time t) (profile pr))
-    (debug    (trace tr))
-    (system   (gc) (statistics stat))))
+    (profile  (time t) (profile pr) (trace tr))
+    (debug    (backtrace bt) (up) (down) (frame fr)
+              (procedure proc) (locals))
+    (inspect  (inspect i) (pretty-print pp))
+    (system   (gc) (statistics stat) (option o)
+              (quit q continue cont))))
 
 (define *show-table*
   '((show (warranty w) (copying c) (version v))))
@@ -61,7 +68,7 @@
 
 (define *command-module* (current-module))
 (define (command-name c) (car c))
-(define (command-abbrev c) (if (null? (cdr c)) #f (cadr c)))
+(define (command-abbrevs c) (cdr c))
 (define (command-procedure c) (module-ref *command-module* (command-name c)))
 (define (command-doc c) (procedure-documentation (command-procedure c)))
 
@@ -88,10 +95,10 @@
 	  (else (loop groups (cdr commands))))))
 
 (define* (display-group group #:optional (abbrev? #t))
-  (format #t "~:(~A~) Commands [abbrev]:~2%" (group-name group))
+  (format #t "~:(~A~) Commands~:[~; [abbrev]~]:~2%" (group-name group) abbrev?)
   (for-each (lambda (c)
 	      (display-summary (command-usage c)
-			       (and abbrev? (command-abbrev c))
+			       (if abbrev? (command-abbrevs c) '())
 			       (command-summary c)))
 	    (group-commands group))
   (newline))
@@ -101,12 +108,37 @@
   (display (command-doc command))
   (newline))
 
-(define (display-summary usage abbrev summary)
-  (let ((abbrev (if abbrev (format #f "[,~A]" abbrev) "")))
-    (format #t " ,~24A ~8@A - ~A\n" usage abbrev summary)))
+(define (display-summary usage abbrevs summary)
+  (let* ((usage-len (string-length usage))
+         (abbrevs (if (pair? abbrevs)
+                      (format #f "[,~A~{ ,~A~}]" (car abbrevs) (cdr abbrevs))
+                      ""))
+         (abbrevs-len (string-length abbrevs)))
+    (format #t " ,~A~A~A - ~A\n"
+            usage
+            (cond
+             ((> abbrevs-len 32)
+              (error "abbrevs too long" abbrevs))
+             ((> (+ usage-len abbrevs-len) 32)
+              (format #f "~%~v_" (+ 2 (- 32 abbrevs-len))))
+             (else
+              (format #f "~v_" (- 32 abbrevs-len usage-len))))
+            abbrevs
+            summary)))
 
-(define (read-datum repl)
-  (read (repl-inport repl)))
+(define (read-command repl)
+  (catch #t
+    (lambda () (read (pk (repl-inport repl))))
+    (lambda (key . args)
+      (pmatch args
+        ((,subr ,msg ,args . ,rest)
+         (format #t "Throw to key `~a' while reading command:\n" key)
+         (display-error #f (current-output-port) subr msg args rest))
+        (else
+         (format #t "Throw to key `~a' with args `~s' while reading command.\n"
+                 key args)))
+      (force-output)
+      *unspecified*)))
 
 (define read-line
   (let ((orig-read-line read-line))
@@ -114,34 +146,57 @@
       (orig-read-line (repl-inport repl)))))
 
 (define (meta-command repl)
-  (let ((command (read-datum repl)))
-    (if (not (symbol? command))
-        (user-error "Meta-command not a symbol: ~s" command))
-    (let ((c (lookup-command command)))
-      (if c
-          ((command-procedure c) repl)
-          (user-error "Unknown meta command: ~A" command)))))
+  (let ((command (read-command repl)))
+    (cond
+     ((eq? command *unspecified*)) ; read error, already signalled; pass.
+     ((not (symbol? command))
+      (format #t "Meta-command not a symbol: ~s~%" command))
+     ((lookup-command command)
+      => (lambda (c) ((command-procedure c) repl)))
+     (else
+      (format #t "Unknown meta command: ~A~%" command)))))
 
 (define-syntax define-meta-command
   (syntax-rules ()
     ((_ (name repl (expression0 ...) . datums) docstring b0 b1 ...)
      (define (name repl)
        docstring
-       (let* ((expression0
-               (repl-reader ""
-                            (lambda* (#:optional (port (repl-inport repl)))
-                              ((language-reader (repl-language repl))
-                               port (current-module)))))
-              ...)
-         (apply (lambda* datums
-                  (with-output-to-port (repl-outport repl)
-                    (lambda () b0 b1 ...)))
-                (let ((port (open-input-string (read-line repl))))
-                  (let lp ((out '()))
-                    (let ((x (read port)))
-                      (if (eof-object? x)
-                          (reverse out)
-                          (lp (cons x out))))))))))
+       (define (handle-read-error form-name key args)
+         (pmatch args
+           ((,subr ,msg ,args . ,rest)
+            (format #t "Throw to key `~a' while reading ~@[argument `~A' of ~]command `~A':\n"
+                    key form-name 'name)
+            (display-error #f (current-output-port) subr msg args rest))
+           (else
+            (format #t "Throw to key `~a' with args `~s' while reading ~@[ argument `~A' of ~]command `~A'.\n"
+                    key args form-name 'name)))
+         (abort))
+       
+       (% (let* ((expression0
+                  (catch #t
+                    (lambda ()
+                      (repl-reader ""
+                                   (lambda* (#:optional (port (repl-inport repl)))
+                                     ((language-reader (repl-language repl))
+                                      port (current-module)))))
+                    (lambda (k . args)
+                      (handle-read-error 'expression0 k args))))
+                 ...)
+            (apply (lambda* datums
+                     (with-output-to-port (repl-outport repl)
+                       (lambda () b0 b1 ...)))
+                   (catch #t
+                     (lambda ()
+                       (let ((port (open-input-string (read-line repl))))
+                         (let lp ((out '()))
+                           (let ((x (read port)))
+                             (if (eof-object? x)
+                                 (reverse out)
+                                 (lp (cons x out)))))))
+                     (lambda (k . args)
+                       (handle-read-error #f k args)))))
+          (lambda (k) #f)))) ; the abort handler
+
     ((_ (name repl . datums) docstring b0 b1 ...)
      (define-meta-command (name repl () . datums)
        docstring b0 b1 ...))))
@@ -153,11 +208,8 @@
 ;;;
 
 (define-meta-command (help repl . args)
-  "help 
-help GROUP
-help [-c] COMMAND
-
-Gives help on the meta-commands available at the REPL.
+  "help [all | GROUP | [-c] COMMAND]
+Show help.
 
 With one argument, tries to look up the argument as a group name, giving
 help on that group if successful. Otherwise tries to look up the
@@ -191,16 +243,14 @@ are displayed."
     ((-c ,command) (guard (lookup-command command))
      (display-command (lookup-command command)))
     ((,command)
-     (user-error "Unknown command or group: ~A" command))
+     (format #t "Unknown command or group: ~A~%" command))
     ((-c ,command)
-     (user-error "Unknown command: ~A" command))
+     (format #t "Unknown command: ~A~%" command))
     (else
-     (user-error "Bad arguments: ~A" args))))
+     (format #t "Bad arguments: ~A~%" args))))
 
 (define-meta-command (show repl . args)
-  "show
-show TOPIC
-
+  "show [TOPIC]
 Gives information about Guile.
 
 With one argument, tries to show a particular piece of information;
@@ -216,9 +266,9 @@ Without any argument, a list of topics is displayed."
     ((,topic) (guard (lookup-command topic *show-table*))
      ((command-procedure (lookup-command topic *show-table*)) repl))
     ((,command)
-     (user-error "Unknown topic: ~A" command))
+     (format #t "Unknown topic: ~A~%" command))
     (else
-     (user-error "Bad arguments: ~A" args))))
+     (format #t "Bad arguments: ~A~%" args))))
 
 (define (warranty repl)
   "show warranty
@@ -291,7 +341,7 @@ Import modules / List those imported."
       (let ((mod (resolve-interface name)))
         (if mod
             (module-use! (current-module) mod)
-            (user-error "No such module: ~A" name))))
+            (format #t "No such module: ~A~%" name))))
     (if (null? args)
         (for-each puts (map module-name (module-uses (current-module))))
         (for-each use args))))
@@ -333,7 +383,7 @@ Change languages."
 ;;;
 
 (define-meta-command (compile repl (form))
-  "compile FORM
+  "compile EXP
 Generate compiled code."
   (let ((x (repl-compile repl (repl-parse repl form))))
     (cond ((objcode? x) (guile:disassemble x))
@@ -349,8 +399,8 @@ Compile a file."
   ((@ (language assembly disassemble) disassemble) x))
 
 (define-meta-command (disassemble repl (form))
-  "disassemble PROGRAM
-Disassemble a program."
+  "disassemble EXP
+Disassemble a compiled procedure."
   (guile:disassemble (repl-eval repl (repl-parse repl form))))
 
 (define-meta-command (disassemble-file repl file)
@@ -364,7 +414,7 @@ Disassemble a file."
 ;;;
 
 (define-meta-command (time repl (form))
-  "time FORM
+  "time EXP
 Time execution."
   (let* ((gc-start (gc-run-time))
 	 (tms-start (times))
@@ -385,21 +435,15 @@ Time execution."
     result))
 
 (define-meta-command (profile repl (form) . opts)
-  "profile FORM
+  "profile EXP
 Profile execution."
   ;; FIXME opts
   (apply statprof
          (make-program (repl-compile repl (repl-parse repl form)))
          opts))
 
-
-
-;;;
-;;; Debug commands
-;;;
-
 (define-meta-command (trace repl (form) . opts)
-  "trace FORM
+  "trace EXP
 Trace execution."
   ;; FIXME: doc options, or somehow deal with them better
   (apply vm-trace
@@ -407,6 +451,139 @@ Trace execution."
          (make-program (repl-compile repl (repl-parse repl form)))
          opts))
 
+
+;;;
+;;; Debug commands
+;;;
+
+(define-syntax define-stack-command
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (name repl . args) docstring body body* ...)
+       #`(define-meta-command (name repl . args)
+           docstring
+           (let ((debug (repl-debug repl)))
+             (if debug
+                 (letrec-syntax
+                     ((#,(datum->syntax #'repl 'frames)
+                       (identifier-syntax (debug-frames debug)))
+                      (#,(datum->syntax #'repl 'index)
+                       (identifier-syntax
+                        (id (debug-index debug))
+                        ((set! id exp) (set! (debug-index debug) exp))))
+                      (#,(datum->syntax #'repl 'cur)
+                       (identifier-syntax
+                        (vector-ref #,(datum->syntax #'repl 'frames)
+                                    #,(datum->syntax #'repl 'index)))))
+                   body body* ...)
+                 (format #t "Nothing to debug.~%"))))))))
+
+(define-stack-command (backtrace repl #:optional count
+                                 #:key (width 72) full?)
+  "backtrace [COUNT] [#:width W] [#:full? F]
+Print a backtrace.
+
+Print a backtrace of all stack frames, or innermost COUNT frames.
+If COUNT is negative, the last COUNT frames will be shown."
+  (print-frames frames 
+                #:count count
+                #:width width
+                #:full? full?))
+      
+(define-stack-command (up repl #:optional (count 1))
+  "up [COUNT]
+Select a calling stack frame.
+
+Select and print stack frames that called this one.
+An argument says how many frames up to go."
+  (cond
+   ((or (not (integer? count)) (<= count 0))
+    (format #t "Invalid argument to `up': expected a positive integer for COUNT.~%"))
+   ((>= (+ count index) (vector-length frames))
+    (cond
+     ((= index (1- (vector-length frames)))
+      (format #t "Already at outermost frame.\n"))
+     (else
+      (set! index (1- (vector-length frames)))
+      (print-frame cur #:index index))))
+   (else
+    (set! index (+ count index))
+    (print-frame cur #:index index))))
+
+(define-stack-command (down repl #:optional (count 1))
+  "down [COUNT]
+Select a called stack frame.
+
+Select and print stack frames called by this one.
+An argument says how many frames down to go."
+  (cond
+   ((or (not (integer? count)) (<= count 0))
+    (format #t "Invalid argument to `down': expected a positive integer for COUNT.~%"))
+   ((< (- index count) 0)
+    (cond
+     ((zero? index)
+      (format #t "Already at innermost frame.\n"))
+     (else
+      (set! index 0)
+      (print-frame cur #:index index))))
+   (else
+    (set! index (- index count))
+    (print-frame cur #:index index))))
+
+(define-stack-command (frame repl #:optional idx)
+  "frame [IDX]
+Show a frame.
+
+Show the selected frame.
+With an argument, select a frame by index, then show it."
+  (cond
+   (idx
+    (cond
+     ((or (not (integer? idx)) (< idx 0))
+      (format #t "Invalid argument to `frame': expected a non-negative integer for IDX.~%"))
+     ((< idx (vector-length frames))
+      (set! index idx)
+      (print-frame cur #:index index))
+     (else
+      (format #t "No such frame.~%"))))
+   (else (print-frame cur #:index index))))
+
+(define-stack-command (procedure repl)
+  "procedure
+Print the procedure for the selected frame.
+
+Foo."
+  (repl-print repl (frame-procedure cur)))
+      
+(define-stack-command (locals repl)
+  "locals
+Show local variables.
+
+Show locally-bound variables in the selected frame."
+  (print-locals cur))
+      
+
+;;;
+;;; Inspection commands
+;;;
+
+(define-stack-command (inspect repl (form))
+  "inspect EXP
+Inspect the result(s) of evaluating EXP."
+  (call-with-values (make-program (repl-compile repl (repl-parse repl form)))
+    (lambda args
+      (for-each %inspect args))))
+
+(define-meta-command (pretty-print repl (form))
+  "pretty-print EXP
+Pretty-print the result(s) of evaluating EXP."
+  (call-with-values (make-program (repl-compile repl (repl-parse repl form)))
+    (lambda args
+      (for-each
+       (lambda (x)
+         (run-hook before-print-hook x)
+         (pp x))
+       args))))
 
 
 ;;;

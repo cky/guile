@@ -319,9 +319,11 @@ SYSTEM_SOURCES =				\
   system/vm/vm.scm				\
   system/foreign.scm				\
   system/xref.scm				\
-  system/repl/repl.scm				\
+  system/repl/debug.scm				\
+  system/repl/error-handling.scm		\
   system/repl/common.scm			\
-  system/repl/command.scm
+  system/repl/command.scm			\
+  system/repl/repl.scm
 
 LIB_SOURCES =					\
   statprof.scm					\

@@ -26,7 +26,8 @@
   #:use-module (ice-9 control)
   #:export (<repl> make-repl repl-language repl-options
             repl-tm-stats repl-gc-stats repl-inport repl-outport repl-debug
-            repl-welcome repl-prompt repl-read repl-compile repl-eval
+            repl-welcome repl-prompt
+            repl-read repl-compile repl-prepare-eval-thunk repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
             repl-default-option-set! repl-default-prompt-set!
             puts ->string user-error
@@ -152,18 +153,22 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   (let ((parser (language-parser (repl-language repl))))
     (if parser (parser form) form)))
 
+(define (repl-prepare-eval-thunk repl form)
+  (let* ((eval (language-evaluator (repl-language repl))))
+    (if (and eval
+             (or (null? (language-compilers (repl-language repl)))
+                 (assq-ref (repl-options repl) 'interp)))
+        (lambda () (eval form (current-module)))
+        (make-program (repl-compile repl form)))))
+
 (define (repl-eval repl form)
-  (let* ((eval (language-evaluator (repl-language repl)))
-         (thunk (if (and eval
-                         (or (null? (language-compilers (repl-language repl)))
-                             (assq-ref (repl-options repl) 'interp)))
-                    (lambda () (eval form (current-module)))
-                    (make-program (repl-compile repl form)))))
+  (let ((thunk (repl-prepare-eval-thunk repl form)))
     (% (thunk))))
 
 (define (repl-print repl val)
   (if (not (eq? val *unspecified*))
       (begin
+        (run-hook before-print-hook val)
         ;; The result of an evaluation is representable in scheme, and
         ;; should be printed with the generic printer, `write'. The
         ;; language-printer is something else: it prints expressions of
