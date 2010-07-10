@@ -163,7 +163,7 @@ test\"ab\"\\ abcd
     (and (equal? (parse-str "'(1 2 3 '4)")
                  '(quote (1 2 3 (quote 4))))
          (equal? (parse-str "`(1 2 ,3 ,@a)")
-                 '(\` (1 2 (\, 3) (\,@ a))))))
+                 '(#{`}# (1 2 (#{,}# 3) (#{,@}# a))))))
 
   (pass-if "lists"
     (equal? (parse-str "(1 2 (3) () 4 (. 5) (1 2 . (3 4)) (1 . 2) . 42)")

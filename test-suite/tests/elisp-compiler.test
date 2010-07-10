@@ -204,7 +204,7 @@
     (progn (setq depth 10 i depth)
            (setq code '(eval 0))
            (while (not (zerop i))
-             (setq code (\` (eval (quote (1+ (\, code))))))
+             (setq code (#{`}# (eval (quote (1+ (#{,}# code))))))
              (setq i (1- i)))
            (= (eval code) depth))))
 
@@ -527,19 +527,19 @@
          (equal '(1 2 . 3) '(1 2 . 3))))
 
   (pass-if "simple backquote"
-    (and (equal (\` 42) 42)
-         (equal (\` (1 (a))) '(1 (a)))
-         (equal (\` (1 . 2)) '(1 . 2))))
+    (and (equal (#{`}# 42) 42)
+         (equal (#{`}# (1 (a))) '(1 (a)))
+         (equal (#{`}# (1 . 2)) '(1 . 2))))
   (pass-if "unquote"
     (progn (setq a 42 l '(18 12))
-           (and (equal (\` (\, a)) 42)
-                (equal (\` (1 a ((\, l)) . (\, a))) '(1 a ((18 12)) . 42)))))
+           (and (equal (#{`}# (#{,}# a)) 42)
+                (equal (#{`}# (1 a ((#{,}# l)) . (#{,}# a))) '(1 a ((18 12)) . 42)))))
   (pass-if "unquote splicing"
     (progn (setq l '(18 12) empty '())
-           (and (equal (\` (\,@ l)) '(18 12))
-                (equal (\` (l 2 (3 (\,@ l)) ((\,@ l)) (\,@ l)))
+           (and (equal (#{`}# (#{,@}# l)) '(18 12))
+                (equal (#{`}# (l 2 (3 (#{,@}# l)) ((#{,@}# l)) (#{,@}# l)))
                        '(l 2 (3 18 12) (18 12) 18 12))
-                (equal (\` (1 2 (\,@ empty) 3)) '(1 2 3))))))
+                (equal (#{`}# (1 2 (#{,@}# empty) 3)) '(1 2 3))))))
       
 
 

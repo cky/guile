@@ -165,9 +165,9 @@
 ;;; routine in our recursive-descent parser.
 
 (define quotation-symbols '((quote . quote)
-                            (backquote . \`)
-                            (unquote . \,)
-                            (unquote-splicing . \,@)))
+                            (backquote . #{`}#)
+                            (unquote . #{,}#)
+                            (unquote-splicing . #{,@}#)))
 
 (define (get-expression lex)
   (let* ((token (lex 'get))

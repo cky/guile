@@ -49,7 +49,7 @@
             compile-function
             compile-defmacro
             compile-defun
-            compile-\`
+            #{compile-`}#
             compile-quote))
 
 ;;; Certain common parameters (like the bindings data structure or
@@ -101,10 +101,10 @@
 ;;; unquote/unquote-splicing/backquote form.
 
 (define (unquote? sym)
-  (and (symbol? sym) (eq? sym '\,)))
+  (and (symbol? sym) (eq? sym '#{,}#)))
 
 (define (unquote-splicing? sym)
-  (and (symbol? sym) (eq? sym '\,@)))
+  (and (symbol? sym) (eq? sym '#{,@}#)))
 
 ;;; Build a call to a primitive procedure nicely.
 
@@ -876,7 +876,7 @@
                                                              body))
                               (make-const loc name)))))))
 
-(defspecial \` (loc args)
+(defspecial #{`}# (loc args)
   (pmatch args
     ((,val)
      (process-backquote loc val))))
