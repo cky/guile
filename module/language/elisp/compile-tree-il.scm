@@ -694,37 +694,24 @@
                 (make-const loc sym)))))))
 
 (defspecial setq (loc args)
+  (define (car* x) (if (null? x) '() (car x)))
+  (define (cdr* x) (if (null? x) '() (cdr x)))
+  (define (cadr* x) (car* (cdr* x)))
+  (define (cddr* x) (cdr* (cdr* x)))
   (make-sequence
    loc
-   (let iterate ((tail args))
-     (let ((sym (car tail))
-           (tailtail (cdr tail)))
-       (if (not (symbol? sym))
-           (report-error loc "expected symbol in setq")
-           (if (null? tailtail)
-               (report-error loc
-                             "missing value for symbol in setq"
-                             sym)
-               (let* ((val (compile-expr (car tailtail)))
-                      (op (set-variable! loc sym value-slot val)))
-                 (if (null? (cdr tailtail))
-                     (let* ((temp (gensym))
-                            (ref (make-lexical-ref loc temp temp)))
-                       (list (make-let
-                              loc
-                              `(,temp)
-                              `(,temp)
-                              `(,val)
-                              (make-sequence
-                               loc
-                               (list (set-variable! loc
-                                                    sym
-                                                    value-slot
-                                                    ref)
-                                     ref)))))
-                     (cons (set-variable! loc sym value-slot val)
-                           (iterate (cdr tailtail)))))))))))
-
+   (let loop ((args args) (last (nil-value loc)))
+     (if (null? args)
+         (list last)
+         (let ((sym (car args))
+               (val (compile-expr (cadr* args))))
+           (if (not (symbol? sym))
+               (report-error loc "expected symbol in setq")
+               (cons
+                (set-variable! loc sym value-slot val)
+                (loop (cddr* args)
+                      (reference-variable loc sym value-slot)))))))))
+  
 (defspecial let (loc args)
   (pmatch args
     ((,bindings . ,body)
