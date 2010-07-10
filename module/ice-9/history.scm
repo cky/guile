@@ -18,12 +18,14 @@
 ;;;; A simple value history support
 
 (define-module (ice-9 history)
-  #:export (enable-value-history! disable-value-history!
+  #:export (value-history-enabled? enable-value-history! disable-value-history!
             clear-value-history!))
 
 (process-define-module '((value-history)))
 
-(define value-history-enabled? #f)
+(define *value-history-enabled?* #f)
+(define (value-history-enabled?)
+  *value-history-enabled?*)
 
 (define (use-value-history x)
   (module-use! (current-module)
@@ -42,18 +44,18 @@
 	    (set! count c))))))
 
 (define (enable-value-history!)
-  (if (not value-history-enabled?)
+  (if (not (value-history-enabled?))
       (begin
         (add-hook! before-eval-hook use-value-history)
         (add-hook! before-print-hook save-value-history)
-        (set! value-history-enabled? #t))))
+        (set! *value-history-enabled?* #t))))
 
 (define (disable-value-history!)
-  (if value-history-enabled?
+  (if (value-history-enabled?)
       (begin
         (remove-hook! before-eval-hook use-value-history)
         (remove-hook! before-print-hook save-value-history)
-        (set! value-history-enabled? #f))))
+        (set! *value-history-enabled?* #f))))
 
 (define (clear-value-history!)
   (let ((history (resolve-module '(value-history))))
