@@ -709,7 +709,7 @@ to play around with it at the REPL, as can be seen in this annotated
 example:
 
 @example
-scheme@@(guile-user)> (pp (compile '(+ 32 10) #:to 'assembly))
+scheme@@(guile-user)> ,pp (compile '(+ 32 10) #:to 'assembly)
 (load-program
   ((:LCASE16 . 2))  ; Labels, unused in this case.
   8                 ; Length of the thunk that was compiled.

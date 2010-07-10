@@ -15,12 +15,12 @@ simple examples.
 
 @lisp
 scheme@@(guile-user)> (+ 3 4 5)
-12
+$1 = 12
 scheme@@(guile-user)> (display "Hello world!\n")
 Hello world!
 scheme@@(guile-user)> (values 'a 'b)
-a
-b
+$2 = a
+$3 = b
 @end lisp
 
 @noindent
@@ -83,12 +83,46 @@ scheme@@(guile-user)> (cons $2 $1)
 $4 = (362880 0 1 2 3 4 5 6 7 8 9)
 @end lisp
 
-To enable value history, type @code{(use-modules (ice-9 history))} at
-the Guile prompt, or add this to your @file{.guile} file.  (It is not
-enabled by default, to avoid the possibility of conflicting with some
-other use you may have for the variables @code{$1}, @code{$2},
-@dots{}, and also because it prevents the stored evaluation results
-from being garbage collected, which some people may not want.)
+Value history is enabled by default, because Guile's REPL imports the
+@code{(ice-9 history)} module. Value history may be turned off or on within the
+repl, using the options interface:
+
+@lisp
+scheme@@(guile-user)> ,option value-history #f
+scheme@@(guile-user)> 'foo
+foo
+scheme@@(guile-user)> ,option value-history #t
+scheme@@(guile-user)> 'bar
+$5 = bar
+@end lisp
+
+Note that previously recorded values are still accessible, even if value history
+is off. In rare cases, these references to past computations can cause Guile to
+use too much memory. One may clear these values, possibly enabling garbage
+collection, via the @code{clear-value-history!} procedure, described below.
+
+The programmatic interface to value history is in a module:
+
+@lisp
+(use-modules (ice-9 history))
+@end lisp
+
+@deffn {Scheme Procedure} value-history-enabled?
+Return true iff value history is enabled.
+@end deffn
+
+@deffn {Scheme Procedure} enable-value-history!
+Turn on value history, if it was off.
+@end deffn
+
+@deffn {Scheme Procedure} disable-value-history!
+Turn off value history, if it was on.
+@end deffn
+
+@deffn {Scheme Procedure} clear-value-history!
+Clear the value history. If the stored values are not captured by some other
+data structure or closure, they may then be reclaimed by the garbage collector.
+@end deffn
 
 
 @node Error Handling
