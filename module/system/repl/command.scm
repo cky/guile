@@ -305,8 +305,8 @@ Show description/documentation."
 List/show/set options."
   (pmatch args
     (()
-     (for-each (lambda (key+val)
-		 (format #t "~A\t~A\n" (car key+val) (cdr key+val)))
+     (for-each (lambda (spec)
+		 (format #t "  ~A~24t~A\n" (car spec) (cadr spec)))
 	       (repl-options repl)))
     ((,key)
      (display (repl-option-ref repl key))

@@ -24,6 +24,7 @@
   #:use-module (system base language)
   #:use-module (system vm program)
   #:use-module (ice-9 control)
+  #:use-module (ice-9 history)
   #:export (<repl> make-repl repl-language repl-options
             repl-tm-stats repl-gc-stats repl-inport repl-outport repl-debug
             repl-welcome repl-prompt
@@ -105,9 +106,21 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 
 (define repl-default-options
   (copy-tree
-   '((compile-options . (#:warnings (unbound-variable arity-mismatch)))
-     (trace . #f)
-     (interp . #f))))
+   `((compile-options (#:warnings (unbound-variable arity-mismatch)) #f)
+     (trace #f #f)
+     (interp #f #f)
+     (prompt #f ,(lambda (prompt)
+                   (cond
+                    ((not prompt) #f)
+                    ((string? prompt) (lambda (repl) prompt))
+                    ((thunk? prompt) (lambda (repl) (prompt)))
+                    ((procedure? prompt) prompt)
+                    (else (error "Invalid prompt" prompt)))))
+     (value-history
+      ,(value-history-enabled?)
+      ,(lambda (x)
+         (if x (enable-value-history!) (disable-value-history!))
+         (->bool x))))))
 
 (define %make-repl make-repl)
 (define* (make-repl lang #:optional debug)
@@ -158,7 +171,7 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   (let* ((eval (language-evaluator (repl-language repl))))
     (if (and eval
              (or (null? (language-compilers (repl-language repl)))
-                 (assq-ref (repl-options repl) 'interp)))
+                 (repl-option-ref repl 'interp)))
         (lambda () (eval form (current-module)))
         (make-program (repl-compile repl form)))))
 
@@ -178,22 +191,27 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 	(newline (repl-outport repl)))))
 
 (define (repl-option-ref repl key)
-  (assq-ref (repl-options repl) key))
+  (cadr (or (assq key (repl-options repl))
+            (error "unknown repl option" key))))
 
 (define (repl-option-set! repl key val)
-  (set! (repl-options repl) (assq-set! (repl-options repl) key val)))
+  (let ((spec (or (assq key (repl-options repl))
+                  (error "unknown repl option" key))))
+    (set-car! (cdr spec)
+              (if (procedure? (caddr spec))
+                  ((caddr spec) val)
+                  val))))
 
 (define (repl-default-option-set! key val)
-  (set! repl-default-options (assq-set! repl-default-options key val)))
+  (let ((spec (or (assq key repl-default-options)
+                  (error "unknown repl option" key))))
+    (set-car! (cdr spec)
+              (if (procedure? (caddr spec))
+                  ((caddr spec) val)
+                  val))))
 
 (define (repl-default-prompt-set! prompt)
-  (repl-default-option-set!
-   'prompt
-   (cond
-    ((string? prompt) (lambda (repl) prompt))
-    ((thunk? prompt) (lambda (repl) (prompt)))
-    ((procedure? prompt) prompt)
-    (else (error "Invalid prompt" prompt)))))
+  (repl-default-option-set! 'prompt prompt))
 
 
 ;;;
