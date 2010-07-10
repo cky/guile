@@ -1,19 +1,19 @@
 ;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
-;;;; 
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-;;;; 
+;;;;
 
 
 (define-module (language tree-il)
@@ -47,7 +47,7 @@
             <let-values> let-values? make-let-values let-values-src let-values-exp let-values-body
             <dynwind> dynwind? make-dynwind dynwind-src dynwind-winder dynwind-body dynwind-unwinder
             <dynlet> dynlet? make-dynlet dynlet-src dynlet-fluids dynlet-vals dynlet-body
-            <dynref> dynref? make-dynref dynref-src dynref-fluid 
+            <dynref> dynref? make-dynref dynref-src dynref-fluid
             <dynset> dynset? make-dynset dynset-src dynset-fluid dynset-exp
             <prompt> prompt? make-prompt prompt-src prompt-tag prompt-body prompt-handler
             <abort> abort? make-abort abort-src abort-tag abort-args abort-tail
@@ -134,7 +134,7 @@
   (<dynset> fluid exp)
   (<prompt> tag body handler)
   (<abort> tag args tail))
-  
+
 
 
 (define (location x)
@@ -195,7 +195,7 @@
       (make-lambda loc meta (retrans body)))
 
      ((lambda-case ((,req ,opt ,rest ,kw ,inits ,gensyms) ,body) ,alternate)
-      (make-lambda-case loc req opt rest kw 
+      (make-lambda-case loc req opt rest kw
                         (map retrans inits) gensyms
                         (retrans body)
                         (and=> alternate retrans)))
@@ -229,19 +229,19 @@
 
      ((dynwind ,winder ,body ,unwinder)
       (make-dynwind loc (retrans winder) (retrans body) (retrans unwinder)))
-     
+
      ((dynlet ,fluids ,vals ,body)
       (make-dynlet loc (map retrans fluids) (map retrans vals) (retrans body)))
-     
+
      ((dynref ,fluid)
       (make-dynref loc (retrans fluid)))
-     
+
      ((dynset ,fluid ,exp)
       (make-dynset loc (retrans fluid) (retrans exp)))
-     
+
      ((prompt ,tag ,body ,handler)
       (make-prompt loc (retrans tag) (retrans body) (retrans handler)))
-     
+
      ((abort ,tag ,args ,tail)
       (make-abort loc (retrans tag) (map retrans args) (retrans tail)))
 
@@ -313,20 +313,20 @@
     ((<dynwind> body winder unwinder)
      `(dynwind ,(unparse-tree-il body)
                ,(unparse-tree-il winder) ,(unparse-tree-il unwinder)))
-    
+
     ((<dynlet> fluids vals body)
      `(dynlet ,(map unparse-tree-il fluids) ,(map unparse-tree-il vals)
               ,(unparse-tree-il body)))
-    
+
     ((<dynref> fluid)
      `(dynref ,(unparse-tree-il fluid)))
-    
+
     ((<dynset> fluid exp)
      `(dynref ,(unparse-tree-il fluid) ,(unparse-tree-il exp)))
-    
+
     ((<prompt> tag body handler)
      `(prompt ,(unparse-tree-il tag) ,(unparse-tree-il body) ,(unparse-tree-il handler)))
-    
+
     ((<abort> tag args tail)
      `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)
              ,(unparse-tree-il tail)))))
@@ -346,32 +346,32 @@
 
     ((<primitive-ref> name)
      name)
-    
+
     ((<lexical-ref> gensym)
      gensym)
-    
+
     ((<lexical-set> gensym exp)
      `(set! ,gensym ,(tree-il->scheme exp)))
-    
+
     ((<module-ref> mod name public?)
      `(,(if public? '@ '@@) ,mod ,name))
-    
+
     ((<module-set> mod name public? exp)
      `(set! (,(if public? '@ '@@) ,mod ,name) ,(tree-il->scheme exp)))
-    
+
     ((<toplevel-ref> name)
      name)
-    
+
     ((<toplevel-set> name exp)
      `(set! ,name ,(tree-il->scheme exp)))
-    
+
     ((<toplevel-define> name exp)
      `(define ,name ,(tree-il->scheme exp)))
-    
+
     ((<lambda> meta body)
      ;; fixme: put in docstring
      (tree-il->scheme body))
-    
+
     ((<lambda-case> req opt rest kw inits gensyms body alternate)
      (cond
       ((and (not opt) (not kw) (not alternate))
@@ -400,7 +400,7 @@
               (restargs (if rest (list-ref gensyms (+ nreq nopt)) '()))
               (reqargs (list-head gensyms nreq))
               (optargs (if opt
-                           `(#:optional 
+                           `(#:optional
                              ,@(map list
                                     (list-head (list-tail gensyms nreq) nopt)
                                     (map tree-il->scheme
@@ -432,13 +432,13 @@
      (if (and (self-evaluating? exp) (not (vector? exp)))
          exp
          (list 'quote exp)))
-    
+
     ((<sequence> exps)
      `(begin ,@(map tree-il->scheme exps)))
-    
+
     ((<let> gensyms vals body)
      `(let ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
-    
+
     ((<letrec> in-order? gensyms vals body)
      `(,(if in-order? 'letrec* 'letrec)
        ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
@@ -457,24 +457,24 @@
      `(dynamic-wind ,(tree-il->scheme winder)
                     (lambda () ,(tree-il->scheme body))
                     ,(tree-il->scheme unwinder)))
-    
+
     ((<dynlet> fluids vals body)
      `(with-fluids ,(map list
                          (map tree-il->scheme fluids)
                          (map tree-il->scheme vals))
         ,(tree-il->scheme body)))
-    
+
     ((<dynref> fluid)
      `(fluid-ref ,(tree-il->scheme fluid)))
-    
+
     ((<dynset> fluid exp)
      `(fluid-set! ,(tree-il->scheme fluid) ,(tree-il->scheme exp)))
-    
+
     ((<prompt> tag body handler)
-     `((@ (ice-9 control) prompt) 
+     `((@ (ice-9 control) prompt)
        ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
        ,(tree-il->scheme handler)))
-    
+
 
     ((<abort> tag args tail)
      `(apply abort ,(tree-il->scheme tag) ,@(map tree-il->scheme args)
@@ -640,76 +640,76 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (conditional-test x) (lp test))
        (set! (conditional-consequent x) (lp consequent))
        (set! (conditional-alternate x) (lp alternate)))
-      
+
       ((<lexical-set> name gensym exp)
        (set! (lexical-set-exp x) (lp exp)))
-      
+
       ((<module-set> mod name public? exp)
        (set! (module-set-exp x) (lp exp)))
-      
+
       ((<toplevel-set> name exp)
        (set! (toplevel-set-exp x) (lp exp)))
-      
+
       ((<toplevel-define> name exp)
        (set! (toplevel-define-exp x) (lp exp)))
-      
+
       ((<lambda> body)
        (set! (lambda-body x) (lp body)))
-      
+
       ((<lambda-case> inits body alternate)
        (set! inits (map lp inits))
        (set! (lambda-case-body x) (lp body))
        (if alternate
            (set! (lambda-case-alternate x) (lp alternate))))
-      
+
       ((<sequence> exps)
        (set! (sequence-exps x) (map lp exps)))
-      
+
       ((<let> gensyms vals body)
        (set! (let-vals x) (map lp vals))
        (set! (let-body x) (lp body)))
-      
+
       ((<letrec> gensyms vals body)
        (set! (letrec-vals x) (map lp vals))
        (set! (letrec-body x) (lp body)))
-      
+
       ((<fix> gensyms vals body)
        (set! (fix-vals x) (map lp vals))
        (set! (fix-body x) (lp body)))
-      
+
       ((<let-values> exp body)
        (set! (let-values-exp x) (lp exp))
        (set! (let-values-body x) (lp body)))
-      
+
       ((<dynwind> body winder unwinder)
        (set! (dynwind-body x) (lp body))
        (set! (dynwind-winder x) (lp winder))
        (set! (dynwind-unwinder x) (lp unwinder)))
-      
+
       ((<dynlet> fluids vals body)
        (set! (dynlet-fluids x) (map lp fluids))
        (set! (dynlet-vals x) (map lp vals))
        (set! (dynlet-body x) (lp body)))
-      
+
       ((<dynref> fluid)
        (set! (dynref-fluid x) (lp fluid)))
-      
+
       ((<dynset> fluid exp)
        (set! (dynset-fluid x) (lp fluid))
        (set! (dynset-exp x) (lp exp)))
-      
+
       ((<prompt> tag body handler)
        (set! (prompt-tag x) (lp tag))
        (set! (prompt-body x) (lp body))
        (set! (prompt-handler x) (lp handler)))
-      
+
       ((<abort> tag args tail)
        (set! (abort-tag x) (lp tag))
        (set! (abort-args x) (map lp args))
        (set! (abort-tail x) (lp tail)))
-      
+
       (else #f))
-    
+
     (or (f x) x)))
 
 (define (pre-order! f x)
@@ -727,7 +727,7 @@ This is an implementation of `foldts' as described by Andy Wingo in
 
         ((<lexical-set> exp)
          (set! (lexical-set-exp x) (lp exp)))
-               
+
         ((<module-set> exp)
          (set! (module-set-exp x) (lp exp)))
 
@@ -768,28 +768,28 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (dynwind-body x) (lp body))
          (set! (dynwind-winder x) (lp winder))
          (set! (dynwind-unwinder x) (lp unwinder)))
-        
+
         ((<dynlet> fluids vals body)
          (set! (dynlet-fluids x) (map lp fluids))
          (set! (dynlet-vals x) (map lp vals))
          (set! (dynlet-body x) (lp body)))
-      
+
         ((<dynref> fluid)
          (set! (dynref-fluid x) (lp fluid)))
-        
+
         ((<dynset> fluid exp)
          (set! (dynset-fluid x) (lp fluid))
          (set! (dynset-exp x) (lp exp)))
-        
+
         ((<prompt> tag body handler)
          (set! (prompt-tag x) (lp tag))
          (set! (prompt-body x) (lp body))
          (set! (prompt-handler x) (lp handler)))
-        
+
         ((<abort> tag args tail)
          (set! (abort-tag x) (lp tag))
          (set! (abort-args x) (map lp args))
          (set! (abort-tail x) (lp tail)))
-        
+
         (else #f))
       x)))
