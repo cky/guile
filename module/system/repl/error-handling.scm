@@ -88,15 +88,19 @@
                 (format #t " or `,q' to return to the old prompt.\n")
                 (let ((debug
                        (make-debug
-                        (narrow-stack->vector
-                         stack
-                         ;; Cut three frames from the top of the stack:
-                         ;; make-stack, this one, and the throw handler.
-                         3 
-                         ;; Narrow the end of the stack to the most recent
-                         ;; start-stack.
-                         (and (pair? (fluid-ref %stacks))
-                              (cdar (fluid-ref %stacks))))
+                        (let ((tag (and (pair? (fluid-ref %stacks))
+                                        (cdar (fluid-ref %stacks)))))
+                          (narrow-stack->vector
+                           stack
+                           ;; Cut three frames from the top of the stack:
+                           ;; make-stack, this one, and the throw handler.
+                           3 
+                           ;; Narrow the end of the stack to the most recent
+                           ;; start-stack.
+                           tag
+                           ;; And one more frame, because %start-stack invoking
+                           ;; the start-stack thunk has its own frame too.
+                           0 (and tag 1)))
                         0)))
                   ((@ (system repl repl) start-repl) #:debug debug)))))))
         ((pass)

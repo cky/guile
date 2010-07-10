@@ -1056,7 +1056,7 @@ If there is no handler at all, Guile prints an error and then exits."
                                      (or (fluid-ref %stacks) '()))))
          (thunk)))
      (lambda (k . args)
-              (%start-stack tag (lambda () (apply k args)))))))
+       (%start-stack tag (lambda () (apply k args)))))))
 (define-syntax start-stack
   (syntax-rules ()
     ((_ tag exp)

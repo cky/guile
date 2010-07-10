@@ -106,6 +106,12 @@
          (abort))))))
 
 (define (run-repl repl)
+  (define (with-stack-and-prompt thunk)
+    (call-with-prompt (default-prompt-tag)
+                      (lambda () (start-stack #t (thunk)))
+                      (lambda (k proc)
+                        (with-stack-and-prompt (lambda () (proc k))))))
+  
   (% (with-fluids ((*repl-stack*
                     (cons repl (or (fluid-ref *repl-stack*) '()))))
        (if (null? (cdr (fluid-ref *repl-stack*)))
@@ -140,7 +146,7 @@
                                          (repl-parse repl exp))))))
                                (run-hook before-eval-hook exp)
                                (with-error-handling
-                                 (start-stack #t (% (thunk)))))
+                                 (with-stack-and-prompt thunk)))
                              (lambda (k) (values))))
                       (lambda l
                         (for-each (lambda (v)
