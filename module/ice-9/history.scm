@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2000, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2000, 2001, 2004, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,9 +17,13 @@
 
 ;;;; A simple value history support
 
-(define-module (ice-9 history))
+(define-module (ice-9 history)
+  #:export (enable-value-history! disable-value-history!
+            clear-value-history!))
 
 (process-define-module '((value-history)))
+
+(define value-history-enabled? #f)
 
 (define (use-value-history x)
   (module-use! (current-module)
@@ -37,5 +41,23 @@
 	    (module-export! history (list s))
 	    (set! count c))))))
 
-(add-hook! before-eval-hook use-value-history)
-(add-hook! before-print-hook save-value-history)
+(define (enable-value-history!)
+  (if (not value-history-enabled?)
+      (begin
+        (add-hook! before-eval-hook use-value-history)
+        (add-hook! before-print-hook save-value-history)
+        (set! value-history-enabled? #t))))
+
+(define (disable-value-history!)
+  (if value-history-enabled?
+      (begin
+        (remove-hook! before-eval-hook use-value-history)
+        (remove-hook! before-print-hook save-value-history)
+        (set! value-history-enabled? #f))))
+
+(define (clear-value-history!)
+  (let ((history (resolve-module '(value-history))))
+    (hash-clear! (module-obarray history))
+    (hash-clear! (module-obarray (module-public-interface history)))))
+
+(enable-value-history!)
