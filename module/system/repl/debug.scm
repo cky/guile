@@ -84,11 +84,13 @@
         "unknown file"))
   (let* ((source (frame-source frame))
          (file (source:pretty-file source))
-         (line (and=> source source:line)))
+         (line (and=> source source:line))
+         (col (and=> source source:column)))
     (if (and file (not (equal? file (source:pretty-file last-source))))
         (format port "~&In ~a:~&" file))
-    (format port "~:[~*~6_~;~5d:~]~:[~*~3_~;~3d~] ~v:@y~%"
-            line line index index width (frame-call-representation frame))
+    (format port "~9@a~:[~*~3_~;~3d~] ~v:@y~%"
+            (if line (format #f "~a:~a" line col) "")
+            index index width (frame-call-representation frame))
     (if full?
         (print-locals frame #:width width
                       #:per-line-prefix "     "))))
