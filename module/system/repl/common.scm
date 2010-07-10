@@ -104,14 +104,15 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   language options tm-stats gc-stats inport outport debug)
 
 (define repl-default-options
-  '((compile-options . (#:warnings (unbound-variable arity-mismatch)))
-    (trace . #f)
-    (interp . #f)))
+  (copy-tree
+   '((compile-options . (#:warnings (unbound-variable arity-mismatch)))
+     (trace . #f)
+     (interp . #f))))
 
 (define %make-repl make-repl)
 (define* (make-repl lang #:optional debug)
   (%make-repl #:language (lookup-language lang)
-              #:options repl-default-options
+              #:options (copy-tree repl-default-options)
               #:tm-stats (times)
               #:gc-stats (gc-stats)
               #:inport (current-input-port)
