@@ -570,8 +570,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_i_init_deprecated ();
 #endif
 
-  scm_init_threads_default_dynamic_state ();
-
   scm_initialized_p = 1;
 
 #ifdef STACK_CHECKING
@@ -585,6 +583,10 @@ scm_i_init_guile (SCM_STACKITEM *base)
   atexit (cleanup_for_exit);
   scm_load_startup_files ();
   scm_init_load_should_autocompile ();
+
+  /* Capture the dynamic state after loading boot-9, so that new threads end up
+     in the guile-user module. */
+  scm_init_threads_default_dynamic_state ();
 }
 
 /*
