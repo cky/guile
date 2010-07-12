@@ -1,9 +1,11 @@
 SCM_BENCHMARKS = benchmarks/0-reference.bm		\
 		 benchmarks/bytevectors.bm		\
+		 benchmarks/chars.bm			\
 		 benchmarks/continuations.bm		\
                  benchmarks/if.bm			\
                  benchmarks/logand.bm			\
 		 benchmarks/read.bm			\
+		 benchmarks/srfi-13.bm			\
 		 benchmarks/structs.bm			\
 		 benchmarks/subr.bm			\
 		 benchmarks/uniform-vector-read.bm	\
