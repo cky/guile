@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1563,7 +1563,7 @@
 
 (with-test-prefix "list-tabulate"
 
-  (pass-if-exception "-1" exception:out-of-range
+  (pass-if-exception "-1" exception:wrong-type-arg
     (list-tabulate -1 identity))
   (pass-if "0"
     (equal? '() (list-tabulate 0 identity)))

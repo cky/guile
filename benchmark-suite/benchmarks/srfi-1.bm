@@ -1,0 +1,38 @@
+;;; -*- mode: scheme; coding: utf-8; -*-
+;;; SRFI-1.
+;;;
+;;; Copyright 2010 Free Software Foundation, Inc.
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public License
+;;; as published by the Free Software Foundation; either version 3, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this software; see the file COPYING.LESSER.  If
+;;; not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (benchmarks srfi-1)
+  #:use-module (srfi srfi-1)
+  #:use-module (benchmark-suite lib))
+
+(define %big-list
+  (iota 1000000))
+
+(define %small-list
+  (iota 10))
+
+
+(with-benchmark-prefix "fold"
+
+  (benchmark "fold" 30
+    (fold (lambda (x y) y) #f %big-list))
+
+  (benchmark "fold" 2000000
+    (fold (lambda (x y) y) #f %small-list)))

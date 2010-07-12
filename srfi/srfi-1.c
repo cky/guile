@@ -27,12 +27,33 @@
 
 #include "srfi-1.h"
 
-/* The intent of this file is to gradually replace those Scheme
- * procedures in srfi-1.scm which extends core primitive procedures,
+/* The intent of this file was to gradually replace those Scheme
+ * procedures in srfi-1.scm that extend core primitive procedures,
  * so that using srfi-1 won't have performance penalties.
  *
- * Please feel free to contribute any new replacements!
+ * However, we now prefer to write these procedures in Scheme, let the compiler
+ * optimize them, and have the VM execute them efficiently.
  */
+
+
+/* The `(srfi srfi-1)' module.  */
+static SCM srfi1_module = SCM_BOOL_F;
+
+/* Cache variable NAME in C variable VAR.  */
+#define CACHE_VAR(var, name)						\
+  static SCM var = SCM_BOOL_F;						\
+  if (scm_is_false (var))						\
+    {									\
+      if (SCM_UNLIKELY (scm_is_false (srfi1_module)))			\
+	srfi1_module = scm_c_resolve_module ("srfi srfi-1");		\
+									\
+      var = scm_module_variable (srfi1_module,				\
+                                 scm_from_locale_symbol (name));	\
+      if (SCM_UNLIKELY (scm_is_false (var)))				\
+        abort ();							\
+									\
+      var = SCM_VARIABLE_REF (var);					\
+    }
 
 static long
 srfi1_ilength (SCM sx)
@@ -253,16 +274,12 @@ SCM_DEFINE (scm_srfi1_break_x, "break!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_car_plus_cdr, "car+cdr", 1, 0, 0,
-            (SCM pair),
-	    "Return two values, the @sc{car} and the @sc{cdr} of @var{pair}.")
-#define FUNC_NAME s_scm_srfi1_car_plus_cdr
+SCM
+scm_srfi1_car_plus_cdr (SCM pair)
 {
-  SCM_VALIDATE_CONS (SCM_ARG1, pair);
-  return scm_values (scm_list_2 (SCM_CAR (pair), SCM_CDR (pair)));
+  CACHE_VAR (car_plus_cdr, "car+cdr");
+  return scm_call_1 (car_plus_cdr, pair);
 }
-#undef FUNC_NAME
-
 
 SCM_DEFINE (scm_srfi1_concatenate, "concatenate", 1, 0, 0,
             (SCM lstlst),
@@ -935,131 +952,19 @@ SCM_DEFINE (scm_srfi1_find_tail, "find-tail", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_fold, "fold", 3, 0, 1,
-            (SCM proc, SCM init, SCM list1, SCM rest),
-	    "Apply @var{proc} to the elements of @var{lst1} @dots{}\n"
-	    "@var{lstN} to build a result, and return that result.\n"
-	    "\n"
-	    "Each @var{proc} call is @code{(@var{proc} @var{elem1} @dots{}\n"
-	    "@var{elemN} @var{previous})}, where @var{elem1} is from\n"
-	    "@var{lst1}, through @var{elemN} from @var{lstN}.\n"
-	    "@var{previous} is the return from the previous call to\n"
-	    "@var{proc}, or the given @var{init} for the first call.  If any\n"
-	    "list is empty, just @var{init} is returned.\n"
-	    "\n"
-	    "@code{fold} works through the list elements from first to last.\n"
-	    "The following shows a list reversal and the calls it makes,\n"
-	    "\n"
-	    "@example\n"
-	    "(fold cons '() '(1 2 3))\n"
-	    "\n"
-	    "(cons 1 '())\n"
-	    "(cons 2 '(1))\n"
-	    "(cons 3 '(2 1)\n"
-	    "@result{} (3 2 1)\n"
-	    "@end example\n"
-	    "\n"
-	    "If @var{lst1} through @var{lstN} have different lengths,\n"
-	    "@code{fold} stops when the end of the shortest is reached.\n"
-	    "Ie.@: elements past the length of the shortest are ignored in\n"
-	    "the other @var{lst}s.  At least one @var{lst} must be\n"
-	    "non-circular.\n"
-	    "\n"
-	    "The way @code{fold} builds a result from iterating is quite\n"
-	    "general, it can do more than other iterations like say\n"
-	    "@code{map} or @code{filter}.  The following for example removes\n"
-	    "adjacent duplicate elements from a list,\n"
-	    "\n"
-	    "@example\n"
-	    "(define (delete-adjacent-duplicates lst)\n"
-	    "  (fold-right (lambda (elem ret)\n"
-	    "                (if (equal? elem (first ret))\n"
-	    "                    ret\n"
-	    "                    (cons elem ret)))\n"
-	    "              (list (last lst))\n"
-	    "              lst))\n"
-	    "(delete-adjacent-duplicates '(1 2 3 3 4 4 4 5))\n"
-	    "@result{} (1 2 3 4 5)\n"
-	    "@end example\n"
-	    "\n"
-	    "Clearly the same sort of thing can be done with a\n"
-	    "@code{for-each} and a variable in which to build the result,\n"
-	    "but a self-contained @var{proc} can be re-used in multiple\n"
-	    "contexts, where a @code{for-each} would have to be written out\n"
-	    "each time.")
-#define FUNC_NAME s_scm_srfi1_fold
+SCM
+scm_srfi1_fold (SCM proc, SCM init, SCM list1, SCM rest)
 {
-  SCM lst;
-  int argnum;
-  SCM_VALIDATE_REST_ARGUMENT (rest);
-
-  if (scm_is_null (rest))
-    {
-      /* one list */
-      SCM_VALIDATE_PROC (SCM_ARG1, proc);
-
-      for ( ; scm_is_pair (list1); list1 = SCM_CDR (list1))
-        init = scm_call_2 (proc, SCM_CAR (list1), init);
-
-      /* check below that list1 is a proper list, and done */
-      lst = list1;
-      argnum = 2;
-    }
-  else
-    {
-      /* two or more lists */
-      SCM  vec, args, a;
-      size_t  len, i;
-
-      /* vec is the list arguments */
-      vec = scm_vector (scm_cons (list1, rest));
-      len = SCM_SIMPLE_VECTOR_LENGTH (vec);
-
-      /* args is the argument list to pass to proc, same length as vec,
-         re-used for each call */
-      args = scm_make_list (SCM_I_MAKINUM (len+1), SCM_UNDEFINED);
-
-      for (;;)
-        {
-          /* first elem of each list in vec into args, and step those
-             vec entries onto their next element */
-          for (i = 0, a = args, argnum = 2;
-               i < len;
-               i++, a = SCM_CDR (a), argnum++)
-            {
-              lst = SCM_SIMPLE_VECTOR_REF (vec, i);  /* list argument */
-              if (! scm_is_pair (lst))
-                goto check_lst_and_done;
-              SCM_SETCAR (a, SCM_CAR (lst));  /* arg for proc */
-              SCM_SIMPLE_VECTOR_SET (vec, i, SCM_CDR (lst));  /* rest of lst */
-            }
-          SCM_SETCAR (a, init);
-
-          init = scm_apply (proc, args, SCM_EOL);
-        }
-    }
-
- check_lst_and_done:
-  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, argnum, FUNC_NAME, "list");
-  return init;
+  CACHE_VAR (fold, "fold");
+  return scm_apply_3 (fold, proc, init, list1, rest);
 }
-#undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_last, "last", 1, 0, 0,
-            (SCM lst),
-	    "Like @code{cons}, but with interchanged arguments.  Useful\n"
-	    "mostly when passed to higher-order procedures.")
-#define FUNC_NAME s_scm_srfi1_last
+SCM
+scm_srfi1_last (SCM lst)
 {
-  SCM pair = scm_last_pair (lst);
-  /* scm_last_pair returns SCM_EOL for an empty list */
-  SCM_VALIDATE_CONS (SCM_ARG1, pair);
-  return SCM_CAR (pair);
+  CACHE_VAR (last, "last");
+  return scm_call_1 (last, lst);
 }
-#undef FUNC_NAME
-
 
 SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
             (SCM lst),
@@ -1073,106 +978,12 @@ SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_list_index, "list-index", 2, 0, 1,
-            (SCM pred, SCM list1, SCM rest),
-	    "Return the index of the first set of elements, one from each of\n"
-	    "@var{lst1}@dots{}@var{lstN}, which satisfies @var{pred}.\n"
-	    "\n"
-	    "@var{pred} is called as @code{(@var{pred} elem1 @dots{}\n"
-	    "elemN)}.  Searching stops when the end of the shortest\n"
-	    "@var{lst} is reached.  The return index starts from 0 for the\n"
-	    "first set of elements.  If no set of elements pass then the\n"
-	    "return is @code{#f}.\n"
-	    "\n"
-	    "@example\n"
-	    "(list-index odd? '(2 4 6 9))      @result{} 3\n"
-	    "(list-index = '(1 2 3) '(3 1 2))  @result{} #f\n"
-	    "@end example")
-#define FUNC_NAME s_scm_srfi1_list_index
+SCM
+scm_srfi1_list_index (SCM pred, SCM list1, SCM rest)
 {
-  long  n = 0;
-  SCM   lst;
-  int   argnum;
-  SCM_VALIDATE_REST_ARGUMENT (rest);
-
-  if (scm_is_null (rest))
-    {
-      /* one list */
-      SCM_VALIDATE_PROC (SCM_ARG1, pred);
-
-      for ( ; scm_is_pair (list1); n++, list1 = SCM_CDR (list1))
-        if (scm_is_true (scm_call_1 (pred, SCM_CAR (list1))))
-          return SCM_I_MAKINUM (n);
-
-      /* not found, check below that list1 is a proper list */
-    end_list1:
-      lst = list1;
-      argnum = 2;
-    }
-  else if (scm_is_pair (rest) && scm_is_null (SCM_CDR (rest)))
-    {
-      /* two lists */
-      SCM list2 = SCM_CAR (rest);
-      SCM_VALIDATE_PROC (SCM_ARG1, pred);
-
-      for ( ; ; n++)
-        {
-          if (! scm_is_pair (list1))
-            goto end_list1;
-          if (! scm_is_pair (list2))
-            {
-              lst = list2;
-              argnum = 3;
-              break;
-            }
-          if (scm_is_true (scm_call_2 (pred,
-                                       SCM_CAR (list1), SCM_CAR (list2))))
-            return SCM_I_MAKINUM (n);
-
-          list1 = SCM_CDR (list1);
-          list2 = SCM_CDR (list2);
-        }
-    }
-  else
-    {
-      /* three or more lists */
-      SCM     vec, args, a;
-      size_t  len, i;
-
-      /* vec is the list arguments */
-      vec = scm_vector (scm_cons (list1, rest));
-      len = SCM_SIMPLE_VECTOR_LENGTH (vec);
-
-      /* args is the argument list to pass to pred, same length as vec,
-         re-used for each call */
-      args = scm_make_list (SCM_I_MAKINUM (len), SCM_UNDEFINED);
-
-      for ( ; ; n++)
-        {
-          /* first elem of each list in vec into args, and step those
-             vec entries onto their next element */
-          for (i = 0, a = args, argnum = 2;
-               i < len;
-               i++, a = SCM_CDR (a), argnum++)
-            {
-              lst = SCM_SIMPLE_VECTOR_REF (vec, i);  /* list argument */
-              if (! scm_is_pair (lst))
-                goto not_found_check_lst;
-              SCM_SETCAR (a, SCM_CAR (lst));  /* arg for pred */
-              SCM_SIMPLE_VECTOR_SET (vec, i, SCM_CDR (lst));  /* rest of lst */
-            }
-
-          if (scm_is_true (scm_apply (pred, args, SCM_EOL)))
-            return SCM_I_MAKINUM (n);
-        }
-    }
-
- not_found_check_lst:
-  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, argnum, FUNC_NAME, "list");
-  return SCM_BOOL_F;
+  CACHE_VAR (list_index, "list-index");
+  return scm_apply_2 (list_index, pred, list1, rest);
 }
-#undef FUNC_NAME
-
 
 /* This routine differs from the core list-copy in allowing improper lists.
    Maybe the core could allow them similarly.  */
@@ -1206,25 +1017,12 @@ SCM_DEFINE (scm_srfi1_list_copy, "list-copy", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_list_tabulate, "list-tabulate", 2, 0, 0,
-            (SCM n, SCM proc),
-	    "Return an @var{n}-element list, where each list element is\n"
-	    "produced by applying the procedure @var{init-proc} to the\n"
-	    "corresponding list index.  The order in which @var{init-proc}\n"
-	    "is applied to the indices is not specified.")
-#define FUNC_NAME s_scm_srfi1_list_tabulate
+SCM
+scm_srfi1_list_tabulate (SCM n, SCM proc)
 {
-  long i, nn;
-  SCM ret = SCM_EOL;
-  nn = scm_to_signed_integer (n, 0, LONG_MAX);
-  SCM_VALIDATE_PROC (SCM_ARG2, proc);
-  for (i = nn-1; i >= 0; i--)
-    ret = scm_cons (scm_call_1 (proc, scm_from_long (i)), ret);
-  return ret;
+  CACHE_VAR (list_tabulate, "list-tabulate");
+  return scm_call_2 (list_tabulate, n, proc);
 }
-#undef FUNC_NAME
-
 
 SCM_DEFINE (scm_srfi1_lset_adjoin, "lset-adjoin", 2, 0, 1,
             (SCM equal, SCM lst, SCM rest),
@@ -1609,21 +1407,12 @@ SCM_DEFINE (scm_srfi1_ninth, "ninth", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_not_pair_p, "not-pair?", 1, 0, 0,
-            (SCM obj),
-	    "Return @code{#t} is @var{obj} is not a pair, @code{#f}\n"
-	    "otherwise.\n"
-	    "\n"
-	    "This is shorthand notation @code{(not (pair?  @var{obj}))} and\n"
-	    "is supposed to be used for end-of-list checking in contexts\n"
-	    "where dotted lists are allowed.")
-#define FUNC_NAME s_scm_srfi1_not_pair_p
+SCM
+scm_srfi1_not_pair_p (SCM obj)
 {
-  return scm_from_bool (! scm_is_pair (obj));
+  CACHE_VAR (not_pair_p, "not-pair?");
+  return scm_call_1 (not_pair_p, obj);
 }
-#undef FUNC_NAME
-
 
 SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 	    (SCM pred, SCM list),
@@ -2153,17 +1942,14 @@ SCM_DEFINE (scm_srfi1_tenth, "tenth", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_xcons, "xcons", 2, 0, 0,
-            (SCM d, SCM a),
-	    "Like @code{cons}, but with interchanged arguments.  Useful\n"
-	    "mostly when passed to higher-order procedures.")
-#define FUNC_NAME s_scm_srfi1_xcons
+SCM
+scm_srfi1_xcons (SCM d, SCM a)
 {
-  return scm_cons (a, d);
+  CACHE_VAR (xcons, "xcons");
+  return scm_call_2 (xcons, d, a);
 }
-#undef FUNC_NAME
 
-
+
 void
 scm_init_srfi_1 (void)
 {
