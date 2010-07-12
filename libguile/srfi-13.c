@@ -1168,7 +1168,8 @@ SCM_DEFINE (scm_string_eq, "string=", 2, 4, 0,
 	    "value otherwise.")
 #define FUNC_NAME s_scm_string_eq
 {
-  if (SCM_LIKELY (scm_i_is_narrow_string (s1) == scm_i_is_narrow_string (s2)
+  if (SCM_LIKELY (scm_is_string (s1) && scm_is_string (s2) &&
+		  scm_i_is_narrow_string (s1) == scm_i_is_narrow_string (s2)
 		  && SCM_UNBNDP (start1) && SCM_UNBNDP (end1)
 		  && SCM_UNBNDP (start2) && SCM_UNBNDP (end2)))
     {
