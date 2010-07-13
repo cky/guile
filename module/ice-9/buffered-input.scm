@@ -64,7 +64,10 @@ with @var{continuation?} set to @code{#t}."
 	      (lambda ()
 		(cond 
 		 ((eof-object? read-string)
-		  read-string)
+                  (let ((eof read-string))
+                    (set! read-string "")
+                    (set! string-index -1)
+                    eof))
 		 ((>= string-index (string-length read-string))
 		  (set! string-index -1)
                   (get-character))
