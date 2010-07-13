@@ -392,9 +392,15 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
     {
       SCM new_tail;
 
+      if (c == ')' || (SCM_SQUARE_BRACKETS_P && c == ']'))
+        scm_i_input_error (FUNC_NAME, port,
+                           "in pair: mismatched close paren: ~A",
+                           scm_list_1 (SCM_MAKE_CHAR (c)));
+
       scm_ungetc (c, port);
-      if (scm_is_eq (scm_sym_dot,
-		     (tmp = scm_read_expression (port))))
+      tmp = scm_read_expression (port);
+
+      if (scm_is_eq (scm_sym_dot, tmp))
 	{
 	  SCM_SETCDR (tl, tmp = scm_read_expression (port));
 

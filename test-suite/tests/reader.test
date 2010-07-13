@@ -38,6 +38,8 @@
   (cons 'read-error "illegal character in escape sequence: .*$"))
 (define exception:missing-expression
   (cons 'read-error "no expression after #;"))
+(define exception:mismatched-paren
+  (cons 'read-error "mismatched close paren"))
 
 
 (define (read-string s)
@@ -131,7 +133,17 @@
     ;; mutable objects.
     (let ((str (with-input-from-string "\"hello, world\"" read)))
       (string-set! str 0 #\H)
-      (string=? str "Hello, world"))))
+      (string=? str "Hello, world")))
+
+  (pass-if "square brackets are parens"
+    (equal? '() (read-string "[]")))
+  
+  (pass-if-exception "paren mismatch" exception:unexpected-rparen
+                     (read-string "'[)"))
+
+  (pass-if-exception "paren mismatch (2)" exception:mismatched-paren
+                     (read-string "'(]")))
+
 
 
 (pass-if-exception "radix passed to number->string can't be zero"
