@@ -73,16 +73,16 @@ EXTRA_DIST +=					\
   ice-9/ChangeLog-2008
 
 include $(top_srcdir)/am/pre-inst-guile
-ice-9/psyntax-pp.scm: ice-9/psyntax.scm
+ice-9/psyntax-pp.scm.gen:
 	$(preinstguile) --no-autocompile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 	touch -r "$(srcdir)/ice-9/psyntax.scm" "$(srcdir)/ice-9/psyntax-pp.scm"
-	rm -f ice-9/psyntax-pp.go
 
 ice-9/psyntax-pp.go: ice-9/psyntax-pp.scm
 	GUILE_AUTO_COMPILE=0					\
 	$(top_builddir)/meta/uninstalled-env			\
 	guile-tools compile $(GUILE_WARNINGS) -o "ice-9/psyntax-pp.go" "$(srcdir)/ice-9/psyntax.scm"
+	touch -r "$(srcdir)/ice-9/psyntax.scm" "$(srcdir)/ice-9/psyntax-pp.scm"
 
 SCHEME_LANG_SOURCES =						\
   language/scheme/spec.scm					\
