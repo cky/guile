@@ -78,7 +78,7 @@ ice-9/psyntax-pp.scm.gen:
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 	touch -r "$(srcdir)/ice-9/psyntax.scm" "$(srcdir)/ice-9/psyntax-pp.scm"
 
-ice-9/psyntax-pp.go: ice-9/psyntax-pp.scm
+ice-9/psyntax-pp.go: ice-9/psyntax.scm
 	GUILE_AUTO_COMPILE=0					\
 	$(top_builddir)/meta/uninstalled-env			\
 	guile-tools compile $(GUILE_WARNINGS) -o "ice-9/psyntax-pp.go" "$(srcdir)/ice-9/psyntax.scm"
