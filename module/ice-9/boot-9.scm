@@ -3322,7 +3322,7 @@ module '(ice-9 q) '(make-q q-length))}."
 (module-use! the-scm-module (resolve-interface '(srfi srfi-4)))
 
 (define-module (guile-user)
-  #:autoload (system base compile) (compile))
+  #:autoload (system base compile) (compile compile-file))
 
 ;; Remain in the `(guile)' module at compilation-time so that the
 ;; `-Wunused-toplevel' warning works as expected.
