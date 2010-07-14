@@ -1,4 +1,4 @@
-#!../libguile/guile \
+#!../meta/guile \
 -e main -s
 !#
 
@@ -92,12 +92,15 @@
 
 
 ;;; User configurable settings:
-(define default-test-suite
-  (string-append (getenv "HOME") "/bogus-path/test-suite"))
+(define (default-test-suite)
+  (let ((argv0 (car (program-arguments))))
+    (if (string=? (basename argv0) "guile-test")
+        (dirname argv0)
+        (error "Cannot find default test suite."))))
 
 
 ;;; Variables that will receive their actual values later.
-(define test-suite default-test-suite)
+(define test-suite)
 
 (define tmp-dir #f)
 
@@ -192,7 +195,7 @@
     (set! test-suite
 	  (or (opt 'test-suite #f)
 	      (getenv "TEST_SUITE_DIR")
-	      default-test-suite))
+	      (default-test-suite)))
 
     ;; directory where temporary files are created.
     ;; when run from "make check", this must be under the build-dir,
