@@ -45,7 +45,8 @@
   (import (rename (only (guile) string-hash-ci 
                                 string-hash 
                                 hashq 
-                                hashv 
+                                hashv
+                                modulo
                                 *unspecified*
                                 @@)
 		  (string-hash-ci string-ci-hash))
@@ -88,7 +89,8 @@
   (define hashtable-mutable? r6rs:hashtable-mutable?)
 
   (define hash-by-value ((@@ (srfi srfi-69) caller-with-default-size) hashv))
-  (define (wrap-hash-function proc) (lambda (key obj) (proc key)))
+  (define (wrap-hash-function proc) 
+    (lambda (key capacity) (modulo (proc key) capacity)))
 
   (define* (make-eq-hashtable #:optional k)
     (make-r6rs-hashtable 

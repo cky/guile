@@ -45,7 +45,13 @@
 	   (abs-hashtable (make-hashtable abs abs-eqv?)))
       (hashtable-set! abs-hashtable -4 #t)
       (and (not (hashtable-contains? abs-hashtable 6))
-	   (hashtable-contains? abs-hashtable 4)))))      
+	   (hashtable-contains? abs-hashtable 4))))
+
+  (pass-if "hash function value used modulo capacity"
+    (let* ((constant-hash (lambda (x) most-positive-fixnum))
+	   (constant-hashtable (make-hashtable constant-hash eq?)))
+      (hashtable-set! constant-hashtable 'foo 'bar)
+      (hashtable-contains? constant-hashtable 'foo))))
 
 (with-test-prefix "hashtable?"
   (pass-if "hashtable? is #t on hashtables"
