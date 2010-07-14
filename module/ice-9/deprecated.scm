@@ -605,7 +605,12 @@ better yet, use the repl from `(system repl repl)'.")
   (issue-deprecation-warning
    "`set-repl-prompt!' is deprecated. Use `repl-default-prompt-set!' from
 the `(system repl common)' module.")
-  ((@ (system repl common) repl-default-prompt-set!) v))
+  ;; Avoid @, as when bootstrapping it will cause the (system repl common)
+  ;; module to be loaded at expansion time, which eventually loads srfi-1, but
+  ;; that fails due to an unbuilt supporting lib... grrrrrrrrr.
+  ((module-ref (resolve-interface '(system repl common))
+               'repl-default-prompt-set!)
+   v))
 
 (define (set-batch-mode?! arg)
   (cond
