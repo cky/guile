@@ -1030,6 +1030,7 @@ scm_getc (SCM port)
   int c;
   unsigned int bufcount = 0;
   char buf[SCM_MBCHAR_BUF_SIZE];
+  scm_t_uint32 result_buf;
   scm_t_wchar codepoint = 0;
   scm_t_uint32 *u32;
   size_t u32len;
@@ -1043,7 +1044,7 @@ scm_getc (SCM port)
   bufcount++;
 
   if (pt->encoding == NULL)
-    { 
+    {
       /* The encoding is Latin-1: bytes are characters.  */
       codepoint = (unsigned char) buf[0];
       goto success;
@@ -1051,22 +1052,29 @@ scm_getc (SCM port)
 
   for (;;)
     {
-      u32 = u32_conv_from_encoding (pt->encoding, 
-                                    (enum iconv_ilseq_handler) pt->ilseq_handler, 
-				    buf, bufcount, NULL, NULL, &u32len);
+      u32len = sizeof (result_buf) / sizeof (scm_t_uint32);
+      u32 = u32_conv_from_encoding (pt->encoding,
+                                    (enum iconv_ilseq_handler) pt->ilseq_handler,
+				    buf, bufcount, NULL, &result_buf, &u32len);
       if (u32 == NULL || u32len == 0)
 	{
 	  if (errno == ENOMEM)
 	    scm_memory_error ("Input decoding");
-          
+
 	  /* Otherwise errno is EILSEQ or EINVAL, so perhaps more
              bytes are needed.  Keep looping.  */
 	}
-      else 
+      else
 	{
 	  /* Complete codepoint found. */
 	  codepoint = u32[0];
-	  free (u32);
+
+	  if (SCM_UNLIKELY (u32 != &result_buf))
+	    /* libunistring up to 0.9.3 (included) would always heap-allocate
+	       the result even when a large-enough RESULT_BUF is supplied, see
+	       <http://lists.gnu.org/archive/html/bug-libunistring/2010-07/msg00003.html>.  */
+	    free (u32);
+
 	  goto success;
 	}
 
@@ -1543,22 +1551,44 @@ scm_unget_byte (int c, SCM port)
 }
 #undef FUNC_NAME
 
-void 
+void
 scm_ungetc (scm_t_wchar c, SCM port)
 #define FUNC_NAME "scm_ungetc"
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  scm_t_wchar *wbuf;
-  SCM str = scm_i_make_wide_string (1, &wbuf);
-  char *buf;
+  char *result;
+  char result_buf[10];
+  const char *encoding;
   size_t len;
   int i;
 
-  wbuf[0] = c;
-  buf = scm_to_stringn (str, &len, pt->encoding, pt->ilseq_handler);
-    
+  if (pt->encoding != NULL)
+    encoding = pt->encoding;
+  else
+    encoding = "ISO-8859-1";
+
+  len = sizeof (result_buf);
+  result = u32_conv_to_encoding (encoding,
+				 (enum iconv_ilseq_handler) pt->ilseq_handler,
+				 (uint32_t *) &c, 1, NULL,
+				 result_buf, &len);
+
+  if (SCM_UNLIKELY (result == NULL || len == 0))
+    {
+      SCM chr;
+
+      chr = scm_integer_to_char (scm_from_uint32 (c));
+      scm_encoding_error (FUNC_NAME, errno,
+			  "conversion to port encoding failed",
+			  "UTF-32", encoding,
+			  scm_string (scm_list_1 (chr)));
+    }
+
   for (i = len - 1; i >= 0; i--)
-    scm_unget_byte (buf[i], port);
+    scm_unget_byte (result[i], port);
+
+  if (SCM_UNLIKELY (result != result_buf))
+    free (result);
 
   if (c == '\n')
     {
@@ -1963,14 +1993,18 @@ find_valid_encoding (const char *enc)
 {
   int isvalid = 0;
   const char str[] = " ";
+  scm_t_uint32 result_buf;
   scm_t_uint32 *u32;
   size_t u32len;
-    
+
+  u32len = sizeof (result_buf) / sizeof (scm_t_uint32);
   u32 = u32_conv_from_encoding (enc, iconveh_error, str, 1,
-                                NULL, NULL, &u32len);
+                                NULL, &result_buf, &u32len);
   isvalid = (u32 != NULL);
-  free (u32);
-    
+
+  if (SCM_UNLIKELY (u32 != &result_buf))
+    free (u32);
+
   if (isvalid)
     return enc;
 
