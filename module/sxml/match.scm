@@ -49,18 +49,20 @@
   (syntax-rules ()
     ((_) *unspecified*)))
 
+(define %call/ec-prompt
+  (make-prompt-tag))
+
 (define-syntax call/ec
   ;; aka. `call-with-escape-continuation'
   (syntax-rules ()
     ((_ proc)
-     (let ((prompt (make-prompt-tag)))
-       (call-with-prompt prompt
-                         (lambda ()
-                           (proc (lambda args
-                                   (apply abort-to-prompt
-                                          prompt args))))
-                         (lambda (_ . args)
-                           (apply values args)))))))
+     (call-with-prompt %call/ec-prompt
+                       (lambda ()
+                         (proc (lambda args
+                                 (apply abort-to-prompt
+                                        %call/ec-prompt args))))
+                       (lambda (_ . args)
+                         (apply values args))))))
 
 (define-syntax let/ec
   (syntax-rules ()
