@@ -97,7 +97,6 @@
                                   subr msg args rest))
                   (else
                    (format #t "Throw to key `~a' with args `~s'." key args)))
-                (newline)
                 (format #t "Entering a new prompt.  ")
                 (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
                 ((@ (system repl repl) start-repl) #:debug debug))))))
