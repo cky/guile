@@ -33,6 +33,7 @@
 #include <io.h>
 #endif
 
+#include "libguile/deprecation.h"
 #include "libguile/stacks.h"
 #include "libguile/srcprop.h"
 #include "libguile/struct.h"
@@ -74,7 +75,28 @@
 static void
 display_header (SCM source, SCM port)
 {
-  scm_puts ("ERROR", port);
+  if (scm_is_true (source))
+    {
+      /* source := (addr . (filename . (line . column))) */
+      SCM fname = scm_cadr (source);
+      SCM line = scm_caddr (source);
+      SCM col = scm_cdddr (source);
+
+      if (scm_is_true (fname))
+	scm_prin1 (fname, port, 0);
+      else
+	scm_puts ("<unnamed port>", port);
+
+      if (scm_is_true (line) && scm_is_true (col))
+	{
+	  scm_putc (':', port);
+	  scm_intprint (scm_to_long (line) + 1, 10, port);
+	  scm_putc (':', port);
+	  scm_intprint (scm_to_long (col) + 1, 10, port);
+	}
+    }
+  else
+    scm_puts ("ERROR", port);
   scm_puts (": ", port);
 }
 
@@ -162,7 +184,7 @@ display_expression (SCM frame, SCM pname, SCM source, SCM port)
 }
 
 struct display_error_args {
-  SCM stack;
+  SCM frame;
   SCM port;
   SCM subr;
   SCM message;
@@ -173,14 +195,20 @@ struct display_error_args {
 static SCM
 display_error_body (struct display_error_args *a)
 {
-  SCM current_frame = SCM_BOOL_F;
   SCM source = SCM_BOOL_F;
   SCM pname = a->subr;
+
+ if (SCM_FRAMEP (a->frame))
+    {
+      source = scm_frame_source (a->frame);
+      if (!scm_is_symbol (pname) && !scm_is_string (pname))
+	pname = scm_procedure_name (scm_frame_procedure (a->frame));
+    }
 
   if (scm_is_symbol (pname) || scm_is_string (pname))
     {
       display_header (source, a->port);
-      display_expression (current_frame, pname, source, a->port);
+      display_expression (a->frame, pname, source, a->port);
     }
   display_header (source, a->port);
   scm_display_error_message (a->message, a->args, a->port);
@@ -217,11 +245,23 @@ display_error_handler (struct display_error_handler_data *data,
  * code should rather use the function scm_display_error.
  */
 void
-scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest)
+scm_i_display_error (SCM frame, SCM port, SCM subr, SCM message, SCM args, SCM rest)
 {
   struct display_error_args a;
   struct display_error_handler_data data;
-  a.stack = stack;
+
+  if (SCM_FRAMEP (frame))
+    a.frame = frame;
+#if SCM_ENABLE_DEPRECATED
+  else if (SCM_STACKP (frame))
+    {
+      scm_c_issue_deprecation_warning
+        ("Passing a stack to display-error is deprecated. Pass a frame instead.");
+      a.frame = scm_stack_ref (frame, SCM_INUM0);
+    }
+#endif
+  else
+    a.frame = SCM_BOOL_F;
   a.port  = port;
   a.subr  = subr;
   a.message = message;
@@ -236,9 +276,9 @@ scm_i_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM r
 
 
 SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
-	    (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest),
+	    (SCM frame, SCM port, SCM subr, SCM message, SCM args, SCM rest),
 	    "Display an error message to the output port @var{port}.\n"
-	    "@var{stack} is the saved stack for the error, @var{subr} is\n"
+	    "@var{frame} is the frame in which the error occurred, @var{subr} is\n"
 	    "the name of the procedure in which the error occurred and\n"
 	    "@var{message} is the actual error message, which may contain\n"
 	    "formatting instructions. These will format the arguments in\n"
@@ -248,7 +288,7 @@ SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
 {
   SCM_VALIDATE_OUTPUT_PORT (2, port);
 
-  scm_i_display_error (stack, port, subr, message, args, rest);
+  scm_i_display_error (frame, port, subr, message, args, rest);
 
   return SCM_UNSPECIFIED;
 }

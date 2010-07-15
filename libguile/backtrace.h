@@ -28,7 +28,7 @@
 SCM_API void scm_display_error_message (SCM message, SCM args, SCM port);
 SCM_INTERNAL void scm_i_display_error (SCM stack, SCM port, SCM subr,
 				       SCM message, SCM args, SCM rest);
-SCM_API SCM scm_display_error (SCM stack, SCM port, SCM subr, SCM message, SCM args, SCM rest);
+SCM_API SCM scm_display_error (SCM frame, SCM port, SCM subr, SCM message, SCM args, SCM rest);
 SCM_API SCM scm_display_application (SCM frame, SCM port, SCM indent);
 SCM_API SCM scm_display_backtrace (SCM stack, SCM port, SCM first, SCM depth);
 SCM_API SCM scm_display_backtrace_with_highlights (SCM stack, SCM port, SCM first, SCM depth, SCM highlights);
