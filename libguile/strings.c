@@ -1410,7 +1410,7 @@ scm_is_string (SCM obj)
 /* Conversion to/from other encodings.  */
 
 SCM_SYMBOL (scm_encoding_error_key, "encoding-error");
-static void
+void
 scm_encoding_error (const char *subr, int err, const char *message,
 		    const char *from, const char *to, SCM string_or_bv)
 {

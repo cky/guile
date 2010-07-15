@@ -195,6 +195,10 @@ SCM_INTERNAL int scm_i_is_narrow_symbol (SCM str);
 SCM_INTERNAL int scm_i_try_narrow_string (SCM str);
 SCM_INTERNAL SCM scm_i_symbol_substring (SCM sym, size_t start, size_t end);
 SCM_INTERNAL scm_t_wchar scm_i_symbol_ref (SCM sym, size_t x);
+SCM_INTERNAL void scm_encoding_error (const char *subr, int err,
+				      const char *message,
+				      const char *from, const char *to,
+				      SCM string_or_bv);
 
 /* internal utility functions. */
 
