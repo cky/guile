@@ -50,7 +50,7 @@
       (lambda () (%start-stack #t thunk))
 
       (case post-error
-        ((catch)
+        ((report)
          (lambda (key . args)
            (if (memq key pass-keys)
                (apply throw key args)
@@ -67,6 +67,10 @@
                    (format err "\nERROR: uncaught throw to `~a', args: ~a\n"
                            key args)))
                  (if #f #f)))))
+        ((catch)
+         (lambda (key . args)
+           (if (memq key pass-keys)
+               (apply throw key args))))
         (else
          (if (procedure? post-error)
              post-error ; a handler proc
