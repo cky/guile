@@ -1094,8 +1094,11 @@ VM_DEFINE_INSTRUCTION (62, apply, "apply", 1, -1, 1)
   ASSERT (nargs >= 2);
 
   len = scm_ilength (ls);
-  if (len < 0)
-    goto vm_error_wrong_type_arg;
+  if (SCM_UNLIKELY (len < 0))
+    {
+      finish_args = ls;
+      goto vm_error_apply_to_non_list;
+    }
 
   PUSH_LIST (ls, SCM_NULL_OR_NIL_P);
 
@@ -1113,8 +1116,11 @@ VM_DEFINE_INSTRUCTION (63, tail_apply, "tail-apply", 1, -1, 1)
   ASSERT (nargs >= 2);
 
   len = scm_ilength (ls);
-  if (len < 0)
-    goto vm_error_wrong_type_arg;
+  if (SCM_UNLIKELY (len < 0))
+    {
+      finish_args = ls;
+      goto vm_error_apply_to_non_list;
+    }
 
   PUSH_LIST (ls, SCM_NULL_OR_NIL_P);
 

@@ -111,23 +111,24 @@ VM_DEFINE_FUNCTION (138, cons, "cons", 2)
   RETURN (x);
 }
 
-#define VM_VALIDATE_CONS(x)                     \
+#define VM_VALIDATE_CONS(x, proc)		\
   if (SCM_UNLIKELY (!scm_is_pair (x)))          \
-    { finish_args = x;                          \
+    { func_name = proc;                         \
+      finish_args = x;                          \
       goto vm_error_not_a_pair;                 \
     }
   
 VM_DEFINE_FUNCTION (139, car, "car", 1)
 {
   ARGS1 (x);
-  VM_VALIDATE_CONS (x);
+  VM_VALIDATE_CONS (x, "car");
   RETURN (SCM_CAR (x));
 }
 
 VM_DEFINE_FUNCTION (140, cdr, "cdr", 1)
 {
   ARGS1 (x);
-  VM_VALIDATE_CONS (x);
+  VM_VALIDATE_CONS (x, "cdr");
   RETURN (SCM_CDR (x));
 }
 
@@ -136,7 +137,7 @@ VM_DEFINE_INSTRUCTION (141, set_car, "set-car!", 0, 2, 0)
   SCM x, y;
   POP (y);
   POP (x);
-  VM_VALIDATE_CONS (x);
+  VM_VALIDATE_CONS (x, "set-car!");
   SCM_SETCAR (x, y);
   NEXT;
 }
@@ -146,7 +147,7 @@ VM_DEFINE_INSTRUCTION (142, set_cdr, "set-cdr!", 0, 2, 0)
   SCM x, y;
   POP (y);
   POP (x);
-  VM_VALIDATE_CONS (x);
+  VM_VALIDATE_CONS (x, "set-cdr!");
   SCM_SETCDR (x, y);
   NEXT;
 }
@@ -397,9 +398,10 @@ VM_DEFINE_INSTRUCTION (163, make_array, "make-array", 3, -1, 1)
 /*
  * Structs
  */
-#define VM_VALIDATE_STRUCT(obj)			\
+#define VM_VALIDATE_STRUCT(obj, proc)           \
   if (SCM_UNLIKELY (!SCM_STRUCTP (obj)))	\
     {						\
+      func_name = proc;                         \
       finish_args = (obj);			\
       goto vm_error_not_a_struct;		\
     }
@@ -413,7 +415,7 @@ VM_DEFINE_FUNCTION (164, struct_p, "struct?", 1)
 VM_DEFINE_FUNCTION (165, struct_vtable, "struct-vtable", 1)
 {
   ARGS1 (obj);
-  VM_VALIDATE_STRUCT (obj);
+  VM_VALIDATE_STRUCT (obj, "struct_vtable");
   RETURN (SCM_STRUCT_VTABLE (obj));
 }
 
@@ -543,11 +545,12 @@ VM_DEFINE_INSTRUCTION (171, slot_set, "slot-set", 0, 3, 0)
 /*
  * Bytevectors
  */
-#define VM_VALIDATE_BYTEVECTOR(x)		\
+#define VM_VALIDATE_BYTEVECTOR(x, proc)		\
   do						\
     {						\
       if (SCM_UNLIKELY (!SCM_BYTEVECTOR_P (x)))	\
 	{					\
+          func_name = proc;                     \
 	  finish_args = x;			\
 	  goto vm_error_not_a_bytevector;	\
 	}					\
@@ -596,7 +599,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
   const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
 									\
-  VM_VALIDATE_BYTEVECTOR (bv);						\
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-ref");                      \
   i = SCM_I_INUM (idx);							\
   int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
 									\
@@ -618,7 +621,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
   const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
 									\
-  VM_VALIDATE_BYTEVECTOR (bv);						\
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-ref");                      \
   i = SCM_I_INUM (idx);							\
   int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
 									\
@@ -649,7 +652,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
   const type *float_ptr;						\
   ARGS2 (bv, idx);							\
 									\
-  VM_VALIDATE_BYTEVECTOR (bv);						\
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-ref");                      \
   i = SCM_I_INUM (idx);							\
   float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);		\
 									\
@@ -737,7 +740,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   scm_t_ ## type *int_ptr;						\
 									\
   POP (val); POP (idx); POP (bv);					\
-  VM_VALIDATE_BYTEVECTOR (bv);						\
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");                      \
   i = SCM_I_INUM (idx);							\
   int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
 									\
@@ -761,7 +764,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   scm_t_ ## type *int_ptr;						\
 									\
   POP (val); POP (idx); POP (bv);					\
-  VM_VALIDATE_BYTEVECTOR (bv);						\
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");                      \
   i = SCM_I_INUM (idx);							\
   int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
 									\
@@ -782,7 +785,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   type *float_ptr;						\
 								\
   POP (val); POP (idx); POP (bv);				\
-  VM_VALIDATE_BYTEVECTOR (bv);					\
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");              \
   i = SCM_I_INUM (idx);						\
   float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
 								\

@@ -53,6 +53,7 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 
   /* Internal variables */
   int nvalues = 0;
+  const char *func_name = NULL;         /* used for error reporting */
   SCM finish_args;                      /* used both for returns: both in error
                                            and normal situations */
 #ifdef HAVE_LABELS_AS_VALUES
@@ -142,9 +143,9 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     err_msg  = scm_from_locale_string ("VM: Unbound variable: ~s");
     goto vm_error;
 
-  vm_error_wrong_type_arg:
-    err_msg  = scm_from_locale_string ("VM: Wrong type argument");
-    finish_args = SCM_EOL;
+  vm_error_apply_to_non_list:
+    scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
+               finish_args, finish_args);
     goto vm_error;
 
   vm_error_kwargs_length_not_even:
@@ -181,7 +182,7 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 
   vm_error_wrong_type_apply:
     SYNC_ALL ();
-    scm_error (scm_arg_type_key, FUNC_NAME, "Wrong type to apply: ~S",
+    scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
                scm_list_1 (program), scm_list_1 (program));
     goto vm_error;
 
@@ -205,25 +206,25 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 
   vm_error_not_a_pair:
     SYNC_ALL ();
-    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "pair");
+    scm_wrong_type_arg_msg (func_name, 1, finish_args, "pair");
     /* shouldn't get here */
     goto vm_error;
 
   vm_error_not_a_bytevector:
     SYNC_ALL ();
-    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "bytevector");
+    scm_wrong_type_arg_msg (func_name, 1, finish_args, "bytevector");
     /* shouldn't get here */
     goto vm_error;
 
   vm_error_not_a_struct:
     SYNC_ALL ();
-    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "struct");
+    scm_wrong_type_arg_msg (func_name, 1, finish_args, "struct");
     /* shouldn't get here */
     goto vm_error;
 
   vm_error_not_a_thunk:
     SYNC_ALL ();
-    scm_wrong_type_arg_msg (FUNC_NAME, 1, finish_args, "thunk");
+    scm_wrong_type_arg_msg ("dynamic-wind", 1, finish_args, "thunk");
     /* shouldn't get here */
     goto vm_error;
 
