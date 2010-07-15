@@ -75,34 +75,32 @@
       (case on-error
         ((debug)
          (lambda (key . args)
-           (let ((stack (make-stack #t)))
+           (let* ((tag (and (pair? (fluid-ref %stacks))
+                            (cdar (fluid-ref %stacks))))
+                  (stack (narrow-stack->vector
+                          (make-stack #t)
+                          ;; Cut three frames from the top of the stack:
+                          ;; make-stack, this one, and the throw handler.
+                          3 
+                          ;; Narrow the end of the stack to the most recent
+                          ;; start-stack.
+                          tag
+                          ;; And one more frame, because %start-stack invoking
+                          ;; the start-stack thunk has its own frame too.
+                          0 (and tag 1)))
+                  (debug (make-debug stack 0)))
              (with-saved-ports
               (lambda ()
                 (pmatch args
                   ((,subr ,msg ,args . ,rest)
-                   (format #t "Throw to key `~a':\n" key)
-                   (display-error stack (current-output-port) subr msg args rest))
+                   (display-error (vector-ref stack 0) (current-output-port)
+                                  subr msg args rest))
                   (else
                    (format #t "Throw to key `~a' with args `~s'." key args)))
-                (format #t "Entering a new prompt. Type `,bt' for a backtrace")
-                (format #t " or `,q' to return to the old prompt.\n")
-                (let ((debug
-                       (make-debug
-                        (let ((tag (and (pair? (fluid-ref %stacks))
-                                        (cdar (fluid-ref %stacks)))))
-                          (narrow-stack->vector
-                           stack
-                           ;; Cut three frames from the top of the stack:
-                           ;; make-stack, this one, and the throw handler.
-                           3 
-                           ;; Narrow the end of the stack to the most recent
-                           ;; start-stack.
-                           tag
-                           ;; And one more frame, because %start-stack invoking
-                           ;; the start-stack thunk has its own frame too.
-                           0 (and tag 1)))
-                        0)))
-                  ((@ (system repl repl) start-repl) #:debug debug)))))))
+                (newline)
+                (format #t "Entering a new prompt.  ")
+                (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
+                ((@ (system repl repl) start-repl) #:debug debug))))))
         ((pass)
          (lambda (key . args)
            ;; fall through to rethrow
