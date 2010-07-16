@@ -34,7 +34,29 @@
             print-locals print-frame print-frames frame->module
             stack->vector narrow-stack->vector))
 
-;;; FIXME: add more repl meta-commands: continue, inspect, etc...
+;; TODO:
+;;
+;; Update this TODO list ;)
+;; partial meta-commands  (,qui -> ,quit)
+;; eval expression in context of frame
+;; set local variable in frame
+;; step until next instruction
+;; step until next function call/return
+;; step until return from frame
+;; step until different source line
+;; step until greater source line
+;; watch expression
+;; break on a function
+;; remove breakpoints
+;; set printing width
+;; display a truncated backtrace
+;; go to a frame by index
+;; (reuse gdb commands perhaps)
+;; disassemble a function
+;; disassemble the current function
+;; inspect any object
+;; hm, trace via reassigning global vars. tricksy.
+;; (state associated with vm ?)
 
 ;;;
 ;;; Debugger
@@ -174,4 +196,14 @@
 
 (define (narrow-stack->vector stack . args)
   (stack->vector (apply make-stack (stack-ref stack 0) args)))
+
+;; (define (debug)
+;;   (run-debugger
+;;    (narrow-stack->vector
+;;     (make-stack #t)
+;;     ;; Narrow the `make-stack' frame and the `debug' frame
+;;     2
+;;     ;; Narrow the end of the stack to the most recent start-stack.
+;;     (and (pair? (fluid-ref %stacks))
+;;          (cdar (fluid-ref %stacks))))))
 
