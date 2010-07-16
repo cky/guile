@@ -64,7 +64,6 @@
             the-last-stack
             save-stack
             named-module-use!
-            load-emacs-interface
             top-repl)
 
   #:replace (module-ref-submodule module-define-submodule!))
@@ -683,14 +682,6 @@ it.")
   (issue-deprecation-warning
    "`named-module-use!' is deprecated. Define it yourself if you need it.")
   (module-use! (resolve-module user) (resolve-interface usee)))
-
-(define (load-emacs-interface)
-  (issue-deprecation-warning
-   "`load-emacs-interface' and the old emacs interface itself are deprecated.
-Use Geiser.")
-  (and (provided? 'debug-extensions)
-       (debug-enable 'backtrace))
-  (named-module-use! '(guile-user) '(ice-9 emacs)))
 
 (define (top-repl)
   (issue-deprecation-warning
