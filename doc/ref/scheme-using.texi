@@ -35,10 +35,11 @@ current language is @code{scheme}, and the current module is
 support for languages other than Scheme.
 
 @menu
-* Readline::
-* Value Historyx::
-* Error Handling::
-* Interactive Debugger::        Using the interactive debugger.
+* Readline::                    
+* Value Historyx::              
+* REPL Commands::               
+* Error Handling::              
+* Interactive Debugging::       
 @end menu
 
 
@@ -125,157 +126,365 @@ data structure or closure, they may then be reclaimed by the garbage collector.
 @end deffn
 
 
+@node REPL Commands
+@subsection REPL Commands
+
+@cindex commands
+The REPL exists to read expressions, evaluate them, and then print their
+results. But sometimes one wants to tell the REPL to evaluate an
+expression in a different way, or to do something else altogether. A
+user can affect the way the REPL works with a @dfn{REPL command}.
+
+The previous section had an example of a command, in the form of
+@code{,option}.
+
+@lisp
+scheme@@(guile-user)> ,option value-history #t
+@end lisp
+
+@noindent
+Commands are distinguished from expressions by their initial comma
+(@samp{,}). Since a comma cannot begin an expression in most languages,
+it is an effective indicator to the REPL that the following text forms a
+command, not an expression.
+
+REPL commands are convenient because they are always there. Even if the
+current module doesn't have a binding for @code{pretty-print}, one can
+always @code{,pretty-print}.
+
+The following sections document the various commands, grouped together
+by functionality. Many of the commands have abbreviations; see the
+online help (@code{,help}) for more information.
+
+@menu
+* Help Commands::               
+* Module Commands::             
+* Language Commands::           
+* Compile Commands::            
+* Profile Commands::            
+* Debug Commands::              
+* Inspect Commands::            
+* System Commands::             
+@end menu
+
+@node Help Commands
+@subsubsection Help Commands
+
+When Guile starts interactively, it notifies the user that help can be
+had by typing @samp{,help}. Indeed, @code{help} is a command, and a
+particularly useful one, as it allows the user to discover the rest of
+the commands.
+
+@deffn {REPL Command} help [@samp{all} | group | @samp{[-c]} command]
+Show help.
+
+With one argument, tries to look up the argument as a group name, giving
+help on that group if successful. Otherwise tries to look up the
+argument as a command, giving help on the command.
+
+If there is a command whose name is also a group name, use the @samp{-c
+@var{command}} form to give help on the command instead of the group.
+
+Without any argument, a list of help commands and command groups
+are displayed.
+@end deffn
+
+@deffn {REPL Command} show [topic]
+Gives information about Guile.
+
+With one argument, tries to show a particular piece of information;
+currently supported topics are `warranty' (or `w'), `copying' (or `c'),
+and `version' (or `v').
+
+Without any argument, a list of topics is displayed.
+@end deffn
+
+@deffn {REPL Command} apropos regexp
+Find bindings/modules/packages.
+@end deffn
+
+@deffn {REPL Command} describe obj
+Show description/documentation.
+@end deffn
+
+@node Module Commands
+@subsubsection Module Commands
+
+@deffn {REPL Command} module [module]
+Change modules / Show current module.
+@end deffn
+
+@deffn {REPL Command} import [module ...]
+Import modules / List those imported.
+@end deffn
+
+@deffn {REPL Command} load file
+Load a file in the current module.
+@end deffn
+
+@deffn {REPL Command} binding
+List current bindings.
+@end deffn
+
+@node Language Commands
+@subsubsection Language Commands
+
+@deffn {REPL Command} language language
+Change languages.
+@end deffn
+
+@node Compile Commands
+@subsubsection Compile Commands
+
+@deffn {REPL Command} compile exp
+Generate compiled code.
+@end deffn
+
+@deffn {REPL Command} compile-file file
+Compile a file.
+@end deffn
+
+@deffn {REPL Command} disassemble exp
+Disassemble a compiled procedure.
+@end deffn
+
+@deffn {REPL Command} disassemble-file file
+Disassemble a file.
+@end deffn
+
+@node Profile Commands
+@subsubsection Profile Commands
+
+@deffn {REPL Command} time exp
+Time execution.
+@end deffn
+
+@deffn {REPL Command} profile exp
+Profile execution.
+@end deffn
+
+@deffn {REPL Command} trace exp
+Trace execution.
+@end deffn
+
+@node Debug Commands
+@subsubsection Debug Commands
+
+These debugging commands are only available within a recursive REPL;
+they do not work at the top level.
+
+@deffn {REPL Command} backtrace [count] [#:width w] [#:full? f]
+Print a backtrace.
+
+Print a backtrace of all stack frames, or innermost @var{COUNT} frames.
+If @var{count} is negative, the last @var{count} frames will be shown.
+@end deffn
+
+@deffn {REPL Command} up [count]
+Select a calling stack frame.
+
+Select and print stack frames that called this one.
+An argument says how many frames up to go.
+@end deffn
+
+@deffn {REPL Command} down [count]
+Select a called stack frame.
+
+Select and print stack frames called by this one.
+An argument says how many frames down to go.
+@end deffn
+
+@deffn {REPL Command} frame [idx]
+Show a frame.
+
+Show the selected frame.  With an argument, select a frame by index,
+then show it.
+@end deffn
+
+@deffn {REPL Command} procedure
+Print the procedure for the selected frame.
+@end deffn
+
+@deffn {REPL Command} locals
+Show local variables.
+
+Show locally-bound variables in the selected frame.
+@end deffn
+
+@c FIXME: whenever we regain support for stepping, here are the docs..
+
+@c The commands in this subsection all apply only when the stack is
+@c @dfn{continuable} --- in other words when it makes sense for the program
+@c that the stack comes from to continue running.  Usually this means that
+@c the program stopped because of a trap or a breakpoint.
+
+@c @deffn {Debugger Command} step [n]
+@c Tell the debugged program to do @var{n} more steps from its current
+@c position.  One @dfn{step} means executing until the next frame entry or
+@c exit of any kind.  @var{n} defaults to 1.
+@c @end deffn
+
+@c @deffn {Debugger Command} next [n]
+@c Tell the debugged program to do @var{n} more steps from its current
+@c position, but only counting frame entries and exits where the
+@c corresponding source code comes from the same file as the current stack
+@c frame.  (See @ref{Step Traps} for the details of how this works.)  If
+@c the current stack frame has no source code, the effect of this command
+@c is the same as of @code{step}.  @var{n} defaults to 1.
+@c @end deffn
+
+@c @deffn {Debugger Command} finish
+@c Tell the program being debugged to continue running until the completion
+@c of the current stack frame, and at that time to print the result and
+@c reenter the command line debugger.
+@c @end deffn
+
+@c @deffn {Debugger Command} continue
+@c Tell the program being debugged to continue running.  (In fact this is
+@c the same as the @code{quit} command, because it exits the debugger
+@c command loop and so allows whatever code it was that invoked the
+@c debugger to continue.)
+@c @end deffn
+
+@c The @code{evaluate} command is most useful for querying the value of a
+@c variable, either global or local, in the environment of the selected
+@c stack frame, but it can be used more generally to evaluate any
+@c expression.
+
+@c @deffn {Debugger Command} evaluate expression
+@c Evaluate an expression in the environment of the selected stack frame.
+@c The expression must appear on the same line as the command, however it
+@c may be continued over multiple lines.
+@c @end deffn
+
+@node Inspect Commands
+@subsubsection Inspect Commands
+
+@deffn {REPL Command} inspect EXP
+Inspect the result(s) of evaluating @var{exp}.
+@end deffn
+
+@deffn {REPL Command} pretty-print EXP
+Pretty-print the result(s) of evaluating @var{exp}.
+@end deffn
+
+@node System Commands
+@subsubsection System Commands
+
+@deffn {REPL Command} gc
+Garbage collection.
+@end deffn
+
+@deffn {REPL Command} statistics
+Display statistics.
+@end deffn
+
+@deffn {REPL Command} option [key value]
+List/show/set options.
+@end deffn
+
+@deffn {REPL Command} quit
+Quit this session.
+@end deffn
+
+
 @node Error Handling
 @subsection Error Handling
 
-When code being evaluated from the REPL hits an error, Guile remembers
-the execution context where the error occurred and can give you three
-levels of information about what the error was and exactly where it
-occurred.
-
-By default, Guile displays only the first level, which is the most
-immediate information about where and why the error occurred, for
-example:
+When code being evaluated from the REPL hits an error, Guile enters a
+new prompt, allowing you to inspect the context of the error.
 
 @lisp
-(make-string (* 4 (+ 3 #\s)) #\space)
-@print{}
-standard input:2:19: In procedure + in expression (+ 3 #\s):
-standard input:2:19: Wrong type argument: #\s
-ABORT: (wrong-type-arg)
-
-Type "(backtrace)" to get more information
-or "(debug)" to enter the debugger.
+scheme@@(guile-user)> (map string-append '("a" "b") '("c" #\d))
+ERROR: In procedure string-append:
+ERROR: Wrong type (expecting string): #\d
+Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+scheme@@(guile-user) [1]>
 @end lisp
 
-@noindent
-However, as the message above says, you can obtain more information
-about the context of the error by typing @code{(backtrace)} or
-@code{(debug)}.
+The new prompt runs inside the old one, in the dynamic context of the
+error.  It is a recursive REPL, augmented with a reified representation
+of the stack, ready for debugging.
 
-@code{(backtrace)} displays the Scheme call stack at the point where the
-error occurred:
+@code{,backtrace} (abbreviated @code{,bt}) displays the Scheme call
+stack at the point where the error occurred:
 
 @lisp
-(backtrace)
-@print{}
-Backtrace:
-In standard input:
-   2: 0* [make-string ...
-   2: 1*  [* 4 ...
-   2: 2*   [+ 3 #\s]
-
-Type "(debug-enable 'backtrace)" if you would like a backtrace
-automatically if an error occurs in the future.
+scheme@@(guile-user) [1]> ,bt
+           1 (map #<procedure string-append _> ("a" "b") ("c" #\d))
+           0 (string-append "b" #\d)
 @end lisp
 
-@noindent
-In a more complex scenario than this one, this can be extremely useful
-for understanding where and why the error occurred.  You can make Guile
-show the backtrace automatically by adding @code{(debug-enable
-'backtrace)} to your @file{.guile}.
+In the above example, the backtrace doesn't have much source
+information, as @code{map} and @code{string-append} are both
+primitives. But in the general case, the space on the left of the
+backtrace indicates the line and column in which a given procedure calls
+another.
 
-@code{(debug)} takes you into Guile's interactive debugger, which
-provides commands that allow you to
+You can exit a recursive REPL in the same way that you exit any REPL:
+via @samp{(quit)}, @samp{,quit} (abbreviated @samp{,q}), or
+@kbd{C-d}, among other options.
+
+
+@node Interactive Debugging
+@subsection Interactive Debugging
+
+A recursive debugging REPL exposes a number of other meta-commands that
+inspect the state of the computation at the time of the error. These
+commands allow you to
 
 @itemize @bullet
 @item
-display the Scheme call stack at the point where the error occurred
-(the @code{backtrace} command --- see @ref{Display Backtrace})
+display the Scheme call stack at the point where the error occurred;
 
 @item
 move up and down the call stack, to see in detail the expression being
-evaluated, or the procedure being applied, in each @dfn{frame} (the
-@code{up}, @code{down}, @code{frame}, @code{position}, @code{info args}
-and @code{info frame} commands --- see @ref{Frame Selection} and
-@ref{Frame Information})
+evaluated, or the procedure being applied, in each @dfn{frame}; and
 
 @item
 examine the values of variables and expressions in the context of each
-frame (the @code{evaluate} command --- see @ref{Frame Evaluation}).
+frame.
 @end itemize
 
 @noindent
-The interactive debugger is documented further in the following section.
+@xref{Debug Commands}, for documentation of the individual
+commands. This section aims to give more of a walkthrough of a typical
+debugging session.
 
-
-@node Interactive Debugger
-@subsection Using the Interactive Debugger
-
-Guile's interactive debugger is a command line application that
-accepts commands from you for examining the stack and, if stopped at a
-trap, for continuing program execution in various ways.  Unlike in the
-normal Guile REPL, commands are typed mostly without parentheses.
-
-When you first enter the debugger, it introduces itself with a message
-like this:
+First, we're going to need a good error. Let's try to macroexpand the
+expression @code{(unquote foo)}, outside of a @code{quasiquote} form,
+and see how the macroexpander reports this error.
 
 @lisp
-This is the Guile debugger -- for help, type `help'.
-There are 3 frames on the stack.
-
-Frame 2 at standard input:36:19
-        [+ 3 #\s]
-debug> 
+scheme@@(guile-user)> (macroexpand '(unquote foo))
+ERROR: In procedure macroexpand:
+ERROR: unquote: expression not valid outside of quasiquote in (unquote foo)
+Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+scheme@@(guile-user) [1]>
 @end lisp
 
-@noindent
-``debug>'' is the debugger's prompt, and a reminder that you are not in
-the normal Guile REPL.  In case you find yourself in the debugger by
-mistake, the @code{quit} command will return you to the REPL.  
-
-@deffn {Debugger Command} quit
-Exit the debugger.
-@end deffn
-
-The other available commands are described in the following subsections.
-
-@menu
-* Display Backtrace::           backtrace.
-* Frame Selection::             up, down, frame.
-* Frame Information::           info args, info frame, position.
-* Frame Evaluation::            evaluate.
-* Stepping and Continuing::     step, next, (trace-)finish, continue.
-@end menu
-
-
-@node Display Backtrace
-@subsubsection Display Backtrace
-
-The @code{backtrace} command, which can also be invoked as @code{bt} or
-@code{where}, displays the call stack (aka backtrace) at the point where
-the debugger was entered:
+The @code{backtrace} command, which can also be invoked as @code{bt},
+displays the call stack (aka backtrace) at the point where the debugger
+was entered:
 
 @lisp
-debug> bt
-In standard input:
-  36: 0* [make-string ...
-  36: 1*  [* 4 ...
-  36: 2*   [+ 3 #\s]
+scheme@@(guile-user) [1]> ,bt
+In ice-9/psyntax.scm:
+  1130:21  3 (chi-top (unquote foo) () ((top)) e (eval) (hygiene #))
+  1071:30  2 (syntax-type (unquote foo) () ((top)) #f #f (# #) #f)
+  1368:28  1 (chi-macro #<procedure de9360 at ice-9/psyntax.scm...> ...)
+In unknown file:
+           0 (scm-error syntax-error macroexpand "~a: ~a in ~a" # #f)
 @end lisp
-
-@deffn {Debugger Command} backtrace [count]
-@deffnx {Debugger Command} bt [count]
-@deffnx {Debugger Command} where [count]
-Print backtrace of all stack frames, or of the innermost @var{count}
-frames.  With a negative argument, print the outermost -@var{count}
-frames.  If the number of frames isn't explicitly given, the debug
-option @code{depth} determines the maximum number of frames printed.
-@end deffn
-
-The format of the displayed backtrace is the same as for the
-@code{display-backtrace} procedure (@pxref{Examining the Stack}).
-
-
-@node Frame Selection
-@subsubsection Frame Selection
 
 A call stack consists of a sequence of stack @dfn{frames}, with each
-frame describing one level of the nested evaluations and applications
-that the program was executing when it hit a breakpoint or an error.
-Frames are numbered such that frame 0 is the outermost --- i.e. the
-operation on the call stack that began least recently --- and frame N-1
-the innermost (where N is the total number of frames on the stack).
+frame describing one procedure which is waiting to do something with the
+values returned by another. Here we see that there are four frames on
+the stack.
+
+Note that @code{macroexpand} is not on the stack -- it must have made a
+tail call to @code{chi-top}, as indeed we would find if we searched
+@code{ice-9/psyntax.scm} for its definition.
 
 When you enter the debugger, the innermost frame is selected, which
 means that the commands for getting information about the ``current''
@@ -286,113 +495,67 @@ instead, use the @code{up}, @code{down} and @code{frame} commands like
 this:
 
 @lisp
-debug> up
-Frame 1 at standard input:36:14
-        [* 4 ...
-debug> frame 0
-Frame 0 at standard input:36:1
-        [make-string ...
-debug> down
-Frame 1 at standard input:36:14
-        [* 4 ...
+scheme@@(guile-user) [1]> ,up
+In ice-9/psyntax.scm:
+  1368:28  1 (chi-macro #<procedure de9360 at ice-9/psyntax.scm...> ...)
+scheme@@(guile-user) [1]> ,frame 3
+In ice-9/psyntax.scm:
+  1130:21  3 (chi-top (unquote foo) () ((top)) e (eval) (hygiene #))
+scheme@@(guile-user) [1]> ,down
+In ice-9/psyntax.scm:
+  1071:30  2 (syntax-type (unquote foo) () ((top)) #f #f (# #) #f)
 @end lisp
 
-@deffn {Debugger Command} up [n]
-Move @var{n} frames up the stack.  For positive @var{n}, this
-advances toward the outermost frame, to lower frame numbers, to
-frames that have existed longer.  @var{n} defaults to one.
-@end deffn
+Perhaps we're interested in what's going on in frame 2, so we take a
+look at its local variables:
 
-@deffn {Debugger Command} down [n]
-Move @var{n} frames down the stack.  For positive @var{n}, this
-advances toward the innermost frame, to higher frame numbers, to frames
-that were created more recently.  @var{n} defaults to one.
-@end deffn
+@lisp
+scheme@@(guile-user) [1]> ,locals
+  Local variables:
+  $1 = e = (unquote foo)
+  $2 = r = ()
+  $3 = w = ((top))
+  $4 = s = #f
+  $5 = rib = #f
+  $6 = mod = (hygiene guile-user)
+  $7 = for-car? = #f
+  $8 = first = unquote
+  $9 = ftype = macro
+  $10 = fval = #<procedure de9360 at ice-9/psyntax.scm:2817:2 (x)>
+  $11 = fe = unquote
+  $12 = fw = ((top))
+  $13 = fs = #f
+  $14 = fmod = (hygiene guile-user)
+@end lisp
 
-@deffn {Debugger Command} frame [n]
-Select and print a stack frame.  With no argument, print the selected
-stack frame.  (See also ``info frame''.)  An argument specifies the
-frame to select; it must be a stack-frame number.
-@end deffn
+All of the values are accessible by their value-history names
+(@code{$@var{n}}):
 
+@lisp
+scheme@@(guile-user) [1]> $10
+$15 = #<procedure de9360 at ice-9/psyntax.scm:2817:2 (x)>
+@end lisp
 
-@node Frame Information
-@subsubsection Frame Information
+We can even invoke the procedure at the REPL directly:
 
-The following commands return detailed information about the currently
-selected frame.
+@lisp
+scheme@@(guile-user) [1]> ($10 'not-going-to-work)
+ERROR: In procedure macroexpand:
+ERROR: source expression failed to match any pattern in not-going-to-work
+Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+@end lisp
 
-@deffn {Debugger Command} {info frame}
-Display a verbose description of the selected frame.  The information
-that this command provides is equivalent to what can be deduced from the
-one line summary for the frame that appears in a backtrace, but is
-presented and explained more clearly.
-@end deffn
+Well at this point we've caused an error within an error. Let's just
+quit back to the top level:
 
-@deffn {Debugger Command} {info args}
-Display the argument variables of the current stack frame.  Arguments
-can also be seen in the backtrace, but are presented more clearly by
-this command.
-@end deffn
+@lisp
+scheme@@(guile-user) [2]> ,q
+scheme@@(guile-user) [1]> ,q
+scheme@@(guile-user)> 
+@end lisp
 
-@deffn {Debugger Command} position
-Display the name of the source file that the current expression comes
-from, and the line and column number of the expression's opening
-parenthesis within that file.  This information is only available when
-the @code{positions} read option is enabled (@pxref{Reader options}).
-@end deffn
-
-
-@node Frame Evaluation
-@subsubsection Frame Evaluation
-
-The @code{evaluate} command is most useful for querying the value of a
-variable, either global or local, in the environment of the selected
-stack frame, but it can be used more generally to evaluate any
-expression.
-
-@deffn {Debugger Command} evaluate expression
-Evaluate an expression in the environment of the selected stack frame.
-The expression must appear on the same line as the command, however it
-may be continued over multiple lines.
-@end deffn
-
-
-@node Stepping and Continuing
-@subsubsection Single Stepping and Continuing Execution
-
-The commands in this subsection all apply only when the stack is
-@dfn{continuable} --- in other words when it makes sense for the program
-that the stack comes from to continue running.  Usually this means that
-the program stopped because of a trap or a breakpoint.
-
-@deffn {Debugger Command} step [n]
-Tell the debugged program to do @var{n} more steps from its current
-position.  One @dfn{step} means executing until the next frame entry or
-exit of any kind.  @var{n} defaults to 1.
-@end deffn
-
-@deffn {Debugger Command} next [n]
-Tell the debugged program to do @var{n} more steps from its current
-position, but only counting frame entries and exits where the
-corresponding source code comes from the same file as the current stack
-frame.  (See @ref{Step Traps} for the details of how this works.)  If
-the current stack frame has no source code, the effect of this command
-is the same as of @code{step}.  @var{n} defaults to 1.
-@end deffn
-
-@deffn {Debugger Command} finish
-Tell the program being debugged to continue running until the completion
-of the current stack frame, and at that time to print the result and
-reenter the command line debugger.
-@end deffn
-
-@deffn {Debugger Command} continue
-Tell the program being debugged to continue running.  (In fact this is
-the same as the @code{quit} command, because it exits the debugger
-command loop and so allows whatever code it was that invoked the
-debugger to continue.)
-@end deffn
+Finally, as a word to the wise: hackers close their REPL prompts with
+@kbd{C-d}.
 
 
 @node Using Guile in Emacs

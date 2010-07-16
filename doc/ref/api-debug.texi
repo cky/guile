@@ -504,7 +504,7 @@ highlighted wherever they appear in the backtrace.
 
 You can also use the @code{(debug)} command to explore the saved stack
 using an interactive command-line-driven debugger.  See @ref{Interactive
-Debugger} for more information about this.
+Debugging} for more information about this.
 
 @deffn {Scheme Procedure} debug
 Invoke the Guile debugger to explore the context of the last error.
