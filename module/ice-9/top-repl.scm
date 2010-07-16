@@ -54,16 +54,13 @@
     (process-use-modules 
      (append
       '(((ice-9 r5rs))
-        ((ice-9 session))
-        ((ice-9 debug)))
+        ((ice-9 session)))
       (if (provided? 'regex)
           '(((ice-9 regex)))
           '())
       (if (provided? 'threads)
           '(((ice-9 threads)))
           '())))
-    ;; load debugger on demand
-    (module-autoload! guile-user-module '(system vm debug) '(debug))
 
     (call-with-sigint
      (lambda ()

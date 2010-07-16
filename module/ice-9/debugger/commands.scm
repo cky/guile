@@ -17,7 +17,6 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (ice-9 debugger commands)
-  #:use-module (ice-9 debug)
   #:use-module ((ice-9 scm-style-repl) #:select (bad-throw))
   #:use-module (ice-9 debugger)
   #:use-module (ice-9 debugger state)

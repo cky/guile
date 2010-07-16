@@ -1,6 +1,6 @@
 ;;;; (ice-9 debugging trace) -- breakpoint trace behaviour
 
-;;; Copyright (C) 2002 Free Software Foundation, Inc.
+;;; Copyright (C) 2002, 2010 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,6 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (ice-9 debugging trace)
-  #:use-module (ice-9 debug)
   #:use-module (ice-9 debugger)
   #:use-module (ice-9 debugger utils)
   #:use-module (ice-9 debugging steps)
