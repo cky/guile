@@ -41,12 +41,11 @@ $ guile
 scheme@@(guile-user)> (+ 1 2 3)                ; add some numbers
 $1 = 6
 scheme@@(guile-user)> (define (factorial n)    ; define a function
-         (if (zero? n) 1 (* n (factorial (- n 1)))))
+                       (if (zero? n) 1 (* n (factorial (- n 1)))))
 scheme@@(guile-user)> (factorial 20)
 $2 = 2432902008176640000
-scheme@@(guile-user)> (getpwnam "jimb")        ; find my entry in /etc/passwd
-$3 = ("jimb" ".0krIpK2VqNbU" 4008 10 "Jim Blandy" "/u/jimb"
-  "/usr/local/bin/bash")
+scheme@@(guile-user)> (getpwnam "root")        ; look in /etc/passwd
+$3 = #("root" "x" 0 0 "root" "/root" "/bin/bash")
 scheme@@(guile-user)> @kbd{C-d}
 $
 @end example
