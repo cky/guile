@@ -182,6 +182,22 @@
 	     (string=? line test-string)))
   (delete-file filename))
 
+;;; read-line should use the port encoding (not the locale encoding).
+(let ((str "ĉu bone?"))
+      (with-locale "C"
+        (let* ((filename (test-file))
+               (port (open-file filename "wl")))
+          (set-port-encoding! port "UTF-8")
+          (write-line str port)
+          (let ((in-port (open-input-file filename)))
+            (set-port-encoding! in-port "UTF-8")
+            (let ((line (read-line in-port)))
+              (close-port in-port)
+              (close-port port)
+              (pass-if "file: read-line honors port encoding"
+                       (string=? line str))))
+          (delete-file filename))))
+
 ;;; ungetting characters and strings.
 (with-input-from-string "walk on the moon\nmoon"
 			(lambda ()
