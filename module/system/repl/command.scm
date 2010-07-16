@@ -232,7 +232,8 @@ are displayed."
 		   (display-summary usage #f header)))
 	       (cdr *command-table*))
      (newline)
-     (display "Type `,COMMAND -h' to show documentation of each command.")
+     (display
+      "Type `,help -c COMMAND' to show documentation of a particular command.")
      (newline))
     ((all)
      (for-each display-group *command-table*))
@@ -347,15 +348,10 @@ Import modules / List those imported."
         (for-each use args))))
 
 (define guile:load load)
-(define-meta-command (load repl file . opts)
+(define-meta-command (load repl file)
   "load FILE
-Load a file in the current module.
-
-  -f    Load source file (see `compile')"
-  (let ((file (->string file)))
-    (if (memq #:f opts)
-        (primitive-load file)
-        (guile:load file))))
+Load a file in the current module."
+  (guile:load (->string file)))
 
 (define-meta-command (binding repl)
   "binding
