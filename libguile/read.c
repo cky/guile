@@ -1627,11 +1627,10 @@ char *
 scm_i_scan_for_encoding (SCM port)
 {
   char header[SCM_ENCODING_SEARCH_SIZE+1];
-  size_t bytes_read;
+  size_t bytes_read, encoding_length, i;
   char *encoding = NULL;
   int utf8_bom = 0;
-  char *pos;
-  int i;
+  char *pos, *encoding_start;
   int in_comment;
 
   if (SCM_FPORTP (port) && !SCM_FDES_RANDOM_P (SCM_FPORT_FDES (port)))
@@ -1669,46 +1668,50 @@ scm_i_scan_for_encoding (SCM port)
     pos ++;
 
   /* grab the next token */
+  encoding_start = pos;
   i = 0;
-  while (pos + i - header <= SCM_ENCODING_SEARCH_SIZE 
-         && pos + i - header < bytes_read
-	 && (isalnum ((int) pos[i]) || strchr ("_-.:/,+=()", pos[i]) != NULL))
+  while (encoding_start + i - header <= SCM_ENCODING_SEARCH_SIZE
+         && encoding_start + i - header < bytes_read
+	 && (isalnum ((int) encoding_start[i])
+	     || strchr ("_-.:/,+=()", encoding_start[i]) != NULL))
     i++;
 
-  if (i == 0)
+  encoding_length = i;
+  if (encoding_length == 0)
     return NULL;
 
-  encoding = scm_gc_strndup (pos, i, "encoding");
-  for (i = 0; i < strlen (encoding); i++)
+  encoding = scm_gc_strndup (encoding_start, encoding_length, "encoding");
+  for (i = 0; i < encoding_length; i++)
     encoding[i] = toupper ((int) encoding[i]);
 
   /* push backwards to make sure we were in a comment */
   in_comment = 0;
-  while (pos - i - header > 0)
+  pos = encoding_start;
+  while (pos >= header)
     {
-      if (*(pos - i) == '\n')
+      if (*pos == '\n')
 	{
 	  /* This wasn't in a semicolon comment. Check for a
 	   hash-bang comment. */
 	  char *beg = strstr (header, "#!");
 	  char *end = strstr (header, "!#");
-	  if (beg < pos && pos < end)
+	  if (beg < encoding_start && encoding_start + encoding_length < end)
 	    in_comment = 1;
 	  break;
 	}
-      if (*(pos - i) == ';')
+      if (*pos == ';')
 	{
 	  in_comment = 1;
 	  break;
 	}
-      i ++;
+      pos --;
     }
   if (!in_comment)
     /* This wasn't in a comment */
     return NULL;
 
   if (utf8_bom && strcmp(encoding, "UTF-8"))
-    scm_misc_error (NULL, 
+    scm_misc_error (NULL,
 		    "the port input declares the encoding ~s but is encoded as UTF-8",
 		    scm_list_1 (scm_from_locale_string (encoding)));
 
