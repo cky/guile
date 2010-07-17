@@ -383,29 +383,22 @@ with the same name that is not also ``replacing''.  Normally a
 replacement results in an ``override'' warning message, 
 @code{#:replace} avoids that.
 
-This is useful for modules that export bindings that have the same
-name as core bindings.  @code{#:replace}, in a sense, lets Guile know
-that the module @emph{purposefully} replaces a core binding.  It is
-important to note, however, that this binding replacement is confined
-to the name space of the module user.  In other words, the value of the
-core binding in question remains unchanged for other modules.
+In general, a module that exports a binding for which the @code{(guile)}
+module already has a definition should use @code{#:replace} instead of
+@code{#:export}.  @code{#:replace}, in a sense, lets Guile know that the
+module @emph{purposefully} replaces a core binding.  It is important to
+note, however, that this binding replacement is confined to the name
+space of the module user.  In other words, the value of the core binding
+in question remains unchanged for other modules.
 
-For instance, SRFI-39 exports a binding named
-@code{current-input-port} (@pxref{SRFI-39}) that is a function which
-is upwardly compatible with the core @code{current-input-port}
-function.  Therefore, SRFI-39 exports its version with
-@code{#:replace}.
-
-SRFI-19, on the other hand, exports its own version of
-@code{current-time} (@pxref{SRFI-19 Time}) which is not compatible
-with the core @code{current-time} function (@pxref{Time}).  Therefore,
-SRFI-19 does not use @code{#:replace}.
-
-The @code{#:replace} option can also be used by a module which is
-intentionally producing a new special kind of environment and should
-override any core or other bindings already in scope.  For example
-perhaps a logic processing environment where @code{<=} is an inference
-instead of a comparison.
+Note that although it is often a good idea for the replaced binding to
+remain compatible with a binding in @code{(guile)}, to avoid surprising
+the user, sometimes the bindings will be incompatible.  For example,
+SRFI-19 exports its own version of @code{current-time} (@pxref{SRFI-19
+Time}) which is not compatible with the core @code{current-time}
+function (@pxref{Time}).  Guile assumes that a user importing a module
+knows what she is doing, and uses @code{#:replace} for this binding
+rather than @code{#:export}.
 
 The @code{#:duplicates} (see below) provides fine-grain control about
 duplicate binding handling on the module-user side.

@@ -44,6 +44,7 @@
   :use-module (srfi srfi-9)
   :autoload   (ice-9 rdelim) (read-line)
   :use-module (ice-9 i18n)
+  :replace (current-time)
   :export (;; Constants
            time-duration
            time-monotonic
@@ -55,7 +56,6 @@
            current-date
            current-julian-day
            current-modified-julian-day
-           current-time
            time-resolution
            ;; Time object and accessors
            make-time
