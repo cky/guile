@@ -315,7 +315,7 @@ fport_canonicalize_filename (SCM filename)
  * Return the new port.
  */
 SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
-           (SCM filename, SCM mode),
+	    (SCM filename, SCM mode),
 	    "Open the file whose name is @var{filename}, and return a port\n"
 	    "representing that file.  The attributes of the port are\n"
 	    "determined by the @var{mode} string.  The way in which this is\n"
@@ -336,7 +336,10 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	    "The following additional characters can be appended:\n"
 	    "@table @samp\n"
 	    "@item b\n"
-	    "Open the underlying file in binary mode, if supported by the operating system. "
+	    "Open the underlying file in binary mode, if supported by the system.\n"
+	    "Also, open the file using the binary-compatible character encoding\n"
+	    "\"ISO-8859-1\", ignoring the port's encoding and the coding declaration\n"
+	    "at the top of the input file, if any.\n"
 	    "@item +\n"
 	    "Open the port for both input and output.  E.g., @code{r+}: open\n"
 	    "an existing file for both input and output.\n"
@@ -351,6 +354,11 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	    "Add line-buffering to the port.  The port output buffer will be\n"
 	    "automatically flushed whenever a newline character is written.\n"
 	    "@end table\n"
+	    "When the file is opened, this procedure will scan for a coding\n"
+	    "declaration@pxref{Character Encoding of Source Files}. If present\n"
+	    "will use that encoding for interpreting the file.  Otherwise, the\n"
+	    "port's encoding will be used.\n"
+	    "\n"
 	    "In theory we could create read/write ports which were buffered\n"
 	    "in one direction only.  However this isn't included in the\n"
 	    "current interfaces.  If a file cannot be opened with the access\n"
@@ -358,7 +366,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 #define FUNC_NAME s_scm_open_file
 {
   SCM port;
-  int fdes, flags = 0;
+  int fdes, flags = 0, use_encoding = 1;
   unsigned int retries;
   char *file, *md, *ptr;
 
@@ -393,6 +401,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	  flags = (flags & ~(O_RDONLY | O_WRONLY)) | O_RDWR;
 	  break;
 	case 'b':
+	  use_encoding = 0;
 #if defined (O_BINARY)
 	  flags |= O_BINARY;
 #endif
@@ -426,8 +435,26 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	}
     }
 
+  /* Create a port from this file descriptor.  The port's encoding is initially
+     %default-port-encoding.  */
   port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode),
                              fport_canonicalize_filename (filename));
+
+  if (use_encoding)
+    {
+      /* If this file has a coding declaration, use that as the port
+	 encoding.  */
+      if (SCM_INPUT_PORT_P (port))
+	{
+	  char *enc = scm_i_scan_for_encoding (port);
+	  if (enc != NULL)
+	    scm_i_set_port_encoding_x (port, enc);
+	}
+    }
+  else
+    /* If this is a binary file, use the binary-friendly ISO-8859-1
+       encoding.  */
+    scm_i_set_port_encoding_x (port, NULL);
 
   scm_dynwind_end ();
 

@@ -21,7 +21,8 @@
   :use-module (test-suite lib)
   :use-module (test-suite guile-test)
   :use-module (ice-9 popen)
-  :use-module (ice-9 rdelim))
+  :use-module (ice-9 rdelim)
+  :use-module (rnrs bytevectors))
 
 (define (display-line . args)
   (for-each display args)
@@ -184,19 +185,76 @@
 
 ;;; read-line should use the port encoding (not the locale encoding).
 (let ((str "ĉu bone?"))
-      (with-locale "C"
-        (let* ((filename (test-file))
-               (port (open-file filename "wl")))
-          (set-port-encoding! port "UTF-8")
-          (write-line str port)
-          (let ((in-port (open-input-file filename)))
-            (set-port-encoding! in-port "UTF-8")
-            (let ((line (read-line in-port)))
-              (close-port in-port)
-              (close-port port)
-              (pass-if "file: read-line honors port encoding"
-                       (string=? line str))))
-          (delete-file filename))))
+  (with-locale "C"
+               (let* ((filename (test-file))
+                      (port (open-file filename "wl")))
+                 (set-port-encoding! port "UTF-8")
+                 (write-line str port)
+                 (let ((in-port (open-input-file filename)))
+                   (set-port-encoding! in-port "UTF-8")
+                   (let ((line (read-line in-port)))
+                     (close-port in-port)
+                     (close-port port)
+                     (pass-if "file: read-line honors port encoding"
+                              (string=? line str))))
+                 (delete-file filename))))
+
+;;; binary mode ignores port encoding
+(pass-if "file: binary mode ignores port encoding"
+  (with-fluids ((%default-port-encoding "UTF-8"))
+               (let* ((filename (test-file))
+                      (port (open-file filename "w"))
+                      (test-string "一二三")
+                      (binary-test-string
+                       (apply string
+                              (map integer->char
+                                   (uniform-vector->list
+                                    (string->utf8 test-string))))))
+                 (write-line test-string port)
+                 (close-port port)
+                 (let* ((in-port (open-file filename "rb"))
+                        (line (read-line in-port)))
+                   (close-port in-port)
+                   (delete-file filename)
+                   (string=? line binary-test-string)))))
+
+;;; binary mode ignores file coding declaration
+(pass-if "file: binary mode ignores file coding declaration"
+  (with-fluids ((%default-port-encoding "UTF-8"))
+               (let* ((filename (test-file))
+                      (port (open-file filename "w"))
+                      (test-string "一二三")
+                      (binary-test-string
+                       (apply string
+                              (map integer->char
+                                   (uniform-vector->list
+                                    (string->utf8 test-string))))))
+                 (write-line ";; coding: utf-8" port)
+                 (write-line test-string port)
+                 (close-port port)
+                 (let* ((in-port (open-file filename "rb"))
+                        (line1 (read-line in-port))
+                        (line2 (read-line in-port)))
+                   (close-port in-port)
+                   (delete-file filename)
+                   (string=? line2 binary-test-string)))))
+
+;; open-file honors file coding declarations
+(pass-if "file: open-file honors coding declarations"
+  (with-fluids ((%default-port-encoding "UTF-8"))
+               (let* ((filename (test-file))
+                      (port (open-output-file filename))
+                      (test-string "€100"))
+                 (set-port-encoding! port "ISO-8859-15")
+                 (write-line ";; coding: iso-8859-15" port)
+                 (write-line test-string port)
+                 (close-port port)
+                 (let* ((in-port (open-input-file filename))
+                        (line1 (read-line in-port))
+                        (line2 (read-line in-port)))
+                   (close-port in-port)
+                   (delete-file filename)
+                   (string=? line2 test-string)))))
 
 ;;; ungetting characters and strings.
 (with-input-from-string "walk on the moon\nmoon"

@@ -130,8 +130,8 @@ this fluid otherwise.
 
 @deffn {Scheme Procedure} port-encoding port
 @deffnx {C Function} scm_port_encoding
-Returns, as a string, the character encoding that @var{port} uses to
-interpret its input and output.
+Returns, as a string, the character encoding that @var{port} uses to interpret
+its input and output.  The value @code{#f} is equivalent to @code{"ISO-8859-1"}.
 @end deffn
 
 @deffn {Scheme Procedure} set-port-conversion-strategy! port sym
@@ -856,10 +856,24 @@ systems, but has no effect on Unix-like systems.
 (For reference, Guile leaves text versus binary up to the C library,
 @code{b} here just adds @code{O_BINARY} to the underlying @code{open}
 call, when that flag is available.)
+
+Also, open the file using the 8-bit character encoding "ISO-8859-1",
+ignoring any coding declaration or port encoding.
+
+Note that, when reading or writing binary data with ports, the
+bytevector ports in the @code{(rnrs io ports)} module are preferred,
+as they return vectors, and not strings (@pxref{R6RS I/O Ports}).
 @end table
 
 If a file cannot be opened with the access
 requested, @code{open-file} throws an exception.
+
+When the file is opened, this procedure will scan for a coding
+declaration (@pxref{Character Encoding of Source Files}). If present
+will use that encoding for interpreting the file.  Otherwise, the
+port's encoding will be used.  To supress this behavior, open
+the file in binary mode and then set the port encoding explicitly
+using @code{set-port-encoding!}.
 
 In theory we could create read/write ports which were buffered
 in one direction only.  However this isn't included in the
