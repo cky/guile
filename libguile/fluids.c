@@ -44,7 +44,7 @@ static size_t allocated_fluids_len = 0;
 
 static scm_i_pthread_mutex_t fluid_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-#define IS_FLUID(x)         SCM_I_FLUID_P (x)
+#define IS_FLUID(x)         SCM_FLUID_P (x)
 #define FLUID_NUM(x)        SCM_I_FLUID_NUM (x)
 
 #define IS_DYNAMIC_STATE(x) SCM_I_DYNAMIC_STATE_P (x)

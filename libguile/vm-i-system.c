@@ -1594,7 +1594,7 @@ VM_DEFINE_INSTRUCTION (92, fluid_ref, "fluid-ref", 0, 1, 1)
   
   CHECK_UNDERFLOW ();
   fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
-  if (SCM_UNLIKELY (!SCM_I_FLUID_P (*sp))
+  if (SCM_UNLIKELY (!SCM_FLUID_P (*sp))
       || ((num = SCM_I_FLUID_NUM (*sp)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
       /* Punt dynstate expansion and error handling to the C proc. */
@@ -1615,7 +1615,7 @@ VM_DEFINE_INSTRUCTION (93, fluid_set, "fluid-set", 0, 2, 0)
   POP (val);
   POP (fluid);
   fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
-  if (SCM_UNLIKELY (!SCM_I_FLUID_P (fluid))
+  if (SCM_UNLIKELY (!SCM_FLUID_P (fluid))
       || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
       /* Punt dynstate expansion and error handling to the C proc. */

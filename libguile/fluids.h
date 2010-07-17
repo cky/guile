@@ -54,8 +54,10 @@
    grow.
  */
 
-#define SCM_I_FLUID_P(x)          (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
+#define SCM_FLUID_P(x)          (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
+#ifdef BUILDING_LIBGUILE
 #define SCM_I_FLUID_NUM(x)        ((size_t)SCM_CELL_WORD_1(x))
+#endif
 
 SCM_API SCM scm_make_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
@@ -75,8 +77,10 @@ SCM_API SCM scm_with_fluid (SCM fluid, SCM val, SCM thunk);
 
 SCM_API void scm_dynwind_fluid (SCM fluid, SCM value);
 
+#ifdef BUILDING_LIBGUILE
 #define SCM_I_DYNAMIC_STATE_P(x) (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_dynamic_state)
 #define SCM_I_DYNAMIC_STATE_FLUIDS(x)        SCM_PACK (SCM_CELL_WORD_1 (x))
+#endif
 
 SCM_API SCM scm_make_dynamic_state (SCM parent);
 SCM_API SCM scm_dynamic_state_p (SCM obj);
