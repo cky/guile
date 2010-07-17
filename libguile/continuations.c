@@ -74,16 +74,15 @@ static scm_t_bits tc16_continuation;
 #define ALIGN_PTR(type,p,align) (type*)(ROUND_UP (((scm_t_bits)p), align))
 
 #ifdef SCM_ALIGNED
-#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)\
+#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)     \
 static const type sym[]
-#define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)\
+#define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)  \
 static SCM_ALIGNED (alignment) const type sym[]
 #else
-#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)\
+#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)     \
 static type *sym
 #define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)                  \
-SCM_SNARF_INIT(sym = scm_malloc (sizeof(sym##__unaligned) + alignment - 1); \
-               sym = ALIGN_PTR (type, sym, alignment);                  \
+SCM_SNARF_INIT(sym = scm_malloc_pointerless (sizeof(sym##__unaligned)); \
                memcpy (sym, sym##__unaligned, sizeof(sym##__unaligned));) \
 static type *sym = NULL;                                                \
 static const type sym##__unaligned[]
